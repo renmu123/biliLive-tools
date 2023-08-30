@@ -1,26 +1,31 @@
-# bili-uploader
+# biliLive-tools
 
-An Electron application with Vue and TypeScript
+这是一个用于上传录播到 B 站的工具。
 
-## Recommended IDE Setup
+# TODO
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin)
+- [ ] 支持使用ffmpeg压制弹幕至录播文件
+- [ ] 支持使用danmufactory自动处理xml文件并进行压制
+- [ ] 支持使用ass-convert来进行弹幕处理以及压制高能进度条
+- [ ] 支持自动上传
+- [ ] 支持录播姬的webhook
+- [ ] 支持ffmpeg不同cpu，gpu以及相关配置
 
-## Project Setup
+# 开发
 
-### Install
+## Install
 
 ```bash
 $ npm install
 ```
 
-### Development
+## Development
 
 ```bash
 $ npm run dev
 ```
 
-### Build
+## Build
 
 ```bash
 # For windows
@@ -32,3 +37,7 @@ $ npm run build:mac
 # For Linux
 $ npm run build:linux
 ```
+
+# License
+
+GPL
