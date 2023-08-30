@@ -8,6 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     NButton: typeof import('naive-ui')['NButton']
+    NCheckbox: typeof import('naive-ui')['NCheckbox']
     NIcon: typeof import('naive-ui')['NIcon']
     NP: typeof import('naive-ui')['NP']
     NText: typeof import('naive-ui')['NText']
