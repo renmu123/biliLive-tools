@@ -7,18 +7,19 @@
   "license": "GPL",
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "scripts": {
-    "format": "prettier --write .",
-    "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts,.vue --fix",
-    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
-    "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
-    "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "dev": "electron-vite dev",
+    "devMain": "electron-vite dev --watch",
     "start": "electron-vite preview",
-    "dev": "electron-vite dev ",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:win": "npm run build && electron-builder --win --config",
     "build:mac": "npm run build && electron-builder --mac --config",
-    "build:linux": "npm run build && electron-builder --linux --config"
+    "build:linux": "npm run build && electron-builder --linux --config",
+    "format": "prettier --write .",
+    "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts,.vue --fix",
+    "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
+    "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
+    "typecheck": "npm run typecheck:node && npm run typecheck:web"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
@@ -26,6 +27,7 @@
     "@vueuse/core": "^10.4.1",
     "electron-updater": "^6.1.1",
     "fluent-ffmpeg": "^2.1.2",
+    "iconv-lite": "^0.6.3",
     "lodash-es": "^4.17.21",
     "vue-router": "^4.2.4"
   },

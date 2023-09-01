@@ -6,17 +6,19 @@ import icon from "../../resources/icon.png?asset";
 
 import ffmpeg from "fluent-ffmpeg";
 import type { File, OriginFile } from "../types";
+import { formatFile } from "./utils";
 
-import { saveDanmuConfig, getDanmuConfig } from "./danmu";
+import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
 
 const FFMPEG_PATH = join(__dirname, "../../bin/ffmpeg.exe");
 const FFPROBE_PATH = join(__dirname, "../../bin/ffprobe.exe");
-const DANMUKUFACTORY_PATH = join(__dirname, "../../bin/DanmakuFactory.exe");
 
 const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("convertFile2Mp4", convertFile2Mp4);
+
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
   ipcMain.handle("getDanmuConfig", getDanmuConfig);
+  ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);
 };
 
 let mainWin: BrowserWindow;
@@ -85,19 +87,6 @@ app.on("window-all-closed", () => {
     app.quit();
   }
 });
-
-const formatFile = (file: OriginFile): File => {
-  const filename = file.name;
-  const path = file.path;
-
-  const data = parse(path);
-
-  return {
-    ...data,
-    filename,
-    path,
-  };
-};
 
 const convertFile2Mp4 = (_event: IpcMainInvokeEvent, file: OriginFile) => {
   // 相同文件覆盖提示
