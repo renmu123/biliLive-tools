@@ -4,8 +4,9 @@
 
 # TODO
 
-- [ ] 支持使用ffmpeg压制弹幕至录播文件
+- [ ] 支持使用ffmpeg压制弹幕至视频文件
 - [ ] 支持使用danmufactory自动处理xml文件并进行压制
+- [ ] 工具页面，如转封装，danmufactory的GUI
 - [ ] 支持使用ass-convert来进行弹幕处理以及压制高能进度条
 - [ ] 支持自动上传
 - [ ] 支持录播姬的webhook

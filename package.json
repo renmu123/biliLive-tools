@@ -1,10 +1,11 @@
 {
   "name": "biliLive-tools",
   "version": "0.1.0",
-  "description": "An Electron application with Vue and TypeScript",
+  "description": "B站直播录制处理工具",
   "main": "./out/main/index.js",
-  "author": "example.com",
-  "homepage": "https://www.electronjs.org",
+  "author": "renmu123",
+  "license": "GPL",
+  "homepage": "https://github.com/renmu123/biliLive-tools",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts,.vue --fix",
@@ -25,7 +26,8 @@
     "@vueuse/core": "^10.4.1",
     "electron-updater": "^6.1.1",
     "fluent-ffmpeg": "^2.1.2",
-    "lodash-es": "^4.17.21"
+    "lodash-es": "^4.17.21",
+    "vue-router": "^4.2.4"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.1",

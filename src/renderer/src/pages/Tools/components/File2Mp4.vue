@@ -1,7 +1,7 @@
-<!-- 首页 -->
+<!-- 将文件转换为mp4 -->
 <template>
   <div>
-    <FileArea v-model="fileList"></FileArea>
+    <FileArea v-model="fileList" accept="video/*"></FileArea>
 
     <div class="center">
       <!-- <n-checkbox v-model:checked="options.checkSameFileFlag"> 是否检测同名文件 </n-checkbox> -->

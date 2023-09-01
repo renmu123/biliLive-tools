@@ -19,7 +19,11 @@ export default defineConfig({
       },
     },
     plugins: [
-      vue(),
+      vue({
+        script: {
+          defineModel: true,
+        },
+      }),
       AutoImport({
         imports: [
           "vue",

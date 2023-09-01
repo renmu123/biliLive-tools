@@ -1,8 +1,25 @@
-import { app, shell, BrowserWindow } from "electron";
-import { join } from "path";
+import { app, shell, BrowserWindow, ipcMain } from "electron";
+import type { IpcMainInvokeEvent, IpcMain } from "electron";
+import { join, parse } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 
+import ffmpeg from "fluent-ffmpeg";
+import type { File, OriginFile } from "../types";
+
+import { saveDanmuConfig, getDanmuConfig } from "./danmu";
+
+const FFMPEG_PATH = join(__dirname, "../../bin/ffmpeg.exe");
+const FFPROBE_PATH = join(__dirname, "../../bin/ffprobe.exe");
+const DANMUKUFACTORY_PATH = join(__dirname, "../../bin/DanmakuFactory.exe");
+
+const genHandler = (ipcMain: IpcMain) => {
+  ipcMain.handle("convertFile2Mp4", convertFile2Mp4);
+  ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
+  ipcMain.handle("getDanmuConfig", getDanmuConfig);
+};
+
+let mainWin: BrowserWindow;
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -33,6 +50,7 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
+  mainWin = mainWindow;
 }
 
 // This method will be called when Electron has finished
@@ -50,6 +68,7 @@ app.whenReady().then(() => {
   });
 
   createWindow();
+  genHandler(ipcMain);
 
   app.on("activate", function () {
     // On macOS it's common to re-create a window in the app when the
@@ -67,5 +86,50 @@ app.on("window-all-closed", () => {
   }
 });
 
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
+const formatFile = (file: OriginFile): File => {
+  const filename = file.name;
+  const path = file.path;
+
+  const data = parse(path);
+
+  return {
+    ...data,
+    filename,
+    path,
+  };
+};
+
+const convertFile2Mp4 = (_event: IpcMainInvokeEvent, file: OriginFile) => {
+  // 相同文件覆盖提示
+  const { name, path, dir } = formatFile(file);
+
+  const output = join(dir, `${name}.mp4`);
+  const command = ffmpeg(path)
+    .setFfmpegPath(FFMPEG_PATH)
+    .setFfprobePath(FFPROBE_PATH)
+    .output(output)
+    .videoCodec("copy");
+  command.run();
+
+  command.on("start", (commandLine: string) => {
+    console.log("Conversion start");
+    mainWin.webContents.send("task-start", commandLine);
+  });
+
+  command.on("end", () => {
+    console.log("Conversion ended");
+    mainWin.webContents.send("task-end");
+  });
+
+  command.on("error", (err) => {
+    console.log(`An error occurred: ${err.message}`);
+    mainWin.webContents.send("task-error", err);
+  });
+
+  command.on("progress", (progress) => {
+    console.log(progress);
+
+    console.log(`Processing: ${progress.percent}% done`);
+    mainWin.webContents.send("task-progress-update", progress);
+  });
+};
