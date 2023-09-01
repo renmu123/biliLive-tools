@@ -2,3 +2,5 @@ node_modules
 dist
 out
 *.log*
+bin
+DanmakuFactoryConfig.json
