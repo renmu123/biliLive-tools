@@ -3,8 +3,11 @@
   <div>
     <FileArea v-model="fileList" accept="application/xml"></FileArea>
 
-    <div class="center">
+    <div class="center flex flex-align-center flex-justify-center">
       <n-button type="primary" @click="convert"> 立即转换 </n-button>
+      <n-icon size="30" @click="openSetting" style="margin-left: 10px">
+        <SettingIcon />
+      </n-icon>
     </div>
     <DanmuFactorySettingDailog v-model="show"></DanmuFactorySettingDailog>
   </div>
@@ -14,6 +17,7 @@
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import type { UploadFileInfo } from "naive-ui";
+import { Settings as SettingIcon } from "@vicons/ionicons5";
 
 const fileList = ref<UploadFileInfo[]>([]);
 
@@ -40,7 +44,10 @@ const convert = async () => {
   console.log(result);
 };
 
-const show = ref(true);
+const show = ref(false);
+const openSetting = () => {
+  show.value = true;
+};
 </script>
 
 <style scoped></style>

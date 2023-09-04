@@ -1,4 +1,4 @@
-import { DANMU_DEAFULT_CONFIG } from "@/main/danmu";
+import { DANMU_DEAFULT_CONFIG } from "../main/danmu";
 
 export type DanmuConfig = typeof DANMU_DEAFULT_CONFIG;
 

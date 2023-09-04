@@ -11,9 +11,9 @@
         <div class="card">
           <h2>文字设置</h2>
           <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
-            <n-form-item label="文字大小" path="msgboxFontsize">
+            <n-form-item label="文字大小" path="fontsize">
               <n-input-number
-                v-model:value.number="config.msgboxFontsize"
+                v-model:value.number="config.fontsize"
                 class="input-number"
                 :min="0"
               />
@@ -150,6 +150,69 @@
             </div>
           </n-form>
         </div>
+        <n-divider />
+
+        <div class="card">
+          <h2>礼物栏设置</h2>
+          <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
+            <n-form-item path="showMsgbox">
+              <n-checkbox v-model:checked="config.showMsgbox"> 显示礼物框 </n-checkbox>
+            </n-form-item>
+            <template v-if="config.showMsgbox">
+              <n-form-item label="礼物框尺寸" path="msgboxSize">
+                <n-input-number
+                  v-model:value.number="config.msgboxSize[0]"
+                  class="input-number"
+                  :min="0"
+                  :step="100"
+                />&nbsp;X&nbsp;
+                <n-input-number
+                  v-model:value.number="config.msgboxSize[1]"
+                  class="input-number"
+                  :min="0"
+                  :step="100"
+                />
+              </n-form-item>
+              <n-form-item label="礼物框位置" path="msgboxPos">
+                <n-input-number
+                  v-model:value.number="config.msgboxPos[0]"
+                  class="input-number"
+                  :step="10"
+                />&nbsp;X&nbsp;
+                <n-input-number
+                  v-model:value.number="config.msgboxPos[1]"
+                  class="input-number"
+                  :step="10"
+                />
+              </n-form-item>
+              <n-form-item label="礼物框文字大小" path="msgboxFontsize">
+                <n-input-number
+                  v-model:value.number="config.msgboxFontsize"
+                  class="input-number"
+                  :min="0"
+                />
+              </n-form-item>
+              <n-form-item label="礼物框持续时间" path="msgboxDuration">
+                <n-input-number
+                  v-model:value.number="config.msgboxDuration"
+                  class="input-number"
+                  :min="0"
+                />
+              </n-form-item>
+              <n-form-item
+                v-if="isAdvancedMode"
+                label="同一用户相同礼物自动合并的时间窗"
+                path="giftMergeTolerance"
+              >
+                <n-input-number
+                  v-model:value.number="config.giftMergeTolerance"
+                  class="input-number"
+                  :min="0"
+                />
+              </n-form-item>
+            </template>
+          </n-form>
+        </div>
       </div>
 
       <template #footer>
@@ -165,15 +228,18 @@
 
 <script setup lang="ts">
 const showModal = defineModel<boolean>({ required: true, default: false });
-import type { DanmuConfig } from "@/types";
+import type { DanmuConfig } from "../../../types";
 
 const simpledMode = ref(true);
 const isAdvancedMode = computed(() => {
   return !simpledMode.value;
 });
 
-const config = ref<DanmuConfig>({
+// @ts-ignore
+const config: Ref<DanmuConfig> = ref({
   resolution: [],
+  msgboxSize: [],
+  msgboxPos: [],
 });
 const getConfig = async () => {
   const data = await window.api.getDanmuConfig();
@@ -184,8 +250,8 @@ const getConfig = async () => {
 const saveConfig = async () => {
   console.log(config.value);
 
-  // await window.api.saveDanmuConfig(config.value);
-  // close();
+  await window.api.saveDanmuConfig(toRaw(config.value));
+  close();
 };
 
 const close = () => {

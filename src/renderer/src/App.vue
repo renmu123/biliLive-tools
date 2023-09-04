@@ -31,7 +31,7 @@
 import { NIcon } from "naive-ui";
 import type { MenuOption } from "naive-ui";
 import { RouterLink } from "vue-router";
-import { BookOutline as BookIcon, HomeOutline as HomeIcon } from "@vicons/ionicons5";
+import { BuildOutline as BookIcon, HomeOutline as HomeIcon } from "@vicons/ionicons5";
 
 const activeKey = ref("go-back-home");
 const collapsed = ref(true);

@@ -13,8 +13,9 @@ export default class Config {
 
     const exePath = app.getPath("exe");
     // 判断exe文件夹中是否存在filename的文件，不存在则创建
-    const configPath = path.join(exePath, filename);
-    if (!fs.existsSync(configPath)) {
+    // const configPath = path.join(exePath, filename);
+    // console.log(configPath);
+    if (!fs.existsSync(filename)) {
       if (autoInit) {
         this.init({});
       }
