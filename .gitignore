@@ -3,4 +3,4 @@ dist
 out
 *.log*
 bin
-DanmakuFactoryConfig.json
+config

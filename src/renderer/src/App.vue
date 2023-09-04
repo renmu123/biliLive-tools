@@ -1,6 +1,6 @@
 <template>
   <n-space vertical>
-    <n-layout has-sider>
+    <n-layout has-sider class="layout">
       <n-layout-sider
         bordered
         collapse-mode="width"

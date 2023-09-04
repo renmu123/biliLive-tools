@@ -2,20 +2,22 @@ import { app } from "electron";
 import path from "path";
 import fs from "fs";
 
+const CONFIG_PATH = path.join(__dirname, "../../config");
+
 export default class Config {
   filename: string;
   data: {
     [propName: string]: any;
   };
+  path: string;
   constructor(filename: string, autoInit = true) {
     this.filename = filename;
     this.data = {};
 
-    const exePath = app.getPath("exe");
+    // const exePath = app.getPath("exe");
     // 判断exe文件夹中是否存在filename的文件，不存在则创建
-    // const configPath = path.join(exePath, filename);
-    // console.log(configPath);
-    if (!fs.existsSync(filename)) {
+    this.path = path.join(CONFIG_PATH, filename);
+    if (!fs.existsSync(this.path)) {
       if (autoInit) {
         this.init({});
       }
@@ -36,7 +38,7 @@ export default class Config {
   }
   save() {
     // 保存文件
-    fs.writeFileSync(this.filename, JSON.stringify(this.data));
+    fs.writeFileSync(this.path, JSON.stringify(this.data));
   }
   init(data: { [propName: string]: any }) {
     // 初始化文件
@@ -50,6 +52,6 @@ export default class Config {
   }
   read() {
     // 读取文件
-    this.data = JSON.parse(fs.readFileSync(this.filename, "utf-8"));
+    this.data = JSON.parse(fs.readFileSync(this.path, "utf-8"));
   }
 }

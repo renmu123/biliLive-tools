@@ -48,14 +48,15 @@ export const getDanmuConfig = () => {
 };
 
 export const convertDanmu2Ass = async (_event: IpcMainInvokeEvent, files: File[]) => {
+  const config = getConfig();
   const formatFiles = files.map((file) => formatFile(file));
-  console.log(formatFiles);
 
   const { dir, name, path } = formatFiles[0];
   const output = join(dir, `${name}.ass`);
   // DanmakuFactory.exe -o "%BASENAME%.ass" -i "%BASENAME%.xml" --ignore-warnings --showmsgbox true -S 54 -O 255 --msgboxpos 20 -60
-  const params = [`-i ${path}`, `-o ${output}`, "--ignore-warnings"];
+  const params = [`-i "${path}"`, `-o "${output}"`, "--ignore-warnings", `-c "${config.path}"`];
   const command = `${DANMUKUFACTORY_PATH} ${params.join(" ")}`;
+
   console.log(command);
 
   const result: any[] = [];
