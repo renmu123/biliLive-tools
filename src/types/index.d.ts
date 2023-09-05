@@ -27,6 +27,7 @@ export interface Progress {
   currentKbps: number;
   targetSize: number;
   timemark: string;
+  percentage: number;
 }
 
 interface OpenDialogOptions extends ElectronOpenDialogOptions {

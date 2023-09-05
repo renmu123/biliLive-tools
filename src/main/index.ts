@@ -90,39 +90,53 @@ app.on("window-all-closed", () => {
   }
 });
 
-const convertFile2Mp4 = (_event: IpcMainInvokeEvent, file: File) => {
+const readVideoMeta = async (input: string): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    ffmpeg.ffprobe(input, function (err, metadata) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(metadata);
+      }
+    });
+  });
+};
+
+const convertFile2Mp4 = async (_event: IpcMainInvokeEvent, file: File) => {
   // 相同文件覆盖提示
   const { name, path, dir } = file;
 
   const output = join(dir, `${name}.mp4`);
+
+  const meta = await readVideoMeta(path);
+  const size = meta.format.size / 1000;
+  console.log("lllllll", meta);
   const command = ffmpeg(path)
     .setFfmpegPath(FFMPEG_PATH)
     .setFfprobePath(FFPROBE_PATH)
-    .output(output)
     .videoCodec("copy")
     .audioCodec("copy");
-  command.run();
 
   command.on("start", (commandLine: string) => {
     console.log("Conversion start", commandLine);
-    mainWin.webContents.send("task-start", commandLine);
+    _event.sender.send("task-start", commandLine);
   });
-
   command.on("end", () => {
     console.log("Conversion ended");
-    mainWin.webContents.send("task-end");
+    _event.sender.send("task-end");
   });
-
   command.on("error", (err) => {
     console.log(`An error occurred: ${err.message}`);
-    mainWin.webContents.send("task-error", err);
+    _event.sender.send("task-error", err);
+  });
+  command.on("progress", (progress) => {
+    progress.percentage = Math.round((progress.targetSize / size) * 100);
+    console.log(progress);
+
+    _event.sender.send("task-progress-update", progress);
   });
 
-  command.on("progress", (progress) => {
-    // console.log(progress);
-    // console.log(`Processing: ${progress.percent}% done`);
-    // mainWin.webContents.send("task-progress-update", progress);
-  });
+  command.save(output);
 };
 
 const openDirectory = async () => {
