@@ -1,30 +1,32 @@
 <template>
-  <n-space vertical>
-    <n-layout has-sider class="layout">
-      <n-layout-sider
-        bordered
-        collapse-mode="width"
-        :collapsed-width="64"
-        :width="240"
-        :collapsed="collapsed"
-        show-trigger
-        @collapse="collapsed = true"
-        @expand="collapsed = false"
-      >
-        <n-menu
-          v-model:value="activeKey"
-          :collapsed="collapsed"
+  <n-notification-provider>
+    <n-space vertical>
+      <n-layout has-sider class="layout">
+        <n-layout-sider
+          bordered
+          collapse-mode="width"
           :collapsed-width="64"
-          :collapsed-icon-size="22"
-          :options="menuOptions"
-        />
-      </n-layout-sider>
+          :width="240"
+          :collapsed="collapsed"
+          show-trigger
+          @collapse="collapsed = true"
+          @expand="collapsed = false"
+        >
+          <n-menu
+            v-model:value="activeKey"
+            :collapsed="collapsed"
+            :collapsed-width="64"
+            :collapsed-icon-size="22"
+            :options="menuOptions"
+          />
+        </n-layout-sider>
 
-      <n-layout class="main-container">
-        <router-view></router-view>
+        <n-layout class="main-container">
+          <router-view></router-view>
+        </n-layout>
       </n-layout>
-    </n-layout>
-  </n-space>
+    </n-space>
+  </n-notification-provider>
 </template>
 
 <script setup lang="ts">

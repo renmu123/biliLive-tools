@@ -1,11 +1,11 @@
-import { app, shell, BrowserWindow, ipcMain } from "electron";
+import { app, dialog, BrowserWindow, ipcMain, shell } from "electron";
 import type { IpcMainInvokeEvent, IpcMain } from "electron";
 import { join, parse } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 
 import ffmpeg from "fluent-ffmpeg";
-import type { File, OriginFile } from "../types";
+import type { File, OriginFile, OpenDialogOptions } from "../types";
 import { formatFile } from "./utils";
 
 import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
@@ -14,6 +14,9 @@ const FFMPEG_PATH = join(__dirname, "../../bin/ffmpeg.exe");
 const FFPROBE_PATH = join(__dirname, "../../bin/ffprobe.exe");
 
 const genHandler = (ipcMain: IpcMain) => {
+  ipcMain.handle("dialog:openDirectory", openDirectory);
+  ipcMain.handle("dialog:openFile", openFile);
+
   ipcMain.handle("convertFile2Mp4", convertFile2Mp4);
 
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
@@ -121,4 +124,31 @@ const convertFile2Mp4 = (_event: IpcMainInvokeEvent, file: OriginFile) => {
     console.log(`Processing: ${progress.percent}% done`);
     mainWin.webContents.send("task-progress-update", progress);
   });
+};
+
+const openDirectory = async (_event: IpcMainInvokeEvent) => {
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWin, {
+    properties: ["openDirectory"],
+  });
+  if (canceled) {
+    return;
+  } else {
+    return filePaths[0];
+  }
+};
+const openFile = async (_event: IpcMainInvokeEvent, options: OpenDialogOptions) => {
+  const properties: ("openFile" | "multiSelections")[] = ["openFile"];
+  if (options.multi) {
+    properties.push("multiSelections");
+  }
+
+  const { canceled, filePaths } = await dialog.showOpenDialog(mainWin, {
+    properties,
+    ...options,
+  });
+  if (canceled) {
+    return;
+  } else {
+    return filePaths;
+  }
 };

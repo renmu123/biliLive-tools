@@ -9,6 +9,7 @@ declare module 'vue' {
   export interface GlobalComponents {
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']
     FileArea: typeof import('./src/components/FileArea.vue')['default']
+    FileAreaNew: typeof import('./src/components/FileAreaNew.vue')['default']
     NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']
     NCheckbox: typeof import('naive-ui')['NCheckbox']
@@ -23,7 +24,9 @@ declare module 'vue' {
     NLayoutSider: typeof import('naive-ui')['NLayoutSider']
     NMenu: typeof import('naive-ui')['NMenu']
     NModal: typeof import('naive-ui')['NModal']
+    NNotificationProvider: typeof import('naive-ui')['NNotificationProvider']
     NP: typeof import('naive-ui')['NP']
+    NProgress: typeof import('naive-ui')['NProgress']
     NRadio: typeof import('naive-ui')['NRadio']
     NRadioGroup: typeof import('naive-ui')['NRadioGroup']
     NSpace: typeof import('naive-ui')['NSpace']

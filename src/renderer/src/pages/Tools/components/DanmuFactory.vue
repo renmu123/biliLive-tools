@@ -1,24 +1,38 @@
 <!-- 将文件转换为mp4 -->
 <template>
   <div>
-    <FileArea v-model="fileList" accept="application/xml"></FileArea>
+    <FileAreaNew
+      v-model="fileList"
+      :extensions="['xml']"
+      desc="请选择xml文件"
+      :is-in-progress="isInProgress"
+    ></FileAreaNew>
 
-    <div class="flex align-center column">
+    <div class="flex align-center column" style="margin-top: 10px">
       <div>
-        <n-radio-group v-model:value="options.saveRadio">
-          <n-space>
+        <n-radio-group v-model:value="options.saveRadio" class="radio-group">
+          <n-space class="flex align-center column">
             <n-radio :value="1"> 保存到原始文件夹 </n-radio>
-            <n-radio :value="2"> 保存到特定文件夹 </n-radio>
+            <n-radio :value="2">
+              <n-input v-model:value="options.savePath" type="text" placeholder="选择文件夹" />
+            </n-radio>
+            <n-button type="primary" :disabled="options.saveRadio !== 2" @click="getDir">
+              选择文件夹
+            </n-button>
           </n-space>
         </n-radio-group>
       </div>
-      <div>
+      <div style="margin-top: 10px">
         <n-radio-group v-model:value="options.override">
           <n-space>
             <n-radio :value="true"> 覆盖文件 </n-radio>
             <n-radio :value="false"> 跳过存在文件 </n-radio>
           </n-space>
         </n-radio-group>
+        <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
+        <n-checkbox v-model:checked="clientOptions.removeCompletedTask">
+          移除已完成任务
+        </n-checkbox>
       </div>
 
       <div class="flex justify-center" style="margin-top: 20px">
@@ -33,45 +47,83 @@
 </template>
 
 <script setup lang="ts">
-import FileArea from "@renderer/components/FileArea.vue";
+import FileAreaNew from "@renderer/components/FileAreaNew.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
-import type { UploadFileInfo } from "naive-ui";
+import type { DanmuOptions, File } from "../../../../../types";
+
 import { Settings as SettingIcon } from "@vicons/ionicons5";
 
-const fileList = ref<UploadFileInfo[]>([]);
+const notice = useNotification();
 
-// TODO: 配置项
-// 保存到原始文件夹，保存到特定文件夹，覆盖文件，跳过已存在的文件
+const fileList = ref<
+  (File & {
+    percentage?: number;
+  })[]
+>([]);
 
-const options = ref({
+const options = ref<DanmuOptions>({
   saveRadio: 1, // 1：保存到原始文件夹，2：保存到特定文件夹
   saveOriginPath: true,
   savePath: "",
 
-  override: false,
+  override: false, // 覆盖文件
+  removeOrigin: false, // 完成后移除源文件
 });
+const clientOptions = ref({
+  removeCompletedTask: true, // 移除已完成任务
+});
+const isInProgress = ref(false);
 
 const convert = async () => {
   if (fileList.value.length === 0) {
+    notice.error({
+      title: `至少选择一个文件`,
+      duration: 3000,
+    });
     return;
   }
-  const files = fileList.value.map((item) => {
-    const file = item.file!;
-    return {
-      name: file.name,
-      path: file.path,
-    };
+  isInProgress.value = true;
+  notice.info({
+    title: `检测到${fileList.value.length}个任务，开始转换`,
+    duration: 3000,
   });
+  try {
+    const result = await window.api.convertDanmu2Ass(toRaw(fileList.value), toRaw(options.value));
+    const successResult = result.filter((item) => item.status === "success");
 
-  const result = await window.api.convertDanmu2Ass(files);
-  // return res;
-  console.log(result);
+    notice.info({
+      title: `${successResult.length}个任务成功，${
+        result.filter((item) => item.status === "error").length
+      }个任务失败`,
+      duration: 3000,
+    });
+    console.log(result);
+
+    if (clientOptions.value.removeCompletedTask) {
+      fileList.value = fileList.value.filter(
+        (item) => !successResult.map((item2) => item2.path).includes(item.path),
+      );
+    }
+  } finally {
+    isInProgress.value = false;
+  }
 };
 
 const show = ref(false);
 const openSetting = () => {
   show.value = true;
 };
+
+async function getDir() {
+  const path = await window.api.openDirectory();
+  options.value.savePath = path;
+}
 </script>
 
-<style scoped></style>
+<style scoped lang="less">
+.radio-group {
+  :deep(.n-radio) {
+    align-items: center;
+  }
+}
+</style>

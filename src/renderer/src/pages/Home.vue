@@ -1,7 +1,10 @@
 <!-- 首页 -->
 <template>
   <div>
-    <FileArea v-model="fileList"></FileArea>
+    <FileArea
+      v-model="fileList"
+      desc="请选择录播以及弹幕文件，如果为flv以及xml将自动转换为mp4以及ass"
+    ></FileArea>
 
     <div class="center">
       <!-- <n-checkbox v-model:checked="options.checkSameFileFlag"> 是否检测同名文件 </n-checkbox> -->

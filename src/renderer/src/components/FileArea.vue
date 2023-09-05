@@ -3,8 +3,8 @@
     v-model:file-list="fileList"
     multiple
     :default-upload="false"
-    @change="handleFileChange"
     :accept="props.accept"
+    @change="handleFileChange"
   >
     <n-upload-dragger>
       <div style="margin-bottom: 12px">
@@ -12,9 +12,9 @@
           <archive-icon />
         </n-icon>
       </div>
-      <n-text style="font-size: 16px"> 点击或者拖动文件到该区域来上传 </n-text>
-      <n-p depth="3" style="margin: 8px 0 0 0">
-        请选择录播以及弹幕文件，如果为flv以及xml将自动转换为mp4以及ass
+      <n-text style="font-size: 16px"> 点击文件到该区域来上传 </n-text>
+      <n-p v-if="desc" depth="3" style="margin: 8px 0 0 0">
+        {{ desc }}
       </n-p>
     </n-upload-dragger>
   </n-upload>
@@ -27,6 +27,7 @@ import type { UploadFileInfo } from "naive-ui";
 
 const props = defineProps<{
   accept?: string;
+  desc?: string;
 }>();
 const emits = defineEmits<{
   change: any[];

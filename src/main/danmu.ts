@@ -1,7 +1,8 @@
 import { join } from "path";
+import fs from "fs";
 
-import type { IpcMainInvokeEvent } from "electron";
-import type { DanmuConfig, File } from "../types";
+import { shell, type IpcMainInvokeEvent } from "electron";
+import type { DanmuConfig, File, DanmuOptions } from "../types";
 
 import Config from "./config";
 import { formatFile, executeCommand } from "./utils";
@@ -18,17 +19,17 @@ export const DANMU_DEAFULT_CONFIG = {
   opacity: 255,
   outline: 0.0,
   shadow: 1.0,
-  displayArea: 1.0,
-  scrollArea: 1.0,
+  displayarea: 1.0,
+  scrollarea: 1.0,
   bold: false,
-  showUsernames: false,
-  showMsgbox: true,
-  msgboxSize: [500, 1080],
-  msgboxPos: [20, 0],
-  msgboxFontsize: 38,
-  msgboxDuration: 0.0,
-  giftMinPrice: 0.0,
-  giftMergeTolerance: 0.0,
+  showusernames: false,
+  showmsgbox: true,
+  msgboxsize: [500, 1080],
+  msgboxpos: [20, 0],
+  msgboxfontsize: 38,
+  msgboxduration: 10.0,
+  giftminprice: 0.0,
+  giftmergetolerance: 0.0,
   blockmode: [],
   statmode: [],
 };
@@ -47,29 +48,105 @@ export const getDanmuConfig = () => {
   return { ...DANMU_DEAFULT_CONFIG, ...config.data };
 };
 
-export const convertDanmu2Ass = async (_event: IpcMainInvokeEvent, files: File[]) => {
+const genDanmuParams = () => {
   const config = getConfig();
-  const formatFiles = files.map((file) => formatFile(file));
+  console.log(config.data);
+  const params = Object.entries(config.data).map(([key, value]) => {
+    if (["resolution", "msgboxsize", "msgboxpos"].includes(key)) {
+      return `--${key} ${value.join("x")}`;
+    } else if (key === "blockmode" || key === "statmode") {
+      if (value.length === 0) return `--${key} null`;
 
-  const { dir, name, path } = formatFiles[0];
-  const output = join(dir, `${name}.ass`);
-  // DanmakuFactory.exe -o "%BASENAME%.ass" -i "%BASENAME%.xml" --ignore-warnings --showmsgbox true -S 54 -O 255 --msgboxpos 20 -60
-  const params = [`-i "${path}"`, `-o "${output}"`, "--ignore-warnings", `-c "${config.path}"`];
-  const command = `${DANMUKUFACTORY_PATH} ${params.join(" ")}`;
+      return `--${key} ${value.join("-")}`;
+    } else if (key === "fontname") {
+      return `--${key} "${value}"`;
+    } else {
+      return `--${key} ${value}`;
+    }
+  });
 
-  console.log(command);
+  return params;
+};
 
-  const result: any[] = [];
-  try {
-    const { stdout, stderr } = await executeCommand(command);
-    console.log("stdout", stdout);
-    console.log("stderr", stderr);
-    result.push({
-      stdout,
-      stderr,
-    });
-  } catch (err) {
-    result.push({ err });
+export const convertDanmu2Ass = async (
+  _event: IpcMainInvokeEvent,
+  files: File[],
+  options: DanmuOptions = {
+    saveRadio: 1,
+    saveOriginPath: true,
+    savePath: "",
+
+    override: false,
+    removeOrigin: false,
+  },
+) => {
+  const result: {
+    status: "success" | "error";
+    text: string;
+    path: string;
+    meta?: any;
+  }[] = [];
+
+  for (const file of files) {
+    const { dir, name, path } = file;
+
+    const input = path;
+    let output = join(dir, `${name}.ass`);
+    if (options.saveRadio === 2) {
+      output = join(options.savePath, `${name}.ass`);
+    }
+    if (options.override && fs.existsSync(output)) {
+      result.push({
+        status: "success",
+        text: "跳过",
+        path: input,
+      });
+      continue;
+    }
+    // DanmakuFactory.exe -o "%BASENAME%.ass" -i "%BASENAME%.xml" --ignore-warnings --showmsgbox true -S 54 -O 255 --msgboxpos 20 -60
+    const params = [`-i "${input}"`, `-o "${output}"`, "--ignore-warnings"];
+    const otherParams = genDanmuParams();
+    console.log(otherParams);
+
+    const command = `${DANMUKUFACTORY_PATH} ${params.join(" ")} ${otherParams.join(" ")}`;
+
+    console.log(command);
+
+    try {
+      const { stdout, stderr } = await executeCommand(command);
+      console.log("stdout", stdout);
+      console.log("stderr", stderr);
+
+      if (stderr) {
+        result.push({
+          status: "error",
+          text: stdout,
+          path: input,
+          meta: {
+            stdout,
+            stderr,
+          },
+        });
+      } else {
+        result.push({
+          status: "success",
+          text: stdout,
+          path: input,
+          meta: {
+            stdout,
+            stderr,
+          },
+        });
+      }
+
+      if (options.removeOrigin) {
+        if (fs.existsSync(input)) {
+          await shell.trashItem(input);
+        }
+      }
+    } catch (err) {
+      result.push({ status: "error", text: String(err), path: input, meta: { err } });
+    }
   }
 
   return result;

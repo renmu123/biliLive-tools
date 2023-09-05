@@ -104,9 +104,9 @@
         <div class="card">
           <h2>画面设置</h2>
           <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
-            <n-form-item v-if="isAdvancedMode" label="滚动弹幕显示区域" path="scrollArea">
+            <n-form-item v-if="isAdvancedMode" label="滚动弹幕显示区域" path="scrollarea">
               <n-input-number
-                v-model:value.number="config.scrollArea"
+                v-model:value.number="config.scrollarea"
                 class="input-number"
                 :min="0"
                 :max="1"
@@ -114,9 +114,9 @@
                 :step="0.1"
               />
             </n-form-item>
-            <n-form-item v-if="isAdvancedMode" label="全部弹幕显示区域" path="displayArea">
+            <n-form-item v-if="isAdvancedMode" label="全部弹幕显示区域" path="displayarea">
               <n-input-number
-                v-model:value.number="config.displayArea"
+                v-model:value.number="config.displayarea"
                 class="input-number"
                 :min="0"
                 :max="1"
@@ -155,46 +155,46 @@
         <div class="card">
           <h2>礼物栏设置</h2>
           <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
-            <n-form-item path="showMsgbox">
-              <n-checkbox v-model:checked="config.showMsgbox"> 显示礼物框 </n-checkbox>
+            <n-form-item path="showmsgbox">
+              <n-checkbox v-model:checked="config.showmsgbox"> 显示礼物框 </n-checkbox>
             </n-form-item>
-            <template v-if="config.showMsgbox">
-              <n-form-item label="礼物框尺寸" path="msgboxSize">
+            <template v-if="config.showmsgbox">
+              <n-form-item label="礼物框尺寸" path="msgboxsize">
                 <n-input-number
-                  v-model:value.number="config.msgboxSize[0]"
+                  v-model:value.number="config.msgboxsize[0]"
                   class="input-number"
                   :min="0"
                   :step="100"
                 />&nbsp;X&nbsp;
                 <n-input-number
-                  v-model:value.number="config.msgboxSize[1]"
+                  v-model:value.number="config.msgboxsize[1]"
                   class="input-number"
                   :min="0"
                   :step="100"
                 />
               </n-form-item>
-              <n-form-item label="礼物框位置" path="msgboxPos">
+              <n-form-item label="礼物框位置" path="msgboxpos">
                 <n-input-number
-                  v-model:value.number="config.msgboxPos[0]"
+                  v-model:value.number="config.msgboxpos[0]"
                   class="input-number"
                   :step="10"
                 />&nbsp;X&nbsp;
                 <n-input-number
-                  v-model:value.number="config.msgboxPos[1]"
+                  v-model:value.number="config.msgboxpos[1]"
                   class="input-number"
                   :step="10"
                 />
               </n-form-item>
-              <n-form-item label="礼物框文字大小" path="msgboxFontsize">
+              <n-form-item label="礼物框文字大小" path="msgboxfontsize">
                 <n-input-number
-                  v-model:value.number="config.msgboxFontsize"
+                  v-model:value.number="config.msgboxfontsize"
                   class="input-number"
                   :min="0"
                 />
               </n-form-item>
-              <n-form-item label="礼物框持续时间" path="msgboxDuration">
+              <n-form-item label="礼物框持续时间" path="msgboxduration">
                 <n-input-number
-                  v-model:value.number="config.msgboxDuration"
+                  v-model:value.number="config.msgboxduration"
                   class="input-number"
                   :min="0"
                 />
@@ -202,10 +202,10 @@
               <n-form-item
                 v-if="isAdvancedMode"
                 label="同一用户相同礼物自动合并的时间窗"
-                path="giftMergeTolerance"
+                path="giftmergetolerance"
               >
                 <n-input-number
-                  v-model:value.number="config.giftMergeTolerance"
+                  v-model:value.number="config.giftmergetolerance"
                   class="input-number"
                   :min="0"
                 />
@@ -238,8 +238,8 @@ const isAdvancedMode = computed(() => {
 // @ts-ignore
 const config: Ref<DanmuConfig> = ref({
   resolution: [],
-  msgboxSize: [],
-  msgboxPos: [],
+  msgboxsize: [],
+  msgboxpos: [],
 });
 const getConfig = async () => {
   const data = await window.api.getDanmuConfig();

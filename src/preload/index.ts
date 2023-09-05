@@ -1,6 +1,14 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { IpcRendererEvent } from "electron";
-import type { Progress, DanmuConfig, OriginFile } from "../types";
+import type {
+  Progress,
+  DanmuConfig,
+  OriginFile,
+  DanmuOptions,
+  OpenDialogOptions,
+  File,
+} from "../types";
+import path from "path";
 
 import { electronAPI } from "@electron-toolkit/preload";
 
@@ -28,8 +36,28 @@ export const api = {
   getDanmuConfig: async (): Promise<DanmuConfig> => {
     return await ipcRenderer.invoke("getDanmuConfig");
   },
-  convertDanmu2Ass: async (files: OriginFile[]) => {
-    return await ipcRenderer.invoke("convertDanmu2Ass", files);
+  convertDanmu2Ass: async (
+    files: File[],
+    options: DanmuOptions = {
+      saveRadio: 1,
+      saveOriginPath: true,
+      savePath: "",
+
+      override: false,
+      removeOrigin: false,
+    },
+  ) => {
+    return await ipcRenderer.invoke("convertDanmu2Ass", files, options);
+  },
+  openDirectory: async () => {
+    return await ipcRenderer.invoke("dialog:openDirectory");
+  },
+  openFile: async (options: OpenDialogOptions) => {
+    return await ipcRenderer.invoke("dialog:openFile", options);
+  },
+  formatFile: (filePath: string) => {
+    const formatFile = path.parse(filePath);
+    return { ...formatFile, path: filePath, filename: formatFile.base };
   },
 };
 
