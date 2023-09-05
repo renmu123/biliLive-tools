@@ -5,7 +5,7 @@ import { shell, type IpcMainInvokeEvent } from "electron";
 import type { DanmuConfig, File, DanmuOptions } from "../types";
 
 import Config from "./config";
-import { formatFile, executeCommand } from "./utils";
+import { executeCommand } from "./utils";
 
 const DANMUKUFACTORY_PATH = join(__dirname, "../../bin/DanmakuFactory.exe");
 

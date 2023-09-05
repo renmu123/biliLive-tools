@@ -13,11 +13,6 @@ export interface DanmuOptions {
   removeOrigin: boolean; // 完成后移除源文件
 }
 
-export interface OriginFile {
-  name: string; // aaa.mp4
-  path: string; // /Users/xxx/Downloads/aaa.mp4
-}
-
 export interface File {
   path: string; // /Users/xxx/Downloads/aaa.mp4
   filename: string; // aaa.mp4

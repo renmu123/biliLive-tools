@@ -16,9 +16,8 @@
 
 <script setup lang="ts">
 import FileArea from "@renderer/components/FileArea.vue";
-import type { UploadFileInfo } from "naive-ui";
 
-const fileList = ref<UploadFileInfo[]>([]);
+const fileList = ref<any[]>([]);
 
 // const options = ref({
 //   checkSameFileFlag: true,
@@ -28,15 +27,9 @@ const convert = () => {
   if (fileList.value.length === 0) {
     return;
   }
-  const files = fileList.value.map((item) => {
-    const file = item.file!;
-    return {
-      name: file.name,
-      path: file.path,
-    };
-  });
+
   // console.log(JSON.parse(JSON.stringify(fileList.value[0])));
-  window.api.convertFile2Mp4(files[0]);
+  window.api.convertFile2Mp4(toRaw(fileList.value[0]));
 
   window.api.onTaskStart((_event, command) => {
     console.log("start", command);

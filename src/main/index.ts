@@ -5,8 +5,7 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 
 import ffmpeg from "fluent-ffmpeg";
-import type { File, OriginFile, OpenDialogOptions } from "../types";
-import { formatFile } from "./utils";
+import type { File, OpenDialogOptions } from "../types";
 
 import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
 
@@ -91,20 +90,21 @@ app.on("window-all-closed", () => {
   }
 });
 
-const convertFile2Mp4 = (_event: IpcMainInvokeEvent, file: OriginFile) => {
+const convertFile2Mp4 = (_event: IpcMainInvokeEvent, file: File) => {
   // 相同文件覆盖提示
-  const { name, path, dir } = formatFile(file);
+  const { name, path, dir } = file;
 
   const output = join(dir, `${name}.mp4`);
   const command = ffmpeg(path)
     .setFfmpegPath(FFMPEG_PATH)
     .setFfprobePath(FFPROBE_PATH)
     .output(output)
-    .videoCodec("copy");
+    .videoCodec("copy")
+    .audioCodec("copy");
   command.run();
 
   command.on("start", (commandLine: string) => {
-    console.log("Conversion start");
+    console.log("Conversion start", commandLine);
     mainWin.webContents.send("task-start", commandLine);
   });
 
@@ -119,14 +119,13 @@ const convertFile2Mp4 = (_event: IpcMainInvokeEvent, file: OriginFile) => {
   });
 
   command.on("progress", (progress) => {
-    console.log(progress);
-
-    console.log(`Processing: ${progress.percent}% done`);
-    mainWin.webContents.send("task-progress-update", progress);
+    // console.log(progress);
+    // console.log(`Processing: ${progress.percent}% done`);
+    // mainWin.webContents.send("task-progress-update", progress);
   });
 };
 
-const openDirectory = async (_event: IpcMainInvokeEvent) => {
+const openDirectory = async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWin, {
     properties: ["openDirectory"],
   });

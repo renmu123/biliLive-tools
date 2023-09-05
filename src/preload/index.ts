@@ -1,20 +1,13 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { IpcRendererEvent } from "electron";
-import type {
-  Progress,
-  DanmuConfig,
-  OriginFile,
-  DanmuOptions,
-  OpenDialogOptions,
-  File,
-} from "../types";
+import type { Progress, DanmuConfig, DanmuOptions, OpenDialogOptions, File } from "../types";
 import path from "path";
 
 import { electronAPI } from "@electron-toolkit/preload";
 
 // Custom APIs for renderer
 export const api = {
-  convertFile2Mp4: async (file: OriginFile) => {
+  convertFile2Mp4: async (file: File) => {
     return await ipcRenderer.invoke("convertFile2Mp4", file);
   },
   onTaskProgressUpdate: (callback: (_event: IpcRendererEvent, progress: Progress) => void) => {

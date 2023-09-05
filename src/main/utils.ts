@@ -1,20 +1,7 @@
-import type { File, OriginFile } from "../types";
+import type { File } from "../types";
 import { parse } from "path";
 import { exec } from "child_process";
 import iconv from "iconv-lite";
-
-export const formatFile = (file: OriginFile): File => {
-  const filename = file.name;
-  const path = file.path;
-
-  const data = parse(path);
-
-  return {
-    ...data,
-    filename,
-    path,
-  };
-};
 
 export const executeCommand = (command: string): Promise<{ stdout: string; stderr: string }> => {
   return new Promise((resolve, reject) => {

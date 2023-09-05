@@ -1,12 +1,12 @@
 <!-- 将文件转换为mp4 -->
 <template>
   <div>
-    <FileAreaNew
+    <FileArea
       v-model="fileList"
       :extensions="['xml']"
       desc="请选择xml文件"
       :is-in-progress="isInProgress"
-    ></FileAreaNew>
+    ></FileArea>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div>
@@ -47,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import FileAreaNew from "@renderer/components/FileAreaNew.vue";
+import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import type { DanmuOptions, File } from "../../../../../types";
 
