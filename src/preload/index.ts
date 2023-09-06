@@ -54,6 +54,20 @@ export const api = {
   ) => {
     return await ipcRenderer.invoke("convertDanmu2Ass", files, options);
   },
+  mergeAssMp4: async (
+    videoFile: File,
+    assFile: File,
+    options: DanmuOptions = {
+      saveRadio: 1,
+      saveOriginPath: true,
+      savePath: "",
+
+      override: false,
+      removeOrigin: false,
+    },
+  ) => {
+    return await ipcRenderer.invoke("mergeAssMp4", videoFile, assFile, options);
+  },
 
   // 通用函数
   openDirectory: async () => {

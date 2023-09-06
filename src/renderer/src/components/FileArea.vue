@@ -28,6 +28,7 @@
           type="line"
           :status="file.percentageStatus"
           :percentage="file.percentage"
+          :indicator-placement="'outside'"
           :show-indicator="false"
           style="--n-rail-height: 6px"
         />

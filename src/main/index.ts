@@ -1,5 +1,5 @@
 import { join } from "path";
-import fs from "fs";
+import fs from "fs-extra";
 
 import { app, dialog, BrowserWindow, ipcMain, shell } from "electron";
 import type { IpcMainInvokeEvent, IpcMain } from "electron";
@@ -8,7 +8,8 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
 import icon from "../../resources/icon.png?asset";
 import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
-import { convertVideo2Mp4 } from "./video";
+import { convertVideo2Mp4, mergeAssMp4 } from "./video";
+import { CONFIG_PATH } from "./config";
 
 import type { OpenDialogOptions } from "../types";
 
@@ -21,7 +22,9 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("openPath", openPath);
   ipcMain.handle("exits", exits);
 
+  // 视频处理
   ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
+  ipcMain.handle("mergeAssMp4", mergeAssMp4);
 
   // 弹幕相关
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
@@ -73,6 +76,7 @@ app.whenReady().then(() => {
     .then((name) => console.log(`Added Extension:  ${name}`))
     .catch((err) => console.log("An error occurred: ", err));
 
+  fs.ensureDir(CONFIG_PATH);
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils

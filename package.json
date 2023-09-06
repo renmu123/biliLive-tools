@@ -7,8 +7,8 @@
   "license": "GPL",
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "scripts": {
-    "dev": "electron-vite dev",
-    "devMain": "electron-vite dev --watch",
+    "dev": "chcp 65001 && electron-vite dev",
+    "devMain": "chcp 65001 && electron-vite dev --watch",
     "start": "electron-vite preview",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
@@ -27,7 +27,7 @@
     "@vueuse/core": "^10.4.1",
     "electron-updater": "^6.1.1",
     "fluent-ffmpeg": "^2.1.2",
-    "iconv-lite": "^0.6.3",
+    "fs-extra": "^11.1.1",
     "lodash-es": "^4.17.21",
     "vue-router": "^4.2.4"
   },

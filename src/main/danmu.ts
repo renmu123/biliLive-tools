@@ -49,14 +49,16 @@ export const getDanmuConfig = () => {
 };
 
 const genDanmuParams = () => {
-  const config = getConfig();
-  console.log(config.data);
-  const params = Object.entries(config.data).map(([key, value]) => {
+  const config = getDanmuConfig();
+  console.log(config);
+  const params = Object.entries(config).map(([key, value]) => {
     if (["resolution", "msgboxsize", "msgboxpos"].includes(key)) {
+      // @ts-ignore
       return `--${key} ${value.join("x")}`;
     } else if (key === "blockmode" || key === "statmode") {
+      // @ts-ignore
       if (value.length === 0) return `--${key} null`;
-
+      // @ts-ignore
       return `--${key} ${value.join("-")}`;
     } else if (key === "fontname") {
       return `--${key} "${value}"`;

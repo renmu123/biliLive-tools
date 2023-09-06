@@ -63,6 +63,7 @@ import FileArea from "@renderer/components/FileArea.vue";
 import { useConfirm } from "@renderer/hooks";
 
 import type { DanmuOptions, File } from "../../../types";
+import { reject } from "lodash-es";
 
 const notice = useNotification();
 const confirm = useConfirm();
@@ -135,7 +136,7 @@ const convert = async () => {
   }
 
   // xml文件转换
-  let targetAssFile: string;
+  let targetAssFilePath: string;
   if (assFile[0].ext === ".xml") {
     let path = window.api.join(assFile[0].dir, `${assFile[0].name}.ass`);
     if (options.value.saveRadio === 2 && options.value.savePath) {
@@ -149,9 +150,12 @@ const convert = async () => {
       if (!status) return;
     }
 
-    console.log(assFile, toRaw(assFile));
-
+    notice.warning({
+      title: "开始转换xml",
+      duration: 3000,
+    });
     const result = await window.api.convertDanmu2Ass([toRaw(assFile[0])], toRaw(options.value));
+    console.log("xmlresult", result);
     const successResult = result.filter((item) => item.status === "success");
     if (successResult.length === 0) {
       notice.error({
@@ -164,14 +168,14 @@ const convert = async () => {
       title: "xml文件转换成功",
       duration: 3000,
     });
-    targetAssFile = successResult[0].output;
+    targetAssFilePath = successResult[0].output;
   } else {
-    targetAssFile = assFile[0].path;
+    targetAssFilePath = assFile[0].path;
   }
-  console.log("targetAssFile", targetAssFile);
+  console.log("targetAssFilePath", targetAssFilePath);
 
   // video文件转换
-  let targetVideoFile: string;
+  let targetVideoFilePath: string;
   if (videoFile[0].ext === ".flv") {
     let path = window.api.join(videoFile[0].dir, `${videoFile[0].name}.mp4`);
     if (options.value.saveRadio === 2 && options.value.savePath) {
@@ -185,6 +189,10 @@ const convert = async () => {
       if (!status) return;
     }
 
+    notice.warning({
+      title: "开始转换flv",
+      duration: 3000,
+    });
     const result = await create2Mp4Task(videoFile[0], videoIndex);
     if (!result) {
       notice.error({
@@ -197,13 +205,70 @@ const convert = async () => {
       title: "flv转码成功",
       duration: 3000,
     });
-    targetVideoFile = result as string;
+    targetVideoFilePath = result as string;
   } else {
-    targetVideoFile = videoFile[0].path;
+    targetVideoFilePath = videoFile[0].path;
   }
-  console.log("targetAssFile", targetVideoFile);
+  console.log("targetVideoFilePath", targetVideoFilePath);
+
+  notice.info({
+    title: "开始进行压制，根据不同设置需要消耗大量时间，CPU，GPU，请勿关闭软件",
+    duration: 5000,
+  });
+
+  try {
+    await createMergeVideoAssTask(targetVideoFilePath, targetAssFilePath, videoIndex);
+  } catch (err) {
+    notice.error({
+      title: `转换失败：\n${err}`,
+    });
+    return;
+  }
+  notice.info({
+    title: "压制已完成",
+    duration: 3000,
+  });
+  new window.Notification("压制已完成");
 };
 
+// 压制任务
+const createMergeVideoAssTask = async (
+  videoFilePath: string,
+  assFilePath: string,
+  index: number,
+) => {
+  const videoFile = window.api.formatFile(videoFilePath);
+  const assFile = window.api.formatFile(assFilePath);
+
+  return new Promise((resolve) => {
+    const i = index;
+
+    window.api.mergeAssMp4(toRaw(videoFile), toRaw(assFile), toRaw(options.value));
+
+    window.api.onTaskStart((_event, command) => {
+      console.log("start", command, index);
+      fileList.value[i].percentage = 0;
+      fileList.value[i].percentageStatus = "info";
+    });
+    window.api.onTaskEnd(() => {
+      fileList.value[i].percentage = 100;
+      fileList.value[i].percentageStatus = "success";
+      resolve(true);
+    });
+    window.api.onTaskError((_event, err) => {
+      fileList.value[i].percentageStatus = "error";
+      reject(err);
+    });
+
+    window.api.onTaskProgressUpdate((_event, progress) => {
+      console.log(progress);
+
+      fileList.value[i].percentage = progress.percentage;
+    });
+  });
+};
+
+// 转码任务
 const create2Mp4Task = async (file: File, index: number) => {
   return new Promise((resolve) => {
     const i = index;
@@ -215,10 +280,10 @@ const create2Mp4Task = async (file: File, index: number) => {
       fileList.value[i].percentage = 0;
       fileList.value[i].percentageStatus = "info";
     });
-    window.api.onTaskEnd(() => {
+    window.api.onTaskEnd((_event, path) => {
       fileList.value[i].percentage = 100;
       fileList.value[i].percentageStatus = "success";
-      resolve(true);
+      resolve(path);
     });
     window.api.onTaskError((_event, err) => {
       fileList.value[i].percentageStatus = "error";
