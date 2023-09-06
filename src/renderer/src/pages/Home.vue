@@ -33,7 +33,7 @@ const convert = () => {
   }
 
   // console.log(JSON.parse(JSON.stringify(fileList.value[0])));
-  window.api.convertFile2Mp4(toRaw(fileList.value[0]));
+  window.api.convertVideo2Mp4(toRaw(fileList.value[0]));
 
   window.api.onTaskStart((_event, command) => {
     console.log("start", command);

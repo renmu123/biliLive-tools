@@ -10,7 +10,7 @@
     <div v-if="fileList.length" class="files">
       <div v-for="(file, index) in fileList" :key="file.path" class="file">
         <div class="file-content">
-          <span class="name">{{ file.base }}</span>
+          <span class="name">{{ file.filename }}</span>
           <n-icon
             size="20"
             :depth="3"
@@ -26,6 +26,7 @@
         <n-progress
           v-if="file.percentage"
           type="line"
+          :status="file.percentageStatus"
           :percentage="file.percentage"
           :show-indicator="false"
           style="--n-rail-height: 6px"
@@ -71,6 +72,7 @@ const props = withDefaults(
 const fileList = defineModel<
   (File & {
     percentage?: number;
+    percentageStatus?: "success" | "info" | "error";
   })[]
 >({ required: true });
 

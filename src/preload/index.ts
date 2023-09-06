@@ -7,20 +7,32 @@ import { electronAPI } from "@electron-toolkit/preload";
 
 // Custom APIs for renderer
 export const api = {
-  convertFile2Mp4: async (file: File) => {
-    return await ipcRenderer.invoke("convertFile2Mp4", file);
+  convertVideo2Mp4: async (
+    file: File,
+    options: DanmuOptions = {
+      saveRadio: 1,
+      saveOriginPath: true,
+      savePath: "",
+
+      override: false,
+      removeOrigin: false,
+    },
+  ) => {
+    return await ipcRenderer.invoke("convertVideo2Mp4", file, options);
   },
   onTaskProgressUpdate: (callback: (_event: IpcRendererEvent, progress: Progress) => void) => {
     ipcRenderer.on("task-progress-update", callback);
   },
   onTaskStart: (callback: (_event: IpcRendererEvent, commandLine: string) => void) => {
-    ipcRenderer.on("task-start", callback);
+    ipcRenderer.once("task-start", callback);
   },
   onTaskEnd: (callback: (_event: IpcRendererEvent) => void) => {
-    ipcRenderer.on("task-end", callback);
+    ipcRenderer.removeAllListeners("task-progress-update");
+    ipcRenderer.once("task-end", callback);
   },
   onTaskError: (callback: (_event: IpcRendererEvent, err: string) => void) => {
-    ipcRenderer.on("task-error", callback);
+    ipcRenderer.removeAllListeners("task-progress-update");
+    ipcRenderer.once("task-error", callback);
   },
   // danmufactory
   saveDanmuConfig: async (newConfig: DanmuConfig) => {
@@ -51,6 +63,13 @@ export const api = {
   formatFile: (filePath: string) => {
     const formatFile = path.parse(filePath);
     return { ...formatFile, path: filePath, filename: formatFile.base };
+  },
+
+  appVersion: () => {
+    return ipcRenderer.invoke("getVersion");
+  },
+  openExternal: (url: string) => {
+    return ipcRenderer.invoke("openExternal", url);
   },
 };
 

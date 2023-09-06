@@ -1,24 +1,23 @@
+import { join } from "path";
+
 import { app, dialog, BrowserWindow, ipcMain, shell } from "electron";
 import type { IpcMainInvokeEvent, IpcMain } from "electron";
-import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
-
-import { join, parse } from "path";
+import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
+
 import icon from "../../resources/icon.png?asset";
-
-import ffmpeg from "fluent-ffmpeg";
-import type { File, OpenDialogOptions } from "../types";
-
 import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
+import { convertVideo2Mp4 } from "./video";
 
-const FFMPEG_PATH = join(__dirname, "../../bin/ffmpeg.exe");
-const FFPROBE_PATH = join(__dirname, "../../bin/ffprobe.exe");
+import type { OpenDialogOptions } from "../types";
 
 const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("dialog:openDirectory", openDirectory);
   ipcMain.handle("dialog:openFile", openFile);
+  ipcMain.handle("getVersion", getVersion);
+  ipcMain.handle("openExternal", openExternal);
 
-  ipcMain.handle("convertFile2Mp4", convertFile2Mp4);
+  ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
 
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
   ipcMain.handle("getDanmuConfig", getDanmuConfig);
@@ -95,55 +94,6 @@ app.on("window-all-closed", () => {
   }
 });
 
-const readVideoMeta = async (input: string): Promise<any> => {
-  return new Promise((resolve, reject) => {
-    ffmpeg.ffprobe(input, function (err, metadata) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(metadata);
-      }
-    });
-  });
-};
-
-const convertFile2Mp4 = async (_event: IpcMainInvokeEvent, file: File) => {
-  // 相同文件覆盖提示
-  const { name, path, dir } = file;
-
-  const output = join(dir, `${name}.mp4`);
-
-  const meta = await readVideoMeta(path);
-  const size = meta.format.size / 1000;
-  console.log("lllllll", meta);
-  const command = ffmpeg(path)
-    .setFfmpegPath(FFMPEG_PATH)
-    .setFfprobePath(FFPROBE_PATH)
-    .videoCodec("copy")
-    .audioCodec("copy");
-
-  command.on("start", (commandLine: string) => {
-    console.log("Conversion start", commandLine);
-    _event.sender.send("task-start", commandLine);
-  });
-  command.on("end", () => {
-    console.log("Conversion ended");
-    _event.sender.send("task-end");
-  });
-  command.on("error", (err) => {
-    console.log(`An error occurred: ${err.message}`);
-    _event.sender.send("task-error", err);
-  });
-  command.on("progress", (progress) => {
-    progress.percentage = Math.round((progress.targetSize / size) * 100);
-    console.log(progress);
-
-    _event.sender.send("task-progress-update", progress);
-  });
-
-  command.save(output);
-};
-
 const openDirectory = async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWin, {
     properties: ["openDirectory"],
@@ -169,4 +119,12 @@ const openFile = async (_event: IpcMainInvokeEvent, options: OpenDialogOptions) 
   } else {
     return filePaths;
   }
+};
+
+const getVersion = () => {
+  return app.getVersion();
+};
+
+const openExternal = (_event: IpcMainInvokeEvent, url: string) => {
+  shell.openExternal(url);
 };

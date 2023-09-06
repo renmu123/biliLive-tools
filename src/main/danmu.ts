@@ -92,10 +92,15 @@ export const convertDanmu2Ass = async (
 
     const input = path;
     let output = join(dir, `${name}.ass`);
-    if (options.saveRadio === 2) {
+    if (options.saveRadio === 2 && options.savePath) {
       output = join(options.savePath, `${name}.ass`);
     }
-    if (options.override && fs.existsSync(output)) {
+
+    if (!fs.existsSync(input)) {
+      result.push({ status: "error", text: "文件不存在", path: input });
+      continue;
+    }
+    if (!options.override && fs.existsSync(output)) {
       result.push({
         status: "success",
         text: "跳过",
@@ -139,10 +144,8 @@ export const convertDanmu2Ass = async (
         });
       }
 
-      if (options.removeOrigin) {
-        if (fs.existsSync(input)) {
-          await shell.trashItem(input);
-        }
+      if (options.removeOrigin && fs.existsSync(input)) {
+        await shell.trashItem(input);
       }
     } catch (err) {
       result.push({ status: "error", text: String(err), path: input, meta: { err } });

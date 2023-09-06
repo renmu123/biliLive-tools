@@ -42,4 +42,4 @@ $ npm run build:win
 
 # License
 
-GPL
+GPLv3
