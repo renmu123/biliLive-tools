@@ -1,4 +1,5 @@
 import { join } from "path";
+import fs from "fs";
 
 import { app, dialog, BrowserWindow, ipcMain, shell } from "electron";
 import type { IpcMainInvokeEvent, IpcMain } from "electron";
@@ -12,14 +13,17 @@ import { convertVideo2Mp4 } from "./video";
 import type { OpenDialogOptions } from "../types";
 
 const genHandler = (ipcMain: IpcMain) => {
+  // 通用函数
   ipcMain.handle("dialog:openDirectory", openDirectory);
   ipcMain.handle("dialog:openFile", openFile);
   ipcMain.handle("getVersion", getVersion);
   ipcMain.handle("openExternal", openExternal);
   ipcMain.handle("openPath", openPath);
+  ipcMain.handle("exits", exits);
 
   ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
 
+  // 弹幕相关
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
   ipcMain.handle("getDanmuConfig", getDanmuConfig);
   ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);
@@ -132,4 +136,8 @@ const openExternal = (_event: IpcMainInvokeEvent, url: string) => {
 
 const openPath = (_event: IpcMainInvokeEvent, path: string) => {
   shell.openPath(path);
+};
+
+const exits = (_event: IpcMainInvokeEvent, path: string) => {
+  return fs.existsSync(path);
 };

@@ -58,6 +58,7 @@ const props = withDefaults(
     desc?: string;
     height?: string;
     isInProgress?: boolean;
+    max?: number;
   }>(),
   {
     height: "200px",
@@ -80,7 +81,7 @@ const fileSelectArea = ref<HTMLElement | null>(null);
 
 const handleFileSelect = async () => {
   const files = await window.api.openFile({
-    multi: true,
+    multi: props.max === 1 ? false : true,
     filters: [
       {
         name: "file",
@@ -89,10 +90,13 @@ const handleFileSelect = async () => {
     ],
   });
   if (!files) return;
-  const items = files
+  let items = files
     .map(window.api.formatFile)
     .filter((file) => !fileList.value.map((item) => item.path).includes(file.path));
 
+  if (props.max) {
+    items = items.slice(0, props.max - fileList.value.length);
+  }
   fileList.value.push(...items);
 };
 
@@ -111,10 +115,13 @@ onMounted(() => {
 
     const files = event.dataTransfer!.files;
     if (files) {
-      const items = Array.from(files)
+      let items = Array.from(files)
         .map((file) => window.api.formatFile(file.path))
         .filter((file) => !fileList.value.map((item) => item.path).includes(file.path));
 
+      if (props.max) {
+        items = items.slice(0, props.max - fileList.value.length);
+      }
       fileList.value.push(...items);
     }
   });

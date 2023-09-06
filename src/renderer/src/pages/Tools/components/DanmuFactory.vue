@@ -1,6 +1,13 @@
 <!-- 将文件转换为mp4 -->
 <template>
   <div>
+    <div class="flex justify-center" style="margin-bottom: 20px">
+      <n-button type="primary" @click="convert"> 立即转换 </n-button>
+      <n-icon size="30" class="pointer" style="margin-left: 10px" @click="openSetting">
+        <SettingIcon />
+      </n-icon>
+    </div>
+
     <FileArea
       v-model="fileList"
       :extensions="['xml']"
@@ -14,7 +21,12 @@
           <n-space class="flex align-center column">
             <n-radio :value="1"> 保存到原始文件夹 </n-radio>
             <n-radio :value="2">
-              <n-input v-model:value="options.savePath" type="text" placeholder="选择文件夹" />
+              <n-input
+                v-model:value="options.savePath"
+                type="text"
+                placeholder="选择文件夹"
+                style="width: 300px"
+              />
             </n-radio>
             <n-button type="primary" :disabled="options.saveRadio !== 2" @click="getDir">
               选择文件夹
@@ -36,13 +48,6 @@
         <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
           完成后打开文件夹
         </n-checkbox>
-      </div>
-
-      <div class="flex justify-center" style="margin-top: 20px">
-        <n-button type="primary" @click="convert"> 立即转换 </n-button>
-        <n-icon size="30" class="pointer" style="margin-left: 10px" @click="openSetting">
-          <SettingIcon />
-        </n-icon>
       </div>
     </div>
     <DanmuFactorySettingDailog v-model="show"></DanmuFactorySettingDailog>

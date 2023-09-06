@@ -83,7 +83,8 @@ export const convertDanmu2Ass = async (
   const result: {
     status: "success" | "error";
     text: string;
-    path: string;
+    input: string;
+    output?: string;
     meta?: any;
   }[] = [];
 
@@ -97,14 +98,15 @@ export const convertDanmu2Ass = async (
     }
 
     if (!fs.existsSync(input)) {
-      result.push({ status: "error", text: "文件不存在", path: input });
+      result.push({ status: "error", text: "文件不存在", input: input });
       continue;
     }
     if (!options.override && fs.existsSync(output)) {
       result.push({
         status: "success",
         text: "跳过",
-        path: input,
+        input: input,
+        output: output,
       });
       continue;
     }
@@ -126,7 +128,7 @@ export const convertDanmu2Ass = async (
         result.push({
           status: "error",
           text: stdout,
-          path: input,
+          input: input,
           meta: {
             stdout,
             stderr,
@@ -136,7 +138,8 @@ export const convertDanmu2Ass = async (
         result.push({
           status: "success",
           text: stdout,
-          path: input,
+          input: input,
+          output: output,
           meta: {
             stdout,
             stderr,
@@ -148,7 +151,7 @@ export const convertDanmu2Ass = async (
         await shell.trashItem(input);
       }
     } catch (err) {
-      result.push({ status: "error", text: String(err), path: input, meta: { err } });
+      result.push({ status: "error", text: String(err), input: input, meta: { err } });
     }
   }
 

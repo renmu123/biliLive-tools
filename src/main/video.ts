@@ -67,7 +67,7 @@ export const convertVideo2Mp4 = async (
   });
   command.on("end", async () => {
     console.log("Conversion ended");
-    _event.sender.send("task-end");
+    _event.sender.send("task-end", output);
     if (options.removeOrigin && fs.existsSync(input)) {
       await shell.trashItem(input);
     }

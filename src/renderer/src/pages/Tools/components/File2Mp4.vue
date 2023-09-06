@@ -1,6 +1,9 @@
 <!-- 将文件转换为mp4 -->
 <template>
   <div>
+    <div class="center" style="margin-bottom: 20px">
+      <n-button type="primary" @click="convert"> 立即转换 </n-button>
+    </div>
     <FileArea
       v-model="fileList"
       :extensions="['flv']"
@@ -43,19 +46,16 @@
         </n-checkbox>
       </div>
     </div>
-
-    <div class="center" style="margin-top: 10px">
-      <n-button type="primary" @click="convert"> 立即转换 </n-button>
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import FileArea from "@renderer/components/FileArea.vue";
+import { useConfirm } from "@renderer/hooks";
 import type { File, DanmuOptions } from "../../../../../types";
 
 const notice = useNotification();
-const dialog = useDialog();
+const confirm = useConfirm();
 
 const fileList = ref<
   (File & {
@@ -63,23 +63,6 @@ const fileList = ref<
     percentageStatus?: "success" | "info" | "error";
   })[]
 >([]);
-
-const warningWarning = async () => {
-  return new Promise((reslove, reject) => {
-    dialog.warning({
-      title: `警告`,
-      content: `转封装增加大量 CPU 占用以及硬盘 IO，请耐心等待`,
-      positiveText: "继续",
-      negativeText: "取消",
-      onPositiveClick: () => {
-        reslove(true);
-      },
-      onNegativeClick: () => {
-        reject(false);
-      },
-    });
-  });
-};
 
 const options = ref<DanmuOptions>({
   saveRadio: 1, // 1：保存到原始文件夹，2：保存到特定文件夹
@@ -103,8 +86,10 @@ const convert = async () => {
     });
     return;
   }
-  const confirm = await warningWarning();
-  if (!confirm) return;
+  const status = await confirm.warning({
+    content: "转封装增加大量 CPU 占用以及硬盘 IO，请耐心等待",
+  });
+  if (!status) return;
 
   notice.info({
     title: `检测到${fileList.value.length}个任务，开始转换`,
@@ -145,17 +130,17 @@ const createTask = async (index: number) => {
       fileList.value[i].percentage = 0;
       fileList.value[i].percentageStatus = "info";
     });
-    window.api.onTaskEnd(() => {
+    window.api.onTaskEnd((_event, path) => {
       fileList.value[i].percentage = 100;
       fileList.value[i].percentageStatus = "success";
-      resolve(true);
+      resolve(path);
     });
     window.api.onTaskError((_event, err) => {
       fileList.value[i].percentageStatus = "error";
       notice.error({
         title: `转换失败：\n${err}`,
       });
-      resolve(true);
+      resolve(false);
     });
 
     window.api.onTaskProgressUpdate((_event, progress) => {

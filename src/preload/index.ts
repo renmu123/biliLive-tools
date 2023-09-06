@@ -26,7 +26,7 @@ export const api = {
   onTaskStart: (callback: (_event: IpcRendererEvent, commandLine: string) => void) => {
     ipcRenderer.once("task-start", callback);
   },
-  onTaskEnd: (callback: (_event: IpcRendererEvent) => void) => {
+  onTaskEnd: (callback: (_event: IpcRendererEvent, path: string) => void) => {
     ipcRenderer.removeAllListeners("task-progress-update");
     ipcRenderer.once("task-end", callback);
   },
@@ -54,6 +54,8 @@ export const api = {
   ) => {
     return await ipcRenderer.invoke("convertDanmu2Ass", files, options);
   },
+
+  // 通用函数
   openDirectory: async () => {
     return await ipcRenderer.invoke("dialog:openDirectory");
   },
@@ -64,7 +66,6 @@ export const api = {
     const formatFile = path.parse(filePath);
     return { ...formatFile, path: filePath, filename: formatFile.base };
   },
-
   appVersion: () => {
     return ipcRenderer.invoke("getVersion");
   },
@@ -73,6 +74,12 @@ export const api = {
   },
   openPath: (path: string) => {
     return ipcRenderer.invoke("openPath", path);
+  },
+  exits: (path: string) => {
+    return ipcRenderer.invoke("exits", path);
+  },
+  join(...paths: string[]) {
+    return path.join(...paths);
   },
 };
 
