@@ -22,7 +22,11 @@
         </n-layout-sider>
 
         <n-layout class="main-container">
-          <router-view></router-view>
+          <router-view v-slot="{ Component }">
+            <keep-alive>
+              <component :is="Component" />
+            </keep-alive>
+          </router-view>
         </n-layout>
       </n-layout>
     </n-space>
@@ -49,7 +53,7 @@ const menuOptions: MenuOption[] = [
         RouterLink,
         {
           to: {
-            name: "home",
+            name: "Home",
           },
         },
         { default: () => "主页" },
@@ -64,7 +68,7 @@ const menuOptions: MenuOption[] = [
         RouterLink,
         {
           to: {
-            name: "tools",
+            name: "Tools",
           },
         },
         { default: () => "工具" },

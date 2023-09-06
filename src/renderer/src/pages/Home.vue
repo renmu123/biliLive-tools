@@ -15,6 +15,10 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: "Home",
+});
+
 import FileArea from "@renderer/components/FileArea.vue";
 
 const fileList = ref<any[]>([]);

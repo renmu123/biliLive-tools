@@ -1,5 +1,7 @@
 import { app, dialog, BrowserWindow, ipcMain, shell } from "electron";
 import type { IpcMainInvokeEvent, IpcMain } from "electron";
+import installExtension, { VUEJS3_DEVTOOLS } from "electron-devtools-installer";
+
 import { join, parse } from "path";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
@@ -63,6 +65,9 @@ function createWindow(): void {
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId("com.electron");
+  installExtension("nhdogjmejiglipccpnnnanhbledajbpd")
+    .then((name) => console.log(`Added Extension:  ${name}`))
+    .catch((err) => console.log("An error occurred: ", err));
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

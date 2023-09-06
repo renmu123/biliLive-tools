@@ -90,7 +90,6 @@ const handleFileSelect = async () => {
   const items = files
     .map(window.api.formatFile)
     .filter((file) => !fileList.value.map((item) => item.path).includes(file.path));
-  console.log(files, items);
 
   fileList.value.push(...items);
 };

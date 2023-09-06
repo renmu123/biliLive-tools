@@ -12,12 +12,12 @@ const router = createRouter({
   routes: [
     {
       path: "/",
-      name: "home",
+      name: "Home",
       component: () => import("../pages/Home.vue"),
     },
     {
       path: "/tools",
-      name: "tools",
+      name: "Tools",
       component: () => import("../pages/Tools/index.vue"),
     },
     {
