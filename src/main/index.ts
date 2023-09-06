@@ -16,6 +16,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("dialog:openFile", openFile);
   ipcMain.handle("getVersion", getVersion);
   ipcMain.handle("openExternal", openExternal);
+  ipcMain.handle("openPath", openPath);
 
   ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
 
@@ -127,4 +128,8 @@ const getVersion = () => {
 
 const openExternal = (_event: IpcMainInvokeEvent, url: string) => {
   shell.openExternal(url);
+};
+
+const openPath = (_event: IpcMainInvokeEvent, path: string) => {
+  shell.openPath(path);
 };

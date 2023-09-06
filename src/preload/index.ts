@@ -71,6 +71,9 @@ export const api = {
   openExternal: (url: string) => {
     return ipcRenderer.invoke("openExternal", url);
   },
+  openPath: (path: string) => {
+    return ipcRenderer.invoke("openPath", path);
+  },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

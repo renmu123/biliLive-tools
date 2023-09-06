@@ -31,7 +31,10 @@
         </n-radio-group>
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
         <n-checkbox v-model:checked="clientOptions.removeCompletedTask">
-          移除已完成任务
+          完成后移除任务
+        </n-checkbox>
+        <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
+          完成后打开文件夹
         </n-checkbox>
       </div>
 
@@ -71,6 +74,7 @@ const options = ref<DanmuOptions>({
 });
 const clientOptions = ref({
   removeCompletedTask: true, // 移除已完成任务
+  openTargetDirectory: true, // 转换完成后打开目标文件夹
 });
 const isInProgress = ref(false);
 
@@ -98,6 +102,14 @@ const convert = async () => {
       duration: 3000,
     });
     console.log(result);
+
+    if (clientOptions.value.openTargetDirectory) {
+      if (options.value.saveRadio === 2) {
+        window.api.openPath(toRaw(options.value).savePath);
+      } else {
+        window.api.openPath(toRaw(fileList.value[0]).dir);
+      }
+    }
 
     if (clientOptions.value.removeCompletedTask) {
       fileList.value = fileList.value.filter(

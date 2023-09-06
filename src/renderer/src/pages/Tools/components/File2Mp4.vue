@@ -1,7 +1,12 @@
 <!-- 将文件转换为mp4 -->
 <template>
   <div>
-    <FileArea v-model="fileList" :extensions="['flv']" desc="请选择flv文件"></FileArea>
+    <FileArea
+      v-model="fileList"
+      :extensions="['flv']"
+      desc="请选择flv文件"
+      :is-in-progress="isInProgress"
+    ></FileArea>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div>
@@ -31,10 +36,10 @@
         </n-radio-group>
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
         <n-checkbox v-model:checked="clientOptions.removeCompletedTask">
-          移除已完成任务
+          完成后移除任务
         </n-checkbox>
         <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
-          移除已完成任务
+          完成后打开文件夹
         </n-checkbox>
       </div>
     </div>
@@ -50,6 +55,7 @@ import FileArea from "@renderer/components/FileArea.vue";
 import type { File, DanmuOptions } from "../../../../../types";
 
 const notice = useNotification();
+const dialog = useDialog();
 
 const fileList = ref<
   (File & {
@@ -57,6 +63,23 @@ const fileList = ref<
     percentageStatus?: "success" | "info" | "error";
   })[]
 >([]);
+
+const warningWarning = async () => {
+  return new Promise((reslove, reject) => {
+    dialog.warning({
+      title: `警告`,
+      content: `转封装增加大量 CPU 占用以及硬盘 IO，请耐心等待`,
+      positiveText: "继续",
+      negativeText: "取消",
+      onPositiveClick: () => {
+        reslove(true);
+      },
+      onNegativeClick: () => {
+        reject(false);
+      },
+    });
+  });
+};
 
 const options = ref<DanmuOptions>({
   saveRadio: 1, // 1：保存到原始文件夹，2：保存到特定文件夹
@@ -70,6 +93,7 @@ const clientOptions = ref({
   removeCompletedTask: true, // 移除已完成任务
   openTargetDirectory: true, // 转换完成后打开目标文件夹
 });
+const isInProgress = ref(false);
 
 const convert = async () => {
   if (fileList.value.length === 0) {
@@ -79,19 +103,32 @@ const convert = async () => {
     });
     return;
   }
+  const confirm = await warningWarning();
+  if (!confirm) return;
 
   notice.info({
     title: `检测到${fileList.value.length}个任务，开始转换`,
     duration: 3000,
   });
 
+  isInProgress.value = true;
   for (let i = 0; i < fileList.value.length; i++) {
     await createTask(i);
   }
+  isInProgress.value = false;
+
   notice.success({
     title: `转换完成`,
     duration: 3000,
   });
+
+  if (clientOptions.value.openTargetDirectory) {
+    if (options.value.saveRadio === 2) {
+      window.api.openPath(toRaw(options.value).savePath);
+    } else {
+      window.api.openPath(toRaw(fileList.value[0]).dir);
+    }
+  }
   if (clientOptions.value.removeCompletedTask) {
     fileList.value = fileList.value.filter((item) => item.percentageStatus !== "success");
   }
