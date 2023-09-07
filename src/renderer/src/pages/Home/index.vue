@@ -2,7 +2,7 @@
 <template>
   <div>
     <div class="flex justify-center" style="margin-bottom: 20px">
-      <n-button type="primary" @click="convert"> 立即转换 </n-button>
+      <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
       <!-- <n-icon size="30" class="pointer" style="margin-left: 10px" @click="openSetting">
           <SettingIcon />
         </n-icon> -->
@@ -15,42 +15,49 @@
       :max="2"
     ></FileArea>
 
-    <!-- 基础配置，弹幕配置，ffmpeg配置 -->
-    <div class="flex align-center column" style="margin-top: 10px">
-      <div>
-        <n-radio-group v-model:value="options.saveRadio" class="radio-group">
-          <n-space class="flex align-center column">
-            <n-radio :value="1"> 保存到原始文件夹 </n-radio>
-            <n-radio :value="2">
-              <n-input
-                v-model:value="options.savePath"
-                type="text"
-                placeholder="选择文件夹"
-                style="width: 300px"
-              />
-            </n-radio>
-            <n-button type="primary" :disabled="options.saveRadio !== 2" @click="getDir">
-              选择文件夹
-            </n-button>
-          </n-space>
-        </n-radio-group>
-      </div>
-      <div style="margin-top: 10px">
-        <n-radio-group v-model:value="options.override">
-          <n-space>
-            <n-radio :value="true"> 覆盖文件 </n-radio>
-            <n-radio :value="false"> 跳过存在文件 </n-radio>
-          </n-space>
-        </n-radio-group>
-        <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
-        <n-checkbox v-model:checked="clientOptions.removeCompletedTask">
-          完成后移除任务
-        </n-checkbox>
-        <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
-          完成后打开文件夹
-        </n-checkbox>
-      </div>
-    </div>
+    <n-tabs type="segment" style="margin-top: 10px">
+      <n-tab-pane name="common-setting" tab="基础设置" display-directive="show:lazy">
+        <div class="flex column">
+          <div>
+            <n-radio-group v-model:value="options.saveRadio" class="radio-group">
+              <n-space class="flex align-center column">
+                <n-radio :value="1"> 保存到原始文件夹 </n-radio>
+                <n-radio :value="2">
+                  <n-input
+                    v-model:value="options.savePath"
+                    type="text"
+                    placeholder="选择文件夹"
+                    style="width: 300px"
+                  />
+                </n-radio>
+                <n-button type="primary" :disabled="options.saveRadio !== 2" @click="getDir">
+                  选择文件夹
+                </n-button>
+              </n-space>
+            </n-radio-group>
+          </div>
+          <div style="margin-top: 10px">
+            <n-radio-group v-model:value="options.override">
+              <n-space>
+                <n-radio :value="true"> 覆盖文件 </n-radio>
+                <n-radio :value="false"> 跳过存在文件 </n-radio>
+              </n-space>
+            </n-radio-group>
+            <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.removeCompletedTask">
+              完成后移除任务
+            </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
+              完成后打开文件夹
+            </n-checkbox>
+          </div>
+        </div>
+      </n-tab-pane>
+      <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show:lazy">
+        <!-- <DanmuFactoryVue></DanmuFactoryVue> -->
+        <ffmpegOptions></ffmpegOptions>
+      </n-tab-pane>
+    </n-tabs>
   </div>
 </template>
 
@@ -60,9 +67,10 @@ defineOptions({
 });
 
 import FileArea from "@renderer/components/FileArea.vue";
+import ffmpegOptions from "./components/ffmpegOptions.vue";
 import { useConfirm } from "@renderer/hooks";
 
-import type { DanmuOptions, File } from "../../../types";
+import type { DanmuOptions, File } from "../../../../types";
 import { reject } from "lodash-es";
 
 const notice = useNotification();
@@ -87,6 +95,17 @@ const clientOptions = ref({
   removeCompletedTask: true, // 移除已完成任务
   openTargetDirectory: true, // 转换完成后打开目标文件夹
 });
+
+const isInProgress = ref(false);
+
+const handleConvert = async () => {
+  isInProgress.value = true;
+  try {
+    await convert();
+  } finally {
+    isInProgress.value = false;
+  }
+};
 
 const convert = async () => {
   if (fileList.value.length === 0) {
@@ -224,11 +243,23 @@ const convert = async () => {
     });
     return;
   }
+
+  // 完成后的处理
   notice.info({
     title: "压制已完成",
     duration: 3000,
   });
   new window.Notification("压制已完成");
+  if (clientOptions.value.removeCompletedTask) {
+    fileList.value = [];
+  }
+  if (clientOptions.value.openTargetDirectory) {
+    if (options.value.saveRadio === 2) {
+      window.api.openPath(toRaw(options.value).savePath);
+    } else {
+      window.api.openPath(toRaw(fileList.value[videoIndex]).dir);
+    }
+  }
 };
 
 // 压制任务

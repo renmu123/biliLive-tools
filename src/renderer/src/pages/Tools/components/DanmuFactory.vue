@@ -1,9 +1,9 @@
 <!-- 将文件转换为mp4 -->
 <template>
   <div>
-    <div class="flex justify-center" style="margin-bottom: 20px">
+    <div class="flex justify-center align-center" style="margin-bottom: 20px">
       <n-button type="primary" @click="convert"> 立即转换 </n-button>
-      <n-icon size="30" class="pointer" style="margin-left: 10px" @click="openSetting">
+      <n-icon size="25" class="pointer" style="margin-left: 10px" @click="openSetting">
         <SettingIcon />
       </n-icon>
     </div>

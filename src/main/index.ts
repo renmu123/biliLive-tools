@@ -8,7 +8,7 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
 import icon from "../../resources/icon.png?asset";
 import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
-import { convertVideo2Mp4, mergeAssMp4 } from "./video";
+import { convertVideo2Mp4, mergeAssMp4, getAvailableEncoders } from "./video";
 import { CONFIG_PATH } from "./config";
 
 import type { OpenDialogOptions } from "../types";
@@ -25,6 +25,7 @@ const genHandler = (ipcMain: IpcMain) => {
   // 视频处理
   ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
   ipcMain.handle("mergeAssMp4", mergeAssMp4);
+  ipcMain.handle("getAvailableEncoders", getAvailableEncoders);
 
   // 弹幕相关
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);

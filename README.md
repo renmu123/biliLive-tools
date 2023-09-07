@@ -4,14 +4,15 @@
 
 # TODO
 
-- [ ] 支持使用ffmpeg压制弹幕至视频文件
-- [ ] 支持使用danmufactory自动处理xml文件并进行压制
+- [x] 支持使用ffmpeg压制弹幕至视频文件
+- [ ] 支持ffmpeg不同cpu，gpu以及相关配置
+- [x] 支持使用danmufactory自动处理xml文件并进行压制
 - [x] 工具页面，danmufactory的GUI
 - [x] 工具页面，flv的转封装
+- [ ] log记录及其展示
 - [ ] 支持使用ass-convert来进行弹幕处理以及压制高能进度条
 - [ ] 支持自动上传
 - [ ] 支持录播姬webhook自动处理
-- [ ] 支持ffmpeg不同cpu，gpu以及相关配置
 
 # 开发
 

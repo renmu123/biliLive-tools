@@ -24,6 +24,18 @@ const readVideoMeta = async (input: string): Promise<any> => {
   });
 };
 
+export const getAvailableEncoders = async () => {
+  return new Promise((resolve, reject) => {
+    ffmpeg.getAvailableEncoders(function (err, codecs) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(codecs);
+      }
+    });
+  });
+};
+
 export const convertVideo2Mp4 = async (
   _event: IpcMainInvokeEvent,
   file: File,
@@ -102,14 +114,14 @@ export const mergeAssMp4 = async (
   // 相同文件覆盖提示
   const { name, path, dir } = videoFile;
   let output = join(dir, `${name}-弹幕版.mp4`);
-  const input = path;
+  const videoInput = path;
 
   if (options.saveRadio === 2 && options.savePath) {
     output = join(options.savePath, `${name}-弹幕版.mp4`);
   }
   console.log(options.override, fs.existsSync(output), escaped(assFile.path));
 
-  if (!fs.existsSync(input)) {
+  if (!fs.existsSync(videoInput)) {
     _event.sender.send("task-error", "文件不存在");
     return;
   }
@@ -118,7 +130,7 @@ export const mergeAssMp4 = async (
     return;
   }
 
-  const command = ffmpeg(input)
+  const command = ffmpeg(videoInput)
     .setFfmpegPath(FFMPEG_PATH)
     .setFfprobePath(FFPROBE_PATH)
     .inputOptions(`-filter_complex subtitles=${escaped(assFile.path)}`)
@@ -132,8 +144,13 @@ export const mergeAssMp4 = async (
   command.on("end", async () => {
     console.log("Conversion ended");
     _event.sender.send("task-end", output);
-    if (options.removeOrigin && fs.existsSync(input)) {
-      await shell.trashItem(input);
+    if (options.removeOrigin) {
+      if (fs.existsSync(videoInput)) {
+        await shell.trashItem(videoInput);
+      }
+      if (fs.existsSync(assFile.path)) {
+        await shell.trashItem(assFile.path);
+      }
     }
   });
   command.on("error", (err) => {

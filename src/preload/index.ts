@@ -95,6 +95,9 @@ export const api = {
   join(...paths: string[]) {
     return path.join(...paths);
   },
+  getAvailableEncoders: async () => {
+    return await ipcRenderer.invoke("getAvailableEncoders");
+  },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to
