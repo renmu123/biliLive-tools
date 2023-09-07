@@ -1,7 +1,7 @@
 import { join } from "path";
 import fs from "fs-extra";
 
-import { app, dialog, BrowserWindow, ipcMain, shell } from "electron";
+import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron";
 import type { IpcMainInvokeEvent, IpcMain } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
@@ -65,6 +65,52 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
   mainWin = mainWindow;
+
+  // 触发关闭时触发
+  mainWin.on("close", (event) => {
+    // 截获 close 默认行为
+    event.preventDefault();
+    // 点击关闭时触发close事件，我们按照之前的思路在关闭时，隐藏窗口，隐藏任务栏窗口
+    mainWin.hide();
+    mainWin.setSkipTaskbar(true);
+  });
+  // 最小化时触发
+  mainWin.on("minimize", (event) => {
+    mainWin.setSkipTaskbar(true);
+  });
+
+  // 新建托盘
+  const tray = new Tray(join(icon));
+  // 托盘名称
+  tray.setToolTip("biliLive-tools");
+  // 托盘菜单
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "显示",
+      click: () => {
+        mainWin.show();
+      },
+    },
+    {
+      label: "退出",
+      click: () => {
+        mainWin.destroy();
+      },
+    },
+  ]);
+  // 载入托盘菜单
+  tray.setContextMenu(contextMenu);
+  // 双击触发
+  tray.on("double-click", () => {
+    console.log(mainWin.isVisible(), mainWin.isMinimized());
+
+    if (mainWin.isMinimized()) {
+      mainWin.restore();
+    } else {
+      mainWin.isVisible() ? mainWin.hide() : mainWin.show();
+    }
+    mainWin.isVisible() ? mainWin.setSkipTaskbar(false) : mainWin.setSkipTaskbar(true);
+  });
 }
 
 // This method will be called when Electron has finished
