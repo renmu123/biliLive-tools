@@ -1,6 +1,13 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { IpcRendererEvent } from "electron";
-import type { Progress, DanmuConfig, DanmuOptions, OpenDialogOptions, File } from "../types";
+import type {
+  Progress,
+  DanmuConfig,
+  DanmuOptions,
+  OpenDialogOptions,
+  File,
+  FfmpegOptions,
+} from "../types";
 import path from "path";
 
 import { electronAPI } from "@electron-toolkit/preload";
@@ -65,8 +72,11 @@ export const api = {
       override: false,
       removeOrigin: false,
     },
+    ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+    },
   ) => {
-    return await ipcRenderer.invoke("mergeAssMp4", videoFile, assFile, options);
+    return await ipcRenderer.invoke("mergeAssMp4", videoFile, assFile, options, ffmpegOptions);
   },
 
   // 通用函数

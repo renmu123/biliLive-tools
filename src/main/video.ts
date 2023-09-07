@@ -6,8 +6,8 @@ import fs from "fs";
 
 import ffmpeg from "fluent-ffmpeg";
 
-import type { File, DanmuOptions } from "../types";
-import { escaped } from "./utils";
+import type { File, DanmuOptions, FfmpegOptions } from "../types";
+import { escaped, genFfmpegParams } from "./utils";
 
 const FFMPEG_PATH = join(__dirname, "../../bin/ffmpeg.exe");
 const FFPROBE_PATH = join(__dirname, "../../bin/ffprobe.exe");
@@ -110,6 +110,9 @@ export const mergeAssMp4 = async (
     override: false,
     removeOrigin: false,
   },
+  ffmpegOptions: FfmpegOptions = {
+    encoder: "libx264",
+  },
 ) => {
   // 相同文件覆盖提示
   const { name, path, dir } = videoFile;
@@ -133,9 +136,15 @@ export const mergeAssMp4 = async (
   const command = ffmpeg(videoInput)
     .setFfmpegPath(FFMPEG_PATH)
     .setFfprobePath(FFPROBE_PATH)
-    .inputOptions(`-filter_complex subtitles=${escaped(assFile.path)}`)
-    .videoCodec("libx264")
+    .outputOptions(`-filter_complex subtitles=${escaped(assFile.path)}`)
     .audioCodec("copy");
+
+  const ffmpegParams = genFfmpegParams(ffmpegOptions);
+  console.log(ffmpegParams, ffmpegOptions);
+
+  ffmpegParams.forEach((param) => {
+    command.outputOptions(param);
+  });
 
   command.on("start", (commandLine: string) => {
     console.log("Conversion start", commandLine);
