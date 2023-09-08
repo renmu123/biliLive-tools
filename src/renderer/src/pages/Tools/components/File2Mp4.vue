@@ -61,6 +61,7 @@ const fileList = ref<
   (File & {
     percentage?: number;
     percentageStatus?: "success" | "info" | "error";
+    taskId?: string;
   })[]
 >([]);
 
@@ -74,7 +75,7 @@ const options = ref<DanmuOptions>({
 });
 const clientOptions = ref({
   removeCompletedTask: true, // 移除已完成任务
-  openTargetDirectory: true, // 转换完成后打开目标文件夹
+  openTargetDirectory: false, // 转换完成后打开目标文件夹
 });
 const disabled = ref(false);
 
@@ -97,15 +98,19 @@ const convert = async () => {
   });
 
   disabled.value = true;
+  let showSuccessFlag = false;
   for (let i = 0; i < fileList.value.length; i++) {
-    await createTask(i);
+    const status = await createTask(i);
+    if (status) showSuccessFlag = true;
   }
   disabled.value = false;
 
-  notice.success({
-    title: `转换完成`,
-    duration: 3000,
-  });
+  if (showSuccessFlag) {
+    notice.success({
+      title: `转换完成`,
+      duration: 3000,
+    });
+  }
 
   if (clientOptions.value.openTargetDirectory) {
     if (options.value.saveRadio === 2) {
@@ -123,31 +128,62 @@ const createTask = async (index: number) => {
   return new Promise((resolve) => {
     const i = index;
 
-    window.api.convertVideo2Mp4(toRaw(fileList.value[i]), toRaw(options.value));
+    window.api
+      .convertVideo2Mp4(toRaw(fileList.value[i]), toRaw(options.value))
+      .then(
+        ({
+          taskId,
+          status,
+          text,
+        }: {
+          taskId: string;
+          status: "success" | "error";
+          text: string;
+        }) => {
+          const currentTaskId = taskId;
+          console.log(taskId, status, text);
+          if (status === "error") {
+            notice.error({
+              title: `转换失败：\n${text}`,
+            });
+            resolve(false);
+          }
+          fileList.value[i].taskId = currentTaskId;
 
-    window.api.onTaskStart((_event, command) => {
-      console.log("start", command, index);
-      fileList.value[i].percentage = 0;
-      fileList.value[i].percentageStatus = "info";
-    });
-    window.api.onTaskEnd((_event, path) => {
-      fileList.value[i].percentage = 100;
-      fileList.value[i].percentageStatus = "success";
-      resolve(path);
-    });
-    window.api.onTaskError((_event, err) => {
-      fileList.value[i].percentageStatus = "error";
-      notice.error({
-        title: `转换失败：\n${err}`,
-      });
-      resolve(false);
-    });
+          window.api.onTaskStart((_event, { command, taskId }) => {
+            if (taskId === currentTaskId) {
+              console.log("start", command, index);
+              fileList.value[i].percentage = 0;
+              fileList.value[i].percentageStatus = "info";
+            }
+          });
+          window.api.onTaskEnd((_event, { output, taskId }) => {
+            if (taskId === currentTaskId) {
+              fileList.value[i].percentage = 100;
+              fileList.value[i].percentageStatus = "success";
+              resolve(output);
+            }
+          });
+          window.api.onTaskError((_event, { err, taskId }) => {
+            if (taskId === currentTaskId) {
+              fileList.value[i].percentageStatus = "error";
+              notice.error({
+                title: `转换失败：\n${err}`,
+              });
+              resolve(false);
+            }
+          });
 
-    window.api.onTaskProgressUpdate((_event, progress) => {
-      console.log(progress);
+          window.api.onTaskProgressUpdate((_event, { progress, taskId }) => {
+            console.log(currentTaskId, taskId, progress);
 
-      fileList.value[i].percentage = progress.percentage;
-    });
+            if (taskId === currentTaskId) {
+              console.log(progress);
+              fileList.value[i].percentage = progress.percentage;
+            }
+          });
+        },
+      );
   });
 };
 

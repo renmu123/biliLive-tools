@@ -79,7 +79,7 @@ const options = ref<DanmuOptions>({
 });
 const clientOptions = ref({
   removeCompletedTask: true, // 移除已完成任务
-  openTargetDirectory: true, // 转换完成后打开目标文件夹
+  openTargetDirectory: false, // 转换完成后打开目标文件夹
 });
 const disabled = ref(false);
 

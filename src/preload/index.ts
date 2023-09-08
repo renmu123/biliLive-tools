@@ -27,17 +27,49 @@ export const api = {
   ) => {
     return await ipcRenderer.invoke("convertVideo2Mp4", file, options);
   },
-  onTaskProgressUpdate: (callback: (_event: IpcRendererEvent, progress: Progress) => void) => {
+  onTaskProgressUpdate: (
+    callback: (
+      _event: IpcRendererEvent,
+      data: {
+        taskId: string;
+        progress: Progress;
+      },
+    ) => void,
+  ) => {
     ipcRenderer.on("task-progress-update", callback);
   },
-  onTaskStart: (callback: (_event: IpcRendererEvent, commandLine: string) => void) => {
+  onTaskStart: (
+    callback: (
+      _event: IpcRendererEvent,
+      data: {
+        taskId: string;
+        command: string;
+      },
+    ) => void,
+  ) => {
     ipcRenderer.once("task-start", callback);
   },
-  onTaskEnd: (callback: (_event: IpcRendererEvent, path: string) => void) => {
+  onTaskEnd: (
+    callback: (
+      _event: IpcRendererEvent,
+      data: {
+        taskId: string;
+        output: string;
+      },
+    ) => void,
+  ) => {
     ipcRenderer.removeAllListeners("task-progress-update");
     ipcRenderer.once("task-end", callback);
   },
-  onTaskError: (callback: (_event: IpcRendererEvent, err: string) => void) => {
+  onTaskError: (
+    callback: (
+      _event: IpcRendererEvent,
+      data: {
+        taskId: string;
+        err: string;
+      },
+    ) => void,
+  ) => {
     ipcRenderer.removeAllListeners("task-progress-update");
     ipcRenderer.once("task-error", callback);
   },
