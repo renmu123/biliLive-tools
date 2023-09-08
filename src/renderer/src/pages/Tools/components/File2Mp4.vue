@@ -8,7 +8,7 @@
       v-model="fileList"
       :extensions="['flv']"
       desc="请选择flv文件"
-      :is-in-progress="isInProgress"
+      :disabled="disabled"
     ></FileArea>
 
     <div class="flex align-center column" style="margin-top: 10px">
@@ -76,7 +76,7 @@ const clientOptions = ref({
   removeCompletedTask: true, // 移除已完成任务
   openTargetDirectory: true, // 转换完成后打开目标文件夹
 });
-const isInProgress = ref(false);
+const disabled = ref(false);
 
 const convert = async () => {
   if (fileList.value.length === 0) {
@@ -96,11 +96,11 @@ const convert = async () => {
     duration: 3000,
   });
 
-  isInProgress.value = true;
+  disabled.value = true;
   for (let i = 0; i < fileList.value.length; i++) {
     await createTask(i);
   }
-  isInProgress.value = false;
+  disabled.value = false;
 
   notice.success({
     title: `转换完成`,

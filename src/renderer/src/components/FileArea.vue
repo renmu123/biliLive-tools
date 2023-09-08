@@ -4,6 +4,7 @@
     class="file-selet"
     :style="{
       height: props.height,
+      cursor: props.disabled ? 'not-allowed' : 'pointer',
     }"
     @click="handleFileSelect"
   >
@@ -16,7 +17,7 @@
             :depth="3"
             class="remove-icon"
             :class="{
-              'in-progress': props.isInProgress,
+              'in-progress': props.disabled,
             }"
             @click.stop="removeItem(index)"
           >
@@ -58,13 +59,13 @@ const props = withDefaults(
     extensions?: Array<string>;
     desc?: string;
     height?: string;
-    isInProgress?: boolean;
+    disabled?: boolean;
     max?: number;
   }>(),
   {
     height: "200px",
     extensions: () => ["*"],
-    isInProgress: false,
+    disabled: false,
   },
 );
 // const emits = defineEmits<{
@@ -81,6 +82,7 @@ const fileList = defineModel<
 const fileSelectArea = ref<HTMLElement | null>(null);
 
 const handleFileSelect = async () => {
+  if (props.disabled) return;
   const files = await window.api.openFile({
     multi: props.max === 1 ? false : true,
     filters: [
@@ -102,7 +104,7 @@ const handleFileSelect = async () => {
 };
 
 const removeItem = (index: number) => {
-  if (props.isInProgress) return;
+  if (props.disabled) return;
   fileList.value.splice(index, 1);
 };
 
@@ -113,6 +115,7 @@ onMounted(() => {
 
   fileSelectArea.value!.addEventListener("drop", (event) => {
     event.preventDefault();
+    if (props.disabled) return;
 
     const files = event.dataTransfer!.files;
     if (files) {
@@ -134,7 +137,6 @@ onMounted(() => {
   height: 200px;
   border: 1px dashed rgb(224, 224, 230);
   border-radius: 3px;
-  cursor: pointer;
   overflow: auto;
   padding: 10px;
 }

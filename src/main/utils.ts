@@ -27,6 +27,8 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
     } else if (key === "bitrateControl") {
       if (value === "CRF" && options.crf) {
         result.push(`-crf ${options.crf}`);
+      } else if (value === "VBR" && options.bitrate) {
+        result.push(`-b:v ${options.bitrate}k`);
       }
     } else if (key === "crf") {
       // do nothing

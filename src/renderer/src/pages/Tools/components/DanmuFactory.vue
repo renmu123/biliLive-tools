@@ -12,7 +12,7 @@
       v-model="fileList"
       :extensions="['xml']"
       desc="请选择xml文件"
-      :is-in-progress="isInProgress"
+      :disabled="disabled"
     ></FileArea>
 
     <div class="flex align-center column" style="margin-top: 10px">
@@ -81,7 +81,7 @@ const clientOptions = ref({
   removeCompletedTask: true, // 移除已完成任务
   openTargetDirectory: true, // 转换完成后打开目标文件夹
 });
-const isInProgress = ref(false);
+const disabled = ref(false);
 
 const convert = async () => {
   if (fileList.value.length === 0) {
@@ -91,7 +91,7 @@ const convert = async () => {
     });
     return;
   }
-  isInProgress.value = true;
+  disabled.value = true;
   notice.info({
     title: `检测到${fileList.value.length}个任务，开始转换`,
     duration: 3000,
@@ -122,7 +122,7 @@ const convert = async () => {
       );
     }
   } finally {
-    isInProgress.value = false;
+    disabled.value = false;
   }
 };
 

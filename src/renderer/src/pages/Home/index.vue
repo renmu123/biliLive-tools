@@ -13,10 +13,10 @@
       :extensions="['flv', 'mp4', 'ass', 'xml']"
       desc="请选择录播以及弹幕文件，如果为flv以及xml将自动转换为mp4以及ass"
       :max="2"
-      :is-in-progress="isInProgress"
+      :disabled="disabled"
     ></FileArea>
 
-    <n-tabs type="segment" style="margin-top: 10px">
+    <n-tabs type="segment" style="margin-top: 10px" class="tabs">
       <n-tab-pane name="common-setting" tab="基础设置" display-directive="show:lazy">
         <div class="flex column">
           <div>
@@ -56,8 +56,17 @@
           </div>
         </div>
       </n-tab-pane>
+      <n-tab-pane name="danmukufactory-setting" tab="弹幕设置" display-directive="show">
+        <DanmuFactorySetting
+          :simpled-mode="simpledMode"
+          @change="handleDanmuChange"
+        ></DanmuFactorySetting>
+        <div class="footer" style="text-align: right">
+          <n-checkbox v-model:checked="simpledMode"> 简易模式 </n-checkbox>
+          <n-button type="primary" class="btn" @click="saveDanmuConfig"> 确认 </n-button>
+        </div>
+      </n-tab-pane>
       <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
-        <!-- <DanmuFactoryVue></DanmuFactoryVue> -->
         <ffmpegSetting @change="handleFfmpegSettingChange"></ffmpegSetting>
       </n-tab-pane>
     </n-tabs>
@@ -70,6 +79,8 @@ defineOptions({
 });
 
 import FileArea from "@renderer/components/FileArea.vue";
+import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
+
 import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm } from "@renderer/hooks";
 
@@ -100,14 +111,14 @@ const clientOptions = ref({
   removeTempFile: false, // 移除临时文件
 });
 
-const isInProgress = ref(false);
+const disabled = ref(false);
 
 const handleConvert = async () => {
-  isInProgress.value = true;
+  disabled.value = true;
   try {
     await convert();
   } finally {
-    isInProgress.value = false;
+    disabled.value = false;
   }
 };
 
@@ -359,6 +370,21 @@ const handleFfmpegSettingChange = (value: FfmpegOptions) => {
   ffmpegOptions.value = value;
 };
 
+const simpledMode = ref(true);
+// @ts-ignore
+const danmuConfig: Ref<any> = ref({
+  resolution: [],
+  msgboxsize: [],
+  msgboxpos: [],
+});
+
+const handleDanmuChange = (value: any) => {
+  danmuConfig.value = value;
+};
+const saveDanmuConfig = async () => {
+  await window.api.saveDanmuConfig(toRaw(danmuConfig.value));
+};
+
 async function getDir() {
   const path = await window.api.openDirectory();
   options.value.savePath = path;
@@ -370,5 +396,10 @@ async function getDir() {
   :deep(.n-radio) {
     align-items: center;
   }
+}
+
+.tabs {
+  height: calc(100vh - 350px);
+  overflow: auto;
 }
 </style>

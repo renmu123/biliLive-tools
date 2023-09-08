@@ -38,6 +38,7 @@ export interface FfmpegOptions {
   encoder: string;
   bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR";
   crf?: number;
+  bitrate?: number;
   preset?:
     | "ultrafast"
     | "superfast"

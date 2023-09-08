@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    DanmuFactorySetting: typeof import('./src/components/DanmuFactorySetting.vue')['default']
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']
     FileArea: typeof import('./src/components/FileArea.vue')['default']
     NButton: typeof import('naive-ui')['NButton']
