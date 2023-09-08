@@ -13,6 +13,7 @@
       :extensions="['flv', 'mp4', 'ass', 'xml']"
       desc="请选择录播以及弹幕文件，如果为flv以及xml将自动转换为mp4以及ass"
       :max="2"
+      :is-in-progress="isInProgress"
     ></FileArea>
 
     <n-tabs type="segment" style="margin-top: 10px">
@@ -55,9 +56,9 @@
           </div>
         </div>
       </n-tab-pane>
-      <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show:lazy">
+      <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
         <!-- <DanmuFactoryVue></DanmuFactoryVue> -->
-        <ffmpegOptions></ffmpegOptions>
+        <ffmpegSetting @change="handleFfmpegSettingChange"></ffmpegSetting>
       </n-tab-pane>
     </n-tabs>
   </div>
@@ -69,10 +70,10 @@ defineOptions({
 });
 
 import FileArea from "@renderer/components/FileArea.vue";
-import ffmpegOptions from "./components/ffmpegOptions.vue";
+import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm } from "@renderer/hooks";
 
-import type { DanmuOptions, File } from "../../../../types";
+import type { DanmuOptions, File, FfmpegOptions } from "../../../../types";
 import { reject } from "lodash-es";
 
 const notice = useNotification();
@@ -114,6 +115,7 @@ const convert = async () => {
   if (fileList.value.length === 0) {
     return;
   }
+  const startTime = Date.now();
 
   const videoIndex = fileList.value.findIndex((item) => item.ext === ".flv" || item.ext === ".mp4");
   const videoFile = videoIndex === -1 ? [] : [fileList.value[videoIndex]];
@@ -260,8 +262,8 @@ const convert = async () => {
 
   // 完成后的处理
   notice.info({
-    title: "压制已完成",
-    duration: 3000,
+    title: `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
+    duration: 5000,
   });
   new window.Notification("压制已完成");
   if (clientOptions.value.removeCompletedTask) {
@@ -269,9 +271,9 @@ const convert = async () => {
   }
   if (clientOptions.value.openTargetDirectory) {
     if (options.value.saveRadio === 2) {
-      window.api.openPath(toRaw(options.value).savePath);
+      window.api.openPath(options.value.savePath);
     } else {
-      window.api.openPath(toRaw(fileList.value[videoIndex]).dir);
+      window.api.openPath(fileList.value[videoIndex].dir);
     }
   }
 };
@@ -288,7 +290,12 @@ const createMergeVideoAssTask = async (
   return new Promise((resolve) => {
     const i = index;
 
-    window.api.mergeAssMp4(toRaw(videoFile), toRaw(assFile), toRaw(options.value));
+    window.api.mergeAssMp4(
+      toRaw(videoFile),
+      toRaw(assFile),
+      toRaw(options.value),
+      toRaw(ffmpegOptions.value),
+    );
 
     window.api.onTaskStart((_event, command) => {
       console.log("start", command, index);
@@ -344,6 +351,12 @@ const create2Mp4Task = async (file: File, index: number) => {
       fileList.value[i].percentage = progress.percentage;
     });
   });
+};
+
+// @ts-ignore
+const ffmpegOptions: Ref<FfmpegOptions> = ref({});
+const handleFfmpegSettingChange = (value: FfmpegOptions) => {
+  ffmpegOptions.value = value;
 };
 
 async function getDir() {

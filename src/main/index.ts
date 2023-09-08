@@ -103,8 +103,6 @@ function createWindow(): void {
   tray.setContextMenu(contextMenu);
   // 双击触发
   tray.on("double-click", () => {
-    console.log(mainWin.isVisible(), mainWin.isMinimized());
-
     if (mainWin.isMinimized()) {
       mainWin.restore();
     } else {

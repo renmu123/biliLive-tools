@@ -30,6 +30,23 @@ export interface Progress {
   percentage: number;
 }
 
-interface OpenDialogOptions extends ElectronOpenDialogOptions {
+export interface OpenDialogOptions extends ElectronOpenDialogOptions {
   multi?: boolean;
+}
+
+export interface FfmpegOptions {
+  encoder: string;
+  bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR";
+  crf?: number;
+  preset?:
+    | "ultrafast"
+    | "superfast"
+    | "veryfast"
+    | "faster"
+    | "fast"
+    | "medium"
+    | "slow"
+    | "slower"
+    | "veryslow"
+    | "placebo";
 }
