@@ -1,11 +1,11 @@
 # biliLive-tools
 
-这是一个用于上传录播到 B 站的工具。
+这是一个用于 B 站录播的一站式工具。
 
 # TODO
 
 - [x] 支持使用ffmpeg压制弹幕至视频文件
-- [ ] 支持ffmpeg不同cpu，gpu以及相关配置
+- [x] 支持ffmpeg不同cpu，gpu以及相关配置
 - [x] 支持使用danmufactory自动处理xml文件并进行压制
 - [x] 工具页面，danmufactory的GUI
 - [x] 工具页面，flv的转封装
