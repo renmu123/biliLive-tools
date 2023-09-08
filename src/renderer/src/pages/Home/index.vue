@@ -44,6 +44,8 @@
               </n-space>
             </n-radio-group>
             <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.removeTempFile"> 移除临时文件 </n-checkbox>
+
             <n-checkbox v-model:checked="clientOptions.removeCompletedTask">
               完成后移除任务
             </n-checkbox>
@@ -94,6 +96,7 @@ const options = ref<DanmuOptions>({
 const clientOptions = ref({
   removeCompletedTask: true, // 移除已完成任务
   openTargetDirectory: true, // 转换完成后打开目标文件夹
+  removeTempFile: false, // 移除临时文件
 });
 
 const isInProgress = ref(false);
@@ -156,6 +159,7 @@ const convert = async () => {
 
   // xml文件转换
   let targetAssFilePath: string;
+  let canRemoveAssFile = false;
   if (assFile[0].ext === ".xml") {
     let path = window.api.join(assFile[0].dir, `${assFile[0].name}.ass`);
     if (options.value.saveRadio === 2 && options.value.savePath) {
@@ -167,6 +171,8 @@ const convert = async () => {
         content: `目标文件夹已存在 ${assFile[0].name}.ass 文件，继续将会覆盖此文件`,
       });
       if (!status) return;
+    } else {
+      canRemoveAssFile = true;
     }
 
     notice.warning({
@@ -195,6 +201,7 @@ const convert = async () => {
 
   // video文件转换
   let targetVideoFilePath: string;
+  let canRemoveVideo = false;
   if (videoFile[0].ext === ".flv") {
     let path = window.api.join(videoFile[0].dir, `${videoFile[0].name}.mp4`);
     if (options.value.saveRadio === 2 && options.value.savePath) {
@@ -206,6 +213,8 @@ const convert = async () => {
         content: `目标文件夹已存在 ${videoFile[0].name}.mp4 文件，继续将会覆盖此文件`,
       });
       if (!status) return;
+    } else {
+      canRemoveVideo = true;
     }
 
     notice.warning({
@@ -242,6 +251,11 @@ const convert = async () => {
       title: `转换失败：\n${err}`,
     });
     return;
+  } finally {
+    if (clientOptions.value.removeTempFile) {
+      if (canRemoveAssFile) window.api.trashItem(targetAssFilePath);
+      if (canRemoveVideo) window.api.trashItem(targetVideoFilePath);
+    }
   }
 
   // 完成后的处理

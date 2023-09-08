@@ -21,6 +21,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("openExternal", openExternal);
   ipcMain.handle("openPath", openPath);
   ipcMain.handle("exits", exits);
+  ipcMain.handle("trashItem", trashItem);
 
   // 视频处理
   ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
@@ -191,4 +192,8 @@ const openPath = (_event: IpcMainInvokeEvent, path: string) => {
 
 const exits = (_event: IpcMainInvokeEvent, path: string) => {
   return fs.existsSync(path);
+};
+
+const trashItem = async (_event: IpcMainInvokeEvent, path: string) => {
+  return await shell.trashItem(path);
 };

@@ -98,6 +98,9 @@ export const api = {
   getAvailableEncoders: async () => {
     return await ipcRenderer.invoke("getAvailableEncoders");
   },
+  trashItem: async (path: string) => {
+    return await ipcRenderer.invoke("trashItem", path);
+  },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to
