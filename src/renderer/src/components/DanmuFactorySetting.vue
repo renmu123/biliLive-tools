@@ -33,6 +33,15 @@
         <n-form-item path="bold">
           <n-checkbox v-model:checked="config.bold"> 粗体 </n-checkbox>
         </n-form-item>
+        <n-form-item label="字体">
+          <n-select
+            v-model:value="config.fontname"
+            :options="fontOptions"
+            style="width: 300px"
+            filterable
+            virtual-scroll
+          />
+        </n-form-item>
       </n-form>
     </div>
     <n-divider />
@@ -147,7 +156,7 @@
           <n-checkbox v-model:checked="config.showmsgbox"> 显示礼物框 </n-checkbox>
         </n-form-item>
         <template v-if="config.showmsgbox">
-          <n-form-item label="礼物框尺寸" path="msgboxsize">
+          <n-form-item v-if="isAdvancedMode" label="礼物框尺寸" path="msgboxsize">
             <n-input-number
               v-model:value.number="config.msgboxsize[0]"
               class="input-number"
@@ -161,7 +170,7 @@
               :step="100"
             />
           </n-form-item>
-          <n-form-item label="礼物框位置" path="msgboxpos">
+          <n-form-item v-if="isAdvancedMode" label="礼物框位置" path="msgboxpos">
             <n-input-number
               v-model:value.number="config.msgboxpos[0]"
               class="input-number"
@@ -185,7 +194,17 @@
               v-model:value.number="config.msgboxduration"
               class="input-number"
               :min="0"
-            />
+            >
+              <template #suffix> 秒 </template></n-input-number
+            >
+          </n-form-item>
+          <n-form-item label="礼物最小价值" path="giftminprice">
+            <n-input-number
+              v-model:value.number="config.giftminprice"
+              class="input-number"
+              :min="0"
+            >
+            </n-input-number>
           </n-form-item>
           <n-form-item
             v-if="isAdvancedMode"
@@ -229,8 +248,21 @@ const getConfig = async () => {
   const data = await window.api.getDanmuConfig();
   config.value = data;
 };
+
+const fontOptions = ref([]);
+const getFonts = async () => {
+  // @ts-ignore
+  const data = await window.queryLocalFonts();
+  fontOptions.value = data.map((item) => {
+    return {
+      label: item.fullName,
+      value: item.fullName,
+    };
+  });
+};
 onMounted(async () => {
   await getConfig();
+  getFonts();
 });
 
 watch(

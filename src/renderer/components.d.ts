@@ -38,6 +38,5 @@ declare module 'vue' {
     NText: typeof import('naive-ui')['NText']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    SettingDialog: typeof import('./src/components/SettingDialog.vue')['default']
   }
 }

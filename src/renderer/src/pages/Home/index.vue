@@ -1,8 +1,9 @@
 <!-- 首页 -->
 <template>
   <div>
-    <div class="flex justify-center" style="margin-bottom: 20px">
+    <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
+      <p v-if="timemark">已处理：{{ timemark }}</p>
       <!-- <n-icon size="30" class="pointer" style="margin-left: 10px" @click="openSetting">
           <SettingIcon />
         </n-icon> -->
@@ -85,7 +86,6 @@ import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm } from "@renderer/hooks";
 
 import type { DanmuOptions, File, FfmpegOptions } from "../../../../types";
-import { reject } from "lodash-es";
 
 const notice = useNotification();
 const confirm = useConfirm();
@@ -94,6 +94,7 @@ const fileList = ref<
   (File & {
     percentage?: number;
     percentageStatus?: "success" | "info" | "error";
+    taskId?: string;
   })[]
 >([]);
 
@@ -234,19 +235,21 @@ const convert = async () => {
       title: "开始转换flv",
       duration: 3000,
     });
-    const result = await create2Mp4Task(videoFile[0], videoIndex);
-    if (!result) {
+    try {
+      const result = await create2Mp4Task(videoFile[0], videoIndex);
+
+      notice.success({
+        title: "文件转码成功",
+        duration: 3000,
+      });
+      targetVideoFilePath = result as string;
+    } catch (err) {
       notice.error({
-        title: "flv转码失败，请检查文件",
+        title: "文件转码失败，请检查文件",
         duration: 3000,
       });
       return;
     }
-    notice.success({
-      title: "flv转码成功",
-      duration: 3000,
-    });
-    targetVideoFilePath = result as string;
   } else {
     targetVideoFilePath = videoFile[0].path;
   }
@@ -272,11 +275,13 @@ const convert = async () => {
   }
 
   // 完成后的处理
-  notice.info({
+  notice.success({
     title: `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
-    duration: 5000,
+    duration: 10000,
   });
-  new window.Notification("压制已完成");
+  new window.Notification(
+    `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
+  );
   if (clientOptions.value.removeCompletedTask) {
     fileList.value = [];
   }
@@ -289,6 +294,8 @@ const convert = async () => {
   }
 };
 
+// 已处理时间
+const timemark = ref();
 // 压制任务
 const createMergeVideoAssTask = async (
   videoFilePath: string,
@@ -298,69 +305,117 @@ const createMergeVideoAssTask = async (
   const videoFile = window.api.formatFile(videoFilePath);
   const assFile = window.api.formatFile(assFilePath);
 
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const i = index;
 
-    window.api.mergeAssMp4(
-      toRaw(videoFile),
-      toRaw(assFile),
-      toRaw(options.value),
-      toRaw(ffmpegOptions.value),
-    );
+    window.api
+      .mergeAssMp4(
+        toRaw(videoFile),
+        toRaw(assFile),
+        toRaw(options.value),
+        toRaw(ffmpegOptions.value),
+      )
+      .then(
+        ({
+          taskId,
+          status,
+          text,
+        }: {
+          taskId: string;
+          status: "success" | "error";
+          text: string;
+        }) => {
+          const currentTaskId = taskId;
+          if (status === "error") {
+            reject(text);
+          }
+          fileList.value[i].taskId = currentTaskId;
 
-    window.api.onTaskStart((_event, command) => {
-      console.log("start", command, index);
-      fileList.value[i].percentage = 0;
-      fileList.value[i].percentageStatus = "info";
-    });
-    window.api.onTaskEnd(() => {
-      fileList.value[i].percentage = 100;
-      fileList.value[i].percentageStatus = "success";
-      resolve(true);
-    });
-    window.api.onTaskError((_event, err) => {
-      fileList.value[i].percentageStatus = "error";
-      reject(err);
-    });
+          window.api.onTaskStart((_event, { command, taskId }) => {
+            if (taskId === currentTaskId) {
+              console.log("start", command, index);
+              fileList.value[i].percentage = 0;
+              fileList.value[i].percentageStatus = "info";
+            }
+          });
+          window.api.onTaskEnd((_event, { output, taskId }) => {
+            if (taskId === currentTaskId) {
+              fileList.value[i].percentage = 100;
+              fileList.value[i].percentageStatus = "success";
+              resolve(output);
+              timemark.value = "";
+            }
+          });
+          window.api.onTaskError((_event, { err, taskId }) => {
+            if (taskId === currentTaskId) {
+              fileList.value[i].percentageStatus = "error";
+              reject(err);
+            }
+          });
 
-    window.api.onTaskProgressUpdate((_event, progress) => {
-      console.log(progress);
-
-      fileList.value[i].percentage = progress.percentage;
-    });
+          window.api.onTaskProgressUpdate((_event, { progress, taskId }) => {
+            if (taskId === currentTaskId) {
+              fileList.value[i].percentage = progress.percentage;
+              timemark.value = progress.timemark;
+            }
+          });
+        },
+      );
   });
 };
 
 // 转码任务
 const create2Mp4Task = async (file: File, index: number) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const i = index;
 
-    window.api.convertVideo2Mp4(toRaw(file), toRaw(options.value));
+    window.api
+      .convertVideo2Mp4(toRaw(file), toRaw(options.value))
+      .then(
+        ({
+          taskId,
+          status,
+          text,
+        }: {
+          taskId: string;
+          status: "success" | "error";
+          text: string;
+        }) => {
+          const currentTaskId = taskId;
+          console.log(taskId, status, text);
+          if (status === "error") {
+            reject(text);
+          }
+          fileList.value[i].taskId = currentTaskId;
 
-    window.api.onTaskStart((_event, command) => {
-      console.log("start", command, index);
-      fileList.value[i].percentage = 0;
-      fileList.value[i].percentageStatus = "info";
-    });
-    window.api.onTaskEnd((_event, path) => {
-      fileList.value[i].percentage = 100;
-      fileList.value[i].percentageStatus = "success";
-      resolve(path);
-    });
-    window.api.onTaskError((_event, err) => {
-      fileList.value[i].percentageStatus = "error";
-      notice.error({
-        title: `转换失败：\n${err}`,
-      });
-      resolve(false);
-    });
+          window.api.onTaskStart((_event, { command, taskId }) => {
+            if (taskId === currentTaskId) {
+              console.log("start", command, index);
+              fileList.value[i].percentage = 0;
+              fileList.value[i].percentageStatus = "info";
+            }
+          });
+          window.api.onTaskEnd((_event, { output, taskId }) => {
+            if (taskId === currentTaskId) {
+              fileList.value[i].percentage = 100;
+              fileList.value[i].percentageStatus = "success";
+              resolve(output);
+            }
+          });
+          window.api.onTaskError((_event, { err, taskId }) => {
+            if (taskId === currentTaskId) {
+              fileList.value[i].percentageStatus = "error";
+              reject(err);
+            }
+          });
 
-    window.api.onTaskProgressUpdate((_event, progress) => {
-      console.log(progress);
-
-      fileList.value[i].percentage = progress.percentage;
-    });
+          window.api.onTaskProgressUpdate((_event, { progress, taskId }) => {
+            if (taskId === currentTaskId) {
+              fileList.value[i].percentage = progress.percentage;
+            }
+          });
+        },
+      );
   });
 };
 

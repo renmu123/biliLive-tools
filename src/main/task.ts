@@ -13,7 +13,7 @@ export class Task {
     webContents: WebContents,
     options: {
       output: string;
-      size: number;
+      size?: number;
     },
     callback: {
       onStart?: () => void;
@@ -35,21 +35,21 @@ export class Task {
       this.status = "running";
     });
     command.on("end", async () => {
-      console.log(this.taskId, "Conversion ended");
-
       callback.onEnd && callback.onEnd(options.output);
       this.webContents.send("task-end", { taskId: this.taskId, output: options.output });
       this.status = "completed";
     });
     command.on("error", (err) => {
-      console.log(this.taskId, `An error occurred: ${err.message}`);
-
       callback.onError && callback.onError(err);
       this.webContents.send("task-error", { taskId: this.taskId, err: err });
       this.status = "error";
     });
     command.on("progress", (progress) => {
-      progress.percentage = Math.round((progress.targetSize / options.size) * 100);
+      if (options.size) {
+        progress.percentage = Math.round((progress.targetSize / options.size) * 100);
+      } else {
+        progress.percentage = progress.percent;
+      }
       callback.onProgress && callback.onProgress(progress);
       this.webContents.send("task-progress-update", { taskId: this.taskId, progress: progress });
     });

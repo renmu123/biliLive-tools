@@ -111,6 +111,16 @@ const removeItem = (index: number) => {
 onMounted(() => {
   fileSelectArea.value!.addEventListener("dragover", (event) => {
     event.preventDefault();
+    if (props.disabled) {
+      event.dataTransfer!.dropEffect = "none";
+    } else {
+      event.dataTransfer!.dropEffect = "copy";
+    }
+    if (fileList.value.length >= props.max!) {
+      event.dataTransfer!.dropEffect = "none";
+    } else {
+      event.dataTransfer!.dropEffect = "copy";
+    }
   });
 
   fileSelectArea.value!.addEventListener("drop", (event) => {

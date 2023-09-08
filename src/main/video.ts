@@ -155,31 +155,30 @@ export const mergeAssMp4 = async (
     command.outputOptions(param);
   });
 
-  command.on("start", (commandLine: string) => {
-    console.log("Conversion start", commandLine);
-    _event.sender.send("task-start", commandLine);
-  });
-  command.on("end", async () => {
-    console.log("Conversion ended");
-    _event.sender.send("task-end", output);
-    if (options.removeOrigin) {
-      if (fs.existsSync(videoInput)) {
-        await shell.trashItem(videoInput);
-      }
-      if (fs.existsSync(assFile.path)) {
-        await shell.trashItem(assFile.path);
-      }
-    }
-  });
-  command.on("error", (err) => {
-    console.log(`An error occurred: ${err.message}`);
-    _event.sender.send("task-error", err);
-  });
-  command.on("progress", (progress) => {
-    progress.percentage = progress.percent;
+  const task = new Task(
+    command,
+    _event.sender,
+    {
+      output,
+    },
+    {
+      onEnd: async () => {
+        if (options.removeOrigin) {
+          if (fs.existsSync(videoInput)) {
+            await shell.trashItem(videoInput);
+          }
+          if (fs.existsSync(assFile.path)) {
+            await shell.trashItem(assFile.path);
+          }
+        }
+      },
+    },
+  );
 
-    _event.sender.send("task-progress-update", progress);
-  });
-
-  command.run();
+  taskQueue.addTask(task, true);
+  return {
+    status: "success",
+    text: "添加到任务队列",
+    taskId: task.taskId,
+  };
 };

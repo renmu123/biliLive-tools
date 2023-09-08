@@ -98,10 +98,13 @@ const convert = async () => {
   });
 
   disabled.value = true;
-  let showSuccessFlag = false;
+  let showSuccessFlag = true;
   for (let i = 0; i < fileList.value.length; i++) {
-    const status = await createTask(i);
-    if (status) showSuccessFlag = true;
+    try {
+      await createTask(i);
+    } catch {
+      showSuccessFlag = false;
+    }
   }
   disabled.value = false;
 
@@ -125,7 +128,7 @@ const convert = async () => {
 };
 
 const createTask = async (index: number) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const i = index;
 
     window.api
@@ -141,18 +144,13 @@ const createTask = async (index: number) => {
           text: string;
         }) => {
           const currentTaskId = taskId;
-          console.log(taskId, status, text);
           if (status === "error") {
-            notice.error({
-              title: `转换失败：\n${text}`,
-            });
-            resolve(false);
+            reject(text);
           }
           fileList.value[i].taskId = currentTaskId;
 
-          window.api.onTaskStart((_event, { command, taskId }) => {
+          window.api.onTaskStart((_event, { taskId }) => {
             if (taskId === currentTaskId) {
-              console.log("start", command, index);
               fileList.value[i].percentage = 0;
               fileList.value[i].percentageStatus = "info";
             }
@@ -167,18 +165,12 @@ const createTask = async (index: number) => {
           window.api.onTaskError((_event, { err, taskId }) => {
             if (taskId === currentTaskId) {
               fileList.value[i].percentageStatus = "error";
-              notice.error({
-                title: `转换失败：\n${err}`,
-              });
-              resolve(false);
+              reject(err);
             }
           });
 
           window.api.onTaskProgressUpdate((_event, { progress, taskId }) => {
-            console.log(currentTaskId, taskId, progress);
-
             if (taskId === currentTaskId) {
-              console.log(progress);
               fileList.value[i].percentage = progress.percentage;
             }
           });

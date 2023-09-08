@@ -28,7 +28,7 @@ export const DANMU_DEAFULT_CONFIG = {
   msgboxpos: [20, 0],
   msgboxfontsize: 38,
   msgboxduration: 10.0,
-  giftminprice: 0.0,
+  giftminprice: 10.0,
   giftmergetolerance: 0.0,
   blockmode: [],
   statmode: [],
