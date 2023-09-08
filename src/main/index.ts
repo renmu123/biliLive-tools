@@ -76,7 +76,7 @@ function createWindow(): void {
     mainWin.setSkipTaskbar(true);
   });
   // 最小化时触发
-  mainWin.on("minimize", (event) => {
+  mainWin.on("minimize", () => {
     mainWin.setSkipTaskbar(true);
   });
 

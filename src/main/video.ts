@@ -9,8 +9,14 @@ import { TaskQueue, Task } from "./task";
 import type { IpcMainInvokeEvent } from "electron";
 import type { File, DanmuOptions, FfmpegOptions } from "../types";
 
-const FFMPEG_PATH = join(__dirname, "../../bin/ffmpeg.exe");
-const FFPROBE_PATH = join(__dirname, "../../bin/ffprobe.exe");
+const FFMPEG_PATH = join(__dirname, "../../resources/bin/ffmpeg.exe").replace(
+  "app.asar",
+  "app.asar.unpacked",
+);
+const FFPROBE_PATH = join(__dirname, "../../resources/bin/ffprobe.exe").replace(
+  "app.asar",
+  "app.asar.unpacked",
+);
 
 const taskQueue = new TaskQueue();
 

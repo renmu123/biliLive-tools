@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: com.electron.biliLiveTools
 productName: biliLive-tools
 directories:
   buildResources: build

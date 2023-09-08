@@ -7,7 +7,10 @@ import type { DanmuConfig, File, DanmuOptions } from "../types";
 import Config from "./config";
 import { executeCommand } from "./utils";
 
-const DANMUKUFACTORY_PATH = join(__dirname, "../../bin/DanmakuFactory.exe");
+const DANMUKUFACTORY_PATH = join(__dirname, "../../resources/bin/DanmakuFactory.exe").replace(
+  "app.asar",
+  "app.asar.unpacked",
+);
 
 export const DANMU_DEAFULT_CONFIG = {
   resolution: [1920, 1080],
