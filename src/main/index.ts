@@ -67,6 +67,8 @@ function createWindow(): void {
   }
   mainWin = mainWindow;
 
+  // TODO:关闭时检测是否有ffmpeg进程
+  // TODO:暂停，关闭功能
   // 触发关闭时触发
   mainWin.on("close", (event) => {
     // 截获 close 默认行为

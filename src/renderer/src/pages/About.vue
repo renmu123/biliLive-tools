@@ -18,7 +18,6 @@
 </template>
 
 <script setup lang="ts">
-// console.log(window.electron);
 const version = ref();
 onMounted(async () => {
   version.value = await window.api.appVersion();
@@ -31,7 +30,6 @@ onMounted(async () => {
     });
   });
 });
-// window.electron.app.getVersion()
 </script>
 
 <style scoped></style>

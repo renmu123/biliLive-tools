@@ -58,6 +58,7 @@
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import type { DanmuOptions, File } from "../../../../../types";
+import { deepRaw } from "@renderer/utils";
 
 import { Settings as SettingIcon } from "@vicons/ionicons5";
 
@@ -97,7 +98,10 @@ const convert = async () => {
     duration: 3000,
   });
   try {
-    const result = await window.api.convertDanmu2Ass(toRaw(fileList.value), toRaw(options.value));
+    const result = await window.api.convertDanmu2Ass(
+      deepRaw(fileList.value),
+      deepRaw(options.value),
+    );
     const successResult = result.filter((item) => item.status === "success");
 
     notice.info({
@@ -110,15 +114,17 @@ const convert = async () => {
 
     if (clientOptions.value.openTargetDirectory) {
       if (options.value.saveRadio === 2) {
-        window.api.openPath(toRaw(options.value).savePath);
+        window.api.openPath(deepRaw(options.value).savePath);
       } else {
-        window.api.openPath(toRaw(fileList.value[0]).dir);
+        window.api.openPath(deepRaw(fileList.value[0]).dir);
       }
     }
 
     if (clientOptions.value.removeCompletedTask) {
+      console.log(fileList.value, successResult);
+
       fileList.value = fileList.value.filter(
-        (item) => !successResult.map((item2) => item2.path).includes(item.path),
+        (item) => !successResult.map((item2) => item2.input).includes(item.path),
       );
     }
   } finally {

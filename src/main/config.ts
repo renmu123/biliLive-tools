@@ -1,7 +1,8 @@
 import path from "path";
 import fs from "fs";
+import { app } from "electron";
 
-export const CONFIG_PATH = path.join(__dirname, "../../config");
+export const CONFIG_PATH = app.getPath("userData");
 
 export default class Config {
   filename: string;
