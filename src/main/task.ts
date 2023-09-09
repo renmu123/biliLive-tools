@@ -58,20 +58,22 @@ export class Task {
     this.command.run();
   }
   stop() {
+    if (this.status !== "running") return;
     this.command.kill("SIGSTOP");
     this.status = "paused";
-    this.webContents.send("task-stoped", "ffmpeg has been stoped");
+    // TODO:需要补充preload的事件
+    this.webContents.send("task-stoped", { taskId: this.taskId, text: "ffmpeg has been stoped" });
   }
   continue() {
+    if (this.status !== "paused") return;
     this.command.kill("SIGCONT");
     this.status = "running";
     // TODO:需要补充preload的事件
-    this.webContents.send("task-continue", "ffmpeg has is running");
+    this.webContents.send("task-continue", { taskId: this.taskId, text: "ffmpeg is running" });
   }
   kill() {
     this.command.kill();
     this.status = "error";
-    // TODO:需要补充preload的事件
     this.webContents.send("task-error", "ffmpeg has been killed");
   }
 }

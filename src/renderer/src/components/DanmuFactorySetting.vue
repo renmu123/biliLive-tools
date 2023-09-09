@@ -256,7 +256,7 @@ const getFonts = async () => {
   fontOptions.value = data.map((item) => {
     return {
       label: item.fullName,
-      value: item.fullName,
+      value: item.postscriptName,
     };
   });
 };

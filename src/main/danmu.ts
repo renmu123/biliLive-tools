@@ -18,7 +18,7 @@ export const DANMU_DEAFULT_CONFIG = {
   fixtime: 5.0,
   density: 0,
   fontname: "Microsoft YaHei",
-  fontsize: 54,
+  fontsize: 38,
   opacity: 255,
   outline: 0.0,
   shadow: 1.0,

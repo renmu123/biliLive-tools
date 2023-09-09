@@ -36,6 +36,7 @@
       </div>
       <div style="margin-top: 10px">
         <n-radio-group v-model:value="options.override">
+          <!-- TODO:danmufactory存在时会跳过 -->
           <n-space>
             <n-radio :value="true"> 覆盖文件 </n-radio>
             <n-radio :value="false"> 跳过存在文件 </n-radio>

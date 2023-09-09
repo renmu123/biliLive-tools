@@ -9,6 +9,7 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import icon from "../../resources/icon.png?asset";
 import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
 import { convertVideo2Mp4, mergeAssMp4, getAvailableEncoders } from "./video";
+import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils";
 import { CONFIG_PATH } from "./config";
 
 import type { OpenDialogOptions } from "../types";
@@ -67,19 +68,13 @@ function createWindow(): void {
   }
   mainWin = mainWindow;
 
-  // TODO:关闭时检测是否有ffmpeg进程
-  // TODO:暂停，关闭功能
   // 触发关闭时触发
   mainWin.on("close", (event) => {
     // 截获 close 默认行为
     event.preventDefault();
     // 点击关闭时触发close事件，我们按照之前的思路在关闭时，隐藏窗口，隐藏任务栏窗口
     mainWin.hide();
-    mainWin.setSkipTaskbar(true);
-  });
-  // 最小化时触发
-  mainWin.on("minimize", () => {
-    mainWin.setSkipTaskbar(true);
+    // mainWin.setSkipTaskbar(true);
   });
 
   // 新建托盘
@@ -96,8 +91,30 @@ function createWindow(): void {
     },
     {
       label: "退出",
-      click: () => {
-        mainWin.destroy();
+      click: async () => {
+        try {
+          const isRunning = await checkFFmpegRunning();
+          if (isRunning) {
+            const confirm = await dialog.showMessageBox(mainWin, {
+              message: "检测到有正在运行的ffmpeg进程，是否退出？",
+              buttons: ["取消", "退出", "退出并杀死进程"],
+            });
+            if (confirm.response === 1) {
+              mainWin.destroy();
+              app.quit();
+            } else if (confirm.response === 2) {
+              const processes = await getAllFFmpegProcesses();
+              processes.forEach((item) => {
+                process.kill(item.pid, "SIGTERM");
+              });
+              mainWin.destroy();
+            }
+          } else {
+            mainWin.destroy();
+          }
+        } catch (e) {
+          mainWin.destroy();
+        }
       },
     },
   ]);
@@ -110,46 +127,59 @@ function createWindow(): void {
     } else {
       mainWin.isVisible() ? mainWin.hide() : mainWin.show();
     }
-    mainWin.isVisible() ? mainWin.setSkipTaskbar(false) : mainWin.setSkipTaskbar(true);
+    // mainWin.isVisible() ? mainWin.setSkipTaskbar(false) : mainWin.setSkipTaskbar(true);
   });
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId("com.electron");
-  installExtension("nhdogjmejiglipccpnnnanhbledajbpd")
-    .then((name) => console.log(`Added Extension:  ${name}`))
-    .catch((err) => console.log("An error occurred: ", err));
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.whenReady().then(() => {
+    electronApp.setAppUserModelId("com.electron");
+    installExtension("nhdogjmejiglipccpnnnanhbledajbpd")
+      .then((name) => console.log(`Added Extension:  ${name}`))
+      .catch((err) => console.log("An error occurred: ", err));
 
-  fs.ensureDir(CONFIG_PATH);
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
-  app.on("browser-window-created", (_, window) => {
-    optimizer.watchWindowShortcuts(window);
+    fs.ensureDir(CONFIG_PATH);
+    // Default open or close DevTools by F12 in development
+    // and ignore CommandOrControl + R in production.
+    // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
+    app.on("browser-window-created", (_, window) => {
+      optimizer.watchWindowShortcuts(window);
+    });
+
+    createWindow();
+    genHandler(ipcMain);
+
+    app.on("activate", function () {
+      // On macOS it's common to re-create a window in the app when the
+      // dock icon is clicked and there are no other windows open.
+      if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
   });
 
-  createWindow();
-  genHandler(ipcMain);
+  app.on("second-instance", (_event, _commandLine, _workingDirectory, additionalData) => {
+    // 输出从第二个实例中接收到的数据
+    console.log(additionalData);
 
-  app.on("activate", function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    // 有人试图运行第二个实例，我们应该关注我们的窗口
+    if (mainWin) {
+      if (mainWin.isMinimized()) mainWin.restore();
+      if (!mainWin.isVisible()) mainWin.show();
+      mainWin.focus();
+    }
   });
-});
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
+  // Quit when all windows are closed, except on macOS. There, it's common
+  // for applications and their menu bar to stay active until the user quits
+  // explicitly with Cmd + Q.
+  app.on("window-all-closed", () => {
+    if (process.platform !== "darwin") {
+      app.quit();
+    }
+  });
+}
 
 const openDirectory = async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWin, {
