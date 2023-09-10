@@ -5,6 +5,7 @@ import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron
 import type { IpcMainInvokeEvent, IpcMain } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
+import log from "electron-log";
 
 import icon from "../../resources/icon.png?asset";
 import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
@@ -114,6 +115,7 @@ function createWindow(): void {
           }
         } catch (e) {
           mainWin.destroy();
+          log.error(e);
         }
       },
     },
@@ -141,6 +143,7 @@ if (!gotTheLock) {
       .then((name) => console.log(`Added Extension:  ${name}`))
       .catch((err) => console.log("An error occurred: ", err));
 
+    log.info("app start");
     fs.ensureDir(CONFIG_PATH);
     // Default open or close DevTools by F12 in development
     // and ignore CommandOrControl + R in production.
@@ -159,10 +162,11 @@ if (!gotTheLock) {
     });
   });
 
-  app.on("second-instance", (_event, _commandLine, _workingDirectory, additionalData) => {
-    // 输出从第二个实例中接收到的数据
-    console.log(additionalData);
+  process.on("uncaughtException", function (error) {
+    log.error(error);
+  });
 
+  app.on("second-instance", (_event, _commandLine, _workingDirectory) => {
     // 有人试图运行第二个实例，我们应该关注我们的窗口
     if (mainWin) {
       if (mainWin.isMinimized()) mainWin.restore();

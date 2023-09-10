@@ -1,4 +1,5 @@
 import { uuid } from "./utils";
+import log from "electron-log";
 
 import type { WebContents } from "electron";
 import type { Progress } from "../types";
@@ -28,18 +29,21 @@ export class Task {
     this.webContents = webContents;
 
     command.on("start", (commandLine: string) => {
-      console.log(this.taskId, "Conversion start", commandLine);
+      log.info(`task ${this.taskId} start, command: ${commandLine}`);
 
       callback.onStart && callback.onStart();
       this.webContents.send("task-start", { taskId: this.taskId, command: commandLine });
       this.status = "running";
     });
     command.on("end", async () => {
+      log.info(`task ${this.taskId} end`);
+
       callback.onEnd && callback.onEnd(options.output);
       this.webContents.send("task-end", { taskId: this.taskId, output: options.output });
       this.status = "completed";
     });
     command.on("error", (err) => {
+      log.error(`task ${this.taskId} error`);
       callback.onError && callback.onError(err);
       this.webContents.send("task-error", { taskId: this.taskId, err: err });
       this.status = "error";
@@ -60,6 +64,7 @@ export class Task {
   stop() {
     if (this.status !== "running") return;
     this.command.kill("SIGSTOP");
+    log.warn(`task ${this.taskId} stopped`);
     this.status = "paused";
     // TODO:需要补充preload的事件
     this.webContents.send("task-stoped", { taskId: this.taskId, text: "ffmpeg has been stoped" });
@@ -67,12 +72,14 @@ export class Task {
   continue() {
     if (this.status !== "paused") return;
     this.command.kill("SIGCONT");
+    log.warn(`task ${this.taskId} continue`);
     this.status = "running";
     // TODO:需要补充preload的事件
     this.webContents.send("task-continue", { taskId: this.taskId, text: "ffmpeg is running" });
   }
   kill() {
     this.command.kill();
+    log.warn(`task ${this.taskId} killed`);
     this.status = "error";
     this.webContents.send("task-error", "ffmpeg has been killed");
   }
