@@ -1,0 +1,56 @@
+name: Build/release Electron app
+
+on:
+  push:
+    # tags:
+    #   - "*"
+    branches:
+      - "*"
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Download File
+        run: |
+          # 使用 curl 下载文件
+          curl -o downloaded_file.zip https://github.com/renmu123/biliLive-tools/releases/download/0.1.0/bin.zip
+
+      - name: Extract File
+        run: |
+          # 使用 unzip 解压 ZIP 文件
+          powershell Expand-Archive -Path downloaded_file.zip -DestinationPath resources/bin
+
+      - name: build-win
+        if: matrix.os == 'windows-latest'
+        run: npm run build:win
+
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: false
+          files: |
+            dist/*.exe
+            dist/*.zip
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.snap
+            dist/*.deb
+            dist/*.rpm
+            dist/*.tar.gz
+            dist/*.yml
+            dist/*.blockmap
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
