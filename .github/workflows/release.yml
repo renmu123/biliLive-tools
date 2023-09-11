@@ -24,7 +24,7 @@ jobs:
       - name: Cache node_modules
         uses: actions/cache@v2
         with:
-          path: node_modules
+          path: "**/node_modules"
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
@@ -49,6 +49,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           draft: false
+          token: ${{ secrets.GITHUB_TOKEN }}
           permissions: write
           files: |
             dist/*.exe
