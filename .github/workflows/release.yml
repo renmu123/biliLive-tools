@@ -27,12 +27,12 @@ jobs:
       - name: Download File
         run: |
           # 使用 curl 下载文件
-          wget https://github.com/renmu123/biliLive-tools/releases/download/0.1.0/bin.zip -O downloaded_file.zip
+          curl -LJO  https://github.com/renmu123/biliLive-tools/releases/download/0.1.0/bin.zip
 
       - name: Extract File
         run: |
           # 使用 unzip 解压 ZIP 文件
-          powershell Expand-Archive -Path downloaded_file.zip -DestinationPath resources
+          powershell Expand-Archive -Path bin.zip -DestinationPath resources
 
       - name: build-win
         run: npm run build:win
