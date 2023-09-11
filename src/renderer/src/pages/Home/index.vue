@@ -450,23 +450,6 @@ const saveDanmuConfig = async () => {
   await window.api.saveDanmuConfig(toRaw(danmuConfig.value));
 };
 
-// 暂停任务
-const pauseTask = () => {
-  fileList.value.forEach((item) => {
-    if (item.taskId) {
-      window.api.pauseTask(item.taskId);
-    }
-  });
-};
-
-// 继续任务
-const resumeTask = () => {
-  fileList.value.forEach((item) => {
-    if (item.taskId) {
-      window.api.resumeTask(item.taskId);
-    }
-  });
-};
 // 杀死任务
 const killTask = () => {
   fileList.value.forEach((item) => {
