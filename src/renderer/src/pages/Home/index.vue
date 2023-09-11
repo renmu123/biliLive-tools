@@ -2,11 +2,14 @@
 <template>
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
-      <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
-      <p v-if="timemark">已处理：{{ timemark }}</p>
-      <!-- <n-icon size="30" class="pointer" style="margin-left: 10px" @click="openSetting">
-          <SettingIcon />
-        </n-icon> -->
+      <div>
+        <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
+        <n-button v-if="disabled" type="primary" style="margin-left: 10px" @click="killTask">
+          结束任务
+        </n-button>
+      </div>
+
+      <p v-if="timemark">已处理视频时间：{{ timemark }}</p>
     </div>
 
     <FileArea
@@ -86,7 +89,7 @@ import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
 import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm } from "@renderer/hooks";
 
-import type { DanmuOptions, File, FfmpegOptions } from "../../../../types";
+import type { DanmuOptions, File, FfmpegOptions, DanmuConfig } from "../../../../types";
 
 const notice = useNotification();
 const confirm = useConfirm();
@@ -211,6 +214,13 @@ const convert = async () => {
     targetAssFilePath = successResult[0].output;
   } else {
     targetAssFilePath = assFile[0].path;
+  }
+  if (targetAssFilePath.includes(" ")) {
+    notice.error({
+      title: "弹幕文件路径中不允许存在空格",
+      duration: 3000,
+    });
+    return;
   }
   console.log("targetAssFilePath", targetAssFilePath);
 
@@ -427,17 +437,43 @@ const handleFfmpegSettingChange = (value: FfmpegOptions) => {
 
 const simpledMode = ref(true);
 // @ts-ignore
-const danmuConfig: Ref<any> = ref({
+const danmuConfig: Ref<DanmuConfig> = ref({
   resolution: [],
   msgboxsize: [],
   msgboxpos: [],
 });
 
-const handleDanmuChange = (value: any) => {
+const handleDanmuChange = (value: DanmuConfig) => {
   danmuConfig.value = value;
 };
 const saveDanmuConfig = async () => {
   await window.api.saveDanmuConfig(toRaw(danmuConfig.value));
+};
+
+// 暂停任务
+const pauseTask = () => {
+  fileList.value.forEach((item) => {
+    if (item.taskId) {
+      window.api.pauseTask(item.taskId);
+    }
+  });
+};
+
+// 继续任务
+const resumeTask = () => {
+  fileList.value.forEach((item) => {
+    if (item.taskId) {
+      window.api.resumeTask(item.taskId);
+    }
+  });
+};
+// 杀死任务
+const killTask = () => {
+  fileList.value.forEach((item) => {
+    if (item.taskId) {
+      window.api.killTask(item.taskId);
+    }
+  });
 };
 
 async function getDir() {

@@ -4,6 +4,26 @@ import log from "./utils/log";
 import type { WebContents } from "electron";
 import type { Progress } from "../types";
 
+// Win不支持
+export const pauseTask = (taskQueue: TaskQueue, taskId: string) => {
+  const task = taskQueue.queryTask(taskId);
+  if (!task) return;
+  return task.pause();
+};
+
+// Win不支持
+export const resumeTask = (taskQueue: TaskQueue, taskId: string) => {
+  const task = taskQueue.queryTask(taskId);
+  if (!task) return;
+  return task.resume();
+};
+
+export const killTask = (taskQueue: TaskQueue, taskId: string) => {
+  const task = taskQueue.queryTask(taskId);
+  if (!task) return;
+  return task.kill();
+};
+
 export class Task {
   taskId: string;
   status: "pending" | "running" | "paused" | "completed" | "error";
@@ -43,7 +63,7 @@ export class Task {
       this.status = "completed";
     });
     command.on("error", (err) => {
-      log.error(`task ${this.taskId} error`);
+      log.error(`task ${this.taskId} error: ${err}`);
       callback.onError && callback.onError(err);
       this.webContents.send("task-error", { taskId: this.taskId, err: err });
       this.status = "error";
@@ -62,27 +82,26 @@ export class Task {
   exec() {
     this.command.run();
   }
-  stop() {
+  pause() {
     if (this.status !== "running") return;
     this.command.kill("SIGSTOP");
-    log.warn(`task ${this.taskId} stopped`);
+    log.warn(`task ${this.taskId} paused`);
     this.status = "paused";
-    // TODO:需要补充preload的事件
-    this.webContents.send("task-stoped", { taskId: this.taskId, text: "ffmpeg has been stoped" });
+    return true;
   }
-  continue() {
+  resume() {
     if (this.status !== "paused") return;
     this.command.kill("SIGCONT");
-    log.warn(`task ${this.taskId} continue`);
+    log.warn(`task ${this.taskId} resumed`);
     this.status = "running";
-    // TODO:需要补充preload的事件
-    this.webContents.send("task-continue", { taskId: this.taskId, text: "ffmpeg is running" });
+    return true;
   }
   kill() {
+    if (this.status === "completed" || this.status === "error") return;
     this.command.kill();
     log.warn(`task ${this.taskId} killed`);
     this.status = "error";
-    this.webContents.send("task-error", "ffmpeg has been killed");
+    return true;
   }
 }
 export class TaskQueue {

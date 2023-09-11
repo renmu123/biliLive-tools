@@ -9,7 +9,7 @@
 - [x] 支持使用danmufactory自动处理xml文件并进行压制
 - [x] 工具页面，danmufactory的GUI
 - [x] 工具页面，flv的转封装
-- [ ] log记录及其展示
+- [x] log记录及其展示
 - [ ] 支持使用ass-convert来进行弹幕处理以及压制高能进度条
 - [ ] 支持自动上传
 - [ ] 支持录播姬webhook自动处理

@@ -28,6 +28,16 @@ export const api = {
   ) => {
     return await ipcRenderer.invoke("convertVideo2Mp4", file, options);
   },
+  pauseTask: async (taskId: string) => {
+    return await ipcRenderer.invoke("pauseTask", taskId);
+  },
+  resumeTask: async (taskId: string) => {
+    return await ipcRenderer.invoke("resumeTask", taskId);
+  },
+  killTask: async (taskId: string) => {
+    return await ipcRenderer.invoke("killTask", taskId);
+  },
+
   onTaskProgressUpdate: (
     callback: (
       _event: IpcRendererEvent,
@@ -72,6 +82,24 @@ export const api = {
   ) => {
     ipcRenderer.once("task-error", callback);
   },
+  mergeAssMp4: async (
+    videoFile: File,
+    assFile: File,
+    options: DanmuOptions = {
+      saveRadio: 1,
+      saveOriginPath: true,
+      savePath: "",
+
+      override: false,
+      removeOrigin: false,
+    },
+    ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+    },
+  ) => {
+    return await ipcRenderer.invoke("mergeAssMp4", videoFile, assFile, options, ffmpegOptions);
+  },
+
   // danmufactory
   saveDanmuConfig: async (newConfig: DanmuConfig) => {
     return await ipcRenderer.invoke("saveDanmuConfig", newConfig);
@@ -91,23 +119,6 @@ export const api = {
     },
   ) => {
     return await ipcRenderer.invoke("convertDanmu2Ass", files, options);
-  },
-  mergeAssMp4: async (
-    videoFile: File,
-    assFile: File,
-    options: DanmuOptions = {
-      saveRadio: 1,
-      saveOriginPath: true,
-      savePath: "",
-
-      override: false,
-      removeOrigin: false,
-    },
-    ffmpegOptions: FfmpegOptions = {
-      encoder: "libx264",
-    },
-  ) => {
-    return await ipcRenderer.invoke("mergeAssMp4", videoFile, assFile, options, ffmpegOptions);
   },
 
   // app 配置相关

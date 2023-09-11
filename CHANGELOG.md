@@ -1,9 +1,6 @@
 # 0.1.0
 
-1. Danmufactory GUI实现
-2. ffmpeg 转封装实现
-3. 弹幕压制实现
-4. ffmpeg部分配置项实现
-
-- [ ] 增加中断机制
-- [ ] 增加全局配置
+1. 支持 Danmufactory GUI
+2. 支持 ffmpeg 转封装
+3. 支持视频与弹幕压制
+4. 支持压制时修改 ffmpeg 部分配置项

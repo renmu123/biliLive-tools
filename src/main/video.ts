@@ -5,7 +5,7 @@ import fs from "fs";
 import ffmpeg from "fluent-ffmpeg";
 import { escaped, genFfmpegParams } from "./utils/index";
 import log from "./utils/log";
-import { TaskQueue, Task } from "./task";
+import { TaskQueue, Task, pauseTask, resumeTask, killTask } from "./task";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { File, DanmuOptions, FfmpegOptions } from "../types";
@@ -195,4 +195,16 @@ export const mergeAssMp4 = async (
     text: "添加到任务队列",
     taskId: task.taskId,
   };
+};
+
+export const handlePauseTask = (_event: IpcMainInvokeEvent, taskId: string) => {
+  return pauseTask(taskQueue, taskId);
+};
+
+export const handleResumeTask = (_event: IpcMainInvokeEvent, taskId: string) => {
+  return resumeTask(taskQueue, taskId);
+};
+
+export const handleKillTask = (_event: IpcMainInvokeEvent, taskId: string) => {
+  return killTask(taskQueue, taskId);
 };

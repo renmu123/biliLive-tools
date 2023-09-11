@@ -8,7 +8,14 @@ import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
 import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
-import { convertVideo2Mp4, mergeAssMp4, getAvailableEncoders } from "./video";
+import {
+  convertVideo2Mp4,
+  mergeAssMp4,
+  getAvailableEncoders,
+  handleKillTask,
+  handlePauseTask,
+  handleResumeTask,
+} from "./video";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
@@ -31,6 +38,9 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
   ipcMain.handle("mergeAssMp4", mergeAssMp4);
   ipcMain.handle("getAvailableEncoders", getAvailableEncoders);
+  ipcMain.handle("killTask", handleKillTask);
+  ipcMain.handle("pauseTask", handlePauseTask);
+  ipcMain.handle("resumeTask", handleResumeTask);
 
   // 弹幕相关
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
@@ -100,6 +110,12 @@ function createWindow(): void {
   tray.setToolTip("biliLive-tools");
   // 托盘菜单
   const contextMenu = Menu.buildFromTemplate([
+    {
+      label: "打开log文件夹",
+      click: () => {
+        shell.openPath(app.getPath("logs"));
+      },
+    },
     {
       label: "显示",
       click: () => {
