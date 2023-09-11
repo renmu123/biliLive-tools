@@ -2,6 +2,8 @@
 
 这是一个用于 B 站录播的一站式工具。
 
+支持flv转封装；xml转ass；ass,mp4合并
+
 # TODO
 
 - [x] 支持使用ffmpeg压制弹幕至视频文件
