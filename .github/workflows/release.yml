@@ -2,10 +2,10 @@ name: Build/release Electron app
 
 on:
   push:
-    # tags:
-    #   - "*"
-    branches:
+    tags:
       - "*"
+    # branches:
+    #   - "*"
 
 jobs:
   release:
@@ -41,7 +41,6 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           draft: false
-          tag_name: "0.1.0"
           files: |
             dist/*.exe
             dist/*.zip
