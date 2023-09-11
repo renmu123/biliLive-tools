@@ -50,7 +50,6 @@ jobs:
         with:
           draft: false
           token: ${{ secrets.GITHUB_TOKEN }}
-          permissions: write
           files: |
             dist/*.exe
             dist/*.zip
@@ -64,3 +63,6 @@ jobs:
             dist/*.blockmap
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+permissions:
+  contents: write
