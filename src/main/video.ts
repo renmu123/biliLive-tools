@@ -3,22 +3,33 @@ import { join } from "path";
 import fs from "fs";
 
 import ffmpeg from "fluent-ffmpeg";
-import { escaped, genFfmpegParams } from "./utils/index";
+import { escaped, genFfmpegParams, pathExists } from "./utils/index";
 import log from "./utils/log";
 import { TaskQueue, Task, pauseTask, resumeTask, killTask } from "./task";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { File, DanmuOptions, FfmpegOptions } from "../types";
 
-const FFMPEG_PATH = join(__dirname, "../../resources/bin/ffmpeg.exe").replace(
+let FFMPEG_PATH = join(__dirname, "../../resources/bin/ffmpeg.exe").replace(
   "app.asar",
   "app.asar.unpacked",
 );
 log.info(`FFMPEG_PATH: ${FFMPEG_PATH}`);
-const FFPROBE_PATH = join(__dirname, "../../resources/bin/ffprobe.exe").replace(
+if (!fs.existsSync(FFMPEG_PATH)) {
+  // @ts-ignore
+  FFMPEG_PATH = undefined;
+  log.info(`FFMPEG_PATH_NO_FFMPEG: ${FFMPEG_PATH}`);
+}
+
+let FFPROBE_PATH = join(__dirname, "../../resources/bin/ffprobe.exe").replace(
   "app.asar",
   "app.asar.unpacked",
 );
+if (!fs.existsSync(FFPROBE_PATH)) {
+  // @ts-ignore
+  FFPROBE_PATH = undefined;
+  log.info(`FFPROBE_PATH_NO_FFMPEG: ${FFPROBE_PATH}`);
+}
 log.info(`FFPROBE_PATH: ${FFPROBE_PATH}`);
 
 const taskQueue = new TaskQueue();
@@ -70,7 +81,7 @@ export const convertVideo2Mp4 = async (
     output = join(options.savePath, `${name}.mp4`);
   }
 
-  if (!fs.existsSync(input)) {
+  if (!(await pathExists(input))) {
     log.error("convertVideo2Mp4, file not exist", input);
     _event.sender.send("task-error", "文件不存在");
     return {
@@ -78,7 +89,7 @@ export const convertVideo2Mp4 = async (
       text: "文件不存在",
     };
   }
-  if (!options.override && fs.existsSync(output)) {
+  if (!options.override && (await pathExists(output))) {
     log.error("convertVideo2Mp4, 文件已存在，跳过", input);
     return {
       status: "error",
@@ -104,7 +115,7 @@ export const convertVideo2Mp4 = async (
     },
     {
       onEnd: async () => {
-        if (options.removeOrigin && fs.existsSync(input)) {
+        if (options.removeOrigin && (await pathExists(input))) {
           log.info("convertVideo2Mp4, remove origin file", input);
           await shell.trashItem(input);
         }
@@ -145,12 +156,12 @@ export const mergeAssMp4 = async (
     output = join(options.savePath, `${name}-弹幕版.mp4`);
   }
 
-  if (!fs.existsSync(videoInput)) {
+  if (!(await pathExists(videoInput))) {
     log.error("mergrAssMp4, file not exist", videoInput);
     _event.sender.send("task-error", "文件不存在");
     return;
   }
-  if (!options.override && fs.existsSync(output)) {
+  if (!options.override && (await pathExists(output))) {
     log.error("mergrAssMp4, 文件已存在，跳过", videoInput);
     _event.sender.send("task-end");
     return;
@@ -178,11 +189,11 @@ export const mergeAssMp4 = async (
     {
       onEnd: async () => {
         if (options.removeOrigin) {
-          if (fs.existsSync(videoInput)) {
+          if (await pathExists(videoInput)) {
             log.info("mergrAssMp4, remove video origin file", videoInput);
             await shell.trashItem(videoInput);
           }
-          if (fs.existsSync(assFile.path)) {
+          if (await pathExists(assFile.path)) {
             log.info("mergrAssMp4, remove ass origin file", assFile);
             await shell.trashItem(assFile.path);
           }

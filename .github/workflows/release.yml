@@ -60,6 +60,8 @@ jobs:
 
       - name: build-win
         run: npm run build:win
+      - name: build-win-no-ffmpeg
+        run: npm run build:win-no-ffmpeg
 
       - name: release
         uses: softprops/action-gh-release@v1

@@ -1,10 +1,9 @@
 import { join } from "path";
-import fs from "fs";
 
 import { shell, type IpcMainInvokeEvent } from "electron";
 
 import Config from "./utils/config";
-import { executeCommand } from "./utils/index";
+import { executeCommand, pathExists } from "./utils/index";
 import log from "./utils/log";
 
 import type { DanmuConfig, File, DanmuOptions } from "../types";
@@ -105,13 +104,13 @@ export const convertDanmu2Ass = async (
       output = join(options.savePath, `${name}.ass`);
     }
 
-    if (!fs.existsSync(input)) {
+    if (!(await pathExists(input))) {
       log.error("danmufactory input file not exist", input);
       result.push({ status: "error", text: "文件不存在", input: input });
       continue;
     }
 
-    if (fs.existsSync(output)) {
+    if (await pathExists(output)) {
       if (options.override) {
         log.info(
           "danmufactory",
@@ -190,7 +189,7 @@ export const convertDanmu2Ass = async (
         });
       }
 
-      if (options.removeOrigin && fs.existsSync(input)) {
+      if (options.removeOrigin && (await pathExists(input))) {
         await shell.trashItem(input);
       }
     } catch (err) {

@@ -1,4 +1,6 @@
 import { exec } from "child_process";
+import fs from "fs-extra";
+
 import type { FfmpegOptions } from "../../types";
 
 export const executeCommand = (command: string): Promise<{ stdout: string; stderr: string }> => {
@@ -77,4 +79,7 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
 
 export const uuid = () => {
   return Math.random().toString(36).slice(2);
+};
+export const pathExists = async (path: string) => {
+  return await fs.pathExists(path);
 };

@@ -2,6 +2,14 @@
 
 这是一个用于 B 站录播的一站式工具。
 
+# 下载
+
+目前有两个 Win 版本的包。
+如果你是小白用户，那就选择体积大的那个包，如果你是资深用户，那么请自行选择，因自编译 `ffmpeg` 出问题的 issue 是不会被处理的。
+
+1. 自带 `ffmpeg` 版本的包
+2. 调用环境变量中 `ffmpeg` 以及 `ffprobe` 的包，减小安装包体积。
+
 # TODO
 
 - [x] 支持使用ffmpeg压制弹幕至视频文件
@@ -14,7 +22,7 @@
 - [ ] 支持使用ass-convert来进行弹幕处理以及压制高能进度条
 - [ ] 支持自动上传
 - [ ] 支持录播姬webhook自动处理
-- [ ] 打包不带ffmpeg的版本，依赖于系统的环境变量
+- [x] 打包不带ffmpeg的版本，依赖于系统的环境变量
 - [ ] 构建一个不依赖于electron的程序
 
 # 开发
@@ -42,6 +50,9 @@ $ npm run dev
 ```bash
 # For windows
 $ npm run build:win
+
+# For windows but no ffmpeg
+$ npm run build:win-no-ffmpeg
 ```
 
 # License

@@ -304,7 +304,7 @@ const openPath = (_event: IpcMainInvokeEvent, path: string) => {
 };
 
 const exits = (_event: IpcMainInvokeEvent, path: string) => {
-  return fs.existsSync(path);
+  return fs.pathExists(path);
 };
 
 const trashItem = async (_event: IpcMainInvokeEvent, path: string) => {
