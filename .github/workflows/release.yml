@@ -29,6 +29,22 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
+      - name: Cache Electron
+        uses: actions/cache@v1
+        with:
+          path: ~\electron\Cache
+          key: ${{ runner.os }}-electron-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/yarn.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-electron-cache-
+
+      - name: Cache Electron-Builder
+        uses: actions/cache@v1
+        with:
+          path: ~\electron-builder\Cache
+          key: ${{ runner.os }}-electron-builder-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/yarn.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-electron-builder-cache-
+
       - name: Install Dependencies
         run: npm ci
 
@@ -45,24 +61,24 @@ jobs:
       - name: build-win
         run: npm run build:win
 
-      - name: release
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: false
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: |
-            dist/*.exe
-            dist/*.zip
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.snap
-            dist/*.deb
-            dist/*.rpm
-            dist/*.tar.gz
-            dist/*.yml
-            dist/*.blockmap
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: release
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     draft: false
+      #     token: ${{ secrets.GITHUB_TOKEN }}
+      #     files: |
+      #       dist/*.exe
+      #       dist/*.zip
+      #       dist/*.dmg
+      #       dist/*.AppImage
+      #       dist/*.snap
+      #       dist/*.deb
+      #       dist/*.rpm
+      #       dist/*.tar.gz
+      #       dist/*.yml
+      #       dist/*.blockmap
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 permissions:
   contents: write
