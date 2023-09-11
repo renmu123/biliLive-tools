@@ -69,7 +69,6 @@ export class Task {
       this.status = "error";
     });
     command.on("progress", (progress) => {
-      log.debug(`task ${this.taskId} progress: ${JSON.stringify(progress)}`);
       if (options.size) {
         progress.percentage = Math.round((progress.targetSize / options.size) * 100);
       } else {

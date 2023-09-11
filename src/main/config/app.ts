@@ -5,7 +5,7 @@ import type { IpcMainInvokeEvent } from "electron";
 import type { AppConfig } from "../../types";
 
 export const APP_DEFAULT_CONFIG: AppConfig = {
-  logLevel: "info",
+  logLevel: "warn",
 };
 
 const getConfig = () => {

@@ -110,24 +110,39 @@ export const convertDanmu2Ass = async (
       result.push({ status: "error", text: "文件不存在", input: input });
       continue;
     }
-    if (!options.override && fs.existsSync(output)) {
-      log.info(
-        "danmufactory",
-        JSON.stringify({
+
+    if (fs.existsSync(output)) {
+      if (options.override) {
+        log.info(
+          "danmufactory",
+          JSON.stringify({
+            status: "success",
+            text: "文件已存在，移除进入回收站",
+            input: input,
+            output: output,
+          }),
+        );
+        await shell.trashItem(output);
+      } else {
+        log.info(
+          "danmufactory",
+          JSON.stringify({
+            status: "success",
+            text: "文件已存在，跳过",
+            input: input,
+            output: output,
+          }),
+        );
+        result.push({
           status: "success",
           text: "跳过",
           input: input,
           output: output,
-        }),
-      );
-      result.push({
-        status: "success",
-        text: "跳过",
-        input: input,
-        output: output,
-      });
-      continue;
+        });
+        continue;
+      }
     }
+
     // DanmakuFactory.exe -o "%BASENAME%.ass" -i "%BASENAME%.xml" --ignore-warnings --showmsgbox true -S 54 -O 255 --msgboxpos 20 -60
     const params = [`-i "${input}"`, `-o "${output}"`, "--ignore-warnings"];
     const otherParams = genDanmuParams();

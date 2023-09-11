@@ -25,13 +25,15 @@ const taskQueue = new TaskQueue();
 
 const readVideoMeta = async (input: string): Promise<any> => {
   return new Promise((resolve, reject) => {
-    ffmpeg.ffprobe(input, function (err, metadata) {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(metadata);
-      }
-    });
+    ffmpeg(input)
+      .setFfprobePath(FFPROBE_PATH)
+      .ffprobe(function (err, metadata) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(metadata);
+        }
+      });
   });
 };
 
