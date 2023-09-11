@@ -61,24 +61,24 @@ jobs:
       - name: build-win
         run: npm run build:win
 
-      # - name: release
-      #   uses: softprops/action-gh-release@v1
-      #   with:
-      #     draft: false
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     files: |
-      #       dist/*.exe
-      #       dist/*.zip
-      #       dist/*.dmg
-      #       dist/*.AppImage
-      #       dist/*.snap
-      #       dist/*.deb
-      #       dist/*.rpm
-      #       dist/*.tar.gz
-      #       dist/*.yml
-      #       dist/*.blockmap
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+          files: |
+            dist/*.exe
+            dist/*.zip
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.snap
+            dist/*.deb
+            dist/*.rpm
+            dist/*.tar.gz
+            dist/*.yml
+            dist/*.blockmap
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 permissions:
   contents: write
