@@ -2,7 +2,9 @@
 
 这是一个用于 B 站录播的一站式工具。
 
-支持flv转封装；xml转ass；ass,mp4合并
+1. 支持 Danmufactory GUI
+2. 支持 ffmpeg 转封装
+3. 支持视频与弹幕压制
 
 # TODO
 
