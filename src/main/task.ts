@@ -1,5 +1,5 @@
-import { uuid } from "./utils";
-import log from "electron-log";
+import { uuid } from "./utils/index";
+import log from "./utils/log";
 
 import type { WebContents } from "electron";
 import type { Progress } from "../types";
@@ -49,6 +49,7 @@ export class Task {
       this.status = "error";
     });
     command.on("progress", (progress) => {
+      log.debug(`task ${this.taskId} progress: ${JSON.stringify(progress)}`);
       if (options.size) {
         progress.percentage = Math.round((progress.targetSize / options.size) * 100);
       } else {

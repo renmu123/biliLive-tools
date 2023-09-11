@@ -3,7 +3,8 @@ import { join } from "path";
 import fs from "fs";
 
 import ffmpeg from "fluent-ffmpeg";
-import { escaped, genFfmpegParams } from "./utils";
+import { escaped, genFfmpegParams } from "./utils/index";
+import log from "./utils/log";
 import { TaskQueue, Task } from "./task";
 
 import type { IpcMainInvokeEvent } from "electron";
@@ -13,10 +14,12 @@ const FFMPEG_PATH = join(__dirname, "../../resources/bin/ffmpeg.exe").replace(
   "app.asar",
   "app.asar.unpacked",
 );
+log.info(`FFMPEG_PATH: ${FFMPEG_PATH}`);
 const FFPROBE_PATH = join(__dirname, "../../resources/bin/ffprobe.exe").replace(
   "app.asar",
   "app.asar.unpacked",
 );
+log.info(`FFPROBE_PATH: ${FFPROBE_PATH}`);
 
 const taskQueue = new TaskQueue();
 
@@ -136,7 +139,6 @@ export const mergeAssMp4 = async (
   if (options.saveRadio === 2 && options.savePath) {
     output = join(options.savePath, `${name}-弹幕版.mp4`);
   }
-  console.log(options.override, fs.existsSync(output), escaped(assFile.path));
 
   if (!fs.existsSync(videoInput)) {
     _event.sender.send("task-error", "文件不存在");
@@ -155,7 +157,6 @@ export const mergeAssMp4 = async (
     .output(output);
 
   const ffmpegParams = genFfmpegParams(ffmpegOptions);
-  console.log(ffmpegParams, ffmpegOptions);
 
   ffmpegParams.forEach((param) => {
     command.outputOptions(param);

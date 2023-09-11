@@ -2,15 +2,18 @@ import { join } from "path";
 import fs from "fs";
 
 import { shell, type IpcMainInvokeEvent } from "electron";
-import type { DanmuConfig, File, DanmuOptions } from "../types";
 
 import Config from "./config";
-import { executeCommand } from "./utils";
+import { executeCommand } from "./utils/index";
+import log from "./utils/log";
+
+import type { DanmuConfig, File, DanmuOptions } from "../types";
 
 const DANMUKUFACTORY_PATH = join(__dirname, "../../resources/bin/DanmakuFactory.exe").replace(
   "app.asar",
   "app.asar.unpacked",
 );
+log.info(`DANMUKUFACTORY_PATH: ${DANMUKUFACTORY_PATH}`);
 
 export const DANMU_DEAFULT_CONFIG = {
   resolution: [1920, 1080],
@@ -53,7 +56,7 @@ export const getDanmuConfig = () => {
 
 const genDanmuParams = () => {
   const config = getDanmuConfig();
-  console.log(config);
+  log.debug("danmu config", JSON.stringify(config));
   const params = Object.entries(config).map(([key, value]) => {
     if (["resolution", "msgboxsize", "msgboxpos"].includes(key)) {
       // @ts-ignore
@@ -118,18 +121,15 @@ export const convertDanmu2Ass = async (
     // DanmakuFactory.exe -o "%BASENAME%.ass" -i "%BASENAME%.xml" --ignore-warnings --showmsgbox true -S 54 -O 255 --msgboxpos 20 -60
     const params = [`-i "${input}"`, `-o "${output}"`, "--ignore-warnings"];
     const otherParams = genDanmuParams();
-    console.log(otherParams);
-
     const command = `${DANMUKUFACTORY_PATH} ${params.join(" ")} ${otherParams.join(" ")}`;
 
-    console.log(command);
+    log.info(`danmukufancory command: ${command}`);
 
     try {
       const { stdout, stderr } = await executeCommand(command);
-      console.log("stdout", stdout);
-      console.log("stderr", stderr);
-
+      log.debug("stdout", stdout);
       if (stderr) {
+        log.error("stderr", stderr);
         result.push({
           status: "error",
           text: stdout,
@@ -156,6 +156,7 @@ export const convertDanmu2Ass = async (
         await shell.trashItem(input);
       }
     } catch (err) {
+      log.error("danmufactory exec error:", err);
       result.push({ status: "error", text: String(err), input: input, meta: { err } });
     }
   }

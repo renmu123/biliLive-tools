@@ -40,8 +40,6 @@ const handleChange = (value: DanmuConfig) => {
 };
 
 const saveConfig = async () => {
-  console.log(config.value);
-
   await window.api.saveDanmuConfig(toRaw(config.value));
   close();
 };

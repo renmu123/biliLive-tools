@@ -331,9 +331,8 @@ const createMergeVideoAssTask = async (
           }
           fileList.value[i].taskId = currentTaskId;
 
-          window.api.onTaskStart((_event, { command, taskId }) => {
+          window.api.onTaskStart((_event, { taskId }) => {
             if (taskId === currentTaskId) {
-              console.log("start", command, index);
               fileList.value[i].percentage = 0;
               fileList.value[i].percentageStatus = "info";
             }

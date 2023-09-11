@@ -35,7 +35,7 @@
         </n-radio-group>
       </div>
       <div style="margin-top: 10px">
-        <n-radio-group v-model:value="options.override">
+        <n-radio-group v-model:value="options.override" disabled>
           <!-- TODO:danmufactory存在时会跳过 -->
           <n-space>
             <n-radio :value="true"> 覆盖文件 </n-radio>

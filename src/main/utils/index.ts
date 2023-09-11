@@ -1,5 +1,5 @@
 import { exec } from "child_process";
-import type { FfmpegOptions } from "../types";
+import type { FfmpegOptions } from "../../types";
 
 export const executeCommand = (command: string): Promise<{ stdout: string; stderr: string }> => {
   return new Promise((resolve, reject) => {

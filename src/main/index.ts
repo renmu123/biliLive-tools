@@ -5,12 +5,12 @@ import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron
 import type { IpcMainInvokeEvent, IpcMain } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
-import log from "electron-log";
+import log from "./utils/log";
 
 import icon from "../../resources/icon.png?asset";
 import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
 import { convertVideo2Mp4, mergeAssMp4, getAvailableEncoders } from "./video";
-import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils";
+import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./config";
 
 import type { OpenDialogOptions } from "../types";
@@ -68,6 +68,17 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
   mainWin = mainWindow;
+  const content = mainWindow.webContents;
+
+  content.on("render-process-gone", (event, details) => {
+    log.error(`render-process-gone: ${JSON.stringify(details)}`);
+  });
+  content.on("unresponsive", (event) => {
+    log.error(`unresponsive: ${JSON.stringify(event)}`);
+  });
+  content.on("preload-error", (_event, preloadPath, error) => {
+    log.error(`preload-error: ${preloadPath},${error}`);
+  });
 
   // 触发关闭时触发
   mainWin.on("close", (event) => {
@@ -140,8 +151,8 @@ if (!gotTheLock) {
   app.whenReady().then(() => {
     electronApp.setAppUserModelId("com.electron");
     installExtension("nhdogjmejiglipccpnnnanhbledajbpd")
-      .then((name) => console.log(`Added Extension:  ${name}`))
-      .catch((err) => console.log("An error occurred: ", err));
+      .then((name) => log.debug(`Added Extension:  ${name}`))
+      .catch((err) => log.debug("An error occurred: ", err));
 
     log.info("app start");
     fs.ensureDir(CONFIG_PATH);
@@ -179,6 +190,7 @@ if (!gotTheLock) {
   // for applications and their menu bar to stay active until the user quits
   // explicitly with Cmd + Q.
   app.on("window-all-closed", () => {
+    log.info("app quit");
     if (process.platform !== "darwin") {
       app.quit();
     }
