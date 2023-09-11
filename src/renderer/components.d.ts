@@ -7,6 +7,7 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AppSettingDialog: typeof import('./src/components/AppSettingDialog.vue')['default']
     DanmuFactorySetting: typeof import('./src/components/DanmuFactorySetting.vue')['default']
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']
     FileArea: typeof import('./src/components/FileArea.vue')['default']
@@ -31,6 +32,7 @@ declare module 'vue' {
     NProgress: typeof import('naive-ui')['NProgress']
     NRadio: typeof import('naive-ui')['NRadio']
     NRadioGroup: typeof import('naive-ui')['NRadioGroup']
+    NScrollbar: typeof import('naive-ui')['NScrollbar']
     NSelect: typeof import('naive-ui')['NSelect']
     NSpace: typeof import('naive-ui')['NSpace']
     NTabPane: typeof import('naive-ui')['NTabPane']

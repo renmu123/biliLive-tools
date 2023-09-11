@@ -58,7 +58,6 @@ export const api = {
       },
     ) => void,
   ) => {
-    ipcRenderer.removeAllListeners("task-progress-update");
     ipcRenderer.once("task-end", callback);
   },
   onTaskError: (
@@ -70,7 +69,6 @@ export const api = {
       },
     ) => void,
   ) => {
-    ipcRenderer.removeAllListeners("task-progress-update");
     ipcRenderer.once("task-error", callback);
   },
   // danmufactory
@@ -142,6 +140,9 @@ export const api = {
   },
   trashItem: async (path: string) => {
     return await ipcRenderer.invoke("trashItem", path);
+  },
+  openSetting: async (callback: (_event: IpcRendererEvent) => void) => {
+    ipcRenderer.on("open-setting", callback);
   },
 };
 

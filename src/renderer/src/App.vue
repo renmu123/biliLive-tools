@@ -31,6 +31,7 @@
           </n-layout>
         </n-layout>
       </n-space>
+      <AppSettingDialog v-model="settingVisible"></AppSettingDialog>
     </n-dialog-provider>
   </n-notification-provider>
 </template>
@@ -44,6 +45,7 @@ import {
   HomeOutline as HomeIcon,
   InformationCircleOutline as InfoIcon,
 } from "@vicons/ionicons5";
+import AppSettingDialog from "./components/AppSettingDialog.vue";
 
 const activeKey = ref("go-back-home");
 const collapsed = ref(true);
@@ -97,6 +99,11 @@ const menuOptions: MenuOption[] = [
     icon: renderIcon(InfoIcon),
   },
 ];
+
+const settingVisible = ref(false);
+window.api.openSetting(() => {
+  settingVisible.value = true;
+});
 </script>
 
 <style lang="less">

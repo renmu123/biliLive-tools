@@ -41,9 +41,9 @@ function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 900,
-    height: 670,
+    height: 750,
     show: false,
-    autoHideMenuBar: true,
+    autoHideMenuBar: false,
     ...(process.platform === "linux" ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
@@ -70,7 +70,7 @@ function createWindow(): void {
   mainWin = mainWindow;
   const content = mainWindow.webContents;
 
-  content.on("render-process-gone", (event, details) => {
+  content.on("render-process-gone", (_event, details) => {
     log.error(`render-process-gone: ${JSON.stringify(details)}`);
   });
   content.on("unresponsive", (event) => {
@@ -144,6 +144,52 @@ function createWindow(): void {
   });
 }
 
+function createMenu(): void {
+  const menu = Menu.buildFromTemplate([
+    {
+      label: "设置",
+      click: () => {
+        mainWin.show();
+        mainWin.webContents.send("open-setting");
+      },
+    },
+    {
+      label: "退出",
+      click: async () => {
+        try {
+          const isRunning = await checkFFmpegRunning();
+          if (isRunning) {
+            const confirm = await dialog.showMessageBox(mainWin, {
+              message: "检测到有正在运行的ffmpeg进程，是否退出？",
+              buttons: ["取消", "退出", "退出并杀死进程"],
+            });
+            if (confirm.response === 1) {
+              mainWin.destroy();
+              app.quit();
+            } else if (confirm.response === 2) {
+              const processes = await getAllFFmpegProcesses();
+              processes.forEach((item) => {
+                process.kill(item.pid, "SIGTERM");
+              });
+              mainWin.destroy();
+            }
+          } else {
+            mainWin.destroy();
+          }
+        } catch (e) {
+          mainWin.destroy();
+          log.error(e);
+        }
+      },
+    },
+    {
+      label: "开发者工具",
+      role: "viewMenu",
+    },
+  ]);
+  Menu.setApplicationMenu(menu);
+}
+
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
@@ -164,6 +210,7 @@ if (!gotTheLock) {
     });
 
     createWindow();
+    createMenu();
     genHandler(ipcMain);
 
     app.on("activate", function () {
