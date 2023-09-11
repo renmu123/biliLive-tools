@@ -41,6 +41,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           draft: false
+          permissions: write
           files: |
             dist/*.exe
             dist/*.zip
