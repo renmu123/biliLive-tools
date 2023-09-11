@@ -102,7 +102,11 @@ const convert = async () => {
   for (let i = 0; i < fileList.value.length; i++) {
     try {
       await createTask(i);
-    } catch {
+    } catch (err) {
+      notice.error({
+        title: err as string,
+        duration: 3000,
+      });
       showSuccessFlag = false;
     }
   }

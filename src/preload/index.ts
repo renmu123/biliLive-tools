@@ -7,6 +7,7 @@ import type {
   OpenDialogOptions,
   File,
   FfmpegOptions,
+  AppConfig,
 } from "../types";
 import path from "path";
 
@@ -107,6 +108,14 @@ export const api = {
     },
   ) => {
     return await ipcRenderer.invoke("mergeAssMp4", videoFile, assFile, options, ffmpegOptions);
+  },
+
+  // app 配置相关
+  saveAppConfig: async (newConfig: AppConfig) => {
+    return await ipcRenderer.invoke("saveAppConfig", newConfig);
+  },
+  getAppConfig: async (): Promise<AppConfig> => {
+    return await ipcRenderer.invoke("getAppConfig");
   },
 
   // 通用函数

@@ -10,15 +10,9 @@
     >
       <div>
         <n-form ref="formRef" label-placement="left" :label-width="80">
-          <n-form-item label="姓名">
-            <n-input v-model:value="config.logLevel" placeholder="输入姓名" />
+          <n-form-item label="log等级"
+            ><n-select v-model:value="config.logLevel" :options="logLevelOptions" />
           </n-form-item>
-          <!-- <n-form-item label="年龄">
-            <n-input v-model:value="formValue.user.age" placeholder="输入年龄" />
-          </n-form-item>
-          <n-form-item label="电话号码">
-            <n-input v-model:value="formValue.phone" placeholder="电话号码" />
-          </n-form-item> -->
         </n-form>
       </div>
       <template #footer>
@@ -32,25 +26,39 @@
 </template>
 
 <script setup lang="ts">
+import type { AppConfig, LogLevel } from "../../../types";
+
 const showModal = defineModel<boolean>({ required: true, default: false });
 
 // @ts-ignore
-const config = ref({
-  logLevel: "info",
+const config = ref<AppConfig>({
+  logLevel: "error",
 });
 
-// const handleChange = (value: DanmuConfig) => {
-//   config.value = value;
-// };
+const logLevelOptions = ref<{ label: string; value: LogLevel }[]>([
+  { label: "debug", value: "debug" },
+  { label: "info", value: "info" },
+  { label: "warn", value: "warn" },
+  { label: "error", value: "error" },
+]);
 
 const saveConfig = async () => {
-  // await window.api.saveDanmuConfig(toRaw(config.value));
+  await window.api.saveAppConfig(toRaw(config.value));
   close();
 };
 
 const close = () => {
   showModal.value = false;
 };
+
+const getConfig = async () => {
+  const data = await window.api.getAppConfig();
+  config.value = data;
+};
+
+onMounted(async () => {
+  await getConfig();
+});
 </script>
 
 <style scoped lang="less">

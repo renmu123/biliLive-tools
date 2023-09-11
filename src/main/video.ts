@@ -69,6 +69,7 @@ export const convertVideo2Mp4 = async (
   }
 
   if (!fs.existsSync(input)) {
+    log.error("convertVideo2Mp4, file not exist", input);
     _event.sender.send("task-error", "文件不存在");
     return {
       status: "error",
@@ -76,6 +77,7 @@ export const convertVideo2Mp4 = async (
     };
   }
   if (!options.override && fs.existsSync(output)) {
+    log.error("convertVideo2Mp4, 文件已存在，跳过", input);
     return {
       status: "error",
       text: "文件已存在",
@@ -101,6 +103,7 @@ export const convertVideo2Mp4 = async (
     {
       onEnd: async () => {
         if (options.removeOrigin && fs.existsSync(input)) {
+          log.info("convertVideo2Mp4, remove origin file", input);
           await shell.trashItem(input);
         }
       },
@@ -141,10 +144,12 @@ export const mergeAssMp4 = async (
   }
 
   if (!fs.existsSync(videoInput)) {
+    log.error("mergrAssMp4, file not exist", videoInput);
     _event.sender.send("task-error", "文件不存在");
     return;
   }
   if (!options.override && fs.existsSync(output)) {
+    log.error("mergrAssMp4, 文件已存在，跳过", videoInput);
     _event.sender.send("task-end");
     return;
   }
@@ -172,9 +177,11 @@ export const mergeAssMp4 = async (
       onEnd: async () => {
         if (options.removeOrigin) {
           if (fs.existsSync(videoInput)) {
+            log.info("mergrAssMp4, remove video origin file", videoInput);
             await shell.trashItem(videoInput);
           }
           if (fs.existsSync(assFile.path)) {
+            log.info("mergrAssMp4, remove ass origin file", assFile);
             await shell.trashItem(assFile.path);
           }
         }

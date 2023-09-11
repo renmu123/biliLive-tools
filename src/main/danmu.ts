@@ -3,7 +3,7 @@ import fs from "fs";
 
 import { shell, type IpcMainInvokeEvent } from "electron";
 
-import Config from "./config";
+import Config from "./utils/config";
 import { executeCommand } from "./utils/index";
 import log from "./utils/log";
 
@@ -106,10 +106,20 @@ export const convertDanmu2Ass = async (
     }
 
     if (!fs.existsSync(input)) {
+      log.error("danmufactory input file not exist", input);
       result.push({ status: "error", text: "文件不存在", input: input });
       continue;
     }
     if (!options.override && fs.existsSync(output)) {
+      log.info(
+        "danmufactory",
+        JSON.stringify({
+          status: "success",
+          text: "跳过",
+          input: input,
+          output: output,
+        }),
+      );
       result.push({
         status: "success",
         text: "跳过",
@@ -140,6 +150,19 @@ export const convertDanmu2Ass = async (
           },
         });
       } else {
+        log.info(
+          "danmufactory",
+          JSON.stringify({
+            status: "success",
+            text: stdout,
+            input: input,
+            output: output,
+            meta: {
+              stdout,
+              stderr,
+            },
+          }),
+        );
         result.push({
           status: "success",
           text: stdout,

@@ -3,4 +3,3 @@ dist
 out
 *.log*
 bin
-config

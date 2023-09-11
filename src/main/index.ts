@@ -1,19 +1,21 @@
+import log from "./utils/log";
+
 import { join } from "path";
 import fs from "fs-extra";
 
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron";
-import type { IpcMainInvokeEvent, IpcMain } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
-import log from "./utils/log";
 
-import icon from "../../resources/icon.png?asset";
 import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
 import { convertVideo2Mp4, mergeAssMp4, getAvailableEncoders } from "./video";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
-import { CONFIG_PATH } from "./config";
+import { CONFIG_PATH } from "./utils/config";
+import icon from "../../resources/icon.png?asset";
+import { getAppConfig, saveAppConfig } from "./config/app";
 
 import type { OpenDialogOptions } from "../types";
+import type { IpcMainInvokeEvent, IpcMain } from "electron";
 
 const genHandler = (ipcMain: IpcMain) => {
   // 通用函数
@@ -34,6 +36,10 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
   ipcMain.handle("getDanmuConfig", getDanmuConfig);
   ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);
+
+  // app配置相关
+  ipcMain.handle("saveAppConfig", saveAppConfig);
+  ipcMain.handle("getAppConfig", getAppConfig);
 };
 
 let mainWin: BrowserWindow;
@@ -86,7 +92,6 @@ function createWindow(): void {
     event.preventDefault();
     // 点击关闭时触发close事件，我们按照之前的思路在关闭时，隐藏窗口，隐藏任务栏窗口
     mainWin.hide();
-    // mainWin.setSkipTaskbar(true);
   });
 
   // 新建托盘
@@ -140,7 +145,6 @@ function createWindow(): void {
     } else {
       mainWin.isVisible() ? mainWin.hide() : mainWin.show();
     }
-    // mainWin.isVisible() ? mainWin.setSkipTaskbar(false) : mainWin.setSkipTaskbar(true);
   });
 }
 
@@ -200,7 +204,7 @@ if (!gotTheLock) {
       .then((name) => log.debug(`Added Extension:  ${name}`))
       .catch((err) => log.debug("An error occurred: ", err));
 
-    log.info("app start");
+    log.info(`app start, version: ${app.getVersion()}`);
     fs.ensureDir(CONFIG_PATH);
     // Default open or close DevTools by F12 in development
     // and ignore CommandOrControl + R in production.

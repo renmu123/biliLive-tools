@@ -1,8 +1,17 @@
 import { DANMU_DEAFULT_CONFIG } from "../main/danmu";
-import type { OpenDialogOptions as ElectronOpenDialogOptions } from "electron";
 
-// 原始配置文件
+import type { OpenDialogOptions as ElectronOpenDialogOptions } from "electron";
+import type { LogLevel as ElectronLoGLevel } from "electron-log";
+
+// 弹幕原始配置文件
 export type DanmuConfig = typeof DANMU_DEAFULT_CONFIG;
+
+// 应用配置文件
+export interface AppConfig {
+  logLevel: LogLevel;
+}
+
+export type LogLevel = ElectronLoGLevel;
 
 export interface DanmuOptions {
   saveRadio: 1 | 2; // 1：保存到原始文件夹，2：保存到特定文件夹
