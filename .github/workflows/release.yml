@@ -56,6 +56,11 @@ jobs:
           # 使用 unzip 解压 ZIP 文件
           powershell Expand-Archive -Path bin.zip -DestinationPath resources
 
+      - name: remove file
+        run: |
+          # 使用 unzip 解压 ZIP 文件
+          del bin.zip
+
       - name: build-win
         run: npm run build:win
       - name: build-win-no-ffmpeg
