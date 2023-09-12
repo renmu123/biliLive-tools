@@ -133,7 +133,7 @@ export const api = {
   openDirectory: async () => {
     return await ipcRenderer.invoke("dialog:openDirectory");
   },
-  openFile: async (options: OpenDialogOptions) => {
+  openFile: async (options: OpenDialogOptions): Promise<string[] | undefined> => {
     return await ipcRenderer.invoke("dialog:openFile", options);
   },
   formatFile: (filePath: string) => {

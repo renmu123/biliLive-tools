@@ -1,4 +1,5 @@
 import log from "./utils/log";
+import { getAppConfig, saveAppConfig } from "./config/app";
 
 import { join } from "path";
 import fs from "fs-extra";
@@ -15,16 +16,20 @@ import {
   handleKillTask,
   handlePauseTask,
   handleResumeTask,
+  setFfmpegPath,
 } from "./video";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
-import { getAppConfig, saveAppConfig } from "./config/app";
 
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain } from "electron";
 
 const genHandler = (ipcMain: IpcMain) => {
+  // app配置相关
+  ipcMain.handle("saveAppConfig", saveAppConfig);
+  ipcMain.handle("getAppConfig", getAppConfig);
+
   // 通用函数
   ipcMain.handle("dialog:openDirectory", openDirectory);
   ipcMain.handle("dialog:openFile", openFile);
@@ -46,12 +51,9 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
   ipcMain.handle("getDanmuConfig", getDanmuConfig);
   ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);
-
-  // app配置相关
-  ipcMain.handle("saveAppConfig", saveAppConfig);
-  ipcMain.handle("getAppConfig", getAppConfig);
 };
 
+setFfmpegPath();
 let mainWin: BrowserWindow;
 function createWindow(): void {
   // Create the browser window.

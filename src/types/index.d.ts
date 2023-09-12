@@ -9,6 +9,8 @@ export type DanmuConfig = typeof DANMU_DEAFULT_CONFIG;
 // 应用配置文件
 export interface AppConfig {
   logLevel: LogLevel;
+  ffmpegPath: string;
+  ffprobePath: string;
 }
 
 export type LogLevel = ElectronLoGLevel;

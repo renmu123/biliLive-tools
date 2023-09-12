@@ -4,7 +4,7 @@
 
 # 下载
 
-目前有两个 Win 版本的包。
+目前有两个 Win 版本的包。两个包处理有没有打包 `ffmpeg` 和 `ffprobe` 之外没有任何代码上的区别
 如果你是小白用户，那就选择体积大的那个包，如果你是资深用户，那么请自行选择，因自编译 `ffmpeg` 出问题的 issue 是不会被处理的。
 
 1. 自带 `ffmpeg` 版本的包
@@ -22,12 +22,13 @@
 - [ ] 支持使用ass-convert来进行弹幕处理以及压制高能进度条
 - [ ] 支持自动上传
 - [ ] 支持录播姬webhook自动处理
-- [x] 打包不带ffmpeg的版本，依赖于系统的环境变量
+- [x] 打包不带ffmpeg的版本，支持自定义ffmpeg以及ffprobe
 - [ ] 构建一个不依赖于electron的程序
 
 # 开发
 
-下载完成项目后需要新建一个`bin`文件夹，里面需要三个文件：
+下载项目后需要新建一个`bin`文件夹，里面需要三个文件。
+同时需要在应用的设置中设置 ffmpeg 以及 ffprobe 可执行文件地址。
 
 1. `DanmukuFactory.exe` [1.7.0版本](https://github.com/hihkm/DanmakuFactory/releases/tag/v1.70)
 2. `ffmpeg.exe` [n6.0](https://github.com/BtbN/FFmpeg-Builds/releases)

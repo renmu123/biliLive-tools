@@ -1,7 +1,7 @@
 import { shell } from "electron";
 import { join } from "path";
-import fs from "fs";
 
+import { getAppConfig } from "./config/app";
 import ffmpeg from "fluent-ffmpeg";
 import { escaped, genFfmpegParams, pathExists } from "./utils/index";
 import log from "./utils/log";
@@ -10,41 +10,27 @@ import { TaskQueue, Task, pauseTask, resumeTask, killTask } from "./task";
 import type { IpcMainInvokeEvent } from "electron";
 import type { File, DanmuOptions, FfmpegOptions } from "../types";
 
-let FFMPEG_PATH = join(__dirname, "../../resources/bin/ffmpeg.exe").replace(
-  "app.asar",
-  "app.asar.unpacked",
-);
-log.info(`FFMPEG_PATH: ${FFMPEG_PATH}`);
-if (!fs.existsSync(FFMPEG_PATH)) {
-  // @ts-ignore
-  FFMPEG_PATH = undefined;
-  log.info(`FFMPEG_PATH_NO_FFMPEG: ${FFMPEG_PATH}`);
-}
-
-let FFPROBE_PATH = join(__dirname, "../../resources/bin/ffprobe.exe").replace(
-  "app.asar",
-  "app.asar.unpacked",
-);
-if (!fs.existsSync(FFPROBE_PATH)) {
-  // @ts-ignore
-  FFPROBE_PATH = undefined;
-  log.info(`FFPROBE_PATH_NO_FFMPEG: ${FFPROBE_PATH}`);
-}
-log.info(`FFPROBE_PATH: ${FFPROBE_PATH}`);
+export const setFfmpegPath = () => {
+  const appConfig = getAppConfig();
+  if (appConfig.ffmpegPath) {
+    ffmpeg.setFfmpegPath(appConfig.ffmpegPath);
+  }
+  if (appConfig.ffprobePath) {
+    ffmpeg.setFfprobePath(appConfig.ffprobePath);
+  }
+};
 
 const taskQueue = new TaskQueue();
 
 const readVideoMeta = async (input: string): Promise<any> => {
   return new Promise((resolve, reject) => {
-    ffmpeg(input)
-      .setFfprobePath(FFPROBE_PATH)
-      .ffprobe(function (err, metadata) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(metadata);
-        }
-      });
+    ffmpeg(input).ffprobe(function (err, metadata) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(metadata);
+      }
+    });
   });
 };
 
@@ -99,12 +85,7 @@ export const convertVideo2Mp4 = async (
 
   const meta = await readVideoMeta(input);
   const size = meta.format.size / 1000;
-  const command = ffmpeg(input)
-    .setFfmpegPath(FFMPEG_PATH)
-    .setFfprobePath(FFPROBE_PATH)
-    .videoCodec("copy")
-    .audioCodec("copy")
-    .output(output);
+  const command = ffmpeg(input).videoCodec("copy").audioCodec("copy").output(output);
 
   const task = new Task(
     command,
@@ -168,8 +149,6 @@ export const mergeAssMp4 = async (
   }
 
   const command = ffmpeg(videoInput)
-    .setFfmpegPath(FFMPEG_PATH)
-    .setFfprobePath(FFPROBE_PATH)
     .outputOptions(`-filter_complex subtitles=${escaped(assFile.path)}`)
     .audioCodec("copy")
     .output(output);
