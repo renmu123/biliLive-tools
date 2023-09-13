@@ -99,6 +99,9 @@ export const api = {
   ) => {
     return await ipcRenderer.invoke("mergeAssMp4", videoFile, assFile, options, ffmpegOptions);
   },
+  uploadVideo: async (videoFile: string) => {
+    return await ipcRenderer.invoke("uploadVideo", videoFile);
+  },
 
   // danmufactory
   saveDanmuConfig: async (newConfig: DanmuConfig) => {

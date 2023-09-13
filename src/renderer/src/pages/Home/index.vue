@@ -1,6 +1,7 @@
 <!-- 首页 -->
 <template>
   <div>
+    <n-button type="primary" style="margin-left: 10px" @click="uploadVideo"> 上传任务 </n-button>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div>
         <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
@@ -463,6 +464,10 @@ async function getDir() {
   const path = await window.api.openDirectory();
   options.value.savePath = path;
 }
+
+const uploadVideo = () => {
+  window.api.uploadVideo(`C:\\Users\\renmu\\Desktop\\新建文件夹\\bb.mp4`);
+};
 </script>
 
 <style scoped lang="less">

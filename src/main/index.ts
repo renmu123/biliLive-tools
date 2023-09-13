@@ -17,6 +17,7 @@ import {
   handlePauseTask,
   handleResumeTask,
   setFfmpegPath,
+  uploadVideo,
 } from "./video";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
@@ -46,6 +47,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("killTask", handleKillTask);
   ipcMain.handle("pauseTask", handlePauseTask);
   ipcMain.handle("resumeTask", handleResumeTask);
+  ipcMain.handle("uploadVideo", uploadVideo);
 
   // 弹幕相关
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
