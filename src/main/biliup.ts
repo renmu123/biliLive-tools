@@ -5,6 +5,7 @@ import fs from "fs-extra";
 import Biliup from "./biliup/index";
 
 import type { IpcMainInvokeEvent } from "electron";
+import type { BiliupConfig, BiliupPreset } from "../types/index";
 
 // 上传视频
 export const uploadVideo = (_event: IpcMainInvokeEvent, path: string) => {
@@ -57,4 +58,25 @@ export const saveBiliCookie = async () => {
 export const checkBiliCookie = async () => {
   const cookiePath = join(app.getPath("userData"), "cookies.json");
   return await fs.pathExists(cookiePath);
+};
+
+export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
+  title: "",
+  desc: "",
+  dolby: 0,
+  lossless_music: 0,
+  copyright: 1,
+  tag: "biliLive-tools",
+  tid: 174,
+  source: "",
+};
+// 读取默认配置
+export const readBiliupPresets = async (): Promise<BiliupPreset[]> => {
+  const presetsPath = join(app.getPath("userData"), "presets.json");
+  if (await fs.pathExists(presetsPath)) {
+    const presets = await fs.readJSON(presetsPath);
+    // TODO:这里需要和默认配置合并
+    return presets;
+  }
+  return [{ id: "default", name: "默认配置", config: DEFAULT_BILIUP_CONFIG }];
 };

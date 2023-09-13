@@ -1,6 +1,8 @@
 import { exec } from "child_process";
 import fs from "fs-extra";
 
+import { yaml } from "js-yaml";
+
 import type { FfmpegOptions } from "../../types";
 
 export const executeCommand = (command: string): Promise<{ stdout: string; stderr: string }> => {
@@ -82,4 +84,8 @@ export const uuid = () => {
 };
 export const pathExists = async (path: string) => {
   return await fs.pathExists(path);
+};
+
+export const convertObj2yaml = (obj: any) => {
+  return yaml.dump(obj);
 };
