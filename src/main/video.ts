@@ -1,4 +1,4 @@
-import { shell, app } from "electron";
+import { shell } from "electron";
 import { join } from "path";
 
 import { getAppConfig } from "./config/app";
@@ -6,7 +6,6 @@ import ffmpeg from "fluent-ffmpeg";
 import { escaped, genFfmpegParams, pathExists } from "./utils/index";
 import log from "./utils/log";
 import { TaskQueue, Task, pauseTask, resumeTask, killTask } from "./task";
-import Biliup from "./biliup/index";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { File, DanmuOptions, FfmpegOptions } from "../types";
@@ -200,16 +199,4 @@ export const handleResumeTask = (_event: IpcMainInvokeEvent, taskId: string) => 
 
 export const handleKillTask = (_event: IpcMainInvokeEvent, taskId: string) => {
   return killTask(taskQueue, taskId);
-};
-
-export const uploadVideo = (_event: IpcMainInvokeEvent, path: string) => {
-  const BILIUP_PATH = join(__dirname, "../../resources/bin/biliup.exe").replace(
-    "app.asar",
-    "app.asar.unpacked",
-  );
-  const BILIUP_COOKIE = join(app.getPath("userData"), "cookies.json");
-  const biliup = new Biliup();
-  biliup.setBiliUpPath(BILIUP_PATH);
-  biliup.setCookiePath(BILIUP_COOKIE);
-  biliup.uploadVideo(path);
 };

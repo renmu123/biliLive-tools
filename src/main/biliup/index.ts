@@ -1,10 +1,10 @@
 import { spawn } from "child_process";
-import type { ChildProcess } from "child_process";
+import type { ChildProcessWithoutNullStreams } from "child_process";
 import { EventEmitter } from "events";
 
 export default class Biliup {
   params: string[];
-  biliup: ChildProcess | undefined;
+  biliup: ChildProcessWithoutNullStreams | undefined;
   execPath: string | undefined;
   cookieFile: string | undefined;
   emits: EventEmitter;
@@ -31,18 +31,16 @@ export default class Biliup {
     if (!this.cookieFile) {
       throw new Error("未设置cookie文件");
     }
-    // this.biliup = spawn("chdir", {
-    //   shell: true,
-    // });
     this.biliup = spawn(this.execPath!, [`--user-cookie ${this.cookieFile}`, "upload", videoPath], {
       shell: true,
-      stdio: "inherit",
+      detached: true,
+      // stdio: "inherit",
     });
-    // this.biliup.stdout!.on("data", (data) => {
-    //   console.log(`stdout: ${data}`);
-    // });
+    this.biliup.stdout.on("data", (data) => {
+      console.log(data);
+    });
 
-    this.biliup.stderr!.on("data", (data) => {
+    this.biliup.stderr.on("data", (data) => {
       this.emits.emit("error", data);
       console.error(`stderr: ${data}`);
     });
@@ -50,9 +48,6 @@ export default class Biliup {
     this.biliup.on("close", (code) => {
       this.emits.emit("close", code);
       console.log(`child process exited with code ${code}`);
-    });
-    this.biliup.on("message", (data) => {
-      console.log(`message: ${data}`);
     });
     // this.biliup.on("error", (error) => {
     //   this.emits.emit("error", error);
@@ -70,5 +65,24 @@ export default class Biliup {
   addParam(param: string) {
     this.params.push(param);
     return this;
+  }
+  login() {
+    const loginProc = spawn(this.execPath!, ["login"], {
+      shell: true,
+      detached: true,
+    });
+    loginProc.on("close", (code) => {
+      this.emits.emit("login-close", code);
+      console.log(`child process exited with code ${code}`);
+    });
+
+    loginProc.stdout.on("data", (data) => {
+      console.log("data", data);
+    });
+
+    loginProc.stderr.on("data", (data) => {
+      // this.emits.emit("error", data);
+      console.error(`stderr: ${data}`);
+    });
   }
 }

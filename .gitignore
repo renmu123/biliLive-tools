@@ -3,5 +3,4 @@ dist
 out
 *.log*
 bin
-*.mp4
 cookies.json

@@ -14,6 +14,22 @@
         issues</a
       >
     </p>
+    <div>
+      感谢以下开源软件对本项目的贡献：
+      <ul>
+        <li>
+          <a href="https://github.com/hihkm/DanmakuFactory" class="external">DanmakuFactory</a>
+        </li>
+        <li>
+          <a href="https://github.com/BililiveRecorder/BililiveRecorder" class="external"
+            >biliup-rs</a
+          >
+        </li>
+        <li>
+          <a href="https://github.com/biliup/biliup-rs" class="external">BililiveRecorder</a>
+        </li>
+      </ul>
+    </div>
   </div>
 </template>
 

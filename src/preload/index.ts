@@ -1,3 +1,5 @@
+import path from "path";
+
 import { contextBridge, ipcRenderer } from "electron";
 import type { IpcRendererEvent } from "electron";
 import type {
@@ -9,7 +11,6 @@ import type {
   FfmpegOptions,
   AppConfig,
 } from "../types";
-import path from "path";
 
 import { electronAPI } from "@electron-toolkit/preload";
 
@@ -102,6 +103,26 @@ export const api = {
   uploadVideo: async (videoFile: string) => {
     return await ipcRenderer.invoke("uploadVideo", videoFile);
   },
+  // 调用biliup的登录窗口
+  biliLogin: async () => {
+    return await ipcRenderer.invoke("biliLogin");
+  },
+  // 监测biliup登录窗口的关闭
+  onBiliLoginClose: (callback: (_event: IpcRendererEvent, code: number) => void) => {
+    ipcRenderer.once("login-win-close", callback);
+  },
+  // 读取bili登录的二维码
+  readQrCode: () => {
+    return ipcRenderer.invoke("readQrCode");
+  },
+  // 保存bili登录的cookie到用户文件夹
+  saveBiliCookie: async () => {
+    return await ipcRenderer.invoke("saveBiliCookie");
+  },
+  // 检查bili登录的cookie是否存在
+  checkBiliCookie: async () => {
+    return await ipcRenderer.invoke("checkBiliCookie");
+  },
 
   // danmufactory
   saveDanmuConfig: async (newConfig: DanmuConfig) => {
@@ -125,9 +146,11 @@ export const api = {
   },
 
   // app 配置相关
+  // 保存app配置
   saveAppConfig: async (newConfig: AppConfig) => {
     return await ipcRenderer.invoke("saveAppConfig", newConfig);
   },
+  // 获取app配置
   getAppConfig: async (): Promise<AppConfig> => {
     return await ipcRenderer.invoke("getAppConfig");
   },
