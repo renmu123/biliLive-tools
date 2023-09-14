@@ -4,6 +4,7 @@
   "compilerOptions": {
     "composite": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "types": ["electron-vite/node"],
     "baseUrl": ".",
     "paths": {

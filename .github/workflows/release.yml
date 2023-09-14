@@ -49,7 +49,7 @@ jobs:
       - name: Download File
         run: |
           # 使用 curl 下载文件
-          curl -LJO  https://github.com/renmu123/biliLive-tools/releases/download/0.1.0/bin.zip
+          curl -LJO  https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/bin.zip
 
       - name: Extract File
         run: |

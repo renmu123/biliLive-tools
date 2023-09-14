@@ -23,6 +23,7 @@
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
     "@electron-toolkit/utils": "^2.0.0",
+    "axios": "^1.5.0",
     "electron-log": "^4.4.8",
     "electron-updater": "^6.1.1",
     "fluent-ffmpeg": "^2.1.2",

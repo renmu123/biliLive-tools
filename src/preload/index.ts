@@ -10,6 +10,7 @@ import type {
   File,
   FfmpegOptions,
   AppConfig,
+  BiliupPreset,
 } from "../types";
 
 import { electronAPI } from "@electron-toolkit/preload";
@@ -122,6 +123,15 @@ export const api = {
   // 检查bili登录的cookie是否存在
   checkBiliCookie: async () => {
     return await ipcRenderer.invoke("checkBiliCookie");
+  },
+  readBiliupPresets: async (): Promise<BiliupPreset[]> => {
+    return await ipcRenderer.invoke("readBiliupPresets");
+  },
+  saveBiliupPreset: async (presets: BiliupPreset) => {
+    return await ipcRenderer.invoke("saveBiliupPreset", presets);
+  },
+  validateBiliupTag: async (tag: string) => {
+    return await ipcRenderer.invoke("validateBiliupTag", tag);
   },
 
   // danmufactory

@@ -14,7 +14,9 @@
       :max="1"
     ></FileArea>
 
-    <div class="flex align-center column" style="margin-top: 10px"></div>
+    <div class="" style="margin-top: 30px">
+      <BiliSetting></BiliSetting>
+    </div>
 
     <BiliLoginDialog v-model="loginDialogVisible" :succeess="loginStatus"> </BiliLoginDialog>
   </div>
@@ -22,6 +24,7 @@
 
 <script setup lang="ts">
 import FileArea from "@renderer/components/FileArea.vue";
+import BiliSetting from "@renderer/components/BiliSetting.vue";
 import BiliLoginDialog from "@renderer/components/BiliLoginDialog.vue";
 import type { File } from "../../../../../types";
 // import { deepRaw } from "@renderer/utils";

@@ -18,7 +18,15 @@ import {
   handleResumeTask,
   setFfmpegPath,
 } from "./video";
-import { uploadVideo, biliLogin, readQrCode, checkBiliCookie } from "./biliup";
+import {
+  uploadVideo,
+  biliLogin,
+  readQrCode,
+  checkBiliCookie,
+  readBiliupPresets,
+  saveBiliupPreset,
+  validateBiliupTag,
+} from "./biliup";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
@@ -53,6 +61,9 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("biliLogin", biliLogin);
   ipcMain.handle("readQrCode", readQrCode);
   ipcMain.handle("checkBiliCookie", checkBiliCookie);
+  ipcMain.handle("readBiliupPresets", readBiliupPresets);
+  ipcMain.handle("saveBiliupPreset", saveBiliupPreset);
+  ipcMain.handle("validateBiliupTag", validateBiliupTag);
 
   // 弹幕相关
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
