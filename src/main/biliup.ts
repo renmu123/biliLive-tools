@@ -1,13 +1,12 @@
 import { app } from "electron";
 import { join, dirname } from "path";
 import fs from "fs-extra";
-import axios from "axios";
 
 import Biliup from "./biliup/index";
+import BiliApi from "./biliApi";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { BiliupConfig, BiliupPreset } from "../types/index";
-import type { AxiosInstance } from "axios";
 
 export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   title: "",
@@ -155,26 +154,3 @@ export const validateBiliupTag = async (_event: IpcMainInvokeEvent, tag: string)
 const convertCookie = (cookie: { name: string; value: string }[]) => {
   return cookie.map((item) => `${item.name}=${item.value}`).join("; ");
 };
-
-class BiliApi {
-  _request: AxiosInstance;
-  constructor(cookie: string) {
-    const instance = axios.create({
-      timeout: 10000,
-      headers: {
-        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/63.0.3239.108",
-        Referer: "https://www.bilibili.com/",
-        Connection: "keep-alive",
-        Cookie: cookie,
-      },
-    });
-    this._request = instance;
-  }
-  checkTag(tag: string) {
-    return this._request.get(`https://member.bilibili.com/x/vupre/web/topic/tag/check`, {
-      params: {
-        tag: tag,
-      },
-    });
-  }
-}
