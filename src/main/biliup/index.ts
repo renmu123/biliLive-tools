@@ -24,24 +24,30 @@ export default class Biliup {
     this.cookieFile = path;
     return this;
   }
-  uploadVideo(videoPath: string) {
+  uploadVideo(videoPath: string, args: string[]) {
     if (!this.execPath) {
       throw new Error("未设置biliup路径");
     }
     if (!this.cookieFile) {
       throw new Error("未设置cookie文件");
     }
-    this.biliup = spawn(this.execPath!, [`--user-cookie ${this.cookieFile}`, "upload", videoPath], {
-      shell: true,
-      detached: true,
-      // stdio: "inherit",
-    });
+    console.log([`--user-cookie ${this.cookieFile}`, "upload", ...args, videoPath]);
+
+    this.biliup = spawn(
+      this.execPath!,
+      [`--user-cookie ${this.cookieFile}`, "upload", ...args, videoPath],
+      {
+        shell: true,
+        detached: true,
+        // stdio: "inherit",
+      },
+    );
     this.biliup.stdout.on("data", (data) => {
       console.log(data);
     });
 
     this.biliup.stderr.on("data", (data) => {
-      this.emits.emit("error", data);
+      // this.emits.emit("error", data);
       console.error(`stderr: ${data}`);
     });
 

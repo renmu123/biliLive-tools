@@ -4,7 +4,7 @@
     <n-form ref="formRef" label-width="120px" label-placement="left" label-align="right">
       <n-form-item label="预设">
         <n-select
-          v-model:value="presetName"
+          v-model:value="presetId"
           :options="presetsOptions"
           @update:value="handlePresetChange"
         />
@@ -54,7 +54,11 @@
         />
       </n-form-item>
       <n-form-item label="标签">
-        <n-dynamic-tags v-model:value="options.config.tag" :max="12" />
+        <n-dynamic-tags
+          v-model:value="options.config.tag"
+          :max="12"
+          @update:value="handleTagChange"
+        />
       </n-form-item>
 
       <n-form-item label="分区">
@@ -82,12 +86,36 @@
         </n-checkbox>
       </n-form-item>
     </n-form>
+
+    <div style="text-align: right">
+      <n-button type="primary" @click="saveAnotherPreset">另存为新预设</n-button>
+      <n-button type="primary" style="margin-left: 10px" @click="savePreset">保存预设</n-button>
+    </div>
+
+    <n-modal v-model:show="nameModelVisible">
+      <n-card style="width: 600px" :bordered="false" role="dialog" aria-modal="true">
+        内容
+        <n-input v-model:value="tempPresetName" placeholder="请输入预设名称" maxlength="15" />
+        <template #footer>
+          <div style="text-align: right">
+            <n-button @click="nameModelVisible = false">取消</n-button>
+            <n-button type="primary" style="margin-left: 10px" @click="saveAnotherPresetConfirm"
+              >确认</n-button
+            >
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { BiliupPreset } from "../../../types";
+import { deepRaw } from "@renderer/utils";
+
+// @ts-ignore
 import areaData from "@renderer/assets/area.json";
+import { cloneDeep } from "lodash-es";
 
 // const formData = defineModel<BiliupConfig>({ required: true });
 
@@ -100,13 +128,12 @@ import areaData from "@renderer/assets/area.json";
 //   },
 // );
 
-const presetName = ref<string>("default");
+const presetId = ref<string>("default");
 
 const presets = ref<BiliupPreset[]>([]);
 
 const getPresets = async () => {
   presets.value = await window.api.readBiliupPresets();
-  console.log(presets.value);
 };
 const presetsOptions = computed(() => {
   return presets.value.map((item) => {
@@ -136,15 +163,72 @@ const handlePresetChange = (value: string) => {
 
 const noSideSpace = (value: string) => !value.startsWith(" ") && !value.endsWith(" ");
 
-console.log(areaData);
-
 onMounted(async () => {
   await getPresets();
-  handlePresetChange(presetName.value);
-
-  const res = await window.api.validateBiliupTag("色情");
-  console.log(res);
+  handlePresetChange(presetId.value);
 });
+
+const notice = useNotification();
+const handleTagChange = async (tags: string[]) => {
+  if (tags.length !== 0) {
+    const res = await window.api.validateBiliupTag(tags[tags.length - 1]);
+    if (res.code !== 0) {
+      notice.error({
+        title: res.message,
+        duration: 500,
+      });
+      options.value.config.tag.splice(-1);
+    }
+  }
+};
+
+const uuid = () => {
+  return Math.random().toString(36).slice(2);
+};
+
+const nameModelVisible = ref(false);
+const tempPresetName = ref("");
+const saveAnotherPreset = () => {
+  tempPresetName.value = "";
+  nameModelVisible.value = true;
+};
+
+const saveAnotherPresetConfirm = async () => {
+  if (!tempPresetName.value) {
+    notice.warning({
+      title: "预设名称不得为空",
+      duration: 500,
+    });
+    return;
+  }
+  const preset = cloneDeep(options.value);
+  preset.id = uuid();
+  preset.name = tempPresetName.value;
+
+  await _savePreset(preset);
+  nameModelVisible.value = false;
+  notice.success({
+    title: "保存成功",
+    duration: 5000,
+  });
+  await getPresets();
+  presetId.value = preset.id;
+};
+
+const savePreset = async () => {
+  _savePreset(options.value);
+};
+
+const _savePreset = async (data: BiliupPreset) => {
+  const errorMsg = await window.api.saveBiliupPreset(deepRaw(data));
+  if (errorMsg) {
+    notice.error({
+      title: errorMsg,
+      duration: 5000,
+    });
+    return;
+  }
+};
 </script>
 
 <style scoped lang="less">

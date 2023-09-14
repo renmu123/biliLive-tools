@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { NIcon } from "naive-ui";
+import { NIcon, createDiscreteApi } from "naive-ui";
 import type { MenuOption } from "naive-ui";
 import { RouterLink } from "vue-router";
 import {
@@ -103,6 +103,15 @@ const menuOptions: MenuOption[] = [
 const settingVisible = ref(false);
 window.api.openSetting(() => {
   settingVisible.value = true;
+});
+
+const { notification } = createDiscreteApi(["message", "dialog", "notification", "loadingBar"]);
+
+window.addEventListener("unhandledrejection", (error) => {
+  notification.error({
+    title: String(error.reason),
+    duration: 5000,
+  });
 });
 </script>
 

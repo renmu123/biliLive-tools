@@ -3,8 +3,9 @@
   <div>
     <div class="flex justify-center align-center" style="margin-bottom: 20px">
       <n-button type="primary" @click="convert"> 立即上传 </n-button>
-      <n-button type="primary" @click="login"> 登录 </n-button>
+      <n-button type="primary" style="margin-left: 10px" @click="login"> 登录 </n-button>
     </div>
+    <p class="flex justify-center align-center">{{ hasLogin ? "已获取到登录信息" : "" }}</p>
 
     <FileArea
       v-model="fileList"
@@ -38,6 +39,7 @@ const fileList = ref<
 >([]);
 
 const disabled = ref(false);
+const hasLogin = ref(false);
 
 const convert = async () => {
   const hasLogin = await window.api.checkBiliCookie();
@@ -62,6 +64,7 @@ const convert = async () => {
     duration: 3000,
   });
   try {
+    window.api.uploadVideo(fileList.value[0].path);
     //
   } finally {
     disabled.value = false;
@@ -85,12 +88,18 @@ const login = async () => {
     if (code == 0) {
       // 登录成功
       loginStatus.value = "success";
+      hasLogin.value = true;
     } else {
       // 手动关闭窗口
       loginStatus.value = "fail";
     }
   });
 };
+
+onMounted(async () => {
+  const hasCookie = await window.api.checkBiliCookie();
+  hasLogin.value = hasCookie;
+});
 
 // async function getDir() {
 //   const path = await window.api.openDirectory();

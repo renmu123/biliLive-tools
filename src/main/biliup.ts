@@ -24,21 +24,23 @@ const BILIUP_PATH = join(__dirname, "../../resources/bin/biliup.exe").replace(
   "app.asar.unpacked",
 );
 
+const BILIUP_COOKIE_PATH = join(app.getPath("userData"), "cookies.json");
+
 // 上传视频
-export const uploadVideo = (_event: IpcMainInvokeEvent, path: string) => {
-  const BILIUP_COOKIE = join(app.getPath("userData"), "cookies.json");
+export const uploadVideo = async (_event: IpcMainInvokeEvent, path: string) => {
+  const hasLogin = await checkBiliCookie();
+  if (!hasLogin) {
+    throw new Error("你还没有登录");
+  }
+  const BILIUP_COOKIE = BILIUP_COOKIE_PATH;
   const biliup = new Biliup();
   biliup.setBiliUpPath(BILIUP_PATH);
   biliup.setCookiePath(BILIUP_COOKIE);
-  biliup.uploadVideo(path);
+  biliup.uploadVideo(path, ["--tag test"]);
 };
 
 // 调用bili登录窗口
 export const biliLogin = (_event: IpcMainInvokeEvent) => {
-  const BILIUP_PATH = join(__dirname, "../../resources/bin/biliup.exe").replace(
-    "app.asar",
-    "app.asar.unpacked",
-  );
   const biliup = new Biliup();
   biliup.setBiliUpPath(BILIUP_PATH);
   biliup.login();
@@ -59,7 +61,7 @@ export const readQrCode = () => {
 
 // 保存登录cookie到用户文件夹
 export const saveBiliCookie = async () => {
-  let cookiePtah = join(dirname(app.getPath("exe")), "cookies.json");
+  let cookiePtah = BILIUP_COOKIE_PATH;
   if (import.meta.env.DEV) {
     cookiePtah = join(__dirname, "../../cookies.json");
   }
@@ -69,7 +71,7 @@ export const saveBiliCookie = async () => {
 
 // 检查bili登录的cookie是否存在
 export const checkBiliCookie = async () => {
-  const cookiePath = join(app.getPath("userData"), "cookies.json");
+  const cookiePath = BILIUP_COOKIE_PATH;
   return await fs.pathExists(cookiePath);
 };
 
@@ -118,17 +120,17 @@ export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: B
   if (msg) {
     return msg;
   }
-  return true;
+  return false;
 };
 
 // 保存biliup预设
 export const saveBiliupPreset = async (_event: IpcMainInvokeEvent, presets: BiliupPreset) => {
   const allPresets = await readBiliupPresets();
   const presetIndex = allPresets.findIndex((item) => item.id === presets.id);
-  const msg = await validateBiliupConfig(_event, presets.config);
+  const errorMsg = await validateBiliupConfig(_event, presets.config);
 
-  if (msg !== true) {
-    return msg;
+  if (errorMsg) {
+    return errorMsg;
   }
 
   if (presetIndex === -1) {
@@ -138,17 +140,20 @@ export const saveBiliupPreset = async (_event: IpcMainInvokeEvent, presets: Bili
   }
   const presetsPath = join(app.getPath("userData"), "presets.json");
   await fs.writeJSON(presetsPath, allPresets);
+  return false;
 };
 
 // 标签验证
 export const validateBiliupTag = async (_event: IpcMainInvokeEvent, tag: string) => {
-  const cookieList = (await fs.readJSON(join(app.getPath("userData"), "cookies.json"))).cookie_info
-    .cookies;
+  const status = await checkBiliCookie();
+  if (!status) {
+    throw new Error("标签需要登陆验证可用性");
+  }
+  const cookieList = (await fs.readJSON(BILIUP_COOKIE_PATH)).cookie_info.cookies;
   const api = new BiliApi(convertCookie(cookieList));
 
   const res = await api.checkTag(tag);
   return res;
-  console.log(res);
 };
 
 const convertCookie = (cookie: { name: string; value: string }[]) => {

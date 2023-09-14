@@ -26,6 +26,7 @@ import {
   readBiliupPresets,
   saveBiliupPreset,
   validateBiliupTag,
+  saveBiliCookie,
 } from "./biliup";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
@@ -59,6 +60,7 @@ const genHandler = (ipcMain: IpcMain) => {
   // 上传视频部分
   ipcMain.handle("uploadVideo", uploadVideo);
   ipcMain.handle("biliLogin", biliLogin);
+  ipcMain.handle("saveBiliCookie", saveBiliCookie);
   ipcMain.handle("readQrCode", readQrCode);
   ipcMain.handle("checkBiliCookie", checkBiliCookie);
   ipcMain.handle("readBiliupPresets", readBiliupPresets);

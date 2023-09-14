@@ -14,6 +14,10 @@ export default class BiliApi {
         Cookie: cookie,
       },
     });
+
+    instance.interceptors.response.use((response) => {
+      return response.data;
+    });
     this._request = instance;
   }
   checkTag(tag: string) {
