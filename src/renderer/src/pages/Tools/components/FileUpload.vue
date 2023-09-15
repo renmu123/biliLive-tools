@@ -76,6 +76,20 @@ const convert = async () => {
       toRaw(fileList.value.map((file) => file.path)),
       deepRaw(presetOptions.value.config),
     );
+    window.api.onBiliUploadClose((_event, code) => {
+      console.log("window close", code);
+      if (code == 0) {
+        notice.success({
+          title: `上传成功`,
+          duration: 3000,
+        });
+      } else {
+        notice.error({
+          title: `上传失败`,
+          duration: 3000,
+        });
+      }
+    });
   } finally {
     disabled.value = false;
   }

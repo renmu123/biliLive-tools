@@ -137,6 +137,9 @@ export const api = {
   validateBiliupConfig: async (config: BiliupConfig) => {
     return await ipcRenderer.invoke("validateBiliupConfig", config);
   },
+  onBiliUploadClose: (callback: (_event: IpcRendererEvent, code: number) => void) => {
+    ipcRenderer.once("upload-close", callback);
+  },
 
   // danmufactory
   saveDanmuConfig: async (newConfig: DanmuConfig) => {

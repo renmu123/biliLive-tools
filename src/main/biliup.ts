@@ -42,6 +42,10 @@ export const uploadVideo = async (
   biliup.setCookiePath(BILIUP_COOKIE);
   const args = genBiliupOPtions(options);
   biliup.uploadVideo(pathArray, args);
+
+  biliup.on("close", (code) => {
+    _event.sender.send("upload-close", code);
+  });
 };
 
 const genBiliupOPtions = (options: BiliupConfig) => {
