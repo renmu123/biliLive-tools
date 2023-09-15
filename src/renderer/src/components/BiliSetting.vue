@@ -78,11 +78,7 @@
         </n-checkbox>
       </n-form-item>
       <n-form-item label="Hi-Res无损音质">
-        <n-checkbox
-          v-model:checked="options.config.lossless_music"
-          :checked-value="1"
-          :unchecked-value="0"
-        >
+        <n-checkbox v-model:checked="options.config.hires" :checked-value="1" :unchecked-value="0">
         </n-checkbox>
       </n-form-item>
     </n-form>
@@ -117,6 +113,9 @@ import { deepRaw } from "@renderer/utils";
 import areaData from "@renderer/assets/area.json";
 import { cloneDeep } from "lodash-es";
 
+const emits = defineEmits<{
+  (event: "change", value: BiliupPreset): void;
+}>();
 // const formData = defineModel<BiliupConfig>({ required: true });
 
 // const props = withDefaults(
@@ -229,6 +228,16 @@ const _savePreset = async (data: BiliupPreset) => {
     return;
   }
 };
+
+watch(
+  () => options.value,
+  (value) => {
+    emits("change", value);
+  },
+  {
+    deep: true,
+  },
+);
 </script>
 
 <style scoped lang="less">

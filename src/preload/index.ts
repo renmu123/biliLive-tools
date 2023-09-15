@@ -11,6 +11,7 @@ import type {
   FfmpegOptions,
   AppConfig,
   BiliupPreset,
+  BiliupConfig,
 } from "../types";
 
 import { electronAPI } from "@electron-toolkit/preload";
@@ -101,8 +102,8 @@ export const api = {
   ) => {
     return await ipcRenderer.invoke("mergeAssMp4", videoFile, assFile, options, ffmpegOptions);
   },
-  uploadVideo: async (videoFile: string) => {
-    return await ipcRenderer.invoke("uploadVideo", videoFile);
+  uploadVideo: async (videoFiles: string[], options: BiliupConfig) => {
+    return await ipcRenderer.invoke("uploadVideo", videoFiles, options);
   },
   // 调用biliup的登录窗口
   biliLogin: async () => {
@@ -132,6 +133,9 @@ export const api = {
   },
   validateBiliupTag: async (tag: string) => {
     return await ipcRenderer.invoke("validateBiliupTag", tag);
+  },
+  validateBiliupConfig: async (config: BiliupConfig) => {
+    return await ipcRenderer.invoke("validateBiliupConfig", config);
   },
 
   // danmufactory

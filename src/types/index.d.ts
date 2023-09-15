@@ -67,7 +67,7 @@ export interface BiliupConfig {
   title: string; // 标题,稿件标题限制80字，去除前后空格
   desc?: string; // 简介，去除前后空格，最多250
   dolby: 0 | 1; // 杜比
-  lossless_music: 0 | 1; // Hi-Res
+  hires: 0 | 1; // Hi-Res
   copyright: 1 | 2; // 1：自制，2：转载
   tag: string[]; // 标签，不能为空，不能超过12个，调用接口验证
   tid: number; // 174 投稿分区

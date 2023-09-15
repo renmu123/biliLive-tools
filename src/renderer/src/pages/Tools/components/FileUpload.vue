@@ -12,11 +12,10 @@
       :extensions="['flv', 'mp4']"
       desc="请选择视频文件"
       :disabled="disabled"
-      :max="1"
     ></FileArea>
 
     <div class="" style="margin-top: 30px">
-      <BiliSetting></BiliSetting>
+      <BiliSetting @change="handlePresetOptions"></BiliSetting>
     </div>
 
     <BiliLoginDialog v-model="loginDialogVisible" :succeess="loginStatus"> </BiliLoginDialog>
@@ -27,8 +26,9 @@
 import FileArea from "@renderer/components/FileArea.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 import BiliLoginDialog from "@renderer/components/BiliLoginDialog.vue";
-import type { File } from "../../../../../types";
-// import { deepRaw } from "@renderer/utils";
+
+import type { File, BiliupPreset } from "../../../../../types";
+import { deepRaw } from "@renderer/utils";
 
 const notice = useNotification();
 
@@ -40,6 +40,13 @@ const fileList = ref<
 
 const disabled = ref(false);
 const hasLogin = ref(false);
+
+// @ts-ignore
+const presetOptions: Ref<BiliupPreset> = ref({});
+
+const handlePresetOptions = (preset) => {
+  presetOptions.value = preset;
+};
 
 const convert = async () => {
   const hasLogin = await window.api.checkBiliCookie();
@@ -58,14 +65,17 @@ const convert = async () => {
     });
     return;
   }
+  await window.api.validateBiliupConfig(deepRaw(presetOptions.value.config));
   disabled.value = true;
   notice.info({
     title: `开始上传`,
     duration: 3000,
   });
   try {
-    window.api.uploadVideo(fileList.value[0].path);
-    //
+    await window.api.uploadVideo(
+      toRaw(fileList.value.map((file) => file.path)),
+      deepRaw(presetOptions.value.config),
+    );
   } finally {
     disabled.value = false;
   }

@@ -12,7 +12,7 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   title: "",
   desc: "",
   dolby: 0,
-  lossless_music: 0,
+  hires: 0,
   copyright: 1,
   tag: ["biliLive-tools"], // tag应该为""以,分割的字符串
   tid: 138,
@@ -27,7 +27,11 @@ const BILIUP_PATH = join(__dirname, "../../resources/bin/biliup.exe").replace(
 const BILIUP_COOKIE_PATH = join(app.getPath("userData"), "cookies.json");
 
 // 上传视频
-export const uploadVideo = async (_event: IpcMainInvokeEvent, path: string) => {
+export const uploadVideo = async (
+  _event: IpcMainInvokeEvent,
+  pathArray: string[],
+  options: BiliupConfig,
+) => {
   const hasLogin = await checkBiliCookie();
   if (!hasLogin) {
     throw new Error("你还没有登录");
@@ -36,7 +40,35 @@ export const uploadVideo = async (_event: IpcMainInvokeEvent, path: string) => {
   const biliup = new Biliup();
   biliup.setBiliUpPath(BILIUP_PATH);
   biliup.setCookiePath(BILIUP_COOKIE);
-  biliup.uploadVideo(path, ["--tag test"]);
+  const args = genBiliupOPtions(options);
+  biliup.uploadVideo(pathArray, args);
+};
+
+const genBiliupOPtions = (options: BiliupConfig) => {
+  return Object.entries(options).map(([key, value]) => {
+    if (DEFAULT_BILIUP_CONFIG[key] === undefined) {
+      return "";
+    }
+
+    if (key === "tag") {
+      return `--${key} "${value.join(",")}"`;
+    } else if (["title", "desc"].includes(key)) {
+      return `--${key} "${value}"`;
+    } else if (key === "copyright") {
+      if (value === 1) {
+        return `--${key} ${value}`;
+      } else if (value === 2) {
+        return `--${key} ${value} --source "${options.source}"`;
+      } else {
+        return "";
+      }
+    } else if (key === "source") {
+      // do nothing
+      return "";
+    } else {
+      return `--${key} ${value}`;
+    }
+  });
 };
 
 // 调用bili登录窗口
