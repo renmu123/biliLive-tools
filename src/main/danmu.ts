@@ -3,8 +3,9 @@ import { join } from "path";
 import { shell, type IpcMainInvokeEvent } from "electron";
 
 import Config from "./utils/config";
-import { executeCommand, pathExists } from "./utils/index";
+import { pathExists } from "./utils/index";
 import log from "./utils/log";
+import { Danmu } from "../core/index";
 
 import type { DanmuConfig, File, DanmuOptions } from "../types";
 
@@ -53,28 +54,6 @@ export const getDanmuConfig = () => {
   return { ...DANMU_DEAFULT_CONFIG, ...config.data };
 };
 
-const genDanmuParams = () => {
-  const config = getDanmuConfig();
-  log.debug("danmu config", JSON.stringify(config));
-  const params = Object.entries(config).map(([key, value]) => {
-    if (["resolution", "msgboxsize", "msgboxpos"].includes(key)) {
-      // @ts-ignore
-      return `--${key} ${value.join("x")}`;
-    } else if (key === "blockmode" || key === "statmode") {
-      // @ts-ignore
-      if (value.length === 0) return `--${key} null`;
-      // @ts-ignore
-      return `--${key} ${value.join("-")}`;
-    } else if (key === "fontname") {
-      return `--${key} "${value}"`;
-    } else {
-      return `--${key} ${value}`;
-    }
-  });
-
-  return params;
-};
-
 export const convertDanmu2Ass = async (
   _event: IpcMainInvokeEvent,
   files: File[],
@@ -87,6 +66,8 @@ export const convertDanmu2Ass = async (
     removeOrigin: false,
   },
 ) => {
+  const danmu = new Danmu(DANMUKUFACTORY_PATH);
+
   const result: {
     status: "success" | "error";
     text: string;
@@ -142,15 +123,12 @@ export const convertDanmu2Ass = async (
       }
     }
 
-    // DanmakuFactory.exe -o "%BASENAME%.ass" -i "%BASENAME%.xml" --ignore-warnings --showmsgbox true -S 54 -O 255 --msgboxpos 20 -60
-    const params = [`-i "${input}"`, `-o "${output}"`, "--ignore-warnings"];
-    const otherParams = genDanmuParams();
-    const command = `${DANMUKUFACTORY_PATH} ${params.join(" ")} ${otherParams.join(" ")}`;
-
-    log.info(`danmukufancory command: ${command}`);
+    const argsObj = getDanmuConfig();
 
     try {
-      const { stdout, stderr } = await executeCommand(command);
+      const { stdout, stderr } = await danmu.convertXml2Ass(input, output, argsObj);
+      log.info(`danmukufactory command: ${danmu.command}`);
+
       log.debug("stdout", stdout);
       if (stderr) {
         log.error("stderr", stderr);
