@@ -2,7 +2,7 @@
 <template>
   <div>
     <div class="flex justify-center align-center" style="margin-bottom: 20px">
-      <n-button type="primary" @click="convert"> 立即上传 </n-button>
+      <n-button type="primary" @click="upload"> 立即上传 </n-button>
       <n-button type="primary" style="margin-left: 10px" @click="login"> 登录 </n-button>
     </div>
     <p class="flex justify-center align-center">{{ hasLogin ? "已获取到登录信息" : "" }}</p>
@@ -26,10 +26,13 @@
 import FileArea from "@renderer/components/FileArea.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 import BiliLoginDialog from "@renderer/components/BiliLoginDialog.vue";
+import { useBili } from "@renderer/hooks";
 
-import type { File, BiliupPreset } from "../../../../../types";
+import type { File } from "../../../../../types";
 import { deepRaw } from "@renderer/utils";
 
+const { hasLogin, handlePresetOptions, login, loginStatus, loginDialogVisible, presetOptions } =
+  useBili();
 const notice = useNotification();
 
 const fileList = ref<
@@ -39,16 +42,8 @@ const fileList = ref<
 >([]);
 
 const disabled = ref(false);
-const hasLogin = ref(false);
 
-// @ts-ignore
-const presetOptions: Ref<BiliupPreset> = ref({});
-
-const handlePresetOptions = (preset) => {
-  presetOptions.value = preset;
-};
-
-const convert = async () => {
+const upload = async () => {
   const hasLogin = await window.api.checkBiliCookie();
   if (!hasLogin) {
     notice.error({
@@ -94,47 +89,6 @@ const convert = async () => {
     disabled.value = false;
   }
 };
-
-const loginDialogVisible = ref(false);
-const loginStatus = ref<"start" | "success" | "fail">("start");
-const login = async () => {
-  notice.info({
-    title: `此为实验性功能，不为稳定性做出保证`,
-    duration: 3000,
-  });
-  loginStatus.value = "start";
-  loginDialogVisible.value = true;
-  window.api.biliLogin();
-  // 打开登录窗口;
-  window.api.onBiliLoginClose((_event, code) => {
-    console.log("window close", code);
-
-    if (code == 0) {
-      // 登录成功
-      loginStatus.value = "success";
-      hasLogin.value = true;
-    } else {
-      // 手动关闭窗口
-      loginStatus.value = "fail";
-    }
-  });
-};
-
-onMounted(async () => {
-  const hasCookie = await window.api.checkBiliCookie();
-  hasLogin.value = hasCookie;
-});
-
-// async function getDir() {
-//   const path = await window.api.openDirectory();
-//   options.value.savePath = path;
-// }
 </script>
 
-<style scoped lang="less">
-.radio-group {
-  :deep(.n-radio) {
-    align-items: center;
-  }
-}
-</style>
+<style scoped lang="less"></style>

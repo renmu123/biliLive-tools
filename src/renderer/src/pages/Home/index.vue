@@ -7,8 +7,9 @@
         <n-button v-if="disabled" type="primary" style="margin-left: 10px" @click="killTask">
           结束任务
         </n-button>
+        <n-button type="primary" style="margin-left: 10px" @click="login"> 登录 </n-button>
       </div>
-
+      <p>{{ hasLogin ? "已获取到登录信息" : "" }}</p>
       <p v-if="timemark">已处理视频时间：{{ timemark }}</p>
     </div>
 
@@ -57,8 +58,13 @@
               <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
                 完成后打开文件夹
               </n-checkbox>
+              <n-checkbox v-model:checked="clientOptions.upload"> 完成后自动上传 </n-checkbox>
             </div>
           </div>
+        </n-tab-pane>
+        <n-tab-pane name="upload-setting" tab="上传设置" display-directive="show">
+          <BiliSetting @change="handlePresetOptions"></BiliSetting>
+          <BiliLoginDialog v-model="loginDialogVisible" :succeess="loginStatus"> </BiliLoginDialog>
         </n-tab-pane>
         <n-tab-pane name="danmukufactory-setting" tab="弹幕设置" display-directive="show">
           <DanmuFactorySetting
@@ -85,14 +91,19 @@ defineOptions({
 
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
+import BiliSetting from "@renderer/components/BiliSetting.vue";
+import BiliLoginDialog from "@renderer/components/BiliLoginDialog.vue";
 
 import ffmpegSetting from "./components/ffmpegSetting.vue";
-import { useConfirm } from "@renderer/hooks";
+import { useConfirm, useBili } from "@renderer/hooks";
+import { deepRaw } from "@renderer/utils";
 
 import type { DanmuOptions, File, FfmpegOptions, DanmuConfig } from "../../../../types";
 
 const notice = useNotification();
 const confirm = useConfirm();
+const { hasLogin, handlePresetOptions, login, loginStatus, loginDialogVisible, presetOptions } =
+  useBili();
 
 const fileList = ref<
   (File & {
@@ -114,6 +125,7 @@ const clientOptions = ref({
   removeCompletedTask: true, // 移除已完成任务
   openTargetDirectory: false, // 转换完成后打开目标文件夹
   removeTempFile: false, // 移除临时文件
+  upload: false, // 上传
 });
 
 const disabled = ref(false);
@@ -131,6 +143,9 @@ const convert = async () => {
   if (fileList.value.length === 0) {
     return;
   }
+  const valid = await biliUpCheck(fileList.value);
+  if (!valid) return;
+
   const startTime = Date.now();
 
   const videoIndex = fileList.value.findIndex((item) => item.ext === ".flv" || item.ext === ".mp4");
@@ -273,6 +288,9 @@ const convert = async () => {
 
   try {
     await createMergeVideoAssTask(targetVideoFilePath, targetAssFilePath, videoIndex);
+    if (clientOptions.value.upload) {
+      await upload([{ path: `${videoFile[0].name}-弹幕版.mp4` }]);
+    }
   } catch (err) {
     notice.error({
       title: `转换失败：\n${err}`,
@@ -427,6 +445,61 @@ const create2Mp4Task = async (file: File, index: number) => {
         },
       );
   });
+};
+
+const biliUpCheck = async (files: { path: string }[]) => {
+  const hasLogin = await window.api.checkBiliCookie();
+  if (!hasLogin) {
+    notice.error({
+      title: `请先登录`,
+      duration: 3000,
+    });
+    return;
+  }
+
+  if (files.length === 0) {
+    notice.error({
+      title: `至少选择一个文件`,
+      duration: 3000,
+    });
+    return;
+  }
+  await window.api.validateBiliupConfig(deepRaw(presetOptions.value.config));
+  notice.info({
+    title: `开始上传`,
+    duration: 3000,
+  });
+
+  return true;
+};
+// 上传任务
+const upload = async (files: { path: string }[]) => {
+  const valid = await biliUpCheck(files);
+  if (!valid) return;
+
+  disabled.value = true;
+  try {
+    await window.api.uploadVideo(
+      toRaw(files.map((file) => file.path)),
+      deepRaw(presetOptions.value.config),
+    );
+    window.api.onBiliUploadClose((_event, code) => {
+      console.log("window close", code);
+      if (code == 0) {
+        notice.success({
+          title: `上传成功`,
+          duration: 3000,
+        });
+      } else {
+        notice.error({
+          title: `上传失败`,
+          duration: 3000,
+        });
+      }
+    });
+  } finally {
+    disabled.value = false;
+  }
 };
 
 // @ts-ignore

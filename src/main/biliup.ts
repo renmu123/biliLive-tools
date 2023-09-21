@@ -4,6 +4,7 @@ import fs from "fs-extra";
 
 import Biliup from "./biliup/index";
 import BiliApi from "./biliApi";
+import log from "./utils/log";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { BiliupConfig, BiliupPreset } from "../types/index";
@@ -36,11 +37,15 @@ export const uploadVideo = async (
   if (!hasLogin) {
     throw new Error("你还没有登录");
   }
+  log.info("BILIUP_COOKIE_PATH", BILIUP_COOKIE_PATH);
+  log.info("BILIUP_PATH", BILIUP_PATH);
+
   const BILIUP_COOKIE = BILIUP_COOKIE_PATH;
   const biliup = new Biliup();
   biliup.setBiliUpPath(BILIUP_PATH);
   biliup.setCookiePath(BILIUP_COOKIE);
   const args = genBiliupOPtions(options);
+  log.info(`biliup ${args.join(" ")}`);
   biliup.uploadVideo(pathArray, args);
 
   biliup.on("close", (code) => {
