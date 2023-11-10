@@ -21,12 +21,12 @@
           <a href="https://github.com/hihkm/DanmakuFactory" class="external">DanmakuFactory</a>
         </li>
         <li>
-          <a href="https://github.com/BililiveRecorder/BililiveRecorder" class="external"
-            >biliup-rs</a
-          >
+          <a href="https://github.com/biliup/biliup-rs" class="external">biliup-rs</a>
         </li>
         <li>
-          <a href="https://github.com/biliup/biliup-rs" class="external">BililiveRecorder</a>
+          <a href="https://github.com/BililiveRecorder/BililiveRecorder" class="external"
+            >BililiveRecorder</a
+          >
         </li>
       </ul>
     </div>

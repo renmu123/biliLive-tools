@@ -62,7 +62,7 @@ const genBiliupOPtions = (options: BiliupConfig) => {
     if (key === "tag") {
       return `--${key} "${value.join(",")}"`;
     } else if (["title", "desc"].includes(key)) {
-      return `--${key} "${value}"`;
+      return `--${key} "${value.trim()}"`;
     } else if (key === "copyright") {
       if (value === 1) {
         return `--${key} ${value}`;
@@ -102,7 +102,7 @@ export const readQrCode = () => {
 
 // 保存登录cookie到用户文件夹
 export const saveBiliCookie = async () => {
-  let cookiePtah = BILIUP_COOKIE_PATH;
+  let cookiePtah = join(dirname(app.getPath("exe")), "cookies.json");
   if (import.meta.env.DEV) {
     cookiePtah = join(__dirname, "../../cookies.json");
   }

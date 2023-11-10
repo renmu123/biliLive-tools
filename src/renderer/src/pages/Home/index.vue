@@ -146,8 +146,6 @@ const convert = async () => {
   const valid = await biliUpCheck(fileList.value);
   if (!valid) return;
 
-  const startTime = Date.now();
-
   const videoIndex = fileList.value.findIndex((item) => item.ext === ".flv" || item.ext === ".mp4");
   const videoFile = videoIndex === -1 ? [] : [fileList.value[videoIndex]];
 
@@ -169,28 +167,58 @@ const convert = async () => {
     return;
   }
 
-  // 判断目标视频文件是否存在
-  let path = window.api.join(videoFile[0].dir, `${videoFile[0].name}-弹幕版.mp4`);
-  if (options.value.saveRadio === 2 && options.value.savePath) {
-    path = window.api.join(options.value.savePath, `${videoFile[0].name}-弹幕版.mp4`);
-  }
-  const isExits = await window.api.exits(path);
-  if (isExits) {
-    if (!options.value.override) {
-      notice.info({
-        title: "目前文件已存在，无需进行压制",
-        duration: 3000,
-      });
-      return;
-    } else {
-      const status = await confirm.warning({
-        content: `目标文件夹已存在 ${videoFile[0].name}-弹幕版.mp4 文件，继续将会覆盖此文件`,
-      });
-      if (!status) return;
+  // xml文件转换
+  const { canRemoveAssFile, targetAssFilePath } = await handleXmlFile(assFile);
+
+  // 视频转化
+  const { canRemoveVideo, targetVideoFilePath } = await handleVideoFile(videoFile, videoIndex);
+
+  notice.info({
+    title: "开始进行压制，根据不同设置需要消耗大量时间，CPU，GPU，请勿关闭软件",
+    duration: 5000,
+  });
+
+  try {
+    await createMergeVideoAssTask(targetVideoFilePath, targetAssFilePath, videoIndex);
+  } catch (err) {
+    notice.error({
+      title: `转换失败：\n${err}`,
+    });
+    return;
+  } finally {
+    if (clientOptions.value.removeTempFile) {
+      if (canRemoveAssFile) window.api.trashItem(targetAssFilePath);
+      if (canRemoveVideo) window.api.trashItem(targetVideoFilePath);
     }
   }
 
-  // xml文件转换
+  // 完成后的处理
+  notice.success({
+    title: `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
+    duration: 10000,
+  });
+  new window.Notification(
+    `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
+  );
+
+  if (clientOptions.value.upload) {
+    await upload([{ path: `${videoFile[0].name}-弹幕版.mp4` }]);
+  }
+
+  if (clientOptions.value.removeCompletedTask) {
+    fileList.value = [];
+  }
+  if (clientOptions.value.openTargetDirectory) {
+    if (options.value.saveRadio === 2) {
+      window.api.openPath(options.value.savePath);
+    } else {
+      window.api.openPath(fileList.value[videoIndex].dir);
+    }
+  }
+};
+
+// 处理xml文件
+const handleXmlFile = async (assFile: any) => {
   let targetAssFilePath: string;
   let canRemoveAssFile = false;
   if (assFile[0].ext === ".xml") {
@@ -203,7 +231,7 @@ const convert = async () => {
       const status = await confirm.warning({
         content: `目标文件夹已存在 ${assFile[0].name}.ass 文件，继续将会覆盖此文件`,
       });
-      if (!status) return;
+      if (!status) throw new Error("取消");
     } else {
       canRemoveAssFile = true;
     }
@@ -220,7 +248,7 @@ const convert = async () => {
         title: "xml文件转换失败，请检查文件",
         duration: 3000,
       });
-      return;
+      throw new Error("xml文件转换失败，请检查文件");
     }
     notice.success({
       title: "xml文件转换成功",
@@ -235,10 +263,36 @@ const convert = async () => {
       title: "弹幕文件路径中不允许存在空格",
       duration: 3000,
     });
-    return;
+    throw new Error("弹幕文件路径中不允许存在空格");
   }
   console.log("targetAssFilePath", targetAssFilePath);
+  return {
+    canRemoveAssFile,
+    targetAssFilePath,
+  };
+};
 
+// 处理视频文件
+const handleVideoFile = async (videoFile: any, videoIndex: number) => {
+  let path = window.api.join(videoFile[0].dir, `${videoFile[0].name}-弹幕版.mp4`);
+  if (options.value.saveRadio === 2 && options.value.savePath) {
+    path = window.api.join(options.value.savePath, `${videoFile[0].name}-弹幕版.mp4`);
+  }
+  const isExits = await window.api.exits(path);
+  if (isExits) {
+    if (!options.value.override) {
+      notice.info({
+        title: "目前文件已存在，无需进行压制",
+        duration: 3000,
+      });
+      throw new Error("目前文件已存在，无需进行压制");
+    } else {
+      const status = await confirm.warning({
+        content: `目标文件夹已存在 ${videoFile[0].name}-弹幕版.mp4 文件，继续将会覆盖此文件`,
+      });
+      if (!status) throw new Error("取消");
+    }
+  }
   // video文件转换
   let targetVideoFilePath: string;
   let canRemoveVideo = false;
@@ -252,7 +306,7 @@ const convert = async () => {
       const status = await confirm.warning({
         content: `目标文件夹已存在 ${videoFile[0].name}.mp4 文件，继续将会覆盖此文件`,
       });
-      if (!status) return;
+      if (!status) throw new Error("取消");
     } else {
       canRemoveVideo = true;
     }
@@ -274,23 +328,34 @@ const convert = async () => {
         title: "文件转码失败，请检查文件",
         duration: 3000,
       });
-      return;
+      throw new Error("文件转码失败，请检查文件");
     }
   } else {
     targetVideoFilePath = videoFile[0].path;
   }
   console.log("targetVideoFilePath", targetVideoFilePath);
 
+  return { canRemoveVideo, targetVideoFilePath };
+};
+
+// 视频压制
+const handleVideoMerge = async (options: {
+  targetVideoFilePath: string;
+  targetAssFilePath: string;
+  videoIndex: number;
+  canRemoveAssFile: boolean;
+  canRemoveVideo: boolean;
+}) => {
+  const { targetVideoFilePath, targetAssFilePath, videoIndex, canRemoveAssFile, canRemoveVideo } =
+    options;
   notice.info({
     title: "开始进行压制，根据不同设置需要消耗大量时间，CPU，GPU，请勿关闭软件",
     duration: 5000,
   });
 
+  const startTime = Date.now();
   try {
     await createMergeVideoAssTask(targetVideoFilePath, targetAssFilePath, videoIndex);
-    if (clientOptions.value.upload) {
-      await upload([{ path: `${videoFile[0].name}-弹幕版.mp4` }]);
-    }
   } catch (err) {
     notice.error({
       title: `转换失败：\n${err}`,
@@ -311,16 +376,6 @@ const convert = async () => {
   new window.Notification(
     `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
   );
-  if (clientOptions.value.removeCompletedTask) {
-    fileList.value = [];
-  }
-  if (clientOptions.value.openTargetDirectory) {
-    if (options.value.saveRadio === 2) {
-      window.api.openPath(options.value.savePath);
-    } else {
-      window.api.openPath(fileList.value[videoIndex].dir);
-    }
-  }
 };
 
 // 已处理时间

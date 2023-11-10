@@ -8,7 +8,7 @@
 
 # 下载
 
-目前有两个 Win 版本的包。两个包处理有没有打包 `ffmpeg` 和 `ffprobe` 之外没有任何代码上的区别
+目前有两个 Win 版本的包。两个包处理有没有打包 `ffmpeg` 和 `ffprobe` 之外没有任何代码上的区别，如果你不需要转封装功能，可以尝试下载体积较小的包，我其实不是特别推荐。
 如果你是普通用户，那就选择体积大的那个包，如果你是资深用户，那么请自行选择，因自编译 `ffmpeg` 出问题的 issue 是不会被处理的。
 
 1. 自带 `ffmpeg` 版本的包
@@ -31,7 +31,7 @@
 
 # 开发
 
-下载项目后需要新建一个`bin`文件夹，里面需要三个文件。
+下载项目后需要新建一个`resources\bin`文件夹，里面需要三个文件。
 同时需要在应用的设置中设置 ffmpeg 以及 ffprobe 可执行文件地址。
 
 1. `DanmukuFactory.exe` [1.7.0版本](https://github.com/hihkm/DanmakuFactory/releases/tag/v1.70)

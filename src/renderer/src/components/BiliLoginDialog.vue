@@ -62,9 +62,11 @@ watch(
           title: "保存B站登录信息成功",
         });
       } catch (e: any) {
+        console.log(e);
+
         notice.error({
           title: "保存B站登录信息失败",
-          description: e,
+          description: String(e),
         });
       }
     }

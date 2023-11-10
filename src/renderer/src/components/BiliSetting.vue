@@ -15,7 +15,6 @@
         <n-input
           v-model:value="options.config.title"
           placeholder="请输入视频标题"
-          :allow-input="noSideSpace"
           clearable
           maxlength="80"
           show-count
@@ -25,7 +24,6 @@
         <n-input
           v-model:value="options.config.desc"
           placeholder="请输入视频简介"
-          :allow-input="noSideSpace"
           clearable
           maxlength="250"
           show-count
