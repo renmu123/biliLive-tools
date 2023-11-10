@@ -144,7 +144,7 @@ export const mergeAssMp4 = async (
   }
   if (!options.override && (await pathExists(output))) {
     log.error("mergrAssMp4, 文件已存在，跳过", videoInput);
-    _event.sender.send("task-end");
+    _event.sender.send("task-end", { output });
     return;
   }
 

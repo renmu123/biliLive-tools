@@ -173,47 +173,29 @@ const convert = async () => {
   // 视频转化
   const { canRemoveVideo, targetVideoFilePath } = await handleVideoFile(videoFile, videoIndex);
 
-  notice.info({
-    title: "开始进行压制，根据不同设置需要消耗大量时间，CPU，GPU，请勿关闭软件",
-    duration: 5000,
+  // 压制任务
+  const output = await handleVideoMerge({
+    targetVideoFilePath,
+    targetAssFilePath,
+    videoIndex,
+    canRemoveAssFile,
+    canRemoveVideo,
   });
-
-  try {
-    await createMergeVideoAssTask(targetVideoFilePath, targetAssFilePath, videoIndex);
-  } catch (err) {
-    notice.error({
-      title: `转换失败：\n${err}`,
-    });
-    return;
-  } finally {
-    if (clientOptions.value.removeTempFile) {
-      if (canRemoveAssFile) window.api.trashItem(targetAssFilePath);
-      if (canRemoveVideo) window.api.trashItem(targetVideoFilePath);
-    }
-  }
-
-  // 完成后的处理
-  notice.success({
-    title: `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
-    duration: 10000,
-  });
-  new window.Notification(
-    `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
-  );
+  console.log(output, output);
 
   if (clientOptions.value.upload) {
-    await upload([{ path: `${videoFile[0].name}-弹幕版.mp4` }]);
+    await upload([{ path: output }]);
   }
 
-  if (clientOptions.value.removeCompletedTask) {
-    fileList.value = [];
-  }
   if (clientOptions.value.openTargetDirectory) {
     if (options.value.saveRadio === 2) {
       window.api.openPath(options.value.savePath);
     } else {
       window.api.openPath(fileList.value[videoIndex].dir);
     }
+  }
+  if (clientOptions.value.removeCompletedTask) {
+    fileList.value = [];
   }
 };
 
@@ -354,13 +336,14 @@ const handleVideoMerge = async (options: {
   });
 
   const startTime = Date.now();
+  let output: string;
   try {
-    await createMergeVideoAssTask(targetVideoFilePath, targetAssFilePath, videoIndex);
+    output = await createMergeVideoAssTask(targetVideoFilePath, targetAssFilePath, videoIndex);
   } catch (err) {
     notice.error({
       title: `转换失败：\n${err}`,
     });
-    return;
+    throw new Error(`转换失败：\n${err}`);
   } finally {
     if (clientOptions.value.removeTempFile) {
       if (canRemoveAssFile) window.api.trashItem(targetAssFilePath);
@@ -376,6 +359,8 @@ const handleVideoMerge = async (options: {
   new window.Notification(
     `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
   );
+
+  return output;
 };
 
 // 已处理时间
@@ -385,7 +370,7 @@ const createMergeVideoAssTask = async (
   videoFilePath: string,
   assFilePath: string,
   index: number,
-) => {
+): Promise<string> => {
   const videoFile = window.api.formatFile(videoFilePath);
   const assFile = window.api.formatFile(assFilePath);
 
@@ -531,6 +516,7 @@ const biliUpCheck = async (files: { path: string }[]) => {
 const upload = async (files: { path: string }[]) => {
   const valid = await biliUpCheck(files);
   if (!valid) return;
+  console.log("files", files);
 
   disabled.value = true;
   try {

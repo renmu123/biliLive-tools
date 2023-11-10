@@ -1,6 +1,7 @@
 import { spawn } from "child_process";
 import type { ChildProcessWithoutNullStreams } from "child_process";
 import { EventEmitter } from "events";
+import log from "../utils/log";
 
 export default class Biliup {
   params: string[];
@@ -38,7 +39,7 @@ export default class Biliup {
       ...args,
       videoPaths.map((path) => `"${path}"`).join(" "),
     ];
-    console.log(`biliup ${params.join(" ")}`);
+    log.info(`${this.execPath} ${params.join(" ")}`);
 
     this.biliup = spawn(this.execPath!, params, {
       shell: true,
@@ -50,20 +51,20 @@ export default class Biliup {
 
     this.biliup.stderr.on("data", (data) => {
       // this.emits.emit("error", data);
-      console.log(`stderr: ${data}`);
+      log.info(`stderr: ${data}`);
     });
 
     this.biliup.on("close", (code) => {
       this.emits.emit("close", code);
-      console.log(`child process exited with code ${code}`);
+      log.info(`child process exited with code ${code}`);
     });
     this.biliup.on("error", (error) => {
       // this.emits.emit("error", error);
-      console.log(`error ${error}`);
+      log.error(`error ${error}`);
     });
     this.biliup.on("exit", (code, signal) => {
       // this.emits.emit("error", code);
-      console.log(`exit ${code} ${signal}}`);
+      log.info(`exit ${code} ${signal}}`);
     });
   }
   on(event: string, listener: (...args: any[]) => void) {
