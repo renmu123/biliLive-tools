@@ -15,6 +15,7 @@ export interface AppConfig {
     open: boolean;
     recoderFolder: string;
     autoUpload: boolean;
+    minSize: number;
   };
 }
 

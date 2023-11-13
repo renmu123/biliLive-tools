@@ -48,7 +48,7 @@
                           'justify-content': 'flex-end',
                         }"
                       >
-                        状态
+                        启用
                         <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
                       ></span>
                     </template>
@@ -72,6 +72,10 @@
               </n-form-item>
               <n-form-item label="开启自动上传">
                 <n-switch v-model:value="config.webhook.autoUpload" />
+              </n-form-item>
+              <n-form-item label="最小上传大小">
+                <n-input-number v-model:value="config.webhook.minSize" placeholder="单位MB" />
+                M
               </n-form-item>
             </n-form>
           </n-tab-pane>

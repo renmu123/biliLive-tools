@@ -100,6 +100,8 @@ const genBiliupOPtions = (options: BiliupConfig) => {
     } else if (key === "dynamic") {
       if (value) {
         return `--${key} "${value}"`;
+      } else {
+        return "";
       }
     } else {
       return `--${key} ${value}`;
