@@ -62,8 +62,12 @@
                   v-model:value="config.webhook.recoderFolder"
                   placeholder="请输入录播姬工作目录"
                 />
-                <n-button type="primary" style="margin-left: 10px" @click="selectFile('recorder')">
-                  选择文件
+                <n-button
+                  type="primary"
+                  style="margin-left: 10px"
+                  @click="selectFolder('recorder')"
+                >
+                  选择文件夹
                 </n-button>
               </n-form-item>
               <n-form-item label="开启自动上传">
@@ -113,7 +117,7 @@ const getConfig = async () => {
   config.value = data;
 };
 
-const selectFile = async (file: "ffmpeg" | "ffprobe" | "recorder") => {
+const selectFile = async (file: "ffmpeg" | "ffprobe") => {
   const files = await window.api.openFile({
     multi: false,
   });
@@ -123,8 +127,18 @@ const selectFile = async (file: "ffmpeg" | "ffprobe" | "recorder") => {
     config.value.ffmpegPath = files[0];
   } else if (file === "ffprobe") {
     config.value.ffprobePath = files[0];
-  } else if (file === "recorder") {
-    config.value.webhook.recoderFolder = files[0];
+  }
+};
+
+const selectFolder = async (type: "recorder") => {
+  const files = await window.api.openDirectory();
+  console.log(files);
+
+  if (!files) return;
+  console.log("files");
+
+  if (type === "recorder") {
+    config.value.webhook.recoderFolder = files;
   }
 };
 

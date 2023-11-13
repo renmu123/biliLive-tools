@@ -53,6 +53,29 @@ export const uploadVideo = async (
   });
 };
 
+// 上传视频
+export const _uploadVideo = async (pathArray: string[], options: BiliupConfig) => {
+  const hasLogin = await checkBiliCookie();
+  if (!hasLogin) {
+    throw new Error("你还没有登录");
+  }
+  log.info("BILIUP_COOKIE_PATH", BILIUP_COOKIE_PATH);
+  log.info("BILIUP_PATH", BILIUP_PATH);
+
+  const BILIUP_COOKIE = BILIUP_COOKIE_PATH;
+  const biliup = new Biliup();
+  biliup.setBiliUpPath(BILIUP_PATH);
+  biliup.setCookiePath(BILIUP_COOKIE);
+  const args = genBiliupOPtions(options);
+  biliup.uploadVideo(pathArray, args);
+
+  return new Promise((resolve) => {
+    biliup.on("close", (code) => {
+      resolve(code);
+    });
+  });
+};
+
 const genBiliupOPtions = (options: BiliupConfig) => {
   return Object.entries(options).map(([key, value]) => {
     if (DEFAULT_BILIUP_CONFIG[key] === undefined) {
@@ -74,6 +97,10 @@ const genBiliupOPtions = (options: BiliupConfig) => {
     } else if (key === "source") {
       // do nothing
       return "";
+    } else if (key === "dynamic") {
+      if (value) {
+        return `--${key} "${value}"`;
+      }
     } else {
       return `--${key} ${value}`;
     }

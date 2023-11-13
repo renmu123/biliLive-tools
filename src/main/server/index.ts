@@ -1,4 +1,6 @@
 import { getAppConfig } from "../config/app";
+import { _uploadVideo, DEFAULT_BILIUP_CONFIG } from "../biliup";
+import path from "path";
 
 import express from "express";
 const app = express();
@@ -22,6 +24,16 @@ app.post("/webhook", function (req, res) {
     appConfig.webhook.autoUpload &&
     data.EventType === "FileClosed"
   ) {
+    const filePath = path.join(appConfig.webhook.recoderFolder, data.EventData.RelativePath);
+    console.log(filePath);
+    const { name } = path.parse(filePath);
+
+    const config = DEFAULT_BILIUP_CONFIG;
+    config.title = name;
+    config.desc = name;
+
+    _uploadVideo([filePath], config);
+
     // data.EventData.RelativePath;
     // data.EventData.FileSize;
     // data.EventData.Duration;
