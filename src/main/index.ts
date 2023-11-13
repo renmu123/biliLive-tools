@@ -1,5 +1,6 @@
 import log from "./utils/log";
 import { getAppConfig, saveAppConfig } from "./config/app";
+import serverApp from "./server/index";
 
 import { join } from "path";
 import fs from "fs-extra";
@@ -27,7 +28,7 @@ import {
   saveBiliupPreset,
   validateBiliupTag,
   saveBiliCookie,
-  validateBiliupConfig
+  validateBiliupConfig,
 } from "./biliup";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
@@ -75,6 +76,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);
 };
 
+const appConfig = getAppConfig();
 setFfmpegPath();
 let mainWin: BrowserWindow;
 function createWindow(): void {
@@ -186,6 +188,13 @@ function createWindow(): void {
       mainWin.isVisible() ? mainWin.hide() : mainWin.show();
     }
   });
+
+  if (appConfig.webhook.open) {
+    // 新建监听
+    serverApp.listen(18010, () => {
+      log.info("server start");
+    });
+  }
 }
 
 function createMenu(): void {
@@ -285,6 +294,9 @@ if (!gotTheLock) {
     if (process.platform !== "darwin") {
       app.quit();
     }
+    serverApp.close(() => {
+      console.log("Express app is now closed");
+    });
   });
 }
 

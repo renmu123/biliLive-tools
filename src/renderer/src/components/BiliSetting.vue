@@ -33,6 +33,19 @@
           }"
         />
       </n-form-item>
+      <n-form-item label="空间动态">
+        <n-input
+          v-model:value="options.config.dynamic"
+          placeholder="请输入空间动态"
+          clearable
+          maxlength="250"
+          show-count
+          type="textarea"
+          :autosize="{
+            minRows: 2,
+          }"
+        />
+      </n-form-item>
       <n-form-item label="稿件类型">
         <n-radio-group v-model:value="options.config.copyright" name="radiogroup">
           <n-space>

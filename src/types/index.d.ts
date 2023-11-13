@@ -11,6 +11,11 @@ export interface AppConfig {
   logLevel: LogLevel;
   ffmpegPath: string;
   ffprobePath: string;
+  webhook: {
+    open: boolean;
+    recoderFolder: string;
+    autoUpload: boolean;
+  };
 }
 
 export type LogLevel = ElectronLoGLevel;
@@ -72,6 +77,7 @@ export interface BiliupConfig {
   tag: string[]; // 标签，不能为空，不能超过12个，调用接口验证
   tid: number; // 174 投稿分区
   source?: string; // 转载来源
+  dynamic?: string; // 空间动态
 }
 
 export interface BiliupPreset {

@@ -10,6 +10,11 @@ import type { AppConfig } from "../../types";
 
 export const APP_DEFAULT_CONFIG: AppConfig = {
   logLevel: "info",
+  webhook: {
+    open: false,
+    recoderFolder: "",
+    autoUpload: false,
+  },
   ffmpegPath: path.join(
     path.dirname(app.getPath("exe")),
     "resources",

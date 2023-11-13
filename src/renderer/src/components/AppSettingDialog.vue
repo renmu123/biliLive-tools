@@ -9,29 +9,69 @@
       class="card"
     >
       <div>
-        <n-form ref="formRef" label-placement="left" :label-width="120">
-          <n-form-item label="log等级"
-            ><n-select v-model:value="config.logLevel" :options="logLevelOptions" />
-          </n-form-item>
-          <n-form-item label="ffmpeg路径">
-            <n-input
-              v-model:value="config.ffmpegPath"
-              placeholder="请输入ffmpeg可执行文件路径，设置为空使用环境变量，需要重启软件"
-            />
-            <n-button type="primary" style="margin-left: 10px" @click="selectFile('ffmpeg')">
-              选择文件
-            </n-button>
-          </n-form-item>
-          <n-form-item label="ffprobe路径">
-            <n-input
-              v-model:value="config.ffprobePath"
-              placeholder="请输入ffprobe可执行文件路径，设置为空使用环境变量，需要重启软件"
-            />
-            <n-button type="primary" style="margin-left: 10px" @click="selectFile('ffprobe')">
-              选择文件
-            </n-button>
-          </n-form-item>
-        </n-form>
+        <n-tabs type="segment">
+          <n-tab-pane name="first" tab="普通设置">
+            <n-form ref="formRef" label-placement="left" :label-width="120">
+              <n-form-item label="log等级"
+                ><n-select v-model:value="config.logLevel" :options="logLevelOptions" />
+              </n-form-item>
+
+              <n-form-item label="ffmpeg路径">
+                <n-input
+                  v-model:value="config.ffmpegPath"
+                  placeholder="请输入ffmpeg可执行文件路径，设置为空使用环境变量，需要重启软件"
+                />
+                <n-button type="primary" style="margin-left: 10px" @click="selectFile('ffmpeg')">
+                  选择文件
+                </n-button>
+              </n-form-item>
+              <n-form-item label="ffprobe路径">
+                <n-input
+                  v-model:value="config.ffprobePath"
+                  placeholder="请输入ffprobe可执行文件路径，设置为空使用环境变量，需要重启软件"
+                />
+                <n-button type="primary" style="margin-left: 10px" @click="selectFile('ffprobe')">
+                  选择文件
+                </n-button>
+              </n-form-item>
+            </n-form>
+          </n-tab-pane>
+          <n-tab-pane name="second" tab="录播姬webhook">
+            <n-form label-placement="left" :label-width="120">
+              <n-form-item>
+                <template #label>
+                  <n-popover trigger="hover">
+                    <template #trigger>
+                      <span
+                        class="flex align-center"
+                        :style="{
+                          'justify-content': 'flex-end',
+                        }"
+                      >
+                        状态
+                        <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
+                      ></span>
+                    </template>
+                    开启后需重启应用，录播姬的webhook地址设置为: http://127.0.0.1:18010/webhook
+                  </n-popover>
+                </template>
+                <n-switch v-model:value="config.webhook.open" />
+              </n-form-item>
+              <n-form-item label="录播姬工作目录">
+                <n-input
+                  v-model:value="config.webhook.recoderFolder"
+                  placeholder="请输入录播姬工作目录"
+                />
+                <n-button type="primary" style="margin-left: 10px" @click="selectFile('recorder')">
+                  选择文件
+                </n-button>
+              </n-form-item>
+              <n-form-item label="开启自动上传">
+                <n-switch v-model:value="config.webhook.autoUpload" />
+              </n-form-item>
+            </n-form>
+          </n-tab-pane>
+        </n-tabs>
       </div>
       <template #footer>
         <div class="footer">
@@ -45,6 +85,7 @@
 
 <script setup lang="ts">
 import type { AppConfig, LogLevel } from "../../../types";
+import { HelpCircleOutline } from "@vicons/ionicons5";
 
 const showModal = defineModel<boolean>({ required: true, default: false });
 
@@ -72,7 +113,7 @@ const getConfig = async () => {
   config.value = data;
 };
 
-const selectFile = async (file: "ffmpeg" | "ffprobe") => {
+const selectFile = async (file: "ffmpeg" | "ffprobe" | "recorder") => {
   const files = await window.api.openFile({
     multi: false,
   });
@@ -82,6 +123,8 @@ const selectFile = async (file: "ffmpeg" | "ffprobe") => {
     config.value.ffmpegPath = files[0];
   } else if (file === "ffprobe") {
     config.value.ffprobePath = files[0];
+  } else if (file === "recorder") {
+    config.value.webhook.recoderFolder = files[0];
   }
 };
 

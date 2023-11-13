@@ -143,8 +143,11 @@ const convert = async () => {
   if (fileList.value.length === 0) {
     return;
   }
-  const valid = await biliUpCheck(fileList.value);
-  if (!valid) return;
+
+  if (clientOptions.value.upload) {
+    const valid = await biliUpCheck();
+    if (!valid) return;
+  }
 
   const videoIndex = fileList.value.findIndex((item) => item.ext === ".flv" || item.ext === ".mp4");
   const videoFile = videoIndex === -1 ? [] : [fileList.value[videoIndex]];
@@ -487,7 +490,7 @@ const create2Mp4Task = async (file: File, index: number) => {
   });
 };
 
-const biliUpCheck = async (files: { path: string }[]) => {
+const biliUpCheck = async () => {
   const hasLogin = await window.api.checkBiliCookie();
   if (!hasLogin) {
     notice.error({
@@ -497,24 +500,13 @@ const biliUpCheck = async (files: { path: string }[]) => {
     return;
   }
 
-  if (files.length === 0) {
-    notice.error({
-      title: `至少选择一个文件`,
-      duration: 3000,
-    });
-    return;
-  }
   await window.api.validateBiliupConfig(deepRaw(presetOptions.value.config));
-  notice.info({
-    title: `开始上传`,
-    duration: 3000,
-  });
 
   return true;
 };
 // 上传任务
 const upload = async (files: { path: string }[]) => {
-  const valid = await biliUpCheck(files);
+  const valid = await biliUpCheck();
   if (!valid) return;
   console.log("files", files);
 

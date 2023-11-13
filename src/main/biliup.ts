@@ -18,6 +18,7 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   tag: ["biliLive-tools"], // tag应该为""以,分割的字符串
   tid: 138,
   source: "",
+  dynamic: "",
 };
 
 const BILIUP_PATH = join(__dirname, "../../resources/bin/biliup.exe").replace(
