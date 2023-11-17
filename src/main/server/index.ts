@@ -2,7 +2,7 @@ import { getAppConfig } from "../config/app";
 import { _uploadVideo, DEFAULT_BILIUP_CONFIG, _readBiliupPreset } from "../biliup";
 import path from "path";
 import log from "../utils/log";
-import { getFileSize } from "../utils/index";
+import { getFileSize } from "../../utils/index";
 
 import express from "express";
 const app = express();
