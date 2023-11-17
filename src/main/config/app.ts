@@ -16,7 +16,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     autoUpload: false,
     minSize: 20,
     title: "",
-    desc: "",
+    uploadPresetId: "",
   },
   ffmpegPath: path.join(
     path.dirname(app.getPath("exe")),

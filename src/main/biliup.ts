@@ -5,6 +5,7 @@ import fs from "fs-extra";
 import Biliup from "./biliup/index";
 import BiliApi from "./biliApi";
 import log from "./utils/log";
+import { UploadPreset } from "../core/upload";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { BiliupConfig, BiliupPreset } from "../types/index";
@@ -27,6 +28,8 @@ const BILIUP_PATH = join(__dirname, "../../resources/bin/biliup.exe").replace(
 );
 
 const BILIUP_COOKIE_PATH = join(app.getPath("userData"), "cookies.json");
+const UPLOAD_PRESET_PATH = join(app.getPath("userData"), "presets.json");
+const uploadPreset = new UploadPreset(UPLOAD_PRESET_PATH);
 
 // 上传视频
 export const uploadVideo = async (
@@ -147,16 +150,7 @@ export const checkBiliCookie = async () => {
 
 // 读取biliup预设
 export const readBiliupPresets = async (): Promise<BiliupPreset[]> => {
-  const presetsPath = join(app.getPath("userData"), "presets.json");
-  if (await fs.pathExists(presetsPath)) {
-    const presets: BiliupPreset[] = await fs.readJSON(presetsPath);
-    presets.map((preset) => {
-      preset.config = { ...DEFAULT_BILIUP_CONFIG, ...preset.config };
-      return preset;
-    });
-    return presets;
-  }
-  return [{ id: "default", name: "默认配置", config: DEFAULT_BILIUP_CONFIG }];
+  return uploadPreset.readBiliupPresets();
 };
 
 // 验证配置
@@ -195,49 +189,21 @@ export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: B
 
 // 保存biliup预设
 export const saveBiliupPreset = async (_event: IpcMainInvokeEvent, presets: BiliupPreset) => {
-  const allPresets = await readBiliupPresets();
-  const presetIndex = allPresets.findIndex((item) => item.id === presets.id);
-  const errorMsg = await validateBiliupConfig(_event, presets.config);
-
-  if (errorMsg) {
-    throw new Error(errorMsg);
-  }
-
-  if (presetIndex === -1) {
-    allPresets.push(presets);
-  } else {
-    allPresets[presetIndex] = presets;
-  }
-  const presetsPath = join(app.getPath("userData"), "presets.json");
-  await fs.writeJSON(presetsPath, allPresets);
-  return true;
+  return uploadPreset.saveBiliupPreset(presets);
 };
 // 删除biliup预设
 export const deleteBiliupPreset = async (_event: IpcMainInvokeEvent, id: string) => {
-  const allPresets = await readBiliupPresets();
-  const presetIndex = allPresets.findIndex((item) => item.id === id);
-  if (presetIndex === -1) {
-    throw new Error("预设不存在");
-  }
-  allPresets.splice(presetIndex, 1);
-  const presetsPath = join(app.getPath("userData"), "presets.json");
-  await fs.writeJSON(presetsPath, allPresets);
-  return true;
+  return uploadPreset.deleteBiliupPreset(id);
 };
 
 // 读取biliup预设
 export const readBiliupPreset = async (_event: IpcMainInvokeEvent, id: string) => {
-  return _readBiliupPreset(id);
+  return uploadPreset.readBiliupPreset(id);
 };
 
 // 读取biliup预设
 export const _readBiliupPreset = async (id: string) => {
-  const allPresets = await readBiliupPresets();
-  const preset = allPresets.find((item) => item.id === id);
-  if (!preset) {
-    throw new Error("预设不存在");
-  }
-  return preset;
+  return uploadPreset.readBiliupPreset(id);
 };
 
 // 标签验证

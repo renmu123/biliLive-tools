@@ -246,7 +246,11 @@ const deletePreset = async () => {
 };
 
 const savePreset = async () => {
-  _savePreset(options.value);
+  await _savePreset(options.value);
+  notice.success({
+    title: "保存成功",
+    duration: 5000,
+  });
 };
 
 const _savePreset = async (data: BiliupPreset) => {
