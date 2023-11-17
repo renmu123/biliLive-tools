@@ -9,12 +9,14 @@ import type { IpcMainInvokeEvent } from "electron";
 import type { AppConfig } from "../../types";
 
 export const APP_DEFAULT_CONFIG: AppConfig = {
-  logLevel: "info",
+  logLevel: "warn",
   webhook: {
     open: false,
     recoderFolder: "",
     autoUpload: false,
     minSize: 20,
+    title: "",
+    desc: "",
   },
   ffmpegPath: path.join(
     path.dirname(app.getPath("exe")),

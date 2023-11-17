@@ -75,7 +75,6 @@
       <n-form-item label="分区">
         <n-cascader
           v-model:value="options.config.tid"
-          placeholder="没啥用的值"
           label-field="name"
           value-field="id"
           :options="areaData"
@@ -95,7 +94,12 @@
     </n-form>
 
     <div style="text-align: right">
-      <n-button type="primary" @click="saveAnotherPreset">另存为新预设</n-button>
+      <n-button v-if="options.id !== 'default'" type="error" @click="deletePreset"
+        >删除预设</n-button
+      >
+      <n-button type="primary" style="margin-left: 10px" @click="saveAnotherPreset"
+        >另存为新预设</n-button
+      >
       <n-button type="primary" style="margin-left: 10px" @click="savePreset">保存预设</n-button>
     </div>
 
@@ -119,6 +123,9 @@
 <script setup lang="ts">
 import type { BiliupPreset } from "../../../types";
 import { deepRaw } from "@renderer/utils";
+import { useConfirm } from "@renderer/hooks";
+
+const confirm = useConfirm();
 
 // @ts-ignore
 import areaData from "@renderer/assets/area.json";
@@ -225,19 +232,25 @@ const saveAnotherPresetConfirm = async () => {
   presetId.value = preset.id;
 };
 
+const deletePreset = async () => {
+  const status = await confirm.warning({
+    content: "是否确认删除该预设？",
+  });
+  if (!status) return;
+
+  const id = options.value.id;
+  await window.api.deleteBiliupPreset(id);
+  await getPresets();
+  presetId.value = "default";
+  handlePresetChange("default");
+};
+
 const savePreset = async () => {
   _savePreset(options.value);
 };
 
 const _savePreset = async (data: BiliupPreset) => {
-  const errorMsg = await window.api.saveBiliupPreset(deepRaw(data));
-  if (errorMsg) {
-    notice.error({
-      title: errorMsg,
-      duration: 5000,
-    });
-    return;
-  }
+  await window.api.saveBiliupPreset(deepRaw(data));
 };
 
 watch(

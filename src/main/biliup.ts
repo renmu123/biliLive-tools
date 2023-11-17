@@ -200,7 +200,7 @@ export const saveBiliupPreset = async (_event: IpcMainInvokeEvent, presets: Bili
   const errorMsg = await validateBiliupConfig(_event, presets.config);
 
   if (errorMsg) {
-    return errorMsg;
+    throw new Error(errorMsg);
   }
 
   if (presetIndex === -1) {
@@ -210,7 +210,34 @@ export const saveBiliupPreset = async (_event: IpcMainInvokeEvent, presets: Bili
   }
   const presetsPath = join(app.getPath("userData"), "presets.json");
   await fs.writeJSON(presetsPath, allPresets);
-  return false;
+  return true;
+};
+// 删除biliup预设
+export const deleteBiliupPreset = async (_event: IpcMainInvokeEvent, id: string) => {
+  const allPresets = await readBiliupPresets();
+  const presetIndex = allPresets.findIndex((item) => item.id === id);
+  if (presetIndex === -1) {
+    throw new Error("预设不存在");
+  }
+  allPresets.splice(presetIndex, 1);
+  const presetsPath = join(app.getPath("userData"), "presets.json");
+  await fs.writeJSON(presetsPath, allPresets);
+  return true;
+};
+
+// 读取biliup预设
+export const readBiliupPreset = async (_event: IpcMainInvokeEvent, id: string) => {
+  return _readBiliupPreset(id);
+};
+
+// 读取biliup预设
+export const _readBiliupPreset = async (id: string) => {
+  const allPresets = await readBiliupPresets();
+  const preset = allPresets.find((item) => item.id === id);
+  if (!preset) {
+    throw new Error("预设不存在");
+  }
+  return preset;
 };
 
 // 标签验证

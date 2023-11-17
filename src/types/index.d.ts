@@ -16,6 +16,8 @@ export interface AppConfig {
     recoderFolder: string;
     autoUpload: boolean;
     minSize: number;
+    title: string;
+    uploadPresetId: "";
   };
 }
 

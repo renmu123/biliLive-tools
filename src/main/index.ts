@@ -26,6 +26,7 @@ import {
   checkBiliCookie,
   readBiliupPresets,
   saveBiliupPreset,
+  deleteBiliupPreset,
   validateBiliupTag,
   saveBiliCookie,
   validateBiliupConfig,
@@ -67,6 +68,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("checkBiliCookie", checkBiliCookie);
   ipcMain.handle("readBiliupPresets", readBiliupPresets);
   ipcMain.handle("saveBiliupPreset", saveBiliupPreset);
+  ipcMain.handle("deleteBiliupPreset", deleteBiliupPreset);
   ipcMain.handle("validateBiliupTag", validateBiliupTag);
   ipcMain.handle("validateBiliupConfig", validateBiliupConfig);
 
@@ -277,7 +279,7 @@ if (!gotTheLock) {
     log.error(error);
   });
 
-  app.on("second-instance", (_event, _commandLine, _workingDirectory) => {
+  app.on("second-instance", () => {
     // 有人试图运行第二个实例，我们应该关注我们的窗口
     if (mainWin) {
       if (mainWin.isMinimized()) mainWin.restore();

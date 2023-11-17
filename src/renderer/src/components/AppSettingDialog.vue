@@ -48,7 +48,7 @@
                           'justify-content': 'flex-end',
                         }"
                       >
-                        启用
+                        开启server
                         <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
                       ></span>
                     </template>
@@ -56,6 +56,9 @@
                   </n-popover>
                 </template>
                 <n-switch v-model:value="config.webhook.open" />
+              </n-form-item>
+              <n-form-item label="开启自动上传">
+                <n-switch v-model:value="config.webhook.autoUpload" />
               </n-form-item>
               <n-form-item label="录播姬工作目录">
                 <n-input
@@ -70,12 +73,39 @@
                   选择文件夹
                 </n-button>
               </n-form-item>
-              <n-form-item label="开启自动上传">
-                <n-switch v-model:value="config.webhook.autoUpload" />
-              </n-form-item>
               <n-form-item label="最小上传大小">
                 <n-input-number v-model:value="config.webhook.minSize" placeholder="单位MB" />
                 M
+              </n-form-item>
+              <n-form-item>
+                <template #label>
+                  <n-popover trigger="hover">
+                    <template #trigger>
+                      <span
+                        class="flex align-center"
+                        :style="{
+                          'justify-content': 'flex-end',
+                        }"
+                      >
+                        上传视频标题
+                        <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
+                      ></span>
+                    </template>
+                    {{ titleTip }}
+                  </n-popover>
+                </template>
+                <n-input
+                  v-model:value="config.webhook.title"
+                  placeholder="请输入视频标题,支持{{title}},{{user}},{{now}}占位符"
+                  clearable
+                />
+              </n-form-item>
+              <n-form-item label="上传预设">
+                <n-select
+                  v-model:value="config.webhook.uploadPresetId"
+                  :options="presetsOptions"
+                  placeholder="请选择"
+                />
               </n-form-item>
             </n-form>
           </n-tab-pane>
@@ -92,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import type { AppConfig, LogLevel } from "../../../types";
+import type { AppConfig, LogLevel, BiliupPreset } from "../../../types";
 import { HelpCircleOutline } from "@vicons/ionicons5";
 
 const showModal = defineModel<boolean>({ required: true, default: false });
@@ -149,6 +179,22 @@ const selectFolder = async (type: "recorder") => {
 onMounted(async () => {
   await getConfig();
 });
+
+const titleTip = ref("支持{{ title }},{{ user }},{{ now }}占位符，会覆盖预设中的标题");
+
+const presets = ref<BiliupPreset[]>([]);
+const getPresets = async () => {
+  presets.value = await window.api.readBiliupPresets();
+};
+const presetsOptions = computed(() => {
+  return presets.value.map((item) => {
+    return {
+      label: item.name,
+      value: item.id,
+    };
+  });
+});
+getPresets();
 </script>
 
 <style scoped lang="less">

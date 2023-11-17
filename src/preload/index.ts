@@ -131,6 +131,9 @@ export const api = {
   saveBiliupPreset: async (presets: BiliupPreset) => {
     return await ipcRenderer.invoke("saveBiliupPreset", presets);
   },
+  deleteBiliupPreset: async (id: string) => {
+    return await ipcRenderer.invoke("deleteBiliupPreset", id);
+  },
   validateBiliupTag: async (tag: string) => {
     return await ipcRenderer.invoke("validateBiliupTag", tag);
   },
