@@ -76,7 +76,7 @@ app.post("/blrec", async function (req, res) {
     data.type === "VideoFileCompletedEvent"
   ) {
     console.log(data.date, formatTime(data.date));
-    const fileSize = getFileSize(data.data.path);
+    const fileSize = await getFileSize(data.data.path);
 
     if (fileSize / 1024 / 1024 < appConfig.webhook.minSize) {
       log.info("blrec: file size too small");

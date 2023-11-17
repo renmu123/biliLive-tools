@@ -198,7 +198,7 @@ export const api = {
   exits: (path: string) => {
     return ipcRenderer.invoke("exits", path);
   },
-  join(paths: string[]) {
+  join(...paths: string[]) {
     return path.join(...paths);
   },
   getAvailableEncoders: async () => {
