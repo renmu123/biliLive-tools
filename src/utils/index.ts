@@ -83,3 +83,9 @@ export const uuid = () => {
 export const pathExists = async (path: string) => {
   return await fs.pathExists(path);
 };
+
+export async function getFileSize(filePath: string) {
+  const stats = await fs.promises.stat(filePath);
+  const fileSizeInBytes = stats.size;
+  return fileSizeInBytes;
+}

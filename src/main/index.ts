@@ -241,6 +241,12 @@ function createMenu(): void {
       label: "开发者工具",
       role: "viewMenu",
     },
+    {
+      label: "打开log文件夹",
+      click: () => {
+        shell.openPath(app.getPath("logs"));
+      },
+    },
   ]);
   Menu.setApplicationMenu(menu);
 }

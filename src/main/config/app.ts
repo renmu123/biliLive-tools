@@ -1,5 +1,6 @@
 import path from "path";
 import { app } from "electron";
+import { defaultsDeep } from "lodash";
 
 import Config from "../utils/config";
 import log from "../utils/log";
@@ -17,6 +18,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     minSize: 20,
     title: "",
     uploadPresetId: "",
+    blacklist: "",
   },
   ffmpegPath: path.join(
     path.dirname(app.getPath("exe")),
@@ -50,7 +52,7 @@ export const saveAppConfig = (_event: IpcMainInvokeEvent, newConfig: AppConfig) 
   config.setAll(newConfig);
   setFfmpegPath();
 };
-export const getAppConfig = () => {
+export const getAppConfig = (): AppConfig => {
   const config = getConfig();
-  return { ...APP_DEFAULT_CONFIG, ...config.data };
+  return defaultsDeep(config.data, APP_DEFAULT_CONFIG);
 };

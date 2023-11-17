@@ -1,5 +1,5 @@
 <template>
-  <n-modal v-model:show="showModal" :mask-closable="false" auto-focus>
+  <n-modal v-model:show="showModal" :mask-closable="false" auto-focus :on-after-enter="handleOpen">
     <n-card
       style="width: calc(100% - 60px)"
       :bordered="false"
@@ -59,6 +59,29 @@
               </n-form-item>
               <n-form-item label="开启自动上传">
                 <n-switch v-model:value="config.webhook.autoUpload" />
+              </n-form-item>
+              <n-form-item>
+                <template #label>
+                  <n-popover trigger="hover">
+                    <template #trigger>
+                      <span
+                        class="flex align-center"
+                        :style="{
+                          'justify-content': 'flex-end',
+                        }"
+                      >
+                        黑名单
+                        <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
+                      ></span>
+                    </template>
+                    自动上传黑名单，设置后相关房间号的录播不会上传，值为房间号，用英文逗号分隔，如:
+                    123456,1234567
+                  </n-popover>
+                </template>
+                <n-input
+                  v-model:value="config.webhook.blacklist"
+                  placeholder="设置需要屏蔽的房间号，用英文逗号分隔"
+                />
               </n-form-item>
               <n-form-item label="录播姬工作目录">
                 <n-input
@@ -176,11 +199,14 @@ const selectFolder = async (type: "recorder") => {
   }
 };
 
-onMounted(async () => {
+const handleOpen = async () => {
+  await getPresets();
   await getConfig();
-});
+};
 
-const titleTip = ref("支持{{ title }},{{ user }},{{ now }}占位符，会覆盖预设中的标题");
+const titleTip = ref(
+  "支持{{title}},{{user}},{{now}}占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}",
+);
 
 const presets = ref<BiliupPreset[]>([]);
 const getPresets = async () => {
@@ -194,7 +220,6 @@ const presetsOptions = computed(() => {
     };
   });
 });
-getPresets();
 </script>
 
 <style scoped lang="less">

@@ -17,7 +17,8 @@ export interface AppConfig {
     autoUpload: boolean;
     minSize: number;
     title: string;
-    uploadPresetId: "";
+    uploadPresetId: string;
+    blacklist: string;
   };
 }
 
