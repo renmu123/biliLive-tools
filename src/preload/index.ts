@@ -1,6 +1,8 @@
 import path from "path";
 
 import { contextBridge, ipcRenderer } from "electron";
+import { electronAPI } from "@electron-toolkit/preload";
+
 import type { IpcRendererEvent } from "electron";
 import type {
   Progress,
@@ -12,9 +14,8 @@ import type {
   AppConfig,
   BiliupPreset,
   BiliupConfig,
+  BiliupConfigAppend,
 } from "../types";
-
-import { electronAPI } from "@electron-toolkit/preload";
 
 // Custom APIs for renderer
 export const api = {
@@ -105,6 +106,9 @@ export const api = {
   uploadVideo: async (videoFiles: string[], options: BiliupConfig) => {
     return await ipcRenderer.invoke("uploadVideo", videoFiles, options);
   },
+  appendVideo: async (videoFiles: string[], options: BiliupConfigAppend) => {
+    return await ipcRenderer.invoke("appendVideo", videoFiles, options);
+  },
   // 调用biliup的登录窗口
   biliLogin: async () => {
     return await ipcRenderer.invoke("biliLogin");
@@ -142,6 +146,9 @@ export const api = {
   },
   onBiliUploadClose: (callback: (_event: IpcRendererEvent, code: number) => void) => {
     ipcRenderer.once("upload-close", callback);
+  },
+  onBiliAppendClose: (callback: (_event: IpcRendererEvent, code: number) => void) => {
+    ipcRenderer.once("append-close", callback);
   },
 
   // danmufactory

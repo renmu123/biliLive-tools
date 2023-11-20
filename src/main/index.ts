@@ -1,7 +1,10 @@
+import Client from "biliAPI";
+
 import log from "./utils/log";
 import { trashItem as _trashItem } from "./utils/index";
 import { getAppConfig, saveAppConfig } from "./config/app";
 import serverApp from "./server/index";
+import { BILIUP_COOKIE_PATH } from "./appConstant";
 
 import { join } from "path";
 import fs from "fs-extra";
@@ -22,6 +25,7 @@ import {
 } from "./video";
 import {
   uploadVideo,
+  appendVideo,
   biliLogin,
   readQrCode,
   checkBiliCookie,
@@ -63,6 +67,7 @@ const genHandler = (ipcMain: IpcMain) => {
 
   // 上传视频部分
   ipcMain.handle("uploadVideo", uploadVideo);
+  ipcMain.handle("appendVideo", appendVideo);
   ipcMain.handle("biliLogin", biliLogin);
   ipcMain.handle("saveBiliCookie", saveBiliCookie);
   ipcMain.handle("readQrCode", readQrCode);
@@ -77,6 +82,11 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
   ipcMain.handle("getDanmuConfig", getDanmuConfig);
   ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);
+
+  // bilibili相关
+  const client = new Client();
+  client.loadCookieFile(BILIUP_COOKIE_PATH);
+  // ipcMain.handle("biliApi", client);
 };
 
 const appConfig = getAppConfig();

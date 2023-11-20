@@ -5,6 +5,7 @@ import fs from "fs-extra";
 import Biliup from "./biliup/index";
 import BiliApi from "./biliApi";
 import log from "./utils/log";
+import { BILIUP_PATH, BILIUP_COOKIE_PATH, UPLOAD_PRESET_PATH } from "./appConstant";
 import { UploadPreset } from "../core/upload";
 
 import type { IpcMainInvokeEvent } from "electron";
@@ -22,13 +23,6 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   dynamic: "",
 };
 
-const BILIUP_PATH = join(__dirname, "../../resources/bin/biliup.exe").replace(
-  "app.asar",
-  "app.asar.unpacked",
-);
-
-const BILIUP_COOKIE_PATH = join(app.getPath("userData"), "cookies.json");
-const UPLOAD_PRESET_PATH = join(app.getPath("userData"), "presets.json");
 const uploadPreset = new UploadPreset(UPLOAD_PRESET_PATH);
 
 // 上传视频
@@ -37,19 +31,7 @@ export const uploadVideo = async (
   pathArray: string[],
   options: BiliupConfig,
 ) => {
-  const hasLogin = await checkBiliCookie();
-  if (!hasLogin) {
-    throw new Error("你还没有登录");
-  }
-  log.info("BILIUP_COOKIE_PATH", BILIUP_COOKIE_PATH);
-  log.info("BILIUP_PATH", BILIUP_PATH);
-
-  const BILIUP_COOKIE = BILIUP_COOKIE_PATH;
-  const biliup = new Biliup();
-  biliup.setBiliUpPath(BILIUP_PATH);
-  biliup.setCookiePath(BILIUP_COOKIE);
-  const args = genBiliupOPtions(options);
-  biliup.uploadVideo(pathArray, args);
+  const biliup = await _uploadVideo(pathArray, options);
 
   biliup.on("close", (code) => {
     _event.sender.send("upload-close", code);
@@ -71,11 +53,30 @@ export const _uploadVideo = async (pathArray: string[], options: BiliupConfig) =
   biliup.setCookiePath(BILIUP_COOKIE);
   const args = genBiliupOPtions(options);
   biliup.uploadVideo(pathArray, args);
+  return biliup;
+};
 
-  return new Promise((resolve) => {
-    biliup.on("close", (code) => {
-      resolve(code);
-    });
+// 追加视频
+export const appendVideo = async (
+  _event: IpcMainInvokeEvent,
+  pathArray: string[],
+  options: BiliupConfig,
+) => {
+  const hasLogin = await checkBiliCookie();
+  if (!hasLogin) {
+    throw new Error("你还没有登录");
+  }
+  log.info("BILIUP_COOKIE_PATH", BILIUP_COOKIE_PATH);
+  log.info("BILIUP_PATH", BILIUP_PATH);
+
+  const BILIUP_COOKIE = BILIUP_COOKIE_PATH;
+  const biliup = new Biliup();
+  biliup.setBiliUpPath(BILIUP_PATH);
+  biliup.setCookiePath(BILIUP_COOKIE);
+  const args = genBiliupOPtions(options);
+  biliup.appendVideo(pathArray, args);
+  biliup.on("close", (code) => {
+    _event.sender.send("append-close", code);
   });
 };
 

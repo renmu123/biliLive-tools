@@ -89,6 +89,10 @@ const upload = async () => {
     disabled.value = false;
   }
 };
+
+// window.bili.getArchives().then((res) => {
+//   console.log(res);
+// });
 </script>
 
 <style scoped lang="less"></style>

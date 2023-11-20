@@ -92,6 +92,10 @@ export interface BiliupConfig {
   dynamic?: string; // 空间动态
 }
 
+export type BiliupConfigAppend = Partial<BiliupConfig> & {
+  tid: string;
+};
+
 export interface BiliupPreset {
   id: string;
   name: string;
