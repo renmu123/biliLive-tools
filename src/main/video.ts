@@ -1,9 +1,8 @@
-import { shell } from "electron";
 import { join } from "path";
 
 import { getAppConfig } from "./config/app";
 import ffmpeg from "fluent-ffmpeg";
-import { escaped, genFfmpegParams, pathExists } from "./utils/index";
+import { escaped, genFfmpegParams, pathExists, trashItem } from "./utils/index";
 import log from "./utils/log";
 import { TaskQueue, Task, pauseTask, resumeTask, killTask } from "./task";
 
@@ -98,7 +97,7 @@ export const convertVideo2Mp4 = async (
       onEnd: async () => {
         if (options.removeOrigin && (await pathExists(input))) {
           log.info("convertVideo2Mp4, remove origin file", input);
-          await shell.trashItem(input);
+          await trashItem(input);
         }
       },
     },
@@ -170,11 +169,11 @@ export const mergeAssMp4 = async (
         if (options.removeOrigin) {
           if (await pathExists(videoInput)) {
             log.info("mergrAssMp4, remove video origin file", videoInput);
-            await shell.trashItem(videoInput);
+            await trashItem(videoInput);
           }
           if (await pathExists(assFile.path)) {
             log.info("mergrAssMp4, remove ass origin file", assFile);
-            await shell.trashItem(assFile.path);
+            await trashItem(assFile.path);
           }
         }
       },

@@ -12,6 +12,26 @@
         <n-tabs type="segment">
           <n-tab-pane name="first" tab="普通设置">
             <n-form ref="formRef" label-placement="left" :label-width="120">
+              <n-form-item>
+                <template #label>
+                  <n-popover trigger="hover">
+                    <template #trigger>
+                      <span
+                        class="flex align-center"
+                        :style="{
+                          'justify-content': 'flex-end',
+                        }"
+                      >
+                        删除至回收站
+                        <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
+                      ></span>
+                    </template>
+                    关闭后若使用“删除源文件”等选项，文件将被直接删除，不会进入回收站
+                  </n-popover>
+                </template>
+                <n-switch v-model:value="config.trash" />
+              </n-form-item>
+
               <n-form-item label="log等级"
                 ><n-select v-model:value="config.logLevel" :options="logLevelOptions" />
               </n-form-item>
@@ -52,14 +72,15 @@
                         <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
                       ></span>
                     </template>
-                    开启后需重启应用，录播姬的webhook地址设置为: http://127.0.0.1:18010/webhook
+                    开启后支持自动上传，需重启应用，录播姬的webhook地址设置为:
+                    http://127.0.0.1:18010/webhook
                   </n-popover>
                 </template>
                 <n-switch v-model:value="config.webhook.open" />
               </n-form-item>
-              <n-form-item label="开启自动上传">
+              <!-- <n-form-item label="开启自动上传">
                 <n-switch v-model:value="config.webhook.autoUpload" />
-              </n-form-item>
+              </n-form-item> -->
               <n-form-item>
                 <template #label>
                   <n-popover trigger="hover">
@@ -74,8 +95,7 @@
                         <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
                       ></span>
                     </template>
-                    自动上传黑名单，设置后相关房间号的录播不会上传，值为房间号，用英文逗号分隔，如:
-                    123456,1234567
+                    设置后相关房间号的录播不会上传，用英文逗号分隔，如: 123456,1234567
                   </n-popover>
                 </template>
                 <n-input
@@ -96,7 +116,23 @@
                   选择文件夹
                 </n-button>
               </n-form-item>
-              <n-form-item label="最小上传大小">
+              <n-form-item>
+                <template #label>
+                  <n-popover trigger="hover">
+                    <template #trigger>
+                      <span
+                        class="flex align-center"
+                        :style="{
+                          'justify-content': 'flex-end',
+                        }"
+                      >
+                        最小上传大小
+                        <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
+                      ></span>
+                    </template>
+                    小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播
+                  </n-popover>
+                </template>
                 <n-input-number v-model:value="config.webhook.minSize" placeholder="单位MB" />
                 M
               </n-form-item>
@@ -110,7 +146,7 @@
                           'justify-content': 'flex-end',
                         }"
                       >
-                        上传视频标题
+                        默认视频标题
                         <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
                       ></span>
                     </template>
@@ -123,12 +159,40 @@
                   clearable
                 />
               </n-form-item>
-              <n-form-item label="上传预设">
+              <n-form-item label="默认上传预设">
                 <n-select
                   v-model:value="config.webhook.uploadPresetId"
                   :options="presetsOptions"
                   placeholder="请选择"
                 />
+              </n-form-item>
+              <n-form-item>
+                <template #label>
+                  <n-popover trigger="hover">
+                    <template #trigger>
+                      <span
+                        class="flex align-center"
+                        :style="{
+                          'justify-content': 'flex-end',
+                        }"
+                      >
+                        独立配置
+                        <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
+                      ></span>
+                    </template>
+                    单独设置房间号的上传配置，会覆盖全局配置
+                  </n-popover>
+                </template>
+                <div class="room-list">
+                  <span
+                    v-for="roomId in roomList"
+                    :key="roomId"
+                    class="room"
+                    @click="handleRoomDetail(roomId)"
+                    >{{ roomId }}</span
+                  >
+                </div>
+                <n-button type="primary" @click="setRoomVisible = true"> 添加 </n-button>
               </n-form-item>
             </n-form>
           </n-tab-pane>
@@ -138,6 +202,82 @@
         <div class="footer">
           <n-button class="btn" @click="close">取消</n-button>
           <n-button type="primary" class="btn" @click="saveConfig"> 确认 </n-button>
+        </div>
+      </template>
+    </n-card>
+  </n-modal>
+
+  <n-modal v-model:show="setRoomVisible" :mask-closable="false" :on-after-enter="handleAddRoomOpen">
+    <n-card :bordered="false" size="small" role="dialog" aria-modal="true" style="width: 400px">
+      <n-input v-model:value="tempRoomId" placeholder="请输入房间号" />
+      <template #footer>
+        <div class="footer">
+          <n-button class="btn" @click="setRoomVisible = false">取消</n-button>
+          <n-button type="primary" class="btn" @click="saveRoom"> 确认 </n-button>
+        </div>
+      </template>
+    </n-card>
+  </n-modal>
+
+  <n-modal v-model:show="roomDetailVisible" :mask-closable="false" :on-after-enter="handleRoomOpen">
+    <n-card :bordered="false" size="small" role="dialog" aria-modal="true" style="width: 800px">
+      <n-form ref="formRef2" label-placement="left" :label-width="120">
+        <n-form-item>
+          <template #label>
+            <n-popover trigger="hover">
+              <template #trigger>
+                <span
+                  class="flex align-center"
+                  :style="{
+                    'justify-content': 'flex-end',
+                  }"
+                >
+                  最小上传大小
+                  <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
+                ></span>
+              </template>
+              小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播
+            </n-popover>
+          </template>
+          <n-input-number v-model:value="tempRoomDetail.minSize" placeholder="单位MB" />
+          M
+        </n-form-item>
+        <n-form-item>
+          <template #label>
+            <n-popover trigger="hover">
+              <template #trigger>
+                <span
+                  class="flex align-center"
+                  :style="{
+                    'justify-content': 'flex-end',
+                  }"
+                >
+                  默认视频标题
+                  <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
+                ></span>
+              </template>
+              {{ titleTip }}
+            </n-popover>
+          </template>
+          <n-input
+            v-model:value="tempRoomDetail.title"
+            placeholder="请输入视频标题,支持{{title}},{{user}},{{now}}占位符"
+            clearable
+          />
+        </n-form-item>
+        <n-form-item label="默认上传预设">
+          <n-select
+            v-model:value="tempRoomDetail.uploadPresetId"
+            :options="presetsOptions"
+            placeholder="请选择"
+          />
+        </n-form-item>
+      </n-form>
+      <template #footer>
+        <div class="footer">
+          <n-button class="btn" @click="roomDetailVisible = false">取消</n-button>
+          <n-button type="error" class="btn" @click="deleteRoom"> 删除 </n-button>
+          <n-button type="primary" class="btn" @click="saveRoomDetail"> 确认 </n-button>
         </div>
       </template>
     </n-card>
@@ -220,6 +360,61 @@ const presetsOptions = computed(() => {
     };
   });
 });
+
+// 房间号设置
+const setRoomVisible = ref(false);
+const tempRoomId = ref("");
+const handleAddRoomOpen = () => {
+  tempRoomId.value = "";
+};
+const saveRoom = () => {
+  if (!tempRoomId.value) return;
+  console.log(config.value.webhook.rooms);
+  config.value.webhook.rooms[tempRoomId.value] = {
+    minSize: config.value.webhook.minSize,
+    title: config.value.webhook.title,
+    uploadPresetId: config.value.webhook.uploadPresetId,
+  };
+  setRoomVisible.value = false;
+};
+const roomList = computed(() => {
+  return Object.keys(config.value.webhook.rooms);
+});
+
+// 房间具体设置
+const roomDetailVisible = ref(false);
+const handleRoomDetail = (roomId: string) => {
+  tempRoomId.value = roomId;
+  roomDetailVisible.value = true;
+};
+
+const tempRoomDetail = ref({
+  minSize: 0,
+  title: "",
+  uploadPresetId: "",
+});
+const handleRoomOpen = () => {
+  const room = config.value.webhook.rooms[tempRoomId.value];
+  tempRoomDetail.value = {
+    minSize: room.minSize,
+    title: room.title,
+    uploadPresetId: room.uploadPresetId,
+  };
+};
+const saveRoomDetail = () => {
+  if (!tempRoomId.value) return;
+  config.value.webhook.rooms[tempRoomId.value] = {
+    minSize: tempRoomDetail.value.minSize,
+    title: tempRoomDetail.value.title,
+    uploadPresetId: tempRoomDetail.value.uploadPresetId,
+  };
+  roomDetailVisible.value = false;
+};
+const deleteRoom = () => {
+  if (!tempRoomId.value) return;
+  delete config.value.webhook.rooms[tempRoomId.value];
+  roomDetailVisible.value = false;
+};
 </script>
 
 <style scoped lang="less">
@@ -227,6 +422,18 @@ const presetsOptions = computed(() => {
   text-align: right;
   .btn + .btn {
     margin-left: 10px;
+  }
+}
+
+.room-list {
+  .room {
+    padding: 8px 20px;
+    cursor: pointer;
+    border: 1px solid #eee;
+    border-radius: 4px;
+  }
+  .room {
+    margin-right: 15px;
   }
 }
 </style>

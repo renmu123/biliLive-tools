@@ -27,16 +27,20 @@ app.post("/webhook", async function (req, res) {
     appConfig.webhook.autoUpload &&
     data.EventType === "FileClosed"
   ) {
+    const roomId = data.EventData.RoomId;
+    const roomSetting = appConfig.webhook.rooms[roomId];
+
     console.log(data.EventData.FileOpenTime, formatTime(data.EventData.FileOpenTime));
 
-    if (data.EventData.FileSize / 1024 / 1024 < appConfig.webhook.minSize) {
+    const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
+    if (data.EventData.FileSize / 1024 / 1024 < minSize) {
       log.info("录播姬：file size too small");
       res.send("录播姬：file size too small");
       return;
     }
-    if (appConfig.webhook.blacklist.includes(data.EventData.RoomId)) {
-      log.info(`录播姬：${data.EventData.RoomId} is in blacklist`);
-      res.send(`录播姬：${data.EventData.RoomId} is in blacklist`);
+    if (appConfig.webhook.blacklist.includes(roomId)) {
+      log.info(`录播姬：${roomId} is in blacklist`);
+      res.send(`录播姬：${roomId} is in blacklist`);
       return;
     }
 
@@ -44,12 +48,15 @@ app.post("/webhook", async function (req, res) {
 
     let config = DEFAULT_BILIUP_CONFIG;
 
-    if (appConfig.webhook.uploadPresetId) {
-      const preset = await _readBiliupPreset(appConfig.webhook.uploadPresetId);
+    const uploadPresetId =
+      roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
+    if (uploadPresetId) {
+      const preset = await _readBiliupPreset(uploadPresetId);
       config = { ...config, ...preset.config };
     }
 
-    config.title = appConfig.webhook.title
+    const title = roomSetting?.title || appConfig.webhook.title || "";
+    config.title = title
       .replaceAll("{{title}}", data.EventData.Title)
       .replaceAll("{{user}}", data.EventData.Name)
       .replaceAll("{{now}}", formatTime(data.EventData.FileOpenTime))
@@ -75,31 +82,35 @@ app.post("/blrec", async function (req, res) {
     appConfig.webhook.autoUpload &&
     data.type === "VideoFileCompletedEvent"
   ) {
+    const roomId = data.EventData.room_id;
+    const roomSetting = appConfig.webhook.rooms[roomId];
+
     console.log(data.date, formatTime(data.date));
     const fileSize = await getFileSize(data.data.path);
 
-    if (fileSize / 1024 / 1024 < appConfig.webhook.minSize) {
+    const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
+    if (fileSize / 1024 / 1024 < minSize) {
       log.info("blrec: file size too small");
       res.send("file size too small");
       return;
     }
-    if (appConfig.webhook.blacklist.includes(data.data.room_id)) {
-      log.info(`blrec: ${data.data.room_id} is in blacklist`);
-      res.send(`${data.data.room_id} is in blacklist`);
+    if (appConfig.webhook.blacklist.includes(roomId)) {
+      log.info(`blrec: ${roomId} is in blacklist`);
+      res.send(`${roomId} is in blacklist`);
       return;
     }
 
-    const filePath = data.data.path;
-
     let config = DEFAULT_BILIUP_CONFIG;
-
+    const uploadPresetId =
+      roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
     if (appConfig.webhook.uploadPresetId) {
-      const preset = await _readBiliupPreset(appConfig.webhook.uploadPresetId);
+      const preset = await _readBiliupPreset(uploadPresetId);
       config = { ...config, ...preset.config };
     }
 
-    // TODO:这里需要修改
-    config.title = appConfig.webhook.title
+    const filePath = data.data.path;
+    const title = roomSetting?.title || appConfig.webhook.title || "";
+    config.title = title
       .replaceAll("{{title}}", data.data.Title)
       .replaceAll("{{user}}", data.data.Name)
       .replaceAll("{{now}}", formatTime(data.data.FileOpenTime))

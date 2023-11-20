@@ -1,9 +1,9 @@
 import { join } from "path";
 
-import { shell, type IpcMainInvokeEvent } from "electron";
+import { type IpcMainInvokeEvent } from "electron";
 
 import Config from "./utils/config";
-import { pathExists } from "./utils/index";
+import { pathExists, trashItem } from "./utils/index";
 import log from "./utils/log";
 import { Danmu } from "../core/index";
 
@@ -102,7 +102,7 @@ export const convertDanmu2Ass = async (
             output: output,
           }),
         );
-        await shell.trashItem(output);
+        await trashItem(output);
       } else {
         log.info(
           "danmufactory",
@@ -168,7 +168,7 @@ export const convertDanmu2Ass = async (
       }
 
       if (options.removeOrigin && (await pathExists(input))) {
-        await shell.trashItem(input);
+        await trashItem(input);
       }
     } catch (err) {
       log.error("danmufactory exec error:", err);

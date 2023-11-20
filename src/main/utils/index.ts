@@ -1,5 +1,7 @@
 import { exec } from "child_process";
 import fs from "fs-extra";
+import { shell } from "electron";
+import { getAppConfig } from "../config/app";
 
 import type { FfmpegOptions } from "../../types";
 
@@ -82,4 +84,13 @@ export const uuid = () => {
 };
 export const pathExists = async (path: string) => {
   return await fs.pathExists(path);
+};
+
+export const trashItem = async (path: string) => {
+  const config = getAppConfig();
+  if (config.trash) {
+    return await shell.trashItem(path);
+  } else {
+    fs.unlink(path);
+  }
 };

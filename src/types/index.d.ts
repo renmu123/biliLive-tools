@@ -11,6 +11,7 @@ export interface AppConfig {
   logLevel: LogLevel;
   ffmpegPath: string;
   ffprobePath: string;
+  trash: boolean;
   webhook: {
     open: boolean;
     recoderFolder: string;
@@ -19,6 +20,13 @@ export interface AppConfig {
     title: string;
     uploadPresetId: string;
     blacklist: string;
+    rooms: {
+      [roomId: string]: {
+        minSize: number;
+        title: string;
+        uploadPresetId: string;
+      };
+    };
   };
 }
 

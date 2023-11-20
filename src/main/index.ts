@@ -1,4 +1,5 @@
 import log from "./utils/log";
+import { trashItem as _trashItem } from "./utils/index";
 import { getAppConfig, saveAppConfig } from "./config/app";
 import serverApp from "./server/index";
 
@@ -352,5 +353,5 @@ const exits = (_event: IpcMainInvokeEvent, path: string) => {
 };
 
 const trashItem = async (_event: IpcMainInvokeEvent, path: string) => {
-  return await shell.trashItem(path);
+  return await _trashItem(path);
 };
