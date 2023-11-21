@@ -6,6 +6,6 @@ declare global {
   interface Window {
     electron: ElectronAPI;
     api: typeof api;
-    bili: InstanceType<typeof BiliClient>;
+    biliApi: InstanceType<typeof BiliClient>;
   }
 }

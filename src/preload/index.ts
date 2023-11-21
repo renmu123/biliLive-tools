@@ -219,6 +219,12 @@ export const api = {
   },
 };
 
+export const biliApi = {
+  getArchives(params: Parameters<(typeof biliApi)["getArchives"]>[0]) {
+    return ipcRenderer.invoke("biliApi:getArchives", params);
+  },
+};
+
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
 // just add to the DOM global.
@@ -226,6 +232,7 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld("electron", electronAPI);
     contextBridge.exposeInMainWorld("api", api);
+    contextBridge.exposeInMainWorld("biliApi", biliApi);
   } catch (error) {
     console.error(error);
   }

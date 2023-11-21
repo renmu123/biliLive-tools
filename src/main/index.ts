@@ -1,10 +1,9 @@
-import Client from "biliAPI";
+import biliApi from "./bili";
 
 import log from "./utils/log";
 import { trashItem as _trashItem } from "./utils/index";
 import { getAppConfig, saveAppConfig } from "./config/app";
 import serverApp from "./server/index";
-import { BILIUP_COOKIE_PATH } from "./appConstant";
 
 import { join } from "path";
 import fs from "fs-extra";
@@ -84,9 +83,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);
 
   // bilibili相关
-  const client = new Client();
-  client.loadCookieFile(BILIUP_COOKIE_PATH);
-  // ipcMain.handle("biliApi", client);
+  ipcMain.handle("biliApi:getArchives", biliApi.getArchives);
 };
 
 const appConfig = getAppConfig();

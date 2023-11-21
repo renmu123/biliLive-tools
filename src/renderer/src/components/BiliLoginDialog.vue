@@ -61,7 +61,7 @@ watch(
         notice.success({
           title: "保存B站登录信息成功",
         });
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.log(e);
 
         notice.error({
