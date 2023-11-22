@@ -199,6 +199,57 @@ export const mergeVideos = async (
   },
 ) => {
   console.log(videoFiles, options);
+  // 相同文件覆盖提示
+  // const { name, path, dir } = videoFile;
+  // let output = join(dir, `${name}-弹幕版.mp4`);
+  // const videoInput = path;
+
+  // if (options.saveRadio === 2 && options.savePath) {
+  //   output = join(options.savePath, `${name}-弹幕版.mp4`);
+  // }
+
+  // if (!(await pathExists(videoInput))) {
+  //   log.error("mergrAssMp4, file not exist", videoInput);
+  //   _event.sender.send("task-error", "文件不存在");
+  //   return;
+  // }
+  // if (!options.override && (await pathExists(output))) {
+  //   log.error("mergrAssMp4, 文件已存在，跳过", videoInput);
+  //   _event.sender.send("task-end", { output });
+  //   return;
+  // }
+
+  // const fileTxtPath = "aaa.txt";
+  // const command = ffmpeg(videoInput)
+  //   .inputOptions("-f concat -safe 0")
+  //   .input(fileTxtPath)
+  //   .audioCodec("copy")
+  //   .output(output);
+
+  // const task = new FFmpegTask(
+  //   command,
+  //   _event.sender,
+  //   {
+  //     output,
+  //   },
+  //   {
+  //     onEnd: async () => {
+  //       if (options.removeOrigin) {
+  //         if (await pathExists(videoInput)) {
+  //           log.info("mergrAssMp4, remove video origin file", videoInput);
+  //           await trashItem(videoInput);
+  //         }
+  //       }
+  //     },
+  //   },
+  // );
+
+  // taskQueue.addTask(task, true);
+  // return {
+  //   status: "success",
+  //   text: "添加到任务队列",
+  //   taskId: task.taskId,
+  // };
 };
 
 export const handlePauseTask = (_event: IpcMainInvokeEvent, taskId: string) => {
