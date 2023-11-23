@@ -1,5 +1,6 @@
 import { uuid } from "./utils/index";
 import log from "./utils/log";
+import type ffmpeg from "fluent-ffmpeg";
 
 import type { WebContents } from "electron";
 import type { Progress } from "../types";
@@ -24,13 +25,38 @@ export const killTask = (taskQueue: TaskQueue, taskId: string) => {
   return task.kill();
 };
 
-export class Task {
+abstract class AbstractTask {
+  abstract taskId: string;
+  abstract status: "pending" | "running" | "paused" | "completed" | "error";
+  abstract exec(): void;
+  abstract kill(): void;
+  abstract pause(): void;
+  abstract resume(): void;
+}
+
+class BaseTask extends AbstractTask {
   taskId: string;
   status: "pending" | "running" | "paused" | "completed" | "error";
-  command: any;
+  constructor() {
+    super();
+    this.taskId = uuid();
+    this.status = "pending";
+  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  exec() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  kill() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  pause() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  resume() {}
+}
+
+export class FFmpegTask extends BaseTask {
+  command: ffmpeg.FfmpegCommand;
   webContents: WebContents;
   constructor(
-    command: any,
+    command: ffmpeg.FfmpegCommand,
     webContents: WebContents,
     options: {
       output: string;
@@ -43,9 +69,8 @@ export class Task {
       onProgress?: (progress: Progress) => void;
     },
   ) {
-    this.taskId = uuid();
+    super();
     this.command = command;
-    this.status = "pending";
     this.webContents = webContents;
 
     command.on("start", (commandLine: string) => {
@@ -97,18 +122,18 @@ export class Task {
   }
   kill() {
     if (this.status === "completed" || this.status === "error") return;
-    this.command.kill();
+    this.command.kill("SIGKILL");
     log.warn(`task ${this.taskId} killed`);
     this.status = "error";
     return true;
   }
 }
 export class TaskQueue {
-  queue: Task[];
+  queue: BaseTask[];
   constructor() {
     this.queue = [];
   }
-  addTask(task: Task, autoRun = true) {
+  addTask(task: BaseTask, autoRun = true) {
     this.queue.push(task);
     if (autoRun) {
       task.exec();
@@ -118,3 +143,5 @@ export class TaskQueue {
     return this.queue.find((task) => task.taskId === taskId);
   }
 }
+
+export const taskQueue = new TaskQueue();
