@@ -11,7 +11,7 @@
     >
       <div>
         <div style="display: flex; gap: 10px">
-          <n-input v-model:value="aid" placeholder="请输入需要续传视频的aid" />
+          <n-input v-model.number:value="aid" placeholder="请输入需要续传视频的aid" />
           <n-button class="btn" @click="close">取消</n-button>
           <n-button type="primary" class="btn" @click="confirm"> 确认 </n-button>
         </div>
@@ -35,7 +35,17 @@ const emits = defineEmits<{
 
 // const props = withDefaults();
 
-const list = ref([]);
+const list = ref<
+  {
+    stat: {
+      aid: number;
+    };
+    Archive: {
+      title: string;
+      cover: string;
+    };
+  }[]
+>([]);
 const getArchives = async () => {
   const { data } = await window.biliApi.getArchives();
   list.value = data.arc_audits;

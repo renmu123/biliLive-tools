@@ -61,9 +61,6 @@
                 </template>
                 <n-switch v-model:value="config.webhook.open" />
               </n-form-item>
-              <!-- <n-form-item label="开启自动上传">
-                <n-switch v-model:value="config.webhook.autoUpload" />
-              </n-form-item> -->
               <n-form-item>
                 <template #label>
                   <span class="inline-flex">
