@@ -126,7 +126,7 @@ export const api = {
     return await ipcRenderer.invoke("saveBiliCookie");
   },
   // 检查bili登录的cookie是否存在
-  checkBiliCookie: async () => {
+  checkBiliCookie: async (): Promise<boolean> => {
     return await ipcRenderer.invoke("checkBiliCookie");
   },
   readBiliupPresets: async (): Promise<BiliupPreset[]> => {
@@ -138,9 +138,7 @@ export const api = {
   deleteBiliupPreset: async (id: string) => {
     return await ipcRenderer.invoke("deleteBiliupPreset", id);
   },
-  validateBiliupTag: async (tag: string) => {
-    return await ipcRenderer.invoke("validateBiliupTag", tag);
-  },
+
   validateBiliupConfig: async (config: BiliupConfig) => {
     return await ipcRenderer.invoke("validateBiliupConfig", config);
   },
@@ -222,6 +220,12 @@ export const api = {
 export const biliApi = {
   getArchives(params: Parameters<(typeof biliApi)["getArchives"]>[0]) {
     return ipcRenderer.invoke("biliApi:getArchives", params);
+  },
+  checkTag(tag: string) {
+    return ipcRenderer.invoke("biliApi:checkTag", tag);
+  },
+  getMyInfo() {
+    return ipcRenderer.invoke("biliApi:getMyInfo");
   },
 };
 

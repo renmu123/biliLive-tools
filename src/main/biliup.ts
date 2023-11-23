@@ -3,7 +3,6 @@ import { join, dirname } from "path";
 import fs from "fs-extra";
 
 import Biliup from "./biliup/index";
-import BiliApi from "./biliApi";
 import log from "./utils/log";
 import { BILIUP_PATH, BILIUP_COOKIE_PATH, UPLOAD_PRESET_PATH } from "./appConstant";
 import { UploadPreset } from "../core/upload";
@@ -205,21 +204,4 @@ export const readBiliupPreset = async (_event: IpcMainInvokeEvent, id: string) =
 // 读取biliup预设
 export const _readBiliupPreset = async (id: string) => {
   return uploadPreset.readBiliupPreset(id);
-};
-
-// 标签验证
-export const validateBiliupTag = async (_event: IpcMainInvokeEvent, tag: string) => {
-  const status = await checkBiliCookie();
-  if (!status) {
-    throw new Error("标签需要登陆验证可用性");
-  }
-  const cookieList = (await fs.readJSON(BILIUP_COOKIE_PATH)).cookie_info.cookies;
-  const api = new BiliApi(convertCookie(cookieList));
-
-  const res = await api.checkTag(tag);
-  return res;
-};
-
-const convertCookie = (cookie: { name: string; value: string }[]) => {
-  return cookie.map((item) => `${item.name}=${item.value}`).join("; ");
 };

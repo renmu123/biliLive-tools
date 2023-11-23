@@ -31,7 +31,6 @@ import {
   readBiliupPresets,
   saveBiliupPreset,
   deleteBiliupPreset,
-  validateBiliupTag,
   saveBiliCookie,
   validateBiliupConfig,
 } from "./biliup";
@@ -74,7 +73,6 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("readBiliupPresets", readBiliupPresets);
   ipcMain.handle("saveBiliupPreset", saveBiliupPreset);
   ipcMain.handle("deleteBiliupPreset", deleteBiliupPreset);
-  ipcMain.handle("validateBiliupTag", validateBiliupTag);
   ipcMain.handle("validateBiliupConfig", validateBiliupConfig);
 
   // 弹幕相关
@@ -84,6 +82,8 @@ const genHandler = (ipcMain: IpcMain) => {
 
   // bilibili相关
   ipcMain.handle("biliApi:getArchives", biliApi.getArchives);
+  ipcMain.handle("biliApi:checkTag", biliApi.checkTag);
+  ipcMain.handle("biliApi:getMyInfo", biliApi.getMyInfo);
 };
 
 const appConfig = getAppConfig();
@@ -217,6 +217,16 @@ function createMenu(): void {
       },
     },
     {
+      label: "打开log文件夹",
+      click: () => {
+        shell.openPath(app.getPath("logs"));
+      },
+    },
+    {
+      label: "开发者工具",
+      role: "viewMenu",
+    },
+    {
       label: "退出",
       click: async () => {
         try {
@@ -243,16 +253,6 @@ function createMenu(): void {
           mainWin.destroy();
           log.error(e);
         }
-      },
-    },
-    {
-      label: "开发者工具",
-      role: "viewMenu",
-    },
-    {
-      label: "打开log文件夹",
-      click: () => {
-        shell.openPath(app.getPath("logs"));
       },
     },
   ]);

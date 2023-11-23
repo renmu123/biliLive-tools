@@ -23,6 +23,21 @@ async function getArchives(
   return client.getArchives(params);
 }
 
+async function checkTag(
+  _event: IpcMainInvokeEvent,
+  tag: string,
+): ReturnType<ClientInstance["checkTag"]> {
+  await loadCookie();
+  return client.checkTag(tag);
+}
+
+async function getMyInfo(): ReturnType<ClientInstance["getMyInfo"]> {
+  await loadCookie();
+  return client.getMyInfo();
+}
+
 export default {
   getArchives,
+  checkTag,
+  getMyInfo,
 };

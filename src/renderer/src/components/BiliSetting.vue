@@ -188,7 +188,8 @@ onMounted(async () => {
 const notice = useNotification();
 const handleTagChange = async (tags: string[]) => {
   if (tags.length !== 0) {
-    const res = await window.api.validateBiliupTag(tags[tags.length - 1]);
+    const res = await window.biliApi.checkTag(tags[tags.length - 1]);
+
     if (res.code !== 0) {
       notice.error({
         title: res.message,

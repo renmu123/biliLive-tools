@@ -45,6 +45,7 @@ import {
   HomeOutline as HomeIcon,
   InformationCircleOutline as InfoIcon,
 } from "@vicons/ionicons5";
+import defaultUserAvatar from "./assets/images/moehime.jpg";
 import AppSettingDialog from "./components/AppSettingDialog.vue";
 
 const activeKey = ref("go-back-home");
@@ -54,51 +55,72 @@ function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) });
 }
 
-const menuOptions: MenuOption[] = [
-  {
-    label: () =>
-      h(
-        RouterLink,
-        {
-          to: {
-            name: "Home",
-          },
-        },
-        { default: () => "主页" },
-      ),
-    key: "go-back-home",
-    icon: renderIcon(HomeIcon),
-  },
+function renderImg(src: string) {
+  return () =>
+    h("img", { src, style: { height: "30px", width: "30px" }, referrerpolicy: "no-referrer" });
+}
 
-  {
-    label: () =>
-      h(
-        RouterLink,
-        {
-          to: {
-            name: "Tools",
+const menuOptions = computed<MenuOption[]>(() => {
+  return [
+    {
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "Home",
+            },
           },
-        },
-        { default: () => "工具" },
-      ),
-    key: "tools",
-    icon: renderIcon(BookIcon),
-  },
-  {
-    label: () =>
-      h(
-        RouterLink,
-        {
-          to: {
-            name: "About",
+          { default: () => "主页" },
+        ),
+      key: "go-back-home",
+      icon: renderIcon(HomeIcon),
+    },
+
+    {
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "Tools",
+            },
           },
-        },
-        { default: () => "关于" },
-      ),
-    key: "about",
-    icon: renderIcon(InfoIcon),
-  },
-];
+          { default: () => "工具" },
+        ),
+      key: "tools",
+      icon: renderIcon(BookIcon),
+    },
+    {
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "User",
+            },
+          },
+          { default: () => "用户" },
+        ),
+      key: "biliUser",
+      icon: renderImg(userInfo.value?.profile?.face || defaultUserAvatar),
+    },
+    {
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "About",
+            },
+          },
+          { default: () => "关于" },
+        ),
+      key: "about",
+      icon: renderIcon(InfoIcon),
+    },
+  ];
+});
 
 const settingVisible = ref(false);
 window.api.openSetting(() => {
@@ -113,6 +135,18 @@ window.addEventListener("unhandledrejection", (error) => {
     duration: 5000,
   });
 });
+
+const userInfo = ref({});
+const init = async () => {
+  console.log("onMounted");
+  const hasLogin = await window.api.checkBiliCookie();
+  console.log("hasLogin", hasLogin);
+  if (hasLogin) {
+    const res = await window.biliApi.getMyInfo();
+    userInfo.value = res.data;
+  }
+};
+init();
 </script>
 
 <style lang="less">

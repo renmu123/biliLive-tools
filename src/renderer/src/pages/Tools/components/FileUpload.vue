@@ -1,10 +1,10 @@
 <!-- 上传文件 -->
 <template>
   <div>
-    <div class="flex justify-center align-center" style="margin-bottom: 20px">
+    <div class="flex justify-center align-center" style="margin-bottom: 20px; gap: 10px">
       <n-button type="primary" @click="upload"> 立即上传 </n-button>
       <n-button type="primary" @click="appendVideoVisible = true"> 续传 </n-button>
-      <n-button type="primary" style="margin-left: 10px" @click="login"> 登录 </n-button>
+      <n-button type="primary" @click="login"> 登录 </n-button>
     </div>
     <p class="flex justify-center align-center">{{ hasLogin ? "已获取到登录信息" : "" }}</p>
 
@@ -20,7 +20,11 @@
     </div>
 
     <BiliLoginDialog v-model="loginDialogVisible" :succeess="loginStatus"> </BiliLoginDialog>
-    <AppendVideoDialog v-model="appendVideoVisible"></AppendVideoDialog>
+    <AppendVideoDialog
+      v-model:visible="appendVideoVisible"
+      v-model="aid"
+      @confirm="appendVideo"
+    ></AppendVideoDialog>
   </div>
 </template>
 
@@ -94,6 +98,58 @@ const upload = async () => {
 };
 
 const appendVideoVisible = ref(false);
+const aid = ref();
+const appendVideo = async () => {
+  if (!aid.value) {
+    return;
+  }
+  // await window.api.appendVideo(aid.value);
+
+  const hasLogin = await window.api.checkBiliCookie();
+  if (!hasLogin) {
+    notice.error({
+      title: `请先登录`,
+      duration: 3000,
+    });
+    return;
+  }
+
+  if (fileList.value.length === 0) {
+    notice.error({
+      title: `至少选择一个文件`,
+      duration: 3000,
+    });
+    return;
+  }
+
+  disabled.value = true;
+  notice.info({
+    title: `开始上传`,
+    duration: 3000,
+  });
+  try {
+    await window.api.appendVideo(
+      toRaw(fileList.value.map((file) => file.path)),
+      deepRaw(presetOptions.value.config),
+    );
+    window.api.onBiliUploadClose((_event, code) => {
+      console.log("window close", code);
+      if (code == 0) {
+        notice.success({
+          title: `上传成功`,
+          duration: 3000,
+        });
+      } else {
+        notice.error({
+          title: `上传失败`,
+          duration: 3000,
+        });
+      }
+    });
+  } finally {
+    disabled.value = false;
+  }
+};
 </script>
 
 <style scoped lang="less"></style>

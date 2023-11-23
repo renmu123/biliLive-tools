@@ -2,12 +2,10 @@
 <template>
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
-      <div>
+      <div class="flex" style="gap: 10px">
         <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
-        <n-button v-if="disabled" type="primary" style="margin-left: 10px" @click="killTask">
-          结束任务
-        </n-button>
-        <n-button type="primary" style="margin-left: 10px" @click="login"> 登录 </n-button>
+        <n-button v-if="disabled" type="primary" @click="killTask"> 结束任务 </n-button>
+        <n-button type="primary" @click="login"> 登录 </n-button>
       </div>
       <p>{{ hasLogin ? "已获取到登录信息" : "" }}</p>
       <p v-if="timemark">已处理视频时间：{{ timemark }}</p>
