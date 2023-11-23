@@ -46,5 +46,6 @@ declare module 'vue' {
     NText: typeof import('naive-ui')['NText']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Tip: typeof import('./src/components/Tip.vue')['default']
   }
 }

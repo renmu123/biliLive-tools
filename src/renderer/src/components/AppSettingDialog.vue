@@ -14,20 +14,12 @@
             <n-form ref="formRef" label-placement="left" :label-width="120">
               <n-form-item>
                 <template #label>
-                  <n-popover trigger="hover">
-                    <template #trigger>
-                      <span
-                        class="flex align-center"
-                        :style="{
-                          'justify-content': 'flex-end',
-                        }"
-                      >
-                        删除至回收站
-                        <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
-                      ></span>
-                    </template>
-                    关闭后若使用“删除源文件”等选项，文件将被直接删除，不会进入回收站
-                  </n-popover>
+                  <span class="inline-flex">
+                    删除至回收站
+                    <Tip
+                      tip="关闭后若使用“删除源文件”等选项，文件将被直接删除，不会进入回收站"
+                    ></Tip>
+                  </span>
                 </template>
                 <n-switch v-model:value="config.trash" />
               </n-form-item>
@@ -60,21 +52,12 @@
             <n-form label-placement="left" :label-width="120">
               <n-form-item>
                 <template #label>
-                  <n-popover trigger="hover">
-                    <template #trigger>
-                      <span
-                        class="flex align-center"
-                        :style="{
-                          'justify-content': 'flex-end',
-                        }"
-                      >
-                        开启server
-                        <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
-                      ></span>
-                    </template>
-                    开启后支持自动上传，需重启应用，录播姬的webhook地址设置为:
-                    http://127.0.0.1:18010/webhook
-                  </n-popover>
+                  <span class="inline-flex">
+                    开启server
+                    <Tip
+                      tip="开启后支持自动上传，需重启应用<br/>录播姬的webhook地址设置为:http://127.0.0.1:18010/webhook"
+                    ></Tip>
+                  </span>
                 </template>
                 <n-switch v-model:value="config.webhook.open" />
               </n-form-item>
@@ -83,20 +66,12 @@
               </n-form-item> -->
               <n-form-item>
                 <template #label>
-                  <n-popover trigger="hover">
-                    <template #trigger>
-                      <span
-                        class="flex align-center"
-                        :style="{
-                          'justify-content': 'flex-end',
-                        }"
-                      >
-                        黑名单
-                        <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
-                      ></span>
-                    </template>
-                    设置后相关房间号的录播不会上传，用英文逗号分隔，如: 123456,1234567
-                  </n-popover>
+                  <span class="inline-flex">
+                    黑名单
+                    <Tip
+                      tip="设置后相关房间号的录播不会上传，用英文逗号分隔，如: 123456,1234567"
+                    ></Tip>
+                  </span>
                 </template>
                 <n-input
                   v-model:value="config.webhook.blacklist"
@@ -118,40 +93,20 @@
               </n-form-item>
               <n-form-item>
                 <template #label>
-                  <n-popover trigger="hover">
-                    <template #trigger>
-                      <span
-                        class="flex align-center"
-                        :style="{
-                          'justify-content': 'flex-end',
-                        }"
-                      >
-                        最小上传大小
-                        <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
-                      ></span>
-                    </template>
-                    小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播
-                  </n-popover>
+                  <span class="inline-flex">
+                    最小上传大小
+                    <Tip tip="小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播"></Tip>
+                  </span>
                 </template>
                 <n-input-number v-model:value="config.webhook.minSize" placeholder="单位MB" />
                 M
               </n-form-item>
               <n-form-item>
                 <template #label>
-                  <n-popover trigger="hover">
-                    <template #trigger>
-                      <span
-                        class="flex align-center"
-                        :style="{
-                          'justify-content': 'flex-end',
-                        }"
-                      >
-                        默认视频标题
-                        <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
-                      ></span>
-                    </template>
-                    {{ titleTip }}
-                  </n-popover>
+                  <span class="inline-flex">
+                    默认视频标题
+                    <Tip :tip="titleTip"></Tip>
+                  </span>
                 </template>
                 <n-input
                   v-model:value="config.webhook.title"
@@ -168,20 +123,10 @@
               </n-form-item>
               <n-form-item>
                 <template #label>
-                  <n-popover trigger="hover">
-                    <template #trigger>
-                      <span
-                        class="flex align-center"
-                        :style="{
-                          'justify-content': 'flex-end',
-                        }"
-                      >
-                        独立配置
-                        <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
-                      ></span>
-                    </template>
-                    单独设置房间号的上传配置，会覆盖全局配置
-                  </n-popover>
+                  <span class="inline-flex">
+                    独立配置
+                    <Tip tip="单独设置房间号的上传配置，会覆盖全局配置"></Tip>
+                  </span>
                 </template>
                 <div class="room-list">
                   <span
@@ -224,40 +169,20 @@
       <n-form ref="formRef2" label-placement="left" :label-width="120">
         <n-form-item>
           <template #label>
-            <n-popover trigger="hover">
-              <template #trigger>
-                <span
-                  class="flex align-center"
-                  :style="{
-                    'justify-content': 'flex-end',
-                  }"
-                >
-                  最小上传大小
-                  <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
-                ></span>
-              </template>
-              小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播
-            </n-popover>
+            <span class="inline-flex">
+              最小上传大小
+              <Tip tip="小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播"></Tip>
+            </span>
           </template>
           <n-input-number v-model:value="tempRoomDetail.minSize" placeholder="单位MB" />
           M
         </n-form-item>
         <n-form-item>
           <template #label>
-            <n-popover trigger="hover">
-              <template #trigger>
-                <span
-                  class="flex align-center"
-                  :style="{
-                    'justify-content': 'flex-end',
-                  }"
-                >
-                  默认视频标题
-                  <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
-                ></span>
-              </template>
-              {{ titleTip }}
-            </n-popover>
+            <span class="inline-flex">
+              默认视频标题
+              <Tip :tip="titleTip"></Tip>
+            </span>
           </template>
           <n-input
             v-model:value="tempRoomDetail.title"
@@ -286,7 +211,6 @@
 
 <script setup lang="ts">
 import type { AppConfig, LogLevel, BiliupPreset } from "../../../types";
-import { HelpCircleOutline } from "@vicons/ionicons5";
 
 const showModal = defineModel<boolean>({ required: true, default: false });
 

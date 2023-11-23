@@ -1,8 +1,21 @@
 <!-- 文件合并 -->
 <template>
   <div>
-    <div class="center" style="margin-bottom: 20px">
+    <div
+      class="center"
+      style="
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      "
+    >
       <n-button type="primary" @click="convert"> 立即合并 </n-button>
+      <Tip
+        tip="在这种模式下，音频/视频文件可以被流式复制，只要它们共享质量（大小、编解码器、比特率）。<br/>注意：并非所有容器都支持流复制。如果出现播放问题或未合并文件，则可能需要重新编码。"
+        :size="26"
+      ></Tip>
     </div>
     <FileArea
       v-model="fileList"
@@ -31,6 +44,7 @@
 
 <script setup lang="ts">
 import FileArea from "@renderer/components/FileArea.vue";
+import Tip from "@renderer/components/Tip.vue";
 import type { File, VideoMergeOptions } from "../../../../../types";
 
 const notice = useNotification();
