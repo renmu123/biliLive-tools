@@ -40,6 +40,8 @@
 import { NIcon, createDiscreteApi } from "naive-ui";
 import type { MenuOption } from "naive-ui";
 import { RouterLink } from "vue-router";
+import { storeToRefs } from "pinia";
+
 import {
   BuildOutline as BookIcon,
   HomeOutline as HomeIcon,
@@ -47,6 +49,10 @@ import {
 } from "@vicons/ionicons5";
 import defaultUserAvatar from "./assets/images/moehime.jpg";
 import AppSettingDialog from "./components/AppSettingDialog.vue";
+
+import { useUserInfoStore } from "./stores";
+
+const { userInfo } = storeToRefs(useUserInfoStore());
 
 const activeKey = ref("go-back-home");
 const collapsed = ref(true);
@@ -135,18 +141,6 @@ window.addEventListener("unhandledrejection", (error) => {
     duration: 5000,
   });
 });
-
-const userInfo = ref({});
-const init = async () => {
-  console.log("onMounted");
-  const hasLogin = await window.api.checkBiliCookie();
-  console.log("hasLogin", hasLogin);
-  if (hasLogin) {
-    const res = await window.biliApi.getMyInfo();
-    userInfo.value = res.data;
-  }
-};
-init();
 </script>
 
 <style lang="less">

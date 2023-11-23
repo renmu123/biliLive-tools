@@ -33,6 +33,7 @@ import {
   deleteBiliupPreset,
   saveBiliCookie,
   validateBiliupConfig,
+  deleteBiliCookie,
 } from "./biliup";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
@@ -70,6 +71,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("saveBiliCookie", saveBiliCookie);
   ipcMain.handle("readQrCode", readQrCode);
   ipcMain.handle("checkBiliCookie", checkBiliCookie);
+  ipcMain.handle("deleteBiliCookie", deleteBiliCookie);
   ipcMain.handle("readBiliupPresets", readBiliupPresets);
   ipcMain.handle("saveBiliupPreset", saveBiliupPreset);
   ipcMain.handle("deleteBiliupPreset", deleteBiliupPreset);

@@ -39,6 +39,9 @@
 
 <script setup lang="ts">
 const showModal = defineModel<boolean>({ required: true, default: false });
+const emits = defineEmits<{
+  close: [string];
+}>();
 
 const notice = useNotification();
 
@@ -86,6 +89,13 @@ const close = () => {
 const confirm = () => {
   showModal.value = false;
 };
+
+watch(
+  () => showModal.value,
+  () => {
+    emits("close", props.succeess);
+  },
+);
 </script>
 
 <style scoped lang="less">

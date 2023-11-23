@@ -129,6 +129,10 @@ export const api = {
   checkBiliCookie: async (): Promise<boolean> => {
     return await ipcRenderer.invoke("checkBiliCookie");
   },
+  // 删除bili登录的cookie
+  deleteBiliCookie: async () => {
+    return await ipcRenderer.invoke("deleteBiliCookie");
+  },
   readBiliupPresets: async (): Promise<BiliupPreset[]> => {
     return await ipcRenderer.invoke("readBiliupPresets");
   },

@@ -205,3 +205,8 @@ export const readBiliupPreset = async (_event: IpcMainInvokeEvent, id: string) =
 export const _readBiliupPreset = async (id: string) => {
   return uploadPreset.readBiliupPreset(id);
 };
+
+// 删除bili登录的cookie
+export const deleteBiliCookie = async () => {
+  return await fs.remove(BILIUP_COOKIE_PATH);
+};

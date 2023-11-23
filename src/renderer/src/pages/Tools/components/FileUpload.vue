@@ -4,9 +4,7 @@
     <div class="flex justify-center align-center" style="margin-bottom: 20px; gap: 10px">
       <n-button type="primary" @click="upload"> 立即上传 </n-button>
       <n-button type="primary" @click="appendVideoVisible = true"> 续传 </n-button>
-      <n-button type="primary" @click="login"> 登录 </n-button>
     </div>
-    <p class="flex justify-center align-center">{{ hasLogin ? "已获取到登录信息" : "" }}</p>
 
     <FileArea
       v-model="fileList"
@@ -19,7 +17,6 @@
       <BiliSetting @change="handlePresetOptions"></BiliSetting>
     </div>
 
-    <BiliLoginDialog v-model="loginDialogVisible" :succeess="loginStatus"> </BiliLoginDialog>
     <AppendVideoDialog
       v-model:visible="appendVideoVisible"
       v-model="aid"
@@ -31,15 +28,13 @@
 <script setup lang="ts">
 import FileArea from "@renderer/components/FileArea.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
-import BiliLoginDialog from "@renderer/components/BiliLoginDialog.vue";
 import AppendVideoDialog from "@renderer/components/AppendVideoDialog.vue";
 import { useBili } from "@renderer/hooks";
 
 import type { File } from "../../../../../types";
 import { deepRaw } from "@renderer/utils";
 
-const { hasLogin, handlePresetOptions, login, loginStatus, loginDialogVisible, presetOptions } =
-  useBili();
+const { handlePresetOptions, presetOptions } = useBili();
 const notice = useNotification();
 
 const fileList = ref<

@@ -5,9 +5,7 @@
       <div class="flex" style="gap: 10px">
         <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
         <n-button v-if="disabled" type="primary" @click="killTask"> 结束任务 </n-button>
-        <n-button type="primary" @click="login"> 登录 </n-button>
       </div>
-      <p>{{ hasLogin ? "已获取到登录信息" : "" }}</p>
       <p v-if="timemark">已处理视频时间：{{ timemark }}</p>
     </div>
 
@@ -62,7 +60,6 @@
         </n-tab-pane>
         <n-tab-pane name="upload-setting" tab="上传设置" display-directive="show">
           <BiliSetting @change="handlePresetOptions"></BiliSetting>
-          <BiliLoginDialog v-model="loginDialogVisible" :succeess="loginStatus"> </BiliLoginDialog>
         </n-tab-pane>
         <n-tab-pane name="danmukufactory-setting" tab="弹幕设置" display-directive="show">
           <DanmuFactorySetting
@@ -90,7 +87,6 @@ defineOptions({
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
-import BiliLoginDialog from "@renderer/components/BiliLoginDialog.vue";
 
 import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
@@ -100,8 +96,7 @@ import type { DanmuOptions, File, FfmpegOptions, DanmuConfig } from "../../../..
 
 const notice = useNotification();
 const confirm = useConfirm();
-const { hasLogin, handlePresetOptions, login, loginStatus, loginDialogVisible, presetOptions } =
-  useBili();
+const { handlePresetOptions, presetOptions } = useBili();
 
 const fileList = ref<
   (File & {
