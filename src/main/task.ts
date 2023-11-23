@@ -66,7 +66,7 @@ export class FFmpegTask extends BaseTask {
       onStart?: () => void;
       onEnd?: (output: string) => void;
       onError?: (err: string) => void;
-      onProgress?: (progress: Progress) => void;
+      onProgress?: (progress: Progress) => boolean;
     },
   ) {
     super();
@@ -75,23 +75,24 @@ export class FFmpegTask extends BaseTask {
 
     command.on("start", (commandLine: string) => {
       log.info(`task ${this.taskId} start, command: ${commandLine}`);
+      this.status = "running";
 
       callback.onStart && callback.onStart();
       this.webContents.send("task-start", { taskId: this.taskId, command: commandLine });
-      this.status = "running";
     });
     command.on("end", async () => {
       log.info(`task ${this.taskId} end`);
+      this.status = "completed";
 
       callback.onEnd && callback.onEnd(options.output);
       this.webContents.send("task-end", { taskId: this.taskId, output: options.output });
-      this.status = "completed";
     });
     command.on("error", (err) => {
       log.error(`task ${this.taskId} error: ${err}`);
+      this.status = "error";
+
       callback.onError && callback.onError(err);
       this.webContents.send("task-error", { taskId: this.taskId, err: err });
-      this.status = "error";
     });
     command.on("progress", (progress) => {
       if (options.size) {
@@ -99,7 +100,13 @@ export class FFmpegTask extends BaseTask {
       } else {
         progress.percentage = progress.percent;
       }
-      callback.onProgress && callback.onProgress(progress);
+      if (callback.onProgress) {
+        if (!callback.onProgress(progress)) {
+          // 如果返回false，表示要停止默认行为
+          return;
+        }
+      }
+      // callback.onProgress && callback.onProgress(progress);
       this.webContents.send("task-progress-update", { taskId: this.taskId, progress: progress });
     });
   }
