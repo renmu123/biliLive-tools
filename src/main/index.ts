@@ -21,6 +21,7 @@ import {
   handlePauseTask,
   handleResumeTask,
   setFfmpegPath,
+  mergeVideos,
 } from "./video";
 import {
   uploadVideo,
@@ -40,7 +41,7 @@ import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
 
 import type { OpenDialogOptions } from "../types";
-import type { IpcMainInvokeEvent, IpcMain } from "electron";
+import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
 
 const genHandler = (ipcMain: IpcMain) => {
   // app配置相关
@@ -50,6 +51,7 @@ const genHandler = (ipcMain: IpcMain) => {
   // 通用函数
   ipcMain.handle("dialog:openDirectory", openDirectory);
   ipcMain.handle("dialog:openFile", openFile);
+  ipcMain.handle("dialog:save", saveDialog);
   ipcMain.handle("getVersion", getVersion);
   ipcMain.handle("openExternal", openExternal);
   ipcMain.handle("openPath", openPath);
@@ -67,6 +69,7 @@ const genHandler = (ipcMain: IpcMain) => {
   // 上传视频部分
   ipcMain.handle("uploadVideo", uploadVideo);
   ipcMain.handle("appendVideo", appendVideo);
+  ipcMain.handle("mergeVideos", mergeVideos);
   ipcMain.handle("biliLogin", biliLogin);
   ipcMain.handle("saveBiliCookie", saveBiliCookie);
   ipcMain.handle("readQrCode", readQrCode);
@@ -342,6 +345,15 @@ const openFile = async (_event: IpcMainInvokeEvent, options: OpenDialogOptions) 
     return;
   } else {
     return filePaths;
+  }
+};
+
+const saveDialog = async (_event: IpcMainInvokeEvent, options: SaveDialogOptions) => {
+  const { canceled, filePath } = await dialog.showSaveDialog(mainWin, options);
+  if (canceled) {
+    return;
+  } else {
+    return filePath;
   }
 };
 

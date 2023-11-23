@@ -49,7 +49,7 @@ const upload = async () => {
   const hasLogin = await window.api.checkBiliCookie();
   if (!hasLogin) {
     notice.error({
-      title: `请先登录`,
+      title: `请点击左侧头像处进行登录`,
       duration: 3000,
     });
     return;

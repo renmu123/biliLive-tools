@@ -41,6 +41,12 @@ export interface DanmuOptions {
   removeOrigin: boolean; // 完成后移除源文件
 }
 
+export interface VideoMergeOptions {
+  savePath: string;
+
+  removeOrigin: boolean; // 完成后移除源文件
+}
+
 export interface File {
   path: string; // /Users/xxx/Downloads/aaa.mp4
   filename: string; // aaa.mp4

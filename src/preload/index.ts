@@ -3,7 +3,7 @@ import path from "path";
 import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
 
-import type { IpcRendererEvent } from "electron";
+import type { IpcRendererEvent, SaveDialogOptions } from "electron";
 import type {
   Progress,
   DanmuConfig,
@@ -15,6 +15,7 @@ import type {
   BiliupPreset,
   BiliupConfig,
   BiliupConfigAppend,
+  VideoMergeOptions,
 } from "../types";
 
 // Custom APIs for renderer
@@ -109,6 +110,9 @@ export const api = {
   appendVideo: async (videoFiles: string[], options: BiliupConfigAppend) => {
     return await ipcRenderer.invoke("appendVideo", videoFiles, options);
   },
+  mergeVideos: async (videoFiles: File[], options: VideoMergeOptions) => {
+    return await ipcRenderer.invoke("mergeVideos", videoFiles, options);
+  },
   // 调用biliup的登录窗口
   biliLogin: async () => {
     return await ipcRenderer.invoke("biliLogin");
@@ -191,6 +195,10 @@ export const api = {
   openFile: async (options: OpenDialogOptions): Promise<string[] | undefined> => {
     return await ipcRenderer.invoke("dialog:openFile", options);
   },
+  showSaveDialog: async (options?: SaveDialogOptions): Promise<string | undefined> => {
+    return await ipcRenderer.invoke("dialog:save", options);
+  },
+
   formatFile: (filePath: string) => {
     const formatFile = path.parse(filePath);
     return { ...formatFile, path: filePath, filename: formatFile.base };
@@ -241,6 +249,7 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld("electron", electronAPI);
     contextBridge.exposeInMainWorld("api", api);
     contextBridge.exposeInMainWorld("biliApi", biliApi);
+    contextBridge.exposeInMainWorld("path", path);
   } catch (error) {
     console.error(error);
   }

@@ -139,7 +139,13 @@ const convert = async () => {
 
   if (clientOptions.value.upload) {
     const valid = await biliUpCheck();
-    if (!valid) return;
+    if (!valid) {
+      notice.error({
+        title: `请点击左侧头像处进行登录`,
+        duration: 3000,
+      });
+      return;
+    }
   }
 
   const videoIndex = fileList.value.findIndex((item) => item.ext === ".flv" || item.ext === ".mp4");
