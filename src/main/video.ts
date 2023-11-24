@@ -1,14 +1,15 @@
 import { join } from "path";
 import os from "os";
 import fs from "fs-extra";
+import ffmpeg from "fluent-ffmpeg";
+import { sum } from "lodash";
 
 import { getAppConfig } from "./config/app";
-import ffmpeg from "fluent-ffmpeg";
 import { escaped, genFfmpegParams, pathExists, trashItem, uuid } from "./utils/index";
 import log from "./utils/log";
 import { taskQueue, FFmpegTask, pauseTask, resumeTask, killTask } from "./task";
 
-import type { IpcMainInvokeEvent } from "electron";
+import { type IpcMainInvokeEvent } from "electron";
 import type { File, DanmuOptions, FfmpegOptions, VideoMergeOptions } from "../types";
 
 export const setFfmpegPath = () => {
@@ -82,18 +83,33 @@ export const convertVideo2Mp4 = async (
     };
   }
 
-  const meta = await readVideoMeta(input);
-  const size = (meta.format.size || 0) / 1000;
   const command = ffmpeg(input).videoCodec("copy").audioCodec("copy").output(output);
+
+  const videoMeta = await readVideoMeta(path);
+  log.info("convertVideo2Mp4: videoMeta", videoMeta);
+  // const nbFrames =
+  //   Number(videoMeta.streams.find((stream) => stream.codec_type === "video")?.nb_frames) || 0;
+  // const duration = Number(videoMeta.format.duration) || 0;
 
   const task = new FFmpegTask(
     command,
     _event.sender,
     {
       output,
-      size,
     },
     {
+      onProgress(progress) {
+        if (progress.percent) {
+          progress.percentage = progress.percent;
+        }
+
+        _event.sender.send("task-progress-update", {
+          taskId: task.taskId,
+          progress: progress,
+        });
+
+        return false;
+      },
       onEnd: async () => {
         if (options.removeOrigin && (await pathExists(input))) {
           log.info("convertVideo2Mp4, remove origin file", input);
@@ -189,7 +205,7 @@ export const mergeAssMp4 = async (
 };
 
 export const mergeVideos = async (
-  _event: IpcMainInvokeEvent,
+  event: IpcMainInvokeEvent,
   videoFiles: File[],
   options: VideoMergeOptions = {
     savePath: "",
@@ -210,13 +226,32 @@ export const mergeVideos = async (
     .audioCodec("copy")
     .output(output);
 
+  const videoMetas = await Promise.all(videoFiles.map((file) => readVideoMeta(file.path)));
+  // 获取所有视频轨的nb_frames
+  const nbFrames = sum(
+    videoMetas.map((meta) => {
+      const videoStream = meta.streams.find((stream) => stream.codec_type === "video");
+      return videoStream?.nb_frames || 0;
+    }),
+  );
+
+  console.log({ nbFrames });
+
   const task = new FFmpegTask(
     command,
-    _event.sender,
+    event.sender,
     {
       output,
     },
     {
+      onProgress(progress) {
+        event.sender.send("task-progress-update", {
+          taskId: task.taskId,
+          progress: { ...progress, percentage: Math.round((progress.frames / nbFrames) * 100) },
+        });
+
+        return false;
+      },
       onEnd: async () => {
         if (options.removeOrigin) {
           for (let i = 0; i < videoFiles.length; i++) {

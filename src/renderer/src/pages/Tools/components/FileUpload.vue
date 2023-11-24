@@ -111,7 +111,7 @@ const appendVideo = async () => {
 
   if (fileList.value.length === 0) {
     notice.error({
-      title: `至少选择一个文件`,
+      title: `请先选择一个文件`,
       duration: 3000,
     });
     return;
@@ -123,10 +123,10 @@ const appendVideo = async () => {
     duration: 3000,
   });
   try {
-    await window.api.appendVideo(
-      toRaw(fileList.value.map((file) => file.path)),
-      deepRaw(presetOptions.value.config),
-    );
+    await window.api.appendVideo(toRaw(fileList.value.map((file) => file.path)), {
+      ...deepRaw(presetOptions.value.config),
+      vid: aid.value,
+    });
     window.api.onBiliUploadClose((_event, code) => {
       console.log("window close", code);
       if (code == 0) {

@@ -94,18 +94,15 @@
     </n-form>
 
     <div style="text-align: right">
-      <n-button v-if="options.id !== 'default'" type="error" @click="deletePreset"
-        >删除预设</n-button
-      >
+      <n-button v-if="options.id !== 'default'" type="error" @click="deletePreset">删除</n-button>
       <n-button type="primary" style="margin-left: 10px" @click="saveAnotherPreset"
-        >另存为新预设</n-button
+        >另存为</n-button
       >
-      <n-button type="primary" style="margin-left: 10px" @click="savePreset">保存预设</n-button>
+      <n-button type="primary" style="margin-left: 10px" @click="savePreset">保存</n-button>
     </div>
 
     <n-modal v-model:show="nameModelVisible">
       <n-card style="width: 600px" :bordered="false" role="dialog" aria-modal="true">
-        内容
         <n-input v-model:value="tempPresetName" placeholder="请输入预设名称" maxlength="15" />
         <template #footer>
           <div style="text-align: right">
@@ -134,16 +131,6 @@ import { cloneDeep } from "lodash-es";
 const emits = defineEmits<{
   (event: "change", value: BiliupPreset): void;
 }>();
-// const formData = defineModel<BiliupConfig>({ required: true });
-
-// const props = withDefaults(
-//   defineProps<{
-//     succeess?: "start" | "success" | "fail";
-//   }>(),
-//   {
-//     succeess: "start",
-//   },
-// );
 
 const presetId = ref<string>("default");
 

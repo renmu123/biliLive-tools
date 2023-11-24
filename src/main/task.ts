@@ -60,7 +60,6 @@ export class FFmpegTask extends BaseTask {
     webContents: WebContents,
     options: {
       output: string;
-      size?: number;
     },
     callback: {
       onStart?: () => void;
@@ -95,11 +94,8 @@ export class FFmpegTask extends BaseTask {
       this.webContents.send("task-error", { taskId: this.taskId, err: err });
     });
     command.on("progress", (progress) => {
-      if (options.size) {
-        progress.percentage = Math.round((progress.targetSize / options.size) * 100);
-      } else {
-        progress.percentage = progress.percent;
-      }
+      progress.percentage = progress.percent;
+
       if (callback.onProgress) {
         if (!callback.onProgress(progress)) {
           // 如果返回false，表示要停止默认行为

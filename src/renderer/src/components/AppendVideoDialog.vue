@@ -11,7 +11,7 @@
     >
       <div>
         <div style="display: flex; gap: 10px">
-          <n-input v-model.number:value="aid" placeholder="请输入需要续传视频的aid" />
+          <n-input v-model:value="aid" placeholder="请输入需要续传视频的aid" />
           <n-button class="btn" @click="close">取消</n-button>
           <n-button type="primary" class="btn" @click="confirm"> 确认 </n-button>
         </div>
@@ -28,9 +28,9 @@
 
 <script setup lang="ts">
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
-const aid = defineModel<number>({ required: true });
+const aid = defineModel<string>({ required: true });
 const emits = defineEmits<{
-  confirm: [aid: number];
+  confirm: [aid: string];
 }>();
 
 // const props = withDefaults();
@@ -39,17 +39,19 @@ const list = ref<
   {
     stat: {
       aid: number;
+      [key: string]: any;
     };
     Archive: {
       title: string;
       cover: string;
+      [key: string]: any;
     };
+    [key: string]: any;
   }[]
 >([]);
 const getArchives = async () => {
   const { data } = await window.biliApi.getArchives();
   list.value = data.arc_audits;
-  console.log(list.value);
 };
 const handleOpen = () => {
   console.log("open");
@@ -68,7 +70,8 @@ const confirm = () => {
 };
 
 const selectMedia = (item) => {
-  aid.value = item.stat.aid;
+  aid.value = String(item.stat.aid);
+  console.log(aid.value);
 };
 </script>
 

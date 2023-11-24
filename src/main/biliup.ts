@@ -8,7 +8,7 @@ import { BILIUP_PATH, BILIUP_COOKIE_PATH, UPLOAD_PRESET_PATH } from "./appConsta
 import { UploadPreset } from "../core/upload";
 
 import type { IpcMainInvokeEvent } from "electron";
-import type { BiliupConfig, BiliupPreset } from "../types/index";
+import type { BiliupConfig, BiliupConfigAppend, BiliupPreset } from "../types/index";
 
 export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   title: "",
@@ -59,7 +59,7 @@ export const _uploadVideo = async (pathArray: string[], options: BiliupConfig) =
 export const appendVideo = async (
   _event: IpcMainInvokeEvent,
   pathArray: string[],
-  options: BiliupConfig,
+  options: BiliupConfigAppend,
 ) => {
   const hasLogin = await checkBiliCookie();
   if (!hasLogin) {
@@ -72,8 +72,7 @@ export const appendVideo = async (
   const biliup = new Biliup();
   biliup.setBiliUpPath(BILIUP_PATH);
   biliup.setCookiePath(BILIUP_COOKIE);
-  const args = genBiliupOPtions(options);
-  biliup.appendVideo(pathArray, args);
+  biliup.appendVideo(pathArray, [`--vid ${options.vid}`]);
   biliup.on("close", (code) => {
     _event.sender.send("append-close", code);
   });

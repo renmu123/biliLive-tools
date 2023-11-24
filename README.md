@@ -23,16 +23,16 @@
   - [x] 支持使用danmufactory自动处理xml文件并进行压制
   - [x] 工具页面，danmufactory的GUI
   - [x] 工具页面，flv的转封装
-  - [ ] 支持视频合并
+  - [x] 支持视频合并
 - [x] log记录及其展示
 - [ ] 配置持久化，ffmpeg自定义预设，选择保存文件夹，平均码率、支持使用ass-convert来进行弹幕处理以及压制高能进度条
 - [x] 支持上传B站
   - [ ] 移除biliup二进制文件依赖
+  - [x] 支持分p
 - [ ] 支持录播姬webhook自动处理
   - [x] 支持自动上传
   - [ ] 支持合并后上传
   - [ ] 支持弹幕压制
-  - [x] 支持分p续传
 - [x] 打包不带ffmpeg的版本，支持自定义ffmpeg以及ffprobe
 - [ ] 构建一个不依赖于electron的cli程序
 

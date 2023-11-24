@@ -62,6 +62,7 @@ export interface Progress {
   targetSize: number;
   timemark: string;
   percentage: number;
+  percent?: number;
 }
 
 export interface OpenDialogOptions extends ElectronOpenDialogOptions {
@@ -99,7 +100,7 @@ export interface BiliupConfig {
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {
-  tid: string;
+  vid: string;
 };
 
 export interface BiliupPreset {
