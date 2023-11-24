@@ -68,7 +68,6 @@
           ></DanmuFactorySetting>
           <div class="footer" style="text-align: right">
             <n-checkbox v-model:checked="simpledMode"> 简易模式 </n-checkbox>
-            <n-button type="primary" class="btn" @click="saveDanmuConfig"> 确认 </n-button>
           </div>
         </n-tab-pane>
         <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
@@ -550,6 +549,7 @@ const danmuConfig: Ref<DanmuConfig> = ref({
 
 const handleDanmuChange = (value: DanmuConfig) => {
   danmuConfig.value = value;
+  saveDanmuConfig();
 };
 const saveDanmuConfig = async () => {
   await window.api.saveDanmuConfig(toRaw(danmuConfig.value));

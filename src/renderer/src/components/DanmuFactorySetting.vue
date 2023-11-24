@@ -127,12 +127,14 @@
             class="input-number"
             :min="0"
             :step="100"
+            placeholder="宽"
           />&nbsp;X&nbsp;
           <n-input-number
             v-model:value.number="config.resolution[1]"
             class="input-number"
             :min="0"
             :step="100"
+            placeholder="高"
           />
         </n-form-item>
         <div>
