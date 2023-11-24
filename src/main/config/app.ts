@@ -11,6 +11,7 @@ import type { AppConfig } from "../../types";
 
 export const APP_DEFAULT_CONFIG: AppConfig = {
   logLevel: "warn",
+  autoUpdate: true,
   trash: true, // 是否移动至回收站
   webhook: {
     open: false,

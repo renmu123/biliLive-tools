@@ -27,6 +27,12 @@
               <n-form-item label="log等级"
                 ><n-select v-model:value="config.logLevel" :options="logLevelOptions" />
               </n-form-item>
+              <n-form-item>
+                <template #label>
+                  <span class="inline-flex"> 自动更新检测 </span>
+                </template>
+                <n-switch v-model:value="config.autoUpdate" />
+              </n-form-item>
 
               <n-form-item label="ffmpeg路径">
                 <n-input

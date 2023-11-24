@@ -32,7 +32,8 @@
     "fs-extra": "^11.1.1",
     "lodash": "^4.17.21",
     "lodash-es": "^4.17.21",
-    "pinia": "^2.1.7"
+    "pinia": "^2.1.7",
+    "semver": "^7.5.4"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.1",

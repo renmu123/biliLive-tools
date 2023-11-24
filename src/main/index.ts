@@ -7,6 +7,7 @@ import serverApp from "./server/index";
 
 import { join } from "path";
 import fs from "fs-extra";
+import semver from "semver";
 
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron";
 import installExtension from "electron-devtools-installer";
@@ -210,6 +211,11 @@ function createWindow(): void {
       log.info("server start");
     });
   }
+
+  // 检测更新
+  if (appConfig.autoUpdate) {
+    checkUpdate();
+  }
 }
 
 function createMenu(): void {
@@ -225,6 +231,19 @@ function createMenu(): void {
       label: "打开log文件夹",
       click: () => {
         shell.openPath(app.getPath("logs"));
+      },
+    },
+    {
+      label: "检测更新",
+      click: async () => {
+        const status = await checkUpdate();
+        console.log(status);
+        if (status) {
+          dialog.showMessageBox(mainWin, {
+            message: "当前已经是最新版本",
+            buttons: ["确认"],
+          });
+        }
       },
     },
     {
@@ -375,4 +394,26 @@ const exits = (_event: IpcMainInvokeEvent, path: string) => {
 
 const trashItem = async (_event: IpcMainInvokeEvent, path: string) => {
   return await _trashItem(path);
+};
+
+const checkUpdate = async () => {
+  const res = await fetch(
+    "https://raw.githubusercontent.com/renmu123/biliLive-tools/master/package.json",
+  );
+  const data = await res.json();
+  const latestVersion = data.version;
+  const version = app.getVersion();
+
+  console.log(latestVersion, version);
+  if (semver.gt(latestVersion, version)) {
+    const confirm = await dialog.showMessageBox(mainWin, {
+      message: "检测到有新版本，是否前往下载？",
+      buttons: ["取消", "确认"],
+    });
+    if (confirm.response === 1) {
+      shell.openExternal("https://github.com/renmu123/biliLive-tools/releases");
+    }
+    return false;
+  }
+  return true;
 };

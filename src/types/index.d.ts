@@ -12,6 +12,7 @@ export interface AppConfig {
   ffmpegPath: string;
   ffprobePath: string;
   trash: boolean;
+  autoUpdate: boolean;
   webhook: {
     open: boolean;
     recoderFolder: string;
