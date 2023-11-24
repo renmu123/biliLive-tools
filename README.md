@@ -1,19 +1,21 @@
 # biliLive-tools
 
 这是一个用于 B 站录播的一站式工具。
+做这款工具的主要原因是为了解决录播工具的碎片化，往往想完整处理一场带有弹幕的录播要使用多个软件的配合，一些工具更是只有CLI，加大了使用难度。
 
 1. 支持 Danmufactory GUI
 2. 支持 ffmpeg 转封装
 3. 支持视频与弹幕压制
 4. 支持调用 biliup 进行上传
+5. 支持视频文件合并
 
 # 下载
 
 目前有两个 Win 版本的包。两个包处理有没有打包 `ffmpeg` 和 `ffprobe` 之外没有任何代码上的区别，如果你不需要转封装功能，可以尝试下载体积较小的包，我不是特别推荐。
-如果你是普通用户，那就选择体积大的那个包，如果你是资深用户，那么请自行选择，因自编译 `ffmpeg` 出问题的 issue 是不会被处理的。
+如果你是普通用户，那就选择体积大的那个包，如果你是资深用户，那么请自行选择，因使用自定义 `ffmpeg` 出问题的 issue 是不会被处理的。
 
 1. 自带 `ffmpeg` 版本的包
-2. 调用环境变量中 `ffmpeg` 以及 `ffprobe` 的包，减小安装包体积。
+2. 在设置中自定义`ffmpeg`以及`ffprobe`文件路径，减小安装包体积。
 
 # TODO
 
@@ -64,7 +66,7 @@ $ npm run dev
 # For windows
 $ npm run build:win
 
-# For windows but no ffmpeg
+# For windows without ffmpeg
 $ npm run build:win-no-ffmpeg
 ```
 
