@@ -29,6 +29,7 @@ app.post("/webhook", async function (req, res) {
   ) {
     const roomId = data.EventData.RoomId;
     const roomSetting = appConfig.webhook.rooms[roomId];
+    log.info("room setting", roomId, roomSetting);
 
     console.log(data.EventData.FileOpenTime, formatTime(data.EventData.FileOpenTime));
 
