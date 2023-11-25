@@ -23,6 +23,7 @@ import {
   handleResumeTask,
   setFfmpegPath,
   mergeVideos,
+  handleReadVideoMeta,
 } from "./video";
 import {
   uploadVideo,
@@ -80,6 +81,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("saveBiliupPreset", saveBiliupPreset);
   ipcMain.handle("deleteBiliupPreset", deleteBiliupPreset);
   ipcMain.handle("validateBiliupConfig", validateBiliupConfig);
+  ipcMain.handle("readVideoMeta", handleReadVideoMeta);
 
   // 弹幕相关
   ipcMain.handle("saveDanmuConfig", saveDanmuConfig);

@@ -285,3 +285,7 @@ export const handleResumeTask = (_event: IpcMainInvokeEvent, taskId: string) => 
 export const handleKillTask = (_event: IpcMainInvokeEvent, taskId: string) => {
   return killTask(taskQueue, taskId);
 };
+
+export const handleReadVideoMeta = async (_event: IpcMainInvokeEvent, input: string) => {
+  return readVideoMeta(input);
+};

@@ -17,6 +17,7 @@ import type {
   BiliupConfigAppend,
   VideoMergeOptions,
 } from "../types";
+import ffmpeg from "fluent-ffmpeg";
 
 // Custom APIs for renderer
 export const api = {
@@ -155,6 +156,9 @@ export const api = {
   },
   onBiliAppendClose: (callback: (_event: IpcRendererEvent, code: number) => void) => {
     ipcRenderer.once("append-close", callback);
+  },
+  readVideoMeta: async (file: string): Promise<ffmpeg.FfprobeData> => {
+    return await ipcRenderer.invoke("readVideoMeta", file);
   },
 
   // danmufactory

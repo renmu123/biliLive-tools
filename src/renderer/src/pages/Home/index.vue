@@ -148,12 +148,12 @@ const convert = async () => {
   }
 
   const videoIndex = fileList.value.findIndex((item) => item.ext === ".flv" || item.ext === ".mp4");
-  const videoFile = videoIndex === -1 ? [] : [fileList.value[videoIndex]];
+  const videoFiles = videoIndex === -1 ? [] : [fileList.value[videoIndex]];
 
   const assIndex = fileList.value.findIndex((item) => item.ext === ".xml" || item.ext === ".ass");
   const assFile = assIndex === -1 ? [] : [fileList.value[assIndex]];
 
-  if (videoFile.length === 0) {
+  if (videoFiles.length === 0) {
     notice.error({
       title: "请选择一个flv或者mp4文件",
       duration: 3000,
@@ -168,11 +168,14 @@ const convert = async () => {
     return;
   }
 
+  const videoMeta = await window.api.readVideoMeta(videoFiles[0]?.path);
+  const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
+
   // xml文件转换
-  const { canRemoveAssFile, targetAssFilePath } = await handleXmlFile(assFile);
+  const { canRemoveAssFile, targetAssFilePath } = await handleXmlFile(assFile, videoStream);
 
   // 视频转化
-  const { canRemoveVideo, targetVideoFilePath } = await handleVideoFile(videoFile, videoIndex);
+  const { canRemoveVideo, targetVideoFilePath } = await handleVideoFile(videoFiles, videoIndex);
 
   // 压制任务
   const output = await handleVideoMerge({
@@ -201,7 +204,7 @@ const convert = async () => {
 };
 
 // 处理xml文件
-const handleXmlFile = async (assFile: any) => {
+const handleXmlFile = async (assFile: any, videoStream: any) => {
   let targetAssFilePath: string;
   let canRemoveAssFile = false;
   if (assFile[0].ext === ".xml") {
@@ -214,9 +217,19 @@ const handleXmlFile = async (assFile: any) => {
       const status = await confirm.warning({
         content: `目标文件夹已存在 ${assFile[0].name}.ass 文件，继续将会覆盖此文件`,
       });
-      if (!status) throw new Error("取消");
+      if (!status) throw new Error("已取消");
     } else {
       canRemoveAssFile = true;
+    }
+
+    const { width, height } = videoStream || {};
+    console.log(width, height);
+    const danmuConfig = await window.api.getDanmuConfig();
+    if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
+      const status = await confirm.warning({
+        content: `目标视频为${width}*${height}，与设置的弹幕的分辨率不一致，如需更改分辨率可以去”弹幕设置“处进行修改，是否继续？`,
+      });
+      if (!status) throw new Error("已取消");
     }
 
     notice.warning({
