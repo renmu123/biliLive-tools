@@ -241,9 +241,9 @@ const isAdvancedMode = computed(() => {
 
 // @ts-ignore
 const config: Ref<DanmuConfig> = ref({
-  resolution: [],
-  msgboxsize: [],
-  msgboxpos: [],
+  resolution: [1920, 1080],
+  msgboxsize: [500, 1080],
+  msgboxpos: [20, 0],
 });
 
 const getConfig = async () => {
