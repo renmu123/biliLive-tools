@@ -58,7 +58,6 @@ jobs:
 
       - name: remove file
         run: |
-          # 使用 unzip 解压 ZIP 文件
           del bin.zip
 
       - name: build-win
