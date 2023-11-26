@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 
-import Client from "biliAPI";
+import { Client } from "@renmu/bili-api";
 import { BILIUP_COOKIE_PATH } from "./appConstant";
 import { type IpcMainInvokeEvent } from "electron";
 
