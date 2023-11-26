@@ -256,10 +256,10 @@ const handleXmlFile = async (assFile: any, videoStream: any) => {
   }
   if (targetAssFilePath.includes(" ")) {
     notice.error({
-      title: "弹幕文件路径中不允许存在空格",
+      title: "弹幕文件路径中存在空格时会压制错误",
       duration: 3000,
     });
-    throw new Error("弹幕文件路径中不允许存在空格");
+    throw new Error("弹幕文件路径中存在空格时会压制错误");
   }
   console.log("targetAssFilePath", targetAssFilePath);
   return {

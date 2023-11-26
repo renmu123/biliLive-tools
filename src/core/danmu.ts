@@ -14,11 +14,16 @@ export default class Danmu {
       if (["resolution", "msgboxsize", "msgboxpos"].includes(key)) {
         // @ts-ignore
         return `--${key} ${value.join("x")}`;
-      } else if (key === "blockmode" || key === "statmode") {
+      } else if (key === "blockmode") {
         // @ts-ignore
         if (value.length === 0) return `--${key} null`;
         // @ts-ignore
         return `--${key} ${value.join("-")}`;
+      } else if (key === "statmode") {
+        // @ts-ignore
+        if (value.length === 0) return ``;
+        // @ts-ignore
+        return `--${key} ${value.join(",")}`;
       } else if (key === "fontname") {
         return `--${key} "${value}"`;
       } else {

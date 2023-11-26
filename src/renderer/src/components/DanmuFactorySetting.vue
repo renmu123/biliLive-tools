@@ -139,7 +139,7 @@
         </n-form-item>
         <div>
           <n-form-item v-if="isAdvancedMode" label="调试" path="phone">
-            <n-checkbox-group v-model:value="config.blockmode">
+            <n-checkbox-group v-model:value="config.statmode">
               <n-space>
                 <n-checkbox value="TABLE"> 统计图 </n-checkbox>
                 <n-checkbox value="HISTOGRAM"> 直方图 </n-checkbox>

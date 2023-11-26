@@ -171,7 +171,7 @@ export const convertDanmu2Ass = async (
         await trashItem(input);
       }
     } catch (err) {
-      log.error("danmufactory exec error:", err);
+      log.error("danmufactory exec error:", err, danmu.command);
       result.push({ status: "error", text: String(err), input: input, meta: { err } });
     }
   }
