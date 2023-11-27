@@ -14,6 +14,7 @@ declare module 'vue' {
     DanmuFactorySetting: typeof import('./src/components/DanmuFactorySetting.vue')['default']
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']
     FileArea: typeof import('./src/components/FileArea.vue')['default']
+    ImageCrop: typeof import('./src/components/ImageCrop.vue')['default']
     NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']
     NCascader: typeof import('naive-ui')['NCascader']

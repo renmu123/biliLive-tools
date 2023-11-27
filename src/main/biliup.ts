@@ -87,7 +87,7 @@ const genBiliupOPtions = (options: BiliupConfig) => {
     if (key === "tag") {
       return `--${key} "${value.join(",")}"`;
     } else if (["title", "desc"].includes(key)) {
-      return `--${key} "${value.trim()}"`;
+      return `--${key} "${value.trim().replaceAll("\n", "\\n")}"`;
     } else if (key === "copyright") {
       if (value === 1) {
         return `--${key} ${value}`;
@@ -100,6 +100,12 @@ const genBiliupOPtions = (options: BiliupConfig) => {
       // do nothing
       return "";
     } else if (key === "dynamic") {
+      if (value) {
+        return `--${key} "${value}"`;
+      } else {
+        return "";
+      }
+    } else if (key === "cover") {
       if (value) {
         return `--${key} "${value}"`;
       } else {

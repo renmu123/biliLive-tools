@@ -33,6 +33,9 @@
           }"
         />
       </n-form-item>
+      <n-form-item label="视频封面">
+        <image-crop v-model="options.config.cover"></image-crop>
+      </n-form-item>
       <n-form-item label="空间动态">
         <n-input
           v-model:value="options.config.dynamic"

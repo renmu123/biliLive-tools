@@ -133,6 +133,7 @@ export interface BiliupConfig {
   tid: number; // 174 投稿分区
   source?: string; // 转载来源
   dynamic?: string; // 空间动态
+  cover?: string; // 封面
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {
