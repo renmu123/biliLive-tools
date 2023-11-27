@@ -1,10 +1,45 @@
-import { DANMU_DEAFULT_CONFIG } from "../main/danmu";
-
 import type { OpenDialogOptions as ElectronOpenDialogOptions } from "electron";
 import type { LogLevel as ElectronLoGLevel } from "electron-log";
 
-// 弹幕原始配置文件
-export type DanmuConfig = typeof DANMU_DEAFULT_CONFIG;
+// 弹幕配置
+export type DanmuConfig = {
+  resolution: [number, number];
+  scrolltime: number;
+  fixtime: number;
+  density: number;
+  fontname: string;
+  fontsize: number;
+  opacity: number;
+  outline: number;
+  shadow: number;
+  displayarea: number;
+  scrollarea: number;
+  bold: boolean;
+  showusernames: boolean;
+  showmsgbox: boolean;
+  msgboxsize: [number, number];
+  msgboxpos: [number, number];
+  msgboxfontsize: number;
+  msgboxduration: number;
+  giftminprice: number;
+  giftmergetolerance: number;
+  blockmode: ("R2L" | "L2R" | "TOP" | "BOTTOM" | "SPECIAL" | "COLOR" | "REPEAT")[];
+  statmode: ("TABLE" | "HISTOGRAM")[];
+};
+
+// 弹幕预设配置
+export type DanmuPreset = {
+  id: string;
+  name: string;
+  config: DanmuConfig;
+};
+
+// 通用预设
+export type CommonPreset<T> = {
+  id: string;
+  name: string;
+  config: T;
+};
 
 // 应用配置文件
 export interface AppConfig {

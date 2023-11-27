@@ -6,7 +6,6 @@ import { electronAPI } from "@electron-toolkit/preload";
 import type { IpcRendererEvent, SaveDialogOptions } from "electron";
 import type {
   Progress,
-  DanmuConfig,
   DanmuOptions,
   OpenDialogOptions,
   File,
@@ -16,11 +15,40 @@ import type {
   BiliupConfig,
   BiliupConfigAppend,
   VideoMergeOptions,
+  DanmuPreset,
 } from "../types";
 import ffmpeg from "fluent-ffmpeg";
 
 // Custom APIs for renderer
 export const api = {
+  danmu: {
+    savePreset: async (preset: DanmuPreset) => {
+      return await ipcRenderer.invoke("saveDanmuPreset", preset);
+    },
+    deletePreset: async (id: string) => {
+      return await ipcRenderer.invoke("deleteDanmuPreset", id);
+    },
+    getPreset: async (id: string): Promise<DanmuPreset> => {
+      return await ipcRenderer.invoke("readDanmuPreset", id);
+    },
+    getPresets: async (): Promise<DanmuPreset[]> => {
+      return await ipcRenderer.invoke("readDanmuPresets");
+    },
+    convertDanmu2Ass: async (
+      files: File[],
+      presetId: string,
+      options: DanmuOptions = {
+        saveRadio: 1,
+        saveOriginPath: true,
+        savePath: "",
+
+        override: false,
+        removeOrigin: false,
+      },
+    ) => {
+      return await ipcRenderer.invoke("convertDanmu2Ass", files, presetId, options);
+    },
+  },
   convertVideo2Mp4: async (
     file: File,
     options: DanmuOptions = {
@@ -159,27 +187,6 @@ export const api = {
   },
   readVideoMeta: async (file: string): Promise<ffmpeg.FfprobeData> => {
     return await ipcRenderer.invoke("readVideoMeta", file);
-  },
-
-  // danmufactory
-  saveDanmuConfig: async (newConfig: DanmuConfig) => {
-    return await ipcRenderer.invoke("saveDanmuConfig", newConfig);
-  },
-  getDanmuConfig: async (): Promise<DanmuConfig> => {
-    return await ipcRenderer.invoke("getDanmuConfig");
-  },
-  convertDanmu2Ass: async (
-    files: File[],
-    options: DanmuOptions = {
-      saveRadio: 1,
-      saveOriginPath: true,
-      savePath: "",
-
-      override: false,
-      removeOrigin: false,
-    },
-  ) => {
-    return await ipcRenderer.invoke("convertDanmu2Ass", files, options);
   },
 
   // app 配置相关

@@ -119,15 +119,13 @@
 
 <script setup lang="ts">
 import type { BiliupPreset } from "../../../types";
-import { deepRaw } from "@renderer/utils";
+import { deepRaw, uuid } from "@renderer/utils";
 import { useConfirm } from "@renderer/hooks";
-
-const confirm = useConfirm();
-
 // @ts-ignore
 import areaData from "@renderer/assets/area.json";
 import { cloneDeep } from "lodash-es";
 
+const confirm = useConfirm();
 const emits = defineEmits<{
   (event: "change", value: BiliupPreset): void;
 }>();
@@ -187,10 +185,6 @@ const handleTagChange = async (tags: string[]) => {
   }
 };
 
-const uuid = () => {
-  return Math.random().toString(36).slice(2);
-};
-
 const nameModelVisible = ref(false);
 const tempPresetName = ref("");
 const saveAnotherPreset = () => {
@@ -214,7 +208,7 @@ const saveAnotherPresetConfirm = async () => {
   nameModelVisible.value = false;
   notice.success({
     title: "保存成功",
-    duration: 5000,
+    duration: 1000,
   });
   await getPresets();
   presetId.value = preset.id;
@@ -237,7 +231,7 @@ const savePreset = async () => {
   await _savePreset(options.value);
   notice.success({
     title: "保存成功",
-    duration: 5000,
+    duration: 1000,
   });
 };
 

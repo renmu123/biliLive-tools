@@ -62,12 +62,32 @@
           <BiliSetting @change="handlePresetOptions"></BiliSetting>
         </n-tab-pane>
         <n-tab-pane name="danmukufactory-setting" tab="弹幕设置" display-directive="show">
+          <div class="flex" style="gap: 10px; align-items: center">
+            <span style="flex: none">预设</span>
+            <n-select
+              v-model:value="danmuPresetId"
+              :options="danmuPresetsOptions"
+              placeholder="选择预设"
+            />
+            <n-button type="primary" @click="danmuRefesh"> 刷新 </n-button>
+          </div>
+
           <DanmuFactorySetting
+            v-if="danmuPreset.id"
+            v-model="danmuPreset.config"
             :simpled-mode="simpledMode"
             @change="handleDanmuChange"
           ></DanmuFactorySetting>
-          <div class="footer" style="text-align: right">
+          <div
+            class="footer flex"
+            style="text-align: right; gap: 10px; justify-content: flex-end; align-items: center"
+          >
             <n-checkbox v-model:checked="simpledMode"> 简易模式 </n-checkbox>
+            <n-button v-if="danmuPresetId !== 'default'" type="error" @click="deleteDanmu"
+              >删除</n-button
+            >
+            <n-button type="primary" @click="renameDanmu">重命名</n-button>
+            <n-button type="primary" @click="saveAsDanmu">另存为</n-button>
           </div>
         </n-tab-pane>
         <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
@@ -75,6 +95,18 @@
         </n-tab-pane>
       </n-tabs>
     </n-scrollbar>
+
+    <n-modal v-model:show="nameModelVisible">
+      <n-card style="width: 600px" :bordered="false" role="dialog" aria-modal="true">
+        <n-input v-model:value="tempPresetName" placeholder="请输入预设名称" maxlength="15" />
+        <template #footer>
+          <div style="text-align: right">
+            <n-button @click="nameModelVisible = false">取消</n-button>
+            <n-button type="primary" style="margin-left: 10px" @click="saveConfirm">确认</n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
@@ -89,9 +121,16 @@ import BiliSetting from "@renderer/components/BiliSetting.vue";
 
 import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
-import { deepRaw } from "@renderer/utils";
+import { deepRaw, uuid } from "@renderer/utils";
+import { cloneDeep } from "lodash-es";
 
-import type { DanmuOptions, File, FfmpegOptions, DanmuConfig } from "../../../../types";
+import type {
+  DanmuOptions,
+  File,
+  FfmpegOptions,
+  DanmuConfig,
+  DanmuPreset,
+} from "../../../../types";
 
 const notice = useNotification();
 const confirm = useConfirm();
@@ -224,7 +263,7 @@ const handleXmlFile = async (assFile: any, videoStream: any) => {
 
     const { width, height } = videoStream || {};
     console.log(width, height);
-    const danmuConfig = await window.api.getDanmuConfig();
+    const danmuConfig = (await window.api.danmu.getPreset(danmuPresetId.value)).config;
     if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
       const status = await confirm.warning({
         content: `目标视频为${width}*${height}，与设置的弹幕的分辨率不一致，如需更改分辨率可以去”弹幕设置“处进行修改，是否继续？`,
@@ -236,7 +275,11 @@ const handleXmlFile = async (assFile: any, videoStream: any) => {
       title: "开始转换xml",
       duration: 3000,
     });
-    const result = await window.api.convertDanmu2Ass([toRaw(assFile[0])], toRaw(options.value));
+    const result = await window.api.danmu.convertDanmu2Ass(
+      [toRaw(assFile[0])],
+      danmuPresetId.value,
+      toRaw(options.value),
+    );
     console.log("xmlresult", result);
     const successResult = result.filter((item) => item.status === "success");
     if (successResult.length === 0) {
@@ -553,20 +596,96 @@ const handleFfmpegSettingChange = (value: FfmpegOptions) => {
 };
 
 const simpledMode = ref(true);
+
+const danmuPresetId = ref("default");
 // @ts-ignore
-const danmuConfig: Ref<DanmuConfig> = ref({
-  resolution: [],
-  msgboxsize: [],
-  msgboxpos: [],
+const danmuPreset: Ref<DanmuPreset> = ref({
+  config: {},
 });
 
+const danmuPresets = ref<DanmuPreset[]>([]);
+
+async function getDanmuPresets() {
+  danmuPresets.value = await window.api.danmu.getPresets();
+}
+const danmuPresetsOptions = computed(() => {
+  return danmuPresets.value.map((item) => {
+    return {
+      label: item.name,
+      value: item.id,
+    };
+  });
+});
+getDanmuPresets();
+
 const handleDanmuChange = (value: DanmuConfig) => {
-  danmuConfig.value = value;
+  danmuPreset.value.config = value;
   saveDanmuConfig();
 };
 const saveDanmuConfig = async () => {
-  await window.api.saveDanmuConfig(toRaw(danmuConfig.value));
+  window.api.danmu.savePreset(toRaw(danmuPreset.value));
 };
+const danmuRefesh = async () => {
+  await getDanmuPresets();
+  if (!danmuPresets.value.find((item) => item.id === danmuPresetId.value)) {
+    danmuPresetId.value = "default";
+  }
+};
+
+// 弹幕预设相关
+const nameModelVisible = ref(false);
+const tempPresetName = ref("");
+const isRename = ref(false);
+const renameDanmu = async () => {
+  tempPresetName.value = danmuPreset.value.name;
+  isRename.value = true;
+  nameModelVisible.value = true;
+};
+const saveAsDanmu = async () => {
+  isRename.value = false;
+  tempPresetName.value = "";
+  nameModelVisible.value = true;
+};
+const deleteDanmu = async () => {
+  const status = await confirm.warning({
+    content: "是否确认删除该预设？",
+  });
+  if (!status) return;
+  await window.api.danmu.deletePreset(danmuPresetId.value);
+  danmuPresetId.value = "default";
+  await getDanmuPresets();
+};
+
+const saveConfirm = async () => {
+  if (!tempPresetName.value) {
+    notice.warning({
+      title: "预设名称不得为空",
+      duration: 2000,
+    });
+    return;
+  }
+  const preset = cloneDeep(danmuPreset.value);
+  if (!isRename.value) preset.id = uuid();
+  preset.name = tempPresetName.value;
+
+  await window.api.danmu.savePreset(preset);
+  nameModelVisible.value = false;
+  notice.success({
+    title: "保存成功",
+    duration: 1000,
+  });
+  getDanmuPresets();
+};
+
+watch(
+  () => danmuPresetId.value,
+  async (value) => {
+    danmuPreset.value = await window.api.danmu.getPreset(value);
+  },
+  {
+    immediate: true,
+  },
+);
 
 // 杀死任务
 const killTask = () => {

@@ -13,7 +13,13 @@ import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
-import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
+import {
+  convertDanmu2Ass,
+  saveDanmuPreset,
+  deleteDanmuPreset,
+  readDanmuPreset,
+  readDanmuPresets,
+} from "./danmu";
 import {
   convertVideo2Mp4,
   mergeAssMp4,
@@ -84,9 +90,11 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("readVideoMeta", handleReadVideoMeta);
 
   // 弹幕相关
-  ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
-  ipcMain.handle("getDanmuConfig", getDanmuConfig);
   ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);
+  ipcMain.handle("saveDanmuPreset", saveDanmuPreset);
+  ipcMain.handle("deleteDanmuPreset", deleteDanmuPreset);
+  ipcMain.handle("readDanmuPreset", readDanmuPreset);
+  ipcMain.handle("readDanmuPresets", readDanmuPresets);
 
   // bilibili相关
   ipcMain.handle("biliApi:getArchives", biliApi.getArchives);
@@ -96,6 +104,8 @@ const genHandler = (ipcMain: IpcMain) => {
 
 const appConfig = getAppConfig();
 setFfmpegPath();
+
+let server: any;
 let mainWin: BrowserWindow;
 function createWindow(): void {
   // Create the browser window.
@@ -209,9 +219,10 @@ function createWindow(): void {
 
   if (appConfig.webhook.open) {
     // 新建监听
-    serverApp.listen(18010, () => {
+    server = serverApp.listen(18010, () => {
       log.info("server start");
     });
+    console.log(server);
   }
 
   // 检测更新
@@ -336,7 +347,7 @@ if (!gotTheLock) {
     if (process.platform !== "darwin") {
       app.quit();
     }
-    serverApp.close(() => {
+    server.close(() => {
       console.log("Express app is now closed");
     });
   });

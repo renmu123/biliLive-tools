@@ -228,6 +228,8 @@
 <script setup lang="ts">
 import type { DanmuConfig } from "../../../types";
 
+const config = defineModel<DanmuConfig>({ required: true, default: {} });
+
 const emits = defineEmits<{
   (event: "change", value: DanmuConfig): void;
 }>();
@@ -240,16 +242,11 @@ const isAdvancedMode = computed(() => {
 });
 
 // @ts-ignore
-const config: Ref<DanmuConfig> = ref({
-  resolution: [1920, 1080],
-  msgboxsize: [500, 1080],
-  msgboxpos: [20, 0],
-});
-
-const getConfig = async () => {
-  const data = await window.api.getDanmuConfig();
-  config.value = data;
-};
+// const config: Ref<DanmuConfig> = ref({
+//   resolution: [1920, 1080],
+//   msgboxsize: [500, 1080],
+//   msgboxpos: [20, 0],
+// });
 
 const fontOptions = ref([]);
 const getFonts = async () => {
@@ -263,7 +260,6 @@ const getFonts = async () => {
   });
 };
 onMounted(async () => {
-  await getConfig();
   getFonts();
 });
 
