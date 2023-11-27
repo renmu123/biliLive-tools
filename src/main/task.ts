@@ -125,7 +125,8 @@ export class FFmpegTask extends BaseTask {
   }
   kill() {
     if (this.status === "completed" || this.status === "error") return;
-    this.command.kill("SIGKILL");
+    // @ts-ignore
+    this.command.ffmpegProc.stdin.write("q");
     log.warn(`task ${this.taskId} killed`);
     this.status = "error";
     return true;

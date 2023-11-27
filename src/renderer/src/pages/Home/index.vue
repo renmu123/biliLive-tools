@@ -694,6 +694,7 @@ const killTask = () => {
       window.api.killTask(item.taskId);
     }
   });
+  new Error("任务已取消");
 };
 
 async function getDir() {
