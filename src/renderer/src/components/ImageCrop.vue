@@ -8,6 +8,7 @@
       @change="handleCoverChange"
     />
     <img
+      v-if="src"
       class="image"
       :src="src"
       :style="{
@@ -16,6 +17,17 @@
       }"
       @click="selectImage"
     />
+    <div
+      v-else
+      class="empty-image"
+      :style="{
+        height: props.height,
+        width: props.width,
+      }"
+      @click="selectImage"
+    >
+      选择图片
+    </div>
   </div>
 </template>
 
@@ -28,7 +40,7 @@ interface Props {
 }
 const props: Props = withDefaults(defineProps<Props>(), {
   height: "100px",
-  width: "100px",
+  width: "160px",
 });
 
 const handleCoverChange = (e: Event) => {
@@ -47,5 +59,15 @@ const selectImage = () => {
 <style scoped lang="less">
 .image {
   cursor: pointer;
+}
+
+.empty-image {
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px dashed #ccc;
+  cursor: pointer;
+  color: #666;
 }
 </style>

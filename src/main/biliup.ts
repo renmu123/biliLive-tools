@@ -20,6 +20,7 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   tid: 138,
   source: "",
   dynamic: "",
+  cover: "",
 };
 
 const uploadPreset = new UploadPreset(UPLOAD_PRESET_PATH);

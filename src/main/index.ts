@@ -250,13 +250,24 @@ function createMenu(): void {
     {
       label: "检测更新",
       click: async () => {
-        const status = await checkUpdate();
-        console.log(status);
-        if (status) {
-          dialog.showMessageBox(mainWin, {
-            message: "当前已经是最新版本",
-            buttons: ["确认"],
+        try {
+          const status = await checkUpdate();
+          console.log(status);
+          if (status) {
+            dialog.showMessageBox(mainWin, {
+              message: "当前已经是最新版本",
+              buttons: ["确认"],
+            });
+          }
+        } catch (error) {
+          log.error(error);
+          const confirm = await dialog.showMessageBox(mainWin, {
+            message: "检查更新失败，请前往仓库查看",
+            buttons: ["取消", "确认"],
           });
+          if (confirm.response === 1) {
+            shell.openExternal("https://github.com/renmu123/biliLive-tools/releases");
+          }
         }
       },
     },
@@ -414,6 +425,7 @@ const checkUpdate = async () => {
   const res = await fetch(
     "https://raw.githubusercontent.com/renmu123/biliLive-tools/master/package.json",
   );
+  console.log(res);
   const data = await res.json();
   const latestVersion = data.version;
   const version = app.getVersion();

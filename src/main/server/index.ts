@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", function (_req, res) {
-  res.send("Hello World111");
+  res.send("Hello World");
 });
 
 app.post("/webhook", async function (req, res) {
