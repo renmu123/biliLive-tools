@@ -241,13 +241,6 @@ const isAdvancedMode = computed(() => {
   return !props.simpledMode;
 });
 
-// @ts-ignore
-// const config: Ref<DanmuConfig> = ref({
-//   resolution: [1920, 1080],
-//   msgboxsize: [500, 1080],
-//   msgboxpos: [20, 0],
-// });
-
 const fontOptions = ref([]);
 const getFonts = async () => {
   // @ts-ignore

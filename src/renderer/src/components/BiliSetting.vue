@@ -33,7 +33,13 @@
           }"
         />
       </n-form-item>
-      <n-form-item label="视频封面">
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            <span>封面</span>
+            <Tip tip="不设置默认使用视频第一帧"></Tip>
+          </span>
+        </template>
         <image-crop v-model="options.config.cover"></image-crop>
       </n-form-item>
       <n-form-item label="空间动态">
@@ -101,7 +107,7 @@
       <n-button type="primary" style="margin-left: 10px" @click="saveAnotherPreset"
         >另存为</n-button
       >
-      <n-button type="primary" style="margin-left: 10px" @click="savePreset">保存</n-button>
+      <n-button type="primary" style="margin-left: 10px" @click="savePreset">保存预设</n-button>
     </div>
 
     <n-modal v-model:show="nameModelVisible">

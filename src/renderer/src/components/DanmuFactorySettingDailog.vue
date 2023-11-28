@@ -49,6 +49,8 @@ import type { DanmuPreset } from "../../../types";
 import DanmuFactorySetting from "./DanmuFactorySetting.vue";
 import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
+import { useDanmuPreset } from "@renderer/stores";
+
 import { cloneDeep } from "lodash-es";
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
@@ -59,8 +61,8 @@ const emits = defineEmits<{
 
 const notice = useNotification();
 const confirmDialog = useConfirm();
+const { getDanmuPresets, getDanmuPreset } = useDanmuPreset();
 
-console.log(presetId.value);
 const simpledMode = ref(true);
 
 // @ts-ignore
@@ -76,6 +78,8 @@ const saveConfig = async () => {
 };
 
 const confirm = () => {
+  getDanmuPresets();
+  getDanmuPreset();
   emits("confirm");
   close();
 };
@@ -109,8 +113,8 @@ const deletePreset = async () => {
   });
   if (!status) return;
   await window.api.danmu.deletePreset(presetId.value);
-  confirm();
   presetId.value = "default";
+  confirm();
 };
 
 const nameModelVisible = ref(false);

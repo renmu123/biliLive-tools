@@ -4,8 +4,8 @@
     <div class="flex justify-center align-center" style="margin-bottom: 20px; gap: 10px">
       <n-button type="primary" @click="convert"> 立即转换 </n-button>
       <n-select
-        v-model:value="presetId"
-        :options="presetsOptions"
+        v-model:value="danmuPresetId"
+        :options="danmuPresetsOptions"
         placeholder="选择预设"
         style="width: 140px"
       />
@@ -58,19 +58,22 @@
     </div>
     <DanmuFactorySettingDailog
       v-model:visible="show"
-      v-model="presetId"
-      @confirm="getPresets"
+      v-model="danmuPresetId"
     ></DanmuFactorySettingDailog>
   </div>
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
+
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
-import type { DanmuOptions, File, DanmuPreset } from "../../../../../types";
+import type { DanmuOptions, File } from "../../../../../types";
 import { deepRaw } from "@renderer/utils";
-
+import { useDanmuPreset } from "@renderer/stores";
 import { Settings as SettingIcon } from "@vicons/ionicons5";
+
+const { danmuPresetsOptions, danmuPresetId } = storeToRefs(useDanmuPreset());
 
 const notice = useNotification();
 
@@ -95,6 +98,7 @@ const clientOptions = ref({
 const disabled = ref(false);
 
 const convert = async () => {
+  const presetId = danmuPresetId.value;
   if (fileList.value.length === 0) {
     notice.error({
       title: `至少选择一个文件`,
@@ -110,7 +114,7 @@ const convert = async () => {
   try {
     const result = await window.api.danmu.convertDanmu2Ass(
       deepRaw(fileList.value),
-      presetId.value,
+      presetId,
       deepRaw(options.value),
     );
     const successResult = result.filter((item) => item.status === "success");
@@ -152,23 +156,6 @@ async function getDir() {
   const path = await window.api.openDirectory();
   options.value.savePath = path;
 }
-
-const presetId = ref("default");
-const presets = ref<DanmuPreset[]>([]);
-
-async function getPresets() {
-  presets.value = await window.api.danmu.getPresets();
-}
-const presetsOptions = computed(() => {
-  return presets.value.map((item) => {
-    return {
-      label: item.name,
-      value: item.id,
-    };
-  });
-});
-console.log("ppp", presetsOptions.value);
-getPresets();
 </script>
 
 <style scoped lang="less">

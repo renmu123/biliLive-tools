@@ -155,7 +155,7 @@
     </n-card>
   </n-modal>
 
-  <n-modal v-model:show="setRoomVisible" :mask-closable="false" :on-after-enter="handleAddRoomOpen">
+  <n-modal v-model:show="setRoomVisible" :mask-closable="false">
     <n-card :bordered="false" size="small" role="dialog" aria-modal="true" style="width: 400px">
       <n-input v-model:value="tempRoomId" placeholder="请输入房间号" />
       <template #footer>
@@ -291,9 +291,15 @@ const presetsOptions = computed(() => {
 // 房间号设置
 const setRoomVisible = ref(false);
 const tempRoomId = ref("");
-const handleAddRoomOpen = () => {
-  tempRoomId.value = "";
-};
+watch(
+  () => setRoomVisible.value,
+  (val) => {
+    if (val) {
+      tempRoomId.value = "";
+    }
+  },
+);
+
 const saveRoom = () => {
   if (!tempRoomId.value) return;
   console.log(config.value.webhook.rooms);

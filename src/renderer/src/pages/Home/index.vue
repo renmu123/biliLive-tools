@@ -69,7 +69,6 @@
               :options="danmuPresetsOptions"
               placeholder="选择预设"
             />
-            <n-button type="primary" @click="danmuRefesh"> 刷新 </n-button>
           </div>
 
           <DanmuFactorySetting
@@ -115,25 +114,25 @@ defineOptions({
   name: "Home",
 });
 
+import { storeToRefs } from "pinia";
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 
 import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
+import { useDanmuPreset } from "@renderer/stores";
+
 import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 
-import type {
-  DanmuOptions,
-  File,
-  FfmpegOptions,
-  DanmuConfig,
-  DanmuPreset,
-} from "../../../../types";
+import type { DanmuOptions, File, FfmpegOptions, DanmuConfig } from "../../../../types";
 
 const notice = useNotification();
 const confirm = useConfirm();
+const { danmuPresetsOptions, danmuPresetId, danmuPreset } = storeToRefs(useDanmuPreset());
+const { getDanmuPresets } = useDanmuPreset();
+
 const { handlePresetOptions, presetOptions } = useBili();
 
 const fileList = ref<
@@ -597,39 +596,12 @@ const handleFfmpegSettingChange = (value: FfmpegOptions) => {
 
 const simpledMode = ref(true);
 
-const danmuPresetId = ref("default");
-// @ts-ignore
-const danmuPreset: Ref<DanmuPreset> = ref({
-  config: {},
-});
-
-const danmuPresets = ref<DanmuPreset[]>([]);
-
-async function getDanmuPresets() {
-  danmuPresets.value = await window.api.danmu.getPresets();
-}
-const danmuPresetsOptions = computed(() => {
-  return danmuPresets.value.map((item) => {
-    return {
-      label: item.name,
-      value: item.id,
-    };
-  });
-});
-getDanmuPresets();
-
 const handleDanmuChange = (value: DanmuConfig) => {
   danmuPreset.value.config = value;
   saveDanmuConfig();
 };
 const saveDanmuConfig = async () => {
   window.api.danmu.savePreset(toRaw(danmuPreset.value));
-};
-const danmuRefesh = async () => {
-  await getDanmuPresets();
-  if (!danmuPresets.value.find((item) => item.id === danmuPresetId.value)) {
-    danmuPresetId.value = "default";
-  }
 };
 
 // 弹幕预设相关
@@ -708,8 +680,5 @@ async function getDir() {
   :deep(.n-radio) {
     align-items: center;
   }
-}
-
-.tabs {
 }
 </style>
