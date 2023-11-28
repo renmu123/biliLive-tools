@@ -4,6 +4,8 @@
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
         <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
+        <n-button v-if="disabled" type="primary" @click="stopTask"> 暂停任务 </n-button>
+        <n-button v-if="disabled" type="primary" @click="resumeTask"> 继续任务 </n-button>
         <n-button v-if="disabled" type="error" @click="killTask"> 结束任务 </n-button>
       </div>
       <p v-if="timemark">预计剩余处理时间：{{ timemark }}</p>
@@ -670,10 +672,37 @@ watch(
 const killTask = () => {
   fileList.value.forEach((item) => {
     if (item.taskId) {
-      window.api.killTask(item.taskId);
+      window.api.task.kill(item.taskId);
     }
   });
-  new Error("任务已取消");
+  notice.warning({
+    title: "任务已取消",
+    duration: 2000,
+  });
+};
+
+const stopTask = () => {
+  fileList.value.forEach((item) => {
+    if (item.taskId) {
+      window.api.task.pause(item.taskId);
+    }
+  });
+  notice.warning({
+    title: "任务已暂停",
+    duration: 2000,
+  });
+};
+
+const resumeTask = () => {
+  fileList.value.forEach((item) => {
+    if (item.taskId) {
+      window.api.task.resume(item.taskId);
+    }
+  });
+  notice.success({
+    title: "任务已继续",
+    duration: 2000,
+  });
 };
 
 async function getDir() {

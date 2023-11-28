@@ -277,13 +277,17 @@ export const mergeVideos = async (
 export const handlePauseTask = (_event: IpcMainInvokeEvent, taskId: string) => {
   return pauseTask(taskQueue, taskId);
 };
-
 export const handleResumeTask = (_event: IpcMainInvokeEvent, taskId: string) => {
   return resumeTask(taskQueue, taskId);
 };
-
 export const handleKillTask = (_event: IpcMainInvokeEvent, taskId: string) => {
   return killTask(taskQueue, taskId);
+};
+export const handleGetTaskList = () => {
+  return taskQueue.list();
+};
+export const handleGetTask = (_event: IpcMainInvokeEvent, taskId: string) => {
+  return taskQueue.queryTask(taskId);
 };
 
 export const handleReadVideoMeta = async (_event: IpcMainInvokeEvent, input: string) => {

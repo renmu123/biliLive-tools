@@ -49,6 +49,17 @@ export const api = {
       return await ipcRenderer.invoke("convertDanmu2Ass", files, presetId, options);
     },
   },
+  task: {
+    pause: async (taskId: string) => {
+      return await ipcRenderer.invoke("pauseTask", taskId);
+    },
+    resume: async (taskId: string) => {
+      return await ipcRenderer.invoke("resumeTask", taskId);
+    },
+    kill: async (taskId: string) => {
+      return await ipcRenderer.invoke("killTask", taskId);
+    },
+  },
   convertVideo2Mp4: async (
     file: File,
     options: DanmuOptions = {
@@ -61,15 +72,6 @@ export const api = {
     },
   ) => {
     return await ipcRenderer.invoke("convertVideo2Mp4", file, options);
-  },
-  pauseTask: async (taskId: string) => {
-    return await ipcRenderer.invoke("pauseTask", taskId);
-  },
-  resumeTask: async (taskId: string) => {
-    return await ipcRenderer.invoke("resumeTask", taskId);
-  },
-  killTask: async (taskId: string) => {
-    return await ipcRenderer.invoke("killTask", taskId);
   },
 
   onTaskProgressUpdate: (

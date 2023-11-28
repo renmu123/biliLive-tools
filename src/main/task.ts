@@ -1,6 +1,7 @@
-import { uuid } from "./utils/index";
+import { uuid, isWin32 } from "./utils/index";
 import log from "./utils/log";
 import type ffmpeg from "fluent-ffmpeg";
+import ntsuspend from "ntsuspend";
 
 import type { WebContents } from "electron";
 import type { Progress } from "../types";
@@ -111,14 +112,24 @@ export class FFmpegTask extends BaseTask {
   }
   pause() {
     if (this.status !== "running") return;
-    this.command.kill("SIGSTOP");
+    if (isWin32) {
+      // @ts-ignore
+      ntsuspend.suspend(this.command.ffmpegProc.pid);
+    } else {
+      this.command.kill("SIGSTOP");
+    }
     log.warn(`task ${this.taskId} paused`);
     this.status = "paused";
     return true;
   }
   resume() {
     if (this.status !== "paused") return;
-    this.command.kill("SIGCONT");
+    if (isWin32) {
+      // @ts-ignore
+      ntsuspend.resume(this.command.ffmpegProc.pid);
+    } else {
+      this.command.kill("SIGCONT");
+    }
     log.warn(`task ${this.taskId} resumed`);
     this.status = "running";
     return true;
@@ -145,6 +156,9 @@ export class TaskQueue {
   }
   queryTask(taskId: string) {
     return this.queue.find((task) => task.taskId === taskId);
+  }
+  list() {
+    return this.queue;
   }
 }
 
