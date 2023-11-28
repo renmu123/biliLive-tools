@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { DanmuPreset } from "../../../types";
+import { DanmuPreset, BiliupPreset } from "../../../types";
 
 export const useUserInfoStore = defineStore("userInfo", () => {
   const userInfo = ref({
@@ -75,21 +75,21 @@ export const useDanmuPreset = defineStore("danmuPreset", () => {
 
 export const useUploadPreset = defineStore("uploadPreset", () => {
   const upladPresetId = ref("default");
-  const danmuPresets = ref<DanmuPreset[]>([]);
+  const uploadPresets = ref<BiliupPreset[]>([]);
   // @ts-ignore
-  const danmuPreset: Ref<DanmuPreset> = ref({
+  const uploadPreset: Ref<BiliupPreset> = ref({
     config: {},
   });
 
-  async function getDanmuPresets() {
-    danmuPresets.value = await window.api.danmu.getPresets();
+  async function getUploadPresets() {
+    uploadPresets.value = await window.api.readBiliupPresets();
   }
-  async function getDanmuPreset() {
-    danmuPreset.value = await window.api.danmu.getPreset(upladPresetId.value);
+  async function getUploadPreset() {
+    uploadPreset.value = await window.api.readBiliupPreset(upladPresetId.value);
   }
 
-  const danmuPresetsOptions = computed(() => {
-    return danmuPresets.value.map((item) => {
+  const uploaPresetsOptions = computed(() => {
+    return uploadPresets.value.map((item) => {
       return {
         label: item.name,
         value: item.id,
@@ -100,19 +100,19 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
   watch(
     upladPresetId,
     () => {
-      getDanmuPreset();
+      getUploadPreset();
     },
     { immediate: true },
   );
 
-  getDanmuPresets();
+  getUploadPresets();
 
   return {
-    danmuPresets,
-    getDanmuPresets,
-    danmuPresetsOptions,
+    uploadPresets,
+    getUploadPresets,
+    uploaPresetsOptions,
     upladPresetId,
-    danmuPreset,
-    getDanmuPreset,
+    uploadPreset,
+    getUploadPreset,
   };
 });

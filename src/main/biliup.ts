@@ -154,11 +154,6 @@ export const checkBiliCookie = async () => {
   return await fs.pathExists(cookiePath);
 };
 
-// 读取biliup预设
-export const readBiliupPresets = async (): Promise<BiliupPreset[]> => {
-  return uploadPreset.readBiliupPresets();
-};
-
 // 验证配置
 export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: BiliupConfig) => {
   let msg: string | undefined = undefined;
@@ -193,6 +188,10 @@ export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: B
   return false;
 };
 
+// 读取biliup预设
+export const readBiliupPresets = async (): Promise<BiliupPreset[]> => {
+  return uploadPreset.readBiliupPresets();
+};
 // 保存biliup预设
 export const saveBiliupPreset = async (_event: IpcMainInvokeEvent, presets: BiliupPreset) => {
   return uploadPreset.saveBiliupPreset(presets);

@@ -169,6 +169,9 @@ export const api = {
   readBiliupPresets: async (): Promise<BiliupPreset[]> => {
     return await ipcRenderer.invoke("readBiliupPresets");
   },
+  readBiliupPreset: async (id: string): Promise<BiliupPreset> => {
+    return await ipcRenderer.invoke("readBiliupPreset", id);
+  },
   saveBiliupPreset: async (presets: BiliupPreset) => {
     return await ipcRenderer.invoke("saveBiliupPreset", presets);
   },

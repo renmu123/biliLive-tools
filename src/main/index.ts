@@ -38,6 +38,7 @@ import {
   readQrCode,
   checkBiliCookie,
   readBiliupPresets,
+  readBiliupPreset,
   saveBiliupPreset,
   deleteBiliupPreset,
   saveBiliCookie,
@@ -84,6 +85,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("checkBiliCookie", checkBiliCookie);
   ipcMain.handle("deleteBiliCookie", deleteBiliCookie);
   ipcMain.handle("readBiliupPresets", readBiliupPresets);
+  ipcMain.handle("readBiliupPreset", readBiliupPreset);
   ipcMain.handle("saveBiliupPreset", saveBiliupPreset);
   ipcMain.handle("deleteBiliupPreset", deleteBiliupPreset);
   ipcMain.handle("validateBiliupConfig", validateBiliupConfig);

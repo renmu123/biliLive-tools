@@ -5,7 +5,7 @@
       <n-form-item label="预设">
         <n-select
           v-model:value="presetId"
-          :options="presetsOptions"
+          :options="uploaPresetsOptions"
           @update:value="handlePresetChange"
         />
       </n-form-item>
@@ -127,40 +127,31 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
+
 import type { BiliupPreset } from "../../../types";
 import { deepRaw, uuid } from "@renderer/utils";
 import { useConfirm } from "@renderer/hooks";
+import { useUploadPreset } from "@renderer/stores";
 // @ts-ignore
 import areaData from "@renderer/assets/area.json";
 import { cloneDeep } from "lodash-es";
 
 const confirm = useConfirm();
+const { getUploadPresets } = useUploadPreset();
+const { uploaPresetsOptions } = storeToRefs(useUploadPreset());
 const emits = defineEmits<{
   (event: "change", value: BiliupPreset): void;
 }>();
 
 const presetId = ref<string>("default");
 
-const presets = ref<BiliupPreset[]>([]);
-
-const getPresets = async () => {
-  presets.value = await window.api.readBiliupPresets();
-};
-const presetsOptions = computed(() => {
-  return presets.value.map((item) => {
-    return {
-      label: item.name,
-      value: item.id,
-    };
-  });
-});
-
 // @ts-ignore
 const options: Ref<BiliupPreset> = ref({
   config: {},
 });
-const handlePresetChange = (value: string) => {
-  const preset = presets.value.find((item) => item.id === value);
+const handlePresetChange = async (value: string) => {
+  const preset = await window.api.readBiliupPreset(value);
   if (preset) {
     options.value = preset;
   } else {
@@ -175,7 +166,6 @@ const handlePresetChange = (value: string) => {
 const noSideSpace = (value: string) => !value.startsWith(" ") && !value.endsWith(" ");
 
 onMounted(async () => {
-  await getPresets();
   handlePresetChange(presetId.value);
 });
 
@@ -219,7 +209,7 @@ const saveAnotherPresetConfirm = async () => {
     title: "保存成功",
     duration: 1000,
   });
-  await getPresets();
+  getUploadPresets();
   presetId.value = preset.id;
 };
 
@@ -231,7 +221,7 @@ const deletePreset = async () => {
 
   const id = options.value.id;
   await window.api.deleteBiliupPreset(id);
-  await getPresets();
+  getUploadPresets();
   presetId.value = "default";
   handlePresetChange("default");
 };
