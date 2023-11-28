@@ -67,6 +67,48 @@ export default class Biliup {
       log.info(`exit ${code} ${signal}}`);
     });
   }
+  appendVideo(videoPaths: string[], args: string[]) {
+    if (!this.execPath) {
+      throw new Error("未设置biliup路径");
+    }
+    if (!this.cookieFile) {
+      throw new Error("未设置cookie文件");
+    }
+
+    const params = [
+      `--user-cookie ${this.cookieFile}`,
+      "append",
+      ...args,
+      videoPaths.map((path) => `"${path}"`).join(" "),
+    ];
+    log.info(`${this.execPath} ${params.join(" ")}`);
+
+    this.biliup = spawn(this.execPath!, params, {
+      shell: true,
+      detached: true,
+    });
+    this.biliup.stdout.on("data", (data) => {
+      console.log(data);
+    });
+
+    this.biliup.stderr.on("data", (data) => {
+      // this.emits.emit("error", data);
+      log.info(`stderr: ${data}`);
+    });
+
+    this.biliup.on("close", (code) => {
+      this.emits.emit("close", code);
+      log.info(`child process exited with code ${code}`);
+    });
+    this.biliup.on("error", (error) => {
+      // this.emits.emit("error", error);
+      log.error(`error ${error}`);
+    });
+    this.biliup.on("exit", (code, signal) => {
+      // this.emits.emit("error", code);
+      log.info(`exit ${code} ${signal}}`);
+    });
+  }
   on(event: string, listener: (...args: any[]) => void) {
     this.emits.on(event, listener);
     return this;

@@ -94,3 +94,5 @@ export const trashItem = async (path: string) => {
     fs.unlink(path);
   }
 };
+
+export const isWin32 = process.platform === "win32";

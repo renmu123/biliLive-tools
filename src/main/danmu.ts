@@ -1,13 +1,13 @@
 import { join } from "path";
-
 import { type IpcMainInvokeEvent } from "electron";
 
-import Config from "./utils/config";
 import { pathExists, trashItem } from "./utils/index";
 import log from "./utils/log";
+import CommonPreset from "./utils/preset";
 import { Danmu } from "../core/index";
+import { DANMU_PRESET_PATH } from "./appConstant";
 
-import type { DanmuConfig, File, DanmuOptions } from "../types";
+import type { DanmuConfig, File, DanmuOptions, DanmuPreset as DanmuPresetType } from "../types";
 
 const DANMUKUFACTORY_PATH = join(__dirname, "../../resources/bin/DanmakuFactory.exe").replace(
   "app.asar",
@@ -15,7 +15,7 @@ const DANMUKUFACTORY_PATH = join(__dirname, "../../resources/bin/DanmakuFactory.
 );
 log.info(`DANMUKUFACTORY_PATH: ${DANMUKUFACTORY_PATH}`);
 
-export const DANMU_DEAFULT_CONFIG = {
+export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   resolution: [1920, 1080],
   scrolltime: 12.0,
   fixtime: 5.0,
@@ -40,23 +40,10 @@ export const DANMU_DEAFULT_CONFIG = {
   statmode: [],
 };
 
-const getConfig = () => {
-  const config = new Config("DanmakuFactoryConfig.json");
-  return config;
-};
-
-export const saveDanmuConfig = (_event: IpcMainInvokeEvent, newConfig: DanmuConfig) => {
-  const config = getConfig();
-  config.setAll(newConfig);
-};
-export const getDanmuConfig = () => {
-  const config = getConfig();
-  return { ...DANMU_DEAFULT_CONFIG, ...config.data };
-};
-
 export const convertDanmu2Ass = async (
   _event: IpcMainInvokeEvent,
   files: File[],
+  presetId: string,
   options: DanmuOptions = {
     saveRadio: 1,
     saveOriginPath: true,
@@ -123,7 +110,7 @@ export const convertDanmu2Ass = async (
       }
     }
 
-    const argsObj = getDanmuConfig();
+    const argsObj = (await danmuPreset.get(presetId)).config;
 
     try {
       const { stdout, stderr } = await danmu.convertXml2Ass(input, output, argsObj);
@@ -171,10 +158,30 @@ export const convertDanmu2Ass = async (
         await trashItem(input);
       }
     } catch (err) {
-      log.error("danmufactory exec error:", err);
+      log.error("danmufactory exec error:", err, danmu.command);
       result.push({ status: "error", text: String(err), input: input, meta: { err } });
     }
   }
 
   return result;
+};
+
+const danmuPreset = new CommonPreset(DANMU_PRESET_PATH, DANMU_DEAFULT_CONFIG);
+// 保存弹幕预设
+export const saveDanmuPreset = async (_event: IpcMainInvokeEvent, presets: DanmuPresetType) => {
+  return danmuPreset.save(presets);
+};
+// 删除弹幕预设
+export const deleteDanmuPreset = async (_event: IpcMainInvokeEvent, id: string) => {
+  return await danmuPreset.delete(id);
+};
+// 读取弹幕预设
+export const readDanmuPreset = async (_event: IpcMainInvokeEvent, id: string) => {
+  const preset = await danmuPreset.get(id);
+  return preset;
+};
+// 读取所有弹幕预设
+export const readDanmuPresets = async () => {
+  const presets = await danmuPreset.list();
+  return presets;
 };

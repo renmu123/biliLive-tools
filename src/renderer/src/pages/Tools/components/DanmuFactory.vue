@@ -1,9 +1,15 @@
 <!-- 将文件转换为mp4 -->
 <template>
   <div>
-    <div class="flex justify-center align-center" style="margin-bottom: 20px">
+    <div class="flex justify-center align-center" style="margin-bottom: 20px; gap: 10px">
       <n-button type="primary" @click="convert"> 立即转换 </n-button>
-      <n-icon size="25" class="pointer" style="margin-left: 10px" @click="openSetting">
+      <n-select
+        v-model:value="danmuPresetId"
+        :options="danmuPresetsOptions"
+        placeholder="选择预设"
+        style="width: 140px"
+      />
+      <n-icon size="25" class="pointer" @click="openSetting">
         <SettingIcon />
       </n-icon>
     </div>
@@ -50,17 +56,24 @@
         </n-checkbox>
       </div>
     </div>
-    <DanmuFactorySettingDailog v-model="show"></DanmuFactorySettingDailog>
+    <DanmuFactorySettingDailog
+      v-model:visible="show"
+      v-model="danmuPresetId"
+    ></DanmuFactorySettingDailog>
   </div>
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
+
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import type { DanmuOptions, File } from "../../../../../types";
 import { deepRaw } from "@renderer/utils";
-
+import { useDanmuPreset } from "@renderer/stores";
 import { Settings as SettingIcon } from "@vicons/ionicons5";
+
+const { danmuPresetsOptions, danmuPresetId } = storeToRefs(useDanmuPreset());
 
 const notice = useNotification();
 
@@ -85,6 +98,7 @@ const clientOptions = ref({
 const disabled = ref(false);
 
 const convert = async () => {
+  const presetId = danmuPresetId.value;
   if (fileList.value.length === 0) {
     notice.error({
       title: `至少选择一个文件`,
@@ -98,8 +112,9 @@ const convert = async () => {
     duration: 3000,
   });
   try {
-    const result = await window.api.convertDanmu2Ass(
+    const result = await window.api.danmu.convertDanmu2Ass(
       deepRaw(fileList.value),
+      presetId,
       deepRaw(options.value),
     );
     const successResult = result.filter((item) => item.status === "success");

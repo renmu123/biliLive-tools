@@ -2,15 +2,13 @@
 <template>
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
-      <div>
+      <div class="flex" style="gap: 10px">
         <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
-        <n-button v-if="disabled" type="primary" style="margin-left: 10px" @click="killTask">
-          结束任务
-        </n-button>
-        <n-button type="primary" style="margin-left: 10px" @click="login"> 登录 </n-button>
+        <n-button v-if="disabled" type="primary" @click="stopTask"> 暂停任务 </n-button>
+        <n-button v-if="disabled" type="primary" @click="resumeTask"> 继续任务 </n-button>
+        <n-button v-if="disabled" type="error" @click="killTask"> 结束任务 </n-button>
       </div>
-      <p>{{ hasLogin ? "已获取到登录信息" : "" }}</p>
-      <p v-if="timemark">已处理视频时间：{{ timemark }}</p>
+      <p v-if="timemark">预计剩余处理时间：{{ timemark }}</p>
     </div>
 
     <FileArea
@@ -64,16 +62,33 @@
         </n-tab-pane>
         <n-tab-pane name="upload-setting" tab="上传设置" display-directive="show">
           <BiliSetting @change="handlePresetOptions"></BiliSetting>
-          <BiliLoginDialog v-model="loginDialogVisible" :succeess="loginStatus"> </BiliLoginDialog>
         </n-tab-pane>
         <n-tab-pane name="danmukufactory-setting" tab="弹幕设置" display-directive="show">
+          <div class="flex" style="gap: 10px; align-items: center">
+            <span style="flex: none">预设</span>
+            <n-select
+              v-model:value="danmuPresetId"
+              :options="danmuPresetsOptions"
+              placeholder="选择预设"
+            />
+          </div>
+
           <DanmuFactorySetting
+            v-if="danmuPreset.id"
+            v-model="danmuPreset.config"
             :simpled-mode="simpledMode"
             @change="handleDanmuChange"
           ></DanmuFactorySetting>
-          <div class="footer" style="text-align: right">
+          <div
+            class="footer flex"
+            style="text-align: right; gap: 10px; justify-content: flex-end; align-items: center"
+          >
             <n-checkbox v-model:checked="simpledMode"> 简易模式 </n-checkbox>
-            <n-button type="primary" class="btn" @click="saveDanmuConfig"> 确认 </n-button>
+            <n-button v-if="danmuPresetId !== 'default'" type="error" @click="deleteDanmu"
+              >删除</n-button
+            >
+            <n-button type="primary" @click="renameDanmu">重命名</n-button>
+            <n-button type="primary" @click="saveAsDanmu">另存为</n-button>
           </div>
         </n-tab-pane>
         <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
@@ -81,6 +96,18 @@
         </n-tab-pane>
       </n-tabs>
     </n-scrollbar>
+
+    <n-modal v-model:show="nameModelVisible">
+      <n-card style="width: 600px" :bordered="false" role="dialog" aria-modal="true">
+        <n-input v-model:value="tempPresetName" placeholder="请输入预设名称" maxlength="15" />
+        <template #footer>
+          <div style="text-align: right">
+            <n-button @click="nameModelVisible = false">取消</n-button>
+            <n-button type="primary" style="margin-left: 10px" @click="saveConfirm">确认</n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
@@ -89,21 +116,26 @@ defineOptions({
   name: "Home",
 });
 
+import { storeToRefs } from "pinia";
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
-import BiliLoginDialog from "@renderer/components/BiliLoginDialog.vue";
 
 import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
-import { deepRaw } from "@renderer/utils";
+import { useDanmuPreset } from "@renderer/stores";
+
+import { deepRaw, uuid, formatSeconds } from "@renderer/utils";
+import { cloneDeep } from "lodash-es";
 
 import type { DanmuOptions, File, FfmpegOptions, DanmuConfig } from "../../../../types";
 
 const notice = useNotification();
 const confirm = useConfirm();
-const { hasLogin, handlePresetOptions, login, loginStatus, loginDialogVisible, presetOptions } =
-  useBili();
+const { danmuPresetsOptions, danmuPresetId, danmuPreset } = storeToRefs(useDanmuPreset());
+const { getDanmuPresets } = useDanmuPreset();
+
+const { handlePresetOptions, presetOptions } = useBili();
 
 const fileList = ref<
   (File & {
@@ -146,16 +178,22 @@ const convert = async () => {
 
   if (clientOptions.value.upload) {
     const valid = await biliUpCheck();
-    if (!valid) return;
+    if (!valid) {
+      notice.error({
+        title: `请点击左侧头像处进行登录`,
+        duration: 3000,
+      });
+      return;
+    }
   }
 
   const videoIndex = fileList.value.findIndex((item) => item.ext === ".flv" || item.ext === ".mp4");
-  const videoFile = videoIndex === -1 ? [] : [fileList.value[videoIndex]];
+  const videoFiles = videoIndex === -1 ? [] : [fileList.value[videoIndex]];
 
   const assIndex = fileList.value.findIndex((item) => item.ext === ".xml" || item.ext === ".ass");
   const assFile = assIndex === -1 ? [] : [fileList.value[assIndex]];
 
-  if (videoFile.length === 0) {
+  if (videoFiles.length === 0) {
     notice.error({
       title: "请选择一个flv或者mp4文件",
       duration: 3000,
@@ -170,11 +208,14 @@ const convert = async () => {
     return;
   }
 
+  const videoMeta = await window.api.readVideoMeta(videoFiles[0]?.path);
+  const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
+
   // xml文件转换
-  const { canRemoveAssFile, targetAssFilePath } = await handleXmlFile(assFile);
+  const { canRemoveAssFile, targetAssFilePath } = await handleXmlFile(assFile, videoStream);
 
   // 视频转化
-  const { canRemoveVideo, targetVideoFilePath } = await handleVideoFile(videoFile, videoIndex);
+  const { canRemoveVideo, targetVideoFilePath } = await handleVideoFile(videoFiles, videoIndex);
 
   // 压制任务
   const output = await handleVideoMerge({
@@ -203,7 +244,7 @@ const convert = async () => {
 };
 
 // 处理xml文件
-const handleXmlFile = async (assFile: any) => {
+const handleXmlFile = async (assFile: any, videoStream: any) => {
   let targetAssFilePath: string;
   let canRemoveAssFile = false;
   if (assFile[0].ext === ".xml") {
@@ -216,16 +257,30 @@ const handleXmlFile = async (assFile: any) => {
       const status = await confirm.warning({
         content: `目标文件夹已存在 ${assFile[0].name}.ass 文件，继续将会覆盖此文件`,
       });
-      if (!status) throw new Error("取消");
+      if (!status) throw new Error("已取消");
     } else {
       canRemoveAssFile = true;
+    }
+
+    const { width, height } = videoStream || {};
+    console.log(width, height);
+    const danmuConfig = (await window.api.danmu.getPreset(danmuPresetId.value)).config;
+    if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
+      const status = await confirm.warning({
+        content: `目标视频为${width}*${height}，与设置的弹幕的分辨率不一致，如需更改分辨率可以去”弹幕设置“处进行修改，是否继续？`,
+      });
+      if (!status) throw new Error("已取消");
     }
 
     notice.warning({
       title: "开始转换xml",
       duration: 3000,
     });
-    const result = await window.api.convertDanmu2Ass([toRaw(assFile[0])], toRaw(options.value));
+    const result = await window.api.danmu.convertDanmu2Ass(
+      [toRaw(assFile[0])],
+      danmuPresetId.value,
+      toRaw(options.value),
+    );
     console.log("xmlresult", result);
     const successResult = result.filter((item) => item.status === "success");
     if (successResult.length === 0) {
@@ -245,10 +300,10 @@ const handleXmlFile = async (assFile: any) => {
   }
   if (targetAssFilePath.includes(" ")) {
     notice.error({
-      title: "弹幕文件路径中不允许存在空格",
+      title: "弹幕文件路径中存在空格时会压制错误",
       duration: 3000,
     });
-    throw new Error("弹幕文件路径中不允许存在空格");
+    throw new Error("弹幕文件路径中存在空格时会压制错误");
   }
   console.log("targetAssFilePath", targetAssFilePath);
   return {
@@ -323,6 +378,7 @@ const handleVideoFile = async (videoFile: any, videoIndex: number) => {
   return { canRemoveVideo, targetVideoFilePath };
 };
 
+const startTime = ref(0);
 // 视频压制
 const handleVideoMerge = async (options: {
   targetVideoFilePath: string;
@@ -338,7 +394,7 @@ const handleVideoMerge = async (options: {
     duration: 5000,
   });
 
-  const startTime = Date.now();
+  startTime.value = Date.now();
   let output: string;
   try {
     output = await createMergeVideoAssTask(targetVideoFilePath, targetAssFilePath, videoIndex);
@@ -354,19 +410,20 @@ const handleVideoMerge = async (options: {
     }
   }
 
+  const msg = `压制已完成，约耗时${formatSeconds(
+    Number(((Date.now() - startTime.value) / 1000).toFixed(0)),
+  )}`;
   // 完成后的处理
   notice.success({
-    title: `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
+    title: msg,
     duration: 10000,
   });
-  new window.Notification(
-    `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
-  );
+  new window.Notification(msg);
 
   return output;
 };
 
-// 已处理时间
+// 预计剩余处理时间
 const timemark = ref();
 // 压制任务
 const createMergeVideoAssTask = async (
@@ -428,6 +485,11 @@ const createMergeVideoAssTask = async (
             if (taskId === currentTaskId) {
               fileList.value[i].percentage = progress.percentage;
               timemark.value = progress.timemark;
+              const duration = (Date.now() - startTime.value) / 1000;
+              const speed = duration / progress.percentage;
+              timemark.value = formatSeconds(
+                Number((speed * (100 - progress.percentage)).toFixed(0)),
+              );
             }
           });
         },
@@ -542,26 +604,104 @@ const handleFfmpegSettingChange = (value: FfmpegOptions) => {
 };
 
 const simpledMode = ref(true);
-// @ts-ignore
-const danmuConfig: Ref<DanmuConfig> = ref({
-  resolution: [],
-  msgboxsize: [],
-  msgboxpos: [],
-});
 
 const handleDanmuChange = (value: DanmuConfig) => {
-  danmuConfig.value = value;
+  danmuPreset.value.config = value;
+  saveDanmuConfig();
 };
 const saveDanmuConfig = async () => {
-  await window.api.saveDanmuConfig(toRaw(danmuConfig.value));
+  window.api.danmu.savePreset(toRaw(danmuPreset.value));
 };
+
+// 弹幕预设相关
+const nameModelVisible = ref(false);
+const tempPresetName = ref("");
+const isRename = ref(false);
+const renameDanmu = async () => {
+  tempPresetName.value = danmuPreset.value.name;
+  isRename.value = true;
+  nameModelVisible.value = true;
+};
+const saveAsDanmu = async () => {
+  isRename.value = false;
+  tempPresetName.value = "";
+  nameModelVisible.value = true;
+};
+const deleteDanmu = async () => {
+  const status = await confirm.warning({
+    content: "是否确认删除该预设？",
+  });
+  if (!status) return;
+  await window.api.danmu.deletePreset(danmuPresetId.value);
+  danmuPresetId.value = "default";
+  await getDanmuPresets();
+};
+
+const saveConfirm = async () => {
+  if (!tempPresetName.value) {
+    notice.warning({
+      title: "预设名称不得为空",
+      duration: 2000,
+    });
+    return;
+  }
+  const preset = cloneDeep(danmuPreset.value);
+  if (!isRename.value) preset.id = uuid();
+  preset.name = tempPresetName.value;
+
+  await window.api.danmu.savePreset(preset);
+  nameModelVisible.value = false;
+  notice.success({
+    title: "保存成功",
+    duration: 1000,
+  });
+  getDanmuPresets();
+};
+
+watch(
+  () => danmuPresetId.value,
+  async (value) => {
+    danmuPreset.value = await window.api.danmu.getPreset(value);
+  },
+  {
+    immediate: true,
+  },
+);
 
 // 杀死任务
 const killTask = () => {
   fileList.value.forEach((item) => {
     if (item.taskId) {
-      window.api.killTask(item.taskId);
+      window.api.task.kill(item.taskId);
     }
+  });
+  notice.warning({
+    title: "任务已取消",
+    duration: 2000,
+  });
+};
+
+const stopTask = () => {
+  fileList.value.forEach((item) => {
+    if (item.taskId) {
+      window.api.task.pause(item.taskId);
+    }
+  });
+  notice.warning({
+    title: "任务已暂停",
+    duration: 2000,
+  });
+};
+
+const resumeTask = () => {
+  fileList.value.forEach((item) => {
+    if (item.taskId) {
+      window.api.task.resume(item.taskId);
+    }
+  });
+  notice.success({
+    title: "任务已继续",
+    duration: 2000,
   });
 };
 
@@ -576,8 +716,5 @@ async function getDir() {
   :deep(.n-radio) {
     align-items: center;
   }
-}
-
-.tabs {
 }
 </style>

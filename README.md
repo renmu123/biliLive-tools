@@ -1,36 +1,42 @@
 # biliLive-tools
 
 这是一个用于 B 站录播的一站式工具。
+做这款工具的主要原因是为了解决录播工具的碎片化，往往想完整处理一场带有弹幕的录播要使用多个软件的配合，一些工具更是只有CLI，加大了使用难度。
 
 1. 支持 Danmufactory GUI
 2. 支持 ffmpeg 转封装
 3. 支持视频与弹幕压制
 4. 支持调用 biliup 进行上传
+5. 支持视频文件合并
 
 # 下载
 
 目前有两个 Win 版本的包。两个包处理有没有打包 `ffmpeg` 和 `ffprobe` 之外没有任何代码上的区别，如果你不需要转封装功能，可以尝试下载体积较小的包，我不是特别推荐。
-如果你是普通用户，那就选择体积大的那个包，如果你是资深用户，那么请自行选择，因自编译 `ffmpeg` 出问题的 issue 是不会被处理的。
+如果你是普通用户，那就选择体积大的那个包，如果你是资深用户，那么请自行选择，因使用自定义 `ffmpeg` 出问题的 issue 是不会被处理的。
+下载地址：https://github.com/renmu123/biliLive-tools/releases
+备用：https://www.alipan.com/s/iRyhxjdqGeL
 
 1. 自带 `ffmpeg` 版本的包
-2. 调用环境变量中 `ffmpeg` 以及 `ffprobe` 的包，减小安装包体积。
+2. 在设置中自定义`ffmpeg`以及`ffprobe`文件路径，减小安装包体积。
 
 # TODO
 
 - [x] 支持使用ffmpeg压制弹幕至视频文件
-- [x] 支持ffmpeg不同cpu，gpu以及相关配置
-- [x] 支持使用danmufactory自动处理xml文件并进行压制
-- [x] 工具页面，danmufactory的GUI
-- [x] 工具页面，flv的转封装
+- [ ] 工具页面
+  - [x] 支持ffmpeg不同cpu，gpu以及相关配置
+  - [x] 支持使用danmufactory自动处理xml文件并进行压制
+  - [x] 工具页面，danmufactory的GUI
+  - [x] 工具页面，flv的转封装
+  - [x] 支持视频合并
 - [x] log记录及其展示
 - [ ] 配置持久化，ffmpeg自定义预设，选择保存文件夹，平均码率、支持使用ass-convert来进行弹幕处理以及压制高能进度条
 - [x] 支持上传B站
   - [ ] 移除biliup二进制文件依赖
+  - [x] 支持分p
 - [ ] 支持录播姬webhook自动处理
   - [x] 支持自动上传
   - [ ] 支持合并后上传
   - [ ] 支持弹幕压制
-  - [ ] 支持分p
 - [x] 打包不带ffmpeg的版本，支持自定义ffmpeg以及ffprobe
 - [ ] 构建一个不依赖于electron的cli程序
 
@@ -62,7 +68,7 @@ $ npm run dev
 # For windows
 $ npm run build:win
 
-# For windows but no ffmpeg
+# For windows without ffmpeg
 $ npm run build:win-no-ffmpeg
 ```
 

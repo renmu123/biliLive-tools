@@ -1,3 +1,5 @@
+import biliApi from "./bili";
+
 import log from "./utils/log";
 import { trashItem as _trashItem } from "./utils/index";
 import { getAppConfig, saveAppConfig } from "./config/app";
@@ -5,12 +7,19 @@ import serverApp from "./server/index";
 
 import { join } from "path";
 import fs from "fs-extra";
+import semver from "semver";
 
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
-import { saveDanmuConfig, getDanmuConfig, convertDanmu2Ass } from "./danmu";
+import {
+  convertDanmu2Ass,
+  saveDanmuPreset,
+  deleteDanmuPreset,
+  readDanmuPreset,
+  readDanmuPresets,
+} from "./danmu";
 import {
   convertVideo2Mp4,
   mergeAssMp4,
@@ -19,25 +28,29 @@ import {
   handlePauseTask,
   handleResumeTask,
   setFfmpegPath,
+  mergeVideos,
+  handleReadVideoMeta,
 } from "./video";
 import {
   uploadVideo,
+  appendVideo,
   biliLogin,
   readQrCode,
   checkBiliCookie,
   readBiliupPresets,
+  readBiliupPreset,
   saveBiliupPreset,
   deleteBiliupPreset,
-  validateBiliupTag,
   saveBiliCookie,
   validateBiliupConfig,
+  deleteBiliCookie,
 } from "./biliup";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
 
 import type { OpenDialogOptions } from "../types";
-import type { IpcMainInvokeEvent, IpcMain } from "electron";
+import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
 
 const genHandler = (ipcMain: IpcMain) => {
   // app配置相关
@@ -47,6 +60,7 @@ const genHandler = (ipcMain: IpcMain) => {
   // 通用函数
   ipcMain.handle("dialog:openDirectory", openDirectory);
   ipcMain.handle("dialog:openFile", openFile);
+  ipcMain.handle("dialog:save", saveDialog);
   ipcMain.handle("getVersion", getVersion);
   ipcMain.handle("openExternal", openExternal);
   ipcMain.handle("openPath", openPath);
@@ -63,24 +77,37 @@ const genHandler = (ipcMain: IpcMain) => {
 
   // 上传视频部分
   ipcMain.handle("uploadVideo", uploadVideo);
+  ipcMain.handle("appendVideo", appendVideo);
+  ipcMain.handle("mergeVideos", mergeVideos);
   ipcMain.handle("biliLogin", biliLogin);
   ipcMain.handle("saveBiliCookie", saveBiliCookie);
   ipcMain.handle("readQrCode", readQrCode);
   ipcMain.handle("checkBiliCookie", checkBiliCookie);
+  ipcMain.handle("deleteBiliCookie", deleteBiliCookie);
   ipcMain.handle("readBiliupPresets", readBiliupPresets);
+  ipcMain.handle("readBiliupPreset", readBiliupPreset);
   ipcMain.handle("saveBiliupPreset", saveBiliupPreset);
   ipcMain.handle("deleteBiliupPreset", deleteBiliupPreset);
-  ipcMain.handle("validateBiliupTag", validateBiliupTag);
   ipcMain.handle("validateBiliupConfig", validateBiliupConfig);
+  ipcMain.handle("readVideoMeta", handleReadVideoMeta);
 
   // 弹幕相关
-  ipcMain.handle("saveDanmuConfig", saveDanmuConfig);
-  ipcMain.handle("getDanmuConfig", getDanmuConfig);
   ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);
+  ipcMain.handle("saveDanmuPreset", saveDanmuPreset);
+  ipcMain.handle("deleteDanmuPreset", deleteDanmuPreset);
+  ipcMain.handle("readDanmuPreset", readDanmuPreset);
+  ipcMain.handle("readDanmuPresets", readDanmuPresets);
+
+  // bilibili相关
+  ipcMain.handle("biliApi:getArchives", biliApi.getArchives);
+  ipcMain.handle("biliApi:checkTag", biliApi.checkTag);
+  ipcMain.handle("biliApi:getMyInfo", biliApi.getMyInfo);
 };
 
 const appConfig = getAppConfig();
 setFfmpegPath();
+
+let server: any;
 let mainWin: BrowserWindow;
 function createWindow(): void {
   // Create the browser window.
@@ -93,6 +120,7 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       sandbox: false,
+      webSecurity: false,
     },
   });
 
@@ -194,9 +222,15 @@ function createWindow(): void {
 
   if (appConfig.webhook.open) {
     // 新建监听
-    serverApp.listen(18010, () => {
+    server = serverApp.listen(appConfig.webhook.port, () => {
       log.info("server start");
     });
+    console.log(server);
+  }
+
+  // 检测更新
+  if (appConfig.autoUpdate) {
+    checkUpdate();
   }
 }
 
@@ -208,6 +242,40 @@ function createMenu(): void {
         mainWin.show();
         mainWin.webContents.send("open-setting");
       },
+    },
+    {
+      label: "打开log文件夹",
+      click: () => {
+        shell.openPath(app.getPath("logs"));
+      },
+    },
+    {
+      label: "检测更新",
+      click: async () => {
+        try {
+          const status = await checkUpdate();
+          console.log(status);
+          if (status) {
+            dialog.showMessageBox(mainWin, {
+              message: "当前已经是最新版本",
+              buttons: ["确认"],
+            });
+          }
+        } catch (error) {
+          log.error(error);
+          const confirm = await dialog.showMessageBox(mainWin, {
+            message: "检查更新失败，请前往仓库查看",
+            buttons: ["取消", "确认"],
+          });
+          if (confirm.response === 1) {
+            shell.openExternal("https://github.com/renmu123/biliLive-tools/releases");
+          }
+        }
+      },
+    },
+    {
+      label: "开发者工具",
+      role: "viewMenu",
     },
     {
       label: "退出",
@@ -236,16 +304,6 @@ function createMenu(): void {
           mainWin.destroy();
           log.error(e);
         }
-      },
-    },
-    {
-      label: "开发者工具",
-      role: "viewMenu",
-    },
-    {
-      label: "打开log文件夹",
-      click: () => {
-        shell.openPath(app.getPath("logs"));
       },
     },
   ]);
@@ -303,7 +361,7 @@ if (!gotTheLock) {
     if (process.platform !== "darwin") {
       app.quit();
     }
-    serverApp.close(() => {
+    server.close(() => {
       console.log("Express app is now closed");
     });
   });
@@ -336,6 +394,15 @@ const openFile = async (_event: IpcMainInvokeEvent, options: OpenDialogOptions) 
   }
 };
 
+const saveDialog = async (_event: IpcMainInvokeEvent, options: SaveDialogOptions) => {
+  const { canceled, filePath } = await dialog.showSaveDialog(mainWin, options);
+  if (canceled) {
+    return;
+  } else {
+    return filePath;
+  }
+};
+
 const getVersion = () => {
   return app.getVersion();
 };
@@ -354,4 +421,27 @@ const exits = (_event: IpcMainInvokeEvent, path: string) => {
 
 const trashItem = async (_event: IpcMainInvokeEvent, path: string) => {
   return await _trashItem(path);
+};
+
+const checkUpdate = async () => {
+  const res = await fetch(
+    "https://raw.githubusercontent.com/renmu123/biliLive-tools/master/package.json",
+  );
+  console.log(res);
+  const data = await res.json();
+  const latestVersion = data.version;
+  const version = app.getVersion();
+
+  console.log(latestVersion, version);
+  if (semver.gt(latestVersion, version)) {
+    const confirm = await dialog.showMessageBox(mainWin, {
+      message: "检测到有新版本，是否前往下载？",
+      buttons: ["取消", "确认"],
+    });
+    if (confirm.response === 1) {
+      shell.openExternal("https://github.com/renmu123/biliLive-tools/releases");
+    }
+    return false;
+  }
+  return true;
 };

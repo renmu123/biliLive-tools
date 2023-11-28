@@ -127,17 +127,19 @@
             class="input-number"
             :min="0"
             :step="100"
+            placeholder="宽"
           />&nbsp;X&nbsp;
           <n-input-number
             v-model:value.number="config.resolution[1]"
             class="input-number"
             :min="0"
             :step="100"
+            placeholder="高"
           />
         </n-form-item>
         <div>
           <n-form-item v-if="isAdvancedMode" label="调试" path="phone">
-            <n-checkbox-group v-model:value="config.blockmode">
+            <n-checkbox-group v-model:value="config.statmode">
               <n-space>
                 <n-checkbox value="TABLE"> 统计图 </n-checkbox>
                 <n-checkbox value="HISTOGRAM"> 直方图 </n-checkbox>
@@ -226,6 +228,8 @@
 <script setup lang="ts">
 import type { DanmuConfig } from "../../../types";
 
+const config = defineModel<DanmuConfig>({ required: true, default: {} });
+
 const emits = defineEmits<{
   (event: "change", value: DanmuConfig): void;
 }>();
@@ -236,18 +240,6 @@ const props = defineProps<{
 const isAdvancedMode = computed(() => {
   return !props.simpledMode;
 });
-
-// @ts-ignore
-const config: Ref<DanmuConfig> = ref({
-  resolution: [],
-  msgboxsize: [],
-  msgboxpos: [],
-});
-
-const getConfig = async () => {
-  const data = await window.api.getDanmuConfig();
-  config.value = data;
-};
 
 const fontOptions = ref([]);
 const getFonts = async () => {
@@ -261,7 +253,6 @@ const getFonts = async () => {
   });
 };
 onMounted(async () => {
-  await getConfig();
   getFonts();
 });
 
@@ -272,7 +263,6 @@ watch(
   },
   {
     deep: true,
-    immediate: true,
   },
 );
 </script>

@@ -1,10 +1,11 @@
 import path from "path";
 
 import { contextBridge, ipcRenderer } from "electron";
-import type { IpcRendererEvent } from "electron";
+import { electronAPI } from "@electron-toolkit/preload";
+
+import type { IpcRendererEvent, SaveDialogOptions } from "electron";
 import type {
   Progress,
-  DanmuConfig,
   DanmuOptions,
   OpenDialogOptions,
   File,
@@ -12,12 +13,53 @@ import type {
   AppConfig,
   BiliupPreset,
   BiliupConfig,
+  BiliupConfigAppend,
+  VideoMergeOptions,
+  DanmuPreset,
 } from "../types";
-
-import { electronAPI } from "@electron-toolkit/preload";
+import ffmpeg from "fluent-ffmpeg";
 
 // Custom APIs for renderer
 export const api = {
+  danmu: {
+    savePreset: async (preset: DanmuPreset) => {
+      return await ipcRenderer.invoke("saveDanmuPreset", preset);
+    },
+    deletePreset: async (id: string) => {
+      return await ipcRenderer.invoke("deleteDanmuPreset", id);
+    },
+    getPreset: async (id: string): Promise<DanmuPreset> => {
+      return await ipcRenderer.invoke("readDanmuPreset", id);
+    },
+    getPresets: async (): Promise<DanmuPreset[]> => {
+      return await ipcRenderer.invoke("readDanmuPresets");
+    },
+    convertDanmu2Ass: async (
+      files: File[],
+      presetId: string,
+      options: DanmuOptions = {
+        saveRadio: 1,
+        saveOriginPath: true,
+        savePath: "",
+
+        override: false,
+        removeOrigin: false,
+      },
+    ) => {
+      return await ipcRenderer.invoke("convertDanmu2Ass", files, presetId, options);
+    },
+  },
+  task: {
+    pause: async (taskId: string) => {
+      return await ipcRenderer.invoke("pauseTask", taskId);
+    },
+    resume: async (taskId: string) => {
+      return await ipcRenderer.invoke("resumeTask", taskId);
+    },
+    kill: async (taskId: string) => {
+      return await ipcRenderer.invoke("killTask", taskId);
+    },
+  },
   convertVideo2Mp4: async (
     file: File,
     options: DanmuOptions = {
@@ -30,15 +72,6 @@ export const api = {
     },
   ) => {
     return await ipcRenderer.invoke("convertVideo2Mp4", file, options);
-  },
-  pauseTask: async (taskId: string) => {
-    return await ipcRenderer.invoke("pauseTask", taskId);
-  },
-  resumeTask: async (taskId: string) => {
-    return await ipcRenderer.invoke("resumeTask", taskId);
-  },
-  killTask: async (taskId: string) => {
-    return await ipcRenderer.invoke("killTask", taskId);
   },
 
   onTaskProgressUpdate: (
@@ -105,6 +138,12 @@ export const api = {
   uploadVideo: async (videoFiles: string[], options: BiliupConfig) => {
     return await ipcRenderer.invoke("uploadVideo", videoFiles, options);
   },
+  appendVideo: async (videoFiles: string[], options: BiliupConfigAppend) => {
+    return await ipcRenderer.invoke("appendVideo", videoFiles, options);
+  },
+  mergeVideos: async (videoFiles: File[], options: VideoMergeOptions) => {
+    return await ipcRenderer.invoke("mergeVideos", videoFiles, options);
+  },
   // 调用biliup的登录窗口
   biliLogin: async () => {
     return await ipcRenderer.invoke("biliLogin");
@@ -122,11 +161,18 @@ export const api = {
     return await ipcRenderer.invoke("saveBiliCookie");
   },
   // 检查bili登录的cookie是否存在
-  checkBiliCookie: async () => {
+  checkBiliCookie: async (): Promise<boolean> => {
     return await ipcRenderer.invoke("checkBiliCookie");
+  },
+  // 删除bili登录的cookie
+  deleteBiliCookie: async () => {
+    return await ipcRenderer.invoke("deleteBiliCookie");
   },
   readBiliupPresets: async (): Promise<BiliupPreset[]> => {
     return await ipcRenderer.invoke("readBiliupPresets");
+  },
+  readBiliupPreset: async (id: string): Promise<BiliupPreset> => {
+    return await ipcRenderer.invoke("readBiliupPreset", id);
   },
   saveBiliupPreset: async (presets: BiliupPreset) => {
     return await ipcRenderer.invoke("saveBiliupPreset", presets);
@@ -134,35 +180,18 @@ export const api = {
   deleteBiliupPreset: async (id: string) => {
     return await ipcRenderer.invoke("deleteBiliupPreset", id);
   },
-  validateBiliupTag: async (tag: string) => {
-    return await ipcRenderer.invoke("validateBiliupTag", tag);
-  },
+
   validateBiliupConfig: async (config: BiliupConfig) => {
     return await ipcRenderer.invoke("validateBiliupConfig", config);
   },
   onBiliUploadClose: (callback: (_event: IpcRendererEvent, code: number) => void) => {
     ipcRenderer.once("upload-close", callback);
   },
-
-  // danmufactory
-  saveDanmuConfig: async (newConfig: DanmuConfig) => {
-    return await ipcRenderer.invoke("saveDanmuConfig", newConfig);
+  onBiliAppendClose: (callback: (_event: IpcRendererEvent, code: number) => void) => {
+    ipcRenderer.once("append-close", callback);
   },
-  getDanmuConfig: async (): Promise<DanmuConfig> => {
-    return await ipcRenderer.invoke("getDanmuConfig");
-  },
-  convertDanmu2Ass: async (
-    files: File[],
-    options: DanmuOptions = {
-      saveRadio: 1,
-      saveOriginPath: true,
-      savePath: "",
-
-      override: false,
-      removeOrigin: false,
-    },
-  ) => {
-    return await ipcRenderer.invoke("convertDanmu2Ass", files, options);
+  readVideoMeta: async (file: string): Promise<ffmpeg.FfprobeData> => {
+    return await ipcRenderer.invoke("readVideoMeta", file);
   },
 
   // app 配置相关
@@ -182,6 +211,10 @@ export const api = {
   openFile: async (options: OpenDialogOptions): Promise<string[] | undefined> => {
     return await ipcRenderer.invoke("dialog:openFile", options);
   },
+  showSaveDialog: async (options?: SaveDialogOptions): Promise<string | undefined> => {
+    return await ipcRenderer.invoke("dialog:save", options);
+  },
+
   formatFile: (filePath: string) => {
     const formatFile = path.parse(filePath);
     return { ...formatFile, path: filePath, filename: formatFile.base };
@@ -212,6 +245,18 @@ export const api = {
   },
 };
 
+export const biliApi = {
+  getArchives(params: Parameters<(typeof biliApi)["getArchives"]>[0]) {
+    return ipcRenderer.invoke("biliApi:getArchives", params);
+  },
+  checkTag(tag: string) {
+    return ipcRenderer.invoke("biliApi:checkTag", tag);
+  },
+  getMyInfo() {
+    return ipcRenderer.invoke("biliApi:getMyInfo");
+  },
+};
+
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
 // just add to the DOM global.
@@ -219,6 +264,8 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld("electron", electronAPI);
     contextBridge.exposeInMainWorld("api", api);
+    contextBridge.exposeInMainWorld("biliApi", biliApi);
+    contextBridge.exposeInMainWorld("path", path);
   } catch (error) {
     console.error(error);
   }

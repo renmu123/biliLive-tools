@@ -1,8 +1,14 @@
 <template>
   <div>
     <h1>bili-uploader</h1>
+    <p>
+      介绍：做这款工具的主要原因是为了解决录播工具的碎片化，往往想完整处理一场带有弹幕的录播要使用多个软件的配合，一些工具更是只有CLI，加大了使用难度。我想做一个能够一站式解决录播问题的工具，所以就有了这个项目。
+    </p>
     <p>版本：{{ version }}</p>
-    <p>作者：<a href="https://space.bilibili.com/10995238" class="external">renmu123</a></p>
+    <p>
+      作者：<a href="https://space.bilibili.com/10995238" class="external">renmu123</a>
+      点点关注吧，秋梨膏
+    </p>
     <p>本软件为开源软件，采用GPLv3授权</p>
     <p>
       项目地址：<a href="https://github.com/renmu123/biliLive-tools" class="external">
@@ -10,9 +16,12 @@
       >
     </p>
     <p>
-      反馈地址：<a href="https://github.com/renmu123/biliLive-tools/issues" class="external">
-        issues</a
+      反馈地址：如果遇到bug，请在设置中将"log等级"调整至debug模式，并进行复现，之后在<a
+        href="https://github.com/renmu123/biliLive-tools/issues"
+        class="external"
       >
+        issues</a
+      >中附上复现步骤，以及相应的日志文件
     </p>
     <div>
       感谢以下开源软件对本项目的贡献：

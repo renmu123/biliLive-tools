@@ -23,6 +23,9 @@
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
     "@electron-toolkit/utils": "^2.0.0",
+    "@renmu/bili-api": "^0.0.2",
+    "@types/express": "^4.17.21",
+    "@types/fluent-ffmpeg": "^2.1.24",
     "axios": "^1.5.0",
     "electron-log": "^5.0.0",
     "electron-updater": "^6.1.1",
@@ -30,7 +33,10 @@
     "fluent-ffmpeg": "^2.1.2",
     "fs-extra": "^11.1.1",
     "lodash": "^4.17.21",
-    "lodash-es": "^4.17.21"
+    "lodash-es": "^4.17.21",
+    "ntsuspend": "^1.0.2",
+    "pinia": "^2.1.7",
+    "semver": "^7.5.4"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.1",

@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", function (_req, res) {
-  res.send("Hello World111");
+  res.send("Hello World");
 });
 
 app.post("/webhook", async function (req, res) {
@@ -29,6 +29,7 @@ app.post("/webhook", async function (req, res) {
   ) {
     const roomId = data.EventData.RoomId;
     const roomSetting = appConfig.webhook.rooms[roomId];
+    log.info("room setting", roomId, roomSetting);
 
     console.log(data.EventData.FileOpenTime, formatTime(data.EventData.FileOpenTime));
 

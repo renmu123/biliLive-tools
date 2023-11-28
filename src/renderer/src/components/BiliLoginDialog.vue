@@ -10,7 +10,7 @@
       class="card"
     >
       <div style="text-align: center">
-        <template v-if="props.succeess === 'start'">
+        <template v-if="props.success === 'start'">
           <h2>
             检测到你正在进行登录，请根据提示完成登录，完成登录后回到本应用继续操作<br />
             推荐使用浏览器或扫描二维码登录<br />
@@ -22,8 +22,8 @@
           </div>
         </template>
 
-        <h2 v-else-if="props.succeess === 'success'">登录成功，请关闭本窗口</h2>
-        <h2 v-else-if="props.succeess === 'fail'" style="color: red">
+        <h2 v-else-if="props.success === 'success'">登录成功，请关闭本窗口</h2>
+        <h2 v-else-if="props.success === 'fail'" style="color: red">
           登录失败，可能是由于你关闭了登录窗口或者该登录方法已失效，请重试
         </h2>
       </div>
@@ -39,20 +39,23 @@
 
 <script setup lang="ts">
 const showModal = defineModel<boolean>({ required: true, default: false });
+const emits = defineEmits<{
+  close: [string];
+}>();
 
 const notice = useNotification();
 
 const props = withDefaults(
   defineProps<{
-    succeess?: "start" | "success" | "fail";
+    success?: "start" | "success" | "fail";
   }>(),
   {
-    succeess: "start",
+    success: "start",
   },
 );
 
 watch(
-  () => props.succeess,
+  () => props.success,
   async (val) => {
     if (val === "success") {
       // 登录成功后将cookies保存到用户文件夹
@@ -61,7 +64,7 @@ watch(
         notice.success({
           title: "保存B站登录信息成功",
         });
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.log(e);
 
         notice.error({
@@ -86,6 +89,13 @@ const close = () => {
 const confirm = () => {
   showModal.value = false;
 };
+
+watch(
+  () => showModal.value,
+  () => {
+    emits("close", props.success);
+  },
+);
 </script>
 
 <style scoped lang="less">

@@ -31,7 +31,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~\AppData\Local\electron\Cache
-          key: ${{ runner.os }}-electron-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/yarn.lock')) }}
+          key: ${{ runner.os }}-electron-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/package-lock.json')) }}
           restore-keys: |
             ${{ runner.os }}-electron-cache-
 
@@ -39,7 +39,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~\AppData\Local\electron-builder\Cache
-          key: ${{ runner.os }}-electron-builder-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/yarn.lock')) }}
+          key: ${{ runner.os }}-electron-builder-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/package-lock.json')) }}
           restore-keys: |
             ${{ runner.os }}-electron-builder-cache-
 
@@ -58,7 +58,6 @@ jobs:
 
       - name: remove file
         run: |
-          # 使用 unzip 解压 ZIP 文件
           del bin.zip
 
       - name: build-win

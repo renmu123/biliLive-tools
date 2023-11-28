@@ -7,12 +7,14 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    AppendVideoDialog: typeof import('./src/components/AppendVideoDialog.vue')['default']
     AppSettingDialog: typeof import('./src/components/AppSettingDialog.vue')['default']
     BiliLoginDialog: typeof import('./src/components/BiliLoginDialog.vue')['default']
     BiliSetting: typeof import('./src/components/BiliSetting.vue')['default']
     DanmuFactorySetting: typeof import('./src/components/DanmuFactorySetting.vue')['default']
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']
     FileArea: typeof import('./src/components/FileArea.vue')['default']
+    ImageCrop: typeof import('./src/components/ImageCrop.vue')['default']
     NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']
     NCascader: typeof import('naive-ui')['NCascader']
@@ -45,5 +47,6 @@ declare module 'vue' {
     NText: typeof import('naive-ui')['NText']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Tip: typeof import('./src/components/Tip.vue')['default']
   }
 }

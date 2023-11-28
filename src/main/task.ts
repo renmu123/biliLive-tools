@@ -1,5 +1,7 @@
-import { uuid } from "./utils/index";
+import { uuid, isWin32 } from "./utils/index";
 import log from "./utils/log";
+import type ffmpeg from "fluent-ffmpeg";
+import ntsuspend from "ntsuspend";
 
 import type { WebContents } from "electron";
 import type { Progress } from "../types";
@@ -24,57 +26,84 @@ export const killTask = (taskQueue: TaskQueue, taskId: string) => {
   return task.kill();
 };
 
-export class Task {
+abstract class AbstractTask {
+  abstract taskId: string;
+  abstract status: "pending" | "running" | "paused" | "completed" | "error";
+  abstract exec(): void;
+  abstract kill(): void;
+  abstract pause(): void;
+  abstract resume(): void;
+}
+
+class BaseTask extends AbstractTask {
   taskId: string;
   status: "pending" | "running" | "paused" | "completed" | "error";
-  command: any;
+  constructor() {
+    super();
+    this.taskId = uuid();
+    this.status = "pending";
+  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  exec() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  kill() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  pause() {}
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  resume() {}
+}
+
+export class FFmpegTask extends BaseTask {
+  command: ffmpeg.FfmpegCommand;
   webContents: WebContents;
   constructor(
-    command: any,
+    command: ffmpeg.FfmpegCommand,
     webContents: WebContents,
     options: {
       output: string;
-      size?: number;
     },
     callback: {
       onStart?: () => void;
       onEnd?: (output: string) => void;
       onError?: (err: string) => void;
-      onProgress?: (progress: Progress) => void;
+      onProgress?: (progress: Progress) => boolean;
     },
   ) {
-    this.taskId = uuid();
+    super();
     this.command = command;
-    this.status = "pending";
     this.webContents = webContents;
 
     command.on("start", (commandLine: string) => {
       log.info(`task ${this.taskId} start, command: ${commandLine}`);
+      this.status = "running";
 
       callback.onStart && callback.onStart();
       this.webContents.send("task-start", { taskId: this.taskId, command: commandLine });
-      this.status = "running";
     });
     command.on("end", async () => {
       log.info(`task ${this.taskId} end`);
+      this.status = "completed";
 
       callback.onEnd && callback.onEnd(options.output);
       this.webContents.send("task-end", { taskId: this.taskId, output: options.output });
-      this.status = "completed";
     });
     command.on("error", (err) => {
       log.error(`task ${this.taskId} error: ${err}`);
+      this.status = "error";
+
       callback.onError && callback.onError(err);
       this.webContents.send("task-error", { taskId: this.taskId, err: err });
-      this.status = "error";
     });
     command.on("progress", (progress) => {
-      if (options.size) {
-        progress.percentage = Math.round((progress.targetSize / options.size) * 100);
-      } else {
-        progress.percentage = progress.percent;
+      progress.percentage = progress.percent;
+
+      if (callback.onProgress) {
+        if (!callback.onProgress(progress)) {
+          // 如果返回false，表示要停止默认行为
+          return;
+        }
       }
-      callback.onProgress && callback.onProgress(progress);
+      // callback.onProgress && callback.onProgress(progress);
       this.webContents.send("task-progress-update", { taskId: this.taskId, progress: progress });
     });
   }
@@ -83,32 +112,43 @@ export class Task {
   }
   pause() {
     if (this.status !== "running") return;
-    this.command.kill("SIGSTOP");
+    if (isWin32) {
+      // @ts-ignore
+      ntsuspend.suspend(this.command.ffmpegProc.pid);
+    } else {
+      this.command.kill("SIGSTOP");
+    }
     log.warn(`task ${this.taskId} paused`);
     this.status = "paused";
     return true;
   }
   resume() {
     if (this.status !== "paused") return;
-    this.command.kill("SIGCONT");
+    if (isWin32) {
+      // @ts-ignore
+      ntsuspend.resume(this.command.ffmpegProc.pid);
+    } else {
+      this.command.kill("SIGCONT");
+    }
     log.warn(`task ${this.taskId} resumed`);
     this.status = "running";
     return true;
   }
   kill() {
     if (this.status === "completed" || this.status === "error") return;
-    this.command.kill();
+    // @ts-ignore
+    this.command.ffmpegProc.stdin.write("q");
     log.warn(`task ${this.taskId} killed`);
     this.status = "error";
     return true;
   }
 }
 export class TaskQueue {
-  queue: Task[];
+  queue: BaseTask[];
   constructor() {
     this.queue = [];
   }
-  addTask(task: Task, autoRun = true) {
+  addTask(task: BaseTask, autoRun = true) {
     this.queue.push(task);
     if (autoRun) {
       task.exec();
@@ -117,4 +157,9 @@ export class TaskQueue {
   queryTask(taskId: string) {
     return this.queue.find((task) => task.taskId === taskId);
   }
+  list() {
+    return this.queue;
+  }
 }
+
+export const taskQueue = new TaskQueue();

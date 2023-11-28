@@ -5,7 +5,7 @@
       <n-form-item label="预设">
         <n-select
           v-model:value="presetId"
-          :options="presetsOptions"
+          :options="uploaPresetsOptions"
           @update:value="handlePresetChange"
         />
       </n-form-item>
@@ -32,6 +32,15 @@
             minRows: 2,
           }"
         />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            <span>封面</span>
+            <Tip tip="不设置默认使用视频第一帧"></Tip>
+          </span>
+        </template>
+        <image-crop v-model="options.config.cover"></image-crop>
       </n-form-item>
       <n-form-item label="空间动态">
         <n-input
@@ -94,18 +103,15 @@
     </n-form>
 
     <div style="text-align: right">
-      <n-button v-if="options.id !== 'default'" type="error" @click="deletePreset"
-        >删除预设</n-button
-      >
+      <n-button v-if="options.id !== 'default'" type="error" @click="deletePreset">删除</n-button>
       <n-button type="primary" style="margin-left: 10px" @click="saveAnotherPreset"
-        >另存为新预设</n-button
+        >另存为</n-button
       >
       <n-button type="primary" style="margin-left: 10px" @click="savePreset">保存预设</n-button>
     </div>
 
     <n-modal v-model:show="nameModelVisible">
       <n-card style="width: 600px" :bordered="false" role="dialog" aria-modal="true">
-        内容
         <n-input v-model:value="tempPresetName" placeholder="请输入预设名称" maxlength="15" />
         <template #footer>
           <div style="text-align: right">
@@ -121,52 +127,31 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
+
 import type { BiliupPreset } from "../../../types";
-import { deepRaw } from "@renderer/utils";
+import { deepRaw, uuid } from "@renderer/utils";
 import { useConfirm } from "@renderer/hooks";
-
-const confirm = useConfirm();
-
+import { useUploadPreset } from "@renderer/stores";
 // @ts-ignore
 import areaData from "@renderer/assets/area.json";
 import { cloneDeep } from "lodash-es";
 
+const confirm = useConfirm();
+const { getUploadPresets } = useUploadPreset();
+const { uploaPresetsOptions } = storeToRefs(useUploadPreset());
 const emits = defineEmits<{
   (event: "change", value: BiliupPreset): void;
 }>();
-// const formData = defineModel<BiliupConfig>({ required: true });
-
-// const props = withDefaults(
-//   defineProps<{
-//     succeess?: "start" | "success" | "fail";
-//   }>(),
-//   {
-//     succeess: "start",
-//   },
-// );
 
 const presetId = ref<string>("default");
-
-const presets = ref<BiliupPreset[]>([]);
-
-const getPresets = async () => {
-  presets.value = await window.api.readBiliupPresets();
-};
-const presetsOptions = computed(() => {
-  return presets.value.map((item) => {
-    return {
-      label: item.name,
-      value: item.id,
-    };
-  });
-});
 
 // @ts-ignore
 const options: Ref<BiliupPreset> = ref({
   config: {},
 });
-const handlePresetChange = (value: string) => {
-  const preset = presets.value.find((item) => item.id === value);
+const handlePresetChange = async (value: string) => {
+  const preset = await window.api.readBiliupPreset(value);
   if (preset) {
     options.value = preset;
   } else {
@@ -181,14 +166,14 @@ const handlePresetChange = (value: string) => {
 const noSideSpace = (value: string) => !value.startsWith(" ") && !value.endsWith(" ");
 
 onMounted(async () => {
-  await getPresets();
   handlePresetChange(presetId.value);
 });
 
 const notice = useNotification();
 const handleTagChange = async (tags: string[]) => {
   if (tags.length !== 0) {
-    const res = await window.api.validateBiliupTag(tags[tags.length - 1]);
+    const res = await window.biliApi.checkTag(tags[tags.length - 1]);
+
     if (res.code !== 0) {
       notice.error({
         title: res.message,
@@ -197,10 +182,6 @@ const handleTagChange = async (tags: string[]) => {
       options.value.config.tag.splice(-1);
     }
   }
-};
-
-const uuid = () => {
-  return Math.random().toString(36).slice(2);
 };
 
 const nameModelVisible = ref(false);
@@ -226,9 +207,9 @@ const saveAnotherPresetConfirm = async () => {
   nameModelVisible.value = false;
   notice.success({
     title: "保存成功",
-    duration: 5000,
+    duration: 1000,
   });
-  await getPresets();
+  getUploadPresets();
   presetId.value = preset.id;
 };
 
@@ -240,7 +221,7 @@ const deletePreset = async () => {
 
   const id = options.value.id;
   await window.api.deleteBiliupPreset(id);
-  await getPresets();
+  getUploadPresets();
   presetId.value = "default";
   handlePresetChange("default");
 };
@@ -249,7 +230,7 @@ const savePreset = async () => {
   await _savePreset(options.value);
   notice.success({
     title: "保存成功",
-    duration: 5000,
+    duration: 1000,
   });
 };
 
