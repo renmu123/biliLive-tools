@@ -220,7 +220,7 @@ function createWindow(): void {
 
   if (appConfig.webhook.open) {
     // 新建监听
-    server = serverApp.listen(18010, () => {
+    server = serverApp.listen(appConfig.webhook.port, () => {
       log.info("server start");
     });
     console.log(server);

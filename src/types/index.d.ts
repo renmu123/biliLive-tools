@@ -49,6 +49,7 @@ export interface AppConfig {
   trash: boolean;
   autoUpdate: boolean;
   webhook: {
+    port: number;
     open: boolean;
     recoderFolder: string;
     autoUpload: boolean;

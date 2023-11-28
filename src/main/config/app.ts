@@ -14,6 +14,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   autoUpdate: true,
   trash: true, // 是否移动至回收站
   webhook: {
+    port: 18010,
     open: false,
     recoderFolder: "",
     autoUpload: false,

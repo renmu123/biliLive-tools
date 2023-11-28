@@ -61,7 +61,7 @@
                   <span class="inline-flex">
                     开启server
                     <Tip
-                      tip="开启后支持自动上传，需重启应用<br/>录播姬的webhook地址设置为:http://127.0.0.1:18010/webhook"
+                      :tip="`开启后支持自动上传，需重启应用<br/>录播姬的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/webhook`"
                     ></Tip>
                   </span>
                 </template>
