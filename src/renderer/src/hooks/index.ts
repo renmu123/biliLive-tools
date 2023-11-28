@@ -26,6 +26,12 @@ export const useConfirm = () => {
           onNegativeClick: () => {
             reject(false);
           },
+          onClose: () => {
+            reject(false);
+          },
+          onMaskClick: () => {
+            reject(false);
+          },
         });
       }),
   };

@@ -4,9 +4,9 @@
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
         <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
-        <n-button v-if="disabled" type="primary" @click="killTask"> 结束任务 </n-button>
+        <n-button v-if="disabled" type="error" @click="killTask"> 结束任务 </n-button>
       </div>
-      <p v-if="timemark">已处理视频时间：{{ timemark }}</p>
+      <p v-if="timemark">预计剩余处理时间：{{ timemark }}</p>
     </div>
 
     <FileArea
@@ -123,7 +123,7 @@ import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
 import { useDanmuPreset } from "@renderer/stores";
 
-import { deepRaw, uuid } from "@renderer/utils";
+import { deepRaw, uuid, formatSeconds } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 
 import type { DanmuOptions, File, FfmpegOptions, DanmuConfig } from "../../../../types";
@@ -376,6 +376,7 @@ const handleVideoFile = async (videoFile: any, videoIndex: number) => {
   return { canRemoveVideo, targetVideoFilePath };
 };
 
+const startTime = ref(0);
 // 视频压制
 const handleVideoMerge = async (options: {
   targetVideoFilePath: string;
@@ -391,7 +392,7 @@ const handleVideoMerge = async (options: {
     duration: 5000,
   });
 
-  const startTime = Date.now();
+  startTime.value = Date.now();
   let output: string;
   try {
     output = await createMergeVideoAssTask(targetVideoFilePath, targetAssFilePath, videoIndex);
@@ -407,19 +408,20 @@ const handleVideoMerge = async (options: {
     }
   }
 
+  const msg = `压制已完成，约耗时${formatSeconds(
+    Number(((Date.now() - startTime.value) / 1000).toFixed(0)),
+  )}`;
   // 完成后的处理
   notice.success({
-    title: `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
+    title: msg,
     duration: 10000,
   });
-  new window.Notification(
-    `压制已完成，约耗时${((Date.now() - startTime) / 1000 / 60).toFixed(2)}分钟`,
-  );
+  new window.Notification(msg);
 
   return output;
 };
 
-// 已处理时间
+// 预计剩余处理时间
 const timemark = ref();
 // 压制任务
 const createMergeVideoAssTask = async (
@@ -481,6 +483,11 @@ const createMergeVideoAssTask = async (
             if (taskId === currentTaskId) {
               fileList.value[i].percentage = progress.percentage;
               timemark.value = progress.timemark;
+              const duration = (Date.now() - startTime.value) / 1000;
+              const speed = duration / progress.percentage;
+              timemark.value = formatSeconds(
+                Number((speed * (100 - progress.percentage)).toFixed(0)),
+              );
             }
           });
         },
