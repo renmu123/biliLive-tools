@@ -13,6 +13,8 @@
 
 目前有两个 Win 版本的包。两个包处理有没有打包 `ffmpeg` 和 `ffprobe` 之外没有任何代码上的区别，如果你不需要转封装功能，可以尝试下载体积较小的包，我不是特别推荐。
 如果你是普通用户，那就选择体积大的那个包，如果你是资深用户，那么请自行选择，因使用自定义 `ffmpeg` 出问题的 issue 是不会被处理的。
+下载地址：https://github.com/renmu123/biliLive-tools/releases
+备用：https://www.alipan.com/s/iRyhxjdqGeL
 
 1. 自带 `ffmpeg` 版本的包
 2. 在设置中自定义`ffmpeg`以及`ffprobe`文件路径，减小安装包体积。
