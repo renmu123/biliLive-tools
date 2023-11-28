@@ -23,7 +23,7 @@ export default class Danmu {
         // @ts-ignore
         if (value.length === 0) return ``;
         // @ts-ignore
-        return `--${key} ${value.join(",")}`;
+        return `--${key} ${value.join("-")}`;
       } else if (key === "fontname") {
         return `--${key} "${value}"`;
       } else {
