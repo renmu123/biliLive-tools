@@ -40,4 +40,5 @@ export default {
   getArchives,
   checkTag,
   getMyInfo,
+  client,
 };

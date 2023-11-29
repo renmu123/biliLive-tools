@@ -6,14 +6,12 @@ import ntsuspend from "ntsuspend";
 import type { WebContents } from "electron";
 import type { Progress } from "../types";
 
-// Win不支持
 export const pauseTask = (taskQueue: TaskQueue, taskId: string) => {
   const task = taskQueue.queryTask(taskId);
   if (!task) return;
   return task.pause();
 };
 
-// Win不支持
 export const resumeTask = (taskQueue: TaskQueue, taskId: string) => {
   const task = taskQueue.queryTask(taskId);
   if (!task) return;

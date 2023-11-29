@@ -1,5 +1,8 @@
+import type { BlrecEventType } from "./brelcEvent.d.ts";
+
 import { getAppConfig } from "../config/app";
 import { _uploadVideo, DEFAULT_BILIUP_CONFIG, _readBiliupPreset } from "../biliup";
+import bili from "../bili";
 import path from "path";
 import log from "../utils/log";
 import { getFileSize } from "../../utils/index";
@@ -8,6 +11,14 @@ import express from "express";
 const app = express();
 
 app.use(express.json());
+
+// const evenetData: {
+//   biliRecoder: any[];
+//   blrec: BlrecEventType[];
+// } = {
+//   biliRecoder: [],
+//   blrec: [],
+// };
 
 // 使用内置的中间件处理表单数据
 app.use(express.urlencoded({ extended: true }));
@@ -19,22 +30,30 @@ app.get("/", function (_req, res) {
 app.post("/webhook", async function (req, res) {
   const appConfig = getAppConfig();
   log.info("录播姬：", req.body);
-  const data = req.body;
+  log.info("appConfig: ", appConfig.webhook);
+
+  const event = req.body;
+  // evenetData.biliRecoder.push(event);
 
   if (
     appConfig.webhook.open &&
     appConfig.webhook.recoderFolder &&
     appConfig.webhook.autoUpload &&
-    data.EventType === "FileClosed"
+    event.EventType === "FileClosed"
   ) {
-    const roomId = data.EventData.RoomId;
+    const roomId = event.EventData.RoomId;
     const roomSetting = appConfig.webhook.rooms[roomId];
     log.info("room setting", roomId, roomSetting);
+    const data = {
+      time: event.EventData.FileOpenTime,
+      title: event.EventData.Title,
+      name: event.EventData.Name,
+    };
 
-    console.log(data.EventData.FileOpenTime, formatTime(data.EventData.FileOpenTime));
+    console.log(event.EventData.FileOpenTime, formatTime(event.EventData.FileOpenTime));
 
     const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
-    if (data.EventData.FileSize / 1024 / 1024 < minSize) {
+    if (event.EventData.FileSize / 1024 / 1024 < minSize) {
       log.info("录播姬：file size too small");
       res.send("录播姬：file size too small");
       return;
@@ -45,7 +64,7 @@ app.post("/webhook", async function (req, res) {
       return;
     }
 
-    const filePath = path.join(appConfig.webhook.recoderFolder, data.EventData.RelativePath);
+    const filePath = path.join(appConfig.webhook.recoderFolder, event.EventData.RelativePath);
 
     let config = DEFAULT_BILIUP_CONFIG;
 
@@ -58,9 +77,9 @@ app.post("/webhook", async function (req, res) {
 
     const title = roomSetting?.title || appConfig.webhook.title || "";
     config.title = title
-      .replaceAll("{{title}}", data.EventData.Title)
-      .replaceAll("{{user}}", data.EventData.Name)
-      .replaceAll("{{now}}", formatTime(data.EventData.FileOpenTime))
+      .replaceAll("{{title}}", data.title)
+      .replaceAll("{{user}}", data.name)
+      .replaceAll("{{now}}", formatTime(data.time))
       .trim()
       .slice(0, 80);
     if (!config.title) config.title = path.parse(filePath).name;
@@ -75,19 +94,29 @@ app.post("/webhook", async function (req, res) {
 app.post("/blrec", async function (req, res) {
   const appConfig = getAppConfig();
   log.info("blrec: webhook", req.body);
-  const data = req.body;
+  log.info("appConfig: ", appConfig.webhook);
+  const event: BlrecEventType = req.body;
+  // evenetData.blrec.push(event);
 
   if (
     appConfig.webhook.open &&
     appConfig.webhook.recoderFolder &&
     appConfig.webhook.autoUpload &&
-    data.type === "VideoFileCompletedEvent"
+    event.type === "VideoFileCompletedEvent"
   ) {
-    const roomId = data.EventData.room_id;
+    const roomId = event.data.room_id as unknown as number;
     const roomSetting = appConfig.webhook.rooms[roomId];
 
-    console.log(data.date, formatTime(data.date));
-    const fileSize = await getFileSize(data.data.path);
+    const masterRes = await bili.client.live.getRoomInfo(event.data.room_id);
+    const userRes = await bili.client.live.getMasterInfo(masterRes.data.uid);
+
+    const data = {
+      time: masterRes.data.live_time,
+      title: masterRes.data.title,
+      name: userRes.data.info.uname,
+    };
+
+    const fileSize = await getFileSize(event.data.path);
 
     const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
     if (fileSize / 1024 / 1024 < minSize) {
@@ -95,7 +124,7 @@ app.post("/blrec", async function (req, res) {
       res.send("file size too small");
       return;
     }
-    if (appConfig.webhook.blacklist.includes(roomId)) {
+    if (appConfig.webhook.blacklist.includes(String(roomId))) {
       log.info(`blrec: ${roomId} is in blacklist`);
       res.send(`${roomId} is in blacklist`);
       return;
@@ -109,12 +138,12 @@ app.post("/blrec", async function (req, res) {
       config = { ...config, ...preset.config };
     }
 
-    const filePath = data.data.path;
+    const filePath = event.data.path;
     const title = roomSetting?.title || appConfig.webhook.title || "";
     config.title = title
-      .replaceAll("{{title}}", data.data.Title)
-      .replaceAll("{{user}}", data.data.Name)
-      .replaceAll("{{now}}", formatTime(data.data.FileOpenTime))
+      .replaceAll("{{title}}", data.title)
+      .replaceAll("{{user}}", data.name)
+      .replaceAll("{{now}}", formatTime(data.time))
       .trim()
       .slice(0, 80);
     if (!config.title) config.title = path.parse(filePath).name;
