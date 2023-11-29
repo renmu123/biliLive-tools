@@ -7,7 +7,7 @@ import { sum } from "lodash";
 import { getAppConfig } from "./config/app";
 import { escaped, genFfmpegParams, pathExists, trashItem, uuid } from "./utils/index";
 import log from "./utils/log";
-import { taskQueue, FFmpegTask, pauseTask, resumeTask, killTask } from "./task";
+import { taskQueue, FFmpegTask } from "./task";
 
 import { type IpcMainInvokeEvent } from "electron";
 import type { File, DanmuOptions, FfmpegOptions, VideoMergeOptions } from "../types";
@@ -96,6 +96,7 @@ export const convertVideo2Mp4 = async (
     _event.sender,
     {
       output,
+      name: "转码任务",
     },
     {
       onProgress(progress) {
@@ -179,6 +180,7 @@ export const mergeAssMp4 = async (
     _event.sender,
     {
       output,
+      name: "合并弹幕任务",
     },
     {
       onEnd: async () => {
@@ -235,13 +237,12 @@ export const mergeVideos = async (
     }),
   );
 
-  console.log({ nbFrames });
-
   const task = new FFmpegTask(
     command,
     event.sender,
     {
       output,
+      name: "合并视频任务",
     },
     {
       onProgress(progress) {
@@ -274,15 +275,6 @@ export const mergeVideos = async (
   };
 };
 
-export const handlePauseTask = (_event: IpcMainInvokeEvent, taskId: string) => {
-  return pauseTask(taskQueue, taskId);
-};
-export const handleResumeTask = (_event: IpcMainInvokeEvent, taskId: string) => {
-  return resumeTask(taskQueue, taskId);
-};
-export const handleKillTask = (_event: IpcMainInvokeEvent, taskId: string) => {
-  return killTask(taskQueue, taskId);
-};
 export const handleGetTaskList = () => {
   return taskQueue.list();
 };

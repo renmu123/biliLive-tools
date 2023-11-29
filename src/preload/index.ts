@@ -50,14 +50,20 @@ export const api = {
     },
   },
   task: {
-    pause: async (taskId: string) => {
-      return await ipcRenderer.invoke("pauseTask", taskId);
+    pause: (taskId: string) => {
+      return ipcRenderer.invoke("task:pause", taskId);
     },
-    resume: async (taskId: string) => {
-      return await ipcRenderer.invoke("resumeTask", taskId);
+    resume: (taskId: string) => {
+      return ipcRenderer.invoke("task:resume", taskId);
     },
-    kill: async (taskId: string) => {
-      return await ipcRenderer.invoke("killTask", taskId);
+    kill: (taskId: string) => {
+      return ipcRenderer.invoke("task:kill", taskId);
+    },
+    list: () => {
+      return ipcRenderer.invoke("task:list");
+    },
+    start: (command: string) => {
+      return ipcRenderer.invoke("task:start", command);
     },
   },
   bili: {

@@ -24,13 +24,11 @@ import {
   convertVideo2Mp4,
   mergeAssMp4,
   getAvailableEncoders,
-  handleKillTask,
-  handlePauseTask,
-  handleResumeTask,
   setFfmpegPath,
   mergeVideos,
   handleReadVideoMeta,
 } from "./video";
+import { handlers as taskHandlers } from "./task";
 import { handlers as biliHandlers } from "./biliup";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
@@ -69,14 +67,12 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
   ipcMain.handle("mergeAssMp4", mergeAssMp4);
   ipcMain.handle("getAvailableEncoders", getAvailableEncoders);
-  ipcMain.handle("killTask", handleKillTask);
-  ipcMain.handle("pauseTask", handlePauseTask);
-  ipcMain.handle("resumeTask", handleResumeTask);
   ipcMain.handle("readVideoMeta", handleReadVideoMeta);
   ipcMain.handle("mergeVideos", mergeVideos);
 
   // 上传视频部分
   registerHandlers(ipcMain, biliHandlers);
+  registerHandlers(ipcMain, taskHandlers);
 
   // 弹幕相关
   ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);

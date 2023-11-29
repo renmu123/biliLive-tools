@@ -1,10 +1,14 @@
+import EventEmitter from "events";
+
 import { uuid, isWin32 } from "./utils/index";
 import log from "./utils/log";
-import type ffmpeg from "fluent-ffmpeg";
 import ntsuspend from "ntsuspend";
 
-import type { WebContents } from "electron";
+import type { WebContents, IpcMainInvokeEvent } from "electron";
 import type { Progress } from "../types";
+import type ffmpeg from "fluent-ffmpeg";
+
+const emitter = new EventEmitter();
 
 export const pauseTask = (taskQueue: TaskQueue, taskId: string) => {
   const task = taskQueue.queryTask(taskId);
@@ -25,40 +29,31 @@ export const killTask = (taskQueue: TaskQueue, taskId: string) => {
 };
 
 abstract class AbstractTask {
-  abstract taskId: string;
-  abstract status: "pending" | "running" | "paused" | "completed" | "error";
+  taskId: string;
+  status: "pending" | "running" | "paused" | "completed" | "error";
+  name: string;
+  abstract type: string;
   abstract exec(): void;
   abstract kill(): void;
   abstract pause(): void;
   abstract resume(): void;
-}
-
-class BaseTask extends AbstractTask {
-  taskId: string;
-  status: "pending" | "running" | "paused" | "completed" | "error";
   constructor() {
-    super();
     this.taskId = uuid();
     this.status = "pending";
+    this.name = this.taskId;
   }
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  exec() {}
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  kill() {}
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  pause() {}
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  resume() {}
 }
 
-export class FFmpegTask extends BaseTask {
+export class FFmpegTask extends AbstractTask {
   command: ffmpeg.FfmpegCommand;
   webContents: WebContents;
+  type = "ffmpeg";
   constructor(
     command: ffmpeg.FfmpegCommand,
     webContents: WebContents,
     options: {
       output: string;
+      name: string;
     },
     callback: {
       onStart?: () => void;
@@ -77,6 +72,7 @@ export class FFmpegTask extends BaseTask {
 
       callback.onStart && callback.onStart();
       this.webContents.send("task-start", { taskId: this.taskId, command: commandLine });
+      emitter.emit("task-start", { taskId: this.taskId });
     });
     command.on("end", async () => {
       log.info(`task ${this.taskId} end`);
@@ -84,6 +80,7 @@ export class FFmpegTask extends BaseTask {
 
       callback.onEnd && callback.onEnd(options.output);
       this.webContents.send("task-end", { taskId: this.taskId, output: options.output });
+      emitter.emit("task-end", { taskId: this.taskId });
     });
     command.on("error", (err) => {
       log.error(`task ${this.taskId} error: ${err}`);
@@ -91,6 +88,7 @@ export class FFmpegTask extends BaseTask {
 
       callback.onError && callback.onError(err);
       this.webContents.send("task-error", { taskId: this.taskId, err: err });
+      emitter.emit("task-error", { taskId: this.taskId });
     });
     command.on("progress", (progress) => {
       progress.percentage = progress.percent;
@@ -103,6 +101,7 @@ export class FFmpegTask extends BaseTask {
       }
       // callback.onProgress && callback.onProgress(progress);
       this.webContents.send("task-progress-update", { taskId: this.taskId, progress: progress });
+      emitter.emit("task-progress-update", { taskId: this.taskId });
     });
   }
   exec() {
@@ -142,11 +141,11 @@ export class FFmpegTask extends BaseTask {
   }
 }
 export class TaskQueue {
-  queue: BaseTask[];
+  queue: AbstractTask[];
   constructor() {
     this.queue = [];
   }
-  addTask(task: BaseTask, autoRun = true) {
+  addTask(task: AbstractTask, autoRun = true) {
     this.queue.push(task);
     if (autoRun) {
       task.exec();
@@ -158,6 +157,42 @@ export class TaskQueue {
   list() {
     return this.queue;
   }
+  start(taskId: string) {
+    const task = this.queryTask(taskId);
+    if (!task) return;
+    if (task.status !== "pending") return;
+    task.exec();
+  }
+  on(
+    event: "task-start" | "task-end" | "task-error" | "task-progress-update",
+    callback: (event: { taskId: string }) => void,
+  ) {
+    emitter.on(event, callback);
+  }
 }
 
 export const taskQueue = new TaskQueue();
+
+export const handlePauseTask = (_event: IpcMainInvokeEvent, taskId: string) => {
+  return pauseTask(taskQueue, taskId);
+};
+export const handleResumeTask = (_event: IpcMainInvokeEvent, taskId: string) => {
+  return resumeTask(taskQueue, taskId);
+};
+export const handleKillTask = (_event: IpcMainInvokeEvent, taskId: string) => {
+  return killTask(taskQueue, taskId);
+};
+export const handleListTask = () => {
+  return taskQueue.list();
+};
+export const handleStartTask = (_event: IpcMainInvokeEvent, taskId: string) => {
+  return taskQueue.start(taskId);
+};
+
+export const handlers = {
+  "task:start": handleStartTask,
+  "task:pause": handlePauseTask,
+  "task:resume": handleResumeTask,
+  "task:kill": handleKillTask,
+  "task:list": handleListTask,
+};
