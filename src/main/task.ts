@@ -32,6 +32,8 @@ abstract class AbstractTask {
   taskId: string;
   status: "pending" | "running" | "paused" | "completed" | "error";
   name: string;
+  relTaskId?: string;
+  output?: string;
   abstract type: string;
   abstract exec(): void;
   abstract kill(): void;
@@ -65,6 +67,7 @@ export class FFmpegTask extends AbstractTask {
     super();
     this.command = command;
     this.webContents = webContents;
+    this.output = options.output;
 
     command.on("start", (commandLine: string) => {
       log.info(`task ${this.taskId} start, command: ${commandLine}`);
@@ -152,7 +155,20 @@ export class TaskQueue {
     }
   }
   queryTask(taskId: string) {
-    return this.queue.find((task) => task.taskId === taskId);
+    const task = this.queue.find((task) => task.taskId === taskId);
+    return task;
+  }
+  stringify(item: AbstractTask[]) {
+    return item.map((task) => {
+      return {
+        taskId: task.taskId,
+        status: task.status,
+        name: task.name,
+        type: task.type,
+        relTaskId: task.relTaskId,
+        output: task.output,
+      };
+    });
   }
   list() {
     return this.queue;
@@ -162,6 +178,14 @@ export class TaskQueue {
     if (!task) return;
     if (task.status !== "pending") return;
     task.exec();
+  }
+  remove(taskId: string) {
+    const task = this.queryTask(taskId);
+    if (!task) return;
+    const index = this.queue.indexOf(task);
+    if (index !== -1) {
+      this.queue.splice(index, 1);
+    }
   }
   on(
     event: "task-start" | "task-end" | "task-error" | "task-progress-update",
@@ -183,10 +207,21 @@ export const handleKillTask = (_event: IpcMainInvokeEvent, taskId: string) => {
   return killTask(taskQueue, taskId);
 };
 export const handleListTask = () => {
-  return taskQueue.list();
+  return taskQueue.stringify(taskQueue.list());
+};
+export const handleQueryTask = (_event: IpcMainInvokeEvent, taskId: string) => {
+  const task = taskQueue.queryTask(taskId);
+  if (task) {
+    return taskQueue.stringify([task])[0];
+  } else {
+    return null;
+  }
 };
 export const handleStartTask = (_event: IpcMainInvokeEvent, taskId: string) => {
   return taskQueue.start(taskId);
+};
+export const handleRemoveTask = (_event: IpcMainInvokeEvent, taskId: string) => {
+  return taskQueue.remove(taskId);
 };
 
 export const handlers = {
@@ -195,4 +230,6 @@ export const handlers = {
   "task:resume": handleResumeTask,
   "task:kill": handleKillTask,
   "task:list": handleListTask,
+  "task:query": handleQueryTask,
+  "task:remove": handleRemoveTask,
 };

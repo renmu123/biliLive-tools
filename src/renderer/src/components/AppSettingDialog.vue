@@ -54,14 +54,14 @@
               </n-form-item>
             </n-form>
           </n-tab-pane>
-          <n-tab-pane name="second" tab="录播姬webhook">
+          <n-tab-pane name="second" tab="webhook">
             <n-form label-placement="left" :label-width="120">
               <n-form-item>
                 <template #label>
                   <span class="inline-flex">
                     开启server
                     <Tip
-                      :tip="`开启后支持自动上传，需重启应用<br/>录播姬的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/webhook`"
+                      :tip="`开启后支持自动上传，需重启应用<br/>录播姬的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/webhook<br/>blrec的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/blrec`"
                     ></Tip>
                   </span>
                 </template>

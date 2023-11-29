@@ -62,6 +62,9 @@ export const api = {
     list: () => {
       return ipcRenderer.invoke("task:list");
     },
+    remove: (taskId: string) => {
+      return ipcRenderer.invoke("task:remove", taskId);
+    },
     start: (command: string) => {
       return ipcRenderer.invoke("task:start", command);
     },

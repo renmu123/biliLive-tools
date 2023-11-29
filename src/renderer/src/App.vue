@@ -46,6 +46,7 @@ import {
   BuildOutline as BookIcon,
   HomeOutline as HomeIcon,
   InformationCircleOutline as InfoIcon,
+  GitPullRequestOutline as QueueIcon,
 } from "@vicons/ionicons5";
 import defaultUserAvatar from "./assets/images/moehime.jpg";
 import AppSettingDialog from "./components/AppSettingDialog.vue";
@@ -96,6 +97,20 @@ const menuOptions = computed<MenuOption[]>(() => {
         ),
       key: "tools",
       icon: renderIcon(BookIcon),
+    },
+    {
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "Queue",
+            },
+          },
+          { default: () => "队列" },
+        ),
+      key: "queue",
+      icon: renderIcon(QueueIcon),
     },
     {
       label: () =>
