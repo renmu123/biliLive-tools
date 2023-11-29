@@ -1,7 +1,7 @@
 import type { BlrecEventType } from "./brelcEvent.d.ts";
 
 import { getAppConfig } from "../config/app";
-import { _uploadVideo, DEFAULT_BILIUP_CONFIG, _readBiliupPreset } from "../biliup";
+import { _uploadVideo, DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
 import bili from "../bili";
 import path from "path";
 import log from "../utils/log";
@@ -71,7 +71,7 @@ app.post("/webhook", async function (req, res) {
     const uploadPresetId =
       roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
     if (uploadPresetId) {
-      const preset = await _readBiliupPreset(uploadPresetId);
+      const preset = await readBiliupPreset(undefined, uploadPresetId);
       config = { ...config, ...preset.config };
     }
 
@@ -134,7 +134,7 @@ app.post("/blrec", async function (req, res) {
     const uploadPresetId =
       roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
     if (appConfig.webhook.uploadPresetId) {
-      const preset = await _readBiliupPreset(uploadPresetId);
+      const preset = await readBiliupPreset(undefined, uploadPresetId);
       config = { ...config, ...preset.config };
     }
 

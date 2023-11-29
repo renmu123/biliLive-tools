@@ -4,8 +4,9 @@ import fs from "fs-extra";
 
 import Biliup from "./biliup/index";
 import log from "./utils/log";
+import CommonPreset from "./utils/preset";
+
 import { BILIUP_PATH, BILIUP_COOKIE_PATH, UPLOAD_PRESET_PATH } from "./appConstant";
-import { UploadPreset } from "../core/upload";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { BiliupConfig, BiliupConfigAppend, BiliupPreset } from "../types/index";
@@ -22,8 +23,6 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   dynamic: "",
   cover: "",
 };
-
-const uploadPreset = new UploadPreset(UPLOAD_PRESET_PATH);
 
 // 上传视频
 export const uploadVideo = async (
@@ -188,29 +187,24 @@ export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: B
   return false;
 };
 
+const uploadPreset = new CommonPreset(UPLOAD_PRESET_PATH, DEFAULT_BILIUP_CONFIG);
+
 // 读取biliup预设
 export const readBiliupPresets = async (): Promise<BiliupPreset[]> => {
-  return uploadPreset.readBiliupPresets();
+  return uploadPreset.list();
 };
 // 保存biliup预设
 export const saveBiliupPreset = async (_event: IpcMainInvokeEvent, presets: BiliupPreset) => {
-  return uploadPreset.saveBiliupPreset(presets);
+  return uploadPreset.save(presets);
 };
 // 删除biliup预设
 export const deleteBiliupPreset = async (_event: IpcMainInvokeEvent, id: string) => {
-  return uploadPreset.deleteBiliupPreset(id);
+  return uploadPreset.delete(id);
 };
-
 // 读取biliup预设
-export const readBiliupPreset = async (_event: IpcMainInvokeEvent, id: string) => {
-  return uploadPreset.readBiliupPreset(id);
+export const readBiliupPreset = async (_event: IpcMainInvokeEvent | undefined, id: string) => {
+  return uploadPreset.get(id);
 };
-
-// 读取biliup预设
-export const _readBiliupPreset = async (id: string) => {
-  return uploadPreset.readBiliupPreset(id);
-};
-
 // 删除bili登录的cookie
 export const deleteBiliCookie = async () => {
   return await fs.remove(BILIUP_COOKIE_PATH);
