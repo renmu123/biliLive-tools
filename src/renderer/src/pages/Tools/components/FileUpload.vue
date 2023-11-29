@@ -46,7 +46,7 @@ const fileList = ref<
 const disabled = ref(false);
 
 const upload = async () => {
-  const hasLogin = await window.api.checkBiliCookie();
+  const hasLogin = await window.api.bili.checkCookie();
   if (!hasLogin) {
     notice.error({
       title: `请点击左侧头像处进行登录`,
@@ -100,7 +100,7 @@ const appendVideo = async () => {
   }
   // await window.api.appendVideo(aid.value);
 
-  const hasLogin = await window.api.checkBiliCookie();
+  const hasLogin = await window.api.bili.checkCookie();
   if (!hasLogin) {
     notice.error({
       title: `请先登录`,

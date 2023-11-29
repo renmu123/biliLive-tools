@@ -553,7 +553,7 @@ const create2Mp4Task = async (file: File, index: number) => {
 };
 
 const biliUpCheck = async () => {
-  const hasLogin = await window.api.checkBiliCookie();
+  const hasLogin = await window.api.bili.checkCookie();
   if (!hasLogin) {
     notice.error({
       title: `请先登录`,

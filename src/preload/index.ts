@@ -60,6 +60,31 @@ export const api = {
       return await ipcRenderer.invoke("killTask", taskId);
     },
   },
+  bili: {
+    // 预设
+    savePreset: (preset: BiliupPreset) => {
+      return ipcRenderer.invoke("saveBiliupPreset", preset);
+    },
+    deletePreset: (id: string) => {
+      return ipcRenderer.invoke("deleteBiliupPreset", id);
+    },
+    getPreset: (id: string): Promise<BiliupPreset> => {
+      return ipcRenderer.invoke("readBiliupPreset", id);
+    },
+    getPresets: (): Promise<BiliupPreset[]> => {
+      return ipcRenderer.invoke("readBiliupPresets");
+    },
+    // cookie
+    saveCookie: () => {
+      return ipcRenderer.invoke("saveBiliCookie");
+    },
+    checkCookie: (): Promise<boolean> => {
+      return ipcRenderer.invoke("checkBiliCookie");
+    },
+    deleteCookie: () => {
+      return ipcRenderer.invoke("deleteBiliCookie");
+    },
+  },
   convertVideo2Mp4: async (
     file: File,
     options: DanmuOptions = {
@@ -156,31 +181,6 @@ export const api = {
   readQrCode: () => {
     return ipcRenderer.invoke("readQrCode");
   },
-  // 保存bili登录的cookie到用户文件夹
-  saveBiliCookie: async () => {
-    return await ipcRenderer.invoke("saveBiliCookie");
-  },
-  // 检查bili登录的cookie是否存在
-  checkBiliCookie: async (): Promise<boolean> => {
-    return await ipcRenderer.invoke("checkBiliCookie");
-  },
-  // 删除bili登录的cookie
-  deleteBiliCookie: async () => {
-    return await ipcRenderer.invoke("deleteBiliCookie");
-  },
-  readBiliupPresets: async (): Promise<BiliupPreset[]> => {
-    return await ipcRenderer.invoke("readBiliupPresets");
-  },
-  readBiliupPreset: async (id: string): Promise<BiliupPreset> => {
-    return await ipcRenderer.invoke("readBiliupPreset", id);
-  },
-  saveBiliupPreset: async (presets: BiliupPreset) => {
-    return await ipcRenderer.invoke("saveBiliupPreset", presets);
-  },
-  deleteBiliupPreset: async (id: string) => {
-    return await ipcRenderer.invoke("deleteBiliupPreset", id);
-  },
-
   validateBiliupConfig: async (config: BiliupConfig) => {
     return await ipcRenderer.invoke("validateBiliupConfig", config);
   },

@@ -277,7 +277,7 @@ const titleTip = ref(
 
 const presets = ref<BiliupPreset[]>([]);
 const getPresets = async () => {
-  presets.value = await window.api.readBiliupPresets();
+  presets.value = await window.api.bili.getPresets();
 };
 const presetsOptions = computed(() => {
   return presets.value.map((item) => {

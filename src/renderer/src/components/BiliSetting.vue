@@ -151,7 +151,7 @@ const options: Ref<BiliupPreset> = ref({
   config: {},
 });
 const handlePresetChange = async (value: string) => {
-  const preset = await window.api.readBiliupPreset(value);
+  const preset = await window.api.bili.getPreset(value);
   if (preset) {
     options.value = preset;
   } else {
@@ -220,7 +220,7 @@ const deletePreset = async () => {
   if (!status) return;
 
   const id = options.value.id;
-  await window.api.deleteBiliupPreset(id);
+  await window.api.bili.deletePreset(id);
   getUploadPresets();
   presetId.value = "default";
   handlePresetChange("default");
@@ -235,7 +235,7 @@ const savePreset = async () => {
 };
 
 const _savePreset = async (data: BiliupPreset) => {
-  await window.api.saveBiliupPreset(deepRaw(data));
+  await window.api.bili.savePreset(deepRaw(data));
 };
 
 watch(

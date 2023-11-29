@@ -31,7 +31,7 @@ const { userInfo } = storeToRefs(useUserInfoStore());
 const { login, loginStatus, loginDialogVisible } = useBili();
 
 const logout = async () => {
-  await window.api.deleteBiliCookie();
+  await window.api.bili.deleteCookie();
   getUserInfo();
 };
 </script>

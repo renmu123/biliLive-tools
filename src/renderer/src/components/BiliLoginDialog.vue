@@ -60,7 +60,7 @@ watch(
     if (val === "success") {
       // 登录成功后将cookies保存到用户文件夹
       try {
-        await window.api.saveBiliCookie();
+        await window.api.bili.saveCookie();
         notice.success({
           title: "保存B站登录信息成功",
         });

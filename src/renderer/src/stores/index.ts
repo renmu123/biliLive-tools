@@ -10,7 +10,7 @@ export const useUserInfoStore = defineStore("userInfo", () => {
   });
 
   async function getUserInfo() {
-    const hasLogin = await window.api.checkBiliCookie();
+    const hasLogin = await window.api.bili.checkCookie();
     if (hasLogin) {
       const res = await window.biliApi.getMyInfo();
       userInfo.value = res.data as any;
@@ -82,10 +82,10 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
   });
 
   async function getUploadPresets() {
-    uploadPresets.value = await window.api.readBiliupPresets();
+    uploadPresets.value = await window.api.bili.getPresets();
   }
   async function getUploadPreset() {
-    uploadPreset.value = await window.api.readBiliupPreset(upladPresetId.value);
+    uploadPreset.value = await window.api.bili.getPreset(upladPresetId.value);
   }
 
   const uploaPresetsOptions = computed(() => {

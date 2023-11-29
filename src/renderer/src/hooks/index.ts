@@ -42,7 +42,7 @@ export const useBili = () => {
   const notice = useNotification();
 
   onMounted(async () => {
-    const hasCookie = await window.api.checkBiliCookie();
+    const hasCookie = await window.api.bili.checkCookie();
     hasLogin.value = hasCookie;
   });
 
