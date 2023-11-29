@@ -31,26 +31,24 @@ import {
   mergeVideos,
   handleReadVideoMeta,
 } from "./video";
-import {
-  uploadVideo,
-  appendVideo,
-  biliLogin,
-  readQrCode,
-  checkBiliCookie,
-  readBiliupPresets,
-  readBiliupPreset,
-  saveBiliupPreset,
-  deleteBiliupPreset,
-  saveBiliCookie,
-  validateBiliupConfig,
-  deleteBiliCookie,
-} from "./biliup";
+import { handlers as biliHandlers } from "./biliup";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
 
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
+
+const registerHandlers = (
+  ipcMain: IpcMain,
+  handlers: {
+    [key: string]: (event: Electron.IpcMainInvokeEvent, ...args: any[]) => any;
+  },
+) => {
+  Object.keys(handlers).forEach((key) => {
+    ipcMain.handle(key, handlers[key]);
+  });
+};
 
 const genHandler = (ipcMain: IpcMain) => {
   // app配置相关
@@ -74,22 +72,11 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("killTask", handleKillTask);
   ipcMain.handle("pauseTask", handlePauseTask);
   ipcMain.handle("resumeTask", handleResumeTask);
+  ipcMain.handle("readVideoMeta", handleReadVideoMeta);
+  ipcMain.handle("mergeVideos", mergeVideos);
 
   // 上传视频部分
-  ipcMain.handle("uploadVideo", uploadVideo);
-  ipcMain.handle("appendVideo", appendVideo);
-  ipcMain.handle("mergeVideos", mergeVideos);
-  ipcMain.handle("biliLogin", biliLogin);
-  ipcMain.handle("saveBiliCookie", saveBiliCookie);
-  ipcMain.handle("readQrCode", readQrCode);
-  ipcMain.handle("checkBiliCookie", checkBiliCookie);
-  ipcMain.handle("deleteBiliCookie", deleteBiliCookie);
-  ipcMain.handle("readBiliupPresets", readBiliupPresets);
-  ipcMain.handle("readBiliupPreset", readBiliupPreset);
-  ipcMain.handle("saveBiliupPreset", saveBiliupPreset);
-  ipcMain.handle("deleteBiliupPreset", deleteBiliupPreset);
-  ipcMain.handle("validateBiliupConfig", validateBiliupConfig);
-  ipcMain.handle("readVideoMeta", handleReadVideoMeta);
+  registerHandlers(ipcMain, biliHandlers);
 
   // 弹幕相关
   ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);

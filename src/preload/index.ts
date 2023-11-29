@@ -63,26 +63,50 @@ export const api = {
   bili: {
     // 预设
     savePreset: (preset: BiliupPreset) => {
-      return ipcRenderer.invoke("saveBiliupPreset", preset);
+      return ipcRenderer.invoke("bili:savePreset", preset);
     },
     deletePreset: (id: string) => {
-      return ipcRenderer.invoke("deleteBiliupPreset", id);
+      return ipcRenderer.invoke("bili:deletePreset", id);
     },
     getPreset: (id: string): Promise<BiliupPreset> => {
-      return ipcRenderer.invoke("readBiliupPreset", id);
+      return ipcRenderer.invoke("bili:getPreset", id);
     },
     getPresets: (): Promise<BiliupPreset[]> => {
-      return ipcRenderer.invoke("readBiliupPresets");
+      return ipcRenderer.invoke("bili:getPresets");
     },
     // cookie
     saveCookie: () => {
-      return ipcRenderer.invoke("saveBiliCookie");
+      return ipcRenderer.invoke("bili:saveCookie");
     },
     checkCookie: (): Promise<boolean> => {
-      return ipcRenderer.invoke("checkBiliCookie");
+      return ipcRenderer.invoke("bili:checkCookie");
     },
     deleteCookie: () => {
-      return ipcRenderer.invoke("deleteBiliCookie");
+      return ipcRenderer.invoke("bili:deleteCookie");
+    },
+    // 调用biliup的登录窗口
+    login: async () => {
+      return await ipcRenderer.invoke("bili:login");
+    },
+    // 监测biliup登录窗口的关闭
+    onLogin(event: "close", callback: (_event: IpcRendererEvent, code: number) => void) {
+      if (event === "close") {
+        ipcRenderer.once("event:login-win-close", callback);
+      }
+    },
+    // 读取bili登录的二维码
+    readQrCode: () => {
+      return ipcRenderer.invoke("bili:readQrCode");
+    },
+    // 验证视频上传参数
+    validUploadParams: async (config: BiliupConfig) => {
+      return await ipcRenderer.invoke("bili:validUploadParams", config);
+    },
+    uploadVideo: async (videoFiles: string[], options: BiliupConfig) => {
+      return await ipcRenderer.invoke("bili:uploadVideo", videoFiles, options);
+    },
+    appendVideo: async (videoFiles: string[], options: BiliupConfigAppend) => {
+      return await ipcRenderer.invoke("bili:appendVideo", videoFiles, options);
     },
   },
   convertVideo2Mp4: async (
@@ -160,30 +184,11 @@ export const api = {
   ) => {
     return await ipcRenderer.invoke("mergeAssMp4", videoFile, assFile, options, ffmpegOptions);
   },
-  uploadVideo: async (videoFiles: string[], options: BiliupConfig) => {
-    return await ipcRenderer.invoke("uploadVideo", videoFiles, options);
-  },
-  appendVideo: async (videoFiles: string[], options: BiliupConfigAppend) => {
-    return await ipcRenderer.invoke("appendVideo", videoFiles, options);
-  },
+
   mergeVideos: async (videoFiles: File[], options: VideoMergeOptions) => {
     return await ipcRenderer.invoke("mergeVideos", videoFiles, options);
   },
-  // 调用biliup的登录窗口
-  biliLogin: async () => {
-    return await ipcRenderer.invoke("biliLogin");
-  },
-  // 监测biliup登录窗口的关闭
-  onBiliLoginClose: (callback: (_event: IpcRendererEvent, code: number) => void) => {
-    ipcRenderer.once("login-win-close", callback);
-  },
-  // 读取bili登录的二维码
-  readQrCode: () => {
-    return ipcRenderer.invoke("readQrCode");
-  },
-  validateBiliupConfig: async (config: BiliupConfig) => {
-    return await ipcRenderer.invoke("validateBiliupConfig", config);
-  },
+
   onBiliUploadClose: (callback: (_event: IpcRendererEvent, code: number) => void) => {
     ipcRenderer.once("upload-close", callback);
   },
@@ -193,7 +198,6 @@ export const api = {
   readVideoMeta: async (file: string): Promise<ffmpeg.FfprobeData> => {
     return await ipcRenderer.invoke("readVideoMeta", file);
   },
-
   // app 配置相关
   // 保存app配置
   saveAppConfig: async (newConfig: AppConfig) => {

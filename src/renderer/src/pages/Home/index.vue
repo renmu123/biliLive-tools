@@ -562,7 +562,7 @@ const biliUpCheck = async () => {
     return;
   }
 
-  await window.api.validateBiliupConfig(deepRaw(presetOptions.value.config));
+  await window.api.bili.validUploadParams(deepRaw(presetOptions.value.config));
 
   return true;
 };
@@ -574,7 +574,7 @@ const upload = async (files: { path: string }[]) => {
 
   disabled.value = true;
   try {
-    await window.api.uploadVideo(
+    await window.api.bili.uploadVideo(
       toRaw(files.map((file) => file.path)),
       deepRaw(presetOptions.value.config),
     );

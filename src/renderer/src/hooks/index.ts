@@ -62,9 +62,9 @@ export const useBili = () => {
     });
     loginStatus.value = "start";
     loginDialogVisible.value = true;
-    window.api.biliLogin();
+    window.api.bili.login();
     // 打开登录窗口;
-    window.api.onBiliLoginClose((_event, code) => {
+    window.api.bili.onLogin("close", (_event, code) => {
       console.log("window close", code);
 
       if (code == 0) {

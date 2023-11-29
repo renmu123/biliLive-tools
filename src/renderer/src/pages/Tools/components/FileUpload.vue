@@ -62,14 +62,14 @@ const upload = async () => {
     });
     return;
   }
-  await window.api.validateBiliupConfig(deepRaw(presetOptions.value.config));
+  await window.api.bili.validUploadParams(deepRaw(presetOptions.value.config));
   disabled.value = true;
   notice.info({
     title: `开始上传`,
     duration: 3000,
   });
   try {
-    await window.api.uploadVideo(
+    await window.api.bili.uploadVideo(
       toRaw(fileList.value.map((file) => file.path)),
       deepRaw(presetOptions.value.config),
     );
@@ -123,7 +123,7 @@ const appendVideo = async () => {
     duration: 3000,
   });
   try {
-    await window.api.appendVideo(toRaw(fileList.value.map((file) => file.path)), {
+    await window.api.bili.appendVideo(toRaw(fileList.value.map((file) => file.path)), {
       ...deepRaw(presetOptions.value.config),
       vid: aid.value,
     });

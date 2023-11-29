@@ -78,7 +78,7 @@ watch(
 
 const qrCodeImage = ref("");
 const readQrCode = async () => {
-  const base64Image = await window.api.readQrCode();
+  const base64Image = await window.api.bili.readQrCode();
   qrCodeImage.value = `data:image/png;base64,${base64Image}`;
 };
 

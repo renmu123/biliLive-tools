@@ -124,7 +124,7 @@ export const biliLogin = (_event: IpcMainInvokeEvent) => {
   biliup.login();
 
   biliup.on("login-close", (code) => {
-    _event.sender.send("login-win-close", code);
+    _event.sender.send("event:login-win-close", code);
   });
 };
 
@@ -188,7 +188,6 @@ export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: B
 };
 
 const uploadPreset = new CommonPreset(UPLOAD_PRESET_PATH, DEFAULT_BILIUP_CONFIG);
-
 // 读取biliup预设
 export const readBiliupPresets = async (): Promise<BiliupPreset[]> => {
   return uploadPreset.list();
@@ -208,4 +207,19 @@ export const readBiliupPreset = async (_event: IpcMainInvokeEvent | undefined, i
 // 删除bili登录的cookie
 export const deleteBiliCookie = async () => {
   return await fs.remove(BILIUP_COOKIE_PATH);
+};
+
+export const handlers = {
+  "bili:validUploadParams": validateBiliupConfig,
+  "bili:getPreset": readBiliupPreset,
+  "bili:savePreset": saveBiliupPreset,
+  "bili:deletePreset": deleteBiliupPreset,
+  "bili:getPresets": readBiliupPresets,
+  "bili:saveCookie": saveBiliCookie,
+  "bili:checkCookie": checkBiliCookie,
+  "bili:deleteCookie": deleteBiliCookie,
+  "bili:login": biliLogin,
+  "bili:readQrCode": readQrCode,
+  "bili:uploadVideo": uploadVideo,
+  "bili:appendVideo": appendVideo,
 };
