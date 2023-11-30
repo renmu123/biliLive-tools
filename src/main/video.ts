@@ -97,7 +97,7 @@ export const convertVideo2Mp4 = async (
     _event.sender,
     {
       output,
-      name: "转码任务",
+      name: `转码任务: ${name}`,
     },
     {
       onProgress(progress) {
@@ -156,7 +156,9 @@ export const mergeAssMp4 = async (
   if (!options.override && (await pathExists(output))) {
     log.error("mergrAssMp4, 文件已存在，跳过", videoInput);
     _event.sender.send("task-end", { output });
-    return;
+    return {
+      output,
+    };
   }
 
   const command = ffmpeg(videoInput)
@@ -175,7 +177,7 @@ export const mergeAssMp4 = async (
     _event.sender,
     {
       output,
-      name: "合并弹幕任务",
+      name: `合并弹幕任务:${name}`,
     },
     {
       onEnd: async () => {
@@ -195,8 +197,6 @@ export const mergeAssMp4 = async (
 
   taskQueue.addTask(task, true);
   return {
-    status: "success",
-    text: "添加到任务队列",
     taskId: task.taskId,
   };
 };
@@ -240,7 +240,7 @@ export const mergeVideos = async (
     event.sender,
     {
       output,
-      name: "合并视频任务",
+      name: `合并视频任务: ${videoFiles[0].name}等文件`,
     },
     {
       onProgress(progress) {

@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <!-- TODO:增加筛选，移除已完成记录 -->
     <template v-if="queue.length !== 0">
       <div v-for="item in queue" :key="item.taskId" class="item">
         <div class="content-container">
@@ -17,12 +18,14 @@
             <n-button
               v-if="item.status === 'pending' || item.status === 'paused'"
               type="primary"
+              size="small"
               @click="handleStart(item.taskId, item)"
               >开始</n-button
             >
             <n-button
               v-if="item.action.includes('pause') && item.status === 'running'"
               type="primary"
+              size="small"
               @click="handlePause(item.taskId)"
               >暂停</n-button
             >
@@ -32,18 +35,21 @@
                 item.status === 'paused'
               "
               type="error"
+              size="small"
               @click="handleKill(item.taskId)"
               >中止</n-button
             >
             <n-button
               v-if="item.status === 'completed' && item.output"
               type="primary"
+              size="small"
               @click="handleOpenDir(item.taskId, item)"
               >打开文件夹</n-button
             >
             <n-button
               v-if="item.status === 'completed' && item.output"
               type="primary"
+              size="small"
               @click="handleOpenFile(item.taskId, item)"
               >打开文件</n-button
             >
@@ -51,6 +57,8 @@
               v-if="
                 item.status === 'completed' || item.status === 'error' || item.status === 'pending'
               "
+              size="small"
+              title="已完成任务移除只是删除记录"
               @click="handleRemoveRecord(item.taskId)"
               >删除任务</n-button
             >
@@ -110,7 +118,7 @@ const statusMap: {
     progressStatus: "default",
   },
   paused: {
-    text: "暂停中",
+    text: "已暂停",
     color: "#faad14",
     progressStatus: "warning",
   },
@@ -125,6 +133,11 @@ const statusMap: {
     progressStatus: "error",
   },
 };
+
+// const duration = (Date.now() - startTime.value) / 1000;
+//               const speed = duration / progress.percentage;
+//               timemark.value = formatSeconds(
+//                 Number((speed * (100 - progress.percentage)).toFixed(0)),
 
 const getQuenu = async () => {
   // queue.value = [
@@ -168,7 +181,7 @@ const getQuenu = async () => {
   //     progress: 50,
   //   },
   // ];
-  queue.value = await window.api.task.list();
+  queue.value = (await window.api.task.list()).toReversed();
 };
 
 const handleStart = (taskId: string, task: Task) => {
@@ -187,8 +200,8 @@ const handlePause = (taskId: string) => {
   getQuenu();
 };
 
-const handleKill = (taskId: string) => {
-  const status = confirm.warning({
+const handleKill = async (taskId: string) => {
+  const status = await confirm.warning({
     content: "确定要中止任务吗？",
   });
   if (!status) return;
@@ -232,6 +245,7 @@ getQuenu();
     .content-container {
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
     .progress {
       margin-top: 10px;
@@ -244,7 +258,7 @@ getQuenu();
 
       .name {
         margin-right: 10px;
-        font-size: 18px;
+        font-size: 16px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;

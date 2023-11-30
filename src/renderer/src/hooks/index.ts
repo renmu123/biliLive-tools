@@ -14,7 +14,7 @@ export const useConfirm = () => {
       positiveText?: string;
       negativeText?: string;
     }) =>
-      new Promise((reslove, reject) => {
+      new Promise((reslove) => {
         dialog.warning({
           title: title || "警告",
           content: content,
@@ -24,13 +24,13 @@ export const useConfirm = () => {
             reslove(true);
           },
           onNegativeClick: () => {
-            reject(false);
+            reslove(false);
           },
           onClose: () => {
-            reject(false);
+            reslove(false);
           },
           onMaskClick: () => {
-            reject(false);
+            reslove(false);
           },
         });
       }),

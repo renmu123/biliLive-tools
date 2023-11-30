@@ -57,6 +57,12 @@ export class DanmuTask extends AbstractTask {
   input: string;
   options: any;
   type = "danmu";
+  callback: {
+    onStart?: () => void;
+    onEnd?: (output: string) => void;
+    onError?: (err: string) => void;
+    onProgress?: (progress: Progress) => any;
+  };
   constructor(
     danmu: Danmu,
     webContents: WebContents,
@@ -65,6 +71,12 @@ export class DanmuTask extends AbstractTask {
       output: string;
       options: any;
       name: string;
+    },
+    callback?: {
+      onStart?: () => void;
+      onEnd?: (output: string) => void;
+      onError?: (err: string) => void;
+      onProgress?: (progress: Progress) => any;
     },
   ) {
     super();
@@ -78,32 +90,45 @@ export class DanmuTask extends AbstractTask {
       this.name = options.name;
     }
     this.action = [];
+    this.callback = callback || {};
   }
   exec() {
+    this.callback.onStart && this.callback.onStart();
     this.status = "running";
     this.progress = 0;
-    this.danmu.convertXml2Ass(this.input, this.output as string, this.options).then(
-      ({ stdout, stderr }) => {
-        log.debug("stdout", stdout);
-        log.debug("stderr", stderr);
+    this.danmu
+      .convertXml2Ass(this.input, this.output as string, this.options)
+      .then(
+        ({ stdout, stderr }) => {
+          log.debug("stdout", stdout);
+          log.debug("stderr", stderr);
 
-        if (stderr) {
+          if (stderr) {
+            this.status = "error";
+            this.callback.onError && this.callback.onError(stderr);
+            this.webContents.send("task-error", { taskId: this.taskId, err: stderr });
+            emitter.emit("task-error", { taskId: this.taskId });
+            return;
+          }
+          this.status = "completed";
+          this.callback.onEnd && this.callback.onEnd(this.output as string);
+          this.progress = 100;
+          this.webContents.send("task-end", { taskId: this.taskId, output: this.output });
+          emitter.emit("task-end", { taskId: this.taskId });
+        },
+        (err) => {
           this.status = "error";
-          this.webContents.send("task-error", { taskId: this.taskId, err: stderr });
+          this.callback.onError && this.callback.onError(err);
+          this.webContents.send("task-error", { taskId: this.taskId, err: err });
           emitter.emit("task-error", { taskId: this.taskId });
-          return;
-        }
-        this.status = "completed";
+        },
+      )
+      .finally(() => {
+        this.callback.onEnd && this.callback.onEnd(this.output as string);
         this.progress = 100;
         this.webContents.send("task-end", { taskId: this.taskId, output: this.output });
         emitter.emit("task-end", { taskId: this.taskId });
-      },
-      (err) => {
-        this.status = "error";
-        this.webContents.send("task-error", { taskId: this.taskId, err: err });
-        emitter.emit("task-error", { taskId: this.taskId });
-      },
-    );
+      });
     this.webContents.send("task-start", { taskId: this.taskId });
     emitter.emit("task-start", { taskId: this.taskId });
   }
@@ -177,7 +202,6 @@ export class FFmpegTask extends AbstractTask {
       if (callback.onProgress) {
         progress = callback.onProgress(progress);
       }
-      console.log("progress", progress);
       this.progress = progress.percentage || 0;
       // callback.onProgress && callback.onProgress(progress);
       this.webContents.send("task-progress-update", { taskId: this.taskId, progress: progress });

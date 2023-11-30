@@ -14,12 +14,7 @@
       </n-icon>
     </div>
 
-    <FileArea
-      v-model="fileList"
-      :extensions="['xml']"
-      desc="请选择xml文件"
-      :disabled="disabled"
-    ></FileArea>
+    <FileArea v-model="fileList" :extensions="['xml']" desc="请选择xml文件"></FileArea>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div>
@@ -48,9 +43,7 @@
           </n-space>
         </n-radio-group>
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
-        <n-checkbox v-model:checked="clientOptions.removeCompletedTask">
-          完成后移除任务
-        </n-checkbox>
+
         <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
           完成后打开文件夹
         </n-checkbox>
@@ -92,10 +85,8 @@ const options = ref<DanmuOptions>({
   removeOrigin: false, // 完成后移除源文件
 });
 const clientOptions = ref({
-  removeCompletedTask: true, // 移除已完成任务
   openTargetDirectory: false, // 转换完成后打开目标文件夹
 });
-const disabled = ref(false);
 
 const convert = async () => {
   const presetId = danmuPresetId.value;
@@ -106,44 +97,19 @@ const convert = async () => {
     });
     return;
   }
-  disabled.value = true;
   notice.info({
-    title: `检测到${fileList.value.length}个任务，开始转换`,
+    title: `检测到${fileList.value.length}个任务，可在任务列表中查看进度`,
     duration: 3000,
   });
-  try {
-    const result = await window.api.danmu.convertDanmu2Ass(
-      deepRaw(fileList.value),
-      presetId,
-      deepRaw(options.value),
-    );
-    const successResult = result.filter((item) => item.status === "success");
+  window.api.danmu.convertDanmu2Ass(deepRaw(fileList.value), presetId, deepRaw(options.value));
+  fileList.value = [];
 
-    notice.info({
-      title: `${successResult.length}个任务成功，${
-        result.filter((item) => item.status === "error").length
-      }个任务失败`,
-      duration: 3000,
-    });
-    console.log(result);
-
-    if (clientOptions.value.openTargetDirectory) {
-      if (options.value.saveRadio === 2) {
-        window.api.openPath(deepRaw(options.value).savePath);
-      } else {
-        window.api.openPath(deepRaw(fileList.value[0]).dir);
-      }
+  if (clientOptions.value.openTargetDirectory) {
+    if (options.value.saveRadio === 2) {
+      window.api.openPath(deepRaw(options.value).savePath);
+    } else {
+      window.api.openPath(deepRaw(fileList.value[0]).dir);
     }
-
-    if (clientOptions.value.removeCompletedTask) {
-      console.log(fileList.value, successResult);
-
-      fileList.value = fileList.value.filter(
-        (item) => !successResult.map((item2) => item2.input).includes(item.path),
-      );
-    }
-  } finally {
-    disabled.value = false;
   }
 };
 

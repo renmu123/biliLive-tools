@@ -1,13 +1,14 @@
-import { join } from "path";
-import { type IpcMainInvokeEvent } from "electron";
+import { join, parse } from "path";
 
 import { pathExists, trashItem } from "./utils/index";
 import log from "./utils/log";
 import CommonPreset from "./utils/preset";
 import { Danmu } from "../core/index";
 import { DANMU_PRESET_PATH } from "./appConstant";
+import { DanmuTask, taskQueue } from "./task";
 
 import type { DanmuConfig, File, DanmuOptions, DanmuPreset as DanmuPresetType } from "../types";
+import { type IpcMainInvokeEvent } from "electron";
 
 const DANMUKUFACTORY_PATH = join(__dirname, "../../resources/bin/DanmakuFactory.exe").replace(
   "app.asar",
@@ -55,14 +56,10 @@ export const convertDanmu2Ass = async (
 ) => {
   const danmu = new Danmu(DANMUKUFACTORY_PATH);
 
-  const result: {
-    status: "success" | "error";
-    text: string;
-    input: string;
+  const tasks: {
     output?: string;
-    meta?: any;
+    taskId?: string;
   }[] = [];
-
   for (const file of files) {
     const { dir, name, path } = file;
 
@@ -74,96 +71,107 @@ export const convertDanmu2Ass = async (
 
     if (!(await pathExists(input))) {
       log.error("danmufactory input file not exist", input);
-      result.push({ status: "error", text: "文件不存在", input: input });
       continue;
     }
 
     if (await pathExists(output)) {
       if (options.override) {
-        log.info(
-          "danmufactory",
-          JSON.stringify({
-            status: "success",
-            text: "文件已存在，移除进入回收站",
-            input: input,
-            output: output,
-          }),
-        );
-        await trashItem(output);
-      } else {
-        log.info(
-          "danmufactory",
-          JSON.stringify({
-            status: "success",
-            text: "文件已存在，跳过",
-            input: input,
-            output: output,
-          }),
-        );
-        result.push({
+        log.info("danmufactory", {
           status: "success",
-          text: "跳过",
+          text: "文件已存在，移除进入回收站",
           input: input,
           output: output,
+        });
+        await trashItem(output);
+      } else {
+        log.info("danmufactory", {
+          status: "success",
+          text: "文件已存在，跳过",
+          input: input,
+          output: output,
+        });
+        tasks.push({
+          output,
         });
         continue;
       }
     }
 
     const argsObj = (await danmuPreset.get(presetId)).config;
+    const task = new DanmuTask(
+      danmu,
+      _event.sender,
+      {
+        input,
+        output,
+        options: argsObj,
+        name: `弹幕转换任务: ${parse(input).name}`,
+      },
+      {
+        onEnd: async () => {
+          if (options.removeOrigin && (await pathExists(input))) {
+            await trashItem(input);
+          }
+        },
+      },
+    );
+    taskQueue.addTask(task, true);
+    tasks.push({
+      taskId: task.taskId,
+    });
 
-    try {
-      const { stdout, stderr } = await danmu.convertXml2Ass(input, output, argsObj);
-      log.info(`danmukufactory command: ${danmu.command}`);
+    // try {
+    //   const { stdout, stderr } = await danmu.convertXml2Ass(input, output, argsObj);
+    //   log.info(`danmukufactory command: ${danmu.command}`);
 
-      log.debug("stdout", stdout);
-      if (stderr) {
-        log.error("stderr", stderr);
-        result.push({
-          status: "error",
-          text: stdout,
-          input: input,
-          meta: {
-            stdout,
-            stderr,
-          },
-        });
-      } else {
-        log.info(
-          "danmufactory",
-          JSON.stringify({
-            status: "success",
-            text: stdout,
-            input: input,
-            output: output,
-            meta: {
-              stdout,
-              stderr,
-            },
-          }),
-        );
-        result.push({
-          status: "success",
-          text: stdout,
-          input: input,
-          output: output,
-          meta: {
-            stdout,
-            stderr,
-          },
-        });
-      }
+    //   log.debug("stdout", stdout);
+    //   if (stderr) {
+    //     log.error("stderr", stderr);
+    //     result.push({
+    //       status: "error",
+    //       text: stdout,
+    //       input: input,
+    //       meta: {
+    //         stdout,
+    //         stderr,
+    //       },
+    //     });
+    //   } else {
+    //     log.info(
+    //       "danmufactory",
+    //       JSON.stringify({
+    //         status: "success",
+    //         text: stdout,
+    //         input: input,
+    //         output: output,
+    //         meta: {
+    //           stdout,
+    //           stderr,
+    //         },
+    //       }),
+    //     );
+    //     result.push({
+    //       status: "success",
+    //       text: stdout,
+    //       input: input,
+    //       output: output,
+    //       meta: {
+    //         stdout,
+    //         stderr,
+    //       },
+    //     });
+    //   }
 
-      if (options.removeOrigin && (await pathExists(input))) {
-        await trashItem(input);
-      }
-    } catch (err) {
-      log.error("danmufactory exec error:", err, danmu.command);
-      result.push({ status: "error", text: String(err), input: input, meta: { err } });
-    }
+    //   if (options.removeOrigin && (await pathExists(input))) {
+    //     await trashItem(input);
+    //   }
+    // } catch (err) {
+    //   log.error("danmufactory exec error:", err, danmu.command);
+    //   result.push({ status: "error", text: String(err), input: input, meta: { err } });
+    // }
   }
 
-  return result;
+  return tasks;
 };
 
 const danmuPreset = new CommonPreset(DANMU_PRESET_PATH, DANMU_DEAFULT_CONFIG);
