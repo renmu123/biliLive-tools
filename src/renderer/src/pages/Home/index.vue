@@ -145,13 +145,18 @@ const fileList = ref<
   })[]
 >([]);
 
-const options = ref<DanmuOptions>({
+const options = ref<
+  DanmuOptions & {
+    outputPath: string;
+  }
+>({
   saveRadio: 1, // 1：保存到原始文件夹，2：保存到特定文件夹
   saveOriginPath: true,
   savePath: "",
 
   override: false, // 覆盖文件
   removeOrigin: false, // 完成后移除源文件
+  outputPath: "",
 });
 const clientOptions = ref({
   removeCompletedTask: true, // 移除已完成任务
@@ -214,16 +219,16 @@ const convert = async () => {
   // xml文件转换
   const { canRemoveAssFile, targetAssFilePath } = await handleXmlFile(assFile, videoStream);
 
-  // 视频转化
-  const { canRemoveVideo, targetVideoFilePath } = await handleVideoFile(videoFiles, videoIndex);
+  // 视频检查
+  const outputPath = await checkFile(videoFiles);
 
   // 压制任务
   const output = await handleVideoMerge({
-    targetVideoFilePath,
-    targetAssFilePath,
+    inputVideoFilePath: videoFiles[0]?.path,
+    inputAssFilePath: targetAssFilePath,
+    outputPath: outputPath,
     videoIndex,
     canRemoveAssFile,
-    canRemoveVideo,
   });
   console.log(output, output);
 
@@ -248,9 +253,9 @@ const handleXmlFile = async (assFile: any, videoStream: any) => {
   let targetAssFilePath: string;
   let canRemoveAssFile = false;
   if (assFile[0].ext === ".xml") {
-    let path = window.api.join(assFile[0].dir, `${assFile[0].name}.ass`);
+    let path = window.path.join(assFile[0].dir, `${assFile[0].name}.ass`);
     if (options.value.saveRadio === 2 && options.value.savePath) {
-      path = window.api.join(options.value.savePath, `${assFile[0].name}.ass`);
+      path = window.path.join(options.value.savePath, `${assFile[0].name}.ass`);
     }
     const isExits = await window.api.exits(path);
     if (isExits && options.value.override) {
@@ -313,12 +318,12 @@ const handleXmlFile = async (assFile: any, videoStream: any) => {
 };
 
 // 处理视频文件
-const handleVideoFile = async (videoFile: any, videoIndex: number) => {
-  let path = window.api.join(videoFile[0].dir, `${videoFile[0].name}-弹幕版.mp4`);
+const checkFile = async (videoFile: any) => {
+  let output = window.path.join(videoFile[0].dir, `${videoFile[0].name}-弹幕版.mp4`);
   if (options.value.saveRadio === 2 && options.value.savePath) {
-    path = window.api.join(options.value.savePath, `${videoFile[0].name}-弹幕版.mp4`);
+    output = window.path.join(options.value.savePath, `${videoFile[0].name}-弹幕版.mp4`);
   }
-  const isExits = await window.api.exits(path);
+  const isExits = await window.api.exits(output);
   if (isExits) {
     if (!options.value.override) {
       notice.info({
@@ -328,66 +333,24 @@ const handleVideoFile = async (videoFile: any, videoIndex: number) => {
       throw new Error("目前文件已存在，无需进行压制");
     } else {
       const status = await confirm.warning({
-        content: `目标文件夹已存在 ${videoFile[0].name}-弹幕版.mp4 文件，继续将会覆盖此文件`,
+        content: `目标文件夹已存在 ${window.path.parse(output).base}文件，继续将会覆盖此文件`,
       });
       if (!status) throw new Error("取消");
     }
   }
-  // video文件转换
-  let targetVideoFilePath: string;
-  let canRemoveVideo = false;
-  if (videoFile[0].ext === ".flv") {
-    let path = window.api.join(videoFile[0].dir, `${videoFile[0].name}.mp4`);
-    if (options.value.saveRadio === 2 && options.value.savePath) {
-      path = window.api.join(options.value.savePath, `${videoFile[0].name}.mp4`);
-    }
-    const isExits = await window.api.exits(path);
-    if (isExits && options.value.override) {
-      const status = await confirm.warning({
-        content: `目标文件夹已存在 ${videoFile[0].name}.mp4 文件，继续将会覆盖此文件`,
-      });
-      if (!status) throw new Error("取消");
-    } else {
-      canRemoveVideo = true;
-    }
-
-    notice.warning({
-      title: "开始转换flv",
-      duration: 3000,
-    });
-    try {
-      const result = await create2Mp4Task(videoFile[0], videoIndex);
-
-      notice.success({
-        title: "文件转码成功",
-        duration: 3000,
-      });
-      targetVideoFilePath = result as string;
-    } catch (err) {
-      notice.error({
-        title: "文件转码失败，请检查文件",
-        duration: 3000,
-      });
-      throw new Error("文件转码失败，请检查文件");
-    }
-  } else {
-    targetVideoFilePath = videoFile[0].path;
-  }
-  console.log("targetVideoFilePath", targetVideoFilePath);
-
-  return { canRemoveVideo, targetVideoFilePath };
+  return output;
 };
 
 const startTime = ref(0);
 // 视频压制
 const handleVideoMerge = async (options: {
-  targetVideoFilePath: string;
-  targetAssFilePath: string;
+  inputVideoFilePath: string;
+  inputAssFilePath: string;
   videoIndex: number;
   canRemoveAssFile: boolean;
-  canRemoveVideo: boolean;
+  outputPath: string;
 }) => {
-  const { targetVideoFilePath, targetAssFilePath, videoIndex, canRemoveAssFile, canRemoveVideo } =
+  const { inputVideoFilePath, inputAssFilePath, videoIndex, canRemoveAssFile, outputPath } =
     options;
   notice.info({
     title: "开始进行压制，根据不同设置需要消耗大量时间，CPU，GPU，请勿关闭软件",
@@ -397,7 +360,12 @@ const handleVideoMerge = async (options: {
   startTime.value = Date.now();
   let output: string;
   try {
-    output = await createMergeVideoAssTask(targetVideoFilePath, targetAssFilePath, videoIndex);
+    output = await createMergeVideoAssTask(
+      inputVideoFilePath,
+      inputAssFilePath,
+      videoIndex,
+      outputPath,
+    );
   } catch (err) {
     notice.error({
       title: `转换失败：\n${err}`,
@@ -405,8 +373,7 @@ const handleVideoMerge = async (options: {
     throw new Error(`转换失败：\n${err}`);
   } finally {
     if (clientOptions.value.removeTempFile) {
-      if (canRemoveAssFile) window.api.trashItem(targetAssFilePath);
-      if (canRemoveVideo) window.api.trashItem(targetVideoFilePath);
+      if (canRemoveAssFile) window.api.trashItem(inputAssFilePath);
     }
   }
 
@@ -430,10 +397,11 @@ const createMergeVideoAssTask = async (
   videoFilePath: string,
   assFilePath: string,
   index: number,
+  outputPath: string,
 ): Promise<string> => {
   const videoFile = window.api.formatFile(videoFilePath);
   const assFile = window.api.formatFile(assFilePath);
-
+  options.value.outputPath = outputPath;
   return new Promise((resolve, reject) => {
     const i = index;
 
@@ -490,61 +458,6 @@ const createMergeVideoAssTask = async (
               timemark.value = formatSeconds(
                 Number((speed * (100 - progress.percentage)).toFixed(0)),
               );
-            }
-          });
-        },
-      );
-  });
-};
-
-// 转码任务
-const create2Mp4Task = async (file: File, index: number) => {
-  return new Promise((resolve, reject) => {
-    const i = index;
-
-    window.api
-      .convertVideo2Mp4(toRaw(file), toRaw(options.value))
-      .then(
-        ({
-          taskId,
-          status,
-          text,
-        }: {
-          taskId: string;
-          status: "success" | "error";
-          text: string;
-        }) => {
-          const currentTaskId = taskId;
-          console.log(taskId, status, text);
-          if (status === "error") {
-            reject(text);
-          }
-          fileList.value[i].taskId = currentTaskId;
-
-          window.api.onTaskStart((_event, { command, taskId }) => {
-            if (taskId === currentTaskId) {
-              console.log("start", command, index);
-              fileList.value[i].percentage = 0;
-              fileList.value[i].percentageStatus = "info";
-            }
-          });
-          window.api.onTaskEnd((_event, { output, taskId }) => {
-            if (taskId === currentTaskId) {
-              fileList.value[i].percentage = 100;
-              fileList.value[i].percentageStatus = "success";
-              resolve(output);
-            }
-          });
-          window.api.onTaskError((_event, { err, taskId }) => {
-            if (taskId === currentTaskId) {
-              fileList.value[i].percentageStatus = "error";
-              reject(err);
-            }
-          });
-
-          window.api.onTaskProgressUpdate((_event, { progress, taskId }) => {
-            if (taskId === currentTaskId) {
-              fileList.value[i].percentage = progress.percentage;
             }
           });
         },
@@ -710,7 +623,7 @@ async function getDir() {
   options.value.savePath = path;
 }
 
-window.api.watchMainNotify((_event, data) => {
+window.api.onMainNotify((_event, data) => {
   notice[data.type]({
     title: data.content,
     duration: 5000,

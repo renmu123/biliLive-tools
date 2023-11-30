@@ -3,6 +3,7 @@ import EventEmitter from "events";
 import { uuid, isWin32 } from "./utils/index";
 import log from "./utils/log";
 import ntsuspend from "ntsuspend";
+import { Danmu } from "../core/index";
 
 import type { WebContents, IpcMainInvokeEvent } from "electron";
 import type { Progress } from "../types";
@@ -35,6 +36,7 @@ abstract class AbstractTask {
   relTaskId?: string;
   output?: string;
   progress: number;
+  action: ("pause" | "kill")[];
   abstract type: string;
   abstract exec(): void;
   abstract kill(): void;
@@ -45,6 +47,74 @@ abstract class AbstractTask {
     this.status = "pending";
     this.name = this.taskId;
     this.progress = 0;
+    this.action = ["pause", "kill"];
+  }
+}
+
+export class DanmuTask extends AbstractTask {
+  webContents: WebContents;
+  danmu: Danmu;
+  input: string;
+  options: any;
+  type = "danmu";
+  constructor(
+    danmu: Danmu,
+    webContents: WebContents,
+    options: {
+      input: string;
+      output: string;
+      options: any;
+      name: string;
+    },
+  ) {
+    super();
+    this.danmu = danmu;
+    this.input = options.input;
+    this.options = options.options;
+    this.webContents = webContents;
+    this.output = options.output;
+    this.progress = 0;
+    if (options.name) {
+      this.name = options.name;
+    }
+    this.action = [];
+  }
+  exec() {
+    this.status = "running";
+    this.progress = 0;
+    this.danmu.convertXml2Ass(this.input, this.output as string, this.options).then(
+      ({ stdout, stderr }) => {
+        log.debug("stdout", stdout);
+        log.debug("stderr", stderr);
+
+        if (stderr) {
+          this.status = "error";
+          this.webContents.send("task-error", { taskId: this.taskId, err: stderr });
+          emitter.emit("task-error", { taskId: this.taskId });
+          return;
+        }
+        this.status = "completed";
+        this.progress = 100;
+        this.webContents.send("task-end", { taskId: this.taskId, output: this.output });
+        emitter.emit("task-end", { taskId: this.taskId });
+      },
+      (err) => {
+        this.status = "error";
+        this.webContents.send("task-error", { taskId: this.taskId, err: err });
+        emitter.emit("task-error", { taskId: this.taskId });
+      },
+    );
+    this.webContents.send("task-start", { taskId: this.taskId });
+    emitter.emit("task-start", { taskId: this.taskId });
+  }
+  pause() {
+    return false;
+  }
+  resume() {
+    return false;
+  }
+  kill() {
+    return false;
   }
 }
 
@@ -175,6 +245,7 @@ export class TaskQueue {
         relTaskId: task.relTaskId,
         output: task.output,
         progress: task.progress,
+        action: task.action,
       };
     });
   }

@@ -21,13 +21,16 @@
               >开始</n-button
             >
             <n-button
-              v-if="item.status === 'running'"
+              v-if="item.action.includes('pause') && item.status === 'running'"
               type="primary"
               @click="handlePause(item.taskId)"
               >暂停</n-button
             >
             <n-button
-              v-if="item.status === 'running' || item.status === 'paused'"
+              v-if="
+                (item.action.includes('kill') && item.status === 'running') ||
+                item.status === 'paused'
+              "
               type="error"
               @click="handleKill(item.taskId)"
               >中止</n-button
@@ -45,9 +48,11 @@
               >打开文件</n-button
             >
             <n-button
-              v-if="item.status === 'completed' || item.status === 'error'"
+              v-if="
+                item.status === 'completed' || item.status === 'error' || item.status === 'pending'
+              "
               @click="handleRemoveRecord(item.taskId)"
-              >删除记录</n-button
+              >删除任务</n-button
             >
           </div>
         </div>
@@ -82,6 +87,7 @@ interface Task {
   type: "ffmpeg";
   output?: string;
   progress: number;
+  action: ("pause" | "kill")[];
 }
 
 const queue = ref<Task[]>([]);

@@ -244,9 +244,6 @@ export const api = {
   exits: (path: string) => {
     return ipcRenderer.invoke("exits", path);
   },
-  join(...paths: string[]) {
-    return path.join(...paths);
-  },
   getAvailableEncoders: async () => {
     return await ipcRenderer.invoke("getAvailableEncoders");
   },
@@ -256,7 +253,7 @@ export const api = {
   openSetting: async (callback: (_event: IpcRendererEvent) => void) => {
     ipcRenderer.on("open-setting", callback);
   },
-  watchMainNotify: (
+  onMainNotify: (
     callback: (
       _event: IpcRendererEvent,
       data: {
