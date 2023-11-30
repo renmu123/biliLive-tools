@@ -3,6 +3,7 @@ import fs from "fs-extra";
 import { shell } from "electron";
 import { getAppConfig } from "../config/app";
 
+import { type IpcMainInvokeEvent } from "electron";
 import type { FfmpegOptions } from "../../types";
 
 export const executeCommand = (command: string): Promise<{ stdout: string; stderr: string }> => {
@@ -96,3 +97,13 @@ export const trashItem = async (path: string) => {
 };
 
 export const isWin32 = process.platform === "win32";
+
+export const notify = (
+  event: IpcMainInvokeEvent,
+  data: {
+    type: "info" | "success" | "warning" | "error";
+    content: string;
+  },
+) => {
+  event.sender.send("notify", data);
+};

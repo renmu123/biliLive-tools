@@ -256,6 +256,17 @@ export const api = {
   openSetting: async (callback: (_event: IpcRendererEvent) => void) => {
     ipcRenderer.on("open-setting", callback);
   },
+  watchMainNotify: (
+    callback: (
+      _event: IpcRendererEvent,
+      data: {
+        type: "info" | "success" | "warning" | "error";
+        content: string;
+      },
+    ) => void,
+  ) => {
+    ipcRenderer.on("notify", callback);
+  },
 };
 
 export const biliApi = {

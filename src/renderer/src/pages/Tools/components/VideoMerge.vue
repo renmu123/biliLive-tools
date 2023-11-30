@@ -8,7 +8,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 10px;
+        gap: 5px;
       "
     >
       <n-button type="primary" @click="convert"> 立即合并 </n-button>
@@ -17,12 +17,7 @@
         :size="26"
       ></Tip>
     </div>
-    <FileArea
-      v-model="fileList"
-      :extensions="['flv', 'mp4']"
-      desc="请选择视频文件"
-      :disabled="disabled"
-    ></FileArea>
+    <FileArea v-model="fileList" :extensions="['flv', 'mp4']" desc="请选择视频文件"></FileArea>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div></div>
@@ -31,12 +26,6 @@
           保存到原始文件夹并自动重命名
         </n-checkbox>
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
-        <n-checkbox v-model:checked="clientOptions.removeCompletedTask">
-          完成后移除任务
-        </n-checkbox>
-        <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
-          完成后打开文件夹
-        </n-checkbox>
       </div>
     </div>
   </div>
@@ -59,15 +48,11 @@ const fileList = ref<
 
 const options = ref<VideoMergeOptions>({
   savePath: "",
-
   removeOrigin: false, // 完成后移除源文件
 });
 const clientOptions = ref({
   saveOriginPath: false, // 保存到原始文件夹并自动重命名
-  removeCompletedTask: true, // 移除已完成任务
-  openTargetDirectory: true, // 转换完成后打开目标文件夹
 });
-const disabled = ref(false);
 
 const convert = async () => {
   if (fileList.value.length < 2) {
@@ -94,8 +79,6 @@ const convert = async () => {
       filePath = file;
     }
   } else {
-    console.log("文件已存在，请手动选择路径1");
-
     const file = await getDir();
     if (!file) {
       return;
@@ -104,92 +87,20 @@ const convert = async () => {
   }
   options.value.savePath = filePath;
 
-  console.log(filePath);
-
-  disabled.value = true;
-  let showSuccessFlag = true;
-  notice.warning({
-    title: `开始合并`,
-    duration: 3000,
-  });
   try {
-    await createTask();
+    window.api.mergeVideos(toRaw(fileList.value), toRaw(options.value));
+    notice.warning({
+      title: `已加入任务队列，可在任务列表中查看进度`,
+      duration: 3000,
+    });
   } catch (err) {
     notice.error({
       title: err as string,
       duration: 3000,
     });
-    showSuccessFlag = false;
-  }
-  disabled.value = false;
-
-  if (showSuccessFlag) {
-    notice.success({
-      title: `合并完成`,
-      duration: 3000,
-    });
-  }
-
-  if (clientOptions.value.openTargetDirectory) {
-    const { dir } = window.path.parse(filePath);
-    window.api.openPath(dir);
-  }
-  if (clientOptions.value.removeCompletedTask) {
+  } finally {
     fileList.value = [];
   }
-};
-
-const createTask = async () => {
-  return new Promise((resolve, reject) => {
-    const i = 0;
-    window.api
-      .mergeVideos(toRaw(fileList.value), toRaw(options.value))
-      .then(
-        ({
-          taskId,
-          status,
-          text,
-        }: {
-          taskId: string;
-          status: "success" | "error";
-          text: string;
-        }) => {
-          const currentTaskId = taskId;
-          if (status === "error") {
-            reject(text);
-          }
-          fileList.value[i].taskId = currentTaskId;
-
-          window.api.onTaskStart((_event, { taskId }) => {
-            if (taskId === currentTaskId) {
-              fileList.value[i].percentage = 0;
-              fileList.value[i].percentageStatus = "info";
-            }
-          });
-          window.api.onTaskEnd((_event, { output, taskId }) => {
-            if (taskId === currentTaskId) {
-              fileList.value[i].percentage = 100;
-              fileList.value[i].percentageStatus = "success";
-              resolve(output);
-            }
-          });
-          window.api.onTaskError((_event, { err, taskId }) => {
-            if (taskId === currentTaskId) {
-              fileList.value[i].percentageStatus = "error";
-              reject(err);
-            }
-          });
-
-          window.api.onTaskProgressUpdate((_event, { progress, taskId }) => {
-            console.log(taskId, currentTaskId, progress);
-
-            if (taskId === currentTaskId) {
-              fileList.value[i].percentage = progress.percentage;
-            }
-          });
-        },
-      );
-  });
 };
 
 async function getDir() {

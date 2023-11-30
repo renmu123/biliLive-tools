@@ -4,12 +4,7 @@
     <div class="center" style="margin-bottom: 20px">
       <n-button type="primary" @click="convert"> 立即转换 </n-button>
     </div>
-    <FileArea
-      v-model="fileList"
-      :extensions="['flv']"
-      desc="请选择flv文件"
-      :disabled="disabled"
-    ></FileArea>
+    <FileArea v-model="fileList" :extensions="['flv']" desc="请选择flv文件"></FileArea>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div>
@@ -38,12 +33,6 @@
           </n-space>
         </n-radio-group>
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
-        <n-checkbox v-model:checked="clientOptions.removeCompletedTask">
-          完成后移除任务
-        </n-checkbox>
-        <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
-          完成后打开文件夹
-        </n-checkbox>
       </div>
     </div>
   </div>
@@ -73,11 +62,6 @@ const options = ref<DanmuOptions>({
   override: false, // 覆盖文件
   removeOrigin: false, // 完成后移除源文件
 });
-const clientOptions = ref({
-  removeCompletedTask: true, // 移除已完成任务
-  openTargetDirectory: false, // 转换完成后打开目标文件夹
-});
-const disabled = ref(false);
 
 const convert = async () => {
   if (fileList.value.length === 0) {
@@ -92,94 +76,20 @@ const convert = async () => {
   });
   if (!status) return;
 
-  notice.info({
-    title: `检测到${fileList.value.length}个任务，开始转换`,
-    duration: 3000,
-  });
-
-  disabled.value = true;
-  let showSuccessFlag = true;
   for (let i = 0; i < fileList.value.length; i++) {
     try {
-      await createTask(i);
+      window.api.convertVideo2Mp4(toRaw(fileList.value[i]), toRaw(options.value));
     } catch (err) {
       notice.error({
         title: err as string,
         duration: 3000,
       });
-      showSuccessFlag = false;
     }
   }
-  disabled.value = false;
-
-  if (showSuccessFlag) {
-    notice.success({
-      title: `转换完成`,
-      duration: 3000,
-    });
-  }
-
-  if (clientOptions.value.openTargetDirectory) {
-    if (options.value.saveRadio === 2) {
-      window.api.openPath(toRaw(options.value).savePath);
-    } else {
-      window.api.openPath(toRaw(fileList.value[0]).dir);
-    }
-  }
-  if (clientOptions.value.removeCompletedTask) {
-    fileList.value = fileList.value.filter((item) => item.percentageStatus !== "success");
-  }
-};
-
-const createTask = async (index: number) => {
-  return new Promise((resolve, reject) => {
-    const i = index;
-
-    window.api
-      .convertVideo2Mp4(toRaw(fileList.value[i]), toRaw(options.value))
-      .then(
-        ({
-          taskId,
-          status,
-          text,
-        }: {
-          taskId: string;
-          status: "success" | "error";
-          text: string;
-        }) => {
-          const currentTaskId = taskId;
-          if (status === "error") {
-            reject(text);
-          }
-          fileList.value[i].taskId = currentTaskId;
-
-          window.api.onTaskStart((_event, { taskId }) => {
-            if (taskId === currentTaskId) {
-              fileList.value[i].percentage = 0;
-              fileList.value[i].percentageStatus = "info";
-            }
-          });
-          window.api.onTaskEnd((_event, { output, taskId }) => {
-            if (taskId === currentTaskId) {
-              fileList.value[i].percentage = 100;
-              fileList.value[i].percentageStatus = "success";
-              resolve(output);
-            }
-          });
-          window.api.onTaskError((_event, { err, taskId }) => {
-            if (taskId === currentTaskId) {
-              fileList.value[i].percentageStatus = "error";
-              reject(err);
-            }
-          });
-
-          window.api.onTaskProgressUpdate((_event, { progress, taskId }) => {
-            if (taskId === currentTaskId) {
-              fileList.value[i].percentage = progress.percentage;
-            }
-          });
-        },
-      );
+  fileList.value = [];
+  notice.warning({
+    title: `已加入任务队列，可在任务列表中查看进度`,
+    duration: 3000,
   });
 };
 

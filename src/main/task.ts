@@ -34,6 +34,7 @@ abstract class AbstractTask {
   name: string;
   relTaskId?: string;
   output?: string;
+  progress: number;
   abstract type: string;
   abstract exec(): void;
   abstract kill(): void;
@@ -43,6 +44,7 @@ abstract class AbstractTask {
     this.taskId = uuid();
     this.status = "pending";
     this.name = this.taskId;
+    this.progress = 0;
   }
 }
 
@@ -61,15 +63,20 @@ export class FFmpegTask extends AbstractTask {
       onStart?: () => void;
       onEnd?: (output: string) => void;
       onError?: (err: string) => void;
-      onProgress?: (progress: Progress) => boolean;
+      onProgress?: (progress: Progress) => any;
     },
   ) {
     super();
     this.command = command;
     this.webContents = webContents;
     this.output = options.output;
+    this.progress = 0;
+    if (options.name) {
+      this.name = options.name;
+    }
 
     command.on("start", (commandLine: string) => {
+      this.progress = 0;
       log.info(`task ${this.taskId} start, command: ${commandLine}`);
       this.status = "running";
 
@@ -80,6 +87,7 @@ export class FFmpegTask extends AbstractTask {
     command.on("end", async () => {
       log.info(`task ${this.taskId} end`);
       this.status = "completed";
+      this.progress = 100;
 
       callback.onEnd && callback.onEnd(options.output);
       this.webContents.send("task-end", { taskId: this.taskId, output: options.output });
@@ -97,14 +105,13 @@ export class FFmpegTask extends AbstractTask {
       progress.percentage = progress.percent;
 
       if (callback.onProgress) {
-        if (!callback.onProgress(progress)) {
-          // 如果返回false，表示要停止默认行为
-          return;
-        }
+        progress = callback.onProgress(progress);
       }
+      console.log("progress", progress);
+      this.progress = progress.percentage || 0;
       // callback.onProgress && callback.onProgress(progress);
       this.webContents.send("task-progress-update", { taskId: this.taskId, progress: progress });
-      emitter.emit("task-progress-update", { taskId: this.taskId });
+      emitter.emit("task-progress", { taskId: this.taskId });
     });
   }
   exec() {
@@ -167,6 +174,7 @@ export class TaskQueue {
         type: task.type,
         relTaskId: task.relTaskId,
         output: task.output,
+        progress: task.progress,
       };
     });
   }
@@ -188,7 +196,7 @@ export class TaskQueue {
     }
   }
   on(
-    event: "task-start" | "task-end" | "task-error" | "task-progress-update",
+    event: "task-start" | "task-end" | "task-error" | "task-progress",
     callback: (event: { taskId: string }) => void,
   ) {
     emitter.on(event, callback);

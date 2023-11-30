@@ -5,7 +5,7 @@ import ffmpeg from "fluent-ffmpeg";
 import { sum } from "lodash";
 
 import { getAppConfig } from "./config/app";
-import { escaped, genFfmpegParams, pathExists, trashItem, uuid } from "./utils/index";
+import { escaped, genFfmpegParams, pathExists, trashItem, uuid, notify } from "./utils/index";
 import log from "./utils/log";
 import { taskQueue, FFmpegTask } from "./task";
 
@@ -69,18 +69,19 @@ export const convertVideo2Mp4 = async (
 
   if (!(await pathExists(input))) {
     log.error("convertVideo2Mp4, file not exist", input);
-    _event.sender.send("task-error", "文件不存在");
-    return {
-      status: "error",
-      text: "文件不存在",
-    };
+    notify(_event, {
+      type: "error",
+      content: "输入文件不存在",
+    });
+    return;
   }
   if (!options.override && (await pathExists(output))) {
     log.error("convertVideo2Mp4, 文件已存在，跳过", input);
-    return {
-      status: "error",
-      text: "文件已存在",
-    };
+    notify(_event, {
+      type: "error",
+      content: "目标文件已存在",
+    });
+    return;
   }
 
   const command = ffmpeg(input).videoCodec("copy").audioCodec("copy").output(output);
@@ -103,13 +104,7 @@ export const convertVideo2Mp4 = async (
         if (progress.percent) {
           progress.percentage = progress.percent;
         }
-
-        _event.sender.send("task-progress-update", {
-          taskId: task.taskId,
-          progress: progress,
-        });
-
-        return false;
+        return progress;
       },
       onEnd: async () => {
         if (options.removeOrigin && (await pathExists(input))) {
@@ -220,15 +215,18 @@ export const mergeVideos = async (
   const fileTxtPath = join(tempDir, `${uuid()}.txt`);
   const fileTxtContent = videoFiles.map((videoFile) => `file '${videoFile.path}'`).join("\n");
   await fs.writeFile(fileTxtPath, fileTxtContent);
-  console.log(fileTxtPath);
 
   const command = ffmpeg(fileTxtPath)
     .inputOptions("-f concat")
     .inputOptions("-safe 0")
+    .videoCodec("copy")
     .audioCodec("copy")
     .output(output);
 
   const videoMetas = await Promise.all(videoFiles.map((file) => readVideoMeta(file.path)));
+  log.debug(videoFiles);
+  log.debug(videoMetas);
+
   // 获取所有视频轨的nb_frames
   const nbFrames = sum(
     videoMetas.map((meta) => {
@@ -246,14 +244,12 @@ export const mergeVideos = async (
     },
     {
       onProgress(progress) {
-        event.sender.send("task-progress-update", {
-          taskId: task.taskId,
-          progress: { ...progress, percentage: Math.round((progress.frames / nbFrames) * 100) },
-        });
+        console.log("sdewqe", progress.frames, nbFrames);
 
-        return false;
+        return { ...progress, percentage: Math.round((progress.frames / nbFrames) * 100) };
       },
       onEnd: async () => {
+        fs.remove(fileTxtPath);
         if (options.removeOrigin) {
           for (let i = 0; i < videoFiles.length; i++) {
             const videoInput = videoFiles[i].path;

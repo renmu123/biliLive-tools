@@ -709,6 +709,13 @@ async function getDir() {
   const path = await window.api.openDirectory();
   options.value.savePath = path;
 }
+
+window.api.watchMainNotify((_event, data) => {
+  notice[data.type]({
+    title: data.content,
+    duration: 5000,
+  });
+});
 </script>
 
 <style scoped lang="less">

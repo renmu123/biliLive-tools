@@ -38,7 +38,6 @@
   - [ ] 支持合并后上传
   - [ ] 支持弹幕压制
 - [x] 打包不带ffmpeg的版本，支持自定义ffmpeg以及ffprobe
-- [ ] 构建一个不依赖于electron的cli程序
 
 # 开发
 

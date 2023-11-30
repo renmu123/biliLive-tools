@@ -2,53 +2,65 @@
   <div class="container">
     <template v-if="queue.length !== 0">
       <div v-for="item in queue" :key="item.taskId" class="item">
-        <div class="name-container">
-          <span class="name">{{ item.name }}</span>
-          <span
-            class="status"
-            :style="{
-              color: statusMap[item.status].color,
-            }"
-            >{{ statusMap[item.status].text }}</span
-          >
+        <div class="content-container">
+          <div class="name-container">
+            <span class="name" :title="item.name">{{ item.name }}</span>
+            <span
+              class="status"
+              :style="{
+                color: statusMap[item.status].color,
+              }"
+              >{{ statusMap[item.status].text }}</span
+            >
+          </div>
+          <div class="btns">
+            <n-button
+              v-if="item.status === 'pending' || item.status === 'paused'"
+              type="primary"
+              @click="handleStart(item.taskId, item)"
+              >开始</n-button
+            >
+            <n-button
+              v-if="item.status === 'running'"
+              type="primary"
+              @click="handlePause(item.taskId)"
+              >暂停</n-button
+            >
+            <n-button
+              v-if="item.status === 'running' || item.status === 'paused'"
+              type="error"
+              @click="handleKill(item.taskId)"
+              >中止</n-button
+            >
+            <n-button
+              v-if="item.status === 'completed' && item.output"
+              type="primary"
+              @click="handleOpenDir(item.taskId, item)"
+              >打开文件夹</n-button
+            >
+            <n-button
+              v-if="item.status === 'completed' && item.output"
+              type="primary"
+              @click="handleOpenFile(item.taskId, item)"
+              >打开文件</n-button
+            >
+            <n-button
+              v-if="item.status === 'completed' || item.status === 'error'"
+              @click="handleRemoveRecord(item.taskId)"
+              >删除记录</n-button
+            >
+          </div>
         </div>
-        <div class="btns">
-          <n-button
-            v-if="item.status === 'pending' || item.status === 'paused'"
-            type="primary"
-            @click="handleStart(item.taskId, item)"
-            >开始</n-button
-          >
-          <n-button
-            v-if="item.status === 'running'"
-            type="primary"
-            @click="handlePause(item.taskId)"
-            >暂停</n-button
-          >
-          <n-button
-            v-if="item.status === 'running' || item.status === 'paused'"
-            type="error"
-            @click="handleKill(item.taskId)"
-            >中止</n-button
-          >
-          <n-button
-            v-if="item.status === 'completed' && item.output"
-            type="primary"
-            @click="handleOpenDir(item.taskId, item)"
-            >打开文件夹</n-button
-          >
-          <n-button
-            v-if="item.status === 'completed' && item.output"
-            type="primary"
-            @click="handleOpenFile(item.taskId, item)"
-            >打开文件</n-button
-          >
-          <n-button
-            v-if="item.status === 'completed' || item.status === 'error'"
-            @click="handleRemoveRecord(item.taskId)"
-            >删除记录</n-button
-          >
-        </div>
+
+        <n-progress
+          class="progress"
+          :status="statusMap[item.status].progressStatus"
+          type="line"
+          :percentage="item.progress"
+          :indicator-placement="'outside'"
+          :show-indicator="false"
+          style="--n-rail-height: 6px"
+        />
       </div>
     </template>
     <template v-else>
@@ -69,30 +81,42 @@ interface Task {
   status: "pending" | "running" | "paused" | "completed" | "error";
   type: "ffmpeg";
   output?: string;
+  progress: number;
 }
 
 const queue = ref<Task[]>([]);
 
-const statusMap = {
+const statusMap: {
+  [key in Task["status"]]: {
+    text: string;
+    color: string;
+    progressStatus: "default" | "success" | "warning" | "error";
+  };
+} = {
   pending: {
     text: "等待中",
     color: "#999",
+    progressStatus: "default",
   },
   running: {
     text: "运行中",
     color: "#1890ff",
+    progressStatus: "default",
   },
   paused: {
     text: "暂停中",
     color: "#faad14",
+    progressStatus: "warning",
   },
   completed: {
     text: "已完成",
     color: "#52c41a",
+    progressStatus: "success",
   },
   error: {
     text: "错误",
     color: "#f5222d",
+    progressStatus: "error",
   },
 };
 
@@ -100,15 +124,17 @@ const getQuenu = async () => {
   // queue.value = [
   //   {
   //     taskId: "1",
-  //     name: "test",
+  //     name: "tesqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqwwwwwwwwwwwwwwwwwwwwwwwwt",
   //     status: "pending",
   //     type: "ffmpeg",
+  //     progress: 0,
   //   },
   //   {
   //     taskId: "2",
   //     name: "test2",
   //     status: "running",
   //     type: "ffmpeg",
+  //     progress: 50,
   //   },
 
   //   {
@@ -116,6 +142,7 @@ const getQuenu = async () => {
   //     name: "test3",
   //     status: "paused",
   //     type: "ffmpeg",
+  //     progress: 50,
   //   },
 
   //   {
@@ -124,6 +151,7 @@ const getQuenu = async () => {
   //     status: "completed",
   //     type: "ffmpeg",
   //     output: "D:/test.mp4",
+  //     progress: 100,
   //   },
 
   //   {
@@ -131,6 +159,7 @@ const getQuenu = async () => {
   //     name: "test5",
   //     status: "error",
   //     type: "ffmpeg",
+  //     progress: 50,
   //   },
   // ];
   queue.value = await window.api.task.list();
@@ -194,21 +223,34 @@ getQuenu();
   .item {
     border-bottom: 1px solid #eee;
     padding: 10px 5px;
-    display: flex;
-    justify-content: space-between;
+    .content-container {
+      display: flex;
+      justify-content: space-between;
+    }
+    .progress {
+      margin-top: 10px;
+    }
 
     .name-container {
       display: flex;
       align-items: center;
+      overflow: hidden;
+
       .name {
         margin-right: 10px;
         font-size: 18px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
       .status {
+        flex: none;
         font-size: 12px;
+        margin-right: 10px;
       }
     }
     .btns {
+      flex: none;
       display: flex;
       gap: 10px;
     }

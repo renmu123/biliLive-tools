@@ -3,11 +3,11 @@
     <n-tab-pane name="fileUpload" tab="文件上传" display-directive="show:lazy">
       <FileUpload></FileUpload>
     </n-tab-pane>
-    <n-tab-pane name="chap1" tab="转封装" display-directive="show:lazy">
-      <File2Mp4></File2Mp4>
-    </n-tab-pane>
     <n-tab-pane name="chap2" tab="弹幕转换" display-directive="show:lazy">
       <DanmuFactoryVue></DanmuFactoryVue>
+    </n-tab-pane>
+    <n-tab-pane name="chap1" tab="转封装" display-directive="show:lazy">
+      <File2Mp4></File2Mp4>
     </n-tab-pane>
     <n-tab-pane name="chap3" tab="视频合并" display-directive="show:lazy">
       <VideoMerge></VideoMerge>
