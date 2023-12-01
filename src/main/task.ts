@@ -96,6 +96,8 @@ export class DanmuTask extends AbstractTask {
     this.callback.onStart && this.callback.onStart();
     this.status = "running";
     this.progress = 0;
+    console.log("danmuTask,task-start", this.input, this.output);
+    emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
     this.danmu
       .convertXml2Ass(this.input, this.output as string, this.options)
       .then(
@@ -106,31 +108,25 @@ export class DanmuTask extends AbstractTask {
           if (stderr) {
             this.status = "error";
             this.callback.onError && this.callback.onError(stderr);
-            this.webContents.send("task-error", { taskId: this.taskId, err: stderr });
-            emitter.emit("task-error", { taskId: this.taskId });
+            emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
             return;
           }
           this.status = "completed";
           this.callback.onEnd && this.callback.onEnd(this.output as string);
           this.progress = 100;
-          this.webContents.send("task-end", { taskId: this.taskId, output: this.output });
-          emitter.emit("task-end", { taskId: this.taskId });
+          emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
         },
         (err) => {
           this.status = "error";
           this.callback.onError && this.callback.onError(err);
-          this.webContents.send("task-error", { taskId: this.taskId, err: err });
-          emitter.emit("task-error", { taskId: this.taskId });
+          emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
         },
       )
-      .finally(() => {
+      .catch(() => {
         this.callback.onEnd && this.callback.onEnd(this.output as string);
         this.progress = 100;
-        this.webContents.send("task-end", { taskId: this.taskId, output: this.output });
-        emitter.emit("task-end", { taskId: this.taskId });
+        emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
       });
-    this.webContents.send("task-start", { taskId: this.taskId });
-    emitter.emit("task-start", { taskId: this.taskId });
   }
   pause() {
     return false;
@@ -176,8 +172,7 @@ export class FFmpegTask extends AbstractTask {
       this.status = "running";
 
       callback.onStart && callback.onStart();
-      this.webContents.send("task-start", { taskId: this.taskId, command: commandLine });
-      emitter.emit("task-start", { taskId: this.taskId });
+      emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
     });
     command.on("end", async () => {
       log.info(`task ${this.taskId} end`);
@@ -185,16 +180,14 @@ export class FFmpegTask extends AbstractTask {
       this.progress = 100;
 
       callback.onEnd && callback.onEnd(options.output);
-      this.webContents.send("task-end", { taskId: this.taskId, output: options.output });
-      emitter.emit("task-end", { taskId: this.taskId });
+      emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
     });
     command.on("error", (err) => {
       log.error(`task ${this.taskId} error: ${err}`);
       this.status = "error";
 
       callback.onError && callback.onError(err);
-      this.webContents.send("task-error", { taskId: this.taskId, err: err });
-      emitter.emit("task-error", { taskId: this.taskId });
+      emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
     });
     command.on("progress", (progress) => {
       progress.percentage = progress.percent;
@@ -203,9 +196,7 @@ export class FFmpegTask extends AbstractTask {
         progress = callback.onProgress(progress);
       }
       this.progress = progress.percentage || 0;
-      // callback.onProgress && callback.onProgress(progress);
-      this.webContents.send("task-progress-update", { taskId: this.taskId, progress: progress });
-      emitter.emit("task-progress", { taskId: this.taskId });
+      emitter.emit("task-progress", { taskId: this.taskId, webContents: this.webContents });
     });
   }
   exec() {
@@ -292,13 +283,29 @@ export class TaskQueue {
   }
   on(
     event: "task-start" | "task-end" | "task-error" | "task-progress",
-    callback: (event: { taskId: string }) => void,
+    callback: (event: { taskId: string; webContents: WebContents }) => void,
   ) {
     emitter.on(event, callback);
   }
 }
 
 export const taskQueue = new TaskQueue();
+taskQueue.on("task-start", ({ taskId, webContents }) => {
+  console.log("task-start111", taskId);
+
+  webContents.send("task-start", { taskId: taskId });
+});
+taskQueue.on("task-end", ({ taskId, webContents }) => {
+  console.log("task-end111", taskId);
+
+  webContents.send("task-end", { taskId: taskId, output: taskQueue.queryTask(taskId)?.output });
+});
+taskQueue.on("task-error", ({ taskId, webContents }) => {
+  webContents.send("task-error", { taskId: taskId });
+});
+taskQueue.on("task-progress", ({ taskId, webContents }) => {
+  webContents.send("task-progress", { taskId: taskId });
+});
 
 export const handlePauseTask = (_event: IpcMainInvokeEvent, taskId: string) => {
   return pauseTask(taskQueue, taskId);

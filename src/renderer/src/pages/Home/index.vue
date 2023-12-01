@@ -44,9 +44,6 @@
               </n-radio-group>
               <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
 
-              <n-checkbox v-model:checked="clientOptions.removeCompletedTask">
-                完成后移除任务
-              </n-checkbox>
               <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
                 完成后打开文件夹
               </n-checkbox>
@@ -119,10 +116,16 @@ import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
 import { useDanmuPreset } from "@renderer/stores";
 
-import { deepRaw, uuid, formatSeconds } from "@renderer/utils";
+import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 
-import type { DanmuOptions, File, FfmpegOptions, DanmuConfig } from "../../../../types";
+import type {
+  DanmuOptions,
+  File,
+  FfmpegOptions,
+  DanmuConfig,
+  BiliupPreset,
+} from "../../../../types";
 
 const notice = useNotification();
 const confirm = useConfirm();
@@ -139,11 +142,11 @@ const fileList = ref<
   })[]
 >([]);
 
-const options = ref<
-  DanmuOptions & {
-    outputPath: string;
-  }
->({
+type MergeOptions = DanmuOptions & {
+  outputPath: string;
+};
+
+const options = ref<MergeOptions>({
   saveRadio: 1, // 1：保存到原始文件夹，2：保存到特定文件夹
   saveOriginPath: true,
   savePath: "",
@@ -153,7 +156,6 @@ const options = ref<
   outputPath: "",
 });
 const clientOptions = ref({
-  removeCompletedTask: true, // 移除已完成任务
   openTargetDirectory: false, // 转换完成后打开目标文件夹
   upload: false, // 上传
 });
@@ -163,12 +165,17 @@ const handleConvert = async () => {
 };
 
 const convert = async () => {
-  if (fileList.value.length === 0) {
+  const files = toRaw(fileList.value);
+  const rawClientOptions = toRaw(clientOptions.value);
+  const rawOptions = toRaw(options.value);
+  const rawDanmuPresetId = toRaw(danmuPresetId.value);
+  const rawPresetOptions = toRaw(presetOptions.value);
+  if (files.length === 0) {
     return;
   }
 
-  if (clientOptions.value.upload) {
-    const valid = await biliUpCheck();
+  if (rawClientOptions.upload) {
+    const valid = await biliUpCheck(rawPresetOptions);
     if (!valid) {
       notice.error({
         title: `请点击左侧头像处进行登录`,
@@ -178,79 +185,86 @@ const convert = async () => {
     }
   }
 
-  const videoIndex = fileList.value.findIndex((item) => item.ext === ".flv" || item.ext === ".mp4");
-  const videoFiles = videoIndex === -1 ? [] : [fileList.value[videoIndex]];
+  const videoFile = files.find((item) => item.ext === ".flv" || item.ext === ".mp4");
+  const danmuFile = files.find((item) => item.ext === ".xml" || item.ext === ".ass");
 
-  const assIndex = fileList.value.findIndex((item) => item.ext === ".xml" || item.ext === ".ass");
-  const assFile = assIndex === -1 ? [] : [fileList.value[assIndex]];
-
-  if (videoFiles.length === 0) {
+  if (!videoFile) {
     notice.error({
       title: "请选择一个flv或者mp4文件",
       duration: 3000,
     });
     return;
   }
-  if (assFile.length === 0) {
+  if (!danmuFile) {
     notice.error({
       title: "请选择一个xml或者ass文件",
       duration: 3000,
     });
     return;
   }
-
-  const videoMeta = await window.api.readVideoMeta(videoFiles[0]?.path);
+  const videoMeta = await window.api.readVideoMeta(videoFile.path);
   const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
 
   // xml文件转换
-  const { targetAssFilePath } = await handleXmlFile(assFile, videoStream);
+  const { targetAssFilePath } = await handleXmlFile(
+    danmuFile,
+    videoStream,
+    rawOptions,
+    rawDanmuPresetId,
+  );
 
   // 视频检查
-  const outputPath = await checkFile(videoFiles);
+  const outputPath = await checkFile(videoFile, rawOptions);
 
   // 压制任务
-  const output = await handleVideoMerge({
-    inputVideoFilePath: videoFiles[0]?.path,
-    inputAssFilePath: targetAssFilePath,
-    outputPath: outputPath,
-  });
+  const output = await handleVideoMerge(
+    {
+      inputVideoFilePath: videoFile?.path,
+      inputAssFilePath: targetAssFilePath,
+      outputPath: outputPath,
+    },
+    rawOptions,
+  );
   console.log(output, output);
 
-  if (clientOptions.value.upload) {
-    await upload([{ path: output }]);
+  if (rawClientOptions.upload) {
+    await upload(output, rawPresetOptions);
   }
 
-  if (clientOptions.value.openTargetDirectory) {
-    if (options.value.saveRadio === 2) {
-      window.api.openPath(options.value.savePath);
+  if (rawClientOptions.openTargetDirectory) {
+    if (rawOptions.saveRadio === 2) {
+      window.api.openPath(rawOptions.savePath);
     } else {
-      window.api.openPath(fileList.value[videoIndex].dir);
+      window.api.openPath(videoFile.dir);
     }
   }
-  if (clientOptions.value.removeCompletedTask) {
-    fileList.value = [];
-  }
+  fileList.value = [];
 };
 
 // 处理xml文件
-const handleXmlFile = async (assFile: any, videoStream: any) => {
+const handleXmlFile = async (
+  danmuFile: File,
+  videoStream: any,
+  options: MergeOptions,
+  danmuPresetId: string,
+) => {
   let targetAssFilePath: string;
-  if (assFile[0].ext === ".xml") {
-    let path = window.path.join(assFile[0].dir, `${assFile[0].name}.ass`);
-    if (options.value.saveRadio === 2 && options.value.savePath) {
-      path = window.path.join(options.value.savePath, `${assFile[0].name}.ass`);
+  if (danmuFile.ext === ".xml") {
+    let path = window.path.join(danmuFile.dir, `${danmuFile.name}.ass`);
+    if (options.saveRadio === 2 && options.savePath) {
+      path = window.path.join(options.savePath, `${danmuFile.name}.ass`);
     }
     const isExits = await window.api.exits(path);
-    if (isExits && options.value.override) {
+    if (isExits && options.override) {
       const status = await confirm.warning({
-        content: `目标文件夹已存在 ${assFile[0].name}.ass 文件，继续将会覆盖此文件`,
+        content: `目标文件夹已存在 ${danmuFile.name}.ass 文件，继续将会覆盖此文件`,
       });
       if (!status) throw new Error("已取消");
     }
 
     const { width, height } = videoStream || {};
     console.log(width, height);
-    const danmuConfig = (await window.api.danmu.getPreset(danmuPresetId.value)).config;
+    const danmuConfig = (await window.api.danmu.getPreset(danmuPresetId)).config;
     if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
       const status = await confirm.warning({
         content: `目标视频为${width}*${height}，与设置的弹幕的分辨率不一致，如需更改分辨率可以去”弹幕设置“处进行修改，是否继续？`,
@@ -262,9 +276,9 @@ const handleXmlFile = async (assFile: any, videoStream: any) => {
       title: "开始转换xml",
       duration: 3000,
     });
-    targetAssFilePath = await convertDanmu2Ass(assFile);
+    targetAssFilePath = await convertDanmu2Ass(danmuFile, options, danmuPresetId);
   } else {
-    targetAssFilePath = assFile[0].path;
+    targetAssFilePath = danmuFile.path;
   }
   if (targetAssFilePath.includes(" ")) {
     notice.error({
@@ -279,40 +293,46 @@ const handleXmlFile = async (assFile: any, videoStream: any) => {
   };
 };
 
-const convertDanmu2Ass = (file: any): Promise<string> => {
+const convertDanmu2Ass = (
+  file: File,
+  options: MergeOptions,
+  danmuPresetId: string,
+): Promise<string> => {
   return new Promise((resolve, reject) => {
-    window.api.danmu
-      .convertDanmu2Ass([toRaw(file[0])], danmuPresetId.value, toRaw(options.value))
-      .then((result: any) => {
-        if (result[0].output) {
-          resolve(result[0].output);
-        } else {
-          window.api.onTaskEnd((_event, { taskId, output }) => {
-            if (taskId !== result[0].taskId) return;
-            notice.success({
-              title: "xml文件转换成功",
-              duration: 3000,
-            });
-            resolve(output);
+    window.api.danmu.convertDanmu2Ass([file], danmuPresetId, options).then((result: any) => {
+      if (result[0].output) {
+        resolve(result[0].output);
+      } else {
+        const taskId = result[0].taskId;
+        window.api.task.on(taskId, "start", (data) => {
+          console.log("start", data);
+          notice.success({
+            title: "xml文件转换成功",
+            duration: 3000,
           });
-          window.api.onTaskError((_event, { taskId, err }) => {
-            if (taskId !== result[0].taskId) return;
-            reject(err);
-          });
-        }
-      });
+          resolve(data.output);
+        });
+        window.api.task.on(taskId, "end", (data) => {
+          console.log("end", data);
+        });
+
+        window.api.task.on(taskId, "error", (data) => {
+          reject(data.err);
+        });
+      }
+    });
   });
 };
 
 // 处理视频文件
-const checkFile = async (videoFile: any) => {
-  let output = window.path.join(videoFile[0].dir, `${videoFile[0].name}-弹幕版.mp4`);
-  if (options.value.saveRadio === 2 && options.value.savePath) {
-    output = window.path.join(options.value.savePath, `${videoFile[0].name}-弹幕版.mp4`);
+const checkFile = async (videoFile: File, options: MergeOptions) => {
+  let output = window.path.join(videoFile.dir, `${videoFile.name}-弹幕版.mp4`);
+  if (options.saveRadio === 2 && options.savePath) {
+    output = window.path.join(options.savePath, `${videoFile.name}-弹幕版.mp4`);
   }
   const isExits = await window.api.exits(output);
   if (isExits) {
-    if (!options.value.override) {
+    if (!options.override) {
       notice.info({
         title: "目前文件已存在，无需进行压制",
         duration: 3000,
@@ -328,36 +348,32 @@ const checkFile = async (videoFile: any) => {
   return output;
 };
 
-const startTime = ref(0);
 // 视频压制
-const handleVideoMerge = async (convertOptions: {
-  inputVideoFilePath: string;
-  inputAssFilePath: string;
-  outputPath: string;
-}) => {
+const handleVideoMerge = async (
+  convertOptions: {
+    inputVideoFilePath: string;
+    inputAssFilePath: string;
+    outputPath: string;
+  },
+  options: MergeOptions,
+) => {
   const { inputVideoFilePath, inputAssFilePath, outputPath } = convertOptions;
   notice.info({
     title: "开始进行压制，根据不同设置需要消耗大量时间，CPU，GPU，请勿关闭软件",
     duration: 5000,
   });
 
-  startTime.value = Date.now();
   let output: string;
   try {
-    output = await createMergeVideoAssTask(inputVideoFilePath, inputAssFilePath, outputPath);
+    output = await createMergeVideoAssTask(
+      inputVideoFilePath,
+      inputAssFilePath,
+      outputPath,
+      deepRaw(options),
+    );
   } catch (err) {
     throw new Error(`转换失败：\n${err}`);
   }
-
-  const msg = `压制已完成，约耗时${formatSeconds(
-    Number(((Date.now() - startTime.value) / 1000).toFixed(0)),
-  )}`;
-  // 完成后的处理
-  notice.success({
-    title: msg,
-    duration: 10000,
-  });
-  new window.Notification(msg);
 
   return output;
 };
@@ -367,18 +383,14 @@ const createMergeVideoAssTask = async (
   videoFilePath: string,
   assFilePath: string,
   outputPath: string,
+  options: MergeOptions,
 ): Promise<string> => {
   const videoFile = window.api.formatFile(videoFilePath);
   const assFile = window.api.formatFile(assFilePath);
-  options.value.outputPath = outputPath;
+  options.outputPath = outputPath;
   return new Promise((resolve, reject) => {
     window.api
-      .mergeAssMp4(
-        toRaw(videoFile),
-        toRaw(assFile),
-        toRaw(options.value),
-        toRaw(ffmpegOptions.value),
-      )
+      .mergeAssMp4(videoFile, assFile, options, ffmpegOptions.value)
       .then(({ taskId, output }: { taskId?: string; output?: string }) => {
         if (output) return resolve(output);
         notice.info({
@@ -402,7 +414,7 @@ const createMergeVideoAssTask = async (
   });
 };
 
-const biliUpCheck = async () => {
+const biliUpCheck = async (presetOptions: BiliupPreset) => {
   const hasLogin = await window.api.bili.checkCookie();
   if (!hasLogin) {
     notice.error({
@@ -412,20 +424,16 @@ const biliUpCheck = async () => {
     return;
   }
 
-  await window.api.bili.validUploadParams(deepRaw(presetOptions.value.config));
+  await window.api.bili.validUploadParams(presetOptions.config);
 
   return true;
 };
 // 上传任务
-const upload = async (files: { path: string }[]) => {
-  const valid = await biliUpCheck();
+const upload = async (file: string, presetOptions: BiliupPreset) => {
+  const valid = await biliUpCheck(presetOptions);
   if (!valid) return;
-  console.log("files", files);
 
-  await window.api.bili.uploadVideo(
-    toRaw(files.map((file) => file.path)),
-    deepRaw(presetOptions.value.config),
-  );
+  await window.api.bili.uploadVideo([file], presetOptions.config);
   window.api.onBiliUploadClose((_event, code) => {
     console.log("window close", code);
     if (code == 0) {

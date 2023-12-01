@@ -19,6 +19,11 @@ import type {
 } from "../types";
 import ffmpeg from "fluent-ffmpeg";
 
+type startCallback = (params: { command?: string }) => void;
+type endCallback = (params: { output?: string }) => void;
+type errorCallback = (params: { err?: string; taskId?: string }) => void;
+type progressCallback = (params: { percentage?: number }) => void;
+
 // Custom APIs for renderer
 export const api = {
   danmu: {
@@ -67,6 +72,81 @@ export const api = {
     },
     start: (command: string) => {
       return ipcRenderer.invoke("task:start", command);
+    },
+    on(
+      taskId: string,
+      event: "start" | "end" | "error" | "progress",
+      callback: startCallback | endCallback | errorCallback | progressCallback,
+    ) {
+      if (event === "start") {
+        ipcRenderer.on(
+          `task-start`,
+          (
+            _event,
+            data: {
+              taskId: string;
+              command: string;
+            },
+          ) => {
+            console.log("render:start", data);
+            if (data.taskId === taskId) {
+              callback({ command: data.command });
+            }
+          },
+        );
+      } else if (event === "end") {
+        ipcRenderer.on(
+          `task-end`,
+          (
+            _event,
+            data: {
+              taskId: string;
+              output: string;
+            },
+          ) => {
+            if (data.taskId === taskId) {
+              callback({
+                output: data.output,
+                taskId: data.taskId,
+              });
+            }
+          },
+        );
+      } else if (event === "error") {
+        ipcRenderer.on(
+          `task-error`,
+          (
+            _event,
+            data: {
+              taskId: string;
+              err: string;
+            },
+          ) => {
+            if (data.taskId === taskId) {
+              callback({
+                err: data.err,
+              });
+            }
+          },
+        );
+      } else if (event === "progress") {
+        ipcRenderer.on(
+          `task-progress`,
+          (
+            _event,
+            data: {
+              taskId: string;
+              progress: Progress;
+            },
+          ) => {
+            if (data.taskId === taskId) {
+              callback({
+                // percentage: data.progress,
+              });
+            }
+          },
+        );
+      }
     },
   },
   bili: {
@@ -132,28 +212,6 @@ export const api = {
     return await ipcRenderer.invoke("convertVideo2Mp4", file, options);
   },
 
-  onTaskProgressUpdate: (
-    callback: (
-      _event: IpcRendererEvent,
-      data: {
-        taskId: string;
-        progress: Progress;
-      },
-    ) => void,
-  ) => {
-    ipcRenderer.on("task-progress-update", callback);
-  },
-  onTaskStart: (
-    callback: (
-      _event: IpcRendererEvent,
-      data: {
-        taskId: string;
-        command: string;
-      },
-    ) => void,
-  ) => {
-    ipcRenderer.once("task-start", callback);
-  },
   onTaskEnd: (
     callback: (
       _event: IpcRendererEvent,
