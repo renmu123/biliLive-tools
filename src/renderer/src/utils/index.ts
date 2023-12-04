@@ -11,6 +11,12 @@ export function formatSeconds(seconds: number) {
   const minutes = Math.floor((seconds % 3600) / 60);
   const remainingSeconds = Math.floor(seconds % 60);
 
+  if (hours === 0 && minutes === 0) {
+    return `${String(remainingSeconds)}秒`;
+  }
+  if (hours === 0) {
+    return `${String(minutes)}分钟${String(remainingSeconds).padStart(2, "0")}秒`;
+  }
   const formattedTime = `${String(hours).padStart(2, "0")}小时${String(minutes).padStart(
     2,
     "0",

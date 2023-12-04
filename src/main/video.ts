@@ -7,6 +7,7 @@ import { sum } from "lodash";
 import { getAppConfig } from "./config/app";
 import { escaped, genFfmpegParams, pathExists, trashItem, uuid, notify } from "./utils/index";
 import log from "./utils/log";
+import { executeCommand } from "../utils/index";
 import { taskQueue, FFmpegTask } from "./task";
 
 import { type IpcMainInvokeEvent } from "electron";
@@ -33,6 +34,15 @@ export const readVideoMeta = async (input: string): Promise<ffmpeg.FfprobeData> 
     });
   });
 };
+
+export const readNbFrames = async (input: string): Promise<number> => {
+  const appConfig = getAppConfig();
+  const command = `${appConfig.ffprobePath} -v error -count_packets -select_streams v:0 -show_entries stream=nb_read_packets -of csv=p=0 "${input}"`;
+  const nbFrames = await executeCommand(command);
+  return Number(nbFrames) || 0;
+};
+
+//ffprobe -v error -count_packets -select_streams v:0 -show_entries stream=nb_read_packets -of csv=p=0 input.mp4
 
 export const getAvailableEncoders = async () => {
   return new Promise((resolve, reject) => {

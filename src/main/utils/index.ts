@@ -6,18 +6,6 @@ import { getAppConfig } from "../config/app";
 import { type IpcMainInvokeEvent } from "electron";
 import type { FfmpegOptions } from "../../types";
 
-export const executeCommand = (command: string): Promise<{ stdout: string; stderr: string }> => {
-  return new Promise((resolve, reject) => {
-    exec(command, {}, (error, stdout, stderr) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve({ stdout, stderr });
-      }
-    });
-  });
-};
-
 // 检测是否有运行中的 ffmpeg 进程
 export async function checkFFmpegRunning(): Promise<boolean> {
   const processes = await getAllFFmpegProcesses();

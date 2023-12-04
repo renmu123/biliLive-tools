@@ -116,3 +116,11 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
     getUploadPreset,
   };
 });
+
+export const useQueueStore = defineStore("queue", () => {
+  const runningTaskNum = ref(0);
+
+  return {
+    runningTaskNum,
+  };
+});

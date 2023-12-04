@@ -1,6 +1,5 @@
 <template>
   <div class="container">
-    <!-- TODO:增加筛选，移除已完成记录 -->
     <div style="display: flex; justify-content: space-between; align-items: center">
       <n-checkbox-group v-model:value="selectedStatus">
         <n-checkbox value="pending">等待中</n-checkbox>
@@ -87,6 +86,33 @@
           :show-indicator="false"
           style="--n-rail-height: 6px"
         />
+
+        <div class="detail-info">
+          <span v-if="item.startTime"
+            >开始时间：{{ new Date(item.startTime).toLocaleString() }}</span
+          >
+          <span
+            v-if="
+              item.status !== 'pending' && item.status !== 'completed' && item.status !== 'error'
+            "
+            >持续时间：{{ formatSeconds((now - (item.startTime || 0)) / 1000) }}</span
+          >
+          <span v-if="item.status === 'completed'"
+            >持续时间：{{ formatSeconds((item.endTime! - item.startTime!) / 1000) }}</span
+          >
+          <span v-if="item.status === 'running'">
+            预计还需时间：{{
+              formatSeconds(
+                Number(
+                  (
+                    ((now - (item.startTime || 0)) / 1000 / item.progress) *
+                    (100 - item.progress)
+                  ).toFixed(0),
+                ),
+              )
+            }}
+          </span>
+        </div>
       </div>
     </template>
     <template v-else>
@@ -97,9 +123,12 @@
 
 <script setup lang="ts">
 import { useConfirm } from "@renderer/hooks";
+import { useQueueStore } from "@renderer/stores";
+import { formatSeconds } from "@renderer/utils";
 
 const confirm = useConfirm();
 const notice = useNotification();
+const store = useQueueStore();
 
 interface Task {
   taskId: string;
@@ -109,6 +138,8 @@ interface Task {
   output?: string;
   progress: number;
   action: ("pause" | "kill")[];
+  startTime?: number;
+  endTime?: number;
 }
 
 const queue = ref<Task[]>([]);
@@ -150,11 +181,6 @@ const statusMap: {
   },
 };
 
-// const duration = (Date.now() - startTime.value) / 1000;
-//               const speed = duration / progress.percentage;
-//               timemark.value = formatSeconds(
-//                 Number((speed * (100 - progress.percentage)).toFixed(0)),
-
 const selectedStatus = ref<string[]>(["pending", "running", "paused", "completed", "error"]);
 const getQuenu = async () => {
   // queue.value = [
@@ -164,6 +190,7 @@ const getQuenu = async () => {
   //     status: "pending",
   //     type: "ffmpeg",
   //     progress: 0,
+  //     action: ["pause", "kill"],
   //   },
   //   {
   //     taskId: "2",
@@ -171,16 +198,18 @@ const getQuenu = async () => {
   //     status: "running",
   //     type: "ffmpeg",
   //     progress: 50,
+  //     action: ["pause", "kill"],
+  //     startTime: 1701682795887,
   //   },
-
   //   {
   //     taskId: "3",
   //     name: "test3",
   //     status: "paused",
   //     type: "ffmpeg",
   //     progress: 50,
+  //     action: ["pause", "kill"],
+  //     startTime: 1701682795887,
   //   },
-
   //   {
   //     taskId: "4",
   //     name: "test4",
@@ -188,17 +217,21 @@ const getQuenu = async () => {
   //     type: "ffmpeg",
   //     output: "D:/test.mp4",
   //     progress: 100,
+  //     action: ["pause", "kill"],
+  //     startTime: 1701682795887,
+  //     endTime: 1701682995887,
   //   },
-
   //   {
   //     taskId: "5",
   //     name: "test5",
   //     status: "error",
   //     type: "ffmpeg",
   //     progress: 50,
+  //     action: ["pause", "kill"],
   //   },
   // ];
   queue.value = (await window.api.task.list()).toReversed();
+  store.runningTaskNum = queue.value.filter((item) => item.status === "running").length;
 };
 
 const handleStart = (taskId: string, task: Task) => {
@@ -223,7 +256,6 @@ const handleKill = async (taskId: string) => {
   });
   if (!status) return;
   window.api.task.kill(taskId);
-  console.log("handleInterrupt", taskId);
   getQuenu();
 };
 
@@ -258,7 +290,10 @@ const handleRemoveEndTasks = async () => {
   getQuenu();
 };
 
+const now = ref(Date.now());
+
 setInterval(() => {
+  now.value = Date.now();
   getQuenu();
 }, 1000);
 getQuenu();
@@ -272,6 +307,13 @@ getQuenu();
   .item {
     border-bottom: 1px solid #eee;
     padding: 10px 5px;
+    .detail-info {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #999;
+      display: flex;
+      gap: 10px;
+    }
     .content-container {
       display: flex;
       justify-content: space-between;

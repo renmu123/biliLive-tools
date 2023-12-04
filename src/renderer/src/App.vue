@@ -51,7 +51,8 @@ import {
 import defaultUserAvatar from "./assets/images/moehime.jpg";
 import AppSettingDialog from "./components/AppSettingDialog.vue";
 
-import { useUserInfoStore } from "./stores";
+import { useUserInfoStore, useQueueStore } from "./stores";
+const quenuStore = useQueueStore();
 
 const { userInfo } = storeToRefs(useUserInfoStore());
 
@@ -60,6 +61,32 @@ const collapsed = ref(true);
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) });
+}
+
+function renderQueueIcon(icon: Component) {
+  return () =>
+    h(
+      "div",
+      {
+        style: { position: "relative" },
+      },
+      [
+        h(
+          "span",
+          {
+            style: {
+              color: "red",
+              position: "absolute",
+              right: "-4px",
+              top: "-4px",
+              fontSize: "12px",
+            },
+          },
+          quenuStore.runningTaskNum || "",
+        ),
+        h(NIcon, null, { default: () => h(icon) }),
+      ],
+    );
 }
 
 function renderImg(src: string) {
@@ -110,7 +137,7 @@ const menuOptions = computed<MenuOption[]>(() => {
           { default: () => "队列" },
         ),
       key: "queue",
-      icon: renderIcon(QueueIcon),
+      icon: renderQueueIcon(QueueIcon),
     },
     {
       label: () =>

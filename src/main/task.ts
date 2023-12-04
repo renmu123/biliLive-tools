@@ -37,6 +37,9 @@ abstract class AbstractTask {
   output?: string;
   progress: number;
   action: ("pause" | "kill")[];
+  startTime?: number;
+  endTime?: number;
+
   abstract type: string;
   abstract exec(): void;
   abstract kill(): void;
@@ -98,34 +101,29 @@ export class DanmuTask extends AbstractTask {
     this.progress = 0;
     console.log("danmuTask,task-start", this.input, this.output);
     emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+    this.startTime = Date.now();
     this.danmu
       .convertXml2Ass(this.input, this.output as string, this.options)
-      .then(
-        ({ stdout, stderr }) => {
-          log.debug("stdout", stdout);
-          log.debug("stderr", stderr);
+      .then(({ stdout, stderr }) => {
+        log.debug("stdout", stdout);
+        log.debug("stderr", stderr);
 
-          if (stderr) {
-            this.status = "error";
-            this.callback.onError && this.callback.onError(stderr);
-            emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
-            return;
-          }
-          this.status = "completed";
-          this.callback.onEnd && this.callback.onEnd(this.output as string);
-          this.progress = 100;
-          emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
-        },
-        (err) => {
+        if (stderr) {
           this.status = "error";
-          this.callback.onError && this.callback.onError(err);
+          this.callback.onError && this.callback.onError(stderr);
           emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
-        },
-      )
-      .catch(() => {
+          return;
+        }
+        this.status = "completed";
         this.callback.onEnd && this.callback.onEnd(this.output as string);
         this.progress = 100;
         emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
+        this.endTime = Date.now();
+      })
+      .catch((err) => {
+        this.status = "error";
+        this.callback.onError && this.callback.onError(err);
+        emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
       });
   }
   pause() {
@@ -173,6 +171,7 @@ export class FFmpegTask extends AbstractTask {
 
       callback.onStart && callback.onStart();
       emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+      this.startTime = Date.now();
     });
     command.on("end", async () => {
       log.info(`task ${this.taskId} end`);
@@ -181,6 +180,7 @@ export class FFmpegTask extends AbstractTask {
 
       callback.onEnd && callback.onEnd(options.output);
       emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
+      this.endTime = Date.now();
     });
     command.on("error", (err) => {
       log.error(`task ${this.taskId} error: ${err}`);
@@ -261,6 +261,8 @@ export class TaskQueue {
         output: task.output,
         progress: task.progress,
         action: task.action,
+        startTime: task.startTime,
+        endTime: task.endTime,
       };
     });
   }
@@ -291,13 +293,9 @@ export class TaskQueue {
 
 export const taskQueue = new TaskQueue();
 taskQueue.on("task-start", ({ taskId, webContents }) => {
-  console.log("task-start111", taskId);
-
   webContents.send("task-start", { taskId: taskId });
 });
 taskQueue.on("task-end", ({ taskId, webContents }) => {
-  console.log("task-end111", taskId);
-
   webContents.send("task-end", { taskId: taskId, output: taskQueue.queryTask(taskId)?.output });
 });
 taskQueue.on("task-error", ({ taskId, webContents }) => {
