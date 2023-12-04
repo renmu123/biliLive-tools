@@ -1,4 +1,6 @@
 import path from "path";
+import os from "os";
+import fs from "fs-extra";
 
 import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
@@ -16,6 +18,7 @@ import type {
   BiliupConfigAppend,
   VideoMergeOptions,
   DanmuPreset,
+  Video2Mp4Options,
 } from "../types";
 import ffmpeg from "fluent-ffmpeg";
 
@@ -40,14 +43,12 @@ export const api = {
       return await ipcRenderer.invoke("readDanmuPresets");
     },
     convertDanmu2Ass: async (
-      files: File[],
+      files: {
+        input: string;
+        output?: string;
+      }[],
       presetId: string,
       options: DanmuOptions = {
-        saveRadio: 1,
-        saveOriginPath: true,
-        savePath: "",
-
-        override: false,
         removeOrigin: false,
       },
     ) => {
@@ -149,6 +150,14 @@ export const api = {
       }
     },
   },
+  common: {
+    getTempPath: () => {
+      return os.tmpdir();
+    },
+    deleteFile: (path: string) => {
+      return fs.unlink(path);
+    },
+  },
   bili: {
     // 预设
     savePreset: (preset: BiliupPreset) => {
@@ -200,7 +209,7 @@ export const api = {
   },
   convertVideo2Mp4: async (
     file: File,
-    options: DanmuOptions = {
+    options: Video2Mp4Options = {
       saveRadio: 1,
       saveOriginPath: true,
       savePath: "",
@@ -211,45 +220,22 @@ export const api = {
   ) => {
     return await ipcRenderer.invoke("convertVideo2Mp4", file, options);
   },
-
-  onTaskEnd: (
-    callback: (
-      _event: IpcRendererEvent,
-      data: {
-        taskId: string;
-        output: string;
-      },
-    ) => void,
-  ) => {
-    ipcRenderer.once("task-end", callback);
-  },
-  onTaskError: (
-    callback: (
-      _event: IpcRendererEvent,
-      data: {
-        taskId: string;
-        err: string;
-      },
-    ) => void,
-  ) => {
-    ipcRenderer.once("task-error", callback);
-  },
   mergeAssMp4: async (
-    videoFile: File,
-    assFile: File,
-    options: DanmuOptions = {
-      saveRadio: 1,
-      saveOriginPath: true,
-      savePath: "",
-
-      override: false,
+    files: {
+      videoFilePath: string;
+      assFilePath: string;
+      outputPath: string;
+    },
+    options: {
+      removeOrigin: boolean;
+    } = {
       removeOrigin: false,
     },
     ffmpegOptions: FfmpegOptions = {
       encoder: "libx264",
     },
   ) => {
-    return await ipcRenderer.invoke("mergeAssMp4", videoFile, assFile, options, ffmpegOptions);
+    return await ipcRenderer.invoke("mergeAssMp4", files, options, ffmpegOptions);
   },
 
   mergeVideos: async (videoFiles: File[], options: VideoMergeOptions) => {

@@ -41,7 +41,7 @@
 <script setup lang="ts">
 import FileArea from "@renderer/components/FileArea.vue";
 import { useConfirm } from "@renderer/hooks";
-import type { File, DanmuOptions } from "../../../../../types";
+import type { File, Video2Mp4Options } from "../../../../../types";
 
 const notice = useNotification();
 const confirm = useConfirm();
@@ -54,7 +54,7 @@ const fileList = ref<
   })[]
 >([]);
 
-const options = ref<DanmuOptions>({
+const options = ref<Video2Mp4Options>({
   saveRadio: 1, // 1：保存到原始文件夹，2：保存到特定文件夹
   saveOriginPath: true,
   savePath: "",

@@ -1,4 +1,5 @@
 import { join, parse } from "path";
+import fs from "fs-extra";
 
 import { pathExists, trashItem } from "./utils/index";
 import log from "./utils/log";
@@ -7,7 +8,7 @@ import { Danmu } from "../core/index";
 import { DANMU_PRESET_PATH } from "./appConstant";
 import { DanmuTask, taskQueue } from "./task";
 
-import type { DanmuConfig, File, DanmuOptions, DanmuPreset as DanmuPresetType } from "../types";
+import type { DanmuConfig, DanmuOptions, DanmuPreset as DanmuPresetType } from "../types";
 import { type IpcMainInvokeEvent } from "electron";
 
 const DANMUKUFACTORY_PATH = join(__dirname, "../../resources/bin/DanmakuFactory.exe").replace(
@@ -43,14 +44,12 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
 
 export const convertDanmu2Ass = async (
   _event: IpcMainInvokeEvent,
-  files: File[],
+  files: {
+    input: string;
+    output?: string;
+  }[],
   presetId: string,
   options: DanmuOptions = {
-    saveRadio: 1,
-    saveOriginPath: true,
-    savePath: "",
-
-    override: false,
     removeOrigin: false,
   },
 ) => {
@@ -61,40 +60,30 @@ export const convertDanmu2Ass = async (
     taskId?: string;
   }[] = [];
   for (const file of files) {
-    const { dir, name, path } = file;
+    const { dir, name } = parse(file.input);
 
-    const input = path;
+    const input = file.input;
     let output = join(dir, `${name}.ass`);
     if (options.saveRadio === 2 && options.savePath) {
       output = join(options.savePath, `${name}.ass`);
     }
+    if (file.output) {
+      output = file.output;
+    }
 
     if (!(await pathExists(input))) {
       log.error("danmufactory input file not exist", input);
-      continue;
+      throw new Error(`danmufactory input file not exist: ${input}`);
     }
 
     if (await pathExists(output)) {
-      if (options.override) {
-        log.info("danmufactory", {
-          status: "success",
-          text: "文件已存在，移除进入回收站",
-          input: input,
-          output: output,
-        });
-        await trashItem(output);
-      } else {
-        log.info("danmufactory", {
-          status: "success",
-          text: "文件已存在，跳过",
-          input: input,
-          output: output,
-        });
-        tasks.push({
-          output,
-        });
-        continue;
-      }
+      log.info("danmufactory", {
+        status: "success",
+        text: "文件已存在，删除",
+        input: input,
+        output: output,
+      });
+      await fs.unlink(output);
     }
 
     const argsObj = (await danmuPreset.get(presetId)).config;
@@ -119,56 +108,6 @@ export const convertDanmu2Ass = async (
     tasks.push({
       taskId: task.taskId,
     });
-
-    // try {
-    //   const { stdout, stderr } = await danmu.convertXml2Ass(input, output, argsObj);
-    //   log.info(`danmukufactory command: ${danmu.command}`);
-
-    //   log.debug("stdout", stdout);
-    //   if (stderr) {
-    //     log.error("stderr", stderr);
-    //     result.push({
-    //       status: "error",
-    //       text: stdout,
-    //       input: input,
-    //       meta: {
-    //         stdout,
-    //         stderr,
-    //       },
-    //     });
-    //   } else {
-    //     log.info(
-    //       "danmufactory",
-    //       JSON.stringify({
-    //         status: "success",
-    //         text: stdout,
-    //         input: input,
-    //         output: output,
-    //         meta: {
-    //           stdout,
-    //           stderr,
-    //         },
-    //       }),
-    //     );
-    //     result.push({
-    //       status: "success",
-    //       text: stdout,
-    //       input: input,
-    //       output: output,
-    //       meta: {
-    //         stdout,
-    //         stderr,
-    //       },
-    //     });
-    //   }
-
-    //   if (options.removeOrigin && (await pathExists(input))) {
-    //     await trashItem(input);
-    //   }
-    // } catch (err) {
-    //   log.error("danmufactory exec error:", err, danmu.command);
-    //   result.push({ status: "error", text: String(err), input: input, meta: { err } });
-    // }
   }
 
   return tasks;

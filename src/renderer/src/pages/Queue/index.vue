@@ -1,8 +1,21 @@
 <template>
   <div class="container">
     <!-- TODO:增加筛选，移除已完成记录 -->
-    <template v-if="queue.length !== 0">
-      <div v-for="item in queue" :key="item.taskId" class="item">
+    <div style="display: flex; justify-content: space-between; align-items: center">
+      <n-checkbox-group v-model:value="selectedStatus">
+        <n-checkbox value="pending">等待中</n-checkbox>
+        <n-checkbox value="running">运行中</n-checkbox>
+        <n-checkbox value="paused">已暂停</n-checkbox>
+        <n-checkbox value="completed">已完成</n-checkbox>
+        <n-checkbox value="error">错误</n-checkbox>
+      </n-checkbox-group>
+
+      <n-button v-if="queue.length !== 0" size="small" type="error" @click="handleRemoveEndTasks"
+        >移除已完成任务记录</n-button
+      >
+    </div>
+    <template v-if="displayQueue.length !== 0">
+      <div v-for="item in displayQueue" :key="item.taskId" class="item">
         <div class="content-container">
           <div class="name-container">
             <span class="name" :title="item.name">{{ item.name }}</span>
@@ -99,6 +112,9 @@ interface Task {
 }
 
 const queue = ref<Task[]>([]);
+const displayQueue = computed(() => {
+  return queue.value.filter((item) => selectedStatus.value.includes(item.status));
+});
 
 const statusMap: {
   [key in Task["status"]]: {
@@ -139,6 +155,7 @@ const statusMap: {
 //               timemark.value = formatSeconds(
 //                 Number((speed * (100 - progress.percentage)).toFixed(0)),
 
+const selectedStatus = ref<string[]>(["pending", "running", "paused", "completed", "error"]);
 const getQuenu = async () => {
   // queue.value = [
   //   {
@@ -223,6 +240,19 @@ const handleRemoveRecord = (taskId: string) => {
   window.api.task.remove(taskId);
   notice.success({
     title: "删除记录成功",
+    duration: 2000,
+  });
+  getQuenu();
+};
+
+const handleRemoveEndTasks = async () => {
+  for (const item of queue.value) {
+    if (item.status === "completed") {
+      await window.api.task.remove(item.taskId);
+    }
+  }
+  notice.success({
+    title: "移除成功",
     duration: 2000,
   });
   getQuenu();

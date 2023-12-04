@@ -1,4 +1,4 @@
-<!-- 首页 -->
+<!-- 压制&上传 -->
 <template>
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
@@ -10,38 +10,21 @@
     <FileArea
       v-model="fileList"
       :extensions="['flv', 'mp4', 'ass', 'xml']"
-      desc="请选择录播以及弹幕文件，如果为flv以及xml将自动转换为mp4以及ass"
+      desc="请选择视频以及弹幕文件，如果为xml将自动转换为ass"
       :max="2"
     ></FileArea>
     <n-scrollbar style="max-height: calc(100vh - 350px)">
       <n-tabs type="segment" style="margin-top: 10px" class="tabs">
         <n-tab-pane name="common-setting" tab="基础设置" display-directive="show:lazy">
           <div class="flex column">
-            <div>
-              <n-radio-group v-model:value="options.saveRadio" class="radio-group">
-                <n-space class="flex align-center column">
-                  <n-radio :value="1"> 保存到原始文件夹 </n-radio>
-                  <n-radio :value="2">
-                    <n-input
-                      v-model:value="options.savePath"
-                      type="text"
-                      placeholder="选择文件夹"
-                      style="width: 300px"
-                    />
-                  </n-radio>
-                  <n-button type="primary" :disabled="options.saveRadio !== 2" @click="getDir">
-                    选择文件夹
-                  </n-button>
-                </n-space>
-              </n-radio-group>
-            </div>
+            <div></div>
             <div style="margin-top: 10px">
-              <n-radio-group v-model:value="options.override">
+              <!-- <n-radio-group v-model:value="options.override">
                 <n-space>
                   <n-radio :value="true"> 覆盖文件 </n-radio>
                   <n-radio :value="false"> 跳过存在文件 </n-radio>
                 </n-space>
-              </n-radio-group>
+              </n-radio-group> -->
               <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
 
               <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
@@ -119,13 +102,7 @@ import { useDanmuPreset } from "@renderer/stores";
 import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 
-import type {
-  DanmuOptions,
-  File,
-  FfmpegOptions,
-  DanmuConfig,
-  BiliupPreset,
-} from "../../../../types";
+import type { File, FfmpegOptions, DanmuConfig, BiliupPreset } from "../../../../types";
 
 const notice = useNotification();
 const confirm = useConfirm();
@@ -142,20 +119,15 @@ const fileList = ref<
   })[]
 >([]);
 
-type MergeOptions = DanmuOptions & {
-  outputPath: string;
+type MergeOptions = {
+  removeOrigin: boolean;
 };
 
 const options = ref<MergeOptions>({
-  saveRadio: 1, // 1：保存到原始文件夹，2：保存到特定文件夹
-  saveOriginPath: true,
-  savePath: "",
-
-  override: false, // 覆盖文件
   removeOrigin: false, // 完成后移除源文件
-  outputPath: "",
 });
 const clientOptions = ref({
+  // saveOriginPath: false, // 保存到原始文件夹并自动重命名
   openTargetDirectory: false, // 转换完成后打开目标文件夹
   upload: false, // 上传
 });
@@ -164,25 +136,19 @@ const handleConvert = async () => {
   convert();
 };
 
-const convert = async () => {
-  const files = toRaw(fileList.value);
-  const rawClientOptions = toRaw(clientOptions.value);
-  const rawOptions = toRaw(options.value);
-  const rawDanmuPresetId = toRaw(danmuPresetId.value);
-  const rawPresetOptions = toRaw(presetOptions.value);
+const preHandle = async (
+  files: File[],
+  clientOptions: any,
+  options: MergeOptions,
+  danmuPresetId: string,
+  presetOptions: any,
+) => {
   if (files.length === 0) {
-    return;
+    return false;
   }
 
-  if (rawClientOptions.upload) {
-    const valid = await biliUpCheck(rawPresetOptions);
-    if (!valid) {
-      notice.error({
-        title: `请点击左侧头像处进行登录`,
-        duration: 3000,
-      });
-      return;
-    }
+  if (clientOptions.upload) {
+    await biliUpCheck(presetOptions);
   }
 
   const videoFile = files.find((item) => item.ext === ".flv" || item.ext === ".mp4");
@@ -193,127 +159,137 @@ const convert = async () => {
       title: "请选择一个flv或者mp4文件",
       duration: 3000,
     });
-    return;
+    return false;
   }
   if (!danmuFile) {
     notice.error({
       title: "请选择一个xml或者ass文件",
       duration: 3000,
     });
-    return;
+    return false;
   }
+  // 弹幕处理
   const videoMeta = await window.api.readVideoMeta(videoFile.path);
   const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
-
-  // xml文件转换
-  const { targetAssFilePath } = await handleXmlFile(
-    danmuFile,
-    videoStream,
-    rawOptions,
-    rawDanmuPresetId,
-  );
-
-  // 视频检查
-  const outputPath = await checkFile(videoFile, rawOptions);
-
-  // 压制任务
-  const output = await handleVideoMerge(
-    {
-      inputVideoFilePath: videoFile?.path,
-      inputAssFilePath: targetAssFilePath,
-      outputPath: outputPath,
-    },
-    rawOptions,
-  );
-  console.log(output, output);
-
-  if (rawClientOptions.upload) {
-    await upload(output, rawPresetOptions);
-  }
-
-  if (rawClientOptions.openTargetDirectory) {
-    if (rawOptions.saveRadio === 2) {
-      window.api.openPath(rawOptions.savePath);
-    } else {
-      window.api.openPath(videoFile.dir);
-    }
-  }
-  fileList.value = [];
-};
-
-// 处理xml文件
-const handleXmlFile = async (
-  danmuFile: File,
-  videoStream: any,
-  options: MergeOptions,
-  danmuPresetId: string,
-) => {
-  let targetAssFilePath: string;
-  if (danmuFile.ext === ".xml") {
-    let path = window.path.join(danmuFile.dir, `${danmuFile.name}.ass`);
-    if (options.saveRadio === 2 && options.savePath) {
-      path = window.path.join(options.savePath, `${danmuFile.name}.ass`);
-    }
-    const isExits = await window.api.exits(path);
-    if (isExits && options.override) {
-      const status = await confirm.warning({
-        content: `目标文件夹已存在 ${danmuFile.name}.ass 文件，继续将会覆盖此文件`,
-      });
-      if (!status) throw new Error("已取消");
-    }
-
-    const { width, height } = videoStream || {};
-    console.log(width, height);
-    const danmuConfig = (await window.api.danmu.getPreset(danmuPresetId)).config;
-    if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
-      const status = await confirm.warning({
-        content: `目标视频为${width}*${height}，与设置的弹幕的分辨率不一致，如需更改分辨率可以去”弹幕设置“处进行修改，是否继续？`,
-      });
-      if (!status) throw new Error("已取消");
-    }
-
-    notice.warning({
-      title: "开始转换xml",
-      duration: 3000,
+  const { width, height } = videoStream || {};
+  console.log(width, height);
+  const danmuConfig = (await window.api.danmu.getPreset(danmuPresetId)).config;
+  if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
+    const status = await confirm.warning({
+      content: `目标视频为${width}*${height}，与设置的弹幕的分辨率不一致，如需更改分辨率可以去”弹幕设置“处进行修改，是否继续？`,
     });
-    targetAssFilePath = await convertDanmu2Ass(danmuFile, options, danmuPresetId);
-  } else {
-    targetAssFilePath = danmuFile.path;
+    if (!status) return false;
   }
-  if (targetAssFilePath.includes(" ")) {
-    notice.error({
-      title: "弹幕文件路径中存在空格时会压制错误",
-      duration: 3000,
-    });
-    throw new Error("弹幕文件路径中存在空格时会压制错误");
-  }
-  console.log("targetAssFilePath", targetAssFilePath);
+
+  // 视频验证
+  const file = await window.api.showSaveDialog({
+    filters: [
+      { name: "视频文件", extensions: ["mp4"] },
+      { name: "所有文件", extensions: ["*"] },
+    ],
+  });
+  if (!file) return false;
+
   return {
-    targetAssFilePath,
+    inputVideoFile: videoFile,
+    inputDanmuFile: danmuFile,
+    outputPath: file,
+    rawOptions: options,
   };
 };
 
+const convert = async () => {
+  const files = toRaw(fileList.value);
+  const rawClientOptions = toRaw(clientOptions.value);
+  const rawDanmuPresetId = toRaw(danmuPresetId.value);
+  const rawPresetOptions = toRaw(presetOptions.value);
+  const rawFfmpegOptions = toRaw(ffmpegOptions.value);
+
+  const data = await preHandle(
+    files,
+    rawClientOptions,
+    toRaw(options.value),
+    rawDanmuPresetId,
+    rawPresetOptions,
+  );
+  if (!data) return;
+  let { inputDanmuFile } = data;
+  const { inputVideoFile, outputPath, rawOptions } = data;
+  console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
+
+  if (inputDanmuFile.ext === ".xml") {
+    // xml文件转换
+    const targetAssFile = await handleXmlFile(inputDanmuFile, rawOptions, rawDanmuPresetId);
+    console.log("targetAssFilePath", targetAssFile);
+    inputDanmuFile = targetAssFile;
+  }
+  if (inputDanmuFile.path.includes(" ")) {
+    throw new Error("弹幕文件路径中存在空格时会压制错误");
+  }
+
+  // 压制任务
+  const output = handleVideoMerge(
+    {
+      inputVideoFilePath: inputVideoFile?.path,
+      inputAssFilePath: inputDanmuFile.path,
+      outputPath: outputPath,
+    },
+    rawOptions,
+    rawFfmpegOptions,
+  );
+
+  fileList.value = [];
+  if (rawClientOptions.upload) {
+    await upload(await output, rawPresetOptions);
+  }
+
+  if (rawClientOptions.openTargetDirectory) {
+    window.api.openPath(outputPath);
+  }
+};
+
+// 处理xml文件
+const handleXmlFile = async (danmuFile: File, options: MergeOptions, danmuPresetId: string) => {
+  notice.warning({
+    title: "开始转换xml",
+    duration: 3000,
+  });
+
+  const outputPath = `${window.path.join(window.api.common.getTempPath(), uuid())}.ass`;
+  console.log("outputPath", outputPath);
+  const targetAssFilePath = await convertDanmu2Ass(
+    {
+      input: danmuFile.path,
+      output: outputPath,
+    },
+    options,
+    danmuPresetId,
+  );
+
+  return window.api.formatFile(targetAssFilePath);
+};
+
 const convertDanmu2Ass = (
-  file: File,
+  fileOptions: {
+    input: string;
+    output: string;
+  },
   options: MergeOptions,
   danmuPresetId: string,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
-    window.api.danmu.convertDanmu2Ass([file], danmuPresetId, options).then((result: any) => {
+    window.api.danmu.convertDanmu2Ass([fileOptions], danmuPresetId, options).then((result: any) => {
       if (result[0].output) {
         resolve(result[0].output);
       } else {
         const taskId = result[0].taskId;
-        window.api.task.on(taskId, "start", (data) => {
-          console.log("start", data);
+        window.api.task.on(taskId, "end", (data) => {
+          console.log("end", data);
           notice.success({
             title: "xml文件转换成功",
             duration: 3000,
           });
           resolve(data.output);
-        });
-        window.api.task.on(taskId, "end", (data) => {
-          console.log("end", data);
         });
 
         window.api.task.on(taskId, "error", (data) => {
@@ -324,30 +300,6 @@ const convertDanmu2Ass = (
   });
 };
 
-// 处理视频文件
-const checkFile = async (videoFile: File, options: MergeOptions) => {
-  let output = window.path.join(videoFile.dir, `${videoFile.name}-弹幕版.mp4`);
-  if (options.saveRadio === 2 && options.savePath) {
-    output = window.path.join(options.savePath, `${videoFile.name}-弹幕版.mp4`);
-  }
-  const isExits = await window.api.exits(output);
-  if (isExits) {
-    if (!options.override) {
-      notice.info({
-        title: "目前文件已存在，无需进行压制",
-        duration: 3000,
-      });
-      throw new Error("目前文件已存在，无需进行压制");
-    } else {
-      const status = await confirm.warning({
-        content: `目标文件夹已存在 ${window.path.parse(output).base}文件，继续将会覆盖此文件`,
-      });
-      if (!status) throw new Error("取消");
-    }
-  }
-  return output;
-};
-
 // 视频压制
 const handleVideoMerge = async (
   convertOptions: {
@@ -356,11 +308,12 @@ const handleVideoMerge = async (
     outputPath: string;
   },
   options: MergeOptions,
+  ffmpegOptions: FfmpegOptions,
 ) => {
   const { inputVideoFilePath, inputAssFilePath, outputPath } = convertOptions;
   notice.info({
-    title: "开始进行压制，根据不同设置需要消耗大量时间，CPU，GPU，请勿关闭软件",
-    duration: 5000,
+    title: "已加入队列，根据不同设置压制需要消耗大量时间，CPU，GPU，期间请勿关闭本软件",
+    duration: 3000,
   });
 
   let output: string;
@@ -370,6 +323,7 @@ const handleVideoMerge = async (
       inputAssFilePath,
       outputPath,
       deepRaw(options),
+      ffmpegOptions,
     );
   } catch (err) {
     throw new Error(`转换失败：\n${err}`);
@@ -384,31 +338,37 @@ const createMergeVideoAssTask = async (
   assFilePath: string,
   outputPath: string,
   options: MergeOptions,
+  ffmpegOptions: FfmpegOptions,
 ): Promise<string> => {
-  const videoFile = window.api.formatFile(videoFilePath);
-  const assFile = window.api.formatFile(assFilePath);
-  options.outputPath = outputPath;
   return new Promise((resolve, reject) => {
     window.api
-      .mergeAssMp4(videoFile, assFile, options, ffmpegOptions.value)
+      .mergeAssMp4(
+        {
+          videoFilePath: videoFilePath,
+          assFilePath: assFilePath,
+          outputPath: outputPath,
+        },
+        options,
+        ffmpegOptions,
+      )
       .then(({ taskId, output }: { taskId?: string; output?: string }) => {
-        if (output) return resolve(output);
+        if (!taskId) return resolve(output as string);
         notice.info({
           title: "已加入任务队列，可在任务列表中查看进度",
           duration: 3000,
         });
-        const currentTaskId = taskId;
-        window.api.onTaskEnd((_event, { taskId, output }) => {
-          if (taskId !== currentTaskId) return;
+
+        window.api.task.on(taskId, "end", (data) => {
+          console.log("end", data);
           notice.success({
             title: "压制成功",
             duration: 3000,
           });
-          resolve(output);
+          resolve(data.output);
         });
-        window.api.onTaskError((_event, { taskId, err }) => {
-          if (taskId !== currentTaskId) return;
-          reject(err);
+
+        window.api.task.on(taskId, "error", (data) => {
+          reject(data.err);
         });
       });
   });
@@ -418,7 +378,7 @@ const biliUpCheck = async (presetOptions: BiliupPreset) => {
   const hasLogin = await window.api.bili.checkCookie();
   if (!hasLogin) {
     notice.error({
-      title: `请先登录`,
+      title: `请点击左侧头像进行登录`,
       duration: 3000,
     });
     return;
@@ -521,10 +481,10 @@ watch(
   },
 );
 
-async function getDir() {
-  const path = await window.api.openDirectory();
-  options.value.savePath = path;
-}
+// async function getDir() {
+//   const path = await window.api.openDirectory();
+//   options.value.savePath = path;
+// }
 
 window.api.onMainNotify((_event, data) => {
   notice[data.type]({

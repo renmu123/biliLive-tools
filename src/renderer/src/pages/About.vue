@@ -11,16 +11,15 @@
     </p>
     <p>本软件为开源软件，采用GPLv3授权</p>
     <p>
-      项目地址：<a href="https://github.com/renmu123/biliLive-tools" class="external">
-        biliLive-tools</a
+      项目地址：<a href="https://github.com/renmu123/biliLive-tools" class="external"
+        >biliLive-tools</a
       >
     </p>
     <p>
       反馈地址：如果遇到bug，请在设置中将"log等级"调整至debug模式，并进行复现，之后在<a
         href="https://github.com/renmu123/biliLive-tools/issues"
         class="external"
-      >
-        issues</a
+        >issues</a
       >中附上复现步骤，以及相应的日志文件
     </p>
     <div>

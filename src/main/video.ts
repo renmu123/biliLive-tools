@@ -1,4 +1,4 @@
-import { join } from "path";
+import { join, parse } from "path";
 import os from "os";
 import fs from "fs-extra";
 import ffmpeg from "fluent-ffmpeg";
@@ -10,7 +10,7 @@ import log from "./utils/log";
 import { taskQueue, FFmpegTask } from "./task";
 
 import { type IpcMainInvokeEvent } from "electron";
-import type { File, DanmuOptions, FfmpegOptions, VideoMergeOptions } from "../types";
+import type { File, FfmpegOptions, VideoMergeOptions, Video2Mp4Options } from "../types";
 
 export const setFfmpegPath = () => {
   const appConfig = getAppConfig();
@@ -49,7 +49,7 @@ export const getAvailableEncoders = async () => {
 export const convertVideo2Mp4 = async (
   _event: IpcMainInvokeEvent,
   file: File,
-  options: DanmuOptions = {
+  options: Video2Mp4Options = {
     saveRadio: 1,
     saveOriginPath: true,
     savePath: "",
@@ -125,44 +125,32 @@ export const convertVideo2Mp4 = async (
 
 export const mergeAssMp4 = async (
   _event: IpcMainInvokeEvent,
-  videoFile: File,
-  assFile: File,
-  options: DanmuOptions = {
-    saveRadio: 1,
-    saveOriginPath: true,
-    savePath: "",
-
-    override: false,
+  files: {
+    videoFilePath: string;
+    assFilePath: string;
+    outputPath: string;
+  },
+  options: {
+    removeOrigin: boolean;
+  } = {
     removeOrigin: false,
   },
   ffmpegOptions: FfmpegOptions = {
     encoder: "libx264",
   },
 ) => {
-  // 相同文件覆盖提示
-  const { name, path, dir } = videoFile;
-  let output = join(dir, `${name}-弹幕版.mp4`);
-  const videoInput = path;
-
-  if (options.saveRadio === 2 && options.savePath) {
-    output = join(options.savePath, `${name}-弹幕版.mp4`);
-  }
+  const videoInput = files.videoFilePath;
+  const assFile = files.assFilePath;
+  const output = files.outputPath;
 
   if (!(await pathExists(videoInput))) {
     log.error("mergrAssMp4, file not exist", videoInput);
     _event.sender.send("task-error", "文件不存在");
     return;
   }
-  if (!options.override && (await pathExists(output))) {
-    log.error("mergrAssMp4, 文件已存在，跳过", videoInput);
-    _event.sender.send("task-end", { output });
-    return {
-      output,
-    };
-  }
 
   const command = ffmpeg(videoInput)
-    .outputOptions(`-filter_complex subtitles=${escaped(assFile.path)}`)
+    .outputOptions(`-filter_complex subtitles=${escaped(assFile)}`)
     .audioCodec("copy")
     .output(output);
 
@@ -177,7 +165,7 @@ export const mergeAssMp4 = async (
     _event.sender,
     {
       output,
-      name: `合并弹幕任务:${name}`,
+      name: `压制任务:${parse(output).name}`,
     },
     {
       onEnd: async () => {
@@ -186,9 +174,9 @@ export const mergeAssMp4 = async (
             log.info("mergrAssMp4, remove video origin file", videoInput);
             await trashItem(videoInput);
           }
-          if (await pathExists(assFile.path)) {
+          if (await pathExists(assFile)) {
             log.info("mergrAssMp4, remove ass origin file", assFile);
-            await trashItem(assFile.path);
+            await trashItem(assFile);
           }
         }
       },

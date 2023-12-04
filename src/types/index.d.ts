@@ -70,11 +70,17 @@ export interface AppConfig {
 export type LogLevel = ElectronLoGLevel;
 
 export interface DanmuOptions {
+  saveRadio?: 1 | 2; // 1：保存到原始文件夹，2：保存到特定文件夹
+  savePath?: string;
+
+  removeOrigin: boolean; // 完成后移除源文件
+}
+export interface Video2Mp4Options {
   saveRadio: 1 | 2; // 1：保存到原始文件夹，2：保存到特定文件夹
   saveOriginPath: boolean;
   savePath: string;
 
-  override: boolean; // 覆盖文件
+  override?: boolean; // 覆盖已存在的文件
   removeOrigin: boolean; // 完成后移除源文件
 }
 

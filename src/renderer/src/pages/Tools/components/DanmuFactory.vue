@@ -36,12 +36,6 @@
         </n-radio-group>
       </div>
       <div style="margin-top: 10px">
-        <n-radio-group v-model:value="options.override">
-          <n-space>
-            <n-radio :value="true"> 覆盖文件 </n-radio>
-            <n-radio :value="false"> 跳过存在文件 </n-radio>
-          </n-space>
-        </n-radio-group>
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
 
         <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
@@ -78,10 +72,8 @@ const fileList = ref<
 
 const options = ref<DanmuOptions>({
   saveRadio: 1, // 1：保存到原始文件夹，2：保存到特定文件夹
-  saveOriginPath: true,
   savePath: "",
 
-  override: false, // 覆盖文件
   removeOrigin: false, // 完成后移除源文件
 });
 const clientOptions = ref({
@@ -101,7 +93,10 @@ const convert = async () => {
     title: `检测到${fileList.value.length}个任务，可在任务列表中查看进度`,
     duration: 3000,
   });
-  window.api.danmu.convertDanmu2Ass(deepRaw(fileList.value), presetId, deepRaw(options.value));
+  const files = fileList.value.map((file) => {
+    return { input: file.path };
+  });
+  window.api.danmu.convertDanmu2Ass(files, presetId, deepRaw(options.value));
   fileList.value = [];
 
   if (clientOptions.value.openTargetDirectory) {

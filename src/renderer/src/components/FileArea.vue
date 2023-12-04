@@ -41,7 +41,7 @@
           <archive-icon />
         </n-icon>
       </div>
-      <n-text style="font-size: 16px"> 点击或拖拽文件到该区域来上传 </n-text>
+      <n-text style="font-size: 16px"> 点击或拖拽文件到该区域 </n-text>
       <n-p v-if="desc" depth="3" style="margin: 8px 0 0 0">
         {{ props.desc }}
       </n-p>
