@@ -225,13 +225,19 @@ export const mergeVideos = async (
   log.debug(videoFiles);
   log.debug(videoMetas);
 
-  // 获取所有视频轨的nb_frames
-  const nbFrames = sum(
-    videoMetas.map((meta) => {
-      const videoStream = meta.streams.find((stream) => stream.codec_type === "video");
-      return videoStream?.nb_frames || 0;
-    }),
-  );
+  let nbFrames = 0;
+
+  for (let i = 0; i < videoMetas.length; i++) {
+    const videoMeta = videoMetas[i];
+    const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
+    if (videoStream?.nb_frames !== "N/A") {
+      nbFrames += Number(videoStream?.nb_frames);
+    } else {
+      const frameRate = Number(videoStream.avg_frame_rate?.split("/")[0]);
+      const duration = videoMeta.format.duration || 0;
+      nbFrames += Math.floor(frameRate * duration);
+    }
+  }
 
   const task = new FFmpegTask(
     command,
@@ -242,8 +248,6 @@ export const mergeVideos = async (
     },
     {
       onProgress(progress) {
-        console.log("sdewqe", progress.frames, nbFrames);
-
         return { ...progress, percentage: Math.round((progress.frames / nbFrames) * 100) };
       },
       onEnd: async () => {
