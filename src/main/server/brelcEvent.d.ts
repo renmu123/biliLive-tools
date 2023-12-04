@@ -1,5 +1,3 @@
-import { type } from "os";
-
 // 用户信息类型定义
 interface UserInfo {
   name: string;

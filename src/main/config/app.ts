@@ -17,7 +17,6 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     port: 18010,
     open: false,
     recoderFolder: "",
-    autoUpload: false,
     minSize: 20,
     title: "",
     uploadPresetId: "",

@@ -2,7 +2,6 @@ import { join, parse } from "path";
 import os from "os";
 import fs from "fs-extra";
 import ffmpeg from "fluent-ffmpeg";
-import { sum } from "lodash";
 
 import { getAppConfig } from "./config/app";
 import { escaped, genFfmpegParams, pathExists, trashItem, uuid, notify } from "./utils/index";

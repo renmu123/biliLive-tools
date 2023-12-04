@@ -52,7 +52,6 @@ export interface AppConfig {
     port: number;
     open: boolean;
     recoderFolder: string;
-    autoUpload: boolean;
     minSize: number;
     title: string;
     uploadPresetId: string;

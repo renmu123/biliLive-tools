@@ -38,7 +38,6 @@ app.post("/webhook", async function (req, res) {
   if (
     appConfig.webhook.open &&
     appConfig.webhook.recoderFolder &&
-    appConfig.webhook.autoUpload &&
     event.EventType === "FileClosed"
   ) {
     const roomId = event.EventData.RoomId;
@@ -98,12 +97,7 @@ app.post("/blrec", async function (req, res) {
   const event: BlrecEventType = req.body;
   // evenetData.blrec.push(event);
 
-  if (
-    appConfig.webhook.open &&
-    appConfig.webhook.recoderFolder &&
-    appConfig.webhook.autoUpload &&
-    event.type === "VideoFileCompletedEvent"
-  ) {
+  if (appConfig.webhook.open && event.type === "VideoFileCompletedEvent") {
     const roomId = event.data.room_id as unknown as number;
     const roomSetting = appConfig.webhook.rooms[roomId];
 

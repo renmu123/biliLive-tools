@@ -63,6 +63,7 @@ watch(
         await window.api.bili.saveCookie();
         notice.success({
           title: "保存B站登录信息成功",
+          duration: 2000,
         });
       } catch (e: unknown) {
         console.log(e);

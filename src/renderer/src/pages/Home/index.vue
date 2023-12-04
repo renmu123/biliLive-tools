@@ -377,11 +377,7 @@ const createMergeVideoAssTask = async (
 const biliUpCheck = async (presetOptions: BiliupPreset) => {
   const hasLogin = await window.api.bili.checkCookie();
   if (!hasLogin) {
-    notice.error({
-      title: `请点击左侧头像进行登录`,
-      duration: 3000,
-    });
-    return;
+    throw new Error(`请点击左侧头像进行登录`);
   }
 
   await window.api.bili.validUploadParams(presetOptions.config);
@@ -402,10 +398,7 @@ const upload = async (file: string, presetOptions: BiliupPreset) => {
         duration: 3000,
       });
     } else {
-      notice.error({
-        title: `上传失败`,
-        duration: 3000,
-      });
+      throw new Error(`上传失败`);
     }
   });
 };
