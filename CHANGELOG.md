@@ -1,3 +1,9 @@
+# 0.5.0
+
+优化webhook，支持弹幕压制后上传
+准备替换biliup的二进制依赖
+electron升级到28.0.0
+
 # 0.4.0
 
 新增blrec的webhook支持
