@@ -58,6 +58,7 @@ export interface AppConfig {
     blacklist: string;
     rooms: {
       [roomId: string]: {
+        remark?: string;
         minSize: number;
         title: string;
         uploadPresetId: string;

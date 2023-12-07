@@ -173,6 +173,15 @@
         <n-form-item>
           <template #label>
             <span class="inline-flex">
+              备注
+              <Tip tip="仅用于提示"></Tip>
+            </span>
+          </template>
+          <n-input v-model:value="tempRoomDetail.remark" placeholder="请输入备注" clearable />
+        </n-form-item>
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex">
               最小上传大小
               <Tip tip="小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播"></Tip>
             </span>
@@ -325,6 +334,7 @@ const tempRoomDetail = ref({
   minSize: 0,
   title: "",
   uploadPresetId: "",
+  remark: "",
 });
 const handleRoomOpen = () => {
   const room = config.value.webhook.rooms[tempRoomId.value];
@@ -332,6 +342,7 @@ const handleRoomOpen = () => {
     minSize: room.minSize,
     title: room.title,
     uploadPresetId: room.uploadPresetId,
+    remark: room.remark as string,
   };
 };
 const saveRoomDetail = () => {
@@ -340,6 +351,7 @@ const saveRoomDetail = () => {
     minSize: tempRoomDetail.value.minSize,
     title: tempRoomDetail.value.title,
     uploadPresetId: tempRoomDetail.value.uploadPresetId,
+    remark: tempRoomDetail.value.remark,
   };
   roomDetailVisible.value = false;
 };

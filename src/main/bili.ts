@@ -31,9 +31,9 @@ async function checkTag(
   return client.checkTag(tag);
 }
 
-async function getMyInfo(): ReturnType<ClientInstance["getMyInfo"]> {
+async function getMyInfo(): ReturnType<ClientInstance["user"]["getMyInfo"]> {
   await loadCookie();
-  return client.getMyInfo();
+  return client.user.getMyInfo();
 }
 
 export default {
