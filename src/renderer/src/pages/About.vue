@@ -9,9 +9,13 @@
       作者：<a href="https://space.bilibili.com/10995238" class="external">renmu123</a>
       点点关注吧，秋梨膏
     </p>
-    <p>本软件为开源软件，采用GPLv3授权</p>
     <p>
       项目地址：<a href="https://github.com/renmu123/biliLive-tools" class="external"
+        >biliLive-tools</a
+      >
+    </p>
+    <p>
+      备用下载地址：<a href="https://www.alipan.com/s/iRyhxjdqGeL" class="external"
         >biliLive-tools</a
       >
     </p>
@@ -22,6 +26,7 @@
         >issues</a
       >中附上复现步骤，以及相应的日志文件
     </p>
+    <p>本软件为开源软件，采用GPLv3授权</p>
     <div>
       感谢以下开源软件对本项目的贡献：
       <ul>

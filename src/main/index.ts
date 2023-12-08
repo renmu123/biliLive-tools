@@ -400,7 +400,7 @@ const trashItem = async (_event: IpcMainInvokeEvent, path: string) => {
 
 const checkUpdate = async () => {
   const res = await fetch(
-    "https://raw.githubusercontent.com/renmu123/biliLive-tools/master/package.json",
+    "https://githubraw.eif93.love/renmu123/biliLive-tools/master/package.json",
   );
   console.log(res);
   const data = await res.json();
