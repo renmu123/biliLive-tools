@@ -1,13 +1,15 @@
+import path from "node:path";
+
 import { ElectronAPI } from "@electron-toolkit/preload";
 import { api } from "./index";
-import BiliClient from "biliApi";
-import path from "path";
+
+import type { BiliApi } from "@types/index";
 
 declare global {
   interface Window {
     electron: ElectronAPI;
     api: typeof api;
-    biliApi: InstanceType<typeof BiliClient>;
+    biliApi: BiliApi;
     path: typeof path;
   }
 }

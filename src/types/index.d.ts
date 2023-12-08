@@ -1,5 +1,9 @@
+import { biliApi } from "../main/bili";
+
 import type { OpenDialogOptions as ElectronOpenDialogOptions } from "electron";
 import type { LogLevel as ElectronLoGLevel } from "electron-log";
+
+export type BiliApi = typeof biliApi;
 
 // 弹幕配置
 export type DanmuConfig = {

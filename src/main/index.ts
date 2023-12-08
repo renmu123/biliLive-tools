@@ -1,18 +1,15 @@
-import biliApi from "./bili";
+import { join } from "node:path";
+import fs from "fs-extra";
+import semver from "semver";
 
+import { handlers as biliHandlers } from "./bili";
 import log from "./utils/log";
 import { trashItem as _trashItem } from "./utils/index";
 import { getAppConfig, saveAppConfig } from "./config/app";
 import serverApp from "./server/index";
-
-import { join } from "path";
-import fs from "fs-extra";
-import semver from "semver";
-
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
-
 import {
   convertDanmu2Ass,
   saveDanmuPreset,
@@ -29,7 +26,7 @@ import {
   handleReadVideoMeta,
 } from "./video";
 import { handlers as taskHandlers } from "./task";
-import { handlers as biliHandlers } from "./biliup";
+import { handlers as biliupHandlers } from "./biliup";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
@@ -70,7 +67,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("readVideoMeta", handleReadVideoMeta);
   ipcMain.handle("mergeVideos", mergeVideos);
 
-  // 上传视频部分
+  registerHandlers(ipcMain, biliupHandlers);
   registerHandlers(ipcMain, biliHandlers);
   registerHandlers(ipcMain, taskHandlers);
 
@@ -80,11 +77,6 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("deleteDanmuPreset", deleteDanmuPreset);
   ipcMain.handle("readDanmuPreset", readDanmuPreset);
   ipcMain.handle("readDanmuPresets", readDanmuPresets);
-
-  // bilibili相关
-  ipcMain.handle("biliApi:getArchives", biliApi.getArchives);
-  ipcMain.handle("biliApi:checkTag", biliApi.checkTag);
-  ipcMain.handle("biliApi:getMyInfo", biliApi.getMyInfo);
 };
 
 const appConfig = getAppConfig();

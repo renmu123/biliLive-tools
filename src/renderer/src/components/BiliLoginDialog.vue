@@ -61,6 +61,7 @@ watch(
       // 登录成功后将cookies保存到用户文件夹
       try {
         await window.api.bili.saveCookie();
+        window.biliApi.loadCookie();
         notice.success({
           title: "保存B站登录信息成功",
           duration: 2000,

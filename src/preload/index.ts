@@ -320,6 +320,9 @@ export const biliApi = {
   getMyInfo() {
     return ipcRenderer.invoke("biliApi:getMyInfo");
   },
+  loadCookie() {
+    return ipcRenderer.invoke("biliApi:updateCookie");
+  },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to
