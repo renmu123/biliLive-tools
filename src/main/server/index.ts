@@ -1,13 +1,21 @@
 import path from "node:path";
+import os from "node:os";
+
 import fs from "fs-extra";
 import { getAppConfig } from "../config/app";
 import { _uploadVideo, DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
+import { mainWin } from "../index";
+import { convertDanmu2Ass } from "../danmu";
+import { taskQueue } from "../task";
+import { mergeAssMp4 } from "../video";
 import bili from "../bili";
+import { getFfmpegPreset } from "../ffmpegPreset";
 import log from "../utils/log";
-import { getFileSize } from "../../utils/index";
+import { getFileSize, uuid } from "../../utils/index";
 import express from "express";
 
 import type { BlrecEventType } from "./brelcEvent.d.ts";
+import type { FfmpegOptions } from "../../types";
 
 const app = express();
 
@@ -129,21 +137,116 @@ async function handle(options: {
   log.info("appConfig: ", appConfig.webhook);
   if (danmu) {
     // 压制弹幕后上传
-    // TODO:检测弹幕文件是否存在
-    const danmuPreset = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
-    const videoPreset = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
-    console.log(danmuPreset, videoPreset);
+    const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
+    const videoPresetId = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
+    console.log(danmuPresetId, videoPresetId);
     const xmlFile = path.parse(options.filePath);
     const xmlFilePath = path.join(xmlFile.dir, `${xmlFile.name}.xml`);
-    setTimeout(async () => {
-      if (await fs.pathExists(xmlFilePath)) {
-        // 压制视频
-      }
-    }, 10000);
+    await sleep(10000);
+
+    if (!(await fs.pathExists(xmlFilePath))) {
+      log.info("没有找到弹幕文件，直接上传", xmlFilePath);
+      _uploadVideo([options.filePath], config);
+      return;
+    }
+
+    const assFilePath = await addDanmuTask(xmlFilePath, danmuPresetId);
+
+    const ffmpegPreset = await getFfmpegPreset(undefined, videoPresetId);
+    if (!ffmpegPreset) {
+      log.error("ffmpegPreset not found", videoPresetId);
+      return;
+    }
+    const output = await addMergeAssMp4Task(options.filePath, assFilePath, ffmpegPreset?.config);
+    fs.remove(assFilePath);
+    _uploadVideo([output], config);
   } else {
     _uploadVideo([options.filePath], config);
   }
 }
+
+const sleep = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+// 添加压制任务
+const addDanmuTask = (input: string, presetId: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const assFilePath = `${path.join(os.tmpdir(), uuid())}.ass`;
+    convertDanmu2Ass(
+      // @ts-ignore
+      {
+        sender: mainWin.webContents,
+      },
+      [
+        {
+          input: input,
+          output: assFilePath,
+        },
+      ],
+      presetId,
+    ).then((tasks) => {
+      const currentTaskId = tasks[0].taskId;
+      taskQueue.on("task-end", ({ taskId }) => {
+        if (taskId === currentTaskId) {
+          resolve(assFilePath);
+        }
+      });
+      taskQueue.on("task-error", ({ taskId }) => {
+        if (taskId === currentTaskId) {
+          reject();
+        }
+      });
+    });
+  });
+};
+
+const addMergeAssMp4Task = (
+  videoInput: string,
+  assInput: string,
+  preset: FfmpegOptions,
+): Promise<string> => {
+  const file = path.parse(videoInput);
+  return new Promise((resolve, reject) => {
+    let output = path.join(file.dir, `${file.name}-弹幕版.mp4`);
+    fs.pathExists(output)
+      .then((exists) => {
+        if (exists) {
+          output = path.join(file.dir, `${file.name}-弹幕版-${uuid()}.mp4`);
+        }
+      })
+      .then(() => {
+        mergeAssMp4(
+          // @ts-ignore
+          {
+            sender: mainWin.webContents,
+          },
+          {
+            videoFilePath: videoInput,
+            assFilePath: assInput,
+            outputPath: output,
+          },
+          {
+            removeOrigin: false,
+          },
+          preset,
+        ).then((task) => {
+          if (!task) reject("文件不存在");
+          const currentTaskId = task!.taskId;
+          taskQueue.on("task-end", ({ taskId }) => {
+            if (taskId === currentTaskId) {
+              resolve(output);
+            }
+          });
+          taskQueue.on("task-error", ({ taskId }) => {
+            if (taskId === currentTaskId) {
+              reject();
+            }
+          });
+        });
+      });
+  });
+};
 
 const formatTime = (time: string) => {
   // 创建一个Date对象

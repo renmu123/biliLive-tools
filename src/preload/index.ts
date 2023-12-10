@@ -213,17 +213,29 @@ export const api = {
   },
   ffmpeg: {
     // 预设
-    savePreset: async (preset: FfmpegPreset) => {
-      return await ipcRenderer.invoke("ffmpeg:presets:save", preset);
+    savePreset: (preset: FfmpegPreset) => {
+      return ipcRenderer.invoke("ffmpeg:presets:save", preset);
     },
-    deletePreset: async (id: string) => {
-      return await ipcRenderer.invoke("ffmpeg:presets:delete", id);
+    deletePreset: (id: string) => {
+      return ipcRenderer.invoke("ffmpeg:presets:delete", id);
     },
-    getPreset: async (id: string): Promise<FfmpegPreset> => {
-      return await ipcRenderer.invoke("ffmpeg:presets:get", id);
+    getPreset: (id: string): Promise<FfmpegPreset> => {
+      return ipcRenderer.invoke("ffmpeg:presets:get", id);
     },
-    getPresets: async (): Promise<FfmpegPreset[]> => {
-      return await ipcRenderer.invoke("ffmpeg:presets:list");
+    getPresets: (): Promise<FfmpegPreset[]> => {
+      return ipcRenderer.invoke("ffmpeg:presets:list");
+    },
+    getPresetOptions: (): Promise<
+      {
+        value: string;
+        label: string;
+        children: {
+          value: string;
+          label: string;
+        }[];
+      }[]
+    > => {
+      return ipcRenderer.invoke("ffmpeg:presets:getOptions");
     },
   },
   convertVideo2Mp4: async (

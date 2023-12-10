@@ -12,7 +12,7 @@ import type { AppConfig } from "../../types";
 export const APP_DEFAULT_CONFIG: AppConfig = {
   logLevel: "warn",
   autoUpdate: true,
-  trash: true, // 是否移动至回收站
+  trash: false, // 是否移动至回收站
   webhook: {
     port: 18010,
     open: false,
@@ -23,8 +23,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     blacklist: "",
     danmu: false,
     rooms: {},
-    ffmpegPreset: "",
-    danmuPreset: "",
+    ffmpegPreset: undefined,
+    danmuPreset: undefined,
   },
   ffmpegPath: path.join(
     path.dirname(app.getPath("exe")),

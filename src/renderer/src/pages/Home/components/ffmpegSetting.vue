@@ -420,134 +420,6 @@ const videoEncoders = ref([
     ],
   },
 ]);
-const baseFfmpegPresets = ref([
-  {
-    id: "b_libx264",
-    name: "H.264(x264)",
-    config: {
-      encoder: "libx264",
-      bitrateControl: "CRF",
-      crf: 23,
-      preset: "fast",
-      bitrate: 5000,
-    },
-  },
-  {
-    id: "b_qsv_h264",
-    name: "H.264(Intel QSV)",
-    config: {
-      encoder: "h264_qsv",
-      bitrateControl: "VBR",
-      bitrate: 5000,
-    },
-  },
-  {
-    id: "b_nvenc_h264",
-    name: "H.264(NVIDIA NVEnc)",
-    config: { encoder: "h264_nvenc", bitrateControl: "VBR", bitrate: 5000 },
-  },
-  {
-    id: "b_amf_h264",
-    name: "H.264(AMD AMF)",
-    config: { encoder: "h264_amf", bitrateControl: "VBR", bitrate: 5000 },
-  },
-  {
-    id: "b_libx265",
-    name: "H.265(x265)",
-    config: {
-      encoder: "libx265",
-      bitrateControl: "CRF",
-      crf: 23,
-      preset: "fast",
-      bitrate: 5000,
-    },
-  },
-  {
-    id: "b_qsv_h265",
-    name: "H.265(Intel QSV)",
-    config: {
-      encoder: "hevc_qsv",
-      bitrateControl: "VBR",
-      bitrate: 5000,
-    },
-  },
-  { id: "nvenc_h265", name: "H.265(NVIDIA NVEnc)", config: { encoder: "hevc_nvenc" } },
-  {
-    id: "b_amf_h265",
-    name: "H.265(AMD AMF)",
-    config: {
-      encoder: "hevc_amf",
-      bitrateControl: "VBR",
-      bitrate: 5000,
-    },
-  },
-
-  {
-    id: "b_svt_av1",
-    name: "AV1 (libsvtav1)",
-    config: {
-      encoder: "libsvtav1",
-      bitrateControl: "CRF",
-      crf: 23,
-      preset: "fast",
-      bitrate: 5000,
-    },
-  },
-  {
-    id: "b_qsv_av1",
-    name: "AV1 (Intel QSV)",
-    config: {
-      encoder: "av1_qsv",
-      bitrateControl: "VBR",
-      bitrate: 5000,
-    },
-  },
-  {
-    id: "b_nvenc_av1",
-    name: "AV1 (NVIDIA NVEnc)",
-    config: {
-      encoder: "av1_nvenc",
-      bitrateControl: "VBR",
-      bitrate: 5000,
-    },
-  },
-  {
-    id: "b_amf_av1",
-    name: "AV1 (AMD AMF)",
-    config: {
-      encoder: "av1_amf",
-      bitrateControl: "VBR",
-      bitrate: 5000,
-    },
-  },
-]);
-
-const options = computed(() => {
-  const base = baseFfmpegPresets.value.map((item) => {
-    return {
-      value: item.id,
-      label: item.name,
-    };
-  });
-  const custom = ffmpegPresets.value.map((item) => {
-    return {
-      value: item.id,
-      label: item.name,
-    };
-  });
-  return [
-    {
-      value: "base",
-      label: "基础",
-      children: base,
-    },
-    {
-      value: "custom",
-      label: "自定义",
-      children: custom,
-    },
-  ];
-});
 
 const encoderOptions = computed(() => {
   return videoEncoders.value.find((item) => item.value === ffmpegOptions.value?.config?.encoder);
@@ -567,26 +439,25 @@ watch(
   },
 );
 
-const ffmpegPresets = ref<FfmpegPreset[]>([]);
-
-const getCustomPresets = async () => {
-  const presets = await window.api.ffmpeg.getPresets();
-  ffmpegPresets.value = presets;
+const options = ref<
+  {
+    value: string;
+    label: string;
+    children: {
+      value: string;
+      label: string;
+    }[];
+  }[]
+>([]);
+const getPresetOptions = async () => {
+  options.value = await window.api.ffmpeg.getPresetOptions();
 };
 
-const handlePresetChange = () => {
-  if (presetId.value.startsWith("b_")) {
-    // @ts-ignore
-    ffmpegOptions.value = cloneDeep(
-      baseFfmpegPresets.value.find((item) => item.id === presetId.value),
-    );
-  } else {
-    // @ts-ignore
-    ffmpegOptions.value = cloneDeep(ffmpegPresets.value.find((item) => item.id === presetId.value));
-  }
+const handlePresetChange = async () => {
+  ffmpegOptions.value = await window.api.ffmpeg.getPreset(presetId.value);
 };
 
-watch(presetId, handlePresetChange, { immediate: true });
+watch(presetId, handlePresetChange);
 
 const rename = async () => {
   tempPresetName.value = ffmpegOptions.value.name;
@@ -606,7 +477,7 @@ const deletePreset = async () => {
   if (!status) return;
   await window.api.ffmpeg.deletePreset(presetId.value);
   presetId.value = "default";
-  getCustomPresets();
+  getPresetOptions();
 };
 
 const nameModelVisible = ref(false);
@@ -638,13 +509,11 @@ const saveConfirm = async () => {
     title: "保存成功",
     duration: 1000,
   });
-  getCustomPresets();
+  getPresetOptions();
 };
 
 const handleVideoEncoderChange = (value: string) => {
-  console.log(value);
   ffmpegOptions.value.config.encoder = value;
-  // const encoderOptions = videoEncoders.value.find((item) => item.value === value);
   if (
     (encoderOptions.value?.birateControls || [])
       .map((item) => item.value)
@@ -661,7 +530,7 @@ const handleVideoEncoderChange = (value: string) => {
 };
 
 onMounted(async () => {
-  await getCustomPresets();
+  await getPresetOptions();
   handlePresetChange();
 });
 </script>

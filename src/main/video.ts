@@ -189,8 +189,8 @@ export const mergeAssMp4 = async (
       },
     },
   );
-
   taskQueue.addTask(task, true);
+
   return {
     taskId: task.taskId,
   };
