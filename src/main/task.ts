@@ -18,7 +18,7 @@ abstract class AbstractTask {
   relTaskId?: string;
   output?: string;
   progress: number;
-  action: ("pause" | "kill")[];
+  action: ("pause" | "kill" | "interrupt")[];
   startTime?: number;
   endTime?: number;
 
@@ -142,6 +142,7 @@ export class FFmpegTask extends AbstractTask {
     this.webContents = webContents;
     this.output = options.output;
     this.progress = 0;
+    this.action = ["kill", "pause", "interrupt"];
     if (options.name) {
       this.name = options.name;
     }
@@ -155,8 +156,7 @@ export class FFmpegTask extends AbstractTask {
       emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
       this.startTime = Date.now();
     });
-    command.on("end", async (code) => {
-      console.log("ccccccccccccccccc", code);
+    command.on("end", async () => {
       log.info(`task ${this.taskId} end`);
       this.status = "completed";
       this.progress = 100;
@@ -223,7 +223,7 @@ export class FFmpegTask extends AbstractTask {
     this.command.ffmpegProc.stdin.write("q");
     log.warn(`task ${this.taskId} killed`);
     this.status = "error";
-    this.command.kill();
+    this.command.kill("SIGKILL");
     return true;
   }
 }
@@ -328,6 +328,10 @@ export const handleResumeTask = (_event: IpcMainInvokeEvent, taskId: string) => 
 export const handleKillTask = (_event: IpcMainInvokeEvent, taskId: string) => {
   return killTask(taskQueue, taskId);
 };
+export const hanldeInterruptTask = (_event: IpcMainInvokeEvent, taskId: string) => {
+  return interruptTask(taskQueue, taskId);
+};
+
 export const handleListTask = () => {
   return taskQueue.stringify(taskQueue.list());
 };
@@ -350,6 +354,7 @@ export const handlers = {
   "task:start": handleStartTask,
   "task:pause": handlePauseTask,
   "task:resume": handleResumeTask,
+  "task:interrupt": hanldeInterruptTask,
   "task:kill": handleKillTask,
   "task:list": handleListTask,
   "task:query": handleQueryTask,

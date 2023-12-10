@@ -1,10 +1,11 @@
 # 0.5.0
 
-优化webhook，支持弹幕压制后上传
-electron升级到28.0.0
-修复更换b站账号后cookie未刷新的问题
-增加非biliup实现的登录
-增加ffmpeg的预设设置
+1. 优化webhook，支持弹幕压制后上传
+2. electron升级到28.0.0
+3. 修复更换b站账号后cookie未刷新的问题
+4. 增加非biliup实现的登录
+5. 增加ffmpeg的预设设置
+6. ffmpeg任务区分中断和中止操作
 
 # 0.4.0
 
