@@ -85,7 +85,7 @@ const appConfig = getAppConfig();
 setFfmpegPath();
 
 let server: any;
-let mainWin: BrowserWindow;
+export let mainWin: BrowserWindow;
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({

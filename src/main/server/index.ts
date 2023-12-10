@@ -1,13 +1,14 @@
-import type { BlrecEventType } from "./brelcEvent.d.ts";
-
+import path from "node:path";
+import fs from "fs-extra";
 import { getAppConfig } from "../config/app";
 import { _uploadVideo, DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
 import bili from "../bili";
-import path from "path";
 import log from "../utils/log";
 import { getFileSize } from "../../utils/index";
-
 import express from "express";
+
+import type { BlrecEventType } from "./brelcEvent.d.ts";
+
 const app = express();
 
 app.use(express.json());
@@ -30,7 +31,6 @@ app.get("/", function (_req, res) {
 app.post("/webhook", async function (req, res) {
   const appConfig = getAppConfig();
   log.info("录播姬：", req.body);
-  log.info("appConfig: ", appConfig.webhook);
 
   const event = req.body;
   // evenetData.biliRecoder.push(event);
@@ -41,9 +41,10 @@ app.post("/webhook", async function (req, res) {
     event.EventType === "FileClosed"
   ) {
     const roomId = event.EventData.RoomId;
+    const filePath = path.join(appConfig.webhook.recoderFolder, event.EventData.RelativePath);
 
     handle({
-      filePath: event.data.path,
+      filePath: filePath,
       roomId: roomId,
       time: event.EventData.FileOpenTime,
       title: event.EventData.Title,
@@ -56,7 +57,6 @@ app.post("/webhook", async function (req, res) {
 app.post("/blrec", async function (req, res) {
   const appConfig = getAppConfig();
   log.info("blrec: webhook", req.body);
-  log.info("appConfig: ", appConfig.webhook);
   const event: BlrecEventType = req.body;
   // evenetData.blrec.push(event);
 
@@ -126,11 +126,20 @@ async function handle(options: {
 
   log.info("upload config", config);
 
+  log.info("appConfig: ", appConfig.webhook);
   if (danmu) {
     // 压制弹幕后上传
     // TODO:检测弹幕文件是否存在
-    // const danmuPreset = ""
-    // const videoPreset = ""
+    const danmuPreset = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
+    const videoPreset = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
+    console.log(danmuPreset, videoPreset);
+    const xmlFile = path.parse(options.filePath);
+    const xmlFilePath = path.join(xmlFile.dir, `${xmlFile.name}.xml`);
+    setTimeout(async () => {
+      if (await fs.pathExists(xmlFilePath)) {
+        // 压制视频
+      }
+    }, 10000);
   } else {
     _uploadVideo([options.filePath], config);
   }

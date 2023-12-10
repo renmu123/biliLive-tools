@@ -23,6 +23,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     blacklist: "",
     danmu: false,
     rooms: {},
+    ffmpegPreset: "",
+    danmuPreset: "",
   },
   ffmpegPath: path.join(
     path.dirname(app.getPath("exe")),

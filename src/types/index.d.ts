@@ -69,8 +69,8 @@ export interface AppConfig {
     blacklist: string;
     danmu: boolean;
     // TODO: 增加配置上传后删除原始文件
-    // TODO: 弹幕预设
-    // TODO: ffmpeg预设
+    ffmpegPreset: string;
+    danmuPreset: string;
 
     rooms: {
       [roomId: string]: {
@@ -79,6 +79,8 @@ export interface AppConfig {
         title: string;
         uploadPresetId: string;
         danmu: boolean;
+        ffmpegPreset: string;
+        danmuPreset: string;
       };
     };
   };
