@@ -124,6 +124,9 @@
                   placeholder="请选择"
                 />
               </n-form-item>
+              <n-form-item label="启用弹幕压制">
+                <n-switch v-model:value="config.webhook.danmu" />
+              </n-form-item>
               <n-form-item>
                 <template #label>
                   <span class="inline-flex">
@@ -209,6 +212,9 @@
             placeholder="请选择"
           />
         </n-form-item>
+        <n-form-item label="启用弹幕压制">
+          <n-switch v-model:value="tempRoomDetail.danmu" />
+        </n-form-item>
       </n-form>
       <template #footer>
         <div class="footer">
@@ -265,10 +271,7 @@ const selectFile = async (file: "ffmpeg" | "ffprobe") => {
 
 const selectFolder = async (type: "recorder") => {
   const files = await window.api.openDirectory();
-  console.log(files);
-
   if (!files) return;
-  console.log("files");
 
   if (type === "recorder") {
     config.value.webhook.recoderFolder = files;
@@ -316,6 +319,7 @@ const saveRoom = () => {
     minSize: config.value.webhook.minSize,
     title: config.value.webhook.title,
     uploadPresetId: config.value.webhook.uploadPresetId,
+    danmu: config.value.webhook.danmu,
   };
   setRoomVisible.value = false;
 };
@@ -335,6 +339,7 @@ const tempRoomDetail = ref({
   title: "",
   uploadPresetId: "",
   remark: "",
+  danmu: false,
 });
 const handleRoomOpen = () => {
   const room = config.value.webhook.rooms[tempRoomId.value];
@@ -343,16 +348,12 @@ const handleRoomOpen = () => {
     title: room.title,
     uploadPresetId: room.uploadPresetId,
     remark: room.remark as string,
+    danmu: room.danmu ?? false,
   };
 };
 const saveRoomDetail = () => {
   if (!tempRoomId.value) return;
-  config.value.webhook.rooms[tempRoomId.value] = {
-    minSize: tempRoomDetail.value.minSize,
-    title: tempRoomDetail.value.title,
-    uploadPresetId: tempRoomDetail.value.uploadPresetId,
-    remark: tempRoomDetail.value.remark,
-  };
+  config.value.webhook.rooms[tempRoomId.value] = tempRoomDetail.value;
   roomDetailVisible.value = false;
 };
 const deleteRoom = () => {

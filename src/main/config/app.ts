@@ -21,6 +21,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     title: "",
     uploadPresetId: "",
     blacklist: "",
+    danmu: false,
     rooms: {},
   },
   ffmpegPath: path.join(

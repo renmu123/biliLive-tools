@@ -27,6 +27,7 @@ import {
 } from "./video";
 import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
+import { handlers as ffmpegHandlers } from "./ffmpegPreset";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
@@ -70,6 +71,7 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, biliupHandlers);
   registerHandlers(ipcMain, biliHandlers);
   registerHandlers(ipcMain, taskHandlers);
+  registerHandlers(ipcMain, ffmpegHandlers);
 
   // 弹幕相关
   ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);
@@ -200,7 +202,6 @@ function createWindow(): void {
     server = serverApp.listen(appConfig.webhook.port, () => {
       log.info("server start");
     });
-    console.log(server);
   }
 
   // 检测更新
@@ -229,7 +230,6 @@ function createMenu(): void {
       click: async () => {
         try {
           const status = await checkUpdate();
-          console.log(status);
           if (status) {
             dialog.showMessageBox(mainWin, {
               message: "当前已经是最新版本",
@@ -402,12 +402,10 @@ const checkUpdate = async () => {
   const res = await fetch(
     "https://githubraw.eif93.love/renmu123/biliLive-tools/master/package.json",
   );
-  console.log(res);
   const data = await res.json();
   const latestVersion = data.version;
   const version = app.getVersion();
 
-  console.log(latestVersion, version);
   if (semver.gt(latestVersion, version)) {
     const confirm = await dialog.showMessageBox(mainWin, {
       message: "检测到有新版本，是否前往下载？",

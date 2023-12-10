@@ -13,7 +13,7 @@ async function loadCookie() {
 }
 
 async function getArchives(
-  params: Parameters<ClientInstance["platform"]["getArchives"]>[0],
+  params?: Parameters<ClientInstance["platform"]["getArchives"]>[0],
 ): ReturnType<ClientInstance["platform"]["getArchives"]> {
   await loadCookie();
   return client.platform.getArchives(params);

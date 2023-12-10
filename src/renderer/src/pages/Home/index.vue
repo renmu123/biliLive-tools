@@ -102,7 +102,13 @@ import { useDanmuPreset } from "@renderer/stores";
 import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 
-import type { File, FfmpegOptions, DanmuConfig, BiliupPreset } from "../../../../types";
+import type {
+  File,
+  FfmpegOptions,
+  DanmuConfig,
+  BiliupPreset,
+  FfmpegPreset,
+} from "../../../../types";
 
 const notice = useNotification();
 const confirm = useConfirm();
@@ -204,6 +210,7 @@ const convert = async () => {
   const rawDanmuPresetId = toRaw(danmuPresetId.value);
   const rawPresetOptions = toRaw(presetOptions.value);
   const rawFfmpegOptions = toRaw(ffmpegOptions.value);
+  console.log("rawFfmpegOptions", rawFfmpegOptions);
 
   const data = await preHandle(
     files,
@@ -405,8 +412,8 @@ const upload = async (file: string, presetOptions: BiliupPreset) => {
 
 // @ts-ignore
 const ffmpegOptions: Ref<FfmpegOptions> = ref({});
-const handleFfmpegSettingChange = (value: FfmpegOptions) => {
-  ffmpegOptions.value = value;
+const handleFfmpegSettingChange = (preset: FfmpegPreset) => {
+  ffmpegOptions.value = preset.config;
 };
 
 const simpledMode = ref(true);

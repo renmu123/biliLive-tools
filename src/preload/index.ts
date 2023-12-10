@@ -19,6 +19,7 @@ import type {
   VideoMergeOptions,
   DanmuPreset,
   Video2Mp4Options,
+  FfmpegPreset,
 } from "../types";
 import ffmpeg from "fluent-ffmpeg";
 
@@ -205,6 +206,21 @@ export const api = {
     },
     appendVideo: async (videoFiles: string[], options: BiliupConfigAppend) => {
       return await ipcRenderer.invoke("bili:appendVideo", videoFiles, options);
+    },
+  },
+  ffmpeg: {
+    // 预设
+    savePreset: async (preset: FfmpegPreset) => {
+      return await ipcRenderer.invoke("ffmpeg:presets:save", preset);
+    },
+    deletePreset: async (id: string) => {
+      return await ipcRenderer.invoke("ffmpeg:presets:delete", id);
+    },
+    getPreset: async (id: string): Promise<FfmpegPreset> => {
+      return await ipcRenderer.invoke("ffmpeg:presets:get", id);
+    },
+    getPresets: async (): Promise<FfmpegPreset[]> => {
+      return await ipcRenderer.invoke("ffmpeg:presets:list");
     },
   },
   convertVideo2Mp4: async (

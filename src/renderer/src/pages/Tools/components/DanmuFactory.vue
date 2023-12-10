@@ -101,7 +101,7 @@ const convert = async () => {
 
   if (clientOptions.value.openTargetDirectory) {
     if (options.value.saveRadio === 2) {
-      window.api.openPath(deepRaw(options.value).savePath);
+      window.api.openPath(deepRaw(options.value).savePath as string);
     } else {
       window.api.openPath(deepRaw(fileList.value[0]).dir);
     }

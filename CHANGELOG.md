@@ -4,6 +4,7 @@
 electron升级到28.0.0
 修复更换b站账号后cookie未刷新的问题
 增加非biliup实现的登录
+增加ffmpeg的预设设置
 
 # 0.4.0
 
