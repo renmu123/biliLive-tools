@@ -15,6 +15,7 @@ declare global {
         event: "error" | "completed",
         callback: (event: IpcRendererEvent, data: any) => void,
       ) => void;
+      loginCancel: () => void;
     };
     path: typeof path;
   }

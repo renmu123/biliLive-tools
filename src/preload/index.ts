@@ -359,10 +359,15 @@ export const biliApi = {
   },
   onLogin(event: "error" | "completed", callback: (event: IpcRendererEvent, data: any) => void) {
     if (event === "error") {
-      ipcRenderer.on("biliApi:login-error", callback);
+      ipcRenderer.once("biliApi:login-error", callback);
     } else if (event === "completed") {
-      ipcRenderer.on("biliApi:login-completed", callback);
+      ipcRenderer.once("biliApi:login-completed", callback);
     }
+  },
+  loginCancel() {
+    ipcRenderer.removeAllListeners("biliApi:login-error");
+    ipcRenderer.removeAllListeners("biliApi:login-completed");
+    return ipcRenderer.invoke("biliApi:login:cancel");
   },
 };
 

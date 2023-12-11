@@ -30,12 +30,12 @@ import QRCodeVue3 from "qrcode-vue3";
 
 const showModal = defineModel<boolean>({ required: true, default: false });
 const emits = defineEmits<{
-  close: [string];
+  close: [];
 }>();
 
 const notice = useNotification();
 
-const url = ref("212");
+const url = ref("");
 const text = ref("");
 const onOpen = async () => {
   url.value = await window.biliApi.login();
@@ -77,6 +77,7 @@ watch(
     if (showModal.value) {
       onOpen();
     } else {
+      window.biliApi.loginCancel();
       emits("close");
     }
   },

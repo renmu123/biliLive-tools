@@ -48,6 +48,8 @@ export const invokeWrap = <T extends (...args: any[]) => any>(fn: T) => {
   };
 };
 
+let tv: TvQrcodeLogin;
+
 export const handlers = {
   "biliApi:getArchives": (
     _event: IpcMainInvokeEvent,
@@ -68,19 +70,20 @@ export const handlers = {
     return biliApi.loadCookie();
   },
   "biliApi:login": (event: IpcMainInvokeEvent) => {
-    const tv = new TvQrcodeLogin();
-    const t = Date.now();
+    tv = new TvQrcodeLogin();
     tv.on("error", (res) => {
       event.sender.send("biliApi:login-error", res);
+    });
+    tv.on("scan", (res) => {
+      console.log(res);
     });
     tv.on("completed", (res) => {
       event.sender.send("biliApi:login-completed", res);
     });
-    tv.on("scan", (res) => {
-      console.log("scan", res, t);
-      event.sender.send("biliApi:login-scan", res);
-    });
     return tv.login();
+  },
+  "biliApi:login:cancel": () => {
+    tv.interrupt();
   },
 };
 
