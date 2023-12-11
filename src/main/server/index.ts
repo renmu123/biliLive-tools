@@ -95,7 +95,8 @@ async function handle(options: {
   const appConfig = getAppConfig();
   const roomSetting = appConfig.webhook.rooms[options.roomId];
   log.info("room setting", options.roomId, roomSetting);
-  const danmu = roomSetting?.danmu || appConfig.webhook.danmu || false;
+  let danmu = appConfig.webhook.danmu;
+  if (roomSetting?.danmu !== undefined) danmu = roomSetting.danmu;
 
   const data = {
     time: options.time,
