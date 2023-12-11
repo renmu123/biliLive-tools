@@ -268,7 +268,6 @@ export const api = {
   ) => {
     return await ipcRenderer.invoke("mergeAssMp4", files, options, ffmpegOptions);
   },
-
   mergeVideos: async (videoFiles: File[], options: VideoMergeOptions) => {
     return await ipcRenderer.invoke("mergeVideos", videoFiles, options);
   },

@@ -9,7 +9,6 @@ declare module 'vue' {
   export interface GlobalComponents {
     AppendVideoDialog: typeof import('./src/components/AppendVideoDialog.vue')['default']
     AppSettingDialog: typeof import('./src/components/AppSettingDialog.vue')['default']
-    BiliLoginDialog: typeof import('./src/components/BiliLoginDialog.vue')['default']
     BiliSetting: typeof import('./src/components/BiliSetting.vue')['default']
     DanmuFactorySetting: typeof import('./src/components/DanmuFactorySetting.vue')['default']
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']

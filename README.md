@@ -1,13 +1,13 @@
 # biliLive-tools
 
-这是一个用于 B 站录播的一站式工具。
+这是一个用于 B 站录播的一站式工具，支持弹幕与视频压制并上传至B站，支持录播姬与blrec的webhook
 做这款工具的主要原因是为了解决录播工具的碎片化，往往想完整处理一场带有弹幕的录播要使用多个软件的配合，一些工具更是只有CLI，加大了使用难度。
 
 1. 支持 Danmufactory GUI
 2. 支持 ffmpeg 转封装
 3. 支持视频与弹幕压制
 4. 支持调用 biliup 进行上传
-5. 支持视频文件合并
+5. 支持录播姬与blrec的webhook
 
 # 下载
 
@@ -29,20 +29,23 @@
   - [x] 工具页面，flv的转封装
   - [x] 支持视频合并
 - [x] log记录及其展示
-- [ ] 配置持久化，ffmpeg自定义预设，选择保存文件夹，平均码率、支持使用ass-convert来进行弹幕处理以及压制高能进度条
-- [x] 支持上传B站
+- [ ] 配置持久化，平均码率、支持使用ass-convert来进行弹幕处理以及压制高能进度条
+- [x] 支持B站上传支持
   - [ ] 移除biliup二进制文件依赖
   - [x] 支持分p
-- [ ] 支持录播姬webhook自动处理
+- [ ] 支持webhook
+  - [x] 录播姬webhook支持
+  - [x] blrec webhook支持
   - [x] 支持自动上传
   - [ ] 支持合并后上传
-  - [ ] 支持弹幕压制
+  - [x] 支持弹幕压制
 - [x] 打包不带ffmpeg的版本，支持自定义ffmpeg以及ffprobe
 
 # 开发
 
+node需要18及以上版本
 下载项目后需要新建一个`resources\bin`文件夹，里面需要三个文件。
-同时需要在应用的设置中设置 ffmpeg 以及 ffprobe 可执行文件地址。
+同时需要在应用中设置 ffmpeg 以及 ffprobe 可执行文件地址。
 
 1. `DanmukuFactory.exe` [1.7.0版本](https://github.com/hihkm/DanmakuFactory/releases/tag/v1.70)
 2. `ffmpeg.exe` [n6.0](https://github.com/BtbN/FFmpeg-Builds/releases)
