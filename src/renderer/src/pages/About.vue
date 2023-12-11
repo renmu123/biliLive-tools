@@ -41,6 +41,9 @@
             >BililiveRecorder</a
           >
         </li>
+        <li>
+          <a href="https://github.com/renmu123/biliAPI" class="external">biliAPI</a>
+        </li>
       </ul>
     </div>
   </div>

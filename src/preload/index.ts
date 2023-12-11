@@ -323,6 +323,16 @@ export const biliApi = {
   loadCookie() {
     return ipcRenderer.invoke("biliApi:updateCookie");
   },
+  login() {
+    return ipcRenderer.invoke("biliApi:login");
+  },
+  onLogin(event: "error" | "completed", callback: (event: IpcRendererEvent, data: any) => void) {
+    if (event === "error") {
+      ipcRenderer.on("biliApi:login-error", callback);
+    } else if (event === "completed") {
+      ipcRenderer.on("biliApi:login-completed", callback);
+    }
+  },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

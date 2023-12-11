@@ -1,4 +1,4 @@
-import { Client } from "@renmu/bili-api";
+import { Client, TvQrcodeLogin } from "@renmu/bili-api";
 import { BILIUP_COOKIE_PATH } from "./appConstant";
 
 import { type IpcMainInvokeEvent } from "electron";
@@ -13,7 +13,7 @@ async function loadCookie() {
 }
 
 async function getArchives(
-  params: Parameters<ClientInstance["platform"]["getArchives"]>[0],
+  params?: Parameters<ClientInstance["platform"]["getArchives"]>[0],
 ): ReturnType<ClientInstance["platform"]["getArchives"]> {
   await loadCookie();
   return client.platform.getArchives(params);
@@ -29,11 +29,17 @@ async function getMyInfo(): ReturnType<ClientInstance["user"]["getMyInfo"]> {
   return client.user.getMyInfo();
 }
 
+function login() {
+  const tv = new TvQrcodeLogin();
+  return tv.login();
+}
+
 export const biliApi = {
   getArchives,
   checkTag,
   getMyInfo,
   loadCookie,
+  login,
 };
 
 export const invokeWrap = <T extends (...args: any[]) => any>(fn: T) => {
@@ -60,6 +66,21 @@ export const handlers = {
   },
   "biliApi:updateCookie": () => {
     return biliApi.loadCookie();
+  },
+  "biliApi:login": (event: IpcMainInvokeEvent) => {
+    const tv = new TvQrcodeLogin();
+    const t = Date.now();
+    tv.on("error", (res) => {
+      event.sender.send("biliApi:login-error", res);
+    });
+    tv.on("completed", (res) => {
+      event.sender.send("biliApi:login-completed", res);
+    });
+    tv.on("scan", (res) => {
+      console.log("scan", res, t);
+      event.sender.send("biliApi:login-scan", res);
+    });
+    return tv.login();
   },
 };
 

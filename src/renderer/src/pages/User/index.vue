@@ -11,19 +11,22 @@
         <span>{{ userInfo.profile.name }}</span>
         <n-button type="primary" @click="logout">退出登录</n-button>
       </div>
-      <div v-else>
-        <n-button type="primary" @click="login">登录</n-button>
+      <div v-else class="login-btns">
+        <n-button type="primary" @click="loginFirst">登录</n-button>
+        <n-button type="primary" @click="login">备用登录</n-button>
       </div>
     </div>
-    <BiliLoginDialog v-model="loginDialogVisible" :success="loginStatus" @close="getUserInfo">
-    </BiliLoginDialog>
+    <BiliUpLoginDialog v-model="loginDialogVisible" :success="loginStatus" @close="getUserInfo">
+    </BiliUpLoginDialog>
+    <BiliLoginDialog v-model="loginTvDialogVisible" @close="getUserInfo"></BiliLoginDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useUserInfoStore } from "../stores";
-import BiliLoginDialog from "@renderer/components/BiliLoginDialog.vue";
+import { useUserInfoStore } from "@renderer/stores";
+import BiliUpLoginDialog from "./components/BiliUpLoginDialog.vue";
+import BiliLoginDialog from "./components/BiliLoginDialog.vue";
 import { useBili } from "@renderer/hooks";
 
 const { getUserInfo } = useUserInfoStore();
@@ -33,6 +36,11 @@ const { login, loginStatus, loginDialogVisible } = useBili();
 const logout = async () => {
   await window.api.bili.deleteCookie();
   getUserInfo();
+};
+
+const loginTvDialogVisible = ref(false);
+const loginFirst = async () => {
+  loginTvDialogVisible.value = true;
 };
 </script>
 
@@ -47,5 +55,10 @@ const logout = async () => {
     border-radius: 50%;
     margin-right: 10px;
   }
+}
+
+.login-btns {
+  display: inline-flex;
+  gap: 10px;
 }
 </style>
