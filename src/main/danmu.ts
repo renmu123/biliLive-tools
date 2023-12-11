@@ -9,7 +9,7 @@ import { DANMU_PRESET_PATH } from "./appConstant";
 import { DanmuTask, taskQueue } from "./task";
 
 import type { DanmuConfig, DanmuOptions, DanmuPreset as DanmuPresetType } from "../types";
-import { type IpcMainInvokeEvent } from "electron";
+import type { IpcMainInvokeEvent, WebContents } from "electron";
 
 const DANMUKUFACTORY_PATH = join(__dirname, "../../resources/bin/DanmakuFactory.exe").replace(
   "app.asar",
@@ -42,6 +42,46 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   statmode: [],
 };
 
+export const addConvertDanmu2AssTask = async (
+  sender: WebContents,
+  input: string,
+  output: string,
+  danmuOptions: DanmuConfig,
+  autoRun: boolean = true,
+  options: { removeOrigin: boolean },
+) => {
+  if (await pathExists(output)) {
+    log.info("danmufactory", {
+      status: "success",
+      text: "文件已存在，删除",
+      input: input,
+      output: output,
+    });
+    await fs.unlink(output);
+  }
+
+  const danmu = new Danmu(DANMUKUFACTORY_PATH);
+  const task = new DanmuTask(
+    danmu,
+    sender,
+    {
+      input,
+      output,
+      options: danmuOptions,
+      name: `弹幕转换任务: ${parse(input).name}`,
+    },
+    {
+      onEnd: async () => {
+        if (options.removeOrigin && (await pathExists(input))) {
+          await trashItem(input);
+        }
+      },
+    },
+  );
+  taskQueue.addTask(task, autoRun);
+  return task;
+};
+
 export const convertDanmu2Ass = async (
   _event: IpcMainInvokeEvent,
   files: {
@@ -53,8 +93,6 @@ export const convertDanmu2Ass = async (
     removeOrigin: false,
   },
 ) => {
-  const danmu = new Danmu(DANMUKUFACTORY_PATH);
-
   const tasks: {
     output?: string;
     taskId?: string;
@@ -76,35 +114,16 @@ export const convertDanmu2Ass = async (
       throw new Error(`danmufactory input file not exist: ${input}`);
     }
 
-    if (await pathExists(output)) {
-      log.info("danmufactory", {
-        status: "success",
-        text: "文件已存在，删除",
-        input: input,
-        output: output,
-      });
-      await fs.unlink(output);
-    }
-
     const argsObj = (await danmuPreset.get(presetId)).config;
-    const task = new DanmuTask(
-      danmu,
+
+    const task = await addConvertDanmu2AssTask(
       _event.sender,
-      {
-        input,
-        output,
-        options: argsObj,
-        name: `弹幕转换任务: ${parse(input).name}`,
-      },
-      {
-        onEnd: async () => {
-          if (options.removeOrigin && (await pathExists(input))) {
-            await trashItem(input);
-          }
-        },
-      },
+      input,
+      output,
+      argsObj,
+      true,
+      options,
     );
-    taskQueue.addTask(task, true);
     tasks.push({
       taskId: task.taskId,
     });

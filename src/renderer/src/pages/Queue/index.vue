@@ -43,6 +43,17 @@
             >
             <n-button
               v-if="
+                (item.action.includes('interrupt') && item.status === 'running') ||
+                item.status === 'paused'
+              "
+              type="error"
+              size="small"
+              title="中断会被认为是完成状态，会保留已处理进度"
+              @click="handleInterrupt(item.taskId)"
+              >中断</n-button
+            >
+            <n-button
+              v-if="
                 (item.action.includes('kill') && item.status === 'running') ||
                 item.status === 'paused'
               "
@@ -137,7 +148,7 @@ interface Task {
   type: "ffmpeg";
   output?: string;
   progress: number;
-  action: ("pause" | "kill")[];
+  action: ("pause" | "kill" | "interrupt")[];
   startTime?: number;
   endTime?: number;
 }
@@ -247,6 +258,15 @@ const handleStart = (taskId: string, task: Task) => {
 const handlePause = (taskId: string) => {
   console.log("handlePause", taskId);
   window.api.task.pause(taskId);
+  getQuenu();
+};
+
+const handleInterrupt = async (taskId: string) => {
+  const status = await confirm.warning({
+    content: "确定要中断任务吗？中断会保留已处理数据，且被认为是已完成状态，并执行后续步骤。",
+  });
+  if (!status) return;
+  window.api.task.interrupt(taskId);
   getQuenu();
 };
 

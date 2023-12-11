@@ -41,8 +41,6 @@ export const readNbFrames = async (input: string): Promise<number> => {
   return Number(nbFrames) || 0;
 };
 
-//ffprobe -v error -count_packets -select_streams v:0 -show_entries stream=nb_read_packets -of csv=p=0 input.mp4
-
 export const getAvailableEncoders = async () => {
   return new Promise((resolve, reject) => {
     ffmpeg.getAvailableEncoders(function (err, codecs) {
@@ -191,8 +189,8 @@ export const mergeAssMp4 = async (
       },
     },
   );
-
   taskQueue.addTask(task, true);
+
   return {
     taskId: task.taskId,
   };

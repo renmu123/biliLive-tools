@@ -45,7 +45,23 @@ export type CommonPreset<T> = {
   config: T;
 };
 
+// ffmpeg预设配置
+export type FfmpegPreset = {
+  id: string;
+  name: string;
+  config: FfmpegOptions;
+};
+
 // 应用配置文件
+export interface AppRoomConfig {
+  remark?: string;
+  minSize: number;
+  title: string;
+  uploadPresetId: string;
+  danmu: boolean;
+  ffmpegPreset?: string;
+  danmuPreset?: string;
+}
 export interface AppConfig {
   logLevel: LogLevel;
   ffmpegPath: string;
@@ -60,13 +76,13 @@ export interface AppConfig {
     title: string;
     uploadPresetId: string;
     blacklist: string;
+    danmu: boolean;
+    // TODO: 增加配置上传后删除原始文件
+    ffmpegPreset?: string;
+    danmuPreset?: string;
+
     rooms: {
-      [roomId: string]: {
-        remark?: string;
-        minSize: number;
-        title: string;
-        uploadPresetId: string;
-      };
+      [roomId: string]: AppRoomConfig;
     };
   };
 }

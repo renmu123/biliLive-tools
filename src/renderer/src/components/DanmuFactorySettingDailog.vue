@@ -145,9 +145,9 @@ const saveConfirm = async () => {
 
 <style scoped lang="less">
 .footer {
-  text-align: right;
-  .btn + .btn {
-    margin-left: 10px;
-  }
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
 }
 </style>

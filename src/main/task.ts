@@ -11,24 +11,6 @@ import type ffmpeg from "fluent-ffmpeg";
 
 const emitter = new EventEmitter();
 
-export const pauseTask = (taskQueue: TaskQueue, taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (!task) return;
-  return task.pause();
-};
-
-export const resumeTask = (taskQueue: TaskQueue, taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (!task) return;
-  return task.resume();
-};
-
-export const killTask = (taskQueue: TaskQueue, taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (!task) return;
-  return task.kill();
-};
-
 abstract class AbstractTask {
   taskId: string;
   status: "pending" | "running" | "paused" | "completed" | "error";
@@ -36,7 +18,7 @@ abstract class AbstractTask {
   relTaskId?: string;
   output?: string;
   progress: number;
-  action: ("pause" | "kill")[];
+  action: ("pause" | "kill" | "interrupt")[];
   startTime?: number;
   endTime?: number;
 
@@ -160,6 +142,7 @@ export class FFmpegTask extends AbstractTask {
     this.webContents = webContents;
     this.output = options.output;
     this.progress = 0;
+    this.action = ["kill", "pause", "interrupt"];
     if (options.name) {
       this.name = options.name;
     }
@@ -226,12 +209,21 @@ export class FFmpegTask extends AbstractTask {
     this.status = "running";
     return true;
   }
+  interrupt() {
+    if (this.status === "completed" || this.status === "error") return;
+    // @ts-ignore
+    this.command.ffmpegProc.stdin.write("q");
+    log.warn(`task ${this.taskId} interrupt`);
+    this.status = "error";
+    return true;
+  }
   kill() {
     if (this.status === "completed" || this.status === "error") return;
     // @ts-ignore
     this.command.ffmpegProc.stdin.write("q");
     log.warn(`task ${this.taskId} killed`);
     this.status = "error";
+    this.command.kill("SIGKILL");
     return true;
   }
 }
@@ -291,6 +283,28 @@ export class TaskQueue {
   }
 }
 
+export const pauseTask = (taskQueue: TaskQueue, taskId: string) => {
+  const task = taskQueue.queryTask(taskId);
+  if (!task) return;
+  return task.pause();
+};
+export const resumeTask = (taskQueue: TaskQueue, taskId: string) => {
+  const task = taskQueue.queryTask(taskId);
+  if (!task) return;
+  return task.resume();
+};
+export const killTask = (taskQueue: TaskQueue, taskId: string) => {
+  const task = taskQueue.queryTask(taskId);
+  if (!task) return;
+  return task.kill();
+};
+export const interruptTask = (taskQueue: TaskQueue, taskId: string) => {
+  const task = taskQueue.queryTask(taskId);
+  if (!task) return;
+
+  return (task as FFmpegTask).interrupt();
+};
+
 export const taskQueue = new TaskQueue();
 taskQueue.on("task-start", ({ taskId, webContents }) => {
   webContents.send("task-start", { taskId: taskId });
@@ -314,6 +328,10 @@ export const handleResumeTask = (_event: IpcMainInvokeEvent, taskId: string) => 
 export const handleKillTask = (_event: IpcMainInvokeEvent, taskId: string) => {
   return killTask(taskQueue, taskId);
 };
+export const hanldeInterruptTask = (_event: IpcMainInvokeEvent, taskId: string) => {
+  return interruptTask(taskQueue, taskId);
+};
+
 export const handleListTask = () => {
   return taskQueue.stringify(taskQueue.list());
 };
@@ -336,6 +354,7 @@ export const handlers = {
   "task:start": handleStartTask,
   "task:pause": handlePauseTask,
   "task:resume": handleResumeTask,
+  "task:interrupt": hanldeInterruptTask,
   "task:kill": handleKillTask,
   "task:list": handleListTask,
   "task:query": handleQueryTask,

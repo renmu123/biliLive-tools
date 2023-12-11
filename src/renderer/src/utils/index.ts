@@ -1,4 +1,4 @@
-export const deepRaw = (data: any) => {
+export const deepRaw = <T>(data: T): T => {
   return JSON.parse(JSON.stringify(data));
 };
 

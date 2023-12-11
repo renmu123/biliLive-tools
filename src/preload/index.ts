@@ -19,6 +19,7 @@ import type {
   VideoMergeOptions,
   DanmuPreset,
   Video2Mp4Options,
+  FfmpegPreset,
 } from "../types";
 import ffmpeg from "fluent-ffmpeg";
 
@@ -64,6 +65,9 @@ export const api = {
     },
     kill: (taskId: string) => {
       return ipcRenderer.invoke("task:kill", taskId);
+    },
+    interrupt: (taskId: string) => {
+      return ipcRenderer.invoke("task:interrupt", taskId);
     },
     list: () => {
       return ipcRenderer.invoke("task:list");
@@ -205,6 +209,33 @@ export const api = {
     },
     appendVideo: async (videoFiles: string[], options: BiliupConfigAppend) => {
       return await ipcRenderer.invoke("bili:appendVideo", videoFiles, options);
+    },
+  },
+  ffmpeg: {
+    // 预设
+    savePreset: (preset: FfmpegPreset) => {
+      return ipcRenderer.invoke("ffmpeg:presets:save", preset);
+    },
+    deletePreset: (id: string) => {
+      return ipcRenderer.invoke("ffmpeg:presets:delete", id);
+    },
+    getPreset: (id: string): Promise<FfmpegPreset> => {
+      return ipcRenderer.invoke("ffmpeg:presets:get", id);
+    },
+    getPresets: (): Promise<FfmpegPreset[]> => {
+      return ipcRenderer.invoke("ffmpeg:presets:list");
+    },
+    getPresetOptions: (): Promise<
+      {
+        value: string;
+        label: string;
+        children: {
+          value: string;
+          label: string;
+        }[];
+      }[]
+    > => {
+      return ipcRenderer.invoke("ffmpeg:presets:getOptions");
     },
   },
   convertVideo2Mp4: async (

@@ -61,7 +61,7 @@
                   <span class="inline-flex">
                     开启server
                     <Tip
-                      :tip="`开启后支持自动上传，需重启应用<br/>录播姬的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/webhook<br/>blrec的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/blrec`"
+                      :tip="`开启后支持自动上传，需重启应用<br/>录播姬的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/webhook<br/>blrec的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/blrec，在VideoFileCompletedEvent后处理`"
                     ></Tip>
                   </span>
                 </template>
@@ -124,6 +124,28 @@
                   placeholder="请选择"
                 />
               </n-form-item>
+              <n-form-item label="弹幕压制后上传">
+                <n-switch v-model:value="config.webhook.danmu" />
+              </n-form-item>
+              <n-form-item v-if="config.webhook.danmu" label="压制弹幕预设">
+                <n-select
+                  v-model:value="config.webhook.danmuPreset"
+                  :options="danmuPresetsOptions"
+                  placeholder="选择预设"
+                />
+              </n-form-item>
+              <n-form-item v-if="config.webhook.danmu" label="压制视频预设">
+                <n-cascader
+                  v-model:value="config.webhook.ffmpegPreset"
+                  placeholder="请选择预设"
+                  expand-trigger="click"
+                  :options="ffmpegOptions"
+                  check-strategy="child"
+                  :show-path="false"
+                  :filterable="true"
+                />
+              </n-form-item>
+
               <n-form-item>
                 <template #label>
                   <span class="inline-flex">
@@ -209,6 +231,27 @@
             placeholder="请选择"
           />
         </n-form-item>
+        <n-form-item label="弹幕压制后上传">
+          <n-switch v-model:value="tempRoomDetail.danmu" />
+        </n-form-item>
+        <n-form-item v-if="tempRoomDetail.danmu" label="压制弹幕预设">
+          <n-select
+            v-model:value="tempRoomDetail.danmuPreset"
+            :options="danmuPresetsOptions"
+            placeholder="选择预设"
+          />
+        </n-form-item>
+        <n-form-item v-if="tempRoomDetail.danmu" label="压制视频预设">
+          <n-cascader
+            v-model:value="tempRoomDetail.ffmpegPreset"
+            placeholder="请选择预设"
+            expand-trigger="click"
+            :options="ffmpegOptions"
+            check-strategy="child"
+            :show-path="false"
+            :filterable="true"
+          />
+        </n-form-item>
       </n-form>
       <template #footer>
         <div class="footer">
@@ -222,7 +265,12 @@
 </template>
 
 <script setup lang="ts">
-import type { AppConfig, LogLevel, BiliupPreset } from "../../../types";
+import { storeToRefs } from "pinia";
+import { useDanmuPreset } from "@renderer/stores";
+
+import type { AppConfig, LogLevel, BiliupPreset, AppRoomConfig } from "../../../types";
+
+const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());
 
 const showModal = defineModel<boolean>({ required: true, default: false });
 
@@ -265,10 +313,7 @@ const selectFile = async (file: "ffmpeg" | "ffprobe") => {
 
 const selectFolder = async (type: "recorder") => {
   const files = await window.api.openDirectory();
-  console.log(files);
-
   if (!files) return;
-  console.log("files");
 
   if (type === "recorder") {
     config.value.webhook.recoderFolder = files;
@@ -316,6 +361,9 @@ const saveRoom = () => {
     minSize: config.value.webhook.minSize,
     title: config.value.webhook.title,
     uploadPresetId: config.value.webhook.uploadPresetId,
+    danmu: config.value.webhook.danmu,
+    ffmpegPreset: config.value.webhook.ffmpegPreset,
+    danmuPreset: config.value.webhook.danmuPreset,
   };
   setRoomVisible.value = false;
 };
@@ -330,11 +378,14 @@ const handleRoomDetail = (roomId: string) => {
   roomDetailVisible.value = true;
 };
 
-const tempRoomDetail = ref({
+const tempRoomDetail = ref<AppRoomConfig>({
   minSize: 0,
   title: "",
   uploadPresetId: "",
   remark: "",
+  danmu: false,
+  ffmpegPreset: undefined,
+  danmuPreset: undefined,
 });
 const handleRoomOpen = () => {
   const room = config.value.webhook.rooms[tempRoomId.value];
@@ -343,16 +394,14 @@ const handleRoomOpen = () => {
     title: room.title,
     uploadPresetId: room.uploadPresetId,
     remark: room.remark as string,
+    danmu: room.danmu ?? false,
+    ffmpegPreset: room.ffmpegPreset,
+    danmuPreset: room.danmuPreset,
   };
 };
 const saveRoomDetail = () => {
   if (!tempRoomId.value) return;
-  config.value.webhook.rooms[tempRoomId.value] = {
-    minSize: tempRoomDetail.value.minSize,
-    title: tempRoomDetail.value.title,
-    uploadPresetId: tempRoomDetail.value.uploadPresetId,
-    remark: tempRoomDetail.value.remark,
-  };
+  config.value.webhook.rooms[tempRoomId.value] = tempRoomDetail.value;
   roomDetailVisible.value = false;
 };
 const deleteRoom = () => {
@@ -360,6 +409,13 @@ const deleteRoom = () => {
   delete config.value.webhook.rooms[tempRoomId.value];
   roomDetailVisible.value = false;
 };
+
+const ffmpegOptions = ref<any[]>([]);
+const getPresetOptions = async () => {
+  ffmpegOptions.value = await window.api.ffmpeg.getPresetOptions();
+};
+
+getPresetOptions();
 </script>
 
 <style scoped lang="less">
