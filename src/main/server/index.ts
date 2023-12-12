@@ -121,19 +121,20 @@ async function handle(options: {
   const fileSize = await getFileSize(options.filePath);
 
   const timestamp = new Date(options.time).getTime();
-  const currentIndex = liveData.findIndex((live) => {
-    // 找到上一个文件结束时间与当前时间差小于10分钟的直播，认为是同一个直播
-    const endTime = live.parts.at(-1)?.endTime || 0;
-    return (
-      live.roomId === options.roomId &&
-      live.platform === options.platform &&
-      (timestamp - endTime) / (1000 * 60) < 10
-    );
-  });
-  let currentLive = liveData[currentIndex];
-  if (currentLive) {
-    // Live中插入数据
-    if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
+  let currentIndex = -1;
+  log.debug("liveData-start", JSON.stringify(liveData, null, 2));
+  if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
+    currentIndex = liveData.findIndex((live) => {
+      // 找到上一个文件结束时间与当前时间差小于10分钟的直播，认为是同一个直播
+      const endTime = live.parts.at(-1)?.endTime || 0;
+      return (
+        live.roomId === options.roomId &&
+        live.platform === options.platform &&
+        (timestamp - endTime) / (1000 * 60) < 10
+      );
+    });
+    let currentLive = liveData[currentIndex];
+    if (currentLive) {
       const part: Part = {
         startTime: timestamp,
         filePath: options.filePath,
@@ -144,17 +145,8 @@ async function handle(options: {
       } else {
         currentLive.parts = [part];
       }
+      liveData[currentIndex] = currentLive;
     } else {
-      const currentPartIndex = currentLive.parts.findIndex((item) => {
-        item.filePath === options.filePath;
-      });
-      const currentPart = currentLive.parts[currentPartIndex];
-      currentPart.endTime = timestamp;
-      currentLive.parts[currentPartIndex] = currentPart;
-    }
-    liveData[currentIndex] = currentLive;
-  } else {
-    if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
       // 新建Live数据
       currentLive = {
         eventId: uuid(),
@@ -169,6 +161,29 @@ async function handle(options: {
           },
         ],
       };
+      liveData.push(currentLive);
+      currentIndex = liveData.length - 1;
+    }
+  } else {
+    currentIndex = liveData.findIndex((live) => {
+      return live.parts.findIndex((part) => part.filePath === options.filePath) !== -1;
+    });
+    let currentLive = liveData[currentIndex];
+    if (currentLive) {
+      const currentPartIndex = currentLive.parts.findIndex((item) => {
+        return item.filePath === options.filePath;
+      });
+      console.log(
+        "currentLive",
+        currentIndex,
+        currentPartIndex,
+        currentLive.parts,
+        options.filePath,
+      );
+      const currentPart = currentLive.parts[currentPartIndex];
+      currentPart.endTime = timestamp;
+      currentLive.parts[currentPartIndex] = currentPart;
+      liveData[currentIndex] = currentLive;
     } else {
       currentLive = {
         eventId: uuid(),
@@ -177,13 +192,71 @@ async function handle(options: {
         parts: [
           {
             filePath: options.filePath,
+            endTime: timestamp,
             status: "pending",
           },
         ],
       };
+      liveData.push(currentLive);
+      currentIndex = liveData.length - 1;
     }
-    liveData.push(currentLive);
   }
+  const currentLive = liveData[currentIndex];
+  log.debug("liveData-end", currentIndex, currentLive, JSON.stringify(liveData, null, 2));
+
+  // if (currentLive) {
+  //   // Live中插入数据
+  //   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
+  //     const part: Part = {
+  //       startTime: timestamp,
+  //       filePath: options.filePath,
+  //       status: "pending",
+  //     };
+  //     if (currentLive.parts) {
+  //       currentLive.parts.push(part);
+  //     } else {
+  //       currentLive.parts = [part];
+  //     }
+  //   } else {
+  //     const currentPartIndex = currentLive.parts.findIndex((item) => {
+  //       item.filePath === options.filePath;
+  //     });
+  //     const currentPart = currentLive.parts[currentPartIndex];
+  //     currentPart.endTime = timestamp;
+  //     currentLive.parts[currentPartIndex] = currentPart;
+  //   }
+  //   liveData[currentIndex] = currentLive;
+  // } else {
+  //   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
+  //     // 新建Live数据
+  //     currentLive = {
+  //       eventId: uuid(),
+  //       platform: options.platform,
+  //       startTime: timestamp,
+  //       roomId: options.roomId,
+  //       parts: [
+  //         {
+  //           startTime: timestamp,
+  //           filePath: options.filePath,
+  //           status: "pending",
+  //         },
+  //       ],
+  //     };
+  //   } else {
+  //     currentLive = {
+  //       eventId: uuid(),
+  //       platform: options.platform,
+  //       roomId: options.roomId,
+  //       parts: [
+  //         {
+  //           filePath: options.filePath,
+  //           status: "pending",
+  //         },
+  //       ],
+  //     };
+  //   }
+  //   liveData.push(currentLive);
+  // }
   log.debug("currentLive", currentLive);
 
   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
@@ -233,6 +306,7 @@ async function handle(options: {
 
   log.info("upload config", config);
   log.info("appConfig: ", appConfig.webhook);
+  log.debug("currentLive-end", currentLive);
   const currentPartIndex = currentLive.parts.length - 1;
 
   if (danmu) {
@@ -441,7 +515,6 @@ const addUploadTask = async (live: Live, filePath: string, config: BiliupConfig)
 
       if (!live.aid) {
         log.info("重新上传", filePaths);
-
         biliup = await appendVideo(
           // @ts-ignore
           {
@@ -452,7 +525,6 @@ const addUploadTask = async (live: Live, filePath: string, config: BiliupConfig)
         );
       } else {
         log.info("续传", filePaths);
-
         biliup = await appendVideo(
           // @ts-ignore
           {
