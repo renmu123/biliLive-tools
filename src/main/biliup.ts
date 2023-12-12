@@ -35,6 +35,7 @@ export const uploadVideo = async (
   biliup.on("close", (code) => {
     _event.sender.send("upload-close", code);
   });
+  return biliup;
 };
 
 // 上传视频
@@ -55,12 +56,7 @@ export const _uploadVideo = async (pathArray: string[], options: BiliupConfig) =
   return biliup;
 };
 
-// 追加视频
-export const appendVideo = async (
-  _event: IpcMainInvokeEvent,
-  pathArray: string[],
-  options: BiliupConfigAppend,
-) => {
+export const _appendVideo = async (pathArray: string[], options: BiliupConfigAppend) => {
   const hasLogin = await checkBiliCookie();
   if (!hasLogin) {
     throw new Error("你还没有登录");
@@ -73,9 +69,20 @@ export const appendVideo = async (
   biliup.setBiliUpPath(BILIUP_PATH);
   biliup.setCookiePath(BILIUP_COOKIE);
   biliup.appendVideo(pathArray, [`--vid ${options.vid}`]);
+  return biliup;
+};
+
+// 追加视频
+export const appendVideo = async (
+  _event: IpcMainInvokeEvent,
+  pathArray: string[],
+  options: BiliupConfigAppend,
+) => {
+  const biliup = await _appendVideo(pathArray, options);
   biliup.on("close", (code) => {
     _event.sender.send("append-close", code);
   });
+  return biliup;
 };
 
 const genBiliupOPtions = (options: BiliupConfig) => {

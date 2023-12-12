@@ -113,6 +113,10 @@ export default class Biliup {
     this.emits.on(event, listener);
     return this;
   }
+  once(event: string, listener: (...args: any[]) => void) {
+    this.emits.once(event, listener);
+    return this;
+  }
   addParam(param: string) {
     this.params.push(param);
     return this;

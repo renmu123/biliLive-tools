@@ -6,7 +6,7 @@ import { type IpcMainInvokeEvent } from "electron";
 type ClientInstance = InstanceType<typeof Client>;
 
 const client = new Client();
-client.loadCookieFile(BILIUP_COOKIE_PATH);
+loadCookie();
 
 async function loadCookie() {
   return client.loadCookieFile(BILIUP_COOKIE_PATH);

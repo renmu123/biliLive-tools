@@ -89,3 +89,27 @@ export async function getFileSize(filePath: string) {
   const fileSizeInBytes = stats.size;
   return fileSizeInBytes;
 }
+
+type IterationCallback = (counter: number) => Promise<boolean>;
+export async function runWithMaxIterations(
+  callback: IterationCallback,
+  interval: number,
+  maxIterations: number,
+): Promise<void> {
+  return new Promise<void>((resolve) => {
+    let counter = 0;
+
+    const intervalId = setInterval(() => {
+      if (counter < maxIterations) {
+        if (!callback(counter)) {
+          clearInterval(intervalId);
+          resolve();
+        }
+        counter++;
+      } else {
+        clearInterval(intervalId);
+        resolve();
+      }
+    }, interval);
+  });
+}
