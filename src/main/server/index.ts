@@ -21,6 +21,23 @@ const app = express();
 
 app.use(express.json());
 
+interface Part {
+  startTime: number;
+  endTime?: number;
+  filePath: string;
+  status: "pending" | "uploading" | "uploaded" | "error";
+}
+interface Live {
+  eventId: string;
+  platform: "bili-recoder" | "blrec";
+  startTime: number;
+  roomId: number;
+  uploadName?: string;
+  aid?: number;
+  parts: Part[];
+}
+
+const liveData: Live[] = [];
 // const evenetData: {
 //   biliRecoder: any[];
 //   blrec: BlrecEventType[];
@@ -41,22 +58,28 @@ app.post("/webhook", async function (req, res) {
   log.info("录播姬：", req.body);
 
   const event = req.body;
+  log.debug(event);
+
+  // liveData.push()
   // evenetData.biliRecoder.push(event);
 
   if (
-    appConfig.webhook.open &&
-    appConfig.webhook.recoderFolder &&
+    (appConfig.webhook.open &&
+      appConfig.webhook.recoderFolder &&
+      event.EventType === "FileOpening") ||
     event.EventType === "FileClosed"
   ) {
     const roomId = event.EventData.RoomId;
     const filePath = path.join(appConfig.webhook.recoderFolder, event.EventData.RelativePath);
 
     handle({
+      event: event.ErrorEvent,
       filePath: filePath,
       roomId: roomId,
-      time: event.EventData.FileOpenTime,
+      time: event.EventData.EventTimestamp,
       title: event.EventData.Title,
       username: event.EventData.Name,
+      platform: "bili-recoder",
     });
   }
   res.send("ok");
@@ -66,32 +89,90 @@ app.post("/blrec", async function (req, res) {
   const appConfig = getAppConfig();
   log.info("blrec: webhook", req.body);
   const event: BlrecEventType = req.body;
+  log.debug(event);
   // evenetData.blrec.push(event);
 
-  if (appConfig.webhook.open && event.type === "VideoFileCompletedEvent") {
+  if (
+    appConfig.webhook.open &&
+    (event.type === "VideoFileCompletedEvent" || event.type === "VideoFileCreatedEvent")
+  ) {
     const roomId = event.data.room_id as unknown as number;
 
     const masterRes = await bili.client.live.getRoomInfo(event.data.room_id);
     const userRes = await bili.client.live.getMasterInfo(masterRes.data.uid);
 
     handle({
+      event: event.type,
       filePath: event.data.path,
       roomId: roomId,
       time: masterRes.data.live_time,
       title: masterRes.data.title,
       username: userRes.data.info.uname,
+      platform: "blrec",
     });
   }
   res.send("ok");
 });
 
 async function handle(options: {
+  event: "FileOpening" | "FileClosed" | "VideoFileCompletedEvent" | "VideoFileCreatedEvent";
   filePath: string;
   roomId: number;
   time: string;
   username: string;
   title: string;
+  platform: "bili-recoder" | "blrec";
 }) {
+  const timestamp = new Date(options.time).getTime();
+  const currentIndex = liveData.findIndex(
+    (item) =>
+      // 判断两者时间差是否大于十分钟
+      (timestamp - item.startTime) / (1000 * 60) >= 10,
+  );
+  let currentLive = liveData[currentIndex];
+  if (currentLive) {
+    // Live中插入数据
+    if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
+      const part: Part = {
+        startTime: timestamp,
+        filePath: options.filePath,
+        status: "pending",
+      };
+      currentLive.parts.push(part);
+    } else {
+      const currentPartIndex = currentLive.parts.findIndex((item) => {
+        item.filePath === options.filePath;
+      });
+      const currentPart = currentLive.parts[currentPartIndex];
+      currentPart.endTime = timestamp;
+      currentLive.parts[currentPartIndex] = currentPart;
+    }
+    liveData[currentIndex] = currentLive;
+  } else {
+    if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
+      // 新建Live数据
+      currentLive = {
+        eventId: uuid(),
+        platform: options.platform,
+        startTime: timestamp,
+        roomId: options.roomId,
+        parts: [
+          {
+            startTime: timestamp,
+            filePath: options.filePath,
+            status: "pending",
+          },
+        ],
+      };
+      liveData.push(currentLive);
+    }
+  }
+  log.debug(currentLive);
+
+  if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
+    return;
+  }
+
   const appConfig = getAppConfig();
   const roomSetting = appConfig.webhook.rooms[options.roomId];
   log.info("room setting", options.roomId, roomSetting);
