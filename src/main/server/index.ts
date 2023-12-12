@@ -394,13 +394,16 @@ const addUploadTask = async (live: Live, filePath: string, config: BiliupConfig)
       biliup.once("close", async (code: 0 | 1) => {
         if (code == 0) {
           await runWithMaxIterations(
-            async () => {
+            async (count: number) => {
               // TODO:接完上传后重构
               const res = await bili.client.platform.getArchives();
+              log.debug("count", count);
               for (let i = 0; i < Math.min(5, res.data.arc_audits.length); i++) {
                 const item = res.data.arc_audits[i];
+                log.debug("getArchives", item.Archive, config.title);
                 if (item.Archive.title === config.title) {
-                  live.aid = item.stat.aid;
+                  // @ts-ignore
+                  live.aid = item.Archive.aid;
                   live.parts[0].status = "uploaded";
                   return false;
                 }
@@ -411,7 +414,7 @@ const addUploadTask = async (live: Live, filePath: string, config: BiliupConfig)
             5,
           );
           if (!live.aid) live.parts[0].status = "error";
-          log.info("live:aid: ", live);
+          log.info("get-aid-done: ", live);
         } else {
           live.parts[0].status = "error";
         }

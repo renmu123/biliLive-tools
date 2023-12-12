@@ -99,9 +99,9 @@ export async function runWithMaxIterations(
   return new Promise<void>((resolve) => {
     let counter = 0;
 
-    const intervalId = setInterval(() => {
+    const intervalId = setInterval(async () => {
       if (counter < maxIterations) {
-        if (!callback(counter)) {
+        if (!(await callback(counter))) {
           clearInterval(intervalId);
           resolve();
         }
