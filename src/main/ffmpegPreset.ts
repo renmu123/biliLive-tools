@@ -48,7 +48,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
     config: {
       encoder: "libx265",
       bitrateControl: "CRF",
-      crf: 23,
+      crf: 27,
       preset: "fast",
       bitrate: 5000,
     },
