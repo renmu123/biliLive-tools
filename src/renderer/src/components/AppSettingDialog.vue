@@ -321,7 +321,7 @@ const selectFolder = async (type: "recorder") => {
 };
 
 const handleOpen = async () => {
-  await getPresets();
+  await Promise.all([getPresets(), getPresetOptions()]);
   await getConfig();
 };
 
