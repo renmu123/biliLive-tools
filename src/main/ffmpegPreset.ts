@@ -62,7 +62,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       bitrate: 5000,
     },
   },
-  { id: "nvenc_h265", name: "H.265(NVIDIA NVEnc)", config: { encoder: "hevc_nvenc" } },
+  { id: "b_nvenc_h265", name: "H.265(NVIDIA NVEnc)", config: { encoder: "hevc_nvenc" } },
   {
     id: "b_amf_h265",
     name: "H.265(AMD AMF)",
