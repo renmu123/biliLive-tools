@@ -212,8 +212,11 @@ async function handle(options: {
   const appConfig = getAppConfig();
   const roomSetting = appConfig.webhook.rooms[options.roomId];
   log.info("room setting", options.roomId, roomSetting);
-  let danmu = appConfig.webhook.danmu;
-  if (roomSetting?.danmu !== undefined) danmu = roomSetting.danmu;
+  const danmu = roomSetting?.danmu !== undefined ? roomSetting.danmu : appConfig.webhook.danmu;
+  const mergePart =
+    roomSetting.autoPartMerge !== undefined
+      ? roomSetting.autoPartMerge
+      : appConfig.webhook.autoPartMerge;
 
   const data = {
     time: options.time,
@@ -288,9 +291,9 @@ async function handle(options: {
     const output = await addMergeAssMp4Task(options.filePath, assFilePath, ffmpegPreset?.config);
     fs.remove(assFilePath);
     currentLive.parts[currentPartIndex].filePath = output;
-    addUploadTask(currentLive, output, config);
+    addUploadTask(currentLive, output, config, mergePart);
   } else {
-    addUploadTask(currentLive, options.filePath, config);
+    addUploadTask(currentLive, options.filePath, config, mergePart);
   }
 }
 
@@ -377,8 +380,12 @@ const addMergeAssMp4Task = (
   });
 };
 
-const addUploadTask = async (live: Live, filePath: string, config: BiliupConfig) => {
-  const mergePart = true;
+const addUploadTask = async (
+  live: Live,
+  filePath: string,
+  config: BiliupConfig,
+  mergePart: boolean,
+) => {
   if (mergePart) {
     // const noUploaded =
     //   live.parts.filter((item) => item.status === "error").length === live.parts.length - 1;

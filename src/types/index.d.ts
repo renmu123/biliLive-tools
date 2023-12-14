@@ -61,6 +61,7 @@ export interface AppRoomConfig {
   danmu: boolean;
   ffmpegPreset?: string;
   danmuPreset?: string;
+  autoPartMerge: boolean;
 }
 export interface AppConfig {
   logLevel: LogLevel;
@@ -76,6 +77,7 @@ export interface AppConfig {
     title: string;
     uploadPresetId?: string;
     blacklist: string;
+    autoPartMerge: boolean;
     danmu: boolean;
     // TODO: 增加配置上传后删除原始文件
     ffmpegPreset?: string;

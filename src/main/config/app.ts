@@ -25,6 +25,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     rooms: {},
     ffmpegPreset: undefined,
     danmuPreset: undefined,
+    autoPartMerge: false,
   },
   ffmpegPath: path.join(
     path.dirname(app.getPath("exe")),

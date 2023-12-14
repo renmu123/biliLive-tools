@@ -124,6 +124,15 @@
                   placeholder="请选择"
                 />
               </n-form-item>
+              <n-form-item>
+                <template #label>
+                  <span class="inline-flex">
+                    上传到同分p
+                    <Tip tip="该功能在测试阶段，开启后，会将某主播一场直播上传到同一个视频中"></Tip>
+                  </span>
+                </template>
+                <n-switch v-model:value="config.webhook.autoPartMerge" />
+              </n-form-item>
               <n-form-item label="弹幕压制后上传">
                 <n-switch v-model:value="config.webhook.danmu" />
               </n-form-item>
@@ -223,6 +232,15 @@
             placeholder="请输入视频标题,支持{{title}},{{user}},{{now}}占位符"
             clearable
           />
+        </n-form-item>
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex">
+              上传到同分p
+              <Tip tip="该功能在测试阶段，开启后，会将某主播一场直播上传到同一个视频中"></Tip>
+            </span>
+          </template>
+          <n-switch v-model:value="tempRoomDetail.autoPartMerge" />
         </n-form-item>
         <n-form-item label="上传预设">
           <n-select
@@ -364,6 +382,7 @@ const saveRoom = () => {
     danmu: config.value.webhook.danmu,
     ffmpegPreset: config.value.webhook.ffmpegPreset,
     danmuPreset: config.value.webhook.danmuPreset,
+    autoPartMerge: config.value.webhook.autoPartMerge,
   };
   setRoomVisible.value = false;
 };
@@ -386,6 +405,7 @@ const tempRoomDetail = ref<AppRoomConfig>({
   danmu: false,
   ffmpegPreset: undefined,
   danmuPreset: undefined,
+  autoPartMerge: false,
 });
 const handleRoomOpen = () => {
   const room = config.value.webhook.rooms[tempRoomId.value];
@@ -397,6 +417,7 @@ const handleRoomOpen = () => {
     danmu: room.danmu ?? false,
     ffmpegPreset: room.ffmpegPreset,
     danmuPreset: room.danmuPreset,
+    autoPartMerge: room.autoPartMerge ?? false,
   };
 };
 const saveRoomDetail = () => {
