@@ -6,12 +6,7 @@
       <n-button type="primary" @click="appendVideoVisible = true"> 续传 </n-button>
     </div>
 
-    <FileArea
-      v-model="fileList"
-      :extensions="['flv', 'mp4']"
-      desc="请选择视频文件"
-      :disabled="disabled"
-    ></FileArea>
+    <FileArea v-model="fileList" :extensions="['flv', 'mp4']" desc="请选择视频文件"></FileArea>
 
     <div class="" style="margin-top: 30px">
       <BiliSetting @change="handlePresetOptions"></BiliSetting>
@@ -43,8 +38,6 @@ const fileList = ref<
   })[]
 >([]);
 
-const disabled = ref(false);
-
 const upload = async () => {
   const hasLogin = await window.api.bili.checkCookie();
   if (!hasLogin) {
@@ -63,7 +56,6 @@ const upload = async () => {
     return;
   }
   await window.api.bili.validUploadParams(deepRaw(presetOptions.value.config));
-  disabled.value = true;
   notice.info({
     title: `开始上传`,
     duration: 3000,
@@ -73,9 +65,8 @@ const upload = async () => {
       toRaw(fileList.value.map((file) => file.path)),
       deepRaw(presetOptions.value.config),
     );
-  } finally {
-    disabled.value = false;
   }
+  fileList.value = [];
 };
 
 const appendVideoVisible = ref(false);
@@ -103,7 +94,6 @@ const appendVideo = async () => {
     return;
   }
 
-  disabled.value = true;
   notice.info({
     title: `开始上传`,
     duration: 3000,
@@ -113,9 +103,8 @@ const appendVideo = async () => {
       ...deepRaw(presetOptions.value.config),
       vid: aid.value,
     });
-  } finally {
-    disabled.value = false;
   }
+  fileList.value = [];
 };
 </script>
 
