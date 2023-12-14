@@ -127,7 +127,7 @@ const appendVideo = async () => {
       ...deepRaw(presetOptions.value.config),
       vid: aid.value,
     });
-    window.api.onBiliUploadClose((_event, code) => {
+    window.api.onBiliAppendClose((_event, code) => {
       console.log("window close", code);
       if (code == 0) {
         notice.success({
