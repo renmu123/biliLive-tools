@@ -19,7 +19,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     recoderFolder: "",
     minSize: 20,
     title: "",
-    uploadPresetId: "",
+    uploadPresetId: undefined,
     blacklist: "",
     danmu: false,
     rooms: {},

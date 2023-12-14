@@ -214,8 +214,19 @@ const saveAnotherPresetConfirm = async () => {
 };
 
 const deletePreset = async () => {
+  const appConfig = await window.api.getAppConfig();
+  let ids = Object.entries(appConfig.webhook.rooms || {}).map(([, value]) => {
+    return value?.uploadPresetId;
+  });
+  ids.push(appConfig.webhook?.uploadPresetId);
+  ids = ids.filter((id) => id !== undefined && id !== "");
+
+  const msg = ids.includes(options.value.id)
+    ? "该预设正在被使用中，删除后使用该预设的功能将失效，是否确认删除？"
+    : "是否确认删除该预设？";
+
   const status = await confirm.warning({
-    content: "是否确认删除该预设？",
+    content: msg,
   });
   if (!status) return;
 

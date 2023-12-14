@@ -321,7 +321,7 @@ const selectFolder = async (type: "recorder") => {
 };
 
 const handleOpen = async () => {
-  await getPresets();
+  await Promise.all([getPresets(), getPresetOptions()]);
   await getConfig();
 };
 
@@ -414,8 +414,6 @@ const ffmpegOptions = ref<any[]>([]);
 const getPresetOptions = async () => {
   ffmpegOptions.value = await window.api.ffmpeg.getPresetOptions();
 };
-
-getPresetOptions();
 </script>
 
 <style scoped lang="less">

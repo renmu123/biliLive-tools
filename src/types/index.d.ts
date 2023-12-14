@@ -57,7 +57,7 @@ export interface AppRoomConfig {
   remark?: string;
   minSize: number;
   title: string;
-  uploadPresetId: string;
+  uploadPresetId?: string;
   danmu: boolean;
   ffmpegPreset?: string;
   danmuPreset?: string;
@@ -74,7 +74,7 @@ export interface AppConfig {
     recoderFolder: string;
     minSize: number;
     title: string;
-    uploadPresetId: string;
+    uploadPresetId?: string;
     blacklist: string;
     danmu: boolean;
     // TODO: 增加配置上传后删除原始文件
