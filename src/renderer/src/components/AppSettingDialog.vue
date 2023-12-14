@@ -117,7 +117,7 @@
                   clearable
                 />
               </n-form-item>
-              <n-form-item label="默认上传预设">
+              <n-form-item label="上传预设">
                 <n-select
                   v-model:value="config.webhook.uploadPresetId"
                   :options="presetsOptions"
@@ -127,14 +127,14 @@
               <n-form-item label="弹幕压制后上传">
                 <n-switch v-model:value="config.webhook.danmu" />
               </n-form-item>
-              <n-form-item v-if="config.webhook.danmu" label="压制弹幕预设">
+              <n-form-item v-if="config.webhook.danmu" label="弹幕转化预设">
                 <n-select
                   v-model:value="config.webhook.danmuPreset"
                   :options="danmuPresetsOptions"
                   placeholder="选择预设"
                 />
               </n-form-item>
-              <n-form-item v-if="config.webhook.danmu" label="压制视频预设">
+              <n-form-item v-if="config.webhook.danmu" label="视频压制预设">
                 <n-cascader
                   v-model:value="config.webhook.ffmpegPreset"
                   placeholder="请选择预设"
@@ -224,7 +224,7 @@
             clearable
           />
         </n-form-item>
-        <n-form-item label="默认上传预设">
+        <n-form-item label="上传预设">
           <n-select
             v-model:value="tempRoomDetail.uploadPresetId"
             :options="presetsOptions"
@@ -234,14 +234,14 @@
         <n-form-item label="弹幕压制后上传">
           <n-switch v-model:value="tempRoomDetail.danmu" />
         </n-form-item>
-        <n-form-item v-if="tempRoomDetail.danmu" label="压制弹幕预设">
+        <n-form-item v-if="tempRoomDetail.danmu" label="弹幕转化预设">
           <n-select
             v-model:value="tempRoomDetail.danmuPreset"
             :options="danmuPresetsOptions"
             placeholder="选择预设"
           />
         </n-form-item>
-        <n-form-item v-if="tempRoomDetail.danmu" label="压制视频预设">
+        <n-form-item v-if="tempRoomDetail.danmu" label="视频压制预设">
           <n-cascader
             v-model:value="tempRoomDetail.ffmpegPreset"
             placeholder="请选择预设"

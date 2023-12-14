@@ -130,6 +130,17 @@ export const convertVideo2Mp4 = async (
   };
 };
 
+/**
+ * 弹幕压制
+ * @param {*} _event
+ * @param {object} files 文件相关
+ * @param {string} files.videoFilePath 视频文件路径
+ * @param {string} files.assFilePath 弹幕文件路径，不能有空格
+ * @param {string} files.outputPath 输出文件路径
+ * @param {object} options
+ * @param {boolean} options.removeOrigin 是否删除原始文件
+ * @param {object} ffmpegOptions ffmpeg参数
+ */
 export const mergeAssMp4 = async (
   _event: IpcMainInvokeEvent,
   files: {
