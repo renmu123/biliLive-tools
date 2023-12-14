@@ -51,8 +51,8 @@
         <n-form-item v-if="isAdvancedMode" label="弹幕密度" path="density">
           <n-radio-group v-model:value="config.density" name="density">
             <n-space>
-              <n-radio value="0"> 无限 </n-radio>
-              <n-radio value="-1"> 不重叠 </n-radio>
+              <n-radio :value="0"> 无限 </n-radio>
+              <n-radio :value="-1"> 不重叠 </n-radio>
               <!-- <n-radio value="Radio 3"> 按条数 </n-radio> -->
             </n-space>
           </n-radio-group>
