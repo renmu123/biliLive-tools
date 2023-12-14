@@ -269,14 +269,7 @@ async function handle(options: {
 
     if (!(await fs.pathExists(xmlFilePath))) {
       log.info("没有找到弹幕文件，直接上传", xmlFilePath);
-      uploadVideo(
-        // @ts-ignore
-        {
-          sender: mainWin.webContents,
-        },
-        [options.filePath],
-        config,
-      );
+      uploadVideo(mainWin.webContents, [options.filePath], config);
       return;
     }
 
@@ -392,14 +385,7 @@ const addUploadTask = async (
     if (live.parts.length === 1) {
       // 如果只有一个part，直接上传
       console.log(filePath, config);
-      const biliup = await uploadVideo(
-        // @ts-ignore
-        {
-          sender: mainWin.webContents,
-        },
-        [filePath],
-        config,
-      );
+      const biliup = await uploadVideo(mainWin.webContents, [filePath], config);
       live.parts[0].status = "uploading";
 
       biliup.once("close", async (code: 0 | 1) => {
@@ -450,26 +436,14 @@ const addUploadTask = async (
         .map((item) => item.filePath);
       let biliup: any;
 
-      if (!live.aid) {
-        log.info("重新上传", filePaths);
-        biliup = await appendVideo(
-          // @ts-ignore
-          {
-            sender: mainWin.webContents,
-          },
-          filePaths,
-          { aid: live.aid },
-        );
-      } else {
+      if (live.aid) {
         log.info("续传", filePaths);
-        biliup = await appendVideo(
-          // @ts-ignore
-          {
-            sender: mainWin.webContents,
-          },
-          filePaths,
-          { aid: live.aid },
-        );
+        biliup = await appendVideo(mainWin.webContents, filePaths, {
+          vid: live.aid,
+        });
+      } else {
+        log.info("重新上传", filePaths);
+        biliup = await uploadVideo(mainWin.webContents, filePaths, config);
       }
       live.parts.map((item) => {
         if (filePaths.includes(item.filePath)) item.status === "uploading";
@@ -490,14 +464,7 @@ const addUploadTask = async (
       });
     }
   } else {
-    uploadVideo(
-      // @ts-ignore
-      {
-        sender: mainWin.webContents,
-      },
-      [filePath],
-      config,
-    );
+    uploadVideo(mainWin.webContents, [filePath], config);
   }
 };
 

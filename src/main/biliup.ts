@@ -8,7 +8,7 @@ import CommonPreset from "./utils/preset";
 
 import { BILIUP_PATH, BILIUP_COOKIE_PATH, UPLOAD_PRESET_PATH } from "./appConstant";
 
-import type { IpcMainInvokeEvent } from "electron";
+import type { IpcMainInvokeEvent, WebContents } from "electron";
 import type { BiliupConfig, BiliupConfigAppend, BiliupPreset } from "../types/index";
 
 export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
@@ -26,14 +26,14 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
 
 // 上传视频
 export const uploadVideo = async (
-  _event: IpcMainInvokeEvent,
+  webContents: WebContents,
   pathArray: string[],
   options: BiliupConfig,
 ) => {
   const biliup = await _uploadVideo(pathArray, options);
 
   biliup.on("close", (code) => {
-    _event.sender.send("upload-close", code, pathArray);
+    webContents.send("upload-close", code, pathArray);
   });
   return biliup;
 };
@@ -74,13 +74,13 @@ export const _appendVideo = async (pathArray: string[], options: BiliupConfigApp
 
 // 追加视频
 export const appendVideo = async (
-  _event: IpcMainInvokeEvent,
+  webContents: WebContents,
   pathArray: string[],
   options: BiliupConfigAppend,
 ) => {
   const biliup = await _appendVideo(pathArray, options);
   biliup.on("close", (code) => {
-    _event.sender.send("upload-close", code, pathArray);
+    webContents.send("upload-close", code, pathArray);
   });
   return biliup;
 };
@@ -227,6 +227,18 @@ export const handlers = {
   "bili:deleteCookie": deleteBiliCookie,
   "bili:login": biliLogin,
   "bili:readQrCode": readQrCode,
-  "bili:uploadVideo": uploadVideo,
-  "bili:appendVideo": appendVideo,
+  "bili:uploadVideo": async (
+    _event: IpcMainInvokeEvent,
+    pathArray: string[],
+    options: BiliupConfig,
+  ) => {
+    uploadVideo(_event.sender, pathArray, options);
+  },
+  "bili:appendVideo": async (
+    _event: IpcMainInvokeEvent,
+    pathArray: string[],
+    options: BiliupConfigAppend,
+  ) => {
+    appendVideo(_event.sender, pathArray, options);
+  },
 };

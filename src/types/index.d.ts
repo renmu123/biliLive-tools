@@ -166,7 +166,7 @@ export interface BiliupConfig {
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {
-  vid: string;
+  vid: string | number;
 };
 
 export interface BiliupPreset {
