@@ -82,17 +82,18 @@ export const addConvertDanmu2AssTask = async (
   return task;
 };
 
-export const convertDanmu2Ass = async (
+export const convertXml2Ass = async (
   _event: IpcMainInvokeEvent,
   files: {
     input: string;
     output?: string;
   }[],
-  presetId: string,
+  danmuOptions: DanmuConfig,
   options: DanmuOptions = {
     removeOrigin: false,
   },
 ) => {
+  console.log(danmuOptions);
   const tasks: {
     output?: string;
     taskId?: string;
@@ -114,13 +115,11 @@ export const convertDanmu2Ass = async (
       throw new Error(`danmufactory input file not exist: ${input}`);
     }
 
-    const argsObj = (await danmuPreset.get(presetId)).config;
-
     const task = await addConvertDanmu2AssTask(
       _event.sender,
       input,
       output,
-      argsObj,
+      danmuOptions,
       true,
       options,
     );
@@ -134,15 +133,18 @@ export const convertDanmu2Ass = async (
 
 const danmuPreset = new CommonPreset(DANMU_PRESET_PATH, DANMU_DEAFULT_CONFIG);
 // 保存弹幕预设
-export const saveDanmuPreset = async (_event: IpcMainInvokeEvent, presets: DanmuPresetType) => {
+export const saveDanmuPreset = async (
+  _event: IpcMainInvokeEvent | undefined,
+  presets: DanmuPresetType,
+) => {
   return danmuPreset.save(presets);
 };
 // 删除弹幕预设
-export const deleteDanmuPreset = async (_event: IpcMainInvokeEvent, id: string) => {
+export const deleteDanmuPreset = async (_event: IpcMainInvokeEvent | undefined, id: string) => {
   return await danmuPreset.delete(id);
 };
 // 读取弹幕预设
-export const readDanmuPreset = async (_event: IpcMainInvokeEvent, id: string) => {
+export const readDanmuPreset = async (_event: IpcMainInvokeEvent | undefined, id: string) => {
   const preset = await danmuPreset.get(id);
   return preset;
 };
@@ -150,4 +152,12 @@ export const readDanmuPreset = async (_event: IpcMainInvokeEvent, id: string) =>
 export const readDanmuPresets = async () => {
   const presets = await danmuPreset.list();
   return presets;
+};
+
+export const handlers = {
+  "danmu:convertXml2Ass": convertXml2Ass,
+  "danmu:getPreset": readDanmuPreset,
+  "danmu:savePreset": saveDanmuPreset,
+  "danmu:deletePreset": deleteDanmuPreset,
+  "danmu:getPresets": readDanmuPresets,
 };

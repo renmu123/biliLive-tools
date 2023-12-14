@@ -5,7 +5,7 @@ import fs from "fs-extra";
 import { getAppConfig } from "../config/app";
 import { uploadVideo, appendVideo, DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
 import { mainWin } from "../index";
-import { convertDanmu2Ass } from "../danmu";
+import { convertXml2Ass, readDanmuPreset } from "../danmu";
 import { taskQueue } from "../task";
 import { mergeAssMp4 } from "../video";
 import bili from "../bili";
@@ -15,7 +15,7 @@ import { getFileSize, uuid, runWithMaxIterations } from "../../utils/index";
 import express from "express";
 
 import type { BlrecEventType } from "./brelcEvent.d.ts";
-import type { BiliupConfig, FfmpegOptions } from "../../types";
+import type { BiliupConfig, FfmpegOptions, DanmuConfig } from "../../types";
 
 const app = express();
 
@@ -203,60 +203,6 @@ async function handle(options: {
   }
   const currentLive = liveData[currentIndex];
   log.debug("liveData-end", currentIndex, currentLive, JSON.stringify(liveData, null, 2));
-
-  // if (currentLive) {
-  //   // Live中插入数据
-  //   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
-  //     const part: Part = {
-  //       startTime: timestamp,
-  //       filePath: options.filePath,
-  //       status: "pending",
-  //     };
-  //     if (currentLive.parts) {
-  //       currentLive.parts.push(part);
-  //     } else {
-  //       currentLive.parts = [part];
-  //     }
-  //   } else {
-  //     const currentPartIndex = currentLive.parts.findIndex((item) => {
-  //       item.filePath === options.filePath;
-  //     });
-  //     const currentPart = currentLive.parts[currentPartIndex];
-  //     currentPart.endTime = timestamp;
-  //     currentLive.parts[currentPartIndex] = currentPart;
-  //   }
-  //   liveData[currentIndex] = currentLive;
-  // } else {
-  //   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
-  //     // 新建Live数据
-  //     currentLive = {
-  //       eventId: uuid(),
-  //       platform: options.platform,
-  //       startTime: timestamp,
-  //       roomId: options.roomId,
-  //       parts: [
-  //         {
-  //           startTime: timestamp,
-  //           filePath: options.filePath,
-  //           status: "pending",
-  //         },
-  //       ],
-  //     };
-  //   } else {
-  //     currentLive = {
-  //       eventId: uuid(),
-  //       platform: options.platform,
-  //       roomId: options.roomId,
-  //       parts: [
-  //         {
-  //           filePath: options.filePath,
-  //           status: "pending",
-  //         },
-  //       ],
-  //     };
-  //   }
-  //   liveData.push(currentLive);
-  // }
   log.debug("currentLive", currentLive);
 
   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
@@ -331,7 +277,8 @@ async function handle(options: {
       return;
     }
 
-    const assFilePath = await addDanmuTask(xmlFilePath, danmuPresetId);
+    const danmuConfig = (await readDanmuPreset(undefined, danmuPresetId)).config;
+    const assFilePath = await addDanmuTask(xmlFilePath, danmuConfig);
 
     const ffmpegPreset = await getFfmpegPreset(undefined, videoPresetId);
     if (!ffmpegPreset) {
@@ -342,25 +289,8 @@ async function handle(options: {
     fs.remove(assFilePath);
     currentLive.parts[currentPartIndex].filePath = output;
     addUploadTask(currentLive, output, config);
-    // uploadVideo(
-    //   // @ts-ignore
-    //   {
-    //     sender: mainWin.webContents,
-    //   },
-    //   [output],
-    //   config,
-    // );
   } else {
     addUploadTask(currentLive, options.filePath, config);
-
-    // uploadVideo(
-    //   // @ts-ignore
-    //   {
-    //     sender: mainWin.webContents,
-    //   },
-    //   [options.filePath],
-    //   config,
-    // );
   }
 }
 
@@ -369,10 +299,10 @@ const sleep = (ms: number) => {
 };
 
 // 添加压制任务
-const addDanmuTask = (input: string, presetId: string): Promise<string> => {
+const addDanmuTask = (input: string, danmuConfig: DanmuConfig): Promise<string> => {
   return new Promise((resolve, reject) => {
     const assFilePath = `${path.join(os.tmpdir(), uuid())}.ass`;
-    convertDanmu2Ass(
+    convertXml2Ass(
       // @ts-ignore
       {
         sender: mainWin.webContents,
@@ -383,7 +313,7 @@ const addDanmuTask = (input: string, presetId: string): Promise<string> => {
           output: assFilePath,
         },
       ],
-      presetId,
+      danmuConfig,
     ).then((tasks) => {
       const currentTaskId = tasks[0].taskId;
       taskQueue.on("task-end", ({ taskId }) => {

@@ -20,6 +20,7 @@ import type {
   DanmuPreset,
   Video2Mp4Options,
   FfmpegPreset,
+  DanmuConfig,
 } from "../types";
 import ffmpeg from "fluent-ffmpeg";
 
@@ -32,28 +33,28 @@ type progressCallback = (params: { percentage?: number }) => void;
 export const api = {
   danmu: {
     savePreset: async (preset: DanmuPreset) => {
-      return await ipcRenderer.invoke("saveDanmuPreset", preset);
+      return await ipcRenderer.invoke("danmu:savePreset", preset);
     },
     deletePreset: async (id: string) => {
-      return await ipcRenderer.invoke("deleteDanmuPreset", id);
+      return await ipcRenderer.invoke("danmu:deletePreset", id);
     },
     getPreset: async (id: string): Promise<DanmuPreset> => {
-      return await ipcRenderer.invoke("readDanmuPreset", id);
+      return await ipcRenderer.invoke("danmu:getPreset", id);
     },
     getPresets: async (): Promise<DanmuPreset[]> => {
-      return await ipcRenderer.invoke("readDanmuPresets");
+      return await ipcRenderer.invoke("danmu:getPresets");
     },
-    convertDanmu2Ass: async (
+    convertXml2Ass: async (
       files: {
         input: string;
         output?: string;
       }[],
-      presetId: string,
+      config: DanmuConfig,
       options: DanmuOptions = {
         removeOrigin: false,
       },
     ) => {
-      return await ipcRenderer.invoke("convertDanmu2Ass", files, presetId, options);
+      return await ipcRenderer.invoke("danmu:convertXml2Ass", files, config, options);
     },
   },
   task: {

@@ -90,13 +90,14 @@ const convert = async () => {
     return;
   }
   notice.info({
-    title: `检测到${fileList.value.length}个任务，可在任务列表中查看进度`,
+    title: `生成${fileList.value.length}个任务，可在任务列表中查看进度`,
     duration: 3000,
   });
   const files = fileList.value.map((file) => {
     return { input: file.path };
   });
-  window.api.danmu.convertDanmu2Ass(files, presetId, deepRaw(options.value));
+  const config = (await window.api.danmu.getPreset(presetId)).config;
+  window.api.danmu.convertXml2Ass(files, config, deepRaw(options.value));
   fileList.value = [];
 
   if (clientOptions.value.openTargetDirectory) {

@@ -146,7 +146,7 @@ const preHandle = async (
   files: File[],
   clientOptions: any,
   options: MergeOptions,
-  danmuPresetId: string,
+  danmuConfig: DanmuConfig,
   presetOptions: any,
 ) => {
   if (files.length === 0) {
@@ -179,7 +179,6 @@ const preHandle = async (
   const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
   const { width, height } = videoStream || {};
   console.log(width, height);
-  const danmuConfig = (await window.api.danmu.getPreset(danmuPresetId)).config;
   if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
     const status = await confirm.warning({
       content: `目标视频为${width}*${height}，与设置的弹幕的分辨率不一致，如需更改分辨率可以去”弹幕设置“处进行修改，是否继续？`,
@@ -207,7 +206,7 @@ const preHandle = async (
 const convert = async () => {
   const files = toRaw(fileList.value);
   const rawClientOptions = toRaw(clientOptions.value);
-  const rawDanmuPresetId = toRaw(danmuPresetId.value);
+  const rawDanmuConfig = toRaw(danmuPreset.value.config);
   const rawPresetOptions = toRaw(presetOptions.value);
   const rawFfmpegOptions = toRaw(ffmpegOptions.value);
   console.log("rawFfmpegOptions", rawFfmpegOptions);
@@ -216,7 +215,7 @@ const convert = async () => {
     files,
     rawClientOptions,
     toRaw(options.value),
-    rawDanmuPresetId,
+    rawDanmuConfig,
     rawPresetOptions,
   );
   if (!data) return;
@@ -226,7 +225,7 @@ const convert = async () => {
 
   if (inputDanmuFile.ext === ".xml") {
     // xml文件转换
-    const targetAssFile = await handleXmlFile(inputDanmuFile, rawOptions, rawDanmuPresetId);
+    const targetAssFile = await handleXmlFile(inputDanmuFile, rawOptions, rawDanmuConfig);
     console.log("targetAssFilePath", targetAssFile);
     inputDanmuFile = targetAssFile;
   }
@@ -256,7 +255,7 @@ const convert = async () => {
 };
 
 // 处理xml文件
-const handleXmlFile = async (danmuFile: File, options: MergeOptions, danmuPresetId: string) => {
+const handleXmlFile = async (danmuFile: File, options: MergeOptions, danmuConfig: DanmuConfig) => {
   notice.warning({
     title: "开始转换xml",
     duration: 3000,
@@ -270,22 +269,22 @@ const handleXmlFile = async (danmuFile: File, options: MergeOptions, danmuPreset
       output: outputPath,
     },
     options,
-    danmuPresetId,
+    danmuConfig,
   );
 
   return window.api.formatFile(targetAssFilePath);
 };
 
-const convertDanmu2Ass = (
+const convertDanmu2Ass = async (
   fileOptions: {
     input: string;
     output: string;
   },
   options: MergeOptions,
-  danmuPresetId: string,
+  config: DanmuConfig,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
-    window.api.danmu.convertDanmu2Ass([fileOptions], danmuPresetId, options).then((result: any) => {
+    window.api.danmu.convertXml2Ass([fileOptions], config, options).then((result: any) => {
       if (result[0].output) {
         resolve(result[0].output);
       } else {
@@ -420,10 +419,6 @@ const simpledMode = ref(true);
 
 const handleDanmuChange = (value: DanmuConfig) => {
   danmuPreset.value.config = value;
-  saveDanmuConfig();
-};
-const saveDanmuConfig = async () => {
-  window.api.danmu.savePreset(toRaw(danmuPreset.value));
 };
 
 // 弹幕预设相关

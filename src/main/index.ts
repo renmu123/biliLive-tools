@@ -11,13 +11,6 @@ import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import {
-  convertDanmu2Ass,
-  saveDanmuPreset,
-  deleteDanmuPreset,
-  readDanmuPreset,
-  readDanmuPresets,
-} from "./danmu";
-import {
   convertVideo2Mp4,
   mergeAssMp4,
   getAvailableEncoders,
@@ -28,6 +21,7 @@ import {
 import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as ffmpegHandlers } from "./ffmpegPreset";
+import { handlers as danmuHandlers } from "./danmu";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
@@ -72,13 +66,7 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, biliHandlers);
   registerHandlers(ipcMain, taskHandlers);
   registerHandlers(ipcMain, ffmpegHandlers);
-
-  // 弹幕相关
-  ipcMain.handle("convertDanmu2Ass", convertDanmu2Ass);
-  ipcMain.handle("saveDanmuPreset", saveDanmuPreset);
-  ipcMain.handle("deleteDanmuPreset", deleteDanmuPreset);
-  ipcMain.handle("readDanmuPreset", readDanmuPreset);
-  ipcMain.handle("readDanmuPresets", readDanmuPresets);
+  registerHandlers(ipcMain, danmuHandlers);
 };
 
 const appConfig = getAppConfig();
