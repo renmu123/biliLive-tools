@@ -396,17 +396,6 @@ const upload = async (file: string, presetOptions: BiliupPreset) => {
   if (!valid) return;
 
   await window.api.bili.uploadVideo([file], presetOptions.config);
-  window.api.onBiliUploadClose((_event, code) => {
-    console.log("window close", code);
-    if (code == 0) {
-      notice.success({
-        title: `上传成功`,
-        duration: 3000,
-      });
-    } else {
-      throw new Error(`上传失败`);
-    }
-  });
 };
 
 // @ts-ignore
@@ -486,6 +475,21 @@ window.api.onMainNotify((_event, data) => {
     title: data.content,
     duration: 5000,
   });
+});
+
+window.api.onBiliUploadClose((_event, code, pathArray) => {
+  console.log("window close", code);
+  if (code == 0) {
+    notice.success({
+      title: `${pathArray.join(",")} 上传成功`,
+      duration: 3000,
+    });
+  } else {
+    notice.error({
+      title: `${pathArray.join(",")} 上传失败`,
+      duration: 3000,
+    });
+  }
 });
 </script>
 

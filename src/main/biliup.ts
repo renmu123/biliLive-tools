@@ -33,7 +33,7 @@ export const uploadVideo = async (
   const biliup = await _uploadVideo(pathArray, options);
 
   biliup.on("close", (code) => {
-    _event.sender.send("upload-close", code);
+    _event.sender.send("upload-close", code, pathArray);
   });
   return biliup;
 };
@@ -80,7 +80,7 @@ export const appendVideo = async (
 ) => {
   const biliup = await _appendVideo(pathArray, options);
   biliup.on("close", (code) => {
-    _event.sender.send("append-close", code);
+    _event.sender.send("upload-close", code, pathArray);
   });
   return biliup;
 };

@@ -273,11 +273,10 @@ export const api = {
     return await ipcRenderer.invoke("mergeVideos", videoFiles, options);
   },
 
-  onBiliUploadClose: (callback: (_event: IpcRendererEvent, code: number) => void) => {
-    ipcRenderer.once("upload-close", callback);
-  },
-  onBiliAppendClose: (callback: (_event: IpcRendererEvent, code: number) => void) => {
-    ipcRenderer.once("append-close", callback);
+  onBiliUploadClose: (
+    callback: (_event: IpcRendererEvent, code: number, pathArray: string[]) => void,
+  ) => {
+    ipcRenderer.on("upload-close", callback);
   },
   readVideoMeta: async (file: string): Promise<ffmpeg.FfprobeData> => {
     return await ipcRenderer.invoke("readVideoMeta", file);
