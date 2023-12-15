@@ -8,8 +8,10 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppendVideoDialog: typeof import('./src/components/AppendVideoDialog.vue')['default']
-    AppSettingDialog: typeof import('./src/components/AppSettingDialog.vue')['default']
+    AppSettingDialog: typeof import('./src/components/AppSettingDialog/index.vue')['default']
     BiliSetting: typeof import('./src/components/BiliSetting.vue')['default']
+    CommonSetting: typeof import('./src/components/AppSettingDialog/CommonSetting.vue')['default']
+    CommonWebhookSetting: typeof import('./src/components/AppSettingDialog/CommonWebhookSetting.vue')['default']
     DanmuFactorySetting: typeof import('./src/components/DanmuFactorySetting.vue')['default']
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']
     FileArea: typeof import('./src/components/FileArea.vue')['default']
@@ -44,6 +46,9 @@ declare module 'vue' {
     NTabPane: typeof import('naive-ui')['NTabPane']
     NTabs: typeof import('naive-ui')['NTabs']
     NText: typeof import('naive-ui')['NText']
+    RoomDiaglog: typeof import('./src/components/AppSettingDialog/RoomDiaglog.vue')['default']
+    RoomDialog: typeof import('./src/components/AppSettingDialog/RoomDialog.vue')['default']
+    RoomSettingDialog: typeof import('./src/components/AppSettingDialog/RoomSettingDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Tip: typeof import('./src/components/Tip.vue')['default']

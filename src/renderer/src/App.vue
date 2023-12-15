@@ -49,7 +49,7 @@ import {
   GitPullRequestOutline as QueueIcon,
 } from "@vicons/ionicons5";
 import defaultUserAvatar from "./assets/images/moehime.jpg";
-import AppSettingDialog from "./components/AppSettingDialog.vue";
+import AppSettingDialog from "./components/AppSettingDialog/index.vue";
 
 import { useUserInfoStore, useQueueStore } from "./stores";
 const quenuStore = useQueueStore();

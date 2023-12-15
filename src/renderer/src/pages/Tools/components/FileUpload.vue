@@ -60,12 +60,10 @@ const upload = async () => {
     title: `开始上传`,
     duration: 3000,
   });
-  try {
-    await window.api.bili.uploadVideo(
-      toRaw(fileList.value.map((file) => file.path)),
-      deepRaw(presetOptions.value.config),
-    );
-  }
+  await window.api.bili.uploadVideo(
+    toRaw(fileList.value.map((file) => file.path)),
+    deepRaw(presetOptions.value.config),
+  );
   fileList.value = [];
 };
 
@@ -98,12 +96,10 @@ const appendVideo = async () => {
     title: `开始上传`,
     duration: 3000,
   });
-  try {
-    await window.api.bili.appendVideo(toRaw(fileList.value.map((file) => file.path)), {
-      ...deepRaw(presetOptions.value.config),
-      vid: aid.value,
-    });
-  }
+  await window.api.bili.appendVideo(toRaw(fileList.value.map((file) => file.path)), {
+    ...deepRaw(presetOptions.value.config),
+    vid: aid.value,
+  });
   fileList.value = [];
 };
 </script>

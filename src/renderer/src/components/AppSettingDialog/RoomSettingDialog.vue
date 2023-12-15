@@ -1,0 +1,76 @@
+<template>
+  <n-modal v-model:show="roomDetailVisible" :mask-closable="false">
+    <n-card :bordered="false" size="small" role="dialog" aria-modal="true" style="width: 800px">
+      <n-form label-placement="left" :label-width="120">
+        <n-form-item v-if="props.type === 'add'" label="请输入房间号">
+          <n-input v-model:value="data.id" placeholder="请输入房间号" />
+        </n-form-item>
+
+        <CommonSetting
+          v-model:data="data"
+          :biliup-presets-options="props.biliupPresetsOptions"
+          :ffmpeg-options="props.ffmpegOptions"
+        >
+        </CommonSetting>
+      </n-form>
+      <template #footer>
+        <div class="footer">
+          <n-button class="btn" @click="roomDetailVisible = false">取消</n-button>
+          <n-button v-if="props.type === 'edit'" type="error" class="btn" @click="deleteRoom">
+            删除
+          </n-button>
+          <n-button type="primary" class="btn" @click="saveRoomDetail"> 确认 </n-button>
+        </div>
+      </template>
+    </n-card>
+  </n-modal>
+</template>
+
+<script setup lang="ts">
+import CommonSetting from "./CommonWebhookSetting.vue";
+import type { AppRoomConfig } from "../../../../types";
+
+type Options = {
+  value: string;
+  label: string;
+}[];
+
+const props = defineProps<{
+  type: "edit" | "add";
+  biliupPresetsOptions: Options;
+  ffmpegOptions: Options;
+}>();
+
+const roomDetailVisible = defineModel("visible", {
+  type: Boolean,
+  default: false,
+});
+const data = defineModel<AppRoomConfig & { id?: string }>("data", {
+  default: () => {},
+});
+const emits = defineEmits<{
+  (event: "save", value: AppRoomConfig & { id?: string }): void;
+  (event: "delete", value: string): void;
+}>();
+
+const saveRoomDetail = () => {
+  if (!data.value.id) {
+    return;
+  }
+  emits("save", data.value);
+  roomDetailVisible.value = false;
+};
+const deleteRoom = () => {
+  emits("delete", data.value.id!);
+  roomDetailVisible.value = false;
+};
+</script>
+
+<style scoped>
+.footer {
+  text-align: right;
+  .btn + .btn {
+    margin-left: 10px;
+  }
+}
+</style>
