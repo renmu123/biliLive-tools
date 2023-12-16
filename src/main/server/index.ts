@@ -99,7 +99,7 @@ app.post("/blrec", async function (req, res) {
       event: event.type,
       filePath: event.data.path,
       roomId: roomId,
-      time: masterRes.data.live_time,
+      time: event.date,
       title: masterRes.data.title,
       username: userRes.data.info.uname,
       platform: "blrec",
@@ -256,7 +256,6 @@ async function handle(options: {
   log.info("upload config", config);
   log.info("appConfig: ", appConfig.webhook);
   log.debug("currentLive-end", currentLive);
-  const currentPartIndex = currentLive.parts.length - 1;
 
   if (danmu) {
     // 压制弹幕后上传
@@ -283,7 +282,10 @@ async function handle(options: {
     }
     const output = await addMergeAssMp4Task(options.filePath, assFilePath, ffmpegPreset?.config);
     fs.remove(assFilePath);
-    currentLive.parts[currentPartIndex].filePath = output;
+    const part = currentLive.parts.find((part) => part.filePath === options.filePath);
+    if (part) {
+      part.filePath = output;
+    }
     addUploadTask(currentLive, output, config, mergePart);
   } else {
     addUploadTask(currentLive, options.filePath, config, mergePart);
@@ -380,89 +382,57 @@ const addUploadTask = async (
   mergePart: boolean,
 ) => {
   if (mergePart) {
-    // const noUploaded =
-    //   live.parts.filter((item) => item.status === "error").length === live.parts.length - 1;
-    if (live.parts.length === 1) {
-      // 如果只有一个part，直接上传
-      console.log(filePath, config);
-      const biliup = await uploadVideo(mainWin.webContents, [filePath], config);
-      live.parts[0].status = "uploading";
+    log.info("live:aid: ", live);
+    // 如果有还在上传中的，不进行上传
+    if (live.parts.filter((item) => item.status === "uploading").length > 0) return;
 
-      biliup.once("close", async (code: 0 | 1) => {
-        if (code == 0) {
-          await runWithMaxIterations(
-            async (count: number) => {
-              // TODO:接完上传后重构
-              const res = await bili.client.platform.getArchives();
-              log.debug("count", count);
-              for (let i = 0; i < Math.min(5, res.data.arc_audits.length); i++) {
-                const item = res.data.arc_audits[i];
-                log.debug("getArchives", item.Archive, config.title);
-                if (item.Archive.title === config.title) {
-                  // @ts-ignore
-                  live.aid = item.Archive.aid;
-                  live.parts[0].status = "uploaded";
-                  return false;
-                }
-              }
-              return true;
-            },
-            6000,
-            5,
-          );
-          if (!live.aid) live.parts[0].status = "error";
-          log.info("get-aid-done: ", live);
-        } else {
-          live.parts[0].status = "error";
-        }
+    const filePaths = live.parts
+      .filter((item) => item.status === "pending" && item.endTime)
+      .map((item) => item.filePath);
+    let biliup: any;
+
+    if (live.aid) {
+      log.info("续传", filePaths);
+      biliup = await appendVideo(mainWin.webContents, filePaths, {
+        vid: live.aid,
       });
     } else {
-      log.info("live:aid: ", live);
-      // 如果有还在上传中的，不进行上传
-      if (live.parts.filter((item) => item.status === "uploading").length > 0) return;
+      log.info("上传", filePaths);
+      biliup = await uploadVideo(mainWin.webContents, filePaths, config);
+    }
 
-      await runWithMaxIterations(
-        async () => {
-          if (!live.aid) return true;
-          // 如果有aid了，就可以直接追加，但列表中如果有上传中的，需要等待后开始上传
-
-          return false;
-        },
-        6000,
-        15,
-      );
-      const filePaths = live.parts
-        .filter((item) => item.status === "pending")
-        .map((item) => item.filePath);
-      let biliup: any;
-
-      if (live.aid) {
-        log.info("续传", filePaths);
-        biliup = await appendVideo(mainWin.webContents, filePaths, {
-          vid: live.aid,
+    // 设置状态为上传中
+    biliup.once("close", async (code: 0 | 1) => {
+      if (code === 0) {
+        await runWithMaxIterations(
+          async (count: number) => {
+            // TODO:接完上传后重构
+            const res = await bili.client.platform.getArchives();
+            log.debug("count", count);
+            for (let i = 0; i < Math.min(5, res.data.arc_audits.length); i++) {
+              const item = res.data.arc_audits[i];
+              log.debug("getArchives", item.Archive, config.title);
+              if (item.Archive.title === config.title) {
+                live.aid = item.Archive.aid;
+                return false;
+              }
+            }
+            return true;
+          },
+          6000,
+          5,
+        );
+        // 设置状态为成功
+        live.parts.map((item) => {
+          if (filePaths.includes(item.filePath)) item.status === "uploaded";
         });
       } else {
-        log.info("重新上传", filePaths);
-        biliup = await uploadVideo(mainWin.webContents, filePaths, config);
+        // 设置状态为失败
+        live.parts.map((item) => {
+          if (filePaths.includes(item.filePath)) item.status === "error";
+        });
       }
-      live.parts.map((item) => {
-        if (filePaths.includes(item.filePath)) item.status === "uploading";
-      });
-      // 设置状态为上传中
-      biliup.once("close", async (code: 0 | 1) => {
-        if (code === 0) {
-          // 设置状态为成功
-          live.parts.map((item) => {
-            if (filePaths.includes(item.filePath)) item.status === "uploaded";
-          });
-        } else {
-          // 设置状态为失败
-          live.parts.map((item) => {
-            if (filePaths.includes(item.filePath)) item.status === "error";
-          });
-        }
-      });
-    }
+    });
   } else {
     uploadVideo(mainWin.webContents, [filePath], config);
   }
