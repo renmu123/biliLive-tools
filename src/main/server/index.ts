@@ -25,7 +25,7 @@ interface Part {
   startTime?: number;
   endTime?: number;
   filePath: string;
-  status: "pending" | "uploading" | "uploaded" | "error";
+  status: "recording" | "recorded" | "handled" | "uploading" | "uploaded" | "error";
 }
 interface Live {
   eventId: string;
@@ -138,7 +138,7 @@ async function handle(options: {
       const part: Part = {
         startTime: timestamp,
         filePath: options.filePath,
-        status: "pending",
+        status: "recording",
       };
       if (currentLive.parts) {
         currentLive.parts.push(part);
@@ -157,7 +157,7 @@ async function handle(options: {
           {
             startTime: timestamp,
             filePath: options.filePath,
-            status: "pending",
+            status: "recording",
           },
         ],
       };
@@ -182,6 +182,7 @@ async function handle(options: {
       );
       const currentPart = currentLive.parts[currentPartIndex];
       currentPart.endTime = timestamp;
+      currentPart.status = "recorded";
       currentLive.parts[currentPartIndex] = currentPart;
       liveData[currentIndex] = currentLive;
     } else {
@@ -193,7 +194,7 @@ async function handle(options: {
           {
             filePath: options.filePath,
             endTime: timestamp,
-            status: "pending",
+            status: "recorded",
           },
         ],
       };
@@ -257,6 +258,7 @@ async function handle(options: {
   log.info("appConfig: ", appConfig.webhook);
   log.debug("currentLive-end", currentLive);
 
+  const currentPart = currentLive.parts.find((part) => part.filePath === options.filePath);
   if (danmu) {
     // 压制弹幕后上传
     const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
@@ -268,7 +270,10 @@ async function handle(options: {
 
     if (!(await fs.pathExists(xmlFilePath))) {
       log.info("没有找到弹幕文件，直接上传", xmlFilePath);
-      uploadVideo(mainWin.webContents, [options.filePath], config);
+      if (currentPart) {
+        currentPart.status = "handled";
+      }
+      addUploadTask(currentLive, options.filePath, config, mergePart);
       return;
     }
 
@@ -282,12 +287,15 @@ async function handle(options: {
     }
     const output = await addMergeAssMp4Task(options.filePath, assFilePath, ffmpegPreset?.config);
     fs.remove(assFilePath);
-    const part = currentLive.parts.find((part) => part.filePath === options.filePath);
-    if (part) {
-      part.filePath = output;
+    if (currentPart) {
+      currentPart.filePath = output;
+      currentPart.status = "handled";
     }
     addUploadTask(currentLive, output, config, mergePart);
   } else {
+    if (currentPart) {
+      currentPart.status = "handled";
+    }
     addUploadTask(currentLive, options.filePath, config, mergePart);
   }
 }
@@ -387,7 +395,7 @@ const addUploadTask = async (
     if (live.parts.filter((item) => item.status === "uploading").length > 0) return;
 
     const filePaths = live.parts
-      .filter((item) => item.status === "pending" && item.endTime)
+      .filter((item) => item.status === "handled" && item.endTime)
       .map((item) => item.filePath);
     let biliup: any;
 
@@ -400,15 +408,17 @@ const addUploadTask = async (
       log.info("上传", filePaths);
       biliup = await uploadVideo(mainWin.webContents, filePaths, config);
     }
+    live.parts.map((item) => {
+      if (filePaths.includes(item.filePath)) item.status === "uploading";
+    });
 
     // 设置状态为上传中
     biliup.once("close", async (code: 0 | 1) => {
       if (code === 0) {
         await runWithMaxIterations(
-          async (count: number) => {
+          async () => {
             // TODO:接完上传后重构
             const res = await bili.client.platform.getArchives();
-            log.debug("count", count);
             for (let i = 0; i < Math.min(5, res.data.arc_audits.length); i++) {
               const item = res.data.arc_audits[i];
               log.debug("getArchives", item.Archive, config.title);
@@ -434,9 +444,80 @@ const addUploadTask = async (
       }
     });
   } else {
-    uploadVideo(mainWin.webContents, [filePath], config);
+    live.parts.map((item) => {
+      if (item.filePath === filePath) item.status === "uploading";
+    });
+    const biliup = await uploadVideo(mainWin.webContents, [filePath], config);
+
+    // 设置状态为上传中
+    biliup.once("close", async (code: 0 | 1) => {
+      if (code === 0) {
+        await runWithMaxIterations(
+          async () => {
+            // TODO:接完上传后重构
+            const res = await bili.client.platform.getArchives();
+            for (let i = 0; i < Math.min(5, res.data.arc_audits.length); i++) {
+              const item = res.data.arc_audits[i];
+              log.debug("getArchives", item.Archive, config.title);
+              if (item.Archive.title === config.title) {
+                live.aid = item.Archive.aid;
+                return false;
+              }
+            }
+            return true;
+          },
+          6000,
+          5,
+        );
+        // 设置状态为成功
+        live.parts.map((item) => {
+          if (item.filePath === filePath) item.status === "uploaded";
+        });
+      } else {
+        // 设置状态为失败
+        live.parts.map((item) => {
+          if (item.filePath === filePath) item.status === "error";
+        });
+      }
+    });
   }
 };
+
+async function checkFileInterval() {
+  setInterval(async () => {
+    const appConfig = getAppConfig();
+
+    for (let i = 0; i < liveData.length; i++) {
+      const live = liveData[i];
+
+      const roomSetting = appConfig.webhook.rooms[live.roomId];
+      const mergePart =
+        roomSetting.autoPartMerge !== undefined
+          ? roomSetting.autoPartMerge
+          : appConfig.webhook.autoPartMerge;
+      if (!mergePart) return;
+      if (!live.aid) return;
+
+      const filePaths = live.parts
+        .filter((item) => item.status === "handled" && item.endTime)
+        .map((item) => item.filePath);
+      const biliup = await appendVideo(mainWin.webContents, filePaths, {
+        vid: live.aid,
+      });
+      biliup.once("close", async (code: 0 | 1) => {
+        if (code === 0) {
+          live.parts.map((item) => {
+            if (filePaths.includes(item.filePath)) item.status === "uploaded";
+          });
+        } else {
+          live.parts.map((item) => {
+            if (filePaths.includes(item.filePath)) item.status === "error";
+          });
+        }
+      });
+    }
+  }, 1000 * 60);
+}
 
 const formatTime = (time: string) => {
   // 创建一个Date对象
