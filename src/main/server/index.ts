@@ -18,35 +18,26 @@ import type { BlrecEventType } from "./brelcEvent.d.ts";
 import type { BiliupConfig, FfmpegOptions, DanmuConfig } from "../../types";
 
 const app = express();
-
 app.use(express.json());
 
 interface Part {
   startTime?: number;
   endTime?: number;
   filePath: string;
-  status: "pending" | "uploading" | "uploaded" | "error";
+  status: "recording" | "recorded" | "handled" | "uploading" | "uploaded" | "error";
 }
 interface Live {
   eventId: string;
   platform: "bili-recoder" | "blrec";
   startTime?: number;
   roomId: number;
-  uploadName?: string;
+  videoName: string;
   aid?: number;
   parts: Part[];
 }
 
 const liveData: Live[] = [];
-// const evenetData: {
-//   biliRecoder: any[];
-//   blrec: BlrecEventType[];
-// } = {
-//   biliRecoder: [],
-//   blrec: [],
-// };
 
-// 使用内置的中间件处理表单数据
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", function (_req, res) {
@@ -90,7 +81,7 @@ app.post("/blrec", async function (req, res) {
     appConfig.webhook.open &&
     (event.type === "VideoFileCompletedEvent" || event.type === "VideoFileCreatedEvent")
   ) {
-    const roomId = event.data.room_id as unknown as number;
+    const roomId = event.data.room_id;
 
     const masterRes = await bili.client.live.getRoomInfo(event.data.room_id);
     const userRes = await bili.client.live.getMasterInfo(masterRes.data.uid);
@@ -99,7 +90,7 @@ app.post("/blrec", async function (req, res) {
       event: event.type,
       filePath: event.data.path,
       roomId: roomId,
-      time: masterRes.data.live_time,
+      time: event.date,
       title: masterRes.data.title,
       username: userRes.data.info.uname,
       platform: "blrec",
@@ -117,9 +108,56 @@ async function handle(options: {
   title: string;
   platform: "bili-recoder" | "blrec";
 }) {
+  // 配置信息
+  const appConfig = getAppConfig();
+  const roomSetting = appConfig.webhook.rooms[options.roomId];
+  log.info("room setting", options.roomId, roomSetting);
+  const danmu = roomSetting?.danmu !== undefined ? roomSetting.danmu : appConfig.webhook.danmu;
+  const mergePart =
+    roomSetting.autoPartMerge !== undefined
+      ? roomSetting.autoPartMerge
+      : appConfig.webhook.autoPartMerge;
+
+  const data = {
+    time: options.time,
+    title: options.title,
+    name: options.username,
+  };
+
+  const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
+
+  let config = DEFAULT_BILIUP_CONFIG;
+  const uploadPresetId =
+    roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
+  if (appConfig.webhook.uploadPresetId) {
+    const preset = await readBiliupPreset(undefined, uploadPresetId);
+    config = { ...config, ...preset.config };
+  }
+
+  const title = roomSetting?.title || appConfig.webhook.title || "";
+  config.title = title
+    .replaceAll("{{title}}", data.title)
+    .replaceAll("{{user}}", data.name)
+    .replaceAll("{{now}}", formatTime(data.time))
+    .trim()
+    .slice(0, 80);
+  if (!config.title) config.title = path.parse(options.filePath).name;
+
+  log.info("upload config", config);
+  log.info("appConfig: ", appConfig.webhook);
+
   log.debug("options", options);
   const fileSize = await getFileSize(options.filePath);
+  if (fileSize / 1024 / 1024 < minSize) {
+    log.info("file size too small");
+    return;
+  }
+  if (appConfig.webhook.blacklist.includes(String(options.roomId))) {
+    log.info(`${options.roomId} is in blacklist`);
+    return;
+  }
 
+  // 计算live
   const timestamp = new Date(options.time).getTime();
   let currentIndex = -1;
   log.debug("liveData-start", JSON.stringify(liveData, null, 2));
@@ -138,7 +176,7 @@ async function handle(options: {
       const part: Part = {
         startTime: timestamp,
         filePath: options.filePath,
-        status: "pending",
+        status: "recording",
       };
       if (currentLive.parts) {
         currentLive.parts.push(part);
@@ -153,11 +191,12 @@ async function handle(options: {
         platform: options.platform,
         startTime: timestamp,
         roomId: options.roomId,
+        videoName: config.title,
         parts: [
           {
             startTime: timestamp,
             filePath: options.filePath,
-            status: "pending",
+            status: "recording",
           },
         ],
       };
@@ -182,6 +221,7 @@ async function handle(options: {
       );
       const currentPart = currentLive.parts[currentPartIndex];
       currentPart.endTime = timestamp;
+      currentPart.status = "recorded";
       currentLive.parts[currentPartIndex] = currentPart;
       liveData[currentIndex] = currentLive;
     } else {
@@ -189,11 +229,12 @@ async function handle(options: {
         eventId: uuid(),
         platform: options.platform,
         roomId: options.roomId,
+        videoName: config.title,
         parts: [
           {
             filePath: options.filePath,
             endTime: timestamp,
-            status: "pending",
+            status: "recorded",
           },
         ],
       };
@@ -209,55 +250,9 @@ async function handle(options: {
     return;
   }
 
-  const appConfig = getAppConfig();
-  const roomSetting = appConfig.webhook.rooms[options.roomId];
-  log.info("room setting", options.roomId, roomSetting);
-  const danmu = roomSetting?.danmu !== undefined ? roomSetting.danmu : appConfig.webhook.danmu;
-  const mergePart =
-    roomSetting.autoPartMerge !== undefined
-      ? roomSetting.autoPartMerge
-      : appConfig.webhook.autoPartMerge;
-
-  const data = {
-    time: options.time,
-    title: options.title,
-    name: options.username,
-  };
-
-  const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
-  if (fileSize / 1024 / 1024 < minSize) {
-    log.info("file size too small");
-    liveData.splice(currentIndex, 1);
-    return;
-  }
-  if (appConfig.webhook.blacklist.includes(String(options.roomId))) {
-    log.info(`${options.roomId} is in blacklist`);
-    liveData.splice(currentIndex, 1);
-    return;
-  }
-
-  let config = DEFAULT_BILIUP_CONFIG;
-  const uploadPresetId =
-    roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
-  if (appConfig.webhook.uploadPresetId) {
-    const preset = await readBiliupPreset(undefined, uploadPresetId);
-    config = { ...config, ...preset.config };
-  }
-
-  const title = roomSetting?.title || appConfig.webhook.title || "";
-  config.title = title
-    .replaceAll("{{title}}", data.title)
-    .replaceAll("{{user}}", data.name)
-    .replaceAll("{{now}}", formatTime(data.time))
-    .trim()
-    .slice(0, 80);
-  if (!config.title) config.title = path.parse(options.filePath).name;
-
-  log.info("upload config", config);
-  log.info("appConfig: ", appConfig.webhook);
   log.debug("currentLive-end", currentLive);
-  const currentPartIndex = currentLive.parts.length - 1;
 
+  const currentPart = currentLive.parts.find((part) => part.filePath === options.filePath);
   if (danmu) {
     // 压制弹幕后上传
     const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
@@ -269,7 +264,10 @@ async function handle(options: {
 
     if (!(await fs.pathExists(xmlFilePath))) {
       log.info("没有找到弹幕文件，直接上传", xmlFilePath);
-      uploadVideo(mainWin.webContents, [options.filePath], config);
+      if (currentPart) {
+        currentPart.status = "handled";
+      }
+      newUploadTask(mergePart, options.filePath, config);
       return;
     }
 
@@ -283,10 +281,16 @@ async function handle(options: {
     }
     const output = await addMergeAssMp4Task(options.filePath, assFilePath, ffmpegPreset?.config);
     fs.remove(assFilePath);
-    currentLive.parts[currentPartIndex].filePath = output;
-    addUploadTask(currentLive, output, config, mergePart);
+    if (currentPart) {
+      currentPart.filePath = output;
+      currentPart.status = "handled";
+    }
+    newUploadTask(mergePart, options.filePath, config);
   } else {
-    addUploadTask(currentLive, options.filePath, config, mergePart);
+    if (currentPart) {
+      currentPart.status = "handled";
+    }
+    newUploadTask(mergePart, options.filePath, config);
   }
 }
 
@@ -373,100 +377,104 @@ const addMergeAssMp4Task = (
   });
 };
 
-const addUploadTask = async (
-  live: Live,
-  filePath: string,
-  config: BiliupConfig,
-  mergePart: boolean,
-) => {
-  if (mergePart) {
-    // const noUploaded =
-    //   live.parts.filter((item) => item.status === "error").length === live.parts.length - 1;
-    if (live.parts.length === 1) {
-      // 如果只有一个part，直接上传
-      console.log(filePath, config);
-      const biliup = await uploadVideo(mainWin.webContents, [filePath], config);
-      live.parts[0].status = "uploading";
+const newUploadTask = async (mergePart: boolean, filePath: string, config: BiliupConfig) => {
+  if (!mergePart) return;
+  await uploadVideo(mainWin.webContents, [filePath], config);
+};
 
-      biliup.once("close", async (code: 0 | 1) => {
-        if (code == 0) {
-          await runWithMaxIterations(
-            async (count: number) => {
-              // TODO:接完上传后重构
-              const res = await bili.client.platform.getArchives();
-              log.debug("count", count);
-              for (let i = 0; i < Math.min(5, res.data.arc_audits.length); i++) {
-                const item = res.data.arc_audits[i];
-                log.debug("getArchives", item.Archive, config.title);
-                if (item.Archive.title === config.title) {
-                  // @ts-ignore
-                  live.aid = item.Archive.aid;
-                  live.parts[0].status = "uploaded";
-                  return false;
-                }
-              }
-              return true;
-            },
-            6000,
-            5,
-          );
-          if (!live.aid) live.parts[0].status = "error";
-          log.info("get-aid-done: ", live);
+async function checkFileInterval() {
+  setInterval(async () => {
+    const appConfig = getAppConfig();
+
+    for (let i = 0; i < liveData.length; i++) {
+      const live = liveData[i];
+
+      const roomSetting = appConfig.webhook.rooms[live.roomId];
+      const mergePart =
+        roomSetting.autoPartMerge !== undefined
+          ? roomSetting.autoPartMerge
+          : appConfig.webhook.autoPartMerge;
+      if (!mergePart) return;
+      let config = DEFAULT_BILIUP_CONFIG;
+      const uploadPresetId =
+        roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
+      if (appConfig.webhook.uploadPresetId) {
+        const preset = await readBiliupPreset(undefined, uploadPresetId);
+        config = { ...config, ...preset.config };
+      }
+      config.title = live.videoName;
+
+      log.debug("interval", live);
+      const filePaths: string[] = [];
+      // 找到前几个为handled的part
+      for (let i = 0; i < live.parts.length; i++) {
+        const part = live.parts[i];
+        if (part.status === "handled" && part.endTime) {
+          filePaths.push(part.filePath);
         } else {
-          live.parts[0].status = "error";
+          break;
         }
-      });
-    } else {
-      log.info("live:aid: ", live);
-      // 如果有还在上传中的，不进行上传
-      if (live.parts.filter((item) => item.status === "uploading").length > 0) return;
+      }
+      if (filePaths.length === 0) return;
 
-      await runWithMaxIterations(
-        async () => {
-          if (!live.aid) return true;
-          // 如果有aid了，就可以直接追加，但列表中如果有上传中的，需要等待后开始上传
-
-          return false;
-        },
-        6000,
-        15,
-      );
-      const filePaths = live.parts
-        .filter((item) => item.status === "pending")
-        .map((item) => item.filePath);
       let biliup: any;
-
       if (live.aid) {
         log.info("续传", filePaths);
         biliup = await appendVideo(mainWin.webContents, filePaths, {
           vid: live.aid,
         });
+        biliup.once("close", async (code: 0 | 1) => {
+          if (code === 0) {
+            // 设置状态为成功
+            live.parts.map((item) => {
+              if (filePaths.includes(item.filePath)) item.status === "uploaded";
+            });
+          } else {
+            // 设置状态为失败
+            live.parts.map((item) => {
+              if (filePaths.includes(item.filePath)) item.status === "error";
+            });
+          }
+        });
       } else {
-        log.info("重新上传", filePaths);
+        log.info("上传", filePaths);
         biliup = await uploadVideo(mainWin.webContents, filePaths, config);
+        biliup.once("close", async (code: 0 | 1) => {
+          if (code === 0) {
+            await runWithMaxIterations(
+              async () => {
+                // TODO:接完上传后重构
+                const res = await bili.client.platform.getArchives();
+                for (let i = 0; i < Math.min(10, res.data.arc_audits.length); i++) {
+                  const item = res.data.arc_audits[i];
+                  log.debug("getArchives", item.Archive, live.videoName);
+                  if (item.Archive.title === live.videoName) {
+                    live.aid = item.Archive.aid;
+                    return false;
+                  }
+                }
+                return true;
+              },
+              6000,
+              5,
+            );
+            // 设置状态为成功
+            live.parts.map((item) => {
+              if (filePaths.includes(item.filePath)) item.status === "uploaded";
+            });
+          } else {
+            // 设置状态为失败
+            live.parts.map((item) => {
+              if (filePaths.includes(item.filePath)) item.status === "error";
+            });
+          }
+        });
       }
-      live.parts.map((item) => {
-        if (filePaths.includes(item.filePath)) item.status === "uploading";
-      });
-      // 设置状态为上传中
-      biliup.once("close", async (code: 0 | 1) => {
-        if (code === 0) {
-          // 设置状态为成功
-          live.parts.map((item) => {
-            if (filePaths.includes(item.filePath)) item.status === "uploaded";
-          });
-        } else {
-          // 设置状态为失败
-          live.parts.map((item) => {
-            if (filePaths.includes(item.filePath)) item.status === "error";
-          });
-        }
-      });
     }
-  } else {
-    uploadVideo(mainWin.webContents, [filePath], config);
-  }
-};
+  }, 1000 * 60);
+}
+
+checkFileInterval();
 
 const formatTime = (time: string) => {
   // 创建一个Date对象
