@@ -498,6 +498,8 @@ async function checkFileInterval() {
       if (!mergePart) return;
       if (!live.aid) return;
 
+      log.debug("interval", live);
+
       const filePaths = live.parts
         .filter((item) => item.status === "handled" && item.endTime)
         .map((item) => item.filePath);
@@ -518,6 +520,8 @@ async function checkFileInterval() {
     }
   }, 1000 * 60);
 }
+
+checkFileInterval();
 
 const formatTime = (time: string) => {
   // 创建一个Date对象
