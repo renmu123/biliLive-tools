@@ -5,7 +5,15 @@
         <n-form-item v-if="props.type === 'add'" label="请输入房间号">
           <n-input v-model:value="data.id" placeholder="请输入房间号" />
         </n-form-item>
-
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex">
+              备注
+              <Tip tip="仅用于提示"></Tip>
+            </span>
+          </template>
+          <n-input v-model:value="data.remark" placeholder="请输入备注" clearable />
+        </n-form-item>
         <CommonSetting
           v-model:data="data"
           :biliup-presets-options="props.biliupPresetsOptions"
