@@ -267,7 +267,7 @@ async function handle(options: {
       if (currentPart) {
         currentPart.status = "handled";
       }
-      newUploadTask(mergePart, options.filePath, config);
+      newUploadTask(mergePart, currentPart!, config);
       return;
     }
 
@@ -285,12 +285,12 @@ async function handle(options: {
       currentPart.filePath = output;
       currentPart.status = "handled";
     }
-    newUploadTask(mergePart, options.filePath, config);
+    newUploadTask(mergePart, currentPart!, config);
   } else {
     if (currentPart) {
       currentPart.status = "handled";
     }
-    newUploadTask(mergePart, options.filePath, config);
+    newUploadTask(mergePart, currentPart!, config);
   }
 }
 
@@ -377,9 +377,17 @@ const addMergeAssMp4Task = (
   });
 };
 
-const newUploadTask = async (mergePart: boolean, filePath: string, config: BiliupConfig) => {
+const newUploadTask = async (mergePart: boolean, part: Part, config: BiliupConfig) => {
   if (!mergePart) return;
-  await uploadVideo(mainWin.webContents, [filePath], config);
+  const biliup = await uploadVideo(mainWin.webContents, [part.filePath], config);
+  part.status = "uploading";
+  biliup.once("close", async (code: 0 | 1) => {
+    if (code === 0) {
+      part.status = "uploaded";
+    } else {
+      part.status = "error";
+    }
+  });
 };
 
 async function checkFileInterval() {
@@ -422,6 +430,9 @@ async function checkFileInterval() {
         log.info("续传", filePaths);
         biliup = await appendVideo(mainWin.webContents, filePaths, {
           vid: live.aid,
+        });
+        live.parts.map((item) => {
+          if (filePaths.includes(item.filePath)) item.status === "uploading";
         });
         biliup.once("close", async (code: 0 | 1) => {
           if (code === 0) {
