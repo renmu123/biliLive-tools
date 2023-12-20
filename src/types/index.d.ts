@@ -54,6 +54,7 @@ export type FfmpegPreset = {
 
 // 应用配置文件
 export interface AppRoomConfig {
+  open: boolean;
   remark?: string;
   minSize: number;
   title: string;

@@ -222,6 +222,7 @@ const handleRoomDetail = (roomId: string) => {
   const room = config.value.webhook.rooms[roomId];
   tempRoomDetail.value = {
     id: roomId,
+    open: room.open,
     minSize: room.minSize,
     title: room.title,
     uploadPresetId: room.uploadPresetId,
@@ -236,6 +237,7 @@ const handleRoomDetail = (roomId: string) => {
 
 const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   id: undefined,
+  open: true,
   minSize: 0,
   title: "",
   uploadPresetId: "",
@@ -262,6 +264,7 @@ const addRoom = () => {
   roomType.value = "add";
   tempRoomDetail.value = {
     id: undefined,
+    open: true,
     minSize: config.value.webhook.minSize,
     title: config.value.webhook.title,
     uploadPresetId: config.value.webhook.uploadPresetId,

@@ -8,6 +8,15 @@
         <n-form-item>
           <template #label>
             <span class="inline-flex">
+              开启
+              <Tip tip="是否对该直播间开启webhook功能，与黑名单共同作用"></Tip>
+            </span>
+          </template>
+          <n-switch v-model:value="data.open" />
+        </n-form-item>
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex">
               备注
               <Tip tip="仅用于提示"></Tip>
             </span>

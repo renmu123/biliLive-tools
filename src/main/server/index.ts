@@ -125,7 +125,6 @@ async function handle(options: {
   };
 
   const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
-
   let config = DEFAULT_BILIUP_CONFIG;
   const uploadPresetId =
     roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
@@ -135,6 +134,7 @@ async function handle(options: {
   }
 
   const title = roomSetting?.title || appConfig.webhook.title || "";
+  const open = roomSetting?.open;
   config.title = title
     .replaceAll("{{title}}", data.title)
     .replaceAll("{{user}}", data.name)
@@ -145,8 +145,8 @@ async function handle(options: {
 
   log.info("upload config", config);
   log.info("appConfig: ", appConfig.webhook);
-
   log.debug("options", options);
+
   const fileSize = await getFileSize(options.filePath);
   if (fileSize / 1024 / 1024 < minSize) {
     log.info("file size too small");
@@ -154,6 +154,10 @@ async function handle(options: {
   }
   if (appConfig.webhook.blacklist.includes(String(options.roomId))) {
     log.info(`${options.roomId} is in blacklist`);
+    return;
+  }
+  if (!open) {
+    log.info(`${options.roomId} is not open`);
     return;
   }
 
@@ -249,7 +253,7 @@ async function handle(options: {
   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
     return;
   }
-
+  // 下面是只有结束事件才会执行的代码
   log.debug("currentLive-end", currentLive);
 
   const currentPart = currentLive.parts.find((part) => part.filePath === options.filePath);
@@ -460,6 +464,7 @@ async function checkFileInterval() {
                   const item = res.data.arc_audits[i];
                   log.debug("getArchives", item.Archive, live.videoName);
                   if (item.Archive.title === live.videoName) {
+                    // @ts-ignore
                     live.aid = item.Archive.aid;
                     return false;
                   }
