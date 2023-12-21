@@ -124,26 +124,6 @@ const genBiliupOPtions = (options: BiliupConfig) => {
   });
 };
 
-// 调用bili登录窗口
-export const biliLogin = (_event: IpcMainInvokeEvent) => {
-  const biliup = new Biliup();
-  biliup.setBiliUpPath(BILIUP_PATH);
-  biliup.login();
-
-  biliup.on("login-close", (code) => {
-    _event.sender.send("event:login-win-close", code);
-  });
-};
-
-// 读取登录验证码
-export const readQrCode = () => {
-  let imagePath = join(dirname(app.getPath("exe")), "qrcode.png");
-  if (import.meta.env.DEV) {
-    imagePath = join(__dirname, "../../qrcode.png");
-  }
-  return fs.readFileSync(imagePath).toString("base64");
-};
-
 // 保存登录cookie到用户文件夹
 export const saveBiliCookie = async () => {
   let cookiePtah = join(dirname(app.getPath("exe")), "cookies.json");
@@ -225,8 +205,6 @@ export const handlers = {
   "bili:saveCookie": saveBiliCookie,
   "bili:checkCookie": checkBiliCookie,
   "bili:deleteCookie": deleteBiliCookie,
-  "bili:login": biliLogin,
-  "bili:readQrCode": readQrCode,
   "bili:uploadVideo": async (
     _event: IpcMainInvokeEvent,
     pathArray: string[],

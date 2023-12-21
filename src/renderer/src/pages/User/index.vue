@@ -13,11 +13,8 @@
       </div>
       <div v-else class="login-btns">
         <n-button type="primary" @click="loginFirst">登录</n-button>
-        <n-button type="primary" @click="login">备用登录</n-button>
       </div>
     </div>
-    <BiliUpLoginDialog v-model="loginDialogVisible" :success="loginStatus" @close="getUserInfo">
-    </BiliUpLoginDialog>
     <BiliLoginDialog v-model="loginTvDialogVisible" @close="getUserInfo"></BiliLoginDialog>
   </div>
 </template>
@@ -25,13 +22,10 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 import { useUserInfoStore } from "@renderer/stores";
-import BiliUpLoginDialog from "./components/BiliUpLoginDialog.vue";
 import BiliLoginDialog from "./components/BiliLoginDialog.vue";
-import { useBili } from "@renderer/hooks";
 
 const { getUserInfo } = useUserInfoStore();
 const { userInfo } = storeToRefs(useUserInfoStore());
-const { login, loginStatus, loginDialogVisible } = useBili();
 
 const logout = async () => {
   await window.api.bili.deleteCookie();

@@ -187,20 +187,6 @@ export const api = {
     deleteCookie: () => {
       return ipcRenderer.invoke("bili:deleteCookie");
     },
-    // 调用biliup的登录窗口
-    login: async () => {
-      return await ipcRenderer.invoke("bili:login");
-    },
-    // 监测biliup登录窗口的关闭
-    onLogin(event: "close", callback: (_event: IpcRendererEvent, code: number) => void) {
-      if (event === "close") {
-        ipcRenderer.once("event:login-win-close", callback);
-      }
-    },
-    // 读取bili登录的二维码
-    readQrCode: () => {
-      return ipcRenderer.invoke("bili:readQrCode");
-    },
     // 验证视频上传参数
     validUploadParams: async (config: BiliupConfig) => {
       return await ipcRenderer.invoke("bili:validUploadParams", config);
