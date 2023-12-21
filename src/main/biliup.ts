@@ -1,15 +1,15 @@
-import { app } from "electron";
-import { join } from "path";
 import fs from "fs-extra";
 
 import Biliup from "./biliup/index";
 import log from "./utils/log";
+import Config from "./utils/config";
 import CommonPreset from "./utils/preset";
+import { biliApi } from "./bili";
 
 import { BILIUP_PATH, BILIUP_COOKIE_PATH, UPLOAD_PRESET_PATH } from "./appConstant";
 
 import type { IpcMainInvokeEvent, WebContents } from "electron";
-import type { BiliupConfig, BiliupConfigAppend, BiliupPreset } from "../types/index";
+import type { BiliupConfig, BiliupConfigAppend, BiliupPreset, BiliUser } from "../types/index";
 
 export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   title: "",
@@ -186,6 +186,41 @@ export const deleteBiliCookie = async () => {
   return await fs.remove(BILIUP_COOKIE_PATH);
 };
 
+// 写入用户数据
+export const writeUser = async (data: BiliUser) => {
+  const config = new Config("app.json");
+  const users = config.get("biliUser") || {};
+  users[data.mid] = data;
+  config.set("biliUser", users);
+};
+
+// 读取用户数据
+export const readUser = async (mid: number): Promise<BiliUser | undefined> => {
+  const config = new Config("app.json");
+  const users = config.get("biliUser") || {};
+  return users[mid];
+};
+
+// 读取用户列表
+export const readUserList = async (): Promise<BiliUser[]> => {
+  const config = new Config("app.json");
+  const users = config.get("biliUser") || {};
+  return Object.values(users);
+};
+
+const format = (data: any) => {
+  const result: BiliUser = {
+    mid: data.mid,
+    rawAuth: JSON.stringify(data),
+    cookie: data.cookie,
+    expires: data.expires_in,
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    platform: "TV",
+  };
+  return result;
+};
+
 export const handlers = {
   "bili:validUploadParams": validateBiliupConfig,
   "bili:getPreset": readBiliupPreset,
@@ -194,16 +229,28 @@ export const handlers = {
   "bili:getPresets": readBiliupPresets,
   "bili:checkCookie": checkBiliCookie,
   "bili:deleteCookie": deleteBiliCookie,
+  "bili:removeUser": async (_event: IpcMainInvokeEvent, mid: number) => {
+    const config = new Config("app.json");
+    const users = config.get("biliUser") || {};
+    delete users[mid];
+    config.set("biliUser", users);
+  },
+  "bili:readUserList": () => {
+    return readUserList();
+  },
   "bili:checkOldCookie": async () => {
     const cookiePath = BILIUP_COOKIE_PATH;
     return fs.pathExists(cookiePath);
   },
   "bili:migrateCookie": async () => {
-    // const oldCookiePath = join(app.getPath("userData"), "biliup_cookie");
-    // const newCookiePath = BILIUP_COOKIE_PATH;
-    // if (await fs.pathExists(oldCookiePath)) {
-    //   await fs.move(oldCookiePath, newCookiePath);
-    // }
+    const data: unknown = await fs.readJSON(BILIUP_COOKIE_PATH);
+    const user = format(data);
+    const biliUser = (await biliApi.getUserInfo(user.mid)).data;
+    user.name = biliUser.name;
+    user.avavtar = biliUser.face;
+
+    await writeUser(user);
+    await fs.remove(BILIUP_COOKIE_PATH);
   },
   "bili:uploadVideo": async (
     _event: IpcMainInvokeEvent,

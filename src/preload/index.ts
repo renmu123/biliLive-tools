@@ -21,6 +21,7 @@ import type {
   Video2Mp4Options,
   FfmpegPreset,
   DanmuConfig,
+  BiliUser,
 } from "../types";
 import ffmpeg from "fluent-ffmpeg";
 
@@ -210,6 +211,18 @@ export const api = {
       ipcRenderer.removeAllListeners("biliApi:login-error");
       ipcRenderer.removeAllListeners("biliApi:login-completed");
       return ipcRenderer.invoke("biliApi:login:cancel");
+    },
+    checkOldCookie(): Promise<boolean> {
+      return ipcRenderer.invoke("bili:checkOldCookie");
+    },
+    migrateCookie() {
+      return ipcRenderer.invoke("bili:migrateCookie");
+    },
+    removeUser(mid: number) {
+      return ipcRenderer.invoke("bili:removeUser", mid);
+    },
+    readUserList(): Promise<BiliUser[]> {
+      return ipcRenderer.invoke("bili:readUserList");
     },
   },
   ffmpeg: {

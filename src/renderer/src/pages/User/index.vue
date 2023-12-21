@@ -10,9 +10,10 @@
         />
         <span>{{ userInfo.profile.name }}</span>
         <n-button type="primary" @click="logout">退出登录</n-button>
+        <n-button v-if="hasOldCookie" @click="migrateOldCookie">迁移旧版Cookie</n-button>
       </div>
       <div v-else class="login-btns">
-        <n-button type="primary" @click="loginFirst">登录</n-button>
+        <n-button type="primary" @click="login">登录</n-button>
       </div>
     </div>
     <BiliLoginDialog v-model="loginTvDialogVisible" @close="getUserInfo"></BiliLoginDialog>
@@ -23,6 +24,7 @@
 import { storeToRefs } from "pinia";
 import { useUserInfoStore } from "@renderer/stores";
 import BiliLoginDialog from "./components/BiliLoginDialog.vue";
+import { useConfirm } from "@renderer/hooks";
 
 const { getUserInfo } = useUserInfoStore();
 const { userInfo } = storeToRefs(useUserInfoStore());
@@ -33,8 +35,28 @@ const logout = async () => {
 };
 
 const loginTvDialogVisible = ref(false);
-const loginFirst = async () => {
+const login = async () => {
   loginTvDialogVisible.value = true;
+};
+
+const hasOldCookie = ref(false);
+const checkOldCookie = async () => {
+  hasOldCookie.value = await window.api.bili.checkOldCookie();
+};
+checkOldCookie();
+
+const confirm = useConfirm();
+const migrateOldCookie = async () => {
+  let status = await confirm.warning({
+    content: "是否需要迁移旧数据？",
+  });
+  if (!status) return;
+
+  status = await window.api.bili.checkOldCookie();
+  if (!status) return;
+  await window.api.bili.migrateCookie();
+  hasOldCookie.value = false;
+  getUserInfo();
 };
 </script>
 

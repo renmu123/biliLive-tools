@@ -8,8 +8,25 @@ export const useUserInfoStore = defineStore("userInfo", () => {
       name: "",
     },
   });
+  const userList = ref<
+    {
+      uid: number;
+      name?: string;
+      face?: string;
+    }[]
+  >([]);
 
   async function getUserInfo() {
+    const users = await window.api.bili.readUserList();
+    console.log(users);
+    userList.value = users.map((item) => {
+      return {
+        uid: item.mid,
+        name: item.name,
+        face: item.avavtar,
+      };
+    });
+
     const hasLogin = await window.api.bili.checkCookie();
     if (hasLogin) {
       const res = await window.biliApi.getMyInfo();

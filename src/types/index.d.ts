@@ -175,3 +175,19 @@ export interface BiliupPreset {
   name: string;
   config: BiliupConfig;
 }
+
+export interface BiliUser {
+  mid: number;
+  name?: string;
+  avavtar?: string;
+  rawAuth: string;
+  cookie: string;
+  expires: number;
+  accessToken: string;
+  refreshToken: string;
+  platform: "TV";
+}
+
+export interface BiliUserConfig {
+  [mid: number]: BiliUser;
+}

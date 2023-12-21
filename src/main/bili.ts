@@ -33,6 +33,11 @@ async function getMyInfo(): ReturnType<ClientInstance["user"]["getMyInfo"]> {
   return client.user.getMyInfo();
 }
 
+async function getUserInfo(uid: number): ReturnType<ClientInstance["user"]["getUserInfo"]> {
+  await loadCookie();
+  return client.user.getUserInfo(uid);
+}
+
 function login() {
   const tv = new TvQrcodeLogin();
   return tv.login();
@@ -49,6 +54,7 @@ export const biliApi = {
   getMyInfo,
   loadCookie,
   login,
+  getUserInfo,
 };
 
 export const invokeWrap = <T extends (...args: any[]) => any>(fn: T) => {

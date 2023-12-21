@@ -6,7 +6,7 @@ export const CONFIG_PATH = app.getPath("userData");
 
 export default class Config {
   filename: string;
-  data: {
+  protected data: {
     [propName: string]: any;
   };
   path: string;
@@ -25,7 +25,7 @@ export default class Config {
       this.read();
     }
   }
-  set(key: string, value: any) {
+  set(key: string | number, value: any) {
     this.data[key] = value;
     this.save();
   }
@@ -53,5 +53,6 @@ export default class Config {
   read() {
     // 读取文件
     this.data = JSON.parse(fs.readFileSync(this.path, "utf-8"));
+    return this.data;
   }
 }

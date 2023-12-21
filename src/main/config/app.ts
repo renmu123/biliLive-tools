@@ -61,6 +61,7 @@ export const saveAppConfig = (_event: IpcMainInvokeEvent, newConfig: AppConfig) 
 };
 export const getAppConfig = (): AppConfig => {
   const config = getConfig();
+  const data = config.read();
 
-  return defaultsDeep(config.data, APP_DEFAULT_CONFIG);
+  return defaultsDeep(data, APP_DEFAULT_CONFIG);
 };
