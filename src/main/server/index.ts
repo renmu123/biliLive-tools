@@ -15,7 +15,13 @@ import { getFileSize, uuid, runWithMaxIterations } from "../../utils/index";
 import express from "express";
 
 import type { BlrecEventType } from "./brelcEvent.d.ts";
-import type { BiliupConfig, FfmpegOptions, DanmuConfig } from "../../types";
+import type {
+  BiliupConfig,
+  FfmpegOptions,
+  DanmuConfig,
+  AppRoomConfig,
+  AppConfig,
+} from "../../types";
 
 const app = express();
 app.use(express.json());
@@ -28,7 +34,7 @@ interface Part {
 }
 interface Live {
   eventId: string;
-  platform: "bili-recoder" | "blrec";
+  platform: "bili-recorder" | "blrec";
   startTime?: number;
   roomId: number;
   videoName: string;
@@ -66,7 +72,7 @@ app.post("/webhook", async function (req, res) {
       time: event.EventTimestamp,
       title: event.EventData.Title,
       username: event.EventData.Name,
-      platform: "bili-recoder",
+      platform: "bili-recorder",
     });
   }
   res.send("ok");
@@ -106,15 +112,15 @@ async function handle(options: {
   time: string;
   username: string;
   title: string;
-  platform: "bili-recoder" | "blrec";
+  platform: "bili-recorder" | "blrec";
 }) {
   // 配置信息
   const appConfig = getAppConfig();
-  const roomSetting = appConfig.webhook.rooms[options.roomId];
+  const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[options.roomId];
   log.info("room setting", options.roomId, roomSetting);
   const danmu = roomSetting?.danmu !== undefined ? roomSetting.danmu : appConfig.webhook.danmu;
   const mergePart =
-    roomSetting.autoPartMerge !== undefined
+    roomSetting?.autoPartMerge !== undefined
       ? roomSetting.autoPartMerge
       : appConfig.webhook.autoPartMerge;
 
@@ -382,7 +388,7 @@ const addMergeAssMp4Task = (
 };
 
 const newUploadTask = async (mergePart: boolean, part: Part, config: BiliupConfig) => {
-  if (!mergePart) return;
+  if (mergePart) return;
   const biliup = await uploadVideo(mainWin.webContents, [part.filePath], config);
   part.status = "uploading";
   biliup.once("close", async (code: 0 | 1) => {
@@ -400,95 +406,112 @@ async function checkFileInterval() {
 
     for (let i = 0; i < liveData.length; i++) {
       const live = liveData[i];
-
-      const roomSetting = appConfig.webhook.rooms[live.roomId];
-      const mergePart =
-        roomSetting.autoPartMerge !== undefined
-          ? roomSetting.autoPartMerge
-          : appConfig.webhook.autoPartMerge;
-      if (!mergePart) return;
-      let config = DEFAULT_BILIUP_CONFIG;
-      const uploadPresetId =
-        roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
-      if (appConfig.webhook.uploadPresetId) {
-        const preset = await readBiliupPreset(undefined, uploadPresetId);
-        config = { ...config, ...preset.config };
-      }
-      config.title = live.videoName;
-
-      log.debug("interval", live);
-      const filePaths: string[] = [];
-      // 找到前几个为handled的part
-      for (let i = 0; i < live.parts.length; i++) {
-        const part = live.parts[i];
-        if (part.status === "handled" && part.endTime) {
-          filePaths.push(part.filePath);
-        } else {
-          break;
-        }
-      }
-      if (filePaths.length === 0) return;
-
-      let biliup: any;
-      if (live.aid) {
-        log.info("续传", filePaths);
-        biliup = await appendVideo(mainWin.webContents, filePaths, {
-          vid: live.aid,
-        });
-        live.parts.map((item) => {
-          if (filePaths.includes(item.filePath)) item.status === "uploading";
-        });
-        biliup.once("close", async (code: 0 | 1) => {
-          if (code === 0) {
-            // 设置状态为成功
-            live.parts.map((item) => {
-              if (filePaths.includes(item.filePath)) item.status === "uploaded";
-            });
-          } else {
-            // 设置状态为失败
-            live.parts.map((item) => {
-              if (filePaths.includes(item.filePath)) item.status === "error";
-            });
-          }
-        });
-      } else {
-        log.info("上传", filePaths);
-        biliup = await uploadVideo(mainWin.webContents, filePaths, config);
-        biliup.once("close", async (code: 0 | 1) => {
-          if (code === 0) {
-            await runWithMaxIterations(
-              async () => {
-                // TODO:接完上传后重构
-                const res = await bili.client.platform.getArchives();
-                for (let i = 0; i < Math.min(10, res.data.arc_audits.length); i++) {
-                  const item = res.data.arc_audits[i];
-                  log.debug("getArchives", item.Archive, live.videoName);
-                  if (item.Archive.title === live.videoName) {
-                    // @ts-ignore
-                    live.aid = item.Archive.aid;
-                    return false;
-                  }
-                }
-                return true;
-              },
-              6000,
-              5,
-            );
-            // 设置状态为成功
-            live.parts.map((item) => {
-              if (filePaths.includes(item.filePath)) item.status === "uploaded";
-            });
-          } else {
-            // 设置状态为失败
-            live.parts.map((item) => {
-              if (filePaths.includes(item.filePath)) item.status === "error";
-            });
-          }
-        });
-      }
+      handleLive(live, appConfig);
     }
   }, 1000 * 60);
 }
+
+const handleLive = async (live: Live, appConfig: AppConfig) => {
+  const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[live.roomId];
+  const mergePart =
+    roomSetting?.autoPartMerge !== undefined
+      ? roomSetting.autoPartMerge
+      : appConfig.webhook.autoPartMerge;
+  if (!mergePart) return;
+  let config = DEFAULT_BILIUP_CONFIG;
+  const uploadPresetId =
+    roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
+  if (appConfig.webhook.uploadPresetId) {
+    const preset = await readBiliupPreset(undefined, uploadPresetId);
+    config = { ...config, ...preset.config };
+  }
+  config.title = live.videoName;
+
+  // 不要有两个任务同时上传
+  const isUploading = live.parts.some((item) => item.status === "uploading");
+  if (isUploading) return;
+
+  const filePaths: string[] = [];
+  // 过滤掉已经上传的part
+  const filterParts = live.parts.filter(
+    (item) => item.status !== "uploaded" && item.status !== "error",
+  );
+  // 找到前几个为handled的part
+  for (let i = 0; i < filterParts.length; i++) {
+    const part = filterParts[i];
+    if (part.status === "handled" && part.endTime) {
+      filePaths.push(part.filePath);
+    } else {
+      break;
+    }
+  }
+  log.debug("interval", live, filePaths);
+  if (filePaths.length === 0) return;
+
+  let biliup: any;
+  if (live.aid) {
+    log.info("续传", filePaths);
+    biliup = await appendVideo(mainWin.webContents, filePaths, {
+      vid: live.aid,
+    });
+    live.parts.map((item) => {
+      if (filePaths.includes(item.filePath)) item.status = "uploading";
+    });
+    biliup.once("close", async (code: 0 | 1) => {
+      if (code === 0) {
+        // 设置状态为成功
+        live.parts.map((item) => {
+          if (filePaths.includes(item.filePath)) item.status = "uploaded";
+        });
+      } else {
+        // 设置状态为失败
+        live.parts.map((item) => {
+          if (filePaths.includes(item.filePath)) item.status = "error";
+        });
+      }
+    });
+  } else {
+    biliup = await uploadVideo(mainWin.webContents, filePaths, config);
+    live.parts.map((item) => {
+      if (filePaths.includes(item.filePath)) item.status = "uploading";
+    });
+
+    log.info("上传成功", live, filePaths);
+
+    biliup.once("close", async (code: 0 | 1) => {
+      if (code === 0) {
+        await runWithMaxIterations(
+          async () => {
+            // TODO:接完上传后重构
+            const res = await bili.client.platform.getArchives();
+            for (let i = 0; i < Math.min(10, res.data.arc_audits.length); i++) {
+              const item = res.data.arc_audits[i];
+              log.debug("getArchives", item.Archive, live.videoName);
+              if (item.Archive.title === live.videoName) {
+                live.aid = item.Archive.aid;
+                return false;
+              }
+            }
+            return true;
+          },
+          6000,
+          5,
+        );
+
+        // 设置状态为成功
+        live.parts.map((item) => {
+          if (filePaths.includes(item.filePath)) item.status = "uploaded";
+        });
+        log.info("上传成功", live, filePaths);
+      } else {
+        // 设置状态为失败
+        live.parts.map((item) => {
+          if (filePaths.includes(item.filePath)) item.status = "error";
+        });
+      }
+    });
+  }
+};
 
 checkFileInterval();
 

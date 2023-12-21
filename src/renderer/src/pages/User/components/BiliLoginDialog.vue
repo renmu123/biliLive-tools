@@ -44,7 +44,6 @@ const onOpen = async () => {
     console.log("completed", res);
     text.value = "登录成功，请关闭本窗口";
     try {
-      await window.api.bili.saveCookie();
       window.biliApi.loadCookie();
       notice.success({
         title: "保存B站登录信息成功",
