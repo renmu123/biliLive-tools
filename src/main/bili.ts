@@ -1,5 +1,9 @@
+import path from "node:path";
+
+import fs from "fs-extra";
 import { Client, TvQrcodeLogin } from "@renmu/bili-api";
 import { BILIUP_COOKIE_PATH } from "./appConstant";
+import { app } from "electron";
 
 import { type IpcMainInvokeEvent } from "electron";
 
@@ -32,6 +36,11 @@ async function getMyInfo(): ReturnType<ClientInstance["user"]["getMyInfo"]> {
 function login() {
   const tv = new TvQrcodeLogin();
   return tv.login();
+}
+
+async function saveCookie(data: any) {
+  const savePath = app.getPath("userData");
+  return fs.writeFile(path.join(savePath, "cookies.json"), JSON.stringify(data));
 }
 
 export const biliApi = {
@@ -77,7 +86,9 @@ export const handlers = {
     tv.on("scan", (res) => {
       console.log(res);
     });
-    tv.on("completed", (res) => {
+    tv.on("completed", async (res) => {
+      const data = res.data;
+      await saveCookie(data);
       event.sender.send("biliApi:login-completed", res);
     });
     return tv.login();
