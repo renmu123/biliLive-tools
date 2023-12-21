@@ -1,5 +1,5 @@
 import { app } from "electron";
-import { join, dirname } from "path";
+import { join } from "path";
 import fs from "fs-extra";
 
 import Biliup from "./biliup/index";
@@ -124,20 +124,10 @@ const genBiliupOPtions = (options: BiliupConfig) => {
   });
 };
 
-// 保存登录cookie到用户文件夹
-export const saveBiliCookie = async () => {
-  let cookiePtah = join(dirname(app.getPath("exe")), "cookies.json");
-  if (import.meta.env.DEV) {
-    cookiePtah = join(__dirname, "../../cookies.json");
-  }
-  const savePath = app.getPath("userData");
-  return await fs.move(cookiePtah, join(savePath, "cookies.json"), { overwrite: true });
-};
-
 // 检查bili登录的cookie是否存在
 export const checkBiliCookie = async () => {
   const cookiePath = BILIUP_COOKIE_PATH;
-  return await fs.pathExists(cookiePath);
+  return fs.pathExists(cookiePath);
 };
 
 // 验证配置
@@ -202,9 +192,19 @@ export const handlers = {
   "bili:savePreset": saveBiliupPreset,
   "bili:deletePreset": deleteBiliupPreset,
   "bili:getPresets": readBiliupPresets,
-  "bili:saveCookie": saveBiliCookie,
   "bili:checkCookie": checkBiliCookie,
   "bili:deleteCookie": deleteBiliCookie,
+  "bili:checkOldCookie": async () => {
+    const cookiePath = BILIUP_COOKIE_PATH;
+    return fs.pathExists(cookiePath);
+  },
+  "bili:migrateCookie": async () => {
+    // const oldCookiePath = join(app.getPath("userData"), "biliup_cookie");
+    // const newCookiePath = BILIUP_COOKIE_PATH;
+    // if (await fs.pathExists(oldCookiePath)) {
+    //   await fs.move(oldCookiePath, newCookiePath);
+    // }
+  },
   "bili:uploadVideo": async (
     _event: IpcMainInvokeEvent,
     pathArray: string[],

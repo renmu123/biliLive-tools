@@ -38,13 +38,13 @@ const notice = useNotification();
 const url = ref("");
 const text = ref("");
 const onOpen = async () => {
-  url.value = await window.biliApi.login();
+  url.value = await window.api.bili.login();
 
-  window.biliApi.onLogin("completed", async (_, res) => {
+  window.api.bili.onLogin("completed", async (_, res) => {
     console.log("completed", res);
     text.value = "登录成功，请关闭本窗口";
     try {
-      window.biliApi.loadCookie();
+      window.api.bili.loadCookie();
       notice.success({
         title: "保存B站登录信息成功",
         duration: 2000,
@@ -56,7 +56,7 @@ const onOpen = async () => {
       });
     }
   });
-  window.biliApi.onLogin("error", (_, res) => {
+  window.api.bili.onLogin("error", (_, res) => {
     console.log("error", res);
     text.value = res.message;
   });
@@ -76,7 +76,7 @@ watch(
     if (showModal.value) {
       onOpen();
     } else {
-      window.biliApi.loginCancel();
+      window.api.bili.loginCancel();
       emits("close");
     }
   },

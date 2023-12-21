@@ -177,10 +177,6 @@ export const api = {
     getPresets: (): Promise<BiliupPreset[]> => {
       return ipcRenderer.invoke("bili:getPresets");
     },
-    // cookie
-    saveCookie: () => {
-      return ipcRenderer.invoke("bili:saveCookie");
-    },
     checkCookie: (): Promise<boolean> => {
       return ipcRenderer.invoke("bili:checkCookie");
     },
@@ -196,6 +192,24 @@ export const api = {
     },
     appendVideo: async (videoFiles: string[], options: BiliupConfigAppend) => {
       return await ipcRenderer.invoke("bili:appendVideo", videoFiles, options);
+    },
+    loadCookie() {
+      return ipcRenderer.invoke("biliApi:updateCookie");
+    },
+    login() {
+      return ipcRenderer.invoke("biliApi:login");
+    },
+    onLogin(event: "error" | "completed", callback: (event: IpcRendererEvent, data: any) => void) {
+      if (event === "error") {
+        ipcRenderer.once("biliApi:login-error", callback);
+      } else if (event === "completed") {
+        ipcRenderer.once("biliApi:login-completed", callback);
+      }
+    },
+    loginCancel() {
+      ipcRenderer.removeAllListeners("biliApi:login-error");
+      ipcRenderer.removeAllListeners("biliApi:login-completed");
+      return ipcRenderer.invoke("biliApi:login:cancel");
     },
   },
   ffmpeg: {
@@ -335,24 +349,6 @@ export const biliApi = {
   },
   getMyInfo() {
     return ipcRenderer.invoke("biliApi:getMyInfo");
-  },
-  loadCookie() {
-    return ipcRenderer.invoke("biliApi:updateCookie");
-  },
-  login() {
-    return ipcRenderer.invoke("biliApi:login");
-  },
-  onLogin(event: "error" | "completed", callback: (event: IpcRendererEvent, data: any) => void) {
-    if (event === "error") {
-      ipcRenderer.once("biliApi:login-error", callback);
-    } else if (event === "completed") {
-      ipcRenderer.once("biliApi:login-completed", callback);
-    }
-  },
-  loginCancel() {
-    ipcRenderer.removeAllListeners("biliApi:login-error");
-    ipcRenderer.removeAllListeners("biliApi:login-completed");
-    return ipcRenderer.invoke("biliApi:login:cancel");
   },
 };
 
