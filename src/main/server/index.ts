@@ -149,15 +149,6 @@ async function handle(options: {
     .slice(0, 80);
   if (!config.title) config.title = path.parse(options.filePath).name;
 
-  log.info("upload config", config);
-  log.info("appConfig: ", appConfig.webhook);
-  log.debug("options", options);
-
-  const fileSize = await getFileSize(options.filePath);
-  if (fileSize / 1024 / 1024 < minSize) {
-    log.info("file size too small");
-    return;
-  }
   if (appConfig.webhook.blacklist.includes(String(options.roomId))) {
     log.info(`${options.roomId} is in blacklist`);
     return;
@@ -259,7 +250,17 @@ async function handle(options: {
   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
     return;
   }
-  // 下面是只有结束事件才会执行的代码
+
+  // 需要在录制结束时判断大小
+  const fileSize = await getFileSize(options.filePath);
+  if (fileSize / 1024 / 1024 < minSize) {
+    log.info(`${options.filePath}: file size is too small`);
+    if (currentLive) {
+      const index = currentLive.parts.findIndex((part) => part.filePath === options.filePath);
+      currentLive.parts.splice(index, 1);
+    }
+    return;
+  }
   log.debug("currentLive-end", currentLive);
 
   const currentPart = currentLive.parts.find((part) => part.filePath === options.filePath);
