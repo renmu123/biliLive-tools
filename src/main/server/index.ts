@@ -251,6 +251,10 @@ async function handle(options: {
   const fileSize = await getFileSize(options.filePath);
   if (fileSize / 1024 / 1024 < minSize) {
     log.info(`${options.filePath}: file size is too small`);
+    if (currentLive) {
+      const index = currentLive.parts.findIndex((part) => part.filePath === options.filePath);
+      currentLive.parts.splice(index, 1);
+    }
     return;
   }
   log.debug("currentLive-end", currentLive);
