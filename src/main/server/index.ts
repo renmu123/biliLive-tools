@@ -26,13 +26,14 @@ import type {
 const app = express();
 app.use(express.json());
 
-interface Part {
+export interface Part {
+  partId: string;
   startTime?: number;
   endTime?: number;
   filePath: string;
   status: "recording" | "recorded" | "handled" | "uploading" | "uploaded" | "error";
 }
-interface Live {
+export interface Live {
   eventId: string;
   platform: "bili-recorder" | "blrec";
   startTime?: number;
@@ -55,12 +56,10 @@ app.post("/webhook", async function (req, res) {
   log.info("录播姬：", req.body);
 
   const event = req.body;
-
   if (
-    (appConfig.webhook.open &&
-      appConfig.webhook.recoderFolder &&
-      event.EventType === "FileOpening") ||
-    event.EventType === "FileClosed"
+    appConfig.webhook.open &&
+    appConfig.webhook.recoderFolder &&
+    (event.EventType === "FileOpening" || event.EventType === "FileClosed")
   ) {
     const roomId = event.EventData.RoomId;
     const filePath = path.join(appConfig.webhook.recoderFolder, event.EventData.RelativePath);
@@ -105,7 +104,53 @@ app.post("/blrec", async function (req, res) {
   res.send("ok");
 });
 
-async function handle(options: {
+function getConfig(roomId: number): {
+  /* 是否需要压制弹幕 */
+  danmu: boolean;
+  /* 是否合并到一个文件中 */
+  mergePart: boolean;
+  /* 最小文件大小 */
+  minSize: number;
+  /* 上传preset */
+  uploadPresetId: string;
+  /* 上传标题 */
+  title: string;
+  /* 弹幕preset */
+  danmuPresetId: string;
+  /* 视频preset */
+  videoPresetId: string;
+  /* 黑名单 */
+  blacklist: string[];
+} {
+  const appConfig = getAppConfig();
+  const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[roomId];
+  log.debug("room setting", roomId, roomSetting);
+  const danmu = roomSetting?.danmu !== undefined ? roomSetting.danmu : appConfig.webhook.danmu;
+  const mergePart =
+    roomSetting?.autoPartMerge !== undefined
+      ? roomSetting.autoPartMerge
+      : appConfig.webhook.autoPartMerge;
+  const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
+  const uploadPresetId =
+    roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
+  const title = roomSetting?.title || appConfig.webhook.title || "";
+  const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
+  const videoPresetId = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
+  const blacklist = appConfig.webhook.blacklist.split(",");
+
+  return {
+    danmu,
+    mergePart,
+    minSize,
+    uploadPresetId,
+    title,
+    danmuPresetId,
+    videoPresetId,
+    blacklist,
+  };
+}
+
+export interface Options {
   event: "FileOpening" | "FileClosed" | "VideoFileCompletedEvent" | "VideoFileCreatedEvent";
   filePath: string;
   roomId: number;
@@ -113,47 +158,9 @@ async function handle(options: {
   username: string;
   title: string;
   platform: "bili-recorder" | "blrec";
-}) {
-  // 配置信息
-  const appConfig = getAppConfig();
-  const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[options.roomId];
-  log.info("room setting", options.roomId, roomSetting);
-  const danmu = roomSetting?.danmu !== undefined ? roomSetting.danmu : appConfig.webhook.danmu;
-  const mergePart =
-    roomSetting?.autoPartMerge !== undefined
-      ? roomSetting.autoPartMerge
-      : appConfig.webhook.autoPartMerge;
+}
 
-  const data = {
-    time: options.time,
-    title: options.title,
-    name: options.username,
-  };
-
-  const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
-
-  let config = DEFAULT_BILIUP_CONFIG;
-  const uploadPresetId =
-    roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
-  if (appConfig.webhook.uploadPresetId) {
-    const preset = await readBiliupPreset(undefined, uploadPresetId);
-    config = { ...config, ...preset.config };
-  }
-
-  const title = roomSetting?.title || appConfig.webhook.title || "";
-  config.title = title
-    .replaceAll("{{title}}", data.title)
-    .replaceAll("{{user}}", data.name)
-    .replaceAll("{{now}}", formatTime(data.time))
-    .trim()
-    .slice(0, 80);
-  if (!config.title) config.title = path.parse(options.filePath).name;
-
-  if (appConfig.webhook.blacklist.includes(String(options.roomId))) {
-    log.info(`${options.roomId} is in blacklist`);
-    return;
-  }
-
+export function handleLiveData(options: Options) {
   // 计算live
   const timestamp = new Date(options.time).getTime();
   let currentIndex = -1;
@@ -161,7 +168,8 @@ async function handle(options: {
   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
     currentIndex = liveData.findIndex((live) => {
       // 找到上一个文件结束时间与当前时间差小于10分钟的直播，认为是同一个直播
-      const endTime = live.parts.at(-1)?.endTime || 0;
+      // 找到part中最大的结束时间
+      const endTime = Math.max(...live.parts.map((item) => item.endTime || 0));
       return (
         live.roomId === options.roomId &&
         live.platform === options.platform &&
@@ -171,6 +179,7 @@ async function handle(options: {
     let currentLive = liveData[currentIndex];
     if (currentLive) {
       const part: Part = {
+        partId: uuid(),
         startTime: timestamp,
         filePath: options.filePath,
         status: "recording",
@@ -188,9 +197,10 @@ async function handle(options: {
         platform: options.platform,
         startTime: timestamp,
         roomId: options.roomId,
-        videoName: config.title,
+        videoName: options.title,
         parts: [
           {
+            partId: uuid(),
             startTime: timestamp,
             filePath: options.filePath,
             status: "recording",
@@ -226,9 +236,10 @@ async function handle(options: {
         eventId: uuid(),
         platform: options.platform,
         roomId: options.roomId,
-        videoName: config.title,
+        videoName: options.title,
         parts: [
           {
+            partId: uuid(),
             filePath: options.filePath,
             endTime: timestamp,
             status: "recorded",
@@ -239,9 +250,43 @@ async function handle(options: {
       currentIndex = liveData.length - 1;
     }
   }
-  const currentLive = liveData[currentIndex];
-  log.debug("liveData-end", currentIndex, currentLive, JSON.stringify(liveData, null, 2));
-  log.debug("currentLive", currentLive);
+
+  return currentIndex;
+}
+
+async function handle(options: Options) {
+  const {
+    danmu,
+    mergePart,
+    minSize,
+    uploadPresetId,
+    title,
+    danmuPresetId,
+    videoPresetId,
+    blacklist,
+  } = getConfig(options.roomId);
+  if (blacklist.includes(String(options.roomId))) {
+    log.info(`${options.roomId} is in blacklist`);
+    return;
+  }
+
+  let config = DEFAULT_BILIUP_CONFIG;
+  if (uploadPresetId) {
+    const preset = await readBiliupPreset(undefined, uploadPresetId);
+    config = { ...config, ...preset.config };
+  }
+  config.title = title
+    .replaceAll("{{title}}", options.title)
+    .replaceAll("{{user}}", options.username)
+    .replaceAll("{{now}}", formatTime(options.time))
+    .trim()
+    .slice(0, 80);
+  if (!config.title) config.title = path.parse(options.filePath).name;
+  options.title = config.title;
+
+  // 计算live
+  const currentLiveIndex = handleLiveData(options);
+  const currentLive = liveData[currentLiveIndex];
 
   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
     return;
@@ -260,21 +305,18 @@ async function handle(options: {
   log.debug("currentLive-end", currentLive);
 
   const currentPart = currentLive.parts.find((part) => part.filePath === options.filePath);
+  if (!currentPart) return;
+
   if (danmu) {
     // 压制弹幕后上传
-    const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
-    const videoPresetId = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
-    console.log(danmuPresetId, videoPresetId);
     const xmlFile = path.parse(options.filePath);
     const xmlFilePath = path.join(xmlFile.dir, `${xmlFile.name}.xml`);
     await sleep(10000);
 
     if (!(await fs.pathExists(xmlFilePath))) {
       log.info("没有找到弹幕文件，直接上传", xmlFilePath);
-      if (currentPart) {
-        currentPart.status = "handled";
-      }
-      newUploadTask(mergePart, currentPart!, config);
+      currentPart.status = "handled";
+      newUploadTask(mergePart, currentPart, config);
       return;
     }
 
@@ -288,16 +330,12 @@ async function handle(options: {
     }
     const output = await addMergeAssMp4Task(options.filePath, assFilePath, ffmpegPreset?.config);
     fs.remove(assFilePath);
-    if (currentPart) {
-      currentPart.filePath = output;
-      currentPart.status = "handled";
-    }
-    newUploadTask(mergePart, currentPart!, config);
+    currentPart.filePath = output;
+    currentPart.status = "handled";
+    newUploadTask(mergePart, currentPart, config);
   } else {
-    if (currentPart) {
-      currentPart.status = "handled";
-    }
-    newUploadTask(mergePart, currentPart!, config);
+    currentPart.status = "handled";
+    newUploadTask(mergePart, currentPart, config);
   }
 }
 
@@ -409,15 +447,10 @@ async function checkFileInterval() {
 }
 
 const handleLive = async (live: Live, appConfig: AppConfig) => {
-  const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[live.roomId];
-  const mergePart =
-    roomSetting?.autoPartMerge !== undefined
-      ? roomSetting.autoPartMerge
-      : appConfig.webhook.autoPartMerge;
+  const { mergePart, uploadPresetId } = getConfig(live.roomId);
   if (!mergePart) return;
+
   let config = DEFAULT_BILIUP_CONFIG;
-  const uploadPresetId =
-    roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
   if (appConfig.webhook.uploadPresetId) {
     const preset = await readBiliupPreset(undefined, uploadPresetId);
     config = { ...config, ...preset.config };
@@ -483,7 +516,6 @@ const handleLive = async (live: Live, appConfig: AppConfig) => {
             const res = await bili.client.platform.getArchives();
             for (let i = 0; i < Math.min(10, res.data.arc_audits.length); i++) {
               const item = res.data.arc_audits[i];
-              log.debug("getArchives", item.Archive, live.videoName);
               if (item.Archive.title === live.videoName) {
                 live.aid = item.Archive.aid;
                 return false;
