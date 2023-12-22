@@ -1,19 +1,35 @@
 <template>
   <div>
     <div class="user-info">
-      <div v-if="userInfo.profile.face" class="avatar-container">
-        <img
-          :src="userInfo.profile.face"
-          alt="user-avatar"
-          referrerpolicy="no-referrer"
-          class="user-avatar"
-        />
-        <span>{{ userInfo.profile.name }}</span>
-        <n-button type="primary" @click="logout">退出登录</n-button>
+      <div class="login-btns">
+        <n-button type="primary" @click="login">登录账号</n-button>
         <n-button v-if="hasOldCookie" @click="migrateOldCookie">迁移旧版Cookie</n-button>
       </div>
-      <div v-else class="login-btns">
-        <n-button type="primary" @click="login">登录</n-button>
+    </div>
+    <div class="container">
+      <div
+        v-for="item in userList"
+        :key="item.uid"
+        class="card"
+        :class="{
+          active: item.uid === userInfo.uid,
+        }"
+      >
+        <span>{{ item.name }}</span>
+        <img :src="item.face" alt="" referrerpolicy="no-referrer" class="face" />
+        <n-popover placement="right-start" trigger="hover">
+          <template #trigger>
+            <n-icon size="25" class="pointer menu">
+              <EllipsisHorizontalOutline />
+            </n-icon>
+          </template>
+          <div style="padding: 5px 10px">uid: {{ item.uid }}</div>
+          <div v-if="item.uid !== userInfo.uid" class="section" @click="changeAccount(item.uid)">
+            使用
+          </div>
+          <div class="section" @click="updateAccountInfo(item.uid)">刷新信息</div>
+          <div class="section" style="color: red" @click="logout(item.uid)">退出账号</div>
+        </n-popover>
       </div>
     </div>
     <BiliLoginDialog v-model="loginTvDialogVisible" @close="getUserInfo"></BiliLoginDialog>
@@ -25,14 +41,10 @@ import { storeToRefs } from "pinia";
 import { useUserInfoStore } from "@renderer/stores";
 import BiliLoginDialog from "./components/BiliLoginDialog.vue";
 import { useConfirm } from "@renderer/hooks";
+import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 
-const { getUserInfo } = useUserInfoStore();
-const { userInfo } = storeToRefs(useUserInfoStore());
-
-const logout = async () => {
-  await window.api.bili.deleteCookie();
-  getUserInfo();
-};
+const { getUserInfo, changeUser } = useUserInfoStore();
+const { userInfo, userList } = storeToRefs(useUserInfoStore());
 
 const loginTvDialogVisible = ref(false);
 const login = async () => {
@@ -58,23 +70,78 @@ const migrateOldCookie = async () => {
   hasOldCookie.value = false;
   getUserInfo();
 };
+
+const logout = async (uid: number) => {
+  const status = await confirm.warning({
+    content: "确认退出账号？",
+  });
+  if (!status) return;
+  await window.api.bili.deleteUser(uid);
+  getUserInfo();
+};
+const changeAccount = async (uid: number) => {
+  changeUser(uid);
+};
+
+const updateAccountInfo = async (uid: number) => {
+  await window.api.bili.updateUserInfo(uid);
+  getUserInfo();
+};
 </script>
 
 <style scoped lang="less">
-.avatar-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  .user-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-right: 10px;
-  }
-}
-
 .login-btns {
   display: inline-flex;
   gap: 10px;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+  .card {
+    padding: 10px;
+    width: 100px;
+    border-radius: 10px;
+    background-color: #fff;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #eee;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    .face {
+      width: 80%;
+    }
+    .menu {
+      position: absolute;
+      bottom: 0px;
+      right: 5px;
+    }
+  }
+  .card.active::before {
+    content: "正在使用";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    color: #fff;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+  }
+}
+
+.section {
+  padding: 5px 10px;
+  cursor: pointer;
+  &:hover {
+    background-color: #eee;
+  }
 }
 </style>

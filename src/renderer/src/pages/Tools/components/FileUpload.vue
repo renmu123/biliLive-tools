@@ -21,14 +21,18 @@
 </template>
 
 <script setup lang="ts">
+import { storeToRefs } from "pinia";
+
 import FileArea from "@renderer/components/FileArea.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 import AppendVideoDialog from "@renderer/components/AppendVideoDialog.vue";
 import { useBili } from "@renderer/hooks";
+import { useUserInfoStore } from "@renderer/stores";
 
 import type { File } from "../../../../../types";
 import { deepRaw } from "@renderer/utils";
 
+const { userInfo } = storeToRefs(useUserInfoStore());
 const { handlePresetOptions, presetOptions } = useBili();
 const notice = useNotification();
 
@@ -39,7 +43,7 @@ const fileList = ref<
 >([]);
 
 const upload = async () => {
-  const hasLogin = await window.api.bili.checkCookie();
+  const hasLogin = !!userInfo.value.uid;
   if (!hasLogin) {
     notice.error({
       title: `请点击左侧头像处进行登录`,
@@ -61,6 +65,7 @@ const upload = async () => {
     duration: 3000,
   });
   await window.api.bili.uploadVideo(
+    userInfo.value.uid,
     toRaw(fileList.value.map((file) => file.path)),
     deepRaw(presetOptions.value.config),
   );
@@ -75,7 +80,7 @@ const appendVideo = async () => {
   }
   // await window.api.appendVideo(aid.value);
 
-  const hasLogin = await window.api.bili.checkCookie();
+  const hasLogin = !!userInfo.value.uid;
   if (!hasLogin) {
     notice.error({
       title: `请先登录`,
@@ -96,10 +101,14 @@ const appendVideo = async () => {
     title: `开始上传`,
     duration: 3000,
   });
-  await window.api.bili.appendVideo(toRaw(fileList.value.map((file) => file.path)), {
-    ...deepRaw(presetOptions.value.config),
-    vid: aid.value,
-  });
+  await window.api.bili.appendVideo(
+    userInfo.value.uid,
+    toRaw(fileList.value.map((file) => file.path)),
+    {
+      ...deepRaw(presetOptions.value.config),
+      vid: aid.value,
+    },
+  );
   fileList.value = [];
 };
 </script>

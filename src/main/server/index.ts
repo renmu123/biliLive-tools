@@ -121,15 +121,16 @@ function getConfig(roomId: number): {
   videoPresetId: string;
   /* 黑名单 */
   blacklist: string[];
+  /* 是否开启 */
+  open?: boolean;
+  /* uid */
+  uid?: number;
 } {
   const appConfig = getAppConfig();
   const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[roomId];
   log.debug("room setting", roomId, roomSetting);
   const danmu = roomSetting?.danmu !== undefined ? roomSetting.danmu : appConfig.webhook.danmu;
-  const mergePart =
-    roomSetting?.autoPartMerge !== undefined
-      ? roomSetting.autoPartMerge
-      : appConfig.webhook.autoPartMerge;
+  const mergePart = roomSetting?.autoPartMerge ?? appConfig.webhook.autoPartMerge;
   const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
   const uploadPresetId =
     roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
@@ -137,6 +138,8 @@ function getConfig(roomId: number): {
   const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
   const videoPresetId = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
   const blacklist = appConfig.webhook.blacklist.split(",");
+  const open = roomSetting?.open;
+  const uid = roomSetting?.uid || appConfig.webhook.uid;
 
   return {
     danmu,
@@ -147,6 +150,8 @@ function getConfig(roomId: number): {
     danmuPresetId,
     videoPresetId,
     blacklist,
+    open,
+    uid,
   };
 }
 
@@ -264,9 +269,15 @@ async function handle(options: Options) {
     danmuPresetId,
     videoPresetId,
     blacklist,
+    open,
+    uid,
   } = getConfig(options.roomId);
   if (blacklist.includes(String(options.roomId))) {
     log.info(`${options.roomId} is in blacklist`);
+    return;
+  }
+  if (!open) {
+    log.info(`${options.roomId} is not open`);
     return;
   }
 
@@ -302,6 +313,10 @@ async function handle(options: Options) {
     }
     return;
   }
+  if (!uid) {
+    log.info(`${options.roomId}: uid is not set`);
+    return;
+  }
   log.debug("currentLive-end", currentLive);
 
   const currentPart = currentLive.parts.find((part) => part.filePath === options.filePath);
@@ -316,7 +331,7 @@ async function handle(options: Options) {
     if (!(await fs.pathExists(xmlFilePath))) {
       log.info("没有找到弹幕文件，直接上传", xmlFilePath);
       currentPart.status = "handled";
-      newUploadTask(mergePart, currentPart, config);
+      newUploadTask(uid, mergePart, currentPart, config);
       return;
     }
 
@@ -332,10 +347,10 @@ async function handle(options: Options) {
     fs.remove(assFilePath);
     currentPart.filePath = output;
     currentPart.status = "handled";
-    newUploadTask(mergePart, currentPart, config);
+    newUploadTask(uid, mergePart, currentPart, config);
   } else {
     currentPart.status = "handled";
-    newUploadTask(mergePart, currentPart, config);
+    newUploadTask(uid, mergePart, currentPart, config);
   }
 }
 
@@ -422,9 +437,9 @@ const addMergeAssMp4Task = (
   });
 };
 
-const newUploadTask = async (mergePart: boolean, part: Part, config: BiliupConfig) => {
+const newUploadTask = async (uid: number, mergePart: boolean, part: Part, config: BiliupConfig) => {
   if (mergePart) return;
-  const biliup = await uploadVideo(mainWin.webContents, [part.filePath], config);
+  const biliup = await uploadVideo(mainWin.webContents, uid, [part.filePath], config);
   part.status = "uploading";
   biliup.once("close", async (code: 0 | 1) => {
     if (code === 0) {
@@ -447,8 +462,9 @@ async function checkFileInterval() {
 }
 
 const handleLive = async (live: Live, appConfig: AppConfig) => {
-  const { mergePart, uploadPresetId } = getConfig(live.roomId);
+  const { mergePart, uploadPresetId, uid } = getConfig(live.roomId);
   if (!mergePart) return;
+  if (!uid) return;
 
   let config = DEFAULT_BILIUP_CONFIG;
   if (appConfig.webhook.uploadPresetId) {
@@ -481,7 +497,7 @@ const handleLive = async (live: Live, appConfig: AppConfig) => {
   let biliup: any;
   if (live.aid) {
     log.info("续传", filePaths);
-    biliup = await appendVideo(mainWin.webContents, filePaths, {
+    biliup = await appendVideo(mainWin.webContents, uid, filePaths, {
       vid: live.aid,
     });
     live.parts.map((item) => {
@@ -501,7 +517,7 @@ const handleLive = async (live: Live, appConfig: AppConfig) => {
       }
     });
   } else {
-    biliup = await uploadVideo(mainWin.webContents, filePaths, config);
+    biliup = await uploadVideo(mainWin.webContents, uid, filePaths, config);
     live.parts.map((item) => {
       if (filePaths.includes(item.filePath)) item.status = "uploading";
     });

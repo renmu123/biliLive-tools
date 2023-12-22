@@ -10,10 +10,9 @@
       class="card"
     >
       <div style="text-align: center">
+        <h2 v-if="text">登录成功，请关闭本窗口</h2>
         <h2>使用b站app扫码完成登录<br /></h2>
         <QRCodeVue3 v-if="url" :value="url" />
-
-        <h2 v-if="text">登录成功，请关闭本窗口</h2>
       </div>
       <template #footer>
         <div class="footer">
@@ -44,7 +43,6 @@ const onOpen = async () => {
     console.log("completed", res);
     text.value = "登录成功，请关闭本窗口";
     try {
-      window.api.bili.loadCookie();
       notice.success({
         title: "保存B站登录信息成功",
         duration: 2000,

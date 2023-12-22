@@ -1,4 +1,7 @@
 <template>
+  <n-form-item label="上传账号">
+    <n-select v-model:value="data.uid" :options="userOptins" placeholder="请选择账号" />
+  </n-form-item>
   <n-form-item>
     <template #label>
       <span class="inline-flex">
@@ -63,7 +66,7 @@
 
 <script setup lang="ts">
 import type { AppRoomConfig } from "../../../../types";
-import { useDanmuPreset } from "@renderer/stores";
+import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
 
 type Options = {
@@ -81,6 +84,13 @@ const data = defineModel<AppRoomConfig>("data", {
 });
 
 const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());
+const { userList } = storeToRefs(useUserInfoStore());
+const userOptins = computed(() => {
+  return userList.value.map((user) => ({
+    value: user.uid,
+    label: `${user.name}(${user.uid})`,
+  }));
+});
 
 const titleTip = ref(
   "支持{{title}},{{user}},{{now}}占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}",

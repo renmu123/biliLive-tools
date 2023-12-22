@@ -94,10 +94,9 @@ import { storeToRefs } from "pinia";
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
-
 import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
-import { useDanmuPreset } from "@renderer/stores";
+import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
 
 import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
@@ -114,6 +113,7 @@ const notice = useNotification();
 const confirm = useConfirm();
 const { danmuPresetsOptions, danmuPresetId, danmuPreset } = storeToRefs(useDanmuPreset());
 const { getDanmuPresets } = useDanmuPreset();
+const { userInfo } = storeToRefs(useUserInfoStore());
 
 const { handlePresetOptions, presetOptions } = useBili();
 
@@ -381,7 +381,7 @@ const createMergeVideoAssTask = async (
 };
 
 const biliUpCheck = async (presetOptions: BiliupPreset) => {
-  const hasLogin = await window.api.bili.checkCookie();
+  const hasLogin = !!userInfo.value.uid;
   if (!hasLogin) {
     throw new Error(`请点击左侧头像进行登录`);
   }
@@ -395,7 +395,7 @@ const upload = async (file: string, presetOptions: BiliupPreset) => {
   const valid = await biliUpCheck(presetOptions);
   if (!valid) return;
 
-  await window.api.bili.uploadVideo([file], presetOptions.config);
+  await window.api.bili.uploadVideo(userInfo.value.uid, [file], presetOptions.config);
 };
 
 // @ts-ignore

@@ -63,6 +63,7 @@ export interface AppRoomConfig {
   ffmpegPreset?: string;
   danmuPreset?: string;
   autoPartMerge: boolean;
+  uid?: number;
 }
 export interface AppConfig {
   logLevel: LogLevel;
@@ -83,6 +84,7 @@ export interface AppConfig {
     // TODO: 增加配置上传后删除原始文件
     ffmpegPreset?: string;
     danmuPreset?: string;
+    uid?: number;
 
     rooms: {
       [roomId: string]: AppRoomConfig;

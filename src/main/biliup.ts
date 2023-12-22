@@ -1,8 +1,11 @@
+import path from "node:path";
+import os from "node:os";
 import fs from "fs-extra";
 
 import Biliup from "./biliup/index";
 import log from "./utils/log";
 import Config from "./utils/config";
+import { uuid } from "./utils/index";
 import CommonPreset from "./utils/preset";
 import { biliApi } from "./bili";
 
@@ -27,47 +30,57 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
 // 上传视频
 export const uploadVideo = async (
   webContents: WebContents,
+  uid: number,
   pathArray: string[],
   options: BiliupConfig,
 ) => {
-  const biliup = await _uploadVideo(pathArray, options);
+  const user = await readUser(uid);
+  if (!user) {
+    throw new Error("用户不存在");
+  }
+  const temp = os.tmpdir();
+  const cookiePath = path.join(temp, `${uid}-${uuid()}.json`);
+  console.log("cookiePath", cookiePath);
+  console.log("BILIUP_PATH", user.cookie);
+  await fs.writeFile(cookiePath, user.rawAuth);
+
+  const biliup = await _uploadVideo(cookiePath, pathArray, options);
 
   biliup.on("close", (code) => {
+    fs.remove(cookiePath);
     webContents.send("upload-close", code, pathArray);
   });
   return biliup;
 };
 
 // 上传视频
-export const _uploadVideo = async (pathArray: string[], options: BiliupConfig) => {
-  const hasLogin = await checkBiliCookie();
-  if (!hasLogin) {
-    throw new Error("你还没有登录");
-  }
-  log.info("BILIUP_COOKIE_PATH", BILIUP_COOKIE_PATH);
+export const _uploadVideo = async (
+  cookiePath: string,
+  pathArray: string[],
+  options: BiliupConfig,
+) => {
+  log.info("cookiePath", cookiePath);
   log.info("BILIUP_PATH", BILIUP_PATH);
 
-  const BILIUP_COOKIE = BILIUP_COOKIE_PATH;
   const biliup = new Biliup();
   biliup.setBiliUpPath(BILIUP_PATH);
-  biliup.setCookiePath(BILIUP_COOKIE);
+  biliup.setCookiePath(cookiePath);
   const args = genBiliupOPtions(options);
   biliup.uploadVideo(pathArray, args);
   return biliup;
 };
 
-export const _appendVideo = async (pathArray: string[], options: BiliupConfigAppend) => {
-  const hasLogin = await checkBiliCookie();
-  if (!hasLogin) {
-    throw new Error("你还没有登录");
-  }
-  log.info("BILIUP_COOKIE_PATH", BILIUP_COOKIE_PATH);
+export const _appendVideo = async (
+  cookiePath: string,
+  pathArray: string[],
+  options: BiliupConfigAppend,
+) => {
+  log.info("cookiePath", cookiePath);
   log.info("BILIUP_PATH", BILIUP_PATH);
 
-  const BILIUP_COOKIE = BILIUP_COOKIE_PATH;
   const biliup = new Biliup();
   biliup.setBiliUpPath(BILIUP_PATH);
-  biliup.setCookiePath(BILIUP_COOKIE);
+  biliup.setCookiePath(cookiePath);
   biliup.appendVideo(pathArray, [`--vid ${options.vid}`]);
   return biliup;
 };
@@ -75,11 +88,21 @@ export const _appendVideo = async (pathArray: string[], options: BiliupConfigApp
 // 追加视频
 export const appendVideo = async (
   webContents: WebContents,
+  uid: number,
   pathArray: string[],
   options: BiliupConfigAppend,
 ) => {
-  const biliup = await _appendVideo(pathArray, options);
+  const user = await readUser(uid);
+  if (!user) {
+    throw new Error("用户不存在");
+  }
+  const temp = os.tmpdir();
+  const cookiePath = path.join(temp, `${uid}-${uuid()}.json`);
+  await fs.writeFile(cookiePath, user.rawAuth);
+
+  const biliup = await _appendVideo(cookiePath, pathArray, options);
   biliup.on("close", (code) => {
+    fs.remove(cookiePath);
     webContents.send("upload-close", code, pathArray);
   });
   return biliup;
@@ -122,12 +145,6 @@ const genBiliupOPtions = (options: BiliupConfig) => {
       return `--${key} ${value}`;
     }
   });
-};
-
-// 检查bili登录的cookie是否存在
-export const checkBiliCookie = async () => {
-  const cookiePath = BILIUP_COOKIE_PATH;
-  return fs.pathExists(cookiePath);
 };
 
 // 验证配置
@@ -182,8 +199,12 @@ export const readBiliupPreset = async (_event: IpcMainInvokeEvent | undefined, i
   return uploadPreset.get(id);
 };
 // 删除bili登录的cookie
-export const deleteBiliCookie = async () => {
-  return await fs.remove(BILIUP_COOKIE_PATH);
+export const deleteUser = async (uid: number) => {
+  const config = new Config("app.json");
+  const users = config.get("biliUser") || {};
+  delete users[uid];
+  config.set("biliUser", users);
+  return true;
 };
 
 // 写入用户数据
@@ -208,16 +229,27 @@ export const readUserList = async (): Promise<BiliUser[]> => {
   return Object.values(users);
 };
 
-const format = (data: any) => {
+export const format = async (data: any) => {
   const result: BiliUser = {
     mid: data.mid,
     rawAuth: JSON.stringify(data),
-    cookie: data.cookie,
+    cookie: (data?.cookie_info?.cookies || [])
+      .map((item: any) => `${item.name}=${item.value}`)
+      .join("; "),
     expires: data.expires_in,
     accessToken: data.access_token,
     refreshToken: data.refresh_token,
     platform: "TV",
   };
+
+  try {
+    const biliUser = (await biliApi.getUserInfo(data.mid)).data;
+    result.name = biliUser.name;
+    result.avavtar = biliUser.face;
+  } catch (e) {
+    log.error(e);
+  }
+
   return result;
 };
 
@@ -227,8 +259,9 @@ export const handlers = {
   "bili:savePreset": saveBiliupPreset,
   "bili:deletePreset": deleteBiliupPreset,
   "bili:getPresets": readBiliupPresets,
-  "bili:checkCookie": checkBiliCookie,
-  "bili:deleteCookie": deleteBiliCookie,
+  "bili:deleteUser": (_event: IpcMainInvokeEvent, mid: number) => {
+    return deleteUser(mid);
+  },
   "bili:removeUser": async (_event: IpcMainInvokeEvent, mid: number) => {
     const config = new Config("app.json");
     const users = config.get("biliUser") || {};
@@ -244,26 +277,25 @@ export const handlers = {
   },
   "bili:migrateCookie": async () => {
     const data: unknown = await fs.readJSON(BILIUP_COOKIE_PATH);
-    const user = format(data);
-    const biliUser = (await biliApi.getUserInfo(user.mid)).data;
-    user.name = biliUser.name;
-    user.avavtar = biliUser.face;
+    const user = await format(data);
 
     await writeUser(user);
     await fs.remove(BILIUP_COOKIE_PATH);
   },
   "bili:uploadVideo": async (
     _event: IpcMainInvokeEvent,
+    uid: number,
     pathArray: string[],
     options: BiliupConfig,
   ) => {
-    uploadVideo(_event.sender, pathArray, options);
+    uploadVideo(_event.sender, uid, pathArray, options);
   },
   "bili:appendVideo": async (
     _event: IpcMainInvokeEvent,
+    uid: number,
     pathArray: string[],
     options: BiliupConfigAppend,
   ) => {
-    appendVideo(_event.sender, pathArray, options);
+    appendVideo(_event.sender, uid, pathArray, options);
   },
 };

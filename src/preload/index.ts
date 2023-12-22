@@ -178,24 +178,18 @@ export const api = {
     getPresets: (): Promise<BiliupPreset[]> => {
       return ipcRenderer.invoke("bili:getPresets");
     },
-    checkCookie: (): Promise<boolean> => {
-      return ipcRenderer.invoke("bili:checkCookie");
-    },
-    deleteCookie: () => {
-      return ipcRenderer.invoke("bili:deleteCookie");
+    deleteUser: (uid: number) => {
+      return ipcRenderer.invoke("bili:deleteUser", uid);
     },
     // 验证视频上传参数
     validUploadParams: async (config: BiliupConfig) => {
       return await ipcRenderer.invoke("bili:validUploadParams", config);
     },
-    uploadVideo: async (videoFiles: string[], options: BiliupConfig) => {
-      return await ipcRenderer.invoke("bili:uploadVideo", videoFiles, options);
+    uploadVideo: async (uid: number, videoFiles: string[], options: BiliupConfig) => {
+      return await ipcRenderer.invoke("bili:uploadVideo", uid, videoFiles, options);
     },
-    appendVideo: async (videoFiles: string[], options: BiliupConfigAppend) => {
-      return await ipcRenderer.invoke("bili:appendVideo", videoFiles, options);
-    },
-    loadCookie() {
-      return ipcRenderer.invoke("biliApi:updateCookie");
+    appendVideo: async (uid: number, videoFiles: string[], options: BiliupConfigAppend) => {
+      return await ipcRenderer.invoke("bili:appendVideo", uid, videoFiles, options);
     },
     login() {
       return ipcRenderer.invoke("biliApi:login");
@@ -223,6 +217,9 @@ export const api = {
     },
     readUserList(): Promise<BiliUser[]> {
       return ipcRenderer.invoke("bili:readUserList");
+    },
+    updateUserInfo(uid: number) {
+      return ipcRenderer.invoke("bili:updateUserInfo", uid);
     },
   },
   ffmpeg: {
@@ -359,9 +356,6 @@ export const biliApi = {
   },
   checkTag(tag: string) {
     return ipcRenderer.invoke("biliApi:checkTag", tag);
-  },
-  getMyInfo() {
-    return ipcRenderer.invoke("biliApi:getMyInfo");
   },
 };
 

@@ -2,7 +2,14 @@ import { defineStore } from "pinia";
 import { DanmuPreset, BiliupPreset } from "../../../types";
 
 export const useUserInfoStore = defineStore("userInfo", () => {
-  const userInfo = ref({
+  const userInfo = ref<{
+    uid: number;
+    profile: {
+      face?: string;
+      name?: string;
+    };
+  }>({
+    uid: 0,
     profile: {
       face: "",
       name: "",
@@ -27,15 +34,33 @@ export const useUserInfoStore = defineStore("userInfo", () => {
       };
     });
 
-    const hasLogin = await window.api.bili.checkCookie();
-    if (hasLogin) {
-      const res = await window.biliApi.getMyInfo();
-      userInfo.value = res.data as any;
-    } else {
+    if (userList.value.length === 0) {
       userInfo.value = {
+        uid: 0,
         profile: {
           face: "",
           name: "",
+        },
+      };
+    } else {
+      userInfo.value = {
+        uid: userList.value[0].uid,
+        profile: {
+          face: userList.value[0].face,
+          name: userList.value[0].name,
+        },
+      };
+    }
+  }
+
+  function changeUser(uid: number) {
+    const user = userList.value.find((item) => item.uid === uid);
+    if (user) {
+      userInfo.value = {
+        uid: user.uid,
+        profile: {
+          face: user.face,
+          name: user.name,
         },
       };
     }
@@ -43,7 +68,7 @@ export const useUserInfoStore = defineStore("userInfo", () => {
 
   getUserInfo();
 
-  return { userInfo, getUserInfo };
+  return { userInfo, getUserInfo, userList, changeUser };
 });
 
 export const useDanmuPreset = defineStore("danmuPreset", () => {

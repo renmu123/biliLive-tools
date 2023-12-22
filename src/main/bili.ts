@@ -1,9 +1,6 @@
-import path from "node:path";
-
-import fs from "fs-extra";
 import { Client, TvQrcodeLogin } from "@renmu/bili-api";
 import { BILIUP_COOKIE_PATH } from "./appConstant";
-import { app } from "electron";
+import { format, writeUser } from "./biliup";
 
 import { type IpcMainInvokeEvent } from "electron";
 
@@ -13,6 +10,7 @@ const client = new Client();
 loadCookie();
 
 async function loadCookie() {
+  // TODO: 改成不从文件加载
   return client.loadCookieFile(BILIUP_COOKIE_PATH);
 }
 
@@ -28,13 +26,7 @@ async function checkTag(tag: string): ReturnType<ClientInstance["platform"]["che
   return client.platform.checkTag(tag);
 }
 
-async function getMyInfo(): ReturnType<ClientInstance["user"]["getMyInfo"]> {
-  await loadCookie();
-  return client.user.getMyInfo();
-}
-
 async function getUserInfo(uid: number): ReturnType<ClientInstance["user"]["getUserInfo"]> {
-  await loadCookie();
   return client.user.getUserInfo(uid);
 }
 
@@ -43,15 +35,9 @@ function login() {
   return tv.login();
 }
 
-async function saveCookie(data: any) {
-  const savePath = app.getPath("userData");
-  return fs.writeFile(path.join(savePath, "cookies.json"), JSON.stringify(data));
-}
-
 export const biliApi = {
   getArchives,
   checkTag,
-  getMyInfo,
   loadCookie,
   login,
   getUserInfo,
@@ -78,12 +64,6 @@ export const handlers = {
   ): ReturnType<typeof biliApi.checkTag> => {
     return biliApi.checkTag(tag);
   },
-  "biliApi:getMyInfo": (): ReturnType<typeof biliApi.getMyInfo> => {
-    return biliApi.getMyInfo();
-  },
-  "biliApi:updateCookie": () => {
-    return biliApi.loadCookie();
-  },
   "biliApi:login": (event: IpcMainInvokeEvent) => {
     tv = new TvQrcodeLogin();
     tv.on("error", (res) => {
@@ -94,13 +74,21 @@ export const handlers = {
     });
     tv.on("completed", async (res) => {
       const data = res.data;
-      await saveCookie(data);
+      const user = await format(data);
+      await writeUser(user);
       event.sender.send("biliApi:login-completed", res);
     });
     return tv.login();
   },
   "biliApi:login:cancel": () => {
     tv.interrupt();
+  },
+  "bili:updateUserInfo": async (
+    _event: IpcMainInvokeEvent,
+    uid: number,
+  ): ReturnType<typeof getUserInfo> => {
+    // TODO:获取用户名称和头像后替换
+    return getUserInfo(uid);
   },
 };
 
