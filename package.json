@@ -4,7 +4,7 @@
   "description": "B站直播录制处理工具",
   "main": "./out/main/index.js",
   "author": "renmu123",
-  "license": "GPL",
+  "license": "GPL-3.0",
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "scripts": {
     "dev": "chcp 65001 && electron-vite dev",
@@ -18,7 +18,8 @@
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts,.vue --fix",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
-    "typecheck": "npm run typecheck:node && npm run typecheck:web"
+    "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "test": "vite test"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^2.0.0",
@@ -62,6 +63,7 @@
     "unplugin-auto-import": "^0.17.2",
     "unplugin-vue-components": "^0.26.0",
     "vite": "^4.4.9",
+    "vitest": "^1.1.0",
     "vue": "^3.3.4",
     "vue-router": "^4.2.4",
     "vue-tsc": "^1.8.13"
