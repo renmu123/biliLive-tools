@@ -2,7 +2,7 @@ import path from "node:path";
 import os from "node:os";
 
 import fs from "fs-extra";
-import { getAppConfig } from "../config/app";
+import { getAppConfig } from "../config";
 import { uploadVideo, appendVideo, DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
 import { mainWin } from "../index";
 import { convertXml2Ass, readDanmuPreset } from "../danmu";

@@ -69,7 +69,9 @@ export interface AppConfig {
   logLevel: LogLevel;
   ffmpegPath: string;
   ffprobePath: string;
+  /** 保存到回收站 */
   trash: boolean;
+  /** 检查更新 */
   autoUpdate: boolean;
   webhook: {
     port: number;
@@ -90,6 +92,13 @@ export interface AppConfig {
       [roomId: string]: AppRoomConfig;
     };
   };
+  /** b站登录信息 */
+  biliUser: {
+    [uid: number]: BiliUser;
+  };
+  /** 当前使用的b站uid */
+  uid?: number;
+  /** 当前使用的上传预设 */
 }
 
 export type LogLevel = ElectronLoGLevel;
@@ -181,15 +190,11 @@ export interface BiliupPreset {
 export interface BiliUser {
   mid: number;
   name?: string;
-  avavtar?: string;
+  avatar?: string;
   rawAuth: string;
   cookie: string;
   expires: number;
   accessToken: string;
   refreshToken: string;
   platform: "TV";
-}
-
-export interface BiliUserConfig {
-  [mid: number]: BiliUser;
 }

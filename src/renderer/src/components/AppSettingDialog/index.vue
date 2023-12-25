@@ -136,9 +136,11 @@
 <script setup lang="ts">
 import RoomSettingDialog from "./RoomSettingDialog.vue";
 import CommonSetting from "./CommonWebhookSetting.vue";
+import { useAppConfig } from "@renderer/stores";
 
 import type { AppConfig, LogLevel, BiliupPreset, AppRoomConfig } from "../../../../types";
 
+const appConfigStore = useAppConfig();
 const showModal = defineModel<boolean>({ required: true, default: false });
 
 // @ts-ignore
@@ -152,8 +154,9 @@ const logLevelOptions = ref<{ label: string; value: LogLevel }[]>([
 ]);
 
 const saveConfig = async () => {
-  await window.api.saveAppConfig(toRaw(config.value));
+  await window.api.config.save(toRaw(config.value));
   close();
+  appConfigStore.getAppConfig();
 };
 
 const close = () => {
@@ -161,7 +164,7 @@ const close = () => {
 };
 
 const getConfig = async () => {
-  const data = await window.api.getAppConfig();
+  const data = await window.api.config.getAll();
   config.value = data;
 };
 

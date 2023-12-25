@@ -4,7 +4,7 @@ import fs from "fs-extra";
 
 import Biliup from "./biliup/index";
 import log from "./utils/log";
-import Config from "./utils/config";
+import { appConfig } from "./config";
 import { uuid } from "./utils/index";
 import CommonPreset from "./utils/preset";
 import { biliApi } from "./bili";
@@ -200,33 +200,29 @@ export const readBiliupPreset = async (_event: IpcMainInvokeEvent | undefined, i
 };
 // 删除bili登录的cookie
 export const deleteUser = async (uid: number) => {
-  const config = new Config("app.json");
-  const users = config.get("biliUser") || {};
+  const users = appConfig.get("biliUser") || {};
   delete users[uid];
-  config.set("biliUser", users);
+  appConfig.set("biliUser", users);
   return true;
 };
 
 // 写入用户数据
 export const writeUser = async (data: BiliUser) => {
-  const config = new Config("app.json");
-  const users = config.get("biliUser") || {};
+  const users = appConfig.get("biliUser") || {};
   users[data.mid] = data;
-  config.set("biliUser", users);
+  appConfig.set("biliUser", users);
 };
 
 // 读取用户数据
 export const readUser = async (mid: number): Promise<BiliUser | undefined> => {
-  const config = new Config("app.json");
-  const users = config.get("biliUser") || {};
+  const users = appConfig.get("biliUser") || {};
   return users[mid];
 };
 
 // 读取用户列表
 export const readUserList = async (): Promise<BiliUser[]> => {
-  const config = new Config("app.json");
-  const users = config.get("biliUser") || {};
-  return Object.values(users);
+  const users = appConfig.get("biliUser") || {};
+  return Object.values(users) as unknown as BiliUser[];
 };
 
 export const format = async (data: any) => {
@@ -245,7 +241,7 @@ export const format = async (data: any) => {
   try {
     const biliUser = (await biliApi.getUserInfo(data.mid)).data;
     result.name = biliUser.name;
-    result.avavtar = biliUser.face;
+    result.avatar = biliUser.face;
   } catch (e) {
     log.error(e);
   }
@@ -263,10 +259,9 @@ export const handlers = {
     return deleteUser(mid);
   },
   "bili:removeUser": async (_event: IpcMainInvokeEvent, mid: number) => {
-    const config = new Config("app.json");
-    const users = config.get("biliUser") || {};
+    const users = appConfig.get("biliUser") || {};
     delete users[mid];
-    config.set("biliUser", users);
+    appConfig.set("biliUser", users);
   },
   "bili:readUserList": () => {
     return readUserList();

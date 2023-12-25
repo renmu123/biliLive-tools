@@ -5,7 +5,7 @@ import semver from "semver";
 import { handlers as biliHandlers } from "./bili";
 import log from "./utils/log";
 import { trashItem as _trashItem } from "./utils/index";
-import { getAppConfig, saveAppConfig } from "./config/app";
+import { getAppConfig } from "./config";
 import serverApp from "./server/index";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron";
 import installExtension from "electron-devtools-installer";
@@ -22,6 +22,7 @@ import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as ffmpegHandlers } from "./ffmpegPreset";
 import { handlers as danmuHandlers } from "./danmu";
+import { handlers as configHandlers } from "./config";
 import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
@@ -41,10 +42,6 @@ const registerHandlers = (
 };
 
 const genHandler = (ipcMain: IpcMain) => {
-  // app配置相关
-  ipcMain.handle("saveAppConfig", saveAppConfig);
-  ipcMain.handle("getAppConfig", getAppConfig);
-
   // 通用函数
   ipcMain.handle("dialog:openDirectory", openDirectory);
   ipcMain.handle("dialog:openFile", openFile);
@@ -67,6 +64,7 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, taskHandlers);
   registerHandlers(ipcMain, ffmpegHandlers);
   registerHandlers(ipcMain, danmuHandlers);
+  registerHandlers(ipcMain, configHandlers);
 };
 
 const appConfig = getAppConfig();

@@ -23,7 +23,7 @@ import type {
   DanmuConfig,
   BiliUser,
 } from "../types";
-import ffmpeg from "fluent-ffmpeg";
+import type ffmpeg from "fluent-ffmpeg";
 
 type startCallback = (params: { command?: string }) => void;
 type endCallback = (params: { output?: string }) => void;
@@ -249,6 +249,20 @@ export const api = {
       return ipcRenderer.invoke("ffmpeg:presets:getOptions");
     },
   },
+  config: {
+    save: (newConfig: AppConfig) => {
+      return ipcRenderer.invoke("config:save", newConfig);
+    },
+    get: (key: string) => {
+      return ipcRenderer.invoke("config:get", key);
+    },
+    getAll: (): Promise<AppConfig> => {
+      return ipcRenderer.invoke("config:getAll");
+    },
+    set: (key: string, value: any) => {
+      return ipcRenderer.invoke("config:set", key, value);
+    },
+  },
   convertVideo2Mp4: async (
     file: File,
     options: Video2Mp4Options = {
@@ -290,11 +304,6 @@ export const api = {
   },
   readVideoMeta: async (file: string): Promise<ffmpeg.FfprobeData> => {
     return await ipcRenderer.invoke("readVideoMeta", file);
-  },
-  // app 配置相关
-  // 保存app配置
-  saveAppConfig: async (newConfig: AppConfig) => {
-    return await ipcRenderer.invoke("saveAppConfig", newConfig);
   },
   // 获取app配置
   getAppConfig: async (): Promise<AppConfig> => {

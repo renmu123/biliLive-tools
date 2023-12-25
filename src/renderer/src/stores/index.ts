@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { DanmuPreset, BiliupPreset } from "../../../types";
+import { DanmuPreset, BiliupPreset, AppConfig } from "../../../types";
 
 export const useUserInfoStore = defineStore("userInfo", () => {
   const userInfo = ref<{
@@ -25,12 +25,11 @@ export const useUserInfoStore = defineStore("userInfo", () => {
 
   async function getUserInfo() {
     const users = await window.api.bili.readUserList();
-    console.log(users);
     userList.value = users.map((item) => {
       return {
         uid: item.mid,
         name: item.name,
-        face: item.avavtar,
+        face: item.avatar,
       };
     });
 
@@ -164,5 +163,26 @@ export const useQueueStore = defineStore("queue", () => {
 
   return {
     runningTaskNum,
+  };
+});
+
+export const useAppConfig = defineStore("appConfig", () => {
+  // @ts-ignore
+  const appConfig = ref<AppConfig>({});
+
+  async function getAppConfig() {
+    appConfig.value = await window.api.config.getAll();
+  }
+  async function set(key: string, value: any) {
+    await window.api.config.set(key, value);
+    appConfig.value[key] = value;
+  }
+
+  getAppConfig();
+
+  return {
+    appConfig,
+    getAppConfig,
+    set,
   };
 });

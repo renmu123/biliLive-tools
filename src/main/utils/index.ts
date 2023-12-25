@@ -1,7 +1,7 @@
 import { exec } from "child_process";
 import fs from "fs-extra";
 import { shell } from "electron";
-import { getAppConfig } from "../config/app";
+import { getAppConfig } from "../config";
 
 import { type IpcMainInvokeEvent } from "electron";
 import type { FfmpegOptions } from "../../types";

@@ -1,6 +1,6 @@
 import { Client, TvQrcodeLogin } from "@renmu/bili-api";
 import { BILIUP_COOKIE_PATH } from "./appConstant";
-import { format, writeUser } from "./biliup";
+import { format, writeUser, readUser } from "./biliup";
 
 import { type IpcMainInvokeEvent } from "electron";
 
@@ -83,12 +83,13 @@ export const handlers = {
   "biliApi:login:cancel": () => {
     tv.interrupt();
   },
-  "bili:updateUserInfo": async (
-    _event: IpcMainInvokeEvent,
-    uid: number,
-  ): ReturnType<typeof getUserInfo> => {
-    // TODO:获取用户名称和头像后替换
-    return getUserInfo(uid);
+  "bili:updateUserInfo": async (_event: IpcMainInvokeEvent, uid: number) => {
+    const user = await readUser(uid);
+    if (!user) throw new Error("用户不存在");
+    const userInfo = await getUserInfo(uid);
+    user.name = userInfo.data.name;
+    user.avatar = userInfo.data.face;
+    await writeUser(user);
   },
 };
 

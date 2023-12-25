@@ -471,7 +471,7 @@ const saveAs = async () => {
   nameModelVisible.value = true;
 };
 const deletePreset = async () => {
-  const appConfig = await window.api.getAppConfig();
+  const appConfig = await window.api.config.getAll();
   let ids = Object.entries(appConfig.webhook.rooms || {}).map(([, value]) => {
     return value?.ffmpegPreset;
   });

@@ -33,7 +33,7 @@ export default class Config {
     this.data = data;
     this.save();
   }
-  get(key: string) {
+  get(key: string | number) {
     return this.data[key];
   }
   save() {

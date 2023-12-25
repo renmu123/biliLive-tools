@@ -3,7 +3,7 @@ import os from "os";
 import fs from "fs-extra";
 import ffmpeg from "fluent-ffmpeg";
 
-import { getAppConfig } from "./config/app";
+import { getAppConfig } from "./config";
 import { escaped, genFfmpegParams, pathExists, trashItem, uuid, notify } from "./utils/index";
 import log from "./utils/log";
 import { executeCommand } from "../utils/index";
@@ -12,7 +12,7 @@ import { taskQueue, FFmpegTask } from "./task";
 import { type IpcMainInvokeEvent } from "electron";
 import type { File, FfmpegOptions, VideoMergeOptions, Video2Mp4Options } from "../types";
 
-export const setFfmpegPath = () => {
+export const setFfmpegPath = async () => {
   const appConfig = getAppConfig();
   if (appConfig.ffmpegPath) {
     ffmpeg.setFfmpegPath(appConfig.ffmpegPath);
@@ -23,6 +23,7 @@ export const setFfmpegPath = () => {
 };
 
 export const readVideoMeta = async (input: string): Promise<ffmpeg.FfprobeData> => {
+  await setFfmpegPath();
   return new Promise((resolve, reject) => {
     ffmpeg(input).ffprobe(function (err, metadata) {
       if (err) {
@@ -42,6 +43,7 @@ export const readNbFrames = async (input: string): Promise<number> => {
 };
 
 export const getAvailableEncoders = async () => {
+  await setFfmpegPath();
   return new Promise((resolve, reject) => {
     ffmpeg.getAvailableEncoders(function (err, codecs) {
       if (err) {
@@ -65,6 +67,8 @@ export const convertVideo2Mp4 = async (
     removeOrigin: false,
   },
 ) => {
+  await setFfmpegPath();
+
   // 相同文件覆盖提示
   const { name, path, dir } = file;
   let output = join(dir, `${name}.mp4`);
@@ -157,6 +161,8 @@ export const mergeAssMp4 = async (
     encoder: "libx264",
   },
 ) => {
+  await setFfmpegPath();
+
   const videoInput = files.videoFilePath;
   const assFile = files.assFilePath;
   const output = files.outputPath;
@@ -215,6 +221,8 @@ export const mergeVideos = async (
     removeOrigin: false,
   },
 ) => {
+  await setFfmpegPath();
+
   const output = options.savePath;
 
   const tempDir = os.tmpdir();

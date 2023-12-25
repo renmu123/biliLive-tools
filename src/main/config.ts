@@ -1,14 +1,15 @@
-import path from "path";
+import path from "node:path";
+
+import Config from "./utils/config";
 import { app } from "electron";
 import { defaultsDeep } from "lodash";
-
-import Config from "../utils/config";
 import log from "../utils/log";
-import { setFfmpegPath } from "../video";
+import { setFfmpegPath } from "./video";
 
+import type { AppConfig } from "../types";
 import type { IpcMainInvokeEvent } from "electron";
-import type { AppConfig } from "../../types";
 
+const config = new Config("app.json");
 export const APP_DEFAULT_CONFIG: AppConfig = {
   logLevel: "warn",
   autoUpdate: true,
@@ -43,16 +44,23 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     "bin",
     "ffprobe.exe",
   ),
+  biliUser: {},
 };
 
-console.log(APP_DEFAULT_CONFIG);
+function get<K extends keyof AppConfig>(key: K): Pick<AppConfig, K> {
+  return config.get(key);
+}
+
+function set<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {
+  config.set(key, value);
+}
 
 const getConfig = () => {
   const config = new Config("appConfig.json");
   return config;
 };
 
-export const saveAppConfig = (_event: IpcMainInvokeEvent, newConfig: AppConfig) => {
+export const saveAppConfig = (newConfig: AppConfig) => {
   const config = getConfig();
   log.transports.file.level = newConfig.logLevel;
   log.info("saveAppConfig", newConfig);
@@ -64,4 +72,26 @@ export const getAppConfig = (): AppConfig => {
   const data = config.read();
 
   return defaultsDeep(data, APP_DEFAULT_CONFIG);
+};
+
+export const appConfig = {
+  get,
+  set,
+  save: saveAppConfig,
+  getAll: getAppConfig,
+};
+
+export const handlers = {
+  "config:set": (_event: IpcMainInvokeEvent, key: any, value: any) => {
+    set(key, value);
+  },
+  "config:get": (_event: IpcMainInvokeEvent, key: any) => {
+    return get(key);
+  },
+  "config:getAll": () => {
+    return getAppConfig();
+  },
+  "config:save": (_event: IpcMainInvokeEvent, newConfig: AppConfig) => {
+    saveAppConfig(newConfig);
+  },
 };

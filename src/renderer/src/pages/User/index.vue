@@ -72,6 +72,7 @@ const migrateOldCookie = async () => {
 };
 
 const logout = async (uid: number) => {
+  // TODO: 退出账号时，需要判断是否正在使用
   const status = await confirm.warning({
     content: "确认退出账号？",
   });

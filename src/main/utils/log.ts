@@ -2,7 +2,7 @@ import path from "path";
 
 import logger from "electron-log";
 import { app } from "electron";
-import { getAppConfig } from "../config/app";
+import { getAppConfig } from "../config";
 
 const appConfig = getAppConfig();
 
