@@ -22,6 +22,7 @@ import type {
   FfmpegPreset,
   DanmuConfig,
   BiliUser,
+  BiliApi,
 } from "../types";
 import type ffmpeg from "fluent-ffmpeg";
 
@@ -221,6 +222,15 @@ export const api = {
     updateUserInfo(uid: number) {
       return ipcRenderer.invoke("bili:updateUserInfo", uid);
     },
+    getArchives(
+      params: Parameters<BiliApi["getArchives"]>[0],
+      uid: number,
+    ): Promise<ReturnType<BiliApi["getArchives"]>> {
+      return ipcRenderer.invoke("biliApi:getArchives", params, uid);
+    },
+    checkTag(tag: string, uid: number) {
+      return ipcRenderer.invoke("biliApi:checkTag", tag, uid);
+    },
   },
   ffmpeg: {
     // 预设
@@ -259,7 +269,7 @@ export const api = {
     getAll: (): Promise<AppConfig> => {
       return ipcRenderer.invoke("config:getAll");
     },
-    set: (key: string, value: any) => {
+    set: <K extends keyof AppConfig>(key: K, value: AppConfig[K]) => {
       return ipcRenderer.invoke("config:set", key, value);
     },
   },
@@ -359,15 +369,6 @@ export const api = {
   },
 };
 
-export const biliApi = {
-  getArchives(params: Parameters<(typeof biliApi)["getArchives"]>[0]) {
-    return ipcRenderer.invoke("biliApi:getArchives", params);
-  },
-  checkTag(tag: string) {
-    return ipcRenderer.invoke("biliApi:checkTag", tag);
-  },
-};
-
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
 // just add to the DOM global.
@@ -375,7 +376,6 @@ if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld("electron", electronAPI);
     contextBridge.exposeInMainWorld("api", api);
-    contextBridge.exposeInMainWorld("biliApi", biliApi);
     contextBridge.exposeInMainWorld("path", path);
   } catch (error) {
     console.error(error);

@@ -9,6 +9,7 @@ import { convertXml2Ass, readDanmuPreset } from "../danmu";
 import { taskQueue } from "../task";
 import { mergeAssMp4 } from "../video";
 import bili from "../bili";
+import { biliApi } from "../bili";
 import { getFfmpegPreset } from "../ffmpegPreset";
 import log from "../utils/log";
 import { getFileSize, uuid, runWithMaxIterations } from "../../utils/index";
@@ -529,7 +530,7 @@ const handleLive = async (live: Live, appConfig: AppConfig) => {
         await runWithMaxIterations(
           async () => {
             // TODO:接完上传后重构
-            const res = await bili.client.platform.getArchives();
+            const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
             for (let i = 0; i < Math.min(10, res.data.arc_audits.length); i++) {
               const item = res.data.arc_audits[i];
               if (item.Archive.title === live.videoName) {

@@ -9,7 +9,6 @@ import { setFfmpegPath } from "./video";
 import type { AppConfig } from "../types";
 import type { IpcMainInvokeEvent } from "electron";
 
-const config = new Config("app.json");
 export const APP_DEFAULT_CONFIG: AppConfig = {
   logLevel: "warn",
   autoUpdate: true,
@@ -47,11 +46,13 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   biliUser: {},
 };
 
-function get<K extends keyof AppConfig>(key: K): Pick<AppConfig, K> {
+function get<K extends keyof AppConfig>(key: K): AppConfig[K] {
+  const config = getConfig();
   return config.get(key);
 }
 
 function set<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {
+  const config = getConfig();
   config.set(key, value);
 }
 

@@ -27,6 +27,11 @@
 </template>
 
 <script setup lang="ts">
+import { useAppConfig } from "@renderer/stores";
+import { storeToRefs } from "pinia";
+
+const { appConfig } = storeToRefs(useAppConfig());
+
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const aid = defineModel<string>({ required: true });
 const emits = defineEmits<{
@@ -49,8 +54,24 @@ const list = ref<
     [key: string]: any;
   }[]
 >([]);
+
+const notice = useNotification();
 const getArchives = async () => {
-  const { data } = await window.biliApi.getArchives();
+  const uid = appConfig.value.uid;
+  if (!uid) {
+    notice.warning({
+      title: "请先登录",
+      duration: 500,
+    });
+    return;
+  }
+  const { data } = await window.api.bili.getArchives(
+    {
+      pn: 1,
+      ps: 20,
+    },
+    uid,
+  );
   list.value = data.arc_audits;
 };
 const handleOpen = () => {

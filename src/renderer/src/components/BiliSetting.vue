@@ -128,17 +128,18 @@
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-
-import type { BiliupPreset } from "../../../types";
 import { deepRaw, uuid } from "@renderer/utils";
 import { useConfirm } from "@renderer/hooks";
-import { useUploadPreset } from "@renderer/stores";
+import { useUploadPreset, useAppConfig } from "@renderer/stores";
 // @ts-ignore
 import areaData from "@renderer/assets/area.json";
 import { cloneDeep } from "lodash-es";
 
+import type { BiliupPreset } from "../../../types";
+
 const confirm = useConfirm();
 const { getUploadPresets } = useUploadPreset();
+const { appConfig } = storeToRefs(useAppConfig());
 const { uploaPresetsOptions } = storeToRefs(useUploadPreset());
 const emits = defineEmits<{
   (event: "change", value: BiliupPreset): void;
@@ -172,7 +173,15 @@ onMounted(async () => {
 const notice = useNotification();
 const handleTagChange = async (tags: string[]) => {
   if (tags.length !== 0) {
-    const res = await window.biliApi.checkTag(tags[tags.length - 1]);
+    if (!appConfig.value.uid) {
+      notice.warning({
+        title: "请先登录",
+        duration: 500,
+      });
+      options.value.config.tag.splice(-1);
+      return;
+    }
+    const res = await window.api.bili.checkTag(tags[tags.length - 1], appConfig.value.uid);
 
     if (res.code !== 0) {
       notice.error({

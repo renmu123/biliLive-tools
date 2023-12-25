@@ -2,6 +2,8 @@ import { defineStore } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "../../../types";
 
 export const useUserInfoStore = defineStore("userInfo", () => {
+  const appConfigStore = useAppConfig();
+
   const userInfo = ref<{
     uid: number;
     profile: {
@@ -24,6 +26,9 @@ export const useUserInfoStore = defineStore("userInfo", () => {
   >([]);
 
   async function getUserInfo() {
+    await appConfigStore.getAppConfig();
+    const uid = appConfigStore.appConfig.uid;
+    console.log("uid", uid);
     const users = await window.api.bili.readUserList();
     userList.value = users.map((item) => {
       return {
@@ -42,13 +47,26 @@ export const useUserInfoStore = defineStore("userInfo", () => {
         },
       };
     } else {
-      userInfo.value = {
-        uid: userList.value[0].uid,
-        profile: {
-          face: userList.value[0].face,
-          name: userList.value[0].name,
-        },
-      };
+      if (!uid) {
+        userInfo.value = {
+          uid: userList.value[0].uid,
+          profile: {
+            face: userList.value[0].face,
+            name: userList.value[0].name,
+          },
+        };
+      } else {
+        const user = userList.value.find((item) => item.uid === uid);
+        if (user) {
+          userInfo.value = {
+            uid: user.uid,
+            profile: {
+              face: user.face,
+              name: user.name,
+            },
+          };
+        }
+      }
     }
   }
 
@@ -62,6 +80,7 @@ export const useUserInfoStore = defineStore("userInfo", () => {
           name: user.name,
         },
       };
+      appConfigStore.set("uid", uid);
     }
   }
 
@@ -173,7 +192,7 @@ export const useAppConfig = defineStore("appConfig", () => {
   async function getAppConfig() {
     appConfig.value = await window.api.config.getAll();
   }
-  async function set(key: string, value: any) {
+  async function set<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {
     await window.api.config.set(key, value);
     appConfig.value[key] = value;
   }

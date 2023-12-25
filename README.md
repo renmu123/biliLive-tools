@@ -33,7 +33,7 @@
 - [x] 支持B站上传支持
   - [ ] 移除biliup二进制文件依赖
   - [x] 支持分p
-  - [ ] 多账户支持
+  - [x] 多账户支持
 - [ ] 支持webhook
   - [x] 录播姬webhook支持
   - [x] blrec webhook支持

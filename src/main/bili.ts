@@ -1,33 +1,48 @@
 import { Client, TvQrcodeLogin } from "@renmu/bili-api";
-import { BILIUP_COOKIE_PATH } from "./appConstant";
 import { format, writeUser, readUser } from "./biliup";
-
+import { appConfig } from "./config";
 import { type IpcMainInvokeEvent } from "electron";
 
 type ClientInstance = InstanceType<typeof Client>;
 
 const client = new Client();
-loadCookie();
 
-async function loadCookie() {
-  // TODO: 改成不从文件加载
-  return client.loadCookieFile(BILIUP_COOKIE_PATH);
+/**
+ * 加载cookie
+ * @param uid 用户id
+ */
+async function loadCookie(uid?: number) {
+  const mid = uid || appConfig.get("uid");
+
+  if (!mid) throw new Error("请先登录");
+  const user = await readUser(mid);
+  const data = await JSON.parse(user?.rawAuth || "{}");
+  return client.setAuth(user?.cookie, data.accessToken);
 }
 
 async function getArchives(
   params?: Parameters<ClientInstance["platform"]["getArchives"]>[0],
+  uid?: number,
 ): ReturnType<ClientInstance["platform"]["getArchives"]> {
-  await loadCookie();
+  await loadCookie(uid);
   return client.platform.getArchives(params);
 }
 
-async function checkTag(tag: string): ReturnType<ClientInstance["platform"]["checkTag"]> {
-  await loadCookie();
+async function checkTag(
+  tag: string,
+  uid: number,
+): ReturnType<ClientInstance["platform"]["checkTag"]> {
+  await loadCookie(uid);
   return client.platform.checkTag(tag);
 }
 
 async function getUserInfo(uid: number): ReturnType<ClientInstance["user"]["getUserInfo"]> {
   return client.user.getUserInfo(uid);
+}
+
+async function getMyInfo(uid: number): ReturnType<ClientInstance["user"]["getMyInfo"]> {
+  await loadCookie(uid);
+  return client.user.getMyInfo();
 }
 
 function login() {
@@ -38,9 +53,9 @@ function login() {
 export const biliApi = {
   getArchives,
   checkTag,
-  loadCookie,
   login,
   getUserInfo,
+  getMyInfo,
 };
 
 export const invokeWrap = <T extends (...args: any[]) => any>(fn: T) => {
@@ -55,14 +70,16 @@ export const handlers = {
   "biliApi:getArchives": (
     _event: IpcMainInvokeEvent,
     params: Parameters<typeof biliApi.getArchives>[0],
+    uid: number,
   ): ReturnType<typeof biliApi.getArchives> => {
-    return biliApi.getArchives(params);
+    return biliApi.getArchives(params, uid);
   },
   "biliApi:checkTag": (
     _event: IpcMainInvokeEvent,
     tag: Parameters<typeof biliApi.checkTag>[0],
+    uid: number,
   ): ReturnType<typeof biliApi.checkTag> => {
-    return biliApi.checkTag(tag);
+    return biliApi.checkTag(tag, uid);
   },
   "biliApi:login": (event: IpcMainInvokeEvent) => {
     tv = new TvQrcodeLogin();

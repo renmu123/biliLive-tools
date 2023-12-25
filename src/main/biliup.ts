@@ -226,12 +226,13 @@ export const readUserList = async (): Promise<BiliUser[]> => {
 };
 
 export const format = async (data: any) => {
+  const cookieObj = {};
+  (data?.cookie_info?.cookies || []).map((item: any) => (cookieObj[item.name] = item.value));
+
   const result: BiliUser = {
     mid: data.mid,
     rawAuth: JSON.stringify(data),
-    cookie: (data?.cookie_info?.cookies || [])
-      .map((item: any) => `${item.name}=${item.value}`)
-      .join("; "),
+    cookie: cookieObj as any,
     expires: data.expires_in,
     accessToken: data.access_token,
     refreshToken: data.refresh_token,

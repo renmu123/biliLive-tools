@@ -192,7 +192,11 @@ export interface BiliUser {
   name?: string;
   avatar?: string;
   rawAuth: string;
-  cookie: string;
+  cookie: {
+    bili_jct: string;
+    SESSDATA: string;
+    [key: string]: any;
+  };
   expires: number;
   accessToken: string;
   refreshToken: string;
