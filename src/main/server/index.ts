@@ -182,6 +182,19 @@ export function handleLiveData(options: Options) {
         (timestamp - endTime) / (1000 * 60) < 10
       );
     });
+    if (currentIndex === -1) {
+      // 下一个文件的开始时间可能早于上一个文件的结束时间，如果出现这种情况，尝试特殊处理
+      currentIndex = liveData.findIndex((live) => {
+        // 找到上一个文件结束时间与当前时间差小于10分钟的直播，认为是同一个直播
+        // 找到part中最大的结束时间
+        const hasPath = (live.parts || []).some((item) => item.filePath === options.filePath);
+        return hasPath;
+      });
+      if (currentIndex !== -1) {
+        log.info("下一个文件的开始时间可能早于上一个文件的结束时间", liveData);
+        return currentIndex;
+      }
+    }
     let currentLive = liveData[currentIndex];
     if (currentLive) {
       const part: Part = {
