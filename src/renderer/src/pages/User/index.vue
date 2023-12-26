@@ -38,12 +38,13 @@
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useUserInfoStore } from "@renderer/stores";
+import { useUserInfoStore, useAppConfig } from "@renderer/stores";
 import BiliLoginDialog from "./components/BiliLoginDialog.vue";
 import { useConfirm } from "@renderer/hooks";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 
 const { getUserInfo, changeUser } = useUserInfoStore();
+const { appConfig } = storeToRefs(useAppConfig());
 const { userInfo, userList } = storeToRefs(useUserInfoStore());
 
 const loginTvDialogVisible = ref(false);
@@ -72,11 +73,22 @@ const migrateOldCookie = async () => {
 };
 
 const logout = async (uid: number) => {
-  // TODO: 退出账号时，需要判断是否正在使用
-  const status = await confirm.warning({
-    content: "确认退出账号？",
-  });
-  if (!status) return;
+  const uids = [
+    appConfig.value.webhook.uid,
+    ...Object.values(appConfig.value.webhook.rooms).map((item) => item.uid),
+  ];
+  if (uids.includes(uid)) {
+    const status = await confirm.warning({
+      content: "当前帐号正在被webhook使用，是否确认退出？",
+    });
+    if (!status) return;
+  } else {
+    const status = await confirm.warning({
+      content: "确认退出账号？",
+    });
+    if (!status) return;
+  }
+
   await window.api.bili.deleteUser(uid);
   getUserInfo();
 };

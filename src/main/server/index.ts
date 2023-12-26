@@ -126,6 +126,8 @@ function getConfig(roomId: number): {
   open?: boolean;
   /* uid */
   uid?: number;
+  /* 自动合并part时间 */
+  partMergeMinute: number;
 } {
   const appConfig = getAppConfig();
   const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[roomId];
@@ -141,6 +143,7 @@ function getConfig(roomId: number): {
   const blacklist = appConfig.webhook.blacklist.split(",");
   const open = roomSetting?.open;
   const uid = roomSetting?.uid || appConfig.webhook.uid;
+  const partMergeMinute = roomSetting?.partMergeMinute || appConfig.webhook.partMergeMinute || 10;
 
   return {
     danmu,
@@ -153,6 +156,7 @@ function getConfig(roomId: number): {
     blacklist,
     open,
     uid,
+    partMergeMinute,
   };
 }
 
@@ -166,7 +170,7 @@ export interface Options {
   platform: "bili-recorder" | "blrec";
 }
 
-export function handleLiveData(options: Options) {
+export function handleLiveData(options: Options, partMergeMinute: number) {
   // 计算live
   const timestamp = new Date(options.time).getTime();
   let currentIndex = -1;
@@ -179,7 +183,7 @@ export function handleLiveData(options: Options) {
       return (
         live.roomId === options.roomId &&
         live.platform === options.platform &&
-        (timestamp - endTime) / (1000 * 60) < 10
+        (timestamp - endTime) / (1000 * 60) < (partMergeMinute || 10)
       );
     });
     if (currentIndex === -1) {
@@ -285,6 +289,7 @@ async function handle(options: Options) {
     blacklist,
     open,
     uid,
+    partMergeMinute,
   } = getConfig(options.roomId);
   if (blacklist.includes(String(options.roomId))) {
     log.info(`${options.roomId} is in blacklist`);
@@ -310,7 +315,7 @@ async function handle(options: Options) {
   options.title = config.title;
 
   // 计算live
-  const currentLiveIndex = handleLiveData(options);
+  const currentLiveIndex = handleLiveData(options, partMergeMinute);
   const currentLive = liveData[currentLiveIndex];
 
   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {

@@ -63,6 +63,7 @@ export interface AppRoomConfig {
   ffmpegPreset?: string;
   danmuPreset?: string;
   autoPartMerge: boolean;
+  partMergeMinute?: number;
   uid?: number;
 }
 export interface AppConfig {
@@ -82,6 +83,7 @@ export interface AppConfig {
     uploadPresetId?: string;
     blacklist: string;
     autoPartMerge: boolean;
+    partMergeMinute?: number;
     danmu: boolean;
     // TODO: 增加配置上传后删除原始文件
     ffmpegPreset?: string;

@@ -235,6 +235,7 @@ const handleRoomDetail = (roomId: string) => {
     ffmpegPreset: room.ffmpegPreset,
     danmuPreset: room.danmuPreset,
     autoPartMerge: room.autoPartMerge ?? false,
+    partMergeMinute: room.partMergeMinute ?? 10,
   };
   roomDetailVisible.value = true;
 };
@@ -251,6 +252,7 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   ffmpegPreset: undefined,
   danmuPreset: undefined,
   autoPartMerge: false,
+  partMergeMinute: 10,
 });
 const saveRoomDetail = ({ id }: AppRoomConfig & { id?: string }) => {
   config.value.webhook.rooms[id!] = tempRoomDetail.value;
@@ -278,6 +280,7 @@ const addRoom = () => {
     ffmpegPreset: config.value.webhook.ffmpegPreset,
     danmuPreset: config.value.webhook.danmuPreset,
     autoPartMerge: config.value.webhook.autoPartMerge,
+    partMergeMinute: config.value.webhook.partMergeMinute,
   };
   roomDetailVisible.value = true;
 };

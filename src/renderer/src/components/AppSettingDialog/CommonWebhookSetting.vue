@@ -9,8 +9,9 @@
         <Tip tip="小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播"></Tip>
       </span>
     </template>
-    <n-input-number v-model:value="data.minSize" placeholder="单位MB" style="margin-right: 5px" />
-    M
+    <n-input-number v-model:value="data.minSize" placeholder="单位MB" min="0">
+      <template #suffix> M </template></n-input-number
+    >
   </n-form-item>
   <n-form-item>
     <template #label>
@@ -29,10 +30,21 @@
     <template #label>
       <span class="inline-flex">
         上传到同分p
-        <Tip tip="该功能在测试阶段，开启后，会将某主播一场直播上传到同一个视频中"></Tip>
+        <Tip tip="该功能在测试阶段，开启后，会将主播一场直播上传到同一个视频中"></Tip>
       </span>
     </template>
     <n-switch v-model:value="data.autoPartMerge" />
+  </n-form-item>
+  <n-form-item v-if="data.autoPartMerge">
+    <template #label>
+      <span class="inline-flex">
+        上传到同分p间隔时间
+        <Tip tip="监测直播是否为同一场的时间间隔"></Tip>
+      </span>
+    </template>
+    <n-input-number v-model:value="data.partMergeMinute" placeholder="请输入分钟" min="0.1">
+      <template #suffix> 分钟 </template></n-input-number
+    >
   </n-form-item>
   <n-form-item label="上传预设">
     <n-select

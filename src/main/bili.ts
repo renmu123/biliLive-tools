@@ -103,9 +103,11 @@ export const handlers = {
   "bili:updateUserInfo": async (_event: IpcMainInvokeEvent, uid: number) => {
     const user = await readUser(uid);
     if (!user) throw new Error("用户不存在");
-    const userInfo = await getUserInfo(uid);
-    user.name = userInfo.data.name;
-    user.avatar = userInfo.data.face;
+    const userInfo = await getMyInfo(uid);
+    // @ts-ignore
+    user.name = userInfo.data.profile.name;
+    // @ts-ignore
+    user.avatar = userInfo.data.profile.face;
     await writeUser(user);
   },
 };
