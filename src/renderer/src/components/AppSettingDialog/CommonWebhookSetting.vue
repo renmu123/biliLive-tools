@@ -28,7 +28,7 @@
   <n-form-item>
     <template #label>
       <span class="inline-flex">
-        上传到同分p
+        断播续传
         <Tip tip="该功能在测试阶段，开启后，会将某主播一场直播上传到同一个视频中"></Tip>
       </span>
     </template>
