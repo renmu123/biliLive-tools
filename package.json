@@ -1,6 +1,6 @@
 {
   "name": "biliLive-tools",
-  "version": "0.8.0",
+  "version": "0.7.0",
   "description": "B站直播录制处理工具",
   "main": "./out/main/index.js",
   "author": "renmu123",
@@ -19,7 +19,7 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
-    "test": "vite test"
+    "test": "vitest"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.0",

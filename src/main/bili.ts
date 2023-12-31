@@ -94,7 +94,55 @@ interface MediaOptions {
   open_elec?: 0 | 1;
 }
 
+interface DescV2 {
+  raw_text: string;
+  type: 1 | 2; // 1 for regular text, 2 for content inside square brackets
+  biz_id: string;
+}
+/**
+ * 解析desc
+ */
+function parseDesc(input: string): DescV2[] {
+  const tokens: DescV2[] = [];
+
+  const regex = /\[([^\]]*)\]<([^>]*)>/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(input)) !== null) {
+    const precedingText = input.substring(lastIndex, match.index);
+    if (precedingText) {
+      tokens.push({ raw_text: precedingText, type: 1, biz_id: "" });
+    }
+
+    const innerText = match[1];
+    const biz_id = match[2];
+    tokens.push({ raw_text: innerText, type: 2, biz_id });
+
+    lastIndex = regex.lastIndex;
+  }
+
+  const trailingText = input.substring(lastIndex);
+  if (trailingText) {
+    tokens.push({ raw_text: trailingText, type: 1, biz_id: "" });
+  }
+
+  return tokens;
+}
+
 function formatOptions(options: BiliupConfig) {
+  const descV2 = parseDesc(options.desc || "");
+  const desc = descV2
+    .map((item) => {
+      if (item.type === 1) {
+        return item.raw_text;
+      } else if (item.type === 2) {
+        return `@${item.raw_text} `;
+      } else {
+        throw new Error(`不存在该type:${item.type}`);
+      }
+    })
+    .join("");
   const data: MediaOptions = {
     cover: options.cover,
     title: options.title,
@@ -102,7 +150,6 @@ function formatOptions(options: BiliupConfig) {
     tag: options.tag.join(","),
     copyright: options.copyright,
     source: options.source,
-    desc: options.desc,
     dolby: options.dolby,
     lossless_music: options.hires,
     no_reprint: options.noReprint,
@@ -110,6 +157,8 @@ function formatOptions(options: BiliupConfig) {
     up_close_reply: options.closeReply ? true : false,
     up_selection_reply: options.selectiionReply ? true : false,
     open_elec: options.openElec,
+    desc_v2: descV2,
+    desc: desc,
   };
   console.log("formatOptions", data);
   return data;
@@ -140,9 +189,33 @@ async function addMedia(
   };
 }
 
-async function editMedia(aid: number, filePath: string[], options: any, uid: number) {
+async function editMedia(
+  webContents: WebContents,
+  aid: number,
+  filePath: string[],
+  options: any,
+  uid: number,
+) {
   await loadCookie(uid);
-  return client.platform.editMedia(aid, filePath, options, "append");
+  const command = await client.platform.editMedia(aid, filePath, formatOptions(options), "append", {
+    submit: "web",
+    uploader: "web",
+  });
+
+  const task = new BiliVideoTask(
+    command,
+    webContents,
+    {
+      name: `编辑稿件任务：${path.parse(filePath[0]).name}`,
+    },
+    {},
+  );
+
+  taskQueue.addTask(task, true);
+
+  return {
+    taskId: task.taskId,
+  };
 }
 
 export const biliApi = {

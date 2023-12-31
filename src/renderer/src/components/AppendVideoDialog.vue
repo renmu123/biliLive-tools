@@ -92,7 +92,6 @@ const confirm = () => {
 
 const selectMedia = (item) => {
   aid.value = String(item.stat.aid);
-  console.log(aid.value);
 };
 </script>
 

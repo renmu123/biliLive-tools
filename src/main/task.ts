@@ -275,6 +275,7 @@ export class BiliVideoTask extends AbstractTask {
       this.status = "completed";
       this.progress = 100;
       this.output = data;
+      console.log("ppppppppppppppppp", data);
       callback.onEnd && callback.onEnd(data);
       emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
       this.endTime = Date.now();

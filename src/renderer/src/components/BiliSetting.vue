@@ -20,7 +20,15 @@
           show-count
         />
       </n-form-item>
-      <n-form-item label="视频简介">
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            <span>视频简介</span>
+            <Tip
+              tip="仅限非biliup上传：可以输入[暮色123]<12345>来进行艾特用户，前面的值为用户明，后面的值为用户id"
+            ></Tip>
+          </span>
+        </template>
         <n-input
           v-model:value="options.config.desc"
           placeholder="请输入视频简介"

@@ -1,7 +1,7 @@
 import { expect, describe, it } from "vitest";
-import { uuid } from "../../utils/index";
+import { uuid } from "../src/utils/index";
 
-import { type Options, type Part, type Live } from "./index";
+import { type Options, type Part, type Live } from "../src/main/server/index";
 
 export async function handleLiveData(liveData: Live[], options: Options) {
   // 计算live

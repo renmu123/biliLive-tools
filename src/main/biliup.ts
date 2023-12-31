@@ -311,11 +311,11 @@ export const handlers = {
     pathArray: string[],
     options: BiliupConfig,
   ) => {
-    const isNewUpload = true;
-    if (isNewUpload) {
-      biliApi.addMedia(_event.sender, pathArray, options, uid);
-    } else {
+    const useBiliup = appConfig.get("useBiliup");
+    if (useBiliup) {
       uploadVideo(_event.sender, uid, pathArray, options);
+    } else {
+      biliApi.addMedia(_event.sender, pathArray, options, uid);
     }
   },
   "bili:appendVideo": async (
@@ -324,6 +324,11 @@ export const handlers = {
     pathArray: string[],
     options: BiliupConfigAppend,
   ) => {
-    appendVideo(_event.sender, uid, pathArray, options);
+    const useBiliup = appConfig.get("useBiliup");
+    if (useBiliup) {
+      appendVideo(_event.sender, uid, pathArray, options);
+    } else {
+      biliApi.editMedia(_event.sender, options.vid as number, pathArray, options, uid);
+    }
   },
 };

@@ -26,9 +26,20 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <span class="inline-flex"> 自动更新检测 </span>
+                <span class="inline-flex"> 自动更新 </span>
               </template>
               <n-switch v-model:value="config.autoUpdate" />
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex">
+                  biliup上传
+                  <Tip
+                    tip="启用后，将使用biliup实现的上传功能<br/>如果上传出现错误，请尝试打开该选项"
+                  ></Tip>
+                </span>
+              </template>
+              <n-switch v-model:value="config.useBiliup" />
             </n-form-item>
 
             <n-form-item label="ffmpeg路径">
@@ -58,7 +69,7 @@
                 <span class="inline-flex">
                   开启server
                   <Tip
-                    :tip="`开启后支持自动上传，需重启应用<br/>录播姬的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/webhook<br/>blrec的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/blrec，在VideoFileCompletedEvent后处理`"
+                    :tip="`开启后支持自动上传，需重启应用<br/>录播姬的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/webhook<br/>blrec的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/blrec`"
                   ></Tip>
                 </span>
               </template>

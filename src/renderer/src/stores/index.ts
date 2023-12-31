@@ -54,6 +54,7 @@ export const useUserInfoStore = defineStore("userInfo", () => {
             name: userList.value[0].name,
           },
         };
+        appConfigStore.set("uid", userList.value[0].uid);
       } else {
         const user = userList.value.find((item) => item.uid === uid);
         if (user) {

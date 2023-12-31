@@ -73,6 +73,8 @@ export interface AppConfig {
   trash: boolean;
   /** 检查更新 */
   autoUpdate: boolean;
+  /** 使用biliup */
+  useBiliup: boolean;
   webhook: {
     port: number;
     open: boolean;

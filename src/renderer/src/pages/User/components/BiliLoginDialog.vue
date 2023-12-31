@@ -37,6 +37,7 @@ const notice = useNotification();
 const url = ref("");
 const text = ref("");
 const onOpen = async () => {
+  text.value = "";
   url.value = await window.api.bili.login();
 
   window.api.bili.onLogin("completed", async (_, res) => {
@@ -44,12 +45,13 @@ const onOpen = async () => {
     text.value = "登录成功，请关闭本窗口";
     try {
       notice.success({
-        title: "保存B站登录信息成功",
+        title: "登录成功",
         duration: 2000,
       });
+      confirm();
     } catch (e: unknown) {
       notice.error({
-        title: "保存B站登录信息失败",
+        title: "登录失败",
         description: String(e),
       });
     }
