@@ -252,7 +252,7 @@ export class BiliVideoTask extends AbstractTask {
     this.command = command;
     this.webContents = webContents;
     this.progress = 0;
-    this.action = ["kill", "pause", "interrupt"];
+    this.action = ["kill", "pause"];
     if (options.name) {
       this.name = options.name;
     }
@@ -266,6 +266,10 @@ export class BiliVideoTask extends AbstractTask {
     //   emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
     //   this.startTime = Date.now();
     // });
+    this.status = "running";
+    this.startTime = Date.now();
+    emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+
     command.emitter.on("completed", async (data) => {
       log.info(`task ${this.taskId} end`);
       this.status = "completed";
@@ -283,7 +287,7 @@ export class BiliVideoTask extends AbstractTask {
       emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
     });
     command.emitter.on("progress", (progress) => {
-      progress.percentage = progress.progress;
+      progress.percentage = progress.progress * 100;
 
       if (callback.onProgress) {
         progress = callback.onProgress(progress);

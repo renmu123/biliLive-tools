@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import { Client, TvQrcodeLogin } from "@renmu/bili-api";
 import { format, writeUser, readUser } from "./biliup";
 import { appConfig } from "./config";
@@ -93,7 +95,6 @@ interface MediaOptions {
 }
 
 function formatOptions(options: BiliupConfig) {
-  // @ts-ignore
   const data: MediaOptions = {
     cover: options.cover,
     title: options.title,
@@ -127,7 +128,7 @@ async function addMedia(
     command,
     webContents,
     {
-      name: `上传任务：${filePath[0]}`,
+      name: `上传任务：${path.parse(filePath[0]).name}`,
     },
     {},
   );
