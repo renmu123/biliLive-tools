@@ -322,6 +322,17 @@ watch(
     deep: true,
   },
 );
+
+watchEffect(() => {
+  if (options.value.config.closeReply) {
+    options.value.config.selectiionReply = 0;
+  }
+});
+watchEffect(() => {
+  if (options.value.config.selectiionReply) {
+    options.value.config.closeReply = 0;
+  }
+});
 </script>
 
 <style scoped lang="less">
