@@ -25,6 +25,11 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   source: "",
   dynamic: "",
   cover: "",
+  noReprint: 0,
+  openElec: 0,
+  closeDanmu: 0,
+  closeReply: 0,
+  selectiionReply: 0,
 };
 
 // 上传视频
@@ -138,6 +143,28 @@ const genBiliupOPtions = (options: BiliupConfig) => {
     } else if (key === "cover") {
       if (value) {
         return `--${key} "${value}"`;
+      } else {
+        return "";
+      }
+    } else if (key === "noReprint") {
+      return `--no-reprint ${value}`;
+    } else if (key === "openElec") {
+      return `--open-elec ${value}`;
+    } else if (key === "closeDanmu") {
+      if (value === 1) {
+        return `--up-close-danmu`;
+      } else {
+        return "";
+      }
+    } else if (key === "closeReply") {
+      if (value === 1) {
+        return `--up-close-reply`;
+      } else {
+        return "";
+      }
+    } else if (key === "selectiionReply") {
+      if (value === 1) {
+        return `--up-selection-reply`;
       } else {
         return "";
       }

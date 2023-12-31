@@ -28,7 +28,6 @@ export const useUserInfoStore = defineStore("userInfo", () => {
   async function getUserInfo() {
     await appConfigStore.getAppConfig();
     const uid = appConfigStore.appConfig.uid;
-    console.log("uid", uid);
     const users = await window.api.bili.readUserList();
     userList.value = users.map((item) => {
       return {
