@@ -203,9 +203,9 @@ export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: B
   }
 
   if (msg) {
-    return msg;
+    throw new Error(msg);
   }
-  return false;
+  return true;
 };
 
 const uploadPreset = new CommonPreset(UPLOAD_PRESET_PATH, DEFAULT_BILIUP_CONFIG);
@@ -311,7 +311,12 @@ export const handlers = {
     pathArray: string[],
     options: BiliupConfig,
   ) => {
-    uploadVideo(_event.sender, uid, pathArray, options);
+    const isNewUpload = true;
+    if (isNewUpload) {
+      biliApi.addMedia(_event.sender, pathArray, options, uid);
+    } else {
+      uploadVideo(_event.sender, uid, pathArray, options);
+    }
   },
   "bili:appendVideo": async (
     _event: IpcMainInvokeEvent,

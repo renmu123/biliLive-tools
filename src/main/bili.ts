@@ -1,7 +1,10 @@
 import { Client, TvQrcodeLogin } from "@renmu/bili-api";
 import { format, writeUser, readUser } from "./biliup";
 import { appConfig } from "./config";
-import { type IpcMainInvokeEvent } from "electron";
+import { BiliVideoTask, taskQueue } from "./task";
+
+import type { IpcMainInvokeEvent, WebContents } from "electron";
+import type { BiliupConfig } from "../types/index";
 
 type ClientInstance = InstanceType<typeof Client>;
 
@@ -16,8 +19,7 @@ async function loadCookie(uid?: number) {
 
   if (!mid) throw new Error("请先登录");
   const user = await readUser(mid);
-  const data = await JSON.parse(user?.rawAuth || "{}");
-  return client.setAuth(user?.cookie, data.accessToken);
+  return client.setAuth(user!.cookie, user!.accessToken);
 }
 
 async function getArchives(
@@ -50,12 +52,106 @@ function login() {
   return tv.login();
 }
 
+interface MediaOptions {
+  /** 封面，如果不是http:，会尝试上传 */
+  cover?: string;
+  /** 标题 */
+  title: string;
+  /** 1: 自制，2: 转载，转载必须有source字段，且不能超过200字 */
+  copyright?: 1 | 2;
+  /** copyright=2之后必填的字段 */
+  source?: string;
+  /** 分区id */
+  tid: number;
+  /** 标签，用逗号分隔，最多12个 */
+  tag: string;
+  /** 简介 */
+  desc?: string;
+  /** 简介中的特殊效果 */
+  desc_v2?: any[];
+  /** 动态 */
+  dynamic?: string;
+  /** 杜比音效 */
+  dolby?: 0 | 1;
+  /** hires音效 */
+  lossless_music?: 0 | 1;
+  desc_format_id?: number;
+  /** 话题id */
+  mission_id?: number;
+  /** 自制声明 0: 允许转载，1：禁止转载 */
+  no_reprint?: 0 | 1;
+  /** 是否全景 */
+  is_360?: -1 | 1;
+  /** 关闭弹幕，编辑应该不生效 */
+  up_close_danmu?: boolean;
+  /** 关闭评论，编辑应该不生效 */
+  up_close_reply?: boolean;
+  /** 精选评论，编辑应该不生效 */
+  up_selection_reply?: boolean;
+  /** 充电面板 0: 关闭，1: 开启，编辑应该不生效 */
+  open_elec?: 0 | 1;
+}
+
+function formatOptions(options: BiliupConfig) {
+  // @ts-ignore
+  const data: MediaOptions = {
+    cover: options.cover,
+    title: options.title,
+    tid: options.tid,
+    tag: options.tag.join(","),
+    copyright: options.copyright,
+    source: options.source,
+    desc: options.desc,
+    dolby: options.dolby,
+    lossless_music: options.hires,
+    no_reprint: options.noReprint,
+    up_close_danmu: options.closeDanmu ? true : false,
+    up_close_reply: options.closeReply ? true : false,
+    up_selection_reply: options.selectiionReply ? true : false,
+    open_elec: options.openElec,
+  };
+  console.log("formatOptions", data);
+  return data;
+}
+
+async function addMedia(
+  webContents: WebContents,
+  filePath: string[],
+  options: BiliupConfig,
+  uid: number,
+) {
+  await loadCookie(uid);
+  const command = await client.platform.addMedia(filePath, formatOptions(options));
+
+  const task = new BiliVideoTask(
+    command,
+    webContents,
+    {
+      name: `上传任务：${filePath[0]}`,
+    },
+    {},
+  );
+
+  taskQueue.addTask(task, true);
+
+  return {
+    taskId: task.taskId,
+  };
+}
+
+async function editMedia(aid: number, filePath: string[], options: any, uid: number) {
+  await loadCookie(uid);
+  return client.platform.editMedia(aid, filePath, options, "append");
+}
+
 export const biliApi = {
   getArchives,
   checkTag,
   login,
   getUserInfo,
   getMyInfo,
+  addMedia,
+  editMedia,
 };
 
 export const invokeWrap = <T extends (...args: any[]) => any>(fn: T) => {
@@ -107,6 +203,14 @@ export const handlers = {
     user.name = userInfo.data.name;
     user.avatar = userInfo.data.face;
     await writeUser(user);
+  },
+  "bili:addMedia": (
+    event: IpcMainInvokeEvent,
+    uid: number,
+    pathArray: string[],
+    options: BiliupConfig,
+  ) => {
+    return addMedia(event.sender, pathArray, options, uid);
   },
 };
 
