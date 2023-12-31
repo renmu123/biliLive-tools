@@ -203,9 +203,9 @@ export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: B
   }
 
   if (msg) {
-    return msg;
+    throw new Error(msg);
   }
-  return false;
+  return true;
 };
 
 const uploadPreset = new CommonPreset(UPLOAD_PRESET_PATH, DEFAULT_BILIUP_CONFIG);
