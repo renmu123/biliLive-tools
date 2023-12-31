@@ -311,7 +311,12 @@ export const handlers = {
     pathArray: string[],
     options: BiliupConfig,
   ) => {
-    uploadVideo(_event.sender, uid, pathArray, options);
+    const isNewUpload = true;
+    if (isNewUpload) {
+      biliApi.addMedia(_event.sender, pathArray, options, uid);
+    } else {
+      uploadVideo(_event.sender, uid, pathArray, options);
+    }
   },
   "bili:appendVideo": async (
     _event: IpcMainInvokeEvent,

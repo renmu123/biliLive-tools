@@ -183,14 +183,16 @@ export const api = {
       return ipcRenderer.invoke("bili:deleteUser", uid);
     },
     // 验证视频上传参数
-    validUploadParams: async (config: BiliupConfig) => {
-      return await ipcRenderer.invoke("bili:validUploadParams", config);
+    validUploadParams: (config: BiliupConfig) => {
+      return ipcRenderer.invoke("bili:validUploadParams", config);
     },
-    uploadVideo: async (uid: number, videoFiles: string[], options: BiliupConfig) => {
-      return await ipcRenderer.invoke("bili:uploadVideo", uid, videoFiles, options);
+    // 上传视频
+    uploadVideo: (uid: number, videoFiles: string[], options: BiliupConfig) => {
+      return ipcRenderer.invoke("bili:uploadVideo", uid, videoFiles, options);
     },
-    appendVideo: async (uid: number, videoFiles: string[], options: BiliupConfigAppend) => {
-      return await ipcRenderer.invoke("bili:appendVideo", uid, videoFiles, options);
+    // 续传视频
+    appendVideo: (uid: number, videoFiles: string[], options: BiliupConfigAppend) => {
+      return ipcRenderer.invoke("bili:appendVideo", uid, videoFiles, options);
     },
     login() {
       return ipcRenderer.invoke("biliApi:login");

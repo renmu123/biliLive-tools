@@ -307,7 +307,16 @@ if (!gotTheLock) {
   });
 
   process.on("uncaughtException", function (error) {
+    log.error("uncaughtException", error);
     log.error(error);
+  });
+  process.on("unhandledRejection", function (error) {
+    log.error("unhandledRejection", error);
+    // event.sender.send("notify", data);
+    mainWin.webContents.send("notify", {
+      type: "error",
+      content: String(error),
+    });
   });
 
   app.on("second-instance", () => {
