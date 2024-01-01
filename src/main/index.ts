@@ -244,6 +244,12 @@ function createMenu(): void {
       role: "viewMenu",
     },
     {
+      label: "赞助",
+      click: async () => {
+        shell.openExternal("https://afdian.net/a/renmu123");
+      },
+    },
+    {
       label: "退出",
       click: async () => {
         try {

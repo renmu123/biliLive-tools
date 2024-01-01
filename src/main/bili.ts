@@ -197,8 +197,8 @@ async function editMedia(
   uid: number,
 ) {
   await loadCookie(uid);
-  const command = await client.platform.editMedia(aid, filePath, formatOptions(options), "append", {
-    submit: "web",
+  const command = await client.platform.editMedia(aid, filePath, {}, "append", {
+    submit: "client",
     uploader: "web",
   });
 

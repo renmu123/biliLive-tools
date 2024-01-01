@@ -7,6 +7,7 @@ import { Danmu } from "../core/index";
 
 import type { WebContents, IpcMainInvokeEvent } from "electron";
 import type { Progress } from "../types";
+import { TaskType } from "../types/enum";
 import type ffmpeg from "fluent-ffmpeg";
 import type { Client } from "@renmu/bili-api";
 
@@ -42,7 +43,7 @@ export class DanmuTask extends AbstractTask {
   danmu: Danmu;
   input: string;
   options: any;
-  type = "danmu";
+  type = TaskType.danmu;
   callback: {
     onStart?: () => void;
     onEnd?: (output: string) => void;
@@ -123,7 +124,7 @@ export class DanmuTask extends AbstractTask {
 export class FFmpegTask extends AbstractTask {
   command: ffmpeg.FfmpegCommand;
   webContents: WebContents;
-  type = "ffmpeg";
+  type = TaskType.ffmpeg;
   constructor(
     command: ffmpeg.FfmpegCommand,
     webContents: WebContents,
@@ -234,7 +235,7 @@ type WithoutPromise<T> = T extends Promise<infer U> ? U : T;
 export class BiliVideoTask extends AbstractTask {
   command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>;
   webContents: WebContents;
-  type = "bili";
+  type = TaskType.bili;
   constructor(
     command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>,
     webContents: WebContents,
@@ -270,7 +271,8 @@ export class BiliVideoTask extends AbstractTask {
     this.startTime = Date.now();
     emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
 
-    command.emitter.on("completed", async (data) => {
+    command.emitter.on("completed", async (res) => {
+      const data = res.data;
       log.info(`task ${this.taskId} end`);
       this.status = "completed";
       this.progress = 100;
