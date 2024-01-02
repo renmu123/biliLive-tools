@@ -28,7 +28,6 @@ export const useUserInfoStore = defineStore("userInfo", () => {
   async function getUserInfo() {
     await appConfigStore.getAppConfig();
     const uid = appConfigStore.appConfig.uid;
-    console.log("uid", uid);
     const users = await window.api.bili.readUserList();
     userList.value = users.map((item) => {
       return {
@@ -55,6 +54,7 @@ export const useUserInfoStore = defineStore("userInfo", () => {
             name: userList.value[0].name,
           },
         };
+        appConfigStore.set("uid", userList.value[0].uid);
       } else {
         const user = userList.value.find((item) => item.uid === uid);
         if (user) {

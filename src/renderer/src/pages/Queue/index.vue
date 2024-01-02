@@ -63,18 +63,25 @@
               >中止</n-button
             >
             <n-button
-              v-if="item.status === 'completed' && item.output"
+              v-if="item.status === 'completed' && item.type !== TaskType.bili && item.output"
               type="primary"
               size="small"
-              @click="handleOpenDir(item.taskId, item)"
+              @click="handleOpenDir(item)"
               >打开文件夹</n-button
             >
             <n-button
-              v-if="item.status === 'completed' && item.output"
+              v-if="item.status === 'completed' && item.type !== TaskType.bili && item.output"
               type="primary"
               size="small"
-              @click="handleOpenFile(item.taskId, item)"
+              @click="handleOpenFile(item)"
               >打开文件</n-button
+            >
+            <n-button
+              v-if="item.status === 'completed' && item.type === TaskType.bili && item.output"
+              type="primary"
+              size="small"
+              @click="openExternal(item)"
+              >打开稿件</n-button
             >
             <n-button
               v-if="
@@ -87,7 +94,6 @@
             >
           </div>
         </div>
-
         <n-progress
           class="progress"
           :status="statusMap[item.status].progressStatus"
@@ -136,6 +142,7 @@
 import { useConfirm } from "@renderer/hooks";
 import { useQueueStore } from "@renderer/stores";
 import { formatSeconds } from "@renderer/utils";
+import { TaskType } from "../../../../types/enum";
 
 const confirm = useConfirm();
 const notice = useNotification();
@@ -145,8 +152,8 @@ interface Task {
   taskId: string;
   name: string;
   status: "pending" | "running" | "paused" | "completed" | "error";
-  type: "ffmpeg";
-  output?: string;
+  type: TaskType;
+  output?: any;
   progress: number;
   action: ("pause" | "kill" | "interrupt")[];
   startTime?: number;
@@ -279,13 +286,17 @@ const handleKill = async (taskId: string) => {
   getQuenu();
 };
 
-const handleOpenDir = (taskId: string, item: Task) => {
-  console.log("handleOpenDir", taskId);
+const handleOpenDir = (item: Task) => {
   window.api.openPath(window.path.parse(item.output!).dir);
 };
-const handleOpenFile = (taskId: string, item: Task) => {
-  console.log("handleOpenFile", taskId);
+const handleOpenFile = (item: Task) => {
   window.api.openPath(item.output!);
+};
+
+const openExternal = (item: Task) => {
+  window.api.openExternal(
+    `https://member.bilibili.com/platform/upload/video/frame?type=edit&version=new&aid=${item?.output?.aid}`,
+  );
 };
 
 const handleRemoveRecord = (taskId: string) => {

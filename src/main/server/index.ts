@@ -141,7 +141,7 @@ function getConfig(roomId: number): {
   const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
   const videoPresetId = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
   const blacklist = appConfig.webhook.blacklist.split(",");
-  const open = roomSetting?.open;
+  const open = roomSetting?.open ?? true;
   const uid = roomSetting?.uid || appConfig.webhook.uid;
   const partMergeMinute = roomSetting?.partMergeMinute || appConfig.webhook.partMergeMinute || 10;
 
@@ -170,12 +170,14 @@ export interface Options {
   platform: "bili-recorder" | "blrec";
 }
 
-export function handleLiveData(options: Options, partMergeMinute: number) {
+export async function handleLiveData(options: Options, partMergeMinute: number) {
   // 计算live
   const timestamp = new Date(options.time).getTime();
   let currentIndex = -1;
   log.debug("liveData-start", JSON.stringify(liveData, null, 2));
   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
+    // 为了处理 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间
+    await sleep(1000);
     currentIndex = liveData.findIndex((live) => {
       // 找到上一个文件结束时间与当前时间差小于10分钟的直播，认为是同一个直播
       // 找到part中最大的结束时间
@@ -187,12 +189,20 @@ export function handleLiveData(options: Options, partMergeMinute: number) {
       );
     });
     if (currentIndex === -1) {
-      // 下一个文件的开始时间可能早于上一个文件的结束时间，如果出现这种情况，尝试特殊处理
-      currentIndex = liveData.findIndex((live) => {
-        // 找到上一个文件结束时间与当前时间差小于10分钟的直播，认为是同一个直播
-        // 找到part中最大的结束时间
-        const hasPath = (live.parts || []).some((item) => item.filePath === options.filePath);
-        return hasPath;
+      // 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间，如果出现这种情况，尝试特殊处理
+      // 如果live的任何一个part有endTime，说明不会出现特殊情况，不需要特殊处理
+      // 然后去遍历liveData，找到roomId、platform、title都相同的直播，认为是同一场直播
+      currentIndex = liveData.toReversed().findIndex((live) => {
+        const hasEndTime = (live.parts || []).some((item) => item.endTime);
+        if (hasEndTime) {
+          return false;
+        } else {
+          return (
+            live.roomId === options.roomId &&
+            live.platform === options.platform &&
+            live.videoName === options.title
+          );
+        }
       });
       if (currentIndex !== -1) {
         log.info("下一个文件的开始时间可能早于上一个文件的结束时间", liveData);
@@ -200,6 +210,8 @@ export function handleLiveData(options: Options, partMergeMinute: number) {
       }
     }
     let currentLive = liveData[currentIndex];
+    log.debug("currentLive", JSON.stringify(currentLive, null, 2));
+
     if (currentLive) {
       const part: Part = {
         partId: uuid(),
@@ -315,7 +327,7 @@ async function handle(options: Options) {
   options.title = config.title;
 
   // 计算live
-  const currentLiveIndex = handleLiveData(options, partMergeMinute);
+  const currentLiveIndex = await handleLiveData(options, partMergeMinute);
   const currentLive = liveData[currentLiveIndex];
 
   if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
@@ -458,13 +470,78 @@ const addMergeAssMp4Task = (
 
 const newUploadTask = async (uid: number, mergePart: boolean, part: Part, config: BiliupConfig) => {
   if (mergePart) return;
-  const biliup = await uploadVideo(mainWin.webContents, uid, [part.filePath], config);
   part.status = "uploading";
-  biliup.once("close", async (code: 0 | 1) => {
-    if (code === 0) {
-      part.status = "uploaded";
+  try {
+    await addUploadTask(uid, [part.filePath], config);
+    part.status = "uploaded";
+  } catch (error) {
+    log.error(error);
+    part.status = "error";
+  }
+};
+
+const addUploadTask = async (uid: number, pathArray: string[], options: BiliupConfig) => {
+  return new Promise((resolve, reject) => {
+    const config = getAppConfig();
+    const useBiliup = config["useBiliup"];
+    if (useBiliup) {
+      uploadVideo(mainWin.webContents, uid, pathArray, options).then((biliup) => {
+        biliup.once("close", async (code: 0 | 1) => {
+          if (code === 0) {
+            resolve(true);
+          } else {
+            reject();
+          }
+        });
+      });
     } else {
-      part.status = "error";
+      biliApi.addMedia(mainWin.webContents, pathArray, options, uid).then((task) => {
+        const currentTaskId = task.taskId;
+        taskQueue.on("task-end", ({ taskId }) => {
+          if (taskId === currentTaskId) {
+            resolve(true);
+          }
+        });
+        taskQueue.on("task-error", ({ taskId }) => {
+          if (taskId === currentTaskId) {
+            reject();
+          }
+        });
+      });
+    }
+  });
+};
+
+const addEditMediaTask = async (uid: number, aid: number, pathArray: string[]) => {
+  return new Promise((resolve, reject) => {
+    const config = getAppConfig();
+    const useBiliup = config["useBiliup"];
+    if (useBiliup) {
+      appendVideo(mainWin.webContents, uid, pathArray, {
+        vid: aid,
+      }).then((biliup) => {
+        biliup.once("close", async (code: 0 | 1) => {
+          if (code === 0) {
+            resolve(true);
+          } else {
+            reject();
+          }
+        });
+      });
+    } else {
+      biliApi.editMedia(mainWin.webContents, aid, pathArray, {}, uid).then((task) => {
+        const currentTaskId = task.taskId;
+        taskQueue.on("task-end", ({ taskId }) => {
+          if (taskId === currentTaskId) {
+            resolve(true);
+          }
+        });
+        taskQueue.on("task-error", ({ taskId }) => {
+          if (taskId === currentTaskId) {
+            reject();
+          }
+        });
+      });
     }
   });
 };
@@ -513,67 +590,59 @@ const handleLive = async (live: Live, appConfig: AppConfig) => {
   log.debug("interval", live, filePaths);
   if (filePaths.length === 0) return;
 
-  let biliup: any;
   if (live.aid) {
     log.info("续传", filePaths);
-    biliup = await appendVideo(mainWin.webContents, uid, filePaths, {
-      vid: live.aid,
-    });
-    live.parts.map((item) => {
-      if (filePaths.includes(item.filePath)) item.status = "uploading";
-    });
-    biliup.once("close", async (code: 0 | 1) => {
-      if (code === 0) {
-        // 设置状态为成功
-        live.parts.map((item) => {
-          if (filePaths.includes(item.filePath)) item.status = "uploaded";
-        });
-      } else {
-        // 设置状态为失败
-        live.parts.map((item) => {
-          if (filePaths.includes(item.filePath)) item.status = "error";
-        });
-      }
-    });
+    try {
+      live.parts.map((item) => {
+        if (filePaths.includes(item.filePath)) item.status = "uploading";
+      });
+      await addEditMediaTask(uid, live.aid, filePaths);
+      live.parts.map((item) => {
+        if (filePaths.includes(item.filePath)) item.status = "uploaded";
+      });
+    } catch (error) {
+      log.error(error);
+      live.parts.map((item) => {
+        if (filePaths.includes(item.filePath)) item.status = "error";
+      });
+    }
   } else {
-    biliup = await uploadVideo(mainWin.webContents, uid, filePaths, config);
-    live.parts.map((item) => {
-      if (filePaths.includes(item.filePath)) item.status = "uploading";
-    });
+    try {
+      live.parts.map((item) => {
+        if (filePaths.includes(item.filePath)) item.status = "uploading";
+      });
+      log.info("上传", live, filePaths);
 
-    log.info("上传成功", live, filePaths);
+      await addUploadTask(uid, filePaths, config);
 
-    biliup.once("close", async (code: 0 | 1) => {
-      if (code === 0) {
-        await runWithMaxIterations(
-          async () => {
-            // TODO:接完上传后重构
-            const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
-            for (let i = 0; i < Math.min(10, res.data.arc_audits.length); i++) {
-              const item = res.data.arc_audits[i];
-              if (item.Archive.title === live.videoName) {
-                live.aid = item.Archive.aid;
-                return false;
-              }
+      await runWithMaxIterations(
+        async () => {
+          const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
+          for (let i = 0; i < Math.min(10, res.data.arc_audits.length); i++) {
+            const item = res.data.arc_audits[i];
+            if (item.Archive.title === live.videoName) {
+              live.aid = item.Archive.aid;
+              return false;
             }
-            return true;
-          },
-          6000,
-          5,
-        );
+          }
+          return true;
+        },
+        6000,
+        5,
+      );
 
-        // 设置状态为成功
-        live.parts.map((item) => {
-          if (filePaths.includes(item.filePath)) item.status = "uploaded";
-        });
-        log.info("上传成功", live, filePaths);
-      } else {
-        // 设置状态为失败
-        live.parts.map((item) => {
-          if (filePaths.includes(item.filePath)) item.status = "error";
-        });
-      }
-    });
+      // 设置状态为成功
+      live.parts.map((item) => {
+        if (filePaths.includes(item.filePath)) item.status = "uploaded";
+      });
+      log.info("上传成功", live, filePaths);
+    } catch (error) {
+      log.error(error);
+      // 设置状态为失败
+      live.parts.map((item) => {
+        if (filePaths.includes(item.filePath)) item.status = "error";
+      });
+    }
   }
 };
 

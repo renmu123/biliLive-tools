@@ -12,7 +12,8 @@ import type { IpcMainInvokeEvent } from "electron";
 export const APP_DEFAULT_CONFIG: AppConfig = {
   logLevel: "warn",
   autoUpdate: true,
-  trash: false, // 是否移动至回收站
+  trash: false,
+  useBiliup: false,
   webhook: {
     port: 18010,
     open: false,
@@ -48,8 +49,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
 };
 
 function get<K extends keyof AppConfig>(key: K): AppConfig[K] {
-  const config = getConfig();
-  return config.get(key);
+  const config = getAppConfig();
+  return config[key];
 }
 
 function set<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {

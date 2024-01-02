@@ -74,6 +74,8 @@ export interface AppConfig {
   trash: boolean;
   /** 检查更新 */
   autoUpdate: boolean;
+  /** 使用biliup */
+  useBiliup: boolean;
   webhook: {
     port: number;
     open: boolean;
@@ -177,6 +179,11 @@ export interface BiliupConfig {
   source?: string; // 转载来源
   dynamic?: string; // 空间动态
   cover?: string; // 封面
+  noReprint?: 0 | 1; // 自制声明 0: 允许转载，1：禁止转载
+  openElec?: 0 | 1; // 充电面板 0：不开启，1：开启
+  closeDanmu?: 0 | 1; // 关闭弹幕 0：不关闭，1：关闭
+  closeReply?: 0 | 1; // 关闭评论 0：不关闭，1：关闭
+  selectiionReply?: 0 | 1; // 开启精选评论 0：开启，1：关闭
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

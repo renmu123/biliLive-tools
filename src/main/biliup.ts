@@ -25,6 +25,11 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   source: "",
   dynamic: "",
   cover: "",
+  noReprint: 0,
+  openElec: 0,
+  closeDanmu: 0,
+  closeReply: 0,
+  selectiionReply: 0,
 };
 
 // 上传视频
@@ -141,6 +146,28 @@ const genBiliupOPtions = (options: BiliupConfig) => {
       } else {
         return "";
       }
+    } else if (key === "noReprint") {
+      return `--no-reprint ${value}`;
+    } else if (key === "openElec") {
+      return `--open-elec ${value}`;
+    } else if (key === "closeDanmu") {
+      if (value === 1) {
+        return `--up-close-danmu`;
+      } else {
+        return "";
+      }
+    } else if (key === "closeReply") {
+      if (value === 1) {
+        return `--up-close-reply`;
+      } else {
+        return "";
+      }
+    } else if (key === "selectiionReply") {
+      if (value === 1) {
+        return `--up-selection-reply`;
+      } else {
+        return "";
+      }
     } else {
       return `--${key} ${value}`;
     }
@@ -176,9 +203,9 @@ export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: B
   }
 
   if (msg) {
-    return msg;
+    throw new Error(msg);
   }
-  return false;
+  return true;
 };
 
 const uploadPreset = new CommonPreset(UPLOAD_PRESET_PATH, DEFAULT_BILIUP_CONFIG);
@@ -284,7 +311,12 @@ export const handlers = {
     pathArray: string[],
     options: BiliupConfig,
   ) => {
-    uploadVideo(_event.sender, uid, pathArray, options);
+    const useBiliup = appConfig.get("useBiliup");
+    if (useBiliup) {
+      uploadVideo(_event.sender, uid, pathArray, options);
+    } else {
+      biliApi.addMedia(_event.sender, pathArray, options, uid);
+    }
   },
   "bili:appendVideo": async (
     _event: IpcMainInvokeEvent,
@@ -292,6 +324,11 @@ export const handlers = {
     pathArray: string[],
     options: BiliupConfigAppend,
   ) => {
-    appendVideo(_event.sender, uid, pathArray, options);
+    const useBiliup = appConfig.get("useBiliup");
+    if (useBiliup) {
+      appendVideo(_event.sender, uid, pathArray, options);
+    } else {
+      biliApi.editMedia(_event.sender, options.vid as number, pathArray, options, uid);
+    }
   },
 };

@@ -7,7 +7,9 @@ import { Danmu } from "../core/index";
 
 import type { WebContents, IpcMainInvokeEvent } from "electron";
 import type { Progress } from "../types";
+import { TaskType } from "../types/enum";
 import type ffmpeg from "fluent-ffmpeg";
+import type { Client } from "@renmu/bili-api";
 
 const emitter = new EventEmitter();
 
@@ -41,7 +43,7 @@ export class DanmuTask extends AbstractTask {
   danmu: Danmu;
   input: string;
   options: any;
-  type = "danmu";
+  type = TaskType.danmu;
   callback: {
     onStart?: () => void;
     onEnd?: (output: string) => void;
@@ -122,7 +124,7 @@ export class DanmuTask extends AbstractTask {
 export class FFmpegTask extends AbstractTask {
   command: ffmpeg.FfmpegCommand;
   webContents: WebContents;
-  type = "ffmpeg";
+  type = TaskType.ffmpeg;
   constructor(
     command: ffmpeg.FfmpegCommand,
     webContents: WebContents,
@@ -227,6 +229,108 @@ export class FFmpegTask extends AbstractTask {
     return true;
   }
 }
+
+type WithoutPromise<T> = T extends Promise<infer U> ? U : T;
+
+export class BiliVideoTask extends AbstractTask {
+  command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>;
+  webContents: WebContents;
+  type = TaskType.bili;
+  constructor(
+    command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>,
+    webContents: WebContents,
+    options: {
+      name: string;
+    },
+    callback: {
+      onStart?: () => void;
+      onEnd?: (output: string) => void;
+      onError?: (err: string) => void;
+      onProgress?: (progress: Progress) => any;
+    },
+  ) {
+    super();
+    this.command = command;
+    this.webContents = webContents;
+    this.progress = 0;
+    this.action = ["kill", "pause"];
+    if (options.name) {
+      this.name = options.name;
+    }
+
+    // command.emitter.on("start", (commandLine: string) => {
+    //   this.progress = 0;
+    //   log.info(`task ${this.taskId} start, command: ${commandLine}`);
+    //   this.status = "running";
+
+    //   callback.onStart && callback.onStart();
+    //   emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+    //   this.startTime = Date.now();
+    // });
+    this.status = "running";
+    this.startTime = Date.now();
+    emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+
+    command.emitter.on("completed", async (res) => {
+      const data = res.data;
+      log.info(`task ${this.taskId} end`);
+      this.status = "completed";
+      this.progress = 100;
+      this.output = data;
+      console.log("ppppppppppppppppp", data);
+      callback.onEnd && callback.onEnd(data);
+      emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
+      this.endTime = Date.now();
+    });
+    command.emitter.on("error", (err) => {
+      log.error(`task ${this.taskId} error: ${err}`);
+      this.status = "error";
+
+      callback.onError && callback.onError(err);
+      emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
+    });
+    command.emitter.on("progress", (progress) => {
+      progress.percentage = progress.progress * 100;
+
+      if (callback.onProgress) {
+        progress = callback.onProgress(progress);
+      }
+      this.progress = progress.percentage || 0;
+      emitter.emit("task-progress", { taskId: this.taskId, webContents: this.webContents });
+    });
+  }
+  exec() {
+    // this.command.run();
+  }
+  pause() {
+    if (this.status !== "running") return;
+    this.command.pause();
+    log.warn(`task ${this.taskId} paused`);
+    this.status = "paused";
+    return true;
+  }
+  resume() {
+    if (this.status !== "paused") return;
+    this.command.start();
+    log.warn(`task ${this.taskId} resumed`);
+    this.status = "running";
+    return true;
+  }
+  interrupt() {
+    if (this.status === "completed" || this.status === "error") return;
+    log.warn(`task ${this.taskId} interrupt`);
+    this.status = "error";
+    return true;
+  }
+  kill() {
+    if (this.status === "completed" || this.status === "error") return;
+    log.warn(`task ${this.taskId} killed`);
+    this.status = "error";
+    this.command.cancel();
+    return true;
+  }
+}
+
 export class TaskQueue {
   queue: AbstractTask[];
   constructor() {

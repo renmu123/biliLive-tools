@@ -29,8 +29,8 @@
   <n-form-item>
     <template #label>
       <span class="inline-flex">
-        上传到同分p
-        <Tip tip="该功能在测试阶段，开启后，会将主播一场直播上传到同一个视频中"></Tip>
+        断播续传
+        <Tip tip="该功能在测试阶段，开启后，会将某主播一场直播上传到同一个视频中"></Tip>
       </span>
     </template>
     <n-switch v-model:value="data.autoPartMerge" />

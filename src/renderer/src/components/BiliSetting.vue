@@ -20,7 +20,15 @@
           show-count
         />
       </n-form-item>
-      <n-form-item label="视频简介">
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            <span>视频简介</span>
+            <Tip
+              tip="仅限非biliup上传：可以输入[暮色123]<12345>来进行艾特用户，前面的值为用户明，后面的值为用户id"
+            ></Tip>
+          </span>
+        </template>
         <n-input
           v-model:value="options.config.desc"
           placeholder="请输入视频简介"
@@ -42,12 +50,12 @@
         </template>
         <image-crop v-model="options.config.cover"></image-crop>
       </n-form-item>
-      <n-form-item label="空间动态">
+      <n-form-item label="粉丝动态">
         <n-input
           v-model:value="options.config.dynamic"
-          placeholder="请输入空间动态"
+          placeholder="请输入粉丝动态"
           clearable
-          maxlength="250"
+          maxlength="233"
           show-count
           type="textarea"
           :autosize="{
@@ -91,14 +99,69 @@
           filterable
         />
       </n-form-item>
-
-      <n-form-item label="杜比音效">
-        <n-checkbox v-model:checked="options.config.dolby" :checked-value="1" :unchecked-value="0">
-        </n-checkbox>
+      <n-form-item label="自制声明">
+        <n-checkbox
+          v-model:checked="options.config.noReprint"
+          :checked-value="1"
+          :unchecked-value="0"
+          >未经作者授权 禁止转载</n-checkbox
+        >
       </n-form-item>
-      <n-form-item label="Hi-Res无损音质">
-        <n-checkbox v-model:checked="options.config.hires" :checked-value="1" :unchecked-value="0">
-        </n-checkbox>
+      <n-form-item label="充电设置">
+        <n-checkbox
+          v-model:checked="options.config.openElec"
+          :checked-value="1"
+          :unchecked-value="0"
+          >启用充电面板</n-checkbox
+        >
+      </n-form-item>
+      <n-form-item label="高级设置">
+        <div class="inline-items">
+          <div class="inline-item">
+            <n-checkbox
+              v-model:checked="options.config.dolby"
+              :checked-value="1"
+              :unchecked-value="0"
+              >杜比音效</n-checkbox
+            >
+          </div>
+          <div class="inline-item">
+            <n-checkbox
+              v-model:checked="options.config.hires"
+              :checked-value="1"
+              :unchecked-value="0"
+              >Hi-Res无损音质
+            </n-checkbox>
+          </div>
+        </div>
+      </n-form-item>
+      <n-form-item label="互动管理">
+        <div class="inline-items">
+          <div class="inline-item">
+            <n-checkbox
+              v-model:checked="options.config.closeDanmu"
+              :checked-value="1"
+              :unchecked-value="0"
+              >关闭弹幕</n-checkbox
+            >
+          </div>
+          <div class="inline-item">
+            <n-checkbox
+              v-model:checked="options.config.closeReply"
+              :checked-value="1"
+              :unchecked-value="0"
+              >关闭评论
+            </n-checkbox>
+          </div>
+          <div class="inline-item">
+            <n-checkbox
+              v-model:checked="options.config.selectiionReply"
+              :checked-value="1"
+              :unchecked-value="0"
+              >开启精选评论
+            </n-checkbox>
+          </div>
+        </div>
       </n-form-item>
     </n-form>
 
@@ -267,6 +330,17 @@ watch(
     deep: true,
   },
 );
+
+watchEffect(() => {
+  if (options.value.config.closeReply) {
+    options.value.config.selectiionReply = 0;
+  }
+});
+watchEffect(() => {
+  if (options.value.config.selectiionReply) {
+    options.value.config.closeReply = 0;
+  }
+});
 </script>
 
 <style scoped lang="less">
@@ -274,6 +348,16 @@ watch(
   text-align: right;
   .btn + .btn {
     margin-left: 10px;
+  }
+}
+
+.inline-items {
+  display: flex;
+  gap: 10px;
+
+  .inline-item {
+    display: inline-flex;
+    align-items: center;
   }
 }
 </style>
