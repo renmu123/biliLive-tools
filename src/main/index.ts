@@ -18,12 +18,11 @@ import {
   mergeVideos,
   handleReadVideoMeta,
 } from "./video";
-import { handlers as taskHandlers } from "./task";
+import { handlers as taskHandlers, taskQueue } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as ffmpegHandlers } from "./ffmpegPreset";
 import { handlers as danmuHandlers } from "./danmu";
 import { handlers as configHandlers } from "./config";
-import { checkFFmpegRunning, getAllFFmpegProcesses } from "./utils/index";
 import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
 
@@ -51,6 +50,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("openPath", openPath);
   ipcMain.handle("exits", exits);
   ipcMain.handle("trashItem", trashItem);
+  ipcMain.handle("common:relaunch", relaunch);
 
   // 视频处理
   ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
@@ -150,30 +150,7 @@ function createWindow(): void {
     {
       label: "退出",
       click: async () => {
-        try {
-          const isRunning = await checkFFmpegRunning();
-          if (isRunning) {
-            const confirm = await dialog.showMessageBox(mainWin, {
-              message: "检测到有正在运行的ffmpeg进程，是否退出？",
-              buttons: ["取消", "退出", "退出并杀死进程"],
-            });
-            if (confirm.response === 1) {
-              mainWin.destroy();
-              app.quit();
-            } else if (confirm.response === 2) {
-              const processes = await getAllFFmpegProcesses();
-              processes.forEach((item) => {
-                process.kill(item.pid, "SIGTERM");
-              });
-              mainWin.destroy();
-            }
-          } else {
-            mainWin.destroy();
-          }
-        } catch (e) {
-          mainWin.destroy();
-          log.error(e);
-        }
+        quit();
       },
     },
   ]);
@@ -252,35 +229,51 @@ function createMenu(): void {
     {
       label: "退出",
       click: async () => {
-        try {
-          const isRunning = await checkFFmpegRunning();
-          if (isRunning) {
-            const confirm = await dialog.showMessageBox(mainWin, {
-              message: "检测到有正在运行的ffmpeg进程，是否退出？",
-              buttons: ["取消", "退出", "退出并杀死进程"],
-            });
-            if (confirm.response === 1) {
-              mainWin.destroy();
-              app.quit();
-            } else if (confirm.response === 2) {
-              const processes = await getAllFFmpegProcesses();
-              processes.forEach((item) => {
-                process.kill(item.pid, "SIGTERM");
-              });
-              mainWin.destroy();
-            }
-          } else {
-            mainWin.destroy();
-          }
-        } catch (e) {
-          mainWin.destroy();
-          log.error(e);
-        }
+        quit();
       },
     },
   ]);
   Menu.setApplicationMenu(menu);
 }
+
+const canQuit = async () => {
+  const tasks = taskQueue.list();
+  const isRunning = tasks.some((task) => ["running", "paused", "pending"].includes(task.status));
+  if (isRunning) {
+    const confirm = await dialog.showMessageBox(mainWin, {
+      message: "检测到有未完成的任务，是否退出？",
+      buttons: ["取消", "退出"],
+    });
+    if (confirm.response === 1) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  return true;
+};
+
+// 退出应用时检测任务
+const quit = async () => {
+  try {
+    const canQuited = await canQuit();
+    if (canQuited) {
+      mainWin.destroy();
+      app.quit();
+    }
+  } catch (e) {
+    mainWin.destroy();
+    log.error(e);
+  }
+};
+
+export const relaunch = async () => {
+  const canQuited = await canQuit();
+  if (canQuited) {
+    app.relaunch();
+    app.exit(0);
+  }
+};
 
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {

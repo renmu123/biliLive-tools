@@ -148,6 +148,8 @@
 import RoomSettingDialog from "./RoomSettingDialog.vue";
 import CommonSetting from "./CommonWebhookSetting.vue";
 import { useAppConfig } from "@renderer/stores";
+import { cloneDeep } from "lodash-es";
+import { useConfirm } from "@renderer/hooks";
 
 import type { AppConfig, LogLevel, BiliupPreset, AppRoomConfig } from "../../../../types";
 
@@ -156,6 +158,8 @@ const showModal = defineModel<boolean>({ required: true, default: false });
 
 // @ts-ignore
 const config: Ref<AppConfig> = ref({});
+// @ts-ignore
+const initConfig: Ref<AppConfig> = ref({});
 
 const logLevelOptions = ref<{ label: string; value: LogLevel }[]>([
   { label: "debug", value: "debug" },
@@ -164,8 +168,18 @@ const logLevelOptions = ref<{ label: string; value: LogLevel }[]>([
   { label: "error", value: "error" },
 ]);
 
+const confirm = useConfirm();
 const saveConfig = async () => {
   await window.api.config.save(toRaw(config.value));
+  // 如果检测到server从关闭更改为开启状态，提醒重启
+  if (initConfig.value.webhook.open === false && config.value.webhook.open === true) {
+    const status = await confirm.warning({
+      content: "检测到开启了server，是否进行重启？或稍后自行重启",
+    });
+    if (status) {
+      window.api.common.relaunch();
+    }
+  }
   close();
   appConfigStore.getAppConfig();
 };
@@ -177,6 +191,7 @@ const close = () => {
 const getConfig = async () => {
   const data = await window.api.config.getAll();
   config.value = data;
+  initConfig.value = cloneDeep(data);
 };
 
 const selectFile = async (file: "ffmpeg" | "ffprobe") => {

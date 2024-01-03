@@ -164,6 +164,9 @@ export const api = {
     deleteFile: (path: string) => {
       return fs.unlink(path);
     },
+    relaunch: async () => {
+      return ipcRenderer.invoke("common:relaunch");
+    },
   },
   bili: {
     // 预设
@@ -355,6 +358,7 @@ export const api = {
   trashItem: async (path: string) => {
     return await ipcRenderer.invoke("trashItem", path);
   },
+
   openSetting: async (callback: (_event: IpcRendererEvent) => void) => {
     ipcRenderer.on("open-setting", callback);
   },
