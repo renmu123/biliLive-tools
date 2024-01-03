@@ -7,7 +7,7 @@ import { uploadVideo, appendVideo, DEFAULT_BILIUP_CONFIG, readBiliupPreset } fro
 import { mainWin } from "../index";
 import { convertXml2Ass, readDanmuPreset } from "../danmu";
 import { taskQueue } from "../task";
-import { mergeAssMp4 } from "../video";
+import { mergeAssMp4, readVideoMeta } from "../video";
 import bili from "../bili";
 import { biliApi } from "../bili";
 import { getFfmpegPreset } from "../ffmpegPreset";
@@ -367,7 +367,7 @@ async function handle(options: Options) {
     }
 
     const danmuConfig = (await readDanmuPreset(undefined, danmuPresetId)).config;
-    const assFilePath = await addDanmuTask(xmlFilePath, danmuConfig);
+    const assFilePath = await addDanmuTask(xmlFilePath, options.filePath, danmuConfig);
 
     const ffmpegPreset = await getFfmpegPreset(undefined, videoPresetId);
     if (!ffmpegPreset) {
@@ -390,34 +390,47 @@ const sleep = (ms: number) => {
 };
 
 // 添加压制任务
-const addDanmuTask = (input: string, danmuConfig: DanmuConfig): Promise<string> => {
+const addDanmuTask = (
+  input: string,
+  videoFile: string,
+  danmuConfig: DanmuConfig,
+): Promise<string> => {
   return new Promise((resolve, reject) => {
     const assFilePath = `${path.join(os.tmpdir(), uuid())}.ass`;
-    convertXml2Ass(
-      // @ts-ignore
-      {
-        sender: mainWin.webContents,
-      },
-      [
-        {
-          input: input,
-          output: assFilePath,
-        },
-      ],
-      danmuConfig,
-    ).then((tasks) => {
-      const currentTaskId = tasks[0].taskId;
-      taskQueue.on("task-end", ({ taskId }) => {
-        if (taskId === currentTaskId) {
-          resolve(assFilePath);
-        }
+    readVideoMeta(videoFile)
+      .then((videoMeta) => {
+        const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
+        const { width, height } = videoStream || {};
+        danmuConfig.resolution[0] = width!;
+        danmuConfig.resolution[1] = height!;
+        console.log("danmuConfigdanmuConfigdanmuConfigdanmuConfigdanmuConfig", danmuConfig);
+        return convertXml2Ass(
+          // @ts-ignore
+          {
+            sender: mainWin.webContents,
+          },
+          [
+            {
+              input: input,
+              output: assFilePath,
+            },
+          ],
+          danmuConfig,
+        );
+      })
+      .then((tasks) => {
+        const currentTaskId = tasks[0].taskId;
+        taskQueue.on("task-end", ({ taskId }) => {
+          if (taskId === currentTaskId) {
+            resolve(assFilePath);
+          }
+        });
+        taskQueue.on("task-error", ({ taskId }) => {
+          if (taskId === currentTaskId) {
+            reject();
+          }
+        });
       });
-      taskQueue.on("task-error", ({ taskId }) => {
-        if (taskId === currentTaskId) {
-          reject();
-        }
-      });
-    });
   });
 };
 

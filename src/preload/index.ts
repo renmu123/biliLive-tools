@@ -34,19 +34,19 @@ type progressCallback = (params: { percentage?: number }) => void;
 // Custom APIs for renderer
 export const api = {
   danmu: {
-    savePreset: async (preset: DanmuPreset) => {
-      return await ipcRenderer.invoke("danmu:savePreset", preset);
+    savePreset: (preset: DanmuPreset) => {
+      return ipcRenderer.invoke("danmu:savePreset", preset);
     },
-    deletePreset: async (id: string) => {
-      return await ipcRenderer.invoke("danmu:deletePreset", id);
+    deletePreset: (id: string) => {
+      return ipcRenderer.invoke("danmu:deletePreset", id);
     },
-    getPreset: async (id: string): Promise<DanmuPreset> => {
-      return await ipcRenderer.invoke("danmu:getPreset", id);
+    getPreset: (id: string): Promise<DanmuPreset> => {
+      return ipcRenderer.invoke("danmu:getPreset", id);
     },
-    getPresets: async (): Promise<DanmuPreset[]> => {
-      return await ipcRenderer.invoke("danmu:getPresets");
+    getPresets: (): Promise<DanmuPreset[]> => {
+      return ipcRenderer.invoke("danmu:getPresets");
     },
-    convertXml2Ass: async (
+    convertXml2Ass: (
       files: {
         input: string;
         output?: string;
@@ -56,7 +56,7 @@ export const api = {
         removeOrigin: false,
       },
     ) => {
-      return await ipcRenderer.invoke("danmu:convertXml2Ass", files, config, options);
+      return ipcRenderer.invoke("danmu:convertXml2Ass", files, config, options);
     },
   },
   task: {
@@ -164,7 +164,7 @@ export const api = {
     deleteFile: (path: string) => {
       return fs.unlink(path);
     },
-    relaunch: async () => {
+    relaunch: () => {
       return ipcRenderer.invoke("common:relaunch");
     },
   },
@@ -278,7 +278,7 @@ export const api = {
       return ipcRenderer.invoke("config:set", key, value);
     },
   },
-  convertVideo2Mp4: async (
+  convertVideo2Mp4: (
     file: File,
     options: Video2Mp4Options = {
       saveRadio: 1,
@@ -289,7 +289,7 @@ export const api = {
       removeOrigin: false,
     },
   ) => {
-    return await ipcRenderer.invoke("convertVideo2Mp4", file, options);
+    return ipcRenderer.invoke("convertVideo2Mp4", file, options);
   },
   mergeAssMp4: async (
     files: {
@@ -317,23 +317,23 @@ export const api = {
   ) => {
     ipcRenderer.on("upload-close", callback);
   },
-  readVideoMeta: async (file: string): Promise<ffmpeg.FfprobeData> => {
-    return await ipcRenderer.invoke("readVideoMeta", file);
+  readVideoMeta: (file: string): Promise<ffmpeg.FfprobeData> => {
+    return ipcRenderer.invoke("readVideoMeta", file);
   },
   // 获取app配置
-  getAppConfig: async (): Promise<AppConfig> => {
-    return await ipcRenderer.invoke("getAppConfig");
+  getAppConfig: (): Promise<AppConfig> => {
+    return ipcRenderer.invoke("getAppConfig");
   },
 
   // 通用函数
-  openDirectory: async () => {
-    return await ipcRenderer.invoke("dialog:openDirectory");
+  openDirectory: () => {
+    return ipcRenderer.invoke("dialog:openDirectory");
   },
-  openFile: async (options: OpenDialogOptions): Promise<string[] | undefined> => {
-    return await ipcRenderer.invoke("dialog:openFile", options);
+  openFile: (options: OpenDialogOptions): Promise<string[] | undefined> => {
+    return ipcRenderer.invoke("dialog:openFile", options);
   },
-  showSaveDialog: async (options?: SaveDialogOptions): Promise<string | undefined> => {
-    return await ipcRenderer.invoke("dialog:save", options);
+  showSaveDialog: (options?: SaveDialogOptions): Promise<string | undefined> => {
+    return ipcRenderer.invoke("dialog:save", options);
   },
 
   formatFile: (filePath: string) => {
@@ -352,14 +352,14 @@ export const api = {
   exits: (path: string) => {
     return ipcRenderer.invoke("exits", path);
   },
-  getAvailableEncoders: async () => {
-    return await ipcRenderer.invoke("getAvailableEncoders");
+  getAvailableEncoders: () => {
+    return ipcRenderer.invoke("getAvailableEncoders");
   },
-  trashItem: async (path: string) => {
-    return await ipcRenderer.invoke("trashItem", path);
+  trashItem: (path: string) => {
+    return ipcRenderer.invoke("trashItem", path);
   },
 
-  openSetting: async (callback: (_event: IpcRendererEvent) => void) => {
+  openSetting: (callback: (_event: IpcRendererEvent) => void) => {
     ipcRenderer.on("open-setting", callback);
   },
   onMainNotify: (

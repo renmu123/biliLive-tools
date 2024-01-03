@@ -40,6 +40,7 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   giftmergetolerance: 0.0,
   blockmode: [],
   statmode: [],
+  resolutionResponsive: false,
 };
 
 export const addConvertDanmu2AssTask = async (

@@ -178,10 +178,14 @@ const preHandle = async (
   const videoMeta = await window.api.readVideoMeta(videoFile.path);
   const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
   const { width, height } = videoStream || {};
-  console.log(width, height);
+  if (danmuConfig.resolutionResponsive) {
+    danmuConfig.resolution[0] = width!;
+    danmuConfig.resolution[1] = height!;
+  }
+
   if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
     const status = await confirm.warning({
-      content: `目标视频为${width}*${height}，与设置的弹幕的分辨率不一致，如需更改分辨率可以去”弹幕设置“处进行修改，是否继续？`,
+      content: `目标视频分辨率为${width}*${height}，与设置的弹幕分辨率不一致，是否继续？`,
     });
     if (!status) return false;
   }
@@ -206,10 +210,9 @@ const preHandle = async (
 const convert = async () => {
   const files = toRaw(fileList.value);
   const rawClientOptions = toRaw(clientOptions.value);
-  const rawDanmuConfig = toRaw(danmuPreset.value.config);
+  const rawDanmuConfig = deepRaw(danmuPreset.value.config);
   const rawPresetOptions = toRaw(presetOptions.value);
   const rawFfmpegOptions = toRaw(ffmpegOptions.value);
-  console.log("rawFfmpegOptions", rawFfmpegOptions);
 
   const data = await preHandle(
     files,

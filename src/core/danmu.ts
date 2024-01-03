@@ -26,6 +26,9 @@ export default class Danmu {
         return `--${key} ${value.join("-")}`;
       } else if (key === "fontname") {
         return `--${key} "${value}"`;
+      } else if (key === "resolutionResponsive") {
+        // do nothing
+        return "";
       } else {
         return `--${key} ${value}`;
       }

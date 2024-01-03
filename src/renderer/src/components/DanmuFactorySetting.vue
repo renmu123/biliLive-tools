@@ -3,10 +3,10 @@
     <div class="card">
       <h2>文字设置</h2>
       <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
-        <n-form-item label="文字大小" path="fontsize">
+        <n-form-item label="文字大小">
           <n-input-number v-model:value.number="config.fontsize" class="input-number" :min="0" />
         </n-form-item>
-        <n-form-item v-if="isAdvancedMode" label="阴影" path="shadow">
+        <n-form-item v-if="isAdvancedMode" label="阴影">
           <n-input-number
             v-model:value.number="config.shadow"
             class="input-number"
@@ -14,7 +14,7 @@
             :max="4"
           />
         </n-form-item>
-        <n-form-item v-if="isAdvancedMode" label="描边" path="outline">
+        <n-form-item v-if="isAdvancedMode" label="描边">
           <n-input-number
             v-model:value.number="config.outline"
             class="input-number"
@@ -22,7 +22,7 @@
             :max="4"
           />
         </n-form-item>
-        <n-form-item label="不透明度" path="opacity">
+        <n-form-item label="不透明度">
           <n-input-number
             v-model:value.number="config.opacity"
             class="input-number"
@@ -30,7 +30,7 @@
             :max="255"
           />
         </n-form-item>
-        <n-form-item path="bold">
+        <n-form-item>
           <n-checkbox v-model:checked="config.bold"> 粗体 </n-checkbox>
         </n-form-item>
         <n-form-item label="字体">
@@ -48,7 +48,7 @@
     <div v-if="isAdvancedMode" class="card">
       <h2>弹幕设置</h2>
       <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
-        <n-form-item v-if="isAdvancedMode" label="弹幕密度" path="density">
+        <n-form-item v-if="isAdvancedMode" label="弹幕密度">
           <n-radio-group v-model:value="config.density" name="density">
             <n-space>
               <n-radio :value="0"> 无限 </n-radio>
@@ -57,14 +57,14 @@
             </n-space>
           </n-radio-group>
         </n-form-item>
-        <n-form-item v-if="isAdvancedMode" label="滚动弹幕通过时间" path="scrolltime">
+        <n-form-item v-if="isAdvancedMode" label="滚动弹幕通过时间">
           <n-input-number
             v-model:value.number="config.scrolltime"
             class="input-number"
             :min="0"
           />&nbsp;秒
         </n-form-item>
-        <n-form-item v-if="isAdvancedMode" label="固定弹幕停留时间" path="fixtime">
+        <n-form-item v-if="isAdvancedMode" label="固定弹幕停留时间">
           <n-input-number
             v-model:value.number="config.fixtime"
             class="input-number"
@@ -78,7 +78,6 @@
         <n-form-item
           v-if="isAdvancedMode"
           label="按类型屏蔽"
-          path="blockmode"
           label-placement="top"
           label-align="left"
         >
@@ -101,7 +100,7 @@
     <div class="card">
       <h2>画面设置</h2>
       <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
-        <n-form-item v-if="isAdvancedMode" label="滚动弹幕显示区域" path="scrollarea">
+        <n-form-item v-if="isAdvancedMode" label="滚动弹幕显示区域">
           <n-input-number
             v-model:value.number="config.scrollarea"
             class="input-number"
@@ -111,7 +110,7 @@
             :step="0.1"
           />
         </n-form-item>
-        <n-form-item v-if="isAdvancedMode" label="全部弹幕显示区域" path="displayarea">
+        <n-form-item v-if="isAdvancedMode" label="全部弹幕显示区域">
           <n-input-number
             v-model:value.number="config.displayarea"
             class="input-number"
@@ -121,7 +120,7 @@
             :step="0.1"
           />
         </n-form-item>
-        <n-form-item label="分辨率" path="phone">
+        <n-form-item label="分辨率">
           <n-input-number
             v-model:value.number="config.resolution[0]"
             class="input-number"
@@ -136,9 +135,16 @@
             :step="100"
             placeholder="高"
           />
+          <n-checkbox
+            v-model:checked="config.resolutionResponsive"
+            style="margin-left: 20px"
+            title="启用后在压制弹幕至视频中时，以视频的分辨率为主"
+          >
+            自适应视频分辨率
+          </n-checkbox>
         </n-form-item>
         <div>
-          <n-form-item v-if="isAdvancedMode" label="调试" path="phone">
+          <n-form-item v-if="isAdvancedMode" label="调试">
             <n-checkbox-group v-model:value="config.statmode">
               <n-space>
                 <n-checkbox value="TABLE"> 统计图 </n-checkbox>
@@ -154,11 +160,11 @@
     <div class="card">
       <h2>礼物栏设置</h2>
       <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
-        <n-form-item path="showmsgbox">
+        <n-form-item>
           <n-checkbox v-model:checked="config.showmsgbox"> 显示礼物框 </n-checkbox>
         </n-form-item>
         <template v-if="config.showmsgbox">
-          <n-form-item v-if="isAdvancedMode" label="礼物框尺寸" path="msgboxsize">
+          <n-form-item v-if="isAdvancedMode" label="礼物框尺寸">
             <n-input-number
               v-model:value.number="config.msgboxsize[0]"
               class="input-number"
@@ -172,7 +178,7 @@
               :step="100"
             />
           </n-form-item>
-          <n-form-item v-if="isAdvancedMode" label="礼物框位置" path="msgboxpos">
+          <n-form-item v-if="isAdvancedMode" label="礼物框位置">
             <n-input-number
               v-model:value.number="config.msgboxpos[0]"
               class="input-number"
@@ -184,14 +190,14 @@
               :step="10"
             />
           </n-form-item>
-          <n-form-item label="礼物框文字大小" path="msgboxfontsize">
+          <n-form-item label="礼物框文字大小">
             <n-input-number
               v-model:value.number="config.msgboxfontsize"
               class="input-number"
               :min="0"
             />
           </n-form-item>
-          <n-form-item label="礼物框持续时间" path="msgboxduration">
+          <n-form-item label="礼物框持续时间">
             <n-input-number
               v-model:value.number="config.msgboxduration"
               class="input-number"
@@ -200,7 +206,7 @@
               <template #suffix> 秒 </template></n-input-number
             >
           </n-form-item>
-          <n-form-item label="礼物最小价值" path="giftminprice">
+          <n-form-item label="礼物最小价值">
             <n-input-number
               v-model:value.number="config.giftminprice"
               class="input-number"
@@ -208,11 +214,7 @@
             >
             </n-input-number>
           </n-form-item>
-          <n-form-item
-            v-if="isAdvancedMode"
-            label="同一用户相同礼物自动合并的时间窗"
-            path="giftmergetolerance"
-          >
+          <n-form-item v-if="isAdvancedMode" label="同一用户相同礼物自动合并的时间窗">
             <n-input-number
               v-model:value.number="config.giftmergetolerance"
               class="input-number"
