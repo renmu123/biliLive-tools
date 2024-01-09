@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import { pathExists, trashItem, __dirname } from "./utils/index";
 import log from "./utils/log";
 import CommonPreset from "./utils/preset";
-import { Danmu } from "../core/index";
+import { Danmu, report } from "../core/danmu";
 import { DANMU_PRESET_PATH } from "./appConstant";
 import { DanmuTask, taskQueue } from "./task";
 
@@ -161,4 +161,14 @@ export const handlers = {
   "danmu:savePreset": saveDanmuPreset,
   "danmu:deletePreset": deleteDanmuPreset,
   "danmu:getPresets": readDanmuPresets,
+  "danmu:saveReport": async (
+    _event: IpcMainInvokeEvent,
+    options: {
+      input: string;
+      output: string;
+    },
+  ) => {
+    const data = await report(options.input);
+    await fs.writeFile(options.output, JSON.stringify(data));
+  },
 };

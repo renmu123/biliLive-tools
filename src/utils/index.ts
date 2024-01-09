@@ -78,3 +78,31 @@ export async function runWithMaxIterations(
     }, interval);
   });
 }
+
+// export const groupBy = (arr, func) => {
+//   const map = new Map();
+//   arr.forEach((item) => {
+//     const key = func(item);
+//     if (!map.has(key)) {
+//       map.set(key, []);
+//     }
+//     map.get(key).push(item);
+//   });
+//   return map;
+// };
+
+// const uniqBy = (arr, predicate) => {
+//   const cb = typeof predicate === "function" ? predicate : (o) => o[predicate];
+
+//   return [
+//     ...arr
+//       .reduce((map, item) => {
+//         const key = item === null || item === undefined ? item : cb(item);
+
+//         map.has(key) || map.set(key, item);
+
+//         return map;
+//       }, new Map())
+//       .values(),
+//   ];
+// };

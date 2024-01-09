@@ -1,3 +1,3 @@
-import Danmu from "./danmu";
+import { Danmu } from "./danmu";
 
 export { Danmu };
