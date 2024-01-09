@@ -1,3 +1,6 @@
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { exec } from "child_process";
 import fs from "fs-extra";
 import { shell } from "electron";
@@ -95,3 +98,5 @@ export const notify = (
 ) => {
   event.sender.send("notify", data);
 };
+
+export const __dirname = dirname(fileURLToPath(import.meta.url));

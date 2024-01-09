@@ -4,7 +4,7 @@ import semver from "semver";
 
 import { handlers as biliHandlers } from "./bili";
 import log from "./utils/log";
-import { trashItem as _trashItem } from "./utils/index";
+import { trashItem as _trashItem, __dirname } from "./utils/index";
 import { getAppConfig } from "./config";
 import serverApp from "./server/index";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron";
@@ -81,7 +81,7 @@ function createWindow(): void {
     autoHideMenuBar: false,
     ...(process.platform === "linux" ? { icon } : {}),
     webPreferences: {
-      preload: join(__dirname, "../preload/index.js"),
+      preload: join(__dirname, "../preload/index.mjs"),
       sandbox: false,
       webSecurity: false,
     },

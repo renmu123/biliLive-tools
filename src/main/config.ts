@@ -2,7 +2,7 @@ import path from "node:path";
 
 import Config from "./utils/config";
 import { app } from "electron";
-import { defaultsDeep } from "lodash";
+import { defaultsDeep } from "lodash-es";
 import log from "../utils/log";
 import { setFfmpegPath } from "./video";
 

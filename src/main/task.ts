@@ -2,7 +2,7 @@ import EventEmitter from "events";
 
 import { uuid, isWin32 } from "./utils/index";
 import log from "./utils/log";
-import ntsuspend from "ntsuspend";
+import * as ntsuspend from "ntsuspend";
 import { Danmu } from "../core/index";
 
 import type { WebContents, IpcMainInvokeEvent } from "electron";

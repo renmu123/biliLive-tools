@@ -1,7 +1,7 @@
-import { join, parse } from "path";
+import { join, parse } from "node:path";
 import fs from "fs-extra";
 
-import { pathExists, trashItem } from "./utils/index";
+import { pathExists, trashItem, __dirname } from "./utils/index";
 import log from "./utils/log";
 import CommonPreset from "./utils/preset";
 import { Danmu } from "../core/index";

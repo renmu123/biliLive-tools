@@ -1,5 +1,7 @@
 import { app } from "electron";
-import { join } from "path";
+import { join } from "node:path";
+
+import { __dirname } from "./utils/index";
 
 export const BILIUP_PATH = join(__dirname, "../../resources/bin/biliup.exe").replace(
   "app.asar",
