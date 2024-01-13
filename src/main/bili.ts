@@ -130,6 +130,20 @@ function parseDesc(input: string): DescV2[] {
   return tokens;
 }
 
+export function convertDescV2ToDesc(descV2: DescV2[]): string {
+  return descV2
+    .map((item) => {
+      if (item.type === 1) {
+        return item.raw_text;
+      } else if (item.type === 2) {
+        return `@${item.raw_text} `;
+      } else {
+        throw new Error(`不存在该type:${item.type}`);
+      }
+    })
+    .join("");
+}
+
 function formatOptions(options: BiliupConfig) {
   const descV2 = parseDesc(options.desc || "");
   const desc = descV2
