@@ -21,7 +21,7 @@ async function loadCookie(uid?: number) {
 
   if (!mid) throw new Error("请先登录");
   const user = await readUser(mid);
-  return client.setAuth(user!.cookie, user!.accessToken);
+  return client.setAuth(user!.cookie, user!.accessToken, user!.mid);
 }
 
 async function getArchives(
@@ -128,6 +128,20 @@ function parseDesc(input: string): DescV2[] {
   }
 
   return tokens;
+}
+
+export function convertDescV2ToDesc(descV2: DescV2[]): string {
+  return descV2
+    .map((item) => {
+      if (item.type === 1) {
+        return item.raw_text;
+      } else if (item.type === 2) {
+        return `@${item.raw_text} `;
+      } else {
+        throw new Error(`不存在该type:${item.type}`);
+      }
+    })
+    .join("");
 }
 
 function formatOptions(options: BiliupConfig) {

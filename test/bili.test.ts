@@ -52,10 +52,10 @@ describe("parseDesc", () => {
     expect(result).toEqual(expected);
   });
   it("普通测试", () => {
-    const input = "大家好，我是[暮色123]<12345>\n，你是[皮皮]<3333>十[]是<>";
+    const input = "大家好，我是[暮色312]<10995238>\n，你是[皮皮]<3333>十[]是<>";
     const expected = [
       { raw_text: "大家好，我是", type: 1, biz_id: "" },
-      { raw_text: "暮色123", type: 2, biz_id: "12345" },
+      { raw_text: "暮色312", type: 2, biz_id: "10995238" },
       { raw_text: "\n，你是", type: 1, biz_id: "" },
       { raw_text: "皮皮", type: 2, biz_id: "3333" },
       { raw_text: "十[]是<>", type: 1, biz_id: "" },
