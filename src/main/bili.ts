@@ -21,7 +21,7 @@ async function loadCookie(uid?: number) {
 
   if (!mid) throw new Error("请先登录");
   const user = await readUser(mid);
-  return client.setAuth(user!.cookie, user!.accessToken);
+  return client.setAuth(user!.cookie, user!.accessToken, user!.mid);
 }
 
 async function getArchives(
