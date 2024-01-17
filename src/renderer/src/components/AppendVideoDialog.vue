@@ -65,7 +65,7 @@ const getArchives = async () => {
     });
     return;
   }
-  const { data } = await window.api.bili.getArchives(
+  const data = await window.api.bili.getArchives(
     {
       pn: 1,
       ps: 20,

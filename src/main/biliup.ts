@@ -267,7 +267,7 @@ export const format = async (data: any) => {
   };
 
   try {
-    const biliUser = (await biliApi.getUserInfo(data.mid)).data;
+    const biliUser = await biliApi.getUserInfo(data.mid);
     result.name = biliUser.name;
     result.avatar = biliUser.face;
   } catch (e) {

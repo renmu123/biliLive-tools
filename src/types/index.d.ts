@@ -205,6 +205,7 @@ export interface BiliUser {
   cookie: {
     bili_jct: string;
     SESSDATA: string;
+    DedeUserID: string;
     [key: string]: any;
   };
   expires: number;

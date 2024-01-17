@@ -90,15 +90,15 @@ app.post("/blrec", async function (req, res) {
     const roomId = event.data.room_id;
 
     const masterRes = await bili.client.live.getRoomInfo(event.data.room_id);
-    const userRes = await bili.client.live.getMasterInfo(masterRes.data.uid);
+    const userRes = await bili.client.live.getMasterInfo(masterRes.uid);
 
     handle({
       event: event.type,
       filePath: event.data.path,
       roomId: roomId,
       time: event.date,
-      title: masterRes.data.title,
-      username: userRes.data.info.uname,
+      title: masterRes.title,
+      username: userRes.info.uname,
       platform: "blrec",
     });
   }
@@ -631,8 +631,8 @@ const handleLive = async (live: Live, appConfig: AppConfig) => {
       await runWithMaxIterations(
         async () => {
           const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
-          for (let i = 0; i < Math.min(10, res.data.arc_audits.length); i++) {
-            const item = res.data.arc_audits[i];
+          for (let i = 0; i < Math.min(10, res.arc_audits.length); i++) {
+            const item = res.arc_audits[i];
             if (item.Archive.title === live.videoName) {
               live.aid = item.Archive.aid;
               return false;

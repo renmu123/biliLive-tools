@@ -194,7 +194,6 @@ import { storeToRefs } from "pinia";
 import { deepRaw, uuid } from "@renderer/utils";
 import { useConfirm } from "@renderer/hooks";
 import { useUploadPreset, useAppConfig } from "@renderer/stores";
-// @ts-ignore
 import areaData from "@renderer/assets/area.json";
 import { cloneDeep } from "lodash-es";
 

@@ -21,7 +21,7 @@ async function loadCookie(uid?: number) {
 
   if (!mid) throw new Error("请先登录");
   const user = await readUser(mid);
-  return client.setAuth(user!.cookie, user!.accessToken, user!.mid);
+  return client.setAuth(user!.cookie, user!.mid, user!.accessToken);
 }
 
 async function getArchives(
@@ -44,7 +44,7 @@ async function getUserInfo(uid: number): ReturnType<ClientInstance["user"]["getU
   return client.user.getUserInfo(uid);
 }
 
-async function getMyInfo(uid: number): ReturnType<ClientInstance["user"]["getMyInfo"]> {
+async function getMyInfo(uid: number) {
   await loadCookie(uid);
   return client.user.getMyInfo();
 }
@@ -130,20 +130,6 @@ function parseDesc(input: string): DescV2[] {
   return tokens;
 }
 
-export function convertDescV2ToDesc(descV2: DescV2[]): string {
-  return descV2
-    .map((item) => {
-      if (item.type === 1) {
-        return item.raw_text;
-      } else if (item.type === 2) {
-        return `@${item.raw_text} `;
-      } else {
-        throw new Error(`不存在该type:${item.type}`);
-      }
-    })
-    .join("");
-}
-
 function formatOptions(options: BiliupConfig) {
   const descV2 = parseDesc(options.desc || "");
   const desc = descV2
@@ -174,7 +160,7 @@ function formatOptions(options: BiliupConfig) {
     desc_v2: descV2,
     desc: desc,
   };
-  console.log("formatOptions", data);
+  // console.log("formatOptions", data);
   return data;
 }
 
@@ -289,10 +275,8 @@ export const handlers = {
     const user = await readUser(uid);
     if (!user) throw new Error("用户不存在");
     const userInfo = await getMyInfo(uid);
-    // @ts-ignore
-    user.name = userInfo.data.profile.name;
-    // @ts-ignore
-    user.avatar = userInfo.data.profile.face;
+    user.name = userInfo.profile.name;
+    user.avatar = userInfo.profile.face;
     await writeUser(user);
   },
   "bili:addMedia": (
