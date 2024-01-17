@@ -55,35 +55,6 @@ export const getAvailableEncoders = async () => {
   });
 };
 
-// export function mergeMedia(
-//   mediaFilepaths: string[],
-//   outputFilepath: string,
-//   exArgs: string[] = [],
-//   ffmpegBinPath = "ffmpeg",
-// ) {
-//   return new Promise((resolve, reject) => {
-//     let args = ["-hide_banner", "-loglevel", "error"];
-//     for (const mediaFilepath of mediaFilepaths) {
-//       args.push("-i");
-//       args.push(mediaFilepath);
-//     }
-//     args = [...args, "-c", "copy", ...exArgs, "-y", outputFilepath];
-//     const ffmpeg = spawn(ffmpegBinPath, args);
-
-//     ffmpeg.stdout.pipe(process.stdout);
-
-//     ffmpeg.stderr.pipe(process.stderr);
-
-//     ffmpeg.on("close", (code) => {
-//       if (code === 0) {
-//         resolve(true);
-//       } else {
-//         reject(false);
-//       }
-//     });
-//   });
-// }
-
 export const convertImage2Video = async (
   _event: IpcMainInvokeEvent,
   inputDir: string,
@@ -93,8 +64,7 @@ export const convertImage2Video = async (
   },
 ) => {
   await setFfmpegPath();
-  // ffmpeg -r 1/30 -i "example/%%4d.png" video.mp4
-  const command = ffmpeg(`"${inputDir}\\%4d.png"`).inputOption("-r", "1/30").output(output);
+  const command = ffmpeg(`${inputDir}\\%4d.png`).inputOption("-r", "1/30").output(output);
   const task = new FFmpegTask(
     command,
     _event.sender,
@@ -117,8 +87,6 @@ export const convertImage2Video = async (
       },
     },
   );
-
-  console.log("task", task);
 
   taskQueue.addTask(task, true);
   return {
