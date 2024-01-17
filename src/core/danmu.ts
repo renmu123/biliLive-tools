@@ -1,4 +1,9 @@
-import fs from "node:fs";
+import fs from "fs-extra";
+import path from "node:path";
+
+import { createCanvas } from "@napi-rs/canvas";
+import { compile } from "ass-compiler";
+
 // import { groupBy, uniqBy } from "lodash-es";
 import { executeCommand, pathExists } from "../utils/index";
 import { XMLParser } from "fast-xml-parser";
@@ -220,4 +225,99 @@ ${danmukuGroupByUser.map((item) => `用户：${item.user}，弹幕数量：${ite
 `;
 
   return report;
+};
+
+// 绘制平滑曲线
+function drawSmoothCurve(ctx, points) {
+  const len = points.length;
+
+  let lastX = points[0].x;
+  let lastY = points[0].y;
+  for (let i = 1; i < len - 1; i++) {
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+
+    ctx.strokeStyle = points[i].color;
+    const xc = (points[i].x + points[i + 1].x) / 2;
+    const yc = (points[i].y + points[i + 1].y) / 2;
+
+    ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+    lastX = xc;
+    lastY = yc;
+    ctx.stroke();
+  }
+}
+
+// 绘制平滑折线图
+function drawSmoothLineChart(data, width: number, height: number) {
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext("2d");
+
+  const length = data.length;
+  const maxValue = Math.max(...data.map((item) => item.value));
+  // const minValue = Math.min(...data.map((item) => item.value));
+  const xRation = width / (length - 1);
+  const yRatio = height / maxValue;
+
+  const points: any[] = [];
+
+  // 计算数据点的坐标
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i];
+
+    const x = i * xRation;
+    const y = height - item.value * yRatio;
+    points.push({
+      x: x,
+      y: y,
+      color: item.color ?? "#333333",
+    });
+  }
+
+  drawSmoothCurve(ctx, points);
+  return canvas;
+}
+
+// 生成高能弹幕图片
+export const generateDanmakuImage = async (
+  input: string,
+  output: string,
+  options = {
+    interval: 30,
+    height: 60,
+    width: 1920,
+    color: "#f9f5f3",
+    fillColor: "#333333",
+  },
+) => {
+  // 读取Ass文件
+  const assContent = fs.readFileSync(input, "utf8");
+
+  // 解析Ass文件
+  const assData = compile(assContent, {});
+
+  const items = Array.from(
+    groupBy(
+      assData["dialogues"],
+      (item) => Math.floor(item.start / options.interval) * options.interval,
+    ),
+  ).map(([key, items]) => {
+    return {
+      time: key,
+      value: items.length,
+      color: options.color,
+    };
+  });
+  await fs.ensureDir(output);
+
+  for (let i = 0; i < items.length; i++) {
+    items[i].color = options.fillColor;
+
+    const canvas = drawSmoothLineChart(items, options.width, options.height);
+
+    const outputPath = path.join(output, `${String(i).padStart(4, "0")}.png`);
+
+    const stream = await canvas.encode("png");
+    await fs.promises.writeFile(outputPath, stream);
+  }
 };

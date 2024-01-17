@@ -55,6 +55,79 @@ export const getAvailableEncoders = async () => {
   });
 };
 
+// export function mergeMedia(
+//   mediaFilepaths: string[],
+//   outputFilepath: string,
+//   exArgs: string[] = [],
+//   ffmpegBinPath = "ffmpeg",
+// ) {
+//   return new Promise((resolve, reject) => {
+//     let args = ["-hide_banner", "-loglevel", "error"];
+//     for (const mediaFilepath of mediaFilepaths) {
+//       args.push("-i");
+//       args.push(mediaFilepath);
+//     }
+//     args = [...args, "-c", "copy", ...exArgs, "-y", outputFilepath];
+//     const ffmpeg = spawn(ffmpegBinPath, args);
+
+//     ffmpeg.stdout.pipe(process.stdout);
+
+//     ffmpeg.stderr.pipe(process.stderr);
+
+//     ffmpeg.on("close", (code) => {
+//       if (code === 0) {
+//         resolve(true);
+//       } else {
+//         reject(false);
+//       }
+//     });
+//   });
+// }
+
+export const convertImage2Video = async (
+  _event: IpcMainInvokeEvent,
+  inputDir: string,
+  output: string,
+  options: {
+    removeOrigin: boolean;
+  },
+) => {
+  await setFfmpegPath();
+  // ffmpeg -r 1/30 -i "example/%%4d.png" video.mp4
+  const command = ffmpeg(`"${inputDir}\\%4d.png"`).inputOption("-r", "1/30").output(output);
+  const task = new FFmpegTask(
+    command,
+    _event.sender,
+    {
+      output,
+      name: `高能进度条: ${output}`,
+    },
+    {
+      onProgress(progress) {
+        if (progress.percent) {
+          progress.percentage = progress.percent;
+        }
+        return progress;
+      },
+      onEnd: async () => {
+        if (options.removeOrigin && (await pathExists(inputDir))) {
+          log.info("convertImage2Video, remove origin file", inputDir);
+          fs.rm(inputDir, { recursive: true, force: true });
+        }
+      },
+    },
+  );
+
+  console.log("task", task);
+
+  taskQueue.addTask(task, true);
+  return {
+    status: "success",
+    text: "添加到任务队列",
+    taskId: task.taskId,
+  };
+};
+
 export const convertVideo2Mp4 = async (
   _event: IpcMainInvokeEvent,
   file: File,

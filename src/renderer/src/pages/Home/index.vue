@@ -31,6 +31,7 @@
                 完成后打开文件夹
               </n-checkbox>
               <n-checkbox v-model:checked="clientOptions.upload"> 完成后自动上传 </n-checkbox>
+              <n-checkbox v-model:checked="clientOptions.hotProgress">高能进度条</n-checkbox>
             </div>
           </div>
         </n-tab-pane>
@@ -136,6 +137,7 @@ const clientOptions = ref({
   // saveOriginPath: false, // 保存到原始文件夹并自动重命名
   openTargetDirectory: false, // 转换完成后打开目标文件夹
   upload: false, // 上传
+  hotProgress: false, // 高能进度条
 });
 
 const handleConvert = async () => {
@@ -159,6 +161,7 @@ const preHandle = async (
 
   const videoFile = files.find((item) => item.ext === ".flv" || item.ext === ".mp4");
   const danmuFile = files.find((item) => item.ext === ".xml" || item.ext === ".ass");
+  const hasXmlFile = files.some((item) => item.ext === ".xml");
 
   if (!videoFile) {
     notice.error({
@@ -174,6 +177,14 @@ const preHandle = async (
     });
     return false;
   }
+  // TODO:修改
+  // if (!hasXmlFile) {
+  //   notice.error({
+  //     title: "只有xml文件支持高能进度条",
+  //     duration: 3000,
+  //   });
+  //   return;
+  // }
   // 弹幕处理
   const videoMeta = await window.api.readVideoMeta(videoFile.path);
   const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
@@ -224,7 +235,7 @@ const convert = async () => {
   if (!data) return;
   let { inputDanmuFile } = data;
   const { inputVideoFile, outputPath, rawOptions } = data;
-  console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
+  // console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
 
   if (inputDanmuFile.ext === ".xml") {
     // xml文件转换
@@ -235,6 +246,13 @@ const convert = async () => {
   if (inputDanmuFile.path.includes(" ")) {
     throw new Error("弹幕文件路径中存在空格时会压制错误");
   }
+
+  let hotProgressInput: string | undefined = undefined;
+  if (rawClientOptions.hotProgress) {
+    hotProgressInput = await genHotProgress(inputDanmuFile.path);
+  }
+
+  console.log("hotProgressInput", hotProgressInput);
 
   // 压制任务
   const output = handleVideoMerge(
@@ -257,6 +275,30 @@ const convert = async () => {
   }
 };
 
+/**
+ * 处理高能进度条
+ */
+const genHotProgress = async (input: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const outputPath = `${window.path.join(window.api.common.getTempPath(), uuid())}.mp4`;
+    window.api.danmu.genHotProgress(input, outputPath).then((result: any) => {
+      const taskId = result.taskId;
+      window.api.task.on(taskId, "end", (data) => {
+        console.log("end", data);
+        notice.success({
+          title: "高能进度条转换成功",
+          duration: 3000,
+        });
+        resolve(data.output);
+      });
+
+      window.api.task.on(taskId, "error", (data) => {
+        reject(data.err);
+      });
+    });
+  });
+};
+
 // 处理xml文件
 const handleXmlFile = async (danmuFile: File, options: MergeOptions, danmuConfig: DanmuConfig) => {
   notice.warning({
@@ -265,7 +307,7 @@ const handleXmlFile = async (danmuFile: File, options: MergeOptions, danmuConfig
   });
 
   const outputPath = `${window.path.join(window.api.common.getTempPath(), uuid())}.ass`;
-  console.log("outputPath", outputPath);
+  // console.log("outputPath", outputPath);
   const targetAssFilePath = await convertDanmu2Ass(
     {
       input: danmuFile.path,
@@ -278,6 +320,9 @@ const handleXmlFile = async (danmuFile: File, options: MergeOptions, danmuConfig
   return window.api.formatFile(targetAssFilePath);
 };
 
+/**
+ * xml文件转换为ass
+ */
 const convertDanmu2Ass = async (
   fileOptions: {
     input: string;
@@ -293,7 +338,7 @@ const convertDanmu2Ass = async (
       } else {
         const taskId = result[0].taskId;
         window.api.task.on(taskId, "end", (data) => {
-          console.log("end", data);
+          // console.log("end", data);
           notice.success({
             title: "xml文件转换成功",
             duration: 3000,

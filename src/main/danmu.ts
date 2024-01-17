@@ -1,12 +1,14 @@
 import { join, parse } from "node:path";
 import fs from "fs-extra";
+import os from "node:os";
 
-import { pathExists, trashItem, __dirname } from "./utils/index";
+import { pathExists, trashItem, __dirname, uuid } from "./utils/index";
 import log from "./utils/log";
 import CommonPreset from "./utils/preset";
-import { Danmu, report } from "../core/danmu";
+import { Danmu, report, generateDanmakuImage } from "../core/danmu";
 import { DANMU_PRESET_PATH } from "./appConstant";
 import { DanmuTask, taskQueue } from "./task";
+import { convertImage2Video } from "./video";
 
 import type { DanmuConfig, DanmuOptions, DanmuPreset as DanmuPresetType } from "../types";
 import type { IpcMainInvokeEvent, WebContents } from "electron";
@@ -94,7 +96,6 @@ export const convertXml2Ass = async (
     removeOrigin: false,
   },
 ) => {
-  console.log(danmuOptions);
   const tasks: {
     output?: string;
     taskId?: string;
@@ -155,6 +156,15 @@ export const readDanmuPresets = async () => {
   return presets;
 };
 
+export const genHotProgress = async (_event: IpcMainInvokeEvent, input: string, output: string) => {
+  const imageDir = join(os.tmpdir(), uuid());
+  await generateDanmakuImage(input, imageDir);
+
+  return convertImage2Video(_event, imageDir, output, {
+    removeOrigin: true,
+  });
+};
+
 export const handlers = {
   "danmu:convertXml2Ass": convertXml2Ass,
   "danmu:getPreset": readDanmuPreset,
@@ -169,6 +179,10 @@ export const handlers = {
     },
   ) => {
     const data = await report(options.input);
-    await fs.writeFile(options.output, JSON.stringify(data));
+    await fs.writeFile(options.output, data);
+  },
+  "danmu:genHotProgress": (_event: IpcMainInvokeEvent, input: string, output: string) => {
+    return genHotProgress(_event, input, output);
+    // await fs.writeFile(options.output, data);
   },
 };

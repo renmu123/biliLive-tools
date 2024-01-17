@@ -58,6 +58,16 @@ export const api = {
     ) => {
       return ipcRenderer.invoke("danmu:convertXml2Ass", files, config, options);
     },
+    saveReport(input: string, output: string) {
+      return ipcRenderer.invoke("danmu:saveReport", {
+        input,
+        output,
+      });
+    },
+    // danmu:generateDanmakuImage
+    genHotProgress(input: string, output: string) {
+      return ipcRenderer.invoke("danmu:genHotProgress", input, output);
+    },
   },
   task: {
     pause: (taskId: string) => {

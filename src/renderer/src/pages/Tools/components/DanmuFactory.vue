@@ -81,7 +81,6 @@ const clientOptions = ref({
 });
 
 const convert = async () => {
-  const presetId = danmuPresetId.value;
   if (fileList.value.length === 0) {
     notice.error({
       title: `至少选择一个文件`,
@@ -89,6 +88,7 @@ const convert = async () => {
     });
     return;
   }
+  const presetId = danmuPresetId.value;
   notice.info({
     title: `生成${fileList.value.length}个任务，可在任务列表中查看进度`,
     duration: 3000,
