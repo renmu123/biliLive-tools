@@ -9,7 +9,7 @@ import log from "./utils/log";
 import { executeCommand } from "../utils/index";
 import { taskQueue, FFmpegTask } from "./task";
 
-import { type IpcMainInvokeEvent } from "electron";
+import type { IpcMainInvokeEvent, WebContents } from "electron";
 import type { File, FfmpegOptions, VideoMergeOptions, Video2Mp4Options } from "../types";
 
 export const setFfmpegPath = async () => {
@@ -56,7 +56,7 @@ export const getAvailableEncoders = async () => {
 };
 
 export const convertImage2Video = async (
-  _event: IpcMainInvokeEvent,
+  webContents: WebContents,
   inputDir: string,
   output: string,
   options: {
@@ -67,7 +67,7 @@ export const convertImage2Video = async (
   const command = ffmpeg(`${inputDir}\\%4d.png`).inputOption("-r", "1/30").output(output);
   const task = new FFmpegTask(
     command,
-    _event.sender,
+    webContents,
     {
       output,
       name: `高能进度条: ${output}`,
@@ -192,6 +192,7 @@ export const mergeAssMp4 = async (
     videoFilePath: string;
     assFilePath: string;
     outputPath: string;
+    hotProgressFilePath: string | undefined;
   },
   options: {
     removeOrigin: boolean;
@@ -214,10 +215,16 @@ export const mergeAssMp4 = async (
     return;
   }
 
-  const command = ffmpeg(videoInput)
-    .outputOptions(`-filter_complex subtitles=${escaped(assFile)}`)
-    .audioCodec("copy")
-    .output(output);
+  const command = ffmpeg(videoInput).audioCodec("copy").output(output);
+
+  if (files.hotProgressFilePath) {
+    command.input(files.hotProgressFilePath);
+    command.outputOptions(
+      `-filter_complex [0:v]subtitles=${escaped(assFile)}[i];[1]colorkey=black:0.1:0.1[1d];[i][1d]overlay=W-w-0:H-h-0'`,
+    );
+  } else {
+    command.outputOptions(`-filter_complex subtitles=${escaped(assFile)}`);
+  }
 
   const ffmpegParams = genFfmpegParams(ffmpegOptions);
 

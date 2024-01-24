@@ -7,7 +7,7 @@ import { compile } from "ass-compiler";
 // import { groupBy, uniqBy } from "lodash-es";
 import { executeCommand, pathExists } from "../utils/index";
 import { XMLParser } from "fast-xml-parser";
-import type { DanmuConfig } from "../types";
+import type { DanmuConfig, hotProgressOptions } from "../types";
 
 export class Danmu {
   execPath: string;
@@ -278,21 +278,15 @@ function drawSmoothLineChart(data, width: number, height: number) {
   return canvas;
 }
 
-// 生成高能弹幕图片
-export const generateDanmakuImage = async (
+async function handleAss(
   input: string,
-  output: string,
   options = {
     interval: 30,
-    height: 60,
-    width: 1920,
     color: "#f9f5f3",
-    fillColor: "#333333",
   },
-) => {
+) {
   // 读取Ass文件
-  const assContent = fs.readFileSync(input, "utf8");
-
+  const assContent = await fs.readFile(input, "utf8");
   // 解析Ass文件
   const assData = compile(assContent, {});
 
@@ -308,15 +302,76 @@ export const generateDanmakuImage = async (
       color: options.color,
     };
   });
-  await fs.ensureDir(output);
+  return items;
+}
 
+async function handleXml(
+  input: string,
+  options = {
+    interval: 30,
+    color: "#f9f5f3",
+  },
+) {
+  // 读取xml文件
+  const XMLdata = await fs.promises.readFile(input, "utf8");
+  const parser = new XMLParser({ ignoreAttributes: false });
+  const jObj = parser.parse(XMLdata);
+
+  const danmuku = (jObj?.i?.d || []).map((item) => {
+    return {
+      start: item["@_p"].split(",")[0],
+      text: item["#text"],
+    };
+  });
+  // console.log(input, danmuku.slice(0, 10));
+  const items = Array.from(
+    groupBy(danmuku, (item) => Math.floor(item.start / options.interval) * options.interval),
+  ).map(([key, items]) => {
+    return {
+      time: key,
+      value: items.length,
+      color: options.color,
+    };
+  });
+  return items;
+}
+
+// 生成高能弹幕图片
+export const generateDanmakuImage = async (
+  input: string,
+  output: string,
+  iOptions: hotProgressOptions,
+) => {
+  const defaultOptins = {
+    interval: 30,
+    height: 60,
+    width: 1920,
+    color: "#f9f5f3",
+    fillColor: "#333333",
+  };
+  const options = Object.assign(defaultOptins, iOptions);
+
+  let items: { time: number; value: number; color: string }[] = [];
+  const ext = path.extname(input);
+  if (ext === ".xml") {
+    // 读取xml文件
+    items = await handleXml(input, {
+      interval: options.interval,
+      color: options.color,
+    });
+  } else if (ext === ".ass") {
+    items = await handleAss(input, {
+      interval: options.interval,
+      color: options.color,
+    });
+  }
+
+  await fs.ensureDir(output);
+  console.log(items.length);
   for (let i = 0; i < items.length; i++) {
     items[i].color = options.fillColor;
-
     const canvas = drawSmoothLineChart(items, options.width, options.height);
-
     const outputPath = path.join(output, `${String(i).padStart(4, "0")}.png`);
-
     const stream = await canvas.encode("png");
     await fs.promises.writeFile(outputPath, stream);
   }

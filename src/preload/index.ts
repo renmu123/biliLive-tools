@@ -23,6 +23,7 @@ import type {
   DanmuConfig,
   BiliUser,
   BiliApi,
+  hotProgressOptions,
 } from "../types";
 import type ffmpeg from "fluent-ffmpeg";
 
@@ -65,8 +66,8 @@ export const api = {
       });
     },
     // danmu:generateDanmakuImage
-    genHotProgress(input: string, output: string) {
-      return ipcRenderer.invoke("danmu:genHotProgress", input, output);
+    genHotProgress(input: string, output: string, options: hotProgressOptions) {
+      return ipcRenderer.invoke("danmu:genHotProgress", input, output, options);
     },
   },
   task: {
@@ -306,6 +307,7 @@ export const api = {
       videoFilePath: string;
       assFilePath: string;
       outputPath: string;
+      hotProgressFilePath: string | undefined;
     },
     options: {
       removeOrigin: boolean;

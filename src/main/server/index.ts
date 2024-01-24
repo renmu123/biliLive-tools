@@ -5,7 +5,7 @@ import fs from "fs-extra";
 import { getAppConfig } from "../config";
 import { uploadVideo, appendVideo, DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
 import { mainWin } from "../index";
-import { convertXml2Ass, readDanmuPreset } from "../danmu";
+import { convertXml2Ass, readDanmuPreset, genHotProgress } from "../danmu";
 import { taskQueue } from "../task";
 import { mergeAssMp4, readVideoMeta } from "../video";
 import bili from "../bili";
@@ -128,6 +128,8 @@ function getConfig(roomId: number): {
   uid?: number;
   /* 自动合并part时间 */
   partMergeMinute: number;
+  /* 高能进度条 */
+  hotProgress: boolean;
 } {
   const appConfig = getAppConfig();
   const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[roomId];
@@ -140,10 +142,11 @@ function getConfig(roomId: number): {
   const title = roomSetting?.title || appConfig.webhook.title || "";
   const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
   const videoPresetId = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
-  const blacklist = appConfig.webhook.blacklist.split(",");
+  const blacklist = (appConfig?.webhook?.blacklist || "").split(",");
   const open = roomSetting?.open ?? true;
   const uid = roomSetting?.uid || appConfig.webhook.uid;
   const partMergeMinute = roomSetting?.partMergeMinute || appConfig.webhook.partMergeMinute || 10;
+  const hotProgress = roomSetting?.hotProgress ?? appConfig.webhook.hotProgress;
 
   return {
     danmu,
@@ -157,6 +160,7 @@ function getConfig(roomId: number): {
     open,
     uid,
     partMergeMinute,
+    hotProgress,
   };
 }
 
@@ -302,6 +306,7 @@ async function handle(options: Options) {
     open,
     uid,
     partMergeMinute,
+    hotProgress,
   } = getConfig(options.roomId);
   if (blacklist.includes(String(options.roomId))) {
     log.info(`${options.roomId} is in blacklist`);
@@ -365,17 +370,29 @@ async function handle(options: Options) {
       newUploadTask(uid, mergePart, currentPart, config);
       return;
     }
+    let hotProgressFile: string | undefined;
+    if (hotProgress) {
+      // 生成高能进度条文件
+      hotProgressFile = await genHotProgressTask(xmlFilePath);
+    }
 
     const danmuConfig = (await readDanmuPreset(undefined, danmuPresetId)).config;
     const assFilePath = await addDanmuTask(xmlFilePath, options.filePath, danmuConfig);
 
-    const ffmpegPreset = await getFfmpegPreset(undefined, videoPresetId);
+    const ffmpegPreset = await getFfmpegPreset(videoPresetId);
     if (!ffmpegPreset) {
       log.error("ffmpegPreset not found", videoPresetId);
       return;
     }
-    const output = await addMergeAssMp4Task(options.filePath, assFilePath, ffmpegPreset?.config);
+    const output = await addMergeAssMp4Task(
+      options.filePath,
+      assFilePath,
+      hotProgressFile,
+      ffmpegPreset?.config,
+    );
     fs.remove(assFilePath);
+    if (hotProgressFile) fs.remove(hotProgressFile);
+
     currentPart.filePath = output;
     currentPart.status = "handled";
     newUploadTask(uid, mergePart, currentPart, config);
@@ -389,7 +406,33 @@ const sleep = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
-// 添加压制任务
+// 生成高能进度条
+const genHotProgressTask = async (input: string): Promise<string> => {
+  const videoMeta = await readVideoMeta(input);
+  const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
+  const { width } = videoStream || {};
+  const output = `${path.join(os.tmpdir(), uuid())}.mp4`;
+
+  return new Promise((resolve, reject) => {
+    genHotProgress(mainWin.webContents, input, output, {
+      width: width,
+    }).then((task) => {
+      const currentTaskId = task.taskId;
+      taskQueue.on("task-end", ({ taskId }) => {
+        if (taskId === currentTaskId) {
+          resolve(output);
+        }
+      });
+      taskQueue.on("task-error", ({ taskId }) => {
+        if (taskId === currentTaskId) {
+          reject();
+        }
+      });
+    });
+  });
+};
+
+// xml转ass
 const addDanmuTask = (
   input: string,
   videoFile: string,
@@ -403,7 +446,6 @@ const addDanmuTask = (
         const { width, height } = videoStream || {};
         danmuConfig.resolution[0] = width!;
         danmuConfig.resolution[1] = height!;
-        console.log("danmuConfigdanmuConfigdanmuConfigdanmuConfigdanmuConfig", danmuConfig);
         return convertXml2Ass(
           // @ts-ignore
           {
@@ -437,6 +479,7 @@ const addDanmuTask = (
 const addMergeAssMp4Task = (
   videoInput: string,
   assInput: string,
+  hotProgressFile: string | undefined,
   preset: FfmpegOptions,
 ): Promise<string> => {
   const file = path.parse(videoInput);
@@ -458,6 +501,7 @@ const addMergeAssMp4Task = (
             videoFilePath: videoInput,
             assFilePath: assInput,
             outputPath: output,
+            hotProgressFilePath: hotProgressFile,
           },
           {
             removeOrigin: false,

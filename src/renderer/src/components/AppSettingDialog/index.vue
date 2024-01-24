@@ -26,7 +26,7 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <span class="inline-flex"> 自动更新 </span>
+                <span class="inline-flex"> 检查更新 </span>
               </template>
               <n-switch v-model:value="config.autoUpdate" />
             </n-form-item>
@@ -262,6 +262,7 @@ const handleRoomDetail = (roomId: string) => {
     danmuPreset: room.danmuPreset,
     autoPartMerge: room.autoPartMerge ?? false,
     partMergeMinute: room.partMergeMinute ?? 10,
+    hotProgress: room.hotProgress ?? false,
   };
   roomDetailVisible.value = true;
 };
@@ -279,6 +280,7 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   danmuPreset: undefined,
   autoPartMerge: false,
   partMergeMinute: 10,
+  hotProgress: false,
 });
 const saveRoomDetail = ({ id }: AppRoomConfig & { id?: string }) => {
   config.value.webhook.rooms[id!] = tempRoomDetail.value;
@@ -307,6 +309,7 @@ const addRoom = () => {
     danmuPreset: config.value.webhook.danmuPreset,
     autoPartMerge: config.value.webhook.autoPartMerge,
     partMergeMinute: config.value.webhook.partMergeMinute,
+    hotProgress: config.value.webhook.hotProgress,
   };
   roomDetailVisible.value = true;
 };

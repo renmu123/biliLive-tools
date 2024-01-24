@@ -74,6 +74,9 @@
       :filterable="true"
     />
   </n-form-item>
+  <n-form-item label="高能进度条">
+    <n-switch v-model:value="data.hotProgress" />
+  </n-form-item>
 </template>
 
 <script setup lang="ts">

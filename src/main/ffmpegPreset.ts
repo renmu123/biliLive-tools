@@ -122,12 +122,9 @@ export const saveFfmpegPreset = async (
   return ffmpegPreset.save(presets);
 };
 export const deleteFfmpegPreset = async (_event: IpcMainInvokeEvent | undefined, id: string) => {
-  return await ffmpegPreset.delete(id);
+  return ffmpegPreset.delete(id);
 };
-export const getFfmpegPreset = async (
-  _event: IpcMainInvokeEvent | undefined,
-  id: string,
-): Promise<FfmpegPresetType | undefined> => {
+export const getFfmpegPreset = async (id: string): Promise<FfmpegPresetType | undefined> => {
   const ffmpegPresets = await getFfmpegPresets();
   if (id.startsWith("b_")) {
     return baseFfmpegPresets.find((item) => item.id === id);
@@ -173,7 +170,9 @@ export const getFfmpegPresetOptions = async () => {
 export const handlers = {
   "ffmpeg:presets:save": saveFfmpegPreset,
   "ffmpeg:presets:delete": deleteFfmpegPreset,
-  "ffmpeg:presets:get": getFfmpegPreset,
+  "ffmpeg:presets:get": (_event: IpcMainInvokeEvent, id: string) => {
+    return getFfmpegPreset(id);
+  },
   "ffmpeg:presets:list": getFfmpegPresets,
   "ffmpeg:presets:getOptions": getFfmpegPresetOptions,
 };

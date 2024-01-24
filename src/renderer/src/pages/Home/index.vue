@@ -4,6 +4,7 @@
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
         <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
+        <!-- <n-button type="primary" @click="hotProgressConvert"> 测试高能弹幕进度条生成 </n-button> -->
       </div>
     </div>
 
@@ -108,6 +109,7 @@ import type {
   DanmuConfig,
   BiliupPreset,
   FfmpegPreset,
+  hotProgressOptions,
 } from "../../../../types";
 
 const notice = useNotification();
@@ -177,14 +179,13 @@ const preHandle = async (
     });
     return false;
   }
-  // TODO:修改
-  // if (!hasXmlFile) {
-  //   notice.error({
-  //     title: "只有xml文件支持高能进度条",
-  //     duration: 3000,
-  //   });
-  //   return;
-  // }
+  if (!hasXmlFile) {
+    notice.error({
+      title: "只有xml文件支持高能进度条",
+      duration: 3000,
+    });
+    return;
+  }
   // 弹幕处理
   const videoMeta = await window.api.readVideoMeta(videoFile.path);
   const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
@@ -215,6 +216,7 @@ const preHandle = async (
     inputDanmuFile: danmuFile,
     outputPath: file,
     rawOptions: options,
+    videoWidth: width,
   };
 };
 
@@ -234,7 +236,7 @@ const convert = async () => {
   );
   if (!data) return;
   let { inputDanmuFile } = data;
-  const { inputVideoFile, outputPath, rawOptions } = data;
+  const { inputVideoFile, outputPath, rawOptions, videoWidth } = data;
   // console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
 
   if (inputDanmuFile.ext === ".xml") {
@@ -249,7 +251,9 @@ const convert = async () => {
 
   let hotProgressInput: string | undefined = undefined;
   if (rawClientOptions.hotProgress) {
-    hotProgressInput = await genHotProgress(inputDanmuFile.path);
+    hotProgressInput = await genHotProgress(inputDanmuFile.path, {
+      width: videoWidth!,
+    });
   }
 
   console.log("hotProgressInput", hotProgressInput);
@@ -259,6 +263,7 @@ const convert = async () => {
     {
       inputVideoFilePath: inputVideoFile?.path,
       inputAssFilePath: inputDanmuFile.path,
+      inputHotProgressFilePath: hotProgressInput,
       outputPath: outputPath,
     },
     rawOptions,
@@ -275,13 +280,19 @@ const convert = async () => {
   }
 };
 
+// const hotProgressConvert = async () => {
+//   const input = toRaw(fileList.value)[0].path;
+//   const file = await genHotProgress(input);
+//   console.log("file", file);
+// };
+
 /**
  * 处理高能进度条
  */
-const genHotProgress = async (input: string): Promise<string> => {
+const genHotProgress = async (input: string, options: hotProgressOptions): Promise<string> => {
   return new Promise((resolve, reject) => {
     const outputPath = `${window.path.join(window.api.common.getTempPath(), uuid())}.mp4`;
-    window.api.danmu.genHotProgress(input, outputPath).then((result: any) => {
+    window.api.danmu.genHotProgress(input, outputPath, options).then((result: any) => {
       const taskId = result.taskId;
       window.api.task.on(taskId, "end", (data) => {
         console.log("end", data);
@@ -360,11 +371,13 @@ const handleVideoMerge = async (
     inputVideoFilePath: string;
     inputAssFilePath: string;
     outputPath: string;
+    inputHotProgressFilePath: string | undefined;
   },
   options: MergeOptions,
   ffmpegOptions: FfmpegOptions,
 ) => {
-  const { inputVideoFilePath, inputAssFilePath, outputPath } = convertOptions;
+  const { inputVideoFilePath, inputAssFilePath, outputPath, inputHotProgressFilePath } =
+    convertOptions;
   notice.info({
     title: "已加入队列，根据不同设置压制需要消耗大量时间，CPU，GPU，期间请勿关闭本软件",
     duration: 3000,
@@ -375,6 +388,7 @@ const handleVideoMerge = async (
     output = await createMergeVideoAssTask(
       inputVideoFilePath,
       inputAssFilePath,
+      inputHotProgressFilePath,
       outputPath,
       deepRaw(options),
       ffmpegOptions,
@@ -390,6 +404,7 @@ const handleVideoMerge = async (
 const createMergeVideoAssTask = async (
   videoFilePath: string,
   assFilePath: string,
+  hotProgressFilePath: string | undefined,
   outputPath: string,
   options: MergeOptions,
   ffmpegOptions: FfmpegOptions,
@@ -401,6 +416,7 @@ const createMergeVideoAssTask = async (
           videoFilePath: videoFilePath,
           assFilePath: assFilePath,
           outputPath: outputPath,
+          hotProgressFilePath: hotProgressFilePath,
         },
         options,
         ffmpegOptions,

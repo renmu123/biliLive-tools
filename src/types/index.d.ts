@@ -66,6 +66,7 @@ export interface AppRoomConfig {
   autoPartMerge: boolean;
   partMergeMinute?: number;
   uid?: number;
+  hotProgress: boolean;
 }
 export interface AppConfig {
   logLevel: LogLevel;
@@ -92,6 +93,7 @@ export interface AppConfig {
     ffmpegPreset?: string;
     danmuPreset?: string;
     uid?: number;
+    hotProgress: boolean;
 
     rooms: {
       [roomId: string]: AppRoomConfig;
@@ -213,3 +215,11 @@ export interface BiliUser {
   refreshToken: string;
   platform: "TV";
 }
+
+export type hotProgressOptions = {
+  width?: number;
+  height?: number;
+  interval?: number;
+  color?: string;
+  fillColor?: string;
+};

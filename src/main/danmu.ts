@@ -10,7 +10,12 @@ import { DANMU_PRESET_PATH } from "./appConstant";
 import { DanmuTask, taskQueue } from "./task";
 import { convertImage2Video } from "./video";
 
-import type { DanmuConfig, DanmuOptions, DanmuPreset as DanmuPresetType } from "../types";
+import type {
+  DanmuConfig,
+  DanmuOptions,
+  DanmuPreset as DanmuPresetType,
+  hotProgressOptions,
+} from "../types";
 import type { IpcMainInvokeEvent, WebContents } from "electron";
 
 const DANMUKUFACTORY_PATH = join(__dirname, "../../resources/bin/DanmakuFactory.exe").replace(
@@ -156,11 +161,17 @@ export const readDanmuPresets = async () => {
   return presets;
 };
 
-export const genHotProgress = async (_event: IpcMainInvokeEvent, input: string, output: string) => {
+export const genHotProgress = async (
+  webContents: WebContents,
+  input: string,
+  output: string,
+  options: hotProgressOptions,
+) => {
   const imageDir = join(os.tmpdir(), uuid());
-  await generateDanmakuImage(input, imageDir);
 
-  return convertImage2Video(_event, imageDir, output, {
+  await generateDanmakuImage(input, imageDir, options);
+
+  return convertImage2Video(webContents, imageDir, output, {
     removeOrigin: true,
   });
 };
@@ -181,8 +192,12 @@ export const handlers = {
     const data = await report(options.input);
     await fs.writeFile(options.output, data);
   },
-  "danmu:genHotProgress": (_event: IpcMainInvokeEvent, input: string, output: string) => {
-    return genHotProgress(_event, input, output);
-    // await fs.writeFile(options.output, data);
+  "danmu:genHotProgress": (
+    _event: IpcMainInvokeEvent,
+    input: string,
+    output: string,
+    options: hotProgressOptions,
+  ) => {
+    return genHotProgress(_event.sender, input, output, options);
   },
 };
