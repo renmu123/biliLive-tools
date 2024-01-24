@@ -53,6 +53,16 @@
       placeholder="请选择"
     />
   </n-form-item>
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex">
+        使用直播封面
+        <Tip tip="如果你在录制软件设置了保存的话"></Tip>
+      </span>
+    </template>
+    <n-switch v-model:value="data.useLiveCover" />
+  </n-form-item>
+
   <n-form-item label="弹幕压制后上传">
     <n-switch v-model:value="data.danmu" />
   </n-form-item>
@@ -74,7 +84,7 @@
       :filterable="true"
     />
   </n-form-item>
-  <n-form-item label="高能进度条">
+  <n-form-item v-if="data.danmu" label="高能进度条">
     <n-switch v-model:value="data.hotProgress" />
   </n-form-item>
 </template>

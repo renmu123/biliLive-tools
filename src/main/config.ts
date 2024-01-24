@@ -29,6 +29,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     autoPartMerge: false,
     partMergeMinute: 10,
     hotProgress: false,
+    useLiveCover: false,
   },
   ffmpegPath: path.join(
     path.dirname(app.getPath("exe")),

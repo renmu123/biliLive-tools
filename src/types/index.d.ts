@@ -53,10 +53,8 @@ export type FfmpegPreset = {
   config: FfmpegOptions;
 };
 
-// 应用配置文件
-export interface AppRoomConfig {
+type CommonRoomConfig = {
   open: boolean;
-  remark?: string;
   minSize: number;
   title: string;
   uploadPresetId?: string;
@@ -66,8 +64,18 @@ export interface AppRoomConfig {
   autoPartMerge: boolean;
   partMergeMinute?: number;
   uid?: number;
+  /** 生成高能进度条 */
   hotProgress: boolean;
-}
+  /** 使用直播封面 */
+  useLiveCover: boolean;
+  // TODO: 增加配置上传后删除原始文件
+};
+
+// 应用配置文件
+export type AppRoomConfig = {
+  remark?: string;
+} & CommonRoomConfig;
+
 export interface AppConfig {
   logLevel: LogLevel;
   ffmpegPath: string;
@@ -80,25 +88,12 @@ export interface AppConfig {
   useBiliup: boolean;
   webhook: {
     port: number;
-    open: boolean;
     recoderFolder: string;
-    minSize: number;
-    title: string;
-    uploadPresetId?: string;
     blacklist: string;
-    autoPartMerge: boolean;
-    partMergeMinute?: number;
-    danmu: boolean;
-    // TODO: 增加配置上传后删除原始文件
-    ffmpegPreset?: string;
-    danmuPreset?: string;
-    uid?: number;
-    hotProgress: boolean;
-
     rooms: {
       [roomId: string]: AppRoomConfig;
     };
-  };
+  } & CommonRoomConfig;
   /** b站登录信息 */
   biliUser: {
     [uid: number]: BiliUser;

@@ -124,12 +124,14 @@ function getConfig(roomId: number): {
   blacklist: string[];
   /* 是否开启 */
   open?: boolean;
-  /* uid */
+  /* 上传uid */
   uid?: number;
   /* 自动合并part时间 */
   partMergeMinute: number;
   /* 高能进度条 */
   hotProgress: boolean;
+  /* 使用直播封面 */
+  useLiveCover: boolean;
 } {
   const appConfig = getAppConfig();
   const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[roomId];
@@ -147,6 +149,7 @@ function getConfig(roomId: number): {
   const uid = roomSetting?.uid || appConfig.webhook.uid;
   const partMergeMinute = roomSetting?.partMergeMinute || appConfig.webhook.partMergeMinute || 10;
   const hotProgress = roomSetting?.hotProgress ?? appConfig.webhook.hotProgress;
+  const useLiveCover = roomSetting?.useLiveCover ?? appConfig.webhook.useLiveCover;
 
   return {
     danmu,
@@ -161,6 +164,7 @@ function getConfig(roomId: number): {
     uid,
     partMergeMinute,
     hotProgress,
+    useLiveCover,
   };
 }
 
@@ -307,6 +311,7 @@ async function handle(options: Options) {
     uid,
     partMergeMinute,
     hotProgress,
+    useLiveCover,
   } = getConfig(options.roomId);
   if (blacklist.includes(String(options.roomId))) {
     log.info(`${options.roomId} is in blacklist`);
@@ -330,6 +335,15 @@ async function handle(options: Options) {
     .slice(0, 80);
   if (!config.title) config.title = path.parse(options.filePath).name;
   options.title = config.title;
+  if (useLiveCover) {
+    const { name, dir } = path.parse(options.filePath);
+    const cover = path.join(dir, `${name}.cover.jpg`);
+    if (await fs.pathExists(cover)) {
+      config.cover = cover;
+    } else {
+      log.error(`${cover} can not be found`);
+    }
+  }
 
   // 计算live
   const currentLiveIndex = await handleLiveData(options, partMergeMinute);

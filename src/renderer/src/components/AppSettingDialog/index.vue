@@ -263,6 +263,7 @@ const handleRoomDetail = (roomId: string) => {
     autoPartMerge: room.autoPartMerge ?? false,
     partMergeMinute: room.partMergeMinute ?? 10,
     hotProgress: room.hotProgress ?? false,
+    useLiveCover: room.useLiveCover ?? false,
   };
   roomDetailVisible.value = true;
 };
@@ -281,6 +282,7 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   autoPartMerge: false,
   partMergeMinute: 10,
   hotProgress: false,
+  useLiveCover: false,
 });
 const saveRoomDetail = ({ id }: AppRoomConfig & { id?: string }) => {
   config.value.webhook.rooms[id!] = tempRoomDetail.value;
@@ -310,6 +312,7 @@ const addRoom = () => {
     autoPartMerge: config.value.webhook.autoPartMerge,
     partMergeMinute: config.value.webhook.partMergeMinute,
     hotProgress: config.value.webhook.hotProgress,
+    useLiveCover: config.value.webhook.useLiveCover,
   };
   roomDetailVisible.value = true;
 };
