@@ -217,4 +217,6 @@ export type hotProgressOptions = {
   interval?: number;
   color?: string;
   fillColor?: string;
+  /** 视频时长，单位秒 */
+  duration: number;
 };

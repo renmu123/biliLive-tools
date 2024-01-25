@@ -217,6 +217,7 @@ const preHandle = async (
     outputPath: file,
     rawOptions: options,
     videoWidth: width,
+    duration: videoMeta.format.duration,
   };
 };
 
@@ -236,7 +237,7 @@ const convert = async () => {
   );
   if (!data) return;
   let { inputDanmuFile } = data;
-  const { inputVideoFile, outputPath, rawOptions, videoWidth } = data;
+  const { inputVideoFile, outputPath, rawOptions, videoWidth, duration } = data;
   // console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
 
   if (inputDanmuFile.ext === ".xml") {
@@ -253,6 +254,7 @@ const convert = async () => {
   if (rawClientOptions.hotProgress) {
     hotProgressInput = await genHotProgress(inputDanmuFile.path, {
       width: videoWidth!,
+      duration: duration!,
     });
   }
 
@@ -282,7 +284,7 @@ const convert = async () => {
 
 // const hotProgressConvert = async () => {
 //   const input = toRaw(fileList.value)[0].path;
-//   const file = await genHotProgress(input);
+//   const file = await genHotProgress(input, {});
 //   console.log("file", file);
 // };
 

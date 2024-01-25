@@ -464,6 +464,7 @@ const genHotProgressTask = async (input: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     genHotProgress(mainWin.webContents, input, output, {
       width: width,
+      duration: videoMeta.format.duration!,
     }).then((task) => {
       const currentTaskId = task.taskId;
       taskQueue.on("task-end", ({ taskId }) => {

@@ -61,10 +61,13 @@ export const convertImage2Video = async (
   output: string,
   options: {
     removeOrigin: boolean;
+    internal?: number;
   },
 ) => {
   await setFfmpegPath();
-  const command = ffmpeg(`${inputDir}\\%4d.png`).inputOption("-r", "1/30").output(output);
+  const command = ffmpeg(`${inputDir}\\%4d.png`)
+    .inputOption("-r", `1/${options.internal || 30}`)
+    .output(output);
   const task = new FFmpegTask(
     command,
     webContents,
@@ -249,6 +252,12 @@ export const mergeAssMp4 = async (
           if (await pathExists(assFile)) {
             log.info("mergrAssMp4, remove ass origin file", assFile);
             await trashItem(assFile);
+          }
+          if (files.hotProgressFilePath) {
+            if (await pathExists(files.hotProgressFilePath)) {
+              log.info("mergrAssMp4, remove hot progress origin file", assFile);
+              await trashItem(files.hotProgressFilePath);
+            }
           }
         }
       },
