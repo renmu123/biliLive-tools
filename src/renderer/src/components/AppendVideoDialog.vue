@@ -1,4 +1,3 @@
-<!-- bili登录弹框 -->
 <template>
   <n-modal v-model:show="showModal" :mask-closable="false" auto-focus :on-after-enter="handleOpen">
     <n-card
@@ -10,6 +9,7 @@
       class="card"
     >
       <div>
+        <p style="color: red">续传只会增加分p，不会对稿件进行编辑</p>
         <div style="display: flex; gap: 10px">
           <n-input v-model:value="aid" placeholder="请输入需要续传视频的aid" />
           <n-button class="btn" @click="close">取消</n-button>

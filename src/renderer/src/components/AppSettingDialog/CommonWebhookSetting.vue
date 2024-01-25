@@ -57,7 +57,7 @@
     <template #label>
       <span class="inline-flex">
         使用直播封面
-        <Tip tip="如果你在录制软件设置了保存的话"></Tip>
+        <Tip tip="使用直播封面作为视频封面，如果你在录制软件设置了保存的话"></Tip>
       </span>
     </template>
     <n-switch v-model:value="data.useLiveCover" />
