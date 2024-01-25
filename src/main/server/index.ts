@@ -297,6 +297,44 @@ export async function handleLiveData(options: Options, partMergeMinute: number) 
   return currentIndex;
 }
 
+/**
+ * 支持{{title}},{{user}},{{now}}占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}<br/>
+ * 直播标题：{{title}}<br/>
+ * 主播名：{{user}}<br/>
+ * 当前时间（快速）：{{now}}，示例：2024.01.24<br/>
+ * 年：{{yyyy}}<br/>
+ * 月（补零）：{{MM}}<br/>
+ * 日（补零）：{{dd}}<br/>
+ *
+ * @param {object} options 格式化参数
+ * @param {string} options.title 直播标题
+ * @param {string} options.username 主播名
+ * @param {string} options.time 直播时间
+ * @param {string} template 格式化模板
+ */
+function foramtTitle(
+  options: {
+    title: string;
+    username: string;
+    time: string;
+  },
+  template: string,
+) {
+  const { year, month, day, now } = formatTime(options.time);
+
+  const title = template
+    .replaceAll("{{title}}", options.title)
+    .replaceAll("{{user}}", options.username)
+    .replaceAll("{{now}}", now)
+    .replaceAll("{{yyyy}}", year)
+    .replaceAll("{{MM}}", month)
+    .replaceAll("{{dd}}", day)
+    .trim()
+    .slice(0, 80);
+
+  return title;
+}
+
 async function handle(options: Options) {
   const {
     danmu,
@@ -327,14 +365,10 @@ async function handle(options: Options) {
     const preset = await readBiliupPreset(undefined, uploadPresetId);
     config = { ...config, ...preset.config };
   }
-  config.title = title
-    .replaceAll("{{title}}", options.title)
-    .replaceAll("{{user}}", options.username)
-    .replaceAll("{{now}}", formatTime(options.time))
-    .trim()
-    .slice(0, 80);
+  config.title = foramtTitle(options, title);
   if (!config.title) config.title = path.parse(options.filePath).name;
   options.title = config.title;
+
   if (useLiveCover) {
     const { name, dir } = path.parse(options.filePath);
     const cover = path.join(dir, `${name}.cover.jpg`);
@@ -730,7 +764,12 @@ const formatTime = (time: string) => {
 
   // 格式化为"YYYY.MM.DD"的形式
   const formattedDate = `${year}.${month}.${day}`;
-  return formattedDate;
+  return {
+    year: String(year),
+    month,
+    day,
+    now: formattedDate,
+  };
 };
 
 export default app;
