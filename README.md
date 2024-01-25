@@ -1,7 +1,8 @@
 # biliLive-tools
 
 这是一个用于 B 站录播的一站式工具，支持弹幕与视频压制并上传至B站，支持录播姬与blrec的webhook。  
-做这款工具的主要原因是为了解决录播工具的碎片化，往往想完整处理一场带有弹幕的录播要使用多个软件的配合，一些工具只有CLI，加大了使用难度。
+做这款工具的主要原因是为了解决录播工具的碎片化，往往想完整处理一场带有弹幕的录播要使用多个软件的配合，一些工具只有CLI，加大了使用难度。  
+[更新历史](https://github.com/renmu123/biliLive-tools/blob/master/CHANGELOG.md)  
 **希望使用webhook功能标注仓库地址或保留默认tag**
 
 1. 支持 Danmufactory GUI

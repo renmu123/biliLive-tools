@@ -25,6 +25,13 @@
       >
     </p>
     <p>
+      更新历史：<a
+        href="https://github.com/renmu123/biliLive-tools/blob/master/CHANGELOG.md"
+        class="external"
+        >https://github.com/renmu123/biliLive-tools/blob/master/CHANGELOG.md</a
+      >
+    </p>
+    <p>
       反馈地址：如果遇到bug，请在设置中将"log等级"调整至debug模式，并进行复现，之后在<a
         href="https://github.com/renmu123/biliLive-tools/issues"
         class="external"
