@@ -32,10 +32,17 @@
       </n-form>
       <template #footer>
         <div class="footer">
-          <n-button class="btn" @click="roomDetailVisible = false">取消</n-button>
-          <n-button v-if="props.type === 'edit'" type="error" class="btn" @click="deleteRoom">
+          <n-button
+            v-if="props.type === 'edit'"
+            ghost
+            quaternary
+            type="error"
+            class="btn"
+            @click="deleteRoom"
+          >
             删除
           </n-button>
+          <n-button class="btn" @click="roomDetailVisible = false">取消</n-button>
           <n-button type="primary" class="btn" @click="saveRoomDetail"> 确认 </n-button>
         </div>
       </template>

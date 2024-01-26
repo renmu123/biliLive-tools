@@ -2,7 +2,7 @@
   <n-notification-provider>
     <n-dialog-provider>
       <n-space vertical>
-        <n-layout has-sider class="layout">
+        <n-layout has-sider class="layout" position="absolute">
           <n-layout-sider
             bordered
             collapse-mode="width"
@@ -190,5 +190,6 @@ window.addEventListener("unhandledrejection", (error) => {
 
 .main-container {
   margin: 20px;
+  margin-right: 0px;
 }
 </style>
