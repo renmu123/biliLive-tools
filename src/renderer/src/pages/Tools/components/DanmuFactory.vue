@@ -29,9 +29,12 @@
                 style="width: 300px"
               />
             </n-radio>
-            <n-button type="primary" :disabled="options.saveRadio !== 2" @click="getDir">
+            <!-- <n-button type="primary" :disabled="options.saveRadio !== 2" @click="getDir">
               选择文件夹
-            </n-button>
+            </n-button> -->
+            <n-icon size="30" style="margin-left: -10px" class="pointer" @click="getDir">
+              <FolderOpenOutline />
+            </n-icon>
           </n-space>
         </n-radio-group>
       </div>
@@ -58,7 +61,7 @@ import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingD
 import type { DanmuOptions, File } from "../../../../../types";
 import { deepRaw } from "@renderer/utils";
 import { useDanmuPreset } from "@renderer/stores";
-import { Settings as SettingIcon } from "@vicons/ionicons5";
+import { Settings as SettingIcon, FolderOpenOutline } from "@vicons/ionicons5";
 
 const { danmuPresetsOptions, danmuPresetId } = storeToRefs(useDanmuPreset());
 

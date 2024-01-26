@@ -163,10 +163,33 @@
           </div>
         </div>
       </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            <span>合集</span>
+            <Tip
+              :tip="`仅限非biliup上传方式，多p视频无法加入，仅适用于设置合集的账户(${options.config.uid})，需电磁力3级才可开通`"
+            ></Tip>
+          </span>
+        </template>
+        <n-select
+          v-model:value="options.config.seasonId"
+          :options="seasonList"
+          placeholder="请选择合集"
+        />
+        <span
+          v-if="options.config.seasonId"
+          style="flex: none; margin-left: 20px; margin-right: 20px; cursor: pointer"
+          @click="clearSeason"
+          >清除</span
+        >
+      </n-form-item>
     </n-form>
 
     <div style="text-align: right">
-      <n-button v-if="options.id !== 'default'" type="error" @click="deletePreset">删除</n-button>
+      <n-button v-if="options.id !== 'default'" ghost quaternary type="error" @click="deletePreset"
+        >删除</n-button
+      >
       <n-button type="primary" style="margin-left: 10px" @click="saveAnotherPreset"
         >另存为</n-button
       >
@@ -193,7 +216,7 @@
 import { storeToRefs } from "pinia";
 import { deepRaw, uuid } from "@renderer/utils";
 import { useConfirm } from "@renderer/hooks";
-import { useUploadPreset, useAppConfig } from "@renderer/stores";
+import { useUploadPreset, useAppConfig, useUserInfoStore } from "@renderer/stores";
 import areaData from "@renderer/assets/area.json";
 import { cloneDeep } from "lodash-es";
 
@@ -211,7 +234,10 @@ const presetId = ref<string>("default");
 
 // @ts-ignore
 const options: Ref<BiliupPreset> = ref({
-  config: {},
+  config: {
+    uid: undefined,
+    seasonId: undefined,
+  },
 });
 const handlePresetChange = async (value: string) => {
   const preset = await window.api.bili.getPreset(value);
@@ -309,6 +335,10 @@ const deletePreset = async () => {
 };
 
 const savePreset = async () => {
+  const data = options.value;
+  if (userInfoStore.userInfo?.uid) {
+    data.config.uid = userInfoStore.userInfo.uid;
+  }
   await _savePreset(options.value);
   notice.success({
     title: "保存成功",
@@ -339,6 +369,37 @@ watchEffect(() => {
   if (options.value.config.selectiionReply) {
     options.value.config.closeReply = 0;
   }
+});
+
+// 合集
+const userInfoStore = useUserInfoStore();
+const seasonList = ref<
+  {
+    label: string;
+    value: number;
+  }[]
+>([]);
+const getSeasonList = async () => {
+  if (!userInfoStore.userInfo) {
+    seasonList.value = [];
+    return;
+  }
+  const data = await window.api.bili.getSeasonList(userInfoStore.userInfo.uid);
+  seasonList.value = (data.seasons || []).map((item) => {
+    return {
+      label: item.season.title,
+      value: item.season.id,
+    };
+  });
+};
+const clearSeason = () => {
+  options.value.config.seasonId = null;
+  options.value.config.uid = null;
+};
+
+watchEffect(() => {
+  if (!userInfoStore.userInfo) return;
+  getSeasonList();
 });
 </script>
 

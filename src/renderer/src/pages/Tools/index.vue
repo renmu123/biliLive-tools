@@ -1,6 +1,6 @@
 <template>
   <n-tabs type="segment">
-    <n-tab-pane name="fileUpload" tab="文件上传" display-directive="show:lazy">
+    <n-tab-pane name="fileUpload" tab="上传" display-directive="show:lazy">
       <FileUpload></FileUpload>
     </n-tab-pane>
     <n-tab-pane name="chap2" tab="弹幕转换" display-directive="show:lazy">

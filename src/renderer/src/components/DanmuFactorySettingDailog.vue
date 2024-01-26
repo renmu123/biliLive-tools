@@ -16,11 +16,19 @@
 
       <template #footer>
         <div class="footer">
-          <n-checkbox v-model:checked="simpledMode"> 简易模式 </n-checkbox>
-          <n-button class="btn" @click="close">取消</n-button>
-          <n-button v-if="config.id !== 'default'" class="btn" type="error" @click="deletePreset"
+          <n-checkbox v-model:checked="simpledMode" style="margin-right: auto">
+            简易模式
+          </n-checkbox>
+          <n-button
+            v-if="config.id !== 'default'"
+            ghost
+            quaternary
+            class="btn"
+            type="error"
+            @click="deletePreset"
             >删除</n-button
           >
+          <n-button class="btn" @click="close">取消</n-button>
           <n-button type="primary" class="btn" @click="rename">重命名</n-button>
           <n-button type="primary" class="btn" @click="saveAs">另存为</n-button>
           <n-button type="primary" class="btn" @click="saveConfig">确认</n-button>
@@ -157,7 +165,7 @@ const saveConfirm = async () => {
 <style scoped lang="less">
 .footer {
   display: flex;
-  justify-content: flex-end;
+  // justify-content: flex-end;
   gap: 10px;
   align-items: center;
 }

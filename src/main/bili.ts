@@ -4,6 +4,7 @@ import { Client, TvQrcodeLogin } from "@renmu/bili-api";
 import { format, writeUser, readUser } from "./biliup";
 import { appConfig } from "./config";
 import { BiliVideoTask, taskQueue } from "./task";
+import log from "./utils/log";
 
 import type { IpcMainInvokeEvent, WebContents } from "electron";
 import type { BiliupConfig } from "../types/index";
@@ -164,6 +165,14 @@ function formatOptions(options: BiliupConfig) {
   return data;
 }
 
+/**
+ * 合集列表
+ */
+async function getSeasonList(uid: number): ReturnType<ClientInstance["platform"]["getSeasonList"]> {
+  await loadCookie(uid);
+  return client.platform.getSeasonList();
+}
+
 async function addMedia(
   webContents: WebContents,
   filePath: string[],
@@ -179,7 +188,32 @@ async function addMedia(
     {
       name: `上传任务：${path.parse(filePath[0]).name}`,
     },
-    {},
+    {
+      onEnd: async (data: { aid: number; bvid: string }) => {
+        if (options.seasonId && options.uid === uid) {
+          await loadCookie(uid);
+          const archive = await client.platform.getArchive({ aid: data.aid });
+          if (archive.videos.length > 1) {
+            log.warn("该稿件的分p大于1，无法加入分p", archive.archive.title);
+            return;
+          }
+          const cid = archive.videos[0].cid;
+          console.log(data);
+          const sectionId = (await client.platform.getSeasonDetail(options.seasonId)).sections
+            .sections[0].id;
+          client.platform.addMedia2Season({
+            sectionId: sectionId,
+            episodes: [
+              {
+                aid: data.aid,
+                cid: cid,
+                title: options.title,
+              },
+            ],
+          });
+        }
+      },
+    },
   );
 
   taskQueue.addTask(task, true);
@@ -227,6 +261,7 @@ export const biliApi = {
   getMyInfo,
   addMedia,
   editMedia,
+  getSeasonList,
 };
 
 export const invokeWrap = <T extends (...args: any[]) => any>(fn: T) => {
@@ -286,6 +321,12 @@ export const handlers = {
     options: BiliupConfig,
   ) => {
     return addMedia(event.sender, pathArray, options, uid);
+  },
+  "biliApi:getSeasonList": (
+    _event: IpcMainInvokeEvent,
+    uid: number,
+  ): ReturnType<typeof biliApi.getSeasonList> => {
+    return getSeasonList(uid);
   },
 };
 

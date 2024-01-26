@@ -113,6 +113,8 @@
     <div class="actions">
       <n-button
         v-if="!presetId.startsWith('b_') && presetId !== 'default'"
+        ghost
+        quaternary
         class="btn"
         type="error"
         @click="deletePreset"

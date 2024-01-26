@@ -247,6 +247,9 @@ export const api = {
     checkTag(tag: string, uid: number) {
       return ipcRenderer.invoke("biliApi:checkTag", tag, uid);
     },
+    getSeasonList(uid: number) {
+      return ipcRenderer.invoke("biliApi:getSeasonList", uid);
+    },
   },
   ffmpeg: {
     // 预设

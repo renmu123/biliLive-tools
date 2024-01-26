@@ -17,11 +17,12 @@
                 type="text"
                 placeholder="选择文件夹"
                 style="width: 300px"
+                :title="options.savePath"
               />
             </n-radio>
-            <n-button type="primary" :disabled="options.saveRadio !== 2" @click="getDir">
-              选择文件夹
-            </n-button>
+            <n-icon size="30" style="margin-left: -10px" class="pointer" @click="getDir">
+              <FolderOpenOutline />
+            </n-icon>
           </n-space>
         </n-radio-group>
       </div>
@@ -42,6 +43,7 @@
 import FileArea from "@renderer/components/FileArea.vue";
 import { useConfirm } from "@renderer/hooks";
 import type { File, Video2Mp4Options } from "../../../../../types";
+import { FolderOpenOutline } from "@vicons/ionicons5";
 
 const notice = useNotification();
 const confirm = useConfirm();

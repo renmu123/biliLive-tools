@@ -167,8 +167,10 @@ export interface FfmpegOptions {
 }
 
 export interface BiliupConfig {
-  title: string; // 标题,稿件标题限制80字，去除前后空格
-  desc?: string; // 简介，去除前后空格，最多250
+  /** 标题,稿件标题限制80字，去除前后空格 */
+  title: string;
+  /** 简介，去除前后空格，最多250 */
+  desc?: string;
   dolby: 0 | 1; // 杜比
   hires: 0 | 1; // Hi-Res
   copyright: 1 | 2; // 1：自制，2：转载
@@ -181,7 +183,12 @@ export interface BiliupConfig {
   openElec?: 0 | 1; // 充电面板 0：不开启，1：开启
   closeDanmu?: 0 | 1; // 关闭弹幕 0：不关闭，1：关闭
   closeReply?: 0 | 1; // 关闭评论 0：不关闭，1：关闭
-  selectiionReply?: 0 | 1; // 开启精选评论 0：开启，1：关闭
+  /** 开启精选评论 0：开启，1：关闭 */
+  selectiionReply?: 0 | 1;
+  /** 合集id */
+  seasonId?: number | null;
+  /** 创建该预设的uid */
+  uid?: number | null;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

@@ -22,9 +22,7 @@
     <div class="flex align-center column" style="margin-top: 10px">
       <div></div>
       <div style="margin-top: 10px">
-        <n-checkbox v-model:checked="clientOptions.saveOriginPath">
-          保存到原始文件夹并自动重命名
-        </n-checkbox>
+        <n-checkbox v-model:checked="clientOptions.saveOriginPath"> 保存到原始文件夹 </n-checkbox>
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
       </div>
     </div>

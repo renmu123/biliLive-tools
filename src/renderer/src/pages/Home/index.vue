@@ -60,7 +60,12 @@
             style="text-align: right; gap: 10px; justify-content: flex-end; align-items: center"
           >
             <n-checkbox v-model:checked="simpledMode"> 简易模式 </n-checkbox>
-            <n-button v-if="danmuPresetId !== 'default'" type="error" @click="deleteDanmu"
+            <n-button
+              v-if="danmuPresetId !== 'default'"
+              ghost
+              quaternary
+              type="error"
+              @click="deleteDanmu"
               >删除</n-button
             >
             <n-button type="primary" @click="renameDanmu">重命名</n-button>

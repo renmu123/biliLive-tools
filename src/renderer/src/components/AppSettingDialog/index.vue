@@ -94,9 +94,14 @@
                 v-model:value="config.webhook.recoderFolder"
                 placeholder="请输入录播姬工作目录"
               />
-              <n-button type="primary" style="margin-left: 10px" @click="selectFolder('recorder')">
-                选择文件夹
-              </n-button>
+              <n-icon
+                style="margin-left: 10px"
+                size="28"
+                class="pointer"
+                @click="selectFolder('recorder')"
+              >
+                <FolderOpenOutline />
+              </n-icon>
             </n-form-item>
             <CommonSetting
               v-model:data="config.webhook"
@@ -150,6 +155,7 @@ import CommonSetting from "./CommonWebhookSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
 import { useConfirm } from "@renderer/hooks";
+import { FolderOpenOutline } from "@vicons/ionicons5";
 
 import type { AppConfig, LogLevel, BiliupPreset, AppRoomConfig } from "../../../../types";
 

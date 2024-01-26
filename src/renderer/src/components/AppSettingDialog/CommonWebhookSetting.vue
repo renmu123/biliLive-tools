@@ -22,7 +22,7 @@
     </template>
     <n-input
       v-model:value="data.title"
-      placeholder="请输入视频标题,支持{{title}},{{user}},{{now}}占位符"
+      placeholder="请输入视频标题,支持{{title}},{{user}},{{now}}等占位符"
       clearable
     />
   </n-form-item>
@@ -30,7 +30,7 @@
     <template #label>
       <span class="inline-flex">
         断播续传
-        <Tip tip="该功能在测试阶段，开启后，会将某主播一场直播上传到同一个视频中"></Tip>
+        <Tip tip="开启后，会将某主播一场直播上传到同一个视频中"></Tip>
       </span>
     </template>
     <n-switch v-model:value="data.autoPartMerge" />
