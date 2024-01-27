@@ -52,6 +52,8 @@
 
 <script setup lang="ts">
 import CommonSetting from "./CommonWebhookSetting.vue";
+import { useConfirm } from "@renderer/hooks";
+
 import type { AppRoomConfig } from "../../../../types";
 
 type Options = {
@@ -84,7 +86,13 @@ const saveRoomDetail = () => {
   emits("save", data.value);
   roomDetailVisible.value = false;
 };
-const deleteRoom = () => {
+
+const confirm = useConfirm();
+const deleteRoom = async () => {
+  const status = await confirm.warning({
+    content: "是否确认删除？",
+  });
+  if (!status) return;
   emits("delete", data.value.id!);
   roomDetailVisible.value = false;
 };
