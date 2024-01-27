@@ -190,15 +190,17 @@ async function addMedia(
     },
     {
       onEnd: async (data: { aid: number; bvid: string }) => {
+        log.info("合集选项", options, data);
         if (options.seasonId && options.uid === uid) {
           await loadCookie(uid);
           const archive = await client.platform.getArchive({ aid: data.aid });
+          log.info("合集稿件", archive);
+
           if (archive.videos.length > 1) {
             log.warn("该稿件的分p大于1，无法加入分p", archive.archive.title);
             return;
           }
           const cid = archive.videos[0].cid;
-          console.log(data);
           const sectionId = (await client.platform.getSeasonDetail(options.seasonId)).sections
             .sections[0].id;
           client.platform.addMedia2Season({

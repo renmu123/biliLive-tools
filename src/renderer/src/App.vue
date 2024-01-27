@@ -190,6 +190,6 @@ window.addEventListener("unhandledrejection", (error) => {
 
 .main-container {
   margin: 20px;
-  margin-right: 0px;
+  // margin-right: 0px;
 }
 </style>

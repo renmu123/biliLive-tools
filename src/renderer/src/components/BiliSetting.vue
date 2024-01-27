@@ -380,7 +380,7 @@ const seasonList = ref<
   }[]
 >([]);
 const getSeasonList = async () => {
-  if (!userInfoStore.userInfo) {
+  if (!userInfoStore?.userInfo?.uid) {
     seasonList.value = [];
     return;
   }
@@ -394,8 +394,14 @@ const getSeasonList = async () => {
 };
 const clearSeason = () => {
   options.value.config.seasonId = null;
-  options.value.config.uid = null;
 };
+
+watch(
+  () => options.value.config.seasonId,
+  () => {
+    options.value.config.uid = userInfoStore.userInfo?.uid;
+  },
+);
 
 watchEffect(() => {
   if (!userInfoStore.userInfo) return;

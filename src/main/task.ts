@@ -271,8 +271,7 @@ export class BiliVideoTask extends AbstractTask {
     this.startTime = Date.now();
     emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
 
-    command.emitter.on("completed", async (res) => {
-      const data = res.data;
+    command.emitter.on("completed", async (data) => {
       log.info(`task ${this.taskId} end`);
       this.status = "completed";
       this.progress = 100;
