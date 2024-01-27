@@ -421,7 +421,7 @@ async function handle(options: Options) {
     let hotProgressFile: string | undefined;
     if (hotProgress) {
       // 生成高能进度条文件
-      hotProgressFile = await genHotProgressTask(xmlFilePath);
+      hotProgressFile = await genHotProgressTask(xmlFilePath, options.filePath);
     }
 
     const danmuConfig = (await readDanmuPreset(undefined, danmuPresetId)).config;
@@ -455,14 +455,14 @@ const sleep = (ms: number) => {
 };
 
 // 生成高能进度条
-const genHotProgressTask = async (input: string): Promise<string> => {
-  const videoMeta = await readVideoMeta(input);
+const genHotProgressTask = async (xmlFile: string, videoFile: string): Promise<string> => {
+  const videoMeta = await readVideoMeta(videoFile);
   const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
   const { width } = videoStream || {};
   const output = `${path.join(os.tmpdir(), uuid())}.mp4`;
 
   return new Promise((resolve, reject) => {
-    genHotProgress(mainWin.webContents, input, output, {
+    genHotProgress(mainWin.webContents, xmlFile, output, {
       width: width,
       duration: videoMeta.format.duration!,
     }).then((task) => {
