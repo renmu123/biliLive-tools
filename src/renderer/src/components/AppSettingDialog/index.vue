@@ -107,6 +107,7 @@
               v-model:data="config.webhook"
               :biliup-presets-options="presetsOptions"
               :ffmpeg-options="ffmpegOptions"
+              type="global"
             ></CommonSetting>
             <n-form-item>
               <template #label>

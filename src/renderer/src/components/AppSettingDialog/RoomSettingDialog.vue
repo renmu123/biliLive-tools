@@ -27,6 +27,7 @@
           v-model:data="data"
           :biliup-presets-options="props.biliupPresetsOptions"
           :ffmpeg-options="props.ffmpegOptions"
+          type="room"
         >
         </CommonSetting>
       </n-form>

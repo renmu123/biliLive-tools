@@ -1,6 +1,7 @@
 <template>
   <n-form-item label="上传账号">
     <n-select v-model:value="data.uid" :options="userOptins" placeholder="请选择账号" />
+    <!-- <n-checkbox v-if="isRoom" v-model:checked="data.aa" class="global-checkbox">全局</n-checkbox> -->
   </n-form-item>
   <n-form-item>
     <template #label>
@@ -90,9 +91,10 @@
 </template>
 
 <script setup lang="ts">
-import type { AppRoomConfig } from "../../../../types";
 import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
+
+import type { AppRoomConfig } from "../../../../types";
 
 type Options = {
   value: string;
@@ -102,6 +104,7 @@ type Options = {
 const props = defineProps<{
   biliupPresetsOptions: Options;
   ffmpegOptions: Options;
+  type: "room" | "global";
 }>();
 
 const data = defineModel<AppRoomConfig>("data", {
@@ -126,6 +129,13 @@ const titleTip = ref(
   月（补零）：{{MM}}<br/>
   日（补零）：{{dd}}<br/>`,
 );
+
+// const isRoom = computed(() => props.type === "room");
 </script>
 
-<style scoped></style>
+<style scoped lang="less">
+.global-checkbox {
+  flex: none;
+  margin-left: 20px;
+}
+</style>
