@@ -370,6 +370,7 @@ async function handle(options: Options) {
   options.title = config.title;
 
   if (useLiveCover) {
+    await sleep(1000);
     const { name, dir } = path.parse(options.filePath);
     const cover = path.join(dir, `${name}.cover.jpg`);
     if (await fs.pathExists(cover)) {
