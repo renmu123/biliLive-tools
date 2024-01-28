@@ -369,17 +369,6 @@ async function handle(options: Options) {
   if (!config.title) config.title = path.parse(options.filePath).name;
   options.title = config.title;
 
-  if (useLiveCover) {
-    await sleep(1000);
-    const { name, dir } = path.parse(options.filePath);
-    const cover = path.join(dir, `${name}.cover.jpg`);
-    if (await fs.pathExists(cover)) {
-      config.cover = cover;
-    } else {
-      log.error(`${cover} can not be found`);
-    }
-  }
-
   // 计算live
   const currentLiveIndex = await handleLiveData(options, partMergeMinute);
   const currentLive = liveData[currentLiveIndex];
@@ -406,6 +395,21 @@ async function handle(options: Options) {
 
   const currentPart = currentLive.parts.find((part) => part.filePath === options.filePath);
   if (!currentPart) return;
+
+  if (useLiveCover) {
+    const { name, dir } = path.parse(options.filePath);
+    const cover = path.join(dir, `${name}.cover.jpg`);
+    if (await fs.pathExists(cover)) {
+      config.cover = cover;
+    } else {
+      const cover = path.join(dir, `${name}.jpg`);
+      if (await fs.pathExists(cover)) {
+        config.cover = cover;
+      } else {
+        log.error(`${cover} can not be found`);
+      }
+    }
+  }
 
   if (danmu) {
     // 压制弹幕后上传
