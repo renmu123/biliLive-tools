@@ -9,7 +9,7 @@
           <template #label>
             <span class="inline-flex">
               开启
-              <Tip tip="是否对该直播间开启webhook功能，与黑名单共同作用"></Tip>
+              <Tip tip="直播间是否开启webhook，覆盖黑名单配置"></Tip>
             </span>
           </template>
           <n-switch v-model:value="data.open" />

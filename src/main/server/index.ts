@@ -44,6 +44,16 @@ export interface Live {
   parts: Part[];
 }
 
+export interface Options {
+  event: "FileOpening" | "FileClosed" | "VideoFileCompletedEvent" | "VideoFileCreatedEvent";
+  filePath: string;
+  roomId: number;
+  time: string;
+  username: string;
+  title: string;
+  platform: "bili-recorder" | "blrec";
+}
+
 const liveData: Live[] = [];
 
 app.use(express.urlencoded({ extended: true }));
@@ -120,8 +130,6 @@ function getConfig(roomId: number): {
   danmuPresetId: string;
   /* 视频preset */
   videoPresetId: string;
-  /* 黑名单 */
-  blacklist: string[];
   /* 是否开启 */
   open?: boolean;
   /* 上传uid */
@@ -144,12 +152,26 @@ function getConfig(roomId: number): {
   const title = roomSetting?.title || appConfig.webhook.title || "";
   const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
   const videoPresetId = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
-  const blacklist = (appConfig?.webhook?.blacklist || "").split(",");
-  const open = roomSetting?.open ?? true;
   const uid = roomSetting?.uid || appConfig.webhook.uid;
   const partMergeMinute = roomSetting?.partMergeMinute || appConfig.webhook.partMergeMinute || 10;
   const hotProgress = roomSetting?.hotProgress ?? appConfig.webhook.hotProgress;
   const useLiveCover = roomSetting?.useLiveCover ?? appConfig.webhook.useLiveCover;
+
+  function canHandle() {
+    if (roomSetting) {
+      // 如果配置了房间，那么以房间设置为准
+      return roomSetting.open;
+    } else {
+      // 如果没有配置房间，那么以黑名单为准
+      const blacklist = (appConfig?.webhook?.blacklist || "").split(",");
+      if (blacklist.includes("*")) return false;
+      if (blacklist.includes(String(roomId))) return false;
+
+      return true;
+    }
+  }
+
+  const open = canHandle();
 
   return {
     danmu,
@@ -159,23 +181,12 @@ function getConfig(roomId: number): {
     title,
     danmuPresetId,
     videoPresetId,
-    blacklist,
     open,
     uid,
     partMergeMinute,
     hotProgress,
     useLiveCover,
   };
-}
-
-export interface Options {
-  event: "FileOpening" | "FileClosed" | "VideoFileCompletedEvent" | "VideoFileCreatedEvent";
-  filePath: string;
-  roomId: number;
-  time: string;
-  username: string;
-  title: string;
-  platform: "bili-recorder" | "blrec";
 }
 
 export async function handleLiveData(options: Options, partMergeMinute: number) {
@@ -344,17 +355,13 @@ async function handle(options: Options) {
     title,
     danmuPresetId,
     videoPresetId,
-    blacklist,
     open,
     uid,
     partMergeMinute,
     hotProgress,
     useLiveCover,
   } = getConfig(options.roomId);
-  if (blacklist.includes(String(options.roomId))) {
-    log.info(`${options.roomId} is in blacklist`);
-    return;
-  }
+
   if (!open) {
     log.info(`${options.roomId} is not open`);
     return;

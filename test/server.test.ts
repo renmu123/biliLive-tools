@@ -435,3 +435,72 @@ function foramtTitle(
 
   return title;
 }
+
+/**
+ * 判断是否处理该直播间
+ */
+function canHandle(roomSetting, appConfig, roomId) {
+  if (roomSetting) {
+    // 如果配置了房间，那么以房间设置为准
+    return roomSetting.open;
+  } else {
+    // 如果没有配置房间，那么以黑名单为准
+    const blacklist = (appConfig.webhook.blacklist || "").split(",");
+    if (blacklist.includes("*")) return false;
+    if (blacklist.includes(String(roomId))) return false;
+
+    return true;
+  }
+}
+
+describe("canHandle", () => {
+  it("should return true when roomSetting is open", () => {
+    const roomSetting = { open: true };
+    const result = canHandle(roomSetting, "", 123);
+    expect(result).toBe(true);
+  });
+
+  it("should return false when roomSetting is closed", () => {
+    const roomSetting = { open: false };
+    const result = canHandle(roomSetting, "", 123);
+    expect(result).toBe(false);
+  });
+
+  it("should return false when roomSetting is closed and blacklist is provided", () => {
+    const roomSetting = { open: false };
+    const result = canHandle(roomSetting, "*", 123);
+    expect(result).toBe(false);
+  });
+
+  it("should return true when roomSetting is not provided and roomId is not in the blacklist", () => {
+    const roomSetting = undefined;
+    const appConfig = { webhook: { blacklist: "" } };
+    const roomId = 123;
+    const result = canHandle(roomSetting, appConfig, roomId);
+    expect(result).toBe(true);
+  });
+
+  it("should return true when roomSetting is not provided and roomId is not in the blacklist", () => {
+    const roomSetting = undefined;
+    const appConfig = { webhook: { blacklist: "456" } };
+    const roomId = 123;
+    const result = canHandle(roomSetting, appConfig, roomId);
+    expect(result).toBe(true);
+  });
+
+  it("should return false when roomSetting is not provided and roomId is in the blacklist", () => {
+    const roomSetting = undefined;
+    const appConfig = { webhook: { blacklist: "123,456" } };
+    const roomId = 123;
+    const result = canHandle(roomSetting, appConfig, roomId);
+    expect(result).toBe(false);
+  });
+
+  it("should return false when roomSetting is not provided and the blacklist contains '*'", () => {
+    const roomSetting = undefined;
+    const appConfig = { webhook: { blacklist: "*" } };
+    const roomId = 123;
+    const result = canHandle(roomSetting, appConfig, roomId);
+    expect(result).toBe(false);
+  });
+});
