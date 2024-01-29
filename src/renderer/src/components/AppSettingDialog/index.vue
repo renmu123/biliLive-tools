@@ -107,6 +107,8 @@
               v-model:data="config.webhook"
               :biliup-presets-options="presetsOptions"
               :ffmpeg-options="ffmpegOptions"
+              :global-value="webhookDefaultValue"
+              :global-fields-obj="{}"
               type="global"
             ></CommonSetting>
             <n-form-item>
@@ -145,6 +147,8 @@
     :type="roomType"
     :biliup-presets-options="presetsOptions"
     :ffmpeg-options="ffmpegOptions"
+    :global-fields-obj="roomGlobalCheckObj"
+    :global-value="webhookDefaultValue"
     @save="saveRoomDetail"
     @delete="deleteRoom"
   ></RoomSettingDialog>
@@ -253,6 +257,40 @@ const roomList = computed(() => {
 // 房间具体设置
 const roomType = ref<"edit" | "add">("add");
 const roomDetailVisible = ref(false);
+const roomGlobalCheckObj = ref<{
+  [key: string]: boolean;
+}>({});
+const globalFields = ref([
+  "uid",
+  "minSize",
+  "title",
+  "uploadPresetId",
+  "danmu",
+  "ffmpegPreset",
+  "danmuPreset",
+  "autoPartMerge",
+  "partMergeMinute",
+  "hotProgress",
+  "useLiveCover",
+]);
+const webhookDefaultValue = computed(() => {
+  if (!config.value.webhook) return {};
+
+  return {
+    uid: config.value.webhook.uid,
+    minSize: config.value.webhook.minSize,
+    title: config.value.webhook.title,
+    uploadPresetId: config.value.webhook.uploadPresetId,
+    danmu: config.value.webhook.danmu,
+    ffmpegPreset: config.value.webhook.ffmpegPreset,
+    danmuPreset: config.value.webhook.danmuPreset,
+    autoPartMerge: config.value.webhook.autoPartMerge,
+    partMergeMinute: config.value.webhook.partMergeMinute,
+    hotProgress: config.value.webhook.hotProgress,
+    useLiveCover: config.value.webhook.useLiveCover,
+  };
+});
+
 const handleRoomDetail = (roomId: string) => {
   roomType.value = "edit";
   const room = config.value.webhook.rooms[roomId];
@@ -272,6 +310,18 @@ const handleRoomDetail = (roomId: string) => {
     hotProgress: room.hotProgress ?? false,
     useLiveCover: room.useLiveCover ?? false,
   };
+
+  const noGlobalFields = room.noGlobal ?? [];
+  for (const key of globalFields.value) {
+    roomGlobalCheckObj.value[key] = !noGlobalFields.includes(key);
+
+    if (roomGlobalCheckObj.value[key]) {
+      tempRoomDetail.value[key] = webhookDefaultValue.value[key];
+    }
+  }
+
+  console.log(roomGlobalCheckObj.value, room);
+
   roomDetailVisible.value = true;
 };
 
@@ -306,22 +356,30 @@ const getPresetOptions = async () => {
 
 const addRoom = () => {
   roomType.value = "add";
+  // @ts-ignore
   tempRoomDetail.value = {
     id: undefined,
-    uid: config.value.webhook.uid,
     open: true,
-    minSize: config.value.webhook.minSize,
-    title: config.value.webhook.title,
-    uploadPresetId: config.value.webhook.uploadPresetId,
-    danmu: config.value.webhook.danmu,
-    ffmpegPreset: config.value.webhook.ffmpegPreset,
-    danmuPreset: config.value.webhook.danmuPreset,
-    autoPartMerge: config.value.webhook.autoPartMerge,
-    partMergeMinute: config.value.webhook.partMergeMinute,
-    hotProgress: config.value.webhook.hotProgress,
-    useLiveCover: config.value.webhook.useLiveCover,
+    remark: "",
+    // uid: config.value.webhook.uid,
+    // minSize: config.value.webhook.minSize,
+    // title: config.value.webhook.title,
+    // uploadPresetId: config.value.webhook.uploadPresetId,
+    // danmu: config.value.webhook.danmu,
+    // ffmpegPreset: config.value.webhook.ffmpegPreset,
+    // danmuPreset: config.value.webhook.danmuPreset,
+    // autoPartMerge: config.value.webhook.autoPartMerge,
+    // partMergeMinute: config.value.webhook.partMergeMinute,
+    // hotProgress: config.value.webhook.hotProgress,
+    // useLiveCover: config.value.webhook.useLiveCover,
+    ...toRaw(webhookDefaultValue.value),
   };
   roomDetailVisible.value = true;
+
+  for (const key of globalFields.value) {
+    roomGlobalCheckObj.value[key] = true;
+  }
+  console.log(roomGlobalCheckObj.value);
 };
 </script>
 

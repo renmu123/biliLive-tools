@@ -25,8 +25,10 @@
         </n-form-item>
         <CommonSetting
           v-model:data="data"
+          v-model:global-fields-obj="globalFieldsObj"
           :biliup-presets-options="props.biliupPresetsOptions"
           :ffmpeg-options="props.ffmpegOptions"
+          :global-value="props.globalValue"
           type="room"
         >
         </CommonSetting>
@@ -66,6 +68,9 @@ const props = defineProps<{
   type: "edit" | "add";
   biliupPresetsOptions: Options;
   ffmpegOptions: Options;
+  globalValue: {
+    [key: string]: any;
+  };
 }>();
 
 const roomDetailVisible = defineModel("visible", {
@@ -75,6 +80,13 @@ const roomDetailVisible = defineModel("visible", {
 const data = defineModel<AppRoomConfig & { id?: string }>("data", {
   default: () => {},
 });
+const globalFieldsObj = defineModel<{
+  [key: string]: boolean;
+}>("globalFieldsObj", {
+  type: Object,
+  default: () => {},
+});
+
 const emits = defineEmits<{
   (event: "save", value: AppRoomConfig & { id?: string }): void;
   (event: "delete", value: string): void;
@@ -84,6 +96,12 @@ const saveRoomDetail = () => {
   if (!data.value.id) {
     return;
   }
+  data.value.noGlobal = Object.entries(globalFieldsObj.value)
+    .filter(([, value]) => {
+      return !value;
+    })
+    .map(([key]) => key);
+  console.log(data.value.noGlobal);
   emits("save", data.value);
   roomDetailVisible.value = false;
 };

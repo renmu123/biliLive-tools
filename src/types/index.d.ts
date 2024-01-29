@@ -68,12 +68,13 @@ type CommonRoomConfig = {
   hotProgress: boolean;
   /** 使用直播封面 */
   useLiveCover: boolean;
-  // TODO: 增加配置上传后删除原始文件
 };
 
 // 应用配置文件
 export type AppRoomConfig = {
   remark?: string;
+  /**不为全局配置的选项 */
+  noGlobal?: string[];
 } & CommonRoomConfig;
 
 export interface AppConfig {

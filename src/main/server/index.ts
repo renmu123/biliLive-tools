@@ -21,6 +21,7 @@ import type {
   FfmpegOptions,
   DanmuConfig,
   AppRoomConfig,
+  CommonRoomConfig,
   AppConfig,
 } from "../../types";
 
@@ -144,19 +145,48 @@ function getConfig(roomId: number): {
   const appConfig = getAppConfig();
   const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[roomId];
   log.debug("room setting", roomId, roomSetting);
-  const danmu = roomSetting?.danmu !== undefined ? roomSetting.danmu : appConfig.webhook.danmu;
-  const mergePart = roomSetting?.autoPartMerge ?? appConfig.webhook.autoPartMerge;
-  const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
-  const uploadPresetId =
-    roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
-  const title = roomSetting?.title || appConfig.webhook.title || "";
-  const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
-  const videoPresetId = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
-  const uid = roomSetting?.uid || appConfig.webhook.uid;
-  const partMergeMinute = roomSetting?.partMergeMinute || appConfig.webhook.partMergeMinute || 10;
-  const hotProgress = roomSetting?.hotProgress ?? appConfig.webhook.hotProgress;
-  const useLiveCover = roomSetting?.useLiveCover ?? appConfig.webhook.useLiveCover;
 
+  // const danmu = roomSetting?.danmu !== undefined ? roomSetting.danmu : appConfig.webhook.danmu;
+  // const mergePart = roomSetting?.autoPartMerge ?? appConfig.webhook.autoPartMerge;
+  // const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
+  // const uploadPresetId =
+  //   roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
+  // const title = roomSetting?.title || appConfig.webhook.title || "";
+  // const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
+  // const videoPresetId = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
+  // const uid = roomSetting?.uid || appConfig.webhook.uid;
+  // const partMergeMinute = roomSetting?.partMergeMinute || appConfig.webhook.partMergeMinute || 10;
+  // const hotProgress = roomSetting?.hotProgress ?? appConfig.webhook.hotProgress;
+  // const useLiveCover = roomSetting?.useLiveCover ?? appConfig.webhook.useLiveCover;
+
+  const danmu = getRoomSetting("danmu");
+  const mergePart = getRoomSetting("autoPartMerge");
+  const minSize = getRoomSetting("minSize") ?? 10;
+  const uploadPresetId = getRoomSetting("uploadPresetId") || "default";
+  const title = getRoomSetting("title") || "";
+  const danmuPresetId = getRoomSetting("danmuPreset") || "default";
+  const videoPresetId = getRoomSetting("ffmpegPreset") || "default";
+  const uid = getRoomSetting("uid");
+  const partMergeMinute = getRoomSetting("partMergeMinute") ?? 10;
+  const hotProgress = getRoomSetting("hotProgress");
+  const useLiveCover = getRoomSetting("useLiveCover");
+
+  /**
+   * 获取房间配置项
+   */
+  function getRoomSetting<K extends keyof CommonRoomConfig>(key: K) {
+    if (roomSetting) {
+      if (roomSetting.noGlobal?.includes(key)) return roomSetting[key];
+
+      return appConfig.webhook[key];
+    } else {
+      return appConfig.webhook[key];
+    }
+  }
+
+  /**
+   * 判断房间是否开启
+   */
   function canHandle() {
     if (roomSetting) {
       // 如果配置了房间，那么以房间设置为准
@@ -172,6 +202,21 @@ function getConfig(roomId: number): {
   }
 
   const open = canHandle();
+
+  console.log("return room setting", {
+    danmu,
+    mergePart,
+    minSize,
+    uploadPresetId,
+    title,
+    danmuPresetId,
+    videoPresetId,
+    open,
+    uid,
+    partMergeMinute,
+    hotProgress,
+    useLiveCover,
+  });
 
   return {
     danmu,

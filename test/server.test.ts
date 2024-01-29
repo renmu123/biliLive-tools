@@ -2,7 +2,6 @@ import { expect, describe, it } from "vitest";
 import { uuid } from "../src/utils/index";
 
 import { type Options, type Part, type Live } from "../src/main/server/index";
-import { expect, describe, it } from "vitest";
 
 export async function handleLiveData(liveData: Live[], options: Options) {
   // 计算live
@@ -502,5 +501,104 @@ describe("canHandle", () => {
     const roomId = 123;
     const result = canHandle(roomSetting, appConfig, roomId);
     expect(result).toBe(false);
+  });
+});
+
+describe("getRoomSetting", () => {
+  /**
+   * 获取房间配置项
+   */
+  function getRoomSetting(key: string, roomSetting: any, appConfig?: any) {
+    if (roomSetting) {
+      if (roomSetting.noGlobal?.includes(key)) return roomSetting[key];
+
+      return appConfig?.webhook[key];
+    } else {
+      return appConfig?.webhook[key];
+    }
+  }
+
+  it("should return the value from roomSetting if it exists and noGlobal does not include the key", () => {
+    const roomSetting = {
+      noGlobal: ["key2"],
+      key1: "value1",
+      key2: "value2",
+    };
+    const key = "key1";
+
+    const result = getRoomSetting(key, roomSetting);
+
+    expect(result).toBe(undefined);
+  });
+
+  it("should return the value from appConfig.webhook if roomSetting does not exist", () => {
+    const appConfig = {
+      webhook: {
+        key1: "value1",
+        key2: "value2",
+      },
+    };
+    const key = "key1";
+
+    const result = getRoomSetting(key, undefined, appConfig);
+
+    expect(result).toBe(appConfig.webhook[key]);
+  });
+
+  it("should return the value from appConfig.webhook if roomSetting exists but noGlobal includes the key", () => {
+    const roomSetting = {
+      noGlobal: ["key2"],
+      key1: "value1",
+      key2: "value2",
+    };
+    const appConfig = {
+      webhook: {
+        key1: "value3",
+        key2: "value4",
+      },
+    };
+    const key = "key2";
+
+    const result = getRoomSetting(key, roomSetting, appConfig);
+
+    expect(result).toBe(roomSetting[key]);
+  });
+
+  it("should return the value from appConfig.webhook if roomSetting exists but noGlobal not includes the key", () => {
+    const roomSetting = {
+      noGlobal: [],
+      key1: "value1",
+      key2: "value2",
+    };
+    const appConfig = {
+      webhook: {
+        key1: "value3",
+        key2: "value4",
+      },
+    };
+    const key = "key2";
+
+    const result = getRoomSetting(key, roomSetting, appConfig);
+
+    expect(result).toBe(appConfig.webhook[key]);
+  });
+
+  it("should return the value from appConfig.webhook if roomSetting exists but noGlobal not includes the key", () => {
+    const roomSetting = {
+      noGlobal: undefined,
+      key1: "value1",
+      key2: "value2",
+    };
+    const appConfig = {
+      webhook: {
+        key1: "value3",
+        key2: "value4",
+      },
+    };
+    const key = "key2";
+
+    const result = getRoomSetting(key, roomSetting, appConfig);
+
+    expect(result).toBe(appConfig.webhook[key]);
   });
 });

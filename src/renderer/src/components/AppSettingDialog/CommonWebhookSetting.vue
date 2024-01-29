@@ -1,7 +1,15 @@
 <template>
   <n-form-item label="上传账号">
-    <n-select v-model:value="data.uid" :options="userOptins" placeholder="请选择账号" />
-    <!-- <n-checkbox v-if="isRoom" v-model:checked="data.aa" class="global-checkbox">全局</n-checkbox> -->
+    <n-select
+      v-model:value="data.uid"
+      :options="userOptins"
+      placeholder="请选择账号"
+      :disabled="globalFieldsObj.uid"
+      style="margin-right: 10px"
+    />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.uid" class="global-checkbox"
+      >全局</n-checkbox
+    >
   </n-form-item>
   <n-form-item>
     <template #label>
@@ -10,8 +18,16 @@
         <Tip tip="小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播"></Tip>
       </span>
     </template>
-    <n-input-number v-model:value="data.minSize" placeholder="单位MB" min="0">
+    <n-input-number
+      v-model:value="data.minSize"
+      placeholder="单位MB"
+      min="0"
+      :disabled="globalFieldsObj.minSize"
+    >
       <template #suffix> M </template></n-input-number
+    >
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.minSize" class="global-checkbox"
+      >全局</n-checkbox
     >
   </n-form-item>
   <n-form-item>
@@ -25,7 +41,12 @@
       v-model:value="data.title"
       placeholder="请输入视频标题,支持{{title}},{{user}},{{now}}等占位符"
       clearable
+      :disabled="globalFieldsObj.title"
+      style="margin-right: 10px"
     />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.title" class="global-checkbox"
+      >全局</n-checkbox
+    >
   </n-form-item>
   <n-form-item>
     <template #label>
@@ -34,7 +55,13 @@
         <Tip tip="开启后，会将某主播一场直播上传到同一个视频中"></Tip>
       </span>
     </template>
-    <n-switch v-model:value="data.autoPartMerge" />
+    <n-switch v-model:value="data.autoPartMerge" :disabled="globalFieldsObj.autoPartMerge" />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.autoPartMerge"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
   </n-form-item>
   <n-form-item v-if="data.autoPartMerge">
     <template #label>
@@ -43,8 +70,19 @@
         <Tip tip="监测直播是否为同一场的时间间隔"></Tip>
       </span>
     </template>
-    <n-input-number v-model:value="data.partMergeMinute" placeholder="请输入分钟" min="0.1">
+    <n-input-number
+      v-model:value="data.partMergeMinute"
+      placeholder="请输入分钟"
+      min="0.1"
+      :disabled="globalFieldsObj.partMergeMinute"
+    >
       <template #suffix> 分钟 </template></n-input-number
+    >
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.partMergeMinute"
+      class="global-checkbox"
+      >全局</n-checkbox
     >
   </n-form-item>
   <n-form-item label="上传预设">
@@ -52,7 +90,15 @@
       v-model:value="data.uploadPresetId"
       :options="props.biliupPresetsOptions"
       placeholder="请选择"
+      :disabled="globalFieldsObj.uploadPresetId"
+      style="margin-right: 10px"
     />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.uploadPresetId"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
   </n-form-item>
   <n-form-item>
     <template #label>
@@ -61,18 +107,30 @@
         <Tip tip="使用直播封面作为视频封面，如果你在录制软件设置了保存的话"></Tip>
       </span>
     </template>
-    <n-switch v-model:value="data.useLiveCover" />
+    <n-switch v-model:value="data.useLiveCover" :disabled="globalFieldsObj.useLiveCover" />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.useLiveCover" class="global-checkbox"
+      >全局</n-checkbox
+    >
   </n-form-item>
 
   <n-form-item label="弹幕压制后上传">
-    <n-switch v-model:value="data.danmu" />
+    <n-switch v-model:value="data.danmu" :disabled="globalFieldsObj.danmu" />
+
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.danmu" class="global-checkbox"
+      >全局</n-checkbox
+    >
   </n-form-item>
   <n-form-item v-if="data.danmu" label="弹幕转化预设">
     <n-select
       v-model:value="data.danmuPreset"
       :options="danmuPresetsOptions"
       placeholder="选择预设"
+      :disabled="globalFieldsObj.danmuPreset"
+      style="margin-right: 10px"
     />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.danmuPreset" class="global-checkbox"
+      >全局</n-checkbox
+    >
   </n-form-item>
   <n-form-item v-if="data.danmu" label="视频压制预设">
     <n-cascader
@@ -83,10 +141,18 @@
       check-strategy="child"
       :show-path="false"
       :filterable="true"
+      :disabled="globalFieldsObj.ffmpegPreset"
+      style="margin-right: 10px"
     />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.ffmpegPreset" class="global-checkbox"
+      >全局</n-checkbox
+    >
   </n-form-item>
   <n-form-item v-if="data.danmu" label="高能进度条">
-    <n-switch v-model:value="data.hotProgress" />
+    <n-switch v-model:value="data.hotProgress" :disabled="globalFieldsObj.hotProgress" />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.hotProgress" class="global-checkbox"
+      >全局</n-checkbox
+    >
   </n-form-item>
 </template>
 
@@ -105,9 +171,19 @@ const props = defineProps<{
   biliupPresetsOptions: Options;
   ffmpegOptions: Options;
   type: "room" | "global";
+  globalValue: {
+    [key: string]: any;
+  };
 }>();
 
 const data = defineModel<AppRoomConfig>("data", {
+  default: () => {},
+});
+
+const globalFieldsObj = defineModel<{
+  [key: string]: boolean;
+}>("globalFieldsObj", {
+  type: Object,
   default: () => {},
 });
 
@@ -130,12 +206,28 @@ const titleTip = ref(
   日（补零）：{{dd}}<br/>`,
 );
 
-// const isRoom = computed(() => props.type === "room");
+const isRoom = computed(() => props.type === "room");
+
+watch(
+  () => globalFieldsObj.value,
+  () => {
+    for (const key in globalFieldsObj.value) {
+      const value = globalFieldsObj.value[key];
+      if (value) {
+        data.value[key] = props.globalValue[key];
+      }
+    }
+  },
+  {
+    deep: true,
+  },
+);
 </script>
 
 <style scoped lang="less">
 .global-checkbox {
   flex: none;
-  margin-left: 20px;
+  margin-left: auto;
+  // margin-left: 20px;
 }
 </style>
