@@ -1,9 +1,12 @@
 # biliLive-tools
 
 这是一个用于 B 站录播的一站式工具，支持弹幕与视频压制并上传至B站，支持录播姬与blrec的webhook。  
-做这款工具的主要原因是为了解决录播工具的碎片化，往往想完整处理一场带有弹幕的录播要使用多个软件的配合，一些工具只有CLI，加大了使用难度。  
-[更新历史](https://github.com/renmu123/biliLive-tools/blob/master/CHANGELOG.md)  
-**希望使用webhook功能标注仓库地址或保留默认tag**
+如果你是录播man正在寻找xml弹幕转换、弹幕压制、webhook上传工具，如果你是切片man正在寻找下载b站软件以及粗剪工具，如果你厌倦了b站的多p上传，你可以来试试本软件。  
+做这款工具的初衷是为了解决录播工具的碎片化，往往想完整处理一场带有弹幕的录播要使用多个软件的配合，一些工具只有CLI，加大了使用难度。
+
+**如果你使用了本软件，希望你在简介标注仓库地址或保留默认tag，本软件不存在任何数据追踪，我想大致知道使用使用人群及情况**
+
+[更新历史](https://github.com/renmu123/biliLive-tools/blob/master/CHANGELOG.md)
 
 1. 支持 Danmufactory GUI
 2. 支持 ffmpeg 转封装
@@ -13,13 +16,11 @@
 
 # 下载
 
-目前有两个 Win 版本的包。两个包处理有没有打包 `ffmpeg` 和 `ffprobe` 之外没有任何代码上的区别，如果你不需要转封装功能，可以尝试下载体积较小的包，我不是特别推荐。
+目前有两个 Win 版本的包。两个包除了是否打包 `ffmpeg` 和 `ffprobe` 之外没有任何代码上的区别，如果你有自己编译的ffmpeg或者不需要用到相应的ffmpeg功能。  
 如果你是普通用户，那就选择体积大的那个包，如果你是资深用户，那么请自行选择，因使用自定义 `ffmpeg` 出问题的 issue 是不会被处理的。
-下载地址：https://github.com/renmu123/biliLive-tools/releases
-备用：https://www.alipan.com/s/iRyhxjdqGeL
 
-1. 自带 `ffmpeg` 版本的包
-2. 在设置中自定义`ffmpeg`以及`ffprobe`文件路径，减小安装包体积。
+下载地址：https://github.com/renmu123/biliLive-tools/releases  
+备用：https://www.alipan.com/s/iRyhxjdqGeL
 
 # TODO
 
@@ -46,10 +47,10 @@
 
 ## 断播续传
 
-这个功能主要用于解决：由于主播的自身或录制端的网络原因导致录播片段被切割成多个。
+这个功能主要用于解决：由于主播的自身或录制端的网络原因导致录播片段被切割成多个。  
 开启后，会将主播的一场直播上传到同一个视频中  
-一场直播的定义：同一个主播，本次文件创建时间与上一个文件结束写入时间如果相差10分钟，那么会被定义为一场直播，不会使用webhook中比如录播姬的session定义。
-如果在主播录制后，或反复切换开关，可能会有奇怪的错误。
+一场直播的定义：同一个主播，本次文件创建时间与上一个文件结束写入时间如果相差10分钟，那么会被定义为一场直播，不会使用webhook中比如录播姬的session定义。  
+如果在主播录制后，或反复切换开关，可能会有奇怪的错误。  
 如果出现bug，将设置中的日志等级调整为`debug`后复现然后进行反馈。
 
 # 赞赏
@@ -58,8 +59,8 @@
 
 # 开发
 
-node需要18及以上版本
-下载项目后需要新建一个`resources\bin`文件夹，里面需要三个文件。
+node需要18及以上版本  
+下载项目后需要新建一个`resources\bin`文件夹，里面需要三个文件。  
 同时需要在应用中设置 ffmpeg 以及 ffprobe 可执行文件地址。
 
 1. `DanmukuFactory.exe` [1.7.0版本](https://github.com/hihkm/DanmakuFactory/releases/tag/v1.70)
