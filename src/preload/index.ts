@@ -250,6 +250,9 @@ export const api = {
     getSeasonList(uid: number) {
       return ipcRenderer.invoke("biliApi:getSeasonList", uid);
     },
+    getArchiveDetail(bvid: string, uid?: number): Promise<ReturnType<BiliApi["getArchiveDetail"]>> {
+      return ipcRenderer.invoke("biliApi:getArchiveDetail", bvid, uid);
+    },
   },
   ffmpeg: {
     // 预设

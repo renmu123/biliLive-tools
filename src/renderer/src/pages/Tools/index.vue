@@ -3,6 +3,9 @@
     <n-tab-pane name="fileUpload" tab="上传" display-directive="show:lazy">
       <FileUpload></FileUpload>
     </n-tab-pane>
+    <n-tab-pane name="chap4" tab="下载" display-directive="show:lazy">
+      <VideoDownload></VideoDownload>
+    </n-tab-pane>
     <n-tab-pane name="chap2" tab="弹幕转换" display-directive="show:lazy">
       <DanmuFactoryVue></DanmuFactoryVue>
     </n-tab-pane>
@@ -23,6 +26,7 @@ import File2Mp4 from "./components/File2Mp4.vue";
 import DanmuFactoryVue from "./components/DanmuFactory.vue";
 import FileUpload from "./components/FileUpload.vue";
 import VideoMerge from "./components/VideoMerge.vue";
+import VideoDownload from "./components/VideoDownload.vue";
 </script>
 
 <style scoped></style>

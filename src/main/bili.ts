@@ -55,6 +55,21 @@ function login() {
   return tv.login();
 }
 
+async function getArchiveDetail(
+  bvid: string,
+  uid?: number,
+): ReturnType<ClientInstance["video"]["detail"]> {
+  if (uid) await loadCookie(uid);
+  console.log(bvid, uid);
+
+  return client.video.detail({ bvid });
+}
+
+async function download(options: { bvid: string; cid: number; output: string }) {
+  const ffmpegBinPath = appConfig.get("ffmpegPath");
+  const downloader = await client.video.download({ ...options, ffmpegBinPath }, {});
+}
+
 interface MediaOptions {
   /** 封面，如果不是http:，会尝试上传 */
   cover?: string;
@@ -264,6 +279,7 @@ export const biliApi = {
   addMedia,
   editMedia,
   getSeasonList,
+  getArchiveDetail,
 };
 
 export const invokeWrap = <T extends (...args: any[]) => any>(fn: T) => {
@@ -329,6 +345,13 @@ export const handlers = {
     uid: number,
   ): ReturnType<typeof biliApi.getSeasonList> => {
     return getSeasonList(uid);
+  },
+  "biliApi:getArchiveDetail": (
+    _event: IpcMainInvokeEvent,
+    bvid: string,
+    uid?: number,
+  ): ReturnType<typeof biliApi.getArchiveDetail> => {
+    return getArchiveDetail(bvid, uid);
   },
 };
 
