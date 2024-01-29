@@ -1,4 +1,5 @@
 <template>
+  <h2>上传配置</h2>
   <n-form-item label="上传账号">
     <n-select
       v-model:value="data.uid"
@@ -113,6 +114,7 @@
     >
   </n-form-item>
 
+  <h2>弹幕配置</h2>
   <n-form-item label="弹幕压制后上传">
     <n-switch v-model:value="data.danmu" :disabled="globalFieldsObj.danmu" />
 

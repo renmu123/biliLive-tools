@@ -111,24 +111,20 @@
               :global-fields-obj="{}"
               type="global"
             ></CommonSetting>
-            <n-form-item>
-              <template #label>
-                <span class="inline-flex">
-                  独立配置
-                  <Tip tip="单独设置房间号的上传配置，会覆盖全局配置"></Tip>
-                </span>
-              </template>
-              <div class="room-list">
-                <span
-                  v-for="room in roomList"
-                  :key="room.id"
-                  class="room"
-                  @click="handleRoomDetail(room.id)"
-                  >{{ room.id }}<span v-if="room.remark">({{ room.remark }})</span></span
-                >
-              </div>
+
+            <h2>独立配置<Tip tip="单独设置房间号的上传配置，会覆盖全局配置"></Tip></h2>
+            <!-- <div class="flex" style="align-items: center"> -->
+            <div class="room-list">
+              <span
+                v-for="room in roomList"
+                :key="room.id"
+                class="room"
+                @click="handleRoomDetail(room.id)"
+                >{{ room.id }}<span v-if="room.remark">({{ room.remark }})</span></span
+              >
               <n-button type="primary" @click="addRoom"> 添加 </n-button>
-            </n-form-item>
+            </div>
+            <!-- </div> -->
           </n-form>
         </n-tab-pane>
       </n-tabs>
@@ -406,14 +402,15 @@ const addRoom = () => {
   }
 }
 .room-list {
+  gap: 15px;
+  flex-wrap: wrap;
+  display: flex;
+  align-items: center;
   .room {
     padding: 8px 14px;
     cursor: pointer;
     border: 1px solid #eee;
     border-radius: 4px;
-  }
-  .room {
-    margin-right: 15px;
   }
 }
 </style>
