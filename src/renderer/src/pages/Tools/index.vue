@@ -1,5 +1,5 @@
 <template>
-  <n-tabs type="segment" style="padding-right: 10px">
+  <n-tabs type="segment">
     <n-tab-pane name="fileUpload" tab="上传" display-directive="show:lazy">
       <FileUpload></FileUpload>
     </n-tab-pane>

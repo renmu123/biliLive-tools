@@ -189,7 +189,11 @@ window.addEventListener("unhandledrejection", (error) => {
 @import "./assets/css/styles.less";
 
 .main-container {
-  margin: 20px;
-  // margin-right: 0px;
+  margin: 15px;
+  margin-right: 0px;
+
+  & > .n-layout-scroll-container {
+    padding-right: 10px;
+  }
 }
 </style>

@@ -14,69 +14,67 @@
       desc="请选择视频以及弹幕文件，如果为xml将自动转换为ass"
       :max="2"
     ></FileArea>
-    <n-scrollbar style="max-height: calc(100vh - 350px)">
-      <n-tabs type="segment" style="margin-top: 10px" class="tabs">
-        <n-tab-pane name="common-setting" tab="基础设置" display-directive="show:lazy">
-          <div class="flex column">
-            <div></div>
-            <div style="margin-top: 10px">
-              <!-- <n-radio-group v-model:value="options.override">
+    <n-tabs type="segment" style="margin-top: 10px" class="tabs">
+      <n-tab-pane name="common-setting" tab="基础设置" display-directive="show:lazy">
+        <div class="flex column">
+          <div></div>
+          <div style="margin-top: 10px">
+            <!-- <n-radio-group v-model:value="options.override">
                 <n-space>
                   <n-radio :value="true"> 覆盖文件 </n-radio>
                   <n-radio :value="false"> 跳过存在文件 </n-radio>
                 </n-space>
               </n-radio-group> -->
-              <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
+            <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
 
-              <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
-                完成后打开文件夹
-              </n-checkbox>
-              <n-checkbox v-model:checked="clientOptions.upload"> 完成后自动上传 </n-checkbox>
-              <n-checkbox v-model:checked="clientOptions.hotProgress">高能进度条</n-checkbox>
-            </div>
+            <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
+              完成后打开文件夹
+            </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.upload"> 完成后自动上传 </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.hotProgress">高能进度条</n-checkbox>
           </div>
-        </n-tab-pane>
-        <n-tab-pane name="upload-setting" tab="上传设置" display-directive="show">
-          <BiliSetting @change="handlePresetOptions"></BiliSetting>
-        </n-tab-pane>
-        <n-tab-pane name="danmukufactory-setting" tab="弹幕设置" display-directive="show">
-          <div class="flex" style="gap: 10px; align-items: center">
-            <span style="flex: none">预设</span>
-            <n-select
-              v-model:value="danmuPresetId"
-              :options="danmuPresetsOptions"
-              placeholder="选择预设"
-            />
-          </div>
+        </div>
+      </n-tab-pane>
+      <n-tab-pane name="upload-setting" tab="上传设置" display-directive="show">
+        <BiliSetting @change="handlePresetOptions"></BiliSetting>
+      </n-tab-pane>
+      <n-tab-pane name="danmukufactory-setting" tab="弹幕设置" display-directive="show">
+        <div class="flex" style="gap: 10px; align-items: center">
+          <span style="flex: none">预设</span>
+          <n-select
+            v-model:value="danmuPresetId"
+            :options="danmuPresetsOptions"
+            placeholder="选择预设"
+          />
+        </div>
 
-          <DanmuFactorySetting
-            v-if="danmuPreset.id"
-            v-model="danmuPreset.config"
-            :simpled-mode="simpledMode"
-            @change="handleDanmuChange"
-          ></DanmuFactorySetting>
-          <div
-            class="footer flex"
-            style="text-align: right; gap: 10px; justify-content: flex-end; align-items: center"
+        <DanmuFactorySetting
+          v-if="danmuPreset.id"
+          v-model="danmuPreset.config"
+          :simpled-mode="simpledMode"
+          @change="handleDanmuChange"
+        ></DanmuFactorySetting>
+        <div
+          class="footer flex"
+          style="text-align: right; gap: 10px; justify-content: flex-end; align-items: center"
+        >
+          <n-checkbox v-model:checked="simpledMode"> 简易模式 </n-checkbox>
+          <n-button
+            v-if="danmuPresetId !== 'default'"
+            ghost
+            quaternary
+            type="error"
+            @click="deleteDanmu"
+            >删除</n-button
           >
-            <n-checkbox v-model:checked="simpledMode"> 简易模式 </n-checkbox>
-            <n-button
-              v-if="danmuPresetId !== 'default'"
-              ghost
-              quaternary
-              type="error"
-              @click="deleteDanmu"
-              >删除</n-button
-            >
-            <n-button type="primary" @click="renameDanmu">重命名</n-button>
-            <n-button type="primary" @click="saveAsDanmu">另存为</n-button>
-          </div>
-        </n-tab-pane>
-        <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
-          <ffmpegSetting @change="handleFfmpegSettingChange"></ffmpegSetting>
-        </n-tab-pane>
-      </n-tabs>
-    </n-scrollbar>
+          <n-button type="primary" @click="renameDanmu">重命名</n-button>
+          <n-button type="primary" @click="saveAsDanmu">另存为</n-button>
+        </div>
+      </n-tab-pane>
+      <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
+        <ffmpegSetting @change="handleFfmpegSettingChange"></ffmpegSetting>
+      </n-tab-pane>
+    </n-tabs>
 
     <n-modal v-model:show="nameModelVisible">
       <n-card style="width: 600px" :bordered="false" role="dialog" aria-modal="true">
