@@ -69,7 +69,7 @@
                 <span class="inline-flex">
                   开启server
                   <Tip
-                    :tip="`开启后支持自动上传，需重启应用<br/>录播姬的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/webhook<br/>blrec的webhook地址设置为:http://127.0.0.1:${config.webhook.port}/blrec`"
+                    :tip="`开启后支持自动上传，需重启应用<br/>你可以在浏览器访问 http://127.0.0.1:${config.webhook.port} 查询是否启动成功<br/>录播姬的webhook地址设置为：http://127.0.0.1:${config.webhook.port}/webhook<br/>blrec的webhook地址设置为：http://127.0.0.1:${config.webhook.port}/blrec`"
                   ></Tip>
                 </span>
               </template>
@@ -181,11 +181,26 @@ const logLevelOptions = ref<{ label: string; value: LogLevel }[]>([
 
 const confirm = useConfirm();
 const saveConfig = async () => {
+  if (
+    initConfig.value.webhook.recoderFolder &&
+    initConfig.value.webhook.recoderFolder !== config.value.webhook.recoderFolder
+  ) {
+    const isExits = await window.api.exits(
+      window.path.join(config.value.webhook.recoderFolder, "config.json"),
+    );
+    if (!isExits) {
+      const status = await confirm.warning({
+        content: "录播姬目录下应该有一个名为config.json的文件，请确认选择的目录是否正确？",
+      });
+      if (!status) return;
+    }
+  }
+
   await window.api.config.save(toRaw(config.value));
   // 如果检测到server从关闭更改为开启状态，提醒重启
   if (initConfig.value.webhook.open === false && config.value.webhook.open === true) {
     const status = await confirm.warning({
-      content: "检测到开启了server，是否进行重启？或稍后自行重启",
+      content: "检测到开启了server，是否进行重启应用？或稍后自行重启",
     });
     if (status) {
       window.api.common.relaunch();

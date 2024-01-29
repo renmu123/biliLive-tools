@@ -60,7 +60,7 @@ const liveData: Live[] = [];
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", function (_req, res) {
-  res.send("Hello World");
+  res.send("webhook 服务器已启动");
 });
 
 app.post("/webhook", async function (req, res) {
