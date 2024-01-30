@@ -30,6 +30,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     partMergeMinute: 10,
     hotProgress: false,
     useLiveCover: false,
+    hotProgressSample: 30,
+    hotProgressHeight: 60,
+    hotProgressColor: "#f9f5f3",
+    hotProgressFillColor: "#333333",
   },
   ffmpegPath: path.join(
     path.dirname(app.getPath("exe")),

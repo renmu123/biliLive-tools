@@ -68,6 +68,14 @@ type CommonRoomConfig = {
   hotProgress: boolean;
   /** 使用直播封面 */
   useLiveCover: boolean;
+  /** 高能进度条：采样间隔 */
+  hotProgressSample?: number;
+  /** 高能进度条：高度 */
+  hotProgressHeight?: number;
+  /** 高能进度条：默认颜色 */
+  hotProgressColor?: string;
+  /** 高能进度条：覆盖颜色 */
+  hotProgressFillColor?: string;
 };
 
 // 应用配置文件

@@ -141,6 +141,14 @@ function getConfig(roomId: number): {
   hotProgress: boolean;
   /* 使用直播封面 */
   useLiveCover: boolean;
+  /** 高能进度条：采样间隔 */
+  hotProgressSample?: number;
+  /** 高能进度条：高度 */
+  hotProgressHeight?: number;
+  /** 高能进度条：默认颜色 */
+  hotProgressColor?: string;
+  /** 高能进度条：覆盖颜色 */
+  hotProgressFillColor?: string;
 } {
   const appConfig = getAppConfig();
   const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[roomId];
@@ -170,6 +178,10 @@ function getConfig(roomId: number): {
   const partMergeMinute = getRoomSetting("partMergeMinute") ?? 10;
   const hotProgress = getRoomSetting("hotProgress");
   const useLiveCover = getRoomSetting("useLiveCover");
+  const hotProgressSample = getRoomSetting("hotProgressSample");
+  const hotProgressHeight = getRoomSetting("hotProgressHeight");
+  const hotProgressColor = getRoomSetting("hotProgressColor");
+  const hotProgressFillColor = getRoomSetting("hotProgressFillColor");
 
   /**
    * 获取房间配置项
@@ -216,6 +228,9 @@ function getConfig(roomId: number): {
     partMergeMinute,
     hotProgress,
     useLiveCover,
+    hotProgressSample,
+    hotProgressHeight,
+    hotProgressColor,
   });
 
   return {
@@ -231,6 +246,10 @@ function getConfig(roomId: number): {
     partMergeMinute,
     hotProgress,
     useLiveCover,
+    hotProgressSample,
+    hotProgressHeight,
+    hotProgressColor,
+    hotProgressFillColor,
   };
 }
 
@@ -405,6 +424,10 @@ async function handle(options: Options) {
     partMergeMinute,
     hotProgress,
     useLiveCover,
+    hotProgressSample,
+    hotProgressHeight,
+    hotProgressColor,
+    hotProgressFillColor,
   } = getConfig(options.roomId);
 
   if (!open) {
@@ -478,7 +501,12 @@ async function handle(options: Options) {
     let hotProgressFile: string | undefined;
     if (hotProgress) {
       // 生成高能进度条文件
-      hotProgressFile = await genHotProgressTask(xmlFilePath, options.filePath);
+      hotProgressFile = await genHotProgressTask(xmlFilePath, options.filePath, {
+        internal: hotProgressSample || 30,
+        color: hotProgressColor || "#f9f5f3",
+        fillColor: hotProgressFillColor || "#333333",
+        height: hotProgressHeight || 60,
+      });
     }
 
     const danmuConfig = (await readDanmuPreset(undefined, danmuPresetId)).config;
@@ -512,7 +540,16 @@ const sleep = (ms: number) => {
 };
 
 // 生成高能进度条
-const genHotProgressTask = async (xmlFile: string, videoFile: string): Promise<string> => {
+const genHotProgressTask = async (
+  xmlFile: string,
+  videoFile: string,
+  options: {
+    internal: number;
+    color: string;
+    fillColor: string;
+    height: number;
+  },
+): Promise<string> => {
   const videoMeta = await readVideoMeta(videoFile);
   const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
   const { width } = videoStream || {};
@@ -522,6 +559,7 @@ const genHotProgressTask = async (xmlFile: string, videoFile: string): Promise<s
     genHotProgress(mainWin.webContents, xmlFile, output, {
       width: width,
       duration: videoMeta.format.duration!,
+      ...options,
     }).then((task) => {
       const currentTaskId = task.taskId;
       taskQueue.on("task-end", ({ taskId }) => {

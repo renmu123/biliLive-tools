@@ -299,6 +299,10 @@ const webhookDefaultValue = computed(() => {
     partMergeMinute: config.value.webhook.partMergeMinute,
     hotProgress: config.value.webhook.hotProgress,
     useLiveCover: config.value.webhook.useLiveCover,
+    hotProgressSample: config.value.webhook.hotProgressSample,
+    hotProgressHeight: config.value.webhook.hotProgressHeight,
+    hotProgressColor: config.value.webhook.hotProgressColor,
+    hotProgressFillColor: config.value.webhook.hotProgressFillColor,
   };
 });
 
@@ -351,6 +355,10 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   partMergeMinute: 10,
   hotProgress: false,
   useLiveCover: false,
+  hotProgressSample: 30,
+  hotProgressHeight: 60,
+  hotProgressColor: "#f9f5f3",
+  hotProgressFillColor: "#333333",
 });
 const saveRoomDetail = ({ id }: AppRoomConfig & { id?: string }) => {
   config.value.webhook.rooms[id!] = tempRoomDetail.value;
