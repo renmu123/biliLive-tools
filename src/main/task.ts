@@ -232,6 +232,9 @@ export class FFmpegTask extends AbstractTask {
 
 type WithoutPromise<T> = T extends Promise<infer U> ? U : T;
 
+/**
+ * 上传任务
+ */
 export class BiliVideoTask extends AbstractTask {
   command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>;
   webContents: WebContents;
@@ -318,6 +321,104 @@ export class BiliVideoTask extends AbstractTask {
     if (this.status === "completed" || this.status === "error") return;
     log.warn(`task ${this.taskId} interrupt`);
     this.status = "error";
+    return true;
+  }
+  kill() {
+    if (this.status === "completed" || this.status === "error") return;
+    log.warn(`task ${this.taskId} killed`);
+    this.status = "error";
+    this.command.cancel();
+    return true;
+  }
+}
+
+/**
+ * 下载任务
+ */
+export class BiliDownloadVideoTask extends AbstractTask {
+  command: WithoutPromise<ReturnType<Client["video"]["download"]>>;
+  webContents: WebContents;
+  type = TaskType.biliDownload;
+  constructor(
+    command: WithoutPromise<ReturnType<Client["video"]["download"]>>,
+    webContents: WebContents,
+    options: {
+      name: string;
+    },
+    callback: {
+      onStart?: () => void;
+      onEnd?: (output: { aid: number; bvid: string }) => void;
+      onError?: (err: string) => void;
+      onProgress?: (progress: number) => any;
+    },
+  ) {
+    super();
+    this.command = command;
+    this.webContents = webContents;
+    this.progress = 0;
+    this.action = ["kill", "pause"];
+
+    if (options.name) {
+      this.name = options.name;
+    }
+
+    // command.emitter.on("start", (commandLine: string) => {
+    //   this.progress = 0;
+    //   log.info(`task ${this.taskId} start, command: ${commandLine}`);
+    //   this.status = "running";
+
+    //   callback.onStart && callback.onStart();
+    //   emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+    //   this.startTime = Date.now();
+    // });
+    this.status = "running";
+    this.startTime = Date.now();
+    emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+
+    command.emitter.on("completed", async (data) => {
+      log.info(`task ${this.taskId} end`);
+      this.status = "completed";
+      this.progress = 100;
+      this.output = data;
+      callback.onEnd && callback.onEnd(data);
+      emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
+      this.endTime = Date.now();
+    });
+    command.emitter.on("error", (err) => {
+      log.error(`task ${this.taskId} error: ${err}`);
+      this.status = "error";
+
+      callback.onError && callback.onError(err);
+      emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
+    });
+    command.emitter.on("progress", (event: any) => {
+      console.debug("progress", event);
+      if (event.event === "download") {
+        const progress = event.progress.progress * 100;
+        this.progress = progress;
+        // progress.percentage = progress.progress * 100;
+        // progress.progress = progress.percentage;
+
+        callback.onProgress && callback.onProgress(progress);
+        emitter.emit("task-progress", { taskId: this.taskId, webContents: this.webContents });
+      }
+    });
+  }
+  exec() {
+    // this.command.run();
+  }
+  pause() {
+    if (this.status !== "running") return;
+    this.command.pause();
+    log.warn(`task ${this.taskId} paused`);
+    this.status = "paused";
+    return true;
+  }
+  resume() {
+    if (this.status !== "paused") return;
+    this.command.start();
+    log.warn(`task ${this.taskId} resumed`);
+    this.status = "running";
     return true;
   }
   kill() {

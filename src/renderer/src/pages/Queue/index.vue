@@ -43,8 +43,8 @@
             >
             <n-button
               v-if="
-                (item.action.includes('interrupt') && item.status === 'running') ||
-                item.status === 'paused'
+                item.action.includes('interrupt') &&
+                (item.status === 'running' || item.status === 'paused')
               "
               type="error"
               size="small"

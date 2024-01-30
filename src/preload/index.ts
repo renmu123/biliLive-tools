@@ -253,6 +253,9 @@ export const api = {
     getArchiveDetail(bvid: string, uid?: number): Promise<ReturnType<BiliApi["getArchiveDetail"]>> {
       return ipcRenderer.invoke("biliApi:getArchiveDetail", bvid, uid);
     },
+    download(options: { bvid: string; cid: number; output: string }, uid: number) {
+      return ipcRenderer.invoke("biliApi:download", options, uid);
+    },
   },
   ffmpeg: {
     // 预设
