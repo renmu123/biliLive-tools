@@ -32,6 +32,48 @@
             </n-checkbox>
             <n-checkbox v-model:checked="clientOptions.upload"> 完成后自动上传 </n-checkbox>
             <n-checkbox v-model:checked="clientOptions.hotProgress">高能进度条</n-checkbox>
+
+            <div
+              v-if="clientOptions.hotProgress"
+              style="display: flex; gap: 20px; align-items: center; margin-top: 20px"
+            >
+              <div>
+                采样间隔
+                <n-input-number
+                  v-model:value="clientOptions.hotProgressSample"
+                  placeholder="单位秒"
+                  min="1"
+                  style="width: 140px"
+                >
+                  <template #suffix> 秒 </template></n-input-number
+                >
+              </div>
+              <div>
+                高度
+                <n-input-number
+                  v-model:value="clientOptions.hotProgressHeight"
+                  placeholder="单位像素"
+                  min="10"
+                  style="width: 140px"
+                >
+                  <template #suffix> 像素 </template></n-input-number
+                >
+              </div>
+              <div>
+                <div>默认颜色</div>
+                <n-color-picker
+                  v-model:value="clientOptions.hotProgressColor"
+                  style="width: 140px"
+                />
+              </div>
+              <div>
+                <div>覆盖颜色</div>
+                <n-color-picker
+                  v-model:value="clientOptions.hotProgressFillColor"
+                  style="width: 140px"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </n-tab-pane>
@@ -143,6 +185,10 @@ const clientOptions = ref({
   openTargetDirectory: false, // 转换完成后打开目标文件夹
   upload: false, // 上传
   hotProgress: false, // 高能进度条
+  hotProgressSample: 30,
+  hotProgressHeight: 60,
+  hotProgressColor: "#f9f5f3",
+  hotProgressFillColor: "#333333",
 });
 
 const handleConvert = async () => {
@@ -258,6 +304,10 @@ const convert = async () => {
     hotProgressInput = await genHotProgress(inputDanmuFile.path, {
       width: videoWidth!,
       duration: duration!,
+      interval: clientOptions.value.hotProgressSample,
+      height: clientOptions.value.hotProgressHeight,
+      color: clientOptions.value.hotProgressColor,
+      fillColor: clientOptions.value.hotProgressFillColor,
     });
   }
 
@@ -285,11 +335,18 @@ const convert = async () => {
   }
 };
 
-// const hotProgressConvert = async () => {
-//   const input = toRaw(fileList.value)[0].path;
-//   const file = await genHotProgress(input, {});
-//   console.log("file", file);
-// };
+const hotProgressConvert = async () => {
+  const input = toRaw(fileList.value)[0].path;
+  const file = await genHotProgress(input, {
+    width: 1920,
+    duration: 60,
+    interval: clientOptions.value.hotProgressSample,
+    height: clientOptions.value.hotProgressHeight,
+    color: clientOptions.value.hotProgressColor,
+    fillColor: clientOptions.value.hotProgressFillColor,
+  });
+  console.log("file", file);
+};
 
 /**
  * 处理高能进度条
