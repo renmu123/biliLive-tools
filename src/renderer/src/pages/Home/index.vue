@@ -335,18 +335,18 @@ const convert = async () => {
   }
 };
 
-const hotProgressConvert = async () => {
-  const input = toRaw(fileList.value)[0].path;
-  const file = await genHotProgress(input, {
-    width: 1920,
-    duration: 60 * 60 * 2,
-    interval: clientOptions.value.hotProgressSample,
-    height: clientOptions.value.hotProgressHeight,
-    color: clientOptions.value.hotProgressColor,
-    fillColor: clientOptions.value.hotProgressFillColor,
-  });
-  console.log("file", file);
-};
+// const hotProgressConvert = async () => {
+//   const input = toRaw(fileList.value)[0].path;
+//   const file = await genHotProgress(input, {
+//     width: 1920,
+//     duration: 60 * 60 * 2,
+//     interval: clientOptions.value.hotProgressSample,
+//     height: clientOptions.value.hotProgressHeight,
+//     color: clientOptions.value.hotProgressColor,
+//     fillColor: clientOptions.value.hotProgressFillColor,
+//   });
+//   console.log("file", file);
+// };
 
 /**
  * 处理高能进度条
