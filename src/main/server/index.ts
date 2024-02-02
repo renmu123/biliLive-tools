@@ -588,8 +588,11 @@ const addDanmuTask = (
       .then((videoMeta) => {
         const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
         const { width, height } = videoStream || {};
-        danmuConfig.resolution[0] = width!;
-        danmuConfig.resolution[1] = height!;
+        if (danmuConfig.resolutionResponsive) {
+          danmuConfig.resolution[0] = width!;
+          danmuConfig.resolution[1] = height!;
+        }
+
         return convertXml2Ass(
           // @ts-ignore
           {
