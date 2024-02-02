@@ -3,7 +3,7 @@ import path from "node:path";
 import { Client, TvQrcodeLogin } from "@renmu/bili-api";
 import { format, writeUser, readUser } from "./biliup";
 import { appConfig } from "./config";
-import { BiliVideoTask, taskQueue } from "./task";
+import { BiliVideoTask, taskQueue, BiliDownloadVideoTask } from "./task";
 import log from "./utils/log";
 
 import type { IpcMainInvokeEvent, WebContents } from "electron";
@@ -65,9 +65,30 @@ async function getArchiveDetail(
   return client.video.detail({ bvid });
 }
 
-async function download(options: { bvid: string; cid: number; output: string }) {
+async function download(
+  webContents: WebContents,
+  options: { bvid: string; cid: number; output: string },
+  uid: number,
+) {
+  await loadCookie(uid);
   const ffmpegBinPath = appConfig.get("ffmpegPath");
-  const downloader = await client.video.download({ ...options, ffmpegBinPath }, {});
+  console.log(options, ffmpegBinPath);
+  const command = await client.video.download({ ...options, ffmpegBinPath }, {});
+
+  const task = new BiliDownloadVideoTask(
+    command,
+    webContents,
+    {
+      name: `下载任务：${path.parse(options.output).name}`,
+    },
+    {},
+  );
+
+  taskQueue.addTask(task, true);
+
+  return {
+    taskId: task.taskId,
+  };
 }
 
 interface MediaOptions {
@@ -352,6 +373,13 @@ export const handlers = {
     uid?: number,
   ): ReturnType<typeof biliApi.getArchiveDetail> => {
     return getArchiveDetail(bvid, uid);
+  },
+  "biliApi:download": (
+    event: IpcMainInvokeEvent,
+    options: { bvid: string; cid: number; output: string },
+    uid: number,
+  ) => {
+    return download(event.sender, options, uid);
   },
 };
 

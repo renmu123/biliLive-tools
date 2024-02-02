@@ -6,8 +6,8 @@
         :style="{ width: '80%' }"
         placeholder="请输入b站视频链接，比如：https://www.bilibili.com/video/BV1u94y1K7nr"
       />
-      <n-button type="primary" ghost @click="parse"> 解析 </n-button>
       <n-button type="primary" ghost @click="download"> 下载 </n-button>
+      <n-button type="primary" ghost @click="parse"> 解析 </n-button>
     </div>
 
     <div v-if="archiveDeatil.title" class="detail">
@@ -34,9 +34,11 @@ import { storeToRefs } from "pinia";
 const { userInfo } = storeToRefs(useUserInfoStore());
 const url = ref("https://www.bilibili.com/video/BV1u94y1K7nr");
 const archiveDeatil = ref<{
+  bvid: string;
   title: string;
   pages: { cid: number; part: string }[];
 }>({
+  bvid: "",
   title: "",
   pages: [],
 });
@@ -59,19 +61,21 @@ function extractBVNumber(videoUrl: string): string | null {
 const notice = useNotification();
 
 const parse = async () => {
-  console.log(url.value);
-  const bvid = extractBVNumber(url.value);
+  const formatUrl = url.value.trim();
+
+  console.log(formatUrl);
+  if (!formatUrl) {
+    throw new Error("请输入b站视频链接");
+  }
+  const bvid = extractBVNumber(formatUrl);
   if (!bvid) {
-    notice.error({
-      title: "请输入正确的b站视频链接",
-      duration: 1000,
-    });
-    return;
+    throw new Error("请输入正确的b站视频链接");
   }
   selectCids.value = [];
   const data = await window.api.bili.getArchiveDetail(bvid, uid.value);
   console.log(data);
   archiveDeatil.value = {
+    bvid: data.View.bvid,
     title: data.View.title,
     pages: data.View.pages,
   };
@@ -80,14 +84,24 @@ const parse = async () => {
   }
 };
 
-const download = () => {
+const download = async () => {
   if (selectCids.value.length === 0) {
-    notice.error({
-      title: "请选择分P",
-      duration: 1000,
-    });
-    return;
+    await parse();
   }
+  for (const cid of selectCids.value) {
+    window.api.bili.download(
+      {
+        output: `${archiveDeatil.value.title}.mp4`,
+        cid,
+        bvid: archiveDeatil.value.bvid,
+      },
+      uid.value,
+    );
+  }
+  notice.success({
+    title: "已加入队列",
+    duration: 1000,
+  });
 };
 </script>
 
