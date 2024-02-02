@@ -161,6 +161,8 @@ export interface AppConfig {
   autoUpdate: boolean;
   /** 使用biliup */
   useBiliup: boolean;
+  /** 配置持久化 */
+  saveConfig: boolean;
   webhook: {
     port: number;
     recoderFolder: string;

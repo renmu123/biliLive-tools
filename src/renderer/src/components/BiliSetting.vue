@@ -193,7 +193,7 @@
       <n-button type="primary" style="margin-left: 10px" @click="saveAnotherPreset"
         >另存为</n-button
       >
-      <n-button type="primary" style="margin-left: 10px" @click="savePreset">保存预设</n-button>
+      <n-button type="primary" style="margin-left: 10px" @click="savePreset">保存</n-button>
     </div>
 
     <n-modal v-model:show="nameModelVisible">
@@ -230,7 +230,8 @@ const emits = defineEmits<{
   (event: "change", value: BiliupPreset): void;
 }>();
 
-const presetId = ref<string>("default");
+// const presetId = ref<string>("default");
+const presetId = defineModel<string>({ required: false, default: "default" });
 
 // @ts-ignore
 const options: Ref<BiliupPreset> = ref({
@@ -306,8 +307,9 @@ const saveAnotherPresetConfirm = async () => {
     title: "保存成功",
     duration: 1000,
   });
-  getUploadPresets();
+  await getUploadPresets();
   presetId.value = preset.id;
+  handlePresetChange(preset.id);
 };
 
 const deletePreset = async () => {

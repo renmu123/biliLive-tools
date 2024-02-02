@@ -76,7 +76,10 @@
         </div>
       </n-tab-pane>
       <n-tab-pane name="upload-setting" tab="上传设置" display-directive="show">
-        <BiliSetting @change="handlePresetOptions"></BiliSetting>
+        <BiliSetting
+          v-model="clientOptions.uploadPresetId"
+          @change="handlePresetOptions"
+        ></BiliSetting>
       </n-tab-pane>
       <n-tab-pane name="danmukufactory-setting" tab="弹幕设置" display-directive="show">
         <div class="flex" style="gap: 10px; align-items: center">
@@ -113,7 +116,10 @@
         </div>
       </n-tab-pane>
       <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
-        <ffmpegSetting @change="handleFfmpegSettingChange"></ffmpegSetting>
+        <ffmpegSetting
+          v-model="clientOptions.ffmpegPresetId"
+          @change="handleFfmpegSettingChange"
+        ></ffmpegSetting>
       </n-tab-pane>
     </n-tabs>
 

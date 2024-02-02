@@ -9,7 +9,7 @@
     <FileArea v-model="fileList" :extensions="['flv', 'mp4']" desc="请选择视频文件"></FileArea>
 
     <div class="" style="margin-top: 30px">
-      <BiliSetting @change="handlePresetOptions"></BiliSetting>
+      <BiliSetting v-model="options.uploadPresetId" @change="handlePresetOptions"></BiliSetting>
     </div>
 
     <AppendVideoDialog
@@ -27,14 +27,17 @@ import FileArea from "@renderer/components/FileArea.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 import AppendVideoDialog from "@renderer/components/AppendVideoDialog.vue";
 import { useBili } from "@renderer/hooks";
-import { useUserInfoStore } from "@renderer/stores";
+import { useUserInfoStore, useAppConfig } from "@renderer/stores";
 
 import type { File } from "../../../../../types";
 import { deepRaw } from "@renderer/utils";
 
 const { userInfo } = storeToRefs(useUserInfoStore());
 const { handlePresetOptions, presetOptions } = useBili();
+const { appConfig } = storeToRefs(useAppConfig());
 const notice = useNotification();
+
+const options = appConfig.value.tool.upload;
 
 const fileList = ref<
   (File & {

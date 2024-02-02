@@ -14,6 +14,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   autoUpdate: true,
   trash: false,
   useBiliup: false,
+  saveConfig: false,
   webhook: {
     port: 18010,
     open: false,
@@ -56,7 +57,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     home: {
       uploadPresetId: "default",
       danmuPresetId: "default",
-      ffmpegPresetId: "default",
+      ffmpegPresetId: "b_libx264",
       removeOrigin: false,
       openFolder: false,
       autoUpload: false,
@@ -108,7 +109,7 @@ const getConfig = () => {
 export const saveAppConfig = (newConfig: AppConfig) => {
   const config = getConfig();
   log.transports.file.level = newConfig.logLevel;
-  log.info("saveAppConfig", newConfig);
+  // log.info("saveAppConfig", newConfig);
   config.setAll(newConfig);
   setFfmpegPath();
 };

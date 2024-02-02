@@ -51,13 +51,16 @@ import {
 import defaultUserAvatar from "./assets/images/moehime.jpg";
 import AppSettingDialog from "./components/AppSettingDialog/index.vue";
 
-import { useUserInfoStore, useQueueStore } from "./stores";
+import { useUserInfoStore, useQueueStore, useAppConfig } from "./stores";
 const quenuStore = useQueueStore();
+const appConfig = useAppConfig();
 
 const { userInfo } = storeToRefs(useUserInfoStore());
 
 const activeKey = ref("go-back-home");
 const collapsed = ref(true);
+
+appConfig.getAppConfig();
 
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) });

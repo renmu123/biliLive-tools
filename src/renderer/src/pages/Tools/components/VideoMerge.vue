@@ -22,7 +22,7 @@
     <div class="flex align-center column" style="margin-top: 10px">
       <div></div>
       <div style="margin-top: 10px">
-        <n-checkbox v-model:checked="clientOptions.saveOriginPath"> 保存到原始文件夹 </n-checkbox>
+        <n-checkbox v-model:checked="options.saveOriginPath"> 保存到原始文件夹 </n-checkbox>
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
       </div>
     </div>
@@ -32,9 +32,12 @@
 <script setup lang="ts">
 import FileArea from "@renderer/components/FileArea.vue";
 import Tip from "@renderer/components/Tip.vue";
-import type { File, VideoMergeOptions } from "../../../../../types";
+import type { File } from "../../../../../types";
+import { useAppConfig } from "@renderer/stores";
+import { storeToRefs } from "pinia";
 
 const notice = useNotification();
+const { appConfig } = storeToRefs(useAppConfig());
 
 const fileList = ref<
   (File & {
@@ -44,13 +47,7 @@ const fileList = ref<
   })[]
 >([]);
 
-const options = ref<VideoMergeOptions>({
-  savePath: "",
-  removeOrigin: false, // 完成后移除源文件
-});
-const clientOptions = ref({
-  saveOriginPath: false, // 保存到原始文件夹并自动重命名
-});
+const options = appConfig.value.tool.videoMerge;
 
 const convert = async () => {
   if (fileList.value.length < 2) {
@@ -61,7 +58,7 @@ const convert = async () => {
     return;
   }
   let filePath!: string;
-  if (clientOptions.value.saveOriginPath) {
+  if (options.saveOriginPath) {
     const { dir, name } = fileList.value[0];
     filePath = window.path.join(dir, `${name}-mergered.mp4`);
     if (await window.api.exits(filePath)) {
@@ -83,10 +80,9 @@ const convert = async () => {
     }
     filePath = file;
   }
-  options.value.savePath = filePath;
 
   try {
-    window.api.mergeVideos(toRaw(fileList.value), toRaw(options.value));
+    window.api.mergeVideos(toRaw(fileList.value), { ...toRaw(options), savePath: filePath });
     notice.warning({
       title: `已加入任务队列，可在任务列表中查看进度`,
       duration: 3000,

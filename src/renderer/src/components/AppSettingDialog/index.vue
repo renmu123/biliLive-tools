@@ -41,6 +41,12 @@
               </template>
               <n-switch v-model:value="config.useBiliup" />
             </n-form-item>
+            <!-- <n-form-item>
+              <template #label>
+                <span class="inline-flex"> 配置持久化 </span>
+              </template>
+              <n-switch v-model:value="config.saveConfig" />
+            </n-form-item> -->
 
             <n-form-item label="ffmpeg路径">
               <n-input
