@@ -111,6 +111,7 @@
           >
           <n-button type="primary" @click="renameDanmu">重命名</n-button>
           <n-button type="primary" @click="saveAsDanmu">另存为</n-button>
+          <n-button type="primary" @click="saveDanmuPreset">保存</n-button>
         </div>
       </n-tab-pane>
       <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
@@ -314,7 +315,7 @@ const convert = async () => {
   console.log("hotProgressInput", hotProgressInput);
 
   // 压制任务
-  const output = handleVideoMerge(
+  const output = await handleVideoMerge(
     {
       inputVideoFilePath: inputVideoFile?.path,
       inputAssFilePath: inputDanmuFile.path,
@@ -327,11 +328,11 @@ const convert = async () => {
 
   fileList.value = [];
   if (rawClientOptions.upload) {
-    await upload(await output, rawPresetOptions);
+    await upload(output, rawPresetOptions);
   }
 
   if (rawClientOptions.openTargetDirectory) {
-    window.api.openPath(outputPath);
+    window.api.openPath(window.path.parse(outputPath).dir);
   }
 };
 
@@ -485,10 +486,6 @@ const createMergeVideoAssTask = async (
       )
       .then(({ taskId, output }: { taskId?: string; output?: string }) => {
         if (!taskId) return resolve(output as string);
-        notice.info({
-          title: "已加入任务队列，可在任务列表中查看进度",
-          duration: 3000,
-        });
 
         window.api.task.on(taskId, "end", (data) => {
           console.log("end", data);
@@ -574,6 +571,17 @@ const saveConfirm = async () => {
 
   await window.api.danmu.savePreset(preset);
   nameModelVisible.value = false;
+  notice.success({
+    title: "保存成功",
+    duration: 1000,
+  });
+  getDanmuPresets();
+};
+
+const saveDanmuPreset = async () => {
+  const preset = cloneDeep(danmuPreset.value);
+
+  await window.api.danmu.savePreset(preset);
   notice.success({
     title: "保存成功",
     duration: 1000,

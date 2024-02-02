@@ -48,7 +48,7 @@
               "
               type="error"
               size="small"
-              title="中断会被认为是完成状态，会保留已处理进度"
+              title="中断会保留已处理进度"
               @click="handleInterrupt(item.taskId)"
               >中断</n-button
             >
@@ -270,7 +270,7 @@ const handlePause = (taskId: string) => {
 
 const handleInterrupt = async (taskId: string) => {
   const status = await confirm.warning({
-    content: "确定要中断任务吗？中断会保留已处理数据，且被认为是已完成状态，并执行后续步骤。",
+    content: "确定要中断任务吗？中断会保留进度",
   });
   if (!status) return;
   window.api.task.interrupt(taskId);
