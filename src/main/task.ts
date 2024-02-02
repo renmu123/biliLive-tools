@@ -125,6 +125,7 @@ export class FFmpegTask extends AbstractTask {
   command: ffmpeg.FfmpegCommand;
   webContents: WebContents;
   type = TaskType.ffmpeg;
+  isInterrupted: boolean = false;
   constructor(
     command: ffmpeg.FfmpegCommand,
     webContents: WebContents,
@@ -159,13 +160,23 @@ export class FFmpegTask extends AbstractTask {
       this.startTime = Date.now();
     });
     command.on("end", async () => {
-      log.info(`task ${this.taskId} end`);
-      this.status = "completed";
-      this.progress = 100;
+      // 如果任务是被中断的，走这个逻辑
+      if (this.isInterrupted) {
+        const msg = `task ${this.taskId} error: isInterrupted`;
+        log.error(msg);
+        this.status = "error";
 
-      callback.onEnd && callback.onEnd(options.output);
-      emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
-      this.endTime = Date.now();
+        callback.onError && callback.onError(msg);
+        emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
+      } else {
+        log.info(`task ${this.taskId} end`);
+        this.status = "completed";
+        this.progress = 100;
+
+        callback.onEnd && callback.onEnd(options.output);
+        emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
+        this.endTime = Date.now();
+      }
     });
     command.on("error", (err) => {
       log.error(`task ${this.taskId} error: ${err}`);
@@ -216,6 +227,7 @@ export class FFmpegTask extends AbstractTask {
     // @ts-ignore
     this.command.ffmpegProc.stdin.write("q");
     log.warn(`task ${this.taskId} interrupt`);
+    this.isInterrupted = true;
     this.status = "error";
     return true;
   }
@@ -412,9 +424,11 @@ taskQueue.on("task-start", ({ taskId, webContents }) => {
   webContents.send("task-start", { taskId: taskId });
 });
 taskQueue.on("task-end", ({ taskId, webContents }) => {
+  console.log("task-end", taskId);
   webContents.send("task-end", { taskId: taskId, output: taskQueue.queryTask(taskId)?.output });
 });
 taskQueue.on("task-error", ({ taskId, webContents }) => {
+  console.log("task-error", taskId);
   webContents.send("task-error", { taskId: taskId });
 });
 taskQueue.on("task-progress", ({ taskId, webContents }) => {

@@ -1,4 +1,5 @@
-import { defineStore } from "pinia";
+import { cloneDeep } from "lodash-es";
+import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "../../../types";
 
 export const useUserInfoStore = defineStore("userInfo", () => {
@@ -90,7 +91,9 @@ export const useUserInfoStore = defineStore("userInfo", () => {
 });
 
 export const useDanmuPreset = defineStore("danmuPreset", () => {
-  const danmuPresetId = ref("default");
+  const { appConfig } = storeToRefs(useAppConfig());
+
+  const danmuPresetId = toRef(appConfig.value.tool.danmu, "danmuPresetId");
   const danmuPresets = ref<DanmuPreset[]>([]);
   // @ts-ignore
   const danmuPreset: Ref<DanmuPreset> = ref({
@@ -190,14 +193,21 @@ export const useAppConfig = defineStore("appConfig", () => {
   const appConfig = ref<AppConfig>({});
 
   async function getAppConfig() {
+    console.log("getAppConfig");
     appConfig.value = await window.api.config.getAll();
   }
   async function set<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {
     await window.api.config.set(key, value);
     appConfig.value[key] = value;
   }
-
-  getAppConfig();
+  watch(
+    () => appConfig.value.tool,
+    (data: any) => {
+      console.log(appConfig.value.saveConfig, data, appConfig.value);
+      window.api.config.save(cloneDeep(appConfig.value));
+    },
+    { deep: true },
+  );
 
   return {
     appConfig,

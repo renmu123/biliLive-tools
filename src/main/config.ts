@@ -14,6 +14,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   autoUpdate: true,
   trash: false,
   useBiliup: false,
+  saveConfig: false,
   webhook: {
     port: 18010,
     open: false,
@@ -30,6 +31,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     partMergeMinute: 10,
     hotProgress: false,
     useLiveCover: false,
+    hotProgressSample: 30,
+    hotProgressHeight: 60,
+    hotProgressColor: "#f9f5f3",
+    hotProgressFillColor: "#333333",
   },
   ffmpegPath: path.join(
     path.dirname(app.getPath("exe")),
@@ -48,6 +53,42 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     "ffprobe.exe",
   ),
   biliUser: {},
+  tool: {
+    home: {
+      uploadPresetId: "default",
+      danmuPresetId: "default",
+      ffmpegPresetId: "b_libx264",
+      removeOrigin: false,
+      openFolder: false,
+      autoUpload: false,
+      hotProgress: false,
+      hotProgressSample: 30,
+      hotProgressHeight: 60,
+      hotProgressColor: "#f9f5f3",
+      hotProgressFillColor: "#333333",
+    },
+    upload: {
+      uploadPresetId: "default",
+    },
+    danmu: {
+      danmuPresetId: "default",
+      saveRadio: 1,
+      savePath: "",
+      removeOrigin: false,
+      openFolder: false,
+    },
+    video2mp4: {
+      saveRadio: 1,
+      savePath: "",
+      saveOriginPath: false,
+      override: false,
+      removeOrigin: false,
+    },
+    videoMerge: {
+      saveOriginPath: false,
+      removeOrigin: false,
+    },
+  },
 };
 
 function get<K extends keyof AppConfig>(key: K): AppConfig[K] {
@@ -68,7 +109,7 @@ const getConfig = () => {
 export const saveAppConfig = (newConfig: AppConfig) => {
   const config = getConfig();
   log.transports.file.level = newConfig.logLevel;
-  log.info("saveAppConfig", newConfig);
+  // log.info("saveAppConfig", newConfig);
   config.setAll(newConfig);
   setFfmpegPath();
 };

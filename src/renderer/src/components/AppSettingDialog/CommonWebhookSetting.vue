@@ -122,40 +122,124 @@
       >全局</n-checkbox
     >
   </n-form-item>
-  <n-form-item v-if="data.danmu" label="弹幕转化预设">
-    <n-select
-      v-model:value="data.danmuPreset"
-      :options="danmuPresetsOptions"
-      placeholder="选择预设"
-      :disabled="globalFieldsObj.danmuPreset"
-      style="margin-right: 10px"
-    />
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.danmuPreset" class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-  <n-form-item v-if="data.danmu" label="视频压制预设">
-    <n-cascader
-      v-model:value="data.ffmpegPreset"
-      placeholder="请选择预设"
-      expand-trigger="click"
-      :options="ffmpegOptions"
-      check-strategy="child"
-      :show-path="false"
-      :filterable="true"
-      :disabled="globalFieldsObj.ffmpegPreset"
-      style="margin-right: 10px"
-    />
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.ffmpegPreset" class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-  <n-form-item v-if="data.danmu" label="高能进度条">
-    <n-switch v-model:value="data.hotProgress" :disabled="globalFieldsObj.hotProgress" />
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.hotProgress" class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
+  <template v-if="data.danmu">
+    <n-form-item label="弹幕转化预设">
+      <n-select
+        v-model:value="data.danmuPreset"
+        :options="danmuPresetsOptions"
+        placeholder="选择预设"
+        :disabled="globalFieldsObj.danmuPreset"
+        style="margin-right: 10px"
+      />
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.danmuPreset"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+    </n-form-item>
+    <n-form-item label="视频压制预设">
+      <n-cascader
+        v-model:value="data.ffmpegPreset"
+        placeholder="请选择预设"
+        expand-trigger="click"
+        :options="ffmpegOptions"
+        check-strategy="child"
+        :show-path="false"
+        :filterable="true"
+        :disabled="globalFieldsObj.ffmpegPreset"
+        style="margin-right: 10px"
+      />
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.ffmpegPreset"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+    </n-form-item>
+    <n-form-item label="高能进度条">
+      <n-switch v-model:value="data.hotProgress" :disabled="globalFieldsObj.hotProgress" />
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.hotProgress"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+    </n-form-item>
+    <template v-if="data.hotProgress">
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            采样间隔
+            <Tip tip="每隔一段时间对弹幕进行一次汇总计算，影响波峰"></Tip>
+          </span>
+        </template>
+        <n-input-number
+          v-model:value="data.hotProgressSample"
+          placeholder="单位秒"
+          min="1"
+          :disabled="globalFieldsObj.hotProgressSample"
+        >
+          <template #suffix> 秒 </template></n-input-number
+        >
+        <n-checkbox
+          v-if="isRoom"
+          v-model:checked="globalFieldsObj.hotProgressSample"
+          class="global-checkbox"
+          >全局</n-checkbox
+        >
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> 高度 </span>
+        </template>
+        <n-input-number
+          v-model:value="data.hotProgressHeight"
+          placeholder="单位像素"
+          min="10"
+          :disabled="globalFieldsObj.hotProgressHeight"
+        >
+          <template #suffix> 像素 </template></n-input-number
+        >
+        <n-checkbox
+          v-if="isRoom"
+          v-model:checked="globalFieldsObj.hotProgressHeight"
+          class="global-checkbox"
+          >全局</n-checkbox
+        >
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> 默认颜色 </span>
+        </template>
+        <n-color-picker
+          v-model:value="data.hotProgressColor"
+          :disabled="globalFieldsObj.hotProgressColor"
+        />
+        <n-checkbox
+          v-if="isRoom"
+          v-model:checked="globalFieldsObj.hotProgressColor"
+          class="global-checkbox"
+          >全局</n-checkbox
+        >
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> 覆盖颜色 </span>
+        </template>
+        <n-color-picker
+          v-model:value="data.hotProgressFillColor"
+          :disabled="globalFieldsObj.hotProgressFillColor"
+        />
+        <n-checkbox
+          v-if="isRoom"
+          v-model:checked="globalFieldsObj.hotProgressFillColor"
+          class="global-checkbox"
+          >全局</n-checkbox
+        >
+      </n-form-item>
+    </template>
+  </template>
 </template>
 
 <script setup lang="ts">

@@ -25,18 +25,61 @@
                   <n-radio :value="false"> 跳过存在文件 </n-radio>
                 </n-space>
               </n-radio-group> -->
-            <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.removeOrigin"> 完成后移除源文件 </n-checkbox>
 
-            <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
-              完成后打开文件夹
-            </n-checkbox>
-            <n-checkbox v-model:checked="clientOptions.upload"> 完成后自动上传 </n-checkbox>
-            <n-checkbox v-model:checked="clientOptions.hotProgress">高能进度条</n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.openFolder"> 完成后打开文件夹 </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.autoUpload"> 完成后自动上传 </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.hotProgress"> 高能进度条 </n-checkbox>
+
+            <div
+              v-if="clientOptions.hotProgress"
+              style="display: flex; gap: 20px; align-items: center; margin-top: 20px"
+            >
+              <div>
+                采样间隔
+                <n-input-number
+                  v-model:value="clientOptions.hotProgressSample"
+                  placeholder="单位秒"
+                  min="1"
+                  style="width: 140px"
+                >
+                  <template #suffix> 秒 </template></n-input-number
+                >
+              </div>
+              <div>
+                高度
+                <n-input-number
+                  v-model:value="clientOptions.hotProgressHeight"
+                  placeholder="单位像素"
+                  min="10"
+                  style="width: 140px"
+                >
+                  <template #suffix> 像素 </template></n-input-number
+                >
+              </div>
+              <div>
+                <div>默认颜色</div>
+                <n-color-picker
+                  v-model:value="clientOptions.hotProgressColor"
+                  style="width: 140px"
+                />
+              </div>
+              <div>
+                <div>覆盖颜色</div>
+                <n-color-picker
+                  v-model:value="clientOptions.hotProgressFillColor"
+                  style="width: 140px"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </n-tab-pane>
       <n-tab-pane name="upload-setting" tab="上传设置" display-directive="show">
-        <BiliSetting @change="handlePresetOptions"></BiliSetting>
+        <BiliSetting
+          v-model="clientOptions.uploadPresetId"
+          @change="handlePresetOptions"
+        ></BiliSetting>
       </n-tab-pane>
       <n-tab-pane name="danmukufactory-setting" tab="弹幕设置" display-directive="show">
         <div class="flex" style="gap: 10px; align-items: center">
@@ -69,10 +112,14 @@
           >
           <n-button type="primary" @click="renameDanmu">重命名</n-button>
           <n-button type="primary" @click="saveAsDanmu">另存为</n-button>
+          <n-button type="primary" @click="saveDanmuPreset">保存</n-button>
         </div>
       </n-tab-pane>
       <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
-        <ffmpegSetting @change="handleFfmpegSettingChange"></ffmpegSetting>
+        <ffmpegSetting
+          v-model="clientOptions.ffmpegPresetId"
+          @change="handleFfmpegSettingChange"
+        ></ffmpegSetting>
       </n-tab-pane>
     </n-tabs>
 
@@ -101,7 +148,7 @@ import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
-import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
+import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
 
 import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
@@ -120,6 +167,7 @@ const confirm = useConfirm();
 const { danmuPresetsOptions, danmuPresetId, danmuPreset } = storeToRefs(useDanmuPreset());
 const { getDanmuPresets } = useDanmuPreset();
 const { userInfo } = storeToRefs(useUserInfoStore());
+const { appConfig } = storeToRefs(useAppConfig());
 
 const { handlePresetOptions, presetOptions } = useBili();
 
@@ -131,28 +179,17 @@ const fileList = ref<
   })[]
 >([]);
 
-type MergeOptions = {
-  removeOrigin: boolean;
-};
-
-const options = ref<MergeOptions>({
-  removeOrigin: false, // 完成后移除源文件
-});
-const clientOptions = ref({
-  // saveOriginPath: false, // 保存到原始文件夹并自动重命名
-  openTargetDirectory: false, // 转换完成后打开目标文件夹
-  upload: false, // 上传
-  hotProgress: false, // 高能进度条
-});
+const clientOptions = appConfig.value.tool.home;
 
 const handleConvert = async () => {
   convert();
 };
 
+type ClientOptions = typeof appConfig.value.tool.home;
+
 const preHandle = async (
   files: File[],
-  clientOptions: any,
-  options: MergeOptions,
+  clientOptions: ClientOptions,
   danmuConfig: DanmuConfig,
   presetOptions: any,
 ) => {
@@ -160,7 +197,7 @@ const preHandle = async (
     return false;
   }
 
-  if (clientOptions.upload) {
+  if (clientOptions.autoUpload) {
     await biliUpCheck(presetOptions);
   }
 
@@ -218,7 +255,6 @@ const preHandle = async (
     inputVideoFile: videoFile,
     inputDanmuFile: danmuFile,
     outputPath: file,
-    rawOptions: options,
     videoWidth: width,
     duration: videoMeta.format.duration,
   };
@@ -226,26 +262,20 @@ const preHandle = async (
 
 const convert = async () => {
   const files = toRaw(fileList.value);
-  const rawClientOptions = toRaw(clientOptions.value);
+  const rawClientOptions = toRaw(clientOptions);
   const rawDanmuConfig = deepRaw(danmuPreset.value.config);
   const rawPresetOptions = toRaw(presetOptions.value);
   const rawFfmpegOptions = toRaw(ffmpegOptions.value);
 
-  const data = await preHandle(
-    files,
-    rawClientOptions,
-    toRaw(options.value),
-    rawDanmuConfig,
-    rawPresetOptions,
-  );
+  const data = await preHandle(files, rawClientOptions, rawDanmuConfig, rawPresetOptions);
   if (!data) return;
   let { inputDanmuFile } = data;
-  const { inputVideoFile, outputPath, rawOptions, videoWidth, duration } = data;
+  const { inputVideoFile, outputPath, videoWidth, duration } = data;
   // console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
 
   if (inputDanmuFile.ext === ".xml") {
     // xml文件转换
-    const targetAssFile = await handleXmlFile(inputDanmuFile, rawOptions, rawDanmuConfig);
+    const targetAssFile = await handleXmlFile(inputDanmuFile, rawClientOptions, rawDanmuConfig);
     console.log("targetAssFilePath", targetAssFile);
     inputDanmuFile = targetAssFile;
   }
@@ -258,36 +288,45 @@ const convert = async () => {
     hotProgressInput = await genHotProgress(inputDanmuFile.path, {
       width: videoWidth!,
       duration: duration!,
+      interval: rawClientOptions.hotProgressSample,
+      height: rawClientOptions.hotProgressHeight,
+      color: rawClientOptions.hotProgressColor,
+      fillColor: rawClientOptions.hotProgressFillColor,
     });
   }
 
-  console.log("hotProgressInput", hotProgressInput);
-
   // 压制任务
-  const output = handleVideoMerge(
+  const output = await handleVideoMerge(
     {
       inputVideoFilePath: inputVideoFile?.path,
       inputAssFilePath: inputDanmuFile.path,
       inputHotProgressFilePath: hotProgressInput,
       outputPath: outputPath,
     },
-    rawOptions,
+    rawClientOptions,
     rawFfmpegOptions,
   );
 
   fileList.value = [];
-  if (rawClientOptions.upload) {
-    await upload(await output, rawPresetOptions);
+  if (rawClientOptions.autoUpload) {
+    await upload(output, rawPresetOptions);
   }
 
-  if (rawClientOptions.openTargetDirectory) {
-    window.api.openPath(outputPath);
+  if (rawClientOptions.openFolder) {
+    window.api.openPath(window.path.parse(outputPath).dir);
   }
 };
 
 // const hotProgressConvert = async () => {
 //   const input = toRaw(fileList.value)[0].path;
-//   const file = await genHotProgress(input, {});
+//   const file = await genHotProgress(input, {
+//     width: 1920,
+//     duration: 60 * 60 * 2,
+//     interval: clientOptions.value.hotProgressSample,
+//     height: clientOptions.value.hotProgressHeight,
+//     color: clientOptions.value.hotProgressColor,
+//     fillColor: clientOptions.value.hotProgressFillColor,
+//   });
 //   console.log("file", file);
 // };
 
@@ -316,7 +355,7 @@ const genHotProgress = async (input: string, options: hotProgressOptions): Promi
 };
 
 // 处理xml文件
-const handleXmlFile = async (danmuFile: File, options: MergeOptions, danmuConfig: DanmuConfig) => {
+const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfig: DanmuConfig) => {
   notice.warning({
     title: "开始转换xml",
     duration: 3000,
@@ -344,7 +383,7 @@ const convertDanmu2Ass = async (
     input: string;
     output: string;
   },
-  options: MergeOptions,
+  options: ClientOptions,
   config: DanmuConfig,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -378,7 +417,7 @@ const handleVideoMerge = async (
     outputPath: string;
     inputHotProgressFilePath: string | undefined;
   },
-  options: MergeOptions,
+  options: ClientOptions,
   ffmpegOptions: FfmpegOptions,
 ) => {
   const { inputVideoFilePath, inputAssFilePath, outputPath, inputHotProgressFilePath } =
@@ -411,7 +450,7 @@ const createMergeVideoAssTask = async (
   assFilePath: string,
   hotProgressFilePath: string | undefined,
   outputPath: string,
-  options: MergeOptions,
+  options: ClientOptions,
   ffmpegOptions: FfmpegOptions,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -428,10 +467,6 @@ const createMergeVideoAssTask = async (
       )
       .then(({ taskId, output }: { taskId?: string; output?: string }) => {
         if (!taskId) return resolve(output as string);
-        notice.info({
-          title: "已加入任务队列，可在任务列表中查看进度",
-          duration: 3000,
-        });
 
         window.api.task.on(taskId, "end", (data) => {
           console.log("end", data);
@@ -517,6 +552,17 @@ const saveConfirm = async () => {
 
   await window.api.danmu.savePreset(preset);
   nameModelVisible.value = false;
+  notice.success({
+    title: "保存成功",
+    duration: 1000,
+  });
+  getDanmuPresets();
+};
+
+const saveDanmuPreset = async () => {
+  const preset = cloneDeep(danmuPreset.value);
+
+  await window.api.danmu.savePreset(preset);
   notice.success({
     title: "保存成功",
     duration: 1000,

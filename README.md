@@ -59,8 +59,10 @@
 
 # 开发
 
-node需要18及以上版本  
-下载项目后需要新建一个`resources\bin`文件夹，里面需要三个文件。  
+交流群：872011161
+
+node需要18及以上版本
+下载项目后需要新建一个`resources\bin`文件夹，里面需要三个文件。
 同时需要在应用中设置 ffmpeg 以及 ffprobe 可执行文件地址。
 
 1. `DanmukuFactory.exe` [1.7.0版本](https://github.com/hihkm/DanmakuFactory/releases/tag/v1.70)

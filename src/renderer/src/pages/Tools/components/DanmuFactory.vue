@@ -17,33 +17,29 @@
     <FileArea v-model="fileList" :extensions="['xml']" desc="请选择xml文件"></FileArea>
 
     <div class="flex align-center column" style="margin-top: 10px">
-      <div>
-        <n-radio-group v-model:value="options.saveRadio" class="radio-group">
-          <n-space class="flex align-center column">
-            <n-radio :value="1"> 保存到原始文件夹 </n-radio>
-            <n-radio :value="2">
-              <n-input
-                v-model:value="options.savePath"
-                type="text"
-                placeholder="选择文件夹"
-                style="width: 300px"
-              />
-            </n-radio>
-            <!-- <n-button type="primary" :disabled="options.saveRadio !== 2" @click="getDir">
+      <n-radio-group v-model:value="options.saveRadio" class="radio-group">
+        <n-space class="flex align-center column">
+          <n-radio :value="1"> 保存到原始文件夹 </n-radio>
+          <n-radio :value="2">
+            <n-input
+              v-model:value="options.savePath"
+              type="text"
+              placeholder="选择文件夹"
+              style="width: 300px"
+            />
+          </n-radio>
+          <!-- <n-button type="primary" :disabled="options.saveRadio !== 2" @click="getDir">
               选择文件夹
             </n-button> -->
-            <n-icon size="30" style="margin-left: -10px" class="pointer" @click="getDir">
-              <FolderOpenOutline />
-            </n-icon>
-          </n-space>
-        </n-radio-group>
-      </div>
+          <n-icon size="30" style="margin-left: -10px" class="pointer" @click="getDir">
+            <FolderOpenOutline />
+          </n-icon>
+        </n-space>
+      </n-radio-group>
       <div style="margin-top: 10px">
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
 
-        <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
-          完成后打开文件夹
-        </n-checkbox>
+        <n-checkbox v-model:checked="options.openFolder"> 完成后打开文件夹 </n-checkbox>
       </div>
     </div>
     <DanmuFactorySettingDailog
@@ -58,12 +54,13 @@ import { storeToRefs } from "pinia";
 
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
-import type { DanmuOptions, File } from "../../../../../types";
+import type { File } from "../../../../../types";
 import { deepRaw } from "@renderer/utils";
-import { useDanmuPreset } from "@renderer/stores";
+import { useDanmuPreset, useAppConfig } from "@renderer/stores";
 import { Settings as SettingIcon, FolderOpenOutline } from "@vicons/ionicons5";
 
 const { danmuPresetsOptions, danmuPresetId } = storeToRefs(useDanmuPreset());
+const { appConfig } = storeToRefs(useAppConfig());
 
 const notice = useNotification();
 
@@ -73,15 +70,7 @@ const fileList = ref<
   })[]
 >([]);
 
-const options = ref<DanmuOptions>({
-  saveRadio: 1, // 1：保存到原始文件夹，2：保存到特定文件夹
-  savePath: "",
-
-  removeOrigin: false, // 完成后移除源文件
-});
-const clientOptions = ref({
-  openTargetDirectory: false, // 转换完成后打开目标文件夹
-});
+const options = appConfig.value.tool.danmu;
 
 const convert = async () => {
   if (fileList.value.length === 0) {
@@ -100,12 +89,12 @@ const convert = async () => {
     return { input: file.path };
   });
   const config = (await window.api.danmu.getPreset(presetId)).config;
-  window.api.danmu.convertXml2Ass(files, config, deepRaw(options.value));
+  window.api.danmu.convertXml2Ass(files, config, deepRaw(options));
   fileList.value = [];
 
-  if (clientOptions.value.openTargetDirectory) {
-    if (options.value.saveRadio === 2) {
-      window.api.openPath(deepRaw(options.value).savePath as string);
+  if (options.openFolder) {
+    if (options.saveRadio === 2) {
+      window.api.openPath(deepRaw(options).savePath as string);
     } else {
       window.api.openPath(deepRaw(fileList.value[0]).dir);
     }
@@ -119,7 +108,7 @@ const openSetting = () => {
 
 async function getDir() {
   const path = await window.api.openDirectory();
-  options.value.savePath = path;
+  options.savePath = path;
 }
 </script>
 

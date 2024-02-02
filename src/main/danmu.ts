@@ -173,6 +173,7 @@ export const genHotProgress = async (
 
   return convertImage2Video(webContents, imageDir, output, {
     removeOrigin: true,
+    internal: options.interval,
   });
 };
 

@@ -158,7 +158,7 @@ const emits = defineEmits<{
   (event: "change", value: FfmpegPreset): void;
 }>();
 
-const presetId = ref("b_libx264");
+const presetId = defineModel<string>({ required: true });
 
 const videoEncoders = ref([
   {

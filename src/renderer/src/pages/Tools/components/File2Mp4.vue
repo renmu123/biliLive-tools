@@ -42,11 +42,14 @@
 <script setup lang="ts">
 import FileArea from "@renderer/components/FileArea.vue";
 import { useConfirm } from "@renderer/hooks";
-import type { File, Video2Mp4Options } from "../../../../../types";
+import type { File } from "../../../../../types";
 import { FolderOpenOutline } from "@vicons/ionicons5";
+import { useAppConfig } from "@renderer/stores";
+import { storeToRefs } from "pinia";
 
 const notice = useNotification();
 const confirm = useConfirm();
+const { appConfig } = storeToRefs(useAppConfig());
 
 const fileList = ref<
   (File & {
@@ -56,14 +59,16 @@ const fileList = ref<
   })[]
 >([]);
 
-const options = ref<Video2Mp4Options>({
-  saveRadio: 1, // 1：保存到原始文件夹，2：保存到特定文件夹
-  saveOriginPath: true,
-  savePath: "",
+const options = appConfig.value.tool.video2mp4;
 
-  override: false, // 覆盖文件
-  removeOrigin: false, // 完成后移除源文件
-});
+// const options = ref<Video2Mp4Options>({
+//   saveRadio: 1, // 1：保存到原始文件夹，2：保存到特定文件夹
+//   saveOriginPath: true,
+//   savePath: "",
+
+//   override: false, // 覆盖文件
+//   removeOrigin: false, // 完成后移除源文件
+// });
 
 const convert = async () => {
   if (fileList.value.length === 0) {
@@ -80,7 +85,7 @@ const convert = async () => {
 
   for (let i = 0; i < fileList.value.length; i++) {
     try {
-      window.api.convertVideo2Mp4(toRaw(fileList.value[i]), toRaw(options.value));
+      window.api.convertVideo2Mp4(toRaw(fileList.value[i]), toRaw(options));
     } catch (err) {
       notice.error({
         title: err as string,
@@ -97,7 +102,7 @@ const convert = async () => {
 
 async function getDir() {
   const path = await window.api.openDirectory();
-  options.value.savePath = path;
+  options.savePath = path;
 }
 </script>
 
