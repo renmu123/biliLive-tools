@@ -1,3 +1,4 @@
+import { cloneDeep } from "lodash-es";
 import { defineStore } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "../../../types";
 
@@ -196,6 +197,15 @@ export const useAppConfig = defineStore("appConfig", () => {
     await window.api.config.set(key, value);
     appConfig.value[key] = value;
   }
+
+  watch(
+    () => appConfig.value.tool,
+    (data: any) => {
+      console.log(data);
+      window.api.config.save(cloneDeep(appConfig.value));
+    },
+    { deep: true },
+  );
 
   getAppConfig();
 

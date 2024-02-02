@@ -25,13 +25,11 @@
                   <n-radio :value="false"> 跳过存在文件 </n-radio>
                 </n-space>
               </n-radio-group> -->
-            <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.removeOrigin"> 完成后移除源文件 </n-checkbox>
 
-            <n-checkbox v-model:checked="clientOptions.openTargetDirectory">
-              完成后打开文件夹
-            </n-checkbox>
-            <n-checkbox v-model:checked="clientOptions.upload"> 完成后自动上传 </n-checkbox>
-            <n-checkbox v-model:checked="clientOptions.hotProgress">高能进度条</n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.openFolder"> 完成后打开文件夹 </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.autoUpload"> 完成后自动上传 </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.hotProgress"> 高能进度条 </n-checkbox>
 
             <div
               v-if="clientOptions.hotProgress"
@@ -144,7 +142,7 @@ import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 import ffmpegSetting from "./components/ffmpegSetting.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
-import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
+import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
 
 import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
@@ -163,6 +161,7 @@ const confirm = useConfirm();
 const { danmuPresetsOptions, danmuPresetId, danmuPreset } = storeToRefs(useDanmuPreset());
 const { getDanmuPresets } = useDanmuPreset();
 const { userInfo } = storeToRefs(useUserInfoStore());
+const { appConfig } = storeToRefs(useAppConfig());
 
 const { handlePresetOptions, presetOptions } = useBili();
 
@@ -174,32 +173,17 @@ const fileList = ref<
   })[]
 >([]);
 
-type MergeOptions = {
-  removeOrigin: boolean;
-};
-
-const options = ref<MergeOptions>({
-  removeOrigin: false, // 完成后移除源文件
-});
-const clientOptions = ref({
-  // saveOriginPath: false, // 保存到原始文件夹并自动重命名
-  openTargetDirectory: false, // 转换完成后打开目标文件夹
-  upload: false, // 上传
-  hotProgress: false, // 高能进度条
-  hotProgressSample: 30,
-  hotProgressHeight: 60,
-  hotProgressColor: "#f9f5f3",
-  hotProgressFillColor: "#333333",
-});
+const clientOptions = appConfig.value.tool.home;
 
 const handleConvert = async () => {
   convert();
 };
 
+type ClientOptions = typeof appConfig.value.tool.home;
+
 const preHandle = async (
   files: File[],
-  clientOptions: any,
-  options: MergeOptions,
+  clientOptions: ClientOptions,
   danmuConfig: DanmuConfig,
   presetOptions: any,
 ) => {
@@ -207,7 +191,7 @@ const preHandle = async (
     return false;
   }
 
-  if (clientOptions.upload) {
+  if (clientOptions.autoUpload) {
     await biliUpCheck(presetOptions);
   }
 
@@ -265,7 +249,6 @@ const preHandle = async (
     inputVideoFile: videoFile,
     inputDanmuFile: danmuFile,
     outputPath: file,
-    rawOptions: options,
     videoWidth: width,
     duration: videoMeta.format.duration,
   };
@@ -273,26 +256,20 @@ const preHandle = async (
 
 const convert = async () => {
   const files = toRaw(fileList.value);
-  const rawClientOptions = toRaw(clientOptions.value);
+  const rawClientOptions = toRaw(clientOptions);
   const rawDanmuConfig = deepRaw(danmuPreset.value.config);
   const rawPresetOptions = toRaw(presetOptions.value);
   const rawFfmpegOptions = toRaw(ffmpegOptions.value);
 
-  const data = await preHandle(
-    files,
-    rawClientOptions,
-    toRaw(options.value),
-    rawDanmuConfig,
-    rawPresetOptions,
-  );
+  const data = await preHandle(files, rawClientOptions, rawDanmuConfig, rawPresetOptions);
   if (!data) return;
   let { inputDanmuFile } = data;
-  const { inputVideoFile, outputPath, rawOptions, videoWidth, duration } = data;
+  const { inputVideoFile, outputPath, videoWidth, duration } = data;
   // console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
 
   if (inputDanmuFile.ext === ".xml") {
     // xml文件转换
-    const targetAssFile = await handleXmlFile(inputDanmuFile, rawOptions, rawDanmuConfig);
+    const targetAssFile = await handleXmlFile(inputDanmuFile, rawClientOptions, rawDanmuConfig);
     console.log("targetAssFilePath", targetAssFile);
     inputDanmuFile = targetAssFile;
   }
@@ -305,14 +282,12 @@ const convert = async () => {
     hotProgressInput = await genHotProgress(inputDanmuFile.path, {
       width: videoWidth!,
       duration: duration!,
-      interval: clientOptions.value.hotProgressSample,
-      height: clientOptions.value.hotProgressHeight,
-      color: clientOptions.value.hotProgressColor,
-      fillColor: clientOptions.value.hotProgressFillColor,
+      interval: rawClientOptions.hotProgressSample,
+      height: rawClientOptions.hotProgressHeight,
+      color: rawClientOptions.hotProgressColor,
+      fillColor: rawClientOptions.hotProgressFillColor,
     });
   }
-
-  console.log("hotProgressInput", hotProgressInput);
 
   // 压制任务
   const output = await handleVideoMerge(
@@ -322,16 +297,16 @@ const convert = async () => {
       inputHotProgressFilePath: hotProgressInput,
       outputPath: outputPath,
     },
-    rawOptions,
+    rawClientOptions,
     rawFfmpegOptions,
   );
 
   fileList.value = [];
-  if (rawClientOptions.upload) {
+  if (rawClientOptions.autoUpload) {
     await upload(output, rawPresetOptions);
   }
 
-  if (rawClientOptions.openTargetDirectory) {
+  if (rawClientOptions.openFolder) {
     window.api.openPath(window.path.parse(outputPath).dir);
   }
 };
@@ -374,7 +349,7 @@ const genHotProgress = async (input: string, options: hotProgressOptions): Promi
 };
 
 // 处理xml文件
-const handleXmlFile = async (danmuFile: File, options: MergeOptions, danmuConfig: DanmuConfig) => {
+const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfig: DanmuConfig) => {
   notice.warning({
     title: "开始转换xml",
     duration: 3000,
@@ -402,7 +377,7 @@ const convertDanmu2Ass = async (
     input: string;
     output: string;
   },
-  options: MergeOptions,
+  options: ClientOptions,
   config: DanmuConfig,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -436,7 +411,7 @@ const handleVideoMerge = async (
     outputPath: string;
     inputHotProgressFilePath: string | undefined;
   },
-  options: MergeOptions,
+  options: ClientOptions,
   ffmpegOptions: FfmpegOptions,
 ) => {
   const { inputVideoFilePath, inputAssFilePath, outputPath, inputHotProgressFilePath } =
@@ -469,7 +444,7 @@ const createMergeVideoAssTask = async (
   assFilePath: string,
   hotProgressFilePath: string | undefined,
   outputPath: string,
-  options: MergeOptions,
+  options: ClientOptions,
   ffmpegOptions: FfmpegOptions,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {

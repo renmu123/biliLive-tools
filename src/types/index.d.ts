@@ -78,13 +78,79 @@ type CommonRoomConfig = {
   hotProgressFillColor?: string;
 };
 
-// 应用配置文件
+// webhook房间配置
 export type AppRoomConfig = {
   remark?: string;
   /**不为全局配置的选项 */
   noGlobal?: string[];
 } & CommonRoomConfig;
 
+// 工具页配置
+export type ToolConfig = {
+  /** 主页 */
+  home: {
+    /** 上传预设 */
+    uploadPresetId: string;
+    /** 弹幕转换预设 */
+    danmuPresetId: string;
+    /** ffmpeg预设 */
+    ffmpegPresetId: string;
+    /** 完成后移除源文件 */
+    removeOrigin: boolean;
+    /** 完成后打开文件夹 */
+    openFolder: boolean;
+    /** 完成后自动上传 */
+    autoUpload: boolean;
+    /** 高能进度条 */
+    hotProgress: boolean;
+    /** 采样间隔 */
+    hotProgressSample: number;
+    /** 高度 */
+    hotProgressHeight: number;
+    /** 默认颜色 */
+    hotProgressColor: string;
+    /** 覆盖颜色 */
+    hotProgressFillColor: string;
+  };
+  /** 上传配置 */
+  upload: {
+    /** 上传预设 */
+    uploadPresetId: string;
+  };
+  /** 弹幕转换配置 */
+  danmu: {
+    /** 弹幕转换预设 */
+    danmuPresetId: string;
+    /** 保存类型 */
+    saveRadio: 1 | 2;
+    /** 保存路径 */
+    savePath: string;
+    /** 完成后移除源文件 */
+    removeOrigin: boolean;
+    /** 完成后打开文件夹 */
+    openFolder: boolean;
+  };
+  video2mp4: {
+    /** 保存类型 */
+    saveRadio: 1 | 2;
+    /** 保存路径 */
+    savePath: string;
+    /** 保留源文件 */
+    saveOriginPath: boolean;
+    /** 覆盖已存在的文件 */
+    override: boolean;
+    /** 完成后移除源文件 */
+    removeOrigin: boolean;
+  };
+  videoMerge: {
+    /** 保存到原始文件夹 */
+    saveOriginPath: boolean;
+    /** 完成后移除源文件 */
+    removeOrigin: boolean;
+  };
+};
+
+// 全局配置
 export interface AppConfig {
   logLevel: LogLevel;
   ffmpegPath: string;
@@ -109,7 +175,8 @@ export interface AppConfig {
   };
   /** 当前使用的b站uid */
   uid?: number;
-  /** 当前使用的上传预设 */
+  /** 工具页配置 */
+  tool: ToolConfig;
 }
 
 export type LogLevel = ElectronLoGLevel;

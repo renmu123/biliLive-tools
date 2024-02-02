@@ -52,6 +52,42 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     "ffprobe.exe",
   ),
   biliUser: {},
+  tool: {
+    home: {
+      uploadPresetId: "default",
+      danmuPresetId: "default",
+      ffmpegPresetId: "default",
+      removeOrigin: false,
+      openFolder: false,
+      autoUpload: false,
+      hotProgress: false,
+      hotProgressSample: 30,
+      hotProgressHeight: 60,
+      hotProgressColor: "#f9f5f3",
+      hotProgressFillColor: "#333333",
+    },
+    upload: {
+      uploadPresetId: "default",
+    },
+    danmu: {
+      danmuPresetId: "default",
+      saveRadio: 1,
+      savePath: "",
+      removeOrigin: false,
+      openFolder: false,
+    },
+    video2mp4: {
+      saveRadio: 1,
+      savePath: "",
+      saveOriginPath: false,
+      override: false,
+      removeOrigin: false,
+    },
+    videoMerge: {
+      saveOriginPath: false,
+      removeOrigin: false,
+    },
+  },
 };
 
 function get<K extends keyof AppConfig>(key: K): AppConfig[K] {
