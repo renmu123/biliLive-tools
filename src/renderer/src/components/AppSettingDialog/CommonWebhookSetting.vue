@@ -276,10 +276,16 @@ const globalFieldsObj = defineModel<{
 const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());
 const { userList } = storeToRefs(useUserInfoStore());
 const userOptins = computed(() => {
-  return userList.value.map((user) => ({
-    value: user.uid,
-    label: `${user.name}(${user.uid})`,
-  }));
+  return [
+    {
+      value: "",
+      label: "无",
+    },
+    ...userList.value.map((user) => ({
+      value: user.uid,
+      label: `${user.name}(${user.uid})`,
+    })),
+  ];
 });
 
 const titleTip = ref(

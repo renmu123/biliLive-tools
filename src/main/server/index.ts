@@ -462,10 +462,7 @@ async function handle(options: Options) {
     }
     return;
   }
-  if (!uid) {
-    log.info(`${options.roomId}: uid is not set`);
-    return;
-  }
+
   log.debug("currentLive-end", currentLive);
 
   const currentPart = currentLive.parts.find((part) => part.filePath === options.filePath);
@@ -672,7 +669,20 @@ const addMergeAssMp4Task = (
   });
 };
 
-const newUploadTask = async (uid: number, mergePart: boolean, part: Part, config: BiliupConfig) => {
+/**
+ * 上传任务，如果mergePart为true，会有定时任务进行处理
+ */
+const newUploadTask = async (
+  uid: number | undefined,
+  mergePart: boolean,
+  part: Part,
+  config: BiliupConfig,
+) => {
+  if (!uid) {
+    log.info(`uid is not set`);
+    part.status = "error";
+    return;
+  }
   if (mergePart) return;
   part.status = "uploading";
   try {
