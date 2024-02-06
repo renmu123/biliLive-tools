@@ -28,6 +28,8 @@ import type {
 const app = express();
 app.use(express.json());
 
+type Platform = "bili-recorder" | "blrec" | "custom";
+
 export interface Part {
   partId: string;
   startTime?: number;
@@ -37,7 +39,7 @@ export interface Part {
 }
 export interface Live {
   eventId: string;
-  platform: "bili-recorder" | "blrec";
+  platform: Platform;
   startTime?: number;
   roomId: number;
   videoName: string;
@@ -52,7 +54,22 @@ export interface Options {
   time: string;
   username: string;
   title: string;
-  platform: "bili-recorder" | "blrec";
+  platform: Platform;
+}
+
+interface CustomEvent {
+  /** 如果你想使用断播续传功能，请在上一个`FileClosed`事件后在时间间隔内发送`FileOpening`事件 */
+  event: "FileOpening" | "FileClosed";
+  /** 视频文件的绝对路径，如果有弹幕，请保存文件名一致，仅支持`xml`文件 */
+  filePath: string;
+  /** 房间号，用于断播续传需要 */
+  roomId: number;
+  /** 用于标题格式化的时间，示例："2021-05-14T17:52:54.946" */
+  time: string;
+  /** 标题，用于格式化视频标题 */
+  title: string;
+  /** 主播名称，用于格式化视频标题 */
+  username: string;
 }
 
 const liveData: Live[] = [];
@@ -111,6 +128,25 @@ app.post("/blrec", async function (req, res) {
       title: masterRes.title,
       username: userRes.info.uname,
       platform: "blrec",
+    });
+  }
+  res.send("ok");
+});
+
+app.post("/custom", async function (req, res) {
+  const appConfig = getAppConfig();
+  log.info("custom: webhook", req.body);
+  const event: CustomEvent = req.body;
+
+  if (appConfig.webhook.open && (event.event === "FileOpening" || event.event === "FileClosed")) {
+    handle({
+      event: event.event,
+      filePath: event.filePath,
+      roomId: event.roomId,
+      time: event.time,
+      title: event.title,
+      username: event.username,
+      platform: "custom",
     });
   }
   res.send("ok");

@@ -55,6 +55,33 @@
 如果在主播录制后，或反复切换开关，可能会有奇怪的错误。  
 如果出现bug，将设置中的日志等级调整为`debug`后复现然后进行反馈。
 
+## 自定义Webhook
+
+如果你的应用想接入应用webhook相关功能，你可以自行构造参数并调用接口，采用`post`方法，端口为`/custom`，接收后立刻返回code=200。
+
+参数：
+`event`: `FileClosed`|`FileOpening` (如果你想使用断播续传功能，请在上一个`FileClosed`事件后在时间间隔内发送`FileOpening`事件)
+`filePath`: 视频文件的绝对路径，如果有弹幕，请保存文件名一致，仅支持`xml`文件
+`roomId`: 数字类型，房间号，用于断播续传需要
+`time`: 用于标题格式化的时间，示例："2021-05-14T17:52:54.946"
+`title`: 标题，用于格式化视频标题
+`username`：主播名称，用于格式化视频标题
+
+示例：
+
+```bash
+curl --location 'http://127.0.0.1:18010/custom' \
+--header 'Content-Type: application/json' \
+--data '{
+    "event":"FileClosed",
+    "filePath":"D:\\aa.mp4",
+    "roomId": 93589,
+    "time":"2021-05-14T17:52:54.946",
+    "title":"我是猪",
+    "username":"djw"
+}'
+```
+
 # 赞赏
 
 如果本项目对你有帮助，请我喝瓶快乐水吧，有助于项目更好维护。  
