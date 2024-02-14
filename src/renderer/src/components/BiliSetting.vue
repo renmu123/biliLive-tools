@@ -190,6 +190,7 @@
       <n-button v-if="options.id !== 'default'" ghost quaternary type="error" @click="deletePreset"
         >删除</n-button
       >
+      <n-button type="primary" style="margin-left: 10px" @click="rename">重命名</n-button>
       <n-button type="primary" style="margin-left: 10px" @click="saveAnotherPreset"
         >另存为</n-button
       >
@@ -285,7 +286,15 @@ const handleTagChange = async (tags: string[]) => {
 const nameModelVisible = ref(false);
 const tempPresetName = ref("");
 const saveAnotherPreset = () => {
+  isRename.value = false;
   tempPresetName.value = "";
+  nameModelVisible.value = true;
+};
+
+const isRename = ref(false);
+const rename = () => {
+  tempPresetName.value = options.value.name;
+  isRename.value = true;
   nameModelVisible.value = true;
 };
 
@@ -298,7 +307,7 @@ const saveAnotherPresetConfirm = async () => {
     return;
   }
   const preset = cloneDeep(options.value);
-  preset.id = uuid();
+  if (!isRename.value) preset.id = uuid();
   preset.name = tempPresetName.value;
 
   await _savePreset(preset);
