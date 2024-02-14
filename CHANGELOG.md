@@ -1,3 +1,9 @@
+# 0.8.1
+
+## Bug fix
+
+1. 修复未勾选“高能进度条”时，ass文件无法用于压制的bug
+
 # 0.8.0
 
 ## Breaking change

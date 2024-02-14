@@ -219,12 +219,12 @@ const preHandle = async (
     });
     return false;
   }
-  if (!hasXmlFile) {
+  if (clientOptions.hotProgress && !hasXmlFile) {
     notice.error({
       title: "只有xml文件支持高能进度条",
       duration: 3000,
     });
-    return;
+    return false;
   }
   // 弹幕处理
   const videoMeta = await window.api.readVideoMeta(videoFile.path);
