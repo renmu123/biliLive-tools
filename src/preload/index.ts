@@ -80,9 +80,9 @@ export const api = {
     kill: (taskId: string) => {
       return ipcRenderer.invoke("task:kill", taskId);
     },
-    interrupt: (taskId: string) => {
-      return ipcRenderer.invoke("task:interrupt", taskId);
-    },
+    // interrupt: (taskId: string) => {
+    //   return ipcRenderer.invoke("task:interrupt", taskId);
+    // },
     list: () => {
       return ipcRenderer.invoke("task:list");
     },

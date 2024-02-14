@@ -125,7 +125,12 @@
 
     <n-modal v-model:show="nameModelVisible">
       <n-card style="width: 600px" :bordered="false" role="dialog" aria-modal="true">
-        <n-input v-model:value="tempPresetName" placeholder="请输入预设名称" maxlength="15" />
+        <n-input
+          v-model:value="tempPresetName"
+          placeholder="请输入预设名称"
+          maxlength="15"
+          @keyup.enter="saveConfirm"
+        />
         <template #footer>
           <div style="text-align: right">
             <n-button @click="nameModelVisible = false">取消</n-button>
