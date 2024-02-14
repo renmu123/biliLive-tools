@@ -253,12 +253,16 @@ export const mergeAssMp4 = async (
             log.info("mergrAssMp4, remove ass origin file", assFile);
             await trashItem(assFile);
           }
-          if (files.hotProgressFilePath) {
-            if (await pathExists(files.hotProgressFilePath)) {
-              log.info("mergrAssMp4, remove hot progress origin file", assFile);
-              await trashItem(files.hotProgressFilePath);
-            }
-          }
+        }
+        if (files.hotProgressFilePath && (await pathExists(files.hotProgressFilePath))) {
+          log.info("mergrAssMp4, remove hot progress origin file", assFile);
+          await fs.unlink(files.hotProgressFilePath);
+        }
+      },
+      onError: async () => {
+        if (files.hotProgressFilePath && (await pathExists(files.hotProgressFilePath))) {
+          log.info("mergrAssMp4, remove hot progress origin file", assFile);
+          await fs.unlink(files.hotProgressFilePath);
         }
       },
     },

@@ -41,7 +41,7 @@
               @click="handlePause(item.taskId)"
               >暂停</n-button
             >
-            <n-button
+            <!-- <n-button
               v-if="
                 item.action.includes('interrupt') &&
                 (item.status === 'running' || item.status === 'paused')
@@ -51,7 +51,7 @@
               title="中断会保留已处理进度"
               @click="handleInterrupt(item.taskId)"
               >中断</n-button
-            >
+            > -->
             <n-button
               v-if="
                 (item.action.includes('kill') && item.status === 'running') ||
@@ -268,14 +268,14 @@ const handlePause = (taskId: string) => {
   getQuenu();
 };
 
-const handleInterrupt = async (taskId: string) => {
-  const status = await confirm.warning({
-    content: "确定要中断任务吗？中断会保留进度",
-  });
-  if (!status) return;
-  window.api.task.interrupt(taskId);
-  getQuenu();
-};
+// const handleInterrupt = async (taskId: string) => {
+//   const status = await confirm.warning({
+//     content: "确定要中断任务吗？中断会保留进度",
+//   });
+//   if (!status) return;
+//   window.api.task.interrupt(taskId);
+//   getQuenu();
+// };
 
 const handleKill = async (taskId: string) => {
   const status = await confirm.warning({

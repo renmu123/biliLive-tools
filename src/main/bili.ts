@@ -332,12 +332,13 @@ export const handlers = {
       event.sender.send("biliApi:login-error", res);
     });
     tv.on("scan", (res) => {
-      console.log(res);
+      console.log("scan", res);
     });
     tv.on("completed", async (res) => {
       const data = res.data;
       const user = await format(data);
       await writeUser(user);
+      console.log("login-completed", res);
       event.sender.send("biliApi:login-completed", res);
     });
     return tv.login();

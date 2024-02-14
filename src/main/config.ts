@@ -118,19 +118,21 @@ export const getAppConfig = (): AppConfig => {
   const data = config.read();
 
   // 兼容旧版本，0.8版本增加
-  for (const key of Object.keys(data.webhook.rooms)) {
-    if (!data.webhook.rooms[key].noGlobal) {
-      data.webhook.rooms[key].noGlobal = [
-        "minSize",
-        "title",
-        "uploadPresetId",
-        "danmu",
-        "ffmpegPreset",
-        "danmuPreset",
-        "autoPartMerge",
-        "partMergeMinute",
-        "uid",
-      ];
+  if (data?.webhook?.rooms) {
+    for (const key of Object.keys(data.webhook.rooms)) {
+      if (!data.webhook.rooms[key].noGlobal) {
+        data.webhook.rooms[key].noGlobal = [
+          "minSize",
+          "title",
+          "uploadPresetId",
+          "danmu",
+          "ffmpegPreset",
+          "danmuPreset",
+          "autoPartMerge",
+          "partMergeMinute",
+          "uid",
+        ];
+      }
     }
   }
 

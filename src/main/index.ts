@@ -399,7 +399,7 @@ const trashItem = async (_event: IpcMainInvokeEvent, path: string) => {
 
 const checkUpdate = async () => {
   const res = await fetch(
-    "https://githubraw.eif93.love/renmu123/biliLive-tools/master/package.json",
+    "https://githubraw.irenmu.com/renmu123/biliLive-tools/master/package.json",
   );
   const data = await res.json();
   const latestVersion = data.version;
