@@ -1,6 +1,6 @@
 {
   "name": "biliLive-tools",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "B站直播录制处理工具",
   "main": "./out/main/index.js",
   "author": "renmu123",
