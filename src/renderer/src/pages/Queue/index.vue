@@ -1,6 +1,12 @@
 <template>
   <div class="container">
-    <div style="display: flex; justify-content: space-between; align-items: center">
+    <div style="display: flex; align-items: center">
+      <n-select
+        v-model:value="filterType"
+        :options="typeOptions"
+        style="width: 140px; margin-right: 10px"
+        size="small"
+      />
       <n-checkbox-group v-model:value="selectedStatus">
         <n-checkbox value="pending">等待中</n-checkbox>
         <n-checkbox value="running">运行中</n-checkbox>
@@ -9,7 +15,12 @@
         <n-checkbox value="error">错误</n-checkbox>
       </n-checkbox-group>
 
-      <n-button v-if="queue.length !== 0" size="small" type="error" @click="handleRemoveEndTasks"
+      <n-button
+        v-if="queue.length !== 0"
+        size="small"
+        type="error"
+        style="margin-left: auto"
+        @click="handleRemoveEndTasks"
         >移除已完成任务记录</n-button
       >
     </div>
@@ -162,8 +173,32 @@ interface Task {
 
 const queue = ref<Task[]>([]);
 const displayQueue = computed(() => {
-  return queue.value.filter((item) => selectedStatus.value.includes(item.status));
+  const data = queue.value.filter((item) => selectedStatus.value.includes(item.status));
+  if (filterType.value) {
+    return data.filter((item) => item.type === filterType.value);
+  }
+  return data;
 });
+
+const filterType = ref("");
+const typeOptions = ref([
+  {
+    value: "",
+    label: "全部",
+  },
+  {
+    value: TaskType.ffmpeg,
+    label: "FFmpeg任务",
+  },
+  {
+    value: TaskType.bili,
+    label: "上传任务",
+  },
+  {
+    value: TaskType.danmu,
+    label: "弹幕任务",
+  },
+]);
 
 const statusMap: {
   [key in Task["status"]]: {
