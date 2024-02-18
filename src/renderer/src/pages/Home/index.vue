@@ -275,12 +275,17 @@ const convert = async () => {
   const data = await preHandle(files, rawClientOptions, rawDanmuConfig, rawPresetOptions);
   if (!data) return;
   let { inputDanmuFile } = data;
+  const rawInputDanmuFile = inputDanmuFile;
   const { inputVideoFile, outputPath, videoWidth, duration } = data;
   // console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
 
   if (inputDanmuFile.ext === ".xml") {
     // xml文件转换
-    const targetAssFile = await handleXmlFile(inputDanmuFile, rawClientOptions, rawDanmuConfig);
+    const targetAssFile = await handleXmlFile(
+      inputDanmuFile,
+      { ...rawClientOptions, removeOrigin: false },
+      rawDanmuConfig,
+    );
     console.log("targetAssFilePath", targetAssFile);
     inputDanmuFile = targetAssFile;
   }
@@ -307,16 +312,20 @@ const convert = async () => {
       inputAssFilePath: inputDanmuFile.path,
       inputHotProgressFilePath: hotProgressInput,
       outputPath: outputPath,
+      rawInputDanmuFile: rawInputDanmuFile,
     },
     rawClientOptions,
     rawFfmpegOptions,
   );
 
-  fileList.value = [];
   if (rawClientOptions.autoUpload) {
     await upload(output, rawPresetOptions);
   }
 
+  if (rawClientOptions.removeOrigin) {
+    window.api.trashItem(inputVideoFile.path);
+    window.api.trashItem(rawInputDanmuFile.path);
+  }
   if (rawClientOptions.openFolder) {
     window.api.openPath(window.path.parse(outputPath).dir);
   }
@@ -421,6 +430,7 @@ const handleVideoMerge = async (
     inputAssFilePath: string;
     outputPath: string;
     inputHotProgressFilePath: string | undefined;
+    rawInputDanmuFile: File;
   },
   options: ClientOptions,
   ffmpegOptions: FfmpegOptions,
@@ -444,6 +454,10 @@ const handleVideoMerge = async (
     );
   } catch (err) {
     throw new Error(`转换失败：\n${err}`);
+  } finally {
+    if (convertOptions.rawInputDanmuFile.ext === ".xml") {
+      window.api.trashItem(convertOptions.inputAssFilePath);
+    }
   }
 
   return output;
@@ -467,11 +481,12 @@ const createMergeVideoAssTask = async (
           outputPath: outputPath,
           hotProgressFilePath: hotProgressFilePath,
         },
-        options,
+        { ...options, removeOrigin: false },
         ffmpegOptions,
       )
       .then(({ taskId, output }: { taskId?: string; output?: string }) => {
         if (!taskId) return resolve(output as string);
+        fileList.value = [];
 
         window.api.task.on(taskId, "end", (data) => {
           console.log("end", data);
