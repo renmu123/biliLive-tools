@@ -303,7 +303,7 @@ const handleRemoveRecord = (taskId: string) => {
   window.api.task.remove(taskId);
   notice.success({
     title: "删除记录成功",
-    duration: 2000,
+    duration: 1000,
   });
   getQuenu();
 };
@@ -316,7 +316,7 @@ const handleRemoveEndTasks = async () => {
   }
   notice.success({
     title: "移除成功",
-    duration: 2000,
+    duration: 1000,
   });
   getQuenu();
 };

@@ -26,7 +26,6 @@
                 </n-space>
               </n-radio-group> -->
             <n-checkbox v-model:checked="clientOptions.removeOrigin"> 完成后移除源文件 </n-checkbox>
-
             <n-checkbox v-model:checked="clientOptions.openFolder"> 完成后打开文件夹 </n-checkbox>
             <n-checkbox v-model:checked="clientOptions.autoUpload"> 完成后自动上传 </n-checkbox>
             <n-checkbox v-model:checked="clientOptions.hotProgress"> 高能进度条 </n-checkbox>
@@ -249,6 +248,7 @@ const preHandle = async (
 
   // 视频验证
   const file = await window.api.showSaveDialog({
+    defaultPath: `${videoFile.name}-弹幕版.mp4`,
     filters: [
       { name: "视频文件", extensions: ["mp4"] },
       { name: "所有文件", extensions: ["*"] },
