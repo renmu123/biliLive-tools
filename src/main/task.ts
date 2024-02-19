@@ -404,7 +404,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
       emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
     });
     command.emitter.on("progress", (event: any) => {
-      console.debug("progress", event);
+      // console.debug("progress", event);
       if (event.event === "download") {
         const progress = event.progress.progress * 100;
         this.progress = progress;
