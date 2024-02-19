@@ -198,6 +198,10 @@ const typeOptions = ref([
     value: TaskType.danmu,
     label: "弹幕任务",
   },
+  {
+    value: TaskType.biliDownload,
+    label: "下载任务",
+  },
 ]);
 
 const statusMap: {
