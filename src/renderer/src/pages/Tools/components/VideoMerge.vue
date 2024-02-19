@@ -58,23 +58,23 @@ const convert = async () => {
     return;
   }
   let filePath!: string;
+  const { dir, name } = fileList.value[0];
+  filePath = window.path.join(dir, `${name}-合并.mp4`);
+
   if (options.saveOriginPath) {
-    const { dir, name } = fileList.value[0];
-    filePath = window.path.join(dir, `${name}-mergered.mp4`);
     if (await window.api.exits(filePath)) {
       notice.error({
         title: `${filePath}-文件已存在，请手动选择路径`,
         duration: 3000,
       });
-      console.log("文件已存在，请手动选择路径");
-      const file = await getDir();
+      const file = await getDir(filePath);
       if (!file) {
         return;
       }
       filePath = file;
     }
   } else {
-    const file = await getDir();
+    const file = await getDir(filePath);
     if (!file) {
       return;
     }
@@ -97,8 +97,9 @@ const convert = async () => {
   }
 };
 
-async function getDir() {
+async function getDir(defaultPath: string) {
   const path = await window.api.showSaveDialog({
+    defaultPath: defaultPath,
     filters: [
       { name: "视频文件", extensions: ["mp4"] },
       { name: "所有文件", extensions: ["*"] },
