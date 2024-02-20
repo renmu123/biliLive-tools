@@ -15,7 +15,9 @@
               <template #label>
                 <span class="inline-flex">
                   删除至回收站
-                  <Tip tip="关闭后若使用“删除源文件”等选项，文件将被直接删除，不会进入回收站"></Tip>
+                  <Tip
+                    tip="关闭后若使用“删除源文件”等选项，文件将被直接删除，不会进入回收站，如果使用的文件为smb等远程协议挂载，可能会删除失败"
+                  ></Tip>
                 </span>
               </template>
               <n-switch v-model:value="config.trash" />
@@ -53,18 +55,28 @@
                 v-model:value="config.ffmpegPath"
                 placeholder="请输入ffmpeg可执行文件路径，设置为空使用环境变量，需要重启软件"
               />
-              <n-button type="primary" style="margin-left: 10px" @click="selectFile('ffmpeg')">
-                选择文件
-              </n-button>
+              <n-icon
+                style="margin-left: 10px"
+                size="28"
+                class="pointer"
+                @click="selectFile('ffmpeg')"
+              >
+                <FolderOpenOutline />
+              </n-icon>
             </n-form-item>
             <n-form-item label="ffprobe路径">
               <n-input
                 v-model:value="config.ffprobePath"
                 placeholder="请输入ffprobe可执行文件路径，设置为空使用环境变量，需要重启软件"
               />
-              <n-button type="primary" style="margin-left: 10px" @click="selectFile('ffprobe')">
-                选择文件
-              </n-button>
+              <n-icon
+                style="margin-left: 10px"
+                size="28"
+                class="pointer"
+                @click="selectFile('ffprobe')"
+              >
+                <FolderOpenOutline />
+              </n-icon>
             </n-form-item>
           </n-form>
         </n-tab-pane>
