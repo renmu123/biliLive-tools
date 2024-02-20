@@ -89,14 +89,15 @@ const convert = async () => {
     return { input: file.path };
   });
   const config = (await window.api.danmu.getPreset(presetId)).config;
-  window.api.danmu.convertXml2Ass(files, config, deepRaw(options));
+  await window.api.danmu.convertXml2Ass(files, config, deepRaw(options));
+  const dir = deepRaw(fileList.value[0]).dir;
   fileList.value = [];
 
   if (options.openFolder) {
     if (options.saveRadio === 2) {
       window.api.openPath(deepRaw(options).savePath as string);
     } else {
-      window.api.openPath(deepRaw(fileList.value[0]).dir);
+      window.api.openPath(dir);
     }
   }
 };

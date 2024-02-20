@@ -51,6 +51,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("exits", exits);
   ipcMain.handle("trashItem", trashItem);
   ipcMain.handle("common:relaunch", relaunch);
+  ipcMain.handle("common:showItemInFolder", showItemInFolder);
 
   // 视频处理
   ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
@@ -273,6 +274,10 @@ export const relaunch = async () => {
     app.relaunch();
     app.exit(0);
   }
+};
+
+const showItemInFolder = async (_event: IpcMainInvokeEvent, path: string) => {
+  shell.showItemInFolder(path);
 };
 
 const gotTheLock = app.requestSingleInstanceLock();

@@ -178,6 +178,9 @@ export const api = {
     relaunch: () => {
       return ipcRenderer.invoke("common:relaunch");
     },
+    showItemInFolder: (path: string) => {
+      return ipcRenderer.invoke("common:showItemInFolder", path);
+    },
   },
   bili: {
     // 预设

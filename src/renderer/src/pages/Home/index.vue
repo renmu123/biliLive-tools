@@ -327,7 +327,7 @@ const convert = async () => {
     window.api.trashItem(rawInputDanmuFile.path);
   }
   if (rawClientOptions.openFolder) {
-    window.api.openPath(window.path.parse(outputPath).dir);
+    window.api.common.showItemInFolder(outputPath);
   }
 };
 
