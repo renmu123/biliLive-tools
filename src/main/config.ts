@@ -88,6 +88,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       saveOriginPath: false,
       removeOrigin: false,
     },
+    download: {
+      savePath: app.getPath("downloads"),
+    },
   },
 };
 

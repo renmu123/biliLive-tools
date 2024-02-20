@@ -109,6 +109,7 @@ const openSetting = () => {
 
 async function getDir() {
   const path = await window.api.openDirectory();
+  if (!path) return;
   options.savePath = path;
 }
 </script>

@@ -57,7 +57,7 @@
               />
               <n-icon
                 style="margin-left: 10px"
-                size="28"
+                size="26"
                 class="pointer"
                 @click="selectFile('ffmpeg')"
               >
@@ -71,7 +71,7 @@
               />
               <n-icon
                 style="margin-left: 10px"
-                size="28"
+                size="26"
                 class="pointer"
                 @click="selectFile('ffprobe')"
               >
@@ -114,7 +114,7 @@
               />
               <n-icon
                 style="margin-left: 10px"
-                size="28"
+                size="26"
                 class="pointer"
                 @click="selectFolder('recorder')"
               >

@@ -350,7 +350,7 @@ export const api = {
   },
 
   // 通用函数
-  openDirectory: () => {
+  openDirectory: (): Promise<string | undefined> => {
     return ipcRenderer.invoke("dialog:openDirectory");
   },
   openFile: (options: OpenDialogOptions): Promise<string[] | undefined> => {
