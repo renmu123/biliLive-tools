@@ -233,6 +233,10 @@ export class FFmpegTask extends AbstractTask {
   // }
   kill() {
     if (this.status === "completed" || this.status === "error") return;
+    if (isWin32) {
+      // @ts-ignore
+      ntsuspend.resume(this.command.ffmpegProc.pid);
+    }
     // @ts-ignore
     this.command.ffmpegProc.stdin.write("q");
     log.warn(`task ${this.taskId} interrupt`);
