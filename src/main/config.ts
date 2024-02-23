@@ -106,13 +106,11 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       },
       mail: {
         host: "",
-        port: 465,
-        secure: true,
-        auth: {
-          user: "",
-          pass: "",
-        },
+        port: "465",
+        user: "",
+        pass: "",
         to: "",
+        secure: true,
       },
     },
   },

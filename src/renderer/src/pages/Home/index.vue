@@ -4,7 +4,7 @@
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
         <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
-        <n-button type="primary" @click="testNofity"> 测试发送通知 </n-button>
+        <!-- <n-button type="primary" @click="testNofity"> 测试发送通知 </n-button> -->
         <!-- <n-button type="primary" @click="hotProgressConvert"> 测试高能弹幕进度条生成 </n-button> -->
       </div>
     </div>
@@ -628,9 +628,9 @@ window.api.onBiliUploadClose((_event, code, pathArray) => {
   }
 });
 
-const testNofity = () => {
-  window.api.task.notify("我是标题", "我是内容请31312313213");
-};
+// const testNofity = () => {
+//   window.api.task.notify("我是标题", "我是内容请31312313213");
+// };
 </script>
 
 <style scoped lang="less">

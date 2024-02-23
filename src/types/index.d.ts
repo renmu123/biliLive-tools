@@ -157,6 +157,23 @@ export type ToolConfig = {
 };
 
 export type NotificationTaskStatus = "success" | "failure";
+export interface NotificationMailConfig {
+  /** 邮件服务器 */
+  host: string;
+  /** 端口 */
+  port: string;
+  /** 邮箱账户 */
+  user: string;
+  /** 授权密码 */
+  pass: string;
+  /** 接收者 */
+  to: string;
+  /** 是否使用安全连接 */
+  secure: boolean;
+}
+export interface NotificationServerConfig {
+  key: string;
+}
 
 // 全局配置
 export interface AppConfig {
@@ -201,25 +218,8 @@ export interface AppConfig {
       // 通知类型，支持server酱和邮件
       type?: NotificationType;
       // server酱key
-      server: {
-        key: string;
-      };
-      mail: {
-        /** 邮件服务器 */
-        host: string;
-        /** 端口 */
-        port: number;
-        /** 安全连接,true for 465, false for other ports */
-        secure: boolean;
-        auth: {
-          /** 邮箱账户 */
-          user: string;
-          /** 授权密码 */
-          pass: string;
-        };
-        /** 接收者 */
-        to: string;
-      };
+      server: NotificationServerConfig;
+      mail: NotificationMailConfig;
     };
   };
 }

@@ -6,7 +6,57 @@
         <n-select v-model:value="config.notification.setting.type" :options="typeOptions" />
       </n-form-item>
 
-      <template v-if="config.notification.setting.type === NotificationType.mail"></template>
+      <template v-if="config.notification.setting.type === NotificationType.mail">
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex"> 服务器地址 </span>
+            <Tip tip="请自行查询并配置服务商的smtp服务器"></Tip>
+          </template>
+          <n-input
+            v-model:value="config.notification.setting.mail.host"
+            placeholder="请输入服务器地址"
+          ></n-input>
+        </n-form-item>
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex"> 端口号 </span>
+          </template>
+          <n-input
+            v-model:value="config.notification.setting.mail.port"
+            placeholder="请输入端口号"
+          ></n-input> </n-form-item
+        ><n-form-item>
+          <template #label>
+            <span class="inline-flex"> TLS </span>
+          </template>
+          <n-switch v-model:value="config.notification.setting.mail.secure" /> </n-form-item
+        ><n-form-item>
+          <template #label>
+            <span class="inline-flex"> 邮箱账户 </span>
+          </template>
+          <n-input
+            v-model:value="config.notification.setting.mail.user"
+            placeholder="请输入邮箱账户"
+          ></n-input> </n-form-item
+        ><n-form-item>
+          <template #label>
+            <span class="inline-flex"> 授权码 </span>
+          </template>
+          <n-input
+            v-model:value="config.notification.setting.mail.pass"
+            placeholder="请输入授权码"
+            type="password"
+            show-password-on="click"
+          ></n-input> </n-form-item
+        ><n-form-item>
+          <template #label>
+            <span class="inline-flex"> 收件人邮箱 </span>
+          </template>
+          <n-input
+            v-model:value="config.notification.setting.mail.to"
+            placeholder="请输入收件人邮箱"
+          ></n-input> </n-form-item
+      ></template>
       <template v-else-if="config.notification.setting.type === NotificationType.server">
         <n-form-item>
           <template #label>

@@ -534,11 +534,11 @@ const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) => {
   let desp = "";
   switch (event) {
     case "success":
-      title = `${task.name}结束`;
+      title = `结束：${task.name}`;
       desp = `${task.name}结束\n\n开始时间：${new Date(task.startTime!).toLocaleString()}\n\n输出：${task.output}`;
       break;
     case "failure":
-      title = `${task.name}出错`;
+      title = `错误：${task.name}`;
       desp = `${task.name}出错\n\n开始时间：${new Date(task.startTime!).toLocaleString()}\n\n输出：${task.output}`;
       break;
   }

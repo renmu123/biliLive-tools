@@ -1,8 +1,11 @@
+import nodemailer from "nodemailer";
+
 import log from "./utils/log";
 import { IpcMainInvokeEvent } from "electron";
 import { getAppConfig } from "./config";
+import type { NotificationMailConfig, NotificationServerConfig } from "../types";
 
-export function sendByServer(title: string, desp: string, options: { key: string }) {
+export function sendByServer(title: string, desp: string, options: NotificationServerConfig) {
   const url = `https://sctapi.ftqq.com/${options.key}.send`;
   const data = {
     title: title,
@@ -17,8 +20,27 @@ export function sendByServer(title: string, desp: string, options: { key: string
   });
 }
 
-export function sendByMail() {
-  //
+export async function sendByMail(title: string, desp: string, options: NotificationMailConfig) {
+  console.log("sendByMail", title, desp, options);
+  const transporter = nodemailer.createTransport({
+    host: options.host,
+    port: Number(options.port),
+    secure: options.secure,
+    auth: {
+      user: options.user,
+      pass: options.pass,
+    },
+  });
+
+  const info = await transporter.sendMail({
+    from: `"${options.user}" <${options.user}>`, // sender address
+    to: options.to, // list of receivers
+    subject: title, // Subject line
+    text: desp, // plain text body
+    // html: "<b>Hello world?</b>", // html body
+  });
+
+  log.info("Message sent: %s", info.messageId);
 }
 
 export function send(title: string, desp: string) {
@@ -30,7 +52,7 @@ export function send(title: string, desp: string) {
       sendByServer(title, desp, appConfig?.notification?.setting?.server);
       break;
     case "mail":
-      sendByMail();
+      sendByMail(title, desp, appConfig?.notification?.setting?.mail);
       break;
   }
 }
