@@ -38,71 +38,74 @@
             >
           </div>
           <div class="btns">
-            <n-button
+            <n-icon
               v-if="item.status === 'pending' || item.status === 'paused'"
-              type="primary"
-              size="small"
+              :size="20"
+              class="btn pointer"
+              title="开始"
               @click="handleStart(item.taskId, item)"
-              >开始</n-button
             >
-            <n-button
+              <PlaySharp />
+            </n-icon>
+            <n-icon
               v-if="item.action.includes('pause') && item.status === 'running'"
-              type="primary"
-              size="small"
+              :size="20"
+              class="btn pointer"
+              title="暂停"
               @click="handlePause(item.taskId)"
-              >暂停</n-button
             >
-            <!-- <n-button
-              v-if="
-                item.action.includes('interrupt') &&
-                (item.status === 'running' || item.status === 'paused')
-              "
-              type="error"
-              size="small"
-              title="中断会保留已处理进度"
-              @click="handleInterrupt(item.taskId)"
-              >中断</n-button
-            > -->
-            <n-button
+              <PauseSharp />
+            </n-icon>
+            <n-icon
               v-if="
                 (item.action.includes('kill') && item.status === 'running') ||
                 item.status === 'paused'
               "
-              type="error"
-              size="small"
+              :size="20"
+              class="btn pointer"
+              title="中止"
               @click="handleKill(item.taskId)"
-              >中止</n-button
             >
-            <n-button
+              <TrashOutline />
+            </n-icon>
+            <n-icon
               v-if="item.status === 'completed' && item.type !== TaskType.bili && item.output"
-              type="primary"
-              size="small"
+              :size="20"
+              class="btn pointer"
+              title="打开文件夹"
               @click="handleOpenDir(item)"
-              >打开文件夹</n-button
             >
-            <n-button
+              <FolderOpenOutlined />
+            </n-icon>
+            <n-icon
               v-if="item.status === 'completed' && item.type !== TaskType.bili && item.output"
-              type="primary"
-              size="small"
+              :size="20"
+              class="btn pointer"
+              title="打开文件"
               @click="handleOpenFile(item)"
-              >打开文件</n-button
             >
-            <n-button
+              <FileOpenOutlined />
+            </n-icon>
+            <n-icon
               v-if="item.status === 'completed' && item.type === TaskType.bili && item.output"
-              type="primary"
-              size="small"
+              :size="20"
+              class="btn pointer"
+              title="打开稿件"
               @click="openExternal(item)"
-              >打开稿件</n-button
             >
-            <n-button
+              <LiveTvOutlined />
+            </n-icon>
+            <n-icon
               v-if="
                 item.status === 'completed' || item.status === 'error' || item.status === 'pending'
               "
-              size="small"
-              title="已完成任务移除只是删除记录"
+              :size="20"
+              class="btn pointer"
+              title="删除记录"
               @click="handleRemoveRecord(item.taskId)"
-              >删除任务</n-button
             >
+              <CloseOutline />
+            </n-icon>
           </div>
         </div>
         <n-progress
@@ -150,6 +153,8 @@
 </template>
 
 <script setup lang="ts">
+import { PlaySharp, PauseSharp, TrashOutline, CloseOutline } from "@vicons/ionicons5";
+import { FileOpenOutlined, FolderOpenOutlined, LiveTvOutlined } from "@vicons/material";
 import { useConfirm } from "@renderer/hooks";
 import { useQueueStore } from "@renderer/stores";
 import { formatSeconds } from "@renderer/utils";
@@ -326,7 +331,7 @@ const handleKill = async (taskId: string) => {
 };
 
 const handleOpenDir = (item: Task) => {
-  window.api.openPath(window.path.parse(item.output!).dir);
+  window.api.common.showItemInFolder(item.output!);
 };
 const handleOpenFile = (item: Task) => {
   window.api.openPath(item.output!);
@@ -414,7 +419,15 @@ getQuenu();
     .btns {
       flex: none;
       display: flex;
-      gap: 10px;
+      gap: 4px;
+      .btn {
+        padding: 5px;
+      }
+      .btn:hover {
+        background: #e2e6ea;
+        border-radius: 50%;
+        // padding: 5px;
+      }
     }
   }
 }

@@ -148,6 +148,11 @@ export type ToolConfig = {
     /** 完成后移除源文件 */
     removeOrigin: boolean;
   };
+  /** 下载页 */
+  download: {
+    /** 保存路径 */
+    savePath: string;
+  };
 };
 
 // 全局配置

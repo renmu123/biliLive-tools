@@ -178,6 +178,9 @@ export const api = {
     relaunch: () => {
       return ipcRenderer.invoke("common:relaunch");
     },
+    showItemInFolder: (path: string) => {
+      return ipcRenderer.invoke("common:showItemInFolder", path);
+    },
   },
   bili: {
     // 预设
@@ -347,7 +350,7 @@ export const api = {
   },
 
   // 通用函数
-  openDirectory: () => {
+  openDirectory: (): Promise<string | undefined> => {
     return ipcRenderer.invoke("dialog:openDirectory");
   },
   openFile: (options: OpenDialogOptions): Promise<string[] | undefined> => {

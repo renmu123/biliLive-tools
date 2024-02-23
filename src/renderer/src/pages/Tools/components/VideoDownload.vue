@@ -11,37 +11,29 @@
         :style="{ width: '80%' }"
         placeholder="请输入b站视频链接，比如：https://www.bilibili.com/video/BV1u94y1K7nr"
       />
-      <n-button type="primary" ghost @click="parse"> 解析 </n-button>
-      <n-button v-if="selectCids.length" type="primary" ghost @click="download"> 下载 </n-button>
+      <n-button type="primary" ghost @click="download"> 下载 </n-button>
     </div>
-
-    <div v-if="archiveDeatil.title" class="detail">
-      <p>标题：{{ archiveDeatil.title }}</p>
-      <p>分P：</p>
-      <n-checkbox-group v-model:value="selectCids">
-        <n-space item-style="display: flex;" align="center">
-          <n-checkbox
-            v-for="item in archiveDeatil.pages"
-            :key="item.cid"
-            :label="item.part"
-            :value="item.cid"
-          />
-        </n-space>
-      </n-checkbox-group>
-    </div>
+    <DownloadConfirm
+      v-model:visible="visible"
+      v-model:selectIds="selectCids"
+      :detail="archiveDeatil"
+      @confirm="confirm"
+    ></DownloadConfirm>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useUserInfoStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
+import DownloadConfirm from "@renderer/components/DownloadConfirm.vue";
+import { sanitizeFileName } from "@renderer/utils";
 
 const { userInfo } = storeToRefs(useUserInfoStore());
 const url = ref("");
 const archiveDeatil = ref<{
   bvid: string;
   title: string;
-  pages: { cid: number; part: string }[];
+  pages: { cid: number; part: string; editable: boolean }[];
 }>({
   bvid: "",
   title: "",
@@ -78,23 +70,34 @@ const parse = async () => {
   }
   selectCids.value = [];
   const data = await window.api.bili.getArchiveDetail(bvid, uid.value);
-  console.log(data);
   archiveDeatil.value = {
     bvid: data.View.bvid,
     title: data.View.title,
-    pages: data.View.pages,
+    pages: data.View.pages.map((item) => {
+      item["editable"] = false;
+      item.part = sanitizeFileName(item.part);
+      return item as unknown as { cid: number; part: string; editable: boolean };
+    }),
   };
+
   if (data.View.pages.length === 1) {
     selectCids.value = [data.View.pages[0].cid];
   }
 };
 
 const download = async () => {
-  for (const cid of selectCids.value) {
+  await parse();
+  visible.value = true;
+};
+
+const confirm = (options: { ids: number[]; savePath: string }) => {
+  const selectPages = archiveDeatil.value.pages.filter((item) => options.ids.includes(item.cid));
+
+  for (const page of selectPages) {
     window.api.bili.download(
       {
-        output: `${archiveDeatil.value.title}.mp4`,
-        cid,
+        output: window.path.join(options.savePath, `${page.part}.mp4`),
+        cid: page.cid,
         bvid: archiveDeatil.value.bvid,
       },
       uid.value,
@@ -105,6 +108,8 @@ const download = async () => {
     duration: 1000,
   });
 };
+
+const visible = ref(false);
 </script>
 
 <style scoped lang="less">

@@ -1,0 +1,136 @@
+<template>
+  <n-modal
+    v-model:show="showModal"
+    :mask-closable="false"
+    auto-focus
+    preset="dialog"
+    :show-icon="false"
+  >
+    <div class="container">
+      <h4>{{ props.detail.title }}</h4>
+      <div class="file-container">
+        <n-checkbox-group v-model:value="selectIds">
+          <div v-for="file in props.detail.pages" :key="file.cid" class="file">
+            <n-checkbox :value="file.cid" style="margin-right: 10px" />
+            <span v-if="!file.editable">{{ file.part }}</span>
+            <n-input
+              v-else
+              v-model:value="file.part"
+              placeholder="请输入文件名"
+              @keyup.enter="editPart(file)"
+            />
+            <n-icon
+              :size="13"
+              class="btn pointer"
+              title="编辑文件名"
+              style="margin-left: 5px"
+              @click="editPart(file)"
+              ><EditOutlined
+            /></n-icon>
+          </div>
+        </n-checkbox-group>
+      </div>
+      <div style="margin-top: 20px">
+        <div style="font-size: 12px">下载到：</div>
+        <div class="path">
+          <n-input v-model:value="options.savePath" placeholder="请输入下载目录" />
+          <n-icon style="margin-left: 10px" size="26" class="pointer" @click="selectFolder">
+            <FolderOpenOutline />
+          </n-icon>
+        </div>
+      </div>
+
+      <n-button
+        :disabled="selectIds.length === 0 || !options.savePath"
+        type="primary"
+        class="download-btn"
+        @click="download"
+      >
+        下载
+      </n-button>
+    </div>
+  </n-modal>
+</template>
+
+<script setup lang="ts">
+import { EditOutlined } from "@vicons/material";
+import { sanitizeFileName } from "@renderer/utils";
+import { FolderOpenOutline } from "@vicons/ionicons5";
+import { useAppConfig } from "@renderer/stores";
+import { storeToRefs } from "pinia";
+
+interface Part {
+  cid: number;
+  part: string;
+  editable: boolean;
+}
+
+interface Props {
+  detail: {
+    bvid: string;
+    title: string;
+    pages: Part[];
+  };
+}
+const { appConfig } = storeToRefs(useAppConfig());
+const options = appConfig.value.tool.download;
+
+const showModal = defineModel<boolean>("visible", { required: true, default: false });
+const selectIds = defineModel<number[]>("selectIds", { required: true, default: [] });
+const props = defineProps<Props>();
+const emits = defineEmits<{
+  (event: "confirm", value: { ids: number[]; savePath: string }): void;
+}>();
+
+const download = () => {
+  emits("confirm", { ids: selectIds.value, savePath: options.savePath });
+  showModal.value = false;
+};
+
+const editPart = (file: Part) => {
+  file.part = sanitizeFileName(file.part);
+  if (file.part.trim() === "") {
+    file.part = "未命名";
+  }
+  file.editable = !file.editable;
+};
+
+const selectFolder = async () => {
+  const dir = await window.api.openDirectory();
+  if (!dir) return;
+
+  options.savePath = dir;
+};
+</script>
+
+<style scoped lang="less">
+.container {
+  margin-top: 40px;
+}
+.file-container {
+  height: 200px;
+  overflow: auto;
+  border: 1px solid #eeeeee;
+  border-radius: 4px;
+  padding: 10px;
+
+  .file {
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+  }
+}
+.download-btn {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.path {
+  // border: 1px solid #eeeeee;
+  border-radius: 4px;
+  padding: 5px 0px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+</style>

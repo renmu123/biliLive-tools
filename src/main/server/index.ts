@@ -22,7 +22,7 @@ import type {
   DanmuConfig,
   AppRoomConfig,
   CommonRoomConfig,
-  AppConfig,
+  // AppConfig,
 } from "../../types";
 
 const app = express();
@@ -798,22 +798,22 @@ const addEditMediaTask = async (uid: number, aid: number, pathArray: string[]) =
 
 async function checkFileInterval() {
   setInterval(async () => {
-    const appConfig = getAppConfig();
+    // const appConfig = getAppConfig();
 
     for (let i = 0; i < liveData.length; i++) {
       const live = liveData[i];
-      handleLive(live, appConfig);
+      handleLive(live);
     }
   }, 1000 * 60);
 }
 
-const handleLive = async (live: Live, appConfig: AppConfig) => {
+const handleLive = async (live: Live) => {
   const { mergePart, uploadPresetId, uid } = getConfig(live.roomId);
   if (!mergePart) return;
   if (!uid) return;
 
   let config = DEFAULT_BILIUP_CONFIG;
-  if (appConfig.webhook.uploadPresetId) {
+  if (uploadPresetId) {
     const preset = await readBiliupPreset(undefined, uploadPresetId);
     config = { ...config, ...preset.config };
   }
