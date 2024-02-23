@@ -9,7 +9,7 @@
       class="card"
     >
       <n-tabs type="segment">
-        <n-tab-pane name="first" tab="普通设置">
+        <n-tab-pane name="common" tab="普通设置">
           <n-form ref="formRef" label-placement="left" :label-width="120">
             <n-form-item>
               <template #label>
@@ -80,7 +80,7 @@
             </n-form-item>
           </n-form>
         </n-tab-pane>
-        <n-tab-pane name="second" tab="webhook">
+        <n-tab-pane name="webhook" tab="webhook">
           <n-form label-placement="left" :label-width="120">
             <n-form-item>
               <template #label>
@@ -145,6 +145,9 @@
             <!-- </div> -->
           </n-form>
         </n-tab-pane>
+        <n-tab-pane name="notification" tab="通知">
+          <NotificationSetting v-model:data="config"></NotificationSetting>
+        </n-tab-pane>
       </n-tabs>
       <template #footer>
         <div class="footer">
@@ -171,6 +174,7 @@
 <script setup lang="ts">
 import RoomSettingDialog from "./RoomSettingDialog.vue";
 import CommonSetting from "./CommonWebhookSetting.vue";
+import NotificationSetting from "./NotificationSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
 import { useConfirm } from "@renderer/hooks";

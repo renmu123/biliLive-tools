@@ -92,6 +92,30 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       savePath: app.getPath("downloads"),
     },
   },
+  notification: {
+    task: {
+      ffmpeg: [],
+      danmu: [],
+      upload: [],
+      download: [],
+    },
+    setting: {
+      type: undefined,
+      server: {
+        key: "",
+      },
+      mail: {
+        host: "",
+        port: 465,
+        secure: true,
+        auth: {
+          user: "",
+          pass: "",
+        },
+        to: "",
+      },
+    },
+  },
 };
 
 function get<K extends keyof AppConfig>(key: K): AppConfig[K] {

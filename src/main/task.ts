@@ -4,12 +4,14 @@ import { uuid, isWin32 } from "./utils/index";
 import log from "./utils/log";
 import * as ntsuspend from "ntsuspend";
 import { Danmu } from "../core/index";
-
-import type { WebContents, IpcMainInvokeEvent } from "electron";
-import type { Progress } from "../types";
 import { TaskType } from "../types/enum";
+import { sendNotify } from "./notify";
+import { getAppConfig } from "./config";
+
 import type ffmpeg from "fluent-ffmpeg";
 import type { Client } from "@renmu/bili-api";
+import type { WebContents, IpcMainInvokeEvent } from "electron";
+import type { Progress, NotificationTaskStatus } from "../types";
 
 const emitter = new EventEmitter();
 
@@ -524,16 +526,62 @@ export const killTask = (taskQueue: TaskQueue, taskId: string) => {
 //   return (task as FFmpegTask).interrupt();
 // };
 
+const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) => {
+  const task = taskQueue.queryTask(taskId);
+  if (!task) return;
+  const taskType = task.type;
+  let title = "";
+  let desp = "";
+  switch (event) {
+    case "success":
+      title = `${task.name}结束`;
+      desp = `${task.name}结束\n\n开始时间：${new Date(task.startTime!).toLocaleString()}\n\n输出：${task.output}`;
+      break;
+    case "failure":
+      title = `${task.name}出错`;
+      desp = `${task.name}出错\n\n开始时间：${new Date(task.startTime!).toLocaleString()}\n\n输出：${task.output}`;
+      break;
+  }
+  const appConfig = getAppConfig();
+  const taskConfig = appConfig?.notification?.task || {};
+
+  switch (taskType) {
+    case TaskType.ffmpeg:
+      if (taskConfig.ffmpeg.includes(event)) {
+        sendNotify(title, desp);
+      }
+      break;
+    case TaskType.danmu:
+      if (taskConfig.danmu.includes(event)) {
+        sendNotify(title, desp);
+      }
+      break;
+    case TaskType.bili:
+      if (taskConfig.upload.includes(event)) {
+        sendNotify(title, desp);
+      }
+      break;
+    case TaskType.biliDownload:
+      if (taskConfig.download.includes(event)) {
+        sendNotify(title, desp);
+      }
+      break;
+  }
+};
+
 export const taskQueue = new TaskQueue();
 taskQueue.on("task-start", ({ taskId, webContents }) => {
+  // sendTaskNotify("task-start", taskId);
   webContents.send("task-start", { taskId: taskId });
 });
 taskQueue.on("task-end", ({ taskId, webContents }) => {
   console.log("task-end", taskId);
+  sendTaskNotify("success", taskId);
   webContents.send("task-end", { taskId: taskId, output: taskQueue.queryTask(taskId)?.output });
 });
 taskQueue.on("task-error", ({ taskId, webContents }) => {
   console.log("task-error", taskId);
+  sendTaskNotify("failure", taskId);
   webContents.send("task-error", { taskId: taskId });
 });
 taskQueue.on("task-progress", ({ taskId, webContents }) => {

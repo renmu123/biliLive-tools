@@ -167,6 +167,9 @@ export const api = {
         );
       }
     },
+    notify: (title: string, desp: string) => {
+      return ipcRenderer.invoke("noify:send", title, desp);
+    },
   },
   common: {
     getTempPath: () => {

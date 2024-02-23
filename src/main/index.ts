@@ -23,6 +23,7 @@ import { handlers as biliupHandlers } from "./biliup";
 import { handlers as ffmpegHandlers } from "./ffmpegPreset";
 import { handlers as danmuHandlers } from "./danmu";
 import { handlers as configHandlers } from "./config";
+import { handlers as notidyHandlers } from "./notify";
 import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
 
@@ -66,6 +67,7 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, ffmpegHandlers);
   registerHandlers(ipcMain, danmuHandlers);
   registerHandlers(ipcMain, configHandlers);
+  registerHandlers(ipcMain, notidyHandlers);
 };
 
 const appConfig = getAppConfig();

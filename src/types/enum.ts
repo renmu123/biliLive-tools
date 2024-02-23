@@ -4,3 +4,8 @@ export enum TaskType {
   bili = "bili",
   biliDownload = "biliDownload",
 }
+
+export enum NotificationType {
+  server = "server",
+  mail = "mail",
+}

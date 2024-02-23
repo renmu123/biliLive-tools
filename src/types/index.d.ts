@@ -2,6 +2,7 @@ import { biliApi } from "../main/bili";
 
 import type { OpenDialogOptions as ElectronOpenDialogOptions } from "electron";
 import type { LogLevel as ElectronLoGLevel } from "electron-log";
+import { NotificationType } from "./enum";
 
 export type BiliApi = typeof biliApi;
 
@@ -155,6 +156,8 @@ export type ToolConfig = {
   };
 };
 
+export type NotificationTaskStatus = "success" | "failure";
+
 // 全局配置
 export interface AppConfig {
   logLevel: LogLevel;
@@ -184,6 +187,41 @@ export interface AppConfig {
   uid?: number;
   /** 工具页配置 */
   tool: ToolConfig;
+  /** 通知配置 */
+  notification: {
+    /** 任务 */
+    task: {
+      ffmpeg: NotificationTaskStatus[];
+      danmu: NotificationTaskStatus[];
+      upload: NotificationTaskStatus[];
+      download: NotificationTaskStatus[];
+    };
+    /** 通知配置项 */
+    setting: {
+      // 通知类型，支持server酱和邮件
+      type?: NotificationType;
+      // server酱key
+      server: {
+        key: string;
+      };
+      mail: {
+        /** 邮件服务器 */
+        host: string;
+        /** 端口 */
+        port: number;
+        /** 安全连接,true for 465, false for other ports */
+        secure: boolean;
+        auth: {
+          /** 邮箱账户 */
+          user: string;
+          /** 授权密码 */
+          pass: string;
+        };
+        /** 接收者 */
+        to: string;
+      };
+    };
+  };
 }
 
 export type LogLevel = ElectronLoGLevel;
