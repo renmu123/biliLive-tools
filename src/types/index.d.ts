@@ -157,6 +157,9 @@ export type ToolConfig = {
 };
 
 export type NotificationTaskStatus = "success" | "failure";
+/**
+ * 邮件配置
+ */
 export interface NotificationMailConfig {
   /** 邮件服务器 */
   host: string;
@@ -171,8 +174,18 @@ export interface NotificationMailConfig {
   /** 是否使用安全连接 */
   secure: boolean;
 }
+/**
+ * server酱配置
+ */
 export interface NotificationServerConfig {
   key: string;
+}
+/**
+ * tg配置
+ */
+export interface NotificationTgConfig {
+  key: string;
+  chat_id: string;
 }
 
 // 全局配置
@@ -220,6 +233,7 @@ export interface AppConfig {
       // server酱key
       server: NotificationServerConfig;
       mail: NotificationMailConfig;
+      tg: NotificationTgConfig;
     };
   };
 }

@@ -8,4 +8,5 @@ export enum TaskType {
 export enum NotificationType {
   server = "server",
   mail = "mail",
+  tg = "tg",
 }

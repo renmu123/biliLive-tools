@@ -70,6 +70,24 @@
             placeholder="请输入server酱key"
           ></n-input> </n-form-item
       ></template>
+      <template v-else-if="config.notification.setting.type === NotificationType.tg">
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex"> token </span>
+          </template>
+          <n-input
+            v-model:value="config.notification.setting.tg.key"
+            placeholder="请输入tg bot的token"
+          ></n-input> </n-form-item
+        ><n-form-item>
+          <template #label>
+            <span class="inline-flex"> chat_id </span>
+          </template>
+          <n-input
+            v-model:value="config.notification.setting.tg.chat_id"
+            placeholder="请输入chat_id"
+          ></n-input> </n-form-item
+      ></template>
 
       <h2>任务</h2>
       <n-form-item label="ffmpeg任务">
@@ -119,6 +137,7 @@ const config = defineModel<AppConfig>("data", {
 const typeOptions = [
   { value: undefined, label: "无" },
   { value: NotificationType.mail, label: "邮箱" },
+  // { value: NotificationType.tg, label: "tg bot" },
   { value: NotificationType.server, label: "server酱" },
 ];
 </script>

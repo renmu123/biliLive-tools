@@ -3,8 +3,15 @@ import nodemailer from "nodemailer";
 import log from "./utils/log";
 import { IpcMainInvokeEvent } from "electron";
 import { getAppConfig } from "./config";
-import type { NotificationMailConfig, NotificationServerConfig } from "../types";
+import type {
+  NotificationMailConfig,
+  NotificationServerConfig,
+  NotificationTgConfig,
+} from "../types";
 
+/**
+ * 通过Server酱发送通知
+ */
 export function sendByServer(title: string, desp: string, options: NotificationServerConfig) {
   const url = `https://sctapi.ftqq.com/${options.key}.send`;
   const data = {
@@ -20,6 +27,9 @@ export function sendByServer(title: string, desp: string, options: NotificationS
   });
 }
 
+/**
+ * 通过邮件发送通知
+ */
 export async function sendByMail(title: string, desp: string, options: NotificationMailConfig) {
   console.log("sendByMail", title, desp, options);
   const transporter = nodemailer.createTransport({
@@ -43,6 +53,31 @@ export async function sendByMail(title: string, desp: string, options: Notificat
   log.info("Message sent: %s", info.messageId);
 }
 
+/**
+ * 通过tg发送通知
+ */
+export async function sendByTg(title: string, desp: string, options: NotificationTgConfig) {
+  console.log("sendByTg", title, desp, options);
+  const url = `https://api.telegram.org/bot${options.key}/sendMessage`;
+
+  const data = {
+    chat_id: options.chat_id,
+    text: `${desp}`,
+  };
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    console.log("sendByTg", res);
+  } catch (e) {
+    console.log("sendByTg", e);
+  }
+}
+
 export function send(title: string, desp: string) {
   log.info("send notfiy", title, desp);
 
@@ -53,6 +88,9 @@ export function send(title: string, desp: string) {
       break;
     case "mail":
       sendByMail(title, desp, appConfig?.notification?.setting?.mail);
+      break;
+    case "tg":
+      sendByTg(title, desp, appConfig?.notification?.setting?.tg);
       break;
   }
 }

@@ -112,6 +112,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
         to: "",
         secure: true,
       },
+      tg: {
+        key: "",
+        chat_id: "",
+      },
     },
   },
 };
