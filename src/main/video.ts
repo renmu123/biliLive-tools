@@ -228,7 +228,12 @@ export const mergeAssMp4 = async (
   } else {
     command.outputOptions(`-filter_complex subtitles=${escaped(assFile)}`);
   }
-
+  if (["h264_nvenc", "hevc_nvenc", "av1_nvenc"].includes(ffmpegOptions.encoder)) {
+    if (ffmpegOptions.decode) {
+      command.inputOptions("-hwaccel cuda");
+      command.inputOptions("-hwaccel_output_format cuda");
+    }
+  }
   const ffmpegParams = genFfmpegParams(ffmpegOptions);
 
   ffmpegParams.forEach((param) => {

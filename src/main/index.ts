@@ -92,7 +92,7 @@ function createWindow(): void {
 
   mainWindow.on("ready-to-show", () => {
     if (is.dev) {
-      mainWindow.webContents.openDevTools();
+      // mainWindow.webContents.openDevTools();
       mainWindow.showInactive();
     } else {
       mainWindow.show();

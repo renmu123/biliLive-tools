@@ -35,7 +35,14 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
   {
     id: "b_nvenc_h264",
     name: "H.264(NVIDIA NVEnc)",
-    config: { encoder: "h264_nvenc", bitrateControl: "VBR", bitrate: 8000 },
+    config: {
+      encoder: "h264_nvenc",
+      bitrateControl: "VBR",
+      bitrate: 8000,
+      preset: "medium",
+      crf: 0,
+      decode: false,
+    },
   },
   {
     id: "b_amf_h264",
@@ -62,7 +69,18 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       bitrate: 8000,
     },
   },
-  { id: "b_nvenc_h265", name: "H.265(NVIDIA NVEnc)", config: { encoder: "hevc_nvenc" } },
+  {
+    id: "b_nvenc_h265",
+    name: "H.265(NVIDIA NVEnc)",
+    config: {
+      encoder: "hevc_nvenc",
+      bitrateControl: "VBR",
+      bitrate: 8000,
+      preset: "medium",
+      crf: 0,
+      decode: false,
+    },
+  },
   {
     id: "b_amf_h265",
     name: "H.265(AMD AMF)",
@@ -100,6 +118,9 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       encoder: "av1_nvenc",
       bitrateControl: "VBR",
       bitrate: 8000,
+      preset: "medium",
+      crf: 0,
+      decode: false,
     },
   },
   {

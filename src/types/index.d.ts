@@ -285,7 +285,7 @@ export interface OpenDialogOptions extends ElectronOpenDialogOptions {
 
 export interface FfmpegOptions {
   encoder: string;
-  bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR";
+  bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ";
   crf?: number;
   bitrate?: number;
   preset?:
@@ -313,6 +313,8 @@ export interface FfmpegOptions {
     | "11"
     | "12"
     | "13";
+  /** 支持硬件解码 */
+  decode?: boolean;
 }
 
 export interface BiliupConfig {

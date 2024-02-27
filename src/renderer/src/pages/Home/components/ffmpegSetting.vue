@@ -48,28 +48,37 @@
         :options="encoderOptions?.birateControls || []"
       />
     </n-form-item>
-    <n-form-item v-if="ffmpegOptions.config.bitrateControl === 'CRF'">
+    <n-form-item
+      v-if="
+        ffmpegOptions.config.bitrateControl === 'CRF' ||
+        ffmpegOptions.config.bitrateControl === 'CQ'
+      "
+    >
       <template #label>
-        <n-popover trigger="hover">
-          <template #trigger>
-            <span
-              class="flex align-center"
-              :style="{
-                'justify-content': 'flex-end',
-              }"
-            >
-              crf <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
-            ></span>
-          </template>
-          <template v-if="ffmpegOptions.config.encoder === 'libx264'">
+        <span
+          class="flex align-center"
+          :style="{
+            'justify-content': 'flex-end',
+          }"
+        >
+          <span v-if="ffmpegOptions.config.bitrateControl === 'CQ'">cq</span>
+          <span v-else>crf</span>
+
+          <Tip v-if="['libx264', 'libx265'].includes(ffmpegOptions.config.encoder)">
             <p>CRF值为0：无损压缩，最高质量，最大文件大小。</p>
             <p>
               CRF值较低（例如，18-24）：高质量，较大文件大小。适用于需要高质量输出的情况，18为视觉无损。
             </p>
             <p>CRF值较高（例如，28-51）：较低质量，较小文件大小。适用于需要较小文件的情况。</p>
             <p>CRF值越小，压制越慢</p>
-          </template>
-        </n-popover>
+          </Tip>
+          <Tip
+            v-if="['h264_nvenc', 'hevc_nvenc', 'av1_nvenc'].includes(ffmpegOptions.config.encoder)"
+          >
+            <p>值为0：自动</p>
+            <p>值为1-51：越小质量越高，越大质量越低</p>
+          </Tip>
+        </span>
       </template>
       <n-input-number
         v-model:value.number="ffmpegOptions.config.crf"
@@ -110,6 +119,12 @@
         :options="encoderOptions?.presets || []"
         placeholder="请选择预设"
       />
+    </n-form-item>
+    <n-form-item
+      v-if="['h264_nvenc', 'hevc_nvenc', 'av1_nvenc'].includes(ffmpegOptions.config.encoder)"
+      label="硬件解码"
+    >
+      <n-checkbox v-model:checked="ffmpegOptions.config.decode"></n-checkbox>
     </n-form-item>
 
     <div class="actions">
@@ -167,6 +182,36 @@ const emits = defineEmits<{
 
 const presetId = defineModel<string>({ required: true });
 
+const nvencPresets = [
+  {
+    value: "P1",
+    label: "lowest",
+  },
+  {
+    value: "P2",
+    label: "lower",
+  },
+  {
+    value: "P3",
+    label: "low",
+  },
+  {
+    value: "P4",
+    label: "medium",
+  },
+  {
+    value: "P5",
+    label: "fast",
+  },
+  {
+    value: "P6",
+    label: "faster",
+  },
+  {
+    value: "P7",
+    label: "fastest",
+  },
+];
 const videoEncoders = ref([
   {
     value: "libx264",
@@ -239,10 +284,15 @@ const videoEncoders = ref([
     label: "H.264(NVIDIA NVEnc)",
     birateControls: [
       {
+        value: "CQ",
+        label: "质量",
+      },
+      {
         value: "VBR",
         label: "VBR",
       },
     ],
+    presets: nvencPresets,
   },
   {
     value: "h264_amf",
@@ -326,10 +376,15 @@ const videoEncoders = ref([
     label: "H.265(NVIDIA NVEnc)",
     birateControls: [
       {
+        value: "CQ",
+        label: "质量",
+      },
+      {
         value: "VBR",
         label: "VBR",
       },
     ],
+    presets: nvencPresets,
   },
   {
     value: "hevc_amf",
@@ -425,10 +480,15 @@ const videoEncoders = ref([
     label: "AV1 (NVIDIA NVEnc)",
     birateControls: [
       {
+        value: "CQ",
+        label: "质量",
+      },
+      {
         value: "VBR",
         label: "VBR",
       },
     ],
+    presets: nvencPresets,
   },
   {
     value: "av1_amf",
