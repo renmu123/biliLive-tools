@@ -61,19 +61,21 @@
               crf <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
             ></span>
           </template>
-          <p>CRF值为0：无损压缩，最高质量，最大文件大小。</p>
-          <p>
-            CRF值较低（例如，18-24）：高质量，较大文件大小。适用于需要高质量输出的情况，18为视觉无损。
-          </p>
-          <p>CRF值较高（例如，28-51）：较低质量，较小文件大小。适用于需要较小文件的情况。</p>
-          <p>CRF值越小，压制越慢</p>
+          <template v-if="ffmpegOptions.config.encoder === 'libx264'">
+            <p>CRF值为0：无损压缩，最高质量，最大文件大小。</p>
+            <p>
+              CRF值较低（例如，18-24）：高质量，较大文件大小。适用于需要高质量输出的情况，18为视觉无损。
+            </p>
+            <p>CRF值较高（例如，28-51）：较低质量，较小文件大小。适用于需要较小文件的情况。</p>
+            <p>CRF值越小，压制越慢</p>
+          </template>
         </n-popover>
       </template>
       <n-input-number
         v-model:value.number="ffmpegOptions.config.crf"
         class="input-number"
-        :min="0"
-        :max="51"
+        :min="crfMinMax[0]"
+        :max="crfMinMax[1]"
       />
     </n-form-item>
     <n-form-item v-if="ffmpegOptions.config.bitrateControl === 'VBR'">
@@ -355,44 +357,56 @@ const videoEncoders = ref([
     ],
     presets: [
       {
-        value: "ultrafast",
-        label: "ultrafast",
+        value: "0",
+        label: "0",
       },
       {
-        value: "superfast",
-        label: "superfast",
+        value: "1",
+        label: "1",
       },
       {
-        value: "veryfast",
-        label: "veryfast",
+        value: "2",
+        label: "2",
       },
       {
-        value: "faster",
-        label: "faster",
+        value: "3",
+        label: "3",
       },
       {
-        value: "fast",
-        label: "fast",
+        value: "4",
+        label: "4",
       },
       {
-        value: "medium",
-        label: "medium",
+        value: "5",
+        label: "5",
       },
       {
-        value: "slow",
-        label: "slow",
+        value: "6",
+        label: "6",
       },
       {
-        value: "slower",
-        label: "slower",
+        value: "7",
+        label: "8",
       },
       {
-        value: "veryslow",
-        label: "veryslow",
+        value: "9",
+        label: "9",
       },
       {
-        value: "placebo",
-        label: "placebo",
+        value: "10",
+        label: "10",
+      },
+      {
+        value: "11",
+        label: "11",
+      },
+      {
+        value: "12",
+        label: "12",
+      },
+      {
+        value: "13",
+        label: "13",
       },
     ],
   },
@@ -546,6 +560,16 @@ const handleVideoEncoderChange = (value: string) => {
       | "CBR";
   }
 };
+
+const crfMinMax = computed(() => {
+  if (ffmpegOptions.value.config.encoder === "libsvtav1") {
+    return [0, 63];
+  } else if (ffmpegOptions.value.config.encoder === "libx264") {
+    return [0, 51];
+  } else {
+    return [0, 51];
+  }
+});
 
 onMounted(async () => {
   await getPresetOptions();

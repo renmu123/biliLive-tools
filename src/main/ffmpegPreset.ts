@@ -20,7 +20,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       bitrateControl: "CRF",
       crf: 23,
       preset: "fast",
-      bitrate: 5000,
+      bitrate: 8000,
     },
   },
   {
@@ -29,18 +29,18 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
     config: {
       encoder: "h264_qsv",
       bitrateControl: "VBR",
-      bitrate: 5000,
+      bitrate: 8000,
     },
   },
   {
     id: "b_nvenc_h264",
     name: "H.264(NVIDIA NVEnc)",
-    config: { encoder: "h264_nvenc", bitrateControl: "VBR", bitrate: 5000 },
+    config: { encoder: "h264_nvenc", bitrateControl: "VBR", bitrate: 8000 },
   },
   {
     id: "b_amf_h264",
     name: "H.264(AMD AMF)",
-    config: { encoder: "h264_amf", bitrateControl: "VBR", bitrate: 5000 },
+    config: { encoder: "h264_amf", bitrateControl: "VBR", bitrate: 8000 },
   },
   {
     id: "b_libx265",
@@ -50,7 +50,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       bitrateControl: "CRF",
       crf: 27,
       preset: "fast",
-      bitrate: 5000,
+      bitrate: 8000,
     },
   },
   {
@@ -59,7 +59,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
     config: {
       encoder: "hevc_qsv",
       bitrateControl: "VBR",
-      bitrate: 5000,
+      bitrate: 8000,
     },
   },
   { id: "b_nvenc_h265", name: "H.265(NVIDIA NVEnc)", config: { encoder: "hevc_nvenc" } },
@@ -69,7 +69,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
     config: {
       encoder: "hevc_amf",
       bitrateControl: "VBR",
-      bitrate: 5000,
+      bitrate: 8000,
     },
   },
 
@@ -79,9 +79,9 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
     config: {
       encoder: "libsvtav1",
       bitrateControl: "CRF",
-      crf: 23,
-      preset: "fast",
-      bitrate: 5000,
+      crf: 31,
+      preset: "8",
+      bitrate: 8000,
     },
   },
   {
@@ -90,7 +90,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
     config: {
       encoder: "av1_qsv",
       bitrateControl: "VBR",
-      bitrate: 5000,
+      bitrate: 8000,
     },
   },
   {
@@ -99,7 +99,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
     config: {
       encoder: "av1_nvenc",
       bitrateControl: "VBR",
-      bitrate: 5000,
+      bitrate: 8000,
     },
   },
   {
@@ -108,7 +108,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
     config: {
       encoder: "av1_amf",
       bitrateControl: "VBR",
-      bitrate: 5000,
+      bitrate: 8000,
     },
   },
 ];
