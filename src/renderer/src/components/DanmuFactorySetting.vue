@@ -127,6 +127,7 @@
             :min="0"
             :step="100"
             placeholder="宽"
+            :disabled="config.resolutionResponsive"
           />&nbsp;X&nbsp;
           <n-input-number
             v-model:value.number="config.resolution[1]"
@@ -134,6 +135,7 @@
             :min="0"
             :step="100"
             placeholder="高"
+            :disabled="config.resolutionResponsive"
           />
           <n-checkbox
             v-model:checked="config.resolutionResponsive"
@@ -158,7 +160,7 @@
     <n-divider />
 
     <div class="card">
-      <h2>礼物栏设置</h2>
+      <h2 title="仅限blrec&录播姬弹幕格式">礼物栏设置</h2>
       <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
         <n-form-item>
           <n-checkbox v-model:checked="config.showmsgbox"> 显示礼物框 </n-checkbox>

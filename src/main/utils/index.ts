@@ -68,6 +68,10 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
       // do nothing
     } else if (key === "preset") {
       result.push(`-preset ${value}`);
+    } else if (key === "resetResolution") {
+      if (value && options.resolutionWidth && options.resolutionHeight) {
+        result.push(`-s ${options.resolutionWidth}x${options.resolutionHeight}`);
+      }
     }
   });
   return result;

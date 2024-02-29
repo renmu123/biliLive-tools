@@ -9,8 +9,10 @@
       <template v-if="config.notification.setting.type === NotificationType.mail">
         <n-form-item>
           <template #label>
-            <span class="inline-flex"> 服务器地址 </span>
-            <Tip tip="请自行查询并配置服务商的smtp服务器"></Tip>
+            <span class="inline-flex">
+              <span> 服务器地址 </span>
+              <Tip tip="请自行查询并配置服务商的smtp服务器"></Tip>
+            </span>
           </template>
           <n-input
             v-model:value="config.notification.setting.mail.host"

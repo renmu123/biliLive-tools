@@ -11,6 +11,16 @@ const DefaultFfmpegOptions: FfmpegOptions = {
   preset: "fast",
 };
 
+const commonPresetParams: {
+  resetResolution: boolean;
+  resolutionWidth: number;
+  resolutionHeight: number;
+} = {
+  resetResolution: false,
+  resolutionWidth: 3840,
+  resolutionHeight: 2160,
+};
+
 const baseFfmpegPresets: FfmpegPresetType[] = [
   {
     id: "b_libx264",
@@ -21,6 +31,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       crf: 23,
       preset: "fast",
       bitrate: 8000,
+      ...commonPresetParams,
     },
   },
   {
@@ -30,6 +41,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       encoder: "h264_qsv",
       bitrateControl: "VBR",
       bitrate: 8000,
+      ...commonPresetParams,
     },
   },
   {
@@ -40,14 +52,15 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       preset: "medium",
-      crf: 0,
+      crf: 18,
       decode: false,
+      ...commonPresetParams,
     },
   },
   {
     id: "b_amf_h264",
     name: "H.264(AMD AMF)",
-    config: { encoder: "h264_amf", bitrateControl: "VBR", bitrate: 8000 },
+    config: { encoder: "h264_amf", bitrateControl: "VBR", bitrate: 8000, ...commonPresetParams },
   },
   {
     id: "b_libx265",
@@ -58,6 +71,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       crf: 27,
       preset: "fast",
       bitrate: 8000,
+      ...commonPresetParams,
     },
   },
   {
@@ -67,6 +81,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       encoder: "hevc_qsv",
       bitrateControl: "VBR",
       bitrate: 8000,
+      ...commonPresetParams,
     },
   },
   {
@@ -77,8 +92,9 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       preset: "medium",
-      crf: 0,
+      crf: 18,
       decode: false,
+      ...commonPresetParams,
     },
   },
   {
@@ -88,6 +104,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       encoder: "hevc_amf",
       bitrateControl: "VBR",
       bitrate: 8000,
+      ...commonPresetParams,
     },
   },
 
@@ -100,6 +117,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       crf: 31,
       preset: "8",
       bitrate: 8000,
+      ...commonPresetParams,
     },
   },
   {
@@ -109,6 +127,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       encoder: "av1_qsv",
       bitrateControl: "VBR",
       bitrate: 8000,
+      ...commonPresetParams,
     },
   },
   {
@@ -119,8 +138,9 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       preset: "medium",
-      crf: 0,
+      crf: 18,
       decode: false,
+      ...commonPresetParams,
     },
   },
   {
@@ -130,6 +150,7 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
       encoder: "av1_amf",
       bitrateControl: "VBR",
       bitrate: 8000,
+      ...commonPresetParams,
     },
   },
 ];

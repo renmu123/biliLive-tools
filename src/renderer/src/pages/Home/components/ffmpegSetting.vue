@@ -1,5 +1,5 @@
 <template>
-  <n-form ref="formRef" label-width="120px" label-placement="left" label-align="right">
+  <n-form ref="formRef" label-width="130px" label-placement="left" label-align="right">
     <n-form-item label="预设">
       <n-cascader
         v-model:value="presetId"
@@ -89,19 +89,13 @@
     </n-form-item>
     <n-form-item v-if="ffmpegOptions.config.bitrateControl === 'VBR'">
       <template #label>
-        <n-popover trigger="hover">
-          <template #trigger>
-            <span
-              class="flex align-center"
-              :style="{
-                'justify-content': 'flex-end',
-              }"
-            >
-              码率 <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
-            ></span>
-          </template>
-          <p>一般录播视频，码率 5000k 够了。如果是游戏，可以适当拉到 7000k</p>
-        </n-popover>
+        <span class="inline-flex">
+          <span>码率</span>
+          <Tip>
+            一般杂谈录播视频，码率 5000k 够了。如果是游戏，可以拉到
+            10000k及以上，如果弹幕较多，可以尝试拉到更高，具体码率可自行测试
+          </Tip>
+        </span>
       </template>
       <n-input-number
         v-model:value.number="ffmpegOptions.config.bitrate"
@@ -122,9 +116,53 @@
     </n-form-item>
     <n-form-item
       v-if="['h264_nvenc', 'hevc_nvenc', 'av1_nvenc'].includes(ffmpegOptions.config.encoder)"
-      label="硬件解码"
     >
+      <template #label>
+        <span class="inline-flex">
+          <span>硬件解码</span>
+          <Tip>
+            使用硬件解码器，开启后可能会减少压制时间，nvidia会使用nvdec，如果压制失败请关闭
+          </Tip>
+        </span>
+      </template>
       <n-checkbox v-model:checked="ffmpegOptions.config.decode"></n-checkbox>
+    </n-form-item>
+
+    <n-form-item>
+      <template #label>
+        <span class="inline-flex">
+          <span>重新缩放分辨率</span>
+          <Tip>
+            <p>
+              实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，但会增加压制时间
+            </p>
+            <p>4K：3840X2160<br />2K：2560X1440<br />1080：1920X1080</p>
+          </Tip>
+        </span>
+      </template>
+
+      <n-checkbox
+        v-model:checked="ffmpegOptions.config.resetResolution"
+        style="margin-right: 20px"
+      ></n-checkbox>
+      <template v-if="ffmpegOptions.config.resetResolution">
+        <n-input-number
+          v-model:value.number="ffmpegOptions.config.resolutionWidth"
+          class="input-number"
+          :min="0"
+          :step="100"
+          placeholder="宽"
+          style="width: 100px"
+        />&nbsp;X&nbsp;
+        <n-input-number
+          v-model:value.number="ffmpegOptions.config.resolutionHeight"
+          class="input-number"
+          :min="0"
+          :step="100"
+          placeholder="高"
+          style="width: 100px"
+        />
+      </template>
     </n-form-item>
 
     <div class="actions">
@@ -223,7 +261,7 @@ const videoEncoders = ref([
       },
       {
         value: "VBR",
-        label: "VBR",
+        label: "CBR",
       },
     ],
     presets: [
@@ -275,7 +313,7 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "VBR",
-        label: "VBR",
+        label: "CBR",
       },
     ],
   },
@@ -285,11 +323,11 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "CQ",
-        label: "质量",
+        label: "CQP",
       },
       {
         value: "VBR",
-        label: "VBR",
+        label: "CBR",
       },
     ],
     presets: nvencPresets,
@@ -300,7 +338,7 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "VBR",
-        label: "VBR",
+        label: "CBR",
       },
     ],
   },
@@ -315,7 +353,7 @@ const videoEncoders = ref([
       },
       {
         value: "VBR",
-        label: "VBR",
+        label: "CBR",
       },
     ],
     presets: [
@@ -367,7 +405,7 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "VBR",
-        label: "VBR",
+        label: "CBR",
       },
     ],
   },
@@ -377,11 +415,11 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "CQ",
-        label: "质量",
+        label: "CQP",
       },
       {
         value: "VBR",
-        label: "VBR",
+        label: "CBR",
       },
     ],
     presets: nvencPresets,
@@ -392,7 +430,7 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "VBR",
-        label: "VBR",
+        label: "CBR",
       },
     ],
   },
@@ -407,7 +445,7 @@ const videoEncoders = ref([
       },
       {
         value: "VBR",
-        label: "VBR",
+        label: "CBR",
       },
     ],
     presets: [
@@ -471,7 +509,7 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "VBR",
-        label: "VBR",
+        label: "CBR",
       },
     ],
   },
@@ -481,11 +519,11 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "CQ",
-        label: "质量",
+        label: "CQP",
       },
       {
         value: "VBR",
-        label: "VBR",
+        label: "CBR",
       },
     ],
     presets: nvencPresets,
@@ -496,7 +534,7 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "VBR",
-        label: "VBR",
+        label: "CBR",
       },
     ],
   },

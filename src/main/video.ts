@@ -232,6 +232,7 @@ export const mergeAssMp4 = async (
     if (ffmpegOptions.decode) {
       command.inputOptions("-hwaccel cuda");
       command.inputOptions("-hwaccel_output_format cuda");
+      command.inputOptions("-extra_hw_frames 10");
     }
   }
   const ffmpegParams = genFfmpegParams(ffmpegOptions);

@@ -315,6 +315,11 @@ export interface FfmpegOptions {
     | "13";
   /** 支持硬件解码 */
   decode?: boolean;
+  /** 是否重缩放分辨率 */
+  resetResolution?: boolean;
+  /** 重缩放的分辨率 */
+  resolutionWidth?: number;
+  resolutionHeight?: number;
 }
 
 export interface BiliupConfig {
