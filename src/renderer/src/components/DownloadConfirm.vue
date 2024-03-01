@@ -12,13 +12,15 @@
         <n-checkbox-group v-model:value="selectIds">
           <div v-for="file in props.detail.pages" :key="file.cid" class="file">
             <n-checkbox :value="file.cid" style="margin-right: 10px" />
-            <span v-if="!file.editable">{{ file.part }}</span>
+            <span v-if="!file.editable">{{ file.part }}.mp4</span>
             <n-input
               v-else
               v-model:value="file.part"
               placeholder="请输入文件名"
               @keyup.enter="editPart(file)"
-            />
+            >
+              <template #suffix> .mp4 </template></n-input
+            >
             <n-icon
               :size="13"
               class="btn pointer"

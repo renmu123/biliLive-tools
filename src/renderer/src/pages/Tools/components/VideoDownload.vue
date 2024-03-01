@@ -1,24 +1,26 @@
 <template>
   <div class="container">
-    <div class="input">
-      <Tip
-        :size="22"
-        tip="此功能仅方便快速下载某些素材，并非专业下载器，不会提供过多功能，目前仅支持下载最高清晰度视频（不支持4K）<br/>如果你在寻找专业下载器，可以尝试其他开源项目，如：https://github.com/BilibiliVideoDownload/BilibiliVideoDownload"
-      ></Tip>
+    <n-spin :show="loading">
+      <div class="input">
+        <Tip
+          :size="22"
+          tip="此功能仅方便快速下载某些素材，并非专业下载器，链接仅支持BV号，目前仅支持下载最高清晰度视频（不支持4K）<br/>如果你在寻找专业下载器，可以尝试其他开源项目，如：https://github.com/BilibiliVideoDownload/BilibiliVideoDownload"
+        ></Tip>
 
-      <n-input
-        v-model:value="url"
-        :style="{ width: '80%' }"
-        placeholder="请输入b站视频链接，比如：https://www.bilibili.com/video/BV1u94y1K7nr"
-      />
-      <n-button type="primary" ghost @click="download"> 下载 </n-button>
-    </div>
-    <DownloadConfirm
-      v-model:visible="visible"
-      v-model:selectIds="selectCids"
-      :detail="archiveDeatil"
-      @confirm="confirm"
-    ></DownloadConfirm>
+        <n-input
+          v-model:value="url"
+          :style="{ width: '80%' }"
+          placeholder="请输入b站视频链接，比如：https://www.bilibili.com/video/BV1u94y1K7nr"
+        />
+        <n-button type="primary" ghost @click="download"> 下载 </n-button>
+      </div>
+      <DownloadConfirm
+        v-model:visible="visible"
+        v-model:selectIds="selectCids"
+        :detail="archiveDeatil"
+        @confirm="confirm"
+      ></DownloadConfirm>
+    </n-spin>
   </div>
 </template>
 
@@ -86,8 +88,13 @@ const parse = async () => {
 };
 
 const download = async () => {
-  await parse();
-  visible.value = true;
+  loading.value = true;
+  try {
+    await parse();
+    visible.value = true;
+  } finally {
+    loading.value = false;
+  }
 };
 
 const confirm = (options: { ids: number[]; savePath: string }) => {
@@ -110,6 +117,7 @@ const confirm = (options: { ids: number[]; savePath: string }) => {
 };
 
 const visible = ref(false);
+const loading = ref(false);
 </script>
 
 <style scoped lang="less">
