@@ -7,7 +7,7 @@ import log from "./utils/log";
 import { trashItem as _trashItem, __dirname } from "./utils/index";
 import { getAppConfig } from "./config";
 import serverApp from "./server/index";
-import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu } from "electron";
+import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import {
@@ -405,10 +405,12 @@ const trashItem = async (_event: IpcMainInvokeEvent, path: string) => {
 };
 
 const checkUpdate = async () => {
-  const res = await fetch(
+  await app.whenReady();
+  const res = await net.fetch(
     "https://githubraw.irenmu.com/renmu123/biliLive-tools/master/package.json",
   );
   const data = await res.json();
+  console.log(data);
   const latestVersion = data.version;
   const version = app.getVersion();
 

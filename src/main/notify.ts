@@ -1,7 +1,7 @@
 import nodemailer from "nodemailer";
 
 import log from "./utils/log";
-import { IpcMainInvokeEvent } from "electron";
+import { IpcMainInvokeEvent, net } from "electron";
 import { getAppConfig } from "./config";
 import type {
   NotificationMailConfig,
@@ -18,7 +18,7 @@ export function sendByServer(title: string, desp: string, options: NotificationS
     title: title,
     desp: desp,
   };
-  fetch(url, {
+  net.fetch(url, {
     method: "POST",
     body: JSON.stringify(data),
     headers: {
@@ -65,16 +65,16 @@ export async function sendByTg(title: string, desp: string, options: Notificatio
     text: `${desp}`,
   };
   try {
-    const res = await fetch(url, {
+    const res = await net.fetch(url, {
       method: "POST",
       body: JSON.stringify(data),
       headers: {
         "Content-Type": "application/json",
       },
     });
-    console.log("sendByTg", res);
+    log.info("sendByTg res", res);
   } catch (e) {
-    console.log("sendByTg", e);
+    log.error("sendByTg error", e);
   }
 }
 

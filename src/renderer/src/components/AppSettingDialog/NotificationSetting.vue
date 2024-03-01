@@ -139,7 +139,7 @@ const config = defineModel<AppConfig>("data", {
 const typeOptions = [
   { value: undefined, label: "无" },
   { value: NotificationType.mail, label: "邮箱" },
-  // { value: NotificationType.tg, label: "tg bot" },
+  { value: NotificationType.tg, label: "tg bot" },
   { value: NotificationType.server, label: "server酱" },
 ];
 </script>
