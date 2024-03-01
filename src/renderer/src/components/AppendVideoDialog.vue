@@ -9,7 +9,7 @@
       class="card"
     >
       <div>
-        <p style="color: red">续传只会增加分p，不会对稿件进行编辑</p>
+        <p style="color: red">续传只会增加分p，不会对稿件进行编辑，</p>
         <div style="display: flex; gap: 10px">
           <n-input v-model:value="aid" placeholder="请输入需要续传视频的aid" />
           <n-button class="btn" @click="close">取消</n-button>
@@ -87,8 +87,20 @@ const close = () => {
   showModal.value = false;
 };
 
-const confirm = () => {
+const confirm = async () => {
   if (!aid.value) {
+    return;
+  }
+  const res = await window.api.bili.getPlatformArchiveDetail(
+    Number(aid.value),
+    appConfig.value.uid!,
+  );
+  console.log(res);
+  if (res.in_season) {
+    notice.error({
+      title: "已在合集中的稿件无法添加分P",
+      duration: 500,
+    });
     return;
   }
   emits("confirm", aid.value);

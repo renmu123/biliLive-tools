@@ -410,7 +410,6 @@ const checkUpdate = async () => {
     "https://githubraw.irenmu.com/renmu123/biliLive-tools/master/package.json",
   );
   const data = await res.json();
-  console.log(data);
   const latestVersion = data.version;
   const version = app.getVersion();
 

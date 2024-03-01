@@ -291,6 +291,47 @@ async function editMedia(
   };
 }
 
+async function getSessionId(
+  aid: number,
+  uid,
+): Promise<{
+  /** 合集id */
+  id: number;
+  title: string;
+  desc: string;
+  cover: string;
+  isEnd: number;
+  mid: number;
+  isAct: number;
+  is_pay: number;
+  state: number;
+  partState: number;
+  signState: number;
+  rejectReason: string;
+  ctime: number;
+  mtime: number;
+  no_section: number;
+  forbid: number;
+  protocol_id: string;
+  ep_num: number;
+  season_price: number;
+  is_opened: number;
+}> {
+  await loadCookie(uid);
+  return client.platform.getSessionId(aid);
+}
+
+/**
+ * 获取创作中心的稿件详情
+ */
+async function getPlatformArchiveDetail(
+  aid: number,
+  uid: number,
+): ReturnType<ClientInstance["platform"]["getArchive"]> {
+  await loadCookie(uid);
+  return client.platform.getArchive({ aid });
+}
+
 export const biliApi = {
   getArchives,
   checkTag,
@@ -381,6 +422,16 @@ export const handlers = {
     uid: number,
   ) => {
     return download(event.sender, options, uid);
+  },
+  "biliApi:getSessionId": (_event: IpcMainInvokeEvent, aid: number, uid: number) => {
+    return getSessionId(aid, uid);
+  },
+  "biliApi:getPlatformArchiveDetail": (
+    _event: IpcMainInvokeEvent,
+    aid: number,
+    uid: number,
+  ): ReturnType<ClientInstance["platform"]["getArchive"]> => {
+    return getPlatformArchiveDetail(aid, uid);
   },
 };
 

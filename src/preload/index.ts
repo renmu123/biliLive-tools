@@ -262,6 +262,12 @@ export const api = {
     download(options: { bvid: string; cid: number; output: string }, uid: number) {
       return ipcRenderer.invoke("biliApi:download", options, uid);
     },
+    getSessionId(aid: number, uid: number) {
+      return ipcRenderer.invoke("biliApi:getSessionId", aid, uid);
+    },
+    getPlatformArchiveDetail(aid: number, uid: number) {
+      return ipcRenderer.invoke("biliApi:getPlatformArchiveDetail", aid, uid);
+    },
   },
   ffmpeg: {
     // 预设
