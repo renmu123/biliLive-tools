@@ -16,7 +16,12 @@
           <n-button type="primary" class="btn" @click="confirm"> 确认 </n-button>
         </div>
         <div class="media-container">
-          <div v-for="item in list" :key="item.stat.aid" class="media" @click="selectMedia(item)">
+          <div
+            v-for="item in list"
+            :key="item.Archive.aid"
+            class="media"
+            @click="selectMedia(item)"
+          >
             <img :src="item.Archive.cover" referrerpolicy="no-referrer" class="cover" />
             <div class="title">{{ item.Archive.title }}</div>
           </div>
@@ -91,7 +96,7 @@ const confirm = () => {
 };
 
 const selectMedia = (item) => {
-  aid.value = String(item.stat.aid);
+  aid.value = String(item.Archive.aid);
 };
 </script>
 
