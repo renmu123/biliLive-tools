@@ -1,5 +1,5 @@
 <template>
-  <h2>弹幕配置</h2>
+  <h2>压制配置</h2>
   <n-form-item label="弹幕压制后上传">
     <n-switch v-model:value="data.danmu" :disabled="globalFieldsObj.danmu" />
 
@@ -234,7 +234,9 @@
     <template #label>
       <span class="inline-flex">
         使用直播封面
-        <Tip tip="使用直播封面作为视频封面，如果你在录制软件设置了保存的话"></Tip>
+        <Tip
+          tip="使用直播封面作为视频封面，默认寻找视频目录下文件名为'视频文件名+.cover.jpg|.jpg的文件"
+        ></Tip>
       </span>
     </template>
     <n-switch v-model:value="data.useLiveCover" :disabled="globalFieldsObj.useLiveCover" />
