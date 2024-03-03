@@ -548,20 +548,26 @@ async function handle(options: Options) {
     const ffmpegPreset = await getFfmpegPreset(videoPresetId);
     if (!ffmpegPreset) {
       log.error("ffmpegPreset not found", videoPresetId);
+      currentPart.status = "error";
       return;
     }
-    const output = await addMergeAssMp4Task(
-      options.filePath,
-      assFilePath,
-      hotProgressFile,
-      ffmpegPreset?.config,
-    );
-    fs.remove(assFilePath);
-    if (hotProgressFile) fs.remove(hotProgressFile);
+    try {
+      const output = await addMergeAssMp4Task(
+        options.filePath,
+        assFilePath,
+        hotProgressFile,
+        ffmpegPreset?.config,
+      );
+      fs.remove(assFilePath);
+      if (hotProgressFile) fs.remove(hotProgressFile);
 
-    currentPart.filePath = output;
-    currentPart.status = "handled";
-    newUploadTask(uid, mergePart, currentPart, config);
+      currentPart.filePath = output;
+      currentPart.status = "handled";
+      newUploadTask(uid, mergePart, currentPart, config);
+    } catch (error) {
+      log.error(error);
+      currentPart.status = "error";
+    }
   } else {
     currentPart.status = "handled";
     newUploadTask(uid, mergePart, currentPart, config);
