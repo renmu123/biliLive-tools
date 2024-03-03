@@ -222,31 +222,31 @@ const presetId = defineModel<string>({ required: true });
 
 const nvencPresets = [
   {
-    value: "P1",
+    value: "p1",
     label: "lowest",
   },
   {
-    value: "P2",
+    value: "p2",
     label: "lower",
   },
   {
-    value: "P3",
+    value: "p3",
     label: "low",
   },
   {
-    value: "P4",
+    value: "p4",
     label: "medium",
   },
   {
-    value: "P5",
+    value: "p5",
     label: "fast",
   },
   {
-    value: "P6",
+    value: "p6",
     label: "faster",
   },
   {
-    value: "P7",
+    value: "p7",
     label: "fastest",
   },
 ];
