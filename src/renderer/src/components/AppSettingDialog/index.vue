@@ -303,6 +303,10 @@ const globalFields = ref([
   "danmuPreset",
   "autoPartMerge",
   "partMergeMinute",
+  "hotProgressSample",
+  "hotProgressHeight",
+  "hotProgressColor",
+  "hotProgressFillColor",
   "hotProgress",
   "useLiveCover",
 ]);

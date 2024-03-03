@@ -100,6 +100,7 @@
         <n-color-picker
           v-model:value="data.hotProgressColor"
           :disabled="globalFieldsObj.hotProgressColor"
+          style="margin-right: 10px"
         />
         <n-checkbox
           v-if="isRoom"
@@ -115,6 +116,7 @@
         <n-color-picker
           v-model:value="data.hotProgressFillColor"
           :disabled="globalFieldsObj.hotProgressFillColor"
+          style="margin-right: 10px"
         />
         <n-checkbox
           v-if="isRoom"
