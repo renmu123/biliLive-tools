@@ -290,9 +290,6 @@ const convert = async () => {
     console.log("targetAssFilePath", targetAssFile);
     inputDanmuFile = targetAssFile;
   }
-  if (inputDanmuFile.path.includes(" ")) {
-    throw new Error("弹幕文件路径中存在空格时会压制错误");
-  }
 
   let hotProgressInput: string | undefined = undefined;
   if (rawClientOptions.hotProgress) {

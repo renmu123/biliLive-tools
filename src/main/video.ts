@@ -222,11 +222,36 @@ export const mergeAssMp4 = async (
 
   if (files.hotProgressFilePath) {
     command.input(files.hotProgressFilePath);
-    command.outputOptions(
-      `-filter_complex [0:v]subtitles=${escaped(assFile)}[i];[1]colorkey=black:0.1:0.1[1d];[i][1d]overlay=W-w-0:H-h-0'`,
-    );
+    // command.outputOptions(
+    //   `-filter_complex [0:v]subtitles=${escaped(assFile)}[i];[1]colorkey=black:0.1:0.1[1d];[i][1d]overlay=W-w-0:H-h-0'`,
+    // );
+    command.complexFilter([
+      {
+        filter: "subtitles",
+        options: `${escaped(assFile)}`,
+        inputs: "0:v",
+        outputs: "i",
+      },
+      {
+        filter: "colorkey",
+        options: "black:0.1:0.1",
+        inputs: "1",
+        outputs: "1d",
+      },
+      {
+        filter: "overlay",
+        options: "W-w-0:H-h-0",
+        inputs: ["i", "1d"],
+      },
+    ]);
   } else {
-    command.outputOptions(`-filter_complex subtitles=${escaped(assFile)}`);
+    // command.outputOptions(`-filter_complex subtitles=${escaped(assFile)}`);
+    command.complexFilter([
+      {
+        filter: "subtitles",
+        options: `${escaped(assFile)}`,
+      },
+    ]);
   }
   if (["h264_nvenc", "hevc_nvenc", "av1_nvenc"].includes(ffmpegOptions.encoder)) {
     if (ffmpegOptions.decode) {
