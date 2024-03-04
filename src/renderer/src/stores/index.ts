@@ -1,6 +1,7 @@
 import { cloneDeep } from "lodash-es";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "../../../types";
+import { TaskType } from "../../../types/enum";
 
 export const useUserInfoStore = defineStore("userInfo", () => {
   const appConfigStore = useAppConfig();
@@ -180,11 +181,78 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
   };
 });
 
+interface Task {
+  taskId: string;
+  name: string;
+  status: "pending" | "running" | "paused" | "completed" | "error";
+  type: TaskType;
+  output?: any;
+  progress: number;
+  action: ("pause" | "kill" | "interrupt")[];
+  startTime?: number;
+  endTime?: number;
+}
+
 export const useQueueStore = defineStore("queue", () => {
   const runningTaskNum = ref(0);
+  const queue = ref<Task[]>([]);
+
+  const getQuenu = async () => {
+    // queue.value = [
+    //   {
+    //     taskId: "1",
+    //     name: "tesqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqwwwwwwwwwwwwwwwwwwwwwwwwt",
+    //     status: "pending",
+    //     type: "ffmpeg",
+    //     progress: 0,
+    //     action: ["pause", "kill"],
+    //   },
+    //   {
+    //     taskId: "2",
+    //     name: "test2",
+    //     status: "running",
+    //     type: "ffmpeg",
+    //     progress: 50,
+    //     action: ["pause", "kill"],
+    //     startTime: 1701682795887,
+    //   },
+    //   {
+    //     taskId: "3",
+    //     name: "test3",
+    //     status: "paused",
+    //     type: "ffmpeg",
+    //     progress: 50,
+    //     action: ["pause", "kill"],
+    //     startTime: 1701682795887,
+    //   },
+    //   {
+    //     taskId: "4",
+    //     name: "test4",
+    //     status: "completed",
+    //     type: "ffmpeg",
+    //     output: "D:/test.mp4",
+    //     progress: 100,
+    //     action: ["pause", "kill"],
+    //     startTime: 1701682795887,
+    //     endTime: 1701682995887,
+    //   },
+    //   {
+    //     taskId: "5",
+    //     name: "test5",
+    //     status: "error",
+    //     type: "ffmpeg",
+    //     progress: 50,
+    //     action: ["pause", "kill"],
+    //   },
+    // ];
+    queue.value = (await window.api.task.list()).toReversed();
+    runningTaskNum.value = queue.value.filter((item) => item.status === "running").length;
+  };
 
   return {
     runningTaskNum,
+    getQuenu,
+    queue,
   };
 });
 

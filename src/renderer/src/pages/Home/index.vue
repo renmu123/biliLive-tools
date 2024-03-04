@@ -451,7 +451,11 @@ const handleVideoMerge = async (
       ffmpegOptions,
     );
   } catch (err) {
-    throw new Error(`转换失败：\n${err}`);
+    let msg = "转换失败";
+    if (err) {
+      msg = msg + err;
+    }
+    throw new Error(msg);
   } finally {
     if (convertOptions.rawInputDanmuFile.ext === ".xml") {
       window.api.trashItem(convertOptions.inputAssFilePath);

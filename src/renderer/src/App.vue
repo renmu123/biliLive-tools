@@ -50,8 +50,8 @@ import {
 } from "@vicons/ionicons5";
 import defaultUserAvatar from "./assets/images/moehime.jpg";
 import AppSettingDialog from "./components/AppSettingDialog/index.vue";
-
 import { useUserInfoStore, useQueueStore, useAppConfig } from "./stores";
+
 const quenuStore = useQueueStore();
 const appConfig = useAppConfig();
 
@@ -181,11 +181,16 @@ window.api.openSetting(() => {
 const { notification } = createDiscreteApi(["message", "dialog", "notification", "loadingBar"]);
 
 window.addEventListener("unhandledrejection", (error) => {
+  console.error("pppppp", error);
   notification.error({
-    title: String(error.reason),
-    duration: 5000,
+    title: String(error.reason).replace("Error: ", ""),
+    duration: 3000,
   });
 });
+
+setInterval(() => {
+  quenuStore.getQuenu();
+}, 1000);
 </script>
 
 <style lang="less">

@@ -176,7 +176,8 @@ interface Task {
   endTime?: number;
 }
 
-const queue = ref<Task[]>([]);
+const queue = computed(() => store.queue);
+
 const displayQueue = computed(() => {
   const data = queue.value.filter((item) => selectedStatus.value.includes(item.status));
   if (filterType.value) {
@@ -244,57 +245,6 @@ const statusMap: {
 };
 
 const selectedStatus = ref<string[]>(["pending", "running", "paused", "completed", "error"]);
-const getQuenu = async () => {
-  // queue.value = [
-  //   {
-  //     taskId: "1",
-  //     name: "tesqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqwwwwwwwwwwwwwwwwwwwwwwwwt",
-  //     status: "pending",
-  //     type: "ffmpeg",
-  //     progress: 0,
-  //     action: ["pause", "kill"],
-  //   },
-  //   {
-  //     taskId: "2",
-  //     name: "test2",
-  //     status: "running",
-  //     type: "ffmpeg",
-  //     progress: 50,
-  //     action: ["pause", "kill"],
-  //     startTime: 1701682795887,
-  //   },
-  //   {
-  //     taskId: "3",
-  //     name: "test3",
-  //     status: "paused",
-  //     type: "ffmpeg",
-  //     progress: 50,
-  //     action: ["pause", "kill"],
-  //     startTime: 1701682795887,
-  //   },
-  //   {
-  //     taskId: "4",
-  //     name: "test4",
-  //     status: "completed",
-  //     type: "ffmpeg",
-  //     output: "D:/test.mp4",
-  //     progress: 100,
-  //     action: ["pause", "kill"],
-  //     startTime: 1701682795887,
-  //     endTime: 1701682995887,
-  //   },
-  //   {
-  //     taskId: "5",
-  //     name: "test5",
-  //     status: "error",
-  //     type: "ffmpeg",
-  //     progress: 50,
-  //     action: ["pause", "kill"],
-  //   },
-  // ];
-  queue.value = (await window.api.task.list()).toReversed();
-  store.runningTaskNum = queue.value.filter((item) => item.status === "running").length;
-};
 
 const handleStart = (taskId: string, task: Task) => {
   console.log("handleStart", taskId);
@@ -303,13 +253,13 @@ const handleStart = (taskId: string, task: Task) => {
   } else if (task.status === "pending") {
     window.api.task.start(taskId);
   }
-  getQuenu();
+  store.getQuenu();
 };
 
 const handlePause = (taskId: string) => {
   console.log("handlePause", taskId);
   window.api.task.pause(taskId);
-  getQuenu();
+  store.getQuenu();
 };
 
 // const handleInterrupt = async (taskId: string) => {
@@ -327,7 +277,7 @@ const handleKill = async (taskId: string) => {
   });
   if (!status) return;
   window.api.task.kill(taskId);
-  getQuenu();
+  store.getQuenu();
 };
 
 const handleOpenDir = (item: Task) => {
@@ -349,7 +299,7 @@ const handleRemoveRecord = (taskId: string) => {
     title: "删除记录成功",
     duration: 1000,
   });
-  getQuenu();
+  store.getQuenu();
 };
 
 const handleRemoveEndTasks = async () => {
@@ -362,16 +312,10 @@ const handleRemoveEndTasks = async () => {
     title: "移除成功",
     duration: 1000,
   });
-  getQuenu();
+  store.getQuenu();
 };
 
 const now = ref(Date.now());
-
-setInterval(() => {
-  now.value = Date.now();
-  getQuenu();
-}, 1000);
-getQuenu();
 </script>
 
 <style scoped lang="less">
