@@ -12,7 +12,7 @@ import bili from "../bili";
 import { biliApi } from "../bili";
 import { getFfmpegPreset } from "../ffmpegPreset";
 import log from "../utils/log";
-import { getFileSize, uuid, runWithMaxIterations } from "../../utils/index";
+import { getFileSize, uuid, runWithMaxIterations, sleep } from "../../utils/index";
 import express from "express";
 
 import type { BlrecEventType } from "./brelcEvent.d.ts";
@@ -573,10 +573,6 @@ async function handle(options: Options) {
     newUploadTask(uid, mergePart, currentPart, config);
   }
 }
-
-const sleep = (ms: number) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
 
 // 生成高能进度条
 const genHotProgressTask = async (

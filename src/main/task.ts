@@ -411,11 +411,35 @@ export class BiliDownloadVideoTask extends AbstractTask {
       callback.onError && callback.onError(err);
       emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
     });
+    let size = 0;
+    let time = Date.now();
+    let lastProgressMsg = `速率: 0MB/s`;
     command.emitter.on("progress", (event: any) => {
-      // console.debug("progress", event);
       if (event.event === "download") {
         const progress = event.progress.progress * 100;
         this.progress = progress;
+        const nowSize = event.progress.loaded;
+        const nowTime = Date.now();
+        // console.log(nowTime, time, nowSize, size);
+        const timeDistance = (nowTime - time) / 1000;
+        const sizeDistance = nowSize - size;
+
+        time = nowTime;
+        size = nowSize;
+
+        // console.log(
+        //   "sizeDistance",
+        //   sizeDistance,
+        //   timeDistance,
+        //   `${(sizeDistance / 1024 / 1024 / timeDistance).toFixed(2)}`,
+        // );
+        if (timeDistance < 0.1) {
+          this.custsomProgressMsg = `速率: 0MB/s`;
+          this.custsomProgressMsg = lastProgressMsg;
+        } else {
+          this.custsomProgressMsg = `速率: ${(sizeDistance / 1024 / 1024 / timeDistance).toFixed(2)}MB/s`;
+          lastProgressMsg = this.custsomProgressMsg;
+        }
         // progress.percentage = progress.progress * 100;
         // progress.progress = progress.percentage;
 
