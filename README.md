@@ -15,6 +15,8 @@
 5. 支持录播姬与blrec的webhook
 6. 支持B站视频下载
 
+![preview](./docs/preview.png)
+
 # 下载
 
 目前有两个 Win 版本的包。两个包除了是否打包 `ffmpeg` 和 `ffprobe` 之外没有任何代码上的区别，如果你有自己编译的ffmpeg或者不需要用到相应的ffmpeg功能。  
@@ -78,7 +80,7 @@ tg bot 的搭建请自行寻找教程
 
 ## 自定义Webhook
 
-如果你的应用想接入应用webhook相关功能，你可以自行构造参数并调用接口，采用`post`方法，端口为`/custom`，接收后立刻返回code=200。
+如果想接入webhook相关功能，你可以自行构造参数并调用接口，采用`post`方法，端口为`/custom`，接收后立刻返回code=200。
 
 参数：
 `event`: `FileClosed`|`FileOpening` (如果你想使用断播续传功能，请在上一个`FileClosed`事件后在时间间隔内发送`FileOpening`事件)  
