@@ -116,6 +116,7 @@
           :indicator-placement="'outside'"
           :show-indicator="false"
           style="--n-rail-height: 6px"
+          :title="`${item.progress.toFixed(2)}%`"
         />
 
         <div class="detail-info">

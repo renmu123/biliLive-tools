@@ -311,9 +311,9 @@ export class BiliVideoTask extends AbstractTask {
       emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
     });
 
-    let size = 0;
-    let time = Date.now();
-    let lastProgressMsg = `速度: 0MB/s`;
+    // let size = 0;
+    // let time = Date.now();
+    // let lastProgressMsg = `速度: 0MB/s`;
     command.emitter.on("progress", (progress) => {
       progress.percentage = progress.progress * 100;
 
@@ -321,21 +321,21 @@ export class BiliVideoTask extends AbstractTask {
         progress = callback.onProgress(progress);
       }
       this.progress = progress.percentage || 0;
-      const nowSize = progress.totalUploadedSize;
-      const nowTime = Date.now();
-      const timeDistance = (nowTime - time) / 1000;
-      const sizeDistance = nowSize - size;
+      // const nowSize = progress.totalUploadedSize;
+      // const nowTime = Date.now();
+      // const timeDistance = (nowTime - time) / 1000;
+      // const sizeDistance = nowSize - size;
 
-      time = nowTime;
-      size = nowSize;
-      if (timeDistance < 0.1) {
-        this.custsomProgressMsg = `速度: 0MB/s`;
-        this.custsomProgressMsg = lastProgressMsg;
-      } else {
-        this.custsomProgressMsg = `速度: ${(sizeDistance / 1024 / 1024 / timeDistance).toFixed(2)}MB/s`;
-        lastProgressMsg = this.custsomProgressMsg;
-      }
-      console.log("progress", progress, sizeDistance, timeDistance);
+      // time = nowTime;
+      // size = nowSize;
+      // if (timeDistance < 0.1) {
+      // this.custsomProgressMsg = `速度: 0MB/s`;
+      // this.custsomProgressMsg = lastProgressMsg;
+      // } else {
+      // this.custsomProgressMsg = `速度: ${(sizeDistance / 1024 / 1024 / timeDistance).toFixed(2)}MB/s`;
+      // lastProgressMsg = this.custsomProgressMsg;
+      // }
+      // console.log("progress", progress, sizeDistance, timeDistance);
 
       emitter.emit("task-progress", { taskId: this.taskId, webContents: this.webContents });
     });
