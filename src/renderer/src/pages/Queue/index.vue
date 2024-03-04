@@ -316,6 +316,9 @@ const handleRemoveEndTasks = async () => {
 };
 
 const now = ref(Date.now());
+setInterval(() => {
+  now.value = Date.now();
+}, 1000);
 </script>
 
 <style scoped lang="less">
