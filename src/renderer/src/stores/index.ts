@@ -191,6 +191,7 @@ interface Task {
   action: ("pause" | "kill" | "interrupt")[];
   startTime?: number;
   endTime?: number;
+  custsomProgressMsg: string;
 }
 
 export const useQueueStore = defineStore("queue", () => {

@@ -143,6 +143,7 @@
               )
             }}
           </span>
+          <span>{{ item.custsomProgressMsg }}</span>
         </div>
       </div>
     </template>

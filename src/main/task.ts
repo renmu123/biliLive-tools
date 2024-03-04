@@ -22,6 +22,7 @@ abstract class AbstractTask {
   relTaskId?: string;
   output?: string;
   progress: number;
+  custsomProgressMsg: string;
   action: ("pause" | "kill" | "interrupt")[];
   startTime?: number;
   endTime?: number;
@@ -37,6 +38,7 @@ abstract class AbstractTask {
     this.name = this.taskId;
     this.progress = 0;
     this.action = ["pause", "kill"];
+    this.custsomProgressMsg = "";
   }
 }
 
@@ -189,10 +191,10 @@ export class FFmpegTask extends AbstractTask {
     });
     command.on("progress", (progress) => {
       progress.percentage = progress.percent;
-
       if (callback.onProgress) {
         progress = callback.onProgress(progress);
       }
+      this.custsomProgressMsg = `比特率: ${progress.currentKbps}kbits/s   速率: ${progress.speed}`;
       this.progress = progress.percentage || 0;
       emitter.emit("task-progress", { taskId: this.taskId, webContents: this.webContents });
     });
@@ -476,6 +478,7 @@ export class TaskQueue {
         action: task.action,
         startTime: task.startTime,
         endTime: task.endTime,
+        custsomProgressMsg: task.custsomProgressMsg,
       };
     });
   }
