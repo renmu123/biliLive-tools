@@ -77,6 +77,8 @@ type CommonRoomConfig = {
   hotProgressColor?: string;
   /** 高能进度条：覆盖颜色 */
   hotProgressFillColor?: string;
+  /** 转封装为mp4 */
+  convert2Mp4?: boolean;
 };
 
 // webhook房间配置

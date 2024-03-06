@@ -309,6 +309,7 @@ const globalFields = ref([
   "hotProgressFillColor",
   "hotProgress",
   "useLiveCover",
+  "convert2Mp4",
 ]);
 const webhookDefaultValue = computed(() => {
   if (!config.value.webhook) return {};

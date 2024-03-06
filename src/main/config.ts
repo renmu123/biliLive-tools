@@ -35,6 +35,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     hotProgressHeight: 60,
     hotProgressColor: "#f9f5f3",
     hotProgressFillColor: "#333333",
+    convert2Mp4: false,
   },
   ffmpegPath: path.join(
     path.dirname(app.getPath("exe")),

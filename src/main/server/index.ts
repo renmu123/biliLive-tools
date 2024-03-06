@@ -7,7 +7,7 @@ import { uploadVideo, appendVideo, DEFAULT_BILIUP_CONFIG, readBiliupPreset } fro
 import { mainWin } from "../index";
 import { convertXml2Ass, readDanmuPreset, genHotProgress } from "../danmu";
 import { taskQueue } from "../task";
-import { mergeAssMp4, readVideoMeta } from "../video";
+import { mergeAssMp4, readVideoMeta, convertVideo2Mp4 } from "../video";
 import bili from "../bili";
 import { biliApi } from "../bili";
 import { getFfmpegPreset } from "../ffmpegPreset";
@@ -185,23 +185,12 @@ function getConfig(roomId: number): {
   hotProgressColor?: string;
   /** 高能进度条：覆盖颜色 */
   hotProgressFillColor?: string;
+  /** 转封装为mp4 */
+  convert2Mp4Option?: boolean;
 } {
   const appConfig = getAppConfig();
   const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[roomId];
   log.debug("room setting", roomId, roomSetting);
-
-  // const danmu = roomSetting?.danmu !== undefined ? roomSetting.danmu : appConfig.webhook.danmu;
-  // const mergePart = roomSetting?.autoPartMerge ?? appConfig.webhook.autoPartMerge;
-  // const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
-  // const uploadPresetId =
-  //   roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
-  // const title = roomSetting?.title || appConfig.webhook.title || "";
-  // const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
-  // const videoPresetId = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
-  // const uid = roomSetting?.uid || appConfig.webhook.uid;
-  // const partMergeMinute = roomSetting?.partMergeMinute || appConfig.webhook.partMergeMinute || 10;
-  // const hotProgress = roomSetting?.hotProgress ?? appConfig.webhook.hotProgress;
-  // const useLiveCover = roomSetting?.useLiveCover ?? appConfig.webhook.useLiveCover;
 
   const danmu = getRoomSetting("danmu");
   const mergePart = getRoomSetting("autoPartMerge");
@@ -218,6 +207,7 @@ function getConfig(roomId: number): {
   const hotProgressHeight = getRoomSetting("hotProgressHeight");
   const hotProgressColor = getRoomSetting("hotProgressColor");
   const hotProgressFillColor = getRoomSetting("hotProgressFillColor");
+  const convert2Mp4 = getRoomSetting("convert2Mp4");
 
   /**
    * 获取房间配置项
@@ -267,6 +257,7 @@ function getConfig(roomId: number): {
     hotProgressSample,
     hotProgressHeight,
     hotProgressColor,
+    convert2Mp4Option: convert2Mp4,
   });
 
   return {
@@ -286,6 +277,7 @@ function getConfig(roomId: number): {
     hotProgressHeight,
     hotProgressColor,
     hotProgressFillColor,
+    convert2Mp4Option: convert2Mp4,
   };
 }
 
@@ -464,6 +456,7 @@ async function handle(options: Options) {
     hotProgressHeight,
     hotProgressColor,
     hotProgressFillColor,
+    convert2Mp4Option,
   } = getConfig(options.roomId);
 
   if (!open) {
@@ -519,6 +512,12 @@ async function handle(options: Options) {
     }
   }
 
+  if (convert2Mp4Option) {
+    const file = await convert2Mp4(options.filePath);
+    log.debug("convert2Mp4 output", file);
+    options.filePath = file;
+    currentPart.filePath = file;
+  }
   if (danmu) {
     // 压制弹幕后上传
     const xmlFile = path.parse(options.filePath);
@@ -573,6 +572,37 @@ async function handle(options: Options) {
     newUploadTask(uid, mergePart, currentPart, config);
   }
 }
+
+// 转封装为mp4
+const convert2Mp4 = async (videoFile: string): Promise<string> => {
+  const formatFile = (filePath: string) => {
+    const formatFile = path.parse(filePath);
+    return { ...formatFile, path: filePath, filename: formatFile.base };
+  };
+  const { dir, name } = formatFile(videoFile);
+  const output = path.join(dir, `${name}.mp4`);
+  if (await fs.pathExists(output)) return output;
+
+  return new Promise((resolve, reject) => {
+    // @ts-ignore
+    convertVideo2Mp4(mainWin.webContents, formatFile(videoFile), {
+      override: false,
+      removeOrigin: false,
+    }).then((task) => {
+      const currentTaskId = task.taskId;
+      taskQueue.on("task-end", ({ taskId }) => {
+        if (taskId === currentTaskId) {
+          resolve(output);
+        }
+      });
+      taskQueue.on("task-error", ({ taskId }) => {
+        if (taskId === currentTaskId) {
+          reject();
+        }
+      });
+    });
+  });
+};
 
 // 生成高能进度条
 const genHotProgressTask = async (

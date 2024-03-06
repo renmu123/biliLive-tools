@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import ffmpeg from "fluent-ffmpeg";
 
 import { getAppConfig } from "./config";
-import { escaped, genFfmpegParams, pathExists, trashItem, uuid, notify } from "./utils/index";
+import { escaped, genFfmpegParams, pathExists, trashItem, uuid } from "./utils/index";
 import log from "./utils/log";
 import { executeCommand } from "../utils/index";
 import { taskQueue, FFmpegTask } from "./task";
@@ -124,19 +124,11 @@ export const convertVideo2Mp4 = async (
 
   if (!(await pathExists(input))) {
     log.error("convertVideo2Mp4, file not exist", input);
-    notify(_event, {
-      type: "error",
-      content: "输入文件不存在",
-    });
-    return;
+    throw new Error("输入文件不存在");
   }
   if (!options.override && (await pathExists(output))) {
     log.error("convertVideo2Mp4, 文件已存在，跳过", input);
-    notify(_event, {
-      type: "error",
-      content: "目标文件已存在",
-    });
-    return;
+    throw new Error("目标文件已存在");
   }
 
   const command = ffmpeg(input).videoCodec("copy").audioCodec("copy").output(output);

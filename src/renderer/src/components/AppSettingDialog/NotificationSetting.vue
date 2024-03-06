@@ -3,7 +3,11 @@
     <n-form ref="formRef" label-placement="left" :label-width="120">
       <h2>通知配置</h2>
       <n-form-item label="通知类型">
-        <n-select v-model:value="config.notification.setting.type" :options="typeOptions" />
+        <n-select
+          v-model:value="config.notification.setting.type"
+          :options="typeOptions"
+          placeholder="请选择通知类型"
+        />
       </n-form-item>
 
       <template v-if="config.notification.setting.type === NotificationType.mail">
