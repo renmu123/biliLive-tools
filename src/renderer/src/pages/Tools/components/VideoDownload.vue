@@ -4,7 +4,7 @@
       <div class="input">
         <Tip
           :size="22"
-          tip="此功能仅方便快速下载某些素材，并非专业下载器，链接仅支持BV号，目前仅支持下载最高清晰度视频（不支持4K）<br/>如果你在寻找专业下载器，可以尝试其他开源项目，如：https://github.com/BilibiliVideoDownload/BilibiliVideoDownload"
+          tip="此功能仅方便快速下载某些素材，并非专业下载器，链接仅支持BV号，目前仅支持下载最高清晰度视频（不支持4K）<br/>如果你在寻找专业下载器，可以尝试其他开源项目，如：https://github.com/nICEnnnnnnnLee/BilibiliDown"
         ></Tip>
 
         <n-input
