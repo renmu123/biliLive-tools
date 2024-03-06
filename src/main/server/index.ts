@@ -585,7 +585,7 @@ const convert2Mp4 = async (videoFile: string): Promise<string> => {
 
   return new Promise((resolve, reject) => {
     // @ts-ignore
-    convertVideo2Mp4(mainWin.webContents, formatFile(videoFile), {
+    convertVideo2Mp4(mainWin, formatFile(videoFile), {
       override: false,
       removeOrigin: false,
     }).then((task) => {
