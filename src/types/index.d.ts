@@ -343,8 +343,14 @@ export interface BiliupConfig {
   selectiionReply?: 0 | 1;
   /** 合集id */
   seasonId?: number | null;
+  /** 小节id */
+  sectionId?: number;
   /** 创建该预设的uid */
   uid?: number | null;
+  /** 是否允许二创：1：允许，-1：不允许 */
+  recreate?: 1 | -1;
+  /** 是否推送到动态：0：推送，1：不推送 */
+  no_disturbance?: 0 | 1;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

@@ -253,7 +253,7 @@ export const api = {
     checkTag(tag: string, uid: number) {
       return ipcRenderer.invoke("biliApi:checkTag", tag, uid);
     },
-    getSeasonList(uid: number) {
+    getSeasonList(uid: number): Promise<ReturnType<BiliApi["getSeasonList"]>> {
       return ipcRenderer.invoke("biliApi:getSeasonList", uid);
     },
     getArchiveDetail(bvid: string, uid?: number): Promise<ReturnType<BiliApi["getArchiveDetail"]>> {

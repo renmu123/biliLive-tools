@@ -30,6 +30,8 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   closeDanmu: 0,
   closeReply: 0,
   selectiionReply: 0,
+  recreate: -1,
+  no_disturbance: 0,
 };
 
 // 上传视频

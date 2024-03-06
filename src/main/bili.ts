@@ -129,6 +129,10 @@ interface MediaOptions {
   up_selection_reply?: boolean;
   /** 充电面板 0: 关闭，1: 开启，编辑应该不生效 */
   open_elec?: 0 | 1;
+  /** 是否允许二创：1：允许，-1：不允许 */
+  recreate?: 1 | -1;
+  /** 是否推送到动态：0：不推送，1：推送 */
+  no_disturbance?: 0 | 1;
 }
 
 interface DescV2 {
@@ -196,6 +200,8 @@ function formatOptions(options: BiliupConfig) {
     open_elec: options.openElec,
     desc_v2: descV2,
     desc: desc,
+    recreate: options.recreate || -1,
+    no_disturbance: options.no_disturbance || 0,
   };
   // console.log("formatOptions", data);
   return data;
@@ -237,10 +243,14 @@ async function addMedia(
             return;
           }
           const cid = archive.videos[0].cid;
-          const sectionId = (await client.platform.getSeasonDetail(options.seasonId)).sections
-            .sections[0].id;
+          let sectionId = options.sectionId;
+          if (!options.sectionId) {
+            sectionId = (await client.platform.getSeasonDetail(options.seasonId)).sections
+              .sections[0].id;
+          }
+
           client.platform.addMedia2Season({
-            sectionId: sectionId,
+            sectionId: sectionId!,
             episodes: [
               {
                 aid: data.aid,
