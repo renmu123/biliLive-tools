@@ -133,11 +133,8 @@ export const convertVideo2Mp4 = async (
 
   const command = ffmpeg(input).videoCodec("copy").audioCodec("copy").output(output);
 
-  const videoMeta = await readVideoMeta(path);
-  log.info("convertVideo2Mp4: videoMeta", videoMeta);
-  // const nbFrames =
-  //   Number(videoMeta.streams.find((stream) => stream.codec_type === "video")?.nb_frames) || 0;
-  // const duration = Number(videoMeta.format.duration) || 0;
+  // const videoMeta = await readVideoMeta(path);
+  // log.info("convertVideo2Mp4: videoMeta", videoMeta);
 
   const task = new FFmpegTask(
     command,
