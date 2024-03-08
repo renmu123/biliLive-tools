@@ -99,7 +99,7 @@ const confirm = async () => {
   if (res.in_season) {
     notice.error({
       title: "已在合集中的稿件无法添加分P",
-      duration: 500,
+      duration: 1000,
     });
     return;
   }

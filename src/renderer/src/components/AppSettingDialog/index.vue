@@ -81,7 +81,7 @@
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="webhook" tab="webhook">
-          <n-form label-placement="left" :label-width="120">
+          <n-form label-placement="left" :label-width="130">
             <n-form-item>
               <template #label>
                 <span class="inline-flex">
@@ -310,6 +310,7 @@ const globalFields = ref([
   "hotProgress",
   "useLiveCover",
   "convert2Mp4",
+  "useVideoAsTitle",
 ]);
 const webhookDefaultValue = computed(() => {
   if (!config.value.webhook) return {};
@@ -330,6 +331,8 @@ const webhookDefaultValue = computed(() => {
     hotProgressHeight: config.value.webhook.hotProgressHeight,
     hotProgressColor: config.value.webhook.hotProgressColor,
     hotProgressFillColor: config.value.webhook.hotProgressFillColor,
+    useVideoAsTitle: config.value.webhook.useVideoAsTitle,
+    convert2Mp4: config.value.webhook.convert2Mp4,
   };
 });
 
@@ -351,6 +354,8 @@ const handleRoomDetail = (roomId: string) => {
     partMergeMinute: room.partMergeMinute ?? 10,
     hotProgress: room.hotProgress ?? false,
     useLiveCover: room.useLiveCover ?? false,
+    useVideoAsTitle: room.useVideoAsTitle ?? false,
+    convert2Mp4: room.convert2Mp4 ?? false,
   };
 
   const noGlobalFields = room.noGlobal ?? [];

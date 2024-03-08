@@ -59,6 +59,9 @@ export const api = {
     ) => {
       return ipcRenderer.invoke("danmu:convertXml2Ass", files, config, options);
     },
+    isEmptyDanmu(input: string) {
+      return ipcRenderer.invoke("danmu:isEmptyDanmu", input);
+    },
     saveReport(input: string, output: string) {
       return ipcRenderer.invoke("danmu:saveReport", {
         input,

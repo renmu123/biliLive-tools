@@ -1,8 +1,8 @@
 <template>
   <n-modal v-model:show="roomDetailVisible" :mask-closable="false">
     <n-card :bordered="false" size="small" role="dialog" aria-modal="true" style="width: 800px">
-      <n-form label-placement="left" :label-width="120">
-        <n-form-item v-if="props.type === 'add'" label="请输入房间号">
+      <n-form label-placement="left" :label-width="130">
+        <n-form-item v-if="props.type === 'add'" label="房间号">
           <n-input v-model:value="data.id" placeholder="请输入房间号" />
         </n-form-item>
         <n-form-item>
@@ -91,9 +91,14 @@ const emits = defineEmits<{
   (event: "save", value: AppRoomConfig & { id?: string }): void;
   (event: "delete", value: string): void;
 }>();
+const notice = useNotification();
 
 const saveRoomDetail = () => {
   if (!data.value.id) {
+    notice.error({
+      title: "请输入房间号",
+      duration: 1000,
+    });
     return;
   }
   data.value.noGlobal = Object.entries(globalFieldsObj.value)

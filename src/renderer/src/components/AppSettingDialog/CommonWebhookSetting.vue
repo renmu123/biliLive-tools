@@ -175,8 +175,20 @@
   </n-form-item>
   <n-form-item>
     <template #label>
+      <span class="inline-flex"> 视频文件名标题 <Tip tip="使用视频文件名作为标题"></Tip> </span>
+    </template>
+    <n-switch v-model:value="data.useVideoAsTitle" :disabled="globalFieldsObj.useVideoAsTitle" />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.useVideoAsTitle"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item v-if="!data.useVideoAsTitle">
+    <template #label>
       <span class="inline-flex">
-        默认视频标题
+        视频标题
         <Tip :tip="titleTip"></Tip>
       </span>
     </template>

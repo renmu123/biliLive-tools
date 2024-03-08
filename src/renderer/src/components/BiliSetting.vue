@@ -306,7 +306,7 @@ const handleTagChange = async (tags: string[]) => {
     if (res.code !== 0) {
       notice.error({
         title: res.message,
-        duration: 500,
+        duration: 1000,
       });
       options.value.config.tag.splice(-1);
     }

@@ -163,6 +163,8 @@ function getConfig(roomId: number): {
   uploadPresetId: string;
   /* 上传标题 */
   title: string;
+  /** 使用视频文件名做标题 */
+  useVideoAsTitle?: boolean;
   /* 弹幕preset */
   danmuPresetId: string;
   /* 视频preset */
@@ -208,6 +210,7 @@ function getConfig(roomId: number): {
   const hotProgressColor = getRoomSetting("hotProgressColor");
   const hotProgressFillColor = getRoomSetting("hotProgressFillColor");
   const convert2Mp4 = getRoomSetting("convert2Mp4");
+  const useVideoAsTitle = getRoomSetting("useVideoAsTitle");
 
   /**
    * 获取房间配置项
@@ -258,6 +261,7 @@ function getConfig(roomId: number): {
     hotProgressHeight,
     hotProgressColor,
     convert2Mp4Option: convert2Mp4,
+    useVideoAsTitle,
   });
 
   return {
@@ -278,6 +282,7 @@ function getConfig(roomId: number): {
     hotProgressColor,
     hotProgressFillColor,
     convert2Mp4Option: convert2Mp4,
+    useVideoAsTitle,
   };
 }
 

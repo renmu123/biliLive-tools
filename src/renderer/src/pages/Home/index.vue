@@ -215,21 +215,21 @@ const preHandle = async (
   if (!videoFile) {
     notice.error({
       title: "请选择一个flv、mp4、m4s文件",
-      duration: 3000,
+      duration: 1000,
     });
     return false;
   }
   if (!danmuFile) {
     notice.error({
       title: "请选择一个xml或者ass文件",
-      duration: 3000,
+      duration: 1000,
     });
     return false;
   }
   if (clientOptions.hotProgress && !hasXmlFile) {
     notice.error({
       title: "只有xml文件支持高能进度条",
-      duration: 3000,
+      duration: 1000,
     });
     return false;
   }

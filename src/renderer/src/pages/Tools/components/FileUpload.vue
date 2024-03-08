@@ -50,7 +50,7 @@ const upload = async () => {
   if (!hasLogin) {
     notice.error({
       title: `请点击左侧头像处进行登录`,
-      duration: 3000,
+      duration: 1000,
     });
     return;
   }
@@ -58,14 +58,14 @@ const upload = async () => {
   if (fileList.value.length === 0) {
     notice.error({
       title: `至少选择一个文件`,
-      duration: 3000,
+      duration: 1000,
     });
     return;
   }
   await window.api.bili.validUploadParams(deepRaw(presetOptions.value.config));
   notice.info({
     title: `开始上传`,
-    duration: 3000,
+    duration: 1000,
   });
   await window.api.bili.uploadVideo(
     userInfo.value.uid,
@@ -87,7 +87,7 @@ const appendVideo = async () => {
   if (!hasLogin) {
     notice.error({
       title: `请先登录`,
-      duration: 3000,
+      duration: 1000,
     });
     return;
   }
@@ -95,14 +95,14 @@ const appendVideo = async () => {
   if (fileList.value.length === 0) {
     notice.error({
       title: `请先选择一个文件`,
-      duration: 3000,
+      duration: 1000,
     });
     return;
   }
 
   notice.info({
     title: `开始上传`,
-    duration: 3000,
+    duration: 1000,
   });
   await window.api.bili.appendVideo(
     userInfo.value.uid,

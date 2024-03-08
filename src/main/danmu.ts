@@ -1,6 +1,7 @@
 import { join, parse } from "node:path";
 import fs from "fs-extra";
 import os from "node:os";
+import { XMLParser } from "fast-xml-parser";
 
 import { pathExists, trashItem, __dirname, uuid } from "./utils/index";
 import log from "./utils/log";
@@ -138,6 +139,17 @@ export const convertXml2Ass = async (
   return tasks;
 };
 
+/**
+ * 判断xml中弹幕是否为空
+ */
+export const isEmptyDanmu = async (input: string) => {
+  const XMLdata = await fs.promises.readFile(input, "utf8");
+  const parser = new XMLParser({ ignoreAttributes: false });
+  const jObj = parser.parse(XMLdata);
+  const danmuku = jObj?.i?.d || [];
+  return danmuku.length === 0;
+};
+
 const danmuPreset = new CommonPreset(DANMU_PRESET_PATH, DANMU_DEAFULT_CONFIG);
 // 保存弹幕预设
 export const saveDanmuPreset = async (
@@ -200,5 +212,8 @@ export const handlers = {
     options: hotProgressOptions,
   ) => {
     return genHotProgress(_event.sender, input, output, options);
+  },
+  "danmu:isEmptyDanmu": (_event: IpcMainInvokeEvent, input: string) => {
+    return isEmptyDanmu(input);
   },
 };

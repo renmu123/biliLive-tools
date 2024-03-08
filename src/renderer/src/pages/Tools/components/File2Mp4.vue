@@ -74,7 +74,7 @@ const convert = async () => {
   if (fileList.value.length === 0) {
     notice.error({
       title: `至少选择一个文件`,
-      duration: 3000,
+      duration: 1000,
     });
     return;
   }
@@ -89,14 +89,14 @@ const convert = async () => {
     } catch (err) {
       notice.error({
         title: err as string,
-        duration: 3000,
+        duration: 1000,
       });
     }
   }
   fileList.value = [];
   notice.warning({
     title: `已加入任务队列，可在任务列表中查看进度`,
-    duration: 3000,
+    duration: 1000,
   });
 };
 
