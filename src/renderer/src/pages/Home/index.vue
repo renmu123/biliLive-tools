@@ -370,9 +370,18 @@ const genHotProgress = async (input: string, options: hotProgressOptions): Promi
 
 // 处理xml文件
 const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfig: DanmuConfig) => {
+  const isEmpty = await window.api.danmu.isEmptyDanmu(danmuFile.path);
+  if (isEmpty) {
+    const msg = "弹幕文件中不存在弹幕，无需压制";
+    notice.warning({
+      title: msg,
+      duration: 1000,
+    });
+    throw new Error(msg);
+  }
   notice.warning({
     title: "开始转换xml",
-    duration: 3000,
+    duration: 1000,
   });
 
   const outputPath = `${window.path.join(window.api.common.getTempPath(), uuid())}.ass`;

@@ -5,7 +5,7 @@ import fs from "fs-extra";
 import { getAppConfig } from "../config";
 import { uploadVideo, appendVideo, DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
 import { mainWin } from "../index";
-import { convertXml2Ass, readDanmuPreset, genHotProgress } from "../danmu";
+import { convertXml2Ass, readDanmuPreset, genHotProgress, isEmptyDanmu } from "../danmu";
 import { taskQueue } from "../task";
 import { mergeAssMp4, readVideoMeta, convertVideo2Mp4 } from "../video";
 import bili from "../bili";
@@ -462,6 +462,7 @@ async function handle(options: Options) {
     hotProgressColor,
     hotProgressFillColor,
     convert2Mp4Option,
+    useVideoAsTitle,
   } = getConfig(options.roomId);
 
   if (!open) {
@@ -473,6 +474,11 @@ async function handle(options: Options) {
   if (uploadPresetId) {
     const preset = await readBiliupPreset(undefined, uploadPresetId);
     config = { ...config, ...preset.config };
+  }
+  if (useVideoAsTitle) {
+    config.title = path.parse(options.filePath).name;
+  } else {
+    config.title = foramtTitle(options, title);
   }
   config.title = foramtTitle(options, title);
   if (!config.title) config.title = path.parse(options.filePath).name;
@@ -529,7 +535,7 @@ async function handle(options: Options) {
     const xmlFilePath = path.join(xmlFile.dir, `${xmlFile.name}.xml`);
     await sleep(10000);
 
-    if (!(await fs.pathExists(xmlFilePath))) {
+    if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
       log.info("没有找到弹幕文件，直接上传", xmlFilePath);
       currentPart.status = "handled";
       newUploadTask(uid, mergePart, currentPart, config);
