@@ -11,7 +11,7 @@
 
     <FileArea
       v-model="fileList"
-      :extensions="['flv', 'mp4', 'ass', 'xml']"
+      :extensions="['flv', 'mp4', 'ass', 'xml', 'm4s']"
       desc="请选择视频以及弹幕文件，如果为xml将自动转换为ass"
       :max="2"
     ></FileArea>
@@ -206,13 +206,15 @@ const preHandle = async (
     await biliUpCheck(presetOptions);
   }
 
-  const videoFile = files.find((item) => item.ext === ".flv" || item.ext === ".mp4");
+  const videoFile = files.find(
+    (item) => item.ext === ".flv" || item.ext === ".mp4" || item.ext === ".m4s",
+  );
   const danmuFile = files.find((item) => item.ext === ".xml" || item.ext === ".ass");
   const hasXmlFile = files.some((item) => item.ext === ".xml");
 
   if (!videoFile) {
     notice.error({
-      title: "请选择一个flv或者mp4文件",
+      title: "请选择一个flv、mp4、m4s文件",
       duration: 3000,
     });
     return false;

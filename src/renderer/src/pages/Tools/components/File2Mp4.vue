@@ -4,7 +4,7 @@
     <div class="center" style="margin-bottom: 20px">
       <n-button type="primary" @click="convert"> 立即转换 </n-button>
     </div>
-    <FileArea v-model="fileList" :extensions="['flv']" desc="请选择flv文件"></FileArea>
+    <FileArea v-model="fileList" :extensions="['flv']" desc="请选择视频文件"></FileArea>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div>
