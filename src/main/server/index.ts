@@ -603,7 +603,7 @@ const convert2Mp4 = async (videoFile: string): Promise<string> => {
       formatFile(videoFile),
       {
         override: false,
-        removeOrigin: false,
+        removeOrigin: true,
       },
     ).then((task) => {
       const currentTaskId = task.taskId;
