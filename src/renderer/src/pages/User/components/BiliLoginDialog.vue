@@ -46,7 +46,7 @@ const onOpen = async () => {
     try {
       notice.success({
         title: "登录成功",
-        duration: 2000,
+        duration: 1000,
       });
       confirm();
     } catch (e: unknown) {

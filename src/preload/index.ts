@@ -59,6 +59,9 @@ export const api = {
     ) => {
       return ipcRenderer.invoke("danmu:convertXml2Ass", files, config, options);
     },
+    isEmptyDanmu(input: string) {
+      return ipcRenderer.invoke("danmu:isEmptyDanmu", input);
+    },
     saveReport(input: string, output: string) {
       return ipcRenderer.invoke("danmu:saveReport", {
         input,
@@ -253,7 +256,7 @@ export const api = {
     checkTag(tag: string, uid: number) {
       return ipcRenderer.invoke("biliApi:checkTag", tag, uid);
     },
-    getSeasonList(uid: number) {
+    getSeasonList(uid: number): Promise<ReturnType<BiliApi["getSeasonList"]>> {
       return ipcRenderer.invoke("biliApi:getSeasonList", uid);
     },
     getArchiveDetail(bvid: string, uid?: number): Promise<ReturnType<BiliApi["getArchiveDetail"]>> {

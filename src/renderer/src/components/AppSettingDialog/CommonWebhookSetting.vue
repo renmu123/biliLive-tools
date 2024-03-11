@@ -7,6 +7,19 @@
       >全局</n-checkbox
     >
   </n-form-item>
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex">
+        转封装为mp4
+        <Tip tip="将视频文件转换为mp4封装格式，转换完毕后会删除原始视频文件"></Tip>
+      </span>
+    </template>
+    <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
+
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
   <template v-if="data.danmu">
     <n-form-item label="弹幕转化预设">
       <n-select
@@ -163,7 +176,21 @@
   <n-form-item>
     <template #label>
       <span class="inline-flex">
-        默认视频标题
+        使用视频文件名 <Tip tip="使用本地视频文件名作为视频标题"></Tip>
+      </span>
+    </template>
+    <n-switch v-model:value="data.useVideoAsTitle" :disabled="globalFieldsObj.useVideoAsTitle" />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.useVideoAsTitle"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item v-if="!data.useVideoAsTitle">
+    <template #label>
+      <span class="inline-flex">
+        视频标题
         <Tip :tip="titleTip"></Tip>
       </span>
     </template>

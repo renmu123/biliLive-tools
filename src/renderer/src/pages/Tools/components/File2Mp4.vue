@@ -4,7 +4,7 @@
     <div class="center" style="margin-bottom: 20px">
       <n-button type="primary" @click="convert"> 立即转换 </n-button>
     </div>
-    <FileArea v-model="fileList" :extensions="['flv']" desc="请选择flv文件"></FileArea>
+    <FileArea v-model="fileList" :extensions="['flv']" desc="请选择视频文件"></FileArea>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div>
@@ -74,7 +74,7 @@ const convert = async () => {
   if (fileList.value.length === 0) {
     notice.error({
       title: `至少选择一个文件`,
-      duration: 3000,
+      duration: 1000,
     });
     return;
   }
@@ -89,14 +89,14 @@ const convert = async () => {
     } catch (err) {
       notice.error({
         title: err as string,
-        duration: 3000,
+        duration: 1000,
       });
     }
   }
   fileList.value = [];
   notice.warning({
     title: `已加入任务队列，可在任务列表中查看进度`,
-    duration: 3000,
+    duration: 1000,
   });
 };
 

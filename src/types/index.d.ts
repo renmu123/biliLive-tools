@@ -57,7 +57,10 @@ export type FfmpegPreset = {
 type CommonRoomConfig = {
   open: boolean;
   minSize: number;
+  /** 视频标题 */
   title: string;
+  /** 使用视频文件名作为标题 */
+  useVideoAsTitle?: boolean;
   uploadPresetId?: string;
   danmu: boolean;
   ffmpegPreset?: string;
@@ -77,6 +80,8 @@ type CommonRoomConfig = {
   hotProgressColor?: string;
   /** 高能进度条：覆盖颜色 */
   hotProgressFillColor?: string;
+  /** 转封装为mp4 */
+  convert2Mp4?: boolean;
 };
 
 // webhook房间配置
@@ -343,8 +348,14 @@ export interface BiliupConfig {
   selectiionReply?: 0 | 1;
   /** 合集id */
   seasonId?: number | null;
+  /** 小节id */
+  sectionId?: number;
   /** 创建该预设的uid */
   uid?: number | null;
+  /** 是否允许二创：1：允许，-1：不允许 */
+  recreate?: 1 | -1;
+  /** 是否推送到动态：0：推送，1：不推送 */
+  no_disturbance?: 0 | 1;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

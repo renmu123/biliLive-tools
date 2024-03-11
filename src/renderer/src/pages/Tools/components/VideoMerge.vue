@@ -53,7 +53,7 @@ const convert = async () => {
   if (fileList.value.length < 2) {
     notice.error({
       title: `至少选择2个文件`,
-      duration: 3000,
+      duration: 1000,
     });
     return;
   }
@@ -65,7 +65,7 @@ const convert = async () => {
     if (await window.api.exits(filePath)) {
       notice.error({
         title: `${filePath}-文件已存在，请手动选择路径`,
-        duration: 3000,
+        duration: 1000,
       });
       const file = await getDir(filePath);
       if (!file) {
@@ -85,12 +85,12 @@ const convert = async () => {
     window.api.mergeVideos(toRaw(fileList.value), { ...toRaw(options), savePath: filePath });
     notice.warning({
       title: `已加入任务队列，可在任务列表中查看进度`,
-      duration: 3000,
+      duration: 1000,
     });
   } catch (err) {
     notice.error({
       title: err as string,
-      duration: 3000,
+      duration: 1000,
     });
   } finally {
     fileList.value = [];

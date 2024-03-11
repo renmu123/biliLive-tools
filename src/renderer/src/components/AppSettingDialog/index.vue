@@ -37,7 +37,7 @@
                 <span class="inline-flex">
                   biliup上传
                   <Tip
-                    tip="启用后，将使用biliup实现的上传功能<br/>如果上传出现错误，请尝试打开该选项"
+                    tip="启用后，将使用biliup实现的上传功能<br/>如果上传出现错误，请尝试打开该选项，biliup不支持0.7.0及以上版本新增的功能"
                   ></Tip>
                 </span>
               </template>
@@ -81,7 +81,7 @@
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="webhook" tab="webhook">
-          <n-form label-placement="left" :label-width="120">
+          <n-form label-placement="left" :label-width="130">
             <n-form-item>
               <template #label>
                 <span class="inline-flex">
@@ -309,6 +309,8 @@ const globalFields = ref([
   "hotProgressFillColor",
   "hotProgress",
   "useLiveCover",
+  "convert2Mp4",
+  "useVideoAsTitle",
 ]);
 const webhookDefaultValue = computed(() => {
   if (!config.value.webhook) return {};
@@ -329,6 +331,8 @@ const webhookDefaultValue = computed(() => {
     hotProgressHeight: config.value.webhook.hotProgressHeight,
     hotProgressColor: config.value.webhook.hotProgressColor,
     hotProgressFillColor: config.value.webhook.hotProgressFillColor,
+    useVideoAsTitle: config.value.webhook.useVideoAsTitle,
+    convert2Mp4: config.value.webhook.convert2Mp4,
   };
 });
 
@@ -350,6 +354,8 @@ const handleRoomDetail = (roomId: string) => {
     partMergeMinute: room.partMergeMinute ?? 10,
     hotProgress: room.hotProgress ?? false,
     useLiveCover: room.useLiveCover ?? false,
+    useVideoAsTitle: room.useVideoAsTitle ?? false,
+    convert2Mp4: room.convert2Mp4 ?? false,
   };
 
   const noGlobalFields = room.noGlobal ?? [];

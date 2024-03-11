@@ -90,6 +90,10 @@ const handleFileSelect = async () => {
         name: "file",
         extensions: props.extensions,
       },
+      {
+        name: "所有文件",
+        extensions: ["*"],
+      },
     ],
   });
   if (!files) return;

@@ -5,14 +5,14 @@ import fs from "fs-extra";
 import { getAppConfig } from "../config";
 import { uploadVideo, appendVideo, DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
 import { mainWin } from "../index";
-import { convertXml2Ass, readDanmuPreset, genHotProgress } from "../danmu";
+import { convertXml2Ass, readDanmuPreset, genHotProgress, isEmptyDanmu } from "../danmu";
 import { taskQueue } from "../task";
-import { mergeAssMp4, readVideoMeta } from "../video";
+import { mergeAssMp4, readVideoMeta, convertVideo2Mp4 } from "../video";
 import bili from "../bili";
 import { biliApi } from "../bili";
 import { getFfmpegPreset } from "../ffmpegPreset";
 import log from "../utils/log";
-import { getFileSize, uuid, runWithMaxIterations } from "../../utils/index";
+import { getFileSize, uuid, runWithMaxIterations, sleep } from "../../utils/index";
 import express from "express";
 
 import type { BlrecEventType } from "./brelcEvent.d.ts";
@@ -163,6 +163,8 @@ function getConfig(roomId: number): {
   uploadPresetId: string;
   /* 上传标题 */
   title: string;
+  /** 使用视频文件名做标题 */
+  useVideoAsTitle?: boolean;
   /* 弹幕preset */
   danmuPresetId: string;
   /* 视频preset */
@@ -185,23 +187,12 @@ function getConfig(roomId: number): {
   hotProgressColor?: string;
   /** 高能进度条：覆盖颜色 */
   hotProgressFillColor?: string;
+  /** 转封装为mp4 */
+  convert2Mp4Option?: boolean;
 } {
   const appConfig = getAppConfig();
   const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[roomId];
   log.debug("room setting", roomId, roomSetting);
-
-  // const danmu = roomSetting?.danmu !== undefined ? roomSetting.danmu : appConfig.webhook.danmu;
-  // const mergePart = roomSetting?.autoPartMerge ?? appConfig.webhook.autoPartMerge;
-  // const minSize = roomSetting?.minSize || appConfig.webhook.minSize || 0;
-  // const uploadPresetId =
-  //   roomSetting?.uploadPresetId || appConfig.webhook.uploadPresetId || "default";
-  // const title = roomSetting?.title || appConfig.webhook.title || "";
-  // const danmuPresetId = roomSetting?.danmuPreset || appConfig.webhook.danmuPreset || "default";
-  // const videoPresetId = roomSetting?.ffmpegPreset || appConfig.webhook.ffmpegPreset || "default";
-  // const uid = roomSetting?.uid || appConfig.webhook.uid;
-  // const partMergeMinute = roomSetting?.partMergeMinute || appConfig.webhook.partMergeMinute || 10;
-  // const hotProgress = roomSetting?.hotProgress ?? appConfig.webhook.hotProgress;
-  // const useLiveCover = roomSetting?.useLiveCover ?? appConfig.webhook.useLiveCover;
 
   const danmu = getRoomSetting("danmu");
   const mergePart = getRoomSetting("autoPartMerge");
@@ -218,6 +209,8 @@ function getConfig(roomId: number): {
   const hotProgressHeight = getRoomSetting("hotProgressHeight");
   const hotProgressColor = getRoomSetting("hotProgressColor");
   const hotProgressFillColor = getRoomSetting("hotProgressFillColor");
+  const convert2Mp4 = getRoomSetting("convert2Mp4");
+  const useVideoAsTitle = getRoomSetting("useVideoAsTitle");
 
   /**
    * 获取房间配置项
@@ -267,6 +260,8 @@ function getConfig(roomId: number): {
     hotProgressSample,
     hotProgressHeight,
     hotProgressColor,
+    convert2Mp4Option: convert2Mp4,
+    useVideoAsTitle,
   });
 
   return {
@@ -286,6 +281,8 @@ function getConfig(roomId: number): {
     hotProgressHeight,
     hotProgressColor,
     hotProgressFillColor,
+    convert2Mp4Option: convert2Mp4,
+    useVideoAsTitle,
   };
 }
 
@@ -464,6 +461,8 @@ async function handle(options: Options) {
     hotProgressHeight,
     hotProgressColor,
     hotProgressFillColor,
+    convert2Mp4Option,
+    useVideoAsTitle,
   } = getConfig(options.roomId);
 
   if (!open) {
@@ -475,6 +474,11 @@ async function handle(options: Options) {
   if (uploadPresetId) {
     const preset = await readBiliupPreset(undefined, uploadPresetId);
     config = { ...config, ...preset.config };
+  }
+  if (useVideoAsTitle) {
+    config.title = path.parse(options.filePath).name;
+  } else {
+    config.title = foramtTitle(options, title);
   }
   config.title = foramtTitle(options, title);
   if (!config.title) config.title = path.parse(options.filePath).name;
@@ -519,13 +523,19 @@ async function handle(options: Options) {
     }
   }
 
+  if (convert2Mp4Option) {
+    const file = await convert2Mp4(options.filePath);
+    log.debug("convert2Mp4 output", file);
+    options.filePath = file;
+    currentPart.filePath = file;
+  }
   if (danmu) {
     // 压制弹幕后上传
     const xmlFile = path.parse(options.filePath);
     const xmlFilePath = path.join(xmlFile.dir, `${xmlFile.name}.xml`);
     await sleep(10000);
 
-    if (!(await fs.pathExists(xmlFilePath))) {
+    if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
       log.info("没有找到弹幕文件，直接上传", xmlFilePath);
       currentPart.status = "handled";
       newUploadTask(uid, mergePart, currentPart, config);
@@ -548,28 +558,67 @@ async function handle(options: Options) {
     const ffmpegPreset = await getFfmpegPreset(videoPresetId);
     if (!ffmpegPreset) {
       log.error("ffmpegPreset not found", videoPresetId);
+      currentPart.status = "error";
       return;
     }
-    const output = await addMergeAssMp4Task(
-      options.filePath,
-      assFilePath,
-      hotProgressFile,
-      ffmpegPreset?.config,
-    );
-    fs.remove(assFilePath);
-    if (hotProgressFile) fs.remove(hotProgressFile);
+    try {
+      const output = await addMergeAssMp4Task(
+        options.filePath,
+        assFilePath,
+        hotProgressFile,
+        ffmpegPreset?.config,
+      );
+      fs.remove(assFilePath);
+      if (hotProgressFile) fs.remove(hotProgressFile);
 
-    currentPart.filePath = output;
-    currentPart.status = "handled";
-    newUploadTask(uid, mergePart, currentPart, config);
+      currentPart.filePath = output;
+      currentPart.status = "handled";
+      newUploadTask(uid, mergePart, currentPart, config);
+    } catch (error) {
+      log.error(error);
+      currentPart.status = "error";
+    }
   } else {
     currentPart.status = "handled";
     newUploadTask(uid, mergePart, currentPart, config);
   }
 }
 
-const sleep = (ms: number) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+// 转封装为mp4
+const convert2Mp4 = async (videoFile: string): Promise<string> => {
+  const formatFile = (filePath: string) => {
+    const formatFile = path.parse(filePath);
+    return { ...formatFile, path: filePath, filename: formatFile.base };
+  };
+  const { dir, name } = formatFile(videoFile);
+  const output = path.join(dir, `${name}.mp4`);
+  if (await fs.pathExists(output)) return output;
+
+  return new Promise((resolve, reject) => {
+    convertVideo2Mp4(
+      // @ts-ignore
+      {
+        sender: mainWin.webContents,
+      },
+      formatFile(videoFile),
+      {
+        override: false,
+        removeOrigin: true,
+      },
+    ).then((task) => {
+      const currentTaskId = task.taskId;
+      taskQueue.on("task-end", ({ taskId }) => {
+        if (taskId === currentTaskId) {
+          resolve(output);
+        }
+      });
+      taskQueue.on("task-error", ({ taskId }) => {
+        if (taskId === currentTaskId) {
+          reject();
+        }
+      });
+    });
+  });
 };
 
 // 生成高能进度条

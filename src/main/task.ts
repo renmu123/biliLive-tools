@@ -22,6 +22,7 @@ abstract class AbstractTask {
   relTaskId?: string;
   output?: string;
   progress: number;
+  custsomProgressMsg: string;
   action: ("pause" | "kill" | "interrupt")[];
   startTime?: number;
   endTime?: number;
@@ -37,6 +38,7 @@ abstract class AbstractTask {
     this.name = this.taskId;
     this.progress = 0;
     this.action = ["pause", "kill"];
+    this.custsomProgressMsg = "";
   }
 }
 
@@ -189,10 +191,10 @@ export class FFmpegTask extends AbstractTask {
     });
     command.on("progress", (progress) => {
       progress.percentage = progress.percent;
-
       if (callback.onProgress) {
         progress = callback.onProgress(progress);
       }
+      this.custsomProgressMsg = `比特率: ${progress.currentKbps}kbits/s   速率: ${progress.speed}`;
       this.progress = progress.percentage || 0;
       emitter.emit("task-progress", { taskId: this.taskId, webContents: this.webContents });
     });
@@ -308,6 +310,10 @@ export class BiliVideoTask extends AbstractTask {
       callback.onError && callback.onError(err);
       emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
     });
+
+    // let size = 0;
+    // let time = Date.now();
+    // let lastProgressMsg = `速度: 0MB/s`;
     command.emitter.on("progress", (progress) => {
       progress.percentage = progress.progress * 100;
 
@@ -315,6 +321,22 @@ export class BiliVideoTask extends AbstractTask {
         progress = callback.onProgress(progress);
       }
       this.progress = progress.percentage || 0;
+      // const nowSize = progress.totalUploadedSize;
+      // const nowTime = Date.now();
+      // const timeDistance = (nowTime - time) / 1000;
+      // const sizeDistance = nowSize - size;
+
+      // time = nowTime;
+      // size = nowSize;
+      // if (timeDistance < 0.1) {
+      // this.custsomProgressMsg = `速度: 0MB/s`;
+      // this.custsomProgressMsg = lastProgressMsg;
+      // } else {
+      // this.custsomProgressMsg = `速度: ${(sizeDistance / 1024 / 1024 / timeDistance).toFixed(2)}MB/s`;
+      // lastProgressMsg = this.custsomProgressMsg;
+      // }
+      // console.log("progress", progress, sizeDistance, timeDistance);
+
       emitter.emit("task-progress", { taskId: this.taskId, webContents: this.webContents });
     });
   }
@@ -409,11 +431,28 @@ export class BiliDownloadVideoTask extends AbstractTask {
       callback.onError && callback.onError(err);
       emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
     });
+    let size = 0;
+    let time = Date.now();
+    let lastProgressMsg = `速度: 0MB/s`;
     command.emitter.on("progress", (event: any) => {
-      // console.debug("progress", event);
       if (event.event === "download") {
         const progress = event.progress.progress * 100;
         this.progress = progress;
+        const nowSize = event.progress.loaded;
+        const nowTime = Date.now();
+        const timeDistance = (nowTime - time) / 1000;
+        const sizeDistance = nowSize - size;
+
+        time = nowTime;
+        size = nowSize;
+
+        if (timeDistance < 0.1) {
+          this.custsomProgressMsg = `速度: 0MB/s`;
+          this.custsomProgressMsg = lastProgressMsg;
+        } else {
+          this.custsomProgressMsg = `速度: ${(sizeDistance / 1024 / 1024 / timeDistance).toFixed(2)}MB/s`;
+          lastProgressMsg = this.custsomProgressMsg;
+        }
         // progress.percentage = progress.progress * 100;
         // progress.progress = progress.percentage;
 
@@ -476,6 +515,7 @@ export class TaskQueue {
         action: task.action,
         startTime: task.startTime,
         endTime: task.endTime,
+        custsomProgressMsg: task.custsomProgressMsg,
       };
     });
   }

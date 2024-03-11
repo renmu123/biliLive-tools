@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import ffmpeg from "fluent-ffmpeg";
 
 import { getAppConfig } from "./config";
-import { escaped, genFfmpegParams, pathExists, trashItem, uuid, notify } from "./utils/index";
+import { escaped, genFfmpegParams, pathExists, trashItem, uuid } from "./utils/index";
 import log from "./utils/log";
 import { executeCommand } from "../utils/index";
 import { taskQueue, FFmpegTask } from "./task";
@@ -124,28 +124,17 @@ export const convertVideo2Mp4 = async (
 
   if (!(await pathExists(input))) {
     log.error("convertVideo2Mp4, file not exist", input);
-    notify(_event, {
-      type: "error",
-      content: "输入文件不存在",
-    });
-    return;
+    throw new Error("输入文件不存在");
   }
   if (!options.override && (await pathExists(output))) {
     log.error("convertVideo2Mp4, 文件已存在，跳过", input);
-    notify(_event, {
-      type: "error",
-      content: "目标文件已存在",
-    });
-    return;
+    throw new Error("目标文件已存在");
   }
 
   const command = ffmpeg(input).videoCodec("copy").audioCodec("copy").output(output);
 
-  const videoMeta = await readVideoMeta(path);
-  log.info("convertVideo2Mp4: videoMeta", videoMeta);
-  // const nbFrames =
-  //   Number(videoMeta.streams.find((stream) => stream.codec_type === "video")?.nb_frames) || 0;
-  // const duration = Number(videoMeta.format.duration) || 0;
+  // const videoMeta = await readVideoMeta(path);
+  // log.info("convertVideo2Mp4: videoMeta", videoMeta);
 
   const task = new FFmpegTask(
     command,
@@ -222,11 +211,36 @@ export const mergeAssMp4 = async (
 
   if (files.hotProgressFilePath) {
     command.input(files.hotProgressFilePath);
-    command.outputOptions(
-      `-filter_complex [0:v]subtitles=${escaped(assFile)}[i];[1]colorkey=black:0.1:0.1[1d];[i][1d]overlay=W-w-0:H-h-0'`,
-    );
+    // command.outputOptions(
+    //   `-filter_complex [0:v]subtitles=${escaped(assFile)}[i];[1]colorkey=black:0.1:0.1[1d];[i][1d]overlay=W-w-0:H-h-0'`,
+    // );
+    command.complexFilter([
+      {
+        filter: "subtitles",
+        options: `${escaped(assFile)}`,
+        inputs: "0:v",
+        outputs: "i",
+      },
+      {
+        filter: "colorkey",
+        options: "black:0.1:0.1",
+        inputs: "1",
+        outputs: "1d",
+      },
+      {
+        filter: "overlay",
+        options: "W-w-0:H-h-0",
+        inputs: ["i", "1d"],
+      },
+    ]);
   } else {
-    command.outputOptions(`-filter_complex subtitles=${escaped(assFile)}`);
+    // command.outputOptions(`-filter_complex subtitles=${escaped(assFile)}`);
+    command.complexFilter([
+      {
+        filter: "subtitles",
+        options: `${escaped(assFile)}`,
+      },
+    ]);
   }
   if (["h264_nvenc", "hevc_nvenc", "av1_nvenc"].includes(ffmpegOptions.encoder)) {
     if (ffmpegOptions.decode) {

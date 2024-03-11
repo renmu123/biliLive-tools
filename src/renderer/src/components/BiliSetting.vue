@@ -100,12 +100,21 @@
         />
       </n-form-item>
       <n-form-item label="自制声明">
-        <n-checkbox
-          v-model:checked="options.config.noReprint"
-          :checked-value="1"
-          :unchecked-value="0"
-          >未经作者授权 禁止转载</n-checkbox
-        >
+        <div class="inline-items">
+          <n-checkbox
+            v-model:checked="options.config.noReprint"
+            :checked-value="1"
+            :unchecked-value="0"
+            >未经作者授权 禁止转载</n-checkbox
+          >
+          <n-checkbox
+            v-model:checked="options.config.recreate"
+            :checked-value="1"
+            :unchecked-value="-1"
+            title="勾选即允许创作者基于您的投稿视频内容进行二创"
+            >二创声明</n-checkbox
+          >
+        </div>
       </n-form-item>
       <n-form-item label="充电设置">
         <n-checkbox
@@ -172,17 +181,33 @@
             ></Tip>
           </span>
         </template>
-        <n-select
-          v-model:value="options.config.seasonId"
-          :options="seasonList"
-          placeholder="请选择合集"
-        />
-        <span
-          v-if="options.config.seasonId"
-          style="flex: none; margin-left: 20px; margin-right: 20px; cursor: pointer"
-          @click="clearSeason"
-          >清除</span
-        >
+        <div class="inline-items" style="align-items: center">
+          <n-select
+            v-model:value="options.config.seasonId"
+            :options="seasonList"
+            placeholder="请选择合集"
+            style="width: 200px; flex: none"
+            clearable
+          />
+          <n-select
+            v-if="options.config.seasonId"
+            v-model:value="options.config.sectionId"
+            :options="currentSections"
+            label-field="title"
+            value-field="id"
+            placeholder="请选择小节"
+            style="width: 200px; flex: none"
+            clearable
+          />
+          <n-checkbox
+            v-if="options.config.seasonId"
+            v-model:checked="options.config.no_disturbance"
+            :checked-value="1"
+            :unchecked-value="0"
+            style="flex: none"
+            >此稿件不生成更新推送</n-checkbox
+          >
+        </div>
       </n-form-item>
     </n-form>
 
@@ -281,7 +306,7 @@ const handleTagChange = async (tags: string[]) => {
     if (res.code !== 0) {
       notice.error({
         title: res.message,
-        duration: 500,
+        duration: 1000,
       });
       options.value.config.tag.splice(-1);
     }
@@ -393,8 +418,12 @@ const seasonList = ref<
   {
     label: string;
     value: number;
+    sections: { title: string; id: number }[];
   }[]
 >([]);
+const currentSections = computed(() => {
+  return seasonList.value.find((item) => item.value === options.value.config.seasonId)?.sections;
+});
 const getSeasonList = async () => {
   if (!userInfoStore?.userInfo?.uid) {
     seasonList.value = [];
@@ -405,12 +434,13 @@ const getSeasonList = async () => {
     return {
       label: item.season.title,
       value: item.season.id,
+      sections: item?.sections?.sections || [],
     };
   });
 };
-const clearSeason = () => {
-  options.value.config.seasonId = null;
-};
+// const clearSeason = () => {
+//   options.value.config.seasonId = null;
+// };
 
 watch(
   () => options.value.config.seasonId,

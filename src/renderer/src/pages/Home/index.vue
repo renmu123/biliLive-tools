@@ -11,7 +11,7 @@
 
     <FileArea
       v-model="fileList"
-      :extensions="['flv', 'mp4', 'ass', 'xml']"
+      :extensions="['flv', 'mp4', 'ass', 'xml', 'm4s']"
       desc="请选择视频以及弹幕文件，如果为xml将自动转换为ass"
       :max="2"
     ></FileArea>
@@ -206,28 +206,30 @@ const preHandle = async (
     await biliUpCheck(presetOptions);
   }
 
-  const videoFile = files.find((item) => item.ext === ".flv" || item.ext === ".mp4");
+  const videoFile = files.find(
+    (item) => item.ext === ".flv" || item.ext === ".mp4" || item.ext === ".m4s",
+  );
   const danmuFile = files.find((item) => item.ext === ".xml" || item.ext === ".ass");
   const hasXmlFile = files.some((item) => item.ext === ".xml");
 
   if (!videoFile) {
     notice.error({
-      title: "请选择一个flv或者mp4文件",
-      duration: 3000,
+      title: "请选择一个flv、mp4、m4s文件",
+      duration: 1000,
     });
     return false;
   }
   if (!danmuFile) {
     notice.error({
       title: "请选择一个xml或者ass文件",
-      duration: 3000,
+      duration: 1000,
     });
     return false;
   }
   if (clientOptions.hotProgress && !hasXmlFile) {
     notice.error({
       title: "只有xml文件支持高能进度条",
-      duration: 3000,
+      duration: 1000,
     });
     return false;
   }
@@ -289,9 +291,6 @@ const convert = async () => {
     );
     console.log("targetAssFilePath", targetAssFile);
     inputDanmuFile = targetAssFile;
-  }
-  if (inputDanmuFile.path.includes(" ")) {
-    throw new Error("弹幕文件路径中存在空格时会压制错误");
   }
 
   let hotProgressInput: string | undefined = undefined;
@@ -371,9 +370,18 @@ const genHotProgress = async (input: string, options: hotProgressOptions): Promi
 
 // 处理xml文件
 const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfig: DanmuConfig) => {
+  const isEmpty = await window.api.danmu.isEmptyDanmu(danmuFile.path);
+  if (isEmpty) {
+    const msg = "弹幕文件中不存在弹幕，无需压制";
+    notice.warning({
+      title: msg,
+      duration: 1000,
+    });
+    throw new Error(msg);
+  }
   notice.warning({
     title: "开始转换xml",
-    duration: 3000,
+    duration: 1000,
   });
 
   const outputPath = `${window.path.join(window.api.common.getTempPath(), uuid())}.ass`;
@@ -454,7 +462,11 @@ const handleVideoMerge = async (
       ffmpegOptions,
     );
   } catch (err) {
-    throw new Error(`转换失败：\n${err}`);
+    let msg = "转换失败";
+    if (err) {
+      msg = msg + err;
+    }
+    throw new Error(msg);
   } finally {
     if (convertOptions.rawInputDanmuFile.ext === ".xml") {
       window.api.trashItem(convertOptions.inputAssFilePath);
