@@ -11,7 +11,7 @@
     <template #label>
       <span class="inline-flex">
         转封装为mp4
-        <Tip tip="将录播姬的flv文件转换为mp4"></Tip>
+        <Tip tip="将视频文件转换为mp4封装格式，转换完毕后会删除原始视频文件"></Tip>
       </span>
     </template>
     <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
@@ -175,7 +175,9 @@
   </n-form-item>
   <n-form-item>
     <template #label>
-      <span class="inline-flex"> 视频文件名标题 <Tip tip="使用视频文件名作为标题"></Tip> </span>
+      <span class="inline-flex">
+        使用视频文件名 <Tip tip="使用本地视频文件名作为视频标题"></Tip>
+      </span>
     </template>
     <n-switch v-model:value="data.useVideoAsTitle" :disabled="globalFieldsObj.useVideoAsTitle" />
     <n-checkbox
