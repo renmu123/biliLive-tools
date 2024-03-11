@@ -61,7 +61,9 @@ tg bot 的搭建请自行寻找教程
 
 参数：
 `event`: `FileClosed`|`FileOpening` (如果你想使用断播续传功能，请在上一个`FileClosed`事件后在时间间隔内发送`FileOpening`事件)  
-`filePath`: 视频文件的绝对路径，如果有弹幕，请保存文件名一致，仅支持`xml`文件，如果有封面，请保存文件名一致，仅支持`jpg`文件  
+`filePath`: 视频文件的绝对路径，如果有弹幕，请保存文件名一致，仅支持`xml`文件  
+`coverPath`: 视频封面的绝对路径，如果为空，会读取与视频文件名相同的后缀为`jpg`的文件，支持为空  
+`danmuPath`: 视频弹幕`xml`文件，如果为空，会读取与视频文件名相同的`xml`文件，支持为空  
 `roomId`: 数字类型，房间号，用于断播续传需要  
 `time`: 用于标题格式化的时间，示例："2021-05-14T17:52:54.946"  
 `title`: 标题，用于格式化视频标题  
@@ -75,7 +77,9 @@ curl --location 'http://127.0.0.1:18010/custom' \
 --data '{
     "event":"FileClosed",
     "filePath":"D:\\aa.mp4",
-    "roomId": 93589,
+    "coverPath":"D:\\aa.jpg",
+    "danmuPath":"D:\\aa.xml",
+    "roomId":93589,
     "time":"2021-05-14T17:52:54.946",
     "title":"我是猪",
     "username":"djw"

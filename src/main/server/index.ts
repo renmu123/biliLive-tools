@@ -54,13 +54,15 @@ export interface Options {
   time: string;
   username: string;
   title: string;
+  coverPath?: string;
+  danmuPath?: string;
   platform: Platform;
 }
 
 interface CustomEvent {
   /** 如果你想使用断播续传功能，请在上一个`FileClosed`事件后在时间间隔内发送`FileOpening`事件 */
   event: "FileOpening" | "FileClosed";
-  /** 视频文件的绝对路径，如果有弹幕，请保存文件名一致，仅支持`xml`文件 */
+  /** 视频文件的绝对路径 */
   filePath: string;
   /** 房间号，用于断播续传需要 */
   roomId: number;
@@ -70,6 +72,10 @@ interface CustomEvent {
   title: string;
   /** 主播名称，用于格式化视频标题 */
   username: string;
+  /** 封面路径 */
+  coverPath?: string;
+  /** 弹幕路径 */
+  danmuPath?: string;
 }
 
 const liveData: Live[] = [];
@@ -138,6 +144,12 @@ app.post("/custom", async function (req, res) {
   log.info("custom: webhook", req.body);
   const event: CustomEvent = req.body;
 
+  if (!event.filePath) return res.status(500).send("filePath is required");
+  if (!event.roomId) return res.status(500).send("roomId is required");
+  if (!event.time) return res.status(500).send("time is required");
+  if (!event.title) return res.status(500).send("title is required");
+  if (!event.username) return res.status(500).send("username is required");
+
   if (appConfig.webhook.open && (event.event === "FileOpening" || event.event === "FileClosed")) {
     handle({
       event: event.event,
@@ -146,6 +158,8 @@ app.post("/custom", async function (req, res) {
       time: event.time,
       title: event.title,
       username: event.username,
+      coverPath: event?.coverPath,
+      danmuPath: event?.danmuPath,
       platform: "custom",
     });
   }
@@ -510,7 +524,12 @@ async function handle(options: Options) {
 
   if (useLiveCover) {
     const { name, dir } = path.parse(options.filePath);
-    const cover = path.join(dir, `${name}.cover.jpg`);
+    let cover: string;
+    if (options.coverPath) {
+      cover = options.coverPath;
+    } else {
+      cover = path.join(dir, `${name}.cover.jpg`);
+    }
     if (await fs.pathExists(cover)) {
       config.cover = cover;
     } else {
@@ -530,9 +549,14 @@ async function handle(options: Options) {
     currentPart.filePath = file;
   }
   if (danmu) {
-    // 压制弹幕后上传
-    const xmlFile = path.parse(options.filePath);
-    const xmlFilePath = path.join(xmlFile.dir, `${xmlFile.name}.xml`);
+    let xmlFilePath: string;
+    if (options.danmuPath) {
+      xmlFilePath = options.danmuPath;
+    } else {
+      // 压制弹幕后上传
+      const xmlFile = path.parse(options.filePath);
+      xmlFilePath = path.join(xmlFile.dir, `${xmlFile.name}.xml`);
+    }
     await sleep(10000);
 
     if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
