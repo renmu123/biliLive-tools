@@ -144,11 +144,11 @@ app.post("/custom", async function (req, res) {
   log.info("custom: webhook", req.body);
   const event: CustomEvent = req.body;
 
-  if (!event.filePath) return res.status(500).send("filePath is required");
-  if (!event.roomId) return res.status(500).send("roomId is required");
-  if (!event.time) return res.status(500).send("time is required");
-  if (!event.title) return res.status(500).send("title is required");
-  if (!event.username) return res.status(500).send("username is required");
+  if (!event.filePath) res.status(500).send("filePath is required");
+  if (!event.roomId) res.status(500).send("roomId is required");
+  if (!event.time) res.status(500).send("time is required");
+  if (!event.title) res.status(500).send("title is required");
+  if (!event.username) res.status(500).send("username is required");
 
   if (appConfig.webhook.open && (event.event === "FileOpening" || event.event === "FileClosed")) {
     handle({
