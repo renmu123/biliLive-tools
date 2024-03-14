@@ -1,0 +1,19 @@
+name: ✨ 功能请求
+description: 提出一个新功能请求
+body:
+  - type: checkboxes
+    id: initial-checklist
+    attributes:
+      label: 我已尝试以下操作
+      options:
+        - label: 尝试使用 [最新版本](https://github.com/renmu123/biliLive-tools/releases)
+          required: true
+        - label: 查看是否有人已经提出过类似的功能请求
+          required: true
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: 描述
+      description: 清晰简洁地描述您希望添加或改进的内容。如果需要，您可以附加屏幕截图或截屏视频。
+    validations:
+      required: true

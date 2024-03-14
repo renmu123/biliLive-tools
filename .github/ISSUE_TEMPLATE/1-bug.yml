@@ -1,0 +1,40 @@
+name: 🐛 Bug 报告
+description: 创建一个报告来帮助我们改进
+body:
+  - type: checkboxes
+    id: initial-checklist
+    attributes:
+      label: 我已尝试以下操作
+      options:
+        - label: 尝试使用 [最新版本](https://github.com/renmu123/biliLive-tools/releases)
+          required: true
+        - label: 已阅读文档，并查询过 issue
+          required: true
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: 复现步骤
+      description: 您如何复现这个问题？请逐步描述您从启动到问题发生时所做的步骤。如果需要，您可以附上截图或屏幕录像。
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 预期行为
+      description: 应该发生什么？
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: 实际行为
+      description: 实际发生了什么？
+    validations:
+      required: true
+  - type: textarea
+    id: share-log
+    attributes:
+      label: 分享log
+      description: 将”设置-普通设置-log等级“调整至debug，贴上相关log
+    validations:
+      required: false
