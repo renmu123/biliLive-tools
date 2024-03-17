@@ -353,6 +353,8 @@ const handleRoomDetail = (roomId: string) => {
     autoPartMerge: room.autoPartMerge ?? false,
     partMergeMinute: room.partMergeMinute ?? 10,
     hotProgress: room.hotProgress ?? false,
+    hotProgressSample: room.hotProgressSample ?? 30,
+    hotProgressHeight: room.hotProgressHeight ?? 60,
     useLiveCover: room.useLiveCover ?? false,
     useVideoAsTitle: room.useVideoAsTitle ?? false,
     convert2Mp4: room.convert2Mp4 ?? false,
