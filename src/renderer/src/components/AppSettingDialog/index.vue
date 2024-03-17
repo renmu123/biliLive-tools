@@ -355,6 +355,8 @@ const handleRoomDetail = (roomId: string) => {
     hotProgress: room.hotProgress ?? false,
     hotProgressSample: room.hotProgressSample ?? 30,
     hotProgressHeight: room.hotProgressHeight ?? 60,
+    hotProgressColor: room.hotProgressColor ?? "#f9f5f3",
+    hotProgressFillColor: room.hotProgressFillColor ?? "#333333",
     useLiveCover: room.useLiveCover ?? false,
     useVideoAsTitle: room.useVideoAsTitle ?? false,
     convert2Mp4: room.convert2Mp4 ?? false,
