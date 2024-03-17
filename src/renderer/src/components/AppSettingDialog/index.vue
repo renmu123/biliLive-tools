@@ -341,25 +341,7 @@ const handleRoomDetail = (roomId: string) => {
   const room = config.value.webhook.rooms[roomId];
   tempRoomDetail.value = {
     id: roomId,
-    uid: room.uid,
-    open: room.open,
-    minSize: room.minSize,
-    title: room.title,
-    uploadPresetId: room.uploadPresetId,
-    remark: room.remark,
-    danmu: room.danmu ?? false,
-    ffmpegPreset: room.ffmpegPreset,
-    danmuPreset: room.danmuPreset,
-    autoPartMerge: room.autoPartMerge ?? false,
-    partMergeMinute: room.partMergeMinute ?? 10,
-    hotProgress: room.hotProgress ?? false,
-    hotProgressSample: room.hotProgressSample ?? 30,
-    hotProgressHeight: room.hotProgressHeight ?? 60,
-    hotProgressColor: room.hotProgressColor ?? "#f9f5f3",
-    hotProgressFillColor: room.hotProgressFillColor ?? "#333333",
-    useLiveCover: room.useLiveCover ?? false,
-    useVideoAsTitle: room.useVideoAsTitle ?? false,
-    convert2Mp4: room.convert2Mp4 ?? false,
+    ...room,
   };
 
   const noGlobalFields = room.noGlobal ?? [];
@@ -395,6 +377,8 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   hotProgressHeight: 60,
   hotProgressColor: "#f9f5f3",
   hotProgressFillColor: "#333333",
+  useVideoAsTitle: false,
+  convert2Mp4: false,
 });
 const saveRoomDetail = ({ id }: AppRoomConfig & { id?: string }) => {
   config.value.webhook.rooms[id!] = tempRoomDetail.value;
@@ -416,17 +400,6 @@ const addRoom = () => {
     id: undefined,
     open: true,
     remark: "",
-    // uid: config.value.webhook.uid,
-    // minSize: config.value.webhook.minSize,
-    // title: config.value.webhook.title,
-    // uploadPresetId: config.value.webhook.uploadPresetId,
-    // danmu: config.value.webhook.danmu,
-    // ffmpegPreset: config.value.webhook.ffmpegPreset,
-    // danmuPreset: config.value.webhook.danmuPreset,
-    // autoPartMerge: config.value.webhook.autoPartMerge,
-    // partMergeMinute: config.value.webhook.partMergeMinute,
-    // hotProgress: config.value.webhook.hotProgress,
-    // useLiveCover: config.value.webhook.useLiveCover,
     ...toRaw(webhookDefaultValue.value),
   };
   roomDetailVisible.value = true;
