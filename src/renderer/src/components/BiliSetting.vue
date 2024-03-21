@@ -469,6 +469,9 @@ const getPlatformTypes = async () => {
 
 const descMaxLength = ref(250);
 const getTypeDesc = async (tid: number) => {
+  if (!userInfoStore?.userInfo?.uid) {
+    return;
+  }
   const data = await window.api.bili.getTypeDesc(tid, userInfoStore.userInfo.uid);
   console.log(data);
   if (data) {
