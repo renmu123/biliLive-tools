@@ -1,6 +1,6 @@
 <template>
   <h2>压制配置</h2>
-  <n-form-item label="弹幕压制后上传">
+  <n-form-item label="弹幕压制">
     <n-switch v-model:value="data.danmu" :disabled="globalFieldsObj.danmu" />
 
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.danmu" class="global-checkbox"

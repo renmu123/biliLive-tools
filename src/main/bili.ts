@@ -342,6 +342,27 @@ async function getPlatformArchiveDetail(
   return client.platform.getArchive({ aid });
 }
 
+/**
+ * 获取投稿分区
+ */
+async function getPlatformPre(
+  uid: number,
+): ReturnType<ClientInstance["platform"]["getArchivePre"]> {
+  await loadCookie(uid);
+  return client.platform.getArchivePre();
+}
+
+/**
+ * 获取分区简介信息
+ */
+async function getTypeDesc(
+  tid: number,
+  uid: number,
+): ReturnType<ClientInstance["platform"]["getTypeDesc"]> {
+  await loadCookie(uid);
+  return client.platform.getTypeDesc(tid);
+}
+
 export const biliApi = {
   getArchives,
   checkTag,
@@ -352,6 +373,8 @@ export const biliApi = {
   editMedia,
   getSeasonList,
   getArchiveDetail,
+  getPlatformPre,
+  getTypeDesc,
 };
 
 export const invokeWrap = <T extends (...args: any[]) => any>(fn: T) => {
@@ -442,6 +465,19 @@ export const handlers = {
     uid: number,
   ): ReturnType<ClientInstance["platform"]["getArchive"]> => {
     return getPlatformArchiveDetail(aid, uid);
+  },
+  "biliApi:getPlatformPre": (
+    _event: IpcMainInvokeEvent,
+    uid: number,
+  ): ReturnType<ClientInstance["platform"]["getArchivePre"]> => {
+    return getPlatformPre(uid);
+  },
+  "biliApi:getTypeDesc": (
+    _event: IpcMainInvokeEvent,
+    tid: number,
+    uid: number,
+  ): ReturnType<ClientInstance["platform"]["getTypeDesc"]> => {
+    return getTypeDesc(tid, uid);
   },
 };
 

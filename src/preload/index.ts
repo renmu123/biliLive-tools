@@ -271,6 +271,12 @@ export const api = {
     getPlatformArchiveDetail(aid: number, uid: number) {
       return ipcRenderer.invoke("biliApi:getPlatformArchiveDetail", aid, uid);
     },
+    getPlatformPre(uid: number): Promise<ReturnType<BiliApi["getPlatformPre"]>> {
+      return ipcRenderer.invoke("biliApi:getPlatformPre", uid);
+    },
+    getTypeDesc(tid: number, uid: number): Promise<ReturnType<BiliApi["getTypeDesc"]>> {
+      return ipcRenderer.invoke("biliApi:getTypeDesc", tid, uid);
+    },
   },
   ffmpeg: {
     // 预设

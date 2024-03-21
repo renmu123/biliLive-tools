@@ -185,9 +185,9 @@ export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: B
   if (config.title.length > 80) {
     msg = "标题不能超过80个字符";
   }
-  if (config.desc && config.desc.length > 250) {
-    msg = "简介不能超过250个字符";
-  }
+  // if (config.desc && config.desc.length > 250) {
+  //   msg = "简介不能超过250个字符";
+  // }
   if (config.copyright === 2) {
     if (!config.source) {
       msg = "转载来源不能为空";

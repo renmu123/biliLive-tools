@@ -116,6 +116,10 @@ curl --location 'http://127.0.0.1:18010/custom' \
 2. 文件切片下载
 3. 文件合并
 
+## xml弹幕无法转换
+
+xml弹幕转换底层使用[DanmakuFactory](https://github.com/hihkm/DanmakuFactory)，B站弹幕确认可以使用，其余类型请自行测试
+
 # TODO
 
 - [x] 支持使用ffmpeg压制弹幕至视频文件

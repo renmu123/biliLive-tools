@@ -317,7 +317,14 @@ export interface FfmpegOptions {
     | "10"
     | "11"
     | "12"
-    | "13";
+    | "13"
+    | "p1"
+    | "p2"
+    | "p3"
+    | "p4"
+    | "p5"
+    | "p6"
+    | "p7";
   /** 支持硬件解码 */
   decode?: boolean;
   /** 是否重缩放分辨率 */

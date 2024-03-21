@@ -20,6 +20,16 @@
           show-count
         />
       </n-form-item>
+      <n-form-item label="分区">
+        <n-cascader
+          v-model:value="options.config.tid"
+          label-field="name"
+          value-field="id"
+          :options="areaData"
+          check-strategy="child"
+          filterable
+        />
+      </n-form-item>
       <n-form-item>
         <template #label>
           <span class="inline-flex">
@@ -33,11 +43,11 @@
           v-model:value="options.config.desc"
           placeholder="请输入视频简介"
           clearable
-          maxlength="250"
+          :maxlength="descMaxLength"
           show-count
           type="textarea"
           :autosize="{
-            minRows: 2,
+            minRows: 4,
           }"
         />
       </n-form-item>
@@ -86,17 +96,6 @@
           v-model:value="options.config.tag"
           :max="12"
           @update:value="handleTagChange"
-        />
-      </n-form-item>
-
-      <n-form-item label="分区">
-        <n-cascader
-          v-model:value="options.config.tid"
-          label-field="name"
-          value-field="id"
-          :options="areaData"
-          check-strategy="child"
-          filterable
         />
       </n-form-item>
       <n-form-item label="自制声明">
@@ -248,7 +247,6 @@ import { storeToRefs } from "pinia";
 import { deepRaw, uuid } from "@renderer/utils";
 import { useConfirm } from "@renderer/hooks";
 import { useUploadPreset, useAppConfig, useUserInfoStore } from "@renderer/stores";
-import areaData from "@renderer/assets/area.json";
 import { cloneDeep } from "lodash-es";
 
 import type { BiliupPreset } from "../../../types";
@@ -337,6 +335,15 @@ const saveAnotherPresetConfirm = async () => {
     return;
   }
   const preset = cloneDeep(options.value);
+
+  if (preset?.config?.desc && preset?.config?.desc?.length > descMaxLength.value) {
+    notice.error({
+      title: "简介超过字数限制",
+      duration: 1000,
+    });
+    return;
+  }
+
   if (!isRename.value) preset.id = uuid();
   preset.name = tempPresetName.value;
 
@@ -380,6 +387,13 @@ const savePreset = async () => {
   if (userInfoStore.userInfo?.uid) {
     data.config.uid = userInfoStore.userInfo.uid;
   }
+  if (data?.config?.desc && data?.config?.desc?.length > descMaxLength.value) {
+    notice.error({
+      title: "简介超过字数限制",
+      duration: 1000,
+    });
+    return;
+  }
   await _savePreset(options.value);
   notice.success({
     title: "保存成功",
@@ -411,6 +425,11 @@ watchEffect(() => {
     options.value.config.closeReply = 0;
   }
 });
+watchEffect(() => {
+  if (options.value.config.tid) {
+    getTypeDesc(options.value.config.tid);
+  }
+});
 
 // 合集
 const userInfoStore = useUserInfoStore();
@@ -438,9 +457,26 @@ const getSeasonList = async () => {
     };
   });
 };
-// const clearSeason = () => {
-//   options.value.config.seasonId = null;
-// };
+
+const areaData = ref<any[]>([]);
+const getPlatformTypes = async () => {
+  if (!userInfoStore?.userInfo?.uid) {
+    return;
+  }
+  const data = await window.api.bili.getPlatformPre(userInfoStore.userInfo.uid);
+  areaData.value = data.typelist;
+};
+
+const descMaxLength = ref(250);
+const getTypeDesc = async (tid: number) => {
+  const data = await window.api.bili.getTypeDesc(tid, userInfoStore.userInfo.uid);
+  console.log(data);
+  if (data) {
+    descMaxLength.value = 2000;
+  } else {
+    descMaxLength.value = 250;
+  }
+};
 
 watch(
   () => options.value.config.seasonId,
@@ -452,6 +488,7 @@ watch(
 watchEffect(() => {
   if (!userInfoStore.userInfo) return;
   getSeasonList();
+  getPlatformTypes();
 });
 </script>
 
