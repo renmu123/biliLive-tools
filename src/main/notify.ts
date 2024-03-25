@@ -4,6 +4,7 @@ import log from "./utils/log";
 import { IpcMainInvokeEvent, net } from "electron";
 import { getAppConfig } from "./config";
 import type {
+  AppConfig,
   NotificationMailConfig,
   NotificationServerConfig,
   NotificationTgConfig,
@@ -13,6 +14,9 @@ import type {
  * 通过Server酱发送通知
  */
 export function sendByServer(title: string, desp: string, options: NotificationServerConfig) {
+  if (!options.key) {
+    throw new Error("Server酱key不能为空");
+  }
   const url = `https://sctapi.ftqq.com/${options.key}.send`;
   const data = {
     title: title,
@@ -31,6 +35,9 @@ export function sendByServer(title: string, desp: string, options: NotificationS
  * 通过邮件发送通知
  */
 export async function sendByMail(title: string, desp: string, options: NotificationMailConfig) {
+  if (!options.host || !options.port || !options.user || !options.pass || !options.to) {
+    throw new Error("mail host、port、user、pass、to不能为空");
+  }
   console.log("sendByMail", title, desp, options);
   const transporter = nodemailer.createTransport({
     host: options.host,
@@ -57,6 +64,9 @@ export async function sendByMail(title: string, desp: string, options: Notificat
  * 通过tg发送通知
  */
 export async function sendByTg(title: string, desp: string, options: NotificationTgConfig) {
+  if (!options.key || !options.chat_id) {
+    throw new Error("tg key或chat_id不能为空");
+  }
   console.log("sendByTg", title, desp, options);
   const url = `https://api.telegram.org/bot${options.key}/sendMessage`;
 
@@ -82,6 +92,10 @@ export function send(title: string, desp: string) {
   log.info("send notfiy", title, desp);
 
   const appConfig = getAppConfig();
+  _send(title, desp, appConfig);
+}
+
+export function _send(title: string, desp: string, appConfig: AppConfig) {
   switch (appConfig?.notification?.setting?.type) {
     case "server":
       sendByServer(title, desp, appConfig?.notification?.setting?.server);
@@ -98,7 +112,15 @@ export function send(title: string, desp: string) {
 export const sendNotify = send;
 
 export const handlers = {
-  "noify:send": async (_event: IpcMainInvokeEvent, title: string, desp: string) => {
+  "notify:send": async (_event: IpcMainInvokeEvent, title: string, desp: string) => {
     send(title, desp);
+  },
+  "notify:sendTest": async (
+    _event: IpcMainInvokeEvent,
+    title: string,
+    desp: string,
+    options: AppConfig,
+  ) => {
+    _send(title, desp, options);
   },
 };

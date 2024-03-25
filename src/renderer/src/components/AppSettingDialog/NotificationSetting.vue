@@ -8,6 +8,14 @@
           :options="typeOptions"
           placeholder="请选择通知类型"
         />
+        <n-button
+          v-if="config.notification.setting.type"
+          type="primary"
+          style="margin-left: 10px"
+          @click="notifyTest"
+        >
+          测试
+        </n-button>
       </n-form-item>
 
       <template v-if="config.notification.setting.type === NotificationType.mail">
@@ -133,6 +141,7 @@
 </template>
 
 <script setup lang="ts">
+import { cloneDeep } from "lodash-es";
 import type { AppConfig } from "../../../../types";
 import { NotificationType } from "../../../../types/enum";
 
@@ -146,6 +155,16 @@ const typeOptions = [
   { value: NotificationType.tg, label: "tg bot" },
   { value: NotificationType.server, label: "server酱" },
 ];
+
+const notice = useNotification();
+
+const notifyTest = async () => {
+  await window.api.task.notifyTest("我是一条测试信息", "我是一条测试信息", cloneDeep(config.value));
+  notice.info({
+    title: "已尝试发送测试信息，请注意查收",
+    duration: 2000,
+  });
+};
 </script>
 
 <style scoped lang="less">

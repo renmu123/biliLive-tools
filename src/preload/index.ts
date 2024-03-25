@@ -171,7 +171,10 @@ export const api = {
       }
     },
     notify: (title: string, desp: string) => {
-      return ipcRenderer.invoke("noify:send", title, desp);
+      return ipcRenderer.invoke("notify:send", title, desp);
+    },
+    notifyTest: (title: string, desp: string, config: AppConfig) => {
+      return ipcRenderer.invoke("notify:sendTest", title, desp, config);
     },
   },
   common: {
