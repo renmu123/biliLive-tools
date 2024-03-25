@@ -12,6 +12,7 @@ import type { IpcMainInvokeEvent } from "electron";
 export const APP_DEFAULT_CONFIG: AppConfig = {
   logLevel: "warn",
   autoUpdate: true,
+  autoLaunch: false,
   trash: false,
   useBiliup: false,
   saveConfig: false,

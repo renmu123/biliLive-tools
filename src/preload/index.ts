@@ -187,6 +187,9 @@ export const api = {
     showItemInFolder: (path: string) => {
       return ipcRenderer.invoke("common:showItemInFolder", path);
     },
+    setOpenAtLogin: (openAtLogin: boolean) => {
+      return ipcRenderer.invoke("common:setOpenAtLogin", openAtLogin);
+    },
   },
   bili: {
     // 预设

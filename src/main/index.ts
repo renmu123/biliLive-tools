@@ -52,6 +52,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("exits", exits);
   ipcMain.handle("trashItem", trashItem);
   ipcMain.handle("common:relaunch", relaunch);
+  ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:showItemInFolder", showItemInFolder);
 
   // 视频处理
@@ -276,6 +277,12 @@ export const relaunch = async () => {
     app.relaunch();
     app.exit(0);
   }
+};
+
+export const setOpenAtLogin = (_event: IpcMainInvokeEvent, openAtLogin: boolean) => {
+  app.setLoginItemSettings({
+    openAtLogin,
+  });
 };
 
 const showItemInFolder = async (_event: IpcMainInvokeEvent, path: string) => {

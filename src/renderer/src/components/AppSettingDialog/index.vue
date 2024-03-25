@@ -28,9 +28,15 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <span class="inline-flex"> 检查更新 </span>
+                <span class="inline-flex"> 自动检查更新 </span>
               </template>
               <n-switch v-model:value="config.autoUpdate" />
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex"> 开启自启动 </span>
+              </template>
+              <n-switch v-model:value="config.autoLaunch" />
             </n-form-item>
             <n-form-item>
               <template #label>
@@ -224,6 +230,8 @@ const saveConfig = async () => {
       window.api.common.relaunch();
     }
   }
+  // 设置自动启动
+  window.api.common.setOpenAtLogin(config.value.autoLaunch || false);
   close();
   appConfigStore.getAppConfig();
 };

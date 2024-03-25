@@ -200,8 +200,10 @@ export interface AppConfig {
   ffprobePath: string;
   /** 保存到回收站 */
   trash: boolean;
-  /** 检查更新 */
-  autoUpdate: boolean;
+  /** 自动检查更新 */
+  autoUpdate?: boolean;
+  /** 开机自启动 */
+  autoLaunch: boolean;
   /** 使用biliup */
   useBiliup: boolean;
   /** 配置持久化 */
