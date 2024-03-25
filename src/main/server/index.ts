@@ -24,6 +24,7 @@ import type {
   CommonRoomConfig,
   // AppConfig,
 } from "../../types";
+import { trashItem } from "../utils";
 
 const app = express();
 app.use(express.json());
@@ -203,6 +204,10 @@ function getConfig(roomId: number): {
   hotProgressFillColor?: string;
   /** 转封装为mp4 */
   convert2Mp4Option?: boolean;
+  /** 压制完成后删除文件 */
+  removeOriginAfterConvert?: boolean;
+  /** 上传完成后删除文件 */
+  removeOriginAfterUpload?: boolean;
 } {
   const appConfig = getAppConfig();
   const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[roomId];
@@ -225,6 +230,8 @@ function getConfig(roomId: number): {
   const hotProgressFillColor = getRoomSetting("hotProgressFillColor");
   const convert2Mp4 = getRoomSetting("convert2Mp4");
   const useVideoAsTitle = getRoomSetting("useVideoAsTitle");
+  const removeOriginAfterConvert = getRoomSetting("removeOriginAfterConvert");
+  const removeOriginAfterUpload = getRoomSetting("removeOriginAfterUpload");
 
   /**
    * 获取房间配置项
@@ -258,26 +265,6 @@ function getConfig(roomId: number): {
 
   const open = canHandle();
 
-  console.log("return room setting", {
-    danmu,
-    mergePart,
-    minSize,
-    uploadPresetId,
-    title,
-    danmuPresetId,
-    videoPresetId,
-    open,
-    uid,
-    partMergeMinute,
-    hotProgress,
-    useLiveCover,
-    hotProgressSample,
-    hotProgressHeight,
-    hotProgressColor,
-    convert2Mp4Option: convert2Mp4,
-    useVideoAsTitle,
-  });
-
   return {
     danmu,
     mergePart,
@@ -297,6 +284,8 @@ function getConfig(roomId: number): {
     hotProgressFillColor,
     convert2Mp4Option: convert2Mp4,
     useVideoAsTitle,
+    removeOriginAfterConvert,
+    removeOriginAfterUpload,
   };
 }
 
@@ -477,6 +466,8 @@ async function handle(options: Options) {
     hotProgressFillColor,
     convert2Mp4Option,
     useVideoAsTitle,
+    removeOriginAfterConvert,
+    removeOriginAfterUpload,
   } = getConfig(options.roomId);
 
   if (!open) {
@@ -562,7 +553,7 @@ async function handle(options: Options) {
     if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
       log.info("没有找到弹幕文件，直接上传", xmlFilePath);
       currentPart.status = "handled";
-      newUploadTask(uid, mergePart, currentPart, config);
+      newUploadTask(uid, mergePart, currentPart, config, removeOriginAfterUpload);
       return;
     }
     let hotProgressFile: string | undefined;
@@ -592,19 +583,22 @@ async function handle(options: Options) {
         hotProgressFile,
         ffmpegPreset?.config,
       );
-      fs.remove(assFilePath);
+      if (removeOriginAfterConvert) {
+        trashItem(options.filePath);
+        trashItem(xmlFilePath);
+      }
       if (hotProgressFile) fs.remove(hotProgressFile);
 
       currentPart.filePath = output;
       currentPart.status = "handled";
-      newUploadTask(uid, mergePart, currentPart, config);
+      newUploadTask(uid, mergePart, currentPart, config, removeOriginAfterUpload);
     } catch (error) {
       log.error(error);
       currentPart.status = "error";
     }
   } else {
     currentPart.status = "handled";
-    newUploadTask(uid, mergePart, currentPart, config);
+    newUploadTask(uid, mergePart, currentPart, config, removeOriginAfterUpload);
   }
 }
 
@@ -786,6 +780,7 @@ const newUploadTask = async (
   mergePart: boolean,
   part: Part,
   config: BiliupConfig,
+  removeOrigin?: boolean,
 ) => {
   if (!uid) {
     log.info(`uid is not set`);
@@ -795,7 +790,7 @@ const newUploadTask = async (
   if (mergePart) return;
   part.status = "uploading";
   try {
-    await addUploadTask(uid, [part.filePath], config);
+    await addUploadTask(uid, [part.filePath], config, removeOrigin);
     part.status = "uploaded";
   } catch (error) {
     log.error(error);
@@ -803,7 +798,12 @@ const newUploadTask = async (
   }
 };
 
-const addUploadTask = async (uid: number, pathArray: string[], options: BiliupConfig) => {
+const addUploadTask = async (
+  uid: number,
+  pathArray: string[],
+  options: BiliupConfig,
+  removeOrigin?: boolean,
+) => {
   return new Promise((resolve, reject) => {
     const config = getAppConfig();
     const useBiliup = config["useBiliup"];
@@ -811,6 +811,12 @@ const addUploadTask = async (uid: number, pathArray: string[], options: BiliupCo
       uploadVideo(mainWin.webContents, uid, pathArray, options).then((biliup) => {
         biliup.once("close", async (code: 0 | 1) => {
           if (code === 0) {
+            if (removeOrigin) {
+              pathArray.map((item) => {
+                trashItem(item);
+              });
+            }
+
             resolve(true);
           } else {
             reject();
@@ -835,7 +841,12 @@ const addUploadTask = async (uid: number, pathArray: string[], options: BiliupCo
   });
 };
 
-const addEditMediaTask = async (uid: number, aid: number, pathArray: string[]) => {
+const addEditMediaTask = async (
+  uid: number,
+  aid: number,
+  pathArray: string[],
+  removeOrigin?: boolean,
+) => {
   return new Promise((resolve, reject) => {
     const config = getAppConfig();
     const useBiliup = config["useBiliup"];
@@ -856,6 +867,11 @@ const addEditMediaTask = async (uid: number, aid: number, pathArray: string[]) =
         const currentTaskId = task.taskId;
         taskQueue.on("task-end", ({ taskId }) => {
           if (taskId === currentTaskId) {
+            if (removeOrigin) {
+              pathArray.map((item) => {
+                trashItem(item);
+              });
+            }
             resolve(true);
           }
         });
@@ -871,8 +887,6 @@ const addEditMediaTask = async (uid: number, aid: number, pathArray: string[]) =
 
 async function checkFileInterval() {
   setInterval(async () => {
-    // const appConfig = getAppConfig();
-
     for (let i = 0; i < liveData.length; i++) {
       const live = liveData[i];
       handleLive(live);
@@ -881,7 +895,7 @@ async function checkFileInterval() {
 }
 
 const handleLive = async (live: Live) => {
-  const { mergePart, uploadPresetId, uid } = getConfig(live.roomId);
+  const { mergePart, uploadPresetId, uid, removeOriginAfterUpload } = getConfig(live.roomId);
   if (!mergePart) return;
   if (!uid) return;
 
@@ -919,7 +933,7 @@ const handleLive = async (live: Live) => {
       live.parts.map((item) => {
         if (filePaths.includes(item.filePath)) item.status = "uploading";
       });
-      await addEditMediaTask(uid, live.aid, filePaths);
+      await addEditMediaTask(uid, live.aid, filePaths, removeOriginAfterUpload);
       live.parts.map((item) => {
         if (filePaths.includes(item.filePath)) item.status = "uploaded";
       });
@@ -936,7 +950,7 @@ const handleLive = async (live: Live) => {
       });
       log.info("上传", live, filePaths);
 
-      await addUploadTask(uid, filePaths, config);
+      await addUploadTask(uid, filePaths, config, removeOriginAfterUpload);
 
       await runWithMaxIterations(
         async () => {

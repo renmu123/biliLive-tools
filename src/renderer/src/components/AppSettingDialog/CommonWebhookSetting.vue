@@ -7,6 +7,21 @@
       >全局</n-checkbox
     >
   </n-form-item>
+  <n-form-item v-if="data.danmu">
+    <template #label>
+      <span class="inline-flex"> 完成后删除源文件 </span>
+    </template>
+    <n-switch
+      v-model:value="data.removeOriginAfterConvert"
+      :disabled="globalFieldsObj.removeOriginAfterConvert"
+    />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.removeOriginAfterConvert"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
   <n-form-item>
     <template #label>
       <span class="inline-flex">
@@ -151,6 +166,21 @@
       style="margin-right: 10px"
     />
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.uid" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex"> 完成后删除源文件 </span>
+    </template>
+    <n-switch
+      v-model:value="data.removeOriginAfterUpload"
+      :disabled="globalFieldsObj.removeOriginAfterUpload"
+    />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.removeOriginAfterUpload"
+      class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>

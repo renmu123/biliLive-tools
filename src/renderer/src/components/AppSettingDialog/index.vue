@@ -319,29 +319,13 @@ const globalFields = ref([
   "useLiveCover",
   "convert2Mp4",
   "useVideoAsTitle",
+  "removeOriginAfterConvert",
+  "removeOriginAfterUpload",
 ]);
 const webhookDefaultValue = computed(() => {
   if (!config.value.webhook) return {};
 
-  return {
-    uid: config.value.webhook.uid,
-    minSize: config.value.webhook.minSize,
-    title: config.value.webhook.title,
-    uploadPresetId: config.value.webhook.uploadPresetId,
-    danmu: config.value.webhook.danmu,
-    ffmpegPreset: config.value.webhook.ffmpegPreset,
-    danmuPreset: config.value.webhook.danmuPreset,
-    autoPartMerge: config.value.webhook.autoPartMerge,
-    partMergeMinute: config.value.webhook.partMergeMinute,
-    hotProgress: config.value.webhook.hotProgress,
-    useLiveCover: config.value.webhook.useLiveCover,
-    hotProgressSample: config.value.webhook.hotProgressSample,
-    hotProgressHeight: config.value.webhook.hotProgressHeight,
-    hotProgressColor: config.value.webhook.hotProgressColor,
-    hotProgressFillColor: config.value.webhook.hotProgressFillColor,
-    useVideoAsTitle: config.value.webhook.useVideoAsTitle,
-    convert2Mp4: config.value.webhook.convert2Mp4,
-  };
+  return cloneDeep(config.value.webhook);
 });
 
 const handleRoomDetail = (roomId: string) => {
@@ -362,7 +346,6 @@ const handleRoomDetail = (roomId: string) => {
   }
 
   console.log(roomGlobalCheckObj.value, room);
-
   roomDetailVisible.value = true;
 };
 
@@ -387,6 +370,8 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   hotProgressFillColor: "#333333",
   useVideoAsTitle: false,
   convert2Mp4: false,
+  removeOriginAfterConvert: false,
+  removeOriginAfterUpload: false,
 });
 const saveRoomDetail = ({ id }: AppRoomConfig & { id?: string }) => {
   config.value.webhook.rooms[id!] = tempRoomDetail.value;

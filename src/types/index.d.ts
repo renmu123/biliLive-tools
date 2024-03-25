@@ -82,6 +82,10 @@ type CommonRoomConfig = {
   hotProgressFillColor?: string;
   /** 转封装为mp4 */
   convert2Mp4?: boolean;
+  /** 压制完成后删除文件 */
+  removeOriginAfterConvert?: boolean;
+  /** 上传完成后删除文件 */
+  removeOriginAfterUpload?: boolean;
 };
 
 // webhook房间配置
