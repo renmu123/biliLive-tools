@@ -579,7 +579,7 @@ const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) => {
       break;
     case "failure":
       title = `错误：${task.name}`;
-      desp = `${task.name}出错\n\n开始时间：${new Date(task.startTime!).toLocaleString()}\n\n输出：${task.output}`;
+      desp = `${task.name}出错\n\n开始时间：${new Date(task.startTime!).toLocaleString()}`;
       break;
   }
   const appConfig = getAppConfig();

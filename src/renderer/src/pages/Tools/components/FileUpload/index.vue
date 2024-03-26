@@ -134,12 +134,11 @@ const appendVideo = async () => {
   if (!aid.value) {
     return;
   }
-  // await window.api.appendVideo(aid.value);
 
   const hasLogin = !!userInfo.value.uid;
   if (!hasLogin) {
     notice.error({
-      title: `请先登录`,
+      title: `请点击左侧头像处先进行登录`,
       duration: 1000,
     });
     return;
@@ -147,7 +146,7 @@ const appendVideo = async () => {
 
   if (fileList.value.length === 0) {
     notice.error({
-      title: `请先选择一个文件`,
+      title: `至少选择一个文件`,
       duration: 1000,
     });
     return;
