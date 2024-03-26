@@ -38,7 +38,9 @@
     "nodemailer": "^6.9.10",
     "ntsuspend": "^1.0.2",
     "pinia": "^2.1.7",
-    "semver": "^7.5.4"
+    "semver": "^7.5.4",
+    "sortablejs": "^1.15.2",
+    "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.1",

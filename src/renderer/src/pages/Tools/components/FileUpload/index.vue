@@ -2,11 +2,20 @@
 <template>
   <div>
     <div class="flex justify-center align-center" style="margin-bottom: 20px; gap: 10px">
+      <n-button @click="addVideo"> 添加视频 </n-button>
       <n-button type="primary" @click="upload"> 立即上传 </n-button>
       <n-button type="primary" @click="appendVideoVisible = true"> 续传 </n-button>
     </div>
 
-    <FileArea v-model="fileList" :extensions="['flv', 'mp4']" desc="请选择视频文件"></FileArea>
+    <PartArea v-if="fileList.length !== 0" v-model="fileList"></PartArea>
+    <FileArea
+      v-else
+      :extensions="extensions"
+      desc="请选择视频文件"
+      @change="addOldVideos"
+    ></FileArea>
+
+    <n-divider />
 
     <div class="" style="margin-top: 30px">
       <BiliSetting v-model="options.uploadPresetId" @change="handlePresetOptions"></BiliSetting>
@@ -23,14 +32,15 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 
+import PartArea from "./components/PartArea.vue";
 import FileArea from "@renderer/components/FileArea.vue";
+
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 import AppendVideoDialog from "@renderer/components/AppendVideoDialog.vue";
 import { useBili } from "@renderer/hooks";
 import { useUserInfoStore, useAppConfig } from "@renderer/stores";
 
-import type { File } from "../../../../../types";
-import { deepRaw } from "@renderer/utils";
+import { deepRaw, uuid } from "@renderer/utils";
 
 const { userInfo } = storeToRefs(useUserInfoStore());
 const { handlePresetOptions, presetOptions } = useBili();
@@ -40,16 +50,58 @@ const notice = useNotification();
 const options = appConfig.value.tool.upload;
 
 const fileList = ref<
-  (File & {
-    percentage?: number;
-  })[]
+  {
+    id: string;
+    title: string;
+    path: string;
+    visible: boolean;
+  }[]
 >([]);
+
+const extensions = [
+  "mp4",
+  "flv",
+  "avi",
+  "wmv",
+  "mov",
+  "webm",
+  "mpeg",
+  "ts",
+  "mpg",
+  "rm",
+  "rmvb",
+  "mkv",
+];
+
+const addVideo = async () => {
+  const files = await window.api.openFile({
+    multi: true,
+    filters: [
+      {
+        name: "file",
+        extensions: extensions,
+      },
+      {
+        name: "所有文件",
+        extensions: ["*"],
+      },
+    ],
+  });
+  if (!files) return;
+  const newFiles = files.map((file) => ({
+    id: uuid(),
+    title: window.path.parse(file).name,
+    path: file,
+    visible: false,
+  }));
+  fileList.value = [...fileList.value, ...newFiles];
+};
 
 const upload = async () => {
   const hasLogin = !!userInfo.value.uid;
   if (!hasLogin) {
     notice.error({
-      title: `请点击左侧头像处进行登录`,
+      title: `请点击左侧头像处先进行登录`,
       duration: 1000,
     });
     return;
@@ -67,9 +119,10 @@ const upload = async () => {
     title: `开始上传`,
     duration: 1000,
   });
+  // console.log(fileList.value);
   await window.api.bili.uploadVideo(
     userInfo.value.uid,
-    toRaw(fileList.value.map((file) => file.path)),
+    deepRaw(fileList.value),
     deepRaw(presetOptions.value.config),
   );
   fileList.value = [];
@@ -104,15 +157,20 @@ const appendVideo = async () => {
     title: `开始上传`,
     duration: 1000,
   });
-  await window.api.bili.appendVideo(
-    userInfo.value.uid,
-    toRaw(fileList.value.map((file) => file.path)),
-    {
-      ...deepRaw(presetOptions.value.config),
-      vid: aid.value,
-    },
-  );
+  await window.api.bili.appendVideo(userInfo.value.uid, deepRaw(fileList.value), {
+    ...deepRaw(presetOptions.value.config),
+    vid: aid.value,
+  });
   fileList.value = [];
+};
+
+const addOldVideos = (data: any[]) => {
+  fileList.value = data.map((item) => ({
+    id: uuid(),
+    title: item.name,
+    path: item.path,
+    visible: false,
+  }));
 };
 </script>
 

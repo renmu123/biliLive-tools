@@ -68,16 +68,16 @@ const props = withDefaults(
     disabled: false,
   },
 );
-// const emits = defineEmits<{
-//   change: any[];
-// }>();
+const emits = defineEmits<{
+  change: any[];
+}>();
 
 const fileList = defineModel<
   (File & {
     percentage?: number;
     percentageStatus?: "success" | "info" | "error";
   })[]
->({ required: true });
+>({ default: () => [] });
 
 const fileSelectArea = ref<HTMLElement | null>(null);
 
@@ -105,11 +105,13 @@ const handleFileSelect = async () => {
     items = items.slice(0, props.max - fileList.value.length);
   }
   fileList.value.push(...items);
+  emits("change", fileList.value);
 };
 
 const removeItem = (index: number) => {
   if (props.disabled) return;
   fileList.value.splice(index, 1);
+  emits("change", fileList.value);
 };
 
 onMounted(() => {
@@ -141,6 +143,7 @@ onMounted(() => {
         items = items.slice(0, props.max - fileList.value.length);
       }
       fileList.value.push(...items);
+      emits("change", fileList.value);
     }
   });
 });

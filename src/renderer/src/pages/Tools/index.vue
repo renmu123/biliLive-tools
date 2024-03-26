@@ -24,7 +24,7 @@ defineOptions({
 });
 import File2Mp4 from "./components/File2Mp4.vue";
 import DanmuFactoryVue from "./components/DanmuFactory.vue";
-import FileUpload from "./components/FileUpload.vue";
+import FileUpload from "./components/FileUpload/index.vue";
 import VideoMerge from "./components/VideoMerge.vue";
 import VideoDownload from "./components/VideoDownload.vue";
 </script>

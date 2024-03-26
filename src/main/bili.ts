@@ -217,7 +217,12 @@ async function getSeasonList(uid: number): ReturnType<ClientInstance["platform"]
 
 async function addMedia(
   webContents: WebContents,
-  filePath: string[],
+  filePath:
+    | string[]
+    | {
+        path: string;
+        title?: string;
+      }[],
   options: BiliupConfig,
   uid: number,
 ) {
@@ -228,7 +233,7 @@ async function addMedia(
     command,
     webContents,
     {
-      name: `上传任务：${path.parse(filePath[0]).name}`,
+      name: `上传任务：${options.title}`,
     },
     {
       onEnd: async (data: { aid: number; bvid: string }) => {
@@ -274,22 +279,28 @@ async function addMedia(
 async function editMedia(
   webContents: WebContents,
   aid: number,
-  filePath: string[],
+  filePath:
+    | string[]
+    | {
+        path: string;
+        title?: string;
+      }[],
   options: any,
   uid: number,
 ) {
-  console.log(options);
+  // console.log(options);
   await loadCookie(uid);
   const command = await client.platform.editMedia(aid, filePath, {}, "append", {
     submit: "client",
     uploader: "web",
   });
 
+  const title = typeof filePath[0] === "string" ? path.parse(filePath[0]).name : filePath[0].title;
   const task = new BiliVideoTask(
     command,
     webContents,
     {
-      name: `编辑稿件任务：${path.parse(filePath[0]).name}`,
+      name: `编辑稿件任务：${title}`,
     },
     {},
   );

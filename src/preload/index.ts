@@ -216,11 +216,29 @@ export const api = {
       return ipcRenderer.invoke("bili:validUploadParams", config);
     },
     // 上传视频
-    uploadVideo: (uid: number, videoFiles: string[], options: BiliupConfig) => {
+    uploadVideo: (
+      uid: number,
+      videoFiles:
+        | string[]
+        | {
+            path: string;
+            title?: string;
+          }[],
+      options: BiliupConfig,
+    ) => {
       return ipcRenderer.invoke("bili:uploadVideo", uid, videoFiles, options);
     },
     // 续传视频
-    appendVideo: (uid: number, videoFiles: string[], options: BiliupConfigAppend) => {
+    appendVideo: (
+      uid: number,
+      videoFiles:
+        | string[]
+        | {
+            path: string;
+            title?: string;
+          }[],
+      options: BiliupConfigAppend,
+    ) => {
       return ipcRenderer.invoke("bili:appendVideo", uid, videoFiles, options);
     },
     login() {
