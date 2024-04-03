@@ -134,7 +134,7 @@ xml弹幕转换底层使用[DanmakuFactory](https://github.com/hihkm/DanmakuFact
 - [x] log记录及其展示
 - [x] 配置持久化，压制高能进度条
 - [x] B站上传支持
-  - [ ] 移除biliup二进制文件依赖
+  - [x] 移除biliup二进制文件依赖
   - [x] 支持分p
   - [x] 多账户支持
 - [ ] webhook支持
@@ -156,7 +156,6 @@ node需要18及以上版本。
 1. `DanmukuFactory.exe` [1.7.0版本](https://github.com/hihkm/DanmakuFactory/releases/tag/v1.70)
 2. `ffmpeg.exe` [n6.0](https://github.com/BtbN/FFmpeg-Builds/releases)
 3. `ffprobe.exe` [n6.0](https://github.com/BtbN/FFmpeg-Builds/releases)
-4. `biliup.exe` [0.1.19](https://github.com/biliup/biliup-rs/releases/tag/v0.1.19)
 
 ## Install
 
