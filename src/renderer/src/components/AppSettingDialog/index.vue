@@ -38,17 +38,6 @@
               </template>
               <n-switch v-model:value="config.autoLaunch" />
             </n-form-item>
-            <n-form-item>
-              <template #label>
-                <span class="inline-flex">
-                  biliup上传
-                  <Tip
-                    tip="启用后，将使用biliup实现的上传功能<br/>如果上传出现错误，请尝试打开该选项，biliup不支持0.7.0及以上版本新增的功能"
-                  ></Tip>
-                </span>
-              </template>
-              <n-switch v-model:value="config.useBiliup" />
-            </n-form-item>
             <!-- <n-form-item>
               <template #label>
                 <span class="inline-flex"> 配置持久化 </span>

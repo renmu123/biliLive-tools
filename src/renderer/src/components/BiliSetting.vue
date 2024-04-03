@@ -35,7 +35,7 @@
           <span class="inline-flex">
             <span>视频简介</span>
             <Tip
-              tip="仅限非biliup上传：可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与id对应。"
+              tip="可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与id对应。"
             ></Tip>
           </span>
         </template>
@@ -176,7 +176,7 @@
           <span class="inline-flex">
             <span>合集</span>
             <Tip
-              :tip="`仅限非biliup上传方式，多p视频无法加入，仅适用于设置合集的账户(${options.config.uid})，需电磁力3级才可开通`"
+              :tip="`多p视频无法加入，仅适用于设置合集的账户(${options.config.uid})，需电磁力3级才可开通`"
             ></Tip>
           </span>
         </template>

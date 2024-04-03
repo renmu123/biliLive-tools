@@ -1,4 +1,4 @@
-<!-- biliup登录弹框 -->
+<!-- 登录弹框 -->
 <template>
   <n-modal v-model:show="showModal" :mask-closable="false" auto-focus>
     <n-card

@@ -208,8 +208,6 @@ export interface AppConfig {
   autoUpdate?: boolean;
   /** 开机自启动 */
   autoLaunch: boolean;
-  /** 使用biliup */
-  useBiliup: boolean;
   /** 配置持久化 */
   saveConfig: boolean;
   webhook: {

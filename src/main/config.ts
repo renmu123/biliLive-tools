@@ -14,7 +14,6 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   autoUpdate: true,
   autoLaunch: false,
   trash: false,
-  useBiliup: false,
   saveConfig: false,
   webhook: {
     port: 18010,
