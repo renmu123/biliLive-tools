@@ -921,6 +921,7 @@ const handleLive = async (live: Live) => {
 
       await addUploadTask(uid, filePaths, config, removeOriginAfterUpload);
 
+      // TODO: 使用接口返回的aid值
       await runWithMaxIterations(
         async () => {
           const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
