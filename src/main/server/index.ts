@@ -828,6 +828,11 @@ const addUploadTask = async (
         const currentTaskId = task.taskId;
         taskQueue.on("task-end", ({ taskId }) => {
           if (taskId === currentTaskId) {
+            if (removeOrigin) {
+              pathArray.map((item) => {
+                trashItem(item);
+              });
+            }
             resolve(true);
           }
         });
