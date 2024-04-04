@@ -185,6 +185,7 @@ import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
 import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline } from "@vicons/ionicons5";
+import { deepRaw } from "@renderer/utils";
 
 import type { AppConfig, LogLevel, BiliupPreset, AppRoomConfig } from "../../../../types";
 
@@ -220,7 +221,7 @@ const saveConfig = async () => {
     }
   }
 
-  await window.api.config.save(toRaw(config.value));
+  await window.api.config.save(deepRaw(config.value));
   // 如果检测到server从关闭更改为开启状态，提醒重启
   if (initConfig.value.webhook.open === false && config.value.webhook.open === true) {
     const status = await confirm.warning({
