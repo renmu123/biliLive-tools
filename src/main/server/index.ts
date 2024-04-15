@@ -3,7 +3,7 @@ import os from "node:os";
 
 import fs from "fs-extra";
 import { getAppConfig } from "../config";
-import { uploadVideo, appendVideo, DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
+import { DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
 import { mainWin } from "../index";
 import { convertXml2Ass, readDanmuPreset, genHotProgress, isEmptyDanmu } from "../danmu";
 import { taskQueue } from "../task";
@@ -805,44 +805,24 @@ const addUploadTask = async (
   removeOrigin?: boolean,
 ) => {
   return new Promise((resolve, reject) => {
-    const config = getAppConfig();
-    const useBiliup = config["useBiliup"];
-    if (useBiliup) {
-      uploadVideo(mainWin.webContents, uid, pathArray, options).then((biliup) => {
-        biliup.once("close", async (code: 0 | 1) => {
-          if (code === 0) {
-            if (removeOrigin) {
-              pathArray.map((item) => {
-                trashItem(item);
-              });
-            }
-
-            resolve(true);
-          } else {
-            reject();
+    biliApi.addMedia(mainWin.webContents, pathArray, options, uid).then((task) => {
+      const currentTaskId = task.taskId;
+      taskQueue.on("task-end", ({ taskId }) => {
+        if (taskId === currentTaskId) {
+          if (removeOrigin) {
+            pathArray.map((item) => {
+              trashItem(item);
+            });
           }
-        });
+          resolve(true);
+        }
       });
-    } else {
-      biliApi.addMedia(mainWin.webContents, pathArray, options, uid).then((task) => {
-        const currentTaskId = task.taskId;
-        taskQueue.on("task-end", ({ taskId }) => {
-          if (taskId === currentTaskId) {
-            if (removeOrigin) {
-              pathArray.map((item) => {
-                trashItem(item);
-              });
-            }
-            resolve(true);
-          }
-        });
-        taskQueue.on("task-error", ({ taskId }) => {
-          if (taskId === currentTaskId) {
-            reject();
-          }
-        });
+      taskQueue.on("task-error", ({ taskId }) => {
+        if (taskId === currentTaskId) {
+          reject();
+        }
       });
-    }
+    });
   });
 };
 
@@ -853,40 +833,24 @@ const addEditMediaTask = async (
   removeOrigin?: boolean,
 ) => {
   return new Promise((resolve, reject) => {
-    const config = getAppConfig();
-    const useBiliup = config["useBiliup"];
-    if (useBiliup) {
-      appendVideo(mainWin.webContents, uid, pathArray, {
-        vid: aid,
-      }).then((biliup) => {
-        biliup.once("close", async (code: 0 | 1) => {
-          if (code === 0) {
-            resolve(true);
-          } else {
-            reject();
+    biliApi.editMedia(mainWin.webContents, aid, pathArray, {}, uid).then((task) => {
+      const currentTaskId = task.taskId;
+      taskQueue.on("task-end", ({ taskId }) => {
+        if (taskId === currentTaskId) {
+          if (removeOrigin) {
+            pathArray.map((item) => {
+              trashItem(item);
+            });
           }
-        });
+          resolve(true);
+        }
       });
-    } else {
-      biliApi.editMedia(mainWin.webContents, aid, pathArray, {}, uid).then((task) => {
-        const currentTaskId = task.taskId;
-        taskQueue.on("task-end", ({ taskId }) => {
-          if (taskId === currentTaskId) {
-            if (removeOrigin) {
-              pathArray.map((item) => {
-                trashItem(item);
-              });
-            }
-            resolve(true);
-          }
-        });
-        taskQueue.on("task-error", ({ taskId }) => {
-          if (taskId === currentTaskId) {
-            reject();
-          }
-        });
+      taskQueue.on("task-error", ({ taskId }) => {
+        if (taskId === currentTaskId) {
+          reject();
+        }
       });
-    }
+    });
   });
 };
 
@@ -957,6 +921,7 @@ const handleLive = async (live: Live) => {
 
       await addUploadTask(uid, filePaths, config, removeOriginAfterUpload);
 
+      // TODO: 使用接口返回的aid值
       await runWithMaxIterations(
         async () => {
           const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);

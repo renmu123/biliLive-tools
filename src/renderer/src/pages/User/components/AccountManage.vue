@@ -1,4 +1,4 @@
-<!-- biliup切换用户弹框 -->
+<!-- bili切换用户弹框 -->
 <template>
   <n-modal v-model:show="showModal" :mask-closable="false" auto-focus>
     <n-card
