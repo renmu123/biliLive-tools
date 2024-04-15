@@ -8,6 +8,10 @@
   >
     <div class="container">
       <h4>{{ props.detail.title }}</h4>
+      <div style="margin-bottom: 10px">
+        <n-checkbox :checked="allChecked" @update:checked="handleCheckedChange" />
+        选集：({{ selectIds.length }}/{{ props.detail.pages.length }})
+      </div>
       <div class="file-container">
         <n-checkbox-group v-model:value="selectIds">
           <div v-for="file in props.detail.pages" :key="file.cid" class="file">
@@ -102,6 +106,17 @@ const selectFolder = async () => {
   if (!dir) return;
 
   options.savePath = dir;
+};
+
+const allChecked = computed({
+  get: () => selectIds.value.length === props.detail.pages.length,
+  set: (value: boolean) => {
+    selectIds.value = value ? props.detail.pages.map((p) => p.cid) : [];
+  },
+});
+
+const handleCheckedChange = (value: boolean) => {
+  allChecked.value = value;
 };
 </script>
 
