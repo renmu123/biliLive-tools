@@ -238,34 +238,39 @@ async function addMedia(
     },
     {
       onEnd: async (data: { aid: number; bvid: string }) => {
-        // 合集相关功能
-        if (options.seasonId) {
-          await loadCookie(uid);
-          const archive = await client.platform.getArchive({ aid: data.aid });
-          log.info("合集稿件", archive);
+        try {
+          // 合集相关功能
+          if (options.seasonId) {
+            await loadCookie(uid);
+            const archive = await client.platform.getArchive({ aid: data.aid });
+            log.debug("合集稿件", archive);
 
-          if (archive.videos.length > 1) {
-            log.warn("该稿件的分p大于1，无法加入分p", archive.archive.title);
-            return;
-          }
-          const cid = archive.videos[0].cid;
-          let sectionId = options.sectionId;
-          if (!options.sectionId) {
-            sectionId = (await client.platform.getSeasonDetail(options.seasonId)).sections
-              .sections[0].id;
-          }
+            if (archive.videos.length > 1) {
+              log.warn("该稿件的分p大于1，无法加入分p", archive.archive.title);
+              return;
+            }
+            const cid = archive.videos[0].cid;
+            let sectionId = options.sectionId;
+            if (!options.sectionId) {
+              sectionId = (await client.platform.getSeasonDetail(options.seasonId)).sections
+                .sections[0].id;
+            }
 
-          client.platform.addMedia2Season({
-            sectionId: sectionId!,
-            episodes: [
-              {
-                aid: data.aid,
-                cid: cid,
-                title: options.title,
-              },
-            ],
-          });
+            client.platform.addMedia2Season({
+              sectionId: sectionId!,
+              episodes: [
+                {
+                  aid: data.aid,
+                  cid: cid,
+                  title: options.title,
+                },
+              ],
+            });
+          }
+        } catch (error) {
+          log.error("加入合集失败", error);
         }
+
         // 自动评论
         if (options.autoComment && options.comment) {
           commentQueue.add({
@@ -439,7 +444,7 @@ class BiliCommentQueue {
       try {
         const res = await this.addComment(item);
         console.log("评论成功", res);
-        await sleep(2000);
+        await sleep(3000);
         await this.top(res.rpid, item);
         item.status = "completed";
       } catch (error) {

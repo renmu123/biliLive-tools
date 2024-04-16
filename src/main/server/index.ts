@@ -805,6 +805,7 @@ const addUploadTask = async (
   removeOrigin?: boolean,
 ) => {
   return new Promise((resolve, reject) => {
+    log.debug("addUploadTask", pathArray, options, removeOrigin);
     // TODO: 优化addMedia，直接返回task
     biliApi.addMedia(mainWin.webContents, pathArray, options, uid).then((task) => {
       const currentTaskId = task.taskId;
