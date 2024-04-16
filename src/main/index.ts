@@ -1,6 +1,7 @@
 import { join } from "node:path";
 import fs from "fs-extra";
 import semver from "semver";
+import Store from "electron-store";
 
 import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
@@ -29,6 +30,15 @@ import icon from "../../resources/icon.png?asset";
 
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
+
+const WindowState = new Store({
+  name: "window-state",
+});
+const windowConfig = {
+  width: 900,
+  height: 750,
+  isMaximized: false,
+};
 
 const registerHandlers = (
   ipcMain: IpcMain,
@@ -74,10 +84,11 @@ const genHandler = (ipcMain: IpcMain) => {
 let server: any;
 export let mainWin: BrowserWindow;
 function createWindow(): void {
+  Object.assign(windowConfig, WindowState.get("winBounds"));
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 750,
+    ...windowConfig,
     show: false,
     autoHideMenuBar: false,
     ...(process.platform === "linux" ? { icon } : {}),
@@ -86,6 +97,19 @@ function createWindow(): void {
       sandbox: false,
       webSecurity: false,
     },
+  });
+  if (windowConfig.isMaximized) {
+    mainWindow.maximize();
+  }
+  mainWindow.on("close", () => {
+    Object.assign(
+      windowConfig,
+      {
+        isMaximized: mainWindow.isMaximized(),
+      },
+      mainWindow.getNormalBounds(),
+    );
+    WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
   });
 
   mainWindow.on("ready-to-show", () => {
@@ -267,6 +291,15 @@ const canQuit = async () => {
 // 退出应用时检测任务
 const quit = async () => {
   try {
+    Object.assign(
+      windowConfig,
+      {
+        isMaximized: mainWin.isMaximized(),
+      },
+      mainWin.getNormalBounds(),
+    );
+    WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
+
     const canQuited = await canQuit();
     if (canQuited) {
       mainWin.destroy();
@@ -318,6 +351,11 @@ if (!gotTheLock) {
     createMenu();
     genHandler(ipcMain);
     appInit();
+
+    // mainWin.on("closed", () => {
+    //   console
+    //   // mainWin = null;
+    // });
 
     app.on("activate", function () {
       // On macOS it's common to re-create a window in the app when the
