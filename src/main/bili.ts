@@ -457,9 +457,7 @@ class BiliCommentQueue {
     for (const uid of uids) {
       const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
       allowCommentList.push(
-        ...res.arc_audits
-          .filter((item) => item.Archive.state === 0 || item.Archive.state === -6)
-          .map((item) => item.Archive.aid),
+        ...res.arc_audits.filter((item) => item.stat.aid).map((item) => item.Archive.aid),
       );
     }
     log.debug("评论队列", this.list);
