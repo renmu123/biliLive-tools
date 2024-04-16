@@ -15,6 +15,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   autoLaunch: false,
   trash: false,
   saveConfig: false,
+  minimizeToTray: false,
+  closeToTray: true,
   webhook: {
     port: 18010,
     open: false,

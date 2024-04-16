@@ -71,8 +71,6 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, notidyHandlers);
 };
 
-const appConfig = getAppConfig();
-
 let server: any;
 export let mainWin: BrowserWindow;
 function createWindow(): void {
@@ -126,10 +124,21 @@ function createWindow(): void {
 
   // 触发关闭时触发
   mainWin.on("close", (event) => {
-    // 截获 close 默认行为
-    event.preventDefault();
-    // 点击关闭时触发close事件，我们按照之前的思路在关闭时，隐藏窗口，隐藏任务栏窗口
-    mainWin.hide();
+    const appConfig = getAppConfig();
+    if (appConfig.closeToTray) {
+      event.preventDefault();
+      mainWin.hide();
+      mainWin.setSkipTaskbar(true);
+    }
+  });
+  // 窗口最小化
+  mainWin.on("minimize", (event) => {
+    const appConfig = getAppConfig();
+    if (appConfig.minimizeToTray) {
+      event.preventDefault();
+      mainWin.hide();
+      mainWin.setSkipTaskbar(true);
+    }
   });
 
   // 新建托盘
@@ -161,13 +170,12 @@ function createWindow(): void {
   tray.setContextMenu(contextMenu);
   // 双击触发
   tray.on("double-click", () => {
-    if (mainWin.isMinimized()) {
-      mainWin.restore();
-    } else {
-      mainWin.isVisible() ? mainWin.hide() : mainWin.show();
-    }
+    console.log("double-click", mainWin.isMinimized());
+    mainWin.isVisible() ? mainWin.hide() : mainWin.show();
+    mainWin.isVisible() ? mainWin.setSkipTaskbar(false) : mainWin.setSkipTaskbar(true);
   });
 
+  const appConfig = getAppConfig();
   if (appConfig.webhook.open) {
     // 新建监听
     server = serverApp.listen(appConfig.webhook.port, () => {

@@ -38,12 +38,18 @@
               </template>
               <n-switch v-model:value="config.autoLaunch" />
             </n-form-item>
-            <!-- <n-form-item>
+            <n-form-item>
               <template #label>
-                <span class="inline-flex"> 配置持久化 </span>
+                <span class="inline-flex"> 最小化到任务栏 </span>
               </template>
-              <n-switch v-model:value="config.saveConfig" />
-            </n-form-item> -->
+              <n-switch v-model:value="config.minimizeToTray" />
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex"> 关闭到任务栏 </span>
+              </template>
+              <n-switch v-model:value="config.closeToTray" />
+            </n-form-item>
 
             <n-form-item label="ffmpeg路径">
               <n-input

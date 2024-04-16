@@ -210,6 +210,10 @@ export interface AppConfig {
   autoLaunch: boolean;
   /** 配置持久化 */
   saveConfig: boolean;
+  /** 最小化到任务栏 */
+  minimizeToTray: boolean;
+  /** 关闭到任务栏 */
+  closeToTray: boolean;
   webhook: {
     port: number;
     recoderFolder: string;
