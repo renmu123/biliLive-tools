@@ -28,6 +28,9 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   selectiionReply: 0,
   recreate: -1,
   no_disturbance: 0,
+  autoComment: false,
+  commentTop: false,
+  comment: "",
 };
 
 // 验证配置

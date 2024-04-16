@@ -367,6 +367,12 @@ export interface BiliupConfig {
   recreate?: 1 | -1;
   /** 是否推送到动态：0：推送，1：不推送 */
   no_disturbance?: 0 | 1;
+  /** 是否自动评论 */
+  autoComment?: boolean;
+  /** 是否评论置顶 */
+  commentTop?: boolean;
+  /** 评论内容 */
+  comment?: string;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

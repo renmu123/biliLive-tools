@@ -2,7 +2,7 @@ import { join } from "node:path";
 import fs from "fs-extra";
 import semver from "semver";
 
-import { handlers as biliHandlers } from "./bili";
+import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
 import { trashItem as _trashItem, __dirname } from "./utils/index";
 import { getAppConfig } from "./config";
@@ -72,7 +72,6 @@ const genHandler = (ipcMain: IpcMain) => {
 };
 
 const appConfig = getAppConfig();
-setFfmpegPath();
 
 let server: any;
 export let mainWin: BrowserWindow;
@@ -300,7 +299,6 @@ if (!gotTheLock) {
       .catch((err) => log.debug("An error occurred: ", err));
 
     log.info(`app start, version: ${app.getVersion()}`);
-    fs.ensureDir(CONFIG_PATH);
     // Default open or close DevTools by F12 in development
     // and ignore CommandOrControl + R in production.
     // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -311,6 +309,7 @@ if (!gotTheLock) {
     createWindow();
     createMenu();
     genHandler(ipcMain);
+    appInit();
 
     app.on("activate", function () {
       // On macOS it's common to re-create a window in the app when the
@@ -354,6 +353,14 @@ if (!gotTheLock) {
     });
   });
 }
+
+// 业务相关的初始化
+const appInit = async () => {
+  setFfmpegPath();
+  fs.ensureDir(CONFIG_PATH);
+  // 默认十分钟运行一次
+  commentQueue.run(1000 * 60 * 1);
+};
 
 const openDirectory = async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWin, {
