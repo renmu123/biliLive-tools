@@ -378,11 +378,6 @@ export const api = {
     return await ipcRenderer.invoke("mergeVideos", videoFiles, options);
   },
 
-  onBiliUploadClose: (
-    callback: (_event: IpcRendererEvent, code: number, pathArray: string[]) => void,
-  ) => {
-    ipcRenderer.on("upload-close", callback);
-  },
   readVideoMeta: (file: string): Promise<ffmpeg.FfprobeData> => {
     return ipcRenderer.invoke("readVideoMeta", file);
   },

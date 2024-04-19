@@ -81,10 +81,7 @@ const parse = async () => {
       return item as unknown as { cid: number; part: string; editable: boolean };
     }),
   };
-
-  if (data.View.pages.length === 1) {
-    selectCids.value = [data.View.pages[0].cid];
-  }
+  selectCids.value = data.View.pages.map((item) => item.cid);
 };
 
 const download = async () => {

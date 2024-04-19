@@ -625,21 +625,6 @@ window.api.onMainNotify((_event, data) => {
   });
 });
 
-window.api.onBiliUploadClose((_event, code, pathArray) => {
-  console.log("window close", code);
-  if (code == 0) {
-    notice.success({
-      title: `${pathArray.join(",")} 上传成功`,
-      duration: 3000,
-    });
-  } else {
-    notice.error({
-      title: `${pathArray.join(",")} 上传失败`,
-      duration: 3000,
-    });
-  }
-});
-
 // const testNofity = () => {
 //   window.api.task.notify("我是标题", "我是内容请31312313213");
 // };

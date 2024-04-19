@@ -40,21 +40,16 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <span class="inline-flex">
-                  biliup上传
-                  <Tip
-                    tip="启用后，将使用biliup实现的上传功能<br/>如果上传出现错误，请尝试打开该选项，biliup不支持0.7.0及以上版本新增的功能"
-                  ></Tip>
-                </span>
+                <span class="inline-flex"> 最小化到任务栏 </span>
               </template>
-              <n-switch v-model:value="config.useBiliup" />
+              <n-switch v-model:value="config.minimizeToTray" />
             </n-form-item>
-            <!-- <n-form-item>
+            <n-form-item>
               <template #label>
-                <span class="inline-flex"> 配置持久化 </span>
+                <span class="inline-flex"> 关闭到任务栏 </span>
               </template>
-              <n-switch v-model:value="config.saveConfig" />
-            </n-form-item> -->
+              <n-switch v-model:value="config.closeToTray" />
+            </n-form-item>
 
             <n-form-item label="ffmpeg路径">
               <n-input
@@ -185,6 +180,7 @@ import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
 import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline } from "@vicons/ionicons5";
+import { deepRaw } from "@renderer/utils";
 
 import type { AppConfig, LogLevel, BiliupPreset, AppRoomConfig } from "../../../../types";
 
@@ -220,7 +216,7 @@ const saveConfig = async () => {
     }
   }
 
-  await window.api.config.save(toRaw(config.value));
+  await window.api.config.save(deepRaw(config.value));
   // 如果检测到server从关闭更改为开启状态，提醒重启
   if (initConfig.value.webhook.open === false && config.value.webhook.open === true) {
     const status = await confirm.warning({

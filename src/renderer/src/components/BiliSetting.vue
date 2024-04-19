@@ -35,7 +35,7 @@
           <span class="inline-flex">
             <span>视频简介</span>
             <Tip
-              tip="仅限非biliup上传：可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与id对应。"
+              tip="可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与id对应。"
             ></Tip>
           </span>
         </template>
@@ -60,6 +60,35 @@
         </template>
         <image-crop v-model="options.config.cover"></image-crop>
       </n-form-item>
+      <n-form-item label="自动评论">
+        <div class="inline-items">
+          <n-checkbox
+            v-model:checked="options.config.autoComment"
+            title="审核后自动进行评论，续传不会被处理"
+            >自动评论</n-checkbox
+          >
+          <n-checkbox v-model:checked="options.config.commentTop">置顶</n-checkbox>
+        </div>
+      </n-form-item>
+      <n-form-item v-if="options.config.autoComment">
+        <template #label>
+          <span class="inline-flex">
+            <span>自动评论</span>
+          </span>
+        </template>
+        <n-input
+          v-model:value="options.config.comment"
+          placeholder="请输入评论内容"
+          clearable
+          :maxlength="1000"
+          show-count
+          type="textarea"
+          :autosize="{
+            minRows: 4,
+          }"
+        />
+      </n-form-item>
+
       <n-form-item label="粉丝动态">
         <n-input
           v-model:value="options.config.dynamic"
@@ -176,7 +205,7 @@
           <span class="inline-flex">
             <span>合集</span>
             <Tip
-              :tip="`仅限非biliup上传方式，多p视频无法加入，仅适用于设置合集的账户(${options.config.uid})，需电磁力3级才可开通`"
+              :tip="`多p视频无法加入，仅适用于设置合集的账户(${options.config.uid})，需电磁力3级才可开通`"
             ></Tip>
           </span>
         </template>

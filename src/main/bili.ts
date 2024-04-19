@@ -5,6 +5,7 @@ import { format, writeUser, readUser } from "./biliup";
 import { appConfig } from "./config";
 import { BiliVideoTask, taskQueue, BiliDownloadVideoTask } from "./task";
 import log from "./utils/log";
+import { sleep } from "../utils/index";
 
 import type { IpcMainInvokeEvent, WebContents } from "electron";
 import type { BiliupConfig } from "../types/index";
@@ -237,32 +238,46 @@ async function addMedia(
     },
     {
       onEnd: async (data: { aid: number; bvid: string }) => {
-        log.info("合集选项", options, data);
-        if (options.seasonId && options.uid === uid) {
-          await loadCookie(uid);
-          const archive = await client.platform.getArchive({ aid: data.aid });
-          log.info("合集稿件", archive);
+        try {
+          // 合集相关功能
+          if (options.seasonId) {
+            await loadCookie(uid);
+            const archive = await client.platform.getArchive({ aid: data.aid });
+            log.debug("合集稿件", archive);
 
-          if (archive.videos.length > 1) {
-            log.warn("该稿件的分p大于1，无法加入分p", archive.archive.title);
-            return;
-          }
-          const cid = archive.videos[0].cid;
-          let sectionId = options.sectionId;
-          if (!options.sectionId) {
-            sectionId = (await client.platform.getSeasonDetail(options.seasonId)).sections
-              .sections[0].id;
-          }
+            if (archive.videos.length > 1) {
+              log.warn("该稿件的分p大于1，无法加入分p", archive.archive.title);
+              return;
+            }
+            const cid = archive.videos[0].cid;
+            let sectionId = options.sectionId;
+            if (!options.sectionId) {
+              sectionId = (await client.platform.getSeasonDetail(options.seasonId)).sections
+                .sections[0].id;
+            }
 
-          client.platform.addMedia2Season({
-            sectionId: sectionId!,
-            episodes: [
-              {
-                aid: data.aid,
-                cid: cid,
-                title: options.title,
-              },
-            ],
+            client.platform.addMedia2Season({
+              sectionId: sectionId!,
+              episodes: [
+                {
+                  aid: data.aid,
+                  cid: cid,
+                  title: options.title,
+                },
+              ],
+            });
+          }
+        } catch (error) {
+          log.error("加入合集失败", error);
+        }
+
+        // 自动评论
+        if (options.autoComment && options.comment) {
+          commentQueue.add({
+            aid: data.aid,
+            content: options.comment || "",
+            uid: uid,
+            top: options.commentTop || false,
           });
         }
       },
@@ -314,7 +329,7 @@ async function editMedia(
 
 async function getSessionId(
   aid: number,
-  uid,
+  uid: number,
 ): Promise<{
   /** 合集id */
   id: number;
@@ -395,6 +410,98 @@ export const invokeWrap = <T extends (...args: any[]) => any>(fn: T) => {
 };
 
 let tv: TvQrcodeLogin;
+
+// b站评论队列
+class BiliCommentQueue {
+  list: {
+    uid: number;
+    aid: number;
+    status: "pending" | "completed" | "error";
+    content: string;
+    startTime: number;
+    updateTime: number;
+    top: boolean;
+  }[] = [];
+  constructor() {
+    this.list = [];
+  }
+  add(data: { aid: number; content: string; uid: number; top: boolean }) {
+    // bvid是唯一的
+    if (this.list.some((item) => item.aid === data.aid)) return;
+    this.list.push({
+      uid: data.uid,
+      aid: data.aid,
+      content: data.content,
+      top: data.top,
+      status: "pending",
+      startTime: Date.now(),
+      updateTime: Date.now(),
+    });
+  }
+  async check() {
+    const list = await this.filterList();
+    for (const item of list) {
+      try {
+        const res = await this.addComment(item);
+        console.log("评论成功", res);
+        await sleep(3000);
+        await this.top(res.rpid, item);
+        item.status = "completed";
+      } catch (error) {
+        item.status = "error";
+        log.error("评论失败", error);
+      }
+    }
+  }
+  /**
+   * 过滤出通过审核的稿件
+   */
+  async filterList() {
+    const allowCommentList: number[] = [];
+    const uids = this.list.map((item) => item.uid);
+    for (const uid of uids) {
+      const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
+      allowCommentList.push(
+        ...res.arc_audits.filter((item) => item.stat.aid).map((item) => item.Archive.aid),
+      );
+    }
+    log.debug("评论队列", this.list);
+
+    this.list.map((item) => {
+      // 更新操作时间，如果超过24小时，状态设置为error
+      item.updateTime = Date.now();
+      if (item.updateTime - item.startTime > 1000 * 60 * 60 * 24) {
+        item.status = "error";
+      }
+    });
+    return this.list.filter((item) => {
+      return allowCommentList.some((aid) => aid === item.aid) && item.status === "pending";
+    });
+  }
+  async addComment(item: { aid: number; content: string; uid: number }): Promise<{
+    rpid: number;
+  }> {
+    await loadCookie(item.uid);
+    // @ts-ignore
+    return client.reply.add({
+      oid: item.aid,
+      type: 1,
+      message: item.content,
+      plat: 1,
+    });
+  }
+  async top(rpid: number, item: { aid: number; uid: number }) {
+    await loadCookie(item.uid);
+    return client.reply.top({ oid: item.aid, type: 1, action: 1, rpid });
+  }
+  run(interval: number) {
+    setInterval(() => {
+      this.check();
+    }, interval);
+  }
+}
+
+export const commentQueue = new BiliCommentQueue();
 
 export const handlers = {
   "biliApi:getArchives": (

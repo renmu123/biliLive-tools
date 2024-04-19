@@ -120,6 +120,11 @@ curl --location 'http://127.0.0.1:18010/custom' \
 
 xml弹幕转换底层使用[DanmakuFactory](https://github.com/hihkm/DanmakuFactory)，B站弹幕确认可以使用，其余类型请自行测试
 
+## 投稿后自动评论未生效
+
+该功能会每隔十分钟会查询一次投稿中心的前20个稿件，如果为本软件投稿且开启了自动评论的已审核非续传稿件，会进行自动评论，如果一个稿件24小时内状态不为审核通过，那么这个稿件将被移出队列。  
+如果你的稿件不为以上情况却为进行投稿，请提issue
+
 # TODO
 
 - [x] 支持使用ffmpeg压制弹幕至视频文件
@@ -134,7 +139,7 @@ xml弹幕转换底层使用[DanmakuFactory](https://github.com/hihkm/DanmakuFact
 - [x] log记录及其展示
 - [x] 配置持久化，压制高能进度条
 - [x] B站上传支持
-  - [ ] 移除biliup二进制文件依赖
+  - [x] 移除biliup二进制文件依赖
   - [x] 支持分p
   - [x] 多账户支持
 - [ ] webhook支持
@@ -156,7 +161,6 @@ node需要18及以上版本。
 1. `DanmukuFactory.exe` [1.7.0版本](https://github.com/hihkm/DanmakuFactory/releases/tag/v1.70)
 2. `ffmpeg.exe` [n6.0](https://github.com/BtbN/FFmpeg-Builds/releases)
 3. `ffprobe.exe` [n6.0](https://github.com/BtbN/FFmpeg-Builds/releases)
-4. `biliup.exe` [0.1.19](https://github.com/biliup/biliup-rs/releases/tag/v0.1.19)
 
 ## Install
 

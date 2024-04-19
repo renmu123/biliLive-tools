@@ -1,8 +1,9 @@
 import { join } from "node:path";
 import fs from "fs-extra";
 import semver from "semver";
+import Store from "electron-store";
 
-import { handlers as biliHandlers } from "./bili";
+import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
 import { trashItem as _trashItem, __dirname } from "./utils/index";
 import { getAppConfig } from "./config";
@@ -29,6 +30,15 @@ import icon from "../../resources/icon.png?asset";
 
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
+
+const WindowState = new Store({
+  name: "window-state",
+});
+const windowConfig = {
+  width: 900,
+  height: 750,
+  isMaximized: false,
+};
 
 const registerHandlers = (
   ipcMain: IpcMain,
@@ -71,16 +81,14 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, notidyHandlers);
 };
 
-const appConfig = getAppConfig();
-setFfmpegPath();
-
 let server: any;
 export let mainWin: BrowserWindow;
 function createWindow(): void {
+  Object.assign(windowConfig, WindowState.get("winBounds"));
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 750,
+    ...windowConfig,
     show: false,
     autoHideMenuBar: false,
     ...(process.platform === "linux" ? { icon } : {}),
@@ -89,6 +97,19 @@ function createWindow(): void {
       sandbox: false,
       webSecurity: false,
     },
+  });
+  if (windowConfig.isMaximized) {
+    mainWindow.maximize();
+  }
+  mainWindow.on("close", () => {
+    Object.assign(
+      windowConfig,
+      {
+        isMaximized: mainWindow.isMaximized(),
+      },
+      mainWindow.getNormalBounds(),
+    );
+    WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
   });
 
   mainWindow.on("ready-to-show", () => {
@@ -127,10 +148,21 @@ function createWindow(): void {
 
   // 触发关闭时触发
   mainWin.on("close", (event) => {
-    // 截获 close 默认行为
-    event.preventDefault();
-    // 点击关闭时触发close事件，我们按照之前的思路在关闭时，隐藏窗口，隐藏任务栏窗口
-    mainWin.hide();
+    const appConfig = getAppConfig();
+    if (appConfig.closeToTray) {
+      event.preventDefault();
+      mainWin.hide();
+      mainWin.setSkipTaskbar(true);
+    }
+  });
+  // 窗口最小化
+  mainWin.on("minimize", (event) => {
+    const appConfig = getAppConfig();
+    if (appConfig.minimizeToTray) {
+      event.preventDefault();
+      mainWin.hide();
+      mainWin.setSkipTaskbar(true);
+    }
   });
 
   // 新建托盘
@@ -162,13 +194,12 @@ function createWindow(): void {
   tray.setContextMenu(contextMenu);
   // 双击触发
   tray.on("double-click", () => {
-    if (mainWin.isMinimized()) {
-      mainWin.restore();
-    } else {
-      mainWin.isVisible() ? mainWin.hide() : mainWin.show();
-    }
+    console.log("double-click", mainWin.isMinimized());
+    mainWin.isVisible() ? mainWin.hide() : mainWin.show();
+    mainWin.isVisible() ? mainWin.setSkipTaskbar(false) : mainWin.setSkipTaskbar(true);
   });
 
+  const appConfig = getAppConfig();
   if (appConfig.webhook.open) {
     // 新建监听
     server = serverApp.listen(appConfig.webhook.port, () => {
@@ -260,6 +291,15 @@ const canQuit = async () => {
 // 退出应用时检测任务
 const quit = async () => {
   try {
+    Object.assign(
+      windowConfig,
+      {
+        isMaximized: mainWin.isMaximized(),
+      },
+      mainWin.getNormalBounds(),
+    );
+    WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
+
     const canQuited = await canQuit();
     if (canQuited) {
       mainWin.destroy();
@@ -300,7 +340,6 @@ if (!gotTheLock) {
       .catch((err) => log.debug("An error occurred: ", err));
 
     log.info(`app start, version: ${app.getVersion()}`);
-    fs.ensureDir(CONFIG_PATH);
     // Default open or close DevTools by F12 in development
     // and ignore CommandOrControl + R in production.
     // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -311,6 +350,12 @@ if (!gotTheLock) {
     createWindow();
     createMenu();
     genHandler(ipcMain);
+    appInit();
+
+    // mainWin.on("closed", () => {
+    //   console
+    //   // mainWin = null;
+    // });
 
     app.on("activate", function () {
       // On macOS it's common to re-create a window in the app when the
@@ -354,6 +399,14 @@ if (!gotTheLock) {
     });
   });
 }
+
+// 业务相关的初始化
+const appInit = async () => {
+  setFfmpegPath();
+  fs.ensureDir(CONFIG_PATH);
+  // 默认十分钟运行一次
+  commentQueue.run(1000 * 60 * 1);
+};
 
 const openDirectory = async () => {
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWin, {
