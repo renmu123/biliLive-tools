@@ -405,7 +405,7 @@ const appInit = async () => {
   setFfmpegPath();
   fs.ensureDir(CONFIG_PATH);
   // 默认十分钟运行一次
-  commentQueue.run(1000 * 60 * 1);
+  commentQueue.run(1000 * 60 * 10);
 };
 
 const openDirectory = async () => {
