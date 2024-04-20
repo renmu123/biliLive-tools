@@ -6,9 +6,11 @@
   "license": "GPL-3.0-only",
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "type": "module",
-  "scripts": {},
-  "dependencies": {},
+  "scripts": {
+    "preinstall": "npx only-allow pnpm"
+  },
   "devDependencies": {
-    "prettier": "^3.2.5"
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.5"
   }
 }

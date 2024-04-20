@@ -1,0 +1,25 @@
+{
+  "name": "biliLive-tools@http",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "main": "index.js",
+  "author": "renmu123",
+  "license": "GPL-3.0",
+  "homepage": "https://github.com/renmu123/biliLive-tools",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "start": "node ./lib/index.js",
+    "start:dev": "cross-env NODE_ENV=development nodemon"
+  },
+  "keywords": [],
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "20.12.2",
+    "ts-node": "^10.9.2"
+  }
+}

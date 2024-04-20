@@ -26,7 +26,7 @@ import type {
 } from "../../types";
 import { trashItem } from "../utils";
 
-const app = express();
+const app: express.Application = express();
 app.use(express.json());
 
 type Platform = "bili-recorder" | "blrec" | "custom";

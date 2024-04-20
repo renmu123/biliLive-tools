@@ -4,3 +4,4 @@ out
 *.log*
 bin
 cookies.json
+tsconfig.tsbuildinfo
