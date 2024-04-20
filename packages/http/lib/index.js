@@ -1,11 +1,19 @@
-// express init
-import express from "express";
-const app = express();
-const PORT = 9666;
-app.get("/", (req, res) => {
-    res.send("Hello World!");
+import Koa from "koa";
+import Router from "koa-router";
+const app = new Koa();
+const router = new Router();
+router.get("/", async (ctx) => {
+    ctx.body = "Hello World";
 });
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+app.use(router.routes());
+function serverStart() {
+    app.listen(3000, () => {
+        console.log("Server is running at http://localhost:300021");
+    });
+    console.log("Server is running at http://localhost:3000");
+}
+// serverStart();
+app.listen(3000, () => {
+    console.log("Server is running at http://localhost:300021");
 });
-export default app;
+console.log("Server is running at http://localhost:3000");

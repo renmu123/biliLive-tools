@@ -1,15 +1,23 @@
-// express init
-import express from "express";
+import Koa from "koa";
+import Router from "koa-router";
 
-const app: express.Application = express();
-const PORT = 9666;
+import webhookRouter from "./routes/webhook";
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
+const app = new Koa();
+const router = new Router();
+
+router.get("/", async (ctx) => {
+  ctx.body = "Hello World1";
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+app.use(router.routes());
+app.use(webhookRouter.routes());
 
-export default app;
+function serverStart() {
+  app.listen(3000, () => {
+    console.log("Server is running at http://localhost:3000");
+  });
+  console.log("Server is running at http://localhost:3000");
+}
+
+serverStart();
