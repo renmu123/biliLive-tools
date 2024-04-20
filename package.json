@@ -20,7 +20,8 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
-    "test": "vitest"
+    "test": "vitest",
+    "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.1",
