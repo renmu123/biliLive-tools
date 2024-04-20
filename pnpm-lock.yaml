@@ -17,6 +17,9 @@ importers:
 
   packages/app:
     dependencies:
+      '@biliLive-tools/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@electron-toolkit/preload':
         specifier: ^3.0.1
         version: 3.0.1(electron@30.0.1)
@@ -177,6 +180,9 @@ importers:
       koa:
         specifier: ^2.15.3
         version: 2.15.3
+      koa-router:
+        specifier: ^12.0.1
+        version: 12.0.1
     devDependencies:
       '@types/express':
         specifier: ^4.17.21
@@ -190,12 +196,24 @@ importers:
       '@types/node':
         specifier: 20.12.2
         version: 20.12.2
-      koa-router:
-        specifier: ^12.0.1
-        version: 12.0.1
       tsx:
         specifier: ^4.7.2
         version: 4.7.2
+
+  packages/shared:
+    dependencies:
+      '@biliLive-tools/types':
+        specifier: workspace:*
+        version: link:../types
+      lodash-es:
+        specifier: ^4.17.21
+        version: 4.17.21
+    devDependencies:
+      '@types/node':
+        specifier: 20.12.2
+        version: 20.12.2
+
+  packages/types: {}
 
 packages:
 

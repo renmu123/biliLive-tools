@@ -1,4 +1,4 @@
-import { join } from "node:path";
+import path, { join } from "node:path";
 import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
@@ -6,7 +6,6 @@ import Store from "electron-store";
 import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
 import { trashItem as _trashItem, __dirname } from "./utils/index";
-import { getAppConfig } from "./config";
 import serverApp from "./server/index";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net } from "electron";
 import installExtension from "electron-devtools-installer";
@@ -25,8 +24,9 @@ import { handlers as ffmpegHandlers } from "./ffmpegPreset";
 import { handlers as danmuHandlers } from "./danmu";
 import { handlers as configHandlers } from "./config";
 import { handlers as notidyHandlers } from "./notify";
-import { CONFIG_PATH } from "./utils/config";
 import icon from "../../resources/icon.png?asset";
+import { appConfig } from "biliLive-tools@shared";
+import { FFMPEG_PATH, FFPROBE_PATH } from "./appConstant";
 
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
@@ -148,8 +148,8 @@ function createWindow(): void {
 
   // 触发关闭时触发
   mainWin.on("close", (event) => {
-    const appConfig = getAppConfig();
-    if (appConfig.closeToTray) {
+    const closeToTray = appConfig.get("closeToTray");
+    if (closeToTray) {
       event.preventDefault();
       mainWin.hide();
       mainWin.setSkipTaskbar(true);
@@ -157,8 +157,8 @@ function createWindow(): void {
   });
   // 窗口最小化
   mainWin.on("minimize", (event) => {
-    const appConfig = getAppConfig();
-    if (appConfig.minimizeToTray) {
+    const minimizeToTray = appConfig.get("minimizeToTray");
+    if (minimizeToTray) {
       event.preventDefault();
       mainWin.hide();
       mainWin.setSkipTaskbar(true);
@@ -194,23 +194,9 @@ function createWindow(): void {
   tray.setContextMenu(contextMenu);
   // 双击触发
   tray.on("double-click", () => {
-    console.log("double-click", mainWin.isMinimized());
     mainWin.isVisible() ? mainWin.hide() : mainWin.show();
     mainWin.isVisible() ? mainWin.setSkipTaskbar(false) : mainWin.setSkipTaskbar(true);
   });
-
-  const appConfig = getAppConfig();
-  if (appConfig.webhook.open) {
-    // 新建监听
-    server = serverApp.listen(appConfig.webhook.port, () => {
-      log.info("server start");
-    });
-  }
-
-  // 检测更新
-  if (appConfig.autoUpdate) {
-    checkUpdate();
-  }
 }
 
 function createMenu(): void {
@@ -402,10 +388,31 @@ if (!gotTheLock) {
 
 // 业务相关的初始化
 const appInit = async () => {
+  appConfig.init(path.join(app.getPath("userData"), "appConfig.json"), {
+    ffmpegPath: FFMPEG_PATH,
+    ffprobePath: FFPROBE_PATH,
+    tool: {
+      download: {
+        savePath: app.getPath("downloads"),
+      },
+    },
+  });
+
   setFfmpegPath();
-  fs.ensureDir(CONFIG_PATH);
   // 默认十分钟运行一次
-  commentQueue.run(1000 * 60 * 1);
+  commentQueue.run(1000 * 60 * 10);
+  const webhook = appConfig.get("webhook");
+  if (webhook?.open) {
+    // 新建监听
+    server = serverApp.listen(webhook.port, () => {
+      log.info("server start");
+    });
+  }
+
+  // 检测更新
+  if (appConfig.get("autoUpdate")) {
+    checkUpdate();
+  }
 };
 
 const openDirectory = async () => {

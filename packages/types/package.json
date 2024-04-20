@@ -1,0 +1,14 @@
+{
+  "name": "@biliLive-tools/types",
+  "version": "0.14.0",
+  "type": "module",
+  "description": "",
+  "main": "index.d.ts",
+  "author": "renmu123",
+  "license": "GPL-3.0",
+  "homepage": "https://github.com/renmu123/biliLive-tools",
+  "scripts": {},
+  "keywords": [],
+  "dependencies": {},
+  "devDependencies": {}
+}

@@ -42,7 +42,8 @@
     "pinia": "^2.1.7",
     "semver": "^7.6.0",
     "sortablejs": "^1.15.2",
-    "vuedraggable": "^4.1.0"
+    "vuedraggable": "^4.1.0",
+    "@biliLive-tools/shared": "workspace:*"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.2",

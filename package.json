@@ -1,5 +1,5 @@
 {
-  "name": "biliLive-tools@main",
+  "name": "@biliLive-tools/root",
   "version": "0.14.0",
   "description": "B站直播录制处理工具",
   "author": "renmu123",
