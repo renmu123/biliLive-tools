@@ -1,11 +1,13 @@
 import { app } from "electron";
 import { join, dirname } from "node:path";
 
-export const BILIUP_COOKIE_PATH = join(app.getPath("userData"), "cookies.json");
-export const UPLOAD_PRESET_PATH = join(app.getPath("userData"), "presets.json");
+const userDataPath = app.getPath("userData");
 
-export const DANMU_PRESET_PATH = join(app.getPath("userData"), "danmu_presets.json");
-export const FFMPEG_PRESET_PATH = join(app.getPath("userData"), "ffmpeg_presets.json");
+export const BILIUP_COOKIE_PATH = join(userDataPath, "cookies.json");
+export const UPLOAD_PRESET_PATH = join(userDataPath, "presets.json");
+
+export const DANMU_PRESET_PATH = join(userDataPath, "danmu_presets.json");
+export const FFMPEG_PRESET_PATH = join(userDataPath, "ffmpeg_presets.json");
 
 export const FFMPEG_PATH = join(
   dirname(app.getPath("exe")),

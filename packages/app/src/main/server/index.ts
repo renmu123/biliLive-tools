@@ -3,7 +3,7 @@ import os from "node:os";
 
 import fs from "fs-extra";
 import express from "express";
-import { appConfig } from "@biliLive-tools/shared";
+import { appConfig, ffmpegPreset } from "@biliLive-tools/shared";
 
 import { DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
 import bili from "../bili";
@@ -14,7 +14,6 @@ import { mergeAssMp4, readVideoMeta, convertVideo2Mp4 } from "../video";
 import { mainWin } from "../index";
 import { taskQueue } from "../task";
 
-import { getFfmpegPreset } from "../ffmpegPreset";
 import log from "../utils/log";
 import { trashItem } from "../utils";
 
@@ -573,8 +572,8 @@ async function handle(options: Options) {
     const danmuConfig = (await readDanmuPreset(undefined, danmuPresetId)).config;
     const assFilePath = await addDanmuTask(xmlFilePath, options.filePath, danmuConfig);
 
-    const ffmpegPreset = await getFfmpegPreset(videoPresetId);
-    if (!ffmpegPreset) {
+    const preset = await ffmpegPreset.get(videoPresetId);
+    if (!preset) {
       log.error("ffmpegPreset not found", videoPresetId);
       currentPart.status = "error";
       return;
@@ -584,7 +583,7 @@ async function handle(options: Options) {
         options.filePath,
         assFilePath,
         hotProgressFile,
-        ffmpegPreset?.config,
+        preset?.config,
       );
       if (removeOriginAfterConvert) {
         trashItem(options.filePath);

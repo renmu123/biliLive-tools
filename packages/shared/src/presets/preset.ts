@@ -9,8 +9,12 @@ export default class CommonPreset<T> {
     this.filepath = filepath;
     this.defaultConfig = defaultConfig;
   }
+  init(filepath: string) {
+    this.filepath = filepath;
+    // this.defaultConfig = defaultConfig;
+  }
   // 保存所有数据
-  saveAll = async (presets: CommonPresetType<T>) => {
+  async saveAll(presets: CommonPresetType<T>) {
     const allPresets = await this.list();
     const presetIndex = allPresets.findIndex((item) => item.id === presets.id);
 
@@ -22,9 +26,9 @@ export default class CommonPreset<T> {
     const presetsPath = this.filepath;
     await fs.writeJSON(presetsPath, allPresets);
     return true;
-  };
+  }
   // 保存预设
-  save = async (presets: CommonPresetType<T>) => {
+  async save(presets: CommonPresetType<T>) {
     const allPresets = await this.list();
     const presetIndex = allPresets.findIndex((item) => item.id === presets.id);
 
@@ -36,9 +40,9 @@ export default class CommonPreset<T> {
     const presetsPath = this.filepath;
     await fs.writeJSON(presetsPath, allPresets);
     return true;
-  };
+  }
   // 删除预设
-  delete = async (id: string) => {
+  async delete(id: string) {
     const allPresets = await this.list();
     const presetIndex = allPresets.findIndex((item) => item.id === id);
     if (presetIndex === -1) {
@@ -48,20 +52,20 @@ export default class CommonPreset<T> {
     const presetsPath = this.filepath;
     await fs.writeJSON(presetsPath, allPresets);
     return true;
-  };
+  }
 
   // 读取预设
-  get = async (id: string): Promise<CommonPresetType<T>> => {
+  async get(id: string): Promise<CommonPresetType<T>> {
     const allPresets = await this.list();
     const preset = allPresets.find((item) => item.id === id);
     if (!preset) {
       throw new Error("预设不存在");
     }
     return preset;
-  };
+  }
 
   // 读取所有预设
-  list = async (): Promise<CommonPresetType<T>[]> => {
+  async list(): Promise<CommonPresetType<T>[]> {
     const presetsPath = this.filepath;
     if (await fs.pathExists(presetsPath)) {
       const presets: any[] = await fs.readJSON(presetsPath);
@@ -72,5 +76,5 @@ export default class CommonPreset<T> {
       return presets;
     }
     return [{ id: "default", name: "默认配置", config: this.defaultConfig }];
-  };
+  }
 }

@@ -1,6 +1,6 @@
-import { appConfig } from "@biliLive-tools/shared";
+import { appConfig, ffmpegPreset } from "@biliLive-tools/shared";
 
-import type { AppConfig } from "@biliLive-tools/types";
+import type { AppConfig, FfmpegPreset as FfmpegPresetType } from "@biliLive-tools/types";
 import type { IpcMainInvokeEvent } from "electron";
 
 export const configHandlers = {
@@ -15,5 +15,26 @@ export const configHandlers = {
   },
   "config:save": (_event: IpcMainInvokeEvent, newConfig: AppConfig) => {
     appConfig.setAll(newConfig);
+  },
+};
+
+export const ffmpegHandlers = {
+  "ffmpeg:presets:save": async (
+    _event: IpcMainInvokeEvent | undefined,
+    presets: FfmpegPresetType,
+  ) => {
+    return ffmpegPreset.save(presets);
+  },
+  "ffmpeg:presets:delete": async (_event: IpcMainInvokeEvent | undefined, id: string) => {
+    return ffmpegPreset.delete(id);
+  },
+  "ffmpeg:presets:get": (_event: IpcMainInvokeEvent, id: string) => {
+    return ffmpegPreset.get(id);
+  },
+  "ffmpeg:presets:list": (_event: IpcMainInvokeEvent) => {
+    return ffmpegPreset.list();
+  },
+  "ffmpeg:presets:getOptions": (_event: IpcMainInvokeEvent) => {
+    return ffmpegPreset.getFfmpegPresetOptions();
   },
 };

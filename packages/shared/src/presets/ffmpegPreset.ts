@@ -1,8 +1,6 @@
-import { CommonPreset } from "@biliLive-tools/shared";
-import { FFMPEG_PRESET_PATH } from "./appConstant";
+import { CommonPreset } from "../index.js";
 
 import type { FfmpegPreset as FfmpegPresetType, FfmpegOptions } from "@biliLive-tools/types";
-import { type IpcMainInvokeEvent } from "electron";
 
 const DefaultFfmpegOptions: FfmpegOptions = {
   encoder: "libx264",
@@ -155,66 +153,61 @@ const baseFfmpegPresets: FfmpegPresetType[] = [
   },
 ];
 
-const ffmpegPreset = new CommonPreset(FFMPEG_PRESET_PATH, DefaultFfmpegOptions);
-
-export const saveFfmpegPreset = async (
-  _event: IpcMainInvokeEvent | undefined,
-  presets: FfmpegPresetType,
-) => {
-  return ffmpegPreset.save(presets);
-};
-export const deleteFfmpegPreset = async (_event: IpcMainInvokeEvent | undefined, id: string) => {
-  return ffmpegPreset.delete(id);
-};
-export const getFfmpegPreset = async (id: string): Promise<FfmpegPresetType | undefined> => {
-  const ffmpegPresets = await getFfmpegPresets();
-  if (id.startsWith("b_")) {
-    return baseFfmpegPresets.find((item) => item.id === id);
-  } else {
-    return ffmpegPresets.find((item) => item.id === id);
+class FFmpegPreset extends CommonPreset<FfmpegOptions> {
+  constructor(presetPath: string, defaultConfig: typeof DefaultFfmpegOptions) {
+    super(presetPath, defaultConfig);
   }
-};
-export const getFfmpegPresets = async () => {
-  const presets = await ffmpegPreset.list();
-  return presets;
-};
+  init(presetPath: string) {
+    super.init(presetPath);
+  }
+  // 保存预设
+  save(presets: FfmpegPresetType) {
+    return super.save(presets);
+  }
+  async get(id: string): Promise<FfmpegPresetType | undefined> {
+    const ffmpegPresets = await this.list();
+    if (id.startsWith("b_")) {
+      return baseFfmpegPresets.find((item) => item.id === id);
+    } else {
+      return ffmpegPresets.find((item) => item.id === id);
+    }
+  }
+  async list() {
+    const presets = await super.list();
+    return presets;
+  }
+  async delete(id: string) {
+    return super.delete(id);
+  }
+  async getFfmpegPresetOptions() {
+    const base = baseFfmpegPresets.map((item) => {
+      return {
+        value: item.id,
+        label: item.name,
+        config: item.config,
+      };
+    });
+    const ffmpegPresets = await this.list();
+    const custom = ffmpegPresets.map((item) => {
+      return {
+        value: item.id,
+        label: item.name,
+        config: item.config,
+      };
+    });
+    return [
+      {
+        value: "base",
+        label: "基础",
+        children: base,
+      },
+      {
+        value: "custom",
+        label: "自定义",
+        children: custom,
+      },
+    ];
+  }
+}
 
-export const getFfmpegPresetOptions = async () => {
-  const base = baseFfmpegPresets.map((item) => {
-    return {
-      value: item.id,
-      label: item.name,
-      config: item.config,
-    };
-  });
-  const ffmpegPresets = await getFfmpegPresets();
-  const custom = ffmpegPresets.map((item) => {
-    return {
-      value: item.id,
-      label: item.name,
-      config: item.config,
-    };
-  });
-  return [
-    {
-      value: "base",
-      label: "基础",
-      children: base,
-    },
-    {
-      value: "custom",
-      label: "自定义",
-      children: custom,
-    },
-  ];
-};
-
-export const handlers = {
-  "ffmpeg:presets:save": saveFfmpegPreset,
-  "ffmpeg:presets:delete": deleteFfmpegPreset,
-  "ffmpeg:presets:get": (_event: IpcMainInvokeEvent, id: string) => {
-    return getFfmpegPreset(id);
-  },
-  "ffmpeg:presets:list": getFfmpegPresets,
-  "ffmpeg:presets:getOptions": getFfmpegPresetOptions,
-};
+export const ffmpegPreset = new FFmpegPreset("", DefaultFfmpegOptions);
