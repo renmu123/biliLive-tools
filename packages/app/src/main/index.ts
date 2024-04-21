@@ -25,7 +25,7 @@ import { handlers as danmuHandlers } from "./danmu";
 import { handlers as configHandlers } from "./config";
 import { handlers as notidyHandlers } from "./notify";
 import icon from "../../resources/icon.png?asset";
-import { appConfig } from "biliLive-tools@shared";
+import { appConfig } from "@biliLive-tools/shared";
 import { FFMPEG_PATH, FFPROBE_PATH } from "./appConstant";
 
 import type { OpenDialogOptions } from "../types";

@@ -9,8 +9,5 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
   },
-  "include": ["src/**/*.ts"],
-  "ts-node": {
-    "require": ["tsconfig-paths/register"]
-  }
+  "include": ["src/**/*.ts", "node_modules/@biliLive-tools/**/*"],
 }

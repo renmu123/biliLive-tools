@@ -9,19 +9,22 @@
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "scripts": {
     "build": "tsc",
-    "watch": "tsc -w",
+    "dev": "tsc -w",
     "start": "node ./lib/index.js",
-    "start:dev": "tsx src/index.ts "
+    "start:dev": "tsx watch src/index.ts "
   },
   "keywords": [],
   "dependencies": {
+    "@biliLive-tools/shared": "workspace:*",
     "express": "^4.19.2",
     "koa": "^2.15.3",
+    "koa-bodyparser": "^4.4.1",
     "koa-router": "^12.0.1"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/koa": "^2.15.0",
+    "@types/koa-bodyparser": "^4.3.12",
     "@types/koa-router": "^7.4.8",
     "@types/node": "20.12.2",
     "tsx": "^4.7.2"

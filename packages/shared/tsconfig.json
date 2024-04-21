@@ -1,16 +1,13 @@
 {
   "compilerOptions": {
-    "composite": true,
+    // "composite": true,
     "outDir": "./lib",
     "rootDir": "./src",
-    "module": "ESNext",
+    "module": "NodeNext",
     "target": "ESNext",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "NodeNext",
     "esModuleInterop": true,
+    "declaration": true,
   },
-  "include": ["src/**/*.ts"],
-  "ts-node": {
-    "require": ["tsconfig-paths/register"]
-  }
+  "include": ["src/**/*.ts"]
 }

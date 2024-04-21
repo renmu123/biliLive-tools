@@ -2,29 +2,32 @@ import path from "node:path";
 import os from "node:os";
 
 import fs from "fs-extra";
-import { getAppConfig } from "../config";
+import express from "express";
+import { appConfig } from "@biliLive-tools/shared";
+
 import { DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
-import { mainWin } from "../index";
-import { convertXml2Ass, readDanmuPreset, genHotProgress, isEmptyDanmu } from "../danmu";
-import { taskQueue } from "../task";
-import { mergeAssMp4, readVideoMeta, convertVideo2Mp4 } from "../video";
 import bili from "../bili";
 import { biliApi } from "../bili";
+import { convertXml2Ass, readDanmuPreset, genHotProgress, isEmptyDanmu } from "../danmu";
+import { mergeAssMp4, readVideoMeta, convertVideo2Mp4 } from "../video";
+
+import { mainWin } from "../index";
+import { taskQueue } from "../task";
+
 import { getFfmpegPreset } from "../ffmpegPreset";
 import log from "../utils/log";
-import { getFileSize, uuid, runWithMaxIterations, sleep } from "../../utils/index";
-import express from "express";
+import { trashItem } from "../utils";
 
-import type { BlrecEventType } from "./brelcEvent.d.ts";
+import { getFileSize, uuid, runWithMaxIterations, sleep } from "../../utils/index";
+
 import type {
   BiliupConfig,
   FfmpegOptions,
   DanmuConfig,
   AppRoomConfig,
   CommonRoomConfig,
-  // AppConfig,
-} from "../../types";
-import { trashItem } from "../utils";
+} from "@biliLive-tools/types";
+import type { BlrecEventType } from "./brelcEvent.d.ts";
 
 const app: express.Application = express();
 app.use(express.json());
@@ -88,17 +91,17 @@ app.get("/", function (_req, res) {
 });
 
 app.post("/webhook", async function (req, res) {
-  const appConfig = getAppConfig();
+  const config = appConfig.getAll();
   log.info("录播姬：", req.body);
 
   const event = req.body;
   if (
-    appConfig.webhook.open &&
-    appConfig.webhook.recoderFolder &&
+    config.webhook.open &&
+    config.webhook.recoderFolder &&
     (event.EventType === "FileOpening" || event.EventType === "FileClosed")
   ) {
     const roomId = event.EventData.RoomId;
-    const filePath = path.join(appConfig.webhook.recoderFolder, event.EventData.RelativePath);
+    const filePath = path.join(config.webhook.recoderFolder, event.EventData.RelativePath);
 
     handle({
       event: event.EventType,
@@ -114,12 +117,12 @@ app.post("/webhook", async function (req, res) {
 });
 
 app.post("/blrec", async function (req, res) {
-  const appConfig = getAppConfig();
+  const webhook = appConfig.get("webhook");
   log.info("blrec: webhook", req.body);
   const event: BlrecEventType = req.body;
 
   if (
-    appConfig.webhook.open &&
+    webhook?.open &&
     (event.type === "VideoFileCompletedEvent" || event.type === "VideoFileCreatedEvent")
   ) {
     const roomId = event.data.room_id;
@@ -141,7 +144,7 @@ app.post("/blrec", async function (req, res) {
 });
 
 app.post("/custom", async function (req, res) {
-  const appConfig = getAppConfig();
+  const webhook = appConfig.get("webhook");
   log.info("custom: webhook", req.body);
   const event: CustomEvent = req.body;
 
@@ -151,7 +154,7 @@ app.post("/custom", async function (req, res) {
   if (!event.title) res.status(500).send("title is required");
   if (!event.username) res.status(500).send("username is required");
 
-  if (appConfig.webhook.open && (event.event === "FileOpening" || event.event === "FileClosed")) {
+  if (webhook?.open && (event.event === "FileOpening" || event.event === "FileClosed")) {
     handle({
       event: event.event,
       filePath: event.filePath,
@@ -209,8 +212,8 @@ function getConfig(roomId: number): {
   /** 上传完成后删除文件 */
   removeOriginAfterUpload?: boolean;
 } {
-  const appConfig = getAppConfig();
-  const roomSetting: AppRoomConfig | undefined = appConfig.webhook.rooms[roomId];
+  const config = appConfig.getAll();
+  const roomSetting: AppRoomConfig | undefined = config.webhook.rooms[roomId];
   log.debug("room setting", roomId, roomSetting);
 
   const danmu = getRoomSetting("danmu");
@@ -240,9 +243,9 @@ function getConfig(roomId: number): {
     if (roomSetting) {
       if (roomSetting.noGlobal?.includes(key)) return roomSetting[key];
 
-      return appConfig.webhook[key];
+      return config.webhook[key];
     } else {
-      return appConfig.webhook[key];
+      return config.webhook[key];
     }
   }
 
@@ -255,7 +258,7 @@ function getConfig(roomId: number): {
       return roomSetting.open;
     } else {
       // 如果没有配置房间，那么以黑名单为准
-      const blacklist = (appConfig?.webhook?.blacklist || "").split(",");
+      const blacklist = (config?.webhook?.blacklist || "").split(",");
       if (blacklist.includes("*")) return false;
       if (blacklist.includes(String(roomId))) return false;
 

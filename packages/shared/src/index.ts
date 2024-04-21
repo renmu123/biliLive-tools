@@ -1,3 +1,3 @@
-import { appConfig } from "./config";
+import { appConfig } from "./config.js";
 
 export { appConfig };

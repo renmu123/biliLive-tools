@@ -1,14 +1,15 @@
 import nodemailer from "nodemailer";
 
+import { appConfig } from "@biliLive-tools/shared";
+
 import log from "./utils/log";
 import { IpcMainInvokeEvent, net } from "electron";
-import { getAppConfig } from "./config";
 import type {
   AppConfig,
   NotificationMailConfig,
   NotificationServerConfig,
   NotificationTgConfig,
-} from "../types";
+} from "@biliLive-tools/types";
 
 /**
  * 通过Server酱发送通知
@@ -91,8 +92,8 @@ export async function sendByTg(title: string, desp: string, options: Notificatio
 export function send(title: string, desp: string) {
   log.info("send notfiy", title, desp);
 
-  const appConfig = getAppConfig();
-  _send(title, desp, appConfig);
+  const config = appConfig.getAll();
+  _send(title, desp, config);
 }
 
 export function _send(title: string, desp: string, appConfig: AppConfig) {

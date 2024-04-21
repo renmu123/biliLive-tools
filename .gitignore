@@ -5,3 +5,4 @@ out
 bin
 cookies.json
 tsconfig.tsbuildinfo
+lib

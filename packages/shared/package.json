@@ -3,15 +3,14 @@
   "version": "0.14.0",
   "type": "module",
   "description": "",
-  "main": "./src/index.ts",
+  "main": "./lib/index.js",
   "author": "renmu123",
   "license": "GPL-3.0",
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "scripts": {
     "build": "tsc",
-    "watch": "tsc -w",
-    "start": "node ./lib/index.js",
-    "start:dev": "tsx src/index.ts "
+    "dev": "tsc -w",
+    "start:dev": "tsx src/index.ts"
   },
   "keywords": [],
   "dependencies": {

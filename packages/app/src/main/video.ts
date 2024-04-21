@@ -3,7 +3,7 @@ import os from "os";
 import fs from "fs-extra";
 import ffmpeg from "fluent-ffmpeg";
 
-import { getAppConfig } from "./config";
+import { appConfig } from "@biliLive-tools/shared";
 import { escaped, genFfmpegParams, pathExists, trashItem, uuid } from "./utils/index";
 import log from "./utils/log";
 import { executeCommand } from "../utils/index";
@@ -13,12 +13,12 @@ import type { IpcMainInvokeEvent, WebContents } from "electron";
 import type { File, FfmpegOptions, VideoMergeOptions, Video2Mp4Options } from "../types";
 
 export const setFfmpegPath = async () => {
-  const appConfig = getAppConfig();
-  if (appConfig.ffmpegPath) {
-    ffmpeg.setFfmpegPath(appConfig.ffmpegPath);
+  const config = appConfig.getAll();
+  if (config.ffmpegPath) {
+    ffmpeg.setFfmpegPath(config.ffmpegPath);
   }
-  if (appConfig.ffprobePath) {
-    ffmpeg.setFfprobePath(appConfig.ffprobePath);
+  if (config.ffprobePath) {
+    ffmpeg.setFfprobePath(config.ffprobePath);
   }
 };
 
@@ -36,8 +36,8 @@ export const readVideoMeta = async (input: string): Promise<ffmpeg.FfprobeData> 
 };
 
 export const readNbFrames = async (input: string): Promise<number> => {
-  const appConfig = getAppConfig();
-  const command = `${appConfig.ffprobePath} -v error -count_packets -select_streams v:0 -show_entries stream=nb_read_packets -of csv=p=0 "${input}"`;
+  const config = appConfig.getAll();
+  const command = `${config.ffprobePath} -v error -count_packets -select_streams v:0 -show_entries stream=nb_read_packets -of csv=p=0 "${input}"`;
   const nbFrames = await executeCommand(command);
   return Number(nbFrames) || 0;
 };

@@ -20,6 +20,9 @@ importers:
       '@biliLive-tools/shared':
         specifier: workspace:*
         version: link:../shared
+      '@biliLive-tools/types':
+        specifier: workspace:*
+        version: link:../types
       '@electron-toolkit/preload':
         specifier: ^3.0.1
         version: 3.0.1(electron@30.0.1)
@@ -174,12 +177,18 @@ importers:
 
   packages/http:
     dependencies:
+      '@biliLive-tools/shared':
+        specifier: workspace:*
+        version: link:../shared
       express:
         specifier: ^4.19.2
         version: 4.19.2
       koa:
         specifier: ^2.15.3
         version: 2.15.3
+      koa-bodyparser:
+        specifier: ^4.4.1
+        version: 4.4.1
       koa-router:
         specifier: ^12.0.1
         version: 12.0.1
@@ -190,6 +199,9 @@ importers:
       '@types/koa':
         specifier: ^2.15.0
         version: 2.15.0
+      '@types/koa-bodyparser':
+        specifier: ^4.3.12
+        version: 4.3.12
       '@types/koa-router':
         specifier: ^7.4.8
         version: 7.4.8
@@ -1022,6 +1034,9 @@ packages:
   '@types/keyv@3.1.4':
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
 
+  '@types/koa-bodyparser@4.3.12':
+    resolution: {integrity: sha512-hKMmRMVP889gPIdLZmmtou/BijaU1tHPyMNmcK7FAHAdATnRcGQQy78EqTTxLH1D4FTsrxIzklAQCso9oGoebQ==}
+
   '@types/koa-compose@3.2.8':
     resolution: {integrity: sha512-4Olc63RY+MKvxMwVknCUDhRQX1pFQoBZ/lXcRLP69PQkEpze/0cr8LNqJQe5NFb/b19DWi2a5bTi2VAlQzhJuA==}
 
@@ -1528,6 +1543,9 @@ packages:
   clone-response@1.0.3:
     resolution: {integrity: sha512-ROoL94jJH2dUVML2Y/5PEDNaSHgeOdSDicUyS7izcF63G6sTc/FTjLub4b8Il9S8S0beOfYt0TaA5qvFK+w0wA==}
 
+  co-body@6.1.0:
+    resolution: {integrity: sha512-m7pOT6CdLN7FuXUcpuz/8lfQ/L77x8SchHCF4G0RBTJO20Wzmhn5Sp4/5WsKy8OSpifBSUrmg83qEqaDHdyFuQ==}
+
   co@4.6.0:
     resolution: {integrity: sha512-QVb0dM5HvG+uaxitm8wONl7jltx8dqhfU33DcqtOZcLSVIKSDDLDi7+0LbAKiyI8hD9u42m2YxXSkMGWThaecQ==}
     engines: {iojs: '>= 1.0.0', node: '>= 0.12.0'}
@@ -1601,6 +1619,9 @@ packages:
 
   copy-anything@2.0.6:
     resolution: {integrity: sha512-1j20GZTsvKNkc4BY3NpMOM8tt///wY3FpIzozTOFO2ffuZcV61nojHXVKIy3WM+7ADCy5FVhdZYHYDdgTU0yJw==}
+
+  copy-to@2.0.1:
+    resolution: {integrity: sha512-3DdaFaU/Zf1AnpLiFDeNCD4TOWe3Zl2RZaTzUvWiIk5ERzcCodOE20Vqq4fzCbNoHURFHT4/us/Lfq+S2zyY4w==}
 
   core-util-is@1.0.2:
     resolution: {integrity: sha512-3lqz5YjWTYnW6dlDa5TLaTCcShfar1e40rmcJVwCBJC6mWlFuj0eCHIElmG1g5kyuJ/GD+8Wn4FFCcz4gJPfaQ==}
@@ -2280,6 +2301,10 @@ packages:
     resolution: {integrity: sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA==}
     engines: {node: '>=0.8.19'}
 
+  inflation@2.1.0:
+    resolution: {integrity: sha512-t54PPJHG1Pp7VQvxyVCJ9mBbjG3Hqryges9bXoOO6GExCPa+//i/d5GSuFtpx3ALLd7lgIAur6zrIlBQyJuMlQ==}
+    engines: {node: '>= 0.8.0'}
+
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
 
@@ -2416,6 +2441,10 @@ packages:
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
+
+  koa-bodyparser@4.4.1:
+    resolution: {integrity: sha512-kBH3IYPMb+iAXnrxIhXnW+gXV8OTzCu8VPDqvcDHW9SQrbkHmqPQtiZwrltNmSq6/lpipHnT7k7PsjlVD7kK0w==}
+    engines: {node: '>=8.0.0'}
 
   koa-compose@4.1.0:
     resolution: {integrity: sha512-8ODW8TrDuMYvXRwra/Kh7/rJo9BtOfPc6qO8eAfC80CnCvSjSl0bkRM24X6/XBBEyj0v1nRUQ1LyOy3dbqOWXw==}
@@ -4274,6 +4303,10 @@ snapshots:
     dependencies:
       '@types/node': 20.12.2
 
+  '@types/koa-bodyparser@4.3.12':
+    dependencies:
+      '@types/koa': 2.15.0
+
   '@types/koa-compose@3.2.8':
     dependencies:
       '@types/koa': 2.15.0
@@ -4967,6 +5000,13 @@ snapshots:
     dependencies:
       mimic-response: 1.0.1
 
+  co-body@6.1.0:
+    dependencies:
+      inflation: 2.1.0
+      qs: 6.11.0
+      raw-body: 2.5.2
+      type-is: 1.6.18
+
   co@4.6.0: {}
 
   color-convert@1.9.3:
@@ -5040,6 +5080,8 @@ snapshots:
   copy-anything@2.0.6:
     dependencies:
       is-what: 3.14.1
+
+  copy-to@2.0.1: {}
 
   core-util-is@1.0.2:
     optional: true
@@ -5881,6 +5923,8 @@ snapshots:
 
   imurmurhash@0.1.4: {}
 
+  inflation@2.1.0: {}
+
   inflight@1.0.6:
     dependencies:
       once: 1.4.0
@@ -5996,6 +6040,12 @@ snapshots:
   keyv@4.5.4:
     dependencies:
       json-buffer: 3.0.1
+
+  koa-bodyparser@4.4.1:
+    dependencies:
+      co-body: 6.1.0
+      copy-to: 2.0.1
+      type-is: 1.6.18
 
   koa-compose@4.1.0: {}
 

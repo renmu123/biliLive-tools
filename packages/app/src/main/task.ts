@@ -6,7 +6,7 @@ import * as ntsuspend from "ntsuspend";
 import { Danmu } from "../core/index";
 import { TaskType } from "../types/enum";
 import { sendNotify } from "./notify";
-import { getAppConfig } from "./config";
+import { appConfig } from "@biliLive-tools/shared";
 
 import type ffmpeg from "fluent-ffmpeg";
 import type { Client } from "@renmu/bili-api";
@@ -582,8 +582,8 @@ const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) => {
       desp = `${task.name}出错\n\n开始时间：${new Date(task.startTime!).toLocaleString()}`;
       break;
   }
-  const appConfig = getAppConfig();
-  const taskConfig = appConfig?.notification?.task || {};
+  const config = appConfig.getAll();
+  const taskConfig = config?.notification?.task || {};
 
   switch (taskType) {
     case TaskType.ffmpeg:

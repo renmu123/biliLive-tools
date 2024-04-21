@@ -43,7 +43,8 @@
     "semver": "^7.6.0",
     "sortablejs": "^1.15.2",
     "vuedraggable": "^4.1.0",
-    "@biliLive-tools/shared": "workspace:*"
+    "@biliLive-tools/shared": "workspace:*",
+    "@biliLive-tools/types": "workspace:*"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.2",

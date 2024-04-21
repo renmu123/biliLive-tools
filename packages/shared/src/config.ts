@@ -1,6 +1,6 @@
 import fs from "node:fs";
 
-import type { AppConfig } from "biliLive-tools@types";
+import type { AppConfig } from "@biliLive-tools/types";
 import { defaultsDeep } from "lodash-es";
 // import log from "../utils/log";
 // import { setFfmpegPath } from "./video";
@@ -10,6 +10,10 @@ export default class Config {
   protected data: {
     [propName: string]: any;
   };
+  constructor() {
+    this.filepath = "";
+    this.data = {};
+  }
   set(key: string | number, value: any) {
     this.data[key] = value;
     this.save();
@@ -24,6 +28,9 @@ export default class Config {
   save() {
     // 保存文件
     fs.writeFileSync(this.filepath, JSON.stringify(this.data));
+  }
+  load(filepath: string) {
+    this.filepath = filepath;
   }
   init(filepath: string, initData: { [propName: string]: any } = {}) {
     this.filepath = filepath;
@@ -182,10 +189,12 @@ class AppConfigClass extends Config {
   constructor() {
     super();
   }
+  load(filepath: string) {
+    this.init(filepath);
+  }
   // 需要传递：{ffmpegPath:"",ffprobePath:"",tool:{download:{savePath:""}}}
-  init(filepath: string, data: DeepPartial<AppConfig>) {
+  init(filepath: string, data: DeepPartial<AppConfig> = {}) {
     const initData = defaultsDeep(data, APP_DEFAULT_CONFIG);
-
     super.init(filepath, initData);
   }
   get<K extends keyof AppConfig>(key: K): AppConfig[K] {

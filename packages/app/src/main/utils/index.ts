@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { exec } from "child_process";
 import fs from "fs-extra";
 import { shell } from "electron";
-import { getAppConfig } from "../config";
+import { appConfig } from "@biliLive-tools/shared";
 
 import { type IpcMainInvokeEvent } from "electron";
 import type { FfmpegOptions } from "../../types";
@@ -85,8 +85,8 @@ export const pathExists = async (path: string) => {
 };
 
 export const trashItem = async (path: string) => {
-  const config = getAppConfig();
-  if (config.trash) {
+  const trash = appConfig.get("trash");
+  if (trash) {
     return await shell.trashItem(path);
   } else {
     fs.unlink(path);
