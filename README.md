@@ -154,8 +154,8 @@ xml弹幕转换底层使用[DanmakuFactory](https://github.com/hihkm/DanmakuFact
 
 交流群：872011161
 
-node需要18及以上版本。  
-下载项目后需要新建一个`resources\bin`文件夹，里面需要四个文件。
+node请使用20及以上版本。  
+下载项目后需要新建一个`packages\app\resources\bin`文件夹，里面需要三个个文件。
 同时需要在应用中设置 ffmpeg 以及 ffprobe 可执行文件地址。
 
 1. `DanmukuFactory.exe` [1.7.0版本](https://github.com/hihkm/DanmakuFactory/releases/tag/v1.70)
@@ -165,23 +165,23 @@ node需要18及以上版本。
 ## Install
 
 ```bash
-$ npm install
+$ pnpm install
 ```
 
 ## Development
 
 ```bash
-$ npm run dev
+$ pnpm run dev
 ```
 
 ## Build
 
 ```bash
 # For windows
-$ npm run build:win
+$ pnpm run build:win
 
 # For windows without ffmpeg
-$ npm run build:win-no-ffmpeg
+$ pnpm run build:win-no-ffmpeg
 ```
 
 # License

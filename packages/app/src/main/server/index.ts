@@ -3,20 +3,18 @@ import os from "node:os";
 
 import fs from "fs-extra";
 import express from "express";
-import { appConfig, ffmpegPreset } from "@biliLive-tools/shared";
+import { appConfig, ffmpegPreset, videoPreset } from "@biliLive-tools/shared";
+import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/lib/presets/videoPreset.js";
 
-import { DEFAULT_BILIUP_CONFIG, readBiliupPreset } from "../biliup";
 import bili from "../bili";
 import { biliApi } from "../bili";
 import { convertXml2Ass, readDanmuPreset, genHotProgress, isEmptyDanmu } from "../danmu";
 import { mergeAssMp4, readVideoMeta, convertVideo2Mp4 } from "../video";
-
 import { mainWin } from "../index";
 import { taskQueue } from "../task";
 
 import log from "../utils/log";
 import { trashItem } from "../utils";
-
 import { getFileSize, uuid, runWithMaxIterations, sleep } from "../../utils/index";
 
 import type {
@@ -479,7 +477,7 @@ async function handle(options: Options) {
 
   let config = DEFAULT_BILIUP_CONFIG;
   if (uploadPresetId) {
-    const preset = await readBiliupPreset(undefined, uploadPresetId);
+    const preset = await videoPreset.get(uploadPresetId);
     config = { ...config, ...preset.config };
   }
   if (useVideoAsTitle) {
@@ -874,7 +872,7 @@ const handleLive = async (live: Live) => {
 
   let config = DEFAULT_BILIUP_CONFIG;
   if (uploadPresetId) {
-    const preset = await readBiliupPreset(undefined, uploadPresetId);
+    const preset = await videoPreset.get(uploadPresetId);
     config = { ...config, ...preset.config };
   }
   config.title = live.videoName;

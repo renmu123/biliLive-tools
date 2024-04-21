@@ -256,12 +256,6 @@ export const api = {
       ipcRenderer.removeAllListeners("biliApi:login-completed");
       return ipcRenderer.invoke("biliApi:login:cancel");
     },
-    checkOldCookie(): Promise<boolean> {
-      return ipcRenderer.invoke("bili:checkOldCookie");
-    },
-    migrateCookie() {
-      return ipcRenderer.invoke("bili:migrateCookie");
-    },
     removeUser(mid: number) {
       return ipcRenderer.invoke("bili:removeUser", mid);
     },

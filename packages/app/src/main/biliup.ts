@@ -1,36 +1,9 @@
-import fs from "fs-extra";
-
 import log from "./utils/log";
-import { appConfig, CommonPreset } from "@biliLive-tools/shared";
+import { appConfig, videoPreset } from "@biliLive-tools/shared";
 import { biliApi } from "./bili";
-
-import { BILIUP_COOKIE_PATH, UPLOAD_PRESET_PATH } from "./appConstant";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { BiliupConfig, BiliupConfigAppend, BiliupPreset, BiliUser } from "../types/index";
-
-export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
-  title: "",
-  desc: "",
-  dolby: 0,
-  hires: 0,
-  copyright: 1,
-  tag: ["biliLive-tools"], // tag应该为""以,分割的字符串
-  tid: 138,
-  source: "",
-  dynamic: "",
-  cover: "",
-  noReprint: 0,
-  openElec: 0,
-  closeDanmu: 0,
-  closeReply: 0,
-  selectiionReply: 0,
-  recreate: -1,
-  no_disturbance: 0,
-  autoComment: false,
-  commentTop: false,
-  comment: "",
-};
 
 // 验证配置
 export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: BiliupConfig) => {
@@ -66,23 +39,6 @@ export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: B
   return true;
 };
 
-const uploadPreset = new CommonPreset(UPLOAD_PRESET_PATH, DEFAULT_BILIUP_CONFIG);
-// 读取bili上传预设
-export const readBiliupPresets = async (): Promise<BiliupPreset[]> => {
-  return uploadPreset.list();
-};
-// 保存bili上传预设
-export const saveBiliupPreset = async (_event: IpcMainInvokeEvent, presets: BiliupPreset) => {
-  return uploadPreset.save(presets);
-};
-// 删除bili上传预设
-export const deleteBiliupPreset = async (_event: IpcMainInvokeEvent, id: string) => {
-  return uploadPreset.delete(id);
-};
-// 读取bili上传预设
-export const readBiliupPreset = async (_event: IpcMainInvokeEvent | undefined, id: string) => {
-  return uploadPreset.get(id);
-};
 // 删除bili登录的cookie
 export const deleteUser = async (uid: number) => {
   const users = appConfig.get("biliUser") || {};
@@ -137,10 +93,18 @@ export const format = async (data: any) => {
 
 export const handlers = {
   "bili:validUploadParams": validateBiliupConfig,
-  "bili:getPreset": readBiliupPreset,
-  "bili:savePreset": saveBiliupPreset,
-  "bili:deletePreset": deleteBiliupPreset,
-  "bili:getPresets": readBiliupPresets,
+  "bili:getPreset": (_event: IpcMainInvokeEvent, id: string) => {
+    return videoPreset.get(id);
+  },
+  "bili:savePreset": (_event: IpcMainInvokeEvent, presets: BiliupPreset) => {
+    return videoPreset.save(presets);
+  },
+  "bili:deletePreset": (_event: IpcMainInvokeEvent, id: string) => {
+    return videoPreset.delete(id);
+  },
+  "bili:getPresets": () => {
+    return videoPreset.list();
+  },
   "bili:deleteUser": (_event: IpcMainInvokeEvent, mid: number) => {
     return deleteUser(mid);
   },
@@ -151,17 +115,6 @@ export const handlers = {
   },
   "bili:readUserList": () => {
     return readUserList();
-  },
-  "bili:checkOldCookie": async () => {
-    const cookiePath = BILIUP_COOKIE_PATH;
-    return fs.pathExists(cookiePath);
-  },
-  "bili:migrateCookie": async () => {
-    const data: unknown = await fs.readJSON(BILIUP_COOKIE_PATH);
-    const user = await format(data);
-
-    await writeUser(user);
-    await fs.remove(BILIUP_COOKIE_PATH);
   },
   "bili:uploadVideo": async (
     _event: IpcMainInvokeEvent,

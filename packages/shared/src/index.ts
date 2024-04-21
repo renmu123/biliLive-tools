@@ -1,5 +1,4 @@
 import { appConfig } from "./config.js";
-import CommonPreset from "./presets/preset.js";
-import { ffmpegPreset } from "./presets/ffmpegPreset.js";
+import { CommonPreset, ffmpegPreset, videoPreset } from "./presets/index.js";
 
-export { appConfig, CommonPreset, ffmpegPreset };
+export { appConfig, CommonPreset, ffmpegPreset, videoPreset };

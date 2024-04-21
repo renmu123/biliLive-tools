@@ -3,7 +3,6 @@
     <div class="user-info">
       <div class="login-btns">
         <n-button type="primary" @click="login">登录账号</n-button>
-        <n-button v-if="hasOldCookie" @click="migrateOldCookie">迁移旧版Cookie</n-button>
       </div>
     </div>
     <div class="container">
@@ -52,25 +51,7 @@ const login = async () => {
   loginTvDialogVisible.value = true;
 };
 
-const hasOldCookie = ref(false);
-const checkOldCookie = async () => {
-  hasOldCookie.value = await window.api.bili.checkOldCookie();
-};
-checkOldCookie();
-
 const confirm = useConfirm();
-const migrateOldCookie = async () => {
-  let status = await confirm.warning({
-    content: "是否需要迁移旧数据？",
-  });
-  if (!status) return;
-
-  status = await window.api.bili.checkOldCookie();
-  if (!status) return;
-  await window.api.bili.migrateCookie();
-  hasOldCookie.value = false;
-  getUserInfo();
-};
 
 const logout = async (uid: number) => {
   const uids = [
