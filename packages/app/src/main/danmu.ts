@@ -5,7 +5,7 @@ import { XMLParser } from "fast-xml-parser";
 
 import { pathExists, trashItem, __dirname, uuid } from "./utils/index";
 import log from "./utils/log";
-import CommonPreset from "./utils/preset";
+import { CommonPreset } from "@biliLive-tools/shared";
 import { Danmu, report, generateDanmakuImage } from "../core/danmu";
 import { DANMU_PRESET_PATH } from "./appConstant";
 import { DanmuTask, taskQueue } from "./task";

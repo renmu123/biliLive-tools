@@ -1,7 +1,7 @@
-import CommonPreset from "./utils/preset";
+import { CommonPreset } from "@biliLive-tools/shared";
 import { FFMPEG_PRESET_PATH } from "./appConstant";
 
-import type { FfmpegPreset as FfmpegPresetType, FfmpegOptions } from "../types";
+import type { FfmpegPreset as FfmpegPresetType, FfmpegOptions } from "@biliLive-tools/types";
 import { type IpcMainInvokeEvent } from "electron";
 
 const DefaultFfmpegOptions: FfmpegOptions = {

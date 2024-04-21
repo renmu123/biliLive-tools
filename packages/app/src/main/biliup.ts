@@ -1,8 +1,7 @@
 import fs from "fs-extra";
 
 import log from "./utils/log";
-import { appConfig } from "@biliLive-tools/shared";
-import CommonPreset from "./utils/preset";
+import { appConfig, CommonPreset } from "@biliLive-tools/shared";
 import { biliApi } from "./bili";
 
 import { BILIUP_COOKIE_PATH, UPLOAD_PRESET_PATH } from "./appConstant";

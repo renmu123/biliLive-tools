@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 
-import type { CommonPreset as CommonPresetType } from "../../types";
+import type { CommonPreset as CommonPresetType } from "@biliLive-tools/types";
 
 export default class CommonPreset<T> {
   filepath: string;

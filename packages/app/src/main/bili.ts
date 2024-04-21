@@ -9,7 +9,7 @@ import log from "./utils/log";
 import { sleep } from "../utils/index";
 
 import type { IpcMainInvokeEvent, WebContents } from "electron";
-import type { BiliupConfig } from "../types/index";
+import type { BiliupConfig } from "@biliLive-tools/types";
 
 type ClientInstance = InstanceType<typeof Client>;
 

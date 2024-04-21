@@ -1,3 +1,4 @@
 import { appConfig } from "./config.js";
+import CommonPreset from "./preset.js";
 
-export { appConfig };
+export { appConfig, CommonPreset };
