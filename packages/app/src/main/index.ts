@@ -22,7 +22,7 @@ import { handlers as taskHandlers, taskQueue } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as ffmpegHandlers } from "./ffmpegPreset";
 import { handlers as danmuHandlers } from "./danmu";
-import { handlers as configHandlers } from "./config";
+import { configHandlers } from "./handlers";
 import { handlers as notidyHandlers } from "./notify";
 import icon from "../../resources/icon.png?asset";
 import { appConfig } from "@biliLive-tools/shared";

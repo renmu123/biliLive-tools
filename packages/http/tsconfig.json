@@ -9,5 +9,5 @@
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
   },
-  "include": ["src/**/*.ts", "node_modules/@biliLive-tools/**/*"],
+  "include": ["src/**/*.ts"],
 }

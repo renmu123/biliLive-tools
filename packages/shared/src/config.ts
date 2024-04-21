@@ -204,7 +204,7 @@ class AppConfigClass extends Config {
     return super.set(key, value);
   }
   setAll(newConfig: AppConfig) {
-    return this.setAll(newConfig);
+    return super.setAll(newConfig);
   }
   getAll() {
     const data = this.read() as AppConfig;
