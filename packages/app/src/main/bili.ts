@@ -4,7 +4,11 @@ import { Client, TvQrcodeLogin } from "@renmu/bili-api";
 import { appConfig } from "@biliLive-tools/shared";
 
 import { format, writeUser, readUser } from "./biliup";
-import { BiliVideoTask, taskQueue, BiliDownloadVideoTask } from "./task";
+import {
+  BiliVideoTask,
+  taskQueue,
+  BiliDownloadVideoTask,
+} from "@biliLive-tools/shared/lib/task/task.js";
 import log from "./utils/log";
 import { sleep } from "../utils/index";
 

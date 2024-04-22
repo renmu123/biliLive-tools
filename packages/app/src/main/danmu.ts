@@ -7,7 +7,7 @@ import { pathExists, trashItem, __dirname, uuid } from "./utils/index";
 import log from "./utils/log";
 import { danmuPreset } from "@biliLive-tools/shared";
 import { Danmu, report, generateDanmakuImage } from "../core/danmu";
-import { DanmuTask, taskQueue } from "./task";
+import { DanmuTask, taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
 import { convertImage2Video } from "./video";
 
 import type {

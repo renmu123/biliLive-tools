@@ -223,6 +223,12 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
+      nodemailer:
+        specifier: ^6.9.13
+        version: 6.9.13
+      ntsuspend:
+        specifier: ^1.0.2
+        version: 1.0.2
     devDependencies:
       '@types/node':
         specifier: 20.12.2

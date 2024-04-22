@@ -16,7 +16,9 @@
   "dependencies": {
     "@biliLive-tools/types": "workspace:*",
     "fs-extra": "^11.2.0",
-    "lodash-es": "^4.17.21"
+    "lodash-es": "^4.17.21",
+    "nodemailer": "^6.9.13",
+    "ntsuspend": "^1.0.2"
   },
   "devDependencies": {
     "@types/node": "20.12.2"

@@ -7,7 +7,7 @@ import { appConfig } from "@biliLive-tools/shared";
 import { escaped, genFfmpegParams, pathExists, trashItem, uuid } from "./utils/index";
 import log from "./utils/log";
 import { executeCommand } from "../utils/index";
-import { taskQueue, FFmpegTask } from "./task";
+import { taskQueue, FFmpegTask } from "@biliLive-tools/shared/lib/task/task.js";
 
 import type { IpcMainInvokeEvent, WebContents } from "electron";
 import type { File, FfmpegOptions, VideoMergeOptions, Video2Mp4Options } from "../types";
