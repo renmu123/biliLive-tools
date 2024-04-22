@@ -24,8 +24,14 @@ import { handlers as danmuHandlers } from "./danmu";
 import { configHandlers, ffmpegHandlers } from "./handlers";
 import { handlers as notidyHandlers } from "./notify";
 import icon from "../../resources/icon.png?asset";
-import { appConfig, ffmpegPreset, videoPreset } from "@biliLive-tools/shared";
-import { FFMPEG_PATH, FFPROBE_PATH, FFMPEG_PRESET_PATH, VIDEO_PRESET_PATH } from "./appConstant";
+import { appConfig, ffmpegPreset, videoPreset, danmuPreset } from "@biliLive-tools/shared";
+import {
+  FFMPEG_PATH,
+  FFPROBE_PATH,
+  FFMPEG_PRESET_PATH,
+  VIDEO_PRESET_PATH,
+  DANMU_PRESET_PATH,
+} from "./appConstant";
 
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
@@ -337,11 +343,6 @@ if (!gotTheLock) {
     genHandler(ipcMain);
     appInit();
 
-    // mainWin.on("closed", () => {
-    //   console
-    //   // mainWin = null;
-    // });
-
     app.on("activate", function () {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
@@ -398,6 +399,7 @@ const appInit = async () => {
   });
   ffmpegPreset.init(FFMPEG_PRESET_PATH);
   videoPreset.init(VIDEO_PRESET_PATH);
+  danmuPreset.init(DANMU_PRESET_PATH);
 
   setFfmpegPath();
   // 默认十分钟运行一次

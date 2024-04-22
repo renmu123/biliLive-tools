@@ -3,12 +3,12 @@ import os from "node:os";
 
 import fs from "fs-extra";
 import express from "express";
-import { appConfig, ffmpegPreset, videoPreset } from "@biliLive-tools/shared";
+import { appConfig, ffmpegPreset, videoPreset, danmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/lib/presets/videoPreset.js";
 
 import bili from "../bili";
 import { biliApi } from "../bili";
-import { convertXml2Ass, readDanmuPreset, genHotProgress, isEmptyDanmu } from "../danmu";
+import { convertXml2Ass, genHotProgress, isEmptyDanmu } from "../danmu";
 import { mergeAssMp4, readVideoMeta, convertVideo2Mp4 } from "../video";
 import { mainWin } from "../index";
 import { taskQueue } from "../task";
@@ -567,7 +567,7 @@ async function handle(options: Options) {
       });
     }
 
-    const danmuConfig = (await readDanmuPreset(undefined, danmuPresetId)).config;
+    const danmuConfig = (await danmuPreset.get(danmuPresetId)).config;
     const assFilePath = await addDanmuTask(xmlFilePath, options.filePath, danmuConfig);
 
     const preset = await ffmpegPreset.get(videoPresetId);
