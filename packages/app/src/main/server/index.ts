@@ -6,8 +6,7 @@ import express from "express";
 import { appConfig, ffmpegPreset, videoPreset, danmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/lib/presets/videoPreset.js";
 
-import bili from "../bili";
-import { biliApi } from "../bili";
+import bili, { biliApi } from "../bili";
 import { convertXml2Ass, genHotProgress, isEmptyDanmu } from "../danmu";
 import { mergeAssMp4, readVideoMeta, convertVideo2Mp4 } from "../video";
 import { mainWin } from "../index";
@@ -15,7 +14,12 @@ import { taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
 
 import log from "../utils/log";
 import { trashItem } from "../utils";
-import { getFileSize, uuid, runWithMaxIterations, sleep } from "../../utils/index";
+import {
+  getFileSize,
+  uuid,
+  runWithMaxIterations,
+  sleep,
+} from "@biliLive-tools/shared/lib/utils/index.js";
 
 import type {
   BiliupConfig,

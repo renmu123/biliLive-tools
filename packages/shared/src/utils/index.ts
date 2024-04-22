@@ -118,3 +118,37 @@ export const notify = (
 };
 
 export const __dirname = dirname(fileURLToPath(import.meta.url));
+
+export async function getFileSize(filePath: string) {
+  const stats = await fs.promises.stat(filePath);
+  const fileSizeInBytes = stats.size;
+  return fileSizeInBytes;
+}
+
+type IterationCallback = (counter: number) => Promise<boolean>;
+export async function runWithMaxIterations(
+  callback: IterationCallback,
+  interval: number,
+  maxIterations: number,
+): Promise<void> {
+  return new Promise<void>((resolve) => {
+    let counter = 0;
+
+    const intervalId = setInterval(async () => {
+      if (counter < maxIterations) {
+        if (!(await callback(counter))) {
+          clearInterval(intervalId);
+          resolve();
+        }
+        counter++;
+      } else {
+        clearInterval(intervalId);
+        resolve();
+      }
+    }, interval);
+  });
+}
+
+export const sleep = (ms: number) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
