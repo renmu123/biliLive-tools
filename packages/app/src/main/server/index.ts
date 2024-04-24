@@ -9,7 +9,6 @@ import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/lib/presets/videoP
 import bili, { biliApi } from "../bili";
 import { convertXml2Ass, genHotProgress, isEmptyDanmu } from "../danmu";
 import { mergeAssMp4, readVideoMeta, convertVideo2Mp4 } from "../video";
-import { mainWin } from "../index";
 import { taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
 
 import log from "../utils/log";
@@ -617,17 +616,13 @@ const convert2Mp4 = async (videoFile: string): Promise<string> => {
   if (await fs.pathExists(output)) return output;
 
   return new Promise((resolve, reject) => {
-    convertVideo2Mp4(
-      // @ts-ignore
-      {
-        sender: mainWin.webContents,
-      },
-      formatFile(videoFile),
-      {
-        override: false,
-        removeOrigin: true,
-      },
-    ).then((task) => {
+    convertVideo2Mp4(undefined, formatFile(videoFile), {
+      saveRadio: 1,
+      saveOriginPath: true,
+      savePath: "",
+      override: false,
+      removeOrigin: true,
+    }).then((task) => {
       const currentTaskId = task.taskId;
       taskQueue.on("task-end", ({ taskId }) => {
         if (taskId === currentTaskId) {
@@ -660,7 +655,7 @@ const genHotProgressTask = async (
   const output = `${path.join(os.tmpdir(), uuid())}.mp4`;
 
   return new Promise((resolve, reject) => {
-    genHotProgress(mainWin.webContents, xmlFile, output, {
+    genHotProgress(undefined, xmlFile, output, {
       width: width,
       duration: videoMeta.format.duration!,
       ...options,
@@ -699,9 +694,7 @@ const addDanmuTask = (
 
         return convertXml2Ass(
           // @ts-ignore
-          {
-            sender: mainWin.webContents,
-          },
+          undefined,
           [
             {
               input: input,
@@ -744,10 +737,7 @@ const addMergeAssMp4Task = (
       })
       .then(() => {
         mergeAssMp4(
-          // @ts-ignore
-          {
-            sender: mainWin.webContents,
-          },
+          undefined,
           {
             videoFilePath: videoInput,
             assFilePath: assInput,
@@ -811,7 +801,7 @@ const addUploadTask = async (
   return new Promise((resolve, reject) => {
     log.debug("addUploadTask", pathArray, options, removeOrigin);
     // TODO: 优化addMedia，直接返回task
-    biliApi.addMedia(mainWin.webContents, pathArray, options, uid).then((task) => {
+    biliApi.addMedia(undefined, pathArray, options, uid).then((task) => {
       const currentTaskId = task.taskId;
       taskQueue.on("task-end", ({ taskId }) => {
         if (taskId === currentTaskId) {
@@ -839,7 +829,7 @@ const addEditMediaTask = async (
   removeOrigin?: boolean,
 ) => {
   return new Promise((resolve, reject) => {
-    biliApi.editMedia(mainWin.webContents, aid, pathArray, {}, uid).then((task) => {
+    biliApi.editMedia(undefined, aid, pathArray, {}, uid).then((task) => {
       const currentTaskId = task.taskId;
       taskQueue.on("task-end", ({ taskId }) => {
         if (taskId === currentTaskId) {

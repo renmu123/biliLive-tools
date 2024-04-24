@@ -67,7 +67,7 @@ export const getAvailableEncoders = async () => {
 };
 
 export const convertImage2Video = async (
-  webContents: WebContents,
+  _webContents: WebContents | undefined,
   inputDir: string,
   output: string,
   options: {
@@ -81,7 +81,6 @@ export const convertImage2Video = async (
     .output(output);
   const task = new FFmpegTask(
     command,
-    webContents,
     {
       output,
       name: `高能进度条: ${output}`,
@@ -111,7 +110,7 @@ export const convertImage2Video = async (
 };
 
 export const convertVideo2Mp4 = async (
-  _event: IpcMainInvokeEvent,
+  _event: IpcMainInvokeEvent | undefined,
   file: File,
   options: Video2Mp4Options = {
     saveRadio: 1,
@@ -149,7 +148,6 @@ export const convertVideo2Mp4 = async (
 
   const task = new FFmpegTask(
     command,
-    _event.sender,
     {
       output,
       name: `转码任务: ${name}`,
@@ -190,7 +188,7 @@ export const convertVideo2Mp4 = async (
  * @param {object} ffmpegOptions ffmpeg参数
  */
 export const mergeAssMp4 = async (
-  _event: IpcMainInvokeEvent,
+  _event: IpcMainInvokeEvent | undefined,
   files: {
     videoFilePath: string;
     assFilePath: string;
@@ -214,7 +212,7 @@ export const mergeAssMp4 = async (
 
   if (!(await pathExists(videoInput))) {
     log.error("mergrAssMp4, file not exist", videoInput);
-    _event.sender.send("task-error", "文件不存在");
+    _event?.sender?.send("task-error", "文件不存在");
     return;
   }
 
@@ -268,7 +266,6 @@ export const mergeAssMp4 = async (
 
   const task = new FFmpegTask(
     command,
-    _event.sender,
     {
       output,
       name: `压制任务:${parse(output).name}`,
@@ -306,7 +303,7 @@ export const mergeAssMp4 = async (
 };
 
 export const mergeVideos = async (
-  event: IpcMainInvokeEvent,
+  _event: IpcMainInvokeEvent,
   videoFiles: File[],
   options: VideoMergeOptions = {
     savePath: "",
@@ -349,7 +346,6 @@ export const mergeVideos = async (
 
   const task = new FFmpegTask(
     command,
-    event.sender,
     {
       output,
       name: `合并视频任务: ${videoFiles[0].name}等文件`,

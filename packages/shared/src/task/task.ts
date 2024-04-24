@@ -10,7 +10,6 @@ import { appConfig } from "../index.js";
 
 import type ffmpeg from "fluent-ffmpeg";
 import type { Client } from "@renmu/bili-api";
-import type { WebContents } from "electron";
 import type { Progress, NotificationTaskStatus } from "@biliLive-tools/types";
 
 const log = {
@@ -50,7 +49,6 @@ abstract class AbstractTask {
 }
 
 export class DanmuTask extends AbstractTask {
-  webContents: WebContents;
   danmu: Danmu;
   input: string;
   options: any;
@@ -63,7 +61,6 @@ export class DanmuTask extends AbstractTask {
   };
   constructor(
     danmu: Danmu,
-    webContents: WebContents,
     options: {
       input: string;
       output: string;
@@ -81,7 +78,6 @@ export class DanmuTask extends AbstractTask {
     this.danmu = danmu;
     this.input = options.input;
     this.options = options.options;
-    this.webContents = webContents;
     this.output = options.output;
     this.progress = 0;
     if (options.name) {
@@ -95,7 +91,7 @@ export class DanmuTask extends AbstractTask {
     this.status = "running";
     this.progress = 0;
     console.log("danmuTask,task-start", this.input, this.output);
-    emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+    emitter.emit("task-start", { taskId: this.taskId });
     this.startTime = Date.now();
     this.danmu
       .convertXml2Ass(this.input, this.output as string, this.options)
@@ -106,19 +102,19 @@ export class DanmuTask extends AbstractTask {
         if (stderr) {
           this.status = "error";
           this.callback.onError && this.callback.onError(stderr);
-          emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
+          emitter.emit("task-error", { taskId: this.taskId });
           return;
         }
         this.status = "completed";
         this.callback.onEnd && this.callback.onEnd(this.output as string);
         this.progress = 100;
-        emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
+        emitter.emit("task-end", { taskId: this.taskId });
         this.endTime = Date.now();
       })
       .catch((err) => {
         this.status = "error";
         this.callback.onError && this.callback.onError(err);
-        emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
+        emitter.emit("task-error", { taskId: this.taskId });
       });
   }
   pause() {
@@ -134,12 +130,10 @@ export class DanmuTask extends AbstractTask {
 
 export class FFmpegTask extends AbstractTask {
   command: ffmpeg.FfmpegCommand;
-  webContents: WebContents;
   type = TaskType.ffmpeg;
   isInterrupted: boolean = false;
   constructor(
     command: ffmpeg.FfmpegCommand,
-    webContents: WebContents,
     options: {
       output: string;
       name: string;
@@ -153,7 +147,6 @@ export class FFmpegTask extends AbstractTask {
   ) {
     super();
     this.command = command;
-    this.webContents = webContents;
     this.output = options.output;
     this.progress = 0;
     this.action = ["kill", "pause"];
@@ -167,7 +160,7 @@ export class FFmpegTask extends AbstractTask {
       this.status = "running";
 
       callback.onStart && callback.onStart();
-      emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+      emitter.emit("task-start", { taskId: this.taskId });
       this.startTime = Date.now();
     });
     command.on("end", async () => {
@@ -178,14 +171,14 @@ export class FFmpegTask extends AbstractTask {
         this.status = "error";
 
         callback.onError && callback.onError(msg);
-        emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
+        emitter.emit("task-error", { taskId: this.taskId });
       } else {
         log.info(`task ${this.taskId} end`);
         this.status = "completed";
         this.progress = 100;
 
         callback.onEnd && callback.onEnd(options.output);
-        emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
+        emitter.emit("task-end", { taskId: this.taskId });
         this.endTime = Date.now();
       }
     });
@@ -194,7 +187,7 @@ export class FFmpegTask extends AbstractTask {
       this.status = "error";
 
       callback.onError && callback.onError(err);
-      emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
+      emitter.emit("task-error", { taskId: this.taskId });
     });
     command.on("progress", (progress) => {
       progress.percentage = progress.percent;
@@ -203,7 +196,7 @@ export class FFmpegTask extends AbstractTask {
       }
       this.custsomProgressMsg = `比特率: ${progress.currentKbps}kbits/s   速率: ${progress.speed}`;
       this.progress = progress.percentage || 0;
-      emitter.emit("task-progress", { taskId: this.taskId, webContents: this.webContents });
+      emitter.emit("task-progress", { taskId: this.taskId });
     });
   }
   exec() {
@@ -264,11 +257,9 @@ type WithoutPromise<T> = T extends Promise<infer U> ? U : T;
  */
 export class BiliVideoTask extends AbstractTask {
   command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>;
-  webContents: WebContents;
   type = TaskType.bili;
   constructor(
     command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>,
-    webContents: WebContents,
     options: {
       name: string;
     },
@@ -281,7 +272,6 @@ export class BiliVideoTask extends AbstractTask {
   ) {
     super();
     this.command = command;
-    this.webContents = webContents;
     this.progress = 0;
     this.action = ["kill", "pause"];
     if (options.name) {
@@ -294,12 +284,12 @@ export class BiliVideoTask extends AbstractTask {
     //   this.status = "running";
 
     //   callback.onStart && callback.onStart();
-    //   emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+    //   emitter.emit("task-start", { taskId: this.taskId });
     //   this.startTime = Date.now();
     // });
     this.status = "running";
     this.startTime = Date.now();
-    emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+    emitter.emit("task-start", { taskId: this.taskId });
 
     command.emitter.on("completed", async (data) => {
       log.info(`task ${this.taskId} end`);
@@ -307,7 +297,7 @@ export class BiliVideoTask extends AbstractTask {
       this.progress = 100;
       this.output = data;
       callback.onEnd && callback.onEnd(data);
-      emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
+      emitter.emit("task-end", { taskId: this.taskId });
       this.endTime = Date.now();
     });
     command.emitter.on("error", (err) => {
@@ -315,7 +305,7 @@ export class BiliVideoTask extends AbstractTask {
       this.status = "error";
 
       callback.onError && callback.onError(err);
-      emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
+      emitter.emit("task-error", { taskId: this.taskId });
     });
 
     // let size = 0;
@@ -344,7 +334,7 @@ export class BiliVideoTask extends AbstractTask {
       // }
       // console.log("progress", progress, sizeDistance, timeDistance);
 
-      emitter.emit("task-progress", { taskId: this.taskId, webContents: this.webContents });
+      emitter.emit("task-progress", { taskId: this.taskId });
     });
   }
   exec() {
@@ -384,11 +374,9 @@ export class BiliVideoTask extends AbstractTask {
  */
 export class BiliDownloadVideoTask extends AbstractTask {
   command: WithoutPromise<ReturnType<Client["video"]["download"]>>;
-  webContents: WebContents;
   type = TaskType.biliDownload;
   constructor(
     command: WithoutPromise<ReturnType<Client["video"]["download"]>>,
-    webContents: WebContents,
     options: {
       name: string;
     },
@@ -401,7 +389,6 @@ export class BiliDownloadVideoTask extends AbstractTask {
   ) {
     super();
     this.command = command;
-    this.webContents = webContents;
     this.progress = 0;
     this.action = ["kill", "pause"];
 
@@ -415,12 +402,12 @@ export class BiliDownloadVideoTask extends AbstractTask {
     //   this.status = "running";
 
     //   callback.onStart && callback.onStart();
-    //   emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+    //   emitter.emit("task-start", { taskId: this.taskId });
     //   this.startTime = Date.now();
     // });
     this.status = "running";
     this.startTime = Date.now();
-    emitter.emit("task-start", { taskId: this.taskId, webContents: this.webContents });
+    emitter.emit("task-start", { taskId: this.taskId });
 
     command.emitter.on("completed", async (data) => {
       log.info(`task ${this.taskId} end`);
@@ -428,7 +415,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
       this.progress = 100;
       this.output = data;
       callback.onEnd && callback.onEnd(data);
-      emitter.emit("task-end", { taskId: this.taskId, webContents: this.webContents });
+      emitter.emit("task-end", { taskId: this.taskId });
       this.endTime = Date.now();
     });
     command.emitter.on("error", (err) => {
@@ -436,7 +423,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
       this.status = "error";
 
       callback.onError && callback.onError(err);
-      emitter.emit("task-error", { taskId: this.taskId, webContents: this.webContents });
+      emitter.emit("task-error", { taskId: this.taskId });
     });
     let size = 0;
     let time = Date.now();
@@ -464,7 +451,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
         // progress.progress = progress.percentage;
 
         callback.onProgress && callback.onProgress(progress);
-        emitter.emit("task-progress", { taskId: this.taskId, webContents: this.webContents });
+        emitter.emit("task-progress", { taskId: this.taskId });
       }
     });
   }
@@ -545,7 +532,7 @@ export class TaskQueue {
   }
   on(
     event: "task-start" | "task-end" | "task-error" | "task-progress",
-    callback: (event: { taskId: string; webContents: WebContents }) => void,
+    callback: (event: { taskId: string }) => void,
   ) {
     emitter.on(event, callback);
   }

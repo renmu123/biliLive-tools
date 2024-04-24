@@ -72,7 +72,7 @@ async function getArchiveDetail(
 }
 
 async function download(
-  webContents: WebContents,
+  _webContents: WebContents,
   options: { bvid: string; cid: number; output: string },
   uid: number,
 ) {
@@ -83,7 +83,6 @@ async function download(
 
   const task = new BiliDownloadVideoTask(
     command,
-    webContents,
     {
       name: `下载任务：${path.parse(options.output).name}`,
     },
@@ -222,7 +221,7 @@ async function getSeasonList(uid: number): ReturnType<ClientInstance["platform"]
 }
 
 async function addMedia(
-  webContents: WebContents,
+  _webContents: WebContents | undefined,
   filePath:
     | string[]
     | {
@@ -237,7 +236,7 @@ async function addMedia(
 
   const task = new BiliVideoTask(
     command,
-    webContents,
+
     {
       name: `上传任务：${options.title}`,
     },
@@ -297,7 +296,7 @@ async function addMedia(
 }
 
 async function editMedia(
-  webContents: WebContents,
+  _webContents: WebContents | undefined,
   aid: number,
   filePath:
     | string[]
@@ -318,7 +317,6 @@ async function editMedia(
   const title = typeof filePath[0] === "string" ? path.parse(filePath[0]).name : filePath[0].title;
   const task = new BiliVideoTask(
     command,
-    webContents,
     {
       name: `编辑稿件任务：${title}`,
     },

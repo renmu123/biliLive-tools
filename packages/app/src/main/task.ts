@@ -6,23 +6,27 @@ import {
   sendTaskNotify,
 } from "@biliLive-tools/shared/lib/task/task.js";
 import type { IpcMainInvokeEvent } from "electron";
+import { mainWin } from "./index";
 
-taskQueue.on("task-start", ({ taskId, webContents }) => {
+taskQueue.on("task-start", ({ taskId }) => {
   // sendTaskNotify("task-start", taskId);
-  webContents.send("task-start", { taskId: taskId });
+  mainWin.webContents.send("task-start", { taskId: taskId });
 });
-taskQueue.on("task-end", ({ taskId, webContents }) => {
+taskQueue.on("task-end", ({ taskId }) => {
   console.log("task-end", taskId);
   sendTaskNotify("success", taskId);
-  webContents.send("task-end", { taskId: taskId, output: taskQueue.queryTask(taskId)?.output });
+  mainWin.webContents.send("task-end", {
+    taskId: taskId,
+    output: taskQueue.queryTask(taskId)?.output,
+  });
 });
-taskQueue.on("task-error", ({ taskId, webContents }) => {
+taskQueue.on("task-error", ({ taskId }) => {
   console.log("task-error", taskId);
   sendTaskNotify("failure", taskId);
-  webContents.send("task-error", { taskId: taskId });
+  mainWin.webContents.send("task-error", { taskId: taskId });
 });
-taskQueue.on("task-progress", ({ taskId, webContents }) => {
-  webContents.send("task-progress", { taskId: taskId });
+taskQueue.on("task-progress", ({ taskId }) => {
+  mainWin.webContents.send("task-progress", { taskId: taskId });
 });
 
 export const handlePauseTask = (_event: IpcMainInvokeEvent, taskId: string) => {

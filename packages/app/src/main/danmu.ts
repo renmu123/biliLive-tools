@@ -19,7 +19,7 @@ import type {
 import type { IpcMainInvokeEvent, WebContents } from "electron";
 
 export const addConvertDanmu2AssTask = async (
-  sender: WebContents,
+  _sender: WebContents | undefined,
   input: string,
   output: string,
   danmuOptions: DanmuConfig,
@@ -40,7 +40,6 @@ export const addConvertDanmu2AssTask = async (
   const danmu = new Danmu(DANMUKUFACTORY_PATH);
   const task = new DanmuTask(
     danmu,
-    sender,
     {
       input,
       output,
@@ -60,7 +59,7 @@ export const addConvertDanmu2AssTask = async (
 };
 
 export const convertXml2Ass = async (
-  _event: IpcMainInvokeEvent,
+  _event: IpcMainInvokeEvent | undefined,
   files: {
     input: string;
     output?: string;
@@ -92,7 +91,7 @@ export const convertXml2Ass = async (
     }
 
     const task = await addConvertDanmu2AssTask(
-      _event.sender,
+      _event?.sender,
       input,
       output,
       danmuOptions,
@@ -125,7 +124,7 @@ export const readDanmuPresets = async () => {
 };
 
 export const genHotProgress = async (
-  webContents: WebContents,
+  _webContents: WebContents | undefined,
   input: string,
   output: string,
   options: hotProgressOptions,
@@ -134,7 +133,7 @@ export const genHotProgress = async (
 
   await generateDanmakuImage(input, imageDir, options);
 
-  return convertImage2Video(webContents, imageDir, output, {
+  return convertImage2Video(_webContents, imageDir, output, {
     removeOrigin: true,
     internal: options.interval,
   });
