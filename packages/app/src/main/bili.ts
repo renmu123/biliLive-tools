@@ -10,7 +10,7 @@ import {
   BiliDownloadVideoTask,
 } from "@biliLive-tools/shared/lib/task/task.js";
 import log from "./utils/log";
-import { sleep } from "../utils/index";
+import { sleep } from "@biliLive-tools/shared/lib/utils/index.js";
 
 import type { IpcMainInvokeEvent, WebContents } from "electron";
 import type { BiliupConfig } from "@biliLive-tools/types";

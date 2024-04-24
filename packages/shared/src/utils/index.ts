@@ -117,8 +117,6 @@ export const notify = (
   event.sender.send("notify", data);
 };
 
-export const __dirname = dirname(fileURLToPath(import.meta.url));
-
 export async function getFileSize(filePath: string) {
   const stats = await fs.promises.stat(filePath);
   const fileSizeInBytes = stats.size;

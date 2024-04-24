@@ -13,12 +13,12 @@ import { mainWin } from "../index";
 import { taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
 
 import log from "../utils/log";
-import { trashItem } from "../utils";
 import {
   getFileSize,
   uuid,
   runWithMaxIterations,
   sleep,
+  trashItem,
 } from "@biliLive-tools/shared/lib/utils/index.js";
 
 import type {

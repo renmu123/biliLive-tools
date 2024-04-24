@@ -142,7 +142,7 @@
 
 <script setup lang="ts">
 import { cloneDeep } from "lodash-es";
-import type { AppConfig } from "../../../../types";
+import type { AppConfig } from "@biliLive-tools/types";
 import { NotificationType } from "../../../../types/enum";
 
 const config = defineModel<AppConfig>("data", {

@@ -3,7 +3,12 @@ import { appConfig, videoPreset } from "@biliLive-tools/shared";
 import { biliApi } from "./bili";
 
 import type { IpcMainInvokeEvent } from "electron";
-import type { BiliupConfig, BiliupConfigAppend, BiliupPreset, BiliUser } from "../types/index";
+import type {
+  BiliupConfig,
+  BiliupConfigAppend,
+  BiliupPreset,
+  BiliUser,
+} from "@biliLive-tools/types";
 
 // 验证配置
 export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: BiliupConfig) => {

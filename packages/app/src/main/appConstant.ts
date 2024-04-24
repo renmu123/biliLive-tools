@@ -1,5 +1,8 @@
 import { app } from "electron";
 import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+export const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const userDataPath = app.getPath("userData");
 

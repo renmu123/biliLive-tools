@@ -5,7 +5,7 @@ import Store from "electron-store";
 
 import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
-import { trashItem as _trashItem, __dirname } from "./utils/index";
+import { trashItem as _trashItem } from "@biliLive-tools/shared/lib/utils/index.js";
 import serverApp from "./server/index";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net } from "electron";
 import installExtension from "electron-devtools-installer";
@@ -33,6 +33,7 @@ import {
   VIDEO_PRESET_PATH,
   DANMU_PRESET_PATH,
   DANMUKUFACTORY_PATH,
+  __dirname,
 } from "./appConstant";
 
 import type { OpenDialogOptions } from "../types";

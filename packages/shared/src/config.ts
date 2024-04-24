@@ -110,6 +110,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   // ),
   ffmpegPath: "",
   ffprobePath: "",
+  danmuFactoryPath: "",
   biliUser: {},
   tool: {
     home: {
