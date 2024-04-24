@@ -9,7 +9,7 @@ import type { IpcRendererEvent, SaveDialogOptions } from "electron";
 import type {
   Progress,
   DanmuOptions,
-  OpenDialogOptions,
+  // OpenDialogOptions,
   File,
   FfmpegOptions,
   AppConfig,
@@ -22,9 +22,10 @@ import type {
   FfmpegPreset,
   DanmuConfig,
   BiliUser,
-  BiliApi,
+  // BiliApi,
   hotProgressOptions,
-} from "../types";
+} from "@biliLive-tools/types";
+import type { OpenDialogOptions, BiliApi } from "../types";
 import type ffmpeg from "fluent-ffmpeg";
 
 type startCallback = (params: { command?: string }) => void;

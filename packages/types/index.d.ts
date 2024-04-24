@@ -202,6 +202,7 @@ export interface AppConfig {
   logLevel: any;
   ffmpegPath: string;
   ffprobePath: string;
+  danmuFactoryPath: string;
   /** 保存到回收站 */
   trash: boolean;
   /** 自动检查更新 */

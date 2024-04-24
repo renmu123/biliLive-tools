@@ -79,6 +79,20 @@
                 <FolderOpenOutline />
               </n-icon>
             </n-form-item>
+            <n-form-item label="danmakuFactory路径">
+              <n-input
+                v-model:value="config.danmuFactoryPath"
+                placeholder="请输入danmakuFactory可执行文件路径，设置为空使用环境变量，需要重启软件"
+              />
+              <n-icon
+                style="margin-left: 10px"
+                size="26"
+                class="pointer"
+                @click="selectFile('danmakuFactory')"
+              >
+                <FolderOpenOutline />
+              </n-icon>
+            </n-form-item>
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="webhook" tab="webhook">
@@ -182,7 +196,7 @@ import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
 
-import type { AppConfig, LogLevel, BiliupPreset, AppRoomConfig } from "../../../../types";
+import type { AppConfig, BiliupPreset, AppRoomConfig } from "@biliLive-tools/types";
 
 const appConfigStore = useAppConfig();
 const showModal = defineModel<boolean>({ required: true, default: false });
@@ -192,7 +206,7 @@ const config: Ref<AppConfig> = ref({});
 // @ts-ignore
 const initConfig: Ref<AppConfig> = ref({});
 
-const logLevelOptions = ref<{ label: string; value: LogLevel }[]>([
+const logLevelOptions = ref<{ label: string; value: any }[]>([
   { label: "debug", value: "debug" },
   { label: "info", value: "info" },
   { label: "warn", value: "warn" },
@@ -242,7 +256,7 @@ const getConfig = async () => {
   initConfig.value = cloneDeep(data);
 };
 
-const selectFile = async (file: "ffmpeg" | "ffprobe") => {
+const selectFile = async (file: "ffmpeg" | "ffprobe" | "danmakuFactory") => {
   const files = await window.api.openFile({
     multi: false,
   });
@@ -252,6 +266,8 @@ const selectFile = async (file: "ffmpeg" | "ffprobe") => {
     config.value.ffmpegPath = files[0];
   } else if (file === "ffprobe") {
     config.value.ffprobePath = files[0];
+  } else if (file === "danmakuFactory") {
+    config.value.danmuFactoryPath = files[0];
   }
 };
 

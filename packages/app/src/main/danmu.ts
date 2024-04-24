@@ -3,9 +3,9 @@ import fs from "fs-extra";
 import os from "node:os";
 import { XMLParser } from "fast-xml-parser";
 
-import { pathExists, trashItem, __dirname, uuid } from "./utils/index";
+import { pathExists, trashItem, uuid } from "@biliLive-tools/shared/lib/utils/index.js";
 import log from "./utils/log";
-import { danmuPreset } from "@biliLive-tools/shared";
+import { danmuPreset, appConfig } from "@biliLive-tools/shared";
 import { Danmu, report, generateDanmakuImage } from "@biliLive-tools/shared/lib/danmu/index.js";
 import { DanmuTask, taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
 import { convertImage2Video } from "./video";
@@ -15,14 +15,8 @@ import type {
   DanmuOptions,
   DanmuPreset as DanmuPresetType,
   hotProgressOptions,
-} from "../types";
+} from "@biliLive-tools/types";
 import type { IpcMainInvokeEvent, WebContents } from "electron";
-
-const DANMUKUFACTORY_PATH = join(__dirname, "../../resources/bin/DanmakuFactory.exe").replace(
-  "app.asar",
-  "app.asar.unpacked",
-);
-log.info(`DANMUKUFACTORY_PATH: ${DANMUKUFACTORY_PATH}`);
 
 export const addConvertDanmu2AssTask = async (
   sender: WebContents,
@@ -41,7 +35,8 @@ export const addConvertDanmu2AssTask = async (
     });
     await fs.unlink(output);
   }
-
+  const DANMUKUFACTORY_PATH = appConfig.get("danmuFactoryPath");
+  console.log("DANMUKUFACTORY_PATH", DANMUKUFACTORY_PATH);
   const danmu = new Danmu(DANMUKUFACTORY_PATH);
   const task = new DanmuTask(
     danmu,

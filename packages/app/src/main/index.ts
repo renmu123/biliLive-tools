@@ -32,6 +32,7 @@ import {
   FFMPEG_PRESET_PATH,
   VIDEO_PRESET_PATH,
   DANMU_PRESET_PATH,
+  DANMUKUFACTORY_PATH,
 } from "./appConstant";
 
 import type { OpenDialogOptions } from "../types";
@@ -392,6 +393,7 @@ const appInit = async () => {
   appConfig.init(path.join(app.getPath("userData"), "appConfig.json"), {
     ffmpegPath: FFMPEG_PATH,
     ffprobePath: FFPROBE_PATH,
+    danmuFactoryPath: DANMUKUFACTORY_PATH,
     tool: {
       download: {
         savePath: app.getPath("downloads"),

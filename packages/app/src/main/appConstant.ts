@@ -24,3 +24,12 @@ export const FFPROBE_PATH = join(
   "bin",
   "ffprobe.exe",
 );
+
+export const DANMUKUFACTORY_PATH = join(
+  dirname(app.getPath("exe")),
+  "resources",
+  "app.asar.unpacked",
+  "resources",
+  "bin",
+  "DanmakuFactory.exe",
+);
