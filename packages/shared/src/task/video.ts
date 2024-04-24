@@ -3,7 +3,7 @@ import os from "os";
 import fs from "fs-extra";
 import ffmpeg from "fluent-ffmpeg";
 
-import { appConfig } from "@biliLive-tools/shared";
+import { appConfig } from "../index.js";
 import {
   escaped,
   genFfmpegParams,
@@ -11,9 +11,9 @@ import {
   trashItem,
   uuid,
   executeCommand,
-} from "@biliLive-tools/shared/lib/utils/index.js";
-import log from "./utils/log";
-import { taskQueue, FFmpegTask } from "@biliLive-tools/shared/lib/task/task.js";
+} from "../utils/index.js";
+import log from "../utils/log.js";
+import { taskQueue, FFmpegTask } from "./task.js";
 
 import type { IpcMainInvokeEvent, WebContents } from "electron";
 import type {

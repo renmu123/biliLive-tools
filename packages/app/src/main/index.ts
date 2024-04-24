@@ -17,7 +17,7 @@ import {
   setFfmpegPath,
   mergeVideos,
   handleReadVideoMeta,
-} from "./video";
+} from "@biliLive-tools/shared/lib/task/video.js";
 import { handlers as taskHandlers } from "./task";
 import { taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
 import { handlers as biliupHandlers } from "./biliup";
