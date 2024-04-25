@@ -1,7 +1,7 @@
 import Router from "koa-router";
 import { appConfig } from "@biliLive-tools/shared";
 
-import { globalConfig } from "../index";
+import { globalConfig } from "../index.js";
 
 const router = new Router({
   prefix: "/config",

@@ -102,7 +102,7 @@
                 <span class="inline-flex">
                   开启server
                   <Tip
-                    :tip="`开启后支持自动上传，需重启应用<br/>你可以在浏览器访问 http://127.0.0.1:${config.webhook.port} 查询是否启动成功<br/>录播姬的webhook地址设置为：http://127.0.0.1:${config.webhook.port}/webhook<br/>blrec的webhook地址设置为：http://127.0.0.1:${config.webhook.port}/blrec`"
+                    :tip="`开启后支持自动上传，需重启应用<br/>你可以在浏览器访问 http://127.0.0.1:${config.webhook.port} 查询是否启动成功<br/>录播姬的webhook地址设置为：http://127.0.0.1:${config.webhook.port}/webhook/bililiverecorder<br/>blrec的webhook地址设置为：http://127.0.0.1:${config.webhook.port}/webhook/blrec`"
                   ></Tip>
                 </span>
               </template>

@@ -36,3 +36,5 @@ export const DANMUKUFACTORY_PATH = join(
   "bin",
   "DanmakuFactory.exe",
 );
+
+export const LOG_PATH = join(app.getPath("logs"), `main.log`);

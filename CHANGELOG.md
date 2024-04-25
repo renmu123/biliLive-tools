@@ -1,5 +1,10 @@
 # 0.14.0
 
+**webhook的请求端点修改，请使用者尽快进行迁移，接下来的几个版本旧调用将会被移除**  
+B站录播姬：`/webhook`修改为`/webhook/bililiverecorder`
+blrec：`/blrec`修改为`/webhook/blrec`
+自定义：`/custom`修改为`/webhook/custom`
+
 ## 特性
 
 1. 支持斗鱼视频下载

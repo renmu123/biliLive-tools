@@ -1,9 +1,6 @@
-import { dirname } from "node:path";
-import { fileURLToPath } from "node:url";
-
 import { exec } from "child_process";
 import fs from "fs-extra";
-import { shell } from "electron";
+import trash from "trash";
 import { appConfig } from "../index.js";
 
 import { type IpcMainInvokeEvent } from "electron";
@@ -97,9 +94,9 @@ export const pathExists = async (path: string) => {
 };
 
 export const trashItem = async (path: string) => {
-  const trash = appConfig.get("trash");
-  if (trash) {
-    return await shell.trashItem(path);
+  const trashConfig = appConfig.get("trash");
+  if (trashConfig) {
+    return trash(path);
   } else {
     fs.unlink(path);
   }

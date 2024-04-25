@@ -5,7 +5,6 @@ import Store from "electron-store";
 
 import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
-import { trashItem as _trashItem } from "@biliLive-tools/shared/lib/utils/index.js";
 import serverApp from "./server/index";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net } from "electron";
 import installExtension from "electron-devtools-installer";
@@ -18,14 +17,17 @@ import {
   mergeVideos,
   handleReadVideoMeta,
 } from "@biliLive-tools/shared/lib/task/video.js";
-import { handlers as taskHandlers } from "./task";
 import { taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
+import { appConfig, ffmpegPreset, videoPreset, danmuPreset } from "@biliLive-tools/shared";
+import { trashItem as _trashItem } from "@biliLive-tools/shared/lib/utils/index.js";
+import { initLogger } from "@biliLive-tools/shared/lib/utils/log.js";
+
+import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as danmuHandlers } from "./danmu";
 import { configHandlers, ffmpegHandlers } from "./handlers";
 import { handlers as notidyHandlers } from "./notify";
 import icon from "../../resources/icon.png?asset";
-import { appConfig, ffmpegPreset, videoPreset, danmuPreset } from "@biliLive-tools/shared";
 import {
   FFMPEG_PATH,
   FFPROBE_PATH,
@@ -33,6 +35,7 @@ import {
   VIDEO_PRESET_PATH,
   DANMU_PRESET_PATH,
   DANMUKUFACTORY_PATH,
+  LOG_PATH,
   __dirname,
 } from "./appConstant";
 
@@ -404,6 +407,7 @@ const appInit = async () => {
   ffmpegPreset.init(FFMPEG_PRESET_PATH);
   videoPreset.init(VIDEO_PRESET_PATH);
   danmuPreset.init(DANMU_PRESET_PATH);
+  initLogger(LOG_PATH);
 
   setFfmpegPath();
   // 默认十分钟运行一次
