@@ -53,6 +53,7 @@ export class DanmuTask extends AbstractTask {
   input: string;
   options: any;
   type = TaskType.danmu;
+  controller: AbortController;
   callback: {
     onStart?: () => void;
     onEnd?: (output: string) => void;
@@ -85,6 +86,7 @@ export class DanmuTask extends AbstractTask {
     }
     this.action = [];
     this.callback = callback || {};
+    this.controller = new AbortController();
   }
   exec() {
     this.callback.onStart && this.callback.onStart();
@@ -94,7 +96,7 @@ export class DanmuTask extends AbstractTask {
     emitter.emit("task-start", { taskId: this.taskId });
     this.startTime = Date.now();
     this.danmu
-      .convertXml2Ass(this.input, this.output as string, this.options)
+      .convertXml2Ass(this.input, this.output as string, this.options, this.controller.signal)
       .then(({ stdout, stderr }) => {
         log.debug("stdout", stdout);
         log.debug("stderr", stderr);
@@ -124,7 +126,11 @@ export class DanmuTask extends AbstractTask {
     return false;
   }
   kill() {
-    return false;
+    if (this.status === "completed" || this.status === "error") return;
+    log.warn(`danmu task ${this.taskId} killed`);
+    this.status = "error";
+    this.controller.abort();
+    return true;
   }
 }
 

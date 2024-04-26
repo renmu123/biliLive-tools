@@ -44,7 +44,12 @@ export class Danmu {
     return params;
   };
 
-  convertXml2Ass = async (input: string, output: string, argsObj: DanmuConfig) => {
+  convertXml2Ass = async (
+    input: string,
+    output: string,
+    argsObj: DanmuConfig,
+    signal?: AbortSignal,
+  ) => {
     if (!(await pathExists(input))) {
       throw new Error("input not exists");
     }
@@ -54,7 +59,7 @@ export class Danmu {
     const command = `${this.execPath} ${requiredArgs.join(" ")} ${args.join(" ")}`;
     this.command = command;
 
-    const { stdout, stderr } = await executeCommand(command);
+    const { stdout, stderr } = await executeCommand(command, { signal: signal });
     return { stdout, stderr };
   };
 }

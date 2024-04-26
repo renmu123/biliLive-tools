@@ -1,9 +1,9 @@
 import { appConfig } from "./config.js";
 import { CommonPreset, ffmpegPreset, videoPreset, danmuPreset } from "./presets/index.js";
+import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
 
 const init = (config: {
-  port: number;
   configPath: string;
   ffmpegPath: string;
   ffprobePath: string;
@@ -14,6 +14,7 @@ const init = (config: {
   videoPresetPath: string;
   danmuPresetPath: string;
 }) => {
+  // logger.info("init", config);
   appConfig.init(config.configPath, {
     ffmpegPath: config.ffmpegPath,
     ffprobePath: config.ffprobePath,
@@ -28,6 +29,7 @@ const init = (config: {
   videoPreset.init(config.videoPresetPath);
   danmuPreset.init(config.danmuPresetPath);
   initLogger(config.logPath);
+  setFfmpegPath();
 };
 
 export { appConfig, CommonPreset, ffmpegPreset, videoPreset, danmuPreset, init };

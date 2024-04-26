@@ -6,15 +6,24 @@ import { appConfig } from "../index.js";
 import { type IpcMainInvokeEvent } from "electron";
 import type { FfmpegOptions } from "@biliLive-tools/types";
 
-export const executeCommand = (command: string): Promise<{ stdout: string; stderr: string }> => {
+export const executeCommand = (
+  command: string,
+  { signal }: { signal?: AbortSignal } = {},
+): Promise<{ stdout: string; stderr: string }> => {
   return new Promise((resolve, reject) => {
-    exec(command, {}, (error, stdout, stderr) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve({ stdout, stderr });
-      }
-    });
+    exec(
+      command,
+      {
+        signal,
+      },
+      (error, stdout, stderr) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve({ stdout, stderr });
+        }
+      },
+    );
   });
 };
 

@@ -10,12 +10,7 @@ import { Danmu, generateDanmakuImage } from "../danmu/index.js";
 import { DanmuTask, taskQueue } from "./task.js";
 import { convertImage2Video } from "./video.js";
 
-import type {
-  DanmuConfig,
-  DanmuOptions,
-  DanmuPreset as DanmuPresetType,
-  hotProgressOptions,
-} from "@biliLive-tools/types";
+import type { DanmuConfig, DanmuOptions, hotProgressOptions } from "@biliLive-tools/types";
 import type { IpcMainInvokeEvent, WebContents } from "electron";
 
 export const addConvertDanmu2AssTask = async (

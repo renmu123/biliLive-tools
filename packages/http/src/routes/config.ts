@@ -13,8 +13,14 @@ router.get("/all", async (ctx) => {
   ctx.body = config;
 });
 
+router.get("/all2", async (ctx) => {
+  // appConfig.load(globalConfig.configPath);
+  const config = appConfig.getAll();
+  ctx.body = config;
+});
+
 router.post("/save", async (ctx) => {
-  const data = ctx.request.body;
+  // const data = ctx.request.body;
   appConfig.load(globalConfig.configPath);
 
   ctx.body = "success";

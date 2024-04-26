@@ -17,6 +17,9 @@ importers:
 
   packages/app:
     dependencies:
+      '@biliLive-tools/http':
+        specifier: workspace:*
+        version: link:../http
       '@biliLive-tools/shared':
         specifier: workspace:*
         version: link:../shared
@@ -59,6 +62,9 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
+      ntsuspend:
+        specifier: ^1.0.2
+        version: 1.0.2
       pinia:
         specifier: ^2.1.7
         version: 2.1.7(typescript@5.4.5)(vue@3.4.23(typescript@5.4.5))

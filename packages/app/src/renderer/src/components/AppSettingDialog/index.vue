@@ -102,7 +102,7 @@
                 <span class="inline-flex">
                   开启server
                   <Tip
-                    :tip="`开启后支持自动上传，需重启应用<br/>你可以在浏览器访问 http://127.0.0.1:${config.webhook.port} 查询是否启动成功<br/>录播姬的webhook地址设置为：http://127.0.0.1:${config.webhook.port}/webhook/bililiverecorder<br/>blrec的webhook地址设置为：http://127.0.0.1:${config.webhook.port}/webhook/blrec`"
+                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.webhook.port} 查询是否启动成功<br/>录播姬的webhook地址设置为：http://127.0.0.1:${config.webhook.port}/webhook/bililiverecorder<br/>blrec的webhook地址设置为：http://127.0.0.1:${config.webhook.port}/webhook/blrec`"
                   ></Tip>
                 </span>
               </template>
@@ -231,15 +231,6 @@ const saveConfig = async () => {
   }
 
   await window.api.config.save(deepRaw(config.value));
-  // 如果检测到server从关闭更改为开启状态，提醒重启
-  if (initConfig.value.webhook.open === false && config.value.webhook.open === true) {
-    const status = await confirm.warning({
-      content: "检测到开启了server，是否进行重启应用？或稍后自行重启",
-    });
-    if (status) {
-      window.api.common.relaunch();
-    }
-  }
   // 设置自动启动
   window.api.common.setOpenAtLogin(config.value.autoLaunch || false);
   close();

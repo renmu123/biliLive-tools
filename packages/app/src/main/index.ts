@@ -5,7 +5,6 @@ import Store from "electron-store";
 
 import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
-import serverApp from "./server/index";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
@@ -13,14 +12,15 @@ import {
   convertVideo2Mp4,
   mergeAssMp4,
   getAvailableEncoders,
-  setFfmpegPath,
   mergeVideos,
   handleReadVideoMeta,
 } from "@biliLive-tools/shared/lib/task/video.js";
 import { taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
-import { appConfig, ffmpegPreset, videoPreset, danmuPreset } from "@biliLive-tools/shared";
+import { appConfig } from "@biliLive-tools/shared";
+import { serverStart } from "@biliLive-tools/http";
+import { init } from "@biliLive-tools/shared";
+
 import { trashItem as _trashItem } from "@biliLive-tools/shared/lib/utils/index.js";
-import { initLogger } from "@biliLive-tools/shared/lib/utils/log.js";
 
 import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
@@ -92,7 +92,6 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, notidyHandlers);
 };
 
-let server: any;
 export let mainWin: BrowserWindow;
 function createWindow(): void {
   Object.assign(windowConfig, WindowState.get("winBounds"));
@@ -160,10 +159,13 @@ function createWindow(): void {
   // 触发关闭时触发
   mainWin.on("close", (event) => {
     const closeToTray = appConfig.get("closeToTray");
+    event.preventDefault();
+
     if (closeToTray) {
-      event.preventDefault();
       mainWin.hide();
       mainWin.setSkipTaskbar(true);
+    } else {
+      quit();
     }
   });
   // 窗口最小化
@@ -270,7 +272,9 @@ function createMenu(): void {
 
 const canQuit = async () => {
   const tasks = taskQueue.list();
+  console.log("tasks", tasks);
   const isRunning = tasks.some((task) => ["running", "paused", "pending"].includes(task.status));
+  console.log("isRunning", isRunning);
   if (isRunning) {
     const confirm = await dialog.showMessageBox(mainWin, {
       message: "检测到有未完成的任务，是否退出？",
@@ -303,8 +307,9 @@ const quit = async () => {
       app.quit();
     }
   } catch (e) {
+    log.error("quit error", e);
     mainWin.destroy();
-    log.error(e);
+    app.quit();
   }
 };
 
@@ -386,39 +391,28 @@ if (!gotTheLock) {
     if (process.platform !== "darwin") {
       app.quit();
     }
-    server.close(() => {
-      console.log("Express app is now closed");
-    });
   });
 }
 
 // 业务相关的初始化
 const appInit = async () => {
-  appConfig.init(path.join(app.getPath("userData"), "appConfig.json"), {
+  const config = {
+    configPath: path.join(app.getPath("userData"), "appConfig.json"),
     ffmpegPath: FFMPEG_PATH,
     ffprobePath: FFPROBE_PATH,
-    danmuFactoryPath: DANMUKUFACTORY_PATH,
-    tool: {
-      download: {
-        savePath: app.getPath("downloads"),
-      },
-    },
-  });
-  ffmpegPreset.init(FFMPEG_PRESET_PATH);
-  videoPreset.init(VIDEO_PRESET_PATH);
-  danmuPreset.init(DANMU_PRESET_PATH);
-  initLogger(LOG_PATH);
+    danmakuFactoryPath: DANMUKUFACTORY_PATH,
+    logPath: LOG_PATH,
+    downloadPath: app.getPath("downloads"),
+    ffmpegPresetPath: FFMPEG_PRESET_PATH,
+    videoPresetPath: VIDEO_PRESET_PATH,
+    danmuPresetPath: DANMU_PRESET_PATH,
+    taskQueue: taskQueue,
+  };
+  init(config);
 
-  setFfmpegPath();
+  serverStart(config);
   // 默认十分钟运行一次
   commentQueue.run(1000 * 60 * 10);
-  const webhook = appConfig.get("webhook");
-  if (webhook?.open) {
-    // 新建监听
-    server = serverApp.listen(webhook.port, () => {
-      log.info("server start");
-    });
-  }
 
   // 检测更新
   if (appConfig.get("autoUpdate")) {

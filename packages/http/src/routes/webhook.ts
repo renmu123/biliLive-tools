@@ -5,7 +5,6 @@ import Router from "koa-router";
 import fs from "fs-extra";
 import { appConfig, ffmpegPreset, videoPreset, danmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/lib/presets/videoPreset.js";
-
 import { biliApi, client as bili } from "@biliLive-tools/shared/lib/task/bili.js";
 import {
   convertXml2Ass,
@@ -17,8 +16,7 @@ import {
   readVideoMeta,
   convertVideo2Mp4,
 } from "@biliLive-tools/shared/lib/task/video.js";
-import { taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
-
+import { taskQueue } from "../index.js";
 import log from "@biliLive-tools/shared/lib/utils/log.js";
 import {
   getFileSize,
@@ -153,39 +151,23 @@ router.post("/custom", async (ctx) => {
   log.info("custom: webhook", ctx.request.body);
   const event = ctx.request.body as CustomEvent;
 
-  // if (!event.filePath) res.status(500).send("filePath is required");
-  // if (!event.roomId) res.status(500).send("roomId is required");
-  // if (!event.time) res.status(500).send("time is required");
-  // if (!event.title) res.status(500).send("title is required");
-  // if (!event.username) res.status(500).send("username is required");
   if (!event.filePath) {
-    ctx.status = 500;
-    ctx.body = "filePath is required";
-    return ctx;
+    throw new Error("filePath is required");
   }
   if (!event.roomId) {
-    ctx.status = 500;
-    ctx.body = "roomId is required";
-    return ctx;
+    throw new Error("roomId is required");
   }
   if (!event.time) {
-    ctx.status = 500;
-    ctx.body = "time is required";
-    return ctx;
+    throw new Error("time is required");
   }
   if (!event.title) {
-    ctx.status = 500;
-    ctx.body = "title is required";
-    return ctx;
+    throw new Error("title is required");
   }
   if (!event.username) {
-    ctx.status = 500;
-    ctx.body = "username is required";
-    return ctx;
+    throw new Error("username is required");
   }
   if (["FileOpening", "FileClosed"].includes(event.event) === false) {
-    ctx.status = 500;
-    ctx.body = "event is required";
+    throw new Error("event should be FileOpening or FileClosed");
   }
   if (webhook?.open && (event.event === "FileOpening" || event.event === "FileClosed")) {
     handle({
@@ -261,39 +243,23 @@ router.post("/webhook/custom", async (ctx) => {
   log.info("custom: webhook", ctx.request.body);
   const event = ctx.request.body as CustomEvent;
 
-  // if (!event.filePath) res.status(500).send("filePath is required");
-  // if (!event.roomId) res.status(500).send("roomId is required");
-  // if (!event.time) res.status(500).send("time is required");
-  // if (!event.title) res.status(500).send("title is required");
-  // if (!event.username) res.status(500).send("username is required");
   if (!event.filePath) {
-    ctx.status = 500;
-    ctx.body = "filePath is required";
-    return ctx;
+    throw new Error("filePath is required");
   }
   if (!event.roomId) {
-    ctx.status = 500;
-    ctx.body = "roomId is required";
-    return ctx;
+    throw new Error("roomId is required");
   }
   if (!event.time) {
-    ctx.status = 500;
-    ctx.body = "time is required";
-    return ctx;
+    throw new Error("time is required");
   }
   if (!event.title) {
-    ctx.status = 500;
-    ctx.body = "title is required";
-    return ctx;
+    throw new Error("title is required");
   }
   if (!event.username) {
-    ctx.status = 500;
-    ctx.body = "username is required";
-    return ctx;
+    throw new Error("username is required");
   }
   if (["FileOpening", "FileClosed"].includes(event.event) === false) {
-    ctx.status = 500;
-    ctx.body = "event is required";
+    throw new Error("event should be FileOpening or FileClosed");
   }
   if (webhook?.open && (event.event === "FileOpening" || event.event === "FileClosed")) {
     handle({
@@ -309,6 +275,11 @@ router.post("/webhook/custom", async (ctx) => {
     });
   }
   ctx.body = "ok";
+});
+
+router.post("/webhook/custom", async (ctx) => {
+  const data = taskQueue.list();
+  ctx.body = data;
 });
 
 function getConfig(roomId: number): {
@@ -613,6 +584,7 @@ async function handle(options: Options) {
     removeOriginAfterConvert,
     removeOriginAfterUpload,
   } = getConfig(options.roomId);
+  log.debug("config", getConfig(options.roomId));
   if (!open) {
     log.info(`${options.roomId} is not open`);
     return;

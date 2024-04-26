@@ -1,5 +1,7 @@
 # 0.14.0
 
+**整体架构调整，为支持CLI以及网页版做准备，如果有任何bug请及时反馈**
+
 **webhook的请求端点修改，请使用者尽快进行迁移，接下来的几个版本旧调用将会被移除**  
 B站录播姬：`/webhook`修改为`/webhook/bililiverecorder`
 blrec：`/blrec`修改为`/webhook/blrec`
@@ -7,12 +9,15 @@ blrec：`/blrec`修改为`/webhook/blrec`
 
 ## 特性
 
-1. 支持斗鱼视频下载
+<!-- 1. 支持斗鱼视频下载
 2. 设置UI优化
 3. 支持转码页面及任务
 4. 增加切片功能
 5. 增加审核后发送弹幕统计功能
-6. 为弹幕转换增加黑名单功能
+6. 为弹幕转换增加黑名单功能 -->
+
+1. 新增 `danmakuFactory路径`、`端口号`、`host`配置，webhook服务器自启动，默认为18010端口
+2. 新增 `/webhook/bililiverecorder` 、`/webhook/blrec`、`/webhook/custom` webhook端点
 
 ## 其他
 

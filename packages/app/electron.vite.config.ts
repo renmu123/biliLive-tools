@@ -7,7 +7,11 @@ import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [
+      externalizeDepsPlugin({
+        exclude: ["@biliLive-tools/shared", "@biliLive-tools/http"],
+      }),
+    ],
   },
   preload: {
     plugins: [externalizeDepsPlugin()],
