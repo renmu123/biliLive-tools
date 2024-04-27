@@ -1,11 +1,3 @@
-// import { biliApi } from "../main/bili";
-
-// import type { OpenDialogOptions as ElectronOpenDialogOptions } from "electron";
-// import type { LogLevel as ElectronLoGLevel } from "electron-log";
-// import { NotificationType } from "./enum";
-
-// export type BiliApi = typeof biliApi;
-
 // 弹幕配置
 export type DanmuConfig = {
   resolution: [number, number];
@@ -196,6 +188,7 @@ export interface NotificationTgConfig {
   key: string;
   chat_id: string;
 }
+export type Theme = "system" | "light" | "dark";
 
 // 全局配置
 export interface AppConfig {
@@ -215,6 +208,8 @@ export interface AppConfig {
   minimizeToTray: boolean;
   /** 关闭到任务栏 */
   closeToTray: boolean;
+  /** 主题 */
+  theme: Theme;
   webhook: {
     port: number;
     recoderFolder: string;

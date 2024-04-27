@@ -26,6 +26,9 @@
             <n-form-item label="log等级"
               ><n-select v-model:value="config.logLevel" :options="logLevelOptions" />
             </n-form-item>
+            <n-form-item label="主题"
+              ><n-select v-model:value="config.theme" :options="themeOptions" />
+            </n-form-item>
             <n-form-item>
               <template #label>
                 <span class="inline-flex"> 自动检查更新 </span>
@@ -196,7 +199,7 @@ import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
 
-import type { AppConfig, BiliupPreset, AppRoomConfig } from "@biliLive-tools/types";
+import type { AppConfig, BiliupPreset, AppRoomConfig, Theme } from "@biliLive-tools/types";
 
 const appConfigStore = useAppConfig();
 const showModal = defineModel<boolean>({ required: true, default: false });
@@ -211,6 +214,12 @@ const logLevelOptions = ref<{ label: string; value: any }[]>([
   { label: "info", value: "info" },
   { label: "warn", value: "warn" },
   { label: "error", value: "error" },
+]);
+
+const themeOptions = ref<{ label: string; value: Theme }[]>([
+  { label: "自动", value: "system" },
+  { label: "浅色", value: "light" },
+  { label: "深色", value: "dark" },
 ]);
 
 const confirm = useConfirm();
@@ -231,6 +240,7 @@ const saveConfig = async () => {
   }
 
   await window.api.config.save(deepRaw(config.value));
+  window.api.common.setTheme(config.value.theme);
   // 设置自动启动
   window.api.common.setOpenAtLogin(config.value.autoLaunch || false);
   close();

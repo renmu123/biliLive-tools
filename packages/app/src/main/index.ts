@@ -5,7 +5,7 @@ import Store from "electron-store";
 
 import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
-import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net } from "electron";
+import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net, nativeTheme } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import {
@@ -41,6 +41,7 @@ import {
 
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
+import type { Theme } from "@biliLive-tools/types";
 
 const WindowState = new Store({
   name: "window-state",
@@ -75,6 +76,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:relaunch", relaunch);
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:showItemInFolder", showItemInFolder);
+  ipcMain.handle("common:setTheme", setTheme);
 
   // 视频处理
   ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
@@ -411,6 +413,7 @@ const appInit = async () => {
   init(config);
 
   serverStart(config);
+  nativeTheme.themeSource = appConfig.get("theme");
   // 默认十分钟运行一次
   commentQueue.run(1000 * 60 * 10);
 
@@ -472,8 +475,12 @@ const exits = (_event: IpcMainInvokeEvent, path: string) => {
   return fs.pathExists(path);
 };
 
-const trashItem = async (_event: IpcMainInvokeEvent, path: string) => {
-  return await _trashItem(path);
+const trashItem = (_event: IpcMainInvokeEvent, path: string) => {
+  return _trashItem(path);
+};
+
+const setTheme = (_event: IpcMainInvokeEvent, theme: Theme) => {
+  nativeTheme.themeSource = theme;
 };
 
 const checkUpdate = async () => {

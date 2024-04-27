@@ -19,6 +19,7 @@ blrec：`/blrec`修改为`/webhook/blrec`
 1. 新增 `danmakuFactory路径`、`端口号`、`host`配置，webhook服务器自启动，默认为18010端口
 2. 新增 `/webhook/bililiverecorder` 、`/webhook/blrec`、`/webhook/custom` webhook端点
 3. 优化工具页的文件选择栏
+4. 暗色模式支持
 
 ## 其他
 

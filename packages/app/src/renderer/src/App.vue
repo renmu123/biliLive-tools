@@ -1,43 +1,45 @@
 <template>
-  <n-notification-provider>
-    <n-dialog-provider>
-      <n-space vertical>
-        <n-layout has-sider class="layout" position="absolute">
-          <n-layout-sider
-            bordered
-            collapse-mode="width"
-            :collapsed-width="64"
-            :width="240"
-            :collapsed="collapsed"
-            show-trigger
-            @collapse="collapsed = true"
-            @expand="collapsed = false"
-          >
-            <n-menu
-              v-model:value="activeKey"
-              :collapsed="collapsed"
+  <n-config-provider :theme="theme">
+    <n-notification-provider>
+      <n-dialog-provider>
+        <n-space vertical>
+          <n-layout has-sider class="layout" position="absolute">
+            <n-layout-sider
+              bordered
+              collapse-mode="width"
               :collapsed-width="64"
-              :collapsed-icon-size="22"
-              :options="menuOptions"
-            />
-          </n-layout-sider>
+              :width="240"
+              :collapsed="collapsed"
+              show-trigger
+              @collapse="collapsed = true"
+              @expand="collapsed = false"
+            >
+              <n-menu
+                v-model:value="activeKey"
+                :collapsed="collapsed"
+                :collapsed-width="64"
+                :collapsed-icon-size="22"
+                :options="menuOptions"
+              />
+            </n-layout-sider>
 
-          <n-layout class="main-container">
-            <router-view v-slot="{ Component }">
-              <keep-alive>
-                <component :is="Component" />
-              </keep-alive>
-            </router-view>
+            <n-layout class="main-container">
+              <router-view v-slot="{ Component }">
+                <keep-alive>
+                  <component :is="Component" />
+                </keep-alive>
+              </router-view>
+            </n-layout>
           </n-layout>
-        </n-layout>
-      </n-space>
-      <AppSettingDialog v-model="settingVisible"></AppSettingDialog>
-    </n-dialog-provider>
-  </n-notification-provider>
+        </n-space>
+        <AppSettingDialog v-model="settingVisible"></AppSettingDialog>
+      </n-dialog-provider>
+    </n-notification-provider>
+  </n-config-provider>
 </template>
 
 <script setup lang="ts">
-import { NIcon, createDiscreteApi } from "naive-ui";
+import { NIcon, createDiscreteApi, darkTheme, lightTheme } from "naive-ui";
 import type { MenuOption } from "naive-ui";
 import { RouterLink } from "vue-router";
 import { storeToRefs } from "pinia";
@@ -181,7 +183,6 @@ window.api.openSetting(() => {
 const { notification } = createDiscreteApi(["message", "dialog", "notification", "loadingBar"]);
 
 window.addEventListener("unhandledrejection", (error) => {
-  console.error("pppppp", error);
   notification.error({
     title: String(error.reason).replace("Error: ", ""),
     duration: 3000,
@@ -191,6 +192,22 @@ window.addEventListener("unhandledrejection", (error) => {
 setInterval(() => {
   quenuStore.getQuenu();
 }, 1000);
+
+const theme = computed(() => {
+  if (appConfig.appConfig.theme === "system") {
+    // js检测系统主题
+    const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    if (darkQuery.matches) {
+      return darkTheme;
+    } else {
+      return lightTheme;
+    }
+  } else if (appConfig.appConfig.theme === "dark") {
+    return darkTheme;
+  } else {
+    return lightTheme;
+  }
+});
 </script>
 
 <style lang="less">

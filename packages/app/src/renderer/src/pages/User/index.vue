@@ -27,7 +27,7 @@
             使用
           </div>
           <div class="section" @click="updateAccountInfo(item.uid)">刷新信息</div>
-          <div class="section" style="color: red" @click="logout(item.uid)">退出账号</div>
+          <div class="section" style="color: #e88080" @click="logout(item.uid)">退出账号</div>
         </n-popover>
       </div>
     </div>
@@ -108,6 +108,9 @@ const updateAccountInfo = async (uid: number) => {
     position: relative;
     display: flex;
     flex-direction: column;
+    @media screen and (prefers-color-scheme: dark) {
+      border: none;
+    }
     .face {
       width: 80%;
     }
@@ -115,22 +118,31 @@ const updateAccountInfo = async (uid: number) => {
       position: absolute;
       bottom: 0px;
       right: 5px;
+
+      @media screen and (prefers-color-scheme: dark) {
+        color: rgb(51, 54, 57);
+      }
     }
   }
-  .card.active::before {
-    content: "正在使用";
-    display: block;
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    color: #fff;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px;
+  .card.active {
+    &::before {
+      content: "正在使用";
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      color: #fff;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 10px;
+    }
+    .menu {
+      color: #eee;
+    }
   }
 }
 
@@ -139,6 +151,9 @@ const updateAccountInfo = async (uid: number) => {
   cursor: pointer;
   &:hover {
     background-color: #eee;
+    @media screen and (prefers-color-scheme: dark) {
+      background-color: rgba(255, 255, 255, 0.09);
+    }
   }
 }
 </style>

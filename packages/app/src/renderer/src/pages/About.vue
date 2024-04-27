@@ -77,4 +77,8 @@ onMounted(async () => {
 });
 </script>
 
-<style scoped></style>
+<style scoped lang="less">
+.external {
+  color: skyblue;
+}
+</style>

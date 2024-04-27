@@ -24,6 +24,7 @@ import type {
   BiliUser,
   // BiliApi,
   hotProgressOptions,
+  Theme,
 } from "@biliLive-tools/types";
 import type { OpenDialogOptions, BiliApi } from "../types";
 import type ffmpeg from "fluent-ffmpeg";
@@ -193,6 +194,9 @@ export const api = {
     },
     setOpenAtLogin: (openAtLogin: boolean) => {
       return ipcRenderer.invoke("common:setOpenAtLogin", openAtLogin);
+    },
+    setTheme: (theme: Theme) => {
+      return ipcRenderer.invoke("common:setTheme", theme);
     },
   },
   bili: {

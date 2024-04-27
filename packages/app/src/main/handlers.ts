@@ -31,10 +31,10 @@ export const ffmpegHandlers = {
   "ffmpeg:presets:get": (_event: IpcMainInvokeEvent, id: string) => {
     return ffmpegPreset.get(id);
   },
-  "ffmpeg:presets:list": (_event: IpcMainInvokeEvent) => {
+  "ffmpeg:presets:list": () => {
     return ffmpegPreset.list();
   },
-  "ffmpeg:presets:getOptions": (_event: IpcMainInvokeEvent) => {
+  "ffmpeg:presets:getOptions": () => {
     return ffmpegPreset.getFfmpegPresetOptions();
   },
 };

@@ -197,6 +197,8 @@ export interface NotificationTgConfig {
   chat_id: string;
 }
 
+export type Theme = "system" | "light" | "dark";
+
 // 全局配置
 export interface AppConfig {
   logLevel: LogLevel;
@@ -214,6 +216,8 @@ export interface AppConfig {
   minimizeToTray: boolean;
   /** 关闭到任务栏 */
   closeToTray: boolean;
+  /** 主题 */
+  theme: Theme;
   webhook: {
     port: number;
     recoderFolder: string;

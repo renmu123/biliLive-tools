@@ -69,6 +69,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   saveConfig: false,
   minimizeToTray: false,
   closeToTray: true,
+  theme: "system",
   webhook: {
     port: 18010,
     open: false,
