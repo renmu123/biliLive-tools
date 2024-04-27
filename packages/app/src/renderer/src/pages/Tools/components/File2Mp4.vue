@@ -1,10 +1,11 @@
 <!-- 将文件转换为mp4 -->
 <template>
   <div>
-    <div class="center" style="margin-bottom: 20px">
+    <div class="center btns" style="margin-bottom: 20px">
+      <n-button @click="addVideo"> 添加视频 </n-button>
       <n-button type="primary" @click="convert"> 立即转换 </n-button>
     </div>
-    <FileArea v-model="fileList" :extensions="['flv']" desc="请选择视频文件"></FileArea>
+    <FileSelect ref="fileSelect" v-model="fileList" :sort="false"></FileSelect>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div>
@@ -40,24 +41,17 @@
 </template>
 
 <script setup lang="ts">
-import FileArea from "@renderer/components/FileArea.vue";
 import { useConfirm } from "@renderer/hooks";
-import type { File } from "../../../../../types";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useAppConfig } from "@renderer/stores";
 import { storeToRefs } from "pinia";
+import FileSelect from "@renderer/pages/Tools/components/FileUpload/components/FileSelect.vue";
 
 const notice = useNotification();
 const confirm = useConfirm();
 const { appConfig } = storeToRefs(useAppConfig());
 
-const fileList = ref<
-  (File & {
-    percentage?: number;
-    percentageStatus?: "success" | "info" | "error";
-    taskId?: string;
-  })[]
->([]);
+const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 
 const options = appConfig.value.tool.video2mp4;
 
@@ -85,7 +79,8 @@ const convert = async () => {
 
   for (let i = 0; i < fileList.value.length; i++) {
     try {
-      window.api.convertVideo2Mp4(toRaw(fileList.value[i]), toRaw(options));
+      const file = window.api.formatFile(fileList.value[i].path);
+      window.api.convertVideo2Mp4(toRaw(file), toRaw(options));
     } catch (err) {
       notice.error({
         title: err as string,
@@ -105,6 +100,12 @@ async function getDir() {
   if (!path) return;
   options.savePath = path;
 }
+
+const fileSelect = ref(null);
+const addVideo = async () => {
+  // @ts-ignore
+  fileSelect.value.select();
+};
 </script>
 
 <style scoped lang="less">
@@ -112,5 +113,10 @@ async function getDir() {
   :deep(.n-radio) {
     align-items: center;
   }
+}
+.btns {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
 </style>

@@ -6,17 +6,9 @@
       <n-button type="primary" @click="upload"> 立即上传 </n-button>
       <n-button type="primary" @click="appendVideoVisible = true"> 续传 </n-button>
     </div>
-
-    <PartArea v-if="fileList.length !== 0" v-model="fileList"></PartArea>
-    <FileArea
-      v-else
-      :extensions="extensions"
-      desc="请选择视频文件"
-      @change="addOldVideos"
-    ></FileArea>
+    <FileSelect ref="fileSelect" v-model="fileList"></FileSelect>
 
     <n-divider />
-
     <div class="" style="margin-top: 30px">
       <BiliSetting v-model="options.uploadPresetId" @change="handlePresetOptions"></BiliSetting>
     </div>
@@ -32,15 +24,13 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 
-import PartArea from "./components/PartArea.vue";
-import FileArea from "@renderer/components/FileArea.vue";
-
+import FileSelect from "@renderer/pages/Tools/components/FileUpload/components/FileSelect.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 import AppendVideoDialog from "@renderer/components/AppendVideoDialog.vue";
 import { useBili } from "@renderer/hooks";
 import { useUserInfoStore, useAppConfig } from "@renderer/stores";
 
-import { deepRaw, uuid } from "@renderer/utils";
+import { deepRaw } from "@renderer/utils";
 
 const { userInfo } = storeToRefs(useUserInfoStore());
 const { handlePresetOptions, presetOptions } = useBili();
@@ -57,45 +47,6 @@ const fileList = ref<
     visible: boolean;
   }[]
 >([]);
-
-const extensions = [
-  "mp4",
-  "flv",
-  "avi",
-  "wmv",
-  "mov",
-  "webm",
-  "mpeg",
-  "ts",
-  "mpg",
-  "rm",
-  "rmvb",
-  "mkv",
-];
-
-const addVideo = async () => {
-  const files = await window.api.openFile({
-    multi: true,
-    filters: [
-      {
-        name: "file",
-        extensions: extensions,
-      },
-      {
-        name: "所有文件",
-        extensions: ["*"],
-      },
-    ],
-  });
-  if (!files) return;
-  const newFiles = files.map((file) => ({
-    id: uuid(),
-    title: window.path.parse(file).name,
-    path: file,
-    visible: false,
-  }));
-  fileList.value = [...fileList.value, ...newFiles];
-};
 
 const upload = async () => {
   const hasLogin = !!userInfo.value.uid;
@@ -163,13 +114,10 @@ const appendVideo = async () => {
   fileList.value = [];
 };
 
-const addOldVideos = (data: any[]) => {
-  fileList.value = data.map((item) => ({
-    id: uuid(),
-    title: item.name,
-    path: item.path,
-    visible: false,
-  }));
+const fileSelect = ref(null);
+const addVideo = async () => {
+  // @ts-ignore
+  fileSelect.value.select();
 };
 </script>
 

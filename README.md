@@ -174,18 +174,16 @@ $ pnpm install
 
 ## Development
 
-```bash
-$ pnpm run dev
-```
+分别运行各个子项目下的`dev`scripts
 
 ## Build
 
 ```bash
 # For windows
-$ pnpm run build:win
+$ pnpm run build:win:app
 
 # For windows without ffmpeg
-$ pnpm run build:win-no-ffmpeg
+$ pnpm run build:app-no-ffmpeg
 ```
 
 # License

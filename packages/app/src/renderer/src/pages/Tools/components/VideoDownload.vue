@@ -62,10 +62,6 @@ const notice = useNotification();
 const parse = async () => {
   const formatUrl = url.value.trim();
 
-  console.log(formatUrl);
-  if (!formatUrl) {
-    throw new Error("请输入b站视频链接");
-  }
   const bvid = extractBVNumber(formatUrl);
   if (!bvid) {
     throw new Error("请输入正确的b站视频链接");
@@ -85,6 +81,9 @@ const parse = async () => {
 };
 
 const download = async () => {
+  if (!url.value.trim()) {
+    throw new Error("请输入b站视频链接");
+  }
   loading.value = true;
   try {
     await parse();

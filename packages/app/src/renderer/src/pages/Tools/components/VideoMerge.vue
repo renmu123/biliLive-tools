@@ -11,13 +11,14 @@
         gap: 5px;
       "
     >
+      <n-button @click="addVideo"> 添加文件 </n-button>
       <n-button type="primary" @click="convert"> 立即合并 </n-button>
       <Tip
         tip="注意：并非所有容器都支持流复制。如果出现播放问题或未合并文件，则可能需要重新编码。"
         :size="26"
       ></Tip>
     </div>
-    <FileArea v-model="fileList" :extensions="['flv', 'mp4']" desc="请选择视频文件"></FileArea>
+    <FileSelect v-model="fileList"></FileSelect>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div></div>
@@ -30,22 +31,15 @@
 </template>
 
 <script setup lang="ts">
-import FileArea from "@renderer/components/FileArea.vue";
+import FileSelect from "@renderer/pages/Tools/components/FileUpload/components/FileSelect.vue";
 import Tip from "@renderer/components/Tip.vue";
-import type { File } from "../../../../../types";
 import { useAppConfig } from "@renderer/stores";
 import { storeToRefs } from "pinia";
 
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
 
-const fileList = ref<
-  (File & {
-    percentage?: number;
-    percentageStatus?: "success" | "info" | "error";
-    taskId?: string;
-  })[]
->([]);
+const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 
 const options = appConfig.value.tool.videoMerge;
 
@@ -58,7 +52,7 @@ const convert = async () => {
     return;
   }
   let filePath!: string;
-  const { dir, name } = fileList.value[0];
+  const { dir, name } = window.api.formatFile(fileList.value[0].path);
   filePath = window.path.join(dir, `${name}-合并.mp4`);
 
   if (options.saveOriginPath) {
@@ -81,8 +75,11 @@ const convert = async () => {
     filePath = file;
   }
 
+  const files = fileList.value.map((file) => {
+    return window.api.formatFile(file.path);
+  });
   try {
-    window.api.mergeVideos(toRaw(fileList.value), { ...toRaw(options), savePath: filePath });
+    window.api.mergeVideos(toRaw(files), { ...toRaw(options), savePath: filePath });
     notice.warning({
       title: `已加入任务队列，可在任务列表中查看进度`,
       duration: 1000,
@@ -107,6 +104,12 @@ async function getDir(defaultPath: string) {
   });
   return path;
 }
+
+const fileSelect = ref(null);
+const addVideo = async () => {
+  // @ts-ignore
+  fileSelect.value.select();
+};
 </script>
 
 <style scoped lang="less">

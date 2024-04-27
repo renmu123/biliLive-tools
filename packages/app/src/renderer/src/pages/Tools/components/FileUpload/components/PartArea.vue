@@ -3,14 +3,14 @@
     <draggable v-model="fileList" :options="options" item-key="id" handle=".handle">
       <template #item="{ element, index }">
         <div :key="element.id" class="draggable">
-          <n-icon size="20" class="handle">
+          <n-icon v-if="props.sort" size="20" class="handle">
             <MoveIcon />
           </n-icon>
           <n-input
             v-if="element.visible"
             v-model:value="element.title"
             type="text"
-            placeholder="请输入分P名称"
+            :placeholder="props.placeholder"
             :maxlength="80"
             @keyup.enter="element.visible = false"
           />
@@ -47,6 +47,17 @@ const fileList = defineModel<
     visible: boolean;
   }[]
 >({ required: true });
+
+const props = withDefaults(
+  defineProps<{
+    sort?: boolean;
+    placeholder?: string;
+  }>(),
+  {
+    sort: true,
+    placeholder: "请输入",
+  },
+);
 
 const options = computed(() => {
   return {

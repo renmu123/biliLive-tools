@@ -2,6 +2,7 @@
 <template>
   <div>
     <div class="flex justify-center align-center" style="margin-bottom: 20px; gap: 10px">
+      <n-button @click="addVideo"> 添加文件 </n-button>
       <n-button type="primary" @click="convert"> 立即转换 </n-button>
       <n-select
         v-model:value="danmuPresetId"
@@ -14,7 +15,12 @@
       </n-icon>
     </div>
 
-    <FileArea v-model="fileList" :extensions="['xml']" desc="请选择xml文件"></FileArea>
+    <FileSelect
+      v-model="fileList"
+      area-placeholder="请选择xml文件"
+      :extensions="['xml']"
+      :sort="false"
+    ></FileSelect>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <n-radio-group v-model:value="options.saveRadio" class="radio-group">
@@ -28,9 +34,6 @@
               style="width: 300px"
             />
           </n-radio>
-          <!-- <n-button type="primary" :disabled="options.saveRadio !== 2" @click="getDir">
-              选择文件夹
-            </n-button> -->
           <n-icon size="30" style="margin-left: -10px" class="pointer" @click="getDir">
             <FolderOpenOutline />
           </n-icon>
@@ -52,9 +55,8 @@
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
 
-import FileArea from "@renderer/components/FileArea.vue";
+import FileSelect from "@renderer/pages/Tools/components/FileUpload/components/FileSelect.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
-import type { File } from "../../../../../types";
 import { deepRaw } from "@renderer/utils";
 import { useDanmuPreset, useAppConfig } from "@renderer/stores";
 import { Settings as SettingIcon, FolderOpenOutline } from "@vicons/ionicons5";
@@ -64,11 +66,7 @@ const { appConfig } = storeToRefs(useAppConfig());
 
 const notice = useNotification();
 
-const fileList = ref<
-  (File & {
-    percentage?: number;
-  })[]
->([]);
+const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 
 const options = appConfig.value.tool.danmu;
 
@@ -90,7 +88,7 @@ const convert = async () => {
   });
   const config = (await window.api.danmu.getPreset(presetId)).config;
   await window.api.danmu.convertXml2Ass(files, config, deepRaw(options));
-  const dir = deepRaw(fileList.value[0]).dir;
+  const dir = window.api.formatFile(deepRaw(fileList.value[0]).path).dir;
   fileList.value = [];
 
   if (options.openFolder) {
@@ -112,6 +110,12 @@ async function getDir() {
   if (!path) return;
   options.savePath = path;
 }
+
+const fileSelect = ref(null);
+const addVideo = async () => {
+  // @ts-ignore
+  fileSelect.value.select();
+};
 </script>
 
 <style scoped lang="less">

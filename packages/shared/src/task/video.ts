@@ -303,7 +303,7 @@ export const mergeAssMp4 = async (
 };
 
 export const mergeVideos = async (
-  _event: IpcMainInvokeEvent,
+  _event: IpcMainInvokeEvent | undefined,
   videoFiles: File[],
   options: VideoMergeOptions = {
     savePath: "",

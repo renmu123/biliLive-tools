@@ -37,3 +37,18 @@ export function sanitizeFileName(fileName: string) {
 
   return sanitizedFileName;
 }
+
+export const supportedVideoExtensions = [
+  "mp4",
+  "flv",
+  "avi",
+  "wmv",
+  "mov",
+  "webm",
+  "mpeg",
+  "ts",
+  "mpg",
+  "rm",
+  "rmvb",
+  "mkv",
+];
