@@ -80,6 +80,7 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
       } else if (value === "VBR" && options.bitrate) {
         result.push(`-b:v ${options.bitrate}k`);
       } else if (value === "CQ" && options.crf) {
+        result.push(`-rc vbr`);
         result.push(`-cq ${options.crf}`);
       }
     } else if (key === "crf") {

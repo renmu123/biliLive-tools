@@ -129,6 +129,10 @@ xml弹幕转换底层使用[DanmakuFactory](https://github.com/hihkm/DanmakuFact
 
 进入队列，查看任务最后一栏的速率，可以根据速率调整压制参数
 
+## 如何查看原始ffmpeg命令输出
+
+压制之后查看log
+
 # TODO
 
 - [x] 支持使用ffmpeg压制弹幕至视频文件

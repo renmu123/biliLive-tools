@@ -26,10 +26,16 @@ blrec：`/blrec`修改为`/webhook/blrec`
 1. 上传后aid查询优化
 2. ffmpeg 版本升级至7.0
 3. 登录优化（退出账号后默认使用第一个账号）
+4. 修改ffmpeg预设中cbr名称为“平均比特率”
 
 ## 开发
 
 1. 使用pnpm包管理器，修改架构为mono repo
+
+## Bug 修复
+
+1. 修复hvenc下cq失效的bug，**默认值修改为28**，**使用的是-rc vbr而非-rc constqp**
+2. 修复hvenc下预设名称错误的bug [#13](https://github.com/renmu123/biliLive-tools/pull/13)
 
 # 0.13.0
 

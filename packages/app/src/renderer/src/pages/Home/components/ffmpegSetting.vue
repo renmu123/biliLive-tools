@@ -261,7 +261,7 @@ const videoEncoders = ref([
       },
       {
         value: "VBR",
-        label: "CBR",
+        label: "平均比特率",
       },
     ],
     presets: [
@@ -313,7 +313,7 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "VBR",
-        label: "CBR",
+        label: "平均比特率",
       },
     ],
   },
@@ -323,11 +323,11 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "CQ",
-        label: "CQP",
+        label: "CQ",
       },
       {
         value: "VBR",
-        label: "CBR",
+        label: "平均比特率",
       },
     ],
     presets: nvencPresets,
@@ -338,7 +338,7 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "VBR",
-        label: "CBR",
+        label: "平均比特率",
       },
     ],
   },
@@ -353,7 +353,7 @@ const videoEncoders = ref([
       },
       {
         value: "VBR",
-        label: "CBR",
+        label: "平均比特率",
       },
     ],
     presets: [
@@ -405,7 +405,7 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "VBR",
-        label: "CBR",
+        label: "平均比特率",
       },
     ],
   },
@@ -415,11 +415,11 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "CQ",
-        label: "CQP",
+        label: "CQ",
       },
       {
         value: "VBR",
-        label: "CBR",
+        label: "平均比特率",
       },
     ],
     presets: nvencPresets,
@@ -430,7 +430,7 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "VBR",
-        label: "CBR",
+        label: "平均比特率",
       },
     ],
   },
@@ -445,7 +445,7 @@ const videoEncoders = ref([
       },
       {
         value: "VBR",
-        label: "CBR",
+        label: "平均比特率",
       },
     ],
     presets: [
@@ -509,7 +509,7 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "VBR",
-        label: "CBR",
+        label: "平均比特率",
       },
     ],
   },
@@ -519,11 +519,11 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "CQ",
-        label: "CQP",
+        label: "CQ",
       },
       {
         value: "VBR",
-        label: "CBR",
+        label: "平均比特率",
       },
     ],
     presets: nvencPresets,
@@ -534,7 +534,7 @@ const videoEncoders = ref([
     birateControls: [
       {
         value: "VBR",
-        label: "CBR",
+        label: "平均比特率",
       },
     ],
   },
