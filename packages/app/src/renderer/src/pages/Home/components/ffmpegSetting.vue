@@ -223,15 +223,15 @@ const presetId = defineModel<string>({ required: true });
 const nvencPresets = [
   {
     value: "p1",
-    label: "lowest",
+    label: "fastest",
   },
   {
     value: "p2",
-    label: "lower",
+    label: "faster",
   },
   {
     value: "p3",
-    label: "low",
+    label: "fast",
   },
   {
     value: "p4",
@@ -239,15 +239,15 @@ const nvencPresets = [
   },
   {
     value: "p5",
-    label: "fast",
+    label: "slow",
   },
   {
     value: "p6",
-    label: "faster",
+    label: "slower",
   },
   {
     value: "p7",
-    label: "fastest",
+    label: "slowest",
   },
 ];
 const videoEncoders = ref([
