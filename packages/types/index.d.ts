@@ -294,7 +294,7 @@ export interface Progress {
 
 export interface FfmpegOptions {
   encoder: string;
-  bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ";
+  bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ" | "ICQ";
   crf?: number;
   bitrate?: number;
   preset?:

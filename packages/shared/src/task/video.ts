@@ -251,8 +251,8 @@ export const mergeAssMp4 = async (
       },
     ]);
   }
-  if (["h264_nvenc", "hevc_nvenc", "av1_nvenc"].includes(ffmpegOptions.encoder)) {
-    if (ffmpegOptions.decode) {
+  if (ffmpegOptions.decode) {
+    if (["h264_nvenc", "hevc_nvenc", "av1_nvenc"].includes(ffmpegOptions.encoder)) {
       command.inputOptions("-hwaccel cuda");
       command.inputOptions("-hwaccel_output_format cuda");
       command.inputOptions("-extra_hw_frames 10");

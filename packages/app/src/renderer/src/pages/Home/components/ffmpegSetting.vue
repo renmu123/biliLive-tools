@@ -51,7 +51,8 @@
     <n-form-item
       v-if="
         ffmpegOptions.config.bitrateControl === 'CRF' ||
-        ffmpegOptions.config.bitrateControl === 'CQ'
+        ffmpegOptions.config.bitrateControl === 'CQ' ||
+        ffmpegOptions.config.bitrateControl === 'ICQ'
       "
     >
       <template #label>
@@ -62,6 +63,7 @@
           }"
         >
           <span v-if="ffmpegOptions.config.bitrateControl === 'CQ'">cq</span>
+          <span v-else-if="ffmpegOptions.config.bitrateControl === 'ICQ'">ICQ</span>
           <span v-else>crf</span>
 
           <Tip v-if="['libx264', 'libx265'].includes(ffmpegOptions.config.encoder)">
@@ -73,10 +75,17 @@
             <p>CRF值越小，压制越慢</p>
           </Tip>
           <Tip
-            v-if="['h264_nvenc', 'hevc_nvenc', 'av1_nvenc'].includes(ffmpegOptions.config.encoder)"
+            v-else-if="
+              ['h264_nvenc', 'hevc_nvenc', 'av1_nvenc'].includes(ffmpegOptions.config.encoder)
+            "
           >
             <p>值为0：自动</p>
             <p>值为1-51：越小质量越高，越大质量越低</p>
+          </Tip>
+          <Tip
+            v-else-if="['h264_qsv', 'hevc_qsv', 'av1_qsv'].includes(ffmpegOptions.config.encoder)"
+          >
+            <p>类似x264中的crf值，值为1-51：越小质量越高，越大质量越低</p>
           </Tip>
         </span>
       </template>
@@ -87,7 +96,7 @@
         :max="crfMinMax[1]"
       />
     </n-form-item>
-    <n-form-item v-if="ffmpegOptions.config.bitrateControl === 'VBR'">
+    <n-form-item v-else-if="ffmpegOptions.config.bitrateControl === 'VBR'">
       <template #label>
         <span class="inline-flex">
           <span>码率</span>
@@ -336,6 +345,10 @@ const videoEncoders = ref([
     label: "H.264(Intel QSV)",
     birateControls: [
       {
+        value: "ICQ",
+        label: "ICQ",
+      },
+      {
         value: "VBR",
         label: "平均比特率",
       },
@@ -427,6 +440,10 @@ const videoEncoders = ref([
     value: "hevc_qsv",
     label: "H.265(Intel QSV)",
     birateControls: [
+      {
+        value: "ICQ",
+        label: "ICQ",
+      },
       {
         value: "VBR",
         label: "平均比特率",
@@ -535,6 +552,10 @@ const videoEncoders = ref([
     value: "av1_qsv",
     label: "AV1 (Intel QSV)",
     birateControls: [
+      {
+        value: "ICQ",
+        label: "ICQ",
+      },
       {
         value: "VBR",
         label: "平均比特率",

@@ -24,6 +24,7 @@ blrec：`/blrec`修改为`/webhook/blrec`
 4. 暗色模式支持
 5. 视频预设增加“高级选项”参数，支持自定义ffmpeg输出参数，libsvtav1高级参数默认为`-svtav1-params tune=0`
 6. libsvtav1支持10bit参数
+7. qsv支持ICQ模式
 
 ## 其他
 
