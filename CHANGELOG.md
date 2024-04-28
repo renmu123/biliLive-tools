@@ -25,6 +25,7 @@ blrec：`/blrec`修改为`/webhook/blrec`
 5. 视频预设增加“高级选项”参数，支持自定义ffmpeg输出参数，libsvtav1高级参数默认为`-svtav1-params tune=0`
 6. libsvtav1支持10bit参数
 7. qsv支持ICQ模式
+8. 为部分弹框增加“不再提示”按钮
 
 ## 其他
 

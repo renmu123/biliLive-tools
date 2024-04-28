@@ -74,6 +74,8 @@ const convert = async () => {
   }
   const status = await confirm.warning({
     content: "转封装增加大量 CPU 占用以及硬盘 IO，请耐心等待",
+    notShowAgain: true,
+    key: "video2mp4",
   });
   if (!status) return;
 
