@@ -127,14 +127,23 @@
       </template>
       <n-checkbox v-model:checked="ffmpegOptions.config.decode"></n-checkbox>
     </n-form-item>
+    <n-form-item v-if="['libsvtav1'].includes(ffmpegOptions.config.encoder)">
+      <template #label>
+        <span class="inline-flex">
+          <span>10bit</span>
+          <Tip> AV1 10bit 会占用更多的硬件资源，但画质会更好，如果硬件支持，建议开启 </Tip>
+        </span>
+      </template>
+      <n-checkbox v-model:checked="ffmpegOptions.config.bit10"></n-checkbox>
+    </n-form-item>
 
     <n-form-item>
       <template #label>
         <span class="inline-flex">
-          <span>重新缩放分辨率</span>
+          <span>分辨率</span>
           <Tip>
             <p>
-              实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，但会增加压制时间
+              实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间
             </p>
             <p>4K：3840X2160<br />2K：2560X1440<br />1080：1920X1080</p>
           </Tip>
@@ -164,7 +173,22 @@
         />
       </template>
     </n-form-item>
+    <n-form-item>
+      <template #label>
+        <span class="inline-flex">
+          <span>高级选项</span>
+          <Tip> 参数将被附加到ffmpeg输出参数中，参数错误可能会导致无法运行 </Tip>
+        </span>
+      </template>
 
+      <n-input
+        v-model:value="ffmpegOptions.config.extraOptions"
+        type="textarea"
+        placeholder="请输入额外参数"
+        style="width: 100%"
+        :input-props="{ spellcheck: 'false' }"
+      />
+    </n-form-item>
     <div class="actions">
       <n-button
         v-if="!presetId.startsWith('b_') && presetId !== 'default'"
@@ -209,7 +233,7 @@ import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 
-import type { FfmpegPreset } from "../../../../../types";
+import type { FfmpegPreset } from "@biliLive-tools/types";
 
 const notice = useNotification();
 const confirmDialog = useConfirm();

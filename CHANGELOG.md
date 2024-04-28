@@ -22,6 +22,8 @@ blrec：`/blrec`修改为`/webhook/blrec`
 2. 新增 `/webhook/bililiverecorder` 、`/webhook/blrec`、`/webhook/custom` webhook端点
 3. 优化工具页的文件选择栏
 4. 暗色模式支持
+5. 视频预设增加“高级选项”参数，支持自定义ffmpeg输出参数，libsvtav1高级参数默认为`-svtav1-params tune=0`
+6. libsvtav1支持10bit参数
 
 ## 其他
 
@@ -34,6 +36,7 @@ blrec：`/blrec`修改为`/webhook/blrec`
 
 1. 修复hvenc下cq失效的bug，**默认值修改为28**，**使用的是-rc vbr而非-rc constqp**
 2. 修复hvenc下预设名称错误的bug [#13](https://github.com/renmu123/biliLive-tools/pull/13)
+3. 修复libsvtav1 预设展示错误，默认值修改为6
 
 ## 开发
 

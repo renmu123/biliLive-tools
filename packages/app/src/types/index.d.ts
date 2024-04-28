@@ -344,6 +344,8 @@ export interface FfmpegOptions {
   /** 重缩放的分辨率 */
   resolutionWidth?: number;
   resolutionHeight?: number;
+  /** 高级参数 */
+  extraOptions?: string;
 }
 
 export interface BiliupConfig {

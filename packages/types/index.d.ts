@@ -336,6 +336,10 @@ export interface FfmpegOptions {
   /** 重缩放的分辨率 */
   resolutionWidth?: number;
   resolutionHeight?: number;
+  /** 高级参数 */
+  extraOptions?: string;
+  /** 10bit支持 */
+  bit10?: boolean;
 }
 
 export interface BiliupConfig {

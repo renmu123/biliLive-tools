@@ -69,30 +69,72 @@ export const escaped = (s: string) => {
   return s;
 };
 
+// export const genFfmpegParams = (options: FfmpegOptions) => {
+//   const result: string[] = [];
+//   Object.entries(options).forEach(([key, value]) => {
+//     if (key === "encoder") {
+//       result.push(`-c:v ${value}`);
+//     } else if (key === "bitrateControl") {
+//       if (value === "CRF" && options.crf) {
+//         result.push(`-crf ${options.crf}`);
+//       } else if (value === "VBR" && options.bitrate) {
+//         result.push(`-b:v ${options.bitrate}k`);
+//       } else if (value === "CQ" && options.crf) {
+//         result.push(`-rc vbr`);
+//         result.push(`-cq ${options.crf}`);
+//       }
+//     } else if (key === "crf") {
+//       // do nothing
+//     } else if (key === "preset") {
+//       result.push(`-preset ${value}`);
+//     } else if (key === "resetResolution") {
+//       if (value && options.resolutionWidth && options.resolutionHeight) {
+//         result.push(`-s ${options.resolutionWidth}x${options.resolutionHeight}`);
+//       }
+//     }
+//   });
+//   return result;
+// };
+
 export const genFfmpegParams = (options: FfmpegOptions) => {
   const result: string[] = [];
-  Object.entries(options).forEach(([key, value]) => {
-    if (key === "encoder") {
-      result.push(`-c:v ${value}`);
-    } else if (key === "bitrateControl") {
-      if (value === "CRF" && options.crf) {
+  if (options.encoder) {
+    result.push(`-c:v ${options.encoder}`);
+  }
+  switch (options.bitrateControl) {
+    case "CRF":
+      if (options.crf) {
         result.push(`-crf ${options.crf}`);
-      } else if (value === "VBR" && options.bitrate) {
+      }
+      break;
+    case "VBR":
+      if (options.bitrate) {
         result.push(`-b:v ${options.bitrate}k`);
-      } else if (value === "CQ" && options.crf) {
+      }
+      break;
+    case "CQ":
+      if (options.crf) {
         result.push(`-rc vbr`);
         result.push(`-cq ${options.crf}`);
       }
-    } else if (key === "crf") {
-      // do nothing
-    } else if (key === "preset") {
-      result.push(`-preset ${value}`);
-    } else if (key === "resetResolution") {
-      if (value && options.resolutionWidth && options.resolutionHeight) {
-        result.push(`-s ${options.resolutionWidth}x${options.resolutionHeight}`);
-      }
+      break;
+  }
+  if (options.preset) {
+    result.push(`-preset ${options.preset}`);
+  }
+  if (options.resetResolution && options.resolutionWidth && options.resolutionHeight) {
+    result.push(`-s ${options.resolutionWidth}x${options.resolutionHeight}`);
+  }
+  if (["libsvtav1"].includes(options.encoder)) {
+    if (options.bit10) {
+      result.push("-pix_fmt yuv420p10le");
     }
-  });
+  }
+  if (options.extraOptions) {
+    options.extraOptions.split(" ").forEach((option) => {
+      result.push(option);
+    });
+  }
   return result;
 };
 
