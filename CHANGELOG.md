@@ -1,10 +1,12 @@
-# 0.14.0
+# 1.0.0-alpha
+
+**经过大半年的开发，终于要进入1.0.0版本了，这个版本有时间就把架构改了，那也直接进入1.0.0版本吧，虽然还有好几个想做的需求没做**
 
 **整体架构调整，为支持CLI以及网页版做准备，如果有任何bug请及时反馈**
 
-**webhook的请求端点修改，请使用者尽快进行迁移，接下来的几个版本旧调用将会被移除**  
-B站录播姬：`/webhook`修改为`/webhook/bililiverecorder`
-blrec：`/blrec`修改为`/webhook/blrec`
+**webhook的请求端点修改，请使用者尽快进行迁移，将会在1.0.0正式版中被移除**  
+B站录播姬：`/webhook`修改为`/webhook/bililiverecorder`  
+blrec：`/blrec`修改为`/webhook/blrec`  
 自定义：`/custom`修改为`/webhook/custom`
 
 ## 特性
@@ -28,14 +30,14 @@ blrec：`/blrec`修改为`/webhook/blrec`
 3. 登录优化（退出账号后默认使用第一个账号）
 4. 修改ffmpeg预设中cbr名称为“平均比特率”
 
-## 开发
-
-1. 使用pnpm包管理器，修改架构为mono repo
-
 ## Bug 修复
 
 1. 修复hvenc下cq失效的bug，**默认值修改为28**，**使用的是-rc vbr而非-rc constqp**
 2. 修复hvenc下预设名称错误的bug [#13](https://github.com/renmu123/biliLive-tools/pull/13)
+
+## 开发
+
+1. 使用pnpm包管理器，修改架构为mono repo
 
 # 0.13.0
 
