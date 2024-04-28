@@ -479,6 +479,10 @@ const videoEncoders = ref([
       },
       {
         value: "7",
+        label: "7",
+      },
+      {
+        value: "8",
         label: "8",
       },
       {
