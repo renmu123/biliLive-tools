@@ -21,11 +21,9 @@ blrec：`/blrec`修改为`/webhook/blrec`
 2. 新增 `/webhook/bililiverecorder` 、`/webhook/blrec`、`/webhook/custom` webhook端点
 3. 优化工具页的文件选择栏&部分组件UI优化
 4. 暗色模式支持
-5. 视频预设增加“高级选项”参数，支持自定义ffmpeg输出参数，libsvtav1高级参数默认为`-svtav1-params tune=0`
-6. libsvtav1支持10bit参数
-7. qsv支持ICQ模式
-8. 为部分弹框增加“不再提示”按钮
-9. 支持转码页面
+5. 视频预设增加“高级选项”参数，支持自定义ffmpeg输出参数，libsvtav1高级参数默认为`-svtav1-params tune=0`，libsvtav1支持10bit参数，qsv支持ICQ模式
+6. 为部分弹框增加“不再提示”按钮
+7. 支持转码页面
 
 ## 其他
 
