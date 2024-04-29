@@ -1,9 +1,7 @@
-name: Build/release Electron app
+name: Build/build Electron app
 
 on:
-  push:
-    tags:
-      - "*"
+  workflow_dispatch:
 
 jobs:
   release:
@@ -60,25 +58,6 @@ jobs:
         run: pnpm run buid:win:app
       - name: build-win-no-ffmpeg
         run: pnpm run buid:win:app-no-ffmpeg
-
-      - name: release
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: false
-          token: ${{ secrets.GITHUB_TOKEN }}
-          files: |
-            dist/*.exe
-            dist/*.zip
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.snap
-            dist/*.deb
-            dist/*.rpm
-            dist/*.tar.gz
-            dist/*.yml
-            dist/*.blockmap
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 permissions:
   contents: write
