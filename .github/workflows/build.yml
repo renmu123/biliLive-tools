@@ -63,11 +63,17 @@ jobs:
           curl -LJO  https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/bin.zip
 
       - name: Extract File
-        run: |
-          # 使用 unzip 解压 ZIP 文件
-          powershell Expand-Archive -Path bin.zip -DestinationPath resources
+        uses: ihiroky/extract-action@v1
+        with:
+          file_path: bin.zip
+          extract_dir: packages/app/resources
+        # run: |
+        #   npm install extract-zip -g
+        #   extract-zip bin.zip resources
+        #   # 使用 unzip 解压 ZIP 文件
+        #   # powershell Expand-Archive -Path bin.zip -DestinationPath resources
 
-      - name: remove file
+      - name: remove zip file
         run: |
           del bin.zip
 
@@ -79,7 +85,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: exe
+          name: files
           path: packages/app/dist/*.exe
 
 permissions:
