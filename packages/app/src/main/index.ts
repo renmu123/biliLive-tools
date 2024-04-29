@@ -5,6 +5,7 @@ import Store from "electron-store";
 
 import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
+import { notify } from "./utils/index";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net, nativeTheme } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
@@ -364,8 +365,16 @@ if (!gotTheLock) {
   });
 
   process.on("uncaughtException", function (error) {
+    if (error.message.includes("listen EADDRINUSE")) {
+      setTimeout(() => {
+        notify(mainWin.webContents, {
+          type: "error",
+          content: `检查是否有其他程序占用了${appConfig.get("webhook").port}端口，请尝试更换端口或重启设备`,
+        });
+      }, 1000);
+    }
     log.error("uncaughtException", error);
-    log.error(error);
+    // log.error(error);
   });
   process.on("unhandledRejection", function (error) {
     log.error("unhandledRejection", error);
@@ -399,6 +408,7 @@ if (!gotTheLock) {
 // 业务相关的初始化
 const appInit = async () => {
   const config = {
+    port: 18010,
     configPath: path.join(app.getPath("userData"), "appConfig.json"),
     ffmpegPath: FFMPEG_PATH,
     ffprobePath: FFPROBE_PATH,
@@ -411,7 +421,7 @@ const appInit = async () => {
     taskQueue: taskQueue,
   };
   init(config);
-
+  config.port = appConfig.get("webhook").port;
   serverStart(config);
   nativeTheme.themeSource = appConfig.get("theme");
   // 默认十分钟运行一次

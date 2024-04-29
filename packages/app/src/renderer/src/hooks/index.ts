@@ -1,4 +1,4 @@
-import type { BiliupPreset } from "../../../types";
+import type { BiliupPreset } from "@biliLive-tools/types";
 import { NCheckbox, NButton } from "naive-ui";
 
 export const useConfirm = () => {

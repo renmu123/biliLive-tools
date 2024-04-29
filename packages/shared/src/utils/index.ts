@@ -3,7 +3,6 @@ import fs from "fs-extra";
 import trash from "trash";
 import { appConfig } from "../index.js";
 
-import { type IpcMainInvokeEvent } from "electron";
 import type { FfmpegOptions } from "@biliLive-tools/types";
 
 export const executeCommand = (
@@ -162,16 +161,6 @@ export const trashItem = async (path: string) => {
 };
 
 export const isWin32 = process.platform === "win32";
-
-export const notify = (
-  event: IpcMainInvokeEvent,
-  data: {
-    type: "info" | "success" | "warning" | "error";
-    content: string;
-  },
-) => {
-  event.sender.send("notify", data);
-};
 
 export async function getFileSize(filePath: string) {
   const stats = await fs.promises.stat(filePath);

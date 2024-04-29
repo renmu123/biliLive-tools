@@ -1,7 +1,7 @@
 import path from "node:path";
 
 import { ElectronAPI } from "@electron-toolkit/preload";
-import { api } from "./index";
+import { api } from "../preload/index";
 
 declare global {
   interface Window {

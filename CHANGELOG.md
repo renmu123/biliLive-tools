@@ -26,6 +26,7 @@ blrec：`/blrec`修改为`/webhook/blrec`
 6. libsvtav1支持10bit参数
 7. qsv支持ICQ模式
 8. 为部分弹框增加“不再提示”按钮
+9. 支持转码页面
 
 ## 其他
 

@@ -278,7 +278,7 @@ import { useConfirm } from "@renderer/hooks";
 import { useUploadPreset, useAppConfig, useUserInfoStore } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
 
-import type { BiliupPreset } from "../../../types";
+import type { BiliupPreset } from "@biliLive-tools/types";
 
 const confirm = useConfirm();
 const { getUploadPresets } = useUploadPreset();

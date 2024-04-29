@@ -165,7 +165,7 @@ import type {
   BiliupPreset,
   FfmpegPreset,
   hotProgressOptions,
-} from "../../../../types";
+} from "@biliLive-tools/types";
 
 const notice = useNotification();
 const confirm = useConfirm();

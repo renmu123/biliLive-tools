@@ -57,7 +57,7 @@
 import CommonSetting from "./CommonWebhookSetting.vue";
 import { useConfirm } from "@renderer/hooks";
 
-import type { AppRoomConfig } from "../../../../types";
+import type { AppRoomConfig } from "@biliLive-tools/types";
 
 type Options = {
   value: string;

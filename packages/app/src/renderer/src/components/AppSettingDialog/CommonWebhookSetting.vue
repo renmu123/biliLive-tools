@@ -307,7 +307,7 @@
 import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
 
-import type { AppRoomConfig } from "../../../../types";
+import type { AppRoomConfig } from "@biliLive-tools/types";
 
 type Options = {
   value: string;

@@ -230,7 +230,7 @@
 </template>
 
 <script setup lang="ts">
-import type { DanmuConfig } from "../../../types";
+import type { DanmuConfig } from "@biliLive-tools/types";
 
 const config = defineModel<DanmuConfig>({ required: true, default: {} });
 

@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import type { DanmuPreset } from "../../../types";
+import type { DanmuPreset } from "@biliLive-tools/types";
 import DanmuFactorySetting from "./DanmuFactorySetting.vue";
 import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";

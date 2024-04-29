@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import { ArchiveOutline as ArchiveIcon, CloseOutline as CloseIcon } from "@vicons/ionicons5";
 
-import type { File } from "../../../types";
+import type { File } from "@biliLive-tools/types";
 
 const props = withDefaults(
   defineProps<{
