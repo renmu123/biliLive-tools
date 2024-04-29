@@ -124,7 +124,7 @@
           <n-input-number
             v-model:value.number="config.resolution[0]"
             class="input-number"
-            :min="0"
+            :min="-1"
             :step="100"
             placeholder="宽"
             :disabled="config.resolutionResponsive"
@@ -132,7 +132,7 @@
           <n-input-number
             v-model:value.number="config.resolution[1]"
             class="input-number"
-            :min="0"
+            :min="-1"
             :step="100"
             placeholder="高"
             :disabled="config.resolutionResponsive"
