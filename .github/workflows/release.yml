@@ -56,22 +56,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-electron-builder-cache-
 
-      # - name: Install Dependencies
-      #   run: npm ci
-
       - name: Download File
         run: |
           # 使用 curl 下载文件
           curl -LJO  https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/bin.zip
 
       - name: Extract File
-        run: |
-          # 使用 unzip 解压 ZIP 文件
-          powershell Expand-Archive -Path bin.zip -DestinationPath resources
-
-      - name: remove file
-        run: |
-          del bin.zip
+        uses: ihiroky/extract-action@v1
+        with:
+          file_path: bin.zip
+          extract_dir: packages/app/resources
 
       - name: build-win
         run: pnpm run buid:win:app

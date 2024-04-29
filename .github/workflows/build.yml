@@ -54,9 +54,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-electron-builder-cache-
 
-      # - name: Install Dependencies
-      #   run: npm ci
-
       - name: Download File
         run: |
           # 使用 curl 下载文件
@@ -67,15 +64,6 @@ jobs:
         with:
           file_path: bin.zip
           extract_dir: packages/app/resources
-        # run: |
-        #   npm install extract-zip -g
-        #   extract-zip bin.zip resources
-        #   # 使用 unzip 解压 ZIP 文件
-        #   # powershell Expand-Archive -Path bin.zip -DestinationPath resources
-
-      - name: remove zip file
-        run: |
-          del bin.zip
 
       - name: build-win
         run: pnpm run buid:win:app
