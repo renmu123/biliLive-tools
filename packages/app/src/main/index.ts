@@ -369,7 +369,7 @@ if (!gotTheLock) {
       setTimeout(() => {
         notify(mainWin.webContents, {
           type: "error",
-          content: `检查是否有其他程序占用了${appConfig.get("webhook").port}端口，请尝试更换端口或重启设备`,
+          content: `检查是否有其他程序占用了${appConfig.get("port")}端口，请尝试更换端口或重启设备`,
         });
       }, 1000);
     }
@@ -409,6 +409,7 @@ if (!gotTheLock) {
 const appInit = async () => {
   const config = {
     port: 18010,
+    host: "localhost",
     configPath: path.join(app.getPath("userData"), "appConfig.json"),
     ffmpegPath: FFMPEG_PATH,
     ffprobePath: FFPROBE_PATH,
@@ -421,7 +422,8 @@ const appInit = async () => {
     taskQueue: taskQueue,
   };
   init(config);
-  config.port = appConfig.get("webhook").port;
+  config.port = appConfig.get("port");
+  config.host = appConfig.get("host");
   serverStart(config);
   nativeTheme.themeSource = appConfig.get("theme");
   // 默认十分钟运行一次

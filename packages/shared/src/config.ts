@@ -70,8 +70,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   minimizeToTray: false,
   closeToTray: true,
   theme: "system",
+  port: 18010,
+  host: "localhost",
   webhook: {
-    port: 18010,
     open: false,
     recoderFolder: "",
     minSize: 20,

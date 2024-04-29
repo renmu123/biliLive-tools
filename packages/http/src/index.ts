@@ -25,6 +25,7 @@ export let taskQueue: typeof _taskQueue;
 
 export const globalConfig: {
   port: number;
+  host: string;
   configPath: string;
   ffmpegPath: string;
   ffprobePath: string;
@@ -37,6 +38,7 @@ export const globalConfig: {
   taskQueue: typeof _taskQueue;
 } = {
   port: 18010,
+  host: "localhost",
   configPath: "C:\\Users\\renmu\\AppData\\Roaming\\biliLive-tools\\appConfig.json",
   ffmpegPath:
     "C:\\Users\\renmu\\AppData\\Local\\Programs\\biliLive-tools\\resources\\app.asar.unpacked\\resources\\bin\\ffmpeg.exe",
@@ -58,8 +60,8 @@ export function serverStart(config: Partial<typeof globalConfig> = {}) {
 
   init(globalConfig);
 
-  app.listen(globalConfig.port, () => {
-    console.log(`Server is running at http://localhost:${globalConfig.port}`);
+  app.listen(globalConfig.port, globalConfig.host, () => {
+    console.log(`Server is running at http://${globalConfig.host}:${globalConfig.port}`);
   });
   return app;
 }

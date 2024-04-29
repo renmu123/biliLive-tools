@@ -210,8 +210,9 @@ export interface AppConfig {
   closeToTray: boolean;
   /** 主题 */
   theme: Theme;
+  port: number;
+  host: string;
   webhook: {
-    port: number;
     recoderFolder: string;
     blacklist: string;
     rooms: {

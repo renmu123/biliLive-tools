@@ -26,6 +26,26 @@
             <n-form-item label="log等级"
               ><n-select v-model:value="config.logLevel" :options="logLevelOptions" />
             </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex">
+                  port
+                  <Tip
+                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>录播姬的webhook地址设置为：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址设置为：http://127.0.0.1:${config.port}/webhook/blrec<br/>修改后需重启生效`"
+                  ></Tip>
+                </span>
+              </template>
+              <n-input-number v-model:value="config.port" min="0"> </n-input-number>
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex">
+                  host
+                  <Tip :tip="`修改后需重启生效`"></Tip>
+                </span>
+              </template>
+              <n-input v-model:value="config.host"> </n-input>
+            </n-form-item>
             <n-form-item label="主题"
               ><n-select v-model:value="config.theme" :options="themeOptions" />
             </n-form-item>
@@ -102,12 +122,7 @@
           <n-form label-placement="left" :label-width="130">
             <n-form-item>
               <template #label>
-                <span class="inline-flex">
-                  开启server
-                  <Tip
-                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.webhook.port} 查询是否启动成功<br/>录播姬的webhook地址设置为：http://127.0.0.1:${config.webhook.port}/webhook/bililiverecorder<br/>blrec的webhook地址设置为：http://127.0.0.1:${config.webhook.port}/webhook/blrec`"
-                  ></Tip>
-                </span>
+                <span class="inline-flex"> webhook </span>
               </template>
               <n-switch v-model:value="config.webhook.open" />
             </n-form-item>
