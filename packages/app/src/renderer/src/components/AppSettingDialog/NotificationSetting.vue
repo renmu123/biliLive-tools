@@ -81,7 +81,9 @@
           </template>
           <n-input
             v-model:value="config.notification.setting.server.key"
+            type="password"
             placeholder="请输入server酱key"
+            show-password-on="click"
           ></n-input> </n-form-item
       ></template>
       <template v-else-if="config.notification.setting.type === NotificationType.tg">
