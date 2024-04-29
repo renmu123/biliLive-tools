@@ -71,10 +71,10 @@ const logout = async (uid: number) => {
   }
 
   await window.api.bili.deleteUser(uid);
-  getUserInfo();
-  if (userList.value.length !== 0) {
+  if (uid === userInfo.value.uid && userList.value.length !== 0) {
     changeAccount(userList.value[0].uid);
   }
+  getUserInfo();
 };
 const changeAccount = async (uid: number) => {
   changeUser(uid);

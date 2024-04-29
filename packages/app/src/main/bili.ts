@@ -17,6 +17,15 @@ let tv: TvQrcodeLogin;
 
 export { commentQueue, biliApi };
 
+const updateUserInfo = async (uid: number) => {
+  const user = await readUser(uid);
+  if (!user) throw new Error("用户不存在");
+  const userInfo = await biliApi.getMyInfo(uid);
+  user.name = userInfo.profile.name;
+  user.avatar = userInfo.profile.face;
+  await writeUser(user);
+};
+
 export const handlers = {
   "biliApi:getArchives": (
     _event: IpcMainInvokeEvent,
@@ -44,7 +53,7 @@ export const handlers = {
       const data = res.data;
       const user = await format(data);
       await writeUser(user);
-      console.log("login-completed", res);
+      await updateUserInfo(user.mid);
       event.sender.send("biliApi:login-completed", res);
     });
     return tv.login();
@@ -53,12 +62,7 @@ export const handlers = {
     tv.interrupt();
   },
   "bili:updateUserInfo": async (_event: IpcMainInvokeEvent, uid: number) => {
-    const user = await readUser(uid);
-    if (!user) throw new Error("用户不存在");
-    const userInfo = await biliApi.getMyInfo(uid);
-    user.name = userInfo.profile.name;
-    user.avatar = userInfo.profile.face;
-    await writeUser(user);
+    return updateUserInfo(uid);
   },
   "bili:addMedia": (
     event: IpcMainInvokeEvent,

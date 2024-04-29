@@ -38,6 +38,7 @@ blrec：`/blrec`修改为`/webhook/blrec`
 1. 修复hvenc下cq失效的bug，**默认值修改为28**，**使用的是-rc vbr而非-rc constqp**
 2. 修复hvenc下预设名称错误的bug [#13](https://github.com/renmu123/biliLive-tools/pull/13)
 3. 修复libsvtav1 预设展示错误，默认值修改为6
+4. 修复某些情况下登录后获取信息失败
 
 ## 开发
 
