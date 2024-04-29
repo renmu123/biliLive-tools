@@ -33,6 +33,7 @@ blrec：`/blrec`修改为`/webhook/blrec`
 2. ffmpeg 版本升级至7.0
 3. 登录优化（退出账号后默认使用第一个账号）
 4. 修改ffmpeg预设中cbr名称为“平均比特率”
+5. server酱的key输入框type设置为password
 
 ## Bug 修复
 
