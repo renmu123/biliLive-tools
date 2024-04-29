@@ -7,7 +7,7 @@
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "type": "module",
   "scripts": {
-    "buid:win:app": "pnpm run --filter @biliLive-tools/http build && pnpm run --filter @biliLive-tools/shared build && pnpm run --filter biliLive-tools build:win",
+    "buid:win:app": "pnpm run --filter @biliLive-tools/shared build  && pnpm run --filter @biliLive-tools/http build && pnpm run --filter biliLive-tools build:win",
     "buid:win:app-no-ffmpeg": "pnpm run --filter @biliLive-tools/shared build && pnpm run --filter @biliLive-tools/http build && pnpm run --filter biliLive-tools build:win-no-ffmpeg",
     "preinstall": "npx only-allow pnpm"
   },
