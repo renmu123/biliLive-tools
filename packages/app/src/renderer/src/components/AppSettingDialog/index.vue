@@ -10,7 +10,7 @@
     >
       <n-tabs type="segment">
         <n-tab-pane name="common" tab="普通设置">
-          <n-form ref="formRef" label-placement="left" :label-width="120">
+          <n-form ref="formRef" label-placement="left" :label-width="160">
             <n-form-item>
               <template #label>
                 <span class="inline-flex">
