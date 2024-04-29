@@ -32,7 +32,6 @@
     "electron-store": "^8.2.0",
     "electron-updater": "^6.1.8",
     "express": "^4.19.2",
-    "fluent-ffmpeg": "git@github.com:renmu123/node-fluent-ffmpeg#4ab720e6767a73426ab53087d949465c9cba50f3",
     "fs-extra": "^11.2.0",
     "lodash-es": "^4.17.21",
     "pinia": "^2.1.7",
