@@ -219,8 +219,8 @@ importers:
         specifier: ^4.3.6
         version: 4.3.6
       fluent-ffmpeg:
-        specifier: git@github.com:renmu123/node-fluent-ffmpeg#4ab720e6767a73426ab53087d949465c9cba50f3
-        version: git+https://git@github.com:renmu123/node-fluent-ffmpeg.git#4ab720e6767a73426ab53087d949465c9cba50f3
+        specifier: github:renmu123/node-fluent-ffmpeg
+        version: git+https://git@github.com:renmu123/node-fluent-ffmpeg.git#d94f86018eb9a9ffea91a663fd2ba9de2efb065d
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
@@ -2179,9 +2179,9 @@ packages:
   flatted@3.3.1:
     resolution: {integrity: sha512-X8cqMLLie7KsNUDSdzeN8FYK9rEt4Dt67OsG/DNGnYTSDBG4uFAJFBnUeiV+zCVAvwFy56IjM9sH51jVaEhNxw==}
 
-  fluent-ffmpeg@git+https://git@github.com:renmu123/node-fluent-ffmpeg.git#4ab720e6767a73426ab53087d949465c9cba50f3:
-    resolution: {commit: 4ab720e6767a73426ab53087d949465c9cba50f3, repo: git@github.com:renmu123/node-fluent-ffmpeg.git, type: git}
-    version: 2.1.2
+  fluent-ffmpeg@git+https://git@github.com:renmu123/node-fluent-ffmpeg.git#d94f86018eb9a9ffea91a663fd2ba9de2efb065d:
+    resolution: {commit: d94f86018eb9a9ffea91a663fd2ba9de2efb065d, repo: git@github.com:renmu123/node-fluent-ffmpeg.git, type: git}
+    version: 2.1.3
     engines: {node: '>=18'}
 
   follow-redirects@1.15.6:
@@ -6102,7 +6102,7 @@ snapshots:
 
   flatted@3.3.1: {}
 
-  fluent-ffmpeg@git+https://git@github.com:renmu123/node-fluent-ffmpeg.git#4ab720e6767a73426ab53087d949465c9cba50f3:
+  fluent-ffmpeg@git+https://git@github.com:renmu123/node-fluent-ffmpeg.git#d94f86018eb9a9ffea91a663fd2ba9de2efb065d:
     dependencies:
       async: 0.2.10
       which: 1.3.1
