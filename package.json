@@ -9,9 +9,15 @@
   "scripts": {
     "buid:win:app": "pnpm run --filter @biliLive-tools/shared build  && pnpm run --filter @biliLive-tools/http build && pnpm run --filter biliLive-tools build:win",
     "buid:local:win:app-no-ffmpeg": "pnpm run --filter @biliLive-tools/shared build && pnpm run --filter @biliLive-tools/http build && pnpm run --filter biliLive-tools build:win-no-ffmpeg",
-    "preinstall": "npx only-allow pnpm"
+    "preinstall": "npx only-allow pnpm",
+    "install:bin": "node ./scripts/install-bin.js"
+  },
+  "dependencies": {
+    "fs-extra": "^11.2.0"
   },
   "devDependencies": {
+    "cli-progress": "^3.12.0",
+    "download": "^8.0.0",
     "prettier": "^3.2.5",
     "typescript": "^5.4.5"
   }

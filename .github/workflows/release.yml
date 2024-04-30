@@ -64,23 +64,28 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-electron-builder-cache-
 
-      - name: Download File
-        run: |
-          # 使用 curl 下载文件
-          curl -LJO  https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/bin.zip
-
-      - name: Extract File
-        uses: ihiroky/extract-action@v1
-        with:
-          file_path: bin.zip
-          extract_dir: packages/app/resources
+      - name: Install binary deps
+        run: pnpm run install:bin
 
       - name: build-win
         if: startsWith(matrix.os, 'windows')
         run: pnpm run buid:win:app
+
+      - name: remove ffmpeg.exe
+        if: startsWith(matrix.os, 'windows')
+        uses: JesseTG/rm@v1.0.3
+        with:
+          path: packages/app/resources/bin/ffmpeg.exe
+
+      - name: remove ffprobe.exe
+        if: startsWith(matrix.os, 'windows')
+        uses: JesseTG/rm@v1.0.3
+        with:
+          path: packages/app/resources/bin/ffprobe.exe
+
       - name: build-win-no-ffmpeg
         if: startsWith(matrix.os, 'windows')
-        run: pnpm run buid:win:app-no-ffmpeg
+        run: pnpm run buid:win:app
 
       - name: release
         if: env.is_tag == 'true'
@@ -89,8 +94,8 @@ jobs:
           draft: false
           token: ${{ secrets.GITHUB_TOKEN }}
           files: |
-            packages/app/*.exe
-            packages/app/*.zip
+            packages/app/dist/*.exe
+            packages/app/dist/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

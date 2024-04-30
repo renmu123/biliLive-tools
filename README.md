@@ -162,19 +162,23 @@ xml弹幕转换底层使用[DanmakuFactory](https://github.com/hihkm/DanmakuFact
 
 交流群：872011161
 
-node请使用20及以上版本。  
-下载项目后需要新建一个`packages\app\resources\bin`文件夹，里面需要三个个文件。
-同时需要在应用中设置 ffmpeg 以及 ffprobe 可执行文件地址。
-
-1. `DanmukuFactory.exe` [1.7.0版本](https://github.com/hihkm/DanmakuFactory/releases/tag/v1.70)
-2. `ffmpeg.exe` [n6.0](https://github.com/BtbN/FFmpeg-Builds/releases)
-3. `ffprobe.exe` [n6.0](https://github.com/BtbN/FFmpeg-Builds/releases)
+node请使用20及以上版本。
 
 ## Install
 
 ```bash
 $ pnpm install
+$ pnpm run install-bin
 ```
+
+如果二进制依赖安装失败或者不支持你的平台，请尝试手动安装二进制依赖。
+
+要新建一个`packages\app\resources\bin`文件夹，里面需要三个个文件。
+同时需要在应用中设置 ffmpeg 以及 ffprobe 可执行文件地址。
+
+1. `DanmukuFactory.exe` [1.7.0版本](https://github.com/hihkm/DanmakuFactory/releases/tag/v1.70)
+2. `ffmpeg.exe` [n7.0](https://github.com/BtbN/FFmpeg-Builds/releases)
+3. `ffprobe.exe` [n7.0](https://github.com/BtbN/FFmpeg-Builds/releases)
 
 ## Development
 
