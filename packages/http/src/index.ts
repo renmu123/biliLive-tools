@@ -1,7 +1,7 @@
 import Koa from "koa";
 import Router from "koa-router";
 import bodyParser from "koa-bodyparser";
-import { init } from "@biliLive-tools/shared";
+// import { init } from "@biliLive-tools/shared";
 import { taskQueue as _taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
 import errorMiddleware from "./middleware/error.js";
 
@@ -26,31 +26,28 @@ export let taskQueue: typeof _taskQueue;
 export const globalConfig: {
   port: number;
   host: string;
-  configPath: string;
-  ffmpegPath: string;
-  ffprobePath: string;
-  danmakuFactoryPath: string;
-  logPath: string;
-  downloadPath: string;
-  ffmpegPresetPath: string;
-  videoPresetPath: string;
-  danmuPresetPath: string;
+  configPath?: string;
+  ffmpegPath?: string;
+  ffprobePath?: string;
+  danmakuFactoryPath?: string;
+  logPath?: string;
+  downloadPath?: string;
+  ffmpegPresetPath?: string;
+  videoPresetPath?: string;
+  danmuPresetPath?: string;
   taskQueue: typeof _taskQueue;
 } = {
   port: 18010,
   host: "localhost",
-  configPath: "C:\\Users\\renmu\\AppData\\Roaming\\biliLive-tools\\appConfig.json",
-  ffmpegPath:
-    "C:\\Users\\renmu\\AppData\\Local\\Programs\\biliLive-tools\\resources\\app.asar.unpacked\\resources\\bin\\ffmpeg.exe",
-  ffprobePath:
-    "C:\\Users\\renmu\\AppData\\Local\\Programs\\biliLive-tools\\resources\\app.asar.unpacked\\resources\\bin\\ffprobe.exe",
-  danmakuFactoryPath:
-    "C:\\Users\\renmu\\AppData\\Local\\Programs\\biliLive-tools\\resources\\app.asar.unpacked\\resources\\bin\\DanmakuFactory.exe",
-  logPath: "C:\\Users\\renmu\\AppData\\Roaming\\biliLive-tools\\logs\\main.log",
-  downloadPath: "C:\\Users\\renmu\\Downloads",
-  ffmpegPresetPath: "C:\\Users\\renmu\\AppData\\Roaming\\biliLive-tools\\ffmpeg_presets.json",
-  videoPresetPath: "C:\\Users\\renmu\\AppData\\Roaming\\biliLive-tools\\presets.json",
-  danmuPresetPath: "C:\\Users\\renmu\\AppData\\Roaming\\biliLive-tools\\danmu_presets.json",
+  configPath: "",
+  ffmpegPath: "ffmpeg.exe",
+  ffprobePath: ".exe",
+  danmakuFactoryPath: "DanmakuFactory.exe",
+  logPath: "main.log",
+  downloadPath: "",
+  ffmpegPresetPath: "",
+  videoPresetPath: "",
+  danmuPresetPath: "",
   taskQueue: _taskQueue,
 };
 
@@ -58,7 +55,7 @@ export function serverStart(config: Partial<typeof globalConfig> = {}) {
   Object.assign(globalConfig, config);
   taskQueue = globalConfig.taskQueue;
 
-  init(globalConfig);
+  // init(globalConfig);
 
   app.listen(globalConfig.port, globalConfig.host, () => {
     console.log(`Server is running at http://${globalConfig.host}:${globalConfig.port}`);
