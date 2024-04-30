@@ -19,7 +19,7 @@ async function unzip(zipFile, destination) {
       }
     }),
   );
-  // console.log("解压成功");
+  console.log("解压成功");
 }
 
 async function downloadFile(url, desc) {
