@@ -69,7 +69,7 @@ jobs:
 
       - name: build-win
         if: startsWith(matrix.os, 'windows')
-        run: pnpm run buid:win:app
+        run: pnpm run build:app
 
       # - name: remove ffmpeg.exe
       #   if: startsWith(matrix.os, 'windows')
@@ -96,6 +96,8 @@ jobs:
           files: |
             packages/app/dist/*.exe
             packages/app/dist/*.zip
+            packages/app/dist/*.deb
+            packages/app/dist/*.snap
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -104,7 +106,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Windows
-          path: packages/app/dist/*.exe
+          path: |
+            packages/app/dist/*.exe
+            packages/app/dist/*.zip
 
+      - name: Upload linux artifact
+        if: startsWith(matrix.os, 'linux') && env.is_tag == 'false'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Linux
+          path: |
+            packages/app/dist/*.deb
+            packages/app/dist/*.snap
 permissions:
   contents: write
