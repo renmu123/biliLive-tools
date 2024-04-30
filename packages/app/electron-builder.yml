@@ -43,8 +43,8 @@ linux:
   target:
     # - AppImage
     # - snap
-    - target: snap
-      arch: x64
+    # - target: snap
+    #   arch: x64
     - target: deb
       arch: x64
   maintainer: electronjs.org
