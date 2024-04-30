@@ -15,12 +15,20 @@ asarUnpack:
   - resources/**
 win:
   executableName: biliLive-tools
+  target:
+    - target: nsis
+      arch: x64
+    - target: zip
+      arch: x64
+
 nsis:
-  # artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
   deleteAppDataOnUninstall: true
+portable:
+  artifactName: ${productName}-${version}-${os}-${arch}-portable.${ext}
+
 mac:
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
