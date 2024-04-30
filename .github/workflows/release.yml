@@ -89,15 +89,14 @@ jobs:
 
       - name: release
         if: env.is_tag == 'true'
-        uses: softprops/action-gh-release@v1
+        uses: ncipollo/release-action@v1
         with:
+          allowUpdates: true
           draft: false
           token: ${{ secrets.GITHUB_TOKEN }}
-          files: |
-            packages/app/dist/*.exe
-            packages/app/dist/*.zip
-            packages/app/dist/*.deb
-            packages/app/dist/*.snap
+          artifactErrorsFailBuild: true
+          artifacts: "packages/app/dist/*.exe,packages/app/dist/*.zip,packages/app/dist/*.deb,packages/app/dist/*.snap"
+          replacesArtifacts: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
