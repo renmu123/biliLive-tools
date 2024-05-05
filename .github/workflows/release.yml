@@ -68,7 +68,6 @@ jobs:
         run: pnpm run install:bin
 
       - name: build-win
-        if: startsWith(matrix.os, 'windows')
         run: pnpm run build:app
 
       # - name: remove ffmpeg.exe
