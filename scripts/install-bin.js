@@ -16,6 +16,9 @@ async function unzip(zipFile, destination) {
         const filePath = path.join(destination, filename);
         fs.ensureDirSync(path.dirname(filePath));
         fs.writeFileSync(filePath, content);
+        if (process.platform === "linux") {
+          fs.chmodSync(filePath, 0o755);
+        }
       }
     }),
   );
