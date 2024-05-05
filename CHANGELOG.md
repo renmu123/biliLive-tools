@@ -17,15 +17,13 @@ blrec：`/blrec`修改为`/webhook/blrec`
 4. 暗色模式支持
 5. 视频预设增加“高级选项”参数，支持自定义ffmpeg输出参数，libsvtav1高级参数默认为`-svtav1-params tune=0`，libsvtav1支持10bit参数，qsv支持ICQ模式
 6. 为部分弹框增加“不再提示”按钮
-7. 支持转码页面
 
 ## 其他
 
-1. 上传后aid查询优化
-2. ffmpeg 版本升级至7.0
-3. 登录优化（退出账号后默认使用第一个账号）
-4. 修改ffmpeg预设中cbr名称为“平均比特率”
-5. server酱的key输入框type设置为password
+1. ffmpeg 版本升级至7.0
+2. 登录优化（退出账号后默认使用第一个账号）
+3. 修改ffmpeg预设中cbr名称为“平均比特率”
+4. server酱的key输入框type设置为password
 
 ## Bug 修复
 
