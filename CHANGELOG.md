@@ -11,12 +11,6 @@ blrec：`/blrec`修改为`/webhook/blrec`
 
 ## 特性
 
-<!-- 1. 支持斗鱼视频下载
-3. 支持转码页面及任务
-4. 增加切片功能
-5. 增加审核后发送弹幕统计功能
-6. 为弹幕转换增加黑名单功能 -->
-
 1. 新增 `danmakuFactory路径`、`port`、`host`配置，webhook服务器自启动，默认为18010端口
 2. 新增 `/webhook/bililiverecorder` 、`/webhook/blrec`、`/webhook/custom` webhook端点
 3. 优化工具页的文件选择栏&部分组件UI优化
