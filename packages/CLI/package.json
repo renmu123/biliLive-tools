@@ -1,0 +1,28 @@
+{
+  "name": "@biliLive-tools/CLI",
+  "version": "1.0.0-alpha.1",
+  "type": "module",
+  "description": "",
+  "main": "./lib/index.js",
+  "author": "renmu123",
+  "license": "GPL-3.0",
+  "homepage": "https://github.com/renmu123/biliLive-tools",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "start": "node ./lib/index.js",
+    "start:dev": "tsx watch src/index.ts "
+  },
+  "keywords": [],
+  "dependencies": {
+    "@biliLive-tools/http": "workspace:*",
+    "@biliLive-tools/shared": "workspace:*",
+    "@biliLive-tools/types": "workspace:*",
+    "cli-progress": "^3.12.0",
+    "commander": "^12.0.0"
+  },
+  "devDependencies": {
+    "@types/cli-progress": "^3.11.5",
+    "tsx": "^4.7.2"
+  }
+}

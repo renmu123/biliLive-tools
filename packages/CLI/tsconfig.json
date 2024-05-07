@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    // "composite": true,
+    "outDir": "./lib",
+    "rootDir": "./src",
+    "module": "NodeNext",
+    "target": "ESNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "declaration": true,
+  },
+  "include": ["src/**/*.ts"]
+}
