@@ -114,6 +114,16 @@
                 <FolderOpenOutline />
               </n-icon>
             </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex">
+                  ffmpeg最大任务数
+                  <Tip :tip="`-1为无限`"></Tip>
+                </span>
+              </template>
+              <n-input-number v-model:value="config.task.ffmpegMaxNum" min="-1" max="65535">
+              </n-input-number>
+            </n-form-item>
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="webhook" tab="webhook">
@@ -221,7 +231,11 @@ const appConfigStore = useAppConfig();
 const showModal = defineModel<boolean>({ required: true, default: false });
 
 // @ts-ignore
-const config: Ref<AppConfig> = ref({});
+const config: Ref<AppConfig> = ref({
+  task: {
+    ffmpegMaxNum: -1,
+  },
+});
 // @ts-ignore
 const initConfig: Ref<AppConfig> = ref({});
 

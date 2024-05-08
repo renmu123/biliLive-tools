@@ -275,9 +275,7 @@ function createMenu(): void {
 
 const canQuit = async () => {
   const tasks = taskQueue.list();
-  console.log("tasks", tasks);
   const isRunning = tasks.some((task) => ["running", "paused", "pending"].includes(task.status));
-  console.log("isRunning", isRunning);
   if (isRunning) {
     const confirm = await dialog.showMessageBox(mainWin, {
       message: "检测到有未完成的任务，是否退出？",

@@ -411,8 +411,6 @@ export const invokeWrap = <T extends (...args: any[]) => any>(fn: T) => {
   };
 };
 
-let tv: TvQrcodeLogin;
-
 // b站评论队列
 class BiliCommentQueue {
   list: {

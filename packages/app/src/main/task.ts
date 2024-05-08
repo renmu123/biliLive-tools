@@ -29,44 +29,32 @@ taskQueue.on("task-progress", ({ taskId }) => {
   mainWin.webContents.send("task-progress", { taskId: taskId });
 });
 
-export const handlePauseTask = (_event: IpcMainInvokeEvent, taskId: string) => {
-  return pauseTask(taskQueue, taskId);
-};
-export const handleResumeTask = (_event: IpcMainInvokeEvent, taskId: string) => {
-  return resumeTask(taskQueue, taskId);
-};
-export const handleKillTask = (_event: IpcMainInvokeEvent, taskId: string) => {
-  return killTask(taskQueue, taskId);
-};
-// export const hanldeInterruptTask = (_event: IpcMainInvokeEvent, taskId: string) => {
-//   return interruptTask(taskQueue, taskId);
-// };
-
-export const handleListTask = () => {
-  return taskQueue.stringify(taskQueue.list());
-};
-export const handleQueryTask = (_event: IpcMainInvokeEvent, taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (task) {
-    return taskQueue.stringify([task])[0];
-  } else {
-    return null;
-  }
-};
-export const handleStartTask = (_event: IpcMainInvokeEvent, taskId: string) => {
-  return taskQueue.start(taskId);
-};
-export const handleRemoveTask = (_event: IpcMainInvokeEvent, taskId: string) => {
-  return taskQueue.remove(taskId);
-};
-
 export const handlers = {
-  "task:start": handleStartTask,
-  "task:pause": handlePauseTask,
-  "task:resume": handleResumeTask,
+  "task:start": (_event: IpcMainInvokeEvent, taskId: string) => {
+    return taskQueue.start(taskId);
+  },
+  "task:pause": (_event: IpcMainInvokeEvent, taskId: string) => {
+    return pauseTask(taskQueue, taskId);
+  },
+  "task:resume": (_event: IpcMainInvokeEvent, taskId: string) => {
+    return resumeTask(taskQueue, taskId);
+  },
   // "task:interrupt": hanldeInterruptTask,
-  "task:kill": handleKillTask,
-  "task:list": handleListTask,
-  "task:query": handleQueryTask,
-  "task:remove": handleRemoveTask,
+  "task:kill": (_event: IpcMainInvokeEvent, taskId: string) => {
+    return killTask(taskQueue, taskId);
+  },
+  "task:list": () => {
+    return taskQueue.stringify(taskQueue.list());
+  },
+  "task:query": (_event: IpcMainInvokeEvent, taskId: string) => {
+    const task = taskQueue.queryTask(taskId);
+    if (task) {
+      return taskQueue.stringify([task])[0];
+    } else {
+      return null;
+    }
+  },
+  "task:remove": (_event: IpcMainInvokeEvent, taskId: string) => {
+    return taskQueue.remove(taskId);
+  },
 };

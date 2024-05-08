@@ -154,6 +154,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       // savePath: app.getPath("downloads"),
     },
   },
+  task: {
+    ffmpegMaxNum: -1,
+  },
   notification: {
     task: {
       ffmpeg: [],

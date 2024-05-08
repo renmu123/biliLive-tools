@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 
 import { uuid, isWin32 } from "../utils/index.js";
-// import log from "./utils/log";
+import log from "../utils/log.js";
 import * as ntsuspend from "ntsuspend";
 import { Danmu } from "../danmu/index.js";
 import { TaskType } from "../enum.js";
@@ -12,18 +12,12 @@ import type ffmpeg from "fluent-ffmpeg";
 import type { Client } from "@renmu/bili-api";
 import type { Progress, NotificationTaskStatus } from "@biliLive-tools/types";
 
-const log = {
-  info: console.log,
-  error: console.error,
-  warn: console.warn,
-  debug: console.debug,
-};
-
 const emitter = new EventEmitter();
 
+type Status = "pending" | "running" | "paused" | "completed" | "error";
 abstract class AbstractTask {
   taskId: string;
-  status: "pending" | "running" | "paused" | "completed" | "error";
+  status: Status;
   name: string;
   relTaskId?: string;
   output?: string;
@@ -493,9 +487,21 @@ export class TaskQueue {
     this.queue = [];
   }
   addTask(task: AbstractTask, autoRun = true) {
+    // task.type
     this.queue.push(task);
-    if (autoRun) {
-      task.exec();
+
+    if (task.type === TaskType.ffmpeg) {
+      const config = appConfig.getAll();
+      const maxNum = config?.task?.ffmpegMaxNum ?? -1;
+      if (maxNum > 0) {
+        this.filter({ type: TaskType.ffmpeg, status: "running" }).length < maxNum && task.exec();
+      } else if (maxNum === -1) {
+        task.exec();
+      }
+    } else {
+      if (autoRun) {
+        task.exec();
+      }
     }
   }
   queryTask(taskId: string) {
@@ -517,6 +523,13 @@ export class TaskQueue {
         endTime: task.endTime,
         custsomProgressMsg: task.custsomProgressMsg,
       };
+    });
+  }
+  filter(options: { type?: string; status?: Status }) {
+    return this.queue.filter((task) => {
+      if (options.type && task.type !== options.type) return false;
+      if (options.status && task.status !== options.status) return false;
+      return true;
     });
   }
   list() {
@@ -559,12 +572,6 @@ export const killTask = (taskQueue: TaskQueue, taskId: string) => {
   if (!task) return;
   return task.kill();
 };
-// export const interruptTask = (taskQueue: TaskQueue, taskId: string) => {
-//   const task = taskQueue.queryTask(taskId);
-//   if (!task) return;
-
-//   return (task as FFmpegTask).interrupt();
-// };
 
 export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) => {
   const task = taskQueue.queryTask(taskId);
@@ -609,6 +616,37 @@ export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) =>
 };
 
 export const taskQueue = new TaskQueue();
+
+const addTaskForLimit = () => {
+  const config = appConfig.getAll();
+  const maxNum = config?.task?.ffmpegMaxNum ?? -1;
+  const pendingFFmpegTask = taskQueue.filter({ type: TaskType.ffmpeg, status: "pending" });
+
+  if (maxNum !== -1) {
+    const runningFFmpegTaskCount = taskQueue.filter({
+      type: TaskType.ffmpeg,
+      status: "running",
+    }).length;
+
+    if (runningFFmpegTaskCount < maxNum) {
+      pendingFFmpegTask.slice(0, maxNum - runningFFmpegTaskCount).forEach((task) => {
+        task.exec();
+      });
+    }
+  } else {
+    pendingFFmpegTask.forEach((task) => {
+      task.exec();
+    });
+  }
+};
+
+taskQueue.on("task-start", () => {});
+taskQueue.on("task-end", () => {
+  addTaskForLimit();
+});
+taskQueue.on("task-error", () => {
+  addTaskForLimit();
+});
 
 export const handlePauseTask = (taskId: string) => {
   return pauseTask(taskQueue, taskId);

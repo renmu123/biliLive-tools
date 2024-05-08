@@ -246,6 +246,10 @@ export interface AppConfig {
       tg: NotificationTgConfig;
     };
   };
+  /** 最大任务数 */
+  task: {
+    ffmpegMaxNum: number;
+  };
 }
 
 // export type LogLevel = ElectronLoGLevel;

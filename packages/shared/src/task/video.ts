@@ -101,7 +101,7 @@ export const convertImage2Video = async (
     },
   );
 
-  taskQueue.addTask(task, true);
+  taskQueue.addTask(task, false);
   return {
     status: "success",
     text: "添加到任务队列",
@@ -168,7 +168,7 @@ export const convertVideo2Mp4 = async (
     },
   );
 
-  taskQueue.addTask(task, true);
+  taskQueue.addTask(task, false);
   return {
     status: "success",
     text: "添加到任务队列",
@@ -295,7 +295,7 @@ export const mergeAssMp4 = async (
       },
     },
   );
-  taskQueue.addTask(task, true);
+  taskQueue.addTask(task, false);
 
   return {
     taskId: task.taskId,
@@ -369,7 +369,7 @@ export const mergeVideos = async (
     },
   );
 
-  taskQueue.addTask(task, true);
+  taskQueue.addTask(task, false);
   return {
     status: "success",
     text: "添加到任务队列",
