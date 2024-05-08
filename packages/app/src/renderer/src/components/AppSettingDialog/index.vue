@@ -9,7 +9,7 @@
       class="card"
     >
       <n-tabs type="segment">
-        <n-tab-pane name="common" tab="普通设置">
+        <n-tab-pane name="common" tab="基本">
           <n-form ref="formRef" label-placement="left" :label-width="160">
             <n-form-item>
               <template #label>
@@ -114,16 +114,6 @@
                 <FolderOpenOutline />
               </n-icon>
             </n-form-item>
-            <n-form-item>
-              <template #label>
-                <span class="inline-flex">
-                  ffmpeg最大任务数
-                  <Tip :tip="`-1为无限`"></Tip>
-                </span>
-              </template>
-              <n-input-number v-model:value="config.task.ffmpegMaxNum" min="-1" max="65535">
-              </n-input-number>
-            </n-form-item>
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="webhook" tab="webhook">
@@ -189,7 +179,7 @@
             <!-- </div> -->
           </n-form>
         </n-tab-pane>
-        <n-tab-pane name="notification" tab="通知">
+        <n-tab-pane name="notification" tab="任务">
           <NotificationSetting v-model:data="config"></NotificationSetting>
         </n-tab-pane>
       </n-tabs>

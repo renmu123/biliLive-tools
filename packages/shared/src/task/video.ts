@@ -101,7 +101,7 @@ export const convertImage2Video = async (
     },
   );
 
-  taskQueue.addTask(task, false);
+  taskQueue.addTask(task, true);
   return {
     status: "success",
     text: "添加到任务队列",

@@ -35,6 +35,6 @@ body:
     id: share-log
     attributes:
       label: 分享log
-      description: 将”设置-普通设置-log等级“调整至debug，贴上相关log
+      description: 将”设置-基本-log等级“调整至debug，贴上相关log
     validations:
       required: false

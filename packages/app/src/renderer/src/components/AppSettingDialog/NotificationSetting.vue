@@ -1,7 +1,7 @@
 <template>
   <div class="">
-    <n-form ref="formRef" label-placement="left" :label-width="120">
-      <h2>通知配置</h2>
+    <n-form label-placement="left" :label-width="120">
+      <h2>通知</h2>
       <n-form-item label="通知类型">
         <n-select
           v-model:value="config.notification.setting.type"
@@ -104,8 +104,7 @@
             placeholder="请输入chat_id"
           ></n-input> </n-form-item
       ></template>
-
-      <h2>任务</h2>
+      <h3>通知任务</h3>
       <n-form-item label="ffmpeg任务">
         <n-checkbox-group v-model:value="config.notification.task.ffmpeg">
           <n-space item-style="display: flex;">
@@ -137,6 +136,17 @@
             <n-checkbox value="failure" label="失败" />
           </n-space>
         </n-checkbox-group>
+      </n-form-item>
+    </n-form>
+
+    <h2>任务数<Tip :tip="`-1为无限`"></Tip></h2>
+    <n-form label-placement="left" :label-width="140">
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> ffmpeg最大任务数 </span>
+        </template>
+        <n-input-number v-model:value="config.task.ffmpegMaxNum" min="-1" max="65535">
+        </n-input-number>
       </n-form-item>
     </n-form>
   </div>
