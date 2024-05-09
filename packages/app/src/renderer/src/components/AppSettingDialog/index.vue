@@ -54,7 +54,7 @@
                 <span class="inline-flex">
                   port
                   <Tip
-                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>录播姬的webhook地址设置为：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址设置为：http://127.0.0.1:${config.port}/webhook/blrec<br/>修改后需重启生效`"
+                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>B站录播姬的webhook：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址：http://127.0.0.1:${config.port}/webhook/blrec<br/><br/>自定义的webhook地址：http://127.0.0.1:${config.port}/webhook/custom <br/>修改后需重启生效`"
                   ></Tip>
                 </span>
               </template>
@@ -120,10 +120,12 @@
           <n-form label-placement="left" :label-width="130">
             <n-form-item>
               <template #label>
-                <span class="inline-flex"> webhook </span>
-                <Tip
-                  :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>录播姬的webhook地址设置为：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址设置为：http://127.0.0.1:${config.port}/webhook/blrec<br/>修改后需重启生效`"
-                ></Tip>
+                <span class="inline-flex">
+                  webhook
+                  <Tip
+                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>B站录播姬的webhook：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址：http://127.0.0.1:${config.port}/webhook/blrec<br/><br/>自定义的webhook地址：http://127.0.0.1:${config.port}/webhook/custom <br/>修改后需重启生效`"
+                  ></Tip>
+                </span>
               </template>
               <n-switch v-model:value="config.webhook.open" />
             </n-form-item>
