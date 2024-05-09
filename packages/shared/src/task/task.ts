@@ -489,6 +489,10 @@ export class TaskQueue {
   addTask(task: AbstractTask, autoRun = true) {
     // task.type
     this.queue.push(task);
+    if (autoRun) {
+      task.exec();
+      return task;
+    }
 
     if (task.type === TaskType.ffmpeg) {
       const config = appConfig.getAll();
@@ -496,10 +500,6 @@ export class TaskQueue {
       if (maxNum > 0) {
         this.filter({ type: TaskType.ffmpeg, status: "running" }).length < maxNum && task.exec();
       } else if (maxNum === -1) {
-        task.exec();
-      }
-    } else {
-      if (autoRun) {
         task.exec();
       }
     }
