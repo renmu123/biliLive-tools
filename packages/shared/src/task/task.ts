@@ -243,7 +243,7 @@ export class FFmpegTask extends AbstractTask {
     }
     // @ts-ignore
     this.command.ffmpegProc.stdin.write("q");
-    log.warn(`task ${this.taskId} interrupt`);
+    log.warn(`task ${this.taskId} killed`);
     this.isInterrupted = true;
     this.status = "error";
     return true;
@@ -640,12 +640,15 @@ const addTaskForLimit = () => {
   }
 };
 
-taskQueue.on("task-start", () => {});
+taskQueue.on("task-start", ({ taskId }) => {
+  sendTaskNotify("success", taskId);
+});
 taskQueue.on("task-end", () => {
   addTaskForLimit();
 });
-taskQueue.on("task-error", () => {
+taskQueue.on("task-error", ({ taskId }) => {
   addTaskForLimit();
+  sendTaskNotify("failure", taskId);
 });
 
 export const handlePauseTask = (taskId: string) => {

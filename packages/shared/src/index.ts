@@ -14,7 +14,6 @@ const init = (config: {
   videoPresetPath: string;
   danmuPresetPath: string;
 }) => {
-  // logger.info("init", config);
   appConfig.init(config.configPath, {
     ffmpegPath: config.ffmpegPath,
     ffprobePath: config.ffprobePath,
@@ -28,7 +27,9 @@ const init = (config: {
   ffmpegPreset.init(config.ffmpegPresetPath);
   videoPreset.init(config.videoPresetPath);
   danmuPreset.init(config.danmuPresetPath);
-  initLogger(config.logPath);
+
+  const logLevel = appConfig.get("logLevel");
+  initLogger(config.logPath, logLevel);
   setFfmpegPath();
 };
 

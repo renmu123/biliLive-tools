@@ -165,8 +165,8 @@ importers:
         specifier: ^4.2.0
         version: 4.2.0
       naive-ui:
-        specifier: ^2.38.1
-        version: 2.38.1(vue@3.4.23(typescript@5.4.5))
+        specifier: ^2.38.2
+        version: 2.38.2(vue@3.4.23(typescript@5.4.5))
       qrcode-vue3:
         specifier: ^1.6.8
         version: 1.6.8
@@ -2908,8 +2908,8 @@ packages:
   muggle-string@0.4.1:
     resolution: {integrity: sha512-VNTrAak/KhO2i8dqqnqnAHOa3cYBwXEZe9h+D5h/1ZqFSTEFHdM65lR7RoIqq3tBBYavsOXV84NoHXZ0AkPyqQ==}
 
-  naive-ui@2.38.1:
-    resolution: {integrity: sha512-AnU1FQ7K/CbhguAX++V4kCFjk7h7RvWt4nvZPRjORMpq+fUIlzD+EcQ5Cv1VqDloNF8+eMv4Akc2Ogacc9S+5A==}
+  naive-ui@2.38.2:
+    resolution: {integrity: sha512-WhZ+6DW61aYSmFyfH7evcSGFmd2xR68Yq1mNRrVdJwBhZsnNdAUsMN9IeNCVEPMCND/jzYZghkStoNoR5Xa09g==}
     peerDependencies:
       vue: ^3.0.0
 
@@ -6846,7 +6846,7 @@ snapshots:
 
   muggle-string@0.4.1: {}
 
-  naive-ui@2.38.1(vue@3.4.23(typescript@5.4.5)):
+  naive-ui@2.38.2(vue@3.4.23(typescript@5.4.5)):
     dependencies:
       '@css-render/plugin-bem': 0.15.12(css-render@0.15.12)
       '@css-render/vue3-ssr': 0.15.12(vue@3.4.23(typescript@5.4.5))

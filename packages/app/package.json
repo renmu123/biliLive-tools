@@ -61,7 +61,7 @@
     "eslint": "^8.56.0",
     "eslint-plugin-vue": "^9.25.0",
     "less": "^4.2.0",
-    "naive-ui": "^2.38.1",
+    "naive-ui": "^2.38.2",
     "qrcode-vue3": "^1.6.8",
     "unplugin-auto-import": "^0.17.5",
     "unplugin-vue-components": "^0.26.0",

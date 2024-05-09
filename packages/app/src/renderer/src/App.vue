@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { NIcon, createDiscreteApi, darkTheme, lightTheme } from "naive-ui";
+import { NIcon, createDiscreteApi, darkTheme, lightTheme, useOsTheme } from "naive-ui";
 import type { MenuOption } from "naive-ui";
 import { RouterLink } from "vue-router";
 import { storeToRefs } from "pinia";
@@ -193,11 +193,12 @@ setInterval(() => {
   quenuStore.getQuenu();
 }, 1000);
 
+const osThemeRef = useOsTheme();
 const theme = computed(() => {
   if (appConfig.appConfig.theme === "system") {
     // js检测系统主题
-    const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    if (darkQuery.matches) {
+    // const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    if (osThemeRef.value === "dark") {
       return darkTheme;
     } else {
       return lightTheme;
