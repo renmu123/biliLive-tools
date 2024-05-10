@@ -2,7 +2,10 @@
 <template>
   <div>
     <div class="flex justify-center align-center" style="margin-bottom: 20px; gap: 10px">
-      <n-button @click="addVideo"> 添加文件 </n-button>
+      <span v-if="fileList.length !== 0" style="cursor: pointer; color: #958e8e" @click="clear"
+        >清空</span
+      >
+      <n-button @click="addVideo"> 添加 </n-button>
       <n-button type="primary" @click="convert"> 立即转换 </n-button>
       <n-select
         v-model:value="danmuPresetId"
@@ -16,6 +19,7 @@
     </div>
 
     <FileSelect
+      ref="fileSelect"
       v-model="fileList"
       area-placeholder="请选择xml文件"
       :extensions="['xml']"
@@ -115,6 +119,10 @@ const fileSelect = ref(null);
 const addVideo = async () => {
   // @ts-ignore
   fileSelect.value.select();
+};
+
+const clear = () => {
+  fileList.value = [];
 };
 </script>
 

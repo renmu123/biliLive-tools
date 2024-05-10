@@ -2,7 +2,10 @@
 <template>
   <div>
     <div class="flex justify-center align-center" style="margin-bottom: 20px; gap: 10px">
-      <n-button @click="addVideo"> 添加视频 </n-button>
+      <span v-if="fileList.length !== 0" style="cursor: pointer; color: #958e8e" @click="clear"
+        >清空</span
+      >
+      <n-button @click="addVideo"> 添加 </n-button>
       <n-button type="primary" @click="upload"> 立即上传 </n-button>
       <n-button type="primary" @click="appendVideoVisible = true"> 续传 </n-button>
     </div>
@@ -118,6 +121,9 @@ const fileSelect = ref(null);
 const addVideo = async () => {
   // @ts-ignore
   fileSelect.value.select();
+};
+const clear = () => {
+  fileList.value = [];
 };
 </script>
 

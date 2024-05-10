@@ -11,14 +11,17 @@
         gap: 5px;
       "
     >
-      <n-button @click="addVideo"> 添加文件 </n-button>
+      <span v-if="fileList.length !== 0" style="cursor: pointer; color: #958e8e" @click="clear"
+        >清空</span
+      >
+      <n-button @click="addVideo"> 添加 </n-button>
       <n-button type="primary" @click="convert"> 立即合并 </n-button>
       <Tip
         tip="注意：并非所有容器都支持流复制。如果出现播放问题或未合并文件，则可能需要重新编码。"
         :size="26"
       ></Tip>
     </div>
-    <FileSelect v-model="fileList"></FileSelect>
+    <FileSelect ref="fileSelect" v-model="fileList"></FileSelect>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div></div>
@@ -109,6 +112,10 @@ const fileSelect = ref(null);
 const addVideo = async () => {
   // @ts-ignore
   fileSelect.value.select();
+};
+
+const clear = () => {
+  fileList.value = [];
 };
 </script>
 
