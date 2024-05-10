@@ -4,7 +4,6 @@ import { uuid, isWin32 } from "../utils/index.js";
 import log from "../utils/log.js";
 import * as ntsuspend from "ntsuspend";
 import { Danmu } from "../danmu/index.js";
-import { TaskType } from "../enum.js";
 import { sendNotify } from "../notify.js";
 import { appConfig } from "../index.js";
 
@@ -12,6 +11,7 @@ import type ffmpeg from "fluent-ffmpeg";
 import type { Client } from "@renmu/bili-api";
 import type { Progress, NotificationTaskStatus } from "@biliLive-tools/types";
 import type { Status } from "@biliLive-tools/types/task.d.ts";
+import { TaskType } from "@biliLive-tools/types/enum.js";
 
 const emitter = new EventEmitter();
 
