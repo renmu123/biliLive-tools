@@ -245,8 +245,8 @@ const preHandle = async (
   if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
     const status = await confirm.warning({
       content: `目标视频分辨率为${width}*${height}，与设置的弹幕分辨率不一致，是否继续？`,
-      notShowAgain: true,
-      key: "danmuResolution",
+      showCheckbox: true,
+      showAgainKey: "danmuResolution",
     });
     if (!status) return false;
   }

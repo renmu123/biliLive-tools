@@ -64,7 +64,7 @@
               :size="20"
               class="btn pointer"
               title="中止"
-              @click="handleKill(item.taskId)"
+              @click="handleKill(item)"
             >
               <TrashOutline />
             </n-icon>
@@ -273,12 +273,28 @@ const handlePause = (taskId: string) => {
 //   getQuenu();
 // };
 
-const handleKill = async (taskId: string) => {
-  const status = await confirm.warning({
-    content: "确定要中止任务吗？",
-  });
-  if (!status) return;
-  window.api.task.kill(taskId);
+const handleKill = async (task: Task) => {
+  if (task.type === TaskType.ffmpeg) {
+    // @ts-ignore
+    const [status, savePorcess] = await confirm.warning({
+      content: "确定要中止任务吗？",
+      showCheckbox: true,
+      checkboxText: "保存进度",
+    });
+    if (!status) return;
+    if (savePorcess) {
+      window.api.task.interrupt(task.taskId);
+    } else {
+      window.api.task.kill(task.taskId);
+    }
+  } else {
+    const status = await confirm.warning({
+      content: "确定要中止任务吗？",
+    });
+    if (!status) return;
+    window.api.task.kill(task.taskId);
+  }
+
   store.getQuenu();
 };
 
@@ -297,10 +313,6 @@ const openExternal = (item: Task) => {
 
 const handleRemoveRecord = (taskId: string) => {
   window.api.task.remove(taskId);
-  notice.success({
-    title: "删除记录成功",
-    duration: 1000,
-  });
   store.getQuenu();
 };
 

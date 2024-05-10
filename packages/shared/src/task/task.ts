@@ -11,10 +11,11 @@ import { appConfig } from "../index.js";
 import type ffmpeg from "fluent-ffmpeg";
 import type { Client } from "@renmu/bili-api";
 import type { Progress, NotificationTaskStatus } from "@biliLive-tools/types";
+import type { Status } from "@biliLive-tools/types/task.d.ts";
 
 const emitter = new EventEmitter();
 
-type Status = "pending" | "running" | "paused" | "completed" | "error";
+// type Status = "pending" | "running" | "paused" | "completed" | "error";
 abstract class AbstractTask {
   taskId: string;
   status: Status;
@@ -149,7 +150,7 @@ export class FFmpegTask extends AbstractTask {
     this.command = command;
     this.output = options.output;
     this.progress = 0;
-    this.action = ["kill", "pause"];
+    this.action = ["kill", "pause", "interrupt"];
     if (options.name) {
       this.name = options.name;
     }
@@ -226,16 +227,7 @@ export class FFmpegTask extends AbstractTask {
     this.status = "running";
     return true;
   }
-  // interrupt() {
-  //   if (this.status === "completed" || this.status === "error") return;
-  //   // @ts-ignore
-  //   this.command.ffmpegProc.stdin.write("q");
-  //   log.warn(`task ${this.taskId} interrupt`);
-  //   this.isInterrupted = true;
-  //   this.status = "error";
-  //   return true;
-  // }
-  kill() {
+  interrupt() {
     if (this.status === "completed" || this.status === "error") return;
     if (isWin32) {
       // @ts-ignore
@@ -243,8 +235,19 @@ export class FFmpegTask extends AbstractTask {
     }
     // @ts-ignore
     this.command.ffmpegProc.stdin.write("q");
-    log.warn(`task ${this.taskId} killed`);
+    log.warn(`task ${this.taskId} interrupted`);
     this.isInterrupted = true;
+    this.status = "error";
+    return true;
+  }
+  kill() {
+    if (this.status === "completed" || this.status === "error") return;
+    if (isWin32) {
+      // @ts-ignore
+      ntsuspend.resume(this.command.ffmpegProc.pid);
+    }
+    this.command.kill("SIGKILL");
+    log.warn(`task ${this.taskId} killed`);
     this.status = "error";
     return true;
   }
@@ -557,22 +560,6 @@ export class TaskQueue {
   }
 }
 
-export const pauseTask = (taskQueue: TaskQueue, taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (!task) return;
-  return task.pause();
-};
-export const resumeTask = (taskQueue: TaskQueue, taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (!task) return;
-  return task.resume();
-};
-export const killTask = (taskQueue: TaskQueue, taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (!task) return;
-  return task.kill();
-};
-
 export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) => {
   const task = taskQueue.queryTask(taskId);
   if (!task) return;
@@ -652,17 +639,29 @@ taskQueue.on("task-error", ({ taskId }) => {
 });
 
 export const handlePauseTask = (taskId: string) => {
-  return pauseTask(taskQueue, taskId);
+  const task = taskQueue.queryTask(taskId);
+  if (!task) return;
+  return task.pause();
 };
 export const handleResumeTask = (taskId: string) => {
-  return resumeTask(taskQueue, taskId);
+  const task = taskQueue.queryTask(taskId);
+  if (!task) return;
+  return task.resume();
 };
 export const handleKillTask = (taskId: string) => {
-  return killTask(taskQueue, taskId);
+  const task = taskQueue.queryTask(taskId);
+  if (!task) return;
+  return task.kill();
 };
-// export const hanldeInterruptTask = (_event: IpcMainInvokeEvent, taskId: string) => {
-//   return interruptTask(taskQueue, taskId);
-// };
+export const hanldeInterruptTask = (taskId: string) => {
+  const task = taskQueue.queryTask(taskId);
+  if (!task) return null;
+  if (task.action.includes("interrupt")) {
+    // @ts-ignore
+    return task.interrupt();
+  }
+  return false;
+};
 
 export const handleListTask = () => {
   return taskQueue.stringify(taskQueue.list());

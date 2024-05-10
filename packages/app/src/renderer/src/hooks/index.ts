@@ -9,19 +9,23 @@ export const useConfirm = () => {
       content,
       positiveText,
       negativeText,
-      notShowAgain,
-      key,
+      showCheckbox,
+      showAgainKey,
+      checkboxText,
+      checkboxTip,
     }: {
       title?: string;
       content: string;
       positiveText?: string;
       negativeText?: string;
-      notShowAgain?: boolean;
-      key?: string;
+      showCheckbox?: boolean;
+      checkboxText?: string;
+      showAgainKey?: string;
+      checkboxTip?: string;
     }) =>
       new Promise((reslove) => {
         const data = JSON.parse(localStorage.getItem("notShowAgain") || "{}");
-        if (key && data[key] === true) return reslove(true);
+        if (showAgainKey && data[showAgainKey] === true) return reslove(true);
 
         const hasChecked = ref(false);
         const d = dialog.warning({
@@ -29,7 +33,7 @@ export const useConfirm = () => {
           content: content,
           action: () => {
             let checkbox = h("div");
-            if (notShowAgain) {
+            if (showCheckbox) {
               checkbox = h(
                 NCheckbox,
                 {
@@ -38,8 +42,10 @@ export const useConfirm = () => {
                   "onUpdate:checked": (value: boolean) => {
                     hasChecked.value = value;
                   },
+                  title: checkboxTip,
                 },
-                "不再提示",
+                h("span", checkboxText || "不再提示"),
+                // checkboxText || "不再提示",
               );
             }
             const btns = h(
@@ -56,7 +62,11 @@ export const useConfirm = () => {
                   {
                     onClick: () => {
                       d.destroy();
-                      reslove(false);
+                      if (showCheckbox) {
+                        reslove([false, hasChecked.value]);
+                      } else {
+                        reslove(false);
+                      }
                     },
                   },
                   negativeText || "取消",
@@ -66,12 +76,17 @@ export const useConfirm = () => {
                   {
                     type: "primary",
                     onClick: () => {
-                      if (key && hasChecked.value) {
-                        data[key] = true;
-                        localStorage.setItem("notShowAgain", JSON.stringify(data));
+                      if (showCheckbox) {
+                        if (showAgainKey) {
+                          data[showAgainKey] = hasChecked.value;
+                          localStorage.setItem("notShowAgain", JSON.stringify(data));
+                        }
+                        reslove([true, hasChecked.value]);
+                      } else {
+                        reslove(true);
                       }
+
                       d.destroy();
-                      reslove(true);
                     },
                   },
                   positiveText || "继续",

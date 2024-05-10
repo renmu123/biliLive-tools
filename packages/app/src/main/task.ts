@@ -1,8 +1,13 @@
 import {
   taskQueue,
-  pauseTask,
-  resumeTask,
-  killTask,
+  handleStartTask,
+  handlePauseTask,
+  handleResumeTask,
+  handleKillTask,
+  hanldeInterruptTask,
+  handleListTask,
+  handleRemoveTask,
+  handleQueryTask,
 } from "@biliLive-tools/shared/lib/task/task.js";
 import type { IpcMainInvokeEvent } from "electron";
 import { mainWin } from "./index";
@@ -26,30 +31,27 @@ taskQueue.on("task-progress", ({ taskId }) => {
 
 export const handlers = {
   "task:start": (_event: IpcMainInvokeEvent, taskId: string) => {
-    return taskQueue.start(taskId);
+    return handleStartTask(taskId);
   },
   "task:pause": (_event: IpcMainInvokeEvent, taskId: string) => {
-    return pauseTask(taskQueue, taskId);
+    return handlePauseTask(taskId);
   },
   "task:resume": (_event: IpcMainInvokeEvent, taskId: string) => {
-    return resumeTask(taskQueue, taskId);
+    return handleResumeTask(taskId);
   },
-  // "task:interrupt": hanldeInterruptTask,
+  "task:interrupt": (_event: IpcMainInvokeEvent, taskId: string) => {
+    return hanldeInterruptTask(taskId);
+  },
   "task:kill": (_event: IpcMainInvokeEvent, taskId: string) => {
-    return killTask(taskQueue, taskId);
+    return handleKillTask(taskId);
   },
   "task:list": () => {
-    return taskQueue.stringify(taskQueue.list());
+    return handleListTask();
   },
   "task:query": (_event: IpcMainInvokeEvent, taskId: string) => {
-    const task = taskQueue.queryTask(taskId);
-    if (task) {
-      return taskQueue.stringify([task])[0];
-    } else {
-      return null;
-    }
+    return handleQueryTask(taskId);
   },
   "task:remove": (_event: IpcMainInvokeEvent, taskId: string) => {
-    return taskQueue.remove(taskId);
+    return handleRemoveTask(taskId);
   },
 };
