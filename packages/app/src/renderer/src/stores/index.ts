@@ -1,7 +1,7 @@
 import { cloneDeep } from "lodash-es";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
-import { TaskType } from "@biliLive-tools/types/enum";
+import { TaskType } from "@biliLive-tools/shared/lib/enum";
 
 export const useUserInfoStore = defineStore("userInfo", () => {
   const appConfigStore = useAppConfig();

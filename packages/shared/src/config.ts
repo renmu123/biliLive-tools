@@ -183,6 +183,13 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       },
     },
   },
+  translate: {
+    type: "ollama",
+    ollama: {
+      server: "http://localhost:11434",
+      model: undefined,
+    },
+  },
 };
 
 type DeepPartial<T> = T extends object

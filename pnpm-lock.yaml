@@ -94,6 +94,9 @@ importers:
       ntsuspend:
         specifier: ^1.0.2
         version: 1.0.2
+      ollama:
+        specifier: ^0.5.1
+        version: 0.5.1
       pinia:
         specifier: ^2.1.7
         version: 2.1.7(typescript@5.4.5)(vue@3.4.23(typescript@5.4.5))
@@ -200,6 +203,9 @@ importers:
       '@biliLive-tools/types':
         specifier: workspace:*
         version: link:../types
+      '@koa/cors':
+        specifier: ^5.0.0
+        version: 5.0.0
       cli-progress:
         specifier: ^3.12.0
         version: 3.12.0
@@ -792,6 +798,10 @@ packages:
 
   '@juggle/resize-observer@3.4.0':
     resolution: {integrity: sha512-dfLbk+PwWvFzSxwk3n5ySL0hfBog779o8h68wK/7/APo/7cgyWp5jcXockbxdk5kFRkbeXWm4Fbi9FrdN381sA==}
+
+  '@koa/cors@5.0.0':
+    resolution: {integrity: sha512-x/iUDjcS90W69PryLDIMgFyV21YLTnG9zOpPXS7Bkt2b8AsY3zZsIpOLBkYr9fBcF3HbkKaER5hOBZLfpLgYNw==}
+    engines: {node: '>= 14.0.0'}
 
   '@malept/cross-spawn-promise@1.1.1':
     resolution: {integrity: sha512-RTBGWL5FWQcg9orDOCcp4LvItNzUPcyEU9bwaeJX0rJ1IQxzucC48Y0/sQLp/g6t99IQgAlGIaesJS+gTn7tVQ==}
@@ -2980,6 +2990,9 @@ packages:
     resolution: {integrity: sha512-NuAESUOUMrlIXOfHKzD6bpPu3tYt3xvjNdRIQ+FeT0lNb4K8WR70CaDxhuNguS2XG+GjkyMwOzsN5ZktImfhLA==}
     engines: {node: '>= 0.4'}
 
+  ollama@0.5.1:
+    resolution: {integrity: sha512-mAiCHxdvu63E8EFopz0y82QG7rGfYmKAWgmjG2C7soiRuz/Sj3r/ebvCOp+jasiCubqUPE0ZThKT5LR6wrrPtA==}
+
   on-finished@2.4.1:
     resolution: {integrity: sha512-oVlzkg3ENAhCk2zdv7IJwd/QUD4z2RxRwpkcGY8psCVcCYZNq4wYnVWALHM+brtuJjePWiYF/ClmuDr8Ch5+kg==}
     engines: {node: '>= 0.8'}
@@ -3909,6 +3922,9 @@ packages:
   webpack-virtual-modules@0.6.1:
     resolution: {integrity: sha512-poXpCylU7ExuvZK8z+On3kX+S8o/2dQ/SVYueKA0D4WEMXROXgY8Ez50/bQEUmvoSMMrWcrJqCHuhAbsiwg7Dg==}
 
+  whatwg-fetch@3.6.20:
+    resolution: {integrity: sha512-EqhiFU6daOA8kpjOWTL0olhVOF3i7OrFzSYiGsEMB8GcXS+RrzauAERX65xMeNWVqxA6HXH2m69Z9LaKKdisfg==}
+
   which@1.3.1:
     resolution: {integrity: sha512-HxJdYWq1MTIQbJ3nw0cqssHoTNU267KlrDuGZ1WYlxDStUtKUhOaJmh112/TZmHxxUfuJqPXSOm7tDyas0OSIQ==}
     hasBin: true
@@ -4440,6 +4456,10 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.4.15
 
   '@juggle/resize-observer@3.4.0': {}
+
+  '@koa/cors@5.0.0':
+    dependencies:
+      vary: 1.1.2
 
   '@malept/cross-spawn-promise@1.1.1':
     dependencies:
@@ -6919,6 +6939,10 @@ snapshots:
   object-keys@1.1.1:
     optional: true
 
+  ollama@0.5.1:
+    dependencies:
+      whatwg-fetch: 3.6.20
+
   on-finished@2.4.1:
     dependencies:
       ee-first: 1.1.1
@@ -7844,6 +7868,8 @@ snapshots:
   webpack-sources@3.2.3: {}
 
   webpack-virtual-modules@0.6.1: {}
+
+  whatwg-fetch@3.6.20: {}
 
   which@1.3.1:
     dependencies:

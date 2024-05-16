@@ -15,19 +15,20 @@
   },
   "keywords": [],
   "dependencies": {
-    "@biliLive-tools/types": "workspace:*",
     "@biliLive-tools/shared": "workspace:*",
+    "@biliLive-tools/types": "workspace:*",
+    "@koa/cors": "^5.0.0",
+    "cli-progress": "^3.12.0",
     "koa": "^2.15.3",
     "koa-bodyparser": "^4.4.1",
-    "koa-router": "^12.0.1",
-    "cli-progress": "^3.12.0"
+    "koa-router": "^12.0.1"
   },
   "devDependencies": {
+    "@types/cli-progress": "^3.11.5",
     "@types/koa": "^2.15.0",
     "@types/koa-bodyparser": "^4.3.12",
     "@types/koa-router": "^7.4.8",
     "@types/node": "20.12.2",
-    "tsx": "^4.7.2",
-    "@types/cli-progress": "^3.11.5"
+    "tsx": "^4.7.2"
   }
 }

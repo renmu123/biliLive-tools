@@ -246,6 +246,14 @@ export interface AppConfig {
       tg: NotificationTgConfig;
     };
   };
+  /** 翻译配置 */
+  translate: {
+    type: "ollama";
+    ollama: {
+      server: string;
+      model: string;
+    };
+  };
   /** 最大任务数 */
   task: {
     ffmpegMaxNum: number;

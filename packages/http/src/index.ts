@@ -1,5 +1,6 @@
 import Koa from "koa";
 import Router from "koa-router";
+import cors from "@koa/cors";
 import bodyParser from "koa-bodyparser";
 // import { init } from "@biliLive-tools/shared";
 import { taskQueue as _taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
@@ -7,6 +8,7 @@ import errorMiddleware from "./middleware/error.js";
 
 import webhookRouter from "./routes/webhook.js";
 import configRouter from "./routes/config.js";
+import llmRouter from "./routes/llm.js";
 
 const app = new Koa();
 const router = new Router();
@@ -16,10 +18,12 @@ router.get("/", async (ctx) => {
 });
 
 app.use(errorMiddleware);
+app.use(cors());
 app.use(bodyParser());
 app.use(router.routes());
 app.use(webhookRouter.routes());
 app.use(configRouter.routes());
+app.use(llmRouter.routes());
 
 export let taskQueue: typeof _taskQueue;
 

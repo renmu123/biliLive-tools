@@ -184,8 +184,8 @@
         <n-tab-pane name="notification" tab="任务">
           <NotificationSetting v-model:data="config"></NotificationSetting>
         </n-tab-pane>
-        <n-tab-pane name="notification" tab="任务">
-          <NotificationSetting v-model:data="config"></NotificationSetting>
+        <n-tab-pane name="translate" tab="翻译">
+          <TranslateSetting v-model:data="config"></TranslateSetting>
         </n-tab-pane>
       </n-tabs>
       <template #footer>
@@ -214,6 +214,7 @@
 import RoomSettingDialog from "./RoomSettingDialog.vue";
 import CommonSetting from "./CommonWebhookSetting.vue";
 import NotificationSetting from "./NotificationSetting.vue";
+import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
 import { useConfirm } from "@renderer/hooks";

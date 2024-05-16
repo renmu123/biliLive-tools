@@ -11,7 +11,7 @@ import type ffmpeg from "fluent-ffmpeg";
 import type { Client } from "@renmu/bili-api";
 import type { Progress, NotificationTaskStatus } from "@biliLive-tools/types";
 import type { Status } from "@biliLive-tools/types/task.d.ts";
-import { TaskType } from "@biliLive-tools/types/enum.js";
+import { TaskType } from "../enum.js";
 
 const emitter = new EventEmitter();
 
