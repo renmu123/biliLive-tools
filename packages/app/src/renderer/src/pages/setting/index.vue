@@ -184,6 +184,9 @@
         <n-tab-pane name="notification" tab="任务">
           <NotificationSetting v-model:data="config"></NotificationSetting>
         </n-tab-pane>
+        <n-tab-pane name="notification" tab="任务">
+          <NotificationSetting v-model:data="config"></NotificationSetting>
+        </n-tab-pane>
       </n-tabs>
       <template #footer>
         <div class="footer">
