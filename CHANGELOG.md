@@ -34,12 +34,14 @@ GUI的配置目录可以在“打开log文件夹”所在的文件夹上一级�
 
 1. 修改host默认值为 127.0.0.1
 2. 修改部分深色模式的UI
+3. 修改视频合并的进度条计算，现改为使用时间长度计算，由于ffmpeg7.0中合并时frame参数不见了
 
 ## Bug修复
 
 1. 修复未正确记录任务相关的log
 2. 修复log level未正确初始化的bug
 3. 修复某些文件选择栏无法添加文件的bug
+4. 修复ffmpeg 7.0版本下无法进行合并的 bug [#1265](https://github.com/fluent-ffmpeg/node-fluent-ffmpeg/pull/1265)
 
 # 1.0.0-alpha
 

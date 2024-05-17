@@ -328,18 +328,11 @@ export const mergeVideos = async (
   log.debug(videoFiles);
   log.debug(videoMetas);
 
-  let nbFrames = 0;
+  let duration = 0;
 
   for (let i = 0; i < videoMetas.length; i++) {
     const videoMeta = videoMetas[i];
-    const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
-    if (videoStream?.nb_frames !== "N/A") {
-      nbFrames += Number(videoStream?.nb_frames);
-    } else {
-      const frameRate = Number(videoStream.avg_frame_rate?.split("/")[0]);
-      const duration = videoMeta.format.duration || 0;
-      nbFrames += Math.floor(frameRate * duration);
-    }
+    duration += Number(videoMeta.format.duration);
   }
 
   const task = new FFmpegTask(
@@ -350,7 +343,11 @@ export const mergeVideos = async (
     },
     {
       onProgress(progress) {
-        return { ...progress, percentage: Math.round((progress.frames / nbFrames) * 100) };
+        const timemark = progress.timemark.split(":");
+        const currentTime =
+          Number(timemark[0]) * 3600 + Number(timemark[1]) * 60 + Number(timemark[2]);
+
+        return { ...progress, percentage: Math.round((currentTime / duration) * 100) };
       },
       onEnd: async () => {
         fs.remove(fileTxtPath);
@@ -363,6 +360,9 @@ export const mergeVideos = async (
             }
           }
         }
+      },
+      onError: async () => {
+        fs.remove(fileTxtPath);
       },
     },
   );

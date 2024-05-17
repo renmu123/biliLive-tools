@@ -126,5 +126,6 @@ const clear = () => {
   display: flex;
   gap: 10px;
   justify-content: center;
+  align-items: center;
 }
 </style>
