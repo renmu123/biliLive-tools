@@ -1,4 +1,4 @@
-import type { WebContents } from "electron";
+import type { IpcMainInvokeEvent, WebContents } from "electron";
 
 export const notify = (
   sender: WebContents,
@@ -8,4 +8,10 @@ export const notify = (
   },
 ) => {
   sender.send("notify", data);
+};
+
+export const invokeWrap = <T extends (...args: any[]) => any>(fn: T) => {
+  return (_event: IpcMainInvokeEvent, ...args: Parameters<T>): ReturnType<T> => {
+    return fn(...args);
+  };
 };

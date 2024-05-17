@@ -7,7 +7,13 @@ import {
 } from "@biliLive-tools/shared/lib/task/danmu.js";
 import { report } from "@biliLive-tools/shared/lib/danmu/index.js";
 
-import type { DanmuPreset as DanmuPresetType, hotProgressOptions } from "@biliLive-tools/types";
+import type {
+  DanmuPreset as DanmuPresetType,
+  hotProgressOptions,
+  DanmuConfig,
+  DanmuOptions,
+} from "@biliLive-tools/types";
+
 import type { IpcMainInvokeEvent } from "electron";
 
 export const handlers = {
@@ -24,7 +30,19 @@ export const handlers = {
     const presets = danmuPreset.list();
     return presets;
   },
-  "danmu:convertXml2Ass": convertXml2Ass,
+  "danmu:convertXml2Ass": async (
+    _event: IpcMainInvokeEvent | undefined,
+    files: {
+      input: string;
+      output?: string;
+    }[],
+    danmuOptions: DanmuConfig,
+    options: DanmuOptions = {
+      removeOrigin: false,
+    },
+  ) => {
+    convertXml2Ass(files, danmuOptions, options);
+  },
   "danmu:saveReport": async (
     _event: IpcMainInvokeEvent,
     options: {
@@ -41,7 +59,7 @@ export const handlers = {
     output: string,
     options: hotProgressOptions,
   ) => {
-    return genHotProgress(_event.sender, input, output, options);
+    return genHotProgress(input, output, options);
   },
   "danmu:isEmptyDanmu": (_event: IpcMainInvokeEvent, input: string) => {
     return isEmptyDanmu(input);

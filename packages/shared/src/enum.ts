@@ -3,6 +3,7 @@ export enum TaskType {
   ffmpeg = "ffmpeg",
   bili = "bili",
   biliDownload = "biliDownload",
+  subtitleTranslate = "subtitleTranslate",
 }
 
 export enum NotificationType {

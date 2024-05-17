@@ -405,12 +405,6 @@ export const biliApi = {
   getPlatformArchiveDetail,
 };
 
-export const invokeWrap = <T extends (...args: any[]) => any>(fn: T) => {
-  return (_event: IpcMainInvokeEvent, ...args: Parameters<T>): ReturnType<T> => {
-    return fn(...args);
-  };
-};
-
 // b站评论队列
 class BiliCommentQueue {
   list: {

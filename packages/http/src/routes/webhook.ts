@@ -767,7 +767,7 @@ const genHotProgressTask = async (
   const output = `${path.join(os.tmpdir(), uuid())}.mp4`;
 
   return new Promise((resolve, reject) => {
-    genHotProgress(undefined, xmlFile, output, {
+    genHotProgress(xmlFile, output, {
       width: width,
       duration: videoMeta.format.duration!,
       ...options,
@@ -805,8 +805,6 @@ const addDanmuTask = (
         }
 
         return convertXml2Ass(
-          // @ts-ignore
-          undefined,
           [
             {
               input: input,

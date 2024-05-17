@@ -484,6 +484,94 @@ export class BiliDownloadVideoTask extends AbstractTask {
   }
 }
 
+/**
+ * 翻译任务
+ */
+export class TranslateTask extends AbstractTask {
+  danmu: Danmu;
+  input: string;
+  options: any;
+  type = TaskType.subtitleTranslate;
+  controller: AbortController;
+  callback: {
+    onStart?: () => void;
+    onEnd?: (output: string) => void;
+    onError?: (err: string) => void;
+    onProgress?: (progress: Progress) => any;
+  };
+  constructor(
+    danmu: Danmu,
+    options: {
+      input: string;
+      output: string;
+      options: any;
+      name: string;
+    },
+    callback?: {
+      onStart?: () => void;
+      onEnd?: (output: string) => void;
+      onError?: (err: string) => void;
+      onProgress?: (progress: Progress) => any;
+    },
+  ) {
+    super();
+    this.danmu = danmu;
+    this.input = options.input;
+    this.options = options.options;
+    this.output = options.output;
+    this.progress = 0;
+    if (options.name) {
+      this.name = options.name;
+    }
+    this.action = [];
+    this.callback = callback || {};
+    this.controller = new AbortController();
+  }
+  exec() {
+    this.callback.onStart && this.callback.onStart();
+    this.status = "running";
+    this.progress = 0;
+    emitter.emit("task-start", { taskId: this.taskId });
+    this.startTime = Date.now();
+    this.danmu
+      .convertXml2Ass(this.input, this.output as string, this.options, this.controller.signal)
+      .then(({ stdout, stderr }) => {
+        log.debug("stdout", stdout);
+        log.debug("stderr", stderr);
+
+        if (stderr) {
+          this.status = "error";
+          this.callback.onError && this.callback.onError(stderr);
+          emitter.emit("task-error", { taskId: this.taskId });
+          return;
+        }
+        this.status = "completed";
+        this.callback.onEnd && this.callback.onEnd(this.output as string);
+        this.progress = 100;
+        emitter.emit("task-end", { taskId: this.taskId });
+        this.endTime = Date.now();
+      })
+      .catch((err) => {
+        this.status = "error";
+        this.callback.onError && this.callback.onError(err);
+        emitter.emit("task-error", { taskId: this.taskId });
+      });
+  }
+  pause() {
+    return false;
+  }
+  resume() {
+    return false;
+  }
+  kill() {
+    if (this.status === "completed" || this.status === "error") return;
+    log.warn(`danmu task ${this.taskId} killed`);
+    this.status = "error";
+    this.controller.abort();
+    return true;
+  }
+}
+
 export class TaskQueue {
   queue: AbstractTask[];
   constructor() {

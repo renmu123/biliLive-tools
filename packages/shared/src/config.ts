@@ -184,11 +184,15 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
   },
   translate: {
-    type: "ollama",
+    type: undefined,
     ollama: {
       server: "http://localhost:11434",
       model: undefined,
     },
+    functionCall: false,
+    prompt: "",
+    contextLength: 10,
+    noTranslate: "",
   },
 };
 

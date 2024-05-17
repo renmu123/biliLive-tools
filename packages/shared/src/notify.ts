@@ -1,8 +1,7 @@
 import nodemailer from "nodemailer";
-
 import { appConfig } from "./index.js";
+import log from "./utils/log.js";
 
-// import log from "./utils/log";
 import type {
   AppConfig,
   NotificationMailConfig,
@@ -57,7 +56,7 @@ export async function sendByMail(title: string, desp: string, options: Notificat
     // html: "<b>Hello world?</b>", // html body
   });
 
-  // log.info("Message sent: %s", info.messageId);
+  log.info("Message sent: %s", info.messageId);
 }
 
 /**
@@ -82,9 +81,9 @@ export async function sendByTg(title: string, desp: string, options: Notificatio
         "Content-Type": "application/json",
       },
     });
-    // log.info("sendByTg res", res);
+    log.info("sendByTg res", res);
   } catch (e) {
-    // log.error("sendByTg error", e);
+    log.error("sendByTg error", e);
   }
 }
 

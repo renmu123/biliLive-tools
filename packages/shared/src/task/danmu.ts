@@ -11,10 +11,8 @@ import { DanmuTask, taskQueue } from "./task.js";
 import { convertImage2Video } from "./video.js";
 
 import type { DanmuConfig, DanmuOptions, hotProgressOptions } from "@biliLive-tools/types";
-import type { IpcMainInvokeEvent, WebContents } from "electron";
 
 export const addConvertDanmu2AssTask = async (
-  _sender: WebContents | undefined,
   input: string,
   output: string,
   danmuOptions: DanmuConfig,
@@ -54,7 +52,6 @@ export const addConvertDanmu2AssTask = async (
 };
 
 export const convertXml2Ass = async (
-  _event: IpcMainInvokeEvent | undefined,
   files: {
     input: string;
     output?: string;
@@ -85,14 +82,7 @@ export const convertXml2Ass = async (
       throw new Error(`danmufactory input file not exist: ${input}`);
     }
 
-    const task = await addConvertDanmu2AssTask(
-      _event?.sender,
-      input,
-      output,
-      danmuOptions,
-      true,
-      options,
-    );
+    const task = await addConvertDanmu2AssTask(input, output, danmuOptions, true, options);
     tasks.push({
       taskId: task.taskId,
     });
@@ -119,7 +109,6 @@ export const readDanmuPresets = async () => {
 };
 
 export const genHotProgress = async (
-  _webContents: WebContents | undefined,
   input: string,
   output: string,
   options: hotProgressOptions,
@@ -128,7 +117,7 @@ export const genHotProgress = async (
 
   await generateDanmakuImage(input, imageDir, options);
 
-  return convertImage2Video(_webContents, imageDir, output, {
+  return convertImage2Video(imageDir, output, {
     removeOrigin: true,
     internal: options.interval,
   });

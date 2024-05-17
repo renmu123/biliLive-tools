@@ -253,6 +253,14 @@ export interface AppConfig {
       server: string;
       model: string;
     };
+    /** 函数调用 */
+    functionCall: boolean;
+    /** 自定义提示词 */
+    prompt: string;
+    /** 上下文长度 */
+    contextLength: number;
+    /** 无需翻译的词汇 */
+    noTranslate: string;
   };
   /** 最大任务数 */
   task: {

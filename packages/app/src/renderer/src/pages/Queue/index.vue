@@ -196,19 +196,23 @@ const typeOptions = ref([
   },
   {
     value: TaskType.ffmpeg,
-    label: "FFmpeg任务",
+    label: "FFmpeg处理",
   },
   {
     value: TaskType.bili,
-    label: "上传任务",
+    label: "B站上传",
   },
   {
     value: TaskType.danmu,
-    label: "弹幕任务",
+    label: "弹幕转换",
   },
   {
     value: TaskType.biliDownload,
-    label: "下载任务",
+    label: "B站下载",
+  },
+  {
+    value: TaskType.subtitleTranslate,
+    label: "字幕翻译",
   },
 ]);
 

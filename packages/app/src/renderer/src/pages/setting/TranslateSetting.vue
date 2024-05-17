@@ -31,8 +31,61 @@
             :options="ollamaModelList"
             placeholder="请选择"
           /><n-button @click="getOllamaModelList">刷新</n-button>
-        </n-form-item></template
-      >
+        </n-form-item>
+      </template>
+
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> Function call (暂未支持) </span>
+        </template>
+        <n-switch v-model:value="config.translate.functionCall" />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> 自定义提示词 (暂未支持) </span>
+          <Tip tip="传递给模型的prompt。用于调整不同翻译参数"></Tip>
+        </template>
+        <n-input
+          v-model:value="config.translate.prompt"
+          placeholder="自定义提示词"
+          clearable
+          :maxlength="8000"
+          type="textarea"
+          :autosize="{
+            minRows: 2,
+          }"
+        />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> 上下文长度 (暂未支持) </span>
+          <Tip tip="按句子计算，-1为全部关联"></Tip>
+        </template>
+        <n-input-number
+          v-model:value.number="config.translate.contextLength"
+          class="input-number"
+          :min="-1"
+          :max="1000"
+        />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> 无需翻译的词汇 (暂未支持) </span>
+          <Tip
+            tip="请输入不需要翻译的词汇，将会以某些形式传递给模型，不能确保一定不被翻译，用英文逗号分隔"
+          ></Tip>
+        </template>
+        <n-input
+          v-model:value="config.translate.noTranslate"
+          placeholder="请输入不需要翻译的词汇，用英文逗号分隔"
+          clearable
+          :maxlength="1000"
+          type="textarea"
+          :autosize="{
+            minRows: 2,
+          }"
+        />
+      </n-form-item>
     </n-form>
   </div>
 </template>
@@ -81,7 +134,13 @@ const getOllamaModelList = async () => {
     });
   }
 };
-getOllamaModelList();
+
+const init = () => {
+  if (config.value.translate.type === LLMType.ollama) {
+    getOllamaModelList();
+  }
+};
+init();
 </script>
 
 <style scoped lang="less">

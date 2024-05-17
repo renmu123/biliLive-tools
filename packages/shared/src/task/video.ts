@@ -15,7 +15,7 @@ import {
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask } from "./task.js";
 
-import type { IpcMainInvokeEvent, WebContents } from "electron";
+import type { IpcMainInvokeEvent } from "electron";
 import type {
   File,
   FfmpegOptions,
@@ -67,7 +67,6 @@ export const getAvailableEncoders = async () => {
 };
 
 export const convertImage2Video = async (
-  _webContents: WebContents | undefined,
   inputDir: string,
   output: string,
   options: {
@@ -375,13 +374,6 @@ export const mergeVideos = async (
     text: "添加到任务队列",
     taskId: task.taskId,
   };
-};
-
-export const handleGetTaskList = () => {
-  return taskQueue.list();
-};
-export const handleGetTask = (_event: IpcMainInvokeEvent, taskId: string) => {
-  return taskQueue.queryTask(taskId);
 };
 
 export const handleReadVideoMeta = async (_event: IpcMainInvokeEvent, input: string) => {
