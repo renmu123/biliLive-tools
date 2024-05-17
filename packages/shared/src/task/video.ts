@@ -15,7 +15,6 @@ import {
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask } from "./task.js";
 
-import type { IpcMainInvokeEvent } from "electron";
 import type {
   File,
   FfmpegOptions,
@@ -109,7 +108,6 @@ export const convertImage2Video = async (
 };
 
 export const convertVideo2Mp4 = async (
-  _event: IpcMainInvokeEvent | undefined,
   file: File,
   options: Video2Mp4Options = {
     saveRadio: 1,
@@ -141,9 +139,6 @@ export const convertVideo2Mp4 = async (
   }
 
   const command = ffmpeg(input).videoCodec("copy").audioCodec("copy").output(output);
-
-  // const videoMeta = await readVideoMeta(path);
-  // log.info("convertVideo2Mp4: videoMeta", videoMeta);
 
   const task = new FFmpegTask(
     command,
@@ -177,7 +172,6 @@ export const convertVideo2Mp4 = async (
 
 /**
  * 弹幕压制
- * @param {*} _event
  * @param {object} files 文件相关
  * @param {string} files.videoFilePath 视频文件路径
  * @param {string} files.assFilePath 弹幕文件路径，不能有空格
@@ -187,7 +181,6 @@ export const convertVideo2Mp4 = async (
  * @param {object} ffmpegOptions ffmpeg参数
  */
 export const mergeAssMp4 = async (
-  _event: IpcMainInvokeEvent | undefined,
   files: {
     videoFilePath: string;
     assFilePath: string;
@@ -211,7 +204,6 @@ export const mergeAssMp4 = async (
 
   if (!(await pathExists(videoInput))) {
     log.error("mergrAssMp4, file not exist", videoInput);
-    _event?.sender?.send("task-error", "文件不存在");
     return;
   }
 

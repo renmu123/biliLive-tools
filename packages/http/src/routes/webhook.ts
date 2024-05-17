@@ -728,7 +728,7 @@ const convert2Mp4 = async (videoFile: string): Promise<string> => {
   if (await fs.pathExists(output)) return output;
 
   return new Promise((resolve, reject) => {
-    convertVideo2Mp4(undefined, formatFile(videoFile), {
+    convertVideo2Mp4(formatFile(videoFile), {
       saveRadio: 1,
       saveOriginPath: true,
       savePath: "",
@@ -847,7 +847,6 @@ const addMergeAssMp4Task = (
       })
       .then(() => {
         mergeAssMp4(
-          undefined,
           {
             videoFilePath: videoInput,
             assFilePath: assInput,

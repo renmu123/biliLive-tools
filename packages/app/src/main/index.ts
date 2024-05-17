@@ -80,8 +80,8 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:setTheme", setTheme);
 
   // 视频处理
-  ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
-  ipcMain.handle("mergeAssMp4", mergeAssMp4);
+  ipcMain.handle("convertVideo2Mp4", invokeWrap(convertVideo2Mp4));
+  ipcMain.handle("mergeAssMp4", invokeWrap(mergeAssMp4));
   ipcMain.handle("getAvailableEncoders", getAvailableEncoders);
   ipcMain.handle("readVideoMeta", invokeWrap(readVideoMeta));
   ipcMain.handle("mergeVideos", invokeWrap(mergeVideos));
