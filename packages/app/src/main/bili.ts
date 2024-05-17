@@ -65,12 +65,12 @@ export const handlers = {
     return updateUserInfo(uid);
   },
   "bili:addMedia": (
-    event: IpcMainInvokeEvent,
+    _event: IpcMainInvokeEvent,
     uid: number,
     pathArray: string[],
     options: BiliupConfig,
   ) => {
-    return biliApi.addMedia(event.sender, pathArray, options, uid);
+    return biliApi.addMedia(pathArray, options, uid);
   },
   "biliApi:getSeasonList": (
     _event: IpcMainInvokeEvent,
@@ -86,11 +86,11 @@ export const handlers = {
     return biliApi.getArchiveDetail(bvid, uid);
   },
   "biliApi:download": (
-    event: IpcMainInvokeEvent,
+    _event: IpcMainInvokeEvent,
     options: { bvid: string; cid: number; output: string },
     uid: number,
   ) => {
-    return biliApi.download(event.sender, options, uid);
+    return biliApi.download(options, uid);
   },
   "biliApi:getSessionId": (_event: IpcMainInvokeEvent, aid: number, uid: number) => {
     return biliApi.getSessionId(aid, uid);

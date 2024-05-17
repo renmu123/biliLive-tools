@@ -5,7 +5,7 @@ import Store from "electron-store";
 
 import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
-import { notify } from "./utils/index";
+import { notify, invokeWrap } from "./utils/index";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net, nativeTheme } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
@@ -14,7 +14,7 @@ import {
   mergeAssMp4,
   getAvailableEncoders,
   mergeVideos,
-  handleReadVideoMeta,
+  readVideoMeta,
 } from "@biliLive-tools/shared/lib/task/video.js";
 import { taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
 import { appConfig } from "@biliLive-tools/shared";
@@ -83,8 +83,8 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("convertVideo2Mp4", convertVideo2Mp4);
   ipcMain.handle("mergeAssMp4", mergeAssMp4);
   ipcMain.handle("getAvailableEncoders", getAvailableEncoders);
-  ipcMain.handle("readVideoMeta", handleReadVideoMeta);
-  ipcMain.handle("mergeVideos", mergeVideos);
+  ipcMain.handle("readVideoMeta", invokeWrap(readVideoMeta));
+  ipcMain.handle("mergeVideos", invokeWrap(mergeVideos));
 
   registerHandlers(ipcMain, biliupHandlers);
   registerHandlers(ipcMain, biliHandlers);

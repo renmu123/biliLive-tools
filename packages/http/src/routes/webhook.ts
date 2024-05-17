@@ -911,7 +911,7 @@ const addUploadTask = async (
   return new Promise((resolve, reject) => {
     log.debug("addUploadTask", pathArray, options, removeOrigin);
     // TODO: 优化addMedia，直接返回task
-    biliApi.addMedia(undefined, pathArray, options, uid).then((task) => {
+    biliApi.addMedia(pathArray, options, uid).then((task) => {
       const currentTaskId = task.taskId;
       taskQueue.on("task-end", ({ taskId }) => {
         if (taskId === currentTaskId) {
@@ -939,7 +939,7 @@ const addEditMediaTask = async (
   removeOrigin?: boolean,
 ) => {
   return new Promise((resolve, reject) => {
-    biliApi.editMedia(undefined, aid, pathArray, {}, uid).then((task) => {
+    biliApi.editMedia(aid, pathArray, {}, uid).then((task) => {
       const currentTaskId = task.taskId;
       taskQueue.on("task-end", ({ taskId }) => {
         if (taskId === currentTaskId) {

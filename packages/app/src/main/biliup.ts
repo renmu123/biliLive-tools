@@ -1,4 +1,5 @@
 import log from "./utils/log";
+import { invokeWrap } from "./utils/index";
 import { appConfig, videoPreset } from "@biliLive-tools/shared";
 import { biliApi } from "./bili";
 
@@ -9,40 +10,6 @@ import type {
   BiliupPreset,
   BiliUser,
 } from "@biliLive-tools/types";
-
-// 验证配置
-export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: BiliupConfig) => {
-  let msg: string | undefined = undefined;
-  if (!config.title) {
-    msg = "标题不能为空";
-  }
-  if (config.title.length > 80) {
-    msg = "标题不能超过80个字符";
-  }
-  // if (config.desc && config.desc.length > 250) {
-  //   msg = "简介不能超过250个字符";
-  // }
-  if (config.copyright === 2) {
-    if (!config.source) {
-      msg = "转载来源不能为空";
-    } else {
-      if (config.source.length > 200) {
-        msg = "转载来源不能超过200个字符";
-      }
-    }
-  }
-  if (config.tag.length === 0) {
-    msg = "标签不能为空";
-  }
-  if (config.tag.length > 12) {
-    msg = "标签不能超过12个";
-  }
-
-  if (msg) {
-    throw new Error(msg);
-  }
-  return true;
-};
 
 // 删除bili登录的cookie
 export const deleteUser = async (uid: number) => {
@@ -97,7 +64,7 @@ export const format = async (data: any) => {
 };
 
 export const handlers = {
-  "bili:validUploadParams": validateBiliupConfig,
+  "bili:validUploadParams": invokeWrap(biliApi.validateBiliupConfig),
   "bili:getPreset": (_event: IpcMainInvokeEvent, id: string) => {
     return videoPreset.get(id);
   },
@@ -127,7 +94,7 @@ export const handlers = {
     pathArray: string[],
     options: BiliupConfig,
   ) => {
-    biliApi.addMedia(_event.sender, pathArray, options, uid);
+    biliApi.addMedia(pathArray, options, uid);
   },
   "bili:appendVideo": async (
     _event: IpcMainInvokeEvent,
@@ -135,6 +102,6 @@ export const handlers = {
     pathArray: string[],
     options: BiliupConfigAppend,
   ) => {
-    biliApi.editMedia(_event.sender, options.vid as number, pathArray, options, uid);
+    biliApi.editMedia(options.vid as number, pathArray, options, uid);
   },
 };

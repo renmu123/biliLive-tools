@@ -7,8 +7,6 @@ import { BiliVideoTask, taskQueue, BiliDownloadVideoTask } from "./task.js";
 import log from "../utils/log.js";
 import { sleep } from "../utils/index.js";
 
-import type { IpcMainInvokeEvent, WebContents } from "electron";
-
 import type { BiliupConfig, BiliUser } from "@biliLive-tools/types";
 
 type ClientInstance = InstanceType<typeof Client>;
@@ -67,11 +65,7 @@ async function getArchiveDetail(
   return client.video.detail({ bvid });
 }
 
-async function download(
-  _webContents: WebContents,
-  options: { bvid: string; cid: number; output: string },
-  uid: number,
-) {
+async function download(options: { bvid: string; cid: number; output: string }, uid: number) {
   await loadCookie(uid);
   const ffmpegBinPath = appConfig.get("ffmpegPath");
   console.log(options, ffmpegBinPath);
@@ -217,7 +211,6 @@ async function getSeasonList(uid: number): ReturnType<ClientInstance["platform"]
 }
 
 async function addMedia(
-  _webContents: WebContents | undefined,
   filePath:
     | string[]
     | {
@@ -292,7 +285,6 @@ async function addMedia(
 }
 
 async function editMedia(
-  _webContents: WebContents | undefined,
   aid: number,
   filePath:
     | string[]
@@ -303,7 +295,6 @@ async function editMedia(
   options: any,
   uid: number,
 ) {
-  console.log(options);
   await loadCookie(uid);
   const command = await client.platform.editMedia(aid, filePath, {}, "append", {
     submit: "client",
@@ -387,23 +378,6 @@ async function getTypeDesc(
   await loadCookie(uid);
   return client.platform.getTypeDesc(tid);
 }
-
-export const biliApi = {
-  getArchives,
-  checkTag,
-  login,
-  getUserInfo,
-  getMyInfo,
-  addMedia,
-  editMedia,
-  getSeasonList,
-  getArchiveDetail,
-  getPlatformPre,
-  getTypeDesc,
-  download,
-  getSessionId,
-  getPlatformArchiveDetail,
-};
 
 // b站评论队列
 class BiliCommentQueue {
@@ -498,7 +472,7 @@ class BiliCommentQueue {
 export const commentQueue = new BiliCommentQueue();
 
 // 验证配置
-export const validateBiliupConfig = async (_event: IpcMainInvokeEvent, config: BiliupConfig) => {
+export const validateBiliupConfig = async (config: BiliupConfig) => {
   let msg: string | undefined = undefined;
   if (!config.title) {
     msg = "标题不能为空";
@@ -581,4 +555,22 @@ export const format = async (data: any) => {
   }
 
   return result;
+};
+
+export const biliApi = {
+  getArchives,
+  checkTag,
+  login,
+  getUserInfo,
+  getMyInfo,
+  addMedia,
+  editMedia,
+  getSeasonList,
+  getArchiveDetail,
+  getPlatformPre,
+  getTypeDesc,
+  download,
+  getSessionId,
+  getPlatformArchiveDetail,
+  validateBiliupConfig,
 };

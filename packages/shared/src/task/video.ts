@@ -302,7 +302,6 @@ export const mergeAssMp4 = async (
 };
 
 export const mergeVideos = async (
-  _event: IpcMainInvokeEvent | undefined,
   videoFiles: File[],
   options: VideoMergeOptions = {
     savePath: "",
@@ -324,8 +323,8 @@ export const mergeVideos = async (
     .videoCodec("copy")
     .audioCodec("copy")
     .output(output);
-
   const videoMetas = await Promise.all(videoFiles.map((file) => readVideoMeta(file.path)));
+
   log.debug(videoFiles);
   log.debug(videoMetas);
 
@@ -374,8 +373,4 @@ export const mergeVideos = async (
     text: "添加到任务队列",
     taskId: task.taskId,
   };
-};
-
-export const handleReadVideoMeta = async (_event: IpcMainInvokeEvent, input: string) => {
-  return readVideoMeta(input);
 };
