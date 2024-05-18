@@ -407,7 +407,7 @@ if (!gotTheLock) {
 const appInit = async () => {
   const config = {
     port: 18010,
-    host: "localhost",
+    host: "127.0.0.1",
     configPath: path.join(app.getPath("userData"), "appConfig.json"),
     ffmpegPath: FFMPEG_PATH,
     ffprobePath: FFPROBE_PATH,

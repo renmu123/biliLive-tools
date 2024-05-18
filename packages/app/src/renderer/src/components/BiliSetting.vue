@@ -11,12 +11,39 @@
       </n-form-item>
       <n-divider />
 
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            <span>封面</span>
+            <Tip tip="默认使用视频第一帧"></Tip>
+          </span>
+        </template>
+        <image-crop v-model="options.config.cover"></image-crop>
+      </n-form-item>
       <n-form-item label="视频标题">
         <n-input
           v-model:value="options.config.title"
           placeholder="请输入视频标题"
           clearable
           maxlength="80"
+          show-count
+        />
+      </n-form-item>
+      <n-form-item label="稿件类型">
+        <n-radio-group v-model:value="options.config.copyright" name="radiogroup">
+          <n-space>
+            <n-radio :value="1"> 自制 </n-radio>
+            <n-radio :value="2"> 转载 </n-radio>
+          </n-space>
+        </n-radio-group>
+      </n-form-item>
+      <n-form-item v-if="options.config.copyright === 2" label="转载来源">
+        <n-input
+          v-model:value="options.config.source"
+          placeholder="注明视频来源网址"
+          :allow-input="noSideSpace"
+          clearable
+          maxlength="200"
           show-count
         />
       </n-form-item>
@@ -28,6 +55,13 @@
           :options="areaData"
           check-strategy="child"
           filterable
+        />
+      </n-form-item>
+      <n-form-item label="标签">
+        <n-dynamic-tags
+          v-model:value="options.config.tag"
+          :max="12"
+          @update:value="handleTagChange"
         />
       </n-form-item>
       <n-form-item>
@@ -51,43 +85,6 @@
           }"
         />
       </n-form-item>
-      <n-form-item>
-        <template #label>
-          <span class="inline-flex">
-            <span>封面</span>
-            <Tip tip="不设置默认使用视频第一帧"></Tip>
-          </span>
-        </template>
-        <image-crop v-model="options.config.cover"></image-crop>
-      </n-form-item>
-      <n-form-item label="自动评论">
-        <div class="inline-items">
-          <n-checkbox
-            v-model:checked="options.config.autoComment"
-            title="审核后自动进行评论，续传不会被处理"
-            >自动评论</n-checkbox
-          >
-          <n-checkbox v-model:checked="options.config.commentTop">置顶</n-checkbox>
-        </div>
-      </n-form-item>
-      <n-form-item v-if="options.config.autoComment">
-        <template #label>
-          <span class="inline-flex">
-            <span>自动评论</span>
-          </span>
-        </template>
-        <n-input
-          v-model:value="options.config.comment"
-          placeholder="请输入评论内容"
-          clearable
-          :maxlength="1000"
-          show-count
-          type="textarea"
-          :autosize="{
-            minRows: 4,
-          }"
-        />
-      </n-form-item>
 
       <n-form-item label="粉丝动态">
         <n-input
@@ -102,31 +99,7 @@
           }"
         />
       </n-form-item>
-      <n-form-item label="稿件类型">
-        <n-radio-group v-model:value="options.config.copyright" name="radiogroup">
-          <n-space>
-            <n-radio :value="1"> 自制 </n-radio>
-            <n-radio :value="2"> 转载 </n-radio>
-          </n-space>
-        </n-radio-group>
-      </n-form-item>
-      <n-form-item v-if="options.config.copyright === 2" label="转载来源">
-        <n-input
-          v-model:value="options.config.source"
-          placeholder="注明视频来源网址"
-          :allow-input="noSideSpace"
-          clearable
-          maxlength="200"
-          show-count
-        />
-      </n-form-item>
-      <n-form-item label="标签">
-        <n-dynamic-tags
-          v-model:value="options.config.tag"
-          :max="12"
-          @update:value="handleTagChange"
-        />
-      </n-form-item>
+
       <n-form-item label="自制声明">
         <div class="inline-items">
           <n-checkbox
@@ -199,6 +172,34 @@
             </n-checkbox>
           </div>
         </div>
+      </n-form-item>
+      <n-form-item label="自动评论">
+        <div class="inline-items">
+          <n-checkbox
+            v-model:checked="options.config.autoComment"
+            title="审核后自动进行评论，续传不会被处理"
+            >自动评论</n-checkbox
+          >
+          <n-checkbox v-model:checked="options.config.commentTop">置顶</n-checkbox>
+        </div>
+      </n-form-item>
+      <n-form-item v-if="options.config.autoComment">
+        <template #label>
+          <span class="inline-flex">
+            <span>自动评论</span>
+          </span>
+        </template>
+        <n-input
+          v-model:value="options.config.comment"
+          placeholder="请输入评论内容"
+          clearable
+          :maxlength="1000"
+          show-count
+          type="textarea"
+          :autosize="{
+            minRows: 4,
+          }"
+        />
       </n-form-item>
       <n-form-item>
         <template #label>

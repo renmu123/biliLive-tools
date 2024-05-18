@@ -153,6 +153,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       savePath: "",
       // savePath: app.getPath("downloads"),
     },
+    translate: {
+      presetId: undefined,
+    },
   },
   task: {
     ffmpegMaxNum: -1,
@@ -183,17 +186,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       },
     },
   },
-  translate: {
-    type: undefined,
-    ollama: {
-      server: "http://localhost:11434",
-      model: undefined,
-    },
-    functionCall: false,
-    prompt: "",
-    contextLength: 10,
-    noTranslate: "",
-  },
+  llmPresets: [],
 };
 
 type DeepPartial<T> = T extends object

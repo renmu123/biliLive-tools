@@ -114,6 +114,10 @@ export type ToolConfig = {
     /** 覆盖颜色 */
     hotProgressFillColor: string;
   };
+  /** 翻译配置 */
+  translate: {
+    presetId?: string;
+  };
   /** 上传配置 */
   upload: {
     /** 上传预设 */
@@ -247,7 +251,8 @@ export interface AppConfig {
     };
   };
   /** 翻译配置 */
-  translate: {
+  llmPresets: {
+    id: string;
     type: "ollama";
     ollama: {
       server: string;
@@ -261,7 +266,9 @@ export interface AppConfig {
     contextLength: number;
     /** 无需翻译的词汇 */
     noTranslate: string;
-  };
+    /** 创造性 */
+    temperature: number;
+  }[];
   /** 最大任务数 */
   task: {
     ffmpegMaxNum: number;

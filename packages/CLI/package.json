@@ -10,8 +10,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
-    "start": "node ./lib/index.js",
-    "start:dev": "tsx watch src/index.ts "
+    "start": "tsx src/index.ts"
   },
   "keywords": [],
   "dependencies": {

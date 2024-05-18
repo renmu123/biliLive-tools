@@ -240,7 +240,7 @@ router.post("/webhook/blrec", async (ctx) => {
 
 router.post("/webhook/custom", async (ctx) => {
   const webhook = appConfig.get("webhook");
-  log.info("custom: webhook", ctx.request.body);
+  log.info("custom: webhook", ctx.request.body, appConfig);
   const event = ctx.request.body as CustomEvent;
 
   if (!event.filePath) {

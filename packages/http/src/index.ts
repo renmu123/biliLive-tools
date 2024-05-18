@@ -2,7 +2,7 @@ import Koa from "koa";
 import Router from "koa-router";
 import cors from "@koa/cors";
 import bodyParser from "koa-bodyparser";
-// import { init } from "@biliLive-tools/shared";
+import { init } from "@biliLive-tools/shared";
 import { taskQueue as _taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
 import errorMiddleware from "./middleware/error.js";
 
@@ -25,27 +25,27 @@ app.use(webhookRouter.routes());
 app.use(configRouter.routes());
 app.use(llmRouter.routes());
 
-export let taskQueue: typeof _taskQueue;
+export let taskQueue: typeof _taskQueue = _taskQueue;
 
 export const globalConfig: {
   port: number;
   host: string;
-  configPath?: string;
-  ffmpegPath?: string;
-  ffprobePath?: string;
-  danmakuFactoryPath?: string;
-  logPath?: string;
-  downloadPath?: string;
-  ffmpegPresetPath?: string;
-  videoPresetPath?: string;
-  danmuPresetPath?: string;
+  configPath: string;
+  ffmpegPath: string;
+  ffprobePath: string;
+  danmakuFactoryPath: string;
+  logPath: string;
+  downloadPath: string;
+  ffmpegPresetPath: string;
+  videoPresetPath: string;
+  danmuPresetPath: string;
   taskQueue: typeof _taskQueue;
 } = {
   port: 18010,
-  host: "localhost",
+  host: "127.0.0.1",
   configPath: "",
   ffmpegPath: "ffmpeg.exe",
-  ffprobePath: ".exe",
+  ffprobePath: "ffprobe.exe",
   danmakuFactoryPath: "DanmakuFactory.exe",
   logPath: "main.log",
   downloadPath: "",
@@ -55,11 +55,13 @@ export const globalConfig: {
   taskQueue: _taskQueue,
 };
 
-export function serverStart(config: Partial<typeof globalConfig> = {}) {
+export function serverStart(config: typeof globalConfig, autoInit = false) {
   Object.assign(globalConfig, config);
   taskQueue = globalConfig.taskQueue;
 
-  // init(globalConfig);
+  if (autoInit) {
+    init(globalConfig);
+  }
 
   app.listen(globalConfig.port, globalConfig.host, () => {
     console.log(`Server is running at http://${globalConfig.host}:${globalConfig.port}`);
