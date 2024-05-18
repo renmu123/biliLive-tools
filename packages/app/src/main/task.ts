@@ -22,7 +22,6 @@ taskQueue.on("task-end", ({ taskId }) => {
   });
 });
 taskQueue.on("task-error", ({ taskId }) => {
-  console.log("task-error", taskId);
   mainWin.webContents.send("task-error", { taskId: taskId });
 });
 taskQueue.on("task-progress", ({ taskId }) => {

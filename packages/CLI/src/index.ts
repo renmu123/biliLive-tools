@@ -1,18 +1,10 @@
 #!/usr/bin/env node
 import { Command } from "commander";
-// import { version } from "../package.json";
+import { version } from "../package.json";
 import { serverStart } from "@biliLive-tools/http";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-
-// declare global {
-//   var logger: Logger;
-// }
-// global.logger = logger;
-// process.on("uncaughtException", (err) => {
-//   logger.error(err);
-// });
 
 interface Config {
   port: number;
@@ -26,7 +18,7 @@ interface Config {
 }
 
 const program = new Command();
-program.name("biliLive").description("biliLive-tools命令行").version("1.0.0-alpha.1");
+program.name("biliLive").description("biliLive-tools命令行").version(version);
 
 program
   .command("server")
@@ -39,15 +31,11 @@ program
     }
     const c = JSON.parse(fs.readFileSync(opts.config).toString());
 
-    // ffmpegPresetPath: FFMPEG_PRESET_PATH,
-    // videoPresetPath: VIDEO_PRESET_PATH,
-    // danmuPresetPath: DANMU_PRESET_PATH,
-    // taskQueue: taskQueue,
     c.ffmpegPresetPath = path.join(c.configFolder, "ffmpeg_presets.json");
     c.videoPresetPath = path.join(c.configFolder, "presets.json");
     c.danmuPresetPath = path.join(c.configFolder, "danmu_presets.json");
     c.configPath = path.join(c.configFolder, "appConfig.json");
-    serverStart(c);
+    serverStart(c, true);
   });
 
 const configCommand = program.command("config").description("配置相关");
@@ -60,14 +48,29 @@ configCommand
   .action(async (opts: { config: string; force: boolean }) => {
     if (fs.existsSync(opts.config)) {
       if (opts.force) {
+        console.error("配置文件已生成，按ctrl+c退出");
         generateConfig(opts.config);
       } else {
         console.error("配置文件已存在，如果想重新生成请使用 -f 参数强制覆盖");
         return;
       }
     } else {
+      console.error("配置文件已生成，按ctrl+c退出");
       generateConfig(opts.config);
     }
+  });
+
+configCommand
+  .command("print")
+  .description("打印配置文件")
+  .option("-c, --config <string>", "配置文件路径", "config.json")
+  .action((opts: { config: string }) => {
+    if (!fs.existsSync(opts.config)) {
+      console.error("配置文件不存在，请先运行 biliLive config gen 命令生成配置文件");
+      return;
+    }
+    const c = JSON.parse(fs.readFileSync(opts.config).toString());
+    console.table(c);
   });
 
 function generateConfig(configPath: string) {
@@ -109,6 +112,7 @@ function generateConfig(configPath: string) {
     defaultConfig.danmakuFactoryPath = "DanmakuFactory";
   }
   fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2));
+  return;
 }
 
 program.parse();

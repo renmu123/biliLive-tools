@@ -60,7 +60,6 @@ async function getArchiveDetail(
   uid?: number,
 ): ReturnType<ClientInstance["video"]["detail"]> {
   if (uid) await loadCookie(uid);
-  console.log(bvid, uid);
 
   return client.video.detail({ bvid });
 }
@@ -68,7 +67,6 @@ async function getArchiveDetail(
 async function download(options: { bvid: string; cid: number; output: string }, uid: number) {
   await loadCookie(uid);
   const ffmpegBinPath = appConfig.get("ffmpegPath");
-  console.log(options, ffmpegBinPath);
   const command = await client.video.download({ ...options, ffmpegBinPath }, {});
 
   const task = new BiliDownloadVideoTask(

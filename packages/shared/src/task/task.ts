@@ -87,7 +87,6 @@ export class DanmuTask extends AbstractTask {
     this.callback.onStart && this.callback.onStart();
     this.status = "running";
     this.progress = 0;
-    console.log("danmuTask,task-start", this.input, this.output);
     emitter.emit("task-start", { taskId: this.taskId });
     this.startTime = Date.now();
     this.danmu

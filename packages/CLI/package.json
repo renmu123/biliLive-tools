@@ -8,10 +8,13 @@
   "license": "GPL-3.0",
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc -w",
-    "start": "tsx src/index.ts"
+    "start": "tsx src/index.ts",
+    "dev": "rollup --config rollup.config.js -w",
+    "build:cli": "pnpm run build && pnpm run pkg",
+    "build": "rollup --config rollup.config.js",
+    "pkg": "pkg ./lib/index.cjs --output ./dist/biliLive"
   },
+  "bin": "./lib/index.cjs",
   "keywords": [],
   "dependencies": {
     "@biliLive-tools/http": "workspace:*",
@@ -22,6 +25,8 @@
   },
   "devDependencies": {
     "@types/cli-progress": "^3.11.5",
+    "@yao-pkg/pkg": "^5.11.5",
+    "rollup-plugin-natives": "^0.7.8",
     "tsx": "^4.7.2"
   }
 }

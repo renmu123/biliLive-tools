@@ -37,7 +37,6 @@ export async function sendByMail(title: string, desp: string, options: Notificat
   if (!options.host || !options.port || !options.user || !options.pass || !options.to) {
     throw new Error("mail host、port、user、pass、to不能为空");
   }
-  console.log("sendByMail", title, desp, options);
   const transporter = nodemailer.createTransport({
     host: options.host,
     port: Number(options.port),
@@ -66,7 +65,6 @@ export async function sendByTg(title: string, desp: string, options: Notificatio
   if (!options.key || !options.chat_id) {
     throw new Error("tg key或chat_id不能为空");
   }
-  console.log("sendByTg", title, desp, options);
   const url = `https://api.telegram.org/bot${options.key}/sendMessage`;
 
   const data = {

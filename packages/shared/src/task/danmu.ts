@@ -29,7 +29,6 @@ export const addConvertDanmu2AssTask = async (
     await fs.unlink(output);
   }
   const DANMUKUFACTORY_PATH = appConfig.get("danmuFactoryPath");
-  console.log("DANMUKUFACTORY_PATH", DANMUKUFACTORY_PATH);
   const danmu = new Danmu(DANMUKUFACTORY_PATH);
   const task = new DanmuTask(
     danmu,

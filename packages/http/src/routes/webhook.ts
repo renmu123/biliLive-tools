@@ -240,7 +240,7 @@ router.post("/webhook/blrec", async (ctx) => {
 
 router.post("/webhook/custom", async (ctx) => {
   const webhook = appConfig.get("webhook");
-  log.info("custom: webhook", ctx.request.body, appConfig);
+  log.info("custom: webhook", ctx.request.body);
   const event = ctx.request.body as CustomEvent;
 
   if (!event.filePath) {
@@ -275,11 +275,6 @@ router.post("/webhook/custom", async (ctx) => {
     });
   }
   ctx.body = "ok";
-});
-
-router.post("/webhook/custom", async (ctx) => {
-  const data = taskQueue.list();
-  ctx.body = data;
 });
 
 function getConfig(roomId: number): {
@@ -488,13 +483,6 @@ export async function handleLiveData(options: Options, partMergeMinute: number) 
       const currentPartIndex = currentLive.parts.findIndex((item) => {
         return item.filePath === options.filePath;
       });
-      console.log(
-        "currentLive",
-        currentIndex,
-        currentPartIndex,
-        currentLive.parts,
-        options.filePath,
-      );
       const currentPart = currentLive.parts[currentPartIndex];
       currentPart.endTime = timestamp;
       currentPart.status = "recorded";
@@ -969,6 +957,10 @@ async function checkFileInterval() {
 }
 
 const handleLive = async (live: Live) => {
+  // 不要有两个任务同时上传
+  const isUploading = live.parts.some((item) => item.status === "uploading");
+  if (isUploading) return;
+
   const { mergePart, uploadPresetId, uid, removeOriginAfterUpload } = getConfig(live.roomId);
   if (!mergePart) return;
   if (!uid) return;
@@ -979,10 +971,6 @@ const handleLive = async (live: Live) => {
     config = { ...config, ...preset.config };
   }
   config.title = live.videoName;
-
-  // 不要有两个任务同时上传
-  const isUploading = live.parts.some((item) => item.status === "uploading");
-  if (isUploading) return;
 
   const filePaths: string[] = [];
   // 过滤掉已经上传的part
