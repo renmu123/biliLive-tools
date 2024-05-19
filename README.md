@@ -27,6 +27,8 @@
 下载地址：https://github.com/renmu123/biliLive-tools/releases  
 备用：https://www.alipan.com/s/iRyhxjdqGeL
 
+# 功能
+
 ## 断播续传
 
 这个功能主要用于解决：由于主播的自身或录制端的网络原因导致录播片段被切割成多个。  
@@ -35,21 +37,25 @@
 如果在主播录制后，或反复切换开关，可能会有奇怪的错误。  
 如果出现bug，将设置中的日志等级调整为`debug`后复现然后进行反馈。
 
+## xml弹幕转换
+
+xml弹幕转换底层使用[DanmakuFactory](https://github.com/hihkm/DanmakuFactory)，B站弹幕确认可以使用，其余类型请自行测试
+
 ## 通知
 
 **使用通知功能时，请妥善保存所有信息，请勿分享给他人，本软件不会发送任何信息到任何服务器**
 
-## 邮箱
+### 邮箱
 
 使用smtp服务来发送邮件，每个邮件服务商的参数各不相同，使用请自行参照各服务商的教程。
 
-## server酱
+### server酱
 
 serer酱支持免费推送信息到手机微信，免费账户有限制。
 
 官网：https://sct.ftqq.com/
 
-## tg bot
+### tg bot
 
 使用tg bot发送信息时默认使用系统代理。
 
@@ -91,23 +97,23 @@ curl --location 'http://127.0.0.1:18010/webhook/custom' \
 CLI是GUI的拓展，使用前需要设置相关目录，由于配置文件很多且复杂，推荐在GUI中生成并进行修改配置后复制到CLI所配置的目录，或直接将目录设置为GUI的配置目录。  
 暂时只支持webhook相关的指令，也即启动webhook server，可以避免启动electron带来的消耗。
 
-使用前通过 `biliLive config gen` 生成默认配置文件，如果你已经安装客户端，相关配置会被自动设置（仅限win）
-
 **CLI版本暂时不支持删除到回收站，高能进度条功能**
 
 ### 配置
 
+使用前通过 `biliLive config gen` 生成默认配置文件，如果你已经安装客户端，相关配置会被自动设置（仅限win）
+
 ```js
 {
-    port: 18010, // 启动端口，如果不希望与客户端的冲突，请修改
-    host: "127.0.0.1",  // host
-    configFolder: "", // 配置文件夹，推荐在GUI中生成并进行修改配置后复制到CLI所配置的目录，可在“打开log文件夹”上一层文件夹找到
-    binFolder: "",  // 二进制文件夹，如果你配置了选项，那么默认会从这个文件夹读取相关二进制文件
-    ffmpegPath: "ffmpeg.exe", // 覆盖ffmpeg二进制路径
-    ffprobePath: "ffprobe.exe",  // 覆盖ffprobe二进制路径
-    danmakuFactoryPath: "DanmakuFactory.exe",  // 覆盖DanmakuFactory二进制路径
-    logPath: "main.log",  // log目录
-  }
+  port: 18010, // 启动端口，如果不希望与客户端的冲突，请修改为其他端口号
+  host: "127.0.0.1",  // host
+  configFolder: "", // 配置文件夹，推荐在GUI中生成并进行修改配置后复制到CLI所配置的目录，可在“打开log文件夹”上一层文件夹找到
+  binFolder: "",  // 二进制文件夹，如果你配置了选项，那么默认会从这个文件夹读取相关二进制文件
+  ffmpegPath: "ffmpeg.exe", // 覆盖binFolder中的ffmpeg二进制路径
+  ffprobePath: "ffprobe.exe",  // 覆盖binFolder中的ffprobe二进制路径
+  danmakuFactoryPath: "DanmakuFactory.exe",  // 覆盖binFolder中的DanmakuFactory二进制路径
+  logPath: "main.log",  // log文件路径
+}
 ```
 
 # 赞赏
@@ -144,14 +150,10 @@ CLI是GUI的拓展，使用前需要设置相关目录，由于配置文件很�
 2. 文件切片下载
 3. 文件合并
 
-## xml弹幕无法转换
-
-xml弹幕转换底层使用[DanmakuFactory](https://github.com/hihkm/DanmakuFactory)，B站弹幕确认可以使用，其余类型请自行测试
-
 ## 投稿后自动评论未生效
 
 该功能会每隔十分钟会查询一次投稿中心的前20个稿件，如果为本软件投稿且开启了自动评论的已审核非续传稿件，会进行自动评论，如果一个稿件24小时内状态不为审核通过，那么这个稿件将被移出队列。  
-如果你的稿件不为以上情况却为进行投稿，请提issue
+如果你的稿件不为以上情况却未进行投稿，请提issue
 
 ## 怎么评估压制的速度
 
@@ -161,7 +163,7 @@ xml弹幕转换底层使用[DanmakuFactory](https://github.com/hihkm/DanmakuFact
 
 压制之后查看log
 
-## 最大任务数的相关说明
+## 最大任务数是什么功能
 
 1. 目前只支持ffmepg任务最大任务数，可以在“设置-任务-ffmpeg最大任务数”中进行设置，默认为不限制
 2. 手动暂停的任务不会被自动启动
@@ -207,13 +209,13 @@ node请使用20及以上版本。
 
 ```bash
 $ pnpm install
-$ pnpm run install-bin
+$ pnpm run install:bin
 ```
 
 如果二进制依赖安装失败或者不支持你的平台，请尝试手动安装二进制依赖。
 
-要新建一个`packages\app\resources\bin`文件夹，里面需要三个个文件。
-同时需要在应用中设置 ffmpeg 以及 ffprobe 可执行文件地址。
+新建`packages\app\resources\bin`文件夹，里面需要三个个文件。
+同时需要在应用的设置里设置相关可执行文件地址。
 
 1. `DanmukuFactory.exe` [1.7.0版本](https://github.com/hihkm/DanmakuFactory/releases/tag/v1.70)
 2. `ffmpeg.exe` [n7.0](https://github.com/BtbN/FFmpeg-Builds/releases)
@@ -226,11 +228,9 @@ $ pnpm run install-bin
 ## Build
 
 ```bash
-# For windows
-$ pnpm run build:win:app
+$ pnpm run build:app
 
-# For windows without ffmpeg
-$ pnpm run build:app-no-ffmpeg
+$ pnpm run build:app:no-ffmpeg
 ```
 
 # License

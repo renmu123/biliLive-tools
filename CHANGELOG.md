@@ -8,7 +8,7 @@ B站录播姬：`/webhook`修改为`/webhook/bililiverecorder`
 blrec：`/blrec`修改为`/webhook/blrec`  
 自定义：`/custom`修改为`/webhook/custom`
 
-## 关于最大任务数的相关说明
+## 最大任务数的相关说明
 
 1. 目前只支持ffmepg任务最大任务数，可以在“设置-任务-ffmpeg最大任务数”中进行设置，默认为不限制
 2. 手动暂停的任务不会被自动启动
@@ -20,23 +20,23 @@ blrec：`/blrec`修改为`/webhook/blrec`
 CLI是GUI的拓展，使用前需要设置相关目录，由于配置文件很多且复杂，推荐在GUI中生成并进行修改配置后复制到CLI所配置的目录，或直接将目录设置为GUI的配置目录。  
 暂时只支持webhook相关的指令，也即启动webhook server，可以避免启动electron带来的消耗。
 
-使用前通过 `biliLive config gen` 生成默认配置文件，如果你已经安装客户端，相关配置会被自动设置（仅限win）
-
 **CLI版本暂时不支持删除到回收站，高能进度条功能**
 
 ### 配置
 
+使用前通过 `biliLive config gen` 生成默认配置文件，如果你已经安装客户端，相关配置会被自动设置（仅限win）
+
 ```js
 {
-    port: 18010, // 启动端口，如果不希望与客户端的冲突，请修改
-    host: "127.0.0.1",  // host
-    configFolder: "", // 配置文件夹，推荐在GUI中生成并进行修改配置后复制到CLI所配置的目录，可在“打开log文件夹”上一层文件夹找到
-    binFolder: "",  // 二进制文件夹，如果你配置了选项，那么默认会从这个文件夹读取相关二进制文件
-    ffmpegPath: "ffmpeg.exe", // 覆盖ffmpeg二进制路径
-    ffprobePath: "ffprobe.exe",  // 覆盖ffprobe二进制路径
-    danmakuFactoryPath: "DanmakuFactory.exe",  // 覆盖DanmakuFactory二进制路径
-    logPath: "main.log",  // log目录
-  }
+  port: 18010, // 启动端口，如果不希望与客户端的冲突，请修改为其他端口号
+  host: "127.0.0.1",  // host
+  configFolder: "", // 配置文件夹，推荐在GUI中生成并进行修改配置后复制到CLI所配置的目录，可在“打开log文件夹”上一层文件夹找到
+  binFolder: "",  // 二进制文件夹，如果你配置了选项，那么默认会从这个文件夹读取相关二进制文件
+  ffmpegPath: "ffmpeg.exe", // 覆盖binFolder中的ffmpeg二进制路径
+  ffprobePath: "ffprobe.exe",  // 覆盖binFolder中的ffprobe二进制路径
+  danmakuFactoryPath: "DanmakuFactory.exe",  // 覆盖binFolder中的DanmakuFactory二进制路径
+  logPath: "main.log",  // log文件路径
+}
 ```
 
 ## 特性
