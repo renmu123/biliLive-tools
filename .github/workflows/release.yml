@@ -70,6 +70,10 @@ jobs:
       - name: build
         run: pnpm run build:app
 
+      - name: build-cli
+        if: startsWith(matrix.os, 'windows')
+        run: pnpm run build:cli
+
       # - name: remove ffmpeg.exe
       #   if: startsWith(matrix.os, 'windows')
       #   uses: JesseTG/rm@v1.0.3
@@ -107,6 +111,7 @@ jobs:
           path: |
             packages/app/dist/*.exe
             packages/app/dist/*.zip
+            packages/CLI/dist/*.exe
 
       - name: Upload linux artifact
         if: startsWith(matrix.os, 'ubuntu') && env.is_tag == 'false'
