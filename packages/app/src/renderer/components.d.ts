@@ -8,9 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppendVideoDialog: typeof import('./src/components/AppendVideoDialog.vue')['default']
-    AppSettingDialog: typeof import('./src/components/AppSettingDialog/index.vue')['default']
     BiliSetting: typeof import('./src/components/BiliSetting.vue')['default']
-    CommonWebhookSetting: typeof import('./src/components/AppSettingDialog/CommonWebhookSetting.vue')['default']
     DanmuFactorySetting: typeof import('./src/components/DanmuFactorySetting.vue')['default']
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']
     DownloadConfirm: typeof import('./src/components/DownloadConfirm.vue')['default']
@@ -36,7 +34,6 @@ declare module 'vue' {
     NMenu: typeof import('naive-ui')['NMenu']
     NModal: typeof import('naive-ui')['NModal']
     NNotificationProvider: typeof import('naive-ui')['NNotificationProvider']
-    NotificationSetting: typeof import('./src/components/AppSettingDialog/NotificationSetting.vue')['default']
     NP: typeof import('naive-ui')['NP']
     NPopover: typeof import('naive-ui')['NPopover']
     NProgress: typeof import('naive-ui')['NProgress']
@@ -49,7 +46,6 @@ declare module 'vue' {
     NTabPane: typeof import('naive-ui')['NTabPane']
     NTabs: typeof import('naive-ui')['NTabs']
     NText: typeof import('naive-ui')['NText']
-    RoomSettingDialog: typeof import('./src/components/AppSettingDialog/RoomSettingDialog.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Tip: typeof import('./src/components/Tip.vue')['default']

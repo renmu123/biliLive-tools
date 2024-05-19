@@ -1,5 +1,7 @@
 import fs from "fs-extra";
 import { danmuPreset } from "@biliLive-tools/shared";
+import { invokeWrap } from "./utils/index";
+
 import {
   convertXml2Ass,
   genHotProgress,
@@ -7,42 +9,25 @@ import {
 } from "@biliLive-tools/shared/lib/task/danmu.js";
 import { report } from "@biliLive-tools/shared/lib/danmu/index.js";
 
-import type {
-  DanmuPreset as DanmuPresetType,
-  hotProgressOptions,
-  DanmuConfig,
-  DanmuOptions,
-} from "@biliLive-tools/types";
+import type { DanmuPreset as DanmuPresetType } from "@biliLive-tools/types";
 
 import type { IpcMainInvokeEvent } from "electron";
 
 export const handlers = {
-  "danmu:getPreset": (_event: IpcMainInvokeEvent | undefined, id: string) => {
+  "danmu:getPreset": (_event: IpcMainInvokeEvent, id: string) => {
     return danmuPreset.get(id);
   },
-  "danmu:savePreset": (_event: IpcMainInvokeEvent | undefined, presets: DanmuPresetType) => {
+  "danmu:savePreset": (_event: IpcMainInvokeEvent, presets: DanmuPresetType) => {
     return danmuPreset.save(presets);
   },
-  "danmu:deletePreset": (_event: IpcMainInvokeEvent | undefined, id: string) => {
+  "danmu:deletePreset": (_event: IpcMainInvokeEvent, id: string) => {
     return danmuPreset.delete(id);
   },
   "danmu:getPresets": () => {
     const presets = danmuPreset.list();
     return presets;
   },
-  "danmu:convertXml2Ass": async (
-    _event: IpcMainInvokeEvent | undefined,
-    files: {
-      input: string;
-      output?: string;
-    }[],
-    danmuOptions: DanmuConfig,
-    options: DanmuOptions = {
-      removeOrigin: false,
-    },
-  ) => {
-    convertXml2Ass(files, danmuOptions, options);
-  },
+  "danmu:convertXml2Ass": invokeWrap(convertXml2Ass),
   "danmu:saveReport": async (
     _event: IpcMainInvokeEvent,
     options: {
@@ -53,15 +38,6 @@ export const handlers = {
     const data = await report(options.input);
     await fs.writeFile(options.output, data);
   },
-  "danmu:genHotProgress": (
-    _event: IpcMainInvokeEvent,
-    input: string,
-    output: string,
-    options: hotProgressOptions,
-  ) => {
-    return genHotProgress(input, output, options);
-  },
-  "danmu:isEmptyDanmu": (_event: IpcMainInvokeEvent, input: string) => {
-    return isEmptyDanmu(input);
-  },
+  "danmu:genHotProgress": invokeWrap(genHotProgress),
+  "danmu:isEmptyDanmu": invokeWrap(isEmptyDanmu),
 };
