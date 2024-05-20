@@ -117,6 +117,7 @@ export const convertVideo2Mp4 = async (
     override: false,
     removeOrigin: false,
   },
+  autoStart = false,
 ) => {
   await setFfmpegPath();
 
@@ -162,7 +163,7 @@ export const convertVideo2Mp4 = async (
     },
   );
 
-  taskQueue.addTask(task, false);
+  taskQueue.addTask(task, autoStart);
   return {
     status: "success",
     text: "添加到任务队列",

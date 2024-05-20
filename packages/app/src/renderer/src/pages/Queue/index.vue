@@ -8,7 +8,7 @@
         size="small"
       />
       <n-checkbox-group v-model:value="selectedStatus">
-        <n-checkbox value="pending">等待中</n-checkbox>
+        <n-checkbox value="pending">未开始</n-checkbox>
         <n-checkbox value="running">运行中</n-checkbox>
         <n-checkbox value="paused">已暂停</n-checkbox>
         <n-checkbox value="completed">已完成</n-checkbox>

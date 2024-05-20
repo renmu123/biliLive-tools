@@ -716,13 +716,17 @@ const convert2Mp4 = async (videoFile: string): Promise<string> => {
   if (await fs.pathExists(output)) return output;
 
   return new Promise((resolve, reject) => {
-    convertVideo2Mp4(formatFile(videoFile), {
-      saveRadio: 1,
-      saveOriginPath: true,
-      savePath: "",
-      override: false,
-      removeOrigin: true,
-    }).then((task) => {
+    convertVideo2Mp4(
+      formatFile(videoFile),
+      {
+        saveRadio: 1,
+        saveOriginPath: true,
+        savePath: "",
+        override: false,
+        removeOrigin: true,
+      },
+      true,
+    ).then((task) => {
       const currentTaskId = task.taskId;
       taskQueue.on("task-end", ({ taskId }) => {
         if (taskId === currentTaskId) {
