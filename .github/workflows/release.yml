@@ -98,7 +98,7 @@ jobs:
           draft: false
           token: ${{ secrets.GITHUB_TOKEN }}
           artifactErrorsFailBuild: false
-          artifacts: "packages/app/dist/*.exe,packages/app/dist/*.zip,packages/app/dist/*.deb,packages/app/dist/*.snap"
+          artifacts: "packages/app/dist/*.exe,packages/app/dist/*.zip,packages/app/dist/*.deb,packages/app/dist/*.snap,packages/CLI/dist/*.exe"
           replacesArtifacts: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
