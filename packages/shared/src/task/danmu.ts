@@ -95,8 +95,18 @@ export const convertXml2Ass = async (
  */
 export const isEmptyDanmu = async (input: string) => {
   const XMLdata = await fs.promises.readFile(input, "utf8");
-  if (!XMLdata) return true;
-  return false;
+  // "d": 普通弹幕，"gift": 录播姬 - 普通礼物，"sc": 录播姬 - SuperChat，"guard": 录播姬 - 舰长
+  if (
+    XMLdata.includes("<d>") ||
+    XMLdata.includes("<gift>") ||
+    XMLdata.includes("<sc>") ||
+    XMLdata.includes("<guard>")
+  )
+    return false;
+
+  return true;
+  // 如果文件中存在<d>, <gift>, <sc>, <guard>标签则认为不为空
+
   // const parser = new XMLParser({ ignoreAttributes: false });
   // const jObj = parser.parse(XMLdata);
   // const danmuku = jObj?.i?.d || [];
