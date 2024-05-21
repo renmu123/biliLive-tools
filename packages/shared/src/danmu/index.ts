@@ -33,7 +33,7 @@ export class Danmu {
         return `--${key} ${value.join("-")}`;
       } else if (key === "fontname") {
         return `--${key} "${value}"`;
-      } else if (key === "resolutionResponsive") {
+      } else if (key === "resolutionResponsive" || key === "blacklist") {
         // do nothing
         return "";
       } else {

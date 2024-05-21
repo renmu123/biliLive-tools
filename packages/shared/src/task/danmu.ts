@@ -1,19 +1,19 @@
 import { join, parse } from "node:path";
 import fs from "fs-extra";
 import os from "node:os";
-// import { XMLParser } from "fast-xml-parser";
+import { XMLParser, XMLBuilder } from "fast-xml-parser";
 
 import { pathExists, trashItem, uuid } from "../utils/index.js";
 import log from "../utils/log.js";
-import { danmuPreset, appConfig } from "../index.js";
+import { appConfig } from "../index.js";
 import { Danmu, generateDanmakuImage } from "../danmu/index.js";
 import { DanmuTask, taskQueue } from "./task.js";
 import { convertImage2Video } from "./video.js";
 
 import type { DanmuConfig, DanmuOptions, hotProgressOptions } from "@biliLive-tools/types";
 
-export const addConvertDanmu2AssTask = async (
-  input: string,
+const addConvertDanmu2AssTask = async (
+  originInput: string,
   output: string,
   danmuOptions: DanmuConfig,
   autoRun: boolean = true,
@@ -23,25 +23,42 @@ export const addConvertDanmu2AssTask = async (
     log.info("danmufactory", {
       status: "success",
       text: "文件已存在，删除",
-      input: input,
+      input: originInput,
       output: output,
     });
     await fs.unlink(output);
   }
   const DANMUKUFACTORY_PATH = appConfig.get("danmuFactoryPath");
   const danmu = new Danmu(DANMUKUFACTORY_PATH);
+  let tempInput: string | undefined;
+  if (danmuOptions.blacklist) {
+    tempInput = join(os.tmpdir(), `${uuid()}.xml`);
+    console.log("tempInput", tempInput);
+    await filterBlacklist2File(originInput, tempInput, danmuOptions.blacklist);
+  }
+
+  const input = tempInput || originInput;
   const task = new DanmuTask(
     danmu,
     {
-      input,
+      input: input,
       output,
       options: danmuOptions,
-      name: `弹幕转换任务: ${parse(input).name}`,
+      name: `弹幕转换任务: ${parse(originInput).name}`,
     },
     {
       onEnd: async () => {
-        if (options.removeOrigin && (await pathExists(input))) {
-          await trashItem(input);
+        if (options.removeOrigin && (await pathExists(originInput))) {
+          await trashItem(originInput);
+        }
+
+        if (tempInput && (await pathExists(tempInput))) {
+          await fs.unlink(tempInput);
+        }
+      },
+      onError: async () => {
+        if (tempInput && (await pathExists(tempInput))) {
+          await fs.unlink(tempInput);
         }
       },
     },
@@ -92,33 +109,89 @@ export const convertXml2Ass = async (
 
 /**
  * 判断xml中弹幕是否为空
+ * 如果文件中存在<d>, <gift>, <sc>, <guard>标签则认为不为空
+ *
  */
 export const isEmptyDanmu = async (input: string) => {
   const XMLdata = await fs.promises.readFile(input, "utf8");
   // "d": 普通弹幕，"gift": 录播姬 - 普通礼物，"sc": 录播姬 - SuperChat，"guard": 录播姬 - 舰长
   if (
-    XMLdata.includes("<d>") ||
-    XMLdata.includes("<gift>") ||
-    XMLdata.includes("<sc>") ||
-    XMLdata.includes("<guard>")
+    XMLdata.includes("</d>") ||
+    XMLdata.includes("</gift>") ||
+    XMLdata.includes("</sc>") ||
+    XMLdata.includes("</guard>")
   )
     return false;
 
   return true;
-  // 如果文件中存在<d>, <gift>, <sc>, <guard>标签则认为不为空
-
-  // const parser = new XMLParser({ ignoreAttributes: false });
-  // const jObj = parser.parse(XMLdata);
-  // const danmuku = jObj?.i?.d || [];
-  // return danmuku.length === 0;
 };
 
-// 读取所有弹幕预设
-export const readDanmuPresets = async () => {
-  const presets = await danmuPreset.list();
-  return presets;
+/**
+ * 屏蔽词过滤
+ * @param input 输入文件
+ * @param output 输出文件
+ * @param blacklist 屏蔽词列表，换行分割
+ */
+const filterBlacklist2File = async (input: string, output: string, blacklist: string) => {
+  const XMLdata = await fs.promises.readFile(input, "utf8");
+  const outputContent = filterBlacklist(XMLdata, blacklist.split(","));
+  await fs.promises.writeFile(output, outputContent);
+  return output;
 };
 
+/**
+ * 屏蔽词过滤
+ * @param xmlContent xml内容
+ * @param blacklist 屏蔽词列表
+ */
+const filterBlacklist = (XMLdata: string, blacklist: string[]) => {
+  const parser = new XMLParser({ ignoreAttributes: false });
+  const jObj = parser.parse(XMLdata);
+  traversalObject(jObj, (key, value) => {
+    if (key === "d" && Array.isArray(value)) {
+      return value.filter((item: { "#text": string }) => {
+        return blacklist.every((word) => {
+          const text = String(item["#text"]);
+          if (text.includes(word)) {
+            return false;
+          }
+          return true;
+        });
+      });
+    }
+  });
+
+  const builder = new XMLBuilder({
+    ignoreAttributes: false,
+    attributeNamePrefix: "@_",
+    format: true,
+  });
+  const xmlContent = builder.build(jObj);
+
+  return xmlContent;
+};
+
+/**
+ * 递归遍历对象
+ */
+const traversalObject = (obj: any, callback: (key: string, value: any) => any) => {
+  for (const key in obj) {
+    // is object not array
+    if (typeof obj[key] === "object" && !Array.isArray(obj[key])) {
+      traversalObject(obj[key], callback);
+    } else {
+      const result = callback(key, obj[key]);
+      if (result) {
+        obj[key] = result;
+        console.log("result", result.length);
+      }
+    }
+  }
+};
+
+/**
+ * 生成高能进度条
+ */
 export const genHotProgress = async (
   input: string,
   output: string,

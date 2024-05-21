@@ -7,7 +7,7 @@
     "target": "ESNext",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
-    "declaration": true,
+    "declaration": false,
   },
-  "include": ["src/**/*.ts"],
+  "include": ["test/**/*.ts"],
 }

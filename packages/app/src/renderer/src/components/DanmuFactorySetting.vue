@@ -1,7 +1,7 @@
 <template>
   <div class="content">
     <div class="card">
-      <h2>文字设置</h2>
+      <h2>文字</h2>
       <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
         <n-form-item label="文字大小">
           <n-input-number v-model:value.number="config.fontsize" class="input-number" :min="0" />
@@ -46,7 +46,7 @@
     </div>
     <n-divider />
     <div v-if="isAdvancedMode" class="card">
-      <h2>弹幕设置</h2>
+      <h2>弹幕</h2>
       <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
         <n-form-item v-if="isAdvancedMode" label="弹幕密度">
           <n-radio-group v-model:value="config.density" name="density">
@@ -98,7 +98,7 @@
     <n-divider v-if="isAdvancedMode" />
 
     <div class="card">
-      <h2>画面设置</h2>
+      <h2>画面</h2>
       <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
         <n-form-item v-if="isAdvancedMode" label="滚动弹幕显示区域">
           <n-input-number
@@ -160,7 +160,7 @@
     <n-divider />
 
     <div class="card">
-      <h2 title="仅限blrec&录播姬弹幕格式">礼物栏设置</h2>
+      <h2 title="仅限blrec&录播姬弹幕格式">礼物栏</h2>
       <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
         <n-form-item>
           <n-checkbox v-model:checked="config.showmsgbox"> 显示礼物框 </n-checkbox>
@@ -226,10 +226,32 @@
         </template>
       </n-form>
     </div>
+
+    <div class="card">
+      <h2 title="非DanmakuFactory实现的功能">其他</h2>
+      <n-form-item style="width: 100%">
+        <template #label>
+          <span class="inline-flex">
+            <span>屏蔽词</span>
+            <Tip
+              tip="内容以英文逗号分隔，此功能正在测试，如果出现开启后无法转换的情况请反馈，"
+            ></Tip>
+          </span>
+        </template>
+        <n-input
+          v-model:value="config.blacklist"
+          type="textarea"
+          placeholder="请输入需要屏蔽的关键词，以英文逗号分隔"
+          style="width: 100%"
+          :input-props="{ spellcheck: 'false' }"
+        />
+      </n-form-item>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import Tip from "./Tip.vue";
 import type { DanmuConfig } from "@biliLive-tools/types";
 
 const config = defineModel<DanmuConfig>({ required: true, default: {} });

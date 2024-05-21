@@ -68,33 +68,6 @@ export const escaped = (s: string) => {
   return s;
 };
 
-// export const genFfmpegParams = (options: FfmpegOptions) => {
-//   const result: string[] = [];
-//   Object.entries(options).forEach(([key, value]) => {
-//     if (key === "encoder") {
-//       result.push(`-c:v ${value}`);
-//     } else if (key === "bitrateControl") {
-//       if (value === "CRF" && options.crf) {
-//         result.push(`-crf ${options.crf}`);
-//       } else if (value === "VBR" && options.bitrate) {
-//         result.push(`-b:v ${options.bitrate}k`);
-//       } else if (value === "CQ" && options.crf) {
-//         result.push(`-rc vbr`);
-//         result.push(`-cq ${options.crf}`);
-//       }
-//     } else if (key === "crf") {
-//       // do nothing
-//     } else if (key === "preset") {
-//       result.push(`-preset ${value}`);
-//     } else if (key === "resetResolution") {
-//       if (value && options.resolutionWidth && options.resolutionHeight) {
-//         result.push(`-s ${options.resolutionWidth}x${options.resolutionHeight}`);
-//       }
-//     }
-//   });
-//   return result;
-// };
-
 export const genFfmpegParams = (options: FfmpegOptions) => {
   const result: string[] = [];
   if (options.encoder) {

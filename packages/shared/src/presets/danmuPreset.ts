@@ -26,6 +26,7 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   blockmode: [],
   statmode: [],
   resolutionResponsive: false,
+  blacklist: "",
 };
 
 class DanmuPreset extends CommonPreset<DanmuConfig> {

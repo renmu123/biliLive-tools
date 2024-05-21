@@ -1,7 +1,8 @@
 import { expect, describe, it } from "vitest";
+// import { XMLParser, XMLBuilder } from "fast-xml-parser";
 
 export const genFfmpegParams = (options) => {
-  const result = [];
+  const result: any[] = [];
   Object.entries(options).forEach(([key, value]) => {
     if (key === "encoder") {
       result.push(`-c:v ${value}`);
@@ -28,7 +29,7 @@ export const genFfmpegParams = (options) => {
 };
 
 export const genFfmpegParams2 = (options) => {
-  const result = [];
+  const result: any[] = [];
   if (options.encoder) {
     result.push(`-c:v ${options.encoder}`);
   }
@@ -98,3 +99,36 @@ describe("Compare genFfmpegParams and genFfmpegParams2", () => {
     expect(output1).toEqual(output2);
   });
 });
+
+// const filterBlacklist = (XMLdata: string, blacklist: string[]) => {
+//   const parser = new XMLParser({ ignoreAttributes: false });
+//   const jObj = parser.parse(XMLdata);
+//   console.log(jObj);
+//   // const danmuku = jObj?.i?.d || [];
+
+//   const builder = new XMLBuilder();
+//   const xmlContent = builder.build(jObj);
+
+//   return xmlContent;
+// };
+
+// describe("filter blacklist", () => {
+//   it("should return the same output", () => {
+//     const input = {
+//       encoder: "h264_nvenc",
+//       bitrateControl: "VBR",
+//       crf: 18,
+//       preset: "p4",
+//       bitrate: 8000,
+//       decode: true,
+//       resetResolution: true,
+//       resolutionWidth: 3840,
+//       resolutionHeight: 2160,
+//     };
+//     // @ts-ignore
+//     const output1 = genFfmpegParams(input);
+//     // @ts-ignore
+//     const output2 = genFfmpegParams2(input);
+//     expect(output1).toEqual(output2);
+//   });
+// });
