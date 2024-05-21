@@ -57,7 +57,7 @@ const select = async () => {
     filters: [
       {
         name: "file",
-        extensions: supportedVideoExtensions,
+        extensions: props.extensions,
       },
       {
         name: "所有文件",
@@ -66,12 +66,17 @@ const select = async () => {
     ],
   });
   if (!files) return;
-  const newFiles = files.map((file) => ({
-    id: uuid(),
-    title: window.path.parse(file).name,
-    path: file,
-    visible: false,
-  }));
+
+  const newFiles = files
+    .filter((file) => {
+      return !fileList.value.some((item) => item.path === file);
+    })
+    .map((file) => ({
+      id: uuid(),
+      title: window.path.parse(file).name,
+      path: file,
+      visible: false,
+    }));
   fileList.value = fileList.value.concat(newFiles);
 };
 
