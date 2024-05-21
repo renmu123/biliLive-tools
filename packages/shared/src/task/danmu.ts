@@ -1,7 +1,7 @@
 import { join, parse } from "node:path";
 import fs from "fs-extra";
 import os from "node:os";
-import { XMLParser } from "fast-xml-parser";
+// import { XMLParser } from "fast-xml-parser";
 
 import { pathExists, trashItem, uuid } from "../utils/index.js";
 import log from "../utils/log.js";
@@ -95,10 +95,12 @@ export const convertXml2Ass = async (
  */
 export const isEmptyDanmu = async (input: string) => {
   const XMLdata = await fs.promises.readFile(input, "utf8");
-  const parser = new XMLParser({ ignoreAttributes: false });
-  const jObj = parser.parse(XMLdata);
-  const danmuku = jObj?.i?.d || [];
-  return danmuku.length === 0;
+  if (!XMLdata) return true;
+  return false;
+  // const parser = new XMLParser({ ignoreAttributes: false });
+  // const jObj = parser.parse(XMLdata);
+  // const danmuku = jObj?.i?.d || [];
+  // return danmuku.length === 0;
 };
 
 // 读取所有弹幕预设
