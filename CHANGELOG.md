@@ -19,6 +19,7 @@ blrec：`/blrec`修改为`/webhook/blrec`
 
 1. 优化上传后aid查询
 2. 优化文件选择栏交互
+3. 交换“中止”和“删除记录”的icon
 
 ## Bug修复
 

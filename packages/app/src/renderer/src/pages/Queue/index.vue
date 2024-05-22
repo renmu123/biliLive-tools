@@ -66,7 +66,7 @@
               title="中止"
               @click="handleKill(item)"
             >
-              <TrashOutline />
+              <CloseOutline />
             </n-icon>
             <n-icon
               v-if="item.status === 'completed' && item.type !== TaskType.bili && item.output"
@@ -104,7 +104,7 @@
               title="删除记录"
               @click="handleRemoveRecord(item.taskId)"
             >
-              <CloseOutline />
+              <TrashOutline />
             </n-icon>
           </div>
         </div>
