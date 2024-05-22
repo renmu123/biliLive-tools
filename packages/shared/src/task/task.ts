@@ -7,6 +7,7 @@ import { Danmu } from "../danmu/index.js";
 import { sendNotify } from "../notify.js";
 import { appConfig } from "../index.js";
 import { TypedEmitter } from "tiny-typed-emitter";
+import kill from "tree-kill";
 
 import type ffmpeg from "fluent-ffmpeg";
 import type { Client } from "@renmu/bili-api";
@@ -89,7 +90,7 @@ export class DanmuTask extends AbstractTask {
     if (options.name) {
       this.name = options.name;
     }
-    this.action = [];
+    this.action = ["kill"];
     this.callback = callback || {};
     this.controller = new AbortController();
   }
@@ -100,22 +101,22 @@ export class DanmuTask extends AbstractTask {
     this.emitter.emit("task-start", { taskId: this.taskId });
     this.startTime = Date.now();
     this.danmu
-      .convertXml2Ass(this.input, this.output as string, this.options, this.controller.signal)
-      .then(({ stdout, stderr }) => {
-        log.debug("stdout", stdout);
-        log.debug("stderr", stderr);
-
-        if (stderr) {
-          this.status = "error";
-          this.callback.onError && this.callback.onError(stderr);
-          this.emitter.emit("task-error", { taskId: this.taskId });
-          return;
-        }
-        this.status = "completed";
-        this.callback.onEnd && this.callback.onEnd(this.output as string);
-        this.progress = 100;
-        this.emitter.emit("task-end", { taskId: this.taskId });
-        this.endTime = Date.now();
+      .convertXml2Ass(this.input, this.output as string, this.options)
+      .then((child) => {
+        child.on("exit", (code) => {
+          console.log("code", code);
+          if (code === 0) {
+            this.status = "completed";
+            this.callback.onEnd && this.callback.onEnd(this.output as string);
+            this.progress = 100;
+            this.endTime = Date.now();
+            this.emitter.emit("task-end", { taskId: this.taskId });
+          } else {
+            this.status = "error";
+            this.callback.onError && this.callback.onError("转换失败");
+            this.emitter.emit("task-error", { taskId: this.taskId });
+          }
+        });
       })
       .catch((err) => {
         this.status = "error";
@@ -133,7 +134,9 @@ export class DanmuTask extends AbstractTask {
     if (this.status === "completed" || this.status === "error") return;
     log.warn(`danmu task ${this.taskId} killed`);
     this.status = "error";
-    this.controller.abort();
+    if (this.danmu.child.pid) {
+      kill(this.danmu.child.pid);
+    }
     return true;
   }
 }
@@ -545,29 +548,29 @@ export class TranslateTask extends AbstractTask {
     this.progress = 0;
     this.emitter.emit("task-start", { taskId: this.taskId });
     this.startTime = Date.now();
-    this.danmu
-      .convertXml2Ass(this.input, this.output as string, this.options, this.controller.signal)
-      .then(({ stdout, stderr }) => {
-        log.debug("stdout", stdout);
-        log.debug("stderr", stderr);
+    // this.danmu
+    //   .convertXml2Ass(this.input, this.output as string, this.options, this.controller.signal)
+    //   .then(({ stdout, stderr }) => {
+    //     log.debug("stdout", stdout);
+    //     log.debug("stderr", stderr);
 
-        if (stderr) {
-          this.status = "error";
-          this.callback.onError && this.callback.onError(stderr);
-          this.emitter.emit("task-error", { taskId: this.taskId });
-          return;
-        }
-        this.status = "completed";
-        this.callback.onEnd && this.callback.onEnd(this.output as string);
-        this.progress = 100;
-        this.emitter.emit("task-end", { taskId: this.taskId });
-        this.endTime = Date.now();
-      })
-      .catch((err) => {
-        this.status = "error";
-        this.callback.onError && this.callback.onError(err);
-        this.emitter.emit("task-error", { taskId: this.taskId });
-      });
+    //     if (stderr) {
+    //       this.status = "error";
+    //       this.callback.onError && this.callback.onError(stderr);
+    //       this.emitter.emit("task-error", { taskId: this.taskId });
+    //       return;
+    //     }
+    //     this.status = "completed";
+    //     this.callback.onEnd && this.callback.onEnd(this.output as string);
+    //     this.progress = 100;
+    //     this.emitter.emit("task-end", { taskId: this.taskId });
+    //     this.endTime = Date.now();
+    //   })
+    //   .catch((err) => {
+    //     this.status = "error";
+    //     this.callback.onError && this.callback.onError(err);
+    //     this.emitter.emit("task-error", { taskId: this.taskId });
+    //   });
   }
   pause() {
     return false;

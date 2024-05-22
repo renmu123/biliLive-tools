@@ -1,17 +1,19 @@
 import fs from "fs-extra";
 import path from "node:path";
+import { ChildProcess, exec } from "node:child_process";
 
 import { createCanvas } from "@napi-rs/canvas";
 import { compile } from "ass-compiler";
 
 import { keyBy } from "lodash-es";
-import { executeCommand, pathExists } from "../utils/index.js";
+import { pathExists } from "../utils/index.js";
 import { XMLParser } from "fast-xml-parser";
 import type { DanmuConfig, hotProgressOptions } from "@biliLive-tools/types";
 
 export class Danmu {
   execPath: string;
   command?: string;
+  child?: ChildProcess;
   constructor(execPath: string) {
     this.execPath = execPath;
   }
@@ -44,12 +46,7 @@ export class Danmu {
     return params;
   };
 
-  convertXml2Ass = async (
-    input: string,
-    output: string,
-    argsObj: DanmuConfig,
-    signal?: AbortSignal,
-  ) => {
+  convertXml2Ass = async (input: string, output: string, argsObj: DanmuConfig) => {
     if (!(await pathExists(input))) {
       throw new Error("input not exists");
     }
@@ -58,8 +55,15 @@ export class Danmu {
     const args = this.genDanmuArgs(argsObj);
     const command = `${this.execPath} ${requiredArgs.join(" ")} ${args.join(" ")}`;
     this.command = command;
-    const { stdout, stderr } = await executeCommand(command, { signal: signal });
-    return { stdout, stderr };
+    const child = exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error("stderr", stderr);
+        throw error;
+      }
+      console.log("stdout", stdout);
+    });
+    this.child = child;
+    return child;
   };
 }
 
