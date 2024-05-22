@@ -21,7 +21,7 @@ interface TaskEvents {
   "task-progress": ({ taskId }: { taskId: string }) => void;
 }
 
-const emitter = new EventEmitter();
+const emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
 
 // type Status = "pending" | "running" | "paused" | "completed" | "error";
 abstract class AbstractTask {
@@ -35,12 +35,16 @@ abstract class AbstractTask {
   action: ("pause" | "kill" | "interrupt")[];
   startTime?: number;
   endTime?: number;
+  emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
 
   abstract type: string;
   abstract exec(): void;
   abstract kill(): void;
   abstract pause(): void;
   abstract resume(): void;
+  on(event: keyof TaskEvents, callback: (event: { taskId: string }) => void) {
+    this.emitter.on(event, callback);
+  }
   constructor() {
     this.taskId = uuid();
     this.status = "pending";
@@ -96,6 +100,7 @@ export class DanmuTask extends AbstractTask {
     this.status = "running";
     this.progress = 0;
     emitter.emit("task-start", { taskId: this.taskId });
+    this.emitter.emit("task-start", { taskId: this.taskId });
     this.startTime = Date.now();
     this.danmu
       .convertXml2Ass(this.input, this.output as string, this.options, this.controller.signal)
@@ -107,18 +112,21 @@ export class DanmuTask extends AbstractTask {
           this.status = "error";
           this.callback.onError && this.callback.onError(stderr);
           emitter.emit("task-error", { taskId: this.taskId });
+          this.emitter.emit("task-error", { taskId: this.taskId });
           return;
         }
         this.status = "completed";
         this.callback.onEnd && this.callback.onEnd(this.output as string);
         this.progress = 100;
         emitter.emit("task-end", { taskId: this.taskId });
+        this.emitter.emit("task-end", { taskId: this.taskId });
         this.endTime = Date.now();
       })
       .catch((err) => {
         this.status = "error";
         this.callback.onError && this.callback.onError(err);
         emitter.emit("task-error", { taskId: this.taskId });
+        this.emitter.emit("task-error", { taskId: this.taskId });
       });
   }
   pause() {
@@ -140,6 +148,7 @@ export class FFmpegTask extends AbstractTask {
   command: ffmpeg.FfmpegCommand;
   type = TaskType.ffmpeg;
   isInterrupted: boolean = false;
+
   constructor(
     command: ffmpeg.FfmpegCommand,
     options: {
@@ -169,6 +178,8 @@ export class FFmpegTask extends AbstractTask {
 
       callback.onStart && callback.onStart();
       emitter.emit("task-start", { taskId: this.taskId });
+      this.emitter.emit("task-start", { taskId: this.taskId });
+
       this.startTime = Date.now();
     });
     command.on("end", async () => {
@@ -180,6 +191,7 @@ export class FFmpegTask extends AbstractTask {
 
         callback.onError && callback.onError(msg);
         emitter.emit("task-error", { taskId: this.taskId });
+        this.emitter.emit("task-error", { taskId: this.taskId });
       } else {
         log.info(`task ${this.taskId} end`);
         this.status = "completed";
@@ -187,6 +199,7 @@ export class FFmpegTask extends AbstractTask {
 
         callback.onEnd && callback.onEnd(options.output);
         emitter.emit("task-end", { taskId: this.taskId });
+        this.emitter.emit("task-end", { taskId: this.taskId });
         this.endTime = Date.now();
       }
     });
@@ -196,6 +209,7 @@ export class FFmpegTask extends AbstractTask {
 
       callback.onError && callback.onError(err);
       emitter.emit("task-error", { taskId: this.taskId });
+      this.emitter.emit("task-error", { taskId: this.taskId });
     });
     command.on("progress", (progress) => {
       progress.percentage = progress.percent;
@@ -205,6 +219,7 @@ export class FFmpegTask extends AbstractTask {
       this.custsomProgressMsg = `比特率: ${progress.currentKbps}kbits/s   速率: ${progress.speed}`;
       this.progress = progress.percentage || 0;
       emitter.emit("task-progress", { taskId: this.taskId });
+      this.emitter.emit("task-progress", { taskId: this.taskId });
     });
   }
   exec() {
@@ -268,7 +283,6 @@ type WithoutPromise<T> = T extends Promise<infer U> ? U : T;
 export class BiliVideoTask extends AbstractTask {
   command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>;
   type = TaskType.bili;
-  emitter: TypedEmitter<TaskEvents>;
   constructor(
     command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>,
     options: {
@@ -285,7 +299,6 @@ export class BiliVideoTask extends AbstractTask {
     this.command = command;
     this.progress = 0;
     this.action = ["kill", "pause"];
-    this.emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
     if (options.name) {
       this.name = options.name;
     }
@@ -383,9 +396,6 @@ export class BiliVideoTask extends AbstractTask {
     this.command.cancel();
     return true;
   }
-  on(event: keyof TaskEvents, callback: (event: { taskId: string }) => void) {
-    this.emitter.on(event, callback);
-  }
 }
 
 /**
@@ -394,7 +404,7 @@ export class BiliVideoTask extends AbstractTask {
 export class BiliDownloadVideoTask extends AbstractTask {
   command: WithoutPromise<ReturnType<Client["video"]["download"]>>;
   type = TaskType.biliDownload;
-  emitter: TypedEmitter<TaskEvents>;
+  emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
   constructor(
     command: WithoutPromise<ReturnType<Client["video"]["download"]>>,
     options: {
@@ -411,7 +421,6 @@ export class BiliDownloadVideoTask extends AbstractTask {
     this.command = command;
     this.progress = 0;
     this.action = ["kill", "pause"];
-    this.emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
 
     if (options.name) {
       this.name = options.name;
@@ -479,9 +488,6 @@ export class BiliDownloadVideoTask extends AbstractTask {
         this.emitter.emit("task-progress", { taskId: this.taskId });
       }
     });
-  }
-  on(event: keyof TaskEvents, callback: (event: { taskId: string }) => void) {
-    this.emitter.on(event, callback);
   }
   exec() {
     // this.command.run();
@@ -557,6 +563,7 @@ export class TranslateTask extends AbstractTask {
     this.status = "running";
     this.progress = 0;
     emitter.emit("task-start", { taskId: this.taskId });
+    this.emitter.emit("task-start", { taskId: this.taskId });
     this.startTime = Date.now();
     this.danmu
       .convertXml2Ass(this.input, this.output as string, this.options, this.controller.signal)
@@ -568,18 +575,21 @@ export class TranslateTask extends AbstractTask {
           this.status = "error";
           this.callback.onError && this.callback.onError(stderr);
           emitter.emit("task-error", { taskId: this.taskId });
+          this.emitter.emit("task-error", { taskId: this.taskId });
           return;
         }
         this.status = "completed";
         this.callback.onEnd && this.callback.onEnd(this.output as string);
         this.progress = 100;
         emitter.emit("task-end", { taskId: this.taskId });
+        this.emitter.emit("task-end", { taskId: this.taskId });
         this.endTime = Date.now();
       })
       .catch((err) => {
         this.status = "error";
         this.callback.onError && this.callback.onError(err);
         emitter.emit("task-error", { taskId: this.taskId });
+        this.emitter.emit("task-error", { taskId: this.taskId });
       });
   }
   pause() {
@@ -665,10 +675,7 @@ export class TaskQueue {
       this.queue.splice(index, 1);
     }
   }
-  on(
-    event: "task-start" | "task-end" | "task-error" | "task-progress",
-    callback: (event: { taskId: string }) => void,
-  ) {
+  on(event: keyof TaskEvents, callback: (event: { taskId: string }) => void) {
     emitter.on(event, callback);
   }
 }
