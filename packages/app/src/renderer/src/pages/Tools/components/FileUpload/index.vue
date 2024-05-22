@@ -74,11 +74,12 @@ const upload = async () => {
     duration: 1000,
   });
   // console.log(fileList.value);
-  await window.api.bili.uploadVideo(
+  const res = await window.api.bili.uploadVideo(
     userInfo.value.uid,
     deepRaw(fileList.value),
     deepRaw(presetOptions.value.config),
   );
+  console.log(res);
   fileList.value = [];
 };
 

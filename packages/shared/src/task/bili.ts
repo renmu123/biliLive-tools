@@ -223,7 +223,6 @@ async function addMedia(
 
   const task = new BiliVideoTask(
     command,
-
     {
       name: `上传任务：${options.title}`,
     },
@@ -277,9 +276,7 @@ async function addMedia(
 
   taskQueue.addTask(task, true);
 
-  return {
-    taskId: task.taskId,
-  };
+  return task;
 }
 
 async function editMedia(
@@ -310,9 +307,7 @@ async function editMedia(
 
   taskQueue.addTask(task, true);
 
-  return {
-    taskId: task.taskId,
-  };
+  return task;
 }
 
 async function getSessionId(

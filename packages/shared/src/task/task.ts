@@ -6,12 +6,20 @@ import * as ntsuspend from "ntsuspend";
 import { Danmu } from "../danmu/index.js";
 import { sendNotify } from "../notify.js";
 import { appConfig } from "../index.js";
+import { TypedEmitter } from "tiny-typed-emitter";
 
 import type ffmpeg from "fluent-ffmpeg";
 import type { Client } from "@renmu/bili-api";
 import type { Progress, NotificationTaskStatus } from "@biliLive-tools/types";
 import type { Status } from "@biliLive-tools/types/task.d.ts";
 import { TaskType } from "../enum.js";
+
+interface TaskEvents {
+  "task-start": ({ taskId }: { taskId: string }) => void;
+  "task-end": ({ taskId }: { taskId: string }) => void;
+  "task-error": ({ taskId }: { taskId: string }) => void;
+  "task-progress": ({ taskId }: { taskId: string }) => void;
+}
 
 const emitter = new EventEmitter();
 
@@ -21,7 +29,7 @@ abstract class AbstractTask {
   status: Status;
   name: string;
   relTaskId?: string;
-  output?: string;
+  output?: string | number;
   progress: number;
   custsomProgressMsg: string;
   action: ("pause" | "kill" | "interrupt")[];
@@ -260,6 +268,7 @@ type WithoutPromise<T> = T extends Promise<infer U> ? U : T;
 export class BiliVideoTask extends AbstractTask {
   command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>;
   type = TaskType.bili;
+  emitter: TypedEmitter<TaskEvents>;
   constructor(
     command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>,
     options: {
@@ -276,6 +285,7 @@ export class BiliVideoTask extends AbstractTask {
     this.command = command;
     this.progress = 0;
     this.action = ["kill", "pause"];
+    this.emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
     if (options.name) {
       this.name = options.name;
     }
@@ -292,14 +302,16 @@ export class BiliVideoTask extends AbstractTask {
     this.status = "running";
     this.startTime = Date.now();
     emitter.emit("task-start", { taskId: this.taskId });
+    this.emitter.emit("task-start", { taskId: this.taskId });
 
-    command.emitter.on("completed", async (data) => {
+    command.emitter.on("completed", async (data: { aid: number; bvid: string }) => {
       log.info(`task ${this.taskId} end`);
       this.status = "completed";
       this.progress = 100;
-      this.output = data;
+      this.output = data.aid;
       callback.onEnd && callback.onEnd(data);
       emitter.emit("task-end", { taskId: this.taskId });
+      this.emitter.emit("task-end", { taskId: this.taskId });
       this.endTime = Date.now();
     });
     command.emitter.on("error", (err) => {
@@ -308,6 +320,7 @@ export class BiliVideoTask extends AbstractTask {
 
       callback.onError && callback.onError(err);
       emitter.emit("task-error", { taskId: this.taskId });
+      this.emitter.emit("task-error", { taskId: this.taskId });
     });
 
     // let size = 0;
@@ -337,6 +350,7 @@ export class BiliVideoTask extends AbstractTask {
       // console.log("progress", progress, sizeDistance, timeDistance);
 
       emitter.emit("task-progress", { taskId: this.taskId });
+      this.emitter.emit("task-progress", { taskId: this.taskId });
     });
   }
   exec() {
@@ -369,6 +383,9 @@ export class BiliVideoTask extends AbstractTask {
     this.command.cancel();
     return true;
   }
+  on(event: keyof TaskEvents, callback: (event: { taskId: string }) => void) {
+    this.emitter.on(event, callback);
+  }
 }
 
 /**
@@ -377,6 +394,7 @@ export class BiliVideoTask extends AbstractTask {
 export class BiliDownloadVideoTask extends AbstractTask {
   command: WithoutPromise<ReturnType<Client["video"]["download"]>>;
   type = TaskType.biliDownload;
+  emitter: TypedEmitter<TaskEvents>;
   constructor(
     command: WithoutPromise<ReturnType<Client["video"]["download"]>>,
     options: {
@@ -393,6 +411,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
     this.command = command;
     this.progress = 0;
     this.action = ["kill", "pause"];
+    this.emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
 
     if (options.name) {
       this.name = options.name;
@@ -410,6 +429,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
     this.status = "running";
     this.startTime = Date.now();
     emitter.emit("task-start", { taskId: this.taskId });
+    this.emitter.emit("task-start", { taskId: this.taskId });
 
     command.emitter.on("completed", async (data) => {
       log.info(`task ${this.taskId} end`);
@@ -418,6 +438,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
       this.output = data;
       callback.onEnd && callback.onEnd(data);
       emitter.emit("task-end", { taskId: this.taskId });
+      this.emitter.emit("task-end", { taskId: this.taskId });
       this.endTime = Date.now();
     });
     command.emitter.on("error", (err) => {
@@ -426,6 +447,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
 
       callback.onError && callback.onError(err);
       emitter.emit("task-error", { taskId: this.taskId });
+      this.emitter.emit("task-error", { taskId: this.taskId });
     });
     let size = 0;
     let time = Date.now();
@@ -454,8 +476,12 @@ export class BiliDownloadVideoTask extends AbstractTask {
 
         callback.onProgress && callback.onProgress(progress);
         emitter.emit("task-progress", { taskId: this.taskId });
+        this.emitter.emit("task-progress", { taskId: this.taskId });
       }
     });
+  }
+  on(event: keyof TaskEvents, callback: (event: { taskId: string }) => void) {
+    this.emitter.on(event, callback);
   }
   exec() {
     // this.command.run();

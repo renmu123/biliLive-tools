@@ -94,7 +94,10 @@ export const handlers = {
     pathArray: string[],
     options: BiliupConfig,
   ) => {
-    biliApi.addMedia(pathArray, options, uid);
+    const task = await biliApi.addMedia(pathArray, options, uid);
+    return {
+      taskId: task.taskId,
+    };
   },
   "bili:appendVideo": async (
     _event: IpcMainInvokeEvent,
@@ -102,6 +105,9 @@ export const handlers = {
     pathArray: string[],
     options: BiliupConfigAppend,
   ) => {
-    biliApi.editMedia(options.vid as number, pathArray, options, uid);
+    const task = await biliApi.editMedia(options.vid as number, pathArray, options, uid);
+    return {
+      taskId: task.taskId,
+    };
   },
 };

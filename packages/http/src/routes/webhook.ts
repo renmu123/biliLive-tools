@@ -18,13 +18,7 @@ import {
 } from "@biliLive-tools/shared/lib/task/video.js";
 import { taskQueue } from "../index.js";
 import log from "@biliLive-tools/shared/lib/utils/log.js";
-import {
-  getFileSize,
-  uuid,
-  runWithMaxIterations,
-  sleep,
-  trashItem,
-} from "@biliLive-tools/shared/lib/utils/index.js";
+import { getFileSize, uuid, sleep, trashItem } from "@biliLive-tools/shared/lib/utils/index.js";
 
 import type {
   BiliupConfig,
@@ -129,9 +123,8 @@ router.post("/webhook/blrec", async (ctx) => {
     (event.type === "VideoFileCompletedEvent" || event.type === "VideoFileCreatedEvent")
   ) {
     const roomId = event.data.room_id;
-
-    const masterRes = await bili.client.live.getRoomInfo(event.data.room_id);
-    const userRes = await bili.client.live.getMasterInfo(masterRes.uid);
+    const masterRes = await bili.live.getRoomInfo(event.data.room_id);
+    const userRes = await bili.live.getMasterInfo(masterRes.uid);
 
     handle({
       event: event.type,
@@ -809,23 +802,17 @@ const addUploadTask = async (
 ) => {
   return new Promise((resolve, reject) => {
     log.debug("addUploadTask", pathArray, options, removeOrigin);
-    // TODO: 优化addMedia，直接返回task
     biliApi.addMedia(pathArray, options, uid).then((task) => {
-      const currentTaskId = task.taskId;
-      taskQueue.on("task-end", ({ taskId }) => {
-        if (taskId === currentTaskId) {
-          if (removeOrigin) {
-            pathArray.map((item) => {
-              trashItem(item);
-            });
-          }
-          resolve(true);
+      task.on("task-end", () => {
+        if (removeOrigin) {
+          pathArray.map((item) => {
+            trashItem(item);
+          });
         }
+        resolve(task.output);
       });
-      taskQueue.on("task-error", ({ taskId }) => {
-        if (taskId === currentTaskId) {
-          reject();
-        }
+      task.on("task-error", () => {
+        reject();
       });
     });
   });
@@ -839,21 +826,16 @@ const addEditMediaTask = async (
 ) => {
   return new Promise((resolve, reject) => {
     biliApi.editMedia(aid, pathArray, {}, uid).then((task) => {
-      const currentTaskId = task.taskId;
-      taskQueue.on("task-end", ({ taskId }) => {
-        if (taskId === currentTaskId) {
-          if (removeOrigin) {
-            pathArray.map((item) => {
-              trashItem(item);
-            });
-          }
-          resolve(true);
+      task.on("task-end", () => {
+        if (removeOrigin) {
+          pathArray.map((item) => {
+            trashItem(item);
+          });
         }
+        resolve(task.output);
       });
-      taskQueue.on("task-error", ({ taskId }) => {
-        if (taskId === currentTaskId) {
-          reject();
-        }
+      task.on("task-error", () => {
+        reject();
       });
     });
   });
@@ -924,24 +906,8 @@ const handleLive = async (live: Live) => {
       });
       log.info("上传", live, filePaths);
 
-      await addUploadTask(uid, filePaths, config, removeOriginAfterUpload);
-
-      // TODO: 使用接口返回的aid值
-      await runWithMaxIterations(
-        async () => {
-          const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
-          for (let i = 0; i < Math.min(10, res.arc_audits.length); i++) {
-            const item = res.arc_audits[i];
-            if (item.Archive.title === live.videoName) {
-              live.aid = item.Archive.aid;
-              return false;
-            }
-          }
-          return true;
-        },
-        6000,
-        5,
-      );
+      const aid = (await addUploadTask(uid, filePaths, config, removeOriginAfterUpload)) as number;
+      live.aid = aid;
 
       // 设置状态为成功
       live.parts.map((item) => {

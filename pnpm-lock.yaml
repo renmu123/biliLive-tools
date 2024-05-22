@@ -297,6 +297,9 @@ importers:
       ollama:
         specifier: ^0.5.1
         version: 0.5.1
+      tiny-typed-emitter:
+        specifier: ^2.1.0
+        version: 2.1.0
       trash:
         specifier: ^8.1.1
         version: 8.1.1
