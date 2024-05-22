@@ -102,21 +102,12 @@ export class DanmuTask extends AbstractTask {
     this.startTime = Date.now();
     this.danmu
       .convertXml2Ass(this.input, this.output as string, this.options)
-      .then((child) => {
-        child.on("exit", (code) => {
-          console.log("code", code);
-          if (code === 0) {
-            this.status = "completed";
-            this.callback.onEnd && this.callback.onEnd(this.output as string);
-            this.progress = 100;
-            this.endTime = Date.now();
-            this.emitter.emit("task-end", { taskId: this.taskId });
-          } else {
-            this.status = "error";
-            this.callback.onError && this.callback.onError("转换失败");
-            this.emitter.emit("task-error", { taskId: this.taskId });
-          }
-        });
+      .then(() => {
+        this.status = "completed";
+        this.callback.onEnd && this.callback.onEnd(this.output as string);
+        this.progress = 100;
+        this.emitter.emit("task-end", { taskId: this.taskId });
+        this.endTime = Date.now();
       })
       .catch((err) => {
         this.status = "error";

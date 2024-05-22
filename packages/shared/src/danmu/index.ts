@@ -55,15 +55,17 @@ export class Danmu {
     const args = this.genDanmuArgs(argsObj);
     const command = `${this.execPath} ${requiredArgs.join(" ")} ${args.join(" ")}`;
     this.command = command;
-    const child = exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error("stderr", stderr);
-        throw error;
-      }
-      console.log("stdout", stdout);
+
+    return new Promise((resolve, reject) => {
+      const child = exec(command, (error, stdout, stderr) => {
+        if (error || stderr) {
+          reject(stderr);
+        } else {
+          resolve(stdout);
+        }
+      });
+      this.child = child;
     });
-    this.child = child;
-    return child;
   };
 }
 
