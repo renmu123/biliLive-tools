@@ -9,13 +9,7 @@ import { notify, invokeWrap } from "./utils/index";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net, nativeTheme } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
-import {
-  convertVideo2Mp4,
-  mergeAssMp4,
-  getAvailableEncoders,
-  mergeVideos,
-  readVideoMeta,
-} from "@biliLive-tools/shared/lib/task/video.js";
+import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/lib/task/video.js";
 import { taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
 import { appConfig } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
@@ -80,11 +74,8 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:setTheme", setTheme);
 
   // 视频处理
-  ipcMain.handle("convertVideo2Mp4", invokeWrap(convertVideo2Mp4));
-  ipcMain.handle("mergeAssMp4", invokeWrap(mergeAssMp4));
   ipcMain.handle("getAvailableEncoders", getAvailableEncoders);
   ipcMain.handle("readVideoMeta", invokeWrap(readVideoMeta));
-  ipcMain.handle("mergeVideos", invokeWrap(mergeVideos));
 
   registerHandlers(ipcMain, biliupHandlers);
   registerHandlers(ipcMain, biliHandlers);

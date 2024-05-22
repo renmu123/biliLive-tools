@@ -58,7 +58,6 @@ export class Danmu {
     const args = this.genDanmuArgs(argsObj);
     const command = `${this.execPath} ${requiredArgs.join(" ")} ${args.join(" ")}`;
     this.command = command;
-
     const { stdout, stderr } = await executeCommand(command, { signal: signal });
     return { stdout, stderr };
   };

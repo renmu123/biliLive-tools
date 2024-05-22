@@ -628,16 +628,11 @@ const convert2Mp4 = async (videoFile: string): Promise<string> => {
       },
       true,
     ).then((task) => {
-      const currentTaskId = task.taskId;
-      taskQueue.on("task-end", ({ taskId }) => {
-        if (taskId === currentTaskId) {
-          resolve(output);
-        }
+      task.on("task-end", () => {
+        resolve(output);
       });
-      taskQueue.on("task-error", ({ taskId }) => {
-        if (taskId === currentTaskId) {
-          reject();
-        }
+      task.on("task-error", () => {
+        reject();
       });
     });
   });
@@ -665,16 +660,11 @@ const genHotProgressTask = async (
       duration: videoMeta.format.duration!,
       ...options,
     }).then((task) => {
-      const currentTaskId = task.taskId;
-      taskQueue.on("task-end", ({ taskId }) => {
-        if (taskId === currentTaskId) {
-          resolve(output);
-        }
+      task.on("task-end", () => {
+        resolve(output);
       });
-      taskQueue.on("task-error", ({ taskId }) => {
-        if (taskId === currentTaskId) {
-          reject();
-        }
+      task.on("task-error", () => {
+        reject();
       });
     });
   });
@@ -751,17 +741,11 @@ const addMergeAssMp4Task = (
           },
           preset,
         ).then((task) => {
-          if (!task) reject("文件不存在");
-          const currentTaskId = task!.taskId;
-          taskQueue.on("task-end", ({ taskId }) => {
-            if (taskId === currentTaskId) {
-              resolve(output);
-            }
+          task.on("task-end", () => {
+            resolve(output);
           });
-          taskQueue.on("task-error", ({ taskId }) => {
-            if (taskId === currentTaskId) {
-              reject();
-            }
+          task.on("task-error", () => {
+            reject();
           });
         });
       });

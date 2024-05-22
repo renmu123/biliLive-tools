@@ -100,11 +100,7 @@ export const convertImage2Video = async (
   );
 
   taskQueue.addTask(task, true);
-  return {
-    status: "success",
-    text: "添加到任务队列",
-    taskId: task.taskId,
-  };
+  return task;
 };
 
 export const convertVideo2Mp4 = async (
@@ -164,11 +160,7 @@ export const convertVideo2Mp4 = async (
   );
 
   taskQueue.addTask(task, autoStart);
-  return {
-    status: "success",
-    text: "添加到任务队列",
-    taskId: task.taskId,
-  };
+  return task;
 };
 
 /**
@@ -205,7 +197,7 @@ export const mergeAssMp4 = async (
 
   if (!(await pathExists(videoInput))) {
     log.error("mergrAssMp4, file not exist", videoInput);
-    return;
+    throw new Error("输入文件不存在");
   }
 
   const command = ffmpeg(videoInput).audioCodec("copy").output(output);
@@ -289,9 +281,7 @@ export const mergeAssMp4 = async (
   );
   taskQueue.addTask(task, false);
 
-  return {
-    taskId: task.taskId,
-  };
+  return task;
 };
 
 export const mergeVideos = async (

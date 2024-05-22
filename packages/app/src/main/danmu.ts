@@ -38,6 +38,14 @@ export const handlers = {
     const data = await report(options.input);
     await fs.writeFile(options.output, data);
   },
-  "danmu:genHotProgress": invokeWrap(genHotProgress),
+  "danmu:genHotProgress": async (
+    _event: IpcMainInvokeEvent,
+    ...args: Parameters<typeof genHotProgress>
+  ) => {
+    const task = await genHotProgress(...args);
+    return {
+      taskId: task.taskId,
+    };
+  },
   "danmu:isEmptyDanmu": invokeWrap(isEmptyDanmu),
 };
