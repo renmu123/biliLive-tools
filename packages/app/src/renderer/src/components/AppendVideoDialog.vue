@@ -126,12 +126,19 @@ const selectMedia = (item) => {
   background-color: #eee;
   justify-content: center;
   margin-top: 20px;
+  padding: 10px 0;
   gap: 10px;
+  @media screen and (prefers-color-scheme: dark) {
+    background: none;
+  }
 
   .media {
     padding: 10px;
     background-color: white;
-    border: 2px solid #fff;
+    @media screen and (prefers-color-scheme: dark) {
+      background: none;
+    }
+    border: 1px solid #eee;
 
     width: 160px;
     .cover {
