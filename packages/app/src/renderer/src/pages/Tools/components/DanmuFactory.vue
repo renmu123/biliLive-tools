@@ -64,11 +64,13 @@ import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingD
 import { deepRaw } from "@renderer/utils";
 import { useDanmuPreset, useAppConfig } from "@renderer/stores";
 import { Settings as SettingIcon, FolderOpenOutline } from "@vicons/ionicons5";
+import { useConfirm } from "@renderer/hooks";
 
 const { danmuPresetsOptions, danmuPresetId } = storeToRefs(useDanmuPreset());
 const { appConfig } = storeToRefs(useAppConfig());
 
 const notice = useNotification();
+const confirm = useConfirm();
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 
@@ -82,6 +84,14 @@ const convert = async () => {
     });
     return;
   }
+  const status = await confirm.warning({
+    title: "确认转换",
+    content: `输出文件名中请勿包含emoji或奇怪符号，否则可能导致转换失败`,
+    showCheckbox: true,
+    showAgainKey: "danmuFactoryConvert-filename",
+  });
+  if (!status) return;
+
   const presetId = danmuPresetId.value;
   notice.info({
     title: `生成${fileList.value.length}个任务，可在任务列表中查看进度`,

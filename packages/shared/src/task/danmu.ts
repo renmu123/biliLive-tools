@@ -17,7 +17,7 @@ const addConvertDanmu2AssTask = async (
   output: string,
   danmuOptions: DanmuConfig,
   autoRun: boolean = true,
-  options: { removeOrigin: boolean },
+  options: { removeOrigin: boolean; copyInput?: boolean },
 ) => {
   if (await pathExists(output)) {
     log.info("danmufactory", {
@@ -31,9 +31,13 @@ const addConvertDanmu2AssTask = async (
   const DANMUKUFACTORY_PATH = appConfig.get("danmuFactoryPath");
   const danmu = new Danmu(DANMUKUFACTORY_PATH);
   let tempInput: string | undefined;
-  if (danmuOptions.blacklist) {
+
+  if (options.copyInput) {
     tempInput = join(os.tmpdir(), `${uuid()}.xml`);
-    console.log("tempInput", tempInput);
+    await fs.copyFile(originInput, tempInput);
+  }
+  if (danmuOptions.blacklist) {
+    tempInput = tempInput || join(os.tmpdir(), `${uuid()}.xml`);
     await filterBlacklist2File(originInput, tempInput, danmuOptions.blacklist);
   }
 
@@ -56,7 +60,13 @@ const addConvertDanmu2AssTask = async (
           await fs.unlink(tempInput);
         }
       },
-      onError: async () => {
+      onError: async (error) => {
+        log.error("danmufactory", {
+          status: "error",
+          text: error,
+          input: originInput,
+          output: output,
+        });
         if (tempInput && (await pathExists(tempInput))) {
           await fs.unlink(tempInput);
         }
@@ -75,6 +85,7 @@ export const convertXml2Ass = async (
   danmuOptions: DanmuConfig,
   options: DanmuOptions = {
     removeOrigin: false,
+    copyInput: false,
   },
 ) => {
   const tasks: {

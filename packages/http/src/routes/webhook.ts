@@ -695,6 +695,10 @@ const addDanmuTask = (
             },
           ],
           danmuConfig,
+          {
+            copyInput: true,
+            removeOrigin: false,
+          },
         );
       })
       .then((tasks) => {
