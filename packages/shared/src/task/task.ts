@@ -391,7 +391,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
     },
     callback: {
       onStart?: () => void;
-      onEnd?: (output: { aid: number; bvid: string }) => void;
+      onEnd?: (output: string) => void;
       onError?: (err: string) => void;
       onProgress?: (progress: number) => any;
     },
