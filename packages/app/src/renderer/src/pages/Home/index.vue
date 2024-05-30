@@ -243,7 +243,7 @@ const preHandle = async (
   }
 
   if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
-    const status = await confirm.warning({
+    const [status] = await confirm.warning({
       content: `目标视频分辨率为${width}*${height}，与设置的弹幕分辨率不一致，是否继续？`,
       showCheckbox: true,
       showAgainKey: "danmuResolution",
@@ -412,25 +412,27 @@ const convertDanmu2Ass = async (
   config: DanmuConfig,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
-    window.api.danmu.convertXml2Ass([fileOptions], config, options).then((result: any) => {
-      if (result[0].output) {
-        resolve(result[0].output);
-      } else {
-        const taskId = result[0].taskId;
-        window.api.task.on(taskId, "end", (data) => {
-          // console.log("end", data);
-          notice.success({
-            title: "xml文件转换成功",
-            duration: 3000,
+    window.api.danmu
+      .convertXml2Ass([fileOptions], config, { ...options, copyInput: true })
+      .then((result: any) => {
+        if (result[0].output) {
+          resolve(result[0].output);
+        } else {
+          const taskId = result[0].taskId;
+          window.api.task.on(taskId, "end", (data) => {
+            // console.log("end", data);
+            notice.success({
+              title: "xml文件转换成功",
+              duration: 3000,
+            });
+            resolve(data.output);
           });
-          resolve(data.output);
-        });
 
-        window.api.task.on(taskId, "error", (data) => {
-          reject(data.err);
-        });
-      }
-    });
+          window.api.task.on(taskId, "error", (data) => {
+            reject(data.err);
+          });
+        }
+      });
   });
 };
 
@@ -564,7 +566,7 @@ const saveAsDanmu = async () => {
   nameModelVisible.value = true;
 };
 const deleteDanmu = async () => {
-  const status = await confirm.warning({
+  const [status] = await confirm.warning({
     content: "是否确认删除该预设？",
   });
   if (!status) return;

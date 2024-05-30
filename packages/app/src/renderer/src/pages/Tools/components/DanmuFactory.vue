@@ -84,12 +84,13 @@ const convert = async () => {
     });
     return;
   }
-  const status = await confirm.warning({
+  const [status] = await confirm.warning({
     title: "确认转换",
     content: `输出文件名中请勿包含emoji或奇怪符号，否则可能导致转换失败`,
     showCheckbox: true,
     showAgainKey: "danmuFactoryConvert-filename",
   });
+  console.log(status);
   if (!status) return;
 
   const presetId = danmuPresetId.value;
@@ -97,11 +98,12 @@ const convert = async () => {
     title: `生成${fileList.value.length}个任务，可在任务列表中查看进度`,
     duration: 1000,
   });
+  // TODO:增加output参数
   const files = fileList.value.map((file) => {
     return { input: file.path };
   });
   const config = (await window.api.danmu.getPreset(presetId)).config;
-  await window.api.danmu.convertXml2Ass(files, config, deepRaw(options));
+  await window.api.danmu.convertXml2Ass(files, config, { ...deepRaw(options), copyInput: true });
   const dir = window.api.formatFile(deepRaw(fileList.value[0]).path).dir;
   fileList.value = [];
 

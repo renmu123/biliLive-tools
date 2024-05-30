@@ -57,6 +57,7 @@ export const api = {
       config: DanmuConfig,
       options: DanmuOptions = {
         removeOrigin: false,
+        copyInput: false,
       },
     ) => {
       return ipcRenderer.invoke("danmu:convertXml2Ass", files, config, options);

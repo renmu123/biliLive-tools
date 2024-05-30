@@ -59,12 +59,12 @@ const logout = async (uid: number) => {
     ...Object.values(appConfig.value.webhook.rooms).map((item) => item.uid),
   ];
   if (uids.includes(uid)) {
-    const status = await confirm.warning({
+    const [status] = await confirm.warning({
       content: "当前帐号正在被webhook使用，是否确认退出？",
     });
     if (!status) return;
   } else {
-    const status = await confirm.warning({
+    const [status] = await confirm.warning({
       content: "确认退出账号？",
     });
     if (!status) return;

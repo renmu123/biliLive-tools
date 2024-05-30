@@ -279,7 +279,6 @@ const handlePause = (taskId: string) => {
 
 const handleKill = async (task: Task) => {
   if (task.type === TaskType.ffmpeg) {
-    // @ts-ignore
     const [status, savePorcess] = await confirm.warning({
       content: "确定要中止任务吗？",
       showCheckbox: true,
@@ -292,7 +291,7 @@ const handleKill = async (task: Task) => {
       window.api.task.kill(task.taskId);
     }
   } else {
-    const status = await confirm.warning({
+    const [status] = await confirm.warning({
       content: "确定要中止任务吗？",
     });
     if (!status) return;

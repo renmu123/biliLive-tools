@@ -22,10 +22,10 @@ export const useConfirm = () => {
       checkboxText?: string;
       showAgainKey?: string;
       checkboxTip?: string;
-    }) =>
+    }): Promise<[boolean, boolean]> =>
       new Promise((reslove) => {
         const data = JSON.parse(localStorage.getItem("notShowAgain") || "{}");
-        if (showAgainKey && data[showAgainKey] === true) return reslove(true);
+        if (showAgainKey && data[showAgainKey] === true) return reslove([true, true]);
 
         const hasChecked = ref(false);
         const d = dialog.warning({
@@ -65,11 +65,11 @@ export const useConfirm = () => {
                       if (showCheckbox) {
                         reslove([false, hasChecked.value]);
                       } else {
-                        reslove(false);
+                        reslove([false, false]);
                       }
                     },
                   },
-                  negativeText || "取消",
+                  h("span", negativeText || "取消"),
                 ),
                 h(
                   NButton,
@@ -83,13 +83,13 @@ export const useConfirm = () => {
                         }
                         reslove([true, hasChecked.value]);
                       } else {
-                        reslove(true);
+                        reslove([true, true]);
                       }
 
                       d.destroy();
                     },
                   },
-                  positiveText || "继续",
+                  h("span", positiveText || "继续"),
                 ),
               ],
             );
@@ -109,16 +109,16 @@ export const useConfirm = () => {
           positiveText: positiveText || "继续",
           negativeText: negativeText || "取消",
           onPositiveClick: () => {
-            reslove(true);
+            reslove([true, true]);
           },
           onNegativeClick: () => {
-            reslove(false);
+            reslove([false, false]);
           },
           onClose: () => {
-            reslove(false);
+            reslove([false, false]);
           },
           onMaskClick: () => {
-            reslove(false);
+            reslove([false, false]);
           },
         });
       }),

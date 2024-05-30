@@ -113,7 +113,7 @@ const saveRoomDetail = () => {
 
 const confirm = useConfirm();
 const deleteRoom = async () => {
-  const status = await confirm.warning({
+  const [status] = await confirm.warning({
     content: "是否确认删除？",
   });
   if (!status) return;

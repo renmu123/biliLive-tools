@@ -258,7 +258,7 @@ const saveConfig = async () => {
       window.path.join(config.value.webhook.recoderFolder, "config.json"),
     );
     if (!isExits) {
-      const status = await confirm.warning({
+      const [status] = await confirm.warning({
         content: "录播姬目录下应该有一个名为config.json的文件，请确认选择的目录是否正确？",
       });
       if (!status) return;

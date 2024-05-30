@@ -400,7 +400,7 @@ const deletePreset = async () => {
     ? "该预设正在被使用中，删除后使用该预设的功能将失效，是否确认删除？"
     : "是否确认删除该预设？";
 
-  const status = await confirm.warning({
+  const [status] = await confirm.warning({
     content: msg,
   });
   if (!status) return;
