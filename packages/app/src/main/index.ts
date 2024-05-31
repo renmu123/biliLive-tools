@@ -424,8 +424,16 @@ const appInit = async () => {
   }
 };
 
-const openDirectory = async () => {
+const openDirectory = async (
+  _event: IpcMainInvokeEvent,
+  opts: {
+    defaultPath?: string;
+    buttonLabel?: string;
+    title?: string;
+  } = {},
+) => {
   const { canceled, filePaths } = await dialog.showOpenDialog(mainWin, {
+    ...opts,
     properties: ["openDirectory"],
   });
   if (canceled) {

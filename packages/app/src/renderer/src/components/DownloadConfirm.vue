@@ -102,7 +102,9 @@ const editPart = (file: Part) => {
 };
 
 const selectFolder = async () => {
-  const dir = await window.api.openDirectory();
+  const dir = await window.api.openDirectory({
+    defaultPath: options.savePath,
+  });
   if (!dir) return;
 
   options.savePath = dir;

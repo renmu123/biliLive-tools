@@ -136,9 +136,12 @@ const openSetting = () => {
 };
 
 async function getDir() {
-  const path = await window.api.openDirectory();
+  const path = await window.api.openDirectory({
+    defaultPath: options.savePath,
+  });
   if (!path) return;
   options.savePath = path;
+  options.saveRadio = 2;
 }
 
 const fileSelect = ref<HTMLInputElement | null>(null);

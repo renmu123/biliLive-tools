@@ -54,7 +54,7 @@
                 <span class="inline-flex">
                   port
                   <Tip
-                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>B站录播姬的webhook：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址：http://127.0.0.1:${config.port}/webhook/blrec<br/><br/>自定义的webhook地址：http://127.0.0.1:${config.port}/webhook/custom <br/>修改后需重启生效`"
+                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>B站录播姬的webhook：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址：http://127.0.0.1:${config.port}/webhook/blrec<br/>自定义的webhook地址：http://127.0.0.1:${config.port}/webhook/custom <br/><b>修改后需重启生效</b>`"
                   ></Tip>
                 </span>
               </template>
@@ -123,7 +123,7 @@
                 <span class="inline-flex">
                   webhook
                   <Tip
-                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>B站录播姬的webhook：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址：http://127.0.0.1:${config.port}/webhook/blrec<br/><br/>自定义的webhook地址：http://127.0.0.1:${config.port}/webhook/custom <br/>修改后需重启生效`"
+                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>B站录播姬的webhook：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址：http://127.0.0.1:${config.port}/webhook/blrec<br/>自定义的webhook地址：http://127.0.0.1:${config.port}/webhook/custom <br/><b>修改后需重启生效</b>`"
                   ></Tip>
                 </span>
               </template>
@@ -299,11 +299,13 @@ const selectFile = async (file: "ffmpeg" | "ffprobe" | "danmakuFactory") => {
 };
 
 const selectFolder = async (type: "recorder") => {
-  const files = await window.api.openDirectory();
-  if (!files) return;
+  const file = await window.api.openDirectory({
+    defaultPath: config.value.webhook.recoderFolder,
+  });
+  if (!file) return;
 
   if (type === "recorder") {
-    config.value.webhook.recoderFolder = files;
+    config.value.webhook.recoderFolder = file;
   }
 };
 

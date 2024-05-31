@@ -390,8 +390,14 @@ export const api = {
   },
 
   // 通用函数
-  openDirectory: (): Promise<string | undefined> => {
-    return ipcRenderer.invoke("dialog:openDirectory");
+  openDirectory: (
+    opts: {
+      defaultPath?: string;
+      buttonLabel?: string;
+      title?: string;
+    } = {},
+  ): Promise<string | undefined> => {
+    return ipcRenderer.invoke("dialog:openDirectory", opts);
   },
   openFile: (options: OpenDialogOptions): Promise<string[] | undefined> => {
     return ipcRenderer.invoke("dialog:openFile", options);
