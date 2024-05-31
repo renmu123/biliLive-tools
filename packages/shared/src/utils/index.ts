@@ -4,6 +4,7 @@ import trash from "trash";
 import { appConfig } from "../index.js";
 
 import type { FfmpegOptions } from "@biliLive-tools/types";
+import path from "node:path";
 
 export const executeCommand = (
   command: string,
@@ -167,4 +168,9 @@ export async function runWithMaxIterations(
 
 export const sleep = (ms: number) => {
   return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
+export const formatFile = (filePath: string) => {
+  const formatFile = path.parse(filePath);
+  return { ...formatFile, path: filePath, filename: formatFile.base };
 };

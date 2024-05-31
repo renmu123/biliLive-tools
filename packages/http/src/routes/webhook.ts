@@ -618,7 +618,9 @@ const convert2Mp4 = async (videoFile: string): Promise<string> => {
 
   return new Promise((resolve, reject) => {
     convertVideo2Mp4(
-      formatFile(videoFile),
+      {
+        input: videoFile,
+      },
       {
         saveRadio: 1,
         saveOriginPath: true,

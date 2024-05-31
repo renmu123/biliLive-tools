@@ -11,6 +11,7 @@ import {
   trashItem,
   uuid,
   executeCommand,
+  formatFile,
 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask } from "./task.js";
@@ -104,7 +105,10 @@ export const convertImage2Video = async (
 };
 
 export const convertVideo2Mp4 = async (
-  file: File,
+  file: {
+    input: string;
+    output?: string;
+  },
   options: Video2Mp4Options = {
     saveRadio: 1,
     saveOriginPath: true,
@@ -118,14 +122,20 @@ export const convertVideo2Mp4 = async (
   await setFfmpegPath();
 
   // 相同文件覆盖提示
-  const { name, path, dir } = file;
-  let output = join(dir, `${name}.mp4`);
-  const input = path;
+  const { name, path, dir } = formatFile(file.input);
+
+  let output = file.output;
+  if (!output) {
+    output = join(dir, `${name}.mp4`);
+  } else {
+    output = join(dir, `${output}.mp4`);
+  }
 
   if (options.saveRadio === 2 && options.savePath) {
     output = join(options.savePath, `${name}.mp4`);
   }
 
+  const input = path;
   if (!(await pathExists(input))) {
     log.error("convertVideo2Mp4, file not exist", input);
     throw new Error("输入文件不存在");

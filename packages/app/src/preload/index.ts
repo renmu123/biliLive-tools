@@ -344,7 +344,10 @@ export const api = {
     },
   },
   convertVideo2Mp4: (
-    file: File,
+    file: {
+      input: string;
+      output?: string;
+    },
     options: Video2Mp4Options = {
       saveRadio: 1,
       saveOriginPath: true,
