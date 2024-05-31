@@ -124,15 +124,16 @@ export const convertVideo2Mp4 = async (
   // 相同文件覆盖提示
   const { name, path, dir } = formatFile(file.input);
 
-  let output = file.output;
-  if (!output) {
-    output = join(dir, `${name}.mp4`);
+  let outputName = file.output;
+  if (!outputName) {
+    outputName = `${name}.mp4`;
   } else {
-    output = join(dir, `${output}.mp4`);
+    outputName = `${outputName}.mp4`;
   }
 
+  let output = join(dir, outputName);
   if (options.saveRadio === 2 && options.savePath) {
-    output = join(options.savePath, `${name}.mp4`);
+    output = join(options.savePath, `${outputName}`);
   }
 
   const input = path;

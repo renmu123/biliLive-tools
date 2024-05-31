@@ -77,12 +77,11 @@ const addConvertDanmu2AssTask = async (
   return task;
 };
 
-// TODO: 重构
 export const convertXml2Ass = async (
-  files: {
+  file: {
     input: string;
     output?: string;
-  }[],
+  },
   danmuOptions: DanmuConfig,
   options: DanmuOptions = {
     removeOrigin: false,
@@ -93,30 +92,28 @@ export const convertXml2Ass = async (
     output?: string;
     taskId?: string;
   }[] = [];
-  for (const file of files) {
-    const { dir, name } = parse(file.input);
 
-    const input = file.input;
-    let output = join(dir, `${name}.ass`);
-    if (options.saveRadio === 2 && options.savePath) {
-      output = join(options.savePath, `${name}.ass`);
-    }
-    if (file.output) {
-      output = file.output;
-    }
+  const { dir, name } = parse(file.input);
 
-    if (!(await pathExists(input))) {
-      log.error("danmufactory input file not exist", input);
-      throw new Error(`danmufactory input file not exist: ${input}`);
-    }
-
-    const task = await addConvertDanmu2AssTask(input, output, danmuOptions, true, options);
-    tasks.push({
-      taskId: task.taskId,
-    });
+  let outputName = file.output;
+  if (!outputName) {
+    outputName = `${name}.ass`;
+  } else {
+    outputName = `${outputName}.ass`;
+  }
+  console.log("outputName", outputName);
+  let output = join(dir, outputName);
+  if (options.saveRadio === 2 && options.savePath) {
+    output = join(options.savePath, `${outputName}`);
   }
 
-  return tasks;
+  const input = file.input;
+  const task = await addConvertDanmu2AssTask(input, output, danmuOptions, true, options);
+  tasks.push({
+    taskId: task.taskId,
+  });
+
+  return task;
 };
 
 /**

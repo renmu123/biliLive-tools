@@ -27,7 +27,15 @@ export const handlers = {
     const presets = danmuPreset.list();
     return presets;
   },
-  "danmu:convertXml2Ass": invokeWrap(convertXml2Ass),
+  "danmu:convertXml2Ass": async (
+    _event: IpcMainInvokeEvent,
+    ...args: Parameters<typeof convertXml2Ass>
+  ) => {
+    const task = await convertXml2Ass(...args);
+    return {
+      taskId: task.taskId,
+    };
+  },
   "danmu:saveReport": async (
     _event: IpcMainInvokeEvent,
     options: {

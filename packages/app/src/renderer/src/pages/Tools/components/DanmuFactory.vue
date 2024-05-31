@@ -98,12 +98,26 @@ const convert = async () => {
     title: `生成${fileList.value.length}个任务，可在任务列表中查看进度`,
     duration: 1000,
   });
-  // TODO:增加output参数
-  const files = fileList.value.map((file) => {
-    return { input: file.path };
-  });
   const config = (await window.api.danmu.getPreset(presetId)).config;
-  await window.api.danmu.convertXml2Ass(files, config, { ...deepRaw(options), copyInput: true });
+
+  for (let i = 0; i < fileList.value.length; i++) {
+    const file = {
+      input: fileList.value[i].path,
+      output: fileList.value[i].title,
+    };
+    try {
+      await window.api.danmu.convertXml2Ass(file, config, {
+        ...deepRaw(options),
+        copyInput: true,
+      });
+    } catch (err) {
+      notice.error({
+        title: err as string,
+        duration: 1000,
+      });
+    }
+  }
+
   const dir = window.api.formatFile(deepRaw(fileList.value[0]).path).dir;
   fileList.value = [];
 

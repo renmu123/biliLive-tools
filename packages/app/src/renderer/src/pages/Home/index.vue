@@ -165,6 +165,7 @@ import type {
   BiliupPreset,
   FfmpegPreset,
   hotProgressOptions,
+  DanmuOptions,
 } from "@biliLive-tools/types";
 
 const notice = useNotification();
@@ -386,14 +387,12 @@ const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfi
     duration: 1000,
   });
 
-  const outputPath = `${window.path.join(window.api.common.getTempPath(), uuid())}.ass`;
-  // console.log("outputPath", outputPath);
   const targetAssFilePath = await convertDanmu2Ass(
     {
       input: danmuFile.path,
-      output: outputPath,
+      output: uuid(),
     },
-    options,
+    { ...options, saveRadio: 2, savePath: window.api.common.getTempPath() },
     danmuConfig,
   );
 
@@ -404,34 +403,30 @@ const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfi
  * xml文件转换为ass
  */
 const convertDanmu2Ass = async (
-  fileOptions: {
+  file: {
     input: string;
     output: string;
   },
-  options: ClientOptions,
+  options: DanmuOptions,
   config: DanmuConfig,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
     window.api.danmu
-      .convertXml2Ass([fileOptions], config, { ...options, copyInput: true })
+      .convertXml2Ass(file, config, { ...options, copyInput: true })
       .then((result: any) => {
-        if (result[0].output) {
-          resolve(result[0].output);
-        } else {
-          const taskId = result[0].taskId;
-          window.api.task.on(taskId, "end", (data) => {
-            // console.log("end", data);
-            notice.success({
-              title: "xml文件转换成功",
-              duration: 3000,
-            });
-            resolve(data.output);
+        const taskId = result.taskId;
+        window.api.task.on(taskId, "end", (data) => {
+          console.log("end", data);
+          notice.success({
+            title: "xml文件转换成功",
+            duration: 3000,
           });
+          resolve(data.output);
+        });
 
-          window.api.task.on(taskId, "error", (data) => {
-            reject(data.err);
-          });
-        }
+        window.api.task.on(taskId, "error", (data) => {
+          reject(data.err);
+        });
       });
   });
 };

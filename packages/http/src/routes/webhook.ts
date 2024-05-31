@@ -16,7 +16,6 @@ import {
   readVideoMeta,
   convertVideo2Mp4,
 } from "@biliLive-tools/shared/lib/task/video.js";
-import { taskQueue } from "../index.js";
 import log from "@biliLive-tools/shared/lib/utils/log.js";
 import { getFileSize, uuid, sleep, trashItem } from "@biliLive-tools/shared/lib/utils/index.js";
 
@@ -679,7 +678,6 @@ const addDanmuTask = (
   danmuConfig: DanmuConfig,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const assFilePath = `${path.join(os.tmpdir(), uuid())}.ass`;
     readVideoMeta(videoFile)
       .then((videoMeta) => {
         const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
@@ -690,30 +688,25 @@ const addDanmuTask = (
         }
 
         return convertXml2Ass(
-          [
-            {
-              input: input,
-              output: assFilePath,
-            },
-          ],
+          {
+            input: input,
+            output: uuid(),
+          },
           danmuConfig,
           {
             copyInput: true,
             removeOrigin: false,
+            saveRadio: 2,
+            savePath: os.tmpdir(),
           },
         );
       })
-      .then((tasks) => {
-        const currentTaskId = tasks[0].taskId;
-        taskQueue.on("task-end", ({ taskId }) => {
-          if (taskId === currentTaskId) {
-            resolve(assFilePath);
-          }
+      .then((task) => {
+        task.on("task-end", () => {
+          resolve(task.output as string);
         });
-        taskQueue.on("task-error", ({ taskId }) => {
-          if (taskId === currentTaskId) {
-            reject();
-          }
+        task.on("task-error", () => {
+          reject();
         });
       });
   });

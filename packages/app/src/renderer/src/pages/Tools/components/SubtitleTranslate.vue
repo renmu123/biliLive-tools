@@ -78,8 +78,7 @@ const convert = async () => {
 
   for (let i = 0; i < fileList.value.length; i++) {
     try {
-      const file = window.api.formatFile(fileList.value[i].path);
-      window.api.convertVideo2Mp4(toRaw(file), toRaw(options));
+      window.api.convertVideo2Mp4({ input: fileList.value[i].path }, toRaw(options));
     } catch (err) {
       notice.error({
         title: err as string,

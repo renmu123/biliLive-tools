@@ -50,17 +50,17 @@ export const api = {
       return ipcRenderer.invoke("danmu:getPresets");
     },
     convertXml2Ass: (
-      files: {
+      file: {
         input: string;
         output?: string;
-      }[],
+      },
       config: DanmuConfig,
       options: DanmuOptions = {
         removeOrigin: false,
         copyInput: false,
       },
     ) => {
-      return ipcRenderer.invoke("danmu:convertXml2Ass", files, config, options);
+      return ipcRenderer.invoke("danmu:convertXml2Ass", file, config, options);
     },
     isEmptyDanmu(input: string) {
       return ipcRenderer.invoke("danmu:isEmptyDanmu", input);
