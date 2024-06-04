@@ -627,7 +627,7 @@ const convert2Mp4 = async (videoFile: string): Promise<string> => {
         override: false,
         removeOrigin: true,
       },
-      true,
+      false,
     ).then((task) => {
       task.on("task-end", () => {
         resolve(output);

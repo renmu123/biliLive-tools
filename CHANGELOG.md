@@ -36,7 +36,6 @@ CLI是GUI的拓展，使用前需要设置相关目录，由于配置文件很�
 2. 手动暂停的任务不会被自动启动
 3. 当任务暂停时，不会有任务被自动启动，也就是说只有当任务完成或者失败时才会自动启用下一个未开始的任务
 4. 高能进度条任务会自动进行，因为速度会很快
-5. webhook中的mp4转码任务不会受限制
 
 ## 特性
 
@@ -49,7 +48,7 @@ CLI是GUI的拓展，使用前需要设置相关目录，由于配置文件很�
 7. 为弹幕转换增加屏蔽词功能，如果出现开启后无法转换的情况请反馈
 8. 弹幕转换任务支持取消操作
 9. 新增 `danmakuFactory路径`、`port`、`host`配置，webhook服务器自启动，默认为18010端口
-10. 新增 `/webhook/bililiverecorder` 、`/webhook/blrec`、`/webhook/custom` webhook端点
+10. 新增 `/webhook/bililiverecorder` 、`/webhook/blrec`、`/webhook/custom` webhook端点，移除`/webhook`、`/blrec`、`/custom`端点
 
 ## 优化
 
