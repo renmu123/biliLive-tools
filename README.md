@@ -222,7 +222,7 @@ $ pnpm install
 $ pnpm run install:bin
 ```
 
-如果二进制依赖安装失败或者不支持你的平台，请尝试手动安装二进制依赖。
+如果二进制依赖安装失败或者不支持你的平台，请尝试[手动下载安装](https://github.com/renmu123/biliLive-tools/releases/tag/0.2.1)二进制依赖。
 
 新建`packages\app\resources\bin`文件夹，里面需要三个个文件。
 同时需要在应用的设置里设置相关可执行文件地址。
