@@ -70,7 +70,7 @@ CLI是GUI的拓展，使用前需要设置相关目录，由于配置文件很�
 2. 修复hvenc下预设名称错误的bug [#13](https://github.com/renmu123/biliLive-tools/pull/13)
 3. 修复libsvtav1 预设展示错误，**默认值修改为6**
 4. 修复某些情况下登录后获取信息失败
-5. 修改弹幕为空的判断逻辑，如果文件中存在</d>, </gift>, </sc>, </guard>任意标签则认为不为空
+5. 修改弹幕为空的判断逻辑，如果文件中存在`</d>`, `</gift>`, `</sc>`, `</guard>`任意标签则认为不为空
 6. 修复blrec的webhook无法使用的bug [#15](https://github.com/renmu123/biliLive-tools/issues/15)
 
 # 1.0.0-aplha.1
