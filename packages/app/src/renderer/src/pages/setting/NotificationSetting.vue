@@ -7,6 +7,7 @@
           v-model:value="config.notification.setting.type"
           :options="typeOptions"
           placeholder="请选择通知类型"
+          clearable
         />
         <n-button
           v-if="config.notification.setting.type"
@@ -104,6 +105,25 @@
             placeholder="请输入chat_id"
           ></n-input> </n-form-item
       ></template>
+      <template v-else-if="config.notification.setting.type === NotificationType.ntfy">
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex"> 服务器地址 </span>
+          </template>
+          <n-input
+            v-model:value="config.notification.setting.ntfy.url"
+            placeholder="请输入服务器地址"
+          ></n-input> </n-form-item
+        ><n-form-item>
+          <template #label>
+            <span class="inline-flex"> topic </span>
+          </template>
+          <n-input
+            v-model:value="config.notification.setting.ntfy.topic"
+            placeholder="请输入topic"
+          ></n-input> </n-form-item
+      ></template>
+
       <h3>通知任务</h3>
       <n-form-item label="ffmpeg任务">
         <n-checkbox-group v-model:value="config.notification.task.ffmpeg">
@@ -162,10 +182,11 @@ const config = defineModel<AppConfig>("data", {
 });
 
 const typeOptions = [
-  { value: undefined, label: "无" },
+  { value: NotificationType.system, label: "系统通知" },
   { value: NotificationType.mail, label: "邮箱" },
   { value: NotificationType.tg, label: "tg bot" },
   { value: NotificationType.server, label: "server酱" },
+  { value: NotificationType.ntfy, label: "ntfy" },
 ];
 
 const notice = useNotification();

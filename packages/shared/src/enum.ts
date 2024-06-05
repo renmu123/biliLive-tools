@@ -10,6 +10,8 @@ export enum NotificationType {
   server = "server",
   mail = "mail",
   tg = "tg",
+  system = "system",
+  ntfy = "ntfy",
 }
 
 export enum LLMType {

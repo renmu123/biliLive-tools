@@ -7,6 +7,7 @@ import type {
   NotificationMailConfig,
   NotificationServerConfig,
   NotificationTgConfig,
+  NotificationNtfyConfig,
 } from "@biliLive-tools/types";
 
 /**
@@ -85,6 +86,36 @@ export async function sendByTg(title: string, desp: string, options: Notificatio
   }
 }
 
+/**
+ * 通过系统通知
+ */
+export async function sendBySystem(title: string, desp: string) {
+  const { Notification } = await import("electron");
+  new Notification({
+    title: title,
+    body: desp,
+  }).show();
+}
+
+/**
+ * ntfy发送通知
+ */
+export async function sendByNtfy(title: string, desp: string, options: NotificationNtfyConfig) {
+  const url = `${options.url}`;
+  const data = {
+    topic: options.topic,
+    message: desp,
+    title: title,
+  };
+  fetch(url, {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
 export function send(title: string, desp: string) {
   // log.info("send notfiy", title, desp);
 
@@ -103,6 +134,11 @@ export function _send(title: string, desp: string, appConfig: AppConfig) {
     case "tg":
       sendByTg(title, desp, appConfig?.notification?.setting?.tg);
       break;
+    case "system":
+      sendBySystem(title, desp);
+      break;
+    case "ntfy":
+      sendByNtfy(title, desp, appConfig?.notification?.setting?.ntfy);
   }
 }
 

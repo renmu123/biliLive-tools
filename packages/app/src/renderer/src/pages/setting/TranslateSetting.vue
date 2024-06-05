@@ -116,9 +116,8 @@
 </template>
 
 <script setup lang="ts">
-// import { cloneDeep } from "lodash-es";
 import { getModelList } from "@renderer/apis/llm";
-import { LLMType } from "@biliLive-tools/types/enum";
+import { LLMType } from "@biliLive-tools/shared/lib/enum";
 
 interface Config {
   type: any;

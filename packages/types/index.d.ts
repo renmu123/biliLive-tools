@@ -187,6 +187,14 @@ export interface NotificationServerConfig {
   key: string;
 }
 /**
+ * ntfy配置
+ */
+export interface NotificationNtfyConfig {
+  url: string;
+  topic: string;
+}
+
+/**
  * tg配置
  */
 export interface NotificationTgConfig {
@@ -244,11 +252,12 @@ export interface AppConfig {
     /** 通知配置项 */
     setting: {
       // 通知类型，支持server酱和邮件
-      type?: any;
+      type?: "server" | "mail" | "tg" | "system" | "ntfy";
       // server酱key
       server: NotificationServerConfig;
       mail: NotificationMailConfig;
       tg: NotificationTgConfig;
+      ntfy: NotificationNtfyConfig;
     };
   };
   /** 翻译配置 */

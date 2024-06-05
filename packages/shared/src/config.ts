@@ -184,6 +184,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
         key: "",
         chat_id: "",
       },
+      ntfy: {
+        url: "",
+        topic: "",
+      },
     },
   },
   llmPresets: [],
