@@ -218,6 +218,8 @@ function getConfig(roomId: number): {
   removeOriginAfterConvert?: boolean;
   /** 上传完成后删除文件 */
   removeOriginAfterUpload?: boolean;
+  /** 不压制后处理 */
+  noConvertHandleVideo?: boolean;
 } {
   const config = appConfig.getAll();
   const roomSetting: AppRoomConfig | undefined = config.webhook.rooms[roomId];
@@ -242,6 +244,7 @@ function getConfig(roomId: number): {
   const useVideoAsTitle = getRoomSetting("useVideoAsTitle");
   const removeOriginAfterConvert = getRoomSetting("removeOriginAfterConvert");
   const removeOriginAfterUpload = getRoomSetting("removeOriginAfterUpload");
+  const noConvertHandleVideo = getRoomSetting("noConvertHandleVideo") ?? false;
 
   /**
    * 获取房间配置项
@@ -296,6 +299,7 @@ function getConfig(roomId: number): {
     useVideoAsTitle,
     removeOriginAfterConvert,
     removeOriginAfterUpload,
+    noConvertHandleVideo,
   };
 }
 
@@ -471,6 +475,7 @@ async function handle(options: Options) {
     useVideoAsTitle,
     removeOriginAfterConvert,
     removeOriginAfterUpload,
+    noConvertHandleVideo,
   } = getConfig(options.roomId);
   log.debug("config", getConfig(options.roomId));
   if (!open) {
@@ -585,9 +590,9 @@ async function handle(options: Options) {
         assFilePath,
         hotProgressFile,
         preset?.config,
+        { removeVideo: removeOriginAfterConvert, suffix: "弹幕版" },
       );
       if (removeOriginAfterConvert) {
-        trashItem(options.filePath);
         trashItem(xmlFilePath);
       }
       if (hotProgressFile) fs.remove(hotProgressFile);
@@ -600,6 +605,22 @@ async function handle(options: Options) {
       currentPart.status = "error";
     }
   } else {
+    if (noConvertHandleVideo) {
+      const preset = await ffmpegPreset.get(videoPresetId);
+      if (!preset) {
+        log.error("ffmpegPreset not found", videoPresetId);
+        currentPart.status = "error";
+        return;
+      }
+      const output = await addMergeAssMp4Task(
+        options.filePath,
+        undefined,
+        undefined,
+        preset?.config,
+        { removeVideo: removeOriginAfterConvert, suffix: "后处理" },
+      );
+      currentPart.filePath = output;
+    }
     currentPart.status = "handled";
     newUploadTask(uid, mergePart, currentPart, config, removeOriginAfterUpload);
   }
@@ -714,17 +735,19 @@ const addDanmuTask = (
 
 const addMergeAssMp4Task = (
   videoInput: string,
-  assInput: string,
+  assInput: string | undefined,
   hotProgressFile: string | undefined,
   preset: FfmpegOptions,
+  options: { removeVideo: boolean; suffix: string } = { removeVideo: false, suffix: "弹幕版" },
 ): Promise<string> => {
+  const suffix = options.suffix || "弹幕版";
   const file = path.parse(videoInput);
   return new Promise((resolve, reject) => {
-    let output = path.join(file.dir, `${file.name}-弹幕版.mp4`);
+    let output = path.join(file.dir, `${file.name}-${suffix}.mp4`);
     fs.pathExists(output)
       .then((exists) => {
         if (exists) {
-          output = path.join(file.dir, `${file.name}-弹幕版-${uuid()}.mp4`);
+          output = path.join(file.dir, `${file.name}-${suffix}-${uuid()}.mp4`);
         }
       })
       .then(() => {
@@ -741,9 +764,12 @@ const addMergeAssMp4Task = (
           preset,
         ).then((task) => {
           task.on("task-end", () => {
+            if (assInput) fs.unlink(assInput);
+            if (options?.removeVideo || false) trashItem(videoInput);
             resolve(output);
           });
           task.on("task-error", () => {
+            if (assInput) fs.unlink(assInput);
             reject();
           });
         });

@@ -31,7 +31,7 @@
         >https://github.com/renmu123/biliLive-tools/blob/master/CHANGELOG.md</a
       >
     </p>
-    <p>交流群：872011161</p>
+    <p>QQ交流群：872011161</p>
     <p>
       反馈地址：如果遇到bug，请在设置中将"log等级"调整至debug模式，并进行复现，之后在<a
         href="https://github.com/renmu123/biliLive-tools/issues"

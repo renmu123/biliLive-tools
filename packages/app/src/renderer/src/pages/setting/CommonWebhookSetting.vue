@@ -1,42 +1,57 @@
 <template>
   <h2>压制配置</h2>
-  <n-form-item label="弹幕压制">
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex">
+        弹幕压制
+        <Tip tip="将弹幕文件硬编码到视频中"></Tip>
+      </span>
+    </template>
     <n-switch v-model:value="data.danmu" :disabled="globalFieldsObj.danmu" />
 
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.danmu" class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
-  <n-form-item v-if="data.danmu">
+  <n-form-item v-if="!data.danmu">
     <template #label>
-      <span class="inline-flex"> 完成后删除源文件 </span>
+      <span class="inline-flex">
+        不压制后处理
+        <Tip tip="关闭弹幕压制但仍对视频进行处理"></Tip>
+      </span>
     </template>
     <n-switch
-      v-model:value="data.removeOriginAfterConvert"
-      :disabled="globalFieldsObj.removeOriginAfterConvert"
+      v-model:value="data.noConvertHandleVideo"
+      :disabled="globalFieldsObj.noConvertHandleVideo"
     />
+
     <n-checkbox
       v-if="isRoom"
-      v-model:checked="globalFieldsObj.removeOriginAfterConvert"
+      v-model:checked="globalFieldsObj.noConvertHandleVideo"
       class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
-  <n-form-item>
-    <template #label>
-      <span class="inline-flex">
-        转封装为mp4
-        <Tip tip="将视频文件转换为mp4封装格式，转换完毕后会删除原始视频文件"></Tip>
-      </span>
-    </template>
-    <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
 
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
+  <!-- 当弹幕压制开启或弹幕压制关闭但不压制后处理开启时展示 -->
+  <n-form-item v-if="data.danmu || (!data.danmu && data.noConvertHandleVideo)" label="视频预设">
+    <n-cascader
+      v-model:value="data.ffmpegPreset"
+      placeholder="请选择预设"
+      expand-trigger="click"
+      :options="ffmpegOptions"
+      check-strategy="child"
+      :show-path="false"
+      :filterable="true"
+      :disabled="globalFieldsObj.ffmpegPreset"
+      style="margin-right: 10px"
+    />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.ffmpegPreset" class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
   <template v-if="data.danmu">
-    <n-form-item label="弹幕转化预设">
+    <n-form-item label="弹幕预设">
       <n-select
         v-model:value="data.danmuPreset"
         :options="danmuPresetsOptions"
@@ -47,25 +62,6 @@
       <n-checkbox
         v-if="isRoom"
         v-model:checked="globalFieldsObj.danmuPreset"
-        class="global-checkbox"
-        >全局</n-checkbox
-      >
-    </n-form-item>
-    <n-form-item label="视频压制预设">
-      <n-cascader
-        v-model:value="data.ffmpegPreset"
-        placeholder="请选择预设"
-        expand-trigger="click"
-        :options="ffmpegOptions"
-        check-strategy="child"
-        :show-path="false"
-        :filterable="true"
-        :disabled="globalFieldsObj.ffmpegPreset"
-        style="margin-right: 10px"
-      />
-      <n-checkbox
-        v-if="isRoom"
-        v-model:checked="globalFieldsObj.ffmpegPreset"
         class="global-checkbox"
         >全局</n-checkbox
       >
@@ -155,6 +151,35 @@
       </n-form-item>
     </template>
   </template>
+  <n-form-item v-if="data.danmu || (!data.danmu && data.noConvertHandleVideo)">
+    <template #label>
+      <span class="inline-flex"> 完成后删除源文件 </span>
+    </template>
+    <n-switch
+      v-model:value="data.removeOriginAfterConvert"
+      :disabled="globalFieldsObj.removeOriginAfterConvert"
+    />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.removeOriginAfterConvert"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex">
+        转封装为mp4
+        <Tip tip="将视频文件转换为mp4封装格式，转换完毕后会删除原始视频文件"></Tip>
+      </span>
+    </template>
+    <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
+
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
 
   <h2>上传配置</h2>
   <n-form-item label="上传账号">

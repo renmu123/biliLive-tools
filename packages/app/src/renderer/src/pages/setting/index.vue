@@ -362,6 +362,7 @@ const globalFields = ref([
   "useVideoAsTitle",
   "removeOriginAfterConvert",
   "removeOriginAfterUpload",
+  "noConvertHandleVideo",
 ]);
 const webhookDefaultValue = computed(() => {
   if (!config.value.webhook) return {};
@@ -413,6 +414,7 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   convert2Mp4: false,
   removeOriginAfterConvert: false,
   removeOriginAfterUpload: false,
+  noConvertHandleVideo: false,
 });
 const saveRoomDetail = ({ id }: AppRoomConfig & { id?: string }) => {
   config.value.webhook.rooms[id!] = tempRoomDetail.value;

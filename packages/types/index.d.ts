@@ -79,6 +79,8 @@ type CommonRoomConfig = {
   removeOriginAfterConvert?: boolean;
   /** 上传完成后删除文件 */
   removeOriginAfterUpload?: boolean;
+  /** 不压制后处理 */
+  noConvertHandleVideo?: boolean;
 };
 
 // webhook房间配置
@@ -337,7 +339,7 @@ export interface FfmpegOptions {
   bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ" | "ICQ";
   crf?: number;
   bitrate?: number;
-  audioCodec: audioCodec;
+  audioCodec?: audioCodec;
   preset?:
     | "ultrafast"
     | "superfast"

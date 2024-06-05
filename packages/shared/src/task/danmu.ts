@@ -192,7 +192,6 @@ const traversalObject = (obj: any, callback: (key: string, value: any) => any) =
       const result = callback(key, obj[key]);
       if (result) {
         obj[key] = result;
-        console.log("result", result.length);
       }
     }
   }
