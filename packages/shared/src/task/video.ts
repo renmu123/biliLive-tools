@@ -187,7 +187,7 @@ export const convertVideo2Mp4 = async (
 export const mergeAssMp4 = async (
   files: {
     videoFilePath: string;
-    assFilePath: string;
+    assFilePath: string | undefined;
     outputPath: string;
     hotProgressFilePath: string | undefined;
   },
@@ -198,54 +198,57 @@ export const mergeAssMp4 = async (
   },
   ffmpegOptions: FfmpegOptions = {
     encoder: "libx264",
+    audioCodec: "copy",
   },
 ) => {
   await setFfmpegPath();
 
   const videoInput = files.videoFilePath;
-  const assFile = files.assFilePath;
   const output = files.outputPath;
 
   if (!(await pathExists(videoInput))) {
     log.error("mergrAssMp4, file not exist", videoInput);
     throw new Error("输入文件不存在");
   }
+  const command = ffmpeg(videoInput).output(output);
 
-  const command = ffmpeg(videoInput).audioCodec("copy").output(output);
-
-  if (files.hotProgressFilePath) {
-    command.input(files.hotProgressFilePath);
-    // command.outputOptions(
-    //   `-filter_complex [0:v]subtitles=${escaped(assFile)}[i];[1]colorkey=black:0.1:0.1[1d];[i][1d]overlay=W-w-0:H-h-0'`,
-    // );
-    command.complexFilter([
-      {
-        filter: "subtitles",
-        options: `${escaped(assFile)}`,
-        inputs: "0:v",
-        outputs: "i",
-      },
-      {
-        filter: "colorkey",
-        options: "black:0.1:0.1",
-        inputs: "1",
-        outputs: "1d",
-      },
-      {
-        filter: "overlay",
-        options: "W-w-0:H-h-0",
-        inputs: ["i", "1d"],
-      },
-    ]);
-  } else {
-    // command.outputOptions(`-filter_complex subtitles=${escaped(assFile)}`);
-    command.complexFilter([
-      {
-        filter: "subtitles",
-        options: `${escaped(assFile)}`,
-      },
-    ]);
+  const assFile = files.assFilePath;
+  if (assFile) {
+    if (files.hotProgressFilePath) {
+      command.input(files.hotProgressFilePath);
+      // command.outputOptions(
+      //   `-filter_complex [0:v]subtitles=${escaped(assFile)}[i];[1]colorkey=black:0.1:0.1[1d];[i][1d]overlay=W-w-0:H-h-0'`,
+      // );
+      command.complexFilter([
+        {
+          filter: "subtitles",
+          options: `${escaped(assFile)}`,
+          inputs: "0:v",
+          outputs: "i",
+        },
+        {
+          filter: "colorkey",
+          options: "black:0.1:0.1",
+          inputs: "1",
+          outputs: "1d",
+        },
+        {
+          filter: "overlay",
+          options: "W-w-0:H-h-0",
+          inputs: ["i", "1d"],
+        },
+      ]);
+    } else {
+      // command.outputOptions(`-filter_complex subtitles=${escaped(assFile)}`);
+      command.complexFilter([
+        {
+          filter: "subtitles",
+          options: `${escaped(assFile)}`,
+        },
+      ]);
+    }
   }
+  // 硬件解码
   if (ffmpegOptions.decode) {
     if (["h264_nvenc", "hevc_nvenc", "av1_nvenc"].includes(ffmpegOptions.encoder)) {
       command.inputOptions("-hwaccel cuda");

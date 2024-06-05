@@ -1,22 +1,29 @@
 import { CommonPreset } from "../index.js";
 
-import type { FfmpegPreset as FfmpegPresetType, FfmpegOptions } from "@biliLive-tools/types";
+import type {
+  FfmpegPreset as FfmpegPresetType,
+  FfmpegOptions,
+  audioCodec,
+} from "@biliLive-tools/types";
 
 const DefaultFfmpegOptions: FfmpegOptions = {
   encoder: "libx264",
   bitrateControl: "CRF",
   crf: 23,
   preset: "fast",
+  audioCodec: "copy",
 };
 
 const commonPresetParams: {
   resetResolution: boolean;
   resolutionWidth: number;
   resolutionHeight: number;
+  audioCodec: audioCodec;
 } = {
   resetResolution: false,
   resolutionWidth: 3840,
   resolutionHeight: 2160,
+  audioCodec: "copy",
 };
 
 const baseFfmpegPresets: FfmpegPresetType[] = [

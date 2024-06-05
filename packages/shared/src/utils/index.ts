@@ -74,41 +74,49 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
   if (options.encoder) {
     result.push(`-c:v ${options.encoder}`);
   }
-  switch (options.bitrateControl) {
-    case "CRF":
-      if (options.crf) {
-        result.push(`-crf ${options.crf}`);
-      }
-      break;
-    case "VBR":
-      if (options.bitrate) {
-        result.push(`-b:v ${options.bitrate}k`);
-      }
-      break;
-    case "CQ":
-      if (options.crf) {
-        result.push(`-rc vbr`);
-        result.push(`-cq ${options.crf}`);
-      }
-      break;
-    case "ICQ":
-      if (options.crf) {
-        result.push(`-global_quality ${options.crf}`);
-      }
-      break;
-  }
-  if (options.preset) {
-    result.push(`-preset ${options.preset}`);
-  }
-  if (options.resetResolution && options.resolutionWidth && options.resolutionHeight) {
-    // if (!["h264_nvenc", "hevc_nvenc", "av1_nevnc"].includes(options.encoder)) {
-    result.push(`-s ${options.resolutionWidth}x${options.resolutionHeight}`);
-    // }
-  }
-  if (["libsvtav1"].includes(options.encoder)) {
-    if (options.bit10) {
-      result.push("-pix_fmt yuv420p10le");
+
+  if (options.encoder !== "copy") {
+    switch (options.bitrateControl) {
+      case "CRF":
+        if (options.crf) {
+          result.push(`-crf ${options.crf}`);
+        }
+        break;
+      case "VBR":
+        if (options.bitrate) {
+          result.push(`-b:v ${options.bitrate}k`);
+        }
+        break;
+      case "CQ":
+        if (options.crf) {
+          result.push(`-rc vbr`);
+          result.push(`-cq ${options.crf}`);
+        }
+        break;
+      case "ICQ":
+        if (options.crf) {
+          result.push(`-global_quality ${options.crf}`);
+        }
+        break;
     }
+    if (options.preset) {
+      result.push(`-preset ${options.preset}`);
+    }
+    if (options.resetResolution && options.resolutionWidth && options.resolutionHeight) {
+      // if (!["h264_nvenc", "hevc_nvenc", "av1_nevnc"].includes(options.encoder)) {
+      result.push(`-s ${options.resolutionWidth}x${options.resolutionHeight}`);
+      // }
+    }
+    if (["libsvtav1"].includes(options.encoder)) {
+      if (options.bit10) {
+        result.push("-pix_fmt yuv420p10le");
+      }
+    }
+  }
+  if (options.audioCodec) {
+    result.push(`-c:a ${options.audioCodec}`);
+  } else {
+    result.push(`-c:a copy`);
   }
   if (options.extraOptions) {
     options.extraOptions.split(" ").forEach((option) => {

@@ -330,12 +330,14 @@ export interface Progress {
 // export interface OpenDialogOptions extends ElectronOpenDialogOptions {
 //   multi?: boolean;
 // }
+export type audioCodec = "copy" | "aac" | "ac3" | "flac" | "libopus" | "libmp3lame";
 
 export interface FfmpegOptions {
   encoder: string;
   bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ" | "ICQ";
   crf?: number;
   bitrate?: number;
+  audioCodec: audioCodec;
   preset?:
     | "ultrafast"
     | "superfast"

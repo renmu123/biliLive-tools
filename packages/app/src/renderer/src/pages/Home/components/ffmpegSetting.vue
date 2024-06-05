@@ -33,6 +33,7 @@
           <p>AMF 是 AMD 的硬件加速</p>
           <p>H264泛用性较高，压缩率较低；H265 压缩率高于H264但可能低于AV1</p>
           <p>AV1 新一代的编码宠儿，需要新一代硬件才可硬件加速，如40系显卡</p>
+          <p>copy为复制原始流，不做任何更改</p>
         </n-popover>
       </template>
       <n-select
@@ -42,146 +43,167 @@
       />
     </n-form-item>
 
-    <n-form-item v-if="(encoderOptions?.birateControls || []).length !== 0" label="码率控制">
-      <n-select
-        v-model:value="ffmpegOptions.config.bitrateControl"
-        :options="encoderOptions?.birateControls || []"
-      />
-    </n-form-item>
-    <n-form-item
-      v-if="
-        ffmpegOptions.config.bitrateControl === 'CRF' ||
-        ffmpegOptions.config.bitrateControl === 'CQ' ||
-        ffmpegOptions.config.bitrateControl === 'ICQ'
-      "
-    >
-      <template #label>
-        <span
-          class="flex align-center"
-          :style="{
-            'justify-content': 'flex-end',
-          }"
+    <template v-if="ffmpegOptions.config.encoder !== 'copy'">
+      <n-form-item v-if="(encoderOptions?.birateControls || []).length !== 0" label="码率控制">
+        <n-select
+          v-model:value="ffmpegOptions.config.bitrateControl"
+          :options="encoderOptions?.birateControls || []"
+        />
+      </n-form-item>
+      <n-form-item
+        v-if="
+          ffmpegOptions.config.bitrateControl === 'CRF' ||
+          ffmpegOptions.config.bitrateControl === 'CQ' ||
+          ffmpegOptions.config.bitrateControl === 'ICQ'
+        "
+      >
+        <template #label>
+          <span
+            class="flex align-center"
+            :style="{
+              'justify-content': 'flex-end',
+            }"
+          >
+            <span v-if="ffmpegOptions.config.bitrateControl === 'CQ'">cq</span>
+            <span v-else-if="ffmpegOptions.config.bitrateControl === 'ICQ'">ICQ</span>
+            <span v-else>crf</span>
+
+            <Tip v-if="['libx264', 'libx265'].includes(ffmpegOptions.config.encoder)">
+              <p>CRF值为0：无损压缩，最高质量，最大文件大小。</p>
+              <p>
+                CRF值较低（例如，18-24）：高质量，较大文件大小。适用于需要高质量输出的情况，18为视觉无损。
+              </p>
+              <p>CRF值较高（例如，28-51）：较低质量，较小文件大小。适用于需要较小文件的情况。</p>
+              <p>CRF值越小，压制越慢</p>
+            </Tip>
+            <Tip
+              v-else-if="
+                ['h264_nvenc', 'hevc_nvenc', 'av1_nvenc'].includes(ffmpegOptions.config.encoder)
+              "
+            >
+              <p>值为0：自动</p>
+              <p>值为1-51：越小质量越高，越大质量越低</p>
+            </Tip>
+            <Tip
+              v-else-if="['h264_qsv', 'hevc_qsv', 'av1_qsv'].includes(ffmpegOptions.config.encoder)"
+            >
+              <p>类似x264中的crf值，值为1-51：越小质量越高，越大质量越低</p>
+            </Tip>
+          </span>
+        </template>
+        <n-input-number
+          v-model:value.number="ffmpegOptions.config.crf"
+          class="input-number"
+          :min="crfMinMax[0]"
+          :max="crfMinMax[1]"
+        />
+      </n-form-item>
+      <n-form-item v-else-if="ffmpegOptions.config.bitrateControl === 'VBR'">
+        <template #label>
+          <span class="inline-flex">
+            <span>码率</span>
+            <Tip>
+              一般杂谈录播视频，码率 5000k 够了。如果是游戏，可以拉到
+              10000k及以上，如果弹幕较多，可以尝试拉到更高，具体码率可自行测试
+            </Tip>
+          </span>
+        </template>
+        <n-input-number
+          v-model:value.number="ffmpegOptions.config.bitrate"
+          class="input-number"
+          :step="500"
+          placeholder="请输入码率"
         >
-          <span v-if="ffmpegOptions.config.bitrateControl === 'CQ'">cq</span>
-          <span v-else-if="ffmpegOptions.config.bitrateControl === 'ICQ'">ICQ</span>
-          <span v-else>crf</span>
+          <template #suffix> K </template></n-input-number
+        >
+      </n-form-item>
 
-          <Tip v-if="['libx264', 'libx265'].includes(ffmpegOptions.config.encoder)">
-            <p>CRF值为0：无损压缩，最高质量，最大文件大小。</p>
-            <p>
-              CRF值较低（例如，18-24）：高质量，较大文件大小。适用于需要高质量输出的情况，18为视觉无损。
-            </p>
-            <p>CRF值较高（例如，28-51）：较低质量，较小文件大小。适用于需要较小文件的情况。</p>
-            <p>CRF值越小，压制越慢</p>
-          </Tip>
-          <Tip
-            v-else-if="
-              ['h264_nvenc', 'hevc_nvenc', 'av1_nvenc'].includes(ffmpegOptions.config.encoder)
-            "
-          >
-            <p>值为0：自动</p>
-            <p>值为1-51：越小质量越高，越大质量越低</p>
-          </Tip>
-          <Tip
-            v-else-if="['h264_qsv', 'hevc_qsv', 'av1_qsv'].includes(ffmpegOptions.config.encoder)"
-          >
-            <p>类似x264中的crf值，值为1-51：越小质量越高，越大质量越低</p>
-          </Tip>
-        </span>
-      </template>
-      <n-input-number
-        v-model:value.number="ffmpegOptions.config.crf"
-        class="input-number"
-        :min="crfMinMax[0]"
-        :max="crfMinMax[1]"
-      />
-    </n-form-item>
-    <n-form-item v-else-if="ffmpegOptions.config.bitrateControl === 'VBR'">
-      <template #label>
-        <span class="inline-flex">
-          <span>码率</span>
-          <Tip>
-            一般杂谈录播视频，码率 5000k 够了。如果是游戏，可以拉到
-            10000k及以上，如果弹幕较多，可以尝试拉到更高，具体码率可自行测试
-          </Tip>
-        </span>
-      </template>
-      <n-input-number
-        v-model:value.number="ffmpegOptions.config.bitrate"
-        class="input-number"
-        :step="500"
-        placeholder="请输入码率"
+      <n-form-item v-if="(encoderOptions?.presets || []).length !== 0" label="预设">
+        <n-select
+          v-model:value="ffmpegOptions.config.preset"
+          :options="encoderOptions?.presets || []"
+          placeholder="请选择预设"
+        />
+      </n-form-item>
+      <n-form-item
+        v-if="['h264_nvenc', 'hevc_nvenc', 'av1_nvenc'].includes(ffmpegOptions.config.encoder)"
       >
-        <template #suffix> K </template></n-input-number
-      >
-    </n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            <span>硬件解码</span>
+            <Tip>
+              使用硬件解码器，开启后可能会减少压制时间，nvidia会使用nvdec，如果压制失败请关闭
+            </Tip>
+          </span>
+        </template>
+        <n-checkbox v-model:checked="ffmpegOptions.config.decode"></n-checkbox>
+      </n-form-item>
+      <n-form-item v-if="['libsvtav1'].includes(ffmpegOptions.config.encoder)">
+        <template #label>
+          <span class="inline-flex">
+            <span>10bit</span>
+            <Tip> AV1 10bit 会占用更多的硬件资源，但画质会更好，如果硬件支持，建议开启 </Tip>
+          </span>
+        </template>
+        <n-checkbox v-model:checked="ffmpegOptions.config.bit10"></n-checkbox>
+      </n-form-item>
 
-    <n-form-item v-if="(encoderOptions?.presets || []).length !== 0" label="预设">
-      <n-select
-        v-model:value="ffmpegOptions.config.preset"
-        :options="encoderOptions?.presets || []"
-        placeholder="请选择预设"
-      />
-    </n-form-item>
-    <n-form-item
-      v-if="['h264_nvenc', 'hevc_nvenc', 'av1_nvenc'].includes(ffmpegOptions.config.encoder)"
-    >
-      <template #label>
-        <span class="inline-flex">
-          <span>硬件解码</span>
-          <Tip>
-            使用硬件解码器，开启后可能会减少压制时间，nvidia会使用nvdec，如果压制失败请关闭
-          </Tip>
-        </span>
-      </template>
-      <n-checkbox v-model:checked="ffmpegOptions.config.decode"></n-checkbox>
-    </n-form-item>
-    <n-form-item v-if="['libsvtav1'].includes(ffmpegOptions.config.encoder)">
-      <template #label>
-        <span class="inline-flex">
-          <span>10bit</span>
-          <Tip> AV1 10bit 会占用更多的硬件资源，但画质会更好，如果硬件支持，建议开启 </Tip>
-        </span>
-      </template>
-      <n-checkbox v-model:checked="ffmpegOptions.config.bit10"></n-checkbox>
-    </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            <span>分辨率</span>
+            <Tip>
+              <p>
+                实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间
+              </p>
+              <p>4K：3840X2160<br />2K：2560X1440<br />1080：1920X1080</p>
+            </Tip>
+          </span>
+        </template>
+
+        <n-checkbox
+          v-model:checked="ffmpegOptions.config.resetResolution"
+          style="margin-right: 20px"
+        ></n-checkbox>
+        <template v-if="ffmpegOptions.config.resetResolution">
+          <n-input-number
+            v-model:value.number="ffmpegOptions.config.resolutionWidth"
+            class="input-number"
+            :min="0"
+            :step="100"
+            placeholder="宽"
+            style="width: 100px"
+          />&nbsp;X&nbsp;
+          <n-input-number
+            v-model:value.number="ffmpegOptions.config.resolutionHeight"
+            class="input-number"
+            :min="0"
+            :step="100"
+            placeholder="高"
+            style="width: 100px"
+          />
+        </template>
+      </n-form-item>
+    </template>
 
     <n-form-item>
       <template #label>
-        <span class="inline-flex">
-          <span>分辨率</span>
-          <Tip>
-            <p>
-              实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间
-            </p>
-            <p>4K：3840X2160<br />2K：2560X1440<br />1080：1920X1080</p>
-          </Tip>
-        </span>
+        <n-popover trigger="hover">
+          <template #trigger>
+            <span
+              class="flex align-center"
+              :style="{
+                'justify-content': 'flex-end',
+              }"
+            >
+              音频编码器</span
+            >
+          </template>
+        </n-popover>
       </template>
-
-      <n-checkbox
-        v-model:checked="ffmpegOptions.config.resetResolution"
-        style="margin-right: 20px"
-      ></n-checkbox>
-      <template v-if="ffmpegOptions.config.resetResolution">
-        <n-input-number
-          v-model:value.number="ffmpegOptions.config.resolutionWidth"
-          class="input-number"
-          :min="0"
-          :step="100"
-          placeholder="宽"
-          style="width: 100px"
-        />&nbsp;X&nbsp;
-        <n-input-number
-          v-model:value.number="ffmpegOptions.config.resolutionHeight"
-          class="input-number"
-          :min="0"
-          :step="100"
-          placeholder="高"
-          style="width: 100px"
-        />
-      </template>
+      <n-select v-model:value="ffmpegOptions.config.audioCodec" :options="audioEncoders" />
     </n-form-item>
+
     <n-form-item>
       <template #label>
         <span class="inline-flex">
@@ -189,7 +211,6 @@
           <Tip> 参数将被附加到ffmpeg输出参数中，参数错误可能会导致无法运行 </Tip>
         </span>
       </template>
-
       <n-input
         v-model:value="ffmpegOptions.config.extraOptions"
         type="textarea"
@@ -284,6 +305,16 @@ const nvencPresets = [
   },
 ];
 const videoEncoders = ref([
+  {
+    value: "copy",
+    label: "copy(复制)",
+    birateControls: [
+      {
+        value: "CRF",
+        label: "CRF",
+      },
+    ],
+  },
   {
     value: "libx264",
     label: "H.264(x264)",
@@ -586,6 +617,33 @@ const videoEncoders = ref([
         label: "平均比特率",
       },
     ],
+  },
+]);
+
+const audioEncoders = ref([
+  {
+    value: "copy",
+    label: "copy(复制)",
+  },
+  {
+    value: "aac",
+    label: "AAC",
+  },
+  {
+    value: "libmp3lame",
+    label: "MP3",
+  },
+  {
+    value: "libopus",
+    label: "Opus",
+  },
+  {
+    value: "ac3",
+    label: "AC3",
+  },
+  {
+    value: "flac",
+    label: "FLAC",
   },
 ]);
 
