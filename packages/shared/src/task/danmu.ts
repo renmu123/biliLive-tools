@@ -101,7 +101,6 @@ export const convertXml2Ass = async (
   } else {
     outputName = `${outputName}.ass`;
   }
-  console.log("outputName", outputName);
   let output = join(dir, outputName);
   if (options.saveRadio === 2 && options.savePath) {
     output = join(options.savePath, `${outputName}`);

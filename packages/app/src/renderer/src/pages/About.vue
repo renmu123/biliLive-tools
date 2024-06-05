@@ -25,6 +25,13 @@
       >
     </p>
     <p>
+      如果你是大会员，也可以用免费的B币给我充电：<a
+        href="https://space.bilibili.com/10995238"
+        class="external"
+        >https://space.bilibili.com/10995238</a
+      >
+    </p>
+    <p>
       更新历史：<a
         href="https://github.com/renmu123/biliLive-tools/blob/master/CHANGELOG.md"
         class="external"
