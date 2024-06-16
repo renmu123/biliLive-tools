@@ -84,6 +84,13 @@ const convert = async () => {
     });
     return;
   }
+  if (options.saveRadio === 2 && !(await window.api.exits(options.savePath))) {
+    notice.error({
+      title: `保存文件夹不存在`,
+      duration: 1000,
+    });
+    return;
+  }
   const [status] = await confirm.warning({
     title: "确认转换",
     content: `输出文件名中请勿包含emoji或奇怪符号，否则可能导致转换失败`,

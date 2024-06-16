@@ -75,6 +75,13 @@ const convert = async () => {
     });
     return;
   }
+  if (options.saveRadio === 2 && !(await window.api.exits(options.savePath))) {
+    notice.error({
+      title: `保存文件夹不存在`,
+      duration: 1000,
+    });
+    return;
+  }
   const [status] = await confirm.warning({
     content: "转封装增加大量 CPU 占用以及硬盘 IO，请耐心等待",
     showCheckbox: true,

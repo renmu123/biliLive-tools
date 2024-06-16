@@ -307,7 +307,7 @@ const nvencPresets = [
 const videoEncoders = ref([
   {
     value: "copy",
-    label: "copy(复制)",
+    label: "copy(复制流)",
     birateControls: [
       {
         value: "CRF",
@@ -623,7 +623,7 @@ const videoEncoders = ref([
 const audioEncoders = ref([
   {
     value: "copy",
-    label: "copy(复制)",
+    label: "copy(流)",
   },
   {
     value: "aac",
