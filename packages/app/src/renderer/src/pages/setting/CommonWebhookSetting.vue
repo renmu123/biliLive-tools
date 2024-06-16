@@ -17,7 +17,7 @@
     <template #label>
       <span class="inline-flex">
         不压制后处理
-        <Tip tip="关闭弹幕压制但仍对视频进行处理"></Tip>
+        <Tip tip="关闭弹幕压制但仍对视频调用ffmepg进行处理"></Tip>
       </span>
     </template>
     <n-switch

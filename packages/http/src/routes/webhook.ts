@@ -493,7 +493,6 @@ async function handle(options: Options) {
   } else {
     config.title = foramtTitle(options, title);
   }
-  config.title = foramtTitle(options, title);
   if (!config.title) config.title = path.parse(options.filePath).name;
   options.title = config.title;
 
