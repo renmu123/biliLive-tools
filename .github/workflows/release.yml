@@ -72,7 +72,7 @@ jobs:
 
       - name: build-cli
         if: startsWith(matrix.os, 'windows')
-        run: pnpm run build:cli
+        run: pnpm run build:cli && pnpm run --filter @biliLive-tools/CLI zip:win
 
       # - name: remove ffmpeg.exe
       #   if: startsWith(matrix.os, 'windows')
@@ -98,7 +98,7 @@ jobs:
           draft: false
           token: ${{ secrets.GITHUB_TOKEN }}
           artifactErrorsFailBuild: false
-          artifacts: "packages/app/dist/*.exe,packages/app/dist/*.zip,packages/app/dist/*.deb,packages/app/dist/*.snap,packages/CLI/dist/*.exe"
+          artifacts: "packages/app/dist/*.exe,packages/app/dist/*.zip,packages/app/dist/*.deb,packages/app/dist/*.snap,packages/CLI/dist/*.zip"
           replacesArtifacts: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -111,7 +111,7 @@ jobs:
           path: |
             packages/app/dist/*.exe
             packages/app/dist/*.zip
-            packages/CLI/dist/*.exe
+            packages/CLI/dist/*.zip
 
       - name: Upload linux artifact
         if: startsWith(matrix.os, 'ubuntu') && env.is_tag == 'false'

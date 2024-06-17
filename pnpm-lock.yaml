@@ -70,6 +70,9 @@ importers:
       '@yao-pkg/pkg':
         specifier: ^5.11.5
         version: 5.11.5
+      bestzip:
+        specifier: ^2.2.1
+        version: 2.2.1
       rollup-plugin-natives:
         specifier: ^0.7.8
         version: 0.7.8(rollup@4.18.0)
@@ -1622,6 +1625,11 @@ packages:
 
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
+
+  bestzip@2.2.1:
+    resolution: {integrity: sha512-XdAb87RXqOqF7C6UgQG9IqpEHJvS6IOUo0bXWEAebjSSdhDjsbcqFKdHpn5Q7QHz2pGr3Zmw4wgG3LlzdyDz7w==}
+    engines: {node: '>=10'}
+    hasBin: true
 
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
@@ -5652,6 +5660,14 @@ snapshots:
   balanced-match@1.0.2: {}
 
   base64-js@1.5.1: {}
+
+  bestzip@2.2.1:
+    dependencies:
+      archiver: 5.3.2
+      async: 3.2.5
+      glob: 7.2.3
+      which: 2.0.2
+      yargs: 16.2.0
 
   binary-extensions@2.3.0: {}
 

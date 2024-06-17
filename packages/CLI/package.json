@@ -12,7 +12,8 @@
     "dev": "rollup --config rollup.config.js -w",
     "build:cli": "pnpm run build && pnpm run pkg",
     "build": "rollup --config rollup.config.js",
-    "pkg": "pkg ./lib/index.cjs --output ./dist/biliLive"
+    "pkg": "pkg ./lib/index.cjs --output ./dist/biliLive",
+    "zip:win": "cd dist && bestzip biliLive-cli-win-x64.zip ./biliLive.exe"
   },
   "bin": "./lib/index.cjs",
   "keywords": [],
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@types/cli-progress": "^3.11.5",
     "@yao-pkg/pkg": "^5.11.5",
+    "bestzip": "^2.2.1",
     "rollup-plugin-natives": "^0.7.8",
     "tsx": "^4.7.2"
   }
