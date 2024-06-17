@@ -70,9 +70,13 @@ jobs:
       - name: build
         run: pnpm run build:app
 
-      - name: build-cli
+      - name: build-cli-win
         if: startsWith(matrix.os, 'windows')
         run: pnpm run build:cli && pnpm run --filter @biliLive-tools/CLI zip:win
+
+      - name: build-cli-linux
+        if: startsWith(matrix.os, 'ubuntu')
+        run: pnpm run build:cli && pnpm run --filter @biliLive-tools/CLI zip:linux
 
       # - name: remove ffmpeg.exe
       #   if: startsWith(matrix.os, 'windows')
@@ -122,5 +126,6 @@ jobs:
             packages/app/dist/*.deb
             packages/app/dist/*.snap
             packages/app/dist/*.zip
+            packages/CLI/dist/*.zip
 permissions:
   contents: write

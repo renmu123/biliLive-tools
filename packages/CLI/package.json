@@ -13,7 +13,8 @@
     "build:cli": "pnpm run build && pnpm run pkg",
     "build": "rollup --config rollup.config.js",
     "pkg": "pkg ./lib/index.cjs --output ./dist/biliLive",
-    "zip:win": "cd dist && bestzip biliLive-cli-win-x64.zip ./biliLive.exe"
+    "zip:win": "cd dist && bestzip biliLive-cli-win-x64.zip ./biliLive.exe",
+    "zip:linux": "cd dist && bestzip biliLive-cli-linux-x64.zip ./biliLive"
   },
   "bin": "./lib/index.cjs",
   "keywords": [],
