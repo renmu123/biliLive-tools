@@ -47,7 +47,9 @@ linux:
     #   arch: x64
     - target: deb
       arch: x64
-  maintainer: electronjs.org
+    - target: zip
+      arch: x64
+  maintainer: renmu123
   category: Utility
 appImage:
   # artifactName: ${name}-${version}.${ext}

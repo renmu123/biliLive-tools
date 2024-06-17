@@ -623,7 +623,7 @@ const videoEncoders = ref([
 const audioEncoders = ref([
   {
     value: "copy",
-    label: "copy(流)",
+    label: "copy(复制流)",
   },
   {
     value: "aac",

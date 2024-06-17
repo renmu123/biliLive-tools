@@ -121,5 +121,6 @@ jobs:
           path: |
             packages/app/dist/*.deb
             packages/app/dist/*.snap
+            packages/app/dist/*.zip
 permissions:
   contents: write

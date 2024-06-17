@@ -8,6 +8,7 @@
 4. 新增对ffmepg 编码器copy参数的支持
 5. 新增对ffmepg audio参数的支持
 6. webhook上传标题支持`{{HH}}``{{mm}}``{{ss}}`小时，分钟，秒格式化字段
+7. Linux下的zip包支持
 
 ## 优化
 
