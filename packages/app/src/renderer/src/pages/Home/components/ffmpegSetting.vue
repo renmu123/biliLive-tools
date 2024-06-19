@@ -33,7 +33,7 @@
           <p>AMF 是 AMD 的硬件加速</p>
           <p>H264泛用性较高，压缩率较低；H265 压缩率高于H264但可能低于AV1</p>
           <p>AV1 新一代的编码宠儿，需要新一代硬件才可硬件加速，如40系显卡</p>
-          <p>copy为复制原始流，不做任何更改</p>
+          <p>copy为复制原始流，不做任何更改，<b>如果你需要压制弹幕请不要使用这个参数</b></p>
         </n-popover>
       </template>
       <n-select
@@ -103,8 +103,9 @@
           <span class="inline-flex">
             <span>码率</span>
             <Tip>
+              如果你完全不懂参数代表什么，又觉得画质差，请拉高此参数。<br />
               一般杂谈录播视频，码率 5000k 够了。如果是游戏，可以拉到
-              10000k及以上，如果弹幕较多，可以尝试拉到更高，具体码率可自行测试
+              10000k及以上，如果弹幕较多，可以尝试拉到更高，具体码率可自行测试。
             </Tip>
           </span>
         </template>
@@ -118,7 +119,13 @@
         >
       </n-form-item>
 
-      <n-form-item v-if="(encoderOptions?.presets || []).length !== 0" label="预设">
+      <n-form-item v-if="(encoderOptions?.presets || []).length !== 0">
+        <template #label>
+          <span class="inline-flex">
+            <span>预设</span>
+            <Tip> 推荐使用medium或者fast，不推荐任何人使用slowest </Tip>
+          </span>
+        </template>
         <n-select
           v-model:value="ffmpegOptions.config.preset"
           :options="encoderOptions?.presets || []"

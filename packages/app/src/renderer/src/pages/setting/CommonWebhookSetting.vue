@@ -194,6 +194,21 @@
       >全局</n-checkbox
     >
   </n-form-item>
+  <n-form-item label="上传预设">
+    <n-select
+      v-model:value="data.uploadPresetId"
+      :options="props.biliupPresetsOptions"
+      placeholder="请选择"
+      :disabled="globalFieldsObj.uploadPresetId"
+      style="margin-right: 10px"
+    />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.uploadPresetId"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
   <n-form-item>
     <template #label>
       <span class="inline-flex"> 完成后删除源文件 </span>
@@ -239,6 +254,20 @@
       v-if="isRoom"
       v-model:checked="globalFieldsObj.useVideoAsTitle"
       class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex">
+        使用直播封面
+        <Tip
+          tip="使用直播封面作为视频封面，默认寻找视频目录下文件名为'视频文件名+.cover.jpg|.jpg的文件"
+        ></Tip>
+      </span>
+    </template>
+    <n-switch v-model:value="data.useLiveCover" :disabled="globalFieldsObj.useLiveCover" />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.useLiveCover" class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
@@ -294,35 +323,6 @@
       v-if="isRoom"
       v-model:checked="globalFieldsObj.partMergeMinute"
       class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-  <n-form-item label="上传预设">
-    <n-select
-      v-model:value="data.uploadPresetId"
-      :options="props.biliupPresetsOptions"
-      placeholder="请选择"
-      :disabled="globalFieldsObj.uploadPresetId"
-      style="margin-right: 10px"
-    />
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.uploadPresetId"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-  <n-form-item>
-    <template #label>
-      <span class="inline-flex">
-        使用直播封面
-        <Tip
-          tip="使用直播封面作为视频封面，默认寻找视频目录下文件名为'视频文件名+.cover.jpg|.jpg的文件"
-        ></Tip>
-      </span>
-    </template>
-    <n-switch v-model:value="data.useLiveCover" :disabled="globalFieldsObj.useLiveCover" />
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.useLiveCover" class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
