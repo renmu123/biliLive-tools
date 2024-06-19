@@ -8,7 +8,7 @@
               bordered
               collapse-mode="width"
               :collapsed-width="64"
-              :width="240"
+              :width="160"
               :collapsed="collapsed"
               show-trigger
               @collapse="collapsed = true"
@@ -20,6 +20,7 @@
                 :collapsed-width="64"
                 :collapsed-icon-size="22"
                 :options="menuOptions"
+                default-expand-all
               />
             </n-layout-sider>
 
@@ -39,6 +40,8 @@
 </template>
 
 <script setup lang="ts">
+import { useStorage } from "@vueuse/core";
+
 import { NIcon, createDiscreteApi, darkTheme, lightTheme, useOsTheme } from "naive-ui";
 import type { MenuOption } from "naive-ui";
 import { RouterLink } from "vue-router";
@@ -60,7 +63,7 @@ const appConfig = useAppConfig();
 const { userInfo } = storeToRefs(useUserInfoStore());
 
 const activeKey = ref("go-back-home");
-const collapsed = ref(true);
+const collapsed = useStorage("collapsed", true);
 
 appConfig.getAppConfig();
 
@@ -172,6 +175,78 @@ const menuOptions = computed<MenuOption[]>(() => {
       key: "about",
       icon: renderIcon(InfoIcon),
     },
+    // {
+    //   label: () => h("span", "工具页"),
+    //   key: "about1",
+    //   icon: renderIcon(BookIcon),
+    //   children: [
+    //     {
+    //       key: "upload",
+    //       label: () =>
+    //         h(
+    //           RouterLink,
+    //           {
+    //             to: {
+    //               name: "About",
+    //             },
+    //           },
+    //           { default: () => "上传" },
+    //         ),
+    //     },
+    //     {
+    //       key: "danmakufactory",
+    //       label: () =>
+    //         h(
+    //           RouterLink,
+    //           {
+    //             to: {
+    //               name: "About",
+    //             },
+    //           },
+    //           { default: () => "弹幕转换" },
+    //         ),
+    //     },
+    //     {
+    //       key: "convert2mp4",
+    //       label: () =>
+    //         h(
+    //           RouterLink,
+    //           {
+    //             to: {
+    //               name: "About",
+    //             },
+    //           },
+    //           { default: () => "转封装" },
+    //         ),
+    //     },
+    //     {
+    //       key: "videoMerge",
+    //       label: () =>
+    //         h(
+    //           RouterLink,
+    //           {
+    //             to: {
+    //               name: "About",
+    //             },
+    //           },
+    //           { default: () => "视频合并" },
+    //         ),
+    //     },
+    //     {
+    //       key: "biliDownload",
+    //       label: () =>
+    //         h(
+    //           RouterLink,
+    //           {
+    //             to: {
+    //               name: "About",
+    //             },
+    //           },
+    //           { default: () => "B站下载" },
+    //         ),
+    //     },
+    //   ],
+    // },
   ];
 });
 
