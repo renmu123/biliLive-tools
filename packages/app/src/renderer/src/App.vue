@@ -118,20 +118,77 @@ const menuOptions = computed<MenuOption[]>(() => {
       key: "go-back-home",
       icon: renderIcon(HomeIcon),
     },
-
     {
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: "Tools",
-            },
-          },
-          { default: () => "工具" },
-        ),
-      key: "tools",
+      label: () => h("span", "工具页"),
+      key: "about1",
       icon: renderIcon(BookIcon),
+      children: [
+        {
+          key: "upload",
+          label: () =>
+            h(
+              RouterLink,
+              {
+                to: {
+                  name: "Upload",
+                },
+              },
+              { default: () => "上传" },
+            ),
+        },
+        {
+          key: "danmakufactory",
+          label: () =>
+            h(
+              RouterLink,
+              {
+                to: {
+                  name: "DanmakuFactory",
+                },
+              },
+              { default: () => "弹幕转换" },
+            ),
+        },
+        {
+          key: "convert2mp4",
+          label: () =>
+            h(
+              RouterLink,
+              {
+                to: {
+                  name: "Convert2Mp4",
+                },
+              },
+              { default: () => "转封装" },
+            ),
+        },
+        {
+          key: "videoMerge",
+          label: () =>
+            h(
+              RouterLink,
+              {
+                to: {
+                  name: "VideoMerge",
+                },
+              },
+              { default: () => "视频合并" },
+            ),
+        },
+        {
+          key: "biliDownload",
+          label: () =>
+            h(
+              RouterLink,
+              {
+                to: {
+                  name: "BiliDownload",
+                },
+              },
+              { default: () => "B站下载" },
+            ),
+        },
+      ],
     },
     {
       label: () =>
@@ -175,78 +232,6 @@ const menuOptions = computed<MenuOption[]>(() => {
       key: "about",
       icon: renderIcon(InfoIcon),
     },
-    // {
-    //   label: () => h("span", "工具页"),
-    //   key: "about1",
-    //   icon: renderIcon(BookIcon),
-    //   children: [
-    //     {
-    //       key: "upload",
-    //       label: () =>
-    //         h(
-    //           RouterLink,
-    //           {
-    //             to: {
-    //               name: "About",
-    //             },
-    //           },
-    //           { default: () => "上传" },
-    //         ),
-    //     },
-    //     {
-    //       key: "danmakufactory",
-    //       label: () =>
-    //         h(
-    //           RouterLink,
-    //           {
-    //             to: {
-    //               name: "About",
-    //             },
-    //           },
-    //           { default: () => "弹幕转换" },
-    //         ),
-    //     },
-    //     {
-    //       key: "convert2mp4",
-    //       label: () =>
-    //         h(
-    //           RouterLink,
-    //           {
-    //             to: {
-    //               name: "About",
-    //             },
-    //           },
-    //           { default: () => "转封装" },
-    //         ),
-    //     },
-    //     {
-    //       key: "videoMerge",
-    //       label: () =>
-    //         h(
-    //           RouterLink,
-    //           {
-    //             to: {
-    //               name: "About",
-    //             },
-    //           },
-    //           { default: () => "视频合并" },
-    //         ),
-    //     },
-    //     {
-    //       key: "biliDownload",
-    //       label: () =>
-    //         h(
-    //           RouterLink,
-    //           {
-    //             to: {
-    //               name: "About",
-    //             },
-    //           },
-    //           { default: () => "B站下载" },
-    //         ),
-    //     },
-    //   ],
-    // },
   ];
 });
 
