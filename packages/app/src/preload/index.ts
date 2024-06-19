@@ -95,8 +95,8 @@ export const api = {
     remove: (taskId: string) => {
       return ipcRenderer.invoke("task:remove", taskId);
     },
-    start: (command: string) => {
-      return ipcRenderer.invoke("task:start", command);
+    start: (taskId: string) => {
+      return ipcRenderer.invoke("task:start", taskId);
     },
     on(
       taskId: string,
