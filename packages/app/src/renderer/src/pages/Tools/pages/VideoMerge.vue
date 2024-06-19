@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import FileSelect from "@renderer/pages/Tools/components/FileUpload/components/FileSelect.vue";
+import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import Tip from "@renderer/components/Tip.vue";
 import { useAppConfig } from "@renderer/stores";
 import { storeToRefs } from "pinia";

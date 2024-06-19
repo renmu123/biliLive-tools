@@ -23,27 +23,27 @@ const router = createRouter({
         {
           path: "upload",
           name: "Upload",
-          component: () => import("../pages/Tools/components/FileUpload/index.vue"),
+          component: () => import("../pages/Tools/pages/FileUpload/index.vue"),
         },
         {
           path: "danmakufactory",
           name: "DanmakuFactory",
-          component: () => import("../pages/Tools/components/DanmuFactory.vue"),
+          component: () => import("../pages/Tools/pages/DanmuFactory.vue"),
         },
         {
           path: "convert2mp4",
           name: "Convert2Mp4",
-          component: () => import("../pages/Tools/components/File2Mp4.vue"),
+          component: () => import("../pages/Tools/pages/File2Mp4.vue"),
         },
         {
           path: "videoMerge",
           name: "VideoMerge",
-          component: () => import("../pages/Tools/components/VideoMerge.vue"),
+          component: () => import("../pages/Tools/pages/VideoMerge.vue"),
         },
         {
           path: "biliDownload",
           name: "BiliDownload",
-          component: () => import("../pages/Tools/components/VideoDownload.vue"),
+          component: () => import("../pages/Tools/pages/VideoDownload.vue"),
         },
       ],
     },
