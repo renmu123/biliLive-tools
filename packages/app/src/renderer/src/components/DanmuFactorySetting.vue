@@ -180,7 +180,11 @@
               :step="100"
             />
           </n-form-item>
-          <n-form-item v-if="isAdvancedMode" label="礼物框位置">
+          <n-form-item
+            v-if="isAdvancedMode"
+            label="礼物框位置"
+            title="第二个输入框修改为负数，可以向上调节位置"
+          >
             <n-input-number
               v-model:value.number="config.msgboxpos[0]"
               class="input-number"
