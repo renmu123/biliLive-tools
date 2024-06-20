@@ -45,6 +45,11 @@ const router = createRouter({
           name: "BiliDownload",
           component: () => import("../pages/Tools/pages/VideoDownload.vue"),
         },
+        {
+          path: "videoCut",
+          name: "videoCut",
+          component: () => import("../pages/Tools/pages/VideoCut.vue"),
+        },
       ],
     },
     {

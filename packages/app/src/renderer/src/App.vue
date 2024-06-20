@@ -163,6 +163,19 @@ const menuOptions = computed<MenuOption[]>(() => {
             ),
         },
         {
+          key: "videoCut",
+          label: () =>
+            h(
+              RouterLink,
+              {
+                to: {
+                  name: "videoCut",
+                },
+              },
+              { default: () => "切片" },
+            ),
+        },
+        {
           key: "videoMerge",
           label: () =>
             h(
