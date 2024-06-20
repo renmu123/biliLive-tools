@@ -1,4 +1,4 @@
-<!-- bili切换用户弹框 -->
+<!-- xml转换为ass弹框 -->
 <template>
   <n-modal v-model:show="showModal" :mask-closable="false" auto-focus>
     <n-card
@@ -11,30 +11,28 @@
     >
       <div class="content">
         <div class="container">
-          <div
-            v-for="item in userList"
-            :key="item.uid"
-            class="card"
-            :class="{
-              active: item.uid === userInfo.uid,
-            }"
-          >
-            {{ item.name }}
-            <img :src="item.face" alt="" referrerpolicy="no-referrer" class="face" />
-            <n-popover placement="right-start" trigger="hover">
-              <template #trigger>
-                <n-icon size="25" class="pointer menu">
-                  <EllipsisHorizontalOutline />
-                </n-icon>
-              </template>
-              <div class="section" @click="logout(item.uid)">退出登录</div>
-              <div v-if="item.uid === userInfo.uid" class="section">切换账号</div>
-            </n-popover>
+          <h2>请选择预设来进行转换</h2>
+          <div class="flex" style="gap: 10px; align-items: center">
+            <span style="flex: none">预设</span>
+            <n-select
+              v-model:value="danmuPresetId"
+              :options="danmuPresetsOptions"
+              placeholder="选择预设"
+            />
           </div>
+
+          <DanmuFactorySetting
+            v-if="danmuPreset.id"
+            v-model="danmuPreset.config"
+            :simpled-mode="simpledMode"
+            @change="handleDanmuChange"
+          ></DanmuFactorySetting>
         </div>
       </div>
       <template #footer>
         <div class="footer">
+          <n-checkbox v-model:checked="simpledMode"> 简易模式 </n-checkbox>
+
           <n-button class="btn" @click="showModal = false"> 取消 </n-button>
           <n-button type="primary" class="btn" @click="confirm"> 确认 </n-button>
         </div>
@@ -45,21 +43,24 @@
 
 <script setup lang="ts">
 import { storeToRefs } from "pinia";
-import { useUserInfoStore } from "@renderer/stores";
-import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
+import { useDanmuPreset } from "@renderer/stores";
+import type { DanmuConfig } from "@biliLive-tools/types";
 
-const { getUserInfo } = useUserInfoStore();
-const { userList, userInfo } = storeToRefs(useUserInfoStore());
+const emits = defineEmits<{
+  (event: "confirm", value: DanmuConfig): void;
+}>();
 
 const showModal = defineModel<boolean>({ required: true, default: false });
 
 const confirm = () => {
+  emits("confirm", danmuPreset.value.config);
   showModal.value = false;
 };
 
-const logout = async (uid: number) => {
-  await window.api.bili.deleteUser(uid);
-  getUserInfo();
+const { danmuPresetsOptions, danmuPresetId, danmuPreset } = storeToRefs(useDanmuPreset());
+const simpledMode = ref(true);
+const handleDanmuChange = (value: DanmuConfig) => {
+  danmuPreset.value.config = value;
 };
 </script>
 
@@ -73,6 +74,7 @@ const logout = async (uid: number) => {
 
 .container {
   display: flex;
+  flex-direction: column;
   flex-wrap: wrap;
   gap: 10px;
   .card {

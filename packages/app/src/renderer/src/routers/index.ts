@@ -48,7 +48,7 @@ const router = createRouter({
         {
           path: "videoCut",
           name: "videoCut",
-          component: () => import("../pages/Tools/pages/VideoCut.vue"),
+          component: () => import("../pages/Tools/pages/VideoCut/Index.vue"),
         },
       ],
     },

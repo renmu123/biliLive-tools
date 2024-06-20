@@ -383,6 +383,10 @@ export interface FfmpegOptions {
   extraOptions?: string;
   /** 10bit支持 */
   bit10?: boolean;
+  /** 开始时间 */
+  ss?: string;
+  /** 结束时间 */
+  to?: string;
 }
 
 export interface BiliupConfig {

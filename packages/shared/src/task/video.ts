@@ -239,7 +239,13 @@ export const mergeAssMp4 = async (
         },
       ]);
     } else {
-      // command.outputOptions(`-filter_complex subtitles=${escaped(assFile)}`);
+      if (ffmpegOptions.ss) {
+        command.inputOptions(`-ss ${ffmpegOptions.ss}`);
+      }
+      if (ffmpegOptions.to) {
+        command.inputOptions(`-to ${ffmpegOptions.to}`);
+        command.inputOptions("-copyts");
+      }
       command.complexFilter([
         {
           filter: "subtitles",
@@ -269,6 +275,12 @@ export const mergeAssMp4 = async (
       name: `压制任务:${parse(output).name}`,
     },
     {
+      onProgress(progress) {
+        if (ffmpegOptions.ss) {
+          // TODO:单独计算进度条，根据timemark
+        }
+        return progress;
+      },
       onEnd: async () => {
         if (options.removeOrigin) {
           if (await pathExists(videoInput)) {

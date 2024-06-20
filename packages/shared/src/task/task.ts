@@ -197,6 +197,7 @@ export class FFmpegTask extends AbstractTask {
     });
     command.on("progress", (progress) => {
       progress.percentage = progress.percent;
+      console.log("progress", progress);
       if (callback.onProgress) {
         progress = callback.onProgress(progress);
       }

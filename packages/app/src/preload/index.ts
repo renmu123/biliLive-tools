@@ -4,6 +4,7 @@ import fs from "fs-extra";
 
 import { contextBridge, ipcRenderer } from "electron";
 import { electronAPI } from "@electron-toolkit/preload";
+import { webUtils } from "electron";
 
 import type { IpcRendererEvent, SaveDialogOptions } from "electron";
 import type {
@@ -198,6 +199,9 @@ export const api = {
     },
     setTheme: (theme: Theme) => {
       return ipcRenderer.invoke("common:setTheme", theme);
+    },
+    getPathForFile: (file: any) => {
+      return webUtils.getPathForFile(file);
     },
   },
   bili: {
