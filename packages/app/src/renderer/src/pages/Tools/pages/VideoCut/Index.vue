@@ -23,11 +23,14 @@
     </div>
 
     <div class="content">
-      <Artplayer class="video" :option="{}" @ready="artplayerReady"></Artplayer>
-      <!-- <div ref="videoRef" class="video"></div> -->
-      <!-- <video ref="videoRef" class="video" controls width="80%">
-        你的浏览器不支持HTML5 video标签。
-      </video> -->
+      <Artplayer
+        v-show="files.video"
+        ref="videoRef"
+        class="video"
+        :option="{}"
+        @ready="artplayerReady"
+      ></Artplayer>
+      <div v-show="!files.video" class="video">请选选择视频文件</div>
       <div class="list">
         <div>dasdacontent</div>
         <div>dasdacontent</div>
@@ -45,20 +48,14 @@ import Artplayer from "@renderer/components/Artplayer.vue";
 import Xml2AssModal from "./components/Xml2AssModal.vue";
 import type { DanmuConfig, DanmuOptions } from "@biliLive-tools/types";
 
-// onMounted(() => {
-//   if (videoRef.value) {
-//     const instance = new Artplayer({
-//       container: videoRef.value,
-//     });
-//   }
-// });
-
 const files = ref<{
   video: string | null;
   danmu: string | null;
+  danmuFile: File | null;
 }>({
   video: null,
   danmu: null,
+  danmuFile: null,
 });
 const videoTitle = computed(() => {
   return files.value.video ? "替换视频" : "添加视频";
@@ -74,29 +71,12 @@ const cuts = ref<
     name: string;
   }[]
 >([]);
-const importCsv = async () => {
-  //   const file = await window.api.openFile({
-  //     multi: false,
-  //     filters: [
-  //       {
-  //         name: "csv",
-  //         extensions: ["csv"],
-  //       },
-  //       {
-  //         name: "所有文件",
-  //         extensions: ["*"],
-  //       },
-  //     ],
-  //   });
-  //   if (!file) return;
-  //   files.value.subtitle = file[0].path;
-};
+const importCsv = async () => {};
 
 const videoInputRef = ref<HTMLInputElement | null>(null);
 const danmuInputRef = ref<HTMLInputElement | null>(null);
-// const videoRef = ref<HTMLVideoElement | null>(null);
-// const videoRef = ref<HTMLDivElement | null>(null);
-const instance = ref<Artplayer | null>(null);
+const videoInstance = ref<Artplayer | null>(null);
+const videoRef = ref<Artplayer | null>(null);
 
 const addVideo = () => {
   videoInputRef.value?.click();
@@ -106,12 +86,21 @@ const handleVideoChange = async (event: any) => {
   const url = URL.createObjectURL(file);
 
   const path = window.api.common.getPathForFile(file);
+  console.log(url);
   files.value.video = path;
-  // videoRef.value.src = url;
-  console.log(instance.value);
 
-  if (instance.value) {
-    instance.value.url = url;
+  // console.log(URL.createObjectURL(files.value.danmuFile));
+
+  if (path.endsWith(".flv")) {
+    // @ts-ignore
+    // await videoRef.value?.setFlvMode(url, URL.createObjectURL(files.value.danmuFile));
+  } else {
+    // const
+    // @ts-ignore
+    await videoRef.value?.setCommonMode(
+      "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+      "https://oss.irenmu.com/%E7%88%86%E6%BC%AB%E7%8E%8B01.ass",
+    );
   }
 
   // 添加视频时将切片清空
@@ -119,7 +108,7 @@ const handleVideoChange = async (event: any) => {
 };
 
 const artplayerReady = (artplayer: Artplayer) => {
-  instance.value = artplayer;
+  videoInstance.value = artplayer;
 };
 
 const addDanmu = async () => {
@@ -133,6 +122,11 @@ const handleDanmuChange = async (event: any) => {
   // 如果是xml文件则弹框提示，要求转换为ass文件
   if (path.endsWith(".ass")) {
     files.value.danmu = path;
+    files.value.danmuFile = file;
+
+    if (videoInstance.value) {
+      videoInstance.value.subtitle.url = path;
+    }
   } else {
     xmlConvertVisible.value = true;
     tempXmlFile.value = path;
