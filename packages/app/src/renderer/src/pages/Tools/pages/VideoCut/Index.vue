@@ -23,13 +23,15 @@
     </div>
 
     <div class="content">
-      <Artplayer
-        v-show="files.video"
-        ref="videoRef"
-        class="video"
-        :option="{}"
-        @ready="artplayerReady"
-      ></Artplayer>
+      <div class="video">
+        <Artplayer
+          v-show="files.video"
+          ref="videoRef"
+          :option="{}"
+          @ready="artplayerReady"
+        ></Artplayer>
+      </div>
+
       <div v-show="!files.video" class="video">请选选择视频文件</div>
       <div class="list">
         <div>dasdacontent</div>
@@ -43,7 +45,7 @@
 
 <script setup lang="ts">
 import { uuid } from "@renderer/utils";
-import Artplayer from "@renderer/components/Artplayer.vue";
+import Artplayer from "@renderer/components/Artplayer/Index.vue";
 
 import Xml2AssModal from "./components/Xml2AssModal.vue";
 import type { DanmuConfig, DanmuOptions } from "@biliLive-tools/types";
@@ -95,12 +97,20 @@ const handleVideoChange = async (event: any) => {
     // @ts-ignore
     // await videoRef.value?.setFlvMode(url, URL.createObjectURL(files.value.danmuFile));
   } else {
-    // const
+    // const content = await fetch("https://oss.irenmu.com/%E7%88%86%E6%BC%AB%E7%8E%8B01.ass").then(
+    //   (res) => res.text(),
+    // );
     // @ts-ignore
     await videoRef.value?.setCommonMode(
-      "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-      "https://oss.irenmu.com/%E7%88%86%E6%BC%AB%E7%8E%8B01.ass",
+      url,
+      // content,
     );
+  }
+  if (files.value.danmuFile) {
+    const content = await files.value.danmuFile.text();
+    console.log(content);
+    // @ts-ignore
+    videoRef?.value?.addSutitle(content);
   }
 
   // 添加视频时将切片清空
@@ -123,6 +133,7 @@ const handleDanmuChange = async (event: any) => {
   if (path.endsWith(".ass")) {
     files.value.danmu = path;
     files.value.danmuFile = file;
+    console.log(files.value.danmuFile);
 
     if (videoInstance.value) {
       videoInstance.value.subtitle.url = path;
@@ -188,6 +199,7 @@ const exportCuts = () => {};
   .video {
     width: 80%;
     aspect-ratio: 16 / 9;
+    position: relative;
   }
   .list {
     display: inline-block;

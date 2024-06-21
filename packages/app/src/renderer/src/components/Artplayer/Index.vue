@@ -5,7 +5,7 @@
 <script lang="ts" setup>
 import Artplayer from "artplayer";
 import flvjs from "flv.js";
-import artplayerPluginLibass from "artplayer-plugin-libass";
+import artplayerPluginAss from "./artplayer-plugin-assjs";
 
 const props = defineProps<{
   option: any;
@@ -28,50 +28,28 @@ const setCommonMode = async (url: string, subtitle?: string) => {
     // @ts-ignore
     container: artRef.value,
     url: url,
-    subtitle: {
-      url: subtitle,
-      type: "ass",
-    },
-    plugins: [
-      artplayerPluginLibass({
-        debug: true,
-        workerUrl: "https://unpkg.com/libass-wasm@4.1.0/dist/js/subtitles-octopus-worker.js",
-        // wasmUrl: 'https://unpkg.com/libass-wasm@4.1.0/dist/js/subtitles-octopus-worker.wasm',
-        fallbackFont: "https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap",
-      }),
-    ],
+    plugins: [],
   });
 
-  // init
-  instance.on("artplayerPluginLibass:init", (adapter) => {
-    console.info("artplayerPluginLibass:init", adapter);
-  });
-
-  // subtitle switch
-  instance.on("artplayerPluginLibass:switch", (url) => {
-    console.info("artplayerPluginLibass:switch", url);
-  });
-
-  // subtitle visible
-  instance.on("artplayerPluginLibass:visible", (visible) => {
-    console.info("artplayerPluginLibass:visible", visible);
-  });
-
-  // subtitle timeOffset
-  instance.on("artplayerPluginLibass:timeOffset", (timeOffset) => {
-    console.info("artplayerPluginLibass:timeOffset", timeOffset);
-  });
-
-  // destroy
-  instance.on("artplayerPluginLibass:destroy", () => {
-    console.info("artplayerPluginLibass:destroy");
-  });
+  if (subtitle) {
+    addSutitle(subtitle);
+  }
 
   await nextTick();
   emit("ready", instance);
 };
 
-const setFlvMode = async (url: string) => {
+const addSutitle = async (subtitle: string) => {
+  if (instance) {
+    instance.plugins.add(
+      artplayerPluginAss({
+        content: subtitle,
+      }),
+    );
+  }
+};
+
+const setFlvMode = async (url: string, subtitle?: string) => {
   if (instance && instance?.destroy) instance.destroy(false);
 
   instance = new Artplayer({
@@ -94,15 +72,12 @@ const setFlvMode = async (url: string) => {
         }
       },
     },
-    plugins: [
-      artplayerPluginLibass({
-        // debug: true,
-        workerUrl: "https://unpkg.com/libass-wasm@4.1.0/dist/js/subtitles-octopus-worker.js",
-        // wasmUrl: 'https://unpkg.com/libass-wasm@4.1.0/dist/js/subtitles-octopus-worker.wasm',
-        fallbackFont: "/SourceHanSansCN-Bold.ttf",
-      }),
-    ],
+    plugins: [],
   });
+
+  if (subtitle) {
+    addSutitle(subtitle);
+  }
 
   await nextTick();
   emit("ready", instance);
@@ -112,6 +87,7 @@ defineExpose({
   setFlvMode,
   setCommonMode,
   instance,
+  addSutitle,
 });
 
 onBeforeUnmount(() => {
@@ -125,5 +101,9 @@ onBeforeUnmount(() => {
 .artplayer {
   width: 100%;
   height: 100%;
+}
+
+.artplayer .ASS-box {
+  z-index: 21;
 }
 </style>

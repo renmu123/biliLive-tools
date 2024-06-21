@@ -8,7 +8,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppendVideoDialog: typeof import('./src/components/AppendVideoDialog.vue')['default']
-    Artplayer: typeof import('./src/components/Artplayer.vue')['default']
+    Artplayer: typeof import('./src/components/Artplayer/Artplayer.vue')['default']
     BiliSetting: typeof import('./src/components/BiliSetting.vue')['default']
     DanmuFactorySetting: typeof import('./src/components/DanmuFactorySetting.vue')['default']
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']
@@ -16,6 +16,7 @@ declare module 'vue' {
     EditableText: typeof import('./src/components/EditableText.vue')['default']
     FileArea: typeof import('./src/components/FileArea.vue')['default']
     ImageCrop: typeof import('./src/components/ImageCrop.vue')['default']
+    Index: typeof import('./src/components/Artplayer/Index.vue')['default']
     NButton: typeof import('naive-ui')['NButton']
     NCard: typeof import('naive-ui')['NCard']
     NCascader: typeof import('naive-ui')['NCascader']

@@ -109,9 +109,9 @@ importers:
       artplayer:
         specifier: ^5.1.6
         version: 5.1.6
-      artplayer-plugin-libass:
-        specifier: ^1.0.0
-        version: 1.0.0
+      assjs:
+        specifier: ^0.1.0
+        version: 0.1.0
       axios:
         specifier: ^1.6.8
         version: 1.7.2
@@ -1587,9 +1587,6 @@ packages:
     resolution: {integrity: sha512-MNha4BWQ6JbwhFhj03YK552f7cb3AzoE8SzeljgChvL1dl3IcvggXVz1DilzySZkCja+CXuZbdW7yATchWn8/Q==}
     engines: {node: '>=0.10.0'}
 
-  artplayer-plugin-libass@1.0.0:
-    resolution: {integrity: sha512-ReQrZtmyhaVY2qmiLOI9K6B63SO9W/LzBPBwUIMniXSG4ztaFPy0l3yL5I/e6cBmSTYNqTowK2CSZ1NK1kxClg==}
-
   artplayer@5.1.6:
     resolution: {integrity: sha512-cqnVVLKCKWCryKl6Pmop50/Di9IQwOeNNQs5qWGzJDPiM0qTC7Q/Enusa+8JQid8p09fvp4Vc32ViSSYutdEeQ==}
 
@@ -1602,6 +1599,9 @@ packages:
 
   assertion-error@1.1.0:
     resolution: {integrity: sha512-jgsaNduz+ndvGyFt3uSuWqvy4lCnIJiovtouQN5JZHOKCS2QuhEdbcQHFhVksz2N2U9hXJo8odG7ETyWlEeuDw==}
+
+  assjs@0.1.0:
+    resolution: {integrity: sha512-H+uSuSB40Wni/CwvS3vY/5yPzhn9wyKMjghDe80s2uFhWlxO6+4W8AipipgxppfnhEOfBoSGBCGVO3QaP9f//Q==}
 
   astral-regex@2.0.0:
     resolution: {integrity: sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==}
@@ -2958,9 +2958,6 @@ packages:
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
-
-  libass-wasm@4.1.0:
-    resolution: {integrity: sha512-+RbYT/uuI6VHExCmGyUuMg3A2gQOaCRTzSn8GGDSf3q4cEoUNiINd9u4RGfZXA1UKafW+Hv8bmcKIX4FKbSh0Q==}
 
   lie@3.3.0:
     resolution: {integrity: sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ==}
@@ -5684,10 +5681,6 @@ snapshots:
 
   array-uniq@1.0.3: {}
 
-  artplayer-plugin-libass@1.0.0:
-    dependencies:
-      libass-wasm: 4.1.0
-
   artplayer@5.1.6:
     dependencies:
       option-validator: 2.0.6
@@ -5698,6 +5691,8 @@ snapshots:
     optional: true
 
   assertion-error@1.1.0: {}
+
+  assjs@0.1.0: {}
 
   astral-regex@2.0.0:
     optional: true
@@ -7289,8 +7284,6 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
-
-  libass-wasm@4.1.0: {}
 
   lie@3.3.0:
     dependencies:
