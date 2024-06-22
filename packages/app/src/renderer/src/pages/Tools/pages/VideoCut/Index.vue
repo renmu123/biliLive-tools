@@ -2,6 +2,7 @@
   <div class="container">
     <div class="btns">
       <n-button @click="importCsv"> 导入时间戳 </n-button>
+      <n-button @click="importCsv"> 导出时间戳 </n-button>
       <n-button type="primary" @click="addVideo"> {{ videoTitle }} </n-button>
       <input
         ref="videoInputRef"
@@ -85,6 +86,7 @@ const addVideo = () => {
 };
 const handleVideoChange = async (event: any) => {
   const file = event.target.files[0];
+  if (!file) return;
   const url = URL.createObjectURL(file);
 
   const path = window.api.common.getPathForFile(file);
@@ -97,14 +99,8 @@ const handleVideoChange = async (event: any) => {
     // @ts-ignore
     // await videoRef.value?.setFlvMode(url, URL.createObjectURL(files.value.danmuFile));
   } else {
-    // const content = await fetch("https://oss.irenmu.com/%E7%88%86%E6%BC%AB%E7%8E%8B01.ass").then(
-    //   (res) => res.text(),
-    // );
     // @ts-ignore
-    await videoRef.value?.setCommonMode(
-      url,
-      // content,
-    );
+    await videoRef.value?.setCommonMode(url);
   }
   if (files.value.danmuFile) {
     const content = await files.value.danmuFile.text();
@@ -128,6 +124,7 @@ const xmlConvertVisible = ref(false);
 const tempXmlFile = ref("");
 const handleDanmuChange = async (event: any) => {
   const file = event.target.files[0];
+  if (!file) return;
   const path = window.api.common.getPathForFile(file);
   // 如果是xml文件则弹框提示，要求转换为ass文件
   if (path.endsWith(".ass")) {
@@ -136,7 +133,10 @@ const handleDanmuChange = async (event: any) => {
     console.log(files.value.danmuFile);
 
     if (videoInstance.value) {
-      videoInstance.value.subtitle.url = path;
+      // videoInstance.value.subtitle.url = path;
+      const content = await file.text();
+      // @ts-ignore
+      videoRef?.value?.addSutitle(content);
     }
   } else {
     xmlConvertVisible.value = true;

@@ -28,24 +28,20 @@ const setCommonMode = async (url: string, subtitle?: string) => {
     // @ts-ignore
     container: artRef.value,
     url: url,
-    plugins: [],
+    plugins: [
+      artplayerPluginAss({
+        content: subtitle || "",
+      }),
+    ],
   });
-
-  if (subtitle) {
-    addSutitle(subtitle);
-  }
 
   await nextTick();
   emit("ready", instance);
 };
 
-const addSutitle = async (subtitle: string) => {
+const addSutitle = async (subtitle?: string) => {
   if (instance) {
-    instance.plugins.add(
-      artplayerPluginAss({
-        content: subtitle,
-      }),
-    );
+    instance.plugins.artplayerPluginAss.switch(subtitle || "");
   }
 };
 
@@ -72,12 +68,12 @@ const setFlvMode = async (url: string, subtitle?: string) => {
         }
       },
     },
-    plugins: [],
+    plugins: [
+      artplayerPluginAss({
+        content: subtitle || "",
+      }),
+    ],
   });
-
-  if (subtitle) {
-    addSutitle(subtitle);
-  }
 
   await nextTick();
   emit("ready", instance);

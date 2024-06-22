@@ -1,25 +1,21 @@
 import ASS from "assjs";
 
-export default function artplayerPluginAss(option: { content: string }) {
+export default function artplayerPluginAss(option: { content?: string }) {
   return (art) => {
-    // art.layers.add({
-    //   name: "assjs-subtitle",
-    //   html: `<div class="assjs-subtitle"></div>`,
-    //   style: {
-    //     display: "none",
-    //     position: "absolute",
-    //     top: "20px",
-    //     right: "20px",
-    //   },
-    // });
-
-    const ass = new ASS(option.content, art.video, {
+    let ass = new ASS(option.content || "", art.video, {
       // Subtitles will display in the container.
       container: art.video.parentNode,
 
       // see resampling API below
       // resampling: "video_width",
     });
+    const switchContent = (content: string) => {
+      ass.destroy();
+
+      ass = new ASS(content, art.video, {
+        container: art.video.parentNode,
+      });
+    };
     return {
       name: "artplayerPluginAss",
       ass: ass,
@@ -28,6 +24,7 @@ export default function artplayerPluginAss(option: { content: string }) {
       // switch: adapter.switch.bind(adapter),
       show: ass.show(),
       hide: ass.hide(),
+      switch: switchContent,
       destroy: () => {
         ass.destroy();
         // ass = null;
