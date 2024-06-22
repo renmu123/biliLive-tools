@@ -25,12 +25,7 @@
 
     <div class="content">
       <div class="video">
-        <Artplayer
-          v-show="files.video"
-          ref="videoRef"
-          :option="{}"
-          @ready="artplayerReady"
-        ></Artplayer>
+        <Artplayer v-show="files.video" ref="videoRef" :option="{}"></Artplayer>
       </div>
 
       <div v-show="!files.video" class="video">请选选择视频文件</div>
@@ -78,8 +73,7 @@ const importCsv = async () => {};
 
 const videoInputRef = ref<HTMLInputElement | null>(null);
 const danmuInputRef = ref<HTMLInputElement | null>(null);
-const videoInstance = ref<Artplayer | null>(null);
-const videoRef = ref<Artplayer | null>(null);
+const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 
 const addVideo = () => {
   videoInputRef.value?.click();
@@ -93,28 +87,15 @@ const handleVideoChange = async (event: any) => {
   console.log(url);
   files.value.video = path;
 
-  // console.log(URL.createObjectURL(files.value.danmuFile));
+  await videoRef.value?.switchUrl(url, path.endsWith(".flv") ? "flv" : "");
 
-  if (path.endsWith(".flv")) {
-    // @ts-ignore
-    // await videoRef.value?.setFlvMode(url, URL.createObjectURL(files.value.danmuFile));
-  } else {
-    // @ts-ignore
-    await videoRef.value?.setCommonMode(url);
-  }
   if (files.value.danmuFile) {
     const content = await files.value.danmuFile.text();
-    console.log(content);
-    // @ts-ignore
     videoRef?.value?.addSutitle(content);
   }
 
   // 添加视频时将切片清空
   cuts.value = [];
-};
-
-const artplayerReady = (artplayer: Artplayer) => {
-  videoInstance.value = artplayer;
 };
 
 const addDanmu = async () => {
@@ -132,12 +113,8 @@ const handleDanmuChange = async (event: any) => {
     files.value.danmuFile = file;
     console.log(files.value.danmuFile);
 
-    if (videoInstance.value) {
-      // videoInstance.value.subtitle.url = path;
-      const content = await file.text();
-      // @ts-ignore
-      videoRef?.value?.addSutitle(content);
-    }
+    const content = await file.text();
+    videoRef.value?.addSutitle(content);
   } else {
     xmlConvertVisible.value = true;
     tempXmlFile.value = path;

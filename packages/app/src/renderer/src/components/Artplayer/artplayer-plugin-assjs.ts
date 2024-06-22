@@ -19,9 +19,6 @@ export default function artplayerPluginAss(option: { content?: string }) {
     return {
       name: "artplayerPluginAss",
       ass: ass,
-      // visible: adapter.visible,
-      // init: adapter.init.bind(adapter),
-      // switch: adapter.switch.bind(adapter),
       show: ass.show(),
       hide: ass.hide(),
       switch: switchContent,

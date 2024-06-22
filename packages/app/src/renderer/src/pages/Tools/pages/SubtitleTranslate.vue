@@ -99,10 +99,9 @@ async function getDir() {
   options.savePath = path;
 }
 
-const fileSelect = ref(null);
+const fileSelect = ref<InstanceType<typeof FileSelect> | null>(null);
 const addVideo = async () => {
-  // @ts-ignore
-  fileSelect.value.select();
+  fileSelect.value?.select();
 };
 const clear = () => {
   fileList.value = [];

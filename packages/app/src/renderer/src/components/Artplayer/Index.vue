@@ -16,44 +16,15 @@ const artRef = ref(null);
 let instance: Artplayer | null = null;
 
 onMounted(async () => {
-  // setCommonMode("");
-});
-
-const setCommonMode = async (url: string, subtitle?: string) => {
-  console.log("setCommonMode", url, subtitle);
-  if (instance && instance?.destroy) instance.destroy(false);
-
   instance = new Artplayer({
+    url: "",
     ...props.option,
-    // @ts-ignore
     container: artRef.value,
-    url: url,
     plugins: [
       artplayerPluginAss({
-        content: subtitle || "",
+        content: "",
       }),
     ],
-  });
-
-  await nextTick();
-  emit("ready", instance);
-};
-
-const addSutitle = async (subtitle?: string) => {
-  if (instance) {
-    instance.plugins.artplayerPluginAss.switch(subtitle || "");
-  }
-};
-
-const setFlvMode = async (url: string, subtitle?: string) => {
-  if (instance && instance?.destroy) instance.destroy(false);
-
-  instance = new Artplayer({
-    ...props.option,
-    // @ts-ignore
-    container: artRef.value,
-    url: url,
-    type: "flv",
     customType: {
       flv: (video, url, art) => {
         if (flvjs.isSupported()) {
@@ -68,20 +39,27 @@ const setFlvMode = async (url: string, subtitle?: string) => {
         }
       },
     },
-    plugins: [
-      artplayerPluginAss({
-        content: subtitle || "",
-      }),
-    ],
   });
-
-  await nextTick();
   emit("ready", instance);
+});
+
+const switchUrl = async (url: string, type: "" | "flv" = "") => {
+  if (instance) {
+    instance.type = type;
+    instance?.switchUrl(url);
+  } else {
+    console.error("instance is null");
+  }
+};
+
+const addSutitle = async (subtitle?: string) => {
+  if (instance) {
+    instance.plugins.artplayerPluginAss.switch(subtitle || "");
+  }
 };
 
 defineExpose({
-  setFlvMode,
-  setCommonMode,
+  switchUrl,
   instance,
   addSutitle,
 });
