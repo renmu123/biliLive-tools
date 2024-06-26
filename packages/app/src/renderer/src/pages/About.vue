@@ -20,6 +20,13 @@
       >
     </p>
     <p>
+      <b
+        >帮助教程：<a href="https://www.bilibili.com/video/BV1Hs421M755/" class="external"
+          >https://www.bilibili.com/video/BV1Hs421M755/</a
+        ></b
+      >
+    </p>
+    <p>
       请我喝瓶快乐水：<a href="https://afdian.net/a/renmu123" class="external"
         >https://afdian.net/a/renmu123</a
       >
@@ -38,11 +45,7 @@
         >https://github.com/renmu123/biliLive-tools/blob/master/CHANGELOG.md</a
       >
     </p>
-    <p>
-      帮助教程：<a href="https://www.bilibili.com/video/BV1Hs421M755/" class="external"
-        >https://www.bilibili.com/video/BV1Hs421M755/</a
-      >
-    </p>
+
     <p>QQ交流群：872011161</p>
     <p>
       反馈地址：如果遇到bug，请在设置中将"log等级"调整至debug模式，并进行复现，之后在<a

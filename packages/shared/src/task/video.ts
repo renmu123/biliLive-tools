@@ -117,6 +117,10 @@ export const convertVideo2Mp4 = async (
     override: false,
     removeOrigin: false,
   },
+  ffmpegOptions: FfmpegOptions = {
+    encoder: "copy",
+    audioCodec: "copy",
+  },
   autoStart = false,
 ) => {
   await setFfmpegPath();
@@ -146,7 +150,21 @@ export const convertVideo2Mp4 = async (
     throw new Error("目标文件已存在");
   }
 
-  const command = ffmpeg(input).videoCodec("copy").audioCodec("copy").output(output);
+  const command = ffmpeg(input).output(output);
+
+  // 硬件解码
+  if (ffmpegOptions.decode) {
+    if (["h264_nvenc", "hevc_nvenc", "av1_nvenc"].includes(ffmpegOptions.encoder)) {
+      command.inputOptions("-hwaccel cuda");
+      command.inputOptions("-hwaccel_output_format cuda");
+      command.inputOptions("-extra_hw_frames 10");
+    }
+  }
+  const ffmpegParams = genFfmpegParams(ffmpegOptions);
+
+  ffmpegParams.forEach((param) => {
+    command.outputOptions(param);
+  });
 
   const task = new FFmpegTask(
     command,

@@ -269,11 +269,15 @@ import { HelpCircleOutline } from "@vicons/ionicons5";
 import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
+import { useFfmpegPreset } from "@renderer/stores";
+import { storeToRefs } from "pinia";
 
 import type { FfmpegPreset } from "@biliLive-tools/types";
 
 const notice = useNotification();
 const confirmDialog = useConfirm();
+const { ffmpegOptions: options } = storeToRefs(useFfmpegPreset());
+const { getPresetOptions } = useFfmpegPreset();
 
 const emits = defineEmits<{
   (event: "change", value: FfmpegPreset): void;
@@ -672,19 +676,19 @@ watch(
   },
 );
 
-const options = ref<
-  {
-    value: string;
-    label: string;
-    children: {
-      value: string;
-      label: string;
-    }[];
-  }[]
->([]);
-const getPresetOptions = async () => {
-  options.value = await window.api.ffmpeg.getPresetOptions();
-};
+// const options = ref<
+//   {
+//     value: string;
+//     label: string;
+//     children: {
+//       value: string;
+//       label: string;
+//     }[];
+//   }[]
+// >([]);
+// const getPresetOptions = async () => {
+//   options.value = await window.api.ffmpeg.getPresetOptions();
+// };
 
 const handlePresetChange = async () => {
   ffmpegOptions.value = await window.api.ffmpeg.getPreset(presetId.value);

@@ -653,6 +653,10 @@ const convert2Mp4 = async (videoFile: string): Promise<string> => {
         override: false,
         removeOrigin: true,
       },
+      {
+        encoder: "copy",
+        audioCodec: "copy",
+      },
       false,
     ).then((task) => {
       task.on("task-end", () => {

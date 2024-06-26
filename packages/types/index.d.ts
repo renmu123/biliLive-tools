@@ -150,6 +150,8 @@ export type ToolConfig = {
     override: boolean;
     /** 完成后移除源文件 */
     removeOrigin: boolean;
+    /** ffmpeg预设 */
+    ffmpegPresetId: string;
   };
   videoMerge: {
     /** 保存到原始文件夹 */

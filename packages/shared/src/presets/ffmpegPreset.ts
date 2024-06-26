@@ -28,6 +28,20 @@ const commonPresetParams: {
 
 const baseFfmpegPresets: FfmpegPresetType[] = [
   {
+    id: "b_copy",
+    name: "copy",
+    config: {
+      encoder: "copy",
+      bitrateControl: "CRF",
+      crf: 23,
+      preset: "fast",
+      bitrate: 8000,
+      extraOptions: "",
+      bit10: false,
+      ...commonPresetParams,
+    },
+  },
+  {
     id: "b_libx264",
     name: "H.264(x264)",
     config: {

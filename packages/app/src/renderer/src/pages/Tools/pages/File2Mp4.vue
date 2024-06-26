@@ -7,12 +7,22 @@
       >
       <n-button @click="addVideo"> 添加 </n-button>
       <n-button type="primary" @click="convert"> 立即转换 </n-button>
+      <n-cascader
+        v-model:value="options.ffmpegPresetId"
+        placeholder="请选择预设"
+        expand-trigger="click"
+        :options="ffmpegOptions"
+        check-strategy="child"
+        :show-path="false"
+        :filterable="true"
+        style="width: 140px; text-align: left"
+      />
     </div>
     <FileSelect ref="fileSelect" v-model="fileList" :sort="false"></FileSelect>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div>
-        <n-radio-group v-model:value="options.saveRadio" class="radio-group">
+        <n-radio-group v-model:value="options.saveRadio" class="radio-group2">
           <n-space class="flex align-center column">
             <n-radio :value="1"> 保存到原始文件夹 </n-radio>
             <n-radio :value="2">
@@ -46,28 +56,30 @@
 <script setup lang="ts">
 import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline } from "@vicons/ionicons5";
-import { useAppConfig } from "@renderer/stores";
+import { useAppConfig, useFfmpegPreset } from "@renderer/stores";
 import { storeToRefs } from "pinia";
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 
 const notice = useNotification();
 const confirm = useConfirm();
 const { appConfig } = storeToRefs(useAppConfig());
+const { ffmpegOptions } = storeToRefs(useFfmpegPreset());
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
-
 const options = appConfig.value.tool.video2mp4;
 
-// const options = ref<Video2Mp4Options>({
-//   saveRadio: 1, // 1：保存到原始文件夹，2：保存到特定文件夹
-//   saveOriginPath: true,
-//   savePath: "",
-
-//   override: false, // 覆盖文件
-//   removeOrigin: false, // 完成后移除源文件
-// });
-
 const convert = async () => {
+  const ffmpegConfig = await window.api.ffmpeg.getPreset(options.ffmpegPresetId);
+  if (!ffmpegConfig) {
+    notice.error({
+      title: `预设不存在，请重新选择`,
+      duration: 1000,
+    });
+    return;
+  }
+  const ffmpegOptions = ffmpegConfig.config;
+  console.log(ffmpegOptions);
+
   if (fileList.value.length === 0) {
     notice.error({
       title: `至少选择一个文件`,
@@ -82,12 +94,16 @@ const convert = async () => {
     });
     return;
   }
-  const [status] = await confirm.warning({
-    content: "转封装增加大量 CPU 占用以及硬盘 IO，请耐心等待",
-    showCheckbox: true,
-    showAgainKey: "video2mp4",
-  });
-  if (!status) return;
+
+  if (ffmpegOptions.encoder !== "copy" || ffmpegOptions.audioCodec !== "copy") {
+    const [status] = await confirm.warning({
+      content:
+        "你可能正在对视频或音频进行重编码，将耗费大量时间，是否继续？（如果你只是想转换格式，可以选择预设中的 copy 选项）",
+      showCheckbox: true,
+      showAgainKey: "video2mp4Convert",
+    });
+    if (!status) return;
+  }
 
   for (let i = 0; i < fileList.value.length; i++) {
     try {
@@ -95,6 +111,7 @@ const convert = async () => {
       window.api.convertVideo2Mp4(
         { input: fileList.value[i].path, output: fileList.value[i].title },
         toRaw(options),
+        ffmpegOptions,
       );
     } catch (err) {
       notice.error({
@@ -129,7 +146,7 @@ const clear = () => {
 </script>
 
 <style scoped lang="less">
-.radio-group {
+.radio-group2 {
   :deep(.n-radio) {
     align-items: center;
   }

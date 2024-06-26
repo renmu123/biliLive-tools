@@ -144,6 +144,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       saveOriginPath: false,
       override: false,
       removeOrigin: false,
+      ffmpegPresetId: "b_copy",
     },
     videoMerge: {
       saveOriginPath: false,

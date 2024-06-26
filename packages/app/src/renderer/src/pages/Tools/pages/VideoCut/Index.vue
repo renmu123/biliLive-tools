@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <div class="btns">
+      <!-- 支持导入项目文件 -->
       <n-button @click="importCsv"> 导入时间戳 </n-button>
       <n-button @click="importCsv"> 导出时间戳 </n-button>
       <n-button type="primary" @click="addVideo"> {{ videoTitle }} </n-button>
@@ -24,7 +25,7 @@
     </div>
 
     <div class="content">
-      <div class="video">
+      <div v-show="files.video" class="video">
         <Artplayer v-show="files.video" ref="videoRef" :option="{}"></Artplayer>
       </div>
 

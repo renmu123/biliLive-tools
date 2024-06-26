@@ -159,7 +159,7 @@ const menuOptions = computed<MenuOption[]>(() => {
                   name: "Convert2Mp4",
                 },
               },
-              { default: () => "转封装" },
+              { default: () => "转码" },
             ),
         },
         {

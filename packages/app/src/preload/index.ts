@@ -360,8 +360,12 @@ export const api = {
       override: false,
       removeOrigin: false,
     },
+    ffmpegOptions: FfmpegOptions = {
+      encoder: "copy",
+      audioCodec: "copy",
+    },
   ) => {
-    return ipcRenderer.invoke("convertVideo2Mp4", file, options);
+    return ipcRenderer.invoke("convertVideo2Mp4", file, options, ffmpegOptions);
   },
   mergeAssMp4: async (
     files: {

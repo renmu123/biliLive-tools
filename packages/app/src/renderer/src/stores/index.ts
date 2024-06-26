@@ -137,6 +137,30 @@ export const useDanmuPreset = defineStore("danmuPreset", () => {
   };
 });
 
+export const useFfmpegPreset = defineStore("ffmpegPreset", () => {
+  const options = ref<
+    {
+      value: string;
+      label: string;
+      children: {
+        value: string;
+        label: string;
+      }[];
+    }[]
+  >([]);
+
+  const getPresetOptions = async () => {
+    options.value = await window.api.ffmpeg.getPresetOptions();
+  };
+
+  getPresetOptions();
+
+  return {
+    ffmpegOptions: options,
+    getPresetOptions,
+  };
+});
+
 export const useUploadPreset = defineStore("uploadPreset", () => {
   const upladPresetId = ref("default");
   const uploadPresets = ref<BiliupPreset[]>([]);
