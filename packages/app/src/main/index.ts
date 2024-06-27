@@ -38,9 +38,18 @@ import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
 import type { Theme } from "@biliLive-tools/types";
 
-const WindowState = new Store({
+const WindowState = new Store<{
+  winBounds: {
+    width: number;
+    height: number;
+    x: number;
+    y: number;
+    isMaximized: boolean;
+  };
+}>({
   name: "window-state",
 });
+
 const windowConfig = {
   width: 900,
   height: 750,
@@ -88,6 +97,7 @@ const genHandler = (ipcMain: IpcMain) => {
 
 export let mainWin: BrowserWindow;
 function createWindow(): void {
+  // @ts-ignore
   Object.assign(windowConfig, WindowState.get("winBounds"));
 
   // Create the browser window.
@@ -114,6 +124,7 @@ function createWindow(): void {
       },
       mainWindow.getNormalBounds(),
     );
+    // @ts-ignore
     WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
   });
 
@@ -126,11 +137,6 @@ function createWindow(): void {
     }
   });
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url);
-    return { action: "deny" };
-  });
-
   // HMR for renderer base on electron-vite cli.
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
@@ -140,6 +146,16 @@ function createWindow(): void {
   }
   mainWin = mainWindow;
   const content = mainWindow.webContents;
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    // const url = details.url;
+    if (url.startsWith("http")) {
+      shell.openExternal(url);
+      return { action: "deny" };
+    } else {
+      return { action: "allow" };
+    }
+  });
 
   content.on("render-process-gone", (_event, details) => {
     log.error(`render-process-gone: ${JSON.stringify(details)}`);
@@ -292,6 +308,7 @@ const quit = async () => {
       },
       mainWin.getNormalBounds(),
     );
+    // @ts-ignore
     WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
 
     const canQuited = await canQuit();

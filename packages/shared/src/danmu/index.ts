@@ -7,6 +7,7 @@ import { compile } from "ass-compiler";
 
 import { keyBy } from "lodash-es";
 import { pathExists } from "../utils/index.js";
+import log from "../utils/log.js";
 import { XMLParser } from "fast-xml-parser";
 import type { DanmuConfig, hotProgressOptions } from "@biliLive-tools/types";
 
@@ -54,6 +55,7 @@ export class Danmu {
     const requiredArgs = [`-i "${input}"`, `-o "${output}"`, "--ignore-warnings"];
     const args = this.genDanmuArgs(argsObj);
     const command = `${this.execPath} ${requiredArgs.join(" ")} ${args.join(" ")}`;
+    log.info("danmakufactory command: ", command);
     this.command = command;
 
     return new Promise((resolve, reject) => {

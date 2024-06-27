@@ -14,6 +14,10 @@
 2. 进入配置页时，检查二进制文件路径是否存在
 3. ffmpeg预设增加copy预设
 
+## Bug修复
+
+1. 修复多个b站账户同时操作时cookie有概率混淆 [#16](https://github.com/renmu123/biliLive-tools/issues/16)
+
 # 1.1.0
 
 ## 功能

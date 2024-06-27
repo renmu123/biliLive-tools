@@ -821,7 +821,7 @@ const addUploadTask = async (
   removeOrigin?: boolean,
 ) => {
   return new Promise((resolve, reject) => {
-    log.debug("addUploadTask", pathArray, options, removeOrigin);
+    log.debug("addUploadTask", uid, pathArray, options, removeOrigin);
     biliApi.addMedia(pathArray, options, uid).then((task) => {
       task.on("task-end", () => {
         if (removeOrigin) {
@@ -845,6 +845,7 @@ const addEditMediaTask = async (
   removeOrigin?: boolean,
 ) => {
   return new Promise((resolve, reject) => {
+    log.debug("editUploadTask", uid, pathArray, removeOrigin);
     biliApi.editMedia(aid, pathArray, {}, uid).then((task) => {
       task.on("task-end", () => {
         if (removeOrigin) {

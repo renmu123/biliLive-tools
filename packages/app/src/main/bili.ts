@@ -1,7 +1,6 @@
 import { Client, TvQrcodeLogin } from "@renmu/bili-api";
 import {
   biliApi,
-  client,
   format,
   writeUser,
   readUser,
@@ -115,8 +114,4 @@ export const handlers = {
   ): ReturnType<ClientInstance["platform"]["getTypeDesc"]> => {
     return biliApi.getTypeDesc(tid, uid);
   },
-};
-
-export default {
-  client,
 };

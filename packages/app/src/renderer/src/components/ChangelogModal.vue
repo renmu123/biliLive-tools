@@ -1,5 +1,5 @@
 <template>
-  <n-modal v-model:show="showModal" transform-origin="center">
+  <n-modal v-model:show="showModal" transform-origin="center" :auto-focus="false">
     <n-card style="width: 800px" title="更新日志" :bordered="false">
       <div v-html="content"></div>
       <template #footer>
@@ -19,8 +19,16 @@ import changelog from "../../../../../../CHANGELOG.md?raw";
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 
+const renderer = {
+  link(url: string, _title: string, text: string) {
+    console.log(url, text, text);
+    return `<a href="${url}" target="_blank">${text}</a>`;
+  },
+};
+
+// @ts-ignore
+marked.use({ renderer });
 const content = marked.parse(changelog);
-// console.log(content);
 
 const confirm = async () => {
   const data = JSON.parse(localStorage.getItem("changelog") || "{}");
