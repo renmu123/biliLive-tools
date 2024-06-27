@@ -10,6 +10,7 @@ declare module 'vue' {
     AppendVideoDialog: typeof import('./src/components/AppendVideoDialog.vue')['default']
     Artplayer: typeof import('./src/components/Artplayer/Artplayer.vue')['default']
     BiliSetting: typeof import('./src/components/BiliSetting.vue')['default']
+    ChangelogModal: typeof import('./src/components/ChangelogModal.vue')['default']
     DanmuFactorySetting: typeof import('./src/components/DanmuFactorySetting.vue')['default']
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']
     DownloadConfirm: typeof import('./src/components/DownloadConfirm.vue')['default']

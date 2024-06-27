@@ -40,6 +40,7 @@
     "filenamify": "^6.0.0",
     "flv.js": "^1.6.2",
     "lodash-es": "^4.17.21",
+    "marked": "^13.0.1",
     "ntsuspend": "^1.0.2",
     "pinia": "^2.1.7",
     "semver": "^7.6.0",

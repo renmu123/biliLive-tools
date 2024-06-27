@@ -34,6 +34,7 @@
           </n-layout>
         </n-space>
         <AppSettingDialog v-model="settingVisible"></AppSettingDialog>
+        <ChangelogModal v-model:visible="changelogVisible"></ChangelogModal>
       </n-dialog-provider>
     </n-notification-provider>
   </n-config-provider>
@@ -55,6 +56,7 @@ import {
 } from "@vicons/ionicons5";
 import defaultUserAvatar from "./assets/images/moehime.jpg";
 import AppSettingDialog from "./pages/setting/index.vue";
+import ChangelogModal from "./components/ChangelogModal.vue";
 import { useUserInfoStore, useQueueStore, useAppConfig } from "./stores";
 
 const quenuStore = useQueueStore();
@@ -282,6 +284,17 @@ const theme = computed(() => {
     return lightTheme;
   }
 });
+
+// 更新日志处理
+const changelogVisible = ref(false);
+const initChanglog = async () => {
+  const data = JSON.parse(localStorage.getItem("changelog") || "{}");
+  const version = await window.api.appVersion();
+  if (!data[version]) {
+    changelogVisible.value = true;
+  }
+};
+initChanglog();
 </script>
 
 <style lang="less">
