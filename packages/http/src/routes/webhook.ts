@@ -278,7 +278,7 @@ function getConfig(roomId: number): {
 
   const open = canHandle();
 
-  return {
+  const options = {
     danmu,
     mergePart,
     minSize,
@@ -301,6 +301,9 @@ function getConfig(roomId: number): {
     removeOriginAfterUpload,
     noConvertHandleVideo,
   };
+  log.debug("final config", options);
+
+  return options;
 }
 
 export async function handleLiveData(options: Options, partMergeMinute: number) {
@@ -483,7 +486,6 @@ async function handle(options: Options) {
     removeOriginAfterUpload,
     noConvertHandleVideo,
   } = getConfig(options.roomId);
-  log.debug("config", getConfig(options.roomId));
   if (!open) {
     log.info(`${options.roomId} is not open`);
     return;
