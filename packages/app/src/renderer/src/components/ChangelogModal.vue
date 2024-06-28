@@ -1,6 +1,32 @@
 <template>
   <n-modal v-model:show="showModal" transform-origin="center" :auto-focus="false">
     <n-card style="width: 800px" title="更新日志" :bordered="false">
+      <div>
+        <p>
+          <b
+            >如果你不知道如何使用本软件，请优先查看<a
+              href="https://www.bilibili.com/video/BV1Hs421M755/"
+              class="external"
+              target="_blank"
+              >帮助教程</a
+            >，你也可以在关注页找到链接</b
+          >
+        </p>
+        <p>如果你觉得本软件对你有帮助：</p>
+        <p>
+          请我喝瓶快乐水：<a href="https://afdian.net/a/renmu123" class="external" target="_blank"
+            >https://afdian.net/a/renmu123</a
+          >
+        </p>
+        <p>
+          如果你是大会员，也可以用免费的B币给我充电：<a
+            href="https://space.bilibili.com/10995238"
+            class="external"
+            target="_blank"
+            >https://space.bilibili.com/10995238</a
+          >
+        </p>
+      </div>
       <div v-html="content"></div>
       <template #footer>
         <div style="text-align: right">
@@ -21,7 +47,6 @@ const showModal = defineModel<boolean>("visible", { required: true, default: fal
 
 const renderer = {
   link(url: string, _title: string, text: string) {
-    console.log(url, text, text);
     return `<a href="${url}" target="_blank">${text}</a>`;
   },
 };
