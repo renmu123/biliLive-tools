@@ -36,6 +36,7 @@ export interface Part {
   endTime?: number;
   filePath: string;
   status: "recording" | "recorded" | "handled" | "uploading" | "uploaded" | "error";
+  cover?: string; // 封面
 }
 export interface Live {
   eventId: string;
@@ -534,17 +535,18 @@ async function handle(options: Options) {
     if (options.coverPath) {
       cover = options.coverPath;
     } else {
-      cover = path.join(dir, `${name}.cover.jpg`);
+      if (await fs.pathExists(path.join(dir, `${name}.cover.jpg`))) {
+        cover = path.join(dir, `${name}.cover.jpg`);
+      }
+      if (await fs.pathExists(path.join(dir, `${name}.jpg`))) {
+        cover = path.join(dir, `${name}.jpg`);
+      }
     }
     if (await fs.pathExists(cover)) {
       config.cover = cover;
+      currentPart.cover = cover;
     } else {
-      const cover = path.join(dir, `${name}.jpg`);
-      if (await fs.pathExists(cover)) {
-        config.cover = cover;
-      } else {
-        log.error(`${cover} can not be found`);
-      }
+      log.error(`${cover} can not be found`);
     }
   }
 
@@ -876,7 +878,9 @@ const handleLive = async (live: Live) => {
   const isUploading = live.parts.some((item) => item.status === "uploading");
   if (isUploading) return;
 
-  const { mergePart, uploadPresetId, uid, removeOriginAfterUpload } = getConfig(live.roomId);
+  const { mergePart, uploadPresetId, uid, removeOriginAfterUpload, useLiveCover } = getConfig(
+    live.roomId,
+  );
   if (!mergePart) return;
   if (!uid) return;
 
@@ -892,17 +896,24 @@ const handleLive = async (live: Live) => {
   const filterParts = live.parts.filter(
     (item) => item.status !== "uploaded" && item.status !== "error",
   );
+
+  let cover: string | undefined;
   // 找到前几个为handled的part
   for (let i = 0; i < filterParts.length; i++) {
     const part = filterParts[i];
     if (part.status === "handled" && part.endTime) {
       filePaths.push(part.filePath);
+      if (!cover) cover = part.cover;
     } else {
       break;
     }
   }
   log.debug("interval", live, filePaths);
   if (filePaths.length === 0) return;
+
+  if (useLiveCover) {
+    config.cover = cover;
+  }
 
   if (live.aid) {
     log.info("续传", filePaths);
