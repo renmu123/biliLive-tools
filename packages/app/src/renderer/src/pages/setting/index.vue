@@ -367,7 +367,12 @@ const globalFields = ref([
 const webhookDefaultValue = computed(() => {
   if (!config.value.webhook) return {};
 
-  return cloneDeep(config.value.webhook);
+  const data = cloneDeep(config.value.webhook);
+  delete data.rooms;
+  delete data.blacklist;
+  delete data.recoderFolder;
+
+  return data;
 });
 
 const handleRoomDetail = (roomId: string) => {
@@ -438,6 +443,7 @@ const addRoom = () => {
     remark: "",
     ...toRaw(webhookDefaultValue.value),
   };
+  console.log("tempRoomDetail", tempRoomDetail.value);
   roomDetailVisible.value = true;
 
   for (const key of globalFields.value) {

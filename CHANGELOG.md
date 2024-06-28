@@ -18,6 +18,8 @@
 ## Bug修复
 
 1. 修复多个b站账户同时操作时cookie有概率混淆 [#16](https://github.com/renmu123/biliLive-tools/issues/16)
+2. 修复“断播续传”与“使用直播间封面”功能同时使用时，“使用直播间封面”功能失效的bug [#17](https://github.com/renmu123/biliLive-tools/issues/17)
+3. 修复webhook增加房间时保存了额外不必要数据的bug
 
 # 1.1.0
 
