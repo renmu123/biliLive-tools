@@ -3,9 +3,11 @@ import os from "node:os";
 
 import Router from "koa-router";
 import fs from "fs-extra";
+import { Client } from "@renmu/bili-api";
+
 import { appConfig, ffmpegPreset, videoPreset, danmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/lib/presets/videoPreset.js";
-import { biliApi, client as bili } from "@biliLive-tools/shared/lib/task/bili.js";
+import { biliApi } from "@biliLive-tools/shared/lib/task/bili.js";
 import {
   convertXml2Ass,
   genHotProgress,
@@ -123,8 +125,9 @@ router.post("/webhook/blrec", async (ctx) => {
     (event.type === "VideoFileCompletedEvent" || event.type === "VideoFileCreatedEvent")
   ) {
     const roomId = event.data.room_id;
-    const masterRes = await bili.live.getRoomInfo(event.data.room_id);
-    const userRes = await bili.live.getMasterInfo(masterRes.uid);
+    const client = new Client();
+    const masterRes = await client.live.getRoomInfo(event.data.room_id);
+    const userRes = await client.live.getMasterInfo(masterRes.uid);
 
     handle({
       event: event.type,

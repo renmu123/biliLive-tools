@@ -25,6 +25,11 @@ async function createClient(uid: number) {
   return client;
 }
 
+export async function getRoomInfo(room_id: number, uid?: number) {
+  const client = await createClient(uid);
+  await client.live.getRoomInfo(room_id);
+}
+
 async function getArchives(
   params?: Parameters<ClientInstance["platform"]["getArchives"]>[0],
   uid?: number,
