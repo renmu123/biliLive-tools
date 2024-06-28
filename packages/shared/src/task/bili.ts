@@ -11,25 +11,25 @@ import type { BiliupConfig, BiliUser } from "@biliLive-tools/types";
 
 type ClientInstance = InstanceType<typeof Client>;
 
-export const client = new Client();
-
 /**
- * 加载cookie
- * @param uid 用户id
+ * 生成client
  */
-async function loadCookie(uid?: number) {
+async function createClient(uid: number) {
+  const client = new Client();
+
   const mid = uid || appConfig.get("uid");
 
   if (!mid) throw new Error("请先登录");
   const user = await readUser(mid);
-  return client.setAuth(user!.cookie, user!.mid, user!.accessToken);
+  client.setAuth(user!.cookie, user!.mid, user!.accessToken);
+  return client;
 }
 
 async function getArchives(
   params?: Parameters<ClientInstance["platform"]["getArchives"]>[0],
   uid?: number,
 ): ReturnType<ClientInstance["platform"]["getArchives"]> {
-  await loadCookie(uid);
+  const client = await createClient(uid);
   return client.platform.getArchives(params);
 }
 
@@ -37,16 +37,17 @@ async function checkTag(
   tag: string,
   uid: number,
 ): ReturnType<ClientInstance["platform"]["checkTag"]> {
-  await loadCookie(uid);
+  const client = await createClient(uid);
   return client.platform.checkTag(tag);
 }
 
 async function getUserInfo(uid: number): ReturnType<ClientInstance["user"]["getUserInfo"]> {
+  const client = await createClient(uid);
   return client.user.getUserInfo(uid);
 }
 
 async function getMyInfo(uid: number) {
-  await loadCookie(uid);
+  const client = await createClient(uid);
   return client.user.getMyInfo();
 }
 
@@ -59,13 +60,12 @@ async function getArchiveDetail(
   bvid: string,
   uid?: number,
 ): ReturnType<ClientInstance["video"]["detail"]> {
-  if (uid) await loadCookie(uid);
-
+  const client = await createClient(uid);
   return client.video.detail({ bvid });
 }
 
 async function download(options: { bvid: string; cid: number; output: string }, uid: number) {
-  await loadCookie(uid);
+  const client = await createClient(uid);
   const ffmpegBinPath = appConfig.get("ffmpegPath");
   const command = await client.video.download({ ...options, ffmpegBinPath }, {});
 
@@ -204,7 +204,7 @@ function formatOptions(options: BiliupConfig) {
  * 合集列表
  */
 async function getSeasonList(uid: number): ReturnType<ClientInstance["platform"]["getSeasonList"]> {
-  await loadCookie(uid);
+  const client = await createClient(uid);
   return client.platform.getSeasonList();
 }
 
@@ -218,7 +218,7 @@ async function addMedia(
   options: BiliupConfig,
   uid: number,
 ) {
-  await loadCookie(uid);
+  const client = await createClient(uid);
   const command = await client.platform.addMedia(filePath, formatOptions(options));
 
   const task = new BiliVideoTask(
@@ -231,7 +231,6 @@ async function addMedia(
         try {
           // 合集相关功能
           if (options.seasonId) {
-            await loadCookie(uid);
             const archive = await client.platform.getArchive({ aid: data.aid });
             log.debug("合集稿件", archive);
 
@@ -290,7 +289,7 @@ async function editMedia(
   options: any,
   uid: number,
 ) {
-  await loadCookie(uid);
+  const client = await createClient(uid);
   const command = await client.platform.editMedia(aid, filePath, {}, "append", {
     submit: "client",
     uploader: "web",
@@ -336,7 +335,7 @@ async function getSessionId(
   season_price: number;
   is_opened: number;
 }> {
-  await loadCookie(uid);
+  const client = await createClient(uid);
   return client.platform.getSessionId(aid);
 }
 
@@ -347,7 +346,7 @@ async function getPlatformArchiveDetail(
   aid: number,
   uid: number,
 ): ReturnType<ClientInstance["platform"]["getArchive"]> {
-  await loadCookie(uid);
+  const client = await createClient(uid);
   return client.platform.getArchive({ aid });
 }
 
@@ -357,7 +356,7 @@ async function getPlatformArchiveDetail(
 async function getPlatformPre(
   uid: number,
 ): ReturnType<ClientInstance["platform"]["getArchivePre"]> {
-  await loadCookie(uid);
+  const client = await createClient(uid);
   return client.platform.getArchivePre();
 }
 
@@ -368,7 +367,7 @@ async function getTypeDesc(
   tid: number,
   uid: number,
 ): ReturnType<ClientInstance["platform"]["getTypeDesc"]> {
-  await loadCookie(uid);
+  const client = await createClient(uid);
   return client.platform.getTypeDesc(tid);
 }
 
@@ -442,7 +441,7 @@ class BiliCommentQueue {
   async addComment(item: { aid: number; content: string; uid: number }): Promise<{
     rpid: number;
   }> {
-    await loadCookie(item.uid);
+    const client = await createClient(item.uid);
     // @ts-ignore
     return client.reply.add({
       oid: item.aid,
@@ -452,7 +451,8 @@ class BiliCommentQueue {
     });
   }
   async top(rpid: number, item: { aid: number; uid: number }) {
-    await loadCookie(item.uid);
+    const client = await createClient(item.uid);
+
     return client.reply.top({ oid: item.aid, type: 1, action: 1, rpid });
   }
   run(interval: number) {

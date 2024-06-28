@@ -368,8 +368,11 @@ const webhookDefaultValue = computed(() => {
   if (!config.value.webhook) return {};
 
   const data = cloneDeep(config.value.webhook);
+  // @ts-ignore
   delete data.rooms;
+  // @ts-ignore
   delete data.blacklist;
+  // @ts-ignore
   delete data.recoderFolder;
 
   return data;
