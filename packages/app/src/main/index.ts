@@ -14,7 +14,6 @@ import { taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
 import { appConfig } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 import { init } from "@biliLive-tools/shared";
-
 import { trashItem as _trashItem } from "@biliLive-tools/shared/lib/utils/index.js";
 
 import { handlers as taskHandlers } from "./task";
@@ -97,7 +96,6 @@ const genHandler = (ipcMain: IpcMain) => {
 
 export let mainWin: BrowserWindow;
 function createWindow(): void {
-  // @ts-ignore
   Object.assign(windowConfig, WindowState.get("winBounds"));
 
   // Create the browser window.
@@ -124,7 +122,6 @@ function createWindow(): void {
       },
       mainWindow.getNormalBounds(),
     );
-    // @ts-ignore
     WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
   });
 
@@ -308,7 +305,6 @@ const quit = async () => {
       },
       mainWin.getNormalBounds(),
     );
-    // @ts-ignore
     WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
 
     const canQuited = await canQuit();

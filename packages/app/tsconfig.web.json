@@ -9,6 +9,8 @@
   ],
   "compilerOptions": {
     "composite": true,
+    "module": "ES2022",
+    "moduleResolution": "bundler",
     "baseUrl": ".",
     "paths": {
       "@renderer/*": [

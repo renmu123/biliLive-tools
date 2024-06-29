@@ -28,7 +28,6 @@ import draggable from "vuedraggable";
 
 import editableText from "@renderer/components/EditableText.vue";
 import { Move as MoveIcon, Close as CloseIcon } from "@vicons/ionicons5";
-// @ts-ignore
 import filenamify from "filenamify/browser";
 
 const fileList = defineModel<

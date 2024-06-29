@@ -4,6 +4,8 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "resolveJsonModule": true,
+    "module": "ES2022",
+    "moduleResolution": "bundler",
     "types": ["electron-vite/node"],
     "baseUrl": ".",
     "paths": {
