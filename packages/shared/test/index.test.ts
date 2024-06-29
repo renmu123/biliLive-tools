@@ -73,9 +73,7 @@ describe("Compare genFfmpegParams and genFfmpegParams2", () => {
       resolutionWidth: 3840,
       resolutionHeight: 2160,
     };
-    // @ts-ignore
     const output1 = genFfmpegParams(input);
-    // @ts-ignore
     const output2 = genFfmpegParams2(input);
     expect(output1).toEqual(output2);
   });
@@ -92,9 +90,7 @@ describe("Compare genFfmpegParams and genFfmpegParams2", () => {
       resolutionWidth: 3840,
       resolutionHeight: 2160,
     };
-    // @ts-ignore
     const output1 = genFfmpegParams(input);
-    // @ts-ignore
     const output2 = genFfmpegParams2(input);
     expect(output1).toEqual(output2);
   });
@@ -125,9 +121,7 @@ describe("Compare genFfmpegParams and genFfmpegParams2", () => {
 //       resolutionWidth: 3840,
 //       resolutionHeight: 2160,
 //     };
-//     // @ts-ignore
 //     const output1 = genFfmpegParams(input);
-//     // @ts-ignore
 //     const output2 = genFfmpegParams2(input);
 //     expect(output1).toEqual(output2);
 //   });
