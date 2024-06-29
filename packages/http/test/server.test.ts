@@ -339,7 +339,7 @@ describe("handleLiveData", () => {
   });
 });
 
-describe("formatTime", () => {
+describe.concurrent("formatTime", () => {
   it("should format the time correctly", () => {
     const time = "2022-01-01T12:34:56.789Z";
     const result = formatTime(time);
@@ -355,7 +355,7 @@ describe("formatTime", () => {
   });
 });
 
-describe("foramtTitle", () => {
+describe.concurrent("foramtTitle", () => {
   it("should format the title correctly", () => {
     const options = {
       title: "My Title",
@@ -399,7 +399,7 @@ function canHandle(roomSetting, appConfig, roomId) {
   }
 }
 
-describe("canHandle", () => {
+describe.concurrent("canHandle", () => {
   it("should return true when roomSetting is open", () => {
     const roomSetting = { open: true };
     const result = canHandle(roomSetting, "", 123);
@@ -451,7 +451,7 @@ describe("canHandle", () => {
   });
 });
 
-describe("getRoomSetting", () => {
+describe.concurrent("getRoomSetting", () => {
   /**
    * 获取房间配置项
    */

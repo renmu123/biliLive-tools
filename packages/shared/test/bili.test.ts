@@ -1,7 +1,7 @@
 import { expect, describe, it } from "vitest";
 import { parseDesc } from "../src/task/bili";
 
-describe("parseDesc", () => {
+describe.concurrent("parseDesc", () => {
   it("should parse description with valid tokens", () => {
     const input = "Hello [World]<123>! This is a [test]<456>.";
     const expected = [

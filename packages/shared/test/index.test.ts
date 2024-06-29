@@ -6,7 +6,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const __dirname = dirname(fileURLToPath(import.meta.url));
-describe("屏蔽词过滤", () => {
+describe.concurrent("屏蔽词过滤", () => {
   it("有屏蔽词", () => {
     const input = `<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="#s"?>
@@ -62,7 +62,7 @@ describe("屏蔽词过滤", () => {
   });
 });
 
-describe("ffmpeg参数生成", () => {
+describe.concurrent("ffmpeg参数生成", () => {
   it("视频编码器：h264_nvenc", () => {
     const input = {
       encoder: "h264_nvenc",
@@ -287,7 +287,7 @@ describe("ffmpeg参数生成", () => {
   });
 });
 
-describe("弹幕参数", () => {
+describe.concurrent("弹幕参数", () => {
   let danmu: Danmu;
 
   beforeEach(() => {

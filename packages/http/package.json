@@ -15,10 +15,12 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "pnpm run test && pnpm run typecheck && tsc",
     "dev": "tsc -w",
     "start": "node ./lib/index.js",
-    "start:dev": "tsx watch src/index.ts "
+    "start:dev": "tsx watch src/index.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json --composite false",
+    "test": "vitest run"
   },
   "keywords": [],
   "dependencies": {
