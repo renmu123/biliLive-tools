@@ -3,12 +3,12 @@
     // "composite": true,
     "outDir": "./lib",
     "rootDir": "./src",
-    "module": "NodeNext",
     "target": "ESNext",
-    "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "declaration": true,
-    "resolveJsonModule": true,
+    "resolveJsonModule": true,    
+    "module": "ES2022",
+    "moduleResolution": "bundler",
   },
   "include": ["src/**/*.ts"]
 }
