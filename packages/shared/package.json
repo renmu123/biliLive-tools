@@ -8,10 +8,11 @@
   "license": "GPL-3.0",
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "scripts": {
-    "build": "pnpm run typecheck && tsc",
+    "build": "pnpm run test && pnpm run typecheck && tsc",
     "dev": "tsc -w",
     "start:dev": "tsx src/index.ts",
-    "typecheck": "tsc --noEmit -p tsconfig.json --composite false"
+    "typecheck": "tsc --noEmit -p tsconfig.json --composite false",
+    "test": "vitest run"
   },
   "keywords": [],
   "dependencies": {

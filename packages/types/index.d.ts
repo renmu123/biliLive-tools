@@ -4,6 +4,7 @@ export type DanmuConfig = {
   scrolltime: number;
   fixtime: number;
   density: number;
+  customDensity: number;
   fontname: string;
   fontsize: number;
   opacity: number;

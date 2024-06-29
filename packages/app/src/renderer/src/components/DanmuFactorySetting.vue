@@ -53,23 +53,27 @@
             <n-space>
               <n-radio :value="0"> 无限 </n-radio>
               <n-radio :value="-1"> 不重叠 </n-radio>
-              <!-- <n-radio value="Radio 3"> 按条数 </n-radio> -->
+              <n-radio :value="-2"> 按条数 </n-radio>
             </n-space>
           </n-radio-group>
+          <n-input-number
+            v-if="config.density === -2"
+            v-model:value.number="config.customDensity"
+            class="input-number"
+            :min="1"
+          >
+            <template #suffix> 条 </template></n-input-number
+          >
         </n-form-item>
         <n-form-item v-if="isAdvancedMode" label="滚动弹幕通过时间">
-          <n-input-number
-            v-model:value.number="config.scrolltime"
-            class="input-number"
-            :min="0"
-          />&nbsp;秒
+          <n-input-number v-model:value.number="config.scrolltime" class="input-number" :min="0">
+            <template #suffix> 秒 </template></n-input-number
+          >
         </n-form-item>
         <n-form-item v-if="isAdvancedMode" label="固定弹幕停留时间">
-          <n-input-number
-            v-model:value.number="config.fixtime"
-            class="input-number"
-            :min="0"
-          />&nbsp;秒
+          <n-input-number v-model:value.number="config.fixtime" class="input-number" :min="0">
+            <template #suffix> 秒 </template></n-input-number
+          >
         </n-form-item>
         <!-- <n-form-item v-if="isAdvancedMode" label="时间轴偏移量" path="density">
               <n-input-number v-model:value.number="config.density" class="input-number" />&nbsp;秒

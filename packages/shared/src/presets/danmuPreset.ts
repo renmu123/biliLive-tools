@@ -7,6 +7,7 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   scrolltime: 12.0,
   fixtime: 5.0,
   density: 0,
+  customDensity: 50,
   fontname: "Microsoft YaHei",
   fontsize: 38,
   opacity: 255,

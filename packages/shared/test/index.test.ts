@@ -2,7 +2,10 @@ import { expect, describe, it, beforeEach, afterEach } from "vitest";
 import { genFfmpegParams } from "../src/utils/index";
 import { filterBlacklist } from "../src/task/danmu";
 import { Danmu } from "../src/danmu/index";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
+export const __dirname = dirname(fileURLToPath(import.meta.url));
 describe("屏蔽词过滤", () => {
   it("有屏蔽词", () => {
     const input = `<?xml version="1.0" encoding="utf-8"?>
@@ -349,9 +352,65 @@ describe("弹幕参数", () => {
     console.log(params);
     expect(params).toEqual(expectedArgs);
   });
+  it("弹幕参数：弹幕密度无限", () => {
+    const config = {
+      resolution: [1920, 1080],
+      msgboxsize: [400, 200],
+      msgboxpos: [100, 100],
+      blockmode: ["R2L", "L2R"],
+      statmode: ["TABLE", "HISTOGRAM"],
+      fontname: "Arial",
+      blacklist: [],
+      density: 0,
+      customDensity: 50,
+    };
+
+    const expectedArgs = [
+      "--resolution 1920x1080",
+      "--msgboxsize 400x200",
+      "--msgboxpos 100x100",
+      "--blockmode R2L-L2R",
+      "--statmode TABLE-HISTOGRAM",
+      '--fontname "Arial"',
+      "--density 0",
+    ];
+
+    // @ts-ignore
+    const params = danmu.genDanmuArgs(config);
+    console.log(params);
+    expect(params).toEqual(expectedArgs);
+  });
+  it("弹幕参数：弹幕密度按条数", () => {
+    const config = {
+      resolution: [1920, 1080],
+      msgboxsize: [400, 200],
+      msgboxpos: [100, 100],
+      blockmode: ["R2L", "L2R"],
+      statmode: ["TABLE", "HISTOGRAM"],
+      fontname: "Arial",
+      blacklist: [],
+      density: -2,
+      customDensity: 50,
+    };
+
+    const expectedArgs = [
+      "--resolution 1920x1080",
+      "--msgboxsize 400x200",
+      "--msgboxpos 100x100",
+      "--blockmode R2L-L2R",
+      "--statmode TABLE-HISTOGRAM",
+      '--fontname "Arial"',
+      "--density 50",
+    ];
+
+    // @ts-ignore
+    const params = danmu.genDanmuArgs(config);
+    console.log(params);
+    expect(params).toEqual(expectedArgs);
+  });
 
   it("should convert XML to ASS", async () => {
-    const input = "index.test.ts";
+    const input = join(__dirname, "index.test.ts");
     const output = "path/to/output.ass";
     const argsObj = {
       resolution: [1920, 1080],
@@ -361,10 +420,11 @@ describe("弹幕参数", () => {
       statmode: ["TABLE", "HISTOGRAM"],
       fontname: "Arial",
       blacklist: [],
+      density: 0,
+      customDensity: 50,
     };
 
-    const expectedCommand =
-      'path/to/executable -i "index.test.ts" -o "path/to/output.ass" --ignore-warnings --resolution 1920x1080 --msgboxsize 400x200 --msgboxpos 100x100 --blockmode R2L-L2R --statmode TABLE-HISTOGRAM --fontname "Arial"';
+    const expectedCommand = `path/to/executable -i "${input}" -o "path/to/output.ass" --ignore-warnings --resolution 1920x1080 --msgboxsize 400x200 --msgboxpos 100x100 --blockmode R2L-L2R --statmode TABLE-HISTOGRAM --fontname "Arial" --density 0`;
 
     // @ts-ignore
     const result = await danmu.convertXml2Ass(input, output, argsObj);

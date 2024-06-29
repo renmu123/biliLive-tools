@@ -36,9 +36,12 @@ export class Danmu {
         return `--${key} ${value.join("-")}`;
       } else if (key === "fontname") {
         return `--${key} "${value}"`;
-      } else if (key === "resolutionResponsive" || key === "blacklist") {
+      } else if (key === "resolutionResponsive" || key === "blacklist" || key === "customDensity") {
         // do nothing
         return "";
+      } else if (key === "density") {
+        if (value === -2) return `--density ${config.customDensity}`;
+        return `--${key} ${value}`;
       } else {
         return `--${key} ${value}`;
       }
