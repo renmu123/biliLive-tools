@@ -141,7 +141,7 @@ interface DescV2 {
 /**
  * 解析desc
  */
-function parseDesc(input: string): DescV2[] {
+export function parseDesc(input: string): DescV2[] {
   const tokens: DescV2[] = [];
 
   const regex = /\[([^\]]*)\]<([^>]*)>/g;

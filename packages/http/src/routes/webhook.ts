@@ -440,7 +440,7 @@ export async function handleLiveData(options: Options, partMergeMinute: number) 
  * @param {string} options.time 直播时间
  * @param {string} template 格式化模板
  */
-function foramtTitle(
+export function foramtTitle(
   options: {
     title: string;
     username: string;
@@ -961,7 +961,7 @@ const handleLive = async (live: Live) => {
 
 checkFileInterval();
 
-const formatTime = (time: string) => {
+export const formatTime = (time: string) => {
   // 创建一个Date对象
   const timestamp = new Date(time);
 

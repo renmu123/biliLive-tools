@@ -1,7 +1,8 @@
 import { expect, describe, it } from "vitest";
-import { uuid } from "../src/utils/index";
+import { uuid } from "@biliLive-tools/shared/lib/utils/index.js";
+import { foramtTitle, formatTime } from "../src/routes/webhook.js";
 
-import { type Options, type Part, type Live } from "../src/main/server/index";
+import { type Options, type Part, type Live } from "../src/routes/webhook.js";
 
 export async function handleLiveData(liveData: Live[], options: Options) {
   // 计算live
@@ -346,7 +347,10 @@ describe("formatTime", () => {
       year: "2022",
       month: "01",
       day: "01",
+      hours: "20",
+      minutes: "34",
       now: "2022.01.01",
+      seconds: "56",
     });
   });
 });
@@ -355,14 +359,14 @@ describe("foramtTitle", () => {
   it("should format the title correctly", () => {
     const options = {
       title: "My Title",
-      username: "John Doe",
+      username: "Jo",
       time: "2022-01-01T12:34:56.789Z",
     };
     const template =
-      "Title: {{title}}, User: {{user}}, Date: {{now}}, yyyy: {{yyyy}}, MM: {{MM}}, dd: {{dd}}";
+      "Title:{{title}},User:{{user}},Date:{{now}},yyyy:{{yyyy}},MM:{{MM}},dd:{{dd}},hours:{{HH}},m:{{mm}},s:{{ss}}";
     const result = foramtTitle(options, template);
     expect(result).toBe(
-      "Title: My Title, User: John Doe, Date: 2022.01.01, yyyy: 2022, MM: 01, dd: 01",
+      "Title:My Title,User:Jo,Date:2022.01.01,yyyy:2022,MM:01,dd:01,hours:20,m:34,s:56",
     );
   });
 
@@ -377,63 +381,6 @@ describe("foramtTitle", () => {
     expect(result.length).toBe(80);
   });
 });
-
-const formatTime = (time: string) => {
-  // 创建一个Date对象
-  const timestamp = new Date(time);
-
-  // 提取年、月、日部分
-  const year = timestamp.getFullYear();
-  const month = String(timestamp.getMonth() + 1).padStart(2, "0");
-  const day = String(timestamp.getDate()).padStart(2, "0");
-
-  // 格式化为"YYYY.MM.DD"的形式
-  const formattedDate = `${year}.${month}.${day}`;
-  return {
-    year: String(year),
-    month,
-    day,
-    now: formattedDate,
-  };
-};
-
-/**
- * 支持{{title}},{{user}},{{now}}占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}<br/>
- * 直播标题：{{title}}<br/>
- * 主播名：{{user}}<br/>
- * 当前时间（快速）：{{now}}，示例：2024.01.24<br/>
- * 年：{{yyyy}}<br/>
- * 月（补零）：{{MM}}<br/>
- * 日（补零）：{{dd}}<br/>
- *
- * @param {object} options 格式化参数
- * @param {string} options.title 直播标题
- * @param {string} options.username 主播名
- * @param {string} options.time 直播时间
- * @param {string} template 格式化模板
- */
-function foramtTitle(
-  options: {
-    title: string;
-    username: string;
-    time: string;
-  },
-  template: string,
-) {
-  const { year, month, day, now } = formatTime(options.time);
-
-  const title = template
-    .replaceAll("{{title}}", options.title)
-    .replaceAll("{{user}}", options.username)
-    .replaceAll("{{now}}", now)
-    .replaceAll("{{yyyy}}", year)
-    .replaceAll("{{MM}}", month)
-    .replaceAll("{{dd}}", day)
-    .trim()
-    .slice(0, 80);
-
-  return title;
-}
 
 /**
  * 判断是否处理该直播间

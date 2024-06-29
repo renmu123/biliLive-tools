@@ -1,40 +1,5 @@
 import { expect, describe, it } from "vitest";
-
-interface DescV2 {
-  raw_text: string;
-  type: 1 | 2; // 1 for regular text, 2 for content inside square brackets
-  biz_id: string;
-}
-/**
- * 解析desc
- */
-export function parseDesc(input: string): DescV2[] {
-  const tokens: DescV2[] = [];
-
-  const regex = /\[([^\]]*)\]<([^>]*)>/g;
-  let lastIndex = 0;
-  let match;
-
-  while ((match = regex.exec(input)) !== null) {
-    const precedingText = input.substring(lastIndex, match.index);
-    if (precedingText) {
-      tokens.push({ raw_text: precedingText, type: 1, biz_id: "" });
-    }
-
-    const innerText = match[1];
-    const biz_id = match[2];
-    tokens.push({ raw_text: innerText, type: 2, biz_id });
-
-    lastIndex = regex.lastIndex;
-  }
-
-  const trailingText = input.substring(lastIndex);
-  if (trailingText) {
-    tokens.push({ raw_text: trailingText, type: 1, biz_id: "" });
-  }
-
-  return tokens;
-}
+import { parseDesc } from "../src/task/bili";
 
 describe("parseDesc", () => {
   it("should parse description with valid tokens", () => {
