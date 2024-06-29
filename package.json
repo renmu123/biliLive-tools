@@ -12,7 +12,8 @@
     "build:cli": "pnpm run build:base && pnpm run --filter @biliLive-tools/CLI build:cli",
     "build:base": "pnpm run --filter @biliLive-tools/shared build  && pnpm run --filter @biliLive-tools/http build",
     "preinstall": "npx only-allow pnpm",
-    "install:bin": "node ./scripts/install-bin.js"
+    "install:bin": "node ./scripts/install-bin.js",
+    "test": "pnpm run --filter @biliLive-tools/shared test && pnpm run --filter @biliLive-tools/http test"
   },
   "dependencies": {
     "fs-extra": "^11.2.0"

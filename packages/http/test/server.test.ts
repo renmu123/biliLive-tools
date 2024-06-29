@@ -13,14 +13,14 @@ export async function handleLiveData(liveData: Live[], options: Options) {
       // 找到上一个文件结束时间与当前时间差小于10分钟的直播，认为是同一个直播
       const endTime = Math.max(...live.parts.map((item) => item.endTime || 0));
 
-      console.log(endTime, (timestamp - endTime) / (1000 * 60));
+      // console.log(endTime, (timestamp - endTime) / (1000 * 60));
       return (
         live.roomId === options.roomId &&
         live.platform === options.platform &&
         (timestamp - endTime) / (1000 * 60) < 10
       );
     });
-    console.log("currentIndex", currentIndex);
+    // console.log("currentIndex", currentIndex);
     let currentLive = liveData[currentIndex];
     if (currentLive) {
       const part: Part = {
@@ -64,13 +64,13 @@ export async function handleLiveData(liveData: Live[], options: Options) {
       const currentPartIndex = currentLive.parts.findIndex((item) => {
         return item.filePath === options.filePath;
       });
-      console.log(
-        "currentLive",
-        currentIndex,
-        currentPartIndex,
-        currentLive.parts,
-        options.filePath,
-      );
+      // console.log(
+      //   "currentLive",
+      //   currentIndex,
+      //   currentPartIndex,
+      //   currentLive.parts,
+      //   options.filePath,
+      // );
       const currentPart = currentLive.parts[currentPartIndex];
       currentPart.endTime = timestamp;
       currentPart.status = "recorded";
@@ -182,7 +182,7 @@ describe("handleLiveData", () => {
       username: "test",
     };
     await handleLiveData(liveData, options);
-    console.log("liveData", liveData, liveData.length);
+    // console.log("liveData", liveData, liveData.length);
 
     expect(liveData.length).toBe(1);
     expect(liveData[0].eventId).toBe(existingLive.eventId);
@@ -227,7 +227,7 @@ describe("handleLiveData", () => {
       username: "test",
     };
     await handleLiveData(liveData, options);
-    console.log("liveData", liveData, liveData.length);
+    // console.log("liveData", liveData, liveData.length);
 
     expect(liveData.length).toBe(2);
     expect(liveData[0].eventId).toBe(existingLive.eventId);
@@ -343,6 +343,7 @@ describe.concurrent("formatTime", () => {
   it("should format the time correctly", () => {
     const time = "2022-01-01T12:34:56.789Z";
     const result = formatTime(time);
+    console.log("result", new Date().toString());
     expect(result).toEqual({
       year: "2022",
       month: "01",
@@ -357,6 +358,7 @@ describe.concurrent("formatTime", () => {
 
 describe.concurrent("foramtTitle", () => {
   it("should format the title correctly", () => {
+    process.env.TZ = "Europe/London";
     const options = {
       title: "My Title",
       username: "Jo",
@@ -371,6 +373,7 @@ describe.concurrent("foramtTitle", () => {
   });
 
   it("should trim the title to 80 characters", () => {
+    process.env.TZ = "Europe/London";
     const options = {
       title: "This is a very long title that exceeds 80 characters",
       username: "John Doe",
