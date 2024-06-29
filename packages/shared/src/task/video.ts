@@ -2,6 +2,7 @@ import { join, parse } from "path";
 import os from "os";
 import fs from "fs-extra";
 import ffmpeg from "@renmu/fluent-ffmpeg";
+import { timemarkToSeconds } from "@renmu/fluent-ffmpeg/lib/utils.js";
 
 import { appConfig } from "../index.js";
 import {
@@ -193,50 +194,31 @@ export const convertVideo2Mp4 = async (
 };
 
 /**
- * 弹幕压制
+ * 生成弹幕压制相关的ffmpeg命令
  * @param {object} files 文件相关
  * @param {string} files.videoFilePath 视频文件路径
  * @param {string} files.assFilePath 弹幕文件路径，不能有空格
  * @param {string} files.outputPath 输出文件路径
- * @param {object} options
- * @param {boolean} options.removeOrigin 是否删除原始文件
  * @param {object} ffmpegOptions ffmpeg参数
  */
-export const mergeAssMp4 = async (
+export const genMergeAssMp4Command = (
   files: {
     videoFilePath: string;
     assFilePath: string | undefined;
     outputPath: string;
     hotProgressFilePath: string | undefined;
   },
-  options: {
-    removeOrigin: boolean;
-  } = {
-    removeOrigin: false,
-  },
   ffmpegOptions: FfmpegOptions = {
     encoder: "libx264",
     audioCodec: "copy",
   },
 ) => {
-  await setFfmpegPath();
-
-  const videoInput = files.videoFilePath;
-  const output = files.outputPath;
-
-  if (!(await pathExists(videoInput))) {
-    log.error("mergrAssMp4, file not exist", videoInput);
-    throw new Error("输入文件不存在");
-  }
-  const command = ffmpeg(videoInput).output(output);
+  const command = ffmpeg(files.videoFilePath).output(files.outputPath);
 
   const assFile = files.assFilePath;
   if (assFile) {
     if (files.hotProgressFilePath) {
       command.input(files.hotProgressFilePath);
-      // command.outputOptions(
-      //   `-filter_complex [0:v]subtitles=${escaped(assFile)}[i];[1]colorkey=black:0.1:0.1[1d];[i][1d]overlay=W-w-0:H-h-0'`,
-      // );
       command.complexFilter([
         {
           filter: "subtitles",
@@ -285,6 +267,48 @@ export const mergeAssMp4 = async (
   ffmpegParams.forEach((param) => {
     command.outputOptions(param);
   });
+
+  return command;
+};
+
+/**
+ * 弹幕压制
+ * @param {object} files 文件相关
+ * @param {string} files.videoFilePath 视频文件路径
+ * @param {string} files.assFilePath 弹幕文件路径，不能有空格
+ * @param {string} files.outputPath 输出文件路径
+ * @param {object} options
+ * @param {boolean} options.removeOrigin 是否删除原始文件
+ * @param {object} ffmpegOptions ffmpeg参数
+ */
+export const mergeAssMp4 = async (
+  files: {
+    videoFilePath: string;
+    assFilePath: string | undefined;
+    outputPath: string;
+    hotProgressFilePath: string | undefined;
+  },
+  options: {
+    removeOrigin: boolean;
+  } = {
+    removeOrigin: false,
+  },
+  ffmpegOptions: FfmpegOptions = {
+    encoder: "libx264",
+    audioCodec: "copy",
+  },
+) => {
+  await setFfmpegPath();
+
+  const videoInput = files.videoFilePath;
+  const output = files.outputPath;
+
+  if (!(await pathExists(videoInput))) {
+    log.error("mergrAssMp4, file not exist", videoInput);
+    throw new Error("输入文件不存在");
+  }
+  const assFile = files.assFilePath;
+  const command = genMergeAssMp4Command(files, ffmpegOptions);
 
   const task = new FFmpegTask(
     command,
@@ -352,8 +376,8 @@ export const mergeVideos = async (
     .output(output);
   const videoMetas = await Promise.all(videoFiles.map((file) => readVideoMeta(file.path)));
 
-  log.debug(videoFiles);
-  log.debug(videoMetas);
+  log.debug("videoFiles", videoFiles);
+  log.debug("videoMetas", videoMetas);
 
   let duration = 0;
 
@@ -370,9 +394,7 @@ export const mergeVideos = async (
     },
     {
       onProgress(progress) {
-        const timemark = progress.timemark.split(":");
-        const currentTime =
-          Number(timemark[0]) * 3600 + Number(timemark[1]) * 60 + Number(timemark[2]);
+        const currentTime = timemarkToSeconds(progress.timemark);
 
         return { ...progress, percentage: Math.round((currentTime / duration) * 100) };
       },
