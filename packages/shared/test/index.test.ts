@@ -349,7 +349,7 @@ describe.concurrent("弹幕参数", () => {
 
     // @ts-ignore
     const params = danmu.genDanmuArgs(config);
-    console.log(params);
+    // console.log(params);
     expect(params).toEqual(expectedArgs);
   });
   it("弹幕参数：弹幕密度无限", () => {
@@ -377,7 +377,7 @@ describe.concurrent("弹幕参数", () => {
 
     // @ts-ignore
     const params = danmu.genDanmuArgs(config);
-    console.log(params);
+    // console.log(params);
     expect(params).toEqual(expectedArgs);
   });
   it("弹幕参数：弹幕密度按条数", () => {
@@ -405,7 +405,7 @@ describe.concurrent("弹幕参数", () => {
 
     // @ts-ignore
     const params = danmu.genDanmuArgs(config);
-    console.log(params);
+    // console.log(params);
     expect(params).toEqual(expectedArgs);
   });
 
