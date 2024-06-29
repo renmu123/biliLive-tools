@@ -143,9 +143,7 @@
 </template>
 
 <script setup lang="ts">
-defineOptions({
-  name: "Home",
-});
+import { useStorage } from "@vueuse/core";
 
 import { storeToRefs } from "pinia";
 import FileArea from "@renderer/components/FileArea.vue";
@@ -167,6 +165,10 @@ import type {
   hotProgressOptions,
   DanmuOptions,
 } from "@biliLive-tools/types";
+
+defineOptions({
+  name: "Home",
+});
 
 const notice = useNotification();
 const confirm = useConfirm();
@@ -543,7 +545,7 @@ const handleFfmpegSettingChange = (preset: FfmpegPreset) => {
   ffmpegOptions.value = preset.config;
 };
 
-const simpledMode = ref(true);
+const simpledMode = useStorage("simpledMode", true);
 
 const handleDanmuChange = (value: DanmuConfig) => {
   danmuPreset.value.config = value;

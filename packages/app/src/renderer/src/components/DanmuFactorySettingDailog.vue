@@ -58,13 +58,15 @@
 </template>
 
 <script setup lang="ts">
-import type { DanmuPreset } from "@biliLive-tools/types";
+import { useStorage } from "@vueuse/core";
+
 import DanmuFactorySetting from "./DanmuFactorySetting.vue";
 import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import { useDanmuPreset } from "@renderer/stores";
-
 import { cloneDeep } from "lodash-es";
+
+import type { DanmuPreset } from "@biliLive-tools/types";
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const presetId = defineModel<string>({ required: true, default: "default" });
@@ -76,7 +78,7 @@ const notice = useNotification();
 const confirmDialog = useConfirm();
 const { getDanmuPresets, getDanmuPreset } = useDanmuPreset();
 
-const simpledMode = ref(true);
+const simpledMode = useStorage("simpledMode", true);
 
 // @ts-ignore
 const config: Ref<DanmuPreset> = ref({

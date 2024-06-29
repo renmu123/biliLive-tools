@@ -42,6 +42,8 @@
 </template>
 
 <script setup lang="ts">
+import { useStorage } from "@vueuse/core";
+
 import { storeToRefs } from "pinia";
 import { useDanmuPreset } from "@renderer/stores";
 import type { DanmuConfig } from "@biliLive-tools/types";
@@ -58,7 +60,8 @@ const confirm = () => {
 };
 
 const { danmuPresetsOptions, danmuPresetId, danmuPreset } = storeToRefs(useDanmuPreset());
-const simpledMode = ref(true);
+const simpledMode = useStorage("simpledMode", true);
+
 const handleDanmuChange = (value: DanmuConfig) => {
   danmuPreset.value.config = value;
 };
