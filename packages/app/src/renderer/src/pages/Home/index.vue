@@ -277,6 +277,9 @@ const convert = async () => {
   const rawDanmuConfig = deepRaw(danmuPreset.value.config);
   const rawPresetOptions = toRaw(presetOptions.value);
   const rawFfmpegOptions = toRaw(ffmpegOptions.value);
+  if (rawFfmpegOptions.encoder === "copy") {
+    throw new Error("视频编码不能为copy");
+  }
 
   const data = await preHandle(files, rawClientOptions, rawDanmuConfig, rawPresetOptions);
   if (!data) return;
