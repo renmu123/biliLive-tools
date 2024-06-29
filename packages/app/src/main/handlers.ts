@@ -1,9 +1,5 @@
 import { appConfig, ffmpegPreset } from "@biliLive-tools/shared";
-import {
-  convertVideo2Mp4,
-  mergeAssMp4,
-  mergeVideos,
-} from "@biliLive-tools/shared/lib/task/video.js";
+import { convertVideo2Mp4, mergeAssMp4, mergeVideos } from "@biliLive-tools/shared/lib/task/video";
 
 import type { AppConfig, FfmpegPreset as FfmpegPresetType } from "@biliLive-tools/types";
 import type { IpcMainInvokeEvent } from "electron";

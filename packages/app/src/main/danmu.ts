@@ -6,8 +6,8 @@ import {
   convertXml2Ass,
   genHotProgress,
   isEmptyDanmu,
-} from "@biliLive-tools/shared/lib/task/danmu.js";
-import { report } from "@biliLive-tools/shared/lib/danmu/index.js";
+} from "@biliLive-tools/shared/lib/task/danmu";
+import { report } from "@biliLive-tools/shared/lib/danmu/index";
 
 import type { DanmuPreset as DanmuPresetType } from "@biliLive-tools/types";
 

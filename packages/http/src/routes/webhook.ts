@@ -117,7 +117,7 @@ router.post("/webhook/bililiverecorder", async (ctx) => {
 
 router.post("/webhook/blrec", async (ctx) => {
   const webhook = appConfig.get("webhook");
-  log.info("blrec: webhook", ctx.request.body);
+  log.info("blrec webhook：", ctx.request.body);
   const event = ctx.request.body as BlrecEventType;
 
   if (
@@ -219,9 +219,9 @@ function getConfig(roomId: number): {
   /** 转封装为mp4 */
   convert2Mp4Option?: boolean;
   /** 压制完成后删除文件 */
-  removeOriginAfterConvert?: boolean;
+  removeOriginAfterConvert: boolean;
   /** 上传完成后删除文件 */
-  removeOriginAfterUpload?: boolean;
+  removeOriginAfterUpload: boolean;
   /** 不压制后处理 */
   noConvertHandleVideo?: boolean;
 } {
@@ -246,8 +246,8 @@ function getConfig(roomId: number): {
   const hotProgressFillColor = getRoomSetting("hotProgressFillColor");
   const convert2Mp4 = getRoomSetting("convert2Mp4");
   const useVideoAsTitle = getRoomSetting("useVideoAsTitle");
-  const removeOriginAfterConvert = getRoomSetting("removeOriginAfterConvert");
-  const removeOriginAfterUpload = getRoomSetting("removeOriginAfterUpload");
+  const removeOriginAfterConvert = getRoomSetting("removeOriginAfterConvert") ?? false;
+  const removeOriginAfterUpload = getRoomSetting("removeOriginAfterUpload") ?? false;
   const noConvertHandleVideo = getRoomSetting("noConvertHandleVideo") ?? false;
 
   /**
@@ -534,7 +534,7 @@ async function handle(options: Options) {
 
   if (useLiveCover) {
     const { name, dir } = path.parse(options.filePath);
-    let cover: string;
+    let cover: string | undefined;
     if (options.coverPath) {
       cover = options.coverPath;
     } else {
@@ -545,7 +545,7 @@ async function handle(options: Options) {
         cover = path.join(dir, `${name}.jpg`);
       }
     }
-    if (await fs.pathExists(cover)) {
+    if (cover && (await fs.pathExists(cover))) {
       config.cover = cover;
       currentPart.cover = cover;
     } else {
