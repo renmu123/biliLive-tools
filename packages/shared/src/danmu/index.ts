@@ -44,7 +44,7 @@ export class Danmu {
       }
     });
 
-    return params;
+    return params.filter((item) => item !== "");
   };
 
   convertXml2Ass = async (input: string, output: string, argsObj: DanmuConfig) => {

@@ -1,4 +1,4 @@
-import { CommonPreset } from "./index.js";
+import CommonPreset from "./preset.js";
 
 import type { DanmuConfig, DanmuPreset as DanmuPresetType } from "@biliLive-tools/types";
 

@@ -1,4 +1,4 @@
-import { CommonPreset } from "../index.js";
+import CommonPreset from "./preset.js";
 
 import type {
   FfmpegPreset as FfmpegPresetType,

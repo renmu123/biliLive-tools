@@ -120,8 +120,8 @@ export const convertXml2Ass = async (
  * 如果文件中存在<d>, <gift>, <sc>, <guard>标签则认为不为空
  *
  */
-export const isEmptyDanmu = async (input: string) => {
-  const XMLdata = await fs.promises.readFile(input, "utf8");
+export const isEmptyDanmu = async (file: string) => {
+  const XMLdata = await fs.promises.readFile(file, "utf8");
   // "d": 普通弹幕，"gift": 录播姬 - 普通礼物，"sc": 录播姬 - SuperChat，"guard": 录播姬 - 舰长
   if (
     XMLdata.includes("</d>") ||
@@ -136,12 +136,12 @@ export const isEmptyDanmu = async (input: string) => {
 
 /**
  * 屏蔽词过滤
- * @param input 输入文件
+ * @param file 输入文件
  * @param output 输出文件
  * @param blacklist 屏蔽词列表，换行分割
  */
-const filterBlacklist2File = async (input: string, output: string, blacklist: string) => {
-  const XMLdata = await fs.promises.readFile(input, "utf8");
+const filterBlacklist2File = async (file: string, output: string, blacklist: string) => {
+  const XMLdata = await fs.promises.readFile(file, "utf8");
   const outputContent = filterBlacklist(XMLdata, blacklist.split(","));
   await fs.promises.writeFile(output, outputContent);
   return output;
@@ -152,7 +152,7 @@ const filterBlacklist2File = async (input: string, output: string, blacklist: st
  * @param xmlContent xml内容
  * @param blacklist 屏蔽词列表
  */
-const filterBlacklist = (XMLdata: string, blacklist: string[]) => {
+export const filterBlacklist = (XMLdata: string, blacklist: string[]) => {
   const parser = new XMLParser({ ignoreAttributes: false });
   const jObj = parser.parse(XMLdata);
   traversalObject(jObj, (key, value) => {
