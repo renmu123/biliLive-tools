@@ -1,104 +1,104 @@
 import { expect, describe, it } from "vitest";
 import { uuid } from "@biliLive-tools/shared/lib/utils/index.js";
-import { foramtTitle, formatTime } from "../src/routes/webhook.js";
+import { foramtTitle, formatTime, canRoomOpen } from "../src/routes/webhook.js";
 
 import { type Options, type Part, type Live } from "../src/routes/webhook.js";
 
-export async function handleLiveData(liveData: Live[], options: Options) {
-  // 计算live
-  const timestamp = new Date(options.time).getTime();
-  let currentIndex = -1;
-  if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
-    currentIndex = liveData.findIndex((live) => {
-      // 找到上一个文件结束时间与当前时间差小于10分钟的直播，认为是同一个直播
-      const endTime = Math.max(...live.parts.map((item) => item.endTime || 0));
-
-      // console.log(endTime, (timestamp - endTime) / (1000 * 60));
-      return (
-        live.roomId === options.roomId &&
-        live.platform === options.platform &&
-        (timestamp - endTime) / (1000 * 60) < 10
-      );
-    });
-    // console.log("currentIndex", currentIndex);
-    let currentLive = liveData[currentIndex];
-    if (currentLive) {
-      const part: Part = {
-        partId: uuid(),
-        startTime: timestamp,
-        filePath: options.filePath,
-        status: "recording",
-      };
-      if (currentLive.parts) {
-        currentLive.parts.push(part);
-      } else {
-        currentLive.parts = [part];
-      }
-      liveData[currentIndex] = currentLive;
-    } else {
-      // 新建Live数据
-      currentLive = {
-        eventId: uuid(),
-        platform: options.platform,
-        startTime: timestamp,
-        roomId: options.roomId,
-        videoName: options.title,
-        parts: [
-          {
-            partId: uuid(),
-            startTime: timestamp,
-            filePath: options.filePath,
-            status: "recording",
-          },
-        ],
-      };
-      liveData.push(currentLive);
-      currentIndex = liveData.length - 1;
-    }
-  } else {
-    currentIndex = liveData.findIndex((live) => {
-      return live.parts.findIndex((part) => part.filePath === options.filePath) !== -1;
-    });
-    let currentLive = liveData[currentIndex];
-    if (currentLive) {
-      const currentPartIndex = currentLive.parts.findIndex((item) => {
-        return item.filePath === options.filePath;
-      });
-      // console.log(
-      //   "currentLive",
-      //   currentIndex,
-      //   currentPartIndex,
-      //   currentLive.parts,
-      //   options.filePath,
-      // );
-      const currentPart = currentLive.parts[currentPartIndex];
-      currentPart.endTime = timestamp;
-      currentPart.status = "recorded";
-      currentLive.parts[currentPartIndex] = currentPart;
-      liveData[currentIndex] = currentLive;
-    } else {
-      currentLive = {
-        eventId: uuid(),
-        platform: options.platform,
-        roomId: options.roomId,
-        videoName: options.title,
-        parts: [
-          {
-            partId: uuid(),
-            filePath: options.filePath,
-            endTime: timestamp,
-            status: "recorded",
-          },
-        ],
-      };
-      liveData.push(currentLive);
-      currentIndex = liveData.length - 1;
-    }
-  }
-}
-
 describe("handleLiveData", () => {
   let liveData: Live[];
+
+  async function handleLiveData(liveData: Live[], options: Options) {
+    // 计算live
+    const timestamp = new Date(options.time).getTime();
+    let currentIndex = -1;
+    if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
+      currentIndex = liveData.findIndex((live) => {
+        // 找到上一个文件结束时间与当前时间差小于10分钟的直播，认为是同一个直播
+        const endTime = Math.max(...live.parts.map((item) => item.endTime || 0));
+
+        // console.log(endTime, (timestamp - endTime) / (1000 * 60));
+        return (
+          live.roomId === options.roomId &&
+          live.platform === options.platform &&
+          (timestamp - endTime) / (1000 * 60) < 10
+        );
+      });
+      // console.log("currentIndex", currentIndex);
+      let currentLive = liveData[currentIndex];
+      if (currentLive) {
+        const part: Part = {
+          partId: uuid(),
+          startTime: timestamp,
+          filePath: options.filePath,
+          status: "recording",
+        };
+        if (currentLive.parts) {
+          currentLive.parts.push(part);
+        } else {
+          currentLive.parts = [part];
+        }
+        liveData[currentIndex] = currentLive;
+      } else {
+        // 新建Live数据
+        currentLive = {
+          eventId: uuid(),
+          platform: options.platform,
+          startTime: timestamp,
+          roomId: options.roomId,
+          videoName: options.title,
+          parts: [
+            {
+              partId: uuid(),
+              startTime: timestamp,
+              filePath: options.filePath,
+              status: "recording",
+            },
+          ],
+        };
+        liveData.push(currentLive);
+        currentIndex = liveData.length - 1;
+      }
+    } else {
+      currentIndex = liveData.findIndex((live) => {
+        return live.parts.findIndex((part) => part.filePath === options.filePath) !== -1;
+      });
+      let currentLive = liveData[currentIndex];
+      if (currentLive) {
+        const currentPartIndex = currentLive.parts.findIndex((item) => {
+          return item.filePath === options.filePath;
+        });
+        // console.log(
+        //   "currentLive",
+        //   currentIndex,
+        //   currentPartIndex,
+        //   currentLive.parts,
+        //   options.filePath,
+        // );
+        const currentPart = currentLive.parts[currentPartIndex];
+        currentPart.endTime = timestamp;
+        currentPart.status = "recorded";
+        currentLive.parts[currentPartIndex] = currentPart;
+        liveData[currentIndex] = currentLive;
+      } else {
+        currentLive = {
+          eventId: uuid(),
+          platform: options.platform,
+          roomId: options.roomId,
+          videoName: options.title,
+          parts: [
+            {
+              partId: uuid(),
+              filePath: options.filePath,
+              endTime: timestamp,
+              status: "recorded",
+            },
+          ],
+        };
+        liveData.push(currentLive);
+        currentIndex = liveData.length - 1;
+      }
+    }
+  }
 
   it("event: FileOpening, liveData的情况", async () => {
     liveData = [];
@@ -343,7 +343,6 @@ describe.concurrent("formatTime", () => {
   it("should format the time correctly", () => {
     const time = "2022-01-01T12:34:56.789Z";
     const result = formatTime(time);
-    console.log("result", new Date().toString());
     expect(result).toEqual({
       year: "2022",
       month: "01",
@@ -385,71 +384,56 @@ describe.concurrent("foramtTitle", () => {
   });
 });
 
-/**
- * 判断是否处理该直播间
- */
-function canHandle(roomSetting, appConfig, roomId) {
-  if (roomSetting) {
-    // 如果配置了房间，那么以房间设置为准
-    return roomSetting.open;
-  } else {
-    // 如果没有配置房间，那么以黑名单为准
-    const blacklist = (appConfig.webhook.blacklist || "").split(",");
-    if (blacklist.includes("*")) return false;
-    if (blacklist.includes(String(roomId))) return false;
-
-    return true;
-  }
-}
-
 describe.concurrent("canHandle", () => {
   it("should return true when roomSetting is open", () => {
     const roomSetting = { open: true };
-    const result = canHandle(roomSetting, "", 123);
+    const result = canRoomOpen(roomSetting, "", 123);
+    expect(result).toBe(true);
+  });
+
+  it("should return false when roomSetting is open and blacklist is provided", () => {
+    const roomSetting = { open: true };
+    const result = canRoomOpen(roomSetting, "*", 123);
     expect(result).toBe(true);
   });
 
   it("should return false when roomSetting is closed", () => {
     const roomSetting = { open: false };
-    const result = canHandle(roomSetting, "", 123);
+    const result = canRoomOpen(roomSetting, "", 123);
     expect(result).toBe(false);
   });
 
   it("should return false when roomSetting is closed and blacklist is provided", () => {
     const roomSetting = { open: false };
-    const result = canHandle(roomSetting, "*", 123);
+    const result = canRoomOpen(roomSetting, "*", 123);
     expect(result).toBe(false);
   });
 
   it("should return true when roomSetting is not provided and roomId is not in the blacklist", () => {
     const roomSetting = undefined;
-    const appConfig = { webhook: { blacklist: "" } };
     const roomId = 123;
-    const result = canHandle(roomSetting, appConfig, roomId);
+    const result = canRoomOpen(roomSetting, "", roomId);
     expect(result).toBe(true);
   });
 
   it("should return true when roomSetting is not provided and roomId is not in the blacklist", () => {
     const roomSetting = undefined;
-    const appConfig = { webhook: { blacklist: "456" } };
     const roomId = 123;
-    const result = canHandle(roomSetting, appConfig, roomId);
+    const result = canRoomOpen(roomSetting, "456", roomId);
     expect(result).toBe(true);
   });
 
   it("should return false when roomSetting is not provided and roomId is in the blacklist", () => {
     const roomSetting = undefined;
-    const appConfig = { webhook: { blacklist: "123,456" } };
     const roomId = 123;
-    const result = canHandle(roomSetting, appConfig, roomId);
+    const result = canRoomOpen(roomSetting, "123,456", roomId);
     expect(result).toBe(false);
   });
 
   it("should return false when roomSetting is not provided and the blacklist contains '*'", () => {
     const roomSetting = undefined;
-    const appConfig = { webhook: { blacklist: "*" } };
     const roomId = 123;
-    const result = canHandle(roomSetting, appConfig, roomId);
+    const result = canRoomOpen(roomSetting, "*", roomId);
     expect(result).toBe(false);
   });
 });

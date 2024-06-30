@@ -31,7 +31,7 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       audioCodec: "copy",
       bitrate: 8000,
       decode: true,
-      extraOptions: "-ss 00:00:00",
+      extraOptions: "-extra 00:00:00",
       bit10: false,
       resetResolution: false,
       resolutionWidth: 3840,
@@ -44,7 +44,7 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       "-cq 34",
       "-preset p4",
       "-c:a copy",
-      "-ss",
+      "-extra",
       "00:00:00",
     ]);
   });
@@ -84,7 +84,7 @@ describe.concurrent("通用ffmpeg参数生成", () => {
     const output1 = genFfmpegParams(input);
     expect(output1).toEqual(["-c:v copy", "-c:a flac"]);
   });
-  it("视频编码器是libsvtav1且开通10bit", () => {
+  it("视频编码器是libsvtav1且使用10bit", () => {
     const input: FfmpegOptions = {
       encoder: "libsvtav1",
       bitrateControl: "CRF",
@@ -219,7 +219,7 @@ describe.concurrent("通用ffmpeg参数生成", () => {
 });
 
 describe("genMergeAssMp4Command", () => {
-  it("普通压制参数", () => {
+  it("压制参数：视频，高能进度条，弹幕", () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -248,5 +248,140 @@ describe("genMergeAssMp4Command", () => {
       "copy",
       "/path/to/output.mp4",
     ]);
+  });
+  it("压制参数：视频，弹幕，无高能弹幕", () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: "/path/to/subtitle.ass",
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+      audioCodec: "copy",
+    };
+
+    const command = genMergeAssMp4Command(files, ffmpegOptions);
+    const args = command._getArguments();
+    expect(args).toEqual([
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-filter_complex",
+      "subtitles=/path/to/subtitle.ass",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
+  });
+  it("压制参数：视频，无弹幕，无高能弹幕", () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: undefined,
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+      audioCodec: "copy",
+    };
+
+    const command = genMergeAssMp4Command(files, ffmpegOptions);
+    const args = command._getArguments();
+    expect(args).toEqual([
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
+  });
+  it("压制参数：视频，有弹幕，无高能弹幕，有切割参数", () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: "/path/to/subtitle.ass",
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+      audioCodec: "copy",
+      ss: "00:00:00",
+      to: "00:00:10",
+    };
+
+    const command = genMergeAssMp4Command(files, ffmpegOptions);
+    const args = command._getArguments();
+    expect(args).toEqual([
+      "-ss",
+      "00:00:00",
+      "-to",
+      "00:00:10",
+      "-copyts",
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-filter_complex",
+      "subtitles=/path/to/subtitle.ass",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
+  });
+  it("压制参数：hevc硬件解码", () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: undefined,
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions[] = [
+      {
+        encoder: "h264_nvenc",
+        audioCodec: "copy",
+        decode: true,
+      },
+      {
+        encoder: "hevc_nvenc",
+        audioCodec: "copy",
+        decode: true,
+      },
+      {
+        encoder: "av1_nvenc",
+        audioCodec: "copy",
+        decode: true,
+      },
+    ];
+    for (const option of ffmpegOptions) {
+      const command = genMergeAssMp4Command(files, option);
+      const args = command._getArguments();
+      expect(args).toEqual([
+        "-hwaccel",
+        "cuda",
+        "-hwaccel_output_format",
+        "cuda",
+        "-extra_hw_frames",
+        "10",
+        "-i",
+        "/path/to/video.mp4",
+        "-y",
+        "-c:v",
+        option.encoder,
+        "-c:a",
+        "copy",
+        "/path/to/output.mp4",
+      ]);
+    }
   });
 });

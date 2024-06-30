@@ -15,7 +15,6 @@ describe.concurrent("屏蔽词过滤", () => {
 </i>`;
     const blacklist = ["主播"];
     const output = filterBlacklist(input, blacklist);
-    console.log(output);
     expect(output).toEqual(`<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="#s"?>
 <i>
@@ -32,7 +31,6 @@ describe.concurrent("屏蔽词过滤", () => {
 </i>`;
     const blacklist = [];
     const output = filterBlacklist(input, blacklist);
-    console.log(output);
     expect(output).toEqual(`<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="#s"?>
 <i>
@@ -50,7 +48,6 @@ describe.concurrent("屏蔽词过滤", () => {
 </i>`;
     const blacklist = ["主播1"];
     const output = filterBlacklist(input, blacklist);
-    console.log(output);
     expect(output).toEqual(`<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="#s"?>
 <i>

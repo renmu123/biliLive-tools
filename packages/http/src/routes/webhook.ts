@@ -181,6 +181,27 @@ router.post("/webhook/custom", async (ctx) => {
   ctx.body = "ok";
 });
 
+/**
+ * 判断房间是否开启
+ */
+export function canRoomOpen(
+  roomSetting: AppRoomConfig | { open: boolean } | undefined,
+  webhookBlacklist: string,
+  roomId: number,
+) {
+  if (roomSetting) {
+    // 如果配置了房间，那么以房间设置为准
+    return roomSetting.open;
+  } else {
+    // 如果没有配置房间，那么以黑名单为准
+    const blacklist = (webhookBlacklist || "").split(",");
+    if (blacklist.includes("*")) return false;
+    if (blacklist.includes(String(roomId))) return false;
+
+    return true;
+  }
+}
+
 function getConfig(roomId: number): {
   /* 是否需要压制弹幕 */
   danmu: boolean;
@@ -263,24 +284,7 @@ function getConfig(roomId: number): {
     }
   }
 
-  /**
-   * 判断房间是否开启
-   */
-  function canHandle() {
-    if (roomSetting) {
-      // 如果配置了房间，那么以房间设置为准
-      return roomSetting.open;
-    } else {
-      // 如果没有配置房间，那么以黑名单为准
-      const blacklist = (config?.webhook?.blacklist || "").split(",");
-      if (blacklist.includes("*")) return false;
-      if (blacklist.includes(String(roomId))) return false;
-
-      return true;
-    }
-  }
-
-  const open = canHandle();
+  const open = canRoomOpen(roomSetting, config?.webhook?.blacklist, roomId);
 
   const options = {
     danmu,
