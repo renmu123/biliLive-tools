@@ -185,7 +185,7 @@ router.post("/webhook/custom", async (ctx) => {
  * 判断房间是否开启
  */
 export function canRoomOpen(
-  roomSetting: AppRoomConfig | { open: boolean } | undefined,
+  roomSetting: { open: boolean } | undefined,
   webhookBlacklist: string,
   roomId: number,
 ) {
