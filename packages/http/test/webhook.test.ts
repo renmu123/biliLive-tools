@@ -1,8 +1,8 @@
 import { expect, describe, it } from "vitest";
 import { uuid } from "@biliLive-tools/shared/lib/utils/index.js";
-import { foramtTitle, formatTime, canRoomOpen } from "../src/routes/webhook.js";
+import { WebhookHandler } from "../src/services/webhook.js";
 
-import { type Options, type Part, type Live } from "../src/routes/webhook.js";
+import { type Options, type Part, type Live } from "../src/services/webhook.js";
 
 describe("handleLiveData", () => {
   let liveData: Live[];
@@ -342,7 +342,7 @@ describe("handleLiveData", () => {
 describe.concurrent("formatTime", () => {
   it("should format the time correctly", () => {
     const time = "2022-01-01T12:34:56.789Z";
-    const result = formatTime(time);
+    const result = WebhookHandler.formatTime(time);
     expect(result).toEqual({
       year: "2022",
       month: "01",
@@ -356,6 +356,8 @@ describe.concurrent("formatTime", () => {
 });
 
 describe.concurrent("foramtTitle", () => {
+  const handler = new WebhookHandler();
+
   it("should format the title correctly", () => {
     process.env.TZ = "Europe/London";
     const options = {
@@ -365,7 +367,7 @@ describe.concurrent("foramtTitle", () => {
     };
     const template =
       "Title:{{title}},User:{{user}},Date:{{now}},yyyy:{{yyyy}},MM:{{MM}},dd:{{dd}},hours:{{HH}},m:{{mm}},s:{{ss}}";
-    const result = foramtTitle(options, template);
+    const result = handler.foramtTitle(options, template);
     expect(result).toBe(
       "Title:My Title,User:Jo,Date:2022.01.01,yyyy:2022,MM:01,dd:01,hours:20,m:34,s:56",
     );
@@ -379,61 +381,62 @@ describe.concurrent("foramtTitle", () => {
       time: "2022-01-01T12:34:56.789Z",
     };
     const template = "Title: {{title}}, User: {{user}}, Date: {{now}}";
-    const result = foramtTitle(options, template);
+    const result = handler.foramtTitle(options, template);
     expect(result.length).toBe(80);
   });
 });
 
 describe.concurrent("canHandle", () => {
+  const handler = new WebhookHandler();
   it("should return true when roomSetting is open", () => {
     const roomSetting = { open: true };
-    const result = canRoomOpen(roomSetting, "", 123);
+    const result = handler.canRoomOpen(roomSetting, "", 123);
     expect(result).toBe(true);
   });
 
   it("should return false when roomSetting is open and blacklist is provided", () => {
     const roomSetting = { open: true };
-    const result = canRoomOpen(roomSetting, "*", 123);
+    const result = handler.canRoomOpen(roomSetting, "*", 123);
     expect(result).toBe(true);
   });
 
   it("should return false when roomSetting is closed", () => {
     const roomSetting = { open: false };
-    const result = canRoomOpen(roomSetting, "", 123);
+    const result = handler.canRoomOpen(roomSetting, "", 123);
     expect(result).toBe(false);
   });
 
   it("should return false when roomSetting is closed and blacklist is provided", () => {
     const roomSetting = { open: false };
-    const result = canRoomOpen(roomSetting, "*", 123);
+    const result = handler.canRoomOpen(roomSetting, "*", 123);
     expect(result).toBe(false);
   });
 
   it("should return true when roomSetting is not provided and roomId is not in the blacklist", () => {
     const roomSetting = undefined;
     const roomId = 123;
-    const result = canRoomOpen(roomSetting, "", roomId);
+    const result = handler.canRoomOpen(roomSetting, "", roomId);
     expect(result).toBe(true);
   });
 
   it("should return true when roomSetting is not provided and roomId is not in the blacklist", () => {
     const roomSetting = undefined;
     const roomId = 123;
-    const result = canRoomOpen(roomSetting, "456", roomId);
+    const result = handler.canRoomOpen(roomSetting, "456", roomId);
     expect(result).toBe(true);
   });
 
   it("should return false when roomSetting is not provided and roomId is in the blacklist", () => {
     const roomSetting = undefined;
     const roomId = 123;
-    const result = canRoomOpen(roomSetting, "123,456", roomId);
+    const result = handler.canRoomOpen(roomSetting, "123,456", roomId);
     expect(result).toBe(false);
   });
 
   it("should return false when roomSetting is not provided and the blacklist contains '*'", () => {
     const roomSetting = undefined;
     const roomId = 123;
-    const result = canRoomOpen(roomSetting, "*", roomId);
+    const result = handler.canRoomOpen(roomSetting, "*", roomId);
     expect(result).toBe(false);
   });
 });
