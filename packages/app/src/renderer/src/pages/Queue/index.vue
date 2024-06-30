@@ -310,7 +310,7 @@ const handleOpenFile = (item: Task) => {
 
 const openExternal = (item: Task) => {
   window.api.openExternal(
-    `https://member.bilibili.com/platform/upload/video/frame?type=edit&version=new&aid=${item?.output?.aid}`,
+    `https://member.bilibili.com/platform/upload/video/frame?type=edit&version=new&aid=${item?.output}`,
   );
 };
 
