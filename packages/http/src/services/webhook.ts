@@ -801,7 +801,6 @@ export class WebhookHandler {
         break;
       }
     }
-    log.debug("interval", live, filePaths);
     if (filePaths.length === 0) return;
 
     if (useLiveCover) {
