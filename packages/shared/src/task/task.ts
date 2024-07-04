@@ -199,7 +199,7 @@ export class FFmpegTask extends AbstractTask {
     });
     command.on("progress", (progress) => {
       progress.percentage = progress.percent;
-      console.log("progress", progress);
+      // console.log("progress", progress);
       if (callback.onProgress) {
         progress = callback.onProgress(progress);
       }
@@ -303,7 +303,7 @@ export class BiliVideoTask extends AbstractTask {
     this.emitter.emit("task-start", { taskId: this.taskId });
 
     command.emitter.on("completed", async (data: { aid: number; bvid: string }) => {
-      log.info(`task ${this.taskId} end`);
+      log.info(`task ${this.taskId} end`, data);
       this.status = "completed";
       this.progress = 100;
       this.output = data.aid;

@@ -26,7 +26,7 @@
               视频编码器 <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
             ></span>
           </template>
-          <p style="color: red">请勿选择不支持的硬件加速方案</p>
+          <p style="color: red">请勿选择不支持的硬件加速方案，如果报错请尝试更新驱动</p>
           <p>lib 使用 CPU 进行编码，无硬件加速，速度较慢，但效果可能是最好的</p>
           <p>QSV 是 Intel 的核显加速</p>
           <p>NVEnc 是 NVIDIA 的显卡加速</p>

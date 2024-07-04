@@ -1,11 +1,13 @@
-import { expect, describe, it, beforeEach, afterEach } from "vitest";
-import { filterBlacklist } from "../src/task/danmu";
-import { Danmu } from "../src/danmu/index";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { expect, describe, it, beforeEach, afterEach } from "vitest";
+import { filterBlacklist } from "../src/task/danmu";
+import { escaped } from "../src/utils/index";
+import { Danmu } from "../src/danmu/index";
+
 export const __dirname = dirname(fileURLToPath(import.meta.url));
-describe.concurrent("屏蔽词过滤", () => {
+describe.concurrent("filterBlacklist", () => {
   it("有屏蔽词", () => {
     const input = `<?xml version="1.0" encoding="utf-8"?>
 <?xml-stylesheet type="text/xsl" href="#s"?>
@@ -58,7 +60,7 @@ describe.concurrent("屏蔽词过滤", () => {
   });
 });
 
-describe.concurrent("弹幕参数", () => {
+describe.concurrent("genDanmuArgs", () => {
   let danmu: Danmu;
 
   beforeEach(() => {
@@ -205,4 +207,19 @@ describe.concurrent("弹幕参数", () => {
       expect(danmu.command).toEqual(expectedCommand);
     }
   });
+});
+describe("escaped", () => {
+  it("should escape special characters in the string", () => {
+    const input = "C:\\path\\to\\file.txt";
+    const output = escaped(input);
+    expect(output).toEqual("C\\\\:/path/to/file.txt");
+  });
+
+  it("should escape colons in the string", () => {
+    const input = "file:with:colons.txt";
+    const output = escaped(input);
+    expect(output).toEqual("file\\\\:with\\\\:colons.txt");
+  });
+
+  // Add more test cases if needed
 });
