@@ -1,8 +1,8 @@
-import EventEmitter from "events";
+import EventEmitter from "node:events";
+import { createRequire } from "node:module";
 
 import { uuid, isWin32 } from "../utils/index.js";
 import log from "../utils/log.js";
-import * as ntsuspend from "ntsuspend";
 import { Danmu } from "../danmu/index.js";
 import { sendNotify } from "../notify.js";
 import { appConfig } from "../index.js";
@@ -214,6 +214,7 @@ export class FFmpegTask extends AbstractTask {
   pause() {
     if (this.status !== "running") return;
     if (isWin32) {
+      const ntsuspend = createRequire(import.meta.url)("ntsuspend");
       // @ts-ignore
       ntsuspend.suspend(this.command.ffmpegProc.pid);
     } else {
@@ -226,6 +227,7 @@ export class FFmpegTask extends AbstractTask {
   resume() {
     if (this.status !== "paused") return;
     if (isWin32) {
+      const ntsuspend = createRequire(import.meta.url)("ntsuspend");
       // @ts-ignore
       ntsuspend.resume(this.command.ffmpegProc.pid);
     } else {
@@ -238,6 +240,7 @@ export class FFmpegTask extends AbstractTask {
   interrupt() {
     if (this.status === "completed" || this.status === "error") return;
     if (isWin32) {
+      const ntsuspend = createRequire(import.meta.url)("ntsuspend");
       // @ts-ignore
       ntsuspend.resume(this.command.ffmpegProc.pid);
     }
@@ -251,6 +254,7 @@ export class FFmpegTask extends AbstractTask {
   kill() {
     if (this.status === "completed" || this.status === "error") return;
     if (isWin32) {
+      const ntsuspend = createRequire(import.meta.url)("ntsuspend");
       // @ts-ignore
       ntsuspend.resume(this.command.ffmpegProc.pid);
     }

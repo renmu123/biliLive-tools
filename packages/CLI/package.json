@@ -17,7 +17,9 @@
     "zip:linux": "cd dist && bestzip biliLive-cli-linux-x64.zip ./biliLive",
     "publish": "pnpm publish --access=public"
   },
-  "bin": "./lib/index.cjs",
+  "bin": {
+    "biliLive": "./lib/index.cjs"
+  },
   "keywords": [
     "biliLive-tools",
     "cli",

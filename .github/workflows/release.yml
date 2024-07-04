@@ -72,11 +72,11 @@ jobs:
 
       - name: build-cli-win
         if: startsWith(matrix.os, 'windows')
-        run: pnpm run build:cli && pnpm run --filter @biliLive-tools/CLI zip:win
+        run: pnpm run build:cli && pnpm run --filter bililive-cli zip:win
 
       - name: build-cli-linux
         if: startsWith(matrix.os, 'ubuntu')
-        run: pnpm run build:cli && pnpm run --filter @biliLive-tools/CLI zip:linux
+        run: pnpm run build:cli && pnpm run --filter bililive-cli zip:linux
 
       # - name: remove ffmpeg.exe
       #   if: startsWith(matrix.os, 'windows')
