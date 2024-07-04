@@ -2,7 +2,7 @@
   "name": "bililive-cli",
   "version": "1.2.0",
   "type": "module",
-  "description": "",
+  "description": "biliLive-tools的cli程序",
   "main": "./lib/index.js",
   "author": "renmu123",
   "license": "GPL-3.0",
@@ -15,7 +15,7 @@
     "pkg": "pkg ./lib/index.cjs --output ./dist/biliLive",
     "zip:win": "cd dist && bestzip biliLive-cli-win-x64.zip ./biliLive.exe",
     "zip:linux": "cd dist && bestzip biliLive-cli-linux-x64.zip ./biliLive",
-    "publish": "pnpm run build && pnpm publish --access=public"
+    "publish": "pnpm publish --access=public"
   },
   "bin": "./lib/index.cjs",
   "keywords": [

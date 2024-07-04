@@ -8,7 +8,7 @@
 
 # 安装
 
-`npm i bililive-cli`
+`npm i bililive-cli -g`
 
 # 使用
 
