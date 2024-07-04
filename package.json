@@ -9,7 +9,7 @@
   "scripts": {
     "build:app": "pnpm run build:base && pnpm run --filter biliLive-tools build:app",
     "build:app:no-ffmpeg": "pnpm run build:base && pnpm run --filter biliLive-tools build:app:no-ffmpeg",
-    "build:cli": "pnpm run build:base && pnpm run --filter @biliLive-tools/CLI build:cli",
+    "build:cli": "pnpm run build:base && pnpm run --filter bililive-cli build:cli",
     "build:base": "pnpm run --filter @biliLive-tools/shared build  && pnpm run --filter @biliLive-tools/http build",
     "preinstall": "npx only-allow pnpm",
     "install:bin": "node ./scripts/install-bin.js",

@@ -26,7 +26,7 @@ program
   .option("-c, --config <string>", "配置文件路径", "config.json")
   .action(async (opts: { config: string }) => {
     if (!fs.existsSync(opts.config)) {
-      console.error("请先运行 biliLive config gen 命令生成配置文件");
+      console.error("请先运行 biliLive config gen 命令生成配置文件，按ctrl+c退出");
       return;
     }
     const c = JSON.parse(fs.readFileSync(opts.config).toString());
