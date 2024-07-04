@@ -15,7 +15,7 @@
     "pkg": "pkg ./lib/index.cjs --output ./dist/biliLive",
     "zip:win": "cd dist && bestzip biliLive-cli-win-x64.zip ./biliLive.exe",
     "zip:linux": "cd dist && bestzip biliLive-cli-linux-x64.zip ./biliLive",
-    "publish": "pnpm run build && pnpm publish"
+    "publish": "pnpm run build && pnpm publish --access=public"
   },
   "bin": "./lib/index.cjs",
   "keywords": [
