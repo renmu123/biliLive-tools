@@ -382,6 +382,7 @@ const userOptins = computed(() => {
 
 const titleTip = ref(
   `支持{{title}},{{user}},{{now}}等占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}<br/>
+  不要在直播开始后修改字段，本场直播不会生效<br/>
   直播标题：{{title}}<br/>
   主播名：{{user}}<br/>
   当前时间（快速）：{{now}}，示例：2024.01.24<br/>
