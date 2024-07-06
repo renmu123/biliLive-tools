@@ -1,5 +1,5 @@
 import { expect, describe, it } from "vitest";
-import { genFfmpegParams } from "../src/utils/index";
+import { genFfmpegParams, getHardwareAcceleration } from "../src/utils/index";
 import { genMergeAssMp4Command } from "../src/task/video";
 import type { FfmpegOptions, VideoCodec } from "@biliLive-tools/types";
 
@@ -53,19 +53,7 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       };
       const output = genFfmpegParams(input);
       const result = [`-c:v ${encoder}`, "-rc vbr", "-cq 34"];
-      if (
-        [
-          "libx264",
-          "libx265",
-          "libsvtav1",
-          "h264_nvenc",
-          "hevc_nvenc",
-          "av1_nvenc",
-          "h264_qsv",
-          "hevc_qsv",
-          "av1_qsv",
-        ].includes(encoder)
-      ) {
+      if (["cpu", "qsv", "nvenc"].includes(getHardwareAcceleration(encoder))) {
         result.push("-preset p4");
       }
       result.push("-c:a copy");

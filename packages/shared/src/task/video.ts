@@ -13,6 +13,7 @@ import {
   uuid,
   executeCommand,
   formatFile,
+  getHardwareAcceleration,
 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask } from "./task.js";
@@ -155,7 +156,7 @@ export const convertVideo2Mp4 = async (
 
   // 硬件解码
   if (ffmpegOptions.decode) {
-    if (["h264_nvenc", "hevc_nvenc", "av1_nvenc"].includes(ffmpegOptions.encoder)) {
+    if (["nvenc"].includes(getHardwareAcceleration(ffmpegOptions.encoder))) {
       command.inputOptions("-hwaccel cuda");
       command.inputOptions("-hwaccel_output_format cuda");
       command.inputOptions("-extra_hw_frames 10");
@@ -256,7 +257,7 @@ export const genMergeAssMp4Command = (
   }
   // 硬件解码
   if (ffmpegOptions.decode) {
-    if (["h264_nvenc", "hevc_nvenc", "av1_nvenc"].includes(ffmpegOptions.encoder)) {
+    if (["nvenc"].includes(getHardwareAcceleration(ffmpegOptions.encoder))) {
       command.inputOptions("-hwaccel cuda");
       command.inputOptions("-hwaccel_output_format cuda");
       command.inputOptions("-extra_hw_frames 10");

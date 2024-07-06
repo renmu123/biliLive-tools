@@ -3,7 +3,7 @@ import fs from "fs-extra";
 import trash from "trash";
 import { appConfig } from "../index.js";
 
-import type { FfmpegOptions } from "@biliLive-tools/types";
+import type { FfmpegOptions, VideoCodec } from "@biliLive-tools/types";
 import path from "node:path";
 
 export const executeCommand = (
@@ -69,6 +69,28 @@ export const escaped = (s: string) => {
   return s;
 };
 
+/**
+ * 根据ffmpeg的编码器获取加速硬件
+ * @param encoder
+ */
+export const getHardwareAcceleration = (
+  encoder: VideoCodec,
+): "nvenc" | "qsv" | "amf" | "copy" | "cpu" => {
+  if (["h264_nvenc", "hevc_nvenc", "av1_nvenc"].includes(encoder)) {
+    return "nvenc";
+  } else if (["h264_qsv", "hevc_qsv", "av1_qsv"].includes(encoder)) {
+    return "qsv";
+  } else if (["h264_amf", "hevc_amf", "av1_amf"].includes(encoder)) {
+    return "amf";
+  } else if (["copy"].includes(encoder)) {
+    return "copy";
+  } else if (["libx264", "libx265", "libsvtav1"].includes(encoder)) {
+    return "cpu";
+  } else {
+    throw new Error(`未知的编码器: ${encoder}`);
+  }
+};
+
 export const genFfmpegParams = (options: FfmpegOptions) => {
   const result: string[] = [];
   if (options.encoder) {
@@ -99,19 +121,7 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
         }
         break;
     }
-    if (
-      [
-        "libx264",
-        "libx265",
-        "libsvtav1",
-        "h264_nvenc",
-        "hevc_nvenc",
-        "av1_nvenc",
-        "h264_qsv",
-        "hevc_qsv",
-        "av1_qsv",
-      ].includes(options.encoder)
-    ) {
+    if (["cpu", "qsv", "nvenc"].includes(getHardwareAcceleration(options.encoder))) {
       if (options.preset) {
         result.push(`-preset ${options.preset}`);
       }
