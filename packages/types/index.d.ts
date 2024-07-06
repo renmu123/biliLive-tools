@@ -336,9 +336,22 @@ export interface Progress {
 //   multi?: boolean;
 // }
 export type audioCodec = "copy" | "aac" | "ac3" | "flac" | "libopus" | "libmp3lame";
-
+export type VideoCodec =
+  | "copy"
+  | "libx264"
+  | "h264_qsv"
+  | "h264_nvenc"
+  | "h264_amf"
+  | "libx265"
+  | "hevc_qsv"
+  | "hevc_nvenc"
+  | "hevc_amf"
+  | "libsvtav1"
+  | "av1_qsv"
+  | "av1_nvenc"
+  | "av1_amf";
 export interface FfmpegOptions {
-  encoder: string;
+  encoder: VideoCodec;
   bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ" | "ICQ";
   crf?: number;
   bitrate?: number;

@@ -1,7 +1,7 @@
 import { expect, describe, it } from "vitest";
 import { genFfmpegParams } from "../src/utils/index";
 import { genMergeAssMp4Command } from "../src/task/video";
-import type { FfmpegOptions } from "@biliLive-tools/types";
+import type { FfmpegOptions, VideoCodec } from "@biliLive-tools/types";
 
 describe.concurrent("通用ffmpeg参数生成", () => {
   it("视频编码器：h264_nvenc", () => {
@@ -21,6 +21,56 @@ describe.concurrent("通用ffmpeg参数生成", () => {
     };
     const output1 = genFfmpegParams(input);
     expect(output1).toEqual(["-c:v h264_nvenc", "-rc vbr", "-cq 34", "-preset p4", "-c:a copy"]);
+  });
+  it("有无preset参数", () => {
+    const videoEncoders: VideoCodec[] = [
+      "libx264",
+      "h264_qsv",
+      "h264_nvenc",
+      "h264_amf",
+      "libx265",
+      "hevc_qsv",
+      "hevc_nvenc",
+      "hevc_amf",
+      "libsvtav1",
+      "av1_qsv",
+      "av1_amf",
+    ];
+    for (const encoder of videoEncoders) {
+      const input: FfmpegOptions = {
+        encoder: encoder,
+        bitrateControl: "CQ",
+        crf: 34,
+        preset: "p4",
+        audioCodec: "copy",
+        bitrate: 8000,
+        decode: true,
+        extraOptions: "",
+        bit10: false,
+        resetResolution: false,
+        resolutionWidth: 3840,
+        resolutionHeight: 2160,
+      };
+      const output = genFfmpegParams(input);
+      const result = [`-c:v ${encoder}`, "-rc vbr", "-cq 34"];
+      if (
+        [
+          "libx264",
+          "libx265",
+          "libsvtav1",
+          "h264_nvenc",
+          "hevc_nvenc",
+          "av1_nvenc",
+          "h264_qsv",
+          "hevc_qsv",
+          "av1_qsv",
+        ].includes(encoder)
+      ) {
+        result.push("-preset p4");
+      }
+      result.push("-c:a copy");
+      expect(output).toEqual(result);
+    }
   });
   it("额外参数", () => {
     const input: FfmpegOptions = {

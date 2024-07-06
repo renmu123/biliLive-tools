@@ -272,7 +272,7 @@ import { cloneDeep } from "lodash-es";
 import { useFfmpegPreset } from "@renderer/stores";
 import { storeToRefs } from "pinia";
 
-import type { FfmpegPreset } from "@biliLive-tools/types";
+import type { FfmpegPreset, VideoCodec } from "@biliLive-tools/types";
 
 const notice = useNotification();
 const confirmDialog = useConfirm();
@@ -313,6 +313,36 @@ const nvencPresets = [
   {
     value: "p7",
     label: "slowest",
+  },
+];
+const qsvPresets = [
+  {
+    value: "veryfast",
+    label: "veryfast",
+  },
+  {
+    value: "faster",
+    label: "faster",
+  },
+  {
+    value: "fast",
+    label: "fast",
+  },
+  {
+    value: "medium",
+    label: "medium",
+  },
+  {
+    value: "slow",
+    label: "slow",
+  },
+  {
+    value: "slower",
+    label: "slower",
+  },
+  {
+    value: "veryslow",
+    label: "veryslow",
   },
 ];
 const videoEncoders = ref([
@@ -395,6 +425,7 @@ const videoEncoders = ref([
         label: "平均比特率",
       },
     ],
+    presets: qsvPresets,
   },
   {
     value: "h264_nvenc",
@@ -491,6 +522,7 @@ const videoEncoders = ref([
         label: "平均比特率",
       },
     ],
+    presets: qsvPresets,
   },
   {
     value: "hevc_nvenc",
@@ -603,6 +635,7 @@ const videoEncoders = ref([
         label: "平均比特率",
       },
     ],
+    presets: qsvPresets,
   },
   {
     value: "av1_nvenc",
@@ -760,7 +793,7 @@ const saveConfirm = async () => {
   getPresetOptions();
 };
 
-const handleVideoEncoderChange = (value: string) => {
+const handleVideoEncoderChange = (value: VideoCodec) => {
   ffmpegOptions.value.config.encoder = value;
   if (
     (encoderOptions.value?.birateControls || [])

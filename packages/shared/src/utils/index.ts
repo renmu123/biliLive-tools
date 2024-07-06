@@ -99,9 +99,24 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
         }
         break;
     }
-    if (options.preset) {
-      result.push(`-preset ${options.preset}`);
+    if (
+      [
+        "libx264",
+        "libx265",
+        "libsvtav1",
+        "h264_nvenc",
+        "hevc_nvenc",
+        "av1_nvenc",
+        "h264_qsv",
+        "hevc_qsv",
+        "av1_qsv",
+      ].includes(options.encoder)
+    ) {
+      if (options.preset) {
+        result.push(`-preset ${options.preset}`);
+      }
     }
+
     if (options.resetResolution && options.resolutionWidth && options.resolutionHeight) {
       // if (!["h264_nvenc", "hevc_nvenc", "av1_nevnc"].includes(options.encoder)) {
       result.push(`-s ${options.resolutionWidth}x${options.resolutionHeight}`);
