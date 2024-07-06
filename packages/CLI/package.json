@@ -1,6 +1,6 @@
 {
   "name": "bililive-cli",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "type": "module",
   "description": "biliLive-tools的cli程序",
   "main": "./lib/index.js",
@@ -30,7 +30,9 @@
   "files": [
     "lib"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.53"
+  },
   "devDependencies": {
     "@types/cli-progress": "^3.11.5",
     "@yao-pkg/pkg": "^5.11.5",
