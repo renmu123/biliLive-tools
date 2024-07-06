@@ -50,6 +50,10 @@ importers:
         version: 1.6.0(@types/node@20.12.2)(less@4.2.0)
 
   packages/CLI:
+    dependencies:
+      '@napi-rs/canvas':
+        specifier: ^0.1.53
+        version: 0.1.53
     devDependencies:
       '@biliLive-tools/http':
         specifier: workspace:*
@@ -297,8 +301,8 @@ importers:
         specifier: ^0.1.11
         version: 0.1.11
       fast-xml-parser:
-        specifier: ^4.3.6
-        version: 4.3.6
+        specifier: ^4.4.0
+        version: 4.4.0
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
@@ -2352,10 +2356,6 @@ packages:
 
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
-
-  fast-xml-parser@4.3.6:
-    resolution: {integrity: sha512-M2SovcRxD4+vC493Uc2GZVcZaj66CCJhWurC4viynVSTvrpErCShNcDz1lAho6n9REQKvL/ll4A4/fw6Y9z8nw==}
-    hasBin: true
 
   fast-xml-parser@4.4.0:
     resolution: {integrity: sha512-kLY3jFlwIYwBNDojclKsNAC12sfD6NwW74QB2CoNGPvtVxjliYehVunB3HYyNi+n4Tt1dAcgwYvmKF/Z18flqg==}
@@ -6623,10 +6623,6 @@ snapshots:
   fast-json-stable-stringify@2.1.0: {}
 
   fast-levenshtein@2.0.6: {}
-
-  fast-xml-parser@4.3.6:
-    dependencies:
-      strnum: 1.0.5
 
   fast-xml-parser@4.4.0:
     dependencies:

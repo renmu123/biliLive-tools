@@ -153,48 +153,67 @@ const filterBlacklist2File = async (file: string, output: string, blacklist: str
  * @param blacklist 屏蔽词列表
  */
 export const filterBlacklist = (XMLdata: string, blacklist: string[]) => {
-  const parser = new XMLParser({ ignoreAttributes: false });
-  const jObj = parser.parse(XMLdata);
-  traversalObject(jObj, (key, value) => {
-    if (key === "d" && Array.isArray(value)) {
-      return value.filter((item: { "#text": string }) => {
-        return blacklist.every((word) => {
-          const text = String(item["#text"]);
-          if (text.includes(word)) {
-            return false;
-          }
-          return true;
-        });
-      });
-    }
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    preserveOrder: true,
   });
+  let jObj = parser.parse(XMLdata);
+  jObj = filterData(jObj, blacklist);
 
   const builder = new XMLBuilder({
     ignoreAttributes: false,
     attributeNamePrefix: "@_",
     format: true,
+    preserveOrder: true,
   });
   const xmlContent = builder.build(jObj);
 
   return xmlContent;
 };
 
-/**
- * 递归遍历对象
- */
-const traversalObject = (obj: any, callback: (key: string, value: any) => any) => {
-  for (const key in obj) {
-    // is object not array
-    if (typeof obj[key] === "object" && !Array.isArray(obj[key])) {
-      traversalObject(obj[key], callback);
-    } else {
-      const result = callback(key, obj[key]);
-      if (result) {
-        obj[key] = result;
+function filterData(obj: any | any[], blacklist: string[]): any | any[] | null {
+  if (blacklist.length === 0) return obj;
+  if (Array.isArray(obj)) {
+    // console.log("obj", obj, blacklist);
+    return obj.map((item) => filterData(item, blacklist)).filter((item) => item !== null);
+  } else if (typeof obj === "object" && obj !== null) {
+    // console.log(
+    //   "qqq",
+    //   obj?.d,
+    //   Array.isArray(obj?.d),
+    //   (obj?.d ?? []).some((d) => blacklist.includes(d["#text"])),
+    // );
+
+    if (
+      obj.d &&
+      Array.isArray(obj.d) &&
+      obj.d.some((d) => {
+        return !blacklist.every((word) => {
+          const text = String(d["#text"]);
+          if (text.includes(word)) {
+            return false;
+          }
+          return true;
+        });
+      })
+    ) {
+      return null;
+    }
+    const newObj: any = {};
+    for (const key in obj) {
+      // obj.hasOwnProperty(key)
+      if (Object.hasOwn(obj, key)) {
+        const filteredValue = filterData(obj[key], blacklist);
+        if (filteredValue !== null) {
+          newObj[key] = filteredValue;
+        }
       }
     }
+    return newObj;
   }
-};
+  // console.log("ppp", typeof obj === "object", obj);
+  return obj;
+}
 
 /**
  * 生成高能进度条
