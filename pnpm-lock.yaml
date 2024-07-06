@@ -50,7 +50,7 @@ importers:
         version: 1.6.0(@types/node@20.12.2)(less@4.2.0)
 
   packages/CLI:
-    dependencies:
+    devDependencies:
       '@biliLive-tools/http':
         specifier: workspace:*
         version: link:../http
@@ -60,13 +60,6 @@ importers:
       '@biliLive-tools/types':
         specifier: workspace:*
         version: link:../types
-      cli-progress:
-        specifier: ^3.12.0
-        version: 3.12.0
-      commander:
-        specifier: ^12.0.0
-        version: 12.0.0
-    devDependencies:
       '@types/cli-progress':
         specifier: ^3.11.5
         version: 3.11.5
@@ -76,6 +69,12 @@ importers:
       bestzip:
         specifier: ^2.2.1
         version: 2.2.1
+      cli-progress:
+        specifier: ^3.12.0
+        version: 3.12.0
+      commander:
+        specifier: ^12.0.0
+        version: 12.0.0
       rollup-plugin-natives:
         specifier: ^0.7.8
         version: 0.7.8(rollup@4.18.0)
