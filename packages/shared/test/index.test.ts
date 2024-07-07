@@ -5,6 +5,7 @@ import { expect, describe, it, beforeEach, afterEach } from "vitest";
 import { filterBlacklist } from "../src/task/danmu";
 import { escaped } from "../src/utils/index";
 import { Danmu } from "../src/danmu/index";
+import { getHardwareAcceleration } from "../src/utils/index";
 
 export const __dirname = dirname(fileURLToPath(import.meta.url));
 describe.concurrent("filterBlacklist", () => {
@@ -141,7 +142,7 @@ describe.concurrent("genDanmuArgs", () => {
     // console.log(params);
     expect(params).toEqual(expectedArgs);
   });
-  it("基础弹幕参数：百分制", () => {
+  it("百分制透明度应正确转换为16进制", () => {
     const config = {
       resolution: [1920, 1080],
       msgboxsize: [400, 200],
@@ -151,6 +152,34 @@ describe.concurrent("genDanmuArgs", () => {
       fontname: "Arial",
       blacklist: [],
       opacity100: 100,
+    };
+
+    const expectedArgs = [
+      "--resolution 1920x1080",
+      "--msgboxsize 400x200",
+      "--msgboxpos 100x100",
+      "--blockmode R2L-L2R",
+      "--statmode TABLE-HISTOGRAM",
+      '--fontname "Arial"',
+      "--opacity 255",
+    ];
+
+    // @ts-ignore
+    const params = danmu.genDanmuArgs(config);
+    // console.log(params);
+    expect(params).toEqual(expectedArgs);
+  });
+  it("不存在于默认配置中的字段不做处理", () => {
+    const config = {
+      resolution: [1920, 1080],
+      msgboxsize: [400, 200],
+      msgboxpos: [100, 100],
+      blockmode: ["R2L", "L2R"],
+      statmode: ["TABLE", "HISTOGRAM"],
+      fontname: "Arial",
+      blacklist: [],
+      opacity100: 100,
+      test: "test",
     };
 
     const expectedArgs = [
@@ -266,7 +295,6 @@ describe("escaped", () => {
 
   // Add more test cases if needed
 });
-import { getHardwareAcceleration } from "../src/utils/index";
 
 describe.concurrent("getHardwareAcceleration", () => {
   it("should return 'nvenc' for NVIDIA encoder", () => {

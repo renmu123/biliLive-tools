@@ -9,6 +9,8 @@ import { keyBy } from "lodash-es";
 import { pathExists } from "../utils/index.js";
 import log from "../utils/log.js";
 import { XMLParser } from "fast-xml-parser";
+import { DANMU_DEAFULT_CONFIG } from "../presets/danmuPreset.js";
+
 import type { DanmuConfig, hotProgressOptions } from "@biliLive-tools/types";
 
 export class Danmu {
@@ -21,6 +23,9 @@ export class Danmu {
 
   genDanmuArgs = (config: DanmuConfig) => {
     const params = Object.entries(config).map(([key, value]) => {
+      // 如果配置字段不在默认中，则直接返回，用于处理版本回退可能导致的问题
+      if (!Object.hasOwn(DANMU_DEAFULT_CONFIG, key)) return "";
+
       if (["resolution", "msgboxsize", "msgboxpos"].includes(key)) {
         // @ts-ignore
         return `--${key} ${value.join("x")}`;
@@ -43,7 +48,7 @@ export class Danmu {
         if (value === -2) return `--density ${config.customDensity}`;
         return `--${key} ${value}`;
       } else if (key === "opacity100") {
-        const value = ((config.opacity100 / 100) * 255).toFixed(2);
+        const value = ((config.opacity100 / 100) * 255).toFixed(0);
         return `--opacity ${value}`;
       } else {
         return `--${key} ${value}`;
