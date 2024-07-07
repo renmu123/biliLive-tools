@@ -84,6 +84,7 @@ const handleOpen = () => {
   getArchives();
 };
 const close = () => {
+  aid.value = "";
   showModal.value = false;
 };
 
@@ -101,6 +102,7 @@ const confirm = async () => {
       title: "已在合集中的稿件无法添加分P",
       duration: 1000,
     });
+    aid.value = "";
     return;
   }
   emits("confirm", aid.value);

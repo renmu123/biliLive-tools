@@ -3,7 +3,7 @@
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
-        <n-button type="primary" @click="handleConvert"> 立即转换 </n-button>
+        <n-button type="primary" @click="handleConvert"> 启动！ </n-button>
         <!-- <n-button type="primary" @click="testNofity"> 测试发送通知 </n-button> -->
         <!-- <n-button type="primary" @click="hotProgressConvert"> 测试高能弹幕进度条生成 </n-button> -->
       </div>
@@ -28,8 +28,13 @@
               </n-radio-group> -->
             <n-checkbox v-model:checked="clientOptions.removeOrigin"> 完成后移除源文件 </n-checkbox>
             <n-checkbox v-model:checked="clientOptions.openFolder"> 完成后打开文件夹 </n-checkbox>
-            <n-checkbox v-model:checked="clientOptions.autoUpload"> 完成后自动上传 </n-checkbox>
             <n-checkbox v-model:checked="clientOptions.hotProgress"> 高能进度条 </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.autoUpload"> 完成后自动上传 </n-checkbox>
+            <template v-if="clientOptions.autoUpload">
+              <n-button ghost type="primary" @click="appendVideoVisible = true">
+                续传 <span v-if="aid">(已选择)</span>
+              </n-button>
+            </template>
 
             <div
               v-if="clientOptions.hotProgress"
@@ -139,6 +144,8 @@
         </template>
       </n-card>
     </n-modal>
+
+    <AppendVideoDialog v-model:visible="appendVideoVisible" v-model="aid"></AppendVideoDialog>
   </div>
 </template>
 
@@ -205,7 +212,7 @@ const preHandle = async (
     return false;
   }
 
-  if (clientOptions.autoUpload) {
+  if (clientOptions.autoUpload && !aid.value) {
     await biliUpCheck(presetOptions);
   }
 
@@ -279,6 +286,7 @@ const convert = async () => {
   const rawDanmuConfig = deepRaw(danmuPreset.value.config);
   const rawPresetOptions = toRaw(presetOptions.value);
   const rawFfmpegOptions = toRaw(ffmpegOptions.value);
+  const rawAid = toRaw(aid.value);
   if (rawFfmpegOptions.encoder === "copy") {
     throw new Error("视频编码不能为copy");
   }
@@ -327,7 +335,7 @@ const convert = async () => {
   );
 
   if (rawClientOptions.autoUpload) {
-    await upload(output, rawPresetOptions);
+    await upload(output, rawPresetOptions, rawAid);
   }
 
   if (rawClientOptions.removeOrigin) {
@@ -504,6 +512,7 @@ const createMergeVideoAssTask = async (
       .then(({ taskId, output }: { taskId?: string; output?: string }) => {
         if (!taskId) return resolve(output as string);
         fileList.value = [];
+        aid.value = "";
 
         window.api.task.on(taskId, "end", (data) => {
           console.log("end", data);
@@ -531,12 +540,28 @@ const biliUpCheck = async (presetOptions: BiliupPreset) => {
 
   return true;
 };
-// 上传任务
-const upload = async (file: string, presetOptions: BiliupPreset) => {
-  const valid = await biliUpCheck(presetOptions);
-  if (!valid) return;
 
+// 上传任务
+const upload = async (file: string, presetOptions: BiliupPreset, aid?: number) => {
+  if (aid) {
+    appendVideo(aid, file, presetOptions);
+  } else {
+    uploadVideo(file, presetOptions);
+  }
+};
+
+// 新上传任务
+const uploadVideo = async (file: string, presetOptions: BiliupPreset) => {
   await window.api.bili.uploadVideo(userInfo.value.uid, [file], presetOptions.config);
+};
+// 续传任务
+const appendVideoVisible = ref(false);
+const aid = ref();
+const appendVideo = async (aid: number, file: string, presetOptions: BiliupPreset) => {
+  await window.api.bili.appendVideo(userInfo.value.uid, [file], {
+    ...presetOptions.config,
+    vid: aid,
+  });
 };
 
 // @ts-ignore
