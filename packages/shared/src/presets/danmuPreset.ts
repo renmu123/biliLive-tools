@@ -10,7 +10,7 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   customDensity: 50,
   fontname: "Microsoft YaHei",
   fontsize: 38,
-  opacity: 255,
+  opacity100: 100,
   outline: 0.0,
   shadow: 1.0,
   displayarea: 1.0,

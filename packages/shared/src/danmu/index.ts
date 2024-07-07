@@ -36,12 +36,15 @@ export class Danmu {
         return `--${key} ${value.join("-")}`;
       } else if (key === "fontname") {
         return `--${key} "${value}"`;
-      } else if (key === "resolutionResponsive" || key === "blacklist" || key === "customDensity") {
+      } else if (["resolutionResponsive", "blacklist", "customDensity", "opacity"].includes(key)) {
         // do nothing
         return "";
       } else if (key === "density") {
         if (value === -2) return `--density ${config.customDensity}`;
         return `--${key} ${value}`;
+      } else if (key === "opacity100") {
+        const value = ((config.opacity100 / 100) * 255).toFixed(2);
+        return `--opacity ${value}`;
       } else {
         return `--${key} ${value}`;
       }

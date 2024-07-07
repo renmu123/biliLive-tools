@@ -7,7 +7,8 @@ export type DanmuConfig = {
   customDensity: number;
   fontname: string;
   fontsize: number;
-  opacity: number;
+  /**   百分制下的透明度 */
+  opacity100: number;
   outline: number;
   shadow: number;
   displayarea: number;

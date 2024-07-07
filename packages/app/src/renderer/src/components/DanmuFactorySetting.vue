@@ -24,11 +24,14 @@
         </n-form-item>
         <n-form-item label="不透明度">
           <n-input-number
-            v-model:value.number="config.opacity"
+            v-model:value.number="config.opacity100"
             class="input-number"
             :min="0"
-            :max="255"
-          />
+            :max="100"
+            style="width: 110px"
+          >
+            <template #suffix> % </template></n-input-number
+          >
         </n-form-item>
         <n-form-item>
           <n-checkbox v-model:checked="config.bold"> 粗体 </n-checkbox>

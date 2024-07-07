@@ -141,6 +141,33 @@ describe.concurrent("genDanmuArgs", () => {
     // console.log(params);
     expect(params).toEqual(expectedArgs);
   });
+  it("基础弹幕参数：百分制", () => {
+    const config = {
+      resolution: [1920, 1080],
+      msgboxsize: [400, 200],
+      msgboxpos: [100, 100],
+      blockmode: ["R2L", "L2R"],
+      statmode: ["TABLE", "HISTOGRAM"],
+      fontname: "Arial",
+      blacklist: [],
+      opacity100: 100,
+    };
+
+    const expectedArgs = [
+      "--resolution 1920x1080",
+      "--msgboxsize 400x200",
+      "--msgboxpos 100x100",
+      "--blockmode R2L-L2R",
+      "--statmode TABLE-HISTOGRAM",
+      '--fontname "Arial"',
+      "--opacity 255.00",
+    ];
+
+    // @ts-ignore
+    const params = danmu.genDanmuArgs(config);
+    // console.log(params);
+    expect(params).toEqual(expectedArgs);
+  });
   it("弹幕参数：弹幕密度无限", () => {
     const config = {
       resolution: [1920, 1080],
