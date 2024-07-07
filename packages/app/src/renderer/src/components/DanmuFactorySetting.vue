@@ -28,7 +28,8 @@
             class="input-number"
             :min="0"
             :max="100"
-            style="width: 110px"
+            style="width: 130px"
+            :precision="2"
           >
             <template #suffix> % </template></n-input-number
           >
