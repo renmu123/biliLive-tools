@@ -114,6 +114,18 @@
                 <FolderOpenOutline />
               </n-icon>
             </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex">
+                  配置
+                  <Tip :tip="`将导出配置文件以及其他的预设配置，导入后重启应用生效`"></Tip>
+                </span>
+              </template>
+              <n-button type="primary" @click="exportSettingZip">导出配置</n-button>
+              <n-button type="primary" style="margin-left: 10px" @click="importSettingZip"
+                >导入配置</n-button
+              >
+            </n-form-item>
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="webhook" tab="webhook">
@@ -222,6 +234,8 @@ import { FolderOpenOutline } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig, Theme } from "@biliLive-tools/types";
+
+const notice = useNotification();
 
 const appConfigStore = useAppConfig();
 const showModal = defineModel<boolean>({ required: true, default: false });
@@ -453,6 +467,53 @@ const addRoom = () => {
     roomGlobalCheckObj.value[key] = true;
   }
   console.log(roomGlobalCheckObj.value);
+};
+
+// 导出配置
+const exportSettingZip = async () => {
+  const version = await window.api.appVersion();
+
+  const file = await window.api.showSaveDialog({
+    defaultPath: `biliLive-tools-${version}-${new Date().getTime()}-配置备份.zip`,
+    filters: [{ name: "压缩文件", extensions: ["zip"] }],
+  });
+  if (!file) return;
+  await window.api.config.export(file);
+  notice.success({
+    title: "导出成功",
+    duration: 1000,
+  });
+  setTimeout(() => {
+    window.api.common.showItemInFolder(file);
+  }, 100);
+};
+// 导入配置
+const importSettingZip = async () => {
+  const [status] = await confirm.warning({
+    content: "导入后所有配置都将被替换，是否继续？",
+  });
+  if (!status) return;
+
+  // 导入前弹框警告，导入时验证文件是否存在
+  const path = await window.api.openFile({
+    multi: false,
+    filters: [
+      {
+        name: "file",
+        extensions: ["zip"],
+      },
+    ],
+  });
+  if (!path) return;
+  if (!path.length) return;
+
+  await window.api.config.import(path[0]);
+
+  await confirm.warning({
+    content: "导入成功，重启应用后生效",
+  });
+  showModal.value = false;
+  // 导入后关闭配置页面，提示用户重启
 };
 </script>
 

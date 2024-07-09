@@ -346,6 +346,12 @@ export const api = {
     set: <K extends keyof AppConfig>(key: K, value: AppConfig[K]) => {
       return ipcRenderer.invoke("config:set", key, value);
     },
+    export: (filePath: string) => {
+      return ipcRenderer.invoke("config:export", filePath);
+    },
+    import: (filePath: string) => {
+      return ipcRenderer.invoke("config:import", filePath);
+    },
   },
   convertVideo2Mp4: (
     file: {

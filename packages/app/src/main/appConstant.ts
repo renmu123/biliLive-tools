@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 export const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const userDataPath = app.getPath("userData");
+export const userDataPath = app.getPath("userData");
 const binPath = join(
   dirname(app.getPath("exe")),
   "resources",
@@ -12,7 +12,7 @@ const binPath = join(
   "resources",
   "bin",
 );
-
+export const APP_CONFIG_PATH = join(userDataPath, "appConfig.json");
 export const VIDEO_PRESET_PATH = join(userDataPath, "presets.json");
 
 export const DANMU_PRESET_PATH = join(userDataPath, "danmu_presets.json");

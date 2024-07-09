@@ -1,4 +1,4 @@
-import path, { join } from "node:path";
+import { join } from "node:path";
 import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
@@ -11,9 +11,8 @@ import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/lib/task/video";
 import { taskQueue } from "@biliLive-tools/shared/lib/task/task";
-import { appConfig } from "@biliLive-tools/shared";
+import { appConfig, init } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
-import { init } from "@biliLive-tools/shared";
 import { trashItem as _trashItem } from "@biliLive-tools/shared/lib/utils/index";
 
 import { handlers as taskHandlers } from "./task";
@@ -25,6 +24,7 @@ import icon from "../../resources/icon.png?asset";
 import {
   FFMPEG_PATH,
   FFPROBE_PATH,
+  APP_CONFIG_PATH,
   FFMPEG_PRESET_PATH,
   VIDEO_PRESET_PATH,
   DANMU_PRESET_PATH,
@@ -413,7 +413,7 @@ const appInit = async () => {
   const config = {
     port: 18010,
     host: "127.0.0.1",
-    configPath: path.join(app.getPath("userData"), "appConfig.json"),
+    configPath: APP_CONFIG_PATH,
     ffmpegPath: FFMPEG_PATH,
     ffprobePath: FFPROBE_PATH,
     danmakuFactoryPath: DANMUKUFACTORY_PATH,
