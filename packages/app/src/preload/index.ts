@@ -188,6 +188,9 @@ export const api = {
     deleteFile: (path: string) => {
       return fs.unlink(path);
     },
+    readFile: (path: string) => {
+      return fs.readFile(path, "utf-8");
+    },
     relaunch: () => {
       return ipcRenderer.invoke("common:relaunch");
     },

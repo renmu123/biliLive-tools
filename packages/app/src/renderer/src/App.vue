@@ -164,19 +164,19 @@ const menuOptions = computed<MenuOption[]>(() => {
               { default: () => "转码" },
             ),
         },
-        // {
-        //   key: "videoCut",
-        //   label: () =>
-        //     h(
-        //       RouterLink,
-        //       {
-        //         to: {
-        //           name: "videoCut",
-        //         },
-        //       },
-        //       { default: () => "切片" },
-        //     ),
-        // },
+        {
+          key: "videoCut",
+          label: () =>
+            h(
+              RouterLink,
+              {
+                to: {
+                  name: "videoCut",
+                },
+              },
+              { default: () => "切片" },
+            ),
+        },
         {
           key: "videoMerge",
           label: () =>

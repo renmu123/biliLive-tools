@@ -401,9 +401,9 @@ export interface FfmpegOptions {
   /** 10bit支持 */
   bit10?: boolean;
   /** 开始时间 */
-  ss?: string;
+  ss?: number | string;
   /** 结束时间 */
-  to?: string;
+  to?: number | string;
 }
 
 export interface BiliupConfig {

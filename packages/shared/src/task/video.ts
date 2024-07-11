@@ -242,10 +242,10 @@ export const genMergeAssMp4Command = (
     } else {
       if (ffmpegOptions.ss) {
         command.inputOptions(`-ss ${ffmpegOptions.ss}`);
+        command.inputOptions("-copyts");
       }
       if (ffmpegOptions.to) {
         command.inputOptions(`-to ${ffmpegOptions.to}`);
-        command.inputOptions("-copyts");
       }
       command.complexFilter([
         {

@@ -161,7 +161,7 @@ describe.concurrent("genDanmuArgs", () => {
       "--blockmode R2L-L2R",
       "--statmode TABLE-HISTOGRAM",
       '--fontname "Arial"',
-      "--opacity 255",
+      "--opacity 255.00",
     ];
 
     // @ts-ignore
