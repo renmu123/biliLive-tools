@@ -2,7 +2,10 @@
 <template>
   <n-popover trigger="hover">
     <template #trigger>
-      <n-icon :size="props.size" class="pointer"> <HelpCircleOutline /> </n-icon>
+      <span style="display: inline-flex">
+        {{ props.text
+        }}<n-icon :size="props.size" style="cursor: help"> <HelpCircleOutline /> </n-icon>
+      </span>
     </template>
     <span v-if="props.tip" v-html="props.tip"></span>
     <slot v-else></slot>
@@ -15,6 +18,7 @@ import { HelpCircleOutline } from "@vicons/ionicons5";
 interface Props {
   size?: number;
   tip?: string;
+  text?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {

@@ -279,10 +279,7 @@
   </n-form-item>
   <n-form-item v-if="!data.useVideoAsTitle">
     <template #label>
-      <span class="inline-flex">
-        视频标题
-        <Tip :tip="titleTip"></Tip>
-      </span>
+      <Tip :tip="titleTip" text="视频标题"></Tip>
     </template>
     <n-input
       v-model:value="data.title"
@@ -294,7 +291,21 @@
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.title" class="global-checkbox"
       >全局</n-checkbox
     >
+    <template #feedback>
+      <span
+        v-for="item in titleList"
+        :key="item.value"
+        :title="item.label"
+        class="title-var"
+        :class="{
+          disabled: globalFieldsObj.title,
+        }"
+        @click="setTitleVar(item.value)"
+        >{{ item.value }}</span
+      >
+    </template>
   </n-form-item>
+
   <n-form-item>
     <template #label>
       <span class="inline-flex">
@@ -380,20 +391,57 @@ const userOptins = computed(() => {
   ];
 });
 
-const titleTip = ref(
-  `支持{{title}},{{user}},{{now}}等占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}<br/>
-  不要在直播开始后修改字段，本场直播不会生效<br/>
-  直播标题：{{title}}<br/>
-  主播名：{{user}}<br/>
-  当前时间（快速）：{{now}}，示例：2024.01.24<br/>
-  年：{{yyyy}}<br/>
-  月（补零）：{{MM}}<br/>
-  日（补零）：{{dd}}<br/>
-  时（补零）：{{HH}}<br/>
-  分（补零）：{{mm}}<br/>
-  秒（补零）：{{ss}}<br/>
-  `,
-);
+const titleList = ref([
+  {
+    value: "{{title}}",
+    label: "视频标题",
+  },
+  {
+    value: "{{user}}",
+    label: "主播名",
+  },
+  {
+    value: "{{now}}",
+    label: "当前时间（示例：2024.01.24）",
+  },
+  {
+    value: "{{yyyy}}",
+    label: "年",
+  },
+  {
+    value: "{{MM}}",
+    label: "月（补零）",
+  },
+  {
+    value: "{{dd}}",
+    label: "日（补零）",
+  },
+  {
+    value: "{{HH}}",
+    label: "时（补零）",
+  },
+  {
+    value: "{{mm}}",
+    label: "分（补零）",
+  },
+  {
+    value: "{{ss}}",
+    label: "秒（补零）",
+  },
+]);
+const titleTip = computed(() => {
+  const base = `支持{{title}},{{user}},{{now}}等占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}<br/>
+  不要在直播开始后修改字段，本场直播不会生效<br/>`;
+  return titleList.value
+    .map((item) => {
+      return `${item.label}：${item.value}<br/>`;
+    })
+    .reduce((prev, cur) => prev + cur, base);
+});
+const setTitleVar = (value: string) => {
+  if (globalFieldsObj.value.title) return;
+  data.value.title += value;
+};
 
 const isRoom = computed(() => props.type === "room");
 
@@ -417,6 +465,22 @@ watch(
 .global-checkbox {
   flex: none;
   margin-left: auto;
-  // margin-left: 20px;
+}
+.title-var {
+  display: inline-block;
+  margin-top: 4px;
+  margin-right: 10px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  &:not(.disabled):hover {
+    background-color: #e0e0e0;
+  }
+  &.disabled {
+    cursor: not-allowed;
+  }
 }
 </style>
