@@ -12,6 +12,7 @@
         style="display: none"
         @change="handleVideoChange"
       />
+      <!-- <ButtonGroup @click="addDanmu">{{ danmuTitle }}</ButtonGroup> -->
       <n-button type="primary" @click="addDanmu"> {{ danmuTitle }} </n-button>
       <input
         ref="danmuInputRef"
@@ -93,6 +94,7 @@
 <script setup lang="ts">
 import { uuid, secondsToTimemark } from "@renderer/utils";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
+// import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import { RadioButtonOffSharp, CheckmarkCircleOutline, Pencil } from "@vicons/ionicons5";
 
 import Xml2AssModal from "./components/Xml2AssModal.vue";
@@ -194,11 +196,13 @@ const handleVideoChange = async (event: any) => {
   // cuts.value = [];
 };
 
+// 弹幕相关
 const addDanmu = async () => {
   danmuInputRef.value?.click();
 };
 const xmlConvertVisible = ref(false);
 const tempXmlFile = ref("");
+const convertDanmuLoading = ref(false);
 const handleDanmuChange = async (event: any) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -213,6 +217,7 @@ const handleDanmuChange = async (event: any) => {
   } else {
     xmlConvertVisible.value = true;
     tempXmlFile.value = path;
+    convertDanmuLoading.value = true;
   }
 };
 
@@ -227,7 +232,7 @@ const danmuConfirm = async (config: DanmuConfig) => {
   );
   // files.value.danmu = path;
   const content = await window.api.common.readFile(path);
-
+  convertDanmuLoading.value = false;
   files.value.danmu = content;
   files.value.danmuPath = path;
   videoRef.value?.addSutitle(content);
@@ -287,9 +292,17 @@ const exportCuts = async () => {
     });
     return;
   }
+
   if (!files.value.danmuPath) {
     notice.error({
       title: "请先选择弹幕文件",
+      duration: 1000,
+    });
+    return;
+  }
+  if (convertDanmuLoading.value) {
+    notice.error({
+      title: "弹幕转换中，请稍后",
       duration: 1000,
     });
     return;

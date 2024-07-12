@@ -1,9 +1,5 @@
 <template>
   <div class="content">
-    <h1>
-      本功能由<a href="https://github.com/hihkm/DanmakuFactory" target="_blank">DanmakuFactory</a
-      >底层驱动
-    </h1>
     <div class="card">
       <h2>文字</h2>
       <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">

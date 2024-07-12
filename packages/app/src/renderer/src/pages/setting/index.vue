@@ -513,7 +513,6 @@ const importSettingZip = async () => {
     content: "导入成功，重启应用后生效",
   });
   showModal.value = false;
-  // 导入后关闭配置页面，提示用户重启
 };
 </script>
 
