@@ -51,22 +51,9 @@ async function downloadFile(url, desc) {
 async function downloadBin() {
   const filename = `${process.platform}-${process.arch}.zip`;
   const downloadUrl = `https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/${filename}`;
-  // const downloadUrl = `https://dldir1.qq.com/qqfile/qq/QQNT/Windows/QQ_9.9.9_240428_x64_01.exe`;
-
-  // const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-  // console.log(__dirname);
 
   await downloadFile(downloadUrl, ".");
   await unzip(filename, "packages/app/resources");
-
-  // .then((buffer) => {
-  //   fs.writeFileSync("../bin.zip", buffer);
-  //   console.log("下载成功");
-  // })
-  // .catch((err) => {
-  //   console.error(err);
-  // });
 }
 
 downloadBin();

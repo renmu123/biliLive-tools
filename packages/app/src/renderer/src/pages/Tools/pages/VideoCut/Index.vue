@@ -89,18 +89,73 @@
       <n-button type="primary" @click="confirmEditCutName">确定</n-button>
     </template>
   </n-modal>
+
+  <n-modal v-model:show="exportVisible" :show-icon="false" :closable="false" auto-focus>
+    <n-card
+      style="width: calc(100% - 60px)"
+      :bordered="false"
+      size="huge"
+      role="dialog"
+      aria-modal="true"
+      class="card"
+    >
+      <div>
+        <p>共有{{ cuts.length }}个切片，此次将导出{{ selectedCuts.length }}个视频</p>
+        <div class="flex" style="align-items: center">
+          选择视频预设：
+          <n-cascader
+            v-model:value="exportOptions.ffmpegPresetId"
+            placeholder="请选择预设"
+            expand-trigger="click"
+            :options="ffmpegOptions"
+            check-strategy="child"
+            :show-path="false"
+            :filterable="true"
+            style="width: 140px; text-align: left"
+          />
+        </div>
+        <div class="flex" style="align-items: center; margin-top: 20px">
+          导出文件夹：
+          <n-input
+            v-model:value="exportOptions.savePath"
+            type="text"
+            placeholder="选择文件夹"
+            style="width: 300px"
+            :title="exportOptions.savePath"
+          />
+          <n-icon size="30" class="pointer" style="margin-left: 10px" @click="getDir">
+            <FolderOpenOutline />
+          </n-icon>
+        </div>
+      </div>
+      <template #footer>
+        <div class="footer">
+          <n-button class="btn" @click="exportVisible = false">取消</n-button>
+          <n-button class="btn" type="primary" @click="confirmExport">确定</n-button>
+        </div>
+      </template>
+    </n-card>
+  </n-modal>
 </template>
 
 <script setup lang="ts">
 import { uuid, secondsToTimemark } from "@renderer/utils";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 // import ButtonGroup from "@renderer/components/ButtonGroup.vue";
-import { RadioButtonOffSharp, CheckmarkCircleOutline, Pencil } from "@vicons/ionicons5";
+import {
+  RadioButtonOffSharp,
+  CheckmarkCircleOutline,
+  Pencil,
+  FolderOpenOutline,
+} from "@vicons/ionicons5";
+import { useFfmpegPreset } from "@renderer/stores";
+import { storeToRefs } from "pinia";
 
 import Xml2AssModal from "./components/Xml2AssModal.vue";
 import type { DanmuConfig, DanmuOptions } from "@biliLive-tools/types";
 
 const notice = useNotification();
+const { ffmpegOptions } = storeToRefs(useFfmpegPreset());
 
 const files = ref<{
   video: string | null;
@@ -276,8 +331,8 @@ const convertDanmu2Ass = async (
   });
 };
 
+const exportVisible = ref(true);
 const exportCuts = async () => {
-  // TODO: 导出切片，需要做成弹框
   if (selectedCuts.value.length === 0) {
     notice.error({
       title: "没有需要导出的切片",
@@ -300,6 +355,13 @@ const exportCuts = async () => {
     });
     return;
   }
+  exportVisible.value = true;
+};
+const exportOptions = reactive({
+  ffmpegPresetId: "",
+  savePath: "",
+});
+const confirmExport = async () => {
   if (convertDanmuLoading.value) {
     notice.error({
       title: "弹幕转换中，请稍后",
@@ -308,15 +370,15 @@ const exportCuts = async () => {
     return;
   }
   const savePath = await window.api.openDirectory({
-    defaultPath: window.path.dirname(files.value.video),
+    defaultPath: window.path.dirname(files.value.video!),
   });
   if (!savePath) return;
 
   for (const cut of selectedCuts.value) {
     window.api.mergeAssMp4(
       {
-        videoFilePath: files.value.video,
-        assFilePath: files.value.danmuPath,
+        videoFilePath: files.value.video!,
+        assFilePath: files.value.danmuPath!,
         outputPath: `${savePath}\\${cut.start}-${cut.name}.mp4`,
         hotProgressFilePath: undefined,
       },
@@ -333,7 +395,17 @@ const exportCuts = async () => {
     title: "已加入任务队列",
     duration: 1000,
   });
+  exportVisible.value = false;
 };
+
+async function getDir() {
+  const path = await window.api.openDirectory({
+    defaultPath: exportOptions.savePath,
+  });
+  if (!path) return;
+  exportOptions.savePath = path;
+  // options.saveRadio = 2;
+}
 </script>
 
 <style scoped lang="less">
@@ -401,6 +473,13 @@ const exportCuts = async () => {
         bottom: 0px;
       }
     }
+  }
+}
+
+.footer {
+  text-align: right;
+  .btn + .btn {
+    margin-left: 10px;
   }
 }
 </style>
