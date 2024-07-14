@@ -304,7 +304,7 @@ describe("WebhookHandler", () => {
     });
   });
 
-  describe.concurrent("canHandle", () => {
+  describe("canHandle", () => {
     const handler = new WebhookHandler();
     it("should return true when roomSetting is open", () => {
       const roomSetting = { open: true };

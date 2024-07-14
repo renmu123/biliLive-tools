@@ -79,28 +79,32 @@
             <template #suffix> 秒 </template></n-input-number
           >
         </n-form-item>
+        <n-form-item title="如果有用户名的话">
+          <n-checkbox v-model:checked="config.showusernames"> 显示用户名 </n-checkbox>
+        </n-form-item>
         <!-- <n-form-item v-if="isAdvancedMode" label="时间轴偏移量" path="density">
               <n-input-number v-model:value.number="config.density" class="input-number" />&nbsp;秒
             </n-form-item> -->
-
-        <n-form-item
-          v-if="isAdvancedMode"
-          label="按类型屏蔽"
-          label-placement="top"
-          label-align="left"
-        >
-          <n-checkbox-group v-model:value="config.blockmode">
-            <n-space>
-              <n-checkbox value="R2L"> 右左滚动 </n-checkbox>
-              <n-checkbox value="L2R"> 左右滚动 </n-checkbox>
-              <n-checkbox value="TOP"> 顶部固定 </n-checkbox>
-              <n-checkbox value="BOTTOM"> 底部固定 </n-checkbox>
-              <n-checkbox value="SPECIAL"> 特殊 </n-checkbox>
-              <n-checkbox value="COLOR"> 非白色 </n-checkbox>
-              <n-checkbox value="REPEAT"> 内容重复 </n-checkbox>
-            </n-space>
-          </n-checkbox-group>
-        </n-form-item>
+        <div>
+          <n-form-item
+            v-if="isAdvancedMode"
+            label="按类型屏蔽"
+            label-placement="top"
+            label-align="left"
+          >
+            <n-checkbox-group v-model:value="config.blockmode">
+              <n-space>
+                <n-checkbox value="R2L"> 右左滚动 </n-checkbox>
+                <n-checkbox value="L2R"> 左右滚动 </n-checkbox>
+                <n-checkbox value="TOP"> 顶部固定 </n-checkbox>
+                <n-checkbox value="BOTTOM"> 底部固定 </n-checkbox>
+                <n-checkbox value="SPECIAL"> 特殊 </n-checkbox>
+                <n-checkbox value="COLOR"> 非白色 </n-checkbox>
+                <n-checkbox value="REPEAT"> 内容重复 </n-checkbox>
+              </n-space>
+            </n-checkbox-group>
+          </n-form-item>
+        </div>
       </n-form>
     </div>
     <n-divider v-if="isAdvancedMode" />

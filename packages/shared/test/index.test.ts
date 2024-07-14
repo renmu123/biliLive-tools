@@ -100,6 +100,7 @@ describe.concurrent("genDanmuArgs", () => {
       statmode: ["TABLE", "HISTOGRAM"],
       fontname: "Arial",
       blacklist: [],
+      showusernames: true,
     };
     // const config = {
     //   resolution: [1920, 1080],
@@ -135,6 +136,7 @@ describe.concurrent("genDanmuArgs", () => {
       "--blockmode R2L-L2R",
       "--statmode TABLE-HISTOGRAM",
       '--fontname "Arial"',
+      "--showusernames true",
     ];
 
     // @ts-ignore
@@ -161,7 +163,7 @@ describe.concurrent("genDanmuArgs", () => {
       "--blockmode R2L-L2R",
       "--statmode TABLE-HISTOGRAM",
       '--fontname "Arial"',
-      "--opacity 255.00",
+      "--opacity 255",
     ];
 
     // @ts-ignore
@@ -189,7 +191,7 @@ describe.concurrent("genDanmuArgs", () => {
       "--blockmode R2L-L2R",
       "--statmode TABLE-HISTOGRAM",
       '--fontname "Arial"',
-      "--opacity 255.00",
+      "--opacity 255",
     ];
 
     // @ts-ignore

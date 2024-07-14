@@ -103,6 +103,8 @@ function createWindow(): void {
     ...windowConfig,
     show: false,
     autoHideMenuBar: false,
+    minHeight: 400,
+    minWidth: 600,
     ...(process.platform === "linux" ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.mjs"),
