@@ -118,7 +118,9 @@
               <template #label>
                 <span class="inline-flex">
                   配置
-                  <Tip :tip="`将导出配置文件以及其他的预设配置，导入后重启应用生效`"></Tip>
+                  <Tip
+                    :tip="`导出配置文件以及其他的预设配置，导入后重启应用生效，尽量保持版本一致`"
+                  ></Tip>
                 </span>
               </template>
               <n-button type="primary" @click="exportSettingZip">导出配置</n-button>
