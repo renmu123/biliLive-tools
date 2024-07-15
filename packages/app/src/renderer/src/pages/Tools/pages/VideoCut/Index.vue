@@ -92,7 +92,7 @@
 
   <n-modal v-model:show="exportVisible" :show-icon="false" :closable="false" auto-focus>
     <n-card
-      style="width: calc(100% - 60px)"
+      style="width: 700px"
       :bordered="false"
       size="huge"
       role="dialog"
@@ -114,18 +114,29 @@
             style="width: 140px; text-align: left"
           />
         </div>
-        <div class="flex" style="align-items: center; margin-top: 20px">
-          导出文件夹：
-          <n-input
-            v-model:value="exportOptions.savePath"
-            type="text"
-            placeholder="选择文件夹"
-            style="width: 300px"
-            :title="exportOptions.savePath"
-          />
-          <n-icon size="30" class="pointer" style="margin-left: 10px" @click="getDir">
-            <FolderOpenOutline />
-          </n-icon>
+        <div class="flex" style="align-items: center">
+          <n-radio-group v-model:value="exportOptions.saveRadio" class="radio-group2">
+            <n-space class="flex align-center column">
+              <n-radio :value="1"> 保存到视频文件夹 </n-radio>
+              <n-radio :value="2"> </n-radio>
+              <n-input
+                v-model:value="exportOptions.savePath"
+                placeholder="选择文件夹"
+                style="width: 300px"
+              />
+              <n-icon size="30" style="margin-left: 0px" class="pointer" @click="getDir">
+                <FolderOpenOutline />
+              </n-icon>
+            </n-space>
+          </n-radio-group>
+        </div>
+        <div>
+          <n-radio-group v-model:value="exportOptions.override">
+            <n-space>
+              <n-radio :value="true"> 覆盖文件 </n-radio>
+              <n-radio :value="false"> 跳过存在文件 </n-radio>
+            </n-space>
+          </n-radio-group>
         </div>
       </div>
       <template #footer>
@@ -148,7 +159,7 @@ import {
   Pencil,
   FolderOpenOutline,
 } from "@vicons/ionicons5";
-import { useFfmpegPreset } from "@renderer/stores";
+import { useFfmpegPreset, useAppConfig } from "@renderer/stores";
 import { storeToRefs } from "pinia";
 
 import Xml2AssModal from "./components/Xml2AssModal.vue";
@@ -156,6 +167,7 @@ import type { DanmuConfig, DanmuOptions } from "@biliLive-tools/types";
 
 const notice = useNotification();
 const { ffmpegOptions } = storeToRefs(useFfmpegPreset());
+const { appConfig } = storeToRefs(useAppConfig());
 
 const files = ref<{
   video: string | null;
@@ -196,7 +208,8 @@ const importCsv = async () => {
     ],
   });
   if (!files) return;
-  const data = eval("(" + (await window.api.common.readFile(files[0])) + ")");
+  const file = files[0];
+  const data = eval("(" + (await window.api.common.readFile(file)) + ")");
   console.log(data);
   cuts.value = data.cutSegments.map((item: any) => {
     return {
@@ -331,7 +344,7 @@ const convertDanmu2Ass = async (
   });
 };
 
-const exportVisible = ref(true);
+const exportVisible = ref(false);
 const exportCuts = async () => {
   if (selectedCuts.value.length === 0) {
     notice.error({
@@ -357,10 +370,8 @@ const exportCuts = async () => {
   }
   exportVisible.value = true;
 };
-const exportOptions = reactive({
-  ffmpegPresetId: "",
-  savePath: "",
-});
+const exportOptions = appConfig.value.tool.videoCut;
+
 const confirmExport = async () => {
   if (convertDanmuLoading.value) {
     notice.error({
@@ -369,17 +380,48 @@ const confirmExport = async () => {
     });
     return;
   }
-  const savePath = await window.api.openDirectory({
-    defaultPath: window.path.dirname(files.value.video!),
-  });
-  if (!savePath) return;
+  if (!exportOptions.ffmpegPresetId) {
+    notice.error({
+      title: "请选择预设",
+      duration: 1000,
+    });
+    return;
+  }
+  let savePath: string;
 
+  if (exportOptions.saveRadio === 1) {
+    savePath = window.path.dirname(files.value.video!);
+  } else if (exportOptions.saveRadio === 2) {
+    if (exportOptions.savePath === "") {
+      notice.error({
+        title: "请选择保存路径",
+        duration: 1000,
+      });
+      return;
+    }
+    if (window.path.isAbsolute(exportOptions.savePath)) {
+      savePath = exportOptions.savePath;
+    } else {
+      // 相对路径和视频路径拼接
+      savePath = window.path.join(window.path.dirname(files.value.video!), exportOptions.savePath);
+      if (!(await window.api.exits(savePath))) {
+        // 不存在则创建
+        await window.api.common.mkdir(savePath);
+      }
+    }
+  } else {
+    notice.error({
+      title: "不支持此项配置",
+      duration: 1000,
+    });
+    return;
+  }
   for (const cut of selectedCuts.value) {
     window.api.mergeAssMp4(
       {
         videoFilePath: files.value.video!,
         assFilePath: files.value.danmuPath!,
-        outputPath: `${savePath}\\${cut.start}-${cut.name}.mp4`,
+        outputPath: window.path.join(savePath, `${cut.start}-${cut.name}.mp4`),
         hotProgressFilePath: undefined,
       },
       { removeOrigin: false },
@@ -419,6 +461,7 @@ async function getDir() {
 .content {
   display: flex;
   gap: 10px;
+  align-items: flex-start;
   .video {
     width: 80%;
     aspect-ratio: 16 / 9;
@@ -480,6 +523,11 @@ async function getDir() {
   text-align: right;
   .btn + .btn {
     margin-left: 10px;
+  }
+}
+.radio-group2 {
+  :deep(.n-radio) {
+    align-items: center;
   }
 }
 </style>

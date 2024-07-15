@@ -206,6 +206,9 @@ export const api = {
     getPathForFile: (file: any) => {
       return webUtils.getPathForFile(file);
     },
+    mkdir: (path: string) => {
+      return fs.mkdir(path);
+    },
   },
   bili: {
     // 预设

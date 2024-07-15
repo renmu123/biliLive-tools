@@ -166,6 +166,17 @@ export type ToolConfig = {
     /** 保存路径 */
     savePath: string;
   };
+  /** 切片 */
+  videoCut: {
+    /** 保存类型 */
+    saveRadio: 1 | 2;
+    /** 保存路径 */
+    savePath: string;
+    /** 覆盖已存在的文件 */
+    override: boolean;
+    /** ffmpeg预设 */
+    ffmpegPresetId: string;
+  };
 };
 
 export type NotificationTaskStatus = "success" | "failure";
