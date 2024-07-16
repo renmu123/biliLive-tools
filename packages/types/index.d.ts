@@ -176,6 +176,8 @@ export type ToolConfig = {
     override: boolean;
     /** ffmpeg预设 */
     ffmpegPresetId: string;
+    /** 标题 */
+    title: string;
   };
 };
 

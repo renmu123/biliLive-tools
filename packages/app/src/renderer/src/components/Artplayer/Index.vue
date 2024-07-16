@@ -40,6 +40,7 @@ onMounted(async () => {
       },
     },
   });
+  await nextTick();
   emit("ready", instance);
 });
 
@@ -58,9 +59,11 @@ const addSutitle = async (subtitle?: string) => {
   }
 };
 
+const video = computed(() => instance);
+
 defineExpose({
   switchUrl,
-  instance,
+  video,
   addSutitle,
 });
 

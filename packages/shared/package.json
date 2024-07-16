@@ -27,7 +27,9 @@
     "ollama": "^0.5.1",
     "tiny-typed-emitter": "^2.1.0",
     "trash": "^8.1.1",
-    "tree-kill": "^1.2.2"
+    "tree-kill": "^1.2.2",
+    "@napi-rs/canvas": "^0.1.53",
+    "subtitle": "^4.2.1"
   },
   "devDependencies": {
     "@types/fluent-ffmpeg": "^2.1.24",

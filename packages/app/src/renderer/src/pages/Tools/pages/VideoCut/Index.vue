@@ -46,12 +46,12 @@
         >
           <div class="time">
             {{ secondsToTimemark(cut.start) }}-<span>{{
-              cut.end ? secondsToTimemark(cut.end) : "结束"
+              secondsToTimemark(cut.end || videoDuration)
             }}</span>
           </div>
           <div class="name" style="color: skyblue">{{ cut.name }}</div>
           <div v-if="cut.end" class="duration">
-            持续时间：{{ secondsToTimemark(cut.end - cut.start) }}
+            持续时间：{{ secondsToTimemark(cut.end || videoDuration - cut.start) }}
           </div>
           <div class="icon">
             <n-icon v-if="cut.checked" size="20" :depth="3" @click.stop="toggleChecked(index)">
@@ -99,8 +99,12 @@
       aria-modal="true"
       class="card"
     >
-      <div>
-        <p>共有{{ cuts.length }}个切片，此次将导出{{ selectedCuts.length }}个视频</p>
+      <div style="display: flex; flex-direction: column; gap: 10px">
+        <div>
+          共有{{ cuts.length }}个切片，此次将导出<span style="color: skyblue">
+            {{ selectedCuts.length }} </span
+          >个视频
+        </div>
         <div class="flex" style="align-items: center">
           选择视频预设：
           <n-cascader
@@ -111,7 +115,7 @@
             check-strategy="child"
             :show-path="false"
             :filterable="true"
-            style="width: 140px; text-align: left"
+            style="width: 200px; text-align: left"
           />
         </div>
         <div class="flex" style="align-items: center">
@@ -137,6 +141,25 @@
               <n-radio :value="false"> 跳过存在文件 </n-radio>
             </n-space>
           </n-radio-group>
+        </div>
+        <div>
+          <div>输出文件名：</div>
+          <div>
+            <n-input
+              v-model:value="exportOptions.title"
+              placeholder="请输入视频标题"
+              clearable
+              style="margin-right: 10px"
+            />
+            <span
+              v-for="item in titleList"
+              :key="item.value"
+              :title="item.label"
+              class="title-var"
+              @click="setTitleVar(item.value)"
+              >{{ item.value }}</span
+            >
+          </div>
         </div>
       </div>
       <template #footer>
@@ -178,6 +201,7 @@ const files = ref<{
   danmu: null,
   danmuPath: null,
 });
+const videoDuration = ref(0);
 const videoTitle = computed(() => {
   return files.value.video ? "替换视频" : "添加视频";
 });
@@ -259,6 +283,10 @@ const handleVideoChange = async (event: any) => {
     const content = files.value.danmu;
     videoRef?.value?.addSutitle(content);
   }
+  setTimeout(() => {
+    videoDuration.value = Number(videoRef.value?.video?.duration);
+    console.log(videoDuration.value);
+  }, 1000);
 
   // 添加视频时将切片清空
   // cuts.value = [];
@@ -416,22 +444,34 @@ const confirmExport = async () => {
     });
     return;
   }
+  const ffmpegOptiosn = (await window.api.ffmpeg.getPreset(exportOptions.ffmpegPresetId)).config;
+  let index = 1;
   for (const cut of selectedCuts.value) {
+    const start = cut.start;
+    const end = cut.end || videoDuration.value;
+    const label = cut.name;
+
+    const title = exportOptions.title
+      .replace("{{filename}}", window.path.parse(files.value.video!).name)
+      .replace("{{label}}", label)
+      .replace("{{num}}", index.toString())
+      .replace("{{from}}", secondsToTimemark(start))
+      .replace("{{to}}", secondsToTimemark(end));
     window.api.mergeAssMp4(
       {
         videoFilePath: files.value.video!,
         assFilePath: files.value.danmuPath!,
-        outputPath: window.path.join(savePath, `${cut.start}-${cut.name}.mp4`),
+        outputPath: window.path.join(savePath, `${title}.mp4`),
         hotProgressFilePath: undefined,
       },
       { removeOrigin: false },
       {
-        encoder: "libx264",
-        audioCodec: "copy",
-        ss: cut.start,
-        to: cut.end,
+        ...ffmpegOptiosn,
+        ss: start,
+        to: end,
       },
     );
+    index += 1;
   }
   notice.info({
     title: "已加入任务队列",
@@ -448,6 +488,32 @@ async function getDir() {
   exportOptions.savePath = path;
   // options.saveRadio = 2;
 }
+
+const titleList = ref([
+  {
+    value: "{{filename}}",
+    label: "视频文件名",
+  },
+  {
+    value: "{{label}}",
+    label: "分段名",
+  },
+  {
+    value: "{{num}}",
+    label: "分段序号",
+  },
+  {
+    value: "{{from}}",
+    label: "分段开始时间",
+  },
+  {
+    value: "{{to}}",
+    label: "分段结束时间",
+  },
+]);
+const setTitleVar = (value: string) => {
+  exportOptions.title += value;
+};
 </script>
 
 <style scoped lang="less">
@@ -528,6 +594,24 @@ async function getDir() {
 .radio-group2 {
   :deep(.n-radio) {
     align-items: center;
+  }
+}
+
+.title-var {
+  display: inline-block;
+  margin-top: 4px;
+  margin-right: 10px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  &:not(.disabled):hover {
+    background-color: #e0e0e0;
+  }
+  &.disabled {
+    cursor: not-allowed;
   }
 }
 </style>

@@ -320,7 +320,12 @@ export const mergeAssMp4 = async (
     {
       onProgress(progress) {
         if (ffmpegOptions.ss) {
-          // TODO:单独计算进度条，根据timemark
+          // 单独计算进度条，根据timemark
+          const currentTime = timemarkToSeconds(progress.timemark);
+          const duration = ffmpegOptions.to
+            ? Number(ffmpegOptions.to) - Number(ffmpegOptions.ss)
+            : 0;
+          return { ...progress, percentage: Math.round((currentTime / duration) * 100) };
         }
         return progress;
       },
