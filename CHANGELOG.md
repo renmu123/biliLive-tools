@@ -1,5 +1,7 @@
 # 1.3.0
 
+**win版本的DanmakuFactory使用[master分支](https://github.com/hihkm/DanmakuFactory/compare/v1.70...master)编译，大幅优化录播姬弹幕的转换速度（发布前记得修改二进制文件）**
+
 ## 功能
 
 1. 首页工具栏支持续传
@@ -13,9 +15,8 @@
 
 1. 优化弹幕黑名单解析后保持原有顺序
 2. 优化webhook视频标题输入变量优化
-3. win版本的DanmakuFactory使用master分支编译，大幅优化录播姬弹幕的转换速度（发布前记得修改二进制文件）
-4. 为应用添加最小宽高
-5. 重构webhook方便写单元测试
+3. 为应用添加最小宽高
+4. 重构webhook方便写单元测试
 
 ## Bug修复
 

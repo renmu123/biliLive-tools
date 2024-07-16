@@ -203,7 +203,7 @@ export const api = {
     setTheme: (theme: Theme) => {
       return ipcRenderer.invoke("common:setTheme", theme);
     },
-    getPathForFile: (file: any) => {
+    getPathForFile: (file: globalThis.File) => {
       return webUtils.getPathForFile(file);
     },
     mkdir: (path: string) => {

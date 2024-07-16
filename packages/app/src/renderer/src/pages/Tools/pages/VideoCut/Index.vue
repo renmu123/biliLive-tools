@@ -22,7 +22,7 @@
         @change="handleDanmuChange"
       />
 
-      <n-button type="primary" @click="exportCuts"> 导出切片 </n-button>
+      <n-button type="info" @click="exportCuts"> 导出切片 </n-button>
     </div>
 
     <div class="content">
@@ -100,11 +100,10 @@
       class="card"
     >
       <div style="display: flex; flex-direction: column; gap: 10px">
-        <div>
-          共有{{ cuts.length }}个切片，此次将导出<span style="color: skyblue">
-            {{ selectedCuts.length }} </span
-          >个视频
-        </div>
+        <h3>
+          共有{{ cuts.length }}个切片，此次将导出
+          <span style="color: skyblue"> {{ selectedCuts.length }} </span> 个视频
+        </h3>
         <div class="flex" style="align-items: center">
           选择视频预设：
           <n-cascader
@@ -143,7 +142,9 @@
           </n-radio-group>
         </div>
         <div>
-          <div>输出文件名：</div>
+          <div style="margin-bottom: 5px">
+            输出文件名：<span style="color: red">{{ exportError }}</span>
+          </div>
           <div>
             <n-input
               v-model:value="exportOptions.title"
@@ -241,6 +242,26 @@ const importCsv = async () => {
       checked: true,
     };
   });
+  const mediaFileName = data.mediaFileName;
+  const videoPath = window.path.join(window.path.dirname(file), mediaFileName);
+  if (await window.api.exits(videoPath)) {
+    handleVideo(videoPath);
+  }
+  const assFilepath = window.path.join(
+    window.path.dirname(file),
+    `${window.path.parse(mediaFileName).name}.ass`,
+  );
+  if (await window.api.exits(assFilepath)) {
+    handleDanmu(assFilepath);
+  } else {
+    const xmlFilepath = window.path.join(
+      window.path.dirname(file),
+      `${window.path.parse(mediaFileName).name}.xml`,
+    );
+    if (await window.api.exits(xmlFilepath)) {
+      handleDanmu(xmlFilepath);
+    }
+  }
 };
 
 const toggleChecked = (index: number) => {
@@ -268,16 +289,19 @@ const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 const addVideo = () => {
   videoInputRef.value?.click();
 };
-const handleVideoChange = async (event: any) => {
-  const file = event.target.files[0];
+const handleVideoChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  if (!input.files) return;
+  const file = input.files[0];
   if (!file) return;
-  const url = URL.createObjectURL(file);
 
   const path = window.api.common.getPathForFile(file);
-  console.log(url);
-  files.value.video = path;
+  handleVideo(path);
+};
 
-  await videoRef.value?.switchUrl(url, path.endsWith(".flv") ? "flv" : "");
+const handleVideo = async (path: string) => {
+  files.value.video = path;
+  await videoRef.value?.switchUrl(path, path.endsWith(".flv") ? "flv" : "");
 
   if (files.value.danmu) {
     const content = files.value.danmu;
@@ -287,9 +311,6 @@ const handleVideoChange = async (event: any) => {
     videoDuration.value = Number(videoRef.value?.video?.duration);
     console.log(videoDuration.value);
   }, 1000);
-
-  // 添加视频时将切片清空
-  // cuts.value = [];
 };
 
 // 弹幕相关
@@ -299,18 +320,23 @@ const addDanmu = async () => {
 const xmlConvertVisible = ref(false);
 const tempXmlFile = ref("");
 const convertDanmuLoading = ref(false);
-const handleDanmuChange = async (event: any) => {
-  const file = event.target.files[0];
+const handleDanmuChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  if (!input.files) return;
+  const file = input.files[0];
   if (!file) return;
   const path = window.api.common.getPathForFile(file);
-  // 如果是xml文件则弹框提示，要求转换为ass文件
+  await handleDanmu(path);
+};
+const handleDanmu = async (path: string) => {
   if (path.endsWith(".ass")) {
-    const content = await file.text();
+    const content = await window.api.common.readFile(path);
     files.value.danmu = content;
     files.value.danmuPath = path;
 
     videoRef.value?.addSutitle(content);
   } else {
+    // 如果是xml文件则弹框提示，要求转换为ass文件
     xmlConvertVisible.value = true;
     tempXmlFile.value = path;
     convertDanmuLoading.value = true;
@@ -486,7 +512,6 @@ async function getDir() {
   });
   if (!path) return;
   exportOptions.savePath = path;
-  // options.saveRadio = 2;
 }
 
 const titleList = ref([
@@ -514,6 +539,17 @@ const titleList = ref([
 const setTitleVar = (value: string) => {
   exportOptions.title += value;
 };
+const exportError = computed(() => {
+  if (
+    exportOptions.title.includes("{{from}}") ||
+    exportOptions.title.includes("{{num}}") ||
+    exportOptions.title.includes("{{to}}")
+  ) {
+    return "";
+  } else {
+    return "输出文件名模板会导致文件名重复（您正在尝试导出多个同名文件）";
+  }
+});
 </script>
 
 <style scoped lang="less">
