@@ -1,4 +1,5 @@
 import { join } from "node:path";
+import child_process from "node:child_process";
 import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
@@ -80,6 +81,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:showItemInFolder", showItemInFolder);
   ipcMain.handle("common:setTheme", setTheme);
+  ipcMain.handle("common:execFile", execFile);
 
   // 视频处理
   ipcMain.handle("getAvailableEncoders", getAvailableEncoders);
@@ -506,6 +508,18 @@ const trashItem = (_event: IpcMainInvokeEvent, path: string) => {
 
 const setTheme = (_event: IpcMainInvokeEvent, theme: Theme) => {
   nativeTheme.themeSource = theme;
+};
+
+const execFile = async (_event: IpcMainInvokeEvent, file: string, args: string[]) => {
+  return new Promise((resolve, reject) => {
+    child_process.execFile(file, args, (error, stdout) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(stdout);
+      }
+    });
+  });
 };
 
 const checkUpdate = async () => {

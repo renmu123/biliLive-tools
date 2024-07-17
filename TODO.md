@@ -25,3 +25,4 @@
 19. webhook只在某段时间上传
 20. webhook支持webhook处理
 21. b站上传错误处理，比如网络原因
+22. 视频简介支持{{yyyy}}.{{MM}}.{{dd}}{{title}}等格式

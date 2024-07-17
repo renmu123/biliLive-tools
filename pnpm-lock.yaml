@@ -127,15 +127,9 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
-      ntsuspend:
-        specifier: ^1.0.2
-        version: 1.0.2
       semver:
         specifier: ^7.6.2
         version: 7.6.2
-      subtitle:
-        specifier: ^4.2.1
-        version: 4.2.1
     devDependencies:
       '@electron-toolkit/eslint-config':
         specifier: ^1.0.2
@@ -203,6 +197,9 @@ importers:
       flv.js:
         specifier: ^1.6.2
         version: 1.6.2
+      json5:
+        specifier: ^2.2.3
+        version: 2.2.3
       less:
         specifier: ^4.2.0
         version: 4.2.0
@@ -291,6 +288,9 @@ importers:
       '@biliLive-tools/types':
         specifier: workspace:*
         version: link:../types
+      '@napi-rs/canvas':
+        specifier: ^0.1.53
+        version: 0.1.53
       '@renmu/bili-api':
         specifier: ^1.3.4
         version: 1.3.4
@@ -315,6 +315,9 @@ importers:
       ollama:
         specifier: ^0.5.1
         version: 0.5.1
+      subtitle:
+        specifier: ^4.2.1
+        version: 4.2.1
       tiny-typed-emitter:
         specifier: ^2.1.0
         version: 2.1.0

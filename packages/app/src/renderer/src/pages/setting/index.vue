@@ -114,6 +114,20 @@
                 <FolderOpenOutline />
               </n-icon>
             </n-form-item>
+            <n-form-item label="lossless-cut路径">
+              <n-input
+                v-model:value="config.losslessCutPath"
+                placeholder="请输入lossless-cut可执行文件路径，设置为空使用默认桌面程序"
+              />
+              <n-icon
+                style="margin-left: 10px"
+                size="26"
+                class="pointer"
+                @click="selectFile('losslessCut')"
+              >
+                <FolderOpenOutline />
+              </n-icon>
+            </n-form-item>
             <n-form-item>
               <template #label>
                 <span class="inline-flex">
@@ -299,7 +313,7 @@ const getConfig = async () => {
   initConfig.value = cloneDeep(data);
 };
 
-const selectFile = async (file: "ffmpeg" | "ffprobe" | "danmakuFactory") => {
+const selectFile = async (file: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut") => {
   const files = await window.api.openFile({
     multi: false,
   });
@@ -311,6 +325,10 @@ const selectFile = async (file: "ffmpeg" | "ffprobe" | "danmakuFactory") => {
     config.value.ffprobePath = files[0];
   } else if (file === "danmakuFactory") {
     config.value.danmuFactoryPath = files[0];
+  } else if (file === "losslessCut") {
+    config.value.losslessCutPath = files[0];
+  } else {
+    console.error("未知文件类型");
   }
 };
 

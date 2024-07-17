@@ -1,9 +1,12 @@
 <template>
   <div class="container">
     <div class="btns">
-      <!-- 支持导入项目文件 -->
-      <n-button title="请选择LosslessCut项目文件" @click="importCsv"> 导入项目文件 </n-button>
-      <!-- <n-button @click="importCsv"> 导出时间戳 </n-button>  -->
+      <ButtonGroup
+        title="请选择LosslessCut项目文件"
+        :options="exportBtns"
+        @click="handleProjectClick"
+        >导入项目文件</ButtonGroup
+      >
       <n-button type="primary" @click="addVideo"> {{ videoTitle }} </n-button>
       <input
         ref="videoInputRef"
@@ -12,7 +15,6 @@
         style="display: none"
         @change="handleVideoChange"
       />
-      <!-- <ButtonGroup @click="addDanmu">{{ danmuTitle }}</ButtonGroup> -->
       <n-button type="primary" @click="addDanmu"> {{ danmuTitle }} </n-button>
       <input
         ref="danmuInputRef"
@@ -31,8 +33,7 @@
       </div>
 
       <div v-show="!files.video" class="video empty">
-        请选择视频文件以及导入<a href="https://github.com/mifi/lossless-cut" target="_blank"
-          >lossless-cut</a
+        请导入<a href="https://github.com/mifi/lossless-cut" target="_blank">lossless-cut</a
         >项目文件，如果你不会使用，请先查看教程
       </div>
       <div class="cut-list">
@@ -43,6 +44,7 @@
           :class="{
             checked: cut.checked,
           }"
+          @dblclick="navVideo(index)"
         >
           <div class="time">
             {{ secondsToTimemark(cut.start) }}-<span>{{
@@ -176,7 +178,7 @@
 <script setup lang="ts">
 import { uuid, secondsToTimemark } from "@renderer/utils";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
-// import ButtonGroup from "@renderer/components/ButtonGroup.vue";
+import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import {
   RadioButtonOffSharp,
   CheckmarkCircleOutline,
@@ -188,6 +190,7 @@ import { storeToRefs } from "pinia";
 
 import Xml2AssModal from "./components/Xml2AssModal.vue";
 import filenamify from "filenamify/browser";
+import { useLlcProject } from "./hooks";
 
 import type { DanmuConfig, DanmuOptions } from "@biliLive-tools/types";
 
@@ -212,59 +215,26 @@ const danmuTitle = computed(() => {
   return files.value.danmu ? "替换弹幕" : "添加弹幕";
 });
 
-const cuts = ref<
-  {
-    start: number;
-    end?: number;
-    name: string;
-    checked: boolean;
-  }[]
->([]);
-const selectedCuts = computed(() => {
-  return cuts.value.filter((item) => item.checked);
-});
+const { cuts, selectedCuts, handleProjectClick, mediaPath, options: exportBtns } = useLlcProject();
 
-const importCsv = async () => {
-  const files = await window.api.openFile({
-    multi: false,
-    filters: [
-      {
-        name: "file",
-        extensions: ["llc"],
-      },
-    ],
-  });
-  if (!files) return;
-  const file = files[0];
-  const data = eval("(" + (await window.api.common.readFile(file)) + ")");
-  console.log(data);
-  cuts.value = data.cutSegments.map((item: any) => {
-    return {
-      ...item,
-      checked: true,
-    };
-  });
-  const mediaFileName = data.mediaFileName;
-  const videoPath = window.path.join(window.path.dirname(file), mediaFileName);
-  if (await window.api.exits(videoPath)) {
-    handleVideo(videoPath);
-  }
-  const assFilepath = window.path.join(
-    window.path.dirname(file),
-    `${window.path.parse(mediaFileName).name}.ass`,
-  );
-  if (await window.api.exits(assFilepath)) {
-    handleDanmu(assFilepath);
-  } else {
-    const xmlFilepath = window.path.join(
-      window.path.dirname(file),
-      `${window.path.parse(mediaFileName).name}.xml`,
-    );
-    if (await window.api.exits(xmlFilepath)) {
-      handleDanmu(xmlFilepath);
+watchEffect(async () => {
+  if (mediaPath.value) {
+    const { dir, name } = window.path.parse(mediaPath.value);
+    const videoPath = mediaPath.value;
+    if (await window.api.exits(videoPath)) {
+      handleVideo(videoPath);
+    }
+    const assFilepath = window.path.join(dir, `${name}.ass`);
+    if (await window.api.exits(assFilepath)) {
+      handleDanmu(assFilepath);
+    } else {
+      const xmlFilepath = window.path.join(dir, `${name}.xml`);
+      if (await window.api.exits(xmlFilepath)) {
+        handleDanmu(xmlFilepath);
+      }
     }
   }
-};
+});
 
 const toggleChecked = (index: number) => {
   cuts.value[index].checked = !cuts.value[index].checked;
@@ -282,6 +252,14 @@ const editCut = (index: number) => {
 const confirmEditCutName = () => {
   cuts.value[tempCutIndex.value].name = tempCutName.value;
   cutEditVisible.value = false;
+};
+/**
+ * 导航到视频指定位置
+ */
+const navVideo = (index: number) => {
+  console.log(index);
+  // const cut = cuts.value[index];
+  // videoRef.value?.seek(cut.start);
 };
 
 const videoInputRef = ref<HTMLInputElement | null>(null);
@@ -592,6 +570,7 @@ const exportError = computed(() => {
       margin-bottom: 6px;
       position: relative;
       opacity: 0.5;
+      cursor: default;
       &.checked {
         opacity: 1;
       }

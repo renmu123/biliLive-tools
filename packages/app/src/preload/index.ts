@@ -1,5 +1,5 @@
-import path from "path";
-import os from "os";
+import path from "node:path";
+import os from "node:os";
 import fs from "fs-extra";
 
 import { contextBridge, ipcRenderer } from "electron";
@@ -10,7 +10,6 @@ import type { IpcRendererEvent, SaveDialogOptions } from "electron";
 import type {
   Progress,
   DanmuOptions,
-  // OpenDialogOptions,
   File,
   FfmpegOptions,
   AppConfig,
@@ -23,7 +22,6 @@ import type {
   FfmpegPreset,
   DanmuConfig,
   BiliUser,
-  // BiliApi,
   hotProgressOptions,
   Theme,
 } from "@biliLive-tools/types";
@@ -191,6 +189,9 @@ export const api = {
     readFile: (path: string) => {
       return fs.readFile(path, "utf-8");
     },
+    writeFile: (path: string, data: string) => {
+      return fs.writeFile(path, data);
+    },
     relaunch: () => {
       return ipcRenderer.invoke("common:relaunch");
     },
@@ -208,6 +209,9 @@ export const api = {
     },
     mkdir: (path: string) => {
       return fs.mkdir(path);
+    },
+    execFile: (file: string, args: string[]) => {
+      return ipcRenderer.invoke("common:execFile", file, args);
     },
   },
   bili: {

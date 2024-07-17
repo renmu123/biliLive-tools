@@ -228,6 +228,8 @@ export interface AppConfig {
   ffmpegPath: string;
   ffprobePath: string;
   danmuFactoryPath: string;
+  /** lossles-cut可执行路径 */
+  losslessCutPath: string;
   /** 保存到回收站 */
   trash: boolean;
   /** 自动检查更新 */

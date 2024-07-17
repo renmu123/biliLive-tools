@@ -49,6 +49,9 @@ abstract class AbstractTask {
     this.action = ["pause", "kill"];
     this.custsomProgressMsg = "";
   }
+  on(event: keyof TaskEvents, callback: (event: { taskId: string }) => void) {
+    this.emitter.on(event, callback);
+  }
 }
 
 export class DanmuTask extends AbstractTask {
