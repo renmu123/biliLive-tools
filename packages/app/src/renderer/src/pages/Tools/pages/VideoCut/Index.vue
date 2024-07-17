@@ -187,6 +187,8 @@ import { useFfmpegPreset, useAppConfig } from "@renderer/stores";
 import { storeToRefs } from "pinia";
 
 import Xml2AssModal from "./components/Xml2AssModal.vue";
+import filenamify from "filenamify/browser";
+
 import type { DanmuConfig, DanmuOptions } from "@biliLive-tools/types";
 
 const notice = useNotification();
@@ -477,13 +479,17 @@ const confirmExport = async () => {
     const end = cut.end || videoDuration.value;
     const label = cut.name;
 
-    const title = exportOptions.title
-      .replace("{{filename}}", window.path.parse(files.value.video!).name)
-      .replace("{{label}}", label)
-      .replace("{{num}}", index.toString())
-      .replace("{{from}}", secondsToTimemark(start))
-      .replace("{{to}}", secondsToTimemark(end));
-    window.api.mergeAssMp4(
+    const title = filenamify(
+      exportOptions.title
+        .replace("{{filename}}", window.path.parse(files.value.video!).name)
+        .replace("{{label}}", label)
+        .replace("{{num}}", index.toString())
+        .replace("{{from}}", secondsToTimemark(start).replaceAll(":", "."))
+        .replace("{{to}}", secondsToTimemark(end).replaceAll(":", "."))
+        .trim(),
+      { replacement: "" },
+    );
+    await window.api.mergeAssMp4(
       {
         videoFilePath: files.value.video!,
         assFilePath: files.value.danmuPath!,

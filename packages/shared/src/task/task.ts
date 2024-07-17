@@ -159,7 +159,9 @@ export class FFmpegTask extends AbstractTask {
       this.name = options.name;
     }
 
-    log.info(`ffmpeg task ${this.taskId} start, command: ${command._getArguments().join(" ")}`);
+    log.info(
+      `ffmpeg task ${this.taskId} has been added, command: ${command._getArguments().join(" ")}`,
+    );
 
     command.on("start", (commandLine: string) => {
       this.progress = 0;
@@ -209,6 +211,7 @@ export class FFmpegTask extends AbstractTask {
     });
   }
   exec() {
+    this.status = "running";
     this.command.run();
   }
   pause() {
