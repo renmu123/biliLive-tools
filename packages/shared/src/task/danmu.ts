@@ -36,9 +36,13 @@ const addConvertDanmu2AssTask = async (
     tempInput = join(os.tmpdir(), `${uuid()}.xml`);
     await fs.copyFile(originInput, tempInput);
   }
+
   if (danmuOptions.blacklist) {
-    tempInput = tempInput || join(os.tmpdir(), `${uuid()}.xml`);
-    await filterBlacklist2File(originInput, tempInput, danmuOptions.blacklist);
+    const tempDir = os.tmpdir();
+    const fileTxtPath = join(tempDir, `${uuid()}.txt`);
+    const fileTxtContent = danmuOptions.blacklist.split(",").join("\n");
+    await fs.writeFile(fileTxtPath, fileTxtContent);
+    danmuOptions.blacklist = fileTxtPath;
   }
 
   const input = tempInput || originInput;
@@ -59,6 +63,9 @@ const addConvertDanmu2AssTask = async (
         if (tempInput && (await pathExists(tempInput))) {
           await fs.unlink(tempInput);
         }
+        if (danmuOptions.blacklist && (await pathExists(danmuOptions.blacklist))) {
+          await fs.unlink(danmuOptions.blacklist);
+        }
       },
       onError: async (error) => {
         log.error("danmufactory", {
@@ -69,6 +76,9 @@ const addConvertDanmu2AssTask = async (
         });
         if (tempInput && (await pathExists(tempInput))) {
           await fs.unlink(tempInput);
+        }
+        if (danmuOptions.blacklist && (await pathExists(danmuOptions.blacklist))) {
+          await fs.unlink(danmuOptions.blacklist);
         }
       },
     },
@@ -134,18 +144,18 @@ export const isEmptyDanmu = async (file: string) => {
   return true;
 };
 
-/**
- * 屏蔽词过滤
- * @param file 输入文件
- * @param output 输出文件
- * @param blacklist 屏蔽词列表，换行分割
- */
-const filterBlacklist2File = async (file: string, output: string, blacklist: string) => {
-  const XMLdata = await fs.promises.readFile(file, "utf8");
-  const outputContent = filterBlacklist(XMLdata, blacklist.split(","));
-  await fs.promises.writeFile(output, outputContent);
-  return output;
-};
+// /**
+//  * 屏蔽词过滤
+//  * @param file 输入文件
+//  * @param output 输出文件
+//  * @param blacklist 屏蔽词列表，换行分割
+//  */
+// const filterBlacklist2File = async (file: string, output: string, blacklist: string) => {
+//   const XMLdata = await fs.promises.readFile(file, "utf8");
+//   const outputContent = filterBlacklist(XMLdata, blacklist.split(","));
+//   await fs.promises.writeFile(output, outputContent);
+//   return output;
+// };
 
 /**
  * 屏蔽词过滤

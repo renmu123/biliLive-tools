@@ -41,9 +41,11 @@ export class Danmu {
         return `--${key} ${value.join("-")}`;
       } else if (key === "fontname") {
         return `--${key} "${value}"`;
-      } else if (["resolutionResponsive", "blacklist", "customDensity", "opacity"].includes(key)) {
+      } else if (["resolutionResponsive", "customDensity", "opacity"].includes(key)) {
         // do nothing
         return "";
+      } else if (key === "blacklist") {
+        if (value) return `--${key} ${value}`;
       } else if (key === "density") {
         if (value === -2) return `--density ${config.customDensity}`;
         return `--${key} ${value}`;
