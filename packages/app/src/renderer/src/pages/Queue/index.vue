@@ -28,14 +28,22 @@
       <div v-for="item in displayQueue" :key="item.taskId" class="item">
         <div class="content-container">
           <div class="name-container">
-            <span class="name" :title="item.name">{{ item.name }}</span>
+            <span class="name" :title="item.output">{{ item.name }}</span>
             <span
               class="status"
               :style="{
                 color: statusMap[item.status].color,
+                marginRight: '5px',
               }"
               >{{ statusMap[item.status].text }}</span
             >
+            <n-icon v-if="item.error" :size="18" :title="item.error">
+              <AlertCircleOutline
+                :style="{
+                  color: statusMap[item.status].color,
+                }"
+              ></AlertCircleOutline>
+            </n-icon>
           </div>
           <div class="btns">
             <n-icon
@@ -155,7 +163,13 @@
 </template>
 
 <script setup lang="ts">
-import { PlaySharp, PauseSharp, TrashOutline, CloseOutline } from "@vicons/ionicons5";
+import {
+  PlaySharp,
+  PauseSharp,
+  TrashOutline,
+  CloseOutline,
+  AlertCircleOutline,
+} from "@vicons/ionicons5";
 import { FileOpenOutlined, FolderOpenOutlined, LiveTvOutlined } from "@vicons/material";
 import { useConfirm } from "@renderer/hooks";
 import { useQueueStore } from "@renderer/stores";
@@ -176,6 +190,7 @@ interface Task {
   action: ("pause" | "kill" | "interrupt")[];
   startTime?: number;
   endTime?: number;
+  error?: string;
 }
 
 const queue = computed(() => store.queue);
@@ -210,10 +225,10 @@ const typeOptions = ref([
     value: TaskType.biliDownload,
     label: "B站下载",
   },
-  {
-    value: TaskType.subtitleTranslate,
-    label: "字幕翻译",
-  },
+  // {
+  //   value: TaskType.subtitleTranslate,
+  //   label: "字幕翻译",
+  // },
 ]);
 
 const statusMap: {

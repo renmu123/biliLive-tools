@@ -190,7 +190,7 @@ zip包并非传统意义上的绿色包，数据和安装包文件的会存放�
   - [x] 工具页面，flv的转封装
   - [x] 支持视频合并
   - [x] 下载页面
-  - [ ] 根据弹幕切片
+  - [ ] 支持局部渲染
 - [x] log记录及其展示
 - [x] 配置持久化，压制高能进度条
 - [x] B站上传支持
@@ -203,7 +203,7 @@ zip包并非传统意义上的绿色包，数据和安装包文件的会存放�
   - [x] 支持自动上传
   - [x] 支持弹幕压制
   - [x] 断播续传
-- [x] 打包不带ffmpeg的版本，支持自定义ffmpeg以及ffprobe
+- [x] 支持自定义ffmpeg以及ffprobe
 
 # 开发
 
@@ -223,7 +223,7 @@ $ pnpm run install:bin
 新建`packages\app\resources\bin`文件夹，里面需要三个个文件。
 同时需要在应用的设置里设置相关可执行文件地址。
 
-1. `DanmukuFactory.exe` [1.7.0版本](https://github.com/hihkm/DanmakuFactory/releases/tag/v1.70)
+1. `DanmukuFactory.exe` [自编译版本](https://github.com/renmu123/DanmakuFactory/tree/test)
 2. `ffmpeg.exe` [n7.0](https://github.com/BtbN/FFmpeg-Builds/releases)
 3. `ffprobe.exe` [n7.0](https://github.com/BtbN/FFmpeg-Builds/releases)
 

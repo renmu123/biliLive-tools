@@ -18,22 +18,22 @@ import { TaskType } from "../enum.js";
 interface TaskEvents {
   "task-start": ({ taskId }: { taskId: string }) => void;
   "task-end": ({ taskId }: { taskId: string }) => void;
-  "task-error": ({ taskId }: { taskId: string }) => void;
+  "task-error": ({ taskId, error }: { taskId: string; error: string }) => void;
   "task-progress": ({ taskId }: { taskId: string }) => void;
 }
 
-// type Status = "pending" | "running" | "paused" | "completed" | "error";
 abstract class AbstractTask {
   taskId: string;
   status: Status;
   name: string;
   relTaskId?: string;
-  output?: string | number;
+  output?: string;
   progress: number;
   custsomProgressMsg: string;
   action: ("pause" | "kill" | "interrupt")[];
   startTime?: number;
   endTime?: number;
+  error?: string;
   emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
 
   abstract type: string;
@@ -41,9 +41,6 @@ abstract class AbstractTask {
   abstract kill(): void;
   abstract pause(): void;
   abstract resume(): void;
-  on(event: keyof TaskEvents, callback: (event: { taskId: string }) => void) {
-    this.emitter.on(event, callback);
-  }
   constructor() {
     this.taskId = uuid();
     this.status = "pending";
@@ -112,7 +109,8 @@ export class DanmuTask extends AbstractTask {
       .catch((err) => {
         this.status = "error";
         this.callback.onError && this.callback.onError(err);
-        this.emitter.emit("task-error", { taskId: this.taskId });
+        this.error = err;
+        this.emitter.emit("task-error", { taskId: this.taskId, error: err });
       });
   }
   pause() {
@@ -181,7 +179,8 @@ export class FFmpegTask extends AbstractTask {
         this.status = "error";
 
         callback.onError && callback.onError(msg);
-        this.emitter.emit("task-error", { taskId: this.taskId });
+        this.error = msg;
+        this.emitter.emit("task-error", { taskId: this.taskId, error: msg });
       } else {
         log.info(`task ${this.taskId} end`);
         this.status = "completed";
@@ -197,7 +196,8 @@ export class FFmpegTask extends AbstractTask {
       this.status = "error";
 
       callback.onError && callback.onError(err);
-      this.emitter.emit("task-error", { taskId: this.taskId });
+      this.error = err;
+      this.emitter.emit("task-error", { taskId: this.taskId, error: err });
     });
     command.on("progress", (progress) => {
       progress.percentage = progress.percent;
@@ -313,7 +313,7 @@ export class BiliVideoTask extends AbstractTask {
       log.info(`task ${this.taskId} end`, data);
       this.status = "completed";
       this.progress = 100;
-      this.output = data.aid;
+      this.output = String(data.aid);
       callback.onEnd && callback.onEnd(data);
       this.emitter.emit("task-end", { taskId: this.taskId });
       this.endTime = Date.now();
@@ -323,7 +323,8 @@ export class BiliVideoTask extends AbstractTask {
       this.status = "error";
 
       callback.onError && callback.onError(err);
-      this.emitter.emit("task-error", { taskId: this.taskId });
+      this.error = err;
+      this.emitter.emit("task-error", { taskId: this.taskId, error: err });
     });
 
     // let size = 0;
@@ -442,7 +443,8 @@ export class BiliDownloadVideoTask extends AbstractTask {
       this.status = "error";
 
       callback.onError && callback.onError(err);
-      this.emitter.emit("task-error", { taskId: this.taskId });
+      this.error = err;
+      this.emitter.emit("task-error", { taskId: this.taskId, error: err });
     });
     let size = 0;
     let time = Date.now();
@@ -500,94 +502,6 @@ export class BiliDownloadVideoTask extends AbstractTask {
   }
 }
 
-/**
- * 翻译任务
- */
-export class TranslateTask extends AbstractTask {
-  danmu: Danmu;
-  input: string;
-  options: any;
-  type = TaskType.subtitleTranslate;
-  controller: AbortController;
-  callback: {
-    onStart?: () => void;
-    onEnd?: (output: string) => void;
-    onError?: (err: string) => void;
-    onProgress?: (progress: Progress) => any;
-  };
-  constructor(
-    danmu: Danmu,
-    options: {
-      input: string;
-      output: string;
-      options: any;
-      name: string;
-    },
-    callback?: {
-      onStart?: () => void;
-      onEnd?: (output: string) => void;
-      onError?: (err: string) => void;
-      onProgress?: (progress: Progress) => any;
-    },
-  ) {
-    super();
-    this.danmu = danmu;
-    this.input = options.input;
-    this.options = options.options;
-    this.output = options.output;
-    this.progress = 0;
-    if (options.name) {
-      this.name = options.name;
-    }
-    this.action = [];
-    this.callback = callback || {};
-    this.controller = new AbortController();
-  }
-  exec() {
-    this.callback.onStart && this.callback.onStart();
-    this.status = "running";
-    this.progress = 0;
-    this.emitter.emit("task-start", { taskId: this.taskId });
-    this.startTime = Date.now();
-    // this.danmu
-    //   .convertXml2Ass(this.input, this.output as string, this.options, this.controller.signal)
-    //   .then(({ stdout, stderr }) => {
-    //     log.debug("stdout", stdout);
-    //     log.debug("stderr", stderr);
-
-    //     if (stderr) {
-    //       this.status = "error";
-    //       this.callback.onError && this.callback.onError(stderr);
-    //       this.emitter.emit("task-error", { taskId: this.taskId });
-    //       return;
-    //     }
-    //     this.status = "completed";
-    //     this.callback.onEnd && this.callback.onEnd(this.output as string);
-    //     this.progress = 100;
-    //     this.emitter.emit("task-end", { taskId: this.taskId });
-    //     this.endTime = Date.now();
-    //   })
-    //   .catch((err) => {
-    //     this.status = "error";
-    //     this.callback.onError && this.callback.onError(err);
-    //     this.emitter.emit("task-error", { taskId: this.taskId });
-    //   });
-  }
-  pause() {
-    return false;
-  }
-  resume() {
-    return false;
-  }
-  kill() {
-    if (this.status === "completed" || this.status === "error") return;
-    log.warn(`danmu task ${this.taskId} killed`);
-    this.status = "error";
-    this.controller.abort();
-    return true;
-  }
-}
-
 export class TaskQueue {
   queue: AbstractTask[];
   emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
@@ -612,16 +526,16 @@ export class TaskQueue {
       }
     }
 
-    task.on("task-end", ({ taskId }) => {
+    task.emitter.on("task-end", ({ taskId }) => {
       this.emitter.emit("task-end", { taskId });
     });
-    task.on("task-error", ({ taskId }) => {
-      this.emitter.emit("task-error", { taskId });
+    task.emitter.on("task-error", ({ taskId, error }) => {
+      this.emitter.emit("task-error", { taskId, error });
     });
-    task.on("task-progress", ({ taskId }) => {
+    task.emitter.on("task-progress", ({ taskId }) => {
       this.emitter.emit("task-progress", { taskId });
     });
-    task.on("task-start", ({ taskId }) => {
+    task.emitter.on("task-start", ({ taskId }) => {
       this.emitter.emit("task-start", { taskId });
     });
   }
@@ -643,6 +557,7 @@ export class TaskQueue {
         startTime: task.startTime,
         endTime: task.endTime,
         custsomProgressMsg: task.custsomProgressMsg,
+        error: task.error,
       };
     });
   }

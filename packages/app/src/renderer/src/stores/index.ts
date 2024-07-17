@@ -216,6 +216,7 @@ interface Task {
   startTime?: number;
   endTime?: number;
   custsomProgressMsg: string;
+  error?: string;
 }
 
 export const useQueueStore = defineStore("queue", () => {

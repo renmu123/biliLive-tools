@@ -1,6 +1,6 @@
 # 1.3.0
 
-**win版本的DanmakuFactory使用[master分支](https://github.com/hihkm/DanmakuFactory/compare/v1.70...master)编译，大幅优化录播姬弹幕的转换速度（发布前记得修改二进制文件）**
+**win版本的DanmakuFactory并非使用官方项目，而是使用[自编译](https://github.com/renmu123/DanmakuFactory/tree/test)编译，大幅优化录播姬弹幕的转换速度（发布前记得修改二进制文件）**
 
 ## 功能
 
@@ -17,6 +17,7 @@
 2. 优化webhook视频标题输入变量优化
 3. 为应用添加最小宽高
 4. 重构webhook方便写单元测试
+5. 队列页面更好的错误显示
 
 ## Bug修复
 
