@@ -99,7 +99,7 @@ describe.concurrent("genDanmuArgs", () => {
       blockmode: ["R2L", "L2R"],
       statmode: ["TABLE", "HISTOGRAM"],
       fontname: "Arial",
-      blacklist: [],
+      blacklist: "",
       showusernames: true,
     };
     // const config = {
@@ -152,7 +152,7 @@ describe.concurrent("genDanmuArgs", () => {
       blockmode: ["R2L", "L2R"],
       statmode: ["TABLE", "HISTOGRAM"],
       fontname: "Arial",
-      blacklist: [],
+      blacklist: "",
       opacity100: 100,
     };
 
@@ -179,7 +179,7 @@ describe.concurrent("genDanmuArgs", () => {
       blockmode: ["R2L", "L2R"],
       statmode: ["TABLE", "HISTOGRAM"],
       fontname: "Arial",
-      blacklist: [],
+      blacklist: "",
       opacity100: 100,
       test: "test",
     };
@@ -207,7 +207,7 @@ describe.concurrent("genDanmuArgs", () => {
       blockmode: ["R2L", "L2R"],
       statmode: ["TABLE", "HISTOGRAM"],
       fontname: "Arial",
-      blacklist: [],
+      blacklist: "",
       density: 0,
       customDensity: 50,
     };
@@ -235,7 +235,7 @@ describe.concurrent("genDanmuArgs", () => {
       blockmode: ["R2L", "L2R"],
       statmode: ["TABLE", "HISTOGRAM"],
       fontname: "Arial",
-      blacklist: [],
+      blacklist: "",
       density: -2,
       customDensity: 50,
     };
@@ -266,7 +266,7 @@ describe.concurrent("genDanmuArgs", () => {
       blockmode: ["R2L", "L2R"],
       statmode: ["TABLE", "HISTOGRAM"],
       fontname: "Arial",
-      blacklist: [],
+      blacklist: "",
       density: 0,
       customDensity: 50,
     };

@@ -40,7 +40,10 @@ const addConvertDanmu2AssTask = async (
   if (danmuOptions.blacklist) {
     const tempDir = os.tmpdir();
     const fileTxtPath = join(tempDir, `${uuid()}.txt`);
-    const fileTxtContent = danmuOptions.blacklist.split(",").join("\n");
+    const fileTxtContent = danmuOptions.blacklist
+      .split(",")
+      .filter((value) => value)
+      .join("\n");
     await fs.writeFile(fileTxtPath, fileTxtContent);
     danmuOptions.blacklist = fileTxtPath;
   }

@@ -46,6 +46,7 @@ export class Danmu {
         return "";
       } else if (key === "blacklist") {
         if (value) return `--${key} ${value}`;
+        return "";
       } else if (key === "density") {
         if (value === -2) return `--density ${config.customDensity}`;
         return `--${key} ${value}`;
