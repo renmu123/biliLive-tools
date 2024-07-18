@@ -61,6 +61,7 @@
     "eslint-plugin-vue": "^9.26.0",
     "filenamify": "^6.0.0",
     "flv.js": "^1.6.2",
+    "hotkeys-js": "^3.13.7",
     "json5": "^2.2.3",
     "less": "^4.2.0",
     "marked": "^13.0.1",

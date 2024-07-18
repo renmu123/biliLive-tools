@@ -5,7 +5,8 @@ import { storeToRefs } from "pinia";
 export function useLlcProject() {
   const notice = useNotification();
   const { appConfig } = storeToRefs(useAppConfig());
-  const { cuts, selectedCuts } = storeToRefs(useSegmentStore());
+  const { rawCuts, selectedCuts, cuts } = storeToRefs(useSegmentStore());
+  const { clearHistory } = useSegmentStore();
 
   const llcProjectPath = ref("");
   const mediaPath = ref("");
@@ -34,7 +35,7 @@ export function useLlcProject() {
   const handleProject = async (file: string) => {
     llcProjectPath.value = file;
     const data = JSON5.parse(await window.api.common.readFile(file));
-    cuts.value = data.cutSegments.map((item: any) => {
+    rawCuts.value = data.cutSegments.map((item: any) => {
       return {
         ...item,
         checked: true,
@@ -51,24 +52,21 @@ export function useLlcProject() {
     if (!llcProjectPath.value) {
       return;
     }
+    clearHistory();
     handleProject(llcProjectPath.value);
   };
 
   /**
    * 保存项目文件
    */
-  const asveProject = async () => {
+  const saveProject = async () => {
     if (!llcProjectPath.value) {
       return;
     }
-    // const data = {
-    //   mediaFileName: window.path.basename(mediaPath.value),
-    //   cutSegments: cuts.value,
-    // };
     const projectData = {
       version: 1,
       mediaFileName: window.path.basename(mediaPath.value),
-      cutSegments: cuts.value.map(({ start, end, name, tags }) => ({ start, end, name, tags })),
+      cutSegments: rawCuts.value.map(({ start, end, name, tags }) => ({ start, end, name, tags })),
     };
     await window.api.common.writeFile(llcProjectPath.value, JSON5.stringify(projectData, null, 2));
   };
@@ -94,6 +92,20 @@ export function useLlcProject() {
   };
 
   /**
+   * 另存为项目文件
+   */
+  const saveAnother = async () => {
+    const files = await window.api.showSaveDialog({
+      filters: [{ name: "LosslessCut项目", extensions: ["llc"] }],
+    });
+
+    if (!files) return;
+    const file = files[0];
+    llcProjectPath.value = file;
+    await saveProject();
+  };
+
+  /**
    * 导入项目文件按钮组点击事件
    */
   const handleProjectClick = (key?: string | number) => {
@@ -102,9 +114,11 @@ export function useLlcProject() {
     } else if (key === "refresh") {
       loadProject();
     } else if (key === "save") {
-      asveProject();
+      saveProject();
     } else if (key === "open") {
       openProject();
+    } else if (key === "saveAnother") {
+      saveAnother();
     } else {
       console.error(`${key} is not supported`);
     }
@@ -115,6 +129,7 @@ export function useLlcProject() {
     return [
       { label: "重新加载", key: "refresh", disabled },
       { label: "保存", key: "save", disabled },
+      { label: "另存为", key: "saveAnother", disabled },
       { label: "打开", key: "open", disabled },
     ];
   });

@@ -90,7 +90,6 @@ import filenamify from "filenamify/browser";
 import { secondsToTimemark } from "@renderer/utils";
 
 interface Props {
-  videoDuration: number;
   files: {
     video: string | null;
     danmuPath: string | null;
@@ -98,7 +97,6 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  videoDuration: 0,
   files: () => {
     return {
       video: null,
@@ -162,7 +160,7 @@ const confirmExport = async () => {
   let index = 1;
   for (const cut of selectedCuts.value) {
     const start = cut.start;
-    const end = cut.end || props.videoDuration;
+    const end = cut.end;
     const label = cut.name;
 
     const title = filenamify(

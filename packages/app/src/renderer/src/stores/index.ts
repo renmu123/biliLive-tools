@@ -310,21 +310,104 @@ export const useAppConfig = defineStore("appConfig", () => {
   };
 });
 
+const useHistoryStore = defineStore("history", () => {
+  const history = ref<any[]>([]);
+  const canUndo = computed(() => history.value.length > 0);
+  // const canRedo = computed(() => history.value.length > 0);
+  const add = (payload: any) => {
+    history.value.push(payload);
+  };
+  const undo = () => {
+    if (canUndo.value) {
+      return history.value.pop();
+    }
+  };
+  // const redo = (payload: any) => {
+  //   if (canRedo.value) {
+  //     history.value.push(payload);
+  //   }
+  // };
+  const clear = () => {
+    history.value = [];
+  };
+  return {
+    history,
+    canUndo,
+    // canRedo,
+    add,
+    undo,
+    clear,
+    // redo,
+  };
+});
+
 interface Segment {
   start: number;
   end?: number;
   name: string;
   checked: boolean;
-  tags: any;
+  tags?: any;
 }
+type SegmentWithRequiredEnd = Required<Pick<Segment, "end">> & Omit<Segment, "end">;
+
 export const useSegmentStore = defineStore("segment", () => {
-  const cuts = ref<Segment[]>([]);
+  const duration = ref(0);
+
+  const rawCuts = ref<Segment[]>([]);
+  const cuts = readonly(
+    computed<SegmentWithRequiredEnd[]>(() => {
+      return rawCuts.value.map((item: Segment) => {
+        return {
+          ...item,
+          end: item.end || duration.value,
+        };
+      });
+    }),
+  );
+  // const history = ref<Segment[][]>([]);
+  const historyStore = useHistoryStore();
+
+  const recordHistory = () => {
+    historyStore.add(cloneDeep(rawCuts.value));
+  };
+  const clearHistory = () => {
+    historyStore.clear();
+  };
+  const undo = () => {
+    rawCuts.value = historyStore.undo();
+  };
+
   const selectedCuts = computed(() => {
     return cuts.value.filter((item) => item.checked);
   });
+  const addSegment = (cut: Segment) => {
+    recordHistory();
+    rawCuts.value.push(cut);
+  };
+  const removeSegment = (index: number) => {
+    recordHistory();
+    rawCuts.value.splice(index, 1);
+  };
+  const updateSegment = <K extends keyof Segment>(index: number, key: K, value: Segment[K]) => {
+    recordHistory();
+    const cut = rawCuts.value[index];
+    cut[key] = value;
+  };
+  const toggleSegment = (index: number) => {
+    recordHistory();
+    rawCuts.value[index].checked = !rawCuts.value[index].checked;
+  };
 
   return {
     cuts,
     selectedCuts,
+    duration,
+    rawCuts,
+    addSegment,
+    removeSegment,
+    updateSegment,
+    toggleSegment,
+    clearHistory,
+    undo,
   };
 });

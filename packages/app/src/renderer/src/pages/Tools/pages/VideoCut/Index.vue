@@ -48,22 +48,24 @@
         >项目文件，如果你不会使用，请先查看教程
       </div>
       <div v-show="files.video" class="cut-list">
-        <SegmentList @seek="navVideo"></SegmentList>
+        <SegmentList></SegmentList>
       </div>
     </div>
   </div>
   <Xml2AssModal v-model="xmlConvertVisible" @confirm="danmuConfirm"></Xml2AssModal>
-  <ExportModal v-model="exportVisible" :video-duration="videoDuration" :files="files"></ExportModal>
+  <ExportModal v-model="exportVisible" :files="files"></ExportModal>
 </template>
 
 <script setup lang="ts">
 import { uuid } from "@renderer/utils";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
+import { useSegmentStore } from "@renderer/stores";
 import Xml2AssModal from "./components/Xml2AssModal.vue";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 import { useLlcProject } from "./hooks";
+import { storeToRefs } from "pinia";
 
 import type ArtplayerType from "artplayer";
 import type { DanmuConfig, DanmuOptions } from "@biliLive-tools/types";
@@ -79,7 +81,6 @@ const files = ref<{
   danmu: null,
   danmuPath: null,
 });
-const videoDuration = ref(0);
 const videoTitle = computed(() => {
   return files.value.video ? "替换视频" : "添加视频";
 });
@@ -88,6 +89,7 @@ const danmuTitle = computed(() => {
 });
 
 const { selectedCuts, handleProjectClick, mediaPath, options: exportBtns } = useLlcProject();
+const { duration: videoDuration } = storeToRefs(useSegmentStore());
 
 watchEffect(async () => {
   if (mediaPath.value) {
@@ -112,9 +114,10 @@ const videoInputRef = ref<HTMLInputElement | null>(null);
 const danmuInputRef = ref<HTMLInputElement | null>(null);
 const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 
-let videoInstance: ArtplayerType;
+const videoInstance = ref<ArtplayerType | null>(null);
+provide("videoInstance", videoInstance);
 const handleVideoReady = (instance: ArtplayerType) => {
-  videoInstance = instance;
+  videoInstance.value = instance;
 };
 
 const addVideo = () => {
@@ -139,7 +142,7 @@ const handleVideo = async (path: string) => {
     videoRef?.value?.addSutitle(content);
   }
   setTimeout(() => {
-    videoDuration.value = Number(videoInstance.video?.duration);
+    videoDuration.value = Number(videoInstance.value!.video?.duration);
     console.log(videoDuration.value);
   }, 1000);
 };
@@ -262,13 +265,6 @@ const exportCuts = async () => {
     return;
   }
   exportVisible.value = true;
-};
-
-/**
- * 导航到视频指定位置
- */
-const navVideo = (start: number) => {
-  videoInstance.seek = start;
 };
 </script>
 

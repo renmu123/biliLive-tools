@@ -122,7 +122,7 @@ const menuOptions = computed<MenuOption[]>(() => {
     },
     {
       label: () => h("span", "工具页"),
-      key: "about1",
+      key: "tools",
       icon: renderIcon(BookIcon),
       children: [
         {
