@@ -91,7 +91,7 @@ import { secondsToTimemark } from "@renderer/utils";
 
 interface Props {
   files: {
-    video: string | null;
+    videoPath: string | null;
     danmuPath: string | null;
   };
 }
@@ -99,7 +99,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   files: () => {
     return {
-      video: null,
+      videoPath: null,
       danmuPath: null,
     };
   },
@@ -130,7 +130,7 @@ const confirmExport = async () => {
   let savePath: string;
 
   if (exportOptions.saveRadio === 1) {
-    savePath = window.path.dirname(props.files.video!);
+    savePath = window.path.dirname(props.files.videoPath!);
   } else if (exportOptions.saveRadio === 2) {
     if (exportOptions.savePath === "") {
       notice.error({
@@ -143,7 +143,10 @@ const confirmExport = async () => {
       savePath = exportOptions.savePath;
     } else {
       // 相对路径和视频路径拼接
-      savePath = window.path.join(window.path.dirname(props.files.video!), exportOptions.savePath);
+      savePath = window.path.join(
+        window.path.dirname(props.files.videoPath!),
+        exportOptions.savePath,
+      );
       if (!(await window.api.exits(savePath))) {
         // 不存在则创建
         await window.api.common.mkdir(savePath);
@@ -165,7 +168,7 @@ const confirmExport = async () => {
 
     const title = filenamify(
       exportOptions.title
-        .replace("{{filename}}", window.path.parse(props.files.video!).name)
+        .replace("{{filename}}", window.path.parse(props.files.videoPath!).name)
         .replace("{{label}}", label)
         .replace("{{num}}", index.toString())
         .replace("{{from}}", secondsToTimemark(start).replaceAll(":", "."))
@@ -175,7 +178,7 @@ const confirmExport = async () => {
     );
     await window.api.mergeAssMp4(
       {
-        videoFilePath: props.files.video!,
+        videoFilePath: props.files.videoPath!,
         assFilePath: props.files.danmuPath!,
         outputPath: window.path.join(savePath, `${title}.mp4`),
         hotProgressFilePath: undefined,

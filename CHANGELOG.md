@@ -1,6 +1,6 @@
 # 1.3.0
 
-**win版本的DanmakuFactory并非使用官方项目，而是使用[自编译](https://github.com/renmu123/DanmakuFactory/tree/test)编译，大幅优化录播姬弹幕的转换速度（发布前记得修改二进制文件）**
+**win版本的DanmakuFactory并非使用官方项目，而是使用[自编译版本](https://github.com/renmu123/DanmakuFactory/tree/test)，大幅优化录播姬弹幕的转换速度（发布前记得修改二进制文件）**
 
 ## 功能
 
@@ -8,7 +8,7 @@
 2. 增加切片工具页（支持lossless-cut）
    1. 支持导入lossless-cut项目文件
    2. 支持ctrl+s,ctrl+shift+s,ctrl+z,ctrl+shif+z快捷键
-   3. 支持编辑后保存为lossless-cut项目文件
+   3. 支持编辑后保存lossless-cut项目文件
 3. qsv支持预设参数
 4. 弹幕设置-不透明度设置修改为百分比参数，原参数弃用，**请使用者进行手动迁移修改**
 5. 支持配置导入和导出

@@ -51,20 +51,25 @@ export function useLlcProject() {
    * 从本地重新加载项目文件，项目文件可能已经被更新
    */
   const loadProject = async () => {
-    if (!llcProjectPath.value) {
-      return;
-    }
+    if (options.value.find((item) => item.key === "refresh")?.disabled) return;
+
     clearHistory();
     handleProject(llcProjectPath.value);
   };
 
   /**
-   * 保存项目文件
+   * 保存项目按钮
    */
   const saveProject = async () => {
-    if (!llcProjectPath.value) {
-      return;
-    }
+    if (options.value.find((item) => item.key === "save")?.disabled) return;
+
+    save();
+  };
+
+  /**
+   * 保存项目
+   */
+  const save = async () => {
     const projectData = {
       version: 1,
       mediaFileName: window.path.basename(mediaPath.value),
@@ -97,9 +102,7 @@ export function useLlcProject() {
    * 另存为项目文件
    */
   const saveAsAnother = async () => {
-    if (!llcProjectPath.value) {
-      return;
-    }
+    if (options.value.find((item) => item.key === "saveAnother")?.disabled) return;
 
     const files = await window.api.showSaveDialog({
       filters: [{ name: "LosslessCut项目", extensions: ["llc"] }],
@@ -108,7 +111,7 @@ export function useLlcProject() {
     if (!files) return;
     const file = files[0];
     llcProjectPath.value = file;
-    await saveProject();
+    await save();
   };
 
   /**

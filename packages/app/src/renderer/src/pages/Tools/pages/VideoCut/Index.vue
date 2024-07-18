@@ -28,9 +28,9 @@
     </div>
 
     <div class="content">
-      <div v-show="files.video" class="video">
+      <div v-show="files.videoPath" class="video">
         <Artplayer
-          v-show="files.video"
+          v-show="files.videoPath"
           ref="videoRef"
           :option="{}"
           @ready="handleVideoReady"
@@ -38,16 +38,16 @@
       </div>
 
       <div
-        v-show="!files.video"
+        v-show="!files.videoPath"
         class="video empty"
         :style="{
-          width: files.video ? '80%' : '100%',
+          // width: files.video ? '80%' : '100%',
         }"
       >
         请导入<a href="https://github.com/mifi/lossless-cut" target="_blank">lossless-cut</a
         >项目文件，如果你不会使用，请先查看教程
       </div>
-      <div v-show="files.video" class="cut-list">
+      <div class="cut-list">
         <SegmentList></SegmentList>
       </div>
     </div>
@@ -103,19 +103,17 @@ onUnmounted(() => {
 const notice = useNotification();
 
 const files = ref<{
-  video: string | null;
-  danmu: string | null;
+  videoPath: string | null;
   danmuPath: string | null;
 }>({
-  video: null,
-  danmu: null,
+  videoPath: null,
   danmuPath: null,
 });
 const videoTitle = computed(() => {
-  return files.value.video ? "替换视频" : "添加视频";
+  return files.value.videoPath ? "替换视频" : "添加视频";
 });
 const danmuTitle = computed(() => {
-  return files.value.danmu ? "替换弹幕" : "添加弹幕";
+  return files.value.danmuPath ? "替换弹幕" : "添加弹幕";
 });
 
 const {
@@ -172,11 +170,11 @@ const handleVideoChange = async (event: Event) => {
 };
 
 const handleVideo = async (path: string) => {
-  files.value.video = path;
+  files.value.videoPath = path;
   await videoRef.value?.switchUrl(path, path.endsWith(".flv") ? "flv" : "");
 
-  if (files.value.danmu) {
-    const content = files.value.danmu;
+  if (files.value.danmuPath) {
+    const content = await window.api.common.readFile(files.value.danmuPath);
     videoRef?.value?.addSutitle(content);
   }
   setTimeout(() => {
@@ -203,7 +201,6 @@ const handleDanmuChange = async (event: Event) => {
 const handleDanmu = async (path: string) => {
   if (path.endsWith(".ass")) {
     const content = await window.api.common.readFile(path);
-    files.value.danmu = content;
     files.value.danmuPath = path;
 
     videoRef.value?.addSutitle(content);
@@ -227,7 +224,6 @@ const danmuConfirm = async (config: DanmuConfig) => {
   // files.value.danmu = path;
   const content = await window.api.common.readFile(path);
   convertDanmuLoading.value = false;
-  files.value.danmu = content;
   files.value.danmuPath = path;
   videoRef.value?.addSutitle(content);
 };
@@ -279,7 +275,7 @@ const exportCuts = async () => {
     });
     return;
   }
-  if (!files.value.video) {
+  if (!files.value.videoPath) {
     notice.error({
       title: "请先选择视频文件",
       duration: 1000,
