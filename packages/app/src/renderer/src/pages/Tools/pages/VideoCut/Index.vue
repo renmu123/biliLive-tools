@@ -37,75 +37,32 @@
         ></Artplayer>
       </div>
 
-      <div v-show="!files.video" class="video empty">
+      <div
+        v-show="!files.video"
+        class="video empty"
+        :style="{
+          width: files.video ? '80%' : '100%',
+        }"
+      >
         请导入<a href="https://github.com/mifi/lossless-cut" target="_blank">lossless-cut</a
         >项目文件，如果你不会使用，请先查看教程
       </div>
-      <div class="cut-list">
-        <div
-          v-for="(cut, index) in cuts"
-          :key="index"
-          class="cut"
-          :class="{
-            checked: cut.checked,
-          }"
-          @dblclick="navVideo(cut.start)"
-        >
-          <div class="time">
-            {{ secondsToTimemark(cut.start) }}-<span>{{
-              secondsToTimemark(cut.end || videoDuration)
-            }}</span>
-          </div>
-          <div class="name" style="color: skyblue">{{ cut.name }}</div>
-          <div v-if="cut.end" class="duration">
-            持续时间：{{ secondsToTimemark(cut.end || videoDuration - cut.start) }}
-          </div>
-          <div class="icon">
-            <n-icon v-if="cut.checked" size="20" :depth="3" @click.stop="toggleChecked(index)">
-              <CheckmarkCircleOutline></CheckmarkCircleOutline>
-            </n-icon>
-            <n-icon v-else size="20" :depth="3" @click.stop="toggleChecked(index)">
-              <RadioButtonOffSharp></RadioButtonOffSharp>
-            </n-icon>
-          </div>
-          <div class="edit-icon">
-            <n-icon size="20" :depth="3" @click.stop="editCut(index)">
-              <Pencil></Pencil>
-            </n-icon>
-          </div>
-        </div>
+      <div v-show="files.video" class="cut-list">
+        <SegmentList @seek="navVideo"></SegmentList>
       </div>
     </div>
   </div>
   <Xml2AssModal v-model="xmlConvertVisible" @confirm="danmuConfirm"></Xml2AssModal>
   <ExportModal v-model="exportVisible" :video-duration="videoDuration" :files="files"></ExportModal>
-  <n-modal
-    v-model:show="cutEditVisible"
-    preset="dialog"
-    title="编辑名称"
-    :show-icon="false"
-    :closable="false"
-    auto-focus
-  >
-    <n-input
-      v-model:value="tempCutName"
-      placeholder="请输入切片名称"
-      @keydown.enter="confirmEditCutName"
-    ></n-input>
-    <template #action>
-      <n-button @click="cutEditVisible = false">取消</n-button>
-      <n-button type="primary" @click="confirmEditCutName">确定</n-button>
-    </template>
-  </n-modal>
 </template>
 
 <script setup lang="ts">
-import { uuid, secondsToTimemark } from "@renderer/utils";
+import { uuid } from "@renderer/utils";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
-import { RadioButtonOffSharp, CheckmarkCircleOutline, Pencil } from "@vicons/ionicons5";
 import Xml2AssModal from "./components/Xml2AssModal.vue";
 import ExportModal from "./components/ExportModal.vue";
+import SegmentList from "./components/SegmentList.vue";
 import { useLlcProject } from "./hooks";
 
 import type ArtplayerType from "artplayer";
@@ -130,7 +87,7 @@ const danmuTitle = computed(() => {
   return files.value.danmu ? "替换弹幕" : "添加弹幕";
 });
 
-const { cuts, selectedCuts, handleProjectClick, mediaPath, options: exportBtns } = useLlcProject();
+const { selectedCuts, handleProjectClick, mediaPath, options: exportBtns } = useLlcProject();
 
 watchEffect(async () => {
   if (mediaPath.value) {
@@ -150,30 +107,6 @@ watchEffect(async () => {
     }
   }
 });
-
-const toggleChecked = (index: number) => {
-  cuts.value[index].checked = !cuts.value[index].checked;
-};
-// 编辑切片名称
-const cutEditVisible = ref(false);
-const tempCutName = ref("");
-const tempCutIndex = ref(-1);
-const editCut = (index: number) => {
-  console.log(cuts.value[index]);
-  cutEditVisible.value = true;
-  tempCutName.value = cuts.value[index].name;
-  tempCutIndex.value = index;
-};
-const confirmEditCutName = () => {
-  cuts.value[tempCutIndex.value].name = tempCutName.value;
-  cutEditVisible.value = false;
-};
-/**
- * 导航到视频指定位置
- */
-const navVideo = (start: number) => {
-  videoInstance.seek = start;
-};
 
 const videoInputRef = ref<HTMLInputElement | null>(null);
 const danmuInputRef = ref<HTMLInputElement | null>(null);
@@ -330,6 +263,13 @@ const exportCuts = async () => {
   }
   exportVisible.value = true;
 };
+
+/**
+ * 导航到视频指定位置
+ */
+const navVideo = (start: number) => {
+  videoInstance.seek = start;
+};
 </script>
 
 <style scoped lang="less">
@@ -359,46 +299,6 @@ const exportCuts = async () => {
   .cut-list {
     display: inline-block;
     flex: 1;
-    .cut {
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      padding: 4px 6px;
-      margin-bottom: 6px;
-      position: relative;
-      opacity: 0.5;
-      cursor: default;
-      &.checked {
-        opacity: 1;
-      }
-      &:hover {
-        .icon {
-          display: block;
-        }
-        .edit-icon {
-          display: block;
-        }
-      }
-      .time {
-      }
-      .name {
-      }
-      .duration {
-      }
-      .icon {
-        display: none;
-        cursor: pointer;
-        position: absolute;
-        right: 4px;
-        bottom: 0px;
-      }
-      .edit-icon {
-        display: none;
-        cursor: pointer;
-        position: absolute;
-        right: 24px;
-        bottom: 0px;
-      }
-    }
   }
 }
 </style>
