@@ -1,23 +1,11 @@
 import JSON5 from "json5";
-import { useAppConfig } from "@renderer/stores";
+import { useAppConfig, useSegmentStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
 
 export function useLlcProject() {
   const notice = useNotification();
   const { appConfig } = storeToRefs(useAppConfig());
-
-  const cuts = ref<
-    {
-      start: number;
-      end?: number;
-      name: string;
-      checked: boolean;
-      tags: any;
-    }[]
-  >([]);
-  const selectedCuts = computed(() => {
-    return cuts.value.filter((item) => item.checked);
-  });
+  const { cuts, selectedCuts } = storeToRefs(useSegmentStore());
 
   const llcProjectPath = ref("");
   const mediaPath = ref("");

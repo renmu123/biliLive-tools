@@ -29,7 +29,12 @@
 
     <div class="content">
       <div v-show="files.video" class="video">
-        <Artplayer v-show="files.video" ref="videoRef" :option="{}"></Artplayer>
+        <Artplayer
+          v-show="files.video"
+          ref="videoRef"
+          :option="{}"
+          @ready="handleVideoReady"
+        ></Artplayer>
       </div>
 
       <div v-show="!files.video" class="video empty">
@@ -44,7 +49,7 @@
           :class="{
             checked: cut.checked,
           }"
-          @dblclick="navVideo(index)"
+          @dblclick="navVideo(cut.start)"
         >
           <div class="time">
             {{ secondsToTimemark(cut.start) }}-<span>{{
@@ -73,6 +78,7 @@
     </div>
   </div>
   <Xml2AssModal v-model="xmlConvertVisible" @confirm="danmuConfirm"></Xml2AssModal>
+  <ExportModal v-model="exportVisible" :video-duration="videoDuration" :files="files"></ExportModal>
   <n-modal
     v-model:show="cutEditVisible"
     preset="dialog"
@@ -91,112 +97,21 @@
       <n-button type="primary" @click="confirmEditCutName">确定</n-button>
     </template>
   </n-modal>
-
-  <n-modal v-model:show="exportVisible" :show-icon="false" :closable="false" auto-focus>
-    <n-card
-      style="width: 700px"
-      :bordered="false"
-      size="huge"
-      role="dialog"
-      aria-modal="true"
-      class="card"
-    >
-      <div style="display: flex; flex-direction: column; gap: 10px">
-        <h3>
-          共有{{ cuts.length }}个切片，此次将导出
-          <span style="color: skyblue"> {{ selectedCuts.length }} </span> 个视频
-        </h3>
-        <div class="flex" style="align-items: center">
-          选择视频预设：
-          <n-cascader
-            v-model:value="exportOptions.ffmpegPresetId"
-            placeholder="请选择预设"
-            expand-trigger="click"
-            :options="ffmpegOptions"
-            check-strategy="child"
-            :show-path="false"
-            :filterable="true"
-            style="width: 200px; text-align: left"
-          />
-        </div>
-        <div class="flex" style="align-items: center">
-          <n-radio-group v-model:value="exportOptions.saveRadio" class="radio-group2">
-            <n-space class="flex align-center column">
-              <n-radio :value="1"> 保存到视频文件夹 </n-radio>
-              <n-radio :value="2"> </n-radio>
-              <n-input
-                v-model:value="exportOptions.savePath"
-                placeholder="选择文件夹"
-                style="width: 300px"
-              />
-              <n-icon size="30" style="margin-left: 0px" class="pointer" @click="getDir">
-                <FolderOpenOutline />
-              </n-icon>
-            </n-space>
-          </n-radio-group>
-        </div>
-        <div>
-          <n-radio-group v-model:value="exportOptions.override">
-            <n-space>
-              <n-radio :value="true"> 覆盖文件 </n-radio>
-              <n-radio :value="false"> 跳过存在文件 </n-radio>
-            </n-space>
-          </n-radio-group>
-        </div>
-        <div>
-          <div style="margin-bottom: 5px">
-            输出文件名：<span style="color: red">{{ exportError }}</span>
-          </div>
-          <div>
-            <n-input
-              v-model:value="exportOptions.title"
-              placeholder="请输入视频标题"
-              clearable
-              style="margin-right: 10px"
-            />
-            <span
-              v-for="item in titleList"
-              :key="item.value"
-              :title="item.label"
-              class="title-var"
-              @click="setTitleVar(item.value)"
-              >{{ item.value }}</span
-            >
-          </div>
-        </div>
-      </div>
-      <template #footer>
-        <div class="footer">
-          <n-button class="btn" @click="exportVisible = false">取消</n-button>
-          <n-button class="btn" type="primary" @click="confirmExport">确定</n-button>
-        </div>
-      </template>
-    </n-card>
-  </n-modal>
 </template>
 
 <script setup lang="ts">
 import { uuid, secondsToTimemark } from "@renderer/utils";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
-import {
-  RadioButtonOffSharp,
-  CheckmarkCircleOutline,
-  Pencil,
-  FolderOpenOutline,
-} from "@vicons/ionicons5";
-import { useFfmpegPreset, useAppConfig } from "@renderer/stores";
-import { storeToRefs } from "pinia";
-
+import { RadioButtonOffSharp, CheckmarkCircleOutline, Pencil } from "@vicons/ionicons5";
 import Xml2AssModal from "./components/Xml2AssModal.vue";
-import filenamify from "filenamify/browser";
+import ExportModal from "./components/ExportModal.vue";
 import { useLlcProject } from "./hooks";
 
+import type ArtplayerType from "artplayer";
 import type { DanmuConfig, DanmuOptions } from "@biliLive-tools/types";
 
 const notice = useNotification();
-const { ffmpegOptions } = storeToRefs(useFfmpegPreset());
-const { appConfig } = storeToRefs(useAppConfig());
 
 const files = ref<{
   video: string | null;
@@ -256,15 +171,18 @@ const confirmEditCutName = () => {
 /**
  * 导航到视频指定位置
  */
-const navVideo = (index: number) => {
-  console.log(index);
-  // const cut = cuts.value[index];
-  // videoRef.value?.seek(cut.start);
+const navVideo = (start: number) => {
+  videoInstance.seek = start;
 };
 
 const videoInputRef = ref<HTMLInputElement | null>(null);
 const danmuInputRef = ref<HTMLInputElement | null>(null);
 const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
+
+let videoInstance: ArtplayerType;
+const handleVideoReady = (instance: ArtplayerType) => {
+  videoInstance = instance;
+};
 
 const addVideo = () => {
   videoInputRef.value?.click();
@@ -288,7 +206,7 @@ const handleVideo = async (path: string) => {
     videoRef?.value?.addSutitle(content);
   }
   setTimeout(() => {
-    videoDuration.value = Number(videoRef.value?.video?.duration);
+    videoDuration.value = Number(videoInstance.video?.duration);
     console.log(videoDuration.value);
   }, 1000);
 };
@@ -402,11 +320,7 @@ const exportCuts = async () => {
     });
     return;
   }
-  exportVisible.value = true;
-};
-const exportOptions = appConfig.value.tool.videoCut;
 
-const confirmExport = async () => {
   if (convertDanmuLoading.value) {
     notice.error({
       title: "弹幕转换中，请稍后",
@@ -414,126 +328,8 @@ const confirmExport = async () => {
     });
     return;
   }
-  if (!exportOptions.ffmpegPresetId) {
-    notice.error({
-      title: "请选择预设",
-      duration: 1000,
-    });
-    return;
-  }
-  let savePath: string;
-
-  if (exportOptions.saveRadio === 1) {
-    savePath = window.path.dirname(files.value.video!);
-  } else if (exportOptions.saveRadio === 2) {
-    if (exportOptions.savePath === "") {
-      notice.error({
-        title: "请选择保存路径",
-        duration: 1000,
-      });
-      return;
-    }
-    if (window.path.isAbsolute(exportOptions.savePath)) {
-      savePath = exportOptions.savePath;
-    } else {
-      // 相对路径和视频路径拼接
-      savePath = window.path.join(window.path.dirname(files.value.video!), exportOptions.savePath);
-      if (!(await window.api.exits(savePath))) {
-        // 不存在则创建
-        await window.api.common.mkdir(savePath);
-      }
-    }
-  } else {
-    notice.error({
-      title: "不支持此项配置",
-      duration: 1000,
-    });
-    return;
-  }
-  const ffmpegOptiosn = (await window.api.ffmpeg.getPreset(exportOptions.ffmpegPresetId)).config;
-  let index = 1;
-  for (const cut of selectedCuts.value) {
-    const start = cut.start;
-    const end = cut.end || videoDuration.value;
-    const label = cut.name;
-
-    const title = filenamify(
-      exportOptions.title
-        .replace("{{filename}}", window.path.parse(files.value.video!).name)
-        .replace("{{label}}", label)
-        .replace("{{num}}", index.toString())
-        .replace("{{from}}", secondsToTimemark(start).replaceAll(":", "."))
-        .replace("{{to}}", secondsToTimemark(end).replaceAll(":", "."))
-        .trim(),
-      { replacement: "" },
-    );
-    await window.api.mergeAssMp4(
-      {
-        videoFilePath: files.value.video!,
-        assFilePath: files.value.danmuPath!,
-        outputPath: window.path.join(savePath, `${title}.mp4`),
-        hotProgressFilePath: undefined,
-      },
-      { removeOrigin: false },
-      {
-        ...ffmpegOptiosn,
-        ss: start,
-        to: end,
-      },
-    );
-    index += 1;
-  }
-  notice.info({
-    title: "已加入任务队列",
-    duration: 1000,
-  });
-  exportVisible.value = false;
+  exportVisible.value = true;
 };
-
-async function getDir() {
-  const path = await window.api.openDirectory({
-    defaultPath: exportOptions.savePath,
-  });
-  if (!path) return;
-  exportOptions.savePath = path;
-}
-
-const titleList = ref([
-  {
-    value: "{{filename}}",
-    label: "视频文件名",
-  },
-  {
-    value: "{{label}}",
-    label: "分段名",
-  },
-  {
-    value: "{{num}}",
-    label: "分段序号",
-  },
-  {
-    value: "{{from}}",
-    label: "分段开始时间",
-  },
-  {
-    value: "{{to}}",
-    label: "分段结束时间",
-  },
-]);
-const setTitleVar = (value: string) => {
-  exportOptions.title += value;
-};
-const exportError = computed(() => {
-  if (
-    exportOptions.title.includes("{{from}}") ||
-    exportOptions.title.includes("{{num}}") ||
-    exportOptions.title.includes("{{to}}")
-  ) {
-    return "";
-  } else {
-    return "输出文件名模板会导致文件名重复（您正在尝试导出多个同名文件）";
-  }
-});
 </script>
 
 <style scoped lang="less">
@@ -603,36 +399,6 @@ const exportError = computed(() => {
         bottom: 0px;
       }
     }
-  }
-}
-
-.footer {
-  text-align: right;
-  .btn + .btn {
-    margin-left: 10px;
-  }
-}
-.radio-group2 {
-  :deep(.n-radio) {
-    align-items: center;
-  }
-}
-
-.title-var {
-  display: inline-block;
-  margin-top: 4px;
-  margin-right: 10px;
-  padding: 4px 8px;
-  border-radius: 5px;
-  background-color: #f0f0f0;
-  font-size: 12px;
-  color: #666;
-  cursor: pointer;
-  &:not(.disabled):hover {
-    background-color: #e0e0e0;
-  }
-  &.disabled {
-    cursor: not-allowed;
   }
 }
 </style>

@@ -309,3 +309,22 @@ export const useAppConfig = defineStore("appConfig", () => {
     set,
   };
 });
+
+interface Segment {
+  start: number;
+  end?: number;
+  name: string;
+  checked: boolean;
+  tags: any;
+}
+export const useSegmentStore = defineStore("segment", () => {
+  const cuts = ref<Segment[]>([]);
+  const selectedCuts = computed(() => {
+    return cuts.value.filter((item) => item.checked);
+  });
+
+  return {
+    cuts,
+    selectedCuts,
+  };
+});
