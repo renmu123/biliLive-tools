@@ -66,9 +66,39 @@ import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 import { useLlcProject } from "./hooks";
 import { storeToRefs } from "pinia";
+import hotkeys from "hotkeys-js";
 
 import type ArtplayerType from "artplayer";
 import type { DanmuConfig, DanmuOptions } from "@biliLive-tools/types";
+
+onActivated(() => {
+  // 撤销
+  hotkeys("ctrl+z", function () {
+    undo();
+  });
+
+  // 重做
+  hotkeys("ctrl+shift+z", function () {
+    redo();
+  });
+
+  // 保存
+  hotkeys("ctrl+s", function () {
+    saveProject();
+  });
+
+  // 另存为
+  hotkeys("ctrl+shift+s", function () {
+    saveAsAnother();
+  });
+});
+
+onDeactivated(() => {
+  hotkeys.unbind();
+});
+onUnmounted(() => {
+  hotkeys.unbind();
+});
 
 const notice = useNotification();
 
@@ -88,8 +118,16 @@ const danmuTitle = computed(() => {
   return files.value.danmu ? "替换弹幕" : "添加弹幕";
 });
 
-const { selectedCuts, handleProjectClick, mediaPath, options: exportBtns } = useLlcProject();
+const {
+  selectedCuts,
+  handleProjectClick,
+  mediaPath,
+  options: exportBtns,
+  saveProject,
+  saveAsAnother,
+} = useLlcProject();
 const { duration: videoDuration } = storeToRefs(useSegmentStore());
+const { undo, redo } = useSegmentStore();
 
 watchEffect(async () => {
   if (mediaPath.value) {

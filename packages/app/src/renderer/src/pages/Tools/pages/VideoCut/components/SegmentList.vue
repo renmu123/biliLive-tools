@@ -1,7 +1,6 @@
 <template>
   <div class="cut-list">
     <div class="btns">
-      <n-button type="primary" @click="undo">撤销</n-button>
       <n-icon
         size="20"
         class="pointer icon"
@@ -111,20 +110,9 @@ import { useSegmentStore } from "@renderer/stores";
 import { RadioButtonOffSharp, CheckmarkCircleOutline, Pencil } from "@vicons/ionicons5";
 import { MinusOutlined, PlusOutlined } from "@vicons/material";
 import { storeToRefs } from "pinia";
-// import hotkeys from "hotkeys-js";
 
 import type ArtplayerType from "artplayer";
 
-// console.log("pppp");
-// hotkeys("ctrl+z", function (event, handler) {
-//   // Prevent the default refresh event under WINDOWS system
-//   undo();
-// });
-
-// onUnmounted(() => {
-//   console.log("unmounted");
-//   hotkeys.unbind();
-// });
 // interface Props {
 //   videoDuration: number;
 // }
@@ -138,7 +126,7 @@ import type ArtplayerType from "artplayer";
 const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;
 
 const { cuts } = storeToRefs(useSegmentStore());
-const { addSegment, removeSegment, updateSegment, toggleSegment, undo } = useSegmentStore();
+const { addSegment, removeSegment, updateSegment, toggleSegment } = useSegmentStore();
 
 const toggleChecked = (index: number) => {
   toggleSegment(index);

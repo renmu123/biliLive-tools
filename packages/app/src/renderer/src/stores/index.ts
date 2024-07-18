@@ -310,36 +310,47 @@ export const useAppConfig = defineStore("appConfig", () => {
   };
 });
 
-const useHistoryStore = defineStore("history", () => {
-  const history = ref<any[]>([]);
-  const canUndo = computed(() => history.value.length > 0);
-  // const canRedo = computed(() => history.value.length > 0);
-  const add = (payload: any) => {
-    history.value.push(payload);
+function useHistoryStore<T>({ limit }: { limit: number }) {
+  let history: T[] = [];
+  let current = -1;
+
+  const state = ref<T>();
+
+  const add = (newState: T) => {
+    if (current < history.length - 1) {
+      history.splice(current + 1);
+    }
+    history.push(cloneDeep(newState));
+    if (history.length > limit) {
+      history.shift();
+    } else {
+      current++;
+    }
+    state.value = cloneDeep(newState);
   };
+
   const undo = () => {
-    if (canUndo.value) {
-      return history.value.pop();
+    if (current > 0) {
+      current--;
+      state.value = cloneDeep(history[current]);
     }
   };
-  // const redo = (payload: any) => {
-  //   if (canRedo.value) {
-  //     history.value.push(payload);
-  //   }
-  // };
+
+  const redo = () => {
+    if (current < history.length - 1) {
+      current++;
+      state.value = cloneDeep(history[current]);
+    }
+  };
   const clear = () => {
-    history.value = [];
+    history = [];
+    current = -1;
   };
-  return {
-    history,
-    canUndo,
-    // canRedo,
-    add,
-    undo,
-    clear,
-    // redo,
-  };
-});
+
+  return { state, add, undo, redo, clear, history };
+}
+
+export default useHistoryStore;
 
 interface Segment {
   start: number;
@@ -365,37 +376,48 @@ export const useSegmentStore = defineStore("segment", () => {
     }),
   );
   // const history = ref<Segment[][]>([]);
-  const historyStore = useHistoryStore();
+  const historyStore = useHistoryStore<Segment[]>({ limit: 30 });
 
   const recordHistory = () => {
-    historyStore.add(cloneDeep(rawCuts.value));
+    historyStore.add(rawCuts.value);
+    console.log("recordHistory", historyStore.history);
   };
   const clearHistory = () => {
     historyStore.clear();
   };
   const undo = () => {
-    rawCuts.value = historyStore.undo();
+    historyStore.undo();
+    rawCuts.value = historyStore.state.value || [];
+  };
+  const redo = () => {
+    historyStore.redo();
+    rawCuts.value = historyStore.state.value || [];
   };
 
   const selectedCuts = computed(() => {
     return cuts.value.filter((item) => item.checked);
   });
-  const addSegment = (cut: Segment) => {
+
+  const init = (segments: Segment[]) => {
+    rawCuts.value = segments;
     recordHistory();
+  };
+  const addSegment = (cut: Segment) => {
     rawCuts.value.push(cut);
+    recordHistory();
   };
   const removeSegment = (index: number) => {
-    recordHistory();
     rawCuts.value.splice(index, 1);
+    recordHistory();
   };
   const updateSegment = <K extends keyof Segment>(index: number, key: K, value: Segment[K]) => {
-    recordHistory();
     const cut = rawCuts.value[index];
     cut[key] = value;
+    recordHistory();
   };
   const toggleSegment = (index: number) => {
-    recordHistory();
     rawCuts.value[index].checked = !rawCuts.value[index].checked;
+    recordHistory();
   };
 
   return {
@@ -409,5 +431,7 @@ export const useSegmentStore = defineStore("segment", () => {
     toggleSegment,
     clearHistory,
     undo,
+    redo,
+    init,
   };
 });

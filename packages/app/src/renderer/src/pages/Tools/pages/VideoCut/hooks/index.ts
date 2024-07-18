@@ -6,7 +6,7 @@ export function useLlcProject() {
   const notice = useNotification();
   const { appConfig } = storeToRefs(useAppConfig());
   const { rawCuts, selectedCuts, cuts } = storeToRefs(useSegmentStore());
-  const { clearHistory } = useSegmentStore();
+  const { clearHistory, init } = useSegmentStore();
 
   const llcProjectPath = ref("");
   const mediaPath = ref("");
@@ -35,12 +35,14 @@ export function useLlcProject() {
   const handleProject = async (file: string) => {
     llcProjectPath.value = file;
     const data = JSON5.parse(await window.api.common.readFile(file));
-    rawCuts.value = data.cutSegments.map((item: any) => {
-      return {
-        ...item,
-        checked: true,
-      };
-    });
+    init(
+      data.cutSegments.map((item: any) => {
+        return {
+          ...item,
+          checked: true,
+        };
+      }),
+    );
     const mediaFileName = data.mediaFileName;
     mediaPath.value = window.path.join(window.path.dirname(file), mediaFileName);
   };
@@ -94,7 +96,11 @@ export function useLlcProject() {
   /**
    * 另存为项目文件
    */
-  const saveAnother = async () => {
+  const saveAsAnother = async () => {
+    if (!llcProjectPath.value) {
+      return;
+    }
+
     const files = await window.api.showSaveDialog({
       filters: [{ name: "LosslessCut项目", extensions: ["llc"] }],
     });
@@ -118,7 +124,7 @@ export function useLlcProject() {
     } else if (key === "open") {
       openProject();
     } else if (key === "saveAnother") {
-      saveAnother();
+      saveAsAnother();
     } else {
       console.error(`${key} is not supported`);
     }
@@ -141,5 +147,7 @@ export function useLlcProject() {
     llcProjectPath,
     mediaPath,
     options,
+    saveProject,
+    saveAsAnother,
   };
 }
