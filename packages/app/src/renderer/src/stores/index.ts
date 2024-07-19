@@ -380,7 +380,6 @@ export const useSegmentStore = defineStore("segment", () => {
 
   const recordHistory = () => {
     historyStore.add(rawCuts.value);
-    console.log("recordHistory", historyStore.history);
   };
   const clearHistory = () => {
     historyStore.clear();

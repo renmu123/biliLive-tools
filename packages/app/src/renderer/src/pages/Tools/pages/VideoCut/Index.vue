@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div id="cut-tool" class="container">
     <div class="btns">
       <ButtonGroup
         title="请选择LosslessCut项目文件"
@@ -76,20 +76,42 @@ onActivated(() => {
   hotkeys("ctrl+z", function () {
     undo();
   });
-
   // 重做
   hotkeys("ctrl+shift+z", function () {
     redo();
   });
-
   // 保存
   hotkeys("ctrl+s", function () {
     saveProject();
   });
-
   // 另存为
   hotkeys("ctrl+shift+s", function () {
     saveAsAnother();
+  });
+  // 导出
+  hotkeys("ctrl+enter", function () {
+    exportCuts();
+  });
+  // 播放/暂停
+  hotkeys("space", function (event) {
+    console.log(event);
+    // @ts-ignore
+    if (event?.target?.tagName === "BUTTON") return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    event.stopPropagation();
+    videoToggle();
+  });
+  // 慢速快进
+  hotkeys("ctrl+left", function () {
+    if (!videoInstance.value) return;
+    videoInstance.value.backward = 1;
+  });
+  // 慢速后退
+  hotkeys("ctrl+right", function () {
+    if (!videoInstance.value) return;
+
+    videoInstance.value.forward = 1;
   });
 });
 
@@ -123,7 +145,7 @@ const {
   options: exportBtns,
   saveProject,
   saveAsAnother,
-} = useLlcProject();
+} = useLlcProject(files);
 const { duration: videoDuration } = storeToRefs(useSegmentStore());
 const { undo, redo } = useSegmentStore();
 
@@ -299,6 +321,15 @@ const exportCuts = async () => {
     return;
   }
   exportVisible.value = true;
+};
+
+/**
+ * 视频状态切换
+ */
+const videoToggle = () => {
+  if (!videoInstance.value) return;
+  if (!videoInstance.value.url) return;
+  videoInstance.value.toggle();
 };
 </script>
 

@@ -29,7 +29,7 @@ Linux包如果有问题可以提issue，由于我不在Linux开发，可能问�
 下载地址：https://github.com/renmu123/biliLive-tools/releases  
 备用：https://www.alipan.com/s/iRyhxjdqGeL
 
-# 部分功能介绍
+# 功能介绍
 
 ## 断播续传
 
@@ -42,7 +42,27 @@ Linux包如果有问题可以提issue，由于我不在Linux开发，可能问�
 ## xml弹幕转换
 
 xml弹幕转换底层使用[DanmakuFactory](https://github.com/hihkm/DanmakuFactory)，B站弹幕确认可以使用，其余类型请自行测试。  
-部分功能如自适应分辨率，黑名单由本软件实现。
+部分功能如自适应分辨率
+
+## 切片功能
+
+用于局部渲染带有弹幕的视频，支持[lossless-cut](https://github.com/mifi/lossless-cut)项目导入
+
+### 支持哪些快捷键
+
+- `ctrl+s` 保存到llc项目
+- `ctrl+shift+s` 另存为llc项目
+- `ctrl+enter` 导出
+- `ctrl+z` 撤销
+- `ctrl+shift+z` 重做
+- `I` 在当前时间开始当前片段
+- `O` 在当前时间结束当前片段
+- `up` 上一个片段
+- `down` 下一个片段
+- `del` 删除片段
+- `space` 播放/暂停
+- `ctrl+left` 后退1秒
+- `ctrl+right` 前进1秒
 
 ## 通知
 

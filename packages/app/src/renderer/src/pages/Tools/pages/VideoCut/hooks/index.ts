@@ -1,8 +1,9 @@
+import { Ref } from "vue";
 import JSON5 from "json5";
 import { useAppConfig, useSegmentStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
 
-export function useLlcProject() {
+export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
   const notice = useNotification();
   const { appConfig } = storeToRefs(useAppConfig());
   const { rawCuts, selectedCuts, cuts } = storeToRefs(useSegmentStore());
@@ -70,11 +71,20 @@ export function useLlcProject() {
    * 保存项目
    */
   const save = async () => {
+    const mediaFileName = mediaPath.value || files.value.videoPath;
+    if (!mediaFileName) {
+      notice.error({
+        title: "请先选择视频文件",
+        duration: 2000,
+      });
+      return;
+    }
     const projectData = {
       version: 1,
-      mediaFileName: window.path.basename(mediaPath.value),
+      mediaFileName: window.path.basename(mediaFileName),
       cutSegments: rawCuts.value.map(({ start, end, name, tags }) => ({ start, end, name, tags })),
     };
+    console.log("save", llcProjectPath.value, projectData);
     await window.api.common.writeFile(llcProjectPath.value, JSON5.stringify(projectData, null, 2));
   };
 
@@ -104,12 +114,11 @@ export function useLlcProject() {
   const saveAsAnother = async () => {
     if (options.value.find((item) => item.key === "saveAnother")?.disabled) return;
 
-    const files = await window.api.showSaveDialog({
+    const file = await window.api.showSaveDialog({
       filters: [{ name: "LosslessCut项目", extensions: ["llc"] }],
     });
 
-    if (!files) return;
-    const file = files[0];
+    if (!file) return;
     llcProjectPath.value = file;
     await save();
   };
@@ -134,11 +143,11 @@ export function useLlcProject() {
   };
 
   const options = computed(() => {
-    const disabled = !mediaPath.value;
+    const disabled = !llcProjectPath.value;
     return [
       { label: "重新加载", key: "refresh", disabled },
       { label: "保存", key: "save", disabled },
-      { label: "另存为", key: "saveAnother", disabled },
+      { label: "另存为", key: "saveAnother", disabled: !files.value.videoPath },
       { label: "打开", key: "open", disabled },
     ];
   });

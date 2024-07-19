@@ -48,12 +48,31 @@
           ></path>
         </svg>
       </n-icon>
+      <Tip>
+        <h4>快捷键</h4>
+        <ul>
+          <li>ctrl+s 保存到llc项目</li>
+          <li>ctrl+shift+s 另存为llc项目</li>
+          <li>ctrl+enter 导出</li>
+          <li>ctrl+z 撤销</li>
+          <li>ctrl+shift+z 重做</li>
+          <li>I 在当前时间开始当前片段</li>
+          <li>O 在当前时间结束当前片段</li>
+          <li>up 上一个片段</li>
+          <li>down 下一个片段</li>
+          <li>del 删除片段</li>
+          <li>space 播放/暂停</li>
+          <li>ctrl+left 后退1秒</li>
+          <li>ctrl+right 前进1秒</li>
+        </ul>
+      </Tip>
     </div>
 
     <div
       v-for="(cut, index) in cuts"
       :key="index"
       class="cut"
+      role="button"
       :class="{
         checked: cut.checked,
         selected: selectCutIndex === index,
@@ -110,8 +129,40 @@ import { useSegmentStore } from "@renderer/stores";
 import { RadioButtonOffSharp, CheckmarkCircleOutline, Pencil } from "@vicons/ionicons5";
 import { MinusOutlined, PlusOutlined } from "@vicons/material";
 import { storeToRefs } from "pinia";
+import hotkeys from "hotkeys-js";
 
 import type ArtplayerType from "artplayer";
+
+onActivated(() => {
+  // 重命名
+  hotkeys("f2", function () {
+    rename();
+  });
+  // 在当前时间开始当前片段
+  hotkeys("I", function () {
+    setStartTime();
+  });
+  // 在当前时间结束当前片段
+  hotkeys("O", function () {
+    setEndTime();
+  });
+  // 上一个片段
+  hotkeys("up", function (event) {
+    event.preventDefault();
+    prevSegment();
+  });
+  // 下一个片段
+  hotkeys("down", function (event) {
+    event.preventDefault();
+    nextSegment();
+  });
+  // 删除片段
+  hotkeys("del", function () {
+    deleteCut();
+  });
+  // 切换到当前开始片段
+  // hotkeys("enter", function () {});
+});
 
 // interface Props {
 //   videoDuration: number;
@@ -135,10 +186,24 @@ const toggleChecked = (index: number) => {
 const cutEditVisible = ref(false);
 const tempCutName = ref("");
 const selectCutIndex = ref(-1);
+
+/**
+ * 编辑片段名称
+ */
 const editCut = (index: number) => {
   cutEditVisible.value = true;
   tempCutName.value = cuts.value[index].name;
   selectCutIndex.value = index;
+};
+
+/*
+ * 重命名
+ */
+const rename = () => {
+  if (selectCutIndex.value === -1) {
+    return;
+  }
+  editCut(selectCutIndex.value);
 };
 
 /**
@@ -171,7 +236,7 @@ const selectCut = (index: number) => {
 const addCut = () => {
   addSegment({
     start: videoInstance.value.currentTime,
-    name: "未命名",
+    name: "",
     checked: true,
   });
 
@@ -215,6 +280,37 @@ const setEndTime = () => {
     return;
   }
   updateSegment(selectCutIndex.value, "end", videoInstance.value.currentTime);
+};
+
+/**
+ * 下一个片段
+ */
+const nextSegment = () => {
+  if (selectCutIndex.value === -1) {
+    if (cuts.value.length > 0) {
+      selectCut(0);
+    }
+    return;
+  }
+  if (selectCutIndex.value === cuts.value.length - 1) {
+    return;
+  }
+  selectCut(selectCutIndex.value + 1);
+};
+/**
+ * 上一个片段
+ */
+const prevSegment = () => {
+  if (selectCutIndex.value === -1) {
+    if (cuts.value.length > 0) {
+      selectCut(cuts.value.length - 1);
+    }
+    return;
+  }
+  if (selectCutIndex.value === 0) {
+    return;
+  }
+  selectCut(selectCutIndex.value - 1);
 };
 </script>
 
