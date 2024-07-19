@@ -37,7 +37,6 @@
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import Tip from "@renderer/components/Tip.vue";
 import { useAppConfig } from "@renderer/stores";
-import { storeToRefs } from "pinia";
 
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());

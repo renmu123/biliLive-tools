@@ -44,7 +44,6 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
 import { useUserInfoStore } from "@renderer/stores";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 

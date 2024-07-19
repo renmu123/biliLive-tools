@@ -128,7 +128,6 @@ import { secondsToTimemark } from "@renderer/utils";
 import { useSegmentStore } from "@renderer/stores";
 import { RadioButtonOffSharp, CheckmarkCircleOutline, Pencil } from "@vicons/ionicons5";
 import { MinusOutlined, PlusOutlined } from "@vicons/material";
-import { storeToRefs } from "pinia";
 import hotkeys from "hotkeys-js";
 
 import type ArtplayerType from "artplayer";

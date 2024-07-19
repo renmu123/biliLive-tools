@@ -46,7 +46,6 @@ import { useStorage } from "@vueuse/core";
 import { NIcon, createDiscreteApi, darkTheme, lightTheme, useOsTheme } from "naive-ui";
 import type { MenuOption } from "naive-ui";
 import { RouterLink } from "vue-router";
-import { storeToRefs } from "pinia";
 
 import {
   BuildOutline as BookIcon,

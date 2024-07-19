@@ -33,7 +33,6 @@
 
 <script setup lang="ts">
 import { useAppConfig } from "@renderer/stores";
-import { storeToRefs } from "pinia";
 
 const { appConfig } = storeToRefs(useAppConfig());
 

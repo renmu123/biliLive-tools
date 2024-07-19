@@ -57,8 +57,6 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import { deepRaw } from "@renderer/utils";

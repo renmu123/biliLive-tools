@@ -152,7 +152,6 @@
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
 
-import { storeToRefs } from "pinia";
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";

@@ -63,7 +63,6 @@ import { EditOutlined } from "@vicons/material";
 import { sanitizeFileName } from "@renderer/utils";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useAppConfig } from "@renderer/stores";
-import { storeToRefs } from "pinia";
 
 interface Part {
   cid: number;

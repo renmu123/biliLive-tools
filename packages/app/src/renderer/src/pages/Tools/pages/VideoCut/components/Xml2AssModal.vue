@@ -44,7 +44,6 @@
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
 
-import { storeToRefs } from "pinia";
 import { useDanmuPreset } from "@renderer/stores";
 import type { DanmuConfig } from "@biliLive-tools/types";
 

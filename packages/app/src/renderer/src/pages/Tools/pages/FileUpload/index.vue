@@ -25,8 +25,6 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
-
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 import AppendVideoDialog from "@renderer/components/AppendVideoDialog.vue";

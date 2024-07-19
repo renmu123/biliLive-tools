@@ -47,7 +47,6 @@
 // import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useAppConfig } from "@renderer/stores";
-import { storeToRefs } from "pinia";
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 
 const notice = useNotification();

@@ -36,7 +36,6 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
 import { useUserInfoStore, useAppConfig } from "@renderer/stores";
 import BiliLoginDialog from "./components/BiliLoginDialog.vue";
 import { useConfirm } from "@renderer/hooks";

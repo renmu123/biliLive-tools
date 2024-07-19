@@ -273,7 +273,6 @@
 </template>
 
 <script setup lang="ts">
-import { storeToRefs } from "pinia";
 import { deepRaw, uuid } from "@renderer/utils";
 import { useConfirm } from "@renderer/hooks";
 import { useUploadPreset, useAppConfig, useUserInfoStore } from "@renderer/stores";

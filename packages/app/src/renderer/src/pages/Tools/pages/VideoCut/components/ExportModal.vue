@@ -25,6 +25,7 @@
             :filterable="true"
             style="width: 200px; text-align: left"
           />
+          <Tip> 推荐采用质量模式，以自适应视频质量，视频编码器不能使用copy </Tip>
         </div>
         <div class="flex" style="align-items: center">
           <n-radio-group v-model:value="exportOptions.saveRadio" class="radio-group2">
@@ -84,7 +85,6 @@
 
 <script setup lang="ts">
 import { FolderOpenOutline } from "@vicons/ionicons5";
-import { storeToRefs } from "pinia";
 import { useFfmpegPreset, useAppConfig, useSegmentStore } from "@renderer/stores";
 import filenamify from "filenamify/browser";
 import { secondsToTimemark } from "@renderer/utils";

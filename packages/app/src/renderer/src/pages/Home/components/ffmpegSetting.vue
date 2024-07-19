@@ -270,7 +270,6 @@ import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 import { useFfmpegPreset } from "@renderer/stores";
-import { storeToRefs } from "pinia";
 
 import type { FfmpegPreset, VideoCodec } from "@biliLive-tools/types";
 

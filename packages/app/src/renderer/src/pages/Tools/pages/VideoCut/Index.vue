@@ -65,7 +65,6 @@ import Xml2AssModal from "./components/Xml2AssModal.vue";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 import { useLlcProject } from "./hooks";
-import { storeToRefs } from "pinia";
 import hotkeys from "hotkeys-js";
 
 import type ArtplayerType from "artplayer";

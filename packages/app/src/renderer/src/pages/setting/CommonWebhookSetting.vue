@@ -347,7 +347,6 @@
 
 <script setup lang="ts">
 import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
-import { storeToRefs } from "pinia";
 
 import type { AppRoomConfig } from "@biliLive-tools/types";
 

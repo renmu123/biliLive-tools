@@ -26,7 +26,6 @@
 
 <script setup lang="ts">
 import { useUserInfoStore } from "@renderer/stores";
-import { storeToRefs } from "pinia";
 import DownloadConfirm from "@renderer/components/DownloadConfirm.vue";
 import { sanitizeFileName } from "@renderer/utils";
 
