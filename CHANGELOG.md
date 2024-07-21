@@ -55,6 +55,7 @@
 1. 修复另存为ffmepg的cpu默认预设后切换其他部分编码器会转换失败的bug
 2. 修复ffmpeg批量添加时最大任务设置可能失败的bug
 3. 修复工具页切换时页面未被缓存的bug
+4. 修复某些情况下无法修改稿件简介的[bug](https://github.com/renmu123/biliLive-tools/issues/4#issuecomment-2233626419)
 
 # 1.2.0
 

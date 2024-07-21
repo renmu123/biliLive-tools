@@ -169,8 +169,9 @@ export function parseDesc(input: string): DescV2[] {
   return tokens;
 }
 
-function formatOptions(options: BiliupConfig) {
+export function formatOptions(options: BiliupConfig) {
   const descV2 = parseDesc(options.desc || "");
+  const hasAt = descV2.some((item) => item.type === 2);
   const desc = descV2
     .map((item) => {
       if (item.type === 1) {
@@ -196,7 +197,7 @@ function formatOptions(options: BiliupConfig) {
     up_close_reply: options.closeReply ? true : false,
     up_selection_reply: options.selectiionReply ? true : false,
     open_elec: options.openElec,
-    desc_v2: descV2,
+    desc_v2: hasAt ? descV2 : undefined,
     desc: desc,
     recreate: options.recreate || -1,
     no_disturbance: options.no_disturbance || 0,

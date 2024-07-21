@@ -44,7 +44,7 @@
           // width: files.video ? '80%' : '100%',
         }"
       >
-        请导入<a href="https://github.com/mifi/lossless-cut" target="_blank">lossless-cut</a
+        请导入视频或<a href="https://github.com/mifi/lossless-cut" target="_blank">lossless-cut</a
         >项目文件，如果你不会使用，请先查看教程
       </div>
       <div class="cut-list">

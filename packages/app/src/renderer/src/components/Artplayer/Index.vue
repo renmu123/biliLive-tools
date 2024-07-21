@@ -10,7 +10,12 @@ import artplayerPluginAss from "./artplayer-plugin-assjs";
 const props = defineProps<{
   option: any;
 }>();
-const emit = defineEmits(["ready"]);
+const emits = defineEmits<{
+  (event: "ready", value: Artplayer): void;
+  (event: "error", value: { error: any; reconnectTime: number }): void;
+  (event: "seek", value: number): void;
+  (event: "video:durationchange", value: number): void;
+}>();
 
 const artRef = ref(null);
 let instance: Artplayer | null = null;
@@ -41,7 +46,17 @@ onMounted(async () => {
     },
   });
   await nextTick();
-  emit("ready", instance);
+  emits("ready", instance);
+  instance.on("error", (error, reconnectTime) => {
+    emits("error", { error, reconnectTime });
+  });
+  instance.on("seek", (currentTime) => {
+    emits("seek", currentTime);
+  });
+  instance.on("video:durationchange", (event) => {
+    console.log("video:durationchange", event);
+    // emits("video:durationchange", duration);
+  });
 });
 
 const switchUrl = async (url: string, type: "" | "flv" = "") => {
