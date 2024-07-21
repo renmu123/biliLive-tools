@@ -60,8 +60,6 @@ const confirm = async () => {
   const version = await window.api.appVersion();
   data[version] = true;
   localStorage.setItem("changelog", JSON.stringify(data));
-
-  console.log("confirm");
 };
 
 const close = async () => {

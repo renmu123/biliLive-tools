@@ -34,6 +34,7 @@
           ref="videoRef"
           :option="{}"
           @ready="handleVideoReady"
+          @video:durationchange="handleVideoDurationChange"
         ></Artplayer>
       </div>
 
@@ -198,10 +199,13 @@ const handleVideo = async (path: string) => {
     const content = await window.api.common.readFile(files.value.danmuPath);
     videoRef?.value?.addSutitle(content);
   }
-  setTimeout(() => {
-    videoDuration.value = Number(videoInstance.value!.video?.duration);
-    console.log(videoDuration.value);
-  }, 1000);
+};
+
+/**
+ * 视频时长变化
+ */
+const handleVideoDurationChange = (duration: number) => {
+  videoDuration.value = duration;
 };
 
 // 弹幕相关

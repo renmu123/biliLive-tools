@@ -53,9 +53,9 @@ onMounted(async () => {
   instance.on("seek", (currentTime) => {
     emits("seek", currentTime);
   });
-  instance.on("video:durationchange", (event) => {
-    console.log("video:durationchange", event);
-    // emits("video:durationchange", duration);
+  instance.on("video:durationchange", () => {
+    const duration = Number(instance!.duration);
+    emits("video:durationchange", duration);
   });
 });
 
