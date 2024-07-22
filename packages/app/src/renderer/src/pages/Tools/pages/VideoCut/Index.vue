@@ -197,7 +197,7 @@ const handleVideo = async (path: string) => {
 
   if (files.value.danmuPath) {
     const content = await window.api.common.readFile(files.value.danmuPath);
-    videoRef?.value?.addSutitle(content);
+    videoRef?.value?.switchAss(content);
   }
 };
 
@@ -228,7 +228,7 @@ const handleDanmu = async (path: string) => {
     const content = await window.api.common.readFile(path);
     files.value.danmuPath = path;
 
-    videoRef.value?.addSutitle(content);
+    videoRef.value?.switchAss(content);
   } else {
     // 如果是xml文件则弹框提示，要求转换为ass文件
     xmlConvertVisible.value = true;
@@ -250,7 +250,7 @@ const danmuConfirm = async (config: DanmuConfig) => {
   const content = await window.api.common.readFile(path);
   convertDanmuLoading.value = false;
   files.value.danmuPath = path;
-  videoRef.value?.addSutitle(content);
+  videoRef.value?.switchAss(content);
 };
 /**
  * xml文件转换为ass

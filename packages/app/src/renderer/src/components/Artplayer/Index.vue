@@ -68,7 +68,7 @@ const switchUrl = async (url: string, type: "" | "flv" = "") => {
   }
 };
 
-const addSutitle = async (subtitle?: string) => {
+const switchAss = async (subtitle?: string) => {
   if (instance) {
     instance.plugins.artplayerPluginAss.switch(subtitle || "");
   }
@@ -79,7 +79,7 @@ const video = computed(() => instance);
 defineExpose({
   switchUrl,
   video,
-  addSutitle,
+  switchAss,
 });
 
 onBeforeUnmount(() => {

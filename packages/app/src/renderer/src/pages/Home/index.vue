@@ -3,6 +3,9 @@
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
+        <n-button type="primary" title="仅供参考，以实际渲染为主！" @click="preview">
+          预览
+        </n-button>
         <n-button type="primary" @click="handleConvert"> 启动！ </n-button>
         <!-- <n-button type="primary" @click="testNofity"> 测试发送通知 </n-button> -->
         <!-- <n-button type="primary" @click="hotProgressConvert"> 测试高能弹幕进度条生成 </n-button> -->
@@ -146,6 +149,7 @@
     </n-modal>
 
     <AppendVideoDialog v-model:visible="appendVideoVisible" v-model="aid"></AppendVideoDialog>
+    <PreviewModal v-model:visible="previewModalVisible" :files="previewFiles"></PreviewModal>
   </div>
 </template>
 
@@ -156,6 +160,8 @@ import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 import ffmpegSetting from "./components/ffmpegSetting.vue";
+// @ts-ignore
+import PreviewModal from "./components/previewModal.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
 import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
 
@@ -260,20 +266,9 @@ const preHandle = async (
     if (!status) return false;
   }
 
-  // 视频验证
-  const file = await window.api.showSaveDialog({
-    defaultPath: `${videoFile.name}-弹幕版.mp4`,
-    filters: [
-      { name: "视频文件", extensions: ["mp4"] },
-      { name: "所有文件", extensions: ["*"] },
-    ],
-  });
-  if (!file) return false;
-
   return {
     inputVideoFile: videoFile,
     inputDanmuFile: danmuFile,
-    outputPath: file,
     videoWidth: width,
     duration: videoMeta.format.duration,
   };
@@ -291,10 +286,20 @@ const convert = async () => {
   }
 
   const data = await preHandle(files, rawClientOptions, rawDanmuConfig, rawPresetOptions);
-  if (!data) return;
+  if (!data) return false;
+  // 视频验证
+  const outputPath = await window.api.showSaveDialog({
+    defaultPath: `${data.inputVideoFile}-弹幕版.mp4`,
+    filters: [
+      { name: "视频文件", extensions: ["mp4"] },
+      { name: "所有文件", extensions: ["*"] },
+    ],
+  });
+  if (!outputPath) return false;
+
   let { inputDanmuFile } = data;
   const rawInputDanmuFile = inputDanmuFile;
-  const { inputVideoFile, outputPath, videoWidth, duration } = data;
+  const { inputVideoFile, videoWidth, duration } = data;
   // console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
 
   if (inputDanmuFile.ext === ".xml") {
@@ -394,10 +399,6 @@ const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfi
     });
     throw new Error(msg);
   }
-  notice.warning({
-    title: "开始转换xml",
-    duration: 1000,
-  });
 
   const targetAssFilePath = await convertDanmu2Ass(
     {
@@ -428,11 +429,6 @@ const convertDanmu2Ass = async (
       .then((result: any) => {
         const taskId = result.taskId;
         window.api.task.on(taskId, "end", (data) => {
-          console.log("end", data);
-          notice.success({
-            title: "xml文件转换成功",
-            duration: 3000,
-          });
           resolve(data.output);
         });
 
@@ -656,6 +652,42 @@ window.api.onMainNotify((_event, data) => {
 // const testNofity = () => {
 //   window.api.task.notify("我是标题", "我是内容请31312313213");
 // };
+
+// 预览
+const previewModalVisible = ref(false);
+const previewFiles = ref({
+  video: "",
+  danmu: "",
+  isTempDanmu: false,
+});
+const preview = async () => {
+  const files = toRaw(fileList.value);
+  const rawClientOptions = toRaw(clientOptions);
+  const rawDanmuConfig = deepRaw(danmuPreset.value.config);
+  const rawPresetOptions = toRaw(presetOptions.value);
+
+  const data = await preHandle(files, rawClientOptions, rawDanmuConfig, rawPresetOptions);
+  if (!data) return;
+
+  previewFiles.value.video = data.inputVideoFile.path;
+
+  previewModalVisible.value = true;
+
+  if (data.inputDanmuFile.path.endsWith(".xml")) {
+    previewFiles.value.danmu = "";
+    // xml文件转换
+    const targetAssFile = await handleXmlFile(
+      data.inputDanmuFile,
+      { ...rawClientOptions, removeOrigin: false },
+      rawDanmuConfig,
+    );
+    previewFiles.value.danmu = targetAssFile.path;
+    previewFiles.value.isTempDanmu = true;
+  } else if (data.inputDanmuFile.path.endsWith(".ass")) {
+    previewFiles.value.danmu = data.inputDanmuFile.path;
+    previewFiles.value.isTempDanmu = false;
+  }
+};
 </script>
 
 <style scoped lang="less">
