@@ -178,6 +178,8 @@ export type ToolConfig = {
     ffmpegPresetId: string;
     /** 标题 */
     title: string;
+    /** 弹幕预设 */
+    danmuPresetId: string;
   };
 };
 

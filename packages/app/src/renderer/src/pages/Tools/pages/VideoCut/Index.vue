@@ -15,7 +15,9 @@
         style="display: none"
         @change="handleVideoChange"
       />
-      <n-button type="primary" @click="addDanmu"> {{ danmuTitle }} </n-button>
+      <n-button type="primary" :disabled="!files.videoPath" @click="addDanmu">
+        {{ danmuTitle }}
+      </n-button>
       <input
         ref="danmuInputRef"
         type="file"
@@ -24,7 +26,7 @@
         @change="handleDanmuChange"
       />
 
-      <n-button type="info" @click="exportCuts"> 导出切片 </n-button>
+      <n-button type="info" :disabled="!files.videoPath" @click="exportCuts"> 导出切片 </n-button>
     </div>
 
     <div class="content">
@@ -53,7 +55,13 @@
       </div>
     </div>
   </div>
-  <Xml2AssModal v-model="xmlConvertVisible" @confirm="danmuConfirm"></Xml2AssModal>
+  <DanmuFactorySettingDailog
+    v-model:visible="xmlConvertVisible"
+    v-model="videoVCutOptions.danmuPresetId"
+    :show-preset="true"
+    @confirm="danmuConfirm"
+  ></DanmuFactorySettingDailog>
+  <!-- <Xml2AssModal v-model="xmlConvertVisible" @confirm="danmuConfirm"></Xml2AssModal> -->
   <ExportModal v-model="exportVisible" :files="files"></ExportModal>
 </template>
 
@@ -61,10 +69,12 @@
 import { uuid } from "@renderer/utils";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
-import { useSegmentStore } from "@renderer/stores";
-import Xml2AssModal from "./components/Xml2AssModal.vue";
+import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
+import { useSegmentStore, useAppConfig } from "@renderer/stores";
+// import Xml2AssModal from "./components/Xml2AssModal.vue";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
+
 import { useLlcProject } from "./hooks";
 import hotkeys from "hotkeys-js";
 
@@ -147,14 +157,18 @@ const {
   saveAsAnother,
 } = useLlcProject(files);
 const { duration: videoDuration } = storeToRefs(useSegmentStore());
+const { appConfig } = storeToRefs(useAppConfig());
+
 const { undo, redo } = useSegmentStore();
+
+const videoVCutOptions = appConfig.value.tool.videoCut;
 
 watchEffect(async () => {
   if (mediaPath.value) {
     const { dir, name } = window.path.parse(mediaPath.value);
     const videoPath = mediaPath.value;
     if (await window.api.exits(videoPath)) {
-      handleVideo(videoPath);
+      await handleVideo(videoPath);
     }
     const assFilepath = window.path.join(dir, `${name}.ass`);
     if (await window.api.exits(assFilepath)) {
@@ -238,6 +252,13 @@ const handleDanmu = async (path: string) => {
 };
 
 const danmuConfirm = async (config: DanmuConfig) => {
+  if (config.resolutionResponsive) {
+    const width = videoInstance.value?.video.videoWidth;
+    const height = videoInstance.value?.video.videoHeight;
+    config.resolution[0] = width!;
+    config.resolution[1] = height!;
+  }
+
   const path = await convertDanmu2Ass(
     {
       input: tempXmlFile.value,
