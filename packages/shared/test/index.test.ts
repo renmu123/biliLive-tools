@@ -271,7 +271,7 @@ describe.concurrent("genDanmuArgs", () => {
       customDensity: 50,
     };
 
-    const expectedCommand = `path/to/executable -i "${input}" -o "path/to/output.ass" --ignore-warnings --resolution 1920x1080 --msgboxsize 400x200 --msgboxpos 100x100 --blockmode R2L-L2R --statmode TABLE-HISTOGRAM --fontname "Arial" --density 0`;
+    const expectedCommand = `"path/to/executable" -i "${input}" -o "path/to/output.ass" --ignore-warnings --resolution 1920x1080 --msgboxsize 400x200 --msgboxpos 100x100 --blockmode R2L-L2R --statmode TABLE-HISTOGRAM --fontname "Arial" --density 0`;
 
     try {
       // @ts-ignore
