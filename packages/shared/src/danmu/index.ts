@@ -362,7 +362,19 @@ export function handleDanmu(
   return items;
 }
 
-export const generateDanmakuData = async (input: string, options: hotProgressOptions) => {
+export const generateDanmakuData = async (
+  input: string,
+  options: {
+    interval?: number;
+    duration: number;
+    color?: string;
+  },
+) => {
+  const defaultOptions = {
+    interval: 30,
+    color: "#f9f5f3",
+  };
+  const config = Object.assign(defaultOptions, options);
   let items: { time: number; value: number }[] = [];
   const ext = path.extname(input);
   if (ext === ".xml") {
@@ -370,26 +382,26 @@ export const generateDanmakuData = async (input: string, options: hotProgressOpt
     const { danmuku } = await parseXmlFile(input);
 
     items = handleDanmu(danmuku, {
-      interval: options.interval,
+      interval: config.interval,
     });
   } else if (ext === ".ass") {
     items = await handleAss(input, {
-      interval: options.interval,
+      interval: config.interval,
     });
   }
 
   const map = keyBy(items, "time");
 
   const data: { time: number; value: number; color: string }[] = [];
-  for (let i = 0; i < options.duration - options.interval; i += options.interval) {
+  for (let i = 0; i < config.duration - config.interval; i += config.interval) {
     const item = map[i];
     if (item) {
-      data.push({ ...item, color: options.color });
+      data.push({ ...item, color: config.color });
     } else {
       data.push({
         time: i,
         value: 0,
-        color: options.color,
+        color: config.color,
       });
     }
   }

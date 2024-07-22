@@ -31,7 +31,7 @@
           <n-button class="btn" @click="close">取消</n-button>
           <n-button type="primary" class="btn" @click="rename">重命名</n-button>
           <n-button type="primary" class="btn" @click="saveAs">另存为</n-button>
-          <n-button type="primary" class="btn" @click="saveConfig">确认</n-button>
+          <n-button type="primary" class="btn" @click="saveConfig">保存并确认</n-button>
         </div>
       </template>
 

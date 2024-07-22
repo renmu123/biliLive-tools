@@ -74,6 +74,16 @@ export const api = {
     genHotProgress(input: string, output: string, options: hotProgressOptions) {
       return ipcRenderer.invoke("danmu:genHotProgress", input, output, options);
     },
+    generateDanmakuData(
+      input: string,
+      options: {
+        interval?: number;
+        duration: number;
+        color?: string;
+      },
+    ) {
+      return ipcRenderer.invoke("danmu:generateDanmakuData", input, options);
+    },
   },
   task: {
     pause: (taskId: string) => {

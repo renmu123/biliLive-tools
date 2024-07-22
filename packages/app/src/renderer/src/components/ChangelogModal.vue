@@ -26,6 +26,14 @@
             >https://space.bilibili.com/10995238</a
           >
         </p>
+        <p>
+          弹幕转换功能底层由：<a
+            href="https://github.com/hihkm/DanmakuFactory"
+            class="external"
+            target="_blank"
+            >DanmakuFactory</a
+          >实现
+        </p>
       </div>
       <div v-html="content"></div>
       <template #footer>

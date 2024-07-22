@@ -15,7 +15,9 @@
         style="display: none"
         @change="handleVideoChange"
       />
-      <n-button type="primary" @click="addDanmu"> {{ danmuTitle }} </n-button>
+      <n-button type="primary" :disabled="!files.videoPath" @click="addDanmu">
+        {{ danmuTitle }}
+      </n-button>
       <input
         ref="danmuInputRef"
         type="file"
@@ -36,6 +38,7 @@
           @ready="handleVideoReady"
           @video:durationchange="handleVideoDurationChange"
         ></Artplayer>
+        <canvas ref="hotProgressCanvas"></canvas>
       </div>
 
       <div
@@ -67,6 +70,7 @@ import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 import { useLlcProject } from "./hooks";
 import hotkeys from "hotkeys-js";
+import { useElementSize, useDebounceFn } from "@vueuse/core";
 
 import type ArtplayerType from "artplayer";
 import type { DanmuConfig, DanmuOptions } from "@biliLive-tools/types";
@@ -171,6 +175,8 @@ watchEffect(async () => {
 const videoInputRef = ref<HTMLInputElement | null>(null);
 const danmuInputRef = ref<HTMLInputElement | null>(null);
 const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
+// @ts-ignore
+const { width: videoWidth } = useElementSize(videoRef);
 
 const videoInstance = ref<ArtplayerType | null>(null);
 provide("videoInstance", videoInstance);
@@ -235,6 +241,7 @@ const handleDanmu = async (path: string) => {
     tempXmlFile.value = path;
     convertDanmuLoading.value = true;
   }
+  generateDanmakuData(path);
 };
 
 const danmuConfirm = async (config: DanmuConfig) => {
@@ -251,6 +258,23 @@ const danmuConfirm = async (config: DanmuConfig) => {
   convertDanmuLoading.value = false;
   files.value.danmuPath = path;
   videoRef.value?.switchAss(content);
+};
+
+/**
+ * 生成高能进度条数据
+ */
+const generateDanmakuData = async (file: string) => {
+  console.log(file);
+  if (!videoDuration.value) return;
+  const data = await window.api.danmu.generateDanmakuData(file, {
+    duration: videoDuration.value,
+    interval: 10,
+  });
+  tempDrawData = data;
+  draw();
+  setTimeout(() => {
+    draw();
+  }, 1000);
 };
 /**
  * xml文件转换为ass
@@ -334,6 +358,81 @@ const videoToggle = () => {
   if (!videoInstance.value.url) return;
   videoInstance.value.toggle();
 };
+
+// 绘制平滑曲线
+function drawSmoothCurve(ctx, points) {
+  const len = points.length;
+
+  let lastX = points[0].x;
+  let lastY = points[0].y;
+  for (let i = 1; i < len - 1; i++) {
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+
+    ctx.strokeStyle = points[i].color;
+    const xc = (points[i].x + points[i + 1].x) / 2;
+    const yc = (points[i].y + points[i + 1].y) / 2;
+
+    ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+    lastX = xc;
+    lastY = yc;
+    ctx.stroke();
+  }
+}
+
+const hotProgressCanvas = ref<HTMLCanvasElement | null>(null);
+// 绘制平滑折线图
+function drawSmoothLineChart(data, width: number, height: number) {
+  if (!hotProgressCanvas.value) return;
+
+  const canvas = hotProgressCanvas.value;
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, width, height);
+
+  const length = data.length;
+  const maxValue = Math.max(...data.map((item) => item.value));
+  // const minValue = Math.min(...data.map((item) => item.value));
+  const xRation = width / (length - 1);
+  const yRatio = height / maxValue;
+
+  const points: any[] = [];
+
+  // 计算数据点的坐标
+  for (let i = 0; i < data.length; i++) {
+    const item = data[i];
+
+    const x = i * xRation;
+    const y = height - item.value * yRatio;
+    points.push({
+      x: x,
+      y: y,
+      color: item.color ?? "#333333",
+    });
+  }
+
+  drawSmoothCurve(ctx, points);
+  return canvas;
+}
+
+let tempDrawData: any[] = [];
+function draw() {
+  if (!videoWidth.value) return;
+  if (!tempDrawData.length) return;
+  drawSmoothLineChart(tempDrawData, videoWidth.value, 50);
+}
+const debouncedDraw = useDebounceFn(() => {
+  draw();
+}, 500);
+
+window.addEventListener("resize", debouncedDraw);
+
+onUnmounted(() => {
+  window.removeEventListener("resize", debouncedDraw);
+});
 </script>
 
 <style scoped lang="less">
