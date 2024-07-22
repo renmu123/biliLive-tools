@@ -10,6 +10,9 @@ import {
   DANMU_PRESET_PATH,
   APP_CONFIG_PATH,
   userDataPath,
+  FFMPEG_PATH,
+  DANMUKUFACTORY_PATH,
+  FFPROBE_PATH,
 } from "./appConstant";
 
 import type { AppConfig, FfmpegPreset as FfmpegPresetType } from "@biliLive-tools/types";
@@ -76,6 +79,20 @@ export const configHandlers = {
         }
       }),
     );
+  },
+  "config:resetBin": (
+    _event: IpcMainInvokeEvent,
+    type: "ffmpeg" | "ffprobe" | "danmakuFactory",
+  ) => {
+    if (type === "ffmpeg") {
+      return FFMPEG_PATH;
+    } else if (type === "ffprobe") {
+      return FFPROBE_PATH;
+    } else if (type === "danmakuFactory") {
+      return DANMUKUFACTORY_PATH;
+    } else {
+      throw new Error("未知的类型");
+    }
   },
 };
 

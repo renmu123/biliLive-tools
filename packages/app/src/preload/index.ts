@@ -362,6 +362,9 @@ export const api = {
     import: (filePath: string) => {
       return ipcRenderer.invoke("config:import", filePath);
     },
+    resetBin: (type: "ffmpeg" | "ffprobe" | "danmakuFactory") => {
+      return ipcRenderer.invoke("config:resetBin", type);
+    },
   },
   convertVideo2Mp4: (
     file: {

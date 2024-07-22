@@ -79,11 +79,21 @@
               />
               <n-icon
                 style="margin-left: 10px"
-                size="26"
+                size="24"
                 class="pointer"
-                @click="selectFile('ffmpeg')"
+                title="选择文件"
+                @click="selectFile('ffmpeg', config.ffmpegPath)"
               >
                 <FolderOpenOutline />
+              </n-icon>
+              <n-icon
+                style="margin-left: 10px"
+                size="24"
+                class="pointer"
+                title="重置"
+                @click="resetBin('ffmpeg')"
+              >
+                <Refresh />
               </n-icon>
             </n-form-item>
             <n-form-item label="ffprobe路径">
@@ -93,11 +103,20 @@
               />
               <n-icon
                 style="margin-left: 10px"
-                size="26"
+                size="24"
                 class="pointer"
-                @click="selectFile('ffprobe')"
+                @click="selectFile('ffprobe', config.ffprobePath)"
               >
                 <FolderOpenOutline />
+              </n-icon>
+              <n-icon
+                style="margin-left: 10px"
+                size="24"
+                class="pointer"
+                title="重置"
+                @click="resetBin('ffprobe')"
+              >
+                <Refresh />
               </n-icon>
             </n-form-item>
             <n-form-item label="danmakuFactory路径">
@@ -107,11 +126,20 @@
               />
               <n-icon
                 style="margin-left: 10px"
-                size="26"
+                size="24"
                 class="pointer"
-                @click="selectFile('danmakuFactory')"
+                @click="selectFile('danmakuFactory', config.danmuFactoryPath)"
               >
                 <FolderOpenOutline />
+              </n-icon>
+              <n-icon
+                style="margin-left: 10px"
+                size="24"
+                class="pointer"
+                title="重置"
+                @click="resetBin('danmakuFactory')"
+              >
+                <Refresh />
               </n-icon>
             </n-form-item>
             <n-form-item label="lossless-cut路径">
@@ -123,7 +151,7 @@
                 style="margin-left: 10px"
                 size="26"
                 class="pointer"
-                @click="selectFile('losslessCut')"
+                @click="selectFile('losslessCut', config.losslessCutPath)"
               >
                 <FolderOpenOutline />
               </n-icon>
@@ -246,7 +274,7 @@ import NotificationSetting from "./NotificationSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
 import { useConfirm } from "@renderer/hooks";
-import { FolderOpenOutline } from "@vicons/ionicons5";
+import { FolderOpenOutline, Refresh } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig, Theme } from "@biliLive-tools/types";
@@ -313,20 +341,44 @@ const getConfig = async () => {
   initConfig.value = cloneDeep(data);
 };
 
-const selectFile = async (file: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut") => {
+/**
+ * 选择二进制文件的地址
+ * @param file bin文件类型
+ * @param defaultPath 默认地址
+ */
+const selectFile = async (
+  type: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut",
+  defaultPath: string,
+) => {
   const files = await window.api.openFile({
     multi: false,
+    defaultPath,
   });
   if (!files) return;
 
-  if (file === "ffmpeg") {
+  if (type === "ffmpeg") {
     config.value.ffmpegPath = files[0];
-  } else if (file === "ffprobe") {
+  } else if (type === "ffprobe") {
     config.value.ffprobePath = files[0];
-  } else if (file === "danmakuFactory") {
+  } else if (type === "danmakuFactory") {
     config.value.danmuFactoryPath = files[0];
-  } else if (file === "losslessCut") {
+  } else if (type === "losslessCut") {
     config.value.losslessCutPath = files[0];
+  } else {
+    console.error("未知文件类型");
+  }
+};
+
+/**
+ * 重置二进制文件的地址
+ */
+const resetBin = async (type: "ffmpeg" | "ffprobe" | "danmakuFactory") => {
+  if (type === "ffmpeg") {
+    config.value.ffmpegPath = await window.api.config.resetBin("ffmpeg");
+  } else if (type === "ffprobe") {
+    config.value.ffprobePath = await window.api.config.resetBin("ffprobe");
+  } else if (type === "danmakuFactory") {
+    config.value.danmuFactoryPath = await window.api.config.resetBin("danmakuFactory");
   } else {
     console.error("未知文件类型");
   }

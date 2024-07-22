@@ -349,6 +349,7 @@ const convert = async () => {
   if (rawClientOptions.openFolder) {
     window.api.common.showItemInFolder(outputPath);
   }
+  return true;
 };
 
 // const hotProgressConvert = async () => {
