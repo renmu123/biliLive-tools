@@ -8,6 +8,11 @@
       aria-modal="true"
       class="card"
     >
+      <div v-if="props.showPreset" class="flex" style="gap: 10px; align-items: center">
+        <span style="flex: none">预设</span>
+        <n-select v-model:value="presetId" :options="danmuPresetsOptions" placeholder="选择预设" />
+      </div>
+
       <DanmuFactorySetting
         v-if="config.id"
         v-model="config.config"
@@ -66,17 +71,26 @@ import { uuid } from "@renderer/utils";
 import { useDanmuPreset } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
 
-import type { DanmuPreset } from "@biliLive-tools/types";
+import type { DanmuPreset, DanmuConfig } from "@biliLive-tools/types";
+
+interface Props {
+  showPreset?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  showPreset: false,
+});
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const presetId = defineModel<string>({ required: true, default: "default" });
 const emits = defineEmits<{
-  confirm: [];
+  (event: "confirm", value: DanmuConfig): void;
 }>();
 
 const notice = useNotification();
 const confirmDialog = useConfirm();
 const { getDanmuPresets, getDanmuPreset } = useDanmuPreset();
+const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());
 
 const simpledMode = useStorage("simpledMode", true);
 
@@ -95,7 +109,7 @@ const saveConfig = async () => {
 const confirm = () => {
   getDanmuPresets();
   getDanmuPreset();
-  emits("confirm");
+  emits("confirm", config.value.config);
   close();
 };
 const close = () => {
@@ -108,6 +122,12 @@ watch(
     if (val) {
       config.value = await window.api.danmu.getPreset(presetId.value);
     }
+  },
+);
+watch(
+  () => presetId.value,
+  async (val) => {
+    config.value = await window.api.danmu.getPreset(val);
   },
 );
 

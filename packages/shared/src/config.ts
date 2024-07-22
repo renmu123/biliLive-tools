@@ -168,6 +168,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       /** ffmpeg预设 */
       ffmpegPresetId: "b_libx264",
       title: "{{filename}}-{{label}}-{{num}}",
+      danmuPresetId: "default",
     },
   },
   task: {
