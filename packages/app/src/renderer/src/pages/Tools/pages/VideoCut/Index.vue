@@ -7,24 +7,10 @@
         @click="handleProjectClick"
         >导入项目文件</ButtonGroup
       >
-      <n-button type="primary" @click="addVideo"> {{ videoTitle }} </n-button>
-      <input
-        ref="videoInputRef"
-        type="file"
-        accept="video/*,.flv"
-        style="display: none"
-        @change="handleVideoChange"
-      />
-      <n-button type="primary" :disabled="!files.videoPath" @click="addDanmu">
+      <n-button type="primary" @click="handleVideoChange"> {{ videoTitle }} </n-button>
+      <n-button type="primary" :disabled="!files.videoPath" @click="handleDanmuChange">
         {{ danmuTitle }}
       </n-button>
-      <input
-        ref="danmuInputRef"
-        type="file"
-        accept=".xml,.ass"
-        style="display: none"
-        @change="handleDanmuChange"
-      />
 
       <n-button type="info" :disabled="!files.videoPath" @click="exportCuts"> 导出切片 </n-button>
     </div>
@@ -66,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { uuid } from "@renderer/utils";
+import { uuid, supportedVideoExtensions } from "@renderer/utils";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
@@ -182,8 +168,6 @@ watchEffect(async () => {
   }
 });
 
-const videoInputRef = ref<HTMLInputElement | null>(null);
-const danmuInputRef = ref<HTMLInputElement | null>(null);
 const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 
 const videoInstance = ref<ArtplayerType | null>(null);
@@ -192,16 +176,19 @@ const handleVideoReady = (instance: ArtplayerType) => {
   videoInstance.value = instance;
 };
 
-const addVideo = () => {
-  videoInputRef.value?.click();
-};
-const handleVideoChange = async (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  if (!input.files) return;
-  const file = input.files[0];
-  if (!file) return;
+const handleVideoChange = async () => {
+  const files = await window.api.openFile({
+    multi: false,
+    filters: [
+      {
+        name: "media",
+        extensions: supportedVideoExtensions,
+      },
+    ],
+  });
+  if (!files) return;
 
-  const path = window.api.common.getPathForFile(file);
+  const path = files[0];
   handleVideo(path);
 };
 
@@ -223,18 +210,30 @@ const handleVideoDurationChange = (duration: number) => {
 };
 
 // 弹幕相关
-const addDanmu = async () => {
-  danmuInputRef.value?.click();
-};
 const xmlConvertVisible = ref(false);
 const tempXmlFile = ref("");
 const convertDanmuLoading = ref(false);
-const handleDanmuChange = async (event: Event) => {
-  const input = event.target as HTMLInputElement;
-  if (!input.files) return;
-  const file = input.files[0];
-  if (!file) return;
-  const path = window.api.common.getPathForFile(file);
+const handleDanmuChange = async () => {
+  const files = await window.api.openFile({
+    multi: false,
+    filters: [
+      {
+        name: "file",
+        extensions: ["ass", "xml"],
+      },
+      {
+        name: "ass",
+        extensions: ["ass"],
+      },
+      {
+        name: "xml",
+        extensions: ["xml"],
+      },
+    ],
+  });
+  if (!files) return;
+
+  const path = files[0];
   await handleDanmu(path);
 };
 const handleDanmu = async (path: string) => {
