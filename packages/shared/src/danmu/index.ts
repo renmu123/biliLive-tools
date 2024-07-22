@@ -68,7 +68,7 @@ export class Danmu {
 
     const requiredArgs = [`-i "${input}"`, `-o "${output}"`, "--ignore-warnings"];
     const args = this.genDanmuArgs(argsObj);
-    const command = `${this.execPath} ${requiredArgs.join(" ")} ${args.join(" ")}`;
+    const command = `"${this.execPath}" ${requiredArgs.join(" ")} ${args.join(" ")}`;
     log.info("danmakufactory command: ", command);
     this.command = command;
 

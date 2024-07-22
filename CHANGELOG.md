@@ -58,6 +58,7 @@
 4. 修复某些情况下无法修改稿件简介的[bug](https://github.com/renmu123/biliLive-tools/issues/4#issuecomment-2233626419)
 5. 修复多P上传的暂停错误，由上游修复
 6. 修复上传暂停后进度计算错误，由上游修复
+7. 修复DanmakuFactory可执行路径存在空格时无法处理的bug
 
 # 1.2.0
 
