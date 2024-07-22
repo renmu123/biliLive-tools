@@ -85,45 +85,52 @@ export class Danmu {
   };
 }
 
-const parseXmlObj = async (input: string) => {
+const traversalObject = (obj: any, callback: (key: string, value: any) => any) => {
+  for (const key in obj) {
+    if (typeof obj[key] === "object" && !Array.isArray(obj[key])) {
+      traversalObject(obj[key], callback);
+    } else {
+      callback(key, obj[key]);
+    }
+  }
+};
+
+/**
+ * 处理xml文件
+ */
+const parseXmlFile = async (input: string) => {
   const XMLdata = await fs.promises.readFile(input, "utf8");
-  const parser = new XMLParser({ ignoreAttributes: false });
+  return parseXmlObj(XMLdata);
+};
+
+/**
+ * 解析弹幕数据为对象
+ */
+export const parseXmlObj = async (XMLdata: string) => {
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    isArray: (name) => {
+      if (["d", "gift", "guard", "sc"].includes(name)) return true;
+    },
+  });
   const jObj = parser.parse(XMLdata);
 
-  let danmuku = jObj?.i?.d || [];
-  let sc = jObj?.i?.sc || [];
-  let guard = jObj?.i?.guard || [];
-  let gift = jObj?.i?.gift || [];
+  let danmuku = [];
+  let sc = [];
+  let guard = [];
+  let gift = [];
 
-  // 在只有一条时，会解析成object形式，这里统一转换成array
-  if (!Array.isArray(danmuku)) {
-    if (typeof danmuku === "object") {
-      danmuku = [danmuku];
-    } else {
-      danmuku = [];
+  traversalObject(jObj, (key, value) => {
+    if (key === "d") {
+      danmuku = value;
+    } else if (key === "sc") {
+      sc = value;
+    } else if (key === "guard") {
+      guard = value;
+    } else if (key === "gift") {
+      gift = value;
     }
-  }
-  if (!Array.isArray(sc)) {
-    if (typeof sc === "object") {
-      sc = [sc];
-    } else {
-      sc = [];
-    }
-  }
-  if (!Array.isArray(guard)) {
-    if (typeof guard === "object") {
-      guard = [guard];
-    } else {
-      guard = [];
-    }
-  }
-  if (!Array.isArray(gift)) {
-    if (typeof gift === "object") {
-      gift = [gift];
-    } else {
-      gift = [];
-    }
-  }
+  });
 
   return { jObj, danmuku, sc, guard, gift };
 };
@@ -193,7 +200,7 @@ export const report = async (
   },
 ) => {
   // 读取Ass文件
-  const { danmuku, sc, guard, gift } = await parseXmlObj(input);
+  const { danmuku, sc, guard, gift } = await parseXmlFile(input);
 
   const danmukuLength = danmuku.length;
   const scLength = sc.length;
@@ -329,25 +336,23 @@ async function handleAss(
   return items;
 }
 
-async function handleXml(
-  input: string,
+/**
+ * 处理弹幕为高能弹幕所需数据格式
+ */
+export function handleDanmu(
+  danmuku: any[],
   options = {
     interval: 30,
   },
 ) {
-  // 读取xml文件
-  const XMLdata = await fs.promises.readFile(input, "utf8");
-  const parser = new XMLParser({ ignoreAttributes: false });
-  const jObj = parser.parse(XMLdata);
-
-  const danmuku = (jObj?.i?.d || []).map((item) => {
+  const data = danmuku.map((item) => {
     return {
       start: item["@_p"].split(",")[0],
       text: item["#text"],
     };
   });
   const items = Array.from(
-    groupBy(danmuku, (item) => Math.floor(item.start / options.interval) * options.interval),
+    groupBy(data, (item) => Math.floor(item.start / options.interval) * options.interval),
   ).map(([key, items]) => {
     return {
       time: key,
@@ -356,6 +361,40 @@ async function handleXml(
   });
   return items;
 }
+
+export const generateDanmakuData = async (input: string, options: hotProgressOptions) => {
+  let items: { time: number; value: number }[] = [];
+  const ext = path.extname(input);
+  if (ext === ".xml") {
+    // 读取xml文件
+    const { danmuku } = await parseXmlFile(input);
+
+    items = handleDanmu(danmuku, {
+      interval: options.interval,
+    });
+  } else if (ext === ".ass") {
+    items = await handleAss(input, {
+      interval: options.interval,
+    });
+  }
+
+  const map = keyBy(items, "time");
+
+  const data: { time: number; value: number; color: string }[] = [];
+  for (let i = 0; i < options.duration - options.interval; i += options.interval) {
+    const item = map[i];
+    if (item) {
+      data.push({ ...item, color: options.color });
+    } else {
+      data.push({
+        time: i,
+        value: 0,
+        color: options.color,
+      });
+    }
+  }
+  return data;
+};
 
 // 生成高能弹幕图片
 export const generateDanmakuImage = async (
@@ -372,36 +411,8 @@ export const generateDanmakuImage = async (
   };
   const options = Object.assign(defaultOptins, iOptions);
 
-  let items: { time: number; value: number }[] = [];
-  const ext = path.extname(input);
-  if (ext === ".xml") {
-    // 读取xml文件
-    items = await handleXml(input, {
-      interval: options.interval,
-    });
-  } else if (ext === ".ass") {
-    items = await handleAss(input, {
-      interval: options.interval,
-    });
-  }
-
+  const data = await generateDanmakuData(input, options);
   await fs.ensureDir(output);
-  const map = keyBy(items, "time");
-
-  const data: { time: number; value: number; color: string }[] = [];
-  for (let i = 0; i < options.duration - options.interval; i += options.interval) {
-    const item = map[i];
-    if (item) {
-      data.push({ ...item, color: options.color });
-    } else {
-      data.push({
-        time: i,
-        value: 0,
-        color: options.color,
-      });
-    }
-  }
-
   for (let i = 0; i < data.length; i++) {
     data[i].color = options.fillColor;
     const canvas = drawSmoothLineChart(data, options.width, options.height);

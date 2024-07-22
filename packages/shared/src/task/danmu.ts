@@ -1,7 +1,6 @@
 import { join, parse } from "node:path";
 import fs from "fs-extra";
 import os from "node:os";
-import { XMLParser, XMLBuilder } from "fast-xml-parser";
 
 import { pathExists, trashItem, uuid } from "../utils/index.js";
 import log from "../utils/log.js";
@@ -146,87 +145,6 @@ export const isEmptyDanmu = async (file: string) => {
 
   return true;
 };
-
-// /**
-//  * 屏蔽词过滤
-//  * @param file 输入文件
-//  * @param output 输出文件
-//  * @param blacklist 屏蔽词列表，换行分割
-//  */
-// const filterBlacklist2File = async (file: string, output: string, blacklist: string) => {
-//   const XMLdata = await fs.promises.readFile(file, "utf8");
-//   const outputContent = filterBlacklist(XMLdata, blacklist.split(","));
-//   await fs.promises.writeFile(output, outputContent);
-//   return output;
-// };
-
-/**
- * 屏蔽词过滤
- * @param xmlContent xml内容
- * @param blacklist 屏蔽词列表
- */
-export const filterBlacklist = (XMLdata: string, blacklist: string[]) => {
-  const parser = new XMLParser({
-    ignoreAttributes: false,
-    preserveOrder: true,
-  });
-  let jObj = parser.parse(XMLdata);
-  jObj = filterData(jObj, blacklist);
-
-  const builder = new XMLBuilder({
-    ignoreAttributes: false,
-    attributeNamePrefix: "@_",
-    format: true,
-    preserveOrder: true,
-  });
-  const xmlContent = builder.build(jObj);
-
-  return xmlContent;
-};
-
-function filterData(obj: any | any[], blacklist: string[]): any | any[] | null {
-  if (blacklist.length === 0) return obj;
-  if (Array.isArray(obj)) {
-    // console.log("obj", obj, blacklist);
-    return obj.map((item) => filterData(item, blacklist)).filter((item) => item !== null);
-  } else if (typeof obj === "object" && obj !== null) {
-    // console.log(
-    //   "qqq",
-    //   obj?.d,
-    //   Array.isArray(obj?.d),
-    //   (obj?.d ?? []).some((d) => blacklist.includes(d["#text"])),
-    // );
-
-    if (
-      obj.d &&
-      Array.isArray(obj.d) &&
-      obj.d.some((d) => {
-        return !blacklist.every((word) => {
-          const text = String(d["#text"]);
-          if (text.includes(word)) {
-            return false;
-          }
-          return true;
-        });
-      })
-    ) {
-      return null;
-    }
-    const newObj: any = {};
-    for (const key in obj) {
-      // obj.hasOwnProperty(key)
-      if (Object.hasOwn(obj, key)) {
-        const filteredValue = filterData(obj[key], blacklist);
-        if (filteredValue !== null) {
-          newObj[key] = filteredValue;
-        }
-      }
-    }
-    return newObj;
-  }
-  // console.log("ppp", typeof obj === "object", obj);
-  return obj;
-}
 
 /**
  * 生成高能进度条

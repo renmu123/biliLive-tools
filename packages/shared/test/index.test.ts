@@ -2,80 +2,12 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { expect, describe, it, beforeEach, afterEach } from "vitest";
-// import { filterBlacklist } from "../src/task/danmu";
 import { escaped } from "../src/utils/index";
 import { Danmu } from "../src/danmu/index";
 import { getHardwareAcceleration } from "../src/utils/index";
+import { parseXmlObj } from "../src/danmu/index";
 
 export const __dirname = dirname(fileURLToPath(import.meta.url));
-// describe.concurrent("filterBlacklist", () => {
-//   it("有屏蔽词", () => {
-//     const input = `<?xml version="1.0" encoding="utf-8"?>
-// <?xml-stylesheet type="text/xsl" href="#s"?>
-// <i>
-//   <d p="0.050,1,25,16777215,1705759424593,0,401378687,0" user="呵呵君在线">主播 封面的女孩子是谁你妹妹吗 能不能换</d>
-//   <d p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</d>
-// </i>`;
-//     const blacklist = ["主播", "主播2", "封面"];
-//     const output = filterBlacklist(input, blacklist);
-//     expect(output).toEqual(`<?xml version="1.0" encoding="utf-8"?>
-// <?xml-stylesheet type="text/xsl" href="#s"?>
-// <i>
-//   <d p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</d>
-// </i>`);
-//   });
-//   it("有屏蔽词2", () => {
-//     const input = `<?xml version="1.0" encoding="utf-8"?>
-// <?xml-stylesheet type="text/xsl" href="#s"?>
-// <root>
-//   <d p="0.050,1,25,16777215,1705759424593,0,401378687,0" user="呵呵君在线">主播 封面的女孩子是谁你妹妹吗 能不能换</d>
-//   <d p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</d>
-// </root>`;
-//     const blacklist = ["主播"];
-//     const output = filterBlacklist(input, blacklist);
-//     expect(output).toEqual(`<?xml version="1.0" encoding="utf-8"?>
-// <?xml-stylesheet type="text/xsl" href="#s"?>
-// <root>
-//   <d p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</d>
-// </root>`);
-//   });
-//   it("无屏蔽词", () => {
-//     const input = `<?xml version="1.0" encoding="utf-8"?>
-// <?xml-stylesheet type="text/xsl" href="#s"?>
-// <i a="test">
-//   <d p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</d>
-//   <gift p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</gift>
-//   <d p="0.050,1,25,16777215,1705759424593,0,401378687,0" user="呵呵君在线">主播 封面的女孩子是谁你妹妹吗 能不能换</d>
-// </i>`;
-//     const blacklist = [];
-//     const output = filterBlacklist(input, blacklist);
-//     expect(output).toEqual(`<?xml version="1.0" encoding="utf-8"?>
-// <?xml-stylesheet type="text/xsl" href="#s"?>
-// <i a="test">
-//   <d p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</d>
-//   <gift p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</gift>
-//   <d p="0.050,1,25,16777215,1705759424593,0,401378687,0" user="呵呵君在线">主播 封面的女孩子是谁你妹妹吗 能不能换</d>
-// </i>`);
-//   });
-//   it("未中屏蔽词", () => {
-//     const input = `<?xml version="1.0" encoding="utf-8"?>
-// <?xml-stylesheet type="text/xsl" href="#s"?>
-// <i>
-//   <d p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</d>
-//   <gift p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</gift>
-//   <d p="0.050,1,25,16777215,1705759424593,0,401378687,0" user="呵呵君在线">主播 封面的女孩子是谁你妹妹吗 能不能换</d>
-// </i>`;
-//     const blacklist = ["主播1"];
-//     const output = filterBlacklist(input, blacklist);
-//     expect(output).toEqual(`<?xml version="1.0" encoding="utf-8"?>
-// <?xml-stylesheet type="text/xsl" href="#s"?>
-// <i>
-//   <d p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</d>
-//   <gift p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</gift>
-//   <d p="0.050,1,25,16777215,1705759424593,0,401378687,0" user="呵呵君在线">主播 封面的女孩子是谁你妹妹吗 能不能换</d>
-// </i>`);
-//   });
-// });
 
 describe.concurrent("genDanmuArgs", () => {
   let danmu: Danmu;
@@ -335,5 +267,149 @@ describe.concurrent("getHardwareAcceleration", () => {
       // @ts-ignore
       getHardwareAcceleration(encoder);
     }).toThrowError("未知的编码器: unknown_encoder");
+  });
+});
+
+describe.concurrent("parseXmlObj", () => {
+  it("should parse XML data and return the parsed object", async () => {
+    const input = `<?xml version="1.0" encoding="utf-8"?>
+    <i>
+      <d p="0.050,1,25,16777215,1705759424593,0,401378687,0" user="呵呵君在线">主播 封面的女孩子是谁你妹妹吗 能不能换</d>
+      <d p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</d>
+      <sc p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</sc>
+      <guard p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</guard>
+      <gift p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</gift>
+    </i>`;
+
+    const expectedOutput = {
+      danmuku: [
+        {
+          "@_p": "0.050,1,25,16777215,1705759424593,0,401378687,0",
+          "@_user": "呵呵君在线",
+          "#text": "主播 封面的女孩子是谁你妹妹吗 能不能换",
+        },
+        {
+          "@_p": "0.050,1,25,16777215,1705759424480,0,649778941,0",
+          "@_user": "邻桌同学",
+          "#text": "黎明杀机",
+        },
+      ],
+      sc: [
+        {
+          "@_p": "0.050,1,25,16777215,1705759424480,0,649778941,0",
+          "@_user": "邻桌同学",
+          "#text": "黎明杀机",
+        },
+      ],
+      guard: [
+        {
+          "@_p": "0.050,1,25,16777215,1705759424480,0,649778941,0",
+          "@_user": "邻桌同学",
+          "#text": "黎明杀机",
+        },
+      ],
+      gift: [
+        {
+          "@_p": "0.050,1,25,16777215,1705759424480,0,649778941,0",
+          "@_user": "邻桌同学",
+          "#text": "黎明杀机",
+        },
+      ],
+    };
+
+    const { danmuku, sc, guard, gift } = await parseXmlObj(input);
+    expect(danmuku).toEqual(expectedOutput.danmuku);
+    expect(sc).toEqual(expectedOutput.sc);
+    expect(guard).toEqual(expectedOutput.guard);
+    expect(gift).toEqual(expectedOutput.gift);
+  });
+  it("should parse XML data and return the parsed object and d is one", async () => {
+    const input = `<?xml version="1.0" encoding="utf-8"?>
+    <i>
+      <d p="0.050,1,25,16777215,1705759424593,0,401378687,0" user="呵呵君在线">主播 封面的女孩子是谁你妹妹吗 能不能换</d>
+    </i>`;
+
+    const expectedOutput = {
+      danmuku: [
+        {
+          "@_p": "0.050,1,25,16777215,1705759424593,0,401378687,0",
+          "@_user": "呵呵君在线",
+          "#text": "主播 封面的女孩子是谁你妹妹吗 能不能换",
+        },
+      ],
+      sc: [],
+      guard: [],
+      gift: [],
+    };
+
+    const { danmuku } = await parseXmlObj(input);
+    expect(danmuku).toEqual(expectedOutput.danmuku);
+  });
+  it("should parse XML data and return the parsed object and root ele is not i ", async () => {
+    const input = `<?xml version="1.0" encoding="utf-8"?>
+    <root>
+      <d p="0.050,1,25,16777215,1705759424593,0,401378687,0" user="呵呵君在线">主播 封面的女孩子是谁你妹妹吗 能不能换</d>
+      <d p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</d>
+      <sc p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</sc>
+      <guard p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</guard>
+      <gift p="0.050,1,25,16777215,1705759424480,0,649778941,0" user="邻桌同学">黎明杀机</gift>
+    </root>`;
+
+    const expectedOutput = {
+      danmuku: [
+        {
+          "@_p": "0.050,1,25,16777215,1705759424593,0,401378687,0",
+          "@_user": "呵呵君在线",
+          "#text": "主播 封面的女孩子是谁你妹妹吗 能不能换",
+        },
+        {
+          "@_p": "0.050,1,25,16777215,1705759424480,0,649778941,0",
+          "@_user": "邻桌同学",
+          "#text": "黎明杀机",
+        },
+      ],
+      sc: [
+        {
+          "@_p": "0.050,1,25,16777215,1705759424480,0,649778941,0",
+          "@_user": "邻桌同学",
+          "#text": "黎明杀机",
+        },
+      ],
+      guard: [
+        {
+          "@_p": "0.050,1,25,16777215,1705759424480,0,649778941,0",
+          "@_user": "邻桌同学",
+          "#text": "黎明杀机",
+        },
+      ],
+      gift: [
+        {
+          "@_p": "0.050,1,25,16777215,1705759424480,0,649778941,0",
+          "@_user": "邻桌同学",
+          "#text": "黎明杀机",
+        },
+      ],
+    };
+
+    const { danmuku, sc, guard, gift } = await parseXmlObj(input);
+    expect(danmuku).toEqual(expectedOutput.danmuku);
+    expect(sc).toEqual(expectedOutput.sc);
+    expect(guard).toEqual(expectedOutput.guard);
+    expect(gift).toEqual(expectedOutput.gift);
+  });
+
+  it("should handle empty XML data and return an empty object", async () => {
+    const input = "";
+
+    const expectedOutput = {
+      jObj: {},
+      danmuku: [],
+      sc: [],
+      guard: [],
+      gift: [],
+    };
+
+    const { danmuku } = await parseXmlObj(input);
+    expect(danmuku).toEqual(expectedOutput.danmuku);
   });
 });
