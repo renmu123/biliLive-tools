@@ -128,11 +128,12 @@ export class WebhookHandler {
     if (!currentPart) return;
 
     if (useLiveCover) {
-      const { name, dir } = path.parse(options.filePath);
+      // TODO:重构
       let cover: string | undefined;
       if (options.coverPath) {
         cover = options.coverPath;
       } else {
+        const { name, dir } = path.parse(options.filePath);
         if (await fs.pathExists(path.join(dir, `${name}.cover.jpg`))) {
           cover = path.join(dir, `${name}.cover.jpg`);
         }
