@@ -996,27 +996,26 @@ describe("WebhookHandler", () => {
       expect(live.parts[2].status).toBe("error");
     });
 
-    it("应在关闭断播续传时正确伤处", async () => {
+    it("应在关闭断播续传时正确上传", async () => {
       // Arrange
       const live: Live = {
         roomId: 123,
         eventId: "123",
         platform: "blrec",
         videoName: "Test Video",
-        aid: 789,
         parts: [
           {
             partId: "part-1",
             filePath: "/path/to/part1.mp4",
-            status: "uploaded",
             endTime: new Date("2022-01-01T00:05:00Z").getTime(),
             cover: "/path/to/cover.jpg",
+            status: "handled",
           },
         ],
       };
       // @ts-ignore
       const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
-        mergePart: true,
+        mergePart: false,
         uploadPresetId: "preset-id",
         uid: 456,
         removeOriginAfterUpload: true,
@@ -1025,25 +1024,17 @@ describe("WebhookHandler", () => {
       const addEditMediaTaskSpy = vi
         .spyOn(webhookHandler, "addEditMediaTask")
         .mockRejectedValue(undefined);
-      const addUploadTaskSpy = vi
-        .spyOn(webhookHandler, "addUploadTask")
-        .mockResolvedValue(undefined);
+      const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(789);
 
       // Act
       await webhookHandler.handleLive(live);
 
       // Assert
       expect(getConfigSpy).toHaveBeenCalledWith(live.roomId);
-      expect(addEditMediaTaskSpy).toHaveBeenCalledWith(
-        456,
-        789,
-        ["/path/to/part2.mp4", "/path/to/part3.mp4"],
-        true,
-      );
-      expect(addUploadTaskSpy).not.toHaveBeenCalled();
+      expect(addEditMediaTaskSpy).not.toHaveBeenCalledWith();
+      expect(addUploadTaskSpy).toHaveBeenCalled();
       expect(live.aid).toBe(789);
-      expect(live.parts[1].status).toBe("error");
-      expect(live.parts[2].status).toBe("error");
+      expect(live.parts[0].status).toBe("uploaded");
     });
   });
 });

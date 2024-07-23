@@ -64,14 +64,12 @@ export class WebhookHandler {
   async handle(options: Options) {
     const {
       danmu,
-      mergePart,
       minSize,
       uploadPresetId,
       title,
       danmuPresetId,
       videoPresetId,
       open,
-      uid,
       partMergeMinute,
       hotProgress,
       useLiveCover,
@@ -82,7 +80,6 @@ export class WebhookHandler {
       convert2Mp4Option,
       useVideoAsTitle,
       removeOriginAfterConvert,
-      removeOriginAfterUpload,
       noConvertHandleVideo,
     } = this.getConfig(options.roomId);
     if (!open) {
@@ -158,7 +155,6 @@ export class WebhookHandler {
       if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
         log.info("没有找到弹幕文件，直接上传", xmlFilePath);
         currentPart.status = "handled";
-        this.newUploadTask(uid, mergePart, currentPart, config, removeOriginAfterUpload);
         return;
       }
       let hotProgressFile: string | undefined;
@@ -196,7 +192,6 @@ export class WebhookHandler {
 
         currentPart.filePath = output;
         currentPart.status = "handled";
-        this.newUploadTask(uid, mergePart, currentPart, config, removeOriginAfterUpload);
       } catch (error) {
         log.error(error);
         currentPart.status = "error";
@@ -219,7 +214,6 @@ export class WebhookHandler {
         currentPart.filePath = output;
       }
       currentPart.status = "handled";
-      this.newUploadTask(uid, mergePart, currentPart, config, removeOriginAfterUpload);
     }
   }
   async handleCover(options: { coverPath?: string; filePath: string }) {
@@ -702,32 +696,6 @@ export class WebhookHandler {
     });
   };
 
-  /**
-   * 上传任务，如果mergePart为true，会有定时任务进行处理
-   */
-  newUploadTask = async (
-    uid: number | undefined,
-    mergePart: boolean,
-    part: Part,
-    config: BiliupConfig,
-    removeOrigin?: boolean,
-  ) => {
-    if (!uid) {
-      log.info(`uid is not set`);
-      part.status = "error";
-      return;
-    }
-    if (mergePart) return;
-    part.status = "uploading";
-    try {
-      await this.addUploadTask(uid, [part.filePath], config, removeOrigin);
-      part.status = "uploaded";
-    } catch (error) {
-      log.error(error);
-      part.status = "error";
-    }
-  };
-
   addUploadTask = async (
     uid: number,
     pathArray: string[],
@@ -781,18 +749,6 @@ export class WebhookHandler {
     const isUploading = live.parts.some((item) => item.status === "uploading");
     if (isUploading) return;
 
-    const { mergePart, uploadPresetId, uid, removeOriginAfterUpload, useLiveCover } =
-      this.getConfig(live.roomId);
-    if (!mergePart) return;
-    if (!uid) return;
-
-    let config = DEFAULT_BILIUP_CONFIG;
-    if (uploadPresetId) {
-      const preset = await videoPreset.get(uploadPresetId);
-      config = { ...config, ...preset.config };
-    }
-    config.title = live.videoName;
-
     const filePaths: string[] = [];
     // 过滤掉已经上传的part
     const filterParts = live.parts.filter(
@@ -812,6 +768,17 @@ export class WebhookHandler {
     }
     if (filePaths.length === 0) return;
 
+    const { uploadPresetId, uid, removeOriginAfterUpload, useLiveCover } = this.getConfig(
+      live.roomId,
+    );
+    if (!uid) return;
+
+    let config = DEFAULT_BILIUP_CONFIG;
+    if (uploadPresetId) {
+      const preset = await videoPreset.get(uploadPresetId);
+      config = { ...config, ...preset.config };
+    }
+    config.title = live.videoName;
     if (useLiveCover) {
       config.cover = cover;
     }
