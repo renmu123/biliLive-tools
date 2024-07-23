@@ -3,7 +3,7 @@
     ref="fileSelectArea"
     class="file-selet"
     :class="{
-      dragging: dragging,
+      dragging: isOverDropZone,
     }"
     :style="{
       height: props.height,
@@ -27,15 +27,6 @@
             <CloseIcon />
           </n-icon>
         </div>
-        <n-progress
-          v-if="file.percentage"
-          type="line"
-          :status="file.percentageStatus"
-          :percentage="file.percentage"
-          :indicator-placement="'outside'"
-          :show-indicator="false"
-          style="--n-rail-height: 6px"
-        />
       </div>
     </div>
     <div v-else class="empty">
@@ -54,8 +45,9 @@
 
 <script setup lang="ts">
 import { ArchiveOutline as ArchiveIcon, CloseOutline as CloseIcon } from "@vicons/ionicons5";
+import { useDropZone } from "@vueuse/core";
 
-import type { File } from "@biliLive-tools/types";
+import type { File as newFile } from "@biliLive-tools/types";
 
 const props = withDefaults(
   defineProps<{
@@ -75,12 +67,7 @@ const emits = defineEmits<{
   change: any[];
 }>();
 
-const fileList = defineModel<
-  (File & {
-    percentage?: number;
-    percentageStatus?: "success" | "info" | "error";
-  })[]
->({ default: () => [] });
+const fileList = defineModel<newFile[]>({ default: () => [] });
 
 const fileSelectArea = ref<HTMLElement | null>(null);
 
@@ -117,48 +104,35 @@ const removeItem = (index: number) => {
   emits("change", fileList.value);
 };
 
-const dragging = ref(false);
-onMounted(() => {
-  fileSelectArea.value!.addEventListener("dragover", (event) => {
-    event.preventDefault();
-    if (props.disabled) {
-      event.dataTransfer!.dropEffect = "none";
-      dragging.value = false;
-    } else {
-      event.dataTransfer!.dropEffect = "copy";
-      dragging.value = true;
+function onDrop(files: File[] | null) {
+  if (files) {
+    let items = Array.from(files)
+      .map((file) => window.api.formatFile(file.path))
+      .filter((file) => !fileList.value.map((item) => item.path).includes(file.path));
+
+    if (props.max) {
+      items = items.slice(0, props.max - fileList.value.length);
     }
-    if (fileList.value.length >= props.max!) {
-      event.dataTransfer!.dropEffect = "none";
-      dragging.value = false;
-    } else {
-      event.dataTransfer!.dropEffect = "copy";
-      dragging.value = true;
-    }
-  });
+    fileList.value.push(...items);
+    emits("change", fileList.value);
+  }
+}
+const onOver = (_files: File[] | null, event: DragEvent) => {
+  if (props.disabled) {
+    event.dataTransfer!.dropEffect = "none";
+  } else {
+    event.dataTransfer!.dropEffect = "copy";
+  }
+  if (fileList.value.length >= props.max!) {
+    event.dataTransfer!.dropEffect = "none";
+  } else {
+    event.dataTransfer!.dropEffect = "copy";
+  }
+};
 
-  fileSelectArea.value!.addEventListener("dragleave", (event) => {
-    event.preventDefault();
-    dragging.value = false;
-  });
-
-  fileSelectArea.value!.addEventListener("drop", (event) => {
-    event.preventDefault();
-    if (props.disabled) return;
-
-    const files = event.dataTransfer!.files;
-    if (files) {
-      let items = Array.from(files)
-        .map((file) => window.api.formatFile(file.path))
-        .filter((file) => !fileList.value.map((item) => item.path).includes(file.path));
-
-      if (props.max) {
-        items = items.slice(0, props.max - fileList.value.length);
-      }
-      fileList.value.push(...items);
-      emits("change", fileList.value);
-    }
-  });
+const { isOverDropZone } = useDropZone(fileSelectArea, {
+  onDrop,
+  onOver,
 });
 </script>
 

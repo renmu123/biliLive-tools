@@ -206,8 +206,6 @@ const { handlePresetOptions, presetOptions } = useBili();
 
 const fileList = ref<
   (File & {
-    percentage?: number;
-    percentageStatus?: "success" | "info" | "error";
     taskId?: string;
   })[]
 >([]);
