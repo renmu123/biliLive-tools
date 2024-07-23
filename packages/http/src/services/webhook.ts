@@ -128,20 +128,8 @@ export class WebhookHandler {
     if (!currentPart) return;
 
     if (useLiveCover) {
-      // TODO:重构
-      let cover: string | undefined;
-      if (options.coverPath) {
-        cover = options.coverPath;
-      } else {
-        const { name, dir } = path.parse(options.filePath);
-        if (await fs.pathExists(path.join(dir, `${name}.cover.jpg`))) {
-          cover = path.join(dir, `${name}.cover.jpg`);
-        }
-        if (await fs.pathExists(path.join(dir, `${name}.jpg`))) {
-          cover = path.join(dir, `${name}.jpg`);
-        }
-      }
-      if (cover && (await fs.pathExists(cover))) {
+      const cover = await this.handleCover(options);
+      if (cover) {
         config.cover = cover;
         currentPart.cover = cover;
       } else {
@@ -155,6 +143,7 @@ export class WebhookHandler {
       options.filePath = file;
       currentPart.filePath = file;
     }
+
     if (danmu) {
       let xmlFilePath: string;
       if (options.danmuPath) {
@@ -231,6 +220,25 @@ export class WebhookHandler {
       }
       currentPart.status = "handled";
       this.newUploadTask(uid, mergePart, currentPart, config, removeOriginAfterUpload);
+    }
+  }
+  async handleCover(options: { coverPath?: string; filePath: string }) {
+    let cover: string | undefined;
+    if (options.coverPath) {
+      cover = options.coverPath;
+    } else {
+      const { name, dir } = path.parse(options.filePath);
+      if (await fs.pathExists(path.join(dir, `${name}.cover.jpg`))) {
+        cover = path.join(dir, `${name}.cover.jpg`);
+      }
+      if (await fs.pathExists(path.join(dir, `${name}.jpg`))) {
+        cover = path.join(dir, `${name}.jpg`);
+      }
+    }
+    if (await fs.pathExists(cover)) {
+      return cover;
+    } else {
+      return undefined;
     }
   }
   static formatTime(time: string) {
