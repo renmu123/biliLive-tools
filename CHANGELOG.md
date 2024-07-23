@@ -56,8 +56,8 @@
 2. 修复ffmpeg批量添加时最大任务设置可能失败的bug
 3. 修复工具页切换时页面未被缓存的bug
 4. 修复某些情况下无法修改稿件简介的[bug](https://github.com/renmu123/biliLive-tools/issues/4#issuecomment-2233626419)
-5. 修复多P上传的暂停错误，由上游修复
-6. 修复上传暂停后进度计算错误，由上游修复
+5. 修复多P上传的暂停错误，由[上游修复](https://github.com/renmu123/biliAPI/commit/b07b25a2a7c61177abdc0d5b893e610d96b56ef1)
+6. 修复上传暂停后进度计算错误，由[上游修复](https://github.com/renmu123/biliAPI/commit/c5106bc8710d950590878f3874323673414c5055)
 7. 修复DanmakuFactory可执行路径存在空格时无法处理的bug
 8. 修复文件拖拽栏可以选择任意文件的bug
 
