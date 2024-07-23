@@ -137,7 +137,14 @@ onMounted(() => {
     if (files) {
       let items = Array.from(files)
         .map((file) => window.api.formatFile(file.path))
-        .filter((file) => !fileList.value.map((item) => item.path).includes(file.path));
+        .filter((file) => !fileList.value.map((item) => item.path).includes(file.path))
+        .filter((file) => {
+          if (props.extensions.includes("*")) return true;
+          if (props.extensions && props.extensions.length) {
+            return props.extensions.includes(file.ext.slice(1));
+          }
+          return true;
+        });
 
       if (props.max) {
         items = items.slice(0, props.max - fileList.value.length);
