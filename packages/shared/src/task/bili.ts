@@ -46,6 +46,16 @@ async function checkTag(
   return client.platform.checkTag(tag);
 }
 
+async function searchTopic(keyword: string, uid: number) {
+  const client = await createClient(uid);
+  return client.platform.searchTopic({
+    page_size: 20,
+    offset: 0,
+    // @ts-ignore
+    keywords: keyword,
+  });
+}
+
 async function getUserInfo(uid: number): ReturnType<ClientInstance["user"]["getUserInfo"]> {
   const client = await createClient(uid);
   return client.user.getUserInfo(uid);
@@ -113,8 +123,10 @@ interface MediaOptions {
   /** hires音效 */
   lossless_music?: 0 | 1;
   desc_format_id?: number;
-  /** 话题id */
+  /** 任务id */
   mission_id?: number;
+  /** 话题id */
+  topic_id?: number;
   /** 自制声明 0: 允许转载，1：禁止转载 */
   no_reprint?: 0 | 1;
   /** 是否全景 */
@@ -183,11 +195,16 @@ export function formatOptions(options: BiliupConfig) {
       }
     })
     .join("");
+  const tags = options.tag.map((item) => item.trim());
+  if (options.topic_name) {
+    tags.unshift(options.topic_name);
+  }
+
   const data: MediaOptions = {
     cover: options.cover,
     title: options.title,
     tid: options.tid,
-    tag: options.tag.join(","),
+    tag: tags.slice(0, 10).join(","),
     copyright: options.copyright,
     source: options.source,
     dolby: options.dolby,
@@ -201,6 +218,8 @@ export function formatOptions(options: BiliupConfig) {
     desc: desc,
     recreate: options.recreate || -1,
     no_disturbance: options.no_disturbance || 0,
+    topic_id: options.topic_id,
+    mission_id: options.mission_id,
   };
   // console.log("formatOptions", data);
   return data;
@@ -559,6 +578,7 @@ export const format = async (data: any) => {
 export const biliApi = {
   getArchives,
   checkTag,
+  searchTopic,
   login,
   getUserInfo,
   getMyInfo,

@@ -304,6 +304,9 @@ export const api = {
     checkTag(tag: string, uid: number) {
       return ipcRenderer.invoke("biliApi:checkTag", tag, uid);
     },
+    searchTopic(keyword: string, uid: number) {
+      return ipcRenderer.invoke("biliApi:searchTopic", keyword, uid);
+    },
     getSeasonList(uid: number): Promise<ReturnType<BiliApi["getSeasonList"]>> {
       return ipcRenderer.invoke("biliApi:getSeasonList", uid);
     },

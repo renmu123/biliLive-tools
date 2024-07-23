@@ -146,4 +146,100 @@ describe("formatOptions", () => {
 
     expect(result).toEqual(expected);
   });
+  it("should format options with topic_name", () => {
+    const options: BiliupConfig = {
+      cover: "http://example.com/cover.jpg",
+      title: "Test Video",
+      tid: 123,
+      tag: ["tag1", "tag2"],
+      desc: "This is a test video",
+      dolby: 1,
+      noReprint: 1,
+      closeDanmu: 0,
+      closeReply: 0,
+      selectiionReply: 0,
+      openElec: 1,
+      recreate: 1,
+      no_disturbance: 1,
+      copyright: 1,
+      hires: 0,
+      topic_name: "Test Topic",
+      topic_id: 123456,
+      mission_id: 123456,
+    };
+
+    const expected = {
+      cover: "http://example.com/cover.jpg",
+      title: "Test Video",
+      tid: 123,
+      tag: "Test Topic,tag1,tag2",
+      desc: "This is a test video",
+      desc_v2: undefined,
+      dolby: 1,
+      lossless_music: 0,
+      no_reprint: 1,
+      up_close_danmu: false,
+      up_close_reply: false,
+      up_selection_reply: false,
+      open_elec: 1,
+      recreate: 1,
+      source: undefined,
+      no_disturbance: 1,
+      copyright: 1,
+      topic_id: 123456,
+      mission_id: 123456,
+    };
+
+    const result = formatOptions(options);
+
+    expect(result).toEqual(expected);
+  });
+  it("should format options with topic_name and tag length equal 10", () => {
+    const options: BiliupConfig = {
+      cover: "http://example.com/cover.jpg",
+      title: "Test Video",
+      tid: 123,
+      tag: ["tag1", "tag2", "tag3", "tag4", "tag5", "tag6", "tag7", "tag8", "tag9", "tag10"],
+      desc: "This is a test video",
+      dolby: 1,
+      noReprint: 1,
+      closeDanmu: 0,
+      closeReply: 0,
+      selectiionReply: 0,
+      openElec: 1,
+      recreate: 1,
+      no_disturbance: 1,
+      copyright: 1,
+      hires: 0,
+      topic_name: "Test Topic",
+      topic_id: 123456,
+      mission_id: 123456,
+    };
+
+    const expected = {
+      cover: "http://example.com/cover.jpg",
+      title: "Test Video",
+      tid: 123,
+      tag: "Test Topic,tag1,tag2,tag3,tag4,tag5,tag6,tag7,tag8,tag9",
+      desc: "This is a test video",
+      desc_v2: undefined,
+      dolby: 1,
+      lossless_music: 0,
+      no_reprint: 1,
+      up_close_danmu: false,
+      up_close_reply: false,
+      up_selection_reply: false,
+      open_elec: 1,
+      recreate: 1,
+      source: undefined,
+      no_disturbance: 1,
+      copyright: 1,
+      topic_id: 123456,
+      mission_id: 123456,
+    };
+
+    const result = formatOptions(options);
+
+    expect(result).toEqual(expected);
+  });
 });

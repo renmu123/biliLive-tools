@@ -67,6 +67,26 @@
       <n-form-item>
         <template #label>
           <span class="inline-flex">
+            <span>话题</span>
+            <Tip tip="话题也会占据一个tag栏~"></Tip>
+          </span>
+        </template>
+        <n-select
+          v-model:value="options.config.topic_name"
+          filterable
+          placeholder="搜索话题"
+          :options="topicOptions"
+          :loading="topicLoading"
+          clearable
+          remote
+          :clear-filter-after-select="false"
+          @search="handleSearch"
+        />
+      </n-form-item>
+
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
             <span>视频简介</span>
             <Tip
               tip="可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与id对应。"
@@ -522,6 +542,47 @@ watchEffect(() => {
   getSeasonList();
   getPlatformTypes();
 });
+
+const topicLoading = ref(false);
+const topicOptions = ref<any[]>([]);
+const handleSearch = async (query: string) => {
+  if (!appConfig.value.uid) {
+    topicOptions.value = [];
+    return;
+  }
+  if (!query.length) {
+    topicOptions.value = [];
+    return;
+  }
+  topicLoading.value = true;
+  const data = await window.api.bili.searchTopic(query, appConfig.value.uid);
+  console.log(data);
+  topicOptions.value = data.result.topics.map((item) => {
+    return {
+      ...item,
+      label: item.name,
+      value: item.name,
+    };
+  });
+  topicLoading.value = false;
+};
+
+watch(
+  () => options.value.config.topic_name,
+  () => {
+    if (options.value.config.topic_name) {
+      options.value.config.topic_id = topicOptions.value.find(
+        (item) => item.value === options.value.config.topic_name,
+      )?.id;
+      options.value.config.mission_id = topicOptions.value.find(
+        (item) => item.value === options.value.config.topic_name,
+      )?.mission_id;
+    } else {
+      options.value.config.topic_id = undefined;
+      options.value.config.mission_id = undefined;
+    }
+  },
+);
 </script>
 
 <style scoped lang="less">

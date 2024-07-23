@@ -462,6 +462,12 @@ export interface BiliupConfig {
   commentTop?: boolean;
   /** 评论内容 */
   comment?: string;
+  /** 话题id */
+  topic_id?: number;
+  /** mission_id */
+  mission_id?: number;
+  /** 话题名称 */
+  topic_name?: string;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

@@ -40,6 +40,13 @@ export const handlers = {
   ): ReturnType<typeof biliApi.checkTag> => {
     return biliApi.checkTag(tag, uid);
   },
+  "biliApi:searchTopic": (
+    _event: IpcMainInvokeEvent,
+    keyword: string,
+    uid: number,
+  ): ReturnType<typeof biliApi.searchTopic> => {
+    return biliApi.searchTopic(keyword, uid);
+  },
   "biliApi:login": (event: IpcMainInvokeEvent) => {
     tv = new TvQrcodeLogin();
     tv.on("error", (res) => {
