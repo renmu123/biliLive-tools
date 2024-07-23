@@ -36,10 +36,7 @@
   <!-- 当弹幕压制开启或弹幕压制关闭但不压制后处理开启时展示 -->
   <n-form-item v-if="data.danmu || (!data.danmu && data.noConvertHandleVideo)">
     <template #label>
-      <span class="inline-flex">
-        视频预设
-        <Tip tip="视频编码不能为copy"></Tip>
-      </span>
+      <span class="inline-flex"> 视频预设 </span>
     </template>
     <n-cascader
       v-model:value="data.ffmpegPreset"

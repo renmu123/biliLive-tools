@@ -9,10 +9,16 @@
       class="card"
     >
       <div>
-        <p style="color: red">续传只会增加分p，不会对稿件进行编辑，</p>
-        <div style="display: flex; gap: 10px">
-          <n-input v-model:value="aid" placeholder="请输入需要续传视频的aid" />
-          <n-button class="btn" @click="close">取消</n-button>
+        <p style="color: red">续传只会增加分p，不会对稿件进行编辑</p>
+        <div style="display: flex; gap: 10px; align-items: center">
+          <n-pagination
+            v-model:page="page"
+            :page-count="pageCount"
+            size="medium"
+            show-quick-jumper
+          />
+
+          <n-button style="margin-left: auto" class="btn" @click="close">取消</n-button>
           <n-button type="primary" class="btn" @click="confirm"> 确认 </n-button>
         </div>
         <div class="media-container">
@@ -20,6 +26,7 @@
             v-for="item in list"
             :key="item.Archive.aid"
             class="media"
+            :class="{ selected: aid == item.Archive.aid }"
             @click="selectMedia(item)"
           >
             <img :src="item.Archive.cover" referrerpolicy="no-referrer" class="cover" />
@@ -41,8 +48,7 @@ const aid = defineModel<string>({ required: true });
 const emits = defineEmits<{
   confirm: [aid: string];
 }>();
-
-// const props = withDefaults();
+const notice = useNotification();
 
 const list = ref<
   {
@@ -59,7 +65,16 @@ const list = ref<
   }[]
 >([]);
 
-const notice = useNotification();
+const page = ref(1);
+const pageCount = ref(1);
+
+watch(
+  () => page.value,
+  () => {
+    getArchives();
+  },
+);
+
 const getArchives = async () => {
   const uid = appConfig.value.uid;
   if (!uid) {
@@ -71,15 +86,16 @@ const getArchives = async () => {
   }
   const data = await window.api.bili.getArchives(
     {
-      pn: 1,
+      pn: page.value,
       ps: 20,
     },
     uid,
   );
+  pageCount.value = Math.ceil(data.page.count / data.page.ps);
+
   list.value = data.arc_audits;
 };
 const handleOpen = () => {
-  console.log("open");
   getArchives();
 };
 const close = () => {
@@ -146,10 +162,9 @@ const selectMedia = (item) => {
       width: 160px;
       height: 100px;
     }
-  }
-  .media:hover {
-    cursor: pointer;
-    border-color: skyblue;
+    &.selected {
+      border-color: red;
+    }
   }
 }
 </style>
