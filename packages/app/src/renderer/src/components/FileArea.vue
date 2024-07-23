@@ -2,6 +2,9 @@
   <div
     ref="fileSelectArea"
     class="file-selet"
+    :class="{
+      dragging: dragging,
+    }"
     :style="{
       height: props.height,
       cursor: props.disabled ? 'not-allowed' : 'pointer',
@@ -114,19 +117,29 @@ const removeItem = (index: number) => {
   emits("change", fileList.value);
 };
 
+const dragging = ref(false);
 onMounted(() => {
   fileSelectArea.value!.addEventListener("dragover", (event) => {
     event.preventDefault();
     if (props.disabled) {
       event.dataTransfer!.dropEffect = "none";
+      dragging.value = false;
     } else {
       event.dataTransfer!.dropEffect = "copy";
+      dragging.value = true;
     }
     if (fileList.value.length >= props.max!) {
       event.dataTransfer!.dropEffect = "none";
+      dragging.value = false;
     } else {
       event.dataTransfer!.dropEffect = "copy";
+      dragging.value = true;
     }
+  });
+
+  fileSelectArea.value!.addEventListener("dragleave", (event) => {
+    event.preventDefault();
+    dragging.value = false;
   });
 
   fileSelectArea.value!.addEventListener("drop", (event) => {
@@ -156,6 +169,10 @@ onMounted(() => {
   border-radius: 3px;
   overflow: auto;
   padding: 10px;
+
+  &.dragging {
+    border: 1px dashed #18a058;
+  }
 }
 .file {
   margin-bottom: 10px;
