@@ -322,6 +322,10 @@ export class WebhookHandler {
     removeOriginAfterUpload: boolean;
     /** 不压制后处理 */
     noConvertHandleVideo?: boolean;
+    /** 限制只在某一段时间上传 */
+    limitUploadTime?: boolean;
+    /** 允许上传处理时间 */
+    uploadHandleTime: [string, string];
   } {
     const config = appConfig.getAll();
     const roomSetting: AppRoomConfig | undefined = config.webhook.rooms[roomId];
@@ -347,6 +351,8 @@ export class WebhookHandler {
     const removeOriginAfterConvert = getRoomSetting("removeOriginAfterConvert") ?? false;
     const removeOriginAfterUpload = getRoomSetting("removeOriginAfterUpload") ?? false;
     const noConvertHandleVideo = getRoomSetting("noConvertHandleVideo") ?? false;
+    const limitUploadTime = getRoomSetting("limitUploadTime") ?? false;
+    const uploadHandleTime = getRoomSetting("uploadHandleTime") || ["00:00:00", "23:59:59"];
 
     /**
      * 获取房间配置项
@@ -385,6 +391,8 @@ export class WebhookHandler {
       removeOriginAfterConvert,
       removeOriginAfterUpload,
       noConvertHandleVideo,
+      limitUploadTime,
+      uploadHandleTime,
     };
     log.debug("final config", options);
 
@@ -768,10 +776,16 @@ export class WebhookHandler {
     }
     if (filePaths.length === 0) return;
 
-    const { uploadPresetId, uid, removeOriginAfterUpload, useLiveCover } = this.getConfig(
-      live.roomId,
-    );
+    const {
+      uploadPresetId,
+      uid,
+      removeOriginAfterUpload,
+      useLiveCover,
+      limitUploadTime,
+      uploadHandleTime,
+    } = this.getConfig(live.roomId);
     if (!uid) return;
+    if (limitUploadTime && !this.isBetweenTime(new Date(), uploadHandleTime)) return;
 
     let config = DEFAULT_BILIUP_CONFIG;
     if (uploadPresetId) {
@@ -828,4 +842,35 @@ export class WebhookHandler {
       }
     }
   };
+  /**
+   * 当前时间是否在两个时间'HH:mm:ss'之间，如果是["22:00:00","05:00:00"]，当前时间是凌晨3点，返回true
+   * @param {string} currentTime 当前时间
+   * @param {string[]} timeRange 时间范围
+   */
+  isBetweenTime(currentTime: Date, timeRange: [string, string]): boolean {
+    const [startTime, endTime] = timeRange;
+    if (!startTime || !endTime) return true;
+
+    const [startHour, startMinute, startSecond] = startTime.split(":").map(Number);
+    const [endHour, endMinute, endSecond] = endTime.split(":").map(Number);
+    const [currentHour, currentMinute, currentSecond] = [
+      currentTime.getHours(),
+      currentTime.getMinutes(),
+      currentTime.getSeconds(),
+    ];
+
+    const start = startHour * 3600 + startMinute * 60 + startSecond;
+    let end = endHour * 3600 + endMinute * 60 + endSecond;
+    let current = currentHour * 3600 + currentMinute * 60 + currentSecond;
+
+    // 如果结束时间小于开始时间，说明跨越了午夜
+    if (end < start) {
+      end += 24 * 3600; // 将结束时间加上24小时
+      if (current < start) {
+        current += 24 * 3600; // 如果当前时间小于开始时间，也加上24小时
+      }
+    }
+
+    return start <= current && current <= end;
+  }
 }

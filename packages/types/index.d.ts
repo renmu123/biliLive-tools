@@ -83,6 +83,10 @@ type CommonRoomConfig = {
   removeOriginAfterUpload?: boolean;
   /** 不压制后处理 */
   noConvertHandleVideo?: boolean;
+  /** 限制只在某一段时间上传 */
+  limitUploadTime?: boolean;
+  /** 允许上传处理时间 */
+  uploadHandleTime: [string, string];
 };
 
 // webhook房间配置

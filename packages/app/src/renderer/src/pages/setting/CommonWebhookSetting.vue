@@ -217,6 +217,41 @@
   </n-form-item>
   <n-form-item>
     <template #label>
+      <span class="inline-flex">
+        限制上传时间
+        <Tip tip="开启后，支持只在某段时间执行上传操作"></Tip>
+      </span>
+    </template>
+    <n-switch v-model:value="data.limitUploadTime" :disabled="globalFieldsObj.limitUploadTime" />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.limitUploadTime"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item v-if="data.limitUploadTime">
+    <template #label>
+      <span class="inline-flex"> 允许上传的时间段 </span>
+    </template>
+    <n-time-picker
+      v-model:formatted-value="data.uploadHandleTime[0]"
+      :disabled="globalFieldsObj.uploadHandleTime"
+    />
+    ~
+    <n-time-picker
+      v-model:formatted-value="data.uploadHandleTime[1]"
+      :disabled="globalFieldsObj.uploadHandleTime"
+    />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.uploadHandleTime"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item>
+    <template #label>
       <span class="inline-flex"> 完成后删除源文件 </span>
     </template>
     <n-switch

@@ -51,6 +51,7 @@ declare module 'vue' {
     NTabPane: typeof import('naive-ui')['NTabPane']
     NTabs: typeof import('naive-ui')['NTabs']
     NText: typeof import('naive-ui')['NText']
+    NTimePicker: typeof import('naive-ui')['NTimePicker']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Tip: typeof import('./src/components/Tip.vue')['default']
