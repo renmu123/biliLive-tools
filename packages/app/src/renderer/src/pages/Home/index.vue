@@ -164,6 +164,7 @@ import ffmpegSetting from "./components/ffmpegSetting.vue";
 import PreviewModal from "./components/previewModal.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
 import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
+import hotkeys from "hotkeys-js";
 
 import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
@@ -180,6 +181,18 @@ import type {
 
 defineOptions({
   name: "Home",
+});
+
+onActivated(() => {
+  hotkeys("ctrl+enter", function () {
+    handleConvert();
+  });
+});
+onDeactivated(() => {
+  hotkeys.unbind();
+});
+onUnmounted(() => {
+  hotkeys.unbind();
 });
 
 const notice = useNotification();
@@ -289,7 +302,7 @@ const convert = async () => {
   if (!data) return false;
   // 视频验证
   const outputPath = await window.api.showSaveDialog({
-    defaultPath: `${data.inputVideoFile}-弹幕版.mp4`,
+    defaultPath: `${data.inputVideoFile.name}-弹幕版.mp4`,
     filters: [
       { name: "视频文件", extensions: ["mp4"] },
       { name: "所有文件", extensions: ["*"] },

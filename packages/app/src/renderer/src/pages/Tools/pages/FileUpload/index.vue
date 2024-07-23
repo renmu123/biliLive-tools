@@ -30,6 +30,7 @@ import BiliSetting from "@renderer/components/BiliSetting.vue";
 import AppendVideoDialog from "@renderer/components/AppendVideoDialog.vue";
 import { useBili } from "@renderer/hooks";
 import { useUserInfoStore, useAppConfig } from "@renderer/stores";
+import hotkeys from "hotkeys-js";
 
 import { deepRaw } from "@renderer/utils";
 
@@ -48,6 +49,18 @@ const fileList = ref<
     visible: boolean;
   }[]
 >([]);
+
+onActivated(() => {
+  hotkeys("ctrl+enter", function () {
+    upload();
+  });
+});
+onDeactivated(() => {
+  hotkeys.unbind();
+});
+onUnmounted(() => {
+  hotkeys.unbind();
+});
 
 const upload = async () => {
   const hasLogin = !!userInfo.value.uid;

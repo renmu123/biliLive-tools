@@ -58,6 +58,7 @@ import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useAppConfig, useFfmpegPreset } from "@renderer/stores";
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
+import hotkeys from "hotkeys-js";
 
 const notice = useNotification();
 const confirm = useConfirm();
@@ -66,6 +67,18 @@ const { ffmpegOptions } = storeToRefs(useFfmpegPreset());
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 const options = appConfig.value.tool.video2mp4;
+
+onActivated(() => {
+  hotkeys("ctrl+enter", function () {
+    convert();
+  });
+});
+onDeactivated(() => {
+  hotkeys.unbind();
+});
+onUnmounted(() => {
+  hotkeys.unbind();
+});
 
 const convert = async () => {
   const ffmpegConfig = await window.api.ffmpeg.getPreset(options.ffmpegPresetId);

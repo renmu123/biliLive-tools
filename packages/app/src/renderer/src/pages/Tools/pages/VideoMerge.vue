@@ -37,6 +37,7 @@
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import Tip from "@renderer/components/Tip.vue";
 import { useAppConfig } from "@renderer/stores";
+import hotkeys from "hotkeys-js";
 
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
@@ -44,6 +45,18 @@ const { appConfig } = storeToRefs(useAppConfig());
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 
 const options = appConfig.value.tool.videoMerge;
+
+onActivated(() => {
+  hotkeys("ctrl+enter", function () {
+    convert();
+  });
+});
+onDeactivated(() => {
+  hotkeys.unbind();
+});
+onUnmounted(() => {
+  hotkeys.unbind();
+});
 
 const convert = async () => {
   if (fileList.value.length < 2) {

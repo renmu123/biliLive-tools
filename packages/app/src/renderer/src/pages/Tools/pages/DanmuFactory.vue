@@ -63,6 +63,7 @@ import { deepRaw } from "@renderer/utils";
 import { useDanmuPreset, useAppConfig } from "@renderer/stores";
 import { Settings as SettingIcon, FolderOpenOutline } from "@vicons/ionicons5";
 import { useConfirm } from "@renderer/hooks";
+import hotkeys from "hotkeys-js";
 
 const { danmuPresetsOptions, danmuPresetId } = storeToRefs(useDanmuPreset());
 const { appConfig } = storeToRefs(useAppConfig());
@@ -73,6 +74,18 @@ const confirm = useConfirm();
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 
 const options = appConfig.value.tool.danmu;
+
+onActivated(() => {
+  hotkeys("ctrl+enter", function () {
+    convert();
+  });
+});
+onDeactivated(() => {
+  hotkeys.unbind();
+});
+onUnmounted(() => {
+  hotkeys.unbind();
+});
 
 const convert = async () => {
   if (fileList.value.length === 0) {
