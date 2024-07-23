@@ -135,6 +135,21 @@ export const parseXmlObj = async (XMLdata: string) => {
   return { jObj, danmuku, sc, guard, gift };
 };
 
+/**
+ * 获取sc弹幕
+ */
+export const getSCDanmu = async (input: string) => {
+  const { sc } = await parseXmlFile(input);
+  return sc.map((item) => {
+    const data = {
+      text: item["#text"],
+      user: item["@_user"],
+      ts: Number(item["@_ts"]),
+    };
+    return data;
+  });
+};
+
 const groupBy = (arr, func) => {
   const map = new Map();
   arr.forEach((item) => {

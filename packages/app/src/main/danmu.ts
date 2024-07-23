@@ -7,7 +7,7 @@ import {
   genHotProgress,
   isEmptyDanmu,
 } from "@biliLive-tools/shared/lib/task/danmu";
-import { report, generateDanmakuData } from "@biliLive-tools/shared/lib/danmu/index";
+import { report, generateDanmakuData, getSCDanmu } from "@biliLive-tools/shared/lib/danmu/index";
 
 import type { DanmuPreset as DanmuPresetType } from "@biliLive-tools/types";
 
@@ -57,4 +57,5 @@ export const handlers = {
   },
   "danmu:isEmptyDanmu": invokeWrap(isEmptyDanmu),
   "danmu:generateDanmakuData": invokeWrap(generateDanmakuData),
+  "danmu:getSCDanmu": invokeWrap(getSCDanmu),
 };

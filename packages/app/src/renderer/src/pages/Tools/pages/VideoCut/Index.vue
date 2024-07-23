@@ -35,10 +35,10 @@
         }"
       >
         请导入视频或<a href="https://github.com/mifi/lossless-cut" target="_blank">lossless-cut</a
-        >项目文件，如果你不会使用，请先查看教程
+        >项目文件，如果你不会使用，请先<span title="鸽了">查看教程</span>
       </div>
       <div class="cut-list">
-        <SegmentList></SegmentList>
+        <SegmentList :sc-list="scList"></SegmentList>
       </div>
     </div>
   </div>
@@ -67,7 +67,7 @@ import hotkeys from "hotkeys-js";
 import { useElementSize, useDebounceFn } from "@vueuse/core";
 
 import type ArtplayerType from "artplayer";
-import type { DanmuConfig, DanmuOptions } from "@biliLive-tools/types";
+import type { DanmuConfig, DanmuOptions, SC } from "@biliLive-tools/types";
 
 onActivated(() => {
   // 撤销
@@ -240,17 +240,27 @@ const handleDanmuChange = async () => {
   const path = files[0];
   await handleDanmu(path);
 };
+
+const scList = ref<SC[]>([]);
+/**
+ * 处理弹幕
+ */
 const handleDanmu = async (path: string) => {
   if (path.endsWith(".ass")) {
     const content = await window.api.common.readFile(path);
     files.value.danmuPath = path;
 
     videoRef.value?.switchAss(content);
+    scList.value = [];
   } else {
     // 如果是xml文件则弹框提示，要求转换为ass文件
     xmlConvertVisible.value = true;
     tempXmlFile.value = path;
     convertDanmuLoading.value = true;
+
+    const data = await window.api.danmu.getSCDanmu(path);
+    scList.value = data;
+    console.log(data);
   }
   generateDanmakuData(path);
 };

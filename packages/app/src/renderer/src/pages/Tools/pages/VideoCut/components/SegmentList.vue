@@ -48,6 +48,9 @@
           ></path>
         </svg>
       </n-icon>
+      <n-icon size="24" class="pointer icon" title="切换视图" @click="toggleSc">
+        <Refresh></Refresh>
+      </n-icon>
       <Tip>
         <h4>快捷键</h4>
         <ul>
@@ -64,42 +67,61 @@
           <li>space 播放/暂停</li>
           <li>ctrl+left 后退1秒</li>
           <li>ctrl+right 前进1秒</li>
+          <li>ctrl+k 切换视图</li>
         </ul>
       </Tip>
     </div>
 
-    <div
-      v-for="(cut, index) in cuts"
-      :key="index"
-      class="cut"
-      role="button"
-      :class="{
-        checked: cut.checked,
-        selected: selectCutIndex === index,
-      }"
-      @click="selectCut(index)"
-      @dblclick="navVideo(cut.start)"
-    >
-      <div class="time">
-        {{ secondsToTimemark(cut.start) }}-<span>{{ secondsToTimemark(cut.end) }}</span>
-      </div>
-      <div class="name" style="color: skyblue">{{ cut.name }}</div>
-      <div v-if="cut.end" class="duration">
-        持续时间：{{ secondsToTimemark(cut.end - cut.start) }}
-      </div>
-      <div class="icon">
-        <n-icon v-if="cut.checked" size="20" :depth="3" @click.stop="toggleChecked(index)">
-          <CheckmarkCircleOutline></CheckmarkCircleOutline>
-        </n-icon>
-        <n-icon v-else size="20" :depth="3" @click.stop="toggleChecked(index)">
-          <RadioButtonOffSharp></RadioButtonOffSharp>
-        </n-icon>
-      </div>
-      <div class="edit-icon">
-        <n-icon size="20" :depth="3" @click.stop="editCut(index)">
-          <Pencil></Pencil>
-        </n-icon>
-      </div>
+    <div class="view">
+      <template v-if="scView">
+        <div class="sc-list">
+          <div
+            v-for="(sc, index) in props.scList"
+            :key="index"
+            class="cut"
+            style="opacity: 1"
+            @dblclick="navVideo(sc.ts)"
+          >
+            <div class="time">{{ sc.user }}-{{ secondsToTimemark(sc.ts) }}</div>
+            <div class="text">{{ sc.text }}</div>
+          </div>
+        </div>
+      </template>
+      <template v-else>
+        <div
+          v-for="(cut, index) in cuts"
+          :key="index"
+          class="cut"
+          role="button"
+          :class="{
+            checked: cut.checked,
+            selected: selectCutIndex === index,
+          }"
+          @click="selectCut(index)"
+          @dblclick="navVideo(cut.start)"
+        >
+          <div class="time">
+            {{ secondsToTimemark(cut.start) }}-<span>{{ secondsToTimemark(cut.end) }}</span>
+          </div>
+          <div class="name" style="color: skyblue">{{ cut.name }}</div>
+          <div v-if="cut.end" class="duration">
+            持续时间：{{ secondsToTimemark(cut.end - cut.start) }}
+          </div>
+          <div class="icon">
+            <n-icon v-if="cut.checked" size="20" :depth="3" @click.stop="toggleChecked(index)">
+              <CheckmarkCircleOutline></CheckmarkCircleOutline>
+            </n-icon>
+            <n-icon v-else size="20" :depth="3" @click.stop="toggleChecked(index)">
+              <RadioButtonOffSharp></RadioButtonOffSharp>
+            </n-icon>
+          </div>
+          <div class="edit-icon">
+            <n-icon size="20" :depth="3" @click.stop="editCut(index)">
+              <Pencil></Pencil>
+            </n-icon>
+          </div>
+        </div>
+      </template>
     </div>
   </div>
 
@@ -126,11 +148,12 @@
 <script setup lang="ts">
 import { secondsToTimemark } from "@renderer/utils";
 import { useSegmentStore } from "@renderer/stores";
-import { RadioButtonOffSharp, CheckmarkCircleOutline, Pencil } from "@vicons/ionicons5";
+import { RadioButtonOffSharp, CheckmarkCircleOutline, Pencil, Refresh } from "@vicons/ionicons5";
 import { MinusOutlined, PlusOutlined } from "@vicons/material";
 import hotkeys from "hotkeys-js";
 
 import type ArtplayerType from "artplayer";
+import type { SC } from "@biliLive-tools/types";
 
 onActivated(() => {
   // 重命名
@@ -159,17 +182,21 @@ onActivated(() => {
   hotkeys("del", function () {
     deleteCut();
   });
+  // 切换视图
+  hotkeys("ctrl+k", function () {
+    toggleSc();
+  });
   // 切换到当前开始片段
   // hotkeys("enter", function () {});
 });
 
-// interface Props {
-//   videoDuration: number;
-// }
+interface Props {
+  scList: SC[];
+}
 
-// const props = withDefaults(defineProps<Props>(), {
-//   videoDuration: 0,
-// });
+const props = withDefaults(defineProps<Props>(), {
+  scList: () => [],
+});
 // const emits = defineEmits<{
 //   (event: "seek", value: number): void;
 // }>();
@@ -311,11 +338,24 @@ const prevSegment = () => {
   }
   selectCut(selectCutIndex.value - 1);
 };
+
+const scView = ref(false);
+/**
+ * 切换为sc视图
+ */
+const toggleSc = () => {
+  scView.value = !scView.value;
+};
 </script>
 
 <style scoped lang="less">
 .cut-list {
   position: relative;
+
+  .view {
+    max-height: calc(100vh - 100px);
+    overflow: auto;
+  }
   .btns {
     position: absolute;
 

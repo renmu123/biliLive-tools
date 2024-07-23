@@ -506,3 +506,9 @@ export type hotProgressOptions = {
   /** 视频时长，单位秒 */
   duration: number;
 };
+
+export interface SC {
+  text: string;
+  user: string;
+  ts: number;
+}

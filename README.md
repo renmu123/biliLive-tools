@@ -63,6 +63,7 @@ xml弹幕转换底层使用[DanmakuFactory](https://github.com/hihkm/DanmakuFact
 - `space` 播放/暂停
 - `ctrl+left` 后退1秒
 - `ctrl+right` 前进1秒
+- `ctrl+k` 切换视图
 
 ## 通知
 
