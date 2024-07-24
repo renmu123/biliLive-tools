@@ -49,7 +49,7 @@ async function downloadFile(url, desc) {
 }
 
 async function downloadBin() {
-  const filename = `${process.platform}-${process.arch}.zip`;
+  const filename = `${process.platform}-${process.arch}-1.3.0.zip`;
   const downloadUrl = `https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/${filename}`;
 
   await downloadFile(downloadUrl, ".");
