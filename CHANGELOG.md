@@ -2,7 +2,7 @@
 
 ## DanmakuFactory性能优化
 
-**win版本的DanmakuFactory并非使用官方项目，而是使用[自编译版本](https://github.com/renmu123/DanmakuFactory/tree/test)，大幅优化录播姬弹幕的转换速度（发布前记得修改二进制文件）**
+**win版本的DanmakuFactory并非使用官方项目，而是使用[自编译版本](https://github.com/renmu123/DanmakuFactory/tree/test)，大幅优化录播姬弹幕的转换速度**
 
 ## 切片工具页
 
