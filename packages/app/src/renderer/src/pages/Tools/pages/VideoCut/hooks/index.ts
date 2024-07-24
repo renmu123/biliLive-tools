@@ -161,5 +161,6 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
     options,
     saveProject,
     saveAsAnother,
+    handleProject,
   };
 }

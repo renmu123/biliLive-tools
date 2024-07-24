@@ -36,9 +36,14 @@
         </n-icon>
       </div>
       <n-text style="font-size: 16px"> 点击或拖拽文件到该区域 </n-text>
-      <n-p v-if="desc" depth="3" style="margin: 8px 0 0 0">
+      <p v-if="desc" style="margin: 8px 0 0 0">
         {{ props.desc }}
-      </n-p>
+      </p>
+      <template v-else>
+        <p style="margin: 8px 0 0 0">
+          <slot name="desc"></slot>
+        </p>
+      </template>
     </div>
   </div>
 </template>

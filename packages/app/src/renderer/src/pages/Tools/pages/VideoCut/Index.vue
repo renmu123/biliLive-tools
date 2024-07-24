@@ -27,16 +27,20 @@
         <canvas ref="hotProgressCanvas"></canvas>
       </div>
 
-      <div
+      <FileArea
         v-show="!files.videoPath"
+        v-model="fileList"
+        :style="{ height: '100%' }"
         class="video empty"
-        :style="{
-          // width: files.video ? '80%' : '100%',
-        }"
+        :extensions="['llc', 'flv', 'mp4', 'm4s']"
+        :max="1"
+        @change="handleFileChange"
       >
-        请导入视频或<a href="https://github.com/mifi/lossless-cut" target="_blank">lossless-cut</a
-        >项目文件，如果你不会使用，请先<span title="鸽了">查看教程</span>
-      </div>
+        <template #desc>
+          请导入视频或<a href="https://github.com/mifi/lossless-cut" target="_blank">lossless-cut</a
+          >项目文件，如果你不会使用，请先<span title="鸽了">查看教程</span>
+        </template>
+      </FileArea>
       <div class="cut-list">
         <SegmentList :sc-list="scList"></SegmentList>
       </div>
@@ -143,6 +147,7 @@ const {
   options: exportBtns,
   saveProject,
   saveAsAnother,
+  handleProject,
 } = useLlcProject(files);
 const { duration: videoDuration } = storeToRefs(useSegmentStore());
 const { appConfig } = storeToRefs(useAppConfig());
@@ -461,6 +466,20 @@ window.addEventListener("resize", debouncedDraw);
 onUnmounted(() => {
   window.removeEventListener("resize", debouncedDraw);
 });
+
+const fileList = ref<any[]>([]);
+const handleFileChange = (fileList: any[]) => {
+  console.log(files);
+  if (!fileList.length) return;
+  const file = fileList[0];
+  const { path, ext } = file;
+
+  if (ext === ".llc") {
+    handleProject(path);
+  } else if ([".mp4", ".flv", ".m4s"].includes(ext)) {
+    handleVideo(path);
+  }
+};
 </script>
 
 <style scoped lang="less">
