@@ -414,6 +414,9 @@ if (!gotTheLock) {
 
 // 业务相关的初始化
 const appInit = async () => {
+  process.env.BILILIVE_FFMPEG_PATH = FFMPEG_PATH;
+  process.env.BILILIVE_FFPROBE_PATH = FFPROBE_PATH;
+  process.env.BILILIVE_DANMUKUFACTORY_PATH = DANMUKUFACTORY_PATH;
   const config = {
     port: 18010,
     host: "127.0.0.1",

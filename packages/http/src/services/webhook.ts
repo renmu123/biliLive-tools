@@ -229,7 +229,7 @@ export class WebhookHandler {
         cover = path.join(dir, `${name}.jpg`);
       }
     }
-    if (await fs.pathExists(cover)) {
+    if (cover && (await fs.pathExists(cover))) {
       return cover;
     } else {
       return undefined;

@@ -72,76 +72,90 @@
             <n-form-item label="主题"
               ><n-select v-model:value="config.theme" :options="themeOptions" />
             </n-form-item>
-            <n-form-item label="ffmpeg路径">
-              <n-input
-                v-model:value="config.ffmpegPath"
-                placeholder="请输入ffmpeg可执行文件路径，设置为空使用环境变量，需要重启软件"
-              />
-              <n-icon
-                style="margin-left: 10px"
-                size="24"
-                class="pointer"
-                title="选择文件"
-                @click="selectFile('ffmpeg', config.ffmpegPath)"
-              >
-                <FolderOpenOutline />
-              </n-icon>
-              <n-icon
-                style="margin-left: 10px"
-                size="24"
-                class="pointer"
-                title="重置"
-                @click="resetBin('ffmpeg')"
-              >
-                <Refresh />
-              </n-icon>
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex">
+                  自定义二进制文件
+                  <Tip
+                    :tip="`开启并修改后，将无法自动使用最新二进制文件，请谨慎开启，修改后需重启`"
+                  ></Tip>
+                </span>
+              </template>
+              <n-switch v-model:value="config.customExecPath" />
             </n-form-item>
-            <n-form-item label="ffprobe路径">
-              <n-input
-                v-model:value="config.ffprobePath"
-                placeholder="请输入ffprobe可执行文件路径，设置为空使用环境变量，需要重启软件"
-              />
-              <n-icon
-                style="margin-left: 10px"
-                size="24"
-                class="pointer"
-                @click="selectFile('ffprobe', config.ffprobePath)"
-              >
-                <FolderOpenOutline />
-              </n-icon>
-              <n-icon
-                style="margin-left: 10px"
-                size="24"
-                class="pointer"
-                title="重置"
-                @click="resetBin('ffprobe')"
-              >
-                <Refresh />
-              </n-icon>
-            </n-form-item>
-            <n-form-item label="danmakuFactory路径">
-              <n-input
-                v-model:value="config.danmuFactoryPath"
-                placeholder="请输入danmakuFactory可执行文件路径，设置为空使用环境变量，需要重启软件"
-              />
-              <n-icon
-                style="margin-left: 10px"
-                size="24"
-                class="pointer"
-                @click="selectFile('danmakuFactory', config.danmuFactoryPath)"
-              >
-                <FolderOpenOutline />
-              </n-icon>
-              <n-icon
-                style="margin-left: 10px"
-                size="24"
-                class="pointer"
-                title="重置"
-                @click="resetBin('danmakuFactory')"
-              >
-                <Refresh />
-              </n-icon>
-            </n-form-item>
+            <template v-if="config.customExecPath">
+              <n-form-item label="ffmpeg路径">
+                <n-input
+                  v-model:value="config.ffmpegPath"
+                  placeholder="请输入ffmpeg可执行文件路径，需要重启软件"
+                />
+                <n-icon
+                  style="margin-left: 10px"
+                  size="24"
+                  class="pointer"
+                  title="选择文件"
+                  @click="selectFile('ffmpeg', config.ffmpegPath)"
+                >
+                  <FolderOpenOutline />
+                </n-icon>
+                <n-icon
+                  style="margin-left: 10px"
+                  size="24"
+                  class="pointer"
+                  title="重置"
+                  @click="resetBin('ffmpeg')"
+                >
+                  <Refresh />
+                </n-icon>
+              </n-form-item>
+              <n-form-item label="ffprobe路径">
+                <n-input
+                  v-model:value="config.ffprobePath"
+                  placeholder="请输入ffprobe可执行文件路径，需要重启软件"
+                />
+                <n-icon
+                  style="margin-left: 10px"
+                  size="24"
+                  class="pointer"
+                  @click="selectFile('ffprobe', config.ffprobePath)"
+                >
+                  <FolderOpenOutline />
+                </n-icon>
+                <n-icon
+                  style="margin-left: 10px"
+                  size="24"
+                  class="pointer"
+                  title="重置"
+                  @click="resetBin('ffprobe')"
+                >
+                  <Refresh />
+                </n-icon>
+              </n-form-item>
+              <n-form-item label="danmakuFactory路径">
+                <n-input
+                  v-model:value="config.danmuFactoryPath"
+                  placeholder="请输入danmakuFactory可执行文件路径，需要重启软件"
+                />
+                <n-icon
+                  style="margin-left: 10px"
+                  size="24"
+                  class="pointer"
+                  @click="selectFile('danmakuFactory', config.danmuFactoryPath)"
+                >
+                  <FolderOpenOutline />
+                </n-icon>
+                <n-icon
+                  style="margin-left: 10px"
+                  size="24"
+                  class="pointer"
+                  title="重置"
+                  @click="resetBin('danmakuFactory')"
+                >
+                  <Refresh />
+                </n-icon>
+              </n-form-item>
+            </template>
+
             <n-form-item label="lossless-cut路径">
               <n-input
                 v-model:value="config.losslessCutPath"

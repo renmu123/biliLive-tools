@@ -27,11 +27,19 @@ import type {
 
 export const setFfmpegPath = async () => {
   const config = appConfig.getAll();
+  let ffmpegPath = config.ffmpegPath;
+  let ffprobePath = config.ffprobePath;
+  if (!config.customExecPath) {
+    ffmpegPath = process.env.BILILIVE_FFMPEG_PATH;
+    ffprobePath = process.env.BILILIVE_FFPROBE_PATH;
+  }
+
+  log.info("setFfmpegPath", ffmpegPath, ffprobePath);
   if (config.ffmpegPath) {
-    ffmpeg.setFfmpegPath(config.ffmpegPath);
+    ffmpeg.setFfmpegPath(ffmpegPath);
   }
   if (config.ffprobePath) {
-    ffmpeg.setFfprobePath(config.ffprobePath);
+    ffmpeg.setFfprobePath(ffprobePath);
   }
 };
 

@@ -11,6 +11,14 @@ import { convertImage2Video } from "./video.js";
 
 import type { DanmuConfig, DanmuOptions, hotProgressOptions } from "@biliLive-tools/types";
 
+const getDanmuFactoryPath = () => {
+  let path = appConfig.get("danmuFactoryPath");
+  if (!appConfig.get("customExecPath")) {
+    path = process.env.BILILIVE_DANMUKUFACTORY_PATH;
+  }
+  return path;
+};
+
 const addConvertDanmu2AssTask = async (
   originInput: string,
   output: string,
@@ -27,7 +35,8 @@ const addConvertDanmu2AssTask = async (
     });
     await fs.unlink(output);
   }
-  const DANMUKUFACTORY_PATH = appConfig.get("danmuFactoryPath");
+  const DANMUKUFACTORY_PATH = getDanmuFactoryPath();
+  log.info("danmufactory", DANMUKUFACTORY_PATH);
   const danmu = new Danmu(DANMUKUFACTORY_PATH);
   let tempInput: string | undefined;
 

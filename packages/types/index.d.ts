@@ -231,6 +231,8 @@ export type Theme = "system" | "light" | "dark";
 // 全局配置
 export interface AppConfig {
   logLevel: any;
+  /** 允许自定义可执行文件地址 */
+  customExecPath: boolean;
   ffmpegPath: string;
   ffprobePath: string;
   danmuFactoryPath: string;
