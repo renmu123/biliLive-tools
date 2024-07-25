@@ -229,7 +229,9 @@
               v-model:value.number="config.giftminprice"
               class="input-number"
               :min="0"
+              style="width: 140px"
             >
+              <template #suffix> RMB </template>
             </n-input-number>
           </n-form-item>
           <n-form-item v-if="isAdvancedMode" label="同一用户相同礼物自动合并的时间窗">

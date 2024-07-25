@@ -17,6 +17,8 @@
 ## Bug修复
 
 1. 修复某些xml文件高能弹幕解析错误的bug
+2. 修复DanmakuFactory的blrec舰长和礼物价格解析错误，[由上游修复](https://github.com/hihkm/DanmakuFactory/pull/85)
+3. 修复DanmakuFactory某些情况下转换ass内容错误，[由上游修复](https://github.com/renmu123/DanmakuFactory/commit/30c0925bf32794570cfc1f96a1928e13a3b96816)
 
 # 1.3.0
 
