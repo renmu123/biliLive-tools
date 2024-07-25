@@ -25,13 +25,10 @@ import icon from "../../resources/icon.png?asset";
 import {
   FFMPEG_PATH,
   FFPROBE_PATH,
-  APP_CONFIG_PATH,
-  FFMPEG_PRESET_PATH,
-  VIDEO_PRESET_PATH,
-  DANMU_PRESET_PATH,
   DANMUKUFACTORY_PATH,
   LOG_PATH,
   __dirname,
+  getConfigPath,
 } from "./appConstant";
 
 import type { OpenDialogOptions } from "../types";
@@ -417,6 +414,9 @@ const appInit = async () => {
   process.env.BILILIVE_FFMPEG_PATH = FFMPEG_PATH;
   process.env.BILILIVE_FFPROBE_PATH = FFPROBE_PATH;
   process.env.BILILIVE_DANMUKUFACTORY_PATH = DANMUKUFACTORY_PATH;
+  const { APP_CONFIG_PATH, FFMPEG_PRESET_PATH, VIDEO_PRESET_PATH, DANMU_PRESET_PATH } =
+    await getConfigPath();
+
   const config = {
     port: 18010,
     host: "127.0.0.1",

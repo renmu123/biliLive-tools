@@ -4,16 +4,7 @@ import fs from "fs-extra";
 import { appConfig, ffmpegPreset } from "@biliLive-tools/shared";
 import { convertVideo2Mp4, mergeAssMp4, mergeVideos } from "@biliLive-tools/shared/lib/task/video";
 import JSZip from "jszip";
-import {
-  FFMPEG_PRESET_PATH,
-  VIDEO_PRESET_PATH,
-  DANMU_PRESET_PATH,
-  APP_CONFIG_PATH,
-  userDataPath,
-  FFMPEG_PATH,
-  DANMUKUFACTORY_PATH,
-  FFPROBE_PATH,
-} from "./appConstant";
+import { getConfigPath, FFMPEG_PATH, DANMUKUFACTORY_PATH, FFPROBE_PATH } from "./appConstant";
 
 import type { AppConfig, FfmpegPreset as FfmpegPresetType } from "@biliLive-tools/types";
 import type { IpcMainInvokeEvent } from "electron";
@@ -32,6 +23,9 @@ export const configHandlers = {
     appConfig.setAll(newConfig);
   },
   "config:export": async (_event: IpcMainInvokeEvent, filePath: string) => {
+    const { APP_CONFIG_PATH, VIDEO_PRESET_PATH, DANMU_PRESET_PATH, FFMPEG_PRESET_PATH } =
+      await getConfigPath();
+
     const zip = new JSZip();
     // 添加文件到 ZIP
     zip.file(path.parse(APP_CONFIG_PATH).base, await fs.readFile(APP_CONFIG_PATH));
@@ -62,6 +56,8 @@ export const configHandlers = {
       Object.keys(data.files).map(async (filename) => {
         const file = data.files[filename];
         if (!file.dir) {
+          const { APP_CONFIG_PATH, userDataPath } = await getConfigPath();
+
           const content = await file.async("nodebuffer");
           const filePath = path.join(userDataPath, filename);
           await fs.copyFile(filePath, path.join(userDataPath, `${filename}.backup`));
