@@ -51,7 +51,6 @@ async function searchTopic(keyword: string, uid: number) {
   return client.platform.searchTopic({
     page_size: 20,
     offset: 0,
-    // @ts-ignore
     keywords: keyword,
   });
 }

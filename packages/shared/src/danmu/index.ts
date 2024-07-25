@@ -27,18 +27,19 @@ export class Danmu {
       if (!Object.hasOwn(DANMU_DEAFULT_CONFIG, key)) return "";
 
       if (["resolution", "msgboxsize", "msgboxpos"].includes(key)) {
-        // @ts-ignore
-        return `--${key} ${value.join("x")}`;
+        if (Array.isArray(value)) {
+          return `--${key} ${value.join("x")}`;
+        }
       } else if (key === "blockmode") {
-        // @ts-ignore
-        if (value.length === 0) return `--${key} null`;
-        // @ts-ignore
-        return `--${key} ${value.join("-")}`;
+        if (Array.isArray(value)) {
+          if (value.length === 0) return `--${key} null`;
+          return `--${key} ${value.join("-")}`;
+        }
       } else if (key === "statmode") {
-        // @ts-ignore
-        if (value.length === 0) return ``;
-        // @ts-ignore
-        return `--${key} ${value.join("-")}`;
+        if (Array.isArray(value)) {
+          if (value.length === 0) return ``;
+          return `--${key} ${value.join("-")}`;
+        }
       } else if (key === "fontname") {
         return `--${key} "${value}"`;
       } else if (["resolutionResponsive", "customDensity", "opacity"].includes(key)) {

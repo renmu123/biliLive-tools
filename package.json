@@ -30,7 +30,7 @@
     "download": "^8.0.0",
     "prettier": "^3.2.5",
     "rollup": "^4.9.6",
-    "typescript": "^5.4.5",
+    "typescript": "^5.5.4",
     "vitest": "^1.6.0"
   },
   "packageManager": "pnpm@9.4.0+sha256.b6fd0bfda555e7e584ad7e56b30c68b01d5a04f9ee93989f4b93ca8473c49c74"
