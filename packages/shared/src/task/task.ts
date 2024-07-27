@@ -601,12 +601,12 @@ export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) =>
   let desp = "";
   switch (event) {
     case "success":
-      title = `结束：${task.name}`;
+      title = `成功：${task.name}`;
       desp = `${task.name}结束\n\n开始时间：${new Date(task.startTime!).toLocaleString()}\n\n输出：${task.output}`;
       break;
     case "failure":
       title = `错误：${task.name}`;
-      desp = `${task.name}出错\n\n开始时间：${new Date(task.startTime!).toLocaleString()}`;
+      desp = `${task.name}出错\n\n开始时间：${new Date(task.startTime!).toLocaleString()}\n\n错误信息：${task.error}`;
       break;
   }
   const config = appConfig.getAll();
@@ -660,11 +660,9 @@ const addTaskForLimit = () => {
   }
 };
 
-taskQueue.on("task-start", ({ taskId }) => {
-  sendTaskNotify("success", taskId);
-});
-taskQueue.on("task-end", () => {
+taskQueue.on("task-end", ({ taskId }) => {
   addTaskForLimit();
+  sendTaskNotify("success", taskId);
 });
 taskQueue.on("task-error", ({ taskId }) => {
   addTaskForLimit();

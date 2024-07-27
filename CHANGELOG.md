@@ -14,12 +14,14 @@
 
 1. 续传支持翻页
 2. 优化文件拖拽栏拖拽
+3. 错误推送事件会返回错误信息了
 
 ## Bug修复
 
 1. 修复某些xml文件高能弹幕解析错误的bug
 2. 修复DanmakuFactory的blrec价格解析错误，[由上游修复](https://github.com/hihkm/DanmakuFactory/pull/85)
 3. 修复DanmakuFactory某些情况下转换ass内容错误，[由上游修复](https://github.com/hihkm/DanmakuFactory/pull/87)
+4. 修复推送成功事件被错误设置为开始事件的bug
 
 # 1.3.0
 
