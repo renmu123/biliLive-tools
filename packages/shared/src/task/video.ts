@@ -25,7 +25,7 @@ import type {
   Video2Mp4Options,
 } from "@biliLive-tools/types";
 
-export const setFfmpegPath = async () => {
+export const getFfmpegPath = () => {
   const config = appConfig.getAll();
   let ffmpegPath = config.ffmpegPath;
   let ffprobePath = config.ffprobePath;
@@ -33,14 +33,18 @@ export const setFfmpegPath = async () => {
     ffmpegPath = process.env.BILILIVE_FFMPEG_PATH;
     ffprobePath = process.env.BILILIVE_FFPROBE_PATH;
   }
+  return {
+    ffmpegPath,
+    ffprobePath,
+  };
+};
+
+export const setFfmpegPath = async () => {
+  const { ffmpegPath, ffprobePath } = getFfmpegPath();
 
   log.info("setFfmpegPath", ffmpegPath, ffprobePath);
-  if (config.ffmpegPath) {
-    ffmpeg.setFfmpegPath(ffmpegPath);
-  }
-  if (config.ffprobePath) {
-    ffmpeg.setFfprobePath(ffprobePath);
-  }
+  ffmpeg.setFfmpegPath(ffmpegPath);
+  ffmpeg.setFfprobePath(ffprobePath);
 };
 
 export const readVideoMeta = async (input: string): Promise<ffmpeg.FfprobeData> => {

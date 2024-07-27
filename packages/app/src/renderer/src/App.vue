@@ -199,7 +199,7 @@ const menuOptions = computed<MenuOption[]>(() => {
                   name: "BiliDownload",
                 },
               },
-              { default: () => "B站下载" },
+              { default: () => "视频下载" },
             ),
         },
       ],

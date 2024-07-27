@@ -3,8 +3,10 @@ import fs from "fs-extra";
 
 import { appConfig, ffmpegPreset } from "@biliLive-tools/shared";
 import { convertVideo2Mp4, mergeAssMp4, mergeVideos } from "@biliLive-tools/shared/lib/task/video";
+import douyu from "@biliLive-tools/shared/lib/task/douyu";
 import JSZip from "jszip";
 import { getConfigPath, FFMPEG_PATH, DANMUKUFACTORY_PATH, FFPROBE_PATH } from "./appConstant";
+import { invokeWrap } from "./utils/index";
 
 import type { AppConfig, FfmpegPreset as FfmpegPresetType } from "@biliLive-tools/types";
 import type { IpcMainInvokeEvent } from "electron";
@@ -129,4 +131,17 @@ export const ffmpegHandlers = {
       taskId: task.taskId,
     };
   },
+};
+
+export const douyuHandlers = {
+  "douyu:download": async (
+    _event: IpcMainInvokeEvent,
+    ...args: Parameters<typeof douyu.download>
+  ) => {
+    const { taskId } = await douyu.download(...args);
+    return {
+      taskId,
+    };
+  },
+  "douyu:parseVideo": invokeWrap(douyu.parseVideo),
 };

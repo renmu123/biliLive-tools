@@ -184,6 +184,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       danmu: [],
       upload: [],
       download: [],
+      douyuDownload: [],
     },
     setting: {
       type: undefined,

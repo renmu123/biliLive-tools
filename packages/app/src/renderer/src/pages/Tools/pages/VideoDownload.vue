@@ -1,16 +1,12 @@
 <template>
   <div class="container">
     <n-spin :show="loading">
+      <h2>支持B站以及斗鱼录播下载</h2>
       <div class="input">
-        <Tip
-          :size="22"
-          tip="此功能仅方便快速下载某些素材，并非专业下载器，链接仅支持BV号，目前仅支持下载最高清晰度视频（不支持4K）<br/>如果你在寻找专业下载器，可以尝试其他开源项目，如：https://github.com/nICEnnnnnnnLee/BilibiliDown"
-        ></Tip>
-
         <n-input
           v-model:value="url"
           :style="{ width: '80%' }"
-          placeholder="请输入b站视频链接，比如：https://www.bilibili.com/video/BV1u94y1K7nr"
+          placeholder="请输入视频链接，比如：https://www.bilibili.com/video/BV1u94y1K7nr、https://v.douyu.com/show/brN0MmQqKl6MpyxA"
         />
         <n-button type="primary" ghost @click="download"> 下载 </n-button>
       </div>
@@ -60,7 +56,19 @@ const notice = useNotification();
 
 const parse = async () => {
   const formatUrl = url.value.trim();
+  if (!formatUrl) return;
 
+  if (formatUrl.includes("douyu")) {
+    handleDouyu(formatUrl);
+  } else if (formatUrl.includes("bilibili")) {
+    handleBili(formatUrl);
+  }
+};
+
+/**
+ * 解析b站视频
+ */
+const handleBili = async (formatUrl: string) => {
   const bvid = extractBVNumber(formatUrl);
   if (!bvid) {
     throw new Error("请输入正确的b站视频链接");
@@ -79,9 +87,32 @@ const parse = async () => {
   selectCids.value = data.View.pages.map((item) => item.cid);
 };
 
+/**
+ * 解析斗鱼视频
+ */
+const handleDouyu = async (formatUrl: string) => {
+  const douyuMatch = formatUrl.match(/show\/([A-Za-z0-9]+)/);
+  if (!douyuMatch) {
+    throw new Error("请输入正确的斗鱼视频链接");
+  }
+
+  const data = await window.api.douyu.parseVideo(formatUrl);
+  console.log(data);
+  // archiveDeatil.value = {
+  //   bvid: data.bvid,
+  //   title: data.title,
+  //   pages: data.pages.map((item) => {
+  //     item["editable"] = false;
+  //     item.part = sanitizeFileName(item.part);
+  //     return item as unknown as { cid: number; part: string; editable: boolean };
+  //   }),
+  // };
+  // selectCids.value = data.pages.map((item) => item.cid);
+};
+
 const download = async () => {
   if (!url.value.trim()) {
-    throw new Error("请输入b站视频链接");
+    throw new Error("请输入合法的视频链接");
   }
   loading.value = true;
   try {
@@ -123,9 +154,9 @@ const loading = ref(false);
   // align-items: center;
   width: 80%;
   margin: 0 auto;
+  margin-top: 60px;
 }
 .input {
-  margin-top: 20px;
   display: flex;
   align-items: center;
 }

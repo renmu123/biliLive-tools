@@ -149,8 +149,16 @@
           </n-space>
         </n-checkbox-group>
       </n-form-item>
-      <n-form-item label="下载任务">
+      <n-form-item label="B站下载任务">
         <n-checkbox-group v-model:value="config.notification.task.download">
+          <n-space item-style="display: flex;">
+            <n-checkbox value="success" label="成功" />
+            <n-checkbox value="failure" label="失败" />
+          </n-space>
+        </n-checkbox-group>
+      </n-form-item>
+      <n-form-item label="斗鱼下载任务">
+        <n-checkbox-group v-model:value="config.notification.task.douyuDownload">
           <n-space item-style="display: flex;">
             <n-checkbox value="success" label="成功" />
             <n-checkbox value="failure" label="失败" />

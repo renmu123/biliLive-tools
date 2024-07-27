@@ -36,6 +36,14 @@ type progressCallback = (params: { percentage?: number }) => void;
 
 // Custom APIs for renderer
 export const api = {
+  douyu: {
+    download: (decodeData: string, options: { output: string; danmu: boolean; vid?: string }) => {
+      return ipcRenderer.invoke("douyu:download", decodeData, options);
+    },
+    parseVideo: (url: string) => {
+      return ipcRenderer.invoke("douyu:parseVideo", url);
+    },
+  },
   danmu: {
     savePreset: (preset: DanmuPreset) => {
       return ipcRenderer.invoke("danmu:savePreset", preset);

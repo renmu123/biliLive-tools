@@ -14,6 +14,7 @@ import type { Client } from "@renmu/bili-api";
 import type { Progress, NotificationTaskStatus } from "@biliLive-tools/types";
 import type { Status } from "@biliLive-tools/types/task.d.ts";
 import { TaskType } from "../enum.js";
+import type { M3U8Downloader } from "douyu-cli";
 
 interface TaskEvents {
   "task-start": ({ taskId }: { taskId: string }) => void;
@@ -392,7 +393,7 @@ export class BiliVideoTask extends AbstractTask {
 }
 
 /**
- * 下载任务
+ * B站下载任务
  */
 export class BiliDownloadVideoTask extends AbstractTask {
   command: WithoutPromise<ReturnType<Client["video"]["download"]>>;
@@ -492,6 +493,96 @@ export class BiliDownloadVideoTask extends AbstractTask {
   resume() {
     if (this.status !== "paused") return;
     this.command.start();
+    log.warn(`task ${this.taskId} resumed`);
+    this.status = "running";
+    return true;
+  }
+  kill() {
+    if (this.status === "completed" || this.status === "error") return;
+    log.warn(`task ${this.taskId} killed`);
+    this.status = "error";
+    this.command.cancel();
+    return true;
+  }
+}
+
+/**
+ * 斗鱼录播下载任务
+ */
+export class DouyuDownloadVideoTask extends AbstractTask {
+  command: M3U8Downloader;
+  type = TaskType.douyuDownload;
+  emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
+  constructor(
+    command: M3U8Downloader,
+    options: {
+      name: string;
+    },
+    callback: {
+      onStart?: () => void;
+      onEnd?: (output: string) => void;
+      onError?: (err: string) => void;
+      onProgress?: (progress: number) => any;
+    },
+  ) {
+    super();
+    this.command = command;
+    this.progress = 0;
+    this.action = ["kill", "pause"];
+
+    if (options.name) {
+      this.name = options.name;
+    }
+
+    // command.emitter.on("start", (commandLine: string) => {
+    //   this.progress = 0;
+    //   log.info(`task ${this.taskId} start, command: ${commandLine}`);
+    //   this.status = "running";
+
+    //   callback.onStart && callback.onStart();
+    //   emitter.emit("task-start", { taskId: this.taskId });
+    //   this.startTime = Date.now();
+    // });
+    this.status = "running";
+    this.startTime = Date.now();
+    this.emitter.emit("task-start", { taskId: this.taskId });
+
+    command.on("completed", async (data) => {
+      log.info(`task ${this.taskId} end`);
+      this.status = "completed";
+      this.progress = 100;
+      this.output = data;
+      callback.onEnd && callback.onEnd(data);
+      this.emitter.emit("task-end", { taskId: this.taskId });
+      this.endTime = Date.now();
+    });
+    command.on("error", (err) => {
+      log.error(`task ${this.taskId} error: ${err}`);
+      this.status = "error";
+
+      callback.onError && callback.onError(err);
+      this.error = err;
+      this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+    });
+    command.on("progress", (progress: { downloaded: number; total: number }) => {
+      const percent = Math.floor(progress.downloaded / progress.total) * 100;
+      callback.onProgress && callback.onProgress(percent);
+      this.emitter.emit("task-progress", { taskId: this.taskId });
+    });
+  }
+  exec() {
+    // this.command.run();
+  }
+  pause() {
+    if (this.status !== "running") return;
+    this.command.pause();
+    log.warn(`task ${this.taskId} paused`);
+    this.status = "paused";
+    return true;
+  }
+  resume() {
+    if (this.status !== "paused") return;
+    this.command.resume();
     log.warn(`task ${this.taskId} resumed`);
     this.status = "running";
     return true;
@@ -628,6 +719,11 @@ export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) =>
       }
       break;
     case TaskType.biliDownload:
+      if (taskConfig.download.includes(event)) {
+        sendNotify(title, desp);
+      }
+      break;
+    case TaskType.douyuDownload:
       if (taskConfig.download.includes(event)) {
         sendNotify(title, desp);
       }

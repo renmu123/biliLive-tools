@@ -277,6 +277,7 @@ export interface AppConfig {
       danmu: NotificationTaskStatus[];
       upload: NotificationTaskStatus[];
       download: NotificationTaskStatus[];
+      douyuDownload: NotificationTaskStatus[];
     };
     /** 通知配置项 */
     setting: {

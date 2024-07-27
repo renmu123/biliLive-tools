@@ -19,7 +19,7 @@ import { trashItem as _trashItem } from "@biliLive-tools/shared/lib/utils/index"
 import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as danmuHandlers } from "./danmu";
-import { configHandlers, ffmpegHandlers } from "./handlers";
+import { configHandlers, ffmpegHandlers, douyuHandlers } from "./handlers";
 import { handlers as notidyHandlers } from "./notify";
 import icon from "../../resources/icon.png?asset";
 import {
@@ -91,6 +91,7 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, danmuHandlers);
   registerHandlers(ipcMain, configHandlers);
   registerHandlers(ipcMain, notidyHandlers);
+  registerHandlers(ipcMain, douyuHandlers);
 };
 
 export let mainWin: BrowserWindow;

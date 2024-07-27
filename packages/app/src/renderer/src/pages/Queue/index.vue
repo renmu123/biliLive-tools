@@ -223,7 +223,11 @@ const typeOptions = ref([
   },
   {
     value: TaskType.biliDownload,
-    label: "B站下载",
+    label: "B站视频下载",
+  },
+  {
+    value: TaskType.douyuDownload,
+    label: "斗鱼视频下载",
   },
   // {
   //   value: TaskType.subtitleTranslate,
