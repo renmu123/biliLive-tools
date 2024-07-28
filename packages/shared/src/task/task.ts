@@ -21,6 +21,8 @@ interface TaskEvents {
   "task-end": ({ taskId }: { taskId: string }) => void;
   "task-error": ({ taskId, error }: { taskId: string; error: string }) => void;
   "task-progress": ({ taskId }: { taskId: string }) => void;
+  "task-pause": ({ taskId }: { taskId: string }) => void;
+  "task-resume": ({ taskId }: { taskId: string }) => void;
 }
 
 abstract class AbstractTask {
@@ -229,6 +231,7 @@ export class FFmpegTask extends AbstractTask {
     }
     log.warn(`task ${this.taskId} paused`);
     this.status = "paused";
+    this.emitter.emit("task-pause", { taskId: this.taskId });
     return true;
   }
   resume() {
@@ -242,6 +245,7 @@ export class FFmpegTask extends AbstractTask {
     }
     log.warn(`task ${this.taskId} resumed`);
     this.status = "running";
+    this.emitter.emit("task-resume", { taskId: this.taskId });
     return true;
   }
   interrupt() {
@@ -365,9 +369,11 @@ export class BiliVideoTask extends AbstractTask {
   }
   pause() {
     if (this.status !== "running") return;
+
     this.command.pause();
     log.warn(`task ${this.taskId} paused`);
     this.status = "paused";
+    this.emitter.emit("task-pause", { taskId: this.taskId });
     return true;
   }
   resume() {
@@ -375,6 +381,7 @@ export class BiliVideoTask extends AbstractTask {
     this.command.start();
     log.warn(`task ${this.taskId} resumed`);
     this.status = "running";
+    this.emitter.emit("task-resume", { taskId: this.taskId });
     return true;
   }
   // interrupt() {
@@ -488,6 +495,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
     this.command.pause();
     log.warn(`task ${this.taskId} paused`);
     this.status = "paused";
+    this.emitter.emit("task-pause", { taskId: this.taskId });
     return true;
   }
   resume() {
@@ -495,6 +503,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
     this.command.start();
     log.warn(`task ${this.taskId} resumed`);
     this.status = "running";
+    this.emitter.emit("task-resume", { taskId: this.taskId });
     return true;
   }
   kill() {
@@ -581,6 +590,7 @@ export class DouyuDownloadVideoTask extends AbstractTask {
     this.command.pause();
     log.warn(`task ${this.taskId} paused`);
     this.status = "paused";
+    this.emitter.emit("task-pause", { taskId: this.taskId });
     return true;
   }
   resume() {
@@ -588,6 +598,7 @@ export class DouyuDownloadVideoTask extends AbstractTask {
     this.command.resume();
     log.warn(`task ${this.taskId} resumed`);
     this.status = "running";
+    this.emitter.emit("task-resume", { taskId: this.taskId });
     return true;
   }
   kill() {
@@ -609,6 +620,9 @@ export class TaskQueue {
       this.addTaskForLimit();
     });
     this.on("task-error", () => {
+      this.addTaskForLimit();
+    });
+    this.on("task-pause", () => {
       this.addTaskForLimit();
     });
   }
@@ -647,6 +661,12 @@ export class TaskQueue {
     });
     task.emitter.on("task-start", ({ taskId }) => {
       this.emitter.emit("task-start", { taskId });
+    });
+    task.emitter.on("task-pause", ({ taskId }) => {
+      this.emitter.emit("task-pause", { taskId });
+    });
+    task.emitter.on("task-resume", ({ taskId }) => {
+      this.emitter.emit("task-resume", { taskId });
     });
   }
   queryTask(taskId: string) {
@@ -707,6 +727,8 @@ export class TaskQueue {
         status: "running",
       }).length;
 
+      console.log("runningTaskCount", runningTaskCount);
+
       if (runningTaskCount < maxNum) {
         pendingFFmpegTask.slice(0, maxNum - runningTaskCount).forEach((task) => {
           task.exec();
@@ -715,7 +737,6 @@ export class TaskQueue {
     }
   }
   addTaskForLimit = () => {
-    console.log("addTaskForLimit");
     const config = appConfig.getAll();
 
     // ffmpeg任务
