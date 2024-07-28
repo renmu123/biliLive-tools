@@ -570,6 +570,7 @@ export class DouyuDownloadVideoTask extends AbstractTask {
     });
   }
   exec() {
+    if (this.status !== "pending") return;
     this.status = "running";
     this.command.download();
     this.startTime = Date.now();
@@ -604,21 +605,34 @@ export class TaskQueue {
 
   constructor() {
     this.queue = [];
+    this.on("task-end", () => {
+      this.addTaskForLimit();
+    });
+    this.on("task-error", () => {
+      this.addTaskForLimit();
+    });
   }
   addTask(task: AbstractTask, autoRun = true) {
-    // task.type
     this.queue.push(task);
     if (autoRun) {
       task.exec();
-    }
+    } else {
+      if (task.type === TaskType.ffmpeg || task.type === TaskType.douyuDownload) {
+        const config = appConfig.getAll();
+        const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
+        const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
 
-    if (task.type === TaskType.ffmpeg) {
-      const config = appConfig.getAll();
-      const maxNum = config?.task?.ffmpegMaxNum ?? -1;
-      if (maxNum > 0) {
-        this.filter({ type: TaskType.ffmpeg, status: "running" }).length < maxNum && task.exec();
-      } else if (maxNum === -1) {
-        task.exec();
+        if (ffmpegMaxNum > 0) {
+          this.filter({ type: TaskType.ffmpeg, status: "running" }).length < ffmpegMaxNum &&
+            task.type === TaskType.ffmpeg &&
+            task.exec();
+        }
+        if (douyuDownloadMaxNum > 0) {
+          this.filter({ type: TaskType.douyuDownload, status: "running" }).length <
+            douyuDownloadMaxNum &&
+            task.type === TaskType.douyuDownload &&
+            task.exec();
+        }
       }
     }
 
@@ -684,6 +698,68 @@ export class TaskQueue {
   on(event: keyof TaskEvents, callback: (event: { taskId: string }) => void) {
     this.emitter.on(event, callback);
   }
+
+  taskLimit(maxNum: number, type: string) {
+    const pendingFFmpegTask = this.filter({ type: type, status: "pending" });
+    if (maxNum !== -1) {
+      const runningTaskCount = this.filter({
+        type: type,
+        status: "running",
+      }).length;
+
+      if (runningTaskCount < maxNum) {
+        pendingFFmpegTask.slice(0, maxNum - runningTaskCount).forEach((task) => {
+          task.exec();
+        });
+      }
+    }
+  }
+  addTaskForLimit = () => {
+    console.log("addTaskForLimit");
+    const config = appConfig.getAll();
+
+    // ffmpeg任务
+    this.taskLimit(config?.task?.ffmpegMaxNum ?? -1, TaskType.ffmpeg);
+    // 斗鱼录播下载任务
+    this.taskLimit(config?.task?.douyuDownloadMaxNum ?? -1, TaskType.douyuDownload);
+
+    // const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
+    // const pendingFFmpegTask = this.filter({ type: TaskType.ffmpeg, status: "pending" });
+    // if (ffmpegMaxNum !== -1) {
+    //   const runningTaskCount = this.filter({
+    //     type: TaskType.ffmpeg,
+    //     status: "running",
+    //   }).length;
+
+    //   if (runningTaskCount < ffmpegMaxNum) {
+    //     pendingFFmpegTask.slice(0, ffmpegMaxNum - runningTaskCount).forEach((task) => {
+    //       console.log("task.exec()");
+    //       task.exec();
+    //     });
+    //   }
+    // }
+
+    // 斗鱼录播下载任务
+    // const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
+    // const pendingDouyuDownloadTask = this.filter({
+    //   type: TaskType.douyuDownload,
+    //   status: "pending",
+    // });
+    // if (douyuDownloadMaxNum !== -1) {
+    //   const runningTaskCount = this.filter({
+    //     type: TaskType.douyuDownload,
+    //     status: "running",
+    //   }).length;
+
+    //   if (runningTaskCount < douyuDownloadMaxNum) {
+    //     pendingDouyuDownloadTask
+    //       .slice(0, douyuDownloadMaxNum - runningTaskCount)
+    //       .forEach((task) => {
+    //         task.exec();
+    //       });
+    //   }
+    // }
+  };
 }
 
 export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) => {
@@ -735,35 +811,10 @@ export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) =>
 
 export const taskQueue = new TaskQueue();
 
-const addTaskForLimit = () => {
-  const config = appConfig.getAll();
-  const maxNum = config?.task?.ffmpegMaxNum ?? -1;
-  const pendingFFmpegTask = taskQueue.filter({ type: TaskType.ffmpeg, status: "pending" });
-
-  if (maxNum !== -1) {
-    const runningFFmpegTaskCount = taskQueue.filter({
-      type: TaskType.ffmpeg,
-      status: "running",
-    }).length;
-
-    if (runningFFmpegTaskCount < maxNum) {
-      pendingFFmpegTask.slice(0, maxNum - runningFFmpegTaskCount).forEach((task) => {
-        task.exec();
-      });
-    }
-  } else {
-    pendingFFmpegTask.forEach((task) => {
-      task.exec();
-    });
-  }
-};
-
 taskQueue.on("task-end", ({ taskId }) => {
-  addTaskForLimit();
   sendTaskNotify("success", taskId);
 });
 taskQueue.on("task-error", ({ taskId }) => {
-  addTaskForLimit();
   sendTaskNotify("failure", taskId);
 });
 

@@ -132,12 +132,12 @@ const download = async () => {
   }
 };
 
-const confirm = (options: { ids: (number | string)[]; savePath: string }) => {
+const confirm = async (options: { ids: (number | string)[]; savePath: string }) => {
   const selectPages = archiveDeatil.value.pages.filter((item) => options.ids.includes(item.cid));
 
   for (const page of selectPages) {
     if (videoType.value === "douyu") {
-      window.api.douyu.download(
+      await window.api.douyu.download(
         window.path.join(options.savePath, `${page.part}.mp4`),
         page.cid as string,
         {

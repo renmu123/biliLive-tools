@@ -302,6 +302,7 @@ const showModal = defineModel<boolean>({ required: true, default: false });
 const config: Ref<AppConfig> = ref({
   task: {
     ffmpegMaxNum: -1,
+    douyuDownloadMaxNum: -1,
   },
 });
 // @ts-ignore

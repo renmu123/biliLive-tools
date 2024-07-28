@@ -63,8 +63,8 @@ async function download(
       },
     },
   );
-  task.exec();
-  taskQueue.addTask(task, true);
+  taskQueue.addTask(task, false);
+  console.log(`下载任务：${task.status}`);
 
   return {
     taskId: task.taskId,

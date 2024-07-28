@@ -176,6 +176,13 @@
         <n-input-number v-model:value="config.task.ffmpegMaxNum" min="-1" max="65535">
         </n-input-number>
       </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> 斗鱼下载最大任务数 </span>
+        </template>
+        <n-input-number v-model:value="config.task.douyuDownloadMaxNum" min="-1" max="65535">
+        </n-input-number>
+      </n-form-item>
     </n-form>
   </div>
 </template>

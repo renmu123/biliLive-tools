@@ -312,6 +312,7 @@ export interface AppConfig {
   /** 最大任务数 */
   task: {
     ffmpegMaxNum: number;
+    douyuDownloadMaxNum: number;
   };
 }
 

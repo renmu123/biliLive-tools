@@ -177,6 +177,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   },
   task: {
     ffmpegMaxNum: -1,
+    douyuDownloadMaxNum: 2,
   },
   notification: {
     task: {
