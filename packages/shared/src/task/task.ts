@@ -14,7 +14,7 @@ import type { Client } from "@renmu/bili-api";
 import type { Progress, NotificationTaskStatus } from "@biliLive-tools/types";
 import type { Status } from "@biliLive-tools/types/task.d.ts";
 import { TaskType } from "../enum.js";
-import type { M3U8Downloader } from "douyu-cli";
+import type M3U8Downloader from "@renmu/m3u8-downloader";
 
 interface TaskEvents {
   "task-start": ({ taskId }: { taskId: string }) => void;

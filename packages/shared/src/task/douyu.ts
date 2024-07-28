@@ -1,13 +1,9 @@
 import path from "node:path";
 import fs from "fs-extra";
 import os from "node:os";
-import {
-  M3U8Downloader,
-  getVideoDanmu,
-  getStreamUrls,
-  getVideos,
-  parseVideo as _parseVideo,
-} from "douyu-cli";
+
+import { getVideoDanmu, getStreamUrls, getVideos, parseVideo as _parseVideo } from "douyu-cli";
+import M3U8Downloader from "@renmu/m3u8-downloader";
 import { convert2Xml } from "douyu-cli/dist/utils/index.js";
 import { taskQueue, DouyuDownloadVideoTask } from "./task.js";
 import { getFfmpegPath } from "./video.js";
@@ -64,7 +60,6 @@ async function download(
     },
   );
   taskQueue.addTask(task, false);
-  console.log(`下载任务：${task.status}`);
 
   return {
     taskId: task.taskId,

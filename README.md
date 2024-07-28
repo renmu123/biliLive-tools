@@ -15,6 +15,7 @@
 4. 支持b站分P投稿
 5. 支持录播姬与blrec的webhook
 6. 支持B站视频下载
+7. 支持斗鱼录播下载
 
 ![preview](./docs/preview.png)
 
