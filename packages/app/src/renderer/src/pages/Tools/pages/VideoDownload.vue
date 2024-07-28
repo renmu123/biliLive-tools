@@ -25,19 +25,20 @@ import { useUserInfoStore } from "@renderer/stores";
 import DownloadConfirm from "@renderer/components/DownloadConfirm.vue";
 import { sanitizeFileName } from "@renderer/utils";
 
+const notice = useNotification();
 const { userInfo } = storeToRefs(useUserInfoStore());
 const url = ref("");
 const archiveDeatil = ref<{
-  bvid: string;
+  vid: string;
   title: string;
-  pages: { cid: number; part: string; editable: boolean }[];
+  pages: { cid: number | string; part: string; editable: boolean; vid?: string | number }[];
 }>({
-  bvid: "",
+  vid: "",
   title: "",
   pages: [],
 });
 
-const selectCids = ref<number[]>([]);
+const selectCids = ref<(number | string)[]>([]);
 
 const uid = computed(() => {
   return userInfo.value.uid;
@@ -52,16 +53,18 @@ function extractBVNumber(videoUrl: string): string | null {
     return null;
   }
 }
-const notice = useNotification();
 
+const videoType = ref<"bili" | "douyu">("bili");
 const parse = async () => {
   const formatUrl = url.value.trim();
   if (!formatUrl) return;
 
   if (formatUrl.includes("douyu")) {
-    handleDouyu(formatUrl);
+    videoType.value = "douyu";
+    await handleDouyu(formatUrl);
   } else if (formatUrl.includes("bilibili")) {
-    handleBili(formatUrl);
+    videoType.value = "bili";
+    await handleBili(formatUrl);
   }
 };
 
@@ -76,7 +79,7 @@ const handleBili = async (formatUrl: string) => {
   selectCids.value = [];
   const data = await window.api.bili.getArchiveDetail(bvid, uid.value);
   archiveDeatil.value = {
-    bvid: data.View.bvid,
+    vid: data.View.bvid,
     title: data.View.title,
     pages: data.View.pages.map((item) => {
       item["editable"] = false;
@@ -95,19 +98,25 @@ const handleDouyu = async (formatUrl: string) => {
   if (!douyuMatch) {
     throw new Error("请输入正确的斗鱼视频链接");
   }
-
-  const data = await window.api.douyu.parseVideo(formatUrl);
-  console.log(data);
-  // archiveDeatil.value = {
-  //   bvid: data.bvid,
-  //   title: data.title,
-  //   pages: data.pages.map((item) => {
-  //     item["editable"] = false;
-  //     item.part = sanitizeFileName(item.part);
-  //     return item as unknown as { cid: number; part: string; editable: boolean };
-  //   }),
-  // };
-  // selectCids.value = data.pages.map((item) => item.cid);
+  try {
+    const data = await window.api.douyu.parseVideo(formatUrl);
+    archiveDeatil.value = {
+      vid: "111",
+      title: data[0].seo_title,
+      pages: data.map((item) => {
+        return {
+          cid: item.decodeData,
+          part: item.seo_title,
+          editable: false,
+          vid: item.ROOM.vid,
+        };
+      }),
+    };
+    selectCids.value = archiveDeatil.value.pages.map((item) => item.cid);
+  } catch (e) {
+    console.log(e);
+    throw new Error("解析失败，请检查链接是否正确");
+  }
 };
 
 const download = async () => {
@@ -123,18 +132,29 @@ const download = async () => {
   }
 };
 
-const confirm = (options: { ids: number[]; savePath: string }) => {
+const confirm = (options: { ids: (number | string)[]; savePath: string }) => {
   const selectPages = archiveDeatil.value.pages.filter((item) => options.ids.includes(item.cid));
 
   for (const page of selectPages) {
-    window.api.bili.download(
-      {
-        output: window.path.join(options.savePath, `${page.part}.mp4`),
-        cid: page.cid,
-        bvid: archiveDeatil.value.bvid,
-      },
-      uid.value,
-    );
+    if (videoType.value === "douyu") {
+      window.api.douyu.download(
+        window.path.join(options.savePath, `${page.part}.mp4`),
+        page.cid as string,
+        {
+          danmu: true,
+          vid: page.vid as string,
+        },
+      );
+    } else if (videoType.value === "bili") {
+      window.api.bili.download(
+        {
+          output: window.path.join(options.savePath, `${page.part}.mp4`),
+          cid: page.cid as number,
+          bvid: archiveDeatil.value.vid,
+        },
+        uid.value,
+      );
+    }
   }
   notice.success({
     title: "已加入队列",

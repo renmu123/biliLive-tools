@@ -543,16 +543,14 @@ export class DouyuDownloadVideoTask extends AbstractTask {
     //   emitter.emit("task-start", { taskId: this.taskId });
     //   this.startTime = Date.now();
     // });
-    this.status = "running";
-    this.startTime = Date.now();
-    this.emitter.emit("task-start", { taskId: this.taskId });
 
-    command.on("completed", async (data) => {
+    command.on("completed", async () => {
+      const output = this.command.output;
       log.info(`task ${this.taskId} end`);
       this.status = "completed";
       this.progress = 100;
-      this.output = data;
-      callback.onEnd && callback.onEnd(data);
+      this.output = output;
+      callback.onEnd && callback.onEnd(output);
       this.emitter.emit("task-end", { taskId: this.taskId });
       this.endTime = Date.now();
     });
@@ -565,13 +563,17 @@ export class DouyuDownloadVideoTask extends AbstractTask {
       this.emitter.emit("task-error", { taskId: this.taskId, error: err });
     });
     command.on("progress", (progress: { downloaded: number; total: number }) => {
-      const percent = Math.floor(progress.downloaded / progress.total) * 100;
+      const percent = Math.floor((progress.downloaded / progress.total) * 100);
       callback.onProgress && callback.onProgress(percent);
+      this.progress = percent;
       this.emitter.emit("task-progress", { taskId: this.taskId });
     });
   }
   exec() {
-    // this.command.run();
+    this.status = "running";
+    this.command.download();
+    this.startTime = Date.now();
+    this.emitter.emit("task-start", { taskId: this.taskId });
   }
   pause() {
     if (this.status !== "running") return;

@@ -28,6 +28,7 @@ import type {
 } from "@biliLive-tools/types";
 import type { OpenDialogOptions, BiliApi } from "../types";
 import type ffmpeg from "fluent-ffmpeg";
+import type { Video } from "douyu-cli";
 
 type startCallback = (params: { command?: string }) => void;
 type endCallback = (params: { output?: string }) => void;
@@ -37,10 +38,10 @@ type progressCallback = (params: { percentage?: number }) => void;
 // Custom APIs for renderer
 export const api = {
   douyu: {
-    download: (decodeData: string, options: { output: string; danmu: boolean; vid?: string }) => {
-      return ipcRenderer.invoke("douyu:download", decodeData, options);
+    download: (output: string, decodeData: string, options: { danmu: boolean; vid?: string }) => {
+      return ipcRenderer.invoke("douyu:download", output, decodeData, options);
     },
-    parseVideo: (url: string) => {
+    parseVideo: (url: string): Promise<Video[]> => {
       return ipcRenderer.invoke("douyu:parseVideo", url);
     },
   },

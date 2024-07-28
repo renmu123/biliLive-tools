@@ -65,14 +65,14 @@ import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useAppConfig } from "@renderer/stores";
 
 interface Part {
-  cid: number;
+  cid: number | string;
   part: string;
   editable: boolean;
 }
 
 interface Props {
   detail: {
-    bvid: string;
+    vid: string;
     title: string;
     pages: Part[];
   };
@@ -81,10 +81,10 @@ const { appConfig } = storeToRefs(useAppConfig());
 const options = appConfig.value.tool.download;
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
-const selectIds = defineModel<number[]>("selectIds", { required: true, default: [] });
+const selectIds = defineModel<(number | string)[]>("selectIds", { required: true, default: [] });
 const props = defineProps<Props>();
 const emits = defineEmits<{
-  (event: "confirm", value: { ids: number[]; savePath: string }): void;
+  (event: "confirm", value: { ids: (number | string)[]; savePath: string }): void;
 }>();
 
 const download = () => {
