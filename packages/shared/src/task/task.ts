@@ -727,8 +727,6 @@ export class TaskQueue {
         status: "running",
       }).length;
 
-      console.log("runningTaskCount", runningTaskCount);
-
       if (runningTaskCount < maxNum) {
         pendingFFmpegTask.slice(0, maxNum - runningTaskCount).forEach((task) => {
           task.exec();

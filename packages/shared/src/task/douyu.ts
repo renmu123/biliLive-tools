@@ -41,7 +41,7 @@ async function download(
   const downloader = new M3U8Downloader(m3u8Url, output, {
     convert2Mp4: true,
     ffmpegPath: ffmpegPath,
-    tempDir: path.join(os.tmpdir(), "biliLive-tools", uuid()),
+    segmentsDir: path.join(os.tmpdir(), "biliLive-tools", uuid()),
   });
 
   const task = new DouyuDownloadVideoTask(
