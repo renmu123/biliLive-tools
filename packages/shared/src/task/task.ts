@@ -25,7 +25,7 @@ interface TaskEvents {
   "task-resume": ({ taskId }: { taskId: string }) => void;
 }
 
-abstract class AbstractTask {
+export abstract class AbstractTask {
   taskId: string;
   status: Status;
   name: string;
@@ -627,29 +627,6 @@ export class TaskQueue {
     });
   }
   addTask(task: AbstractTask, autoRun = true) {
-    this.queue.push(task);
-    if (autoRun) {
-      task.exec();
-    } else {
-      if (task.type === TaskType.ffmpeg || task.type === TaskType.douyuDownload) {
-        const config = appConfig.getAll();
-        const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
-        const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
-
-        if (ffmpegMaxNum > 0) {
-          this.filter({ type: TaskType.ffmpeg, status: "running" }).length < ffmpegMaxNum &&
-            task.type === TaskType.ffmpeg &&
-            task.exec();
-        }
-        if (douyuDownloadMaxNum > 0) {
-          this.filter({ type: TaskType.douyuDownload, status: "running" }).length <
-            douyuDownloadMaxNum &&
-            task.type === TaskType.douyuDownload &&
-            task.exec();
-        }
-      }
-    }
-
     task.emitter.on("task-end", ({ taskId }) => {
       this.emitter.emit("task-end", { taskId });
     });
@@ -668,6 +645,33 @@ export class TaskQueue {
     task.emitter.on("task-resume", ({ taskId }) => {
       this.emitter.emit("task-resume", { taskId });
     });
+
+    this.queue.push(task);
+    if (autoRun) {
+      task.exec();
+    } else {
+      if (task.type === TaskType.ffmpeg || task.type === TaskType.douyuDownload) {
+        const config = appConfig.getAll();
+        const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
+        const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
+
+        if (ffmpegMaxNum > 0) {
+          this.filter({ type: TaskType.ffmpeg, status: "running" }).length < ffmpegMaxNum &&
+            task.type === TaskType.ffmpeg &&
+            task.exec();
+        } else {
+          task.exec();
+        }
+        if (douyuDownloadMaxNum > 0) {
+          this.filter({ type: TaskType.douyuDownload, status: "running" }).length <
+            douyuDownloadMaxNum &&
+            task.type === TaskType.douyuDownload &&
+            task.exec();
+        } else {
+          task.exec();
+        }
+      }
+    }
   }
   queryTask(taskId: string) {
     const task = this.queue.find((task) => task.taskId === taskId);
@@ -741,43 +745,6 @@ export class TaskQueue {
     this.taskLimit(config?.task?.ffmpegMaxNum ?? -1, TaskType.ffmpeg);
     // 斗鱼录播下载任务
     this.taskLimit(config?.task?.douyuDownloadMaxNum ?? -1, TaskType.douyuDownload);
-
-    // const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
-    // const pendingFFmpegTask = this.filter({ type: TaskType.ffmpeg, status: "pending" });
-    // if (ffmpegMaxNum !== -1) {
-    //   const runningTaskCount = this.filter({
-    //     type: TaskType.ffmpeg,
-    //     status: "running",
-    //   }).length;
-
-    //   if (runningTaskCount < ffmpegMaxNum) {
-    //     pendingFFmpegTask.slice(0, ffmpegMaxNum - runningTaskCount).forEach((task) => {
-    //       console.log("task.exec()");
-    //       task.exec();
-    //     });
-    //   }
-    // }
-
-    // 斗鱼录播下载任务
-    // const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
-    // const pendingDouyuDownloadTask = this.filter({
-    //   type: TaskType.douyuDownload,
-    //   status: "pending",
-    // });
-    // if (douyuDownloadMaxNum !== -1) {
-    //   const runningTaskCount = this.filter({
-    //     type: TaskType.douyuDownload,
-    //     status: "running",
-    //   }).length;
-
-    //   if (runningTaskCount < douyuDownloadMaxNum) {
-    //     pendingDouyuDownloadTask
-    //       .slice(0, douyuDownloadMaxNum - runningTaskCount)
-    //       .forEach((task) => {
-    //         task.exec();
-    //       });
-    //   }
-    // }
   };
 }
 
