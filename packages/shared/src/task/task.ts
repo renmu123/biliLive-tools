@@ -655,14 +655,14 @@ export class TaskQueue {
         const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
         const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
 
-        if (ffmpegMaxNum > 0) {
+        if (ffmpegMaxNum >= 0) {
           this.filter({ type: TaskType.ffmpeg, status: "running" }).length < ffmpegMaxNum &&
             task.type === TaskType.ffmpeg &&
             task.exec();
         } else {
           task.exec();
         }
-        if (douyuDownloadMaxNum > 0) {
+        if (douyuDownloadMaxNum >= 0) {
           this.filter({ type: TaskType.douyuDownload, status: "running" }).length <
             douyuDownloadMaxNum &&
             task.type === TaskType.douyuDownload &&
