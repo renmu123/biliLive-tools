@@ -13,6 +13,8 @@ import { DANMU_DEAFULT_CONFIG } from "../presets/danmuPreset.js";
 
 import type { DanmuConfig, hotProgressOptions } from "@biliLive-tools/types";
 
+type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
 export class Danmu {
   execPath: string;
   command?: string;
@@ -428,7 +430,7 @@ export const generateDanmakuData = async (
 export const generateDanmakuImage = async (
   input: string,
   output: string,
-  iOptions: hotProgressOptions,
+  iOptions: WithRequired<hotProgressOptions, "duration">,
 ) => {
   const defaultOptins = {
     interval: 30,
@@ -448,4 +450,5 @@ export const generateDanmakuImage = async (
     const stream = await canvas.encode("png");
     await fs.promises.writeFile(outputPath, stream);
   }
+  return data;
 };

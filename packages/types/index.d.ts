@@ -508,7 +508,9 @@ export type hotProgressOptions = {
   color?: string;
   fillColor?: string;
   /** 视频时长，单位秒 */
-  duration: number;
+  duration?: number;
+  /** 视频文件，如果没有传递width和duration，自动计算 */
+  videoPath?: string;
 };
 
 export interface SC {

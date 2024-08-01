@@ -18,13 +18,15 @@
 2. 优化文件拖拽栏拖拽
 3. 错误推送事件会返回错误信息了
 4. 当设置任务数量限制后，每当有任务暂停时，未开始任务会自动开始
+5. 优化部分函数下读取视频时长失败时的错误处理
 
 ## Bug修复
 
 1. 修复某些xml文件高能弹幕解析错误的bug
 2. 修复DanmakuFactory的blrec价格解析错误，[由上游修复](https://github.com/hihkm/DanmakuFactory/pull/85)
 3. 修复DanmakuFactory某些情况下转换ass内容错误，[由上游修复](https://github.com/hihkm/DanmakuFactory/pull/87)
-4. 修复推送成功事件被错误设置为开始事件的bug
+4. 修复DanmakuFactory sc文本存在`\n`时，渲染ass错误，由[上游修复](https://github.com/renmu123/DanmakuFactory/commit/0df54629b382b3398bcea2be8a06e6e45f241ba3)
+5. 修复推送成功事件被错误设置为开始事件的bug
 
 # 1.3.0
 

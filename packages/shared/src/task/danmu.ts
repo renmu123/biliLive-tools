@@ -1,15 +1,17 @@
 import { join, parse } from "node:path";
 import fs from "fs-extra";
 import os from "node:os";
+import { isNumber } from "lodash-es";
 
 import { pathExists, trashItem, uuid } from "../utils/index.js";
 import log from "../utils/log.js";
 import { appConfig } from "../index.js";
 import { Danmu, generateDanmakuImage } from "../danmu/index.js";
 import { DanmuTask, taskQueue } from "./task.js";
-import { convertImage2Video } from "./video.js";
+import { convertImage2Video, readVideoMeta } from "./video.js";
 
 import type { DanmuConfig, DanmuOptions, hotProgressOptions } from "@biliLive-tools/types";
+type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
 const getDanmuFactoryPath = () => {
   let path = appConfig.get("danmuFactoryPath");
@@ -163,9 +165,28 @@ export const genHotProgress = async (
   output: string,
   options: hotProgressOptions,
 ) => {
-  const imageDir = join(os.tmpdir(), uuid());
+  log.debug("generateDanmakuImage config", options);
+  if (options.videoPath) {
+    const videoMeta = await readVideoMeta(options.videoPath);
+    const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
+    const { width } = videoStream || {};
+    options.width = width;
+    options.duration = videoMeta.format.duration;
+  }
+  if (!options.duration || !isNumber(options.duration)) {
+    throw new Error(`can not read duration in genHotProgress`);
+  }
+  if (!options.width) {
+    throw new Error("can not read width in genHotProgress");
+  }
 
-  await generateDanmakuImage(input, imageDir, options);
+  const imageDir = join(os.tmpdir(), uuid());
+  const data = await generateDanmakuImage(
+    input,
+    imageDir,
+    options as WithRequired<hotProgressOptions, "duration">,
+  );
+  log.debug("generateDanmakuImage done", `${data.length} images generated`);
 
   return convertImage2Video(imageDir, output, {
     removeOrigin: true,

@@ -24,6 +24,7 @@ import type {
   VideoMergeOptions,
   Video2Mp4Options,
 } from "@biliLive-tools/types";
+import type Ffmpeg from "@biliLive-tools/types/ffmpeg.js";
 
 export const getFfmpegPath = () => {
   const config = appConfig.getAll();
@@ -47,7 +48,7 @@ export const setFfmpegPath = async () => {
   ffmpeg.setFfprobePath(ffprobePath);
 };
 
-export const readVideoMeta = async (input: string): Promise<ffmpeg.FfprobeData> => {
+export const readVideoMeta = async (input: string): Promise<Ffmpeg.FfprobeData> => {
   await setFfmpegPath();
   return new Promise((resolve, reject) => {
     ffmpeg(input).ffprobe(function (err, metadata) {

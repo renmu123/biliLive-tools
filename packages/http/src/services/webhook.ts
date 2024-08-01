@@ -142,42 +142,42 @@ export class WebhookHandler {
     }
 
     if (danmu) {
-      let xmlFilePath: string;
-      if (options.danmuPath) {
-        xmlFilePath = options.danmuPath;
-      } else {
-        // 压制弹幕后上传
-        const xmlFile = path.parse(options.filePath);
-        xmlFilePath = path.join(xmlFile.dir, `${xmlFile.name}.xml`);
-      }
-      await sleep(10000);
-
-      if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
-        log.info("没有找到弹幕文件，直接上传", xmlFilePath);
-        currentPart.status = "handled";
-        return;
-      }
-      let hotProgressFile: string | undefined;
-      if (hotProgress) {
-        // 生成高能进度条文件
-        hotProgressFile = await this.genHotProgressTask(xmlFilePath, options.filePath, {
-          internal: hotProgressSample || 30,
-          color: hotProgressColor || "#f9f5f3",
-          fillColor: hotProgressFillColor || "#333333",
-          height: hotProgressHeight || 60,
-        });
-      }
-
-      const danmuConfig = (await danmuPreset.get(danmuPresetId)).config;
-      const assFilePath = await this.addDanmuTask(xmlFilePath, options.filePath, danmuConfig);
-
-      const preset = await ffmpegPreset.get(videoPresetId);
-      if (!preset) {
-        log.error("ffmpegPreset not found", videoPresetId);
-        currentPart.status = "error";
-        return;
-      }
       try {
+        let xmlFilePath: string;
+        if (options.danmuPath) {
+          xmlFilePath = options.danmuPath;
+        } else {
+          // 压制弹幕后上传
+          const xmlFile = path.parse(options.filePath);
+          xmlFilePath = path.join(xmlFile.dir, `${xmlFile.name}.xml`);
+        }
+        await sleep(10000);
+
+        if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
+          log.info("没有找到弹幕文件，直接上传", xmlFilePath);
+          currentPart.status = "handled";
+          return;
+        }
+        let hotProgressFile: string | undefined;
+        if (hotProgress) {
+          // 生成高能进度条文件
+          hotProgressFile = await this.genHotProgressTask(xmlFilePath, options.filePath, {
+            internal: hotProgressSample || 30,
+            color: hotProgressColor || "#f9f5f3",
+            fillColor: hotProgressFillColor || "#333333",
+            height: hotProgressHeight || 60,
+          });
+        }
+
+        const danmuConfig = (await danmuPreset.get(danmuPresetId)).config;
+        const assFilePath = await this.addDanmuTask(xmlFilePath, options.filePath, danmuConfig);
+
+        const preset = await ffmpegPreset.get(videoPresetId);
+        if (!preset) {
+          log.error("ffmpegPreset not found", videoPresetId);
+          currentPart.status = "error";
+          return;
+        }
         const output = await this.addMergeAssMp4Task(
           options.filePath,
           assFilePath,
@@ -602,15 +602,11 @@ export class WebhookHandler {
       height: number;
     },
   ): Promise<string> {
-    const videoMeta = await readVideoMeta(videoFile);
-    const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
-    const { width } = videoStream || {};
     const output = `${path.join(os.tmpdir(), uuid())}.mp4`;
 
     return new Promise((resolve, reject) => {
       genHotProgress(xmlFile, output, {
-        width: width,
-        duration: videoMeta.format.duration!,
+        videoPath: videoFile,
         ...options,
       }).then((task) => {
         task.on("task-end", () => {

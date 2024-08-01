@@ -74,7 +74,7 @@
 
     <div class="view">
       <template v-if="scView">
-        <div class="sc-list">
+        <div v-if="props.scList.length" class="sc-list">
           <div
             v-for="(sc, index) in props.scList"
             :key="index"
@@ -86,6 +86,7 @@
             <div class="text">{{ sc.text }}</div>
           </div>
         </div>
+        <div v-else class="empty" style="text-align: center">没有解析到sc</div>
       </template>
       <template v-else>
         <div

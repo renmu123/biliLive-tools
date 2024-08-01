@@ -280,8 +280,6 @@ const preHandle = async (
   return {
     inputVideoFile: videoFile,
     inputDanmuFile: danmuFile,
-    videoWidth: width,
-    duration: videoMeta.format.duration,
   };
 };
 
@@ -310,7 +308,7 @@ const convert = async () => {
 
   let { inputDanmuFile } = data;
   const rawInputDanmuFile = inputDanmuFile;
-  const { inputVideoFile, videoWidth, duration } = data;
+  const { inputVideoFile } = data;
   // console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
 
   if (inputDanmuFile.ext === ".xml") {
@@ -327,12 +325,11 @@ const convert = async () => {
   let hotProgressInput: string | undefined = undefined;
   if (rawClientOptions.hotProgress) {
     hotProgressInput = await genHotProgress(inputDanmuFile.path, {
-      width: videoWidth!,
-      duration: duration!,
       interval: rawClientOptions.hotProgressSample,
       height: rawClientOptions.hotProgressHeight,
       color: rawClientOptions.hotProgressColor,
       fillColor: rawClientOptions.hotProgressFillColor,
+      videoPath: inputVideoFile.path,
     });
   }
 
