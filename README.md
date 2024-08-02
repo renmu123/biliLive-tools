@@ -133,7 +133,7 @@ curl --location 'http://127.0.0.1:18010/webhook/custom' \
 # 赞赏
 
 如果本项目对你有帮助，请我喝瓶快乐水吧，有助于项目更好维护。  
-爱发电：[https://afdian.net/a/renmu123](https://afdian.net/a/renmu123)  
+爱发电：[https://afdian.com/a/renmu123](https://afdian.com/a/renmu123)  
 你也可以给我的 B 站帐号 [充电](https://space.bilibili.com/10995238)
 
 # 常见问题

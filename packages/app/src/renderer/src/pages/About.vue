@@ -35,8 +35,8 @@
       >
     </p>
     <p>
-      请我喝瓶快乐水：<a href="https://afdian.net/a/renmu123" class="external" target="_blank"
-        >https://afdian.net/a/renmu123</a
+      请我喝瓶快乐水：<a href="https://afdian.com/a/renmu123" class="external" target="_blank"
+        >https://afdian.com/a/renmu123</a
       >
     </p>
     <p>

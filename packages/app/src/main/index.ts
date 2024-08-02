@@ -267,7 +267,7 @@ function createMenu(): void {
     {
       label: "赞助",
       click: async () => {
-        shell.openExternal("https://afdian.net/a/renmu123");
+        shell.openExternal("https://afdian.com/a/renmu123");
       },
     },
     {
