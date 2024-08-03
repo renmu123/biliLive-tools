@@ -25,13 +25,13 @@
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "20.12.2",
-    "@vitest/coverage-istanbul": "^2.0.4",
+    "@vitest/coverage-istanbul": "^2.0.5",
     "cli-progress": "^3.12.0",
     "download": "^8.0.0",
     "prettier": "^3.2.5",
     "rollup": "^4.9.6",
     "typescript": "^5.5.4",
-    "vitest": "^1.6.0"
+    "vitest": "^2.0.5"
   },
   "packageManager": "pnpm@9.6.0+sha256.dae0f7e822c56b20979bb5965e3b73b8bdabb6b8b8ef121da6d857508599ca35"
 }

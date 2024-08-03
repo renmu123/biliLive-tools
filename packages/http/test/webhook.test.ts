@@ -277,7 +277,6 @@ describe("WebhookHandler", () => {
     const handler = new WebhookHandler();
 
     it("should format the title correctly", () => {
-      process.env.TZ = "Europe/London";
       const options = {
         title: "My Title",
         username: "Jo",
