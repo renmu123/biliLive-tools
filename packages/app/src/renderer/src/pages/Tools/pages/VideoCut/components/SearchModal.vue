@@ -50,6 +50,7 @@
 <script setup lang="ts">
 import { secondsToTimemark } from "@renderer/utils";
 import { AddCircleOutline as AddIcon } from "@vicons/ionicons5";
+import { watchThrottled } from "@vueuse/core";
 import type { DanmuItem } from "@biliLive-tools/types";
 
 interface Props {
@@ -72,7 +73,6 @@ const notice = useNotification();
 const form = reactive({
   value: "",
   content: "content",
-  type: "danma",
   sc: false,
 });
 
@@ -86,6 +86,7 @@ const handleOpen = async () => {
   loading.value = true;
   const data = await window.api.danmu.parseDanmu(props.file);
   list.value = [...data.danmu, ...data.sc];
+  displayList.value = list.value;
   openedFile.value = props.file;
   loading.value = false;
 };
@@ -93,24 +94,53 @@ const search = async () => {
   if (!form.value) return;
 };
 
-const displayList = computed(() => {
-  let data = list.value;
-  if (form.sc) {
-    data = list.value.filter((item) => item.type === "sc");
-  }
-
-  if (!form.value) return data;
-  return data.filter((item) => {
-    if (form.content === "content") {
-      if (!item.text) return false;
-      console.log(item.text, form.value);
-      return item.text.includes(form.value);
-    } else {
-      if (!item.user) return false;
-      return item.user.includes(form.value);
+const displayList = ref<DanmuItem[]>([]);
+watchThrottled(
+  () => form,
+  async () => {
+    let data = list.value;
+    if (form.sc) {
+      data = list.value.filter((item) => item.type === "sc");
     }
-  });
-});
+
+    if (!form.value) {
+      displayList.value = data;
+    } else {
+      {
+        displayList.value = data.filter((item) => {
+          if (form.content === "content") {
+            if (!item.text) return false;
+            console.log(item.text, form.value);
+            return item.text.includes(form.value);
+          } else {
+            if (!item.user) return false;
+            return item.user.includes(form.value);
+          }
+        });
+      }
+    }
+  },
+  { throttle: 500, deep: true },
+);
+
+// const displayList = computed(() => {
+//   let data = list.value;
+//   if (form.sc) {
+//     data = list.value.filter((item) => item.type === "sc");
+//   }
+
+//   if (!form.value) return data;
+//   return data.filter((item) => {
+//     if (form.content === "content") {
+//       if (!item.text) return false;
+//       console.log(item.text, form.value);
+//       return item.text.includes(form.value);
+//     } else {
+//       if (!item.user) return false;
+//       return item.user.includes(form.value);
+//     }
+//   });
+// });
 
 const addSegment = (item: DanmuItem) => {
   emits("add-segment", {

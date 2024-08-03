@@ -371,7 +371,7 @@ const toggleSc = () => {
   scView.value = !scView.value;
 };
 
-const searchDanmuVisible = ref(true);
+const searchDanmuVisible = ref(false);
 /**
  * 搜索弹幕
  */
