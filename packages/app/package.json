@@ -37,7 +37,8 @@
     "electron-store": "^10.0.0",
     "electron-updater": "^6.2.1",
     "lodash-es": "^4.17.21",
-    "semver": "^7.6.2"
+    "semver": "^7.6.2",
+    "sqlite3": "5.1.6"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.2",

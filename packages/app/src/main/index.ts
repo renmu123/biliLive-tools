@@ -3,6 +3,7 @@ import child_process from "node:child_process";
 import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
+import sqlite3 from "sqlite3";
 
 import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
@@ -409,6 +410,26 @@ if (!gotTheLock) {
     }
   });
 }
+
+ipcMain.handle("initDB", async () => {
+  const db = new sqlite3.Database("apppp.db");
+
+  db.serialize(() => {
+    db.run("CREATE TABLE lorem (info TEXT)");
+
+    const stmt = db.prepare("INSERT INTO lorem VALUES (?)");
+    for (let i = 0; i < 10; i++) {
+      stmt.run("Ipsum " + i);
+    }
+    stmt.finalize();
+
+    db.each("SELECT rowid AS id, info FROM lorem", (err, row) => {
+      console.log(row.id + ": " + row.info);
+    });
+  });
+
+  db.close();
+});
 
 // 业务相关的初始化
 const appInit = async () => {

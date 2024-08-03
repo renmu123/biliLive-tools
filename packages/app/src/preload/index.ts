@@ -38,6 +38,9 @@ type progressCallback = (params: { percentage?: number }) => void;
 
 // Custom APIs for renderer
 export const api = {
+  initDB: () => {
+    return ipcRenderer.invoke("initDB");
+  },
   douyu: {
     download: (output: string, decodeData: string, options: { danmu: boolean; vid?: string }) => {
       return ipcRenderer.invoke("douyu:download", output, decodeData, options);

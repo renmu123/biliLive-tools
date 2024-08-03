@@ -294,6 +294,8 @@ const initChanglog = async () => {
   }
 };
 initChanglog();
+
+// window.api.initDB();
 </script>
 
 <style lang="less">
