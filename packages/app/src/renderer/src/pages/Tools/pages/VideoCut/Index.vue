@@ -1,6 +1,6 @@
 <template>
   <div id="cut-tool" class="container">
-    <div class="btns">
+    <div class="btns page-header">
       <ButtonGroup
         title="请选择LosslessCut项目文件"
         :options="exportBtns"
@@ -8,15 +8,22 @@
         >导入项目文件</ButtonGroup
       >
       <n-button type="primary" @click="handleVideoChange"> {{ videoTitle }} </n-button>
-      <n-button type="primary" :disabled="!files.videoPath" @click="handleDanmuChange">
+      <n-button
+        class="cut-add-danmu"
+        type="primary"
+        :disabled="!files.videoPath"
+        @click="handleDanmuChange"
+      >
         {{ danmuTitle }}
       </n-button>
 
-      <n-button type="info" :disabled="!files.videoPath" @click="exportCuts"> 导出切片 </n-button>
+      <n-button class="cut-export" type="info" :disabled="!files.videoPath" @click="exportCuts">
+        导出切片
+      </n-button>
     </div>
 
     <div class="content">
-      <div v-show="files.videoPath" class="video">
+      <div v-show="files.videoPath" class="video cut-video">
         <Artplayer
           v-show="files.videoPath"
           ref="videoRef"
@@ -31,7 +38,7 @@
         v-show="!files.videoPath"
         v-model="fileList"
         :style="{ height: '100%' }"
-        class="video empty"
+        class="video empty cut-file-area"
         :extensions="['llc', 'flv', 'mp4', 'm4s']"
         :max="1"
         @change="handleFileChange"
@@ -65,6 +72,7 @@ import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 
 import { useLlcProject } from "./hooks";
+import { useDrive } from "@renderer/hooks/drive";
 import hotkeys from "hotkeys-js";
 import { useElementSize, useDebounceFn } from "@vueuse/core";
 
@@ -482,6 +490,11 @@ const handleFileChange = (fileList: any[]) => {
     handleVideo(path);
   }
 };
+
+const { videoCutDrive } = useDrive();
+onMounted(() => {
+  videoCutDrive();
+});
 </script>
 
 <style scoped lang="less">

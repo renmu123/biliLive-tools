@@ -21,7 +21,7 @@
           ></path>
         </svg>
       </n-icon>
-      <n-icon size="24" class="pointer icon" title="添加片段" @click="addCut">
+      <n-icon size="24" class="pointer icon cut-add-segment" title="添加片段" @click="addCut">
         <PlusOutlined></PlusOutlined>
       </n-icon>
       <n-icon size="24" class="pointer icon" title="删除片段" @click="deleteCut">
@@ -29,7 +29,7 @@
       </n-icon>
       <n-icon
         size="20"
-        class="pointer icon"
+        class="pointer icon cut-set-end"
         title="在当前时间结束当前片段"
         style="padding: 4px"
         @click="setEndTime"
@@ -48,13 +48,18 @@
           ></path>
         </svg>
       </n-icon>
-      <n-icon size="24" class="pointer icon" title="切换视图" @click="toggleSc">
+      <n-icon size="24" class="pointer icon cut-sc-view" title="切换视图" @click="toggleSc">
         <Refresh></Refresh>
       </n-icon>
-      <n-icon size="24" class="pointer icon" title="搜索弹幕，仅限xml" @click="searchDanmu">
+      <n-icon
+        size="24"
+        class="pointer icon cut-search-danmu"
+        title="搜索弹幕，仅限xml"
+        @click="searchDanmu"
+      >
         <SearchIcon></SearchIcon>
       </n-icon>
-      <Tip>
+      <Tip class="cut-search-danmu">
         <h4>快捷键</h4>
         <ul>
           <li>ctrl+s 保存到llc项目</li>
