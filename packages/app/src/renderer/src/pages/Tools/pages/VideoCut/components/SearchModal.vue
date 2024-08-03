@@ -34,7 +34,7 @@
                 class="pointer"
                 size="20"
                 :depth="3"
-                title="添加为切片"
+                title="添加到切片"
                 @click="addSegment(item)"
               >
                 <AddIcon></AddIcon>

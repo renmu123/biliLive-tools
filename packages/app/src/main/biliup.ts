@@ -19,19 +19,6 @@ export const deleteUser = async (uid: number) => {
   return true;
 };
 
-// 写入用户数据
-export const writeUser = async (data: BiliUser) => {
-  const users = appConfig.get("biliUser") || {};
-  users[data.mid] = data;
-  appConfig.set("biliUser", users);
-};
-
-// 读取用户数据
-export const readUser = async (mid: number): Promise<BiliUser | undefined> => {
-  const users = appConfig.get("biliUser") || {};
-  return users[mid];
-};
-
 // 读取用户列表
 export const readUserList = async (): Promise<BiliUser[]> => {
   const users = appConfig.get("biliUser") || {};

@@ -12,7 +12,7 @@
       <div style="text-align: center">
         <h2 v-if="text">登录成功，请关闭本窗口</h2>
         <h2>使用b站app扫码完成登录<br /></h2>
-        <QRCodeVue3 v-if="url" :value="url" />
+        <n-qr-code :value="url" color="#409eff" background-color="#F5F5F5" :size="250" />
       </div>
       <template #footer>
         <div class="footer">
@@ -25,8 +25,6 @@
 </template>
 
 <script setup lang="ts">
-import QRCodeVue3 from "qrcode-vue3";
-
 const showModal = defineModel<boolean>({ required: true, default: false });
 const emits = defineEmits<{
   close: [];
@@ -43,21 +41,18 @@ const onOpen = async () => {
   window.api.bili.onLogin("completed", async (_, res) => {
     console.log("completed", res);
     text.value = "登录成功，请关闭本窗口";
-    try {
-      notice.success({
-        title: "登录成功",
-        duration: 1000,
-      });
-      confirm();
-    } catch (e: unknown) {
-      notice.error({
-        title: "登录失败",
-        description: String(e),
-      });
-    }
+    notice.success({
+      title: "登录成功",
+      duration: 1000,
+    });
+    confirm();
   });
   window.api.bili.onLogin("error", (_, res) => {
     console.log("error", res);
+    notice.error({
+      title: "登录失败",
+      description: res.message,
+    });
     text.value = res.message;
   });
 };

@@ -27,6 +27,7 @@
 3. 修复DanmakuFactory某些情况下转换ass内容错误，[由上游修复](https://github.com/hihkm/DanmakuFactory/pull/87)
 4. 修复DanmakuFactory sc文本存在`\n`时，渲染ass错误，由[上游修复](https://github.com/renmu123/DanmakuFactory/commit/0df54629b382b3398bcea2be8a06e6e45f241ba3)
 5. 修复推送成功事件被错误设置为开始事件的bug
+6. 修复登录二维码第二次使用时错误使用上一个的bug
 
 # 1.3.0
 
