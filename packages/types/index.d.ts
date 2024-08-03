@@ -517,4 +517,14 @@ export interface SC {
   text: string;
   user: string;
   ts: number;
+  type: "danmu" | "sc";
 }
+
+export interface Danmu {
+  text: string;
+  user: string;
+  ts: number;
+  type: "danmu" | "sc";
+}
+
+export type DanmuItem = SC | Danmu;

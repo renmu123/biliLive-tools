@@ -42,7 +42,7 @@
         </template>
       </FileArea>
       <div class="cut-list">
-        <SegmentList :sc-list="scList"></SegmentList>
+        <SegmentList :sc-list="scList" :files="files"></SegmentList>
       </div>
     </div>
   </div>
@@ -52,7 +52,6 @@
     :show-preset="true"
     @confirm="danmuConfirm"
   ></DanmuFactorySettingDailog>
-  <!-- <Xml2AssModal v-model="xmlConvertVisible" @confirm="danmuConfirm"></Xml2AssModal> -->
   <ExportModal v-model="exportVisible" :files="files"></ExportModal>
 </template>
 
@@ -62,7 +61,6 @@ import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import { useSegmentStore, useAppConfig } from "@renderer/stores";
-// import Xml2AssModal from "./components/Xml2AssModal.vue";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 
@@ -129,9 +127,11 @@ const notice = useNotification();
 const files = ref<{
   videoPath: string | null;
   danmuPath: string | null;
+  originDanmuPath: string | null;
 }>({
   videoPath: null,
   danmuPath: null,
+  originDanmuPath: null,
 });
 const videoTitle = computed(() => {
   return files.value.videoPath ? "替换视频" : "添加视频";
@@ -251,6 +251,8 @@ const scList = ref<SC[]>([]);
  * 处理弹幕
  */
 const handleDanmu = async (path: string) => {
+  files.value.originDanmuPath = path;
+
   if (path.endsWith(".ass")) {
     const content = await window.api.common.readFile(path);
     files.value.danmuPath = path;

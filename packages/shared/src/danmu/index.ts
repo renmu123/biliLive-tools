@@ -11,7 +11,13 @@ import log from "../utils/log.js";
 import { XMLParser } from "fast-xml-parser";
 import { DANMU_DEAFULT_CONFIG } from "../presets/danmuPreset.js";
 
-import type { DanmuConfig, hotProgressOptions } from "@biliLive-tools/types";
+import type {
+  DanmuConfig,
+  hotProgressOptions,
+  DanmuItem,
+  Danmu as DanmuType,
+  SC,
+} from "@biliLive-tools/types";
 
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
@@ -112,6 +118,7 @@ const parseXmlFile = async (input: string) => {
 export const parseXmlObj = async (XMLdata: string) => {
   const parser = new XMLParser({
     ignoreAttributes: false,
+    parseTagValue: false,
     isArray: (name) => {
       if (["d", "gift", "guard", "sc"].includes(name)) return true;
     },
@@ -151,6 +158,39 @@ export const getSCDanmu = async (input: string) => {
     };
     return data;
   });
+};
+
+/**
+ * 解析弹幕
+ */
+export const parseDanmu = async (
+  input: string,
+): Promise<{
+  danmu: DanmuItem[];
+  sc: DanmuItem[];
+}> => {
+  const { danmuku, sc } = await parseXmlFile(input);
+  const parsedDanmuku = danmuku.map((item) => {
+    const data: DanmuType = {
+      text: item["#text"],
+      user: item["@_user"],
+      ts: Number(item["@_p"].split(",")[0]),
+      type: "danmu",
+    };
+    return data;
+  });
+
+  const parsedSC = sc.map((item) => {
+    const data: SC = {
+      text: item["#text"],
+      user: item["@_user"],
+      ts: Number(item["@_ts"]),
+      type: "sc",
+    };
+    return data;
+  });
+
+  return { danmu: parsedDanmuku, sc: parsedSC };
 };
 
 const groupBy = (arr, func) => {

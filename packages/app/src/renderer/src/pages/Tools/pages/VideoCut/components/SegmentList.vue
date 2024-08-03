@@ -51,6 +51,9 @@
       <n-icon size="24" class="pointer icon" title="切换视图" @click="toggleSc">
         <Refresh></Refresh>
       </n-icon>
+      <n-icon size="24" class="pointer icon" title="搜索弹幕，仅限xml" @click="searchDanmu">
+        <SearchIcon></SearchIcon>
+      </n-icon>
       <Tip>
         <h4>快捷键</h4>
         <ul>
@@ -144,12 +147,24 @@
       <n-button type="primary" @click="confirmEditCutName">确定</n-button>
     </template>
   </n-modal>
+  <SearchModal
+    v-model:visible="searchDanmuVisible"
+    :file="props.files.originDanmuPath"
+    @add-segment="addCut"
+  ></SearchModal>
 </template>
 
 <script setup lang="ts">
+import SearchModal from "./SearchModal.vue";
 import { secondsToTimemark } from "@renderer/utils";
 import { useSegmentStore } from "@renderer/stores";
-import { RadioButtonOffSharp, CheckmarkCircleOutline, Pencil, Refresh } from "@vicons/ionicons5";
+import {
+  RadioButtonOffSharp,
+  CheckmarkCircleOutline,
+  Pencil,
+  Refresh,
+  Search as SearchIcon,
+} from "@vicons/ionicons5";
 import { MinusOutlined, PlusOutlined } from "@vicons/material";
 import hotkeys from "hotkeys-js";
 
@@ -193,6 +208,9 @@ onActivated(() => {
 
 interface Props {
   scList: SC[];
+  files: {
+    originDanmuPath: string | null;
+  };
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -203,6 +221,7 @@ const props = withDefaults(defineProps<Props>(), {
 // }>();
 const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;
 
+const notice = useNotification();
 const { cuts } = storeToRefs(useSegmentStore());
 const { addSegment, removeSegment, updateSegment, toggleSegment } = useSegmentStore();
 
@@ -260,12 +279,16 @@ const selectCut = (index: number) => {
 /**
  * 添加片段
  */
-const addCut = () => {
-  addSegment({
-    start: videoInstance.value.currentTime,
-    name: "",
-    checked: true,
-  });
+const addCut = (iOptions: { start?: number; end?: number; name?: string } = {}) => {
+  const options = Object.assign(
+    {
+      start: videoInstance.value.currentTime,
+      name: "",
+      checked: true,
+    },
+    iOptions,
+  );
+  addSegment(options);
 
   selectCutIndex.value = cuts.value.length - 1;
 };
@@ -347,6 +370,23 @@ const scView = ref(false);
 const toggleSc = () => {
   scView.value = !scView.value;
 };
+
+const searchDanmuVisible = ref(true);
+/**
+ * 搜索弹幕
+ */
+const searchDanmu = () => {
+  console.log(props.files.originDanmuPath);
+  if (!props.files.originDanmuPath) return;
+  if (!props.files.originDanmuPath.endsWith(".xml")) {
+    notice.warning({
+      title: "仅支持xml格式弹幕",
+      duration: 1000,
+    });
+    return;
+  }
+  searchDanmuVisible.value = true;
+};
 </script>
 
 <style scoped lang="less">
@@ -364,7 +404,7 @@ const toggleSc = () => {
     top: 0;
     transform: translate(-50%, -120%);
     display: flex;
-    gap: 10px;
+    gap: 5px;
     margin-bottom: 5px;
     justify-content: center;
     align-items: center;

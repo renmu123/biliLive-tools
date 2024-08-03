@@ -25,6 +25,7 @@ import type {
   hotProgressOptions,
   Theme,
   SC,
+  DanmuItem,
 } from "@biliLive-tools/types";
 import type { OpenDialogOptions, BiliApi } from "../types";
 import type ffmpeg from "fluent-ffmpeg";
@@ -96,6 +97,12 @@ export const api = {
     },
     getSCDanmu(input: string): Promise<SC[]> {
       return ipcRenderer.invoke("danmu:getSCDanmu", input);
+    },
+    parseDanmu(input: string): Promise<{
+      danmu: DanmuItem[];
+      sc: DanmuItem[];
+    }> {
+      return ipcRenderer.invoke("danmu:parseDanmu", input);
     },
   },
   task: {
