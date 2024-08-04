@@ -513,18 +513,23 @@ export type hotProgressOptions = {
   videoPath?: string;
 };
 
-export interface SC {
-  text: string;
-  user: string;
-  ts: number;
-  type: "danmu" | "sc";
+export type DanmaType = "text" | "sc" | "gift" | "guard" | "unknown";
+
+export interface DanmuItem {
+  text?: string;
+  ts?: number;
+  type: DanmaType;
+  user?: string;
+  room_id?: string;
+  platform?: "bilibili" | "douyu" | "unknown" | string;
+  gift_price?: number;
+  source?: string;
+  p?: string;
+}
+export interface SC extends DanmuItem {
+  type: "sc";
 }
 
-export interface Danmu {
-  text: string;
-  user: string;
-  ts: number;
-  type: "danmu" | "sc";
+export interface Danmu extends DanmuItem {
+  type: "text";
 }
-
-export type DanmuItem = SC | Danmu;

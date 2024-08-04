@@ -155,6 +155,7 @@ export const getSCDanmu = async (input: string) => {
       text: item["#text"],
       user: item["@_user"],
       ts: Number(item["@_ts"]),
+      type: "sc",
     };
     return data;
   });
@@ -162,23 +163,49 @@ export const getSCDanmu = async (input: string) => {
 
 /**
  * 解析弹幕
+ * @param input 弹幕文件路径
+ * @param type 弹幕文件录制平台，解析会有所不同，如果不传则自动判断
  */
 export const parseDanmu = async (
   input: string,
+  options: {
+    type?: "bililiverecorder" | "blrec";
+    roomId?: string;
+  } = {},
 ): Promise<{
   danmu: DanmuItem[];
   sc: DanmuItem[];
 }> => {
   const { danmuku, sc } = await parseXmlFile(input);
-  const parsedDanmuku = danmuku.map((item) => {
+  const parsedDanmuku: DanmuItem[] = [];
+
+  // 如果是bililiverecorder和blrec录制的，平台为bilibili
+  let platform!: string;
+  if (options.type) {
+    if (options.type === "bililiverecorder" || options.type === "blrec") {
+      platform = "bilibili";
+    } else {
+      platform = options.type;
+    }
+  } else {
+    platform = "unknown";
+  }
+  const source = path.basename(input);
+  for (const item of danmuku) {
+    if (!item["@_p"]) continue;
+
     const data: DanmuType = {
       text: item["#text"],
       user: item["@_user"],
       ts: Number(item["@_p"].split(",")[0]),
-      type: "danmu",
+      type: "text",
+      p: item["@_p"],
+      platform,
+      source,
+      room_id: options.roomId,
     };
-    return data;
-  });
+    parsedDanmuku.push(data);
+  }
 
   const parsedSC = sc.map((item) => {
     const data: SC = {
@@ -186,6 +213,9 @@ export const parseDanmu = async (
       user: item["@_user"],
       ts: Number(item["@_ts"]),
       type: "sc",
+      platform,
+      source,
+      room_id: options.roomId,
     };
     return data;
   });

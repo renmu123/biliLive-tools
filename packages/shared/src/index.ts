@@ -2,6 +2,7 @@ import { appConfig } from "./config.js";
 import { CommonPreset, ffmpegPreset, videoPreset, danmuPreset } from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
+// import { initDB } from "./db/index.js";
 
 const init = (config: {
   configPath: string;
@@ -27,6 +28,7 @@ const init = (config: {
   ffmpegPreset.init(config.ffmpegPresetPath);
   videoPreset.init(config.videoPresetPath);
   danmuPreset.init(config.danmuPresetPath);
+  // initDB("danmu.db");
 
   const logLevel = appConfig.get("logLevel");
   initLogger(config.logPath, logLevel);

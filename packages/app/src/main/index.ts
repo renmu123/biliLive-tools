@@ -3,7 +3,6 @@ import child_process from "node:child_process";
 import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
-import sqlite3 from "sqlite3";
 
 import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
@@ -12,6 +11,7 @@ import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net, nativeThem
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/lib/task/video";
+import { danmuService } from "@biliLive-tools/shared/lib/db/index";
 import { taskQueue } from "@biliLive-tools/shared/lib/task/task";
 import { appConfig, init } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
@@ -411,25 +411,23 @@ if (!gotTheLock) {
   });
 }
 
-ipcMain.handle("initDB", async () => {
-  const db = new sqlite3.Database("apppp.db");
-
-  db.serialize(() => {
-    db.run("CREATE TABLE lorem (info TEXT)");
-
-    const stmt = db.prepare("INSERT INTO lorem VALUES (?)");
-    for (let i = 0; i < 10; i++) {
-      stmt.run("Ipsum " + i);
-    }
-    stmt.finalize();
-
-    db.each("SELECT rowid AS id, info FROM lorem", (_err, row) => {
-      // @ts-ignore
-      console.log(row.id + ": " + row.info);
-    });
-  });
-
-  db.close();
+ipcMain.handle("db:list", async (_event, options: any) => {
+  // danmuservice.add({
+  //   type: 1,
+  // });
+  const data = await danmuService.list(options);
+  log.info(data);
+  // await db.test();
+  // return db.query();
+});
+ipcMain.handle("db:query", async (_event, options: any) => {
+  // danmuservice.add({
+  //   type: 1,
+  // });
+  const data = await danmuService.query(options);
+  log.info(data);
+  // await db.test();
+  // return db.query();
 });
 
 // 业务相关的初始化

@@ -38,6 +38,7 @@
     "electron-updater": "^6.2.1",
     "lodash-es": "^4.17.21",
     "semver": "^7.6.2",
+    "sqlite": "^5.1.1",
     "sqlite3": "5.1.6"
   },
   "devDependencies": {
