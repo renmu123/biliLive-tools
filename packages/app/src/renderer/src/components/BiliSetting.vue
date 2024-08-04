@@ -451,6 +451,7 @@ const savePreset = async () => {
 };
 
 const _savePreset = async (data: BiliupPreset) => {
+  await window.api.bili.validUploadParams(deepRaw(data.config));
   await window.api.bili.savePreset(deepRaw(data));
 };
 
