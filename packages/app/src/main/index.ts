@@ -423,7 +423,8 @@ ipcMain.handle("initDB", async () => {
     }
     stmt.finalize();
 
-    db.each("SELECT rowid AS id, info FROM lorem", (err, row) => {
+    db.each("SELECT rowid AS id, info FROM lorem", (_err, row) => {
+      // @ts-ignore
       console.log(row.id + ": " + row.info);
     });
   });
