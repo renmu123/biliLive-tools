@@ -520,6 +520,7 @@ export interface DanmuItem {
   ts?: number;
   type: DanmaType;
   user?: string;
+  streamer?: string;
   room_id?: string;
   platform?: "bilibili" | "douyu" | "unknown" | string;
   gift_price?: number;

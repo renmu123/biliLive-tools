@@ -5,7 +5,7 @@ import type { Database } from "sqlite";
 
 interface BaseStreamer {
   name: string;
-  platform: "bilibili" | "douyu" | "unknown";
+  platform: "bilibili" | "douyu" | "unknown" | string;
   room_id: string;
 }
 
@@ -14,11 +14,6 @@ interface Streamer extends BaseStreamer {
   created_at: number;
 }
 
-// 表名 streamer
-// id: 自增主键
-// name: 主播名
-// platform: 平台，bilibili，douyu，unknown
-// room_id: 房间id
 class StreamerModel extends BaseModel<BaseStreamer> {
   table = "streamer";
 
@@ -31,10 +26,11 @@ class StreamerModel extends BaseModel<BaseStreamer> {
       CREATE TABLE IF NOT EXISTS ${this.table} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,           -- 自增主键
         name TEXT NOT NULL,                             -- 主播名
-        room_id TEXT,                                   -- 房间id
-        platform TEXT DEFAULT unknown,                  -- 平台，bilibili，douyu，unknown
+        room_id TEXT NOT NULL,                          -- 房间id
+        platform TEXT DEFAULT unknown,                -- 平台，bilibili，douyu，unknown
         created_at INTEGER DEFAULT (strftime('%s', 'now')),  -- 创建时间，时间戳，自动生成
-      )
+        UNIQUE(name, room_id)                           -- 唯一联合约束
+      );
     `;
     return super.createTable(createTableSQL);
   }

@@ -429,6 +429,15 @@ ipcMain.handle("db:query", async (_event, options: any) => {
   // await db.test();
   // return db.query();
 });
+ipcMain.handle("db:addWithStreamer", async (_event, options: any) => {
+  // danmuservice.add({
+  //   type: 1,
+  // });
+  const data = await danmuService.addWithStreamer(options);
+  log.info(data);
+  // await db.test();
+  // return db.query();
+});
 
 // 业务相关的初始化
 const appInit = async () => {

@@ -28,6 +28,7 @@
     "nodemailer": "^6.9.13",
     "ntsuspend": "^1.0.2",
     "ollama": "^0.5.6",
+    "p-limit": "^6.1.0",
     "subtitle": "^4.2.1",
     "tiny-typed-emitter": "^2.1.0",
     "trash": "^8.1.1",

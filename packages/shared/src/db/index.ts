@@ -20,6 +20,8 @@ class DB {
       filename: filename,
       driver: sqlite3.Database,
     });
+    // 启用外键支持
+    await db.exec("PRAGMA foreign_keys = ON");
     this.db = db;
   }
   async close() {

@@ -44,6 +44,9 @@ export const api = {
   dbList: (options) => {
     return ipcRenderer.invoke("db:list", options);
   },
+  addWithStreamer: (options) => {
+    return ipcRenderer.invoke("db:addWithStreamer", options);
+  },
   douyu: {
     download: (output: string, decodeData: string, options: { danmu: boolean; vid?: string }) => {
       return ipcRenderer.invoke("douyu:download", output, decodeData, options);

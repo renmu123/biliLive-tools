@@ -1,29 +1,27 @@
 import BaseModel from "./baseModel.js";
 import { validateAndFilter } from "./utils.js";
+import { streamerService } from "./index.js";
 
 import type { Database } from "sqlite";
-import type { DanmuItem } from "@biliLive-tools/types";
+import type { DanmaType, DanmuItem } from "@biliLive-tools/types";
 
-type Danma = DanmuItem & {
+interface BaseDanmu {
+  text?: string;
+  ts?: number;
+  type: DanmaType;
+  user?: string;
+  gift_price?: number;
+  source?: string;
+  p?: string;
+  streamer_id?: number;
+}
+
+type Danma = BaseDanmu & {
   id: number;
   created_at: number;
 };
 
-// 表名 danma
-// 字段名 id, content, time, type, created_at, username, user_id, room_id, platform, gift_price, filename
-// 除了id和type和创建时间，其他字段都允许为空
-// id: 自增主键
-// content: 弹幕内容
-// time: 时间戳
-// type: 弹幕类型，text：普通弹幕，gift：礼物弹幕，guard：上舰弹幕，sc：SC弹幕，unknown：未知
-// created_at: 创建时间，时间戳，自动生成
-// username: 用户名
-// room_id: 房间id
-// platform: 平台，bilibili，douyu，unknown
-// gift_price: 礼物价格，默认为0
-// filename: 文件名
-// p: 普通弹幕的基础数据
-class DanmaModel extends BaseModel<DanmuItem> {
+class DanmaModel extends BaseModel<BaseDanmu> {
   table = "danma";
 
   constructor(db: Database) {
@@ -38,12 +36,12 @@ class DanmaModel extends BaseModel<DanmuItem> {
         ts INTEGER,                                     -- 时间戳
         type TEXT DEFAULT unknown,                      -- 弹幕类型，text：普通弹幕，gift：礼物弹幕，guard：上舰弹幕，sc：SC弹幕，unknown：未知
         created_at INTEGER DEFAULT (strftime('%s', 'now')),  -- 创建时间，时间戳，自动生成
-        user TEXT,                                      -- 用户名
-        room_id TEXT,                                   -- 房间id
-        platform TEXT DEFAULT unknown,                  -- 平台，bilibili，douyu，unknown
+        user TEXT,                                      -- 发送用户名
         gift_price INTEGER DEFAULT 0,                   -- 礼物价格，默认为0
-        source TEXT                                     -- 来源
-        p TEXT                                          -- 普通弹幕的基础数据
+        source TEXT,                                    -- 来源
+        streamer_id INTEGER,                            -- 主播id
+        p TEXT,                                         -- 普通弹幕的基础数据
+        FOREIGN KEY (streamer_id) REFERENCES streamer(id)  -- 外键约束
       )
     `;
     return super.createTable(createTableSQL);
@@ -52,29 +50,76 @@ class DanmaModel extends BaseModel<DanmuItem> {
 
 export default class DanmaController {
   private model: DanmaModel;
-  private requireFields: (keyof DanmuItem)[] = [
+  private requireFields: (keyof BaseDanmu)[] = [
     "text",
     "ts",
     "type",
     "user",
-    "room_id",
-    "platform",
     "gift_price",
     "source",
     "p",
+    "streamer_id",
   ];
   async init(db: Database) {
     this.model = new DanmaModel(db);
     await this.model.createTable();
   }
+  async addWithStreamer(list: DanmuItem[]) {
+    if (!Array.isArray(list)) return;
 
-  async add(options: DanmuItem) {
+    const hasStreamerList: (DanmuItem & { streamer_id?: number })[] = [];
+    const noStreamerList = [];
+    for (const item of list) {
+      if (item.streamer && item.room_id) {
+        hasStreamerList.push(item);
+      } else {
+        noStreamerList.push(item);
+      }
+    }
+
+    // 不需要查询主播
+    if (noStreamerList.length > 0) {
+      this.addMany(noStreamerList);
+    }
+    // 需要查询主播
+    if (hasStreamerList.length > 0) {
+      const streamMap = new Map();
+      for (const item of hasStreamerList) {
+        const key = `${item.room_id}-${item.streamer}`;
+
+        if (!streamMap.has(key)) {
+          const streamer = await streamerService.query({
+            name: item.streamer,
+            room_id: item.room_id,
+          });
+          if (streamer) {
+            streamMap.set(key, streamer.id);
+          } else {
+            const streamerId = await streamerService.add({
+              name: item.streamer,
+              room_id: item.room_id,
+              platform: item.platform,
+            });
+            console.log("streamerId", streamerId);
+            streamMap.set(key, streamerId);
+          }
+        }
+        item.streamer_id = streamMap.get(key);
+      }
+
+      this.addMany(hasStreamerList);
+    }
+  }
+  async addDanma(options: BaseDanmu) {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     console.log(filterOptions, options);
     return this.model.insert(options);
   }
-  async addMany(list: DanmuItem[]) {
-    return this.model.insertMany(list);
+  async addMany(list: BaseDanmu[]) {
+    const filterList = list.map((item) =>
+      validateAndFilter(item, this.requireFields, []),
+    ) as BaseDanmu[];
+    return this.model.insertMany(filterList);
   }
 
   async list(options: Partial<Danma>): Promise<Danma[]> {

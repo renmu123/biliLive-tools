@@ -1,4 +1,5 @@
 import { Database } from "sqlite";
+import pLimit from "p-limit";
 
 class BaseModel<T> {
   protected db: Database;
@@ -18,7 +19,8 @@ class BaseModel<T> {
     const placeholders = keys.map(() => "?").join(", ");
     const sql = `INSERT INTO ${this.tableName} (${keys.join(", ")}) VALUES (${placeholders})`;
 
-    return this.db.run(sql, Object.values(options));
+    const data = await this.db.run(sql, Object.values(options));
+    return data.lastID;
   }
 
   async insertMany(records: Array<T>) {
@@ -27,13 +29,22 @@ class BaseModel<T> {
     const sql = `INSERT INTO ${this.tableName} (${keys.join(", ")}) VALUES (${placeholders})`;
 
     const stmt = await this.db.prepare(sql);
+    const limit = pLimit(10); // 限制并发数为10
+    const insertedIds = [];
 
     try {
       await this.db.run("BEGIN TRANSACTION");
-      for (const record of records) {
-        const values = keys.map((key) => record[key]);
-        await stmt.run(values);
-      }
+
+      const insertPromises = records.map((record) =>
+        limit(async () => {
+          const values = keys.map((key) => record[key]);
+          await stmt.run(values);
+          const result = await this.db.get("SELECT last_insert_rowid() as id");
+          insertedIds.push(result.id); // 收集每次插入的主键ID
+        }),
+      );
+
+      await Promise.all(insertPromises);
       await this.db.run("COMMIT");
     } catch (error) {
       await this.db.run("ROLLBACK");
@@ -41,6 +52,8 @@ class BaseModel<T> {
     } finally {
       await stmt.finalize();
     }
+
+    return insertedIds;
   }
 
   async query(options: Partial<T & { id: number }>) {
@@ -71,6 +84,16 @@ class BaseModel<T> {
 
     const sql = `SELECT * FROM ${this.tableName}${conditions.length ? " WHERE " + conditions.join(" AND ") : ""}`;
     return this.db.all(sql, values);
+  }
+  async transaction(fn: () => Promise<void>) {
+    await this.db.run("BEGIN TRANSACTION");
+    try {
+      await fn();
+      await this.db.run("COMMIT");
+    } catch (error) {
+      await this.db.run("ROLLBACK");
+      throw error;
+    }
   }
 
   async close() {
