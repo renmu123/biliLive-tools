@@ -508,6 +508,9 @@ export const validateBiliupConfig = async (config: BiliupConfig) => {
         msg = "转载来源不能超过200个字符";
       }
     }
+    if (config.topic_name) {
+      msg = "转载类型稿件不支持活动参加哦~";
+    }
   }
   if (config.tag.length === 0) {
     msg = "标签不能为空";
