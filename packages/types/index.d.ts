@@ -517,7 +517,7 @@ export type DanmaType = "text" | "sc" | "gift" | "guard" | "unknown";
 
 export interface DanmuItem {
   text?: string;
-  ts?: number;
+  ts: number;
   type: DanmaType;
   user?: string;
   streamer?: string;

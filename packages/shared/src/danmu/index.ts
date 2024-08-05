@@ -8,8 +8,6 @@ import { compile } from "ass-compiler";
 import { keyBy } from "lodash-es";
 import { pathExists } from "../utils/index.js";
 import log from "../utils/log.js";
-// import { XMLParser } from "fast-xml-parser";
-import { xml2json } from "../utils/xml.js";
 import { DANMU_DEAFULT_CONFIG } from "../presets/danmuPreset.js";
 
 import type {
@@ -117,6 +115,8 @@ const parseXmlFile = async (input: string) => {
  * 解析弹幕数据为对象
  */
 export const parseXmlObj = async (XMLdata: string) => {
+  // import { XMLParser } from "fast-xml-parser";
+  const { xml2json } = await import("../utils/xml.js");
   const jObj = xml2json(XMLdata);
 
   let danmuku = [];
