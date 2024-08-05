@@ -30,7 +30,7 @@ class LiveModel extends BaseModel<BaseLive> {
         start_time INTEGER NOT NULL UNIQUE,                  -- 直播开始时间，秒时间戳
         title TEXT,                                          -- 直播标题
         FOREIGN KEY (streamer_id) REFERENCES streamer(id)    -- 外键约束
-      )
+      ) STRICT;
     `;
     return super.createTable(createTableSQL);
   }

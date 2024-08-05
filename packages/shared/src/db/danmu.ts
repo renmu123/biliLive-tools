@@ -45,7 +45,7 @@ class DanmaModel extends BaseModel<BaseDanmu> {
         p TEXT,                                         -- 普通弹幕的基础数据
         FOREIGN KEY (streamer_id) REFERENCES streamer(id),  -- 外键约束
         FOREIGN KEY (live_id) REFERENCES live(id)           -- 外键约束
-        )
+        ) STRICT;
     `;
     return super.createTable(createTableSQL);
   }

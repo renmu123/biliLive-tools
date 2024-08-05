@@ -179,7 +179,7 @@ export const paeseMetadata = (jObj: any) => {
     metadata.live_title = info["@_title"];
     const liveStartTime = info["@_start_time"];
     if (liveStartTime) {
-      metadata.live_start_time = new Date(liveStartTime).getTime() / 1000;
+      metadata.live_start_time = Math.floor(new Date(liveStartTime).getTime() / 1000);
     }
   }
   if (root?.metadata) {
@@ -189,7 +189,7 @@ export const paeseMetadata = (jObj: any) => {
     metadata.live_title = info["room_title"];
     const liveStartTime = info["live_start_time"];
     if (liveStartTime) {
-      metadata.live_start_time = new Date(liveStartTime).getTime() / 1000;
+      metadata.live_start_time = Math.floor(new Date(liveStartTime).getTime() / 1000);
     }
     metadata.platform = info["platform"];
   }
