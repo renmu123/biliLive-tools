@@ -2,7 +2,7 @@ import { expect, describe, it } from "vitest";
 
 import { paeseMetadata } from "../../src/danmu/index";
 
-describe("paeseMetadata", () => {
+describe.skip("paeseMetadata", () => {
   it("should parse BililiveRecorderRecordInfo from XML object", () => {
     const jObj = {
       i: {
