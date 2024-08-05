@@ -3,6 +3,7 @@ import { open } from "sqlite";
 
 import DanmaController from "./danmu.js";
 import StreamerController from "./streamer.js";
+import LiveController from "./live.js";
 
 import type { Database } from "sqlite";
 
@@ -32,12 +33,14 @@ class DB {
 const db = new DB();
 export const danmuService = new DanmaController();
 export const streamerService = new StreamerController();
+export const liveService = new LiveController();
 
 export const initDB = async (filename: string) => {
   await db.init(filename);
 
   await danmuService.init(db.db);
   await streamerService.init(db.db);
+  await liveService.init(db.db);
   return db;
 };
 

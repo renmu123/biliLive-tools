@@ -161,6 +161,41 @@ export const getSCDanmu = async (input: string) => {
   });
 };
 
+export const paeseMetadata = (jObj: any) => {
+  const metadata = {
+    streamer: undefined,
+    room_id: undefined,
+    live_title: undefined,
+    live_start_time: undefined,
+    platform: undefined,
+  };
+  const root = jObj?.i;
+  if (!root) return metadata;
+
+  if (root?.BililiveRecorderRecordInfo) {
+    const info = root?.BililiveRecorderRecordInfo;
+    metadata.streamer = info["@_name"];
+    metadata.room_id = info["@_roomid"];
+    metadata.live_title = info["@_title"];
+    const liveStartTime = info["@_start_time"];
+    if (liveStartTime) {
+      metadata.live_start_time = new Date(liveStartTime).getTime() / 1000;
+    }
+  }
+  if (root?.metadata) {
+    const info = root?.metadata;
+    metadata.streamer = info["user_name"];
+    metadata.room_id = info["room_id"];
+    metadata.live_title = info["room_title"];
+    const liveStartTime = info["live_start_time"];
+    if (liveStartTime) {
+      metadata.live_start_time = new Date(liveStartTime).getTime() / 1000;
+    }
+    metadata.platform = info["platform"];
+  }
+  return metadata;
+};
+
 /**
  * 解析弹幕
  * @param input 弹幕文件路径
@@ -176,46 +211,50 @@ export const parseDanmu = async (
   danmu: DanmuItem[];
   sc: DanmuItem[];
 }> => {
-  const { danmuku, sc } = await parseXmlFile(input);
+  const { danmuku, sc, jObj } = await parseXmlFile(input);
+  const metadata = paeseMetadata(jObj);
+  console.log(jObj, metadata);
   const parsedDanmuku: DanmuItem[] = [];
 
   // 如果是bililiverecorder和blrec录制的，平台为bilibili
-  let platform!: string;
-  if (options.type) {
-    if (options.type === "bililiverecorder" || options.type === "blrec") {
-      platform = "bilibili";
-    } else {
-      platform = options.type;
-    }
-  } else {
-    platform = "unknown";
+  let platform: string;
+  if (options.type === "bililiverecorder" || options.type === "blrec") {
+    platform = "bilibili";
   }
   const source = path.basename(input);
   for (const item of danmuku) {
     if (!item["@_p"]) continue;
 
     const data: DanmuType = {
+      type: "text",
+
       text: item["#text"],
       user: item["@_user"],
       ts: Number(item["@_p"].split(",")[0]),
-      type: "text",
       p: item["@_p"],
-      platform,
+      platform: platform ?? metadata.platform ?? "unknown",
       source,
-      room_id: options.roomId,
+      room_id: options.roomId ?? metadata.room_id,
+      live_start_time: metadata.live_start_time,
+      live_title: metadata.live_title,
+      streamer: metadata.streamer,
     };
     parsedDanmuku.push(data);
   }
 
   const parsedSC = sc.map((item) => {
     const data: SC = {
+      type: "sc",
+
       text: item["#text"],
       user: item["@_user"],
       ts: Number(item["@_ts"]),
-      type: "sc",
-      platform,
+      platform: platform ?? metadata.platform ?? "unknown",
       source,
-      room_id: options.roomId,
+      room_id: options.roomId ?? metadata.room_id,
+      live_start_time: metadata.live_start_time,
+      live_title: metadata.live_title,
+      streamer: metadata.streamer,
     };
     return data;
   });

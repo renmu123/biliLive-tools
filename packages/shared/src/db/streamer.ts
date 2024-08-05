@@ -63,6 +63,9 @@ export default class StreamerController {
     console.log(filterOptions, options);
     return this.model.query(filterOptions);
   }
+  async upsert(options: { where: Partial<Streamer & { id: number }>; create: BaseStreamer }) {
+    return this.model.upsert(options);
+  }
 
   async close() {
     return this.model.close();

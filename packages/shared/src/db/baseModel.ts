@@ -23,6 +23,16 @@ class BaseModel<T> {
     return data.lastID;
   }
 
+  async upsert(options: { where: Partial<T & { id: number }>; create: T }) {
+    const data = await this.query(options.where);
+    if (data) {
+      return data;
+    } else {
+      const id = await this.insert(options.create);
+      return this.query({ id } as Partial<T & { id: number }>);
+    }
+  }
+
   async insertMany(records: Array<T>) {
     const keys = Object.keys(records[0]);
     const placeholders = keys.map(() => "?").join(", ");

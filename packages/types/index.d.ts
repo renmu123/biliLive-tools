@@ -526,6 +526,8 @@ export interface DanmuItem {
   gift_price?: number;
   source?: string;
   p?: string;
+  live_start_time?: number;
+  live_title?: string;
 }
 export interface SC extends DanmuItem {
   type: "sc";
