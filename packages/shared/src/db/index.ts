@@ -1,16 +1,16 @@
-import Database1 from "better-sqlite3";
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
+import Database from "better-sqlite3";
+// import sqlite3 from "sqlite3";
+// import { open } from "sqlite";
 
 import DanmaController from "./danmu.js";
 import StreamerController from "./streamer.js";
 import LiveController from "./live.js";
 
-import type { Database } from "sqlite";
+import type { Database as DatabaseType } from "better-sqlite3";
 
 class DB {
   filename: string;
-  db: Database;
+  db: DatabaseType;
   constructor() {
     // init
   }
@@ -18,12 +18,10 @@ class DB {
   async init(filename: string) {
     this.filename = filename;
 
-    const db = await open({
-      filename: filename,
-      driver: sqlite3.Database,
-    });
+    const db = Database(filename);
     // 启用外键支持
-    await db.exec("PRAGMA foreign_keys = ON");
+    db.pragma("foreign_keys = ON");
+    db.pragma("journal_mode = WAL");
     this.db = db;
   }
   async close() {
@@ -37,14 +35,11 @@ export const streamerService = new StreamerController();
 export const liveService = new LiveController();
 
 export const initDB = async (filename: string) => {
-  const db1 = new Database1("foobar.db");
-  db1.pragma("journal_mode = WAL");
-  console.log(db1.pragma("journal_mode"));
-  await db.init(filename);
+  db.init(filename);
 
-  await danmuService.init(db.db);
-  await streamerService.init(db.db);
-  await liveService.init(db.db);
+  danmuService.init(db.db);
+  streamerService.init(db.db);
+  liveService.init(db.db);
   return db;
 };
 

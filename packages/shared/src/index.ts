@@ -28,11 +28,12 @@ const init = (config: {
   ffmpegPreset.init(config.ffmpegPresetPath);
   videoPreset.init(config.videoPresetPath);
   danmuPreset.init(config.danmuPresetPath);
-  initDB("danmu.db");
 
   const logLevel = appConfig.get("logLevel");
   initLogger(config.logPath, logLevel);
   setFfmpegPath();
+
+  initDB("danmu.db");
 };
 
 export { appConfig, CommonPreset, ffmpegPreset, videoPreset, danmuPreset, init };

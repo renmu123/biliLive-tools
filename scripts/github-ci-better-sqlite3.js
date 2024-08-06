@@ -47,11 +47,23 @@ async function downloadBin() {
     })
     .then(() => {
       console.log("解压完成");
-      fs.unlink(filename);
+      fs.unlink(filename, (err) => {
+        if (err) {
+          console.error("删除压缩包失败:", err);
+        } else {
+          console.log("删除压缩包成功");
+        }
+      });
     })
     .catch((err) => {
       console.error("解压失败:", err);
-      fs.unlink(filename);
+      fs.unlink(filename, (err) => {
+        if (err) {
+          console.error("删除压缩包失败:", err);
+        } else {
+          console.log("删除压缩包成功");
+        }
+      });
     });
   // 解压.tar.gz到 node_modules/better-sqlite3
 }

@@ -39,15 +39,14 @@
     "electron-updater": "^6.2.1",
     "libxmljs": "^1.0.11",
     "lodash-es": "^4.17.21",
-    "semver": "^7.6.2",
-    "sqlite": "^5.1.1",
-    "sqlite3": "5.1.6"
+    "semver": "^7.6.2"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.2",
     "@electron-toolkit/eslint-config-ts": "^2.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
     "@rushstack/eslint-patch": "^1.10.3",
+    "@types/better-sqlite3": "^7.6.11",
     "@types/node": "20.12.2",
     "@vicons/ionicons5": "^0.12.0",
     "@vicons/material": "^0.12.0",

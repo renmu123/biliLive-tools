@@ -1,7 +1,7 @@
 import BaseModel from "./baseModel.js";
 import { validateAndFilter } from "./utils.js";
 
-import type { Database } from "sqlite";
+import type { Database } from "better-sqlite3";
 
 interface BaseLive {
   streamer_id: number;
@@ -39,36 +39,32 @@ class LiveModel extends BaseModel<BaseLive> {
 export default class LiveController {
   private model: LiveModel;
   private requireFields: (keyof BaseLive)[] = ["streamer_id", "start_time", "title"];
-  async init(db: Database) {
+  init(db: Database) {
     console.log("init live");
     this.model = new LiveModel(db);
-    await this.model.createTable();
+    this.model.createTable();
   }
 
-  async add(options: BaseLive) {
+  add(options: BaseLive) {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     console.log(filterOptions, options);
     return this.model.insert(options);
   }
-  async addMany(list: BaseLive[]) {
+  addMany(list: BaseLive[]) {
     return this.model.insertMany(list);
   }
 
-  async list(options: Partial<Live>): Promise<Live[]> {
+  list(options: Partial<Live>): Live[] {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     return this.model.list(filterOptions);
   }
 
-  async query(options: Partial<Live>) {
+  query(options: Partial<Live>) {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     console.log(filterOptions, options);
     return this.model.query(filterOptions);
   }
-  async upsert(options: { where: Partial<Live & { id: number }>; create: BaseLive }) {
+  upsert(options: { where: Partial<Live & { id: number }>; create: BaseLive }) {
     return this.model.upsert(options);
-  }
-
-  async close() {
-    return this.model.close();
   }
 }

@@ -1,7 +1,7 @@
 import BaseModel from "./baseModel.js";
 import { validateAndFilter } from "./utils.js";
 
-import type { Database } from "sqlite";
+import type { Database } from "better-sqlite3";
 
 interface BaseStreamer {
   name: string;
@@ -39,35 +39,31 @@ class StreamerModel extends BaseModel<BaseStreamer> {
 export default class StreamerController {
   private model: StreamerModel;
   private requireFields: (keyof BaseStreamer)[] = ["name", "room_id", "platform"];
-  async init(db: Database) {
+  init(db: Database) {
     this.model = new StreamerModel(db);
-    await this.model.createTable();
+    this.model.createTable();
   }
 
-  async add(options: BaseStreamer) {
+  add(options: BaseStreamer) {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     console.log(filterOptions, options);
     return this.model.insert(options);
   }
-  async addMany(list: BaseStreamer[]) {
+  addMany(list: BaseStreamer[]) {
     return this.model.insertMany(list);
   }
 
-  async list(options: Partial<Streamer>): Promise<Streamer[]> {
+  list(options: Partial<Streamer>): Streamer[] {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     return this.model.list(filterOptions);
   }
 
-  async query(options: Partial<Streamer>) {
+  query(options: Partial<Streamer>) {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     console.log(filterOptions, options);
     return this.model.query(filterOptions);
   }
-  async upsert(options: { where: Partial<Streamer & { id: number }>; create: BaseStreamer }) {
+  upsert(options: { where: Partial<Streamer & { id: number }>; create: BaseStreamer }) {
     return this.model.upsert(options);
-  }
-
-  async close() {
-    return this.model.close();
   }
 }

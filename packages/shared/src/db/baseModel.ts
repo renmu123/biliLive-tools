@@ -1,5 +1,4 @@
-import { Database } from "sqlite";
-import pLimit from "p-limit";
+import type { Database } from "better-sqlite3";
 
 class BaseModel<T> {
   protected db: Database;
@@ -10,63 +9,56 @@ class BaseModel<T> {
     this.tableName = tableName;
   }
 
-  async createTable(createTableSQL: string) {
-    return this.db.run(createTableSQL);
+  createTable(createTableSQL: string) {
+    this.db.exec(createTableSQL);
   }
 
-  async insert(options: T) {
+  insert(options: T) {
     const keys = Object.keys(options);
     const placeholders = keys.map(() => "?").join(", ");
     const sql = `INSERT INTO ${this.tableName} (${keys.join(", ")}) VALUES (${placeholders})`;
 
-    const data = await this.db.run(sql, Object.values(options));
-    return data.lastID;
+    const stmt = this.db.prepare(sql);
+    const info = stmt.run(...Object.values(options));
+    return info.lastInsertRowid;
   }
 
-  async upsert(options: { where: Partial<T & { id: number }>; create: T }) {
-    const data = await this.query(options.where);
+  upsert(options: { where: Partial<T & { id: number }>; create: T }): T & { id: number } {
+    const data = this.query(options.where);
     if (data) {
       return data;
     } else {
-      const id = await this.insert(options.create);
+      const id = this.insert(options.create);
       return this.query({ id } as Partial<T & { id: number }>);
     }
   }
 
-  async insertMany(records: Array<T>) {
+  insertMany(records: Array<T>) {
     const keys = Object.keys(records[0]);
     const placeholders = keys.map(() => "?").join(", ");
     const sql = `INSERT INTO ${this.tableName} (${keys.join(", ")}) VALUES (${placeholders})`;
 
-    const stmt = await this.db.prepare(sql);
-    const limit = pLimit(10); // 限制并发数为10
-    const insertedIds = [];
+    const stmt = this.db.prepare(sql);
+    const insertedIds: Array<number | bigint> = [];
 
     try {
-      await this.db.run("BEGIN TRANSACTION");
+      this.db.exec("BEGIN TRANSACTION");
 
-      const insertPromises = records.map((record) =>
-        limit(async () => {
-          const values = keys.map((key) => record[key]);
-          await stmt.run(values);
-          const result = await this.db.get("SELECT last_insert_rowid() as id");
-          insertedIds.push(result.id); // 收集每次插入的主键ID
-        }),
-      );
-
-      await Promise.all(insertPromises);
-      await this.db.run("COMMIT");
+      for (const record of records) {
+        const values = keys.map((key) => record[key]);
+        const info = stmt.run(...values);
+        insertedIds.push(info.lastInsertRowid); // 收集每次插入的主键ID
+      }
+      this.db.exec("COMMIT");
     } catch (error) {
-      await this.db.run("ROLLBACK");
+      this.db.exec("ROLLBACK");
       throw error;
-    } finally {
-      await stmt.finalize();
     }
 
     return insertedIds;
   }
 
-  async query(options: Partial<T & { id: number }>) {
+  query(options: Partial<T & { id: number }>): (T & { id: number; created_at: number }) | null {
     const conditions = [];
     const values = [];
 
@@ -78,10 +70,10 @@ class BaseModel<T> {
     }
 
     const sql = `SELECT * FROM ${this.tableName}${conditions.length ? " WHERE " + conditions.join(" AND ") : ""}`;
-    return this.db.get(sql, values);
+    return this.db.prepare(sql).get(...values) as any;
   }
 
-  async list(options: Partial<T>) {
+  list(options: Partial<T>): (T & { id: number; created_at: number })[] {
     const conditions = [];
     const values = [];
 
@@ -93,21 +85,24 @@ class BaseModel<T> {
     }
 
     const sql = `SELECT * FROM ${this.tableName}${conditions.length ? " WHERE " + conditions.join(" AND ") : ""}`;
-    return this.db.all(sql, values);
+    return this.db.prepare(sql).all(...values) as any;
   }
-  async transaction(fn: () => Promise<void>) {
-    await this.db.run("BEGIN TRANSACTION");
+
+  transaction(fn: () => Promise<void>) {
+    this.db.exec("BEGIN TRANSACTION");
     try {
-      await fn();
-      await this.db.run("COMMIT");
+      fn()
+        .then(() => {
+          this.db.exec("COMMIT");
+        })
+        .catch((error) => {
+          this.db.exec("ROLLBACK");
+          throw error;
+        });
     } catch (error) {
-      await this.db.run("ROLLBACK");
+      this.db.exec("ROLLBACK");
       throw error;
     }
-  }
-
-  async close() {
-    return this.db.close();
   }
 }
 

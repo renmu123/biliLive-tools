@@ -2,7 +2,7 @@ import BaseModel from "./baseModel.js";
 import { validateAndFilter } from "./utils.js";
 import { streamerService, liveService } from "./index.js";
 
-import type { Database } from "sqlite";
+import type { Database } from "better-sqlite3";
 import type { DanmaType, DanmuItem } from "@biliLive-tools/types";
 
 interface BaseDanmu {
@@ -64,11 +64,11 @@ export default class DanmaController {
     "streamer_id",
     "live_id",
   ];
-  async init(db: Database) {
+  init(db: Database) {
     this.model = new DanmaModel(db);
-    await this.model.createTable();
+    this.model.createTable();
   }
-  async addWithStreamer(list: DanmuItem[]) {
+  addWithStreamer(list: DanmuItem[]) {
     if (!Array.isArray(list)) return;
     const streamMap = new Map();
     const liveMap = new Map();
@@ -82,7 +82,7 @@ export default class DanmaController {
         const key = `${options.room_id}-${options.streamer}`;
 
         if (!streamMap.has(key)) {
-          const streamer = await streamerService.upsert({
+          const streamer = streamerService.upsert({
             where: {
               name: options.streamer,
               room_id: options.room_id,
@@ -101,7 +101,7 @@ export default class DanmaController {
       if (options.streamer_id && options.live_start_time && options.live_title) {
         const key = `${options.streamer_id}-${options.live_start_time}`;
         if (!liveMap.has(key)) {
-          const streamer = await liveService.upsert({
+          const streamer = liveService.upsert({
             where: {
               streamer_id: options.streamer_id,
               start_time: options.live_start_time,
@@ -119,33 +119,29 @@ export default class DanmaController {
       danmaList.push(options);
     }
 
-    await this.addMany(danmaList);
+    this.addMany(danmaList);
     return true;
   }
-  async addDanma(options: BaseDanmu) {
+  addDanma(options: BaseDanmu) {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     console.log(filterOptions, options);
     return this.model.insert(options);
   }
-  async addMany(list: BaseDanmu[]) {
+  addMany(list: BaseDanmu[]) {
     const filterList = list.map((item) =>
       validateAndFilter(item, this.requireFields, []),
     ) as BaseDanmu[];
     return this.model.insertMany(filterList);
   }
 
-  async list(options: Partial<Danma>): Promise<Danma[]> {
+  list(options: Partial<Danma>): Danma[] {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     return this.model.list(filterOptions);
   }
 
-  async query(options: Partial<Danma>) {
+  query(options: Partial<Danma>) {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     console.log(filterOptions, options);
     return this.model.query(filterOptions);
-  }
-
-  async close() {
-    return this.model.close();
   }
 }

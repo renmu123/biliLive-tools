@@ -6,4 +6,7 @@ bin
 cookies.json
 tsconfig.tsbuildinfo
 lib
+
 *.db
+*.db-wal
+*.db-shm
