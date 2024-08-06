@@ -35,6 +35,9 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: node ./scripts/github-ci-pnpm-update.js
 
+      - name: install-deps-for-better-sqlite3
+        run: node ./scripts/github-ci-better-sqlite3.js
+
       - name: Get pnpm store directory
         shell: bash
         run: |

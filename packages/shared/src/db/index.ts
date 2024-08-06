@@ -1,3 +1,4 @@
+import Database1 from "better-sqlite3";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 
@@ -36,6 +37,9 @@ export const streamerService = new StreamerController();
 export const liveService = new LiveController();
 
 export const initDB = async (filename: string) => {
+  const db1 = new Database1("foobar.db");
+  db1.pragma("journal_mode = WAL");
+  console.log(db1.pragma("journal_mode"));
   await db.init(filename);
 
   await danmuService.init(db.db);

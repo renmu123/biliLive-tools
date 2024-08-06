@@ -243,9 +243,13 @@ $ pnpm install
 $ pnpm run install:bin
 ```
 
-`弹幕分析`功能依赖于sqlite3，如果你无法编译安装，尝试安装[visual-studio2022](https://visualstudio.microsoft.com/zh-hans/thank-you-downloading-visual-studio/?sku=Community)中的c++相关工具，以及python3(也许)。  
-如果你是Win，你还可能遇到报错比如`cause=fork/exec %1 is not a valid Win32 application.`，根据[提示](https://github.com/pnpm/pnpm/issues/5638)修改pnpm源文件，如果应用无法启动，尝试使用electron-rebuild。  
-如果你最后还是无法安装，且开发的内容不包含`弹幕分析`功能，请尝试注释掉`sqlite3`依赖，打包可以依赖于`github-action`进行。
+### better-sqlite3
+
+`弹幕分析`功能依赖于`better-sqlite3`，如果你无法编译安装，尝试安装[visual-studio2022](https://visualstudio.microsoft.com/zh-hans/thank-you-downloading-visual-studio/?sku=Community)中的c++相关工具，以及python3(也许)。
+如果你是Win，你还可能遇到报错比如`cause=fork/exec %1 is not a valid Win32 application.`，根据[提示](https://github.com/pnpm/pnpm/issues/5638)修改pnpm源文件，如果应用无法启动，尝试使用electron-rebuild。
+如果你最后还是无法安装，尝试在项目根目录运行`node scripts\github-ci-better-sqlite3.js`手动安装依赖，打包可以依赖于`github-action`进行。
+
+### 其他依赖
 
 如果二进制依赖安装失败或者不支持你的平台，请尝试[手动下载安装](https://github.com/renmu123/biliLive-tools/releases/tag/0.2.1)二进制依赖。
 

@@ -118,15 +118,15 @@ importers:
       axios:
         specifier: ^1.7.2
         version: 1.7.2
+      better-sqlite3:
+        specifier: 11.1.2
+        version: 11.1.2
       driver.js:
         specifier: ^1.3.1
         version: 1.3.1
       electron-log:
         specifier: ^5.1.5
         version: 5.1.7
-      electron-rebuild:
-        specifier: ^3.2.9
-        version: 3.2.9
       electron-store:
         specifier: ^10.0.0
         version: 10.0.0
@@ -197,6 +197,9 @@ importers:
       electron-devtools-installer:
         specifier: ^3.2.0
         version: 3.2.0
+      electron-rebuild:
+        specifier: ^3.2.9
+        version: 3.2.9
       electron-vite:
         specifier: ^2.3.0
         version: 2.3.0(vite@5.3.4(@types/node@20.12.2)(less@4.2.0))
@@ -1757,12 +1760,18 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  better-sqlite3@11.1.2:
+    resolution: {integrity: sha512-gujtFwavWU4MSPT+h9B+4pkvZdyOUkH54zgLdIrMmmmd4ZqiBIrRNBzNzYVFO417xo882uP5HBu4GjOfaSrIQw==}
+
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
 
   bindings@1.3.1:
     resolution: {integrity: sha512-i47mqjF9UbjxJhxGf+pZ6kSxrnI3wBLlnGI2ArWJ4r0VrvDS7ZYXkprq/pLaBWYq4GM0r4zdHY+NNRqEMU7uew==}
+
+  bindings@1.5.0:
+    resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
 
   bl@1.2.3:
     resolution: {integrity: sha512-pvcNpa0UU69UT341rO6AYy4FVAIkUHuZXRIWbq+zHnsVcRzDDjIAhGuuYoi0d//cwIwtt4pkpKycWEfjdV+vww==}
@@ -2578,6 +2587,9 @@ packages:
   file-type@6.2.0:
     resolution: {integrity: sha512-YPcTBDV+2Tm0VqjybVd32MHdlEGAtuxS3VAYsumFokDSMG+ROT5wawGlnHDoz7bfMcMDt9hxuXvXwoKUx2fkOg==}
     engines: {node: '>=4'}
+
+  file-uri-to-path@1.0.0:
+    resolution: {integrity: sha512-0Zt+s3L7Vf1biwWZ29aARiVYLx7iMGnEUl9x33fbB/j3jR81u/O2LbqK+Bm1CDSNDKVtJ/YjwY7TUd5SkeLQLw==}
 
   filelist@1.0.4:
     resolution: {integrity: sha512-w1cEuf3S+DrLCQL7ET6kz+gmlJdbq9J7yXCSjK/OZCPA+qEN1WyF4ZAf0YYJa4/shHJra2t/d/r8SV4Ji+x+8Q==}
@@ -6326,9 +6338,18 @@ snapshots:
       which: 2.0.2
       yargs: 16.2.0
 
+  better-sqlite3@11.1.2:
+    dependencies:
+      bindings: 1.5.0
+      prebuild-install: 7.1.1
+
   binary-extensions@2.3.0: {}
 
   bindings@1.3.1: {}
+
+  bindings@1.5.0:
+    dependencies:
+      file-uri-to-path: 1.0.0
 
   bl@1.2.3:
     dependencies:
@@ -7375,6 +7396,8 @@ snapshots:
   file-type@5.2.0: {}
 
   file-type@6.2.0: {}
+
+  file-uri-to-path@1.0.0: {}
 
   filelist@1.0.4:
     dependencies:
