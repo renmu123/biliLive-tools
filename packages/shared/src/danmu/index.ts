@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import path from "node:path";
+import readline from "node:readline";
 import { ChildProcess, exec } from "node:child_process";
 
 import { createCanvas } from "@napi-rs/canvas";
@@ -104,11 +105,40 @@ const traversalObject = (obj: any, callback: (key: string, value: any) => any) =
   }
 };
 
+async function processRawStream(inputFilePath: string) {
+  const readStream = fs.createReadStream(inputFilePath, { encoding: "utf8" });
+
+  const rl = readline.createInterface({
+    input: readStream,
+    crlfDelay: Infinity,
+  });
+
+  let data = "";
+  for await (const line of rl) {
+    const newLine = line.replace(/raw=".*?"/, "");
+    data += newLine + "\n";
+  }
+  return data;
+}
+
 /**
  * 处理xml文件
  */
-const parseXmlFile = async (input: string) => {
-  const XMLdata = await fs.promises.readFile(input, "utf8");
+const parseXmlFile = async (input: string, parseRaw = false) => {
+  let XMLdata: string;
+  const stat = await fs.stat(input);
+
+  // 如果文件大于400M，且未开启parseRaw，使用processRawStream
+  if (stat.size > 400 * 1024 * 1024 && !parseRaw) {
+    console.log("processRawStream");
+    XMLdata = await processRawStream(input);
+  } else {
+    XMLdata = await fs.promises.readFile(input, "utf8");
+    if (!parseRaw) {
+      console.log("parseRaw");
+      XMLdata = XMLdata.replace(/raw=".*?"/g, "");
+    }
+  }
   return parseXmlObj(XMLdata);
 };
 
