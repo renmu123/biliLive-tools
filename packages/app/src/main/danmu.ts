@@ -7,12 +7,8 @@ import {
   genHotProgress,
   isEmptyDanmu,
 } from "@biliLive-tools/shared/lib/task/danmu";
-import {
-  report,
-  generateDanmakuData,
-  getSCDanmu,
-  parseDanmu,
-} from "@biliLive-tools/shared/lib/danmu/index";
+import { getSCDanmu, parseDanmu } from "@biliLive-tools/shared/lib/danmu/index";
+import { report, generateDanmakuData } from "@biliLive-tools/shared/lib/danmu/hotProgress";
 
 import type { DanmuPreset as DanmuPresetType } from "@biliLive-tools/types";
 

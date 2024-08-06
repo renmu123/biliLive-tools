@@ -55,6 +55,7 @@ import type { DanmuItem } from "@biliLive-tools/types";
 
 interface Props {
   file: string | null;
+  danmaList: DanmuItem[];
 }
 const props = defineProps<Props>();
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
@@ -76,19 +77,12 @@ const form = reactive({
   sc: false,
 });
 
-const list = ref<DanmuItem[]>([]);
-const openedFile = ref<string | null>(null);
+const list = computed(() => props.danmaList);
 const loading = ref(false);
 
 const handleOpen = async () => {
-  if (!props.file) return;
-  if (openedFile.value === props.file) return;
-  loading.value = true;
-  const data = await window.api.danmu.parseDanmu(props.file);
-  list.value = [...data.danmu, ...data.sc];
+  // open
   displayList.value = list.value;
-  openedFile.value = props.file;
-  loading.value = false;
 };
 const search = async () => {
   if (!form.value) return;

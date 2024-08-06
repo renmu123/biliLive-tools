@@ -49,7 +49,7 @@
         </template>
       </FileArea>
       <div class="cut-list">
-        <SegmentList :sc-list="scList" :files="files"></SegmentList>
+        <SegmentList :danma-list="danmaList" :files="files"></SegmentList>
       </div>
     </div>
   </div>
@@ -75,9 +75,10 @@ import { useLlcProject } from "./hooks";
 import { useDrive } from "@renderer/hooks/drive";
 import hotkeys from "hotkeys-js";
 import { useElementSize, useDebounceFn } from "@vueuse/core";
+import { sortBy } from "lodash-es";
 
 import type ArtplayerType from "artplayer";
-import type { DanmuConfig, DanmuOptions, SC } from "@biliLive-tools/types";
+import type { DanmuConfig, DanmuOptions, DanmuItem } from "@biliLive-tools/types";
 
 onActivated(() => {
   // 撤销
@@ -254,7 +255,6 @@ const handleDanmuChange = async () => {
   await handleDanmu(path);
 };
 
-const scList = ref<SC[]>([]);
 /**
  * 处理弹幕
  */
@@ -266,16 +266,11 @@ const handleDanmu = async (path: string) => {
     files.value.danmuPath = path;
 
     videoRef.value?.switchAss(content);
-    scList.value = [];
   } else {
     // 如果是xml文件则弹框提示，要求转换为ass文件
     xmlConvertVisible.value = true;
     tempXmlFile.value = path;
     convertDanmuLoading.value = true;
-
-    const data = await window.api.danmu.getSCDanmu(path);
-    scList.value = data;
-    console.log(data);
   }
   generateDanmakuData(path);
 };
@@ -303,18 +298,33 @@ const danmuConfirm = async (config: DanmuConfig) => {
   videoRef.value?.switchAss(content);
 };
 
+const danmaList = ref<DanmuItem[]>([]);
 /**
- * 生成高能进度条数据
+ * 生成高能进度条数据和sc等数据
  */
 const generateDanmakuData = async (file: string) => {
   console.log(file);
   if (!videoDuration.value) return;
-  const data = await window.api.danmu.generateDanmakuData(file, {
-    duration: videoDuration.value,
-    interval: 10,
-  });
-  tempDrawData = data;
-  draw();
+
+  if (file.endsWith(".ass")) {
+    const data = await window.api.danmu.generateDanmakuData(file, {
+      duration: videoDuration.value,
+      interval: 10,
+    });
+    tempDrawData = data;
+    danmaList.value = [];
+  } else if (file.endsWith(".xml")) {
+    const data = await window.api.danmu.parseDanmu(file, {
+      parseHotProgress: true,
+      duration: videoDuration.value,
+      interval: 10,
+    });
+    tempDrawData = data.hotProgress;
+    console.log(tempDrawData);
+    danmaList.value = sortBy([...data.sc, ...data.danmu], "ts");
+  } else {
+    throw new Error("不支持的文件类型");
+  }
   setTimeout(() => {
     draw();
   }, 1000);
