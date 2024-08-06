@@ -107,11 +107,24 @@ export const api = {
     getSCDanmu(input: string): Promise<SC[]> {
       return ipcRenderer.invoke("danmu:getSCDanmu", input);
     },
-    parseDanmu(input: string): Promise<{
+    parseDanmu(
+      input: string,
+      options: {
+        parseHotProgress?: boolean;
+        interval?: number;
+        duration?: number;
+        color?: string;
+      } = {},
+    ): Promise<{
       danmu: DanmuItem[];
       sc: DanmuItem[];
+      hotProgress: {
+        time: number;
+        value: number;
+        color: string;
+      }[];
     }> {
-      return ipcRenderer.invoke("danmu:parseDanmu", input);
+      return ipcRenderer.invoke("danmu:parseDanmu", input, options);
     },
   },
   task: {

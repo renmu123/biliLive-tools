@@ -82,9 +82,9 @@
 
     <div class="view">
       <template v-if="scView">
-        <div v-if="props.scList.length" class="sc-list">
+        <div v-if="scList.length" class="sc-list">
           <div
-            v-for="(sc, index) in props.scList"
+            v-for="(sc, index) in scList"
             :key="index"
             class="cut"
             style="opacity: 1"
@@ -155,6 +155,7 @@
   <SearchModal
     v-model:visible="searchDanmuVisible"
     :file="props.files.originDanmuPath"
+    :danma-list="props.danmaList"
     @add-segment="addCut"
   ></SearchModal>
 </template>
@@ -174,7 +175,7 @@ import { MinusOutlined, PlusOutlined } from "@vicons/material";
 import hotkeys from "hotkeys-js";
 
 import type ArtplayerType from "artplayer";
-import type { SC } from "@biliLive-tools/types";
+import type { DanmuItem } from "@biliLive-tools/types";
 
 onActivated(() => {
   // 重命名
@@ -212,14 +213,18 @@ onActivated(() => {
 });
 
 interface Props {
-  scList: SC[];
+  danmaList: DanmuItem[];
   files: {
     originDanmuPath: string | null;
   };
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  scList: () => [],
+  danmaList: () => [],
+});
+
+const scList = computed(() => {
+  return props.danmaList.filter((item) => item.type === "sc");
 });
 // const emits = defineEmits<{
 //   (event: "seek", value: number): void;
