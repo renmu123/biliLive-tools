@@ -271,7 +271,7 @@ describe.concurrent("getHardwareAcceleration", () => {
 });
 
 // 由于采用原生包，导致无法测试
-describe.skip("parseXmlObj", () => {
+describe.concurrent("parseXmlObj", () => {
   it("should parse XML data and return the parsed object", async () => {
     const input = `<?xml version="1.0" encoding="utf-8"?>
     <i>

@@ -2,7 +2,7 @@ import { expect, describe, it } from "vitest";
 
 import { paeseMetadata } from "../../src/danmu/index";
 
-describe.skip("paeseMetadata", () => {
+describe.concurrent("paeseMetadata", () => {
   it("should parse BililiveRecorderRecordInfo from XML object", () => {
     const jObj = {
       i: {
@@ -24,7 +24,7 @@ describe.skip("paeseMetadata", () => {
       streamer: "雪糕cheese",
       room_id: "27183290",
       live_title: "和塔宝妮妮一起玩恐怖游戏",
-      live_start_time: new Date(jObj.i.BililiveRecorderRecordInfo["@_start_time"]).getTime() / 1000,
+      live_start_time: 1722423761,
     });
   });
 

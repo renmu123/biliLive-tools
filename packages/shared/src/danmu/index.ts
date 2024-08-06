@@ -2,8 +2,8 @@ import fs from "fs-extra";
 import path from "node:path";
 import readline from "node:readline";
 import { ChildProcess, exec } from "node:child_process";
+import { XMLParser } from "fast-xml-parser";
 
-import { pathExists } from "../utils/index.js";
 import log from "../utils/log.js";
 import { DANMU_DEAFULT_CONFIG } from "../presets/danmuPreset.js";
 import { genHotDataByXml } from "./hotProgress.js";
@@ -60,7 +60,7 @@ export class Danmu {
   };
 
   convertXml2Ass = async (input: string, output: string, argsObj: DanmuConfig) => {
-    if (!(await pathExists(input))) {
+    if (!(await fs.pathExists(input))) {
       throw new Error("input not exists");
     }
 
@@ -132,9 +132,14 @@ export const parseXmlFile = async (input: string, parseRaw = false) => {
  * 解析弹幕数据为对象
  */
 export const parseXmlObj = async (XMLdata: string) => {
-  // import { XMLParser } from "fast-xml-parser";
-  const { xml2json } = await import("../utils/xml.js");
-  const jObj = xml2json(XMLdata);
+  const parser = new XMLParser({
+    ignoreAttributes: false,
+    parseTagValue: false,
+    isArray: (name) => {
+      if (["d", "gift", "guard", "sc"].includes(name)) return true;
+    },
+  });
+  const jObj = parser.parse(XMLdata);
 
   let danmuku = [];
   let sc = [];
