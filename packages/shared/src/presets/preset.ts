@@ -55,7 +55,7 @@ export default class CommonPreset<T> {
   }
 
   // 读取预设
-  async get(id: string): Promise<CommonPresetType<T>> {
+  async get(id: string): Promise<CommonPresetType<T> | undefined> {
     const allPresets = await this.list();
     const preset = allPresets.find((item) => item.id === id);
     if (!preset) {

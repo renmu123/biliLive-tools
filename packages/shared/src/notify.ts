@@ -70,7 +70,7 @@ export async function sendByTg(title: string, desp: string, options: Notificatio
 
   const data = {
     chat_id: options.chat_id,
-    text: `${desp}`,
+    text: `${title}-${desp}`,
   };
   try {
     const res = await fetch(url, {

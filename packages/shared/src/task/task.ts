@@ -129,7 +129,7 @@ export class DanmuTask extends AbstractTask {
     if (this.status === "completed" || this.status === "error") return;
     log.warn(`danmu task ${this.taskId} killed`);
     this.status = "error";
-    if (this.danmu.child.pid) {
+    if (this.danmu?.child?.pid) {
       kill(this.danmu.child.pid);
     }
     return true;

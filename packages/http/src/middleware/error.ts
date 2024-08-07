@@ -1,5 +1,5 @@
 import { Context, Next } from "koa";
-import log from "@biliLive-tools/shared/lib/utils/log.js";
+import log from "@biliLive-tools/shared/utils/log.js";
 
 const errorMiddleware = async (ctx: Context, next: Next) => {
   try {

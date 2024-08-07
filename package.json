@@ -7,6 +7,8 @@
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "type": "module",
   "scripts": {
+    "dev": "chcp 65001 && pnpm run --filter biliLive-tools dev",
+    "devMain": "chcp 65001 && pnpm run --filter biliLive-tools devMain",
     "build:app": "pnpm run build:base && pnpm run --filter biliLive-tools build:app",
     "build:app:no-ffmpeg": "pnpm run build:base && pnpm run --filter biliLive-tools build:app:no-ffmpeg",
     "build:cli": "pnpm run build:base && pnpm run --filter bililive-cli build:cli",

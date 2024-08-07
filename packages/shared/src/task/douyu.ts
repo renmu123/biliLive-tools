@@ -50,6 +50,9 @@ async function download(
     platform?: "douyu";
   },
 ) {
+  if (options.danmu && !options.vid) {
+    throw new Error("下载弹幕时vid不能为空");
+  }
   const m3u8Url = await getStream(decodeData);
 
   const { ffmpegPath } = getFfmpegPath();
@@ -66,9 +69,17 @@ async function download(
     },
     {
       onEnd: async () => {
-        if (options.danmu) {
+        if (options.danmu && options.vid) {
           const danmu = await getVideoDanmu(options.vid);
-          const metatdata = cloneDeep(options);
+          const metatdata: {
+            user_name?: string;
+            room_id?: string;
+            room_title?: string;
+            live_start_time?: string;
+            platform?: "douyu";
+            danmu?: boolean;
+            vid?: string;
+          } = cloneDeep(options);
           delete metatdata.danmu;
           delete metatdata.vid;
           const xml = convert2Xml(danmu, metatdata);

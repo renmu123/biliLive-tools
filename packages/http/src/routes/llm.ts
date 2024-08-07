@@ -1,6 +1,6 @@
 import Router from "koa-router";
-import { ollama } from "@biliLive-tools/shared/lib/llm/index.js";
-import { addTranslateTask } from "@biliLive-tools/shared/lib/task/llm.js";
+import { ollama } from "@biliLive-tools/shared/llm/index.js";
+import { addTranslateTask } from "@biliLive-tools/shared/task/llm.js";
 
 const router = new Router({
   prefix: "/llm",

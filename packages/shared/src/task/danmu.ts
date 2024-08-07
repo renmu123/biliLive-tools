@@ -17,7 +17,7 @@ type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 const getDanmuFactoryPath = () => {
   let path = appConfig.get("danmuFactoryPath");
   if (!appConfig.get("customExecPath")) {
-    path = process.env.BILILIVE_DANMUKUFACTORY_PATH;
+    path = process.env.BILILIVE_DANMUKUFACTORY_PATH as string;
   }
   return path;
 };

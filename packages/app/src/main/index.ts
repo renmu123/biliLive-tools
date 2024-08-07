@@ -10,11 +10,11 @@ import { notify, invokeWrap } from "./utils/index";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net, nativeTheme } from "electron";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
-import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/lib/task/video";
-import { taskQueue } from "@biliLive-tools/shared/lib/task/task";
+import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/task/video.js";
+import { taskQueue } from "@biliLive-tools/shared/task/task.js";
 import { appConfig, init } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
-import { trashItem as _trashItem } from "@biliLive-tools/shared/lib/utils/index";
+import { trashItem as _trashItem } from "@biliLive-tools/shared/utils/index.js";
 
 import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";

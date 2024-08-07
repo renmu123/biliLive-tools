@@ -3,20 +3,12 @@ import os from "node:os";
 import fs from "fs-extra";
 
 import { appConfig, ffmpegPreset, videoPreset, danmuPreset } from "@biliLive-tools/shared";
-import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/lib/presets/videoPreset.js";
-import { biliApi } from "@biliLive-tools/shared/lib/task/bili.js";
-import {
-  convertXml2Ass,
-  genHotProgress,
-  isEmptyDanmu,
-} from "@biliLive-tools/shared/lib/task/danmu.js";
-import {
-  mergeAssMp4,
-  readVideoMeta,
-  convertVideo2Mp4,
-} from "@biliLive-tools/shared/lib/task/video.js";
-import log from "@biliLive-tools/shared/lib/utils/log.js";
-import { getFileSize, uuid, sleep, trashItem } from "@biliLive-tools/shared/lib/utils/index.js";
+import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
+import { biliApi } from "@biliLive-tools/shared/task/bili.js";
+import { convertXml2Ass, genHotProgress, isEmptyDanmu } from "@biliLive-tools/shared/task/danmu.js";
+import { mergeAssMp4, readVideoMeta, convertVideo2Mp4 } from "@biliLive-tools/shared/task/video.js";
+import log from "@biliLive-tools/shared/utils/log.js";
+import { getFileSize, uuid, sleep, trashItem } from "@biliLive-tools/shared/utils/index.js";
 
 import type {
   BiliupConfig,
@@ -90,7 +82,7 @@ export class WebhookHandler {
     let config = DEFAULT_BILIUP_CONFIG;
     if (uploadPresetId) {
       const preset = await videoPreset.get(uploadPresetId);
-      config = { ...config, ...preset.config };
+      config = { ...config, ...(preset?.config ?? {}) };
     }
     if (useVideoAsTitle) {
       config.title = path.parse(options.filePath).name;
@@ -169,7 +161,13 @@ export class WebhookHandler {
           });
         }
 
-        const danmuConfig = (await danmuPreset.get(danmuPresetId)).config;
+        const danmuConfig = (await danmuPreset.get(danmuPresetId))?.config;
+        if (!danmuConfig) {
+          log.error("danmuPreset not found", danmuPresetId);
+          currentPart.status = "error";
+          return;
+        }
+
         const assFilePath = await this.addDanmuTask(xmlFilePath, options.filePath, danmuConfig);
 
         const preset = await ffmpegPreset.get(videoPresetId);
@@ -786,7 +784,7 @@ export class WebhookHandler {
     let config = DEFAULT_BILIUP_CONFIG;
     if (uploadPresetId) {
       const preset = await videoPreset.get(uploadPresetId);
-      config = { ...config, ...preset.config };
+      config = { ...config, ...(preset?.config ?? {}) };
     }
     config.title = live.videoName;
     if (useLiveCover) {

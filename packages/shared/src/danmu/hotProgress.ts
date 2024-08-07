@@ -114,14 +114,14 @@ const handleItems = (
     value: any;
   }[],
   config: {
-    interval?: number;
+    interval: number;
     duration: number;
     color?: string;
   },
 ) => {
   const map = keyBy(items, "time");
 
-  const data: { time: number; value: number; color: string }[] = [];
+  const data: { time: number; value: number; color?: string }[] = [];
   for (let i = 0; i < config.duration - config.interval; i += config.interval) {
     const item = map[i];
     if (item) {
@@ -188,6 +188,8 @@ export const generateDanmakuData = async (
     return genHotDataByXml(danmuku, options);
   } else if (ext === ".ass") {
     return genHotDataByAss(input, options);
+  } else {
+    throw new Error("not support file");
   }
 };
 
@@ -356,18 +358,18 @@ export const report = async (
 
   // 礼物价格根据@_user进行groupby并统计数量，并取前5名
   const priceDanmu = [
-    ...sc.map((item) => ({ ...item, type: "sc" })),
-    ...guard.map((item) => ({ ...item, type: "guard" })),
-    ...gift.map((item) => ({ ...item, type: "gift" })),
+    ...sc.map((item: any) => ({ ...item, type: "sc" })),
+    ...guard.map((item: any) => ({ ...item, type: "guard" })),
+    ...gift.map((item: any) => ({ ...item, type: "gift" })),
   ];
   const giftGroupByUser = Array.from(groupBy(priceDanmu, (item) => item["@_user"])).map(
     ([key, items]) => {
       return {
         user: key,
         value: calculateGiftPrice({
-          gift: items.filter((item) => item.type === "gift"),
-          sc: items.filter((item) => item.type === "sc"),
-          guard: items.filter((item) => item.type === "guard"),
+          gift: items.filter((item: any) => item.type === "gift"),
+          sc: items.filter((item: any) => item.type === "sc"),
+          guard: items.filter((item: any) => item.type === "guard"),
         }),
       };
     },

@@ -4,6 +4,7 @@ import type {
   FfmpegPreset as FfmpegPresetType,
   FfmpegOptions,
   audioCodec,
+  CommonPreset as CommonPresetType,
 } from "@biliLive-tools/types";
 
 const DefaultFfmpegOptions: FfmpegOptions = {
@@ -26,7 +27,7 @@ const commonPresetParams: {
   audioCodec: "copy",
 };
 
-const baseFfmpegPresets: FfmpegPresetType[] = [
+const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
   {
     id: "b_copy",
     name: "copy",
@@ -220,7 +221,7 @@ class FFmpegPreset extends CommonPreset<FfmpegOptions> {
   save(presets: FfmpegPresetType) {
     return super.save(presets);
   }
-  async get(id: string): Promise<FfmpegPresetType | undefined> {
+  async get(id: string) {
     const ffmpegPresets = await this.list();
     if (id.startsWith("b_")) {
       return baseFfmpegPresets.find((item) => item.id === id);

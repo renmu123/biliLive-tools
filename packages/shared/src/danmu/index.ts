@@ -27,16 +27,19 @@ export class Danmu {
         if (Array.isArray(value)) {
           return `--${key} ${value.join("x")}`;
         }
+        return "";
       } else if (key === "blockmode") {
         if (Array.isArray(value)) {
           if (value.length === 0) return `--${key} null`;
           return `--${key} ${value.join("-")}`;
         }
+        return "";
       } else if (key === "statmode") {
         if (Array.isArray(value)) {
           if (value.length === 0) return ``;
           return `--${key} ${value.join("-")}`;
         }
+        return "";
       } else if (key === "fontname") {
         return `--${key} "${value}"`;
       } else if (["resolutionResponsive", "customDensity", "opacity"].includes(key)) {
@@ -139,6 +142,7 @@ export const parseXmlObj = async (XMLdata: string) => {
     parseTagValue: false,
     isArray: (name) => {
       if (["d", "gift", "guard", "sc"].includes(name)) return true;
+      return false;
     },
   });
   const jObj = parser.parse(XMLdata);
@@ -203,14 +207,14 @@ export const parseDanmu = async (
   let hotProgress: {
     time: number;
     value: number;
-    color: string;
+    color?: string;
   }[] = [];
   if (options.parseHotProgress) {
     if (!options.duration) throw new Error("duration is required when parseHotProgress is true");
     hotProgress = await genHotDataByXml(danmuku, options);
   }
 
-  const parsedDanmuku = danmuku.map((item) => {
+  const parsedDanmuku = danmuku.map((item: Record<string, string>) => {
     const data: DanmuType = {
       text: item["#text"],
       user: item["@_user"],
