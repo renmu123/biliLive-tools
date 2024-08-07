@@ -691,7 +691,7 @@ export class TaskQueue {
         startTime: task.startTime,
         endTime: task.endTime,
         custsomProgressMsg: task.custsomProgressMsg,
-        error: String(task.error),
+        error: task.error ? String(task.error) : "",
       };
     });
   }
