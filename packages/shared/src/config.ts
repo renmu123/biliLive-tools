@@ -1,9 +1,7 @@
 import fs from "node:fs";
 
-import type { AppConfig } from "@biliLive-tools/types";
+import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/types";
 import { defaultsDeep } from "lodash-es";
-// import log from "../utils/log";
-// import { setFfmpegPath } from "./video";
 
 export default class Config {
   filepath: string;
@@ -39,13 +37,6 @@ export default class Config {
     } else {
       this.read();
       this.data = defaultsDeep(this.data, initData);
-      // console.log(
-      //   "init111111111",
-      //   JSON.parse(JSON.stringify(this.data)),
-      //   JSON.parse(JSON.stringify(initData)),
-      //   JSON.parse(JSON.stringify(defaultsDeep(this.data, initData))),
-      //   JSON.parse(JSON.stringify(defaultsDeep(initData, this.data))),
-      // );
     }
     this.save();
   }
@@ -61,7 +52,7 @@ export default class Config {
   }
 }
 
-export const APP_DEFAULT_CONFIG: AppConfig = {
+export const APP_DEFAULT_CONFIG: AppConfigType = {
   logLevel: "warn",
   autoUpdate: true,
   autoLaunch: false,
@@ -213,13 +204,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   llmPresets: [],
 };
 
-type DeepPartial<T> = T extends object
-  ? {
-      [P in keyof T]?: DeepPartial<T[P]>;
-    }
-  : T;
-
-class AppConfigClass extends Config {
+class AppConfig extends Config {
   constructor() {
     super();
   }
@@ -227,23 +212,23 @@ class AppConfigClass extends Config {
     this.init(filepath);
   }
   // 需要传递：{ffmpegPath:"",ffprobePath:"",tool:{download:{savePath:""}}}
-  init(filepath: string, data: DeepPartial<AppConfig> = {}) {
+  init(filepath: string, data: DeepPartial<AppConfigType> = {}) {
     const initData = defaultsDeep(data, APP_DEFAULT_CONFIG);
     super.init(filepath, initData);
   }
-  get<K extends keyof AppConfig>(key: K): AppConfig[K] {
+  get<K extends keyof AppConfigType>(key: K): AppConfigType[K] {
     return super.get(key);
   }
-  set<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {
+  set<K extends keyof AppConfigType>(key: K, value: AppConfigType[K]) {
     return super.set(key, value);
   }
-  setAll(newConfig: AppConfig) {
+  setAll(newConfig: AppConfigType) {
     return super.setAll(newConfig);
   }
   getAll() {
-    const data = this.read() as AppConfig;
+    const data = this.read() as AppConfigType;
     return data;
   }
 }
 
-export const appConfig = new AppConfigClass();
+export const appConfig = new AppConfig();
