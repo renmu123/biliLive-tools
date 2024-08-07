@@ -5,7 +5,7 @@ import {
   writeUser,
   readUser,
   commentQueue,
-} from "@biliLive-tools/shared/lib/task/bili";
+} from "@biliLive-tools/shared/task/bili.js";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { BiliupConfig } from "@biliLive-tools/types";

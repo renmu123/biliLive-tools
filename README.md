@@ -262,7 +262,7 @@ $ pnpm run install:bin
 
 ## Development
 
-分别运行各个子项目下的`dev`scripts
+`pnpm run dev`
 
 ## Build
 

@@ -1,6 +1,6 @@
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { WebhookHandler } from "../src/services/webhook.js";
-import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/lib/presets/videoPreset.js";
+import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 
 import { type Options, type Live } from "../src/services/webhook.js";
 
@@ -522,9 +522,8 @@ describe("WebhookHandler", () => {
         platform: "blrec",
         title: "test video",
       };
-      vi.mock("@biliLive-tools/shared/lib/utils/index.js", async (importOriginal) => {
-        const mod =
-          await importOriginal<typeof import("@biliLive-tools/shared/lib/utils/index.js")>();
+      vi.mock("@biliLive-tools/shared/utils/index.js", async (importOriginal) => {
+        const mod = await importOriginal<typeof import("@biliLive-tools/shared/utils/index.js")>();
         return {
           ...mod,
           getFileSize: vi.fn().mockResolvedValue(50),
@@ -557,9 +556,9 @@ describe("WebhookHandler", () => {
     //     platform: "blrec",
     //     title: "test video",
     //   };
-    //   vi.mock("@biliLive-tools/shared/lib/utils/index.js", async (importOriginal) => {
+    //   vi.mock("@biliLive-tools/shared/utils/index.js", async (importOriginal) => {
     //     const mod =
-    //       await importOriginal<typeof import("@biliLive-tools/shared/lib/utils/index.js")>();
+    //       await importOriginal<typeof import("@biliLive-tools/shared/utils/index.js")>();
     //     return {
     //       ...mod,
     //       getFileSize: vi.fn().mockResolvedValue(150),

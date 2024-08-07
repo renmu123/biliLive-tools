@@ -31,7 +31,7 @@ const url = ref("");
 const archiveDeatil = ref<{
   vid: string;
   title: string;
-  pages: { cid: number | string; part: string; editable: boolean; vid?: string | number }[];
+  pages: { cid: number | string; part: string; editable: boolean; metadata?: any }[];
 }>({
   vid: "",
   title: "",
@@ -104,11 +104,23 @@ const handleDouyu = async (formatUrl: string) => {
       vid: "111",
       title: data[0].seo_title,
       pages: data.map((item) => {
+        let room_title = item.ROOM.name;
+        if (room_title.startsWith("【") && room_title.split("：").length > 1) {
+          room_title = room_title.split("：").slice(1).join("：");
+        }
+        const metadata = {
+          user_name: item.ROOM.author_name,
+          room_id: item.DATA.content.room_id,
+          room_title: room_title,
+          live_start_time: new Date(item.DATA.liveShow.starttime * 1000).toISOString(),
+          platform: "douyu",
+          vid: item.ROOM.vid,
+        };
         return {
           cid: item.decodeData,
           part: item.seo_title,
           editable: false,
-          vid: item.ROOM.vid,
+          metadata,
         };
       }),
     };
@@ -142,7 +154,7 @@ const confirm = async (options: { ids: (number | string)[]; savePath: string }) 
         page.cid as string,
         {
           danmu: true,
-          vid: page.vid as string,
+          ...page.metadata,
         },
       );
     } else if (videoType.value === "bili") {

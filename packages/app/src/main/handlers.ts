@@ -2,8 +2,8 @@ import path from "node:path";
 import fs from "fs-extra";
 
 import { appConfig, ffmpegPreset } from "@biliLive-tools/shared";
-import { convertVideo2Mp4, mergeAssMp4, mergeVideos } from "@biliLive-tools/shared/lib/task/video";
-import douyu from "@biliLive-tools/shared/lib/task/douyu";
+import { convertVideo2Mp4, mergeAssMp4, mergeVideos } from "@biliLive-tools/shared/task/video.js";
+import douyu from "@biliLive-tools/shared/task/douyu.js";
 import JSZip from "jszip";
 import { getConfigPath, FFMPEG_PATH, DANMUKUFACTORY_PATH, FFPROBE_PATH } from "./appConstant";
 import { invokeWrap } from "./utils/index";

@@ -5,7 +5,7 @@ import { Client } from "@renmu/bili-api";
 
 import { WebhookHandler } from "../services/webhook.js";
 import { appConfig } from "@biliLive-tools/shared";
-import log from "@biliLive-tools/shared/lib/utils/log.js";
+import log from "@biliLive-tools/shared/utils/log.js";
 
 import type { BlrecEventType } from "../types/blrecEvent.js";
 

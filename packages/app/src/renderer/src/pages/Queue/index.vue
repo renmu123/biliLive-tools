@@ -174,7 +174,7 @@ import { FileOpenOutlined, FolderOpenOutlined, LiveTvOutlined } from "@vicons/ma
 import { useConfirm } from "@renderer/hooks";
 import { useQueueStore } from "@renderer/stores";
 import { formatSeconds } from "@renderer/utils";
-import { TaskType } from "@biliLive-tools/shared/lib/enum";
+import { TaskType } from "@biliLive-tools/shared/enum.js";
 
 const confirm = useConfirm();
 const notice = useNotification();

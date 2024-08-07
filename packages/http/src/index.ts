@@ -3,7 +3,7 @@ import Router from "koa-router";
 import cors from "@koa/cors";
 import bodyParser from "koa-bodyparser";
 import { init } from "@biliLive-tools/shared";
-import { taskQueue as _taskQueue } from "@biliLive-tools/shared/lib/task/task.js";
+import { taskQueue as _taskQueue } from "@biliLive-tools/shared/task/task.js";
 import errorMiddleware from "./middleware/error.js";
 
 import webhookRouter from "./routes/webhook.js";

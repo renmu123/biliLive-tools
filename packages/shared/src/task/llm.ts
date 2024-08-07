@@ -63,7 +63,10 @@ async function handleSrt(input: string, output: string) {
 除翻译外不要有多余的输出`,
     },
   ];
-  const messages = [];
+  const messages: {
+    role: string;
+    content: string;
+  }[] = [];
   for (const node of nodes) {
     if (node.type === "cue") {
       // 增加重试机制

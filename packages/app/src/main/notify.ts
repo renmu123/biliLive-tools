@@ -1,4 +1,4 @@
-import { send, _send } from "@biliLive-tools/shared/lib/notify";
+import { send, _send } from "@biliLive-tools/shared/notify.js";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { AppConfig } from "@biliLive-tools/types";

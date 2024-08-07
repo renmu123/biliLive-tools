@@ -8,7 +8,7 @@ import {
   handleListTask,
   handleRemoveTask,
   handleQueryTask,
-} from "@biliLive-tools/shared/lib/task/task.js";
+} from "@biliLive-tools/shared/task/task.js";
 
 const router = new Router({
   prefix: "/task",

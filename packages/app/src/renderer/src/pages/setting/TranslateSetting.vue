@@ -117,7 +117,7 @@
 
 <script setup lang="ts">
 import { getModelList } from "@renderer/apis/llm";
-import { LLMType } from "@biliLive-tools/shared/lib/enum";
+import { LLMType } from "@biliLive-tools/shared/enum.js";
 
 interface Config {
   type: any;

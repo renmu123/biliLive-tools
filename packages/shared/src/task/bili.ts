@@ -14,7 +14,7 @@ type ClientInstance = InstanceType<typeof Client>;
 /**
  * 生成client
  */
-async function createClient(uid: number) {
+async function createClient(uid?: number) {
   const client = new Client();
 
   const mid = uid || appConfig.get("uid");
@@ -310,7 +310,7 @@ async function editMedia(
         path: string;
         title?: string;
       }[],
-  options: any,
+  _options: any,
   uid: number,
 ) {
   const client = await createClient(uid);

@@ -2,13 +2,9 @@ import fs from "fs-extra";
 import { danmuPreset } from "@biliLive-tools/shared";
 import { invokeWrap } from "./utils/index";
 
-import {
-  convertXml2Ass,
-  genHotProgress,
-  isEmptyDanmu,
-} from "@biliLive-tools/shared/lib/task/danmu";
-import { getSCDanmu, parseDanmu } from "@biliLive-tools/shared/lib/danmu/index";
-import { report, generateDanmakuData } from "@biliLive-tools/shared/lib/danmu/hotProgress";
+import { convertXml2Ass, genHotProgress, isEmptyDanmu } from "@biliLive-tools/shared/task/danmu.js";
+import { getSCDanmu, parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
+import { report, generateDanmakuData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 
 import type { DanmuPreset as DanmuPresetType } from "@biliLive-tools/types";
 

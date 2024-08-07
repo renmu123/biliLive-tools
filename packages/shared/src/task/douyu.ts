@@ -2,9 +2,16 @@ import path from "node:path";
 import fs from "fs-extra";
 import os from "node:os";
 
-import { getVideoDanmu, getStreamUrls, getVideos, parseVideo as _parseVideo } from "douyu-cli";
+import {
+  getVideoDanmu,
+  getStreamUrls,
+  getVideos,
+  parseVideo as _parseVideo,
+  convert2Xml,
+} from "douyu-cli";
 import M3U8Downloader from "@renmu/m3u8-downloader";
-import { convert2Xml } from "douyu-cli/dist/utils/index.js";
+import { cloneDeep } from "lodash-es";
+
 import { taskQueue, DouyuDownloadVideoTask } from "./task.js";
 import { getFfmpegPath } from "./video.js";
 import { uuid } from "../utils/index.js";
@@ -33,8 +40,19 @@ const getStream = async (data: string) => {
 async function download(
   output: string,
   decodeData: string,
-  options: { danmu: boolean; vid?: string },
+  options: {
+    danmu: boolean;
+    vid?: string;
+    user_name?: string;
+    room_id?: string;
+    room_title?: string;
+    live_start_time?: string;
+    platform?: "douyu";
+  },
 ) {
+  if (options.danmu && !options.vid) {
+    throw new Error("下载弹幕时vid不能为空");
+  }
   const m3u8Url = await getStream(decodeData);
 
   const { ffmpegPath } = getFfmpegPath();
@@ -51,9 +69,20 @@ async function download(
     },
     {
       onEnd: async () => {
-        if (options.danmu) {
+        if (options.danmu && options.vid) {
           const danmu = await getVideoDanmu(options.vid);
-          const xml = convert2Xml(danmu);
+          const metatdata: {
+            user_name?: string;
+            room_id?: string;
+            room_title?: string;
+            live_start_time?: string;
+            platform?: "douyu";
+            danmu?: boolean;
+            vid?: string;
+          } = cloneDeep(options);
+          delete metatdata.danmu;
+          delete metatdata.vid;
+          const xml = convert2Xml(danmu, metatdata);
           fs.writeFile(path.join(path.dirname(output), `${path.parse(output).name}.xml`), xml);
         }
       },

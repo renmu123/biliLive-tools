@@ -190,7 +190,7 @@
 <script setup lang="ts">
 import { cloneDeep } from "lodash-es";
 import type { AppConfig } from "@biliLive-tools/types";
-import { NotificationType } from "@biliLive-tools/shared/lib/enum";
+import { NotificationType } from "@biliLive-tools/shared/enum.js";
 
 const config = defineModel<AppConfig>("data", {
   default: () => {},

@@ -31,8 +31,8 @@ export const getFfmpegPath = () => {
   let ffmpegPath = config.ffmpegPath;
   let ffprobePath = config.ffprobePath;
   if (!config.customExecPath) {
-    ffmpegPath = process.env.BILILIVE_FFMPEG_PATH;
-    ffprobePath = process.env.BILILIVE_FFPROBE_PATH;
+    ffmpegPath = process.env.BILILIVE_FFMPEG_PATH as string;
+    ffprobePath = process.env.BILILIVE_FFPROBE_PATH as string;
   }
   return {
     ffmpegPath,
@@ -348,7 +348,7 @@ export const mergeAssMp4 = async (
             log.info("mergrAssMp4, remove video origin file", videoInput);
             await trashItem(videoInput);
           }
-          if (await pathExists(assFile)) {
+          if (assFile && (await pathExists(assFile))) {
             log.info("mergrAssMp4, remove ass origin file", assFile);
             await trashItem(assFile);
           }

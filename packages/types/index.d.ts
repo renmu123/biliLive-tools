@@ -43,11 +43,7 @@ export type CommonPreset<T> = {
 };
 
 // ffmpeg预设配置
-export type FfmpegPreset = {
-  id: string;
-  name: string;
-  config: FfmpegOptions;
-};
+export type FfmpegPreset = CommonPreset<FfmpegOptions>;
 
 type CommonRoomConfig = {
   open: boolean;
@@ -471,7 +467,7 @@ export interface BiliupConfig {
   /** mission_id */
   mission_id?: number;
   /** 话题名称 */
-  topic_name?: string;
+  topic_name?: string | null;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

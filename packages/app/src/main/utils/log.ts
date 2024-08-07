@@ -1,3 +1,3 @@
-import logger from "@biliLive-tools/shared/lib/utils/log";
+import logger from "@biliLive-tools/shared/utils/log.js";
 
 export default logger;

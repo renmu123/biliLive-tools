@@ -8,7 +8,7 @@ import {
   handleListTask,
   handleRemoveTask,
   handleQueryTask,
-} from "@biliLive-tools/shared/lib/task/task";
+} from "@biliLive-tools/shared/task/task.js";
 import type { IpcMainInvokeEvent } from "electron";
 import { mainWin } from "./index";
 
