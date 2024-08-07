@@ -310,8 +310,8 @@ importers:
         specifier: 2.2.1
         version: 2.2.1
       '@renmu/m3u8-downloader':
-        specifier: ^0.2.1
-        version: 0.2.1
+        specifier: ^0.3.0
+        version: 0.3.0
       ass-compiler:
         specifier: ^0.1.11
         version: 0.1.11
@@ -1063,8 +1063,8 @@ packages:
     resolution: {integrity: sha512-RMOjy2ErdB99dNCvsNNuBrsm2ctQSdP2a45VMFgZoZGbS85bf0+/Ifn/0BEiiyoYEQ+f04GuXasLfrQNu0tuRw==}
     engines: {node: '>=18'}
 
-  '@renmu/m3u8-downloader@0.2.1':
-    resolution: {integrity: sha512-2YfTw3WpN4PRUsHsOd4SV0SOCauI7qsr4GLCGOTVPRLHuANoZ1k4QbFd/MqNPZ7cAUWToqbZXJzJci+ySlHJmA==}
+  '@renmu/m3u8-downloader@0.3.0':
+    resolution: {integrity: sha512-otymJB03zwONmmR6QhK31pSiHcg93YIXnb4h9IAW91yuHfv7XSOb4MTF869dpeuRDuJenocpALgeCup2Qe1PLQ==}
     engines: {node: '>=18'}
 
   '@rollup/plugin-commonjs@25.0.8':
@@ -5384,7 +5384,7 @@ snapshots:
       async: 0.2.10
       which: 1.3.1
 
-  '@renmu/m3u8-downloader@0.2.1':
+  '@renmu/m3u8-downloader@0.3.0':
     dependencies:
       axios: 1.7.2
       axios-retry: 4.4.2(axios@1.7.2)
