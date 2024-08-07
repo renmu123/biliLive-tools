@@ -1,5 +1,6 @@
 import { appConfig } from "./config.js";
-import { CommonPreset, ffmpegPreset, videoPreset, danmuPreset } from "./presets/index.js";
+import { ffmpegPreset, videoPreset, danmuPreset } from "./presets/index.js";
+export * from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
 import { initDB } from "./db/index.js";
@@ -36,4 +37,4 @@ const init = (config: {
   initDB("danmu.db");
 };
 
-export { appConfig, CommonPreset, ffmpegPreset, videoPreset, danmuPreset, init };
+export { appConfig, init };

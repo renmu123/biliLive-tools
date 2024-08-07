@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "fs-extra";
 
-import { appConfig, ffmpegPreset } from "@biliLive-tools/shared";
+import { appConfig, FFmpegPreset } from "@biliLive-tools/shared";
 import { convertVideo2Mp4, mergeAssMp4, mergeVideos } from "@biliLive-tools/shared/task/video.js";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
 import JSZip from "jszip";
@@ -96,18 +96,28 @@ export const configHandlers = {
 
 export const ffmpegHandlers = {
   "ffmpeg:presets:save": async (_event: IpcMainInvokeEvent, presets: FfmpegPresetType) => {
+    const { FFMPEG_PRESET_PATH } = await getConfigPath();
+    const ffmpegPreset = new FFmpegPreset(FFMPEG_PRESET_PATH);
     return ffmpegPreset.save(presets);
   },
   "ffmpeg:presets:delete": async (_event: IpcMainInvokeEvent, id: string) => {
+    const { FFMPEG_PRESET_PATH } = await getConfigPath();
+    const ffmpegPreset = new FFmpegPreset(FFMPEG_PRESET_PATH);
     return ffmpegPreset.delete(id);
   },
-  "ffmpeg:presets:get": (_event: IpcMainInvokeEvent, id: string) => {
+  "ffmpeg:presets:get": async (_event: IpcMainInvokeEvent, id: string) => {
+    const { FFMPEG_PRESET_PATH } = await getConfigPath();
+    const ffmpegPreset = new FFmpegPreset(FFMPEG_PRESET_PATH);
     return ffmpegPreset.get(id);
   },
-  "ffmpeg:presets:list": () => {
+  "ffmpeg:presets:list": async () => {
+    const { FFMPEG_PRESET_PATH } = await getConfigPath();
+    const ffmpegPreset = new FFmpegPreset(FFMPEG_PRESET_PATH);
     return ffmpegPreset.list();
   },
-  "ffmpeg:presets:getOptions": () => {
+  "ffmpeg:presets:getOptions": async () => {
+    const { FFMPEG_PRESET_PATH } = await getConfigPath();
+    const ffmpegPreset = new FFmpegPreset(FFMPEG_PRESET_PATH);
     return ffmpegPreset.getFfmpegPresetOptions();
   },
   mergeAssMp4: async (_event: IpcMainInvokeEvent, ...args: Parameters<typeof mergeAssMp4>) => {

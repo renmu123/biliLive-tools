@@ -1,6 +1,6 @@
 import log from "./utils/log";
 import { invokeWrap } from "./utils/index";
-import { appConfig, videoPreset } from "@biliLive-tools/shared";
+import { appConfig, VideoPreset } from "@biliLive-tools/shared";
 import { biliApi } from "./bili";
 
 import type { IpcMainInvokeEvent } from "electron";
@@ -10,6 +10,7 @@ import type {
   BiliupPreset,
   BiliUser,
 } from "@biliLive-tools/types";
+import { getConfigPath } from "./appConstant";
 
 // 删除bili登录的cookie
 export const deleteUser = async (uid: number) => {
@@ -52,16 +53,24 @@ export const format = async (data: any) => {
 
 export const handlers = {
   "bili:validUploadParams": invokeWrap(biliApi.validateBiliupConfig),
-  "bili:getPreset": (_event: IpcMainInvokeEvent, id: string) => {
+  "bili:getPreset": async (_event: IpcMainInvokeEvent, id: string) => {
+    const { VIDEO_PRESET_PATH } = await getConfigPath();
+    const videoPreset = new VideoPreset(VIDEO_PRESET_PATH);
     return videoPreset.get(id);
   },
-  "bili:savePreset": (_event: IpcMainInvokeEvent, presets: BiliupPreset) => {
+  "bili:savePreset": async (_event: IpcMainInvokeEvent, presets: BiliupPreset) => {
+    const { VIDEO_PRESET_PATH } = await getConfigPath();
+    const videoPreset = new VideoPreset(VIDEO_PRESET_PATH);
     return videoPreset.save(presets);
   },
-  "bili:deletePreset": (_event: IpcMainInvokeEvent, id: string) => {
+  "bili:deletePreset": async (_event: IpcMainInvokeEvent, id: string) => {
+    const { VIDEO_PRESET_PATH } = await getConfigPath();
+    const videoPreset = new VideoPreset(VIDEO_PRESET_PATH);
     return videoPreset.delete(id);
   },
-  "bili:getPresets": () => {
+  "bili:getPresets": async () => {
+    const { VIDEO_PRESET_PATH } = await getConfigPath();
+    const videoPreset = new VideoPreset(VIDEO_PRESET_PATH);
     return videoPreset.list();
   },
   "bili:deleteUser": (_event: IpcMainInvokeEvent, mid: number) => {

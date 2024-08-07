@@ -26,8 +26,8 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   topic_name: null,
 };
 
-class VideoPreset extends CommonPreset<BiliupConfig> {
-  constructor(filePath: string, defaultConfig: BiliupConfig) {
+export class VideoPreset extends CommonPreset<BiliupConfig> {
+  constructor(filePath: string, defaultConfig: BiliupConfig = DEFAULT_BILIUP_CONFIG) {
     super(filePath, defaultConfig);
   }
   init(filePath: string) {

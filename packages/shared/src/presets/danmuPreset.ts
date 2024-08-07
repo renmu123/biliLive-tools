@@ -30,8 +30,8 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   blacklist: "",
 };
 
-class DanmuPreset extends CommonPreset<DanmuConfig> {
-  constructor(filePath: string, defaultConfig: DanmuConfig) {
+export class DanmuPreset extends CommonPreset<DanmuConfig> {
+  constructor(filePath: string, defaultConfig: DanmuConfig = DANMU_DEAFULT_CONFIG) {
     super(filePath, defaultConfig);
   }
   init(filePath: string) {

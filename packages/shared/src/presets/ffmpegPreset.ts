@@ -210,8 +210,11 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
   },
 ];
 
-class FFmpegPreset extends CommonPreset<FfmpegOptions> {
-  constructor(presetPath: string, defaultConfig: typeof DefaultFfmpegOptions) {
+export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
+  constructor(
+    presetPath: string,
+    defaultConfig: typeof DefaultFfmpegOptions = DefaultFfmpegOptions,
+  ) {
     super(presetPath, defaultConfig);
   }
   init(presetPath: string) {
