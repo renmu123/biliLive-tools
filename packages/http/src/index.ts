@@ -39,12 +39,6 @@ export function serverStart(
   if (iConfig) config = iConfig;
   handler = new WebhookHandler();
 
-  options = {
-    port: 18010,
-    host: "127.0.0.1",
-    ...options,
-  };
-
   app.listen(options.port, options.host, () => {
     console.log(`Server is running at http://${options.host}:${options.port}`);
   });

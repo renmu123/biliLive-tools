@@ -32,7 +32,10 @@ program
       console.error("请先运行 biliLive config gen 命令生成配置文件，按ctrl+c退出");
       return;
     }
+
     const c = JSON.parse(fs.readFileSync(opts.config).toString());
+    if (!c.configFolder) throw new Error("configFolder is required");
+
     c.configPath = path.join(c.configFolder, "appConfig.json");
     init(c);
 

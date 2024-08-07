@@ -532,3 +532,9 @@ export interface SC extends DanmuItem {
 export interface Danmu extends DanmuItem {
   type: "text";
 }
+
+export type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
