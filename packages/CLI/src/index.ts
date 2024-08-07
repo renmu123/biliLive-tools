@@ -6,6 +6,9 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
+import { init } from "@biliLive-tools/shared";
+import globalConfig from "@biliLive-tools/shared/utils/globalConfig.js";
+
 interface Config {
   port: number;
   host: string;
@@ -30,12 +33,15 @@ program
       return;
     }
     const c = JSON.parse(fs.readFileSync(opts.config).toString());
-
-    c.ffmpegPresetPath = path.join(c.configFolder, "ffmpeg_presets.json");
-    c.videoPresetPath = path.join(c.configFolder, "presets.json");
-    c.danmuPresetPath = path.join(c.configFolder, "danmu_presets.json");
     c.configPath = path.join(c.configFolder, "appConfig.json");
-    serverStart(c, true);
+    init(c);
+
+    const config = new globalConfig({
+      ffmpegPresetPath: c.ffmpegPresetPath,
+      videoPresetPath: c.videoPresetPath,
+      danmuPresetPath: c.danmuPresetPath,
+    });
+    serverStart(c, config);
   });
 
 const configCommand = program.command("config").description("配置相关");

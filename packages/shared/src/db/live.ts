@@ -37,7 +37,7 @@ class LiveModel extends BaseModel<BaseLive> {
 }
 
 export default class LiveController {
-  private model: LiveModel;
+  private model!: LiveModel;
   private requireFields: (keyof BaseLive)[] = ["streamer_id", "start_time", "title"];
   init(db: Database) {
     console.log("init live");

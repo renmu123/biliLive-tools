@@ -9,8 +9,8 @@ import LiveController from "./live.js";
 import type { Database as DatabaseType } from "better-sqlite3";
 
 class DB {
-  filename: string;
-  db: DatabaseType;
+  filename!: string;
+  db!: DatabaseType;
   constructor() {
     // init
   }

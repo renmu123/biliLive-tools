@@ -2,7 +2,6 @@ import { app } from "electron";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import fs from "fs-extra";
-import log from "./utils/log";
 
 export const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -25,8 +24,6 @@ export const getConfigPath = async () => {
 
   const portablePath = dirname(app.getPath("exe"));
   const isPortable = await fs.pathExists(join(portablePath, "portable"));
-  log.info("isPortable", isPortable);
-  log.info("userDataPath", app.getPath("exe"));
   if (isPortable) {
     APP_CONFIG_PATH = join(portablePath, "appConfig.json");
     VIDEO_PRESET_PATH = join(portablePath, "presets.json");

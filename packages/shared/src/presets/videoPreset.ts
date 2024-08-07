@@ -46,5 +46,3 @@ export class VideoPreset extends CommonPreset<BiliupConfig> {
     return super.delete(id);
   }
 }
-
-export const videoPreset = new VideoPreset("", DEFAULT_BILIUP_CONFIG);

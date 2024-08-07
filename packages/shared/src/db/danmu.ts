@@ -52,7 +52,7 @@ class DanmaModel extends BaseModel<BaseDanmu> {
 }
 
 export default class DanmaController {
-  private model: DanmaModel;
+  private model!: DanmaModel;
   private requireFields: (keyof BaseDanmu)[] = [
     "text",
     "ts",
@@ -93,6 +93,9 @@ export default class DanmaController {
               platform: options.platform,
             },
           });
+          if (!streamer?.id) {
+            throw new Error("streamer upsert failed");
+          }
           streamMap.set(key, streamer.id);
         }
         options.streamer_id = streamMap.get(key);
@@ -101,7 +104,7 @@ export default class DanmaController {
       if (options.streamer_id && options.live_start_time && options.live_title) {
         const key = `${options.streamer_id}-${options.live_start_time}`;
         if (!liveMap.has(key)) {
-          const streamer = liveService.upsert({
+          const live = liveService.upsert({
             where: {
               streamer_id: options.streamer_id,
               start_time: options.live_start_time,
@@ -112,7 +115,10 @@ export default class DanmaController {
               start_time: options.live_start_time,
             },
           });
-          liveMap.set(key, streamer.id);
+          if (!live?.id) {
+            throw new Error("live upsert failed");
+          }
+          liveMap.set(key, live.id);
         }
         options.live_id = liveMap.get(key);
       }

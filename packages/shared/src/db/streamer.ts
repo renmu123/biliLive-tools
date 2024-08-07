@@ -5,7 +5,7 @@ import type { Database } from "better-sqlite3";
 
 interface BaseStreamer {
   name: string;
-  platform: "bilibili" | "douyu" | "unknown" | string;
+  platform: "bilibili" | "douyu" | "unknown" | string | undefined;
   room_id: string;
 }
 
@@ -37,7 +37,7 @@ class StreamerModel extends BaseModel<BaseStreamer> {
 }
 
 export default class StreamerController {
-  private model: StreamerModel;
+  private model!: StreamerModel;
   private requireFields: (keyof BaseStreamer)[] = ["name", "room_id", "platform"];
   init(db: Database) {
     this.model = new StreamerModel(db);

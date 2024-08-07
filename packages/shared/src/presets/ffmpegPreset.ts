@@ -269,5 +269,3 @@ export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
     ];
   }
 }
-
-export const ffmpegPreset = new FFmpegPreset("", DefaultFfmpegOptions);

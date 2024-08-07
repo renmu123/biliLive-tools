@@ -50,5 +50,3 @@ export class DanmuPreset extends CommonPreset<DanmuConfig> {
     return super.delete(id);
   }
 }
-
-export const danmuPreset = new DanmuPreset("", DANMU_DEAFULT_CONFIG);

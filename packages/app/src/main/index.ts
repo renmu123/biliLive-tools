@@ -3,19 +3,20 @@ import child_process from "node:child_process";
 import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
+import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net, nativeTheme } from "electron";
+import installExtension from "electron-devtools-installer";
+import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
 import { handlers as biliHandlers, commentQueue } from "./bili";
 import log from "./utils/log";
 import { notify, invokeWrap } from "./utils/index";
-import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net, nativeTheme } from "electron";
-import installExtension from "electron-devtools-installer";
-import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/task/video.js";
 import { danmuService } from "@biliLive-tools/shared/db/index.js";
 import { taskQueue } from "@biliLive-tools/shared/task/task.js";
 import { appConfig, init } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 import { trashItem as _trashItem } from "@biliLive-tools/shared/utils/index.js";
+import Config from "@biliLive-tools/shared/utils/globalConfig.js";
 
 import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
@@ -447,24 +448,28 @@ const appInit = async () => {
   const { APP_CONFIG_PATH, FFMPEG_PRESET_PATH, VIDEO_PRESET_PATH, DANMU_PRESET_PATH } =
     await getConfigPath();
 
+  const globalConfig = new Config({
+    videoPresetPath: VIDEO_PRESET_PATH,
+    ffmpegPresetPath: FFMPEG_PRESET_PATH,
+    danmuPresetPath: DANMU_PRESET_PATH,
+  });
   const config = {
-    port: 18010,
-    host: "127.0.0.1",
     configPath: APP_CONFIG_PATH,
     ffmpegPath: FFMPEG_PATH,
     ffprobePath: FFPROBE_PATH,
     danmakuFactoryPath: DANMUKUFACTORY_PATH,
     logPath: LOG_PATH,
     downloadPath: app.getPath("downloads"),
-    ffmpegPresetPath: FFMPEG_PRESET_PATH,
-    videoPresetPath: VIDEO_PRESET_PATH,
-    danmuPresetPath: DANMU_PRESET_PATH,
     taskQueue: taskQueue,
   };
   init(config);
-  config.port = appConfig.get("port");
-  config.host = appConfig.get("host");
-  serverStart(config);
+  serverStart(
+    {
+      port: appConfig.get("port"),
+      host: appConfig.get("host"),
+    },
+    globalConfig,
+  );
   nativeTheme.themeSource = appConfig.get("theme");
   // 默认十分钟运行一次
   commentQueue.run(1000 * 60 * 10);

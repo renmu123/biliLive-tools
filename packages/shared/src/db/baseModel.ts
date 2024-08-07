@@ -1,6 +1,6 @@
 import type { Database } from "better-sqlite3";
 
-class BaseModel<T> {
+class BaseModel<T extends object> {
   protected db: Database;
   protected tableName: string;
 
@@ -23,7 +23,7 @@ class BaseModel<T> {
     return info.lastInsertRowid;
   }
 
-  upsert(options: { where: Partial<T & { id: number }>; create: T }): T & { id: number } {
+  upsert(options: { where: Partial<T & { id: number }>; create: T }): (T & { id: number }) | null {
     const data = this.query(options.where);
     if (data) {
       return data;
@@ -59,8 +59,8 @@ class BaseModel<T> {
   }
 
   query(options: Partial<T & { id: number }>): (T & { id: number; created_at: number }) | null {
-    const conditions = [];
-    const values = [];
+    const conditions: string[] = [];
+    const values: any[] = [];
 
     for (const [key, value] of Object.entries(options)) {
       if (value !== undefined) {
@@ -74,8 +74,8 @@ class BaseModel<T> {
   }
 
   list(options: Partial<T>): (T & { id: number; created_at: number })[] {
-    const conditions = [];
-    const values = [];
+    const conditions: string[] = [];
+    const values: any[] = [];
 
     for (const [key, value] of Object.entries(options)) {
       if (value !== undefined) {

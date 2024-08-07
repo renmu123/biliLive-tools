@@ -3,7 +3,7 @@ import path from "node:path";
 import Router from "koa-router";
 import { Client } from "@renmu/bili-api";
 
-import { WebhookHandler } from "../services/webhook.js";
+import { handler } from "../index.js";
 import { appConfig } from "@biliLive-tools/shared";
 import log from "@biliLive-tools/shared/utils/log.js";
 
@@ -126,7 +126,6 @@ router.post("/webhook/custom", async (ctx) => {
   ctx.body = "ok";
 });
 
-const handler = new WebhookHandler();
 checkFileInterval();
 
 async function checkFileInterval() {

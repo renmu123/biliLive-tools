@@ -2,13 +2,14 @@ import Koa from "koa";
 import Router from "koa-router";
 import cors from "@koa/cors";
 import bodyParser from "koa-bodyparser";
-import { init } from "@biliLive-tools/shared";
-import { taskQueue as _taskQueue } from "@biliLive-tools/shared/task/task.js";
+import Config from "@biliLive-tools/shared/utils/globalConfig.js";
+
 import errorMiddleware from "./middleware/error.js";
 
 import webhookRouter from "./routes/webhook.js";
 import configRouter from "./routes/config.js";
 import llmRouter from "./routes/llm.js";
+import { WebhookHandler } from "./services/webhook.js";
 
 const app = new Koa();
 const router = new Router();
@@ -25,46 +26,27 @@ app.use(webhookRouter.routes());
 app.use(configRouter.routes());
 app.use(llmRouter.routes());
 
-export let taskQueue: typeof _taskQueue = _taskQueue;
+export let config!: Config;
+export let handler!: WebhookHandler;
 
-export const globalConfig: {
-  port: number;
-  host: string;
-  configPath: string;
-  ffmpegPath: string;
-  ffprobePath: string;
-  danmakuFactoryPath: string;
-  logPath: string;
-  downloadPath: string;
-  ffmpegPresetPath: string;
-  videoPresetPath: string;
-  danmuPresetPath: string;
-  taskQueue: typeof _taskQueue;
-} = {
-  port: 18010,
-  host: "127.0.0.1",
-  configPath: "",
-  ffmpegPath: "ffmpeg.exe",
-  ffprobePath: "ffprobe.exe",
-  danmakuFactoryPath: "DanmakuFactory.exe",
-  logPath: "main.log",
-  downloadPath: "",
-  ffmpegPresetPath: "",
-  videoPresetPath: "",
-  danmuPresetPath: "",
-  taskQueue: _taskQueue,
-};
+export function serverStart(
+  options: {
+    port: number;
+    host: string;
+  },
+  iConfig?: Config,
+) {
+  if (iConfig) config = iConfig;
+  handler = new WebhookHandler();
 
-export function serverStart(config: typeof globalConfig, autoInit = false) {
-  Object.assign(globalConfig, config);
-  taskQueue = globalConfig.taskQueue;
+  options = {
+    port: 18010,
+    host: "127.0.0.1",
+    ...options,
+  };
 
-  if (autoInit) {
-    init(globalConfig);
-  }
-
-  app.listen(globalConfig.port, globalConfig.host, () => {
-    console.log(`Server is running at http://${globalConfig.host}:${globalConfig.port}`);
+  app.listen(options.port, options.host, () => {
+    console.log(`Server is running at http://${options.host}:${options.port}`);
   });
   return app;
 }

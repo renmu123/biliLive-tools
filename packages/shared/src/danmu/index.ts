@@ -182,7 +182,13 @@ export const getSCDanmu = async (input: string) => {
 };
 
 export const paeseMetadata = (jObj: any) => {
-  const metadata = {
+  const metadata: {
+    streamer?: string;
+    room_id?: string;
+    live_title?: string;
+    live_start_time?: number;
+    platform?: string;
+  } = {
     streamer: undefined,
     room_id: undefined,
     live_title: undefined,
@@ -197,7 +203,7 @@ export const paeseMetadata = (jObj: any) => {
     metadata.streamer = info["@_name"];
     metadata.room_id = info["@_roomid"];
     metadata.live_title = info["@_title"];
-    const liveStartTime = info["@_start_time"];
+    const liveStartTime: string = info["@_start_time"];
     if (liveStartTime) {
       metadata.live_start_time = Math.floor(new Date(liveStartTime).getTime() / 1000);
     }
@@ -207,7 +213,7 @@ export const paeseMetadata = (jObj: any) => {
     metadata.streamer = info["user_name"];
     metadata.room_id = info["room_id"];
     metadata.live_title = info["room_title"];
-    const liveStartTime = info["live_start_time"];
+    const liveStartTime: string = info["live_start_time"];
     if (liveStartTime) {
       metadata.live_start_time = Math.floor(new Date(liveStartTime).getTime() / 1000);
     }
@@ -265,7 +271,7 @@ export const parseDanmu = async (
 
       text: item["#text"],
       user: item["@_user"],
-      ts: Number(item["@_p"].split(",")[0]),
+      ts: Number((item["@_p"] as string).split(",")[0]),
       p: item["@_p"],
       platform: platform ?? metadata.platform ?? "unknown",
       source,
