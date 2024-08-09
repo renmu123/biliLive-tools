@@ -2,7 +2,7 @@ import { appConfig } from "./config.js";
 export * from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
-import { initDB } from "./db/index.js";
+// import { initDB } from "./db/index.js";
 
 const init = (config: {
   configPath: string;
@@ -27,7 +27,7 @@ const init = (config: {
   initLogger(config.logPath, logLevel);
   setFfmpegPath();
 
-  initDB("danmu.db");
+  // initDB("danmu.db");
 };
 
 export { appConfig, init };

@@ -2,6 +2,7 @@ export enum TaskType {
   danmu = "danmu",
   ffmpeg = "ffmpeg",
   bili = "bili",
+  biliUpload = "biliUpload",
   biliDownload = "biliDownload",
   douyuDownload = "douyuDownload",
   subtitleTranslate = "subtitleTranslate",

@@ -1,17 +1,18 @@
 import EventEmitter from "node:events";
 import { createRequire } from "node:module";
+import { TypedEmitter } from "tiny-typed-emitter";
 
 import { uuid, isWin32 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { Danmu } from "../danmu/index.js";
 import { sendNotify } from "../notify.js";
 import { appConfig } from "../index.js";
-import { TypedEmitter } from "tiny-typed-emitter";
 import kill from "tree-kill";
+import { addMediaApi } from "./bili.js";
 
 import type ffmpeg from "fluent-ffmpeg";
-import type { Client } from "@renmu/bili-api";
-import type { Progress, NotificationTaskStatus } from "@biliLive-tools/types";
+import type { Client, WebVideoUploader } from "@renmu/bili-api";
+import type { Progress, NotificationTaskStatus, BiliupConfig } from "@biliLive-tools/types";
 import type { Status } from "@biliLive-tools/types/task.d.ts";
 import { TaskType } from "../enum.js";
 import type M3U8Downloader from "@renmu/m3u8-downloader";
@@ -23,10 +24,12 @@ interface TaskEvents {
   "task-progress": ({ taskId }: { taskId: string }) => void;
   "task-pause": ({ taskId }: { taskId: string }) => void;
   "task-resume": ({ taskId }: { taskId: string }) => void;
+  [key: string]: (...args: any[]) => void;
 }
 
 export abstract class AbstractTask {
   taskId: string;
+  pid?: string;
   status: Status;
   name: string;
   relTaskId?: string;
@@ -37,7 +40,8 @@ export abstract class AbstractTask {
   startTime?: number;
   endTime?: number;
   error?: string;
-  emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
+  emitter = new TypedEmitter<TaskEvents>();
+  on: TypedEmitter<TaskEvents>["on"];
 
   abstract type: string;
   abstract exec(): void;
@@ -51,9 +55,7 @@ export abstract class AbstractTask {
     this.progress = 0;
     this.action = ["pause", "kill"];
     this.custsomProgressMsg = "";
-  }
-  on(event: keyof TaskEvents, callback: (event: { taskId: string }) => void) {
-    this.emitter.on(event, callback);
+    this.on = this.emitter.on.bind(this.emitter);
   }
 }
 
@@ -279,21 +281,23 @@ export class FFmpegTask extends AbstractTask {
 type WithoutPromise<T> = T extends Promise<infer U> ? U : T;
 
 /**
- * 上传任务
+ * B站视频上传任务
  */
-export class BiliVideoTask extends AbstractTask {
-  command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>;
-  type = TaskType.bili;
+export class BiliPartVideoTask extends AbstractTask {
+  command: WebVideoUploader;
+  type = TaskType.biliUpload;
+
   constructor(
-    command: WithoutPromise<ReturnType<Client["platform"]["addMedia"]>>,
+    command: WebVideoUploader,
     options: {
       name: string;
+      pid: string;
     },
     callback: {
       onStart?: () => void;
-      onEnd?: (output: { aid: number; bvid: string }) => void;
+      onEnd?: (output: { cid: number; filename: string; title: string }) => void;
       onError?: (err: string) => void;
-      onProgress?: (progress: Progress) => any;
+      onProgress?: (progress: number) => number;
     },
   ) {
     super();
@@ -303,69 +307,45 @@ export class BiliVideoTask extends AbstractTask {
     if (options.name) {
       this.name = options.name;
     }
+    this.pid = options.pid;
 
-    // command.emitter.on("start", (commandLine: string) => {
-    //   this.progress = 0;
-    //   log.info(`task ${this.taskId} start, command: ${commandLine}`);
-    //   this.status = "running";
-
-    //   callback.onStart && callback.onStart();
-    //   emitter.emit("task-start", { taskId: this.taskId });
-    //   this.startTime = Date.now();
-    // });
-    this.status = "running";
-    this.startTime = Date.now();
-    this.emitter.emit("task-start", { taskId: this.taskId });
-
-    command.emitter.on("completed", async (data: { aid: number; bvid: string }) => {
-      log.info(`task ${this.taskId} end`, data);
-      this.status = "completed";
-      this.progress = 100;
-      this.output = String(data.aid);
-      callback.onEnd && callback.onEnd(data);
-      this.emitter.emit("task-end", { taskId: this.taskId });
-      this.endTime = Date.now();
-    });
+    command.emitter.on(
+      "completed",
+      async (data: { cid: number; filename: string; title: string }) => {
+        log.info(`task ${this.taskId} end`, data);
+        this.status = "completed";
+        this.progress = 100;
+        callback.onEnd && callback.onEnd(data);
+        this.emitter.emit("task-end", { taskId: this.taskId });
+        this.endTime = Date.now();
+      },
+    );
     command.emitter.on("error", (err) => {
       log.error(`task ${this.taskId} error: ${err}`);
       this.status = "error";
+      this.error = String(err);
 
-      callback.onError && callback.onError(err);
-      this.error = err;
-      this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+      callback.onError && callback.onError(this.error);
+      this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
     });
 
-    // let size = 0;
-    // let time = Date.now();
-    // let lastProgressMsg = `速度: 0MB/s`;
-    command.emitter.on("progress", (progress) => {
-      progress.percentage = progress.progress * 100;
+    command.emitter.on("progress", (event) => {
+      let progress = event.progress * 100;
+      console.log("progress", progress);
 
       if (callback.onProgress) {
         progress = callback.onProgress(progress);
       }
-      this.progress = progress.percentage || 0;
-      // const nowSize = progress.totalUploadedSize;
-      // const nowTime = Date.now();
-      // const timeDistance = (nowTime - time) / 1000;
-      // const sizeDistance = nowSize - size;
-
-      // time = nowTime;
-      // size = nowSize;
-      // if (timeDistance < 0.1) {
-      // this.custsomProgressMsg = `速度: 0MB/s`;
-      // this.custsomProgressMsg = lastProgressMsg;
-      // } else {
-      // this.custsomProgressMsg = `速度: ${(sizeDistance / 1024 / 1024 / timeDistance).toFixed(2)}MB/s`;
-      // lastProgressMsg = this.custsomProgressMsg;
-      // }
-      // console.log("progress", progress, sizeDistance, timeDistance);
+      this.progress = progress;
 
       this.emitter.emit("task-progress", { taskId: this.taskId });
     });
   }
   exec() {
-    // this.command.run();
+    this.status = "running";
+    this.startTime = Date.now();
+    this.emitter.emit("task-start", { taskId: this.taskId });
+    this.command.upload();
   }
   pause() {
     if (this.status !== "running") return;
@@ -384,6 +364,144 @@ export class BiliVideoTask extends AbstractTask {
     this.emitter.emit("task-resume", { taskId: this.taskId });
     return true;
   }
+  kill() {
+    if (this.status === "completed" || this.status === "error") return;
+    log.warn(`task ${this.taskId} killed`);
+    this.status = "error";
+    this.command.cancel();
+    return true;
+  }
+}
+
+/**
+ * B站视频提交任务
+ */
+export class BiliVideoTask extends AbstractTask {
+  taskList: BiliPartVideoTask[] = [];
+  type = TaskType.bili;
+  completedTask: number = 0;
+  progressData: {
+    [key: string]: number;
+  };
+  uid: number;
+  mediaOptions: BiliupConfig;
+  callback: {
+    onStart?: () => void;
+    onEnd?: (output: { aid: number; bvid: string }) => void;
+    onError?: (err: string) => void;
+    onProgress?: (progress: number) => any;
+  };
+  constructor(
+    options: {
+      name: string;
+      uid: number;
+      mediaOptions: BiliupConfig;
+    },
+    callback: {
+      onStart?: () => void;
+      onEnd?: (output: { aid: number; bvid: string }) => void;
+      onError?: (err: string) => void;
+      onProgress?: (progress: number) => any;
+    },
+  ) {
+    super();
+    this.progress = 0;
+    this.action = ["kill"];
+    if (options.name) {
+      this.name = options.name;
+    }
+    this.callback = callback;
+
+    this.status = "running";
+    this.startTime = Date.now();
+    this.uid = options.uid;
+    this.mediaOptions = options.mediaOptions;
+    this.emitter.emit("task-start", { taskId: this.taskId });
+  }
+  addTask(task: BiliPartVideoTask) {
+    this.taskList.push(task);
+
+    task.command.on("completed", async () => {
+      console.log("completed", this.completedTask);
+      this.completedTask++;
+
+      if (this.completedTask === this.taskList.length) {
+        this.submit();
+      }
+      // log.info(`task ${this.taskId} end`, data);
+      // this.status = "completed";
+      // this.progress = 100;
+      // this.output = String(data.aid);
+      // callback.onEnd && callback.onEnd(data);
+      // this.emitter.emit("task-end", { taskId: this.taskId });
+      // this.endTime = Date.now();
+    });
+    // task.command.on("error", (err) => {
+    // log.error(`task ${this.taskId} error: ${err}`);
+    // this.status = "error";
+    // callback.onError && callback.onError(err);
+    // this.error = err;
+    // this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+    // });
+
+    // task.command.on("progress", (event) => {
+    // if (event.event === "uploading") {
+    //   progressData[task.taskId] = event.progress;
+    // }
+    // progress.percentage = progress.progress * 100;
+    // if (callback.onProgress) {
+    //   progress = callback.onProgress(progress);
+    // }
+    // this.progress = progress.percentage || 0;
+    // this.emitter.emit("task-progress", { taskId: this.taskId });
+    // });
+  }
+  removeTask(taskId: string) {
+    const task = this.taskList.find((task) => task.taskId === taskId);
+    if (!task) return;
+    const index = this.taskList.indexOf(task);
+    if (index !== -1) {
+      this.taskList.splice(index, 1);
+    }
+  }
+  async submit() {
+    // submit
+    const parts = this.taskList
+      .map((task) => {
+        if (task.status === "error") {
+          return null;
+        }
+        return task.command.completedPart;
+      })
+      .filter((part) => part);
+
+    const data = await addMediaApi(this.uid, parts, this.mediaOptions);
+    this.status = "completed";
+    this.progress = 100;
+    this.callback.onEnd && this.callback.onEnd(data);
+    this.output = String(data.aid);
+    this.emitter.emit("task-end", { taskId: this.taskId });
+  }
+  exec() {
+    // this.command.run();
+  }
+  pause() {
+    if (this.status !== "running") return;
+
+    // this.command.pause();
+    // log.warn(`task ${this.taskId} paused`);
+    // this.status = "paused";
+    // this.emitter.emit("task-pause", { taskId: this.taskId });
+    return true;
+  }
+  resume() {
+    if (this.status !== "paused") return;
+    // this.command.start();
+    // log.warn(`task ${this.taskId} resumed`);
+    // this.status = "running";
+    // this.emitter.emit("task-resume", { taskId: this.taskId });
+    return true;
+  }
   // interrupt() {
   //   if (this.status === "completed" || this.status === "error") return;
   //   log.warn(`task ${this.taskId} interrupt`);
@@ -392,9 +510,11 @@ export class BiliVideoTask extends AbstractTask {
   // }
   kill() {
     if (this.status === "completed" || this.status === "error") return;
+    for (const task of this.taskList) {
+      task.kill();
+    }
     log.warn(`task ${this.taskId} killed`);
     this.status = "error";
-    this.command.cancel();
     return true;
   }
 }
