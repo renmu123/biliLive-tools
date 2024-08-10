@@ -4,6 +4,16 @@ import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPrese
 
 import { type Options, type Live } from "../src/services/webhook.js";
 
+vi.mock("../src/index.js", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("../src/index.js")>();
+  return {
+    ...mod,
+    config: {
+      get: vi.fn().mockReturnValue({}),
+    },
+  };
+});
+
 describe("WebhookHandler", () => {
   let webhookHandler: WebhookHandler;
 
@@ -12,8 +22,9 @@ describe("WebhookHandler", () => {
   });
 
   describe("handleLiveData", () => {
-    webhookHandler = new WebhookHandler();
-
+    beforeEach(() => {
+      webhookHandler = new WebhookHandler();
+    });
     it("event: FileOpening, liveData的情况", async () => {
       webhookHandler.liveData = [];
       const options: Options = {
@@ -544,46 +555,22 @@ describe("WebhookHandler", () => {
       expect(webhookHandler.liveData.length).toBe(1);
       expect(webhookHandler.liveData[0].parts.length).toBe(0);
     });
-
-    // it("should handle the options and return if the current part is not found", async () => {
-    //   // Arrange
-    //   const options: Options = {
-    //     roomId: 123,
-    //     event: "VideoFileCompletedEvent",
-    //     filePath: "/path/to/part1.mp4",
-    //     time: "2022-01-01T00:05:00Z",
-    //     username: "test",
-    //     platform: "blrec",
-    //     title: "test video",
-    //   };
-    //   vi.mock("@biliLive-tools/shared/utils/index.js", async (importOriginal) => {
-    //     const mod =
-    //       await importOriginal<typeof import("@biliLive-tools/shared/utils/index.js")>();
-    //     return {
-    //       ...mod,
-    //       getFileSize: vi.fn().mockResolvedValue(150),
-    //       // 替换一些导出
-    //       namedExport: vi.fn(),
-    //     };
-    //   });
-    //   const getConfigSpy = vi.spyOn(webhookHandler, "getConfig");
-    //   // @ts-ignore
-    //   getConfigSpy.mockReturnValue({ open: true, minSize: 100, title: "test" });
-    //   const handleLiveDataSpy = vi.spyOn(webhookHandler, "handleLiveData");
-    //   handleLiveDataSpy.mockResolvedValue(0);
-
-    //   // Act
-    //   const result = await webhookHandler.handle(options);
-
-    //   // Assert
-    //   expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
-    //   expect(handleLiveDataSpy).toHaveBeenCalledWith(options, expect.any(Number));
-    //   expect(result).toBeUndefined();
-    // });
-
-    // Add more test cases for different scenarios
   });
   describe("handleLive", () => {
+    beforeEach(() => {
+      // @ts-ignore
+      webhookHandler.videoPreset = {
+        get: vi.fn().mockReturnValue({}),
+      };
+      // @ts-ignore
+      webhookHandler.danmuPreset = {
+        get: vi.fn().mockReturnValue({}),
+      };
+      // @ts-ignore
+      webhookHandler.ffmpegPreset = {
+        get: vi.fn().mockReturnValue({}),
+      };
+    });
     it("应在上传成功时正确设置状态", async () => {
       // Arrange
       const live: Live = {
@@ -615,17 +602,6 @@ describe("WebhookHandler", () => {
           },
         ],
       };
-      vi.mock("@biliLive-tools/shared", async (importOriginal) => {
-        const mod = await importOriginal<typeof import("@biliLive-tools/shared")>();
-        return {
-          ...mod,
-          videoPreset: {
-            get: vi.fn().mockReturnValue({}),
-          },
-          // 替换一些导出
-          namedExport: vi.fn(),
-        };
-      });
       // @ts-ignore
       const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
         mergePart: true,
@@ -677,17 +653,7 @@ describe("WebhookHandler", () => {
           },
         ],
       };
-      vi.mock("@biliLive-tools/shared", async (importOriginal) => {
-        const mod = await importOriginal<typeof import("@biliLive-tools/shared")>();
-        return {
-          ...mod,
-          videoPreset: {
-            get: vi.fn().mockReturnValue({}),
-          },
-          // 替换一些导出
-          namedExport: vi.fn(),
-        };
-      });
+
       // @ts-ignore
       const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
         mergePart: false,
@@ -725,17 +691,7 @@ describe("WebhookHandler", () => {
           },
         ],
       };
-      vi.mock("@biliLive-tools/shared", async (importOriginal) => {
-        const mod = await importOriginal<typeof import("@biliLive-tools/shared")>();
-        return {
-          ...mod,
-          videoPreset: {
-            get: vi.fn().mockReturnValue({}),
-          },
-          // 替换一些导出
-          namedExport: vi.fn(),
-        };
-      });
+
       // @ts-ignore
       const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
         mergePart: true,
@@ -773,17 +729,6 @@ describe("WebhookHandler", () => {
           },
         ],
       };
-      vi.mock("@biliLive-tools/shared", async (importOriginal) => {
-        const mod = await importOriginal<typeof import("@biliLive-tools/shared")>();
-        return {
-          ...mod,
-          videoPreset: {
-            get: vi.fn().mockReturnValue({}),
-          },
-          // 替换一些导出
-          namedExport: vi.fn(),
-        };
-      });
       const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(789);
       const addEditMediaTaskSpy = vi
         .spyOn(webhookHandler, "addEditMediaTask")
@@ -825,17 +770,6 @@ describe("WebhookHandler", () => {
           },
         ],
       };
-      vi.mock("@biliLive-tools/shared", async (importOriginal) => {
-        const mod = await importOriginal<typeof import("@biliLive-tools/shared")>();
-        return {
-          ...mod,
-          videoPreset: {
-            get: vi.fn().mockReturnValue({}),
-          },
-          // 替换一些导出
-          namedExport: vi.fn(),
-        };
-      });
       // @ts-ignore
       const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(789);
       const addEditMediaTaskSpy = vi

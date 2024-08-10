@@ -106,19 +106,6 @@ describe("TaskQueue", () => {
     // expect(task.status).toBe("completed");
   });
   describe("addTaskForLimit", () => {
-    class FFmpegTask extends AbstractTask {
-      type: string = TaskType.ffmpeg;
-      exec = vi.fn().mockImplementation(async () => {
-        this.emitter.emit("task-start", { taskId: this.taskId });
-        this.status = "running";
-        await sleep(200);
-        this.status = "completed";
-        this.emitter.emit("task-end", { taskId: this.taskId });
-      });
-      pause = vi.fn();
-      resume = vi.fn();
-      kill = vi.fn();
-    }
     beforeEach(() => {
       // @ts-ignore
       vi.spyOn(appConfig, "getAll").mockReturnValue({
@@ -127,6 +114,19 @@ describe("TaskQueue", () => {
       taskQueue = new TaskQueue();
     });
     describe("FFmpegTask", () => {
+      class FFmpegTask extends AbstractTask {
+        type: string = TaskType.ffmpeg;
+        exec = vi.fn().mockImplementation(async () => {
+          this.emitter.emit("task-start", { taskId: this.taskId });
+          this.status = "running";
+          await sleep(200);
+          this.status = "completed";
+          this.emitter.emit("task-end", { taskId: this.taskId });
+        });
+        pause = vi.fn();
+        resume = vi.fn();
+        kill = vi.fn();
+      }
       it("should add with limit", async () => {
         const task1 = new FFmpegTask();
         const task2 = new FFmpegTask();
@@ -362,6 +362,9 @@ describe("TaskQueue", () => {
       });
     });
     describe("BiliPartVideoTask", () => {
+      beforeEach(() => {
+        taskQueue = new TaskQueue();
+      });
       class BiliPartVideoTask extends AbstractTask {
         type: string = TaskType.biliUpload;
         exec = vi.fn().mockImplementation(async () => {
@@ -375,17 +378,11 @@ describe("TaskQueue", () => {
         resume = vi.fn();
         kill = vi.fn();
       }
-      let task1: BiliPartVideoTask;
-      let task2: BiliPartVideoTask;
-      let task3: BiliPartVideoTask;
 
-      beforeEach(() => {
+      it("should add with limit", async () => {
         const task1 = new BiliPartVideoTask();
         const task2 = new BiliPartVideoTask();
         const task3 = new BiliPartVideoTask();
-      });
-
-      it("should add with limit", async () => {
         taskQueue.addTask(task1, false);
         taskQueue.addTask(task2, false);
         taskQueue.addTask(task3, false);
@@ -400,8 +397,8 @@ describe("TaskQueue", () => {
         });
 
         const task1 = new BiliPartVideoTask();
-        const task2 = new DouyuDownloadTask();
-        const task3 = new DouyuDownloadTask();
+        const task2 = new BiliPartVideoTask();
+        const task3 = new BiliPartVideoTask();
         taskQueue.addTask(task1, false);
         taskQueue.addTask(task2, false);
         taskQueue.addTask(task3, false);
@@ -410,9 +407,9 @@ describe("TaskQueue", () => {
         expect(task3.exec).toHaveBeenCalled();
       });
       it("should auto start after task-end event", async () => {
-        const task1 = new DouyuDownloadTask();
-        const task2 = new DouyuDownloadTask();
-        const task3 = new DouyuDownloadTask();
+        const task1 = new BiliPartVideoTask();
+        const task2 = new BiliPartVideoTask();
+        const task3 = new BiliPartVideoTask();
         taskQueue.addTask(task1, false);
         taskQueue.addTask(task2, false);
         taskQueue.addTask(task3, false);

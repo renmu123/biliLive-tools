@@ -302,7 +302,7 @@ export async function editMedia(
         path: string;
         title?: string;
       }[],
-  options: BiliupConfig,
+  options: BiliupConfig | any,
   uid: number,
 ) {
   const client = await createClient(uid);
@@ -585,7 +585,7 @@ export const biliApi = {
   getUserInfo,
   getMyInfo,
   addMedia,
-  // editMedia,
+  editMedia,
   getSeasonList,
   getArchiveDetail,
   getPlatformPre,

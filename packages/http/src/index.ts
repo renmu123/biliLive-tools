@@ -26,7 +26,7 @@ app.use(webhookRouter.routes());
 app.use(configRouter.routes());
 app.use(llmRouter.routes());
 
-export let config!: Config;
+export let config: Config = new Config();
 export let handler!: WebhookHandler;
 
 export function serverStart(
