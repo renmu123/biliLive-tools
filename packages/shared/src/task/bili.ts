@@ -1,7 +1,7 @@
 import path from "node:path";
 
 import { Client, TvQrcodeLogin, WebVideoUploader } from "@renmu/bili-api";
-import { appConfig } from "../index.js";
+import { appConfig } from "../config.js";
 
 import {
   BiliAddVideoTask,

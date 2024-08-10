@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { appConfig } from "@biliLive-tools/shared";
+import { appConfig } from "../index.js";
 
 const router = new Router({
   prefix: "/config",

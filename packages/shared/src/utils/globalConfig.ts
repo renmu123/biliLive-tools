@@ -2,6 +2,7 @@ interface ConfigData {
   videoPresetPath: string;
   danmuPresetPath: string;
   ffmpegPresetPath: string;
+  configPath: string;
 }
 
 export default class Config {

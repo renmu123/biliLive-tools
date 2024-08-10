@@ -1,4 +1,4 @@
-import { appConfig } from "./config.js";
+import { appConfig, AppConfig } from "./config.js";
 export * from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
@@ -30,4 +30,4 @@ const init = (config: {
   // initDB("danmu.db");
 };
 
-export { appConfig, init };
+export { init, AppConfig, appConfig };

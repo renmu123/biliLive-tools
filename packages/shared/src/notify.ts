@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { appConfig } from "./index.js";
+import { appConfig } from "./config.js";
 import log from "./utils/log.js";
 
 import type {

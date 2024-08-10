@@ -3,8 +3,7 @@ import path from "node:path";
 import Router from "koa-router";
 import { Client } from "@renmu/bili-api";
 
-import { handler } from "../index.js";
-import { appConfig } from "@biliLive-tools/shared";
+import { handler, appConfig } from "../index.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 
 import type { BlrecEventType } from "../types/blrecEvent.js";

@@ -43,6 +43,7 @@ program
       ffmpegPresetPath: c.ffmpegPresetPath,
       videoPresetPath: c.videoPresetPath,
       danmuPresetPath: c.danmuPresetPath,
+      configPath: c.configPath,
     });
     serverStart(c, config);
   });

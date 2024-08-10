@@ -452,6 +452,7 @@ const appInit = async () => {
     videoPresetPath: VIDEO_PRESET_PATH,
     ffmpegPresetPath: FFMPEG_PRESET_PATH,
     danmuPresetPath: DANMU_PRESET_PATH,
+    configPath: APP_CONFIG_PATH,
   });
   const config = {
     configPath: APP_CONFIG_PATH,

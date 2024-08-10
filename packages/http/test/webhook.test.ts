@@ -18,12 +18,24 @@ describe("WebhookHandler", () => {
   let webhookHandler: WebhookHandler;
 
   beforeEach(() => {
-    webhookHandler = new WebhookHandler();
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+      }),
+    };
+    // @ts-ignore
+    webhookHandler = new WebhookHandler(appConfig);
   });
 
   describe("handleLiveData", () => {
     beforeEach(() => {
-      webhookHandler = new WebhookHandler();
+      const appConfig = {
+        getAll: vi.fn().mockReturnValue({
+          task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+        }),
+      };
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
     });
     it("event: FileOpening, liveData的情况", async () => {
       webhookHandler.liveData = [];
@@ -285,7 +297,13 @@ describe("WebhookHandler", () => {
   });
 
   describe.concurrent("foramtTitle", () => {
-    const handler = new WebhookHandler();
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+      }),
+    };
+    // @ts-ignore
+    const handler = new WebhookHandler(appConfig);
 
     it("should format the title correctly", () => {
       const options = {
@@ -315,7 +333,13 @@ describe("WebhookHandler", () => {
   });
 
   describe("canHandle", () => {
-    const handler = new WebhookHandler();
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+      }),
+    };
+    // @ts-ignore
+    const handler = new WebhookHandler(appConfig);
     it("should return true when roomSetting is open", () => {
       const roomSetting = { open: true };
       const result = handler.canRoomOpen(roomSetting, "", 123);
@@ -469,7 +493,13 @@ describe("WebhookHandler", () => {
   });
 
   describe("handle", () => {
-    const webhookHandler = new WebhookHandler();
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+      }),
+    };
+    // @ts-ignore
+    webhookHandler = new WebhookHandler(appConfig);
     it("应在房间不为open时停止操作", async () => {
       // Arrange
       const options = {
@@ -502,17 +532,6 @@ describe("WebhookHandler", () => {
         .spyOn(webhookHandler, "getConfig")
         // @ts-ignore
         .mockReturnValue({ open: true, title: "test" });
-      vi.mock("@biliLive-tools/shared", async (importOriginal) => {
-        const mod = await importOriginal<typeof import("@biliLive-tools/shared")>();
-        return {
-          ...mod,
-          videoPreset: {
-            get: vi.fn().mockReturnValue({}),
-          },
-          // 替换一些导出
-          namedExport: vi.fn(),
-        };
-      });
 
       // Act
       const result = await webhookHandler.handle(options);
@@ -1044,7 +1063,13 @@ describe("WebhookHandler", () => {
   });
   describe.concurrent("isBetweenTime", () => {
     it("should return true when current time is between start and end time", () => {
-      const webhookHandler = new WebhookHandler();
+      const appConfig = {
+        getAll: vi.fn().mockReturnValue({
+          task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+        }),
+      };
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
       const currentTime = new Date("2022-01-01T12:00:00");
       const timeRange: [string, string] = ["10:00:00", "14:00:00"];
 
@@ -1054,7 +1079,13 @@ describe("WebhookHandler", () => {
     });
 
     it("should return false when current time is before start time", () => {
-      const webhookHandler = new WebhookHandler();
+      const appConfig = {
+        getAll: vi.fn().mockReturnValue({
+          task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+        }),
+      };
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
       const currentTime = new Date("2022-01-01T09:00:00");
       const timeRange: [string, string] = ["10:00:00", "14:00:00"];
 
@@ -1064,7 +1095,11 @@ describe("WebhookHandler", () => {
     });
 
     it("should return false when current time is after end time", () => {
-      const webhookHandler = new WebhookHandler();
+      const appConfig = {
+        getAll: vi.fn(),
+      };
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
       const currentTime = new Date("2022-01-01T15:00:00");
       const timeRange: [string, string] = ["10:00:00", "14:00:00"];
 
@@ -1074,7 +1109,11 @@ describe("WebhookHandler", () => {
     });
 
     it("should return true when start and end time are not provided", () => {
-      const webhookHandler = new WebhookHandler();
+      const appConfig = {
+        getAll: vi.fn(),
+      };
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
       const currentTime = new Date("2022-01-01T12:00:00");
       const timeRange: [string, string] = ["", ""];
 
@@ -1084,7 +1123,11 @@ describe("WebhookHandler", () => {
     });
 
     it("should return true when current time is between start and end time", () => {
-      const webhookHandler = new WebhookHandler();
+      const appConfig = {
+        getAll: vi.fn(),
+      };
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
       const currentTime = new Date("2022-01-01T04:00:00");
       const timeRange: [string, string] = ["22:00:00", "06:00:00"];
 

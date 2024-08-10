@@ -2,7 +2,7 @@ import path from "node:path";
 import os from "node:os";
 import fs from "fs-extra";
 
-import { appConfig, FFmpegPreset, VideoPreset, DanmuPreset } from "@biliLive-tools/shared";
+import { FFmpegPreset, VideoPreset, DanmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import { biliApi } from "@biliLive-tools/shared/task/bili.js";
 import { convertXml2Ass, genHotProgress, isEmptyDanmu } from "@biliLive-tools/shared/task/danmu.js";
@@ -19,6 +19,7 @@ import type {
   AppRoomConfig,
   CommonRoomConfig,
 } from "@biliLive-tools/types";
+import type { AppConfig } from "@biliLive-tools/shared/config.js";
 
 type Platform = "bili-recorder" | "blrec" | "custom";
 
@@ -57,10 +58,12 @@ export class WebhookHandler {
   ffmpegPreset: FFmpegPreset;
   videoPreset: VideoPreset;
   danmuPreset: DanmuPreset;
-  constructor() {
+  appConfig: AppConfig;
+  constructor(appConfig: AppConfig) {
     this.ffmpegPreset = new FFmpegPreset(config.get("ffmpegPresetPath"));
     this.videoPreset = new VideoPreset(config.get("videoPresetPath"));
     this.danmuPreset = new DanmuPreset(config.get("danmuPresetPath"));
+    this.appConfig = appConfig;
   }
 
   async handle(options: Options) {
@@ -337,7 +340,7 @@ export class WebhookHandler {
     /** 允许上传处理时间 */
     uploadHandleTime: [string, string];
   } {
-    const config = appConfig.getAll();
+    const config = this.appConfig.getAll();
     const roomSetting: AppRoomConfig | undefined = config.webhook.rooms[roomId];
     log.debug("room setting", roomId, roomSetting);
 

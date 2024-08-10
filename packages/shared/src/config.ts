@@ -206,8 +206,11 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
 };
 
 export class AppConfig extends Config {
-  constructor() {
+  constructor(configPath?: string) {
     super();
+    if (configPath) {
+      this.load(configPath);
+    }
   }
   load(filepath: string) {
     this.init(filepath);

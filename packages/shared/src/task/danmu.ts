@@ -5,7 +5,7 @@ import { isNumber } from "lodash-es";
 
 import { pathExists, trashItem, uuid } from "../utils/index.js";
 import log from "../utils/log.js";
-import { appConfig } from "../index.js";
+import { appConfig } from "../config.js";
 import { Danmu } from "../danmu/index.js";
 import { generateDanmakuImage } from "../danmu/hotProgress.js";
 import { DanmuTask, taskQueue } from "./task.js";
