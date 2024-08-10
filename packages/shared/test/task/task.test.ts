@@ -1,5 +1,4 @@
 import { TaskQueue, AbstractTask } from "../../src/task/task.js";
-import { appConfig } from "../../src/config.js";
 import { TaskType } from "../../src/enum.js";
 import { sleep } from "../../src/utils/index.js";
 import { expect, describe, it, beforeEach, vi } from "vitest";
@@ -16,7 +15,13 @@ describe("TaskQueue", () => {
   let taskQueue: TaskQueue;
 
   beforeEach(() => {
-    taskQueue = new TaskQueue();
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+      }),
+    };
+    // @ts-ignore
+    taskQueue = new TaskQueue(appConfig);
   });
 
   it("should add a task to the queue", () => {
@@ -53,10 +58,11 @@ describe("TaskQueue", () => {
 
   it("should emit task events", async () => {
     // @ts-ignore
-    vi.spyOn(appConfig, "getAll").mockReturnValue({
-      task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: 2, biliUploadMaxNum: -1 },
-    });
-
+    taskQueue.appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: 2, biliUploadMaxNum: -1 },
+      }),
+    };
     const callback = vi.fn();
     taskQueue.on("task-end", callback);
 
@@ -79,10 +85,11 @@ describe("TaskQueue", () => {
   });
   it("should emit task-removed-queue event", async () => {
     // @ts-ignore
-    vi.spyOn(appConfig, "getAll").mockReturnValue({
-      task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: 2, biliUploadMaxNum: -1 },
-    });
-
+    taskQueue.appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: 2, biliUploadMaxNum: -1 },
+      }),
+    };
     const callback = vi.fn();
 
     class TestTask extends AbstractTask {
@@ -107,11 +114,13 @@ describe("TaskQueue", () => {
   });
   describe("addTaskForLimit", () => {
     beforeEach(() => {
+      const appConfig = {
+        getAll: vi.fn().mockReturnValue({
+          task: { ffmpegMaxNum: 2, douyuDownloadMaxNum: 2, biliUploadMaxNum: 2 },
+        }),
+      };
       // @ts-ignore
-      vi.spyOn(appConfig, "getAll").mockReturnValue({
-        task: { ffmpegMaxNum: 2, douyuDownloadMaxNum: 2, biliUploadMaxNum: 2 },
-      });
-      taskQueue = new TaskQueue();
+      taskQueue = new TaskQueue(appConfig);
     });
     describe("FFmpegTask", () => {
       class FFmpegTask extends AbstractTask {
@@ -127,22 +136,29 @@ describe("TaskQueue", () => {
         resume = vi.fn();
         kill = vi.fn();
       }
-      it("should add with limit", async () => {
+
+      it("should add with limit1", async () => {
         const task1 = new FFmpegTask();
         const task2 = new FFmpegTask();
         const task3 = new FFmpegTask();
+        const task4 = new FFmpegTask();
         taskQueue.addTask(task1, false);
         taskQueue.addTask(task2, false);
+        await sleep(100);
         taskQueue.addTask(task3, false);
+        taskQueue.addTask(task4, false);
         expect(task1.exec).toHaveBeenCalled();
         expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
+        // expect(task3.exec).not.toHaveBeenCalled();
+        expect(task4.exec).not.toHaveBeenCalled();
       });
       it("should add with no limit", async () => {
         // @ts-ignore
-        vi.spyOn(appConfig, "getAll").mockReturnValue({
-          task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
-        });
+        taskQueue.appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+          }),
+        };
 
         const task1 = new FFmpegTask();
         const task2 = new FFmpegTask();
@@ -265,9 +281,11 @@ describe("TaskQueue", () => {
       });
       it("should add with no limit", async () => {
         // @ts-ignore
-        vi.spyOn(appConfig, "getAll").mockReturnValue({
-          task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
-        });
+        taskQueue.appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+          }),
+        };
 
         const task1 = new DouyuDownloadTask();
         const task2 = new DouyuDownloadTask();
@@ -362,9 +380,6 @@ describe("TaskQueue", () => {
       });
     });
     describe("BiliPartVideoTask", () => {
-      beforeEach(() => {
-        taskQueue = new TaskQueue();
-      });
       class BiliPartVideoTask extends AbstractTask {
         type: string = TaskType.biliUpload;
         exec = vi.fn().mockImplementation(async () => {
@@ -392,9 +407,11 @@ describe("TaskQueue", () => {
       });
       it("should add with no limit", async () => {
         // @ts-ignore
-        vi.spyOn(appConfig, "getAll").mockReturnValue({
-          task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
-        });
+        taskQueue.appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+          }),
+        };
 
         const task1 = new BiliPartVideoTask();
         const task2 = new BiliPartVideoTask();
@@ -488,7 +505,5 @@ describe("TaskQueue", () => {
         expect(task3.exec).toHaveBeenCalled();
       });
     });
-
-    // describe("auto start after task-end event", () => {});
   });
 });

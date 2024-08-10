@@ -6,7 +6,7 @@ import { uuid, isWin32 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { Danmu } from "../danmu/index.js";
 import { sendNotify } from "../notify.js";
-import { appConfig } from "../index.js";
+import { appConfig, AppConfig } from "../config.js";
 import kill from "tree-kill";
 import { addMediaApi, editMediaApi } from "./bili.js";
 
@@ -775,11 +775,13 @@ export class DouyuDownloadVideoTask extends AbstractTask {
 }
 
 export class TaskQueue {
+  appConfig: AppConfig;
   queue: AbstractTask[];
   emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
 
-  constructor() {
+  constructor(appConfig: AppConfig) {
     this.queue = [];
+    this.appConfig = appConfig;
     this.on("task-end", () => {
       this.addTaskForLimit();
     });
@@ -819,7 +821,7 @@ export class TaskQueue {
         task.type === TaskType.douyuDownload ||
         task.type === TaskType.biliUpload
       ) {
-        const config = appConfig.getAll();
+        const config = this.appConfig.getAll();
         const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
         const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
         const biliUploadMaxNum = config?.task?.biliUploadMaxNum ?? -1;
@@ -917,7 +919,7 @@ export class TaskQueue {
     }
   }
   addTaskForLimit = () => {
-    const config = appConfig.getAll();
+    const config = this.appConfig.getAll();
 
     // ffmpeg任务
     this.taskLimit(config?.task?.ffmpegMaxNum ?? -1, TaskType.ffmpeg);
@@ -975,7 +977,7 @@ export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) =>
   }
 };
 
-export const taskQueue = new TaskQueue();
+export const taskQueue = new TaskQueue(appConfig);
 
 taskQueue.on("task-end", ({ taskId }) => {
   sendTaskNotify("success", taskId);

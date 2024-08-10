@@ -205,7 +205,7 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
   llmPresets: [],
 };
 
-class AppConfig extends Config {
+export class AppConfig extends Config {
   constructor() {
     super();
   }
