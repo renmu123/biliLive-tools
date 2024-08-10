@@ -523,7 +523,6 @@ const getTypeDesc = async (tid: number) => {
     return;
   }
   const data = await window.api.bili.getTypeDesc(tid, userInfoStore.userInfo.uid);
-  console.log(data);
   if (data) {
     descMaxLength.value = 2000;
   } else {
@@ -557,7 +556,6 @@ const handleSearch = async (query: string) => {
   }
   topicLoading.value = true;
   const data = await window.api.bili.searchTopic(query, appConfig.value.uid);
-  console.log(data);
   topicOptions.value = data.result.topics.map((item) => {
     return {
       ...item,

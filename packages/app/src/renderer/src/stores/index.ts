@@ -282,8 +282,7 @@ export const useAppConfig = defineStore("appConfig", () => {
   }
   watch(
     () => appConfig.value.tool,
-    (data: any) => {
-      console.log(appConfig.value.saveConfig, data, appConfig.value);
+    () => {
       window.api.config.save(cloneDeep(appConfig.value));
     },
     { deep: true },

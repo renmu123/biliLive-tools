@@ -8,9 +8,14 @@
       aria-modal="true"
       class="card"
     >
-      <n-tabs type="segment">
+      <n-tabs type="bar" animated placement="left" style="height: calc(100% - 260px)">
         <n-tab-pane name="common" tab="基本">
-          <n-form ref="formRef" label-placement="left" :label-width="160">
+          <n-form
+            ref="formRef"
+            label-placement="left"
+            :label-width="160"
+            style="overflow: auto; height: calc(100vh - 200px)"
+          >
             <n-form-item>
               <template #label>
                 <span class="inline-flex">
