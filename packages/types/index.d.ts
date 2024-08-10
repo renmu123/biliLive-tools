@@ -309,6 +309,7 @@ export interface AppConfig {
   task: {
     ffmpegMaxNum: number;
     douyuDownloadMaxNum: number;
+    biliUploadMaxNum: number;
   };
 }
 

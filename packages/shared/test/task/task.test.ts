@@ -54,7 +54,7 @@ describe("TaskQueue", () => {
   it("should emit task events", async () => {
     // @ts-ignore
     vi.spyOn(appConfig, "getAll").mockReturnValue({
-      task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: 2 },
+      task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: 2, biliUploadMaxNum: -1 },
     });
 
     const callback = vi.fn();
@@ -80,7 +80,7 @@ describe("TaskQueue", () => {
   it("should emit task-removed-queue event", async () => {
     // @ts-ignore
     vi.spyOn(appConfig, "getAll").mockReturnValue({
-      task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: 2 },
+      task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: 2, biliUploadMaxNum: -1 },
     });
 
     const callback = vi.fn();
@@ -119,26 +119,125 @@ describe("TaskQueue", () => {
       resume = vi.fn();
       kill = vi.fn();
     }
-
     beforeEach(() => {
       // @ts-ignore
       vi.spyOn(appConfig, "getAll").mockReturnValue({
-        task: { ffmpegMaxNum: 2, douyuDownloadMaxNum: 2 },
+        task: { ffmpegMaxNum: 2, douyuDownloadMaxNum: 2, biliUploadMaxNum: 2 },
       });
       taskQueue = new TaskQueue();
     });
-    it("should ffmpeg task add with limit", async () => {
-      const task1 = new FFmpegTask();
-      const task2 = new FFmpegTask();
-      const task3 = new FFmpegTask();
-      taskQueue.addTask(task1, false);
-      taskQueue.addTask(task2, false);
-      taskQueue.addTask(task3, false);
-      expect(task1.exec).toHaveBeenCalled();
-      expect(task2.exec).toHaveBeenCalled();
-      expect(task3.exec).not.toHaveBeenCalled();
+    describe("FFmpegTask", () => {
+      it("should add with limit", async () => {
+        const task1 = new FFmpegTask();
+        const task2 = new FFmpegTask();
+        const task3 = new FFmpegTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+      });
+      it("should add with no limit", async () => {
+        // @ts-ignore
+        vi.spyOn(appConfig, "getAll").mockReturnValue({
+          task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+        });
+
+        const task1 = new FFmpegTask();
+        const task2 = new FFmpegTask();
+        const task3 = new FFmpegTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).toHaveBeenCalled();
+      });
+      it("should auto start after task-end event", async () => {
+        const task1 = new FFmpegTask();
+        const task2 = new FFmpegTask();
+        const task3 = new FFmpegTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        await sleep(10);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+        await sleep(220);
+        expect(task3.exec).toHaveBeenCalled();
+        expect(task1.status).toBe("completed");
+        expect(task2.status).toBe("completed");
+        expect(task3.status).toBe("running");
+
+        await sleep(200);
+        expect(task3.status).toBe("completed");
+      });
+      it("should auto start after task-error event", async () => {
+        class FFmpegTask extends AbstractTask {
+          type: string = TaskType.ffmpeg;
+          exec = vi.fn().mockImplementation(async () => {
+            this.status = "running";
+            await sleep(200);
+            this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
+            this.status = "error";
+          });
+          pause = vi.fn();
+          resume = vi.fn();
+          kill = vi.fn();
+        }
+
+        const task1 = new FFmpegTask();
+        const task2 = new FFmpegTask();
+        const task3 = new FFmpegTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+        await sleep(220);
+        expect(task3.exec).toHaveBeenCalled();
+
+        expect(task1.status).toBe("error");
+        expect(task2.status).toBe("error");
+        expect(task3.status).toBe("running");
+
+        await sleep(200);
+        expect(task3.status).toBe("error");
+      });
+
+      it("should auto start after task-pause event", async () => {
+        class FFmpegTask extends AbstractTask {
+          type: string = TaskType.ffmpeg;
+          exec = vi.fn().mockImplementation(async () => {
+            this.status = "running";
+            await sleep(200);
+          });
+          pause = vi.fn().mockImplementation(() => {
+            this.status = "paused";
+            this.emitter.emit("task-pause", { taskId: this.taskId });
+          });
+          resume = vi.fn();
+          kill = vi.fn();
+        }
+
+        const task1 = new FFmpegTask();
+        const task2 = new FFmpegTask();
+        const task3 = new FFmpegTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+        task1.pause();
+        await sleep(210);
+        expect(task3.exec).toHaveBeenCalled();
+      });
     });
-    it("should douyuTask task add with limit", async () => {
+    describe("DouyuDownloadTask", () => {
       class DouyuDownloadTask extends AbstractTask {
         type: string = TaskType.douyuDownload;
         exec = vi.fn().mockImplementation(async () => {
@@ -152,35 +251,119 @@ describe("TaskQueue", () => {
         resume = vi.fn();
         kill = vi.fn();
       }
-      const task1 = new DouyuDownloadTask();
-      const task2 = new DouyuDownloadTask();
-      const task3 = new DouyuDownloadTask();
-      taskQueue.addTask(task1, false);
-      taskQueue.addTask(task2, false);
-      taskQueue.addTask(task3, false);
-      expect(task1.exec).toHaveBeenCalled();
-      expect(task2.exec).toHaveBeenCalled();
-      expect(task3.exec).not.toHaveBeenCalled();
-    });
-    it("should ffmpeg task add with no limit", async () => {
-      // @ts-ignore
-      vi.spyOn(appConfig, "getAll").mockReturnValue({
-        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1 },
+
+      it("should add with limit", async () => {
+        const task1 = new DouyuDownloadTask();
+        const task2 = new DouyuDownloadTask();
+        const task3 = new DouyuDownloadTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+      });
+      it("should add with no limit", async () => {
+        // @ts-ignore
+        vi.spyOn(appConfig, "getAll").mockReturnValue({
+          task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+        });
+
+        const task1 = new DouyuDownloadTask();
+        const task2 = new DouyuDownloadTask();
+        const task3 = new DouyuDownloadTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).toHaveBeenCalled();
+      });
+      it("should auto start after task-end event", async () => {
+        const task1 = new DouyuDownloadTask();
+        const task2 = new DouyuDownloadTask();
+        const task3 = new DouyuDownloadTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        await sleep(10);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+        await sleep(220);
+        expect(task3.exec).toHaveBeenCalled();
+        expect(task1.status).toBe("completed");
+        expect(task2.status).toBe("completed");
+        expect(task3.status).toBe("running");
+
+        await sleep(200);
+        expect(task3.status).toBe("completed");
+      });
+      it("should auto start after task-error event", async () => {
+        class DouyuDownloadTask extends AbstractTask {
+          type: string = TaskType.douyuDownload;
+          exec = vi.fn().mockImplementation(async () => {
+            this.status = "running";
+            await sleep(200);
+            this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
+            this.status = "error";
+          });
+          pause = vi.fn();
+          resume = vi.fn();
+          kill = vi.fn();
+        }
+        const task1 = new DouyuDownloadTask();
+        const task2 = new DouyuDownloadTask();
+        const task3 = new DouyuDownloadTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+        await sleep(220);
+        expect(task3.exec).toHaveBeenCalled();
+
+        expect(task1.status).toBe("error");
+        expect(task2.status).toBe("error");
+        expect(task3.status).toBe("running");
+
+        await sleep(200);
+        expect(task3.status).toBe("error");
       });
 
-      const task1 = new FFmpegTask();
-      const task2 = new FFmpegTask();
-      const task3 = new FFmpegTask();
-      taskQueue.addTask(task1, false);
-      taskQueue.addTask(task2, false);
-      taskQueue.addTask(task3, false);
-      expect(task1.exec).toHaveBeenCalled();
-      expect(task2.exec).toHaveBeenCalled();
-      expect(task3.exec).toHaveBeenCalled();
+      it("should auto start after task-pause event", async () => {
+        class DouyuDownloadTask extends AbstractTask {
+          type: string = TaskType.douyuDownload;
+          exec = vi.fn().mockImplementation(async () => {
+            this.status = "running";
+            await sleep(200);
+          });
+          pause = vi.fn().mockImplementation(() => {
+            this.status = "paused";
+            this.emitter.emit("task-pause", { taskId: this.taskId });
+          });
+          resume = vi.fn();
+          kill = vi.fn();
+        }
+
+        const task1 = new DouyuDownloadTask();
+        const task2 = new DouyuDownloadTask();
+        const task3 = new DouyuDownloadTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+        task1.pause();
+        await sleep(210);
+        expect(task3.exec).toHaveBeenCalled();
+      });
     });
-    it("should douyuTask task add with no limit", async () => {
-      class DouyuDownloadTask extends AbstractTask {
-        type: string = TaskType.douyuDownload;
+    describe("BiliPartVideoTask", () => {
+      class BiliPartVideoTask extends AbstractTask {
+        type: string = TaskType.biliUpload;
         exec = vi.fn().mockImplementation(async () => {
           this.emitter.emit("task-start", { taskId: this.taskId });
           this.status = "running";
@@ -192,103 +375,123 @@ describe("TaskQueue", () => {
         resume = vi.fn();
         kill = vi.fn();
       }
+      let task1: BiliPartVideoTask;
+      let task2: BiliPartVideoTask;
+      let task3: BiliPartVideoTask;
 
-      // @ts-ignore
-      vi.spyOn(appConfig, "getAll").mockReturnValue({
-        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1 },
+      beforeEach(() => {
+        const task1 = new BiliPartVideoTask();
+        const task2 = new BiliPartVideoTask();
+        const task3 = new BiliPartVideoTask();
       });
 
-      const task1 = new DouyuDownloadTask();
-      const task2 = new DouyuDownloadTask();
-      const task3 = new DouyuDownloadTask();
-      taskQueue.addTask(task1, false);
-      taskQueue.addTask(task2, false);
-      taskQueue.addTask(task3, false);
-      expect(task1.exec).toHaveBeenCalled();
-      expect(task2.exec).toHaveBeenCalled();
-      expect(task3.exec).toHaveBeenCalled();
-    });
-    it("should auto start after task-end event", async () => {
-      const task1 = new FFmpegTask();
-      const task2 = new FFmpegTask();
-      const task3 = new FFmpegTask();
-      taskQueue.addTask(task1, false);
-      taskQueue.addTask(task2, false);
-      taskQueue.addTask(task3, false);
-      await sleep(10);
-      expect(task1.exec).toHaveBeenCalled();
-      expect(task2.exec).toHaveBeenCalled();
-      expect(task3.exec).not.toHaveBeenCalled();
-      await sleep(220);
-      expect(task3.exec).toHaveBeenCalled();
-      expect(task1.status).toBe("completed");
-      expect(task2.status).toBe("completed");
-      expect(task3.status).toBe("running");
-
-      await sleep(200);
-      expect(task3.status).toBe("completed");
-    });
-    it("should auto start after task-error event", async () => {
-      class FFmpegTask extends AbstractTask {
-        type: string = TaskType.ffmpeg;
-        exec = vi.fn().mockImplementation(async () => {
-          this.status = "running";
-          await sleep(200);
-          this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
-          this.status = "error";
+      it("should add with limit", async () => {
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+      });
+      it("should add with no limit", async () => {
+        // @ts-ignore
+        vi.spyOn(appConfig, "getAll").mockReturnValue({
+          task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
         });
-        pause = vi.fn();
-        resume = vi.fn();
-        kill = vi.fn();
-      }
 
-      const task1 = new FFmpegTask();
-      const task2 = new FFmpegTask();
-      const task3 = new FFmpegTask();
-      taskQueue.addTask(task1, false);
-      taskQueue.addTask(task2, false);
-      taskQueue.addTask(task3, false);
-      expect(task1.exec).toHaveBeenCalled();
-      expect(task2.exec).toHaveBeenCalled();
-      expect(task3.exec).not.toHaveBeenCalled();
-      await sleep(220);
-      expect(task3.exec).toHaveBeenCalled();
+        const task1 = new BiliPartVideoTask();
+        const task2 = new DouyuDownloadTask();
+        const task3 = new DouyuDownloadTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).toHaveBeenCalled();
+      });
+      it("should auto start after task-end event", async () => {
+        const task1 = new DouyuDownloadTask();
+        const task2 = new DouyuDownloadTask();
+        const task3 = new DouyuDownloadTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        await sleep(10);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+        await sleep(220);
+        expect(task3.exec).toHaveBeenCalled();
+        expect(task1.status).toBe("completed");
+        expect(task2.status).toBe("completed");
+        expect(task3.status).toBe("running");
 
-      expect(task1.status).toBe("error");
-      expect(task2.status).toBe("error");
-      expect(task3.status).toBe("running");
+        await sleep(200);
+        expect(task3.status).toBe("completed");
+      });
+      it("should auto start after task-error event", async () => {
+        class BiliPartVideoTask extends AbstractTask {
+          type: string = TaskType.biliUpload;
+          exec = vi.fn().mockImplementation(async () => {
+            this.status = "running";
+            await sleep(200);
+            this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
+            this.status = "error";
+          });
+          pause = vi.fn();
+          resume = vi.fn();
+          kill = vi.fn();
+        }
+        const task1 = new BiliPartVideoTask();
+        const task2 = new BiliPartVideoTask();
+        const task3 = new BiliPartVideoTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+        await sleep(220);
+        expect(task3.exec).toHaveBeenCalled();
 
-      await sleep(200);
-      expect(task3.status).toBe("error");
+        expect(task1.status).toBe("error");
+        expect(task2.status).toBe("error");
+        expect(task3.status).toBe("running");
+
+        await sleep(200);
+        expect(task3.status).toBe("error");
+      });
+
+      it("should auto start after task-pause event", async () => {
+        class BiliPartVideoTask extends AbstractTask {
+          type: string = TaskType.biliUpload;
+          exec = vi.fn().mockImplementation(async () => {
+            this.status = "running";
+            await sleep(200);
+          });
+          pause = vi.fn().mockImplementation(() => {
+            this.status = "paused";
+            this.emitter.emit("task-pause", { taskId: this.taskId });
+          });
+          resume = vi.fn();
+          kill = vi.fn();
+        }
+
+        const task1 = new BiliPartVideoTask();
+        const task2 = new BiliPartVideoTask();
+        const task3 = new BiliPartVideoTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+        task1.pause();
+        await sleep(210);
+        expect(task3.exec).toHaveBeenCalled();
+      });
     });
 
-    it("should auto start after task-pause event", async () => {
-      class FFmpegTask extends AbstractTask {
-        type: string = TaskType.ffmpeg;
-        exec = vi.fn().mockImplementation(async () => {
-          this.status = "running";
-          await sleep(200);
-        });
-        pause = vi.fn().mockImplementation(() => {
-          this.status = "paused";
-          this.emitter.emit("task-pause", { taskId: this.taskId });
-        });
-        resume = vi.fn();
-        kill = vi.fn();
-      }
-
-      const task1 = new FFmpegTask();
-      const task2 = new FFmpegTask();
-      const task3 = new FFmpegTask();
-      taskQueue.addTask(task1, false);
-      taskQueue.addTask(task2, false);
-      taskQueue.addTask(task3, false);
-      expect(task1.exec).toHaveBeenCalled();
-      expect(task2.exec).toHaveBeenCalled();
-      expect(task3.exec).not.toHaveBeenCalled();
-      task1.pause();
-      await sleep(210);
-      expect(task3.exec).toHaveBeenCalled();
-    });
+    // describe("auto start after task-end event", () => {});
   });
 });

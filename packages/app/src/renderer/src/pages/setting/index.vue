@@ -8,14 +8,9 @@
       aria-modal="true"
       class="card"
     >
-      <n-tabs type="bar" animated placement="left" style="height: calc(100% - 260px)">
+      <n-tabs type="bar" animated placement="left" class="setting-tab">
         <n-tab-pane name="common" tab="基本">
-          <n-form
-            ref="formRef"
-            label-placement="left"
-            :label-width="160"
-            style="overflow: auto; height: calc(100vh - 200px)"
-          >
+          <n-form ref="formRef" label-placement="left" :label-width="160">
             <n-form-item>
               <template #label>
                 <span class="inline-flex">
@@ -256,6 +251,9 @@
             <!-- </div> -->
           </n-form>
         </n-tab-pane>
+        <n-tab-pane name="upload" tab="上传">
+          <BiliSetting v-model:data="config"></BiliSetting>
+        </n-tab-pane>
         <n-tab-pane name="notification" tab="任务">
           <NotificationSetting v-model:data="config"></NotificationSetting>
         </n-tab-pane>
@@ -289,6 +287,7 @@
 import RoomSettingDialog from "./RoomSettingDialog.vue";
 import CommonSetting from "./CommonWebhookSetting.vue";
 import NotificationSetting from "./NotificationSetting.vue";
+import BiliSetting from "./BiliSetting.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
@@ -308,6 +307,7 @@ const config: Ref<AppConfig> = ref({
   task: {
     ffmpegMaxNum: -1,
     douyuDownloadMaxNum: -1,
+    biliUploadMaxNum: -1,
   },
 });
 // @ts-ignore
@@ -630,5 +630,9 @@ const importSettingZip = async () => {
     border: 1px solid #eee;
     border-radius: 4px;
   }
+}
+.setting-tab :deep(.n-tab-pane) {
+  overflow: auto;
+  height: calc(100vh - 200px);
 }
 </style>

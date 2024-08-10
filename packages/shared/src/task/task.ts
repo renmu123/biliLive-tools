@@ -821,10 +821,15 @@ export class TaskQueue {
     if (autoRun) {
       task.exec();
     } else {
-      if (task.type === TaskType.ffmpeg || task.type === TaskType.douyuDownload) {
+      if (
+        task.type === TaskType.ffmpeg ||
+        task.type === TaskType.douyuDownload ||
+        task.type === TaskType.biliUpload
+      ) {
         const config = appConfig.getAll();
         const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
         const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
+        const biliUploadMaxNum = config?.task?.biliUploadMaxNum ?? -1;
 
         if (ffmpegMaxNum >= 0) {
           this.filter({ type: TaskType.ffmpeg, status: "running" }).length < ffmpegMaxNum &&
@@ -837,6 +842,13 @@ export class TaskQueue {
           this.filter({ type: TaskType.douyuDownload, status: "running" }).length <
             douyuDownloadMaxNum &&
             task.type === TaskType.douyuDownload &&
+            task.exec();
+        } else {
+          task.exec();
+        }
+        if (biliUploadMaxNum >= 0) {
+          this.filter({ type: TaskType.biliUpload, status: "running" }).length < biliUploadMaxNum &&
+            task.type === TaskType.biliUpload &&
             task.exec();
         } else {
           task.exec();
@@ -918,6 +930,8 @@ export class TaskQueue {
     this.taskLimit(config?.task?.ffmpegMaxNum ?? -1, TaskType.ffmpeg);
     // 斗鱼录播下载任务
     this.taskLimit(config?.task?.douyuDownloadMaxNum ?? -1, TaskType.douyuDownload);
+    // B站上传任务
+    this.taskLimit(config?.task?.biliUploadMaxNum ?? -1, TaskType.biliUpload);
   };
 }
 

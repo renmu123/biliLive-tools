@@ -169,6 +169,7 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
   task: {
     ffmpegMaxNum: -1,
     douyuDownloadMaxNum: 2,
+    biliUploadMaxNum: -1,
   },
   notification: {
     task: {
