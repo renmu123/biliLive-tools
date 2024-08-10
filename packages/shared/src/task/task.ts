@@ -388,9 +388,6 @@ export class BiliVideoTask extends AbstractTask {
   taskList: BiliPartVideoTask[] = [];
   type = TaskType.bili;
   completedTask: number = 0;
-  progressData: {
-    [key: string]: number;
-  };
   uid: number;
   callback: {
     onStart?: () => void;
@@ -508,12 +505,10 @@ export class BiliAddVideoTask extends BiliVideoTask {
   }
   async submit() {
     const parts = this.taskList
+      .filter((task) => task.status === "completed")
       .map((task) => {
-        if (task.status === "completed") {
-          return task.command.completedPart;
-        }
-      })
-      .filter((part) => part);
+        return task.command.completedPart;
+      });
     if (parts.length === 0) return;
 
     const data = await addMediaApi(this.uid, parts, this.mediaOptions);
@@ -551,12 +546,10 @@ export class BiliEditVideoTask extends BiliVideoTask {
   }
   async submit() {
     const parts = this.taskList
+      .filter((task) => task.status === "completed")
       .map((task) => {
-        if (task.status === "completed") {
-          return task.command.completedPart;
-        }
-      })
-      .filter((part) => part);
+        return task.command.completedPart;
+      });
     if (parts.length === 0) return;
 
     const data = await editMediaApi(this.uid, this.aid, parts, this.mediaOptions);
