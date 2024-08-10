@@ -3,7 +3,13 @@ import path from "node:path";
 import { Client, TvQrcodeLogin, WebVideoUploader } from "@renmu/bili-api";
 import { appConfig } from "../index.js";
 
-import { BiliVideoTask, taskQueue, BiliDownloadVideoTask, BiliPartVideoTask } from "./task.js";
+import {
+  BiliAddVideoTask,
+  taskQueue,
+  BiliDownloadVideoTask,
+  BiliPartVideoTask,
+  BiliEditVideoTask,
+} from "./task.js";
 import log from "../utils/log.js";
 import { sleep } from "../utils/index.js";
 
@@ -175,6 +181,9 @@ async function getSeasonList(uid: number) {
   return client.platform.getSeasonList();
 }
 
+/**
+ * 上传视频接口
+ */
 export async function addMediaApi(
   uid: number,
   video: { cid: number; filename: string; title: string; desc?: string }[],
@@ -183,6 +192,20 @@ export async function addMediaApi(
   const mediaOptions = formatOptions(options);
   const client = await createClient(uid);
   return client.platform.addMediaClientApi(video, mediaOptions);
+}
+
+/**
+ * 编辑视频接口
+ */
+export async function editMediaApi(
+  uid: number,
+  aid: number,
+  video: { cid: number; filename: string; title: string; desc?: string }[],
+  options: BiliupConfig,
+) {
+  const mediaOptions = formatOptions(options);
+  const client = await createClient(uid);
+  return client.platform.editMediaClientApi(video, { aid, ...mediaOptions }, "append");
 }
 
 async function addMedia(
@@ -197,7 +220,7 @@ async function addMedia(
 ) {
   const client = await createClient(uid);
 
-  const pTask = new BiliVideoTask(
+  const pTask = new BiliAddVideoTask(
     {
       name: `创建稿件：${options.title}`,
       uid,
@@ -271,36 +294,52 @@ async function addMedia(
   return pTask;
 }
 
-// async function editMedia(
-//   aid: number,
-//   filePath:
-//     | string[]
-//     | {
-//         path: string;
-//         title?: string;
-//       }[],
-//   _options: any,
-//   uid: number,
-// ) {
-//   const client = await createClient(uid);
-//   const command = await client.platform.editMedia(aid, filePath, {}, "append", {
-//     submit: "client",
-//     uploader: "web",
-//   });
+export async function editMedia(
+  aid: number,
+  filePath:
+    | string[]
+    | {
+        path: string;
+        title?: string;
+      }[],
+  options: BiliupConfig,
+  uid: number,
+) {
+  const client = await createClient(uid);
 
-//   const title = typeof filePath[0] === "string" ? path.parse(filePath[0]).name : filePath[0].title;
-//   const task = new BiliVideoTask(
-//     command,
-//     {
-//       name: `编辑稿件任务：${title}`,
-//     },
-//     {},
-//   );
+  const pTask = new BiliEditVideoTask(
+    {
+      name: `编辑稿件：${options.title}`,
+      uid,
+      mediaOptions: options,
+      aid,
+    },
+    {},
+  );
 
-//   taskQueue.addTask(task, true);
+  for (const item of filePath) {
+    const part = {
+      path: typeof item === "string" ? item : item.path,
+      title: typeof item === "string" ? path.parse(item).name : item.title,
+    };
+    const uploader = new WebVideoUploader(part, client.auth);
 
-//   return task;
-// }
+    const task = new BiliPartVideoTask(
+      uploader,
+      {
+        name: `上传视频：${part.title}`,
+        pid: pTask.taskId,
+      },
+      {},
+    );
+
+    taskQueue.addTask(task, true);
+    pTask.addTask(task);
+  }
+  taskQueue.addTask(pTask, true);
+
+  return pTask;
+}
 
 async function getSessionId(
   aid: number,

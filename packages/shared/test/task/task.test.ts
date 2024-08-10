@@ -77,6 +77,34 @@ describe("TaskQueue", () => {
     expect(callback).toHaveBeenCalledWith({ taskId: task.taskId });
     expect(task.status).toBe("completed");
   });
+  it("should emit task-removed-queue event", async () => {
+    // @ts-ignore
+    vi.spyOn(appConfig, "getAll").mockReturnValue({
+      task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: 2 },
+    });
+
+    const callback = vi.fn();
+
+    class TestTask extends AbstractTask {
+      type: string;
+      constructor() {
+        super();
+        this.on("task-removed-queue", callback);
+      }
+      exec = vi.fn();
+      pause = vi.fn();
+      resume = vi.fn();
+      kill = vi.fn();
+    }
+    const task = new TestTask();
+
+    taskQueue.addTask(task, true);
+    taskQueue.remove(task.taskId);
+
+    // expect(task.exec).toHaveBeenCalled();
+    expect(callback).toHaveBeenCalledWith({ taskId: task.taskId });
+    // expect(task.status).toBe("completed");
+  });
   describe("addTaskForLimit", () => {
     class FFmpegTask extends AbstractTask {
       type: string = TaskType.ffmpeg;

@@ -1,1 +1,1 @@
-export type Status = "pending" | "running" | "paused" | "completed" | "error";
+export type Status = "pending" | "running" | "paused" | "completed" | "error" | "canceled";

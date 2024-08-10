@@ -1,7 +1,7 @@
 import { cloneDeep } from "lodash-es";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
-import { TaskType } from "@biliLive-tools/shared/enum.js";
+import type { Task } from "@renderer/types";
 
 export const useUserInfoStore = defineStore("userInfo", () => {
   const appConfigStore = useAppConfig();
@@ -204,20 +204,6 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
     getUploadPreset,
   };
 });
-
-interface Task {
-  taskId: string;
-  name: string;
-  status: "pending" | "running" | "paused" | "completed" | "error";
-  type: TaskType;
-  output?: any;
-  progress: number;
-  action: ("pause" | "kill" | "interrupt")[];
-  startTime?: number;
-  endTime?: number;
-  custsomProgressMsg: string;
-  error?: string;
-}
 
 export const useQueueStore = defineStore("queue", () => {
   const runningTaskNum = ref(0);
