@@ -50,7 +50,7 @@
           <CloseOutline />
         </n-icon>
         <n-icon
-          v-if="item.status === 'completed' && item.type !== TaskType.bili && item.output"
+          v-if="item.status === 'completed' && item.type !== TaskType.biliUpload && item.output"
           :size="20"
           class="btn pointer"
           title="打开文件夹"
@@ -59,7 +59,7 @@
           <FolderOpenOutlined />
         </n-icon>
         <n-icon
-          v-if="item.status === 'completed' && item.type !== TaskType.bili && item.output"
+          v-if="item.status === 'completed' && item.type !== TaskType.biliUpload && item.output"
           :size="20"
           class="btn pointer"
           title="打开文件"

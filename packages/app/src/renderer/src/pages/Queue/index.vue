@@ -101,6 +101,10 @@ const typeOptions = ref([
     label: "B站上传",
   },
   {
+    value: TaskType.biliUpload,
+    label: "B站分P上传",
+  },
+  {
     value: TaskType.danmu,
     label: "弹幕转换",
   },

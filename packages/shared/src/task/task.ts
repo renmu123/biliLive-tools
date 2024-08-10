@@ -291,7 +291,7 @@ type WithoutPromise<T> = T extends Promise<infer U> ? U : T;
  */
 export class BiliPartVideoTask extends AbstractTask {
   command: WebVideoUploader;
-  type = TaskType.bili;
+  type = TaskType.biliUpload;
 
   constructor(
     command: WebVideoUploader,
