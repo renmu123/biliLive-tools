@@ -650,23 +650,21 @@ export class TaskQueue {
     if (autoRun) {
       task.exec();
     } else {
-      if (task.type === TaskType.ffmpeg || task.type === TaskType.douyuDownload) {
-        const config = appConfig.getAll();
+      const config = appConfig.getAll();
+      if (task.type === TaskType.ffmpeg) {
         const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
-        const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
-
         if (ffmpegMaxNum >= 0) {
           this.filter({ type: TaskType.ffmpeg, status: "running" }).length < ffmpegMaxNum &&
-            task.type === TaskType.ffmpeg &&
             task.exec();
         } else {
           task.exec();
         }
+      }
+      if (task.type === TaskType.douyuDownload) {
+        const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
         if (douyuDownloadMaxNum >= 0) {
           this.filter({ type: TaskType.douyuDownload, status: "running" }).length <
-            douyuDownloadMaxNum &&
-            task.type === TaskType.douyuDownload &&
-            task.exec();
+            douyuDownloadMaxNum && task.exec();
         } else {
           task.exec();
         }
