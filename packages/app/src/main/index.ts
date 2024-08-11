@@ -460,8 +460,6 @@ const appInit = async () => {
     ffprobePath: FFPROBE_PATH,
     danmakuFactoryPath: DANMUKUFACTORY_PATH,
     logPath: LOG_PATH,
-    downloadPath: app.getPath("downloads"),
-    taskQueue: taskQueue,
   };
   init(config);
   serverStart(

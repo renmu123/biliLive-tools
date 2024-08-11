@@ -1,4 +1,6 @@
 import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
 
 import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/types";
 import { defaultsDeep } from "lodash-es";
@@ -87,22 +89,6 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
     uploadHandleTime: ["00:00:00", "23:59:59"],
     limitUploadTime: false,
   },
-  // ffmpegPath: path.join(
-  //   path.dirname(app.getPath("exe")),
-  //   "resources",
-  //   "app.asar.unpacked",
-  //   "resources",
-  //   "bin",
-  //   "ffmpeg.exe",
-  // ),
-  // ffprobePath: path.join(
-  //   path.dirname(app.getPath("exe")),
-  //   "resources",
-  //   "app.asar.unpacked",
-  //   "resources",
-  //   "bin",
-  //   "ffprobe.exe",
-  // ),
   ffmpegPath: "",
   ffprobePath: "",
   danmuFactoryPath: "",
@@ -147,8 +133,7 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
       removeOrigin: false,
     },
     download: {
-      savePath: "",
-      // savePath: app.getPath("downloads"),
+      savePath: path.join(os.homedir(), "Downloads"),
     },
     translate: {
       presetId: undefined,

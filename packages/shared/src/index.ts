@@ -10,17 +10,11 @@ const init = (config: {
   ffprobePath: string;
   danmakuFactoryPath: string;
   logPath: string;
-  downloadPath: string;
 }) => {
   appConfig.init(config.configPath, {
     ffmpegPath: config.ffmpegPath,
     ffprobePath: config.ffprobePath,
     danmuFactoryPath: config.danmakuFactoryPath,
-    tool: {
-      download: {
-        savePath: config.downloadPath,
-      },
-    },
   });
 
   const logLevel = appConfig.get("logLevel");
