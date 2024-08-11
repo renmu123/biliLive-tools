@@ -128,7 +128,7 @@ describe("TaskQueue", () => {
         exec = vi.fn().mockImplementation(async () => {
           this.emitter.emit("task-start", { taskId: this.taskId });
           this.status = "running";
-          await sleep(200);
+          await sleep(50);
           this.status = "completed";
           this.emitter.emit("task-end", { taskId: this.taskId });
         });
@@ -144,7 +144,6 @@ describe("TaskQueue", () => {
         const task4 = new FFmpegTask();
         taskQueue.addTask(task1, false);
         taskQueue.addTask(task2, false);
-        await sleep(100);
         taskQueue.addTask(task3, false);
         taskQueue.addTask(task4, false);
         expect(task1.exec).toHaveBeenCalled();
@@ -181,13 +180,13 @@ describe("TaskQueue", () => {
         expect(task1.exec).toHaveBeenCalled();
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(220);
+        await sleep(70);
         expect(task3.exec).toHaveBeenCalled();
         expect(task1.status).toBe("completed");
         expect(task2.status).toBe("completed");
         expect(task3.status).toBe("running");
 
-        await sleep(200);
+        await sleep(50);
         expect(task3.status).toBe("completed");
       });
       it("should auto start after task-error event", async () => {
@@ -195,7 +194,7 @@ describe("TaskQueue", () => {
           type: string = TaskType.ffmpeg;
           exec = vi.fn().mockImplementation(async () => {
             this.status = "running";
-            await sleep(200);
+            await sleep(50);
             this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
             this.status = "error";
           });
@@ -213,14 +212,14 @@ describe("TaskQueue", () => {
         expect(task1.exec).toHaveBeenCalled();
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(220);
+        await sleep(70);
         expect(task3.exec).toHaveBeenCalled();
 
         expect(task1.status).toBe("error");
         expect(task2.status).toBe("error");
         expect(task3.status).toBe("running");
 
-        await sleep(200);
+        await sleep(50);
         expect(task3.status).toBe("error");
       });
 
@@ -229,7 +228,7 @@ describe("TaskQueue", () => {
           type: string = TaskType.ffmpeg;
           exec = vi.fn().mockImplementation(async () => {
             this.status = "running";
-            await sleep(200);
+            await sleep(50);
           });
           pause = vi.fn().mockImplementation(() => {
             this.status = "paused";
@@ -249,7 +248,7 @@ describe("TaskQueue", () => {
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
         task1.pause();
-        await sleep(210);
+        await sleep(60);
         expect(task3.exec).toHaveBeenCalled();
       });
     });
@@ -259,7 +258,7 @@ describe("TaskQueue", () => {
         exec = vi.fn().mockImplementation(async () => {
           this.emitter.emit("task-start", { taskId: this.taskId });
           this.status = "running";
-          await sleep(200);
+          await sleep(50);
           this.status = "completed";
           this.emitter.emit("task-end", { taskId: this.taskId });
         });
@@ -308,13 +307,13 @@ describe("TaskQueue", () => {
         expect(task1.exec).toHaveBeenCalled();
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(220);
+        await sleep(70);
         expect(task3.exec).toHaveBeenCalled();
         expect(task1.status).toBe("completed");
         expect(task2.status).toBe("completed");
         expect(task3.status).toBe("running");
 
-        await sleep(200);
+        await sleep(50);
         expect(task3.status).toBe("completed");
       });
       it("should auto start after task-error event", async () => {
@@ -322,7 +321,7 @@ describe("TaskQueue", () => {
           type: string = TaskType.douyuDownload;
           exec = vi.fn().mockImplementation(async () => {
             this.status = "running";
-            await sleep(200);
+            await sleep(50);
             this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
             this.status = "error";
           });
@@ -339,14 +338,14 @@ describe("TaskQueue", () => {
         expect(task1.exec).toHaveBeenCalled();
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(220);
+        await sleep(70);
         expect(task3.exec).toHaveBeenCalled();
 
         expect(task1.status).toBe("error");
         expect(task2.status).toBe("error");
         expect(task3.status).toBe("running");
 
-        await sleep(200);
+        await sleep(50);
         expect(task3.status).toBe("error");
       });
 
@@ -355,7 +354,7 @@ describe("TaskQueue", () => {
           type: string = TaskType.douyuDownload;
           exec = vi.fn().mockImplementation(async () => {
             this.status = "running";
-            await sleep(200);
+            await sleep(50);
           });
           pause = vi.fn().mockImplementation(() => {
             this.status = "paused";
@@ -375,7 +374,7 @@ describe("TaskQueue", () => {
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
         task1.pause();
-        await sleep(210);
+        await sleep(69);
         expect(task3.exec).toHaveBeenCalled();
       });
       it("should auto start after task-cancel event", async () => {
@@ -416,7 +415,7 @@ describe("TaskQueue", () => {
         exec = vi.fn().mockImplementation(async () => {
           this.emitter.emit("task-start", { taskId: this.taskId });
           this.status = "running";
-          await sleep(200);
+          await sleep(50);
           this.status = "completed";
           this.emitter.emit("task-end", { taskId: this.taskId });
         });
@@ -465,13 +464,13 @@ describe("TaskQueue", () => {
         expect(task1.exec).toHaveBeenCalled();
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(220);
+        await sleep(70);
         expect(task3.exec).toHaveBeenCalled();
         expect(task1.status).toBe("completed");
         expect(task2.status).toBe("completed");
         expect(task3.status).toBe("running");
 
-        await sleep(200);
+        await sleep(50);
         expect(task3.status).toBe("completed");
       });
       it("should auto start after task-error event", async () => {
@@ -479,7 +478,7 @@ describe("TaskQueue", () => {
           type: string = TaskType.biliUpload;
           exec = vi.fn().mockImplementation(async () => {
             this.status = "running";
-            await sleep(200);
+            await sleep(50);
             this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
             this.status = "error";
           });
@@ -496,7 +495,7 @@ describe("TaskQueue", () => {
         expect(task1.exec).toHaveBeenCalled();
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(220);
+        await sleep(70);
         expect(task3.exec).toHaveBeenCalled();
 
         expect(task1.status).toBe("error");
