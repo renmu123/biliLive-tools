@@ -279,7 +279,8 @@ export class FFmpegTask extends AbstractTask {
     }
     this.command.kill("SIGKILL");
     log.warn(`task ${this.taskId} killed`);
-    this.status = "canceled";
+    // 不需要额外触发error事件，因为ffmpeg会触发error事件，ffmpeg没有取消事件
+    this.status = "error";
     return true;
   }
 }
@@ -473,6 +474,7 @@ export class BiliVideoTask extends AbstractTask {
     }
     log.warn(`task ${this.taskId} killed`);
     this.status = "canceled";
+    this.emit("task-cancel", { taskId: this.taskId });
     return true;
   }
 }
@@ -674,6 +676,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
     log.warn(`task ${this.taskId} killed`);
     this.status = "canceled";
     this.command.cancel();
+    this.emit("task-cancel", { taskId: this.taskId });
     return true;
   }
 }
@@ -770,6 +773,7 @@ export class DouyuDownloadVideoTask extends AbstractTask {
     log.warn(`task ${this.taskId} killed`);
     this.status = "canceled";
     this.command.cancel();
+    this.emit("task-cancel", { taskId: this.taskId });
     return true;
   }
 }
@@ -777,11 +781,13 @@ export class DouyuDownloadVideoTask extends AbstractTask {
 export class TaskQueue {
   appConfig: AppConfig;
   queue: AbstractTask[];
-  emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
+  emitter = new TypedEmitter<TaskEvents>();
+  on: TypedEmitter<TaskEvents>["on"];
 
   constructor(appConfig: AppConfig) {
     this.queue = [];
     this.appConfig = appConfig;
+    this.on = this.emitter.on.bind(this.emitter);
     this.on("task-end", () => {
       this.addTaskForLimit();
     });
@@ -789,6 +795,9 @@ export class TaskQueue {
       this.addTaskForLimit();
     });
     this.on("task-pause", () => {
+      this.addTaskForLimit();
+    });
+    this.on("task-cancel", () => {
       this.addTaskForLimit();
     });
   }
@@ -810,6 +819,9 @@ export class TaskQueue {
     });
     task.emitter.on("task-resume", ({ taskId }) => {
       this.emitter.emit("task-resume", { taskId });
+    });
+    task.emitter.on("task-cancel", ({ taskId }) => {
+      this.emitter.emit("task-cancel", { taskId });
     });
 
     this.queue.push(task);
@@ -898,9 +910,6 @@ export class TaskQueue {
       this.queue.splice(index, 1);
     }
     task.emit("task-removed-queue", { taskId: task.taskId });
-  }
-  on(event: keyof TaskEvents, callback: (event: { taskId: string }) => void) {
-    this.emitter.on(event, callback);
   }
 
   taskLimit(maxNum: number, type: string) {

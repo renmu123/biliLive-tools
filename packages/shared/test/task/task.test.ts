@@ -137,7 +137,7 @@ describe("TaskQueue", () => {
         kill = vi.fn();
       }
 
-      it("should add with limit1", async () => {
+      it("should add with limit", async () => {
         const task1 = new FFmpegTask();
         const task2 = new FFmpegTask();
         const task3 = new FFmpegTask();
@@ -378,6 +378,37 @@ describe("TaskQueue", () => {
         await sleep(210);
         expect(task3.exec).toHaveBeenCalled();
       });
+      it("should auto start after task-cancel event", async () => {
+        class DouyuDownloadTask extends AbstractTask {
+          type: string = TaskType.douyuDownload;
+          exec = vi.fn().mockImplementation(async () => {
+            this.status = "running";
+            await sleep(50);
+          });
+          pause = vi.fn().mockImplementation(() => {
+            this.status = "paused";
+            this.emitter.emit("task-pause", { taskId: this.taskId });
+          });
+          resume = vi.fn();
+          kill = vi.fn();
+          cancel = vi.fn().mockImplementation(() => {
+            this.status = "canceled";
+            this.emitter.emit("task-cancel", { taskId: this.taskId });
+          });
+        }
+
+        const task1 = new DouyuDownloadTask();
+        const task2 = new DouyuDownloadTask();
+        const task3 = new DouyuDownloadTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+        task1.cancel();
+        expect(task3.exec).toHaveBeenCalled();
+      });
     });
     describe("BiliPartVideoTask", () => {
       class BiliPartVideoTask extends AbstractTask {
@@ -481,7 +512,7 @@ describe("TaskQueue", () => {
           type: string = TaskType.biliUpload;
           exec = vi.fn().mockImplementation(async () => {
             this.status = "running";
-            await sleep(200);
+            await sleep(50);
           });
           pause = vi.fn().mockImplementation(() => {
             this.status = "paused";
@@ -501,7 +532,38 @@ describe("TaskQueue", () => {
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
         task1.pause();
-        await sleep(210);
+        await sleep(60);
+        expect(task3.exec).toHaveBeenCalled();
+      });
+      it("should auto start after task-cancel event", async () => {
+        class BiliPartVideoTask extends AbstractTask {
+          type: string = TaskType.biliUpload;
+          exec = vi.fn().mockImplementation(async () => {
+            this.status = "running";
+            await sleep(50);
+          });
+          pause = vi.fn().mockImplementation(() => {
+            this.status = "paused";
+            this.emitter.emit("task-pause", { taskId: this.taskId });
+          });
+          resume = vi.fn();
+          kill = vi.fn();
+          cancel = vi.fn().mockImplementation(() => {
+            this.status = "canceled";
+            this.emitter.emit("task-cancel", { taskId: this.taskId });
+          });
+        }
+
+        const task1 = new BiliPartVideoTask();
+        const task2 = new BiliPartVideoTask();
+        const task3 = new BiliPartVideoTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).not.toHaveBeenCalled();
+        task1.cancel();
         expect(task3.exec).toHaveBeenCalled();
       });
     });
