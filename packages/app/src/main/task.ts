@@ -1,5 +1,4 @@
 import {
-  taskQueue,
   handleStartTask,
   handlePauseTask,
   handleResumeTask,
@@ -10,23 +9,6 @@ import {
   handleQueryTask,
 } from "@biliLive-tools/shared/task/task.js";
 import type { IpcMainInvokeEvent } from "electron";
-import { mainWin } from "./index";
-
-taskQueue.on("task-start", ({ taskId }) => {
-  mainWin.webContents.send("task-start", { taskId: taskId });
-});
-taskQueue.on("task-end", ({ taskId }) => {
-  mainWin.webContents.send("task-end", {
-    taskId: taskId,
-    output: taskQueue.queryTask(taskId)?.output,
-  });
-});
-taskQueue.on("task-error", ({ taskId }) => {
-  mainWin.webContents.send("task-error", { taskId: taskId });
-});
-taskQueue.on("task-progress", ({ taskId }) => {
-  mainWin.webContents.send("task-progress", { taskId: taskId });
-});
 
 export const handlers = {
   "task:start": (_event: IpcMainInvokeEvent, taskId: string) => {

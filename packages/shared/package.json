@@ -34,6 +34,7 @@
     "@renmu/fluent-ffmpeg": "2.2.1",
     "@renmu/m3u8-downloader": "^0.3.0",
     "ass-compiler": "^0.1.11",
+    "awilix": "^10.0.2",
     "douyu-cli": "^0.6.2",
     "fast-xml-parser": "^4.4.1",
     "lodash-es": "^4.17.21",

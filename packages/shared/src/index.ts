@@ -1,8 +1,14 @@
+import { createContainer, asValue } from "awilix";
+
 import { appConfig, AppConfig } from "./config.js";
 export * from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
+import { taskQueue, TaskQueue } from "./task/task.js";
+import { commentQueue, BiliCommentQueue } from "./task/bili.js";
 // import { initDB } from "./db/index.js";
+
+const container = createContainer();
 
 const init = (config: {
   configPath: string;
@@ -22,6 +28,14 @@ const init = (config: {
   setFfmpegPath();
 
   // initDB("danmu.db");
+
+  container.register({
+    appConfig: asValue(appConfig),
+    logger: asValue(console),
+    taskQueue: asValue(taskQueue),
+    commentQueue: asValue(commentQueue),
+  });
+  return container;
 };
 
-export { init, AppConfig, appConfig };
+export { init, AppConfig, appConfig, TaskQueue, BiliCommentQueue };

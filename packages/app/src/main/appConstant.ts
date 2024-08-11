@@ -38,6 +38,7 @@ export const getConfigPath = async () => {
     DANMU_PRESET_PATH,
     FFMPEG_PRESET_PATH,
     userDataPath,
+    LOG_PATH,
   };
 };
 

@@ -1,11 +1,5 @@
 import { Client, TvQrcodeLogin } from "@renmu/bili-api";
-import {
-  biliApi,
-  format,
-  writeUser,
-  readUser,
-  commentQueue,
-} from "@biliLive-tools/shared/task/bili.js";
+import { biliApi, format, writeUser, readUser } from "@biliLive-tools/shared/task/bili.js";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { BiliupConfig } from "@biliLive-tools/types";
@@ -14,7 +8,7 @@ type ClientInstance = InstanceType<typeof Client>;
 
 let tv: TvQrcodeLogin;
 
-export { commentQueue, biliApi };
+export { biliApi };
 
 const updateUserInfo = async (uid: number) => {
   const user = await readUser(uid);

@@ -4,16 +4,17 @@ import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net, nativeTheme } from "electron";
+import { createContainer } from "awilix";
+
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
-import { handlers as biliHandlers, commentQueue } from "./bili";
+import { handlers as biliHandlers } from "./bili";
 import log from "./utils/log";
 import { notify, invokeWrap } from "./utils/index";
 import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/task/video.js";
 import { danmuService } from "@biliLive-tools/shared/db/index.js";
-import { taskQueue } from "@biliLive-tools/shared/task/task.js";
-import { appConfig, init } from "@biliLive-tools/shared";
+import { init, AppConfig, TaskQueue, BiliCommentQueue } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 import { trashItem as _trashItem } from "@biliLive-tools/shared/utils/index.js";
 import Config from "@biliLive-tools/shared/utils/globalConfig.js";
@@ -36,6 +37,10 @@ import {
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
 import type { Theme } from "@biliLive-tools/types";
+import type { AwilixContainer } from "awilix";
+
+export let mainWin: BrowserWindow;
+export let container = createContainer();
 
 const WindowState = new Store<{
   winBounds: {
@@ -96,7 +101,6 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, douyuHandlers);
 };
 
-export let mainWin: BrowserWindow;
 function createWindow(): void {
   Object.assign(windowConfig, WindowState.get("winBounds"));
 
@@ -170,6 +174,8 @@ function createWindow(): void {
 
   // 触发关闭时触发
   mainWin.on("close", (event) => {
+    const appConfig = container.resolve<AppConfig>("appConfig");
+
     const closeToTray = appConfig.get("closeToTray");
     event.preventDefault();
 
@@ -182,6 +188,7 @@ function createWindow(): void {
   });
   // 窗口最小化
   mainWin.on("minimize", (event) => {
+    const appConfig = container.resolve<AppConfig>("appConfig");
     const minimizeToTray = appConfig.get("minimizeToTray");
     if (minimizeToTray) {
       event.preventDefault();
@@ -283,6 +290,8 @@ function createMenu(): void {
 }
 
 const canQuit = async () => {
+  const taskQueue = container.resolve<TaskQueue>("taskQueue");
+
   const tasks = taskQueue.list();
   const isRunning = tasks.some((task) => ["running", "paused", "pending"].includes(task.status));
   if (isRunning) {
@@ -374,6 +383,7 @@ if (!gotTheLock) {
   process.on("uncaughtException", function (error) {
     if (error.message.includes("listen EADDRINUSE")) {
       setTimeout(() => {
+        const appConfig = container.resolve<AppConfig>("appConfig");
         notify(mainWin.webContents, {
           type: "error",
           content: `检查是否有其他程序占用了${appConfig.get("port")}端口，请尝试更换端口或重启设备`,
@@ -461,7 +471,10 @@ const appInit = async () => {
     danmakuFactoryPath: DANMUKUFACTORY_PATH,
     logPath: LOG_PATH,
   };
-  init(config);
+  container = init(config);
+  const appConfig = container.resolve<AppConfig>("appConfig");
+  const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
+
   serverStart(
     {
       port: appConfig.get("port"),
@@ -477,6 +490,26 @@ const appInit = async () => {
   if (appConfig.get("autoUpdate")) {
     checkUpdate();
   }
+  taskQueueListen(container);
+};
+
+const taskQueueListen = (container: AwilixContainer) => {
+  const taskQueue = container.resolve<TaskQueue>("taskQueue");
+  taskQueue.on("task-start", ({ taskId }) => {
+    mainWin.webContents.send("task-start", { taskId: taskId });
+  });
+  taskQueue.on("task-end", ({ taskId }) => {
+    mainWin.webContents.send("task-end", {
+      taskId: taskId,
+      output: taskQueue.queryTask(taskId)?.output,
+    });
+  });
+  taskQueue.on("task-error", ({ taskId }) => {
+    mainWin.webContents.send("task-error", { taskId: taskId });
+  });
+  taskQueue.on("task-progress", ({ taskId }) => {
+    mainWin.webContents.send("task-progress", { taskId: taskId });
+  });
 };
 
 const openDirectory = async (

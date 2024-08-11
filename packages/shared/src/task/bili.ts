@@ -396,7 +396,7 @@ async function getTypeDesc(tid: number, uid: number) {
 }
 
 // b站评论队列
-class BiliCommentQueue {
+export class BiliCommentQueue {
   list: {
     uid: number;
     aid: number;
