@@ -966,6 +966,11 @@ export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) =>
         sendNotify(title, desp);
       }
       break;
+    case TaskType.biliUpload:
+      if (taskConfig.upload.includes(event)) {
+        sendNotify(title, desp);
+      }
+      break;
     case TaskType.bili:
       if (taskConfig.upload.includes(event)) {
         sendNotify(title, desp);
