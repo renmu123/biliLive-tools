@@ -224,6 +224,8 @@ export class FFmpegTask extends AbstractTask {
     });
   }
   exec() {
+    if (this.status !== "pending") console.warn("ffmpeg task is not pending when exec");
+
     this.status = "running";
     this.command.run();
   }
@@ -828,34 +830,30 @@ export class TaskQueue {
     if (autoRun) {
       task.exec();
     } else {
-      if (
-        task.type === TaskType.ffmpeg ||
-        task.type === TaskType.douyuDownload ||
-        task.type === TaskType.biliUpload
-      ) {
-        const config = this.appConfig.getAll();
-        const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
-        const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
-        const biliUploadMaxNum = config?.task?.biliUploadMaxNum ?? -1;
+      const config = this.appConfig.getAll();
 
+      if (task.type === TaskType.ffmpeg) {
+        const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
         if (ffmpegMaxNum >= 0) {
           this.filter({ type: TaskType.ffmpeg, status: "running" }).length < ffmpegMaxNum &&
-            task.type === TaskType.ffmpeg &&
             task.exec();
         } else {
           task.exec();
         }
+      }
+      if (task.type === TaskType.douyuDownload) {
+        const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
         if (douyuDownloadMaxNum >= 0) {
           this.filter({ type: TaskType.douyuDownload, status: "running" }).length <
-            douyuDownloadMaxNum &&
-            task.type === TaskType.douyuDownload &&
-            task.exec();
+            douyuDownloadMaxNum && task.exec();
         } else {
           task.exec();
         }
+      }
+      if (task.type === TaskType.biliUpload) {
+        const biliUploadMaxNum = config?.task?.biliUploadMaxNum ?? -1;
         if (biliUploadMaxNum >= 0) {
           this.filter({ type: TaskType.biliUpload, status: "running" }).length < biliUploadMaxNum &&
-            task.type === TaskType.biliUpload &&
             task.exec();
         } else {
           task.exec();
