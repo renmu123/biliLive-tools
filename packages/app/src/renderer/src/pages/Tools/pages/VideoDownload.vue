@@ -113,6 +113,7 @@ const handleDouyu = async (formatUrl: string) => {
           room_id: item.DATA.content.room_id,
           room_title: room_title,
           live_start_time: new Date(item.DATA.liveShow.starttime * 1000).toISOString(),
+          video_start_time: new Date(item.DATA.content.start_time * 1000).toISOString(),
           platform: "douyu",
           vid: item.ROOM.vid,
         };

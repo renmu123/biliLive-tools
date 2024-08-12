@@ -288,7 +288,7 @@ const danmuConfirm = async (config: DanmuConfig) => {
       input: tempXmlFile.value,
       output: uuid(),
     },
-    { saveRadio: 2, savePath: window.api.common.getTempPath(), removeOrigin: false },
+    { saveRadio: 2, savePath: await window.api.common.getTempPath(), removeOrigin: false },
     config,
   );
   // files.value.danmu = path;

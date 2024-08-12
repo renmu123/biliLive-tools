@@ -377,8 +377,9 @@ const convert = async () => {
  * 处理高能进度条
  */
 const genHotProgress = async (input: string, options: hotProgressOptions): Promise<string> => {
+  const tempPath = await window.api.common.getTempPath();
   return new Promise((resolve, reject) => {
-    const outputPath = `${window.path.join(window.api.common.getTempPath(), uuid())}.mp4`;
+    const outputPath = `${window.path.join(tempPath, uuid())}.mp4`;
     window.api.danmu.genHotProgress(input, outputPath, options).then((result: any) => {
       const taskId = result.taskId;
       window.api.task.on(taskId, "end", (data) => {
@@ -414,7 +415,7 @@ const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfi
       input: danmuFile.path,
       output: uuid(),
     },
-    { ...options, saveRadio: 2, savePath: window.api.common.getTempPath() },
+    { ...options, saveRadio: 2, savePath: await window.api.common.getTempPath() },
     danmuConfig,
   );
 

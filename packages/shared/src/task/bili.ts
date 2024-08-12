@@ -1,4 +1,5 @@
 import path from "node:path";
+import os from "node:os";
 
 import { Client, TvQrcodeLogin, WebVideoUploader } from "@renmu/bili-api";
 import { appConfig } from "../config.js";
@@ -82,7 +83,11 @@ async function getArchiveDetail(bvid: string, uid?: number) {
 async function download(options: { bvid: string; cid: number; output: string }, uid: number) {
   const client = await createClient(uid);
   const ffmpegBinPath = appConfig.get("ffmpegPath");
-  const command = await client.video.download({ ...options, ffmpegBinPath }, {});
+  const tmpPath = path.join(os.tmpdir(), "biliLive-tools");
+  const command = await client.video.download(
+    { ...options, ffmpegBinPath, cachePath: tmpPath },
+    {},
+  );
 
   const task = new BiliDownloadVideoTask(
     command,

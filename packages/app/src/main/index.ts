@@ -22,6 +22,7 @@ import Config from "@biliLive-tools/shared/utils/globalConfig.js";
 import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as danmuHandlers } from "./danmu";
+import { commonHandlers, getTempPath } from "./common";
 import { configHandlers, ffmpegHandlers, douyuHandlers } from "./handlers";
 import { handlers as notidyHandlers } from "./notify";
 import icon from "../../resources/icon.png?asset";
@@ -99,6 +100,7 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, configHandlers);
   registerHandlers(ipcMain, notidyHandlers);
   registerHandlers(ipcMain, douyuHandlers);
+  registerHandlers(ipcMain, commonHandlers);
 };
 
 function createWindow(): void {
@@ -322,6 +324,7 @@ const quit = async () => {
 
     const canQuited = await canQuit();
     if (canQuited) {
+      await fs.emptyDir(getTempPath());
       mainWin.destroy();
       app.quit();
     }
@@ -452,6 +455,8 @@ ipcMain.handle("db:addWithStreamer", async (_event, options: any) => {
 
 // 业务相关的初始化
 const appInit = async () => {
+  fs.ensureDir(getTempPath());
+
   process.env.BILILIVE_FFMPEG_PATH = FFMPEG_PATH;
   process.env.BILILIVE_FFPROBE_PATH = FFPROBE_PATH;
   process.env.BILILIVE_DANMUKUFACTORY_PATH = DANMUKUFACTORY_PATH;

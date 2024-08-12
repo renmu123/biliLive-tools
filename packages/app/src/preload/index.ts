@@ -1,5 +1,4 @@
 import path from "node:path";
-import os from "node:os";
 import fs from "fs-extra";
 
 import { contextBridge, ipcRenderer } from "electron";
@@ -232,8 +231,8 @@ export const api = {
     },
   },
   common: {
-    getTempPath: () => {
-      return os.tmpdir();
+    getTempPath: async () => {
+      return ipcRenderer.invoke("common:getTempPath");
     },
     deleteFile: (path: string) => {
       return fs.unlink(path);
