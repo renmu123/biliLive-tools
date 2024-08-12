@@ -650,8 +650,8 @@ export class TaskQueue {
     if (autoRun) {
       task.exec();
     } else {
-      const config = appConfig.getAll();
       if (task.type === TaskType.ffmpeg) {
+        const config = appConfig.getAll();
         const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
         if (ffmpegMaxNum >= 0) {
           this.filter({ type: TaskType.ffmpeg, status: "running" }).length < ffmpegMaxNum &&
@@ -661,6 +661,7 @@ export class TaskQueue {
         }
       }
       if (task.type === TaskType.douyuDownload) {
+        const config = appConfig.getAll();
         const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
         if (douyuDownloadMaxNum >= 0) {
           this.filter({ type: TaskType.douyuDownload, status: "running" }).length <
