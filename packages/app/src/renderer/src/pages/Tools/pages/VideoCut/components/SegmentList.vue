@@ -298,6 +298,7 @@ const addCut = (iOptions: { start?: number; end?: number; name?: string } = {}) 
     },
     iOptions,
   );
+  if (options.end) options.end = Math.min(options.end, videoInstance.value.duration);
   addSegment(options);
 
   selectCutIndex.value = cuts.value.length - 1;
@@ -386,8 +387,13 @@ const searchDanmuVisible = ref(false);
  * 搜索弹幕
  */
 const searchDanmu = () => {
-  console.log(props.files.originDanmuPath);
-  if (!props.files.originDanmuPath) return;
+  if (!props.files.originDanmuPath) {
+    notice.warning({
+      title: "请先导入弹幕",
+      duration: 1000,
+    });
+    return;
+  }
   if (!props.files.originDanmuPath.endsWith(".xml")) {
     notice.warning({
       title: "仅支持xml格式弹幕",

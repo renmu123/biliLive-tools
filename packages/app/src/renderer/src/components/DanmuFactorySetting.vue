@@ -246,14 +246,12 @@
     </div>
 
     <div class="card">
-      <h2 title="非DanmakuFactory实现的功能">其他</h2>
+      <h2>其他</h2>
       <n-form-item style="width: 100%">
         <template #label>
           <span class="inline-flex">
             <span>屏蔽词</span>
-            <Tip
-              tip="内容以英文逗号分隔，此功能正在测试，如果出现开启后无法转换的情况请反馈，针对大型xml文件，会额外增加处理时间"
-            ></Tip>
+            <Tip tip="内容以英文逗号分隔，此功能正在测试，如果出现开启后无法转换的情况请反馈"></Tip>
           </span>
         </template>
         <n-input
