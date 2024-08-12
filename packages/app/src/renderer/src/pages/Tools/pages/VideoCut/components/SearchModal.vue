@@ -81,8 +81,7 @@ const list = computed(() => props.danmaList);
 const loading = ref(false);
 
 const handleOpen = async () => {
-  // open
-  displayList.value = list.value;
+  getDisplayList();
 };
 const search = async () => {
   if (!form.value) return;
@@ -92,30 +91,34 @@ const displayList = ref<DanmuItem[]>([]);
 watchThrottled(
   () => form,
   async () => {
-    let data = list.value;
-    if (form.sc) {
-      data = list.value.filter((item) => item.type === "sc");
-    }
-
-    if (!form.value) {
-      displayList.value = data;
-    } else {
-      {
-        displayList.value = data.filter((item) => {
-          if (form.content === "content") {
-            if (!item.text) return false;
-            console.log(item.text, form.value);
-            return item.text.includes(form.value);
-          } else {
-            if (!item.user) return false;
-            return item.user.includes(form.value);
-          }
-        });
-      }
-    }
+    getDisplayList();
   },
   { throttle: 500, deep: true },
 );
+
+const getDisplayList = () => {
+  let data = list.value;
+  if (form.sc) {
+    data = list.value.filter((item) => item.type === "sc");
+  }
+
+  if (!form.value) {
+    displayList.value = data;
+  } else {
+    {
+      displayList.value = data.filter((item) => {
+        if (form.content === "content") {
+          if (!item.text) return false;
+          console.log(item.text, form.value);
+          return item.text.includes(form.value);
+        } else {
+          if (!item.user) return false;
+          return item.user.includes(form.value);
+        }
+      });
+    }
+  }
+};
 
 // const displayList = computed(() => {
 //   let data = list.value;
@@ -138,8 +141,8 @@ watchThrottled(
 
 const addSegment = (item: DanmuItem) => {
   emits("add-segment", {
-    start: 0,
-    end: item.ts,
+    start: item.ts,
+    end: item.ts + 60,
     name: item.text,
   });
   notice.success({
