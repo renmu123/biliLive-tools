@@ -7,6 +7,7 @@ import douyu from "@biliLive-tools/shared/task/douyu.js";
 import JSZip from "jszip";
 import { getConfigPath, FFMPEG_PATH, DANMUKUFACTORY_PATH, FFPROBE_PATH } from "./appConstant";
 import { invokeWrap } from "./utils/index";
+import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/task/video.js";
 
 import type { AppConfig, FfmpegPreset as FfmpegPresetType } from "@biliLive-tools/types";
 import type { IpcMainInvokeEvent } from "electron";
@@ -141,6 +142,8 @@ export const ffmpegHandlers = {
       taskId: task.taskId,
     };
   },
+  getAvailableEncoders: getAvailableEncoders,
+  readVideoMeta: invokeWrap(readVideoMeta),
 };
 
 export const douyuHandlers = {

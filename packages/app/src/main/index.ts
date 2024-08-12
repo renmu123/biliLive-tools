@@ -1,5 +1,4 @@
 import { join } from "node:path";
-import child_process from "node:child_process";
 import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
@@ -9,16 +8,14 @@ import { createContainer } from "awilix";
 import installExtension from "electron-devtools-installer";
 import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
-import { handlers as biliHandlers } from "./bili";
 import log from "./utils/log";
-import { notify, invokeWrap } from "./utils/index";
-import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/task/video.js";
+import { notify } from "./utils/index";
 import { danmuService } from "@biliLive-tools/shared/db/index.js";
 import { init, AppConfig, TaskQueue, BiliCommentQueue } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
-import { trashItem as _trashItem } from "@biliLive-tools/shared/utils/index.js";
 import Config from "@biliLive-tools/shared/utils/globalConfig.js";
 
+import { handlers as biliHandlers } from "./bili";
 import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as danmuHandlers } from "./danmu";
@@ -77,20 +74,9 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("dialog:openDirectory", openDirectory);
   ipcMain.handle("dialog:openFile", openFile);
   ipcMain.handle("dialog:save", saveDialog);
-  ipcMain.handle("getVersion", getVersion);
-  ipcMain.handle("openExternal", openExternal);
-  ipcMain.handle("openPath", openPath);
-  ipcMain.handle("exits", exits);
-  ipcMain.handle("trashItem", trashItem);
   ipcMain.handle("common:relaunch", relaunch);
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
-  ipcMain.handle("common:showItemInFolder", showItemInFolder);
   ipcMain.handle("common:setTheme", setTheme);
-  ipcMain.handle("common:execFile", execFile);
-
-  // 视频处理
-  ipcMain.handle("getAvailableEncoders", getAvailableEncoders);
-  ipcMain.handle("readVideoMeta", invokeWrap(readVideoMeta));
 
   registerHandlers(ipcMain, biliupHandlers);
   registerHandlers(ipcMain, biliHandlers);
@@ -349,10 +335,6 @@ export const setOpenAtLogin = (_event: IpcMainInvokeEvent, openAtLogin: boolean)
   });
 };
 
-const showItemInFolder = async (_event: IpcMainInvokeEvent, path: string) => {
-  shell.showItemInFolder(path);
-};
-
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
@@ -561,40 +543,8 @@ const saveDialog = async (_event: IpcMainInvokeEvent, options: SaveDialogOptions
   }
 };
 
-const getVersion = () => {
-  return app.getVersion();
-};
-
-const openExternal = (_event: IpcMainInvokeEvent, url: string) => {
-  shell.openExternal(url);
-};
-
-const openPath = (_event: IpcMainInvokeEvent, path: string) => {
-  shell.openPath(path);
-};
-
-const exits = (_event: IpcMainInvokeEvent, path: string) => {
-  return fs.pathExists(path);
-};
-
-const trashItem = (_event: IpcMainInvokeEvent, path: string) => {
-  return _trashItem(path);
-};
-
 const setTheme = (_event: IpcMainInvokeEvent, theme: Theme) => {
   nativeTheme.themeSource = theme;
-};
-
-const execFile = async (_event: IpcMainInvokeEvent, file: string, args: string[]) => {
-  return new Promise((resolve, reject) => {
-    child_process.execFile(file, args, (error, stdout) => {
-      if (error) {
-        reject(error);
-      } else {
-        resolve(stdout);
-      }
-    });
-  });
 };
 
 const checkUpdate = async () => {
