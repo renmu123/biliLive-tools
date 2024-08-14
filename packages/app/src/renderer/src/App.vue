@@ -16,12 +16,25 @@
             >
               <n-menu
                 v-model:value="activeKey"
+                class="main-menu"
                 :collapsed="collapsed"
                 :collapsed-width="64"
                 :collapsed-icon-size="22"
                 :options="menuOptions"
                 default-expand-all
               />
+
+              <n-layout-footer position="absolute">
+                <n-menu
+                  v-model:value="activeKey"
+                  style="z-index: 10; background: white"
+                  :collapsed="collapsed"
+                  :collapsed-width="64"
+                  :collapsed-icon-size="22"
+                  :options="footerMenuOptions"
+                  default-expand-all
+                />
+              </n-layout-footer>
             </n-layout-sider>
 
             <n-layout class="main-container">
@@ -52,6 +65,7 @@ import {
   HomeOutline as HomeIcon,
   InformationCircleOutline as InfoIcon,
   GitPullRequestOutline as QueueIcon,
+  SettingsOutline as SettingIcon,
 } from "@vicons/ionicons5";
 import defaultUserAvatar from "./assets/images/moehime.jpg";
 import AppSettingDialog from "./pages/setting/index.vue";
@@ -102,6 +116,25 @@ function renderImg(src: string) {
   return () =>
     h("img", { src, style: { height: "30px", width: "30px" }, referrerpolicy: "no-referrer" });
 }
+
+const footerMenuOptions = computed<MenuOption[]>(() => {
+  return [
+    {
+      label: () =>
+        h(
+          "a",
+          {
+            onClick: () => {
+              settingVisible.value = true;
+            },
+          },
+          { default: () => "设置" },
+        ),
+      key: "setting",
+      icon: renderIcon(SettingIcon),
+    },
+  ];
+});
 
 const menuOptions = computed<MenuOption[]>(() => {
   return [
@@ -308,5 +341,8 @@ initChanglog();
   & > .n-layout-scroll-container {
     padding-right: 10px;
   }
+}
+.main-menu {
+  margin-bottom: 50px;
 }
 </style>
