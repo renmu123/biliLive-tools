@@ -284,20 +284,6 @@
   <n-form-item>
     <template #label>
       <span class="inline-flex">
-        使用视频文件名 <Tip tip="使用本地视频文件名作为视频标题"></Tip>
-      </span>
-    </template>
-    <n-switch v-model:value="data.useVideoAsTitle" :disabled="globalFieldsObj.useVideoAsTitle" />
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.useVideoAsTitle"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-  <n-form-item>
-    <template #label>
-      <span class="inline-flex">
         使用直播封面
         <Tip
           tip="使用直播封面作为视频封面，默认寻找视频目录下文件名为'视频文件名+.cover.jpg|.jpg的文件"
@@ -306,6 +292,20 @@
     </template>
     <n-switch v-model:value="data.useLiveCover" :disabled="globalFieldsObj.useLiveCover" />
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.useLiveCover" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex">
+        使用视频文件名 <Tip tip="使用本地视频文件名作为视频标题"></Tip>
+      </span>
+    </template>
+    <n-switch v-model:value="data.useVideoAsTitle" :disabled="globalFieldsObj.useVideoAsTitle" />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.useVideoAsTitle"
+      class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
@@ -462,7 +462,7 @@ const titleList = ref([
 ]);
 const titleTip = computed(() => {
   const base = `支持{{title}},{{user}},{{now}}等占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}<br/>
-  不要在直播开始后修改字段，本场直播不会生效<br/>`;
+  不要在直播开始后修改字段，本场直播不会生效，更多高级用法见文档<br/>`;
   return titleList.value
     .map((item) => {
       return `${item.label}：${item.value}<br/>`;

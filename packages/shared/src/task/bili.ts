@@ -291,7 +291,7 @@ async function addMedia(
       {},
     );
 
-    taskQueue.addTask(task, true);
+    taskQueue.addTask(task, false);
     pTask.addTask(task);
   }
   taskQueue.addTask(pTask, true);
@@ -338,7 +338,7 @@ export async function editMedia(
       {},
     );
 
-    taskQueue.addTask(task, true);
+    taskQueue.addTask(task, false);
     pTask.addTask(task);
   }
   taskQueue.addTask(pTask, true);

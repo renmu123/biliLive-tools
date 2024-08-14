@@ -144,6 +144,23 @@ curl --location 'http://127.0.0.1:18010/webhook/custom' \
 
 # 常见问题
 
+## Webhook标题模板引擎如何使用
+
+1.5.0起 Webhook 标题支持[ejs模板引擎](https://github.com/mde/ejs)，具体语法参考文档，**如果标题超过80字，会被自动截断**，会优先执行模板引擎，之后会对`{{}}`占位符进行替换，如果有语法错误，会被跳过，优先保证上传。
+
+```ts
+// 以下为支持注入的参数
+{
+  title: string; // 直播间标题
+  user: string; // 主播名称
+  time: Date; // 直播开始时间
+  roomId: number | string; // 房间号
+}
+```
+
+示例：`<%= user %>-<%= time.getFullYear() %><%= String(time.getMonth() + 1).padStart(2, "0") %>直播录像`
+渲染结果：`djw-202408直播录像`
+
 ## 压制预设如何设置
 
 ~~我也不知道~~  
