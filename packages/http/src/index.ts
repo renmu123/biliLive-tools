@@ -10,6 +10,7 @@ import errorMiddleware from "./middleware/error.js";
 import webhookRouter from "./routes/webhook.js";
 import configRouter from "./routes/config.js";
 import llmRouter from "./routes/llm.js";
+import commonRouter from "./routes/common.js";
 import { WebhookHandler } from "./services/webhook.js";
 
 export let config: Config = new Config();
@@ -20,7 +21,7 @@ const app = new Koa();
 const router = new Router();
 
 router.get("/", async (ctx) => {
-  ctx.body = "Hello World11";
+  ctx.body = "Hello World";
 });
 
 app.use(errorMiddleware);
@@ -30,6 +31,7 @@ app.use(router.routes());
 app.use(webhookRouter.routes());
 app.use(configRouter.routes());
 app.use(llmRouter.routes());
+app.use(commonRouter.routes());
 
 export function serverStart(
   options: {

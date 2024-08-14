@@ -319,7 +319,9 @@
       clearable
       :disabled="globalFieldsObj.title"
       style="margin-right: 10px"
+      spellcheck="false"
     />
+    <n-button style="margin-right: 10px" @click="previewTitle(data.title)">预览</n-button>
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.title" class="global-checkbox"
       >全局</n-checkbox
     >
@@ -379,6 +381,7 @@
 
 <script setup lang="ts">
 import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
+import { previewWebhookTitle } from "@renderer/apis/common";
 
 import type { AppRoomConfig } from "@biliLive-tools/types";
 
@@ -407,6 +410,7 @@ const globalFieldsObj = defineModel<{
   default: () => {},
 });
 
+const notice = useNotification();
 const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());
 const { userList } = storeToRefs(useUserInfoStore());
 const userOptins = computed(() => {
@@ -490,6 +494,14 @@ watch(
     deep: true,
   },
 );
+
+const previewTitle = async (template: string) => {
+  const data = await previewWebhookTitle(template);
+  notice.warning({
+    title: data,
+    duration: 3000,
+  });
+};
 </script>
 
 <style scoped lang="less">
