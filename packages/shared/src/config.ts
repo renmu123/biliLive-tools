@@ -188,6 +188,12 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
     },
   },
   llmPresets: [],
+  biliUpload: {
+    line: "auto",
+    concurrency: 3,
+    retryTimes: 3,
+    retryDelay: 2000,
+  },
 };
 
 export class AppConfig extends Config {

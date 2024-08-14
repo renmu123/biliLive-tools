@@ -659,19 +659,27 @@ export class WebhookHandler {
   ) => {
     return new Promise((resolve, reject) => {
       log.debug("addUploadTask", uid, pathArray, options, removeOrigin);
-      biliApi.addMedia(pathArray, options, uid).then((task) => {
-        task.on("task-end", () => {
-          if (removeOrigin) {
-            pathArray.map((item) => {
-              trashItem(item);
-            });
-          }
-          resolve(task.output);
-        });
-        task.on("task-error", () => {
+      biliApi
+        .addMedia(pathArray, options, uid)
+        .then((task) => {
+          task.on("task-end", () => {
+            if (removeOrigin) {
+              pathArray.map((item) => {
+                trashItem(item);
+              });
+            }
+            resolve(task.output);
+          });
+          task.on("task-error", () => {
+            reject();
+          });
+          task.on("task-cancel", () => {
+            reject();
+          });
+        })
+        .catch(() => {
           reject();
         });
-      });
     });
   };
 
@@ -683,19 +691,27 @@ export class WebhookHandler {
   ) => {
     return new Promise((resolve, reject) => {
       log.debug("editUploadTask", uid, pathArray, removeOrigin);
-      biliApi.editMedia(aid, pathArray, {}, uid).then((task) => {
-        task.on("task-end", () => {
-          if (removeOrigin) {
-            pathArray.map((item) => {
-              trashItem(item);
-            });
-          }
-          resolve(task.output);
-        });
-        task.on("task-error", () => {
+      biliApi
+        .editMedia(aid, pathArray, {}, uid)
+        .then((task) => {
+          task.on("task-end", () => {
+            if (removeOrigin) {
+              pathArray.map((item) => {
+                trashItem(item);
+              });
+            }
+            resolve(task.output);
+          });
+          task.on("task-error", () => {
+            reject();
+          });
+          task.on("task-cancel", () => {
+            reject();
+          });
+        })
+        .catch(() => {
           reject();
         });
-      });
     });
   };
 

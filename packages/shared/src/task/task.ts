@@ -2,7 +2,7 @@ import EventEmitter from "node:events";
 import { createRequire } from "node:module";
 import { TypedEmitter } from "tiny-typed-emitter";
 
-import { uuid, isWin32 } from "../utils/index.js";
+import { uuid, isWin32, retry } from "../utils/index.js";
 import log from "../utils/log.js";
 import { Danmu } from "../danmu/index.js";
 import { sendNotify } from "../notify.js";
@@ -24,7 +24,7 @@ interface TaskEvents {
   "task-progress": ({ taskId }: { taskId: string }) => void;
   "task-pause": ({ taskId }: { taskId: string }) => void;
   "task-resume": ({ taskId }: { taskId: string }) => void;
-  "task-cancel": ({ taskId }: { taskId: string }) => void;
+  "task-cancel": ({ taskId }: { taskId: string; autoStart: boolean }) => void;
   "task-removed-queue": ({ taskId }: { taskId: string }) => void;
   [key: string]: (...args: any[]) => void;
 }
@@ -373,13 +373,13 @@ export class BiliPartVideoTask extends AbstractTask {
     this.emitter.emit("task-resume", { taskId: this.taskId });
     return true;
   }
-  kill() {
+  kill(triggerAutoStart = true) {
     if (this.status === "completed" || this.status === "error" || this.status === "canceled")
       return;
     log.warn(`task ${this.taskId} killed`);
     this.status = "canceled";
     this.command.cancel();
-    this.emit("task-cancel", { taskId: this.taskId });
+    this.emit("task-cancel", { taskId: this.taskId, autoStart: triggerAutoStart });
     return true;
   }
 }
@@ -438,9 +438,21 @@ export class BiliVideoTask extends AbstractTask {
     task.on("task-cancel", ({ taskId }) => {
       this.removeTask(taskId);
     });
-    // task.on("task-removed-queue", ({ taskId }) => {
-    //   this.removeTask(taskId);
-    // });
+    task.on("task-error", ({ taskId }) => {
+      console.log("task-error", taskId);
+      const submitWhenError = false;
+      if (submitWhenError) {
+        // 在有上传失败的情况下，仍继续提交
+      } else {
+        this.cancelAllTask();
+        this.status = "error";
+        this.emit("task-error", { taskId: this.taskId, error: "上传失败" });
+      }
+      // this.removeTask(taskId);
+    });
+    task.on("task-removed-queue", ({ taskId }) => {
+      this.removeTask(taskId);
+    });
   }
   removeTask(taskId: string) {
     const task = this.taskList.find((task) => task.taskId === taskId);
@@ -451,8 +463,9 @@ export class BiliVideoTask extends AbstractTask {
     }
     if (this.taskList.length === 0) {
       this.status = "error";
+      this.emit("task-error", { taskId: this.taskId, error: "上传失败" });
     }
-    if (this.completedTask === this.taskList.length) {
+    if (this.taskList.length >= this.completedTask) {
       this.emit("completed");
     }
   }
@@ -468,15 +481,23 @@ export class BiliVideoTask extends AbstractTask {
     if (this.status !== "paused") return;
     return true;
   }
+  cancelAllTask() {
+    const taskIds = this.taskList.map((task) => task.taskId);
+    for (const taskId of taskIds) {
+      const task = this.taskList.find((task) => task.taskId === taskId);
+      if (task) {
+        task.kill(false);
+      }
+    }
+  }
   kill() {
     if (this.status === "completed" || this.status === "error" || this.status === "canceled")
       return;
-    for (const task of this.taskList) {
-      task.kill();
-    }
-    log.warn(`task ${this.taskId} killed`);
+    this.cancelAllTask();
+
+    log.warn(`task ${this.taskId} canceled`);
     this.status = "canceled";
-    this.emit("task-cancel", { taskId: this.taskId });
+    this.emit("task-cancel", { taskId: this.taskId, autoStart: true });
     return true;
   }
 }
@@ -515,7 +536,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
       });
     if (parts.length === 0) return;
 
-    const data = await addMediaApi(this.uid, parts, this.mediaOptions);
+    const data = await retry(() => addMediaApi(this.uid, parts, this.mediaOptions));
     this.status = "completed";
     this.progress = 100;
     this.callback.onEnd && this.callback.onEnd(data);
@@ -556,7 +577,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
       });
     if (parts.length === 0) return;
 
-    const data = await editMediaApi(this.uid, this.aid, parts, this.mediaOptions);
+    const data = await retry(() => editMediaApi(this.uid, this.aid, parts, this.mediaOptions));
     this.status = "completed";
     this.progress = 100;
     this.callback.onEnd && this.callback.onEnd(data);
@@ -678,7 +699,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
     log.warn(`task ${this.taskId} killed`);
     this.status = "canceled";
     this.command.cancel();
-    this.emit("task-cancel", { taskId: this.taskId });
+    this.emit("task-cancel", { taskId: this.taskId, autoStart: true });
     return true;
   }
 }
@@ -775,7 +796,7 @@ export class DouyuDownloadVideoTask extends AbstractTask {
     log.warn(`task ${this.taskId} killed`);
     this.status = "canceled";
     this.command.cancel();
-    this.emit("task-cancel", { taskId: this.taskId });
+    this.emit("task-cancel", { taskId: this.taskId, autoStart: true });
     return true;
   }
 }
@@ -799,8 +820,8 @@ export class TaskQueue {
     this.on("task-pause", () => {
       this.addTaskForLimit();
     });
-    this.on("task-cancel", () => {
-      this.addTaskForLimit();
+    this.on("task-cancel", ({ autoStart }) => {
+      if (autoStart) this.addTaskForLimit();
     });
   }
   addTask(task: AbstractTask, autoRun = true) {
@@ -822,8 +843,8 @@ export class TaskQueue {
     task.emitter.on("task-resume", ({ taskId }) => {
       this.emitter.emit("task-resume", { taskId });
     });
-    task.emitter.on("task-cancel", ({ taskId }) => {
-      this.emitter.emit("task-cancel", { taskId });
+    task.emitter.on("task-cancel", ({ taskId, autoStart }) => {
+      this.emitter.emit("task-cancel", { taskId, autoStart });
     });
 
     this.queue.push(task);
@@ -928,6 +949,8 @@ export class TaskQueue {
     }
   }
   addTaskForLimit = () => {
+    console.log("addTaskForLimit");
+
     const config = this.appConfig.getAll();
 
     // ffmpeg任务

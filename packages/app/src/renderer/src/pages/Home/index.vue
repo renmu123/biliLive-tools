@@ -29,8 +29,8 @@
                   <n-radio :value="false"> 跳过存在文件 </n-radio>
                 </n-space>
               </n-radio-group> -->
-            <n-checkbox v-model:checked="clientOptions.removeOrigin"> 完成后移除源文件 </n-checkbox>
-            <n-checkbox v-model:checked="clientOptions.openFolder"> 完成后打开文件夹 </n-checkbox>
+            <!-- <n-checkbox v-model:checked="clientOptions.removeOrigin"> 完成后移除源文件 </n-checkbox>
+            <n-checkbox v-model:checked="clientOptions.openFolder"> 完成后打开文件夹 </n-checkbox> -->
             <n-checkbox v-model:checked="clientOptions.hotProgress"> 高能进度条 </n-checkbox>
             <n-checkbox v-model:checked="clientOptions.autoUpload"> 完成后自动上传 </n-checkbox>
             <template v-if="clientOptions.autoUpload">
@@ -350,13 +350,13 @@ const convert = async () => {
     await upload(output, rawPresetOptions, rawAid);
   }
 
-  if (rawClientOptions.removeOrigin) {
-    window.api.trashItem(inputVideoFile.path);
-    window.api.trashItem(rawInputDanmuFile.path);
-  }
-  if (rawClientOptions.openFolder) {
-    window.api.common.showItemInFolder(outputPath);
-  }
+  // if (rawClientOptions.removeOrigin) {
+  //   window.api.trashItem(inputVideoFile.path);
+  //   window.api.trashItem(rawInputDanmuFile.path);
+  // }
+  // if (rawClientOptions.openFolder) {
+  //   window.api.common.showItemInFolder(outputPath);
+  // }
   return true;
 };
 

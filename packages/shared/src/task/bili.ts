@@ -275,12 +275,14 @@ async function addMedia(
     },
   );
 
+  const config = appConfig.getAll();
+  const uploadOptions = config.biliUpload;
   for (const item of filePath) {
     const part = {
       path: typeof item === "string" ? item : item.path,
       title: typeof item === "string" ? path.parse(item).name : item.title,
     };
-    const uploader = new WebVideoUploader(part, client.auth);
+    const uploader = new WebVideoUploader(part, client.auth, uploadOptions);
 
     const task = new BiliPartVideoTask(
       uploader,
@@ -322,12 +324,14 @@ export async function editMedia(
     {},
   );
 
+  const config = appConfig.getAll();
+  const uploadOptions = config.biliUpload;
   for (const item of filePath) {
     const part = {
       path: typeof item === "string" ? item : item.path,
       title: typeof item === "string" ? path.parse(item).name : item.title,
     };
-    const uploader = new WebVideoUploader(part, client.auth);
+    const uploader = new WebVideoUploader(part, client.auth, uploadOptions);
 
     const task = new BiliPartVideoTask(
       uploader,

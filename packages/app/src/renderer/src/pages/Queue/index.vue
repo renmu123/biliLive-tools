@@ -130,6 +130,13 @@ const selectedStatus = ref<string[]>([
 const handleRemoveEndTasks = async () => {
   for (const item of queue.value) {
     if (item.status === "completed" || item.status === "canceled") {
+      // 如果任务有pid，那么判断pid对应的任务未被完成或取消，那么不删除
+      if (item.pid) {
+        const pTask = queue.value.find((i) => i.taskId === item.pid);
+        if (pTask && !["completed", "canceled"].includes(pTask.status)) {
+          continue;
+        }
+      }
       await window.api.task.remove(item.taskId);
     }
   }
@@ -157,7 +164,7 @@ setInterval(() => {
     padding-top: 0;
 
     .sub-item {
-      margin-left: 30px;
+      margin-left: 15px;
     }
   }
 }

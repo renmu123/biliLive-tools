@@ -47,7 +47,7 @@
             <n-radio :value="false"> 跳过存在文件 </n-radio>
           </n-space>
         </n-radio-group>
-        <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
+        <!-- <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox> -->
       </div>
     </div>
   </div>

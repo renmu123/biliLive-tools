@@ -1,3 +1,5 @@
+import type { Line } from "@renmu/bili-api";
+
 // 弹幕配置
 export type DanmuConfig = {
   resolution: [number, number];
@@ -310,6 +312,17 @@ export interface AppConfig {
     ffmpegMaxNum: number;
     douyuDownloadMaxNum: number;
     biliUploadMaxNum: number;
+  };
+  /** 上传配置 */
+  biliUpload: {
+    /** 线路 */
+    line: Line;
+    /** 上传重试次数 */
+    retryTimes: number;
+    /** 上传超时时间 */
+    retryDelay: number;
+    /** 并发 */
+    concurrency: number;
   };
 }
 

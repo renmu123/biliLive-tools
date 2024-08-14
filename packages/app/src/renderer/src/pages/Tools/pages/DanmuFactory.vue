@@ -43,11 +43,11 @@
           </n-icon>
         </n-space>
       </n-radio-group>
-      <div style="margin-top: 10px">
+      <!-- <div style="margin-top: 10px">
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
 
         <n-checkbox v-model:checked="options.openFolder"> 完成后打开文件夹 </n-checkbox>
-      </div>
+      </div> -->
     </div>
     <DanmuFactorySettingDailog
       v-model:visible="show"
@@ -136,16 +136,16 @@ const convert = async () => {
     }
   }
 
-  const dir = window.api.formatFile(deepRaw(fileList.value[0]).path).dir;
+  // const dir = window.api.formatFile(deepRaw(fileList.value[0]).path).dir;
   fileList.value = [];
 
-  if (options.openFolder) {
-    if (options.saveRadio === 2) {
-      window.api.openPath(deepRaw(options).savePath as string);
-    } else {
-      window.api.openPath(dir);
-    }
-  }
+  // if (options.openFolder) {
+  //   if (options.saveRadio === 2) {
+  //     window.api.openPath(deepRaw(options).savePath as string);
+  //   } else {
+  //     window.api.openPath(dir);
+  //   }
+  // }
 };
 
 const show = ref(false);
