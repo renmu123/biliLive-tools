@@ -359,5 +359,8 @@ initChanglog();
   position: relative;
   z-index: 10;
   background: white;
+  @media screen and (prefers-color-scheme: dark) {
+    background: #18181c;
+  }
 }
 </style>

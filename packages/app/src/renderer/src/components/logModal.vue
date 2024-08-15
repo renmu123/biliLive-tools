@@ -22,16 +22,13 @@ async function streamLogs() {
   eventSource = await getStreamLogs();
 
   eventSource.onmessage = function (event) {
-    console.log("event.data");
     logs.value += event.data;
     nextTick(() => {
-      console.log("scrollTo", logInst.value);
       logInst.value?.scrollTo({ position: "bottom", silent: true });
     });
   };
 
   eventSource.onerror = function () {
-    console.log("error");
     logs.value = "";
   };
 }
