@@ -124,6 +124,20 @@ const footerMenuOptions = computed<MenuOption[]>(() => {
     {
       label: () =>
         h(
+          RouterLink,
+          {
+            to: {
+              name: "About",
+            },
+          },
+          { default: () => "关于" },
+        ),
+      key: "about",
+      icon: renderIcon(InfoIcon),
+    },
+    {
+      label: () =>
+        h(
           "a",
           {
             onClick: () => {
@@ -267,20 +281,6 @@ const menuOptions = computed<MenuOption[]>(() => {
       key: "biliUser",
       icon: renderImg(userInfo.value?.profile?.face || defaultUserAvatar),
     },
-    {
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: "About",
-            },
-          },
-          { default: () => "关于" },
-        ),
-      key: "about",
-      icon: renderIcon(InfoIcon),
-    },
   ];
 });
 
@@ -353,7 +353,7 @@ initChanglog();
   }
 }
 .main-menu {
-  margin-bottom: 50px;
+  margin-bottom: 100px;
 }
 .footer-menu {
   position: relative;
