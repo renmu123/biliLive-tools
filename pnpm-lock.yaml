@@ -109,9 +109,6 @@ importers:
       '@napi-rs/canvas':
         specifier: ^0.1.53
         version: 0.1.53
-      '@renmu/bili-api':
-        specifier: ^1.3.6
-        version: 1.3.6
       assjs:
         specifier: ^0.1.0
         version: 0.1.0
@@ -263,6 +260,9 @@ importers:
       '@koa/cors':
         specifier: ^5.0.0
         version: 5.0.0
+      chokidar:
+        specifier: ^3.6.0
+        version: 3.6.0
       cli-progress:
         specifier: ^3.12.0
         version: 3.12.0
@@ -275,6 +275,9 @@ importers:
       koa-router:
         specifier: ^12.0.1
         version: 12.0.1
+      koa-sse-stream:
+        specifier: ^0.2.0
+        version: 0.2.0
     devDependencies:
       '@types/cli-progress':
         specifier: ^3.11.5
@@ -1065,10 +1068,6 @@ packages:
 
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
-
-  '@renmu/bili-api@1.3.6':
-    resolution: {integrity: sha512-B1AnnWn5Tk/UNdDziwBacvUZ0tNr+7SA8JnS/OHs82vO+EASabHJ4W2jGDb/qCd1LP2MNipGD94V69M0XtQXyA==}
-    engines: {node: '>=18'}
 
   '@renmu/bili-api@1.4.0':
     resolution: {integrity: sha512-QBZcW5mExUGaWpLcEzlYATk4oVVYXLlRaIduQ3lPt8ILZrKTCBorXCONxgFy3fQ+9iiqZ65or0yzG0V9Q+qeNA==}
@@ -2329,6 +2328,9 @@ packages:
     engines: {node: '>= 12.20.55'}
     hasBin: true
 
+  emitter-component@1.1.2:
+    resolution: {integrity: sha512-QdXO3nXOzZB4pAjM0n6ZE+R9/+kPpECA/XSELIcc54NeYVnBqIk+4DFiBgK+8QbV3mdvTG6nedl7dTYgO+5wDw==}
+
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
 
@@ -2531,10 +2533,6 @@ packages:
 
   fast-uri@3.0.1:
     resolution: {integrity: sha512-MWipKbbYiYI0UC7cl8m/i/IWTqfC8YXsqjzybjddLsFjStroQzsHXkc73JutMvBiXmOvapk+axIl79ig5t55Bw==}
-
-  fast-xml-parser@4.4.0:
-    resolution: {integrity: sha512-kLY3jFlwIYwBNDojclKsNAC12sfD6NwW74QB2CoNGPvtVxjliYehVunB3HYyNi+n4Tt1dAcgwYvmKF/Z18flqg==}
-    hasBin: true
 
   fast-xml-parser@4.4.1:
     resolution: {integrity: sha512-xkjOecfnKGkSsOwtZ5Pz7Us/T6mrbPQrq0nh+aCO5V9nk5NLWmasAHumTKjiPJPWANe+kAZ84Jc8ooJkzZ88Sw==}
@@ -3191,6 +3189,9 @@ packages:
   koa-router@12.0.1:
     resolution: {integrity: sha512-gaDdj3GtzoLoeosacd50kBBTnnh3B9AYxDThQUo4sfUyXdOhY6ku1qyZKW88tQCRgc3Sw6ChXYXWZwwgjOxE0w==}
     engines: {node: '>= 12'}
+
+  koa-sse-stream@0.2.0:
+    resolution: {integrity: sha512-Dyp3YS5HfnpE17Mk8HWl+6IMVgO/VU5rGXPKjgej+BrfdZZfRv2AXAm6osd380xcjhcXJgaHg23ntdLbpjCIDQ==}
 
   koa@2.15.3:
     resolution: {integrity: sha512-j/8tY9j5t+GVMLeioLaxweJiKUayFhlGqNTzf2ZGwL0ZCQijd2RLHK0SLW5Tsko8YyyqCZC2cojIb0/s62qTAg==}
@@ -4178,6 +4179,9 @@ packages:
 
   stream-meter@1.0.4:
     resolution: {integrity: sha512-4sOEtrbgFotXwnEuzzsQBYEV1elAeFSO8rSGeTwabuX1RRn/kEq9JVH7I0MRBhKVRR0sJkr0M0QCH7yOLf9fhQ==}
+
+  stream@0.0.2:
+    resolution: {integrity: sha512-gCq3NDI2P35B2n6t76YJuOp7d6cN/C7Rt0577l91wllh0sY9ZBuw9KaSGqH/b0hzn3CWWJbpbW0W0WvQ1H/Q7g==}
 
   strict-uri-encode@1.1.0:
     resolution: {integrity: sha512-R3f198pcvnB+5IpnBlRkphuE9n46WyVl8I39W/ZUTZLz4nqSP/oLYUrcnJrw462Ds8he4YKMov2efsTIw1BDGQ==}
@@ -5397,16 +5401,6 @@ snapshots:
   '@protobufjs/pool@1.1.0': {}
 
   '@protobufjs/utf8@1.1.0': {}
-
-  '@renmu/bili-api@1.3.6':
-    dependencies:
-      axios: 1.7.4
-      axios-retry: 4.4.2(axios@1.7.4)
-      fast-xml-parser: 4.4.0
-      p-queue: 8.0.1
-      protobufjs: 7.3.2
-    transitivePeerDependencies:
-      - debug
 
   '@renmu/bili-api@1.4.0':
     dependencies:
@@ -6965,6 +6959,8 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  emitter-component@1.1.2: {}
+
   emoji-regex@8.0.0: {}
 
   emoji-regex@9.2.2: {}
@@ -7240,10 +7236,6 @@ snapshots:
   fast-levenshtein@2.0.6: {}
 
   fast-uri@3.0.1: {}
-
-  fast-xml-parser@4.4.0:
-    dependencies:
-      strnum: 1.0.5
 
   fast-xml-parser@4.4.1:
     dependencies:
@@ -7922,6 +7914,10 @@ snapshots:
       path-to-regexp: 6.2.2
     transitivePeerDependencies:
       - supports-color
+
+  koa-sse-stream@0.2.0:
+    dependencies:
+      stream: 0.0.2
 
   koa@2.15.3:
     dependencies:
@@ -8939,6 +8935,10 @@ snapshots:
   stream-meter@1.0.4:
     dependencies:
       readable-stream: 2.3.8
+
+  stream@0.0.2:
+    dependencies:
+      emitter-component: 1.1.2
 
   strict-uri-encode@1.1.0: {}
 

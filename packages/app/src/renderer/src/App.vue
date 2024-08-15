@@ -27,7 +27,7 @@
               <n-layout-footer position="absolute">
                 <n-menu
                   v-model:value="activeKey"
-                  style="z-index: 10; background: white"
+                  class="footer-menu"
                   :collapsed="collapsed"
                   :collapsed-width="64"
                   :collapsed-icon-size="22"
@@ -344,5 +344,10 @@ initChanglog();
 }
 .main-menu {
   margin-bottom: 50px;
+}
+.footer-menu {
+  position: relative;
+  z-index: 10;
+  background: white;
 }
 </style>

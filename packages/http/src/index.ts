@@ -2,6 +2,7 @@ import Koa from "koa";
 import Router from "koa-router";
 import cors from "@koa/cors";
 import bodyParser from "koa-bodyparser";
+import sse from "koa-sse-stream";
 import Config from "@biliLive-tools/shared/utils/globalConfig.js";
 import { AppConfig } from "@biliLive-tools/shared";
 
@@ -27,6 +28,13 @@ router.get("/", async (ctx) => {
 app.use(errorMiddleware);
 app.use(cors());
 app.use(bodyParser());
+app.use(
+  sse({
+    maxClients: 5000,
+    pingInterval: 30000,
+  }),
+);
+
 app.use(router.routes());
 app.use(webhookRouter.routes());
 app.use(configRouter.routes());

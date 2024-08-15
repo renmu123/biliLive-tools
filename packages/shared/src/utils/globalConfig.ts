@@ -3,6 +3,7 @@ interface ConfigData {
   danmuPresetPath: string;
   ffmpegPresetPath: string;
   configPath: string;
+  logPath: string;
 }
 
 export default class Config {

@@ -44,6 +44,7 @@ program
       videoPresetPath: c.videoPresetPath,
       danmuPresetPath: c.danmuPresetPath,
       configPath: c.configPath,
+      logPath: c.logPath,
     });
     serverStart(c, config);
   });
