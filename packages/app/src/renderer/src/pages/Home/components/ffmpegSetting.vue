@@ -161,8 +161,9 @@
             <span>分辨率</span>
             <Tip>
               <p>
-                实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间
+                实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间。
               </p>
+              <p>B站4k画质要求短边大于1600，如果原视频为1080，可以尝试设置为2880x1620</p>
               <p>4K：3840X2160<br />2K：2560X1440<br />1080：1920X1080</p>
             </Tip>
           </span>
@@ -188,6 +189,12 @@
             :step="100"
             placeholder="高"
             style="width: 100px"
+          />
+          <n-select
+            v-model:value="ffmpegOptions.config.swsFlags"
+            :options="swsOptions"
+            placeholder="请选择缩放算法"
+            style="width: 200px; flex: none; margin-left: 10px"
           />
         </template>
       </n-form-item>
@@ -693,6 +700,25 @@ const audioEncoders = ref([
 const encoderOptions = computed(() => {
   return videoEncoders.value.find((item) => item.value === ffmpegOptions.value?.config?.encoder);
 });
+
+const swsOptions = ref([
+  {
+    value: "bilinear",
+    label: "bilinear(双线性插值)",
+  },
+  {
+    value: "bicubic",
+    label: "bicubic(三次插值)",
+  },
+  {
+    value: "lanczos",
+    label: "lanczos(Lanczos插值)",
+  },
+  {
+    value: "neighbor",
+    label: "neighbor(最近邻插值)",
+  },
+]);
 
 // @ts-ignore
 const ffmpegOptions: Ref<FfmpegPreset> = ref({

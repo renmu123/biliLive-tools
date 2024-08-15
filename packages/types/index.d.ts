@@ -439,6 +439,8 @@ export interface FfmpegOptions {
   ss?: number | string;
   /** 结束时间 */
   to?: number | string;
+  /** 缩放算法 */
+  swsFlags?: string;
 }
 
 export interface BiliupConfig {
