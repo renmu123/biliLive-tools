@@ -513,6 +513,12 @@ export const api = {
   openSetting: (callback: (_event: IpcRendererEvent) => void) => {
     ipcRenderer.on("open-setting", callback);
   },
+  openLog: (callback: (_event: IpcRendererEvent) => void) => {
+    ipcRenderer.on("open-log", callback);
+  },
+  openChangelog: (callback: (_event: IpcRendererEvent) => void) => {
+    ipcRenderer.on("open-changelog", callback);
+  },
   onMainNotify: (
     callback: (
       _event: IpcRendererEvent,

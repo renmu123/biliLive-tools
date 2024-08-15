@@ -48,6 +48,7 @@
         </n-space>
         <AppSettingDialog v-model="settingVisible"></AppSettingDialog>
         <ChangelogModal v-model:visible="changelogVisible"></ChangelogModal>
+        <logModal v-model:visible="logVisible"></logModal>
       </n-dialog-provider>
     </n-notification-provider>
   </n-config-provider>
@@ -70,6 +71,7 @@ import {
 import defaultUserAvatar from "./assets/images/moehime.jpg";
 import AppSettingDialog from "./pages/setting/index.vue";
 import ChangelogModal from "./components/ChangelogModal.vue";
+import logModal from "./components/logModal.vue";
 import { useUserInfoStore, useQueueStore, useAppConfig } from "./stores";
 
 const quenuStore = useQueueStore();
@@ -285,6 +287,14 @@ const menuOptions = computed<MenuOption[]>(() => {
 const settingVisible = ref(false);
 window.api.openSetting(() => {
   settingVisible.value = true;
+});
+
+const logVisible = ref(false);
+window.api.openLog(() => {
+  logVisible.value = true;
+});
+window.api.openChangelog(() => {
+  changelogVisible.value = true;
 });
 
 const { notification } = createDiscreteApi(["message", "dialog", "notification", "loadingBar"]);

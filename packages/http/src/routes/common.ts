@@ -38,7 +38,6 @@ router.get("/streamLogs", async (ctx) => {
   const sendLog = () => {
     const stream = fs.createReadStream(logFilePath, { encoding: "utf8", start: logSize });
     stream.on("data", (chunk) => {
-      // ctx.res.write(`data: ${chunk}\n\n`);
       // @ts-ignore
       ctx.sse.send(`${chunk}`);
       logSize += chunk.length;
@@ -49,25 +48,23 @@ router.get("/streamLogs", async (ctx) => {
     });
     stream.on("error", (err) => {
       console.error("Stream error:", err);
-      // ctx.res.end();
       // @ts-ignore
       ctx.sse.sendEnd();
     });
   };
 
   // 读取当前文件大小
-  try {
-    const stats = fs.statSync(logFilePath);
-    console.log("logSize", stats.size);
-  } catch (err) {
-    console.error("Error reading log file:", err);
-    ctx.res.end();
-    return;
-  }
+  // try {
+  //   const stats = fs.statSync(logFilePath);
+  //   console.log("logSize", stats.size);
+  // } catch (err) {
+  //   console.error("Error reading log file:", err);
+  //   ctx.res.end();
+  //   return;
+  // }
 
   sendLog();
 
-  console.log("streamLogs", logFilePath);
   // 监听日志文件变化
   const watcher = chokidar.watch(logFilePath);
   watcher.on("change", (path) => {
@@ -77,6 +74,7 @@ router.get("/streamLogs", async (ctx) => {
 
   // 当客户端断开连接时停止监听
   ctx.req.on("close", () => {
+    console.log("Client closed connection");
     watcher.close();
   });
 });

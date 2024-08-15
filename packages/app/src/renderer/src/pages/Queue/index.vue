@@ -43,7 +43,6 @@
     <template v-else>
       <h2>暂无任务，快去添加一个试试吧</h2>
     </template>
-    <!-- <n-log :rows="20" :log="logs"> </n-log> -->
   </div>
 </template>
 
@@ -54,35 +53,6 @@ import { deepRaw } from "@renderer/utils";
 import { TaskType } from "@biliLive-tools/shared/enum.js";
 
 import type { Task } from "@renderer/types";
-
-import { getStreamLogs } from "@renderer/apis/common";
-
-const logs = ref("");
-
-async function streamLogs() {
-  // try {
-  //   const response = await getStreamLogs();
-  //   console.log(response);
-  // } catch (error) {
-  //   console.error("获取日志失败:", error);
-  // }
-  const eventSource = await getStreamLogs();
-
-  eventSource.onmessage = function (event) {
-    console.log(event.data);
-    logs.value += event.data;
-    // logElement.innerHTML += event.data + '\n';
-    // logElement.scrollTop = logElement.scrollHeight;  // 自动滚动到底部
-  };
-
-  eventSource.onerror = function () {
-    console.log("error");
-    logs.value = "";
-    // eventSource.close();
-    // logElement.innerHTML += '\nConnection error. Retrying...\n';
-  };
-}
-// streamLogs();
 
 const notice = useNotification();
 const store = useQueueStore();

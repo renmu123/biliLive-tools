@@ -222,56 +222,95 @@ function createWindow(): void {
 function createMenu(): void {
   const menu = Menu.buildFromTemplate([
     {
-      label: "设置",
-      click: () => {
-        mainWin.show();
-        mainWin.webContents.send("open-setting");
-      },
-    },
-    {
-      label: "打开log文件夹",
-      click: () => {
-        shell.openPath(app.getPath("logs"));
-      },
-    },
-    {
-      label: "检测更新",
-      click: async () => {
-        try {
-          const status = await checkUpdate();
-          if (status) {
-            dialog.showMessageBox(mainWin, {
-              message: "当前已经是最新版本",
-              buttons: ["确认"],
-            });
-          }
-        } catch (error) {
-          log.error(error);
-          const confirm = await dialog.showMessageBox(mainWin, {
-            message: "检查更新失败，请前往仓库查看",
-            buttons: ["取消", "确认"],
-          });
-          if (confirm.response === 1) {
-            shell.openExternal("https://github.com/renmu123/biliLive-tools/releases");
-          }
-        }
-      },
+      label: "文件",
+      submenu: [
+        {
+          label: "设置",
+          click: () => {
+            mainWin.show();
+            mainWin.webContents.send("open-setting");
+          },
+        },
+        {
+          label: "查看log",
+          click: () => {
+            mainWin.show();
+            mainWin.webContents.send("open-log");
+          },
+        },
+        {
+          label: "打开配置文件夹",
+          click: async () => {
+            const { userDataPath } = await getConfigPath();
+            shell.openPath(userDataPath);
+          },
+        },
+        {
+          label: "打开log文件夹",
+          click: () => {
+            shell.openPath(app.getPath("logs"));
+          },
+        },
+        {
+          label: "退出",
+          click: async () => {
+            quit();
+          },
+        },
+      ],
     },
     {
       label: "开发者工具",
       role: "viewMenu",
     },
     {
-      label: "赞助",
-      click: async () => {
-        shell.openExternal("https://afdian.com/a/renmu123");
-      },
-    },
-    {
-      label: "退出",
-      click: async () => {
-        quit();
-      },
+      label: "帮助",
+      submenu: [
+        {
+          label: "赞助",
+          click: async () => {
+            shell.openExternal("https://afdian.com/a/renmu123");
+          },
+        },
+        {
+          label: "更新记录",
+          click: () => {
+            mainWin.show();
+            mainWin.webContents.send("open-changelog");
+          },
+        },
+        {
+          label: "常见问题",
+          click: async () => {
+            shell.openExternal(
+              "https://github.com/renmu123/biliLive-tools?tab=readme-ov-file#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98",
+            );
+          },
+        },
+        {
+          label: "检测更新",
+          click: async () => {
+            try {
+              const status = await checkUpdate();
+              if (status) {
+                dialog.showMessageBox(mainWin, {
+                  message: "当前已经是最新版本",
+                  buttons: ["确认"],
+                });
+              }
+            } catch (error) {
+              log.error(error);
+              const confirm = await dialog.showMessageBox(mainWin, {
+                message: "检查更新失败，请前往仓库查看",
+                buttons: ["取消", "确认"],
+              });
+              if (confirm.response === 1) {
+                shell.openExternal("https://github.com/renmu123/biliLive-tools/releases");
+              }
+            }
+          },
+        },
+      ],
     },
   ]);
   Menu.setApplicationMenu(menu);
