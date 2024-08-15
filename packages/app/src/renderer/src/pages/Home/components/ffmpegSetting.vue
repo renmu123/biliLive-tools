@@ -194,6 +194,7 @@
             v-model:value="ffmpegOptions.config.swsFlags"
             :options="swsOptions"
             placeholder="请选择缩放算法"
+            clearable
             style="width: 200px; flex: none; margin-left: 10px"
           />
         </template>
