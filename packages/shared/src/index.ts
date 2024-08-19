@@ -20,6 +20,11 @@ const init = (config: GlobalConfig) => {
     ffprobePath: config.defaultFfprobePath,
     danmuFactoryPath: config.defaultDanmakuFactoryPath,
   });
+  const recorderManager = createRecoderManager(appConfig);
+  const logLevel = appConfig.get("logLevel");
+  initLogger(config.logPath, logLevel);
+  setFfmpegPath();
+  // initDB("danmu.db");
 
   container.register({
     appConfig: asValue(appConfig),
@@ -27,16 +32,11 @@ const init = (config: GlobalConfig) => {
     taskQueue: asValue(taskQueue),
     commentQueue: asClass(BiliCommentQueue).singleton(),
     globalConfig: asValue(config),
+    recorderManager: asValue(recorderManager),
   });
-
-  const logLevel = appConfig.get("logLevel");
-  initLogger(config.logPath, logLevel);
-  setFfmpegPath();
 
   const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
   commentQueue.checkLoop();
-  // initDB("danmu.db");
-  const recorderManager = createRecoderManager(appConfig);
 
   appConfig.on("update", () => {
     const appconfig = container.resolve<AppConfig>("appConfig");
