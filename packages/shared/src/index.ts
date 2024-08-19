@@ -6,35 +6,33 @@ import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
 import { taskQueue, TaskQueue } from "./task/task.js";
 import { commentQueue, BiliCommentQueue } from "./task/bili.js";
+
+import type { GlobalConfig } from "@biliLive-tools/types";
+
 // import { initDB } from "./db/index.js";
 
-const container = createContainer();
+export const container = createContainer();
 
-const init = (config: {
-  configPath: string;
-  ffmpegPath: string;
-  ffprobePath: string;
-  danmakuFactoryPath: string;
-  logPath: string;
-}) => {
+const init = (config: GlobalConfig) => {
   appConfig.init(config.configPath, {
-    ffmpegPath: config.ffmpegPath,
-    ffprobePath: config.ffprobePath,
-    danmuFactoryPath: config.danmakuFactoryPath,
+    ffmpegPath: config.defaultFfmpegPath,
+    ffprobePath: config.defaultFfprobePath,
+    danmuFactoryPath: config.defaultDanmakuFactoryPath,
   });
-
-  const logLevel = appConfig.get("logLevel");
-  initLogger(config.logPath, logLevel);
-  setFfmpegPath();
-
-  // initDB("danmu.db");
 
   container.register({
     appConfig: asValue(appConfig),
     logger: asValue(console),
     taskQueue: asValue(taskQueue),
     commentQueue: asValue(commentQueue),
+    globalConfig: asValue(config),
   });
+
+  const logLevel = appConfig.get("logLevel");
+  initLogger(config.logPath, logLevel);
+  setFfmpegPath();
+  // initDB("danmu.db");
+
   return container;
 };
 

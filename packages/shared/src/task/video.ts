@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import ffmpeg from "@renmu/fluent-ffmpeg";
 import { timemarkToSeconds } from "@renmu/fluent-ffmpeg/lib/utils.js";
 
+import { container } from "../index.js";
 import { appConfig } from "../config.js";
 import {
   escaped,
@@ -23,6 +24,7 @@ import type {
   FfmpegOptions,
   VideoMergeOptions,
   Video2Mp4Options,
+  GlobalConfig,
 } from "@biliLive-tools/types";
 import type Ffmpeg from "@biliLive-tools/types/ffmpeg.js";
 
@@ -31,9 +33,11 @@ export const getFfmpegPath = () => {
   let ffmpegPath = config.ffmpegPath;
   let ffprobePath = config.ffprobePath;
   if (!config.customExecPath) {
-    ffmpegPath = process.env.BILILIVE_FFMPEG_PATH as string;
-    ffprobePath = process.env.BILILIVE_FFPROBE_PATH as string;
+    const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+    ffmpegPath = globalConfig.defaultFfmpegPath;
+    ffprobePath = globalConfig.defaultFfprobePath;
   }
+
   return {
     ffmpegPath,
     ffprobePath,

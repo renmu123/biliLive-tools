@@ -1,4 +1,4 @@
-import type { Line } from "@renmu/bili-api";
+import type { Line as UploadLine } from "@renmu/bili-api";
 
 // 弹幕配置
 export type DanmuConfig = {
@@ -316,7 +316,7 @@ export interface AppConfig {
   /** 上传配置 */
   biliUpload: {
     /** 线路 */
-    line: Line;
+    line: UploadLine;
     /** 上传重试次数 */
     retryTimes: number;
     /** 上传超时时间 */
@@ -554,3 +554,14 @@ export type DeepPartial<T> = T extends object
       [P in keyof T]?: DeepPartial<T[P]>;
     }
   : T;
+
+export interface GlobalConfig {
+  videoPresetPath: string;
+  danmuPresetPath: string;
+  ffmpegPresetPath: string;
+  configPath: string;
+  logPath: string;
+  defaultFfmpegPath: string;
+  defaultFfprobePath: string;
+  defaultDanmakuFactoryPath: string;
+}

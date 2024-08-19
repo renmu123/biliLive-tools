@@ -29,7 +29,7 @@ router.post("/foramtTitle", async (ctx) => {
 });
 
 router.get("/streamLogs", async (ctx) => {
-  const logFilePath = config.get("logPath");
+  const logFilePath = config.logPath;
   console.log("streamLogs", logFilePath);
 
   // 初始化logSize为文件当前大小
