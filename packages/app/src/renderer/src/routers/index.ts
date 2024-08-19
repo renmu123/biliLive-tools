@@ -41,6 +41,11 @@ const router = createRouter({
       component: () => import("../pages/Tools/pages/VideoDownload.vue"),
     },
     {
+      path: "/recorder",
+      name: "recorder",
+      component: () => import("../pages/Tools/pages/Recorder/Index.vue"),
+    },
+    {
       path: "/videoCut",
       name: "videoCut",
       component: () => import("../pages/Tools/pages/VideoCut/Index.vue"),
