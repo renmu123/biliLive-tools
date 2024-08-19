@@ -36,7 +36,6 @@
     "electron-log": "^5.1.5",
     "electron-store": "^10.0.0",
     "electron-updater": "^6.2.1",
-    "lodash-es": "^4.17.21",
     "semver": "^7.6.2"
   },
   "devDependencies": {

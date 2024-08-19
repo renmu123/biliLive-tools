@@ -28,6 +28,8 @@
   },
   "keywords": [],
   "dependencies": {
+    "@autorecord/douyu-recorder": "workspace:*",
+    "@autorecord/manager": "workspace:*",
     "@biliLive-tools/types": "workspace:*",
     "@napi-rs/canvas": "^0.1.53",
     "@renmu/bili-api": "^1.4.0",
@@ -38,7 +40,6 @@
     "douyu-cli": "^0.6.2",
     "ejs": "^3.1.10",
     "fast-xml-parser": "^4.4.1",
-    "lodash-es": "^4.17.21",
     "nodemailer": "^6.9.13",
     "ntsuspend": "^1.0.2",
     "ollama": "^0.5.6",
