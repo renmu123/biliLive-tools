@@ -2,7 +2,8 @@ import path from "node:path";
 import os from "node:os";
 
 import { Client, TvQrcodeLogin, WebVideoUploader } from "@renmu/bili-api";
-import { appConfig } from "../config.js";
+import { appConfig, AppConfig } from "../config.js";
+import { container } from "../index.js";
 
 import {
   BiliAddVideoTask,
@@ -264,6 +265,7 @@ async function addMedia(
         }
         // 自动评论
         if (options.autoComment && options.comment) {
+          const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
           commentQueue.add({
             aid: data.aid,
             content: options.comment || "",
@@ -415,8 +417,10 @@ export class BiliCommentQueue {
     updateTime: number;
     top: boolean;
   }[] = [];
-  constructor() {
+  interval: number = 1000 * 60 * 10;
+  constructor({ appConfig }: { appConfig: AppConfig }) {
     this.list = [];
+    this.interval = (appConfig?.data?.biliUpload?.checkInterval ?? 10 * 60) * 1000;
   }
   add(data: { aid: number; content: string; uid: number; top: boolean }) {
     // bvid是唯一的
@@ -488,14 +492,15 @@ export class BiliCommentQueue {
 
     return client.reply.top({ oid: item.aid, type: 1, action: 1, rpid });
   }
-  run(interval: number) {
-    setInterval(() => {
-      this.check();
-    }, interval);
-  }
-}
 
-export const commentQueue = new BiliCommentQueue();
+  checkLoop = async () => {
+    try {
+      await this.check();
+    } finally {
+      setTimeout(this.checkLoop, this.interval);
+    }
+  };
+}
 
 // 验证配置
 export const validateBiliupConfig = async (config: BiliupConfig) => {

@@ -1,11 +1,11 @@
-import { createContainer, asValue } from "awilix";
+import { createContainer, asValue, asClass } from "awilix";
 
 import { appConfig, AppConfig } from "./config.js";
 export * from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
 import { taskQueue, TaskQueue } from "./task/task.js";
-import { commentQueue, BiliCommentQueue } from "./task/bili.js";
+import { BiliCommentQueue } from "./task/bili.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 
@@ -24,16 +24,25 @@ const init = (config: GlobalConfig) => {
     appConfig: asValue(appConfig),
     logger: asValue(console),
     taskQueue: asValue(taskQueue),
-    commentQueue: asValue(commentQueue),
+    commentQueue: asClass(BiliCommentQueue).singleton(),
     globalConfig: asValue(config),
   });
 
   const logLevel = appConfig.get("logLevel");
   initLogger(config.logPath, logLevel);
   setFfmpegPath();
+
+  const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
+  commentQueue.checkLoop();
   // initDB("danmu.db");
+
+  appConfig.on("update", () => {
+    const appconfig = container.resolve<AppConfig>("appConfig");
+    const config = appconfig.getAll();
+    commentQueue.interval = config.biliUpload.checkInterval;
+  });
 
   return container;
 };
 
-export { init, AppConfig, appConfig, TaskQueue, BiliCommentQueue };
+export { init, AppConfig, appConfig, TaskQueue };

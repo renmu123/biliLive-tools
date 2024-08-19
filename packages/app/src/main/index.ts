@@ -11,7 +11,7 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import log from "./utils/log";
 import { notify } from "./utils/index";
 import { danmuService } from "@biliLive-tools/shared/db/index.js";
-import { init, AppConfig, TaskQueue, BiliCommentQueue } from "@biliLive-tools/shared";
+import { init, AppConfig, TaskQueue } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
 import { handlers as biliHandlers } from "./bili";
@@ -492,7 +492,6 @@ const appInit = async () => {
   };
   container = init(globalConfig);
   const appConfig = container.resolve<AppConfig>("appConfig");
-  const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
 
   serverStart(
     {
@@ -502,8 +501,6 @@ const appInit = async () => {
     globalConfig,
   );
   nativeTheme.themeSource = appConfig.get("theme");
-  // 默认十分钟运行一次
-  commentQueue.run(1000 * 60 * 10);
 
   // 检测更新
   if (appConfig.get("autoUpdate")) {

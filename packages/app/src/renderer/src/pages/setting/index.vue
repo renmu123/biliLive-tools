@@ -24,7 +24,7 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <span class="inline-flex"> 自动检查更新 </span>
+                <span class="inline-flex"> 启动时检查更新 </span>
               </template>
               <n-switch v-model:value="config.autoUpdate" />
             </n-form-item>
@@ -77,7 +77,7 @@
                 <span class="inline-flex">
                   自定义二进制文件
                   <Tip
-                    :tip="`开启并修改后，将无法自动使用最新二进制文件，请谨慎开启，修改后需重启`"
+                    :tip="`开启后，将无法自动使用项目内二进制文件，可能导致应用无法使用，请谨慎开启`"
                   ></Tip>
                 </span>
               </template>

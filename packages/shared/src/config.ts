@@ -1,26 +1,36 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { TypedEmitter } from "tiny-typed-emitter";
 
 import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/types";
 import { defaultsDeep } from "lodash-es";
 
-export default class Config {
+interface Events {
+  update: (data: AppConfigType) => void;
+}
+
+export default class Config extends TypedEmitter<Events> {
   filepath: string;
   protected data: {
     [propName: string]: any;
   };
   constructor() {
+    super();
     this.filepath = "";
     this.data = {};
   }
   set(key: string | number, value: any) {
     this.data[key] = value;
     this.save();
+    // @ts-ignore
+    this.emit("update", this.data);
   }
   setAll(data: { [propName: string]: any }) {
     this.data = data;
     this.save();
+    // @ts-ignore
+    this.emit("update", this.data);
   }
   get(key: string | number) {
     return this.data[key];
@@ -193,10 +203,13 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
     concurrency: 3,
     retryTimes: 3,
     retryDelay: 2000,
+    checkInterval: 60 * 10,
   },
 };
 
 export class AppConfig extends Config {
+  // @ts-ignore
+  data: AppConfigType;
   constructor(configPath?: string) {
     super();
     if (configPath) {
