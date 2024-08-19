@@ -1,7 +1,6 @@
 import path from "path";
 import mitt, { Emitter } from "mitt";
 import { omit, range } from "lodash-es";
-import { format as formatDate } from "date-fns";
 import { ChannelId } from "./common.js";
 import {
   RecorderCreateOpts,
@@ -264,6 +263,19 @@ export function createRecorderManager<
   });
 
   return proxyManager;
+}
+
+function formatDate(date: Date, format: string): string {
+  const map: { [key: string]: string } = {
+    yyyy: date.getFullYear().toString(),
+    MM: (date.getMonth() + 1).toString().padStart(2, "0"),
+    dd: date.getDate().toString().padStart(2, "0"),
+    HH: date.getHours().toString().padStart(2, "0"),
+    mm: date.getMinutes().toString().padStart(2, "0"),
+    ss: date.getSeconds().toString().padStart(2, "0"),
+  };
+
+  return format.replace(/yyyy|MM|dd|HH|mm|ss/g, (matched) => map[matched]);
 }
 
 export function genSavePathFromRule<

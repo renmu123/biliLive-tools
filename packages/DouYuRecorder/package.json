@@ -36,8 +36,8 @@
     "crypto-js": "^4.2.0",
     "mitt": "^3.0.1",
     "query-string": "^9.1.0",
+    "safe-eval": "^0.4.1",
     "uuid": "^8.3.2",
-    "vm2": "^3.9.10",
     "ws": "^8.18.0"
   },
   "devDependencies": {
@@ -48,5 +48,9 @@
   },
   "peerDependencies": {
     "@autorecord/manager": "*"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.8",
+    "utf-8-validate": "^6.0.4"
   }
 }

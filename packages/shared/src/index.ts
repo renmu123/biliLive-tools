@@ -36,8 +36,8 @@ const init = (config: {
     taskQueue: asValue(taskQueue),
     commentQueue: asValue(commentQueue),
   });
-  const { ffmpegPath } = getFfmpegPath();
-  createManager(ffmpegPath);
+  // const { ffmpegPath } = getFfmpegPath();
+  // createManager(ffmpegPath);
   return container;
 };
 

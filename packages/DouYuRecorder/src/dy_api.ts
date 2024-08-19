@@ -1,7 +1,8 @@
 import { v4 as uuid4 } from "uuid";
 import { MD5 } from "crypto-js";
-import { VM } from "vm2";
-import * as queryString from "query-string";
+import safeEval from "safe-eval";
+
+import queryString from "query-string";
 import { requester } from "./requester.js";
 
 /**
@@ -33,9 +34,11 @@ export async function getLiveInfo(opts: {
   const sign = await getSignFn(opts.channelId, opts.rejectSignFnCache);
   const did = uuid4().replace(/-/g, "");
   const time = Math.ceil(Date.now() / 1000);
+  const signedStr = String(sign(opts.channelId, did, time));
+
   // TODO: 这里类型处理的有点问题，先用 as 顶着
   // @ts-ignore
-  const signed = queryString.parse(sign(opts.channelId, did, time)) as Record<string, string>;
+  const signed = queryString.parse(signedStr) as Record<string, string>;
 
   // TODO: 以后可以试试换成 https://open.douyu.com/source/api/9 里提供的公开接口，
   // 不过公开接口可能会存在最高码率的限制。
@@ -123,15 +126,11 @@ async function getSignFn(address: string, rejectCache?: boolean): Promise<SignFu
   if (json.error !== 0) throw new Error("Unexpected error code, " + json.error);
   const code = json.data && json.data["room" + address];
   if (!code) throw new Error("Unexpected result with homeH5Enc, " + JSON.stringify(json));
-
-  const vm = new VM({
-    sandbox: {
-      CryptoJS: { MD5 },
-      window: disguisedNativeMethods,
-      document: disguisedNativeMethods,
-    },
+  const sign = safeEval(`(function func(a,b,c){${code};return ub98484234(a,b,c)})`, {
+    CryptoJS: { MD5 },
+    window: disguisedNativeMethods,
+    document: disguisedNativeMethods,
   });
-  const sign = vm.run(code + ";ub98484234");
   signCaches[address] = sign;
 
   return sign;
