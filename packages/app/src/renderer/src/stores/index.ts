@@ -282,7 +282,10 @@ export const useAppConfig = defineStore("appConfig", () => {
   }
   watch(
     () => appConfig.value.tool,
-    () => {
+    (newVal, oldVal) => {
+      if (!oldVal) return;
+      if (JSON.stringify(newVal) === JSON.stringify(oldVal)) return;
+
       window.api.config.save(cloneDeep(appConfig.value));
     },
     { deep: true },

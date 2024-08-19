@@ -3,7 +3,6 @@ import Router from "koa-router";
 import cors from "@koa/cors";
 import bodyParser from "koa-bodyparser";
 import sse from "koa-sse-stream";
-import Config from "@biliLive-tools/shared/utils/globalConfig.js";
 import { AppConfig } from "@biliLive-tools/shared";
 
 import errorMiddleware from "./middleware/error.js";
@@ -14,7 +13,9 @@ import llmRouter from "./routes/llm.js";
 import commonRouter from "./routes/common.js";
 import { WebhookHandler } from "./services/webhook.js";
 
-export let config: Config = new Config();
+import type { GlobalConfig } from "@biliLive-tools/types";
+
+export let config: GlobalConfig;
 export let handler!: WebhookHandler;
 export let appConfig!: AppConfig;
 
@@ -46,10 +47,10 @@ export function serverStart(
     port: number;
     host: string;
   },
-  iConfig?: Config,
+  iConfig?: GlobalConfig,
 ) {
   if (iConfig) config = iConfig;
-  appConfig = new AppConfig(config.get("configPath"));
+  appConfig = new AppConfig(config.configPath);
   handler = new WebhookHandler(appConfig);
 
   app.listen(options.port, options.host, () => {

@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 
 import { init } from "@biliLive-tools/shared";
-import globalConfig from "@biliLive-tools/shared/utils/globalConfig.js";
+import type { GlobalConfig } from "@biliLive-tools/types";
 
 interface Config {
   port: number;
@@ -33,20 +33,28 @@ program
       return;
     }
 
-    const c = JSON.parse(fs.readFileSync(opts.config).toString());
+    const c: Config = JSON.parse(fs.readFileSync(opts.config).toString());
     if (!c.configFolder) throw new Error("configFolder is required");
 
-    c.configPath = path.join(c.configFolder, "appConfig.json");
-    init(c);
-
-    const config = new globalConfig({
-      ffmpegPresetPath: c.ffmpegPresetPath,
-      videoPresetPath: c.videoPresetPath,
-      danmuPresetPath: c.danmuPresetPath,
-      configPath: c.configPath,
+    const globalConfig: GlobalConfig = {
+      videoPresetPath: path.join(c.configFolder, "ffmpeg_presets.json"),
+      ffmpegPresetPath: path.join(c.configFolder, "presets.json"),
+      danmuPresetPath: path.join(c.configFolder, "danmu_presets.json"),
+      configPath: path.join(c.configFolder, "appConfig.json"),
       logPath: c.logPath,
-    });
-    serverStart(c, config);
+      defaultFfmpegPath: c.ffmpegPath,
+      defaultFfprobePath: c.ffprobePath,
+      defaultDanmakuFactoryPath: c.danmakuFactoryPath,
+    };
+    init(globalConfig);
+
+    serverStart(
+      {
+        port: c.port,
+        host: c.host,
+      },
+      globalConfig,
+    );
   });
 
 const configCommand = program.command("config").description("配置相关");

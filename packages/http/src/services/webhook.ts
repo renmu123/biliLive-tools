@@ -66,9 +66,9 @@ export class WebhookHandler {
   danmuPreset: DanmuPreset;
   appConfig: AppConfig;
   constructor(appConfig: AppConfig) {
-    this.ffmpegPreset = new FFmpegPreset(config.get("ffmpegPresetPath"));
-    this.videoPreset = new VideoPreset(config.get("videoPresetPath"));
-    this.danmuPreset = new DanmuPreset(config.get("danmuPresetPath"));
+    this.ffmpegPreset = new FFmpegPreset(config.ffmpegPresetPath);
+    this.videoPreset = new VideoPreset(config.videoPresetPath);
+    this.danmuPreset = new DanmuPreset(config.danmuPresetPath);
     this.appConfig = appConfig;
   }
 

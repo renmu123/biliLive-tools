@@ -40,6 +40,17 @@
         <n-input-number v-model:value="config.biliUpload.concurrency" min="1" max="128">
         </n-input-number>
       </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            检查间隔
+            <Tip tip="用于自动评论的检查稿件间隔时间，请勿设置过短以免触发风控"></Tip>
+          </span>
+        </template>
+        <n-input-number v-model:value="config.biliUpload.checkInterval" min="60" step="60">
+          <template #suffix>秒</template>
+        </n-input-number>
+      </n-form-item>
     </n-form>
   </div>
 </template>

@@ -11,9 +11,8 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import log from "./utils/log";
 import { notify } from "./utils/index";
 import { danmuService } from "@biliLive-tools/shared/db/index.js";
-import { init, AppConfig, TaskQueue, BiliCommentQueue } from "@biliLive-tools/shared";
+import { init, AppConfig, TaskQueue } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
-import Config from "@biliLive-tools/shared/utils/globalConfig.js";
 
 import { handlers as biliHandlers } from "./bili";
 import { handlers as taskHandlers } from "./task";
@@ -34,7 +33,7 @@ import {
 
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
-import type { Theme } from "@biliLive-tools/types";
+import type { Theme, GlobalConfig } from "@biliLive-tools/types";
 import type { AwilixContainer } from "awilix";
 
 export let mainWin: BrowserWindow;
@@ -478,29 +477,21 @@ ipcMain.handle("db:addWithStreamer", async (_event, options: any) => {
 const appInit = async () => {
   fs.ensureDir(getTempPath());
 
-  process.env.BILILIVE_FFMPEG_PATH = FFMPEG_PATH;
-  process.env.BILILIVE_FFPROBE_PATH = FFPROBE_PATH;
-  process.env.BILILIVE_DANMUKUFACTORY_PATH = DANMUKUFACTORY_PATH;
   const { APP_CONFIG_PATH, FFMPEG_PRESET_PATH, VIDEO_PRESET_PATH, DANMU_PRESET_PATH } =
     await getConfigPath();
 
-  const globalConfig = new Config({
+  const globalConfig: GlobalConfig = {
     videoPresetPath: VIDEO_PRESET_PATH,
     ffmpegPresetPath: FFMPEG_PRESET_PATH,
     danmuPresetPath: DANMU_PRESET_PATH,
     configPath: APP_CONFIG_PATH,
     logPath: LOG_PATH,
-  });
-  const config = {
-    configPath: APP_CONFIG_PATH,
-    ffmpegPath: FFMPEG_PATH,
-    ffprobePath: FFPROBE_PATH,
-    danmakuFactoryPath: DANMUKUFACTORY_PATH,
-    logPath: LOG_PATH,
+    defaultFfmpegPath: FFMPEG_PATH,
+    defaultFfprobePath: FFPROBE_PATH,
+    defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
   };
-  container = init(config);
+  container = init(globalConfig);
   const appConfig = container.resolve<AppConfig>("appConfig");
-  const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
 
   serverStart(
     {
@@ -510,8 +501,6 @@ const appInit = async () => {
     globalConfig,
   );
   nativeTheme.themeSource = appConfig.get("theme");
-  // 默认十分钟运行一次
-  commentQueue.run(1000 * 60 * 10);
 
   // 检测更新
   if (appConfig.get("autoUpdate")) {

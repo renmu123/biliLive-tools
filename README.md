@@ -9,23 +9,22 @@
 
 [更新历史](https://github.com/renmu123/biliLive-tools/blob/master/CHANGELOG.md)
 
-1. 支持 Danmufactory GUI
-2. 支持 ffmpeg 转封装
-3. 支持视频与弹幕压制
+1. 支持录播姬与blrec的webhook自动化处理
+2. 支持 Danmufactory GUI 弹幕xml转换
+3. 支持根据弹幕切片
 4. 支持b站分P投稿
-5. 支持录播姬与blrec的webhook
-6. 支持B站视频下载
-7. 支持斗鱼录播下载
+5. 支持视频与弹幕压制
+6. 支持 ffmpeg 转码及转封装
+7. 支持B站视频下载
+8. 支持斗鱼录播及其弹幕下载
 
 ![preview](./docs/preview.png)
 
 # 下载
 
-目前有两个 Win 版本的包。两个包除了是否打包 `ffmpeg` 和 `ffprobe` 之外没有任何代码上的区别，如果你有自己编译的ffmpeg或者不需要用到相应的ffmpeg功能。  
-如果你是普通用户，那就选择体积大的那个包，如果你是资深用户，那么请自行选择，因使用自定义 `ffmpeg` 出问题的 issue 是不会被处理的。
-
-不提供 MacOS 安装包，需要的可以自行编译，编译时需要替换用到的二进制文件。
-Linux包如果有问题可以提issue，由于我不在Linux开发，可能问题会比较多。
+不提供 MacOS 安装包，需要的可以自行编译，编译时需要替换用到的二进制文件。  
+由于我不在Linux开发，测试覆盖不光，如果存在问题可以提issue。  
+CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/master/packages/CLI)
 
 下载地址：https://github.com/renmu123/biliLive-tools/releases  
 备用：https://www.alipan.com/s/iRyhxjdqGeL
@@ -232,7 +231,7 @@ zip包并非传统意义上的绿色包，数据和安装包文件的不会存�
   - [x] 工具页面，flv的转封装
   - [x] 支持视频合并
   - [x] 下载页面
-  - [ ] 支持局部渲染
+  - [x] 支持切片
 - [x] log记录及其展示
 - [x] 配置持久化，压制高能进度条
 - [x] B站上传支持
@@ -246,6 +245,8 @@ zip包并非传统意义上的绿色包，数据和安装包文件的不会存�
   - [x] 支持弹幕压制
   - [x] 断播续传
 - [x] 支持自定义ffmpeg以及ffprobe
+- [ ] 斗鱼录播
+- [ ] 弹幕分析
 
 # 开发
 
