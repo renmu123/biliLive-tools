@@ -314,7 +314,7 @@ function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean {
   };
 }
 
-export const provider: RecorderProvider<{}> = {
+export const provider: RecorderProvider<Record<string, unknown>> = {
   id: "DouYu",
   name: "斗鱼",
   siteURL: "https://douyu.com/",

@@ -2,25 +2,35 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
-import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/types";
 import { defaultsDeep } from "lodash-es";
+import { TypedEmitter } from "tiny-typed-emitter";
 
-export default class Config {
+import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/types";
+
+interface ConfigEvents {
+  /** 更新配置时触发 */
+  update: (data: any) => void;
+}
+
+export default class Config extends TypedEmitter<ConfigEvents> {
   filepath: string;
   protected data: {
     [propName: string]: any;
   };
   constructor() {
+    super();
     this.filepath = "";
     this.data = {};
   }
   set(key: string | number, value: any) {
     this.data[key] = value;
     this.save();
+    this.emit("update", this.data);
   }
   setAll(data: { [propName: string]: any }) {
     this.data = data;
     this.save();
+    this.emit("update", this.data);
   }
   get(key: string | number) {
     return this.data[key];
@@ -193,6 +203,15 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
     concurrency: 3,
     retryTimes: 3,
     retryDelay: 2000,
+  },
+  recorder: {
+    savePath: path.join(os.homedir(), "Downloads"),
+    nameRule: "{owner}\\{year}-{month}-{date} {hour}-{min}-{sec} {title}.mp4",
+    autoRecord: false,
+    quality: "highest",
+    line: undefined,
+    checkInterval: 60,
+    recordDanmaku: true,
   },
 };
 

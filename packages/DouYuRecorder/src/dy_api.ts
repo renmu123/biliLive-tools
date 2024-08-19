@@ -106,7 +106,7 @@ export async function getLiveInfo(opts: {
 const disguisedNativeMethods = new Proxy(
   {},
   {
-    get: function (target, name) {
+    get: function () {
       return "function () { [native code] }";
     },
   },
@@ -116,7 +116,7 @@ type SignFunction = (channelId: string, did: string, time: number) => string;
 const signCaches: Record<string, SignFunction> = {};
 
 async function getSignFn(address: string, rejectCache?: boolean): Promise<SignFunction> {
-  if (!rejectCache && signCaches.hasOwnProperty(address)) {
+  if (!rejectCache && Object.hasOwn(signCaches, address)) {
     // 有缓存, 直接使用
     return signCaches[address];
   }

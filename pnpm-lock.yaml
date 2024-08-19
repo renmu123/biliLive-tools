@@ -353,6 +353,9 @@ importers:
       '@renmu/fluent-ffmpeg':
         specifier: 2.2.1
         version: 2.2.1
+      filenamify:
+        specifier: ^6.0.0
+        version: 6.0.0
       mitt:
         specifier: ^3.0.0
         version: 3.0.1

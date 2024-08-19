@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2022",
+    "target": "es2023",
     "module": "Node16",
     "outDir": "./lib",
     "rootDir": "./src",

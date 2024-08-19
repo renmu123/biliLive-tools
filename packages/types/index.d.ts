@@ -324,6 +324,23 @@ export interface AppConfig {
     /** 并发 */
     concurrency: number;
   };
+  /** 录制配置 */
+  recorder: {
+    /** 保存根目录 */
+    savePath: string;
+    /** 命名规则 */
+    nameRule: string;
+    /** 自动录制 */
+    autoRecord: boolean;
+    /** 画质 */
+    quality?: string;
+    /** 线路 */
+    line?: string;
+    /** 检查间隔 */
+    checkInterval: number;
+    /** 录制弹幕 */
+    recordDanmaku: boolean;
+  };
 }
 
 // export type LogLevel = ElectronLoGLevel;

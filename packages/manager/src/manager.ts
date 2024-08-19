@@ -11,6 +11,7 @@ import {
 } from "./recorder.js";
 import { AnyObject, UnknownObject } from "./utils.js";
 import { parseArgsStringToArgv } from "string-argv";
+import filenamify from "filenamify";
 
 export interface RecorderProvider<E extends AnyObject> {
   // Provider 的唯一 id，最好只由英文 + 数字组成
@@ -63,7 +64,7 @@ export interface RecorderManager<
     RecordStop: { recorder: Recorder<E>; recordHandle: RecordHandle; reason?: string };
     RecorderUpdated: {
       recorder: Recorder<E>;
-      keys: ((string & {}) | keyof Recorder<E>)[];
+      keys: (string | keyof Recorder<E>)[];
     };
     RecorderAdded: Recorder<E>;
     RecorderRemoved: Recorder<E>;
@@ -196,8 +197,11 @@ export function createRecorderManager<
         } catch (err) {
           this.emit("error", { source: "multiThreadCheck", err });
         } finally {
-          if (!this.isCheckLoopRunning) return;
-          checkLoopTimer = setTimeout(checkLoop, this.autoCheckInterval);
+          if (!this.isCheckLoopRunning) {
+            // do nothing
+          } else {
+            checkLoopTimer = setTimeout(checkLoop, this.autoCheckInterval);
+          }
         }
       };
 
@@ -337,7 +341,7 @@ const formatTemplate = function template(string: string, ...args: any[]) {
     if (string[index - 1] === "{" && string[index + match.length] === "}") {
       return i;
     } else {
-      result = Object.prototype.hasOwnProperty.call(params, i) ? params[i] : null;
+      result = Object.hasOwn(params, i) ? params[i] : null;
       if (result === null || result === undefined) {
         return "";
       }
@@ -347,12 +351,8 @@ const formatTemplate = function template(string: string, ...args: any[]) {
   });
 };
 
-// TODO: 目前只对 windows 做了处理
 function removeSystemReservedChars(filename: string) {
-  if (process.platform !== "win32") return filename;
-
-  // Refs: https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file#naming-conventions
-  return filename.replace(/[\\/:*?"<>|]/g, "").replace(/[ .]+$/, "");
+  return filenamify(filename, { replacement: "_" });
 }
 
 export type GetProviderExtra<P> = P extends RecorderProvider<infer E> ? E : never;

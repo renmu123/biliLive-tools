@@ -42,7 +42,7 @@ export interface RecordHandle {
 }
 
 export interface DebugLog {
-  type: (string & {}) | "common" | "ffmpeg";
+  type: string | "common" | "ffmpeg";
   text: string;
 }
 
@@ -50,7 +50,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   extends Emitter<{
       RecordStart: RecordHandle;
       RecordStop: { recordHandle: RecordHandle; reason?: string };
-      Updated: ((string & {}) | keyof Recorder)[];
+      Updated: (string | keyof Recorder)[];
       Message: Message;
       DebugLog: DebugLog;
     }>,

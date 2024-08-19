@@ -1,6 +1,6 @@
 import { Qualities, Recorder } from "@autorecord/manager";
 import { getLiveInfo, SourceProfile, StreamProfile } from "./dy_api.js";
-import { reverse, sortBy } from "lodash-es";
+import { sortBy } from "lodash-es";
 import { getValuesFromArrayLikeFlexSpaceBetween } from "./utils.js";
 import { requester } from "./requester.js";
 
@@ -99,7 +99,7 @@ export async function getStream(
     if (!isHighestAsExpected) {
       const streams = getValuesFromArrayLikeFlexSpaceBetween(
         // 斗鱼给的画质列表是按照清晰到模糊的顺序的，这里翻转下
-        reverse(liveInfo.streams),
+        liveInfo.streams.toReversed(),
         Qualities.length,
       );
       expectStream = streams[Qualities.indexOf(opts.quality)];
@@ -157,7 +157,7 @@ function sortAndFilterStreamsByPriority(
     streams
       .map((stream) => ({
         ...stream,
-        priority: reverse(streamPriorities).indexOf(stream.name),
+        priority: streamPriorities.toReversed().indexOf(stream.name),
       }))
       .filter(({ priority }) => priority !== -1),
     "priority",
@@ -180,7 +180,7 @@ function sortAndFilterSourcesByPriority(
     sources
       .map((source) => ({
         ...source,
-        priority: reverse(sourcePriorities).indexOf(source.name),
+        priority: sourcePriorities.toReversed().indexOf(source.name),
       }))
       .filter(({ priority }) => priority !== -1),
     "priority",

@@ -2,11 +2,11 @@ import { createContainer, asValue } from "awilix";
 
 import { appConfig, AppConfig } from "./config.js";
 export * from "./presets/index.js";
-import { setFfmpegPath, getFfmpegPath } from "./task/video.js";
+import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
 import { taskQueue, TaskQueue } from "./task/task.js";
 import { commentQueue, BiliCommentQueue } from "./task/bili.js";
-import { createManager } from "./recorder/index.js";
+import { createRecoderManager } from "./recorder/index.js";
 // import { initDB } from "./db/index.js";
 
 const container = createContainer();
@@ -29,15 +29,15 @@ const init = (config: {
   setFfmpegPath();
 
   // initDB("danmu.db");
+  const recorderManager = createRecoderManager(appConfig);
 
   container.register({
     appConfig: asValue(appConfig),
     logger: asValue(console),
     taskQueue: asValue(taskQueue),
     commentQueue: asValue(commentQueue),
+    recorderManager: asValue(recorderManager),
   });
-  // const { ffmpegPath } = getFfmpegPath();
-  // createManager(ffmpegPath);
   return container;
 };
 
