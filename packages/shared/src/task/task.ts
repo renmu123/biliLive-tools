@@ -947,8 +947,6 @@ export class TaskQueue {
     }
   }
   addTaskForLimit = () => {
-    console.log("addTaskForLimit");
-
     const config = this.appConfig.getAll();
 
     // ffmpeg任务

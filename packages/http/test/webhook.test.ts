@@ -135,6 +135,41 @@ describe("WebhookHandler", () => {
       expect(liveData[0].parts[1].filePath).toBe(options.filePath);
       expect(liveData[0].parts[1].status).toBe("recording");
     });
+    it("应在partMergeMinute为-1时，生成多个live", async () => {
+      webhookHandler.liveData = [];
+      const existingLive: Live = {
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        roomId: 123,
+        videoName: "Existing Video",
+        parts: [
+          {
+            partId: "existing-part-id",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            filePath: "/path/to/existing-video.mp4",
+            status: "recording",
+            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          },
+        ],
+      };
+      webhookHandler.liveData.push(existingLive);
+
+      const options: Options = {
+        event: "VideoFileCreatedEvent",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:09:00Z",
+        title: "New Video",
+        filePath: "/path/to/new-video.mp4",
+        username: "test",
+      };
+      await webhookHandler.handleLiveData(options, -1);
+      const liveData = webhookHandler.liveData;
+
+      expect(liveData.length).toBe(2);
+      expect(liveData[0].parts.length).toBe(1);
+    });
     it("存在live的情况下，且roomId相同，在限制时间外又进来一条数据", async () => {
       webhookHandler.liveData = [];
       const existingLive: Live = {
@@ -272,11 +307,6 @@ describe("WebhookHandler", () => {
       expect(liveData[0].roomId).toBe(existingLive.roomId);
       expect(liveData[0].videoName).toBe(existingLive.videoName);
       expect(liveData[0].parts.length).toBe(3);
-      // expect(liveData[0].parts[0].partId).toBe(existingLive.parts[0].partId);
-      // expect(liveData[0].parts[0].startTime).toBe(existingLive.parts[0].startTime);
-      // expect(liveData[0].parts[0].filePath).toBe(existingLive.parts[0].filePath);
-      // expect(liveData[0].parts[0].endTime).toBe(new Date(options.time).getTime());
-      // expect(liveData[0].parts[0].status).toBe("recorded");
     });
   });
 
@@ -440,6 +470,24 @@ describe("WebhookHandler", () => {
     });
   });
 
+  describe("getConfig", () => {
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        webhook: {
+          open: true,
+          mergePart: false,
+          partMergeMinute: 10,
+        },
+      }),
+    };
+    // @ts-ignore
+    const webhookHandler = new WebhookHandler(appConfig);
+    it("should partMergeMinute return -1 when mergePart is false", () => {
+      const roomId = 123;
+      const result = webhookHandler.getConfig(roomId);
+      expect(result.partMergeMinute).toBe(-1);
+    });
+  });
   describe("handle", () => {
     const appConfig = {
       getAll: vi.fn().mockReturnValue({
