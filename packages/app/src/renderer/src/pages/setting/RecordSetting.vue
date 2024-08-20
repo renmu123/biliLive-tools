@@ -83,7 +83,7 @@
         </template>
         待实现
       </n-form-item>
-      <n-form-item v-if="config.recorder.recordDanmaku">
+      <!-- <n-form-item v-if="config.recorder.recordDanmaku">
         <template #label>
           <span class="inline-flex"> 自动转换为ass </span>
         </template>
@@ -94,7 +94,7 @@
           <span class="inline-flex"> ass转换预设 </span>
         </template>
         待实现
-      </n-form-item>
+      </n-form-item> -->
     </n-form>
   </div>
 </template>
