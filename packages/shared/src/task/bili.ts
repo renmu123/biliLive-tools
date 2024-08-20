@@ -417,6 +417,7 @@ export class BiliCommentQueue {
     updateTime: number;
     top: boolean;
   }[] = [];
+  /** 时间间隔，单位秒 */
   interval: number = 600;
   constructor({ appConfig }: { appConfig: AppConfig }) {
     this.list = [];

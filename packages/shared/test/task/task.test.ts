@@ -392,7 +392,7 @@ describe("TaskQueue", () => {
           kill = vi.fn();
           cancel = vi.fn().mockImplementation(() => {
             this.status = "canceled";
-            this.emitter.emit("task-cancel", { taskId: this.taskId });
+            this.emitter.emit("task-cancel", { taskId: this.taskId, autoStart: true });
           });
         }
 
@@ -549,7 +549,7 @@ describe("TaskQueue", () => {
           kill = vi.fn();
           cancel = vi.fn().mockImplementation(() => {
             this.status = "canceled";
-            this.emitter.emit("task-cancel", { taskId: this.taskId });
+            this.emitter.emit("task-cancel", { taskId: this.taskId, autoStart: true });
           });
         }
 

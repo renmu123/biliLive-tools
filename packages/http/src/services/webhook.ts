@@ -116,6 +116,7 @@ export class WebhookHandler {
     // 计算live
     const currentLiveIndex = await this.handleLiveData(options, partMergeMinute);
     const currentLive = this.liveData[currentLiveIndex];
+    console.log("all live data", this.liveData);
 
     if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
       return;
@@ -323,7 +324,7 @@ export class WebhookHandler {
     uploadHandleTime: [string, string];
   } {
     const config = this.appConfig.getAll();
-    const roomSetting: AppRoomConfig | undefined = config.webhook.rooms[roomId];
+    const roomSetting: AppRoomConfig | undefined = config.webhook?.rooms?.[roomId];
     log.debug("room setting", roomId, roomSetting);
 
     const danmu = getRoomSetting("danmu");
@@ -334,7 +335,7 @@ export class WebhookHandler {
     const danmuPresetId = getRoomSetting("danmuPreset") || "default";
     const videoPresetId = getRoomSetting("ffmpegPreset") || "default";
     const uid = getRoomSetting("uid");
-    const partMergeMinute = getRoomSetting("partMergeMinute") ?? 10;
+    let partMergeMinute = getRoomSetting("partMergeMinute") ?? 10;
     const hotProgress = getRoomSetting("hotProgress");
     const useLiveCover = getRoomSetting("useLiveCover");
     const hotProgressSample = getRoomSetting("hotProgressSample");
@@ -349,6 +350,8 @@ export class WebhookHandler {
     const limitUploadTime = getRoomSetting("limitUploadTime") ?? false;
     const uploadHandleTime = getRoomSetting("uploadHandleTime") || ["00:00:00", "23:59:59"];
 
+    // 如果没有开启断播续传，那么不需要合并part
+    if (!mergePart) partMergeMinute = -1;
     /**
      * 获取房间配置项
      */
