@@ -335,9 +335,9 @@ export interface AppConfig {
     /** 自动录制 */
     autoRecord: boolean;
     /** 画质 */
-    quality?: string;
+    quality: "lowest" | "low" | "medium" | "high" | "highest";
     /** 线路 */
-    line?: string;
+    line?: string; // "auto" | "tct-h5" | "hw-h5"
     /** 检查间隔 */
     checkInterval: number;
     /** 录制弹幕 */

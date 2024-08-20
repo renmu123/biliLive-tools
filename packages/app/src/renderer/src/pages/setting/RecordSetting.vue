@@ -40,7 +40,7 @@
         <template #label>
           <span class="inline-flex"> 画质 </span>
         </template>
-        待实现
+        <n-select v-model:value="config.recorder.quality" :options="qualityOptions" />
       </n-form-item>
       <n-form-item>
         <template #label>
@@ -91,13 +91,13 @@ const config = defineModel<AppConfig>("data", {
   default: () => {},
 });
 
-// const lineOptions = [
-//   { label: "自动", value: "auto" },
-//   { label: "bda2", value: "bda2" },
-//   { label: "qn", value: "qn" },
-//   { label: "qnhk", value: "qnhk" },
-//   { label: "bldsa", value: "bldsa" },
-// ];
+const qualityOptions = [
+  { label: "highest", value: "最高" },
+  { label: "high", value: "高" },
+  { label: "medium", value: "中" },
+  { label: "low", value: "低" },
+  { label: "lowest", value: "最低" },
+];
 </script>
 
 <style scoped lang="less">

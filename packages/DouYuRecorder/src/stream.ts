@@ -96,15 +96,18 @@ export async function getStream(
     expectStream = streamsWithPriority[0];
   } else {
     // 通过设置的画质选项来选择对应流
-    const isHighestAsExpected = opts.quality === "highest" && liveInfo.isOriginalStream;
-    if (!isHighestAsExpected) {
-      const streams = getValuesFromArrayLikeFlexSpaceBetween(
-        // 斗鱼给的画质列表是按照清晰到模糊的顺序的，这里翻转下
-        liveInfo.streams.toReversed(),
-        Qualities.length,
-      );
-      expectStream = streams[Qualities.indexOf(opts.quality)];
-    }
+    // const isHighestAsExpected = opts.quality === "highest";
+    // if (!isHighestAsExpected) {
+    //   console.log("非最高画质", isHighestAsExpected, liveInfo.isOriginalStream);
+    const streams = getValuesFromArrayLikeFlexSpaceBetween(
+      // 斗鱼给的画质列表是按照清晰到模糊的顺序的，这里翻转下
+      liveInfo.streams.toReversed(),
+      Qualities.length,
+    );
+    console.log("画质列表", streams);
+
+    expectStream = streams[Qualities.indexOf(opts.quality)];
+    // }
   }
 
   let expectSource: SourceProfile | null = null;
@@ -116,10 +119,13 @@ export async function getStream(
     expectSource = sourcesWithPriority[0];
   }
 
+  console.log("流", expectStream, expectSource, sourcesWithPriority, opts.sourcePriorities);
+
   if (
     (expectStream != null && liveInfo.currentStream.rate !== expectStream.rate) ||
-    (expectSource != null && liveInfo.currentStream.source !== expectSource.name)
+    (expectSource != null && liveInfo.currentStream.source !== expectSource.cdn)
   ) {
+    console.log("切换流", expectStream, expectSource);
     // 当前流不是预期的流或源，需要切换。
     // TODO: 这一步可能会导致原画的流被切走并且没法再取得，需要额外进行提示。
     if (!liveInfo.isSupportRateSwitch) {
@@ -175,13 +181,12 @@ function sortAndFilterSourcesByPriority(
   priority: number;
 })[] {
   if (sourcePriorities.length === 0) return [];
-
   return sortBy(
     // 分配优先级属性，数字越大优先级越高
     sources
       .map((source) => ({
         ...source,
-        priority: sourcePriorities.toReversed().indexOf(source.name),
+        priority: sourcePriorities.toReversed().indexOf(source.cdn),
       }))
       .filter(({ priority }) => priority !== -1),
     "priority",

@@ -30,7 +30,7 @@ export function createRecoderManager(appConfig: AppConfig) {
     sourcePriorities: ["tct-h5"],
   });
   manager.startCheckLoop();
-  manager.on("RecorderDebugLog", (debug) => {
+  manager.on("RecorderDebugLog", () => {
     // console.error("Manager deug", debug);
   });
   manager.on("RecordStart", (debug) => {
