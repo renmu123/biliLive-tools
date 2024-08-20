@@ -14,23 +14,24 @@ export function createRecoderManager(appConfig: AppConfig) {
   const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
   const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
   const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
-
+  console.log("autoCheckLiveStatusAndRecord", autoCheckLiveStatusAndRecord);
   const manager = createRecorderManager({
     providers: [providerForDouYu],
     autoRemoveSystemReservedChars: true,
-    autoCheckInterval: autoCheckInterval,
+    autoCheckInterval: autoCheckInterval * 1000,
     autoCheckLiveStatusAndRecord: autoCheckLiveStatusAndRecord,
     savePathRule: savePathRule,
   });
   manager.addRecorder({
     providerId: providerForDouYu.id,
-    channelId: "48699",
+    channelId: "2140934",
     quality: "highest",
     streamPriorities: [],
-    sourcePriorities: [],
+    sourcePriorities: ["tct-h5"],
   });
+  manager.startCheckLoop();
   manager.on("RecorderDebugLog", (debug) => {
-    console.error("Manager deug", debug);
+    // console.error("Manager deug", debug);
   });
   manager.on("RecordStart", (debug) => {
     console.error("Manager start", debug);
@@ -40,7 +41,7 @@ export function createRecoderManager(appConfig: AppConfig) {
   });
 
   appConfig.on("update", () => {
-    // console.log("setting update", appConfig.getAll());
+    console.log("setting update");
     updateRecorderManager(manager, appConfig);
   });
   console.log("Manager started", providerForDouYu.id);
@@ -55,7 +56,7 @@ export function updateRecorderManager(
   const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
   const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
 
-  manager.autoCheckInterval = autoCheckInterval;
+  manager.autoCheckInterval = autoCheckInterval * 1000;
   manager.autoCheckLiveStatusAndRecord = autoCheckLiveStatusAndRecord;
   manager.savePathRule = savePathRule;
 

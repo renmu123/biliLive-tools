@@ -14,7 +14,7 @@ interface ConfigEvents {
 
 export default class Config extends TypedEmitter<ConfigEvents> {
   filepath: string;
-  protected data: {
+  data: {
     [propName: string]: any;
   };
   constructor() {
@@ -203,6 +203,7 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
     concurrency: 3,
     retryTimes: 3,
     retryDelay: 2000,
+    checkInterval: 600,
   },
   recorder: {
     savePath: path.join(os.homedir(), "Downloads"),

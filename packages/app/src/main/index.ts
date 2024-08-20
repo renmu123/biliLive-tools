@@ -499,6 +499,7 @@ const appInit = async () => {
       host: appConfig.get("host"),
     },
     globalConfig,
+    container,
   );
   nativeTheme.themeSource = appConfig.get("theme");
 

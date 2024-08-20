@@ -41,7 +41,6 @@ router.get("/streamLogs", async (ctx) => {
       // @ts-ignore
       ctx.sse.send(`${chunk}`);
       logSize += chunk.length;
-      console.log("chunk", logSize);
     });
     stream.on("end", () => {
       console.log("stream end", logSize);

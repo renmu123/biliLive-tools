@@ -54,8 +54,8 @@ export async function getLiveInfo(opts: {
     new URLSearchParams({
       ...signed,
       cdn: opts.cdn ?? "",
-      // 相当于清晰度类型的 id，给 -1 会由后端决定
-      rate: String(opts.rate ?? -1),
+      // 相当于清晰度类型的 id，给 -1 会由后端决定，0为原画
+      rate: String(opts.rate ?? 0),
     }),
   );
 
@@ -82,6 +82,12 @@ export async function getLiveInfo(opts: {
 
     throw new Error("Unexpected error code, " + json.error);
   }
+  console.log("json", json, {
+    ...signed,
+    cdn: opts.cdn ?? "",
+    // 相当于清晰度类型的 id，给 -1 会由后端决定，0 为原画
+    rate: String(opts.rate ?? 0),
+  });
 
   return {
     living: true,

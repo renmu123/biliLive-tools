@@ -6,7 +6,6 @@ import sse from "koa-sse-stream";
 import { AppConfig } from "@biliLive-tools/shared";
 
 import errorMiddleware from "./middleware/error.js";
-
 import webhookRouter from "./routes/webhook.js";
 import configRouter from "./routes/config.js";
 import llmRouter from "./routes/llm.js";
@@ -14,10 +13,12 @@ import commonRouter from "./routes/common.js";
 import { WebhookHandler } from "./services/webhook.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
+import type { AwilixContainer } from "awilix";
 
 export let config: GlobalConfig;
 export let handler!: WebhookHandler;
 export let appConfig!: AppConfig;
+export let container!: AwilixContainer;
 
 const app = new Koa();
 const router = new Router();
@@ -47,11 +48,13 @@ export function serverStart(
     port: number;
     host: string;
   },
-  iConfig?: GlobalConfig,
+  iConfig: GlobalConfig,
+  axContainer: AwilixContainer,
 ) {
   if (iConfig) config = iConfig;
   appConfig = new AppConfig(config.configPath);
   handler = new WebhookHandler(appConfig);
+  container = axContainer;
 
   app.listen(options.port, options.host, () => {
     console.log(`Server is running at http://${options.host}:${options.port}`);

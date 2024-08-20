@@ -83,6 +83,7 @@ export async function getStream(
     channelId: opts.channelId,
     cdn: opts.sourcePriorities[0],
   });
+  console.log("liveInfo", liveInfo);
   if (!liveInfo.living) throw new Error();
 
   let expectStream: StreamProfile | null = null;
@@ -127,7 +128,7 @@ export async function getStream(
       liveInfo = await getLiveInfo({
         channelId: opts.channelId,
         rate: expectStream?.rate,
-        cdn: expectSource?.name,
+        cdn: expectSource?.cdn,
       });
       if (!liveInfo.living) throw new Error();
     }

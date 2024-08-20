@@ -38,23 +38,47 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <span class="inline-flex"> 弹幕录制 </span>
-        </template>
-        <n-switch v-model:value="config.recorder.recordDanmaku" />
-      </n-form-item>
-      <n-form-item>
-        <template #label>
           <span class="inline-flex"> 画质 </span>
         </template>
         待实现
-        <!-- <n-select v-model:value="config.recorder.quality" :options="lineOptions" /> -->
       </n-form-item>
       <n-form-item>
         <template #label>
           <span class="inline-flex"> 线路 </span>
         </template>
         待实现
-        <!-- <n-select v-model:value="config.recorder.line" :options="lineOptions" /> -->
+      </n-form-item>
+
+      <h2>弹幕录制</h2>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> 弹幕录制 </span>
+        </template>
+        <n-switch v-model:value="config.recorder.recordDanmaku" />
+      </n-form-item>
+      <n-form-item v-if="config.recorder.recordDanmaku">
+        <template #label>
+          <span class="inline-flex"> 保存礼物 </span>
+        </template>
+        待实现
+      </n-form-item>
+      <n-form-item v-if="config.recorder.recordDanmaku">
+        <template #label>
+          <span class="inline-flex"> 保存高能弹幕 </span>
+        </template>
+        待实现
+      </n-form-item>
+      <n-form-item v-if="config.recorder.recordDanmaku">
+        <template #label>
+          <span class="inline-flex"> 自动转换为ass </span>
+        </template>
+        待实现
+      </n-form-item>
+      <n-form-item v-if="config.recorder.recordDanmaku && false">
+        <template #label>
+          <span class="inline-flex"> ass转换预设 </span>
+        </template>
+        待实现
       </n-form-item>
     </n-form>
   </div>

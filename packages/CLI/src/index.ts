@@ -46,7 +46,7 @@ program
       defaultFfprobePath: c.ffprobePath,
       defaultDanmakuFactoryPath: c.danmakuFactoryPath,
     };
-    init(globalConfig);
+    const container = init(globalConfig);
 
     serverStart(
       {
@@ -54,6 +54,7 @@ program
         host: c.host,
       },
       globalConfig,
+      container,
     );
   });
 
