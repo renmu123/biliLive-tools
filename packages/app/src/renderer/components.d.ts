@@ -11,7 +11,6 @@ declare module 'vue' {
     BiliSetting: typeof import('./src/components/BiliSetting.vue')['default']
     ButtonGroup: typeof import('./src/components/ButtonGroup.vue')['default']
     ChangelogModal: typeof import('./src/components/ChangelogModal.vue')['default']
-    copy: typeof import('./src/components/ChangelogModal copy.vue')['default']
     DanmuFactorySetting: typeof import('./src/components/DanmuFactorySetting.vue')['default']
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']
     DownloadConfirm: typeof import('./src/components/DownloadConfirm.vue')['default']

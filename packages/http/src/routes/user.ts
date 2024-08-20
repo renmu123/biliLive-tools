@@ -8,7 +8,7 @@ const router = new Router({
 });
 
 router.get("/list", async (ctx) => {
-  const users = appConfig.get("biliUser") || {};
+  const users = appConfig.getAll().biliUser || {};
   const list = Object.values(users) as unknown as BiliUser[];
 
   ctx.body = list.map((item) => {
