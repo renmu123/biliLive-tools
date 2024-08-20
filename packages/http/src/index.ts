@@ -11,6 +11,8 @@ import webhookRouter from "./routes/webhook.js";
 import configRouter from "./routes/config.js";
 import llmRouter from "./routes/llm.js";
 import commonRouter from "./routes/common.js";
+import userRouter from "./routes/user.js";
+import SSERouter from "./routes/sse.js";
 import { WebhookHandler } from "./services/webhook.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
@@ -29,17 +31,19 @@ router.get("/", async (ctx) => {
 app.use(errorMiddleware);
 app.use(cors());
 app.use(bodyParser());
+app.use(router.routes());
+app.use(webhookRouter.routes());
+app.use(configRouter.routes());
+app.use(llmRouter.routes());
+app.use(userRouter.routes());
 app.use(
   sse({
     maxClients: 5000,
     pingInterval: 30000,
   }),
 );
+app.use(SSERouter.routes());
 
-app.use(router.routes());
-app.use(webhookRouter.routes());
-app.use(configRouter.routes());
-app.use(llmRouter.routes());
 app.use(commonRouter.routes());
 
 export function serverStart(

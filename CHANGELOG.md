@@ -12,6 +12,7 @@
 2. webhook标题支持ejs模板引擎，具体使用见文档 ([#21](https://github.com/renmu123/biliLive-tools/issues/21))
 3. 新增log直接查看功能
 4. ffmpeg配置增加缩放算法，分辨率默认值修改为2880x1620
+5. 增加B站帐号过期检查
 
 ## 优化
 

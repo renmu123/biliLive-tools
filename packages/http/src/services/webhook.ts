@@ -116,6 +116,7 @@ export class WebhookHandler {
     // 计算live
     const currentLiveIndex = await this.handleLiveData(options, partMergeMinute);
     const currentLive = this.liveData[currentLiveIndex];
+    console.log("all live data", this.liveData);
 
     if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
       return;

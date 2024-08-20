@@ -661,7 +661,6 @@ describe("WebhookHandler", () => {
 
       // @ts-ignore
       const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
-        mergePart: true,
         uploadPresetId: "preset-id",
         uid: undefined,
         removeOriginAfterUpload: true,

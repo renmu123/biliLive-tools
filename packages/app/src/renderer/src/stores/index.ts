@@ -1,6 +1,8 @@
 import { cloneDeep } from "lodash-es";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
+import { getUserList } from "@renderer/apis/user";
+
 import type { Task } from "@renderer/types";
 
 export const useUserInfoStore = defineStore("userInfo", () => {
@@ -30,14 +32,8 @@ export const useUserInfoStore = defineStore("userInfo", () => {
   async function getUserInfo() {
     await appConfigStore.getAppConfig();
     const uid = appConfigStore.appConfig.uid;
-    const users = await window.api.bili.readUserList();
-    userList.value = users.map((item) => {
-      return {
-        uid: item.mid,
-        name: item.name,
-        face: item.avatar,
-      };
-    });
+    userList.value = await getUserList();
+    console.log(userList.value);
 
     if (userList.value.length === 0) {
       userInfo.value = {
