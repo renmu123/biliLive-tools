@@ -417,10 +417,11 @@ export class BiliCommentQueue {
     updateTime: number;
     top: boolean;
   }[] = [];
-  interval: number = 1000 * 60 * 10;
+  /** 时间间隔，单位秒 */
+  interval: number = 600;
   constructor({ appConfig }: { appConfig: AppConfig }) {
     this.list = [];
-    this.interval = (appConfig?.data?.biliUpload?.checkInterval ?? 10 * 60) * 1000;
+    this.interval = appConfig?.data?.biliUpload?.checkInterval ?? 600;
   }
   add(data: { aid: number; content: string; uid: number; top: boolean }) {
     // bvid是唯一的
@@ -497,7 +498,7 @@ export class BiliCommentQueue {
     try {
       await this.check();
     } finally {
-      setTimeout(this.checkLoop, this.interval);
+      setTimeout(this.checkLoop, this.interval * 1000);
     }
   };
 }
