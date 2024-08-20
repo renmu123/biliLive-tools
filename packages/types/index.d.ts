@@ -342,6 +342,8 @@ export interface AppConfig {
     checkInterval: number;
     /** 录制弹幕 */
     recordDanmaku: boolean;
+    /**分段时长，单位分钟 */
+    segment: number;
   };
 }
 

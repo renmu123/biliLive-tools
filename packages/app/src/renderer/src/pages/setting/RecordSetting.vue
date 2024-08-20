@@ -30,11 +30,26 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <span class="inline-flex"> 检查间隔 </span>
+          <span class="inline-flex">
+            检查间隔
+            <Tip tip="注意风控"></Tip>
+          </span>
         </template>
         <n-input-number v-model:value="config.recorder.checkInterval" min="10" step="10">
           <template #suffix>秒</template>
         </n-input-number>
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            分段录制
+            <Tip tip="0为不分段"></Tip>
+          </span>
+        </template>
+        待实现
+        <!-- <n-input-number v-model:value="config.recorder.segment" min="0" step="30">
+          <template #suffix>分钟</template>
+        </n-input-number> -->
       </n-form-item>
       <n-form-item>
         <template #label>
