@@ -33,7 +33,6 @@ export const useUserInfoStore = defineStore("userInfo", () => {
     await appConfigStore.getAppConfig();
     const uid = appConfigStore.appConfig.uid;
     userList.value = await getUserList();
-    console.log(userList.value);
 
     if (userList.value.length === 0) {
       userInfo.value = {

@@ -11,7 +11,7 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import log from "./utils/log";
 import { notify } from "./utils/index";
 import { danmuService } from "@biliLive-tools/shared/db/index.js";
-import { init, AppConfig, TaskQueue } from "@biliLive-tools/shared";
+import { init, TaskQueue } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
 import { handlers as biliHandlers } from "./bili";
@@ -35,6 +35,7 @@ import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
 import type { Theme, GlobalConfig } from "@biliLive-tools/types";
 import type { AwilixContainer } from "awilix";
+import type { AppConfig } from "@biliLive-tools/shared";
 
 export let mainWin: BrowserWindow;
 export let container = createContainer();
@@ -498,7 +499,7 @@ const appInit = async () => {
       port: appConfig.get("port"),
       host: appConfig.get("host"),
     },
-    globalConfig,
+    container,
   );
   nativeTheme.themeSource = appConfig.get("theme");
 

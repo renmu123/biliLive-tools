@@ -36,6 +36,8 @@
 </template>
 
 <script setup lang="ts">
+import { userApi } from "@renderer/apis";
+
 import { useUserInfoStore, useAppConfig } from "@renderer/stores";
 import BiliLoginDialog from "./components/BiliLoginDialog.vue";
 import { useConfirm } from "@renderer/hooks";
@@ -44,6 +46,7 @@ import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 const { getUserInfo, changeUser } = useUserInfoStore();
 const { appConfig } = storeToRefs(useAppConfig());
 const { userInfo, userList } = storeToRefs(useUserInfoStore());
+const notice = useNotification();
 
 const loginTvDialogVisible = ref(false);
 const login = async () => {
@@ -69,7 +72,7 @@ const logout = async (uid: number) => {
     if (!status) return;
   }
 
-  await window.api.bili.deleteUser(uid);
+  await userApi.delete(uid);
   if (uid === userInfo.value.uid && userList.value.length !== 0) {
     changeAccount(userList.value[0].uid);
   }
@@ -80,7 +83,11 @@ const changeAccount = async (uid: number) => {
 };
 
 const updateAccountInfo = async (uid: number) => {
-  await window.api.bili.updateUserInfo(uid);
+  await userApi.refresh(uid);
+  notice.success({
+    title: "已获取最新数据",
+    duration: 1000,
+  });
   getUserInfo();
 };
 </script>

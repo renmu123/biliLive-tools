@@ -1,5 +1,5 @@
 import { Client, TvQrcodeLogin } from "@renmu/bili-api";
-import { biliApi, format, writeUser, readUser } from "@biliLive-tools/shared/task/bili.js";
+import { biliApi, addUser } from "@biliLive-tools/shared/task/bili.js";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { BiliupConfig } from "@biliLive-tools/types";
@@ -9,15 +9,6 @@ type ClientInstance = InstanceType<typeof Client>;
 let tv: TvQrcodeLogin;
 
 export { biliApi };
-
-const updateUserInfo = async (uid: number) => {
-  const user = await readUser(uid);
-  if (!user) throw new Error("用户不存在");
-  const userInfo = await biliApi.getMyInfo(uid);
-  user.name = userInfo.profile.name;
-  user.avatar = userInfo.profile.face;
-  await writeUser(user);
-};
 
 export const handlers = {
   "biliApi:getArchives": (
@@ -51,18 +42,13 @@ export const handlers = {
     });
     tv.on("completed", async (res) => {
       const data = res.data;
-      const user = await format(data);
-      await writeUser(user);
-      await updateUserInfo(user.mid);
+      await addUser(data);
       event.sender.send("biliApi:login-completed", res);
     });
     return tv.login();
   },
   "biliApi:login:cancel": () => {
     tv.interrupt();
-  },
-  "bili:updateUserInfo": async (_event: IpcMainInvokeEvent, uid: number) => {
-    return updateUserInfo(uid);
   },
   "bili:addMedia": (
     _event: IpcMainInvokeEvent,

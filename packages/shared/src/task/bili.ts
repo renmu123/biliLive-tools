@@ -2,7 +2,7 @@ import path from "node:path";
 import os from "node:os";
 
 import { Client, TvQrcodeLogin, WebVideoUploader } from "@renmu/bili-api";
-import { appConfig, AppConfig } from "../config.js";
+import { appConfig } from "../config.js";
 import { container } from "../index.js";
 
 import {
@@ -17,6 +17,7 @@ import { sleep } from "../utils/index.js";
 
 import type { BiliupConfig, BiliUser } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
+import type { AppConfig } from "../config.js";
 
 type ClientInstance = InstanceType<typeof Client>;
 
@@ -542,7 +543,7 @@ export const validateBiliupConfig = async (config: BiliupConfig) => {
 
 // 删除bili登录的cookie
 export const deleteUser = async (uid: number) => {
-  const users = appConfig.get("biliUser") || {};
+  const users = appConfig.getAll().biliUser || {};
   delete users[uid];
   appConfig.set("biliUser", users);
   return true;
@@ -550,28 +551,38 @@ export const deleteUser = async (uid: number) => {
 
 // 写入用户数据
 export const writeUser = async (data: BiliUser) => {
-  const users = appConfig.get("biliUser") || {};
+  const users = appConfig.getAll().biliUser || {};
   users[data.mid] = data;
   appConfig.set("biliUser", users);
 };
 
 // 读取用户数据
 export const readUser = async (mid: number): Promise<BiliUser | undefined> => {
-  const users = appConfig.get("biliUser") || {};
+  const users = appConfig.getAll().biliUser || {};
   return users[mid];
 };
 
 // 读取用户列表
 export const readUserList = async (): Promise<BiliUser[]> => {
-  const users = appConfig.get("biliUser") || {};
+  const users = appConfig.getAll().biliUser || {};
   return Object.values(users) as unknown as BiliUser[];
 };
 
-export const format = async (data: any) => {
+const updateUserInfo = async (uid: number) => {
+  const user = await readUser(uid);
+  if (!user) throw new Error("用户不存在");
+  const userInfo = await biliApi.getMyInfo(uid);
+  user.name = userInfo.profile.name;
+  user.avatar = userInfo.profile.face;
+  await writeUser(user);
+};
+
+// 添加用户
+export const addUser = async (data: any) => {
   const cookieObj = {};
   (data?.cookie_info?.cookies || []).map((item: any) => (cookieObj[item.name] = item.value));
 
-  const result: BiliUser = {
+  const user: BiliUser = {
     mid: data.mid,
     rawAuth: JSON.stringify(data),
     cookie: cookieObj as any,
@@ -581,15 +592,8 @@ export const format = async (data: any) => {
     platform: "TV",
   };
 
-  try {
-    const biliUser = await biliApi.getUserInfo(data.mid);
-    result.name = biliUser.name;
-    result.avatar = biliUser.face;
-  } catch (e) {
-    log.error(e);
-  }
-
-  return result;
+  await writeUser(user);
+  await updateUserInfo(user.mid);
 };
 
 export const biliApi = {
@@ -609,4 +613,8 @@ export const biliApi = {
   getSessionId,
   getPlatformArchiveDetail,
   validateBiliupConfig,
+  deleteUser,
+  updateUserInfo,
 };
+
+export default biliApi;

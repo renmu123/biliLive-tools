@@ -21,6 +21,7 @@ export default class Config extends TypedEmitter<Events> {
     this.data = {};
   }
   set(key: string | number, value: any) {
+    this.read();
     this.data[key] = value;
     this.save();
     // @ts-ignore

@@ -3,7 +3,6 @@ import Router from "koa-router";
 import cors from "@koa/cors";
 import bodyParser from "koa-bodyparser";
 import sse from "koa-sse-stream";
-import { AppConfig } from "@biliLive-tools/shared";
 
 import errorMiddleware from "./middleware/error.js";
 
@@ -16,10 +15,13 @@ import SSERouter from "./routes/sse.js";
 import { WebhookHandler } from "./services/webhook.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
+import type { AwilixContainer } from "awilix";
+import type { AppConfig } from "@biliLive-tools/shared";
 
 export let config: GlobalConfig;
 export let handler!: WebhookHandler;
 export let appConfig!: AppConfig;
+export let container!: AwilixContainer;
 
 const app = new Koa();
 const router = new Router();
@@ -36,6 +38,7 @@ app.use(webhookRouter.routes());
 app.use(configRouter.routes());
 app.use(llmRouter.routes());
 app.use(userRouter.routes());
+app.use(commonRouter.routes());
 app.use(
   sse({
     maxClients: 5000,
@@ -44,17 +47,15 @@ app.use(
 );
 app.use(SSERouter.routes());
 
-app.use(commonRouter.routes());
-
 export function serverStart(
   options: {
     port: number;
     host: string;
   },
-  iConfig?: GlobalConfig,
+  container: AwilixContainer,
 ) {
-  if (iConfig) config = iConfig;
-  appConfig = new AppConfig(config.configPath);
+  config = container.resolve<GlobalConfig>("globalConfig");
+  appConfig = container.resolve<AppConfig>("appConfig");
   handler = new WebhookHandler(appConfig);
 
   app.listen(options.port, options.host, () => {
@@ -62,5 +63,3 @@ export function serverStart(
   });
   return app;
 }
-
-// serverStart();

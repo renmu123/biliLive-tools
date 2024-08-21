@@ -1,5 +1,8 @@
 import request from "./request";
 
+/**
+ * @description Get user list
+ */
 export const getUserList = async (): Promise<
   {
     uid: number;
@@ -12,14 +15,18 @@ export const getUserList = async (): Promise<
   return res.data;
 };
 
-const flush = async (uid: number) => {
-  return request.get(`/user/flush`, {
-    params: {
-      uid,
-    },
+/**
+ * @description Refresh user info
+ */
+const refresh = async (uid: number) => {
+  return request.post(`/user/update`, {
+    uid,
   });
 };
 
+/**
+ * @description Delete user
+ */
 const deleteUser = async (uid: number) => {
   return request.post(`/user/delete`, {
     uid,
@@ -28,7 +35,7 @@ const deleteUser = async (uid: number) => {
 
 const userApi = {
   getList: getUserList,
-  flush: flush,
+  refresh,
   delete: deleteUser,
 };
 

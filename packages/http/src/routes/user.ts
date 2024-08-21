@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { appConfig } from "../index.js";
+import biliService from "@biliLive-tools/shared/task/bili.js";
 
 import type { BiliUser } from "@biliLive-tools/types";
 
@@ -24,6 +25,16 @@ router.get("/list", async (ctx) => {
   });
 });
 
-// router.post("/delete", async (ctx) => {});
+router.post("/delete", async (ctx) => {
+  const { uid } = ctx.request.body as { uid: number };
+  await biliService.deleteUser(uid);
+  ctx.status = 200;
+});
+
+router.post("/update", async (ctx) => {
+  const { uid } = ctx.request.body as { uid: number };
+  await biliService.updateUserInfo(uid);
+  ctx.status = 200;
+});
 
 export default router;

@@ -20,7 +20,6 @@ import type {
   Video2Mp4Options,
   FfmpegPreset,
   DanmuConfig,
-  BiliUser,
   hotProgressOptions,
   Theme,
   SC,
@@ -279,9 +278,6 @@ export const api = {
     getPresets: (): Promise<BiliupPreset[]> => {
       return ipcRenderer.invoke("bili:getPresets");
     },
-    deleteUser: (uid: number) => {
-      return ipcRenderer.invoke("bili:deleteUser", uid);
-    },
     // 验证视频上传参数
     validUploadParams: (config: BiliupConfig) => {
       return ipcRenderer.invoke("bili:validUploadParams", config);
@@ -326,15 +322,6 @@ export const api = {
       ipcRenderer.removeAllListeners("biliApi:login-error");
       ipcRenderer.removeAllListeners("biliApi:login-completed");
       return ipcRenderer.invoke("biliApi:login:cancel");
-    },
-    removeUser(mid: number) {
-      return ipcRenderer.invoke("bili:removeUser", mid);
-    },
-    readUserList(): Promise<BiliUser[]> {
-      return ipcRenderer.invoke("bili:readUserList");
-    },
-    updateUserInfo(uid: number) {
-      return ipcRenderer.invoke("bili:updateUserInfo", uid);
     },
     getArchives(
       params: Parameters<BiliApi["getArchives"]>[0],
