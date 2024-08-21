@@ -42,7 +42,9 @@ export class Danmu {
         return "";
       } else if (key === "fontname") {
         return `--${key} "${value}"`;
-      } else if (["resolutionResponsive", "customDensity", "opacity"].includes(key)) {
+      } else if (
+        ["resolutionResponsive", "customDensity", "opacity", "giftmergetolerance"].includes(key)
+      ) {
         // do nothing
         return "";
       } else if (key === "blacklist") {

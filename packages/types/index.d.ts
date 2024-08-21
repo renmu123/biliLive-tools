@@ -23,7 +23,6 @@ export type DanmuConfig = {
   msgboxfontsize: number;
   msgboxduration: number;
   giftminprice: number;
-  giftmergetolerance: number;
   blockmode: ("R2L" | "L2R" | "TOP" | "BOTTOM" | "SPECIAL" | "COLOR" | "REPEAT")[];
   statmode: ("TABLE" | "HISTOGRAM")[];
   resolutionResponsive: false;

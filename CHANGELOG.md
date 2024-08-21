@@ -23,10 +23,12 @@
 5. webhook标题支持预览输出
 6. 移除完成后删除源文件和完成后打开文件夹功能，由于这两个选项在各个页面中或无效或存在问题
 7. 增加设置栏目
+8. 移除弹幕转换的"同一用户相同礼物自动合并的时间窗"功能，上游[移除](https://github.com/hihkm/DanmakuFactory/pull/89)
 
 ## Bug修复
 
 1. 修复断播续传设置关闭失效的bug
+2. 修复弹幕姬未保存raw的sc价格，[上游修复](https://github.com/hihkm/DanmakuFactory/pull/91)
 
 # 1.4.0
 

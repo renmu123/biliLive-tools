@@ -234,13 +234,6 @@
               <template #suffix> RMB </template>
             </n-input-number>
           </n-form-item>
-          <n-form-item v-if="isAdvancedMode" label="同一用户相同礼物自动合并的时间窗">
-            <n-input-number
-              v-model:value.number="config.giftmergetolerance"
-              class="input-number"
-              :min="0"
-            />
-          </n-form-item>
         </template>
       </n-form>
     </div>
