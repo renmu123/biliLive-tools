@@ -24,15 +24,38 @@ export const useUserInfoStore = defineStore("userInfo", () => {
   const userList = ref<
     {
       uid: number;
+      expires: number;
       name?: string;
       face?: string;
+      expiresText?: string;
     }[]
   >([]);
+
+  const calcExpireTime = (user: { uid: number; expires: number; name?: string; face?: string }) => {
+    const date = new Date();
+    if (user.expires) {
+      const expireTime = new Date(user.expires * 1000);
+      if (date > expireTime) {
+        return "已过期!";
+      } else {
+        const diff = expireTime.getTime() - date.getTime();
+        const day = Math.floor(diff / (24 * 3600 * 1000));
+        return `${day}天后过期`;
+      }
+    }
+    return "";
+  };
 
   async function getUserInfo() {
     await appConfigStore.getAppConfig();
     const uid = appConfigStore.appConfig.uid;
     userList.value = await getUserList();
+    userList.value = userList.value.map((item) => {
+      return {
+        ...item,
+        expiresText: calcExpireTime(item),
+      };
+    });
 
     if (userList.value.length === 0) {
       userInfo.value = {

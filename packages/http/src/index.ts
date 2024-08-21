@@ -55,8 +55,8 @@ export function serverStart(
 ) {
   container = axContainer;
 
-  config = axContainer.resolve<GlobalConfig>("globalConfig");
-  appConfig = axContainer.resolve<AppConfig>("appConfig");
+  config = container.resolve<GlobalConfig>("globalConfig");
+  appConfig = container.resolve<AppConfig>("appConfig");
   handler = new WebhookHandler(appConfig);
 
   app.listen(options.port, options.host, () => {
