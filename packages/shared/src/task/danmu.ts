@@ -1,6 +1,7 @@
 import { join, parse } from "node:path";
 import fs from "fs-extra";
 import os from "node:os";
+import readline from "node:readline";
 import { isNumber } from "lodash-es";
 
 import { pathExists, trashItem, uuid } from "../utils/index.js";
@@ -144,17 +145,22 @@ export const convertXml2Ass = async (
  * 如果文件中存在<d>, <gift>, <sc>, <guard>标签则认为不为空
  *
  */
-export const isEmptyDanmu = async (file: string) => {
-  const XMLdata = await fs.promises.readFile(file, "utf8");
+export const isEmptyDanmu = async (filepath: string) => {
+  const readStream = fs.createReadStream(filepath, { encoding: "utf8" });
+  const rl = readline.createInterface({
+    input: readStream,
+    crlfDelay: Infinity,
+  });
   // "d": 普通弹幕，"gift": 录播姬 - 普通礼物，"sc": 录播姬 - SuperChat，"guard": 录播姬 - 舰长
-  if (
-    XMLdata.includes("</d>") ||
-    XMLdata.includes("</gift>") ||
-    XMLdata.includes("</sc>") ||
-    XMLdata.includes("</guard>")
-  )
-    return false;
-
+  for await (const line of rl) {
+    if (
+      line.includes("</d>") ||
+      line.includes("</gift>") ||
+      line.includes("</sc>") ||
+      line.includes("</guard>")
+    )
+      return false;
+  }
   return true;
 };
 
