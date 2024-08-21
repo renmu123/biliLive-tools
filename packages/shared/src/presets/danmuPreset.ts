@@ -23,7 +23,6 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   msgboxfontsize: 38,
   msgboxduration: 10.0,
   giftminprice: 10.0,
-  giftmergetolerance: 0.0,
   blockmode: [],
   statmode: [],
   resolutionResponsive: false,
