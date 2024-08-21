@@ -23,6 +23,7 @@ export default class Config extends TypedEmitter<ConfigEvents> {
     this.data = {};
   }
   set(key: string | number, value: any) {
+    this.read();
     this.data[key] = value;
     this.save();
     this.emit("update", this.data);

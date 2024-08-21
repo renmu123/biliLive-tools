@@ -53,7 +53,6 @@ program
         port: c.port,
         host: c.host,
       },
-      globalConfig,
       container,
     );
   });

@@ -6,7 +6,7 @@ import { uuid, isWin32, retry } from "../utils/index.js";
 import log from "../utils/log.js";
 import { Danmu } from "../danmu/index.js";
 import { sendNotify } from "../notify.js";
-import { appConfig, AppConfig } from "../config.js";
+import { appConfig } from "../config.js";
 import kill from "tree-kill";
 import { addMediaApi, editMediaApi } from "./bili.js";
 
@@ -16,6 +16,7 @@ import type { Progress, NotificationTaskStatus, BiliupConfig } from "@biliLive-t
 import type { Status } from "@biliLive-tools/types/task.d.ts";
 import { TaskType } from "../enum.js";
 import type M3U8Downloader from "@renmu/m3u8-downloader";
+import type { AppConfig } from "../config.js";
 
 interface TaskEvents {
   "task-start": ({ taskId }: { taskId: string }) => void;
