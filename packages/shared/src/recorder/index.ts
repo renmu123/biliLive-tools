@@ -28,16 +28,21 @@ export function createRecoderManager(appConfig: AppConfig) {
     quality: "highest",
     streamPriorities: [],
     sourcePriorities: ["tct-h5"],
+    segment: 60,
+    disableProvideCommentsWhenRecording: false,
   });
   manager.startCheckLoop();
-  manager.on("RecorderDebugLog", () => {
-    // console.error("Manager deug", debug);
+  manager.on("RecorderDebugLog", (debug) => {
+    console.error("Manager deug", debug.text);
   });
   manager.on("RecordStart", (debug) => {
     console.error("Manager start", debug);
   });
   manager.on("error", (error) => {
     console.error("Manager error", error);
+  });
+  manager.on("RecordSegment", (debug) => {
+    console.error("Manager segment", debug);
   });
 
   appConfig.on("update", () => {

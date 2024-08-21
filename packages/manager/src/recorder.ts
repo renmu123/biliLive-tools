@@ -20,6 +20,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   streamPriorities: string[];
   // 该项为用户配置，不同源（CDN）的优先级，如果设置了此项，将优先根据此决定使用哪个源，除非所有的指定源无效
   sourcePriorities: string[];
+  // 该项为用户配置，指定录制的片段时长，单位为秒，如果设置了此项，将按此时长切片录制
+  segment?: number;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
 }
@@ -49,6 +51,7 @@ export interface DebugLog {
 export interface Recorder<E extends AnyObject = UnknownObject>
   extends Emitter<{
       RecordStart: RecordHandle;
+      RecordSegment: RecordHandle;
       RecordStop: { recordHandle: RecordHandle; reason?: string };
       Updated: (string | keyof Recorder)[];
       Message: Message;

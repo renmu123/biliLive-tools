@@ -61,6 +61,7 @@ export interface RecorderManager<
 > extends Emitter<{
     error: { source: string; err: unknown };
     RecordStart: { recorder: Recorder<E>; recordHandle: RecordHandle };
+    RecordSegment: { recorder: Recorder<E>; recordHandle: RecordHandle };
     RecordStop: { recorder: Recorder<E>; recordHandle: RecordHandle; reason?: string };
     RecorderUpdated: {
       recorder: Recorder<E>;
@@ -165,6 +166,9 @@ export function createRecorderManager<
       recorder.on("RecordStart", (recordHandle) =>
         this.emit("RecordStart", { recorder, recordHandle }),
       );
+      recorder.on("RecordSegment", (recordHandle) =>
+        this.emit("RecordSegment", { recorder, recordHandle }),
+      );
       recorder.on("RecordStop", ({ recordHandle, reason }) =>
         this.emit("RecordStop", { recorder, recordHandle, reason }),
       );
@@ -230,7 +234,7 @@ export function createRecorderManager<
          * FragmentMP4 可以边录边播（浏览器原生支持），具有一定的抗损坏能力，录制中 KILL 只会丢失
          * 最后一个片段，而 FLV 格式如果录制中 KILL 了需要手动修复下 keyframes。所以默认使用 fmp4 格式。
          */
-        " -movflags frag_keyframe" +
+        " -movflags faststart+frag_keyframe+empty_moov" +
         /**
          * 浏览器加载 FragmentMP4 会需要先把它所有的 moof boxes 都加载完成后才能播放，
          * 默认的分段时长很小，会产生大量的 moof，导致加载很慢，所以这里设置一个分段的最小时长。

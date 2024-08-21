@@ -186,11 +186,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
     )
     .outputOptions(ffmpegOutputOptions)
-    .output(recordSavePath)
+    .output(`${recordSavePath}-PART%03d.mp4`)
     .on("error", onEnd)
     .on("end", () => onEnd("finished"))
     .on("stderr", (stderrLine) => {
       assert(typeof stderrLine === "string");
+      if (stderrLine.includes("Opening ")) {
+        this.emit("RecordSegment", this.recordHandle);
+      }
       this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 
       if (isInvalidStream(stderrLine)) {
@@ -198,6 +201,16 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       }
     })
     .on("stderr", timeoutChecker.update);
+  if (this.segment) {
+    command.outputOptions(
+      "-f",
+      "segment",
+      "-segment_time",
+      String(this.segment),
+      "-reset_timestamps",
+      "1",
+    );
+  }
   const ffmpegArgs = command._getArguments();
   extraDataController.setMeta({
     recordStartTimestamp: Date.now(),

@@ -75,7 +75,10 @@ export async function getInfo(channelId: string): Promise<{
 }
 
 export async function getStream(
-  opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities"> & {
+  opts: Pick<
+    Recorder,
+    "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "segment"
+  > & {
     rejectCache?: boolean;
   },
 ) {
@@ -83,7 +86,7 @@ export async function getStream(
     channelId: opts.channelId,
     cdn: opts.sourcePriorities[0],
   });
-  console.log("liveInfo", liveInfo);
+  // console.log("liveInfo", liveInfo);
   if (!liveInfo.living) throw new Error();
 
   let expectStream: StreamProfile | null = null;
@@ -104,7 +107,7 @@ export async function getStream(
       liveInfo.streams.toReversed(),
       Qualities.length,
     );
-    console.log("画质列表", streams);
+    // console.log("画质列表", streams);
 
     expectStream = streams[Qualities.indexOf(opts.quality)];
     // }
@@ -119,13 +122,13 @@ export async function getStream(
     expectSource = sourcesWithPriority[0];
   }
 
-  console.log("流", expectStream, expectSource, sourcesWithPriority, opts.sourcePriorities);
+  // console.log("流", expectStream, expectSource, sourcesWithPriority, opts.sourcePriorities);
 
   if (
     (expectStream != null && liveInfo.currentStream.rate !== expectStream.rate) ||
     (expectSource != null && liveInfo.currentStream.source !== expectSource.cdn)
   ) {
-    console.log("切换流", expectStream, expectSource);
+    // console.log("切换流", expectStream, expectSource);
     // 当前流不是预期的流或源，需要切换。
     // TODO: 这一步可能会导致原画的流被切走并且没法再取得，需要额外进行提示。
     if (!liveInfo.isSupportRateSwitch) {
