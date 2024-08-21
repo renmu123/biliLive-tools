@@ -52,8 +52,10 @@ export function serverStart(
     port: number;
     host: string;
   },
-  container: AwilixContainer,
+  axContainer: AwilixContainer,
 ) {
+  container = axContainer;
+
   config = container.resolve<GlobalConfig>("globalConfig");
   appConfig = container.resolve<AppConfig>("appConfig");
   handler = new WebhookHandler(appConfig);
