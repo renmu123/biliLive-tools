@@ -1,4 +1,5 @@
 import mitt from "mitt";
+import fs from "fs-extra";
 // @ts-ignore
 import * as cheerio from "cheerio";
 import {
@@ -100,6 +101,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const savePath = getSavePath({ owner, title });
   const extraDataSavePath = replaceExtName(savePath, ".json");
   const recordSavePath = savePath;
+  console.log("savePath", savePath);
+  const templateSavePath = `${recordSavePath}-PART%03d.mp4`;
+
   try {
     // TODO: 这个 ensure 或许应该放在 createRecordExtraDataController 里实现？
     ensureFolderExist(extraDataSavePath);
@@ -170,6 +174,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const onEnd = (...args: unknown[]) => {
     if (isEnded) return;
     isEnded = true;
+
     this.emit("DebugLog", {
       type: "common",
       text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
@@ -178,6 +183,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
+  const segmentData = {
+    startTime: Date.now(),
+    rawname: recordSavePath,
+  };
+  let isFirstSegment = true;
   const isInvalidStream = createInvalidStreamChecker();
   const timeoutChecker = createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
   const command = createFFMPEGBuilder(stream.url)
@@ -186,13 +196,34 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
     )
     .outputOptions(ffmpegOutputOptions)
-    .output(`${recordSavePath}-PART%03d.mp4`)
+    .output(templateSavePath)
+    .on("start", () => {
+      segmentData.startTime = Date.now();
+    })
     .on("error", onEnd)
     .on("end", () => onEnd("finished"))
-    .on("stderr", (stderrLine) => {
+    .on("stderr", async (stderrLine) => {
       assert(typeof stderrLine === "string");
       if (stderrLine.includes("Opening ")) {
-        this.emit("RecordSegment", this.recordHandle);
+        if (!isFirstSegment) {
+          // const filepath = getSavePath({ owner, title, startTime: segmentData.startTime });
+          const trueFilepath = getSavePath({ owner, title, startTime: segmentData.startTime });
+          console.log("rename", segmentData.rawname, `${trueFilepath}.mp4`);
+          await fs.rename(segmentData.rawname, `${trueFilepath}.mp4`);
+        }
+        // 下一个切片生成
+        isFirstSegment = false;
+        segmentData.startTime = Date.now();
+        const regex = /'([^']+)'/;
+        const match = stderrLine.match(regex);
+        if (match) {
+          const filename = match[1];
+          segmentData.rawname = filename;
+          this.emit("RecordSegment", this.recordHandle);
+        } else {
+          this.emit("DebugLog", { type: "ffmpeg", text: "No match found" });
+          console.log("No match found");
+        }
       }
       this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 

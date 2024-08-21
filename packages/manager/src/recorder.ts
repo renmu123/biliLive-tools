@@ -78,7 +78,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   checkLiveStatusAndRecord: (
     this: Recorder<E>,
     opts: {
-      getSavePath(data: { owner: string; title: string }): string;
+      getSavePath(data: { owner: string; title: string; startTime?: number }): string;
     },
   ) => Promise<RecordHandle | null>;
   // 正在进行的录制的操作接口

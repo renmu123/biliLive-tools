@@ -297,12 +297,13 @@ export function genSavePathFromRule<
   extData: {
     owner: string;
     title: string;
+    startTime?: number;
   },
 ): string {
   // TODO: 这里随便写的，后面再优化
   const provider = manager.providers.find((p) => p.id === recorder.toJSON().providerId);
 
-  const now = new Date();
+  const now = extData?.startTime ? new Date(extData.startTime) : new Date();
   const params = {
     platform: provider?.name ?? "unknown",
     channelId: recorder.channelId,
@@ -317,7 +318,7 @@ export function genSavePathFromRule<
   };
   if (manager.autoRemoveSystemReservedChars) {
     for (const key in params) {
-      params[key] = removeSystemReservedChars(params[key]);
+      params[key] = removeSystemReservedChars(String(params[key]));
     }
   }
 

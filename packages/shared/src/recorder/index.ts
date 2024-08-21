@@ -19,6 +19,7 @@ export function createRecoderManager(appConfig: AppConfig) {
     providers: [providerForDouYu],
     autoRemoveSystemReservedChars: true,
     autoCheckInterval: autoCheckInterval * 1000,
+    // 这个参数其实是有问题的，并没有实际生效
     autoCheckLiveStatusAndRecord: autoCheckLiveStatusAndRecord,
     savePathRule: savePathRule,
   });
