@@ -14,7 +14,9 @@
           active: item.uid === userInfo.uid,
         }"
       >
-        <span>{{ item.name }}</span>
+        <div v-if="item.expiresText" class="expires">{{ item.expiresText }}</div>
+
+        <span class="username">{{ item.name }}</span>
         <img :src="item.face" alt="" referrerpolicy="no-referrer" class="face" />
         <n-popover placement="right-start" trigger="hover">
           <template #trigger>
@@ -90,6 +92,10 @@ const updateAccountInfo = async (uid: number) => {
   });
   getUserInfo();
 };
+
+onActivated(() => {
+  getUserInfo();
+});
 </script>
 
 <style scoped lang="less">
@@ -161,5 +167,19 @@ const updateAccountInfo = async (uid: number) => {
       background-color: rgba(255, 255, 255, 0.09);
     }
   }
+}
+.expires {
+  z-index: 1000;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  background: rgb(124, 189, 125);
+  color: white;
+  padding: 4px 6px;
+  border-radius: 0 10px 0 10px;
+  font-size: 10px;
+}
+.username {
+  color: black;
 }
 </style>
