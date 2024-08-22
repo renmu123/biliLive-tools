@@ -34,7 +34,8 @@
     "filenamify": "^6.0.0",
     "mitt": "^3.0.0",
     "string-argv": "^0.3.1",
-    "uuid": "^10.0.0"
+    "uuid": "^10.0.0",
+    "fast-xml-parser": "^4.4.1"
   },
   "devDependencies": {
     "@biliLive-tools/types": "workspace:*",

@@ -26,7 +26,9 @@ export interface GiveGift<E extends AnyObject = UnknownObject> {
   timestamp: number;
   name: string;
   count: number;
+  text?: string;
   cost?: number;
+  color?: string;
   sender?: MessageSender;
   extra?: E;
 }

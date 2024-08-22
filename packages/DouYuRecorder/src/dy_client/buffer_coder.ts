@@ -45,10 +45,10 @@ export class BufferCoder {
       littleEndian = this.littleEndian;
     }
 
-    var out = this.concat(this.encoder.encode(msg), Uint8Array.of(0));
-    var formatBodySize = 8 + out.length;
-    var dv = new DataView(new ArrayBuffer(formatBodySize + 4));
-    var offset = 0;
+    const out = this.concat(this.encoder.encode(msg), Uint8Array.of(0));
+    const formatBodySize = 8 + out.length;
+    const dv = new DataView(new ArrayBuffer(formatBodySize + 4));
+    let offset = 0;
     dv.setUint32(offset, formatBodySize, littleEndian);
     offset = offset + 4;
     dv.setUint32(offset, formatBodySize, littleEndian);

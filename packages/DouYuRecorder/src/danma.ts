@@ -1,3 +1,12 @@
+export const colorTab = {
+  "2": "#00ccff", // '1e87f0' to '00ccff' light blue (lv.6)
+  "3": "#66ff00", // '7ac84b' to '66ff00' light green(teal) (lv.9)
+  "4": "#ff6600", // 'ff7f00' to 'ff6600' orange (lv.15)
+  "6": "#f6447f", // 'ff69b4' to 'f6447f' pink (lv.12)
+  "5": "#cc00ff", // '9b39f4' to 'cc00ff' purple (lv.18)
+  "1": "#ff2e2e", // 'ff0000' to 'ff2e2e' red (lv.21)
+};
+
 /**
  * from https://webconf.douyucdn.cn/resource/common/prop_gift_list/prop_gift_config.json
  */

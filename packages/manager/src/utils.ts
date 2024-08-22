@@ -1,4 +1,4 @@
-import { DebouncedFunc, throttle } from "lodash";
+import { DebouncedFunc, throttle } from "lodash-es";
 
 export type AnyObject = Record<string, any>;
 export type UnknownObject = Record<string, unknown>;
