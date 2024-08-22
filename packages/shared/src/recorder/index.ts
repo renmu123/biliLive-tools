@@ -30,7 +30,7 @@ export function createRecoderManager(appConfig: AppConfig) {
   });
   manager.addRecorder({
     providerId: providerForDouYu.id,
-    channelId: "2140934",
+    channelId: "93589",
     quality: quality,
     streamPriorities: [],
     sourcePriorities: ["tct-h5"],
@@ -42,16 +42,16 @@ export function createRecoderManager(appConfig: AppConfig) {
   if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
 
   manager.on("RecorderDebugLog", (debug) => {
-    console.error("Manager deug", debug.text);
+    // console.error("Manager deug", debug.text);
   });
   manager.on("RecordStart", (debug) => {
-    console.error("Manager start", debug);
+    // console.error("Manager start", debug);
   });
   manager.on("error", (error) => {
     console.error("Manager error", error);
   });
   manager.on("RecordSegment", (debug) => {
-    console.error("Manager segment", debug);
+    // console.error("Manager segment", debug);
   });
 
   appConfig.on("update", () => {

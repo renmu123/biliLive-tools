@@ -15,6 +15,7 @@ import {
   createRecordExtraDataController,
   Comment,
   GiveGift,
+  SuperChat,
 } from "@autorecord/manager";
 import { getInfo, getStream } from "./stream.js";
 import { assert, ensureFolderExist, replaceExtName, singleton } from "./utils.js";
@@ -173,6 +174,31 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         break;
 
         // TODO: 还有一些其他礼物相关的 msg 要处理，目前先简单点只处理 dgb
+      }
+      case "comm_chatmsg": {
+        if (this.saveSCDanma === false) return;
+        switch (msg.btype) {
+          case "voiceDanmu": {
+            const comment: SuperChat = {
+              type: "super_chat",
+              timestamp: Date.now(),
+              text: msg?.chatmsg?.text,
+              price: Number(msg.cprice) / 100,
+              sender: {
+                uid: msg.uid,
+                name: msg?.chatmsg?.nn,
+                avatar: msg?.chatmsg?.ic,
+                extra: {
+                  level: msg?.chatmsg?.level,
+                },
+              },
+            };
+            this.emit("Message", comment);
+            extraDataController.addMessage(comment);
+            break;
+          }
+        }
+        break;
       }
     }
   });

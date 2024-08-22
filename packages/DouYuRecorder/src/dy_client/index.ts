@@ -53,7 +53,63 @@ interface Message$Gift {
   bnn: string; // 用户牌子名？
 }
 
-export type Message = Message$Chat | Message$Gift;
+interface Message$CommChatPandora {
+  type: "comm_chatmsg";
+  rid: string; // 房间 ID
+  vrid: string;
+  btype: "pandora"; // voiceDanmu: 语音弹幕; pandora: 好像是开盒子礼物
+  range: string;
+  cprice: string; // 价格，单位分
+  crealPrice: string; // 价格，单位分，不知道和 cprice 有什么区别
+  cmgType: string;
+  gbtemp: string;
+  uid: string; // 用户 id
+  cet: string; // 持续时间？
+  now: string; // 发送时间
+  csuperScreen: string;
+  danmucr: string;
+}
+
+interface Message$CommChatVoiceDanmu {
+  type: "comm_chatmsg";
+  rid: string; // 房间 ID
+  vrid: string;
+  btype: "voiceDanmu"; // voiceDanmu: 语音弹幕; pandora: 好像是开盒子礼物
+  range: string;
+  cprice: string; // 价格，单位分
+  crealPrice: string; // 价格，单位分，不知道和 cprice 有什么区别
+  cmgType: string;
+  gbtemp: string;
+  uid: string; // 用户 id
+  cet: string; // 持续时间？
+  now: string; // 发送时间
+  csuperScreen: string;
+  danmucr: string;
+  chatmsg: {
+    nn: string; // 用户昵称
+    bnn: string; // 粉丝牌
+    level: string; // 粉丝牌等级
+    brid: string; // 粉丝牌房间号
+    ail: string; // 未知
+    bl: string; // 未知
+    type: "chatmsg"; // 弹幕类型
+    rid: string; // 房间号
+    gag: string; // 未知
+    uid: string; // 用户 id
+    text: string; // 弹幕文本
+    hidenick: string; // 是否匿名
+    nc: string; // 未知
+    ifs: string; // 未知
+    ic: string; // 头像地址
+    nl: string; // 未知
+    tbid: string; // 未知
+    tbl: string; // 未知
+    tbvip: string; // 未知
+  };
+}
+
+type Message$CommChat = Message$CommChatPandora | Message$CommChatVoiceDanmu;
+export type Message = Message$Chat | Message$Gift | Message$CommChat;
 
 export interface DYClient
   extends Emitter<{
@@ -131,6 +187,11 @@ export function createDYClient(
 
       coder.decode(data, (messageText) => {
         const message = STT.deserialize(messageText);
+        // @ts-ignore
+        if (message?.type === "comm_chatmsg" && message?.chatmsg) {
+          // @ts-ignore
+          message.chatmsg = STT.deserialize(message?.chatmsg);
+        }
         onMessage(message);
       });
     });

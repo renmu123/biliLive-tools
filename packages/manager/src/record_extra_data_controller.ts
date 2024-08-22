@@ -117,6 +117,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
         ].join(",");
         return pick(data, ["@@p", "#text", "@@user", "@@uid"]);
       });
+
     const gifts = data.messages
       .filter((item) => item.type === "give_gift")
       .map((ele) => {
@@ -138,6 +139,20 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
         };
         return data;
       });
+
+    const superChats = data.messages
+      .filter((item) => item.type === "super_chat")
+      .map((ele) => {
+        const progress = (ele.timestamp - metadata?.recordStartTimestamp) / 1000;
+        const data = {
+          "@@ts": progress,
+          "@@price": String(ele.price * 1000),
+          "@@message": String(ele.text),
+          "@@user": String(ele.sender?.name),
+          "@@uid": String(ele?.sender?.uid),
+        };
+        return data;
+      });
     // {
     //   user_name?: string;
     //   room_id?: string;
@@ -154,6 +169,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
         },
         d: comments,
         gift: gifts,
+        sc: superChats,
       },
     });
     return `

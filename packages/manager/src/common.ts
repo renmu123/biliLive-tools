@@ -33,5 +33,14 @@ export interface GiveGift<E extends AnyObject = UnknownObject> {
   extra?: E;
 }
 
+export interface SuperChat<E extends AnyObject = UnknownObject> {
+  type: "super_chat";
+  timestamp: number;
+  text: string;
+  price: number;
+  sender?: MessageSender;
+  extra?: E;
+}
+
 // TODO: Message 还有 SuperChat（或许算 Comment 的 Extra）之类的
-export type Message = Comment | GiveGift;
+export type Message = Comment | GiveGift | SuperChat;
