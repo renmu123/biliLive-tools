@@ -23,7 +23,7 @@ export interface RecordExtraDataController {
   readonly data: RecordExtraData;
   addMessage: (message: Message) => void;
   setMeta: (meta: Partial<RecordExtraData["meta"]>) => void;
-  flush: () => void;
+  flush: () => Promise<void>;
 }
 
 export function createRecordExtraDataController(savePath: string): RecordExtraDataController {
@@ -41,6 +41,9 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
       immediateRunWhenEndOfDefer: true,
     },
   );
+  const save = () => {
+    return fs.promises.writeFile(savePath, JSON.stringify(data));
+  };
 
   const addMessage: RecordExtraDataController["addMessage"] = (comment) => {
     data.messages.push(comment);
@@ -55,8 +58,8 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
     scheduleSave();
   };
 
-  const flush: RecordExtraDataController["flush"] = () => {
-    scheduleSave();
+  const flush: RecordExtraDataController["flush"] = async () => {
+    await save();
     scheduleSave.flush();
   };
 

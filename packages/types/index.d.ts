@@ -341,6 +341,10 @@ export interface AppConfig {
     checkInterval: number;
     /** 录制弹幕 */
     recordDanmaku: boolean;
+    /** 保存礼物弹幕 */
+    saveGiftDanma: boolean;
+    /** 保存高能弹幕 */
+    saveSCDanma: boolean;
     /**分段时长，单位分钟 */
     segment: number;
   };

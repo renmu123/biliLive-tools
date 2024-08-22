@@ -1,6 +1,7 @@
 <template>
   <div class="">
     <h2>录制配置</h2>
+    <p style="color: red">部分并非实时生效，需停止当前录制再重新开始</p>
     <n-form label-placement="left" :label-width="140">
       <n-form-item>
         <template #label>
@@ -46,10 +47,9 @@
             <Tip tip="0为不分段"></Tip>
           </span>
         </template>
-        待实现
-        <!-- <n-input-number v-model:value="config.recorder.segment" min="0" step="30">
+        <n-input-number v-model:value="config.recorder.segment" min="0" step="10">
           <template #suffix>分钟</template>
-        </n-input-number> -->
+        </n-input-number>
       </n-form-item>
       <n-form-item>
         <template #label>
@@ -75,13 +75,13 @@
         <template #label>
           <span class="inline-flex"> 保存礼物 </span>
         </template>
-        待实现
+        <n-switch v-model:value="config.recorder.saveGiftDanma" />
       </n-form-item>
       <n-form-item v-if="config.recorder.recordDanmaku">
         <template #label>
           <span class="inline-flex"> 保存高能弹幕 </span>
         </template>
-        待实现
+        <n-switch v-model:value="config.recorder.saveSCDanma" />
       </n-form-item>
       <!-- <n-form-item v-if="config.recorder.recordDanmaku">
         <template #label>
@@ -107,11 +107,11 @@ const config = defineModel<AppConfig>("data", {
 });
 
 const qualityOptions = [
-  { label: "highest", value: "最高" },
-  { label: "high", value: "高" },
-  { label: "medium", value: "中" },
-  { label: "low", value: "低" },
-  { label: "lowest", value: "最低" },
+  { value: "highest", label: "最高" },
+  { value: "high", label: "高" },
+  { value: "medium", label: "中" },
+  { value: "low", label: "低" },
+  { value: "lowest", label: "最低" },
 ];
 </script>
 

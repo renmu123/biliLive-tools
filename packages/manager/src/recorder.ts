@@ -22,6 +22,10 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   sourcePriorities: string[];
   // 该项为用户配置，指定录制的片段时长，单位为秒，如果设置了此项，将按此时长切片录制
   segment?: number;
+  // 保存礼物弹幕
+  saveGiftDanma?: boolean;
+  // 保存高能弹幕
+  saveSCDanma?: boolean;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
 }

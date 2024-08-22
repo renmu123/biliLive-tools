@@ -96,13 +96,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.availableSources = availableSources.map((s) => s.name);
   this.usedStream = stream.name;
   this.usedSource = stream.source;
+  const hasSegment = !!this.segment;
   // TODO: emit update event
 
   const savePath = getSavePath({ owner, title });
   const extraDataSavePath = replaceExtName(savePath, ".json");
   const recordSavePath = savePath;
   console.log("savePath", savePath);
-  const templateSavePath = `${recordSavePath}-PART%03d.mp4`;
+  const templateSavePath = hasSegment ? `${recordSavePath}-PART%03d.mp4` : recordSavePath;
 
   try {
     // TODO: 这个 ensure 或许应该放在 createRecordExtraDataController 里实现？
@@ -114,7 +115,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   // TODO: 之后可能要结合 disableRecordMeta 之类的来确认是否要创建文件。
-  const extraDataController = createRecordExtraDataController(extraDataSavePath);
+  let extraDataController = createRecordExtraDataController(extraDataSavePath);
   extraDataController.setMeta({ title });
 
   const client = createDYClient(Number(this.channelId), {
@@ -141,6 +142,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         break;
       }
       case "dgb": {
+        if (this.saveGiftDanma === false) return;
         const gift: GiveGift = {
           type: "give_gift",
           timestamp: Date.now(),
@@ -171,9 +173,23 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   let isEnded = false;
-  const onEnd = (...args: unknown[]) => {
+
+  const handleSegment = async () => {
+    if (!hasSegment) return;
+
+    const trueFilepath = getSavePath({ owner, title, startTime: segmentData.startTime });
+    console.log("ffmpeg end", segmentData.rawname, `${trueFilepath}.mp4`);
+
+    await extraDataController.flush();
+    extraDataController = createRecordExtraDataController(`${trueFilepath}.json`);
+    extraDataController.setMeta({ title });
+    await fs.rename(segmentData.rawname, `${trueFilepath}.mp4`);
+  };
+
+  const onEnd = async (...args: unknown[]) => {
     if (isEnded) return;
     isEnded = true;
+    await handleSegment();
 
     this.emit("DebugLog", {
       type: "common",
@@ -206,10 +222,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       assert(typeof stderrLine === "string");
       if (stderrLine.includes("Opening ")) {
         if (!isFirstSegment) {
-          // const filepath = getSavePath({ owner, title, startTime: segmentData.startTime });
-          const trueFilepath = getSavePath({ owner, title, startTime: segmentData.startTime });
-          console.log("rename", segmentData.rawname, `${trueFilepath}.mp4`);
-          await fs.rename(segmentData.rawname, `${trueFilepath}.mp4`);
+          await handleSegment();
         }
         // 下一个切片生成
         isFirstSegment = false;
@@ -232,7 +245,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       }
     })
     .on("stderr", timeoutChecker.update);
-  if (this.segment) {
+  if (hasSegment) {
     command.outputOptions(
       "-f",
       "segment",
@@ -276,6 +289,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     // TODO: other codes
     // TODO: emit update event
 
+    await handleSegment();
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.state = "idle";

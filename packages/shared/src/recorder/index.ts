@@ -14,6 +14,11 @@ export function createRecoderManager(appConfig: AppConfig) {
   const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
   const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
   const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
+  const saveSCDanma = config?.recorder?.saveSCDanma ?? true;
+  const saveGiftDanma = config?.recorder?.saveGiftDanma ?? false;
+  const segment = config?.recorder?.segment ?? 60;
+  const quality = config?.recorder?.quality ?? "highest";
+
   console.log("autoCheckLiveStatusAndRecord", autoCheckLiveStatusAndRecord);
   const manager = createRecorderManager({
     providers: [providerForDouYu],
@@ -26,13 +31,16 @@ export function createRecoderManager(appConfig: AppConfig) {
   manager.addRecorder({
     providerId: providerForDouYu.id,
     channelId: "2140934",
-    quality: "highest",
+    quality: quality,
     streamPriorities: [],
     sourcePriorities: ["tct-h5"],
-    segment: 60,
+    segment: segment * 60,
     disableProvideCommentsWhenRecording: false,
+    saveSCDanma,
+    saveGiftDanma,
   });
-  manager.startCheckLoop();
+  if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
+
   manager.on("RecorderDebugLog", (debug) => {
     console.error("Manager deug", debug.text);
   });

@@ -77,7 +77,13 @@ export async function getInfo(channelId: string): Promise<{
 export async function getStream(
   opts: Pick<
     Recorder,
-    "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "segment"
+    | "channelId"
+    | "quality"
+    | "streamPriorities"
+    | "sourcePriorities"
+    | "segment"
+    | "saveSCDanma"
+    | "saveGiftDanma"
   > & {
     rejectCache?: boolean;
   },

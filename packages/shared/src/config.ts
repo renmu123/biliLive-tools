@@ -215,6 +215,8 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
     checkInterval: 60,
     recordDanmaku: true,
     segment: 60,
+    saveGiftDanma: false,
+    saveSCDanma: true,
   },
 };
 
