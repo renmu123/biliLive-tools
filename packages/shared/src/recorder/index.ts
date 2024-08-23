@@ -1,8 +1,10 @@
 import path from "node:path";
+import { v4 as uuid } from "uuid";
 
 import { createRecorderManager, setFFMPEGPath } from "@autorecord/manager";
 import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
 import { getFfmpegPath } from "../task/video.js";
+import logger from "../utils/log.js";
 
 import type { AppConfig } from "../config.js";
 
@@ -29,8 +31,9 @@ export function createRecoderManager(appConfig: AppConfig) {
     savePathRule: savePathRule,
   });
   manager.addRecorder({
+    id: uuid(),
     providerId: providerForDouYu.id,
-    channelId: "93589",
+    channelId: "2140934",
     quality: quality,
     streamPriorities: [],
     sourcePriorities: ["tct-h5"],
@@ -42,13 +45,13 @@ export function createRecoderManager(appConfig: AppConfig) {
   if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
 
   manager.on("RecorderDebugLog", (debug) => {
-    // console.error("Manager deug", debug.text);
+    console.error("Manager deug", debug.text);
   });
   manager.on("RecordStart", (debug) => {
     // console.error("Manager start", debug);
   });
   manager.on("error", (error) => {
-    console.error("Manager error", error);
+    logger.error("Manager error", error);
   });
   manager.on("RecordSegment", (debug) => {
     // console.error("Manager segment", debug);
@@ -59,6 +62,7 @@ export function createRecoderManager(appConfig: AppConfig) {
     updateRecorderManager(manager, appConfig);
   });
   console.log("Manager started", providerForDouYu.id);
+  return manager;
 }
 
 export function updateRecorderManager(

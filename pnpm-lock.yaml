@@ -301,6 +301,9 @@ importers:
 
   packages/http:
     dependencies:
+      '@autorecord/manager':
+        specifier: workspace:*
+        version: link:../manager
       '@biliLive-tools/shared':
         specifier: workspace:*
         version: link:../shared
@@ -328,6 +331,9 @@ importers:
       koa-sse-stream:
         specifier: ^0.2.0
         version: 0.2.0
+      uuid:
+        specifier: ^9.0.0
+        version: 9.0.1
     devDependencies:
       '@types/cli-progress':
         specifier: ^3.11.5
@@ -353,6 +359,9 @@ importers:
       '@renmu/fluent-ffmpeg':
         specifier: 2.2.1
         version: 2.2.1
+      fast-xml-parser:
+        specifier: ^4.4.1
+        version: 4.4.1
       filenamify:
         specifier: ^6.0.0
         version: 6.0.0
@@ -4690,6 +4699,10 @@ packages:
 
   uuid@8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    hasBin: true
+
+  uuid@9.0.1:
+    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
     hasBin: true
 
   vary@1.1.2:
@@ -9596,6 +9609,8 @@ snapshots:
   uuid@10.0.0: {}
 
   uuid@8.3.2: {}
+
+  uuid@9.0.1: {}
 
   vary@1.1.2: {}
 

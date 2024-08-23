@@ -24,6 +24,7 @@
   },
   "keywords": [],
   "dependencies": {
+    "@autorecord/manager": "workspace:*",
     "@biliLive-tools/shared": "workspace:*",
     "@biliLive-tools/types": "workspace:*",
     "@koa/cors": "^5.0.0",

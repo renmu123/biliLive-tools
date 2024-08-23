@@ -5,6 +5,8 @@ import bodyParser from "koa-bodyparser";
 import sse from "koa-sse-stream";
 
 import errorMiddleware from "./middleware/error.js";
+export * from "./routes/api_types.js";
+
 import webhookRouter from "./routes/webhook.js";
 import configRouter from "./routes/config.js";
 import llmRouter from "./routes/llm.js";
@@ -12,6 +14,7 @@ import commonRouter from "./routes/common.js";
 import userRouter from "./routes/user.js";
 import presetRouter from "./routes/preset.js";
 import SSERouter from "./routes/sse.js";
+import recocderRouter from "./routes/recorder.js";
 import { WebhookHandler } from "./services/webhook.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
@@ -40,6 +43,7 @@ app.use(llmRouter.routes());
 app.use(userRouter.routes());
 app.use(commonRouter.routes());
 app.use(presetRouter.routes());
+app.use(recocderRouter.routes());
 
 // sse
 app.use(
