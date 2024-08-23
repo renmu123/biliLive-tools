@@ -4,9 +4,9 @@ import router from "./routers";
 import { createPinia } from "pinia";
 import { init as axiosInit } from "./apis/request";
 
-const isClient = !!window.api;
-// window.isClient = isClient;
-if (!isClient) {
+const isWeb = !window.api;
+// window.isWeb = isWeb;
+if (isWeb) {
   // @ts-ignore
   // window.api = {
   //   openSetting: () => {},
