@@ -69,6 +69,8 @@ import DanmuFactorySetting from "./DanmuFactorySetting.vue";
 import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import { useDanmuPreset } from "@renderer/stores";
+import { danmuPresetApi } from "@renderer/apis";
+
 import { cloneDeep } from "lodash-es";
 
 import type { DanmuPreset, DanmuConfig } from "@biliLive-tools/types";
@@ -102,7 +104,7 @@ const config: Ref<DanmuPreset> = ref({
 });
 
 const saveConfig = async () => {
-  await window.api.danmu.savePreset(toRaw(config.value));
+  await danmuPresetApi.save(toRaw(config.value));
   confirm();
 };
 
@@ -120,14 +122,14 @@ watch(
   () => showModal.value,
   async (val) => {
     if (val) {
-      config.value = await window.api.danmu.getPreset(presetId.value);
+      config.value = await danmuPresetApi.get(presetId.value);
     }
   },
 );
 watch(
   () => presetId.value,
   async (val) => {
-    config.value = await window.api.danmu.getPreset(val);
+    config.value = await danmuPresetApi.get(val);
   },
 );
 
@@ -158,7 +160,7 @@ const deletePreset = async () => {
     content: msg,
   });
   if (!status) return;
-  await window.api.danmu.deletePreset(presetId.value);
+  await danmuPresetApi.remove(presetId.value);
   presetId.value = "default";
   confirm();
 };
@@ -179,7 +181,7 @@ const saveConfirm = async () => {
   if (!isRename.value) preset.id = uuid();
   preset.name = tempPresetName.value;
 
-  await window.api.danmu.savePreset(preset);
+  await danmuPresetApi.save(preset);
   nameModelVisible.value = false;
   notice.success({
     title: "保存成功",

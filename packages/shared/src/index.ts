@@ -1,6 +1,7 @@
 import { createContainer, asValue, asClass } from "awilix";
 
 import { appConfig, AppConfig } from "./config.js";
+import { DanmuPreset } from "./presets/index.js";
 export * from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
@@ -31,6 +32,7 @@ const init = (config: GlobalConfig) => {
     logger: asValue(console),
     taskQueue: asValue(taskQueue),
     commentQueue: asClass(BiliCommentQueue).singleton(),
+    danmuPreset: asClass(DanmuPreset).singleton(),
     globalConfig: asValue(config),
     recorderManager: asValue(recorderManager),
   });

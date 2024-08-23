@@ -2,15 +2,14 @@ import axios from "axios";
 
 const api = axios.create({
   headers: {
-    "Content-Type": "application/x-www-form-urlencoded",
+    "Content-Type": "application/json",
   },
 });
 
-async function init() {
+export async function init() {
   const appConfig = await window.api.config.getAll();
   api.defaults.baseURL = `http://${appConfig.host}:${appConfig.port}`;
 }
-init();
 
 api.interceptors.request.use(
   (config) => {

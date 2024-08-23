@@ -10,6 +10,7 @@ import configRouter from "./routes/config.js";
 import llmRouter from "./routes/llm.js";
 import commonRouter from "./routes/common.js";
 import userRouter from "./routes/user.js";
+import presetRouter from "./routes/preset.js";
 import SSERouter from "./routes/sse.js";
 import { WebhookHandler } from "./services/webhook.js";
 
@@ -38,6 +39,9 @@ app.use(configRouter.routes());
 app.use(llmRouter.routes());
 app.use(userRouter.routes());
 app.use(commonRouter.routes());
+app.use(presetRouter.routes());
+
+// sse
 app.use(
   sse({
     maxClients: 5000,

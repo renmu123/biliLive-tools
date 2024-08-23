@@ -1,4 +1,4 @@
-<!-- 将文件转换为mp4 -->
+<!-- 将xml转换为ass -->
 <template>
   <div>
     <div class="flex justify-center align-center" style="margin-bottom: 20px; gap: 10px">
@@ -61,6 +61,7 @@ import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSe
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import { deepRaw } from "@renderer/utils";
 import { useDanmuPreset, useAppConfig } from "@renderer/stores";
+import { danmuPresetApi } from "@renderer/apis";
 import { Settings as SettingIcon, FolderOpenOutline } from "@vicons/ionicons5";
 import { useConfirm } from "@renderer/hooks";
 import hotkeys from "hotkeys-js";
@@ -116,7 +117,7 @@ const convert = async () => {
     title: `生成${fileList.value.length}个任务，可在任务列表中查看进度`,
     duration: 1000,
   });
-  const config = (await window.api.danmu.getPreset(presetId)).config;
+  const config = (await danmuPresetApi.get(presetId)).config;
 
   for (let i = 0; i < fileList.value.length; i++) {
     const file = {

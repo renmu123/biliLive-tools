@@ -2,33 +2,35 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./routers";
 import { createPinia } from "pinia";
+import { init as axiosInit } from "./apis/request";
 
-// console.log("window.api", window.api);
-
-const isClient = !!window.api;
-if (!isClient) {
+const isWeb = !window.api;
+// window.isWeb = isWeb;
+if (isWeb) {
   // @ts-ignore
-  window.api = {
-    openSetting: () => {},
-    openChangelog: () => {},
-    openLog: () => {},
-    task: {
-      // @ts-ignore
-      list: () => {
-        return [];
-      },
-    },
-    appVersion: async () => {
-      return "0.0.0";
-    },
-    config: {
-      // @ts-ignore
-      getAll: () => {
-        return {};
-      },
-    },
-  };
+  // window.api = {
+  //   openSetting: () => {},
+  //   openChangelog: () => {},
+  //   openLog: () => {},
+  //   task: {
+  //     // @ts-ignore
+  //     list: () => {
+  //       return [];
+  //     },
+  //   },
+  //   appVersion: async () => {
+  //     return "0.0.0";
+  //   },
+  //   config: {
+  //     // @ts-ignore
+  //     getAll: () => {
+  //       return {};
+  //     },
+  //   },
+  // };
 }
+
+axiosInit();
 
 const pinia = createPinia();
 createApp(App).use(router).use(pinia).mount("#app");
