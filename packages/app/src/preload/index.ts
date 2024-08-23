@@ -16,7 +16,6 @@ import type {
   BiliupConfig,
   BiliupConfigAppend,
   VideoMergeOptions,
-  DanmuPreset,
   Video2Mp4Options,
   FfmpegPreset,
   DanmuConfig,
@@ -54,18 +53,6 @@ export const api = {
     },
   },
   danmu: {
-    savePreset: (preset: DanmuPreset) => {
-      return ipcRenderer.invoke("danmu:savePreset", preset);
-    },
-    deletePreset: (id: string) => {
-      return ipcRenderer.invoke("danmu:deletePreset", id);
-    },
-    getPreset: (id: string): Promise<DanmuPreset> => {
-      return ipcRenderer.invoke("danmu:getPreset", id);
-    },
-    getPresets: (): Promise<DanmuPreset[]> => {
-      return ipcRenderer.invoke("danmu:getPresets");
-    },
     convertXml2Ass: (
       file: {
         input: string;

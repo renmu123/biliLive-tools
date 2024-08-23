@@ -5,28 +5,29 @@ import { createPinia } from "pinia";
 import { init as axiosInit } from "./apis/request";
 
 const isClient = !!window.api;
+// window.isClient = isClient;
 if (!isClient) {
   // @ts-ignore
-  window.api = {
-    openSetting: () => {},
-    openChangelog: () => {},
-    openLog: () => {},
-    task: {
-      // @ts-ignore
-      list: () => {
-        return [];
-      },
-    },
-    appVersion: async () => {
-      return "0.0.0";
-    },
-    config: {
-      // @ts-ignore
-      getAll: () => {
-        return {};
-      },
-    },
-  };
+  // window.api = {
+  //   openSetting: () => {},
+  //   openChangelog: () => {},
+  //   openLog: () => {},
+  //   task: {
+  //     // @ts-ignore
+  //     list: () => {
+  //       return [];
+  //     },
+  //   },
+  //   appVersion: async () => {
+  //     return "0.0.0";
+  //   },
+  //   config: {
+  //     // @ts-ignore
+  //     getAll: () => {
+  //       return {};
+  //     },
+  //   },
+  // };
 }
 
 axiosInit();

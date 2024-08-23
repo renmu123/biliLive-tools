@@ -164,6 +164,7 @@ import ffmpegSetting from "./components/ffmpegSetting.vue";
 import PreviewModal from "./components/previewModal.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
 import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
+import { danmuPresetApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 
 import { deepRaw, uuid } from "@renderer/utils";
@@ -600,7 +601,7 @@ const deleteDanmu = async () => {
     content: "是否确认删除该预设？",
   });
   if (!status) return;
-  await window.api.danmu.deletePreset(danmuPresetId.value);
+  await danmuPresetApi.remove(danmuPresetId.value);
   danmuPresetId.value = "default";
   await getDanmuPresets();
 };
@@ -617,7 +618,7 @@ const saveConfirm = async () => {
   if (!isRename.value) preset.id = uuid();
   preset.name = tempPresetName.value;
 
-  await window.api.danmu.savePreset(preset);
+  await danmuPresetApi.save(preset);
   nameModelVisible.value = false;
   notice.success({
     title: "保存成功",
@@ -629,7 +630,7 @@ const saveConfirm = async () => {
 const saveDanmuPreset = async () => {
   const preset = cloneDeep(danmuPreset.value);
 
-  await window.api.danmu.savePreset(preset);
+  await danmuPresetApi.save(preset);
   notice.success({
     title: "保存成功",
     duration: 1000,
@@ -640,7 +641,7 @@ const saveDanmuPreset = async () => {
 watch(
   () => danmuPresetId.value,
   async (value) => {
-    danmuPreset.value = await window.api.danmu.getPreset(value);
+    danmuPreset.value = await danmuPresetApi.get(value);
   },
   {
     immediate: true,

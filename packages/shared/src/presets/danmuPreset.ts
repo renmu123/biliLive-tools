@@ -29,9 +29,26 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   blacklist: "",
 };
 
+export function validateAndFilter<T>(options: T, requiredKeys: Array<keyof T>): T {
+  const filteredOptions: Partial<T> = {};
+  for (const key in options) {
+    if (requiredKeys.includes(key as keyof T)) {
+      filteredOptions[key as keyof T] = options[key];
+    }
+  }
+
+  for (const key of requiredKeys) {
+    if (!(key in filteredOptions)) {
+      throw new Error(`Missing required field: ${String(key)}`);
+    }
+  }
+
+  return filteredOptions as T;
+}
+
 export class DanmuPreset extends CommonPreset<DanmuConfig> {
-  constructor(filePath: string, defaultConfig: DanmuConfig = DANMU_DEAFULT_CONFIG) {
-    super(filePath, defaultConfig);
+  constructor({ globalConfig }: { globalConfig: { danmuPresetPath: string } }) {
+    super(globalConfig.danmuPresetPath, DANMU_DEAFULT_CONFIG);
   }
   init(filePath: string) {
     super.init(filePath);
@@ -43,6 +60,7 @@ export class DanmuPreset extends CommonPreset<DanmuConfig> {
     return super.list();
   }
   async save(presets: DanmuPresetType) {
+    // const requiredFields = Object.keys(DANMU_DEAFULT_CONFIG);
     return super.save(presets);
   }
   async delete(id: string) {
