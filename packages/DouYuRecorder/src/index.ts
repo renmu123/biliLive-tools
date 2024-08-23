@@ -155,6 +155,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           type: "give_gift",
           timestamp: Date.now(),
           name: giftMap[msg.gfid]?.name ?? "未知礼物",
+          price: (giftMap[msg.gfid]?.pc ?? 0) / 100,
           count: Number(msg.gfcnt),
           color: "#ffffff",
           sender: {

@@ -126,6 +126,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
           "@@ts": progress,
           "@@giftname": String(ele.name),
           "@@giftcount": String(ele.count),
+          "@@price": String(ele.price * 1000),
           // "@@mode": String(1),
           // "@@fontsize": String(25),
           // "@@color": String(parseInt((ele.color || "#ffffff").replace("#", ""), 16)),
