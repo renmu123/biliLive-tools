@@ -213,11 +213,12 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
     quality: "highest",
     line: undefined,
     checkInterval: 60,
-    recordDanmaku: true,
+    disableProvideCommentsWhenRecording: true,
     segment: 60,
     saveGiftDanma: false,
     saveSCDanma: true,
   },
+  recorders: [],
 };
 
 export class AppConfig extends Config {

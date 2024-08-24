@@ -1,7 +1,8 @@
 import Router from "koa-router";
 import { v4 as uuid } from "uuid";
 
-import { genSavePathFromRule, createRecorderManager } from "@autorecord/manager";
+import { genSavePathFromRule } from "@autorecord/manager";
+import { createRecorderManager } from "@biliLive-tools/shared";
 import { container } from "../index.js";
 // import { addRecorderWithAutoIncrementId, recorderManager } from "../manager";
 import { pick } from "lodash-es";
@@ -18,13 +19,13 @@ const router = new Router({
 async function getRecorders(): Promise<API.getRecorders.Resp> {
   const recorderManager =
     container.resolve<ReturnType<typeof createRecorderManager>>("recorderManager");
-  return recorderManager.recorders.map((item) => recorderToClient(item));
+  return recorderManager.manager.recorders.map((item) => recorderToClient(item));
 }
 
 function getRecorder(args: API.getRecorder.Args): API.getRecorder.Resp {
   const recorderManager =
     container.resolve<ReturnType<typeof createRecorderManager>>("recorderManager");
-  const recorder = recorderManager.recorders.find((item) => item.id === args.id);
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
   // TODO: 之后再处理
   if (recorder == null) throw new Error("404");
 
@@ -34,12 +35,15 @@ function getRecorder(args: API.getRecorder.Args): API.getRecorder.Resp {
 function addRecorder(args: API.addRecorder.Args): API.addRecorder.Resp {
   const recorderManager =
     container.resolve<ReturnType<typeof createRecorderManager>>("recorderManager");
-  const recorder = recorderManager.addRecorder({
+
+  const config = {
     id: uuid(),
     ...args,
-  });
+  };
+  const recorder = recorderManager.manager.addRecorder(config);
   recorder.extra.createTimestamp = Date.now();
-  // TODO: 目前没必要性能优化，直接全量写回。另外可以考虑监听 manager 的事件来自动触发。
+
+  recorderManager.config.add(config);
   return recorderToClient(recorder);
 }
 
@@ -47,10 +51,11 @@ function updateRecorder(args: API.updateRecorder.Args): API.updateRecorder.Resp 
   const recorderManager =
     container.resolve<ReturnType<typeof createRecorderManager>>("recorderManager");
   const { id, ...data } = args;
-  const recorder = recorderManager.recorders.find((item) => item.id === id);
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === id);
   // TODO: 之后再处理
   if (recorder == null) throw new Error("404");
 
+  recorderManager.config.update(args);
   Object.assign(recorder, data);
   return recorderToClient(recorder);
 }
@@ -58,23 +63,24 @@ function updateRecorder(args: API.updateRecorder.Args): API.updateRecorder.Resp 
 function removeRecorder(args: API.removeRecorder.Args): API.removeRecorder.Resp {
   const recorderManager =
     container.resolve<ReturnType<typeof createRecorderManager>>("recorderManager");
-  const recorder = recorderManager.recorders.find((item) => item.id === args.id);
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
   if (recorder == null) return null;
 
-  recorderManager.removeRecorder(recorder);
+  recorderManager.config.remove(args.id);
+  recorderManager.manager.removeRecorder(recorder);
   return null;
 }
 
 async function startRecord(args: API.startRecord.Args): Promise<API.startRecord.Resp> {
   const recorderManager =
     container.resolve<ReturnType<typeof createRecorderManager>>("recorderManager");
-  const recorder = recorderManager.recorders.find((item) => item.id === args.id);
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
   if (recorder == null) throw new Error("404");
 
   if (recorder.recordHandle == null) {
     await recorder.checkLiveStatusAndRecord({
       getSavePath(data) {
-        return genSavePathFromRule(recorderManager, recorder, data);
+        return genSavePathFromRule(recorderManager.manager, recorder, data);
       },
     });
   }
@@ -85,7 +91,7 @@ async function startRecord(args: API.startRecord.Args): Promise<API.startRecord.
 async function stopRecord(args: API.stopRecord.Args): Promise<API.stopRecord.Resp> {
   const recorderManager =
     container.resolve<ReturnType<typeof createRecorderManager>>("recorderManager");
-  const recorder = recorderManager.recorders.find((item) => item.id === args.id);
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
   if (recorder == null) throw new Error("404");
 
   if (recorder.recordHandle != null) {
@@ -108,11 +114,18 @@ router.post("/add", (ctx) => {
     "providerId",
     "channelId",
     "remarks",
+    "owner",
     "disableAutoCheck",
     "quality",
     "streamPriorities",
     "sourcePriorities",
     "extra",
+    "noGlobalFollowFields",
+    "line",
+    "disableProvideCommentsWhenRecording",
+    "saveGiftDanma",
+    "saveSCDanma",
+    "segment",
   );
 
   ctx.body = { payload: addRecorder(args) };
@@ -132,6 +145,12 @@ router.put("/:id", (ctx) => {
     "quality",
     "streamPriorities",
     "sourcePriorities",
+    "noGlobalFollowFields",
+    "line",
+    "disableProvideCommentsWhenRecording",
+    "saveGiftDanma",
+    "saveSCDanma",
+    "segment",
   );
 
   ctx.body = { payload: updateRecorder({ id, ...patch }) };
@@ -148,6 +167,19 @@ router.post("/:id/start_record", async (ctx) => {
 router.post("/:id/stop_record", async (ctx) => {
   const { id } = ctx.params;
   ctx.body = { payload: await stopRecord({ id }) };
+});
+
+router.post("/:id/stop_record", async (ctx) => {
+  const { id } = ctx.params;
+  ctx.body = { payload: await stopRecord({ id }) };
+});
+
+router.get("/manager/resolveChannel", async (ctx) => {
+  const recorderManager =
+    container.resolve<ReturnType<typeof createRecorderManager>>("recorderManager");
+
+  const { url } = ctx.query;
+  ctx.body = { payload: await recorderManager.resolveChannel(url as string) };
 });
 
 export default router;

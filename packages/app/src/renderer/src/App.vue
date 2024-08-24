@@ -209,7 +209,7 @@ const menuOptions = computed<MenuOption[]>(() => {
                   name: "recorder",
                 },
               },
-              { default: () => "录制" },
+              { default: () => "斗鱼录制" },
             ),
         },
         {

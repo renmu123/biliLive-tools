@@ -225,6 +225,46 @@ export interface NotificationTgConfig {
 }
 export type Theme = "system" | "light" | "dark";
 
+interface BaseRecordr {
+  /** 画质 */
+  quality: "lowest" | "low" | "medium" | "high" | "highest";
+  /** 线路 */
+  line?: string; // "auto" | "tct-h5" | "hw-h5"
+  /** 录制弹幕 */
+  disableProvideCommentsWhenRecording?: boolean;
+  /** 保存礼物弹幕 */
+  saveGiftDanma?: boolean;
+  /** 保存高能弹幕 */
+  saveSCDanma?: boolean;
+  /**分段时长，单位分钟 */
+  segment?: number;
+}
+
+export interface GlobalRecorder extends BaseRecordr {
+  /** 保存根目录 */
+  savePath: string;
+  /** 命名规则 */
+  nameRule: string;
+  /** 自动录制 */
+  autoRecord: boolean;
+  /** 检查间隔 */
+  checkInterval: number;
+}
+
+export interface LocalRecordr extends BaseRecordr {
+  providerId: string;
+  id: string;
+  channelId: string;
+  owner: string;
+  remarks?: string;
+  streamPriorities: any[];
+  sourcePriorities: any[];
+  extra?: { createTimestamp?: number };
+  disableAutoCheck?: boolean;
+  // 不跟随全局配置字段
+  noGlobalFollowFields?: (keyof BaseRecordr)[];
+}
+
 // 全局配置
 export interface AppConfig {
   logLevel: any;
@@ -326,28 +366,9 @@ export interface AppConfig {
     checkInterval: number;
   };
   /** 录制配置 */
-  recorder: {
-    /** 保存根目录 */
-    savePath: string;
-    /** 命名规则 */
-    nameRule: string;
-    /** 自动录制 */
-    autoRecord: boolean;
-    /** 画质 */
-    quality: "lowest" | "low" | "medium" | "high" | "highest";
-    /** 线路 */
-    line?: string; // "auto" | "tct-h5" | "hw-h5"
-    /** 检查间隔 */
-    checkInterval: number;
-    /** 录制弹幕 */
-    recordDanmaku: boolean;
-    /** 保存礼物弹幕 */
-    saveGiftDanma: boolean;
-    /** 保存高能弹幕 */
-    saveSCDanma: boolean;
-    /**分段时长，单位分钟 */
-    segment: number;
-  };
+  recorder: GlobalRecorder;
+  /** 直播间管理 */
+  recorders: LocalRecordr[];
 }
 
 // export type LogLevel = ElectronLoGLevel;

@@ -1,14 +1,17 @@
 import path from "node:path";
 import { v4 as uuid } from "uuid";
 
-import { createRecorderManager, setFFMPEGPath } from "@autorecord/manager";
+import { createRecorderManager as createManager, setFFMPEGPath } from "@autorecord/manager";
 import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
 import { getFfmpegPath } from "../task/video.js";
 import logger from "../utils/log.js";
+import RecorderConfig from "./config.js";
 
 import type { AppConfig } from "../config.js";
 
-export function createRecoderManager(appConfig: AppConfig) {
+export { RecorderConfig };
+
+export function createRecorderManager(appConfig: AppConfig) {
   const config = appConfig.getAll();
   const { ffmpegPath } = getFfmpegPath();
   setFFMPEGPath(ffmpegPath);
@@ -22,7 +25,7 @@ export function createRecoderManager(appConfig: AppConfig) {
   const quality = config?.recorder?.quality ?? "highest";
 
   console.log("autoCheckLiveStatusAndRecord", autoCheckLiveStatusAndRecord);
-  const manager = createRecorderManager({
+  const manager = createManager({
     providers: [providerForDouYu],
     autoRemoveSystemReservedChars: true,
     autoCheckInterval: autoCheckInterval * 1000,
@@ -37,12 +40,13 @@ export function createRecoderManager(appConfig: AppConfig) {
     quality: quality,
     streamPriorities: [],
     sourcePriorities: ["tct-h5"],
-    segment: segment * 60,
+    segment: segment,
     disableProvideCommentsWhenRecording: false,
     saveSCDanma,
     saveGiftDanma,
+    disableAutoCheck: false,
   });
-  if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
+  // if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
 
   manager.on("RecorderDebugLog", (debug) => {
     console.error("Manager deug", debug.text);
@@ -59,14 +63,31 @@ export function createRecoderManager(appConfig: AppConfig) {
 
   appConfig.on("update", () => {
     console.log("setting update");
-    updateRecorderManager(manager, appConfig);
+    // updateRecorderManager(manager, appConfig);
   });
   console.log("Manager started", providerForDouYu.id);
-  return manager;
+
+  const recorderConfig = new RecorderConfig(appConfig);
+  return {
+    manager,
+    config: recorderConfig,
+    resolveChannel: async (url: string) => {
+      for (const provider of manager.providers) {
+        const info = await provider.resolveChannelInfoFromURL(url);
+        if (!info) continue;
+
+        return {
+          providerId: provider.id,
+          channelId: info.id,
+          owner: info.owner,
+        };
+      }
+    },
+  };
 }
 
 export function updateRecorderManager(
-  manager: ReturnType<typeof createRecorderManager>,
+  manager: ReturnType<typeof createManager>,
   appConfig: AppConfig,
 ) {
   const config = appConfig.getAll();
@@ -79,6 +100,7 @@ export function updateRecorderManager(
   manager.savePathRule = savePathRule;
 
   if (autoCheckLiveStatusAndRecord) {
+    console.log("startCheckLoop", autoCheckLiveStatusAndRecord, !manager.isCheckLoopRunning);
     if (autoCheckLiveStatusAndRecord && !manager.isCheckLoopRunning) {
       manager.startCheckLoop();
     }

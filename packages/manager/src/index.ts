@@ -31,12 +31,17 @@ export function defaultToJSON<E extends AnyObject>(
     ...pick(recorder, [
       "id",
       "channelId",
+      "owner",
       "remarks",
       "disableAutoCheck",
       "quality",
       "streamPriorities",
       "sourcePriorities",
       "extra",
+      "segment",
+      "saveSCDanma",
+      "saveGiftDanma",
+      "disableProvideCommentsWhenRecording",
     ]),
   };
 }

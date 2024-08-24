@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import type {
   Recorder,
-  RecorderCreateOpts,
+  // RecorderCreateOpts,
   RecorderManagerCreateOpts,
   RecordExtraData,
   RecordHandle,
 } from "@autorecord/manager";
+
+import type { LocalRecordr } from "@biliLive-tools/types";
 
 export interface RecorderExtra {
   createTimestamp: number;
@@ -48,15 +50,26 @@ export namespace API {
   }
 
   export namespace addRecorder {
-    export type Args = Omit<RecorderCreateOpts, "id">;
+    export type Args = Omit<LocalRecordr, "id">;
 
     export type Resp = ClientRecorder;
   }
 
   export namespace updateRecorder {
     export type Args = Pick<
-      RecorderCreateOpts,
-      "id" | "remarks" | "disableAutoCheck" | "quality" | "streamPriorities" | "sourcePriorities"
+      LocalRecordr,
+      | "id"
+      | "remarks"
+      | "disableAutoCheck"
+      | "quality"
+      | "streamPriorities"
+      | "sourcePriorities"
+      | "noGlobalFollowFields"
+      | "line"
+      | "disableProvideCommentsWhenRecording"
+      | "saveGiftDanma"
+      | "saveSCDanma"
+      | "segment"
     >;
 
     export type Resp = ClientRecorder;

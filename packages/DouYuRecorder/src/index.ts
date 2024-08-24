@@ -104,7 +104,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const extraDataSavePath = replaceExtName(savePath, ".json");
   const recordSavePath = savePath;
   console.log("savePath", savePath);
-  const templateSavePath = hasSegment ? `${recordSavePath}-PART%03d.mp4` : recordSavePath;
+  const templateSavePath = hasSegment ? `${recordSavePath}-PART%03d.mp4` : `${recordSavePath}.mp4`;
 
   try {
     // TODO: 这个 ensure 或许应该放在 createRecordExtraDataController 里实现？
@@ -301,12 +301,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       "-f",
       "segment",
       "-segment_time",
-      String(this.segment),
+      String(this.segment * 60),
       "-reset_timestamps",
       "1",
     );
   }
   const ffmpegArgs = command._getArguments();
+  console.log("ffmpegArgs", ffmpegArgs);
   // extraDataController.setMeta({
   //   recordStartTimestamp: Date.now(),
   //   ffmpegArgs,
@@ -325,6 +326,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     // 如果给 SIGKILL 信号会非正常退出，SIGINT 可以被 ffmpeg 正常处理。
     // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
     command.kill("SIGINT");
+    // @ts-ignore
+    // command.ffmpegProc.stdin.write("q");
     try {
       // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
       client.stop();

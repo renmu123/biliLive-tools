@@ -44,6 +44,13 @@ const stopRecord = async (id: string) => {
   return res.data.payload;
 };
 
+const resolveChannel = async (url: string): Promise<API.resolveChannel.Resp> => {
+  const res = await request.get(`/recorder/manager/resolveChannel`, {
+    params: { url },
+  });
+  return res.data.payload;
+};
+
 const recoder = {
   list,
   get,
@@ -52,6 +59,7 @@ const recoder = {
   update,
   stopRecord,
   startRecord,
+  resolveChannel,
 };
 
 export default recoder;

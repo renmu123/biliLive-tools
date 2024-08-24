@@ -47,12 +47,13 @@ app.use(recocderRouter.routes());
 
 // sse
 app.use(
-  sse({
-    maxClients: 5000,
-    pingInterval: 30000,
-  }),
+  SSERouter.use(
+    sse({
+      maxClients: 5000,
+      pingInterval: 30000,
+    }),
+  ).routes(),
 );
-app.use(SSERouter.routes());
 
 export function serverStart(
   options: {

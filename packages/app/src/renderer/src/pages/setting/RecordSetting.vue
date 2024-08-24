@@ -69,27 +69,27 @@
         <template #label>
           <span class="inline-flex"> 弹幕录制 </span>
         </template>
-        <n-switch v-model:value="config.recorder.recordDanmaku" />
+        <n-switch v-model:value="config.recorder.disableProvideCommentsWhenRecording" />
       </n-form-item>
-      <n-form-item v-if="config.recorder.recordDanmaku">
+      <n-form-item v-if="config.recorder.disableProvideCommentsWhenRecording">
         <template #label>
           <span class="inline-flex"> 保存礼物 </span>
         </template>
         <n-switch v-model:value="config.recorder.saveGiftDanma" />
       </n-form-item>
-      <n-form-item v-if="config.recorder.recordDanmaku">
+      <n-form-item v-if="config.recorder.disableProvideCommentsWhenRecording">
         <template #label>
           <span class="inline-flex"> 保存高能弹幕 </span>
         </template>
         <n-switch v-model:value="config.recorder.saveSCDanma" />
       </n-form-item>
-      <!-- <n-form-item v-if="config.recorder.recordDanmaku">
+      <!-- <n-form-item v-if="config.recorder.disableProvideCommentsWhenRecording">
         <template #label>
           <span class="inline-flex"> 自动转换为ass </span>
         </template>
         待实现
       </n-form-item>
-      <n-form-item v-if="config.recorder.recordDanmaku && false">
+      <n-form-item v-if="config.recorder.disableProvideCommentsWhenRecording && false">
         <template #label>
           <span class="inline-flex"> ass转换预设 </span>
         </template>
