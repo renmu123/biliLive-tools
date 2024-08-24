@@ -104,6 +104,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const extraDataSavePath = replaceExtName(savePath, ".json");
   const recordSavePath = savePath;
   console.log("savePath", savePath);
+  // TODO: mp4分段封装时可能会有问题，尝试使用ts
   const templateSavePath = hasSegment ? `${recordSavePath}-PART%03d.mp4` : `${recordSavePath}.mp4`;
 
   try {
@@ -325,9 +326,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
     // 如果给 SIGKILL 信号会非正常退出，SIGINT 可以被 ffmpeg 正常处理。
     // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
-    command.kill("SIGINT");
+    // command.kill("SIGINT");
     // @ts-ignore
-    // command.ffmpegProc.stdin.write("q");
+    command.ffmpegProc.stdin.write("q");
     try {
       // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
       client.stop();

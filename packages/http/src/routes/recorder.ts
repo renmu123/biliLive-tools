@@ -39,11 +39,15 @@ function addRecorder(args: API.addRecorder.Args): API.addRecorder.Resp {
   const config = {
     id: uuid(),
     ...args,
+    extra: {
+      createTimestamp: Date.now(),
+    },
   };
-  const recorder = recorderManager.manager.addRecorder(config);
-  recorder.extra.createTimestamp = Date.now();
+  // const recorder = recorderManager.manager.addRecorder(config);
+  // recorder.extra.createTimestamp = Date.now();
 
-  recorderManager.config.add(config);
+  // recorderManager.config.add(config);
+  const recorder = recorderManager.addRecorder(config);
   return recorderToClient(recorder);
 }
 
@@ -52,9 +56,9 @@ function updateRecorder(args: API.updateRecorder.Args): API.updateRecorder.Resp 
     container.resolve<ReturnType<typeof createRecorderManager>>("recorderManager");
   const { id, ...data } = args;
   const recorder = recorderManager.manager.recorders.find((item) => item.id === id);
-  // TODO: 之后再处理
-  if (recorder == null) throw new Error("404");
+  if (recorder == null) throw new Error("配置不存在");
 
+  // TODO: 需要重新处理
   recorderManager.config.update(args);
   Object.assign(recorder, data);
   return recorderToClient(recorder);
@@ -75,7 +79,7 @@ async function startRecord(args: API.startRecord.Args): Promise<API.startRecord.
   const recorderManager =
     container.resolve<ReturnType<typeof createRecorderManager>>("recorderManager");
   const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
-  if (recorder == null) throw new Error("404");
+  if (recorder == null) throw new Error("配置不存在");
 
   if (recorder.recordHandle == null) {
     await recorder.checkLiveStatusAndRecord({
@@ -92,7 +96,7 @@ async function stopRecord(args: API.stopRecord.Args): Promise<API.stopRecord.Res
   const recorderManager =
     container.resolve<ReturnType<typeof createRecorderManager>>("recorderManager");
   const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
-  if (recorder == null) throw new Error("404");
+  if (recorder == null) throw new Error("配置不存在");
 
   if (recorder.recordHandle != null) {
     await recorder.recordHandle.stop("manual stop");

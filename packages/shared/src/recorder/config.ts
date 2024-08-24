@@ -9,18 +9,36 @@ export default class RecorderConfig {
     this.appConfig = appConfig;
   }
 
-  public get<K extends keyof LocalRecordr>(id: string, key: K): any {
+  public get(id: string): LocalRecordr | null {
+    const getValue = <K extends keyof BaseRecordr>(key: K): BaseRecordr[K] => {
+      if (setting.noGlobalFollowFields.includes(key)) {
+        return setting[key];
+      } else {
+        return globalConfig[key];
+      }
+    };
+
     const settings = this.appConfig.get("recorders");
     const globalConfig = this.appConfig.get("recorder");
 
     const setting = settings.find((setting) => setting.id === id);
     if (!setting) return null;
 
-    if (key in setting.noGlobalFollowFields) {
-      return setting[key];
-    } else {
-      return globalConfig[key as keyof BaseRecordr] ?? setting[key];
-    }
+    return {
+      ...setting,
+      quality: getValue("quality") ?? "highest",
+      line: getValue("line"),
+      disableProvideCommentsWhenRecording: getValue("disableProvideCommentsWhenRecording") ?? true,
+      saveGiftDanma: getValue("saveGiftDanma") ?? false,
+      saveSCDanma: getValue("saveSCDanma") ?? true,
+      segment: getValue("segment") ?? 60,
+    };
+  }
+  public list(): LocalRecordr[] {
+    const recorders = this.appConfig.get("recorders");
+    return recorders.map((recorder) => {
+      return this.get(recorder.id);
+    });
   }
   public add(recorder: LocalRecordr) {
     const recorders = this.appConfig.get("recorders");

@@ -20,15 +20,13 @@ api.interceptors.request.use(
   },
 );
 
-// api.interceptors.response.use(
-//   (response) => {
-//     return Promise.resolve(response);
-//   },
-//   (error) => {
-//     console.log("error", error);
-//     const msg = error.response.data || error.response.message;
-//     return Promise.reject(msg);
-//   },
-// );
+api.interceptors.response.use(
+  (response) => {
+    return Promise.resolve(response);
+  },
+  (error) => {
+    return Promise.reject(error.response.data);
+  },
+);
 
 export default api;

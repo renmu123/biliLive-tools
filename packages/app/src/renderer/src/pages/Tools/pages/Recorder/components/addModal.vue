@@ -55,21 +55,40 @@
               <Tip tip="0为不分段"></Tip>
             </span>
           </template>
-          <n-input-number v-model:value="config.segment" min="0" step="10">
+          <n-input-number
+            v-model:value="config.segment"
+            min="0"
+            step="10"
+            style="width: 100%"
+            :disabled="globalFieldsObj.segment"
+          >
             <template #suffix>分钟</template>
           </n-input-number>
+          <n-checkbox v-model:checked="globalFieldsObj.segment" class="global-checkbox"
+            >全局</n-checkbox
+          >
         </n-form-item>
         <n-form-item>
           <template #label>
             <span class="inline-flex"> 画质 </span>
           </template>
-          <n-select v-model:value="config.quality" :options="qualityOptions" />
+          <n-select
+            v-model:value="config.quality"
+            :options="qualityOptions"
+            :disabled="globalFieldsObj.quality"
+          />
+          <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
+            >全局</n-checkbox
+          >
         </n-form-item>
         <n-form-item>
           <template #label>
             <span class="inline-flex"> 线路 </span>
           </template>
           待实现
+          <n-checkbox v-model:checked="globalFieldsObj.line" class="global-checkbox"
+            >全局</n-checkbox
+          >
         </n-form-item>
 
         <h2>弹幕录制</h2>
@@ -77,32 +96,37 @@
           <template #label>
             <span class="inline-flex"> 弹幕录制 </span>
           </template>
-          <n-switch v-model:value="config.disableProvideCommentsWhenRecording" />
+          <n-switch
+            v-model:value="config.disableProvideCommentsWhenRecording"
+            :disabled="globalFieldsObj.disableProvideCommentsWhenRecording"
+          />
+          <n-checkbox
+            v-model:checked="globalFieldsObj.disableProvideCommentsWhenRecording"
+            class="global-checkbox"
+            >全局</n-checkbox
+          >
         </n-form-item>
         <n-form-item v-if="config.disableProvideCommentsWhenRecording">
           <template #label>
             <span class="inline-flex"> 保存礼物 </span>
           </template>
-          <n-switch v-model:value="config.saveGiftDanma" />
+          <n-switch
+            v-model:value="config.saveGiftDanma"
+            :disabled="globalFieldsObj.saveGiftDanma"
+          />
+          <n-checkbox v-model:checked="globalFieldsObj.saveGiftDanma" class="global-checkbox"
+            >全局</n-checkbox
+          >
         </n-form-item>
         <n-form-item v-if="config.disableProvideCommentsWhenRecording">
           <template #label>
             <span class="inline-flex"> 保存高能弹幕 </span>
           </template>
-          <n-switch v-model:value="config.saveSCDanma" />
+          <n-switch v-model:value="config.saveSCDanma" :disabled="globalFieldsObj.saveSCDanma" />
+          <n-checkbox v-model:checked="globalFieldsObj.saveSCDanma" class="global-checkbox"
+            >全局</n-checkbox
+          >
         </n-form-item>
-        <!-- <n-form-item v-if="config.recorder.disableProvideCommentsWhenRecording">
-        <template #label>
-          <span class="inline-flex"> 自动转换为ass </span>
-        </template>
-        待实现
-      </n-form-item>
-      <n-form-item v-if="config.recorder.disableProvideCommentsWhenRecording && false">
-        <template #label>
-          <span class="inline-flex"> ass转换预设 </span>
-        </template>
-        待实现
-      </n-form-item> -->
       </n-form>
       <template #footer>
         <div class="footer">
@@ -116,22 +140,37 @@
 
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
-import { useAppConfig } from "@renderer/stores";
 
-import type { LocalRecordr } from "@biliLive-tools/types";
+import type { LocalRecordr, BaseRecordr } from "@biliLive-tools/types";
 
 interface Props {
   id?: string;
 }
-const { appConfig } = storeToRefs(useAppConfig());
 const notice = useNotification();
-// const options = appConfig.value.tool.download;
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const props = defineProps<Props>();
 const emits = defineEmits<{
   (event: "confirm"): void;
 }>();
+
+const hasGlobalFields: (keyof BaseRecordr)[] = [
+  "quality",
+  "line",
+  "disableProvideCommentsWhenRecording",
+  "saveGiftDanma",
+  "saveSCDanma",
+  "segment",
+];
+
+const globalFieldsObj = ref<Record<(typeof hasGlobalFields)[number], boolean>>({
+  quality: true,
+  line: true,
+  disableProvideCommentsWhenRecording: true,
+  saveGiftDanma: true,
+  saveSCDanma: true,
+  segment: true,
+});
 
 const config = ref<Omit<LocalRecordr, "id">>({
   owner: "",
@@ -144,14 +183,7 @@ const config = ref<Omit<LocalRecordr, "id">>({
   saveSCDanma: true,
   streamPriorities: [],
   sourcePriorities: [],
-  noGlobalFollowFields: [
-    "quality",
-    "line",
-    "disableProvideCommentsWhenRecording",
-    "saveGiftDanma",
-    "saveSCDanma",
-    "segment",
-  ],
+  noGlobalFollowFields: hasGlobalFields,
 });
 
 const qualityOptions = [
@@ -170,7 +202,15 @@ const confirm = async () => {
     });
     return;
   }
-  await recoderApi.add(config.value);
+  config.value.noGlobalFollowFields = Object.keys(globalFieldsObj.value).filter(
+    (key) => globalFieldsObj.value[key as keyof typeof globalFieldsObj.value],
+  ) as (keyof BaseRecordr)[];
+  if (isEdit.value) {
+    if (!props.id) return;
+    await recoderApi.update(props.id, { id: props.id, ...config.value });
+  } else {
+    await recoderApi.add(config.value);
+  }
   emits("confirm");
   showModal.value = false;
 };
@@ -202,13 +242,37 @@ const onChannelIdInputEnd = async () => {
   config.value.owner = res.owner;
 };
 
-watchEffect(() => {
-  if (!showModal.value) {
+watchEffect(async () => {
+  if (showModal.value) {
     channelIdUrl.value = "";
+    config.value = {
+      owner: "",
+      providerId: "DouYu",
+      channelId: "",
+      segment: 60,
+      quality: "highest",
+      disableProvideCommentsWhenRecording: true,
+      saveGiftDanma: false,
+      saveSCDanma: true,
+      streamPriorities: [],
+      sourcePriorities: [],
+      noGlobalFollowFields: hasGlobalFields,
+    };
   }
   if (props.id) {
-    getRecordSetting();
+    await getRecordSetting();
   }
+
+  globalFieldsObj.value = {
+    quality: (config.value?.noGlobalFollowFields ?? []).includes("quality"),
+    line: (config.value?.noGlobalFollowFields ?? []).includes("line"),
+    disableProvideCommentsWhenRecording: (config.value?.noGlobalFollowFields ?? []).includes(
+      "disableProvideCommentsWhenRecording",
+    ),
+    saveGiftDanma: (config.value?.noGlobalFollowFields ?? []).includes("saveGiftDanma"),
+    saveSCDanma: (config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
+    segment: (config.value?.noGlobalFollowFields ?? []).includes("segment"),
+  };
 });
 </script>
 
@@ -217,6 +281,17 @@ watchEffect(() => {
   text-align: right;
   .btn + .btn {
     margin-left: 10px;
+  }
+}
+
+.global-checkbox {
+  flex: none;
+  margin-left: auto;
+  :deep(.n-checkbox-box-wrapper) {
+    margin-left: 10px;
+  }
+  :deep(.n-checkbox__label) {
+    padding-right: 0px;
   }
 }
 </style>

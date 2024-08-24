@@ -8,7 +8,7 @@
 
     <div class="recorder-container">
       <div v-for="(item, index) in recorderList" :key="index" class="recorder">
-        <div class="owner">{{ item.owner }}</div>
+        <div class="owner" :title="item.remarks">{{ item.owner }}</div>
         <div class="channel-id">ID:{{ item.channelId }}</div>
 
         <n-popover placement="right-start" trigger="hover">
@@ -20,6 +20,7 @@
           <div style="margin-top: 10px" class="section-container">
             <div class="section" @click="startRecord(item.id)">开始录制</div>
             <div class="section" @click="stopRecord(item.id)">停止录制</div>
+            <div class="section" @click="edit(item.id)">房间配置</div>
 
             <a class="section link" target="_blank" :href="item.channelURL">打开直播间页面</a>
             <div class="section" style="color: #e88080" @click="remove(item.id)">删除房间</div>
@@ -28,7 +29,7 @@
       </div>
     </div>
 
-    <addModal v-model:visible="addModalVisible" @confirm="getList"></addModal>
+    <addModal :id="editId" v-model:visible="addModalVisible" @confirm="getList"></addModal>
   </div>
 </template>
 
@@ -44,11 +45,12 @@ const recorderList = ref<ClientRecorder[]>([]);
 
 const getList = async () => {
   // @ts-ignore
-  recorderList.value = await recoderApi.list();
+  recorderList.value = await recoderApi.infoList();
 };
 
 const addModalVisible = ref(false);
 const add = async () => {
+  editId.value = "";
   addModalVisible.value = true;
   // await recoderApi.add({ name: "test" });
   // getList();
@@ -74,6 +76,13 @@ const stopRecord = async (id: string) => {
   await recoderApi.stopRecord(id);
   getList();
 };
+
+const editId = ref("");
+const edit = async (id: string) => {
+  editId.value = id;
+  addModalVisible.value = true;
+};
+
 getList();
 
 // setInterval(() => {

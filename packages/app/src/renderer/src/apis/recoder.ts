@@ -1,13 +1,20 @@
 import request from "./request";
 
 import type { ClientRecorder, API } from "@biliLive-tools/http";
+import type { LocalRecordr } from "@biliLive-tools/types";
 
-const list = async (): Promise<ClientRecorder[]> => {
+/**
+ * 获取录制器列表，非配置信息
+ */
+const infoList = async (): Promise<ClientRecorder[]> => {
   const res = await request.get(`/recorder/list`);
   return res.data.payload;
 };
 
-const get = async (id: string): Promise<ClientRecorder> => {
+/**
+ * 获取录制器配置信息
+ */
+const get = async (id: string): Promise<LocalRecordr> => {
   const res = await request.get(`/recorder/${id}`);
   return res.data.payload;
 };
@@ -52,7 +59,7 @@ const resolveChannel = async (url: string): Promise<API.resolveChannel.Resp> => 
 };
 
 const recoder = {
-  list,
+  infoList,
   get,
   add,
   remove,
