@@ -46,7 +46,7 @@ export interface RecordHandle {
 
   savePath: string;
 
-  stop: (this: RecordHandle, reason?: string) => Promise<void>;
+  stop: (this: RecordHandle, reason?: string, tempStopIntervalCheck?: boolean) => Promise<void>;
 }
 
 export interface DebugLog {
@@ -75,6 +75,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   usedStream?: string;
   usedSource?: string;
   state: RecorderState;
+  tempStopIntervalCheck?: boolean;
   // TODO: 随机的一条近期弹幕 / 评论，这或许应该放在 manager 层做，上面再加个频率统计之类的
   // recently comment: { time, text, ... }
 

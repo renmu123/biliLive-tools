@@ -73,6 +73,7 @@ const ffmpegOutputOptions: string[] = [
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
 }) {
+  this.tempStopIntervalCheck = false;
   if (this.recordHandle != null) return this.recordHandle;
 
   const { living, owner, title } = await getInfo(this.channelId);
@@ -317,38 +318,41 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
 
-  const stop = singleton<RecordHandle["stop"]>(async (reason?: string) => {
-    if (!this.recordHandle) return;
-    this.state = "stopping-record";
-    // TODO: emit update event
+  const stop = singleton<RecordHandle["stop"]>(
+    async (reason?: string, tempStopIntervalCheck?: boolean) => {
+      if (!this.recordHandle) return;
+      this.tempStopIntervalCheck = !!tempStopIntervalCheck;
+      this.state = "stopping-record";
+      // TODO: emit update event
 
-    timeoutChecker.stop();
+      timeoutChecker.stop();
 
-    // 如果给 SIGKILL 信号会非正常退出，SIGINT 可以被 ffmpeg 正常处理。
-    // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
-    // command.kill("SIGINT");
-    // @ts-ignore
-    command.ffmpegProc.stdin.write("q");
-    try {
-      // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
-      client.stop();
-    } catch (err) {
-      // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
-      this.emit("DebugLog", { type: "common", text: String(err) });
-    }
-    extraDataController.setMeta({ recordStopTimestamp: Date.now() });
-    extraDataController.flush();
+      // 如果给 SIGKILL 信号会非正常退出，SIGINT 可以被 ffmpeg 正常处理。
+      // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
+      // command.kill("SIGINT");
+      // @ts-ignore
+      command.ffmpegProc.stdin.write("q");
+      try {
+        // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
+        client.stop();
+      } catch (err) {
+        // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
+        this.emit("DebugLog", { type: "common", text: String(err) });
+      }
+      extraDataController.setMeta({ recordStopTimestamp: Date.now() });
+      extraDataController.flush();
 
-    this.usedStream = undefined;
-    this.usedSource = undefined;
-    // TODO: other codes
-    // TODO: emit update event
+      this.usedStream = undefined;
+      this.usedSource = undefined;
+      // TODO: other codes
+      // TODO: emit update event
 
-    await hanldeLastSegmentCompleted();
-    this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
-    this.recordHandle = undefined;
-    this.state = "idle";
-  });
+      await hanldeLastSegmentCompleted();
+      this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
+      this.recordHandle = undefined;
+      this.state = "idle";
+    },
+  );
 
   this.recordHandle = {
     id: genRecordUUID(),

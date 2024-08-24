@@ -118,7 +118,9 @@ export function createRecorderManager<
     const maxThreadCount = 3;
     // 这里暂时不打算用 state == recording 来过滤，provider 必须内部自己处理录制过程中的 check，
     // 这样可以防止一些意外调用 checkLiveStatusAndRecord 时出现重复录制。
-    const needCheckRecorders = recorders.filter((r) => !r.disableAutoCheck);
+    const needCheckRecorders = recorders
+      .filter((r) => !r.disableAutoCheck)
+      .filter((r) => !r.tempStopIntervalCheck);
 
     const checkOnce = async () => {
       const recorder = needCheckRecorders.shift();

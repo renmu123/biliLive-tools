@@ -209,7 +209,7 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
   recorder: {
     savePath: path.join(os.homedir(), "Downloads"),
     nameRule: "{owner}\\{year}-{month}-{date} {hour}-{min}-{sec} {title}",
-    autoRecord: false,
+    autoRecord: true,
     quality: "highest",
     line: undefined,
     checkInterval: 60,

@@ -99,7 +99,7 @@ async function stopRecord(args: API.stopRecord.Args): Promise<API.stopRecord.Res
   if (recorder == null) throw new Error("配置不存在");
 
   if (recorder.recordHandle != null) {
-    await recorder.recordHandle.stop("manual stop");
+    await recorder.recordHandle.stop("manual stop", true);
     // TODO: 或许还应该自动将 recorder.disableAutoCheck 设置为 true
   }
   return recorderToClient(recorder);

@@ -50,6 +50,12 @@
         </n-form-item>
         <n-form-item>
           <template #label>
+            <span class="inline-flex"> 禁用自动录制 </span>
+          </template>
+          <n-switch v-model:value="config.disableAutoCheck" />
+        </n-form-item>
+        <n-form-item>
+          <template #label>
             <span class="inline-flex">
               分段录制
               <Tip tip="0为不分段"></Tip>
@@ -183,6 +189,7 @@ const config = ref<Omit<LocalRecordr, "id">>({
   saveSCDanma: true,
   streamPriorities: [],
   sourcePriorities: [],
+  disableAutoCheck: false,
   noGlobalFollowFields: hasGlobalFields,
 });
 
@@ -197,7 +204,7 @@ const qualityOptions = [
 const confirm = async () => {
   if (!config.value.channelId) {
     notice.error({
-      title: "请输入房间号",
+      title: "请输入正确的房间链接",
       duration: 1000,
     });
     return;
@@ -256,6 +263,7 @@ watchEffect(async () => {
       saveSCDanma: true,
       streamPriorities: [],
       sourcePriorities: [],
+      disableAutoCheck: false,
       noGlobalFollowFields: hasGlobalFields,
     };
   }

@@ -23,7 +23,7 @@
           clearable
         />
       </n-form-item>
-      <n-form-item>
+      <n-form-item style="display: none">
         <template #label>
           <span class="inline-flex"> 自动录制 </span>
         </template>
