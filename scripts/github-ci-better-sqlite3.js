@@ -30,7 +30,7 @@ async function downloadFile(url, desc) {
 }
 
 async function downloadBin() {
-  const betterSqlie3Version = "v11.1.2";
+  const betterSqlie3Version = "v11.2.1";
   // better-sqlite3-v11.1.2-electron-v125-win32-x64.tar.gz
   const filename = `better-sqlite3-${betterSqlie3Version}-electron-v125-${process.platform}-${process.arch}.tar.gz`;
   const downloadUrl = `https://github.com/WiseLibs/better-sqlite3/releases/download/${betterSqlie3Version}/${filename}`;
