@@ -31,9 +31,9 @@ jobs:
         with:
           run_install: false
 
-      - name: pnpm-update-for-win
-        if: startsWith(matrix.os, 'windows')
-        run: node ./scripts/github-ci-pnpm-update.js
+      # - name: pnpm-update-for-win
+      #   if: startsWith(matrix.os, 'windows')
+      #   run: node ./scripts/github-ci-pnpm-update.js
 
       - name: install-deps-for-better-sqlite3
         run: node ./scripts/github-ci-better-sqlite3.js
