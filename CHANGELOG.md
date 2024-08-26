@@ -39,6 +39,7 @@
 
 1. 修复断播续传设置关闭失效的bug
 2. 修复弹幕姬未保存raw的sc价格，[上游修复](https://github.com/hihkm/DanmakuFactory/pull/91)
+3. 修复某些情况下的缓冲区溢出，[上游修复](https://github.com/hihkm/DanmakuFactory/pull/94)
 
 # 1.4.0
 
