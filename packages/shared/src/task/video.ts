@@ -171,6 +171,19 @@ export const convertVideo2Mp4 = async (
 
   const command = ffmpeg(input).output(output);
 
+  if (
+    ffmpegOptions.encoder !== "copy" &&
+    ffmpegOptions.resetResolution &&
+    ffmpegOptions.resolutionWidth &&
+    ffmpegOptions.resolutionHeight
+  ) {
+    let scaleFilter = `${ffmpegOptions.resolutionWidth}:${ffmpegOptions.resolutionHeight}`;
+    if (ffmpegOptions.swsFlags) {
+      scaleFilter += `:flags=${ffmpegOptions.swsFlags}`;
+    }
+    command.outputOptions(`-vf scale=${scaleFilter}`);
+  }
+
   // 硬件解码
   if (ffmpegOptions.decode) {
     if (["nvenc"].includes(getHardwareAcceleration(ffmpegOptions.encoder))) {
@@ -212,6 +225,24 @@ export const convertVideo2Mp4 = async (
 };
 
 /**
+ * 判断是否需要缩放以及缩放方式
+ */
+const selectScaleMethod = (ffmpegOptions: FfmpegOptions): "none" | "auto" | "before" | "after" => {
+  if (!ffmpegOptions.resetResolution) {
+    return "none";
+  }
+  if (
+    ffmpegOptions.resetResolution &&
+    ffmpegOptions.resolutionWidth &&
+    ffmpegOptions.resolutionHeight
+  ) {
+    return ffmpegOptions.scaleMethod || "auto";
+  } else {
+    return "none";
+  }
+};
+
+/**
  * 生成弹幕压制相关的ffmpeg命令
  * @param {object} files 文件相关
  * @param {string} files.videoFilePath 视频文件路径
@@ -235,27 +266,56 @@ export const genMergeAssMp4Command = (
 
   const assFile = files.assFilePath;
   if (assFile) {
+    const scaleMethod = selectScaleMethod(ffmpegOptions);
+    const complexFilter: {
+      filter: string;
+      options?: string;
+      inputs?: string | string[];
+      outputs?: string;
+    }[] = [];
+    let inputStream = "0:v";
+    let outputStream = "";
+    // 先缩放
+    if (scaleMethod === "before") {
+      let scaleFilter = `${ffmpegOptions.resolutionWidth}:${ffmpegOptions.resolutionHeight}`;
+      if (ffmpegOptions.swsFlags) {
+        scaleFilter += `:flags=${ffmpegOptions.swsFlags}`;
+      }
+      outputStream = "sacleOut";
+      complexFilter.push({
+        inputs: inputStream,
+        filter: "scale",
+        options: `${scaleFilter}`,
+        outputs: outputStream,
+      });
+      inputStream = outputStream;
+    }
     if (files.hotProgressFilePath) {
       command.input(files.hotProgressFilePath);
-      command.complexFilter([
-        {
-          filter: "subtitles",
-          options: `${escaped(assFile)}`,
-          inputs: "0:v",
-          outputs: "i",
-        },
-        {
-          filter: "colorkey",
-          options: "black:0.1:0.1",
-          inputs: "1",
-          outputs: "1d",
-        },
-        {
-          filter: "overlay",
-          options: "W-w-0:H-h-0",
-          inputs: ["i", "1d"],
-        },
-      ]);
+      complexFilter.push(
+        ...[
+          {
+            filter: "subtitles",
+            options: `${escaped(assFile)}`,
+            inputs: inputStream,
+            outputs: "i",
+          },
+          {
+            filter: "colorkey",
+            options: "black:0.1:0.1",
+            inputs: "1",
+            outputs: "1d",
+          },
+          {
+            filter: "overlay",
+            options: "W-w-0:H-h-0",
+            inputs: ["i", "1d"],
+            outputs: "assOut",
+          },
+        ],
+      );
+      outputStream = "assOut";
+      inputStream = outputStream;
     } else {
       if (ffmpegOptions.ss) {
         command.inputOptions(`-ss ${ffmpegOptions.ss}`);
@@ -264,14 +324,35 @@ export const genMergeAssMp4Command = (
       if (ffmpegOptions.to) {
         command.inputOptions(`-to ${ffmpegOptions.to}`);
       }
-      command.complexFilter([
-        {
-          filter: "subtitles",
-          options: `${escaped(assFile)}`,
-        },
-      ]);
+      complexFilter.push({
+        filter: "subtitles",
+        options: `${escaped(assFile)}`,
+        inputs: inputStream,
+        outputs: "assOut",
+      });
+      outputStream = "assOut";
+      inputStream = outputStream;
     }
+
+    // 先渲染后缩放
+    if (scaleMethod === "auto" || scaleMethod === "after") {
+      let scaleFilter = `${ffmpegOptions.resolutionWidth}:${ffmpegOptions.resolutionHeight}`;
+      if (ffmpegOptions.swsFlags) {
+        scaleFilter += `:flags=${ffmpegOptions.swsFlags}`;
+      }
+      outputStream = "v";
+      complexFilter.push({
+        inputs: inputStream,
+        filter: "scale",
+        options: `${scaleFilter}`,
+        outputs: outputStream,
+      });
+    }
+
+    command.complexFilter(complexFilter, outputStream);
+    command.outputOptions("-map 0:a");
   }
+
   // 硬件解码
   if (ffmpegOptions.decode) {
     if (["nvenc"].includes(getHardwareAcceleration(ffmpegOptions.encoder))) {

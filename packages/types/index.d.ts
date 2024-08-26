@@ -442,6 +442,8 @@ export interface FfmpegOptions {
   to?: number | string;
   /** 缩放算法 */
   swsFlags?: string;
+  /** 缩放方式，控制先缩放后渲染还是先渲染后缩放 */
+  scaleMethod?: "auto" | "before" | "after";
 }
 
 export interface BiliupConfig {

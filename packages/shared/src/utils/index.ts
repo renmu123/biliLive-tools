@@ -128,14 +128,6 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
       }
     }
 
-    if (options.resetResolution && options.resolutionWidth && options.resolutionHeight) {
-      // if (!["h264_nvenc", "hevc_nvenc", "av1_nevnc"].includes(options.encoder)) {
-      result.push(`-s ${options.resolutionWidth}x${options.resolutionHeight}`);
-      // }
-      if (options.swsFlags) {
-        result.push(`-sws_flags ${options.swsFlags}`);
-      }
-    }
     if (["libsvtav1"].includes(options.encoder)) {
       if (options.bit10) {
         result.push("-pix_fmt yuv420p10le");

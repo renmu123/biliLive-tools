@@ -21,12 +21,14 @@ const commonPresetParams: {
   resolutionHeight: number;
   audioCodec: audioCodec;
   swsFlags: string;
+  scaleMethod: "auto" | "before" | "after";
 } = {
   resetResolution: false,
   resolutionWidth: 2880,
   resolutionHeight: 1620,
   audioCodec: "copy",
   swsFlags: "bilinear",
+  scaleMethod: "auto",
 };
 
 const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [

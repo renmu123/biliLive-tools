@@ -163,8 +163,14 @@
               <p>
                 实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间。
               </p>
-              <p>B站4k画质要求短边大于1600，如果原视频为1080，可以尝试设置为2880x1620</p>
+              <p>
+                B站4k画质要求短边大于1600，如果原视频为1080，可以尝试设置为2880x1620<br />
+                也可以设置为-1:1620来进行自适应
+              </p>
               <p>4K：3840X2160<br />2K：2560X1440<br />1080：1920X1080</p>
+              <p>
+                如果你是放大分辨率，可以选择先渲染后缩放，如果是缩小分辨率，可以选择先缩放后渲染，自动策略为先渲染后缩放
+              </p>
             </Tip>
           </span>
         </template>
@@ -177,7 +183,7 @@
           <n-input-number
             v-model:value.number="ffmpegOptions.config.resolutionWidth"
             class="input-number"
-            :min="0"
+            :min="-1"
             :step="100"
             placeholder="宽"
             style="width: 100px"
@@ -185,7 +191,7 @@
           <n-input-number
             v-model:value.number="ffmpegOptions.config.resolutionHeight"
             class="input-number"
-            :min="0"
+            :min="-1"
             :step="100"
             placeholder="高"
             style="width: 100px"
@@ -193,7 +199,14 @@
           <n-select
             v-model:value="ffmpegOptions.config.swsFlags"
             :options="swsOptions"
-            placeholder="请选择缩放算法"
+            placeholder="请选择缩放算法，默认为自动"
+            clearable
+            style="width: 200px; flex: none; margin-left: 10px"
+          />
+          <n-select
+            v-model:value="ffmpegOptions.config.scaleMethod"
+            :options="scaleMethodOptions"
+            placeholder="请选择缩放顺序"
             clearable
             style="width: 200px; flex: none; margin-left: 10px"
           />
@@ -718,6 +731,21 @@ const swsOptions = ref([
   {
     value: "neighbor",
     label: "neighbor(最近邻插值)",
+  },
+]);
+
+const scaleMethodOptions = ref([
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    value: "before",
+    label: "先缩放后渲染",
+  },
+  {
+    value: "after",
+    label: "先渲染后缩放",
   },
 ]);
 
