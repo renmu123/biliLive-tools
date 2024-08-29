@@ -255,7 +255,6 @@ export interface LocalRecordr extends BaseRecordr {
   providerId: string;
   id: string;
   channelId: string;
-  owner: string;
   remarks?: string;
   streamPriorities: any[];
   sourcePriorities: any[];

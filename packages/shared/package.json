@@ -37,7 +37,7 @@
     "@renmu/m3u8-downloader": "^0.3.0",
     "ass-compiler": "^0.1.11",
     "awilix": "^10.0.2",
-    "douyu-cli": "^0.6.2",
+    "douyu-api": "^0.1.0",
     "ejs": "^3.1.10",
     "fast-xml-parser": "^4.4.1",
     "nodemailer": "^6.9.13",

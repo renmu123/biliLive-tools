@@ -8,8 +8,21 @@
 
     <div class="recorder-container">
       <div v-for="(item, index) in recorderList" :key="index" class="recorder">
-        <div class="owner" :title="item.remarks">{{ item.owner }}</div>
-        <div class="channel-id">ID:{{ item.channelId }}</div>
+        <div
+          class="cover"
+          :style="{
+            backgroundImage: `url(${item.cover})`,
+          }"
+        >
+          <span v-if="item.roomTitle" class="room-title">{{ item.roomTitle }}</span>
+        </div>
+        <div class="content">
+          <img class="avatar" :src="item.avatar" />
+          <div style="display: flex; flex-direction: column; justify-content: space-between">
+            <div class="owner" :title="item.remarks">{{ item.owner }}</div>
+            <div class="channel-id">房间号：{{ item.channelId }}</div>
+          </div>
+        </div>
 
         <n-popover placement="right-start" trigger="hover">
           <template #trigger>
@@ -39,9 +52,10 @@ import { useConfirm } from "@renderer/hooks";
 import addModal from "./components/addModal.vue";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 
-import type { ClientRecorder } from "@biliLive-tools/http";
+import type { ClientRecorder, API } from "@biliLive-tools/http";
 
-const recorderList = ref<ClientRecorder[]>([]);
+const recorderList = ref<(ClientRecorder & API.getLiveInfo.LiveInfo)[]>([]);
+const liveInfos = ref<API.getLiveInfo.LiveInfo[]>([]);
 
 const getList = async () => {
   // @ts-ignore
@@ -83,7 +97,18 @@ const edit = async (id: string) => {
   addModalVisible.value = true;
 };
 
-getList();
+const init = async () => {
+  await getList();
+  liveInfos.value = await recoderApi.getLiveInfo(recorderList.value.map((item) => item.channelId));
+  recorderList.value.forEach((item, index) => {
+    item.roomTitle = liveInfos.value[index].roomTitle;
+    item.avatar = liveInfos.value[index].avatar;
+    item.cover = liveInfos.value[index].cover;
+  });
+};
+
+init();
+// getList();
 
 // setInterval(() => {
 //   getList();
@@ -97,16 +122,45 @@ getList();
   gap: 10px;
 }
 .recorder {
-  border: 2px solid #7cbd7d;
-  border-radius: 5px;
-  // 阴影
+  // border: 2px solid #78a379;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  padding: 10px;
+  border-radius: 5px;
+  // padding: 10px;
   position: relative;
 
-  .owner {
-    font-size: 20px;
-    font-weight: bold;
+  .cover {
+    background-size: cover;
+    background-position: center;
+    width: 320px;
+    height: 180px;
+    border-radius: 5px 5px 0px 0px;
+    border-color: white;
+  }
+  .room-title {
+    color: white;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 5px;
+    border-radius: 5px;
+    position: relative;
+    top: 5px;
+    left: 5px;
+  }
+
+  .content {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    .avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 5px;
+      margin-left: 10px;
+    }
+    .owner {
+      font-size: 20px;
+      font-weight: bold;
+    }
   }
 
   .menu {

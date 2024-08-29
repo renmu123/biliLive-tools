@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { v4 as uuid } from "uuid";
+import { live } from "douyu-api";
 
 import { genSavePathFromRule } from "@autorecord/manager";
 import { createRecorderManager } from "@biliLive-tools/shared";
@@ -118,7 +119,6 @@ router.post("/add", (ctx) => {
     "providerId",
     "channelId",
     "remarks",
-    "owner",
     "disableAutoCheck",
     "quality",
     "streamPriorities",
@@ -184,6 +184,27 @@ router.get("/manager/resolveChannel", async (ctx) => {
 
   const { url } = ctx.query;
   ctx.body = { payload: await recorderManager.resolveChannel(url as string) };
+});
+
+router.get("/manager/liveInfo", async (ctx) => {
+  const ids = (ctx.query.ids as string)?.split(",");
+  if (ids == null) throw new Error("ids 不能为空");
+  const fns = ids.map((id) => live.getRoomInfo(Number(id)));
+  const results = await Promise.all(fns);
+  ctx.body = {
+    payload: results.map((item) => {
+      return {
+        // @ts-ignore
+        roomTitle: item.room.room_name,
+        // @ts-ignore
+        cover: item.room.room_pic,
+        // @ts-ignore
+        avatar: item.room.avatar.middle,
+        // @ts-ignore
+        roomId: item.room.room_id.toString(),
+      };
+    }),
+  };
 });
 
 export default router;

@@ -34,6 +34,19 @@ export type ClientRecorder = Omit<
 export type ClientRecord = { isFileExists?: boolean };
 
 export namespace API {
+  export namespace getLiveInfo {
+    export interface Args {
+      ids: string;
+    }
+    export interface LiveInfo {
+      roomId: string;
+      roomTitle: string;
+      avatar: string;
+      cover: string;
+    }
+
+    export type Resp = LiveInfo[];
+  }
   export namespace getRecorders {
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
     export interface Args {}

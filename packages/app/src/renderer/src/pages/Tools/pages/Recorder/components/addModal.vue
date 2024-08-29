@@ -20,15 +20,11 @@
           >
           </n-input>
         </n-form-item>
-        <n-form-item>
+        <n-form-item v-if="!isEdit">
           <template #label>
             <span class="inline-flex"> 主播名称 </span>
           </template>
-          <n-input
-            v-model:value.trim="config.owner"
-            :disabled="true"
-            placeholder="输入房间链接后自动解析"
-          >
+          <n-input v-model:value.trim="owner" :disabled="true" placeholder="输入房间链接后自动解析">
           </n-input>
         </n-form-item>
         <n-form-item :disabled="true">
@@ -179,7 +175,6 @@ const globalFieldsObj = ref<Record<(typeof hasGlobalFields)[number], boolean>>({
 });
 
 const config = ref<Omit<LocalRecordr, "id">>({
-  owner: "",
   providerId: "DouYu",
   channelId: "",
   segment: 60,
@@ -233,6 +228,7 @@ const getRecordSetting = async () => {
 const isEdit = computed(() => !!props.id);
 
 const channelIdUrl = ref("");
+const owner = ref("");
 const onChannelIdInputEnd = async () => {
   if (!channelIdUrl.value) return;
   console.log("onChannelIdInputEnd");
@@ -246,14 +242,14 @@ const onChannelIdInputEnd = async () => {
   }
 
   config.value.channelId = res.channelId;
-  config.value.owner = res.owner;
+  owner.value = res.owner;
 };
 
 watchEffect(async () => {
   if (showModal.value) {
     channelIdUrl.value = "";
+    owner.value = "";
     config.value = {
-      owner: "",
       providerId: "DouYu",
       channelId: "",
       segment: 60,
