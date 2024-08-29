@@ -10,6 +10,8 @@ export async function getInfo(channelId: string): Promise<{
   owner: string;
   title: string;
   startTime: Date;
+  avatar: string;
+  cover: string;
   // gifts: {
   //   id: string;
   //   name: string;
@@ -33,6 +35,8 @@ export async function getInfo(channelId: string): Promise<{
     living,
     owner: data.room.nickname,
     title: data.room.room_name,
+    avatar: data.room.avatar.big,
+    cover: data.room.room_pic,
     startTime: new Date(data.room.show_time * 1000),
     // gifts: data.gift.map((g) => ({
     //   id: g.id,

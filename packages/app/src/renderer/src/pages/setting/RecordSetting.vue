@@ -67,29 +67,29 @@
       <h2>弹幕录制</h2>
       <n-form-item>
         <template #label>
-          <span class="inline-flex"> 弹幕录制 </span>
+          <span class="inline-flex"> 禁止弹幕录制 </span>
         </template>
         <n-switch v-model:value="config.recorder.disableProvideCommentsWhenRecording" />
       </n-form-item>
-      <n-form-item v-if="config.recorder.disableProvideCommentsWhenRecording">
+      <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
         <template #label>
           <span class="inline-flex"> 保存礼物 </span>
         </template>
         <n-switch v-model:value="config.recorder.saveGiftDanma" />
       </n-form-item>
-      <n-form-item v-if="config.recorder.disableProvideCommentsWhenRecording">
+      <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
         <template #label>
           <span class="inline-flex"> 保存高能弹幕 </span>
         </template>
         <n-switch v-model:value="config.recorder.saveSCDanma" />
       </n-form-item>
-      <!-- <n-form-item v-if="config.recorder.disableProvideCommentsWhenRecording">
+      <!-- <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
         <template #label>
           <span class="inline-flex"> 自动转换为ass </span>
         </template>
         待实现
       </n-form-item>
-      <n-form-item v-if="config.recorder.disableProvideCommentsWhenRecording && false">
+      <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording && false">
         <template #label>
           <span class="inline-flex"> ass转换预设 </span>
         </template>

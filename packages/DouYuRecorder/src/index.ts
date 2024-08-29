@@ -76,7 +76,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.tempStopIntervalCheck = false;
   if (this.recordHandle != null) return this.recordHandle;
 
-  const { living, owner, title } = await getInfo(this.channelId);
+  const liveInfo = await getInfo(this.channelId);
+  this.liveInfo = liveInfo;
+  const { living, owner, title } = liveInfo;
   if (!living) return null;
 
   this.state = "recording";
@@ -120,6 +122,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   let extraDataController: ReturnType<typeof createRecordExtraDataController>;
 
   if (!hasSegment) {
+    // TODO: disableProvideCommentsWhenRecording 为 true 时，不应该创建 extraDataController
     extraDataController = createRecordExtraDataController(extraDataSavePath);
     extraDataController.setMeta({ title });
   }
@@ -128,6 +131,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     notAutoStart: true,
   });
   client.on("message", (msg) => {
+    console.log("msg", msg, extraDataController);
     if (!extraDataController) return;
     switch (msg.type) {
       case "chatmsg": {
@@ -205,6 +209,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       }
     }
   });
+  console.log("this.disableProvideCommentsWhenRecording", this.disableProvideCommentsWhenRecording);
   if (!this.disableProvideCommentsWhenRecording) {
     client.start();
   }

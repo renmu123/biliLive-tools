@@ -193,15 +193,20 @@ router.get("/manager/liveInfo", async (ctx) => {
   const results = await Promise.all(fns);
   ctx.body = {
     payload: results.map((item) => {
+      let living = item.room.status === "1";
+      if (living) {
+        const isVideoLoop = item.room.videoLoop === 1;
+        if (isVideoLoop) {
+          living = false;
+        }
+      }
       return {
-        // @ts-ignore
+        owner: item.room.nickname,
         roomTitle: item.room.room_name,
-        // @ts-ignore
         cover: item.room.room_pic,
-        // @ts-ignore
         avatar: item.room.avatar.middle,
-        // @ts-ignore
         roomId: item.room.room_id.toString(),
+        living,
       };
     }),
   };

@@ -43,6 +43,8 @@ export namespace API {
       roomTitle: string;
       avatar: string;
       cover: string;
+      owner: string;
+      living: boolean;
     }
 
     export type Resp = LiveInfo[];

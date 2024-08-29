@@ -213,7 +213,7 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
     quality: "highest",
     line: undefined,
     checkInterval: 60,
-    disableProvideCommentsWhenRecording: true,
+    disableProvideCommentsWhenRecording: false,
     segment: 60,
     saveGiftDanma: false,
     saveSCDanma: true,

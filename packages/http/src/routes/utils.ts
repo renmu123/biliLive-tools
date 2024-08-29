@@ -35,5 +35,6 @@ export function recorderToClient(recorder: Recorder): ClientRecorder {
     ...omit(recorder, "all", "getChannelURL", "checkLiveStatusAndRecord", "recordHandle", "toJSON"),
     channelURL: recorder.getChannelURL(),
     recordHandle: recorder.recordHandle && omit(recorder.recordHandle, "stop"),
+    liveInfo: recorder.liveInfo,
   };
 }

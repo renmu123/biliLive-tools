@@ -73,6 +73,14 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   usedStream?: string;
   usedSource?: string;
   state: RecorderState;
+  liveInfo: {
+    living: boolean;
+    owner: string;
+    title: string;
+    startTime: Date;
+    avatar: string;
+    cover: string;
+  };
   tempStopIntervalCheck?: boolean;
   // TODO: 随机的一条近期弹幕 / 评论，这或许应该放在 manager 层做，上面再加个频率统计之类的
   // recently comment: { time, text, ... }

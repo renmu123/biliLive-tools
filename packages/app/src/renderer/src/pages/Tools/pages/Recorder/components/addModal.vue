@@ -96,7 +96,7 @@
         <h2>弹幕录制</h2>
         <n-form-item>
           <template #label>
-            <span class="inline-flex"> 弹幕录制 </span>
+            <span class="inline-flex"> 禁止弹幕录制 </span>
           </template>
           <n-switch
             v-model:value="config.disableProvideCommentsWhenRecording"
@@ -108,7 +108,7 @@
             >全局</n-checkbox
           >
         </n-form-item>
-        <n-form-item v-if="config.disableProvideCommentsWhenRecording">
+        <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
           <template #label>
             <span class="inline-flex"> 保存礼物 </span>
           </template>
@@ -120,7 +120,7 @@
             >全局</n-checkbox
           >
         </n-form-item>
-        <n-form-item v-if="config.disableProvideCommentsWhenRecording">
+        <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
           <template #label>
             <span class="inline-flex"> 保存高能弹幕 </span>
           </template>
@@ -179,7 +179,7 @@ const config = ref<Omit<LocalRecordr, "id">>({
   channelId: "",
   segment: 60,
   quality: "highest",
-  disableProvideCommentsWhenRecording: true,
+  disableProvideCommentsWhenRecording: false,
   saveGiftDanma: false,
   saveSCDanma: true,
   streamPriorities: [],
@@ -277,6 +277,7 @@ watchEffect(async () => {
     saveSCDanma: (config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
     segment: (config.value?.noGlobalFollowFields ?? []).includes("segment"),
   };
+  // TODO: 设置全局显示的值
 });
 </script>
 

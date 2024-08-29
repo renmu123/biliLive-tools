@@ -26,6 +26,7 @@ export function defaultToJSON<E extends AnyObject>(
   provider: RecorderProvider<E>,
   recorder: Recorder<E>,
 ): SerializedRecorder<E> {
+  // @ts-ignore
   return {
     providerId: provider.id,
     ...pick(recorder, [
@@ -42,6 +43,7 @@ export function defaultToJSON<E extends AnyObject>(
       "saveSCDanma",
       "saveGiftDanma",
       "disableProvideCommentsWhenRecording",
+      "liveInfo",
     ]),
   };
 }
