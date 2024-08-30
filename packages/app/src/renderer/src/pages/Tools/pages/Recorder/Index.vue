@@ -17,6 +17,8 @@
           <span v-if="item.roomTitle" class="room-title">{{ item.roomTitle }}</span>
           <div v-if="item.state === 'recording'" class="recording-container">
             <div class="recording"></div>
+            <span class="source">{{ item.usedSource }}</span>
+            <span class="line">{{ item.usedStream }}</span>
           </div>
         </div>
         <div class="content">
@@ -169,6 +171,9 @@ init();
       left: 5px;
     }
     .recording-container {
+      display: flex;
+      gap: 10px;
+      align-items: center;
       box-sizing: border-box;
       color: white;
       background-color: rgba(0, 0, 0, 0.5);
@@ -185,17 +190,6 @@ init();
         border-radius: 50%;
         background-color: red;
         vertical-align: middle;
-
-        // content: "";
-        // background-color: #f69;
-        // width: 108px;
-        // height: 108px;
-        // background-image: url(//s1.hdslb.com/bfs/static/stone-free/dyn-home/assets/living_sprite.png);
-        // background-repeat: no-repeat;
-        // animation: livingSprite 0.5s steps(1) infinite;
-        // transform: scale(0.0926);
-        // left: -44px;
-        // top: -46px;
       }
     }
   }

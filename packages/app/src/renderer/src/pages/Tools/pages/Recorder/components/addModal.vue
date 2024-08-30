@@ -96,11 +96,13 @@
         <h2>弹幕录制</h2>
         <n-form-item>
           <template #label>
-            <span class="inline-flex"> 禁止弹幕录制 </span>
+            <span class="inline-flex"> 弹幕录制 </span>
           </template>
           <n-switch
             v-model:value="config.disableProvideCommentsWhenRecording"
             :disabled="globalFieldsObj.disableProvideCommentsWhenRecording"
+            :checked-value="false"
+            :unchecked-value="true"
           />
           <n-checkbox
             v-model:checked="globalFieldsObj.disableProvideCommentsWhenRecording"
@@ -205,7 +207,7 @@ const confirm = async () => {
     return;
   }
   config.value.noGlobalFollowFields = Object.keys(globalFieldsObj.value).filter(
-    (key) => globalFieldsObj.value[key as keyof typeof globalFieldsObj.value],
+    (key) => !globalFieldsObj.value[key as keyof typeof globalFieldsObj.value],
   ) as (keyof BaseRecordr)[];
   if (isEdit.value) {
     if (!props.id) return;
@@ -268,14 +270,14 @@ watchEffect(async () => {
   }
 
   globalFieldsObj.value = {
-    quality: (config.value?.noGlobalFollowFields ?? []).includes("quality"),
-    line: (config.value?.noGlobalFollowFields ?? []).includes("line"),
-    disableProvideCommentsWhenRecording: (config.value?.noGlobalFollowFields ?? []).includes(
+    quality: !(config.value?.noGlobalFollowFields ?? []).includes("quality"),
+    line: !(config.value?.noGlobalFollowFields ?? []).includes("line"),
+    disableProvideCommentsWhenRecording: !(config.value?.noGlobalFollowFields ?? []).includes(
       "disableProvideCommentsWhenRecording",
     ),
-    saveGiftDanma: (config.value?.noGlobalFollowFields ?? []).includes("saveGiftDanma"),
-    saveSCDanma: (config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
-    segment: (config.value?.noGlobalFollowFields ?? []).includes("segment"),
+    saveGiftDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftDanma"),
+    saveSCDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
+    segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
   };
   // TODO: 设置全局显示的值
 });

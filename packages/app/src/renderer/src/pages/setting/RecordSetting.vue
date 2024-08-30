@@ -67,9 +67,13 @@
       <h2>弹幕录制</h2>
       <n-form-item>
         <template #label>
-          <span class="inline-flex"> 禁止弹幕录制 </span>
+          <span class="inline-flex"> 弹幕录制 </span>
         </template>
-        <n-switch v-model:value="config.recorder.disableProvideCommentsWhenRecording" />
+        <n-switch
+          v-model:value="config.recorder.disableProvideCommentsWhenRecording"
+          :checked-value="false"
+          :unchecked-value="true"
+        />
       </n-form-item>
       <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
         <template #label>

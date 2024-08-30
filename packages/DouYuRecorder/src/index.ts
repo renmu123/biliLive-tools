@@ -131,7 +131,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     notAutoStart: true,
   });
   client.on("message", (msg) => {
-    console.log("msg", msg, extraDataController);
+    // console.log("msg", msg, extraDataController);
     if (!extraDataController) return;
     switch (msg.type) {
       case "chatmsg": {
