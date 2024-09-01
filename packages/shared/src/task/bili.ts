@@ -315,11 +315,15 @@ export async function editMedia(
   options: BiliupConfig | any,
   uid: number,
 ) {
+  if (filePath.length === 0) {
+    throw new Error("请至少上传一个视频");
+  }
   const client = await createClient(uid);
+  const title = typeof filePath[0] === "string" ? filePath[0] : filePath[0].title;
 
   const pTask = new BiliEditVideoTask(
     {
-      name: `编辑稿件：${options.title}`,
+      name: `编辑稿件：${title}`,
       uid,
       mediaOptions: options,
       aid,

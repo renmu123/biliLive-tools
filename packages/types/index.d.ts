@@ -1,3 +1,4 @@
+// @ts-ignore
 import type { Line as UploadLine } from "@renmu/bili-api";
 
 // 弹幕配置

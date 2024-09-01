@@ -11,16 +11,25 @@ import { Danmu } from "../danmu/index.js";
 import { generateDanmakuImage } from "../danmu/hotProgress.js";
 import { DanmuTask, taskQueue } from "./task.js";
 import { convertImage2Video, readVideoMeta } from "./video.js";
+import { container } from "../index.js";
 
-import type { DanmuConfig, DanmuOptions, hotProgressOptions } from "@biliLive-tools/types";
+import type {
+  DanmuConfig,
+  DanmuOptions,
+  hotProgressOptions,
+  GlobalConfig,
+} from "@biliLive-tools/types";
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
 const getDanmuFactoryPath = () => {
-  let path = appConfig.get("danmuFactoryPath");
-  if (!appConfig.get("customExecPath")) {
-    path = process.env.BILILIVE_DANMUKUFACTORY_PATH as string;
+  const config = appConfig.getAll();
+  let danmuFactoryPath = config.ffmpegPath;
+  if (!config.customExecPath) {
+    const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+    danmuFactoryPath = globalConfig.defaultDanmakuFactoryPath;
   }
-  return path;
+
+  return danmuFactoryPath;
 };
 
 const addConvertDanmu2AssTask = async (
