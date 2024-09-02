@@ -569,6 +569,10 @@ export class BiliEditVideoTask extends BiliVideoTask {
     super(options, callback);
     this.aid = options.aid;
     this.mediaOptions = options.mediaOptions;
+
+    this.on("completed", () => {
+      this.submit();
+    });
   }
   async submit() {
     const parts = this.taskList
@@ -576,7 +580,10 @@ export class BiliEditVideoTask extends BiliVideoTask {
       .map((task) => {
         return task.command.completedPart;
       });
-    if (parts.length === 0) return;
+    if (parts.length === 0) {
+      log.error("没有上传成功的视频");
+      return;
+    }
 
     const data = await retry(() => editMediaApi(this.uid, this.aid, parts, this.mediaOptions));
     this.status = "completed";
