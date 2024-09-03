@@ -536,13 +536,20 @@ export class BiliAddVideoTask extends BiliVideoTask {
         return task.command.completedPart;
       });
     if (parts.length === 0) return;
-
-    const data = await retry(() => addMediaApi(this.uid, parts, this.mediaOptions));
-    this.status = "completed";
-    this.progress = 100;
-    this.callback.onEnd && this.callback.onEnd(data);
-    this.output = String(data.aid);
-    this.emitter.emit("task-end", { taskId: this.taskId });
+    try {
+      const data = await retry(() => addMediaApi(this.uid, parts, this.mediaOptions));
+      this.status = "completed";
+      this.progress = 100;
+      this.callback.onEnd && this.callback.onEnd(data);
+      this.output = String(data.aid);
+      this.emitter.emit("task-end", { taskId: this.taskId });
+    } catch (err) {
+      log.error("上传失败", err);
+      this.status = "error";
+      this.error = String(err);
+      this.callback.onError && this.callback.onError(this.error);
+      this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
+    }
   }
 }
 
@@ -584,13 +591,20 @@ export class BiliEditVideoTask extends BiliVideoTask {
       log.error("没有上传成功的视频");
       return;
     }
-
-    const data = await retry(() => editMediaApi(this.uid, this.aid, parts, this.mediaOptions));
-    this.status = "completed";
-    this.progress = 100;
-    this.callback.onEnd && this.callback.onEnd(data);
-    this.output = String(data.aid);
-    this.emitter.emit("task-end", { taskId: this.taskId });
+    try {
+      const data = await retry(() => editMediaApi(this.uid, this.aid, parts, this.mediaOptions));
+      this.status = "completed";
+      this.progress = 100;
+      this.callback.onEnd && this.callback.onEnd(data);
+      this.output = String(data.aid);
+      this.emitter.emit("task-end", { taskId: this.taskId });
+    } catch (err) {
+      log.error("编辑失败", err);
+      this.status = "error";
+      this.error = String(err);
+      this.callback.onError && this.callback.onError(this.error);
+      this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
+    }
   }
 }
 
