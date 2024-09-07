@@ -34,6 +34,7 @@
     "download": "^8.0.0",
     "prettier": "^3.2.5",
     "rollup": "^4.9.6",
+    "tar": "^7.4.3",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   },
