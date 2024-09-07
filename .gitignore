@@ -10,5 +10,3 @@ lib
 *.db
 *.db-wal
 *.db-shm
-packages/app/src/renderer/components.d.ts
-packages/app/src/renderer/auto-imports.d.ts
