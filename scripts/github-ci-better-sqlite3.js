@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import tar from "tar";
+import * as tar from "tar";
 import download from "download";
 import { SingleBar } from "cli-progress";
 
