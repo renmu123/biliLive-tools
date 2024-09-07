@@ -16,7 +16,8 @@
     "preinstall": "npx only-allow pnpm",
     "install:bin": "node ./scripts/install-bin.js",
     "github-ci-pnpm-update": "node ./scripts/github-ci-pnpm-update.js",
-    "test": "pnpm run --filter @biliLive-tools/shared test && pnpm run --filter @biliLive-tools/http test"
+    "test": "pnpm run --filter @biliLive-tools/shared test && pnpm run --filter @biliLive-tools/http test",
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "fs-extra": "^11.2.0",
@@ -35,6 +36,7 @@
     "download": "^8.0.0",
     "prettier": "^3.2.5",
     "rollup": "^4.9.6",
+    "tar": "^7.4.3",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   },

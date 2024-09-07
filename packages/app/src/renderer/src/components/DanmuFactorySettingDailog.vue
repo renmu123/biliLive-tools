@@ -22,7 +22,7 @@
       <template #footer>
         <div class="footer">
           <n-checkbox v-model:checked="simpledMode" style="margin-right: auto">
-            简易模式
+            简易配置
           </n-checkbox>
           <n-button
             v-if="config.id !== 'default'"

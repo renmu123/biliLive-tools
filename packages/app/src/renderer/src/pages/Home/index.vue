@@ -109,7 +109,7 @@
           class="footer flex"
           style="text-align: right; gap: 10px; justify-content: flex-end; align-items: center"
         >
-          <n-checkbox v-model:checked="simpledMode"> 简易模式 </n-checkbox>
+          <n-checkbox v-model:checked="simpledMode"> 简易配置 </n-checkbox>
           <n-button
             v-if="danmuPresetId !== 'default'"
             ghost
