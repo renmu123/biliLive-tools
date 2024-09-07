@@ -307,8 +307,8 @@ importers:
         specifier: ^0.1.53
         version: 0.1.53
       '@renmu/bili-api':
-        specifier: ^1.4.0
-        version: 1.4.0
+        specifier: 2.0.0-beta.0
+        version: 2.0.0-beta.0
       '@renmu/fluent-ffmpeg':
         specifier: 2.2.1
         version: 2.2.1
@@ -1069,8 +1069,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@renmu/bili-api@1.4.0':
-    resolution: {integrity: sha512-QBZcW5mExUGaWpLcEzlYATk4oVVYXLlRaIduQ3lPt8ILZrKTCBorXCONxgFy3fQ+9iiqZ65or0yzG0V9Q+qeNA==}
+  '@renmu/bili-api@2.0.0-beta.0':
+    resolution: {integrity: sha512-2m6kXrtxE4+1rMGokbp0rgwQPnbJFkPR8A+ADffgvjAWkeiKWHMHVXuocrywB5cXvHhd5REkmn2PA6ZN5Aq9dA==}
     engines: {node: '>=18'}
 
   '@renmu/fluent-ffmpeg@2.2.1':
@@ -1737,6 +1737,11 @@ packages:
 
   axios-retry@4.4.2:
     resolution: {integrity: sha512-2fjo9uDNBQjX8+GMEGOFG5TrLMZ3QijjeRYcgBI2MhrsabnvcIAfLxxIhG7+CCD68vPEQY3IM2llV70ZsrqPvA==}
+    peerDependencies:
+      axios: 0.x || 1.x
+
+  axios-retry@4.5.0:
+    resolution: {integrity: sha512-aR99oXhpEDGo0UuAlYcn2iGRds30k366Zfa05XWScR9QaQD4JYiP3/1Qt1u7YlefUOK+cn0CcwoL1oefavQUlQ==}
     peerDependencies:
       axios: 0.x || 1.x
 
@@ -5402,13 +5407,14 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@renmu/bili-api@1.4.0':
+  '@renmu/bili-api@2.0.0-beta.0':
     dependencies:
       axios: 1.7.4
-      axios-retry: 4.4.2(axios@1.7.4)
+      axios-retry: 4.5.0(axios@1.7.4)
       fast-xml-parser: 4.4.1
       p-queue: 8.0.1
       protobufjs: 7.3.2
+      tiny-typed-emitter: 2.1.0
     transitivePeerDependencies:
       - debug
 
@@ -6225,6 +6231,11 @@ snapshots:
       fast-glob: 3.3.2
 
   axios-retry@4.4.2(axios@1.7.4):
+    dependencies:
+      axios: 1.7.4
+      is-retry-allowed: 2.2.0
+
+  axios-retry@4.5.0(axios@1.7.4):
     dependencies:
       axios: 1.7.4
       is-retry-allowed: 2.2.0
