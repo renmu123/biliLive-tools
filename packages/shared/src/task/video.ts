@@ -2,7 +2,6 @@ import { join, parse } from "path";
 import os from "os";
 import fs from "fs-extra";
 import ffmpeg from "@renmu/fluent-ffmpeg";
-import { timemarkToSeconds } from "@renmu/fluent-ffmpeg/lib/utils.js";
 
 import { container } from "../index.js";
 import { appConfig } from "../config.js";
@@ -15,6 +14,7 @@ import {
   executeCommand,
   formatFile,
   getHardwareAcceleration,
+  timemarkToSeconds,
 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask } from "./task.js";
