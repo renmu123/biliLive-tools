@@ -1,9 +1,10 @@
 import request from "./request";
 
 export const previewWebhookTitle = async (template: string): Promise<string> => {
-  return request.post(`/common/foramtTitle`, {
+  const res = await request.post(`/common/foramtTitle`, {
     template,
   });
+  return res.data;
 };
 
 export const getStreamLogs = async () => {

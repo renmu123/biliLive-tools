@@ -23,7 +23,7 @@ type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
 const getDanmuFactoryPath = () => {
   const config = appConfig.getAll();
-  let danmuFactoryPath = config.ffmpegPath;
+  let danmuFactoryPath = config.danmuFactoryPath;
   if (!config.customExecPath) {
     const globalConfig = container.resolve<GlobalConfig>("globalConfig");
     danmuFactoryPath = globalConfig.defaultDanmakuFactoryPath;

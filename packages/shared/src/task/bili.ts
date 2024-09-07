@@ -151,7 +151,7 @@ export function formatOptions(options: BiliupConfig) {
       }
     })
     .join("");
-  const tags = options.tag.map((item) => item.trim());
+  const tags = (options.tag ?? []).map((item) => item.trim());
   if (options.topic_name) {
     tags.unshift(options.topic_name);
   }
@@ -210,7 +210,9 @@ export async function editMediaApi(
   video: { cid: number; filename: string; title: string; desc?: string }[],
   options: BiliupConfig,
 ) {
-  const mediaOptions = formatOptions(options);
+  const mediaOptions = {};
+  console.log("编辑视频", options);
+  // const mediaOptions = formatOptions(options);
   const client = await createClient(uid);
   return client.platform.editMediaClientApi(video, { aid, ...mediaOptions }, "append");
 }
