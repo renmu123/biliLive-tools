@@ -84,6 +84,7 @@
 </template>
 
 <script setup lang="ts">
+import { ffmpegPresetApi } from "@renderer/apis";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useFfmpegPreset, useAppConfig, useSegmentStore } from "@renderer/stores";
 import filenamify from "filenamify/browser";
@@ -159,7 +160,7 @@ const confirmExport = async () => {
     });
     return;
   }
-  const ffmpegOptiosn = (await window.api.ffmpeg.getPreset(exportOptions.ffmpegPresetId)).config;
+  const ffmpegOptiosn = (await ffmpegPresetApi.get(exportOptions.ffmpegPresetId)).config;
   let index = 1;
   for (const cut of selectedCuts.value) {
     const start = cut.start;

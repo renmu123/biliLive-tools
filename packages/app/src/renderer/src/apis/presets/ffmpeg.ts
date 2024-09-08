@@ -15,7 +15,7 @@ const options = async (): Promise<
       label: string;
       config: FfmpegOptions;
     }[];
-  }[][]
+  }[]
 > => {
   const res = await request.get(`/preset/ffmpeg/options`);
   return res.data;

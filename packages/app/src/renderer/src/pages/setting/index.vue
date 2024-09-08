@@ -298,6 +298,7 @@ import { cloneDeep } from "lodash-es";
 import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline, Refresh } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
+import { videoPresetApi, ffmpegPresetApi } from "@renderer/apis";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig, Theme } from "@biliLive-tools/types";
 
@@ -426,7 +427,7 @@ const handleOpen = async () => {
 
 const presets = ref<BiliupPreset[]>([]);
 const getPresets = async () => {
-  presets.value = await window.api.bili.getPresets();
+  presets.value = await videoPresetApi.list();
 };
 const presetsOptions = computed(() => {
   return presets.value.map((item) => {
@@ -548,7 +549,7 @@ const deleteRoom = (roomId: string) => {
 
 const ffmpegOptions = ref<any[]>([]);
 const getPresetOptions = async () => {
-  ffmpegOptions.value = await window.api.ffmpeg.getPresetOptions();
+  ffmpegOptions.value = await ffmpegPresetApi.options();
 };
 
 const addRoom = () => {

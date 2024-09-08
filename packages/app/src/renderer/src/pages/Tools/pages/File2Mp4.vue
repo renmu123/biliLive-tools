@@ -55,10 +55,11 @@
 
 <script setup lang="ts">
 import { useConfirm } from "@renderer/hooks";
-import { FolderOpenOutline } from "@vicons/ionicons5";
+import { ffmpegPresetApi } from "@renderer/apis";
 import { useAppConfig, useFfmpegPreset } from "@renderer/stores";
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import hotkeys from "hotkeys-js";
+import { FolderOpenOutline } from "@vicons/ionicons5";
 
 const notice = useNotification();
 const confirm = useConfirm();
@@ -81,7 +82,7 @@ onUnmounted(() => {
 });
 
 const convert = async () => {
-  const ffmpegConfig = await window.api.ffmpeg.getPreset(options.ffmpegPresetId);
+  const ffmpegConfig = await ffmpegPresetApi.get(options.ffmpegPresetId);
   if (!ffmpegConfig) {
     notice.error({
       title: `预设不存在，请重新选择`,

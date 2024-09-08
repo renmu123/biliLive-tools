@@ -764,20 +764,6 @@ watch(
   },
 );
 
-// const options = ref<
-//   {
-//     value: string;
-//     label: string;
-//     children: {
-//       value: string;
-//       label: string;
-//     }[];
-//   }[]
-// >([]);
-// const getPresetOptions = async () => {
-//   options.value = await window.api.ffmpeg.getPresetOptions();
-// };
-
 const handlePresetChange = async () => {
   ffmpegOptions.value = await ffmpegPresetApi.get(presetId.value);
 };

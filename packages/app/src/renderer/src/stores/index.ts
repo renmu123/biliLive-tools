@@ -2,7 +2,7 @@ import { cloneDeep } from "lodash-es";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
 import { getUserList } from "@renderer/apis/user";
-import { danmuPresetApi } from "@renderer/apis";
+import { danmuPresetApi, ffmpegPresetApi, videoPresetApi } from "@renderer/apis";
 
 import type { Task } from "@renderer/types";
 
@@ -169,7 +169,7 @@ export const useFfmpegPreset = defineStore("ffmpegPreset", () => {
   >([]);
 
   const getPresetOptions = async () => {
-    options.value = await window.api.ffmpeg.getPresetOptions();
+    options.value = await ffmpegPresetApi.options();
   };
 
   getPresetOptions();
@@ -189,10 +189,10 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
   });
 
   async function getUploadPresets() {
-    uploadPresets.value = await window.api.bili.getPresets();
+    uploadPresets.value = await videoPresetApi.list();
   }
   async function getUploadPreset() {
-    uploadPreset.value = await window.api.bili.getPreset(upladPresetId.value);
+    uploadPreset.value = await videoPresetApi.get(upladPresetId.value);
   }
 
   const uploaPresetsOptions = computed(() => {
