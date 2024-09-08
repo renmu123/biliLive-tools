@@ -26,8 +26,6 @@
     "@biliLive-tools/http": "workspace:*",
     "@biliLive-tools/shared": "workspace:*",
     "@biliLive-tools/types": "workspace:*",
-    "@autorecord/douyu-recorder": "workspace:*",
-    "@autorecord/manager": "workspace:*",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
     "@napi-rs/canvas": "^0.1.55",

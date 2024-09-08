@@ -37,7 +37,7 @@ const handleCoverChange = (e: Event) => {
   const file = (e.target as HTMLInputElement).files?.[0];
   if (!file) return;
   console.log(file);
-  src.value = file.path;
+  src.value = window.api.common.getPathForFile(file);
 };
 
 const fileInputRef = ref<HTMLInputElement | null>(null);

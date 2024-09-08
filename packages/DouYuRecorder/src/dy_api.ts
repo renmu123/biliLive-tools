@@ -1,5 +1,6 @@
+import crypto from "node:crypto";
+
 import { v4 as uuid4 } from "uuid";
-import { MD5 } from "crypto-js";
 import safeEval from "safe-eval";
 
 import queryString from "query-string";
@@ -133,7 +134,11 @@ async function getSignFn(address: string, rejectCache?: boolean): Promise<SignFu
   const code = json.data && json.data["room" + address];
   if (!code) throw new Error("Unexpected result with homeH5Enc, " + JSON.stringify(json));
   const sign = safeEval(`(function func(a,b,c){${code};return ub98484234(a,b,c)})`, {
-    CryptoJS: { MD5 },
+    CryptoJS: {
+      MD5: (str: string) => {
+        return crypto.createHash("md5").update(str).digest("hex");
+      },
+    },
     window: disguisedNativeMethods,
     document: disguisedNativeMethods,
   });

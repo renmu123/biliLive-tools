@@ -36,6 +36,9 @@ importers:
       '@types/node':
         specifier: 20.12.2
         version: 20.12.2
+      '@types/uuid':
+        specifier: ^10.0.0
+        version: 10.0.0
       '@vitest/coverage-istanbul':
         specifier: ^2.0.5
         version: 2.0.5(vitest@2.0.5(@types/node@20.12.2)(less@4.2.0))
@@ -109,9 +112,6 @@ importers:
       cheerio:
         specifier: ^1.0.0
         version: 1.0.0
-      crypto-js:
-        specifier: ^4.2.0
-        version: 4.2.0
       mitt:
         specifier: ^3.0.1
         version: 3.0.1
@@ -135,21 +135,12 @@ importers:
       '@biliLive-tools/types':
         specifier: workspace:*
         version: link:../types
-      '@types/crypto-js':
-        specifier: ^4.2.0
-        version: 4.2.2
       '@types/ws':
         specifier: ^8.5.3
         version: 8.5.12
 
   packages/app:
     dependencies:
-      '@autorecord/douyu-recorder':
-        specifier: workspace:*
-        version: link:../DouYuRecorder
-      '@autorecord/manager':
-        specifier: workspace:*
-        version: link:../manager
       '@biliLive-tools/http':
         specifier: workspace:*
         version: link:../http
@@ -1406,9 +1397,6 @@ packages:
   '@types/cookies@0.9.0':
     resolution: {integrity: sha512-40Zk8qR147RABiQ7NQnBzWzDcjKzNrntB5BAmeGCb2p/MIyOE+4BVvc17wumsUqUw00bJYqoXFHYygQnEFh4/Q==}
 
-  '@types/crypto-js@4.2.2':
-    resolution: {integrity: sha512-sDOLlVbHhXpAUAL0YHDUUwDZf3iN4Bwi4W6a0W0b+QcAezUbRtH4FVb+9J4h+XFPW7l/gQ9F8qC7P+Ec4k8QVQ==}
-
   '@types/debug@4.1.12':
     resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
 
@@ -1498,6 +1486,9 @@ packages:
 
   '@types/serve-static@1.15.7':
     resolution: {integrity: sha512-W8Ym+h8nhuRwaKPaDw34QUkwsGi6Rc4yYqvKFo5rm2FUEhCFbzVWrxXUxuKK8TASjWsysJY0nsmNCGhCOIsrOw==}
+
+  '@types/uuid@10.0.0':
+    resolution: {integrity: sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==}
 
   '@types/verror@1.10.10':
     resolution: {integrity: sha512-l4MM0Jppn18hb9xmM6wwD1uTdShpf9Pn80aXTStnK1C94gtPvJcV2FrDmbOQUAQfJ1cKZHktkQUDwEqaAKXMMg==}
@@ -2230,9 +2221,6 @@ packages:
   cross-spawn@7.0.3:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
     engines: {node: '>= 8'}
-
-  crypto-js@4.2.0:
-    resolution: {integrity: sha512-KALDyEYgpY+Rlob/iriUtjV6d5Eq+Y191A5g4UqLAi8CyGP9N1+FdVbkc1SxKc2r4YAYqG8JzO2KGL+AizD70Q==}
 
   css-render@0.15.14:
     resolution: {integrity: sha512-9nF4PdUle+5ta4W5SyZdLCCmFd37uVimSjg1evcTqKJCyvCEEj12WKzOSBNak6r4im4J4iYXKH1OWpUV5LBYFg==}
@@ -5919,8 +5907,6 @@ snapshots:
       '@types/keygrip': 1.0.6
       '@types/node': 20.12.2
 
-  '@types/crypto-js@4.2.2': {}
-
   '@types/debug@4.1.12':
     dependencies:
       '@types/ms': 0.7.34
@@ -6034,6 +6020,8 @@ snapshots:
       '@types/http-errors': 2.0.4
       '@types/node': 20.12.2
       '@types/send': 0.17.4
+
+  '@types/uuid@10.0.0': {}
 
   '@types/verror@1.10.10':
     optional: true
@@ -7018,8 +7006,6 @@ snapshots:
       path-key: 3.1.1
       shebang-command: 2.0.0
       which: 2.0.2
-
-  crypto-js@4.2.0: {}
 
   css-render@0.15.14:
     dependencies:

@@ -33,7 +33,6 @@
     "@autorecord/manager": "workspace:*",
     "axios": "1.7.4",
     "cheerio": "^1.0.0",
-    "crypto-js": "^4.2.0",
     "mitt": "^3.0.1",
     "query-string": "^9.1.0",
     "safe-eval": "^0.4.1",
@@ -41,7 +40,6 @@
   },
   "devDependencies": {
     "@biliLive-tools/types": "workspace:*",
-    "@types/crypto-js": "^4.2.0",
     "@types/ws": "^8.5.3"
   },
   "peerDependencies": {
