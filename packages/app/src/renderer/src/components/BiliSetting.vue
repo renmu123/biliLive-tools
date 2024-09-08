@@ -64,7 +64,7 @@
           @update:value="handleTagChange"
         />
       </n-form-item>
-      <n-form-item>
+      <n-form-item v-if="options.config.copyright === 1">
         <template #label>
           <span class="inline-flex">
             <span>话题</span>
