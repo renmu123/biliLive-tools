@@ -61,7 +61,7 @@ export interface RecorderManager<
 > extends Emitter<{
     error: { source: string; err: unknown };
     RecordStart: { recorder: Recorder<E>; recordHandle: RecordHandle };
-    RecordSegment: { recorder: Recorder<E>; recordHandle: RecordHandle };
+    RecordSegment: { recorder: Recorder<E>; recordHandle?: RecordHandle };
     RecordStop: { recorder: Recorder<E>; recordHandle: RecordHandle; reason?: string };
     RecorderUpdated: {
       recorder: Recorder<E>;

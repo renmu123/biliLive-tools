@@ -11,7 +11,7 @@ export function singleton<Fn extends (...args: any) => Promise<any>>(fn: Fn): Fn
 
   return function (...args) {
     if (latestPromise) return latestPromise;
-
+    // @ts-ignore
     const promise = fn.apply(this, args).finally(() => {
       if (promise === latestPromise) {
         latestPromise = null;
