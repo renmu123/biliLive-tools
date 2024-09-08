@@ -12,12 +12,10 @@ import type {
   File,
   FfmpegOptions,
   AppConfig,
-  BiliupPreset,
   BiliupConfig,
   BiliupConfigAppend,
   VideoMergeOptions,
   Video2Mp4Options,
-  FfmpegPreset,
   DanmuConfig,
   hotProgressOptions,
   Theme,
@@ -252,19 +250,6 @@ export const api = {
     },
   },
   bili: {
-    // 预设
-    savePreset: (preset: BiliupPreset) => {
-      return ipcRenderer.invoke("bili:savePreset", preset);
-    },
-    deletePreset: (id: string) => {
-      return ipcRenderer.invoke("bili:deletePreset", id);
-    },
-    getPreset: (id: string): Promise<BiliupPreset> => {
-      return ipcRenderer.invoke("bili:getPreset", id);
-    },
-    getPresets: (): Promise<BiliupPreset[]> => {
-      return ipcRenderer.invoke("bili:getPresets");
-    },
     // 验证视频上传参数
     validUploadParams: (config: BiliupConfig) => {
       return ipcRenderer.invoke("bili:validUploadParams", config);
@@ -342,33 +327,6 @@ export const api = {
     },
     getTypeDesc(tid: number, uid: number): Promise<ReturnType<BiliApi["getTypeDesc"]>> {
       return ipcRenderer.invoke("biliApi:getTypeDesc", tid, uid);
-    },
-  },
-  ffmpeg: {
-    // 预设
-    savePreset: (preset: FfmpegPreset) => {
-      return ipcRenderer.invoke("ffmpeg:presets:save", preset);
-    },
-    deletePreset: (id: string) => {
-      return ipcRenderer.invoke("ffmpeg:presets:delete", id);
-    },
-    getPreset: (id: string): Promise<FfmpegPreset> => {
-      return ipcRenderer.invoke("ffmpeg:presets:get", id);
-    },
-    getPresets: (): Promise<FfmpegPreset[]> => {
-      return ipcRenderer.invoke("ffmpeg:presets:list");
-    },
-    getPresetOptions: (): Promise<
-      {
-        value: string;
-        label: string;
-        children: {
-          value: string;
-          label: string;
-        }[];
-      }[]
-    > => {
-      return ipcRenderer.invoke("ffmpeg:presets:getOptions");
     },
   },
   config: {

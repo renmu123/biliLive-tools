@@ -6,6 +6,7 @@ import type {
   audioCodec,
   CommonPreset as CommonPresetType,
 } from "@biliLive-tools/types";
+import type { GlobalConfig } from "@biliLive-tools/types";
 
 const DefaultFfmpegOptions: FfmpegOptions = {
   encoder: "libx264",
@@ -215,11 +216,8 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
 ];
 
 export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
-  constructor(
-    presetPath: string,
-    defaultConfig: typeof DefaultFfmpegOptions = DefaultFfmpegOptions,
-  ) {
-    super(presetPath, defaultConfig);
+  constructor({ globalConfig }: { globalConfig: Pick<GlobalConfig, "ffmpegPresetPath"> }) {
+    super(globalConfig.ffmpegPresetPath, DefaultFfmpegOptions);
   }
   init(presetPath: string) {
     super.init(presetPath);

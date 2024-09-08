@@ -66,8 +66,12 @@ export class WebhookHandler {
   danmuPreset: DanmuPreset;
   appConfig: AppConfig;
   constructor(appConfig: AppConfig) {
-    this.ffmpegPreset = new FFmpegPreset(config.ffmpegPresetPath);
-    this.videoPreset = new VideoPreset(config.videoPresetPath);
+    this.ffmpegPreset = new FFmpegPreset({
+      globalConfig: { ffmpegPresetPath: config.ffmpegPresetPath },
+    });
+    this.videoPreset = new VideoPreset({
+      globalConfig: { videoPresetPath: config.videoPresetPath },
+    });
     this.danmuPreset = new DanmuPreset({
       globalConfig: { danmuPresetPath: config.danmuPresetPath },
     });

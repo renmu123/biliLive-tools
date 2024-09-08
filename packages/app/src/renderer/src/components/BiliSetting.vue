@@ -295,6 +295,7 @@
 <script setup lang="ts">
 import { deepRaw, uuid } from "@renderer/utils";
 import { useConfirm } from "@renderer/hooks";
+import { videoPresetApi } from "@renderer/apis";
 import { useUploadPreset, useAppConfig, useUserInfoStore } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
 
@@ -319,7 +320,7 @@ const options: Ref<BiliupPreset> = ref({
   },
 });
 const handlePresetChange = async (value: string) => {
-  const preset = await window.api.bili.getPreset(value);
+  const preset = await videoPresetApi.get(value);
   if (preset) {
     options.value = preset;
   } else {
@@ -425,7 +426,7 @@ const deletePreset = async () => {
   if (!status) return;
 
   const id = options.value.id;
-  await window.api.bili.deletePreset(id);
+  await videoPresetApi.remove(id);
   getUploadPresets();
   presetId.value = "default";
   handlePresetChange("default");
@@ -452,7 +453,7 @@ const savePreset = async () => {
 
 const _savePreset = async (data: BiliupPreset) => {
   await window.api.bili.validUploadParams(deepRaw(data.config));
-  await window.api.bili.savePreset(deepRaw(data));
+  await videoPresetApi.save(deepRaw(data));
 };
 
 watch(

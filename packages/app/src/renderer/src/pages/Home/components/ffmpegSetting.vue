@@ -291,6 +291,7 @@ import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 import { useFfmpegPreset } from "@renderer/stores";
+import { ffmpegPresetApi } from "@renderer/apis";
 
 import type { FfmpegPreset, VideoCodec } from "@biliLive-tools/types";
 
@@ -778,7 +779,7 @@ watch(
 // };
 
 const handlePresetChange = async () => {
-  ffmpegOptions.value = await window.api.ffmpeg.getPreset(presetId.value);
+  ffmpegOptions.value = await ffmpegPresetApi.get(presetId.value);
 };
 
 watch(presetId, handlePresetChange);
@@ -810,7 +811,7 @@ const deletePreset = async () => {
     content: msg,
   });
   if (!status) return;
-  await window.api.ffmpeg.deletePreset(presetId.value);
+  await ffmpegPresetApi.remove(presetId.value);
   presetId.value = "default";
   getPresetOptions();
 };
@@ -820,7 +821,7 @@ const tempPresetName = ref("");
 const isRename = ref(false);
 
 const saveConfig = async () => {
-  await window.api.ffmpeg.savePreset(toRaw(ffmpegOptions.value));
+  await ffmpegPresetApi.save(toRaw(ffmpegOptions.value));
   notice.success({
     title: "保存成功",
     duration: 1000,
@@ -838,7 +839,7 @@ const saveConfirm = async () => {
   if (!isRename.value) preset.id = uuid();
   preset.name = tempPresetName.value;
 
-  await window.api.ffmpeg.savePreset(preset);
+  await ffmpegPresetApi.save(preset);
   nameModelVisible.value = false;
   notice.success({
     title: "保存成功",

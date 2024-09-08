@@ -3,7 +3,7 @@ export * from "./presets/index.js";
 import { createContainer, asValue, asClass } from "awilix";
 
 import { appConfig, AppConfig } from "./config.js";
-import { DanmuPreset } from "./presets/index.js";
+import { DanmuPreset, VideoPreset, FFmpegPreset } from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
 import { taskQueue, TaskQueue } from "./task/task.js";
@@ -33,6 +33,8 @@ const init = (config: GlobalConfig) => {
     taskQueue: asValue(taskQueue),
     commentQueue: asClass(BiliCommentQueue).singleton(),
     danmuPreset: asClass(DanmuPreset).singleton(),
+    videoPreset: asClass(VideoPreset).singleton(),
+    ffmpegPreset: asClass(FFmpegPreset).singleton(),
   });
   const recorderManager = createRecorderManager(appConfig);
   container.register({

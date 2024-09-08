@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "fs-extra";
 
-import { appConfig, FFmpegPreset } from "@biliLive-tools/shared";
+import { appConfig } from "@biliLive-tools/shared";
 import { convertVideo2Mp4, mergeAssMp4, mergeVideos } from "@biliLive-tools/shared/task/video.js";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
 import JSZip from "jszip";
@@ -9,7 +9,7 @@ import { getConfigPath, FFMPEG_PATH, DANMUKUFACTORY_PATH, FFPROBE_PATH } from ".
 import { invokeWrap } from "./utils/index";
 import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/task/video.js";
 
-import type { AppConfig, FfmpegPreset as FfmpegPresetType } from "@biliLive-tools/types";
+import type { AppConfig } from "@biliLive-tools/types";
 import type { IpcMainInvokeEvent } from "electron";
 
 export const configHandlers = {
@@ -96,31 +96,6 @@ export const configHandlers = {
 };
 
 export const ffmpegHandlers = {
-  "ffmpeg:presets:save": async (_event: IpcMainInvokeEvent, presets: FfmpegPresetType) => {
-    const { FFMPEG_PRESET_PATH } = await getConfigPath();
-    const ffmpegPreset = new FFmpegPreset(FFMPEG_PRESET_PATH);
-    return ffmpegPreset.save(presets);
-  },
-  "ffmpeg:presets:delete": async (_event: IpcMainInvokeEvent, id: string) => {
-    const { FFMPEG_PRESET_PATH } = await getConfigPath();
-    const ffmpegPreset = new FFmpegPreset(FFMPEG_PRESET_PATH);
-    return ffmpegPreset.delete(id);
-  },
-  "ffmpeg:presets:get": async (_event: IpcMainInvokeEvent, id: string) => {
-    const { FFMPEG_PRESET_PATH } = await getConfigPath();
-    const ffmpegPreset = new FFmpegPreset(FFMPEG_PRESET_PATH);
-    return ffmpegPreset.get(id);
-  },
-  "ffmpeg:presets:list": async () => {
-    const { FFMPEG_PRESET_PATH } = await getConfigPath();
-    const ffmpegPreset = new FFmpegPreset(FFMPEG_PRESET_PATH);
-    return ffmpegPreset.list();
-  },
-  "ffmpeg:presets:getOptions": async () => {
-    const { FFMPEG_PRESET_PATH } = await getConfigPath();
-    const ffmpegPreset = new FFmpegPreset(FFMPEG_PRESET_PATH);
-    return ffmpegPreset.getFfmpegPresetOptions();
-  },
   mergeAssMp4: async (_event: IpcMainInvokeEvent, ...args: Parameters<typeof mergeAssMp4>) => {
     const task = await mergeAssMp4(...args);
     return {
