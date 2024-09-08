@@ -90,6 +90,11 @@
         <li>
           <a href="https://github.com/renmu123/biliAPI" class="external" target="_blank">biliAPI</a>
         </li>
+        <li>
+          <a href="https://github.com/WhiteMinds/LiveAutoRecord" class="external" target="_blank"
+            >LiveAutoRecord</a
+          >
+        </li>
       </ul>
     </div>
   </div>

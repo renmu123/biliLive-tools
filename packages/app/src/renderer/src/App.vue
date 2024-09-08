@@ -200,16 +200,16 @@ const menuOptions = computed<MenuOption[]>(() => {
             ),
         },
         {
-          key: "convert2mp4",
+          key: "Recorder",
           label: () =>
             h(
               RouterLink,
               {
                 to: {
-                  name: "Convert2Mp4",
+                  name: "recorder",
                 },
               },
-              { default: () => "转码" },
+              { default: () => "斗鱼录制" },
             ),
         },
         {
@@ -223,6 +223,19 @@ const menuOptions = computed<MenuOption[]>(() => {
                 },
               },
               { default: () => "切片" },
+            ),
+        },
+        {
+          key: "convert2mp4",
+          label: () =>
+            h(
+              RouterLink,
+              {
+                to: {
+                  name: "Convert2Mp4",
+                },
+              },
+              { default: () => "转码" },
             ),
         },
         {

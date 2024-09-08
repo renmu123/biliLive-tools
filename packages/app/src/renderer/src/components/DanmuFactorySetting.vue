@@ -220,6 +220,7 @@
               v-model:value.number="config.msgboxduration"
               class="input-number"
               :min="0"
+              style="width: 140px"
             >
               <template #suffix> 秒 </template></n-input-number
             >

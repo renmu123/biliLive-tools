@@ -50,7 +50,12 @@
             <Tip tip="用于自动评论的检查稿件间隔时间，请勿设置过短以免触发风控"></Tip>
           </span>
         </template>
-        <n-input-number v-model:value="config.biliUpload.checkInterval" min="60" step="60">
+        <n-input-number
+          v-model:value="config.biliUpload.checkInterval"
+          min="60"
+          step="60"
+          placeholder="请输入检查间隔"
+        >
           <template #suffix>秒</template>
         </n-input-number>
       </n-form-item>

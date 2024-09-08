@@ -36,7 +36,6 @@
     "electron-log": "^5.1.5",
     "electron-store": "^10.0.0",
     "electron-updater": "^6.2.1",
-    "lodash-es": "^4.17.21",
     "semver": "^7.6.2"
   },
   "devDependencies": {
@@ -49,6 +48,7 @@
     "@types/node": "20.12.2",
     "@vicons/ionicons5": "^0.12.0",
     "@vicons/material": "^0.12.0",
+    "@vicons/fluent": "^0.12.0",
     "@vitejs/plugin-vue": "^5.0.5",
     "@vue/eslint-config-prettier": "^9.0.0",
     "@vue/eslint-config-typescript": "^13.0.0",

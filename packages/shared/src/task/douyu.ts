@@ -2,13 +2,7 @@ import path from "node:path";
 import fs from "fs-extra";
 import os from "node:os";
 
-import {
-  getVideoDanmu,
-  getStreamUrls,
-  getVideos,
-  parseVideo as _parseVideo,
-  convert2Xml,
-} from "douyu-cli";
+import { video, convert2Xml } from "douyu-api";
 import M3U8Downloader from "@renmu/m3u8-downloader";
 import { cloneDeep } from "lodash-es";
 
@@ -16,13 +10,13 @@ import { taskQueue, DouyuDownloadVideoTask } from "./task.js";
 import { getFfmpegPath } from "./video.js";
 import { uuid } from "../utils/index.js";
 
-import type { Video } from "douyu-cli";
+import type { Video } from "douyu-api";
 
 /**
  * 获取最高清晰度的视频流
  */
 const getStream = async (data: string) => {
-  const res = await getStreamUrls(data);
+  const res = await video.getStreamUrls(data);
 
   const streams = Object.values(res.thumb_video);
   if (streams.length === 0) {
@@ -70,7 +64,7 @@ async function download(
     {
       onEnd: async () => {
         if (options.danmu && options.vid) {
-          const danmu = await getVideoDanmu(options.vid);
+          const danmu = await video.getVideoDanmu(options.vid);
           const metatdata: {
             user_name?: string;
             room_id?: string;
@@ -107,13 +101,13 @@ const buildVideoUrl = (videoId: string) => {
  * 解析视频
  */
 const parseVideo = async (url: string) => {
-  const videoData = await _parseVideo(url);
-  const res = await getVideos(videoData.ROOM.vid, videoData.ROOM.up_id);
+  const videoData = await video.parseVideo(url);
+  const res = await video.getVideos(videoData.ROOM.vid, videoData.ROOM.up_id);
 
   let videoList: Video[] = [];
   await Promise.all(
-    res.list.map(async (video) => {
-      const videoData = await _parseVideo(buildVideoUrl(video.hash_id));
+    res.list.map(async (item) => {
+      const videoData = await video.parseVideo(buildVideoUrl(item.hash_id));
       videoList.push({ ...videoData });
     }),
   );

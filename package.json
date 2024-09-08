@@ -20,7 +20,9 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "fs-extra": "^11.2.0"
+    "fs-extra": "^11.2.0",
+    "lodash-es": "^4.17.21",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@kineticcafe/rollup-plugin-delete": "3.0.0-beta.0",

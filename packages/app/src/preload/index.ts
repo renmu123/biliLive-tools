@@ -26,7 +26,7 @@ import type {
 } from "@biliLive-tools/types";
 import type { OpenDialogOptions, BiliApi } from "../types";
 import type ffmpeg from "fluent-ffmpeg";
-import type { Video } from "douyu-cli";
+import type { Video } from "douyu-api";
 
 type startCallback = (params: { command?: string }) => void;
 type endCallback = (params: { output?: string }) => void;

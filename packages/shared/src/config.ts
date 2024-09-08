@@ -1,18 +1,20 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+
+import { defaultsDeep } from "lodash-es";
 import { TypedEmitter } from "tiny-typed-emitter";
 
 import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/types";
-import { defaultsDeep } from "lodash-es";
 
-interface Events {
-  update: (data: AppConfigType) => void;
+interface ConfigEvents {
+  /** 更新配置时触发 */
+  update: (data: any) => void;
 }
 
-export default class Config extends TypedEmitter<Events> {
+export default class Config extends TypedEmitter<ConfigEvents> {
   filepath: string;
-  protected data: {
+  data: {
     [propName: string]: any;
   };
   constructor() {
@@ -24,13 +26,11 @@ export default class Config extends TypedEmitter<Events> {
     this.read();
     this.data[key] = value;
     this.save();
-    // @ts-ignore
     this.emit("update", this.data);
   }
   setAll(data: { [propName: string]: any }) {
     this.data = data;
     this.save();
-    // @ts-ignore
     this.emit("update", this.data);
   }
   get(key: string | number) {
@@ -204,13 +204,24 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
     concurrency: 3,
     retryTimes: 3,
     retryDelay: 2000,
-    checkInterval: 60 * 10,
+    checkInterval: 600,
   },
+  recorder: {
+    savePath: path.join(os.homedir(), "Downloads"),
+    nameRule: "{owner}\\{year}-{month}-{date} {hour}-{min}-{sec} {title}",
+    autoRecord: true,
+    quality: "highest",
+    line: undefined,
+    checkInterval: 60,
+    disableProvideCommentsWhenRecording: false,
+    segment: 60,
+    saveGiftDanma: false,
+    saveSCDanma: true,
+  },
+  recorders: [],
 };
 
 export class AppConfig extends Config {
-  // @ts-ignore
-  data: AppConfigType;
   constructor(configPath?: string) {
     super();
     if (configPath) {
