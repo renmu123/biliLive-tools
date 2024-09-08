@@ -128,14 +128,6 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
       }
     }
 
-    if (options.resetResolution && options.resolutionWidth && options.resolutionHeight) {
-      // if (!["h264_nvenc", "hevc_nvenc", "av1_nevnc"].includes(options.encoder)) {
-      result.push(`-s ${options.resolutionWidth}x${options.resolutionHeight}`);
-      // }
-      if (options.swsFlags) {
-        result.push(`-sws_flags ${options.swsFlags}`);
-      }
-    }
     if (["libsvtav1"].includes(options.encoder)) {
       if (options.bit10) {
         result.push("-pix_fmt yuv420p10le");
@@ -242,4 +234,38 @@ export function retry<T>(
     }
     attempt(times);
   });
+}
+
+/**
+ * Convert a [[hh:]mm:]ss[.xxx] timemark into seconds
+ *
+ * @param {String} timemark timemark string
+ * @return Number
+ * @private
+ */
+export function timemarkToSeconds(timemark: string) {
+  if (typeof timemark === "number") {
+    return timemark;
+  }
+
+  if (timemark.indexOf(":") === -1 && timemark.indexOf(".") >= 0) {
+    return Number(timemark);
+  }
+
+  const parts = timemark.split(":");
+
+  // add seconds
+  let secs = Number(parts.pop());
+
+  if (parts.length) {
+    // add minutes
+    secs += Number(parts.pop()) * 60;
+  }
+
+  if (parts.length) {
+    // add hours
+    secs += Number(parts.pop()) * 3600;
+  }
+
+  return secs;
 }

@@ -10,3 +10,4 @@ lib
 *.db
 *.db-wal
 *.db-shm
+packages/CLI/config.json

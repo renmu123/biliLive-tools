@@ -246,13 +246,7 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       resolutionHeight: 2160,
     };
     const output1 = genFfmpegParams(input);
-    expect(output1).toEqual([
-      "-c:v h264_qsv",
-      "-global_quality 28",
-      "-preset p4",
-      "-s 3840x2160",
-      "-c:a flac",
-    ]);
+    expect(output1).toEqual(["-c:v h264_qsv", "-global_quality 28", "-preset p4", "-c:a flac"]);
   });
 });
 
@@ -279,7 +273,11 @@ describe("genMergeAssMp4Command", () => {
       "/path/to/hotprogress.txt",
       "-y",
       "-filter_complex",
-      "[0:v]subtitles=/path/to/subtitle.ass[i];[1]colorkey=black:0.1:0.1[1d];[i][1d]overlay=W-w-0:H-h-0",
+      "[0:v]subtitles=/path/to/subtitle.ass[i];[1]colorkey=black:0.1:0.1[1d];[i][1d]overlay=W-w-0:H-h-0[assOut]",
+      "-map",
+      "[assOut]",
+      "-map",
+      "0:a",
       "-c:v",
       "libx264",
       "-c:a",
@@ -307,7 +305,11 @@ describe("genMergeAssMp4Command", () => {
       "/path/to/video.mp4",
       "-y",
       "-filter_complex",
-      "subtitles=/path/to/subtitle.ass",
+      "[0:v]subtitles=/path/to/subtitle.ass[assOut]",
+      "-map",
+      "[assOut]",
+      "-map",
+      "0:a",
       "-c:v",
       "libx264",
       "-c:a",
@@ -368,7 +370,11 @@ describe("genMergeAssMp4Command", () => {
       "/path/to/video.mp4",
       "-y",
       "-filter_complex",
-      "subtitles=/path/to/subtitle.ass",
+      "[0:v]subtitles=/path/to/subtitle.ass[assOut]",
+      "-map",
+      "[assOut]",
+      "-map",
+      "0:a",
       "-c:v",
       "libx264",
       "-ss",

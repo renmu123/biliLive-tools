@@ -536,13 +536,20 @@ export class BiliAddVideoTask extends BiliVideoTask {
         return task.command.completedPart;
       });
     if (parts.length === 0) return;
-
-    const data = await retry(() => addMediaApi(this.uid, parts, this.mediaOptions));
-    this.status = "completed";
-    this.progress = 100;
-    this.callback.onEnd && this.callback.onEnd(data);
-    this.output = String(data.aid);
-    this.emitter.emit("task-end", { taskId: this.taskId });
+    try {
+      const data = await retry(() => addMediaApi(this.uid, parts, this.mediaOptions));
+      this.status = "completed";
+      this.progress = 100;
+      this.callback.onEnd && this.callback.onEnd(data);
+      this.output = String(data.aid);
+      this.emitter.emit("task-end", { taskId: this.taskId });
+    } catch (err) {
+      log.error("上传失败", err);
+      this.status = "error";
+      this.error = String(err);
+      this.callback.onError && this.callback.onError(this.error);
+      this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
+    }
   }
 }
 
@@ -569,6 +576,10 @@ export class BiliEditVideoTask extends BiliVideoTask {
     super(options, callback);
     this.aid = options.aid;
     this.mediaOptions = options.mediaOptions;
+
+    this.on("completed", () => {
+      this.submit();
+    });
   }
   async submit() {
     const parts = this.taskList
@@ -576,14 +587,24 @@ export class BiliEditVideoTask extends BiliVideoTask {
       .map((task) => {
         return task.command.completedPart;
       });
-    if (parts.length === 0) return;
-
-    const data = await retry(() => editMediaApi(this.uid, this.aid, parts, this.mediaOptions));
-    this.status = "completed";
-    this.progress = 100;
-    this.callback.onEnd && this.callback.onEnd(data);
-    this.output = String(data.aid);
-    this.emitter.emit("task-end", { taskId: this.taskId });
+    if (parts.length === 0) {
+      log.error("没有上传成功的视频");
+      return;
+    }
+    try {
+      const data = await retry(() => editMediaApi(this.uid, this.aid, parts, this.mediaOptions));
+      this.status = "completed";
+      this.progress = 100;
+      this.callback.onEnd && this.callback.onEnd(data);
+      this.output = String(data.aid);
+      this.emitter.emit("task-end", { taskId: this.taskId });
+    } catch (err) {
+      log.error("编辑失败", err);
+      this.status = "error";
+      this.error = String(err);
+      this.callback.onError && this.callback.onError(this.error);
+      this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
+    }
   }
 }
 
@@ -985,11 +1006,6 @@ export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) =>
       break;
     case TaskType.danmu:
       if (taskConfig.danmu.includes(event)) {
-        sendNotify(title, desp);
-      }
-      break;
-    case TaskType.biliUpload:
-      if (taskConfig.upload.includes(event)) {
         sendNotify(title, desp);
       }
       break;

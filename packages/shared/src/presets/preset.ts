@@ -43,6 +43,9 @@ export default class CommonPreset<T> {
   }
   // 删除预设
   async delete(id: string) {
+    if (id === "default") {
+      throw new Error("默认预设不可删除");
+    }
     const allPresets = await this.list();
     const presetIndex = allPresets.findIndex((item) => item.id === id);
     if (presetIndex === -1) {

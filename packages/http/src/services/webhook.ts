@@ -68,7 +68,9 @@ export class WebhookHandler {
   constructor(appConfig: AppConfig) {
     this.ffmpegPreset = new FFmpegPreset(config.ffmpegPresetPath);
     this.videoPreset = new VideoPreset(config.videoPresetPath);
-    this.danmuPreset = new DanmuPreset(config.danmuPresetPath);
+    this.danmuPreset = new DanmuPreset({
+      globalConfig: { danmuPresetPath: config.danmuPresetPath },
+    });
     this.appConfig = appConfig;
   }
 
@@ -166,7 +168,6 @@ export class WebhookHandler {
           xmlFilePath = path.join(xmlFile.dir, `${xmlFile.name}.xml`);
         }
         await sleep(10000);
-
         if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
           log.info("没有找到弹幕文件，直接上传", xmlFilePath);
           currentPart.status = "handled";

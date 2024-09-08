@@ -251,7 +251,7 @@
             <!-- </div> -->
           </n-form>
         </n-tab-pane>
-        <n-tab-pane name="upload" tab="上传">
+        <n-tab-pane name="upload" tab="B站上传">
           <BiliSetting v-model:data="config"></BiliSetting>
         </n-tab-pane>
         <n-tab-pane name="notification" tab="任务">

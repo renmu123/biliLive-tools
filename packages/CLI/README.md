@@ -20,17 +20,16 @@ CLI是GUI的拓展，使用前需要设置相关目录，由于配置文件很�
 ## 配置
 
 使用前通过 `biliLive config gen` 生成默认配置文件，如果你已经安装客户端，相关配置会被自动设置（仅限win）  
-如果你仅使用上传功能，那么无需配置二进制文件
+如果你仅使用上传功能，那么无需配置二进制文件，二进制文件可在[这里](https://github.com/renmu123/biliLive-tools/releases/tag/0.2.1)找到，以`platform--arch-version`命名，如果没有当前版本，以最近版本为准，配置为绝对路径以及分配执行权限
 
 ```js
 {
   port: 18010, // 启动端口，如果不希望与客户端的冲突，请修改为其他端口号
   host: "127.0.0.1",  // host
-  configFolder: "", // 配置文件夹，推荐在GUI中生成并进行修改配置后复制到CLI所配置的目录，可在“打开log文件夹”上一层文件夹找到
-  binFolder: "",  // 二进制文件夹，如果你配置了选项，那么默认会从这个文件夹读取相关二进制文件
-  ffmpegPath: "ffmpeg.exe", // 覆盖binFolder中的ffmpeg二进制路径
-  ffprobePath: "ffprobe.exe",  // 覆盖binFolder中的ffprobe二进制路径
-  danmakuFactoryPath: "DanmakuFactory.exe",  // 覆盖binFolder中的DanmakuFactory二进制路径
+  configFolder: "", // 配置文件夹，推荐在GUI中生成并进行修改配置后复制到CLI所配置的目录，可在“打开配置文件夹”文件夹找到，分别为ffmpeg_presets.json、danmu_presets.json、presets.json、appConfig.json
+  ffmpegPath: "ffmpeg.exe", // ffmpeg二进制路径
+  ffprobePath: "ffprobe.exe",  // ffprobe二进制路径
+  danmakuFactoryPath: "DanmakuFactory.exe",  // DanmakuFactory二进制路径
   logPath: "main.log",  // log文件路径
 }
 ```

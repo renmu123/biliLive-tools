@@ -5,6 +5,7 @@ export default defineConfig({
     typecheck: {
       tsconfig: "tsconfig.vitest.json",
     },
+    globalSetup: "./test-globals.js",
     globals: true,
   },
 });

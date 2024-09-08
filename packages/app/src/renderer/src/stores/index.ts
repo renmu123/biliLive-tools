@@ -2,6 +2,7 @@ import { cloneDeep } from "lodash-es";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
 import { getUserList } from "@renderer/apis/user";
+import { danmuPresetApi } from "@renderer/apis";
 
 import type { Task } from "@renderer/types";
 
@@ -120,10 +121,10 @@ export const useDanmuPreset = defineStore("danmuPreset", () => {
   });
 
   async function getDanmuPresets() {
-    danmuPresets.value = await window.api.danmu.getPresets();
+    danmuPresets.value = await danmuPresetApi.list();
   }
   async function getDanmuPreset() {
-    danmuPreset.value = await window.api.danmu.getPreset(danmuPresetId.value);
+    danmuPreset.value = await danmuPresetApi.get(danmuPresetId.value);
   }
 
   const danmuPresetsOptions = computed(() => {

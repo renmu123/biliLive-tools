@@ -151,7 +151,7 @@ export function formatOptions(options: BiliupConfig) {
       }
     })
     .join("");
-  const tags = options.tag.map((item) => item.trim());
+  const tags = (options.tag ?? []).map((item) => item.trim());
   if (options.topic_name) {
     tags.unshift(options.topic_name);
   }
@@ -210,7 +210,9 @@ export async function editMediaApi(
   video: { cid: number; filename: string; title: string; desc?: string }[],
   options: BiliupConfig,
 ) {
-  const mediaOptions = formatOptions(options);
+  const mediaOptions = {};
+  console.log("编辑视频", options);
+  // const mediaOptions = formatOptions(options);
   const client = await createClient(uid);
   return client.platform.editMediaClientApi(video, { aid, ...mediaOptions }, "append");
 }
@@ -315,11 +317,15 @@ export async function editMedia(
   options: BiliupConfig | any,
   uid: number,
 ) {
+  if (filePath.length === 0) {
+    throw new Error("请至少上传一个视频");
+  }
   const client = await createClient(uid);
+  const title = typeof filePath[0] === "string" ? filePath[0] : filePath[0].title;
 
   const pTask = new BiliEditVideoTask(
     {
-      name: `编辑稿件：${options.title}`,
+      name: `编辑稿件：${title}`,
       uid,
       mediaOptions: options,
       aid,
