@@ -30,7 +30,10 @@ if (isWeb) {
   // };
 }
 
-axiosInit();
+const init = async () => {
+  await axiosInit();
+  const pinia = createPinia();
+  createApp(App).use(router).use(pinia).mount("#app");
+};
 
-const pinia = createPinia();
-createApp(App).use(router).use(pinia).mount("#app");
+init();

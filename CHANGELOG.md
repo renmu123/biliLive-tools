@@ -1,3 +1,9 @@
+# 1.5.1
+
+## Bug修复
+
+1. 修复host为0.0.0.0情况请求错误的bug [#23](https://github.com/renmu123/biliLive-tools/issues/23)
+
 # 1.5.0
 
 ## CLI
