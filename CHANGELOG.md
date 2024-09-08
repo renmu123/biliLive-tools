@@ -7,6 +7,12 @@
 
 ## 其他
 
+# 1.5.1
+
+## Bug修复
+
+1. 修复host为0.0.0.0情况请求错误的bug [#23](https://github.com/renmu123/biliLive-tools/issues/23)
+
 # 1.5.0
 
 **将部分函数使用http协议重构，如果有bug请反馈，为之后的web版做准备**
