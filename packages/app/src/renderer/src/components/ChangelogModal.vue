@@ -54,12 +54,11 @@ import changelog from "../../../../../../CHANGELOG.md?raw";
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 
 const renderer = {
-  link(url: string, _title: string, text: string) {
-    return `<a href="${url}" target="_blank">${text}</a>`;
+  link({ href, text }: { href: string; text: string }) {
+    return `<a href="${href}" target="_blank">${text}</a>`;
   },
 };
 
-// @ts-ignore
 marked.use({ renderer });
 const content = marked.parse(changelog);
 

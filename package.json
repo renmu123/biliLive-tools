@@ -22,11 +22,11 @@
   "dependencies": {
     "fs-extra": "^11.2.0",
     "lodash-es": "^4.17.21",
-    "uuid": "^9.0.0"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "@kineticcafe/rollup-plugin-delete": "3.0.0-beta.0",
-    "@rollup/plugin-commonjs": "^25.0.7",
+    "@kineticcafe/rollup-plugin-delete": "3.0.1",
+    "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
@@ -35,7 +35,7 @@
     "cli-progress": "^3.12.0",
     "download": "^8.0.0",
     "prettier": "^3.2.5",
-    "rollup": "^4.9.6",
+    "rollup": "^4.21.2",
     "tar": "^7.4.3",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"

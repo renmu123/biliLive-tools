@@ -85,7 +85,7 @@ export function createRecorderManager(appConfig: AppConfig) {
       const data = recorderConfig.get(recorder.id);
       console.log("addRecorder", data);
 
-      return manager.addRecorder(data);
+      return manager.addRecorder(data!);
     },
     resolveChannel: async (url: string) => {
       for (const provider of manager.providers) {
@@ -98,6 +98,7 @@ export function createRecorderManager(appConfig: AppConfig) {
           owner: info.owner,
         };
       }
+      return null;
     },
   };
 }

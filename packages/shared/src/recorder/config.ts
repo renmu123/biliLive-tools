@@ -11,8 +11,8 @@ export default class RecorderConfig {
 
   public get(id: string): LocalRecordr | null {
     const getValue = <K extends keyof BaseRecordr>(key: K): BaseRecordr[K] => {
-      if (setting.noGlobalFollowFields.includes(key)) {
-        return setting[key];
+      if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
+        return setting![key];
       } else {
         return globalConfig[key];
       }
@@ -44,9 +44,11 @@ export default class RecorderConfig {
   }
   public list(): LocalRecordr[] {
     const recorders = this.appConfig.get("recorders");
-    return recorders.map((recorder) => {
-      return this.get(recorder.id);
-    });
+    return recorders
+      .map((recorder) => {
+        return this.get(recorder.id);
+      })
+      .filter((recorder): recorder is LocalRecordr => recorder != null);
   }
   public add(recorder: LocalRecordr) {
     const recorders = this.appConfig.get("recorders");

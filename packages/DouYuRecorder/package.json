@@ -37,13 +37,11 @@
     "mitt": "^3.0.1",
     "query-string": "^9.1.0",
     "safe-eval": "^0.4.1",
-    "uuid": "^8.3.2",
     "ws": "^8.18.0"
   },
   "devDependencies": {
     "@biliLive-tools/types": "workspace:*",
     "@types/crypto-js": "^4.2.0",
-    "@types/uuid": "^8.3.4",
     "@types/ws": "^8.5.3"
   },
   "peerDependencies": {

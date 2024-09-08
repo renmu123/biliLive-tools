@@ -308,7 +308,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       "-f",
       "segment",
       "-segment_time",
-      String(this.segment * 60),
+      String(this.segment! * 60),
       "-reset_timestamps",
       "1",
     );
@@ -454,8 +454,8 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     const $ = cheerio.load(html);
 
     const scriptNode: any = $("script")
-      .map((i, tag) => tag.children[0])
-      .filter((i, tag: any) => tag.data.includes("$ROOM"))[0];
+      .map((_i, tag) => tag.children[0])
+      .filter((_i, tag: any) => tag.data.includes("$ROOM"))[0];
     if (!scriptNode) return null;
     const matched = scriptNode.data.match(/\$ROOM\.room_id.?=(.*?);/);
     if (!matched) return null;

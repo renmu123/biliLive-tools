@@ -55,7 +55,7 @@ export interface DebugLog {
 export interface Recorder<E extends AnyObject = UnknownObject>
   extends Emitter<{
       RecordStart: RecordHandle;
-      RecordSegment: RecordHandle;
+      RecordSegment?: RecordHandle;
       RecordStop: { recordHandle: RecordHandle; reason?: string };
       Updated: (string | keyof Recorder)[];
       Message: Message;
@@ -73,7 +73,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   usedStream?: string;
   usedSource?: string;
   state: RecorderState;
-  liveInfo: {
+  liveInfo?: {
     living: boolean;
     owner: string;
     title: string;

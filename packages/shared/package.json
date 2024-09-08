@@ -36,10 +36,10 @@
     "@renmu/fluent-ffmpeg": "2.2.1",
     "@renmu/m3u8-downloader": "^0.3.0",
     "ass-compiler": "^0.1.11",
-    "awilix": "^10.0.2",
+    "awilix": "^11.0.0",
     "douyu-api": "^0.1.0",
     "ejs": "^3.1.10",
-    "fast-xml-parser": "^4.4.1",
+    "fast-xml-parser": "^4.5.0",
     "nodemailer": "^6.9.13",
     "ntsuspend": "^1.0.2",
     "ollama": "^0.5.6",
@@ -51,7 +51,6 @@
   },
   "devDependencies": {
     "@types/fluent-ffmpeg": "^2.1.24",
-    "@types/node": "20.12.2",
     "@types/nodemailer": "^6.4.14"
   }
 }
