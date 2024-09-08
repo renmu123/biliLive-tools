@@ -13,7 +13,7 @@ import {
   BiliEditVideoTask,
 } from "./task.js";
 import log from "../utils/log.js";
-import { sleep } from "../utils/index.js";
+import { sleep, encrypt, decrypt } from "../utils/index.js";
 
 import type { BiliupConfig, BiliUser } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
@@ -547,31 +547,51 @@ export const validateBiliupConfig = async (config: BiliupConfig) => {
   return true;
 };
 
+function getPassKey() {
+  if (process.env.BILILIVE_TOOLS_KEY) {
+    return process.env.BILILIVE_TOOLS_KEY;
+  }
+  return "7d628cb145deba521d5b0195924c466cae6559289cf5a335624ad8e6d7ef0085";
+}
+
+// 迁移B站登录信息
+export const migrateBiliUser = async () => {
+  const users = appConfig.getAll()?.biliUser || {};
+  for (const key in users) {
+    const user = users[key];
+    await writeUser(user);
+  }
+  appConfig.set("biliUser", {});
+};
+
 // 删除bili登录的cookie
 export const deleteUser = async (uid: number) => {
-  const users = appConfig.getAll().biliUser || {};
+  const users = appConfig.getAll().bilibiliUser || {};
   delete users[uid];
-  appConfig.set("biliUser", users);
+  appConfig.set("bilibiliUser", users);
   return true;
 };
 
 // 写入用户数据
 export const writeUser = async (data: BiliUser) => {
-  const users = appConfig.getAll().biliUser || {};
-  users[data.mid] = data;
-  appConfig.set("biliUser", users);
+  const users = appConfig.getAll().bilibiliUser || {};
+  const passKey = getPassKey();
+  users[data.mid] = encrypt(JSON.stringify(data), passKey);
+  appConfig.set("bilibiliUser", users);
 };
 
 // 读取用户数据
 export const readUser = async (mid: number): Promise<BiliUser | undefined> => {
-  const users = appConfig.getAll().biliUser || {};
-  return users[mid];
+  const users = appConfig.getAll().bilibiliUser || {};
+  const passKey = getPassKey();
+  return users[mid] ? JSON.parse(decrypt(users[mid], passKey)) : undefined;
 };
 
 // 读取用户列表
-export const readUserList = async (): Promise<BiliUser[]> => {
-  const users = appConfig.getAll().biliUser || {};
-  return Object.values(users) as unknown as BiliUser[];
+export const readUserList = (): BiliUser[] => {
+  const users = appConfig.getAll().bilibiliUser || {};
+  const passKey = getPassKey();
+  return Object.values(users).map((item: string) => JSON.parse(decrypt(item, passKey)));
 };
 
 const updateUserInfo = async (uid: number) => {
@@ -621,6 +641,8 @@ export const biliApi = {
   validateBiliupConfig,
   deleteUser,
   updateUserInfo,
+  readUserList,
+  migrateBiliUser,
 };
 
 export default biliApi;

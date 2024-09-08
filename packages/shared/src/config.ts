@@ -106,7 +106,7 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
   losslessCutPath: "",
   /** 允许自定义可执行文件地址 */
   customExecPath: false,
-  biliUser: {},
+  bilibiliUser: {},
   tool: {
     home: {
       uploadPresetId: "default",

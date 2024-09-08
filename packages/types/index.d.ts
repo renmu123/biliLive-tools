@@ -298,9 +298,13 @@ export interface AppConfig {
       [roomId: string]: AppRoomConfig;
     };
   } & CommonRoomConfig;
-  /** b站登录信息 */
-  biliUser: {
+  /** 废弃：b站登录信息 */
+  biliUser?: {
     [uid: number]: BiliUser;
+  };
+  /** 加密后的B站登录信息 */
+  bilibiliUser: {
+    [uid: number]: string;
   };
   /** 当前使用的b站uid */
   uid?: number;

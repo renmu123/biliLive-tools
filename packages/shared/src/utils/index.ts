@@ -3,6 +3,7 @@ import fs from "fs-extra";
 import trash from "trash";
 import { appConfig } from "../config.js";
 export * from "./webhook.js";
+export * from "./crypto.js";
 
 import type { FfmpegOptions, VideoCodec } from "@biliLive-tools/types";
 import path from "node:path";

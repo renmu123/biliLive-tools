@@ -14,7 +14,7 @@ import { danmuService } from "@biliLive-tools/shared/db/index.js";
 import { init, TaskQueue } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
-import { handlers as biliHandlers } from "./bili";
+import { handlers as biliHandlers, biliApi } from "./bili";
 import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as danmuHandlers } from "./danmu";
@@ -508,6 +508,12 @@ const appInit = async () => {
     checkUpdate();
   }
   taskQueueListen(container);
+  // 迁移旧数据
+  await migrate();
+};
+
+const migrate = async () => {
+  await biliApi.migrateBiliUser();
 };
 
 const taskQueueListen = (container: AwilixContainer) => {
