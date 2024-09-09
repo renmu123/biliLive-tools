@@ -152,7 +152,7 @@
           <n-checkbox
             v-model:checked="config.resolutionResponsive"
             style="margin-left: 20px"
-            title="启用后在压制弹幕至视频中时，以视频的分辨率为主"
+            title="启用后在压制弹幕至视频中时，以视频的分辨率为主，开启分辨率缩放后会失效"
           >
             自适应视频分辨率
           </n-checkbox>

@@ -47,7 +47,7 @@
         <template #label>
           <span class="inline-flex">
             检查间隔
-            <Tip tip="用于自动评论的检查稿件间隔时间，请勿设置过短以免触发风控"></Tip>
+            <Tip tip="用于自动评论及上传审核的检查稿件间隔时间，请勿设置过短以免触发风控"></Tip>
           </span>
         </template>
         <n-input-number
