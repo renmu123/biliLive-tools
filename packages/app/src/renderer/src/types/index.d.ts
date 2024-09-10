@@ -15,4 +15,5 @@ export interface Task {
   custsomProgressMsg?: string;
   error?: string;
   children?: Task[];
+  duration: number;
 }

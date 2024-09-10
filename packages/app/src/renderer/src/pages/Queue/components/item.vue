@@ -111,22 +111,13 @@
 
     <div v-if="showInfo" class="detail-info">
       <span v-if="item.startTime">开始时间：{{ new Date(item.startTime).toLocaleString() }}</span>
-      <span
-        v-if="item.status !== 'pending' && item.status !== 'completed' && item.status !== 'error'"
-        >持续时间：{{ formatSeconds((now - (item.startTime || 0)) / 1000) }}</span
-      >
-      <span v-if="item.status === 'completed'"
-        >持续时间：{{ formatSeconds((item.endTime! - item.startTime!) / 1000) }}</span
+      <span v-if="item.status === 'running'"
+        >持续时间：{{ formatSeconds(item.duration / 1000) }}</span
       >
       <span v-if="item.status === 'running'">
-        预计还需时间：{{
+        预计还需：{{
           formatSeconds(
-            Number(
-              (
-                ((now - (item.startTime || 0)) / 1000 / item.progress) *
-                (100 - item.progress)
-              ).toFixed(0),
-            ),
+            Number(((item.duration / 1000 / item.progress) * (100 - item.progress)).toFixed(0)),
           )
         }}
       </span>
