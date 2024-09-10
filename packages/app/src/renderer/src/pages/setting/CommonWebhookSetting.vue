@@ -314,6 +314,7 @@
       <Tip :tip="titleTip" text="视频标题"></Tip>
     </template>
     <n-input
+      ref="titleInput"
       v-model:value="data.title"
       placeholder="请输入视频标题,支持{{title}},{{user}},{{now}}等占位符"
       clearable
@@ -382,6 +383,7 @@
 <script setup lang="ts">
 import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
 import { previewWebhookTitle } from "@renderer/apis/common";
+import { templateRef } from "@vueuse/core";
 
 import type { AppRoomConfig } from "@biliLive-tools/types";
 
@@ -473,9 +475,24 @@ const titleTip = computed(() => {
     })
     .reduce((prev, cur) => prev + cur, base);
 });
-const setTitleVar = (value: string) => {
+
+const titleInput = templateRef("titleInput");
+const setTitleVar = async (value: string) => {
   if (globalFieldsObj.value.title) return;
-  data.value.title += value;
+  const input = titleInput.value?.inputElRef;
+  if (input) {
+    // 获取input光标位置
+    const start = input.selectionStart ?? data.value.title.length;
+    const end = input.selectionEnd ?? data.value.title.length;
+    const oldValue = data.value.title;
+    data.value.title = oldValue.slice(0, start) + value + oldValue.slice(end);
+    // 设置光标位置
+    input.focus();
+    await nextTick();
+    input.setSelectionRange(start + value.length, start + value.length);
+  } else {
+    data.value.title += value;
+  }
 };
 
 const isRoom = computed(() => props.type === "room");
