@@ -165,6 +165,14 @@
           </n-space>
         </n-checkbox-group>
       </n-form-item>
+      <n-form-item label="稿件审核状态">
+        <n-checkbox-group v-model:value="config.notification.task.mediaStatusCheck">
+          <n-space item-style="display: flex;">
+            <n-checkbox value="success" label="通过" />
+            <n-checkbox value="failure" label="失败" />
+          </n-space>
+        </n-checkbox-group>
+      </n-form-item>
     </n-form>
 
     <h2>最大任务处理数<Tip :tip="`-1为无限`"></Tip></h2>

@@ -94,7 +94,7 @@ const confirmDialog = useConfirm();
 const { getDanmuPresets, getDanmuPreset } = useDanmuPreset();
 const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());
 
-const simpledMode = useStorage("simpledMode", true);
+const simpledMode = useStorage("simpledMode", false);
 
 // @ts-ignore
 const config: Ref<DanmuPreset> = ref({

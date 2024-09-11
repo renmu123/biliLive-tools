@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
-import { defaultsDeep } from "lodash-es";
+import { defaultsDeep, get } from "lodash-es";
 import { TypedEmitter } from "tiny-typed-emitter";
 
 import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/types";
@@ -34,6 +34,7 @@ export default class Config extends TypedEmitter<ConfigEvents> {
     this.emit("update", this.data);
   }
   get(key: string | number) {
+    this.read();
     return this.data[key];
   }
   save() {
@@ -174,6 +175,7 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
       upload: [],
       download: [],
       douyuDownload: [],
+      mediaStatusCheck: [],
     },
     setting: {
       type: undefined,
@@ -222,6 +224,7 @@ export const APP_DEFAULT_CONFIG: AppConfigType = {
 };
 
 export class AppConfig extends Config {
+  declare data: AppConfigType;
   constructor(configPath?: string) {
     super();
     if (configPath) {
@@ -238,6 +241,10 @@ export class AppConfig extends Config {
   }
   get<K extends keyof AppConfigType>(key: K): AppConfigType[K] {
     return super.get(key);
+  }
+  // 使用lodash的get方法，保留type
+  getDeep<TPath extends string>(path: TPath): ReturnType<typeof get> {
+    return get(this.data, path);
   }
   set<K extends keyof AppConfigType>(key: K, value: AppConfigType[K]) {
     return super.set(key, value);

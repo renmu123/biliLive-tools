@@ -319,6 +319,7 @@ export interface AppConfig {
       upload: NotificationTaskStatus[];
       download: NotificationTaskStatus[];
       douyuDownload: NotificationTaskStatus[];
+      mediaStatusCheck: NotificationTaskStatus[];
     };
     /** 通知配置项 */
     setting: {

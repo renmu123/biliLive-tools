@@ -397,7 +397,7 @@ export class WebhookHandler {
       limitUploadTime,
       uploadHandleTime,
     };
-    log.debug("final config", options);
+    // log.debug("final config", options);
 
     return options;
   }

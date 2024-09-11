@@ -576,7 +576,7 @@ const handleFfmpegSettingChange = (preset: FfmpegPreset) => {
   ffmpegOptions.value = preset.config;
 };
 
-const simpledMode = useStorage("simpledMode", true);
+const simpledMode = useStorage("simpledMode", false);
 
 const handleDanmuChange = (value: DanmuConfig) => {
   danmuPreset.value.config = value;

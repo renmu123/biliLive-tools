@@ -2,6 +2,7 @@ import path from "node:path";
 import os from "node:os";
 
 import { Client, TvQrcodeLogin, WebVideoUploader } from "@renmu/bili-api";
+import { uniq } from "lodash-es";
 import { appConfig } from "../config.js";
 import { container } from "../index.js";
 
@@ -14,9 +15,11 @@ import {
 } from "./task.js";
 import log from "../utils/log.js";
 import { sleep, encrypt, decrypt } from "../utils/index.js";
+import { sendNotify } from "../notify.js";
 
 import type { BiliupConfig, BiliUser } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
+import type { getArchivesReturnType } from "@renmu/bili-api/dist/types/platform.js";
 import type { AppConfig } from "../config.js";
 
 type ClientInstance = InstanceType<typeof Client>;
@@ -269,12 +272,17 @@ async function addMedia(
         // 自动评论
         if (options.autoComment && options.comment) {
           const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
-          commentQueue.add({
+          commentQueue.addCommentTask({
             aid: data.aid,
             content: options.comment || "",
             uid: uid,
             top: options.commentTop || false,
           });
+        }
+        // 审核检查
+        if (appConfig.get("notification")?.task?.mediaStatusCheck?.length) {
+          const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
+          commentQueue.addCheckTask({ aid: data.aid, uid });
         }
       },
     },
@@ -330,7 +338,15 @@ export async function editMedia(
       mediaOptions: options,
       aid,
     },
-    {},
+    {
+      onEnd: async () => {
+        // 审核检查
+        if (appConfig.get("notification")?.task?.mediaStatusCheck?.length) {
+          const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
+          commentQueue.addCheckTask({ aid: aid, uid });
+        }
+      },
+    },
   );
 
   const config = appConfig.getAll();
@@ -413,9 +429,10 @@ async function getTypeDesc(tid: number, uid: number) {
   return client.platform.getTypeDesc(tid);
 }
 
-// b站评论队列
+// b站审核队列
 export class BiliCommentQueue {
   list: {
+    type: "comment" | "checkStatus";
     uid: number;
     aid: number;
     status: "pending" | "completed" | "error";
@@ -424,16 +441,34 @@ export class BiliCommentQueue {
     updateTime: number;
     top: boolean;
   }[] = [];
-  /** 时间间隔，单位秒 */
-  interval: number = 600;
+  mediaList: getArchivesReturnType["arc_audits"] = [];
+  appConfig: AppConfig;
   constructor({ appConfig }: { appConfig: AppConfig }) {
     this.list = [];
-    this.interval = appConfig?.data?.biliUpload?.checkInterval ?? 600;
+    this.appConfig = appConfig;
   }
-  add(data: { aid: number; content: string; uid: number; top: boolean }) {
-    // bvid是唯一的
+  addCheckTask(data: { uid: number; aid: number }) {
+    const index = this.list.findIndex((item) => item.aid === data.aid);
+    if (index !== -1) {
+      // 如果已经存在，重置状态
+      this.list[index].status = "pending";
+    }
+    this.list.push({
+      type: "checkStatus",
+      uid: data.uid,
+      aid: data.aid,
+      status: "pending",
+      content: "",
+      startTime: Date.now(),
+      updateTime: Date.now(),
+      top: false,
+    });
+    console.log("addCheckTask", this.list);
+  }
+  addCommentTask(data: { aid: number; content: string; uid: number; top: boolean }) {
     if (this.list.some((item) => item.aid === data.aid)) return;
     this.list.push({
+      type: "comment",
       uid: data.uid,
       aid: data.aid,
       content: data.content,
@@ -444,13 +479,81 @@ export class BiliCommentQueue {
     });
   }
   async check() {
-    const list = await this.filterList();
+    console.log("list", this.list);
+    if (this.list.filter((item) => item.status === "pending").length === 0) return;
+    await this.getArchiveList();
+    this.handlingList();
+    console.log("handling", this.list);
+    await this.commentCheck();
+    await this.statusCheck();
+  }
+  async sendNotify(title: string, desp: string) {
+    sendNotify(title, desp);
+  }
+  /**
+   * 状态检查
+   */
+  async statusCheck() {
+    const list = this.filter("checkStatus");
+    console.log("checkStatus", list);
+    const notification = this.appConfig.get("notification")?.task?.mediaStatusCheck;
+    for (const item of list) {
+      const media = this.mediaList.find((media) => media.Archive.aid === item.aid);
+      if (!media) {
+        item.status = "error";
+        continue;
+      }
+      // 根据选项发送通知
+      if (media.Archive.state === 0) {
+        if (notification?.includes("success")) {
+          log.info("稿件审核通过", media.Archive.title);
+          this.sendNotify(
+            `${media.Archive.title}稿件审核通过`,
+            `请前往B站创作中心查看详情\n稿件名：${media.Archive.title}`,
+          );
+          item.status = "completed";
+        } else {
+          item.status = "error";
+        }
+      } else if (media.Archive.state < 0) {
+        if (media.Archive.state === -30 || media.Archive.state === -6) {
+          console.log("审核中", media);
+          continue;
+        }
+        if (notification?.includes("failure")) {
+          log.error("稿件审核未通过", media.Archive.title);
+          this.sendNotify(
+            `${media.Archive.title}稿件审核未通过`,
+            `请前往B站创作中心查看详情\n稿件名：${media.Archive.title}\n状态：${media.Archive.state_desc}`,
+          );
+          item.status = "completed";
+        } else {
+          item.status = "error";
+        }
+      } else {
+        log.warn("稿件状态未检测成功", media);
+      }
+    }
+  }
+  /**
+   * 评论检查
+   */
+  async commentCheck() {
+    const allowCommentList: number[] = this.mediaList
+      .filter((item) => item.stat.aid)
+      .map((item) => item.Archive.aid);
+
+    const list = this.filter("comment").filter((item) => {
+      return allowCommentList.some((aid) => aid === item.aid);
+    });
+    log.debug("评论队列", list);
+
     for (const item of list) {
       try {
-        const res = await this.addComment(item);
+        const res = await this.addCommentApi(item);
         console.log("评论成功", res);
         await sleep(3000);
-        await this.top(res.rpid, item);
+        await this.commentTopApi(res.rpid, item);
         item.status = "completed";
       } catch (error) {
         item.status = "error";
@@ -459,31 +562,48 @@ export class BiliCommentQueue {
     }
   }
   /**
-   * 过滤出通过审核的稿件
+   * 查询稿件列表
    */
-  async filterList() {
-    const allowCommentList: number[] = [];
-    const uids = this.list.map((item) => item.uid);
+  async getArchiveList(): Promise<getArchivesReturnType["arc_audits"]> {
+    const list: any[] = [];
+    const uids = uniq(
+      this.list.filter((item) => item.status === "pending").map((item) => item.uid),
+    );
     for (const uid of uids) {
       const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
-      allowCommentList.push(
-        ...res.arc_audits.filter((item) => item.stat.aid).map((item) => item.Archive.aid),
-      );
+      list.push(...res.arc_audits);
     }
-    log.debug("评论队列", this.list);
-
+    this.mediaList = list;
+    return list;
+  }
+  /**
+   * 筛选数据
+   */
+  filter(type: "comment" | "checkStatus") {
+    return this.list
+      .filter((item) => item.status === "pending")
+      .filter((item) => item.type === type);
+  }
+  /**
+   * 对列表数据进行处理
+   */
+  async handlingList() {
     this.list.map((item) => {
+      if (item.status !== "pending") return;
       // 更新操作时间，如果超过24小时，状态设置为error
       item.updateTime = Date.now();
       if (item.updateTime - item.startTime > 1000 * 60 * 60 * 24) {
         item.status = "error";
+        log.error("B站稿件任务超时", item);
+      }
+      // 如果list中存在，但是稿件列表不存在，状态设置为error
+      if (!this.mediaList.some((media) => media.Archive.aid === item.aid)) {
+        item.status = "error";
+        log.error("B站稿件不存在", item);
       }
     });
-    return this.list.filter((item) => {
-      return allowCommentList.some((aid) => aid === item.aid) && item.status === "pending";
-    });
   }
-  async addComment(item: { aid: number; content: string; uid: number }): Promise<{
+  async addCommentApi(item: { aid: number; content: string; uid: number }): Promise<{
     rpid: number;
   }> {
     const client = await createClient(item.uid);
@@ -495,17 +615,18 @@ export class BiliCommentQueue {
       plat: 1,
     });
   }
-  async top(rpid: number, item: { aid: number; uid: number }) {
+  async commentTopApi(rpid: number, item: { aid: number; uid: number }) {
     const client = await createClient(item.uid);
 
     return client.reply.top({ oid: item.aid, type: 1, action: 1, rpid });
   }
 
   checkLoop = async () => {
+    const interval = this.appConfig.get("biliUpload")?.checkInterval ?? 600;
     try {
       await this.check();
     } finally {
-      setTimeout(this.checkLoop, this.interval * 1000);
+      setTimeout(this.checkLoop, interval * 1000);
     }
   };
 }
@@ -519,9 +640,6 @@ export const validateBiliupConfig = async (config: BiliupConfig) => {
   if (config.title.length > 80) {
     msg = "标题不能超过80个字符";
   }
-  // if (config.desc && config.desc.length > 250) {
-  //   msg = "简介不能超过250个字符";
-  // }
   if (config.copyright === 2) {
     if (!config.source) {
       msg = "转载来源不能为空";

@@ -56,7 +56,7 @@
       </div>
     </div>
 
-    <addModal :id="editId" v-model:visible="addModalVisible" @confirm="getList"></addModal>
+    <addModal :id="editId" v-model:visible="addModalVisible" @confirm="init"></addModal>
   </div>
 </template>
 
@@ -123,7 +123,9 @@ const edit = async (id: string) => {
 };
 
 const getLiveInfo = async () => {
-  liveInfos.value = await recoderApi.getLiveInfo(recorderList.value.map((item) => item.channelId));
+  const ids = recorderList.value.map((item) => item.channelId);
+  if (ids.length === 0) return;
+  liveInfos.value = await recoderApi.getLiveInfo(ids);
 };
 
 const init = async () => {

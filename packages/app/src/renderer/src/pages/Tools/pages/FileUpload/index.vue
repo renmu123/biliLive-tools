@@ -124,7 +124,7 @@ const appendVideo = async () => {
   });
   await window.api.bili.appendVideo(userInfo.value.uid, deepRaw(fileList.value), {
     ...deepRaw(presetOptions.value.config),
-    vid: aid.value,
+    vid: Number(aid.value),
   });
   fileList.value = [];
 };

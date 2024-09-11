@@ -262,7 +262,7 @@ watchEffect(async () => {
       streamPriorities: [],
       sourcePriorities: [],
       disableAutoCheck: false,
-      noGlobalFollowFields: hasGlobalFields,
+      noGlobalFollowFields: [],
     };
   }
   if (props.id) {
