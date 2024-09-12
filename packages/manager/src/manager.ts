@@ -62,6 +62,9 @@ export interface RecorderManager<
     error: { source: string; err: unknown };
     RecordStart: { recorder: Recorder<E>; recordHandle: RecordHandle };
     RecordSegment: { recorder: Recorder<E>; recordHandle?: RecordHandle };
+    videoFileCreated: { recorder: Recorder<E>; filename: string };
+    videoFileCompleted: { recorder: Recorder<E>; filename: string };
+
     RecordStop: { recorder: Recorder<E>; recordHandle: RecordHandle; reason?: string };
     RecorderUpdated: {
       recorder: Recorder<E>;
@@ -170,6 +173,12 @@ export function createRecorderManager<
       );
       recorder.on("RecordSegment", (recordHandle) =>
         this.emit("RecordSegment", { recorder, recordHandle }),
+      );
+      recorder.on("videoFileCreated", ({ filename }) =>
+        this.emit("videoFileCreated", { recorder, filename }),
+      );
+      recorder.on("videoFileCompleted", ({ filename }) =>
+        this.emit("videoFileCompleted", { recorder, filename }),
       );
       recorder.on("RecordStop", ({ recordHandle, reason }) =>
         this.emit("RecordStop", { recorder, recordHandle, reason }),

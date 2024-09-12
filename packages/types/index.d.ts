@@ -261,6 +261,8 @@ export interface LocalRecordr extends BaseRecordr {
   sourcePriorities: any[];
   extra?: { createTimestamp?: number };
   disableAutoCheck?: boolean;
+  /** 发送至webhook */
+  sendToWebhook?: boolean;
   // 不跟随全局配置字段
   noGlobalFollowFields?: (keyof BaseRecordr)[];
 }

@@ -1,9 +1,9 @@
 <template>
   <div class="container">
     <p>这并非是经过严格监测的录播工具，请谨慎在生产环境使用</p>
+
     <div style="margin-bottom: 20px">
       <n-button type="primary" @click="add">添加</n-button>
-      <n-button type="primary" @click="getList">刷新</n-button>
     </div>
 
     <div class="recorder-container">
@@ -135,9 +135,9 @@ const init = async () => {
 
 init();
 
-// setInterval(() => {
-//   getList();
-// }, 1000);
+setInterval(() => {
+  getList();
+}, 2000);
 </script>
 
 <style scoped lang="less">
@@ -158,7 +158,7 @@ init();
     background-size: cover;
     background-position: center;
     width: 100%;
-    min-width: 340px;
+    min-width: 320px;
     height: 180px;
     border-radius: 5px 5px 0px 0px;
     border-color: white;

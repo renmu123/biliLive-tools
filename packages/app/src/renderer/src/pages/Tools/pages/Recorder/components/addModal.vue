@@ -53,6 +53,15 @@
         <n-form-item>
           <template #label>
             <span class="inline-flex">
+              发送至webhook
+              <Tip tip="用于弹幕压制以及上传功能"></Tip>
+            </span>
+          </template>
+          <n-switch v-model:value="config.sendToWebhook" />
+        </n-form-item>
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex">
               分段录制
               <Tip tip="0为不分段"></Tip>
             </span>
@@ -144,6 +153,7 @@
 
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
+import { useAppConfig } from "@renderer/stores";
 
 import type { LocalRecordr, BaseRecordr } from "@biliLive-tools/types";
 
@@ -151,6 +161,7 @@ interface Props {
   id?: string;
 }
 const notice = useNotification();
+const { appConfig } = storeToRefs(useAppConfig());
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const props = defineProps<Props>();
@@ -167,14 +178,11 @@ const hasGlobalFields: (keyof BaseRecordr)[] = [
   "segment",
 ];
 
-const globalFieldsObj = ref<Record<(typeof hasGlobalFields)[number], boolean>>({
-  quality: true,
-  line: true,
-  disableProvideCommentsWhenRecording: true,
-  saveGiftDanma: true,
-  saveSCDanma: true,
-  segment: true,
-});
+// @ts-ignore
+const globalFieldsObj = ref<Record<(typeof hasGlobalFields)[number], boolean>>({});
+for (const key of hasGlobalFields) {
+  globalFieldsObj.value[key] = true;
+}
 
 const config = ref<Omit<LocalRecordr, "id">>({
   providerId: "DouYu",
@@ -187,7 +195,8 @@ const config = ref<Omit<LocalRecordr, "id">>({
   streamPriorities: [],
   sourcePriorities: [],
   disableAutoCheck: false,
-  noGlobalFollowFields: hasGlobalFields,
+  sendToWebhook: false,
+  noGlobalFollowFields: [],
 });
 
 const qualityOptions = [
@@ -262,6 +271,7 @@ watchEffect(async () => {
       streamPriorities: [],
       sourcePriorities: [],
       disableAutoCheck: false,
+      sendToWebhook: false,
       noGlobalFollowFields: [],
     };
   }
@@ -279,8 +289,34 @@ watchEffect(async () => {
     saveSCDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
     segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
   };
-  // TODO: 设置全局显示的值
 });
+
+watch(
+  () => globalFieldsObj.value,
+  (val) => {
+    if (val.quality) {
+      config.value.quality = appConfig.value.recorder.quality;
+    }
+    // if (val.line) {
+    // }
+    if (val.disableProvideCommentsWhenRecording) {
+      config.value.disableProvideCommentsWhenRecording =
+        appConfig.value.recorder.disableProvideCommentsWhenRecording;
+    }
+    if (val.saveGiftDanma) {
+      config.value.saveGiftDanma = appConfig.value.recorder.saveGiftDanma;
+    }
+    if (val.saveSCDanma) {
+      config.value.saveSCDanma = appConfig.value.recorder.saveSCDanma;
+    }
+    if (val.segment) {
+      config.value.segment = appConfig.value.recorder.segment;
+    }
+  },
+  {
+    deep: true,
+  },
+);
 </script>
 
 <style scoped lang="less">

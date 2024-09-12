@@ -3,7 +3,7 @@ import path from "node:path";
 import { createRecorderManager as createManager, setFFMPEGPath } from "@autorecord/manager";
 import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
 import { getFfmpegPath } from "../task/video.js";
-import logger from "../utils/log.js";
+// import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
 
 import type { AppConfig } from "../config.js";
@@ -29,19 +29,6 @@ export function createRecorderManager(appConfig: AppConfig) {
     autoCheckLiveStatusAndRecord: autoCheckLiveStatusAndRecord,
     savePathRule: savePathRule,
   });
-  // manager.addRecorder({
-  //   id: uuid(),
-  //   providerId: providerForDouYu.id,
-  //   channelId: "2140934",
-  //   quality: quality,
-  //   streamPriorities: [],
-  //   sourcePriorities: ["tct-h5"],
-  //   segment: segment,
-  //   disableProvideCommentsWhenRecording: false,
-  //   saveSCDanma,
-  //   saveGiftDanma,
-  //   disableAutoCheck: false,
-  // });
 
   manager.on("RecorderDebugLog", (debug) => {
     console.error("Manager deug", debug.text);
@@ -49,16 +36,21 @@ export function createRecorderManager(appConfig: AppConfig) {
   manager.on("RecordStart", (debug) => {
     console.error("Manager start", debug);
   });
-  manager.on("error", (error) => {
-    logger.error("Manager error", error);
+  // manager.on("error", (error) => {
+  //   logger.error("Manager error", error);
+  // });
+  // manager.on("RecordSegment", (debug) => {
+  //   console.error("Manager segment", debug);
+  // });
+  manager.on("videoFileCreated", (debug) => {
+    console.error("Manager videoFileCreated", debug);
   });
-  manager.on("RecordSegment", (debug) => {
-    console.error("Manager segment", debug);
+  manager.on("videoFileCompleted", (debug) => {
+    console.error("Manager videoFileCompleted", debug);
   });
 
   appConfig.on("update", () => {
-    console.log("setting update");
-    // updateRecorderManager(manager, appConfig);
+    updateRecorderManager(manager, appConfig);
   });
 
   const recorderConfig = new RecorderConfig(appConfig);
@@ -103,10 +95,7 @@ export function createRecorderManager(appConfig: AppConfig) {
   };
 }
 
-export function updateRecorderManager(
-  manager: ReturnType<typeof createManager>,
-  appConfig: AppConfig,
-) {
+function updateRecorderManager(manager: ReturnType<typeof createManager>, appConfig: AppConfig) {
   const config = appConfig.getAll();
   const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
   const autoCheckInterval = config?.recorder?.checkInterval ?? 60;

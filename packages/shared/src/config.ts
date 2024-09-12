@@ -2,14 +2,14 @@ import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
 
-import { defaultsDeep, get } from "lodash-es";
+import { defaultsDeep, get, cloneDeep } from "lodash-es";
 import { TypedEmitter } from "tiny-typed-emitter";
 
 import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/types";
 
 interface ConfigEvents {
   /** 更新配置时触发 */
-  update: (data: any) => void;
+  update: (newData: any, oldData: any) => void;
 }
 
 export default class Config extends TypedEmitter<ConfigEvents> {
@@ -24,14 +24,16 @@ export default class Config extends TypedEmitter<ConfigEvents> {
   }
   set(key: string | number, value: any) {
     this.read();
+    const oldData = cloneDeep(this.data);
     this.data[key] = value;
     this.save();
-    this.emit("update", this.data);
+    this.emit("update", this.data, oldData);
   }
   setAll(data: { [propName: string]: any }) {
+    const oldData = this.read();
     this.data = data;
     this.save();
-    this.emit("update", this.data);
+    this.emit("update", this.data, oldData);
   }
   get(key: string | number) {
     this.read();

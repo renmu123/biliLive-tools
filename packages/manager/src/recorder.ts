@@ -56,6 +56,8 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   extends Emitter<{
       RecordStart: RecordHandle;
       RecordSegment?: RecordHandle;
+      videoFileCreated: { filename: string };
+      videoFileCompleted: { filename: string };
       RecordStop: { recordHandle: RecordHandle; reason?: string };
       Updated: (string | keyof Recorder)[];
       Message: Message;

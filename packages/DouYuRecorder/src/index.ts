@@ -217,7 +217,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   let isEnded = false;
 
   /**
-   * 处理上一个完成得片段
+   * 处理上一个完成片段
    */
   const hanldeLastSegmentCompleted = async () => {
     if (!hasSegment) return;
@@ -231,6 +231,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         fs.rename(segmentData.rawname, `${trueFilepath}.mp4`),
         extraDataController.flush(),
       ]);
+      this.emit("videoFileCompleted", { filename: `${trueFilepath}.mp4` });
     } catch (err) {
       this.emit("DebugLog", { type: "common", text: String(err) });
     }
@@ -290,12 +291,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         if (match) {
           const filename = match[1];
           segmentData.rawname = filename;
-          this.emit("RecordSegment", this.recordHandle);
+          // this.emit("RecordSegment", this.recordHandle);
+          this.emit("videoFileCreated", { filename });
         } else {
           this.emit("DebugLog", { type: "ffmpeg", text: "No match found" });
           console.log("No match found");
         }
       }
+      // TODO:解析时间
       this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 
       if (isInvalidStream(stderrLine)) {
