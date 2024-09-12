@@ -2,6 +2,7 @@ import { join } from "node:path";
 import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
+import contextMenu from "electron-context-menu";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net, nativeTheme } from "electron";
 import { createContainer } from "awilix";
 
@@ -39,6 +40,12 @@ import type { AppConfig, TaskQueue } from "@biliLive-tools/shared";
 
 export let mainWin: BrowserWindow;
 export let container = createContainer();
+
+contextMenu({
+  showSelectAll: false,
+  showSearchWithGoogle: false,
+  showSaveImageAs: false,
+});
 
 const WindowState = new Store<{
   winBounds: {
