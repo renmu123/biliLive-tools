@@ -4,6 +4,7 @@ import { live } from "douyu-api";
 import { Qualities, Recorder } from "@autorecord/manager";
 import { getLiveInfo, SourceProfile, StreamProfile } from "./dy_api.js";
 import { getValuesFromArrayLikeFlexSpaceBetween } from "./utils.js";
+import { requester } from "./requester.js";
 
 export async function getInfo(channelId: string): Promise<{
   living: boolean;
@@ -19,11 +20,43 @@ export async function getInfo(channelId: string): Promise<{
   //   cost: number;
   // }[];
 }> {
+  const res = await requester.get<
+    | {
+        error: number;
+        data: {
+          room_status: string;
+          owner_name: string;
+          avatar: string;
+          room_name: string;
+          start_time: string;
+          gift: {
+            id: string;
+            name: string;
+            himg: string;
+            pc: number;
+          }[];
+        };
+      }
+    | string
+  >(`http://open.douyucdn.cn/api/RoomApi/room/${channelId}`);
+
+  if (res.status !== 200) {
+    if (res.status === 404 && res.data === "Not Found") {
+      throw new Error("错误的地址 " + channelId);
+    }
+
+    throw new Error(`Unexpected status code, ${res.status}, ${res.data}`);
+  }
+
+  if (typeof res.data !== "object")
+    throw new Error(`Unexpected response, ${res.status}, ${res.data}`);
+
+  const json = res.data;
+  if (json.error === 101) throw new Error("错误的地址 " + channelId);
+  if (json.error !== 0) throw new Error("Unexpected error code, " + json.error);
+  let living = json.data.room_status === "1";
+
   const data = await live.getRoomInfo(Number(channelId));
-
-  if (typeof data !== "object") throw new Error(`Unexpected response, ${data}`);
-
-  let living = data.room.status === "1";
   if (living) {
     const isVideoLoop = data.room.videoLoop === 1;
     if (isVideoLoop) {

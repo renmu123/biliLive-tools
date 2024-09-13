@@ -85,6 +85,7 @@ export namespace API {
       | "saveGiftDanma"
       | "saveSCDanma"
       | "segment"
+      | "sendToWebhook"
     >;
 
     export type Resp = ClientRecorder;

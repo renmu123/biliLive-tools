@@ -1,4 +1,5 @@
 import path from "node:path";
+import axios from "axios";
 
 import { createRecorderManager as createManager, setFFMPEGPath } from "@autorecord/manager";
 import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
@@ -42,11 +43,27 @@ export function createRecorderManager(appConfig: AppConfig) {
   // manager.on("RecordSegment", (debug) => {
   //   console.error("Manager segment", debug);
   // });
-  manager.on("videoFileCreated", (debug) => {
-    console.error("Manager videoFileCreated", debug);
+  manager.on("videoFileCreated", ({ recorder, filename }) => {
+    console.error("Manager videoFileCreated", recorder);
+    axios.post("http://localhost:18010/webhook/custom", {
+      event: "FileOpening",
+      filePath: filename,
+      roomId: recorder.channelId,
+      time: new Date().toISOString(),
+      title: recorder.liveInfo.title,
+      username: recorder.liveInfo.owner,
+    });
   });
-  manager.on("videoFileCompleted", (debug) => {
-    console.error("Manager videoFileCompleted", debug);
+  manager.on("videoFileCompleted", ({ recorder, filename }) => {
+    console.error("Manager videoFileCompleted", recorder);
+    axios.post("http://localhost:18010/webhook/custom", {
+      event: "FileClosed",
+      filePath: filename,
+      roomId: recorder.channelId,
+      time: new Date().toISOString(),
+      title: recorder.liveInfo.title,
+      username: recorder.liveInfo.owner,
+    });
   });
 
   appConfig.on("update", () => {
@@ -106,7 +123,6 @@ function updateRecorderManager(manager: ReturnType<typeof createManager>, appCon
   manager.savePathRule = savePathRule;
 
   if (autoCheckLiveStatusAndRecord) {
-    console.log("startCheckLoop", autoCheckLiveStatusAndRecord, !manager.isCheckLoopRunning);
     if (autoCheckLiveStatusAndRecord && !manager.isCheckLoopRunning) {
       manager.startCheckLoop();
     }

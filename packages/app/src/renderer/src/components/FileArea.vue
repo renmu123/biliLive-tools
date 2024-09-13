@@ -112,7 +112,7 @@ const removeItem = (index: number) => {
 function onDrop(files: File[] | null) {
   if (files) {
     let items = Array.from(files)
-      .map((file) => window.api.formatFile(file.path))
+      .map((file) => window.api.formatFile(window.api.common.getPathForFile(file)))
       .filter((file) => !fileList.value.map((item) => item.path).includes(file.path))
       .filter((file) => {
         if (props.extensions.includes("*")) return true;

@@ -241,6 +241,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (isEnded) return;
     isEnded = true;
     await hanldeLastSegmentCompleted();
+    if (!hasSegment) {
+      this.emit("videoFileCreated", { filename: templateSavePath });
+    }
 
     this.emit("DebugLog", {
       type: "common",
@@ -268,6 +271,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     .on("start", () => {
       segmentData.startTime = Date.now();
       console.log("start segmentData", segmentData);
+      if (!hasSegment) {
+        this.emit("videoFileCreated", { filename: templateSavePath });
+      }
     })
     .on("error", onEnd)
     .on("end", () => onEnd("finished"))
