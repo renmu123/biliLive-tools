@@ -143,6 +143,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
           "@@message": String(ele.text),
           "@@user": String(ele.sender?.name),
           "@@uid": String(ele?.sender?.uid),
+          "@@raw": JSON.stringify(ele),
         };
         return data;
       });
@@ -165,8 +166,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
         sc: superChats,
       },
     });
-    return `
-<?xml version="1.0" encoding="utf-8"?>
+    return `<?xml version="1.0" encoding="utf-8"?>
 ${xmlContent}`;
   }
 

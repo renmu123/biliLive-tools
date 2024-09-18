@@ -9,7 +9,7 @@
       class="card"
     >
       <div>
-        <p style="color: red">续传只会增加分p，不会对稿件进行编辑</p>
+        <p>续传只会增加分p，不会对稿件进行编辑</p>
         <div style="display: flex; gap: 10px; align-items: center">
           <n-pagination
             v-model:page="page"
@@ -156,6 +156,7 @@ const selectMedia = (item) => {
       background: none;
     }
     border: 1px solid #eee;
+    border-radius: 5px;
 
     width: 160px;
     .cover {
@@ -163,7 +164,7 @@ const selectMedia = (item) => {
       height: 100px;
     }
     &.selected {
-      border-color: red;
+      border-color: #358457;
     }
   }
 }

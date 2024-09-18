@@ -6,6 +6,7 @@ import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
 import { getFfmpegPath } from "../task/video.js";
 // import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
+import { sleep } from "../utils/index.js";
 
 import type { AppConfig } from "../config.js";
 import type { LocalRecordr } from "@biliLive-tools/types";
@@ -32,7 +33,7 @@ export function createRecorderManager(appConfig: AppConfig) {
   });
 
   manager.on("RecorderDebugLog", (debug) => {
-    console.error("Manager deug", debug.text);
+    // console.error("Manager deug", debug.text);
   });
   manager.on("RecordStart", (debug) => {
     console.error("Manager start", debug);
@@ -43,27 +44,33 @@ export function createRecorderManager(appConfig: AppConfig) {
   // manager.on("RecordSegment", (debug) => {
   //   console.error("Manager segment", debug);
   // });
-  manager.on("videoFileCreated", ({ recorder, filename }) => {
+  manager.on("videoFileCreated", async ({ recorder, filename }) => {
     console.error("Manager videoFileCreated", recorder);
-    axios.post("http://localhost:18010/webhook/custom", {
-      event: "FileOpening",
-      filePath: filename,
-      roomId: recorder.channelId,
-      time: new Date().toISOString(),
-      title: recorder.liveInfo.title,
-      username: recorder.liveInfo.owner,
-    });
+    await sleep(4000);
+    const data = recorderConfig.get(recorder.id);
+
+    data.sendToWebhook &&
+      axios.post("http://localhost:18010/webhook/custom", {
+        event: "FileOpening",
+        filePath: filename,
+        roomId: recorder.channelId,
+        time: new Date().toISOString(),
+        title: recorder.liveInfo.title,
+        username: recorder.liveInfo.owner,
+      });
   });
   manager.on("videoFileCompleted", ({ recorder, filename }) => {
     console.error("Manager videoFileCompleted", recorder);
-    axios.post("http://localhost:18010/webhook/custom", {
-      event: "FileClosed",
-      filePath: filename,
-      roomId: recorder.channelId,
-      time: new Date().toISOString(),
-      title: recorder.liveInfo.title,
-      username: recorder.liveInfo.owner,
-    });
+    const data = recorderConfig.get(recorder.id);
+    data.sendToWebhook &&
+      axios.post("http://localhost:18010/webhook/custom", {
+        event: "FileClosed",
+        filePath: filename,
+        roomId: recorder.channelId,
+        time: new Date().toISOString(),
+        title: recorder.liveInfo.title,
+        username: recorder.liveInfo.owner,
+      });
   });
 
   appConfig.on("update", () => {

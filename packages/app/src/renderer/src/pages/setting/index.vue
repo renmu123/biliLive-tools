@@ -634,6 +634,9 @@ const importSettingZip = async () => {
     cursor: pointer;
     border: 1px solid #eee;
     border-radius: 4px;
+    &:hover {
+      border: 1px solid #358457;
+    }
   }
 }
 .setting-tab :deep(.n-tab-pane) {
