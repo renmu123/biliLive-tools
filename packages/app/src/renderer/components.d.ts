@@ -16,6 +16,7 @@ declare module 'vue' {
     DownloadConfirm: typeof import('./src/components/DownloadConfirm.vue')['default']
     EditableText: typeof import('./src/components/EditableText.vue')['default']
     FileArea: typeof import('./src/components/FileArea.vue')['default']
+    FileBrowserDialog: typeof import('./src/components/FileBrowserDialog.vue')['default']
     ImageCrop: typeof import('./src/components/ImageCrop.vue')['default']
     Index: typeof import('./src/components/Artplayer/Index.vue')['default']
     LogModal: typeof import('./src/components/logModal.vue')['default']

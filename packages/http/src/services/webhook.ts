@@ -330,7 +330,7 @@ export class WebhookHandler {
   } {
     const config = this.appConfig.getAll();
     const roomSetting: AppRoomConfig | undefined = config.webhook?.rooms?.[roomId];
-    log.debug("room setting", roomId, roomSetting);
+    // log.debug("room setting", roomId, roomSetting);
 
     const danmu = getRoomSetting("danmu");
     const mergePart = getRoomSetting("autoPartMerge");

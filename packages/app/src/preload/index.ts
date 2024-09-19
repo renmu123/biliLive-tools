@@ -251,8 +251,11 @@ export const api = {
   },
   bili: {
     // 验证视频上传参数
-    validUploadParams: (config: BiliupConfig) => {
-      return ipcRenderer.invoke("bili:validUploadParams", config);
+    validUploadParams: async (config: BiliupConfig) => {
+      const [status, msg] = await ipcRenderer.invoke("bili:validUploadParams", config);
+      if (!status) {
+        throw new Error(msg);
+      }
     },
     // 上传视频
     uploadVideo: (

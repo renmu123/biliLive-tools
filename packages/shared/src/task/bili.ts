@@ -448,7 +448,9 @@ export class BiliCommentQueue {
     this.appConfig = appConfig;
   }
   addCheckTask(data: { uid: number; aid: number }) {
-    const index = this.list.findIndex((item) => item.aid === data.aid);
+    const index = this.list
+      .filter((item) => item.type === "checkStatus")
+      .findIndex((item) => item.aid === data.aid);
     if (index !== -1) {
       // 如果已经存在，重置状态
       this.list[index].status = "pending";
@@ -466,7 +468,8 @@ export class BiliCommentQueue {
     console.log("addCheckTask", this.list);
   }
   addCommentTask(data: { aid: number; content: string; uid: number; top: boolean }) {
-    if (this.list.some((item) => item.aid === data.aid)) return;
+    if (this.list.filter((item) => item.type === "comment").some((item) => item.aid === data.aid))
+      return;
     this.list.push({
       type: "comment",
       uid: data.uid,
@@ -660,9 +663,9 @@ export const validateBiliupConfig = async (config: BiliupConfig) => {
   }
 
   if (msg) {
-    throw new Error(msg);
+    return [false, msg];
   }
-  return true;
+  return [true, null];
 };
 
 function getPassKey() {

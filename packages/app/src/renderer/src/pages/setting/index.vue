@@ -193,7 +193,7 @@
                 <span class="inline-flex">
                   webhook
                   <Tip
-                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>B站录播姬的webhook：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址：http://127.0.0.1:${config.port}/webhook/blrec<br/>自定义的webhook地址：http://127.0.0.1:${config.port}/webhook/custom <br/><b>修改后需重启生效</b>`"
+                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>B站录播姬的webhook：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址：http://127.0.0.1:${config.port}/webhook/blrec<br/>自定义的webhook地址：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
                   ></Tip>
                 </span>
               </template>
@@ -214,6 +214,12 @@
               />
             </n-form-item>
             <n-form-item label="录播姬工作目录">
+              <template #label>
+                <span class="inline-flex">
+                  录播姬工作目录
+                  <Tip tip="仅当你使用录播姬的webhook时，需要配置此选项"></Tip>
+                </span>
+              </template>
               <n-input
                 v-model:value="config.webhook.recoderFolder"
                 placeholder="请输入录播姬工作目录"

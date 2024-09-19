@@ -5,16 +5,22 @@ const router = new Router({
   prefix: "/config",
 });
 
-router.get("/all", async (ctx) => {
-  // appConfig.load(globalConfig.configPath);
+router.get("/", async (ctx) => {
   const config = appConfig.getAll();
   ctx.body = config;
 });
 
-router.post("/save", async (ctx) => {
-  // const data = ctx.request.body;
-  // appConfig.load(globalConfig.configPath);
+router.post("/", async (ctx) => {
+  const data = ctx.request.body;
+  // @ts-ignore
+  appConfig.setAll(data);
+  ctx.body = "success";
+});
 
+router.post("/set", async (ctx) => {
+  const data = ctx.request.body;
+  // @ts-ignore
+  appConfig.set(data.key, data.value);
   ctx.body = "success";
 });
 

@@ -49,29 +49,31 @@
         >
           <CloseOutline />
         </n-icon>
-        <n-icon
-          v-if="item.status === 'completed' && item.type !== TaskType.biliUpload && item.output"
-          :size="20"
-          class="btn pointer"
-          title="打开文件夹"
-          @click="handleOpenDir(item)"
-        >
-          <FolderOpenOutlined />
-        </n-icon>
-        <n-icon
-          v-if="
-            item.status === 'completed' &&
-            item.type !== TaskType.biliUpload &&
-            item.type !== TaskType.bili &&
-            item.output
-          "
-          :size="20"
-          class="btn pointer"
-          title="打开文件"
-          @click="handleOpenFile(item)"
-        >
-          <FileOpenOutlined />
-        </n-icon>
+        <template v-if="!isWeb">
+          <n-icon
+            v-if="item.status === 'completed' && item.type !== TaskType.biliUpload && item.output"
+            :size="20"
+            class="btn pointer"
+            title="打开文件夹"
+            @click="handleOpenDir(item)"
+          >
+            <FolderOpenOutlined />
+          </n-icon>
+          <n-icon
+            v-if="
+              item.status === 'completed' &&
+              item.type !== TaskType.biliUpload &&
+              item.type !== TaskType.bili &&
+              item.output
+            "
+            :size="20"
+            class="btn pointer"
+            title="打开文件"
+            @click="handleOpenFile(item)"
+          >
+            <FileOpenOutlined />
+          </n-icon>
+        </template>
         <n-icon
           v-if="item.status === 'completed' && item.type === TaskType.bili && item.output"
           :size="20"
@@ -156,6 +158,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const item = computed(() => props.item);
+const isWeb = computed(() => window.isWeb);
 
 const confirm = useConfirm();
 const store = useQueueStore();
@@ -256,9 +259,16 @@ const handleOpenFile = (item: Task) => {
 };
 
 const openExternal = (item: Task) => {
-  window.api.openExternal(
-    `https://member.bilibili.com/platform/upload/video/frame?type=edit&version=new&aid=${item?.output}`,
-  );
+  if (isWeb.value) {
+    window.open(
+      `https://member.bilibili.com/platform/upload/video/frame?type=edit&version=new&aid=${item?.output}`,
+      "_blank",
+    );
+  } else {
+    window.api.openExternal(
+      `https://member.bilibili.com/platform/upload/video/frame?type=edit&version=new&aid=${item?.output}`,
+    );
+  }
 };
 
 const handleRemoveRecord = (taskId: string) => {

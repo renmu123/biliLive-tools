@@ -129,6 +129,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
           "@@price": String(ele.price * 1000),
           "@@user": String(ele.sender?.name),
           "@@uid": String(ele?.sender?.uid),
+          "@@raw": JSON.stringify(ele),
         };
         return data;
       });
@@ -143,7 +144,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
           "@@message": String(ele.text),
           "@@user": String(ele.sender?.name),
           "@@uid": String(ele?.sender?.uid),
-          "@@raw": JSON.stringify(ele),
+          // "@@raw": JSON.stringify(ele),
         };
         return data;
       });

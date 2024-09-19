@@ -8,5 +8,6 @@ declare global {
     electron: ElectronAPI;
     api: typeof api;
     path: typeof path;
+    isWeb: boolean;
   }
 }

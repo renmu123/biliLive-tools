@@ -96,7 +96,7 @@ interface Message$CommChatVoiceDanmu {
     rid: string; // 房间号
     gag: string; // 未知
     uid: string; // 用户 id
-    text: string; // 弹幕文本
+    txt: string; // 弹幕文本
     hidenick: string; // 是否匿名
     nc: string; // 未知
     ifs: string; // 未知

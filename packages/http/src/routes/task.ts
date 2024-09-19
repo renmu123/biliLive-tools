@@ -14,48 +14,48 @@ const router = new Router({
   prefix: "/task",
 });
 
-router.post("/pause", async (ctx) => {
-  const { id } = ctx.request.body as { id: string };
+router.get("/", async (ctx) => {
+  ctx.body = handleListTask();
+});
+
+router.get("/:id", async (ctx) => {
+  const { id } = ctx.params;
+  ctx.body = handleQueryTask(id);
+});
+
+router.post("/:id/pause", async (ctx) => {
+  const { id } = ctx.params;
   console.log(id);
   handlePauseTask(id);
   ctx.body = { code: 0 };
 });
 
-router.post("/resume", async (ctx) => {
-  const { id } = ctx.request.body as { id: string };
+router.post("/:id/resume", async (ctx) => {
+  const { id } = ctx.params;
   handleResumeTask(id);
   ctx.body = { code: 0 };
 });
 
-router.post("/kill", async (ctx) => {
-  const { id } = ctx.request.body as { id: string };
+router.post("/:id/kill", async (ctx) => {
+  const { id } = ctx.params;
   handleKillTask(id);
   ctx.body = { code: 0 };
 });
 
-router.post("/interrupt", async (ctx) => {
-  const { id } = ctx.request.body as { id: string };
+router.post("/:id/interrupt", async (ctx) => {
+  const { id } = ctx.params;
   hanldeInterruptTask(id);
   ctx.body = { code: 0 };
 });
 
-router.get("/list", async (ctx) => {
-  ctx.body = handleListTask();
-});
-
-router.get("/query", async (ctx) => {
-  const { id } = ctx.query as { id: string };
-  ctx.body = handleQueryTask(id);
-});
-
-router.post("/remove", async (ctx) => {
-  const { id } = ctx.request.body as { id: string };
+router.post("/:id/remove", async (ctx) => {
+  const { id } = ctx.params;
   handleRemoveTask(id);
   ctx.body = { code: 0 };
 });
 
-router.post("/start", async (ctx) => {
-  const { id } = ctx.request.body as { id: string };
+router.post("/:id/start", async (ctx) => {
+  const { id } = ctx.params;
   handleStartTask(id);
   ctx.body = { code: 0 };
 });

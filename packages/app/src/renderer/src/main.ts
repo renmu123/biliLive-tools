@@ -5,7 +5,7 @@ import { createPinia } from "pinia";
 import { init as axiosInit } from "./apis/request";
 
 const isWeb = !window.api;
-// window.isWeb = isWeb;
+window.isWeb = isWeb;
 if (isWeb) {
   // @ts-ignore
   // window.api = {

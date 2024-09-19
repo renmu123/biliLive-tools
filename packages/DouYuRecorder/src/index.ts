@@ -175,6 +175,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           extra: {
             hits: Number(msg.hits),
           },
+          // @ts-ignore
+          raw: msg,
         };
         this.emit("Message", gift);
         extraDataController.addMessage(gift);
@@ -189,7 +191,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
             const comment: SuperChat = {
               type: "super_chat",
               timestamp: Date.now(),
-              text: msg?.chatmsg?.text,
+              text: msg?.chatmsg?.txt,
               price: Number(msg.cprice) / 100,
               sender: {
                 uid: msg.uid,
@@ -199,6 +201,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
                   level: msg?.chatmsg?.level,
                 },
               },
+              // @ts-ignore
+              // raw: msg,
             };
             this.emit("Message", comment);
             extraDataController.addMessage(comment);
@@ -242,7 +246,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     isEnded = true;
     await hanldeLastSegmentCompleted();
     if (!hasSegment) {
-      this.emit("videoFileCreated", { filename: templateSavePath });
+      this.emit("videoFileCreated", { filename: `${templateSavePath}.mp4` });
     }
 
     this.emit("DebugLog", {
@@ -272,7 +276,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       segmentData.startTime = Date.now();
       console.log("start segmentData", segmentData);
       if (!hasSegment) {
-        this.emit("videoFileCreated", { filename: templateSavePath });
+        this.emit("videoFileCompleted", { filename: `${templateSavePath}.mp4` });
       }
     })
     .on("error", onEnd)
@@ -298,7 +302,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           const filename = match[1];
           segmentData.rawname = filename;
           // this.emit("RecordSegment", this.recordHandle);
-          this.emit("videoFileCreated", { filename });
+          const trueFilepath = getSavePath({ owner, title, startTime: segmentData.startTime });
+          this.emit("videoFileCreated", { filename: `${trueFilepath}.mp4` });
         } else {
           this.emit("DebugLog", { type: "ffmpeg", text: "No match found" });
           console.log("No match found");

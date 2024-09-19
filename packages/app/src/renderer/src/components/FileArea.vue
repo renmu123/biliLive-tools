@@ -110,6 +110,8 @@ const removeItem = (index: number) => {
 };
 
 function onDrop(files: File[] | null) {
+  if (window.isWeb) return;
+
   if (files) {
     let items = Array.from(files)
       .map((file) => window.api.formatFile(window.api.common.getPathForFile(file)))
@@ -130,6 +132,8 @@ function onDrop(files: File[] | null) {
   }
 }
 const onOver = (_files: File[] | null, event: DragEvent) => {
+  if (window.isWeb) return;
+
   if (props.disabled) {
     event.dataTransfer!.dropEffect = "none";
   } else {
