@@ -50,6 +50,7 @@
 <script setup lang="ts">
 import { marked } from "marked";
 import changelog from "../../../../../../CHANGELOG.md?raw";
+import { commonApi } from "@renderer/apis";
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 
@@ -64,7 +65,7 @@ const content = marked.parse(changelog);
 
 const confirm = async () => {
   const data = JSON.parse(localStorage.getItem("changelog") || "{}");
-  const version = await window.api.appVersion();
+  const version = await commonApi.version();
   data[version] = true;
   localStorage.setItem("changelog", JSON.stringify(data));
 };

@@ -7,7 +7,7 @@ import { DanmuPreset, VideoPreset, FFmpegPreset } from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
 import { taskQueue, TaskQueue } from "./task/task.js";
-import { BiliCommentQueue } from "./task/bili.js";
+import { BiliCommentQueue, migrateBiliUser } from "./task/bili.js";
 import { createRecorderManager } from "./recorder/index.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
@@ -45,13 +45,16 @@ const init = (config: GlobalConfig) => {
   const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
   commentQueue.checkLoop();
 
-  appConfig.on("update", () => {
-    const appconfig = container.resolve<AppConfig>("appConfig");
-    const config = appconfig.getAll();
-    commentQueue.interval = config.biliUpload.checkInterval;
-  });
+  // appConfig.on("update", () => {
+  //   const appconfig = container.resolve<AppConfig>("appConfig");
+  //   const config = appconfig.getAll();
+  // });
 
   return container;
 };
 
-export { init, AppConfig, appConfig, TaskQueue };
+const migrate = async () => {
+  await migrateBiliUser();
+};
+
+export { init, AppConfig, appConfig, TaskQueue, migrate };

@@ -286,14 +286,17 @@ const isAdvancedMode = computed(() => {
 
 const fontOptions = ref([]);
 const getFonts = async () => {
-  // @ts-ignore
-  const data = await window.queryLocalFonts();
-  fontOptions.value = data.map((item) => {
-    return {
-      label: item.fullName,
-      value: item.postscriptName,
-    };
-  });
+  // TODO:修改为从接口获取
+  if (!window.isWeb) {
+    // @ts-ignore
+    const data = await window.queryLocalFonts();
+    fontOptions.value = data.map((item) => {
+      return {
+        label: item.fullName,
+        value: item.postscriptName,
+      };
+    });
+  }
 };
 onMounted(async () => {
   getFonts();

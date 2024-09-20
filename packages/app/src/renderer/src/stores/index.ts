@@ -2,7 +2,13 @@ import { cloneDeep } from "lodash-es";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
 import { getUserList } from "@renderer/apis/user";
-import { danmuPresetApi, ffmpegPresetApi, videoPresetApi } from "@renderer/apis";
+import {
+  danmuPresetApi,
+  ffmpegPresetApi,
+  videoPresetApi,
+  configApi,
+  taskApi,
+} from "@renderer/apis";
 
 import type { Task } from "@renderer/types";
 
@@ -276,7 +282,7 @@ export const useQueueStore = defineStore("queue", () => {
     //     action: ["pause", "kill"],
     //   },
     // ];
-    queue.value = (await window.api.task.list()).toReversed();
+    queue.value = (await taskApi.list()).toReversed();
     runningTaskNum.value = queue.value.filter((item) => item.status === "running").length;
   };
 
@@ -293,7 +299,7 @@ export const useAppConfig = defineStore("appConfig", () => {
 
   async function getAppConfig() {
     console.log("getAppConfig");
-    appConfig.value = await window.api.config.getAll();
+    appConfig.value = await configApi.get();
   }
   async function set<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {
     await window.api.config.set(key, value);

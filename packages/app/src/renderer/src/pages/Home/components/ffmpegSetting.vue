@@ -290,7 +290,7 @@ import { HelpCircleOutline } from "@vicons/ionicons5";
 import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
-import { useFfmpegPreset } from "@renderer/stores";
+import { useFfmpegPreset, useAppConfig } from "@renderer/stores";
 import { ffmpegPresetApi } from "@renderer/apis";
 
 import type { FfmpegPreset, VideoCodec } from "@biliLive-tools/types";
@@ -781,12 +781,14 @@ const saveAs = async () => {
   tempPresetName.value = "";
   nameModelVisible.value = true;
 };
+
+const { appConfig } = storeToRefs(useAppConfig());
+
 const deletePreset = async () => {
-  const appConfig = await window.api.config.getAll();
-  let ids = Object.entries(appConfig.webhook.rooms || {}).map(([, value]) => {
+  let ids = Object.entries(appConfig.value.webhook.rooms || {}).map(([, value]) => {
     return value?.ffmpegPreset;
   });
-  ids.push(appConfig.webhook?.ffmpegPreset);
+  ids.push(appConfig.value.webhook?.ffmpegPreset);
   ids = ids.filter((id) => id !== undefined && id !== "");
 
   const msg = ids.includes(presetId.value)

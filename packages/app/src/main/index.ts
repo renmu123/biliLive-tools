@@ -12,10 +12,10 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import log from "./utils/log";
 import { notify } from "./utils/index";
 import { danmuService } from "@biliLive-tools/shared/db/index.js";
-import { init } from "@biliLive-tools/shared";
+import { init, migrate } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
-import { handlers as biliHandlers, biliApi } from "./bili";
+import { handlers as biliHandlers } from "./bili";
 import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as danmuHandlers } from "./danmu";
@@ -497,6 +497,7 @@ const appInit = async () => {
     defaultFfmpegPath: FFMPEG_PATH,
     defaultFfprobePath: FFPROBE_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
+    version: app.getVersion(),
   };
   container = init(globalConfig);
   const appConfig = container.resolve<AppConfig>("appConfig");
@@ -517,10 +518,6 @@ const appInit = async () => {
   taskQueueListen(container);
   // 迁移旧数据
   await migrate();
-};
-
-const migrate = async () => {
-  await biliApi.migrateBiliUser();
 };
 
 const taskQueueListen = (container: AwilixContainer) => {

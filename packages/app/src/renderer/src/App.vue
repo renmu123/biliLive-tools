@@ -73,6 +73,7 @@ import AppSettingDialog from "./pages/setting/index.vue";
 import ChangelogModal from "./components/ChangelogModal.vue";
 import logModal from "./components/logModal.vue";
 import { useUserInfoStore, useQueueStore, useAppConfig } from "./stores";
+import { commonApi } from "@renderer/apis";
 
 const quenuStore = useQueueStore();
 const appConfig = useAppConfig();
@@ -298,15 +299,15 @@ const menuOptions = computed<MenuOption[]>(() => {
 });
 
 const settingVisible = ref(false);
-window.api.openSetting(() => {
+window?.api?.openSetting(() => {
   settingVisible.value = true;
 });
 
 const logVisible = ref(false);
-window.api.openLog(() => {
+window?.api?.openLog(() => {
   logVisible.value = true;
 });
-window.api.openChangelog(() => {
+window?.api?.openChangelog(() => {
   changelogVisible.value = true;
 });
 
@@ -344,7 +345,7 @@ const theme = computed(() => {
 const changelogVisible = ref(false);
 const initChanglog = async () => {
   const data = JSON.parse(localStorage.getItem("changelog") || "{}");
-  const version = await window.api.appVersion();
+  const version = await commonApi.version();
   if (!data[version]) {
     changelogVisible.value = true;
   }
