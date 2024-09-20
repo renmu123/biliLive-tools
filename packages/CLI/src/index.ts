@@ -48,7 +48,7 @@ program
     }
 
     const { serverStart } = await import("@biliLive-tools/http");
-    const { init } = await import("@biliLive-tools/shared");
+    const { init, migrate } = await import("@biliLive-tools/shared");
 
     const globalConfig: GlobalConfig = {
       ffmpegPresetPath: path.join(c.configFolder, "ffmpeg_presets.json"),
@@ -62,6 +62,7 @@ program
       version: version,
     };
     const container = init(globalConfig);
+    await migrate();
     serverStart(
       {
         port: c.port,
