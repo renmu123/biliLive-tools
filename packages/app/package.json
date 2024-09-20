@@ -36,7 +36,8 @@
     "electron-log": "^5.2.0",
     "electron-store": "^10.0.0",
     "electron-updater": "^6.3.4",
-    "semver": "^7.6.3"
+    "semver": "^7.6.3",
+    "electron-context-menu": "4.0.4"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.2",
