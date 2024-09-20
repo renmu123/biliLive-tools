@@ -18,9 +18,6 @@ if (isWeb) {
   //       return [];
   //     },
   //   },
-  //   appVersion: async () => {
-  //     return "0.0.0";
-  //   },
   //   config: {
   //     // @ts-ignore
   //     getAll: () => {

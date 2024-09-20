@@ -304,7 +304,7 @@ import { cloneDeep } from "lodash-es";
 import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline, Refresh } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
-import { videoPresetApi, ffmpegPresetApi } from "@renderer/apis";
+import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig, Theme } from "@biliLive-tools/types";
 
@@ -367,7 +367,7 @@ const close = () => {
 };
 
 const getConfig = async () => {
-  const data = await window.api.config.getAll();
+  const data = await configApi.get();
   config.value = data;
   initConfig.value = cloneDeep(data);
 };
@@ -578,7 +578,7 @@ const addRoom = () => {
 
 // 导出配置
 const exportSettingZip = async () => {
-  const version = await window.api.appVersion();
+  const version = await commonApi.version();
 
   const file = await window.api.showSaveDialog({
     defaultPath: `biliLive-tools-${version}-${new Date().getTime()}-配置备份.zip`,

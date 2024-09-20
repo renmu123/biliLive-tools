@@ -409,11 +409,10 @@ const saveAnotherPresetConfirm = async () => {
 };
 
 const deletePreset = async () => {
-  const appConfig = await window.api.config.getAll();
-  let ids = Object.entries(appConfig.webhook.rooms || {}).map(([, value]) => {
+  let ids = Object.entries(appConfig.value.webhook.rooms || {}).map(([, value]) => {
     return value?.uploadPresetId;
   });
-  ids.push(appConfig.webhook?.uploadPresetId);
+  ids.push(appConfig.value.webhook?.uploadPresetId);
   ids = ids.filter((id) => id !== undefined && id !== "");
 
   const msg = ids.includes(options.value.id)

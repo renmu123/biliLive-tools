@@ -653,7 +653,7 @@ watch(
 //   options.value.savePath = path;
 // }
 
-window.api.onMainNotify((_event, data) => {
+window?.api?.onMainNotify((_event, data) => {
   notice[data.type]({
     title: data.content,
     duration: 5000,

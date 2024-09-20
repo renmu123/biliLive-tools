@@ -7,8 +7,12 @@ const api = axios.create({
 });
 
 export async function init() {
-  const appConfig = await window.api.config.getAll();
-  api.defaults.baseURL = `http://127.0.0.1:${appConfig.port}`;
+  if (!window.isWeb) {
+    const appConfig = await window.api.config.getAll();
+    api.defaults.baseURL = `http://127.0.0.1:${appConfig.port}`;
+  } else {
+    api.defaults.baseURL = `http://127.0.0.1:18010`;
+  }
 }
 
 api.interceptors.request.use(

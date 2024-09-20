@@ -3,6 +3,7 @@
 
 import Router from "koa-router";
 import { foramtTitle } from "@biliLive-tools/shared/utils/index.js";
+import { config } from "../index.js";
 
 const router = new Router({
   prefix: "/common",
@@ -24,6 +25,10 @@ router.post("/foramtTitle", async (ctx) => {
     template,
   );
   ctx.body = title;
+});
+
+router.get("/version", (ctx) => {
+  ctx.body = config.version;
 });
 
 // router.get("/api/files", (req, res) => {

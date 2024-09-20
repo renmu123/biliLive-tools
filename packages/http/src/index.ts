@@ -16,6 +16,7 @@ import presetRouter from "./routes/preset.js";
 import SSERouter from "./routes/sse.js";
 import recocderRouter from "./routes/recorder.js";
 import biliRouter from "./routes/bili.js";
+import taskRouter from "./routes/task.js";
 import { WebhookHandler } from "./services/webhook.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
@@ -46,6 +47,7 @@ app.use(commonRouter.routes());
 app.use(presetRouter.routes());
 app.use(recocderRouter.routes());
 app.use(biliRouter.routes());
+app.use(taskRouter.routes());
 
 // sse
 app.use(

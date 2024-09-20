@@ -59,6 +59,7 @@ program
       defaultFfmpegPath: c.ffmpegPath,
       defaultFfprobePath: c.ffprobePath,
       defaultDanmakuFactoryPath: c.danmakuFactoryPath,
+      version: version,
     };
     const container = init(globalConfig);
     serverStart(

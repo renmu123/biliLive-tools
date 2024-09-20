@@ -400,10 +400,6 @@ export const api = {
   readVideoMeta: (file: string): Promise<ffmpeg.FfprobeData> => {
     return ipcRenderer.invoke("readVideoMeta", file);
   },
-  // 获取app配置
-  getAppConfig: (): Promise<AppConfig> => {
-    return ipcRenderer.invoke("getAppConfig");
-  },
 
   // 通用函数
   openDirectory: (
@@ -426,9 +422,9 @@ export const api = {
     const formatFile = path.parse(filePath);
     return { ...formatFile, path: filePath, filename: formatFile.base };
   },
-  appVersion: () => {
-    return ipcRenderer.invoke("getVersion");
-  },
+  // appVersion: () => {
+  //   return ipcRenderer.invoke("getVersion");
+  // },
   openExternal: (url: string) => {
     return ipcRenderer.invoke("openExternal", url);
   },

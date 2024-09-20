@@ -618,4 +618,5 @@ export interface GlobalConfig {
   defaultFfmpegPath: string;
   defaultFfprobePath: string;
   defaultDanmakuFactoryPath: string;
+  version: string;
 }

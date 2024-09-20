@@ -497,6 +497,7 @@ const appInit = async () => {
     defaultFfmpegPath: FFMPEG_PATH,
     defaultFfprobePath: FFPROBE_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
+    version: app.getVersion(),
   };
   container = init(globalConfig);
   const appConfig = container.resolve<AppConfig>("appConfig");
