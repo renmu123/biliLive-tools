@@ -9,7 +9,7 @@ const router = new Router({
 router.post("/validUploadParams", async (ctx) => {
   const params = ctx.request.body;
   // @ts-ignore
-  const [status, msg] = validateBiliupConfig(params);
+  const [status, msg] = await validateBiliupConfig(params);
   if (status) {
     ctx.body = "success";
     return;
@@ -18,19 +18,25 @@ router.post("/validUploadParams", async (ctx) => {
   ctx.status = 400;
 });
 
+/**
+ * 投稿中心视频列表
+ */
 router.get("/archives", async (ctx) => {
-  const params = ctx.request.query;
+  const params = ctx.request.query as unknown as { pn: number; ps: number; uid: number };
   const { uid } = params;
-  // @ts-ignore
-  const data = biliApi.getArchives(params, uid);
+  const data = await biliApi.getArchives(params, uid);
   ctx.body = data;
 });
 
-router.get("/archive/:id", async (ctx) => {
+/**
+ * 用户视频详情
+ */
+router.get("/user/archive/:bvid", async (ctx) => {
   const params = ctx.request.query;
-  const { bvid, uid } = params;
+  const { uid } = params;
+  const { bvid } = ctx.params;
   // @ts-ignore
-  const data = biliApi.getArchiveDetail(bvid, uid);
+  const data = await biliApi.getArchiveDetail(bvid, uid);
   ctx.body = data;
 });
 
@@ -38,52 +44,55 @@ router.post("/checkTag", async (ctx) => {
   // @ts-ignore
   const { tag, uid } = ctx.request.body;
   // @ts-ignore
-  const data = biliApi.checkTag(tag, uid);
+  const data = await biliApi.checkTag(tag, uid);
   ctx.body = data;
 });
 
 router.get("/searchTopic", async (ctx) => {
-  // @ts-ignore
   const { keyword, uid } = ctx.request.query;
   // @ts-ignore
-  const data = biliApi.searchTopic(keyword, uid);
+  const data = await biliApi.searchTopic(keyword, uid);
   ctx.body = data;
 });
 
 router.get("/seasons", async (ctx) => {
-  // @ts-ignore
   const { uid } = ctx.request.query;
   // @ts-ignore
-  const data = biliApi.getSeasonList(uid);
+  const data = await biliApi.getSeasonList(uid);
   ctx.body = data;
 });
-router.get("/season/:id", async (ctx) => {
+router.get("/season/:aid", async (ctx) => {
+  const { uid } = ctx.request.query;
+  const { aid } = ctx.params;
   // @ts-ignore
-  const { aid, uid } = ctx.request.query;
-  // @ts-ignore
-  const data = biliApi.getSessionId(aid, uid);
+  const data = await biliApi.getSessionId(aid, uid);
   ctx.body = data;
 });
 
 router.get("/platformArchiveDetail", async (ctx) => {
-  // @ts-ignore
   const { aid, uid } = ctx.request.query;
   // @ts-ignore
-  const data = biliApi.getPlatformArchiveDetail(aid, uid);
+  const data = await biliApi.getPlatformArchiveDetail(aid, uid);
   ctx.body = data;
 });
 router.get("/platformPre", async (ctx) => {
-  // @ts-ignore
   const { uid } = ctx.request.query;
   // @ts-ignore
-  const data = biliApi.getPlatformPre(uid);
+  const data = await biliApi.getPlatformPre(uid);
   ctx.body = data;
 });
 router.get("/typeDesc", async (ctx) => {
-  // @ts-ignore
   const { tid, uid } = ctx.request.query;
   // @ts-ignore
-  const data = biliApi.getTypeDesc(tid, uid);
+  const data = await biliApi.getTypeDesc(tid, uid);
+  ctx.body = data;
+});
+
+router.post("/download", async (ctx) => {
+  // @ts-ignore
+  const { options, uid } = ctx.request.body;
+  // @ts-ignore
+  const data = await biliApi.download(options, uid);
   ctx.body = data;
 });
 

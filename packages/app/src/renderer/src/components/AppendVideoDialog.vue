@@ -40,6 +40,7 @@
 
 <script setup lang="ts">
 import { useAppConfig } from "@renderer/stores";
+import { biliApi } from "@renderer/apis";
 
 const { appConfig } = storeToRefs(useAppConfig());
 
@@ -84,7 +85,7 @@ const getArchives = async () => {
     });
     return;
   }
-  const data = await window.api.bili.getArchives(
+  const data = await biliApi.getArchives(
     {
       pn: page.value,
       ps: 20,
@@ -107,11 +108,7 @@ const confirm = async () => {
   if (!aid.value) {
     return;
   }
-  const res = await window.api.bili.getPlatformArchiveDetail(
-    Number(aid.value),
-    appConfig.value.uid!,
-  );
-  console.log(res);
+  const res = await biliApi.getPlatformArchiveDetail(Number(aid.value), appConfig.value.uid!);
   if (res.in_season) {
     notice.error({
       title: "已在合集中的稿件无法添加分P",

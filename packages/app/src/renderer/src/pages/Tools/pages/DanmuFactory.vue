@@ -6,7 +6,7 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="convert"> 立即转换 </n-button>
+      <n-button type="primary" :disabled="isWeb" @click="convert"> 立即转换 </n-button>
       <n-select
         v-model:value="danmuPresetId"
         :options="danmuPresetsOptions"
@@ -71,6 +71,7 @@ const { appConfig } = storeToRefs(useAppConfig());
 
 const notice = useNotification();
 const confirm = useConfirm();
+const isWeb = computed(() => window.isWeb);
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 

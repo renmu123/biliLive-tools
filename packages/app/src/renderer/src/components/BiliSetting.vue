@@ -295,7 +295,7 @@
 <script setup lang="ts">
 import { deepRaw, uuid } from "@renderer/utils";
 import { useConfirm } from "@renderer/hooks";
-import { videoPresetApi } from "@renderer/apis";
+import { videoPresetApi, biliApi } from "@renderer/apis";
 import { useUploadPreset, useAppConfig, useUserInfoStore } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
 
@@ -349,7 +349,7 @@ const handleTagChange = async (tags: string[]) => {
       options.value.config.tag.splice(-1);
       return;
     }
-    const res = await window.api.bili.checkTag(tags[tags.length - 1], appConfig.value.uid);
+    const res = await biliApi.checkTag(tags[tags.length - 1], appConfig.value.uid);
 
     if (res.code !== 0) {
       notice.error({
@@ -451,7 +451,7 @@ const savePreset = async () => {
 };
 
 const _savePreset = async (data: BiliupPreset) => {
-  await window.api.bili.validUploadParams(deepRaw(data.config));
+  await biliApi.validUploadParams(deepRaw(data.config));
   await videoPresetApi.save(deepRaw(data));
 };
 
@@ -498,7 +498,7 @@ const getSeasonList = async () => {
     seasonList.value = [];
     return;
   }
-  const data = await window.api.bili.getSeasonList(userInfoStore.userInfo.uid);
+  const data = await biliApi.getSeasonList(userInfoStore.userInfo.uid);
   seasonList.value = (data.seasons || []).map((item) => {
     return {
       label: item.season.title,
@@ -513,7 +513,7 @@ const getPlatformTypes = async () => {
   if (!userInfoStore?.userInfo?.uid) {
     return;
   }
-  const data = await window.api.bili.getPlatformPre(userInfoStore.userInfo.uid);
+  const data = await biliApi.getPlatformPre(userInfoStore.userInfo.uid);
   areaData.value = data.typelist;
 };
 
@@ -522,7 +522,7 @@ const getTypeDesc = async (tid: number) => {
   if (!userInfoStore?.userInfo?.uid) {
     return;
   }
-  const data = await window.api.bili.getTypeDesc(tid, userInfoStore.userInfo.uid);
+  const data = await biliApi.getTypeDesc(tid, userInfoStore.userInfo.uid);
   if (data) {
     descMaxLength.value = 2000;
   } else {
@@ -555,7 +555,7 @@ const handleSearch = async (query: string) => {
     return;
   }
   topicLoading.value = true;
-  const data = await window.api.bili.searchTopic(query, appConfig.value.uid);
+  const data = await biliApi.searchTopic(query, appConfig.value.uid);
   topicOptions.value = data.result.topics.map((item) => {
     return {
       ...item,

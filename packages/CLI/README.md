@@ -10,6 +10,8 @@
 
 `npm i bililive-cli -g`
 
+或者安装二进制[文件](https://github.com/renmu123/biliLive-tools/releases)
+
 # 使用
 
 CLI是GUI的拓展，使用前需要设置相关目录，由于配置文件很多且复杂，请在GUI中生成并进行修改配置后复制到CLI所配置的目录，或直接将目录设置为GUI的配置目录。  
@@ -36,4 +38,13 @@ CLI是GUI的拓展，使用前需要设置相关目录，由于配置文件很�
 
 ## 运行
 
-`biliLive server`
+```bash
+Usage: biliLive server
+
+启动web服务器
+
+Options:
+  -c, --config                         配置文件
+  -h, --host                           host，覆盖配置文件的参数，可选
+  -p, --port                           port，覆盖配置文件的参数，可选
+```

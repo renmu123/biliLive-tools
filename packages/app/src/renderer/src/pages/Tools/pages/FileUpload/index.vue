@@ -6,8 +6,10 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="upload"> 立即上传 </n-button>
-      <n-button type="primary" @click="appendVideoVisible = true"> 续传 </n-button>
+      <n-button type="primary" :disabled="isWeb" @click="upload"> 立即上传 </n-button>
+      <n-button type="primary" :disabled="isWeb" @click="appendVideoVisible = true">
+        续传
+      </n-button>
     </div>
     <FileSelect ref="fileSelect" v-model="fileList"></FileSelect>
 
@@ -30,6 +32,7 @@ import BiliSetting from "@renderer/components/BiliSetting.vue";
 import AppendVideoDialog from "@renderer/components/AppendVideoDialog.vue";
 import { useBili } from "@renderer/hooks";
 import { useUserInfoStore, useAppConfig } from "@renderer/stores";
+import { biliApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 
 import { deepRaw } from "@renderer/utils";
@@ -38,6 +41,7 @@ const { userInfo } = storeToRefs(useUserInfoStore());
 const { handlePresetOptions, presetOptions } = useBili();
 const { appConfig } = storeToRefs(useAppConfig());
 const notice = useNotification();
+const isWeb = computed(() => window.isWeb);
 
 const options = appConfig.value.tool.upload;
 
@@ -79,7 +83,7 @@ const upload = async () => {
     });
     return;
   }
-  await window.api.bili.validUploadParams(deepRaw(presetOptions.value.config));
+  await biliApi.validUploadParams(deepRaw(presetOptions.value.config));
   notice.info({
     title: `开始上传`,
     duration: 1000,
