@@ -141,6 +141,7 @@ import { useConfirm } from "@renderer/hooks";
 import { useQueueStore } from "@renderer/stores";
 import { formatSeconds } from "@renderer/utils";
 import { TaskType } from "@biliLive-tools/shared/enum.js";
+import { taskApi } from "@renderer/apis";
 
 import type { Status } from "@biliLive-tools/types/task.d.ts";
 import type { Task } from "@renderer/types";
@@ -205,27 +206,18 @@ const statusMap: {
 const handleStart = (taskId: string, task: Task) => {
   console.log("handleStart", taskId);
   if (task.status === "paused") {
-    window.api.task.resume(taskId);
+    taskApi.resume(taskId);
   } else if (task.status === "pending") {
-    window.api.task.start(taskId);
+    taskApi.start(taskId);
   }
   store.getQuenu();
 };
 
-const handlePause = (taskId: string) => {
+const handlePause = async (taskId: string) => {
   console.log("handlePause", taskId);
-  window.api.task.pause(taskId);
+  await taskApi.pause(taskId);
   store.getQuenu();
 };
-
-// const handleInterrupt = async (taskId: string) => {
-//   const status = await confirm.warning({
-//     content: "确定要中断任务吗？中断会保留进度",
-//   });
-//   if (!status) return;
-//   window.api.task.interrupt(taskId);
-//   getQuenu();
-// };
 
 const handleKill = async (task: Task) => {
   if (task.type === TaskType.ffmpeg) {
@@ -236,16 +228,16 @@ const handleKill = async (task: Task) => {
     });
     if (!status) return;
     if (savePorcess) {
-      window.api.task.interrupt(task.taskId);
+      taskApi.interrupt(task.taskId);
     } else {
-      window.api.task.kill(task.taskId);
+      taskApi.cancel(task.taskId);
     }
   } else {
     const [status] = await confirm.warning({
       content: "确定要中止任务吗？",
     });
     if (!status) return;
-    window.api.task.kill(task.taskId);
+    taskApi.cancel(task.taskId);
   }
 
   store.getQuenu();
@@ -271,8 +263,8 @@ const openExternal = (item: Task) => {
   }
 };
 
-const handleRemoveRecord = (taskId: string) => {
-  window.api.task.remove(taskId);
+const handleRemoveRecord = async (taskId: string) => {
+  await taskApi.remove(taskId);
   store.getQuenu();
 };
 </script>

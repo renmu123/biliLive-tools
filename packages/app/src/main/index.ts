@@ -16,7 +16,6 @@ import { init, migrate } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
 import { handlers as biliHandlers } from "./bili";
-import { handlers as taskHandlers } from "./task";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as danmuHandlers } from "./danmu";
 import { commonHandlers, getTempPath } from "./common";
@@ -87,7 +86,6 @@ const genHandler = (ipcMain: IpcMain) => {
 
   registerHandlers(ipcMain, biliupHandlers);
   registerHandlers(ipcMain, biliHandlers);
-  registerHandlers(ipcMain, taskHandlers);
   registerHandlers(ipcMain, ffmpegHandlers);
   registerHandlers(ipcMain, danmuHandlers);
   registerHandlers(ipcMain, configHandlers);

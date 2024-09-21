@@ -6,7 +6,7 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="convert"> 立即转换 </n-button>
+      <n-button type="primary" :disabled="isWeb" @click="convert"> 立即转换 </n-button>
       <n-cascader
         v-model:value="options.ffmpegPresetId"
         placeholder="请选择预设"
@@ -65,6 +65,7 @@ const notice = useNotification();
 const confirm = useConfirm();
 const { appConfig } = storeToRefs(useAppConfig());
 const { ffmpegOptions } = storeToRefs(useFfmpegPreset());
+const isWeb = computed(() => window.isWeb);
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 const options = appConfig.value.tool.video2mp4;

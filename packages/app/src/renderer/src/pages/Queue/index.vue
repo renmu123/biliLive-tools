@@ -50,6 +50,7 @@
 import Item from "./components/item.vue";
 import { useQueueStore } from "@renderer/stores";
 import { deepRaw } from "@renderer/utils";
+import { taskApi } from "@renderer/apis";
 import { TaskType } from "@biliLive-tools/shared/enum.js";
 
 import type { Task } from "@renderer/types";
@@ -138,7 +139,7 @@ const handleRemoveEndTasks = async () => {
           continue;
         }
       }
-      await window.api.task.remove(item.taskId);
+      await taskApi.remove(item.taskId);
     }
   }
   notice.success({

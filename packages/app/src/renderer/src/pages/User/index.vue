@@ -2,7 +2,7 @@
   <div>
     <div class="user-info">
       <div class="login-btns">
-        <n-button type="primary" @click="login">登录账号</n-button>
+        <n-button type="primary" :disabled="isWeb" @click="login">登录账号</n-button>
       </div>
     </div>
     <div class="container">
@@ -49,6 +49,7 @@ const { getUserInfo, changeUser } = useUserInfoStore();
 const { appConfig } = storeToRefs(useAppConfig());
 const { userInfo, userList } = storeToRefs(useUserInfoStore());
 const notice = useNotification();
+const isWeb = computed(() => window.isWeb);
 
 const loginTvDialogVisible = ref(false);
 const login = async () => {

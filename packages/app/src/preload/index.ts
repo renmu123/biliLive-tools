@@ -22,7 +22,7 @@ import type {
   SC,
   DanmuItem,
 } from "@biliLive-tools/types";
-import type { OpenDialogOptions, BiliApi } from "../types";
+import type { OpenDialogOptions } from "../types";
 import type ffmpeg from "fluent-ffmpeg";
 import type { Video } from "douyu-api";
 
@@ -111,27 +111,6 @@ export const api = {
     },
   },
   task: {
-    pause: (taskId: string) => {
-      return ipcRenderer.invoke("task:pause", taskId);
-    },
-    resume: (taskId: string) => {
-      return ipcRenderer.invoke("task:resume", taskId);
-    },
-    kill: (taskId: string) => {
-      return ipcRenderer.invoke("task:kill", taskId);
-    },
-    interrupt: (taskId: string) => {
-      return ipcRenderer.invoke("task:interrupt", taskId);
-    },
-    list: () => {
-      return ipcRenderer.invoke("task:list");
-    },
-    remove: (taskId: string) => {
-      return ipcRenderer.invoke("task:remove", taskId);
-    },
-    start: (taskId: string) => {
-      return ipcRenderer.invoke("task:start", taskId);
-    },
     on(
       taskId: string,
       event: "start" | "end" | "error" | "progress",
@@ -250,13 +229,6 @@ export const api = {
     },
   },
   bili: {
-    // 验证视频上传参数
-    validUploadParams: async (config: BiliupConfig) => {
-      const [status, msg] = await ipcRenderer.invoke("bili:validUploadParams", config);
-      if (!status) {
-        throw new Error(msg);
-      }
-    },
     // 上传视频
     uploadVideo: (
       uid: number,
@@ -297,39 +269,6 @@ export const api = {
       ipcRenderer.removeAllListeners("biliApi:login-error");
       ipcRenderer.removeAllListeners("biliApi:login-completed");
       return ipcRenderer.invoke("biliApi:login:cancel");
-    },
-    getArchives(
-      params: Parameters<BiliApi["getArchives"]>[0],
-      uid: number,
-    ): Promise<ReturnType<BiliApi["getArchives"]>> {
-      return ipcRenderer.invoke("biliApi:getArchives", params, uid);
-    },
-    checkTag(tag: string, uid: number) {
-      return ipcRenderer.invoke("biliApi:checkTag", tag, uid);
-    },
-    searchTopic(keyword: string, uid: number) {
-      return ipcRenderer.invoke("biliApi:searchTopic", keyword, uid);
-    },
-    getSeasonList(uid: number): Promise<ReturnType<BiliApi["getSeasonList"]>> {
-      return ipcRenderer.invoke("biliApi:getSeasonList", uid);
-    },
-    getArchiveDetail(bvid: string, uid?: number): Promise<ReturnType<BiliApi["getArchiveDetail"]>> {
-      return ipcRenderer.invoke("biliApi:getArchiveDetail", bvid, uid);
-    },
-    download(options: { bvid: string; cid: number; output: string }, uid: number) {
-      return ipcRenderer.invoke("biliApi:download", options, uid);
-    },
-    getSessionId(aid: number, uid: number) {
-      return ipcRenderer.invoke("biliApi:getSessionId", aid, uid);
-    },
-    getPlatformArchiveDetail(aid: number, uid: number) {
-      return ipcRenderer.invoke("biliApi:getPlatformArchiveDetail", aid, uid);
-    },
-    getPlatformPre(uid: number): Promise<ReturnType<BiliApi["getPlatformPre"]>> {
-      return ipcRenderer.invoke("biliApi:getPlatformPre", uid);
-    },
-    getTypeDesc(tid: number, uid: number): Promise<ReturnType<BiliApi["getTypeDesc"]>> {
-      return ipcRenderer.invoke("biliApi:getTypeDesc", tid, uid);
     },
   },
   config: {

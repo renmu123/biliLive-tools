@@ -3,10 +3,15 @@
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
-        <n-button type="primary" title="仅供参考，以实际渲染为主！" @click="preview">
+        <n-button
+          type="primary"
+          title="仅供参考，以实际渲染为主！"
+          :disabled="isWeb"
+          @click="preview"
+        >
           预览
         </n-button>
-        <n-button type="primary" @click="handleConvert"> 启动！ </n-button>
+        <n-button type="primary" :disabled="isWeb" @click="handleConvert"> 启动！ </n-button>
         <!-- <n-button type="primary" @click="testNofity"> 测试发送通知 </n-button> -->
         <!-- <n-button type="primary" @click="hotProgressConvert"> 测试高能弹幕进度条生成 </n-button> -->
       </div>
@@ -164,7 +169,7 @@ import ffmpegSetting from "./components/ffmpegSetting.vue";
 import PreviewModal from "./components/previewModal.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
 import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
-import { danmuPresetApi } from "@renderer/apis";
+import { danmuPresetApi, biliApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 
 import { deepRaw, uuid } from "@renderer/utils";
@@ -202,8 +207,8 @@ const { danmuPresetsOptions, danmuPresetId, danmuPreset } = storeToRefs(useDanmu
 const { getDanmuPresets } = useDanmuPreset();
 const { userInfo } = storeToRefs(useUserInfoStore());
 const { appConfig } = storeToRefs(useAppConfig());
-
 const { handlePresetOptions, presetOptions } = useBili();
+const isWeb = computed(() => window.isWeb);
 
 const fileList = ref<
   (File & {
@@ -539,10 +544,10 @@ const createMergeVideoAssTask = async (
 const biliUpCheck = async (presetOptions: BiliupPreset) => {
   const hasLogin = !!userInfo.value.uid;
   if (!hasLogin) {
-    throw new Error(`请点击左侧头像进行登录`);
+    throw new Error(`请先进行登录`);
   }
 
-  await window.api.bili.validUploadParams(presetOptions.config);
+  await biliApi.validUploadParams(presetOptions.config);
 
   return true;
 };
@@ -648,21 +653,12 @@ watch(
   },
 );
 
-// async function getDir() {
-//   const path = await window.api.openDirectory();
-//   options.value.savePath = path;
-// }
-
 window?.api?.onMainNotify((_event, data) => {
   notice[data.type]({
     title: data.content,
     duration: 5000,
   });
 });
-
-// const testNofity = () => {
-//   window.api.task.notify("我是标题", "我是内容请31312313213");
-// };
 
 // 预览
 const previewModalVisible = ref(false);

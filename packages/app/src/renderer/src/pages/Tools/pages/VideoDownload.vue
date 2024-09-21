@@ -8,7 +8,9 @@
           :style="{ width: '80%' }"
           placeholder="请输入视频链接，比如：https://www.bilibili.com/video/BV1u94y1K7nr、https://v.douyu.com/show/brN0MmQqKl6MpyxA"
         />
-        <n-button type="primary" ghost @click="download"> 下载 </n-button>
+        <n-button type="primary" ghost :disabled="!url" @click="download" @keyup.enter="download">
+          下载
+        </n-button>
       </div>
       <DownloadConfirm
         v-model:visible="visible"
@@ -24,6 +26,7 @@
 import { useUserInfoStore } from "@renderer/stores";
 import DownloadConfirm from "@renderer/components/DownloadConfirm.vue";
 import { sanitizeFileName } from "@renderer/utils";
+import { biliApi } from "@renderer/apis";
 
 const notice = useNotification();
 const { userInfo } = storeToRefs(useUserInfoStore());
@@ -77,7 +80,7 @@ const handleBili = async (formatUrl: string) => {
     throw new Error("请输入正确的b站视频链接");
   }
   selectCids.value = [];
-  const data = await window.api.bili.getArchiveDetail(bvid, uid.value);
+  const data = await biliApi.getArchiveDetail(bvid, uid.value);
   archiveDeatil.value = {
     vid: data.View.bvid,
     title: data.View.title,
@@ -133,6 +136,7 @@ const handleDouyu = async (formatUrl: string) => {
 };
 
 const download = async () => {
+  if (!url.value) return;
   if (!url.value.trim()) {
     throw new Error("请输入合法的视频链接");
   }
@@ -159,7 +163,7 @@ const confirm = async (options: { ids: (number | string)[]; savePath: string }) 
         },
       );
     } else if (videoType.value === "bili") {
-      window.api.bili.download(
+      biliApi.download(
         {
           output: window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
           cid: page.cid as number,
