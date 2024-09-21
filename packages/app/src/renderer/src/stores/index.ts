@@ -118,6 +118,7 @@ export const useUserInfoStore = defineStore("userInfo", () => {
 
 export const useDanmuPreset = defineStore("danmuPreset", () => {
   const { appConfig } = storeToRefs(useAppConfig());
+  console.log(appConfig.value);
 
   const danmuPresetId = toRef(appConfig.value.tool.danmu, "danmuPresetId");
   const danmuPresets = ref<DanmuPreset[]>([]);
