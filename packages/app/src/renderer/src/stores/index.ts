@@ -9,6 +9,7 @@ import {
   configApi,
   taskApi,
 } from "@renderer/apis";
+import { APP_DEFAULT_CONFIG } from "@biliLive-tools/shared/enum.js";
 
 import type { Task } from "@renderer/types";
 
@@ -236,53 +237,6 @@ export const useQueueStore = defineStore("queue", () => {
   const queue = ref<Task[]>([]);
 
   const getQuenu = async () => {
-    // queue.value = [
-    //   {
-    //     taskId: "1",
-    //     name: "tesqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqwwwwwwwwwwwwwwwwwwwwwwwwt",
-    //     status: "pending",
-    //     type: "ffmpeg",
-    //     progress: 0,
-    //     action: ["pause", "kill"],
-    //   },
-    //   {
-    //     taskId: "2",
-    //     name: "test2",
-    //     status: "running",
-    //     type: "ffmpeg",
-    //     progress: 50,
-    //     action: ["pause", "kill"],
-    //     startTime: 1701682795887,
-    //   },
-    //   {
-    //     taskId: "3",
-    //     name: "test3",
-    //     status: "paused",
-    //     type: "ffmpeg",
-    //     progress: 50,
-    //     action: ["pause", "kill"],
-    //     startTime: 1701682795887,
-    //   },
-    //   {
-    //     taskId: "4",
-    //     name: "test4",
-    //     status: "completed",
-    //     type: "ffmpeg",
-    //     output: "D:/test.mp4",
-    //     progress: 100,
-    //     action: ["pause", "kill"],
-    //     startTime: 1701682795887,
-    //     endTime: 1701682995887,
-    //   },
-    //   {
-    //     taskId: "5",
-    //     name: "test5",
-    //     status: "error",
-    //     type: "ffmpeg",
-    //     progress: 50,
-    //     action: ["pause", "kill"],
-    //   },
-    // ];
     queue.value = (await taskApi.list()).toReversed();
     runningTaskNum.value = queue.value.filter((item) => item.status === "running").length;
   };
@@ -295,8 +249,7 @@ export const useQueueStore = defineStore("queue", () => {
 });
 
 export const useAppConfig = defineStore("appConfig", () => {
-  // @ts-ignore
-  const appConfig = ref<AppConfig>({});
+  const appConfig = ref<AppConfig>(APP_DEFAULT_CONFIG);
 
   async function getAppConfig() {
     console.log("getAppConfig");
