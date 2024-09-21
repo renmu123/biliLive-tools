@@ -11,12 +11,22 @@ export async function init() {
     const appConfig = await window.api.config.getAll();
     api.defaults.baseURL = `http://127.0.0.1:${appConfig.port}`;
   } else {
-    api.defaults.baseURL = `http://127.0.0.1:18010`;
+    const baseURL = window.localStorage.getItem("api");
+    if (baseURL) {
+      api.defaults.baseURL = baseURL;
+    } else {
+      api.defaults.baseURL = `http://127.0.0.1:18010`;
+    }
   }
 }
 
 api.interceptors.request.use(
   (config) => {
+    // header authorization
+    const keyStorage = window.localStorage.getItem("key");
+    if (keyStorage) {
+      config.headers.Authorization = keyStorage;
+    }
     return config;
   },
   (error) => {
@@ -29,6 +39,9 @@ api.interceptors.response.use(
     return Promise.resolve(response);
   },
   (error) => {
+    if (error.response.status === 401) {
+      window.location.href = "/login";
+    }
     return Promise.reject(error.response.data);
   },
 );

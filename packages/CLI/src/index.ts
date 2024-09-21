@@ -121,7 +121,6 @@ function generateConfig(configPath: string) {
     ffprobePath: "ffprobe.exe",
     danmakuFactoryPath: "DanmakuFactory.exe",
     logPath: "main.log",
-    passKey: "123456",
   };
   if (process.platform === "win32") {
     const homedir = os.homedir();

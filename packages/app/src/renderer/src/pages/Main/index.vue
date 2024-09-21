@@ -1,64 +1,59 @@
 <template>
   <n-config-provider :theme="theme">
-    <n-notification-provider>
-      <n-dialog-provider>
-        <n-space vertical>
-          <n-layout has-sider class="layout" position="absolute">
-            <n-layout-sider
-              bordered
-              collapse-mode="width"
-              :collapsed-width="64"
-              :width="160"
+    <n-space vertical>
+      <n-layout has-sider class="layout" position="absolute">
+        <n-layout-sider
+          bordered
+          collapse-mode="width"
+          :collapsed-width="64"
+          :width="160"
+          :collapsed="collapsed"
+          show-trigger
+          @collapse="collapsed = true"
+          @expand="collapsed = false"
+        >
+          <n-menu
+            v-model:value="activeKey"
+            class="main-menu"
+            :collapsed="collapsed"
+            :collapsed-width="64"
+            :collapsed-icon-size="22"
+            :options="menuOptions"
+            default-expand-all
+          />
+
+          <n-layout-footer position="absolute">
+            <n-menu
+              v-model:value="activeKey"
+              class="footer-menu"
               :collapsed="collapsed"
-              show-trigger
-              @collapse="collapsed = true"
-              @expand="collapsed = false"
-            >
-              <n-menu
-                v-model:value="activeKey"
-                class="main-menu"
-                :collapsed="collapsed"
-                :collapsed-width="64"
-                :collapsed-icon-size="22"
-                :options="menuOptions"
-                default-expand-all
-              />
+              :collapsed-width="64"
+              :collapsed-icon-size="22"
+              :options="footerMenuOptions"
+              default-expand-all
+            />
+          </n-layout-footer>
+        </n-layout-sider>
 
-              <n-layout-footer position="absolute">
-                <n-menu
-                  v-model:value="activeKey"
-                  class="footer-menu"
-                  :collapsed="collapsed"
-                  :collapsed-width="64"
-                  :collapsed-icon-size="22"
-                  :options="footerMenuOptions"
-                  default-expand-all
-                />
-              </n-layout-footer>
-            </n-layout-sider>
-
-            <n-layout class="main-container">
-              <router-view v-slot="{ Component }">
-                <keep-alive>
-                  <component :is="Component" />
-                </keep-alive>
-              </router-view>
-            </n-layout>
-          </n-layout>
-        </n-space>
-        <AppSettingDialog v-model="settingVisible"></AppSettingDialog>
-        <ChangelogModal v-model:visible="changelogVisible"></ChangelogModal>
-        <logModal v-model:visible="logVisible"></logModal>
-      </n-dialog-provider>
-    </n-notification-provider>
+        <n-layout class="main-container">
+          <router-view v-slot="{ Component }">
+            <keep-alive>
+              <component :is="Component" />
+            </keep-alive>
+          </router-view>
+        </n-layout>
+      </n-layout>
+    </n-space>
+    <AppSettingDialog v-model="settingVisible"></AppSettingDialog>
+    <ChangelogModal v-model:visible="changelogVisible"></ChangelogModal>
+    <logModal v-model:visible="logVisible"></logModal>
   </n-config-provider>
 </template>
 
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
 
-import { NIcon, createDiscreteApi, darkTheme, lightTheme, useOsTheme } from "naive-ui";
-import type { MenuOption } from "naive-ui";
+import { NIcon, darkTheme, lightTheme, useOsTheme } from "naive-ui";
 import { RouterLink } from "vue-router";
 
 import {
@@ -74,6 +69,8 @@ import ChangelogModal from "../../components/ChangelogModal.vue";
 import logModal from "../../components/logModal.vue";
 import { useUserInfoStore, useQueueStore, useAppConfig } from "../../stores";
 import { commonApi } from "@renderer/apis";
+
+import type { MenuOption } from "naive-ui";
 
 const quenuStore = useQueueStore();
 const appConfig = useAppConfig();
@@ -311,7 +308,9 @@ window?.api?.openChangelog(() => {
   changelogVisible.value = true;
 });
 
-const { notification } = createDiscreteApi(["message", "dialog", "notification", "loadingBar"]);
+const notification = useNotification();
+
+// const { notification } = createDiscreteApi(["message", "dialog", "notification", "loadingBar"]);
 
 window.addEventListener("unhandledrejection", (error) => {
   notification.error({

@@ -39,7 +39,7 @@ const authMiddleware = (passKey: string | number) => {
 
     const token = authHeader;
     if (token !== passKey) {
-      ctx.status = 403;
+      ctx.status = 401;
       ctx.body = "Forbidden";
       return;
     }
