@@ -160,7 +160,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         const gift: GiveGift = {
           type: "give_gift",
           timestamp: Date.now(),
-          name: giftMap[msg.gfid]?.name ?? "未知礼物",
+          name: giftMap[msg.gfid]?.name ?? msg.gfn,
           price: (giftMap[msg.gfid]?.pc ?? 0) / 100,
           count: Number(msg.gfcnt),
           color: "#ffffff",
@@ -176,7 +176,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
             hits: Number(msg.hits),
           },
           // @ts-ignore
-          raw: msg,
+          // raw: msg,
         };
         this.emit("Message", gift);
         extraDataController.addMessage(gift);

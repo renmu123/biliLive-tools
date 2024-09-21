@@ -47,5 +47,8 @@ export default defineConfig({
         resolvers: [NaiveUiResolver()],
       }),
     ],
+    server: {
+      port: 13008,
+    },
   },
 });

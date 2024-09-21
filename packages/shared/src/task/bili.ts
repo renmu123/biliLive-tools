@@ -600,7 +600,7 @@ export class BiliCommentQueue {
         log.error("B站稿件任务超时", item);
       }
       // 如果list中存在，但是稿件列表不存在，状态设置为error
-      if (!this.mediaList.some((media) => media.Archive.aid === item.aid)) {
+      if (!this.mediaList.some((media) => media.Archive.aid == item.aid)) {
         item.status = "error";
         log.error("B站稿件不存在", item);
       }

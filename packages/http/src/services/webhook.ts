@@ -797,7 +797,7 @@ export class WebhookHandler {
           config,
           removeOriginAfterUpload,
         )) as number;
-        live.aid = aid;
+        live.aid = Number(aid);
 
         // 设置状态为成功
         live.parts.map((item) => {

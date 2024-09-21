@@ -51,6 +51,7 @@ interface Message$Gift {
   elt: string; // 红包销毁剩余时间:默认值 0(表示没有红包)
   ic: string; // 头像地址
   bnn: string; // 用户牌子名？
+  gfn: string; // 礼物名称
 }
 
 interface Message$CommChatPandora {
