@@ -31,14 +31,13 @@
     "chokidar": "^3.6.0",
     "cli-progress": "^3.12.0",
     "koa": "^2.15.3",
-    "koa-bodyparser": "^4.4.1",
-    "koa-router": "^12.0.1",
+    "@koa/bodyparser": "^5.1.1",
+    "koa-router": "^13.0.1",
     "koa-sse-stream": "^0.2.0"
   },
   "devDependencies": {
     "@types/cli-progress": "^3.11.5",
     "@types/koa": "^2.15.0",
-    "@types/koa-bodyparser": "^4.3.12",
     "@types/koa-router": "^7.4.8",
     "tsx": "^4.7.2"
   }

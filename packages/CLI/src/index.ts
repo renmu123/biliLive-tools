@@ -51,7 +51,7 @@ program
     }
 
     const { serverStart } = await import("@biliLive-tools/http");
-    const { init, migrate } = await import("@biliLive-tools/shared");
+    const { init } = await import("@biliLive-tools/shared");
 
     const globalConfig: GlobalConfig = {
       ffmpegPresetPath: path.join(c.configFolder, "ffmpeg_presets.json"),
@@ -64,14 +64,19 @@ program
       defaultDanmakuFactoryPath: c.danmakuFactoryPath,
       version: version,
     };
-    const container = init(globalConfig);
-    await migrate();
+    const container = await init(globalConfig);
+
+    const appConfig = container.resolve("appConfig");
+    const passKey = appConfig.get("passKey");
+    if (!passKey) {
+      throw new Error("请先设置 passKey");
+    }
     serverStart(
       {
         port: opts.port ? Number(opts.port) : c.port,
         host: opts.host ?? c.host,
         auth: true,
-        passKey: "123456",
+        passKey: passKey,
       },
       container,
     );

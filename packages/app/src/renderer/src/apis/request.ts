@@ -7,16 +7,17 @@ const api = axios.create({
 });
 
 export async function init() {
-  if (!window.isWeb) {
-    const appConfig = await window.api.config.getAll();
-    api.defaults.baseURL = `http://127.0.0.1:${appConfig.port}`;
-  } else {
+  if (window.isWeb) {
     const baseURL = window.localStorage.getItem("api");
     if (baseURL) {
       api.defaults.baseURL = baseURL;
     } else {
       api.defaults.baseURL = `http://127.0.0.1:18010`;
     }
+  } else {
+    const appConfig = await window.api.config.getAll();
+    api.defaults.baseURL = `http://127.0.0.1:${appConfig.port}`;
+    api.defaults.headers.Authorization = appConfig.passKey;
   }
 }
 
@@ -40,6 +41,7 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response.status === 401) {
+      window.localStorage.removeItem("key");
       window.location.href = "/login";
     }
     return Promise.reject(error.response.data);

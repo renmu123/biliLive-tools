@@ -12,7 +12,7 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import log from "./utils/log";
 import { notify } from "./utils/index";
 import { danmuService } from "@biliLive-tools/shared/db/index.js";
-import { init, migrate } from "@biliLive-tools/shared";
+import { init } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
 import { handlers as biliHandlers } from "./bili";
@@ -497,15 +497,15 @@ const appInit = async () => {
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
     version: app.getVersion(),
   };
-  container = init(globalConfig);
+  container = await init(globalConfig);
   const appConfig = container.resolve<AppConfig>("appConfig");
 
   serverStart(
     {
       port: appConfig.get("port"),
       host: appConfig.get("host"),
-      auth: false,
-      // passKey: "123456",
+      auth: true,
+      passKey: appConfig.get("passKey"),
     },
     container,
   );
@@ -516,8 +516,6 @@ const appInit = async () => {
     checkUpdate();
   }
   taskQueueListen(container);
-  // 迁移旧数据
-  await migrate();
 };
 
 const taskQueueListen = (container: AwilixContainer) => {

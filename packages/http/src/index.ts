@@ -1,7 +1,7 @@
 import Koa from "koa";
 import Router from "koa-router";
 import cors from "@koa/cors";
-import bodyParser from "koa-bodyparser";
+import bodyParser from "@koa/bodyparser";
 import sse from "koa-sse-stream";
 
 import errorMiddleware from "./middleware/error.js";
