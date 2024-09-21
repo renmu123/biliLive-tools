@@ -28,6 +28,26 @@ export let handler!: WebhookHandler;
 export let appConfig!: AppConfig;
 export let container!: AwilixContainer;
 
+const authMiddleware = (passKey: string | number) => {
+  return async (ctx: Koa.Context, next: Koa.Next) => {
+    const authHeader = ctx.headers["authorization"];
+    if (!authHeader) {
+      ctx.status = 401;
+      ctx.body = "Authorization header is missing";
+      return;
+    }
+
+    const token = authHeader;
+    if (token !== passKey) {
+      ctx.status = 403;
+      ctx.body = "Forbidden";
+      return;
+    }
+
+    await next();
+  };
+};
+
 const app = new Koa();
 const router = new Router();
 
@@ -38,16 +58,6 @@ router.get("/", async (ctx) => {
 app.use(errorMiddleware);
 app.use(cors());
 app.use(bodyParser());
-app.use(router.routes());
-app.use(webhookRouter.routes());
-app.use(configRouter.routes());
-app.use(llmRouter.routes());
-app.use(userRouter.routes());
-app.use(commonRouter.routes());
-app.use(presetRouter.routes());
-app.use(recocderRouter.routes());
-app.use(biliRouter.routes());
-app.use(taskRouter.routes());
 
 // sse
 app.use(
@@ -63,6 +73,8 @@ export function serverStart(
   options: {
     port: number;
     host: string;
+    auth: boolean;
+    passKey?: string;
   },
   axContainer: AwilixContainer,
 ) {
@@ -71,6 +83,22 @@ export function serverStart(
   config = container.resolve<GlobalConfig>("globalConfig");
   appConfig = container.resolve<AppConfig>("appConfig");
   handler = new WebhookHandler(appConfig);
+
+  if (options.auth) {
+    const auth = authMiddleware(options.passKey);
+    app.use(auth);
+  }
+
+  app.use(router.routes());
+  app.use(webhookRouter.routes());
+  app.use(configRouter.routes());
+  app.use(llmRouter.routes());
+  app.use(userRouter.routes());
+  app.use(commonRouter.routes());
+  app.use(presetRouter.routes());
+  app.use(recocderRouter.routes());
+  app.use(biliRouter.routes());
+  app.use(taskRouter.routes());
 
   app.listen(options.port, options.host, () => {
     console.log(`Server is running at http://${options.host}:${options.port}`);

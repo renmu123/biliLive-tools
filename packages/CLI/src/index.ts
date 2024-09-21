@@ -15,6 +15,7 @@ interface Config {
   ffprobePath: string;
   danmakuFactoryPath: string;
   logPath: string;
+  passKey?: string;
 }
 
 const program = new Command();
@@ -22,9 +23,11 @@ program.name("biliLive").description("biliLive-tools命令行").version(version)
 
 program
   .command("server")
-  .description("开启webhook服务")
+  .description("开启服务")
   .option("-c, --config <string>", "配置文件路径", "config.json")
-  .action(async (opts: { config: string }) => {
+  .option("-h, --host <string>", "host")
+  .option("-p, --port <number>", "port")
+  .action(async (opts: { config: string; host?: string; port?: string }) => {
     if (!fs.existsSync(opts.config)) {
       console.error("请先运行 config gen 命令生成配置文件");
       return;
@@ -65,8 +68,10 @@ program
     await migrate();
     serverStart(
       {
-        port: c.port,
-        host: c.host,
+        port: opts.port ? Number(opts.port) : c.port,
+        host: opts.host ?? c.host,
+        auth: true,
+        passKey: "123456",
       },
       container,
     );
@@ -116,6 +121,7 @@ function generateConfig(configPath: string) {
     ffprobePath: "ffprobe.exe",
     danmakuFactoryPath: "DanmakuFactory.exe",
     logPath: "main.log",
+    passKey: "123456",
   };
   if (process.platform === "win32") {
     const homedir = os.homedir();

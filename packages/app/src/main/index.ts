@@ -504,6 +504,7 @@ const appInit = async () => {
     {
       port: appConfig.get("port"),
       host: appConfig.get("host"),
+      auth: false,
     },
     container,
   );

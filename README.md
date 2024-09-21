@@ -35,6 +35,8 @@ CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/maste
 目前版本尚未完成
 **由于软件并非针对web设计，无法保证安全性，请谨慎暴露在公网中**
 
+必须设置密码方可使用，CLI用户可在配置文件中设置
+
 ### docker的webhook限制
 
 待完善 -->
