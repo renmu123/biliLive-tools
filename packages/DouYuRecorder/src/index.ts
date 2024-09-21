@@ -108,7 +108,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const recordSavePath = savePath;
   console.log("savePath", savePath);
   // TODO: mp4分段封装时可能会有问题，尝试使用ts
-  const templateSavePath = hasSegment ? `${recordSavePath}-PART%03d.mp4` : `${recordSavePath}.mp4`;
+  const templateSavePath = hasSegment ? `${recordSavePath}-PART%03d.ts` : `${recordSavePath}.ts`;
 
   try {
     // TODO: 这个 ensure 或许应该放在 createRecordExtraDataController 里实现？
@@ -228,14 +228,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     console.log("hanle segmentData", segmentData);
 
     const trueFilepath = getSavePath({ owner, title, startTime: segmentData.startTime });
-    console.log("ffmpeg end", segmentData.rawname, `${trueFilepath}.mp4`, segmentData.startTime);
+    console.log("ffmpeg end", segmentData.rawname, `${trueFilepath}.ts`, segmentData.startTime);
 
     try {
       await Promise.all([
-        fs.rename(segmentData.rawname, `${trueFilepath}.mp4`),
+        fs.rename(segmentData.rawname, `${trueFilepath}.ts`),
         extraDataController.flush(),
       ]);
-      this.emit("videoFileCompleted", { filename: `${trueFilepath}.mp4` });
+      this.emit("videoFileCompleted", { filename: `${trueFilepath}.ts` });
     } catch (err) {
       this.emit("DebugLog", { type: "common", text: String(err) });
     }
@@ -246,7 +246,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     isEnded = true;
     await hanldeLastSegmentCompleted();
     if (!hasSegment) {
-      this.emit("videoFileCreated", { filename: `${templateSavePath}.mp4` });
+      this.emit("videoFileCreated", { filename: `${templateSavePath}.ts` });
     }
 
     this.emit("DebugLog", {
@@ -276,7 +276,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       segmentData.startTime = Date.now();
       console.log("start segmentData", segmentData);
       if (!hasSegment) {
-        this.emit("videoFileCompleted", { filename: `${templateSavePath}.mp4` });
+        this.emit("videoFileCompleted", { filename: `${templateSavePath}.ts` });
       }
     })
     .on("error", onEnd)
@@ -303,7 +303,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           segmentData.rawname = filename;
           // this.emit("RecordSegment", this.recordHandle);
           const trueFilepath = getSavePath({ owner, title, startTime: segmentData.startTime });
-          this.emit("videoFileCreated", { filename: `${trueFilepath}.mp4` });
+          this.emit("videoFileCreated", { filename: `${trueFilepath}.ts` });
         } else {
           this.emit("DebugLog", { type: "ffmpeg", text: "No match found" });
           console.log("No match found");
