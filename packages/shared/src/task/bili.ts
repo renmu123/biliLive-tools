@@ -764,6 +764,7 @@ export const biliApi = {
   updateUserInfo,
   readUserList,
   migrateBiliUser,
+  addUser,
 };
 
 export default biliApi;

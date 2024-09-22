@@ -89,6 +89,30 @@ const download = async (options: { bvid: string; cid: number; output: string }, 
   return res.data;
 };
 
+const qrcode = async (): Promise<{
+  url: string;
+  id: string;
+}> => {
+  const res = await request.post("/bili/login");
+  return res.data;
+};
+
+const loginCancel = async (id: string) => {
+  const res = await request.post("/bili/login/cancel", {
+    id,
+  });
+  return res.data;
+};
+
+const loginPoll = async (
+  id: string,
+): Promise<{ res: string; status: "scan" | "completed" | "error"; failReason: string }> => {
+  const res = await request.get("/bili/login/poll", {
+    params: { id },
+  });
+  return res.data;
+};
+
 const bili = {
   validUploadParams,
   getArchives,
@@ -101,6 +125,9 @@ const bili = {
   getPlatformPre,
   getTypeDesc,
   download,
+  qrcode,
+  loginCancel,
+  loginPoll,
 };
 
 export default bili;

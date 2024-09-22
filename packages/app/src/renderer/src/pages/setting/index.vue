@@ -363,7 +363,7 @@ const saveConfig = async () => {
     }
   }
 
-  await window.api.config.save(deepRaw(config.value));
+  await configApi.save(deepRaw(config.value));
   window.api.common.setTheme(config.value.theme);
   // 设置自动启动
   window.api.common.setOpenAtLogin(config.value.autoLaunch || false);

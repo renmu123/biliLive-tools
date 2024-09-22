@@ -1,5 +1,8 @@
 import Router from "koa-router";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
+import { TvQrcodeLogin } from "@renmu/bili-api";
+import { v4 as uuid } from "uuid";
+import { omit } from "lodash-es";
 
 const router = new Router({
   prefix: "/bili",
@@ -94,6 +97,86 @@ router.post("/download", async (ctx) => {
   // @ts-ignore
   const data = await biliApi.download(options, uid);
   ctx.body = data;
+});
+
+// 登录相关
+const loginObj: {
+  [id: string]: {
+    client: TvQrcodeLogin;
+    res: string;
+    status: "scan" | "completed" | "error";
+    failReason: string;
+  };
+} = {};
+router.post("/login", async (ctx) => {
+  const tv = new TvQrcodeLogin();
+  const id = uuid();
+  loginObj[id] = {
+    client: tv,
+    res: "",
+    status: "scan",
+    failReason: "",
+  };
+  tv.on("error", (res) => {
+    console.log("error", res);
+    loginObj[id].res = JSON.stringify(res);
+    loginObj[id].failReason = res.message;
+    loginObj[id].status = "error";
+  });
+  tv.on("scan", (res) => {
+    console.log("scan", res);
+    loginObj[id].res = JSON.stringify(res);
+    loginObj[id].status = "scan";
+  });
+  tv.on("completed", async (res) => {
+    loginObj[id].res = JSON.stringify(res);
+    loginObj[id].status = "completed";
+
+    console.log("completed", res);
+    const data = res.data;
+    await biliApi.addUser(data);
+  });
+  const url = await tv.login();
+
+  ctx.body = {
+    url,
+    id,
+  };
+});
+
+router.post("/login/cancel", async (ctx) => {
+  const { id } = ctx.request.body;
+  if (!id) {
+    ctx.body = "id required";
+    ctx.status = 400;
+    return;
+  }
+  const loginInfo = loginObj[id];
+  if (!loginInfo) {
+    ctx.body = "login info not found";
+    ctx.status = 400;
+    return;
+  }
+  const tv = loginInfo.client;
+  tv.interrupt();
+  ctx.body = "success";
+});
+
+router.get("/login/poll", async (ctx) => {
+  const { id } = ctx.request.query as unknown as { id: string };
+  if (!id) {
+    ctx.body = "id required";
+    ctx.status = 400;
+    return;
+  }
+  const loginInfo = loginObj[id];
+  if (!loginInfo) {
+    ctx.body = "login info not found";
+    ctx.status = 400;
+    return;
+  }
+
+  ctx.body = omit(loginInfo, ["client"]);
 });
 
 export default router;

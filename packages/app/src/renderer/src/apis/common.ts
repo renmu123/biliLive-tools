@@ -1,4 +1,5 @@
 import request from "./request";
+import configApi from "./config";
 
 export const previewWebhookTitle = async (template: string): Promise<string> => {
   const res = await request.post(`/common/foramtTitle`, {
@@ -8,7 +9,7 @@ export const previewWebhookTitle = async (template: string): Promise<string> => 
 };
 
 export const getStreamLogs = async () => {
-  const appConfig = await window.api.config.getAll();
+  const appConfig = await configApi.get();
   const eventSource = new EventSource(`http://127.0.0.1:${appConfig.port}/sse/streamLogs`);
   return eventSource;
 };

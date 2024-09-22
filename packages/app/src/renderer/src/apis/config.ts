@@ -37,6 +37,7 @@ export const save = async <K extends keyof AppConfig>(data: AppConfig[K]): Promi
 const config = {
   get,
   set,
+  save,
 };
 
 export default config;

@@ -19,6 +19,10 @@ router.post("/", async (ctx) => {
 
 router.post("/set", async (ctx) => {
   const data = ctx.request.body;
+  if (!data.key || !data.value) {
+    ctx.body = "key and value is required";
+    return;
+  }
   // @ts-ignore
   appConfig.set(data.key, data.value);
   ctx.body = "success";

@@ -256,7 +256,7 @@ export const useAppConfig = defineStore("appConfig", () => {
     appConfig.value = await configApi.get();
   }
   async function set<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {
-    await window.api.config.set(key, value);
+    await configApi.set(key, value);
     appConfig.value[key] = value;
   }
   watch(
@@ -265,7 +265,7 @@ export const useAppConfig = defineStore("appConfig", () => {
       if (!oldVal) return;
       if (JSON.stringify(newVal) === JSON.stringify(oldVal)) return;
 
-      window.api.config.save(cloneDeep(appConfig.value));
+      configApi.save(cloneDeep(appConfig.value));
     },
     { deep: true },
   );

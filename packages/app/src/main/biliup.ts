@@ -1,11 +1,9 @@
-import { invokeWrap } from "./utils/index";
 import { biliApi } from "./bili";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { BiliupConfig, BiliupConfigAppend } from "@biliLive-tools/types";
 
 export const handlers = {
-  "bili:validUploadParams": invokeWrap(biliApi.validateBiliupConfig),
   "bili:uploadVideo": async (
     _event: IpcMainInvokeEvent,
     uid: number,
