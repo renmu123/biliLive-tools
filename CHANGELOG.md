@@ -15,9 +15,8 @@
 1. 优化webhook标题变量名插入时的位置
 2. 优化任务的持续时间计算
 3. 弹幕配置的简易模式默认为false
-4. 优化视频评论的实现
-5. 为输入框等UI增加右键菜单 [#26](https://github.com/renmu123/biliLive-tools/issues/26)
-6. 视频下载时替换文件中的不合法字符串
+4. 为部分UI增加右键菜单 [#26](https://github.com/renmu123/biliLive-tools/issues/26)
+5. 视频下载时替换文件中的不合法字符串
 
 ## Bug修复
 

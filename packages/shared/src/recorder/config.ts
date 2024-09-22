@@ -23,15 +23,7 @@ export default class RecorderConfig {
 
     const setting = settings.find((setting) => setting.id === id);
     if (!setting) return null;
-    console.log("11111111111111111111", {
-      ...setting,
-      quality: getValue("quality") ?? "highest",
-      line: getValue("line"),
-      disableProvideCommentsWhenRecording: getValue("disableProvideCommentsWhenRecording") ?? true,
-      saveGiftDanma: getValue("saveGiftDanma") ?? false,
-      saveSCDanma: getValue("saveSCDanma") ?? true,
-      segment: getValue("segment") ?? 60,
-    });
+
     return {
       ...setting,
       quality: getValue("quality") ?? "highest",

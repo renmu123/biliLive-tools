@@ -79,7 +79,6 @@ export function createRecorderManager(appConfig: AppConfig) {
 
   const recorderConfig = new RecorderConfig(appConfig);
   recorderConfig.list().forEach((recorder) => {
-    console.log("addRecorder", recorder);
     manager.addRecorder(recorder);
   });
   if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
