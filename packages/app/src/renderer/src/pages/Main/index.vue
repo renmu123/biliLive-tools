@@ -1,59 +1,57 @@
 <template>
-  <n-config-provider :theme="theme">
-    <n-space vertical>
-      <n-layout has-sider class="layout" position="absolute">
-        <n-layout-sider
-          bordered
-          collapse-mode="width"
-          :collapsed-width="64"
-          :width="160"
+  <n-space vertical>
+    <n-layout has-sider class="layout" position="absolute">
+      <n-layout-sider
+        bordered
+        collapse-mode="width"
+        :collapsed-width="64"
+        :width="160"
+        :collapsed="collapsed"
+        show-trigger
+        @collapse="collapsed = true"
+        @expand="collapsed = false"
+      >
+        <n-menu
+          v-model:value="activeKey"
+          class="main-menu"
           :collapsed="collapsed"
-          show-trigger
-          @collapse="collapsed = true"
-          @expand="collapsed = false"
-        >
+          :collapsed-width="64"
+          :collapsed-icon-size="22"
+          :options="menuOptions"
+          default-expand-all
+        />
+
+        <n-layout-footer position="absolute">
           <n-menu
             v-model:value="activeKey"
-            class="main-menu"
+            class="footer-menu"
             :collapsed="collapsed"
             :collapsed-width="64"
             :collapsed-icon-size="22"
-            :options="menuOptions"
+            :options="footerMenuOptions"
             default-expand-all
           />
+        </n-layout-footer>
+      </n-layout-sider>
 
-          <n-layout-footer position="absolute">
-            <n-menu
-              v-model:value="activeKey"
-              class="footer-menu"
-              :collapsed="collapsed"
-              :collapsed-width="64"
-              :collapsed-icon-size="22"
-              :options="footerMenuOptions"
-              default-expand-all
-            />
-          </n-layout-footer>
-        </n-layout-sider>
-
-        <n-layout class="main-container">
-          <router-view v-slot="{ Component }">
-            <keep-alive>
-              <component :is="Component" />
-            </keep-alive>
-          </router-view>
-        </n-layout>
+      <n-layout class="main-container">
+        <router-view v-slot="{ Component }">
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
+        </router-view>
       </n-layout>
-    </n-space>
-    <AppSettingDialog v-model="settingVisible"></AppSettingDialog>
-    <ChangelogModal v-model:visible="changelogVisible"></ChangelogModal>
-    <logModal v-model:visible="logVisible"></logModal>
-  </n-config-provider>
+    </n-layout>
+  </n-space>
+  <AppSettingDialog v-model="settingVisible"></AppSettingDialog>
+  <ChangelogModal v-model:visible="changelogVisible"></ChangelogModal>
+  <logModal v-model:visible="logVisible"></logModal>
 </template>
 
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
 
-import { NIcon, darkTheme, lightTheme, useOsTheme } from "naive-ui";
+import { NIcon } from "naive-ui";
 import { RouterLink } from "vue-router";
 
 import {
@@ -322,23 +320,6 @@ window.addEventListener("unhandledrejection", (error) => {
 setInterval(() => {
   quenuStore.getQuenu();
 }, 1000);
-
-const osThemeRef = useOsTheme();
-const theme = computed(() => {
-  if (appConfig.appConfig.theme === "system") {
-    // js检测系统主题
-    // const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    if (osThemeRef.value === "dark") {
-      return darkTheme;
-    } else {
-      return lightTheme;
-    }
-  } else if (appConfig.appConfig.theme === "dark") {
-    return darkTheme;
-  } else {
-    return lightTheme;
-  }
-});
 
 // 更新日志处理
 const changelogVisible = ref(false);

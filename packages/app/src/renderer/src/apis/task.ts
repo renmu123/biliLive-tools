@@ -18,32 +18,32 @@ const get = async (id: string): Promise<Task> => {
 };
 
 const pause = async (id: string): Promise<string> => {
-  const res = await request.delete(`/task/${id}/pause`);
+  const res = await request.post(`/task/${id}/pause`);
   return res.data;
 };
 
 const resume = async (id: string): Promise<string> => {
-  const res = await request.delete(`/task/${id}/resume`);
+  const res = await request.post(`/task/${id}/resume`);
   return res.data;
 };
 
 const cancel = async (id: string): Promise<string> => {
-  const res = await request.delete(`/task/${id}/kill`);
+  const res = await request.post(`/task/${id}/kill`);
   return res.data;
 };
 
 const interrupt = async (id: string): Promise<string> => {
-  const res = await request.delete(`/task/${id}/interrupt`);
+  const res = await request.post(`/task/${id}/interrupt`);
   return res.data;
 };
 
 const remove = async (id: string): Promise<string> => {
-  const res = await request.delete(`/task/${id}/remove`);
+  const res = await request.post(`/task/${id}/remove`);
   return res.data;
 };
 
 const start = async (id: string): Promise<string> => {
-  const res = await request.delete(`/task/${id}/start`);
+  const res = await request.post(`/task/${id}/start`);
   return res.data;
 };
 

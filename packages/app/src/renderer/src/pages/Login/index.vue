@@ -22,11 +22,12 @@ const router = useRouter();
 const api = ref("");
 const key = ref("");
 
-const login = () => {
+const login = async () => {
   if (!api.value || !key.value) {
     notice.error({ title: "请输入API地址和密钥", duration: 1000 });
     return;
   }
+  await commonApi.versionTest(api.value, key.value);
   window.localStorage.setItem("api", api.value);
   window.localStorage.setItem("key", key.value);
   router.push({ name: "Main" });
