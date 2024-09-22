@@ -58,16 +58,8 @@ router.get("/", async (ctx) => {
 app.use(errorMiddleware);
 app.use(cors());
 app.use(bodyParser());
-
-// sse
-app.use(
-  SSERouter.use(
-    sse({
-      maxClients: 5000,
-      pingInterval: 30000,
-    }),
-  ).routes(),
-);
+app.use(router.routes());
+app.use(webhookRouter.routes());
 
 export function serverStart(
   options: {
@@ -89,8 +81,6 @@ export function serverStart(
     app.use(auth);
   }
 
-  app.use(router.routes());
-  app.use(webhookRouter.routes());
   app.use(configRouter.routes());
   app.use(llmRouter.routes());
   app.use(userRouter.routes());
@@ -99,6 +89,15 @@ export function serverStart(
   app.use(recocderRouter.routes());
   app.use(biliRouter.routes());
   app.use(taskRouter.routes());
+  // sse
+  app.use(
+    SSERouter.use(
+      sse({
+        maxClients: 5000,
+        pingInterval: 30000,
+      }),
+    ).routes(),
+  );
 
   app.listen(options.port, options.host, () => {
     console.log(`Server is running at http://${options.host}:${options.port}`);
