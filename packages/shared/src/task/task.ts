@@ -40,10 +40,10 @@ export abstract class AbstractTask {
   progress: number;
   custsomProgressMsg: string;
   action: ("pause" | "kill" | "interrupt")[];
-  startTime?: number;
+  startTime: number = 0;
   endTime?: number;
   error?: string;
-  pauseStartTime: number | null;
+  pauseStartTime: number = 0;
   totalPausedDuration: number = 0;
   emitter = new TypedEmitter<TaskEvents>();
   on: TypedEmitter<TaskEvents>["on"];

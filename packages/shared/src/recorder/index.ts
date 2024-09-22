@@ -49,27 +49,27 @@ export function createRecorderManager(appConfig: AppConfig) {
     await sleep(4000);
     const data = recorderConfig.get(recorder.id);
 
-    data.sendToWebhook &&
+    data?.sendToWebhook &&
       axios.post("http://localhost:18010/webhook/custom", {
         event: "FileOpening",
         filePath: filename,
         roomId: recorder.channelId,
         time: new Date().toISOString(),
-        title: recorder.liveInfo.title,
-        username: recorder.liveInfo.owner,
+        title: recorder?.liveInfo?.title,
+        username: recorder?.liveInfo?.owner,
       });
   });
   manager.on("videoFileCompleted", ({ recorder, filename }) => {
     console.error("Manager videoFileCompleted", recorder);
     const data = recorderConfig.get(recorder.id);
-    data.sendToWebhook &&
+    data?.sendToWebhook &&
       axios.post("http://localhost:18010/webhook/custom", {
         event: "FileClosed",
         filePath: filename,
         roomId: recorder.channelId,
         time: new Date().toISOString(),
-        title: recorder.liveInfo.title,
-        username: recorder.liveInfo.owner,
+        title: recorder?.liveInfo?.title,
+        username: recorder?.liveInfo?.owner,
       });
   });
 

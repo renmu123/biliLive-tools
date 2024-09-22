@@ -74,7 +74,7 @@ export function serverStart(
     port: number;
     host: string;
     auth: boolean;
-    passKey?: string;
+    passKey: string;
   },
   axContainer: AwilixContainer,
 ) {
