@@ -293,6 +293,7 @@ export interface AppConfig {
   theme: Theme;
   port: number;
   host: string;
+  passKey: string;
   webhook: {
     recoderFolder: string;
     blacklist: string;

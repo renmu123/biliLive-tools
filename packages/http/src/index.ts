@@ -1,7 +1,7 @@
 import Koa from "koa";
 import Router from "koa-router";
 import cors from "@koa/cors";
-import bodyParser from "koa-bodyparser";
+import { bodyParser } from "@koa/bodyparser";
 import sse from "koa-sse-stream";
 
 import errorMiddleware from "./middleware/error.js";
@@ -39,7 +39,7 @@ const authMiddleware = (passKey: string | number) => {
 
     const token = authHeader;
     if (token !== passKey) {
-      ctx.status = 403;
+      ctx.status = 401;
       ctx.body = "Forbidden";
       return;
     }
@@ -74,7 +74,7 @@ export function serverStart(
     port: number;
     host: string;
     auth: boolean;
-    passKey?: string;
+    passKey: string;
   },
   axContainer: AwilixContainer,
 ) {

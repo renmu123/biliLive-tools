@@ -18,10 +18,20 @@ export const version = async (): Promise<string> => {
   return res.data;
 };
 
+export const versionTest = async (api: string, Authorization: string): Promise<string> => {
+  const res = await request.get(`${api}/common/version`, {
+    headers: {
+      Authorization: Authorization,
+    },
+  });
+  return res.data;
+};
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
   version,
+  versionTest,
 };
 
 export default common;

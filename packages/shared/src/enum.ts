@@ -33,6 +33,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   theme: "system",
   port: 18010,
   host: "127.0.0.1",
+  passKey: "",
   webhook: {
     open: false,
     recoderFolder: "",

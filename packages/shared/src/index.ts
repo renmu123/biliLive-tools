@@ -16,7 +16,7 @@ import type { GlobalConfig } from "@biliLive-tools/types";
 export { createRecorderManager };
 export const container = createContainer();
 
-const init = (config: GlobalConfig) => {
+const init = async (config: GlobalConfig) => {
   appConfig.init(config.configPath, {
     ffmpegPath: config.defaultFfmpegPath,
     ffprobePath: config.defaultFfprobePath,
@@ -41,6 +41,7 @@ const init = (config: GlobalConfig) => {
     recorderManager: asValue(recorderManager),
   });
 
+  await migrate();
   setFfmpegPath();
   const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
   commentQueue.checkLoop();
@@ -53,6 +54,7 @@ const init = (config: GlobalConfig) => {
   return container;
 };
 
+// 迁移数据
 const migrate = async () => {
   await migrateBiliUser();
 };
