@@ -186,9 +186,6 @@ export const api = {
         );
       }
     },
-    notify: (title: string, desp: string) => {
-      return ipcRenderer.invoke("notify:send", title, desp);
-    },
     notifyTest: (title: string, desp: string, config: AppConfig) => {
       return ipcRenderer.invoke("notify:sendTest", title, desp, config);
     },
@@ -255,21 +252,21 @@ export const api = {
     ) => {
       return ipcRenderer.invoke("bili:appendVideo", uid, videoFiles, options);
     },
-    login() {
-      return ipcRenderer.invoke("biliApi:login");
-    },
-    onLogin(event: "error" | "completed", callback: (event: IpcRendererEvent, data: any) => void) {
-      if (event === "error") {
-        ipcRenderer.once("biliApi:login-error", callback);
-      } else if (event === "completed") {
-        ipcRenderer.once("biliApi:login-completed", callback);
-      }
-    },
-    loginCancel() {
-      ipcRenderer.removeAllListeners("biliApi:login-error");
-      ipcRenderer.removeAllListeners("biliApi:login-completed");
-      return ipcRenderer.invoke("biliApi:login:cancel");
-    },
+    // login() {
+    //   return ipcRenderer.invoke("biliApi:login");
+    // },
+    // onLogin(event: "error" | "completed", callback: (event: IpcRendererEvent, data: any) => void) {
+    //   if (event === "error") {
+    //     ipcRenderer.once("biliApi:login-error", callback);
+    //   } else if (event === "completed") {
+    //     ipcRenderer.once("biliApi:login-completed", callback);
+    //   }
+    // },
+    // loginCancel() {
+    //   ipcRenderer.removeAllListeners("biliApi:login-error");
+    //   ipcRenderer.removeAllListeners("biliApi:login-completed");
+    //   return ipcRenderer.invoke("biliApi:login:cancel");
+    // },
   },
   config: {
     save: (newConfig: AppConfig) => {
@@ -289,9 +286,6 @@ export const api = {
     },
     import: (filePath: string) => {
       return ipcRenderer.invoke("config:import", filePath);
-    },
-    resetBin: (type: "ffmpeg" | "ffprobe" | "danmakuFactory") => {
-      return ipcRenderer.invoke("config:resetBin", type);
     },
   },
   convertVideo2Mp4: (

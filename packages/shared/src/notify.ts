@@ -123,22 +123,22 @@ export function send(title: string, desp: string) {
   _send(title, desp, config);
 }
 
-export function _send(title: string, desp: string, appConfig: AppConfig) {
+export async function _send(title: string, desp: string, appConfig: AppConfig) {
   switch (appConfig?.notification?.setting?.type) {
     case "server":
       sendByServer(title, desp, appConfig?.notification?.setting?.server);
       break;
     case "mail":
-      sendByMail(title, desp, appConfig?.notification?.setting?.mail);
+      await sendByMail(title, desp, appConfig?.notification?.setting?.mail);
       break;
     case "tg":
-      sendByTg(title, desp, appConfig?.notification?.setting?.tg);
+      await sendByTg(title, desp, appConfig?.notification?.setting?.tg);
       break;
     case "system":
-      sendBySystem(title, desp);
+      await sendBySystem(title, desp);
       break;
     case "ntfy":
-      sendByNtfy(title, desp, appConfig?.notification?.setting?.ntfy);
+      await sendByNtfy(title, desp, appConfig?.notification?.setting?.ntfy);
   }
 }
 

@@ -34,10 +34,26 @@ export const save = async <K extends keyof AppConfig>(data: AppConfig[K]): Promi
   }
 };
 
+export const resetBin = async (type: "ffmpeg" | "ffprobe" | "danmakuFactory"): Promise<string> => {
+  const res = await request.post(`/config/resetBin`, { type });
+  return res.data;
+};
+
+export const notifyTest = async (
+  title: string,
+  desp: string,
+  options: AppConfig,
+): Promise<void> => {
+  const res = await request.post(`/config/notifyTest`, { title, desp, options });
+  return res.data;
+};
+
 const config = {
   get,
   set,
   save,
+  resetBin,
+  notifyTest,
 };
 
 export default config;

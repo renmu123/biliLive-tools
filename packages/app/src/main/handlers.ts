@@ -5,7 +5,7 @@ import { appConfig } from "@biliLive-tools/shared";
 import { convertVideo2Mp4, mergeAssMp4, mergeVideos } from "@biliLive-tools/shared/task/video.js";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
 import JSZip from "jszip";
-import { getConfigPath, FFMPEG_PATH, DANMUKUFACTORY_PATH, FFPROBE_PATH } from "./appConstant";
+import { getConfigPath } from "./appConstant";
 import { invokeWrap } from "./utils/index";
 import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/task/video.js";
 
@@ -78,20 +78,6 @@ export const configHandlers = {
         }
       }),
     );
-  },
-  "config:resetBin": (
-    _event: IpcMainInvokeEvent,
-    type: "ffmpeg" | "ffprobe" | "danmakuFactory",
-  ) => {
-    if (type === "ffmpeg") {
-      return FFMPEG_PATH;
-    } else if (type === "ffprobe") {
-      return FFPROBE_PATH;
-    } else if (type === "danmakuFactory") {
-      return DANMUKUFACTORY_PATH;
-    } else {
-      throw new Error("未知的类型");
-    }
   },
 };
 
