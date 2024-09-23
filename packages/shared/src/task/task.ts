@@ -43,7 +43,7 @@ export abstract class AbstractTask {
   startTime: number = 0;
   endTime?: number;
   error?: string;
-  pauseStartTime: number = 0;
+  pauseStartTime: number | null = 0;
   totalPausedDuration: number = 0;
   emitter = new TypedEmitter<TaskEvents>();
   on: TypedEmitter<TaskEvents>["on"];

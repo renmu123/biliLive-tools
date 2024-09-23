@@ -33,4 +33,4 @@ web发布
 这样ClI用户应该可以更好一步进行使用了~~大概也没什么CLI用户吧~~
 
 密钥为`appConfig.json`的`passKey`字段
-TODO: 主题修复、登录、
+TODO: 主题修复

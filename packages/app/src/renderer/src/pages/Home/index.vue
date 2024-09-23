@@ -1,6 +1,8 @@
 <!-- 压制&上传 -->
 <template>
   <div>
+    <!-- <FileBrowserDialog :visible="true"></FileBrowserDialog> -->
+
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
         <n-button
@@ -12,7 +14,6 @@
           预览
         </n-button>
         <n-button type="primary" :disabled="isWeb" @click="handleConvert"> 启动！ </n-button>
-        <!-- <n-button type="primary" @click="testNofity"> 测试发送通知 </n-button> -->
         <!-- <n-button type="primary" @click="hotProgressConvert"> 测试高能弹幕进度条生成 </n-button> -->
       </div>
     </div>

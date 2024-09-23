@@ -22,7 +22,7 @@ const getArchiveDetail = async (
   bvid: string,
   uid: number,
 ): Promise<ReturnType<BiliApi["getArchiveDetail"]>> => {
-  const res = await request.get(`/user/bili/archive/${bvid}`, {
+  const res = await request.get(`/bili/user/archive/${bvid}`, {
     params: { uid },
   });
   return res.data;

@@ -22,6 +22,8 @@
 
 # 下载
 
+**更新前请查看更新记录，避免破坏性更新带来的问题**
+
 不提供 MacOS 安装包，需要的可以自行编译，编译时需要替换用到的二进制文件。  
 由于我不在Linux开发，测试覆盖不光，如果存在问题可以提issue。  
 CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/master/packages/CLI)

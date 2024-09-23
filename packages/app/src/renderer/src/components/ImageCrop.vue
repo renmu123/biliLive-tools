@@ -16,7 +16,7 @@
     >
       <img v-if="src" class="image" :src="src" @click="selectImage" />
       <div v-else class="empty-image" @click="selectImage">选择图片</div>
-      <span v-if="src" class="remmove" @click="remove">X</span>
+      <span v-if="src" class="remove" @click="remove">X</span>
     </div>
   </div>
 </template>
@@ -71,15 +71,19 @@ const remove = () => {
   height: 100%;
   width: 100%;
 }
-.remmove {
+.remove {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 4px;
+  right: 4px;
   color: #fff;
   background: #000;
-  padding: 2px 6px;
   border-radius: 50%;
   cursor: pointer;
   font-size: 12px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>

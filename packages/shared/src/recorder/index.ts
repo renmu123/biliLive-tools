@@ -32,9 +32,9 @@ export function createRecorderManager(appConfig: AppConfig) {
     savePathRule: savePathRule,
   });
 
-  manager.on("RecorderDebugLog", (debug) => {
-    // console.error("Manager deug", debug.text);
-  });
+  // manager.on("RecorderDebugLog", (debug) => {
+  //   // console.error("Manager deug", debug.text);
+  // });
   manager.on("RecordStart", (debug) => {
     console.error("Manager start", debug);
   });

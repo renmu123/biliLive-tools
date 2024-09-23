@@ -317,9 +317,13 @@ window.addEventListener("unhandledrejection", (error) => {
   });
 });
 
-setInterval(() => {
+const intervalId = setInterval(() => {
   quenuStore.getQuenu();
-}, 1000);
+}, 2000);
+
+onUnmounted(() => {
+  clearInterval(intervalId);
+});
 
 // 更新日志处理
 const changelogVisible = ref(false);

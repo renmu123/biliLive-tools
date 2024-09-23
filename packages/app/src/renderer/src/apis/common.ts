@@ -28,11 +28,30 @@ export const versionTest = async (api: string, Authorization: string): Promise<s
   return res.data;
 };
 
+export const getFiles = async (params: {
+  path: string;
+  ext?: string;
+  type?: "file" | "directory";
+}): Promise<{
+  list: {
+    type: "file" | "directory";
+    name: string;
+    path: string;
+  }[];
+  parent: string;
+}> => {
+  const res = await request.get(`/common/files`, {
+    params,
+  });
+  return res.data;
+};
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
   version,
   versionTest,
+  getFiles,
 };
 
 export default common;

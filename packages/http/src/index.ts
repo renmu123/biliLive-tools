@@ -98,6 +98,7 @@ export function serverStart(
       }),
     ).routes(),
   );
+  app.use(router.allowedMethods());
 
   app.listen(options.port, options.host, () => {
     console.log(`Server is running at http://${options.host}:${options.port}`);

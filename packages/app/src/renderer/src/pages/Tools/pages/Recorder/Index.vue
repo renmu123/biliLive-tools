@@ -135,9 +135,18 @@ const init = async () => {
 
 init();
 
-setInterval(() => {
-  getList();
-}, 2000);
+let intervalId: NodeJS.Timeout | null = null;
+
+onDeactivated(() => {
+  intervalId && clearInterval(intervalId);
+  intervalId = null;
+});
+
+onActivated(() => {
+  intervalId = setInterval(() => {
+    getList();
+  }, 2000);
+});
 </script>
 
 <style scoped lang="less">

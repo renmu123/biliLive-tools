@@ -9,10 +9,11 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { darkTheme, lightTheme, useOsTheme, dateZhCN, zhCN } from "naive-ui";
 
 const router = useRouter();
+const route = useRoute();
 
 const isWeb = computed(() => window.isWeb);
 
@@ -22,10 +23,20 @@ if (!isWeb.value) {
   const apiStorage = window.localStorage.getItem("api");
   const keyStorage = window.localStorage.getItem("key");
   if (apiStorage && keyStorage) {
-    router.push({ name: "Home" });
+    if (route.name !== "Login") {
+      router.push({ name: "Home" });
+    }
   } else {
     router.push({ name: "Login" });
   }
+}
+
+// 获取当前 Vue 实例
+const instance = getCurrentInstance();
+if (instance) {
+  console.log(instance.appContext.app);
+  // 提供当前实例给子组件
+  provide("currentApp", instance.appContext.app);
 }
 
 const osThemeRef = useOsTheme();

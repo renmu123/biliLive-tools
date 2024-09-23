@@ -55,6 +55,7 @@ router.post("/resetBin", async (ctx) => {
 router.post("/notifyTest", async (ctx) => {
   const { title, desp, options } = ctx.request.body;
   await _send(title, desp, options);
+  ctx.body = "success";
 });
 
 export default router;
