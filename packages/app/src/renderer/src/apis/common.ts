@@ -47,7 +47,7 @@ export const getFiles = async (params: {
 };
 
 export async function douyuVideoParse(url: string) {
-  const res = await request.post(`/douyu/parse`, {
+  const res = await request.post(`/common/douyu/parse`, {
     url,
   });
   return res.data;
@@ -66,7 +66,7 @@ export async function douyuVideoDownload(
     platform?: "douyu";
   },
 ) {
-  const res = await request.post(`/douyu/download`, {
+  const res = await request.post(`/common/douyu/download`, {
     output,
     decodeData,
     options,

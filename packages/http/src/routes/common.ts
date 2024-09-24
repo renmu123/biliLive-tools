@@ -111,9 +111,9 @@ router.get("/files", async (ctx) => {
   }
 });
 
-router.post("/douyu/parse", (ctx) => {
+router.post("/douyu/parse", async (ctx) => {
   const { url } = ctx.request.body as { url: string };
-  const data = douyu.parseVideo(url);
+  const data = await douyu.parseVideo(url);
   ctx.body = data;
 });
 

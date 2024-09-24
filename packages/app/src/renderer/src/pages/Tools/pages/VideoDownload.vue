@@ -7,10 +7,9 @@
           v-model:value="url"
           :style="{ width: '80%' }"
           placeholder="请输入视频链接，比如：https://www.bilibili.com/video/BV1u94y1K7nr、https://v.douyu.com/show/brN0MmQqKl6MpyxA"
+          @keyup.enter="download"
         />
-        <n-button type="primary" ghost :disabled="!url" @click="download" @keyup.enter="download">
-          下载
-        </n-button>
+        <n-button type="primary" ghost :disabled="!url" @click="download"> 下载 </n-button>
       </div>
       <DownloadConfirm
         v-model:visible="visible"

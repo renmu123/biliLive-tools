@@ -79,7 +79,7 @@ interface Props {
   };
 }
 const { appConfig } = storeToRefs(useAppConfig());
-const options = appConfig.value.tool.download;
+const options = reactive(appConfig.value?.tool?.download ?? {});
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const selectIds = defineModel<(number | string)[]>("selectIds", { required: true, default: [] });

@@ -9,11 +9,10 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter, useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 import { darkTheme, lightTheme, useOsTheme, dateZhCN, zhCN } from "naive-ui";
 
 const router = useRouter();
-const route = useRoute();
 
 const isWeb = computed(() => window.isWeb);
 
@@ -23,9 +22,7 @@ if (!isWeb.value) {
   const apiStorage = window.localStorage.getItem("api");
   const keyStorage = window.localStorage.getItem("key");
   if (apiStorage && keyStorage) {
-    if (route.name !== "Login") {
-      router.push({ name: "Home" });
-    }
+    // do nothing
   } else {
     router.push({ name: "Login" });
   }

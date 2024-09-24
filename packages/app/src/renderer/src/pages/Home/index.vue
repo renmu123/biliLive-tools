@@ -1,8 +1,6 @@
 <!-- 压制&上传 -->
 <template>
   <div>
-    <!-- <FileBrowserDialog :visible="true"></FileBrowserDialog> -->
-
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
         <n-button
