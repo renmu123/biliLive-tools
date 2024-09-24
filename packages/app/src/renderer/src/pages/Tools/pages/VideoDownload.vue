@@ -26,7 +26,8 @@
 import { useUserInfoStore } from "@renderer/stores";
 import DownloadConfirm from "@renderer/components/DownloadConfirm.vue";
 import { sanitizeFileName } from "@renderer/utils";
-import { biliApi } from "@renderer/apis";
+import { biliApi, commonApi } from "@renderer/apis";
+import path from "path-browserify";
 
 const notice = useNotification();
 const { userInfo } = storeToRefs(useUserInfoStore());
@@ -102,7 +103,7 @@ const handleDouyu = async (formatUrl: string) => {
     throw new Error("请输入正确的斗鱼视频链接");
   }
   try {
-    const data = await window.api.douyu.parseVideo(formatUrl);
+    const data = await commonApi.douyuVideoParse(formatUrl);
     archiveDeatil.value = {
       vid: "111",
       title: data[0].seo_title,
@@ -154,8 +155,8 @@ const confirm = async (options: { ids: (number | string)[]; savePath: string }) 
 
   for (const page of selectPages) {
     if (videoType.value === "douyu") {
-      await window.api.douyu.download(
-        window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
+      await commonApi.douyuVideoDownload(
+        path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
         page.cid as string,
         {
           danmu: true,
@@ -165,7 +166,7 @@ const confirm = async (options: { ids: (number | string)[]; savePath: string }) 
     } else if (videoType.value === "bili") {
       biliApi.download(
         {
-          output: window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
+          output: path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
           cid: page.cid as number,
           bvid: archiveDeatil.value.vid,
         },

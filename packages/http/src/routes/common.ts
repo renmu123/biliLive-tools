@@ -1,10 +1,12 @@
-import fs from "fs-extra";
+import { exec } from "node:child_process";
 import path from "node:path";
+import fs from "fs-extra";
 
 import Router from "koa-router";
 import { foramtTitle } from "@biliLive-tools/shared/utils/index.js";
+import douyu from "@biliLive-tools/shared/task/douyu.js";
+
 import { config } from "../index.js";
-import { exec } from "node:child_process";
 
 const router = new Router({
   prefix: "/common",
@@ -86,15 +88,6 @@ router.get("/files", async (ctx) => {
       const filePath = path.join(root, name);
       try {
         const fileStat = await fs.stat(filePath);
-        // if (type === "directory" && fileStat.isDirectory()) {
-        //   data.push({
-        //     type: "directory",
-        //     name: name,
-        //     path: filePath,
-        //   });
-        //   continue;
-        // }
-
         data.push({
           type: fileStat.isDirectory() ? "directory" : "file",
           name: name,
@@ -116,6 +109,22 @@ router.get("/files", async (ctx) => {
     ctx.body = "Unable to scan directory";
     return;
   }
+});
+
+router.post("/douyu/parse", (ctx) => {
+  const { url } = ctx.request.body as { url: string };
+  const data = douyu.parseVideo(url);
+  ctx.body = data;
+});
+
+router.post("/douyu/download", async (ctx) => {
+  const { output, decodeData, options } = ctx.request.body as {
+    output: string;
+    decodeData: any;
+    options: any;
+  };
+  const { taskId } = await douyu.download(output, decodeData, options);
+  ctx.body = { taskId: taskId };
 });
 
 export default router;

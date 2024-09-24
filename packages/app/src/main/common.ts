@@ -1,6 +1,6 @@
 import fs from "fs-extra";
-import os from "os";
-import path from "path";
+import os from "node:os";
+import path from "node:path";
 import child_process from "node:child_process";
 import { app, shell } from "electron";
 import { trashItem } from "@biliLive-tools/shared/utils/index.js";

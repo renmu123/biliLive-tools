@@ -183,6 +183,9 @@ importers:
       electron-updater:
         specifier: ^6.3.4
         version: 6.3.4
+      path-browserify:
+        specifier: ^1.0.1
+        version: 1.0.1
       semver:
         specifier: ^7.6.3
         version: 7.6.3

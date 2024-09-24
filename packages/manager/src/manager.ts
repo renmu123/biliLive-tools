@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import mitt, { Emitter } from "mitt";
 import { omit, range } from "lodash-es";
 import { ChannelId } from "./common.js";

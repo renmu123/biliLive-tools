@@ -1,4 +1,4 @@
-import { join, parse } from "path";
+import { join, parse } from "node:path";
 import os from "os";
 import fs from "fs-extra";
 import ffmpeg from "@renmu/fluent-ffmpeg";
