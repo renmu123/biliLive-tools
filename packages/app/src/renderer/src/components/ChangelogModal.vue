@@ -75,11 +75,14 @@ const close = async () => {
   showModal.value = false;
 };
 
-watchEffect(() => {
-  if (!showModal.value) {
-    confirm();
-  }
-});
+watch(
+  () => showModal.value,
+  (value) => {
+    if (!value) {
+      confirm();
+    }
+  },
+);
 </script>
 
 <style scoped lang="less"></style>

@@ -34,6 +34,8 @@
 </template>
 
 <script setup lang="ts">
+import { toReactive } from "@vueuse/core";
+
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import Tip from "@renderer/components/Tip.vue";
 import { useAppConfig } from "@renderer/stores";
@@ -45,7 +47,14 @@ const isWeb = computed(() => window.isWeb);
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 
-const options = appConfig.value.tool.videoMerge;
+const options = toReactive(
+  computed({
+    get: () => appConfig.value.tool.videoMerge,
+    set: (value) => {
+      appConfig.value.tool.videoMerge = value;
+    },
+  }),
+);
 
 onActivated(() => {
   hotkeys("ctrl+enter", function () {

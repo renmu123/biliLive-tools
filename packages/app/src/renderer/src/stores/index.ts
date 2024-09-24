@@ -9,7 +9,7 @@ import {
   configApi,
   taskApi,
 } from "@renderer/apis";
-import { APP_DEFAULT_CONFIG } from "@biliLive-tools/shared/enum.js";
+// import { APP_DEFAULT_CONFIG } from "@biliLive-tools/shared/enum.js";
 
 import type { Task } from "@renderer/types";
 
@@ -121,7 +121,14 @@ export const useDanmuPreset = defineStore("danmuPreset", () => {
   const { appConfig } = storeToRefs(useAppConfig());
   console.log(appConfig.value);
 
-  const danmuPresetId = toRef(appConfig.value.tool.danmu, "danmuPresetId");
+  // const danmuPresetId = toRef(appConfig.value.tool.danmu, "danmuPresetId");
+  const danmuPresetId = computed({
+    get: () => appConfig.value.tool.danmu.danmuPresetId,
+    set: (value) => {
+      appConfig.value.tool.danmu.danmuPresetId = value;
+    },
+  });
+
   const danmuPresets = ref<DanmuPreset[]>([]);
   // @ts-ignore
   const danmuPreset: Ref<DanmuPreset> = ref({
@@ -249,7 +256,64 @@ export const useQueueStore = defineStore("queue", () => {
 });
 
 export const useAppConfig = defineStore("appConfig", () => {
-  const appConfig = ref<AppConfig>(APP_DEFAULT_CONFIG);
+  // @ts-ignore
+  const appConfig = ref<AppConfig>({
+    tool: {
+      home: {
+        uploadPresetId: "default",
+        danmuPresetId: "default",
+        ffmpegPresetId: "b_libx264",
+        removeOrigin: false,
+        openFolder: false,
+        autoUpload: false,
+        hotProgress: false,
+        hotProgressSample: 30,
+        hotProgressHeight: 60,
+        hotProgressColor: "#f9f5f3",
+        hotProgressFillColor: "#333333",
+      },
+      upload: {
+        uploadPresetId: "default",
+      },
+      danmu: {
+        danmuPresetId: "default",
+        saveRadio: 1,
+        savePath: "",
+        removeOrigin: false,
+        openFolder: false,
+      },
+      video2mp4: {
+        saveRadio: 1,
+        savePath: "",
+        saveOriginPath: false,
+        override: false,
+        removeOrigin: false,
+        ffmpegPresetId: "b_copy",
+      },
+      videoMerge: {
+        saveOriginPath: false,
+        removeOrigin: false,
+      },
+      download: {
+        savePath: "",
+      },
+      translate: {
+        presetId: undefined,
+      },
+      videoCut: {
+        /** 保存类型 */
+        saveRadio: 1,
+        /** 保存路径 */
+        savePath: ".\\导出文件夹",
+        /** 覆盖已存在的文件 */
+        override: false,
+        /** ffmpeg预设 */
+        ffmpegPresetId: "b_libx264",
+        title: "{{filename}}-{{label}}-{{num}}",
+        danmuPresetId: "default",
+      },
+    },
+  });
 
   async function getAppConfig() {
     console.log("getAppConfig");
@@ -263,9 +327,8 @@ export const useAppConfig = defineStore("appConfig", () => {
     () => appConfig.value.tool,
     (newVal, oldVal) => {
       if (!oldVal) return;
-      if (JSON.stringify(newVal) === JSON.stringify(oldVal)) return;
 
-      configApi.save(cloneDeep(appConfig.value));
+      configApi.set("tool", cloneDeep(newVal));
     },
     { deep: true },
   );

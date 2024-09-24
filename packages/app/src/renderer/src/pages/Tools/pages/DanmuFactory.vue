@@ -57,6 +57,7 @@
 </template>
 
 <script setup lang="ts">
+import { toReactive } from "@vueuse/core";
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import { deepRaw } from "@renderer/utils";
@@ -75,7 +76,14 @@ const isWeb = computed(() => window.isWeb);
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 
-const options = appConfig.value.tool.danmu;
+const options = toReactive(
+  computed({
+    get: () => appConfig.value.tool.danmu,
+    set: (value) => {
+      appConfig.value.tool.danmu = value;
+    },
+  }),
+);
 
 onActivated(() => {
   hotkeys("ctrl+enter", function () {
