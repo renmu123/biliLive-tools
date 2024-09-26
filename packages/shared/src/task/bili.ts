@@ -482,11 +482,11 @@ export class BiliCommentQueue {
     });
   }
   async check() {
-    console.log("list", this.list);
+    // console.log("list", this.list);
     if (this.list.filter((item) => item.status === "pending").length === 0) return;
     await this.getArchiveList();
     this.handlingList();
-    console.log("handling", this.list);
+    // console.log("handling", this.list);
     await this.commentCheck();
     await this.statusCheck();
   }
@@ -498,7 +498,7 @@ export class BiliCommentQueue {
    */
   async statusCheck() {
     const list = this.filter("checkStatus");
-    console.log("checkStatus", list);
+    // console.log("checkStatus", list);
     const notification = this.appConfig.get("notification")?.task?.mediaStatusCheck;
     for (const item of list) {
       const media = this.mediaList.find((media) => media.Archive.aid === item.aid);
@@ -549,7 +549,7 @@ export class BiliCommentQueue {
     const list = this.filter("comment").filter((item) => {
       return allowCommentList.some((aid) => aid === item.aid);
     });
-    log.debug("评论队列", list);
+    // log.debug("评论队列", list);
 
     for (const item of list) {
       try {

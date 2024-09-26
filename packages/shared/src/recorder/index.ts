@@ -4,7 +4,7 @@ import axios from "axios";
 import { createRecorderManager as createManager, setFFMPEGPath } from "@autorecord/manager";
 import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
 import { getFfmpegPath } from "../task/video.js";
-// import logger from "../utils/log.js";
+import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
 import { sleep } from "../utils/index.js";
 
@@ -36,16 +36,16 @@ export function createRecorderManager(appConfig: AppConfig) {
   //   // console.error("Manager deug", debug.text);
   // });
   manager.on("RecordStart", (debug) => {
-    console.error("Manager start", debug);
+    logger.info("Manager start", debug);
   });
-  // manager.on("error", (error) => {
-  //   logger.error("Manager error", error);
-  // });
+  manager.on("error", (error) => {
+    logger.error("Manager error", error);
+  });
   // manager.on("RecordSegment", (debug) => {
   //   console.error("Manager segment", debug);
   // });
   manager.on("videoFileCreated", async ({ recorder, filename }) => {
-    console.error("Manager videoFileCreated", recorder);
+    logger.info("Manager videoFileCreated", { recorder, filename });
     await sleep(4000);
     const data = recorderConfig.get(recorder.id);
 
@@ -60,7 +60,8 @@ export function createRecorderManager(appConfig: AppConfig) {
       });
   });
   manager.on("videoFileCompleted", ({ recorder, filename }) => {
-    console.error("Manager videoFileCompleted", recorder);
+    logger.warn("Manager videoFileCompleted", { recorder, filename });
+
     const data = recorderConfig.get(recorder.id);
     data?.sendToWebhook &&
       axios.post("http://localhost:18010/webhook/custom", {
@@ -98,7 +99,7 @@ export function createRecorderManager(appConfig: AppConfig) {
       }
       recorderConfig.add(recorder);
       const data = recorderConfig.get(recorder.id);
-      console.log("addRecorder", data);
+      // console.log("addRecorder", data);
 
       return manager.addRecorder(data!);
     },

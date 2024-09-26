@@ -82,7 +82,7 @@ export class WebhookHandler {
     const {
       danmu,
       minSize,
-      uploadPresetId,
+      // uploadPresetId,
       title,
       danmuPresetId,
       videoPresetId,
@@ -104,20 +104,22 @@ export class WebhookHandler {
       return;
     }
 
-    let config = DEFAULT_BILIUP_CONFIG;
-    if (uploadPresetId) {
-      const preset = await this.videoPreset.get(uploadPresetId);
-      console.log(preset);
-
-      config = { ...config, ...(preset?.config ?? {}) };
-    }
+    let videoTitle = title;
+    // let config = DEFAULT_BILIUP_CONFIG;
+    // if (uploadPresetId) {
+    //   const preset = await this.videoPreset.get(uploadPresetId);
+    //   config = { ...config, ...(preset?.config ?? {}) };
+    // }
     if (useVideoAsTitle) {
-      config.title = path.parse(options.filePath).name;
+      videoTitle = path.parse(options.filePath).name.slice(0, 80);
     } else {
-      config.title = foramtTitle(options, title);
+      videoTitle = foramtTitle(options, videoTitle);
     }
-    if (!config.title) config.title = path.parse(options.filePath).name;
-    options.title = config.title;
+    options.title = videoTitle;
+    if (!options.title) {
+      log.error("webhook title is empty", options);
+      return;
+    }
 
     // 计算live
     const currentLiveIndex = await this.handleLiveData(options, partMergeMinute);
@@ -147,7 +149,6 @@ export class WebhookHandler {
     if (useLiveCover) {
       const cover = await this.handleCover(options);
       if (cover) {
-        config.cover = cover;
         currentPart.cover = cover;
       } else {
         log.error(`${cover} can not be found`);
@@ -175,6 +176,8 @@ export class WebhookHandler {
         if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
           log.info("没有找到弹幕文件，直接上传", xmlFilePath);
           currentPart.status = "handled";
+          const { uid } = this.getConfig(options.roomId);
+          if (!uid) currentPart.status = "error";
           return;
         }
         let hotProgressFile: string | undefined;
@@ -197,8 +200,8 @@ export class WebhookHandler {
 
         const assFilePath = await this.addDanmuTask(xmlFilePath, options.filePath, danmuConfig);
 
-        const preset = await this.ffmpegPreset.get(videoPresetId);
-        if (!preset) {
+        const ffmpegPreset = await this.ffmpegPreset.get(videoPresetId);
+        if (!ffmpegPreset) {
           log.error("ffmpegPreset not found", videoPresetId);
           currentPart.status = "error";
           return;
@@ -207,7 +210,7 @@ export class WebhookHandler {
           options.filePath,
           assFilePath,
           hotProgressFile,
-          preset?.config,
+          ffmpegPreset?.config,
           { removeVideo: removeOriginAfterConvert, suffix: "弹幕版" },
         );
         if (removeOriginAfterConvert) {
@@ -217,6 +220,8 @@ export class WebhookHandler {
 
         currentPart.filePath = output;
         currentPart.status = "handled";
+        const { uid } = this.getConfig(options.roomId);
+        if (!uid) currentPart.status = "error";
       } catch (error) {
         log.error(error);
         currentPart.status = "error";
@@ -239,6 +244,8 @@ export class WebhookHandler {
         currentPart.filePath = output;
       }
       currentPart.status = "handled";
+      const { uid } = this.getConfig(options.roomId);
+      if (!uid) currentPart.status = "error";
     }
   }
   async handleCover(options: { coverPath?: string; filePath: string }) {
@@ -295,7 +302,7 @@ export class WebhookHandler {
     useVideoAsTitle?: boolean;
     /* 弹幕preset */
     danmuPresetId: string;
-    /* 视频preset */
+    /* 视频压制preset */
     videoPresetId: string;
     /* 是否开启 */
     open?: boolean;
@@ -758,14 +765,14 @@ export class WebhookHandler {
     if (!uid) return;
     if (limitUploadTime && !this.isBetweenTime(new Date(), uploadHandleTime)) return;
 
-    let config = DEFAULT_BILIUP_CONFIG;
+    let uploadPreset = DEFAULT_BILIUP_CONFIG;
     if (uploadPresetId) {
       const preset = await this.videoPreset.get(uploadPresetId);
-      config = { ...config, ...(preset?.config ?? {}) };
+      uploadPreset = { ...uploadPreset, ...(preset?.config ?? {}) };
     }
-    config.title = live.videoName;
+    uploadPreset.title = live.videoName;
     if (useLiveCover) {
-      config.cover = cover;
+      uploadPreset.cover = cover;
     }
 
     if (live.aid) {
@@ -794,7 +801,7 @@ export class WebhookHandler {
         const aid = (await this.addUploadTask(
           uid,
           filePaths,
-          config,
+          uploadPreset,
           removeOriginAfterUpload,
         )) as number;
         live.aid = Number(aid);
