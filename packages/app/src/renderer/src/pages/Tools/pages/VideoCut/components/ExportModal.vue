@@ -84,6 +84,8 @@
 </template>
 
 <script setup lang="ts">
+import { toReactive } from "@vueuse/core";
+
 import { ffmpegPresetApi } from "@renderer/apis";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useFfmpegPreset, useAppConfig, useSegmentStore } from "@renderer/stores";
@@ -118,7 +120,14 @@ const { cuts, selectedCuts } = storeToRefs(useSegmentStore());
 
 const notice = useNotification();
 
-const exportOptions = appConfig.value.tool.videoCut;
+const exportOptions = toReactive(
+  computed({
+    get: () => appConfig.value.tool.videoCut,
+    set: (value) => {
+      appConfig.value.tool.videoCut = value;
+    },
+  }),
+);
 
 const confirmExport = async () => {
   if (!exportOptions.ffmpegPresetId) {

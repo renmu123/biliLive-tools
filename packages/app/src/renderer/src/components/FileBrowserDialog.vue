@@ -4,7 +4,7 @@
       <n-card style="width: 800px" title="文件浏览器" :bordered="false">
         <div class="file-browser-content">
           <!-- 文件扩展名筛选器 -->
-          <div class="filter">
+          <!-- <div class="filter">
             <label for="extFilter">Filter by extension:</label>
             <select id="extFilter" v-model="selectedExt" @change="fetchFiles">
               <option value="">All</option>
@@ -12,14 +12,14 @@
               <option value=".pdf">.pdf</option>
               <option value=".jpg">.jpg</option>
             </select>
-          </div>
+          </div> -->
 
           <!-- 当前路径显示 -->
           <p>Current Path: {{ currentPath }}</p>
 
           <!-- 文件夹与文件展示 -->
           <ul class="file-list">
-            <li v-if="currentPath !== ''" @click="goUpDirectory">上一级</li>
+            <li v-if="currentPath" @click="goUpDirectory">上一级</li>
             <li
               v-for="(file, index) in files"
               :key="index"
@@ -55,12 +55,16 @@ import { darkTheme, lightTheme, useOsTheme, dateZhCN, zhCN } from "naive-ui";
 
 interface Props {
   type?: "file" | "directory";
+  close: () => void;
+  confirm: (path: string) => void;
 }
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
-const emit = defineEmits(["close", "confirm"]);
+// const emit = defineEmits(["close", "confirm"]);
 const props = withDefaults(defineProps<Props>(), {
   type: "file",
+  close: () => {},
+  confirm: () => {},
 });
 
 const files = ref<
@@ -110,13 +114,17 @@ const selectFile = (file: { name: string; type: "file" | "directory"; path: stri
 
 // 关闭弹框
 const closeDialog = () => {
-  emit("close");
+  // emit("close");
+  props.close();
   showModal.value = false;
 };
 
 const confirm = () => {
-  emit("confirm", { path: selectedFile.value });
-  closeDialog();
+  // emit("confirm", { path: selectedFile.value });
+  props.confirm(selectedFile.value);
+  showModal.value = false;
+  // console.log("ppp", selectedFile.value);
+  // closeDialog();
 };
 
 onMounted(() => {

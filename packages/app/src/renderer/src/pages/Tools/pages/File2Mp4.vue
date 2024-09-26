@@ -54,6 +54,8 @@
 </template>
 
 <script setup lang="ts">
+import { toReactive } from "@vueuse/core";
+
 import { useConfirm } from "@renderer/hooks";
 import { ffmpegPresetApi } from "@renderer/apis";
 import { useAppConfig, useFfmpegPreset } from "@renderer/stores";
@@ -68,7 +70,14 @@ const { ffmpegOptions } = storeToRefs(useFfmpegPreset());
 const isWeb = computed(() => window.isWeb);
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
-const options = appConfig.value.tool.video2mp4;
+const options = toReactive(
+  computed({
+    get: () => appConfig.value.tool.video2mp4,
+    set: (value) => {
+      appConfig.value.tool.video2mp4 = value;
+    },
+  }),
+);
 
 onActivated(() => {
   hotkeys("ctrl+enter", function () {

@@ -52,7 +52,7 @@
 import { useStorage } from "@vueuse/core";
 
 import { NIcon } from "naive-ui";
-import { RouterLink } from "vue-router";
+import { RouterLink, useRoute } from "vue-router";
 
 import {
   BuildOutline as BookIcon,
@@ -75,7 +75,9 @@ const appConfig = useAppConfig();
 
 const { userInfo } = storeToRefs(useUserInfoStore());
 
-const activeKey = ref("go-back-home");
+const route = useRoute();
+const activeKey = ref("Home");
+activeKey.value = route.name as string;
 const collapsed = useStorage("collapsed", true);
 
 appConfig.getAppConfig();
@@ -128,7 +130,7 @@ const footerMenuOptions = computed<MenuOption[]>(() => {
           },
           { default: () => "关于" },
         ),
-      key: "about",
+      key: "About",
       icon: renderIcon(InfoIcon),
     },
     {
@@ -161,7 +163,7 @@ const menuOptions = computed<MenuOption[]>(() => {
           },
           { default: () => "主页" },
         ),
-      key: "go-back-home",
+      key: "Home",
       icon: renderIcon(HomeIcon),
     },
     {
@@ -170,7 +172,7 @@ const menuOptions = computed<MenuOption[]>(() => {
       icon: renderIcon(BookIcon),
       children: [
         {
-          key: "upload",
+          key: "Upload",
           label: () =>
             h(
               RouterLink,
@@ -183,7 +185,7 @@ const menuOptions = computed<MenuOption[]>(() => {
             ),
         },
         {
-          key: "danmakufactory",
+          key: "DanmakuFactory",
           label: () =>
             h(
               RouterLink,
@@ -196,7 +198,7 @@ const menuOptions = computed<MenuOption[]>(() => {
             ),
         },
         {
-          key: "Recorder",
+          key: "recorder",
           label: () =>
             h(
               RouterLink,
@@ -222,7 +224,7 @@ const menuOptions = computed<MenuOption[]>(() => {
             ),
         },
         {
-          key: "convert2mp4",
+          key: "Convert2Mp4",
           label: () =>
             h(
               RouterLink,
@@ -235,7 +237,7 @@ const menuOptions = computed<MenuOption[]>(() => {
             ),
         },
         {
-          key: "videoMerge",
+          key: "VideoMerge",
           label: () =>
             h(
               RouterLink,
@@ -248,7 +250,7 @@ const menuOptions = computed<MenuOption[]>(() => {
             ),
         },
         {
-          key: "biliDownload",
+          key: "BiliDownload",
           label: () =>
             h(
               RouterLink,
@@ -273,7 +275,7 @@ const menuOptions = computed<MenuOption[]>(() => {
           },
           { default: () => "队列" },
         ),
-      key: "queue",
+      key: "Queue",
       icon: renderQueueIcon(QueueIcon),
     },
     {
@@ -287,7 +289,7 @@ const menuOptions = computed<MenuOption[]>(() => {
           },
           { default: () => "用户" },
         ),
-      key: "biliUser",
+      key: "User",
       icon: renderImg(userInfo.value?.profile?.face || defaultUserAvatar),
     },
   ];

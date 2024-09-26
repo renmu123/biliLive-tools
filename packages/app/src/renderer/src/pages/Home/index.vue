@@ -1,8 +1,6 @@
 <!-- 压制&上传 -->
 <template>
   <div>
-    <!-- <FileBrowserDialog :visible="true"></FileBrowserDialog> -->
-
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
         <n-button
@@ -160,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
+import { useStorage, toReactive } from "@vueuse/core";
 
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
@@ -217,7 +215,14 @@ const fileList = ref<
   })[]
 >([]);
 
-const clientOptions = appConfig.value.tool.home;
+const clientOptions = toReactive(
+  computed({
+    get: () => appConfig.value.tool.home,
+    set: (value) => {
+      appConfig.value.tool.home = value;
+    },
+  }),
+);
 
 const handleConvert = async () => {
   convert();
@@ -609,6 +614,7 @@ const deleteDanmu = async () => {
   });
   if (!status) return;
   await danmuPresetApi.remove(danmuPresetId.value);
+  // @ts-ignore
   danmuPresetId.value = "default";
   await getDanmuPresets();
 };

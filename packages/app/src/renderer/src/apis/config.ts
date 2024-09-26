@@ -26,6 +26,7 @@ export const set = async <K extends keyof AppConfig>(
 };
 
 export const save = async <K extends keyof AppConfig>(data: AppConfig[K]): Promise<void> => {
+  console.log("save", data);
   if (window.isWeb) {
     const res = await request.post(`/config`, data);
     return res.data;

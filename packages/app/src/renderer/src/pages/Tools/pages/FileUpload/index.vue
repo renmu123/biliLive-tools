@@ -27,6 +27,8 @@
 </template>
 
 <script setup lang="ts">
+import { toReactive } from "@vueuse/core";
+
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 import AppendVideoDialog from "@renderer/components/AppendVideoDialog.vue";
@@ -43,7 +45,14 @@ const { appConfig } = storeToRefs(useAppConfig());
 const notice = useNotification();
 const isWeb = computed(() => window.isWeb);
 
-const options = appConfig.value.tool.upload;
+const options = toReactive(
+  computed({
+    get: () => appConfig.value.tool.upload,
+    set: (value) => {
+      appConfig.value.tool.upload = value;
+    },
+  }),
+);
 
 const fileList = ref<
   {

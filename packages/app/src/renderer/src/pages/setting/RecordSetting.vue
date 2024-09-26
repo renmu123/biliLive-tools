@@ -119,9 +119,11 @@
 </template>
 
 <script setup lang="ts">
-import type { AppConfig } from "@biliLive-tools/types";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { templateRef } from "@vueuse/core";
+import showPasswordDialog from "@renderer/components/showPasswordDialog";
+
+import type { AppConfig } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
   default: () => {},
@@ -136,9 +138,17 @@ const qualityOptions = [
 ];
 
 const selectFolder = async (type: "recorder") => {
-  const file = await window.api.openDirectory({
-    defaultPath: config.value.webhook.recoderFolder,
-  });
+  let file: string | undefined;
+
+  if (window.isWeb) {
+    file = await showPasswordDialog({
+      type: "directory",
+    });
+  } else {
+    file = await window.api.openDirectory({
+      defaultPath: config.value.webhook.recoderFolder,
+    });
+  }
   if (!file) return;
 
   if (type === "recorder") {

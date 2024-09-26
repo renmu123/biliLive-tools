@@ -22,25 +22,25 @@
               </template>
               <n-switch v-model:value="config.trash" />
             </n-form-item>
-            <n-form-item>
+            <n-form-item v-if="!isWeb">
               <template #label>
                 <span class="inline-flex"> 启动时检查更新 </span>
               </template>
               <n-switch v-model:value="config.autoUpdate" />
             </n-form-item>
-            <n-form-item>
+            <n-form-item v-if="!isWeb">
               <template #label>
                 <span class="inline-flex"> 开启自启动 </span>
               </template>
               <n-switch v-model:value="config.autoLaunch" />
             </n-form-item>
-            <n-form-item>
+            <n-form-item v-if="!isWeb">
               <template #label>
                 <span class="inline-flex"> 最小化到任务栏 </span>
               </template>
               <n-switch v-model:value="config.minimizeToTray" />
             </n-form-item>
-            <n-form-item>
+            <n-form-item v-if="!isWeb">
               <template #label>
                 <span class="inline-flex"> 关闭到任务栏 </span>
               </template>
@@ -76,7 +76,8 @@
                   <Tip tip="主要用于webui，修改后需重启生效"></Tip>
                 </span>
               </template>
-              <n-input v-model:value="config.passKey"> </n-input>
+              <n-input v-model:value="config.passKey" type="password" show-password-on="click">
+              </n-input>
             </n-form-item>
             <n-form-item label="主题"
               ><n-select v-model:value="config.theme" :options="themeOptions" />
@@ -314,13 +315,14 @@ import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline, Refresh } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
 import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
+import showPasswordDialog from "@renderer/components/showPasswordDialog";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig, Theme } from "@biliLive-tools/types";
 
 const notice = useNotification();
-
 const appConfigStore = useAppConfig();
 const showModal = defineModel<boolean>({ required: true, default: false });
+const isWeb = computed(() => window.isWeb);
 
 // @ts-ignore
 const config: Ref<AppConfig> = ref({
@@ -362,11 +364,19 @@ const saveConfig = async () => {
       if (!status) return;
     }
   }
+  // passKey 为空时不保存
+  if (!config.value.passKey) {
+    notice.error({
+      title: "鉴权密钥不能为空",
+      duration: 1000,
+    });
+    return;
+  }
 
   await configApi.save(deepRaw(config.value));
-  window.api.common.setTheme(config.value.theme);
+  window?.api?.common?.setTheme(config.value.theme);
   // 设置自动启动
-  window.api.common.setOpenAtLogin(config.value.autoLaunch || false);
+  window?.api?.common?.setOpenAtLogin(config.value.autoLaunch || false);
   close();
   appConfigStore.getAppConfig();
 };
@@ -425,9 +435,19 @@ const resetBin = async (type: "ffmpeg" | "ffprobe" | "danmakuFactory") => {
 };
 
 const selectFolder = async (type: "recorder") => {
-  const file = await window.api.openDirectory({
-    defaultPath: config.value.webhook.recoderFolder,
-  });
+  let file: string | undefined;
+
+  if (window.isWeb) {
+    file = await showPasswordDialog({
+      type: "directory",
+    });
+  } else {
+    file = await window.api.openDirectory({
+      defaultPath: config.value.webhook.recoderFolder,
+    });
+  }
+  console.log(file);
+
   if (!file) return;
 
   if (type === "recorder") {
