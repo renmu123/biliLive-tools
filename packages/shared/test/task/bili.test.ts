@@ -134,4 +134,10 @@ describe("BiliCommentQueue", () => {
 
     expect(queue.check).toHaveBeenCalled();
   });
+  it("should update list item status when add duplicate check tasks", () => {
+    const checkTask = { uid: 123, aid: 456 };
+    queue.addCheckTask(checkTask);
+    queue.addCheckTask(checkTask);
+    expect(queue.list).toHaveLength(1);
+  });
 });

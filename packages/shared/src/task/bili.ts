@@ -454,17 +454,19 @@ export class BiliCommentQueue {
     if (index !== -1) {
       // 如果已经存在，重置状态
       this.list[index].status = "pending";
+    } else {
+      this.list.push({
+        type: "checkStatus",
+        uid: data.uid,
+        aid: data.aid,
+        status: "pending",
+        content: "",
+        startTime: Date.now(),
+        updateTime: Date.now(),
+        top: false,
+      });
     }
-    this.list.push({
-      type: "checkStatus",
-      uid: data.uid,
-      aid: data.aid,
-      status: "pending",
-      content: "",
-      startTime: Date.now(),
-      updateTime: Date.now(),
-      top: false,
-    });
+
     console.log("addCheckTask", this.list);
   }
   addCommentTask(data: { aid: number; content: string; uid: number; top: boolean }) {
@@ -520,11 +522,10 @@ export class BiliCommentQueue {
         }
       } else if (media.Archive.state < 0) {
         if (media.Archive.state === -30 || media.Archive.state === -6) {
-          console.log("审核中", media);
           continue;
         }
         if (notification?.includes("failure")) {
-          log.error("稿件审核未通过", media.Archive.title);
+          log.error("稿件审核未通过", media.Archive.title, media);
           this.sendNotify(
             `${media.Archive.title}稿件审核未通过`,
             `请前往B站创作中心查看详情\n稿件名：${media.Archive.title}\n状态：${media.Archive.state_desc}`,
