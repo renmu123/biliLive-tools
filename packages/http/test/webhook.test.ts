@@ -1,8 +1,8 @@
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { WebhookHandler } from "../src/services/webhook.js";
+import { WebhookHandler, Live } from "../src/services/webhook.js";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 
-import { type Options, type Live } from "../src/services/webhook.js";
+import { type Options } from "../src/services/webhook.js";
 
 vi.mock("../src/index.js", async (importOriginal) => {
   const mod = await importOriginal<typeof import("../src/index.js")>();
@@ -92,22 +92,20 @@ describe("WebhookHandler", () => {
 
     it("存在live的情况下，且roomId相同，在限制时间内又进来一条数据", async () => {
       webhookHandler.liveData = [];
-      const existingLive: Live = {
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
+      const existingLive = new Live(
+        "existing-event-id",
+        "bili-recorder",
+        123,
+        "Existing Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+      existingLive.addPart({
+        partId: "existing-part-id",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        roomId: 123,
-        videoName: "Existing Video",
-        parts: [
-          {
-            partId: "existing-part-id",
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            filePath: "/path/to/existing-video.mp4",
-            status: "recording",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-          },
-        ],
-      };
+        filePath: "/path/to/existing-video.mp4",
+        status: "recording",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+      });
       webhookHandler.liveData.push(existingLive);
 
       const options: Options = {
@@ -137,22 +135,20 @@ describe("WebhookHandler", () => {
     });
     it("应在partMergeMinute为-1时，生成多个live", async () => {
       webhookHandler.liveData = [];
-      const existingLive: Live = {
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
+      const existingLive = new Live(
+        "existing-event-id",
+        "bili-recorder",
+        123,
+        "Existing Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+      existingLive.addPart({
+        partId: "existing-part-id",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        roomId: 123,
-        videoName: "Existing Video",
-        parts: [
-          {
-            partId: "existing-part-id",
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            filePath: "/path/to/existing-video.mp4",
-            status: "recording",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-          },
-        ],
-      };
+        filePath: "/path/to/existing-video.mp4",
+        status: "recording",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+      });
       webhookHandler.liveData.push(existingLive);
 
       const options: Options = {
@@ -172,22 +168,21 @@ describe("WebhookHandler", () => {
     });
     it("存在live的情况下，且roomId相同，在限制时间外又进来一条数据", async () => {
       webhookHandler.liveData = [];
-      const existingLive: Live = {
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
+      const existingLive = new Live(
+        "existing-event-id",
+        "bili-recorder",
+        123,
+        "Existing Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+
+      existingLive.addPart({
+        partId: "existing-part-id",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        roomId: 123,
-        videoName: "Existing Video",
-        parts: [
-          {
-            partId: "existing-part-id",
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            filePath: "/path/to/existing-video.mp4",
-            status: "recording",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-          },
-        ],
-      };
+        filePath: "/path/to/existing-video.mp4",
+        status: "recording",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+      });
       webhookHandler.liveData.push(existingLive);
 
       const options: Options = {
@@ -218,21 +213,19 @@ describe("WebhookHandler", () => {
     });
     it("存在live的情况下，且roomId相同，在限制时间外又进来一条event: FileClosed数据", async () => {
       webhookHandler.liveData = [];
-      const existingLive: Live = {
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
+      const existingLive = new Live(
+        "existing-event-id",
+        "bili-recorder",
+        123,
+        "Existing Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+      existingLive.addPart({
+        partId: "existing-part-id",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        roomId: 123,
-        videoName: "Existing Video",
-        parts: [
-          {
-            partId: "existing-part-id",
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            filePath: "/path/to/existing-video.mp4",
-            status: "recording",
-          },
-        ],
-      };
+        filePath: "/path/to/existing-video.mp4",
+        status: "recording",
+      });
       webhookHandler.liveData.push(existingLive);
 
       const options: Options = {
@@ -263,28 +256,27 @@ describe("WebhookHandler", () => {
     });
     it("存在live的情况下，且最后一个part的结束时间并非最新，又进来一条event: FileClosed数据", async () => {
       webhookHandler.liveData = [];
-      const existingLive: Live = {
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
+      const existingLive = new Live(
+        "existing-event-id",
+        "bili-recorder",
+        123,
+        "Existing Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+      existingLive.addPart({
+        partId: "existing-part-id2",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        roomId: 123,
-        videoName: "Existing Video",
-        parts: [
-          {
-            partId: "existing-part-id2",
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            filePath: "/path/to/existing-video.mp4",
-            status: "recorded",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-          },
-          {
-            partId: "existing-part-id",
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            filePath: "/path/to/existing-video.mp4",
-            status: "recording",
-          },
-        ],
-      };
+        filePath: "/path/to/existing-video.mp4",
+        status: "recorded",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+      });
+      existingLive.addPart({
+        partId: "existing-part-id",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/existing-video.mp4",
+        status: "recording",
+      });
+
       webhookHandler.liveData.push(existingLive);
 
       const options: Options = {
@@ -588,35 +580,35 @@ describe("WebhookHandler", () => {
     });
     it("应在上传成功时正确设置状态", async () => {
       // Arrange
-      const live: Live = {
-        eventId: "123",
-        platform: "blrec",
-        roomId: 123,
-        videoName: "Test Video",
-        parts: [
-          {
-            partId: "part-1",
-            filePath: "/path/to/part1.mp4",
-            status: "handled",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-          },
-          {
-            partId: "part-2",
-            filePath: "/path/to/part2.mp4",
-            status: "handled",
-            endTime: new Date("2022-01-01T00:10:00Z").getTime(),
-            cover: "/path/to/cover2.jpg",
-          },
-          {
-            partId: "part-3",
-            filePath: "/path/to/part3.mp4",
-            status: "handled",
-            endTime: new Date("2022-01-01T00:15:00Z").getTime(),
-            cover: "/path/to/cover3.jpg",
-          },
-        ],
-      };
+      const live = new Live(
+        "123",
+        "blrec",
+        123,
+        "Test Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/part1.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+      live.addPart({
+        partId: "part-2",
+        filePath: "/path/to/part2.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+      live.addPart({
+        partId: "part-3",
+        filePath: "/path/to/part3.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+
       // @ts-ignore
       const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
         mergePart: true,
@@ -653,21 +645,20 @@ describe("WebhookHandler", () => {
     });
     it("应在断播续传未开启不进行上传", async () => {
       // Arrange
-      const live: Live = {
-        eventId: "123",
-        platform: "blrec",
-        roomId: 123,
-        videoName: "Test Video",
-        parts: [
-          {
-            partId: "part-1",
-            filePath: "/path/to/part1.mp4",
-            status: "handled",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-          },
-        ],
-      };
+      const live = new Live(
+        "123",
+        "blrec",
+        123,
+        "Test Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/part1.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
 
       // @ts-ignore
       const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
@@ -691,21 +682,20 @@ describe("WebhookHandler", () => {
     });
     it("应在uid未设置不进行上传", async () => {
       // Arrange
-      const live: Live = {
-        eventId: "123",
-        platform: "blrec",
-        roomId: 123,
-        videoName: "Test Video",
-        parts: [
-          {
-            partId: "part-1",
-            filePath: "/path/to/part1.mp4",
-            status: "handled",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-          },
-        ],
-      };
+      const live = new Live(
+        "123",
+        "blrec",
+        123,
+        "Test Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/part1.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
 
       // @ts-ignore
       const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
@@ -728,21 +718,21 @@ describe("WebhookHandler", () => {
     });
     it("应在没有满足状态的part时不进行上传", async () => {
       // Arrange
-      const live: Live = {
-        eventId: "123",
-        platform: "blrec",
-        roomId: 123,
-        videoName: "Test Video",
-        parts: [
-          {
-            partId: "part-1",
-            filePath: "/path/to/part1.mp4",
-            status: "error",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-          },
-        ],
-      };
+      const live = new Live(
+        "123",
+        "blrec",
+        123,
+        "Test Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/part1.mp4",
+        status: "error",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+
       const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(789);
       const addEditMediaTaskSpy = vi
         .spyOn(webhookHandler, "addEditMediaTask")
@@ -756,34 +746,34 @@ describe("WebhookHandler", () => {
     });
     it("应在上传时跳过不符合状态的part", async () => {
       // Arrange
-      const live: Live = {
-        eventId: "123",
-        platform: "blrec",
-        roomId: 123,
-        videoName: "Test Video",
-        parts: [
-          {
-            partId: "part-1",
-            filePath: "/path/to/part1.mp4",
-            status: "error",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-          },
-          {
-            partId: "part-2",
-            filePath: "/path/to/part2.mp4",
-            status: "handled",
-            cover: "/path/to/cover.jpg",
-          },
-          {
-            partId: "part-3",
-            filePath: "/path/to/part3.mp4",
-            status: "handled",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-          },
-        ],
-      };
+      const live = new Live(
+        "123",
+        "blrec",
+        123,
+        "Test Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/part1.mp4",
+        status: "error",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+      live.addPart({
+        partId: "part-2",
+        filePath: "/path/to/part2.mp4",
+        status: "handled",
+        cover: "/path/to/cover.jpg",
+      });
+      live.addPart({
+        partId: "part-3",
+        filePath: "/path/to/part3.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+
       // @ts-ignore
       const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(789);
       const addEditMediaTaskSpy = vi
@@ -800,36 +790,66 @@ describe("WebhookHandler", () => {
 
     it("应在续传成功时正确设置状态", async () => {
       // Arrange
-      const live: Live = {
-        roomId: 123,
-        eventId: "123",
-        platform: "blrec",
-        videoName: "Test Video",
-        aid: 789,
-        parts: [
-          {
-            partId: "part-1",
-            filePath: "/path/to/part1.mp4",
-            status: "uploaded",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-          },
-          {
-            partId: "part-2",
-            filePath: "/path/to/part2.mp4",
-            status: "handled",
-            endTime: new Date("2022-01-01T00:10:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-          },
-          {
-            partId: "part-3",
-            filePath: "/path/to/part3.mp4",
-            status: "handled",
-            endTime: new Date("2022-01-01T00:15:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-          },
-        ],
-      };
+      const live = new Live(
+        "123",
+        "blrec",
+        123,
+        "Test Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+        789,
+      );
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/part1.mp4",
+        status: "uploaded",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+      live.addPart({
+        partId: "part-2",
+        filePath: "/path/to/part2.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+      live.addPart({
+        partId: "part-3",
+        filePath: "/path/to/part3.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+
+      // const live: Live = {
+      //   roomId: 123,
+      //   eventId: "123",
+      //   platform: "blrec",
+      //   videoName: "Test Video",
+      //   aid: 789,
+      //   parts: [
+      //     {
+      //       partId: "part-1",
+      //       filePath: "/path/to/part1.mp4",
+      //       status: "uploaded",
+      //       endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+      //       cover: "/path/to/cover.jpg",
+      //     },
+      //     {
+      //       partId: "part-2",
+      //       filePath: "/path/to/part2.mp4",
+      //       status: "handled",
+      //       endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+      //       cover: "/path/to/cover.jpg",
+      //     },
+      //     {
+      //       partId: "part-3",
+      //       filePath: "/path/to/part3.mp4",
+      //       status: "handled",
+      //       endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+      //       cover: "/path/to/cover.jpg",
+      //     },
+      //   ],
+      // };
       // @ts-ignore
       const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
         mergePart: true,
@@ -863,36 +883,36 @@ describe("WebhookHandler", () => {
     });
     it("应在续传失败时正确设置状态", async () => {
       // Arrange
-      const live: Live = {
-        roomId: 123,
-        eventId: "123",
-        platform: "blrec",
-        videoName: "Test Video",
-        aid: 789,
-        parts: [
-          {
-            partId: "part-1",
-            filePath: "/path/to/part1.mp4",
-            status: "uploaded",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-          },
-          {
-            partId: "part-2",
-            filePath: "/path/to/part2.mp4",
-            status: "handled",
-            endTime: new Date("2022-01-01T00:10:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-          },
-          {
-            partId: "part-3",
-            filePath: "/path/to/part3.mp4",
-            status: "handled",
-            endTime: new Date("2022-01-01T00:15:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-          },
-        ],
-      };
+      const live = new Live(
+        "123",
+        "blrec",
+        123,
+        "Test Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+        789,
+      );
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/part1.mp4",
+        status: "uploaded",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+      live.addPart({
+        partId: "part-2",
+        filePath: "/path/to/part2.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+      live.addPart({
+        partId: "part-3",
+        filePath: "/path/to/part3.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+
       // @ts-ignore
       const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
         mergePart: true,
@@ -927,21 +947,21 @@ describe("WebhookHandler", () => {
 
     it("应在关闭断播续传时正确上传", async () => {
       // Arrange
-      const live: Live = {
-        roomId: 123,
-        eventId: "123",
-        platform: "blrec",
-        videoName: "Test Video",
-        parts: [
-          {
-            partId: "part-1",
-            filePath: "/path/to/part1.mp4",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-            status: "handled",
-          },
-        ],
-      };
+      const live = new Live(
+        "123",
+        "blrec",
+        123,
+        "Test Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/part1.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+
       // @ts-ignore
       const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
         mergePart: false,
@@ -967,21 +987,20 @@ describe("WebhookHandler", () => {
     });
     it("应仅在上传时间内处理上传操作", async () => {
       // Arrange
-      const live: Live = {
-        roomId: 123,
-        eventId: "123",
-        platform: "blrec",
-        videoName: "Test Video",
-        parts: [
-          {
-            partId: "part-1",
-            filePath: "/path/to/part1.mp4",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-            status: "handled",
-          },
-        ],
-      };
+      const live = new Live(
+        "123",
+        "blrec",
+        123,
+        "Test Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/part1.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
       vi.useFakeTimers();
       vi.setSystemTime(new Date("2022-01-01T14:05:00"));
       // @ts-ignore
@@ -1012,21 +1031,21 @@ describe("WebhookHandler", () => {
     });
     it("应不在上传时间内不处理上传操作", async () => {
       // Arrange
-      const live: Live = {
-        roomId: 123,
-        eventId: "123",
-        platform: "blrec",
-        videoName: "Test Video",
-        parts: [
-          {
-            partId: "part-1",
-            filePath: "/path/to/part1.mp4",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-            cover: "/path/to/cover.jpg",
-            status: "handled",
-          },
-        ],
-      };
+      const live = new Live(
+        "123",
+        "blrec",
+        123,
+        "Test Video",
+        new Date("2022-01-01T00:00:00Z").getTime(),
+      );
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/part1.mp4",
+        status: "handled",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        cover: "/path/to/cover.jpg",
+      });
+
       vi.useFakeTimers();
       vi.setSystemTime(new Date("2022-01-01T14:05:00"));
       // @ts-ignore

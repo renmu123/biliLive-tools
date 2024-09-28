@@ -37,15 +37,6 @@ export interface Part {
   status: "recording" | "recorded" | "handled" | "uploading" | "uploaded" | "error";
   cover?: string; // 封面
 }
-export interface Live {
-  eventId: string;
-  platform: Platform;
-  startTime?: number;
-  roomId: number;
-  videoName: string;
-  aid?: number;
-  parts: Part[];
-}
 
 export interface Options {
   event: "FileOpening" | "FileClosed" | "VideoFileCompletedEvent" | "VideoFileCreatedEvent";
@@ -57,6 +48,48 @@ export interface Options {
   coverPath?: string;
   danmuPath?: string;
   platform: Platform;
+}
+
+export class Live {
+  eventId: string;
+  platform: Platform;
+  startTime?: number;
+  roomId: number;
+  videoName: string;
+  aid?: number;
+  parts: Part[];
+
+  constructor(
+    eventId: string,
+    platform: Platform,
+    roomId: number,
+    videoName: string,
+    startTime?: number,
+    aid?: number,
+  ) {
+    this.eventId = eventId;
+    this.platform = platform;
+    this.roomId = roomId;
+    this.videoName = videoName;
+    this.startTime = startTime;
+    this.aid = aid;
+    this.parts = [];
+  }
+
+  addPart(part: Part) {
+    this.parts.push(part);
+  }
+
+  updatePartValue<K extends keyof Part>(partId: string, key: K, value: Part[K]) {
+    const part = this.parts.find((p) => p.partId === partId);
+    if (part) {
+      part[key] = value;
+    }
+  }
+
+  findPartByFilePath(filePath: string): Part | undefined {
+    return this.parts.find((part) => part.filePath === filePath);
+  }
 }
 
 export class WebhookHandler {
@@ -133,17 +166,19 @@ export class WebhookHandler {
     // 需要在录制结束时判断大小
     const fileSize = await getFileSize(options.filePath);
     if (fileSize / 1024 / 1024 < minSize) {
-      log.info(`${options.filePath}: file size is too small`);
+      log.warn(`${options.filePath}: file size is too small`);
       if (currentLive) {
-        const index = currentLive.parts.findIndex((part) => part.filePath === options.filePath);
-        currentLive.parts.splice(index, 1);
+        const part = currentLive.findPartByFilePath(options.filePath);
+        if (part) {
+          currentLive.parts.splice(currentLive.parts.indexOf(part), 1);
+        }
       }
       return;
     }
 
     log.debug("currentLive-end", currentLive);
 
-    const currentPart = currentLive.parts.find((part) => part.filePath === options.filePath);
+    const currentPart = currentLive.findPartByFilePath(options.filePath);
     if (!currentPart) return;
 
     if (useLiveCover) {
@@ -430,7 +465,7 @@ export class WebhookHandler {
         // 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间，如果出现这种情况，尝试特殊处理
         // 如果live的任何一个part有endTime，说明不会出现特殊情况，不需要特殊处理
         // 然后去遍历liveData，找到roomId、platform、title都相同的直播，认为是同一场直播
-        currentIndex = this.liveData.toReversed().findIndex((live) => {
+        currentIndex = this.liveData.findLastIndex((live) => {
           const hasEndTime = (live.parts || []).some((item) => item.endTime);
           if (hasEndTime) {
             return false;
@@ -457,61 +492,40 @@ export class WebhookHandler {
           filePath: options.filePath,
           status: "recording",
         };
-        if (currentLive.parts) {
-          currentLive.parts.push(part);
-        } else {
-          currentLive.parts = [part];
-        }
+        currentLive.addPart(part);
         this.liveData[currentIndex] = currentLive;
       } else {
         // 新建Live数据
-        currentLive = {
-          eventId: uuid(),
-          platform: options.platform,
+        currentLive = new Live(uuid(), options.platform, options.roomId, options.title, timestamp);
+        currentLive.addPart({
+          partId: uuid(),
           startTime: timestamp,
-          roomId: options.roomId,
-          videoName: options.title,
-          parts: [
-            {
-              partId: uuid(),
-              startTime: timestamp,
-              filePath: options.filePath,
-              status: "recording",
-            },
-          ],
-        };
+          filePath: options.filePath,
+          status: "recording",
+        });
         this.liveData.push(currentLive);
         currentIndex = this.liveData.length - 1;
       }
     } else {
       currentIndex = this.liveData.findIndex((live) => {
-        return live.parts.findIndex((part) => part.filePath === options.filePath) !== -1;
+        return live.findPartByFilePath(options.filePath) !== undefined;
       });
       let currentLive = this.liveData[currentIndex];
       if (currentLive) {
-        const currentPartIndex = currentLive.parts.findIndex((item) => {
-          return item.filePath === options.filePath;
-        });
-        const currentPart = currentLive.parts[currentPartIndex];
-        currentPart.endTime = timestamp;
-        currentPart.status = "recorded";
-        currentLive.parts[currentPartIndex] = currentPart;
+        const currentPart = currentLive.findPartByFilePath(options.filePath);
+        if (currentPart) {
+          currentLive.updatePartValue(currentPart.partId, "endTime", timestamp);
+          currentLive.updatePartValue(currentPart.partId, "status", "recorded");
+        }
         this.liveData[currentIndex] = currentLive;
       } else {
-        currentLive = {
-          eventId: uuid(),
-          platform: options.platform,
-          roomId: options.roomId,
-          videoName: options.title,
-          parts: [
-            {
-              partId: uuid(),
-              filePath: options.filePath,
-              endTime: timestamp,
-              status: "recorded",
-            },
-          ],
-        };
+        currentLive = new Live(uuid(), options.platform, options.roomId, options.title);
+        currentLive.addPart({
+          partId: uuid(),
+          filePath: options.filePath,
+          endTime: timestamp,
+          status: "recorded",
+        });
         this.liveData.push(currentLive);
         currentIndex = this.liveData.length - 1;
       }
@@ -775,6 +789,7 @@ export class WebhookHandler {
       uploadPreset.cover = cover;
     }
 
+    console.log(live);
     if (live.aid) {
       log.info("续传", filePaths);
       try {
