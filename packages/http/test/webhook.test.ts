@@ -2,7 +2,7 @@ import { expect, describe, it, beforeEach, vi } from "vitest";
 import { WebhookHandler, Live } from "../src/services/webhook.js";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 
-import { type Options } from "../src/services/webhook.js";
+import type { Options, Part } from "../src/services/webhook.js";
 
 vi.mock("../src/index.js", async (importOriginal) => {
   const mod = await importOriginal<typeof import("../src/index.js")>();
@@ -1148,6 +1148,83 @@ describe("WebhookHandler", () => {
       const result = webhookHandler.isBetweenTime(currentTime, timeRange);
 
       expect(result).toBe(true);
+    });
+
+    describe("Live", () => {
+      it("should initialize with correct values", () => {
+        const live = new Live("event1", "bili-recorder", 123, "Test Video", 1616161616161, 456);
+
+        expect(live.eventId).toBe("event1");
+        expect(live.platform).toBe("bili-recorder");
+        expect(live.roomId).toBe(123);
+        expect(live.videoName).toBe("Test Video");
+        expect(live.startTime).toBe(1616161616161);
+        expect(live.aid).toBe(456);
+        expect(live.parts).toEqual([]);
+      });
+
+      it("should add a part correctly", () => {
+        const live = new Live("event1", "bili-recorder", 123, "Test Video");
+        const part: Part = {
+          partId: "part1",
+          filePath: "/path/to/part1.mp4",
+          status: "recording",
+        };
+
+        live.addPart(part);
+
+        expect(live.parts).toContain(part);
+      });
+
+      it("should update part value correctly", () => {
+        const live = new Live("event1", "bili-recorder", 123, "Test Video");
+        const part: Part = {
+          partId: "part1",
+          filePath: "/path/to/part1.mp4",
+          status: "recording",
+        };
+
+        live.addPart(part);
+        live.updatePartValue("part1", "status", "recorded");
+
+        expect(live.parts[0].status).toBe("recorded");
+      });
+
+      it("should find part by file path correctly", () => {
+        const live = new Live("event1", "bili-recorder", 123, "Test Video");
+        const part1: Part = {
+          partId: "part1",
+          filePath: "/path/to/part1.mp4",
+          status: "recording",
+        };
+        const part2: Part = {
+          partId: "part2",
+          filePath: "/path/to/part2.mp4",
+          status: "recording",
+        };
+
+        live.addPart(part1);
+        live.addPart(part2);
+
+        const foundPart = live.findPartByFilePath("/path/to/part2.mp4");
+
+        expect(foundPart).toBe(part2);
+      });
+
+      it("should return undefined if part is not found by file path", () => {
+        const live = new Live("event1", "bili-recorder", 123, "Test Video");
+        const part: Part = {
+          partId: "part1",
+          filePath: "/path/to/part1.mp4",
+          status: "recording",
+        };
+
+        live.addPart(part);
+
+        const foundPart = live.findPartByFilePath("/path/to/nonexistent.mp4");
+
+        expect(foundPart).toBeUndefined();
+      });
     });
   });
 });
