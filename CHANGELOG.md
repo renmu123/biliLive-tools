@@ -3,6 +3,7 @@
 ## Bug修复
 
 1. 修复某些情况下上传视频时任务状态持续为运行中 [#30](https://github.com/renmu123/biliLive-tools/issues/30)
+2. 修复下载视频时默认视频标题中非法字符串未被过滤的bug
 
 # 1.5.1
 

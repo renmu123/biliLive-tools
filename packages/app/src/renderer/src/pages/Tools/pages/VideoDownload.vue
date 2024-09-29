@@ -151,7 +151,7 @@ const confirm = async (options: { ids: (number | string)[]; savePath: string }) 
   for (const page of selectPages) {
     if (videoType.value === "douyu") {
       await window.api.douyu.download(
-        window.path.join(options.savePath, `${page.part}.mp4`),
+        window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
         page.cid as string,
         {
           danmu: true,
@@ -161,7 +161,7 @@ const confirm = async (options: { ids: (number | string)[]; savePath: string }) 
     } else if (videoType.value === "bili") {
       window.api.bili.download(
         {
-          output: window.path.join(options.savePath, `${page.part}.mp4`),
+          output: window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
           cid: page.cid as number,
           bvid: archiveDeatil.value.vid,
         },
