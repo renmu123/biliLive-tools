@@ -388,8 +388,8 @@ importers:
         specifier: ^0.1.53
         version: 0.1.53
       '@renmu/bili-api':
-        specifier: 2.0.0-beta.0
-        version: 2.0.0-beta.0
+        specifier: 2.0.0
+        version: 2.0.0
       '@renmu/fluent-ffmpeg':
         specifier: 2.2.1
         version: 2.2.1
@@ -1202,8 +1202,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@renmu/bili-api@2.0.0-beta.0':
-    resolution: {integrity: sha512-2m6kXrtxE4+1rMGokbp0rgwQPnbJFkPR8A+ADffgvjAWkeiKWHMHVXuocrywB5cXvHhd5REkmn2PA6ZN5Aq9dA==}
+  '@renmu/bili-api@2.0.0':
+    resolution: {integrity: sha512-nQNF4ilk4QLw+WXzKDybpF3eCAmVEwae31uZha0NWtM85I9H8pKoTjwozQuc8vHAtR+JrJ8XfWtKBXIi3xr5oQ==}
     engines: {node: '>=18'}
 
   '@renmu/fluent-ffmpeg@2.2.1':
@@ -4134,8 +4134,8 @@ packages:
     resolution: {integrity: sha512-y+WKFlBR8BGXnsNlIHFGPZmyDf3DFMoLhaflAnyZgV6rG6xu+JwesTo2Q9R6XwYmtmwAFCkAk3e35jEdoeh/3g==}
     engines: {node: '>=10'}
 
-  protobufjs@7.3.2:
-    resolution: {integrity: sha512-RXyHaACeqXeqAKGLDl68rQKbmObRsTIn4TYVUUug1KfS47YWCo5MacGITEryugIgZqORCvJWEk4l449POg5Txg==}
+  protobufjs@7.4.0:
+    resolution: {integrity: sha512-mRUWCc3KUU4w1jU8sGxICXH/gNS94DvI1gxqDvBzhj1JpcsimQkYiOJfwsPUykUI5ZaspFbSgmBLER8IrQ3tqw==}
     engines: {node: '>=12.0.0'}
 
   proxy-from-env@1.1.0:
@@ -5776,13 +5776,13 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@renmu/bili-api@2.0.0-beta.0':
+  '@renmu/bili-api@2.0.0':
     dependencies:
       axios: 1.7.7
       axios-retry: 4.5.0(axios@1.7.7)
       fast-xml-parser: 4.5.0
       p-queue: 8.0.1
-      protobufjs: 7.3.2
+      protobufjs: 7.4.0
       tiny-typed-emitter: 2.1.0
     transitivePeerDependencies:
       - debug
@@ -9115,7 +9115,7 @@ snapshots:
       err-code: 2.0.3
       retry: 0.12.0
 
-  protobufjs@7.3.2:
+  protobufjs@7.4.0:
     dependencies:
       '@protobufjs/aspromise': 1.1.2
       '@protobufjs/base64': 1.1.2
