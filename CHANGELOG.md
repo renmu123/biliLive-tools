@@ -1,3 +1,9 @@
+# 1.5.2
+
+## Bug修复
+
+1. 修复某些情况下上传视频时任务状态持续为运行中 [#30](https://github.com/renmu123/biliLive-tools/issues/30)
+
 # 1.5.1
 
 ## Bug修复
