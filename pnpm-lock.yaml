@@ -310,8 +310,8 @@ importers:
         specifier: ^0.1.53
         version: 0.1.53
       '@renmu/bili-api':
-        specifier: 2.0.0-beta.0
-        version: 2.0.0-beta.0
+        specifier: 2.0.0
+        version: 2.0.0
       '@renmu/fluent-ffmpeg':
         specifier: 2.2.1
         version: 2.2.1
@@ -1076,8 +1076,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@renmu/bili-api@2.0.0-beta.0':
-    resolution: {integrity: sha512-2m6kXrtxE4+1rMGokbp0rgwQPnbJFkPR8A+ADffgvjAWkeiKWHMHVXuocrywB5cXvHhd5REkmn2PA6ZN5Aq9dA==}
+  '@renmu/bili-api@2.0.0':
+    resolution: {integrity: sha512-nQNF4ilk4QLw+WXzKDybpF3eCAmVEwae31uZha0NWtM85I9H8pKoTjwozQuc8vHAtR+JrJ8XfWtKBXIi3xr5oQ==}
     engines: {node: '>=18'}
 
   '@renmu/fluent-ffmpeg@2.2.1':
@@ -1754,6 +1754,9 @@ packages:
 
   axios@1.7.4:
     resolution: {integrity: sha512-DukmaFRnY6AzAALSH4J2M3k6PkaC+MfaAGdEERRWcC9q3/TWQwLpHR8ZRLKTdQ3aBDL64EdluRDjJqKw+BPZEw==}
+
+  axios@1.7.7:
+    resolution: {integrity: sha512-S4kL7XrjgBmvdGut0sN3yJxqYzrDOnivkBiN0OFs6hLiUam3UPvswUo0kqGyhqUZGEOytHyumEdXsAkgCOUf3Q==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -2552,6 +2555,10 @@ packages:
 
   fast-xml-parser@4.4.1:
     resolution: {integrity: sha512-xkjOecfnKGkSsOwtZ5Pz7Us/T6mrbPQrq0nh+aCO5V9nk5NLWmasAHumTKjiPJPWANe+kAZ84Jc8ooJkzZ88Sw==}
+    hasBin: true
+
+  fast-xml-parser@4.5.0:
+    resolution: {integrity: sha512-/PlTQCI96+fZMAOLMZK4CWG1ItCbfZ/0jx7UIJFChPNrx7tcEgerUgWbeieCM9MfHInUDyK8DWYZ+YrywDJuTg==}
     hasBin: true
 
   fastq@1.17.1:
@@ -3887,8 +3894,8 @@ packages:
     resolution: {integrity: sha512-y+WKFlBR8BGXnsNlIHFGPZmyDf3DFMoLhaflAnyZgV6rG6xu+JwesTo2Q9R6XwYmtmwAFCkAk3e35jEdoeh/3g==}
     engines: {node: '>=10'}
 
-  protobufjs@7.3.2:
-    resolution: {integrity: sha512-RXyHaACeqXeqAKGLDl68rQKbmObRsTIn4TYVUUug1KfS47YWCo5MacGITEryugIgZqORCvJWEk4l449POg5Txg==}
+  protobufjs@7.4.0:
+    resolution: {integrity: sha512-mRUWCc3KUU4w1jU8sGxICXH/gNS94DvI1gxqDvBzhj1JpcsimQkYiOJfwsPUykUI5ZaspFbSgmBLER8IrQ3tqw==}
     engines: {node: '>=12.0.0'}
 
   proxy-from-env@1.1.0:
@@ -5443,13 +5450,13 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@renmu/bili-api@2.0.0-beta.0':
+  '@renmu/bili-api@2.0.0':
     dependencies:
-      axios: 1.7.4
-      axios-retry: 4.5.0(axios@1.7.4)
-      fast-xml-parser: 4.4.1
+      axios: 1.7.7
+      axios-retry: 4.5.0(axios@1.7.7)
+      fast-xml-parser: 4.5.0
       p-queue: 8.0.1
-      protobufjs: 7.3.2
+      protobufjs: 7.4.0
       tiny-typed-emitter: 2.1.0
     transitivePeerDependencies:
       - debug
@@ -6271,12 +6278,20 @@ snapshots:
       axios: 1.7.4
       is-retry-allowed: 2.2.0
 
-  axios-retry@4.5.0(axios@1.7.4):
+  axios-retry@4.5.0(axios@1.7.7):
     dependencies:
-      axios: 1.7.4
+      axios: 1.7.7
       is-retry-allowed: 2.2.0
 
   axios@1.7.4:
+    dependencies:
+      follow-redirects: 1.15.6
+      form-data: 4.0.0
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
+
+  axios@1.7.7:
     dependencies:
       follow-redirects: 1.15.6
       form-data: 4.0.0
@@ -7287,6 +7302,10 @@ snapshots:
   fast-uri@3.0.1: {}
 
   fast-xml-parser@4.4.1:
+    dependencies:
+      strnum: 1.0.5
+
+  fast-xml-parser@4.5.0:
     dependencies:
       strnum: 1.0.5
 
@@ -8650,7 +8669,7 @@ snapshots:
       err-code: 2.0.3
       retry: 0.12.0
 
-  protobufjs@7.3.2:
+  protobufjs@7.4.0:
     dependencies:
       '@protobufjs/aspromise': 1.1.2
       '@protobufjs/base64': 1.1.2
