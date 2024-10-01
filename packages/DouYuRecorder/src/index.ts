@@ -106,9 +106,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const savePath = getSavePath({ owner, title });
   const extraDataSavePath = replaceExtName(savePath, ".json");
   const recordSavePath = savePath;
-  console.log("savePath", savePath);
-  // TODO: mp4分段封装时可能会有问题，尝试使用ts
   const templateSavePath = hasSegment ? `${recordSavePath}-PART%03d.ts` : `${recordSavePath}.ts`;
+  console.log("templateSavePath", templateSavePath);
 
   try {
     // TODO: 这个 ensure 或许应该放在 createRecordExtraDataController 里实现？
@@ -213,7 +212,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       }
     }
   });
-  console.log("this.disableProvideCommentsWhenRecording", this.disableProvideCommentsWhenRecording);
+  // console.log("this.disableProvideCommentsWhenRecording", this.disableProvideCommentsWhenRecording);
   if (!this.disableProvideCommentsWhenRecording) {
     client.start();
   }
@@ -285,7 +284,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       assert(typeof stderrLine === "string");
       if (stderrLine.includes("Opening ")) {
         if (!isFirstSegment) {
-          await hanldeLastSegmentCompleted();
+          try {
+            await hanldeLastSegmentCompleted();
+          } catch (err) {
+            this.emit("DebugLog", { type: "common", text: String(err) });
+          }
         }
         // 下一个切片生成
         isFirstSegment = false;
@@ -365,8 +368,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       this.usedSource = undefined;
       // TODO: other codes
       // TODO: emit update event
-
-      await hanldeLastSegmentCompleted();
+      try {
+        await hanldeLastSegmentCompleted();
+      } catch (err) {
+        this.emit("DebugLog", { type: "common", text: String(err) });
+      }
       this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
       this.recordHandle = undefined;
       this.state = "idle";
