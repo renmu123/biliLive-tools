@@ -18,6 +18,7 @@ export type DanmuConfig = {
   scrollarea: number;
   bold: boolean;
   showusernames: boolean;
+  saveblocked: boolean;
   showmsgbox: boolean;
   msgboxsize: [number, number];
   msgboxpos: [number, number];

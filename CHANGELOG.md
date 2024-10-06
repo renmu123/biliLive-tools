@@ -1,5 +1,14 @@
 # 1.5.2
 
+## 功能
+
+1. server酱<sup>3</sup>支持
+2. 弹幕转换支持不保存屏蔽弹幕（仅支持部分，不支持主动屏蔽的弹幕） [#31](https://github.com/renmu123/biliLive-tools/issues/31)
+
+## 优化
+
+1. 弹幕转换设置时的分辨率参数在开启“自适应分辨率”参数时仍可修改
+
 ## Bug修复
 
 1. 修复某些情况下上传视频时任务状态持续为运行中 [#30](https://github.com/renmu123/biliLive-tools/issues/30)

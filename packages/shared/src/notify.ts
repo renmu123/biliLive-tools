@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { scSend } from "serverchan-sdk";
 import { appConfig } from "./config.js";
 import log from "./utils/log.js";
 
@@ -17,18 +18,7 @@ export function sendByServer(title: string, desp: string, options: NotificationS
   if (!options.key) {
     throw new Error("Server酱key不能为空");
   }
-  const url = `https://sctapi.ftqq.com/${options.key}.send`;
-  const data = {
-    title: title,
-    desp: desp,
-  };
-  fetch(url, {
-    method: "POST",
-    body: JSON.stringify(data),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  scSend(options.key, title, desp);
 }
 
 /**

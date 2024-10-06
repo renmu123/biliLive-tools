@@ -82,6 +82,9 @@
         <n-form-item title="如果有用户名的话">
           <n-checkbox v-model:checked="config.showusernames"> 显示用户名 </n-checkbox>
         </n-form-item>
+        <n-form-item title="只支持部分屏蔽弹幕">
+          <n-checkbox v-model:checked="config.saveblocked"> 保存屏蔽弹幕 </n-checkbox>
+        </n-form-item>
         <!-- <n-form-item v-if="isAdvancedMode" label="时间轴偏移量" path="density">
               <n-input-number v-model:value.number="config.density" class="input-number" />&nbsp;秒
             </n-form-item> -->
@@ -139,7 +142,6 @@
             :min="-1"
             :step="100"
             placeholder="宽"
-            :disabled="config.resolutionResponsive"
           />&nbsp;X&nbsp;
           <n-input-number
             v-model:value.number="config.resolution[1]"
@@ -147,7 +149,6 @@
             :min="-1"
             :step="100"
             placeholder="高"
-            :disabled="config.resolutionResponsive"
           />
           <n-checkbox
             v-model:checked="config.resolutionResponsive"
