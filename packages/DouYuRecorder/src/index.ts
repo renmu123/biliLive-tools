@@ -236,7 +236,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       ]);
       this.emit("videoFileCompleted", { filename: `${trueFilepath}.ts` });
     } catch (err) {
-      this.emit("DebugLog", { type: "common", text: String(err) });
+      this.emit("DebugLog", { type: "common", text: "videoFileCompleted error " + String(err) });
     }
   };
 
@@ -284,11 +284,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       assert(typeof stderrLine === "string");
       if (stderrLine.includes("Opening ")) {
         if (!isFirstSegment) {
-          try {
-            await hanldeLastSegmentCompleted();
-          } catch (err) {
-            this.emit("DebugLog", { type: "common", text: String(err) });
-          }
+          await hanldeLastSegmentCompleted();
         }
         // 下一个切片生成
         isFirstSegment = false;
@@ -361,18 +357,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
         this.emit("DebugLog", { type: "common", text: String(err) });
       }
-      extraDataController.setMeta({ recordStopTimestamp: Date.now() });
-      extraDataController.flush();
+      extraDataController?.setMeta({ recordStopTimestamp: Date.now() });
+      extraDataController?.flush();
 
       this.usedStream = undefined;
       this.usedSource = undefined;
       // TODO: other codes
       // TODO: emit update event
-      try {
-        await hanldeLastSegmentCompleted();
-      } catch (err) {
-        this.emit("DebugLog", { type: "common", text: String(err) });
-      }
+      await hanldeLastSegmentCompleted();
       this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
       this.recordHandle = undefined;
       this.state = "idle";

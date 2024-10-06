@@ -467,7 +467,7 @@ export class BiliCommentQueue {
       });
     }
 
-    console.log("addCheckTask", this.list);
+    // console.log("addCheckTask", this.list);
   }
   addCommentTask(data: { aid: number; content: string; uid: number; top: boolean }) {
     if (this.list.filter((item) => item.type === "comment").some((item) => item.aid === data.aid))
