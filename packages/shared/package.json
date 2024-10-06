@@ -32,7 +32,7 @@
     "@autorecord/manager": "workspace:*",
     "@biliLive-tools/types": "workspace:*",
     "@napi-rs/canvas": "^0.1.53",
-    "@renmu/bili-api": "2.0.0",
+    "@renmu/bili-api": "2.0.1-beta.0",
     "@renmu/fluent-ffmpeg": "2.2.1",
     "@renmu/m3u8-downloader": "^0.3.0",
     "ass-compiler": "^0.1.11",
