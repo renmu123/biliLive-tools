@@ -30,7 +30,7 @@ export let container!: AwilixContainer;
 
 const authMiddleware = (passKey: string | number) => {
   return async (ctx: Koa.Context, next: Koa.Next) => {
-    const authHeader = ctx.headers["authorization"];
+    const authHeader = ctx.headers["authorization"] || ctx.request.query.auth;
     if (!authHeader) {
       ctx.status = 401;
       ctx.body = "Authorization header is missing";

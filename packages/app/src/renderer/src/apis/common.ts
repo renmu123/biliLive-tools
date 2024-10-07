@@ -9,8 +9,13 @@ export const previewWebhookTitle = async (template: string): Promise<string> => 
 };
 
 export const getStreamLogs = async () => {
-  const appConfig = await configApi.get();
-  const eventSource = new EventSource(`http://127.0.0.1:${appConfig.port}/sse/streamLogs`);
+  let key = window.localStorage.getItem("key");
+  if (!window.isWeb) {
+    const appConfig = await configApi.get();
+    key = appConfig.passKey;
+  }
+
+  const eventSource = new EventSource(`${request.defaults.baseURL}/sse/streamLogs?auth=${key}`);
   return eventSource;
 };
 
