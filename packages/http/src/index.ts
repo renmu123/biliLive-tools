@@ -89,16 +89,16 @@ export function serverStart(
   app.use(recocderRouter.routes());
   app.use(biliRouter.routes());
   app.use(taskRouter.routes());
+  app.use(router.allowedMethods());
+
   // sse
   app.use(
-    SSERouter.use(
-      sse({
-        maxClients: 5000,
-        pingInterval: 30000,
-      }),
-    ).routes(),
+    sse({
+      maxClients: 5000,
+      pingInterval: 30000,
+    }),
   );
-  app.use(router.allowedMethods());
+  app.use(SSERouter.routes());
 
   app.listen(options.port, options.host, () => {
     console.log(`Server is running at http://${options.host}:${options.port}`);
