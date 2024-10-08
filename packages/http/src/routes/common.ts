@@ -60,9 +60,12 @@ function isDriveLetter(letter: string): boolean {
 router.get("/files", async (ctx) => {
   const params = ctx.request.query;
   let root = params.path as string;
-  const ext = params.ext as string;
+  const filterExts = ((params.exts as string) || "")
+    .split("|")
+    .filter((ext) => ext)
+    .map((ext) => `.${ext}`);
   const type = params.type as string;
-  console.log(params);
+  const allFiles = filterExts.length === 0 || filterExts.includes("*");
 
   if (root == "/" && process.platform === "win32") {
     const drives = await getDriveLetters();
@@ -73,8 +76,6 @@ router.get("/files", async (ctx) => {
     };
     return;
   }
-
-  const extFilter = ext || null;
 
   try {
     const paths = await fs.readdir(root);
@@ -88,8 +89,13 @@ router.get("/files", async (ctx) => {
       const filePath = path.join(root, name);
       try {
         const fileStat = await fs.stat(filePath);
+        const type = fileStat.isDirectory() ? "directory" : "file";
+
+        if (type === "file" && !allFiles && !filterExts.includes(path.extname(name))) {
+          continue;
+        }
         data.push({
-          type: fileStat.isDirectory() ? "directory" : "file",
+          type: type,
           name: name,
           path: filePath,
         });

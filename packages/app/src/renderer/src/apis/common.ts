@@ -35,7 +35,7 @@ export const versionTest = async (api: string, Authorization: string): Promise<s
 
 export const getFiles = async (params: {
   path: string;
-  ext?: string;
+  exts?: string[];
   type?: "file" | "directory";
 }): Promise<{
   list: {
@@ -46,7 +46,10 @@ export const getFiles = async (params: {
   parent: string;
 }> => {
   const res = await request.get(`/common/files`, {
-    params,
+    params: {
+      ...params,
+      exts: (params?.exts || []).join("|"),
+    },
   });
   return res.data;
 };

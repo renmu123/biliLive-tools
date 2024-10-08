@@ -56,6 +56,7 @@ import { darkTheme, lightTheme, useOsTheme, dateZhCN, zhCN } from "naive-ui";
 interface Props {
   type?: "file" | "directory";
   multi?: boolean;
+  exts?: string[];
   close: () => void;
   confirm: (path: string[]) => void;
 }
@@ -65,6 +66,7 @@ const showModal = defineModel<boolean>("visible", { required: true, default: fal
 const props = withDefaults(defineProps<Props>(), {
   type: "file",
   multi: false,
+  exts: () => [],
   close: () => {},
   confirm: () => {},
 });
@@ -77,7 +79,7 @@ const files = ref<
   }[]
 >([]);
 const currentPath = ref("/"); // 跟踪当前路径
-const selectedExt = ref(""); // 跟踪当前选择的扩展名
+// const selectedExt = ref<string[]>([]); // 跟踪当前选择的扩展名
 const selectedFiles = ref<string[]>([]); // 跟踪当前选择的文件
 const parentPath = ref();
 
@@ -86,7 +88,7 @@ const fetchFiles = async () => {
   selectedFiles.value = [];
   const res = await commonApi.getFiles({
     path: currentPath.value,
-    ext: selectedExt.value,
+    exts: props.exts,
     type: props.type,
   });
   files.value = res.list;
@@ -109,9 +111,15 @@ const goUpDirectory = () => {
 const selectFile = (file: { name: string; type: "file" | "directory"; path: string }) => {
   if (props.type !== file.type) return;
 
-  selectedFiles.value = [file.path];
-  // emit("fileSelected", file);
-  // closeDialog();
+  if (props.multi) {
+    if (selectedFiles.value.includes(file.path)) {
+      selectedFiles.value = selectedFiles.value.filter((path) => path !== file.path);
+    } else {
+      selectedFiles.value = [...selectedFiles.value, file.path];
+    }
+  } else {
+    selectedFiles.value = [file.path];
+  }
 };
 
 // 关闭弹框
@@ -125,7 +133,6 @@ const confirm = () => {
   // emit("confirm", { path: selectedFiles.value });
   props.confirm(selectedFiles.value);
   showModal.value = false;
-  // console.log("ppp", selectedFiles.value);
   // closeDialog();
 };
 

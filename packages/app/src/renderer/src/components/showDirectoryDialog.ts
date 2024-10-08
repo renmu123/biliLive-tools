@@ -5,6 +5,7 @@ export default async function showDirectoryDialog(
   options: {
     type?: "file" | "directory";
     multi?: boolean;
+    exts?: string[];
   } = {},
 ): Promise<string[] | undefined> {
   return new Promise((resolve) => {

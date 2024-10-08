@@ -59,6 +59,7 @@ const select = async () => {
     files = await showDirectoryDialog({
       type: "file",
       multi: true,
+      exts: props.extensions,
     });
   } else {
     files = await window.api.openFile({
