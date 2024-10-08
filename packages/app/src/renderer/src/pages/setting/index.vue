@@ -446,7 +446,6 @@ const selectFolder = async (type: "recorder") => {
       defaultPath: config.value.webhook.recoderFolder,
     });
   }
-  console.log(file);
 
   if (!file) return;
 

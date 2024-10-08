@@ -179,7 +179,107 @@ const footerMenuOptions = computed<MenuOption[]>(() => {
 });
 
 const menuOptions = computed<MenuOption[]>(() => {
-  return [
+  const toolsSubMenus = [
+    {
+      key: "Upload",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "Upload",
+            },
+          },
+          { default: () => "上传" },
+        ),
+    },
+    {
+      key: "DanmakuFactory",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "DanmakuFactory",
+            },
+          },
+          { default: () => "弹幕转换" },
+        ),
+    },
+    {
+      key: "recorder",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "recorder",
+            },
+          },
+          { default: () => "斗鱼录制" },
+        ),
+    },
+    {
+      key: "videoCut",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "videoCut",
+            },
+          },
+          { default: () => "切片" },
+        ),
+    },
+    {
+      key: "Convert2Mp4",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "Convert2Mp4",
+            },
+          },
+          { default: () => "转码" },
+        ),
+    },
+    {
+      key: "VideoMerge",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "VideoMerge",
+            },
+          },
+          { default: () => "视频合并" },
+        ),
+    },
+    {
+      key: "BiliDownload",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "BiliDownload",
+            },
+          },
+          { default: () => "视频下载" },
+        ),
+    },
+  ];
+  // 如果是web，不显示切片页
+  if (isWeb.value) {
+    const index = toolsSubMenus.findIndex((item) => item.key === "videoCut");
+    if (index !== -1) {
+      toolsSubMenus.splice(index, 1);
+    }
+  }
+  const menus = [
     {
       label: () =>
         h(
@@ -198,99 +298,7 @@ const menuOptions = computed<MenuOption[]>(() => {
       label: () => h("span", "工具页"),
       key: "tools",
       icon: renderIcon(BookIcon),
-      children: [
-        {
-          key: "Upload",
-          label: () =>
-            h(
-              RouterLink,
-              {
-                to: {
-                  name: "Upload",
-                },
-              },
-              { default: () => "上传" },
-            ),
-        },
-        {
-          key: "DanmakuFactory",
-          label: () =>
-            h(
-              RouterLink,
-              {
-                to: {
-                  name: "DanmakuFactory",
-                },
-              },
-              { default: () => "弹幕转换" },
-            ),
-        },
-        {
-          key: "recorder",
-          label: () =>
-            h(
-              RouterLink,
-              {
-                to: {
-                  name: "recorder",
-                },
-              },
-              { default: () => "斗鱼录制" },
-            ),
-        },
-        {
-          key: "videoCut",
-          label: () =>
-            h(
-              RouterLink,
-              {
-                to: {
-                  name: "videoCut",
-                },
-              },
-              { default: () => "切片" },
-            ),
-        },
-        {
-          key: "Convert2Mp4",
-          label: () =>
-            h(
-              RouterLink,
-              {
-                to: {
-                  name: "Convert2Mp4",
-                },
-              },
-              { default: () => "转码" },
-            ),
-        },
-        {
-          key: "VideoMerge",
-          label: () =>
-            h(
-              RouterLink,
-              {
-                to: {
-                  name: "VideoMerge",
-                },
-              },
-              { default: () => "视频合并" },
-            ),
-        },
-        {
-          key: "BiliDownload",
-          label: () =>
-            h(
-              RouterLink,
-              {
-                to: {
-                  name: "BiliDownload",
-                },
-              },
-              { default: () => "视频下载" },
-            ),
-        },
-      ],
+      children: toolsSubMenus,
     },
     {
       label: () =>
@@ -321,6 +329,7 @@ const menuOptions = computed<MenuOption[]>(() => {
       icon: renderImg(userInfo.value?.profile?.face || defaultUserAvatar),
     },
   ];
+  return menus;
 });
 
 const settingVisible = ref(false);
