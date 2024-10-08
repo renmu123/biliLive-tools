@@ -189,8 +189,14 @@
                   ></Tip>
                 </span>
               </template>
-              <n-button type="primary" @click="exportSettingZip">导出配置</n-button>
-              <n-button type="primary" style="margin-left: 10px" @click="importSettingZip"
+              <n-button type="primary" :disabled="isWeb" @click="exportSettingZip"
+                >导出配置</n-button
+              >
+              <n-button
+                type="primary"
+                style="margin-left: 10px"
+                :disabled="isWeb"
+                @click="importSettingZip"
                 >导入配置</n-button
               >
             </n-form-item>
@@ -315,7 +321,7 @@ import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline, Refresh } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
 import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
-import showPasswordDialog from "@renderer/components/showPasswordDialog";
+import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig, Theme } from "@biliLive-tools/types";
 
@@ -438,9 +444,9 @@ const selectFolder = async (type: "recorder") => {
   let file: string | undefined;
 
   if (window.isWeb) {
-    file = await showPasswordDialog({
+    file = await showDirectoryDialog({
       type: "directory",
-    });
+    })[0];
   } else {
     file = await window.api.openDirectory({
       defaultPath: config.value.webhook.recoderFolder,

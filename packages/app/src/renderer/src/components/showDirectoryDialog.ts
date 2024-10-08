@@ -1,11 +1,12 @@
 import { App, createApp } from "vue";
 import FileBrowserDialog from "./FileBrowserDialog.vue";
 
-export default async function showPasswordDialog(
+export default async function showDirectoryDialog(
   options: {
     type?: "file" | "directory";
+    multi?: boolean;
   } = {},
-): Promise<string | undefined> {
+): Promise<string[] | undefined> {
   return new Promise((resolve) => {
     const mountNode = document.createElement("div");
     let dialogApp: App<Element> | undefined = createApp(FileBrowserDialog, {
@@ -19,7 +20,7 @@ export default async function showPasswordDialog(
           resolve(undefined);
         }
       },
-      confirm: (path: string) => {
+      confirm: (path: string[]) => {
         resolve(path);
         dialogApp?.unmount();
         document.body.removeChild(mountNode);

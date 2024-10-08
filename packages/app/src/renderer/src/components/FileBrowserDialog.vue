@@ -19,12 +19,12 @@
 
           <!-- 文件夹与文件展示 -->
           <ul class="file-list">
-            <li v-if="currentPath" @click="goUpDirectory">上一级</li>
+            <li v-if="currentPath && currentPath !== '/'" @click="goUpDirectory">上一级</li>
             <li
               v-for="(file, index) in files"
               :key="index"
               class="file"
-              :class="{ selected: selectedFile === file.path }"
+              :class="{ selected: selectedFiles.includes(file.path) }"
               @click="selectFile(file)"
               @dblclick="file.type === 'directory' ? openDirectory(file) : ''"
             >
@@ -36,7 +36,7 @@
           <div style="text-align: right">
             <n-button style="margin-left: 10px" @click="closeDialog">取消</n-button>
             <n-button
-              :disabled="!selectedFile"
+              :disabled="!selectedFiles"
               type="primary"
               style="margin-left: 10px"
               @click="confirm"
@@ -55,14 +55,16 @@ import { darkTheme, lightTheme, useOsTheme, dateZhCN, zhCN } from "naive-ui";
 
 interface Props {
   type?: "file" | "directory";
+  multi?: boolean;
   close: () => void;
-  confirm: (path: string) => void;
+  confirm: (path: string[]) => void;
 }
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 // const emit = defineEmits(["close", "confirm"]);
 const props = withDefaults(defineProps<Props>(), {
   type: "file",
+  multi: false,
   close: () => {},
   confirm: () => {},
 });
@@ -76,12 +78,12 @@ const files = ref<
 >([]);
 const currentPath = ref("/"); // 跟踪当前路径
 const selectedExt = ref(""); // 跟踪当前选择的扩展名
-const selectedFile = ref(""); // 跟踪当前选择的文件
+const selectedFiles = ref<string[]>([]); // 跟踪当前选择的文件
 const parentPath = ref();
 
 // 获取文件列表
 const fetchFiles = async () => {
-  selectedFile.value = "";
+  selectedFiles.value = [];
   const res = await commonApi.getFiles({
     path: currentPath.value,
     ext: selectedExt.value,
@@ -107,7 +109,7 @@ const goUpDirectory = () => {
 const selectFile = (file: { name: string; type: "file" | "directory"; path: string }) => {
   if (props.type !== file.type) return;
 
-  selectedFile.value = file.path;
+  selectedFiles.value = [file.path];
   // emit("fileSelected", file);
   // closeDialog();
 };
@@ -120,10 +122,10 @@ const closeDialog = () => {
 };
 
 const confirm = () => {
-  // emit("confirm", { path: selectedFile.value });
-  props.confirm(selectedFile.value);
+  // emit("confirm", { path: selectedFiles.value });
+  props.confirm(selectedFiles.value);
   showModal.value = false;
-  // console.log("ppp", selectedFile.value);
+  // console.log("ppp", selectedFiles.value);
   // closeDialog();
 };
 

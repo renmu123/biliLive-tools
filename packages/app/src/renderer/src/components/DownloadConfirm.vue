@@ -63,7 +63,7 @@ import { EditOutlined } from "@vicons/material";
 import { sanitizeFileName } from "@renderer/utils";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useAppConfig } from "@renderer/stores";
-import showPasswordDialog from "@renderer/components/showPasswordDialog";
+import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 
 interface Part {
   cid: number | string;
@@ -104,9 +104,9 @@ const editPart = (file: Part) => {
 const selectFolder = async () => {
   let dir: string | undefined;
   if (window.isWeb) {
-    dir = await showPasswordDialog({
+    dir = await showDirectoryDialog({
       type: "directory",
-    });
+    })[0];
   } else {
     dir = await window.api.openDirectory({
       defaultPath: options.savePath,

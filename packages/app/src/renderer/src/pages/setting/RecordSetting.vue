@@ -121,7 +121,7 @@
 <script setup lang="ts">
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { templateRef } from "@vueuse/core";
-import showPasswordDialog from "@renderer/components/showPasswordDialog";
+import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 
 import type { AppConfig } from "@biliLive-tools/types";
 
@@ -141,9 +141,9 @@ const selectFolder = async (type: "recorder") => {
   let file: string | undefined;
 
   if (window.isWeb) {
-    file = await showPasswordDialog({
+    file = await showDirectoryDialog({
       type: "directory",
-    });
+    })[0];
   } else {
     file = await window.api.openDirectory({
       defaultPath: config.value.webhook.recoderFolder,

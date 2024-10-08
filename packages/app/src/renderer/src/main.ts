@@ -3,28 +3,12 @@ import App from "./App.vue";
 import router from "./routers";
 import { createPinia } from "pinia";
 import { init as axiosInit } from "./apis/request";
+import path from "path-browserify";
 
 const isWeb = !window.api;
 window.isWeb = isWeb;
 if (isWeb) {
-  // @ts-ignore
-  // window.api = {
-  //   openSetting: () => {},
-  //   openChangelog: () => {},
-  //   openLog: () => {},
-  //   task: {
-  //     // @ts-ignore
-  //     list: () => {
-  //       return [];
-  //     },
-  //   },
-  //   config: {
-  //     // @ts-ignore
-  //     getAll: () => {
-  //       return {};
-  //     },
-  //   },
-  // };
+  window.path = path;
 }
 
 const init = async () => {

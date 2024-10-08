@@ -26,7 +26,6 @@ import { useUserInfoStore } from "@renderer/stores";
 import DownloadConfirm from "@renderer/components/DownloadConfirm.vue";
 import { sanitizeFileName } from "@renderer/utils";
 import { biliApi, commonApi } from "@renderer/apis";
-import path from "path-browserify";
 
 const notice = useNotification();
 const { userInfo } = storeToRefs(useUserInfoStore());
@@ -155,7 +154,7 @@ const confirm = async (options: { ids: (number | string)[]; savePath: string }) 
   for (const page of selectPages) {
     if (videoType.value === "douyu") {
       await commonApi.douyuVideoDownload(
-        path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
+        window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
         page.cid as string,
         {
           danmu: true,
@@ -165,7 +164,7 @@ const confirm = async (options: { ids: (number | string)[]; savePath: string }) 
     } else if (videoType.value === "bili") {
       biliApi.download(
         {
-          output: path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
+          output: window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
           cid: page.cid as number,
           bvid: archiveDeatil.value.vid,
         },

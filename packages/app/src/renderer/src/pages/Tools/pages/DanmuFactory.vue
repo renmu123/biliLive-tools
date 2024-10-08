@@ -60,6 +60,7 @@
 import { toReactive } from "@vueuse/core";
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
+import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 import { deepRaw } from "@renderer/utils";
 import { useDanmuPreset, useAppConfig } from "@renderer/stores";
 import { danmuPresetApi } from "@renderer/apis";
@@ -164,11 +165,18 @@ const openSetting = () => {
 };
 
 async function getDir() {
-  const path = await window.api.openDirectory({
-    defaultPath: options.savePath,
-  });
-  if (!path) return;
-  options.savePath = path;
+  let dir: string | undefined;
+  if (window.isWeb) {
+    dir = await showDirectoryDialog({
+      type: "directory",
+    })[0];
+  } else {
+    dir = await window.api.openDirectory({
+      defaultPath: options.savePath,
+    });
+  }
+  if (!dir) return;
+  options.savePath = dir;
   options.saveRadio = 2;
 }
 

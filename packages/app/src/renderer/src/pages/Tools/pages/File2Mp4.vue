@@ -60,6 +60,7 @@ import { useConfirm } from "@renderer/hooks";
 import { ffmpegPresetApi } from "@renderer/apis";
 import { useAppConfig, useFfmpegPreset } from "@renderer/stores";
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
+import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 import hotkeys from "hotkeys-js";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 
@@ -151,11 +152,18 @@ const convert = async () => {
 };
 
 async function getDir() {
-  const path = await window.api.openDirectory({
-    defaultPath: options.savePath,
-  });
-  if (!path) return;
-  options.savePath = path;
+  let dir: string | undefined;
+  if (window.isWeb) {
+    dir = await showDirectoryDialog({
+      type: "directory",
+    })[0];
+  } else {
+    dir = await window.api.openDirectory({
+      defaultPath: options.savePath,
+    });
+  }
+  if (!dir) return;
+  options.savePath = dir;
   options.saveRadio = 2;
 }
 
