@@ -4,6 +4,7 @@
 
 1. server酱<sup>3</sup>支持
 2. 弹幕转换支持不保存屏蔽弹幕（仅支持部分，不支持主动屏蔽的弹幕） [#31](https://github.com/renmu123/biliLive-tools/issues/31)
+3. B站上传选项支持可见范围参数
 
 ## 优化
 

@@ -176,6 +176,7 @@ export function formatOptions(options: BiliupConfig) {
     no_disturbance: options.no_disturbance || 0,
     topic_id: options.topic_id,
     mission_id: options.mission_id,
+    is_only_self: options.is_only_self || 0,
   };
   return data;
 }

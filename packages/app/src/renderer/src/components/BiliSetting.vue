@@ -191,6 +191,14 @@
               >开启精选评论
             </n-checkbox>
           </div>
+          <div class="inline-item">
+            <n-radio-group v-model:value="options.config.is_only_self" name="radiogroup">
+              <n-space>
+                <n-radio :value="0"> 公开可见 </n-radio>
+                <n-radio :value="1"> 仅自己可见 </n-radio>
+              </n-space>
+            </n-radio-group>
+          </div>
         </div>
       </n-form-item>
       <n-form-item label="自动评论">
