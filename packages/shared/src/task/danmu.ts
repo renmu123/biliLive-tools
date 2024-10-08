@@ -122,6 +122,10 @@ export const convertXml2Ass = async (
     copyInput: false,
   },
 ) => {
+  if (options.saveRadio === 2 && !(await fs.pathExists(options.savePath))) {
+    throw new Error("保存路径不存在");
+  }
+
   const tasks: {
     output?: string;
     taskId?: string;

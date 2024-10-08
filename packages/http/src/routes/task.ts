@@ -9,6 +9,7 @@ import {
   handleRemoveTask,
   handleQueryTask,
 } from "@biliLive-tools/shared/task/task.js";
+import { convertXml2Ass } from "@biliLive-tools/shared/task/danmu.js";
 
 const router = new Router({
   prefix: "/task",
@@ -58,6 +59,23 @@ router.post("/:id/start", async (ctx) => {
   const { id } = ctx.params;
   handleStartTask(id);
   ctx.body = { code: 0 };
+});
+
+router.post("/convertXml2Ass", async (ctx) => {
+  const { input, output, options, preset } = ctx.request.body;
+  const task = await convertXml2Ass(
+    {
+      input,
+      output,
+    },
+    preset,
+    {
+      removeOrigin: false,
+      copyInput: false,
+      ...options,
+    },
+  );
+  ctx.body = { taskId: task.taskId };
 });
 
 export default router;

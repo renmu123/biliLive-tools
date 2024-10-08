@@ -1,5 +1,6 @@
 import request from "./request";
 import type { Task } from "@renderer/types";
+import type { DanmuPreset } from "@biliLive-tools/types";
 
 /**
  * 获取任务列表
@@ -47,6 +48,24 @@ const start = async (id: string): Promise<string> => {
   return res.data;
 };
 
+const convertXml2Ass = async (
+  input: string,
+  output: string,
+  preset: DanmuPreset["config"],
+  options: {
+    saveRadio: 1 | 2;
+    savePath?: string;
+  },
+): Promise<string> => {
+  const res = await request.post(`/task/convertXml2Ass`, {
+    input,
+    output,
+    options,
+    preset,
+  });
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -56,6 +75,7 @@ const task = {
   interrupt,
   remove,
   start,
+  convertXml2Ass,
 };
 
 export default task;
