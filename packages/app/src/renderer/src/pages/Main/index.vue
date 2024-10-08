@@ -14,6 +14,7 @@
         <n-menu
           v-model:value="activeKey"
           class="main-menu"
+          :style="{ marginBottom: `${footerMenuOptions.length * 50}px` }"
           :collapsed="collapsed"
           :collapsed-width="64"
           :collapsed-icon-size="22"
@@ -85,6 +86,7 @@ appConfig.getAppConfig();
 function renderIcon(icon: Component) {
   return () => h(NIcon, null, { default: () => h(icon) });
 }
+const isWeb = computed(() => window?.isWeb);
 
 function renderQueueIcon(icon: Component) {
   return () =>
@@ -118,36 +120,62 @@ function renderImg(src: string) {
 }
 
 const footerMenuOptions = computed<MenuOption[]>(() => {
-  return [
-    {
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: "About",
-            },
-          },
-          { default: () => "关于" },
-        ),
-      key: "About",
-      icon: renderIcon(InfoIcon),
-    },
-    {
+  const menus: {
+    label: () => VNode;
+    key: string;
+    icon?: () => VNode;
+  }[] = [];
+  if (isWeb.value) {
+    menus.push({
       label: () =>
         h(
           "a",
           {
             onClick: () => {
-              settingVisible.value = true;
+              logVisible.value = true;
+            },
+            style: {
+              marginLeft: "25px",
             },
           },
-          { default: () => "设置" },
+          { default: () => "日志" },
         ),
-      key: "setting",
-      icon: renderIcon(SettingIcon),
-    },
-  ];
+      key: "log",
+    });
+  }
+  menus.push(
+    ...[
+      {
+        label: () =>
+          h(
+            RouterLink,
+            {
+              to: {
+                name: "About",
+              },
+            },
+            { default: () => "关于" },
+          ),
+        key: "About",
+        icon: renderIcon(InfoIcon),
+      },
+      {
+        label: () =>
+          h(
+            "a",
+            {
+              onClick: () => {
+                settingVisible.value = true;
+              },
+            },
+            { default: () => "设置" },
+          ),
+        key: "setting",
+        icon: renderIcon(SettingIcon),
+      },
+    ],
+  );
+  return menus;
 });
 
 const menuOptions = computed<MenuOption[]>(() => {
