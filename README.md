@@ -1,5 +1,7 @@
 # biliLive-tools
 
+![Downloads](https://img.shields.io/github/downloads/renmu123/biliLive-tools/total)
+
 这是一个用于 B 站录播的一站式工具，支持弹幕转换与视频压制并上传至B站，支持录播姬与blrec的webhook。  
 如果你是录播man正在寻找xml弹幕转换、弹幕压制、webhook上传工具，如果你是切片man正在寻找下载b站视频工具，如果你厌倦了b站的多p上传，你可以来试试本软件。  
 做这款工具的初衷是为了解决录播工具的碎片化，往往想完整处理一场带有弹幕的录播要使用多个软件的配合，一些工具只有CLI，加大了使用难度。  
@@ -25,7 +27,7 @@
 **更新前请查看更新记录，避免破坏性更新带来的问题**
 
 不提供 MacOS 安装包，需要的可以自行编译，编译时需要替换用到的二进制文件。  
-由于我不在Linux开发，测试覆盖不光，如果存在问题可以提issue。  
+由于我不在Linux开发，测试覆盖不广，如果存在问题可以提issue。  
 CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/master/packages/CLI)
 
 下载地址：https://github.com/renmu123/biliLive-tools/releases  
