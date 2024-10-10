@@ -86,6 +86,7 @@ const list = computed(() => {
 });
 
 const getList = async () => {
+  console.log(new Date().getTime(), "getList");
   recorderList.value = await recoderApi.infoList();
 };
 
@@ -137,16 +138,34 @@ init();
 
 let intervalId: NodeJS.Timeout | null = null;
 
-onDeactivated(() => {
-  intervalId && clearInterval(intervalId);
-  intervalId = null;
-});
-
-onActivated(() => {
+function createInterval() {
   intervalId = setInterval(() => {
     getList();
   }, 2000);
+}
+
+function cleanInterval() {
+  intervalId && clearInterval(intervalId);
+  intervalId = null;
+}
+
+onDeactivated(() => {
+  cleanInterval();
 });
+
+onActivated(() => {
+  createInterval();
+});
+
+function handleVisibilityChange() {
+  if (document.visibilityState === "hidden") {
+    cleanInterval();
+  } else {
+    createInterval();
+  }
+}
+
+document.addEventListener("visibilitychange", handleVisibilityChange);
 </script>
 
 <style scoped lang="less">
