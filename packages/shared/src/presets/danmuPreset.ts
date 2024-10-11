@@ -18,6 +18,7 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   scrollarea: 1.0,
   bold: false,
   showusernames: false,
+  saveblocked: true,
   showmsgbox: true,
   msgboxsize: [500, 1080],
   msgboxpos: [20, 0],

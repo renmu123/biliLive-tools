@@ -33,33 +33,8 @@ describe.concurrent("genDanmuArgs", () => {
       fontname: "Arial",
       blacklist: "",
       showusernames: true,
+      saveblocked: true,
     };
-    // const config = {
-    //   resolution: [1920, 1080],
-    //   scrolltime: 12,
-    //   fixtime: 5,
-    //   density: 0,
-    //   fontname: "Microsoft YaHei",
-    //   fontsize: 38,
-    //   opacity: 255,
-    //   outline: 0,
-    //   shadow: 1,
-    //   displayarea: 1,
-    //   scrollarea: 1,
-    //   bold: false,
-    //   showusernames: false,
-    //   showmsgbox: true,
-    //   msgboxsize: [500, 1080],
-    //   msgboxpos: [20, 0],
-    //   msgboxfontsize: 38,
-    //   msgboxduration: 10,
-    //   giftminprice: 10,
-    //   giftmergetolerance: 0,
-    //   blockmode: [],
-    //   statmode: [],
-    //   resolutionResponsive: false,
-    //   blacklist: "12",
-    // };
 
     const expectedArgs = [
       "--resolution 1920x1080",
@@ -69,6 +44,7 @@ describe.concurrent("genDanmuArgs", () => {
       "--statmode TABLE-HISTOGRAM",
       '--fontname "Arial"',
       "--showusernames true",
+      "--saveblocked true",
     ];
 
     // @ts-ignore

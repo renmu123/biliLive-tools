@@ -423,6 +423,9 @@ importers:
       p-limit:
         specifier: ^6.1.0
         version: 6.1.0
+      serverchan-sdk:
+        specifier: 1.0.5
+        version: 1.0.5(encoding@0.1.13)
       subtitle:
         specifier: ^4.2.1
         version: 4.2.1
@@ -2241,6 +2244,9 @@ packages:
 
   crc@3.8.0:
     resolution: {integrity: sha512-iX3mfgcTMIq3ZKLIsVFAbv7+Mc10kxabAGQb8HvjA1o3T1PIYprbakQ65d3I+2HGHt6nSKkM9PYjgoJO2KcFBQ==}
+
+  cross-fetch@4.0.0:
+    resolution: {integrity: sha512-e4a5N8lVvuLgAWgnCrLr2PP0YyDOTHa9H/Rj54dirp61qXnNq46m82bRhNqIA5VccJtWBvPTFRV3TtvHUKPB1g==}
 
   cross-spawn@7.0.3:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
@@ -4342,6 +4348,9 @@ packages:
   serialize-error@7.0.1:
     resolution: {integrity: sha512-8I8TjW5KMOKsZQTvoxjuSIa7foAwPWGOts+6o7sgjz41/qMD9VQHEDxi6PBvK2l0MXUmqZyNpUK+T2tQaaElvw==}
     engines: {node: '>=10'}
+
+  serverchan-sdk@1.0.5:
+    resolution: {integrity: sha512-jzy2JT/cbGDQRlw0Bm2i5Lir1y1Re9xT9wrp/MgewAYCaH9Yk9JPvGyO68x+L+KHIhFLDBHo+dx4F0I+uJJ3kQ==}
 
   set-blocking@2.0.0:
     resolution: {integrity: sha512-KiKBS8AnWGEyLzofFfmvKwpdPzqiy16LvQfK3yv/fVH7Bj13/wl3JSR1J+rfgRE9q7xUJK4qvgS8raSOeLUehw==}
@@ -7067,6 +7076,12 @@ snapshots:
       buffer: 5.7.1
     optional: true
 
+  cross-fetch@4.0.0(encoding@0.1.13):
+    dependencies:
+      node-fetch: 2.7.0(encoding@0.1.13)
+    transitivePeerDependencies:
+      - encoding
+
   cross-spawn@7.0.3:
     dependencies:
       path-key: 3.1.1
@@ -9361,6 +9376,12 @@ snapshots:
     dependencies:
       type-fest: 0.13.1
     optional: true
+
+  serverchan-sdk@1.0.5(encoding@0.1.13):
+    dependencies:
+      cross-fetch: 4.0.0(encoding@0.1.13)
+    transitivePeerDependencies:
+      - encoding
 
   set-blocking@2.0.0: {}
 

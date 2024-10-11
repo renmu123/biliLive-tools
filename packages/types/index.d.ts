@@ -18,6 +18,7 @@ export type DanmuConfig = {
   scrollarea: number;
   bold: boolean;
   showusernames: boolean;
+  saveblocked: boolean;
   showmsgbox: boolean;
   msgboxsize: [number, number];
   msgboxpos: [number, number];
@@ -539,6 +540,8 @@ export interface BiliupConfig {
   mission_id?: number;
   /** 话题名称 */
   topic_name?: string | null;
+  /** 是否仅自己可见 */
+  is_only_self?: 0 | 1;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {
