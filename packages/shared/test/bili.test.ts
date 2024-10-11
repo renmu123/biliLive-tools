@@ -81,6 +81,9 @@ describe("formatOptions", () => {
       desc: "This is a test video",
       desc_v2: undefined,
       dolby: 1,
+      is_only_self: 0,
+      mission_id: undefined,
+      topic_id: undefined,
       lossless_music: 0,
       no_reprint: 1,
       up_close_danmu: false,
@@ -140,6 +143,9 @@ describe("formatOptions", () => {
       recreate: -1,
       source: undefined,
       no_disturbance: 0,
+      is_only_self: 0,
+      mission_id: undefined,
+      topic_id: undefined,
     };
 
     const result = formatOptions(options);
@@ -188,6 +194,7 @@ describe("formatOptions", () => {
       copyright: 1,
       topic_id: 123456,
       mission_id: 123456,
+      is_only_self: 0,
     };
 
     const result = formatOptions(options);
@@ -236,6 +243,7 @@ describe("formatOptions", () => {
       copyright: 1,
       topic_id: 123456,
       mission_id: 123456,
+      is_only_self: 0,
     };
 
     const result = formatOptions(options);
