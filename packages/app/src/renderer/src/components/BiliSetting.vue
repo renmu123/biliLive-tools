@@ -15,7 +15,7 @@
         <template #label>
           <span class="inline-flex">
             <span>封面</span>
-            <Tip tip="默认使用视频第一帧"></Tip>
+            <Tip tip="非必选，默认由B站决定"></Tip>
           </span>
         </template>
         <image-crop v-model="options.config.cover"></image-crop>

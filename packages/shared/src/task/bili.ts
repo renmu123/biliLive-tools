@@ -671,8 +671,8 @@ export const validateBiliupConfig = async (config: BiliupConfig) => {
 };
 
 function getPassKey() {
-  if (process.env.BILILIVE_TOOLS_KEY) {
-    return process.env.BILILIVE_TOOLS_KEY;
+  if (process.env.BILILIVE_TOOLS_BILIKEY) {
+    return process.env.BILILIVE_TOOLS_BILIKEY;
   }
   return "7d628cb145deba521d5b0195924c466cae6559289cf5a335624ad8e6d7ef0085";
 }

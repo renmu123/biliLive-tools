@@ -73,7 +73,7 @@
               <template #label>
                 <span class="inline-flex">
                   鉴权密钥
-                  <Tip tip="主要用于webui，修改后需重启生效"></Tip>
+                  <Tip tip="用于webui鉴权，修改后需重启生效"></Tip>
                 </span>
               </template>
               <n-input v-model:value="config.passKey" type="password" show-password-on="click">
