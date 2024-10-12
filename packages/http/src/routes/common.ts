@@ -84,7 +84,11 @@ router.get("/files", async (ctx) => {
       parentDir = "/";
     }
 
-    const data = [];
+    const data: {
+      type: "directory" | "file";
+      name: string;
+      path: string;
+    }[] = [];
     for (const name of paths) {
       const filePath = path.join(root, name);
       try {
