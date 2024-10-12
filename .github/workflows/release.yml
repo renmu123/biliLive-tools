@@ -44,12 +44,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Install dependencies
-        run: pnpm install
-
       - name: pnpm-update-for-win
         if: startsWith(matrix.os, 'windows')
         run: node ./scripts/github-ci-pnpm-update.js
+
+      - name: Install dependencies
+        run: pnpm install
 
       - name: install-deps-for-better-sqlite3
         run: node ./scripts/github-ci-better-sqlite3.js
