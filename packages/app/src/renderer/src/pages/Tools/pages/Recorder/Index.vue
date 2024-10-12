@@ -86,7 +86,6 @@ const list = computed(() => {
 });
 
 const getList = async () => {
-  console.log(new Date().getTime(), "getList");
   recorderList.value = await recoderApi.infoList();
 };
 

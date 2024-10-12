@@ -68,7 +68,7 @@ export abstract class AbstractTask {
     if (this.status === "pending") return 0;
     const now = Date.now();
     const currentTime = this.endTime || now;
-    return currentTime - this.startTime - this.totalPausedDuration;
+    return Math.min(currentTime - this.startTime - this.totalPausedDuration, 0);
   }
 }
 
