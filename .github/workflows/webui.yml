@@ -73,8 +73,7 @@ jobs:
       - name: Push renderer to biliLive-webui
         uses: ad-m/github-push-action@v0.8.0
         with:
-          repository: renmu123/biliLive-webui
-          branch: master
+          branch: webui
           force: true
           directory: packages/app/out/renderer
           github_token: ${{ secrets.WEBUI_TOKEN }}
