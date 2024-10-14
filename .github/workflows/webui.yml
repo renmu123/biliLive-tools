@@ -71,7 +71,7 @@ jobs:
 
         # packages/app/out/renderer https://github.com/renmu123/biliLive-webui
       - name: Push renderer to biliLive-webui
-        uses: ad-m/github-push-action@v0.6.0
+        uses: ad-m/github-push-action@v0.8.0
         with:
           repository: renmu123/biliLive-webui
           branch: master
