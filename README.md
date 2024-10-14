@@ -36,6 +36,8 @@ CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/maste
 # 功能介绍
 
 <!-- ## Web & docker注意事项
+项目地址：https://github.com/renmu123/biliLive-webui
+在线地址：https://bililive.irenmu.com
 目前版本尚未完成
 **由于软件并非针对web设计，无法保证安全性，请谨慎暴露在公网中**
 
@@ -313,6 +315,12 @@ $ pnpm run build:app:no-ffmpeg
 # CLI应用
 $ pnpm run build:cli
 ```
+
+## WebUI项目地址
+
+为github actions自动编译
+
+地址：https://github.com/renmu123/biliLive-webui
 
 # License
 
