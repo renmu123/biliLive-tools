@@ -48,7 +48,7 @@
         <template #label>
           <span class="inline-flex">
             检查间隔
-            <Tip tip="注意风控"></Tip>
+            <Tip tip="直播状态检查，注意风控"></Tip>
           </span>
         </template>
         <n-input-number v-model:value="config.recorder.checkInterval" min="10" step="10">

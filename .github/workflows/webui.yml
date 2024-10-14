@@ -1,0 +1,82 @@
+name: Build/release Electron app
+
+on:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    env:
+      is_tag: ${{ startsWith(github.ref, 'refs/tags/') }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: install-deps-for-better-sqlite3
+        run: node ./scripts/github-ci-better-sqlite3.js
+
+      - name: Cache Electron
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\electron\Cache
+          key: ${{ runner.os }}-electron-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/pnpm-lock.yaml')) }}
+          restore-keys: |
+            ${{ runner.os }}-electron-cache-
+
+      - name: Cache Electron-Builder
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\electron-builder\Cache
+          key: ${{ runner.os }}-electron-builder-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/pnpm-lock.yaml')) }}
+          restore-keys: |
+            ${{ runner.os }}-electron-builder-cache-
+
+      - name: build
+        run: pnpm run build:webui
+
+        # packages/app/out/renderer https://github.com/renmu123/biliLive-webui
+      - name: Push renderer to biliLive-webui
+        uses: ad-m/github-push-action@v0.6.0
+        with:
+          repository: renmu123/biliLive-webui
+          branch: main
+          directory: packages/app/out/renderer
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+permissions:
+  contents: write
