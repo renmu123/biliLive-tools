@@ -77,9 +77,7 @@ jobs:
           branch: master
           force: true
           directory: packages/app/out/renderer
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.WEBUI_TOKEN }}
 
 permissions:
   contents: write
