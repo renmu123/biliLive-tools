@@ -72,7 +72,7 @@ jobs:
       - name: Deploy to target repository
         env:
           REPO: https://github.com/renmu123/biliLive-webui
-          BRANCH: main
+          BRANCH: master
           GH_PAT: ${{ secrets.WEBUI_TOKEN }}
         run: |
           git config --global user.name "github-actions"
