@@ -74,7 +74,7 @@ jobs:
         uses: ad-m/github-push-action@v0.6.0
         with:
           repository: renmu123/biliLive-webui
-          branch: main
+          branch: master
           directory: packages/app/out/renderer
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
