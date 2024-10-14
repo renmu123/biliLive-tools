@@ -10,6 +10,7 @@
     "dev": "chcp 65001 && pnpm run --filter biliLive-tools dev",
     "devMain": "chcp 65001 && pnpm run --filter biliLive-tools devMain",
     "build:app": "pnpm run build:base && pnpm run --filter biliLive-tools build:app",
+    "build:webui": "pnpm run build:base && pnpm run --filter biliLive-tools build",
     "build:app:no-ffmpeg": "pnpm run build:base && pnpm run --filter biliLive-tools build:app:no-ffmpeg",
     "build:cli": "pnpm run build:base && pnpm run --filter bililive-cli build:cli",
     "build:base": "pnpm run --filter @biliLive-tools/shared build  && pnpm run --filter @biliLive-tools/http build",
