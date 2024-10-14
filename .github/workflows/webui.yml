@@ -70,7 +70,7 @@ jobs:
         run: pnpm run build:webui
 
         # packages/app/out/renderer https://github.com/renmu123/biliLive-webui
-      - name: Push renderer to biliLive-webui
+      - name: Push renderer to webui branch
         uses: ad-m/github-push-action@v0.8.0
         with:
           branch: webui
