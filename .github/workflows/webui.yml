@@ -69,14 +69,30 @@ jobs:
       - name: build
         run: pnpm run build:webui
 
+      - name: Deploy to target repository
+        env:
+          REPO: https://github.com/renmu123/biliLive-webui
+          BRANCH: main
+          GH_PAT: ${{ secrets.WEBUI_TOKEN }}
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          cd packages/app/out/renderer
+          git init
+          git remote add origin https://x-access-token:${GH_PAT}@github.com/renmu123/biliLive-webui.git
+          git checkout -b $BRANCH
+          git add .
+          git commit -m "Deploy compiled files"
+          git push --force origin $BRANCH
+
         # packages/app/out/renderer https://github.com/renmu123/biliLive-webui
-      - name: Push renderer to webui branch
-        uses: ad-m/github-push-action@v0.8.0
-        with:
-          branch: webui
-          force: true
-          directory: packages/app/out/renderer
-          github_token: ${{ secrets.WEBUI_TOKEN }}
+      # - name: Push renderer to webui branch
+      #   uses: ad-m/github-push-action@v0.8.0
+      #   with:
+      #     branch: webui
+      #     force: true
+      #     directory: packages/app/out/renderer
+      #     github_token: ${{ secrets.WEBUI_TOKEN }}
 
 permissions:
   contents: write
