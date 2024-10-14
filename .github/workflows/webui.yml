@@ -1,4 +1,4 @@
-name: Build/release Electron app
+name: build and push webui
 
 on:
   push:
