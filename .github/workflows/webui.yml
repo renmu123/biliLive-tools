@@ -75,6 +75,7 @@ jobs:
         with:
           repository: renmu123/biliLive-webui
           branch: master
+          force: true
           directory: packages/app/out/renderer
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
