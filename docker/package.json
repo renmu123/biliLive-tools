@@ -1,0 +1,16 @@
+{
+  "name": "@biliLive-tools/docker",
+  "version": "1.6.0",
+  "description": "B站直播录制处理工具",
+  "author": "renmu123",
+  "license": "GPL-3.0-only",
+  "homepage": "https://github.com/renmu123/biliLive-tools",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {}
+}

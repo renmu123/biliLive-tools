@@ -1,8 +1,8 @@
 import path from "node:path";
 import axios from "axios";
 
-import { createRecorderManager as createManager, setFFMPEGPath } from "@autorecord/manager";
 import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
+import { createRecorderManager as createManager, setFFMPEGPath } from "@autorecord/manager";
 import { getFfmpegPath } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";

@@ -22,30 +22,57 @@
 
 ![preview](./docs/preview.png)
 
-# 下载
+# 安装
 
-**更新前请查看更新记录，避免破坏性更新带来的问题**
+**任何版本更新前请查看更新记录，避免破坏性更新带来的问题**
+
+最优先支持的是桌面程序，其余或多或少少了部分功能
+
+## 桌面程序
 
 不提供 MacOS 安装包，需要的可以自行编译，编译时需要替换用到的二进制文件。  
-由于我不在Linux开发，测试覆盖不广，如果存在问题可以提issue。  
-CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/master/packages/CLI)
+由于我不在Linux开发，测试覆盖不广，如果存在问题可以提issue。
 
 下载地址：https://github.com/renmu123/biliLive-tools/releases  
-备用：https://www.alipan.com/s/iRyhxjdqGeL
+备用阿里云盘：https://www.alipan.com/s/iRyhxjdqGeL
+
+## CLI
+
+CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/master/packages/CLI)
+
+下载地址：https://github.com/renmu123/biliLive-tools/releases
+
+也可以使用`npm i bililive-cli -g`来进行安装
+
+## docker
+
+待施工
+
+## webui
+
+可用于国内未备案机器，或懒得自部署的情况，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者选择自签名，或者自部署
+
+线上地址：https://bililive.irenmu.com
 
 # 功能介绍
 
-<!-- ## Web & docker注意事项
-项目地址：https://github.com/renmu123/biliLive-webui
-在线地址：https://bililive.irenmu.com
-目前版本尚未完成
+## Web & docker注意事项
+
+项目地址：https://github.com/renmu123/biliLive-webui  
+在线地址：https://bililive.irenmu.com  
+目前版本尚未完成  
 **由于软件并非针对web设计，无法保证安全性，请谨慎暴露在公网中**
 
 密钥为`appConfig.json`的`passKey`字段
 
-### docker的webhook限制
+### webhook使用
 
-待完善 -->
+docker下由于存储的隔离，webhook使用其他安装方式并不一致
+待完善
+
+#### 录播姬
+
+#### blrec
 
 ## 断播续传
 
