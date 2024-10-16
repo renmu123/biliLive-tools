@@ -45,26 +45,10 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --ignore-scripts
 
-      - name: install-deps-for-better-sqlite3
-        run: node ./scripts/github-ci-better-sqlite3.js
-
-      - name: Cache Electron
-        uses: actions/cache@v4
-        with:
-          path: ~\AppData\Local\electron\Cache
-          key: ${{ runner.os }}-electron-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/pnpm-lock.yaml')) }}
-          restore-keys: |
-            ${{ runner.os }}-electron-cache-
-
-      - name: Cache Electron-Builder
-        uses: actions/cache@v4
-        with:
-          path: ~\AppData\Local\electron-builder\Cache
-          key: ${{ runner.os }}-electron-builder-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/pnpm-lock.yaml')) }}
-          restore-keys: |
-            ${{ runner.os }}-electron-builder-cache-
+      # - name: install-deps-for-better-sqlite3
+      #   run: node ./scripts/github-ci-better-sqlite3.js
 
       - name: build
         run: pnpm run build:webui
