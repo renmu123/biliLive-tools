@@ -500,7 +500,7 @@ const appInit = async () => {
   container = await init(globalConfig);
   const appConfig = container.resolve<AppConfig>("appConfig");
 
-  serverStart(
+  await serverStart(
     {
       port: appConfig.get("port"),
       host: appConfig.get("host"),

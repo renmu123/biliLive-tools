@@ -71,7 +71,7 @@ program
     if (!passKey) {
       throw new Error("请先设置 passKey");
     }
-    serverStart(
+    await serverStart(
       {
         port: opts.port ? Number(opts.port) : c.port,
         host: opts.host ?? c.host,

@@ -21,16 +21,20 @@ RUN pnpm run build:webui
 # 构建后端项目
 RUN pnpm run build:cli
 
+# 下载二进制依赖
+RUN pnpm run install:bin
+
 # 从另一个基础镜像开始，安装运行时依赖
 FROM node:20 AS runtime
 
 # 设置工作目录
 WORKDIR /app
-RUN mkdir public
+RUN mkdir public && mkdir data && mkdir bin
 
 # 复制 backend 代码和 package.json
 COPY --from=build /app/packages/app/out/renderer /app/public
 COPY --from=build /app/packages/CLI/lib /app
+COPY --from=build /app/packages/app/resources/bin /app/bin
 COPY --from=build /app/docker ./
 
 ENV NODE_ENV=production
