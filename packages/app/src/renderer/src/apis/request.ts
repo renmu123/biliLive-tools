@@ -16,7 +16,8 @@ export async function init() {
     }
   } else {
     const appConfig = await window.api.config.getAll();
-    api.defaults.baseURL = `http://127.0.0.1:${appConfig.port}`;
+    const protocol = appConfig.https ? "https" : "http";
+    api.defaults.baseURL = `${protocol}://127.0.0.1:${appConfig.port}`;
     api.defaults.headers.Authorization = appConfig.passKey;
   }
 }

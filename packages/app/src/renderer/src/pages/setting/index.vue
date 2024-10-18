@@ -49,6 +49,17 @@
             <n-form-item label="log等级"
               ><n-select v-model:value="config.logLevel" :options="logLevelOptions" />
             </n-form-item>
+            <!-- <n-form-item>
+              <template #label>
+                <span class="inline-flex">
+                  https
+                  <Tip
+                    tip="需重启生效，开启后使用https协议，默认使用自签名证书，所有外部访问如webhook需修改为https协议，桌面版用户如无必要请勿开启"
+                  ></Tip>
+                </span>
+              </template>
+              <n-switch v-model:value="config.https" />
+            </n-form-item> -->
             <n-form-item>
               <template #label>
                 <span class="inline-flex">

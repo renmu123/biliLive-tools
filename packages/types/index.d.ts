@@ -295,6 +295,7 @@ export interface AppConfig {
   port: number;
   host: string;
   passKey: string;
+  https?: boolean;
   webhook: {
     recoderFolder: string;
     blacklist: string;
