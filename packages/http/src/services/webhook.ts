@@ -27,7 +27,7 @@ import type {
 } from "@biliLive-tools/types";
 import type { AppConfig } from "@biliLive-tools/shared/config.js";
 
-type Platform = "bili-recorder" | "blrec" | "custom";
+type Platform = "bili-recorder" | "blrec" | "ddtv" | "custom";
 
 export interface Part {
   partId: string;

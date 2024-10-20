@@ -2,7 +2,7 @@
 
 ![Downloads](https://img.shields.io/github/downloads/renmu123/biliLive-tools/total)
 
-这是一个用于 B 站录播的一站式工具，支持弹幕转换与视频压制并上传至B站，支持录播姬与blrec的webhook。  
+这是一个用于 B 站录播的一站式工具，支持弹幕转换与视频压制并上传至B站，支持[B站录播姬](https://github.com/BililiveRecorder)、[blrec](https://github.com/acgnhiki/blrec)、[DDTV](https://github.com/CHKZL/DDTV)的webhook。  
 如果你是录播man正在寻找xml弹幕转换、弹幕压制、webhook上传工具，如果你是切片man正在寻找下载b站视频工具，如果你厌倦了b站的多p上传，你可以来试试本软件。  
 做这款工具的初衷是为了解决录播工具的碎片化，往往想完整处理一场带有弹幕的录播要使用多个软件的配合，一些工具只有CLI，加大了使用难度。  
 你可以在B站查看[使用教程](https://www.bilibili.com/video/BV1Hs421M755/)
@@ -55,6 +55,28 @@ CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/maste
 线上地址：https://bililive.irenmu.com
 
 # 功能介绍
+
+## webhook
+
+### [B站录播姬](https://github.com/BililiveRecorder)
+
+默认webhook地址：http://127.0.0.1:18010/webhook/bililiverecorder
+
+需要在本软件的“设置-webhook-录播姬工作目录”设置录播的工作目录
+
+### [blrec](https://github.com/acgnhiki/blrec)
+
+默认webhook地址：http://127.0.0.1:18010/webhook/blrec
+
+依赖于“视频文件创建”,“视频文件完成”两个webhhook，建议直接勾选全部事件。
+
+### [DDTV](https://github.com/CHKZL/DDTV)
+
+默认webhook地址：http://127.0.0.1:18010/webhook/custom
+
+需要将DDTV的软件“设置-文件与路径设置-录制文件保存路径”设置为绝对路径。
+
+由于DDTV的webhook设计的非常扭曲~~难用~~，无法保证任意配置下的可用性
 
 ## Web & docker注意事项
 
@@ -217,10 +239,6 @@ windows下环境变量修改后可能需要重启电脑方能生效
 ## nvnec或其他硬件转码无法正常使用
 
 请尝试更新显卡驱动，如果更新到最新后还无法使用，请尝试手动更换ffmpeg可执行文件为6.0
-
-## blrec的webhook事件如何设置
-
-依赖于“视频文件创建”,“视频文件完成”两个webhhook，建议直接勾选全部事件。
 
 ## blrec开启转换为mp4后无法使用
 

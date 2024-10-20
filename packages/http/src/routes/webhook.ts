@@ -86,6 +86,80 @@ router.post("/webhook/blrec", async (ctx) => {
   ctx.body = "ok";
 });
 
+router.post("/webhook/ddtv", async (ctx) => {
+  const webhook = appConfig.get("webhook");
+  const event = ctx.request.body as any;
+
+  if (webhook?.open && (event.cmd === "RecordingEnd" || event.cmd === "StartRecording")) {
+    log.info("ddtv webhook：", ctx.request.body);
+
+    // TODO: 还要测试不开启分片的情况
+    const files = getDDTVTrueFile(event);
+    if (!files.videoFile) {
+      ctx.body = "ok";
+      return;
+    }
+
+    const info: {
+      roomId: number;
+      platform: "ddtv";
+      username: string;
+      title: string;
+      filePath: string;
+      danmuPath?: string;
+    } = {
+      roomId: event.data.RoomId,
+      platform: "ddtv",
+      username: event.data.Name,
+      title: event.data.Title.Value,
+      filePath: files.videoFile,
+      danmuPath: files.danmuFile,
+    };
+
+    // 实际为分片结束信号，并不存在开始信号
+    const startTime = event.data.DownInfo.StartTime;
+    const nowTime = new Date().toISOString();
+
+    // 由于DDTV就没有发送开始事件，需要模拟开始事件，5秒后发送FileClosed事件
+    handler.handle({
+      event: "FileOpening",
+      time: startTime,
+      ...info,
+    });
+
+    setTimeout(() => {
+      handler.handle({
+        event: "FileClosed",
+        time: nowTime,
+        ...info,
+      });
+    }, 5000);
+  }
+  ctx.body = "ok";
+});
+
+const getDDTVTrueFile = (event: any) => {
+  // 上一个切片文件路径，但是不包含后缀，如_original_fix.mp4或_fix.mp4
+  const lastVideoFile: string = path.normalize(event.data.DownInfo.LiveChatListener.File);
+  // 当前拥有的所有切片文件列表，不代表所有文件都在文件夹下
+  const viodeoFileList: string[] = event.data.DownInfo.DownloadFileList.VideoFile.map(
+    path.normalize,
+  );
+  // 通过局部匹配查看lastFile是否在FileList中，需要从后往前查找，找到真正的文件路径
+  const videoFileTruePath: string | undefined = viodeoFileList.findLast((item: string) =>
+    item.includes(lastVideoFile),
+  );
+  const danmuFileList: string[] = event.data.DownInfo.DownloadFileList.DanmuFile;
+  const danmuFileTruePath: string | undefined = danmuFileList.findLast((item: string) =>
+    item.includes(lastVideoFile),
+  );
+  // TODO:通过event.data.cover_from_user.Value来下载封面并保存到临时文件夹，还需要判定是否开启了“使用直播封面”选项
+  return {
+    videoFile: videoFileTruePath,
+    danmuFile: danmuFileTruePath,
+  };
+};
+
 router.post("/webhook/custom", async (ctx) => {
   const webhook = appConfig.get("webhook");
   log.info("custom: webhook", ctx.request.body);

@@ -74,7 +74,7 @@
                 <span class="inline-flex">
                   port
                   <Tip
-                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>B站录播姬的webhook地址：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址：http://127.0.0.1:${config.port}/webhook/blrec<br/>自定义的webhook地址：http://127.0.0.1:${config.port}/webhook/custom <br/><b>修改后需重启生效</b>`"
+                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/><b>修改后需重启生效</b>`"
                   ></Tip>
                 </span>
               </template>
@@ -220,7 +220,7 @@
                 <span class="inline-flex">
                   webhook
                   <Tip
-                    :tip="`webhook路径：<br/>B站录播姬：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec：http://127.0.0.1:${config.port}/webhook/blrec<br/>自定义：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
+                    :tip="`webhook路径：<br/>B站录播姬：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec：http://127.0.0.1:${config.port}/webhook/blrec<br/>DDTV：http://127.0.0.1:${config.port}/webhook/ddtv<br/>自定义：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
                   ></Tip>
                 </span>
               </template>
