@@ -79,6 +79,16 @@
             <template #suffix> 秒 </template></n-input-number
           >
         </n-form-item>
+        <n-form-item v-if="isAdvancedMode" label="时间偏移">
+          <n-input-number
+            v-model:value.number="config.timeshift"
+            class="input-number"
+            style="width: 120px"
+            :precision="2"
+          >
+            <template #suffix> 秒 </template></n-input-number
+          >
+        </n-form-item>
         <n-form-item title="如果有用户名的话">
           <n-checkbox v-model:checked="config.showusernames"> 显示用户名 </n-checkbox>
         </n-form-item>

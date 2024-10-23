@@ -12,7 +12,7 @@
 [更新历史](https://github.com/renmu123/biliLive-tools/blob/master/CHANGELOG.md)
 
 1. 支持录播姬与blrec的webhook自动化处理
-2. 支持 Danmufactory GUI 弹幕xml转换
+2. 支持 Danmafactory GUI 弹幕xml转换
 3. 支持根据弹幕切片
 4. 支持b站分P投稿
 5. 支持视频与弹幕压制

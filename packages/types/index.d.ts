@@ -29,6 +29,7 @@ export type DanmuConfig = {
   statmode: ("TABLE" | "HISTOGRAM")[];
   resolutionResponsive: false;
   blacklist: string;
+  timeshift: number;
 };
 
 // 弹幕预设配置

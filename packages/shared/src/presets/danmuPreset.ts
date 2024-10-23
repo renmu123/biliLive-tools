@@ -29,6 +29,7 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   statmode: [],
   resolutionResponsive: false,
   blacklist: "",
+  timeshift: 0,
 };
 
 export function validateAndFilter<T>(options: T, requiredKeys: Array<keyof T>): T {
