@@ -141,7 +141,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
         const data = {
           "@@ts": progress,
           "@@price": String(ele.price * 1000),
-          "@@message": String(ele.text),
+          "#message": String(ele.text),
           "@@user": String(ele.sender?.name),
           "@@uid": String(ele?.sender?.uid),
           // "@@raw": JSON.stringify(ele),
