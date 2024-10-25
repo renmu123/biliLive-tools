@@ -5,7 +5,6 @@ import Router from "koa-router";
 import cors from "@koa/cors";
 import { bodyParser } from "@koa/bodyparser";
 import sse from "koa-sse-stream";
-import pem from "pem";
 
 import errorMiddleware from "./middleware/error.js";
 export * from "./routes/api_types.js";
@@ -107,25 +106,26 @@ export async function serverStart(
   return app;
 }
 
-function createCertificateAsync(): Promise<pem.CertificateCreationResult> {
-  return new Promise((resolve, reject) => {
-    pem.createCertificate({ days: 1, selfSigned: true }, (err, keys) => {
-      if (err) {
-        reject(err);
-      }
-      resolve(keys);
-    });
-  });
-}
+// function createCertificateAsync(): Promise<pem.CertificateCreationResult> {
+//   return new Promise((resolve, reject) => {
+//     pem.createCertificate({ days: 1, selfSigned: true }, (err, keys) => {
+//       if (err) {
+//         reject(err);
+//       }
+//       resolve(keys);
+//     });
+//   });
+// }
 
 async function createServer(options: { port: number; host: string }) {
   const isHttps = false;
   if (isHttps) {
-    const keys = await createCertificateAsync();
-    const httpsServer = https.createServer(
-      { key: keys.serviceKey, cert: keys.certificate },
-      app.callback(),
-    );
+    // const keys = await createCertificateAsync();
+    // const httpsServer = https.createServer(
+    //   { key: keys.serviceKey, cert: keys.certificate },
+    //   app.callback(),
+    // );
+    const httpsServer = https.createServer({ key: "", cert: "" }, app.callback());
     httpsServer.listen(options.port, options.host, () => {
       console.log(`Server is running at https://${options.host}:${options.port}`);
     });
