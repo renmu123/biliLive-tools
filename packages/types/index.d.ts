@@ -503,6 +503,17 @@ export interface FfmpegOptions {
   swsFlags?: string;
   /** 缩放方式，控制先缩放后渲染还是先渲染后缩放 */
   scaleMethod?: "auto" | "before" | "after";
+
+  /** 添加时间戳 */
+  addTimestamp?: boolean;
+  /** 时间戳x轴坐标 */
+  timestampX?: number;
+  /** 时间戳y轴坐标 */
+  timestampY?: number;
+  /** 时间戳字体大小 */
+  timestampFontSize?: number;
+  /** 时间戳颜色 */
+  timestampFontColor?: string;
 }
 
 export interface BiliupConfig {

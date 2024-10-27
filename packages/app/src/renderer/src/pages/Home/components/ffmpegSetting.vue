@@ -185,6 +185,7 @@
             class="input-number"
             :min="-1"
             :step="100"
+            title="宽"
             placeholder="宽"
             style="width: 100px"
           />&nbsp;X&nbsp;
@@ -193,12 +194,14 @@
             class="input-number"
             :min="-1"
             :step="100"
+            title="高"
             placeholder="高"
             style="width: 100px"
           />
           <n-select
             v-model:value="ffmpegOptions.config.swsFlags"
             :options="swsOptions"
+            title="缩放算法"
             placeholder="请选择缩放算法，默认为自动"
             clearable
             style="width: 200px; flex: none; margin-left: 10px"
@@ -206,9 +209,59 @@
           <n-select
             v-model:value="ffmpegOptions.config.scaleMethod"
             :options="scaleMethodOptions"
+            title="缩放顺序"
             placeholder="请选择缩放顺序"
             clearable
             style="width: 200px; flex: none; margin-left: 10px"
+          />
+        </template>
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            <span>时间戳</span>
+            <Tip>
+              添加时间戳到视频中，优先从视频元数据读取（如录播姬注释），其次是弹幕内元数据，最后是视频创建时间
+            </Tip>
+          </span>
+        </template>
+
+        <n-checkbox
+          v-model:checked="ffmpegOptions.config.addTimestamp"
+          style="margin-right: 20px"
+        ></n-checkbox>
+        <template v-if="ffmpegOptions.config.addTimestamp">
+          <n-input-number
+            v-model:value.number="ffmpegOptions.config.timestampX"
+            class="input-number"
+            :min="0"
+            :step="10"
+            title="x轴坐标"
+            placeholder="x轴坐标"
+            style="width: 120px; margin-right: 10px"
+          />
+          <n-input-number
+            v-model:value.number="ffmpegOptions.config.timestampY"
+            class="input-number"
+            :min="0"
+            :step="10"
+            placeholder="y轴坐标"
+            title="y轴坐标"
+            style="width: 120px; margin-right: 10px"
+          />
+          <n-input-number
+            v-model:value.number="ffmpegOptions.config.timestampFontSize"
+            class="input-number"
+            :min="10"
+            :step="1"
+            title="字体大小"
+            placeholder="字体大小"
+            style="width: 120px; margin-right: 10px"
+          />
+          <n-color-picker
+            v-model:value="ffmpegOptions.config.timestampFontColor"
+            style="width: 120px"
+            title="字体颜色"
           />
         </template>
       </n-form-item>

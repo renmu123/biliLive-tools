@@ -23,6 +23,11 @@ const commonPresetParams: {
   audioCodec: audioCodec;
   swsFlags: string;
   scaleMethod: "auto" | "before" | "after";
+  addTimestamp: boolean;
+  timestampX: number;
+  timestampY: number;
+  timestampFontSize: number;
+  timestampFontColor: string;
 } = {
   resetResolution: false,
   resolutionWidth: 2880,
@@ -30,6 +35,11 @@ const commonPresetParams: {
   audioCodec: "copy",
   swsFlags: "bilinear",
   scaleMethod: "auto",
+  addTimestamp: false,
+  timestampX: 10,
+  timestampY: 10,
+  timestampFontSize: 24,
+  timestampFontColor: "#ffffff",
 };
 
 const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
@@ -236,7 +246,13 @@ export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
   }
   async list() {
     const presets = await super.list();
-    return presets;
+    return presets.map((item) => {
+      item.config = {
+        ...commonPresetParams,
+        ...item.config,
+      };
+      return item;
+    });
   }
   async delete(id: string) {
     return super.delete(id);
