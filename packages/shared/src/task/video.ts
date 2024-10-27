@@ -341,6 +341,7 @@ export const genMergeAssMp4Command = (
         scaleFilter += `:flags=${ffmpegOptions.swsFlags}`;
       }
       outputStream = "v";
+      inputStream = outputStream;
       complexFilter.push({
         inputs: inputStream,
         filter: "scale",
@@ -348,6 +349,19 @@ export const genMergeAssMp4Command = (
         outputs: outputStream,
       });
     }
+
+    // 如果设置了添加时间戳
+    // if (false) {
+    //   outputStream = "v2";
+    //   inputStream = outputStream;
+    //   complexFilter.push({
+    //     inputs: inputStream,
+    //     filter: "drawtext",
+    //     options:
+    //       "text='%{pts\\:gmtime\\:1609469200\\:%Y-%m-%d %T}':fontcolor=white:fontsize=24:x=10:y=10",
+    //     outputs: outputStream,
+    //   });
+    // }
 
     command.complexFilter(complexFilter, outputStream);
     command.outputOptions("-map 0:a");
