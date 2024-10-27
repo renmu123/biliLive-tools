@@ -296,6 +296,7 @@ export const useAppConfig = defineStore("appConfig", () => {
       },
       download: {
         savePath: "",
+        danmu: "none",
       },
       translate: {
         presetId: undefined,

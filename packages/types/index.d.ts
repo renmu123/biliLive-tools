@@ -169,6 +169,8 @@ export type ToolConfig = {
   download: {
     /** 保存路径 */
     savePath: string;
+    /** 弹幕参数 */
+    danmu: "none" | "xml" | "ass";
   };
   /** 切片 */
   videoCut: {

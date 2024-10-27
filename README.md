@@ -78,6 +78,43 @@ CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/maste
 
 由于DDTV的webhook设计的非常扭曲~~难用~~，无法保证任意配置下的可用性
 
+### 自定义Webhook
+
+如果想接入webhook相关功能，你可以自行构造参数并调用接口，采用`post`方法，端口为`/webhook/custom`，接收后立刻返回http code=200。
+
+参数：
+`event`: `FileClosed`|`FileOpening` (如果你想使用断播续传功能，请在上一个`FileClosed`事件后在设置的时间间隔内发送`FileOpening`事件)  
+`filePath`: 视频文件的绝对路径
+`coverPath`: 可选，视频封面的绝对路径，如果为空，会读取与视频文件名相同的后缀为`jpg`的文件
+`danmuPath`: 可选，视频弹幕`xml`文件，如果为空，会读取与视频文件名相同的`xml`文件
+`roomId`: 数字类型，房间号，用于断播续传  
+`time`: 用于标题格式化的时间，示例："2021-05-14T17:52:54.946"  
+`title`: 标题，用于格式化视频标题  
+`username`：主播名称，用于格式化视频标题
+
+**以下参数用于弹幕分析功能，非必要**
+有些弹幕中存在元数据(参考blrec)的会被自动解析，比如弹幕姬或blrec或douyu-cli(0.6.1及以上)生成的弹幕
+`platform`：平台，如果是b站推荐为`bilibili`，斗鱼推荐为`douyu`，其实填啥都可以  
+`live_start_time`：直播开始时间，示例："2021-05-14T17:52:54.946"
+`live_title`：直播标题
+
+示例：
+
+```bash
+curl --location 'http://127.0.0.1:18010/webhook/custom' \
+--header 'Content-Type: application/json' \
+--data '{
+    "event":"FileClosed",
+    "filePath":"D:\\aa.mp4",
+    "coverPath":"D:\\aa.jpg",
+    "danmuPath":"D:\\aa.xml",
+    "roomId":93589,
+    "time":"2021-05-14T17:52:54.946",
+    "title":"我是猪",
+    "username":"djw"
+}'
+```
+
 ## Web & docker注意事项
 
 项目地址：https://github.com/renmu123/biliLive-webui  
@@ -154,54 +191,11 @@ tg bot 的搭建请自行寻找教程
 
 官网：https://docs.ntfy.sh/
 
-## 自定义Webhook
-
-如果想接入webhook相关功能，你可以自行构造参数并调用接口，采用`post`方法，端口为`/webhook/custom`，接收后立刻返回http code=200。
-
-参数：
-`event`: `FileClosed`|`FileOpening` (如果你想使用断播续传功能，请在上一个`FileClosed`事件后在设置的时间间隔内发送`FileOpening`事件)  
-`filePath`: 视频文件的绝对路径
-`coverPath`: 可选，视频封面的绝对路径，如果为空，会读取与视频文件名相同的后缀为`jpg`的文件
-`danmuPath`: 可选，视频弹幕`xml`文件，如果为空，会读取与视频文件名相同的`xml`文件
-`roomId`: 数字类型，房间号，用于断播续传  
-`time`: 用于标题格式化的时间，示例："2021-05-14T17:52:54.946"  
-`title`: 标题，用于格式化视频标题  
-`username`：主播名称，用于格式化视频标题
-
-**以下参数用于弹幕分析功能，非必要**
-有些弹幕中存在元数据(参考blrec)的会被自动解析，比如弹幕姬或blrec或douyu-cli(0.6.1及以上)生成的弹幕
-`platform`：平台，如果是b站推荐为`bilibili`，斗鱼推荐为`douyu`，其实填啥都可以  
-`live_start_time`：直播开始时间，示例："2021-05-14T17:52:54.946"
-`live_title`：直播标题
-
-示例：
-
-```bash
-curl --location 'http://127.0.0.1:18010/webhook/custom' \
---header 'Content-Type: application/json' \
---data '{
-    "event":"FileClosed",
-    "filePath":"D:\\aa.mp4",
-    "coverPath":"D:\\aa.jpg",
-    "danmuPath":"D:\\aa.xml",
-    "roomId":93589,
-    "time":"2021-05-14T17:52:54.946",
-    "title":"我是猪",
-    "username":"djw"
-}'
-```
-
 ## CLI的使用
 
 你可以使用二进制文件或者使用`npm i bililive-cli -g`进行安装。
 
 具体文档[参考](https://github.com/renmu123/biliLive-tools/tree/master/packages/CLI)页面
-
-# 赞赏
-
-如果本项目对你有帮助，请我喝瓶快乐水吧，有助于项目更好维护。  
-爱发电：[https://afdian.com/a/renmu123](https://afdian.com/a/renmu123)  
-你也可以给我的 B 站帐号 [充电](https://space.bilibili.com/10995238)
 
 # 常见问题
 
@@ -363,6 +357,12 @@ $ pnpm run build:cli
 为github actions自动编译
 
 地址：https://github.com/renmu123/biliLive-webui
+
+# 赞赏
+
+如果本项目对你有帮助，请我喝瓶快乐水吧，有助于项目更好维护。  
+爱发电：[https://afdian.com/a/renmu123](https://afdian.com/a/renmu123)  
+你也可以给我的 B 站帐号 [充电](https://space.bilibili.com/10995238)
 
 # License
 

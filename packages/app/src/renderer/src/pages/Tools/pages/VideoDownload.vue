@@ -13,8 +13,9 @@
       </div>
       <DownloadConfirm
         v-model:visible="visible"
-        v-model:selectIds="selectCids"
+        v-model:select-ids="selectCids"
         :detail="archiveDeatil"
+        :c-options="downloadOptions"
         @confirm="confirm"
       ></DownloadConfirm>
     </n-spin>
@@ -38,6 +39,9 @@ const archiveDeatil = ref<{
   vid: "",
   title: "",
   pages: [],
+});
+const downloadOptions = ref({
+  hasDanmuOptions: true,
 });
 
 const selectCids = ref<(number | string)[]>([]);
@@ -64,9 +68,15 @@ const parse = async () => {
   if (formatUrl.includes("douyu")) {
     videoType.value = "douyu";
     await handleDouyu(formatUrl);
+    downloadOptions.value = {
+      hasDanmuOptions: true,
+    };
   } else if (formatUrl.includes("bilibili")) {
     videoType.value = "bili";
     await handleBili(formatUrl);
+    downloadOptions.value = {
+      hasDanmuOptions: false,
+    };
   }
 };
 
@@ -148,7 +158,11 @@ const download = async () => {
   }
 };
 
-const confirm = async (options: { ids: (number | string)[]; savePath: string }) => {
+const confirm = async (options: {
+  ids: (number | string)[];
+  savePath: string;
+  danmu: "none" | "xml" | "ass";
+}) => {
   const selectPages = archiveDeatil.value.pages.filter((item) => options.ids.includes(item.cid));
 
   for (const page of selectPages) {
@@ -157,7 +171,7 @@ const confirm = async (options: { ids: (number | string)[]; savePath: string }) 
         window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
         page.cid as string,
         {
-          danmu: true,
+          danmu: options.danmu,
           ...page.metadata,
         },
       );

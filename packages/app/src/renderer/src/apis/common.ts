@@ -65,7 +65,7 @@ export async function douyuVideoDownload(
   output: string,
   decodeData: string,
   options: {
-    danmu: boolean;
+    danmu: "none" | "xml" | "ass";
     vid?: string;
     user_name?: string;
     room_id?: string;

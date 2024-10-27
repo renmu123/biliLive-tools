@@ -36,7 +36,22 @@
           </div>
         </n-checkbox-group>
       </div>
-      <div style="margin-top: 20px">
+
+      <!-- <div
+        v-if="cOptions.hasDanmuOptions"
+        style="margin-top: 10px; display: flex; align-items: center"
+      >
+        <span style="font-size: 12px; flex: none">分辨率：</span>
+        <n-select v-model:value="options.danmu" :options="danmuOptions" style="width: 100px" />
+      </div> -->
+      <div
+        v-if="cOptions.hasDanmuOptions"
+        style="margin-top: 10px; display: flex; align-items: center"
+      >
+        <span style="font-size: 12px; flex: none">弹幕：</span>
+        <n-select v-model:value="options.danmu" :options="danmuOptions" style="width: 100px" />
+      </div>
+      <div style="margin-top: 10px">
         <div style="font-size: 12px">下载到：</div>
         <div class="path">
           <n-input v-model:value="options.savePath" placeholder="请输入下载目录" />
@@ -77,7 +92,16 @@ interface Props {
     title: string;
     pages: Part[];
   };
+  cOptions: {
+    hasDanmuOptions: boolean;
+  };
 }
+
+const danmuOptions = [
+  { label: "无", value: "none" },
+  { label: "xml", value: "xml" },
+];
+
 const { appConfig } = storeToRefs(useAppConfig());
 const options = reactive(appConfig.value?.tool?.download ?? {});
 
@@ -85,11 +109,14 @@ const showModal = defineModel<boolean>("visible", { required: true, default: fal
 const selectIds = defineModel<(number | string)[]>("selectIds", { required: true, default: [] });
 const props = defineProps<Props>();
 const emits = defineEmits<{
-  (event: "confirm", value: { ids: (number | string)[]; savePath: string }): void;
+  (
+    event: "confirm",
+    value: { ids: (number | string)[]; savePath: string; danmu: "none" | "xml" | "ass" },
+  ): void;
 }>();
 
 const download = () => {
-  emits("confirm", { ids: selectIds.value, savePath: options.savePath });
+  emits("confirm", { ids: selectIds.value, savePath: options.savePath, danmu: options.danmu });
   showModal.value = false;
 };
 
@@ -156,7 +183,7 @@ const handleCheckedChange = (value: boolean) => {
   // border: 1px solid #eeeeee;
   border-radius: 4px;
   padding: 5px 0px;
-  margin-top: 10px;
+  // margin-top: 10px;
   display: flex;
   align-items: center;
 }

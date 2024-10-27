@@ -35,7 +35,7 @@ async function download(
   output: string,
   decodeData: string,
   options: {
-    danmu: boolean;
+    danmu: "none" | "xml" | "ass";
     vid?: string;
     user_name?: string;
     room_id?: string;
@@ -63,7 +63,7 @@ async function download(
     },
     {
       onEnd: async () => {
-        if (options.danmu && options.vid) {
+        if (options.danmu !== "none") {
           const danmu = await video.getVideoDanmu(options.vid);
           const metatdata: {
             user_name?: string;
@@ -72,7 +72,7 @@ async function download(
             live_start_time?: string;
             video_start_time?: string;
             platform?: "douyu";
-            danmu?: boolean;
+            danmu?: string;
             vid?: string;
           } = cloneDeep(options);
           delete metatdata.danmu;
