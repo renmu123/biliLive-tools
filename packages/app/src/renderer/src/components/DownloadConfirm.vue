@@ -37,13 +37,21 @@
         </n-checkbox-group>
       </div>
 
-      <!-- <div
-        v-if="cOptions.hasDanmuOptions"
+      <div
+        v-if="resoltions.length > 0"
         style="margin-top: 10px; display: flex; align-items: center"
       >
-        <span style="font-size: 12px; flex: none">分辨率：</span>
-        <n-select v-model:value="options.danmu" :options="danmuOptions" style="width: 100px" />
-      </div> -->
+        <span
+          style="font-size: 12px; flex: none"
+          title="清晰度取第一P视频，如果后续视频不存在相应分清晰度，取最好清晰度"
+          >清晰度：</span
+        >
+        <n-select
+          v-model:value="options.douyuResolution"
+          :options="resoltions"
+          style="width: 150px"
+        />
+      </div>
       <div
         v-if="cOptions.hasDanmuOptions"
         style="margin-top: 10px; display: flex; align-items: center"
@@ -95,6 +103,7 @@ interface Props {
   cOptions: {
     hasDanmuOptions: boolean;
   };
+  resoltions: { label: string; value: string }[];
 }
 
 const danmuOptions = [
@@ -111,12 +120,22 @@ const props = defineProps<Props>();
 const emits = defineEmits<{
   (
     event: "confirm",
-    value: { ids: (number | string)[]; savePath: string; danmu: "none" | "xml" | "ass" },
+    value: {
+      ids: (number | string)[];
+      savePath: string;
+      danmu: "none" | "xml" | "ass";
+      resoltion: string | "highest";
+    },
   ): void;
 }>();
 
 const download = () => {
-  emits("confirm", { ids: selectIds.value, savePath: options.savePath, danmu: options.danmu });
+  emits("confirm", {
+    ids: selectIds.value,
+    savePath: options.savePath,
+    danmu: options.danmu,
+    resoltion: options.douyuResolution,
+  });
   showModal.value = false;
 };
 

@@ -297,6 +297,7 @@ export const useAppConfig = defineStore("appConfig", () => {
       download: {
         savePath: "",
         danmu: "none",
+        douyuResolution: "highest",
       },
       translate: {
         presetId: undefined,

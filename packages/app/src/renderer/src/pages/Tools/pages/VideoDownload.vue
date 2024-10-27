@@ -16,6 +16,7 @@
         v-model:select-ids="selectCids"
         :detail="archiveDeatil"
         :c-options="downloadOptions"
+        :resoltions="resoltions"
         @confirm="confirm"
       ></DownloadConfirm>
     </n-spin>
@@ -41,7 +42,7 @@ const archiveDeatil = ref<{
   pages: [],
 });
 const downloadOptions = ref({
-  hasDanmuOptions: true,
+  hasDanmuOptions: false,
 });
 
 const selectCids = ref<(number | string)[]>([]);
@@ -99,9 +100,16 @@ const handleBili = async (formatUrl: string) => {
       return item as unknown as { cid: number; part: string; editable: boolean };
     }),
   };
+  resoltions.value = [];
   selectCids.value = data.View.pages.map((item) => item.cid);
 };
 
+const resoltions = ref<
+  {
+    label: string;
+    value: string;
+  }[]
+>([]);
 /**
  * 解析斗鱼视频
  */
@@ -113,7 +121,7 @@ const handleDouyu = async (formatUrl: string) => {
   try {
     const data = await commonApi.douyuVideoParse(formatUrl);
     archiveDeatil.value = {
-      vid: "111",
+      vid: "anything",
       title: data[0].seo_title,
       pages: data.map((item) => {
         let room_title = item.ROOM.name;
@@ -137,6 +145,13 @@ const handleDouyu = async (formatUrl: string) => {
         };
       }),
     };
+    if (archiveDeatil.value.pages.length === 0) {
+      throw new Error("解析失败，请检查链接是否正确");
+    }
+    resoltions.value = await commonApi.getVideoStreams({
+      decodeData: archiveDeatil.value.pages[0].cid as string,
+    });
+
     selectCids.value = archiveDeatil.value.pages.map((item) => item.cid);
   } catch (e) {
     console.log(e);
@@ -162,6 +177,7 @@ const confirm = async (options: {
   ids: (number | string)[];
   savePath: string;
   danmu: "none" | "xml" | "ass";
+  resoltion: string | "highest";
 }) => {
   const selectPages = archiveDeatil.value.pages.filter((item) => options.ids.includes(item.cid));
 
@@ -172,6 +188,7 @@ const confirm = async (options: {
         page.cid as string,
         {
           danmu: options.danmu,
+          resoltion: options.resoltion,
           ...page.metadata,
         },
       );

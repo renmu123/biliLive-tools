@@ -104,6 +104,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     download: {
       savePath: "",
+      danmu: "none",
+      douyuResolution: "highest",
     },
     translate: {
       presetId: undefined,

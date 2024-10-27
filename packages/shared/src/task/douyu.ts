@@ -13,19 +13,31 @@ import { uuid } from "../utils/index.js";
 import type { Video } from "douyu-api";
 
 /**
- * 获取最高清晰度的视频流
+ * 获取所有清晰度的视频流
  */
-const getStream = async (data: string) => {
+const getAvailableStreams = async (data: string) => {
   const res = await video.getStreamUrls(data);
-
   const streams = Object.values(res.thumb_video);
-  if (streams.length === 0) {
-    throw new Error("没有找到视频流");
-  }
   streams.sort((a, b) => {
     return b.bit_rate - a.bit_rate;
   });
-  return streams[0].url;
+  return streams;
+};
+
+/**
+ * 获取视频流
+ */
+const getStream = async (
+  data: string,
+  resoltion: "highest" | string,
+): Promise<undefined | string> => {
+  const streams = await getAvailableStreams(data);
+  console.log(streams);
+  if (resoltion === "highest") {
+    return streams[0].url;
+  } else {
+    return streams.find((item) => item.stream_type === resoltion)?.url;
+  }
 };
 
 /**
@@ -36,6 +48,7 @@ async function download(
   decodeData: string,
   options: {
     danmu: "none" | "xml" | "ass";
+    resoltion: "highest" | string;
     vid?: string;
     user_name?: string;
     room_id?: string;
@@ -44,10 +57,17 @@ async function download(
     platform?: "douyu";
   },
 ) {
-  if (options.danmu && !options.vid) {
+  if (options.danmu !== "none" && !options.vid) {
     throw new Error("下载弹幕时vid不能为空");
   }
-  const m3u8Url = await getStream(decodeData);
+  let m3u8Url = await getStream(decodeData, options.resoltion);
+  console.log(m3u8Url, options.resoltion);
+  if (!m3u8Url) {
+    console.log("aa", m3u8Url);
+    // 如果没有分辨率对应的流，那么获取最大分辨率的视频
+    m3u8Url = await getStream(decodeData, "highest");
+  }
+  if (!m3u8Url) throw new Error("无法找到对应的流");
 
   const { ffmpegPath } = getFfmpegPath();
   const downloader = new M3U8Downloader(m3u8Url, output, {
@@ -115,4 +135,4 @@ const parseVideo = async (url: string) => {
   return videoList;
 };
 
-export default { download, parseVideo };
+export default { download, parseVideo, getAvailableStreams };

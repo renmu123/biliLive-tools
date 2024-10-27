@@ -171,6 +171,8 @@ export type ToolConfig = {
     savePath: string;
     /** 弹幕参数 */
     danmu: "none" | "xml" | "ass";
+    /** 斗鱼下载分辨率 */
+    douyuResolution: "highest" | string;
   };
   /** 切片 */
   videoCut: {

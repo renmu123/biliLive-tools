@@ -54,6 +54,15 @@ export const getFiles = async (params: {
   return res.data;
 };
 
+export async function getVideoStreams(params: {
+  decodeData: string;
+}): Promise<{ label: string; value: string }[]> {
+  const res = await request.get(`/common/download/streams`, {
+    params,
+  });
+  return res.data;
+}
+
 export async function douyuVideoParse(url: string) {
   const res = await request.post(`/common/douyu/parse`, {
     url,
@@ -66,6 +75,7 @@ export async function douyuVideoDownload(
   decodeData: string,
   options: {
     danmu: "none" | "xml" | "ass";
+    resoltion: "highest" | string;
     vid?: string;
     user_name?: string;
     room_id?: string;
@@ -90,6 +100,7 @@ const common = {
   getFiles,
   douyuVideoParse,
   douyuVideoDownload,
+  getVideoStreams,
 };
 
 export default common;

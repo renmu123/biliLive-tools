@@ -127,6 +127,25 @@ router.post("/douyu/parse", async (ctx) => {
   ctx.body = data;
 });
 
+/**
+ * @api {get} /common/download/streams 获取视频流信息
+ */
+router.get("/download/streams", async (ctx) => {
+  const { decodeData } = ctx.request.query as { decodeData: string };
+  const data: {
+    value: string;
+    label: string;
+  }[] = (await douyu.getAvailableStreams(decodeData)).map((item) => ({
+    value: item.stream_type,
+    label: item.name,
+  }));
+  data.unshift({
+    value: "highest",
+    label: "最高",
+  });
+  ctx.body = data;
+});
+
 router.post("/douyu/download", async (ctx) => {
   const { output, decodeData, options } = ctx.request.body as {
     output: string;
