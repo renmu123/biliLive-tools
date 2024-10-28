@@ -261,6 +261,12 @@ export const genMergeAssMp4Command = (
     encoder: "libx264",
     audioCodec: "copy",
   },
+  options: {
+    startTimestamp?: number;
+  } = {
+    // 视频录制开始的秒时间戳
+    startTimestamp: 0,
+  },
 ) => {
   const command = ffmpeg(files.videoFilePath).output(files.outputPath);
 
@@ -352,13 +358,13 @@ export const genMergeAssMp4Command = (
     }
 
     // 如果设置了添加时间戳
-    if (ffmpegOptions.addTimestamp) {
+    if (ffmpegOptions.addTimestamp && options.startTimestamp) {
       outputStream = "v2";
 
       complexFilter.push({
         inputs: inputStream,
         filter: "drawtext",
-        options: `text='%{pts\\:gmtime\\:1609469200\\:%Y-%m-%d %T}':fontcolor=${ffmpegOptions.timestampFontColor ?? "white"}:fontsize=${ffmpegOptions.timestampFontSize ?? 24}:x=${ffmpegOptions.timestampX ?? 10}:y=${ffmpegOptions.timestampY ?? 10}`,
+        options: `text='%{pts\\:gmtime\\:${options.startTimestamp}\\:%Y-%m-%d %T}':fontcolor=${ffmpegOptions.timestampFontColor ?? "white"}:fontsize=${ffmpegOptions.timestampFontSize ?? 24}:x=${ffmpegOptions.timestampX ?? 10}:y=${ffmpegOptions.timestampY ?? 10}`,
         outputs: outputStream,
       });
       // inputStream = outputStream;
@@ -404,8 +410,10 @@ export const mergeAssMp4 = async (
   },
   options: {
     removeOrigin: boolean;
+    startTimestamp?: number;
   } = {
     removeOrigin: false,
+    startTimestamp: 0,
   },
   ffmpegOptions: FfmpegOptions = {
     encoder: "libx264",
@@ -422,7 +430,10 @@ export const mergeAssMp4 = async (
     throw new Error("输入文件不存在");
   }
   const assFile = files.assFilePath;
-  const command = genMergeAssMp4Command(files, ffmpegOptions);
+  const startTimestamp = options.startTimestamp || 0;
+  const command = genMergeAssMp4Command(files, ffmpegOptions, {
+    startTimestamp: startTimestamp,
+  });
 
   const task = new FFmpegTask(
     command,

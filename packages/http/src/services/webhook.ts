@@ -246,7 +246,11 @@ export class WebhookHandler {
           assFilePath,
           hotProgressFile,
           ffmpegPreset?.config,
-          { removeVideo: removeOriginAfterConvert, suffix: "弹幕版" },
+          {
+            removeVideo: removeOriginAfterConvert,
+            suffix: "弹幕版",
+            startTimestamp: Math.floor(currentPart.startTime ?? 0 / 1000),
+          },
         );
         if (removeOriginAfterConvert) {
           trashItem(xmlFilePath);
@@ -641,7 +645,10 @@ export class WebhookHandler {
     assInput: string | undefined,
     hotProgressFile: string | undefined,
     preset: FfmpegOptions,
-    options: { removeVideo: boolean; suffix: string } = { removeVideo: false, suffix: "弹幕版" },
+    options: { removeVideo: boolean; suffix: string; startTimestamp?: number } = {
+      removeVideo: false,
+      suffix: "弹幕版",
+    },
   ): Promise<string> => {
     const suffix = options.suffix || "弹幕版";
     const file = path.parse(videoInput);
@@ -663,6 +670,7 @@ export class WebhookHandler {
             },
             {
               removeOrigin: false,
+              startTimestamp: options.startTimestamp,
             },
             preset,
           ).then((task) => {
