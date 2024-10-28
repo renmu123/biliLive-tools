@@ -394,8 +394,8 @@ importers:
         specifier: 2.2.1
         version: 2.2.1
       '@renmu/m3u8-downloader':
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^0.3.1
+        version: 0.3.1
       ass-compiler:
         specifier: ^0.1.11
         version: 0.1.11
@@ -550,10 +550,6 @@ packages:
     engines: {node: '>=6.9.0'}
     peerDependencies:
       '@babel/core': ^7.0.0-0
-
-  '@babel/runtime@7.24.8':
-    resolution: {integrity: sha512-5F7SDGs1T72ZczbRwbGO9lQi0NLjQxzl6i4lJxLxfW9U5UluCSyEJeniWvnhl3/euNiqQVbo8zruhsDfid0esA==}
-    engines: {node: '>=6.9.0'}
 
   '@babel/runtime@7.25.6':
     resolution: {integrity: sha512-VBj9MYyDb9tuLq7yzqjgzt6Q+IBQLrGZfdjOekyEirZPHxXWoTSGUTMrpsfi58Up73d13NfYLv8HT9vmznjzhQ==}
@@ -1213,8 +1209,8 @@ packages:
     resolution: {integrity: sha512-RMOjy2ErdB99dNCvsNNuBrsm2ctQSdP2a45VMFgZoZGbS85bf0+/Ifn/0BEiiyoYEQ+f04GuXasLfrQNu0tuRw==}
     engines: {node: '>=18'}
 
-  '@renmu/m3u8-downloader@0.3.0':
-    resolution: {integrity: sha512-otymJB03zwONmmR6QhK31pSiHcg93YIXnb4h9IAW91yuHfv7XSOb4MTF869dpeuRDuJenocpALgeCup2Qe1PLQ==}
+  '@renmu/m3u8-downloader@0.3.1':
+    resolution: {integrity: sha512-JyVWlh3X0m9umuVf7fN5XqO3oZoIhwQdpwh5UcTmG50J1kj5L8BMg2TYkERzNP6sHRQSAG0bxSn4eDvdyJc0zg==}
     engines: {node: '>=18'}
 
   '@rollup/plugin-commonjs@26.0.1':
@@ -1880,11 +1876,6 @@ packages:
   awilix@11.0.0:
     resolution: {integrity: sha512-lnEm2TZu1OUWO1twi/3JrjSYu3RYjiOMiMQgfpwXj6uG4NSDtPSAWwTvqbpV7B8iWsXiC8GoMBKg1YsrUxPJhg==}
     engines: {node: '>=16.3.0'}
-
-  axios-retry@4.4.2:
-    resolution: {integrity: sha512-2fjo9uDNBQjX8+GMEGOFG5TrLMZ3QijjeRYcgBI2MhrsabnvcIAfLxxIhG7+CCD68vPEQY3IM2llV70ZsrqPvA==}
-    peerDependencies:
-      axios: 0.x || 1.x
 
   axios-retry@4.5.0:
     resolution: {integrity: sha512-aR99oXhpEDGo0UuAlYcn2iGRds30k366Zfa05XWScR9QaQD4JYiP3/1Qt1u7YlefUOK+cn0CcwoL1oefavQUlQ==}
@@ -5246,10 +5237,6 @@ snapshots:
       '@babel/core': 7.25.2
       '@babel/helper-plugin-utils': 7.24.8
 
-  '@babel/runtime@7.24.8':
-    dependencies:
-      regenerator-runtime: 0.14.1
-
   '@babel/runtime@7.25.6':
     dependencies:
       regenerator-runtime: 0.14.1
@@ -5802,10 +5789,10 @@ snapshots:
       async: 0.2.10
       which: 1.3.1
 
-  '@renmu/m3u8-downloader@0.3.0':
+  '@renmu/m3u8-downloader@0.3.1':
     dependencies:
       axios: 1.7.7
-      axios-retry: 4.4.2(axios@1.7.7)
+      axios-retry: 4.5.0(axios@1.7.7)
       fs-extra: 11.2.0
       m3u8-parser: 7.1.0
       p-queue: 8.0.1
@@ -6184,7 +6171,7 @@ snapshots:
 
   '@videojs/vhs-utils@3.0.5':
     dependencies:
-      '@babel/runtime': 7.24.8
+      '@babel/runtime': 7.25.6
       global: 4.4.0
       url-toolkit: 2.2.5
 
@@ -6617,11 +6604,6 @@ snapshots:
     dependencies:
       camel-case: 4.1.2
       fast-glob: 3.3.2
-
-  axios-retry@4.4.2(axios@1.7.7):
-    dependencies:
-      axios: 1.7.7
-      is-retry-allowed: 2.2.0
 
   axios-retry@4.5.0(axios@1.7.7):
     dependencies:
@@ -8535,7 +8517,7 @@ snapshots:
 
   m3u8-parser@7.1.0:
     dependencies:
-      '@babel/runtime': 7.24.8
+      '@babel/runtime': 7.25.6
       '@videojs/vhs-utils': 3.0.5
       global: 4.4.0
 

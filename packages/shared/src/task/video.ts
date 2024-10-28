@@ -342,26 +342,72 @@ export const genMergeAssMp4Command = (
   },
 ) => {
   const command = ffmpeg(files.videoFilePath).output(files.outputPath);
-
   const assFile = files.assFilePath;
-  if (assFile) {
-    const scaleMethod = selectScaleMethod(ffmpegOptions);
-    const complexFilter = new ComplexFilter();
+  const complexFilter = new ComplexFilter();
 
-    // 先缩放
-    if (scaleMethod === "before") {
-      complexFilter.addScaleFilter(
-        ffmpegOptions.resolutionWidth,
-        ffmpegOptions.resolutionHeight,
-        ffmpegOptions.swsFlags,
-      );
+  function addComplexFilter() {
+    if (assFile) {
+      const scaleMethod = selectScaleMethod(ffmpegOptions);
+
+      // 先缩放
+      if (scaleMethod === "before") {
+        complexFilter.addScaleFilter(
+          ffmpegOptions.resolutionWidth,
+          ffmpegOptions.resolutionHeight,
+          ffmpegOptions.swsFlags,
+        );
+      }
+
+      if (files.hotProgressFilePath) {
+        const subtitleStream = complexFilter.addSubtitleFilter(assFile);
+        const colorkeyStream = complexFilter.addColorkeyFilter();
+        complexFilter.addOverlayFilter([subtitleStream, colorkeyStream]);
+      } else {
+        complexFilter.addSubtitleFilter(assFile);
+      }
+
+      // 先渲染后缩放
+      if (scaleMethod === "auto" || scaleMethod === "after") {
+        complexFilter.addScaleFilter(
+          ffmpegOptions.resolutionWidth,
+          ffmpegOptions.resolutionHeight,
+          ffmpegOptions.swsFlags,
+        );
+      }
+
+      // 如果设置了添加时间戳
+      if (ffmpegOptions.addTimestamp && options.startTimestamp) {
+        complexFilter.addDrawtextFilter(
+          options.startTimestamp,
+          ffmpegOptions.timestampFontColor ?? "white",
+          ffmpegOptions.timestampFontSize ?? 24,
+          ffmpegOptions.timestampX ?? 10,
+          ffmpegOptions.timestampY ?? 10,
+        );
+      }
     }
+  }
 
+  if (ffmpegOptions.vf) {
+    const vfArray = ffmpegOptions.vf.split(";");
+    vfArray.forEach((vf) => {
+      if (vf === "$origin") {
+        addComplexFilter();
+      } else {
+        const vfOptions = vf.split("=");
+        complexFilter.addFilter(vfOptions[0], vfOptions.slice(1).join("="));
+      }
+    });
+  } else {
+    // 添加复杂滤镜
+    addComplexFilter();
+  }
+  command.complexFilter(complexFilter.getFilters(), complexFilter.getLatestOutputStream());
+  command.outputOptions("-map 0:a");
+  // 输入参数
+  if (assFile) {
     if (files.hotProgressFilePath) {
       command.input(files.hotProgressFilePath);
-      const subtitleStream = complexFilter.addSubtitleFilter(assFile);
-      const colorkeyStream = complexFilter.addColorkeyFilter();
-      complexFilter.addOverlayFilter([subtitleStream, colorkeyStream]);
     } else {
       if (ffmpegOptions.ss) {
         command.inputOptions(`-ss ${ffmpegOptions.ss}`);
@@ -370,33 +416,8 @@ export const genMergeAssMp4Command = (
       if (ffmpegOptions.to) {
         command.inputOptions(`-to ${ffmpegOptions.to}`);
       }
-      complexFilter.addSubtitleFilter(assFile);
     }
-
-    // 先渲染后缩放
-    if (scaleMethod === "auto" || scaleMethod === "after") {
-      complexFilter.addScaleFilter(
-        ffmpegOptions.resolutionWidth,
-        ffmpegOptions.resolutionHeight,
-        ffmpegOptions.swsFlags,
-      );
-    }
-
-    // 如果设置了添加时间戳
-    if (ffmpegOptions.addTimestamp && options.startTimestamp) {
-      complexFilter.addDrawtextFilter(
-        options.startTimestamp,
-        ffmpegOptions.timestampFontColor ?? "white",
-        ffmpegOptions.timestampFontSize ?? 24,
-        ffmpegOptions.timestampX ?? 10,
-        ffmpegOptions.timestampY ?? 10,
-      );
-    }
-
-    command.complexFilter(complexFilter.getFilters(), complexFilter.getLatestOutputStream());
-    command.outputOptions("-map 0:a");
   }
-
   // 硬件解码
   if (ffmpegOptions.decode) {
     if (["nvenc"].includes(getHardwareAcceleration(ffmpegOptions.encoder))) {

@@ -493,8 +493,10 @@ export interface FfmpegOptions {
   /** 重缩放的分辨率 */
   resolutionWidth?: number;
   resolutionHeight?: number;
-  /** 高级参数 */
+  /** 额外输出参数 */
   extraOptions?: string;
+  /** 视频滤镜参数 */
+  vf?: string;
   /** 10bit支持 */
   bit10?: boolean;
   /** 开始时间 */

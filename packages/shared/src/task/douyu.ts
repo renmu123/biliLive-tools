@@ -32,7 +32,6 @@ const getStream = async (
   resoltion: "highest" | string,
 ): Promise<undefined | string> => {
   const streams = await getAvailableStreams(data);
-  console.log(streams);
   if (resoltion === "highest") {
     return streams[0].url;
   } else {

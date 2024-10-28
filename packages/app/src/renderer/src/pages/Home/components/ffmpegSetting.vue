@@ -305,14 +305,14 @@
         <span class="inline-flex">
           <span>视频滤镜</span>
           <Tip>
-            <code>$origin</code
-            >是渲染中会用到的参数，使用，如果没有该参数，谁也不知道会发生什么事<br />
-            例：hflip;$origin
+            <code>$origin</code>
+            是由其他配置生成的默认参数，如果没有该参数，谁也不知道会发生什么事<br />
+            例：hflip;$origin;transpose=1 解释：先水平翻转，然后应用默认参数，最后旋转90度
           </Tip>
         </span>
       </template>
       <n-input
-        v-model:value="ffmpegOptions.config.extraOptions"
+        v-model:value="ffmpegOptions.config.vf"
         type="textarea"
         placeholder="请输入滤镜参数"
         style="width: 100%"
