@@ -350,7 +350,11 @@ export const genMergeAssMp4Command = (
       const scaleMethod = selectScaleMethod(ffmpegOptions);
 
       // 先缩放
-      if (scaleMethod === "before") {
+      if (
+        scaleMethod === "before" &&
+        ffmpegOptions.resolutionWidth &&
+        ffmpegOptions.resolutionHeight
+      ) {
         complexFilter.addScaleFilter(
           ffmpegOptions.resolutionWidth,
           ffmpegOptions.resolutionHeight,
@@ -367,7 +371,11 @@ export const genMergeAssMp4Command = (
       }
 
       // 先渲染后缩放
-      if (scaleMethod === "auto" || scaleMethod === "after") {
+      if (
+        (scaleMethod === "auto" || scaleMethod === "after") &&
+        ffmpegOptions.resolutionWidth &&
+        ffmpegOptions.resolutionHeight
+      ) {
         complexFilter.addScaleFilter(
           ffmpegOptions.resolutionWidth,
           ffmpegOptions.resolutionHeight,

@@ -81,7 +81,7 @@ async function download(
     },
     {
       onEnd: async () => {
-        if (options.danmu !== "none") {
+        if (options.danmu !== "none" && options.vid) {
           const danmu = await video.getVideoDanmu(options.vid);
           const metatdata: {
             user_name?: string;
