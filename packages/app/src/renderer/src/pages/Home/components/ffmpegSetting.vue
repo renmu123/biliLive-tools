@@ -288,7 +288,7 @@
     <n-form-item>
       <template #label>
         <span class="inline-flex">
-          <span>高级选项</span>
+          <span>额外输出参数</span>
           <Tip> 参数将被附加到ffmpeg输出参数中，参数错误可能会导致无法运行 </Tip>
         </span>
       </template>
@@ -296,6 +296,25 @@
         v-model:value="ffmpegOptions.config.extraOptions"
         type="textarea"
         placeholder="请输入额外参数"
+        style="width: 100%"
+        :input-props="{ spellcheck: 'false' }"
+      />
+    </n-form-item>
+    <n-form-item>
+      <template #label>
+        <span class="inline-flex">
+          <span>视频滤镜</span>
+          <Tip>
+            <code>$origin</code
+            >是渲染中会用到的参数，使用，如果没有该参数，谁也不知道会发生什么事<br />
+            例：hflip;$origin
+          </Tip>
+        </span>
+      </template>
+      <n-input
+        v-model:value="ffmpegOptions.config.extraOptions"
+        type="textarea"
+        placeholder="请输入滤镜参数"
         style="width: 100%"
         :input-props="{ spellcheck: 'false' }"
       />
