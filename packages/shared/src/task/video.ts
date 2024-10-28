@@ -242,6 +242,72 @@ const selectScaleMethod = (ffmpegOptions: FfmpegOptions): "none" | "auto" | "bef
   }
 };
 
+class ComplexFilter {
+  private filters: any[] = [];
+  private streamIndex: number = 0;
+  private latestOutputStream: string;
+
+  constructor(initialInputStream: string = "0:v") {
+    this.latestOutputStream = initialInputStream;
+  }
+
+  private getNextStream(): string {
+    return `${this.streamIndex++}:video`;
+  }
+
+  addFilter(filter: string, options: string, inputs?: string[], outputs?: string) {
+    const inputStream = inputs || [this.latestOutputStream];
+    const outputStream = outputs || this.getNextStream();
+    this.filters.push({
+      filter,
+      options,
+      inputs: inputStream,
+      outputs: outputStream,
+    });
+    this.latestOutputStream = outputStream;
+    return outputStream;
+  }
+
+  addScaleFilter(resolutionWidth: number, resolutionHeight: number, swsFlags?: string) {
+    let scaleFilter = `${resolutionWidth}:${resolutionHeight}`;
+    if (swsFlags) {
+      scaleFilter += `:flags=${swsFlags}`;
+    }
+    return this.addFilter("scale", scaleFilter);
+  }
+
+  addSubtitleFilter(assFile: string) {
+    return this.addFilter("subtitles", `${escaped(assFile)}`);
+  }
+
+  addColorkeyFilter() {
+    return this.addFilter("colorkey", "black:0.1:0.1");
+  }
+
+  addOverlayFilter(inputs: string[]) {
+    return this.addFilter("overlay", "W-w-0:H-h-0", inputs);
+  }
+
+  addDrawtextFilter(
+    startTimestamp: number,
+    fontColor: string,
+    fontSize: number,
+    x: number,
+    y: number,
+  ) {
+    const options = `text='%{pts\\:gmtime\\:${startTimestamp}\\:%Y-%m-%d %T}':fontcolor=${fontColor}:fontsize=${fontSize}:x=${x}:y=${y}`;
+    return this.addFilter("drawtext", options);
+  }
+
+  getFilters() {
+    return this.filters;
+  }
+
+  getLatestOutputStream() {
+    return this.latestOutputStream;
+  }
+}
+
 /**
  * 生成弹幕压制相关的ffmpeg命令
  * @param {object} files 文件相关
@@ -273,55 +339,22 @@ export const genMergeAssMp4Command = (
   const assFile = files.assFilePath;
   if (assFile) {
     const scaleMethod = selectScaleMethod(ffmpegOptions);
-    const complexFilter: {
-      filter: string;
-      options?: string;
-      inputs?: string | string[];
-      outputs?: string;
-    }[] = [];
-    let inputStream = "0:v";
-    let outputStream = "";
+    const complexFilter = new ComplexFilter();
+
     // 先缩放
     if (scaleMethod === "before") {
-      let scaleFilter = `${ffmpegOptions.resolutionWidth}:${ffmpegOptions.resolutionHeight}`;
-      if (ffmpegOptions.swsFlags) {
-        scaleFilter += `:flags=${ffmpegOptions.swsFlags}`;
-      }
-      outputStream = "sacleOut";
-      complexFilter.push({
-        inputs: inputStream,
-        filter: "scale",
-        options: `${scaleFilter}`,
-        outputs: outputStream,
-      });
-      inputStream = outputStream;
+      complexFilter.addScaleFilter(
+        ffmpegOptions.resolutionWidth,
+        ffmpegOptions.resolutionHeight,
+        ffmpegOptions.swsFlags,
+      );
     }
+
     if (files.hotProgressFilePath) {
       command.input(files.hotProgressFilePath);
-      complexFilter.push(
-        ...[
-          {
-            filter: "subtitles",
-            options: `${escaped(assFile)}`,
-            inputs: inputStream,
-            outputs: "i",
-          },
-          {
-            filter: "colorkey",
-            options: "black:0.1:0.1",
-            inputs: "1",
-            outputs: "1d",
-          },
-          {
-            filter: "overlay",
-            options: "W-w-0:H-h-0",
-            inputs: ["i", "1d"],
-            outputs: "assOut",
-          },
-        ],
-      );
-      outputStream = "assOut";
-      inputStream = outputStream;
+      const subtitleStream = complexFilter.addSubtitleFilter(assFile);
+      const colorkeyStream = complexFilter.addColorkeyFilter();
+      complexFilter.addOverlayFilter([subtitleStream, colorkeyStream]);
     } else {
       if (ffmpegOptions.ss) {
         command.inputOptions(`-ss ${ffmpegOptions.ss}`);
@@ -330,47 +363,30 @@ export const genMergeAssMp4Command = (
       if (ffmpegOptions.to) {
         command.inputOptions(`-to ${ffmpegOptions.to}`);
       }
-      complexFilter.push({
-        filter: "subtitles",
-        options: `${escaped(assFile)}`,
-        inputs: inputStream,
-        outputs: "assOut",
-      });
-      outputStream = "assOut";
-      inputStream = outputStream;
+      complexFilter.addSubtitleFilter(assFile);
     }
 
     // 先渲染后缩放
     if (scaleMethod === "auto" || scaleMethod === "after") {
-      let scaleFilter = `${ffmpegOptions.resolutionWidth}:${ffmpegOptions.resolutionHeight}`;
-      if (ffmpegOptions.swsFlags) {
-        scaleFilter += `:flags=${ffmpegOptions.swsFlags}`;
-      }
-
-      complexFilter.push({
-        inputs: inputStream,
-        filter: "scale",
-        options: `${scaleFilter}`,
-        outputs: outputStream,
-      });
-      outputStream = "v";
-      inputStream = outputStream;
+      complexFilter.addScaleFilter(
+        ffmpegOptions.resolutionWidth,
+        ffmpegOptions.resolutionHeight,
+        ffmpegOptions.swsFlags,
+      );
     }
 
     // 如果设置了添加时间戳
     if (ffmpegOptions.addTimestamp && options.startTimestamp) {
-      outputStream = "v2";
-
-      complexFilter.push({
-        inputs: inputStream,
-        filter: "drawtext",
-        options: `text='%{pts\\:gmtime\\:${options.startTimestamp}\\:%Y-%m-%d %T}':fontcolor=${ffmpegOptions.timestampFontColor ?? "white"}:fontsize=${ffmpegOptions.timestampFontSize ?? 24}:x=${ffmpegOptions.timestampX ?? 10}:y=${ffmpegOptions.timestampY ?? 10}`,
-        outputs: outputStream,
-      });
-      // inputStream = outputStream;
+      complexFilter.addDrawtextFilter(
+        options.startTimestamp,
+        ffmpegOptions.timestampFontColor ?? "white",
+        ffmpegOptions.timestampFontSize ?? 24,
+        ffmpegOptions.timestampX ?? 10,
+        ffmpegOptions.timestampY ?? 10,
+      );
     }
 
-    command.complexFilter(complexFilter, outputStream);
+    command.complexFilter(complexFilter.getFilters(), complexFilter.getLatestOutputStream());
     command.outputOptions("-map 0:a");
   }
 
