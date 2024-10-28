@@ -244,8 +244,13 @@ export const selectScaleMethod = (
   }
 };
 
-class ComplexFilter {
-  private filters: any[] = [];
+export class ComplexFilter {
+  private filters: {
+    filter: string;
+    options?: string;
+    inputs?: string | string[];
+    outputs?: string;
+  }[] = [];
   private streamIndex: number = 0;
   private latestOutputStream: string;
 
