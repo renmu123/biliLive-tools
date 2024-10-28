@@ -249,7 +249,7 @@ export class WebhookHandler {
           {
             removeVideo: removeOriginAfterConvert,
             suffix: "弹幕版",
-            startTimestamp: Math.floor(currentPart.startTime ?? 0 / 1000),
+            startTimestamp: Math.floor((currentPart.startTime ?? 0) / 1000),
           },
         );
         if (removeOriginAfterConvert) {
