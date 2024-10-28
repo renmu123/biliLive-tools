@@ -37,6 +37,15 @@
         </n-checkbox-group>
       </div>
 
+      <div style="margin-top: 10px; display: flex; align-items: center">
+        <span style="font-size: 12px; flex: none">文件冲突：</span>
+        <n-radio-group v-model:value="options.override">
+          <n-space>
+            <n-radio :value="true"> 覆盖文件 </n-radio>
+            <n-radio :value="false"> 跳过存在文件 </n-radio>
+          </n-space>
+        </n-radio-group>
+      </div>
       <div
         v-if="resoltions.length > 0"
         style="margin-top: 10px; display: flex; align-items: center"
@@ -59,6 +68,7 @@
         <span style="font-size: 12px; flex: none">弹幕：</span>
         <n-select v-model:value="options.danmu" :options="danmuOptions" style="width: 100px" />
       </div>
+
       <div style="margin-top: 10px">
         <div style="font-size: 12px">下载到：</div>
         <div class="path">
@@ -125,6 +135,7 @@ const emits = defineEmits<{
       savePath: string;
       danmu: "none" | "xml" | "ass";
       resoltion: string | "highest";
+      override: boolean;
     },
   ): void;
 }>();
@@ -135,6 +146,7 @@ const download = () => {
     savePath: options.savePath,
     danmu: options.danmu,
     resoltion: options.douyuResolution,
+    override: options.override,
   });
   showModal.value = false;
 };

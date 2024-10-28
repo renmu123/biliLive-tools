@@ -173,6 +173,8 @@ export type ToolConfig = {
     danmu: "none" | "xml" | "ass";
     /** 斗鱼下载分辨率 */
     douyuResolution: "highest" | string;
+    /** 下载时覆盖已有文件 */
+    override: boolean;
   };
   /** 切片 */
   videoCut: {

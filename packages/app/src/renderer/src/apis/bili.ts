@@ -81,7 +81,10 @@ const getTypeDesc = async (
   return res.data;
 };
 
-const download = async (options: { bvid: string; cid: number; output: string }, uid: number) => {
+const download = async (
+  options: { bvid: string; cid: number; output: string; override: boolean },
+  uid: number,
+) => {
   const res = await request.post("/bili/download", {
     options,
     uid,

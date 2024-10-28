@@ -178,6 +178,7 @@ const confirm = async (options: {
   savePath: string;
   danmu: "none" | "xml" | "ass";
   resoltion: string | "highest";
+  override: boolean;
 }) => {
   const selectPages = archiveDeatil.value.pages.filter((item) => options.ids.includes(item.cid));
 
@@ -189,6 +190,7 @@ const confirm = async (options: {
         {
           danmu: options.danmu,
           resoltion: options.resoltion,
+          override: options.override,
           ...page.metadata,
         },
       );
@@ -198,6 +200,7 @@ const confirm = async (options: {
           output: window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
           cid: page.cid as number,
           bvid: archiveDeatil.value.vid,
+          override: options.override,
         },
         uid.value,
       );

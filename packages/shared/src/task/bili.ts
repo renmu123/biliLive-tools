@@ -1,4 +1,5 @@
 import path from "node:path";
+import fs from "fs-extra";
 import os from "node:os";
 
 import { Client, TvQrcodeLogin, WebVideoUploader } from "@renmu/bili-api";
@@ -85,7 +86,13 @@ async function getArchiveDetail(bvid: string, uid?: number) {
   return client.video.detail({ bvid });
 }
 
-async function download(options: { bvid: string; cid: number; output: string }, uid: number) {
+async function download(
+  options: { bvid: string; cid: number; output: string; override: boolean },
+  uid: number,
+) {
+  if ((await fs.pathExists(options.output)) && !options.override)
+    throw new Error(`${options.output}已存在`);
+
   const client = await createClient(uid);
   const ffmpegBinPath = appConfig.get("ffmpegPath");
   const tmpPath = path.join(os.tmpdir(), "biliLive-tools");

@@ -49,6 +49,7 @@ async function download(
   options: {
     danmu: "none" | "xml" | "ass";
     resoltion: "highest" | string;
+    override: boolean;
     vid?: string;
     user_name?: string;
     room_id?: string;
@@ -57,13 +58,11 @@ async function download(
     platform?: "douyu";
   },
 ) {
-  if (options.danmu !== "none" && !options.vid) {
-    throw new Error("下载弹幕时vid不能为空");
-  }
+  if ((await fs.pathExists(output)) && !options.override) throw new Error(`${output}已存在`);
+  if (options.danmu !== "none" && !options.vid) throw new Error("下载弹幕时vid不能为空");
+
   let m3u8Url = await getStream(decodeData, options.resoltion);
-  console.log(m3u8Url, options.resoltion);
   if (!m3u8Url) {
-    console.log("aa", m3u8Url);
     // 如果没有分辨率对应的流，那么获取最大分辨率的视频
     m3u8Url = await getStream(decodeData, "highest");
   }

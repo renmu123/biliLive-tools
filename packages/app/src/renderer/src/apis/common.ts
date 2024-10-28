@@ -76,6 +76,7 @@ export async function douyuVideoDownload(
   options: {
     danmu: "none" | "xml" | "ass";
     resoltion: "highest" | string;
+    override: boolean;
     vid?: string;
     user_name?: string;
     room_id?: string;

@@ -106,6 +106,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       savePath: "",
       danmu: "none",
       douyuResolution: "highest",
+      override: false,
     },
     translate: {
       presetId: undefined,
