@@ -22,7 +22,6 @@ export function createRecorderManager(appConfig: AppConfig) {
   const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
   const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
 
-  console.log("autoCheckLiveStatusAndRecord", autoCheckLiveStatusAndRecord);
   const manager = createManager({
     providers: [providerForDouYu],
     autoRemoveSystemReservedChars: true,

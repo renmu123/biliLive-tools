@@ -302,7 +302,7 @@ export class ComplexFilter {
     x: number,
     y: number,
   ) {
-    const options = `text='%{pts\\:gmtime\\:${startTimestamp}\\:%Y-%m-%d %T}':fontcolor=${fontColor}:fontsize=${fontSize}:x=${x}:y=${y}`;
+    const options = `text='%{pts\\:localtime\\:${startTimestamp}\\:%Y-%m-%d %T}':fontcolor=${fontColor}:fontsize=${fontSize}:x=${x}:y=${y}`;
     return this.addFilter("drawtext", options);
   }
 
