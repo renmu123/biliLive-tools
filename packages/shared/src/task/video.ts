@@ -227,7 +227,9 @@ export const convertVideo2Mp4 = async (
 /**
  * 判断是否需要缩放以及缩放方式
  */
-const selectScaleMethod = (ffmpegOptions: FfmpegOptions): "none" | "auto" | "before" | "after" => {
+export const selectScaleMethod = (
+  ffmpegOptions: FfmpegOptions,
+): "none" | "auto" | "before" | "after" => {
   if (!ffmpegOptions.resetResolution) {
     return "none";
   }
@@ -346,14 +348,13 @@ export const genMergeAssMp4Command = (
       if (ffmpegOptions.swsFlags) {
         scaleFilter += `:flags=${ffmpegOptions.swsFlags}`;
       }
-
+      outputStream = "v";
       complexFilter.push({
         inputs: inputStream,
         filter: "scale",
         options: `${scaleFilter}`,
         outputs: outputStream,
       });
-      outputStream = "v";
       inputStream = outputStream;
     }
 

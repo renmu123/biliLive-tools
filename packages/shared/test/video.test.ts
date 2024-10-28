@@ -1,6 +1,6 @@
 import { expect, describe, it } from "vitest";
 import { genFfmpegParams, getHardwareAcceleration } from "../src/utils/index";
-import { genMergeAssMp4Command } from "../src/task/video";
+import { genMergeAssMp4Command, selectScaleMethod } from "../src/task/video";
 import type { FfmpegOptions, VideoCodec } from "@biliLive-tools/types";
 
 describe.concurrent("通用ffmpeg参数生成", () => {
@@ -429,5 +429,160 @@ describe("genMergeAssMp4Command", () => {
         "/path/to/output.mp4",
       ]);
     }
+  });
+  it("压制参数：视频，弹幕，先缩放", () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: "/path/to/subtitle.ass",
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+      audioCodec: "copy",
+      resetResolution: true,
+      resolutionWidth: 1920,
+      resolutionHeight: 1080,
+      scaleMethod: "before",
+    };
+
+    const command = genMergeAssMp4Command(files, ffmpegOptions);
+    const args = command._getArguments();
+    expect(args).toEqual([
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-filter_complex",
+      "[0:v]scale=1920:1080[sacleOut];[sacleOut]subtitles=/path/to/subtitle.ass[assOut]",
+      "-map",
+      "[assOut]",
+      "-map",
+      "0:a",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
+  });
+  it("压制参数：弹幕+后缩放", () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: "/path/to/subtitle.ass",
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+      audioCodec: "copy",
+      resetResolution: true,
+      resolutionWidth: 1920,
+      resolutionHeight: 1080,
+      scaleMethod: "after",
+    };
+
+    const command = genMergeAssMp4Command(files, ffmpegOptions);
+    const args = command._getArguments();
+    expect(args).toEqual([
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-filter_complex",
+      "[0:v]subtitles=/path/to/subtitle.ass[assOut];[assOut]scale=1920:1080[v]",
+      "-map",
+      "[v]",
+      "-map",
+      "0:a",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
+  });
+  it("压制参数：弹幕+时间戳212", () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: "/path/to/subtitle.ass",
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+      audioCodec: "copy",
+      addTimestamp: true,
+    };
+
+    const command = genMergeAssMp4Command(files, ffmpegOptions, {
+      startTimestamp: 1633831810,
+    });
+    const args = command._getArguments();
+    console.log(args);
+    expect(args).toEqual([
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-filter_complex",
+      "[0:v]subtitles=/path/to/subtitle.ass[assOut];[assOut]drawtext=text='%{pts\\:gmtime\\:1633831810\\:%Y-%m-%d %T}':fontcolor=white:fontsize=24:x=10:y=10[v2]",
+      "-map",
+      "[v2]",
+      "-map",
+      "0:a",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
+  });
+
+  describe("selectScaleMethod", () => {
+    it("should return 'none' if resetResolution is false", () => {
+      const ffmpegOptions: FfmpegOptions = {
+        encoder: "libx264",
+        audioCodec: "copy",
+        resetResolution: false,
+      };
+      const result = selectScaleMethod(ffmpegOptions);
+      expect(result).toBe("none");
+    });
+
+    it("should return 'none' if resetResolution is true but resolutionWidth and resolutionHeight are not set", () => {
+      const ffmpegOptions: FfmpegOptions = {
+        encoder: "libx264",
+        audioCodec: "copy",
+        resetResolution: true,
+      };
+      const result = selectScaleMethod(ffmpegOptions);
+      expect(result).toBe("none");
+    });
+
+    it("should return 'auto' if resetResolution is true and resolutionWidth and resolutionHeight are set but scaleMethod is not set", () => {
+      const ffmpegOptions: FfmpegOptions = {
+        encoder: "libx264",
+        audioCodec: "copy",
+        resetResolution: true,
+        resolutionWidth: 1920,
+        resolutionHeight: 1080,
+      };
+      const result = selectScaleMethod(ffmpegOptions);
+      expect(result).toBe("auto");
+    });
+
+    it("should return the value of scaleMethod if resetResolution is true and resolutionWidth and resolutionHeight are set", () => {
+      const ffmpegOptions: FfmpegOptions = {
+        encoder: "libx264",
+        audioCodec: "copy",
+        resetResolution: true,
+        resolutionWidth: 1920,
+        resolutionHeight: 1080,
+        scaleMethod: "before",
+      };
+      const result = selectScaleMethod(ffmpegOptions);
+      expect(result).toBe("before");
+    });
   });
 });
