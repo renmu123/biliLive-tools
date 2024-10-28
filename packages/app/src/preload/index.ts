@@ -24,7 +24,6 @@ import type {
 } from "@biliLive-tools/types";
 import type { OpenDialogOptions } from "../types";
 import type ffmpeg from "fluent-ffmpeg";
-import type { Video } from "douyu-api";
 
 type startCallback = (params: { command?: string }) => void;
 type endCallback = (params: { output?: string }) => void;
@@ -41,14 +40,6 @@ export const api = {
   },
   addWithStreamer: (options) => {
     return ipcRenderer.invoke("db:addWithStreamer", options);
-  },
-  douyu: {
-    download: (output: string, decodeData: string, options: { danmu: boolean; vid?: string }) => {
-      return ipcRenderer.invoke("douyu:download", output, decodeData, options);
-    },
-    parseVideo: (url: string): Promise<Video[]> => {
-      return ipcRenderer.invoke("douyu:parseVideo", url);
-    },
   },
   danmu: {
     convertXml2Ass: (

@@ -19,7 +19,7 @@ import { serverStart } from "@biliLive-tools/http";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as danmuHandlers } from "./danmu";
 import { commonHandlers, getTempPath } from "./common";
-import { configHandlers, ffmpegHandlers, douyuHandlers } from "./handlers";
+import { configHandlers, ffmpegHandlers } from "./handlers";
 import { handlers as notidyHandlers } from "./notify";
 import icon from "../../resources/icon.png?asset";
 import {
@@ -90,7 +90,6 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, danmuHandlers);
   registerHandlers(ipcMain, configHandlers);
   registerHandlers(ipcMain, notidyHandlers);
-  registerHandlers(ipcMain, douyuHandlers);
   registerHandlers(ipcMain, commonHandlers);
 };
 

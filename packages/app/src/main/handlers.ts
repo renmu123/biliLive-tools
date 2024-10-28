@@ -3,7 +3,6 @@ import fs from "fs-extra";
 
 import { appConfig } from "@biliLive-tools/shared";
 import { convertVideo2Mp4, mergeAssMp4, mergeVideos } from "@biliLive-tools/shared/task/video.js";
-import douyu from "@biliLive-tools/shared/task/douyu.js";
 import JSZip from "jszip";
 import { getConfigPath } from "./appConstant";
 import { invokeWrap } from "./utils/index";
@@ -105,17 +104,4 @@ export const ffmpegHandlers = {
   },
   getAvailableEncoders: getAvailableEncoders,
   readVideoMeta: invokeWrap(readVideoMeta),
-};
-
-export const douyuHandlers = {
-  "douyu:download": async (
-    _event: IpcMainInvokeEvent,
-    ...args: Parameters<typeof douyu.download>
-  ) => {
-    const { taskId } = await douyu.download(...args);
-    return {
-      taskId,
-    };
-  },
-  "douyu:parseVideo": invokeWrap(douyu.parseVideo),
 };
