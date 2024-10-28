@@ -526,7 +526,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/video.mp4",
       "-y",
       "-filter_complex",
-      "[0:v]subtitles=/path/to/subtitle.ass[0:video];[0:video]drawtext=text='%{pts\\:gmtime\\:1633831810\\:%Y-%m-%d %T}':fontcolor=white:fontsize=24:x=10:y=10[1:video]",
+      "[0:v]subtitles=/path/to/subtitle.ass[0:video];[0:video]drawtext=text='%{pts\\:localtime\\:1633831810\\:%Y-%m-%d %T}':fontcolor=white:fontsize=24:x=10:y=10[1:video]",
       "-map",
       "[1:video]",
       "-map",
@@ -677,7 +677,7 @@ describe.concurrent("ComplexFilter", () => {
       {
         filter: "drawtext",
         options:
-          "text='%{pts\\:gmtime\\:1633831810\\:%Y-%m-%d %T}':fontcolor=white:fontsize=24:x=10:y=10",
+          "text='%{pts\\:localtime\\:1633831810\\:%Y-%m-%d %T}':fontcolor=white:fontsize=24:x=10:y=10",
         inputs: ["0:v"],
         outputs: "0:video",
       },

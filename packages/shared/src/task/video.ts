@@ -402,8 +402,12 @@ export const genMergeAssMp4Command = (
     // 添加复杂滤镜
     addComplexFilter();
   }
-  command.complexFilter(complexFilter.getFilters(), complexFilter.getLatestOutputStream());
-  command.outputOptions("-map 0:a");
+
+  if (complexFilter.getFilters().length) {
+    command.complexFilter(complexFilter.getFilters(), complexFilter.getLatestOutputStream());
+    command.outputOptions("-map 0:a");
+  }
+
   // 输入参数
   if (assFile) {
     if (files.hotProgressFilePath) {
