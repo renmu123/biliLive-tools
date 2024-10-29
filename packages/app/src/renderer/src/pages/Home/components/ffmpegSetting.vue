@@ -143,7 +143,7 @@
           <span class="inline-flex">
             <span>硬件解码</span>
             <Tip>
-              使用硬件解码器，开启后可能会减少压制时间，nvidia会使用nvdec，如果压制失败请关闭
+              使用硬件解码器，开启后<b>可能</b>会减少压制时间，nvidia会使用nvdec，如果压制失败请关闭
             </Tip>
           </span>
         </template>
