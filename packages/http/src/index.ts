@@ -1,10 +1,13 @@
+import path from "node:path";
 import http from "node:http";
+import { fileURLToPath } from "node:url";
 import https from "node:https";
 import Koa from "koa";
 import Router from "koa-router";
 import cors from "@koa/cors";
 import { bodyParser } from "@koa/bodyparser";
 import sse from "koa-sse-stream";
+import serve from "koa-static";
 
 import errorMiddleware from "./middleware/error.js";
 export * from "./routes/api_types.js";
@@ -29,6 +32,8 @@ export let config: GlobalConfig;
 export let handler!: WebhookHandler;
 export let appConfig!: AppConfig;
 export let container!: AwilixContainer;
+
+export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const authMiddleware = (passKey: string | number) => {
   return async (ctx: Koa.Context, next: Koa.Next) => {
@@ -62,6 +67,7 @@ app.use(cors());
 app.use(bodyParser());
 app.use(router.routes());
 app.use(webhookRouter.routes());
+app.use(serve(path.join(__dirname, "public")));
 
 export async function serverStart(
   options: {

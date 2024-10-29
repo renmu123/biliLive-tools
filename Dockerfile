@@ -46,4 +46,4 @@ RUN npm install
 EXPOSE 3000
 
 # 启动后端服务器
-CMD ["node", "app.js"]
+CMD ["node", "index.cjs", "server"]
