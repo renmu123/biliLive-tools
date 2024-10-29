@@ -55,7 +55,7 @@ export const setFfmpegPath = async () => {
 export const readVideoMeta = async (input: string): Promise<Ffmpeg.FfprobeData> => {
   await setFfmpegPath();
   return new Promise((resolve, reject) => {
-    ffmpeg(input).ffprobe(function (err, metadata) {
+    ffmpeg.ffprobe(input, { json: true }, function (err, metadata) {
       if (err) {
         reject(err);
       } else {
@@ -323,7 +323,7 @@ export class ComplexFilter {
  * @param {string} files.outputPath 输出文件路径
  * @param {object} ffmpegOptions ffmpeg参数
  */
-export const genMergeAssMp4Command = (
+export const genMergeAssMp4Command = async (
   files: {
     videoFilePath: string;
     assFilePath: string | undefined;
@@ -345,7 +345,32 @@ export const genMergeAssMp4Command = (
   const assFile = files.assFilePath;
   const complexFilter = new ComplexFilter();
 
-  function addComplexFilter() {
+  // 获取添加drawtext的参数，为空就是不支持添加
+  // 优先从视频元数据读取（如录播姬注释），如果是webhook，那么优先从webhook中读取
+  async function getDrawtextParams() {
+    if (!ffmpegOptions.addTimestamp) return null;
+    // webhook传递过来的参数
+    if (options.startTimestamp) return options.startTimestamp;
+
+    // 视频元数据读取（如录播姬注释）
+    const data = await readVideoMeta(files.videoFilePath);
+    const comment = String(data?.format?.tags?.comment) ?? "";
+    // 使用正则提取出录制时间
+    const timeMatch = comment.match(/录制时间: (.+)/);
+    if (timeMatch) {
+      const time = timeMatch[1];
+      try {
+        const timestamp = Math.floor(new Date(time).getTime() / 1000);
+        return timestamp;
+      } catch {
+        // do nothing
+      }
+    }
+
+    return null;
+  }
+
+  async function addComplexFilter() {
     if (assFile) {
       const scaleMethod = selectScaleMethod(ffmpegOptions);
 
@@ -384,9 +409,10 @@ export const genMergeAssMp4Command = (
       }
 
       // 如果设置了添加时间戳
-      if (ffmpegOptions.addTimestamp && options.startTimestamp) {
+      const startTimestamp = await getDrawtextParams();
+      if (startTimestamp) {
         complexFilter.addDrawtextFilter(
-          options.startTimestamp,
+          startTimestamp,
           ffmpegOptions.timestampFontColor ?? "white",
           ffmpegOptions.timestampFontSize ?? 24,
           ffmpegOptions.timestampX ?? 10,
@@ -398,17 +424,17 @@ export const genMergeAssMp4Command = (
 
   if (ffmpegOptions.vf) {
     const vfArray = ffmpegOptions.vf.split(";");
-    vfArray.forEach((vf) => {
+    for (const vf of vfArray) {
       if (vf === "$origin") {
-        addComplexFilter();
+        await addComplexFilter();
       } else {
         const vfOptions = vf.split("=");
         complexFilter.addFilter(vfOptions[0], vfOptions.slice(1).join("="));
       }
-    });
+    }
   } else {
     // 添加复杂滤镜
-    addComplexFilter();
+    await addComplexFilter();
   }
 
   if (complexFilter.getFilters().length) {
@@ -487,7 +513,7 @@ export const mergeAssMp4 = async (
   }
   const assFile = files.assFilePath;
   const startTimestamp = options.startTimestamp || 0;
-  const command = genMergeAssMp4Command(files, ffmpegOptions, {
+  const command = await genMergeAssMp4Command(files, ffmpegOptions, {
     startTimestamp: startTimestamp,
   });
 
