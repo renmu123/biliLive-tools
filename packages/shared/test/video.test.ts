@@ -251,7 +251,7 @@ describe.concurrent("通用ffmpeg参数生成", () => {
 });
 
 describe.concurrent("genMergeAssMp4Command", () => {
-  it("压制参数：视频，高能进度条，弹幕", () => {
+  it("压制参数：视频，高能进度条，弹幕", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -264,7 +264,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       audioCodec: "copy",
     };
 
-    const command = genMergeAssMp4Command(files, ffmpegOptions);
+    const command = await genMergeAssMp4Command(files, ffmpegOptions);
     const args = command._getArguments();
     expect(args).toEqual([
       "-i",
@@ -285,7 +285,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：视频，弹幕，无高能弹幕", () => {
+  it("压制参数：视频，弹幕，无高能弹幕", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -298,7 +298,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       audioCodec: "copy",
     };
 
-    const command = genMergeAssMp4Command(files, ffmpegOptions);
+    const command = await genMergeAssMp4Command(files, ffmpegOptions);
     const args = command._getArguments();
     expect(args).toEqual([
       "-i",
@@ -317,7 +317,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：视频，无弹幕，无高能弹幕", () => {
+  it("压制参数：视频，无弹幕，无高能弹幕", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: undefined,
@@ -330,7 +330,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       audioCodec: "copy",
     };
 
-    const command = genMergeAssMp4Command(files, ffmpegOptions);
+    const command = await genMergeAssMp4Command(files, ffmpegOptions);
     const args = command._getArguments();
     expect(args).toEqual([
       "-i",
@@ -343,7 +343,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：视频，有弹幕，无高能弹幕，有切割参数", () => {
+  it("压制参数：视频，有弹幕，无高能弹幕，有切割参数", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -358,7 +358,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       to: "00:00:10",
     };
 
-    const command = genMergeAssMp4Command(files, ffmpegOptions);
+    const command = await genMergeAssMp4Command(files, ffmpegOptions);
     const args = command._getArguments();
     expect(args).toEqual([
       "-ss",
@@ -384,7 +384,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：hevc硬件解码", () => {
+  it("压制参数：hevc硬件解码", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: undefined,
@@ -410,7 +410,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       },
     ];
     for (const option of ffmpegOptions) {
-      const command = genMergeAssMp4Command(files, option);
+      const command = await genMergeAssMp4Command(files, option);
       const args = command._getArguments();
       expect(args).toEqual([
         "-hwaccel",
@@ -430,7 +430,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       ]);
     }
   });
-  it("压制参数：视频，弹幕，先缩放", () => {
+  it("压制参数：视频，弹幕，先缩放", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -447,7 +447,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       scaleMethod: "before",
     };
 
-    const command = genMergeAssMp4Command(files, ffmpegOptions);
+    const command = await genMergeAssMp4Command(files, ffmpegOptions);
     const args = command._getArguments();
     expect(args).toEqual([
       "-i",
@@ -466,7 +466,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：弹幕+后缩放", () => {
+  it("压制参数：弹幕+后缩放", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -483,7 +483,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       scaleMethod: "after",
     };
 
-    const command = genMergeAssMp4Command(files, ffmpegOptions);
+    const command = await genMergeAssMp4Command(files, ffmpegOptions);
     const args = command._getArguments();
     expect(args).toEqual([
       "-i",
@@ -502,7 +502,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：弹幕+时间戳", () => {
+  it("压制参数：弹幕+时间戳", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -516,7 +516,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       addTimestamp: true,
     };
 
-    const command = genMergeAssMp4Command(files, ffmpegOptions, {
+    const command = await genMergeAssMp4Command(files, ffmpegOptions, {
       startTimestamp: 1633831810,
     });
     const args = command._getArguments();
