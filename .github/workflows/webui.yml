@@ -65,6 +65,7 @@ jobs:
           git init
           git remote add origin https://x-access-token:${GH_PAT}@github.com/renmu123/biliLive-webui.git
           git checkout -b $BRANCH
+          git pull
           git add .
           git commit -m "Deploy compiled files"
           git push --force origin $BRANCH
