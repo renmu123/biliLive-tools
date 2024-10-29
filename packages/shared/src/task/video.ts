@@ -186,9 +186,14 @@ export const convertVideo2Mp4 = async (
 
   // 硬件解码
   if (ffmpegOptions.decode) {
-    if (["nvenc"].includes(getHardwareAcceleration(ffmpegOptions.encoder))) {
+    const hardware = getHardwareAcceleration(ffmpegOptions.encoder);
+    if (hardware === "nvenc") {
       command.inputOptions("-hwaccel cuda");
       command.inputOptions("-hwaccel_output_format cuda");
+      command.inputOptions("-extra_hw_frames 10");
+    } else if (hardware === "amf") {
+      command.inputOptions("-hwaccel d3d11va");
+      command.inputOptions("-hwaccel_output_format d3d11");
       command.inputOptions("-extra_hw_frames 10");
     }
   }
@@ -458,9 +463,14 @@ export const genMergeAssMp4Command = async (
   }
   // 硬件解码
   if (ffmpegOptions.decode) {
-    if (["nvenc"].includes(getHardwareAcceleration(ffmpegOptions.encoder))) {
+    const hardware = getHardwareAcceleration(ffmpegOptions.encoder);
+    if (hardware === "nvenc") {
       command.inputOptions("-hwaccel cuda");
       command.inputOptions("-hwaccel_output_format cuda");
+      command.inputOptions("-extra_hw_frames 10");
+    } else if (hardware === "amf") {
+      command.inputOptions("-hwaccel d3d11va");
+      // command.inputOptions("-hwaccel_output_format d3d11");
       command.inputOptions("-extra_hw_frames 10");
     }
   }

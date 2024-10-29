@@ -133,7 +133,11 @@
         />
       </n-form-item>
       <n-form-item
-        v-if="['h264_nvenc', 'hevc_nvenc', 'av1_nvenc'].includes(ffmpegOptions.config.encoder)"
+        v-if="
+          ['h264_nvenc', 'hevc_nvenc', 'av1_nvenc', 'h264_amf', 'hevc_amf', 'av1_amf'].includes(
+            ffmpegOptions.config.encoder,
+          )
+        "
       >
         <template #label>
           <span class="inline-flex">
