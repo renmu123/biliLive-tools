@@ -7,7 +7,6 @@ import Router from "koa-router";
 import cors from "@koa/cors";
 import { bodyParser } from "@koa/bodyparser";
 import sse from "koa-sse-stream";
-import serve from "koa-static";
 
 import errorMiddleware from "./middleware/error.js";
 export * from "./routes/api_types.js";

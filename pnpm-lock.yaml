@@ -334,9 +334,6 @@ importers:
       koa-sse-stream:
         specifier: ^0.2.0
         version: 0.2.0
-      koa-static:
-        specifier: ^5.0.0
-        version: 5.0.0
     devDependencies:
       '@types/cli-progress':
         specifier: ^3.11.5
@@ -2199,14 +2196,6 @@ packages:
     resolution: {integrity: sha512-rBMW+F2TXryBwB54Q0d8drNEI+TfoS9JpNTAoVpukbWEhjXQq4rySFYLaqXMFXwdv61Zb2OHtj5bviSoimqxRQ==}
     engines: {node: '>=18'}
 
-  debug@3.2.7:
-    resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-
   debug@4.3.7:
     resolution: {integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==}
     engines: {node: '>=6.0'}
@@ -2967,10 +2956,6 @@ packages:
   http-cache-semantics@4.1.1:
     resolution: {integrity: sha512-er295DKPVsV82j5kw1Gjt+ADA/XYHsajl82cGNQG2eyoPkvgUhX+nDIyelzhIWbbsXP39EHcI6l5tYs2FYqYXQ==}
 
-  http-errors@1.6.3:
-    resolution: {integrity: sha512-lks+lVC8dgGyh97jxvxeYTWQFvh4uw4yC12gVl63Cg30sjPX4wuGcdkICVXDAESr6OJGjqGA8Iz5mkeN6zlD7A==}
-    engines: {node: '>= 0.6'}
-
   http-errors@1.8.1:
     resolution: {integrity: sha512-Kpk9Sm7NmI+RHhnj6OIWDI1d6fIoFAtFt9RLaTMRlg/8w49juAStsrBgp0Dp4OdxdVbRIeKhtCUvoi/RuAhO4g==}
     engines: {node: '>= 0.6'}
@@ -3051,9 +3036,6 @@ packages:
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
     deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
-
-  inherits@2.0.3:
-    resolution: {integrity: sha512-x00IRNXNy63jwGkJmzPigoySHbaqpNuzKbBOmzK+g2OdZpQ9w+sxCN+VSB3ja7IAge2OP2qpfxTjeNcyjmW1uw==}
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
@@ -3300,16 +3282,8 @@ packages:
     resolution: {integrity: sha512-4/sijXdSxocIe2wv7RFFSxvo2ic1pDzPSmy11yCGztng1hx408qfw1wVmN3aqhQaU7U6nJ039JKC8ObE73Ohgw==}
     engines: {node: '>= 18'}
 
-  koa-send@5.0.1:
-    resolution: {integrity: sha512-tmcyQ/wXXuxpDxyNXv5yNNkdAMdFRqwtegBXUaowiQzUKqJehttS0x2j0eOZDQAyloAth5w6wwBImnFzkUz3pQ==}
-    engines: {node: '>= 8'}
-
   koa-sse-stream@0.2.0:
     resolution: {integrity: sha512-Dyp3YS5HfnpE17Mk8HWl+6IMVgO/VU5rGXPKjgej+BrfdZZfRv2AXAm6osd380xcjhcXJgaHg23ntdLbpjCIDQ==}
-
-  koa-static@5.0.0:
-    resolution: {integrity: sha512-UqyYyH5YEXaJrf9S8E23GoJFQZXkBVJ9zYYMPGz919MSX1KuvAcycIuS0ci150HCoPf4XQVhQ84Qf8xRPWxFaQ==}
-    engines: {node: '>= 7.6.0'}
 
   koa@2.15.3:
     resolution: {integrity: sha512-j/8tY9j5t+GVMLeioLaxweJiKUayFhlGqNTzf2ZGwL0ZCQijd2RLHK0SLW5Tsko8YyyqCZC2cojIb0/s62qTAg==}
@@ -4088,10 +4062,6 @@ packages:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==}
     engines: {node: '>=4'}
 
-  resolve-path@1.4.0:
-    resolution: {integrity: sha512-i1xevIst/Qa+nA9olDxLWnLk8YZbi8R/7JPbCMcgyWaFR6bKWaexgJgEB5oc2PKMjYdrHynyz0NY+if+H98t1w==}
-    engines: {node: '>= 0.8'}
-
   resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
 
@@ -4205,9 +4175,6 @@ packages:
 
   setimmediate@1.0.5:
     resolution: {integrity: sha512-MATJdZp8sLqDl/68LfQmbP8zKPLQNV6BIZoIgrscFDQ+RsvK/BxeDQOgyxKKoh0y/8h3BqVFnCqQ/gd+reiIXA==}
-
-  setprototypeof@1.1.0:
-    resolution: {integrity: sha512-BvE/TwpZX4FXExxOxZyRGQQv651MSwmWKZGqvmPcRIjDqWub67kTKuIMx43cZZrS/cBBzwBcNDWoFxt2XEFIpQ==}
 
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
@@ -6909,10 +6876,6 @@ snapshots:
     dependencies:
       mimic-function: 5.0.1
 
-  debug@3.2.7:
-    dependencies:
-      ms: 2.1.3
-
   debug@4.3.7:
     dependencies:
       ms: 2.1.3
@@ -7854,13 +7817,6 @@ snapshots:
 
   http-cache-semantics@4.1.1: {}
 
-  http-errors@1.6.3:
-    dependencies:
-      depd: 1.1.2
-      inherits: 2.0.3
-      setprototypeof: 1.1.0
-      statuses: 1.5.0
-
   http-errors@1.8.1:
     dependencies:
       depd: 1.1.2
@@ -7945,8 +7901,6 @@ snapshots:
     dependencies:
       once: 1.4.0
       wrappy: 1.0.2
-
-  inherits@2.0.3: {}
 
   inherits@2.0.4: {}
 
@@ -8165,24 +8119,9 @@ snapshots:
       koa-compose: 4.1.0
       path-to-regexp: 8.2.0
 
-  koa-send@5.0.1:
-    dependencies:
-      debug: 4.3.7
-      http-errors: 1.8.1
-      resolve-path: 1.4.0
-    transitivePeerDependencies:
-      - supports-color
-
   koa-sse-stream@0.2.0:
     dependencies:
       stream: 0.0.2
-
-  koa-static@5.0.0:
-    dependencies:
-      debug: 3.2.7
-      koa-send: 5.0.1
-    transitivePeerDependencies:
-      - supports-color
 
   koa@2.15.3:
     dependencies:
@@ -8979,11 +8918,6 @@ snapshots:
 
   resolve-from@4.0.0: {}
 
-  resolve-path@1.4.0:
-    dependencies:
-      http-errors: 1.6.3
-      path-is-absolute: 1.0.1
-
   resolve-pkg-maps@1.0.0: {}
 
   resolve@1.22.8:
@@ -9116,8 +9050,6 @@ snapshots:
       has-property-descriptors: 1.0.2
 
   setimmediate@1.0.5: {}
-
-  setprototypeof@1.1.0: {}
 
   setprototypeof@1.2.0: {}
 
