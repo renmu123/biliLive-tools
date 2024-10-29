@@ -2,9 +2,9 @@
   <n-card class="login-card">
     <n-space vertical style="text-align: center">
       <n-input v-model:value="api" placeholder="请输入API地址，如http://127.0.0.1:18010" />
-      <n-input v-model:value="key" placeholder="密钥" />
+      <n-input v-model:value="key" placeholder="密钥" type="password" />
       <p>接口最低1.6.0如果遇到功能无法访问，请尝试更新至最新版</p>
-      有个github链接
+      <!-- 有个github链接 -->
       <div style="gap: 10px; display: flex">
         <n-button type="primary" style="flex: 1" @click="test">联通测试</n-button>
         <n-button type="primary" style="flex: 1" @click="login">确认</n-button>
@@ -51,9 +51,9 @@ const test = async () => {
 };
 
 const apiStorage = window.localStorage.getItem("api");
-const keyStorage = window.localStorage.getItem("key");
+// const keyStorage = window.localStorage.getItem("key");
 api.value = apiStorage || "";
-key.value = keyStorage || "";
+// key.value = keyStorage || "";
 </script>
 
 <style lang="less">
