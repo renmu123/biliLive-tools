@@ -351,8 +351,8 @@ importers:
   packages/manager:
     dependencies:
       '@renmu/fluent-ffmpeg':
-        specifier: 2.2.1
-        version: 2.2.1
+        specifier: 2.3.0
+        version: 2.3.0
       fast-xml-parser:
         specifier: ^4.4.1
         version: 4.4.1
@@ -370,8 +370,8 @@ importers:
         specifier: workspace:*
         version: link:../types
       '@types/fluent-ffmpeg':
-        specifier: ^2.1.20
-        version: 2.1.24
+        specifier: ^2.1.27
+        version: 2.1.27
 
   packages/shared:
     dependencies:
@@ -391,8 +391,8 @@ importers:
         specifier: 2.0.1
         version: 2.0.1
       '@renmu/fluent-ffmpeg':
-        specifier: 2.2.1
-        version: 2.2.1
+        specifier: 2.3.0
+        version: 2.3.0
       '@renmu/m3u8-downloader':
         specifier: ^0.3.1
         version: 0.3.1
@@ -440,8 +440,8 @@ importers:
         version: 1.2.2
     devDependencies:
       '@types/fluent-ffmpeg':
-        specifier: ^2.1.24
-        version: 2.1.24
+        specifier: ^2.1.27
+        version: 2.1.27
       '@types/nodemailer':
         specifier: ^6.4.14
         version: 6.4.15
@@ -1205,8 +1205,8 @@ packages:
     resolution: {integrity: sha512-OYpsTlfoVU+JBitzSn+ZTKFklt38iI7pgG/CK3M6u7zo8tLtj0hm+HFip7QgVW8ON23J+vgq7g0kvuQyyioAJA==}
     engines: {node: '>=18'}
 
-  '@renmu/fluent-ffmpeg@2.2.1':
-    resolution: {integrity: sha512-RMOjy2ErdB99dNCvsNNuBrsm2ctQSdP2a45VMFgZoZGbS85bf0+/Ifn/0BEiiyoYEQ+f04GuXasLfrQNu0tuRw==}
+  '@renmu/fluent-ffmpeg@2.3.0':
+    resolution: {integrity: sha512-WfQeQlj0HQLSzc7AgBW/gY+/LpGdDgMoNvFo7fLEdo9NlqDwsqVSWBtwpb569+d9YAfkaZmByjm2aTLINtmuMw==}
     engines: {node: '>=18'}
 
   '@renmu/m3u8-downloader@0.3.1':
@@ -1417,8 +1417,8 @@ packages:
   '@types/express@4.17.21':
     resolution: {integrity: sha512-ejlPM315qwLpaQlQDTjPdsUFSc6ZsP4AN6AlWnogPjQ7CVi7PYF3YVz+CY3jE2pwYf7E/7HlDAN0rV2GxTG0HQ==}
 
-  '@types/fluent-ffmpeg@2.1.24':
-    resolution: {integrity: sha512-g5oQO8Jgi2kFS3tTub7wLvfLztr1s8tdXmRd8PiL/hLMLzTIAyMR2sANkTggM/rdEDAg3d63nYRRVepwBiCw5A==}
+  '@types/fluent-ffmpeg@2.1.27':
+    resolution: {integrity: sha512-QiDWjihpUhriISNoBi2hJBRUUmoj/BMTYcfz+F+ZM9hHWBYABFAE6hjP/TbCZC0GWwlpa3FzvHH9RzFeRusZ7A==}
 
   '@types/fs-extra@9.0.13':
     resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
@@ -1926,6 +1926,7 @@ packages:
 
   boolean@3.2.0:
     resolution: {integrity: sha512-d0II/GO9uf9lfUHH2BQsjxzRJZBdsjgsBiW4BvhWk/3qoKwQFjIDVN19PfX8F2D/r9PCMTtLWjYVCFrpeYUzsw==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   brace-expansion@1.1.11:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
@@ -5784,7 +5785,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@renmu/fluent-ffmpeg@2.2.1':
+  '@renmu/fluent-ffmpeg@2.3.0':
     dependencies:
       async: 0.2.10
       which: 1.3.1
@@ -5974,7 +5975,7 @@ snapshots:
       '@types/qs': 6.9.15
       '@types/serve-static': 1.15.7
 
-  '@types/fluent-ffmpeg@2.1.24':
+  '@types/fluent-ffmpeg@2.1.27':
     dependencies:
       '@types/node': 20.12.2
 

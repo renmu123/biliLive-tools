@@ -30,7 +30,7 @@
   "author": "WhiteMind",
   "license": "LGPL",
   "dependencies": {
-    "@renmu/fluent-ffmpeg": "2.2.1",
+    "@renmu/fluent-ffmpeg": "2.3.0",
     "filenamify": "^6.0.0",
     "mitt": "^3.0.0",
     "string-argv": "^0.3.1",
@@ -38,6 +38,6 @@
   },
   "devDependencies": {
     "@biliLive-tools/types": "workspace:*",
-    "@types/fluent-ffmpeg": "^2.1.20"
+    "@types/fluent-ffmpeg": "^2.1.27"
   }
 }

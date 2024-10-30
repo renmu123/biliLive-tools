@@ -217,17 +217,21 @@ export class FFmpegTask extends AbstractTask {
       log.error(`task ${this.taskId} error: ${err}`);
       this.status = "error";
 
-      callback.onError && callback.onError(err);
-      this.error = err;
-      this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+      callback.onError && callback.onError(String(err));
+      this.error = String(err);
+      this.emitter.emit("task-error", { taskId: this.taskId, error: String(err) });
     });
     command.on("progress", (progress) => {
+      // @ts-ignore
       progress.percentage = progress.percent;
       // console.log("progress", progress);
       if (callback.onProgress) {
+        // @ts-ignore
         progress = callback.onProgress(progress);
       }
+      // @ts-ignore
       this.custsomProgressMsg = `比特率: ${progress.currentKbps}kbits/s   速率: ${progress.speed}`;
+      // @ts-ignore
       this.progress = progress.percentage || 0;
       this.emitter.emit("task-progress", { taskId: this.taskId });
     });

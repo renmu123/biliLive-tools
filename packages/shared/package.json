@@ -33,7 +33,7 @@
     "@biliLive-tools/types": "workspace:*",
     "@napi-rs/canvas": "^0.1.53",
     "@renmu/bili-api": "2.0.1",
-    "@renmu/fluent-ffmpeg": "2.2.1",
+    "@renmu/fluent-ffmpeg": "2.3.0",
     "@renmu/m3u8-downloader": "^0.3.1",
     "ass-compiler": "^0.1.11",
     "awilix": "^11.0.0",
@@ -51,7 +51,7 @@
     "serverchan-sdk": "1.0.5"
   },
   "devDependencies": {
-    "@types/fluent-ffmpeg": "^2.1.24",
+    "@types/fluent-ffmpeg": "^2.1.27",
     "@types/nodemailer": "^6.4.14"
   }
 }
