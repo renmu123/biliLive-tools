@@ -1,5 +1,8 @@
 :3000 {
     root * /app/public
     file_server
-    reverse_proxy /api/* localhost:3000
+    encode gzip
+
+    # 处理前端路由
+    try_files {path} /index.html
 }
