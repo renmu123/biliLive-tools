@@ -25,7 +25,7 @@ RUN mkdir public && mkdir data && mkdir bin
 
 # 复制 backend 代码和 package.json
 COPY --from=build /app/packages/app/out/renderer /app/public
-COPY --from=build /app/docker ./
+COPY --from=build /app/docker/Caddyfile ./
 
 ENV NODE_ENV=production
 
@@ -33,4 +33,4 @@ ENV NODE_ENV=production
 EXPOSE 3000
 
 # 启动 Caddy 服务器
-CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
+CMD ["caddy", "run", "--config", "/app/Caddyfile"]
