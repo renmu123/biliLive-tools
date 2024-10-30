@@ -390,10 +390,8 @@ const convert = async () => {
  * 处理高能进度条
  */
 const genHotProgress = async (input: string, options: hotProgressOptions): Promise<string> => {
-  const tempPath = await window.api.common.getTempPath();
   return new Promise((resolve, reject) => {
-    const outputPath = `${window.path.join(tempPath, uuid())}.mp4`;
-    window.api.danmu.genHotProgress(input, outputPath, options).then((result: any) => {
+    window.api.danmu.genHotProgress(input, options).then((result: any) => {
       const taskId = result.taskId;
       window.api.task.on(taskId, "end", (data) => {
         console.log("end", data);

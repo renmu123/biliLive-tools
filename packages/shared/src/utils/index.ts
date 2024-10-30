@@ -1,4 +1,7 @@
-import { exec } from "child_process";
+import os from "node:os";
+import { exec } from "node:child_process";
+import path from "node:path";
+
 import fs from "fs-extra";
 import trash from "trash";
 import { appConfig } from "../config.js";
@@ -6,7 +9,6 @@ export * from "./webhook.js";
 export * from "./crypto.js";
 
 import type { FfmpegOptions, VideoCodec } from "@biliLive-tools/types";
-import path from "node:path";
 
 export const executeCommand = (
   command: string,
@@ -269,4 +271,8 @@ export function timemarkToSeconds(timemark: string) {
   }
 
   return secs;
+}
+
+export function getTempPath() {
+  return path.join(os.tmpdir(), "biliLive-tools");
 }

@@ -1,6 +1,5 @@
 import path from "node:path";
 import fs from "fs-extra";
-import os from "node:os";
 
 import { video, convert2Xml } from "douyu-api";
 import M3U8Downloader from "@renmu/m3u8-downloader";
@@ -9,6 +8,7 @@ import { cloneDeep } from "lodash-es";
 import { taskQueue, DouyuDownloadVideoTask } from "./task.js";
 import { getFfmpegPath } from "./video.js";
 import { uuid } from "../utils/index.js";
+import { getTempPath } from "../utils/index.js";
 
 import type { Video } from "douyu-api";
 
@@ -71,7 +71,7 @@ async function download(
   const downloader = new M3U8Downloader(m3u8Url, output, {
     convert2Mp4: true,
     ffmpegPath: ffmpegPath,
-    segmentsDir: path.join(os.tmpdir(), "biliLive-tools", uuid()),
+    segmentsDir: path.join(getTempPath(), uuid()),
   });
 
   const task = new DouyuDownloadVideoTask(

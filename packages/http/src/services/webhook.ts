@@ -586,15 +586,13 @@ export class WebhookHandler {
       height: number;
     },
   ): Promise<string> {
-    const output = `${path.join(os.tmpdir(), uuid())}.mp4`;
-
     return new Promise((resolve, reject) => {
-      genHotProgress(xmlFile, output, {
+      genHotProgress(xmlFile, {
         videoPath: videoFile,
         ...options,
       }).then((task) => {
         task.on("task-end", () => {
-          resolve(output);
+          resolve(task.output as string);
         });
         task.on("task-error", () => {
           reject();

@@ -65,8 +65,8 @@ export const api = {
       });
     },
     // danmu:generateDanmakuImage
-    genHotProgress(input: string, output: string, options: hotProgressOptions) {
-      return ipcRenderer.invoke("danmu:genHotProgress", input, output, options);
+    genHotProgress(input: string, options: hotProgressOptions) {
+      return ipcRenderer.invoke("danmu:genHotProgress", input, options);
     },
     generateDanmakuData(
       input: string,

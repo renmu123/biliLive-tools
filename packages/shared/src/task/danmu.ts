@@ -4,7 +4,7 @@ import os from "node:os";
 import readline from "node:readline";
 import { isNumber } from "lodash-es";
 
-import { pathExists, trashItem, uuid } from "../utils/index.js";
+import { pathExists, trashItem, uuid, getTempPath } from "../utils/index.js";
 import log from "../utils/log.js";
 import { appConfig } from "../config.js";
 import { Danmu } from "../danmu/index.js";
@@ -181,9 +181,17 @@ export const isEmptyDanmu = async (filepath: string) => {
 };
 
 /**
+ * 生成高能进度条，输出文件在临时文件夹
+ */
+export const genHotProgress = async (input: string, options: hotProgressOptions) => {
+  const output = join(getTempPath(), `${uuid()}.mp4`);
+  return _genHotProgress(input, output, options);
+};
+
+/**
  * 生成高能进度条
  */
-export const genHotProgress = async (
+export const _genHotProgress = async (
   input: string,
   output: string,
   options: hotProgressOptions,
@@ -203,7 +211,7 @@ export const genHotProgress = async (
     throw new Error("can not read width in genHotProgress");
   }
 
-  const imageDir = join(os.tmpdir(), uuid());
+  const imageDir = join(getTempPath(), uuid());
   const data = await generateDanmakuImage(
     input,
     imageDir,

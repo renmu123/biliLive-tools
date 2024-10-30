@@ -1,6 +1,5 @@
 import path from "node:path";
 import fs from "fs-extra";
-import os from "node:os";
 
 import { Client, TvQrcodeLogin, WebVideoUploader } from "@renmu/bili-api";
 import { uniq } from "lodash-es";
@@ -15,7 +14,7 @@ import {
   BiliEditVideoTask,
 } from "./task.js";
 import log from "../utils/log.js";
-import { sleep, encrypt, decrypt } from "../utils/index.js";
+import { sleep, encrypt, decrypt, getTempPath } from "../utils/index.js";
 import { sendNotify } from "../notify.js";
 
 import type { BiliupConfig, BiliUser } from "@biliLive-tools/types";
@@ -95,7 +94,7 @@ async function download(
 
   const client = await createClient(uid);
   const ffmpegBinPath = appConfig.get("ffmpegPath");
-  const tmpPath = path.join(os.tmpdir(), "biliLive-tools");
+  const tmpPath = getTempPath();
   const command = await client.video.download(
     { ...options, ffmpegBinPath, cachePath: tmpPath },
     {},
