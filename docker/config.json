@@ -1,9 +1,9 @@
 {
   "port": 18010,
-  "host": "127.0.0.1",
-  "configFolder": "\\app\\data",
-  "ffmpegPath": "\\app\\bin\\ffmpeg",
-  "ffprobePath": "\\app\\bin\\ffprobe",
-  "danmakuFactoryPath": "\\app\\bin\\DanmakuFactory",
-  "logPath": "\\app\\data"
+  "host": "0.0.0.0",
+  "configFolder": "/app/data",
+  "ffmpegPath": "/app/bin/ffmpeg",
+  "ffprobePath": "/app/bin/ffprobe",
+  "danmakuFactoryPath": "/app/bin/DanmakuFactory",
+  "logPath": "/app/data"
 }

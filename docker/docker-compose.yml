@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  webui:
+    image: bililive-tools-webui
+    ports:
+      - "3000:3000"
+  api:
+    image: bililive-tools-backend
+    ports:
+      - "18010:18010"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - BILILIVE_TOOLS_PASSKEY=your_passkey
+      - BILILIVE_TOOLS_BILIKEY=your_bilikey

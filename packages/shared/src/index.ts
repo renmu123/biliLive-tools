@@ -2,19 +2,18 @@ export * from "./presets/index.js";
 
 import { createContainer, asValue, asClass } from "awilix";
 
+import { taskQueue, TaskQueue } from "./task/task.js";
 import { appConfig, AppConfig } from "./config.js";
 import { DanmuPreset, VideoPreset, FFmpegPreset } from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
-import { taskQueue, TaskQueue } from "./task/task.js";
 import { BiliCommentQueue, migrateBiliUser } from "./task/bili.js";
 import { createRecorderManager } from "./recorder/index.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 
 // import { initDB } from "./db/index.js";
-export { createRecorderManager };
-export const container = createContainer();
+const container = createContainer();
 
 const init = async (config: GlobalConfig) => {
   appConfig.init(config.configPath, {
@@ -59,4 +58,4 @@ const migrate = async () => {
   await migrateBiliUser();
 };
 
-export { init, AppConfig, appConfig, TaskQueue, migrate };
+export { init, AppConfig, appConfig, TaskQueue, migrate, createRecorderManager, container };

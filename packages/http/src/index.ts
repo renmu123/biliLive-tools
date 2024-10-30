@@ -83,7 +83,8 @@ export async function serverStart(
   handler = new WebhookHandler(appConfig);
 
   if (options.auth) {
-    const auth = authMiddleware(options.passKey);
+    const passKey = process.env.BILILIVE_TOOLS_PASSKEY || options.passKey;
+    const auth = authMiddleware(passKey);
     app.use(auth);
   }
 

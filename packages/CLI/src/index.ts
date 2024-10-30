@@ -37,21 +37,10 @@ program
     if (c?.configFolder === undefined) {
       throw new Error(`${c.configFolder}参数不存在，请先重新运行 config gen 命令`);
     }
-    if (!fs.existsSync(path.join(c.configFolder, "appConfig.json"))) {
-      throw new Error(`${c.configFolder}文件夹中的 appConfig.json 文件不存在`);
-    }
-    if (!fs.existsSync(path.join(c.configFolder, "ffmpeg_presets.json"))) {
-      console.warn(`${c.configFolder}文件夹中的 ffmpeg_presets.json 文件不存在`);
-    }
-    if (!fs.existsSync(path.join(c.configFolder, "presets.json"))) {
-      console.warn(`${c.configFolder}文件夹中的 presets.json 文件不存在`);
-    }
-    if (!fs.existsSync(path.join(c.configFolder, "danmu_presets.json"))) {
-      console.warn(`${c.configFolder}文件夹中的 danmu_presets.json 文件不存在`);
-    }
 
-    const { serverStart } = await import("@biliLive-tools/http");
+    // 下面两行顺序不能换（
     const { init } = await import("@biliLive-tools/shared");
+    const { serverStart } = await import("@biliLive-tools/http");
 
     const globalConfig: GlobalConfig = {
       ffmpegPresetPath: path.join(c.configFolder, "ffmpeg_presets.json"),

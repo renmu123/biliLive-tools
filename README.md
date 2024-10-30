@@ -26,7 +26,7 @@
 
 **任何版本更新前请查看更新记录，避免破坏性更新带来的问题**
 
-最优先支持的是桌面程序，其余或多或少少了部分功能
+最优先支持的是桌面程序，其余或多或少缺失了部分功能
 
 ## 桌面程序
 
@@ -46,11 +46,37 @@ CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/maste
 
 ## docker
 
-待施工
+尚未施工完成
+
+**由于软件并非针对web设计，无法保证安全性，请谨慎暴露在公网中**
+
+你可以通过运行`docker-compose up -d`来快速搭建
+
+```yaml
+
+```
+
+具体支持的环境变量见[文档](./README.md#支持的环境变量)
+
+### 持久化
+
+你可以设置卷来进行数据持久化
+
+`./data:/app/data`
+
+TODO
+字体
+
+### webhook
+
+docker下由于存储的隔离，webhook使用其他安装方式并不一致。
+TODO
 
 ## webui
 
 可用于国内未备案机器，或懒得自部署的情况，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者选择自签名，或者自部署，自部署参考[项目](https://github.com/renmu123/biliLive-webui)
+
+密钥为`appConfig.json`的`passKey`字段
 
 线上地址：https://bililive.irenmu.com
 
@@ -114,20 +140,6 @@ curl --location 'http://127.0.0.1:18010/webhook/custom' \
     "username":"djw"
 }'
 ```
-
-## Web & docker注意事项
-
-项目地址：https://github.com/renmu123/biliLive-webui  
-在线地址：https://bililive.irenmu.com  
-目前版本尚未完成  
-**由于软件并非针对web设计，无法保证安全性，请谨慎暴露在公网中**
-
-密钥为`appConfig.json`的`passKey`字段
-
-### webhook使用
-
-docker下由于存储的隔离，webhook使用其他安装方式并不一致
-待完善
 
 #### 录播姬
 
@@ -205,7 +217,11 @@ windows下环境变量修改后可能需要重启电脑方能生效
 
 ### B站登录自定义密钥加密
 
-可以使用环境变量`BILILIVE_TOOLS_BILIKEY`自定义密钥，自定义前请先退出原有全部账号。
+可以使用环境变量`BILILIVE_TOOLS_BILIKEY`自定义账号密钥，自定义前请先退出原有全部账号。
+
+### 鉴权密钥
+
+通过环境变量`BILILIVE_TOOLS_PASSKEY`自定义登录密钥
 
 ## Webhook标题模板引擎如何使用
 

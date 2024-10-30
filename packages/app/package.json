@@ -28,11 +28,8 @@
     "@biliLive-tools/types": "workspace:*",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
-    "@napi-rs/canvas": "^0.1.55",
-    "assjs": "^0.1.2",
     "axios": "^1.7.7",
     "better-sqlite3": "11.2.1",
-    "driver.js": "^1.3.1",
     "electron-context-menu": "4.0.4",
     "electron-log": "^5.2.0",
     "electron-store": "^10.0.0",
@@ -77,6 +74,8 @@
     "vue": "^3.5.3",
     "vue-router": "^4.4.3",
     "vue-tsc": "^2.1.6",
-    "vuedraggable": "^4.1.0"
+    "vuedraggable": "^4.1.0",
+    "driver.js": "^1.3.1",
+    "assjs": "^0.1.2"
   }
 }

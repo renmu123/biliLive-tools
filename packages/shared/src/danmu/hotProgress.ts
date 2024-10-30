@@ -2,7 +2,6 @@ import fs from "fs-extra";
 import path from "node:path";
 import { compile } from "ass-compiler";
 import { keyBy } from "lodash-es";
-import { createCanvas } from "@napi-rs/canvas";
 import { parseXmlFile } from "./index.js";
 
 import type { hotProgressOptions } from "@biliLive-tools/types";
@@ -212,7 +211,7 @@ export const generateDanmakuImage = async (
   await fs.ensureDir(output);
   for (let i = 0; i < data.length; i++) {
     data[i].color = options.fillColor;
-    const canvas = drawSmoothLineChart(data, options.width, options.height);
+    const canvas = await drawSmoothLineChart(data, options.width, options.height);
     const outputPath = path.join(output, `${String(i).padStart(4, "0")}.png`);
     const stream = await canvas.encode("png");
     await fs.promises.writeFile(outputPath, stream);
@@ -242,7 +241,8 @@ function drawSmoothCurve(ctx, points) {
 }
 
 // 绘制平滑折线图
-function drawSmoothLineChart(data, width: number, height: number) {
+async function drawSmoothLineChart(data, width: number, height: number) {
+  const { createCanvas } = await import("@napi-rs/canvas");
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 
