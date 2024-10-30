@@ -66,7 +66,6 @@ app.use(cors());
 app.use(bodyParser());
 app.use(router.routes());
 app.use(webhookRouter.routes());
-app.use(serve(path.join(__dirname, "public")));
 
 export async function serverStart(
   options: {
