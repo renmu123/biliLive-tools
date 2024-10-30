@@ -1,0 +1,5 @@
+:3000 {
+    root * /app/public
+    file_server
+    reverse_proxy /api/* localhost:3000
+}
