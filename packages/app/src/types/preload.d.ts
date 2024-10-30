@@ -1,4 +1,4 @@
-import path from "node:path";
+import path from "path-browserify";
 
 import { ElectronAPI } from "@electron-toolkit/preload";
 import { api } from "../preload/index";

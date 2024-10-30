@@ -1,4 +1,4 @@
-import { biliApi } from "./bili";
+import { biliApi } from "@biliLive-tools/shared/task/bili.js";
 
 import type { IpcMainInvokeEvent } from "electron";
 import type { BiliupConfig, BiliupConfigAppend } from "@biliLive-tools/types";

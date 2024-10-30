@@ -52,6 +52,7 @@
 import { ArchiveOutline as ArchiveIcon, CloseOutline as CloseIcon } from "@vicons/ionicons5";
 import { useDropZone } from "@vueuse/core";
 import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
+import { formatFile } from "@renderer/utils";
 
 import type { File as newFile } from "@biliLive-tools/types";
 
@@ -105,7 +106,7 @@ const handleFileSelect = async () => {
   if (!files) return;
   if (files.length === 0) return;
   let items = files
-    .map(window.api.formatFile)
+    .map(formatFile)
     .filter((file) => !fileList.value.map((item) => item.path).includes(file.path));
 
   if (props.max) {
@@ -126,7 +127,7 @@ function onDrop(files: File[] | null) {
 
   if (files) {
     let items = Array.from(files)
-      .map((file) => window.api.formatFile(window.api.common.getPathForFile(file)))
+      .map((file) => formatFile(window.api.common.getPathForFile(file)))
       .filter((file) => !fileList.value.map((item) => item.path).includes(file.path))
       .filter((file) => {
         if (props.extensions.includes("*")) return true;

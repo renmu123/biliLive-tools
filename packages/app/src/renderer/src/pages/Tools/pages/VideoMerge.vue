@@ -35,11 +35,12 @@
 
 <script setup lang="ts">
 import { toReactive } from "@vueuse/core";
+import hotkeys from "hotkeys-js";
 
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import Tip from "@renderer/components/Tip.vue";
 import { useAppConfig } from "@renderer/stores";
-import hotkeys from "hotkeys-js";
+import { formatFile } from "@renderer/utils";
 
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
@@ -77,7 +78,7 @@ const convert = async () => {
     return;
   }
   let filePath!: string;
-  const { dir, name } = window.api.formatFile(fileList.value[0].path);
+  const { dir, name } = formatFile(fileList.value[0].path);
   filePath = window.path.join(dir, `${name}-合并.mp4`);
 
   if (options.saveOriginPath) {
@@ -101,7 +102,7 @@ const convert = async () => {
   }
 
   const files = fileList.value.map((file) => {
-    return window.api.formatFile(file.path);
+    return formatFile(file.path);
   });
   try {
     window.api.mergeVideos(toRaw(files), { ...toRaw(options), savePath: filePath });

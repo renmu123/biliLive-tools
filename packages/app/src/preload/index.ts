@@ -243,21 +243,6 @@ export const api = {
     ) => {
       return ipcRenderer.invoke("bili:appendVideo", uid, videoFiles, options);
     },
-    // login() {
-    //   return ipcRenderer.invoke("biliApi:login");
-    // },
-    // onLogin(event: "error" | "completed", callback: (event: IpcRendererEvent, data: any) => void) {
-    //   if (event === "error") {
-    //     ipcRenderer.once("biliApi:login-error", callback);
-    //   } else if (event === "completed") {
-    //     ipcRenderer.once("biliApi:login-completed", callback);
-    //   }
-    // },
-    // loginCancel() {
-    //   ipcRenderer.removeAllListeners("biliApi:login-error");
-    //   ipcRenderer.removeAllListeners("biliApi:login-completed");
-    //   return ipcRenderer.invoke("biliApi:login:cancel");
-    // },
   },
   config: {
     save: (newConfig: AppConfig) => {
@@ -341,11 +326,6 @@ export const api = {
   showSaveDialog: (options?: SaveDialogOptions): Promise<string | undefined> => {
     return ipcRenderer.invoke("dialog:save", options);
   },
-
-  formatFile: (filePath: string) => {
-    const formatFile = path.parse(filePath);
-    return { ...formatFile, path: filePath, filename: formatFile.base };
-  },
   // appVersion: () => {
   //   return ipcRenderer.invoke("getVersion");
   // },
@@ -357,9 +337,6 @@ export const api = {
   },
   exits: (path: string) => {
     return ipcRenderer.invoke("exits", path);
-  },
-  getAvailableEncoders: () => {
-    return ipcRenderer.invoke("getAvailableEncoders");
   },
   trashItem: (path: string) => {
     return ipcRenderer.invoke("trashItem", path);

@@ -1,3 +1,5 @@
+import path from "path-browserify";
+
 export const deepRaw = <T>(data: T): T => {
   return JSON.parse(JSON.stringify(data));
 };
@@ -71,3 +73,8 @@ export const supportedVideoExtensions = [
   "rmvb",
   "mkv",
 ];
+
+export function formatFile(filepath: string) {
+  const formatFile = path.parse(filepath);
+  return { ...formatFile, path: filepath, filename: formatFile.base };
+}

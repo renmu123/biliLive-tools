@@ -171,7 +171,7 @@ import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores
 import { danmuPresetApi, biliApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 
-import { deepRaw, uuid } from "@renderer/utils";
+import { deepRaw, uuid, formatFile } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 
 import type {
@@ -432,7 +432,7 @@ const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfi
     danmuConfig,
   );
 
-  return window.api.formatFile(targetAssFilePath);
+  return formatFile(targetAssFilePath);
 };
 
 /**
