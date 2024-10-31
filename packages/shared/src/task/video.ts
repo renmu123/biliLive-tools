@@ -52,10 +52,16 @@ export const setFfmpegPath = async () => {
   ffmpeg.setFfprobePath(ffprobePath);
 };
 
-export const readVideoMeta = async (input: string): Promise<Ffmpeg.FfprobeData> => {
+export const readVideoMeta = async (
+  input: string,
+  options: {
+    json?: boolean;
+  } = {},
+): Promise<Ffmpeg.FfprobeData> => {
   await setFfmpegPath();
   return new Promise((resolve, reject) => {
-    ffmpeg.ffprobe(input, { json: true }, function (err, metadata) {
+    const lastOptions = Object.assign({ json: false }, options);
+    ffmpeg.ffprobe(input, lastOptions, function (err, metadata) {
       if (err) {
         reject(err);
       } else {
@@ -358,7 +364,9 @@ export const genMergeAssMp4Command = async (
     if (options.startTimestamp) return options.startTimestamp;
 
     // 视频元数据读取（如录播姬注释）
-    const data = await readVideoMeta(files.videoFilePath);
+    const data = await readVideoMeta(files.videoFilePath, {
+      json: true,
+    });
     const comment = String(data?.format?.tags?.comment) ?? "";
     // 使用正则提取出录制时间
     const timeMatch = comment.match(/录制时间: (.+)/);

@@ -53,7 +53,30 @@ CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/maste
 你可以通过运行`docker-compose up -d`来快速搭建
 
 ```yaml
+version: "3"
 
+services:
+  # UI镜像
+  webui:
+    image: bililive-tools-webui
+    ports:
+      - "3000:3000"
+  # 接口镜像
+  api:
+    image: bililive-tools-backend
+    ports:
+      # 前者按需改动
+      - "18010:18010"
+    volumes:
+      # 映射的配置目录，用于持久化配置文件
+      - ./data:/app/data
+      # 用于处理webhook数据
+      - D:\录播:/app/video
+    environment:
+      # ���录密钥
+      - BILILIVE_TOOLS_PASSKEY=your_passkey
+      # 账户加密密钥
+      - BILILIVE_TOOLS_BILIKEY=your_bilikey
 ```
 
 具体支持的环境变量见[文档](./README.md#支持的环境变量)
@@ -69,8 +92,50 @@ TODO
 
 ### webhook
 
-docker下由于存储的隔离，webhook使用其他安装方式并不完全一致。
-TODO：待施工
+docker下由于存储和网络的隔离，webhook使用其他安装方式并不完全一致，我们这里以录播姬为例，其他服务类似：
+
+运行之后打开录播姬的配置webhookV2为`http://api:18010/webhook/bililiverecorder`，无须在软件中设置“录播姬工作目录”
+
+```yaml
+version: "3.8"
+services:
+  # UI镜像
+  webui:
+    image: bililive-tools-frontend
+    ports:
+      # 前者按需改动
+      - "3000:3000"
+  # 接口镜像
+  api:
+    image: bililive-tools-backend
+    # ports:
+    #   # 接口地址，按需启用
+    #   - "18010:18010"
+    volumes:
+      # 映射的配置目录，用于持久化配置文件
+      - ./data:/app/data
+      # 用于处理webhook数据，按需修改，和录播姬的参数一致
+      - ./video:/app/video
+    environment:
+      # 登录密钥
+      - BILILIVE_TOOLS_PASSKEY=your_passkey
+      # 账户加密密钥
+      - BILILIVE_TOOLS_BILIKEY=your_bilikey
+  recorder:
+    image: bililive/recorder:latest
+    restart: unless-stopped
+    volumes:
+      # 用于处理webhook数据，按需修改，和上述参数一致
+      - ./video:/rec
+    ports:
+      - "2356:2356"
+      # 第一个 2356 是宿主机的端口，可以根据自己需求改动。
+      # 第二个 2356 是容器内的端口，不要修改。
+    environment:
+      - BREC_HTTP_BASIC_USER=用户名
+      - BREC_HTTP_BASIC_PASS=密码
+      # 更多参数见录播姬文档
+```
 
 #### 录播姬
 
@@ -245,7 +310,7 @@ windows下环境变量修改后可能需要重启电脑方能生效
 
 通过环境变量`BILILIVE_TOOLS_PASSKEY`自定义登录密钥
 
-## Webhook标题模板引擎如何使用
+## Webhook标题模��引擎如何使用
 
 1.5.0起 Webhook 标题支持[ejs模板引擎](https://github.com/mde/ejs)，具体语法参考文档，**如果标题超过80字，会被自动截断**，会优先执行模板引擎，之后会对`{{}}`占位符进行替换，如果有语法错误，会被跳过，优先保证上传。
 
@@ -312,11 +377,17 @@ windows下环境变量修改后可能需要重启电脑方能生效
 
 zip包并非传统意义上的绿色包，数据和安装包文件的不会存放在同一个文件夹中，如果你尝试使用安装包后使用压缩包，可能会导致二进制文件的路径错误从而无法使用，请尝试在设置中手动修改二进制文件路径。
 
-如果你想将数据放在同一个文件夹内，请在可执行文件所在文件夹创建一个`portable`文件，无拓展名如`.txt`，更改后重启应用，如有需要可以新建文件前在设置中备份设置。
+如果你想将数据放在同一个文件夹内，请��可执行文件所在文件夹创建一个`portable`文件，无拓展名如`.txt`，更改后重启应用，如有需要可以新建文件前在设置中备份设置。
 
 ## 更改webhook部分配置不生效
 
 请不要在直播开始后修改相应的配置，比如标题，断播续传等配置，本场直播可能并不会生效
+
+### docker 下报错 `EISDIR: illegal operation on a directory, read`
+
+如果在使用 docker 时遇到 `EISDIR: illegal operation on a directory, read` 错误，通常是因为某个文件路径被误认为是目录。请检查你的 `docker-compose.yml` 文件中的卷映射配置，确保文件路径和目录路径正确区分。
+
+例如：
 
 # TODO
 

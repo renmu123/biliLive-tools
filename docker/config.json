@@ -5,5 +5,5 @@
   "ffmpegPath": "/app/bin/ffmpeg",
   "ffprobePath": "/app/bin/ffprobe",
   "danmakuFactoryPath": "/app/bin/DanmakuFactory",
-  "logPath": "/app/data"
+  "logPath": "/app/data/log.txt"
 }

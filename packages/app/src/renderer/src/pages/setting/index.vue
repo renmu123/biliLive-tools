@@ -249,7 +249,7 @@
               </template>
               <n-input
                 v-model:value="config.webhook.recoderFolder"
-                placeholder="请输入录播姬工作目录"
+                placeholder="请输入录播姬工作目录，docker版本不用配置"
               />
               <n-icon
                 style="margin-left: 10px"

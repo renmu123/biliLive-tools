@@ -40,14 +40,19 @@ router.post("/webhook/bililiverecorder", async (ctx) => {
   const event: any = ctx.request.body;
   if (
     config.webhook.open &&
-    config.webhook.recoderFolder &&
     (event.EventType === "FileOpening" || event.EventType === "FileClosed")
   ) {
+    const isDocker = process.env.IS_DOCKER;
+    if (!isDocker && !config.webhook.recoderFolder) {
+      ctx.body = "ok";
+      return;
+    }
+
     const roomId = event.EventData.RoomId;
     // 如果是docker，那么将recoderFolder参数修改为 /app/video路径
-    const isDocker = process.env.IS_DOCKER;
     const recoderFolder = isDocker ? "/app/video" : config.webhook.recoderFolder;
     const filePath = path.join(recoderFolder, event.EventData.RelativePath);
+    log.info("录播姬文件路径：", filePath, recoderFolder);
 
     handler.handle({
       event: event.EventType,

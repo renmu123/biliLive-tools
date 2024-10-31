@@ -5,12 +5,12 @@ services:
   webui:
     image: bililive-tools-webui
     ports:
+      # 前者按需改动
       - "3000:3000"
   # 接口镜像
   api:
     image: bililive-tools-backend
     ports:
-      # 前者按需改动
       - "18010:18010"
     volumes:
       # 映射的配置目录，用于持久化配置文件

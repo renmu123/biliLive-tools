@@ -52,7 +52,7 @@ const test = async () => {
 
 const apiStorage = window.localStorage.getItem("api");
 // const keyStorage = window.localStorage.getItem("key");
-api.value = apiStorage || "http://127.0.0.1:18010";
+api.value = apiStorage || import.meta.env.VITE_DEFAULT_SERVER || "http://127.0.0.1:18010";
 // key.value = keyStorage || "";
 </script>
 
