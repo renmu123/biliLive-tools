@@ -122,6 +122,7 @@ jobs:
             packages/app/dist/*.exe
             packages/app/dist/*.zip
             packages/CLI/dist/*.zip
+            packages/CLI/dist/*.exe
 
       - name: Upload linux artifact
         if: startsWith(matrix.os, 'ubuntu') && env.is_tag == 'false'
