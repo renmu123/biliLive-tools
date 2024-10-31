@@ -1,16 +1,24 @@
 version: "3"
 
 services:
+  # UI镜像
   webui:
     image: bililive-tools-webui
     ports:
       - "3000:3000"
+  # 接口镜像
   api:
     image: bililive-tools-backend
     ports:
+      # 前者按需改动
       - "18010:18010"
     volumes:
+      # 映射的配置目录，用于持久化配置文件
       - ./data:/app/data
+      # 用于处理webhook数据
+      - D:\录播:/app/video
     environment:
+      # 登录密钥
       - BILILIVE_TOOLS_PASSKEY=your_passkey
+      # 账户加密密钥
       - BILILIVE_TOOLS_BILIKEY=your_bilikey

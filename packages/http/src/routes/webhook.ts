@@ -44,7 +44,10 @@ router.post("/webhook/bililiverecorder", async (ctx) => {
     (event.EventType === "FileOpening" || event.EventType === "FileClosed")
   ) {
     const roomId = event.EventData.RoomId;
-    const filePath = path.join(config.webhook.recoderFolder, event.EventData.RelativePath);
+    // 如果是docker，那么将recoderFolder参数修改为 /app/video路径
+    const isDocker = process.env.IS_DOCKER;
+    const recoderFolder = isDocker ? "/app/video" : config.webhook.recoderFolder;
+    const filePath = path.join(recoderFolder, event.EventData.RelativePath);
 
     handler.handle({
       event: event.EventType,
@@ -73,9 +76,12 @@ router.post("/webhook/blrec", async (ctx) => {
     const masterRes = await client.live.getRoomInfo(event.data.room_id);
     const userRes = await client.live.getMasterInfo(masterRes.uid);
 
+    const isDocker = process.env.IS_DOCKER;
+    const filePath = isDocker ? event.data.path.replace("/rec", "/app/video") : event.data.path;
+
     handler.handle({
       event: event.type,
-      filePath: event.data.path,
+      filePath: filePath,
       roomId: roomId,
       time: event.date,
       title: masterRes.title,

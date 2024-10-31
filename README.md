@@ -69,8 +69,30 @@ TODO
 
 ### webhook
 
-docker下由于存储的隔离，webhook使用其他安装方式并不一致。
-TODO
+docker下由于存储的隔离，webhook使用其他安装方式并不完全一致。
+TODO：待施工
+
+#### 录播姬
+
+我们假设你已经安装完录播姬的[docker](https://rec.danmuji.org/install/container/)，配置映射目录，比如：
+
+```yml
+volumes:
+  - type: bind
+    source: D:\录播
+    target: /rec
+```
+
+在本软件的docker中也映射相同目录
+
+```yml
+volumes:
+  # 映射的配置目录，用于持久化配置文件
+  - ./data:/app/data
+  - D:\录播:/app/video
+```
+
+#### blrec
 
 ## webui
 

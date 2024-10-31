@@ -24,7 +24,7 @@ FROM node:20 AS runtime
 
 # 设置工作目录
 WORKDIR /app
-RUN mkdir data && mkdir bin
+RUN mkdir data && mkdir bin && mkdir video
 
 # 复制 backend 代码和 package.json
 COPY --from=build /app/packages/CLI/lib /app
@@ -32,6 +32,7 @@ COPY --from=build /app/packages/app/resources/bin /app/bin
 COPY --from=build /app/docker/config.json ./
 
 ENV NODE_ENV=production
+ENV IS_DOCKER=true
 
 # 暴露 API 端口
 EXPOSE 18010
