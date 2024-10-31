@@ -100,7 +100,7 @@ export const convertImage2Video = async (
   },
 ) => {
   await setFfmpegPath();
-  const command = ffmpeg(`${inputDir}\\%4d.png`)
+  const command = ffmpeg(join(inputDir, "%4d.png"))
     .inputOption("-r", `1/${options.internal || 30}`)
     .output(output);
   const task = new FFmpegTask(

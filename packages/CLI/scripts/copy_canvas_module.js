@@ -3,7 +3,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const cli_node_modules = path.resolve(__dirname, "../node_modules");
+// TODO:显然其他类型打包还有问题
+const cli_node_modules = path.resolve(__dirname, "../lib/node_modules");
 const pnpm_node_modules = path.resolve(__dirname, "../../../node_modules");
 
 // console.log("__dirname", __dirname, pnpm_node_modules);
