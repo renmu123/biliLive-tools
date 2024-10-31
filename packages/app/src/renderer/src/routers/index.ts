@@ -3,7 +3,7 @@ import { createRouter, createWebHistory, createWebHashHistory } from "vue-router
 const isWebUI = import.meta.env.MODE === "webui";
 
 const router = createRouter({
-  history: isWebUI ? createWebHashHistory() : createWebHistory(),
+  history: !isWebUI ? createWebHashHistory() : createWebHistory(),
   scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) {
       return savedPosition;
