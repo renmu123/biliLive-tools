@@ -273,7 +273,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/hotprogress.txt",
       "-y",
       "-filter_complex",
-      "[0:v]subtitles=/path/to/subtitle.ass[0:video];[0:video]colorkey=black:0.1:0.1[1:video];[0:video][1:video]overlay=W-w-0:H-h-0[2:video]",
+      "[0:v]subtitles=/path/to/subtitle.ass[0:video];[1]colorkey=black:0.1:0.1[1:video];[0:video][1:video]overlay=W-w-0:H-h-0[2:video]",
       "-map",
       "[2:video]",
       "-map",
