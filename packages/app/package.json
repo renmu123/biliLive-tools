@@ -35,7 +35,8 @@
     "electron-log": "^5.2.0",
     "electron-store": "^10.0.0",
     "electron-updater": "^6.3.4",
-    "semver": "^7.6.3"
+    "semver": "^7.6.3",
+    "@napi-rs/canvas": "^0.1.53"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.2",

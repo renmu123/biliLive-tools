@@ -3,6 +3,7 @@ import path from "node:path";
 import { compile } from "ass-compiler";
 import { keyBy } from "lodash-es";
 import { parseXmlFile } from "./index.js";
+import { createCanvas } from "@napi-rs/canvas";
 
 import type { hotProgressOptions } from "@biliLive-tools/types";
 
@@ -242,7 +243,6 @@ function drawSmoothCurve(ctx, points) {
 
 // 绘制平滑折线图
 async function drawSmoothLineChart(data, width: number, height: number) {
-  const { createCanvas } = await import("@napi-rs/canvas");
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext("2d");
 

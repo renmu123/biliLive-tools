@@ -298,8 +298,8 @@ export class ComplexFilter {
     return this.addFilter("subtitles", `${escaped(assFile)}`);
   }
 
-  addColorkeyFilter() {
-    return this.addFilter("colorkey", "black:0.1:0.1");
+  addColorkeyFilter(inputs?: string[]) {
+    return this.addFilter("colorkey", "black:0.1:0.1", inputs);
   }
 
   addOverlayFilter(inputs: string[]) {
@@ -402,7 +402,7 @@ export const genMergeAssMp4Command = async (
 
       if (files.hotProgressFilePath) {
         const subtitleStream = complexFilter.addSubtitleFilter(assFile);
-        const colorkeyStream = complexFilter.addColorkeyFilter();
+        const colorkeyStream = complexFilter.addColorkeyFilter(["1"]);
         complexFilter.addOverlayFilter([subtitleStream, colorkeyStream]);
       } else {
         complexFilter.addSubtitleFilter(assFile);
