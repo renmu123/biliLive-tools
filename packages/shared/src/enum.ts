@@ -58,6 +58,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     useVideoAsTitle: false,
     uploadHandleTime: ["00:00:00", "23:59:59"],
     limitUploadTime: false,
+    uploadNoDanmu: false,
+    noDanmuVideoPreset: undefined,
   },
   ffmpegPath: "",
   ffprobePath: "",

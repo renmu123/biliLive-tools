@@ -527,6 +527,8 @@ const globalFields = ref([
   "noConvertHandleVideo",
   "uploadHandleTime",
   "limitUploadTime",
+  "uploadNoDanmu",
+  "noDanmuVideoPreset",
 ]);
 const webhookDefaultValue = computed(() => {
   if (!config.value.webhook) return {};
@@ -589,6 +591,8 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   noConvertHandleVideo: false,
   uploadHandleTime: ["00:00:00", "23:59:59"],
   limitUploadTime: false,
+  uploadNoDanmu: false,
+  noDanmuVideoPreset: undefined,
 });
 const saveRoomDetail = ({ id }: AppRoomConfig & { id?: string }) => {
   config.value.webhook.rooms[id!] = tempRoomDetail.value;

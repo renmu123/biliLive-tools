@@ -29,13 +29,24 @@ import type { AppConfig } from "@biliLive-tools/shared/config.js";
 
 type Platform = "bili-recorder" | "blrec" | "ddtv" | "custom";
 
+export type UploadStatus = "pending" | "uploading" | "uploaded" | "error";
+type PickPartial<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>> & Partial<Pick<T, K>>;
+
 export interface Part {
   partId: string;
   startTime?: number;
   endTime?: number;
+  // 录制状态
+  recordStatus: "recording" | "recorded" | "handled";
+  // 处理后的文件路径，可能是弹幕版的
   filePath: string;
-  status: "recording" | "recorded" | "handled" | "uploading" | "uploaded" | "error";
+  // 处理后的文件路径上传状态
+  uploadStatus: UploadStatus;
   cover?: string; // 封面
+  // 原始文件路径
+  rawFilePath: string;
+  // 原始文件路径上传状态
+  rawUploadStatus: UploadStatus;
 }
 
 export interface Options {
@@ -76,8 +87,16 @@ export class Live {
     this.parts = [];
   }
 
-  addPart(part: Part) {
-    this.parts.push(part);
+  addPart(part: PickPartial<Part, "uploadStatus" | "rawUploadStatus" | "rawFilePath">) {
+    const defaultPart: Pick<Part, "uploadStatus" | "rawUploadStatus" | "rawFilePath"> = {
+      uploadStatus: "pending",
+      rawUploadStatus: "pending",
+      rawFilePath: part.filePath,
+    };
+    this.parts.push({
+      ...defaultPart,
+      ...part,
+    });
   }
 
   updatePartValue<K extends keyof Part>(partId: string, key: K, value: Part[K]) {
@@ -210,9 +229,7 @@ export class WebhookHandler {
         await sleep(10000);
         if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
           log.info("没有找到弹幕文件，直接上传", xmlFilePath);
-          currentPart.status = "handled";
-          const { uid } = this.getConfig(options.roomId);
-          if (!uid) currentPart.status = "error";
+          currentPart.recordStatus = "handled";
           return;
         }
         let hotProgressFile: string | undefined;
@@ -229,7 +246,7 @@ export class WebhookHandler {
         const danmuConfig = (await this.danmuPreset.get(danmuPresetId))?.config;
         if (!danmuConfig) {
           log.error("danmuPreset not found", danmuPresetId);
-          currentPart.status = "error";
+          currentPart.uploadStatus = "error";
           return;
         }
 
@@ -238,7 +255,7 @@ export class WebhookHandler {
         const ffmpegPreset = await this.ffmpegPreset.get(videoPresetId);
         if (!ffmpegPreset) {
           log.error("ffmpegPreset not found", videoPresetId);
-          currentPart.status = "error";
+          currentPart.uploadStatus = "error";
           return;
         }
         const output = await this.addMergeAssMp4Task(
@@ -258,19 +275,17 @@ export class WebhookHandler {
         if (hotProgressFile) fs.remove(hotProgressFile);
 
         currentPart.filePath = output;
-        currentPart.status = "handled";
-        const { uid } = this.getConfig(options.roomId);
-        if (!uid) currentPart.status = "error";
+        currentPart.recordStatus = "handled";
       } catch (error) {
         log.error(error);
-        currentPart.status = "error";
+        currentPart.uploadStatus = "error";
       }
     } else {
       if (noConvertHandleVideo) {
         const preset = await this.ffmpegPreset.get(videoPresetId);
         if (!preset) {
           log.error("ffmpegPreset not found", videoPresetId);
-          currentPart.status = "error";
+          currentPart.uploadStatus = "error";
           return;
         }
         const output = await this.addMergeAssMp4Task(
@@ -282,9 +297,7 @@ export class WebhookHandler {
         );
         currentPart.filePath = output;
       }
-      currentPart.status = "handled";
-      const { uid } = this.getConfig(options.roomId);
-      if (!uid) currentPart.status = "error";
+      currentPart.recordStatus = "handled";
     }
   }
   async handleCover(options: { coverPath?: string; filePath: string }) {
@@ -494,7 +507,10 @@ export class WebhookHandler {
           partId: uuid(),
           startTime: timestamp,
           filePath: options.filePath,
-          status: "recording",
+          recordStatus: "recording",
+          uploadStatus: "pending",
+          rawFilePath: options.filePath,
+          rawUploadStatus: "pending",
         };
         currentLive.addPart(part);
         this.liveData[currentIndex] = currentLive;
@@ -505,7 +521,10 @@ export class WebhookHandler {
           partId: uuid(),
           startTime: timestamp,
           filePath: options.filePath,
-          status: "recording",
+          recordStatus: "recording",
+          uploadStatus: "pending",
+          rawFilePath: options.filePath,
+          rawUploadStatus: "pending",
         });
         this.liveData.push(currentLive);
         currentIndex = this.liveData.length - 1;
@@ -519,7 +538,7 @@ export class WebhookHandler {
         const currentPart = currentLive.findPartByFilePath(options.filePath);
         if (currentPart) {
           currentLive.updatePartValue(currentPart.partId, "endTime", timestamp);
-          currentLive.updatePartValue(currentPart.partId, "status", "recorded");
+          currentLive.updatePartValue(currentPart.partId, "recordStatus", "recorded");
         }
         this.liveData[currentIndex] = currentLive;
       } else {
@@ -528,7 +547,10 @@ export class WebhookHandler {
           partId: uuid(),
           filePath: options.filePath,
           endTime: timestamp,
-          status: "recorded",
+          recordStatus: "recorded",
+          uploadStatus: "pending",
+          rawFilePath: options.filePath,
+          rawUploadStatus: "pending",
         });
         this.liveData.push(currentLive);
         currentIndex = this.liveData.length - 1;
@@ -751,95 +773,114 @@ export class WebhookHandler {
   };
 
   handleLive = async (live: Live) => {
-    // 不要有两个任务同时上传
-    const isUploading = live.parts.some((item) => item.status === "uploading");
-    if (isUploading) return;
+    /**
+     * @param type 区分是弹幕版还是原始版
+     * raw: 原始版
+     * handled: 弹幕版
+     */
+    const uploadVideo = async (type: "raw" | "handled") => {
+      const updateStatusField = type === "handled" ? "uploadStatus" : "rawUploadStatus";
+      const filePathField = type === "handled" ? "filePath" : "rawFilePath";
 
-    const filePaths: string[] = [];
-    // 过滤掉已经上传的part
-    const filterParts = live.parts.filter(
-      (item) => item.status !== "uploaded" && item.status !== "error",
-    );
+      // 不要有两个任务同时上传
+      const isUploading = live.parts.some((item) => item[updateStatusField] === "uploading");
+      if (isUploading) return;
 
-    let cover: string | undefined;
-    // 找到前几个为handled的part
-    for (let i = 0; i < filterParts.length; i++) {
-      const part = filterParts[i];
-      if (part.status === "handled" && part.endTime) {
-        filePaths.push(part.filePath);
-        if (!cover) cover = part.cover;
+      // 需要上传的视频列表
+      const filePaths: string[] = [];
+      // 过滤掉已经上传的part
+      const filterParts = live.parts.filter(
+        (item) => item[updateStatusField] !== "uploaded" && item[updateStatusField] !== "error",
+      );
+
+      let cover: string | undefined;
+      // 找到前几个为handled的part
+      for (let i = 0; i < filterParts.length; i++) {
+        const part = filterParts[i];
+        if (part.recordStatus === "handled" && part.endTime) {
+          filePaths.push(part[filePathField]);
+          if (!cover) cover = part.cover;
+        } else {
+          break;
+        }
+      }
+      if (filePaths.length === 0) return;
+
+      const {
+        uploadPresetId,
+        uid,
+        removeOriginAfterUpload,
+        useLiveCover,
+        limitUploadTime,
+        uploadHandleTime,
+      } = this.getConfig(live.roomId);
+      if (!uid) {
+        for (let i = 0; i < filePaths.length; i++) {
+          const part = live.findPartByFilePath(filePaths[i]);
+          if (part) part[updateStatusField] = "error";
+        }
+        return;
+      }
+      if (limitUploadTime && !this.isBetweenTime(new Date(), uploadHandleTime)) return;
+
+      let uploadPreset = DEFAULT_BILIUP_CONFIG;
+      if (uploadPresetId) {
+        const preset = await this.videoPreset.get(uploadPresetId);
+        uploadPreset = { ...uploadPreset, ...(preset?.config ?? {}) };
+      }
+      uploadPreset.title = live.videoName;
+      if (useLiveCover) {
+        uploadPreset.cover = cover;
+      }
+
+      console.log(live);
+      if (live.aid) {
+        log.info("续传", filePaths);
+        try {
+          live.parts.map((item) => {
+            if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploading";
+          });
+          await this.addEditMediaTask(uid, live.aid, filePaths, removeOriginAfterUpload);
+          live.parts.map((item) => {
+            if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploaded";
+          });
+        } catch (error) {
+          log.error(error);
+          live.parts.map((item) => {
+            if (filePaths.includes(item[filePathField])) item[updateStatusField] = "error";
+          });
+        }
       } else {
-        break;
+        try {
+          live.parts.map((item) => {
+            if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploading";
+          });
+          log.info("上传", live, filePaths);
+
+          const aid = (await this.addUploadTask(
+            uid,
+            filePaths,
+            uploadPreset,
+            removeOriginAfterUpload,
+          )) as number;
+          live.aid = Number(aid);
+
+          // 设置状态为成功
+          live.parts.map((item) => {
+            if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploaded";
+          });
+          log.info("上传成功", live, filePaths);
+        } catch (error) {
+          log.error(error);
+          // 设置状态为失败
+          live.parts.map((item) => {
+            if (filePaths.includes(item[filePathField])) item[updateStatusField] = "error";
+          });
+        }
       }
-    }
-    if (filePaths.length === 0) return;
+    };
 
-    const {
-      uploadPresetId,
-      uid,
-      removeOriginAfterUpload,
-      useLiveCover,
-      limitUploadTime,
-      uploadHandleTime,
-    } = this.getConfig(live.roomId);
-    if (!uid) return;
-    if (limitUploadTime && !this.isBetweenTime(new Date(), uploadHandleTime)) return;
-
-    let uploadPreset = DEFAULT_BILIUP_CONFIG;
-    if (uploadPresetId) {
-      const preset = await this.videoPreset.get(uploadPresetId);
-      uploadPreset = { ...uploadPreset, ...(preset?.config ?? {}) };
-    }
-    uploadPreset.title = live.videoName;
-    if (useLiveCover) {
-      uploadPreset.cover = cover;
-    }
-
-    console.log(live);
-    if (live.aid) {
-      log.info("续传", filePaths);
-      try {
-        live.parts.map((item) => {
-          if (filePaths.includes(item.filePath)) item.status = "uploading";
-        });
-        await this.addEditMediaTask(uid, live.aid, filePaths, removeOriginAfterUpload);
-        live.parts.map((item) => {
-          if (filePaths.includes(item.filePath)) item.status = "uploaded";
-        });
-      } catch (error) {
-        log.error(error);
-        live.parts.map((item) => {
-          if (filePaths.includes(item.filePath)) item.status = "error";
-        });
-      }
-    } else {
-      try {
-        live.parts.map((item) => {
-          if (filePaths.includes(item.filePath)) item.status = "uploading";
-        });
-        log.info("上传", live, filePaths);
-
-        const aid = (await this.addUploadTask(
-          uid,
-          filePaths,
-          uploadPreset,
-          removeOriginAfterUpload,
-        )) as number;
-        live.aid = Number(aid);
-
-        // 设置状态为成功
-        live.parts.map((item) => {
-          if (filePaths.includes(item.filePath)) item.status = "uploaded";
-        });
-        log.info("上传成功", live, filePaths);
-      } catch (error) {
-        log.error(error);
-        // 设置状态为失败
-        live.parts.map((item) => {
-          if (filePaths.includes(item.filePath)) item.status = "error";
-        });
-      }
-    }
+    await uploadVideo("handled");
   };
   /**
    * 当前时间是否在两个时间'HH:mm:ss'之间，如果是["22:00:00","05:00:00"]，当前时间是凌晨3点，返回true

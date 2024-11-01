@@ -378,6 +378,43 @@
       >全局</n-checkbox
     >
   </n-form-item>
+
+  <!-- 非弹幕版相关配置 -->
+  <template v-if="data.uid">
+    <n-divider />
+    <n-form-item>
+      <template #label>
+        <span class="inline-flex">
+          上传非弹幕版
+          <Tip
+            tip="用于在上传弹幕版后同时上传一份非弹幕版本，大部分配置与上面的共用，视频标题去上传预设中配置，模板不要与弹幕版完全一致，不然b站可能会上传错误"
+          ></Tip>
+        </span>
+      </template>
+      <n-switch v-model:value="data.uploadNoDanmu" :disabled="globalFieldsObj.uploadNoDanmu" />
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.uploadNoDanmu"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+    </n-form-item>
+    <n-form-item v-if="data.uploadNoDanmu" label="非弹幕版上传预设">
+      <n-select
+        v-model:value="data.noDanmuVideoPreset"
+        :options="props.biliupPresetsOptions"
+        placeholder="请选择"
+        :disabled="globalFieldsObj.noDanmuVideoPreset"
+        style="margin-right: 10px"
+      />
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.noDanmuVideoPreset"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+    </n-form-item>
+  </template>
 </template>
 
 <script setup lang="ts">
@@ -467,8 +504,10 @@ const titleList = ref([
   },
 ]);
 const titleTip = computed(() => {
-  const base = `支持{{title}},{{user}},{{now}}等占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}<br/>
-  不要在直播开始后修改字段，本场直播不会生效，更多高级用法见文档<br/>`;
+  const base = `推荐在上传预设设置模板标题，但如果预设标题中不存在占位符，为了兼容性考虑，依然使用webhook配置。<br/>
+  <b>预计后续版本中会移除此字段，请使用者尽快迁移。</b><br/>
+  支持{{title}},{{user}},{{now}}等占位符，如【{{user}}】{{title}}-{{now}}<br/>
+  不要在直播开始后修改字段，本场直播不会生效，更多模板引擎等高级用法见文档<br/>`;
   return titleList.value
     .map((item) => {
       return `${item.label}：${item.value}<br/>`;

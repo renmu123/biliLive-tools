@@ -13,21 +13,33 @@
 
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            <span>封面</span>
-            <Tip tip="非必选，默认由B站决定"></Tip>
-          </span>
+          <Tip tip="非必选，默认由B站决定" text="封面"></Tip>
         </template>
         <image-crop v-model="options.config.cover"></image-crop>
       </n-form-item>
       <n-form-item label="视频标题">
+        <template #label>
+          <Tip :tip="titleTip" text="视频标题"></Tip>
+        </template>
         <n-input
+          ref="titleInput"
           v-model:value="options.config.title"
           placeholder="请输入视频标题"
           clearable
-          maxlength="80"
-          show-count
         />
+        <n-button style="margin-right: 10px" @click="previewTitle(options.config.title)"
+          >预览</n-button
+        >
+        <template #feedback>
+          <span
+            v-for="item in titleList"
+            :key="item.value"
+            :title="item.label"
+            class="title-var"
+            @click="setTitleVar(item.value)"
+            >{{ item.value }}</span
+          >
+        </template>
       </n-form-item>
       <n-form-item label="稿件类型">
         <n-radio-group v-model:value="options.config.copyright" name="radiogroup">
@@ -66,10 +78,7 @@
       </n-form-item>
       <n-form-item v-if="options.config.copyright === 1">
         <template #label>
-          <span class="inline-flex">
-            <span>话题</span>
-            <Tip tip="话题也会占据一个tag栏~"></Tip>
-          </span>
+          <Tip tip="话题也会占据一个tag栏~" text="话题"></Tip>
         </template>
         <n-select
           v-model:value="options.config.topic_name"
@@ -86,12 +95,10 @@
 
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            <span>视频简介</span>
-            <Tip
-              tip="可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与id对应。"
-            ></Tip>
-          </span>
+          <Tip
+            text="视频简介"
+            tip="可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与id对应。"
+          ></Tip>
         </template>
         <n-input
           v-model:value="options.config.desc"
@@ -231,12 +238,10 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            <span>合集</span>
-            <Tip
-              :tip="`多p视频无法加入，仅适用于设置合集的账户(${options.config.uid})，需电磁力3级才可开通`"
-            ></Tip>
-          </span>
+          <Tip
+            text="合集"
+            :tip="`多p视频无法加入，仅适用于设置合集的账户(${options.config.uid})，需电磁力3级才可开通`"
+          ></Tip>
         </template>
         <div class="inline-items" style="align-items: center">
           <n-select
@@ -304,8 +309,11 @@
 import { deepRaw, uuid } from "@renderer/utils";
 import { useConfirm } from "@renderer/hooks";
 import { videoPresetApi, biliApi } from "@renderer/apis";
+import { previewWebhookTitle } from "@renderer/apis/common";
+
 import { useUploadPreset, useAppConfig, useUserInfoStore } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
+import { templateRef } from "@vueuse/core";
 
 import type { BiliupPreset } from "@biliLive-tools/types";
 
@@ -590,6 +598,81 @@ watch(
     }
   },
 );
+
+const titleList = ref([
+  {
+    value: "{{title}}",
+    label: "视频标题",
+  },
+  {
+    value: "{{user}}",
+    label: "主播名",
+  },
+  {
+    value: "{{now}}",
+    label: "视频录制时间（示例：2024.01.24）",
+  },
+  {
+    value: "{{yyyy}}",
+    label: "年",
+  },
+  {
+    value: "{{MM}}",
+    label: "月（补零）",
+  },
+  {
+    value: "{{dd}}",
+    label: "日（补零）",
+  },
+  {
+    value: "{{HH}}",
+    label: "时（补零）",
+  },
+  {
+    value: "{{mm}}",
+    label: "分（补零）",
+  },
+  {
+    value: "{{ss}}",
+    label: "秒（补零）",
+  },
+]);
+const titleTip = computed(() => {
+  const base = `上限80字，多余的会被截断。<br/>
+  占位符用于支持webhook中的相关功能，如果你是手动上传，和你基本上没关系，如【{{user}}】{{title}}-{{now}}<br/>
+  不要在直播开始后修改字段，本场直播不会生效，更多模板引擎等高级用法见文档<br/>`;
+  return titleList.value
+    .map((item) => {
+      return `${item.label}：${item.value}<br/>`;
+    })
+    .reduce((prev, cur) => prev + cur, base);
+});
+
+const previewTitle = async (template: string) => {
+  const data = await previewWebhookTitle(template);
+  notice.warning({
+    title: data,
+    duration: 3000,
+  });
+};
+
+const titleInput = templateRef("titleInput");
+const setTitleVar = async (value: string) => {
+  const input = titleInput.value?.inputElRef;
+  if (input) {
+    // 获取input光标位置
+    const start = input.selectionStart ?? options.value.config.title.length;
+    const end = input.selectionEnd ?? options.value.config.title.length;
+    const oldValue = options.value.config.title;
+    options.value.config.title = oldValue.slice(0, start) + value + oldValue.slice(end);
+    // 设置光标位置
+    input.focus();
+    await nextTick();
+    input.setSelectionRange(start + value.length, start + value.length);
+  } else {
+    options.value.config.title += value;
+  }
+};
 </script>
 
 <style scoped lang="less">
@@ -607,6 +690,23 @@ watch(
   .inline-item {
     display: inline-flex;
     align-items: center;
+  }
+}
+.title-var {
+  display: inline-block;
+  margin-top: 4px;
+  margin-right: 10px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  &:not(.disabled):hover {
+    background-color: #e0e0e0;
+  }
+  &.disabled {
+    cursor: not-allowed;
   }
 }
 </style>
