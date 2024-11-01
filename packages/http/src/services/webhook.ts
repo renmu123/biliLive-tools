@@ -838,6 +838,7 @@ export class WebhookHandler {
         useLiveCover,
         limitUploadTime,
         uploadHandleTime,
+        useVideoAsTitle,
       } = this.getConfig(live.roomId);
       if (!uid) {
         for (let i = 0; i < filePaths.length; i++) {
@@ -877,6 +878,25 @@ export class WebhookHandler {
         }
       } else {
         try {
+          const part = live.findPartByFilePath(filePaths[0]);
+
+          if (useVideoAsTitle) {
+            uploadPreset.title = path.parse(part.rawFilePath).name.slice(0, 80);
+          } else {
+            const videoTitle = formatTitle(
+              {
+                title: live.title,
+                username: live.username,
+                roomId: live.roomId,
+                time: part.startTime
+                  ? new Date(part.startTime).toISOString()
+                  : new Date().toISOString(),
+              },
+              uploadPreset.title,
+            );
+            uploadPreset.title = videoTitle;
+          }
+
           live.parts.map((item) => {
             if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploading";
           });
