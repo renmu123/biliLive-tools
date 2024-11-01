@@ -28,9 +28,8 @@ import type {
 import type { AppConfig } from "@biliLive-tools/shared/config.js";
 
 type Platform = "bili-recorder" | "blrec" | "ddtv" | "custom";
-
-export type UploadStatus = "pending" | "uploading" | "uploaded" | "error";
 type PickPartial<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>> & Partial<Pick<T, K>>;
+export type UploadStatus = "pending" | "uploading" | "uploaded" | "error";
 
 export interface Part {
   partId: string;
@@ -73,6 +72,8 @@ export class Live {
   // 主播名
   username: string;
   aid?: number;
+  // 非弹幕版aid
+  rawAid?: number;
   parts: Part[];
 
   constructor(options: {
@@ -84,6 +85,7 @@ export class Live {
     username: string;
     startTime?: number;
     aid?: number;
+    rawAid?: number;
   }) {
     this.eventId = options.eventId;
     this.platform = options.platform;
@@ -93,6 +95,7 @@ export class Live {
     this.title = options.title;
     this.username = options.username;
     this.aid = options.aid;
+    this.rawAid = options.rawAid;
     this.parts = [];
   }
 
@@ -396,6 +399,10 @@ export class WebhookHandler {
     limitUploadTime?: boolean;
     /** 允许上传处理时间 */
     uploadHandleTime: [string, string];
+    /** 同时上传无弹幕视频 */
+    uploadNoDanmu: boolean;
+    /** 同时上传无弹幕视频预设 */
+    noDanmuVideoPreset: string;
   } {
     const config = this.appConfig.getAll();
     const roomSetting: AppRoomConfig | undefined = config.webhook?.rooms?.[roomId];
@@ -423,6 +430,8 @@ export class WebhookHandler {
     const noConvertHandleVideo = getRoomSetting("noConvertHandleVideo") ?? false;
     const limitUploadTime = getRoomSetting("limitUploadTime") ?? false;
     const uploadHandleTime = getRoomSetting("uploadHandleTime") || ["00:00:00", "23:59:59"];
+    const uploadNoDanmu = getRoomSetting("uploadNoDanmu") ?? false;
+    const noDanmuVideoPreset = getRoomSetting("noDanmuVideoPreset") || "default";
 
     // 如果没有开启断播续传，那么不需要合并part
     if (!mergePart) partMergeMinute = -1;
@@ -465,6 +474,8 @@ export class WebhookHandler {
       noConvertHandleVideo,
       limitUploadTime,
       uploadHandleTime,
+      uploadNoDanmu: !!(uid && uploadNoDanmu),
+      noDanmuVideoPreset,
     };
     // log.debug("final config", options);
 
@@ -806,6 +817,7 @@ export class WebhookHandler {
     const uploadVideo = async (type: "raw" | "handled") => {
       const updateStatusField = type === "handled" ? "uploadStatus" : "rawUploadStatus";
       const filePathField = type === "handled" ? "filePath" : "rawFilePath";
+      const aidField = type === "handled" ? "aid" : "rawAid";
 
       // 不要有两个任务同时上传
       const isUploading = live.parts.some((item) => item[updateStatusField] === "uploading");
@@ -822,13 +834,14 @@ export class WebhookHandler {
       // 找到前几个为handled的part
       for (let i = 0; i < filterParts.length; i++) {
         const part = filterParts[i];
-        if (part.recordStatus === "handled" && part.endTime) {
+        if (part.recordStatus === "handled") {
           filePaths.push(part[filePathField]);
           if (!cover) cover = part.cover;
         } else {
           break;
         }
       }
+
       if (filePaths.length === 0) return;
 
       const {
@@ -839,7 +852,11 @@ export class WebhookHandler {
         limitUploadTime,
         uploadHandleTime,
         useVideoAsTitle,
+        title,
+        uploadNoDanmu,
+        noDanmuVideoPreset,
       } = this.getConfig(live.roomId);
+
       if (!uid) {
         for (let i = 0; i < filePaths.length; i++) {
           const part = live.findPartByFilePath(filePaths[i]);
@@ -847,26 +864,33 @@ export class WebhookHandler {
         }
         return;
       }
+
+      // 如果是非弹幕版，但是不允许上传无弹幕视频，那么直接设置为error
+      if (type === "raw" && !uploadNoDanmu) {
+        for (let i = 0; i < filePaths.length; i++) {
+          const part = live.findPartByFilePath(filePaths[i]);
+          if (part) part[updateStatusField] = "error";
+        }
+        return;
+      }
+
       if (limitUploadTime && !this.isBetweenTime(new Date(), uploadHandleTime)) return;
 
       let uploadPreset = DEFAULT_BILIUP_CONFIG;
-      if (uploadPresetId) {
-        const preset = await this.videoPreset.get(uploadPresetId);
-        uploadPreset = { ...uploadPreset, ...(preset?.config ?? {}) };
-      }
-      uploadPreset.title = live.videoName;
+      const presetId = type === "handled" ? uploadPresetId : noDanmuVideoPreset;
+      const preset = await this.videoPreset.get(presetId);
+      uploadPreset = { ...uploadPreset, ...(preset?.config ?? {}) };
       if (useLiveCover) {
         uploadPreset.cover = cover;
       }
 
-      console.log(live);
-      if (live.aid) {
+      if (live[aidField]) {
         log.info("续传", filePaths);
         try {
           live.parts.map((item) => {
             if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploading";
           });
-          await this.addEditMediaTask(uid, live.aid, filePaths, removeOriginAfterUpload);
+          await this.addEditMediaTask(uid, live[aidField], filePaths, removeOriginAfterUpload);
           live.parts.map((item) => {
             if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploaded";
           });
@@ -883,6 +907,25 @@ export class WebhookHandler {
           if (useVideoAsTitle) {
             uploadPreset.title = path.parse(part.rawFilePath).name.slice(0, 80);
           } else {
+            let template = uploadPreset.title;
+            if (type === "handled") {
+              const list = [
+                "{{title}}",
+                "{{user}}",
+                "{{roomId}}",
+                "{{now}}",
+                "{{yyyy}}",
+                "{{MM}}",
+                "{{dd}}",
+                "{{HH}}",
+                "{{mm}}",
+                "{{ss}}",
+              ];
+              // 目前如果预设标题中不存在占位符，为了兼容性考虑，依然使用webhook配置，预计后续版本中会移除此字段
+              if (!list.some((item) => template.includes(item))) {
+                template = title;
+              }
+            }
             const videoTitle = formatTitle(
               {
                 title: live.title,
@@ -892,7 +935,7 @@ export class WebhookHandler {
                   ? new Date(part.startTime).toISOString()
                   : new Date().toISOString(),
               },
-              uploadPreset.title,
+              template,
             );
             uploadPreset.title = videoTitle;
           }
@@ -900,21 +943,20 @@ export class WebhookHandler {
           live.parts.map((item) => {
             if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploading";
           });
-          log.info("上传", live, filePaths);
+          log.info("上传", live, filePaths, uploadPreset);
 
           const aid = (await this.addUploadTask(
             uid,
             filePaths,
             uploadPreset,
-            removeOriginAfterUpload,
+            type === "raw" ? false : removeOriginAfterUpload,
           )) as number;
-          live.aid = Number(aid);
+          live[aidField] = Number(aid);
 
           // 设置状态为成功
           live.parts.map((item) => {
             if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploaded";
           });
-          log.info("上传成功", live, filePaths);
         } catch (error) {
           log.error(error);
           // 设置状态为失败
@@ -925,7 +967,7 @@ export class WebhookHandler {
       }
     };
 
-    await uploadVideo("handled");
+    await Promise.all([uploadVideo("handled"), uploadVideo("raw")]);
   };
   /**
    * 当前时间是否在两个时间'HH:mm:ss'之间，如果是["22:00:00","05:00:00"]，当前时间是凌晨3点，返回true

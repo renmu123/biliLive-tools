@@ -609,6 +609,10 @@ const titleList = ref([
     label: "主播名",
   },
   {
+    value: "{{roomId}}",
+    label: "房间号",
+  },
+  {
     value: "{{now}}",
     label: "视频录制时间（示例：2024.01.24）",
   },

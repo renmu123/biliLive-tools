@@ -33,6 +33,17 @@ describe("formatTitle", () => {
       "Title:My Title,User:Jo,Date:2022.01.01,yyyy:2022,MM:01,dd:01,hours:20,m:34,s:56",
     );
   });
+  it("should format the roomId correctly", () => {
+    const options = {
+      title: "My Title",
+      username: "Jo",
+      time: "2022-01-01T12:34:56.789Z",
+      roomId: 123456,
+    };
+    const template = "{{roomId}}";
+    const result = formatTitle(options, template);
+    expect(result).toBe("123456");
+  });
   it("should format the title correctly with ejs", () => {
     const options = {
       title: "My Title",
