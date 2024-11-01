@@ -64,16 +64,16 @@ services:
   # 接口镜像
   api:
     image: bililive-tools-backend
-    ports:
-      # 前者按需改动
-      - "18010:18010"
+    # ports:
+    #   # 接口地址，按需启用
+    #   - "18010:18010"
     volumes:
       # 映射的配置目录，用于持久化配置文件
       - ./data:/app/data
       # 用于处理webhook数据
-      - D:\录播:/app/video
+      - ./video:/app/video
     environment:
-      # ���录密钥
+      # 登录密钥
       - BILILIVE_TOOLS_PASSKEY=your_passkey
       # 账户加密密钥
       - BILILIVE_TOOLS_BILIKEY=your_bilikey
@@ -117,9 +117,9 @@ services:
       # 用于处理webhook数据，按需修改，和录播姬的参数一致
       - ./video:/app/video
     environment:
-      # 登录密钥
+      # 登录密钥，自行修改
       - BILILIVE_TOOLS_PASSKEY=your_passkey
-      # 账户加密密钥
+      # 账户加密密钥，自行修改
       - BILILIVE_TOOLS_BILIKEY=your_bilikey
   recorder:
     image: bililive/recorder:latest
@@ -135,26 +135,6 @@ services:
       - BREC_HTTP_BASIC_USER=用户名
       - BREC_HTTP_BASIC_PASS=密码
       # 更多参数见录播姬文档
-```
-
-#### 录播姬
-
-我们假设你已经安装完录播姬的[docker](https://rec.danmuji.org/install/container/)，配置映射目录，比如：
-
-```yml
-volumes:
-  - type: bind
-    source: D:\录播
-    target: /rec
-```
-
-在本软件的docker中也映射相同目录
-
-```yml
-volumes:
-  # 映射的配置目录，用于持久化配置文件
-  - ./data:/app/data
-  - D:\录播:/app/video
 ```
 
 #### blrec
@@ -420,7 +400,7 @@ zip包并非传统意义上的绿色包，数据和安装包文件的不会存�
 
 交流群：872011161
 
-node请使用20及以上版本。
+node版本根据`.node-version`来进行选择
 
 ## Install
 
@@ -437,9 +417,9 @@ $ pnpm run install:bin
 
 ### 其他依赖
 
-如果二进制依赖安装失败或者不支持你的平台，请尝试[手动下载安装](https://github.com/renmu123/biliLive-tools/releases/tag/0.2.1)二进制依赖。
+如果二进制依赖安装失败或者不支持你的平台，请尝试[手动下载安装](https://github.com/renmu123/biliLive-tools/releases/tag/0.2.1)二进制依赖，最新版本为距离当前版本最近的版本。
 
-新建`packages\app\resources\bin`文件夹，里面需要三个个文件。
+新建`packages\app\resources\bin`文件夹，里面需要三个文件。
 同时需要在应用的设置里设置相关可执行文件地址。
 
 1. `DanmukuFactory.exe` [自编译版本](https://github.com/renmu123/DanmakuFactory/tree/test)
@@ -453,12 +433,12 @@ $ pnpm run install:bin
 ## Build
 
 ```bash
-# APP应用
+# APP应用，如果需要分发也可以在github action进行自动编译
 $ pnpm run build:app
-# APP应用且没有ffmpeg二进制文件
-$ pnpm run build:app:no-ffmpeg
 # CLI应用
 $ pnpm run build:cli
+# docker
+# 相关文件在`docker`文件夹下
 ```
 
 ## WebUI项目地址

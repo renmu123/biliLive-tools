@@ -14,7 +14,7 @@ COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
 
 # 构建后端项目
-RUN pnpm run build:base && pnpm run --filter bililive-cli build
+RUN pnpm run build:base && pnpm run --filter bililive-cli build && pnpm run --filter bililive-cli movePackage
 
 # 下载二进制依赖
 RUN pnpm run install:bin
