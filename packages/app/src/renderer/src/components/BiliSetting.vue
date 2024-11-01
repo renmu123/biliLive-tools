@@ -3,11 +3,7 @@
   <div>
     <n-form ref="formRef" label-width="120px" label-placement="left" label-align="right">
       <n-form-item label="预设">
-        <n-select
-          v-model:value="presetId"
-          :options="uploaPresetsOptions"
-          @update:value="handlePresetChange"
-        />
+        <n-select v-model:value="presetId" :options="uploaPresetsOptions" />
       </n-form-item>
       <n-divider />
 
@@ -336,6 +332,7 @@ const options: Ref<BiliupPreset> = ref({
   },
 });
 const handlePresetChange = async (value: string) => {
+  console.log("pppp", value);
   const preset = await videoPresetApi.get(value);
   if (preset) {
     options.value = preset;
@@ -350,9 +347,12 @@ const handlePresetChange = async (value: string) => {
 
 const noSideSpace = (value: string) => !value.startsWith(" ") && !value.endsWith(" ");
 
-onMounted(async () => {
-  handlePresetChange(presetId.value);
-});
+watch(
+  () => presetId.value,
+  (value) => {
+    handlePresetChange(value);
+  },
+);
 
 const notice = useNotification();
 const handleTagChange = async (tags: string[]) => {
