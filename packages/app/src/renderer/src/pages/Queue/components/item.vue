@@ -113,9 +113,7 @@
 
     <div v-if="showInfo" class="detail-info">
       <span v-if="item.startTime">开始时间：{{ new Date(item.startTime).toLocaleString() }}</span>
-      <span v-if="item.status === 'running'"
-        >持续时间：{{ formatSeconds(item.duration / 1000) }}</span
-      >
+      <span>持续时间：{{ formatSeconds(item.duration / 1000) }}</span>
       <span v-if="item.status === 'running'">
         预计还需：{{
           formatSeconds(

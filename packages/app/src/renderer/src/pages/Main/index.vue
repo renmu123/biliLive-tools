@@ -356,9 +356,10 @@ window.addEventListener("unhandledrejection", (error) => {
   });
 });
 
+const interval = isWeb.value ? 2000 : 1000;
 const intervalId = setInterval(() => {
   quenuStore.getQuenu();
-}, 2000);
+}, interval);
 
 onUnmounted(() => {
   clearInterval(intervalId);
