@@ -58,7 +58,6 @@ export interface Options {
   coverPath?: string;
   danmuPath?: string;
   platform: Platform;
-  rawTitle?: string;
 }
 
 export class Live {
@@ -66,7 +65,6 @@ export class Live {
   platform: Platform;
   startTime?: number;
   roomId: number;
-  videoName: string;
   // 直播标题
   title: string;
   // 主播名
@@ -80,7 +78,6 @@ export class Live {
     eventId: string;
     platform: Platform;
     roomId: number;
-    videoName: string;
     title: string;
     username: string;
     startTime?: number;
@@ -90,7 +87,6 @@ export class Live {
     this.eventId = options.eventId;
     this.platform = options.platform;
     this.roomId = options.roomId;
-    this.videoName = options.videoName;
     this.startTime = options.startTime;
     this.title = options.title;
     this.username = options.username;
@@ -118,8 +114,14 @@ export class Live {
     }
   }
 
-  findPartByFilePath(filePath: string): Part | undefined {
-    return this.parts.find((part) => part.filePath === filePath);
+  findPartByFilePath(filePath: string, type: "raw" | "handled" = "handled"): Part | undefined {
+    if (type === "handled") {
+      return this.parts.find((part) => part.filePath === filePath);
+    } else if (type === "raw") {
+      return this.parts.find((part) => part.rawFilePath === filePath);
+    } else {
+      throw new Error("type error");
+    }
   }
 }
 
@@ -146,8 +148,6 @@ export class WebhookHandler {
     const {
       danmu,
       minSize,
-      // uploadPresetId,
-      title,
       danmuPresetId,
       videoPresetId,
       open,
@@ -159,30 +159,11 @@ export class WebhookHandler {
       hotProgressColor,
       hotProgressFillColor,
       convert2Mp4Option,
-      useVideoAsTitle,
       removeOriginAfterConvert,
       noConvertHandleVideo,
     } = this.getConfig(options.roomId);
     if (!open) {
       log.info(`${options.roomId} is not open`);
-      return;
-    }
-
-    let videoTitle = title;
-    // let config = DEFAULT_BILIUP_CONFIG;
-    // if (uploadPresetId) {
-    //   const preset = await this.videoPreset.get(uploadPresetId);
-    //   config = { ...config, ...(preset?.config ?? {}) };
-    // }
-    if (useVideoAsTitle) {
-      videoTitle = path.parse(options.filePath).name.slice(0, 80);
-    } else {
-      videoTitle = formatTitle(options, videoTitle);
-    }
-    options.title = videoTitle;
-    options.rawTitle = videoTitle;
-    if (!options.title) {
-      log.error("webhook title is empty", options);
       return;
     }
 
@@ -223,6 +204,7 @@ export class WebhookHandler {
     }
 
     if (convert2Mp4Option) {
+      // TODO: 上传非弹幕版配置 可能与 完成后删除源文件配置、转封装为mp4 有关联
       const file = await this.convert2Mp4(options.filePath);
       log.debug("convert2Mp4 output", file);
       options.filePath = file;
@@ -511,7 +493,7 @@ export class WebhookHandler {
             return (
               live.roomId === options.roomId &&
               live.platform === options.platform &&
-              live.videoName === options.title
+              live.title === options.title
             );
           }
         });
@@ -541,9 +523,8 @@ export class WebhookHandler {
           eventId: uuid(),
           platform: options.platform,
           roomId: options.roomId,
-          videoName: options.title,
           startTime: timestamp,
-          title: options.rawTitle!,
+          title: options.title,
           username: options.username,
         });
         currentLive.addPart({
@@ -575,8 +556,7 @@ export class WebhookHandler {
           eventId: uuid(),
           platform: options.platform,
           roomId: options.roomId,
-          videoName: options.title,
-          title: options.rawTitle!,
+          title: options.title,
           username: options.username,
         });
         currentLive.addPart({
@@ -859,7 +839,7 @@ export class WebhookHandler {
 
       if (!uid) {
         for (let i = 0; i < filePaths.length; i++) {
-          const part = live.findPartByFilePath(filePaths[i]);
+          const part = live.findPartByFilePath(filePaths[i], type);
           if (part) part[updateStatusField] = "error";
         }
         return;
@@ -868,7 +848,7 @@ export class WebhookHandler {
       // 如果是非弹幕版，但是不允许上传无弹幕视频，那么直接设置为error
       if (type === "raw" && !uploadNoDanmu) {
         for (let i = 0; i < filePaths.length; i++) {
-          const part = live.findPartByFilePath(filePaths[i]);
+          const part = live.findPartByFilePath(filePaths[i], type);
           if (part) part[updateStatusField] = "error";
         }
         return;
@@ -902,10 +882,10 @@ export class WebhookHandler {
         }
       } else {
         try {
-          const part = live.findPartByFilePath(filePaths[0]);
+          const part = live.findPartByFilePath(filePaths[0], type);
 
           if (useVideoAsTitle) {
-            uploadPreset.title = path.parse(part.rawFilePath).name.slice(0, 80);
+            uploadPreset.title = path.parse(part[filePathField]).name.slice(0, 80);
           } else {
             let template = uploadPreset.title;
             if (type === "handled") {
@@ -931,12 +911,14 @@ export class WebhookHandler {
                 title: live.title,
                 username: live.username,
                 roomId: live.roomId,
-                time: part.startTime
+                time: part?.startTime
                   ? new Date(part.startTime).toISOString()
                   : new Date().toISOString(),
               },
               template,
             );
+            // console.log("template111", template, part, filePaths, videoTitle, type, presetId);
+
             uploadPreset.title = videoTitle;
           }
 

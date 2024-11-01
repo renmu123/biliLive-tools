@@ -54,7 +54,7 @@ describe("WebhookHandler", () => {
       expect(liveData[0].platform).toBe(options.platform);
       expect(liveData[0].startTime).toBe(new Date(options.time).getTime());
       expect(liveData[0].roomId).toBe(options.roomId);
-      expect(liveData[0].videoName).toBe(options.title);
+      expect(liveData[0].title).toBe(options.title);
       expect(liveData[0].parts.length).toBe(1);
       expect(liveData[0].parts[0].partId).toBeDefined();
       expect(liveData[0].parts[0].startTime).toBe(new Date(options.time).getTime());
@@ -83,7 +83,7 @@ describe("WebhookHandler", () => {
       expect(liveData[0].eventId).toBeDefined();
       expect(liveData[0].platform).toBe(options.platform);
       expect(liveData[0].roomId).toBe(options.roomId);
-      expect(liveData[0].videoName).toBe(options.title);
+      expect(liveData[0].title).toBe(options.title);
       expect(liveData[0].parts.length).toBe(1);
       expect(liveData[0].parts[0].partId).toBeDefined();
       expect(liveData[0].parts[0].filePath).toBe(options.filePath);
@@ -98,7 +98,6 @@ describe("WebhookHandler", () => {
         eventId: "existing-event-id",
         platform: "bili-recorder",
         roomId: 123,
-        videoName: "Existing Video",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -129,7 +128,7 @@ describe("WebhookHandler", () => {
       expect(liveData[0].platform).toBe(existingLive.platform);
       expect(liveData[0].startTime).toBe(existingLive.startTime);
       expect(liveData[0].roomId).toBe(existingLive.roomId);
-      expect(liveData[0].videoName).toBe(existingLive.videoName);
+      expect(liveData[0].title).toBe(existingLive.title);
       expect(liveData[0].parts.length).toBe(2);
       expect(liveData[0].parts[0]).toBe(existingLive.parts[0]);
       expect(liveData[0].parts[1].partId).toBeDefined();
@@ -145,7 +144,6 @@ describe("WebhookHandler", () => {
         eventId: "existing-event-id",
         platform: "bili-recorder",
         roomId: 123,
-        videoName: "Existing Video",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -182,7 +180,6 @@ describe("WebhookHandler", () => {
         eventId: "existing-event-id",
         platform: "bili-recorder",
         roomId: 123,
-        videoName: "Existing Video",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -215,7 +212,7 @@ describe("WebhookHandler", () => {
       expect(liveData[0].platform).toBe(existingLive.platform);
       expect(liveData[0].startTime).toBe(existingLive.startTime);
       expect(liveData[0].roomId).toBe(existingLive.roomId);
-      expect(liveData[0].videoName).toBe(existingLive.videoName);
+      expect(liveData[0].title).toBe(existingLive.title);
       expect(liveData[0].parts.length).toBe(1);
       expect(liveData[0].parts[0]).toBe(existingLive.parts[0]);
       expect(liveData[1].parts[0].partId).toBeDefined();
@@ -231,7 +228,6 @@ describe("WebhookHandler", () => {
         eventId: "existing-event-id",
         platform: "bili-recorder",
         roomId: 123,
-        videoName: "Existing Video",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -262,7 +258,7 @@ describe("WebhookHandler", () => {
       expect(liveData[0].platform).toBe(existingLive.platform);
       expect(liveData[0].startTime).toBe(existingLive.startTime);
       expect(liveData[0].roomId).toBe(existingLive.roomId);
-      expect(liveData[0].videoName).toBe(existingLive.videoName);
+      expect(liveData[0].title).toBe(existingLive.title);
       expect(liveData[0].parts.length).toBe(1);
       expect(liveData[0].parts[0].partId).toBe(existingLive.parts[0].partId);
       expect(liveData[0].parts[0].startTime).toBe(existingLive.parts[0].startTime);
@@ -278,7 +274,6 @@ describe("WebhookHandler", () => {
         eventId: "existing-event-id",
         platform: "bili-recorder",
         roomId: 123,
-        videoName: "Existing Video",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -317,7 +312,7 @@ describe("WebhookHandler", () => {
       expect(liveData[0].platform).toBe(existingLive.platform);
       expect(liveData[0].startTime).toBe(existingLive.startTime);
       expect(liveData[0].roomId).toBe(existingLive.roomId);
-      expect(liveData[0].videoName).toBe(existingLive.videoName);
+      expect(liveData[0].title).toBe(existingLive.title);
       expect(liveData[0].parts.length).toBe(3);
     });
   });
@@ -605,7 +600,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "videoName",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "live-title",
           username: "username",
@@ -654,7 +648,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "videoName",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "live-title",
           username: "username",
@@ -703,7 +696,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "videoName",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "live-title",
           username: "username",
@@ -757,7 +749,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -830,7 +821,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -869,7 +859,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -903,7 +892,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -953,7 +941,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           aid: 789,
           title: "Test Video",
@@ -1015,7 +1002,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           aid: 789,
           title: "Test Video",
@@ -1077,7 +1063,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1121,7 +1106,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1168,7 +1152,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1176,23 +1159,29 @@ describe("WebhookHandler", () => {
         live.addPart({
           partId: "part-1",
           filePath: "/path/to/part1.mp4",
+          rawFilePath: "/rawPath/to/part1.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
           cover: "/path/to/cover.jpg",
+          uploadStatus: "uploaded",
         });
         live.addPart({
           partId: "part-2",
           filePath: "/path/to/part2.mp4",
+          rawFilePath: "/rawPath/to/part2.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
           cover: "/path/to/cover.jpg",
+          uploadStatus: "uploaded",
         });
         live.addPart({
           partId: "part-3",
           filePath: "/path/to/part3.mp4",
+          rawFilePath: "/rawPath/to/part3.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
           cover: "/path/to/cover.jpg",
+          uploadStatus: "uploaded",
         });
 
         // @ts-ignore
@@ -1205,6 +1194,14 @@ describe("WebhookHandler", () => {
           uploadNoDanmu: true,
           noDanmuVideoPreset: "preset-id",
         });
+        // @ts-ignore
+        webhookHandler.videoPreset = {
+          get: vi.fn().mockReturnValue({
+            config: {
+              title: "preset-title",
+            },
+          }),
+        };
         const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(789);
         const addEditMediaTaskSpy = vi
           .spyOn(webhookHandler, "addEditMediaTask")
@@ -1218,13 +1215,13 @@ describe("WebhookHandler", () => {
         expect(addEditMediaTaskSpy).not.toHaveBeenCalled();
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
-          ["/path/to/part1.mp4", "/path/to/part2.mp4", "/path/to/part3.mp4"],
+          ["/rawPath/to/part1.mp4", "/rawPath/to/part2.mp4", "/rawPath/to/part3.mp4"],
           {
             ...DEFAULT_BILIUP_CONFIG,
-            title: "webhook-title",
+            title: "preset-title",
             cover: "/path/to/cover.jpg",
           },
-          true,
+          false,
         );
         expect(live.rawAid).toBe(789);
         expect(live.parts[0].rawUploadStatus).toBe("uploaded");
@@ -1237,7 +1234,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1245,6 +1241,8 @@ describe("WebhookHandler", () => {
         live.addPart({
           partId: "part-1",
           filePath: "/path/to/part1.mp4",
+          rawFilePath: "/rawPath/to/part1.mp4",
+          uploadStatus: "uploaded",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
           cover: "/path/to/cover.jpg",
@@ -1278,7 +1276,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1286,6 +1283,7 @@ describe("WebhookHandler", () => {
         live.addPart({
           partId: "part-1",
           filePath: "/path/to/part1.mp4",
+          rawFilePath: "/rawPath/to/part1.mp4",
           recordStatus: "handled",
           uploadStatus: "error",
           rawUploadStatus: "error",
@@ -1315,7 +1313,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1323,6 +1320,7 @@ describe("WebhookHandler", () => {
         live.addPart({
           partId: "part-1",
           filePath: "/path/to/part1.mp4",
+          rawFilePath: "/rawPath/to/part1.mp4",
           recordStatus: "handled",
           uploadStatus: "error",
           rawUploadStatus: "error",
@@ -1368,7 +1366,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           rawAid: 789,
           title: "Test Video",
@@ -1377,6 +1374,7 @@ describe("WebhookHandler", () => {
         live.addPart({
           partId: "part-1",
           filePath: "/path/to/part1.mp4",
+          rawFilePath: "/rawPath/to/part1.mp4",
           recordStatus: "handled",
           uploadStatus: "uploaded",
           rawUploadStatus: "uploaded",
@@ -1434,7 +1432,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           rawAid: 789,
           title: "Test Video",
@@ -1443,6 +1440,7 @@ describe("WebhookHandler", () => {
         live.addPart({
           partId: "part-1",
           filePath: "/path/to/part1.mp4",
+          rawFilePath: "/rawPath/to/part1.mp4",
           recordStatus: "handled",
           uploadStatus: "uploaded",
           rawUploadStatus: "uploaded",
@@ -1498,7 +1496,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1506,6 +1503,8 @@ describe("WebhookHandler", () => {
         live.addPart({
           partId: "part-1",
           filePath: "/path/to/part1.mp4",
+          rawFilePath: "/rawPath/to/part1.mp4",
+          uploadStatus: "uploaded",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
         });
@@ -1544,7 +1543,6 @@ describe("WebhookHandler", () => {
           eventId: "123",
           platform: "blrec",
           roomId: 123,
-          videoName: "Test Video",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1552,6 +1550,8 @@ describe("WebhookHandler", () => {
         live.addPart({
           partId: "part-1",
           filePath: "/path/to/part1.mp4",
+          rawFilePath: "/rawPath/to/part1.mp4",
+          uploadStatus: "uploaded",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
         });
@@ -1667,7 +1667,6 @@ describe("WebhookHandler", () => {
           eventId: "event1",
           platform: "bili-recorder",
           roomId: 123,
-          videoName: "Test Video",
           startTime: 1616161616161,
           aid: 456,
           title: "Test Video",
@@ -1677,7 +1676,7 @@ describe("WebhookHandler", () => {
         expect(live.eventId).toBe("event1");
         expect(live.platform).toBe("bili-recorder");
         expect(live.roomId).toBe(123);
-        expect(live.videoName).toBe("Test Video");
+        expect(live.title).toBe("Test Video");
         expect(live.startTime).toBe(1616161616161);
         expect(live.aid).toBe(456);
         expect(live.parts).toEqual([]);
@@ -1688,7 +1687,6 @@ describe("WebhookHandler", () => {
           eventId: "event1",
           platform: "bili-recorder",
           roomId: 123,
-          videoName: "Test Video",
           title: "Test Video",
           username: "username",
         });
@@ -1711,7 +1709,6 @@ describe("WebhookHandler", () => {
           eventId: "event1",
           platform: "bili-recorder",
           roomId: 123,
-          videoName: "Test Video",
           title: "Test Video",
           username: "username",
         });
@@ -1735,7 +1732,6 @@ describe("WebhookHandler", () => {
           eventId: "event1",
           platform: "bili-recorder",
           roomId: 123,
-          videoName: "Test Video",
           title: "Test Video",
           username: "username",
         });
@@ -1769,7 +1765,6 @@ describe("WebhookHandler", () => {
           eventId: "event1",
           platform: "bili-recorder",
           roomId: 123,
-          videoName: "Test Video",
           title: "Test Video",
           username: "username",
         });
