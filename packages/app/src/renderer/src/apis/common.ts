@@ -2,7 +2,7 @@ import request from "./request";
 import configApi from "./config";
 
 export const previewWebhookTitle = async (template: string): Promise<string> => {
-  const res = await request.post(`/common/foramtTitle`, {
+  const res = await request.post(`/common/formatTitle`, {
     template,
   });
   return res.data;

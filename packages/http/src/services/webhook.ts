@@ -13,7 +13,7 @@ import {
   uuid,
   sleep,
   trashItem,
-  foramtTitle,
+  formatTitle,
 } from "@biliLive-tools/shared/utils/index.js";
 
 import { config } from "../index.js";
@@ -59,6 +59,7 @@ export interface Options {
   coverPath?: string;
   danmuPath?: string;
   platform: Platform;
+  rawTitle?: string;
 }
 
 export class Live {
@@ -67,23 +68,31 @@ export class Live {
   startTime?: number;
   roomId: number;
   videoName: string;
+  // 直播标题
+  title: string;
+  // 主播名
+  username: string;
   aid?: number;
   parts: Part[];
 
-  constructor(
-    eventId: string,
-    platform: Platform,
-    roomId: number,
-    videoName: string,
-    startTime?: number,
-    aid?: number,
-  ) {
-    this.eventId = eventId;
-    this.platform = platform;
-    this.roomId = roomId;
-    this.videoName = videoName;
-    this.startTime = startTime;
-    this.aid = aid;
+  constructor(options: {
+    eventId: string;
+    platform: Platform;
+    roomId: number;
+    videoName: string;
+    title: string;
+    username: string;
+    startTime?: number;
+    aid?: number;
+  }) {
+    this.eventId = options.eventId;
+    this.platform = options.platform;
+    this.roomId = options.roomId;
+    this.videoName = options.videoName;
+    this.startTime = options.startTime;
+    this.title = options.title;
+    this.username = options.username;
+    this.aid = options.aid;
     this.parts = [];
   }
 
@@ -165,9 +174,10 @@ export class WebhookHandler {
     if (useVideoAsTitle) {
       videoTitle = path.parse(options.filePath).name.slice(0, 80);
     } else {
-      videoTitle = foramtTitle(options, videoTitle);
+      videoTitle = formatTitle(options, videoTitle);
     }
     options.title = videoTitle;
+    options.rawTitle = videoTitle;
     if (!options.title) {
       log.error("webhook title is empty", options);
       return;
@@ -516,7 +526,15 @@ export class WebhookHandler {
         this.liveData[currentIndex] = currentLive;
       } else {
         // 新建Live数据
-        currentLive = new Live(uuid(), options.platform, options.roomId, options.title, timestamp);
+        currentLive = new Live({
+          eventId: uuid(),
+          platform: options.platform,
+          roomId: options.roomId,
+          videoName: options.title,
+          startTime: timestamp,
+          title: options.rawTitle!,
+          username: options.username,
+        });
         currentLive.addPart({
           partId: uuid(),
           startTime: timestamp,
@@ -542,7 +560,14 @@ export class WebhookHandler {
         }
         this.liveData[currentIndex] = currentLive;
       } else {
-        currentLive = new Live(uuid(), options.platform, options.roomId, options.title);
+        currentLive = new Live({
+          eventId: uuid(),
+          platform: options.platform,
+          roomId: options.roomId,
+          videoName: options.title,
+          title: options.rawTitle!,
+          username: options.username,
+        });
         currentLive.addPart({
           partId: uuid(),
           filePath: options.filePath,

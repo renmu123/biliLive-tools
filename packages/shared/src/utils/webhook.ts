@@ -18,7 +18,7 @@ import log from "./log.js";
  * @param {string} options.time 直播时间
  * @param {string} template 格式化模板
  */
-export function foramtTitle(
+export function formatTitle(
   options: {
     title: string;
     username: string;

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { formatTime, foramtTitle } from "../../src/utils/webhook";
+import { formatTime, formatTitle } from "../../src/utils/webhook";
 
 describe("formatTime", () => {
   it("should format the time correctly", () => {
@@ -18,7 +18,7 @@ describe("formatTime", () => {
   });
 });
 
-describe("foramtTitle", () => {
+describe("formatTitle", () => {
   it("should format the title correctly", () => {
     const options = {
       title: "My Title",
@@ -28,7 +28,7 @@ describe("foramtTitle", () => {
     };
     const template =
       "Title:{{title}},User:{{user}},Date:{{now}},yyyy:{{yyyy}},MM:{{MM}},dd:{{dd}},hours:{{HH}},m:{{mm}},s:{{ss}}";
-    const result = foramtTitle(options, template);
+    const result = formatTitle(options, template);
     expect(result).toBe(
       "Title:My Title,User:Jo,Date:2022.01.01,yyyy:2022,MM:01,dd:01,hours:20,m:34,s:56",
     );
@@ -41,7 +41,7 @@ describe("foramtTitle", () => {
       roomId: 123456,
     };
     const template = `Title:{{title}}<%= user %>-<%= time.getFullYear() %><%= String(time.getMonth() + 1).padStart(2, "0") %>直播录像`;
-    const result = foramtTitle(options, template);
+    const result = formatTitle(options, template);
     expect(result).toBe("Title:My TitleJo-202201直播录像");
   });
 
@@ -53,7 +53,7 @@ describe("foramtTitle", () => {
   //     roomId: 123456,
   //   };
   //   const template = `Title:{{title}}<%= username %>-<%= time.getFullYear() %><%= String(time.getMonth() + 1).padStart(2, "0") %>直播录像`;
-  //   const result = foramtTitle(options, template);
+  //   const result = formatTitle(options, template);
   //   expect(result).toBe(
   //     `Title:My Title<%= user %>-<%= time.getFullYear() %><%= String(time.getMonth(`,
   //   );
@@ -68,7 +68,7 @@ describe("foramtTitle", () => {
       roomId: 123456,
     };
     const template = "Title: {{title}}, User: {{user}}, Date: {{now}}";
-    const result = foramtTitle(options, template);
+    const result = formatTitle(options, template);
     expect(result.length).toBe(80);
   });
 });

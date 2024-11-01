@@ -94,13 +94,15 @@ describe("WebhookHandler", () => {
       // @ts-ignore
       webhookHandler = new WebhookHandler(appConfig);
       webhookHandler.liveData = [];
-      const existingLive = new Live(
-        "existing-event-id",
-        "bili-recorder",
-        123,
-        "Existing Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        videoName: "Existing Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
       existingLive.addPart({
         partId: "existing-part-id",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
@@ -139,13 +141,15 @@ describe("WebhookHandler", () => {
       // @ts-ignore
       webhookHandler = new WebhookHandler(appConfig);
       webhookHandler.liveData = [];
-      const existingLive = new Live(
-        "existing-event-id",
-        "bili-recorder",
-        123,
-        "Existing Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        videoName: "Existing Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
       existingLive.addPart({
         partId: "existing-part-id",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
@@ -174,13 +178,15 @@ describe("WebhookHandler", () => {
       // @ts-ignore
       webhookHandler = new WebhookHandler(appConfig);
       webhookHandler.liveData = [];
-      const existingLive = new Live(
-        "existing-event-id",
-        "bili-recorder",
-        123,
-        "Existing Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        videoName: "Existing Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
 
       existingLive.addPart({
         partId: "existing-part-id",
@@ -221,13 +227,15 @@ describe("WebhookHandler", () => {
       // @ts-ignore
       webhookHandler = new WebhookHandler(appConfig);
       webhookHandler.liveData = [];
-      const existingLive = new Live(
-        "existing-event-id",
-        "bili-recorder",
-        123,
-        "Existing Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        videoName: "Existing Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
       existingLive.addPart({
         partId: "existing-part-id",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
@@ -266,13 +274,15 @@ describe("WebhookHandler", () => {
       // @ts-ignore
       webhookHandler = new WebhookHandler(appConfig);
       webhookHandler.liveData = [];
-      const existingLive = new Live(
-        "existing-event-id",
-        "bili-recorder",
-        123,
-        "Existing Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        videoName: "Existing Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
       existingLive.addPart({
         partId: "existing-part-id2",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
@@ -590,13 +600,15 @@ describe("WebhookHandler", () => {
     });
     it("应在上传成功时正确设置状态", async () => {
       // Arrange
-      const live = new Live(
-        "123",
-        "blrec",
-        123,
-        "Test Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const live = new Live({
+        eventId: "123",
+        platform: "blrec",
+        roomId: 123,
+        videoName: "Test Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Test Video",
+        username: "username",
+      });
       live.addPart({
         partId: "part-1",
         filePath: "/path/to/part1.mp4",
@@ -655,13 +667,15 @@ describe("WebhookHandler", () => {
     });
     it("应在断播续传未开启不进行上传", async () => {
       // Arrange
-      const live = new Live(
-        "123",
-        "blrec",
-        123,
-        "Test Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const live = new Live({
+        eventId: "123",
+        platform: "blrec",
+        roomId: 123,
+        videoName: "Test Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Test Video",
+        username: "username",
+      });
       live.addPart({
         partId: "part-1",
         filePath: "/path/to/part1.mp4",
@@ -692,13 +706,15 @@ describe("WebhookHandler", () => {
     });
     it("应在uid未设置不进行上传，且状态修改为error", async () => {
       // Arrange
-      const live = new Live(
-        "123",
-        "blrec",
-        123,
-        "Test Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const live = new Live({
+        eventId: "123",
+        platform: "blrec",
+        roomId: 123,
+        videoName: "Test Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Test Video",
+        username: "username",
+      });
       live.addPart({
         partId: "part-1",
         filePath: "/path/to/part1.mp4",
@@ -729,13 +745,15 @@ describe("WebhookHandler", () => {
     });
     it("应在没有满足状态的part时不进行上传", async () => {
       // Arrange
-      const live = new Live(
-        "123",
-        "blrec",
-        123,
-        "Test Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const live = new Live({
+        eventId: "123",
+        platform: "blrec",
+        roomId: 123,
+        videoName: "Test Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Test Video",
+        username: "username",
+      });
       live.addPart({
         partId: "part-1",
         filePath: "/path/to/part1.mp4",
@@ -758,13 +776,15 @@ describe("WebhookHandler", () => {
     });
     it("应在上传时跳过不符合状态的part", async () => {
       // Arrange
-      const live = new Live(
-        "123",
-        "blrec",
-        123,
-        "Test Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const live = new Live({
+        eventId: "123",
+        platform: "blrec",
+        roomId: 123,
+        videoName: "Test Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Test Video",
+        username: "username",
+      });
       live.addPart({
         partId: "part-1",
         filePath: "/path/to/part1.mp4",
@@ -803,14 +823,16 @@ describe("WebhookHandler", () => {
 
     it("应在续传成功时正确设置状态", async () => {
       // Arrange
-      const live = new Live(
-        "123",
-        "blrec",
-        123,
-        "Test Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-        789,
-      );
+      const live = new Live({
+        eventId: "123",
+        platform: "blrec",
+        roomId: 123,
+        videoName: "Test Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        aid: 789,
+        title: "Test Video",
+        username: "username",
+      });
       live.addPart({
         partId: "part-1",
         filePath: "/path/to/part1.mp4",
@@ -867,14 +889,16 @@ describe("WebhookHandler", () => {
     });
     it("应在续传失败时正确设置状态", async () => {
       // Arrange
-      const live = new Live(
-        "123",
-        "blrec",
-        123,
-        "Test Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-        789,
-      );
+      const live = new Live({
+        eventId: "123",
+        platform: "blrec",
+        roomId: 123,
+        videoName: "Test Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        aid: 789,
+        title: "Test Video",
+        username: "username",
+      });
       live.addPart({
         partId: "part-1",
         filePath: "/path/to/part1.mp4",
@@ -932,13 +956,15 @@ describe("WebhookHandler", () => {
 
     it("应在关闭断播续传时正确上传", async () => {
       // Arrange
-      const live = new Live(
-        "123",
-        "blrec",
-        123,
-        "Test Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const live = new Live({
+        eventId: "123",
+        platform: "blrec",
+        roomId: 123,
+        videoName: "Test Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Test Video",
+        username: "username",
+      });
       live.addPart({
         partId: "part-1",
         filePath: "/path/to/part1.mp4",
@@ -972,13 +998,15 @@ describe("WebhookHandler", () => {
     });
     it("应仅在上传时间内处理上传操作", async () => {
       // Arrange
-      const live = new Live(
-        "123",
-        "blrec",
-        123,
-        "Test Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const live = new Live({
+        eventId: "123",
+        platform: "blrec",
+        roomId: 123,
+        videoName: "Test Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Test Video",
+        username: "username",
+      });
       live.addPart({
         partId: "part-1",
         filePath: "/path/to/part1.mp4",
@@ -1016,13 +1044,15 @@ describe("WebhookHandler", () => {
     });
     it("应不在上传时间内不处理上传操作", async () => {
       // Arrange
-      const live = new Live(
-        "123",
-        "blrec",
-        123,
-        "Test Video",
-        new Date("2022-01-01T00:00:00Z").getTime(),
-      );
+      const live = new Live({
+        eventId: "123",
+        platform: "blrec",
+        roomId: 123,
+        videoName: "Test Video",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Test Video",
+        username: "username",
+      });
       live.addPart({
         partId: "part-1",
         filePath: "/path/to/part1.mp4",
@@ -1137,7 +1167,16 @@ describe("WebhookHandler", () => {
 
     describe("Live", () => {
       it("should initialize with correct values", () => {
-        const live = new Live("event1", "bili-recorder", 123, "Test Video", 1616161616161, 456);
+        const live = new Live({
+          eventId: "event1",
+          platform: "bili-recorder",
+          roomId: 123,
+          videoName: "Test Video",
+          startTime: 1616161616161,
+          aid: 456,
+          title: "Test Video",
+          username: "username",
+        });
 
         expect(live.eventId).toBe("event1");
         expect(live.platform).toBe("bili-recorder");
@@ -1149,7 +1188,14 @@ describe("WebhookHandler", () => {
       });
 
       it("should add a part correctly", () => {
-        const live = new Live("event1", "bili-recorder", 123, "Test Video");
+        const live = new Live({
+          eventId: "event1",
+          platform: "bili-recorder",
+          roomId: 123,
+          videoName: "Test Video",
+          title: "Test Video",
+          username: "username",
+        });
         const part: Part = {
           partId: "part1",
           filePath: "/path/to/part1.mp4",
@@ -1165,7 +1211,14 @@ describe("WebhookHandler", () => {
       });
 
       it("should update part value correctly", () => {
-        const live = new Live("event1", "bili-recorder", 123, "Test Video");
+        const live = new Live({
+          eventId: "event1",
+          platform: "bili-recorder",
+          roomId: 123,
+          videoName: "Test Video",
+          title: "Test Video",
+          username: "username",
+        });
         const part: Part = {
           partId: "part1",
           filePath: "/path/to/part1.mp4",
@@ -1182,7 +1235,14 @@ describe("WebhookHandler", () => {
       });
 
       it("should find part by file path correctly", () => {
-        const live = new Live("event1", "bili-recorder", 123, "Test Video");
+        const live = new Live({
+          eventId: "event1",
+          platform: "bili-recorder",
+          roomId: 123,
+          videoName: "Test Video",
+          title: "Test Video",
+          username: "username",
+        });
         const part1: Part = {
           partId: "part1",
           filePath: "/path/to/part1.mp4",
@@ -1209,7 +1269,14 @@ describe("WebhookHandler", () => {
       });
 
       it("should return undefined if part is not found by file path", () => {
-        const live = new Live("event1", "bili-recorder", 123, "Test Video");
+        const live = new Live({
+          eventId: "event1",
+          platform: "bili-recorder",
+          roomId: 123,
+          videoName: "Test Video",
+          title: "Test Video",
+          username: "username",
+        });
         const part: Part = {
           partId: "part1",
           filePath: "/path/to/part1.mp4",

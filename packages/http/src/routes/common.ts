@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "fs-extra";
 
 import Router from "koa-router";
-import { foramtTitle } from "@biliLive-tools/shared/utils/index.js";
+import { formatTitle } from "@biliLive-tools/shared/utils/index.js";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
 
 import { config } from "../index.js";
@@ -12,13 +12,13 @@ const router = new Router({
   prefix: "/common",
 });
 
-router.post("/foramtTitle", async (ctx) => {
+router.post("/formatTitle", async (ctx) => {
   const data = ctx.request.body as {
     template: string;
   };
   const template = (data.template || "") as string;
 
-  const title = foramtTitle(
+  const title = formatTitle(
     {
       title: "标题",
       username: "主播名",
