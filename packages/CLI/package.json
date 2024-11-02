@@ -11,7 +11,7 @@
     "start": "tsx src/index.ts",
     "dev": "rollup --config rollup.config.js -w",
     "build:cli": "pnpm run build && pnpm run movePackage && pnpm run pkg",
-    "build": "rmdif lib && rollup --config rollup.config.js",
+    "build": "rimraf lib && rollup --config rollup.config.js",
     "movePackage": "node ./scripts/copy_canvas_module.js",
     "pkg": "pkg ./lib/index.cjs --output ./dist/biliLive",
     "zip:win": "cd dist && bestzip biliLive-cli-win-x64.zip biliLive.exe",
