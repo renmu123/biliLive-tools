@@ -726,7 +726,6 @@ export class WebhookHandler {
     removeOrigin?: boolean,
   ) => {
     return new Promise((resolve, reject) => {
-      log.debug("addUploadTask", uid, pathArray, options, removeOrigin);
       biliApi
         .addMedia(pathArray, options, uid)
         .then((task) => {
@@ -786,7 +785,7 @@ export class WebhookHandler {
   handleLive = async (live: Live) => {
     /**
      * @param type 区分是弹幕版还是原始版
-     * raw: 原始版
+     * raw: 非弹幕版
      * handled: 弹幕版
      */
     const uploadVideo = async (type: "raw" | "handled") => {
@@ -809,11 +808,22 @@ export class WebhookHandler {
       // 找到前几个为handled的part
       for (let i = 0; i < filterParts.length; i++) {
         const part = filterParts[i];
-        if (part.recordStatus === "handled") {
-          filePaths.push(part[filePathField]);
-          if (!cover) cover = part.cover;
+        if (type === "handled") {
+          if (part.recordStatus === "handled") {
+            filePaths.push(part[filePathField]);
+            if (!cover) cover = part.cover;
+          } else {
+            break;
+          }
+        } else if (type === "raw") {
+          if (part.recordStatus !== "recording") {
+            filePaths.push(part[filePathField]);
+            if (!cover) cover = part.cover;
+          } else {
+            break;
+          }
         } else {
-          break;
+          throw new Error("type error");
         }
       }
 

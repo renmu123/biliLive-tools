@@ -168,7 +168,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     line: "auto",
     concurrency: 3,
     retryTimes: 3,
-    retryDelay: 2000,
+    retryDelay: 5000,
     checkInterval: 600,
   },
   recorder: {
