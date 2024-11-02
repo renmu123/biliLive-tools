@@ -380,7 +380,7 @@
   </n-form-item>
 
   <!-- 非弹幕版相关配置 -->
-  <template v-if="data.uid">
+  <template v-if="data.uid && !data.removeOriginAfterConvert">
     <n-divider />
     <n-form-item>
       <template #label>

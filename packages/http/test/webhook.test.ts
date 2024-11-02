@@ -494,6 +494,84 @@ describe("WebhookHandler", () => {
       const result = webhookHandler.getConfig(roomId);
       expect(result.partMergeMinute).toBe(-1);
     });
+    describe("uploadNoDanmu", () => {
+      it("should uploadNoDanmu return true when uploadNoDanmu is false", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              uid: undefined,
+              uploadNoDanmu: false,
+              removeOriginAfterConvert: true,
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.uploadNoDanmu).toBe(false);
+      });
+      it("should uploadNoDanmu return true when has uid && uploadNoDanmu && !removeOriginAfterConvert", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              uid: 123,
+              uploadNoDanmu: true,
+              removeOriginAfterConvert: false,
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.uploadNoDanmu).toBe(true);
+      });
+      it("should uploadNoDanmu return true when has uid && uploadNoDanmu && removeOriginAfterConvert is true", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              uid: 123,
+              uploadNoDanmu: true,
+              removeOriginAfterConvert: true,
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.uploadNoDanmu).toBe(false);
+      });
+      it("should uploadNoDanmu return true when not have uid && uploadNoDanmu && removeOriginAfterConvert is false", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              uid: undefined,
+              uploadNoDanmu: true,
+              removeOriginAfterConvert: true,
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.uploadNoDanmu).toBe(false);
+      });
+    });
   });
   describe("handle", () => {
     const appConfig = {
@@ -535,15 +613,47 @@ describe("WebhookHandler", () => {
         .spyOn(webhookHandler, "getConfig")
         // @ts-ignore
         .mockReturnValue({ open: true, title: "test" });
+      const utils = await import("@biliLive-tools/shared/utils/index.js");
+      const getSizeSpy = vi.spyOn(utils, "getFileSize");
 
       // Act
-      const result = await webhookHandler.handle(options);
+      await webhookHandler.handle(options);
 
       // Assert
       expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
-      expect(result).toBeUndefined();
+      expect(getSizeSpy).not.toHaveBeenCalled();
     });
+    it("should handle the options and update rawFilePath when convert2Mp4Option is true", async () => {
+      // Arrange
+      const options: Options = {
+        roomId: 123,
+        event: "FileClosed",
+        filePath: "/path/to/part1.flv",
+        time: "2022-01-01T00:05:00Z",
+        username: "test",
+        platform: "blrec",
+        title: "test video",
+      };
+      const getConfigSpy = vi
+        .spyOn(webhookHandler, "getConfig")
+        // @ts-ignore
+        .mockReturnValue({ open: true, title: "test", convert2Mp4Option: true });
+      const convert2Mp4Spy = vi
+        .spyOn(webhookHandler, "convert2Mp4")
+        .mockResolvedValue("/path/to/part1.mp4");
 
+      const utils = await import("@biliLive-tools/shared/utils/index.js");
+      vi.spyOn(utils, "getFileSize");
+
+      // Act
+      await webhookHandler.handle(options);
+
+      // Assert
+      expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
+      expect(convert2Mp4Spy).toHaveBeenCalledWith("/path/to/part1.flv");
+      expect(webhookHandler.liveData[0].parts[0].filePath).toBe("/path/to/part1.mp4");
+      expect(webhookHandler.liveData[0].parts[0].rawFilePath).toBe("/path/to/part1.mp4");
+    });
     it("should handle the options and return if the file size is too small", async () => {
       // Arrange
       const options: Options = {
@@ -1192,14 +1302,18 @@ describe("WebhookHandler", () => {
           useLiveCover: true,
           title: "webhook-title",
           uploadNoDanmu: true,
-          noDanmuVideoPreset: "preset-id",
+          noDanmuVideoPreset: "no-preset-id",
         });
         // @ts-ignore
         webhookHandler.videoPreset = {
-          get: vi.fn().mockReturnValue({
-            config: {
-              title: "preset-title",
-            },
+          get: vi.fn().mockImplementation((id: string) => {
+            if (id === "no-preset-id") {
+              return {
+                config: {
+                  title: "preset-title",
+                },
+              };
+            }
           }),
         };
         const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(789);
@@ -1255,7 +1369,7 @@ describe("WebhookHandler", () => {
           removeOriginAfterUpload: true,
           useLiveCover: true,
           uploadNoDanmu: true,
-          noDanmuVideoPreset: "preset-id",
+          noDanmuVideoPreset: "no-preset-id",
         });
         const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(789);
         const addEditMediaTaskSpy = vi
@@ -1294,7 +1408,7 @@ describe("WebhookHandler", () => {
           uploadPresetId: "preset-id",
           uid: 123,
           uploadNoDanmu: true,
-          noDanmuVideoPreset: "preset-id",
+          noDanmuVideoPreset: "no-preset-id",
         });
         const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(789);
         const addEditMediaTaskSpy = vi
@@ -1401,7 +1515,7 @@ describe("WebhookHandler", () => {
           uid: 456,
           removeOriginAfterUpload: true,
           uploadNoDanmu: true,
-          noDanmuVideoPreset: "preset-id",
+          noDanmuVideoPreset: "no-preset-id",
         });
         const addEditMediaTaskSpy = vi
           .spyOn(webhookHandler, "addEditMediaTask")
@@ -1465,7 +1579,7 @@ describe("WebhookHandler", () => {
           uid: 456,
           removeOriginAfterUpload: true,
           uploadNoDanmu: true,
-          noDanmuVideoPreset: "preset-id",
+          noDanmuVideoPreset: "no-preset-id",
         });
         const addEditMediaTaskSpy = vi
           .spyOn(webhookHandler, "addEditMediaTask")
@@ -1519,7 +1633,7 @@ describe("WebhookHandler", () => {
           limitUploadTime: true,
           title: "webhook-title",
           uploadNoDanmu: true,
-          noDanmuVideoPreset: "preset-id",
+          noDanmuVideoPreset: "no-preset-id",
         });
         const addEditMediaTaskSpy = vi
           .spyOn(webhookHandler, "addEditMediaTask")
@@ -1566,7 +1680,7 @@ describe("WebhookHandler", () => {
           uploadHandleTime: ["10:10:00", "12:12:00"],
           limitUploadTime: true,
           uploadNoDanmu: true,
-          noDanmuVideoPreset: "preset-id",
+          noDanmuVideoPreset: "no-preset-id",
         });
         const addEditMediaTaskSpy = vi
           .spyOn(webhookHandler, "addEditMediaTask")

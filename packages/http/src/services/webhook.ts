@@ -204,11 +204,11 @@ export class WebhookHandler {
     }
 
     if (convert2Mp4Option) {
-      // TODO: 上传非弹幕版配置 可能与 完成后删除源文件配置、转封装为mp4 有关联
       const file = await this.convert2Mp4(options.filePath);
       log.debug("convert2Mp4 output", file);
       options.filePath = file;
       currentPart.filePath = file;
+      currentPart.rawFilePath = file;
     }
 
     if (danmu) {
@@ -264,11 +264,6 @@ export class WebhookHandler {
             startTimestamp: Math.floor((currentPart.startTime ?? 0) / 1000),
           },
         );
-        if (removeOriginAfterConvert) {
-          trashItem(xmlFilePath);
-        }
-        if (hotProgressFile) fs.remove(hotProgressFile);
-
         currentPart.filePath = output;
         currentPart.recordStatus = "handled";
       } catch (error) {
@@ -456,7 +451,7 @@ export class WebhookHandler {
       noConvertHandleVideo,
       limitUploadTime,
       uploadHandleTime,
-      uploadNoDanmu: !!(uid && uploadNoDanmu),
+      uploadNoDanmu: !!(uid && uploadNoDanmu && !removeOriginAfterConvert),
       noDanmuVideoPreset,
     };
     // log.debug("final config", options);
