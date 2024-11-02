@@ -889,7 +889,7 @@ export class WebhookHandler {
         try {
           const part = live.findPartByFilePath(filePaths[0], type);
 
-          if (useVideoAsTitle) {
+          if (part && useVideoAsTitle) {
             uploadPreset.title = path.parse(part[filePathField]).name.slice(0, 80);
           } else {
             let template = uploadPreset.title;
