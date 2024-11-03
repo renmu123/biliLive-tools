@@ -64,6 +64,24 @@ importers:
         specifier: ^2.0.5
         version: 2.0.5(@types/node@20.12.2)(less@4.2.0)
 
+  packages/BilibiliRecorder:
+    dependencies:
+      '@autorecord/manager':
+        specifier: workspace:*
+        version: link:../liveManager
+      axios:
+        specifier: 1.7.4
+        version: 1.7.4
+      blive-message-listener:
+        specifier: ^0.5.0
+        version: 0.5.0(bufferutil@4.0.8)(utf-8-validate@6.0.4)
+      mitt:
+        specifier: ^3.0.0
+        version: 3.0.1
+      ramda:
+        specifier: ^0.28.0
+        version: 0.28.0
+
   packages/CLI:
     dependencies:
       '@napi-rs/canvas':
@@ -408,6 +426,9 @@ importers:
 
   packages/shared:
     dependencies:
+      '@autorecord/bilibili-recorder':
+        specifier: workspace:*
+        version: link:../BilibiliRecorder
       '@autorecord/douyu-recorder':
         specifier: workspace:*
         version: link:../DouYuRecorder
@@ -1891,6 +1912,9 @@ packages:
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
 
+  blive-message-listener@0.5.0:
+    resolution: {integrity: sha512-XAeHQ/C/EraBskmlL6k4vbH1rGwKZBLW06MObD8FiumHtOe9wBi9IKYiIXM5aL1Ik3V+u2lovvR/y/+++zb6Eg==}
+
   bluebird-lst@1.0.9:
     resolution: {integrity: sha512-7B1Rtx82hjnSD4PGLAjVWeYH3tHAcVUmChh85a3lltKQm6FresXh9ErQo6oAv6CqxttczC3/kEg8SY5NluPuUw==}
 
@@ -2795,15 +2819,6 @@ packages:
 
   flv.js@1.6.2:
     resolution: {integrity: sha512-xre4gUbX1MPtgQRKj2pxJENp/RnaHaxYvy3YToVVCrSmAWUu85b9mug6pTXF6zakUjNP2lFWZ1rkSX7gxhB/2A==}
-
-  follow-redirects@1.15.6:
-    resolution: {integrity: sha512-wWN62YITEaOpSK584EZXJafH1AGpO8RVgElfkuXbTOrPX4fIfOyEpW/CsiNd8JdYrAoOvafRTOEnvsO++qCqFA==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
 
   follow-redirects@1.15.9:
     resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
@@ -3969,6 +3984,9 @@ packages:
   pako@1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
 
+  pako@2.1.0:
+    resolution: {integrity: sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==}
+
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
     engines: {node: '>=6'}
@@ -4196,6 +4214,9 @@ packages:
   quick-lru@5.1.1:
     resolution: {integrity: sha512-WuyALRjWPDGtt/wzJiadO5AXY+8hZ80hVpe6MyivgraREW751X3SbhRvG3eLKOYN+8VEvqLcf3wdnt44Z4S4SA==}
     engines: {node: '>=10'}
+
+  ramda@0.28.0:
+    resolution: {integrity: sha512-9QnLuG/kPVgWvMQ4aODhsBUFKOUmnbUnsSXACv+NCQZcHbeb+v8Lodp8OVxtRULN1/xOyYLLaL6npE6dMq5QTA==}
 
   raw-body@2.5.2:
     resolution: {integrity: sha512-8zGqypfENjCIqGhgXToC8aB2r7YrBX+AQAfIPs/Mlk+BtPTztOvTS01NRW/3Eh60J+a48lt8qsCzirQ6loCVfA==}
@@ -4659,6 +4680,9 @@ packages:
   timed-out@4.0.1:
     resolution: {integrity: sha512-G7r3AhovYtr5YKOWQkta8RKAPb+J9IsO4uVmzjl8AZwfhs8UcUwTiD6gcJYSgOtzyjvQKrKYn41syHbUWMkafA==}
     engines: {node: '>=0.10.0'}
+
+  tiny-bilibili-ws@1.0.0:
+    resolution: {integrity: sha512-fMyAyzPMcGSwIZGSmUQ4W/k5i5cWIkQtrq/IfNDauKbkG7PALKaMDNk4YQerJMQWKnWYutEcwOILVytTvKm/nw==}
 
   tiny-typed-emitter@2.1.0:
     resolution: {integrity: sha512-qVtvMxeXbVej0cQWKqVSSAHmKZEHAvxdF8HEUBFWts8h+xEo5m/lEiPakuyZ3BnCBjOD8i24kzNOiOLLgsSxhA==}
@@ -6645,7 +6669,7 @@ snapshots:
 
   axios@1.7.4:
     dependencies:
-      follow-redirects: 1.15.6
+      follow-redirects: 1.15.9
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
@@ -6696,6 +6720,13 @@ snapshots:
       buffer: 5.7.1
       inherits: 2.0.4
       readable-stream: 3.6.2
+
+  blive-message-listener@0.5.0(bufferutil@4.0.8)(utf-8-validate@6.0.4):
+    dependencies:
+      tiny-bilibili-ws: 1.0.0(bufferutil@4.0.8)(utf-8-validate@6.0.4)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   bluebird-lst@1.0.9:
     dependencies:
@@ -7768,8 +7799,6 @@ snapshots:
     dependencies:
       es6-promise: 4.2.8
       webworkify-webpack: 2.1.5
-
-  follow-redirects@1.15.6: {}
 
   follow-redirects@1.15.9: {}
 
@@ -9001,6 +9030,8 @@ snapshots:
 
   pako@1.0.11: {}
 
+  pako@2.1.0: {}
+
   parent-module@1.0.1:
     dependencies:
       callsites: 3.1.0
@@ -9197,6 +9228,8 @@ snapshots:
   queue-microtask@1.2.3: {}
 
   quick-lru@5.1.1: {}
+
+  ramda@0.28.0: {}
 
   raw-body@2.5.2:
     dependencies:
@@ -9724,6 +9757,14 @@ snapshots:
   through@2.3.8: {}
 
   timed-out@4.0.1: {}
+
+  tiny-bilibili-ws@1.0.0(bufferutil@4.0.8)(utf-8-validate@6.0.4):
+    dependencies:
+      pako: 2.1.0
+      ws: 8.18.0(bufferutil@4.0.8)(utf-8-validate@6.0.4)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   tiny-typed-emitter@2.1.0: {}
 

@@ -1,3 +1,4 @@
+import path from "node:path";
 import mitt from "mitt";
 import {
   Recorder,
@@ -9,17 +10,13 @@ import {
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  Comment,
-  GiveGift,
-  SuperChat,
-  StreamManager,
+  createRecordExtraDataController,
 } from "@autorecord/manager";
+import type { Comment, GiveGift, SuperChat, Guard } from "@autorecord/manager";
+
 import { getInfo, getStream } from "./stream.js";
-import { getRoomInfo } from "./dy_api.js";
-import { assert, ensureFolderExist, singleton } from "./utils.js";
-import { createDYClient } from "./dy_client/index.js";
-import { giftMap, colorTab } from "./danma.js";
-import { requester } from "./requester.js";
+import { assertStringType, ensureFolderExist, replaceExtName, singleton } from "./utils.js";
+import { startListen, MsgHandler } from "blive-message-listener";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
@@ -36,22 +33,14 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     state: "idle",
 
     getChannelURL() {
-      return `https://www.douyu.com/${this.channelId}`;
+      return `https://live.bilibili.com/${this.channelId}`;
     },
     checkLiveStatusAndRecord: singleton(checkLiveStatusAndRecord),
 
     toJSON() {
       return defaultToJSON(provider, this);
     },
-
-    async getLiveInfo() {
-      const channelId = this.channelId;
-      const info = await getInfo(channelId);
-      return {
-        channelId,
-        ...info,
-      };
-    },
+    // TODO:少了LiveInfo  这个方法
   };
 
   const recorderWithSupportUpdatedEvent = new Proxy(recorder, {
@@ -77,16 +66,12 @@ const ffmpegOutputOptions: string[] = [
   "-min_frag_duration",
   "60000000",
 ];
-
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
 }) {
-  this.tempStopIntervalCheck = false;
   if (this.recordHandle != null) return this.recordHandle;
 
-  const liveInfo = await getInfo(this.channelId);
-  this.liveInfo = liveInfo;
-  const { living, owner, title } = liveInfo;
+  const { living, owner, title, roomId } = await getInfo(this.channelId);
   if (!living) return null;
 
   this.state = "recording";
@@ -104,119 +89,129 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
-  this.availableStreams = availableStreams.map((s) => s.name);
+  this.availableStreams = availableStreams.map((s) => s.desc);
   this.availableSources = availableSources.map((s) => s.name);
   this.usedStream = stream.name;
   this.usedSource = stream.source;
   // TODO: emit update event
+  // TODO:少了segment相关的方法
+
   const savePath = getSavePath({ owner, title });
-
-  const hasSegment = !!this.segment;
-  const streamManager = new StreamManager(this, getSavePath, owner, title, savePath, hasSegment);
-  const templateSavePath = streamManager.getVideoFilepath();
-  const extraDataSavePath = streamManager.extraDataSavePath;
-
+  const extraDataSavePath = replaceExtName(savePath, ".json");
+  const recordSavePath = savePath;
   try {
     // TODO: 这个 ensure 或许应该放在 createRecordExtraDataController 里实现？
     ensureFolderExist(extraDataSavePath);
-    ensureFolderExist(savePath);
+    ensureFolderExist(recordSavePath);
   } catch (err) {
     this.state = "idle";
     throw err;
   }
 
-  const client = createDYClient(Number(this.channelId), {
-    notAutoStart: true,
-  });
-  client.on("message", (msg) => {
-    const extraDataController = streamManager.getExtraDataController();
-    if (!extraDataController) return;
-    switch (msg.type) {
-      case "chatmsg": {
+  // TODO: 之后可能要结合 disableRecordMeta 之类的来确认是否要创建文件。
+  const extraDataController = createRecordExtraDataController(extraDataSavePath);
+  extraDataController.setMeta({ title });
+
+  let client: ReturnType<typeof startListen> | null = null;
+  if (!this.disableProvideCommentsWhenRecording) {
+    const handler: MsgHandler = {
+      onIncomeDanmu: (msg) => {
+        // TODO: 颜色处理，需要提PR
         const comment: Comment = {
           type: "comment",
-          timestamp: Date.now(),
-          text: msg.txt,
-          color: colorTab[msg.col] ?? "#ffffff",
+          timestamp: msg.timestamp,
+          text: msg.body.content,
           sender: {
-            uid: msg.uid,
-            name: msg.nn,
-            avatar: msg.ic,
+            uid: String(msg.body.user.uid),
+            name: msg.body.user.uname,
+            avatar: msg.body.user.face,
             extra: {
-              level: msg.level,
+              badgeName: msg.body.user.badge?.name,
+              badgeLevel: msg.body.user.badge?.level,
             },
           },
         };
         this.emit("Message", comment);
         extraDataController.addMessage(comment);
-        break;
-      }
-      case "dgb": {
-        if (this.saveGiftDanma === false) return;
-        const gift: GiveGift = {
-          type: "give_gift",
-          timestamp: Date.now(),
-          name: giftMap[msg.gfid]?.name ?? msg.gfn,
-          price: (giftMap[msg.gfid]?.pc ?? 0) / 100,
-          count: Number(msg.gfcnt),
-          color: "#ffffff",
+      },
+      onIncomeSuperChat: (msg) => {
+        if (this.saveSCDanma === false) return;
+        console.log(msg.id, msg.body);
+        const comment: SuperChat = {
+          type: "super_chat",
+          timestamp: msg.timestamp,
+          text: msg.body.content,
+          price: msg.body.price,
           sender: {
-            uid: msg.uid,
-            name: msg.nn,
-            avatar: msg.ic,
+            uid: String(msg.body.user.uid),
+            name: msg.body.user.uname,
+            avatar: msg.body.user.face,
             extra: {
-              level: msg.level,
+              badgeName: msg.body.user.badge?.name,
+              badgeLevel: msg.body.user.badge?.level,
             },
           },
-          extra: {
-            hits: Number(msg.hits),
+        };
+        this.emit("Message", comment);
+        extraDataController.addMessage(comment);
+      },
+      onGuardBuy: (msg) => {
+        if (this.saveGiftDanma === false) return;
+        const gift: Guard = {
+          type: "guard",
+          timestamp: msg.timestamp,
+          name: msg.body.gift_name,
+          price: msg.body.price,
+          count: 1,
+          level: msg.body.guard_level,
+          sender: {
+            uid: String(msg.body.user.uid),
+            name: msg.body.user.uname,
+            avatar: msg.body.user.face,
+            extra: {
+              badgeName: msg.body.user.badge?.name,
+              badgeLevel: msg.body.user.badge?.level,
+            },
           },
-          // @ts-ignore
-          // raw: msg,
         };
         this.emit("Message", gift);
         extraDataController.addMessage(gift);
-        break;
+      },
+      onGift: (msg) => {
+        if (this.saveGiftDanma === false) return;
 
-        // TODO: 还有一些其他礼物相关的 msg 要处理，目前先简单点只处理 dgb
-      }
-      case "comm_chatmsg": {
-        if (this.saveSCDanma === false) return;
-        switch (msg.btype) {
-          case "voiceDanmu": {
-            const comment: SuperChat = {
-              type: "super_chat",
-              timestamp: Date.now(),
-              text: msg?.chatmsg?.txt,
-              price: Number(msg.cprice) / 100,
-              sender: {
-                uid: msg.uid,
-                name: msg?.chatmsg?.nn,
-                avatar: msg?.chatmsg?.ic,
-                extra: {
-                  level: msg?.chatmsg?.level,
-                },
-              },
-            };
-            this.emit("Message", comment);
-            extraDataController.addMessage(comment);
-            break;
-          }
-        }
-        break;
-      }
-    }
-  });
-  // console.log("this.disableProvideCommentsWhenRecording", this.disableProvideCommentsWhenRecording);
-  if (!this.disableProvideCommentsWhenRecording) {
-    client.start();
+        const gift: GiveGift = {
+          type: "give_gift",
+          timestamp: msg.timestamp,
+          name: msg.body.gift_name,
+          count: msg.body.amount,
+          price: msg.body.coin_type === "silver" ? 0 : msg.body.price / 1000,
+          sender: {
+            uid: String(msg.body.user.uid),
+            name: msg.body.user.uname,
+            avatar: msg.body.user.face,
+            extra: {
+              badgeName: msg.body.user.badge?.name,
+              badgeLevel: msg.body.user.badge?.level,
+            },
+          },
+          extra: {
+            hits: msg.body.combo?.combo_num,
+          },
+        };
+        this.emit("Message", gift);
+        extraDataController.addMessage(gift);
+      },
+    };
+
+    // 弹幕协议不能走短 id，所以不能直接用 channelId。
+    client = startListen(roomId, handler);
   }
 
   let isEnded = false;
-  const onEnd = async (...args: unknown[]) => {
+  const onEnd = (...args: unknown[]) => {
     if (isEnded) return;
     isEnded = true;
-
     this.emit("DebugLog", {
       type: "common",
       text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
@@ -227,24 +222,20 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const isInvalidStream = createInvalidStreamChecker();
   const timeoutChecker = createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
-  const command = createFFMPEGBuilder(stream.url)
-    .inputOptions(
+  const command = createFFMPEGBuilder()
+    .input(stream.url)
+    .addInputOptions(
       "-user_agent",
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
+      "-headers",
+      "Referer: https://live.bilibili.com/",
     )
     .outputOptions(ffmpegOutputOptions)
-    .output(templateSavePath)
-    .on("start", () => {
-      streamManager.handleVideoStarted();
-    })
+    .output(recordSavePath)
     .on("error", onEnd)
     .on("end", () => onEnd("finished"))
-    .on("stderr", async (stderrLine) => {
-      assert(typeof stderrLine === "string");
-      if (stderrLine.includes("Opening ")) {
-        await streamManager.handleVideoStarted(stderrLine);
-      }
-      // TODO:解析时间
+    .on("stderr", (stderrLine) => {
+      assertStringType(stderrLine);
       this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 
       if (isInvalidStream(stderrLine)) {
@@ -252,58 +243,39 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       }
     })
     .on("stderr", timeoutChecker.update);
-  if (hasSegment) {
-    command.outputOptions(
-      "-f",
-      "segment",
-      "-segment_time",
-      String(this.segment! * 60),
-      "-reset_timestamps",
-      "1",
-    );
-  }
   const ffmpegArgs = command._getArguments();
-  // console.log("ffmpegArgs", ffmpegArgs);
-  // extraDataController.setMeta({
-  //   recordStartTimestamp: Date.now(),
-  //   ffmpegArgs,
-  // });
+  extraDataController.setMeta({
+    recordStartTimestamp: Date.now(),
+    ffmpegArgs,
+  });
   command.run();
 
   // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
 
-  const stop = singleton<RecordHandle["stop"]>(
-    async (reason?: string, tempStopIntervalCheck?: boolean) => {
-      if (!this.recordHandle) return;
-      this.tempStopIntervalCheck = !!tempStopIntervalCheck;
-      this.state = "stopping-record";
-      // TODO: emit update event
+  const stop = singleton<RecordHandle["stop"]>(async (reason?: string) => {
+    if (!this.recordHandle) return;
+    this.state = "stopping-record";
+    // TODO: emit update event
 
-      timeoutChecker.stop();
+    timeoutChecker.stop();
 
-      try {
-        // 如果给 SIGKILL 信号会非正常退出，SIGINT 可以被 ffmpeg 正常处理。
-        // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
-        // command.kill("SIGINT");
-        // @ts-ignore
-        command.ffmpegProc?.stdin?.write("q");
-        // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
-        client.stop();
-      } catch (err) {
-        // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
-        this.emit("DebugLog", { type: "common", text: String(err) });
-      }
+    // 如果给 SIGKILL 信号会非正常退出，SIGINT 可以被 ffmpeg 正常处理。
+    // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
+    command.kill("SIGINT");
+    // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
+    client?.close();
+    extraDataController.setMeta({ recordStopTimestamp: Date.now() });
+    extraDataController.flush();
 
-      this.usedStream = undefined;
-      this.usedSource = undefined;
-      // TODO: other codes
-      // TODO: emit update event
-      await streamManager.handleVideoCompleted();
-      this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
-      this.recordHandle = undefined;
-      this.state = "idle";
-    },
-  );
+    this.usedStream = undefined;
+    this.usedSource = undefined;
+    // TODO: other codes
+    // TODO: emit update event
+
+    this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
+    this.recordHandle = undefined;
+    this.state = "idle";
+  });
 
   this.recordHandle = {
     id: genRecordUUID(),
@@ -311,7 +283,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     source: stream.source,
     url: stream.url,
     ffmpegArgs,
-    savePath: savePath,
+    savePath: recordSavePath,
     stop,
   };
   this.emit("RecordStart", this.recordHandle);
@@ -383,31 +355,24 @@ function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean {
 }
 
 export const provider: RecorderProvider<Record<string, unknown>> = {
-  id: "DouYu",
-  name: "斗鱼",
-  siteURL: "https://douyu.com/",
+  id: "Bilibili",
+  name: "Bilibili",
+  siteURL: "https://live.bilibili.com/",
 
   matchURL(channelURL) {
-    return /https?:\/\/(?:.*?\.)?douyu.com\//.test(channelURL);
+    return /https?:\/\/(?:.*?\.)?bilibili.com\//.test(channelURL);
   },
 
   async resolveChannelInfoFromURL(channelURL) {
     if (!this.matchURL(channelURL)) return null;
 
-    channelURL = channelURL.trim();
-    const res = await requester.get(channelURL);
-    const html = res.data;
-
-    const matched = html.match(/\$ROOM\.room_id.?=(.*?);/);
-    if (!matched) return null;
-    const room_id = matched[1].trim();
-
-    const roomInfo = await getRoomInfo(Number(room_id));
+    const id = path.basename(new URL(channelURL).pathname);
+    const info = await getInfo(id);
 
     return {
-      id: matched[1].trim(),
-      title: roomInfo.room.room_name,
-      owner: roomInfo.room.nickname,
+      id: info.roomId.toString(),
+      title: info.title,
+      owner: info.owner,
     };
   },
 

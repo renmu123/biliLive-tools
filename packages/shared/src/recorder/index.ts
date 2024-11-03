@@ -3,6 +3,7 @@ import axios from "axios";
 
 import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
 import { provider as providerForHuYa } from "@autorecord/huya-recorder";
+import { provider as providerForBiliBili } from "@autorecord/bilibili-recorder";
 import { createRecorderManager as createManager, setFFMPEGPath } from "@autorecord/manager";
 import { getFfmpegPath } from "../task/video.js";
 import logger from "../utils/log.js";
@@ -24,7 +25,7 @@ export function createRecorderManager(appConfig: AppConfig) {
   const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
 
   const manager = createManager({
-    providers: [providerForDouYu, providerForHuYa],
+    providers: [providerForDouYu, providerForHuYa, providerForBiliBili],
     autoRemoveSystemReservedChars: true,
     autoCheckInterval: autoCheckInterval * 1000,
     // 这个参数其实是有问题的，并没有实际生效

@@ -30,6 +30,7 @@
   "dependencies": {
     "@autorecord/douyu-recorder": "workspace:*",
     "@autorecord/huya-recorder": "workspace:*",
+    "@autorecord/bilibili-recorder": "workspace:*",
     "@autorecord/manager": "workspace:*",
     "@biliLive-tools/types": "workspace:*",
     "@napi-rs/canvas": "^0.1.53",

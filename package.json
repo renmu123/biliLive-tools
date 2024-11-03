@@ -13,7 +13,7 @@
     "build:webui": "pnpm run build:base && pnpm run --filter biliLive-tools build:webui",
     "build:app:no-ffmpeg": "pnpm run build:base && pnpm run --filter biliLive-tools build:app:no-ffmpeg",
     "build:cli": "pnpm run build:base && pnpm run --filter bililive-cli build:cli",
-    "build:base": "pnpm run --filter @biliLive-tools/shared build && pnpm run --filter @biliLive-tools/http build && pnpm run --filter @autorecord/douyu-recorder build && pnpm run --filter @autorecord/huya-recorder build && pnpm run --filter @autorecord/manager build",
+    "build:base": "pnpm run --filter @biliLive-tools/shared build && pnpm run --filter @biliLive-tools/http build && pnpm run --filter @autorecord/douyu-recorder build && pnpm run --filter @autorecord/huya-recorder build && pnpm run --filter @autorecord/bilibili-recorder build && pnpm run --filter @autorecord/manager build",
     "preinstall": "npx only-allow pnpm",
     "install:bin": "node ./scripts/install-bin.js",
     "github-ci-pnpm-update": "node ./scripts/github-ci-pnpm-update.js",

@@ -34,6 +34,20 @@ export interface GiveGift<E extends AnyObject = UnknownObject> {
   extra?: E;
 }
 
+export interface Guard<E extends AnyObject = UnknownObject> {
+  type: "guard";
+  timestamp: number;
+  name: string;
+  count: number;
+  price: number;
+  level: number;
+  text?: string;
+  cost?: number;
+  color?: string;
+  sender?: MessageSender;
+  extra?: E;
+}
+
 export interface SuperChat<E extends AnyObject = UnknownObject> {
   type: "super_chat";
   timestamp: number;
@@ -44,4 +58,4 @@ export interface SuperChat<E extends AnyObject = UnknownObject> {
 }
 
 // TODO: Message 还有 SuperChat（或许算 Comment 的 Extra）之类的
-export type Message = Comment | GiveGift | SuperChat;
+export type Message = Comment | GiveGift | SuperChat | Guard;

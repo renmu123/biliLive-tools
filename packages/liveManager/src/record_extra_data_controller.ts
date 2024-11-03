@@ -144,14 +144,24 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
         };
         return data;
       });
-    // {
-    //   user_name?: string;
-    //   room_id?: string;
-    //   room_title?: string;
-    //   live_start_time?: string;
-    //   video_start_time?: string;
-    //   platform?: "douyu";
-    // }
+
+    const guardGift = data.messages
+      .filter((item) => item.type === "guard")
+      .map((ele) => {
+        const progress = (ele.timestamp - metadata?.recordStartTimestamp) / 1000;
+        const data = {
+          "@@ts": progress,
+          "@@price": String(ele.price * 1000),
+          "@@giftname": String(ele.name),
+          "@@giftcount": String(ele.count),
+          "@@level": String(ele.level),
+          "#message": "",
+          "@@user": String(ele.sender?.name),
+          "@@uid": String(ele?.sender?.uid),
+          // "@@raw": JSON.stringify(ele),
+        };
+        return data;
+      });
     const xmlContent = builder.build({
       i: {
         metadata: {
@@ -161,6 +171,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
         d: comments,
         gift: gifts,
         sc: superChats,
+        guard: guardGift,
       },
     });
     return `<?xml version="1.0" encoding="utf-8"?>
