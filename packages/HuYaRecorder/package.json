@@ -32,7 +32,6 @@
   "dependencies": {
     "@autorecord/manager": "workspace:*",
     "axios": "1.7.4",
-    "cheerio": "^1.0.0-rc.12",
     "huya-danmu-fix": "^2.0.4",
     "mitt": "^3.0.1"
   },

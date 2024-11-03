@@ -13,8 +13,6 @@ export async function getInfo(channelId: string): Promise<{
 }> {
   const info = await getRoomInfo(channelId)
 
-  console.log('info', info)
-
   return {
     living: info.living,
     owner: info.owner,

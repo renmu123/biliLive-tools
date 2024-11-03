@@ -1,6 +1,4 @@
-import vm from 'vm'
 import axios from 'axios'
-import * as cheerio from 'cheerio'
 import { assert } from './utils.js'
 import { initInfo } from './anticode.js'
 
@@ -11,21 +9,10 @@ const requester = axios.create({
 export async function getRoomInfo(roomIdOrShortId: string) {
   const res = await requester.get<string>(`https://www.huya.com/${roomIdOrShortId}`)
   const html = res.data
-  const $ = cheerio.load(html)
-  const variablesDeclarationScript = $('script:contains("var hyPlayerConfig")').text()
+  const match = html.match(/var hyPlayerConfig = ({[^]+?};)/)
+  const hyPlayerConfigString = match?.[1]
 
-  interface GlobalThis {
-    window: GlobalThis
-    hyPlayerConfig?: HYPlayerConfig
-  }
-  const globalThisInContext: GlobalThis = {
-    get window() {
-      return globalThisInContext
-    },
-  }
-  vm.runInNewContext(variablesDeclarationScript, vm.createContext(globalThisInContext))
-
-  const { hyPlayerConfig } = globalThisInContext
+  const hyPlayerConfig: HYPlayerConfig = new Function(`return ${hyPlayerConfigString}`)()
   assert(hyPlayerConfig, `Unexpected resp, hyPlayerConfig is null`)
 
   const { vMultiStreamInfo } = hyPlayerConfig.stream

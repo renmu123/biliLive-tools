@@ -380,15 +380,24 @@ class SegmentManager {
   hasSegment: boolean;
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   isFirstSegment = true;
+  getSavePath: (opts: any) => string;
+  owner: string;
+  title: string;
+  recorder: Recorder;
 
   constructor(
-    private recorder: Recorder,
-    private getSavePath: (opts: any) => string,
-    private owner: string,
-    private title: string,
-    private recordSavePath: string,
+    recorder: Recorder,
+    getSavePath: (opts: any) => string,
+    owner: string,
+    title: string,
+    recordSavePath: string,
   ) {
     this.hasSegment = !!recorder.segment;
+    this.getSavePath = getSavePath;
+    this.owner = owner;
+    this.title = title;
+    this.recorder = recorder;
+
     this.segmentData = { startTime: Date.now(), rawname: recordSavePath };
   }
 
@@ -467,18 +476,28 @@ export class StreamManager {
   hasSegment: boolean;
   extraDataSavePath: string;
   videoFilePath: string;
+  recorder: Recorder;
+  getSavePath: (opts: any) => string;
+  owner: string;
+  title: string;
+  recordSavePath: string;
 
   constructor(
-    private recorder: Recorder,
-    private getSavePath: (opts: any) => string,
-    private owner: string,
-    private title: string,
-    private recordSavePath: string,
+    recorder: Recorder,
+    getSavePath: (opts: any) => string,
+    owner: string,
+    title: string,
+    recordSavePath: string,
     hasSegment: boolean,
   ) {
     this.hasSegment = hasSegment;
     this.extraDataSavePath = replaceExtName(recordSavePath, ".json");
     this.videoFilePath = this.getVideoFilepath();
+    this.recorder = recorder;
+    this.getSavePath = getSavePath;
+    this.owner = owner;
+    this.title = title;
+    this.recordSavePath = recordSavePath;
 
     if (this.hasSegment) {
       this.segmentManager = new SegmentManager(recorder, getSavePath, owner, title, recordSavePath);
