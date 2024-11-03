@@ -1,4 +1,4 @@
-declare module 'huya-danmu-fix' {
+declare module 'huya-danma' {
   import EventEmitter from 'events'
 
   export default class HuYaDanMu extends EventEmitter {

@@ -1,14 +1,15 @@
 {
-  "name": "huya-danmu-fix",
-  "version": "2.0.4",
+  "name": "huya-danma",
+  "version": "0.1.0",
   "description": "huya danmu module",
   "main": "index.js",
+  "types": "index.d.ts",
+  "type": "module",
   "scripts": {
     "test": ""
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/damonpeng/huya-danmu-fix.git"
+  "publishConfig": {
+    "access": "public"
   },
   "keywords": [
     "huya",
@@ -21,8 +22,6 @@
   },
   "dependencies": {
     "ws": "^4.0.0",
-    "md5": "^2.2.1",
-    "request": "^2.83.0",
     "to-arraybuffer": "^1.0.1",
     "request-promise": "^4.2.2",
     "socks-proxy-agent": "^3.0.1"

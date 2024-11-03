@@ -147,6 +147,9 @@ importers:
       axios:
         specifier: 1.7.4
         version: 1.7.4
+      huya-danma:
+        specifier: workspace:*
+        version: link:../huya-danmu
       huya-danmu-fix:
         specifier: ^2.0.4
         version: 2.0.4(bufferutil@4.0.8)
@@ -365,6 +368,21 @@ importers:
       tsx:
         specifier: ^4.7.2
         version: 4.7.2
+
+  packages/huya-danmu:
+    dependencies:
+      request-promise:
+        specifier: ^4.2.2
+        version: 4.2.6(request@2.88.2)
+      socks-proxy-agent:
+        specifier: ^3.0.1
+        version: 3.0.1
+      to-arraybuffer:
+        specifier: ^1.0.1
+        version: 1.0.1
+      ws:
+        specifier: ^4.0.0
+        version: 4.1.0(bufferutil@4.0.8)
 
   packages/liveManager:
     dependencies:

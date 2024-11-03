@@ -10,13 +10,13 @@ import {
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  Comment,
-  GiveGift,
+  // Comment,
+  // GiveGift,
   StreamManager,
 } from '@autorecord/manager'
 import { getInfo, getStream } from './stream.js'
 import { assertStringType, ensureFolderExist, singleton } from './utils.js'
-import HuYaDanMu, { HuYaMessage } from 'huya-danmu-fix'
+import HuYaDanMu, { HuYaMessage } from 'huya-danma'
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
@@ -111,58 +111,58 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] = async fun
     throw err
   }
 
-  let client: HuYaDanMu | null = null
-  if (!this.disableProvideCommentsWhenRecording) {
-    client = new HuYaDanMu(this.channelId)
-    client.on('message', (msg: HuYaMessage) => {
-      const extraDataController = streamManager.getExtraDataController()
-      if (!extraDataController) return
+  // let client: HuYaDanMu | null = null
+  // if (!this.disableProvideCommentsWhenRecording) {
+  //   client = new HuYaDanMu(this.channelId)
+  //   client.on('message', (msg: HuYaMessage) => {
+  //     const extraDataController = streamManager.getExtraDataController()
+  //     if (!extraDataController) return
 
-      switch (msg.type) {
-        case 'chat': {
-          const comment: Comment = {
-            type: 'comment',
-            timestamp: Date.now(),
-            text: msg.content,
-            sender: {
-              uid: msg.from.rid,
-              name: msg.from.name,
-            },
-          }
-          this.emit('Message', comment)
-          extraDataController.addMessage(comment)
-          break
-        }
-        case 'gift': {
-          // console.log('gift', msg)
-          const gift: GiveGift = {
-            type: 'give_gift',
-            timestamp: Date.now(),
-            name: msg.name,
-            count: msg.count,
-            // 保留一位小数
-            price: Number((msg.price / msg.count).toFixed(2)),
-            sender: {
-              uid: msg.from.rid,
-              name: msg.from.name,
-            },
-          }
-          this.emit('Message', gift)
-          extraDataController.addMessage(gift)
-          break
-        }
-      }
-    })
-    client.on('error', (e: unknown) => {
-      this.emit('DebugLog', { type: 'common', text: String(e) })
-    })
-    try {
-      await client.start()
-    } catch (err) {
-      this.state = 'idle'
-      throw err
-    }
-  }
+  //     switch (msg.type) {
+  //       case 'chat': {
+  //         const comment: Comment = {
+  //           type: 'comment',
+  //           timestamp: Date.now(),
+  //           text: msg.content,
+  //           sender: {
+  //             uid: msg.from.rid,
+  //             name: msg.from.name,
+  //           },
+  //         }
+  //         this.emit('Message', comment)
+  //         extraDataController.addMessage(comment)
+  //         break
+  //       }
+  //       case 'gift': {
+  //         // console.log('gift', msg)
+  //         const gift: GiveGift = {
+  //           type: 'give_gift',
+  //           timestamp: Date.now(),
+  //           name: msg.name,
+  //           count: msg.count,
+  //           // 保留一位小数
+  //           price: Number((msg.price / msg.count).toFixed(2)),
+  //           sender: {
+  //             uid: msg.from.rid,
+  //             name: msg.from.name,
+  //           },
+  //         }
+  //         this.emit('Message', gift)
+  //         extraDataController.addMessage(gift)
+  //         break
+  //       }
+  //     }
+  //   })
+  //   client.on('error', (e: unknown) => {
+  //     this.emit('DebugLog', { type: 'common', text: String(e) })
+  //   })
+  //   try {
+  //     await client.start()
+  //   } catch (err) {
+  //     this.state = 'idle'
+  //     throw err
+  //   }
+  // }
 
   let isEnded = false
   const onEnd = (...args: unknown[]) => {
@@ -225,7 +225,7 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] = async fun
     // @ts-ignore
     command.ffmpegProc?.stdin?.write('q')
     // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
-    client?.stop()
+    // client?.stop()
 
     this.usedStream = undefined
     this.usedSource = undefined
