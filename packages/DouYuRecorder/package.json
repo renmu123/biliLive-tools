@@ -32,7 +32,6 @@
   "dependencies": {
     "@autorecord/manager": "workspace:*",
     "axios": "1.7.4",
-    "cheerio": "^1.0.0",
     "mitt": "^3.0.1",
     "query-string": "^9.1.0",
     "safe-eval": "^0.4.1",

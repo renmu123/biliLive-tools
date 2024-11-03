@@ -147,6 +147,42 @@ async function getSignFn(address: string, rejectCache?: boolean): Promise<SignFu
   return sign;
 }
 
+/**
+ * 获取直播间相关信息
+ */
+export async function getRoomInfo(roomId: number): Promise<{
+  room: {
+    /** 主播id */
+    up_id: string;
+    /** 主播昵称 */
+    nickname: string;
+    /** 主播头像 */
+    avatar: {
+      big: string;
+      middle: string;
+      small: string;
+    };
+    /** 直播间标题 */
+    room_name: string;
+    /** 直播间封面 */
+    room_pic: string;
+    /** 直播间号 */
+    room_id: number;
+    /** 直播状态，1是正在直播 */
+    status: "1" | string;
+    /** 轮播：1是正在轮播 */
+    videoLoop: 1 | number;
+    /** 开播时间，秒时间戳 */
+    show_time: number;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}> {
+  const response = await requester.get(`https://www.douyu.com/betard/${roomId}`);
+
+  return response.data;
+}
+
 export interface SourceProfile {
   name: string;
   cdn: string;

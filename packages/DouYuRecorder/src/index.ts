@@ -1,7 +1,5 @@
 import mitt from "mitt";
 import fs from "fs-extra";
-// @ts-ignore
-import * as cheerio from "cheerio";
 import {
   Recorder,
   RecorderCreateOpts,
@@ -18,6 +16,7 @@ import {
   SuperChat,
 } from "@autorecord/manager";
 import { getInfo, getStream } from "./stream.js";
+import { getRoomInfo } from "./dy_api.js";
 import { assert, ensureFolderExist, replaceExtName, singleton } from "./utils.js";
 import { createDYClient } from "./dy_client/index.js";
 import { giftMap, colorTab } from "./danma.js";
@@ -463,19 +462,17 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     channelURL = channelURL.trim();
     const res = await requester.get(channelURL);
     const html = res.data;
-    const $ = cheerio.load(html);
 
-    const scriptNode: any = $("script")
-      .map((_i, tag) => tag.children[0])
-      .filter((_i, tag: any) => tag.data.includes("$ROOM"))[0];
-    if (!scriptNode) return null;
-    const matched = scriptNode.data.match(/\$ROOM\.room_id.?=(.*?);/);
+    const matched = html.match(/\$ROOM\.room_id.?=(.*?);/);
     if (!matched) return null;
+    const room_id = matched[1].trim();
+
+    const roomInfo = await getRoomInfo(Number(room_id));
 
     return {
       id: matched[1].trim(),
-      title: $(".Title-header").text(),
-      owner: $(".Title-anchorName").text(),
+      title: roomInfo.room.room_name,
+      owner: roomInfo.room.nickname,
     };
   },
 
