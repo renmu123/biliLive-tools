@@ -1,24 +1,13 @@
 import ws from "ws";
 import events from "events";
-import request from "request-promise";
 import to_arraybuffer from "to-arraybuffer";
 import socks_agent from "socks-proxy-agent";
 
 import { Taf, TafMx, HUYA, List } from "./lib.js";
 import { md5 } from "./utils.js";
 
-const timeout = 30000;
 const heartbeat_interval = 60000;
 const fresh_gift_interval = 60 * 60 * 1000;
-const r = request.defaults({
-  json: true,
-  gzip: true,
-  timeout: timeout,
-  headers: {
-    "User-Agent":
-      "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36",
-  },
-});
 
 class huya_danmu extends events {
   constructor(opt) {
@@ -39,10 +28,14 @@ class huya_danmu extends events {
 
   async _get_chat_info() {
     try {
-      const body = await r({
-        url: `https://m.huya.com/${this._roomid}`,
+      const response = await fetch(`https://m.huya.com/${this._roomid}`, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36",
+        },
         agent: this._agent,
       });
+      const body = await response.text();
       const info = {};
       // @deprecated
       // let subsid_array = body.match(/var SUBSID = '(.*)';/)
