@@ -2,6 +2,7 @@ import path from "node:path";
 import axios from "axios";
 
 import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
+import { provider as providerForHuYa } from "@autorecord/huya-recorder";
 import { createRecorderManager as createManager, setFFMPEGPath } from "@autorecord/manager";
 import { getFfmpegPath } from "../task/video.js";
 import logger from "../utils/log.js";
@@ -23,7 +24,7 @@ export function createRecorderManager(appConfig: AppConfig) {
   const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
 
   const manager = createManager({
-    providers: [providerForDouYu],
+    providers: [providerForDouYu, providerForHuYa],
     autoRemoveSystemReservedChars: true,
     autoCheckInterval: autoCheckInterval * 1000,
     // 这个参数其实是有问题的，并没有实际生效
@@ -32,7 +33,7 @@ export function createRecorderManager(appConfig: AppConfig) {
   });
 
   // manager.on("RecorderDebugLog", (debug) => {
-  //   // console.error("Manager deug", debug.text);
+  //   console.error("Manager deug", debug.text);
   // });
   manager.on("RecordStart", (debug) => {
     logger.info("Manager start", debug);
@@ -89,22 +90,23 @@ export function createRecorderManager(appConfig: AppConfig) {
     addRecorder: (recorder: LocalRecordr) => {
       const recorders = recorderConfig.list();
       if (
-        recorders.find(
+        recorders.findIndex(
           (item) =>
             item.channelId === recorder.channelId && item.providerId === recorder.providerId,
-        )
+        ) !== -1
       ) {
         throw new Error("不可重复添加");
       }
+      delete recorder.extra;
       recorderConfig.add(recorder);
       const data = recorderConfig.get(recorder.id);
-      // console.log("addRecorder", data);
 
       return manager.addRecorder(data!);
     },
     resolveChannel: async (url: string) => {
       for (const provider of manager.providers) {
         const info = await provider.resolveChannelInfoFromURL(url);
+        console.log("resolveChannel", info, url, provider);
         if (!info) continue;
 
         return {

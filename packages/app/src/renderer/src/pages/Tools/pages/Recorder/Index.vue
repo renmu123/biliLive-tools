@@ -123,7 +123,9 @@ const edit = async (id: string) => {
 };
 
 const getLiveInfo = async () => {
-  const ids = recorderList.value.map((item) => item.channelId);
+  const ids = recorderList.value
+    .filter((item) => item.providerId === "DouYu")
+    .map((item) => item.channelId);
   if (ids.length === 0) return;
   liveInfos.value = await recoderApi.getLiveInfo(ids);
 };
