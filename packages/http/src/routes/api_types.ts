@@ -25,7 +25,7 @@ export interface PagedResp extends PagedArgs {
 export type ClientRecorder = Omit<
   Recorder<RecorderExtra>,
   // TODO: 可以改成排除所有方法 & EmitterProps
-  "all" | "getChannelURL" | "checkLiveStatusAndRecord" | "recordHandle" | "toJSON"
+  "all" | "getChannelURL" | "checkLiveStatusAndRecord" | "recordHandle" | "toJSON" | "getLiveInfo"
 > & {
   channelURL: string;
   recordHandle?: Omit<RecordHandle, "stop">;
@@ -39,11 +39,11 @@ export namespace API {
       ids: string;
     }
     export interface LiveInfo {
-      roomId: string;
-      roomTitle: string;
+      owner: string;
+      title: string;
       avatar: string;
       cover: string;
-      owner: string;
+      channelId: string;
       living: boolean;
     }
 

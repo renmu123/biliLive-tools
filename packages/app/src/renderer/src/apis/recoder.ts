@@ -58,10 +58,8 @@ const resolveChannel = async (url: string): Promise<API.resolveChannel.Resp> => 
   return res.data.payload;
 };
 
-const getLiveInfo = async (ids: string[]): Promise<API.getLiveInfo.Resp> => {
-  const res = await request.get(`/recorder/manager/liveInfo`, {
-    params: { ids: ids.join(",") },
-  });
+const getLiveInfo = async (): Promise<API.getLiveInfo.Resp> => {
+  const res = await request.get(`/recorder/manager/liveInfo`);
   return res.data.payload;
 };
 

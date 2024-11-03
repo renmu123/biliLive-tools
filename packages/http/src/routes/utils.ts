@@ -32,7 +32,15 @@ export function createPagedResultGetter<T>(
 export function recorderToClient(recorder: Recorder): ClientRecorder {
   return {
     // TODO: 用 pick 更加稳健一些，这里省事先 omit 了
-    ...omit(recorder, "all", "getChannelURL", "checkLiveStatusAndRecord", "recordHandle", "toJSON"),
+    ...omit(
+      recorder,
+      "all",
+      "getChannelURL",
+      "checkLiveStatusAndRecord",
+      "recordHandle",
+      "toJSON",
+      "getLiveInfo",
+    ),
     channelURL: recorder.getChannelURL(),
     recordHandle: recorder.recordHandle && omit(recorder.recordHandle, "stop"),
     liveInfo: recorder.liveInfo,

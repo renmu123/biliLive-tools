@@ -43,6 +43,15 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     toJSON() {
       return defaultToJSON(provider, this);
     },
+
+    async getLiveInfo() {
+      const channelId = this.channelId;
+      const info = await getInfo(channelId);
+      return {
+        channelId,
+        ...info,
+      };
+    },
   };
 
   const recorderWithSupportUpdatedEvent = new Proxy(recorder, {
@@ -100,27 +109,17 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedStream = stream.name;
   this.usedSource = stream.source;
   // TODO: emit update event
+  const savePath = getSavePath({ owner, title });
 
   const hasSegment = !!this.segment;
-  const savePath = getSavePath({ owner, title });
-  const recordSavePath = savePath;
-  const streamManager = new StreamManager(
-    this,
-    getSavePath,
-    owner,
-    title,
-    recordSavePath,
-    hasSegment,
-  );
+  const streamManager = new StreamManager(this, getSavePath, owner, title, savePath, hasSegment);
   const templateSavePath = streamManager.getVideoFilepath();
-  console.log("templateSavePath", templateSavePath);
-
   const extraDataSavePath = streamManager.extraDataSavePath;
 
   try {
     // TODO: 这个 ensure 或许应该放在 createRecordExtraDataController 里实现？
     ensureFolderExist(extraDataSavePath);
-    ensureFolderExist(recordSavePath);
+    ensureFolderExist(savePath);
   } catch (err) {
     this.state = "idle";
     throw err;
@@ -131,11 +130,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   });
   client.on("message", (msg) => {
     const extraDataController = streamManager.getExtraDataController();
-    // console.log("msg", msg, extraDataController);
     if (!extraDataController) return;
     switch (msg.type) {
       case "chatmsg": {
-        // console.log("chatmsg", msg);
         const comment: Comment = {
           type: "comment",
           timestamp: Date.now(),
@@ -219,7 +216,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   let isEnded = false;
-
   const onEnd = async (...args: unknown[]) => {
     if (isEnded) return;
     isEnded = true;
@@ -270,7 +266,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     );
   }
   const ffmpegArgs = command._getArguments();
-  console.log("ffmpegArgs", ffmpegArgs);
+  // console.log("ffmpegArgs", ffmpegArgs);
   // extraDataController.setMeta({
   //   recordStartTimestamp: Date.now(),
   //   ffmpegArgs,
@@ -318,7 +314,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     source: stream.source,
     url: stream.url,
     ffmpegArgs,
-    savePath: recordSavePath,
+    savePath: savePath,
     stop,
   };
   this.emit("RecordStart", this.recordHandle);

@@ -53,6 +53,8 @@ export async function getRoomInfo(roomIdOrShortId: string) {
     owner: data.gameLiveInfo.nick,
     title: data.gameLiveInfo.introduction,
     roomId: data.gameLiveInfo.profileRoom,
+    avatar: data.gameLiveInfo.avatar180,
+    cover: data.gameLiveInfo.screenshot,
     streams,
     sources,
   }

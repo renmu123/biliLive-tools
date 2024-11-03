@@ -1,7 +1,6 @@
 import Router from "koa-router";
 import { v4 as uuid } from "uuid";
-import { live } from "douyu-api";
-import axios from "axios";
+// import axios from "axios";
 
 import { genSavePathFromRule } from "@autorecord/manager";
 import { createRecorderManager } from "@biliLive-tools/shared";
@@ -189,71 +188,65 @@ router.get("/manager/resolveChannel", async (ctx) => {
   ctx.body = { payload: await recorderManager.resolveChannel(url as string) };
 });
 
-const getLiveStatus = async (channelId: string) => {
-  const res = await axios.get<
-    | {
-        error: number;
-        data: {
-          room_status: string;
-          owner_name: string;
-          avatar: string;
-          room_name: string;
-          start_time: string;
-          gift: {
-            id: string;
-            name: string;
-            himg: string;
-            pc: number;
-          }[];
-        };
-      }
-    | string
-  >(`http://open.douyucdn.cn/api/RoomApi/room/${channelId}`);
+// const getLiveStatus = async (channelId: string) => {
+//   const res = await axios.get<
+//     | {
+//         error: number;
+//         data: {
+//           room_status: string;
+//           owner_name: string;
+//           avatar: string;
+//           room_name: string;
+//           start_time: string;
+//           gift: {
+//             id: string;
+//             name: string;
+//             himg: string;
+//             pc: number;
+//           }[];
+//         };
+//       }
+//     | string
+//   >(`http://open.douyucdn.cn/api/RoomApi/room/${channelId}`);
 
-  if (res.status !== 200) {
-    if (res.status === 404 && res.data === "Not Found") {
-      throw new Error("错误的地址 " + channelId);
-    }
+//   if (res.status !== 200) {
+//     if (res.status === 404 && res.data === "Not Found") {
+//       throw new Error("错误的地址 " + channelId);
+//     }
 
-    throw new Error(`Unexpected status code, ${res.status}, ${res.data}`);
-  }
+//     throw new Error(`Unexpected status code, ${res.status}, ${res.data}`);
+//   }
 
-  if (typeof res.data !== "object")
-    throw new Error(`Unexpected response, ${res.status}, ${res.data}`);
+//   if (typeof res.data !== "object")
+//     throw new Error(`Unexpected response, ${res.status}, ${res.data}`);
 
-  const json = res.data;
-  if (json.error === 101) throw new Error("错误的地址 " + channelId);
-  if (json.error !== 0) throw new Error("Unexpected error code, " + json.error);
-  const living = json.data.room_status === "1";
-  return living;
-};
+//   const json = res.data;
+//   if (json.error === 101) throw new Error("错误的地址 " + channelId);
+//   if (json.error !== 0) throw new Error("Unexpected error code, " + json.error);
+//   const living = json.data.room_status === "1";
+//   return living;
+// };
 
 router.get("/manager/liveInfo", async (ctx) => {
-  const ids = (ctx.query.ids as string)?.split(",");
-  if (ids == null) throw new Error("ids 不能为空");
-  const fns = ids.map((id) => live.getRoomInfo(Number(id)));
-  const results = await Promise.all(fns);
+  const recorderManager =
+    container.resolve<ReturnType<typeof createRecorderManager>>("recorderManager");
+  const recorders = recorderManager.manager.recorders;
 
-  const livingStatus = await Promise.all(ids.map(getLiveStatus));
+  const list: {
+    owner: string;
+    title: string;
+    avatar: string;
+    cover: string;
+  }[] = [];
+  for (const recoder of recorders) {
+    const info = await recoder.getLiveInfo();
+    list.push(info);
+  }
+
+  // const livingStatus = await Promise.all(ids.map(getLiveStatus));
 
   ctx.body = {
-    payload: results.map((item, index) => {
-      let living = livingStatus[index];
-      if (living) {
-        const isVideoLoop = item.room.videoLoop === 1;
-        if (isVideoLoop) {
-          living = false;
-        }
-      }
-      return {
-        owner: item.room.nickname,
-        roomTitle: item.room.room_name,
-        cover: item.room.room_pic,
-        avatar: item.room.avatar.middle,
-        roomId: item.room.room_id.toString(),
-        living,
-      };
-    }),
+    payload: list,
   };
 });
 

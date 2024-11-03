@@ -101,4 +101,13 @@ export interface Recorder<E extends AnyObject = UnknownObject>
 
   // 提取需要序列化存储的数据到扁平的 json 数据结构
   toJSON: (this: Recorder<E>) => SerializedRecorder<E>;
+
+  getLiveInfo: (this: Recorder<E>) => Promise<{
+    owner: string;
+    title: string;
+    avatar: string;
+    cover: string;
+    channelId: ChannelId;
+    living: boolean;
+  }>;
 }

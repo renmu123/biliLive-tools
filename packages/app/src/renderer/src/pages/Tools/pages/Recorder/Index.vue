@@ -1,9 +1,9 @@
 <template>
   <div class="container">
-    <p>这并非是经过严格监测的录播工具，请谨慎在生产环境使用</p>
-
-    <div style="margin-bottom: 20px">
+    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px">
       <n-button type="primary" @click="add">添加</n-button>
+
+      <div>支持斗鱼、虎牙平台，这并非是经过严格监测的录播工具，请谨慎在生产环境使用</div>
     </div>
 
     <div class="recorder-container">
@@ -73,13 +73,13 @@ const recorderList = ref<ClientRecorder[]>([]);
 const liveInfos = ref<API.getLiveInfo.LiveInfo[]>([]);
 const list = computed(() => {
   return recorderList.value.map((item) => {
-    const liveInfo = liveInfos.value.find((liveInfo) => liveInfo.roomId === item.channelId);
+    const liveInfo = liveInfos.value.find((liveInfo) => liveInfo.channelId === item.channelId);
     return {
       ...item,
       cover: liveInfo?.cover,
       owner: liveInfo?.owner,
       avatar: liveInfo?.avatar,
-      roomTitle: liveInfo?.roomTitle,
+      roomTitle: liveInfo?.title,
       living: liveInfo?.living,
     };
   });
@@ -123,11 +123,8 @@ const edit = async (id: string) => {
 };
 
 const getLiveInfo = async () => {
-  const ids = recorderList.value
-    .filter((item) => item.providerId === "DouYu")
-    .map((item) => item.channelId);
-  if (ids.length === 0) return;
-  liveInfos.value = await recoderApi.getLiveInfo(ids);
+  if (recorderList.value.length === 0) return;
+  liveInfos.value = await recoderApi.getLiveInfo();
 };
 
 const init = async () => {

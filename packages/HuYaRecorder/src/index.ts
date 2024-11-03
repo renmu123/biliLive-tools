@@ -10,12 +10,12 @@ import {
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  createRecordExtraDataController,
   Comment,
   GiveGift,
+  StreamManager,
 } from '@autorecord/manager'
 import { getInfo, getStream } from './stream.js'
-import { assertStringType, ensureFolderExist, replaceExtName, singleton } from './utils.js'
+import { assertStringType, ensureFolderExist, singleton } from './utils.js'
 import HuYaDanMu, { HuYaMessage } from 'huya-danmu-fix'
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
@@ -39,6 +39,15 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
 
     toJSON() {
       return defaultToJSON(provider, this)
+    },
+
+    async getLiveInfo() {
+      const channelId = this.channelId
+      const info = await getInfo(channelId)
+      return {
+        channelId,
+        ...info,
+      }
     },
   }
 
@@ -74,6 +83,7 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] = async fun
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
     })
+    // console.log('live info', res)
   } catch (err) {
     this.state = 'idle'
     throw err
@@ -86,25 +96,28 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] = async fun
   // TODO: emit update event
 
   const savePath = getSavePath({ owner, title })
-  const extraDataSavePath = replaceExtName(savePath, '.json')
-  const recordSavePath = `${savePath}.ts`
+
+  const hasSegment = !!this.segment
+  const streamManager = new StreamManager(this, getSavePath, owner, title, savePath, hasSegment)
+  const templateSavePath = streamManager.getVideoFilepath()
+  const extraDataSavePath = streamManager.extraDataSavePath
+
   try {
     // TODO: 这个 ensure 或许应该放在 createRecordExtraDataController 里实现？
     ensureFolderExist(extraDataSavePath)
-    ensureFolderExist(recordSavePath)
+    ensureFolderExist(savePath)
   } catch (err) {
     this.state = 'idle'
     throw err
   }
 
-  // TODO: 之后可能要结合 disableRecordMeta 之类的来确认是否要创建文件。
-  const extraDataController = createRecordExtraDataController(extraDataSavePath)
-  extraDataController.setMeta({ title })
-
   let client: HuYaDanMu | null = null
   if (!this.disableProvideCommentsWhenRecording) {
     client = new HuYaDanMu(this.channelId)
     client.on('message', (msg: HuYaMessage) => {
+      const extraDataController = streamManager.getExtraDataController()
+      if (!extraDataController) return
+
       switch (msg.type) {
         case 'chat': {
           const comment: Comment = {
@@ -121,11 +134,14 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] = async fun
           break
         }
         case 'gift': {
+          // console.log('gift', msg)
           const gift: GiveGift = {
             type: 'give_gift',
             timestamp: Date.now(),
             name: msg.name,
             count: msg.count,
+            // 保留一位小数
+            price: Number((msg.price / msg.count).toFixed(2)),
             sender: {
               uid: msg.from.rid,
               name: msg.from.name,
@@ -169,10 +185,14 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] = async fun
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0',
     )
     .outputOptions(ffmpegOutputOptions)
-    .output(recordSavePath)
+    .output(templateSavePath)
     .on('error', onEnd)
     .on('end', () => onEnd('finished'))
-    .on('stderr', (stderrLine) => {
+    .on('stderr', async (stderrLine) => {
+      if (stderrLine.includes('Opening ')) {
+        await streamManager.onSegmentStart(stderrLine)
+      }
+
       assertStringType(stderrLine)
       this.emit('DebugLog', { type: 'ffmpeg', text: stderrLine })
 
@@ -181,11 +201,16 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] = async fun
       }
     })
     .on('stderr', timeoutChecker.update)
+
+  if (hasSegment) {
+    command.outputOptions('-f', 'segment', '-segment_time', String(this.segment! * 60), '-reset_timestamps', '1')
+  }
   const ffmpegArgs = command._getArguments()
-  extraDataController.setMeta({
-    recordStartTimestamp: Date.now(),
-    ffmpegArgs,
-  })
+  // console.log('ffmpegArgs', ffmpegArgs)
+  // extraDataController.setMeta({
+  //   recordStartTimestamp: Date.now(),
+  //   ffmpegArgs,
+  // })
   command.run()
 
   const stop = singleton<RecordHandle['stop']>(async (reason?: string) => {
@@ -197,17 +222,17 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] = async fun
 
     // 如果给 SIGKILL 信号会非正常退出，SIGINT 可以被 ffmpeg 正常处理。
     // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
-    command.kill('SIGINT')
+    // @ts-ignore
+    command.ffmpegProc?.stdin?.write('q')
     // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
     client?.stop()
-    extraDataController.setMeta({ recordStopTimestamp: Date.now() })
-    extraDataController.flush()
 
     this.usedStream = undefined
     this.usedSource = undefined
     // TODO: other codes
     // TODO: emit update event
 
+    await streamManager.handleVideoCompleted()
     this.emit('RecordStop', { recordHandle: this.recordHandle, reason })
     this.recordHandle = undefined
     this.state = 'idle'
@@ -219,7 +244,7 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] = async fun
     source: stream.source,
     url: stream.url,
     ffmpegArgs,
-    savePath: recordSavePath,
+    savePath: savePath,
     stop,
   }
   this.emit('RecordStart', this.recordHandle)

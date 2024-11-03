@@ -287,7 +287,7 @@
         <n-tab-pane name="upload" tab="B站上传">
           <BiliSetting v-model:data="config"></BiliSetting>
         </n-tab-pane>
-        <n-tab-pane name="recorder" tab="斗鱼录制">
+        <n-tab-pane name="recorder" tab="直播录制">
           <RecordSetting v-model:data="config"></RecordSetting>
         </n-tab-pane>
         <n-tab-pane name="notification" tab="任务">
