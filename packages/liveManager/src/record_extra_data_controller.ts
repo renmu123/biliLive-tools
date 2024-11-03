@@ -38,13 +38,9 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
     messages: [],
   };
 
-  const scheduleSave = asyncThrottle(
-    () => fs.promises.writeFile(savePath, JSON.stringify(data)),
-    30e3,
-    {
-      immediateRunWhenEndOfDefer: true,
-    },
-  );
+  const scheduleSave = asyncThrottle(() => save(), 30e3, {
+    immediateRunWhenEndOfDefer: true,
+  });
   const save = () => {
     return fs.promises.writeFile(savePath, JSON.stringify(data));
   };
@@ -64,12 +60,12 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
 
   const flush: RecordExtraDataController["flush"] = async () => {
     // TODO: 这里可能会有内存占用问题
-    await save();
+    scheduleSave.flush();
+
     const xmlContent = convert2Xml(data);
     const parsedPath = path.parse(savePath);
     const xmlPath = path.join(parsedPath.dir, parsedPath.name + ".xml");
     await fs.promises.writeFile(xmlPath, xmlContent);
-    scheduleSave.flush();
     await fs.promises.rm(savePath);
   };
 

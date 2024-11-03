@@ -245,7 +245,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     .on("stderr", async (stderrLine) => {
       assert(typeof stderrLine === "string");
       if (stderrLine.includes("Opening ")) {
-        await streamManager.onSegmentStart(stderrLine);
+        await streamManager.handleVideoStarted(stderrLine);
       }
       // TODO:解析时间
       this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });

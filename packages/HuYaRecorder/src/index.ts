@@ -190,7 +190,7 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] = async fun
     .on('end', () => onEnd('finished'))
     .on('stderr', async (stderrLine) => {
       if (stderrLine.includes('Opening ')) {
-        await streamManager.onSegmentStart(stderrLine)
+        await streamManager.handleVideoStarted(stderrLine)
       }
 
       assertStringType(stderrLine)

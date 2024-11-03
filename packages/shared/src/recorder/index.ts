@@ -38,6 +38,9 @@ export function createRecorderManager(appConfig: AppConfig) {
   manager.on("RecordStart", (debug) => {
     logger.info("Manager start", debug);
   });
+  manager.on("RecordStop", (debug) => {
+    logger.info("Manager stop", debug);
+  });
   manager.on("error", (error) => {
     logger.error("Manager error", error);
   });

@@ -377,9 +377,8 @@ export type GetProviderExtra<P> = P extends RecorderProvider<infer E> ? E : neve
 
 class SegmentManager {
   segmentData: { startTime: number; rawname: string };
-  hasSegment: boolean;
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
-  isFirstSegment = true;
+  init = true;
   getSavePath: (opts: any) => string;
   owner: string;
   title: string;
@@ -392,7 +391,6 @@ class SegmentManager {
     title: string,
     recordSavePath: string,
   ) {
-    this.hasSegment = !!recorder.segment;
     this.getSavePath = getSavePath;
     this.owner = owner;
     this.title = title;
@@ -401,8 +399,8 @@ class SegmentManager {
     this.segmentData = { startTime: Date.now(), rawname: recordSavePath };
   }
 
-  async handleLastSegmentCompleted() {
-    if (!this.hasSegment) return;
+  async handleSegmentEnd() {
+    this.getExtraDataController()?.setMeta({ recordStopTimestamp: Date.now() });
     console.log("handle segmentData", this.segmentData);
 
     const trueFilepath = this.getSavePath({
@@ -410,12 +408,6 @@ class SegmentManager {
       title: this.title,
       startTime: this.segmentData.startTime,
     });
-    console.log(
-      "ffmpeg end",
-      this.segmentData.rawname,
-      `${trueFilepath}.ts`,
-      this.segmentData.startTime,
-    );
 
     try {
       await Promise.all([
@@ -432,12 +424,10 @@ class SegmentManager {
   }
 
   async onSegmentStart(stderrLine: string) {
-    if (!this.hasSegment) return;
-
-    if (!this.isFirstSegment) {
-      await this.handleLastSegmentCompleted();
+    if (!this.init) {
+      await this.handleSegmentEnd();
     }
-    this.isFirstSegment = false;
+    this.init = false;
     this.segmentData.startTime = Date.now();
 
     const trueFilepath = this.getSavePath({
@@ -490,7 +480,6 @@ export class StreamManager {
     recordSavePath: string,
     hasSegment: boolean,
   ) {
-    this.hasSegment = hasSegment;
     this.extraDataSavePath = replaceExtName(recordSavePath, ".json");
     this.videoFilePath = this.getVideoFilepath();
     this.recorder = recorder;
@@ -499,7 +488,7 @@ export class StreamManager {
     this.title = title;
     this.recordSavePath = recordSavePath;
 
-    if (this.hasSegment) {
+    if (hasSegment) {
       this.segmentManager = new SegmentManager(recorder, getSavePath, owner, title, recordSavePath);
     } else {
       this.extraDataController = createRecordExtraDataController(this.extraDataSavePath);
@@ -507,28 +496,30 @@ export class StreamManager {
     }
   }
 
-  async handleVideoStarted() {
-    if (this.segmentManager) {
+  async handleVideoStarted(stderrLine?: string) {
+    if (!stderrLine && this.segmentManager) {
       this.segmentManager.segmentData.startTime = Date.now();
     }
-    if (!this.hasSegment) {
+
+    if (this.segmentManager) {
+      if (!stderrLine) {
+        throw new Error("stderrLine is required");
+      }
+      await this.segmentManager.onSegmentStart(stderrLine);
+    } else {
       this.recorder.emit("videoFileCreated", { filename: this.videoFilePath });
     }
   }
 
   async handleVideoCompleted() {
-    this.getExtraDataController()?.setMeta({ recordStopTimestamp: Date.now() });
-    this.getExtraDataController()?.flush();
-    if (this.segmentManager) {
-      await this.segmentManager.handleLastSegmentCompleted();
-    } else {
-      this.recorder.emit("videoFileCompleted", { filename: this.videoFilePath });
-    }
-  }
+    console.log("handleVideoCompleted", this.getExtraDataController()?.data);
 
-  async onSegmentStart(stderrLine: string) {
     if (this.segmentManager) {
-      await this.segmentManager.onSegmentStart(stderrLine);
+      await this.segmentManager.handleSegmentEnd();
+    } else {
+      this.getExtraDataController()?.setMeta({ recordStopTimestamp: Date.now() });
+      await this.getExtraDataController()?.flush();
+      this.recorder.emit("videoFileCompleted", { filename: this.videoFilePath });
     }
   }
 
@@ -541,6 +532,6 @@ export class StreamManager {
   }
 
   getVideoFilepath() {
-    return this.hasSegment ? `${this.recordSavePath}-PART%03d.ts` : `${this.recordSavePath}.ts`;
+    return this.segmentManager ? `${this.recordSavePath}-PART%03d.ts` : `${this.recordSavePath}.ts`;
   }
 }
