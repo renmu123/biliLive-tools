@@ -3,7 +3,7 @@
 ## 功能
 
 1. **B站登录信息加密保存，也可以使用环境变量`BILILIVE_TOOLS_BILIKEY`自定义密钥，web版本用户尤其推荐，自定义前请先退出原有全部账号，windows下环境变量修改后可能需要重启电脑方能生效**
-2. 斗鱼直播录制
+2. 斗鱼直播录制，感谢[LiveAutoRecord](https://github.com/WhiteMinds/LiveAutoRecord)，绝大部分录制代码都来自该项目
 3. B站视频审核状态检测通知
 4. 支持DDTV webhook，**需要将DDTV的软件“设置-文件与路径设置-录制文件保存路径”设置为绝对路径**
 5. 弹幕转换新增“时间偏移”参数

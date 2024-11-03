@@ -456,3 +456,34 @@ $ pnpm run build:cli
 # License
 
 GPLv3
+
+# 参考资料 & 鸣谢
+
+<ul>
+  <li>
+    <a href="https://github.com/hihkm/DanmakuFactory" class="external" target="_blank"
+      >DanmakuFactory</a
+    >
+  </li>
+  <li>
+    <a href="https://github.com/biliup/biliup-rs" class="external" target="_blank"
+      >biliup-rs</a
+    >
+  </li>
+  <li>
+    <a
+      href="https://github.com/BililiveRecorder/BililiveRecorder"
+      class="external"
+      target="_blank"
+      >BililiveRecorder</a
+    >
+  </li>
+  <li>
+    <a href="https://github.com/renmu123/biliAPI" class="external" target="_blank">biliAPI</a>
+  </li>
+  <li>
+    <a href="https://github.com/WhiteMinds/LiveAutoRecord" class="external" target="_blank"
+      >LiveAutoRecord</a
+    >
+  </li>
+</ul>
