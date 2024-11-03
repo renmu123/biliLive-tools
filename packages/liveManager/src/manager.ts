@@ -477,14 +477,13 @@ export class StreamManager {
     hasSegment: boolean,
   ) {
     this.hasSegment = hasSegment;
-    const extraDataSavePath = replaceExtName(recordSavePath, ".json");
-    this.extraDataSavePath = extraDataSavePath;
+    this.extraDataSavePath = replaceExtName(recordSavePath, ".json");
     this.videoFilePath = this.getVideoFilepath();
 
     if (this.hasSegment) {
       this.segmentManager = new SegmentManager(recorder, getSavePath, owner, title, recordSavePath);
     } else {
-      this.extraDataController = createRecordExtraDataController(extraDataSavePath);
+      this.extraDataController = createRecordExtraDataController(this.extraDataSavePath);
       this.extraDataController.setMeta({ title });
     }
   }
@@ -499,7 +498,6 @@ export class StreamManager {
   }
 
   async handleVideoCompleted() {
-    console.log("handleVideoCompleted1111111111111111111111111", this.segmentManager);
     this.getExtraDataController()?.setMeta({ recordStopTimestamp: Date.now() });
     this.getExtraDataController()?.flush();
     if (this.segmentManager) {

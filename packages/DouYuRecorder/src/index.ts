@@ -9,7 +9,6 @@ import {
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  createRecordExtraDataController,
   Comment,
   GiveGift,
   SuperChat,
@@ -127,13 +126,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  const extraDataController: ReturnType<typeof createRecordExtraDataController> =
-    streamManager.getExtraDataController();
-
   const client = createDYClient(Number(this.channelId), {
     notAutoStart: true,
   });
   client.on("message", (msg) => {
+    const extraDataController = streamManager.getExtraDataController();
     // console.log("msg", msg, extraDataController);
     if (!extraDataController) return;
     switch (msg.type) {
