@@ -1,5 +1,4 @@
 import mitt from "mitt";
-import fs from "fs-extra";
 import {
   Recorder,
   RecorderCreateOpts,
@@ -14,10 +13,11 @@ import {
   Comment,
   GiveGift,
   SuperChat,
+  StreamManager,
 } from "@autorecord/manager";
 import { getInfo, getStream } from "./stream.js";
 import { getRoomInfo } from "./dy_api.js";
-import { assert, ensureFolderExist, replaceExtName, singleton } from "./utils.js";
+import { assert, ensureFolderExist, singleton } from "./utils.js";
 import { createDYClient } from "./dy_client/index.js";
 import { giftMap, colorTab } from "./danma.js";
 import { requester } from "./requester.js";
@@ -69,6 +69,7 @@ const ffmpegOutputOptions: string[] = [
   "-min_frag_duration",
   "60000000",
 ];
+
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
 }) {
@@ -99,14 +100,23 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.availableSources = availableSources.map((s) => s.name);
   this.usedStream = stream.name;
   this.usedSource = stream.source;
-  const hasSegment = !!this.segment;
   // TODO: emit update event
 
+  const hasSegment = !!this.segment;
   const savePath = getSavePath({ owner, title });
-  const extraDataSavePath = replaceExtName(savePath, ".json");
   const recordSavePath = savePath;
-  const templateSavePath = hasSegment ? `${recordSavePath}-PART%03d.ts` : `${recordSavePath}.ts`;
+  const streamManager = new StreamManager(
+    this,
+    getSavePath,
+    owner,
+    title,
+    recordSavePath,
+    hasSegment,
+  );
+  const templateSavePath = streamManager.getVideoFilepath();
   console.log("templateSavePath", templateSavePath);
+
+  const extraDataSavePath = streamManager.extraDataSavePath;
 
   try {
     // TODO: 这个 ensure 或许应该放在 createRecordExtraDataController 里实现？
@@ -117,13 +127,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  let extraDataController: ReturnType<typeof createRecordExtraDataController>;
-
-  if (!hasSegment) {
-    // TODO: disableProvideCommentsWhenRecording 为 true 时，不应该创建 extraDataController
-    extraDataController = createRecordExtraDataController(extraDataSavePath);
-    extraDataController.setMeta({ title });
-  }
+  const extraDataController: ReturnType<typeof createRecordExtraDataController> =
+    streamManager.getExtraDataController();
 
   const client = createDYClient(Number(this.channelId), {
     notAutoStart: true,
@@ -218,34 +223,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   let isEnded = false;
 
-  /**
-   * 处理上一个完成片段
-   */
-  const hanldeLastSegmentCompleted = async () => {
-    if (!hasSegment) return;
-    console.log("hanle segmentData", segmentData);
-
-    const trueFilepath = getSavePath({ owner, title, startTime: segmentData.startTime });
-    console.log("ffmpeg end", segmentData.rawname, `${trueFilepath}.ts`, segmentData.startTime);
-
-    try {
-      await Promise.all([
-        fs.rename(segmentData.rawname, `${trueFilepath}.ts`),
-        extraDataController.flush(),
-      ]);
-      this.emit("videoFileCompleted", { filename: `${trueFilepath}.ts` });
-    } catch (err) {
-      this.emit("DebugLog", { type: "common", text: "videoFileCompleted error " + String(err) });
-    }
-  };
-
   const onEnd = async (...args: unknown[]) => {
     if (isEnded) return;
     isEnded = true;
-    await hanldeLastSegmentCompleted();
-    if (!hasSegment) {
-      this.emit("videoFileCreated", { filename: `${templateSavePath}.ts` });
-    }
 
     this.emit("DebugLog", {
       type: "common",
@@ -255,12 +235,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const segmentData = {
-    startTime: Date.now(),
-    rawname: recordSavePath,
-  };
-  console.log("init segmentData", segmentData);
-  let isFirstSegment = true;
   const isInvalidStream = createInvalidStreamChecker();
   const timeoutChecker = createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
   const command = createFFMPEGBuilder(stream.url)
@@ -271,41 +245,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     .outputOptions(ffmpegOutputOptions)
     .output(templateSavePath)
     .on("start", () => {
-      segmentData.startTime = Date.now();
-      console.log("start segmentData", segmentData);
-      if (!hasSegment) {
-        this.emit("videoFileCompleted", { filename: `${templateSavePath}.ts` });
-      }
+      streamManager.handleVideoStarted();
     })
     .on("error", onEnd)
     .on("end", () => onEnd("finished"))
     .on("stderr", async (stderrLine) => {
       assert(typeof stderrLine === "string");
       if (stderrLine.includes("Opening ")) {
-        if (!isFirstSegment) {
-          await hanldeLastSegmentCompleted();
-        }
-        // 下一个切片生成
-        isFirstSegment = false;
-        segmentData.startTime = Date.now();
-
-        const trueFilepath = getSavePath({ owner, title, startTime: segmentData.startTime });
-        extraDataController = createRecordExtraDataController(`${trueFilepath}.json`);
-        extraDataController.setMeta({ title });
-        console.log("segment segmentData", segmentData);
-
-        const regex = /'([^']+)'/;
-        const match = stderrLine.match(regex);
-        if (match) {
-          const filename = match[1];
-          segmentData.rawname = filename;
-          // this.emit("RecordSegment", this.recordHandle);
-          const trueFilepath = getSavePath({ owner, title, startTime: segmentData.startTime });
-          this.emit("videoFileCreated", { filename: `${trueFilepath}.ts` });
-        } else {
-          this.emit("DebugLog", { type: "ffmpeg", text: "No match found" });
-          console.log("No match found");
-        }
+        await streamManager.onSegmentStart(stderrLine);
       }
       // TODO:解析时间
       this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
@@ -356,14 +303,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
         this.emit("DebugLog", { type: "common", text: String(err) });
       }
-      extraDataController?.setMeta({ recordStopTimestamp: Date.now() });
-      extraDataController?.flush();
 
       this.usedStream = undefined;
       this.usedSource = undefined;
       // TODO: other codes
       // TODO: emit update event
-      await hanldeLastSegmentCompleted();
+      await streamManager.handleVideoCompleted();
       this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
       this.recordHandle = undefined;
       this.state = "idle";

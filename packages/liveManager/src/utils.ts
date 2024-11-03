@@ -1,3 +1,4 @@
+import path from "node:path";
 import { DebouncedFunc, throttle } from "lodash-es";
 
 export type AnyObject = Record<string, any>;
@@ -36,4 +37,11 @@ export function asyncThrottle(
   const throttled = throttle(wrappedWithAllowDefer, time);
 
   return throttled;
+}
+
+export function replaceExtName(filePath: string, newExtName: string) {
+  return path.join(
+    path.dirname(filePath),
+    path.basename(filePath, path.extname(filePath)) + newExtName,
+  );
 }

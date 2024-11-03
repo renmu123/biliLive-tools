@@ -1,3 +1,4 @@
+import fs from "fs-extra";
 import path from "node:path";
 import mitt, { Emitter } from "mitt";
 import { omit, range } from "lodash-es";
@@ -9,7 +10,8 @@ import {
   RecordHandle,
   DebugLog,
 } from "./recorder.js";
-import { AnyObject, UnknownObject } from "./utils.js";
+import { AnyObject, UnknownObject, replaceExtName } from "./utils.js";
+import { createRecordExtraDataController } from "./record_extra_data_controller.js";
 import { parseArgsStringToArgv } from "string-argv";
 import filenamify from "filenamify";
 
@@ -372,3 +374,156 @@ function removeSystemReservedChars(filename: string) {
 }
 
 export type GetProviderExtra<P> = P extends RecorderProvider<infer E> ? E : never;
+
+class SegmentManager {
+  segmentData: { startTime: number; rawname: string };
+  hasSegment: boolean;
+  extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
+  isFirstSegment = true;
+
+  constructor(
+    private recorder: Recorder,
+    private getSavePath: (opts: any) => string,
+    private owner: string,
+    private title: string,
+    private recordSavePath: string,
+  ) {
+    this.hasSegment = !!recorder.segment;
+    this.segmentData = { startTime: Date.now(), rawname: recordSavePath };
+  }
+
+  async handleLastSegmentCompleted() {
+    if (!this.hasSegment) return;
+    console.log("handle segmentData", this.segmentData);
+
+    const trueFilepath = this.getSavePath({
+      owner: this.owner,
+      title: this.title,
+      startTime: this.segmentData.startTime,
+    });
+    console.log(
+      "ffmpeg end",
+      this.segmentData.rawname,
+      `${trueFilepath}.ts`,
+      this.segmentData.startTime,
+    );
+
+    try {
+      await Promise.all([
+        fs.rename(this.segmentData.rawname, `${trueFilepath}.ts`),
+        this.extraDataController?.flush(),
+      ]);
+      this.recorder.emit("videoFileCompleted", { filename: `${trueFilepath}.ts` });
+    } catch (err) {
+      this.recorder.emit("DebugLog", {
+        type: "common",
+        text: "videoFileCompleted error " + String(err),
+      });
+    }
+  }
+
+  async onSegmentStart(stderrLine: string) {
+    if (!this.hasSegment) return;
+
+    if (!this.isFirstSegment) {
+      await this.handleLastSegmentCompleted();
+    }
+    this.isFirstSegment = false;
+    this.segmentData.startTime = Date.now();
+
+    const trueFilepath = this.getSavePath({
+      owner: this.owner,
+      title: this.title,
+      startTime: this.segmentData.startTime,
+    });
+    this.extraDataController = createRecordExtraDataController(`${trueFilepath}.json`);
+    this.extraDataController.setMeta({ title: this.title });
+    console.log("segment segmentData", this.segmentData);
+
+    const regex = /'([^']+)'/;
+    const match = stderrLine.match(regex);
+    if (match) {
+      const filename = match[1];
+      this.segmentData.rawname = filename;
+      this.recorder.emit("videoFileCreated", { filename: `${trueFilepath}.ts` });
+    } else {
+      this.recorder.emit("DebugLog", { type: "ffmpeg", text: "No match found" });
+      console.log("No match found");
+    }
+  }
+
+  getSegmentData() {
+    return this.segmentData;
+  }
+
+  getExtraDataController() {
+    return this.extraDataController;
+  }
+}
+
+export class StreamManager {
+  private segmentManager: SegmentManager | null = null;
+  private extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
+  hasSegment: boolean;
+  extraDataSavePath: string;
+  videoFilePath: string;
+
+  constructor(
+    private recorder: Recorder,
+    private getSavePath: (opts: any) => string,
+    private owner: string,
+    private title: string,
+    private recordSavePath: string,
+    hasSegment: boolean,
+  ) {
+    this.hasSegment = hasSegment;
+    const extraDataSavePath = replaceExtName(recordSavePath, ".json");
+    this.extraDataSavePath = extraDataSavePath;
+    this.videoFilePath = this.getVideoFilepath();
+
+    if (this.hasSegment) {
+      this.segmentManager = new SegmentManager(recorder, getSavePath, owner, title, recordSavePath);
+    } else {
+      this.extraDataController = createRecordExtraDataController(extraDataSavePath);
+      this.extraDataController.setMeta({ title });
+    }
+  }
+
+  async handleVideoStarted() {
+    if (this.segmentManager) {
+      this.segmentManager.segmentData.startTime = Date.now();
+    }
+    if (!this.hasSegment) {
+      this.recorder.emit("videoFileCreated", { filename: this.videoFilePath });
+    }
+  }
+
+  async handleVideoCompleted() {
+    console.log("handleVideoCompleted1111111111111111111111111", this.segmentManager);
+    this.getExtraDataController()?.setMeta({ recordStopTimestamp: Date.now() });
+    this.getExtraDataController()?.flush();
+    if (this.segmentManager) {
+      await this.segmentManager.handleLastSegmentCompleted();
+    } else {
+      this.recorder.emit("videoFileCompleted", { filename: this.videoFilePath });
+    }
+  }
+
+  async onSegmentStart(stderrLine: string) {
+    if (this.segmentManager) {
+      await this.segmentManager.onSegmentStart(stderrLine);
+    }
+  }
+
+  getExtraDataController() {
+    return this.segmentManager?.getExtraDataController() || this.extraDataController;
+  }
+
+  getSegmentData() {
+    return this.segmentManager?.getSegmentData();
+  }
+
+  getVideoFilepath() {
+    return this.hasSegment ? `${this.recordSavePath}-PART%03d.ts` : `${this.recordSavePath}.ts`;
+  }
+}
