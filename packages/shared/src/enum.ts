@@ -173,7 +173,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   },
   recorder: {
     savePath: "",
-    nameRule: "{owner}\\{year}-{month}-{date} {hour}-{min}-{sec} {title}",
+    nameRule: "{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}",
     autoRecord: true,
     quality: "highest",
     line: undefined,

@@ -10,8 +10,8 @@ import {
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  // Comment,
-  // GiveGift,
+  Comment,
+  GiveGift,
   StreamManager,
 } from '@autorecord/manager'
 import { getInfo, getStream } from './stream.js'
@@ -111,58 +111,58 @@ const checkLiveStatusAndRecord: Recorder['checkLiveStatusAndRecord'] = async fun
     throw err
   }
 
-  // let client: HuYaDanMu | null = null
-  // if (!this.disableProvideCommentsWhenRecording) {
-  //   client = new HuYaDanMu(this.channelId)
-  //   client.on('message', (msg: HuYaMessage) => {
-  //     const extraDataController = streamManager.getExtraDataController()
-  //     if (!extraDataController) return
+  let client: HuYaDanMu | null = null
+  if (!this.disableProvideCommentsWhenRecording) {
+    client = new HuYaDanMu(this.channelId)
+    client.on('message', (msg: HuYaMessage) => {
+      const extraDataController = streamManager.getExtraDataController()
+      if (!extraDataController) return
 
-  //     switch (msg.type) {
-  //       case 'chat': {
-  //         const comment: Comment = {
-  //           type: 'comment',
-  //           timestamp: Date.now(),
-  //           text: msg.content,
-  //           sender: {
-  //             uid: msg.from.rid,
-  //             name: msg.from.name,
-  //           },
-  //         }
-  //         this.emit('Message', comment)
-  //         extraDataController.addMessage(comment)
-  //         break
-  //       }
-  //       case 'gift': {
-  //         // console.log('gift', msg)
-  //         const gift: GiveGift = {
-  //           type: 'give_gift',
-  //           timestamp: Date.now(),
-  //           name: msg.name,
-  //           count: msg.count,
-  //           // 保留一位小数
-  //           price: Number((msg.price / msg.count).toFixed(2)),
-  //           sender: {
-  //             uid: msg.from.rid,
-  //             name: msg.from.name,
-  //           },
-  //         }
-  //         this.emit('Message', gift)
-  //         extraDataController.addMessage(gift)
-  //         break
-  //       }
-  //     }
-  //   })
-  //   client.on('error', (e: unknown) => {
-  //     this.emit('DebugLog', { type: 'common', text: String(e) })
-  //   })
-  //   try {
-  //     await client.start()
-  //   } catch (err) {
-  //     this.state = 'idle'
-  //     throw err
-  //   }
-  // }
+      switch (msg.type) {
+        case 'chat': {
+          const comment: Comment = {
+            type: 'comment',
+            timestamp: Date.now(),
+            text: msg.content,
+            sender: {
+              uid: msg.from.rid,
+              name: msg.from.name,
+            },
+          }
+          this.emit('Message', comment)
+          extraDataController.addMessage(comment)
+          break
+        }
+        case 'gift': {
+          // console.log('gift', msg)
+          const gift: GiveGift = {
+            type: 'give_gift',
+            timestamp: Date.now(),
+            name: msg.name,
+            count: msg.count,
+            // 保留一位小数
+            price: Number((msg.price / msg.count).toFixed(2)),
+            sender: {
+              uid: msg.from.rid,
+              name: msg.from.name,
+            },
+          }
+          this.emit('Message', gift)
+          extraDataController.addMessage(gift)
+          break
+        }
+      }
+    })
+    client.on('error', (e: unknown) => {
+      this.emit('DebugLog', { type: 'common', text: String(e) })
+    })
+    try {
+      await client.start()
+    } catch (err) {
+      this.state = 'idle'
+      throw err
+    }
+  }
 
   let isEnded = false
   const onEnd = (...args: unknown[]) => {

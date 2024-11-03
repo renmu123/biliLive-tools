@@ -97,7 +97,6 @@ export function createRecorderManager(appConfig: AppConfig) {
       ) {
         throw new Error("不可重复添加");
       }
-      delete recorder.extra;
       recorderConfig.add(recorder);
       const data = recorderConfig.get(recorder.id);
 

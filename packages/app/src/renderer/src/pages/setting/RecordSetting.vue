@@ -157,6 +157,10 @@ const selectFolder = async (type: "recorder") => {
 };
 const titleList = ref([
   {
+    value: "{platform}",
+    label: "平台",
+  },
+  {
     value: "{channelId}",
     label: "房间号",
   },
