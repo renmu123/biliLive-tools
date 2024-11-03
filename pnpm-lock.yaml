@@ -108,7 +108,7 @@ importers:
     dependencies:
       '@autorecord/manager':
         specifier: workspace:*
-        version: link:../manager
+        version: link:../liveManager
       axios:
         specifier: 1.7.4
         version: 1.7.4
@@ -309,7 +309,7 @@ importers:
     dependencies:
       '@autorecord/manager':
         specifier: workspace:*
-        version: link:../manager
+        version: link:../liveManager
       '@biliLive-tools/shared':
         specifier: workspace:*
         version: link:../shared
@@ -351,14 +351,14 @@ importers:
         specifier: ^4.7.2
         version: 4.7.2
 
-  packages/manager:
+  packages/liveManager:
     dependencies:
       '@renmu/fluent-ffmpeg':
         specifier: 2.3.0
         version: 2.3.0
       fast-xml-parser:
         specifier: ^4.4.1
-        version: 4.4.1
+        version: 4.5.0
       filenamify:
         specifier: ^6.0.0
         version: 6.0.0
@@ -383,7 +383,7 @@ importers:
         version: link:../DouYuRecorder
       '@autorecord/manager':
         specifier: workspace:*
-        version: link:../manager
+        version: link:../liveManager
       '@biliLive-tools/types':
         specifier: workspace:*
         version: link:../types
@@ -2631,10 +2631,6 @@ packages:
 
   fast-uri@3.0.1:
     resolution: {integrity: sha512-MWipKbbYiYI0UC7cl8m/i/IWTqfC8YXsqjzybjddLsFjStroQzsHXkc73JutMvBiXmOvapk+axIl79ig5t55Bw==}
-
-  fast-xml-parser@4.4.1:
-    resolution: {integrity: sha512-xkjOecfnKGkSsOwtZ5Pz7Us/T6mrbPQrq0nh+aCO5V9nk5NLWmasAHumTKjiPJPWANe+kAZ84Jc8ooJkzZ88Sw==}
-    hasBin: true
 
   fast-xml-parser@4.5.0:
     resolution: {integrity: sha512-/PlTQCI96+fZMAOLMZK4CWG1ItCbfZ/0jx7UIJFChPNrx7tcEgerUgWbeieCM9MfHInUDyK8DWYZ+YrywDJuTg==}
@@ -7448,10 +7444,6 @@ snapshots:
   fast-levenshtein@2.0.6: {}
 
   fast-uri@3.0.1: {}
-
-  fast-xml-parser@4.4.1:
-    dependencies:
-      strnum: 1.0.5
 
   fast-xml-parser@4.5.0:
     dependencies:
