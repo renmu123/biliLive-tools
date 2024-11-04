@@ -110,6 +110,7 @@
             :options="userList"
             label-field="name"
             value-field="uid"
+            :disabled="globalFieldsObj.uid"
           />
           <n-checkbox v-model:checked="globalFieldsObj.uid" class="global-checkbox"
             >全局</n-checkbox
