@@ -16,6 +16,7 @@ export interface Comment<E extends AnyObject = UnknownObject> {
   type: "comment";
   timestamp: number;
   text: string;
+  mode?: number;
   color?: string;
   sender?: MessageSender;
   extra?: E;

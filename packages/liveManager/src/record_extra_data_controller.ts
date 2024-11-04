@@ -89,7 +89,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
         const data = {
           "@@p": "",
           "@@progress": progress,
-          "@@mode": String(1),
+          "@@mode": String(ele.mode ?? 1),
           "@@fontsize": String(25),
           "@@color": String(parseInt((ele.color || "#ffffff").replace("#", ""), 16)),
           "@@midHash": String(ele?.sender?.uid),
@@ -137,7 +137,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
         const data = {
           "@@ts": progress,
           "@@price": String(ele.price * 1000),
-          "#message": String(ele.text),
+          "#text": String(ele.text),
           "@@user": String(ele.sender?.name),
           "@@uid": String(ele?.sender?.uid),
           // "@@raw": JSON.stringify(ele),
@@ -155,7 +155,6 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
           "@@giftname": String(ele.name),
           "@@giftcount": String(ele.count),
           "@@level": String(ele.level),
-          "#message": "",
           "@@user": String(ele.sender?.name),
           "@@uid": String(ele?.sender?.uid),
           // "@@raw": JSON.stringify(ele),

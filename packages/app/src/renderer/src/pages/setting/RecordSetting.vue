@@ -81,6 +81,7 @@
           :options="userList"
           label-field="name"
           value-field="uid"
+          clearable
         />
       </n-form-item>
       <n-form-item>

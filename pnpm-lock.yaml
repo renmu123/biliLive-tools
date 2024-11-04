@@ -201,6 +201,9 @@ importers:
       better-sqlite3:
         specifier: 11.2.1
         version: 11.2.1
+      bufferutil:
+        specifier: ^4.0.8
+        version: 4.0.8
       electron-context-menu:
         specifier: 4.0.4
         version: 4.0.4
@@ -216,6 +219,9 @@ importers:
       semver:
         specifier: ^7.6.3
         version: 7.6.3
+      utf-8-validate:
+        specifier: ^6.0.4
+        version: 6.0.4
     devDependencies:
       '@electron-toolkit/eslint-config':
         specifier: ^1.0.2
@@ -6782,7 +6788,6 @@ snapshots:
   bufferutil@4.0.8:
     dependencies:
       node-gyp-build: 4.8.1
-    optional: true
 
   builder-util-runtime@9.2.4:
     dependencies:
@@ -8858,8 +8863,7 @@ snapshots:
     optionalDependencies:
       encoding: 0.1.13
 
-  node-gyp-build@4.8.1:
-    optional: true
+  node-gyp-build@4.8.1: {}
 
   node-gyp@9.4.1:
     dependencies:
@@ -10001,7 +10005,6 @@ snapshots:
   utf-8-validate@6.0.4:
     dependencies:
       node-gyp-build: 4.8.1
-    optional: true
 
   utf8-byte-length@1.0.5: {}
 
