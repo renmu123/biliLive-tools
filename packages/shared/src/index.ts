@@ -35,7 +35,7 @@ const init = async (config: GlobalConfig) => {
     videoPreset: asClass(VideoPreset).singleton(),
     ffmpegPreset: asClass(FFmpegPreset).singleton(),
   });
-  const recorderManager = createRecorderManager(appConfig);
+  const recorderManager = await createRecorderManager(appConfig);
   container.register({
     recorderManager: asValue(recorderManager),
   });

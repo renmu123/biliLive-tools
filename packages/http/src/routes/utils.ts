@@ -40,6 +40,7 @@ export function recorderToClient(recorder: Recorder): ClientRecorder {
       "recordHandle",
       "toJSON",
       "getLiveInfo",
+      "auth",
     ),
     channelURL: recorder.getChannelURL(),
     recordHandle: recorder.recordHandle && omit(recorder.recordHandle, "stop"),

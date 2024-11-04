@@ -216,7 +216,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     };
 
     // 弹幕协议不能走短 id，所以不能直接用 channelId。
-    client = startListen(roomId, handler);
+    client = startListen(roomId, handler, {
+      ws: {
+        headers: {
+          Cookie: this.auth,
+        },
+        uid: 0,
+      },
+    });
   }
 
   let isEnded = false;

@@ -74,6 +74,17 @@
       </n-form-item>
       <n-form-item>
         <template #label>
+          <Tip text="录制账号" tip="目前只支持B站账号"></Tip>
+        </template>
+        <n-select
+          v-model:value="config.recorder.uid"
+          :options="userList"
+          label-field="name"
+          value-field="uid"
+        />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
           <span class="inline-flex"> 线路 </span>
         </template>
         待实现
@@ -122,6 +133,7 @@
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { templateRef } from "@vueuse/core";
 import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
+import { useUserInfoStore } from "@renderer/stores";
 
 import type { AppConfig } from "@biliLive-tools/types";
 
@@ -129,6 +141,7 @@ const config = defineModel<AppConfig>("data", {
   default: () => {},
 });
 
+const { userList } = storeToRefs(useUserInfoStore());
 const qualityOptions = [
   { value: "highest", label: "最高" },
   { value: "high", label: "高" },

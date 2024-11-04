@@ -44,6 +44,7 @@ export function defaultToJSON<E extends AnyObject>(
       "saveGiftDanma",
       "disableProvideCommentsWhenRecording",
       "liveInfo",
+      "uid",
     ]),
   };
 }

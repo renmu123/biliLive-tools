@@ -9,13 +9,24 @@ import { getFfmpegPath } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
 import { sleep } from "../utils/index.js";
+import { readUser } from "../task/bili.js";
 
 import type { AppConfig } from "../config.js";
 import type { LocalRecordr } from "@biliLive-tools/types";
 
 export { RecorderConfig };
 
-export function createRecorderManager(appConfig: AppConfig) {
+async function getCookies(uid: number) {
+  const user = await readUser(uid);
+  if (user) {
+    return Object.entries(user.cookie)
+      .map((item: [string, string]) => `${item[0]}=${item[1]}`)
+      .join("; ");
+  }
+  return "";
+}
+
+export async function createRecorderManager(appConfig: AppConfig) {
   const config = appConfig.getAll();
   const { ffmpegPath } = getFfmpegPath();
   setFFMPEGPath(ffmpegPath);
@@ -33,6 +44,7 @@ export function createRecorderManager(appConfig: AppConfig) {
     savePathRule: savePathRule,
   });
 
+  // TODO: 增加日志记录
   // manager.on("RecorderDebugLog", (debug) => {
   //   console.error("Manager deug", debug.text);
   // });
@@ -82,16 +94,23 @@ export function createRecorderManager(appConfig: AppConfig) {
     updateRecorderManager(manager, appConfig);
   });
 
+  // TODO: 增加更新监听，处理配置更新
   const recorderConfig = new RecorderConfig(appConfig);
-  recorderConfig.list().forEach((recorder) => {
-    manager.addRecorder(recorder);
-  });
+  for (const recorder of recorderConfig.list()) {
+    const uid = recorder.uid;
+    let auth: string;
+    if (uid) {
+      auth = await getCookies(Number(uid));
+    }
+    manager.addRecorder({ ...recorder, auth });
+  }
+
   if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
 
   return {
     manager,
     config: recorderConfig,
-    addRecorder: (recorder: LocalRecordr) => {
+    addRecorder: async (recorder: LocalRecordr) => {
       const recorders = recorderConfig.list();
       if (
         recorders.findIndex(
@@ -103,13 +122,20 @@ export function createRecorderManager(appConfig: AppConfig) {
       }
       recorderConfig.add(recorder);
       const data = recorderConfig.get(recorder.id);
+      const uid = recorder.uid;
+      let auth: string;
+      if (uid) {
+        auth = await getCookies(Number(uid));
+      }
 
-      return manager.addRecorder(data!);
+      return manager.addRecorder({
+        ...data,
+        auth,
+      });
     },
     resolveChannel: async (url: string) => {
       for (const provider of manager.providers) {
         const info = await provider.resolveChannelInfoFromURL(url);
-        console.log("resolveChannel", info, url, provider);
         if (!info) continue;
 
         return {

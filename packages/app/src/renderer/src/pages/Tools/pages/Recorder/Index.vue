@@ -3,17 +3,13 @@
     <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px">
       <n-button type="primary" @click="add">添加</n-button>
 
-      <div>支持斗鱼、虎牙平台，这并非是经过严格监测的录播工具，请谨慎在生产环境使用</div>
+      <div>支持斗鱼、虎牙平台、B站，这并非是经过严格监测的录播工具，请谨慎在生产环境使用</div>
     </div>
 
     <div class="recorder-container">
       <div v-for="(item, index) in list" :key="index" class="recorder">
-        <div
-          class="cover"
-          :style="{
-            backgroundImage: `url(${item.cover})`,
-          }"
-        >
+        <div class="cover-container">
+          <img v-if="item.cover" class="cover" :src="item.cover" referrerpolicy="no-referrer" />
           <span v-if="item.roomTitle" class="room-title">{{ item.roomTitle }}</span>
           <div v-if="item.state === 'recording'" class="recording-container">
             <div class="recording"></div>
@@ -22,7 +18,7 @@
           </div>
         </div>
         <div class="content">
-          <img class="avatar" :src="item.avatar" />
+          <img class="avatar" :src="item.avatar" referrerpolicy="no-referrer" />
           <div style="display: flex; flex-direction: column; justify-content: space-between">
             <div style="display: flex; gap: 5px; align-items: center">
               <div class="owner" :title="item.remarks">{{ item.owner }}</div>
@@ -180,15 +176,21 @@ document.addEventListener("visibilitychange", handleVisibilityChange);
   // padding: 10px;
   position: relative;
 
-  .cover {
+  .cover-container {
     position: relative;
-    background-size: cover;
-    background-position: center;
     width: 100%;
     min-width: 320px;
     height: 180px;
     border-radius: 5px 5px 0px 0px;
     border-color: white;
+
+    .cover {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
 
     .room-title {
       color: white;

@@ -26,6 +26,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   saveGiftDanma?: boolean;
   // 保存高能弹幕
   saveSCDanma?: boolean;
+  /** 身份验证 */
+  auth?: string;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
 }

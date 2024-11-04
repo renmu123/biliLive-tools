@@ -41,11 +41,11 @@ api.interceptors.response.use(
     return Promise.resolve(response);
   },
   (error) => {
-    if (error.response.status === 401) {
+    if (error?.response?.status === 401) {
       window.localStorage.removeItem("key");
       window.location.href = "/login";
     }
-    return Promise.reject(error.response.data);
+    return Promise.reject(error?.response?.data);
   },
 );
 

@@ -101,6 +101,20 @@
             >全局</n-checkbox
           >
         </n-form-item>
+        <n-form-item>
+          <template #label>
+            <Tip text="录制账号" tip="目前只支持B站账号"></Tip>
+          </template>
+          <n-select
+            v-model:value="config.uid"
+            :options="userList"
+            label-field="name"
+            value-field="uid"
+          />
+          <n-checkbox v-model:checked="globalFieldsObj.uid" class="global-checkbox"
+            >全局</n-checkbox
+          >
+        </n-form-item>
 
         <h2>弹幕录制</h2>
         <n-form-item>
@@ -154,6 +168,7 @@
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
 import { useAppConfig } from "@renderer/stores";
+import { useUserInfoStore } from "@renderer/stores";
 
 import type { LocalRecordr, BaseRecordr } from "@biliLive-tools/types";
 
@@ -162,6 +177,7 @@ interface Props {
 }
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
+const { userList } = storeToRefs(useUserInfoStore());
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const props = defineProps<Props>();
@@ -274,6 +290,7 @@ watchEffect(async () => {
       disableAutoCheck: false,
       sendToWebhook: false,
       noGlobalFollowFields: [],
+      uid: "",
     };
   }
   if (props.id) {
@@ -289,6 +306,7 @@ watchEffect(async () => {
     saveGiftDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftDanma"),
     saveSCDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
     segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
+    uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
   };
 });
 
@@ -312,6 +330,9 @@ watch(
     }
     if (val.segment) {
       config.value.segment = appConfig.value.recorder.segment;
+    }
+    if (val.uid) {
+      config.value.uid = appConfig.value.recorder.uid;
     }
   },
   {

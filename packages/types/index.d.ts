@@ -252,6 +252,8 @@ interface BaseRecordr {
   saveSCDanma?: boolean;
   /**分段时长，单位分钟 */
   segment?: number;
+  /** 账号 */
+  uid?: string;
 }
 
 export interface GlobalRecorder extends BaseRecordr {
