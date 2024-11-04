@@ -13,9 +13,10 @@ import {
   Comment,
   GiveGift,
   StreamManager,
+  utils,
 } from "@autorecord/manager";
 import { getInfo, getStream } from "./stream.js";
-import { assertStringType, ensureFolderExist, singleton } from "./utils.js";
+import { assertStringType, ensureFolderExist } from "./utils.js";
 import HuYaDanMu, { HuYaMessage } from "huya-danma";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
@@ -35,7 +36,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     getChannelURL() {
       return `https://www.huya.com/${this.channelId}`;
     },
-    checkLiveStatusAndRecord: singleton(checkLiveStatusAndRecord),
+    checkLiveStatusAndRecord: utils.singleton(checkLiveStatusAndRecord),
 
     toJSON() {
       return defaultToJSON(provider, this);
@@ -232,7 +233,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // })
   command.run();
 
-  const stop = singleton<RecordHandle["stop"]>(async (reason?: string) => {
+  const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
     this.state = "stopping-record";
     // TODO: emit update event

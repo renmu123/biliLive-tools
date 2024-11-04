@@ -12,11 +12,12 @@ import {
   genRecordUUID,
   StreamManager,
   createRecordExtraDataController,
+  utils,
 } from "@autorecord/manager";
 import type { Comment, GiveGift, SuperChat, Guard } from "@autorecord/manager";
 
 import { getInfo, getStream } from "./stream.js";
-import { assertStringType, ensureFolderExist, singleton } from "./utils.js";
+import { assertStringType, ensureFolderExist } from "./utils.js";
 import { startListen, MsgHandler } from "blive-message-listener";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
@@ -36,7 +37,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     getChannelURL() {
       return `https://live.bilibili.com/${this.channelId}`;
     },
-    checkLiveStatusAndRecord: singleton(checkLiveStatusAndRecord),
+    checkLiveStatusAndRecord: utils.singleton(checkLiveStatusAndRecord),
 
     toJSON() {
       return defaultToJSON(provider, this);
@@ -286,7 +287,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
 
-  const stop = singleton<RecordHandle["stop"]>(async (reason?: string) => {
+  const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
     this.state = "stopping-record";
     // TODO: emit update event

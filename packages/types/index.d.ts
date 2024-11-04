@@ -265,6 +265,8 @@ export interface GlobalRecorder extends BaseRecordr {
   autoRecord: boolean;
   /** 检查间隔 */
   checkInterval: number;
+  /** 调试模式 */
+  debugMode: boolean;
 }
 
 export interface LocalRecordr extends BaseRecordr {

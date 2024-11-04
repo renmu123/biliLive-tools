@@ -1,10 +1,11 @@
+import fs from "node:fs";
 import path from "node:path";
 import axios from "axios";
 
 import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
 import { provider as providerForHuYa } from "@autorecord/huya-recorder";
 import { provider as providerForBiliBili } from "@autorecord/bilibili-recorder";
-import { createRecorderManager as createManager, setFFMPEGPath } from "@autorecord/manager";
+import { createRecorderManager as createManager, setFFMPEGPath, utils } from "@autorecord/manager";
 import { getFfmpegPath } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
@@ -44,10 +45,21 @@ export async function createRecorderManager(appConfig: AppConfig) {
     savePathRule: savePathRule,
   });
 
-  // TODO: 增加日志记录
-  // manager.on("RecorderDebugLog", (debug) => {
-  //   console.error("Manager deug", debug.text);
-  // });
+  manager.on("RecorderDebugLog", ({ recorder, ...log }) => {
+    // console.error("Manager deug", log.text);
+
+    const debugMode = config.recorder.debugMode;
+    if (!debugMode) return;
+
+    if (log.type === "ffmpeg" && recorder.recordHandle) {
+      const logFilePath = utils.replaceExtName(
+        `${recorder.recordHandle.savePath}_${recorder.id}`,
+        ".ffmpeg.log",
+      );
+      fs.appendFileSync(logFilePath, log.text + "\n");
+      return;
+    }
+  });
   manager.on("RecordStart", (debug) => {
     logger.info("Manager start", debug);
   });

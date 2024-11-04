@@ -5,11 +5,13 @@ import { v4 as uuid } from "uuid";
 import { RecorderProvider } from "./manager.js";
 import { SerializedRecorder, Recorder, RecordHandle } from "./recorder.js";
 import { AnyObject } from "./utils.js";
+import utils from "./utils.js";
 
 export * from "./common.js";
 export * from "./recorder.js";
 export * from "./manager.js";
 export * from "./record_extra_data_controller.js";
+export { utils };
 
 /**
  * 提供一些 utils

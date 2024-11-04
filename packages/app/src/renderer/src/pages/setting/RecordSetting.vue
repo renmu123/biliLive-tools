@@ -85,6 +85,12 @@
       </n-form-item>
       <n-form-item>
         <template #label>
+          <span> 调试模式 </span>
+        </template>
+        <n-switch v-model:value="config.recorder.debugMode" />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
           <span class="inline-flex"> 线路 </span>
         </template>
         待实现

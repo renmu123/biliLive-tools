@@ -3,27 +3,6 @@ import path from "node:path";
 import { range } from "lodash-es";
 
 /**
- * 接收 fn ，返回一个和 fn 签名一致的函数 fn'。当已经有一个 fn' 在运行时，再调用
- * fn' 会直接返回运行中 fn' 的 Promise，直到 Promise 结束 pending 状态
- */
-export function singleton<Fn extends (...args: any) => Promise<any>>(fn: Fn): Fn {
-  let latestPromise: Promise<unknown> | null = null;
-
-  return function (...args) {
-    if (latestPromise) return latestPromise;
-    // @ts-ignore
-    const promise = fn.apply(this, args).finally(() => {
-      if (promise === latestPromise) {
-        latestPromise = null;
-      }
-    });
-
-    latestPromise = promise;
-    return promise;
-  } as Fn;
-}
-
-/**
  * 从数组中按照特定算法提取一些值（允许同个索引重复提取）。
  * 算法的行为类似 flex 的 space-between。
  *

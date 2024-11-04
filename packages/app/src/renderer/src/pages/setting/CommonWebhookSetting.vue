@@ -360,7 +360,7 @@
     <template #label>
       <span class="inline-flex">
         上传到同分p间隔时间
-        <Tip tip="监测直播是否为同一场的时间间隔"></Tip>
+        <Tip tip="检测直播是否为同一场的时间间隔"></Tip>
       </span>
     </template>
     <n-input-number

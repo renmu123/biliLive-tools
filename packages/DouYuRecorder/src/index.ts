@@ -10,12 +10,13 @@ import {
   genRecorderUUID,
   genRecordUUID,
   StreamManager,
+  utils,
 } from "@autorecord/manager";
 import type { Comment, GiveGift, SuperChat } from "@autorecord/manager";
 
 import { getInfo, getStream } from "./stream.js";
 import { getRoomInfo } from "./dy_api.js";
-import { assert, ensureFolderExist, singleton } from "./utils.js";
+import { assert, ensureFolderExist } from "./utils.js";
 import { createDYClient } from "./dy_client/index.js";
 import { giftMap, colorTab } from "./danma.js";
 import { requester } from "./requester.js";
@@ -37,7 +38,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     getChannelURL() {
       return `https://www.douyu.com/${this.channelId}`;
     },
-    checkLiveStatusAndRecord: singleton(checkLiveStatusAndRecord),
+    checkLiveStatusAndRecord: utils.singleton(checkLiveStatusAndRecord),
 
     toJSON() {
       return defaultToJSON(provider, this);
@@ -270,7 +271,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
 
-  const stop = singleton<RecordHandle["stop"]>(
+  const stop = utils.singleton<RecordHandle["stop"]>(
     async (reason?: string, tempStopIntervalCheck?: boolean) => {
       if (!this.recordHandle) return;
       this.tempStopIntervalCheck = !!tempStopIntervalCheck;
