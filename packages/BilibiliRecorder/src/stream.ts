@@ -18,6 +18,8 @@ export async function getInfo(channelId: string): Promise<{
   title: string;
   roomId: number;
   shortId: number;
+  avatar: string;
+  cover: string;
 }> {
   const roomInit = await getRoomInit(Number(channelId));
   const { [roomInit.uid]: status } = await getStatusInfoByUIDs([roomInit.uid]);
@@ -26,6 +28,8 @@ export async function getInfo(channelId: string): Promise<{
     living: status.live_status === 1,
     owner: status.uname,
     title: status.title,
+    avatar: status.face,
+    cover: status.cover_from_user,
     roomId: roomInit.room_id,
     shortId: roomInit.short_id,
   };

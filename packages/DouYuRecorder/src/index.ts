@@ -9,11 +9,10 @@ import {
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  Comment,
-  GiveGift,
-  SuperChat,
   StreamManager,
 } from "@autorecord/manager";
+import type { Comment, GiveGift, SuperChat } from "@autorecord/manager";
+
 import { getInfo, getStream } from "./stream.js";
 import { getRoomInfo } from "./dy_api.js";
 import { assert, ensureFolderExist, singleton } from "./utils.js";
@@ -110,7 +109,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedSource = stream.source;
   // TODO: emit update event
   const savePath = getSavePath({ owner, title });
-
   const hasSegment = !!this.segment;
   const streamManager = new StreamManager(this, getSavePath, owner, title, savePath, hasSegment);
   const templateSavePath = streamManager.getVideoFilepath();

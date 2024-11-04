@@ -88,10 +88,3 @@ export function assertNumberType(data: unknown, msg?: string): asserts data is n
 export function assertObjectType(data: unknown, msg?: string): asserts data is object {
   assert(typeof data === "object", msg);
 }
-
-export function replaceExtName(filePath: string, newExtName: string) {
-  return path.join(
-    path.dirname(filePath),
-    path.basename(filePath, path.extname(filePath)) + newExtName,
-  );
-}

@@ -10,12 +10,13 @@ import {
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
+  StreamManager,
   createRecordExtraDataController,
 } from "@autorecord/manager";
 import type { Comment, GiveGift, SuperChat, Guard } from "@autorecord/manager";
 
 import { getInfo, getStream } from "./stream.js";
-import { assertStringType, ensureFolderExist, replaceExtName, singleton } from "./utils.js";
+import { assertStringType, ensureFolderExist, singleton } from "./utils.js";
 import { startListen, MsgHandler } from "blive-message-listener";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
@@ -40,7 +41,14 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     toJSON() {
       return defaultToJSON(provider, this);
     },
-    // TODO:少了LiveInfo  这个方法
+    async getLiveInfo() {
+      const channelId = this.channelId;
+      const info = await getInfo(channelId);
+      return {
+        channelId,
+        ...info,
+      };
+    },
   };
 
   const recorderWithSupportUpdatedEvent = new Proxy(recorder, {
@@ -97,12 +105,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // TODO:少了segment相关的方法
 
   const savePath = getSavePath({ owner, title });
-  const extraDataSavePath = replaceExtName(savePath, ".json");
-  const recordSavePath = savePath;
+  const hasSegment = !!this.segment;
+  const streamManager = new StreamManager(this, getSavePath, owner, title, savePath, hasSegment);
+  const templateSavePath = streamManager.getVideoFilepath();
+  const extraDataSavePath = streamManager.extraDataSavePath;
+
   try {
     // TODO: 这个 ensure 或许应该放在 createRecordExtraDataController 里实现？
     ensureFolderExist(extraDataSavePath);
-    ensureFolderExist(recordSavePath);
+    ensureFolderExist(savePath);
   } catch (err) {
     this.state = "idle";
     throw err;
@@ -231,11 +242,17 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       "Referer: https://live.bilibili.com/",
     )
     .outputOptions(ffmpegOutputOptions)
-    .output(recordSavePath)
+    .output(templateSavePath)
+    .on("start", () => {
+      streamManager.handleVideoStarted();
+    })
     .on("error", onEnd)
     .on("end", () => onEnd("finished"))
-    .on("stderr", (stderrLine) => {
+    .on("stderr", async (stderrLine) => {
       assertStringType(stderrLine);
+      if (stderrLine.includes("Opening ")) {
+        await streamManager.handleVideoStarted(stderrLine);
+      }
       this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 
       if (isInvalidStream(stderrLine)) {
@@ -243,6 +260,16 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       }
     })
     .on("stderr", timeoutChecker.update);
+  if (hasSegment) {
+    command.outputOptions(
+      "-f",
+      "segment",
+      "-segment_time",
+      String(this.segment! * 60),
+      "-reset_timestamps",
+      "1",
+    );
+  }
   const ffmpegArgs = command._getArguments();
   extraDataController.setMeta({
     recordStartTimestamp: Date.now(),
@@ -259,19 +286,24 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
     timeoutChecker.stop();
 
-    // 如果给 SIGKILL 信号会非正常退出，SIGINT 可以被 ffmpeg 正常处理。
-    // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
-    command.kill("SIGINT");
-    // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
-    client?.close();
-    extraDataController.setMeta({ recordStopTimestamp: Date.now() });
-    extraDataController.flush();
+    try {
+      // 如果给 SIGKILL 信号会非正常退出，SIGINT 可以被 ffmpeg 正常处理。
+      // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
+      // @ts-ignore
+      command.ffmpegProc?.stdin?.write("q");
+      // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
+      client?.close();
+    } catch (err) {
+      // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
+      this.emit("DebugLog", { type: "common", text: String(err) });
+    }
 
     this.usedStream = undefined;
     this.usedSource = undefined;
     // TODO: other codes
     // TODO: emit update event
 
+    await streamManager.handleVideoCompleted();
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.state = "idle";
@@ -283,7 +315,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     source: stream.source,
     url: stream.url,
     ffmpegArgs,
-    savePath: recordSavePath,
+    savePath: savePath,
     stop,
   };
   this.emit("RecordStart", this.recordHandle);

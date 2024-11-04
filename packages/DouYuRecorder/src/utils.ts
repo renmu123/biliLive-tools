@@ -71,13 +71,6 @@ export function ensureFolderExist(fileOrFolderPath: string): void {
   }
 }
 
-export function replaceExtName(filePath: string, newExtName: string) {
-  return path.join(
-    path.dirname(filePath),
-    path.basename(filePath, path.extname(filePath)) + newExtName,
-  );
-}
-
 export function assert(assertion: unknown, msg?: string): asserts assertion {
   if (!assertion) {
     throw new Error(msg);
