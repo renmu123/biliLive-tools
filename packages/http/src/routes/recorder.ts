@@ -48,6 +48,7 @@ async function addRecorder(args: API.addRecorder.Args): Promise<API.addRecorder.
 
   // recorderManager.config.add(config);
   const recorder = await recorderManager.addRecorder(config);
+  // @ts-ignore
   return recorderToClient(recorder);
 }
 

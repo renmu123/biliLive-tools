@@ -183,6 +183,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     saveGiftDanma: false,
     saveSCDanma: true,
     uid: undefined,
+    debugMode: false,
   },
   recorders: [],
 };

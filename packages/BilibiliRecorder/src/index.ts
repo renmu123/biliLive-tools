@@ -119,13 +119,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  let count = 0;
   let client: ReturnType<typeof startListen> | null = null;
   if (!this.disableProvideCommentsWhenRecording) {
     const handler: MsgHandler = {
       onIncomeDanmu: (msg) => {
         console.log("comment", msg.body.content);
-        count++;
 
         const extraDataController = streamManager.getExtraDataController();
         if (!extraDataController) return;
@@ -136,7 +134,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           type: "comment",
           timestamp: msg.timestamp,
           text: msg.body.content,
+          // @ts-ignore
           color: msg.body.content_color,
+          // @ts-ignore
           mode: msg.body.type,
 
           sender: {

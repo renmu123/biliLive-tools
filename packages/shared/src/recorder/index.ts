@@ -111,7 +111,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   const recorderConfig = new RecorderConfig(appConfig);
   for (const recorder of recorderConfig.list()) {
     const uid = recorder.uid;
-    let auth: string;
+    let auth: string | undefined = undefined;
     if (uid) {
       auth = await getCookies(Number(uid));
       // console.log("auth", auth);
@@ -122,7 +122,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     }
     // @ts-ignore
     recorder.extra.uid = uid;
-    manager.addRecorder({ ...recorder, auth });
+    manager.addRecorder({ ...recorder, auth: auth });
   }
 
   if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
@@ -142,8 +142,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
       }
       recorderConfig.add(recorder);
       const data = recorderConfig.get(recorder.id);
+      if (!data) return;
       const uid = recorder.uid;
-      let auth: string;
+      let auth: string | undefined = undefined;
       if (uid) {
         auth = await getCookies(Number(uid));
       }
@@ -156,7 +157,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
       return manager.addRecorder({
         ...data,
-        auth,
+        auth: auth,
       });
     },
     resolveChannel: async (url: string) => {
