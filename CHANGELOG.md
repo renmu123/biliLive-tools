@@ -3,7 +3,7 @@
 ## 优化
 
 1. 由于简介好像统一为2000字了，移除额外的请求
-2. 多p视频支持加入合集
+2. 多p视频支持加入合集 [#33](https://github.com/renmu123/biliLive-tools/issues/33)
 
 ## Bug修复
 
