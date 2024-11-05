@@ -243,10 +243,6 @@ async function addMedia(
           if (options.seasonId) {
             const archive = await client.platform.getArchive({ aid: data.aid });
             log.debug("合集稿件", archive);
-            if (archive.videos.length > 1) {
-              log.warn("该稿件的分p大于1，无法加入分p", archive.archive.title);
-              return;
-            }
             const cid = archive.videos[0].cid;
             let sectionId = options.sectionId;
             if (!options.sectionId) {
