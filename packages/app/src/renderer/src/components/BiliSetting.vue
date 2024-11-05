@@ -483,11 +483,11 @@ watchEffect(() => {
     options.value.config.closeReply = 0;
   }
 });
-watchEffect(() => {
-  if (options.value.config.tid) {
-    getTypeDesc(options.value.config.tid);
-  }
-});
+// watchEffect(() => {
+//   if (options.value.config.tid) {
+//     getTypeDesc(options.value.config.tid);
+//   }
+// });
 
 // 合集
 const userInfoStore = useUserInfoStore();
@@ -525,18 +525,18 @@ const getPlatformTypes = async () => {
   areaData.value = data.typelist;
 };
 
-const descMaxLength = ref(250);
-const getTypeDesc = async (tid: number) => {
-  if (!userInfoStore?.userInfo?.uid) {
-    return;
-  }
-  const data = await window.api.bili.getTypeDesc(tid, userInfoStore.userInfo.uid);
-  if (data) {
-    descMaxLength.value = 2000;
-  } else {
-    descMaxLength.value = 250;
-  }
-};
+const descMaxLength = ref(2000);
+// const getTypeDesc = async (tid: number) => {
+//   if (!userInfoStore?.userInfo?.uid) {
+//     return;
+//   }
+//   const data = await window.api.bili.getTypeDesc(tid, userInfoStore.userInfo.uid);
+//   if (data) {
+//     descMaxLength.value = 2000;
+//   } else {
+//     descMaxLength.value = 250;
+//   }
+// };
 
 watch(
   () => options.value.config.seasonId,
