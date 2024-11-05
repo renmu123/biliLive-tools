@@ -46,7 +46,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   });
 
   manager.on("RecorderDebugLog", ({ recorder, ...log }) => {
-    // console.error("Manager deug", log.text);
+    // console.error("Manager debug", log);
 
     const debugMode = config.recorder.debugMode;
     if (!debugMode) return;
@@ -56,6 +56,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
         `${recorder.recordHandle.savePath}_${recorder.id}`,
         ".ffmpeg.log",
       );
+      // console.log("logFilePath", logFilePath);
       fs.appendFileSync(logFilePath, log.text + "\n");
       return;
     }
@@ -113,7 +114,14 @@ export async function createRecorderManager(appConfig: AppConfig) {
     let auth: string;
     if (uid) {
       auth = await getCookies(Number(uid));
+      // console.log("auth", auth);
     }
+    // @ts-ignore
+    if (!recorder.extra) {
+      recorder.extra = {};
+    }
+    // @ts-ignore
+    recorder.extra.uid = uid;
     manager.addRecorder({ ...recorder, auth });
   }
 
@@ -139,6 +147,12 @@ export async function createRecorderManager(appConfig: AppConfig) {
       if (uid) {
         auth = await getCookies(Number(uid));
       }
+      // @ts-ignore
+      if (!data.extra) {
+        data.extra = {};
+      }
+      // @ts-ignore
+      data.extra.uid = uid;
 
       return manager.addRecorder({
         ...data,

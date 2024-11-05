@@ -463,7 +463,6 @@ class SegmentManager {
 export class StreamManager {
   private segmentManager: SegmentManager | null = null;
   private extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
-  hasSegment: boolean;
   extraDataSavePath: string;
   videoFilePath: string;
   recorder: Recorder;
@@ -497,15 +496,14 @@ export class StreamManager {
   }
 
   async handleVideoStarted(stderrLine?: string) {
-    if (!stderrLine && this.segmentManager) {
-      this.segmentManager.segmentData.startTime = Date.now();
-    }
+    // if (!stderrLine && this.segmentManager) {
+    //   this.segmentManager.segmentData.startTime = Date.now();
+    // }
 
     if (this.segmentManager) {
-      if (!stderrLine) {
-        throw new Error("stderrLine is required");
+      if (stderrLine) {
+        await this.segmentManager.onSegmentStart(stderrLine);
       }
-      await this.segmentManager.onSegmentStart(stderrLine);
     } else {
       this.recorder.emit("videoFileCreated", { filename: this.videoFilePath });
     }

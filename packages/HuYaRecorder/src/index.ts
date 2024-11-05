@@ -199,6 +199,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     )
     .outputOptions(ffmpegOutputOptions)
     .output(templateSavePath)
+    .on("start", () => {
+      streamManager.handleVideoStarted();
+    })
     .on("error", onEnd)
     .on("end", () => onEnd("finished"))
     .on("stderr", async (stderrLine) => {

@@ -11,7 +11,6 @@ import {
   genRecorderUUID,
   genRecordUUID,
   StreamManager,
-  createRecordExtraDataController,
   utils,
 } from "@autorecord/manager";
 import type { Comment, GiveGift, SuperChat, Guard } from "@autorecord/manager";
@@ -120,19 +119,26 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  // TODO: 之后可能要结合 disableRecordMeta 之类的来确认是否要创建文件。
-  const extraDataController = createRecordExtraDataController(extraDataSavePath);
-  extraDataController.setMeta({ title });
-
+  let count = 0;
   let client: ReturnType<typeof startListen> | null = null;
   if (!this.disableProvideCommentsWhenRecording) {
     const handler: MsgHandler = {
       onIncomeDanmu: (msg) => {
+        console.log("comment", msg.body.content);
+        count++;
+
+        const extraDataController = streamManager.getExtraDataController();
+        if (!extraDataController) return;
+        // console.log("msg", msg);
+
         // TODO: 颜色处理，需要提PR
         const comment: Comment = {
           type: "comment",
           timestamp: msg.timestamp,
           text: msg.body.content,
+          color: msg.body.content_color,
+          mode: msg.body.type,
+
           sender: {
             uid: String(msg.body.user.uid),
             name: msg.body.user.uname,
@@ -147,8 +153,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         extraDataController.addMessage(comment);
       },
       onIncomeSuperChat: (msg) => {
+        const extraDataController = streamManager.getExtraDataController();
+        if (!extraDataController) return;
+
         if (this.saveSCDanma === false) return;
-        console.log(msg.id, msg.body);
+        // console.log(msg.id, msg.body);
         const comment: SuperChat = {
           type: "super_chat",
           timestamp: msg.timestamp,
@@ -168,6 +177,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         extraDataController.addMessage(comment);
       },
       onGuardBuy: (msg) => {
+        const extraDataController = streamManager.getExtraDataController();
+        if (!extraDataController) return;
+
+        // console.log("guard", msg);
         if (this.saveGiftDanma === false) return;
         const gift: Guard = {
           type: "guard",
@@ -190,6 +203,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         extraDataController.addMessage(gift);
       },
       onGift: (msg) => {
+        const extraDataController = streamManager.getExtraDataController();
+        if (!extraDataController) return;
+
+        // console.log("gift", msg);
         if (this.saveGiftDanma === false) return;
 
         const gift: GiveGift = {
@@ -215,14 +232,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         extraDataController.addMessage(gift);
       },
     };
-
+    console.log("this.auth", this.auth);
     // 弹幕协议不能走短 id，所以不能直接用 channelId。
     client = startListen(roomId, handler, {
       ws: {
         headers: {
-          Cookie: this.auth,
+          Cookie: this.auth ?? "",
         },
-        uid: 0,
+        uid: (this.extra.uid as number) ?? 0,
       },
     });
   }
@@ -279,10 +296,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     );
   }
   const ffmpegArgs = command._getArguments();
-  extraDataController.setMeta({
-    recordStartTimestamp: Date.now(),
-    ffmpegArgs,
-  });
+  // extraDataController.setMeta({
+  //   recordStartTimestamp: Date.now(),
+  //   ffmpegArgs,
+  // });
   command.run();
 
   // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
