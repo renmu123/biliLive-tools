@@ -234,10 +234,10 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip
-            text="合集"
-            :tip="`多p视频无法加入，仅适用于设置合集的账户(${options.config.uid})，需电磁力3级才可开通`"
-          ></Tip>
+          <span class="inline-flex">
+            <span>合集</span>
+            <Tip :tip="`仅适用于设置合集的账户(${options.config.uid})`"></Tip>
+          </span>
         </template>
         <div class="inline-items" style="align-items: center">
           <n-select
@@ -535,13 +535,10 @@ const getPlatformTypes = async () => {
 
 const descMaxLength = ref(2000);
 // const getTypeDesc = async (tid: number) => {
-//   console.log("tid", tid);
 //   if (!userInfoStore?.userInfo?.uid) {
 //     return;
 //   }
-//   const data = await biliApi.getTypeDesc(tid, userInfoStore.userInfo.uid);
-//   console.log("tid", data);
-
+//   const data = await window.api.bili.getTypeDesc(tid, userInfoStore.userInfo.uid);
 //   if (data) {
 //     descMaxLength.value = 2000;
 //   } else {
