@@ -42,6 +42,7 @@ async function getLiveInfo(
     protocol?: ProtocolInfo["protocol_name"];
     format?: FormatInfo["format_name"];
     codec?: CodecInfo["codec_name"];
+    cookie?: string;
   } = {},
 ) {
   const res = await getRoomPlayInfo(roomIdOrShortId, opts);
@@ -78,7 +79,7 @@ async function getLiveInfo(
 
 export async function getStream(
   opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities"> & {
-    rejectCache?: boolean;
+    cookie?: string;
   },
 ) {
   const roomId = Number(opts.channelId);
@@ -87,12 +88,16 @@ export async function getStream(
     throw new Error("It must be called getStream when living");
   }
 
+  const defaultOpts = {
+    protocol: "http_hls",
+    format: "ts",
+    codec: "avc",
+  };
+
   let liveInfo = await getLiveInfo(roomId, {
     // 本来是用的 b 站首选的的 http_hls，但是录制后经常出现视频卡顿然后音画不同步的情况，没有
     // 具体调查，猜测是 ffmpeg 对于 b 站的 fmp4 源处理的有问题，这里先改成用 http_stream 的 flv。
-    protocol: "http_stream",
-    format: "flv",
-    codec: "avc",
+    ...defaultOpts,
   });
 
   let expectStream: StreamProfile | null = null;
@@ -117,9 +122,8 @@ export async function getStream(
     // 当前流不是预期的流，需要切换。
     liveInfo = await getLiveInfo(roomId, {
       qn: expectStream.qn,
-      protocol: "http_stream",
-      format: "flv",
-      codec: "avc",
+      ...defaultOpts,
+      cookie: opts.cookie,
     });
   }
 

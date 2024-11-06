@@ -91,6 +91,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       quality: this.quality,
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
+      cookie: this.auth,
     });
   } catch (err) {
     this.state = "idle";
@@ -312,8 +313,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     timeoutChecker.stop();
 
     try {
-      // 如果给 SIGKILL 信号会非正常退出，SIGINT 可以被 ffmpeg 正常处理。
-      // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
       // @ts-ignore
       command.ffmpegProc?.stdin?.write("q");
       // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。

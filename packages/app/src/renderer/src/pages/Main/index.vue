@@ -68,6 +68,7 @@ import ChangelogModal from "../../components/ChangelogModal.vue";
 import logModal from "../../components/logModal.vue";
 import { useUserInfoStore, useQueueStore, useAppConfig } from "../../stores";
 import { commonApi } from "@renderer/apis";
+import logSvg from "./logSvg.vue";
 
 import type { MenuOption } from "naive-ui";
 
@@ -134,13 +135,14 @@ const footerMenuOptions = computed<MenuOption[]>(() => {
             onClick: () => {
               logVisible.value = true;
             },
-            style: {
-              marginLeft: "25px",
-            },
+            // style: {
+            //   marginLeft: "25px",
+            // },
           },
           { default: () => "日志" },
         ),
       key: "log",
+      icon: renderIcon(logSvg),
     });
   }
   menus.push(

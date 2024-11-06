@@ -154,6 +154,7 @@ export async function getRoomPlayInfo(
   roomIdOrShortId: number,
   opts: {
     qn?: number;
+    cookie?: string;
   } = {},
 ) {
   const res = await requester.get<
@@ -181,6 +182,9 @@ export async function getRoomPlayInfo(
       codec: "0,1",
       // 0 flv, 1 ts, 2 fmp4
       format: "0,1,2",
+    },
+    headers: {
+      Cookie: opts.cookie,
     },
   });
 
