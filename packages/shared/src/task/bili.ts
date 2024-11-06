@@ -662,8 +662,8 @@ export const validateBiliupConfig = async (config: BiliupConfig) => {
   if (config.tag.length === 0) {
     msg = "标签不能为空";
   }
-  if (config.tag.length > 12) {
-    msg = "标签不能超过12个";
+  if (config.tag.length > 10) {
+    msg = "标签不能超过10个";
   }
 
   if (msg) {

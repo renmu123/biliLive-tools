@@ -68,7 +68,7 @@
       <n-form-item label="标签">
         <n-dynamic-tags
           v-model:value="options.config.tag"
-          :max="12"
+          :max="10"
           @update:value="handleTagChange"
         />
       </n-form-item>

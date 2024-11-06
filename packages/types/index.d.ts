@@ -537,7 +537,7 @@ export interface BiliupConfig {
   dolby: 0 | 1; // 杜比
   hires: 0 | 1; // Hi-Res
   copyright: 1 | 2; // 1：自制，2：转载
-  tag: string[]; // 标签，不能为空，不能超过12个，调用接口验证
+  tag: string[]; // 标签，不能为空，不能超过10个，调用接口验证
   tid: number; // 174 投稿分区
   source?: string; // 转载来源
   dynamic?: string; // 空间动态

@@ -9,7 +9,7 @@
               class="external"
               target="_blank"
               >帮助教程</a
-            >，你也可以在关注页找到链接</b
+            >，你也可以在关于页面找到链接</b
           >
         </p>
         <p>如果你觉得本软件对你有帮助：</p>
@@ -27,12 +27,20 @@
           >
         </p>
         <p>
-          弹幕转换功能底层由：<a
+          弹幕转换功能底层来自：<a
             href="https://github.com/hihkm/DanmakuFactory"
             class="external"
             target="_blank"
             >DanmakuFactory</a
-          >实现
+          >
+        </p>
+        <p>
+          直播录制绝大部分代码来自：<a
+            href="https://github.com/WhiteMinds/LiveAutoRecord"
+            class="external"
+            target="_blank"
+            >LiveAutoRecord</a
+          >
         </p>
       </div>
       <div v-html="content"></div>
