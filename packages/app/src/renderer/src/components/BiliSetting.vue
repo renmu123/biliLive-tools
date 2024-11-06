@@ -66,10 +66,12 @@
         />
       </n-form-item>
       <n-form-item label="标签">
-        <n-dynamic-tags
-          v-model:value="options.config.tag"
+        <dynamic-tags
+          v-model="options.config.tag"
           :max="10"
-          @update:value="handleTagChange"
+          :before-create="beforeTagCreate"
+          placeholder="回车输入标签，最多十个"
+          :loading="tagCreateLoading"
         />
       </n-form-item>
       <n-form-item v-if="options.config.copyright === 1">
@@ -93,7 +95,7 @@
         <template #label>
           <Tip
             text="视频简介"
-            tip="可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与id对应。"
+            tip="可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与uid对应。"
           ></Tip>
         </template>
         <n-input
@@ -310,6 +312,7 @@ import { previewWebhookTitle } from "@renderer/apis/common";
 import { useUploadPreset, useAppConfig, useUserInfoStore } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
 import { templateRef } from "@vueuse/core";
+import DynamicTags from "./DynamicTags.vue";
 
 import type { BiliupPreset } from "@biliLive-tools/types";
 
@@ -355,25 +358,42 @@ watch(
 );
 
 const notice = useNotification();
-const handleTagChange = async (tags: string[]) => {
-  if (tags.length !== 0) {
-    if (!appConfig.value.uid) {
-      notice.warning({
-        title: "请先登录",
-        duration: 500,
-      });
-      options.value.config.tag.splice(-1);
-      return;
-    }
-    const res = await biliApi.checkTag(tags[tags.length - 1], appConfig.value.uid);
+const tagCreateLoading = ref(false);
+const beforeTagCreate = async (tag: string) => {
+  if (!appConfig.value.uid) {
+    notice.warning({
+      title: "请先登录",
+      duration: 1000,
+    });
+    return false;
+  }
+  if ((options.value?.config?.tag ?? []).includes(tag)) {
+    notice.warning({
+      title: "Σ( ° △ °|||) 该输入标签已经存在",
+      duration: 1000,
+    });
+    return false;
+  }
 
+  tagCreateLoading.value = true;
+  try {
+    const res = await biliApi.checkTag(tag, appConfig.value.uid);
     if (res.code !== 0) {
       notice.error({
         title: res.message,
         duration: 1000,
       });
-      options.value.config.tag.splice(-1);
+      return false;
     }
+    return true;
+  } catch (e) {
+    notice.error({
+      title: "无法添加标签",
+      duration: 1000,
+    });
+    return false;
+  } finally {
+    tagCreateLoading.value = false;
   }
 };
 
