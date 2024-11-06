@@ -42,6 +42,7 @@ declare module 'vue' {
     NLayoutFooter: typeof import('naive-ui')['NLayoutFooter']
     NLayoutSider: typeof import('naive-ui')['NLayoutSider']
     NLog: typeof import('naive-ui')['NLog']
+    NMention: typeof import('naive-ui')['NMention']
     NMenu: typeof import('naive-ui')['NMenu']
     NModal: typeof import('naive-ui')['NModal']
     NNotificationProvider: typeof import('naive-ui')['NNotificationProvider']

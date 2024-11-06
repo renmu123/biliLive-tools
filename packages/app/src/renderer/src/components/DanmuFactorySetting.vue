@@ -254,17 +254,15 @@
       <h2>其他</h2>
       <n-form-item style="width: 100%">
         <template #label>
-          <span class="inline-flex">
-            <span>屏蔽词</span>
-            <Tip
-              tip="
+          <Tip
+            text="屏蔽词"
+            tip="
               目前支持三种屏蔽方式，分别是弹幕内容，uid，用户名，需以英文逗号分隔<br/>
               弹幕内容：部分匹配，包含sc内容<br/>
               uid：全匹配，格式为<10995238>，弹幕姬用户注意，即是你开启了记录raw，出于性能原因，此过滤也是无法使用的，请使用用户名替代<br/>
               用户名：全匹配，格式为<暮色312><br/>
               此功能正在测试，如果出现开启后无法转换的情况请反馈"
-            ></Tip>
-          </span>
+          ></Tip>
         </template>
         <n-input
           v-model:value="config.blacklist"
