@@ -459,16 +459,17 @@ export const genMergeAssMp4Command = async (
   if (assFile) {
     if (files.hotProgressFilePath) {
       command.input(files.hotProgressFilePath);
-    } else {
-      if (ffmpegOptions.ss) {
-        command.inputOptions(`-ss ${ffmpegOptions.ss}`);
-        command.inputOptions("-copyts");
-      }
-      if (ffmpegOptions.to) {
-        command.inputOptions(`-to ${ffmpegOptions.to}`);
-      }
     }
   }
+  // 切片
+  if (ffmpegOptions.ss) {
+    command.inputOptions(`-ss ${ffmpegOptions.ss}`);
+    command.inputOptions("-copyts");
+  }
+  if (ffmpegOptions.to) {
+    command.inputOptions(`-to ${ffmpegOptions.to}`);
+  }
+
   // 硬件解码
   if (ffmpegOptions.decode) {
     const hardware = getHardwareAcceleration(ffmpegOptions.encoder);

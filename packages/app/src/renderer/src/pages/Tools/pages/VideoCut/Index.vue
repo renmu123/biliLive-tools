@@ -392,14 +392,6 @@ const exportCuts = async () => {
     return;
   }
 
-  if (!files.value.danmuPath) {
-    notice.error({
-      title: "请先选择弹幕文件",
-      duration: 1000,
-    });
-    return;
-  }
-
   if (convertDanmuLoading.value) {
     notice.error({
       title: "弹幕转换中，请稍后",

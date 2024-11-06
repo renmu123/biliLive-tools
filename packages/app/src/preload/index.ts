@@ -287,7 +287,7 @@ export const api = {
   mergeAssMp4: async (
     files: {
       videoFilePath: string;
-      assFilePath: string;
+      assFilePath?: string | null;
       outputPath: string;
       hotProgressFilePath: string | undefined;
     },
