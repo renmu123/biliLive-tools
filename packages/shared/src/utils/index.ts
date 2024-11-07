@@ -1,6 +1,7 @@
 import os from "node:os";
 import { exec } from "node:child_process";
 import path from "node:path";
+import readline from "node:readline";
 
 import fs from "fs-extra";
 import trash from "trash";
@@ -275,4 +276,33 @@ export function timemarkToSeconds(timemark: string) {
 
 export function getTempPath() {
   return path.join(os.tmpdir(), "biliLive-tools");
+}
+
+export async function readLines(
+  filePath: string,
+  startLine: number,
+  endLine: number,
+): Promise<string[]> {
+  const fileStream = fs.createReadStream(filePath);
+
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity,
+  });
+
+  const lines: string[] = [];
+  let currentLine = 0;
+
+  for await (const line of rl) {
+    currentLine++;
+    if (currentLine >= startLine) {
+      lines.push(line);
+    }
+    if (currentLine >= endLine) {
+      break;
+    }
+  }
+
+  rl.close();
+  return lines;
 }

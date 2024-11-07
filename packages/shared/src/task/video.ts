@@ -1,5 +1,6 @@
 import { join, parse } from "node:path";
-import os from "os";
+import os from "node:os";
+
 import fs from "fs-extra";
 import ffmpeg from "@renmu/fluent-ffmpeg";
 
@@ -15,6 +16,7 @@ import {
   formatFile,
   getHardwareAcceleration,
   timemarkToSeconds,
+  readLines,
 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask } from "./task.js";
@@ -327,6 +329,46 @@ export class ComplexFilter {
 }
 
 /**
+ * 弹幕元数据时间匹配
+ * @param {string} str 需要匹配的字符串
+ */
+export const matchDanmaTimestamp = (str: string): number | null => {
+  const bililiveRecorderRegex = /start_time = "(.+)"/;
+  const blrecRegex = /<record_start_time>(.+)<\/record_start_time>/;
+  const douyuRegex = /<video_start_time>(.+)<\/video_start_time>/;
+
+  const regexes = [bililiveRecorderRegex, blrecRegex, douyuRegex];
+  for (const regex of regexes) {
+    const timestamp = matchTimestamp(str, regex);
+    if (timestamp) {
+      return timestamp;
+    }
+  }
+  return null;
+};
+
+/**
+ * 使用正则匹配时间戳
+ * param {string} str 需要匹配的字符串
+ * param {RegExp} regex 匹配的正则，捕获组为时间
+ */
+function matchTimestamp(str: string, regex: RegExp): number | null {
+  const match = str.match(regex);
+  if (match) {
+    const time = match[1];
+    console.log(111, time);
+    try {
+      const timestamp = Math.floor(new Date(time).getTime() / 1000);
+      return timestamp;
+    } catch {
+      // do nothing
+    }
+  }
+
+  return null;
+}
+
+/**
  * 生成弹幕压制相关的ffmpeg命令
  * @param {object} files 文件相关
  * @param {string} files.videoFilePath 视频文件路径
@@ -368,16 +410,18 @@ export const genMergeAssMp4Command = async (
       json: true,
     });
     const comment = String(data?.format?.tags?.comment) ?? "";
-    // 使用正则提取出录制时间
-    const timeMatch = comment.match(/录制时间: (.+)/);
-    if (timeMatch) {
-      const time = timeMatch[1];
-      try {
-        const timestamp = Math.floor(new Date(time).getTime() / 1000);
-        return timestamp;
-      } catch {
-        // do nothing
-      }
+    const commentTimestamp = matchTimestamp(comment, /录制时间: (.+)/);
+    if (commentTimestamp) {
+      return commentTimestamp;
+    }
+    // start_time = "2024-08-20T09:48:07.7164935+08:00";
+    // <record_start_time>2024-07-23T18:26:30+08:00</record_start_time>
+    // <video_start_time>2024-11-06T15:14:02.000Z</video_start_time>
+    const assPartContent = await readLines(assFile, 0, 30);
+    const assTimestamp = matchDanmaTimestamp(assPartContent.join("\n"));
+
+    if (assTimestamp) {
+      return assTimestamp;
     }
 
     return null;
