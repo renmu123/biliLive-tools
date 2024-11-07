@@ -1,3 +1,13 @@
+# 1.7.0
+
+## 功能
+
+1. 支持斗鱼、虎牙、B站直播录制，感谢[LiveAutoRecord](https://github.com/WhiteMinds/LiveAutoRecord)，绝大部分录制代码都来自该项目
+2. desc支持模板
+3. 支持审核通过后删除视频
+
+## 优化
+
 # 1.6.0
 
 ## 破坏性变更
