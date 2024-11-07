@@ -1,9 +1,7 @@
-import { createRouter, createWebHistory, createWebHashHistory } from "vue-router";
-
-const isWebUI = import.meta.env.MODE === "webui";
+import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
-  history: !isWebUI ? createWebHashHistory() : createWebHistory(),
+  history: createWebHistory(),
   scrollBehavior(_to, _from, savedPosition) {
     if (savedPosition) {
       return savedPosition;

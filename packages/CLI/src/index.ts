@@ -81,14 +81,14 @@ configCommand
   .action(async (opts: { config: string; force: boolean }) => {
     if (fs.existsSync(opts.config)) {
       if (opts.force) {
-        console.error("配置文件已生成");
+        console.log("配置文件已生成，请根据需求进行修改");
         generateConfig(opts.config);
       } else {
         console.error("配置文件已存在，如果想重新生成请使用 -f 参数强制覆盖");
         return;
       }
     } else {
-      console.error("配置文件已生成");
+      console.log("配置文件已生成，请根据需求进行修改");
       generateConfig(opts.config);
     }
   });
