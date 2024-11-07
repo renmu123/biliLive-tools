@@ -109,21 +109,21 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
   // TODO: 增加更新监听，处理配置更新
   const recorderConfig = new RecorderConfig(appConfig);
-  // for (const recorder of recorderConfig.list()) {
-  //   const uid = recorder.uid;
-  //   let auth: string | undefined = undefined;
-  //   if (uid) {
-  //     auth = await getCookies(Number(uid));
-  //     // console.log("auth", auth);
-  //   }
-  //   // @ts-ignore
-  //   if (!recorder.extra) {
-  //     recorder.extra = {};
-  //   }
-  //   // @ts-ignore
-  //   recorder.extra.uid = uid;
-  //   manager.addRecorder({ ...recorder, auth: auth });
-  // }
+  for (const recorder of recorderConfig.list()) {
+    const uid = recorder.uid;
+    let auth: string | undefined = undefined;
+    if (uid) {
+      auth = await getCookies(Number(uid));
+      // console.log("auth", auth);
+    }
+    // @ts-ignore
+    if (!recorder.extra) {
+      recorder.extra = {};
+    }
+    // @ts-ignore
+    recorder.extra.uid = uid;
+    manager.addRecorder({ ...recorder, auth: auth });
+  }
 
   if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
 

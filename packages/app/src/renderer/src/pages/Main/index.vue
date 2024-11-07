@@ -208,19 +208,19 @@ const menuOptions = computed<MenuOption[]>(() => {
           { default: () => "弹幕转换" },
         ),
     },
-    // {
-    //   key: "recorder",
-    //   label: () =>
-    //     h(
-    //       RouterLink,
-    //       {
-    //         to: {
-    //           name: "recorder",
-    //         },
-    //       },
-    //       { default: () => "直播录制" },
-    //     ),
-    // },
+    {
+      key: "recorder",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "recorder",
+            },
+          },
+          { default: () => "直播录制" },
+        ),
+    },
     {
       key: "videoCut",
       label: () =>

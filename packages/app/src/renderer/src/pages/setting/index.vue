@@ -287,9 +287,9 @@
         <n-tab-pane name="upload" tab="B站上传">
           <BiliSetting v-model:data="config"></BiliSetting>
         </n-tab-pane>
-        <!-- <n-tab-pane name="recorder" tab="直播录制">
+        <n-tab-pane name="recorder" tab="直播录制">
           <RecordSetting v-model:data="config"></RecordSetting>
-        </n-tab-pane> -->
+        </n-tab-pane>
         <n-tab-pane name="notification" tab="任务">
           <NotificationSetting v-model:data="config"></NotificationSetting>
         </n-tab-pane>
@@ -324,7 +324,7 @@ import RoomSettingDialog from "./RoomSettingDialog.vue";
 import CommonSetting from "./CommonWebhookSetting.vue";
 import NotificationSetting from "./NotificationSetting.vue";
 import BiliSetting from "./BiliSetting.vue";
-// import RecordSetting from "./RecordSetting.vue";
+import RecordSetting from "./RecordSetting.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
