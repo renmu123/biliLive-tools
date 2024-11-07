@@ -56,9 +56,9 @@ program
     const container = await init(globalConfig);
 
     const appConfig = container.resolve("appConfig");
-    const passKey = appConfig.get("passKey");
+    const passKey = process.env.BILILIVE_TOOLS_PASSKEY || appConfig.get("passKey");
     if (!passKey) {
-      throw new Error("请先设置 passKey");
+      console.warn("如果想使用webui，必须设置鉴权 passKey 参数，具体见文档");
     }
     await serverStart(
       {
@@ -81,14 +81,14 @@ configCommand
   .action(async (opts: { config: string; force: boolean }) => {
     if (fs.existsSync(opts.config)) {
       if (opts.force) {
-        console.error("配置文件已生成");
+        console.log("配置文件已生成，请根据需求进行修改");
         generateConfig(opts.config);
       } else {
         console.error("配置文件已存在，如果想重新生成请使用 -f 参数强制覆盖");
         return;
       }
     } else {
-      console.error("配置文件已生成");
+      console.log("配置文件已生成，请根据需求进行修改");
       generateConfig(opts.config);
     }
   });

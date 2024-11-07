@@ -43,6 +43,12 @@ const authMiddleware = (passKey: string | number) => {
       return;
     }
 
+    if (!passKey) {
+      ctx.status = 500;
+      ctx.body = "passkey should be set";
+      return;
+    }
+
     const token = authHeader;
     if (token !== passKey) {
       ctx.status = 401;
