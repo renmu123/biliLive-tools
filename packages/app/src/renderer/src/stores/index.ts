@@ -319,7 +319,6 @@ export const useAppConfig = defineStore("appConfig", () => {
   });
 
   async function getAppConfig() {
-    console.log("getAppConfig");
     appConfig.value = await configApi.get();
   }
   async function set<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {

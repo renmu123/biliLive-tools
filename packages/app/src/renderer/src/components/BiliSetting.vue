@@ -335,7 +335,6 @@ const options: Ref<BiliupPreset> = ref({
   },
 });
 const handlePresetChange = async (value: string) => {
-  console.log("pppp", value);
   const preset = await videoPresetApi.get(value);
   if (preset) {
     options.value = preset;
@@ -354,6 +353,9 @@ watch(
   () => presetId.value,
   (value) => {
     handlePresetChange(value);
+  },
+  {
+    immediate: true,
   },
 );
 

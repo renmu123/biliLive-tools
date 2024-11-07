@@ -131,9 +131,34 @@ const convert = async () => {
 
   for (let i = 0; i < fileList.value.length; i++) {
     try {
-      window.api.convertVideo2Mp4(
-        { input: fileList.value[i].path, output: fileList.value[i].title },
-        toRaw(options),
+      let savePath: string;
+      if (options.saveRadio === 1) {
+        savePath = window.path.dirname(fileList.value[i].path);
+      } else if (options.saveRadio === 2) {
+        if (options.savePath === "") {
+          notice.error({
+            title: "请选择保存路径",
+            duration: 1000,
+          });
+          return;
+        }
+        savePath = options.savePath;
+      } else {
+        notice.error({
+          title: "不支持此项配置",
+          duration: 1000,
+        });
+        return;
+      }
+
+      window.api.mergeAssMp4(
+        {
+          videoFilePath: fileList.value[i].path,
+          assFilePath: undefined,
+          outputPath: window.path.join(savePath, `${fileList.value[i].title}.mp4`),
+          hotProgressFilePath: undefined,
+        },
+        { override: options.override, removeOrigin: false },
         ffmpegOptions,
       );
     } catch (err) {

@@ -2,7 +2,7 @@ import path from "node:path";
 import fs from "fs-extra";
 
 import { appConfig } from "@biliLive-tools/shared";
-import { convertVideo2Mp4, mergeAssMp4, mergeVideos } from "@biliLive-tools/shared/task/video.js";
+import { mergeAssMp4, mergeVideos } from "@biliLive-tools/shared/task/video.js";
 import JSZip from "jszip";
 import { getConfigPath } from "./appConstant";
 import { invokeWrap } from "./utils/index";
@@ -83,15 +83,6 @@ export const configHandlers = {
 export const ffmpegHandlers = {
   mergeAssMp4: async (_event: IpcMainInvokeEvent, ...args: Parameters<typeof mergeAssMp4>) => {
     const task = await mergeAssMp4(...args);
-    return {
-      taskId: task.taskId,
-    };
-  },
-  convertVideo2Mp4: async (
-    _event: IpcMainInvokeEvent,
-    ...args: Parameters<typeof convertVideo2Mp4>
-  ) => {
-    const task = await convertVideo2Mp4(...args);
     return {
       taskId: task.taskId,
     };
