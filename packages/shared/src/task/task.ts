@@ -69,7 +69,7 @@ export abstract class AbstractTask {
     if (this.status === "pending") return 0;
     const now = Date.now();
     const currentTime = this.endTime || now;
-    return Math.max(currentTime - this.startTime - this.totalPausedDuration, 0);
+    return Math.max(currentTime - this.startTime, 0);
   }
 }
 
@@ -126,13 +126,15 @@ export class DanmuTask extends AbstractTask {
         this.callback.onEnd && this.callback.onEnd(this.output as string);
         this.progress = 100;
         this.emitter.emit("task-end", { taskId: this.taskId });
-        this.endTime = Date.now();
       })
       .catch((err) => {
         this.status = "error";
         this.callback.onError && this.callback.onError(err);
         this.error = err;
         this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+      })
+      .finally(() => {
+        this.endTime = Date.now();
       });
   }
   pause() {
@@ -211,8 +213,8 @@ export class FFmpegTask extends AbstractTask {
 
         callback.onEnd && callback.onEnd(options.output);
         this.emitter.emit("task-end", { taskId: this.taskId });
-        this.endTime = Date.now();
       }
+      this.endTime = Date.now();
     });
     command.on("error", (err) => {
       log.error(`task ${this.taskId} error: ${err}`);
@@ -221,6 +223,7 @@ export class FFmpegTask extends AbstractTask {
       callback.onError && callback.onError(String(err));
       this.error = String(err);
       this.emitter.emit("task-error", { taskId: this.taskId, error: String(err) });
+      this.endTime = Date.now();
     });
     command.on("progress", (progress) => {
       // @ts-ignore
@@ -346,6 +349,7 @@ export class BiliPartVideoTask extends AbstractTask {
 
       callback.onError && callback.onError(this.error);
       this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
+      this.endTime = Date.now();
     });
 
     command.emitter.on("progress", (event) => {
@@ -559,6 +563,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
       this.callback.onError && this.callback.onError(this.error);
       this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
     }
+    this.endTime = Date.now();
   }
 }
 
@@ -614,6 +619,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
       this.callback.onError && this.callback.onError(this.error);
       this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
     }
+    this.endTime = Date.now();
   }
 }
 
@@ -972,10 +978,10 @@ export class TaskQueue {
     const task = this.queryTask(taskId);
     if (!task) return;
     task.resume();
-    if (task.pauseStartTime !== null) {
-      task.totalPausedDuration += Date.now() - task.pauseStartTime;
-      task.pauseStartTime = null;
-    }
+    // if (task.pauseStartTime !== null) {
+    //   task.totalPausedDuration += Date.now() - task.pauseStartTime;
+    //   task.pauseStartTime = null;
+    // }
   }
   cancel(taskId: string) {
     const task = this.queryTask(taskId);
