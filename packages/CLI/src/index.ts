@@ -56,9 +56,9 @@ program
     const container = await init(globalConfig);
 
     const appConfig = container.resolve("appConfig");
-    const passKey = appConfig.get("passKey");
+    const passKey = process.env.BILILIVE_TOOLS_PASSKEY || appConfig.get("passKey");
     if (!passKey) {
-      throw new Error("请先设置 passKey");
+      console.warn("如果想使用webui，必须设置鉴权 passKey 参数，具体见文档");
     }
     await serverStart(
       {
