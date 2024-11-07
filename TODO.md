@@ -24,6 +24,7 @@
 17. 支持批量功能增加文件名冲突检测
 18. 保存文件夹支持相对路径
 19. 支持分P错误后继续上传，队列中添加分P
+20. 支持斗鱼、虎牙、B站直播录制，感谢[LiveAutoRecord](https://github.com/WhiteMinds/LiveAutoRecord)，绝大部分录制代码都来自该项目
 
 ## Web版本
 
