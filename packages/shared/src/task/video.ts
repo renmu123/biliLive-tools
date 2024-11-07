@@ -420,18 +420,18 @@ export const genMergeAssMp4Command = async (
           ffmpegOptions.swsFlags,
         );
       }
+    }
 
-      // 如果设置了添加时间戳
-      const startTimestamp = await getDrawtextParams();
-      if (startTimestamp) {
-        complexFilter.addDrawtextFilter(
-          startTimestamp,
-          ffmpegOptions.timestampFontColor ?? "white",
-          ffmpegOptions.timestampFontSize ?? 24,
-          ffmpegOptions.timestampX ?? 10,
-          ffmpegOptions.timestampY ?? 10,
-        );
-      }
+    // 如果设置了添加时间戳
+    const startTimestamp = await getDrawtextParams();
+    if (startTimestamp) {
+      complexFilter.addDrawtextFilter(
+        startTimestamp,
+        ffmpegOptions.timestampFontColor ?? "white",
+        ffmpegOptions.timestampFontSize ?? 24,
+        ffmpegOptions.timestampX ?? 10,
+        ffmpegOptions.timestampY ?? 10,
+      );
     }
   }
 
@@ -512,15 +512,24 @@ export const mergeAssMp4 = async (
   options: {
     removeOrigin: boolean;
     startTimestamp?: number;
+    override?: boolean;
   } = {
     removeOrigin: false,
     startTimestamp: 0,
+    override: true,
   },
   ffmpegOptions: FfmpegOptions = {
     encoder: "libx264",
     audioCodec: "copy",
   },
 ) => {
+  const defaultOptions = {
+    removeOrigin: false,
+    startTimestamp: 0,
+    override: true,
+  };
+  options = { ...defaultOptions, ...options };
+
   await setFfmpegPath();
 
   const videoInput = files.videoFilePath;
@@ -530,6 +539,11 @@ export const mergeAssMp4 = async (
     log.error("mergrAssMp4, file not exist", videoInput);
     throw new Error("输入文件不存在");
   }
+  if (!options.override && (await pathExists(output))) {
+    log.error("mergrAssMp4, 文件已存在，跳过", output);
+    throw new Error(`${output}文件已存在`);
+  }
+
   const assFile = files.assFilePath;
   const startTimestamp = options.startTimestamp || 0;
   const command = await genMergeAssMp4Command(files, ffmpegOptions, {
