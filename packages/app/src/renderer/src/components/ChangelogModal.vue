@@ -34,14 +34,14 @@
             >DanmakuFactory</a
           >
         </p>
-        <p>
+        <!-- <p>
           直播录制绝大部分代码来自：<a
             href="https://github.com/WhiteMinds/LiveAutoRecord"
             class="external"
             target="_blank"
             >LiveAutoRecord</a
           >
-        </p>
+        </p> -->
       </div>
       <div v-html="content"></div>
       <template #footer>
