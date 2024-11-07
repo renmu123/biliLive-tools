@@ -14,8 +14,12 @@ function main() {
   if (!fs.existsSync(cli_node_modules)) {
     fs.mkdirSync(cli_node_modules);
   }
-  // 复制文件
+  // 复制canvas相关文件
   fs.cpSync(path.join(pnpm_node_modules, "@napi-rs"), path.join(cli_node_modules, "@napi-rs"), {
+    recursive: true,
+  });
+  // 复制ntsuspend相关文件，
+  fs.cpSync(path.join(pnpm_node_modules, "ntsuspend"), path.join(cli_node_modules, "ntsuspend"), {
     recursive: true,
   });
 }

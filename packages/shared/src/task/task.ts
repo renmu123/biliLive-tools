@@ -1,6 +1,7 @@
 import EventEmitter from "node:events";
-import { createRequire } from "node:module";
 import { TypedEmitter } from "tiny-typed-emitter";
+// @ts-ignore
+import * as ntsuspend from "ntsuspend";
 
 import { uuid, isWin32, retry } from "../utils/index.js";
 import log from "../utils/log.js";
@@ -245,7 +246,6 @@ export class FFmpegTask extends AbstractTask {
   pause() {
     if (this.status !== "running") return;
     if (isWin32) {
-      const ntsuspend = createRequire(import.meta.url)("ntsuspend");
       // @ts-ignore
       ntsuspend.suspend(this.command.ffmpegProc.pid);
     } else {
@@ -259,7 +259,6 @@ export class FFmpegTask extends AbstractTask {
   resume() {
     if (this.status !== "paused") return;
     if (isWin32) {
-      const ntsuspend = createRequire(import.meta.url)("ntsuspend");
       // @ts-ignore
       ntsuspend.resume(this.command.ffmpegProc.pid);
     } else {
@@ -273,7 +272,6 @@ export class FFmpegTask extends AbstractTask {
   interrupt() {
     if (this.status === "completed" || this.status === "error") return;
     if (isWin32) {
-      const ntsuspend = createRequire(import.meta.url)("ntsuspend");
       // @ts-ignore
       ntsuspend.resume(this.command.ffmpegProc.pid);
     }
@@ -288,7 +286,6 @@ export class FFmpegTask extends AbstractTask {
     if (this.status === "completed" || this.status === "error" || this.status === "canceled")
       return;
     if (isWin32) {
-      const ntsuspend = createRequire(import.meta.url)("ntsuspend");
       // @ts-ignore
       ntsuspend.resume(this.command.ffmpegProc.pid);
     }
