@@ -31,10 +31,10 @@
   "license": "LGPL",
   "dependencies": {
     "@renmu/fluent-ffmpeg": "2.3.0",
+    "fast-xml-parser": "^4.5.0",
     "filenamify": "^6.0.0",
-    "mitt": "^3.0.0",
-    "string-argv": "^0.3.1",
-    "fast-xml-parser": "^4.4.1"
+    "mitt": "^3.0.1",
+    "string-argv": "^0.3.2"
   },
   "devDependencies": {
     "@biliLive-tools/types": "workspace:*",

@@ -35,19 +35,19 @@
     "lib"
   ],
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.53",
+    "@napi-rs/canvas": "^0.1.60",
     "ntsuspend": "^1.0.2"
   },
   "devDependencies": {
     "@biliLive-tools/http": "workspace:*",
     "@biliLive-tools/shared": "workspace:*",
     "@biliLive-tools/types": "workspace:*",
-    "@types/cli-progress": "^3.11.5",
-    "@yao-pkg/pkg": "^6.0.0",
+    "@types/cli-progress": "^3.11.6",
+    "@yao-pkg/pkg": "^6.1.0",
     "bestzip": "^2.2.1",
     "cli-progress": "^3.12.0",
-    "commander": "^12.0.0",
+    "commander": "^12.1.0",
     "rimraf": "^6.0.1",
-    "tsx": "^4.7.2"
+    "tsx": "^4.19.2"
   }
 }

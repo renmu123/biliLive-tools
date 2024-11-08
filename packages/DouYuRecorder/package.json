@@ -33,19 +33,19 @@
     "@autorecord/manager": "workspace:*",
     "axios": "1.7.4",
     "mitt": "^3.0.1",
-    "query-string": "^9.1.0",
+    "query-string": "^9.1.1",
     "safe-eval": "^0.4.1",
     "ws": "^8.18.0"
   },
   "devDependencies": {
     "@biliLive-tools/types": "workspace:*",
-    "@types/ws": "^8.5.3"
+    "@types/ws": "^8.5.13"
   },
   "peerDependencies": {
     "@autorecord/manager": "*"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8",
-    "utf-8-validate": "^6.0.4"
+    "utf-8-validate": "^6.0.5"
   }
 }

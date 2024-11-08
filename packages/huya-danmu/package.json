@@ -21,9 +21,9 @@
     "url": "https://github.com/damonpeng/huya-danmu-fix/issues"
   },
   "dependencies": {
-    "ws": "^4.0.0",
+    "socks-proxy-agent": "^3.0.1",
     "to-arraybuffer": "^1.0.1",
-    "socks-proxy-agent": "^3.0.1"
+    "ws": "^4.1.0"
   },
   "homepage": "https://github.com/damonpeng/huya-danmu-fix#readme"
 }
