@@ -34,14 +34,14 @@ importers:
         specifier: ^11.1.6
         version: 11.1.6(rollup@4.24.4)(tslib@2.8.1)(typescript@5.6.3)
       '@types/node':
-        specifier: 20.12.2
-        version: 20.12.2
+        specifier: 20.17.6
+        version: 20.17.6
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
       '@vitest/coverage-istanbul':
         specifier: ^2.1.4
-        version: 2.1.4(vitest@2.1.4(@types/node@20.12.2)(less@4.2.0))
+        version: 2.1.4(vitest@2.1.4(@types/node@20.17.6)(less@4.2.0))
       cli-progress:
         specifier: ^3.12.0
         version: 3.12.0
@@ -62,7 +62,7 @@ importers:
         version: 5.6.3
       vitest:
         specifier: ^2.1.4
-        version: 2.1.4(@types/node@20.12.2)(less@4.2.0)
+        version: 2.1.4(@types/node@20.17.6)(less@4.2.0)
 
   packages/BilibiliRecorder:
     dependencies:
@@ -182,10 +182,10 @@ importers:
         version: link:../types
       '@electron-toolkit/preload':
         specifier: ^3.0.1
-        version: 3.0.1(electron@32.0.2)
+        version: 3.0.1(electron@33.2.0)
       '@electron-toolkit/utils':
         specifier: ^3.0.0
-        version: 3.0.0(electron@32.0.2)
+        version: 3.0.0(electron@33.2.0)
       '@napi-rs/canvas':
         specifier: ^0.1.60
         version: 0.1.60
@@ -193,8 +193,8 @@ importers:
         specifier: ^1.7.7
         version: 1.7.7
       better-sqlite3:
-        specifier: 11.2.1
-        version: 11.2.1
+        specifier: 11.5.0
+        version: 11.5.0
       bufferutil:
         specifier: ^4.0.8
         version: 4.0.8
@@ -272,8 +272,8 @@ importers:
         specifier: ^1.3.1
         version: 1.3.1
       electron:
-        specifier: 32.0.2
-        version: 32.0.2
+        specifier: 33.2.0
+        version: 33.2.0
       electron-builder:
         specifier: ^24.13.3
         version: 24.13.3(electron-builder-squirrel-windows@24.13.3(dmg-builder@24.13.3))
@@ -1897,8 +1897,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  better-sqlite3@11.2.1:
-    resolution: {integrity: sha512-Xbt1d68wQnUuFIEVsbt6V+RG30zwgbtCGQ4QOcXVrOH0FE4eHk64FWZ9NUfRHS4/x1PXqwz/+KOrnXD7f0WieA==}
+  better-sqlite3@11.5.0:
+    resolution: {integrity: sha512-e/6eggfOutzoK0JWiU36jsisdWoHOfN9iWiW/SieKvb7SAa6aGNmBM/UKyp+/wWSXpLlWNN8tCPwoDNPhzUvuQ==}
 
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
@@ -2447,8 +2447,8 @@ packages:
       '@swc/core':
         optional: true
 
-  electron@32.0.2:
-    resolution: {integrity: sha512-nmZblq8wW3HZ17MAyaUuiMI9Mb0Cgc7UR3To85h/rVopbfyF5s34NxtK4gvyRfYPxpDGP4k+HoQIPniPPrdE3w==}
+  electron@33.2.0:
+    resolution: {integrity: sha512-PVw1ICAQDPsnnsmpNFX/b1i/49h67pbSPxuIENd9K9WpGO1tsRaQt+K2bmXqTuoMJsbzIc75Ce8zqtuwBPqawA==}
     engines: {node: '>= 12.20.55'}
     hasBin: true
 
@@ -5122,17 +5122,17 @@ snapshots:
     dependencies:
       eslint: 8.57.1
 
-  '@electron-toolkit/preload@3.0.1(electron@32.0.2)':
+  '@electron-toolkit/preload@3.0.1(electron@33.2.0)':
     dependencies:
-      electron: 32.0.2
+      electron: 33.2.0
 
   '@electron-toolkit/tsconfig@1.0.1(@types/node@22.9.0)':
     dependencies:
       '@types/node': 22.9.0
 
-  '@electron-toolkit/utils@3.0.0(electron@32.0.2)':
+  '@electron-toolkit/utils@3.0.0(electron@33.2.0)':
     dependencies:
-      electron: 32.0.2
+      electron: 33.2.0
 
   '@electron/asar@3.2.17':
     dependencies:
@@ -5716,7 +5716,7 @@ snapshots:
 
   '@types/accepts@1.3.7':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
 
   '@types/better-sqlite3@7.6.11':
     dependencies:
@@ -5725,13 +5725,13 @@ snapshots:
   '@types/body-parser@1.19.5':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
 
   '@types/cacheable-request@6.0.3':
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       '@types/keyv': 3.1.4
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
       '@types/responselike': 1.0.3
 
   '@types/cli-progress@3.11.6':
@@ -5740,7 +5740,7 @@ snapshots:
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
 
   '@types/content-disposition@0.5.8': {}
 
@@ -5749,7 +5749,7 @@ snapshots:
       '@types/connect': 3.4.38
       '@types/express': 5.0.0
       '@types/keygrip': 1.0.6
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
 
   '@types/debug@4.1.12':
     dependencies:
@@ -5759,7 +5759,7 @@ snapshots:
 
   '@types/express-serve-static-core@5.0.1':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
       '@types/qs': 6.9.17
       '@types/range-parser': 1.2.7
       '@types/send': 0.17.4
@@ -5777,7 +5777,7 @@ snapshots:
 
   '@types/fs-extra@9.0.13':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
 
   '@types/http-assert@1.5.6': {}
 
@@ -5791,7 +5791,7 @@ snapshots:
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 20.12.2
+      '@types/node': 20.17.6
 
   '@types/koa-compose@3.2.8':
     dependencies:
@@ -5824,7 +5824,7 @@ snapshots:
 
   '@types/multipipe@3.0.5':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
 
   '@types/node@20.12.2':
     dependencies:
@@ -5846,7 +5846,7 @@ snapshots:
 
   '@types/plist@3.0.5':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
       xmlbuilder: 15.1.1
     optional: true
 
@@ -5858,17 +5858,17 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
 
   '@types/send@0.17.4':
     dependencies:
       '@types/mime': 1.3.5
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
 
   '@types/serve-static@1.15.7':
     dependencies:
       '@types/http-errors': 2.0.4
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
       '@types/send': 0.17.4
 
   '@types/uuid@10.0.0': {}
@@ -5986,7 +5986,7 @@ snapshots:
       vite: 5.4.10(@types/node@22.9.0)(less@4.2.0)
       vue: 3.5.12(typescript@5.6.3)
 
-  '@vitest/coverage-istanbul@2.1.4(vitest@2.1.4(@types/node@20.12.2)(less@4.2.0))':
+  '@vitest/coverage-istanbul@2.1.4(vitest@2.1.4(@types/node@20.17.6)(less@4.2.0))':
     dependencies:
       '@istanbuljs/schema': 0.1.3
       debug: 4.3.7
@@ -5998,7 +5998,7 @@ snapshots:
       magicast: 0.3.5
       test-exclude: 7.0.1
       tinyrainbow: 1.2.0
-      vitest: 2.1.4(@types/node@20.12.2)(less@4.2.0)
+      vitest: 2.1.4(@types/node@20.17.6)(less@4.2.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -6009,13 +6009,13 @@ snapshots:
       chai: 5.1.2
       tinyrainbow: 1.2.0
 
-  '@vitest/mocker@2.1.4(vite@5.4.10(@types/node@20.12.2)(less@4.2.0))':
+  '@vitest/mocker@2.1.4(vite@5.4.10(@types/node@20.17.6)(less@4.2.0))':
     dependencies:
       '@vitest/spy': 2.1.4
       estree-walker: 3.0.3
       magic-string: 0.30.12
     optionalDependencies:
-      vite: 5.4.10(@types/node@20.12.2)(less@4.2.0)
+      vite: 5.4.10(@types/node@20.17.6)(less@4.2.0)
 
   '@vitest/pretty-format@2.1.4':
     dependencies:
@@ -6448,7 +6448,7 @@ snapshots:
       which: 2.0.2
       yargs: 16.2.0
 
-  better-sqlite3@11.2.1:
+  better-sqlite3@11.5.0:
     dependencies:
       bindings: 1.5.0
       prebuild-install: 7.1.2
@@ -7134,10 +7134,10 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron@32.0.2:
+  electron@33.2.0:
     dependencies:
       '@electron/get': 2.0.3
-      '@types/node': 20.17.6
+      '@types/node': 20.12.2
       extract-zip: 2.0.1
     transitivePeerDependencies:
       - supports-color
@@ -8744,7 +8744,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
       long: 5.2.3
 
   proxy-from-env@1.1.0: {}
@@ -9514,12 +9514,12 @@ snapshots:
       extsprintf: 1.4.1
     optional: true
 
-  vite-node@2.1.4(@types/node@20.12.2)(less@4.2.0):
+  vite-node@2.1.4(@types/node@20.17.6)(less@4.2.0):
     dependencies:
       cac: 6.7.14
       debug: 4.3.7
       pathe: 1.1.2
-      vite: 5.4.10(@types/node@20.12.2)(less@4.2.0)
+      vite: 5.4.10(@types/node@20.17.6)(less@4.2.0)
     transitivePeerDependencies:
       - '@types/node'
       - less
@@ -9531,13 +9531,13 @@ snapshots:
       - supports-color
       - terser
 
-  vite@5.4.10(@types/node@20.12.2)(less@4.2.0):
+  vite@5.4.10(@types/node@20.17.6)(less@4.2.0):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.4.47
       rollup: 4.24.4
     optionalDependencies:
-      '@types/node': 20.12.2
+      '@types/node': 20.17.6
       fsevents: 2.3.3
       less: 4.2.0
 
@@ -9551,10 +9551,10 @@ snapshots:
       fsevents: 2.3.3
       less: 4.2.0
 
-  vitest@2.1.4(@types/node@20.12.2)(less@4.2.0):
+  vitest@2.1.4(@types/node@20.17.6)(less@4.2.0):
     dependencies:
       '@vitest/expect': 2.1.4
-      '@vitest/mocker': 2.1.4(vite@5.4.10(@types/node@20.12.2)(less@4.2.0))
+      '@vitest/mocker': 2.1.4(vite@5.4.10(@types/node@20.17.6)(less@4.2.0))
       '@vitest/pretty-format': 2.1.4
       '@vitest/runner': 2.1.4
       '@vitest/snapshot': 2.1.4
@@ -9570,11 +9570,11 @@ snapshots:
       tinyexec: 0.3.1
       tinypool: 1.0.1
       tinyrainbow: 1.2.0
-      vite: 5.4.10(@types/node@20.12.2)(less@4.2.0)
-      vite-node: 2.1.4(@types/node@20.12.2)(less@4.2.0)
+      vite: 5.4.10(@types/node@20.17.6)(less@4.2.0)
+      vite-node: 2.1.4(@types/node@20.17.6)(less@4.2.0)
       why-is-node-running: 2.3.0
     optionalDependencies:
-      '@types/node': 20.12.2
+      '@types/node': 20.17.6
     transitivePeerDependencies:
       - less
       - lightningcss

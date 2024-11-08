@@ -157,9 +157,9 @@ function createWindow(): void {
   content.on("render-process-gone", (_event, details) => {
     log.error(`render-process-gone: ${JSON.stringify(details)}`);
   });
-  content.on("unresponsive", (event) => {
-    log.error(`unresponsive: ${JSON.stringify(event)}`);
-  });
+  // content.on("unresponsive", (event) => {
+  //   log.error(`unresponsive: ${JSON.stringify(event)}`);
+  // });
   content.on("preload-error", (_event, preloadPath, error) => {
     log.error(`preload-error: ${preloadPath},${error}`);
   });
@@ -179,12 +179,12 @@ function createWindow(): void {
     }
   });
   // 窗口最小化
-  mainWin.on("minimize", (event) => {
+  mainWin.on("minimize", () => {
     const appConfig = container.resolve<AppConfig>("appConfig");
     const minimizeToTray = appConfig.get("minimizeToTray");
     if (minimizeToTray) {
-      event.preventDefault();
-      mainWin.hide();
+      // event.preventDefault();
+      // mainWin.hide();
       mainWin.setSkipTaskbar(true);
     }
   });

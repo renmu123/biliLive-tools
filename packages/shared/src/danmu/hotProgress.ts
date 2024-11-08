@@ -215,6 +215,7 @@ export const generateDanmakuImage = async (
     const canvas = await drawSmoothLineChart(data, options.width, options.height);
     const outputPath = path.join(output, `${String(i).padStart(4, "0")}.png`);
     const stream = await canvas.encode("png");
+    // @ts-ignore
     await fs.promises.writeFile(outputPath, stream);
   }
   return data;
