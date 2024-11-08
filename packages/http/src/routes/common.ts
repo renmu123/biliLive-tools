@@ -5,6 +5,7 @@ import fs from "fs-extra";
 import Router from "koa-router";
 import { formatTitle } from "@biliLive-tools/shared/utils/index.js";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
+import { readXmlTimestamp } from "@biliLive-tools/shared/task/video.js";
 
 import { config } from "../index.js";
 
@@ -154,6 +155,14 @@ router.post("/douyu/download", async (ctx) => {
   };
   const { taskId } = await douyu.download(output, decodeData, options);
   ctx.body = { taskId: taskId };
+});
+
+router.post("/danma/timestamp", async (ctx) => {
+  const { filepath } = ctx.request.body as {
+    filepath: string;
+  };
+
+  ctx.body = await readXmlTimestamp(filepath);
 });
 
 export default router;

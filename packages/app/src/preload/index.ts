@@ -273,9 +273,11 @@ export const api = {
     options: {
       removeOrigin: boolean;
       override: boolean;
+      startTimestamp?: number;
     } = {
       removeOrigin: false,
       override: true,
+      startTimestamp: 0,
     },
     ffmpegOptions: FfmpegOptions = {
       encoder: "libx264",
