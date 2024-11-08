@@ -20,6 +20,12 @@ describe("matchDanmaTimestamp", () => {
     expect(result).toBe(1721730390); // Expected timestamp
   });
 
+  it("should return null if parsed time id unvalid", () => {
+    const str = "2121<record_start_time>20ewewe</record_start_time>212";
+    const result = matchDanmaTimestamp(str);
+    expect(result).toBeNull();
+  });
+
   it("should return null if no timestamp is found", () => {
     const str = "no timestamp here";
     const result = matchDanmaTimestamp(str);
