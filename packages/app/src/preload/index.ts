@@ -15,7 +15,6 @@ import type {
   BiliupConfig,
   BiliupConfigAppend,
   VideoMergeOptions,
-  Video2Mp4Options,
   DanmuConfig,
   hotProgressOptions,
   Theme,
@@ -264,26 +263,6 @@ export const api = {
       return ipcRenderer.invoke("config:import", filePath);
     },
   },
-  convertVideo2Mp4: (
-    file: {
-      input: string;
-      output?: string;
-    },
-    options: Video2Mp4Options = {
-      saveRadio: 1,
-      saveOriginPath: true,
-      savePath: "",
-
-      override: false,
-      removeOrigin: false,
-    },
-    ffmpegOptions: FfmpegOptions = {
-      encoder: "copy",
-      audioCodec: "copy",
-    },
-  ) => {
-    return ipcRenderer.invoke("convertVideo2Mp4", file, options, ffmpegOptions);
-  },
   mergeAssMp4: async (
     files: {
       videoFilePath: string;
@@ -293,8 +272,10 @@ export const api = {
     },
     options: {
       removeOrigin: boolean;
+      override: boolean;
     } = {
       removeOrigin: false,
+      override: true,
     },
     ffmpegOptions: FfmpegOptions = {
       encoder: "libx264",

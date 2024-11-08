@@ -702,6 +702,7 @@ export class WebhookHandler {
             {
               removeOrigin: false,
               startTimestamp: options.startTimestamp,
+              override: true,
             },
             preset,
           ).then((task) => {

@@ -195,7 +195,7 @@ const confirmExport = async () => {
         outputPath: window.path.join(savePath, `${title}.mp4`),
         hotProgressFilePath: undefined,
       },
-      { removeOrigin: false },
+      { removeOrigin: false, override: exportOptions.override },
       {
         ...ffmpegOptiosn,
         ss: start,

@@ -522,7 +522,7 @@ const createMergeVideoAssTask = async (
           outputPath: outputPath,
           hotProgressFilePath: hotProgressFilePath,
         },
-        { ...options, removeOrigin: false },
+        { ...options, removeOrigin: false, override: true },
         ffmpegOptions,
       )
       .then(({ taskId, output }: { taskId?: string; output?: string }) => {
