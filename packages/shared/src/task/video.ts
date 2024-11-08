@@ -375,7 +375,7 @@ function matchTimestamp(str: string, regex: RegExp): number | null {
  */
 export async function readXmlTimestamp(filePath: string): Promise<number | 0> {
   if (!(await pathExists(filePath))) {
-    return null;
+    return 0;
   }
   const content = await readLines(filePath, 0, 30);
   const timestamp = matchDanmaTimestamp(content.join("\n"));
