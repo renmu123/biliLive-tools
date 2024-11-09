@@ -90,7 +90,7 @@ describe("WebhookHandler", () => {
       expect(liveData[0].parts[0].recordStatus).toBe("recorded");
     });
 
-    it("存在live的情况下，且roomId相同，在限制时间内又进来一条数据", async () => {
+    it("存在live的情况下，且roomId相同，又进来一条数据", async () => {
       // @ts-ignore
       webhookHandler = new WebhookHandler(appConfig);
       webhookHandler.liveData = [];
@@ -172,7 +172,7 @@ describe("WebhookHandler", () => {
       expect(liveData.length).toBe(2);
       expect(liveData[0].parts.length).toBe(1);
     });
-    it("存在live的情况下，且roomId相同，在限制时间外又进来一条数据", async () => {
+    it("存在live的情况下，且roomId相同，又进来一条数据", async () => {
       // @ts-ignore
       webhookHandler = new WebhookHandler(appConfig);
       webhookHandler.liveData = [];
@@ -266,7 +266,7 @@ describe("WebhookHandler", () => {
       expect(liveData[0].parts[0].endTime).toBe(new Date(options.time).getTime());
       expect(liveData[0].parts[0].recordStatus).toBe("recorded");
     });
-    it("存在live的情况下，且最后一个part的结束时间并非最新，又进来一条event: FileClosed数据", async () => {
+    it("存在live的情况下，在event: FileClosed前先发送了event: FileOpeing", async () => {
       // @ts-ignore
       webhookHandler = new WebhookHandler(appConfig);
       webhookHandler.liveData = [];
@@ -281,14 +281,14 @@ describe("WebhookHandler", () => {
       existingLive.addPart({
         partId: "existing-part-id2",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        filePath: "/path/to/existing-video.mp4",
+        filePath: "/path/to/existing-video1.mp4",
         recordStatus: "recorded",
         endTime: new Date("2022-01-01T00:05:00Z").getTime(),
       });
       existingLive.addPart({
         partId: "existing-part-id",
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        filePath: "/path/to/existing-video.mp4",
+        startTime: new Date("2022-01-01T00:08:00Z").getTime(),
+        filePath: "/path/to/existing-video2.mp4",
         recordStatus: "recording",
       });
 
@@ -300,20 +300,31 @@ describe("WebhookHandler", () => {
         platform: "bili-recorder",
         time: "2022-01-01T00:09:00Z",
         title: "Existing Video",
-        filePath: "/path/to/existing-video.mp4",
+        filePath: "/path/to/existing-video3.mp4",
         username: "test",
       };
-
       await webhookHandler.handleLiveData(options, 10);
       const liveData = webhookHandler.liveData;
 
       expect(liveData.length).toBe(1);
-      expect(liveData[0].eventId).toBe(existingLive.eventId);
-      expect(liveData[0].platform).toBe(existingLive.platform);
-      expect(liveData[0].startTime).toBe(existingLive.startTime);
-      expect(liveData[0].roomId).toBe(existingLive.roomId);
-      expect(liveData[0].title).toBe(existingLive.title);
       expect(liveData[0].parts.length).toBe(3);
+      expect(liveData[0].parts[2].recordStatus).toBe("recording");
+      expect(liveData[0].parts[1].recordStatus).toBe("recording");
+
+      const options2: Options = {
+        event: "FileClosed",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:10:00Z",
+        title: "Existing Video",
+        filePath: "/path/to/existing-video2.mp4",
+        username: "test",
+      };
+      await webhookHandler.handleLiveData(options2, 10);
+      const liveData2 = webhookHandler.liveData;
+      expect(liveData2[0].parts[1].recordStatus).toBe("recorded");
+      expect(liveData[0].parts[2].recordStatus).toBe("recording");
+      console.log(liveData2[0].parts[1]);
     });
   });
 
