@@ -30,9 +30,9 @@ async function downloadFile(url, desc) {
 }
 
 async function downloadBin() {
-  const betterSqlie3Version = "v11.2.1";
+  const betterSqlie3Version = "v11.5.0";
   // better-sqlite3-v11.1.2-electron-v125-win32-x64.tar.gz
-  const filename = `better-sqlite3-${betterSqlie3Version}-electron-v125-${process.platform}-${process.arch}.tar.gz`;
+  const filename = `better-sqlite3-${betterSqlie3Version}-electron-v130-${process.platform}-${process.arch}.tar.gz`;
   const downloadUrl = `https://github.com/WiseLibs/better-sqlite3/releases/download/${betterSqlie3Version}/${filename}`;
   console.log("下载地址:", downloadUrl);
 

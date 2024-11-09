@@ -47,9 +47,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --ignore-scripts
 
-      # - name: install-deps-for-better-sqlite3
-      #   run: node ./scripts/github-ci-better-sqlite3.js
-
       - name: build
         run: pnpm run build:webui
 

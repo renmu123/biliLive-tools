@@ -33,7 +33,6 @@
     "@autorecord/manager": "workspace:*",
     "axios": "1.7.4",
     "blive-message-listener": "^0.5.0",
-    "mitt": "^3.0.0"
-  },
-  "devDependencies": {}
+    "mitt": "^3.0.1"
+  }
 }

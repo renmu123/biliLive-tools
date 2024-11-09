@@ -33,7 +33,6 @@
     "@autorecord/manager": "workspace:*",
     "huya-danma": "workspace:*",
     "axios": "1.7.4",
-    "huya-danmu-fix": "^2.0.4",
     "mitt": "^3.0.1"
   },
   "devDependencies": {},
