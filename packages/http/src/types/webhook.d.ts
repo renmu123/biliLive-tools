@@ -1,6 +1,8 @@
 export type Platform = "bili-recorder" | "blrec" | "ddtv" | "custom";
 export type PickPartial<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>> & Partial<Pick<T, K>>;
 export type UploadStatus = "pending" | "uploading" | "uploaded" | "error";
+export type OpenEvent = "FileOpening";
+export type CloseEvent = "FileClosed";
 
 export interface Part {
   partId: string;
@@ -20,7 +22,7 @@ export interface Part {
 }
 
 export interface Options {
-  event: "FileOpening" | "FileClosed";
+  event: OpenEvent | CloseEvent;
   filePath: string;
   roomId: number;
   time: string;
@@ -33,7 +35,7 @@ export interface Options {
 
 export interface CustomEvent {
   /** 如果你想使用断播续传功能，请在上一个`FileClosed`事件后在时间间隔内发送`FileOpening`事件 */
-  event: "FileOpening" | "FileClosed";
+  event: OpenEvent | CloseEvent;
   /** 视频文件的绝对路径 */
   filePath: string;
   /** 房间号，用于断播续传需要 */
@@ -49,6 +51,3 @@ export interface CustomEvent {
   /** 弹幕路径 */
   danmuPath?: string;
 }
-
-export type OpenEvent = "FileOpening";
-export type CloseEvent = "FileClosed";

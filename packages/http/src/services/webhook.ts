@@ -142,12 +142,13 @@ export class WebhookHandler {
 
     // 计算live
     const currentLiveIndex = await this.handleLiveData(options, partMergeMinute);
-    const currentLive = this.liveData[currentLiveIndex];
-    console.log("all live data", this.liveData);
 
     if (options.event === EventType.OpenEvent) {
       return;
     }
+
+    const currentLive = this.liveData[currentLiveIndex];
+    console.log("all live data", this.liveData);
 
     // 需要在录制结束时判断大小
     const fileSize = await getFileSize(options.filePath);
@@ -431,114 +432,139 @@ export class WebhookHandler {
 
     return options;
   }
-  async handleLiveData(options: Options, partMergeMinute: number) {
+  /**
+   * 处理open事件
+   * @param options
+   * @param partMergeMinute 断播续传时间戳
+   */
+  handleOpenEvent = (options: Options, partMergeMinute: number) => {
+    const timestamp = new Date(options.time).getTime();
+    let currentIndex = -1;
+    log.debug("liveData-start", options.event, JSON.stringify(this.liveData, null, 2));
+    // 为了处理 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间
+    // 找到上一个文件结束时间与当前时间差小于一段时间的直播，认为是同一个直播
+    currentIndex = this.liveData.findIndex((live) => {
+      // 找到part中最大的结束时间
+      const endTime = Math.max(...live.parts.map((item) => item.endTime || 0));
+      return (
+        live.roomId === options.roomId &&
+        live.platform === options.platform &&
+        (timestamp - endTime) / (1000 * 60) < (partMergeMinute || 10)
+      );
+    });
+    if (partMergeMinute !== -1 && currentIndex === -1) {
+      // 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间，如果出现这种情况，尝试特殊处理
+      // 如果live的任何一个part有endTime，说明不会出现特殊情况，不需要特殊处理
+      // 然后去遍历liveData，找到roomId、platform、title都相同的直播，认为是同一场直播
+      currentIndex = this.liveData.findLastIndex((live) => {
+        const hasEndTime = (live.parts || []).some((item) => item.endTime);
+        if (hasEndTime) {
+          return false;
+        } else {
+          return live.roomId === options.roomId && live.platform === options.platform;
+        }
+      });
+      // if (currentIndex !== -1) {
+      //   log.info("下一个文件的开始时间可能早于上一个文件的结束时间", this.liveData);
+      //   return currentIndex;
+      // }
+    }
+    let currentLive = this.liveData[currentIndex];
+    log.debug("currentLive", JSON.stringify(currentLive, null, 2));
+
+    if (currentLive) {
+      const part: Part = {
+        partId: uuid(),
+        startTime: timestamp,
+        filePath: options.filePath,
+        recordStatus: "recording",
+        uploadStatus: "pending",
+        rawFilePath: options.filePath,
+        rawUploadStatus: "pending",
+      };
+      currentLive.addPart(part);
+      this.liveData[currentIndex] = currentLive;
+    } else {
+      // 新建Live数据
+      currentLive = new Live({
+        eventId: uuid(),
+        platform: options.platform,
+        roomId: options.roomId,
+        startTime: timestamp,
+        title: options.title,
+        username: options.username,
+      });
+      currentLive.addPart({
+        partId: uuid(),
+        startTime: timestamp,
+        filePath: options.filePath,
+        recordStatus: "recording",
+        uploadStatus: "pending",
+        rawFilePath: options.filePath,
+        rawUploadStatus: "pending",
+      });
+      this.liveData.push(currentLive);
+      currentIndex = this.liveData.length - 1;
+    }
+
+    return -1;
+  };
+
+  /**
+   * 处理close事件
+   * @param options
+   * @param partMergeMinute 断播续传时间戳
+   * @returns 当前直播的索引
+   */
+  handleCloseEvent = (options: Options): number => {
     // TODO:重构为处理open和closed事件的两个方法
     // 计算live
     const timestamp = new Date(options.time).getTime();
     let currentIndex = -1;
     log.debug("liveData-start", options.event, JSON.stringify(this.liveData, null, 2));
-    if (options.event === EventType.OpenEvent) {
-      // 为了处理 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间
-      await sleep(1000);
-      // 找到上一个文件结束时间与当前时间差小于一段时间的直播，认为是同一个直播
-      currentIndex = this.liveData.findIndex((live) => {
-        // 找到part中最大的结束时间
-        const endTime = Math.max(...live.parts.map((item) => item.endTime || 0));
-        return (
-          live.roomId === options.roomId &&
-          live.platform === options.platform &&
-          (timestamp - endTime) / (1000 * 60) < (partMergeMinute || 10)
-        );
-      });
-      if (partMergeMinute !== -1 && currentIndex === -1) {
-        // 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间，如果出现这种情况，尝试特殊处理
-        // 如果live的任何一个part有endTime，说明不会出现特殊情况，不需要特殊处理
-        // 然后去遍历liveData，找到roomId、platform、title都相同的直播，认为是同一场直播
-        currentIndex = this.liveData.findLastIndex((live) => {
-          const hasEndTime = (live.parts || []).some((item) => item.endTime);
-          if (hasEndTime) {
-            return false;
-          } else {
-            return live.roomId === options.roomId && live.platform === options.platform;
-          }
-        });
-        // if (currentIndex !== -1) {
-        //   log.info("下一个文件的开始时间可能早于上一个文件的结束时间", this.liveData);
-        //   return currentIndex;
-        // }
+    currentIndex = this.liveData.findIndex((live) => {
+      return live.findPartByFilePath(options.filePath) !== undefined;
+    });
+    let currentLive = this.liveData[currentIndex];
+    if (currentLive) {
+      const currentPart = currentLive.findPartByFilePath(options.filePath);
+      if (currentPart) {
+        currentLive.updatePartValue(currentPart.partId, "endTime", timestamp);
+        currentLive.updatePartValue(currentPart.partId, "recordStatus", "recorded");
       }
-      let currentLive = this.liveData[currentIndex];
-      log.debug("currentLive", JSON.stringify(currentLive, null, 2));
-
-      if (currentLive) {
-        const part: Part = {
-          partId: uuid(),
-          startTime: timestamp,
-          filePath: options.filePath,
-          recordStatus: "recording",
-          uploadStatus: "pending",
-          rawFilePath: options.filePath,
-          rawUploadStatus: "pending",
-        };
-        currentLive.addPart(part);
-        this.liveData[currentIndex] = currentLive;
-      } else {
-        // 新建Live数据
-        currentLive = new Live({
-          eventId: uuid(),
-          platform: options.platform,
-          roomId: options.roomId,
-          startTime: timestamp,
-          title: options.title,
-          username: options.username,
-        });
-        currentLive.addPart({
-          partId: uuid(),
-          startTime: timestamp,
-          filePath: options.filePath,
-          recordStatus: "recording",
-          uploadStatus: "pending",
-          rawFilePath: options.filePath,
-          rawUploadStatus: "pending",
-        });
-        this.liveData.push(currentLive);
-        currentIndex = this.liveData.length - 1;
-      }
+      this.liveData[currentIndex] = currentLive;
     } else {
-      currentIndex = this.liveData.findIndex((live) => {
-        return live.findPartByFilePath(options.filePath) !== undefined;
+      currentLive = new Live({
+        eventId: uuid(),
+        platform: options.platform,
+        roomId: options.roomId,
+        title: options.title,
+        username: options.username,
       });
-      let currentLive = this.liveData[currentIndex];
-      if (currentLive) {
-        const currentPart = currentLive.findPartByFilePath(options.filePath);
-        if (currentPart) {
-          currentLive.updatePartValue(currentPart.partId, "endTime", timestamp);
-          currentLive.updatePartValue(currentPart.partId, "recordStatus", "recorded");
-        }
-        this.liveData[currentIndex] = currentLive;
-      } else {
-        currentLive = new Live({
-          eventId: uuid(),
-          platform: options.platform,
-          roomId: options.roomId,
-          title: options.title,
-          username: options.username,
-        });
-        currentLive.addPart({
-          partId: uuid(),
-          filePath: options.filePath,
-          endTime: timestamp,
-          recordStatus: "recorded",
-          uploadStatus: "pending",
-          rawFilePath: options.filePath,
-          rawUploadStatus: "pending",
-        });
-        this.liveData.push(currentLive);
-        currentIndex = this.liveData.length - 1;
-      }
+      currentLive.addPart({
+        partId: uuid(),
+        filePath: options.filePath,
+        endTime: timestamp,
+        recordStatus: "recorded",
+        uploadStatus: "pending",
+        rawFilePath: options.filePath,
+        rawUploadStatus: "pending",
+      });
+      this.liveData.push(currentLive);
+      currentIndex = this.liveData.length - 1;
     }
-
     return currentIndex;
+  };
+
+  async handleLiveData(options: Options, partMergeMinute: number): Promise<number> {
+    if (options.event === EventType.OpenEvent) {
+      await sleep(1000);
+      return this.handleOpenEvent(options, partMergeMinute);
+    } else if (options.event === EventType.CloseEvent) {
+      return this.handleCloseEvent(options);
+    } else {
+      throw new Error(`不支持的事件：${options.event}`);
+    }
   }
 
   // 转封装为mp4
