@@ -439,11 +439,8 @@ export class WebhookHandler {
    */
   handleOpenEvent = (options: Options, partMergeMinute: number) => {
     const timestamp = new Date(options.time).getTime();
-    let currentIndex = -1;
-    log.debug("liveData-start", options.event, JSON.stringify(this.liveData, null, 2));
-    // 为了处理 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间
     // 找到上一个文件结束时间与当前时间差小于一段时间的直播，认为是同一个直播
-    currentIndex = this.liveData.findIndex((live) => {
+    let currentLive = this.liveData.find((live) => {
       // 找到part中最大的结束时间
       const endTime = Math.max(...live.parts.map((item) => item.endTime || 0));
       return (
@@ -452,11 +449,11 @@ export class WebhookHandler {
         (timestamp - endTime) / (1000 * 60) < (partMergeMinute || 10)
       );
     });
-    if (partMergeMinute !== -1 && currentIndex === -1) {
+    if (partMergeMinute !== -1 && currentLive === undefined) {
       // 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间，如果出现这种情况，尝试特殊处理
       // 如果live的任何一个part有endTime，说明不会出现特殊情况，不需要特殊处理
       // 然后去遍历liveData，找到roomId、platform、title都相同的直播，认为是同一场直播
-      currentIndex = this.liveData.findLastIndex((live) => {
+      currentLive = this.liveData.findLast((live) => {
         const hasEndTime = (live.parts || []).some((item) => item.endTime);
         if (hasEndTime) {
           return false;
@@ -464,13 +461,7 @@ export class WebhookHandler {
           return live.roomId === options.roomId && live.platform === options.platform;
         }
       });
-      // if (currentIndex !== -1) {
-      //   log.info("下一个文件的开始时间可能早于上一个文件的结束时间", this.liveData);
-      //   return currentIndex;
-      // }
     }
-    let currentLive = this.liveData[currentIndex];
-    log.debug("currentLive", JSON.stringify(currentLive, null, 2));
 
     if (currentLive) {
       const part: Part = {
@@ -483,10 +474,9 @@ export class WebhookHandler {
         rawUploadStatus: "pending",
       };
       currentLive.addPart(part);
-      this.liveData[currentIndex] = currentLive;
     } else {
       // 新建Live数据
-      currentLive = new Live({
+      const live = new Live({
         eventId: uuid(),
         platform: options.platform,
         roomId: options.roomId,
@@ -494,7 +484,7 @@ export class WebhookHandler {
         title: options.title,
         username: options.username,
       });
-      currentLive.addPart({
+      live.addPart({
         partId: uuid(),
         startTime: timestamp,
         filePath: options.filePath,
@@ -503,8 +493,7 @@ export class WebhookHandler {
         rawFilePath: options.filePath,
         rawUploadStatus: "pending",
       });
-      this.liveData.push(currentLive);
-      currentIndex = this.liveData.length - 1;
+      this.liveData.push(live);
     }
   };
 
