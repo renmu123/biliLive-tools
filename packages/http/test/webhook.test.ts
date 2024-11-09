@@ -429,7 +429,7 @@ describe("WebhookHandler", () => {
       expect(handleLiveDataSpy).not.toHaveBeenCalled();
     });
 
-    it("should handle the options and return if the event is 'FileOpening' or 'FileOpening'", async () => {
+    it("should handle the options and return if the event is 'FileOpening'", async () => {
       // Arrange
       const options: Options = {
         roomId: 123,
@@ -444,15 +444,13 @@ describe("WebhookHandler", () => {
         .spyOn(webhookHandler, "getConfig")
         // @ts-ignore
         .mockReturnValue({ open: true, title: "test" });
-      const utils = await import("@biliLive-tools/shared/utils/index.js");
-      const getSizeSpy = vi.spyOn(utils, "getFileSize");
 
       // Act
-      await webhookHandler.handle(options);
+      const returnVal = await webhookHandler.handle(options);
 
       // Assert
       expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
-      expect(getSizeSpy).not.toHaveBeenCalled();
+      expect(returnVal).toBeUndefined();
     });
     it("should handle the options and update rawFilePath when convert2Mp4Option is true", async () => {
       // Arrange
@@ -515,8 +513,7 @@ describe("WebhookHandler", () => {
       // Assert
       expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
       expect(result).toBeUndefined();
-      expect(webhookHandler.liveData.length).toBe(1);
-      expect(webhookHandler.liveData[0].parts.length).toBe(0);
+      expect(webhookHandler.liveData.length).toBe(0);
     });
   });
   describe("handleLive", () => {
@@ -2209,5 +2206,87 @@ describe("Live", () => {
     const foundPart = live.findPartByFilePath("/path/to/nonexistent.mp4");
 
     expect(foundPart).toBeUndefined();
+  });
+
+  describe("findLiveByFilePath", () => {
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+      }),
+    };
+    let webhookHandler: WebhookHandler;
+
+    beforeEach(() => {
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+    });
+
+    it("should find live by file path correctly", () => {
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      const live1 = new Live({
+        eventId: "event1",
+        platform: "bili-recorder",
+        roomId: 123,
+        title: "Test Video 1",
+        username: "username1",
+      });
+      live1.addPart({
+        partId: "part1",
+        filePath: "/path/to/part1.mp4",
+        recordStatus: "recording",
+        rawFilePath: "/path/to/raw/part1.mp4",
+        uploadStatus: "uploaded",
+        rawUploadStatus: "uploaded",
+      });
+
+      const live2 = new Live({
+        eventId: "event2",
+        platform: "bili-recorder",
+        roomId: 456,
+        title: "Test Video 2",
+        username: "username2",
+      });
+      live2.addPart({
+        partId: "part2",
+        filePath: "/path/to/part2.mp4",
+        recordStatus: "recording",
+        rawFilePath: "/path/to/raw/part2.mp4",
+        uploadStatus: "uploaded",
+        rawUploadStatus: "uploaded",
+      });
+
+      webhookHandler.liveData.push(live1, live2);
+
+      const foundLive = webhookHandler.findLiveByFilePath("/path/to/part2.mp4");
+
+      expect(foundLive).toBe(live2);
+    });
+
+    it("should return undefined if live is not found by file path", () => {
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      const live = new Live({
+        eventId: "event1",
+        platform: "bili-recorder",
+        roomId: 123,
+        title: "Test Video",
+        username: "username",
+      });
+      live.addPart({
+        partId: "part1",
+        filePath: "/path/to/part1.mp4",
+        recordStatus: "recording",
+        rawFilePath: "/path/to/raw/part1.mp4",
+        uploadStatus: "uploaded",
+        rawUploadStatus: "uploaded",
+      });
+
+      webhookHandler.liveData.push(live);
+
+      const foundLive = webhookHandler.findLiveByFilePath("/path/to/nonexistent.mp4");
+
+      expect(foundLive).toBeUndefined();
+    });
   });
 });

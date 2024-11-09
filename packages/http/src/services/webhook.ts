@@ -140,31 +140,24 @@ export class WebhookHandler {
       return;
     }
 
+    if (options.event === EventType.CloseEvent) {
+      // 在录制结束时判断大小，如果文件太小，直接返回
+      const fileSize = await getFileSize(options.filePath);
+      if (fileSize / 1024 / 1024 < minSize) {
+        log.warn(`${options.filePath}: file size is too small`);
+        return;
+      }
+    }
+
     // 计算live
     const currentLiveIndex = await this.handleLiveData(options, partMergeMinute);
 
+    // 如果是开始事件，不需要后续的处理
     if (options.event === EventType.OpenEvent) {
       return;
     }
 
     const currentLive = this.liveData[currentLiveIndex];
-    console.log("all live data", this.liveData);
-
-    // 需要在录制结束时判断大小
-    const fileSize = await getFileSize(options.filePath);
-    if (fileSize / 1024 / 1024 < minSize) {
-      log.warn(`${options.filePath}: file size is too small`);
-      if (currentLive) {
-        const part = currentLive.findPartByFilePath(options.filePath);
-        if (part) {
-          currentLive.parts.splice(currentLive.parts.indexOf(part), 1);
-        }
-      }
-      return;
-    }
-
-    log.debug("currentLive-end", currentLive);
-
     const currentPart = currentLive.findPartByFilePath(options.filePath);
     if (!currentPart) return;
 
@@ -264,7 +257,26 @@ export class WebhookHandler {
       currentPart.recordStatus = "handled";
     }
   }
-  async handleCover(options: { coverPath?: string; filePath: string }) {
+
+  /**
+   * 根据filePath查找live，并非rawFilePath
+   * @param filePath 文件路径
+   */
+  findLiveByFilePath(filePath: string) {
+    return this.liveData.find((live) => live.parts.some((part) => part.filePath === filePath));
+  }
+
+  /**
+   * 处理封面
+   * @param options
+   * @param {string} [options.coverPath] - 封面路径
+   * @param {string} options.filePath - 文件路径
+   * @returns {Promise<string | undefined>} 封面路径
+   */
+  async handleCover(options: {
+    coverPath?: string;
+    filePath: string;
+  }): Promise<string | undefined> {
     let cover: string | undefined;
     if (options.coverPath) {
       cover = options.coverPath;
@@ -509,9 +521,7 @@ export class WebhookHandler {
    */
   handleCloseEvent = (options: Options): string => {
     const timestamp = new Date(options.time).getTime();
-    const currentLive = this.liveData.find((live) => {
-      return live.findPartByFilePath(options.filePath) !== undefined;
-    });
+    const currentLive = this.findLiveByFilePath(options.filePath);
 
     if (currentLive) {
       const currentPart = currentLive.findPartByFilePath(options.filePath);
@@ -544,6 +554,9 @@ export class WebhookHandler {
     return currentLive.eventId;
   };
 
+  /**
+   * 处理FileOpening和FileClosed事件
+   */
   async handleLiveData(options: Options, partMergeMinute: number): Promise<number> {
     if (options.event === EventType.OpenEvent) {
       await sleep(1000);
