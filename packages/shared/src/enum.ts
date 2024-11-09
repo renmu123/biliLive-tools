@@ -167,8 +167,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   biliUpload: {
     line: "auto",
     concurrency: 3,
-    retryTimes: 3,
-    retryDelay: 5000,
+    retryTimes: 5,
+    retryDelay: 7000,
     checkInterval: 600,
   },
   recorder: {
