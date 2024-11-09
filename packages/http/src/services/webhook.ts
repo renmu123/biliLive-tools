@@ -462,12 +462,12 @@ export class WebhookHandler {
     // 计算live
     const timestamp = new Date(options.time).getTime();
     let currentIndex = -1;
-    log.debug("liveData-start", JSON.stringify(this.liveData, null, 2));
+    log.debug("liveData-start", options.event, JSON.stringify(this.liveData, null, 2));
     if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
       // 为了处理 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间
       await sleep(1000);
+      // 找到上一个文件结束时间与当前时间差小于一段时间的直播，认为是同一个直播
       currentIndex = this.liveData.findIndex((live) => {
-        // 找到上一个文件结束时间与当前时间差小于10分钟的直播，认为是同一个直播
         // 找到part中最大的结束时间
         const endTime = Math.max(...live.parts.map((item) => item.endTime || 0));
         return (
@@ -476,7 +476,7 @@ export class WebhookHandler {
           (timestamp - endTime) / (1000 * 60) < (partMergeMinute || 10)
         );
       });
-      if (currentIndex === -1) {
+      if (partMergeMinute !== -1 && currentIndex === -1) {
         // 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间，如果出现这种情况，尝试特殊处理
         // 如果live的任何一个part有endTime，说明不会出现特殊情况，不需要特殊处理
         // 然后去遍历liveData，找到roomId、platform、title都相同的直播，认为是同一场直播
@@ -485,17 +485,13 @@ export class WebhookHandler {
           if (hasEndTime) {
             return false;
           } else {
-            return (
-              live.roomId === options.roomId &&
-              live.platform === options.platform &&
-              live.title === options.title
-            );
+            return live.roomId === options.roomId && live.platform === options.platform;
           }
         });
-        if (currentIndex !== -1) {
-          log.info("下一个文件的开始时间可能早于上一个文件的结束时间", this.liveData);
-          return currentIndex;
-        }
+        // if (currentIndex !== -1) {
+        //   log.info("下一个文件的开始时间可能早于上一个文件的结束时间", this.liveData);
+        //   return currentIndex;
+        // }
       }
       let currentLive = this.liveData[currentIndex];
       log.debug("currentLive", JSON.stringify(currentLive, null, 2));

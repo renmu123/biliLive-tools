@@ -326,6 +326,59 @@ describe("WebhookHandler", () => {
       expect(liveData[0].parts[2].recordStatus).toBe("recording");
       console.log(liveData2[0].parts[1]);
     });
+
+    it("不存在live的情况下，在event: FileClosed前先发送了event: FileOpeing", async () => {
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      webhookHandler.liveData = [];
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        startTime: new Date("2022-01-01T00:08:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
+      existingLive.addPart({
+        partId: "existing-part-id",
+        startTime: new Date("2022-01-01T00:08:00Z").getTime(),
+        filePath: "/path/to/existing-video2.mp4",
+        recordStatus: "recording",
+      });
+
+      webhookHandler.liveData.push(existingLive);
+
+      const options: Options = {
+        event: "FileOpening",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:09:00Z",
+        title: "Existing Video",
+        filePath: "/path/to/existing-video3.mp4",
+        username: "test",
+      };
+      await webhookHandler.handleLiveData(options, 10);
+      const liveData = webhookHandler.liveData;
+
+      expect(liveData.length).toBe(1);
+      expect(liveData[0].parts.length).toBe(2);
+      expect(liveData[0].parts[1].recordStatus).toBe("recording");
+      expect(liveData[0].parts[0].recordStatus).toBe("recording");
+
+      const options2: Options = {
+        event: "FileClosed",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:10:00Z",
+        title: "Existing Video",
+        filePath: "/path/to/existing-video2.mp4",
+        username: "test",
+      };
+      await webhookHandler.handleLiveData(options2, 10);
+      const liveData2 = webhookHandler.liveData;
+      expect(liveData2[0].parts[0].recordStatus).toBe("recorded");
+      expect(liveData[0].parts[1].recordStatus).toBe("recording");
+    });
   });
 
   describe("canHandle", () => {
