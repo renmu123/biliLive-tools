@@ -506,42 +506,36 @@ export class WebhookHandler {
       this.liveData.push(currentLive);
       currentIndex = this.liveData.length - 1;
     }
-
-    return -1;
   };
 
   /**
    * 处理close事件
    * @param options
    * @param partMergeMinute 断播续传时间戳
-   * @returns 当前直播的索引
+   * @returns 当前live的eventId
    */
-  handleCloseEvent = (options: Options): number => {
-    // TODO:重构为处理open和closed事件的两个方法
-    // 计算live
+  handleCloseEvent = (options: Options): string => {
     const timestamp = new Date(options.time).getTime();
-    let currentIndex = -1;
-    log.debug("liveData-start", options.event, JSON.stringify(this.liveData, null, 2));
-    currentIndex = this.liveData.findIndex((live) => {
+    const currentLive = this.liveData.find((live) => {
       return live.findPartByFilePath(options.filePath) !== undefined;
     });
-    let currentLive = this.liveData[currentIndex];
+
     if (currentLive) {
       const currentPart = currentLive.findPartByFilePath(options.filePath);
       if (currentPart) {
         currentLive.updatePartValue(currentPart.partId, "endTime", timestamp);
         currentLive.updatePartValue(currentPart.partId, "recordStatus", "recorded");
       }
-      this.liveData[currentIndex] = currentLive;
     } else {
-      currentLive = new Live({
-        eventId: uuid(),
+      const liveEventId = uuid();
+      const live = new Live({
+        eventId: liveEventId,
         platform: options.platform,
         roomId: options.roomId,
         title: options.title,
         username: options.username,
       });
-      currentLive.addPart({
+      live.addPart({
         partId: uuid(),
         filePath: options.filePath,
         endTime: timestamp,
@@ -550,18 +544,22 @@ export class WebhookHandler {
         rawFilePath: options.filePath,
         rawUploadStatus: "pending",
       });
-      this.liveData.push(currentLive);
-      currentIndex = this.liveData.length - 1;
+      this.liveData.push(live);
+
+      return liveEventId;
     }
-    return currentIndex;
+    return currentLive.eventId;
   };
 
   async handleLiveData(options: Options, partMergeMinute: number): Promise<number> {
     if (options.event === EventType.OpenEvent) {
       await sleep(1000);
-      return this.handleOpenEvent(options, partMergeMinute);
+      this.handleOpenEvent(options, partMergeMinute);
+      return -1;
     } else if (options.event === EventType.CloseEvent) {
-      return this.handleCloseEvent(options);
+      const liveId = this.handleCloseEvent(options);
+      const index = this.liveData.findIndex((live) => live.eventId === liveId);
+      return index;
     } else {
       throw new Error(`不支持的事件：${options.event}`);
     }
