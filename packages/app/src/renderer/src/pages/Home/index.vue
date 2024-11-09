@@ -168,7 +168,7 @@ import ffmpegSetting from "./components/ffmpegSetting.vue";
 import PreviewModal from "./components/previewModal.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
 import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
-import { danmuPresetApi, biliApi } from "@renderer/apis";
+import { danmuPresetApi, biliApi, commonApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 
 import { deepRaw, uuid, formatFile } from "@renderer/utils";
@@ -481,12 +481,20 @@ const handleVideoMerge = async (
 
   let output: string;
   try {
+    let startTimestamp = 0;
+    if (convertOptions.rawInputDanmuFile.ext === ".xml") {
+      try {
+        startTimestamp = await commonApi.readXmlTimestamp(convertOptions.rawInputDanmuFile.path);
+      } catch (err) {
+        console.log(err);
+      }
+    }
     output = await createMergeVideoAssTask(
       inputVideoFilePath,
       inputAssFilePath,
       inputHotProgressFilePath,
       outputPath,
-      deepRaw(options),
+      { ...deepRaw(options), startTimestamp },
       ffmpegOptions,
     );
   } catch (err) {
@@ -510,7 +518,7 @@ const createMergeVideoAssTask = async (
   assFilePath: string,
   hotProgressFilePath: string | undefined,
   outputPath: string,
-  options: ClientOptions,
+  options: ClientOptions & { startTimestamp: number },
   ffmpegOptions: FfmpegOptions,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {

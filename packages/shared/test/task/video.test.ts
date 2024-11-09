@@ -3,7 +3,7 @@ import { matchDanmaTimestamp } from "../../src/task/video.js";
 
 describe("matchDanmaTimestamp", () => {
   it("should return the correct timestamp from a valid string", () => {
-    const str = 'start_time = "2024-08-20T09:48:07.7164935+08:00"';
+    const str = 'start_time="2024-08-20T09:48:07.7164935+08:00"';
     const result = matchDanmaTimestamp(str);
     expect(result).toBe(1724118487); // Expected timestamp
   });

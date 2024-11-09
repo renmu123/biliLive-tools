@@ -333,7 +333,7 @@ export class ComplexFilter {
  * @param {string} str 需要匹配的字符串
  */
 export const matchDanmaTimestamp = (str: string): number | null => {
-  const bililiveRecorderRegex = /start_time = "(.+)"/;
+  const bililiveRecorderRegex = /start_time="(.+)"/;
   const blrecRegex = /<record_start_time>(.+)<\/record_start_time>/;
   const douyuRegex = /<video_start_time>(.+)<\/video_start_time>/;
 
@@ -356,7 +356,6 @@ function matchTimestamp(str: string, regex: RegExp): number | null {
   const match = str.match(regex);
   if (match) {
     const time = match[1];
-    console.log(111, time);
     try {
       const timestamp = Math.floor(new Date(time).getTime() / 1000);
       return timestamp;
@@ -366,6 +365,22 @@ function matchTimestamp(str: string, regex: RegExp): number | null {
   }
 
   return null;
+}
+
+/**
+ * 读取xml文件中的时间戳
+ * start_time="2024-08-20T09:48:07.7164935+08:00";
+ * <record_start_time>2024-07-23T18:26:30+08:00</record_start_time>
+ * <video_start_time>2024-11-06T15:14:02.000Z</video_start_time>
+ */
+export async function readXmlTimestamp(filePath: string): Promise<number | 0> {
+  if (!(await pathExists(filePath))) {
+    return 0;
+  }
+  const content = await readLines(filePath, 0, 30);
+  const timestamp = matchDanmaTimestamp(content.join("\n"));
+
+  return timestamp ? timestamp : 0;
 }
 
 /**
@@ -400,7 +415,7 @@ export const genMergeAssMp4Command = async (
 
   // 获取添加drawtext的参数，为空就是不支持添加
   // 优先从视频元数据读取（如录播姬注释），如果是webhook，那么优先从webhook中读取
-  async function getDrawtextParams() {
+  async function getDrawtextParams(): Promise<number | null> {
     if (!ffmpegOptions.addTimestamp) return null;
     // webhook传递过来的参数
     if (options.startTimestamp) return options.startTimestamp;
@@ -411,20 +426,7 @@ export const genMergeAssMp4Command = async (
     });
     const comment = String(data?.format?.tags?.comment) ?? "";
     const commentTimestamp = matchTimestamp(comment, /录制时间: (.+)/);
-    if (commentTimestamp) {
-      return commentTimestamp;
-    }
-    // start_time = "2024-08-20T09:48:07.7164935+08:00";
-    // <record_start_time>2024-07-23T18:26:30+08:00</record_start_time>
-    // <video_start_time>2024-11-06T15:14:02.000Z</video_start_time>
-    const assPartContent = await readLines(assFile, 0, 30);
-    const assTimestamp = matchDanmaTimestamp(assPartContent.join("\n"));
-
-    if (assTimestamp) {
-      return assTimestamp;
-    }
-
-    return null;
+    return commentTimestamp;
   }
 
   async function addComplexFilter() {

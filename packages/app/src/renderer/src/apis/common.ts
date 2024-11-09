@@ -93,6 +93,13 @@ export async function douyuVideoDownload(
   return res.data;
 }
 
+export async function readXmlTimestamp(filepath: string): Promise<number> {
+  const res = await request.post(`/common/danma/timestamp`, {
+    filepath,
+  });
+  return res.data;
+}
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
@@ -102,6 +109,7 @@ const common = {
   douyuVideoParse,
   douyuVideoDownload,
   getVideoStreams,
+  readXmlTimestamp,
 };
 
 export default common;
