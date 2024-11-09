@@ -459,6 +459,7 @@ export class WebhookHandler {
     return options;
   }
   async handleLiveData(options: Options, partMergeMinute: number) {
+    // TODO:重构为处理open和closed事件的两个方法
     // 计算live
     const timestamp = new Date(options.time).getTime();
     let currentIndex = -1;
