@@ -2,7 +2,7 @@ import { expect, describe, it, beforeEach, vi } from "vitest";
 import { WebhookHandler, Live } from "../src/services/webhook.js";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 
-import type { Options, Part } from "../src/services/webhook.js";
+import type { Options, Part } from "../src/types/webhook.js";
 
 vi.mock("../src/index.js", async (importOriginal) => {
   const mod = await importOriginal<typeof import("../src/index.js")>();
@@ -112,7 +112,7 @@ describe("WebhookHandler", () => {
       webhookHandler.liveData.push(existingLive);
 
       const options: Options = {
-        event: "VideoFileCreatedEvent",
+        event: "FileOpening",
         roomId: 123,
         platform: "bili-recorder",
         time: "2022-01-01T00:09:00Z",
@@ -158,7 +158,7 @@ describe("WebhookHandler", () => {
       webhookHandler.liveData.push(existingLive);
 
       const options: Options = {
-        event: "VideoFileCreatedEvent",
+        event: "FileOpening",
         roomId: 123,
         platform: "bili-recorder",
         time: "2022-01-01T00:09:00Z",
@@ -195,7 +195,7 @@ describe("WebhookHandler", () => {
       webhookHandler.liveData.push(existingLive);
 
       const options: Options = {
-        event: "VideoFileCreatedEvent",
+        event: "FileOpening",
         roomId: 123,
         platform: "bili-recorder",
         time: "2022-01-01T00:16:00Z",
@@ -662,7 +662,7 @@ describe("WebhookHandler", () => {
       expect(handleLiveDataSpy).not.toHaveBeenCalled();
     });
 
-    it("should handle the options and return if the event is 'FileOpening' or 'VideoFileCreatedEvent'", async () => {
+    it("should handle the options and return if the event is 'FileOpening' or 'FileOpening'", async () => {
       // Arrange
       const options: Options = {
         roomId: 123,
@@ -722,7 +722,7 @@ describe("WebhookHandler", () => {
       // Arrange
       const options: Options = {
         roomId: 123,
-        event: "VideoFileCompletedEvent",
+        event: "FileClosed",
         filePath: "/path/to/part1.mp4",
         time: "2022-01-01T00:05:00Z",
         username: "test",

@@ -26,38 +26,11 @@ import type {
   CommonRoomConfig,
 } from "@biliLive-tools/types";
 import type { AppConfig } from "@biliLive-tools/shared/config.js";
+import type { Options, Platform, Part, PickPartial } from "../types/webhook.js";
 
-type Platform = "bili-recorder" | "blrec" | "ddtv" | "custom";
-type PickPartial<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>> & Partial<Pick<T, K>>;
-export type UploadStatus = "pending" | "uploading" | "uploaded" | "error";
-
-export interface Part {
-  partId: string;
-  startTime?: number;
-  endTime?: number;
-  // 录制状态
-  recordStatus: "recording" | "recorded" | "handled";
-  // 处理后的文件路径，可能是弹幕版的
-  filePath: string;
-  // 处理后的文件路径上传状态
-  uploadStatus: UploadStatus;
-  cover?: string; // 封面
-  // 原始文件路径
-  rawFilePath: string;
-  // 原始文件路径上传状态
-  rawUploadStatus: UploadStatus;
-}
-
-export interface Options {
-  event: "FileOpening" | "FileClosed" | "VideoFileCompletedEvent" | "VideoFileCreatedEvent";
-  filePath: string;
-  roomId: number;
-  time: string;
-  username: string;
-  title: string;
-  coverPath?: string;
-  danmuPath?: string;
-  platform: Platform;
+export const enum EventType {
+  OpenEvent = "FileOpening",
+  CloseEvent = "FileClosed",
 }
 
 export class Live {
@@ -172,7 +145,7 @@ export class WebhookHandler {
     const currentLive = this.liveData[currentLiveIndex];
     console.log("all live data", this.liveData);
 
-    if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
+    if (options.event === EventType.OpenEvent) {
       return;
     }
 
@@ -464,7 +437,7 @@ export class WebhookHandler {
     const timestamp = new Date(options.time).getTime();
     let currentIndex = -1;
     log.debug("liveData-start", options.event, JSON.stringify(this.liveData, null, 2));
-    if (options.event === "FileOpening" || options.event === "VideoFileCreatedEvent") {
+    if (options.event === EventType.OpenEvent) {
       // 为了处理 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间
       await sleep(1000);
       // 找到上一个文件结束时间与当前时间差小于一段时间的直播，认为是同一个直播

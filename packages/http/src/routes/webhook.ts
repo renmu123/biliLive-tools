@@ -7,25 +7,7 @@ import { handler, appConfig } from "../index.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 
 import type { BlrecEventType } from "../types/blrecEvent.js";
-
-interface CustomEvent {
-  /** 如果你想使用断播续传功能，请在上一个`FileClosed`事件后在时间间隔内发送`FileOpening`事件 */
-  event: "FileOpening" | "FileClosed";
-  /** 视频文件的绝对路径 */
-  filePath: string;
-  /** 房间号，用于断播续传需要 */
-  roomId: number;
-  /** 用于标题格式化的时间，示例："2021-05-14T17:52:54.946" */
-  time: string;
-  /** 标题，用于格式化视频标题 */
-  title: string;
-  /** 主播名称，用于格式化视频标题 */
-  username: string;
-  /** 封面路径 */
-  coverPath?: string;
-  /** 弹幕路径 */
-  danmuPath?: string;
-}
+import type { CloseEvent, OpenEvent, CustomEvent } from "../types/webhook.js";
 
 const router = new Router();
 
@@ -76,6 +58,16 @@ router.post("/webhook/blrec", async (ctx) => {
     webhook?.open &&
     (event.type === "VideoFileCompletedEvent" || event.type === "VideoFileCreatedEvent")
   ) {
+    const originType = event.type;
+    const typeMap: {
+      VideoFileCompletedEvent: CloseEvent;
+      VideoFileCreatedEvent: OpenEvent;
+    } = {
+      VideoFileCompletedEvent: "FileClosed",
+      VideoFileCreatedEvent: "FileOpening",
+    };
+    const type = typeMap[originType];
+
     const roomId = event.data.room_id;
     const client = new Client();
     const masterRes = await client.live.getRoomInfo(event.data.room_id);
@@ -85,7 +77,7 @@ router.post("/webhook/blrec", async (ctx) => {
     const filePath = isDocker ? event.data.path.replace("/rec", "/app/video") : event.data.path;
 
     handler.handle({
-      event: event.type,
+      event: type,
       filePath: filePath,
       roomId: roomId,
       time: event.date,
