@@ -33,239 +33,6 @@ describe("WebhookHandler", () => {
         task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
       }),
     };
-    it("event: FileOpening, liveData的情况", async () => {
-      // @ts-ignore
-      webhookHandler = new WebhookHandler(appConfig);
-      webhookHandler.liveData = [];
-      const options: Options = {
-        event: "FileOpening",
-        roomId: 123,
-        platform: "bili-recorder",
-        time: "2022-01-01T00:00:00Z",
-        title: "Test Video",
-        filePath: "/path/to/video.mp4",
-        username: "test",
-      };
-
-      await webhookHandler.handleLiveData(options, 10);
-      const liveData = webhookHandler.liveData;
-      expect(liveData.length).toBe(1);
-      expect(liveData[0].eventId).toBeDefined();
-      expect(liveData[0].platform).toBe(options.platform);
-      expect(liveData[0].startTime).toBe(new Date(options.time).getTime());
-      expect(liveData[0].roomId).toBe(options.roomId);
-      expect(liveData[0].title).toBe(options.title);
-      expect(liveData[0].parts.length).toBe(1);
-      expect(liveData[0].parts[0].partId).toBeDefined();
-      expect(liveData[0].parts[0].startTime).toBe(new Date(options.time).getTime());
-      expect(liveData[0].parts[0].filePath).toBe(options.filePath);
-      expect(liveData[0].parts[0].recordStatus).toBe("recording");
-    });
-
-    it("event: FileClosed, liveData的情况", async () => {
-      // @ts-ignore
-      webhookHandler = new WebhookHandler(appConfig);
-      webhookHandler.liveData = [];
-      const options: Options = {
-        event: "FileClosed",
-        roomId: 123,
-        platform: "bili-recorder",
-        time: "2022-01-01T00:00:00Z",
-        title: "Test Video",
-        filePath: "/path/to/video.mp4",
-        username: "test",
-      };
-
-      await webhookHandler.handleLiveData(options, 10);
-      const liveData = webhookHandler.liveData;
-
-      expect(liveData.length).toBe(1);
-      expect(liveData[0].eventId).toBeDefined();
-      expect(liveData[0].platform).toBe(options.platform);
-      expect(liveData[0].roomId).toBe(options.roomId);
-      expect(liveData[0].title).toBe(options.title);
-      expect(liveData[0].parts.length).toBe(1);
-      expect(liveData[0].parts[0].partId).toBeDefined();
-      expect(liveData[0].parts[0].filePath).toBe(options.filePath);
-      expect(liveData[0].parts[0].recordStatus).toBe("recorded");
-    });
-
-    it("存在live的情况下，且roomId相同，又进来一条数据", async () => {
-      // @ts-ignore
-      webhookHandler = new WebhookHandler(appConfig);
-      webhookHandler.liveData = [];
-      const existingLive = new Live({
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
-        roomId: 123,
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        title: "Existing Video",
-        username: "username",
-      });
-      existingLive.addPart({
-        partId: "existing-part-id",
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        filePath: "/path/to/existing-video.mp4",
-        recordStatus: "recording",
-        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-      });
-      webhookHandler.liveData.push(existingLive);
-
-      const options: Options = {
-        event: "FileOpening",
-        roomId: 123,
-        platform: "bili-recorder",
-        time: "2022-01-01T00:09:00Z",
-        title: "New Video",
-        filePath: "/path/to/new-video.mp4",
-        username: "test",
-      };
-      await webhookHandler.handleLiveData(options, 10);
-      const liveData = webhookHandler.liveData;
-
-      expect(liveData.length).toBe(1);
-      expect(liveData[0].eventId).toBe(existingLive.eventId);
-      expect(liveData[0].platform).toBe(existingLive.platform);
-      expect(liveData[0].startTime).toBe(existingLive.startTime);
-      expect(liveData[0].roomId).toBe(existingLive.roomId);
-      expect(liveData[0].title).toBe(existingLive.title);
-      expect(liveData[0].parts.length).toBe(2);
-      expect(liveData[0].parts[0]).toBe(existingLive.parts[0]);
-      expect(liveData[0].parts[1].partId).toBeDefined();
-      expect(liveData[0].parts[1].startTime).toBe(new Date(options.time).getTime());
-      expect(liveData[0].parts[1].filePath).toBe(options.filePath);
-      expect(liveData[0].parts[1].recordStatus).toBe("recording");
-    });
-    it("应在partMergeMinute为-1时，生成多个live", async () => {
-      // @ts-ignore
-      webhookHandler = new WebhookHandler(appConfig);
-      webhookHandler.liveData = [];
-      const existingLive = new Live({
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
-        roomId: 123,
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        title: "Existing Video",
-        username: "username",
-      });
-      existingLive.addPart({
-        partId: "existing-part-id",
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        filePath: "/path/to/existing-video.mp4",
-        recordStatus: "recording",
-        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-      });
-      webhookHandler.liveData.push(existingLive);
-
-      const options: Options = {
-        event: "FileOpening",
-        roomId: 123,
-        platform: "bili-recorder",
-        time: "2022-01-01T00:09:00Z",
-        title: "New Video",
-        filePath: "/path/to/new-video.mp4",
-        username: "test",
-      };
-      await webhookHandler.handleLiveData(options, -1);
-      const liveData = webhookHandler.liveData;
-
-      expect(liveData.length).toBe(2);
-      expect(liveData[0].parts.length).toBe(1);
-    });
-    it("存在live的情况下，且roomId相同，又进来一条数据", async () => {
-      // @ts-ignore
-      webhookHandler = new WebhookHandler(appConfig);
-      webhookHandler.liveData = [];
-      const existingLive = new Live({
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
-        roomId: 123,
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        title: "Existing Video",
-        username: "username",
-      });
-
-      existingLive.addPart({
-        partId: "existing-part-id",
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        filePath: "/path/to/existing-video.mp4",
-        recordStatus: "recording",
-        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-      });
-      webhookHandler.liveData.push(existingLive);
-
-      const options: Options = {
-        event: "FileOpening",
-        roomId: 123,
-        platform: "bili-recorder",
-        time: "2022-01-01T00:16:00Z",
-        title: "New Video",
-        filePath: "/path/to/new-video.mp4",
-        username: "test",
-      };
-      await webhookHandler.handleLiveData(options, 10);
-      const liveData = webhookHandler.liveData;
-      // console.log("liveData", liveData, liveData.length);
-
-      expect(liveData.length).toBe(2);
-      expect(liveData[0].eventId).toBe(existingLive.eventId);
-      expect(liveData[0].platform).toBe(existingLive.platform);
-      expect(liveData[0].startTime).toBe(existingLive.startTime);
-      expect(liveData[0].roomId).toBe(existingLive.roomId);
-      expect(liveData[0].title).toBe(existingLive.title);
-      expect(liveData[0].parts.length).toBe(1);
-      expect(liveData[0].parts[0]).toBe(existingLive.parts[0]);
-      expect(liveData[1].parts[0].partId).toBeDefined();
-      // expect(liveData[0].parts[1].startTime).toBe(new Date(options.time).getTime());
-      // expect(liveData[0].parts[1].filePath).toBe(options.filePath);
-      // expect(liveData[0].parts[1].status).toBe("recording");
-    });
-    it("存在live的情况下，且roomId相同，在限制时间外又进来一条event: FileClosed数据", async () => {
-      // @ts-ignore
-      webhookHandler = new WebhookHandler(appConfig);
-      webhookHandler.liveData = [];
-      const existingLive = new Live({
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
-        roomId: 123,
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        title: "Existing Video",
-        username: "username",
-      });
-      existingLive.addPart({
-        partId: "existing-part-id",
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        filePath: "/path/to/existing-video.mp4",
-        recordStatus: "recording",
-      });
-      webhookHandler.liveData.push(existingLive);
-
-      const options: Options = {
-        event: "FileClosed",
-        roomId: 123,
-        platform: "bili-recorder",
-        time: "2022-01-01T00:05:00Z",
-        title: "Existing Video",
-        filePath: "/path/to/existing-video.mp4",
-        username: "test",
-      };
-
-      await webhookHandler.handleLiveData(options, 10);
-      const liveData = webhookHandler.liveData;
-
-      expect(liveData.length).toBe(1);
-      expect(liveData[0].eventId).toBe(existingLive.eventId);
-      expect(liveData[0].platform).toBe(existingLive.platform);
-      expect(liveData[0].startTime).toBe(existingLive.startTime);
-      expect(liveData[0].roomId).toBe(existingLive.roomId);
-      expect(liveData[0].title).toBe(existingLive.title);
-      expect(liveData[0].parts.length).toBe(1);
-      expect(liveData[0].parts[0].partId).toBe(existingLive.parts[0].partId);
-      expect(liveData[0].parts[0].startTime).toBe(existingLive.parts[0].startTime);
-      expect(liveData[0].parts[0].filePath).toBe(existingLive.parts[0].filePath);
-      expect(liveData[0].parts[0].endTime).toBe(new Date(options.time).getTime());
-      expect(liveData[0].parts[0].recordStatus).toBe("recorded");
-    });
     it("存在live的情况下，在event: FileClosed前先发送了event: FileOpeing", async () => {
       // @ts-ignore
       webhookHandler = new WebhookHandler(appConfig);
@@ -1838,513 +1605,609 @@ describe("WebhookHandler", () => {
 
       expect(result).toBe(true);
     });
+  });
 
-    describe("Live", () => {
-      it("should initialize with correct values", () => {
-        const live = new Live({
-          eventId: "event1",
-          platform: "bili-recorder",
-          roomId: 123,
-          startTime: 1616161616161,
-          aid: 456,
-          title: "Test Video",
-          username: "username",
-        });
+  describe("handleCloseEvent", () => {
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+      }),
+    };
+    let webhookHandler: WebhookHandler;
 
-        expect(live.eventId).toBe("event1");
-        expect(live.platform).toBe("bili-recorder");
-        expect(live.roomId).toBe(123);
-        expect(live.title).toBe("Test Video");
-        expect(live.startTime).toBe(1616161616161);
-        expect(live.aid).toBe(456);
-        expect(live.parts).toEqual([]);
+    it("should handle close event and update part endTime and recordStatus", async () => {
+      // Arrange
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
       });
-
-      it("should add a part correctly", () => {
-        const live = new Live({
-          eventId: "event1",
-          platform: "bili-recorder",
-          roomId: 123,
-          title: "Test Video",
-          username: "username",
-        });
-        const part: Part = {
-          partId: "part1",
-          filePath: "/path/to/part1.mp4",
-          recordStatus: "recording",
-          rawFilePath: "/path/to/raw/part1.mp4",
-          uploadStatus: "uploaded",
-          rawUploadStatus: "uploaded",
-        };
-
-        live.addPart(part);
-        console.log(live.parts[0]);
-        expect(live.parts).toContainEqual(part);
+      existingLive.addPart({
+        partId: "existing-part-id",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/existing-video.mp4",
+        recordStatus: "recording",
       });
+      webhookHandler.liveData.push(existingLive);
 
-      it("should update part value correctly", () => {
-        const live = new Live({
-          eventId: "event1",
-          platform: "bili-recorder",
-          roomId: 123,
-          title: "Test Video",
-          username: "username",
-        });
-        const part: Part = {
-          partId: "part1",
-          filePath: "/path/to/part1.mp4",
-          recordStatus: "recording",
-          rawFilePath: "/path/to/raw/part1.mp4",
-          uploadStatus: "uploaded",
-          rawUploadStatus: "uploaded",
-        };
+      const options: Options = {
+        event: "FileClosed",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:05:00Z",
+        title: "Existing Video",
+        filePath: "/path/to/existing-video.mp4",
+        username: "test",
+      };
 
-        live.addPart(part);
-        live.updatePartValue("part1", "recordStatus", "recorded");
+      // Act
+      const liveId = webhookHandler.handleCloseEvent(options);
 
-        expect(live.parts[0].recordStatus).toBe("recorded");
-      });
-
-      it("should find part by file path correctly", () => {
-        const live = new Live({
-          eventId: "event1",
-          platform: "bili-recorder",
-          roomId: 123,
-          title: "Test Video",
-          username: "username",
-        });
-        const part1: Part = {
-          partId: "part1",
-          filePath: "/path/to/part1.mp4",
-          recordStatus: "recording",
-          rawFilePath: "/path/to/raw/part1.mp4",
-          uploadStatus: "uploaded",
-          rawUploadStatus: "uploaded",
-        };
-        const part2: Part = {
-          partId: "part2",
-          filePath: "/path/to/part2.mp4",
-          recordStatus: "recording",
-          rawFilePath: "/path/to/raw/part1.mp4",
-          uploadStatus: "uploaded",
-          rawUploadStatus: "uploaded",
-        };
-
-        live.addPart(part1);
-        live.addPart(part2);
-
-        const foundPart = live.findPartByFilePath("/path/to/part2.mp4");
-
-        expect(foundPart).toStrictEqual(part2);
-      });
-
-      it("should return undefined if part is not found by file path", () => {
-        const live = new Live({
-          eventId: "event1",
-          platform: "bili-recorder",
-          roomId: 123,
-          title: "Test Video",
-          username: "username",
-        });
-        const part: Part = {
-          partId: "part1",
-          filePath: "/path/to/part1.mp4",
-          recordStatus: "recording",
-          rawFilePath: "/path/to/raw/part1.mp4",
-          uploadStatus: "uploaded",
-          rawUploadStatus: "uploaded",
-        };
-
-        live.addPart(part);
-
-        const foundPart = live.findPartByFilePath("/path/to/nonexistent.mp4");
-
-        expect(foundPart).toBeUndefined();
-      });
-      describe("handleCloseEvent", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
-          }),
-        };
-        let webhookHandler: WebhookHandler;
-
-        it("should handle close event and update part endTime and recordStatus2", async () => {
-          // Arrange
-          // @ts-ignore
-          webhookHandler = new WebhookHandler(appConfig);
-          const existingLive = new Live({
-            eventId: "existing-event-id",
-            platform: "bili-recorder",
-            roomId: 123,
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            title: "Existing Video",
-            username: "username",
-          });
-          existingLive.addPart({
-            partId: "existing-part-id",
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            filePath: "/path/to/existing-video.mp4",
-            recordStatus: "recording",
-          });
-          webhookHandler.liveData.push(existingLive);
-
-          const options: Options = {
-            event: "FileClosed",
-            roomId: 123,
-            platform: "bili-recorder",
-            time: "2022-01-01T00:05:00Z",
-            title: "Existing Video",
-            filePath: "/path/to/existing-video.mp4",
-            username: "test",
-          };
-
-          // Act
-          const liveId = webhookHandler.handleCloseEvent(options);
-
-          // Assert
-          const liveData = webhookHandler.liveData;
-          expect(liveId).toBe(existingLive.eventId);
-          expect(liveData.length).toBe(1);
-          expect(liveData[0].eventId).toBe(existingLive.eventId);
-          expect(liveData[0].platform).toBe(existingLive.platform);
-          expect(liveData[0].startTime).toBe(existingLive.startTime);
-          expect(liveData[0].roomId).toBe(existingLive.roomId);
-          expect(liveData[0].title).toBe(existingLive.title);
-          expect(liveData[0].parts.length).toBe(1);
-          expect(liveData[0].parts[0].partId).toBe(existingLive.parts[0].partId);
-          expect(liveData[0].parts[0].startTime).toBe(existingLive.parts[0].startTime);
-          expect(liveData[0].parts[0].filePath).toBe(existingLive.parts[0].filePath);
-          expect(liveData[0].parts[0].endTime).toBe(new Date(options.time).getTime());
-          expect(liveData[0].parts[0].recordStatus).toBe("recorded");
-        });
-
-        it("should create a new live if no existing live is found", async () => {
-          // Arrange
-          // @ts-ignore
-          webhookHandler = new WebhookHandler(appConfig);
-          webhookHandler.liveData = [];
-
-          const options: Options = {
-            event: "FileClosed",
-            roomId: 123,
-            platform: "bili-recorder",
-            time: "2022-01-01T00:05:00Z",
-            title: "New Video",
-            filePath: "/path/to/new-video.mp4",
-            username: "test",
-          };
-
-          // Act
-          const liveId = webhookHandler.handleCloseEvent(options);
-
-          // Assert
-          const liveData = webhookHandler.liveData;
-          expect(liveId).toBe(liveData[0].eventId);
-          expect(liveData.length).toBe(1);
-          expect(liveData[0].eventId).toBeDefined();
-          expect(liveData[0].platform).toBe(options.platform);
-          expect(liveData[0].roomId).toBe(options.roomId);
-          expect(liveData[0].title).toBe(options.title);
-          expect(liveData[0].parts.length).toBe(1);
-          expect(liveData[0].parts[0].partId).toBeDefined();
-          expect(liveData[0].parts[0].filePath).toBe(options.filePath);
-          expect(liveData[0].parts[0].endTime).toBe(new Date(options.time).getTime());
-          expect(liveData[0].parts[0].recordStatus).toBe("recorded");
-        });
-
-        it("should handle close event and update part endTime and recordStatus when multiple parts exist", async () => {
-          // Arrange
-          const existingLive = new Live({
-            eventId: "existing-event-id",
-            platform: "bili-recorder",
-            roomId: 123,
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            title: "Existing Video",
-            username: "username",
-          });
-          existingLive.addPart({
-            partId: "existing-part-id-1",
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            filePath: "/path/to/existing-video-1.mp4",
-            recordStatus: "recording",
-          });
-          existingLive.addPart({
-            partId: "existing-part-id-2",
-            startTime: new Date("2022-01-01T00:05:00Z").getTime(),
-            filePath: "/path/to/existing-video-2.mp4",
-            recordStatus: "recording",
-          });
-          // @ts-ignore
-          webhookHandler = new WebhookHandler(appConfig);
-          webhookHandler.liveData.push(existingLive);
-
-          const options: Options = {
-            event: "FileClosed",
-            roomId: 123,
-            platform: "bili-recorder",
-            time: "2022-01-01T00:10:00Z",
-            title: "Existing Video",
-            filePath: "/path/to/existing-video-2.mp4",
-            username: "test",
-          };
-
-          // Act
-          const liveId = webhookHandler.handleCloseEvent(options);
-
-          // Assert
-          const liveData = webhookHandler.liveData;
-          expect(liveId).toBe(existingLive.eventId);
-          expect(liveData.length).toBe(1);
-          expect(liveData[0].eventId).toBe(existingLive.eventId);
-          expect(liveData[0].platform).toBe(existingLive.platform);
-          expect(liveData[0].startTime).toBe(existingLive.startTime);
-          expect(liveData[0].roomId).toBe(existingLive.roomId);
-          expect(liveData[0].title).toBe(existingLive.title);
-          expect(liveData[0].parts.length).toBe(2);
-          expect(liveData[0].parts[1].partId).toBe(existingLive.parts[1].partId);
-          expect(liveData[0].parts[1].startTime).toBe(existingLive.parts[1].startTime);
-          expect(liveData[0].parts[1].filePath).toBe(existingLive.parts[1].filePath);
-          expect(liveData[0].parts[1].endTime).toBe(new Date(options.time).getTime());
-          expect(liveData[0].parts[1].recordStatus).toBe("recorded");
-        });
-      });
-      describe("handleOpenEvent", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
-          }),
-        };
-        let webhookHandler: WebhookHandler;
-
-        it("should handle open event and add a new part to existing live", async () => {
-          // Arrange
-          // @ts-ignore
-          webhookHandler = new WebhookHandler(appConfig);
-          const existingLive = new Live({
-            eventId: "existing-event-id",
-            platform: "bili-recorder",
-            roomId: 123,
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            title: "Existing Video",
-            username: "username",
-          });
-          existingLive.addPart({
-            partId: "existing-part-id",
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            filePath: "/path/to/existing-video.mp4",
-            recordStatus: "recorded",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-          });
-          webhookHandler.liveData.push(existingLive);
-
-          const options: Options = {
-            event: "FileOpening",
-            roomId: 123,
-            platform: "bili-recorder",
-            time: "2022-01-01T00:09:00Z",
-            title: "New Video",
-            filePath: "/path/to/new-video.mp4",
-            username: "test",
-          };
-
-          // Act
-          webhookHandler.handleOpenEvent(options, 10);
-
-          // Assert
-          const liveData = webhookHandler.liveData;
-          expect(liveData.length).toBe(1);
-          expect(liveData[0].eventId).toBe(existingLive.eventId);
-          expect(liveData[0].platform).toBe(existingLive.platform);
-          expect(liveData[0].startTime).toBe(existingLive.startTime);
-          expect(liveData[0].roomId).toBe(existingLive.roomId);
-          expect(liveData[0].title).toBe(existingLive.title);
-          expect(liveData[0].parts.length).toBe(2);
-          expect(liveData[0].parts[1].partId).toBeDefined();
-          expect(liveData[0].parts[1].startTime).toBe(new Date(options.time).getTime());
-          expect(liveData[0].parts[1].filePath).toBe(options.filePath);
-          expect(liveData[0].parts[1].recordStatus).toBe("recording");
-        });
-
-        it("should handle open event and add a new part to existing live when last part is recording", async () => {
-          // Arrange
-          // @ts-ignore
-          webhookHandler = new WebhookHandler(appConfig);
-          const existingLive = new Live({
-            eventId: "existing-event-id",
-            platform: "bili-recorder",
-            roomId: 123,
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            title: "Existing Video",
-            username: "username",
-          });
-          existingLive.addPart({
-            partId: "existing-part-id",
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            filePath: "/path/to/existing-video.mp4",
-            recordStatus: "recording",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-          });
-          webhookHandler.liveData.push(existingLive);
-
-          const options: Options = {
-            event: "FileOpening",
-            roomId: 123,
-            platform: "bili-recorder",
-            time: "2022-01-01T00:09:00Z",
-            title: "New Video",
-            filePath: "/path/to/new-video.mp4",
-            username: "test",
-          };
-
-          // Act
-          webhookHandler.handleOpenEvent(options, 10);
-
-          // Assert
-          const liveData = webhookHandler.liveData;
-          expect(liveData.length).toBe(1);
-          expect(liveData[0].eventId).toBe(existingLive.eventId);
-          expect(liveData[0].platform).toBe(existingLive.platform);
-          expect(liveData[0].startTime).toBe(existingLive.startTime);
-          expect(liveData[0].roomId).toBe(existingLive.roomId);
-          expect(liveData[0].title).toBe(existingLive.title);
-          expect(liveData[0].parts.length).toBe(2);
-          expect(liveData[0].parts[1].partId).toBeDefined();
-          expect(liveData[0].parts[1].startTime).toBe(new Date(options.time).getTime());
-          expect(liveData[0].parts[1].filePath).toBe(options.filePath);
-          expect(liveData[0].parts[1].recordStatus).toBe("recording");
-        });
-
-        it("should handle open event and add a new part to existing live when interval has over partMergeMinute ", async () => {
-          // Arrange
-          // @ts-ignore
-          webhookHandler = new WebhookHandler(appConfig);
-          const existingLive = new Live({
-            eventId: "existing-event-id",
-            platform: "bili-recorder",
-            roomId: 123,
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            title: "Existing Video",
-            username: "username",
-          });
-          existingLive.addPart({
-            partId: "existing-part-id",
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            filePath: "/path/to/existing-video.mp4",
-            recordStatus: "recorded",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-          });
-          webhookHandler.liveData.push(existingLive);
-
-          const options: Options = {
-            event: "FileOpening",
-            roomId: 123,
-            platform: "bili-recorder",
-            time: "2022-01-01T00:09:00Z",
-            title: "New Video",
-            filePath: "/path/to/new-video.mp4",
-            username: "test",
-          };
-
-          // Act
-          webhookHandler.handleOpenEvent(options, 3);
-
-          // Assert
-          const liveData = webhookHandler.liveData;
-          expect(liveData.length).toBe(2);
-          expect(liveData[0].eventId).toBe(existingLive.eventId);
-          expect(liveData[0].platform).toBe(existingLive.platform);
-          expect(liveData[0].startTime).toBe(existingLive.startTime);
-          expect(liveData[0].roomId).toBe(existingLive.roomId);
-          expect(liveData[0].title).toBe(existingLive.title);
-          expect(liveData[0].parts.length).toBe(1);
-
-          expect(liveData[1].parts[0].partId).toBeDefined();
-          expect(liveData[1].parts[0].startTime).toBe(new Date(options.time).getTime());
-          expect(liveData[1].parts[0].filePath).toBe(options.filePath);
-          expect(liveData[1].parts[0].recordStatus).toBe("recording");
-        });
-        it("should create a new live if no existing live is found", async () => {
-          // Arrange
-          // @ts-ignore
-          webhookHandler = new WebhookHandler(appConfig);
-          webhookHandler.liveData = [];
-
-          const options: Options = {
-            event: "FileOpening",
-            roomId: 123,
-            platform: "bili-recorder",
-            time: "2022-01-01T00:00:00Z",
-            title: "New Video",
-            filePath: "/path/to/new-video.mp4",
-            username: "test",
-          };
-
-          // Act
-          webhookHandler.handleOpenEvent(options, 10);
-
-          // Assert
-          const liveData = webhookHandler.liveData;
-          expect(liveData.length).toBe(1);
-          expect(liveData[0].eventId).toBeDefined();
-          expect(liveData[0].platform).toBe(options.platform);
-          expect(liveData[0].roomId).toBe(options.roomId);
-          expect(liveData[0].title).toBe(options.title);
-          expect(liveData[0].parts.length).toBe(1);
-          expect(liveData[0].parts[0].partId).toBeDefined();
-          expect(liveData[0].parts[0].startTime).toBe(new Date(options.time).getTime());
-          expect(liveData[0].parts[0].filePath).toBe(options.filePath);
-          expect(liveData[0].parts[0].recordStatus).toBe("recording");
-        });
-
-        it("should handle open event and add a new part to existing live when partMergeMinute is -1", async () => {
-          // Arrange
-          // @ts-ignore
-          webhookHandler = new WebhookHandler(appConfig);
-          const existingLive = new Live({
-            eventId: "existing-event-id",
-            platform: "bili-recorder",
-            roomId: 123,
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            title: "Existing Video",
-            username: "username",
-          });
-          existingLive.addPart({
-            partId: "existing-part-id",
-            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-            filePath: "/path/to/existing-video.mp4",
-            recordStatus: "recording",
-            endTime: new Date("2022-01-01T00:05:00Z").getTime(),
-          });
-          webhookHandler.liveData.push(existingLive);
-
-          const options: Options = {
-            event: "FileOpening",
-            roomId: 123,
-            platform: "bili-recorder",
-            time: "2022-01-01T00:09:00Z",
-            title: "New Video",
-            filePath: "/path/to/new-video.mp4",
-            username: "test",
-          };
-
-          // Act
-          webhookHandler.handleOpenEvent(options, -1);
-
-          // Assert
-          const liveData = webhookHandler.liveData;
-          expect(liveData.length).toBe(2);
-          expect(liveData[1].eventId).toBeDefined();
-          expect(liveData[1].platform).toBe(options.platform);
-          expect(liveData[1].roomId).toBe(options.roomId);
-          expect(liveData[1].title).toBe(options.title);
-          expect(liveData[1].parts.length).toBe(1);
-          expect(liveData[1].parts[0].partId).toBeDefined();
-          expect(liveData[1].parts[0].startTime).toBe(new Date(options.time).getTime());
-          expect(liveData[1].parts[0].filePath).toBe(options.filePath);
-          expect(liveData[1].parts[0].recordStatus).toBe("recording");
-        });
-      });
+      // Assert
+      const liveData = webhookHandler.liveData;
+      expect(liveId).toBe(existingLive.eventId);
+      expect(liveData.length).toBe(1);
+      expect(liveData[0].eventId).toBe(existingLive.eventId);
+      expect(liveData[0].platform).toBe(existingLive.platform);
+      expect(liveData[0].startTime).toBe(existingLive.startTime);
+      expect(liveData[0].roomId).toBe(existingLive.roomId);
+      expect(liveData[0].title).toBe(existingLive.title);
+      expect(liveData[0].parts.length).toBe(1);
+      expect(liveData[0].parts[0].partId).toBe(existingLive.parts[0].partId);
+      expect(liveData[0].parts[0].startTime).toBe(existingLive.parts[0].startTime);
+      expect(liveData[0].parts[0].filePath).toBe(existingLive.parts[0].filePath);
+      expect(liveData[0].parts[0].endTime).toBe(new Date(options.time).getTime());
+      expect(liveData[0].parts[0].recordStatus).toBe("recorded");
     });
+
+    it("should create a new live if no existing live is found", async () => {
+      // Arrange
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      webhookHandler.liveData = [];
+
+      const options: Options = {
+        event: "FileClosed",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:05:00Z",
+        title: "New Video",
+        filePath: "/path/to/new-video.mp4",
+        username: "test",
+      };
+
+      // Act
+      const liveId = webhookHandler.handleCloseEvent(options);
+
+      // Assert
+      const liveData = webhookHandler.liveData;
+      expect(liveId).toBe(liveData[0].eventId);
+      expect(liveData.length).toBe(1);
+      expect(liveData[0].eventId).toBeDefined();
+      expect(liveData[0].platform).toBe(options.platform);
+      expect(liveData[0].roomId).toBe(options.roomId);
+      expect(liveData[0].title).toBe(options.title);
+      expect(liveData[0].parts.length).toBe(1);
+      expect(liveData[0].parts[0].partId).toBeDefined();
+      expect(liveData[0].parts[0].filePath).toBe(options.filePath);
+      expect(liveData[0].parts[0].endTime).toBe(new Date(options.time).getTime());
+      expect(liveData[0].parts[0].recordStatus).toBe("recorded");
+    });
+
+    it("should handle close event and update part endTime and recordStatus when multiple parts exist", async () => {
+      // Arrange
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
+      existingLive.addPart({
+        partId: "existing-part-id-1",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/existing-video-1.mp4",
+        recordStatus: "recording",
+      });
+      existingLive.addPart({
+        partId: "existing-part-id-2",
+        startTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        filePath: "/path/to/existing-video-2.mp4",
+        recordStatus: "recording",
+      });
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      webhookHandler.liveData.push(existingLive);
+
+      const options: Options = {
+        event: "FileClosed",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:10:00Z",
+        title: "Existing Video",
+        filePath: "/path/to/existing-video-2.mp4",
+        username: "test",
+      };
+
+      // Act
+      const liveId = webhookHandler.handleCloseEvent(options);
+
+      // Assert
+      const liveData = webhookHandler.liveData;
+      expect(liveId).toBe(existingLive.eventId);
+      expect(liveData.length).toBe(1);
+      expect(liveData[0].eventId).toBe(existingLive.eventId);
+      expect(liveData[0].platform).toBe(existingLive.platform);
+      expect(liveData[0].startTime).toBe(existingLive.startTime);
+      expect(liveData[0].roomId).toBe(existingLive.roomId);
+      expect(liveData[0].title).toBe(existingLive.title);
+      expect(liveData[0].parts.length).toBe(2);
+      expect(liveData[0].parts[1].partId).toBe(existingLive.parts[1].partId);
+      expect(liveData[0].parts[1].startTime).toBe(existingLive.parts[1].startTime);
+      expect(liveData[0].parts[1].filePath).toBe(existingLive.parts[1].filePath);
+      expect(liveData[0].parts[1].endTime).toBe(new Date(options.time).getTime());
+      expect(liveData[0].parts[1].recordStatus).toBe("recorded");
+    });
+  });
+  describe("handleOpenEvent", () => {
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+      }),
+    };
+    let webhookHandler: WebhookHandler;
+
+    it("should handle open event and add a new part to existing live", async () => {
+      // Arrange
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
+      existingLive.addPart({
+        partId: "existing-part-id",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/existing-video.mp4",
+        recordStatus: "recorded",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+      });
+      webhookHandler.liveData.push(existingLive);
+
+      const options: Options = {
+        event: "FileOpening",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:09:00Z",
+        title: "New Video",
+        filePath: "/path/to/new-video.mp4",
+        username: "test",
+      };
+
+      // Act
+      webhookHandler.handleOpenEvent(options, 10);
+
+      // Assert
+      const liveData = webhookHandler.liveData;
+      expect(liveData.length).toBe(1);
+      expect(liveData[0].eventId).toBe(existingLive.eventId);
+      expect(liveData[0].platform).toBe(existingLive.platform);
+      expect(liveData[0].startTime).toBe(existingLive.startTime);
+      expect(liveData[0].roomId).toBe(existingLive.roomId);
+      expect(liveData[0].title).toBe(existingLive.title);
+      expect(liveData[0].parts.length).toBe(2);
+      expect(liveData[0].parts[1].partId).toBeDefined();
+      expect(liveData[0].parts[1].startTime).toBe(new Date(options.time).getTime());
+      expect(liveData[0].parts[1].filePath).toBe(options.filePath);
+      expect(liveData[0].parts[1].recordStatus).toBe("recording");
+    });
+
+    it("should handle open event and add a new part to existing live when last part is recording", async () => {
+      // Arrange
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
+      existingLive.addPart({
+        partId: "existing-part-id",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/existing-video.mp4",
+        recordStatus: "recording",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+      });
+      webhookHandler.liveData.push(existingLive);
+
+      const options: Options = {
+        event: "FileOpening",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:09:00Z",
+        title: "New Video",
+        filePath: "/path/to/new-video.mp4",
+        username: "test",
+      };
+
+      // Act
+      webhookHandler.handleOpenEvent(options, 10);
+
+      // Assert
+      const liveData = webhookHandler.liveData;
+      expect(liveData.length).toBe(1);
+      expect(liveData[0].eventId).toBe(existingLive.eventId);
+      expect(liveData[0].platform).toBe(existingLive.platform);
+      expect(liveData[0].startTime).toBe(existingLive.startTime);
+      expect(liveData[0].roomId).toBe(existingLive.roomId);
+      expect(liveData[0].title).toBe(existingLive.title);
+      expect(liveData[0].parts.length).toBe(2);
+      expect(liveData[0].parts[1].partId).toBeDefined();
+      expect(liveData[0].parts[1].startTime).toBe(new Date(options.time).getTime());
+      expect(liveData[0].parts[1].filePath).toBe(options.filePath);
+      expect(liveData[0].parts[1].recordStatus).toBe("recording");
+    });
+
+    it("should create a new live when live is empty", async () => {
+      // Arrange
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      webhookHandler.liveData = [];
+
+      const options: Options = {
+        event: "FileOpening",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:00:00Z",
+        title: "New Video",
+        filePath: "/path/to/new-video.mp4",
+        username: "test",
+      };
+
+      // Act
+      webhookHandler.handleOpenEvent(options, 10);
+
+      // Assert
+      const liveData = webhookHandler.liveData;
+      expect(liveData.length).toBe(1);
+      expect(liveData[0].eventId).toBeDefined();
+      expect(liveData[0].platform).toBe(options.platform);
+      expect(liveData[0].roomId).toBe(options.roomId);
+      expect(liveData[0].title).toBe(options.title);
+      expect(liveData[0].parts.length).toBe(1);
+      expect(liveData[0].parts[0].partId).toBeDefined();
+      expect(liveData[0].parts[0].startTime).toBe(new Date(options.time).getTime());
+      expect(liveData[0].parts[0].filePath).toBe(options.filePath);
+      expect(liveData[0].parts[0].recordStatus).toBe("recording");
+    });
+
+    it("should handle open event and add a new part to existing live when partMergeMinute is -1", async () => {
+      // Arrange
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
+      existingLive.addPart({
+        partId: "existing-part-id",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/existing-video.mp4",
+        recordStatus: "recording",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+      });
+      webhookHandler.liveData.push(existingLive);
+
+      const options: Options = {
+        event: "FileOpening",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:09:00Z",
+        title: "New Video",
+        filePath: "/path/to/new-video.mp4",
+        username: "test",
+      };
+
+      // Act
+      webhookHandler.handleOpenEvent(options, -1);
+
+      // Assert
+      const liveData = webhookHandler.liveData;
+      expect(liveData.length).toBe(2);
+      expect(liveData[1].eventId).toBeDefined();
+      expect(liveData[1].platform).toBe(options.platform);
+      expect(liveData[1].roomId).toBe(options.roomId);
+      expect(liveData[1].title).toBe(options.title);
+      expect(liveData[1].parts.length).toBe(1);
+      expect(liveData[1].parts[0].partId).toBeDefined();
+      expect(liveData[1].parts[0].startTime).toBe(new Date(options.time).getTime());
+      expect(liveData[1].parts[0].filePath).toBe(options.filePath);
+      expect(liveData[1].parts[0].recordStatus).toBe("recording");
+    });
+
+    it("should handle open event and add a new roomId live when has other live data", async () => {
+      // Arrange
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
+      existingLive.addPart({
+        partId: "existing-part-id",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/existing-video.mp4",
+        recordStatus: "recorded",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+      });
+      webhookHandler.liveData.push(existingLive);
+
+      const options: Options = {
+        event: "FileOpening",
+        roomId: 321,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:00:00Z",
+        title: "New Video",
+        filePath: "/path/to/new-video.mp4",
+        username: "test",
+      };
+
+      // Act
+      webhookHandler.handleOpenEvent(options, 10);
+
+      // Assert
+      const liveData = webhookHandler.liveData;
+      expect(liveData.length).toBe(2);
+      expect(liveData[1].eventId).toBeDefined();
+      expect(liveData[1].platform).toBe(options.platform);
+      expect(liveData[1].roomId).toBe(options.roomId);
+      expect(liveData[1].title).toBe(options.title);
+      expect(liveData[1].parts.length).toBe(1);
+      expect(liveData[1].parts[0].partId).toBeDefined();
+      expect(liveData[1].parts[0].startTime).toBe(new Date(options.time).getTime());
+      expect(liveData[1].parts[0].filePath).toBe(options.filePath);
+      expect(liveData[1].parts[0].recordStatus).toBe("recording");
+    });
+    it("should handle open event and add a new platform live when has other live data", async () => {
+      // Arrange
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
+      existingLive.addPart({
+        partId: "existing-part-id",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/existing-video.mp4",
+        recordStatus: "recorded",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+      });
+      webhookHandler.liveData.push(existingLive);
+
+      const options: Options = {
+        event: "FileOpening",
+        roomId: 123,
+        platform: "blrec",
+        time: "2022-01-01T00:00:00Z",
+        title: "New Video",
+        filePath: "/path/to/new-video.mp4",
+        username: "test",
+      };
+
+      // Act
+      webhookHandler.handleOpenEvent(options, 10);
+
+      // Assert
+      const liveData = webhookHandler.liveData;
+      expect(liveData.length).toBe(2);
+      expect(liveData[1].eventId).toBeDefined();
+      expect(liveData[1].platform).toBe(options.platform);
+      expect(liveData[1].roomId).toBe(options.roomId);
+      expect(liveData[1].title).toBe(options.title);
+      expect(liveData[1].parts.length).toBe(1);
+      expect(liveData[1].parts[0].partId).toBeDefined();
+      expect(liveData[1].parts[0].startTime).toBe(new Date(options.time).getTime());
+      expect(liveData[1].parts[0].filePath).toBe(options.filePath);
+      expect(liveData[1].parts[0].recordStatus).toBe("recording");
+    });
+    it("should handle open event and add a new part to existing live when interval has over partMergeMinute ", async () => {
+      // Arrange
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
+      existingLive.addPart({
+        partId: "existing-part-id",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/existing-video.mp4",
+        recordStatus: "recorded",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+      });
+      webhookHandler.liveData.push(existingLive);
+
+      const options: Options = {
+        event: "FileOpening",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:09:00Z",
+        title: "New Video",
+        filePath: "/path/to/new-video.mp4",
+        username: "test",
+      };
+
+      // Act
+      webhookHandler.handleOpenEvent(options, 3);
+
+      // Assert
+      const liveData = webhookHandler.liveData;
+      expect(liveData.length).toBe(2);
+      expect(liveData[0].eventId).toBe(existingLive.eventId);
+      expect(liveData[0].platform).toBe(existingLive.platform);
+      expect(liveData[0].startTime).toBe(existingLive.startTime);
+      expect(liveData[0].roomId).toBe(existingLive.roomId);
+      expect(liveData[0].title).toBe(existingLive.title);
+      expect(liveData[0].parts.length).toBe(1);
+
+      expect(liveData[1].parts[0].partId).toBeDefined();
+      expect(liveData[1].parts[0].startTime).toBe(new Date(options.time).getTime());
+      expect(liveData[1].parts[0].filePath).toBe(options.filePath);
+      expect(liveData[1].parts[0].recordStatus).toBe("recording");
+    });
+  });
+});
+
+describe("Live", () => {
+  it("should initialize with correct values", () => {
+    const live = new Live({
+      eventId: "event1",
+      platform: "bili-recorder",
+      roomId: 123,
+      startTime: 1616161616161,
+      aid: 456,
+      title: "Test Video",
+      username: "username",
+    });
+
+    expect(live.eventId).toBe("event1");
+    expect(live.platform).toBe("bili-recorder");
+    expect(live.roomId).toBe(123);
+    expect(live.title).toBe("Test Video");
+    expect(live.startTime).toBe(1616161616161);
+    expect(live.aid).toBe(456);
+    expect(live.parts).toEqual([]);
+  });
+
+  it("should add a part correctly", () => {
+    const live = new Live({
+      eventId: "event1",
+      platform: "bili-recorder",
+      roomId: 123,
+      title: "Test Video",
+      username: "username",
+    });
+    const part: Part = {
+      partId: "part1",
+      filePath: "/path/to/part1.mp4",
+      recordStatus: "recording",
+      rawFilePath: "/path/to/raw/part1.mp4",
+      uploadStatus: "uploaded",
+      rawUploadStatus: "uploaded",
+    };
+
+    live.addPart(part);
+    console.log(live.parts[0]);
+    expect(live.parts).toContainEqual(part);
+  });
+
+  it("should update part value correctly", () => {
+    const live = new Live({
+      eventId: "event1",
+      platform: "bili-recorder",
+      roomId: 123,
+      title: "Test Video",
+      username: "username",
+    });
+    const part: Part = {
+      partId: "part1",
+      filePath: "/path/to/part1.mp4",
+      recordStatus: "recording",
+      rawFilePath: "/path/to/raw/part1.mp4",
+      uploadStatus: "uploaded",
+      rawUploadStatus: "uploaded",
+    };
+
+    live.addPart(part);
+    live.updatePartValue("part1", "recordStatus", "recorded");
+
+    expect(live.parts[0].recordStatus).toBe("recorded");
+  });
+
+  it("should find part by file path correctly", () => {
+    const live = new Live({
+      eventId: "event1",
+      platform: "bili-recorder",
+      roomId: 123,
+      title: "Test Video",
+      username: "username",
+    });
+    const part1: Part = {
+      partId: "part1",
+      filePath: "/path/to/part1.mp4",
+      recordStatus: "recording",
+      rawFilePath: "/path/to/raw/part1.mp4",
+      uploadStatus: "uploaded",
+      rawUploadStatus: "uploaded",
+    };
+    const part2: Part = {
+      partId: "part2",
+      filePath: "/path/to/part2.mp4",
+      recordStatus: "recording",
+      rawFilePath: "/path/to/raw/part1.mp4",
+      uploadStatus: "uploaded",
+      rawUploadStatus: "uploaded",
+    };
+
+    live.addPart(part1);
+    live.addPart(part2);
+
+    const foundPart = live.findPartByFilePath("/path/to/part2.mp4");
+
+    expect(foundPart).toStrictEqual(part2);
+  });
+
+  it("should return undefined if part is not found by file path", () => {
+    const live = new Live({
+      eventId: "event1",
+      platform: "bili-recorder",
+      roomId: 123,
+      title: "Test Video",
+      username: "username",
+    });
+    const part: Part = {
+      partId: "part1",
+      filePath: "/path/to/part1.mp4",
+      recordStatus: "recording",
+      rawFilePath: "/path/to/raw/part1.mp4",
+      uploadStatus: "uploaded",
+      rawUploadStatus: "uploaded",
+    };
+
+    live.addPart(part);
+
+    const foundPart = live.findPartByFilePath("/path/to/nonexistent.mp4");
+
+    expect(foundPart).toBeUndefined();
   });
 });

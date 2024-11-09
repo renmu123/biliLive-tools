@@ -438,11 +438,15 @@ export class WebhookHandler {
    * @param partMergeMinute 断播续传时间戳
    */
   handleOpenEvent = (options: Options, partMergeMinute: number) => {
+    function getMaxEndTime(parts: Part[]) {
+      return Math.max(...parts.map((item) => item.endTime || 0));
+    }
+
     const timestamp = new Date(options.time).getTime();
     // 找到上一个文件结束时间与当前时间差小于一段时间的直播，认为是同一个直播
     let currentLive = this.liveData.find((live) => {
       // 找到part中最大的结束时间
-      const endTime = Math.max(...live.parts.map((item) => item.endTime || 0));
+      const endTime = getMaxEndTime(live.parts);
       return (
         live.roomId === options.roomId &&
         live.platform === options.platform &&
@@ -454,7 +458,7 @@ export class WebhookHandler {
       // 如果live的任何一个part有endTime，说明不会出现特殊情况，不需要特殊处理
       // 然后去遍历liveData，找到roomId、platform、title都相同的直播，认为是同一场直播
       currentLive = this.liveData.findLast((live) => {
-        const hasEndTime = (live.parts || []).some((item) => item.endTime);
+        const hasEndTime = live.parts.some((item) => item.endTime);
         if (hasEndTime) {
           return false;
         } else {
