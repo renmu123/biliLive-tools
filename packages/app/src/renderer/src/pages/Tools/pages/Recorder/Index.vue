@@ -45,6 +45,7 @@
             <div class="section" @click="stopRecord(item.id)">停止录制</div>
             <div class="section" @click="edit(item.id)">直播间设置</div>
             <div class="section" @click="getLiveInfo">刷新直播间信息</div>
+            <!-- TODO:打开录制文件加，仅在client可用 -->
 
             <div class="section" style="color: #e88080" @click="remove(item.id)">删除房间</div>
           </div>

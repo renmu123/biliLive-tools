@@ -83,7 +83,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!living) return null;
 
   this.state = "recording";
-  let res;
+  let res: Awaited<ReturnType<typeof getStream>>;
   // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
     res = await getStream({
@@ -124,11 +124,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!this.disableProvideCommentsWhenRecording) {
     const handler: MsgHandler = {
       onIncomeDanmu: (msg) => {
-        console.log("comment", msg.body.content);
-
         const extraDataController = streamManager.getExtraDataController();
         if (!extraDataController) return;
-        // console.log("msg", msg);
+        // console.log("msg", msg.body.content);
 
         // TODO: 颜色处理，需要提PR
         const comment: Comment = {
@@ -233,7 +231,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         extraDataController.addMessage(gift);
       },
     };
-    console.log("this.auth", this.auth);
     // 弹幕协议不能走短 id，所以不能直接用 channelId。
     client = startListen(roomId, handler, {
       ws: {
@@ -276,7 +273,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     .on("end", () => onEnd("finished"))
     .on("stderr", async (stderrLine) => {
       assertStringType(stderrLine);
-      if (stderrLine.includes("Opening ")) {
+      if (utils.isFfmpegStartSegment(stderrLine)) {
         await streamManager.handleVideoStarted(stderrLine);
       }
       this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });

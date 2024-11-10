@@ -20,8 +20,9 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w"
+    "build": "pnpm run test && tsc",
+    "watch": "tsc -w",
+    "test": "vitest run"
   },
   "files": [
     "lib"

@@ -32,6 +32,7 @@ export default class RecorderConfig {
       saveGiftDanma: getValue("saveGiftDanma") ?? false,
       saveSCDanma: getValue("saveSCDanma") ?? true,
       segment: getValue("segment") ?? 60,
+      uid: getValue("uid"),
     };
   }
   public list(): LocalRecordr[] {

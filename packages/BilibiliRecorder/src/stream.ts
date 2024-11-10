@@ -46,6 +46,7 @@ async function getLiveInfo(
   } = {},
 ) {
   const res = await getRoomPlayInfo(roomIdOrShortId, opts);
+  // console.log(JSON.stringify(res.playurl_info.playurl.stream, null, 2));
 
   const streamInfo = res.playurl_info.playurl.stream
     .find(({ protocol_name }) => protocol_name === (opts.protocol ?? "http_stream"))
@@ -98,6 +99,7 @@ export async function getStream(
     // 本来是用的 b 站首选的的 http_hls，但是录制后经常出现视频卡顿然后音画不同步的情况，没有
     // 具体调查，猜测是 ffmpeg 对于 b 站的 fmp4 源处理的有问题，这里先改成用 http_stream 的 flv。
     ...defaultOpts,
+    cookie: opts.cookie,
   });
 
   let expectStream: StreamProfile | null = null;

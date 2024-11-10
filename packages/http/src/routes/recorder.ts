@@ -54,13 +54,12 @@ async function addRecorder(args: API.addRecorder.Args): Promise<API.addRecorder.
 
 function updateRecorder(args: API.updateRecorder.Args): API.updateRecorder.Resp {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  const { id, ...data } = args;
+  const { id } = args;
   const recorder = recorderManager.manager.recorders.find((item) => item.id === id);
   if (recorder == null) throw new Error("配置不存在");
 
-  // TODO: 需要重新处理
-  recorderManager.config.update(args);
-  Object.assign(recorder, data);
+  recorderManager.updateRecorder(recorder, args);
+
   return recorderToClient(recorder);
 }
 

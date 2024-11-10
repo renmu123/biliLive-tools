@@ -425,7 +425,6 @@ class SegmentManager {
     });
     this.extraDataController = createRecordExtraDataController(`${trueFilepath}.json`);
     this.extraDataController.setMeta({ title: this.title });
-    console.log("segment segmentData", this.segmentData);
 
     const regex = /'([^']+)'/;
     const match = stderrLine.match(regex);

@@ -205,7 +205,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     .on("error", onEnd)
     .on("end", () => onEnd("finished"))
     .on("stderr", async (stderrLine) => {
-      if (stderrLine.includes("Opening ")) {
+      if (utils.isFfmpegStartSegment(stderrLine)) {
         await streamManager.handleVideoStarted(stderrLine);
       }
 

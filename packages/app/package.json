@@ -20,8 +20,7 @@
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts,.vue --fix",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
-    "typecheck": "pnpm run typecheck:node && pnpm run typecheck:web",
-    "test": "vitest"
+    "typecheck": "pnpm run typecheck:node && pnpm run typecheck:web"
   },
   "dependencies": {
     "@biliLive-tools/http": "workspace:*",

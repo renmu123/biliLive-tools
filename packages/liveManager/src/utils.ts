@@ -152,6 +152,10 @@ export function removeSystemReservedChars(filename: string) {
   return filenamify(filename, { replacement: "_" });
 }
 
+export function isFfmpegStartSegment(line: string) {
+  return line.includes("Opening ") && line.includes("for writing");
+}
+
 export default {
   replaceExtName,
   singleton,
@@ -162,4 +166,5 @@ export default {
   assertNumberType,
   assertObjectType,
   asyncThrottle,
+  isFfmpegStartSegment,
 };

@@ -11,6 +11,7 @@ import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
 import { sleep } from "../utils/index.js";
 import { readUser } from "../task/bili.js";
+import { omit } from "lodash-es";
 
 import type { AppConfig } from "../config.js";
 import type { LocalRecordr } from "@biliLive-tools/types";
@@ -114,14 +115,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     let auth: string | undefined = undefined;
     if (uid) {
       auth = await getCookies(Number(uid));
-      // console.log("auth", auth);
     }
-    // @ts-ignore
-    if (!recorder.extra) {
-      recorder.extra = {};
-    }
-    // @ts-ignore
-    recorder.extra.uid = uid;
     manager.addRecorder({ ...recorder, auth: auth });
   }
 
@@ -143,22 +137,32 @@ export async function createRecorderManager(appConfig: AppConfig) {
       recorderConfig.add(recorder);
       const data = recorderConfig.get(recorder.id);
       if (!data) return;
+
+      // TODO: 需要写成函数方便复用
       const uid = recorder.uid;
       let auth: string | undefined = undefined;
       if (uid) {
         auth = await getCookies(Number(uid));
       }
-      // @ts-ignore
-      if (!data.extra) {
-        data.extra = {};
-      }
-      // @ts-ignore
-      data.extra.uid = uid;
 
       return manager.addRecorder({
         ...data,
         auth: auth,
       });
+    },
+    updateRecorder: async (
+      recorder: LocalRecordr,
+      args: Omit<LocalRecordr, "channelId" | "providerId">,
+    ) => {
+      recorderConfig.update(args);
+
+      const uid = recorder.uid;
+      let auth: string | undefined = undefined;
+      if (uid) {
+        auth = await getCookies(Number(uid));
+      }
+
+      Object.assign(recorder, { ...omit(args, ["id"]), auth });
     },
     resolveChannel: async (url: string) => {
       for (const provider of manager.providers) {
@@ -195,4 +199,6 @@ function updateRecorderManager(manager: ReturnType<typeof createManager>, appCon
       manager.stopCheckLoop();
     }
   }
+
+  // TODO:一些全局参数的更新也需要更新recorder
 }
