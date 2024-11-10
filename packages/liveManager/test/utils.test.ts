@@ -33,7 +33,7 @@ describe("utils", () => {
   describe("replaceExtName", () => {
     it("should replace the file extension", () => {
       const result = replaceExtName("/path/to/file.txt", ".md");
-      expect(result).toBe("\\path\\to\\file.md");
+      expect(result).toBe(path.join("/", "path", "to", "file.md"));
     });
   });
 
