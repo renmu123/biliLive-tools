@@ -69,118 +69,118 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
     await fs.promises.rm(savePath);
   };
 
-  /**
-   * 转换弹幕为b站格式xml
-   * @link: https://socialsisteryi.github.io/bilibili-API-collect/docs/danmaku/danmaku_xml.html#%E5%B1%9E%E6%80%A7-p
-   */
-  function convert2Xml(data: RecordExtraData) {
-    const metadata = data.meta;
-
-    const builder = new XMLBuilder({
-      ignoreAttributes: false,
-      attributeNamePrefix: "@@",
-      format: true,
-    });
-
-    const comments = data.messages
-      .filter((item) => item.type === "comment")
-      .map((ele) => {
-        const progress = (ele.timestamp - metadata?.recordStartTimestamp) / 1000;
-        const data = {
-          "@@p": "",
-          "@@progress": progress,
-          "@@mode": String(ele.mode ?? 1),
-          "@@fontsize": String(25),
-          "@@color": String(parseInt((ele.color || "#ffffff").replace("#", ""), 16)),
-          "@@midHash": String(ele?.sender?.uid),
-          "#text": String(ele?.text || ""),
-          "@@ctime": String(ele.timestamp),
-          "@@pool": String(0),
-          "@@weight": String(0),
-          "@@user": String(ele.sender?.name),
-          "@@uid": String(ele?.sender?.uid),
-        };
-        data["@@p"] = [
-          data["@@progress"],
-          data["@@mode"],
-          data["@@fontsize"],
-          data["@@color"],
-          data["@@ctime"],
-          data["@@pool"],
-          data["@@midHash"],
-          data["@@uid"],
-          data["@@weight"],
-        ].join(",");
-        return pick(data, ["@@p", "#text", "@@user", "@@uid"]);
-      });
-
-    const gifts = data.messages
-      .filter((item) => item.type === "give_gift")
-      .map((ele) => {
-        const progress = (ele.timestamp - metadata?.recordStartTimestamp) / 1000;
-        const data = {
-          "@@ts": progress,
-          "@@giftname": String(ele.name),
-          "@@giftcount": String(ele.count),
-          "@@price": String(ele.price * 1000),
-          "@@user": String(ele.sender?.name),
-          "@@uid": String(ele?.sender?.uid),
-          // "@@raw": JSON.stringify(ele),
-        };
-        return data;
-      });
-
-    const superChats = data.messages
-      .filter((item) => item.type === "super_chat")
-      .map((ele) => {
-        const progress = (ele.timestamp - metadata?.recordStartTimestamp) / 1000;
-        const data = {
-          "@@ts": progress,
-          "@@price": String(ele.price * 1000),
-          "#text": String(ele.text),
-          "@@user": String(ele.sender?.name),
-          "@@uid": String(ele?.sender?.uid),
-          // "@@raw": JSON.stringify(ele),
-        };
-        return data;
-      });
-
-    const guardGift = data.messages
-      .filter((item) => item.type === "guard")
-      .map((ele) => {
-        const progress = (ele.timestamp - metadata?.recordStartTimestamp) / 1000;
-        const data = {
-          "@@ts": progress,
-          "@@price": String(ele.price * 1000),
-          "@@giftname": String(ele.name),
-          "@@giftcount": String(ele.count),
-          "@@level": String(ele.level),
-          "@@user": String(ele.sender?.name),
-          "@@uid": String(ele?.sender?.uid),
-          // "@@raw": JSON.stringify(ele),
-        };
-        return data;
-      });
-    const xmlContent = builder.build({
-      i: {
-        metadata: {
-          platform: "douyu",
-          video_start_time: metadata.recordStartTimestamp,
-        },
-        d: comments,
-        gift: gifts,
-        sc: superChats,
-        guard: guardGift,
-      },
-    });
-    return `<?xml version="1.0" encoding="utf-8"?>
-${xmlContent}`;
-  }
-
   return {
     data,
     addMessage,
     setMeta,
     flush,
   };
+}
+
+/**
+ * 转换弹幕为b站格式xml
+ * @link: https://socialsisteryi.github.io/bilibili-API-collect/docs/danmaku/danmaku_xml.html#%E5%B1%9E%E6%80%A7-p
+ */
+export function convert2Xml(data: RecordExtraData) {
+  const metadata = data.meta;
+
+  const builder = new XMLBuilder({
+    ignoreAttributes: false,
+    attributeNamePrefix: "@@",
+    format: true,
+  });
+
+  const comments = data.messages
+    .filter((item) => item.type === "comment")
+    .map((ele) => {
+      const progress = (ele.timestamp - metadata?.recordStartTimestamp) / 1000;
+      const data = {
+        "@@p": "",
+        "@@progress": progress,
+        "@@mode": String(ele.mode ?? 1),
+        "@@fontsize": String(25),
+        "@@color": String(parseInt((ele.color || "#ffffff").replace("#", ""), 16)),
+        "@@midHash": String(ele?.sender?.uid),
+        "#text": String(ele?.text || ""),
+        "@@ctime": String(ele.timestamp),
+        "@@pool": String(0),
+        "@@weight": String(0),
+        "@@user": String(ele.sender?.name),
+        "@@uid": String(ele?.sender?.uid),
+      };
+      data["@@p"] = [
+        data["@@progress"],
+        data["@@mode"],
+        data["@@fontsize"],
+        data["@@color"],
+        data["@@ctime"],
+        data["@@pool"],
+        data["@@midHash"],
+        data["@@uid"],
+        data["@@weight"],
+      ].join(",");
+      return pick(data, ["@@p", "#text", "@@user", "@@uid"]);
+    });
+
+  const gifts = data.messages
+    .filter((item) => item.type === "give_gift")
+    .map((ele) => {
+      const progress = (ele.timestamp - metadata?.recordStartTimestamp) / 1000;
+      const data = {
+        "@@ts": progress,
+        "@@giftname": String(ele.name),
+        "@@giftcount": String(ele.count),
+        "@@price": String(ele.price * 1000),
+        "@@user": String(ele.sender?.name),
+        "@@uid": String(ele?.sender?.uid),
+        // "@@raw": JSON.stringify(ele),
+      };
+      return data;
+    });
+
+  const superChats = data.messages
+    .filter((item) => item.type === "super_chat")
+    .map((ele) => {
+      const progress = (ele.timestamp - metadata?.recordStartTimestamp) / 1000;
+      const data = {
+        "@@ts": progress,
+        "@@price": String(ele.price * 1000),
+        "#text": String(ele.text),
+        "@@user": String(ele.sender?.name),
+        "@@uid": String(ele?.sender?.uid),
+        // "@@raw": JSON.stringify(ele),
+      };
+      return data;
+    });
+
+  const guardGift = data.messages
+    .filter((item) => item.type === "guard")
+    .map((ele) => {
+      const progress = (ele.timestamp - metadata?.recordStartTimestamp) / 1000;
+      const data = {
+        "@@ts": progress,
+        "@@price": String(ele.price * 1000),
+        "@@giftname": String(ele.name),
+        "@@giftcount": String(ele.count),
+        "@@level": String(ele.level),
+        "@@user": String(ele.sender?.name),
+        "@@uid": String(ele?.sender?.uid),
+        // "@@raw": JSON.stringify(ele),
+      };
+      return data;
+    });
+  const xmlContent = builder.build({
+    i: {
+      metadata: {
+        platform: "douyu",
+        video_start_time: metadata.recordStartTimestamp,
+      },
+      d: comments,
+      gift: gifts,
+      sc: superChats,
+      guard: guardGift,
+    },
+  });
+  return `<?xml version="1.0" encoding="utf-8"?>
+${xmlContent}`;
 }

@@ -10,10 +10,15 @@ import {
   RecordHandle,
   DebugLog,
 } from "./recorder.js";
-import { AnyObject, UnknownObject, replaceExtName } from "./utils.js";
+import {
+  AnyObject,
+  UnknownObject,
+  replaceExtName,
+  formatDate,
+  removeSystemReservedChars,
+} from "./utils.js";
 import { createRecordExtraDataController } from "./record_extra_data_controller.js";
 import { parseArgsStringToArgv } from "string-argv";
-import filenamify from "filenamify";
 
 export interface RecorderProvider<E extends AnyObject> {
   // Provider 的唯一 id，最好只由英文 + 数字组成
@@ -286,19 +291,6 @@ export function createRecorderManager<
   return proxyManager;
 }
 
-function formatDate(date: Date, format: string): string {
-  const map: { [key: string]: string } = {
-    yyyy: date.getFullYear().toString(),
-    MM: (date.getMonth() + 1).toString().padStart(2, "0"),
-    dd: date.getDate().toString().padStart(2, "0"),
-    HH: date.getHours().toString().padStart(2, "0"),
-    mm: date.getMinutes().toString().padStart(2, "0"),
-    ss: date.getSeconds().toString().padStart(2, "0"),
-  };
-
-  return format.replace(/yyyy|MM|dd|HH|mm|ss/g, (matched) => map[matched]);
-}
-
 export function genSavePathFromRule<
   ME extends AnyObject,
   P extends RecorderProvider<AnyObject>,
@@ -368,10 +360,6 @@ const formatTemplate = function template(string: string, ...args: any[]) {
     }
   });
 };
-
-function removeSystemReservedChars(filename: string) {
-  return filenamify(filename, { replacement: "_" });
-}
 
 export type GetProviderExtra<P> = P extends RecorderProvider<infer E> ? E : never;
 
@@ -510,8 +498,6 @@ export class StreamManager {
   }
 
   async handleVideoCompleted() {
-    console.log("handleVideoCompleted", this.getExtraDataController()?.data);
-
     if (this.segmentManager) {
       await this.segmentManager.handleSegmentEnd();
     } else {

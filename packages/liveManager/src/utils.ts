@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { DebouncedFunc, throttle, range } from "lodash-es";
+import filenamify from "filenamify";
 
 export type AnyObject = Record<string, any>;
 export type UnknownObject = Record<string, unknown>;
@@ -132,6 +133,23 @@ export function assertNumberType(data: unknown, msg?: string): asserts data is n
 
 export function assertObjectType(data: unknown, msg?: string): asserts data is object {
   assert(typeof data === "object", msg);
+}
+
+export function formatDate(date: Date, format: string): string {
+  const map: { [key: string]: string } = {
+    yyyy: date.getFullYear().toString(),
+    MM: (date.getMonth() + 1).toString().padStart(2, "0"),
+    dd: date.getDate().toString().padStart(2, "0"),
+    HH: date.getHours().toString().padStart(2, "0"),
+    mm: date.getMinutes().toString().padStart(2, "0"),
+    ss: date.getSeconds().toString().padStart(2, "0"),
+  };
+
+  return format.replace(/yyyy|MM|dd|HH|mm|ss/g, (matched) => map[matched]);
+}
+
+export function removeSystemReservedChars(filename: string) {
+  return filenamify(filename, { replacement: "_" });
 }
 
 export default {
