@@ -34,9 +34,15 @@
             >删除</n-button
           >
           <n-button class="btn" @click="close">取消</n-button>
-          <n-button type="primary" class="btn" @click="rename">重命名</n-button>
-          <n-button type="primary" class="btn" @click="saveAs">另存为</n-button>
-          <n-button type="primary" class="btn" @click="saveConfig">保存并确认</n-button>
+          <!-- <n-button type="primary" class="btn" @click="rename">重命名</n-button> -->
+          <!-- <n-button type="primary" class="btn" @click="saveAs">另存为</n-button> -->
+          <!-- <n-button type="primary" class="btn" @click="saveConfig">保存</n-button> -->
+          <ButtonGroup
+            title="请选择LosslessCut项目文件"
+            :options="actionBtns"
+            @click="handleActionClick"
+            >保存</ButtonGroup
+          >
         </div>
       </template>
 
@@ -63,9 +69,10 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
+import { useStorage, useFileDialog } from "@vueuse/core";
 
 import DanmuFactorySetting from "./DanmuFactorySetting.vue";
+import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import { useDanmuPreset, useAppConfig } from "@renderer/stores";
@@ -190,6 +197,71 @@ const saveConfirm = async () => {
     duration: 1000,
   });
   confirm();
+};
+
+const exportPreset = async () => {
+  const preset = config.value.config;
+  const blob = new Blob([JSON.stringify(preset)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${config.value.name}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+const { open, onChange } = useFileDialog({
+  accept: ".json", // Set to accept only image files
+  directory: false, // Select directories instead of files if set true
+  multiple: false,
+});
+
+onChange((files) => {
+  if (!files) return;
+  if (files.length === 0) return;
+  importPreset(files[0]);
+});
+
+const importPreset = async (file: File) => {
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const preset = JSON.parse(e.target?.result as string) as DanmuPreset;
+    await danmuPresetApi.save(preset);
+    getDanmuPresets();
+    notice.success({
+      title: "导入成功",
+      duration: 1000,
+    });
+  };
+  reader.readAsText(file);
+};
+
+const actionBtns = ref([
+  { label: "另存为", key: "saveAnother" },
+  { label: "重命名", key: "rename" },
+  // { label: "导出", key: "export" },
+  // { label: "导入", key: "import" },
+]);
+const handleActionClick = async (key?: string | number) => {
+  console.log(key);
+  switch (key) {
+    case "saveAnother":
+      saveAs();
+      break;
+    case "rename":
+      rename();
+      break;
+    case "export":
+      exportPreset();
+      break;
+    case "import":
+      // @ts-ignore
+      open();
+      break;
+    case undefined:
+      saveConfig();
+      break;
+  }
 };
 </script>
 
