@@ -217,7 +217,7 @@ const titleList = ref([
     label: "分",
   },
   {
-    value: "{ss}",
+    value: "{sec}",
     label: "秒",
   },
 ]);
