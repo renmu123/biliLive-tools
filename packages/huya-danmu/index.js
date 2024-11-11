@@ -4,7 +4,7 @@ import to_arraybuffer from "to-arraybuffer";
 import socks_agent from "socks-proxy-agent";
 
 import { Taf, TafMx, HUYA, List } from "./lib.js";
-import { md5 } from "./utils.js";
+import { md5, intToHexColor } from "./utils.js";
 
 const heartbeat_interval = 60000;
 const fresh_gift_interval = 60 * 60 * 1000;
@@ -101,6 +101,12 @@ class huya_danmu extends events {
       this.emit("message", msg_obj);
     });
     this._emitter.on("1400", (msg) => {
+      const originColor = msg.tBulletFormat.iFontColor;
+      let color = "#ffffff";
+      if (originColor > 0) {
+        color = intToHexColor(originColor);
+      }
+
       const msg_obj = {
         type: "chat",
         time: new Date().getTime(),
@@ -110,6 +116,7 @@ class huya_danmu extends events {
         },
         id: md5(JSON.stringify(msg)),
         content: msg.sContent,
+        color: color,
       };
       const can_emit = this._chat_list.push(msg_obj.from.rid + msg_obj.content, msg_obj.time);
       can_emit && this.emit("message", msg_obj);

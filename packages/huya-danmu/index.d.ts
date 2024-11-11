@@ -22,6 +22,7 @@ export interface HuYaMessage$Common {
 export interface HuYaMessage$Chat extends HuYaMessage$Common {
   type: "chat";
   content: string;
+  color: string;
 }
 
 export interface HuYaMessage$Gift extends HuYaMessage$Common {

@@ -129,12 +129,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       if (!extraDataController) return;
 
       switch (msg.type) {
-        // TODO:颜色处理
         case "chat": {
           const comment: Comment = {
             type: "comment",
             timestamp: Date.now(),
             text: msg.content,
+            color: msg.color,
             sender: {
               uid: msg.from.rid,
               name: msg.from.name,
