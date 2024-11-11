@@ -13,6 +13,7 @@
     "build:webui": "pnpm run build:base && pnpm run --filter biliLive-tools build:webui",
     "build:app:no-ffmpeg": "pnpm run build:base && pnpm run --filter biliLive-tools build:app:no-ffmpeg",
     "build:cli": "pnpm run build:base && pnpm run --filter bililive-cli build:cli",
+    "build:base": "npx only-allow pnpm",
     "preinstall": "npx only-allow pnpm",
     "install:bin": "node ./scripts/install-bin.js",
     "github-ci-pnpm-update": "node ./scripts/github-ci-pnpm-update.js",
