@@ -45,7 +45,13 @@
             <div class="section" @click="stopRecord(item.id)">停止录制</div>
             <div class="section" @click="edit(item.id)">直播间设置</div>
             <div class="section" @click="getLiveInfo">刷新直播间信息</div>
-            <!-- TODO:打开录制文件加，仅在client可用 -->
+            <div
+              v-if="!isWeb && item.recordHandle?.savePath"
+              class="section"
+              @click="openSavePath(item.recordHandle?.savePath)"
+            >
+              打开录制文件夹
+            </div>
 
             <div class="section" style="color: #e88080" @click="remove(item.id)">删除房间</div>
           </div>
@@ -63,6 +69,7 @@ import { useConfirm } from "@renderer/hooks";
 import addModal from "./components/addModal.vue";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 import { Live24Regular } from "@vicons/fluent";
+import { useEventListener } from "@vueuse/core";
 
 import type { ClientRecorder, API } from "@biliLive-tools/http";
 
@@ -134,6 +141,7 @@ init();
 let intervalId: NodeJS.Timeout | null = null;
 
 function createInterval() {
+  if (intervalId) return;
   const interval = window.isWeb ? 2000 : 1000;
   intervalId = setInterval(() => {
     getList();
@@ -153,6 +161,13 @@ onActivated(() => {
   createInterval();
 });
 
+// 在模块失活时清除定时器
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    cleanInterval();
+  });
+}
+
 function handleVisibilityChange() {
   if (document.visibilityState === "hidden") {
     cleanInterval();
@@ -161,7 +176,20 @@ function handleVisibilityChange() {
   }
 }
 
-document.addEventListener("visibilitychange", handleVisibilityChange);
+useEventListener(document, "visibilitychange", () => {
+  handleVisibilityChange();
+});
+
+const isWeb = ref(window.isWeb);
+
+/**
+ * 打开录制文件夹
+ * @param path
+ */
+const openSavePath = (path: string) => {
+  window.api.openPath(window.path.dirname(path));
+  console.log(path, "1222222222222");
+};
 </script>
 
 <style scoped lang="less">

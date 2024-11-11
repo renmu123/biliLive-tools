@@ -110,14 +110,6 @@ const webVersion = window.__APP_VERSION__;
 const version = ref();
 onMounted(async () => {
   version.value = await commonApi.version();
-
-  // const externalLinks = document.querySelectorAll("a.external");
-  // externalLinks.forEach((link: any) => {
-  //   link.addEventListener("click", (event) => {
-  //     event.preventDefault();
-  //     window.api.openExternal(link.href);
-  //   });
-  // });
 });
 </script>
 
