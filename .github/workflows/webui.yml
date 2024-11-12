@@ -21,28 +21,16 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v4
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: ".node-version"
-
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
           run_install: false
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version-file: ".node-version"
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install --ignore-scripts
@@ -65,15 +53,6 @@ jobs:
           git add .
           git commit -m "Deploy compiled files"
           git push --force origin $BRANCH
-
-        # packages/app/out/renderer https://github.com/renmu123/biliLive-webui
-      # - name: Push renderer to webui branch
-      #   uses: ad-m/github-push-action@v0.8.0
-      #   with:
-      #     branch: webui
-      #     force: true
-      #     directory: packages/app/out/renderer
-      #     github_token: ${{ secrets.WEBUI_TOKEN }}
 
 permissions:
   contents: write
