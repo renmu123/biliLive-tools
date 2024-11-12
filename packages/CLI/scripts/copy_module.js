@@ -22,6 +22,10 @@ function main() {
   fs.cpSync(path.join(pnpm_node_modules, "ntsuspend"), path.join(cli_node_modules, "ntsuspend"), {
     recursive: true,
   });
+  // 复制font-list相关文件，
+  fs.cpSync(path.join(pnpm_node_modules, "font-list"), path.join(cli_node_modules, "font-list"), {
+    recursive: true,
+  });
 }
 
 main();

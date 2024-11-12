@@ -84,6 +84,9 @@ importers:
       '@napi-rs/canvas':
         specifier: ^0.1.60
         version: 0.1.60
+      font-list:
+        specifier: ^1.5.1
+        version: 1.5.1
       ntsuspend:
         specifier: ^1.0.2
         version: 1.0.2
@@ -210,6 +213,9 @@ importers:
       electron-updater:
         specifier: ^6.3.9
         version: 6.3.9
+      font-list:
+        specifier: ^1.5.1
+        version: 1.5.1
       ntsuspend:
         specifier: ^1.0.2
         version: 1.0.2
@@ -471,6 +477,9 @@ importers:
       fast-xml-parser:
         specifier: ^4.5.0
         version: 4.5.0
+      font-list:
+        specifier: ^1.5.1
+        version: 1.5.1
       nodemailer:
         specifier: ^6.9.16
         version: 6.9.16
@@ -2763,6 +2772,9 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
+
+  font-list@1.5.1:
+    resolution: {integrity: sha512-Hr5V0dsSv91wH3FgirXd7qh1PydqA/vMQyWjFFWn+lUPJtC+3i2tzgVqbLRcvQh87TGdbTGbAR3mEo4VlwC1jw==}
 
   foreground-child@3.3.0:
     resolution: {integrity: sha512-Ld2g8rrAyMYFXBhEqMz8ZAHBi4J4uS1i/CxGMDnjyFWddMXLVcDp051DZfu+t7+ab7Wv6SMqpWmyFIj5UbfFvg==}
@@ -7495,6 +7507,8 @@ snapshots:
       webworkify-webpack: 2.1.5
 
   follow-redirects@1.15.9: {}
+
+  font-list@1.5.1: {}
 
   foreground-child@3.3.0:
     dependencies:

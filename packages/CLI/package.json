@@ -36,6 +36,7 @@
   ],
   "dependencies": {
     "@napi-rs/canvas": "^0.1.60",
+    "font-list": "^1.5.1",
     "ntsuspend": "^1.0.2"
   },
   "devDependencies": {

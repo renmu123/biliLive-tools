@@ -278,6 +278,8 @@
 
 <script setup lang="ts">
 import Tip from "./Tip.vue";
+import { commonApi } from "@renderer/apis";
+
 import type { DanmuConfig } from "@biliLive-tools/types";
 
 const config = defineModel<DanmuConfig>({ required: true, default: {} });
@@ -293,19 +295,44 @@ const isAdvancedMode = computed(() => {
   return !props.simpledMode;
 });
 
-const fontOptions = ref([]);
+const fontOptions = ref<
+  {
+    label: string;
+    value: string;
+  }[]
+>([]);
 const getFonts = async () => {
-  // TODO:修改为从接口获取
-  if (!window.isWeb) {
-    // @ts-ignore
-    const data = await window.queryLocalFonts();
+  try {
+    const data = await commonApi.getFontList();
     fontOptions.value = data.map((item) => {
       return {
-        label: item.fullName,
-        value: item.postscriptName,
+        label: item,
+        value: item,
       };
     });
+  } catch (error) {
+    fontOptions.value = [];
+    console.error(error);
   }
+
+  // if (!window.isWeb) {
+  //   // @ts-ignore
+  //   const data = await window.queryLocalFonts();
+  //   fontOptions.value = data.map((item) => {
+  //     return {
+  //       label: item.fullName,
+  //       value: item.postscriptName,
+  //     };
+  //   });
+  // } else {
+  //   const data = await commonApi.getFonts();
+  //   fontOptions.value = data.map((item) => {
+  //     return {
+  //       label: item.name,
+  //       value: item.name,
+  //     };
+  //   });
+  // }
 };
 onMounted(async () => {
   getFonts();

@@ -1,5 +1,9 @@
 # 1.7.0
 
+## 破坏性更新
+
+1. **为了兼容性考虑，字体的获取不再使用浏览器特有的api，此项更新后可能出现字体显示错误的情况**
+
 ## 功能
 
 1. 支持斗鱼、虎牙、B站直播录制，感谢[LiveAutoRecord](https://github.com/WhiteMinds/LiveAutoRecord)，绝大部分录制代码都来自该项目

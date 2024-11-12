@@ -100,6 +100,11 @@ export async function readXmlTimestamp(filepath: string): Promise<number> {
   return res.data;
 }
 
+export async function getFontList(): Promise<string[]> {
+  const res = await request.get(`/common/fonts`);
+  return res.data;
+}
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
@@ -110,6 +115,7 @@ const common = {
   douyuVideoDownload,
   getVideoStreams,
   readXmlTimestamp,
+  getFontList,
 };
 
 export default common;

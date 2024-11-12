@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "fs-extra";
 
 import Router from "koa-router";
-import { formatTitle } from "@biliLive-tools/shared/utils/index.js";
+import { formatTitle, getFontsList } from "@biliLive-tools/shared/utils/index.js";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
 import { readXmlTimestamp } from "@biliLive-tools/shared/task/video.js";
 
@@ -163,6 +163,13 @@ router.post("/danma/timestamp", async (ctx) => {
   };
 
   ctx.body = await readXmlTimestamp(filepath);
+});
+
+/**
+ * @api {get} /common/fonts 获取系统字体列表
+ */
+router.get("/fonts", async (ctx) => {
+  ctx.body = await getFontsList();
 });
 
 export default router;
