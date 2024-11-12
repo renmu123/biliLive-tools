@@ -59,7 +59,11 @@ export const exportConfig = async (): Promise<Buffer> => {
 export const importConfig = async (file: File): Promise<void> => {
   const formData = new FormData();
   formData.append("file", file);
-  const res = await request.post(`/config/import`, formData);
+  const res = await request.post(`/config/import`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return res.data;
 };
 

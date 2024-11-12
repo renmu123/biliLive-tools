@@ -4,7 +4,9 @@ import JSZip from "jszip";
 
 import Router from "koa-router";
 import { appConfig, container } from "../index.js";
+import multer from "../middleware/multer.js";
 import { _send } from "@biliLive-tools/shared/notify.js";
+import { getTempPath } from "@biliLive-tools/shared/utils/index.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 import type { VideoPreset } from "@biliLive-tools/shared";
@@ -12,6 +14,8 @@ import type { VideoPreset } from "@biliLive-tools/shared";
 const router = new Router({
   prefix: "/config",
 });
+
+const upload = multer({ dest: getTempPath() });
 
 router.get("/", async (ctx) => {
   const config = appConfig.getAll();
@@ -131,6 +135,59 @@ router.get("/export", async (ctx) => {
     ctx.status = 500;
     ctx.body = "export error";
   }
+});
+
+router.post("/import", upload.single("file"), async (ctx) => {
+  // @ts-ignore
+  const file = ctx.request?.file?.path as string;
+  if (!file) {
+    ctx.status = 400;
+    ctx.body = "No file selected";
+    return;
+  }
+
+  const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+  const { configPath, userDataPath } = globalConfig;
+
+  await fs.ensureDir(path.join(userDataPath, "cover"));
+
+  const zip = new JSZip();
+  const data = await zip.loadAsync(await fs.readFile(file));
+  await Promise.all(
+    Object.keys(data.files).map(async (filename) => {
+      const file = data.files[filename];
+      if (!file.dir) {
+        const content = await file.async("nodebuffer");
+        const filePath = path.join(userDataPath, filename);
+
+        if (
+          ["appConfig.json", "presets.json", "danmu_presets.json", "ffmpeg_presets.json"].includes(
+            filename,
+          )
+        ) {
+          // 配置文件
+          await fs.copyFile(filePath, path.join(userDataPath, `${filename}.backup`));
+          await fs.writeFile(filePath, content);
+
+          // 如果filename是 appConfig.json，那么替换掉ffmpegPath、ffprobePath、danmuFactoryPath配置
+          if (filename === "appConfig.json") {
+            const data = await fs.readJSON(path.join(userDataPath, `${filename}.backup`));
+            const appConfig = await fs.readJSON(configPath);
+            appConfig.ffmpegPath = data.ffmpegPath;
+            appConfig.ffprobePath = data.ffprobePath;
+            appConfig.danmuFactoryPath = data.danmuFactoryPath;
+            await fs.writeJSON(filePath, appConfig);
+          }
+        } else if (filename.startsWith("cover/")) {
+          await fs.writeFile(filePath, content);
+        } else {
+          console.log(`不支持导入的文件: ${filename}`);
+        }
+      }
+    }),
+  );
+
+  ctx.body = "success";
 });
 
 router.post("/notifyTest", async (ctx) => {

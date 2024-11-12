@@ -320,6 +320,8 @@
 </template>
 
 <script setup lang="ts">
+import { useFileDialog } from "@vueuse/core";
+
 import RoomSettingDialog from "./RoomSettingDialog.vue";
 import CommonSetting from "./CommonWebhookSetting.vue";
 import NotificationSetting from "./NotificationSetting.vue";
@@ -635,27 +637,30 @@ const exportSettingZip = async () => {
   const blob = await configApi.exportConfig();
   saveAs(blob, name);
 };
+
 // 导入配置
+const { open: openImportFile, onChange: onImportFileChange } = useFileDialog({
+  accept: ".zip",
+  directory: false,
+  multiple: false,
+});
+
+onImportFileChange((files) => {
+  if (!files) return;
+  if (files.length === 0) return;
+  console.log(files[0]);
+  confirmImportSettingZip(files[0]);
+});
 const importSettingZip = async () => {
   const [status] = await confirm.warning({
     content: "导入后所有配置都将被替换，是否继续？",
   });
   if (!status) return;
+  openImportFile();
+};
 
-  // 导入前弹框警告，导入时验证文件是否存在
-  const path = await window.api.openFile({
-    multi: false,
-    filters: [
-      {
-        name: "file",
-        extensions: ["zip"],
-      },
-    ],
-  });
-  if (!path) return;
-  if (!path.length) return;
-
-  await window.api.config.import(path[0]);
+const confirmImportSettingZip = async (file: File) => {
+  await configApi.importConfig(file);
 
   await confirm.warning({
     content: "导入成功，重启应用后生效",
