@@ -1,16 +1,12 @@
 import Router from "koa-router";
-import { appConfig } from "../index.js";
 import biliService from "@biliLive-tools/shared/task/bili.js";
-
-import type { BiliUser } from "@biliLive-tools/types";
 
 const router = new Router({
   prefix: "/user",
 });
 
 router.get("/list", async (ctx) => {
-  const users = appConfig.getAll().biliUser || {};
-  const list = Object.values(users) as unknown as BiliUser[];
+  const list = biliService.readUserList();
 
   ctx.body = list.map((item) => {
     const expires = JSON.parse(item.rawAuth)?.cookie_info?.cookies?.find(

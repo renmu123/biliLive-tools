@@ -1,0 +1,29 @@
+{
+  "name": "huya-danma",
+  "version": "0.1.0",
+  "description": "huya danmu module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "type": "module",
+  "scripts": {
+    "test": ""
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "huya",
+    "danmu"
+  ],
+  "author": "BacooTang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/damonpeng/huya-danmu-fix/issues"
+  },
+  "dependencies": {
+    "ws": "^4.0.0",
+    "to-arraybuffer": "^1.0.1",
+    "socks-proxy-agent": "^3.0.1"
+  },
+  "homepage": "https://github.com/damonpeng/huya-danmu-fix#readme"
+}

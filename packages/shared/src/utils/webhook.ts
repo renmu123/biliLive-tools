@@ -4,6 +4,7 @@ import log from "./log.js";
  * 支持{{title}},{{user}},{{now}}等占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}<br/>
  * 直播标题：{{title}}<br/>
  * 主播名：{{user}}<br/>
+ * 房间号：{{roomId}}<br/>
  * 当前时间（快速）：{{now}}，示例：2024.01.24<br/>
  * 年：{{yyyy}}<br/>
  * 月（补零）：{{MM}}<br/>
@@ -18,7 +19,7 @@ import log from "./log.js";
  * @param {string} options.time 直播时间
  * @param {string} template 格式化模板
  */
-export function foramtTitle(
+export function formatTitle(
   options: {
     title: string;
     username: string;
@@ -44,6 +45,7 @@ export function foramtTitle(
   const title = renderText
     .replaceAll("{{title}}", options.title)
     .replaceAll("{{user}}", options.username)
+    .replaceAll("{{roomId}}", String(options.roomId))
     .replaceAll("{{now}}", now)
     .replaceAll("{{yyyy}}", year)
     .replaceAll("{{MM}}", month)

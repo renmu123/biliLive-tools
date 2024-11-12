@@ -1,0 +1,51 @@
+{
+  "name": "@autorecord/douyu-recorder",
+  "version": "1.2.2",
+  "description": "LAR douyu recorder implemention",
+  "main": "./lib/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./lib/index.js"
+    },
+    "./*.js": {
+      "types": "./src/*.ts",
+      "development": "./src/*.ts",
+      "default": "./lib/*.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": "https://github.com/WhiteMinds/DouYuRecorder",
+  "author": "WhiteMind",
+  "license": "LGPL",
+  "dependencies": {
+    "@autorecord/manager": "workspace:*",
+    "axios": "1.7.4",
+    "mitt": "^3.0.1",
+    "query-string": "^9.1.0",
+    "safe-eval": "^0.4.1",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@biliLive-tools/types": "workspace:*",
+    "@types/ws": "^8.5.3"
+  },
+  "peerDependencies": {
+    "@autorecord/manager": "*"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.8",
+    "utf-8-validate": "^6.0.4"
+  }
+}

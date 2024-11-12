@@ -6,6 +6,7 @@ import type {
   audioCodec,
   CommonPreset as CommonPresetType,
 } from "@biliLive-tools/types";
+import type { GlobalConfig } from "@biliLive-tools/types";
 
 const DefaultFfmpegOptions: FfmpegOptions = {
   encoder: "libx264",
@@ -22,6 +23,13 @@ const commonPresetParams: {
   audioCodec: audioCodec;
   swsFlags: string;
   scaleMethod: "auto" | "before" | "after";
+  addTimestamp: boolean;
+  timestampX: number;
+  timestampY: number;
+  timestampFontSize: number;
+  timestampFontColor: string;
+  extraOptions: string;
+  vf: string;
 } = {
   resetResolution: false,
   resolutionWidth: 2880,
@@ -29,6 +37,13 @@ const commonPresetParams: {
   audioCodec: "copy",
   swsFlags: "bilinear",
   scaleMethod: "auto",
+  addTimestamp: false,
+  timestampX: 10,
+  timestampY: 10,
+  timestampFontSize: 24,
+  timestampFontColor: "#ffffff",
+  extraOptions: "",
+  vf: "",
 };
 
 const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
@@ -36,124 +51,115 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
     id: "b_copy",
     name: "copy",
     config: {
+      ...commonPresetParams,
       encoder: "copy",
       bitrateControl: "CRF",
       crf: 23,
       preset: "fast",
       bitrate: 8000,
-      extraOptions: "",
       bit10: false,
-      ...commonPresetParams,
     },
   },
   {
     id: "b_libx264",
     name: "H.264(x264)",
     config: {
+      ...commonPresetParams,
       encoder: "libx264",
       bitrateControl: "CRF",
       crf: 23,
       preset: "fast",
       bitrate: 8000,
-      extraOptions: "",
       bit10: false,
-      ...commonPresetParams,
     },
   },
   {
     id: "b_qsv_h264",
     name: "H.264(Intel QSV)",
     config: {
+      ...commonPresetParams,
       encoder: "h264_qsv",
       bitrateControl: "VBR",
       bitrate: 8000,
-      extraOptions: "",
       bit10: false,
       crf: 30,
       preset: "fast",
-      ...commonPresetParams,
     },
   },
   {
     id: "b_nvenc_h264",
     name: "H.264(NVIDIA NVEnc)",
     config: {
+      ...commonPresetParams,
       encoder: "h264_nvenc",
       bitrateControl: "VBR",
       bitrate: 8000,
       preset: "p4",
       crf: 28,
       decode: false,
-      extraOptions: "",
       bit10: false,
-      ...commonPresetParams,
     },
   },
   {
     id: "b_amf_h264",
     name: "H.264(AMD AMF)",
     config: {
+      ...commonPresetParams,
       encoder: "h264_amf",
       bitrateControl: "VBR",
       bitrate: 8000,
-      extraOptions: "",
       bit10: false,
-      ...commonPresetParams,
     },
   },
   {
     id: "b_libx265",
     name: "H.265(x265)",
     config: {
+      ...commonPresetParams,
       encoder: "libx265",
       bitrateControl: "CRF",
       crf: 27,
       preset: "fast",
       bitrate: 8000,
-      extraOptions: "",
       bit10: false,
-      ...commonPresetParams,
     },
   },
   {
     id: "b_qsv_h265",
     name: "H.265(Intel QSV)",
     config: {
+      ...commonPresetParams,
       encoder: "hevc_qsv",
       bitrateControl: "VBR",
       bitrate: 8000,
-      extraOptions: "",
       bit10: false,
       crf: 30,
       preset: "fast",
-      ...commonPresetParams,
     },
   },
   {
     id: "b_nvenc_h265",
     name: "H.265(NVIDIA NVEnc)",
     config: {
+      ...commonPresetParams,
       encoder: "hevc_nvenc",
       bitrateControl: "VBR",
       bitrate: 8000,
       preset: "p4",
       crf: 28,
       decode: false,
-      extraOptions: "",
       bit10: false,
-      ...commonPresetParams,
     },
   },
   {
     id: "b_amf_h265",
     name: "H.265(AMD AMF)",
     config: {
+      ...commonPresetParams,
       encoder: "hevc_amf",
       bitrateControl: "VBR",
       bitrate: 8000,
-      extraOptions: "",
       bit10: false,
-      ...commonPresetParams,
     },
   },
 
@@ -161,6 +167,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
     id: "b_svt_av1",
     name: "AV1 (libsvtav1)",
     config: {
+      ...commonPresetParams,
       encoder: "libsvtav1",
       bitrateControl: "CRF",
       crf: 31,
@@ -168,58 +175,51 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrate: 8000,
       extraOptions: "-svtav1-params tune=0",
       bit10: false,
-      ...commonPresetParams,
     },
   },
   {
     id: "b_qsv_av1",
     name: "AV1 (Intel QSV)",
     config: {
+      ...commonPresetParams,
       encoder: "av1_qsv",
       bitrateControl: "VBR",
       bitrate: 8000,
-      extraOptions: "",
       bit10: false,
       crf: 30,
       preset: "fast",
-      ...commonPresetParams,
     },
   },
   {
     id: "b_nvenc_av1",
     name: "AV1 (NVIDIA NVEnc)",
     config: {
+      ...commonPresetParams,
       encoder: "av1_nvenc",
       bitrateControl: "VBR",
       bitrate: 8000,
       preset: "p4",
       crf: 28,
       decode: false,
-      extraOptions: "",
       bit10: false,
-      ...commonPresetParams,
     },
   },
   {
     id: "b_amf_av1",
     name: "AV1 (AMD AMF)",
     config: {
+      ...commonPresetParams,
       encoder: "av1_amf",
       bitrateControl: "VBR",
       bitrate: 8000,
-      extraOptions: "",
       bit10: false,
-      ...commonPresetParams,
     },
   },
 ];
 
 export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
-  constructor(
-    presetPath: string,
-    defaultConfig: typeof DefaultFfmpegOptions = DefaultFfmpegOptions,
-  ) {
-    super(presetPath, defaultConfig);
+  constructor({ globalConfig }: { globalConfig: Pick<GlobalConfig, "ffmpegPresetPath"> }) {
+    super(globalConfig.ffmpegPresetPath, DefaultFfmpegOptions);
   }
   init(presetPath: string) {
     super.init(presetPath);
@@ -238,7 +238,13 @@ export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
   }
   async list() {
     const presets = await super.list();
-    return presets;
+    return presets.map((item) => {
+      item.config = {
+        ...commonPresetParams,
+        ...item.config,
+      };
+      return item;
+    });
   }
   async delete(id: string) {
     return super.delete(id);

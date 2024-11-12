@@ -314,6 +314,7 @@
       <Tip :tip="titleTip" text="视频标题"></Tip>
     </template>
     <n-input
+      ref="titleInput"
       v-model:value="data.title"
       placeholder="请输入视频标题,支持{{title}},{{user}},{{now}}等占位符"
       clearable
@@ -359,7 +360,7 @@
     <template #label>
       <span class="inline-flex">
         上传到同分p间隔时间
-        <Tip tip="监测直播是否为同一场的时间间隔"></Tip>
+        <Tip tip="检测直播是否为同一场的时间间隔"></Tip>
       </span>
     </template>
     <n-input-number
@@ -377,11 +378,50 @@
       >全局</n-checkbox
     >
   </n-form-item>
+
+  <!-- 非弹幕版相关配置 -->
+  <template v-if="data.uid && !data.removeOriginAfterConvert">
+    <n-divider />
+    <n-form-item>
+      <template #label>
+        <span class="inline-flex">
+          上传非弹幕版
+          <Tip
+            tip="用于在上传弹幕版后同时上传一份非弹幕版本，大部分配置与上面的共用，不含包“完成后删除源文件”选项
+            <br/>视频标题去上传预设中配置，标题模板不要与弹幕版完全一致，不然b站可能会上传错误"
+          ></Tip>
+        </span>
+      </template>
+      <n-switch v-model:value="data.uploadNoDanmu" :disabled="globalFieldsObj.uploadNoDanmu" />
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.uploadNoDanmu"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+    </n-form-item>
+    <n-form-item v-if="data.uploadNoDanmu" label="非弹幕版上传预设">
+      <n-select
+        v-model:value="data.noDanmuVideoPreset"
+        :options="props.biliupPresetsOptions"
+        placeholder="请选择"
+        :disabled="globalFieldsObj.noDanmuVideoPreset"
+        style="margin-right: 10px"
+      />
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.noDanmuVideoPreset"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+    </n-form-item>
+  </template>
 </template>
 
 <script setup lang="ts">
 import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
 import { previewWebhookTitle } from "@renderer/apis/common";
+import { templateRef } from "@vueuse/core";
 
 import type { AppRoomConfig } from "@biliLive-tools/types";
 
@@ -436,6 +476,10 @@ const titleList = ref([
     label: "主播名",
   },
   {
+    value: "{{roomId}}",
+    label: "房间号",
+  },
+  {
     value: "{{now}}",
     label: "当前时间（示例：2024.01.24）",
   },
@@ -465,17 +509,34 @@ const titleList = ref([
   },
 ]);
 const titleTip = computed(() => {
-  const base = `支持{{title}},{{user}},{{now}}等占位符，会覆盖预设中的标题，如【{{user}}】{{title}}-{{now}}<br/>
-  不要在直播开始后修改字段，本场直播不会生效，更多高级用法见文档<br/>`;
+  const base = `推荐在上传预设设置模板标题，但如果预设标题中不存在占位符，为了兼容性考虑，依然使用webhook配置。<br/>
+  <b>预计后续版本中会移除此字段，请使用者尽快迁移。</b><br/>
+  支持{{title}},{{user}},{{now}}等占位符，如【{{user}}】{{title}}-{{now}}<br/>
+  不要在直播开始后修改字段，本场直播不会生效，更多模板引擎等高级用法见文档<br/>`;
   return titleList.value
     .map((item) => {
       return `${item.label}：${item.value}<br/>`;
     })
     .reduce((prev, cur) => prev + cur, base);
 });
-const setTitleVar = (value: string) => {
+
+const titleInput = templateRef("titleInput");
+const setTitleVar = async (value: string) => {
   if (globalFieldsObj.value.title) return;
-  data.value.title += value;
+  const input = titleInput.value?.inputElRef;
+  if (input) {
+    // 获取input光标位置
+    const start = input.selectionStart ?? data.value.title.length;
+    const end = input.selectionEnd ?? data.value.title.length;
+    const oldValue = data.value.title;
+    data.value.title = oldValue.slice(0, start) + value + oldValue.slice(end);
+    // 设置光标位置
+    input.focus();
+    await nextTick();
+    input.setSelectionRange(start + value.length, start + value.length);
+  } else {
+    data.value.title += value;
+  }
 };
 
 const isRoom = computed(() => props.type === "room");

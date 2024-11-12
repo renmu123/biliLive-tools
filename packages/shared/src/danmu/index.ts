@@ -200,11 +200,13 @@ export const paeseMetadata = (jObj: any) => {
   const root = jObj?.i;
   if (!root) return metadata;
 
+  // 录播姬
   if (root?.BililiveRecorderRecordInfo) {
     const info = root?.BililiveRecorderRecordInfo;
     metadata.streamer = info["@_name"];
     metadata.room_id = info["@_roomid"];
     metadata.live_title = info["@_title"];
+    // TODO:这里有误，这是录制开始时间，而非直播开始时间
     const liveStartTime: string = info["@_start_time"];
     if (liveStartTime) {
       metadata.live_start_time = Math.floor(new Date(liveStartTime).getTime() / 1000);

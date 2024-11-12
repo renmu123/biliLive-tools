@@ -1,0 +1,8 @@
+:3000 {
+    root * /app/public
+    file_server
+    encode gzip
+
+    # 处理前端路由
+    try_files {path} /index.html
+}

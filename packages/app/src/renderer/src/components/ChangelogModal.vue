@@ -9,7 +9,7 @@
               class="external"
               target="_blank"
               >帮助教程</a
-            >，你也可以在关注页找到链接</b
+            >，你也可以在关于页面找到链接</b
           >
         </p>
         <p>如果你觉得本软件对你有帮助：</p>
@@ -27,13 +27,21 @@
           >
         </p>
         <p>
-          弹幕转换功能底层由：<a
+          弹幕转换功能底层来自：<a
             href="https://github.com/hihkm/DanmakuFactory"
             class="external"
             target="_blank"
             >DanmakuFactory</a
-          >实现
+          >
         </p>
+        <!-- <p>
+          直播录制绝大部分代码来自：<a
+            href="https://github.com/WhiteMinds/LiveAutoRecord"
+            class="external"
+            target="_blank"
+            >LiveAutoRecord</a
+          >
+        </p> -->
       </div>
       <div v-html="content"></div>
       <template #footer>
@@ -50,22 +58,22 @@
 <script setup lang="ts">
 import { marked } from "marked";
 import changelog from "../../../../../../CHANGELOG.md?raw";
+import { commonApi } from "@renderer/apis";
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 
 const renderer = {
-  link(url: string, _title: string, text: string) {
-    return `<a href="${url}" target="_blank">${text}</a>`;
+  link({ href, text }: { href: string; text: string }) {
+    return `<a href="${href}" target="_blank">${text}</a>`;
   },
 };
 
-// @ts-ignore
 marked.use({ renderer });
 const content = marked.parse(changelog);
 
 const confirm = async () => {
   const data = JSON.parse(localStorage.getItem("changelog") || "{}");
-  const version = await window.api.appVersion();
+  const version = await commonApi.version();
   data[version] = true;
   localStorage.setItem("changelog", JSON.stringify(data));
 };
@@ -75,11 +83,14 @@ const close = async () => {
   showModal.value = false;
 };
 
-watchEffect(() => {
-  if (!showModal.value) {
-    confirm();
-  }
-});
+watch(
+  () => showModal.value,
+  (value) => {
+    if (!value) {
+      confirm();
+    }
+  },
+);
 </script>
 
 <style scoped lang="less"></style>

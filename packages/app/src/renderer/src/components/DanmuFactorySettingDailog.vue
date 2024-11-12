@@ -68,7 +68,7 @@ import { useStorage } from "@vueuse/core";
 import DanmuFactorySetting from "./DanmuFactorySetting.vue";
 import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
-import { useDanmuPreset } from "@renderer/stores";
+import { useDanmuPreset, useAppConfig } from "@renderer/stores";
 import { danmuPresetApi } from "@renderer/apis";
 
 import { cloneDeep } from "lodash-es";
@@ -94,7 +94,7 @@ const confirmDialog = useConfirm();
 const { getDanmuPresets, getDanmuPreset } = useDanmuPreset();
 const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());
 
-const simpledMode = useStorage("simpledMode", true);
+const simpledMode = useStorage("simpledMode", false);
 
 // @ts-ignore
 const config: Ref<DanmuPreset> = ref({
@@ -144,12 +144,14 @@ const saveAs = async () => {
   tempPresetName.value = "";
   nameModelVisible.value = true;
 };
+
+const { appConfig } = storeToRefs(useAppConfig());
+
 const deletePreset = async () => {
-  const appConfig = await window.api.config.getAll();
-  let ids = Object.entries(appConfig.webhook.rooms || {}).map(([, value]) => {
+  let ids = Object.entries(appConfig.value.webhook.rooms || {}).map(([, value]) => {
     return value?.danmuPreset;
   });
-  ids.push(appConfig.webhook?.danmuPreset);
+  ids.push(appConfig.value.webhook?.danmuPreset);
   ids = ids.filter((id) => id !== undefined && id !== "");
 
   const msg = ids.includes(presetId.value)

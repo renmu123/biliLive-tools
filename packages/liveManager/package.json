@@ -1,0 +1,43 @@
+{
+  "name": "@autorecord/manager",
+  "version": "1.1.1",
+  "description": "Batch scheduling recorders",
+  "main": "./lib/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./lib/index.js"
+    },
+    "./*.js": {
+      "types": "./src/*.ts",
+      "development": "./src/*.ts",
+      "default": "./lib/*.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": "https://github.com/WhiteMinds/LiveAutoRecord",
+  "author": "WhiteMind",
+  "license": "LGPL",
+  "dependencies": {
+    "@renmu/fluent-ffmpeg": "2.3.0",
+    "filenamify": "^6.0.0",
+    "mitt": "^3.0.0",
+    "string-argv": "^0.3.1",
+    "fast-xml-parser": "^4.4.1"
+  },
+  "devDependencies": {
+    "@biliLive-tools/types": "workspace:*",
+    "@types/fluent-ffmpeg": "^2.1.27"
+  }
+}

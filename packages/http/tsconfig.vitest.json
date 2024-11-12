@@ -3,7 +3,7 @@
     // "composite": true,
     "outDir": "./lib",
     "rootDir": "./src",
-    "target": "es2022",
+    "target": "es2023",
     "module": "Node16",
     "moduleResolution": "Bundler",
     "noEmit": true,

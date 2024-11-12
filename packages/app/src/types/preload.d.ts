@@ -1,4 +1,4 @@
-import path from "node:path";
+import path from "path-browserify";
 
 import { ElectronAPI } from "@electron-toolkit/preload";
 import { api } from "../preload/index";
@@ -8,5 +8,7 @@ declare global {
     electron: ElectronAPI;
     api: typeof api;
     path: typeof path;
+    isWeb: boolean;
+    __APP_VERSION__: string;
   }
 }

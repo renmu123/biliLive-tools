@@ -1,37 +1,42 @@
 import path from "node:path";
 import fs from "fs-extra";
-import os from "node:os";
 
-import {
-  getVideoDanmu,
-  getStreamUrls,
-  getVideos,
-  parseVideo as _parseVideo,
-  convert2Xml,
-} from "douyu-cli";
+import { video, convert2Xml } from "douyu-api";
 import M3U8Downloader from "@renmu/m3u8-downloader";
 import { cloneDeep } from "lodash-es";
 
 import { taskQueue, DouyuDownloadVideoTask } from "./task.js";
 import { getFfmpegPath } from "./video.js";
 import { uuid } from "../utils/index.js";
+import { getTempPath } from "../utils/index.js";
 
-import type { Video } from "douyu-cli";
+import type { Video } from "douyu-api";
 
 /**
- * 获取最高清晰度的视频流
+ * 获取所有清晰度的视频流
  */
-const getStream = async (data: string) => {
-  const res = await getStreamUrls(data);
-
+const getAvailableStreams = async (data: string) => {
+  const res = await video.getStreamUrls(data);
   const streams = Object.values(res.thumb_video);
-  if (streams.length === 0) {
-    throw new Error("没有找到视频流");
-  }
   streams.sort((a, b) => {
     return b.bit_rate - a.bit_rate;
   });
-  return streams[0].url;
+  return streams;
+};
+
+/**
+ * 获取视频流
+ */
+const getStream = async (
+  data: string,
+  resoltion: "highest" | string,
+): Promise<undefined | string> => {
+  const streams = await getAvailableStreams(data);
+  if (resoltion === "highest") {
+    return streams[0].url;
+  } else {
+    return streams.find((item) => item.stream_type === resoltion)?.url;
+  }
 };
 
 /**
@@ -41,7 +46,9 @@ async function download(
   output: string,
   decodeData: string,
   options: {
-    danmu: boolean;
+    danmu: "none" | "xml" | "ass";
+    resoltion: "highest" | string;
+    override: boolean;
     vid?: string;
     user_name?: string;
     room_id?: string;
@@ -50,16 +57,21 @@ async function download(
     platform?: "douyu";
   },
 ) {
-  if (options.danmu && !options.vid) {
-    throw new Error("下载弹幕时vid不能为空");
+  if ((await fs.pathExists(output)) && !options.override) throw new Error(`${output}已存在`);
+  if (options.danmu !== "none" && !options.vid) throw new Error("下载弹幕时vid不能为空");
+
+  let m3u8Url = await getStream(decodeData, options.resoltion);
+  if (!m3u8Url) {
+    // 如果没有分辨率对应的流，那么获取最大分辨率的视频
+    m3u8Url = await getStream(decodeData, "highest");
   }
-  const m3u8Url = await getStream(decodeData);
+  if (!m3u8Url) throw new Error("无法找到对应的流");
 
   const { ffmpegPath } = getFfmpegPath();
   const downloader = new M3U8Downloader(m3u8Url, output, {
     convert2Mp4: true,
     ffmpegPath: ffmpegPath,
-    segmentsDir: path.join(os.tmpdir(), "biliLive-tools", uuid()),
+    segmentsDir: path.join(getTempPath(), uuid()),
   });
 
   const task = new DouyuDownloadVideoTask(
@@ -69,8 +81,8 @@ async function download(
     },
     {
       onEnd: async () => {
-        if (options.danmu && options.vid) {
-          const danmu = await getVideoDanmu(options.vid);
+        if (options.danmu !== "none" && options.vid) {
+          const danmu = await video.getVideoDanmu(options.vid);
           const metatdata: {
             user_name?: string;
             room_id?: string;
@@ -78,7 +90,7 @@ async function download(
             live_start_time?: string;
             video_start_time?: string;
             platform?: "douyu";
-            danmu?: boolean;
+            danmu?: string;
             vid?: string;
           } = cloneDeep(options);
           delete metatdata.danmu;
@@ -107,13 +119,13 @@ const buildVideoUrl = (videoId: string) => {
  * 解析视频
  */
 const parseVideo = async (url: string) => {
-  const videoData = await _parseVideo(url);
-  const res = await getVideos(videoData.ROOM.vid, videoData.ROOM.up_id);
+  const videoData = await video.parseVideo(url);
+  const res = await video.getVideos(videoData.ROOM.vid, videoData.ROOM.up_id);
 
   let videoList: Video[] = [];
   await Promise.all(
-    res.list.map(async (video) => {
-      const videoData = await _parseVideo(buildVideoUrl(video.hash_id));
+    res.list.map(async (item) => {
+      const videoData = await video.parseVideo(buildVideoUrl(item.hash_id));
       videoList.push({ ...videoData });
     }),
   );
@@ -121,4 +133,4 @@ const parseVideo = async (url: string) => {
   return videoList;
 };
 
-export default { download, parseVideo };
+export default { download, parseVideo, getAvailableStreams };

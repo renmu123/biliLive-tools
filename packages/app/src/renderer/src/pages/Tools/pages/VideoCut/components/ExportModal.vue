@@ -13,6 +13,8 @@
           共有{{ cuts.length }}个切片，此次将导出
           <span style="color: skyblue"> {{ selectedCuts.length }} </span> 个视频
         </h3>
+
+        <p style="color: red; margin-top: 0">{{ noDanmuTips }}</p>
         <div class="flex" style="align-items: center">
           选择视频预设：
           <n-cascader
@@ -84,6 +86,9 @@
 </template>
 
 <script setup lang="ts">
+import { toReactive } from "@vueuse/core";
+
+import { ffmpegPresetApi } from "@renderer/apis";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useFfmpegPreset, useAppConfig, useSegmentStore } from "@renderer/stores";
 import filenamify from "filenamify/browser";
@@ -117,7 +122,14 @@ const { cuts, selectedCuts } = storeToRefs(useSegmentStore());
 
 const notice = useNotification();
 
-const exportOptions = appConfig.value.tool.videoCut;
+const exportOptions = toReactive(
+  computed({
+    get: () => appConfig.value.tool.videoCut,
+    set: (value) => {
+      appConfig.value.tool.videoCut = value;
+    },
+  }),
+);
 
 const confirmExport = async () => {
   if (!exportOptions.ffmpegPresetId) {
@@ -159,7 +171,7 @@ const confirmExport = async () => {
     });
     return;
   }
-  const ffmpegOptiosn = (await window.api.ffmpeg.getPreset(exportOptions.ffmpegPresetId)).config;
+  const ffmpegOptiosn = (await ffmpegPresetApi.get(exportOptions.ffmpegPresetId)).config;
   let index = 1;
   for (const cut of selectedCuts.value) {
     const start = cut.start;
@@ -179,11 +191,11 @@ const confirmExport = async () => {
     await window.api.mergeAssMp4(
       {
         videoFilePath: props.files.videoPath!,
-        assFilePath: props.files.danmuPath!,
+        assFilePath: props.files.danmuPath,
         outputPath: window.path.join(savePath, `${title}.mp4`),
         hotProgressFilePath: undefined,
       },
-      { removeOrigin: false },
+      { removeOrigin: false, override: exportOptions.override },
       {
         ...ffmpegOptiosn,
         ss: start,
@@ -198,6 +210,14 @@ const confirmExport = async () => {
   });
   visible.value = false;
 };
+
+const noDanmuTips = computed(() => {
+  if (props.files.danmuPath) {
+    return "";
+  } else {
+    return "如果不需要弹幕，视频预设推荐使用copy，这样就不需要重新编码，但是只会在关键帧切割，导致视频长度不准确";
+  }
+});
 
 async function getDir() {
   const path = await window.api.openDirectory({

@@ -79,6 +79,16 @@
             <template #suffix> 秒 </template></n-input-number
           >
         </n-form-item>
+        <n-form-item v-if="isAdvancedMode" label="时间偏移">
+          <n-input-number
+            v-model:value.number="config.timeshift"
+            class="input-number"
+            style="width: 120px"
+            :precision="2"
+          >
+            <template #suffix> 秒 </template></n-input-number
+          >
+        </n-form-item>
         <n-form-item title="如果有用户名的话">
           <n-checkbox v-model:checked="config.showusernames"> 显示用户名 </n-checkbox>
         </n-form-item>
@@ -153,7 +163,7 @@
           <n-checkbox
             v-model:checked="config.resolutionResponsive"
             style="margin-left: 20px"
-            title="启用后在压制弹幕至视频中时，以视频的分辨率为主"
+            title="启用后在压制弹幕至视频中时，以视频的分辨率为主，开启分辨率缩放后会失效"
           >
             自适应视频分辨率
           </n-checkbox>
@@ -221,6 +231,7 @@
               v-model:value.number="config.msgboxduration"
               class="input-number"
               :min="0"
+              style="width: 140px"
             >
               <template #suffix> 秒 </template></n-input-number
             >
@@ -243,17 +254,15 @@
       <h2>其他</h2>
       <n-form-item style="width: 100%">
         <template #label>
-          <span class="inline-flex">
-            <span>屏蔽词</span>
-            <Tip
-              tip="
+          <Tip
+            text="屏蔽词"
+            tip="
               目前支持三种屏蔽方式，分别是弹幕内容，uid，用户名，需以英文逗号分隔<br/>
               弹幕内容：部分匹配，包含sc内容<br/>
               uid：全匹配，格式为<10995238>，弹幕姬用户注意，即是你开启了记录raw，出于性能原因，此过滤也是无法使用的，请使用用户名替代<br/>
               用户名：全匹配，格式为<暮色312><br/>
               此功能正在测试，如果出现开启后无法转换的情况请反馈"
-            ></Tip>
-          </span>
+          ></Tip>
         </template>
         <n-input
           v-model:value="config.blacklist"
@@ -286,14 +295,17 @@ const isAdvancedMode = computed(() => {
 
 const fontOptions = ref([]);
 const getFonts = async () => {
-  // @ts-ignore
-  const data = await window.queryLocalFonts();
-  fontOptions.value = data.map((item) => {
-    return {
-      label: item.fullName,
-      value: item.postscriptName,
-    };
-  });
+  // TODO:修改为从接口获取
+  if (!window.isWeb) {
+    // @ts-ignore
+    const data = await window.queryLocalFonts();
+    fontOptions.value = data.map((item) => {
+      return {
+        label: item.fullName,
+        value: item.postscriptName,
+      };
+    });
+  }
 };
 onMounted(async () => {
   getFonts();

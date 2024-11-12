@@ -51,6 +51,8 @@
 <script setup lang="ts">
 import { ArchiveOutline as ArchiveIcon, CloseOutline as CloseIcon } from "@vicons/ionicons5";
 import { useDropZone } from "@vueuse/core";
+import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
+import { formatFile } from "@renderer/utils";
 
 import type { File as newFile } from "@biliLive-tools/types";
 
@@ -73,27 +75,38 @@ const emits = defineEmits<{
 }>();
 
 const fileList = defineModel<newFile[]>({ default: () => [] });
-
 const fileSelectArea = ref<HTMLElement | null>(null);
+const isWeb = computed(() => window.isWeb);
 
 const handleFileSelect = async () => {
   if (props.disabled) return;
-  const files = await window.api.openFile({
-    multi: props.max === 1 ? false : true,
-    filters: [
-      {
-        name: "file",
-        extensions: props.extensions,
-      },
-      {
-        name: "所有文件",
-        extensions: ["*"],
-      },
-    ],
-  });
+  let files: string[] | undefined = [];
+  if (isWeb.value) {
+    files = await showDirectoryDialog({
+      type: "file",
+      multi: true,
+      exts: props.extensions,
+    });
+  } else {
+    files = await window.api.openFile({
+      multi: props.max === 1 ? false : true,
+      filters: [
+        {
+          name: "file",
+          extensions: props.extensions,
+        },
+        {
+          name: "所有文件",
+          extensions: ["*"],
+        },
+      ],
+    });
+  }
+
   if (!files) return;
+  if (files.length === 0) return;
   let items = files
-    .map(window.api.formatFile)
+    .map(formatFile)
     .filter((file) => !fileList.value.map((item) => item.path).includes(file.path));
 
   if (props.max) {
@@ -110,9 +123,11 @@ const removeItem = (index: number) => {
 };
 
 function onDrop(files: File[] | null) {
+  if (window.isWeb) return;
+
   if (files) {
     let items = Array.from(files)
-      .map((file) => window.api.formatFile(file.path))
+      .map((file) => formatFile(window.api.common.getPathForFile(file)))
       .filter((file) => !fileList.value.map((item) => item.path).includes(file.path))
       .filter((file) => {
         if (props.extensions.includes("*")) return true;
@@ -130,6 +145,8 @@ function onDrop(files: File[] | null) {
   }
 }
 const onOver = (_files: File[] | null, event: DragEvent) => {
+  if (window.isWeb) return;
+
   if (props.disabled) {
     event.dataTransfer!.dropEffect = "none";
   } else {

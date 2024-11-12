@@ -1,6 +1,6 @@
 {
   "name": "@biliLive-tools/shared",
-  "version": "1.5.3",
+  "version": "1.6.0",
   "type": "module",
   "description": "",
   "main": "./lib/index.js",
@@ -28,17 +28,20 @@
   },
   "keywords": [],
   "dependencies": {
+    "@autorecord/douyu-recorder": "workspace:*",
+    "@autorecord/huya-recorder": "workspace:*",
+    "@autorecord/bilibili-recorder": "workspace:*",
+    "@autorecord/manager": "workspace:*",
     "@biliLive-tools/types": "workspace:*",
     "@napi-rs/canvas": "^0.1.53",
-    "@renmu/bili-api": "2.0.1",
-    "@renmu/fluent-ffmpeg": "2.2.1",
-    "@renmu/m3u8-downloader": "^0.3.0",
+    "@renmu/bili-api": "2.0.2",
+    "@renmu/fluent-ffmpeg": "2.3.0",
+    "@renmu/m3u8-downloader": "^0.3.1",
     "ass-compiler": "^0.1.11",
-    "awilix": "^10.0.2",
-    "douyu-cli": "^0.6.2",
+    "awilix": "^11.0.0",
+    "douyu-api": "^0.1.0",
     "ejs": "^3.1.10",
-    "fast-xml-parser": "^4.4.1",
-    "lodash-es": "^4.17.21",
+    "fast-xml-parser": "^4.5.0",
     "nodemailer": "^6.9.13",
     "ntsuspend": "^1.0.2",
     "ollama": "^0.5.6",
@@ -50,8 +53,7 @@
     "serverchan-sdk": "1.0.5"
   },
   "devDependencies": {
-    "@types/fluent-ffmpeg": "^2.1.24",
-    "@types/node": "20.12.2",
+    "@types/fluent-ffmpeg": "^2.1.27",
     "@types/nodemailer": "^6.4.14"
   }
 }

@@ -3,18 +3,22 @@
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
-        <n-button type="primary" title="仅供参考，以实际渲染为主！" @click="preview">
+        <n-button
+          type="primary"
+          title="仅供参考，以实际渲染为主！"
+          :disabled="isWeb"
+          @click="preview"
+        >
           预览
         </n-button>
-        <n-button type="primary" @click="handleConvert"> 启动！ </n-button>
-        <!-- <n-button type="primary" @click="testNofity"> 测试发送通知 </n-button> -->
+        <n-button type="primary" :disabled="isWeb" @click="handleConvert"> 启动！ </n-button>
         <!-- <n-button type="primary" @click="hotProgressConvert"> 测试高能弹幕进度条生成 </n-button> -->
       </div>
     </div>
 
     <FileArea
       v-model="fileList"
-      :extensions="['flv', 'mp4', 'ass', 'xml', 'm4s']"
+      :extensions="['flv', 'mp4', 'ass', 'xml', 'm4s', 'ts']"
       desc="请选择视频以及弹幕文件，如果为xml将自动转换为ass"
       :max="2"
     ></FileArea>
@@ -154,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage } from "@vueuse/core";
+import { useStorage, toReactive } from "@vueuse/core";
 
 import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
@@ -164,10 +168,10 @@ import ffmpegSetting from "./components/ffmpegSetting.vue";
 import PreviewModal from "./components/previewModal.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
 import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
-import { danmuPresetApi } from "@renderer/apis";
+import { danmuPresetApi, biliApi, commonApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 
-import { deepRaw, uuid } from "@renderer/utils";
+import { deepRaw, uuid, formatFile } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 
 import type {
@@ -202,8 +206,8 @@ const { danmuPresetsOptions, danmuPresetId, danmuPreset } = storeToRefs(useDanmu
 const { getDanmuPresets } = useDanmuPreset();
 const { userInfo } = storeToRefs(useUserInfoStore());
 const { appConfig } = storeToRefs(useAppConfig());
-
 const { handlePresetOptions, presetOptions } = useBili();
+const isWeb = computed(() => window.isWeb);
 
 const fileList = ref<
   (File & {
@@ -211,7 +215,14 @@ const fileList = ref<
   })[]
 >([]);
 
-const clientOptions = appConfig.value.tool.home;
+const clientOptions = toReactive(
+  computed({
+    get: () => appConfig.value.tool.home,
+    set: (value) => {
+      appConfig.value.tool.home = value;
+    },
+  }),
+);
 
 const handleConvert = async () => {
   convert();
@@ -234,14 +245,15 @@ const preHandle = async (
   }
 
   const videoFile = files.find(
-    (item) => item.ext === ".flv" || item.ext === ".mp4" || item.ext === ".m4s",
+    (item) =>
+      item.ext === ".flv" || item.ext === ".mp4" || item.ext === ".m4s" || item.ext === ".ts",
   );
   const danmuFile = files.find((item) => item.ext === ".xml" || item.ext === ".ass");
   const hasXmlFile = files.some((item) => item.ext === ".xml");
 
   if (!videoFile) {
     notice.error({
-      title: "请选择一个flv、mp4、m4s文件",
+      title: "请选择一个flv、mp4、m4s、ts文件",
       duration: 1000,
     });
     return false;
@@ -378,10 +390,8 @@ const convert = async () => {
  * 处理高能进度条
  */
 const genHotProgress = async (input: string, options: hotProgressOptions): Promise<string> => {
-  const tempPath = await window.api.common.getTempPath();
   return new Promise((resolve, reject) => {
-    const outputPath = `${window.path.join(tempPath, uuid())}.mp4`;
-    window.api.danmu.genHotProgress(input, outputPath, options).then((result: any) => {
+    window.api.danmu.genHotProgress(input, options).then((result: any) => {
       const taskId = result.taskId;
       window.api.task.on(taskId, "end", (data) => {
         console.log("end", data);
@@ -420,7 +430,7 @@ const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfi
     danmuConfig,
   );
 
-  return window.api.formatFile(targetAssFilePath);
+  return formatFile(targetAssFilePath);
 };
 
 /**
@@ -471,12 +481,20 @@ const handleVideoMerge = async (
 
   let output: string;
   try {
+    let startTimestamp = 0;
+    if (convertOptions.rawInputDanmuFile.ext === ".xml") {
+      try {
+        startTimestamp = await commonApi.readXmlTimestamp(convertOptions.rawInputDanmuFile.path);
+      } catch (err) {
+        console.log(err);
+      }
+    }
     output = await createMergeVideoAssTask(
       inputVideoFilePath,
       inputAssFilePath,
       inputHotProgressFilePath,
       outputPath,
-      deepRaw(options),
+      { ...deepRaw(options), startTimestamp },
       ffmpegOptions,
     );
   } catch (err) {
@@ -500,7 +518,7 @@ const createMergeVideoAssTask = async (
   assFilePath: string,
   hotProgressFilePath: string | undefined,
   outputPath: string,
-  options: ClientOptions,
+  options: ClientOptions & { startTimestamp: number },
   ffmpegOptions: FfmpegOptions,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {
@@ -512,7 +530,7 @@ const createMergeVideoAssTask = async (
           outputPath: outputPath,
           hotProgressFilePath: hotProgressFilePath,
         },
-        { ...options, removeOrigin: false },
+        { ...options, removeOrigin: false, override: true },
         ffmpegOptions,
       )
       .then(({ taskId, output }: { taskId?: string; output?: string }) => {
@@ -539,10 +557,10 @@ const createMergeVideoAssTask = async (
 const biliUpCheck = async (presetOptions: BiliupPreset) => {
   const hasLogin = !!userInfo.value.uid;
   if (!hasLogin) {
-    throw new Error(`请点击左侧头像进行登录`);
+    throw new Error(`请先进行登录`);
   }
 
-  await window.api.bili.validUploadParams(presetOptions.config);
+  await biliApi.validUploadParams(presetOptions.config);
 
   return true;
 };
@@ -576,7 +594,7 @@ const handleFfmpegSettingChange = (preset: FfmpegPreset) => {
   ffmpegOptions.value = preset.config;
 };
 
-const simpledMode = useStorage("simpledMode", true);
+const simpledMode = useStorage("simpledMode", false);
 
 const handleDanmuChange = (value: DanmuConfig) => {
   danmuPreset.value.config = value;
@@ -602,6 +620,7 @@ const deleteDanmu = async () => {
   });
   if (!status) return;
   await danmuPresetApi.remove(danmuPresetId.value);
+  // @ts-ignore
   danmuPresetId.value = "default";
   await getDanmuPresets();
 };
@@ -648,21 +667,12 @@ watch(
   },
 );
 
-// async function getDir() {
-//   const path = await window.api.openDirectory();
-//   options.value.savePath = path;
-// }
-
-window.api.onMainNotify((_event, data) => {
+window?.api?.onMainNotify((_event, data) => {
   notice[data.type]({
     title: data.content,
     duration: 5000,
   });
 });
-
-// const testNofity = () => {
-//   window.api.task.notify("我是标题", "我是内容请31312313213");
-// };
 
 // 预览
 const previewModalVisible = ref(false);

@@ -1,5 +1,6 @@
-import { join, parse } from "path";
-import os from "os";
+import { join, parse } from "node:path";
+import os from "node:os";
+
 import fs from "fs-extra";
 import ffmpeg from "@renmu/fluent-ffmpeg";
 
@@ -15,6 +16,7 @@ import {
   formatFile,
   getHardwareAcceleration,
   timemarkToSeconds,
+  readLines,
 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask } from "./task.js";
@@ -52,10 +54,16 @@ export const setFfmpegPath = async () => {
   ffmpeg.setFfprobePath(ffprobePath);
 };
 
-export const readVideoMeta = async (input: string): Promise<Ffmpeg.FfprobeData> => {
+export const readVideoMeta = async (
+  input: string,
+  options: {
+    json?: boolean;
+  } = {},
+): Promise<Ffmpeg.FfprobeData> => {
   await setFfmpegPath();
   return new Promise((resolve, reject) => {
-    ffmpeg(input).ffprobe(function (err, metadata) {
+    const lastOptions = Object.assign({ json: false }, options);
+    ffmpeg.ffprobe(input, lastOptions, function (err, metadata) {
       if (err) {
         reject(err);
       } else {
@@ -94,7 +102,7 @@ export const convertImage2Video = async (
   },
 ) => {
   await setFfmpegPath();
-  const command = ffmpeg(`${inputDir}\\%4d.png`)
+  const command = ffmpeg(join(inputDir, "%4d.png"))
     .inputOption("-r", `1/${options.internal || 30}`)
     .output(output);
   const task = new FFmpegTask(
@@ -186,9 +194,14 @@ export const convertVideo2Mp4 = async (
 
   // 硬件解码
   if (ffmpegOptions.decode) {
-    if (["nvenc"].includes(getHardwareAcceleration(ffmpegOptions.encoder))) {
+    const hardware = getHardwareAcceleration(ffmpegOptions.encoder);
+    if (hardware === "nvenc") {
       command.inputOptions("-hwaccel cuda");
       command.inputOptions("-hwaccel_output_format cuda");
+      command.inputOptions("-extra_hw_frames 10");
+    } else if (hardware === "amf") {
+      command.inputOptions("-hwaccel d3d11va");
+      command.inputOptions("-hwaccel_output_format d3d11");
       command.inputOptions("-extra_hw_frames 10");
     }
   }
@@ -227,7 +240,9 @@ export const convertVideo2Mp4 = async (
 /**
  * 判断是否需要缩放以及缩放方式
  */
-const selectScaleMethod = (ffmpegOptions: FfmpegOptions): "none" | "auto" | "before" | "after" => {
+export const selectScaleMethod = (
+  ffmpegOptions: FfmpegOptions,
+): "none" | "auto" | "before" | "after" => {
   if (!ffmpegOptions.resetResolution) {
     return "none";
   }
@@ -242,6 +257,132 @@ const selectScaleMethod = (ffmpegOptions: FfmpegOptions): "none" | "auto" | "bef
   }
 };
 
+export class ComplexFilter {
+  private filters: {
+    filter: string;
+    options?: string;
+    inputs?: string | string[];
+    outputs?: string;
+  }[] = [];
+  private streamIndex: number = 0;
+  private latestOutputStream: string;
+
+  constructor(initialInputStream: string = "0:v") {
+    this.latestOutputStream = initialInputStream;
+  }
+
+  private getNextStream(): string {
+    return `${this.streamIndex++}:video`;
+  }
+
+  addFilter(filter: string, options: string, inputs?: string[], outputs?: string) {
+    const inputStream = inputs || [this.latestOutputStream];
+    const outputStream = outputs || this.getNextStream();
+    this.filters.push({
+      filter,
+      options,
+      inputs: inputStream,
+      outputs: outputStream,
+    });
+    this.latestOutputStream = outputStream;
+    return outputStream;
+  }
+
+  addScaleFilter(resolutionWidth: number, resolutionHeight: number, swsFlags?: string) {
+    let scaleFilter = `${resolutionWidth}:${resolutionHeight}`;
+    if (swsFlags) {
+      scaleFilter += `:flags=${swsFlags}`;
+    }
+    return this.addFilter("scale", scaleFilter);
+  }
+
+  addSubtitleFilter(assFile: string) {
+    return this.addFilter("subtitles", `${escaped(assFile)}`);
+  }
+
+  addColorkeyFilter(inputs?: string[]) {
+    return this.addFilter("colorkey", "black:0.1:0.1", inputs);
+  }
+
+  addOverlayFilter(inputs: string[]) {
+    return this.addFilter("overlay", "W-w-0:H-h-0", inputs);
+  }
+
+  addDrawtextFilter(
+    startTimestamp: number,
+    fontColor: string,
+    fontSize: number,
+    x: number,
+    y: number,
+  ) {
+    const options = `text='%{pts\\:localtime\\:${startTimestamp}\\:%Y-%m-%d %T}':fontcolor=${fontColor}:fontsize=${fontSize}:x=${x}:y=${y}`;
+    return this.addFilter("drawtext", options);
+  }
+
+  getFilters() {
+    return this.filters;
+  }
+
+  getLatestOutputStream() {
+    return this.latestOutputStream;
+  }
+}
+
+/**
+ * 弹幕元数据时间匹配
+ * @param {string} str 需要匹配的字符串
+ */
+export const matchDanmaTimestamp = (str: string): number | null => {
+  const bililiveRecorderRegex = /start_time="(.+)"/;
+  const blrecRegex = /<record_start_time>(.+)<\/record_start_time>/;
+  const douyuRegex = /<video_start_time>(.+)<\/video_start_time>/;
+
+  const regexes = [bililiveRecorderRegex, blrecRegex, douyuRegex];
+  for (const regex of regexes) {
+    const timestamp = matchTimestamp(str, regex);
+    if (timestamp) {
+      return timestamp;
+    }
+  }
+  return null;
+};
+
+/**
+ * 使用正则匹配时间戳
+ * param {string} str 需要匹配的字符串
+ * param {RegExp} regex 匹配的正则，捕获组为时间
+ */
+function matchTimestamp(str: string, regex: RegExp): number | null {
+  const match = str.match(regex);
+  if (match) {
+    const time = match[1];
+    try {
+      const timestamp = Math.floor(new Date(time).getTime() / 1000);
+      return timestamp;
+    } catch {
+      // do nothing
+    }
+  }
+
+  return null;
+}
+
+/**
+ * 读取xml文件中的时间戳
+ * start_time="2024-08-20T09:48:07.7164935+08:00";
+ * <record_start_time>2024-07-23T18:26:30+08:00</record_start_time>
+ * <video_start_time>2024-11-06T15:14:02.000Z</video_start_time>
+ */
+export async function readXmlTimestamp(filePath: string): Promise<number | 0> {
+  if (!(await pathExists(filePath))) {
+    return 0;
+  }
+  const content = await readLines(filePath, 0, 30);
+  const timestamp = matchDanmaTimestamp(content.join("\n"));
+
+  return timestamp ? timestamp : 0;
+}
+
 /**
  * 生成弹幕压制相关的ffmpeg命令
  * @param {object} files 文件相关
@@ -250,7 +391,7 @@ const selectScaleMethod = (ffmpegOptions: FfmpegOptions): "none" | "auto" | "bef
  * @param {string} files.outputPath 输出文件路径
  * @param {object} ffmpegOptions ffmpeg参数
  */
-export const genMergeAssMp4Command = (
+export const genMergeAssMp4Command = async (
   files: {
     videoFilePath: string;
     assFilePath: string | undefined;
@@ -261,103 +402,130 @@ export const genMergeAssMp4Command = (
     encoder: "libx264",
     audioCodec: "copy",
   },
+  options: {
+    startTimestamp?: number;
+  } = {
+    // 视频录制开始的秒时间戳
+    startTimestamp: 0,
+  },
 ) => {
   const command = ffmpeg(files.videoFilePath).output(files.outputPath);
-
   const assFile = files.assFilePath;
-  if (assFile) {
-    const scaleMethod = selectScaleMethod(ffmpegOptions);
-    const complexFilter: {
-      filter: string;
-      options?: string;
-      inputs?: string | string[];
-      outputs?: string;
-    }[] = [];
-    let inputStream = "0:v";
-    let outputStream = "";
-    // 先缩放
-    if (scaleMethod === "before") {
-      let scaleFilter = `${ffmpegOptions.resolutionWidth}:${ffmpegOptions.resolutionHeight}`;
-      if (ffmpegOptions.swsFlags) {
-        scaleFilter += `:flags=${ffmpegOptions.swsFlags}`;
+  const complexFilter = new ComplexFilter();
+
+  // 获取添加drawtext的参数，为空就是不支持添加
+  // 优先从视频元数据读取（如录播姬注释），如果是webhook，那么优先从webhook中读取
+  async function getDrawtextParams(): Promise<number | null> {
+    if (!ffmpegOptions.addTimestamp) return null;
+    // webhook传递过来的参数
+    if (options.startTimestamp) return options.startTimestamp;
+
+    // 视频元数据读取（如录播姬注释）
+    const data = await readVideoMeta(files.videoFilePath, {
+      json: true,
+    });
+    const comment = String(data?.format?.tags?.comment) ?? "";
+    const commentTimestamp = matchTimestamp(comment, /录制时间: (.+)/);
+    return commentTimestamp;
+  }
+
+  async function addComplexFilter() {
+    if (assFile) {
+      const scaleMethod = selectScaleMethod(ffmpegOptions);
+
+      // 先缩放
+      if (
+        scaleMethod === "before" &&
+        ffmpegOptions.resolutionWidth &&
+        ffmpegOptions.resolutionHeight
+      ) {
+        complexFilter.addScaleFilter(
+          ffmpegOptions.resolutionWidth,
+          ffmpegOptions.resolutionHeight,
+          ffmpegOptions.swsFlags,
+        );
       }
-      outputStream = "sacleOut";
-      complexFilter.push({
-        inputs: inputStream,
-        filter: "scale",
-        options: `${scaleFilter}`,
-        outputs: outputStream,
-      });
-      inputStream = outputStream;
+
+      if (files.hotProgressFilePath) {
+        const subtitleStream = complexFilter.addSubtitleFilter(assFile);
+        const colorkeyStream = complexFilter.addColorkeyFilter(["1"]);
+        complexFilter.addOverlayFilter([subtitleStream, colorkeyStream]);
+      } else {
+        complexFilter.addSubtitleFilter(assFile);
+      }
+
+      // 先渲染后缩放
+      if (
+        (scaleMethod === "auto" || scaleMethod === "after") &&
+        ffmpegOptions.resolutionWidth &&
+        ffmpegOptions.resolutionHeight
+      ) {
+        complexFilter.addScaleFilter(
+          ffmpegOptions.resolutionWidth,
+          ffmpegOptions.resolutionHeight,
+          ffmpegOptions.swsFlags,
+        );
+      }
     }
+
+    // 如果设置了添加时间戳
+    const startTimestamp = await getDrawtextParams();
+    if (startTimestamp) {
+      complexFilter.addDrawtextFilter(
+        startTimestamp,
+        ffmpegOptions.timestampFontColor ?? "white",
+        ffmpegOptions.timestampFontSize ?? 24,
+        ffmpegOptions.timestampX ?? 10,
+        ffmpegOptions.timestampY ?? 10,
+      );
+    }
+  }
+
+  if (ffmpegOptions.vf) {
+    const vfArray = ffmpegOptions.vf.split(";");
+    for (const vf of vfArray) {
+      if (vf === "$origin") {
+        await addComplexFilter();
+      } else {
+        const vfOptions = vf.split("=");
+        complexFilter.addFilter(vfOptions[0], vfOptions.slice(1).join("="));
+      }
+    }
+  } else {
+    // 添加复杂滤镜
+    await addComplexFilter();
+  }
+
+  if (complexFilter.getFilters().length) {
+    command.complexFilter(complexFilter.getFilters(), complexFilter.getLatestOutputStream());
+    command.outputOptions("-map 0:a");
+  }
+
+  // 输入参数
+  if (assFile) {
     if (files.hotProgressFilePath) {
       command.input(files.hotProgressFilePath);
-      complexFilter.push(
-        ...[
-          {
-            filter: "subtitles",
-            options: `${escaped(assFile)}`,
-            inputs: inputStream,
-            outputs: "i",
-          },
-          {
-            filter: "colorkey",
-            options: "black:0.1:0.1",
-            inputs: "1",
-            outputs: "1d",
-          },
-          {
-            filter: "overlay",
-            options: "W-w-0:H-h-0",
-            inputs: ["i", "1d"],
-            outputs: "assOut",
-          },
-        ],
-      );
-      outputStream = "assOut";
-      inputStream = outputStream;
-    } else {
-      if (ffmpegOptions.ss) {
-        command.inputOptions(`-ss ${ffmpegOptions.ss}`);
-        command.inputOptions("-copyts");
-      }
-      if (ffmpegOptions.to) {
-        command.inputOptions(`-to ${ffmpegOptions.to}`);
-      }
-      complexFilter.push({
-        filter: "subtitles",
-        options: `${escaped(assFile)}`,
-        inputs: inputStream,
-        outputs: "assOut",
-      });
-      outputStream = "assOut";
-      inputStream = outputStream;
     }
-
-    // 先渲染后缩放
-    if (scaleMethod === "auto" || scaleMethod === "after") {
-      let scaleFilter = `${ffmpegOptions.resolutionWidth}:${ffmpegOptions.resolutionHeight}`;
-      if (ffmpegOptions.swsFlags) {
-        scaleFilter += `:flags=${ffmpegOptions.swsFlags}`;
-      }
-      outputStream = "v";
-      complexFilter.push({
-        inputs: inputStream,
-        filter: "scale",
-        options: `${scaleFilter}`,
-        outputs: outputStream,
-      });
-    }
-
-    command.complexFilter(complexFilter, outputStream);
-    command.outputOptions("-map 0:a");
+  }
+  // 切片
+  if (ffmpegOptions.ss) {
+    command.inputOptions(`-ss ${ffmpegOptions.ss}`);
+    command.inputOptions("-copyts");
+  }
+  if (ffmpegOptions.to) {
+    command.inputOptions(`-to ${ffmpegOptions.to}`);
   }
 
   // 硬件解码
   if (ffmpegOptions.decode) {
-    if (["nvenc"].includes(getHardwareAcceleration(ffmpegOptions.encoder))) {
+    const hardware = getHardwareAcceleration(ffmpegOptions.encoder);
+    if (hardware === "nvenc") {
       command.inputOptions("-hwaccel cuda");
       command.inputOptions("-hwaccel_output_format cuda");
+      command.inputOptions("-extra_hw_frames 10");
+    } else if (hardware === "amf") {
+      command.inputOptions("-hwaccel d3d11va");
+      // command.inputOptions("-hwaccel_output_format d3d11");
       command.inputOptions("-extra_hw_frames 10");
     }
   }
@@ -389,14 +557,25 @@ export const mergeAssMp4 = async (
   },
   options: {
     removeOrigin: boolean;
+    startTimestamp?: number;
+    override?: boolean;
   } = {
     removeOrigin: false,
+    startTimestamp: 0,
+    override: true,
   },
   ffmpegOptions: FfmpegOptions = {
     encoder: "libx264",
     audioCodec: "copy",
   },
 ) => {
+  const defaultOptions = {
+    removeOrigin: false,
+    startTimestamp: 0,
+    override: true,
+  };
+  options = { ...defaultOptions, ...options };
+
   await setFfmpegPath();
 
   const videoInput = files.videoFilePath;
@@ -406,8 +585,16 @@ export const mergeAssMp4 = async (
     log.error("mergrAssMp4, file not exist", videoInput);
     throw new Error("输入文件不存在");
   }
+  if (!options.override && (await pathExists(output))) {
+    log.error("mergrAssMp4, 文件已存在，跳过", output);
+    throw new Error(`${output}文件已存在`);
+  }
+
   const assFile = files.assFilePath;
-  const command = genMergeAssMp4Command(files, ffmpegOptions);
+  const startTimestamp = options.startTimestamp || 0;
+  const command = await genMergeAssMp4Command(files, ffmpegOptions, {
+    startTimestamp: startTimestamp,
+  });
 
   const task = new FFmpegTask(
     command,

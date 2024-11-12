@@ -29,6 +29,7 @@ export type DanmuConfig = {
   statmode: ("TABLE" | "HISTOGRAM")[];
   resolutionResponsive: false;
   blacklist: string;
+  timeshift: number;
 };
 
 // 弹幕预设配置
@@ -86,6 +87,11 @@ type CommonRoomConfig = {
   limitUploadTime?: boolean;
   /** 允许上传处理时间 */
   uploadHandleTime: [string, string];
+
+  // 上传非弹幕版选项
+  uploadNoDanmu?: boolean;
+  // 上传非视频版预设
+  noDanmuVideoPreset?: string;
 };
 
 // webhook房间配置
@@ -168,6 +174,12 @@ export type ToolConfig = {
   download: {
     /** 保存路径 */
     savePath: string;
+    /** 弹幕参数 */
+    danmu: "none" | "xml" | "ass";
+    /** 斗鱼下载分辨率 */
+    douyuResolution: "highest" | string;
+    /** 下载时覆盖已有文件 */
+    override: boolean;
   };
   /** 切片 */
   videoCut: {
@@ -227,6 +239,51 @@ export interface NotificationTgConfig {
 }
 export type Theme = "system" | "light" | "dark";
 
+interface BaseRecordr {
+  /** 画质 */
+  quality: "lowest" | "low" | "medium" | "high" | "highest";
+  /** 线路 */
+  line?: string; // "auto" | "tct-h5" | "hw-h5"
+  /** 录制弹幕 */
+  disableProvideCommentsWhenRecording?: boolean;
+  /** 保存礼物弹幕 */
+  saveGiftDanma?: boolean;
+  /** 保存高能弹幕 */
+  saveSCDanma?: boolean;
+  /**分段时长，单位分钟 */
+  segment?: number;
+  /** 账号 */
+  uid?: string;
+}
+
+export interface GlobalRecorder extends BaseRecordr {
+  /** 保存根目录 */
+  savePath: string;
+  /** 命名规则 */
+  nameRule: string;
+  /** 自动录制 */
+  autoRecord: boolean;
+  /** 检查间隔 */
+  checkInterval: number;
+  /** 调试模式 */
+  debugMode: boolean;
+}
+
+export interface LocalRecordr extends BaseRecordr {
+  providerId: string;
+  id: string;
+  channelId: string;
+  remarks?: string;
+  streamPriorities: any[];
+  sourcePriorities: any[];
+  extra?: { createTimestamp?: number };
+  disableAutoCheck?: boolean;
+  /** 发送至webhook */
+  sendToWebhook?: boolean;
+  // 不跟随全局配置字段
+  noGlobalFollowFields?: (keyof BaseRecordr)[];
+}
+
 // 全局配置
 export interface AppConfig {
   logLevel: any;
@@ -253,6 +310,8 @@ export interface AppConfig {
   theme: Theme;
   port: number;
   host: string;
+  passKey: string;
+  https?: boolean;
   webhook: {
     recoderFolder: string;
     blacklist: string;
@@ -260,9 +319,13 @@ export interface AppConfig {
       [roomId: string]: AppRoomConfig;
     };
   } & CommonRoomConfig;
-  /** b站登录信息 */
-  biliUser: {
+  /** 废弃：b站登录信息 */
+  biliUser?: {
     [uid: number]: BiliUser;
+  };
+  /** 加密后的B站登录信息 */
+  bilibiliUser: {
+    [uid: number]: string;
   };
   /** 当前使用的b站uid */
   uid?: number;
@@ -277,6 +340,7 @@ export interface AppConfig {
       upload: NotificationTaskStatus[];
       download: NotificationTaskStatus[];
       douyuDownload: NotificationTaskStatus[];
+      mediaStatusCheck: NotificationTaskStatus[];
     };
     /** 通知配置项 */
     setting: {
@@ -327,6 +391,10 @@ export interface AppConfig {
     /** 检查稿件间隔 */
     checkInterval: number;
   };
+  /** 录制配置 */
+  recorder: GlobalRecorder;
+  /** 直播间管理 */
+  recorders: LocalRecordr[];
 }
 
 // export type LogLevel = ElectronLoGLevel;
@@ -434,8 +502,10 @@ export interface FfmpegOptions {
   /** 重缩放的分辨率 */
   resolutionWidth?: number;
   resolutionHeight?: number;
-  /** 高级参数 */
+  /** 额外输出参数 */
   extraOptions?: string;
+  /** 视频滤镜参数 */
+  vf?: string;
   /** 10bit支持 */
   bit10?: boolean;
   /** 开始时间 */
@@ -446,6 +516,17 @@ export interface FfmpegOptions {
   swsFlags?: string;
   /** 缩放方式，控制先缩放后渲染还是先渲染后缩放 */
   scaleMethod?: "auto" | "before" | "after";
+
+  /** 添加时间戳 */
+  addTimestamp?: boolean;
+  /** 时间戳x轴坐标 */
+  timestampX?: number;
+  /** 时间戳y轴坐标 */
+  timestampY?: number;
+  /** 时间戳字体大小 */
+  timestampFontSize?: number;
+  /** 时间戳颜色 */
+  timestampFontColor?: string;
 }
 
 export interface BiliupConfig {
@@ -456,7 +537,7 @@ export interface BiliupConfig {
   dolby: 0 | 1; // 杜比
   hires: 0 | 1; // Hi-Res
   copyright: 1 | 2; // 1：自制，2：转载
-  tag: string[]; // 标签，不能为空，不能超过12个，调用接口验证
+  tag: string[]; // 标签，不能为空，不能超过10个，调用接口验证
   tid: number; // 174 投稿分区
   source?: string; // 转载来源
   dynamic?: string; // 空间动态
@@ -571,4 +652,5 @@ export interface GlobalConfig {
   defaultFfmpegPath: string;
   defaultFfprobePath: string;
   defaultDanmakuFactoryPath: string;
+  version: string;
 }

@@ -4,7 +4,8 @@
     <p>
       介绍：做这款工具的主要原因是为了解决录播工具的碎片化，往往想完整处理一场带有弹幕的录播要使用多个软件的配合，一些工具更是只有CLI，加大了使用难度。我想做一个能够一站式解决录播问题的工具，所以就有了这个项目。
     </p>
-    <p>版本：{{ version }}</p>
+    <p>{{ isWeb ? "接口" : "" }}版本：{{ version }}</p>
+    <p v-if="isWeb">网页版本：{{ webVersion }}</p>
     <p>
       作者：<a href="https://space.bilibili.com/10995238" class="external" target="_blank"
         >renmu123</a
@@ -90,15 +91,25 @@
         <li>
           <a href="https://github.com/renmu123/biliAPI" class="external" target="_blank">biliAPI</a>
         </li>
+        <li>
+          <a href="https://github.com/WhiteMinds/LiveAutoRecord" class="external" target="_blank"
+            >LiveAutoRecord</a
+          >
+        </li>
       </ul>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { commonApi } from "@renderer/apis";
+
+const isWeb = computed(() => window.isWeb);
+
+const webVersion = window.__APP_VERSION__;
 const version = ref();
 onMounted(async () => {
-  version.value = await window.api.appVersion();
+  version.value = await commonApi.version();
 
   // const externalLinks = document.querySelectorAll("a.external");
   // externalLinks.forEach((link: any) => {

@@ -10,9 +10,9 @@
       class="card"
     >
       <div style="text-align: center">
-        <h2 v-if="text">登录成功，请关闭本窗口</h2>
+        <h2>{{ text }}</h2>
         <h2>使用b站app扫码完成登录<br /></h2>
-        <n-qr-code :value="url" color="#409eff" background-color="#F5F5F5" :size="250" />
+        <n-qr-code v-if="url" :value="url" color="#409eff" background-color="#F5F5F5" :size="250" />
       </div>
       <template #footer>
         <div class="footer">
@@ -25,6 +25,8 @@
 </template>
 
 <script setup lang="ts">
+import { biliApi } from "@renderer/apis";
+
 const showModal = defineModel<boolean>({ required: true, default: false });
 const emits = defineEmits<{
   close: [];
@@ -33,28 +35,54 @@ const emits = defineEmits<{
 const notice = useNotification();
 
 const url = ref("");
+const id = ref("");
 const text = ref("");
+const interval = ref<number | null>(null);
 const onOpen = async () => {
   text.value = "";
-  url.value = await window.api.bili.login();
+  const res = await biliApi.qrcode();
+  url.value = res.url;
+  id.value = res.id;
 
-  window.api.bili.onLogin("completed", async (_, res) => {
-    console.log("completed", res);
-    text.value = "登录成功，请关闭本窗口";
-    notice.success({
-      title: "登录成功",
-      duration: 1000,
-    });
-    confirm();
-  });
-  window.api.bili.onLogin("error", (_, res) => {
-    console.log("error", res);
-    notice.error({
-      title: "登录失败",
-      description: res.message,
-    });
-    text.value = res.message;
-  });
+  // @ts-ignore
+  interval.value = setInterval(async () => {
+    const res = await biliApi.loginPoll(id.value);
+    console.log(res);
+    if (res.status === "completed") {
+      clearInterval(interval.value!);
+      text.value = "登录成功，请关闭本窗口";
+      notice.success({
+        title: "登录成功",
+        duration: 1000,
+      });
+      confirm();
+    } else if (res.status === "error") {
+      clearInterval(interval.value!);
+      notice.error({
+        title: "登录失败",
+        description: res.failReason,
+      });
+      text.value = res.failReason;
+    }
+  }, 2000);
+
+  // window.api.bili.onLogin("completed", async (_, res) => {
+  //   console.log("completed", res);
+  //   text.value = "登录成功，请关闭本窗口";
+  //   notice.success({
+  //     title: "登录成功",
+  //     duration: 1000,
+  //   });
+  //   confirm();
+  // });
+  // window.api.bili.onLogin("error", (_, res) => {
+  //   console.log("error", res);
+  //   notice.error({
+  //     title: "登录失败",
+  //     description: res.message,
+  //   });
+  //   text.value = res.message;
+  // });
 };
 
 const close = () => {
@@ -71,7 +99,7 @@ watch(
     if (showModal.value) {
       onOpen();
     } else {
-      window.api.bili.loginCancel();
+      biliApi.loginCancel(id.value);
       emits("close");
     }
   },

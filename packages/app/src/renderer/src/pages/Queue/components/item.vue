@@ -49,24 +49,31 @@
         >
           <CloseOutline />
         </n-icon>
-        <n-icon
-          v-if="item.status === 'completed' && item.type !== TaskType.biliUpload && item.output"
-          :size="20"
-          class="btn pointer"
-          title="打开文件夹"
-          @click="handleOpenDir(item)"
-        >
-          <FolderOpenOutlined />
-        </n-icon>
-        <n-icon
-          v-if="item.status === 'completed' && item.type !== TaskType.biliUpload && item.output"
-          :size="20"
-          class="btn pointer"
-          title="打开文件"
-          @click="handleOpenFile(item)"
-        >
-          <FileOpenOutlined />
-        </n-icon>
+        <template v-if="!isWeb">
+          <n-icon
+            v-if="item.status === 'completed' && item.type !== TaskType.biliUpload && item.output"
+            :size="20"
+            class="btn pointer"
+            title="打开文件夹"
+            @click="handleOpenDir(item)"
+          >
+            <FolderOpenOutlined />
+          </n-icon>
+          <n-icon
+            v-if="
+              item.status === 'completed' &&
+              item.type !== TaskType.biliUpload &&
+              item.type !== TaskType.bili &&
+              item.output
+            "
+            :size="20"
+            class="btn pointer"
+            title="打开文件"
+            @click="handleOpenFile(item)"
+          >
+            <FileOpenOutlined />
+          </n-icon>
+        </template>
         <n-icon
           v-if="item.status === 'completed' && item.type === TaskType.bili && item.output"
           :size="20"
@@ -106,22 +113,11 @@
 
     <div v-if="showInfo" class="detail-info">
       <span v-if="item.startTime">开始时间：{{ new Date(item.startTime).toLocaleString() }}</span>
-      <span
-        v-if="item.status !== 'pending' && item.status !== 'completed' && item.status !== 'error'"
-        >持续时间：{{ formatSeconds((now - (item.startTime || 0)) / 1000) }}</span
-      >
-      <span v-if="item.status === 'completed'"
-        >持续时间：{{ formatSeconds((item.endTime! - item.startTime!) / 1000) }}</span
-      >
+      <span>持续时间：{{ formatSeconds(item.duration / 1000) }}</span>
       <span v-if="item.status === 'running'">
-        预计还需时间：{{
+        预计还需：{{
           formatSeconds(
-            Number(
-              (
-                ((now - (item.startTime || 0)) / 1000 / item.progress) *
-                (100 - item.progress)
-              ).toFixed(0),
-            ),
+            Number(((item.duration / 1000 / item.progress) * (100 - item.progress)).toFixed(0)),
           )
         }}
       </span>
@@ -143,6 +139,7 @@ import { useConfirm } from "@renderer/hooks";
 import { useQueueStore } from "@renderer/stores";
 import { formatSeconds } from "@renderer/utils";
 import { TaskType } from "@biliLive-tools/shared/enum.js";
+import { taskApi } from "@renderer/apis";
 
 import type { Status } from "@biliLive-tools/types/task.d.ts";
 import type { Task } from "@renderer/types";
@@ -160,6 +157,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const item = computed(() => props.item);
+const isWeb = computed(() => window.isWeb);
 
 const confirm = useConfirm();
 const store = useQueueStore();
@@ -206,27 +204,18 @@ const statusMap: {
 const handleStart = (taskId: string, task: Task) => {
   console.log("handleStart", taskId);
   if (task.status === "paused") {
-    window.api.task.resume(taskId);
+    taskApi.resume(taskId);
   } else if (task.status === "pending") {
-    window.api.task.start(taskId);
+    taskApi.start(taskId);
   }
   store.getQuenu();
 };
 
-const handlePause = (taskId: string) => {
+const handlePause = async (taskId: string) => {
   console.log("handlePause", taskId);
-  window.api.task.pause(taskId);
+  await taskApi.pause(taskId);
   store.getQuenu();
 };
-
-// const handleInterrupt = async (taskId: string) => {
-//   const status = await confirm.warning({
-//     content: "确定要中断任务吗？中断会保留进度",
-//   });
-//   if (!status) return;
-//   window.api.task.interrupt(taskId);
-//   getQuenu();
-// };
 
 const handleKill = async (task: Task) => {
   if (task.type === TaskType.ffmpeg) {
@@ -237,16 +226,16 @@ const handleKill = async (task: Task) => {
     });
     if (!status) return;
     if (savePorcess) {
-      window.api.task.interrupt(task.taskId);
+      taskApi.interrupt(task.taskId);
     } else {
-      window.api.task.kill(task.taskId);
+      taskApi.cancel(task.taskId);
     }
   } else {
     const [status] = await confirm.warning({
       content: "确定要中止任务吗？",
     });
     if (!status) return;
-    window.api.task.kill(task.taskId);
+    taskApi.cancel(task.taskId);
   }
 
   store.getQuenu();
@@ -260,13 +249,20 @@ const handleOpenFile = (item: Task) => {
 };
 
 const openExternal = (item: Task) => {
-  window.api.openExternal(
-    `https://member.bilibili.com/platform/upload/video/frame?type=edit&version=new&aid=${item?.output}`,
-  );
+  if (isWeb.value) {
+    window.open(
+      `https://member.bilibili.com/platform/upload/video/frame?type=edit&version=new&aid=${item?.output}`,
+      "_blank",
+    );
+  } else {
+    window.api.openExternal(
+      `https://member.bilibili.com/platform/upload/video/frame?type=edit&version=new&aid=${item?.output}`,
+    );
+  }
 };
 
-const handleRemoveRecord = (taskId: string) => {
-  window.api.task.remove(taskId);
+const handleRemoveRecord = async (taskId: string) => {
+  await taskApi.remove(taskId);
   store.getQuenu();
 };
 </script>

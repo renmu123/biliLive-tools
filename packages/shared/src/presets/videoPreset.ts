@@ -1,6 +1,7 @@
 import CommonPreset from "./preset.js";
 
 import type { BiliupConfig, BiliupPreset } from "@biliLive-tools/types";
+import type { GlobalConfig } from "@biliLive-tools/types";
 
 export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   title: "",
@@ -28,8 +29,8 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
 };
 
 export class VideoPreset extends CommonPreset<BiliupConfig> {
-  constructor(filePath: string, defaultConfig: BiliupConfig = DEFAULT_BILIUP_CONFIG) {
-    super(filePath, defaultConfig);
+  constructor({ globalConfig }: { globalConfig: Pick<GlobalConfig, "videoPresetPath"> }) {
+    super(globalConfig.videoPresetPath, DEFAULT_BILIUP_CONFIG);
   }
   init(filePath: string) {
     super.init(filePath);

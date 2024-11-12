@@ -16,14 +16,14 @@
         <n-checkbox value="canceled">已取消</n-checkbox>
       </n-checkbox-group>
 
-      <n-button
-        v-if="queue.length !== 0"
-        size="small"
-        type="error"
-        style="margin-left: auto"
-        @click="handleRemoveEndTasks"
-        >清除记录</n-button
-      >
+      <div style="margin-left: auto; display: flex; gap: 10px">
+        <n-button v-if="queue.length !== 0" size="small" type="primary" @click="handlePauseTasks"
+          >暂停全部</n-button
+        >
+        <n-button v-if="queue.length !== 0" size="small" type="error" @click="handleRemoveEndTasks"
+          >清除记录</n-button
+        >
+      </div>
     </div>
     <template v-if="displayQueue.length !== 0">
       <div v-for="item in displayQueue" :key="item.taskId" class="item">
@@ -50,6 +50,7 @@
 import Item from "./components/item.vue";
 import { useQueueStore } from "@renderer/stores";
 import { deepRaw } from "@renderer/utils";
+import { taskApi } from "@renderer/apis";
 import { TaskType } from "@biliLive-tools/shared/enum.js";
 
 import type { Task } from "@renderer/types";
@@ -138,13 +139,22 @@ const handleRemoveEndTasks = async () => {
           continue;
         }
       }
-      await window.api.task.remove(item.taskId);
+      await taskApi.remove(item.taskId);
     }
   }
   notice.success({
     title: "移除成功",
     duration: 1000,
   });
+  store.getQuenu();
+};
+
+const handlePauseTasks = async () => {
+  for (const item of queue.value) {
+    if (item.status === "running") {
+      await taskApi.pause(item.taskId);
+    }
+  }
   store.getQuenu();
 };
 

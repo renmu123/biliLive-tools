@@ -2,6 +2,7 @@ import { join } from "node:path";
 import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
+import contextMenu from "electron-context-menu";
 import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net, nativeTheme } from "electron";
 import { createContainer } from "awilix";
 
@@ -11,15 +12,14 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 import log from "./utils/log";
 import { notify } from "./utils/index";
 import { danmuService } from "@biliLive-tools/shared/db/index.js";
-import { init, TaskQueue } from "@biliLive-tools/shared";
+import { init } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
-import { handlers as biliHandlers } from "./bili";
-import { handlers as taskHandlers } from "./task";
+// import { handlers as biliHandlers } from "./bili";
 import { handlers as biliupHandlers } from "./biliup";
 import { handlers as danmuHandlers } from "./danmu";
 import { commonHandlers, getTempPath } from "./common";
-import { configHandlers, ffmpegHandlers, douyuHandlers } from "./handlers";
+import { configHandlers, ffmpegHandlers } from "./handlers";
 import { handlers as notidyHandlers } from "./notify";
 import icon from "../../resources/icon.png?asset";
 import {
@@ -35,10 +35,16 @@ import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
 import type { Theme, GlobalConfig } from "@biliLive-tools/types";
 import type { AwilixContainer } from "awilix";
-import type { AppConfig } from "@biliLive-tools/shared";
+import type { AppConfig, TaskQueue } from "@biliLive-tools/shared";
 
 export let mainWin: BrowserWindow;
 export let container = createContainer();
+
+contextMenu({
+  showSelectAll: false,
+  showSearchWithGoogle: false,
+  showSaveImageAs: false,
+});
 
 const WindowState = new Store<{
   winBounds: {
@@ -79,13 +85,11 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:setTheme", setTheme);
 
   registerHandlers(ipcMain, biliupHandlers);
-  registerHandlers(ipcMain, biliHandlers);
-  registerHandlers(ipcMain, taskHandlers);
+  // registerHandlers(ipcMain, biliHandlers);
   registerHandlers(ipcMain, ffmpegHandlers);
   registerHandlers(ipcMain, danmuHandlers);
   registerHandlers(ipcMain, configHandlers);
   registerHandlers(ipcMain, notidyHandlers);
-  registerHandlers(ipcMain, douyuHandlers);
   registerHandlers(ipcMain, commonHandlers);
 };
 
@@ -490,14 +494,17 @@ const appInit = async () => {
     defaultFfmpegPath: FFMPEG_PATH,
     defaultFfprobePath: FFPROBE_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
+    version: app.getVersion(),
   };
-  container = init(globalConfig);
+  container = await init(globalConfig);
   const appConfig = container.resolve<AppConfig>("appConfig");
 
-  serverStart(
+  await serverStart(
     {
       port: appConfig.get("port"),
       host: appConfig.get("host"),
+      auth: true,
+      passKey: appConfig.get("passKey"),
     },
     container,
   );

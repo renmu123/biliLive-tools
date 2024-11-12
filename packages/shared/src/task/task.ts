@@ -1,6 +1,7 @@
 import EventEmitter from "node:events";
-import { createRequire } from "node:module";
 import { TypedEmitter } from "tiny-typed-emitter";
+// @ts-ignore
+import * as ntsuspend from "ntsuspend";
 
 import { uuid, isWin32, retry } from "../utils/index.js";
 import log from "../utils/log.js";
@@ -40,9 +41,11 @@ export abstract class AbstractTask {
   progress: number;
   custsomProgressMsg: string;
   action: ("pause" | "kill" | "interrupt")[];
-  startTime?: number;
+  startTime: number = 0;
   endTime?: number;
   error?: string;
+  pauseStartTime: number | null = 0;
+  totalPausedDuration: number = 0;
   emitter = new TypedEmitter<TaskEvents>();
   on: TypedEmitter<TaskEvents>["on"];
   emit: TypedEmitter<TaskEvents>["emit"];
@@ -61,6 +64,12 @@ export abstract class AbstractTask {
     this.custsomProgressMsg = "";
     this.on = this.emitter.on.bind(this.emitter);
     this.emit = this.emitter.emit.bind(this.emitter);
+  }
+  getDuration(): number {
+    if (this.status === "pending") return 0;
+    const now = Date.now();
+    const currentTime = this.endTime || now;
+    return Math.max(currentTime - this.startTime, 0);
   }
 }
 
@@ -117,13 +126,15 @@ export class DanmuTask extends AbstractTask {
         this.callback.onEnd && this.callback.onEnd(this.output as string);
         this.progress = 100;
         this.emitter.emit("task-end", { taskId: this.taskId });
-        this.endTime = Date.now();
       })
       .catch((err) => {
         this.status = "error";
         this.callback.onError && this.callback.onError(err);
         this.error = err;
         this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+      })
+      .finally(() => {
+        this.endTime = Date.now();
       });
   }
   pause() {
@@ -202,24 +213,29 @@ export class FFmpegTask extends AbstractTask {
 
         callback.onEnd && callback.onEnd(options.output);
         this.emitter.emit("task-end", { taskId: this.taskId });
-        this.endTime = Date.now();
       }
+      this.endTime = Date.now();
     });
     command.on("error", (err) => {
       log.error(`task ${this.taskId} error: ${err}`);
       this.status = "error";
 
-      callback.onError && callback.onError(err);
-      this.error = err;
-      this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+      callback.onError && callback.onError(String(err));
+      this.error = String(err);
+      this.emitter.emit("task-error", { taskId: this.taskId, error: String(err) });
+      this.endTime = Date.now();
     });
     command.on("progress", (progress) => {
+      // @ts-ignore
       progress.percentage = progress.percent;
       // console.log("progress", progress);
       if (callback.onProgress) {
+        // @ts-ignore
         progress = callback.onProgress(progress);
       }
+      // @ts-ignore
       this.custsomProgressMsg = `比特率: ${progress.currentKbps}kbits/s   速率: ${progress.speed}`;
+      // @ts-ignore
       this.progress = progress.percentage || 0;
       this.emitter.emit("task-progress", { taskId: this.taskId });
     });
@@ -233,7 +249,6 @@ export class FFmpegTask extends AbstractTask {
   pause() {
     if (this.status !== "running") return;
     if (isWin32) {
-      const ntsuspend = createRequire(import.meta.url)("ntsuspend");
       // @ts-ignore
       ntsuspend.suspend(this.command.ffmpegProc.pid);
     } else {
@@ -247,7 +262,6 @@ export class FFmpegTask extends AbstractTask {
   resume() {
     if (this.status !== "paused") return;
     if (isWin32) {
-      const ntsuspend = createRequire(import.meta.url)("ntsuspend");
       // @ts-ignore
       ntsuspend.resume(this.command.ffmpegProc.pid);
     } else {
@@ -261,7 +275,6 @@ export class FFmpegTask extends AbstractTask {
   interrupt() {
     if (this.status === "completed" || this.status === "error") return;
     if (isWin32) {
-      const ntsuspend = createRequire(import.meta.url)("ntsuspend");
       // @ts-ignore
       ntsuspend.resume(this.command.ffmpegProc.pid);
     }
@@ -276,7 +289,6 @@ export class FFmpegTask extends AbstractTask {
     if (this.status === "completed" || this.status === "error" || this.status === "canceled")
       return;
     if (isWin32) {
-      const ntsuspend = createRequire(import.meta.url)("ntsuspend");
       // @ts-ignore
       ntsuspend.resume(this.command.ffmpegProc.pid);
     }
@@ -337,6 +349,7 @@ export class BiliPartVideoTask extends AbstractTask {
 
       callback.onError && callback.onError(this.error);
       this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
+      this.endTime = Date.now();
     });
 
     command.emitter.on("progress", (event) => {
@@ -550,6 +563,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
       this.callback.onError && this.callback.onError(this.error);
       this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
     }
+    this.endTime = Date.now();
   }
 }
 
@@ -605,6 +619,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
       this.callback.onError && this.callback.onError(this.error);
       this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
     }
+    this.endTime = Date.now();
   }
 }
 
@@ -924,6 +939,7 @@ export class TaskQueue {
         endTime: task.endTime,
         custsomProgressMsg: task.custsomProgressMsg,
         error: task.error ? String(task.error) : "",
+        duration: task.getDuration(),
       };
     });
   }
@@ -952,8 +968,37 @@ export class TaskQueue {
     }
     task.emit("task-removed-queue", { taskId: task.taskId });
   }
+  pasue(taskId: string) {
+    const task = this.queryTask(taskId);
+    if (!task) return;
+    task.pause();
+    task.pauseStartTime = Date.now();
+  }
+  resume(taskId: string) {
+    const task = this.queryTask(taskId);
+    if (!task) return;
+    task.resume();
+    // if (task.pauseStartTime !== null) {
+    //   task.totalPausedDuration += Date.now() - task.pauseStartTime;
+    //   task.pauseStartTime = null;
+    // }
+  }
+  cancel(taskId: string) {
+    const task = this.queryTask(taskId);
+    if (!task) return;
+    task.kill();
+  }
+  interrupt(taskId: string) {
+    const task = this.queryTask(taskId);
+    if (!task) return;
+    if (task.action.includes("interrupt")) {
+      // @ts-ignore
+      return task.interrupt();
+    }
+    return;
+  }
 
-  taskLimit(maxNum: number, type: string) {
+  private taskLimit(maxNum: number, type: string) {
     const pendingFFmpegTask = this.filter({ type: type, status: "pending" });
     if (maxNum !== -1) {
       const runningTaskCount = this.filter({
@@ -968,7 +1013,7 @@ export class TaskQueue {
       }
     }
   }
-  addTaskForLimit = () => {
+  private addTaskForLimit = () => {
     const config = this.appConfig.getAll();
 
     // ffmpeg任务
@@ -1037,28 +1082,19 @@ taskQueue.on("task-error", ({ taskId }) => {
 });
 
 export const handlePauseTask = (taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (!task) return;
-  return task.pause();
+  const task = taskQueue.pasue(taskId);
+  return task;
 };
 export const handleResumeTask = (taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (!task) return;
-  return task.resume();
+  const task = taskQueue.resume(taskId);
+  return task;
 };
 export const handleKillTask = (taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (!task) return;
-  return task.kill();
+  const task = taskQueue.cancel(taskId);
+  return task;
 };
 export const hanldeInterruptTask = (taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (!task) return null;
-  if (task.action.includes("interrupt")) {
-    // @ts-ignore
-    return task.interrupt();
-  }
-  return false;
+  return taskQueue.interrupt(taskId);
 };
 
 export const handleListTask = () => {

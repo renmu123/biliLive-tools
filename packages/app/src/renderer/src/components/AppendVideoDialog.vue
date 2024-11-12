@@ -9,7 +9,7 @@
       class="card"
     >
       <div>
-        <p style="color: red">续传只会增加分p，不会对稿件进行编辑</p>
+        <p>续传只会增加分p，不会对稿件进行编辑</p>
         <div style="display: flex; gap: 10px; align-items: center">
           <n-pagination
             v-model:page="page"
@@ -40,6 +40,7 @@
 
 <script setup lang="ts">
 import { useAppConfig } from "@renderer/stores";
+import { biliApi } from "@renderer/apis";
 
 const { appConfig } = storeToRefs(useAppConfig());
 
@@ -84,7 +85,7 @@ const getArchives = async () => {
     });
     return;
   }
-  const data = await window.api.bili.getArchives(
+  const data = await biliApi.getArchives(
     {
       pn: page.value,
       ps: 20,
@@ -107,11 +108,7 @@ const confirm = async () => {
   if (!aid.value) {
     return;
   }
-  const res = await window.api.bili.getPlatformArchiveDetail(
-    Number(aid.value),
-    appConfig.value.uid!,
-  );
-  console.log(res);
+  const res = await biliApi.getPlatformArchiveDetail(Number(aid.value), appConfig.value.uid!);
   if (res.in_season) {
     notice.error({
       title: "已在合集中的稿件无法添加分P",
@@ -156,6 +153,7 @@ const selectMedia = (item) => {
       background: none;
     }
     border: 1px solid #eee;
+    border-radius: 5px;
 
     width: 160px;
     .cover {
@@ -163,7 +161,7 @@ const selectMedia = (item) => {
       height: 100px;
     }
     &.selected {
-      border-color: red;
+      border-color: #358457;
     }
   }
 }

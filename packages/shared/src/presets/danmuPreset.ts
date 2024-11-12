@@ -1,6 +1,7 @@
 import CommonPreset from "./preset.js";
 
 import type { DanmuConfig, DanmuPreset as DanmuPresetType } from "@biliLive-tools/types";
+import type { GlobalConfig } from "@biliLive-tools/types";
 
 export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   resolution: [1920, 1080],
@@ -28,6 +29,7 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   statmode: [],
   resolutionResponsive: false,
   blacklist: "",
+  timeshift: 0,
 };
 
 export function validateAndFilter<T>(options: T, requiredKeys: Array<keyof T>): T {
@@ -48,7 +50,7 @@ export function validateAndFilter<T>(options: T, requiredKeys: Array<keyof T>): 
 }
 
 export class DanmuPreset extends CommonPreset<DanmuConfig> {
-  constructor({ globalConfig }: { globalConfig: { danmuPresetPath: string } }) {
+  constructor({ globalConfig }: { globalConfig: Pick<GlobalConfig, "danmuPresetPath"> }) {
     super(globalConfig.danmuPresetPath, DANMU_DEAFULT_CONFIG);
   }
   init(filePath: string) {

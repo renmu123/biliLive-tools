@@ -15,7 +15,7 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="convert"> 立即合并 </n-button>
+      <n-button type="primary" :disabled="isWeb" @click="convert"> 立即合并 </n-button>
       <Tip
         tip="注意：并非所有容器都支持流复制。如果出现播放问题或未合并文件，则可能需要重新编码。"
         :size="26"
@@ -34,17 +34,28 @@
 </template>
 
 <script setup lang="ts">
+import { toReactive } from "@vueuse/core";
+import hotkeys from "hotkeys-js";
+
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import Tip from "@renderer/components/Tip.vue";
 import { useAppConfig } from "@renderer/stores";
-import hotkeys from "hotkeys-js";
+import { formatFile } from "@renderer/utils";
 
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
+const isWeb = computed(() => window.isWeb);
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 
-const options = appConfig.value.tool.videoMerge;
+const options = toReactive(
+  computed({
+    get: () => appConfig.value.tool.videoMerge,
+    set: (value) => {
+      appConfig.value.tool.videoMerge = value;
+    },
+  }),
+);
 
 onActivated(() => {
   hotkeys("ctrl+enter", function () {
@@ -67,7 +78,7 @@ const convert = async () => {
     return;
   }
   let filePath!: string;
-  const { dir, name } = window.api.formatFile(fileList.value[0].path);
+  const { dir, name } = formatFile(fileList.value[0].path);
   filePath = window.path.join(dir, `${name}-合并.mp4`);
 
   if (options.saveOriginPath) {
@@ -91,7 +102,7 @@ const convert = async () => {
   }
 
   const files = fileList.value.map((file) => {
-    return window.api.formatFile(file.path);
+    return formatFile(file.path);
   });
   try {
     window.api.mergeVideos(toRaw(files), { ...toRaw(options), savePath: filePath });

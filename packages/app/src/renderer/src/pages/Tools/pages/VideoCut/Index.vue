@@ -74,7 +74,7 @@ import SegmentList from "./components/SegmentList.vue";
 import { useLlcProject } from "./hooks";
 import { useDrive } from "@renderer/hooks/drive";
 import hotkeys from "hotkeys-js";
-import { useElementSize, useDebounceFn } from "@vueuse/core";
+import { useElementSize, useDebounceFn, toReactive } from "@vueuse/core";
 import { sortBy } from "lodash-es";
 
 import type ArtplayerType from "artplayer";
@@ -163,7 +163,14 @@ const { appConfig } = storeToRefs(useAppConfig());
 
 const { undo, redo } = useSegmentStore();
 
-const videoVCutOptions = appConfig.value.tool.videoCut;
+const videoVCutOptions = toReactive(
+  computed({
+    get: () => appConfig.value.tool.videoCut,
+    set: (value) => {
+      appConfig.value.tool.videoCut = value;
+    },
+  }),
+);
 
 watchEffect(async () => {
   if (mediaPath.value) {
@@ -380,14 +387,6 @@ const exportCuts = async () => {
   if (!files.value.videoPath) {
     notice.error({
       title: "请先选择视频文件",
-      duration: 1000,
-    });
-    return;
-  }
-
-  if (!files.value.danmuPath) {
-    notice.error({
-      title: "请先选择弹幕文件",
       duration: 1000,
     });
     return;

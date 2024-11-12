@@ -6,7 +6,7 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="convert"> 立即转换 </n-button>
+      <n-button type="primary" :disabled="isWeb" @click="convert"> 立即转换 </n-button>
       <n-cascader
         v-model:value="options.ffmpegPresetId"
         placeholder="请选择预设"
@@ -54,19 +54,31 @@
 </template>
 
 <script setup lang="ts">
+import { toReactive } from "@vueuse/core";
+
 import { useConfirm } from "@renderer/hooks";
-import { FolderOpenOutline } from "@vicons/ionicons5";
+import { ffmpegPresetApi } from "@renderer/apis";
 import { useAppConfig, useFfmpegPreset } from "@renderer/stores";
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
+import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 import hotkeys from "hotkeys-js";
+import { FolderOpenOutline } from "@vicons/ionicons5";
 
 const notice = useNotification();
 const confirm = useConfirm();
 const { appConfig } = storeToRefs(useAppConfig());
 const { ffmpegOptions } = storeToRefs(useFfmpegPreset());
+const isWeb = computed(() => window.isWeb);
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
-const options = appConfig.value.tool.video2mp4;
+const options = toReactive(
+  computed({
+    get: () => appConfig.value.tool.video2mp4,
+    set: (value) => {
+      appConfig.value.tool.video2mp4 = value;
+    },
+  }),
+);
 
 onActivated(() => {
   hotkeys("ctrl+enter", function () {
@@ -81,7 +93,7 @@ onUnmounted(() => {
 });
 
 const convert = async () => {
-  const ffmpegConfig = await window.api.ffmpeg.getPreset(options.ffmpegPresetId);
+  const ffmpegConfig = await ffmpegPresetApi.get(options.ffmpegPresetId);
   if (!ffmpegConfig) {
     notice.error({
       title: `预设不存在，请重新选择`,
@@ -119,10 +131,34 @@ const convert = async () => {
 
   for (let i = 0; i < fileList.value.length; i++) {
     try {
-      // const file = window.api.formatFile(fileList.value[i].path);
-      window.api.convertVideo2Mp4(
-        { input: fileList.value[i].path, output: fileList.value[i].title },
-        toRaw(options),
+      let savePath: string;
+      if (options.saveRadio === 1) {
+        savePath = window.path.dirname(fileList.value[i].path);
+      } else if (options.saveRadio === 2) {
+        if (options.savePath === "") {
+          notice.error({
+            title: "请选择保存路径",
+            duration: 1000,
+          });
+          return;
+        }
+        savePath = options.savePath;
+      } else {
+        notice.error({
+          title: "不支持此项配置",
+          duration: 1000,
+        });
+        return;
+      }
+
+      window.api.mergeAssMp4(
+        {
+          videoFilePath: fileList.value[i].path,
+          assFilePath: undefined,
+          outputPath: window.path.join(savePath, `${fileList.value[i].title}.mp4`),
+          hotProgressFilePath: undefined,
+        },
+        { override: options.override, removeOrigin: false },
         ffmpegOptions,
       );
     } catch (err) {
@@ -140,11 +176,18 @@ const convert = async () => {
 };
 
 async function getDir() {
-  const path = await window.api.openDirectory({
-    defaultPath: options.savePath,
-  });
-  if (!path) return;
-  options.savePath = path;
+  let dir: string | undefined;
+  if (window.isWeb) {
+    dir = await showDirectoryDialog({
+      type: "directory",
+    })[0];
+  } else {
+    dir = await window.api.openDirectory({
+      defaultPath: options.savePath,
+    });
+  }
+  if (!dir) return;
+  options.savePath = dir;
   options.saveRadio = 2;
 }
 

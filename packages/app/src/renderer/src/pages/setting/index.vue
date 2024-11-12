@@ -22,25 +22,25 @@
               </template>
               <n-switch v-model:value="config.trash" />
             </n-form-item>
-            <n-form-item>
+            <n-form-item v-if="!isWeb">
               <template #label>
                 <span class="inline-flex"> 启动时检查更新 </span>
               </template>
               <n-switch v-model:value="config.autoUpdate" />
             </n-form-item>
-            <n-form-item>
+            <n-form-item v-if="!isWeb">
               <template #label>
                 <span class="inline-flex"> 开启自启动 </span>
               </template>
               <n-switch v-model:value="config.autoLaunch" />
             </n-form-item>
-            <n-form-item>
+            <n-form-item v-if="!isWeb">
               <template #label>
                 <span class="inline-flex"> 最小化到任务栏 </span>
               </template>
               <n-switch v-model:value="config.minimizeToTray" />
             </n-form-item>
-            <n-form-item>
+            <n-form-item v-if="!isWeb">
               <template #label>
                 <span class="inline-flex"> 关闭到任务栏 </span>
               </template>
@@ -49,17 +49,17 @@
             <n-form-item label="log等级"
               ><n-select v-model:value="config.logLevel" :options="logLevelOptions" />
             </n-form-item>
-            <n-form-item>
+            <!-- <n-form-item>
               <template #label>
                 <span class="inline-flex">
-                  port
+                  https
                   <Tip
-                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>B站录播姬的webhook：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址：http://127.0.0.1:${config.port}/webhook/blrec<br/>自定义的webhook地址：http://127.0.0.1:${config.port}/webhook/custom <br/><b>修改后需重启生效</b>`"
+                    tip="需重启生效，开启后使用https协议，默认使用自签名证书，所有外部访问如webhook需修改为https协议，桌面版用户如无必要请勿开启"
                   ></Tip>
                 </span>
               </template>
-              <n-input-number v-model:value="config.port" min="1" max="65535"> </n-input-number>
-            </n-form-item>
+              <n-switch v-model:value="config.https" />
+            </n-form-item> -->
             <n-form-item>
               <template #label>
                 <span class="inline-flex">
@@ -68,6 +68,27 @@
                 </span>
               </template>
               <n-input v-model:value="config.host"> </n-input>
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex">
+                  port
+                  <Tip
+                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/><b>修改后需重启生效</b>`"
+                  ></Tip>
+                </span>
+              </template>
+              <n-input-number v-model:value="config.port" min="1" max="65535"> </n-input-number>
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <span class="inline-flex">
+                  鉴权密钥
+                  <Tip tip="用于webui鉴权，修改后需重启生效"></Tip>
+                </span>
+              </template>
+              <n-input v-model:value="config.passKey" type="password" show-password-on="click">
+              </n-input>
             </n-form-item>
             <n-form-item label="主题"
               ><n-select v-model:value="config.theme" :options="themeOptions" />
@@ -179,8 +200,14 @@
                   ></Tip>
                 </span>
               </template>
-              <n-button type="primary" @click="exportSettingZip">导出配置</n-button>
-              <n-button type="primary" style="margin-left: 10px" @click="importSettingZip"
+              <n-button type="primary" :disabled="isWeb" @click="exportSettingZip"
+                >导出配置</n-button
+              >
+              <n-button
+                type="primary"
+                style="margin-left: 10px"
+                :disabled="isWeb"
+                @click="importSettingZip"
                 >导入配置</n-button
               >
             </n-form-item>
@@ -193,7 +220,7 @@
                 <span class="inline-flex">
                   webhook
                   <Tip
-                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/>B站录播姬的webhook：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec的webhook地址：http://127.0.0.1:${config.port}/webhook/blrec<br/>自定义的webhook地址：http://127.0.0.1:${config.port}/webhook/custom <br/><b>修改后需重启生效</b>`"
+                    :tip="`webhook路径：<br/>B站录播姬：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec：http://127.0.0.1:${config.port}/webhook/blrec<br/>DDTV：http://127.0.0.1:${config.port}/webhook/ddtv<br/>自定义：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
                   ></Tip>
                 </span>
               </template>
@@ -214,9 +241,15 @@
               />
             </n-form-item>
             <n-form-item label="录播姬工作目录">
+              <template #label>
+                <span class="inline-flex">
+                  录播姬工作目录
+                  <Tip tip="仅当你使用录播姬的webhook时，需要配置此选项"></Tip>
+                </span>
+              </template>
               <n-input
                 v-model:value="config.webhook.recoderFolder"
-                placeholder="请输入录播姬工作目录"
+                placeholder="请输入录播姬工作目录，docker版本不用配置"
               />
               <n-icon
                 style="margin-left: 10px"
@@ -254,6 +287,9 @@
         <n-tab-pane name="upload" tab="B站上传">
           <BiliSetting v-model:data="config"></BiliSetting>
         </n-tab-pane>
+        <!-- <n-tab-pane name="recorder" tab="直播录制">
+          <RecordSetting v-model:data="config"></RecordSetting>
+        </n-tab-pane> -->
         <n-tab-pane name="notification" tab="任务">
           <NotificationSetting v-model:data="config"></NotificationSetting>
         </n-tab-pane>
@@ -288,19 +324,22 @@ import RoomSettingDialog from "./RoomSettingDialog.vue";
 import CommonSetting from "./CommonWebhookSetting.vue";
 import NotificationSetting from "./NotificationSetting.vue";
 import BiliSetting from "./BiliSetting.vue";
+// import RecordSetting from "./RecordSetting.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
 import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline, Refresh } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
+import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
+import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig, Theme } from "@biliLive-tools/types";
 
 const notice = useNotification();
-
 const appConfigStore = useAppConfig();
 const showModal = defineModel<boolean>({ required: true, default: false });
+const isWeb = computed(() => window.isWeb);
 
 // @ts-ignore
 const config: Ref<AppConfig> = ref({
@@ -342,11 +381,19 @@ const saveConfig = async () => {
       if (!status) return;
     }
   }
+  // passKey 为空时不保存
+  if (!config.value.passKey) {
+    notice.error({
+      title: "鉴权密钥不能为空",
+      duration: 1000,
+    });
+    return;
+  }
 
-  await window.api.config.save(deepRaw(config.value));
-  window.api.common.setTheme(config.value.theme);
+  await configApi.save(deepRaw(config.value));
+  window?.api?.common?.setTheme(config.value.theme);
   // 设置自动启动
-  window.api.common.setOpenAtLogin(config.value.autoLaunch || false);
+  window?.api?.common?.setOpenAtLogin(config.value.autoLaunch || false);
   close();
   appConfigStore.getAppConfig();
 };
@@ -356,7 +403,7 @@ const close = () => {
 };
 
 const getConfig = async () => {
-  const data = await window.api.config.getAll();
+  const data = await configApi.get();
   config.value = data;
   initConfig.value = cloneDeep(data);
 };
@@ -394,20 +441,29 @@ const selectFile = async (
  */
 const resetBin = async (type: "ffmpeg" | "ffprobe" | "danmakuFactory") => {
   if (type === "ffmpeg") {
-    config.value.ffmpegPath = await window.api.config.resetBin("ffmpeg");
+    config.value.ffmpegPath = await configApi.resetBin(type);
   } else if (type === "ffprobe") {
-    config.value.ffprobePath = await window.api.config.resetBin("ffprobe");
+    config.value.ffprobePath = await configApi.resetBin(type);
   } else if (type === "danmakuFactory") {
-    config.value.danmuFactoryPath = await window.api.config.resetBin("danmakuFactory");
+    config.value.danmuFactoryPath = await configApi.resetBin(type);
   } else {
     console.error("未知文件类型");
   }
 };
 
 const selectFolder = async (type: "recorder") => {
-  const file = await window.api.openDirectory({
-    defaultPath: config.value.webhook.recoderFolder,
-  });
+  let file: string | undefined;
+
+  if (window.isWeb) {
+    file = await showDirectoryDialog({
+      type: "directory",
+    })[0];
+  } else {
+    file = await window.api.openDirectory({
+      defaultPath: config.value.webhook.recoderFolder,
+    });
+  }
+
   if (!file) return;
 
   if (type === "recorder") {
@@ -422,7 +478,7 @@ const handleOpen = async () => {
 
 const presets = ref<BiliupPreset[]>([]);
 const getPresets = async () => {
-  presets.value = await window.api.bili.getPresets();
+  presets.value = await videoPresetApi.list();
 };
 const presetsOptions = computed(() => {
   return presets.value.map((item) => {
@@ -471,6 +527,8 @@ const globalFields = ref([
   "noConvertHandleVideo",
   "uploadHandleTime",
   "limitUploadTime",
+  "uploadNoDanmu",
+  "noDanmuVideoPreset",
 ]);
 const webhookDefaultValue = computed(() => {
   if (!config.value.webhook) return {};
@@ -533,6 +591,8 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   noConvertHandleVideo: false,
   uploadHandleTime: ["00:00:00", "23:59:59"],
   limitUploadTime: false,
+  uploadNoDanmu: false,
+  noDanmuVideoPreset: undefined,
 });
 const saveRoomDetail = ({ id }: AppRoomConfig & { id?: string }) => {
   config.value.webhook.rooms[id!] = tempRoomDetail.value;
@@ -544,7 +604,7 @@ const deleteRoom = (roomId: string) => {
 
 const ffmpegOptions = ref<any[]>([]);
 const getPresetOptions = async () => {
-  ffmpegOptions.value = await window.api.ffmpeg.getPresetOptions();
+  ffmpegOptions.value = await ffmpegPresetApi.options();
 };
 
 const addRoom = () => {
@@ -567,7 +627,7 @@ const addRoom = () => {
 
 // 导出配置
 const exportSettingZip = async () => {
-  const version = await window.api.appVersion();
+  const version = await commonApi.version();
 
   const file = await window.api.showSaveDialog({
     defaultPath: `biliLive-tools-${version}-${new Date().getTime()}-配置备份.zip`,
@@ -629,6 +689,9 @@ const importSettingZip = async () => {
     cursor: pointer;
     border: 1px solid #eee;
     border-radius: 4px;
+    &:hover {
+      border: 1px solid #358457;
+    }
   }
 }
 .setting-tab :deep(.n-tab-pane) {

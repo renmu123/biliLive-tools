@@ -1,3 +1,5 @@
 import danmuPresetApi from "./danmu";
+import ffmpegPresetApi from "./ffmpeg";
+import videoPresetApi from "./video";
 
-export { danmuPresetApi };
+export { danmuPresetApi, ffmpegPresetApi, videoPresetApi };

@@ -7,13 +7,16 @@
           v-model:value="url"
           :style="{ width: '80%' }"
           placeholder="请输入视频链接，比如：https://www.bilibili.com/video/BV1u94y1K7nr、https://v.douyu.com/show/brN0MmQqKl6MpyxA"
+          @keyup.enter="download"
         />
-        <n-button type="primary" ghost @click="download"> 下载 </n-button>
+        <n-button type="primary" ghost :disabled="!url" @click="download"> 下载 </n-button>
       </div>
       <DownloadConfirm
         v-model:visible="visible"
-        v-model:selectIds="selectCids"
+        v-model:select-ids="selectCids"
         :detail="archiveDeatil"
+        :c-options="downloadOptions"
+        :resoltions="resoltions"
         @confirm="confirm"
       ></DownloadConfirm>
     </n-spin>
@@ -24,6 +27,7 @@
 import { useUserInfoStore } from "@renderer/stores";
 import DownloadConfirm from "@renderer/components/DownloadConfirm.vue";
 import { sanitizeFileName } from "@renderer/utils";
+import { biliApi, commonApi } from "@renderer/apis";
 
 const notice = useNotification();
 const { userInfo } = storeToRefs(useUserInfoStore());
@@ -36,6 +40,9 @@ const archiveDeatil = ref<{
   vid: "",
   title: "",
   pages: [],
+});
+const downloadOptions = ref({
+  hasDanmuOptions: false,
 });
 
 const selectCids = ref<(number | string)[]>([]);
@@ -62,9 +69,15 @@ const parse = async () => {
   if (formatUrl.includes("douyu")) {
     videoType.value = "douyu";
     await handleDouyu(formatUrl);
+    downloadOptions.value = {
+      hasDanmuOptions: true,
+    };
   } else if (formatUrl.includes("bilibili")) {
     videoType.value = "bili";
     await handleBili(formatUrl);
+    downloadOptions.value = {
+      hasDanmuOptions: false,
+    };
   }
 };
 
@@ -77,7 +90,7 @@ const handleBili = async (formatUrl: string) => {
     throw new Error("请输入正确的b站视频链接");
   }
   selectCids.value = [];
-  const data = await window.api.bili.getArchiveDetail(bvid, uid.value);
+  const data = await biliApi.getArchiveDetail(bvid, uid.value);
   archiveDeatil.value = {
     vid: data.View.bvid,
     title: data.View.title,
@@ -87,9 +100,16 @@ const handleBili = async (formatUrl: string) => {
       return item as unknown as { cid: number; part: string; editable: boolean };
     }),
   };
+  resoltions.value = [];
   selectCids.value = data.View.pages.map((item) => item.cid);
 };
 
+const resoltions = ref<
+  {
+    label: string;
+    value: string;
+  }[]
+>([]);
 /**
  * 解析斗鱼视频
  */
@@ -99,9 +119,9 @@ const handleDouyu = async (formatUrl: string) => {
     throw new Error("请输入正确的斗鱼视频链接");
   }
   try {
-    const data = await window.api.douyu.parseVideo(formatUrl);
+    const data = await commonApi.douyuVideoParse(formatUrl);
     archiveDeatil.value = {
-      vid: "111",
+      vid: "anything",
       title: data[0].seo_title,
       pages: data.map((item) => {
         let room_title = item.ROOM.name;
@@ -125,6 +145,13 @@ const handleDouyu = async (formatUrl: string) => {
         };
       }),
     };
+    if (archiveDeatil.value.pages.length === 0) {
+      throw new Error("解析失败，请检查链接是否正确");
+    }
+    resoltions.value = await commonApi.getVideoStreams({
+      decodeData: archiveDeatil.value.pages[0].cid as string,
+    });
+
     selectCids.value = archiveDeatil.value.pages.map((item) => item.cid);
   } catch (e) {
     console.log(e);
@@ -133,6 +160,7 @@ const handleDouyu = async (formatUrl: string) => {
 };
 
 const download = async () => {
+  if (!url.value) return;
   if (!url.value.trim()) {
     throw new Error("请输入合法的视频链接");
   }
@@ -145,25 +173,34 @@ const download = async () => {
   }
 };
 
-const confirm = async (options: { ids: (number | string)[]; savePath: string }) => {
+const confirm = async (options: {
+  ids: (number | string)[];
+  savePath: string;
+  danmu: "none" | "xml" | "ass";
+  resoltion: string | "highest";
+  override: boolean;
+}) => {
   const selectPages = archiveDeatil.value.pages.filter((item) => options.ids.includes(item.cid));
 
   for (const page of selectPages) {
     if (videoType.value === "douyu") {
-      await window.api.douyu.download(
+      await commonApi.douyuVideoDownload(
         window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
         page.cid as string,
         {
-          danmu: true,
+          danmu: options.danmu,
+          resoltion: options.resoltion,
+          override: options.override,
           ...page.metadata,
         },
       );
     } else if (videoType.value === "bili") {
-      window.api.bili.download(
+      biliApi.download(
         {
           output: window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
           cid: page.cid as number,
           bvid: archiveDeatil.value.vid,
+          override: options.override,
         },
         uid.value,
       );

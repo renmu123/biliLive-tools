@@ -1,6 +1,6 @@
 {
   "name": "bililive-cli",
-  "version": "1.5.3",
+  "version": "1.6.0",
   "type": "module",
   "description": "biliLive-tools的cli程序",
   "main": "./lib/index.js",
@@ -10,12 +10,16 @@
   "scripts": {
     "start": "tsx src/index.ts",
     "dev": "rollup --config rollup.config.js -w",
-    "build:cli": "pnpm run build && pnpm run pkg",
-    "build": "rollup --config rollup.config.js",
+    "build:cli": "pnpm run build && pnpm run movePackage && pnpm run pkg",
+    "build": "rimraf lib && rollup --config rollup.config.js",
+    "movePackage": "node ./scripts/copy_module.js",
     "pkg": "pkg ./lib/index.cjs --output ./dist/biliLive",
-    "zip:win": "cd dist && bestzip biliLive-cli-win-x64.zip ./biliLive.exe",
+    "zip:win": "cd dist && bestzip biliLive-cli-win-x64.zip biliLive.exe",
     "zip:linux": "cd dist && bestzip biliLive-cli-linux-x64.zip ./biliLive",
     "release": "pnpm run build && pnpm publish --access=public"
+  },
+  "pkg": {
+    "assets": "./lib/node_modules/**"
   },
   "bin": {
     "biliLive": "./lib/index.cjs"
@@ -31,18 +35,19 @@
     "lib"
   ],
   "dependencies": {
-    "@napi-rs/canvas": "^0.1.53"
+    "@napi-rs/canvas": "^0.1.53",
+    "ntsuspend": "^1.0.2"
   },
   "devDependencies": {
-    "@types/cli-progress": "^3.11.5",
-    "@yao-pkg/pkg": "^5.11.5",
-    "bestzip": "^2.2.1",
-    "rollup-plugin-natives": "^0.7.8",
-    "tsx": "^4.7.2",
     "@biliLive-tools/http": "workspace:*",
     "@biliLive-tools/shared": "workspace:*",
     "@biliLive-tools/types": "workspace:*",
+    "@types/cli-progress": "^3.11.5",
+    "@yao-pkg/pkg": "^6.0.0",
+    "bestzip": "^2.2.1",
     "cli-progress": "^3.12.0",
-    "commander": "^12.0.0"
+    "commander": "^12.0.0",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.7.2"
   }
 }

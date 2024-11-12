@@ -15,6 +15,7 @@ interface Config {
   ffprobePath: string;
   danmakuFactoryPath: string;
   logPath: string;
+  passKey?: string;
 }
 
 const program = new Command();
@@ -22,9 +23,11 @@ program.name("biliLive").description("biliLive-tools命令行").version(version)
 
 program
   .command("server")
-  .description("开启webhook服务")
+  .description("开启服务")
   .option("-c, --config <string>", "配置文件路径", "config.json")
-  .action(async (opts: { config: string }) => {
+  .option("-h, --host <string>", "host")
+  .option("-p, --port <number>", "port")
+  .action(async (opts: { config: string; host?: string; port?: string }) => {
     if (!fs.existsSync(opts.config)) {
       console.error("请先运行 config gen 命令生成配置文件");
       return;
@@ -34,21 +37,10 @@ program
     if (c?.configFolder === undefined) {
       throw new Error(`${c.configFolder}参数不存在，请先重新运行 config gen 命令`);
     }
-    if (!fs.existsSync(path.join(c.configFolder, "appConfig.json"))) {
-      throw new Error(`${c.configFolder}文件夹中的 appConfig.json 文件不存在`);
-    }
-    if (!fs.existsSync(path.join(c.configFolder, "ffmpeg_presets.json"))) {
-      console.warn(`${c.configFolder}文件夹中的 ffmpeg_presets.json 文件不存在`);
-    }
-    if (!fs.existsSync(path.join(c.configFolder, "presets.json"))) {
-      console.warn(`${c.configFolder}文件夹中的 presets.json 文件不存在`);
-    }
-    if (!fs.existsSync(path.join(c.configFolder, "danmu_presets.json"))) {
-      console.warn(`${c.configFolder}文件夹中的 danmu_presets.json 文件不存在`);
-    }
 
-    const { serverStart } = await import("@biliLive-tools/http");
+    // 下面两行顺序不能换（
     const { init } = await import("@biliLive-tools/shared");
+    const { serverStart } = await import("@biliLive-tools/http");
 
     const globalConfig: GlobalConfig = {
       ffmpegPresetPath: path.join(c.configFolder, "ffmpeg_presets.json"),
@@ -59,12 +51,21 @@ program
       defaultFfmpegPath: c.ffmpegPath,
       defaultFfprobePath: c.ffprobePath,
       defaultDanmakuFactoryPath: c.danmakuFactoryPath,
+      version: version,
     };
-    const container = init(globalConfig);
-    serverStart(
+    const container = await init(globalConfig);
+
+    const appConfig = container.resolve("appConfig");
+    const passKey = process.env.BILILIVE_TOOLS_PASSKEY || appConfig.get("passKey");
+    if (!passKey) {
+      console.warn("如果想使用webui，必须设置鉴权 passKey 参数，具体见文档");
+    }
+    await serverStart(
       {
-        port: c.port,
-        host: c.host,
+        port: opts.port ? Number(opts.port) : c.port,
+        host: opts.host ?? c.host,
+        auth: true,
+        passKey: passKey,
       },
       container,
     );
@@ -80,14 +81,14 @@ configCommand
   .action(async (opts: { config: string; force: boolean }) => {
     if (fs.existsSync(opts.config)) {
       if (opts.force) {
-        console.error("配置文件已生成");
+        console.log("配置文件已生成，请根据需求进行修改");
         generateConfig(opts.config);
       } else {
         console.error("配置文件已存在，如果想重新生成请使用 -f 参数强制覆盖");
         return;
       }
     } else {
-      console.error("配置文件已生成");
+      console.log("配置文件已生成，请根据需求进行修改");
       generateConfig(opts.config);
     }
   });

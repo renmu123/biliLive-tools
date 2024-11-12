@@ -71,3 +71,8 @@ export const supportedVideoExtensions = [
   "rmvb",
   "mkv",
 ];
+
+export function formatFile(filepath: string) {
+  const formatFile = window.path.parse(filepath);
+  return { ...formatFile, path: filepath, filename: formatFile.base };
+}

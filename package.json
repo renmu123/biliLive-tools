@@ -1,6 +1,6 @@
 {
   "name": "@biliLive-tools/root",
-  "version": "1.5.3",
+  "version": "1.6.0",
   "description": "B站直播录制处理工具",
   "author": "renmu123",
   "license": "GPL-3.0-only",
@@ -10,10 +10,10 @@
     "dev": "chcp 65001 && pnpm run --filter biliLive-tools dev",
     "devMain": "chcp 65001 && pnpm run --filter biliLive-tools devMain",
     "build:app": "pnpm run build:base && pnpm run --filter biliLive-tools build:app",
-    "build:webui": "pnpm run build:base && pnpm run --filter biliLive-tools build",
+    "build:webui": "pnpm run build:base && pnpm run --filter biliLive-tools build:webui",
     "build:app:no-ffmpeg": "pnpm run build:base && pnpm run --filter biliLive-tools build:app:no-ffmpeg",
     "build:cli": "pnpm run build:base && pnpm run --filter bililive-cli build:cli",
-    "build:base": "pnpm run --filter @biliLive-tools/shared build  && pnpm run --filter @biliLive-tools/http build",
+    "build:base": "pnpm run --filter @biliLive-tools/shared build && pnpm run --filter @biliLive-tools/http build && pnpm run --filter @autorecord/douyu-recorder build && pnpm run --filter @autorecord/huya-recorder build && pnpm run --filter @autorecord/bilibili-recorder build && pnpm run --filter @autorecord/manager build",
     "preinstall": "npx only-allow pnpm",
     "install:bin": "node ./scripts/install-bin.js",
     "github-ci-pnpm-update": "node ./scripts/github-ci-pnpm-update.js",
@@ -21,23 +21,26 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
-    "fs-extra": "^11.2.0"
+    "fs-extra": "^11.2.0",
+    "lodash-es": "^4.17.21",
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
-    "@kineticcafe/rollup-plugin-delete": "3.0.0-beta.0",
-    "@rollup/plugin-commonjs": "^25.0.7",
+    "@kineticcafe/rollup-plugin-delete": "3.0.1",
+    "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/node": "20.12.2",
+    "@types/uuid": "^10.0.0",
     "@vitest/coverage-istanbul": "^2.0.5",
     "cli-progress": "^3.12.0",
     "download": "^8.0.0",
     "prettier": "^3.2.5",
-    "rollup": "^4.9.6",
+    "rollup": "^4.21.2",
     "tar": "^7.4.3",
     "typescript": "^5.5.4",
     "vitest": "^2.0.5"
   },
-  "packageManager": "pnpm@9.8.0+sha512.8e4c3550fb500e808dbc30bb0ce4dd1eb614e30b1c55245f211591ec2cdf9c611cabd34e1364b42f564bd54b3945ed0f49d61d1bbf2ec9bd74b866fcdc723276"
+  "packageManager": "pnpm@9.12.3+sha512.cce0f9de9c5a7c95bef944169cc5dfe8741abfb145078c0d508b868056848a87c81e626246cb60967cbd7fd29a6c062ef73ff840d96b3c86c40ac92cf4a813ee"
 }

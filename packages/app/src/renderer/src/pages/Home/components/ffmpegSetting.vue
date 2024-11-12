@@ -133,13 +133,17 @@
         />
       </n-form-item>
       <n-form-item
-        v-if="['h264_nvenc', 'hevc_nvenc', 'av1_nvenc'].includes(ffmpegOptions.config.encoder)"
+        v-if="
+          ['h264_nvenc', 'hevc_nvenc', 'av1_nvenc', 'h264_amf', 'hevc_amf', 'av1_amf'].includes(
+            ffmpegOptions.config.encoder,
+          )
+        "
       >
         <template #label>
           <span class="inline-flex">
             <span>硬件解码</span>
             <Tip>
-              使用硬件解码器，开启后可能会减少压制时间，nvidia会使用nvdec，如果压制失败请关闭
+              使用硬件解码器，开启后<b>可能</b>会减少压制时间，nvidia会使用nvdec，如果压制失败请关闭
             </Tip>
           </span>
         </template>
@@ -185,6 +189,7 @@
             class="input-number"
             :min="-1"
             :step="100"
+            title="宽"
             placeholder="宽"
             style="width: 100px"
           />&nbsp;X&nbsp;
@@ -193,12 +198,14 @@
             class="input-number"
             :min="-1"
             :step="100"
+            title="高"
             placeholder="高"
             style="width: 100px"
           />
           <n-select
             v-model:value="ffmpegOptions.config.swsFlags"
             :options="swsOptions"
+            title="缩放算法"
             placeholder="请选择缩放算法，默认为自动"
             clearable
             style="width: 200px; flex: none; margin-left: 10px"
@@ -206,9 +213,59 @@
           <n-select
             v-model:value="ffmpegOptions.config.scaleMethod"
             :options="scaleMethodOptions"
+            title="缩放顺序"
             placeholder="请选择缩放顺序"
             clearable
             style="width: 200px; flex: none; margin-left: 10px"
+          />
+        </template>
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            <span>时间戳</span>
+            <Tip>
+              添加时间戳到视频中，优先从webhook中读取、其次是弹幕元数据（支持录播姬、blrec、本软件下载的录播）、最后是视频元数据（如录播姬注释）。<br />即使你开启此选项，如果一条都未被匹配到，也是不会被渲染的
+            </Tip>
+          </span>
+        </template>
+
+        <n-checkbox
+          v-model:checked="ffmpegOptions.config.addTimestamp"
+          style="margin-right: 20px"
+        ></n-checkbox>
+        <template v-if="ffmpegOptions.config.addTimestamp">
+          <n-input-number
+            v-model:value.number="ffmpegOptions.config.timestampX"
+            class="input-number"
+            :min="0"
+            :step="10"
+            title="x轴坐标"
+            placeholder="x轴坐标"
+            style="width: 120px; margin-right: 10px"
+          />
+          <n-input-number
+            v-model:value.number="ffmpegOptions.config.timestampY"
+            class="input-number"
+            :min="0"
+            :step="10"
+            placeholder="y轴坐标"
+            title="y轴坐标"
+            style="width: 120px; margin-right: 10px"
+          />
+          <n-input-number
+            v-model:value.number="ffmpegOptions.config.timestampFontSize"
+            class="input-number"
+            :min="10"
+            :step="1"
+            title="字体大小"
+            placeholder="字体大小"
+            style="width: 120px; margin-right: 10px"
+          />
+          <n-color-picker
+            v-model:value="ffmpegOptions.config.timestampFontColor"
+            style="width: 120px"
+            title="字体颜色"
           />
         </template>
       </n-form-item>
@@ -235,7 +292,7 @@
     <n-form-item>
       <template #label>
         <span class="inline-flex">
-          <span>高级选项</span>
+          <span>额外输出参数</span>
           <Tip> 参数将被附加到ffmpeg输出参数中，参数错误可能会导致无法运行 </Tip>
         </span>
       </template>
@@ -243,6 +300,25 @@
         v-model:value="ffmpegOptions.config.extraOptions"
         type="textarea"
         placeholder="请输入额外参数"
+        style="width: 100%"
+        :input-props="{ spellcheck: 'false' }"
+      />
+    </n-form-item>
+    <n-form-item>
+      <template #label>
+        <span class="inline-flex">
+          <span>视频滤镜</span>
+          <Tip>
+            <code>$origin</code>
+            是由其他配置生成的默认参数，如果没有该参数，谁也不知道会发生什么事<br />
+            例：hflip;$origin;transpose=1 解释：先水平翻转，然后应用默认参数，最后旋转90度
+          </Tip>
+        </span>
+      </template>
+      <n-input
+        v-model:value="ffmpegOptions.config.vf"
+        type="textarea"
+        placeholder="请输入滤镜参数"
         style="width: 100%"
         :input-props="{ spellcheck: 'false' }"
       />
@@ -290,7 +366,8 @@ import { HelpCircleOutline } from "@vicons/ionicons5";
 import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
-import { useFfmpegPreset } from "@renderer/stores";
+import { useFfmpegPreset, useAppConfig } from "@renderer/stores";
+import { ffmpegPresetApi } from "@renderer/apis";
 
 import type { FfmpegPreset, VideoCodec } from "@biliLive-tools/types";
 
@@ -763,22 +840,8 @@ watch(
   },
 );
 
-// const options = ref<
-//   {
-//     value: string;
-//     label: string;
-//     children: {
-//       value: string;
-//       label: string;
-//     }[];
-//   }[]
-// >([]);
-// const getPresetOptions = async () => {
-//   options.value = await window.api.ffmpeg.getPresetOptions();
-// };
-
 const handlePresetChange = async () => {
-  ffmpegOptions.value = await window.api.ffmpeg.getPreset(presetId.value);
+  ffmpegOptions.value = await ffmpegPresetApi.get(presetId.value);
 };
 
 watch(presetId, handlePresetChange);
@@ -794,12 +857,14 @@ const saveAs = async () => {
   tempPresetName.value = "";
   nameModelVisible.value = true;
 };
+
+const { appConfig } = storeToRefs(useAppConfig());
+
 const deletePreset = async () => {
-  const appConfig = await window.api.config.getAll();
-  let ids = Object.entries(appConfig.webhook.rooms || {}).map(([, value]) => {
+  let ids = Object.entries(appConfig.value.webhook.rooms || {}).map(([, value]) => {
     return value?.ffmpegPreset;
   });
-  ids.push(appConfig.webhook?.ffmpegPreset);
+  ids.push(appConfig.value.webhook?.ffmpegPreset);
   ids = ids.filter((id) => id !== undefined && id !== "");
 
   const msg = ids.includes(presetId.value)
@@ -810,7 +875,7 @@ const deletePreset = async () => {
     content: msg,
   });
   if (!status) return;
-  await window.api.ffmpeg.deletePreset(presetId.value);
+  await ffmpegPresetApi.remove(presetId.value);
   presetId.value = "default";
   getPresetOptions();
 };
@@ -820,7 +885,7 @@ const tempPresetName = ref("");
 const isRename = ref(false);
 
 const saveConfig = async () => {
-  await window.api.ffmpeg.savePreset(toRaw(ffmpegOptions.value));
+  await ffmpegPresetApi.save(toRaw(ffmpegOptions.value));
   notice.success({
     title: "保存成功",
     duration: 1000,
@@ -838,7 +903,7 @@ const saveConfirm = async () => {
   if (!isRename.value) preset.id = uuid();
   preset.name = tempPresetName.value;
 
-  await window.api.ffmpeg.savePreset(preset);
+  await ffmpegPresetApi.save(preset);
   nameModelVisible.value = false;
   notice.success({
     title: "保存成功",

@@ -17,7 +17,7 @@
 import { CaretDownOutline } from "@vicons/ionicons5";
 
 interface Props {
-  trigger: "click" | "hover";
+  trigger?: "click" | "hover";
   options: { key: string | number; label: string | number; disabled?: boolean }[];
 }
 

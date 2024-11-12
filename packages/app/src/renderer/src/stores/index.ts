@@ -2,7 +2,14 @@ import { cloneDeep } from "lodash-es";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
 import { getUserList } from "@renderer/apis/user";
-import { danmuPresetApi } from "@renderer/apis";
+import {
+  danmuPresetApi,
+  ffmpegPresetApi,
+  videoPresetApi,
+  configApi,
+  taskApi,
+} from "@renderer/apis";
+// import { APP_DEFAULT_CONFIG } from "@biliLive-tools/shared/enum.js";
 
 import type { Task } from "@renderer/types";
 
@@ -112,8 +119,16 @@ export const useUserInfoStore = defineStore("userInfo", () => {
 
 export const useDanmuPreset = defineStore("danmuPreset", () => {
   const { appConfig } = storeToRefs(useAppConfig());
+  console.log(appConfig.value);
 
-  const danmuPresetId = toRef(appConfig.value.tool.danmu, "danmuPresetId");
+  // const danmuPresetId = toRef(appConfig.value.tool.danmu, "danmuPresetId");
+  const danmuPresetId = computed({
+    get: () => appConfig.value.tool.danmu.danmuPresetId,
+    set: (value) => {
+      appConfig.value.tool.danmu.danmuPresetId = value;
+    },
+  });
+
   const danmuPresets = ref<DanmuPreset[]>([]);
   // @ts-ignore
   const danmuPreset: Ref<DanmuPreset> = ref({
@@ -169,7 +184,7 @@ export const useFfmpegPreset = defineStore("ffmpegPreset", () => {
   >([]);
 
   const getPresetOptions = async () => {
-    options.value = await window.api.ffmpeg.getPresetOptions();
+    options.value = await ffmpegPresetApi.options();
   };
 
   getPresetOptions();
@@ -189,10 +204,10 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
   });
 
   async function getUploadPresets() {
-    uploadPresets.value = await window.api.bili.getPresets();
+    uploadPresets.value = await videoPresetApi.list();
   }
   async function getUploadPreset() {
-    uploadPreset.value = await window.api.bili.getPreset(upladPresetId.value);
+    uploadPreset.value = await videoPresetApi.get(upladPresetId.value);
   }
 
   const uploaPresetsOptions = computed(() => {
@@ -229,54 +244,7 @@ export const useQueueStore = defineStore("queue", () => {
   const queue = ref<Task[]>([]);
 
   const getQuenu = async () => {
-    // queue.value = [
-    //   {
-    //     taskId: "1",
-    //     name: "tesqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqwwwwwwwwwwwwwwwwwwwwwwwwt",
-    //     status: "pending",
-    //     type: "ffmpeg",
-    //     progress: 0,
-    //     action: ["pause", "kill"],
-    //   },
-    //   {
-    //     taskId: "2",
-    //     name: "test2",
-    //     status: "running",
-    //     type: "ffmpeg",
-    //     progress: 50,
-    //     action: ["pause", "kill"],
-    //     startTime: 1701682795887,
-    //   },
-    //   {
-    //     taskId: "3",
-    //     name: "test3",
-    //     status: "paused",
-    //     type: "ffmpeg",
-    //     progress: 50,
-    //     action: ["pause", "kill"],
-    //     startTime: 1701682795887,
-    //   },
-    //   {
-    //     taskId: "4",
-    //     name: "test4",
-    //     status: "completed",
-    //     type: "ffmpeg",
-    //     output: "D:/test.mp4",
-    //     progress: 100,
-    //     action: ["pause", "kill"],
-    //     startTime: 1701682795887,
-    //     endTime: 1701682995887,
-    //   },
-    //   {
-    //     taskId: "5",
-    //     name: "test5",
-    //     status: "error",
-    //     type: "ffmpeg",
-    //     progress: 50,
-    //     action: ["pause", "kill"],
-    //   },
-    // ];
-    queue.value = (await window.api.task.list()).toReversed();
+    queue.value = (await taskApi.list()).toReversed();
     runningTaskNum.value = queue.value.filter((item) => item.status === "running").length;
   };
 
@@ -289,23 +257,80 @@ export const useQueueStore = defineStore("queue", () => {
 
 export const useAppConfig = defineStore("appConfig", () => {
   // @ts-ignore
-  const appConfig = ref<AppConfig>({});
+  const appConfig = ref<AppConfig>({
+    tool: {
+      home: {
+        uploadPresetId: "default",
+        danmuPresetId: "default",
+        ffmpegPresetId: "b_libx264",
+        removeOrigin: false,
+        openFolder: false,
+        autoUpload: false,
+        hotProgress: false,
+        hotProgressSample: 30,
+        hotProgressHeight: 60,
+        hotProgressColor: "#f9f5f3",
+        hotProgressFillColor: "#333333",
+      },
+      upload: {
+        uploadPresetId: "default",
+      },
+      danmu: {
+        danmuPresetId: "default",
+        saveRadio: 1,
+        savePath: "",
+        removeOrigin: false,
+        openFolder: false,
+      },
+      video2mp4: {
+        saveRadio: 1,
+        savePath: "",
+        saveOriginPath: false,
+        override: false,
+        removeOrigin: false,
+        ffmpegPresetId: "b_copy",
+      },
+      videoMerge: {
+        saveOriginPath: false,
+        removeOrigin: false,
+      },
+      download: {
+        savePath: "",
+        danmu: "none",
+        douyuResolution: "highest",
+        override: false,
+      },
+      translate: {
+        presetId: undefined,
+      },
+      videoCut: {
+        /** 保存类型 */
+        saveRadio: 1,
+        /** 保存路径 */
+        savePath: ".\\导出文件夹",
+        /** 覆盖已存在的文件 */
+        override: false,
+        /** ffmpeg预设 */
+        ffmpegPresetId: "b_libx264",
+        title: "{{filename}}-{{label}}-{{num}}",
+        danmuPresetId: "default",
+      },
+    },
+  });
 
   async function getAppConfig() {
-    console.log("getAppConfig");
-    appConfig.value = await window.api.config.getAll();
+    appConfig.value = await configApi.get();
   }
   async function set<K extends keyof AppConfig>(key: K, value: AppConfig[K]) {
-    await window.api.config.set(key, value);
+    await configApi.set(key, value);
     appConfig.value[key] = value;
   }
   watch(
     () => appConfig.value.tool,
     (newVal, oldVal) => {
       if (!oldVal) return;
-      if (JSON.stringify(newVal) === JSON.stringify(oldVal)) return;
 
-      window.api.config.save(cloneDeep(appConfig.value));
+      configApi.set("tool", cloneDeep(newVal));
     },
     { deep: true },
   );

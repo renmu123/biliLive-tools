@@ -16,6 +16,8 @@
 <script setup lang="ts">
 import FileArea from "@renderer/components/FileArea.vue";
 import PartArea from "./PartArea.vue";
+import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
+
 import { supportedVideoExtensions, uuid } from "@renderer/utils";
 
 const fileList = defineModel<
@@ -52,20 +54,31 @@ const addOldFile = (data: { name: string; path: string }[]) => {
 };
 
 const select = async () => {
-  const files = await window.api.openFile({
-    multi: true,
-    filters: [
-      {
-        name: "file",
-        extensions: props.extensions,
-      },
-      {
-        name: "所有文件",
-        extensions: ["*"],
-      },
-    ],
-  });
+  let files: string[] | undefined = [];
+  if (window.isWeb) {
+    files = await showDirectoryDialog({
+      type: "file",
+      multi: true,
+      exts: props.extensions,
+    });
+  } else {
+    files = await window.api.openFile({
+      multi: true,
+      filters: [
+        {
+          name: "file",
+          extensions: props.extensions,
+        },
+        {
+          name: "所有文件",
+          extensions: ["*"],
+        },
+      ],
+    });
+  }
+
   if (!files) return;
+  if (files.length === 0) return;
 
   const newFiles = files
     .filter((file) => {

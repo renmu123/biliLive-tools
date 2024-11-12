@@ -3,31 +3,39 @@
   <div>
     <n-form ref="formRef" label-width="120px" label-placement="left" label-align="right">
       <n-form-item label="预设">
-        <n-select
-          v-model:value="presetId"
-          :options="uploaPresetsOptions"
-          @update:value="handlePresetChange"
-        />
+        <n-select v-model:value="presetId" :options="uploaPresetsOptions" />
       </n-form-item>
       <n-divider />
 
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            <span>封面</span>
-            <Tip tip="默认使用视频第一帧"></Tip>
-          </span>
+          <Tip tip="非必选，默认由B站决定" text="封面"></Tip>
         </template>
         <image-crop v-model="options.config.cover"></image-crop>
       </n-form-item>
       <n-form-item label="视频标题">
+        <template #label>
+          <Tip :tip="titleTip" text="视频标题"></Tip>
+        </template>
         <n-input
+          ref="titleInput"
           v-model:value="options.config.title"
           placeholder="请输入视频标题"
           clearable
-          maxlength="80"
-          show-count
         />
+        <n-button style="margin-right: 10px" @click="previewTitle(options.config.title)"
+          >预览</n-button
+        >
+        <template #feedback>
+          <span
+            v-for="item in titleList"
+            :key="item.value"
+            :title="item.label"
+            class="title-var"
+            @click="setTitleVar(item.value)"
+            >{{ item.value }}</span
+          >
+        </template>
       </n-form-item>
       <n-form-item label="稿件类型">
         <n-radio-group v-model:value="options.config.copyright" name="radiogroup">
@@ -58,18 +66,17 @@
         />
       </n-form-item>
       <n-form-item label="标签">
-        <n-dynamic-tags
-          v-model:value="options.config.tag"
-          :max="12"
-          @update:value="handleTagChange"
+        <dynamic-tags
+          v-model="options.config.tag"
+          :max="10"
+          :before-create="beforeTagCreate"
+          placeholder="回车输入标签，最多十个"
+          :loading="tagCreateLoading"
         />
       </n-form-item>
       <n-form-item v-if="options.config.copyright === 1">
         <template #label>
-          <span class="inline-flex">
-            <span>话题</span>
-            <Tip tip="话题也会占据一个tag栏~"></Tip>
-          </span>
+          <Tip tip="话题也会占据一个tag栏~" text="话题"></Tip>
         </template>
         <n-select
           v-model:value="options.config.topic_name"
@@ -86,12 +93,10 @@
 
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            <span>视频简介</span>
-            <Tip
-              tip="可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与id对应。"
-            ></Tip>
-          </span>
+          <Tip
+            text="视频简介"
+            tip="可以输入[暮色312]<10995238>来进行艾特用户，前面的值为用户名，后面的值为用户id，请务必保持用户名与uid对应。"
+          ></Tip>
         </template>
         <n-input
           v-model:value="options.config.desc"
@@ -301,8 +306,13 @@
 <script setup lang="ts">
 import { deepRaw, uuid } from "@renderer/utils";
 import { useConfirm } from "@renderer/hooks";
+import { videoPresetApi, biliApi } from "@renderer/apis";
+import { previewWebhookTitle } from "@renderer/apis/common";
+
 import { useUploadPreset, useAppConfig, useUserInfoStore } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
+import { templateRef } from "@vueuse/core";
+import DynamicTags from "./DynamicTags.vue";
 
 import type { BiliupPreset } from "@biliLive-tools/types";
 
@@ -325,7 +335,7 @@ const options: Ref<BiliupPreset> = ref({
   },
 });
 const handlePresetChange = async (value: string) => {
-  const preset = await window.api.bili.getPreset(value);
+  const preset = await videoPresetApi.get(value);
   if (preset) {
     options.value = preset;
   } else {
@@ -339,30 +349,53 @@ const handlePresetChange = async (value: string) => {
 
 const noSideSpace = (value: string) => !value.startsWith(" ") && !value.endsWith(" ");
 
-onMounted(async () => {
-  handlePresetChange(presetId.value);
-});
+watch(
+  () => presetId.value,
+  (value) => {
+    handlePresetChange(value);
+  },
+  {
+    immediate: true,
+  },
+);
 
 const notice = useNotification();
-const handleTagChange = async (tags: string[]) => {
-  if (tags.length !== 0) {
-    if (!appConfig.value.uid) {
-      notice.warning({
-        title: "请先登录",
-        duration: 500,
-      });
-      options.value.config.tag.splice(-1);
-      return;
-    }
-    const res = await window.api.bili.checkTag(tags[tags.length - 1], appConfig.value.uid);
+const tagCreateLoading = ref(false);
+const beforeTagCreate = async (tag: string) => {
+  if (!appConfig.value.uid) {
+    notice.warning({
+      title: "请先登录",
+      duration: 1000,
+    });
+    return false;
+  }
+  if ((options.value?.config?.tag ?? []).includes(tag)) {
+    notice.warning({
+      title: "Σ( ° △ °|||) 该输入标签已经存在",
+      duration: 1000,
+    });
+    return false;
+  }
 
+  tagCreateLoading.value = true;
+  try {
+    const res = await biliApi.checkTag(tag, appConfig.value.uid);
     if (res.code !== 0) {
       notice.error({
         title: res.message,
         duration: 1000,
       });
-      options.value.config.tag.splice(-1);
+      return false;
     }
+    return true;
+  } catch (e) {
+    notice.error({
+      title: "无法添加标签",
+      duration: 1000,
+    });
+    return false;
+  } finally {
+    tagCreateLoading.value = false;
   }
 };
 
@@ -414,11 +447,10 @@ const saveAnotherPresetConfirm = async () => {
 };
 
 const deletePreset = async () => {
-  const appConfig = await window.api.config.getAll();
-  let ids = Object.entries(appConfig.webhook.rooms || {}).map(([, value]) => {
+  let ids = Object.entries(appConfig.value.webhook.rooms || {}).map(([, value]) => {
     return value?.uploadPresetId;
   });
-  ids.push(appConfig.webhook?.uploadPresetId);
+  ids.push(appConfig.value.webhook?.uploadPresetId);
   ids = ids.filter((id) => id !== undefined && id !== "");
 
   const msg = ids.includes(options.value.id)
@@ -431,7 +463,7 @@ const deletePreset = async () => {
   if (!status) return;
 
   const id = options.value.id;
-  await window.api.bili.deletePreset(id);
+  await videoPresetApi.remove(id);
   getUploadPresets();
   presetId.value = "default";
   handlePresetChange("default");
@@ -457,8 +489,8 @@ const savePreset = async () => {
 };
 
 const _savePreset = async (data: BiliupPreset) => {
-  await window.api.bili.validUploadParams(deepRaw(data.config));
-  await window.api.bili.savePreset(deepRaw(data));
+  await biliApi.validUploadParams(deepRaw(data.config));
+  await videoPresetApi.save(deepRaw(data));
 };
 
 watch(
@@ -504,7 +536,7 @@ const getSeasonList = async () => {
     seasonList.value = [];
     return;
   }
-  const data = await window.api.bili.getSeasonList(userInfoStore.userInfo.uid);
+  const data = await biliApi.getSeasonList(userInfoStore.userInfo.uid);
   seasonList.value = (data.seasons || []).map((item) => {
     return {
       label: item.season.title,
@@ -519,7 +551,7 @@ const getPlatformTypes = async () => {
   if (!userInfoStore?.userInfo?.uid) {
     return;
   }
-  const data = await window.api.bili.getPlatformPre(userInfoStore.userInfo.uid);
+  const data = await biliApi.getPlatformPre(userInfoStore.userInfo.uid);
   areaData.value = data.typelist;
 };
 
@@ -561,7 +593,7 @@ const handleSearch = async (query: string) => {
     return;
   }
   topicLoading.value = true;
-  const data = await window.api.bili.searchTopic(query, appConfig.value.uid);
+  const data = await biliApi.searchTopic(query, appConfig.value.uid);
   topicOptions.value = data.result.topics.map((item) => {
     return {
       ...item,
@@ -588,6 +620,85 @@ watch(
     }
   },
 );
+
+const titleList = ref([
+  {
+    value: "{{title}}",
+    label: "视频标题",
+  },
+  {
+    value: "{{user}}",
+    label: "主播名",
+  },
+  {
+    value: "{{roomId}}",
+    label: "房间号",
+  },
+  {
+    value: "{{now}}",
+    label: "视频录制时间（示例：2024.01.24）",
+  },
+  {
+    value: "{{yyyy}}",
+    label: "年",
+  },
+  {
+    value: "{{MM}}",
+    label: "月（补零）",
+  },
+  {
+    value: "{{dd}}",
+    label: "日（补零）",
+  },
+  {
+    value: "{{HH}}",
+    label: "时（补零）",
+  },
+  {
+    value: "{{mm}}",
+    label: "分（补零）",
+  },
+  {
+    value: "{{ss}}",
+    label: "秒（补零）",
+  },
+]);
+const titleTip = computed(() => {
+  const base = `上限80字，多余的会被截断。<br/>
+  占位符用于支持webhook中的相关功能，如果你是手动上传，和你基本上没关系，如【{{user}}】{{title}}-{{now}}<br/>
+  不要在直播开始后修改字段，本场直播不会生效，更多模板引擎等高级用法见文档<br/>`;
+  return titleList.value
+    .map((item) => {
+      return `${item.label}：${item.value}<br/>`;
+    })
+    .reduce((prev, cur) => prev + cur, base);
+});
+
+const previewTitle = async (template: string) => {
+  const data = await previewWebhookTitle(template);
+  notice.warning({
+    title: data,
+    duration: 3000,
+  });
+};
+
+const titleInput = templateRef("titleInput");
+const setTitleVar = async (value: string) => {
+  const input = titleInput.value?.inputElRef;
+  if (input) {
+    // 获取input光标位置
+    const start = input.selectionStart ?? options.value.config.title.length;
+    const end = input.selectionEnd ?? options.value.config.title.length;
+    const oldValue = options.value.config.title;
+    options.value.config.title = oldValue.slice(0, start) + value + oldValue.slice(end);
+    // 设置光标位置
+    input.focus();
+    await nextTick();
+    input.setSelectionRange(start + value.length, start + value.length);
+  } else {
+    options.value.config.title += value;
+  }
+};
 </script>
 
 <style scoped lang="less">
@@ -605,6 +716,23 @@ watch(
   .inline-item {
     display: inline-flex;
     align-items: center;
+  }
+}
+.title-var {
+  display: inline-block;
+  margin-top: 4px;
+  margin-right: 10px;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  font-size: 12px;
+  color: #666;
+  cursor: pointer;
+  &:not(.disabled):hover {
+    background-color: #e0e0e0;
+  }
+  &.disabled {
+    cursor: not-allowed;
   }
 }
 </style>

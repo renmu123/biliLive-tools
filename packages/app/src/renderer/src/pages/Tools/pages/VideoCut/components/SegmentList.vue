@@ -5,7 +5,7 @@
         size="20"
         class="pointer icon"
         title="在当前时间开始当前片段"
-        style="padding: 4px"
+        style="padding: 2px"
         @click="setStartTime"
       >
         <svg
@@ -31,7 +31,7 @@
         size="20"
         class="pointer icon cut-set-end"
         title="在当前时间结束当前片段"
-        style="padding: 4px"
+        style="padding: 2px"
         @click="setEndTime"
       >
         <svg
@@ -411,6 +411,7 @@ const searchDanmu = () => {
 
   .view {
     max-height: calc(100vh - 100px);
+    min-width: 210px;
     overflow: auto;
   }
   .btns {
@@ -427,6 +428,9 @@ const searchDanmu = () => {
     .icon {
       border: 1px solid rgba(204, 204, 204, 1);
       border-radius: 2px;
+      &:hover {
+        border-color: #358457;
+      }
     }
   }
   .cut {
