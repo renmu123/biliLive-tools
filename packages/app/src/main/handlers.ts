@@ -24,33 +24,6 @@ export const configHandlers = {
   "config:save": (_event: IpcMainInvokeEvent, newConfig: AppConfig) => {
     appConfig.setAll(newConfig);
   },
-  "config:export": async (_event: IpcMainInvokeEvent, filePath: string) => {
-    const { APP_CONFIG_PATH, VIDEO_PRESET_PATH, DANMU_PRESET_PATH, FFMPEG_PRESET_PATH } =
-      await getConfigPath();
-
-    const zip = new JSZip();
-    // 添加文件到 ZIP
-    zip.file(path.parse(APP_CONFIG_PATH).base, await fs.readFile(APP_CONFIG_PATH));
-    if (await fs.pathExists(VIDEO_PRESET_PATH)) {
-      zip.file(path.parse(VIDEO_PRESET_PATH).base, await fs.readFile(VIDEO_PRESET_PATH));
-    }
-    if (await fs.pathExists(DANMU_PRESET_PATH)) {
-      zip.file(path.parse(DANMU_PRESET_PATH).base, await fs.readFile(DANMU_PRESET_PATH));
-    }
-    if (await fs.pathExists(FFMPEG_PRESET_PATH)) {
-      zip.file(path.parse(FFMPEG_PRESET_PATH).base, await fs.readFile(FFMPEG_PRESET_PATH));
-    }
-    // 生成 ZIP 文件
-    const content = await zip.generateAsync({ type: "nodebuffer" });
-    await fs
-      .writeFile(filePath, content)
-      .then(() => {
-        return true;
-      })
-      .catch(() => {
-        return false;
-      });
-  },
   "config:import": async (_event: IpcMainInvokeEvent, filePath: string) => {
     const zip = new JSZip();
     const data = await zip.loadAsync(await fs.readFile(filePath));

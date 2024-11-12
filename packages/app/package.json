@@ -66,6 +66,7 @@
     "electron-vite": "^2.3.0",
     "eslint": "^8.57.1",
     "eslint-plugin-vue": "^9.30.0",
+    "file-saver": "^2.0.5",
     "filenamify": "^6.0.0",
     "flv.js": "^1.6.2",
     "hotkeys-js": "^3.13.7",

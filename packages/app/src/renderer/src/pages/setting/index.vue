@@ -196,7 +196,7 @@
                 <span class="inline-flex">
                   配置
                   <Tip
-                    :tip="`导出配置文件以及其他的预设配置，导入后重启应用生效，尽量保持版本一致`"
+                    tip="导出配置文件，导入后重启应用生效，尽量保持版本一致，如果按钮无法使用，请参照常见问题进行手动备份"
                   ></Tip>
                 </span>
               </template>
@@ -328,6 +328,7 @@ import RecordSetting from "./RecordSetting.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
+import { saveAs } from "file-saver";
 import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline, Refresh } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
@@ -628,20 +629,11 @@ const addRoom = () => {
 // 导出配置
 const exportSettingZip = async () => {
   const version = await commonApi.version();
+  const name = `biliLive-tools-${version}-${new Date().getTime()}-配置备份.zip`;
 
-  const file = await window.api.showSaveDialog({
-    defaultPath: `biliLive-tools-${version}-${new Date().getTime()}-配置备份.zip`,
-    filters: [{ name: "压缩文件", extensions: ["zip"] }],
-  });
-  if (!file) return;
-  await window.api.config.export(file);
-  notice.success({
-    title: "导出成功",
-    duration: 1000,
-  });
-  setTimeout(() => {
-    window.api.common.showItemInFolder(file);
-  }, 100);
+  // 导出文件
+  const blob = await configApi.exportConfig();
+  saveAs(blob, name);
 };
 // 导入配置
 const importSettingZip = async () => {

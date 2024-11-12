@@ -49,12 +49,28 @@ export const notifyTest = async (
   return res.data;
 };
 
+export const exportConfig = async (): Promise<Buffer> => {
+  const res = await request.get(`/config/export`, {
+    responseType: "blob",
+  });
+  return res.data;
+};
+
+export const importConfig = async (file: File): Promise<void> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await request.post(`/config/import`, formData);
+  return res.data;
+};
+
 const config = {
   get,
   set,
   save,
   resetBin,
   notifyTest,
+  exportConfig,
+  importConfig,
 };
 
 export default config;

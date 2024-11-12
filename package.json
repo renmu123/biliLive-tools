@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "fs-extra": "^11.2.0",
+    "jszip": "^3.10.1",
     "lodash-es": "^4.17.21",
     "uuid": "^10.0.0"
   },
