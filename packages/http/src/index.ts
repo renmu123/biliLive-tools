@@ -21,6 +21,7 @@ import SSERouter from "./routes/sse.js";
 import recocderRouter from "./routes/recorder.js";
 import biliRouter from "./routes/bili.js";
 import taskRouter from "./routes/task.js";
+import assetsRouter from "./routes/assets.js";
 import { WebhookHandler } from "./services/webhook.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
@@ -72,6 +73,7 @@ app.use(cors());
 app.use(bodyParser());
 app.use(router.routes());
 app.use(webhookRouter.routes());
+app.use(assetsRouter.routes());
 
 export async function serverStart(
   options: {

@@ -482,8 +482,13 @@ ipcMain.handle("db:addWithStreamer", async (_event, options: any) => {
 const appInit = async () => {
   fs.ensureDir(getTempPath());
 
-  const { APP_CONFIG_PATH, FFMPEG_PRESET_PATH, VIDEO_PRESET_PATH, DANMU_PRESET_PATH } =
-    await getConfigPath();
+  const {
+    APP_CONFIG_PATH,
+    FFMPEG_PRESET_PATH,
+    VIDEO_PRESET_PATH,
+    DANMU_PRESET_PATH,
+    userDataPath,
+  } = await getConfigPath();
 
   const globalConfig: GlobalConfig = {
     videoPresetPath: VIDEO_PRESET_PATH,
@@ -494,6 +499,7 @@ const appInit = async () => {
     defaultFfmpegPath: FFMPEG_PATH,
     defaultFfprobePath: FFPROBE_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
+    userDataPath,
     version: app.getVersion(),
   };
   container = await init(globalConfig);

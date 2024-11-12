@@ -105,6 +105,20 @@ export async function getFontList(): Promise<string[]> {
   return res.data;
 }
 
+export async function uploadCover(file: File): Promise<{
+  name: string;
+  path: string;
+}> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await request.post("/common/cover/upload", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return res.data;
+}
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
@@ -116,6 +130,7 @@ const common = {
   getVideoStreams,
   readXmlTimestamp,
   getFontList,
+  uploadCover,
 };
 
 export default common;

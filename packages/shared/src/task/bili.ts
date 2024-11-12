@@ -17,7 +17,7 @@ import log from "../utils/log.js";
 import { sleep, encrypt, decrypt, getTempPath } from "../utils/index.js";
 import { sendNotify } from "../notify.js";
 
-import type { BiliupConfig, BiliUser } from "@biliLive-tools/types";
+import type { BiliupConfig, BiliUser, GlobalConfig } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
 import type { getArchivesReturnType } from "@renmu/bili-api/dist/types/platform.js";
 import type { AppConfig } from "../config.js";
@@ -146,7 +146,7 @@ export function parseDesc(input: string): DescV2[] {
   return tokens;
 }
 
-export function formatOptions(options: BiliupConfig) {
+export function formatOptions(options: BiliupConfig, coverDir: string | undefined = undefined) {
   const descV2 = parseDesc(options.desc || "");
   const hasAt = descV2.some((item) => item.type === 2);
   const desc = descV2
@@ -165,8 +165,24 @@ export function formatOptions(options: BiliupConfig) {
     tags.unshift(options.topic_name);
   }
 
+  let cover: string | undefined;
+  if (options.cover) {
+    if (path.isAbsolute(options.cover)) {
+      cover = options.cover;
+    } else {
+      if (coverDir) cover = path.join(coverDir, options.cover);
+    }
+  } else {
+    cover = undefined;
+  }
+
+  if (cover && !fs.pathExistsSync(cover)) {
+    console.warn("封面不存在", cover);
+    cover = undefined;
+  }
+
   const data: MediaOptions = {
-    cover: options.cover,
+    cover: cover,
     title: options.title,
     tid: options.tid,
     tag: tags.slice(0, 10).join(","),
@@ -206,7 +222,8 @@ export async function addMediaApi(
   video: { cid: number; filename: string; title: string; desc?: string }[],
   options: BiliupConfig,
 ) {
-  const mediaOptions = formatOptions(options);
+  const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+  const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
   const client = await createClient(uid);
   return client.platform.addMediaClientApi(video, mediaOptions);
 }
@@ -222,7 +239,9 @@ export async function editMediaApi(
 ) {
   const mediaOptions = {};
   console.log("编辑视频", options);
-  // const mediaOptions = formatOptions(options);
+
+  // const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+  // const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
   const client = await createClient(uid);
   return client.platform.editMediaClientApi(video, { aid, ...mediaOptions }, "append");
 }

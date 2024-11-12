@@ -1,9 +1,15 @@
 import { exec } from "node:child_process";
 import path from "node:path";
 import fs from "fs-extra";
+import multer from "../middleware/multer.js";
 
 import Router from "koa-router";
-import { formatTitle, getFontsList } from "@biliLive-tools/shared/utils/index.js";
+import {
+  formatTitle,
+  getFontsList,
+  getTempPath,
+  uuid,
+} from "@biliLive-tools/shared/utils/index.js";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
 import { readXmlTimestamp } from "@biliLive-tools/shared/task/video.js";
 
@@ -12,6 +18,7 @@ import { config } from "../index.js";
 const router = new Router({
   prefix: "/common",
 });
+const upload = multer({ dest: getTempPath() });
 
 router.post("/formatTitle", async (ctx) => {
   const data = ctx.request.body as {
@@ -170,6 +177,30 @@ router.post("/danma/timestamp", async (ctx) => {
  */
 router.get("/fonts", async (ctx) => {
   ctx.body = await getFontsList();
+});
+
+router.post("/cover/upload", upload.single("file"), async (ctx) => {
+  // @ts-ignore
+  const file = ctx.request?.file?.path as string;
+  if (!file) {
+    ctx.status = 400;
+    ctx.body = "No file selected";
+    return;
+  }
+  // @ts-ignore
+  const originalname = ctx.request?.file?.originalname as string;
+  const ext = path.extname(originalname);
+
+  const coverPath = path.join(config.userDataPath, "cover");
+  const outputName = `${uuid()}${ext}`;
+  // 将图片复制到指定目录
+  await fs.ensureDir(coverPath);
+  await fs.copyFile(file, path.join(coverPath, outputName));
+  await fs.remove(file).catch(() => {});
+  ctx.body = {
+    name: outputName,
+    path: `/assets/cover/${outputName}`,
+  };
 });
 
 export default router;

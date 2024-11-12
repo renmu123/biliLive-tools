@@ -3,7 +3,7 @@
     <input
       ref="fileInputRef"
       type="file"
-      accept="image/*"
+      accept=".png,.jpg,.jpeg"
       style="display: none"
       @change="handleCoverChange"
     />
@@ -22,7 +22,19 @@
 </template>
 
 <script setup lang="ts">
-const src = defineModel<string | undefined>({ required: true, default: "" });
+import { commonApi, api } from "@renderer/apis";
+
+const filename = defineModel<string | undefined>({ required: true, default: "" });
+const src = computed(() => {
+  if (filename.value) {
+    if (window.path.isAbsolute(filename.value)) {
+      return filename.value;
+    } else {
+      return `${api.defaults.baseURL}/assets/cover/${filename.value}`;
+    }
+  }
+  return "";
+});
 
 interface Props {
   height?: string;
@@ -33,11 +45,11 @@ const props: Props = withDefaults(defineProps<Props>(), {
   width: "160px",
 });
 
-const handleCoverChange = (e: Event) => {
+const handleCoverChange = async (e: Event) => {
   const file = (e.target as HTMLInputElement).files?.[0];
   if (!file) return;
-  console.log(file);
-  src.value = window.api.common.getPathForFile(file);
+  const res = await commonApi.uploadCover(file);
+  filename.value = res.name;
 };
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
@@ -46,7 +58,7 @@ const selectImage = () => {
 };
 
 const remove = () => {
-  src.value = "";
+  filename.value = "";
 };
 </script>
 
@@ -76,7 +88,7 @@ const remove = () => {
   top: 4px;
   right: 4px;
   color: #fff;
-  background: #000;
+  background: #000000;
   border-radius: 50%;
   cursor: pointer;
   font-size: 12px;

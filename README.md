@@ -75,6 +75,7 @@ services:
       - ./data:/app/data
       # 用于处理webhook数据
       - ./video:/app/video
+      # 字体文件夹，待施工
     environment:
       # 登录密钥
       - BILILIVE_TOOLS_PASSKEY=your_passkey

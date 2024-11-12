@@ -161,6 +161,7 @@ export class WebhookHandler {
     const currentPart = currentLive.findPartByFilePath(options.filePath);
     if (!currentPart) return;
 
+    // TODO:重构
     if (useLiveCover) {
       const cover = await this.handleCover(options);
       if (cover) {

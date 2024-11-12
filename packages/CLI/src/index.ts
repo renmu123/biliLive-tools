@@ -52,6 +52,7 @@ program
       defaultFfprobePath: c.ffprobePath,
       defaultDanmakuFactoryPath: c.danmakuFactoryPath,
       version: version,
+      userDataPath: c.configFolder,
     };
     const container = await init(globalConfig);
 
