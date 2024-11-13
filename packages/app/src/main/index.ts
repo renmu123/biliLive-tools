@@ -15,8 +15,6 @@ import { danmuService } from "@biliLive-tools/shared/db/index.js";
 import { init } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
-// import { handlers as biliHandlers } from "./bili";
-import { handlers as biliupHandlers } from "./biliup";
 import { handlers as danmuHandlers } from "./danmu";
 import { commonHandlers, getTempPath } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
@@ -84,8 +82,6 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:setTheme", setTheme);
 
-  registerHandlers(ipcMain, biliupHandlers);
-  // registerHandlers(ipcMain, biliHandlers);
   registerHandlers(ipcMain, ffmpegHandlers);
   registerHandlers(ipcMain, danmuHandlers);
   registerHandlers(ipcMain, configHandlers);

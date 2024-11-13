@@ -4,6 +4,8 @@ import { TvQrcodeLogin } from "@renmu/bili-api";
 import { v4 as uuid } from "uuid";
 import { omit } from "lodash-es";
 
+import type { BiliupConfig } from "@biliLive-tools/types";
+
 const router = new Router({
   prefix: "/bili",
 });
@@ -97,6 +99,51 @@ router.post("/download", async (ctx) => {
   // @ts-ignore
   const data = await biliApi.download(options, uid);
   ctx.body = data;
+});
+
+/**
+ * 上传以及续传视频
+ */
+router.post("/upload", async (ctx) => {
+  // @ts-ignore
+  const data = ctx.request.body as {
+    uid: number;
+    vid?: number;
+    videos?:
+      | string[]
+      | {
+          path: string;
+          title?: string;
+        }[];
+    config?: BiliupConfig;
+  };
+  if (!data.uid) {
+    ctx.body = "uid required";
+    ctx.status = 400;
+    return;
+  }
+  if (!data.videos || !data.videos.length) {
+    ctx.body = "videos required ";
+    ctx.status = 400;
+    return;
+  }
+  if (!data.config) {
+    ctx.body = "config required when upload video";
+    ctx.status = 400;
+    return;
+  }
+
+  if (data.vid) {
+    const task = await biliApi.editMedia(data.vid as number, data.videos, data.config, data.uid);
+    ctx.body = {
+      taskId: task.taskId,
+    };
+  } else {
+    const task = await biliApi.addMedia(data.videos, data.config, data.uid);
+    ctx.body = {
+      taskId: task.taskId,
+    };
+  }
 });
 
 // 登录相关

@@ -116,6 +116,23 @@ const loginPoll = async (
   return res.data;
 };
 
+const upload = async (options: {
+  uid: number;
+  vid?: number;
+  videos?:
+    | string[]
+    | {
+        path: string;
+        title?: string;
+      }[];
+  config?: BiliupConfig;
+}): Promise<{
+  taskId: string;
+}> => {
+  const res = await request.post("/bili/upload", options);
+  return res.data;
+};
+
 const bili = {
   validUploadParams,
   getArchives,
@@ -131,6 +148,7 @@ const bili = {
   qrcode,
   loginCancel,
   loginPoll,
+  upload,
 };
 
 export default bili;

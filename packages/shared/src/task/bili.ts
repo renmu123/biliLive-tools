@@ -469,6 +469,10 @@ export class BiliCommentQueue {
     this.list = [];
     this.appConfig = appConfig;
   }
+
+  /**
+   * 添加检查审核状态任务
+   */
   addCheckTask(data: { uid: number; aid: number }) {
     const index = this.list
       .filter((item) => item.type === "checkStatus")
@@ -491,6 +495,9 @@ export class BiliCommentQueue {
 
     // console.log("addCheckTask", this.list);
   }
+  /**
+   * 添加评论任务
+   */
   addCommentTask(data: { aid: number; content: string; uid: number; top: boolean }) {
     if (this.list.filter((item) => item.type === "comment").some((item) => item.aid === data.aid))
       return;
@@ -518,7 +525,7 @@ export class BiliCommentQueue {
     sendNotify(title, desp);
   }
   /**
-   * 状态检查
+   * 审核状态通知任务检查
    */
   async statusCheck() {
     const list = this.filter("checkStatus");
@@ -562,7 +569,7 @@ export class BiliCommentQueue {
     }
   }
   /**
-   * 评论检查
+   * 评论任务检查
    */
   async commentCheck() {
     const allowCommentList: number[] = this.mediaList

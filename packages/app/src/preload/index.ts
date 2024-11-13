@@ -12,8 +12,6 @@ import type {
   File,
   FfmpegOptions,
   AppConfig,
-  BiliupConfig,
-  BiliupConfigAppend,
   VideoMergeOptions,
   DanmuConfig,
   hotProgressOptions,
@@ -22,7 +20,7 @@ import type {
   DanmuItem,
 } from "@biliLive-tools/types";
 import type { OpenDialogOptions } from "../types";
-import type ffmpeg from "fluent-ffmpeg";
+import type ffmpeg from "@renmu/fluent-ffmpeg";
 
 type startCallback = (params: { command?: string }) => void;
 type endCallback = (params: { output?: string }) => void;
@@ -210,34 +208,6 @@ export const api = {
     },
     execFile: (file: string, args: string[]) => {
       return ipcRenderer.invoke("common:execFile", file, args);
-    },
-  },
-  bili: {
-    // 上传视频
-    uploadVideo: (
-      uid: number,
-      videoFiles:
-        | string[]
-        | {
-            path: string;
-            title?: string;
-          }[],
-      options: BiliupConfig,
-    ) => {
-      return ipcRenderer.invoke("bili:uploadVideo", uid, videoFiles, options);
-    },
-    // 续传视频
-    appendVideo: (
-      uid: number,
-      videoFiles:
-        | string[]
-        | {
-            path: string;
-            title?: string;
-          }[],
-      options: BiliupConfigAppend,
-    ) => {
-      return ipcRenderer.invoke("bili:appendVideo", uid, videoFiles, options);
     },
   },
   config: {

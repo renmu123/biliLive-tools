@@ -420,8 +420,8 @@ importers:
   packages/liveManager:
     dependencies:
       '@renmu/fluent-ffmpeg':
-        specifier: 2.3.0
-        version: 2.3.0
+        specifier: 2.3.1
+        version: 2.3.1
       fast-xml-parser:
         specifier: ^4.5.0
         version: 4.5.0
@@ -438,9 +438,6 @@ importers:
       '@biliLive-tools/types':
         specifier: workspace:*
         version: link:../types
-      '@types/fluent-ffmpeg':
-        specifier: ^2.1.27
-        version: 2.1.27
 
   packages/shared:
     dependencies:
@@ -466,8 +463,8 @@ importers:
         specifier: 2.0.2
         version: 2.0.2
       '@renmu/fluent-ffmpeg':
-        specifier: 2.3.0
-        version: 2.3.0
+        specifier: 2.3.1
+        version: 2.3.1
       '@renmu/m3u8-downloader':
         specifier: ^0.3.1
         version: 0.3.1
@@ -517,9 +514,6 @@ importers:
         specifier: ^1.2.2
         version: 1.2.2
     devDependencies:
-      '@types/fluent-ffmpeg':
-        specifier: ^2.1.27
-        version: 2.1.27
       '@types/nodemailer':
         specifier: ^6.4.16
         version: 6.4.16
@@ -667,8 +661,8 @@ packages:
     resolution: {integrity: sha512-Qkzpg2s9GnVV2I2BjRksUi43U5e6+zaQMcjoJy0C+C5oxaKl+fmckGDQFtRpZpZV0NQekuZZ+tGz7EA9TVnQtQ==}
     engines: {node: '>=12'}
 
-  '@electron/node-gyp@https://codeload.github.com/electron/node-gyp/tar.gz/06b29aafb7708acef8b3669835c8a7857ebc92d2':
-    resolution: {tarball: https://codeload.github.com/electron/node-gyp/tar.gz/06b29aafb7708acef8b3669835c8a7857ebc92d2}
+  '@electron/node-gyp@git+https://git@github.com:electron/node-gyp.git#06b29aafb7708acef8b3669835c8a7857ebc92d2':
+    resolution: {commit: 06b29aafb7708acef8b3669835c8a7857ebc92d2, repo: git@github.com:electron/node-gyp.git, type: git}
     version: 10.2.0-electron.1
     engines: {node: '>=12.13.0'}
     hasBin: true
@@ -1195,8 +1189,8 @@ packages:
     resolution: {integrity: sha512-3IJHVxpa06XF4esPERzvbbpRS+sqTYzfcAiOiED94TSQvEyaWWi3D50lRjWv7bZsEfltz35lo6lJQKhzHlaJhQ==}
     engines: {node: '>=18'}
 
-  '@renmu/fluent-ffmpeg@2.3.0':
-    resolution: {integrity: sha512-WfQeQlj0HQLSzc7AgBW/gY+/LpGdDgMoNvFo7fLEdo9NlqDwsqVSWBtwpb569+d9YAfkaZmByjm2aTLINtmuMw==}
+  '@renmu/fluent-ffmpeg@2.3.1':
+    resolution: {integrity: sha512-veQX2sEqLcZPaXJALfZycjnx9kdqZl1kAdeix4oFD3eKEVumciH/PCVvAEnj4J6GTVITP1KxDIJsU68sLrQN4Q==}
     engines: {node: '>=18'}
 
   '@renmu/m3u8-downloader@0.3.1':
@@ -1416,9 +1410,6 @@ packages:
 
   '@types/express@5.0.0':
     resolution: {integrity: sha512-DvZriSMehGHL1ZNLzi6MidnsDhUZM/x2pRdDIKdwbUNqqwHxMlRdkxtn6/EPKyqKpHqTl/4nRZsRNLpZxZRpPQ==}
-
-  '@types/fluent-ffmpeg@2.1.27':
-    resolution: {integrity: sha512-QiDWjihpUhriISNoBi2hJBRUUmoj/BMTYcfz+F+ZM9hHWBYABFAE6hjP/TbCZC0GWwlpa3FzvHH9RzFeRusZ7A==}
 
   '@types/fs-extra@9.0.13':
     resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
@@ -5203,7 +5194,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@electron/node-gyp@https://codeload.github.com/electron/node-gyp/tar.gz/06b29aafb7708acef8b3669835c8a7857ebc92d2':
+  '@electron/node-gyp@git+https://git@github.com:electron/node-gyp.git#06b29aafb7708acef8b3669835c8a7857ebc92d2':
     dependencies:
       env-paths: 2.2.1
       exponential-backoff: 3.1.1
@@ -5240,7 +5231,7 @@ snapshots:
 
   '@electron/rebuild@3.7.0':
     dependencies:
-      '@electron/node-gyp': https://codeload.github.com/electron/node-gyp/tar.gz/06b29aafb7708acef8b3669835c8a7857ebc92d2
+      '@electron/node-gyp': git+https://git@github.com:electron/node-gyp.git#06b29aafb7708acef8b3669835c8a7857ebc92d2
       '@malept/cross-spawn-promise': 2.0.0
       chalk: 4.1.2
       debug: 4.3.7
@@ -5625,7 +5616,7 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@renmu/fluent-ffmpeg@2.3.0':
+  '@renmu/fluent-ffmpeg@2.3.1':
     dependencies:
       async: 0.2.10
       which: 1.3.1
@@ -5819,10 +5810,6 @@ snapshots:
       '@types/express-serve-static-core': 5.0.1
       '@types/qs': 6.9.17
       '@types/serve-static': 1.15.7
-
-  '@types/fluent-ffmpeg@2.1.27':
-    dependencies:
-      '@types/node': 22.9.0
 
   '@types/fs-extra@9.0.13':
     dependencies:

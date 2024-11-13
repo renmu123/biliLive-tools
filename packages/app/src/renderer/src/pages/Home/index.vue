@@ -568,16 +568,28 @@ const upload = async (file: string, presetOptions: BiliupPreset, aid?: number) =
 
 // 新上传任务
 const uploadVideo = async (file: string, presetOptions: BiliupPreset) => {
-  await window.api.bili.uploadVideo(userInfo.value.uid, [file], presetOptions.config);
+  await biliApi.upload({
+    uid: userInfo.value.uid,
+    videos: [file],
+    config: presetOptions.config,
+  });
+  // await window.api.bili.uploadVideo(userInfo.value.uid, [file], presetOptions.config);
 };
 // 续传任务
 const appendVideoVisible = ref(false);
 const aid = ref();
 const appendVideo = async (aid: number, file: string, presetOptions: BiliupPreset) => {
-  await window.api.bili.appendVideo(userInfo.value.uid, [file], {
-    ...presetOptions.config,
+  await biliApi.upload({
     vid: aid,
+    uid: userInfo.value.uid,
+    videos: [file],
+    config: presetOptions.config,
   });
+
+  // await window.api.bili.appendVideo(userInfo.value.uid, [file], {
+  //   ...presetOptions.config,
+  //   vid: aid,
+  // });
 };
 
 // @ts-ignore

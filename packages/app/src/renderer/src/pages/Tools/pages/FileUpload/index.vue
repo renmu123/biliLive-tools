@@ -6,10 +6,8 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" :disabled="isWeb" @click="upload"> 立即上传 </n-button>
-      <n-button type="primary" :disabled="isWeb" @click="appendVideoVisible = true">
-        续传
-      </n-button>
+      <n-button type="primary" @click="upload"> 立即上传 </n-button>
+      <n-button type="primary" @click="appendVideoVisible = true"> 续传 </n-button>
     </div>
     <FileSelect ref="fileSelect" v-model="fileList"></FileSelect>
 
@@ -43,7 +41,6 @@ const { userInfo } = storeToRefs(useUserInfoStore());
 const { handlePresetOptions, presetOptions } = useBili();
 const { appConfig } = storeToRefs(useAppConfig());
 const notice = useNotification();
-const isWeb = computed(() => window.isWeb);
 
 const options = toReactive(
   computed({
@@ -97,13 +94,11 @@ const upload = async () => {
     title: `开始上传`,
     duration: 1000,
   });
-  // console.log(fileList.value);
-  const res = await window.api.bili.uploadVideo(
-    userInfo.value.uid,
-    deepRaw(fileList.value),
-    deepRaw(presetOptions.value.config),
-  );
-  console.log(res);
+  await biliApi.upload({
+    uid: userInfo.value.uid,
+    videos: deepRaw(fileList.value),
+    config: deepRaw(presetOptions.value.config),
+  });
   fileList.value = [];
 };
 
@@ -135,9 +130,11 @@ const appendVideo = async () => {
     title: `开始上传`,
     duration: 1000,
   });
-  await window.api.bili.appendVideo(userInfo.value.uid, deepRaw(fileList.value), {
-    ...deepRaw(presetOptions.value.config),
+  await biliApi.upload({
+    uid: userInfo.value.uid,
     vid: Number(aid.value),
+    videos: deepRaw(fileList.value),
+    config: deepRaw(presetOptions.value.config),
   });
   fileList.value = [];
 };

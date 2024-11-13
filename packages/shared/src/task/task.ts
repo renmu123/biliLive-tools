@@ -11,7 +11,7 @@ import { appConfig } from "../config.js";
 import kill from "tree-kill";
 import { addMediaApi, editMediaApi } from "./bili.js";
 
-import type ffmpeg from "fluent-ffmpeg";
+import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { Client, WebVideoUploader } from "@renmu/bili-api";
 import type { Progress, NotificationTaskStatus, BiliupConfig } from "@biliLive-tools/types";
 import type { Status } from "@biliLive-tools/types/task.d.ts";

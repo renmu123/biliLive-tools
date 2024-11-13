@@ -145,7 +145,7 @@ services:
 
 ## webui
 
-可用于国内未备案机器，或懒得自部署的情况，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者选择自签名，或者自部署，自部署参考[项目](https://github.com/renmu123/biliLive-webui)
+可用于国内未备案机器，或懒得自部署的情况，如果你的接口是http协议，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者自部署，自部署参考[项目](https://github.com/renmu123/biliLive-webui)
 
 密钥为`appConfig.json`的`passKey`字段
 
@@ -159,19 +159,19 @@ services:
 
 默认webhook地址：http://127.0.0.1:18010/webhook/bililiverecorder
 
-需要在本软件的“设置-webhook-录播姬工作目录”设置录播的工作目录
+**需要在本软件的“设置-webhook-录播姬工作目录”设置录播的工作目录**
 
 ### [blrec](https://github.com/acgnhiki/blrec)
 
 默认webhook地址：http://127.0.0.1:18010/webhook/blrec
 
-依赖于“视频文件创建”,“视频文件完成”两个webhhook，建议直接勾选全部事件。
+**依赖于“视频文件创建”,“视频文件完成”两个webhhook，建议直接勾选全部事件。**
 
 ### [DDTV](https://github.com/CHKZL/DDTV)
 
 默认webhook地址：http://127.0.0.1:18010/webhook/custom
 
-需要将DDTV的软件“设置-文件与路径设置-录制文件保存路径”设置为绝对路径。
+**需要将DDTV的软件“设置-文件与路径设置-录制文件保存路径”设置为绝对路径。**
 
 由于DDTV的webhook设计的非常扭曲~~难用~~，无法保证任意配置下的可用性
 
@@ -211,10 +211,6 @@ curl --location 'http://127.0.0.1:18010/webhook/custom' \
     "username":"djw"
 }'
 ```
-
-#### 录播姬
-
-#### blrec
 
 ## 断播续传
 
