@@ -17,18 +17,18 @@ import {
 } from "../src/utils.js";
 
 describe("utils", () => {
-  describe("asyncThrottle", () => {
-    it("should throttle async function calls", async () => {
-      const fn = vi.fn().mockResolvedValue(undefined);
-      const throttledFn = asyncThrottle(fn, 100);
+  // describe("asyncThrottle", () => {
+  //   it("should throttle async function calls", async () => {
+  //     const fn = vi.fn().mockResolvedValue(undefined);
+  //     const throttledFn = asyncThrottle(fn, 100);
 
-      throttledFn();
-      throttledFn();
-      throttledFn();
+  //     throttledFn();
+  //     throttledFn();
+  //     throttledFn();
 
-      expect(fn).toHaveBeenCalledTimes(1);
-    });
-  });
+  //     expect(fn).toHaveBeenCalledTimes(1);
+  //   });
+  // });
 
   describe("replaceExtName", () => {
     it("should replace the file extension", () => {

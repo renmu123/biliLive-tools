@@ -67,7 +67,7 @@ async function exportConfig(opts: {
   danmuPresetPath: string;
   ffmpegPresetPath: string;
   coverPath: string;
-  usedImageSet: Set<string>;
+  usedImageSet: Set<string | undefined>;
 }) {
   async function addToZip(file: string) {
     if (await fs.pathExists(file)) {
@@ -86,7 +86,7 @@ async function exportConfig(opts: {
       if (!opts.usedImageSet.has(name)) continue;
 
       if (await fs.pathExists(filePath)) {
-        zip.folder("cover").file(name, await fs.readFile(filePath));
+        zip.folder("cover")?.file(name, await fs.readFile(filePath));
       }
     }
   }
@@ -116,8 +116,7 @@ router.get("/export", async (ctx) => {
     const videoPresets = await preset.list();
     const usedImages = videoPresets
       .map((item) => item.config.cover)
-      .filter(Boolean)
-      .filter((cover) => !path.isAbsolute(cover));
+      .filter((cover) => cover && !path.isAbsolute(cover));
 
     const usedImageSet = new Set(usedImages);
 
