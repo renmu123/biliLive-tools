@@ -200,14 +200,8 @@
                   ></Tip>
                 </span>
               </template>
-              <n-button type="primary" :disabled="isWeb" @click="exportSettingZip"
-                >导出配置</n-button
-              >
-              <n-button
-                type="primary"
-                style="margin-left: 10px"
-                :disabled="isWeb"
-                @click="importSettingZip"
+              <n-button type="primary" @click="exportSettingZip">导出配置</n-button>
+              <n-button type="primary" style="margin-left: 10px" @click="importSettingZip"
                 >导入配置</n-button
               >
             </n-form-item>

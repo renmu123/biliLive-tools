@@ -256,9 +256,6 @@ export const api = {
     set: <K extends keyof AppConfig>(key: K, value: AppConfig[K]) => {
       return ipcRenderer.invoke("config:set", key, value);
     },
-    import: (filePath: string) => {
-      return ipcRenderer.invoke("config:import", filePath);
-    },
   },
   mergeAssMp4: async (
     files: {
