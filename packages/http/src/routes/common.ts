@@ -180,14 +180,12 @@ router.get("/fonts", async (ctx) => {
 });
 
 router.post("/cover/upload", upload.single("file"), async (ctx) => {
-  // @ts-ignore
   const file = ctx.request?.file?.path as string;
   if (!file) {
     ctx.status = 400;
     ctx.body = "No file selected";
     return;
   }
-  // @ts-ignore
   const originalname = ctx.request?.file?.originalname as string;
   const ext = path.extname(originalname);
 

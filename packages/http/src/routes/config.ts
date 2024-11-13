@@ -137,7 +137,6 @@ router.get("/export", async (ctx) => {
 });
 
 router.post("/import", upload.single("file"), async (ctx) => {
-  // @ts-ignore
   const file = ctx.request?.file?.path as string;
   if (!file) {
     ctx.status = 400;
