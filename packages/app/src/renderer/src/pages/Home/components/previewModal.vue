@@ -20,7 +20,6 @@ interface Props {
   files: {
     video: string;
     danmu: string;
-    isTempDanmu: boolean;
   };
 }
 
@@ -30,7 +29,6 @@ const props = withDefaults(defineProps<Props>(), {
     return {
       video: "",
       danmu: "",
-      isTempDanmu: false,
     };
   },
 });
@@ -47,14 +45,6 @@ watch(
   },
   { deep: true },
 );
-
-watch(showModal as any, (value) => {
-  if (!value) {
-    if (props.files.isTempDanmu) {
-      window.api.common.deleteFile(props.files.danmu);
-    }
-  }
-});
 
 const videoInstance = ref<ArtplayerType | null>(null);
 const handleVideoReady = async (instance: ArtplayerType) => {

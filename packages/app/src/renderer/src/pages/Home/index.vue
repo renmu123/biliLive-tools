@@ -363,10 +363,6 @@ const convert = async () => {
     await upload(output, rawPresetOptions, rawAid);
   }
 
-  // if (rawClientOptions.removeOrigin) {
-  //   window.api.trashItem(inputVideoFile.path);
-  //   window.api.trashItem(rawInputDanmuFile.path);
-  // }
   // if (rawClientOptions.openFolder) {
   //   window.api.common.showItemInFolder(outputPath);
   // }
@@ -503,10 +499,6 @@ const handleVideoMerge = async (
       msg = msg + err;
     }
     throw new Error(msg);
-  } finally {
-    if (convertOptions.rawInputDanmuFile.ext === ".xml") {
-      window.api.trashItem(convertOptions.inputAssFilePath);
-    }
   }
 
   return output;
@@ -679,7 +671,6 @@ const previewModalVisible = ref(false);
 const previewFiles = ref({
   video: "",
   danmu: "",
-  isTempDanmu: false,
 });
 const preview = async () => {
   const files = toRaw(fileList.value);
@@ -703,10 +694,8 @@ const preview = async () => {
       rawDanmuConfig,
     );
     previewFiles.value.danmu = targetAssFile.path;
-    previewFiles.value.isTempDanmu = true;
   } else if (data.inputDanmuFile.path.endsWith(".ass")) {
     previewFiles.value.danmu = data.inputDanmuFile.path;
-    previewFiles.value.isTempDanmu = false;
   }
 };
 </script>

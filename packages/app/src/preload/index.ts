@@ -184,9 +184,6 @@ export const api = {
     getTempPath: async () => {
       return ipcRenderer.invoke("common:getTempPath");
     },
-    deleteFile: (path: string) => {
-      return fs.unlink(path);
-    },
     readFile: (path: string) => {
       return fs.readFile(path, "utf-8");
     },
@@ -314,9 +311,6 @@ export const api = {
   },
   exits: (path: string) => {
     return ipcRenderer.invoke("exits", path);
-  },
-  trashItem: (path: string) => {
-    return ipcRenderer.invoke("trashItem", path);
   },
 
   openSetting: (callback: (_event: IpcRendererEvent) => void) => {
