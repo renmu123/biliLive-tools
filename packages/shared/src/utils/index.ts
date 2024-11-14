@@ -163,12 +163,20 @@ export const pathExists = async (path: string) => {
   return await fs.pathExists(path);
 };
 
+export const deleteFile = async (path: string) => {
+  try {
+    await fs.unlink(path);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 export const trashItem = async (path: string) => {
   const trashConfig = appConfig.get("trash");
   if (trashConfig) {
     return trash(path);
   } else {
-    fs.unlink(path);
+    return deleteFile(path);
   }
 };
 

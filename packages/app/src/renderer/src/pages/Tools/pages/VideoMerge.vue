@@ -15,7 +15,7 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" :disabled="isWeb" @click="convert"> 立即合并 </n-button>
+      <n-button type="primary" @click="convert"> 立即合并 </n-button>
       <Tip
         tip="注意：并非所有容器都支持流复制。如果出现播放问题或未合并文件，则可能需要重新编码。"
         :size="26"
@@ -41,10 +41,10 @@ import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSe
 import Tip from "@renderer/components/Tip.vue";
 import { useAppConfig } from "@renderer/stores";
 import { formatFile } from "@renderer/utils";
+import { taskApi } from "@renderer/apis";
 
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
-const isWeb = computed(() => window.isWeb);
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 
@@ -101,11 +101,15 @@ const convert = async () => {
     filePath = file;
   }
 
-  const files = fileList.value.map((file) => {
-    return formatFile(file.path);
-  });
+  // const files = fileList.value.map((file) => {
+  //   return formatFile(file.path);
+  // });
   try {
-    window.api.mergeVideos(toRaw(files), { ...toRaw(options), savePath: filePath });
+    taskApi.mergeVideos(
+      fileList.value.map((item) => item.path),
+      filePath,
+      options,
+    );
     notice.warning({
       title: `已加入任务队列，可在任务列表中查看进度`,
       duration: 1000,

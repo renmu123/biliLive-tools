@@ -416,8 +416,6 @@ export interface Video2Mp4Options {
 }
 
 export interface VideoMergeOptions {
-  savePath: string;
-
   removeOrigin: boolean; // 完成后移除源文件
 }
 

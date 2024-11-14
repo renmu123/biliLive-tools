@@ -1,5 +1,5 @@
 import { appConfig } from "@biliLive-tools/shared";
-import { mergeAssMp4, mergeVideos } from "@biliLive-tools/shared/task/video.js";
+import { mergeAssMp4 } from "@biliLive-tools/shared/task/video.js";
 import { invokeWrap } from "./utils/index";
 import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/task/video.js";
 
@@ -24,12 +24,6 @@ export const configHandlers = {
 export const ffmpegHandlers = {
   mergeAssMp4: async (_event: IpcMainInvokeEvent, ...args: Parameters<typeof mergeAssMp4>) => {
     const task = await mergeAssMp4(...args);
-    return {
-      taskId: task.taskId,
-    };
-  },
-  mergeVideos: async (_event: IpcMainInvokeEvent, ...args: Parameters<typeof mergeVideos>) => {
-    const task = await mergeVideos(...args);
     return {
       taskId: task.taskId,
     };

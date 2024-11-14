@@ -9,10 +9,8 @@ import type { IpcRendererEvent, SaveDialogOptions } from "electron";
 import type {
   Progress,
   DanmuOptions,
-  File,
   FfmpegOptions,
   AppConfig,
-  VideoMergeOptions,
   DanmuConfig,
   hotProgressOptions,
   Theme,
@@ -246,10 +244,6 @@ export const api = {
   ) => {
     return await ipcRenderer.invoke("mergeAssMp4", files, options, ffmpegOptions);
   },
-  mergeVideos: async (videoFiles: File[], options: VideoMergeOptions) => {
-    return await ipcRenderer.invoke("mergeVideos", videoFiles, options);
-  },
-
   readVideoMeta: (file: string): Promise<ffmpeg.FfprobeData> => {
     return ipcRenderer.invoke("readVideoMeta", file);
   },

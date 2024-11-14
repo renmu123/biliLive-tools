@@ -66,6 +66,21 @@ const convertXml2Ass = async (
   return res.data;
 };
 
+const mergeVideos = async (
+  inputVideos: string[],
+  output: string,
+  options: {
+    removeOrigin: boolean;
+  },
+): Promise<string> => {
+  const res = await request.post(`/task/mergeVideo`, {
+    inputVideos,
+    output,
+    options,
+  });
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -76,6 +91,7 @@ const task = {
   remove,
   start,
   convertXml2Ass,
+  mergeVideos,
 };
 
 export default task;

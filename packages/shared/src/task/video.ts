@@ -1,8 +1,8 @@
-import { join, parse } from "node:path";
-import os from "node:os";
+import path, { join, parse } from "node:path";
 
 import fs from "fs-extra";
 import ffmpeg from "@renmu/fluent-ffmpeg";
+import { sumBy } from "lodash-es";
 
 import { container } from "../index.js";
 import { appConfig } from "../config.js";
@@ -17,12 +17,12 @@ import {
   getHardwareAcceleration,
   timemarkToSeconds,
   readLines,
+  getTempPath,
 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask } from "./task.js";
 
 import type {
-  File,
   FfmpegOptions,
   VideoMergeOptions,
   Video2Mp4Options,
@@ -617,22 +617,20 @@ export const mergeAssMp4 = async (
       },
       onEnd: async () => {
         if (options.removeOrigin) {
-          if (await pathExists(videoInput)) {
-            log.info("mergrAssMp4, remove video origin file", videoInput);
-            await trashItem(videoInput);
-          }
-          if (assFile && (await pathExists(assFile))) {
+          await trashItem(videoInput);
+
+          if (assFile) {
             log.info("mergrAssMp4, remove ass origin file", assFile);
             await trashItem(assFile);
           }
         }
-        if (files.hotProgressFilePath && (await pathExists(files.hotProgressFilePath))) {
+        if (files.hotProgressFilePath) {
           log.info("mergrAssMp4, remove hot progress origin file", assFile);
           await fs.unlink(files.hotProgressFilePath);
         }
       },
       onError: async () => {
-        if (files.hotProgressFilePath && (await pathExists(files.hotProgressFilePath))) {
+        if (files.hotProgressFilePath) {
           log.info("mergrAssMp4, remove hot progress origin file", assFile);
           await fs.unlink(files.hotProgressFilePath);
         }
@@ -645,19 +643,16 @@ export const mergeAssMp4 = async (
 };
 
 export const mergeVideos = async (
-  videoFiles: File[],
+  inputFiles: string[],
+  output: string,
   options: VideoMergeOptions = {
-    savePath: "",
     removeOrigin: false,
   },
 ) => {
   await setFfmpegPath();
 
-  const output = options.savePath;
-
-  const tempDir = os.tmpdir();
-  const fileTxtPath = join(tempDir, `${uuid()}.txt`);
-  const fileTxtContent = videoFiles.map((videoFile) => `file '${videoFile.path}'`).join("\n");
+  const fileTxtPath = join(getTempPath(), `${uuid()}.txt`);
+  const fileTxtContent = inputFiles.map((videoFile) => `file '${videoFile}'`).join("\n");
   await fs.writeFile(fileTxtPath, fileTxtContent);
 
   const command = ffmpeg(fileTxtPath)
@@ -666,23 +661,26 @@ export const mergeVideos = async (
     .videoCodec("copy")
     .audioCodec("copy")
     .output(output);
-  const videoMetas = await Promise.all(videoFiles.map((file) => readVideoMeta(file.path)));
 
-  log.debug("videoFiles", videoFiles);
-  log.debug("videoMetas", videoMetas);
-
-  let duration = 0;
-
-  for (let i = 0; i < videoMetas.length; i++) {
-    const videoMeta = videoMetas[i];
-    duration += Number(videoMeta.format.duration);
+  let duration = 1;
+  let videoMetas: Awaited<ReturnType<typeof readVideoMeta>>[] = [];
+  try {
+    videoMetas = await Promise.all(inputFiles.map((file) => readVideoMeta(file)));
+    duration = sumBy(videoMetas, (meta) => Number(meta?.format?.duration ?? 0));
+  } catch (error) {
+    log.error("mergeVideos, read video meta error", error);
+  }
+  // 时长仅用来计算进度，优先保持任务进行
+  if (!duration) {
+    log.error("mergeVideos, read video meta duration error", videoMetas);
+    duration = 1;
   }
 
   const task = new FFmpegTask(
     command,
     {
       output,
-      name: `合并视频任务: ${videoFiles[0].name}等文件`,
+      name: `合并视频任务: ${path.dirname(inputFiles[0])}等文件`,
     },
     {
       onProgress(progress) {
@@ -693,13 +691,7 @@ export const mergeVideos = async (
       onEnd: async () => {
         fs.remove(fileTxtPath);
         if (options.removeOrigin) {
-          for (let i = 0; i < videoFiles.length; i++) {
-            const videoInput = videoFiles[i].path;
-            if (await pathExists(videoInput)) {
-              log.info("mergrAssMp4, remove video origin file", videoInput);
-              await trashItem(videoInput);
-            }
-          }
+          await Promise.all(inputFiles.map((videoInput) => trashItem(videoInput)));
         }
       },
       onError: async () => {

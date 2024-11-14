@@ -10,6 +10,10 @@ import {
   handleQueryTask,
 } from "@biliLive-tools/shared/task/task.js";
 import { convertXml2Ass } from "@biliLive-tools/shared/task/danmu.js";
+import {
+  // mergeAssMp4,
+  mergeVideos,
+} from "@biliLive-tools/shared/task/video.js";
 
 const router = new Router({
   prefix: "/task",
@@ -75,6 +79,30 @@ router.post("/convertXml2Ass", async (ctx) => {
       ...options,
     },
   );
+  ctx.body = { taskId: task.taskId };
+});
+
+router.post("/mergeVideo", async (ctx) => {
+  const { inputVideos, output, options } = ctx.request.body as {
+    inputVideos: string[];
+    output: string;
+    options: {
+      removeOrigin: boolean;
+    };
+  };
+  if (!inputVideos || inputVideos.length < 2) {
+    ctx.status = 400;
+    ctx.body = { message: "inputVideos length must be greater than 1" };
+    return;
+  }
+  if (!output) {
+    ctx.status = 400;
+    ctx.body = { message: "output is required" };
+    return;
+  }
+
+  const task = await mergeVideos(inputVideos, output, options);
+
   ctx.body = { taskId: task.taskId };
 });
 
