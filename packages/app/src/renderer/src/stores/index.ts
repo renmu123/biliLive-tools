@@ -55,7 +55,6 @@ export const useUserInfoStore = defineStore("userInfo", () => {
   };
 
   async function getUserInfo() {
-    await appConfigStore.getAppConfig();
     const uid = appConfigStore.appConfig.uid;
     userList.value = await getUserList();
     userList.value = userList.value.map((item) => {
@@ -98,6 +97,19 @@ export const useUserInfoStore = defineStore("userInfo", () => {
     }
   }
 
+  watch(
+    () => appConfigStore.appConfig.uid,
+    (newVal, oldVal) => {
+      if (newVal === oldVal) return;
+      if (!newVal) return;
+
+      getUserInfo();
+    },
+    {
+      once: true,
+    },
+  );
+
   function changeUser(uid: number) {
     const user = userList.value.find((item) => item.uid === uid);
     if (user) {
@@ -112,7 +124,7 @@ export const useUserInfoStore = defineStore("userInfo", () => {
     }
   }
 
-  getUserInfo();
+  // getUserInfo();
 
   return { userInfo, getUserInfo, userList, changeUser };
 });
@@ -327,9 +339,7 @@ export const useAppConfig = defineStore("appConfig", () => {
   }
   watch(
     () => appConfig.value.tool,
-    (newVal, oldVal) => {
-      if (!oldVal) return;
-
+    (newVal) => {
       configApi.set("tool", cloneDeep(newVal));
     },
     { deep: true },
