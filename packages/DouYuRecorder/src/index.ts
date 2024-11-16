@@ -211,7 +211,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     client.start();
   }
   this.on("Updated", (key) => {
-    console.log("key", key);
+    // console.log("key", key);
     if (key[0] === "disableProvideCommentsWhenRecording") {
       if (this.disableProvideCommentsWhenRecording) {
         client.stop();

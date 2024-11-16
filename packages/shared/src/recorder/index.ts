@@ -99,12 +99,10 @@ export async function createRecorderManager(appConfig: AppConfig) {
       }
     }
 
-    for (const recorderOpts of manager.recorders) {
+    for (const recorderOpts of recorderConfig.list()) {
       try {
-        const { id } = recorderOpts;
-        const recorder = manager.recorders.find((item) => item.id === id);
+        const recorder = manager.recorders.find((item) => item.id === recorderOpts.id);
         if (recorder == null) continue;
-        console.log("updateRecorderManager", recorderOpts);
 
         await updateRecorder(recorder, recorderOpts);
       } catch (error) {

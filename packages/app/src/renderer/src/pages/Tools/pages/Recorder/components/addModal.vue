@@ -46,9 +46,13 @@
         </n-form-item>
         <n-form-item>
           <template #label>
-            <span class="inline-flex"> 禁用自动录制 </span>
+            <span class="inline-flex"> 自动录制 </span>
           </template>
-          <n-switch v-model:value="config.disableAutoCheck" />
+          <n-switch
+            v-model:value="config.disableAutoCheck"
+            :checked-value="false"
+            :unchecked-value="true"
+          />
         </n-form-item>
         <n-form-item>
           <template #label>
