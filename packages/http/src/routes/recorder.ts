@@ -2,7 +2,6 @@ import Router from "koa-router";
 import { v4 as uuid } from "uuid";
 // import axios from "axios";
 
-import { genSavePathFromRule } from "@autorecord/manager";
 import { createRecorderManager } from "@biliLive-tools/shared";
 import { container } from "../index.js";
 // import { addRecorderWithAutoIncrementId, recorderManager } from "../manager";
@@ -43,22 +42,14 @@ async function addRecorder(args: API.addRecorder.Args): Promise<API.addRecorder.
       createTimestamp: Date.now(),
     },
   };
-  // const recorder = recorderManager.manager.addRecorder(config);
-  // recorder.extra.createTimestamp = Date.now();
-
-  // recorderManager.config.add(config);
   const recorder = await recorderManager.addRecorder(config);
-  // @ts-ignore
   return recorderToClient(recorder);
 }
 
-function updateRecorder(args: API.updateRecorder.Args): API.updateRecorder.Resp {
+async function updateRecorder(args: API.updateRecorder.Args): Promise<API.updateRecorder.Resp> {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  const { id } = args;
-  const recorder = recorderManager.manager.recorders.find((item) => item.id === id);
+  const recorder = await recorderManager.updateRecorder(args);
   if (recorder == null) throw new Error("配置不存在");
-
-  recorderManager.updateRecorder(recorder, args);
 
   return recorderToClient(recorder);
 }
@@ -75,16 +66,8 @@ function removeRecorder(args: API.removeRecorder.Args): API.removeRecorder.Resp 
 
 async function startRecord(args: API.startRecord.Args): Promise<API.startRecord.Resp> {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
-  if (recorder == null) throw new Error("配置不存在");
-
-  if (recorder.recordHandle == null) {
-    await recorder.checkLiveStatusAndRecord({
-      getSavePath(data) {
-        return genSavePathFromRule(recorderManager.manager, recorder, data);
-      },
-    });
-  }
+  const recorder = await recorderManager.startRecord(args.id);
+  if (recorder == null) throw new Error("开始录制失败");
 
   return recorderToClient(recorder);
 }
