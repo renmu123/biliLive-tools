@@ -251,7 +251,7 @@ describe.concurrent("通用ffmpeg参数生成", () => {
 });
 
 describe.concurrent("genMergeAssMp4Command", () => {
-  it("压制参数：视频，高能进度条，弹幕", async () => {
+  it("压制参数：高能进度条+弹幕", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -285,7 +285,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：视频，弹幕，无高能弹幕", async () => {
+  it("压制参数：弹幕+无高能弹幕", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -317,7 +317,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：视频，无弹幕，无高能弹幕", async () => {
+  it("压制参数：无弹幕+无高能弹幕", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: undefined,
@@ -343,7 +343,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：视频，有弹幕，无高能弹幕，有切割参数", async () => {
+  it("压制参数：弹幕+无高能弹幕+有切割参数", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -430,7 +430,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       ]);
     }
   });
-  it("压制参数：视频，弹幕，先缩放", async () => {
+  it("压制参数：弹幕+先缩放", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -529,6 +529,79 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "[0:v]subtitles=/path/to/subtitle.ass[0:video];[0:video]drawtext=text='%{pts\\:localtime\\:1633831810\\:%Y-%m-%d %T}':fontcolor=white:fontsize=24:x=10:y=10[1:video]",
       "-map",
       "[1:video]",
+      "-map",
+      "0:a",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
+  });
+  it("压制参数：无弹幕+缩放", async () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: undefined,
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+      audioCodec: "copy",
+      resetResolution: true,
+      resolutionWidth: 1920,
+      resolutionHeight: 1080,
+      scaleMethod: "after",
+    };
+
+    const command = await genMergeAssMp4Command(files, ffmpegOptions);
+    const args = command._getArguments();
+    expect(args).toEqual([
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-filter_complex",
+      "[0:v]scale=1920:1080[1:video]",
+      "-map",
+      "[1:video]",
+      "-map",
+      "0:a",
+      "-c:v",
+      "libx264",
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
+  });
+  it("压制参数：弹幕+自定义视频滤镜", async () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: "/path/to/subtitle.ass",
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "libx264",
+      audioCodec: "copy",
+      resetResolution: true,
+      resolutionWidth: 1920,
+      resolutionHeight: 1080,
+      scaleMethod: "after",
+      vf: "hflip;$origin;transpose=1",
+    };
+
+    const command = await genMergeAssMp4Command(files, ffmpegOptions);
+    const args = command._getArguments();
+    expect(args).toEqual([
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-filter_complex",
+      "[0:v]hflip[0:video];[0:video]subtitles=/path/to/subtitle.ass[1:video];[1:video]transpose=1[2:video]",
+      "-map",
+      "[2:video]",
       "-map",
       "0:a",
       "-c:v",

@@ -132,6 +132,9 @@ export const convertImage2Video = async (
   return task;
 };
 
+/**
+ * 只有webhook在用，几乎废弃，不再更新
+ */
 export const convertVideo2Mp4 = async (
   file: {
     input: string;
@@ -430,23 +433,23 @@ export const genMergeAssMp4Command = async (
     return commentTimestamp;
   }
 
-  async function addComplexFilter() {
+  async function addDefaultComplexFilter() {
+    const scaleMethod = selectScaleMethod(ffmpegOptions);
+
+    // 先缩放后渲染
+    if (
+      scaleMethod === "before" &&
+      ffmpegOptions.resolutionWidth &&
+      ffmpegOptions.resolutionHeight
+    ) {
+      complexFilter.addScaleFilter(
+        ffmpegOptions.resolutionWidth,
+        ffmpegOptions.resolutionHeight,
+        ffmpegOptions.swsFlags,
+      );
+    }
+
     if (assFile) {
-      const scaleMethod = selectScaleMethod(ffmpegOptions);
-
-      // 先缩放
-      if (
-        scaleMethod === "before" &&
-        ffmpegOptions.resolutionWidth &&
-        ffmpegOptions.resolutionHeight
-      ) {
-        complexFilter.addScaleFilter(
-          ffmpegOptions.resolutionWidth,
-          ffmpegOptions.resolutionHeight,
-          ffmpegOptions.swsFlags,
-        );
-      }
-
       if (files.hotProgressFilePath) {
         const subtitleStream = complexFilter.addSubtitleFilter(assFile);
         const colorkeyStream = complexFilter.addColorkeyFilter(["1"]);
@@ -454,19 +457,18 @@ export const genMergeAssMp4Command = async (
       } else {
         complexFilter.addSubtitleFilter(assFile);
       }
-
-      // 先渲染后缩放
-      if (
-        (scaleMethod === "auto" || scaleMethod === "after") &&
-        ffmpegOptions.resolutionWidth &&
-        ffmpegOptions.resolutionHeight
-      ) {
-        complexFilter.addScaleFilter(
-          ffmpegOptions.resolutionWidth,
-          ffmpegOptions.resolutionHeight,
-          ffmpegOptions.swsFlags,
-        );
-      }
+    }
+    // 先渲染后缩放
+    if (
+      (scaleMethod === "auto" || scaleMethod === "after") &&
+      ffmpegOptions.resolutionWidth &&
+      ffmpegOptions.resolutionHeight
+    ) {
+      complexFilter.addScaleFilter(
+        ffmpegOptions.resolutionWidth,
+        ffmpegOptions.resolutionHeight,
+        ffmpegOptions.swsFlags,
+      );
     }
 
     // 如果设置了添加时间戳
@@ -486,15 +488,15 @@ export const genMergeAssMp4Command = async (
     const vfArray = ffmpegOptions.vf.split(";");
     for (const vf of vfArray) {
       if (vf === "$origin") {
-        await addComplexFilter();
+        await addDefaultComplexFilter();
       } else {
         const vfOptions = vf.split("=");
         complexFilter.addFilter(vfOptions[0], vfOptions.slice(1).join("="));
       }
     }
   } else {
-    // 添加复杂滤镜
-    await addComplexFilter();
+    // 添加默认滤镜
+    await addDefaultComplexFilter();
   }
 
   if (complexFilter.getFilters().length) {
