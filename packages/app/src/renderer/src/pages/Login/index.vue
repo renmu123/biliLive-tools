@@ -6,7 +6,7 @@
       <p>接口最低1.6.0如果遇到功能无法访问，请尝试更新至最新版</p>
       <!-- 有个github链接 -->
       <div style="gap: 10px; display: flex">
-        <n-button type="primary" style="flex: 1" @click="test">联通测试</n-button>
+        <n-button type="warning" style="flex: 1" @click="test">联通测试</n-button>
         <n-button type="primary" style="flex: 1" @click="login">确认</n-button>
       </div>
     </n-space>
@@ -43,8 +43,22 @@ const test = async () => {
     return;
   }
   try {
-    const version = await commonApi.versionTest(api.value, key.value);
-    notice.success({ title: "成功", content: `接口版本为：${version}`, duration: 5000 });
+    const serverVersion = await commonApi.versionTest(api.value, key.value);
+    const webVersion = import.meta.env.VITE_VERSION;
+
+    if (serverVersion != webVersion) {
+      notice.warning({
+        title: "版本不一致，请尽量保存一致，否则无法保证功能正常",
+        content: `接口版本为：${serverVersion}，网页版本为：${webVersion}`,
+        duration: 5000,
+      });
+    } else {
+      notice.success({
+        title: "成功",
+        content: `接口版本为：${serverVersion}`,
+        duration: 5000,
+      });
+    }
   } catch (error) {
     notice.error({ title: "无法连接，请检查配置", duration: 5000 });
   }

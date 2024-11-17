@@ -270,6 +270,12 @@ tg bot 的搭建请自行寻找教程
 
 官网：https://docs.ntfy.sh/
 
+### push-all-in-cloud
+
+这是一个支持多种推送方式的工具，可以让你统一管理推送以及减少暴露相关key的机会
+
+项目地址：https://github.com/CaoMeiYouRen/push-all-in-cloud
+
 ## CLI的使用
 
 你可以使用二进制文件或者使用`npm i bililive-cli -g`进行安装。

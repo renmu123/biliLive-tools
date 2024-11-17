@@ -9,7 +9,8 @@
 
 1. 支持斗鱼、虎牙、B站直播录制，感谢[LiveAutoRecord](https://github.com/WhiteMinds/LiveAutoRecord)，绝大部分录制代码都来自该项目
 2. desc支持模板
-3. web版本支持，现在可以使用web来管理cli或者远程本地，并非有所有客户端功能，部分是未实现，部分实现不了，**如果你的接口是http协议，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者选择自部署**，线上地址：https://bililive.irenmu.com
+3. web版本支持，现在可以使用web来管理cli或者远程本地，并非有所有客户端功能都会被支持，**如果你的接口是http协议，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者选择自部署**，线上地址：https://bililive.irenmu.com
+4. 支持 [push-all-in-cloud](https://github.com/CaoMeiYouRen/push-all-in-cloud) 推送
 
 ## 优化
 
