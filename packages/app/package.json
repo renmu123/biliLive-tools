@@ -37,6 +37,7 @@
     "electron-store": "^10.0.0",
     "electron-updater": "^6.3.9",
     "font-list": "^1.5.1",
+    "font-scanner": "^0.2.1",
     "ntsuspend": "^1.0.2",
     "semver": "^7.6.3",
     "utf-8-validate": "^6.0.5"

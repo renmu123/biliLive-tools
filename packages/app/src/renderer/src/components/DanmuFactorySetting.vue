@@ -302,37 +302,37 @@ const fontOptions = ref<
   }[]
 >([]);
 const getFonts = async () => {
-  try {
-    const data = await commonApi.getFontList();
-    fontOptions.value = data.map((item) => {
-      return {
-        label: item,
-        value: item,
-      };
-    });
-  } catch (error) {
-    fontOptions.value = [];
-    console.error(error);
-  }
-
-  // if (!window.isWeb) {
-  //   // @ts-ignore
-  //   const data = await window.queryLocalFonts();
+  // try {
+  //   const data = await commonApi.getFontList();
   //   fontOptions.value = data.map((item) => {
   //     return {
-  //       label: item.fullName,
+  //       label: item.family,
   //       value: item.postscriptName,
   //     };
   //   });
-  // } else {
-  //   const data = await commonApi.getFonts();
-  //   fontOptions.value = data.map((item) => {
-  //     return {
-  //       label: item.name,
-  //       value: item.name,
-  //     };
-  //   });
+  // } catch (error) {
+  //   fontOptions.value = [];
+  //   console.error(error);
   // }
+
+  if (!window.isWeb) {
+    // @ts-ignore
+    const data = await window.queryLocalFonts();
+    fontOptions.value = data.map((item) => {
+      return {
+        label: item.fullName,
+        value: item.postscriptName,
+      };
+    });
+  } else {
+    const data = await commonApi.getFontList();
+    fontOptions.value = data.map((item) => {
+      return {
+        label: item.localizedName,
+        value: item.postscriptName,
+      };
+    });
+  }
 };
 onMounted(async () => {
   getFonts();

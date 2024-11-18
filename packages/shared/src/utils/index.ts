@@ -5,7 +5,7 @@ import readline from "node:readline";
 
 import fs from "fs-extra";
 import trash from "trash";
-import { getFonts } from "font-list";
+import fontManager from "font-scanner";
 import { appConfig } from "../config.js";
 export * from "./webhook.js";
 export * from "./crypto.js";
@@ -318,7 +318,7 @@ export async function readLines(
 }
 
 export async function getFontsList(): Promise<string[]> {
-  return getFonts({ disableQuoting: true });
+  return fontManager.getAvailableFonts();
 }
 
 /**
