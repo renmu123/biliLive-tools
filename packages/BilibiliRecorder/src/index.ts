@@ -77,6 +77,7 @@ const ffmpegOutputOptions: string[] = [
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
 }) {
+  this.tempStopIntervalCheck = false;
   if (this.recordHandle != null) return this.recordHandle;
 
   const { living, owner, title, roomId } = await getInfo(this.channelId);
@@ -302,33 +303,37 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
 
-  const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
-    if (!this.recordHandle) return;
-    this.state = "stopping-record";
-    // TODO: emit update event
+  const stop = utils.singleton<RecordHandle["stop"]>(
+    async (reason?: string, tempStopIntervalCheck?: boolean) => {
+      if (!this.recordHandle) return;
+      this.tempStopIntervalCheck = !!tempStopIntervalCheck;
 
-    timeoutChecker.stop();
+      this.state = "stopping-record";
+      // TODO: emit update event
 
-    try {
-      // @ts-ignore
-      command.ffmpegProc?.stdin?.write("q");
-      // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
-      client?.close();
-    } catch (err) {
-      // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
-      this.emit("DebugLog", { type: "common", text: String(err) });
-    }
+      timeoutChecker.stop();
 
-    this.usedStream = undefined;
-    this.usedSource = undefined;
-    // TODO: other codes
-    // TODO: emit update event
+      try {
+        // @ts-ignore
+        command.ffmpegProc?.stdin?.write("q");
+        // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
+        client?.close();
+      } catch (err) {
+        // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
+        this.emit("DebugLog", { type: "common", text: String(err) });
+      }
 
-    await streamManager.handleVideoCompleted();
-    this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
-    this.recordHandle = undefined;
-    this.state = "idle";
-  });
+      this.usedStream = undefined;
+      this.usedSource = undefined;
+      // TODO: other codes
+      // TODO: emit update event
+
+      await streamManager.handleVideoCompleted();
+      this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
+      this.recordHandle = undefined;
+      this.state = "idle";
+    },
+  );
 
   this.recordHandle = {
     id: genRecordUUID(),

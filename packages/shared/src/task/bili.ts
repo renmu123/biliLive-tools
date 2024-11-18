@@ -712,7 +712,9 @@ export const migrateBiliUser = async () => {
     const user = users[key];
     await writeUser(user);
   }
-  appConfig.set("biliUser", {});
+  if (Object.keys(users).length > 0) {
+    appConfig.set("biliUser", {});
+  }
 };
 
 // 删除bili登录的cookie

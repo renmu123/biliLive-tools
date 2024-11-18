@@ -5,7 +5,12 @@ import axios from "axios";
 import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
 import { provider as providerForHuYa } from "@autorecord/huya-recorder";
 import { provider as providerForBiliBili } from "@autorecord/bilibili-recorder";
-import { createRecorderManager as createManager, setFFMPEGPath, utils } from "@autorecord/manager";
+import {
+  createRecorderManager as createManager,
+  setFFMPEGPath,
+  utils,
+  genSavePathFromRule,
+} from "@autorecord/manager";
 import { getFfmpegPath } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
@@ -15,6 +20,7 @@ import { omit } from "lodash-es";
 
 import type { AppConfig } from "../config.js";
 import type { LocalRecordr } from "@biliLive-tools/types";
+import type { Recorder } from "@autorecord/manager";
 
 export { RecorderConfig };
 
@@ -29,6 +35,83 @@ async function getCookies(uid: number) {
 }
 
 export async function createRecorderManager(appConfig: AppConfig) {
+  /**
+   * 开始录制
+   * @param id - recorder id
+   */
+  async function startRecord(id: string) {
+    const recorder = manager.recorders.find((item) => item.id === id);
+    if (recorder == null) return null;
+
+    if (recorder.recordHandle == null) {
+      await recorder.checkLiveStatusAndRecord({
+        getSavePath(data) {
+          return genSavePathFromRule(manager, recorder, data);
+        },
+      });
+    }
+
+    return recorder;
+  }
+
+  /**
+   * 更新录制器
+   * @param args - 更新参数
+   * @returns 更新后的录制器
+   */
+  async function updateRecorder(
+    recorder: Recorder,
+    args: Omit<LocalRecordr, "channelId" | "providerId">,
+  ) {
+    const uid = recorder.uid;
+    let auth: string | undefined = undefined;
+    if (uid) {
+      auth = await getCookies(Number(uid));
+    }
+
+    Object.assign(recorder, { ...omit(args, ["id"]), auth });
+    return recorder;
+  }
+
+  /**
+   * 全局配置更新后，更新录制器相关参数
+   */
+  async function updateRecorderManager(
+    manager: ReturnType<typeof createManager>,
+    appConfig: AppConfig,
+  ) {
+    const config = appConfig.getAll();
+    const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
+    const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
+    const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
+
+    manager.autoCheckInterval = autoCheckInterval * 1000;
+    manager.autoCheckLiveStatusAndRecord = autoCheckLiveStatusAndRecord;
+    manager.savePathRule = savePathRule;
+
+    if (autoCheckLiveStatusAndRecord) {
+      if (autoCheckLiveStatusAndRecord && !manager.isCheckLoopRunning) {
+        manager.startCheckLoop();
+      }
+
+      if (!autoCheckLiveStatusAndRecord && manager.isCheckLoopRunning) {
+        manager.stopCheckLoop();
+      }
+    }
+
+    for (const recorderOpts of recorderConfig.list()) {
+      try {
+        const recorder = manager.recorders.find((item) => item.id === recorderOpts.id);
+        if (recorder == null) continue;
+
+        await updateRecorder(recorder, recorderOpts);
+      } catch (error) {
+        logger.error("updateRecorderManager error", error);
+        continue;
+      }
+    }
+  }
+
   const config = appConfig.getAll();
   const { ffmpegPath } = getFfmpegPath();
   setFFMPEGPath(ffmpegPath);
@@ -144,25 +227,23 @@ export async function createRecorderManager(appConfig: AppConfig) {
       if (uid) {
         auth = await getCookies(Number(uid));
       }
-
-      return manager.addRecorder({
+      const recoder = manager.addRecorder({
         ...data,
         auth: auth,
       });
+
+      if (!data.disableAutoCheck) {
+        startRecord(recoder.id);
+      }
+      return recoder;
     },
-    updateRecorder: async (
-      recorder: LocalRecordr,
-      args: Omit<LocalRecordr, "channelId" | "providerId">,
-    ) => {
+    updateRecorder: async (args: Omit<LocalRecordr, "channelId" | "providerId">) => {
+      const { id } = args;
+      const recorder = manager.recorders.find((item) => item.id === id);
+      if (recorder == null) return null;
       recorderConfig.update(args);
 
-      const uid = recorder.uid;
-      let auth: string | undefined = undefined;
-      if (uid) {
-        auth = await getCookies(Number(uid));
-      }
-
-      Object.assign(recorder, { ...omit(args, ["id"]), auth });
+      return updateRecorder(recorder, args);
     },
     resolveChannel: async (url: string) => {
       for (const provider of manager.providers) {
@@ -177,28 +258,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
       }
       return null;
     },
+    startRecord: async (id: string) => {
+      return startRecord(id);
+    },
   };
-}
-
-function updateRecorderManager(manager: ReturnType<typeof createManager>, appConfig: AppConfig) {
-  const config = appConfig.getAll();
-  const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
-  const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
-  const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
-
-  manager.autoCheckInterval = autoCheckInterval * 1000;
-  manager.autoCheckLiveStatusAndRecord = autoCheckLiveStatusAndRecord;
-  manager.savePathRule = savePathRule;
-
-  if (autoCheckLiveStatusAndRecord) {
-    if (autoCheckLiveStatusAndRecord && !manager.isCheckLoopRunning) {
-      manager.startCheckLoop();
-    }
-
-    if (!autoCheckLiveStatusAndRecord && manager.isCheckLoopRunning) {
-      manager.stopCheckLoop();
-    }
-  }
-
-  // TODO:一些全局参数的更新也需要更新recorder
 }

@@ -78,6 +78,7 @@ const ffmpegOutputOptions: string[] = [
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
 }) {
+  this.tempStopIntervalCheck = false;
   if (this.recordHandle != null) return this.recordHandle;
 
   const { living, owner, title } = await getInfo(this.channelId);
@@ -236,30 +237,34 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // })
   command.run();
 
-  const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
-    if (!this.recordHandle) return;
-    this.state = "stopping-record";
-    // TODO: emit update event
+  const stop = utils.singleton<RecordHandle["stop"]>(
+    async (reason?: string, tempStopIntervalCheck?: boolean) => {
+      if (!this.recordHandle) return;
+      this.tempStopIntervalCheck = !!tempStopIntervalCheck;
 
-    timeoutChecker.stop();
+      this.state = "stopping-record";
+      // TODO: emit update event
 
-    // 如果给 SIGKILL 信号会非正常退出，SIGINT 可以被 ffmpeg 正常处理。
-    // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
-    // @ts-ignore
-    command.ffmpegProc?.stdin?.write("q");
-    // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
-    // client?.stop()
+      timeoutChecker.stop();
 
-    this.usedStream = undefined;
-    this.usedSource = undefined;
-    // TODO: other codes
-    // TODO: emit update event
+      // 如果给 SIGKILL 信号会非正常退出，SIGINT 可以被 ffmpeg 正常处理。
+      // TODO: fluent-ffmpeg 好像没处理好这个 SIGINT 导致的退出信息，会抛一个错。
+      // @ts-ignore
+      command.ffmpegProc?.stdin?.write("q");
+      // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
+      // client?.stop()
 
-    await streamManager.handleVideoCompleted();
-    this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
-    this.recordHandle = undefined;
-    this.state = "idle";
-  });
+      this.usedStream = undefined;
+      this.usedSource = undefined;
+      // TODO: other codes
+      // TODO: emit update event
+
+      await streamManager.handleVideoCompleted();
+      this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
+      this.recordHandle = undefined;
+      this.state = "idle";
+    },
+  );
 
   this.recordHandle = {
     id: genRecordUUID(),

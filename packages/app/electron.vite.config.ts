@@ -7,6 +7,8 @@ import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
 
 import { version } from "./package.json";
 
+process.env.VITE_VERSION = version;
+
 export default defineConfig({
   main: {
     plugins: [
@@ -27,9 +29,6 @@ export default defineConfig({
         "@renderer": resolve("src/renderer/src"),
         "@types": resolve("src/types"),
       },
-    },
-    define: {
-      __APP_VERSION__: JSON.stringify(version),
     },
     plugins: [
       vue({

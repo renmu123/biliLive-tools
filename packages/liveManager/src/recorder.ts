@@ -112,4 +112,5 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     channelId: ChannelId;
     living: boolean;
   }>;
+  uid?: string;
 }
