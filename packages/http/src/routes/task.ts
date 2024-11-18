@@ -68,10 +68,10 @@ router.post("/:id/start", async (ctx) => {
 });
 
 router.post("/convertXml2Ass", async (ctx) => {
-  const { input, output, danmuOptions, options } = ctx.request.body as {
+  const { input, output, preset, options } = ctx.request.body as {
     input: string;
     output: string;
-    danmuOptions: DanmuConfig;
+    preset: DanmuConfig;
     options: {
       removeOrigin: boolean;
       copyInput: boolean;
@@ -82,9 +82,9 @@ router.post("/convertXml2Ass", async (ctx) => {
     ctx.body = { message: "input and output are required" };
     return;
   }
-  if (!danmuOptions) {
+  if (!preset) {
     ctx.status = 400;
-    ctx.body = { message: "danmuOptions is required" };
+    ctx.body = { message: "preset is required" };
     return;
   }
 
@@ -93,7 +93,7 @@ router.post("/convertXml2Ass", async (ctx) => {
       input,
       output,
     },
-    danmuOptions,
+    preset,
     {
       removeOrigin: false,
       copyInput: false,

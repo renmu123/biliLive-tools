@@ -320,3 +320,15 @@ export async function readLines(
 export async function getFontsList(): Promise<string[]> {
   return getFonts({ disableQuoting: true });
 }
+
+/**
+ * 替换文件扩展名
+ * @param filePath 文件路径
+ * @param newExtName 新的扩展名，包含点号
+ */
+export function replaceExtName(filePath: string, newExtName: string) {
+  return path.join(
+    path.dirname(filePath),
+    path.basename(filePath, path.extname(filePath)) + newExtName,
+  );
+}

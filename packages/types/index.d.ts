@@ -525,6 +525,12 @@ export interface FfmpegOptions {
   timestampFontSize?: number;
   /** 时间戳颜色 */
   timestampFontColor?: string;
+  /** 时间戳内容格式 */
+  timestampFormat?: string;
+  /** 时间戳额外参数 */
+  timestampExtra?: string;
+  /** 时间戳跟随弹幕字体 */
+  timestampFollowDanmu?: boolean;
 }
 
 export interface BiliupConfig {

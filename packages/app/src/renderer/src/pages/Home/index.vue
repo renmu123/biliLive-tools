@@ -320,18 +320,18 @@ const convert = async () => {
   if (!outputPath) return false;
 
   let { inputDanmuFile } = data;
-  const rawInputDanmuFile = inputDanmuFile;
   const { inputVideoFile } = data;
+  const rawInputDanmuFile = inputDanmuFile;
+  const isXmlFile = inputDanmuFile.ext === ".xml";
   // console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
 
-  if (inputDanmuFile.ext === ".xml") {
+  if (isXmlFile) {
     // xml文件转换
     const targetAssFile = await handleXmlFile(
       inputDanmuFile,
       { ...rawClientOptions, removeOrigin: false },
       rawDanmuConfig,
     );
-    console.log("targetAssFilePath", targetAssFile);
     inputDanmuFile = targetAssFile;
   }
 
@@ -354,6 +354,7 @@ const convert = async () => {
       inputHotProgressFilePath: hotProgressInput,
       outputPath: outputPath,
       rawInputDanmuFile: rawInputDanmuFile,
+      timestampFont: isXmlFile ? rawDanmuConfig.fontname : undefined,
     },
     rawClientOptions,
     rawFfmpegOptions,
@@ -464,6 +465,7 @@ const handleVideoMerge = async (
     outputPath: string;
     inputHotProgressFilePath: string | undefined;
     rawInputDanmuFile: File;
+    timestampFont?: string;
   },
   options: ClientOptions,
   ffmpegOptions: FfmpegOptions,
@@ -490,7 +492,7 @@ const handleVideoMerge = async (
       inputAssFilePath,
       inputHotProgressFilePath,
       outputPath,
-      { ...deepRaw(options), startTimestamp },
+      { ...deepRaw(options), startTimestamp, timestampFont: convertOptions.timestampFont },
       ffmpegOptions,
     );
   } catch (err) {
@@ -510,7 +512,7 @@ const createMergeVideoAssTask = async (
   assFilePath: string,
   hotProgressFilePath: string | undefined,
   outputPath: string,
-  options: ClientOptions & { startTimestamp: number },
+  options: ClientOptions & { startTimestamp: number; timestampFont?: string },
   ffmpegOptions: FfmpegOptions,
 ): Promise<string> => {
   return new Promise((resolve, reject) => {

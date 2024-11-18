@@ -225,7 +225,8 @@
           <span class="inline-flex">
             <span>时间戳</span>
             <Tip>
-              添加时间戳到视频中，优先从webhook中读取、其次是弹幕元数据（支持录播姬、blrec、本软件下载的录播）、最后是视频元数据（如录播姬注释）。<br />即使你开启此选项，如果一条都未被匹配到，也是不会被渲染的
+              添加时间戳到视频中，优先从webhook中读取、其次是弹幕元数据（支持录播姬、blrec、本软件下载的录播）、最后是视频元数据（如录播姬注释）。<br />
+              即使你开启此选项，如果一条都未被匹配到，也是不会被渲染的<br />
             </Tip>
           </span>
         </template>
@@ -235,39 +236,98 @@
           style="margin-right: 20px"
         ></n-checkbox>
         <template v-if="ffmpegOptions.config.addTimestamp">
-          <n-input-number
-            v-model:value.number="ffmpegOptions.config.timestampX"
-            class="input-number"
-            :min="0"
-            :step="10"
-            title="x轴坐标"
-            placeholder="x轴坐标"
-            style="width: 120px; margin-right: 10px"
-          />
-          <n-input-number
-            v-model:value.number="ffmpegOptions.config.timestampY"
-            class="input-number"
-            :min="0"
-            :step="10"
-            placeholder="y轴坐标"
-            title="y轴坐标"
-            style="width: 120px; margin-right: 10px"
-          />
-          <n-input-number
-            v-model:value.number="ffmpegOptions.config.timestampFontSize"
-            class="input-number"
-            :min="10"
-            :step="1"
-            title="字体大小"
-            placeholder="字体大小"
-            style="width: 120px; margin-right: 10px"
-          />
-          <n-color-picker
-            v-model:value="ffmpegOptions.config.timestampFontColor"
-            style="width: 120px"
-            title="字体颜色"
-          />
+          <n-form
+            inline
+            label-placement="left"
+            label-align="right"
+            :show-feedback="false"
+            label-width="40px"
+          >
+            <n-form-item label="x轴">
+              <n-input-number
+                v-model:value.number="ffmpegOptions.config.timestampX"
+                class="input-number"
+                :min="0"
+                :step="10"
+                title="x轴坐标"
+                placeholder="x轴坐标"
+                style="width: 120px"
+              />
+            </n-form-item>
+
+            <n-form-item label="y轴">
+              <n-input-number
+                v-model:value.number="ffmpegOptions.config.timestampY"
+                class="input-number"
+                :min="0"
+                :step="10"
+                title="y轴坐标"
+                placeholder="y轴坐标"
+                style="width: 120px"
+              />
+            </n-form-item>
+            <n-form-item label="字体大小">
+              <n-input-number
+                v-model:value.number="ffmpegOptions.config.timestampFontSize"
+                class="input-number"
+                :min="10"
+                :step="1"
+                title="字体大小"
+                placeholder="字体大小"
+                style="width: 120px"
+              />
+            </n-form-item>
+            <n-form-item label="字体颜色">
+              <n-color-picker
+                v-model:value="ffmpegOptions.config.timestampFontColor"
+                style="width: 120px"
+                title="字体颜色"
+              />
+            </n-form-item>
+            <n-form-item label="跟随弹幕字体" label-width="100px">
+              <n-checkbox v-model:checked="ffmpegOptions.config.timestampFollowDanmu"></n-checkbox>
+            </n-form-item>
+          </n-form>
         </template>
+      </n-form-item>
+      <n-form-item v-if="ffmpegOptions.config.addTimestamp">
+        <template #label>
+          <span class="inline-flex">
+            <span>时间戳参数</span>
+            <Tip>
+              内容格式占位符具体见
+              <a target="_blank" href="https://strftime.org/">strftime</a>
+              （<code>:</code> 需要额外转义）<br />
+              自定义参数具体见
+              <a target="_blank" href="https://ffmpeg.org/ffmpeg-filters.html#drawtext-1"
+                >ffmpeg滤镜文档</a
+              >，示例：<code>box=1:boxcolor=#ff0000</code>
+            </Tip>
+          </span>
+        </template>
+        <n-form
+          inline
+          label-placement="left"
+          label-align="right"
+          :show-feedback="false"
+          label-width="80px"
+          style="width: 100%"
+        >
+          <n-form-item label="内容格式">
+            <n-input
+              v-model:value="ffmpegOptions.config.timestampFormat"
+              placeholder="请输入内容格式"
+              :input-props="{ spellcheck: 'false' }"
+            />
+          </n-form-item>
+          <n-form-item label="额外参数">
+            <n-input
+              v-model:value="ffmpegOptions.config.timestampExtra"
+              placeholder="请输入额外参数"
+              :input-props="{ spellcheck: 'false' }"
+            />
+          </n-form-item>
+        </n-form>
       </n-form-item>
     </template>
 

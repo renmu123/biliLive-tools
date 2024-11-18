@@ -312,14 +312,36 @@ export class ComplexFilter {
     return this.addFilter("overlay", "W-w-0:H-h-0", inputs);
   }
 
-  addDrawtextFilter(
-    startTimestamp: number,
-    fontColor: string,
-    fontSize: number,
-    x: number,
-    y: number,
-  ) {
-    const options = `text='%{pts\\:localtime\\:${startTimestamp}\\:%Y-%m-%d %T}':fontcolor=${fontColor}:fontsize=${fontSize}:x=${x}:y=${y}`;
+  addDrawtextFilter({
+    startTimestamp,
+    fontColor,
+    fontSize,
+    x,
+    y,
+    font,
+    format,
+    extraOptions,
+  }: {
+    startTimestamp: number;
+    fontColor: string;
+    fontSize: number;
+    x: number;
+    y: number;
+    font?: string;
+    format?: string;
+    extraOptions?: string;
+  }) {
+    if (!format) {
+      format = "%Y-%m-%d %T";
+    }
+    let options = `text='%{pts\\:localtime\\:${startTimestamp}\\:${format}}':fontcolor=${fontColor}:fontsize=${fontSize}:x=${x}:y=${y}`;
+    if (font) {
+      options += `:font=${font}`;
+    }
+    if (extraOptions) {
+      options += `:${extraOptions}`;
+    }
+
     return this.addFilter("drawtext", options);
   }
 
@@ -408,9 +430,11 @@ export const genMergeAssMp4Command = async (
   },
   options: {
     startTimestamp?: number;
+    timestampFont?: string;
   } = {
     // 视频录制开始的秒时间戳
     startTimestamp: 0,
+    timestampFont: undefined,
   },
 ) => {
   const command = ffmpeg(files.videoFilePath).output(files.outputPath);
@@ -474,13 +498,16 @@ export const genMergeAssMp4Command = async (
     // 如果设置了添加时间戳
     const startTimestamp = await getDrawtextParams();
     if (startTimestamp) {
-      complexFilter.addDrawtextFilter(
-        startTimestamp,
-        ffmpegOptions.timestampFontColor ?? "white",
-        ffmpegOptions.timestampFontSize ?? 24,
-        ffmpegOptions.timestampX ?? 10,
-        ffmpegOptions.timestampY ?? 10,
-      );
+      complexFilter.addDrawtextFilter({
+        startTimestamp: startTimestamp,
+        fontColor: ffmpegOptions.timestampFontColor ?? "white",
+        fontSize: ffmpegOptions.timestampFontSize ?? 24,
+        x: ffmpegOptions.timestampX ?? 10,
+        y: ffmpegOptions.timestampY ?? 10,
+        font: options.timestampFont,
+        format: ffmpegOptions.timestampFormat,
+        extraOptions: ffmpegOptions.timestampExtra,
+      });
     }
   }
 
@@ -562,6 +589,7 @@ export const mergeAssMp4 = async (
     removeOrigin: boolean;
     startTimestamp?: number;
     override?: boolean;
+    timestampFont?: string;
   } = {
     removeOrigin: false,
     startTimestamp: 0,
@@ -597,6 +625,7 @@ export const mergeAssMp4 = async (
   const startTimestamp = options.startTimestamp || 0;
   const command = await genMergeAssMp4Command(files, ffmpegOptions, {
     startTimestamp: startTimestamp,
+    timestampFont: options.timestampFont,
   });
 
   const task = new FFmpegTask(

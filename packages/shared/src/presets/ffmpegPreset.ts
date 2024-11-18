@@ -29,6 +29,10 @@ const commonPresetParams: {
   timestampFontSize: number;
   timestampFontColor: string;
   extraOptions: string;
+  timestampFollowDanmu: boolean;
+  timestampExtra: string;
+  timestampFormat: string;
+
   vf: string;
 } = {
   resetResolution: false,
@@ -44,6 +48,9 @@ const commonPresetParams: {
   timestampFontColor: "#ffffff",
   extraOptions: "",
   vf: "",
+  timestampFollowDanmu: true,
+  timestampExtra: "",
+  timestampFormat: "%Y-%m-%d %T",
 };
 
 const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [

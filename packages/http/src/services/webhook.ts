@@ -14,6 +14,7 @@ import {
   sleep,
   trashItem,
   formatTitle,
+  replaceExtName,
 } from "@biliLive-tools/shared/utils/index.js";
 
 import { config } from "../index.js";
@@ -185,9 +186,7 @@ export class WebhookHandler {
         if (options.danmuPath) {
           xmlFilePath = options.danmuPath;
         } else {
-          // 压制弹幕后上传
-          const xmlFile = path.parse(options.filePath);
-          xmlFilePath = path.join(xmlFile.dir, `${xmlFile.name}.xml`);
+          xmlFilePath = replaceExtName(options.filePath, ".xml");
         }
         await sleep(10000);
         if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
@@ -230,6 +229,7 @@ export class WebhookHandler {
             removeVideo: removeOriginAfterConvert,
             suffix: "弹幕版",
             startTimestamp: Math.floor((currentPart.startTime ?? 0) / 1000),
+            timestampFont: danmuConfig.fontname,
           },
         );
         currentPart.filePath = output;
@@ -677,7 +677,12 @@ export class WebhookHandler {
     assInput: string | undefined,
     hotProgressFile: string | undefined,
     preset: FfmpegOptions,
-    options: { removeVideo: boolean; suffix: string; startTimestamp?: number } = {
+    options: {
+      removeVideo: boolean;
+      suffix: string;
+      startTimestamp?: number;
+      timestampFont?: string;
+    } = {
       removeVideo: false,
       suffix: "弹幕版",
     },
@@ -704,6 +709,7 @@ export class WebhookHandler {
               removeOrigin: false,
               startTimestamp: options.startTimestamp,
               override: true,
+              timestampFont: options.timestampFont,
             },
             preset,
           ).then((task) => {

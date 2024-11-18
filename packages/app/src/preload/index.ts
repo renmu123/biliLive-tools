@@ -233,10 +233,12 @@ export const api = {
       removeOrigin: boolean;
       override: boolean;
       startTimestamp?: number;
+      timestampFont?: string;
     } = {
       removeOrigin: false,
       override: true,
       startTimestamp: 0,
+      timestampFont: undefined,
     },
     ffmpegOptions: FfmpegOptions = {
       encoder: "libx264",
