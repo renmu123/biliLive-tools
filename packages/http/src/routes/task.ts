@@ -15,6 +15,8 @@ import {
   mergeVideos,
 } from "@biliLive-tools/shared/task/video.js";
 
+import type { DanmuConfig } from "@biliLive-tools/types";
+
 const router = new Router({
   prefix: "/task",
 });
@@ -66,13 +68,32 @@ router.post("/:id/start", async (ctx) => {
 });
 
 router.post("/convertXml2Ass", async (ctx) => {
-  const { input, output, options, preset } = ctx.request.body;
+  const { input, output, danmuOptions, options } = ctx.request.body as {
+    input: string;
+    output: string;
+    danmuOptions: DanmuConfig;
+    options: {
+      removeOrigin: boolean;
+      copyInput: boolean;
+    };
+  };
+  if (!input || !output) {
+    ctx.status = 400;
+    ctx.body = { message: "input and output are required" };
+    return;
+  }
+  if (!danmuOptions) {
+    ctx.status = 400;
+    ctx.body = { message: "danmuOptions is required" };
+    return;
+  }
+
   const task = await convertXml2Ass(
     {
       input,
       output,
     },
-    preset,
+    danmuOptions,
     {
       removeOrigin: false,
       copyInput: false,
@@ -102,7 +123,6 @@ router.post("/mergeVideo", async (ctx) => {
   }
 
   const task = await mergeVideos(inputVideos, output, options);
-
   ctx.body = { taskId: task.taskId };
 });
 
