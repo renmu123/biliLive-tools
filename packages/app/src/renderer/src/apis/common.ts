@@ -100,7 +100,12 @@ export async function readXmlTimestamp(filepath: string): Promise<number> {
   return res.data;
 }
 
-export async function getFontList(): Promise<string[]> {
+export async function getFontList(): Promise<
+  {
+    postscriptName: string;
+    fullName: string;
+  }[]
+> {
   const res = await request.get(`/common/fonts`);
   return res.data;
 }

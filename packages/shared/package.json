@@ -42,7 +42,7 @@
     "douyu-api": "^0.1.0",
     "ejs": "^3.1.10",
     "fast-xml-parser": "^4.5.0",
-    "font-list": "^1.5.1",
+    "font-ls": "git+https://github.com/renmu123/font-ls.git",
     "nodemailer": "^6.9.16",
     "ntsuspend": "^1.0.2",
     "ollama": "^0.5.9",

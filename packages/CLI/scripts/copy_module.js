@@ -23,7 +23,7 @@ function main() {
     recursive: true,
   });
   // 复制font-list相关文件，
-  fs.cpSync(path.join(pnpm_node_modules, "font-list"), path.join(cli_node_modules, "font-list"), {
+  fs.cpSync(path.join(pnpm_node_modules, "font-ls"), path.join(cli_node_modules, "font-ls"), {
     recursive: true,
   });
 }

@@ -562,9 +562,9 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/video.mp4",
       "-y",
       "-filter_complex",
-      "[0:v]scale=1920:1080[1:video]",
+      "[0:v]scale=1920:1080[0:video]",
       "-map",
-      "[1:video]",
+      "[0:video]",
       "-map",
       "0:a",
       "-c:v",
@@ -585,7 +585,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
     const ffmpegOptions: FfmpegOptions = {
       encoder: "libx264",
       audioCodec: "copy",
-      resetResolution: true,
+      resetResolution: false,
       resolutionWidth: 1920,
       resolutionHeight: 1080,
       scaleMethod: "after",
@@ -743,7 +743,13 @@ describe.concurrent("ComplexFilter", () => {
 
   it("should add a drawtext filter", () => {
     const filter = new ComplexFilter();
-    const outputStream = filter.addDrawtextFilter(1633831810, "white", 24, 10, 10);
+    const outputStream = filter.addDrawtextFilter({
+      startTimestamp: 1633831810,
+      fontColor: "white",
+      fontSize: 24,
+      x: 10,
+      y: 10,
+    });
     expect(outputStream).toBe("0:video");
     expect(filter.getLatestOutputStream()).toBe("0:video");
     expect(filter.getFilters()).toEqual([
