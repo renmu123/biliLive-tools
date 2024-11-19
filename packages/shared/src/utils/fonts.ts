@@ -27,7 +27,7 @@ export async function getFontsList(): Promise<
     } else {
       return {
         postscriptName: font.enName,
-        fullName: font.postscriptName,
+        fullName: font.localizedName,
       };
     }
   });
