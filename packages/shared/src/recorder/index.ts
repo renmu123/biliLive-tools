@@ -215,11 +215,11 @@ export async function createRecorderManager(appConfig: AppConfig) {
             item.channelId === recorder.channelId && item.providerId === recorder.providerId,
         ) !== -1
       ) {
-        throw new Error("不可重复添加");
+        return null;
       }
       recorderConfig.add(recorder);
       const data = recorderConfig.get(recorder.id);
-      if (!data) return;
+      if (!data) return null;
 
       // TODO: 需要写成函数方便复用
       const uid = recorder.uid;

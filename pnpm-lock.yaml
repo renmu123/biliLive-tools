@@ -87,12 +87,9 @@ importers:
       '@napi-rs/canvas':
         specifier: ^0.1.60
         version: 0.1.60
-      font-list:
-        specifier: 1.3.1
-        version: 1.3.1
       font-ls:
-        specifier: git+https://github.com/renmu123/font-ls.git
-        version: https://codeload.github.com/renmu123/font-ls/tar.gz/5ea6395b5098f9d27d984ab9ef0d8cf7c58ba416
+        specifier: 0.3.2
+        version: 0.3.2
       ntsuspend:
         specifier: ^1.0.2
         version: 1.0.2
@@ -219,12 +216,9 @@ importers:
       electron-updater:
         specifier: ^6.3.9
         version: 6.3.9
-      font-list:
-        specifier: 1.3.1
-        version: 1.3.1
       font-ls:
-        specifier: git+https://github.com/renmu123/font-ls.git
-        version: https://codeload.github.com/renmu123/font-ls/tar.gz/5ea6395b5098f9d27d984ab9ef0d8cf7c58ba416
+        specifier: 0.3.2
+        version: 0.3.2
       ntsuspend:
         specifier: ^1.0.2
         version: 1.0.2
@@ -492,12 +486,9 @@ importers:
       fast-xml-parser:
         specifier: ^4.5.0
         version: 4.5.0
-      font-list:
-        specifier: 1.3.1
-        version: 1.3.1
       font-ls:
-        specifier: git+https://github.com/renmu123/font-ls.git
-        version: https://codeload.github.com/renmu123/font-ls/tar.gz/5ea6395b5098f9d27d984ab9ef0d8cf7c58ba416
+        specifier: 0.3.2
+        version: 0.3.2
       nodemailer:
         specifier: ^6.9.16
         version: 6.9.16
@@ -2799,12 +2790,8 @@ packages:
       debug:
         optional: true
 
-  font-list@1.3.1:
-    resolution: {integrity: sha512-/TvQbGLIdyfH4SBZkDwWlX0JNDVH98Q29SkgMJlIdmc4ObKu+RnB/B493lskB2Z8XZ2FZ532QOem4/PDgtoXUQ==}
-
-  font-ls@https://codeload.github.com/renmu123/font-ls/tar.gz/5ea6395b5098f9d27d984ab9ef0d8cf7c58ba416:
-    resolution: {tarball: https://codeload.github.com/renmu123/font-ls/tar.gz/5ea6395b5098f9d27d984ab9ef0d8cf7c58ba416}
-    version: 0.3.2
+  font-ls@0.3.2:
+    resolution: {integrity: sha512-KmI1SgHkNr0dPXPOGPo1pOFfy+5b0Q0lm6hcdJHuezafmSTjSEhpclzMpSsQOj1La3GWnxqf6qs/4BlRIrs0gA==}
 
   foreground-child@3.3.0:
     resolution: {integrity: sha512-Ld2g8rrAyMYFXBhEqMz8ZAHBi4J4uS1i/CxGMDnjyFWddMXLVcDp051DZfu+t7+ab7Wv6SMqpWmyFIj5UbfFvg==}
@@ -7567,9 +7554,7 @@ snapshots:
 
   follow-redirects@1.15.9: {}
 
-  font-list@1.3.1: {}
-
-  font-ls@https://codeload.github.com/renmu123/font-ls/tar.gz/5ea6395b5098f9d27d984ab9ef0d8cf7c58ba416:
+  font-ls@0.3.2:
     dependencies:
       node-addon-api: 8.2.2
 

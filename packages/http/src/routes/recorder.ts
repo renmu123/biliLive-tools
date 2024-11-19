@@ -43,6 +43,7 @@ async function addRecorder(args: API.addRecorder.Args): Promise<API.addRecorder.
     },
   };
   const recorder = await recorderManager.addRecorder(config);
+  if (recorder == null) throw new Error("添加失败：不可重复添加");
   return recorderToClient(recorder);
 }
 

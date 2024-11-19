@@ -73,8 +73,8 @@ router.post("/convertXml2Ass", async (ctx) => {
     output: string;
     preset: DanmuConfig;
     options: {
-      removeOrigin: boolean;
-      copyInput: boolean;
+      removeOrigin?: boolean;
+      copyInput?: boolean;
     };
   };
   if (!input || !output) {

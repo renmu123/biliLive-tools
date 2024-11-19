@@ -36,7 +36,7 @@
     "electron-log": "^5.2.2",
     "electron-store": "^10.0.0",
     "electron-updater": "^6.3.9",
-    "font-ls": "git+https://github.com/renmu123/font-ls.git",
+    "font-ls": "0.3.2",
     "ntsuspend": "^1.0.2",
     "semver": "^7.6.3",
     "utf-8-validate": "^6.0.5"

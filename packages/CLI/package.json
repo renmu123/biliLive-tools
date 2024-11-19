@@ -36,7 +36,7 @@
   ],
   "dependencies": {
     "@napi-rs/canvas": "^0.1.60",
-    "font-ls": "git+https://github.com/renmu123/font-ls.git",
+    "font-ls": "0.3.2",
     "ntsuspend": "^1.0.2"
   },
   "devDependencies": {
