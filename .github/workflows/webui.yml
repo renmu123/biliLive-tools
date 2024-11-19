@@ -33,7 +33,7 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install --ignore-scripts
+        run: pnpm install
 
       - name: build
         run: pnpm run build:webui
