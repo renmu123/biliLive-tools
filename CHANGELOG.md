@@ -20,6 +20,7 @@
 
 1. 修复续传时无法选择在合集中稿件的bug
 2. 修复转码功能中对预设“视频分辨率”无效的bug [#37](https://github.com/renmu123/biliLive-tools/issues/37)
+3. 修复webhook压制开启完成后删除源文件后未删除弹幕文件的bug
 
 # 1.6.0(2024.11.12)
 
