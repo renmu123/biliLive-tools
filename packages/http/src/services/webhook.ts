@@ -264,6 +264,9 @@ export class WebhookHandler {
             startTimestamp: Math.floor((currentPart.startTime ?? 0) / 1000),
           },
         );
+        if (removeOriginAfterConvert) {
+          trashItem(xmlFilePath);
+        }
         currentPart.filePath = output;
         currentPart.recordStatus = "handled";
       } catch (error) {
