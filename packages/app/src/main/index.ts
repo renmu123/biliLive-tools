@@ -11,7 +11,6 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
 import log from "./utils/log";
 import { notify } from "./utils/index";
-import { danmuService } from "@biliLive-tools/shared/db/index.js";
 import { init } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
@@ -445,34 +444,6 @@ if (!gotTheLock) {
     }
   });
 }
-
-ipcMain.handle("db:list", async (_event, options: any) => {
-  // danmuservice.add({
-  //   type: 1,
-  // });
-  const data = await danmuService.list(options);
-  log.info(data);
-  // await db.test();
-  // return db.query();
-});
-ipcMain.handle("db:query", async (_event, options: any) => {
-  // danmuservice.add({
-  //   type: 1,
-  // });
-  const data = await danmuService.query(options);
-  log.info(data);
-  // await db.test();
-  // return db.query();
-});
-ipcMain.handle("db:addWithStreamer", async (_event, options: any) => {
-  // danmuservice.add({
-  //   type: 1,
-  // });
-  const data = await danmuService.addWithStreamer(options);
-  log.info(data);
-  // await db.test();
-  // return db.query();
-});
 
 // 业务相关的初始化
 const appInit = async () => {

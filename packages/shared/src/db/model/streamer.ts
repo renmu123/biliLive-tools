@@ -52,12 +52,10 @@ export default class StreamerController {
   addMany(list: BaseStreamer[]) {
     return this.model.insertMany(list);
   }
-
   list(options: Partial<Streamer>): Streamer[] {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     return this.model.list(filterOptions);
   }
-
   query(options: Partial<Streamer>) {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     console.log(filterOptions, options);

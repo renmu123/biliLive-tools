@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import axios from "axios";
+import { omit } from "lodash-es";
 
 import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
 import { provider as providerForHuYa } from "@autorecord/huya-recorder";
@@ -16,7 +17,7 @@ import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
 import { sleep } from "../utils/index.js";
 import { readUser } from "../task/bili.js";
-import { omit } from "lodash-es";
+import { liveService } from "../db/model/index.js";
 
 import type { AppConfig } from "../config.js";
 import type { LocalRecordr } from "@biliLive-tools/types";
@@ -159,6 +160,14 @@ export async function createRecorderManager(appConfig: AppConfig) {
   // });
   manager.on("videoFileCreated", async ({ recorder, filename }) => {
     logger.info("Manager videoFileCreated", { recorder, filename });
+    // liveService.add({
+    // streamer_id: Number(recorder.uid),
+    // start_time: new Date().getTime(),
+    // roomId: recorder.channelId,
+    // title: recorder.liveInfo?.title,
+    // video_file: filename,
+    // });
+
     await sleep(4000);
     const data = recorderConfig.get(recorder.id);
 

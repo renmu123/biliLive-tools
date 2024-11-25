@@ -6,7 +6,10 @@ import type { Database } from "better-sqlite3";
 interface BaseLive {
   streamer_id: number;
   start_time: number;
+  end_time?: number;
   title: string;
+  danmu_file?: string;
+  video_file?: string;
 }
 
 interface Live extends BaseLive {
@@ -27,8 +30,11 @@ class LiveModel extends BaseModel<BaseLive> {
         id INTEGER PRIMARY KEY AUTOINCREMENT,                -- 自增主键
         created_at INTEGER DEFAULT (strftime('%s', 'now')),  -- 创建时间，时间戳，自动生成
         streamer_id INTEGER NOT NULL,                        -- 主播id
-        start_time INTEGER NOT NULL UNIQUE,                  -- 直播开始时间，秒时间戳
+        start_time INTEGER NOT NULL,                         -- 直播开始时间，秒时间戳
+        end_time INTEGER,                                    -- 直播结束时间，秒时间戳
         title TEXT,                                          -- 直播标题
+        danmu_file TEXT,                                     -- 弹幕文件路径
+        video_file TEXT,                                     -- 视频文件路径
         FOREIGN KEY (streamer_id) REFERENCES streamer(id)    -- 外键约束
       ) STRICT;
     `;
@@ -53,12 +59,10 @@ export default class LiveController {
   addMany(list: BaseLive[]) {
     return this.model.insertMany(list);
   }
-
   list(options: Partial<Live>): Live[] {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     return this.model.list(filterOptions);
   }
-
   query(options: Partial<Live>) {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     console.log(filterOptions, options);

@@ -1,7 +1,7 @@
-export * from "./presets/index.js";
-
+import path from "node:path";
 import { createContainer, asValue, asClass } from "awilix";
 
+export * from "./presets/index.js";
 import { taskQueue, TaskQueue } from "./task/task.js";
 import { appConfig, AppConfig } from "./config.js";
 import { DanmuPreset, VideoPreset, FFmpegPreset } from "./presets/index.js";
@@ -9,10 +9,10 @@ import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
 import { BiliCommentQueue, migrateBiliUser } from "./task/bili.js";
 import { createRecorderManager } from "./recorder/index.js";
+import { initDB } from "./db/model/index.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 
-// import { initDB } from "./db/index.js";
 const container = createContainer();
 
 const init = async (config: GlobalConfig) => {
@@ -23,7 +23,9 @@ const init = async (config: GlobalConfig) => {
   });
   const logLevel = appConfig.get("logLevel");
   initLogger(config.logPath, logLevel);
-  // initDB("danmu.db");
+
+  const dbPath = path.join(config.userDataPath, "data.db");
+  initDB(dbPath);
 
   container.register({
     appConfig: asValue(appConfig),
