@@ -72,6 +72,17 @@ class BaseModel<T extends object> {
     const sql = `SELECT * FROM ${this.tableName}${conditions.length ? " WHERE " + conditions.join(" AND ") : ""}`;
     return this.db.prepare(sql).get(...values) as any;
   }
+  update(options: Partial<T & { id: number }>): void {
+    const id = options.id;
+    delete options.id;
+
+    const keys = Object.keys(options);
+    const values = Object.values(options);
+    const placeholders = keys.map((key) => `${key} = ?`).join(", ");
+    const sql = `UPDATE ${this.tableName} SET ${placeholders} WHERE id = ?`;
+
+    this.db.prepare(sql).run(...values, id);
+  }
 
   list(options: Partial<T>): (T & { id: number; created_at: number })[] {
     const conditions: string[] = [];

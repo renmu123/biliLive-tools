@@ -9,7 +9,7 @@ import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
 import { BiliCommentQueue, migrateBiliUser } from "./task/bili.js";
 import { createRecorderManager } from "./recorder/index.js";
-import { initDB } from "./db/model/index.js";
+import { initDB } from "./db/index.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 

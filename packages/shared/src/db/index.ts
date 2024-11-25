@@ -1,8 +1,8 @@
 import Database from "better-sqlite3";
 
-import DanmaModel from "./danmu.js";
-import StreamModel from "./streamer.js";
-import LiveModel from "./live.js";
+import DanmaModel from "./model/danmu.js";
+import StreamModel from "./model/streamer.js";
+import LiveModel from "./model/live.js";
 
 import type { Database as DatabaseType } from "better-sqlite3";
 

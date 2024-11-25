@@ -183,7 +183,7 @@ export const getSCDanmu = async (input: string) => {
   });
 };
 
-export const paeseMetadata = (jObj: any) => {
+export const parseMetadata = (jObj: any) => {
   const metadata: {
     streamer?: string;
     room_id?: string;
@@ -264,10 +264,10 @@ export const parseDanmu = async (
   // 如果是bililiverecorder和blrec录制的，平台为bilibili
   let platform: string;
   if (options.type === "bililiverecorder" || options.type === "blrec") {
-    platform = "bilibili";
+    platform = "Bilibili";
   }
   const source = path.basename(input);
-  const metadata = paeseMetadata(jObj);
+  const metadata = parseMetadata(jObj);
 
   const parsedDanmuku = danmuku.map((item) => {
     const data: DanmuType = {

@@ -1,19 +1,16 @@
 import BaseModel from "./baseModel.js";
 import { validateAndFilter } from "./utils.js";
-import { streamerService, liveService } from "./index.js";
 
 import type { Database } from "better-sqlite3";
-import type { DanmaType, DanmuItem } from "@biliLive-tools/types";
+import type { DanmaType } from "@biliLive-tools/types";
 
-interface BaseDanmu {
+export interface BaseDanmu {
   text?: string;
   ts?: number;
   type: DanmaType;
   user?: string;
   gift_price?: number;
-  source?: string;
   p?: string;
-  streamer_id?: number;
   live_id?: number;
 }
 
@@ -39,11 +36,8 @@ class DanmaModel extends BaseModel<BaseDanmu> {
         created_at INTEGER DEFAULT (strftime('%s', 'now')),  -- 创建时间，时间戳，自动生成
         user TEXT,                                      -- 发送用户名
         gift_price INTEGER DEFAULT 0,                   -- 礼物价格，默认为0
-        source TEXT,                                    -- 来源
-        streamer_id INTEGER,                            -- 主播id
         live_id INTEGER,                                -- 直播场次id
         p TEXT,                                         -- 普通弹幕的基础数据
-        FOREIGN KEY (streamer_id) REFERENCES streamer(id),  -- 外键约束
         FOREIGN KEY (live_id) REFERENCES live(id)           -- 外键约束
         ) STRICT;
     `;
@@ -59,75 +53,14 @@ export default class DanmaController {
     "type",
     "user",
     "gift_price",
-    "source",
     "p",
-    "streamer_id",
     "live_id",
   ];
   init(db: Database) {
     this.model = new DanmaModel(db);
     this.model.createTable();
   }
-  addWithStreamer(list: DanmuItem[]) {
-    if (!Array.isArray(list)) return;
-    const streamMap = new Map();
-    const liveMap = new Map();
 
-    const danmaList: (DanmuItem & BaseDanmu)[] = [];
-    for (const item of list) {
-      const options: DanmuItem & BaseDanmu = item;
-
-      // 如果有streamer和room_id，就去查找或新建streamer_id
-      if (options.streamer && options.room_id) {
-        const key = `${options.room_id}-${options.streamer}`;
-
-        if (!streamMap.has(key)) {
-          const streamer = streamerService.upsert({
-            where: {
-              name: options.streamer,
-              room_id: options.room_id,
-            },
-            create: {
-              name: options.streamer,
-              room_id: options.room_id,
-              platform: options.platform,
-            },
-          });
-          if (!streamer?.id) {
-            throw new Error("streamer upsert failed");
-          }
-          streamMap.set(key, streamer.id);
-        }
-        options.streamer_id = streamMap.get(key);
-      }
-      // 如果有streamer_id和live_start_time和live_title，就去查找或新建live
-      if (options.streamer_id && options.live_start_time && options.live_title) {
-        const key = `${options.streamer_id}-${options.live_start_time}`;
-        if (!liveMap.has(key)) {
-          const live = liveService.upsert({
-            where: {
-              streamer_id: options.streamer_id,
-              start_time: options.live_start_time,
-            },
-            create: {
-              title: options.live_title,
-              streamer_id: options.streamer_id,
-              start_time: options.live_start_time,
-            },
-          });
-          if (!live?.id) {
-            throw new Error("live upsert failed");
-          }
-          liveMap.set(key, live.id);
-        }
-        options.live_id = liveMap.get(key);
-      }
-      danmaList.push(options);
-    }
-
-    this.addMany(danmaList);
-    return true;
-  }
   addDanma(options: BaseDanmu) {
     const filterOptions = validateAndFilter(options, this.requireFields, []);
     console.log(filterOptions, options);

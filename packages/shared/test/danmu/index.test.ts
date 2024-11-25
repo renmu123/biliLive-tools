@@ -1,8 +1,8 @@
 import { expect, describe, it } from "vitest";
 
-import { paeseMetadata } from "../../src/danmu/index";
+import { parseMetadata } from "../../src/danmu/index";
 
-describe.concurrent("paeseMetadata", () => {
+describe.concurrent("parseMetadata", () => {
   it("should parse BililiveRecorderRecordInfo from XML object", () => {
     const jObj = {
       i: {
@@ -18,7 +18,7 @@ describe.concurrent("paeseMetadata", () => {
       },
     };
 
-    const metadata = paeseMetadata(jObj);
+    const metadata = parseMetadata(jObj);
 
     expect(metadata).toEqual({
       streamer: "雪糕cheese",
@@ -40,7 +40,7 @@ describe.concurrent("paeseMetadata", () => {
       },
     };
 
-    const metadata = paeseMetadata(jObj);
+    const metadata = parseMetadata(jObj);
 
     expect(metadata).toEqual({
       streamer: "JohnDoe",
@@ -55,7 +55,7 @@ describe.concurrent("paeseMetadata", () => {
       i: {},
     };
 
-    const metadata = paeseMetadata(jObj);
+    const metadata = parseMetadata(jObj);
 
     expect(metadata).toEqual({
       streamer: undefined,

@@ -17,7 +17,7 @@ import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
 import { sleep } from "../utils/index.js";
 import { readUser } from "../task/bili.js";
-import { liveService } from "../db/model/index.js";
+import LiveService from "../db/service/liveService.js";
 
 import type { AppConfig } from "../config.js";
 import type { LocalRecordr } from "@biliLive-tools/types";
@@ -160,13 +160,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   // });
   manager.on("videoFileCreated", async ({ recorder, filename }) => {
     logger.info("Manager videoFileCreated", { recorder, filename });
-    // liveService.add({
-    // streamer_id: Number(recorder.uid),
-    // start_time: new Date().getTime(),
-    // roomId: recorder.channelId,
-    // title: recorder.liveInfo?.title,
-    // video_file: filename,
-    // });
+    const startTime = new Date();
 
     await sleep(4000);
     const data = recorderConfig.get(recorder.id);
@@ -176,24 +170,37 @@ export async function createRecorderManager(appConfig: AppConfig) {
         event: "FileOpening",
         filePath: filename,
         roomId: recorder.channelId,
-        time: new Date().toISOString(),
+        time: startTime.toISOString(),
         title: recorder?.liveInfo?.title,
         username: recorder?.liveInfo?.owner,
       });
+
+    LiveService.addWithStreamer({
+      start_time: startTime.getTime(),
+      room_id: recorder.channelId,
+      title: recorder.liveInfo?.title,
+      video_file: filename,
+      name: recorder?.liveInfo?.owner,
+      platform: recorder.providerId,
+    });
   });
   manager.on("videoFileCompleted", ({ recorder, filename }) => {
     logger.warn("Manager videoFileCompleted", { recorder, filename });
 
+    const endTime = new Date();
     const data = recorderConfig.get(recorder.id);
+
     data?.sendToWebhook &&
       axios.post("http://localhost:18010/webhook/custom", {
         event: "FileClosed",
         filePath: filename,
         roomId: recorder.channelId,
-        time: new Date().toISOString(),
+        time: endTime.toISOString(),
         title: recorder?.liveInfo?.title,
         username: recorder?.liveInfo?.owner,
       });
+
+    LiveService.upadteEndTime(filename, endTime.getTime());
   });
 
   appConfig.on("update", () => {

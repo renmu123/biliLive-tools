@@ -3,7 +3,7 @@ import { validateAndFilter } from "./utils.js";
 
 import type { Database } from "better-sqlite3";
 
-interface BaseLive {
+export interface BaseLive {
   streamer_id: number;
   start_time: number;
   end_time?: number;
@@ -70,5 +70,8 @@ export default class LiveController {
   }
   upsert(options: { where: Partial<Live & { id: number }>; create: BaseLive }) {
     return this.model.upsert(options);
+  }
+  update(options: Partial<Live & { id: number }>) {
+    return this.model.update(options);
   }
 }

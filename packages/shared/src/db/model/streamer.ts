@@ -3,9 +3,9 @@ import { validateAndFilter } from "./utils.js";
 
 import type { Database } from "better-sqlite3";
 
-interface BaseStreamer {
+export interface BaseStreamer {
   name: string;
-  platform: "bilibili" | "douyu" | "unknown" | string | undefined;
+  platform: "Bilibili" | "DouYu" | "HuYa" | "unknown" | string | undefined;
   room_id: string;
 }
 
