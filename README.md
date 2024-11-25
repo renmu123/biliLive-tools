@@ -141,8 +141,6 @@ services:
       # 更多参数见录播姬文档
 ```
 
-#### blrec
-
 ## webui
 
 可用于国内未备案机器，或懒得自部署的情况，如果你的接口是http协议，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者自部署，自部署参考[项目](https://github.com/renmu123/biliLive-webui)
@@ -418,8 +416,9 @@ web和客户端使用的字体方式并不相同，会有差异，再加上获�
   - [x] 支持弹幕压制
   - [x] 断播续传
 - [x] 支持自定义ffmpeg以及ffprobe
-- [ ] 斗鱼直播录制
+- [ ] 直播录制
 - [ ] 弹幕分析
+- [ ] web&docker版本支持
 
 # 开发
 
@@ -437,8 +436,7 @@ $ pnpm run install:bin
 ### better-sqlite3
 
 `弹幕分析`功能依赖于`better-sqlite3`，如果你无法编译安装，尝试安装[visual-studio2022](https://visualstudio.microsoft.com/zh-hans/thank-you-downloading-visual-studio/?sku=Community)中的c++相关工具，以及python3(也许)。
-如果你是Win，你还可能遇到报错比如`cause=fork/exec %1 is not a valid Win32 application.`，根据[提示](https://github.com/pnpm/pnpm/issues/5638#issuecomment-1327988206)修改pnpm源文件，如果应用无法启动，尝试使用electron-rebuild。
-如果你最后还是无法安装，尝试在项目根目录运行`node scripts\github-ci-better-sqlite3.js`手动安装依赖。
+如果你是Win，你还可能遇到报错比如`cause=fork/exec %1 is not a valid Win32 application.`，根据[提示](https://github.com/pnpm/pnpm/issues/5638#issuecomment-1327988206)修改pnpm源文件，如果你最后还是无法安装，尝试在项目根目录运行`node scripts\github-ci-better-sqlite3.js`手动安装依赖。
 
 ### 其他依赖
 

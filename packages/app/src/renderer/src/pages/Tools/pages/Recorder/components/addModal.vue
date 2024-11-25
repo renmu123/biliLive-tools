@@ -101,9 +101,6 @@
             <span class="inline-flex"> 线路 </span>
           </template>
           待实现
-          <n-checkbox v-model:checked="globalFieldsObj.line" class="global-checkbox"
-            >全局</n-checkbox
-          >
         </n-form-item>
         <n-form-item v-if="config.providerId === 'Bilibili'">
           <template #label>
@@ -191,9 +188,8 @@ const emits = defineEmits<{
   (event: "confirm"): void;
 }>();
 
-const hasGlobalFields: (keyof BaseRecordr)[] = [
+const hasGlobalFields: (keyof Omit<BaseRecordr, "line">)[] = [
   "quality",
-  "line",
   "disableProvideCommentsWhenRecording",
   "saveGiftDanma",
   "saveSCDanma",
@@ -305,7 +301,6 @@ watchEffect(async () => {
 
   globalFieldsObj.value = {
     quality: !(config.value?.noGlobalFollowFields ?? []).includes("quality"),
-    line: !(config.value?.noGlobalFollowFields ?? []).includes("line"),
     disableProvideCommentsWhenRecording: !(config.value?.noGlobalFollowFields ?? []).includes(
       "disableProvideCommentsWhenRecording",
     ),
@@ -322,8 +317,6 @@ watch(
     if (val.quality) {
       config.value.quality = appConfig.value.recorder.quality;
     }
-    // if (val.line) {
-    // }
     if (val.disableProvideCommentsWhenRecording) {
       config.value.disableProvideCommentsWhenRecording =
         appConfig.value.recorder.disableProvideCommentsWhenRecording;

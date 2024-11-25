@@ -94,12 +94,6 @@
         </template>
         <n-switch v-model:value="config.recorder.debugMode" />
       </n-form-item>
-      <n-form-item>
-        <template #label>
-          <span class="inline-flex"> 线路 </span>
-        </template>
-        待实现
-      </n-form-item>
 
       <h2>弹幕录制</h2>
       <n-form-item>
