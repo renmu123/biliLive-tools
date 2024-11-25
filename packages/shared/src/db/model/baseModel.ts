@@ -34,6 +34,7 @@ class BaseModel<T extends object> {
   }
 
   insertMany(records: Array<T>) {
+    if (records.length === 0) return [];
     const keys = Object.keys(records[0]);
     const placeholders = keys.map(() => "?").join(", ");
     const sql = `INSERT INTO ${this.tableName} (${keys.join(", ")}) VALUES (${placeholders})`;
@@ -70,6 +71,7 @@ class BaseModel<T extends object> {
     }
 
     const sql = `SELECT * FROM ${this.tableName}${conditions.length ? " WHERE " + conditions.join(" AND ") : ""}`;
+    console.log(sql, values);
     return this.db.prepare(sql).get(...values) as any;
   }
   update(options: Partial<T & { id: number }>): void {

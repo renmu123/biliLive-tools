@@ -5,7 +5,6 @@ import * as ntsuspend from "ntsuspend";
 
 import { uuid, isWin32, retry } from "../utils/index.js";
 import log from "../utils/log.js";
-import { Danmu } from "../danmu/index.js";
 import { sendNotify } from "../notify.js";
 import { appConfig } from "../config.js";
 import kill from "tree-kill";
@@ -18,6 +17,7 @@ import type { Status } from "@biliLive-tools/types/task.d.ts";
 import { TaskType } from "../enum.js";
 import type M3U8Downloader from "@renmu/m3u8-downloader";
 import type { AppConfig } from "../config.js";
+import type { DanmakuFactory } from "../danmu/danmaKuFactory.js";
 
 interface TaskEvents {
   "task-start": ({ taskId }: { taskId: string }) => void;
@@ -74,7 +74,7 @@ export abstract class AbstractTask {
 }
 
 export class DanmuTask extends AbstractTask {
-  danmu: Danmu;
+  danmu: DanmakuFactory;
   input: string;
   options: any;
   type = TaskType.danmu;
@@ -86,7 +86,7 @@ export class DanmuTask extends AbstractTask {
     onProgress?: (progress: Progress) => any;
   };
   constructor(
-    danmu: Danmu,
+    danmu: DanmakuFactory,
     options: {
       input: string;
       output: string;

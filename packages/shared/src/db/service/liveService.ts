@@ -16,6 +16,7 @@ export default class LiveService {
         platform: data.platform,
       },
     });
+    if (!streamer) return null;
 
     const live = liveModel.upsert({
       where: {

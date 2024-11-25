@@ -45,6 +45,14 @@ class LiveModel extends BaseModel<BaseLive> {
 export default class LiveController {
   private model!: LiveModel;
   private requireFields: (keyof BaseLive)[] = ["streamer_id", "start_time", "title"];
+  private validateFields: (keyof BaseLive)[] = [
+    "streamer_id",
+    "start_time",
+    "end_time",
+    "title",
+    "danmu_file",
+    "video_file",
+  ];
   init(db: Database) {
     console.log("init live");
     this.model = new LiveModel(db);
@@ -52,7 +60,7 @@ export default class LiveController {
   }
 
   add(options: BaseLive) {
-    const filterOptions = validateAndFilter(options, this.requireFields, []);
+    const filterOptions = validateAndFilter(options, this.validateFields, this.requireFields);
     console.log(filterOptions, options);
     return this.model.insert(options);
   }
@@ -60,11 +68,12 @@ export default class LiveController {
     return this.model.insertMany(list);
   }
   list(options: Partial<Live>): Live[] {
-    const filterOptions = validateAndFilter(options, this.requireFields, []);
+    const filterOptions = validateAndFilter(options, this.validateFields, this.requireFields);
     return this.model.list(filterOptions);
   }
   query(options: Partial<Live>) {
-    const filterOptions = validateAndFilter(options, this.requireFields, []);
+    console.log("live-query", options);
+    const filterOptions = validateAndFilter(options, this.validateFields, this.requireFields);
     console.log(filterOptions, options);
     return this.model.query(filterOptions);
   }

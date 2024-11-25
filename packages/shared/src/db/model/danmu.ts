@@ -11,7 +11,7 @@ export interface BaseDanmu {
   user?: string;
   gift_price?: number;
   p?: string;
-  live_id?: number;
+  live_id: number;
 }
 
 type Danma = BaseDanmu & {
@@ -31,14 +31,14 @@ class DanmaModel extends BaseModel<BaseDanmu> {
       CREATE TABLE IF NOT EXISTS ${this.table} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,           -- 自增主键
         text TEXT,                                      -- 弹幕内容
-        ts INTEGER,                                     -- 相对时间戳
+        ts REAL,                                        -- 相对时间戳
         type TEXT DEFAULT unknown,                      -- 弹幕类型，text：普通弹幕，gift：礼物弹幕，guard：上舰弹幕，sc：SC弹幕，unknown：未知
-        created_at INTEGER DEFAULT (strftime('%s', 'now')),  -- 创建时间，时间戳，自动生成
         user TEXT,                                      -- 发送用户名
         gift_price INTEGER DEFAULT 0,                   -- 礼物价格，默认为0
         live_id INTEGER,                                -- 直播场次id
         p TEXT,                                         -- 普通弹幕的基础数据
-        FOREIGN KEY (live_id) REFERENCES live(id)           -- 外键约束
+        created_at INTEGER DEFAULT (strftime('%s', 'now')),  -- 创建时间，时间戳，自动生成
+        FOREIGN KEY (live_id) REFERENCES live(id)            -- 外键约束
         ) STRICT;
     `;
     return super.createTable(createTableSQL);

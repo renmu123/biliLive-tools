@@ -7,7 +7,7 @@ import { isNumber } from "lodash-es";
 import { pathExists, trashItem, uuid, getTempPath } from "../utils/index.js";
 import log from "../utils/log.js";
 import { appConfig } from "../config.js";
-import { Danmu } from "../danmu/index.js";
+import { DanmakuFactory } from "../danmu/danmaKuFactory.js";
 import { generateDanmakuImage } from "../danmu/hotProgress.js";
 import { DanmuTask, taskQueue } from "./task.js";
 import { convertImage2Video, readVideoMeta } from "./video.js";
@@ -50,7 +50,7 @@ const addConvertDanmu2AssTask = async (
   }
   const DANMUKUFACTORY_PATH = getDanmuFactoryPath();
   log.info("danmufactory", DANMUKUFACTORY_PATH);
-  const danmu = new Danmu(DANMUKUFACTORY_PATH);
+  const danmu = new DanmakuFactory(DANMUKUFACTORY_PATH);
   let tempInput: string | undefined;
 
   if (options.copyInput) {

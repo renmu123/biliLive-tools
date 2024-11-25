@@ -14,7 +14,6 @@ import type {
   DanmuConfig,
   hotProgressOptions,
   Theme,
-  SC,
   DanmuItem,
 } from "@biliLive-tools/types";
 import type { OpenDialogOptions } from "../types";
@@ -72,9 +71,6 @@ export const api = {
       },
     ) {
       return ipcRenderer.invoke("danmu:generateDanmakuData", input, options);
-    },
-    getSCDanmu(input: string): Promise<SC[]> {
-      return ipcRenderer.invoke("danmu:getSCDanmu", input);
     },
     parseDanmu(
       input: string,

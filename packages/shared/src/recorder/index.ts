@@ -12,12 +12,15 @@ import {
   utils,
   genSavePathFromRule,
 } from "@autorecord/manager";
+
+import LiveService from "../db/service/liveService.js";
+import DanmuService from "../db/service/danmuService.js";
 import { getFfmpegPath } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
-import { sleep } from "../utils/index.js";
+import { sleep, replaceExtName } from "../utils/index.js";
 import { readUser } from "../task/bili.js";
-import LiveService from "../db/service/liveService.js";
+import { parseDanmu } from "../danmu/index.js";
 
 import type { AppConfig } from "../config.js";
 import type { LocalRecordr } from "@biliLive-tools/types";
@@ -163,6 +166,10 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const startTime = new Date();
 
     await sleep(4000);
+    if (!recorder.liveInfo) {
+      logger.error("Manager videoFileCreated", { recorder, filename });
+      return;
+    }
     const data = recorderConfig.get(recorder.id);
 
     data?.sendToWebhook &&
@@ -171,21 +178,21 @@ export async function createRecorderManager(appConfig: AppConfig) {
         filePath: filename,
         roomId: recorder.channelId,
         time: startTime.toISOString(),
-        title: recorder?.liveInfo?.title,
-        username: recorder?.liveInfo?.owner,
+        title: recorder.liveInfo.title,
+        username: recorder.liveInfo.owner,
       });
 
     LiveService.addWithStreamer({
       start_time: startTime.getTime(),
       room_id: recorder.channelId,
-      title: recorder.liveInfo?.title,
+      title: recorder.liveInfo.title,
       video_file: filename,
-      name: recorder?.liveInfo?.owner,
+      name: recorder.liveInfo.owner,
       platform: recorder.providerId,
     });
   });
-  manager.on("videoFileCompleted", ({ recorder, filename }) => {
-    logger.warn("Manager videoFileCompleted", { recorder, filename });
+  manager.on("videoFileCompleted", async ({ recorder, filename }) => {
+    logger.info("Manager videoFileCompleted", { recorder, filename });
 
     const endTime = new Date();
     const data = recorderConfig.get(recorder.id);
@@ -200,7 +207,20 @@ export async function createRecorderManager(appConfig: AppConfig) {
         username: recorder?.liveInfo?.owner,
       });
 
-    LiveService.upadteEndTime(filename, endTime.getTime());
+    const live = LiveService.upadteEndTime(filename, endTime.getTime());
+    if (!live) {
+      logger.error("Manager videoFileCompleted live error", { recorder, filename });
+    }
+
+    const { danmu, sc, gift, guard } = await parseDanmu(replaceExtName(filename, ".xml"), {
+      parseHotProgress: false,
+    });
+    console.log("danmu", danmu, sc, gift, guard, live);
+
+    DanmuService.addMany(danmu.map((item) => ({ ...item, live_id: live.id })));
+    DanmuService.addMany(sc.map((item) => ({ ...item, live_id: live.id })));
+    DanmuService.addMany(gift.map((item) => ({ ...item, live_id: live.id })));
+    DanmuService.addMany(guard.map((item) => ({ ...item, live_id: live.id })));
   });
 
   appConfig.on("update", () => {

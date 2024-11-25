@@ -1,92 +1,11 @@
 import fs from "fs-extra";
 import path from "node:path";
 import readline from "node:readline";
-import { ChildProcess, exec } from "node:child_process";
 import { XMLParser } from "fast-xml-parser";
 
-import log from "../utils/log.js";
-import { DANMU_DEAFULT_CONFIG } from "../presets/danmuPreset.js";
 import { genHotDataByXml } from "./hotProgress.js";
 
-import type { DanmuConfig, Danmu as DanmuType, SC } from "@biliLive-tools/types";
-
-export class Danmu {
-  execPath: string;
-  command?: string;
-  child?: ChildProcess;
-  constructor(execPath: string) {
-    this.execPath = execPath;
-  }
-
-  genDanmuArgs = (config: DanmuConfig) => {
-    const params = Object.entries(config).map(([key, value]) => {
-      // 如果配置字段不在默认中，则直接返回，用于处理版本回退可能导致的问题
-      if (!Object.hasOwn(DANMU_DEAFULT_CONFIG, key)) return "";
-
-      if (["resolution", "msgboxsize", "msgboxpos"].includes(key)) {
-        if (Array.isArray(value)) {
-          return `--${key} ${value.join("x")}`;
-        }
-        return "";
-      } else if (key === "blockmode") {
-        if (Array.isArray(value)) {
-          if (value.length === 0) return `--${key} null`;
-          return `--${key} ${value.join("-")}`;
-        }
-        return "";
-      } else if (key === "statmode") {
-        if (Array.isArray(value)) {
-          if (value.length === 0) return ``;
-          return `--${key} ${value.join("-")}`;
-        }
-        return "";
-      } else if (key === "fontname") {
-        return `--${key} "${value}"`;
-      } else if (
-        ["resolutionResponsive", "customDensity", "opacity", "giftmergetolerance"].includes(key)
-      ) {
-        // do nothing
-        return "";
-      } else if (key === "blacklist") {
-        if (value) return `--${key} ${value}`;
-        return "";
-      } else if (key === "density") {
-        if (value === -2) return `--density ${config.customDensity}`;
-        return `--${key} ${value}`;
-      } else if (key === "opacity100") {
-        const value = ((config.opacity100 / 100) * 255).toFixed(0);
-        return `--opacity ${value}`;
-      } else {
-        return `--${key} ${value}`;
-      }
-    });
-
-    return params.filter((item) => item !== "");
-  };
-
-  convertXml2Ass = async (input: string, output: string, argsObj: DanmuConfig) => {
-    if (!(await fs.pathExists(input))) {
-      throw new Error("input not exists");
-    }
-
-    const requiredArgs = [`-i "${input}"`, `-o "${output}"`, "--ignore-warnings"];
-    const args = this.genDanmuArgs(argsObj);
-    const command = `"${this.execPath}" ${requiredArgs.join(" ")} ${args.join(" ")}`;
-    log.info("danmakufactory command: ", command);
-    this.command = command;
-
-    return new Promise((resolve, reject) => {
-      const child = exec(command, (error, stdout, stderr) => {
-        if (error || stderr) {
-          reject(stderr);
-        } else {
-          resolve(stdout);
-        }
-      });
-      this.child = child;
-    });
-  };
-}
+import type { Danmu, SC, Gift, Guard } from "@biliLive-tools/types";
 
 const traversalObject = (obj: any, callback: (key: string, value: any) => any) => {
   for (const key in obj) {
@@ -167,22 +86,6 @@ export const parseXmlObj = async (XMLdata: string) => {
   return { jObj, danmuku, sc, guard, gift };
 };
 
-/**
- * 获取sc弹幕
- */
-export const getSCDanmu = async (input: string) => {
-  const { sc } = await parseXmlFile(input);
-  return sc.map((item) => {
-    const data = {
-      text: item["#text"],
-      user: item["@_user"],
-      ts: Number(item["@_ts"]),
-      type: "sc",
-    };
-    return data;
-  });
-};
-
 export const parseMetadata = (jObj: any) => {
   const metadata: {
     streamer?: string;
@@ -235,7 +138,7 @@ export const parseDanmu = async (
   input: string,
   iOptions: {
     parseHotProgress?: boolean;
-    type?: "bililiverecorder" | "blrec";
+    type?: "bililiverecorder" | "blrec" | "ddtv";
     roomId?: string;
     interval?: number;
     duration?: number;
@@ -249,7 +152,7 @@ export const parseDanmu = async (
     color: "#f9f5f3",
   };
   const options = Object.assign(defaultOptins, iOptions);
-  const { danmuku, sc, jObj } = await parseXmlFile(input);
+  const { danmuku, sc, jObj, gift, guard } = await parseXmlFile(input);
 
   let hotProgress: {
     time: number;
@@ -261,16 +164,16 @@ export const parseDanmu = async (
     hotProgress = await genHotDataByXml(danmuku, options);
   }
 
-  // 如果是bililiverecorder和blrec录制的，平台为bilibili
+  // 如果是bililiverecorder和blrec录制的，平台为Bilibili
   let platform: string;
-  if (options.type === "bililiverecorder" || options.type === "blrec") {
+  if (options.type === "bililiverecorder" || options.type === "blrec" || options.type === "ddtv") {
     platform = "Bilibili";
   }
   const source = path.basename(input);
   const metadata = parseMetadata(jObj);
 
   const parsedDanmuku = danmuku.map((item) => {
-    const data: DanmuType = {
+    const data: Danmu = {
       type: "text",
 
       text: item["#text"],
@@ -282,7 +185,6 @@ export const parseDanmu = async (
       room_id: options.roomId ?? metadata.room_id,
       live_start_time: metadata.live_start_time,
       live_title: metadata.live_title,
-      streamer: metadata.streamer,
     };
     return data;
   });
@@ -299,10 +201,39 @@ export const parseDanmu = async (
       room_id: options.roomId ?? metadata.room_id,
       live_start_time: metadata.live_start_time,
       live_title: metadata.live_title,
-      streamer: metadata.streamer,
     };
     return data;
   });
 
-  return { danmu: parsedDanmuku, sc: parsedSC, hotProgress };
+  const parsedGift = gift.map((item) => {
+    const data: Gift = {
+      type: "gift",
+      text: "",
+      user: item["@_user"],
+      ts: Number(item["@_ts"]),
+      platform: platform ?? metadata.platform ?? "unknown",
+      source,
+      room_id: options.roomId ?? metadata.room_id,
+      live_start_time: metadata.live_start_time,
+      live_title: metadata.live_title,
+    };
+    return data;
+  });
+
+  const parsedGuard = guard.map((item) => {
+    const data: Guard = {
+      type: "guard",
+      text: "",
+      user: item["@_user"],
+      ts: Number(item["@_ts"]),
+      platform: platform ?? metadata.platform ?? "unknown",
+      source,
+      room_id: options.roomId ?? metadata.room_id,
+      live_start_time: metadata.live_start_time,
+      live_title: metadata.live_title,
+    };
+    return data;
+  });
+
+  return { danmu: parsedDanmuku, sc: parsedSC, gift: parsedGift, guard: parsedGuard, hotProgress };
 };
