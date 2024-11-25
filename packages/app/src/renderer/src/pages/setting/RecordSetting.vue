@@ -78,7 +78,7 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip text="录制账号" tip="目前只支持B站账号"></Tip>
+          <Tip text="B站录制账号"></Tip>
         </template>
         <n-select
           v-model:value="config.recorder.uid"
