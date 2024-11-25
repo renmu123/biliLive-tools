@@ -232,6 +232,9 @@ export class WebhookHandler {
             timestampFont: danmuConfig.fontname,
           },
         );
+        if (removeOriginAfterConvert) {
+          trashItem(xmlFilePath);
+        }
         currentPart.filePath = output;
         currentPart.recordStatus = "handled";
       } catch (error) {
