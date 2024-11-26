@@ -1,8 +1,8 @@
 import type { Database } from "better-sqlite3";
 
 class BaseModel<T extends object> {
-  protected db: Database;
-  protected tableName: string;
+  db: Database;
+  tableName: string;
 
   constructor(db: Database, tableName: string) {
     this.db = db;
@@ -71,7 +71,6 @@ class BaseModel<T extends object> {
     }
 
     const sql = `SELECT * FROM ${this.tableName}${conditions.length ? " WHERE " + conditions.join(" AND ") : ""}`;
-    console.log(sql, values);
     return this.db.prepare(sql).get(...values) as any;
   }
   update(options: Partial<T & { id: number }>): void {

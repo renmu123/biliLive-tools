@@ -26,6 +26,11 @@ const router = createRouter({
           component: () => import("../pages/Home/index.vue"),
         },
         {
+          path: "/dashboard",
+          name: "Dashboard",
+          component: () => import("../pages/Dashboard/index.vue"),
+        },
+        {
           path: "/upload",
           name: "Upload",
           component: () => import("../pages/Tools/pages/FileUpload/index.vue"),

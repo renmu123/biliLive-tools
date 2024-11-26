@@ -124,6 +124,11 @@ export async function uploadCover(file: File): Promise<{
   return res.data;
 }
 
+export async function appStartTime(): Promise<number> {
+  const res = await request.get(`/common/appStartTime`);
+  return res.data;
+}
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
@@ -136,6 +141,7 @@ const common = {
   readXmlTimestamp,
   getFontList,
   uploadCover,
+  appStartTime,
 };
 
 export default common;

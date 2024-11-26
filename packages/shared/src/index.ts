@@ -10,6 +10,7 @@ import { initLogger } from "./utils/log.js";
 import { BiliCommentQueue, migrateBiliUser } from "./task/bili.js";
 import { createRecorderManager } from "./recorder/index.js";
 import { initDB } from "./db/index.js";
+import StatisticsService from "./db/service/statisticsService.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 
@@ -46,6 +47,11 @@ const init = async (config: GlobalConfig) => {
   setFfmpegPath();
   const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
   commentQueue.checkLoop();
+  // 设置开始时间
+  StatisticsService.addOrUpdate({
+    where: { stat_key: "start_time" },
+    create: { stat_key: "start_time", value: Date.now().toString() },
+  });
 
   // appConfig.on("update", () => {
   //   const appconfig = container.resolve<AppConfig>("appConfig");

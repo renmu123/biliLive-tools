@@ -51,10 +51,8 @@
 
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
-
 import { NIcon } from "naive-ui";
 import { RouterLink, useRoute } from "vue-router";
-
 import {
   BuildOutline as BookIcon,
   HomeOutline as HomeIcon,
@@ -62,6 +60,8 @@ import {
   GitPullRequestOutline as QueueIcon,
   SettingsOutline as SettingIcon,
 } from "@vicons/ionicons5";
+import { DashboardOutlined as DashboardIcon } from "@vicons/material";
+
 import defaultUserAvatar from "../../assets/images/moehime.jpg";
 import AppSettingDialog from "../../pages/setting/index.vue";
 import ChangelogModal from "../../components/ChangelogModal.vue";
@@ -295,6 +295,20 @@ const menuOptions = computed<MenuOption[]>(() => {
         ),
       key: "Home",
       icon: renderIcon(HomeIcon),
+    },
+    {
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "Dashboard",
+            },
+          },
+          { default: () => "看板" },
+        ),
+      key: "Dashboard",
+      icon: renderIcon(DashboardIcon),
     },
     {
       label: () => h("span", "工具页"),

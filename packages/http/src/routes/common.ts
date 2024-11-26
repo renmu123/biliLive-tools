@@ -8,6 +8,7 @@ import { formatTitle, getTempPath, uuid } from "@biliLive-tools/shared/utils/ind
 import { getFontsList } from "@biliLive-tools/shared/utils/fonts.js";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
 import { readXmlTimestamp } from "@biliLive-tools/shared/task/video.js";
+import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
 
 import { config } from "../index.js";
 
@@ -195,6 +196,11 @@ router.post("/cover/upload", upload.single("file"), async (ctx) => {
     name: outputName,
     path: `/assets/cover/${outputName}`,
   };
+});
+
+router.get("/appStartTime", async (ctx) => {
+  const data = StatisticsService.query("start_time");
+  ctx.body = data?.value;
 });
 
 export default router;
