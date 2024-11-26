@@ -162,6 +162,13 @@ router.post("/:id/stop_record", async (ctx) => {
   ctx.body = { payload: await stopRecord({ id }) };
 });
 
+// router.get(":id/history", async (ctx) => {
+// const { id } = ctx.params;
+// 分页
+// const { page, pageSize,startTime,endTime } = ctx.query
+// ctx.body = { payload: await recorder.getHistory() };
+// });
+
 router.get("/manager/resolveChannel", async (ctx) => {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
 
