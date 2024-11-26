@@ -1,18 +1,21 @@
+import { z } from "zod";
 import BaseModel from "./baseModel.js";
-import { validateAndFilter } from "./utils.js";
 
 import type { Database } from "better-sqlite3";
 
-export interface BaseStreamer {
-  name: string;
-  platform: "Bilibili" | "DouYu" | "HuYa" | "unknown" | string | undefined;
-  room_id: string;
-}
+const BaseStreamer = z.object({
+  name: z.string(),
+  platform: z.string(), // "Bilibili" | "DouYu" | "HuYa" | "unknown"
+  room_id: z.string(),
+});
 
-interface Streamer extends BaseStreamer {
-  id: number;
-  created_at: number;
-}
+const Streamer = BaseStreamer.extend({
+  id: z.number(),
+  created_at: z.number(),
+});
+
+export type BaseStreamer = z.infer<typeof BaseStreamer>;
+export type Streamer = z.infer<typeof Streamer>;
 
 class StreamerModel extends BaseModel<BaseStreamer> {
   table = "streamer";
@@ -38,28 +41,27 @@ class StreamerModel extends BaseModel<BaseStreamer> {
 
 export default class StreamerController {
   private model!: StreamerModel;
-  private requireFields: (keyof BaseStreamer)[] = ["name", "room_id", "platform"];
   init(db: Database) {
     this.model = new StreamerModel(db);
     this.model.createTable();
   }
 
   add(options: BaseStreamer) {
-    const filterOptions = validateAndFilter(options, this.requireFields, []);
-    console.log(filterOptions, options);
-    return this.model.insert(options);
+    const data = BaseStreamer.parse(options);
+    return this.model.insert(data);
   }
   addMany(list: BaseStreamer[]) {
-    return this.model.insertMany(list);
+    const filterList = list.map((item) => BaseStreamer.parse(item));
+
+    return this.model.insertMany(filterList);
   }
   list(options: Partial<Streamer>): Streamer[] {
-    const filterOptions = validateAndFilter(options, this.requireFields, []);
-    return this.model.list(filterOptions);
+    const data = Streamer.parse(options);
+    return this.model.list(data);
   }
   query(options: Partial<Streamer>) {
-    const filterOptions = validateAndFilter(options, this.requireFields, []);
-    console.log(filterOptions, options);
-    return this.model.query(filterOptions);
+    const data = Streamer.parse(options);
+    return this.model.query(data);
   }
   upsert(options: { where: Partial<Streamer & { id: number }>; create: BaseStreamer }) {
     return this.model.upsert(options);

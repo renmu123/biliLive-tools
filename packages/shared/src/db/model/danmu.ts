@@ -1,23 +1,24 @@
+import { z } from "zod";
 import BaseModel from "./baseModel.js";
-import { validateAndFilter } from "./utils.js";
 
 import type { Database } from "better-sqlite3";
-import type { DanmaType } from "@biliLive-tools/types";
 
-export interface BaseDanmu {
-  text?: string;
-  ts?: number;
-  type: DanmaType;
-  user?: string;
-  gift_price?: number;
-  p?: string;
-  live_id: number;
-}
+const BaseDanmu = z.object({
+  live_id: z.number(),
+  ts: z.number(),
+  type: z.enum(["text", "gift", "guard", "sc"]),
+  text: z.string().optional(),
+  user: z.string().optional(),
+  gift_price: z.number().optional(),
+  p: z.string().optional(),
+});
+const Danmu = BaseDanmu.extend({
+  id: z.number(),
+  created_at: z.number(),
+});
 
-type Danma = BaseDanmu & {
-  id: number;
-  created_at: number;
-};
+export type BaseDanmu = z.infer<typeof BaseDanmu>;
+export type Danmu = z.infer<typeof Danmu>;
 
 class DanmaModel extends BaseModel<BaseDanmu> {
   table = "danma";
@@ -47,40 +48,27 @@ class DanmaModel extends BaseModel<BaseDanmu> {
 
 export default class DanmaController {
   private model!: DanmaModel;
-  private requireFields: (keyof BaseDanmu)[] = [
-    "text",
-    "ts",
-    "type",
-    "user",
-    "gift_price",
-    "p",
-    "live_id",
-  ];
   init(db: Database) {
     this.model = new DanmaModel(db);
     this.model.createTable();
   }
 
   addDanma(options: BaseDanmu) {
-    const filterOptions = validateAndFilter(options, this.requireFields, []);
-    console.log(filterOptions, options);
-    return this.model.insert(options);
+    const data = BaseDanmu.parse(options);
+    return this.model.insert(data);
   }
   addMany(list: BaseDanmu[]) {
-    const filterList = list.map((item) =>
-      validateAndFilter(item, this.requireFields, []),
-    ) as BaseDanmu[];
+    const filterList = list.map((item) => BaseDanmu.parse(item));
     return this.model.insertMany(filterList);
   }
 
-  list(options: Partial<Danma>): Danma[] {
-    const filterOptions = validateAndFilter(options, this.requireFields, []);
-    return this.model.list(filterOptions);
+  list(options: Partial<Danmu>): Danmu[] {
+    const data = Danmu.parse(options);
+    return this.model.list(data);
   }
 
-  query(options: Partial<Danma>) {
-    const filterOptions = validateAndFilter(options, this.requireFields, []);
-    console.log(filterOptions, options);
-    return this.model.query(filterOptions);
+  query(options: Partial<Danmu>) {
+    const data = Danmu.parse(options);
+    return this.model.query(data);
   }
 }

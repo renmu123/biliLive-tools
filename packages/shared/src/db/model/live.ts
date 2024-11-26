@@ -1,21 +1,25 @@
+import { z } from "zod";
 import BaseModel from "./baseModel.js";
-import { validateAndFilter } from "./utils.js";
 
 import type { Database } from "better-sqlite3";
 
-export interface BaseLive {
-  streamer_id: number;
-  start_time: number;
-  end_time?: number;
-  title: string;
-  danmu_file?: string;
-  video_file?: string;
-}
+const BaseLive = z.object({
+  streamer_id: z.number(),
+  start_time: z.number(),
+  title: z.string(),
+  end_time: z.number().optional(),
+  danmu_file: z.string().optional(),
+  video_file: z.string().optional(),
+});
 
-interface Live extends BaseLive {
-  id: number;
-  created_at: number;
-}
+const Live = BaseLive.extend({
+  id: z.number(),
+  created_at: z.number(),
+});
+
+export type BaseLive = z.infer<typeof BaseLive>;
+
+export type Live = z.infer<typeof Live>;
 
 class LiveModel extends BaseModel<BaseLive> {
   table = "live";
@@ -44,15 +48,6 @@ class LiveModel extends BaseModel<BaseLive> {
 
 export default class LiveController {
   private model!: LiveModel;
-  private requireFields: (keyof BaseLive)[] = ["streamer_id", "start_time", "title"];
-  private validateFields: (keyof BaseLive)[] = [
-    "streamer_id",
-    "start_time",
-    "end_time",
-    "title",
-    "danmu_file",
-    "video_file",
-  ];
   init(db: Database) {
     console.log("init live");
     this.model = new LiveModel(db);
@@ -60,27 +55,27 @@ export default class LiveController {
   }
 
   add(options: BaseLive) {
-    const filterOptions = validateAndFilter(options, this.validateFields, this.requireFields);
-    console.log(filterOptions, options);
-    return this.model.insert(options);
+    const data = BaseLive.parse(options);
+    return this.model.insert(data);
   }
   addMany(list: BaseLive[]) {
-    return this.model.insertMany(list);
+    const filterList = list.map((item) => BaseLive.parse(item));
+
+    return this.model.insertMany(filterList);
   }
   list(options: Partial<Live>): Live[] {
-    const filterOptions = validateAndFilter(options, this.validateFields, this.requireFields);
-    return this.model.list(filterOptions);
+    const data = Live.parse(options);
+    return this.model.list(data);
   }
   query(options: Partial<Live>) {
-    console.log("live-query", options);
-    const filterOptions = validateAndFilter(options, this.validateFields, this.requireFields);
-    console.log(filterOptions, options);
-    return this.model.query(filterOptions);
+    const data = Live.parse(options);
+    return this.model.query(data);
   }
   upsert(options: { where: Partial<Live & { id: number }>; create: BaseLive }) {
     return this.model.upsert(options);
   }
   update(options: Partial<Live & { id: number }>) {
-    return this.model.update(options);
+    const data = Live.parse(options);
+    return this.model.update(data);
   }
 }
