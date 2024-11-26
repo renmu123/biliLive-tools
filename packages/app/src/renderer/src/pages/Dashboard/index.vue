@@ -1,5 +1,5 @@
 <template>
-  <h1>已运行{{ formatTime(now - appStartTime) }}</h1>
+  <h1 class="center">已运行{{ formatTime(now - appStartTime) }}</h1>
 </template>
 
 <script setup lang="ts">
@@ -27,4 +27,10 @@ const formatTime = (time: number) => {
 };
 </script>
 
-<style scoped></style>
+<style scoped lang="less">
+.center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+</style>
