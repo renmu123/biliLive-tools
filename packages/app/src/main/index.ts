@@ -90,6 +90,7 @@ const genHandler = (ipcMain: IpcMain) => {
 
 function createWindow(): void {
   Object.assign(windowConfig, WindowState.get("winBounds"));
+  console.log("windowConfig", windowConfig);
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -111,6 +112,14 @@ function createWindow(): void {
   }
   mainWindow.on("close", () => {
     Object.assign(
+      windowConfig,
+      {
+        isMaximized: mainWindow.isMaximized(),
+      },
+      mainWindow.getNormalBounds(),
+    );
+    console.log(
+      "close",
       windowConfig,
       {
         isMaximized: mainWindow.isMaximized(),
@@ -344,6 +353,16 @@ const quit = async () => {
       },
       mainWin.getNormalBounds(),
     );
+
+    console.log(
+      "quit",
+      windowConfig,
+      {
+        isMaximized: mainWin.isMaximized(),
+      },
+      mainWin.getNormalBounds(),
+    );
+
     WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
 
     const canQuited = await canQuit();
