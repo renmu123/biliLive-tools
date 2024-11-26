@@ -48,7 +48,7 @@
             <div
               v-if="item.recordHandle?.savePath"
               class="section"
-              @click="open(item.id, item?.recordHandle?.stream)"
+              @click="open(item.id, item?.recordHandle?.url)"
             >
               打开直播
             </div>
@@ -218,7 +218,6 @@ const isWeb = ref(window.isWeb);
  */
 const openSavePath = (path: string) => {
   window.api.openPath(window.path.dirname(path));
-  console.log(path, "1222222222222");
 };
 </script>
 

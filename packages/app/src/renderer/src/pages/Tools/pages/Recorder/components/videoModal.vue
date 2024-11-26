@@ -5,7 +5,7 @@
         ref="videoRef"
         style="aspect-ratio: 16 / 9"
         :option="{}"
-        :plugins="['danmuku']"
+        :plugins="['danmuku', 'hls']"
         @ready="handleVideoReady"
       ></Artplayer>
     </n-card>
@@ -35,25 +35,18 @@ async function streamLogs() {
   eventSource = await getDanmaStream(props.id);
 
   eventSource.onmessage = function (event) {
-    console.log(event.data);
     const data = JSON.parse(event.data);
     if (!videoInstance.value) return;
 
-    videoInstance?.value.plugins?.artplayerPluginDanmuku?.emit({
+    // @ts-ignore
+    videoInstance?.value?.artplayerPluginDanmuku?.emit({
       text: data.text,
       color: data.color,
-      border: true,
+      border: false,
     });
-
-    // logs.value += event.data;
-    // nextTick(() => {
-    // logInst.value?.scrollTo({ position: "bottom", silent: true });
-    // });
   };
 
-  eventSource.onerror = function () {
-    // logs.value = "";
-  };
+  // eventSource.onerror = function () {};
 }
 watch(
   () => showModal.value,
@@ -61,7 +54,6 @@ watch(
     if (value) {
       streamLogs();
     } else {
-      // logs.value = "";
       eventSource?.close();
     }
   },
@@ -69,6 +61,7 @@ watch(
 
 const videoInstance = ref<ArtplayerType | null>(null);
 const handleVideoReady = async (instance: ArtplayerType) => {
+  // console.log("video ready", instance);
   videoInstance.value = instance;
   if (props.videoUrl) {
     videoRef.value?.switchUrl(props.videoUrl, props.videoUrl.endsWith(".flv") ? "flv" : "");

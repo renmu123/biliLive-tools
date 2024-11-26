@@ -238,7 +238,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         headers: {
           Cookie: this.auth ?? "",
         },
-        uid: (this.extra.uid as number) ?? 0,
+        uid: (this.uid as unknown as number) ?? 0,
       },
     });
   }

@@ -5,8 +5,11 @@
 <script lang="ts" setup>
 import Artplayer from "artplayer";
 import flvjs from "flv.js";
+import Hls from "hls.js";
+
 import artplayerPluginAss from "./artplayer-plugin-assjs";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
+import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 
 const props = defineProps<{
   option: any;
@@ -29,7 +32,7 @@ onMounted(async () => {
       plugins.push(
         artplayerPluginDanmuku({
           danmuku: [],
-          mount: undefined,
+          emitter: false,
           heatmap: false,
         }),
       );
@@ -38,6 +41,32 @@ onMounted(async () => {
       plugins.push(
         artplayerPluginAss({
           content: "",
+        }),
+      );
+    }
+    if (props.plugins.includes("hls")) {
+      plugins.push(
+        artplayerPluginHlsControl({
+          quality: {
+            // Show qualitys in control
+            control: false,
+            // Show qualitys in setting
+            setting: false,
+            // Get the quality name from level
+            // I18n
+            title: "Quality",
+            auto: "Auto",
+          },
+          audio: {
+            // Show audios in control
+            control: false,
+            // Show audios in setting
+            setting: false,
+            // Get the audio name from track
+            // I18n
+            title: "Audio",
+            auto: "Auto",
+          },
         }),
       );
     }
@@ -66,8 +95,25 @@ onMounted(async () => {
           art.notice.show = "Unsupported playback format: flv";
         }
       },
+      m3u8: function playM3u8(video, url, art) {
+        if (Hls.isSupported()) {
+          if (art.hls) art.hls.destroy();
+          const hls = new Hls();
+          hls.loadSource(url);
+          hls.attachMedia(video);
+          art.hls = hls;
+          art.on("destroy", () => hls.destroy());
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = url;
+        } else {
+          art.notice.show = "Unsupported playback format: m3u8";
+        }
+      },
     },
   });
+
+  // @ts-ignore
+  instance.artplayerPluginDanmuku = instance?.plugins?.artplayerPluginDanmuku;
   await nextTick();
   emits("ready", instance);
   instance.on("error", (error, reconnectTime) => {
