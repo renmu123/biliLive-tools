@@ -40,6 +40,7 @@ async function streamLogs() {
 
     // @ts-ignore
     videoInstance?.value?.artplayerPluginDanmuku?.emit({
+      // TODO:差一个mode，0: 滚动(默认)，1: 顶部，2: 底部
       text: data.text,
       color: data.color,
       border: false,
