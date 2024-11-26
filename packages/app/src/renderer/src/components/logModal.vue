@@ -32,12 +32,10 @@ async function streamLogs() {
     logs.value = "";
   };
 }
-// streamLogs();
 watch(
   () => showModal.value,
   (value) => {
     if (value) {
-      console.log("streamLogs");
       streamLogs();
     } else {
       logs.value = "";

@@ -6,9 +6,11 @@
 import Artplayer from "artplayer";
 import flvjs from "flv.js";
 import artplayerPluginAss from "./artplayer-plugin-assjs";
+import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 
 const props = defineProps<{
   option: any;
+  plugins?: string[];
 }>();
 const emits = defineEmits<{
   (event: "ready", value: Artplayer): void;
@@ -21,15 +23,36 @@ const artRef = ref(null);
 let instance: Artplayer | null = null;
 
 onMounted(async () => {
+  const plugins: any[] = [];
+  if (props.plugins) {
+    if (props.plugins.includes("danmuku")) {
+      plugins.push(
+        artplayerPluginDanmuku({
+          danmuku: [],
+          mount: undefined,
+          heatmap: false,
+        }),
+      );
+    }
+    if (props.plugins.includes("ass")) {
+      plugins.push(
+        artplayerPluginAss({
+          content: "",
+        }),
+      );
+    }
+  } else {
+    plugins.push(
+      artplayerPluginAss({
+        content: "",
+      }),
+    );
+  }
   instance = new Artplayer({
     url: "",
     ...props.option,
     container: artRef.value,
-    plugins: [
-      artplayerPluginAss({
-        content: "",
-      }),
-    ],
+    plugins: plugins,
     customType: {
       flv: (video, url, art) => {
         if (flvjs.isSupported()) {

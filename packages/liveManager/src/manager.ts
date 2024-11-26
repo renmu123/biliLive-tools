@@ -2,7 +2,7 @@ import fs from "fs-extra";
 import path from "node:path";
 import mitt, { Emitter } from "mitt";
 import { omit, range } from "lodash-es";
-import { ChannelId } from "./common.js";
+import { ChannelId, Message } from "./common.js";
 import {
   RecorderCreateOpts,
   Recorder,
@@ -73,6 +73,7 @@ export interface RecorderManager<
     videoFileCompleted: { recorder: Recorder<E>; filename: string };
 
     RecordStop: { recorder: Recorder<E>; recordHandle: RecordHandle; reason?: string };
+    Message: { recorder: Recorder<E>; message: Message };
     RecorderUpdated: {
       recorder: Recorder<E>;
       keys: (string | keyof Recorder<E>)[];
@@ -190,6 +191,7 @@ export function createRecorderManager<
       recorder.on("RecordStop", ({ recordHandle, reason }) =>
         this.emit("RecordStop", { recorder, recordHandle, reason }),
       );
+      recorder.on("Message", (message) => this.emit("Message", { recorder, message }));
       recorder.on("Updated", (keys) => this.emit("RecorderUpdated", { recorder, keys }));
       recorder.on("DebugLog", (log) => this.emit("RecorderDebugLog", { recorder, ...log }));
 

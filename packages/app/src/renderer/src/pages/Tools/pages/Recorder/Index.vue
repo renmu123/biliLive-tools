@@ -46,6 +46,13 @@
             <div class="section" @click="edit(item.id)">直播间设置</div>
             <div class="section" @click="getLiveInfo">刷新直播间信息</div>
             <div
+              v-if="item.recordHandle?.savePath"
+              class="section"
+              @click="open(item.id, item?.recordHandle?.stream)"
+            >
+              打开直播
+            </div>
+            <div
               v-if="!isWeb && item.recordHandle?.savePath"
               class="section"
               @click="openSavePath(item.recordHandle?.savePath)"
@@ -60,6 +67,7 @@
     </div>
 
     <addModal :id="editId" v-model:visible="addModalVisible" @confirm="init"></addModal>
+    <videoModal :id="editId" v-model:visible="videoModalVisible" :video-url="videoUrl"></videoModal>
   </div>
 </template>
 
@@ -67,11 +75,14 @@
 import { recoderApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
 import addModal from "./components/addModal.vue";
+import videoModal from "./components/videoModal.vue";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 import { Live24Regular } from "@vicons/fluent";
 import { useEventListener } from "@vueuse/core";
 
 import type { ClientRecorder, API } from "@biliLive-tools/http";
+
+const notice = useNotification();
 
 const recorderList = ref<ClientRecorder[]>([]);
 const liveInfos = ref<API.getLiveInfo.LiveInfo[]>([]);
@@ -124,6 +135,25 @@ const editId = ref("");
 const edit = async (id: string) => {
   editId.value = id;
   addModalVisible.value = true;
+};
+
+const videoModalVisible = ref(false);
+const videoUrl = ref("");
+/**
+ * 打开直播间
+ * @param id 内部直播间id
+ */
+const open = async (id: string, streamUrl: string) => {
+  editId.value = id;
+  videoUrl.value = streamUrl;
+  if (!streamUrl) {
+    notice.error({
+      title: "未找到直播流地址",
+      duration: 2000,
+    });
+    return;
+  }
+  videoModalVisible.value = true;
 };
 
 const getLiveInfo = async () => {

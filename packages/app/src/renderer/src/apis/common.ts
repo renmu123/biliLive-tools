@@ -19,6 +19,19 @@ export const getStreamLogs = async () => {
   return eventSource;
 };
 
+export const getDanmaStream = async (recorderId: string) => {
+  let key = window.localStorage.getItem("key");
+  if (!window.isWeb) {
+    const appConfig = await configApi.get();
+    key = appConfig.passKey;
+  }
+
+  const eventSource = new EventSource(
+    `${request.defaults.baseURL}/sse/recorder/danma?auth=${key}&id=${recorderId}`,
+  );
+  return eventSource;
+};
+
 export const version = async (): Promise<string> => {
   const res = await request.get(`/common/version`);
   return res.data;
@@ -142,6 +155,7 @@ const common = {
   getFontList,
   uploadCover,
   appStartTime,
+  getDanmaStream,
 };
 
 export default common;

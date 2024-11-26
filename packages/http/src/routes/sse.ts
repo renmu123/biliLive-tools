@@ -1,14 +1,17 @@
 import fs from "node:fs";
-
 import Router from "koa-router";
 import chokidar from "chokidar";
+import { createRecorderManager } from "@biliLive-tools/shared";
 
-import { config } from "../index.js";
+import { config, container } from "../index.js";
 
 const router = new Router({
   prefix: "/sse",
 });
 
+/**
+ * 流式查询日志
+ */
 router.get("/streamLogs", async (ctx) => {
   const logFilePath = config.logPath;
 
@@ -32,16 +35,6 @@ router.get("/streamLogs", async (ctx) => {
     });
   };
 
-  // 读取当前文件大小
-  // try {
-  //   const stats = fs.statSync(logFilePath);
-  //   console.log("logSize", stats.size);
-  // } catch (err) {
-  //   console.error("Error reading log file:", err);
-  //   ctx.res.end();
-  //   return;
-  // }
-
   sendLog();
 
   // 监听日志文件变化
@@ -55,6 +48,22 @@ router.get("/streamLogs", async (ctx) => {
   ctx.req.on("close", () => {
     console.log("Client closed connection");
     watcher.close();
+  });
+});
+
+type createRecorderManagerType = Awaited<ReturnType<typeof createRecorderManager>>;
+/**
+ * 获取弹幕流
+ */
+router.get("/recorder/danma", async (ctx) => {
+  const id = ctx.query.id;
+
+  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  recorderManager.manager.on("Message", ({ recorder, message }) => {
+    if (recorder.id === id) {
+      // @ts-ignore
+      ctx.sse.send(JSON.stringify(message));
+    }
   });
 });
 

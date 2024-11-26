@@ -277,6 +277,9 @@ importers:
       artplayer:
         specifier: ^5.2.1
         version: 5.2.1
+      artplayer-plugin-danmuku:
+        specifier: 5.1.4
+        version: 5.1.4
       assjs:
         specifier: ^0.1.2
         version: 0.1.2
@@ -1844,6 +1847,9 @@ packages:
   array-uniq@1.0.3:
     resolution: {integrity: sha512-MNha4BWQ6JbwhFhj03YK552f7cb3AzoE8SzeljgChvL1dl3IcvggXVz1DilzySZkCja+CXuZbdW7yATchWn8/Q==}
     engines: {node: '>=0.10.0'}
+
+  artplayer-plugin-danmuku@5.1.4:
+    resolution: {integrity: sha512-f2gJ9HsvSmOwg6UdNcWCUkSI6WmfkTiQKVDWr+pRJF9jQ2wK8c4YjNJ11SY63H5OGlaJBSvWWyNVdFHOX7pUbg==}
 
   artplayer@5.2.1:
     resolution: {integrity: sha512-xhNE9zSLT2z4O2CJwcMSWADsS3Cvq0PwNanvMzRsqgfUhsMOpum8HlMtIUPOTyMGjIhKV8sl109HFUalQK6WJQ==}
@@ -6425,6 +6431,8 @@ snapshots:
   array-union@2.1.0: {}
 
   array-uniq@1.0.3: {}
+
+  artplayer-plugin-danmuku@5.1.4: {}
 
   artplayer@5.2.1:
     dependencies:
