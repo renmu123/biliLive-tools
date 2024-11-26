@@ -142,6 +142,10 @@ router.post("/webhook/ddtv", async (ctx) => {
 });
 
 const getDDTVTrueFile = (event: any) => {
+  if (!event.data.DownInfo.LiveChatListener) {
+    log.error("DDTV数据格式错误", event);
+    throw new Error("没有检测到LiveChatListener数据结构");
+  }
   // 上一个切片文件路径，但是不包含后缀，如_original_fix.mp4或_fix.mp4
   const lastVideoFile: string = path.normalize(event.data.DownInfo.LiveChatListener.File);
   // 当前拥有的所有切片文件列表，不代表所有文件都在文件夹下
