@@ -11,10 +11,16 @@ import artplayerPluginAss from "./artplayer-plugin-assjs";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 
-const props = defineProps<{
-  option: any;
-  plugins?: string[];
-}>();
+const props = withDefaults(
+  defineProps<{
+    option: any;
+    plugins?: string[];
+    isLive?: boolean;
+  }>(),
+  {
+    isLive: false,
+  },
+);
 const emits = defineEmits<{
   (event: "ready", value: Artplayer): void;
   (event: "error", value: { error: any; reconnectTime: number }): void;
@@ -79,6 +85,7 @@ onMounted(async () => {
   }
   instance = new Artplayer({
     url: "",
+    isLive: props.isLive,
     ...props.option,
     container: artRef.value,
     plugins: plugins,
@@ -86,7 +93,7 @@ onMounted(async () => {
       flv: (video, url, art) => {
         if (flvjs.isSupported()) {
           if (art.flv) art.flv.destroy();
-          const flv = flvjs.createPlayer({ type: "flv", url });
+          const flv = flvjs.createPlayer({ type: "flv", url, isLive: props.isLive });
           flv.attachMediaElement(video);
           flv.load();
           art.flv = flv;

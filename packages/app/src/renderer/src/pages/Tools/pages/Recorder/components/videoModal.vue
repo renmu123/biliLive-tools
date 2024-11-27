@@ -5,6 +5,7 @@
         ref="videoRef"
         style="aspect-ratio: 16 / 9"
         :option="{}"
+        is-live
         :plugins="['danmuku', 'hls']"
         @ready="handleVideoReady"
       ></Artplayer>
