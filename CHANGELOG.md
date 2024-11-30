@@ -23,6 +23,7 @@
 2. 修复转码功能中对预设“视频分辨率”无效的bug [#37](https://github.com/renmu123/biliLive-tools/issues/37)
 3. 修复webhook压制开启完成后删除源文件后未删除弹幕文件的bug
 4. 修复弹幕黑名单用户名的描述错误
+5. 修复webhook“使用文件名”选项失效
 
 # 1.6.0(2024.11.12)
 
