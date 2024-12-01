@@ -108,15 +108,6 @@ const confirm = async () => {
   if (!aid.value) {
     return;
   }
-  const res = await biliApi.getPlatformArchiveDetail(Number(aid.value), appConfig.value.uid!);
-  if (res.in_season) {
-    notice.error({
-      title: "已在合集中的稿件无法添加分P",
-      duration: 1000,
-    });
-    aid.value = "";
-    return;
-  }
   emits("confirm", aid.value);
   showModal.value = false;
 };
