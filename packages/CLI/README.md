@@ -23,7 +23,7 @@
   ffmpegPath: "ffmpeg.exe", // ffmpeg二进制路径
   ffprobePath: "ffprobe.exe",  // ffprobe二进制路径
   danmakuFactoryPath: "DanmakuFactory.exe",  // DanmakuFactory二进制路径
-  logPath: "main.log",  // log文件路径
+  logPath: "main.log",  // log文件路径，绝对路径
 }
 ```
 
