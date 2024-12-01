@@ -63,6 +63,7 @@ export const readVideoMeta = async (
   await setFfmpegPath();
   return new Promise((resolve, reject) => {
     const lastOptions = Object.assign({ json: false }, options);
+    // @ts-ignore
     ffmpeg.ffprobe(input, lastOptions, function (err, metadata) {
       if (err) {
         reject(err);
