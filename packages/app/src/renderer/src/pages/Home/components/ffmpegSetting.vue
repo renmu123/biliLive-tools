@@ -289,22 +289,7 @@
       <n-select v-model:value="ffmpegOptions.config.audioCodec" :options="audioEncoders" />
     </n-form-item>
 
-    <n-form-item>
-      <template #label>
-        <span class="inline-flex">
-          <span>额外输出参数</span>
-          <Tip> 参数将被附加到ffmpeg输出参数中，参数错误可能会导致无法运行 </Tip>
-        </span>
-      </template>
-      <n-input
-        v-model:value="ffmpegOptions.config.extraOptions"
-        type="textarea"
-        placeholder="请输入额外参数"
-        style="width: 100%"
-        :input-props="{ spellcheck: 'false' }"
-      />
-    </n-form-item>
-    <n-form-item>
+    <n-form-item v-if="ffmpegOptions.config.encoder !== 'copy'">
       <template #label>
         <span class="inline-flex">
           <span>视频滤镜</span>
@@ -320,6 +305,22 @@
         v-model:value="ffmpegOptions.config.vf"
         type="textarea"
         placeholder="请输入滤镜参数"
+        style="width: 100%"
+        :input-props="{ spellcheck: 'false' }"
+      />
+    </n-form-item>
+
+    <n-form-item>
+      <template #label>
+        <span class="inline-flex">
+          <span>额外输出参数</span>
+          <Tip> 参数将被附加到ffmpeg输出参数中，参数错误可能会导致无法运行 </Tip>
+        </span>
+      </template>
+      <n-input
+        v-model:value="ffmpegOptions.config.extraOptions"
+        type="textarea"
+        placeholder="请输入额外参数"
         style="width: 100%"
         :input-props="{ spellcheck: 'false' }"
       />
