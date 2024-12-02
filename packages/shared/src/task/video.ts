@@ -133,7 +133,7 @@ export const convertImage2Video = async (
 };
 
 /**
- * 只有webhook在用，几乎废弃，不再更新
+ * 只有webhook在用，几乎废弃，不再更新，之后直接重构
  */
 export const convertVideo2Mp4 = async (
   file: {
