@@ -203,4 +203,9 @@ router.get("/appStartTime", async (ctx) => {
   ctx.body = data?.value;
 });
 
+router.get("/exportLogs", async (ctx) => {
+  const logFilePath = config.logPath;
+  ctx.body = fs.createReadStream(logFilePath);
+});
+
 export default router;

@@ -19,6 +19,13 @@ export const getStreamLogs = async () => {
   return eventSource;
 };
 
+export const exportLogs = async (): Promise<Buffer> => {
+  const res = await request.get(`/common/exportLogs`, {
+    responseType: "blob",
+  });
+  return res.data;
+};
+
 export const getDanmaStream = async (recorderId: string) => {
   let key = window.localStorage.getItem("key");
   if (!window.isWeb) {
@@ -156,6 +163,7 @@ const common = {
   uploadCover,
   appStartTime,
   getDanmaStream,
+  exportLogs,
 };
 
 export default common;

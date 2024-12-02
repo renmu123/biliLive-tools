@@ -90,7 +90,6 @@ const genHandler = (ipcMain: IpcMain) => {
 
 function createWindow(): void {
   Object.assign(windowConfig, WindowState.get("winBounds"));
-  console.log("windowConfig", windowConfig);
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -199,12 +198,6 @@ function createWindow(): void {
   tray.setToolTip("biliLive-tools");
   // 托盘菜单
   const contextMenu = Menu.buildFromTemplate([
-    {
-      label: "打开log文件夹",
-      click: () => {
-        shell.openPath(app.getPath("logs"));
-      },
-    },
     {
       label: "显示",
       click: () => {
