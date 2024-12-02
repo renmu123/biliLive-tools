@@ -9,15 +9,15 @@ import { sendNotify } from "../notify.js";
 import { appConfig } from "../config.js";
 import kill from "tree-kill";
 import { addMediaApi, editMediaApi } from "./bili.js";
+import { TaskType } from "../enum.js";
 
 import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { Client, WebVideoUploader } from "@renmu/bili-api";
 import type { Progress, NotificationTaskStatus, BiliupConfig } from "@biliLive-tools/types";
 import type { Status } from "@biliLive-tools/types/task.d.ts";
-import { TaskType } from "../enum.js";
 import type M3U8Downloader from "@renmu/m3u8-downloader";
 import type { AppConfig } from "../config.js";
-import type { DanmakuFactory } from "../danmu/danmaKuFactory.js";
+import type { DanmakuFactory } from "../danmu/danmakuFactory.js";
 
 interface TaskEvents {
   "task-start": ({ taskId }: { taskId: string }) => void;
