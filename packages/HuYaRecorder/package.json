@@ -32,7 +32,6 @@
   "dependencies": {
     "@autorecord/manager": "workspace:*",
     "huya-danma": "workspace:*",
-    "axios": "1.7.4",
     "mitt": "^3.0.1"
   },
   "devDependencies": {},

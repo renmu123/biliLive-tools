@@ -31,7 +31,7 @@
   "author": "WhiteMind",
   "license": "LGPL",
   "dependencies": {
-    "@renmu/fluent-ffmpeg": "2.3.1",
+    "@renmu/fluent-ffmpeg": "2.3.2",
     "fast-xml-parser": "^4.5.0",
     "filenamify": "^6.0.0",
     "mitt": "^3.0.1",

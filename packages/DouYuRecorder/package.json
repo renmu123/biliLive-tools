@@ -31,7 +31,6 @@
   "license": "LGPL",
   "dependencies": {
     "@autorecord/manager": "workspace:*",
-    "axios": "1.7.4",
     "mitt": "^3.0.1",
     "query-string": "^9.1.1",
     "safe-eval": "^0.4.1",
