@@ -1,10 +1,24 @@
 <template>
   <div class="container">
-    <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px">
+      <n-select
+        v-model:value="params.platform"
+        :options="platformOptions"
+        placeholder="平台"
+        style="width: 140px"
+        clearable
+      />
+      <n-select
+        v-model:value="params.recordStatus"
+        :options="statusOptions"
+        placeholder="录制状态"
+        style="width: 140px"
+        clearable
+      />
       <n-button type="primary" @click="add">添加</n-button>
     </div>
 
-    <div class="recorder-container">
+    <div v-if="list.length" class="recorder-container">
       <div v-for="(item, index) in list" :key="index" class="recorder">
         <div class="cover-container">
           <img v-if="item.cover" class="cover" :src="item.cover" referrerpolicy="no-referrer" />
@@ -63,6 +77,7 @@
         </n-popover>
       </div>
     </div>
+    <h1 v-else>木有主播捏，添加看看吧，支持斗鱼、虎牙平台、B站</h1>
 
     <addModal :id="editId" v-model:visible="addModalVisible" @confirm="init"></addModal>
     <videoModal :id="editId" v-model:visible="videoModalVisible" :video-url="videoUrl"></videoModal>
@@ -81,6 +96,38 @@ import { useEventListener } from "@vueuse/core";
 import type { ClientRecorder, API } from "@biliLive-tools/http";
 
 const notice = useNotification();
+const params = ref<API.getRecorders.Args>({
+  platform: undefined,
+  recordStatus: undefined,
+});
+const platformOptions = ref([
+  {
+    label: "DouYu",
+    value: "斗鱼",
+  },
+  {
+    label: "B站",
+    value: "Bilibili",
+  },
+  {
+    label: "HuYa",
+    value: "虎牙",
+  },
+]);
+const statusOptions = ref([
+  {
+    label: "录制中",
+    value: "recording",
+  },
+  {
+    label: "未录制",
+    value: "unrecorded",
+  },
+]);
+
+watch(params, () => {
+  getList();
+});
 
 const recorderList = ref<ClientRecorder[]>([]);
 const liveInfos = ref<API.getLiveInfo.LiveInfo[]>([]);
@@ -99,7 +146,7 @@ const list = computed(() => {
 });
 
 const getList = async () => {
-  recorderList.value = await recoderApi.infoList();
+  recorderList.value = await recoderApi.infoList(params.value);
 };
 
 const addModalVisible = ref(false);

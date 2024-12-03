@@ -16,9 +16,19 @@ const router = new Router({
 // API 的实际实现，这里负责实现对外暴露的接口，并假设 Args 都已经由上一层解析好了
 // TODO: 暂时先一起放这个文件里，后面要拆分放到合适的地方
 
-async function getRecorders(): Promise<API.getRecorders.Resp> {
+async function getRecorders(params: API.getRecorders.Args): Promise<API.getRecorders.Resp> {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  return recorderManager.manager.recorders.map((item) => recorderToClient(item));
+  let list = recorderManager.manager.recorders.map((item) => recorderToClient(item));
+
+  if (params.platform) {
+    list = list.filter((item) => item.providerId === params.platform);
+  }
+  if (params.recordStatus) {
+    list = list.filter(
+      (item) => (item.recordHandle != null) === (params.recordStatus === "recording"),
+    );
+  }
+  return list;
 }
 
 function getRecorder(args: API.getRecorder.Args): API.getRecorder.Resp {
@@ -86,7 +96,13 @@ async function stopRecord(args: API.stopRecord.Args): Promise<API.stopRecord.Res
 // API 与外部系统的连接，负责将外部系统传递的数据解析为正确的参数后调用合适的 API 并返回结果
 
 router.get("/list", async (ctx) => {
-  ctx.body = { payload: await getRecorders() };
+  // {
+  //   platform?: string;
+  //   recordStatus?: "recording" | "unrecorded";
+  // }
+  const query: API.getRecorders.Args = ctx.request.query;
+
+  ctx.body = { payload: await getRecorders(query) };
 });
 router.post("/add", async (ctx) => {
   // TODO: 这里的类型限制还是有些问题，Nullable 的 key（如 extra）如果没写在这也不会报错，之后想想怎么改

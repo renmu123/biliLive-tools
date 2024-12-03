@@ -6,8 +6,8 @@ import type { LocalRecordr } from "@biliLive-tools/types";
 /**
  * 获取录制器列表，非配置信息
  */
-const infoList = async (): Promise<ClientRecorder[]> => {
-  const res = await request.get(`/recorder/list`);
+const infoList = async (params: API.getRecorders.Args = {}): Promise<ClientRecorder[]> => {
+  const res = await request.get(`/recorder/list`, { params });
   return res.data.payload;
 };
 

@@ -51,7 +51,10 @@ export namespace API {
   }
   export namespace getRecorders {
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    export interface Args {}
+    export interface Args {
+      platform?: string;
+      recordStatus?: "recording" | "unrecorded";
+    }
 
     export type Resp = ClientRecorder[];
   }
