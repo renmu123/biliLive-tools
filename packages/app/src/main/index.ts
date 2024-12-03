@@ -117,14 +117,6 @@ function createWindow(): void {
       },
       mainWindow.getNormalBounds(),
     );
-    console.log(
-      "close",
-      windowConfig,
-      {
-        isMaximized: mainWindow.isMaximized(),
-      },
-      mainWindow.getNormalBounds(),
-    );
     WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
   });
 

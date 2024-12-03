@@ -2,7 +2,7 @@
   <div class="container">
     <div style="display: flex; align-items: center">
       <n-select
-        v-model:value="filterType"
+        v-model:value="store.params.type"
         :options="typeOptions"
         style="width: 140px; margin-right: 10px"
         size="small"
@@ -81,14 +81,10 @@ const groupByPid = (data: Task[]) => {
 
 const displayQueue = computed(() => {
   const filterData = queue.value.filter((item) => selectedStatus.value.includes(item.status));
-  if (filterType.value) {
-    return filterData.filter((item) => item.type === filterType.value);
-  }
   const data = groupByPid(filterData);
   return data;
 });
 
-const filterType = ref("");
 const typeOptions = ref([
   {
     value: "",

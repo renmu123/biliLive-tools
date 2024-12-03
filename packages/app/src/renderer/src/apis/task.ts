@@ -5,8 +5,10 @@ import type { DanmuPreset } from "@biliLive-tools/types";
 /**
  * 获取任务列表
  */
-const list = async (): Promise<Task[]> => {
-  const res = await request.get(`/task`);
+const list = async (params: {
+  type?: string;
+}): Promise<{ list: Task[]; runningTaskNum: number }> => {
+  const res = await request.get(`/task`, { params });
   return res.data;
 };
 

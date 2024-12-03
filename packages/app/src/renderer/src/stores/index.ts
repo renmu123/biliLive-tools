@@ -254,16 +254,26 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
 export const useQueueStore = defineStore("queue", () => {
   const runningTaskNum = ref(0);
   const queue = ref<Task[]>([]);
+  const params = ref({ type: "" });
 
   const getQuenu = async () => {
-    queue.value = (await taskApi.list()).toReversed();
-    runningTaskNum.value = queue.value.filter((item) => item.status === "running").length;
+    const res = await taskApi.list(params.value);
+    queue.value = res.list.toReversed();
+    runningTaskNum.value = res.runningTaskNum;
   };
+
+  watch(
+    () => params.value,
+    () => {
+      getQuenu();
+    },
+  );
 
   return {
     runningTaskNum,
     getQuenu,
     queue,
+    params,
   };
 });
 

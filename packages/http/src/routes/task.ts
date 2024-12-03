@@ -22,7 +22,16 @@ const router = new Router({
 });
 
 router.get("/", async (ctx) => {
-  ctx.body = handleListTask();
+  const type = ctx.query.type;
+  let data = handleListTask();
+  if (type) {
+    data = data.filter((item) => item.type === type);
+  }
+
+  ctx.body = {
+    list: data,
+    runningTaskNum: data.filter((item) => item.status === "running").length,
+  };
 });
 
 router.get("/:id", async (ctx) => {

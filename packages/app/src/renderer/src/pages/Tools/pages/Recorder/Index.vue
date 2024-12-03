@@ -2,8 +2,6 @@
   <div class="container">
     <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px">
       <n-button type="primary" @click="add">添加</n-button>
-
-      <div>支持斗鱼、虎牙平台、B站，这并非是经过严格检测的录播工具，请谨慎在生产环境使用</div>
     </div>
 
     <div class="recorder-container">

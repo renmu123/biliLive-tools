@@ -9,6 +9,8 @@
       class="card"
     >
       <n-form label-placement="left" :label-width="140">
+        <h4>支持斗鱼、虎牙平台、B站，这并非是经过严格检测的录播工具，请谨慎在生产环境使用</h4>
+
         <n-form-item v-if="!isEdit">
           <template #label>
             <span class="inline-flex"> 直播间链接 </span>
@@ -57,8 +59,8 @@
         <n-form-item>
           <template #label>
             <span class="inline-flex">
-              发送至webhook
-              <Tip tip="用于弹幕压制以及上传功能"></Tip>
+              发送至软件webhook
+              <Tip tip="你可以在设置中进行处理，主要用于弹幕压制以及上传功能"></Tip>
             </span>
           </template>
           <n-switch v-model:value="config.sendToWebhook" />
