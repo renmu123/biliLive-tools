@@ -123,6 +123,27 @@
             placeholder="请输入topic"
           ></n-input> </n-form-item
       ></template>
+      <template v-else-if="config.notification.setting.type === NotificationType.allInOne">
+        <n-form-item>
+          <template #label>
+            <Tip
+              tip="项目：https://github.com/CaoMeiYouRen/push-all-in-cloud，包含/push"
+              text="服务器地址"
+            ></Tip>
+          </template>
+          <n-input
+            v-model:value="config.notification.setting.allInOne.server"
+            placeholder="请输入服务器地址"
+          ></n-input> </n-form-item
+        ><n-form-item>
+          <template #label>
+            <span class="inline-flex"> Push Key </span>
+          </template>
+          <n-input
+            v-model:value="config.notification.setting.allInOne.key"
+            placeholder="请输入push key"
+          ></n-input> </n-form-item
+      ></template>
 
       <h3>通知任务</h3>
       <n-form-item label="ffmpeg任务">
@@ -219,6 +240,7 @@ const typeOptions = [
   { value: NotificationType.tg, label: "tg bot" },
   { value: NotificationType.server, label: "server酱" },
   { value: NotificationType.ntfy, label: "ntfy" },
+  { value: NotificationType.allInOne, label: "push all in cloud" },
 ];
 
 const notice = useNotification();

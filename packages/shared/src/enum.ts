@@ -16,6 +16,7 @@ export enum NotificationType {
   tg = "tg",
   system = "system",
   ntfy = "ntfy",
+  allInOne = "allInOne",
 }
 
 export enum LLMType {
@@ -160,6 +161,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       ntfy: {
         url: "",
         topic: "",
+      },
+      allInOne: {
+        server: "",
+        key: "",
       },
     },
   },

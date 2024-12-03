@@ -3,7 +3,7 @@
 ## 破坏性更新
 
 1. **~~为了多端兼容性考虑，字体的获取不再使用浏览器特有的api，此项更新后可能出现字体显示错误的情况。~~ 为了兼容性考虑，客户端仍使用web api，web端将使用新api，两者可能并不兼容**
-2. **封面将统一保存在文件夹下，一来为了多端兼容性、二来更方便的进行配置迁移，大概不会破坏目前的兼容性，还请自查，如果是web版本，只有本上传的才能预览**
+2. **封面将统一保存在文件夹下，一来为了多端兼容性、二来更方便的进行配置迁移，大概不会破坏目前的兼容性，还请自查，如果是web版本，只有本版本上传的才能预览**
 
 ## 功能
 
@@ -11,6 +11,7 @@
 2. web版本支持，现在可以使用web来管理cli或者远程本地，并非有所有客户端功能都会被支持，**如果你的接口是http协议，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者选择自部署**，线上地址：https://bililive.irenmu.com
 3. ffmpeg预设中的"时间戳"功能支持字体跟随弹幕预设，自定义内容格式（具体见[strftime](https://strftime.org/)，`:`需要转义），额外自定义参数（见[ffmpeg文档](https://ffmpeg.org/ffmpeg-filters.html#drawtext-1)） [#38](https://github.com/renmu123/biliLive-tools/issues/38)
 4. 增加了看板页面
+5. 支持 [push-all-in-cloud](https://github.com/CaoMeiYouRen/push-all-in-cloud) 推送
 
 ## 优化
 

@@ -9,6 +9,7 @@ import type {
   NotificationServerConfig,
   NotificationTgConfig,
   NotificationNtfyConfig,
+  NotificationPushAllInAllConfig,
 } from "@biliLive-tools/types";
 
 /**
@@ -106,6 +107,28 @@ export async function sendByNtfy(title: string, desp: string, options: Notificat
   });
 }
 
+/**
+ * allInOne发送通知
+ */
+export async function sendByAllInOne(
+  title: string,
+  desp: string,
+  options: NotificationPushAllInAllConfig,
+) {
+  const data = {
+    message: desp,
+    title: title,
+  };
+  fetch(options.server, {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${options.key}`,
+    },
+  });
+}
+
 export function send(title: string, desp: string) {
   // log.info("send notfiy", title, desp);
 
@@ -129,6 +152,12 @@ export async function _send(title: string, desp: string, appConfig: AppConfig) {
       break;
     case "ntfy":
       await sendByNtfy(title, desp, appConfig?.notification?.setting?.ntfy);
+      break;
+    case "allInOne":
+      await sendByAllInOne(title, desp, appConfig?.notification?.setting?.allInOne);
+      break;
+    default:
+      throw new Error("未知的通知类型");
   }
 }
 

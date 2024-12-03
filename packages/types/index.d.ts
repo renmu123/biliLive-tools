@@ -237,6 +237,15 @@ export interface NotificationTgConfig {
   key: string;
   chat_id: string;
 }
+
+/**
+ * push all in one推送配置
+ */
+export interface NotificationPushAllInAllConfig {
+  server: string;
+  key: string;
+}
+
 export type Theme = "system" | "light" | "dark";
 
 interface BaseRecordr {
@@ -345,12 +354,13 @@ export interface AppConfig {
     /** 通知配置项 */
     setting: {
       // 通知类型，支持server酱和邮件
-      type?: "server" | "mail" | "tg" | "system" | "ntfy";
+      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne";
       // server酱key
       server: NotificationServerConfig;
       mail: NotificationMailConfig;
       tg: NotificationTgConfig;
       ntfy: NotificationNtfyConfig;
+      allInOne: NotificationPushAllInAllConfig;
     };
   };
   /** 翻译配置 */

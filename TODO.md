@@ -22,4 +22,3 @@
 17. 上传任务支持修改参数
 18. 支持审核通过后删除视频
 19. desc支持模板
-20. 支持 [push-all-in-cloud](https://github.com/CaoMeiYouRen/push-all-in-cloud) 推送
