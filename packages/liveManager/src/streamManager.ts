@@ -4,38 +4,26 @@ import { replaceExtName } from "./utils.js";
 
 import type { Recorder } from "./recorder.js";
 
-export class SegmentManager {
-  extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
+export class Segment {
+  extraDataController: ReturnType<typeof createRecordExtraDataController>;
   init = true;
-  getSavePath: (opts: any) => string;
-  owner: string;
-  title: string;
   recorder: Recorder;
   /** 原始的ffmpeg文件名，用于重命名 */
   rawRecordingVideoPath: string;
   /** 输出文件名名，不包含拓展名 */
   outputVideoFilePath: string;
-  /** 开始时间 */
-  startTime: number;
 
-  constructor(
-    recorder: Recorder,
-    getSavePath: (opts: any) => string,
-    owner: string,
-    title: string,
-  ) {
-    this.getSavePath = getSavePath;
-    this.owner = owner;
-    this.title = title;
+  constructor(recorder: Recorder, outputVideoFilePath: string) {
     this.recorder = recorder;
-    this.startTime = Date.now();
+    this.outputVideoFilePath = outputVideoFilePath;
+
+    this.extraDataController = createRecordExtraDataController(`${this.outputVideoFilePath}.json`);
   }
 
   async handleSegmentEnd() {
     if (!this.outputVideoFilePath) {
       throw new Error("Should call onSegmentStart first");
     }
-    this.extraDataController?.setMeta({ recordStopTimestamp: Date.now() });
 
     try {
       await Promise.all([
@@ -56,16 +44,6 @@ export class SegmentManager {
       await this.handleSegmentEnd();
     }
     this.init = false;
-    this.startTime = Date.now();
-
-    this.outputVideoFilePath = this.getSavePath({
-      owner: this.owner,
-      title: this.title,
-      startTime: this.startTime,
-    });
-
-    this.extraDataController = createRecordExtraDataController(`${this.outputVideoFilePath}.json`);
-    this.extraDataController.setMeta({ title: this.title });
 
     const regex = /'([^']+)'/;
     const match = stderrLine.match(regex);
@@ -80,12 +58,14 @@ export class SegmentManager {
 }
 
 export class StreamManager {
-  private segmentManager: SegmentManager | null = null;
+  private segmentManager: Segment | null = null;
   private extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   recorder: Recorder;
   owner: string;
   title: string;
   recordSavePath: string;
+  hasSegment: boolean;
+  getSavePath: (opts: any) => string;
 
   constructor(
     recorder: Recorder,
@@ -97,10 +77,12 @@ export class StreamManager {
   ) {
     this.recordSavePath = recordSavePath;
     this.recorder = recorder;
+    this.hasSegment = hasSegment;
+    this.owner = owner;
+    this.title = title;
+    this.getSavePath = getSavePath;
 
-    if (hasSegment) {
-      this.segmentManager = new SegmentManager(recorder, getSavePath, owner, title);
-    } else {
+    if (!hasSegment) {
       const extraDataSavePath = replaceExtName(recordSavePath, ".json");
       this.extraDataController = createRecordExtraDataController(extraDataSavePath);
       this.extraDataController.setMeta({ title });
@@ -108,9 +90,19 @@ export class StreamManager {
   }
 
   async handleVideoStarted(stderrLine?: string) {
-    if (this.segmentManager) {
+    if (this.hasSegment) {
       if (stderrLine) {
+        const outputVideoFilePath = this.getSavePath({
+          owner: this.owner,
+          title: this.title,
+          startTime: Date.now(),
+        });
+        this.segmentManager = new Segment(this.recorder, outputVideoFilePath);
+        this.segmentManager.extraDataController.setMeta({ title: this.title });
+
         await this.segmentManager.onSegmentStart(stderrLine);
+      } else {
+        throw new Error("StderrLine should not be empty");
       }
     } else {
       this.recorder.emit("videoFileCreated", { filename: this.videoFilePath });
@@ -118,10 +110,15 @@ export class StreamManager {
   }
 
   async handleVideoCompleted() {
-    if (this.segmentManager) {
-      await this.segmentManager.handleSegmentEnd();
+    this.getExtraDataController()?.setMeta({ recordStopTimestamp: Date.now() });
+
+    if (this.hasSegment) {
+      if (this.segmentManager) {
+        await this.segmentManager.handleSegmentEnd();
+      } else {
+        throw new Error("Segment should not be empty");
+      }
     } else {
-      this.getExtraDataController()?.setMeta({ recordStopTimestamp: Date.now() });
       await this.getExtraDataController()?.flush();
       this.recorder.emit("videoFileCompleted", { filename: this.videoFilePath });
     }

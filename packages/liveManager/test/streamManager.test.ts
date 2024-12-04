@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { StreamManager, SegmentManager } from "../src/streamManager";
+import { StreamManager, Segment } from "../src/streamManager";
 
 vi.mock("fs-extra");
 vi.mock("../src/record_extra_data_controller", () => ({
@@ -37,7 +37,7 @@ describe("StreamManager", () => {
     );
   });
 
-  it("should initialize StreamManager with SegmentManager", () => {
+  it("should initialize StreamManager with Segment", () => {
     expect(streamManager).toBeInstanceOf(StreamManager);
     // @ts-ignore
     expect(streamManager.segmentManager).toBeDefined();
@@ -59,6 +59,9 @@ describe("StreamManager", () => {
     await streamManager.handleVideoCompleted();
     expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCompleted", {
       filename: "mocked/path.ts",
+    });
+    expect(streamManager.getExtraDataController()?.setMeta).toHaveBeenCalledWith({
+      recordStopTimestamp: expect.any(Number),
     });
   });
 
@@ -100,21 +103,21 @@ describe("StreamManager", () => {
   });
 });
 
-describe("SegmentManager", () => {
+describe("Segment", () => {
   let recorderMock: any;
   let getSavePathMock: any;
-  let segmentManager: SegmentManager;
+  let segmentManager: Segment;
 
   beforeEach(() => {
     recorderMock = {
       emit: vi.fn(),
     };
     getSavePathMock = vi.fn().mockReturnValue("mocked/path");
-    segmentManager = new SegmentManager(recorderMock, getSavePathMock, "owner", "title");
+    segmentManager = new Segment(recorderMock, "mocked/path.ts");
   });
 
-  it("should initialize SegmentManager", () => {
-    expect(segmentManager).toBeInstanceOf(SegmentManager);
+  it("should initialize Segment", () => {
+    expect(segmentManager).toBeInstanceOf(Segment);
     // expect(segmentManager.getSegmentData()).toBeDefined();
   });
 
