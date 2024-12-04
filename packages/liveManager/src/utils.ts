@@ -156,6 +156,37 @@ export function isFfmpegStartSegment(line: string) {
   return line.includes("Opening ") && line.includes("for writing");
 }
 
+export const formatTemplate = function template(string: string, ...args: any[]) {
+  const nargs = /\{([0-9a-zA-Z_]+)\}/g;
+
+  let params;
+
+  if (args.length === 1 && typeof args[0] === "object") {
+    params = args[0];
+  } else {
+    params = args;
+  }
+
+  if (!params || !params.hasOwnProperty) {
+    params = {};
+  }
+
+  return string.replace(nargs, function replaceArg(match, i, index) {
+    let result;
+
+    if (string[index - 1] === "{" && string[index + match.length] === "}") {
+      return i;
+    } else {
+      result = Object.hasOwn(params, i) ? params[i] : null;
+      if (result === null || result === undefined) {
+        return "";
+      }
+
+      return result;
+    }
+  });
+};
+
 export default {
   replaceExtName,
   singleton,

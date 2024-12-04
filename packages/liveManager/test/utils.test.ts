@@ -3,7 +3,6 @@ import fs from "node:fs";
 import path from "node:path";
 
 import {
-  // asyncThrottle,
   replaceExtName,
   singleton,
   getValuesFromArrayLikeFlexSpaceBetween,
@@ -14,6 +13,7 @@ import {
   assertObjectType,
   formatDate,
   removeSystemReservedChars,
+  formatTemplate,
 } from "../src/utils.js";
 
 describe("utils", () => {
@@ -126,68 +126,99 @@ describe("utils", () => {
     it("should not throw an error if data is an object", () => {
       expect(() => assertObjectType({}, "Not an object")).not.toThrow();
     });
+  });
+  describe("formatDate", () => {
+    it("should format date correctly with yyyy-MM-dd HH:mm:ss", () => {
+      const date = new Date(2023, 0, 1, 12, 30, 45); // January 1, 2023 12:30:45
+      const format = "yyyy-MM-dd HH:mm:ss";
+      const result = formatDate(date, format);
+      expect(result).toBe("2023-01-01 12:30:45");
+    });
 
-    describe("formatDate", () => {
-      it("should format date correctly with yyyy-MM-dd HH:mm:ss", () => {
-        const date = new Date(2023, 0, 1, 12, 30, 45); // January 1, 2023 12:30:45
-        const format = "yyyy-MM-dd HH:mm:ss";
-        const result = formatDate(date, format);
-        expect(result).toBe("2023-01-01 12:30:45");
+    it("should format date correctly with dd/MM/yyyy", () => {
+      const date = new Date(2023, 0, 1, 12, 30, 45); // January 1, 2023 12:30:45
+      const format = "dd/MM/yyyy";
+      const result = formatDate(date, format);
+      expect(result).toBe("01/01/2023");
+    });
+
+    it("should format date correctly with HH:mm:ss", () => {
+      const date = new Date(2023, 0, 1, 12, 30, 45); // January 1, 2023 12:30:45
+      const format = "HH:mm:ss";
+      const result = formatDate(date, format);
+      expect(result).toBe("12:30:45");
+    });
+
+    it("should format date correctly with custom format", () => {
+      const date = new Date(2023, 0, 1, 12, 30, 45); // January 1, 2023 12:30:45
+      const format = "yyyy/MM/dd HH-mm";
+      const result = formatDate(date, format);
+      expect(result).toBe("2023/01/01 12-30");
+    });
+
+    it("should handle single digit month and day correctly", () => {
+      const date = new Date(2023, 8, 9, 12, 30, 45); // September 9, 2023 12:30:45
+      const format = "yyyy-MM-dd";
+      const result = formatDate(date, format);
+      expect(result).toBe("2023-09-09");
+    });
+
+    describe("removeSystemReservedChars", () => {
+      it("should replace system reserved characters with underscores", () => {
+        const filename = "file:name*with?reserved|chars";
+        const result = removeSystemReservedChars(filename);
+        expect(result).toBe("file_name_with_reserved_chars");
       });
 
-      it("should format date correctly with dd/MM/yyyy", () => {
-        const date = new Date(2023, 0, 1, 12, 30, 45); // January 1, 2023 12:30:45
-        const format = "dd/MM/yyyy";
-        const result = formatDate(date, format);
-        expect(result).toBe("01/01/2023");
+      it("should not modify filename if there are no reserved characters", () => {
+        const filename = "filename_without_reserved_chars";
+        const result = removeSystemReservedChars(filename);
+        expect(result).toBe("filename_without_reserved_chars");
       });
 
-      it("should format date correctly with HH:mm:ss", () => {
-        const date = new Date(2023, 0, 1, 12, 30, 45); // January 1, 2023 12:30:45
-        const format = "HH:mm:ss";
-        const result = formatDate(date, format);
-        expect(result).toBe("12:30:45");
+      it("should handle empty filename", () => {
+        const filename = "";
+        const result = removeSystemReservedChars(filename);
+        expect(result).toBe("");
       });
 
-      it("should format date correctly with custom format", () => {
-        const date = new Date(2023, 0, 1, 12, 30, 45); // January 1, 2023 12:30:45
-        const format = "yyyy/MM/dd HH-mm";
-        const result = formatDate(date, format);
-        expect(result).toBe("2023/01/01 12-30");
+      it("should handle filename with only reserved characters", () => {
+        const filename = ":*?|";
+        const result = removeSystemReservedChars(filename);
+        expect(result).toBe("_");
       });
+    });
+  });
 
-      it("should handle single digit month and day correctly", () => {
-        const date = new Date(2023, 8, 9, 12, 30, 45); // September 9, 2023 12:30:45
-        const format = "yyyy-MM-dd";
-        const result = formatDate(date, format);
-        expect(result).toBe("2023-09-09");
-      });
+  describe("formatTemplate", () => {
+    it("should replace placeholders with corresponding values", () => {
+      const template = "Hello, {0}!";
+      const result = formatTemplate(template, "world");
+      expect(result).toBe("Hello, world!");
+    });
 
-      describe("removeSystemReservedChars", () => {
-        it("should replace system reserved characters with underscores", () => {
-          const filename = "file:name*with?reserved|chars";
-          const result = removeSystemReservedChars(filename);
-          expect(result).toBe("file_name_with_reserved_chars");
-        });
+    it("should replace multiple placeholders with corresponding values", () => {
+      const template = "{0} is {1} years old.";
+      const result = formatTemplate(template, "Alice", 30);
+      expect(result).toBe("Alice is 30 years old.");
+    });
 
-        it("should not modify filename if there are no reserved characters", () => {
-          const filename = "filename_without_reserved_chars";
-          const result = removeSystemReservedChars(filename);
-          expect(result).toBe("filename_without_reserved_chars");
-        });
+    it("should replace placeholders with object properties", () => {
+      const template = "Hello, {name}!";
+      const result = formatTemplate(template, { name: "Alice" });
+      expect(result).toBe("Hello, Alice!");
+    });
 
-        it("should handle empty filename", () => {
-          const filename = "";
-          const result = removeSystemReservedChars(filename);
-          expect(result).toBe("");
-        });
+    it("should handle missing placeholders gracefully", () => {
+      const template = "Hello, {0} {1}!";
+      const result = formatTemplate(template, "Alice");
+      expect(result).toBe("Hello, Alice !");
+    });
 
-        it("should handle filename with only reserved characters", () => {
-          const filename = ":*?|";
-          const result = removeSystemReservedChars(filename);
-          expect(result).toBe("_");
-        });
-      });
+    it("should handle escaped placeholders", () => {
+      const template = "Hello, {{0}}!";
+      const result = formatTemplate(template, "world");
+      expect(result).toBe("Hello, {0}!");
     });
   });
 });
