@@ -455,7 +455,6 @@ export class StreamManager {
   extraDataSavePath: string;
   videoFilePath: string;
   recorder: Recorder;
-  getSavePath: (opts: any) => string;
   owner: string;
   title: string;
   recordSavePath: string;
@@ -471,7 +470,6 @@ export class StreamManager {
     this.extraDataSavePath = replaceExtName(recordSavePath, ".json");
     this.videoFilePath = this.getVideoFilepath();
     this.recorder = recorder;
-    this.getSavePath = getSavePath;
     this.owner = owner;
     this.title = title;
     this.recordSavePath = recordSavePath;

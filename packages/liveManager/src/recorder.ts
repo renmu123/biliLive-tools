@@ -112,5 +112,12 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     channelId: ChannelId;
     living: boolean;
   }>;
+  getStream: (this: Recorder<E>) => Promise<{
+    source: string;
+    name: string;
+    rate: number;
+    url: string;
+  }>;
+
   uid?: string;
 }

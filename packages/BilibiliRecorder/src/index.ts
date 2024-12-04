@@ -49,6 +49,15 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         ...info,
       };
     },
+    async getStream() {
+      const res = await getStream({
+        channelId: this.channelId,
+        quality: this.quality,
+        streamPriorities: this.streamPriorities,
+        sourcePriorities: this.sourcePriorities,
+      });
+      return res.currentStream;
+    },
   };
 
   const recorderWithSupportUpdatedEvent = new Proxy(recorder, {
