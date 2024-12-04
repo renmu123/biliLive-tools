@@ -16,6 +16,7 @@
     // "noImplicitThis": false,
     // "noImplicitAny": true,
     // "noImplicitReturns": false,
+    "skipLibCheck": true,
     "declaration": true
   },
   "include": ["src/**/*.ts"]

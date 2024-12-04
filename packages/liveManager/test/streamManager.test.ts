@@ -112,8 +112,7 @@ describe("Segment", () => {
     recorderMock = {
       emit: vi.fn(),
     };
-    getSavePathMock = vi.fn().mockReturnValue("mocked/path");
-    segmentManager = new Segment(recorderMock, "mocked/path.ts");
+    segmentManager = new Segment(recorderMock, "mocked/path");
   });
 
   it("should initialize Segment", () => {

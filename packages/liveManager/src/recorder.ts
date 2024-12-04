@@ -115,7 +115,6 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   getStream: (this: Recorder<E>) => Promise<{
     source: string;
     name: string;
-    rate: number;
     url: string;
   }>;
 

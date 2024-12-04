@@ -9,7 +9,7 @@ export class Segment {
   init = true;
   recorder: Recorder;
   /** 原始的ffmpeg文件名，用于重命名 */
-  rawRecordingVideoPath: string;
+  rawRecordingVideoPath!: string;
   /** 输出文件名名，不包含拓展名 */
   outputVideoFilePath: string;
 

@@ -5,7 +5,6 @@ import multer from "../middleware/multer.js";
 
 import Router from "koa-router";
 import { formatTitle, getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
-import { getFontsList } from "@biliLive-tools/shared/utils/fonts.js";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
 import { readXmlTimestamp } from "@biliLive-tools/shared/task/video.js";
 import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
@@ -173,6 +172,7 @@ router.post("/danma/timestamp", async (ctx) => {
  * @api {get} /common/fonts 获取系统字体列表
  */
 router.get("/fonts", async (ctx) => {
+  const { getFontsList } = await import("@biliLive-tools/shared/utils/fonts.js");
   ctx.body = await getFontsList();
 });
 

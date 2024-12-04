@@ -14,7 +14,7 @@ COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
 
 # 构建后端项目
-RUN pnpm run build:base && pnpm run --filter bililive-cli build && pnpm run --filter bililive-cli movePackage
+RUN pnpm run build:base && pnpm run --filter bililive-cli build && cd packages/CLI && node ./scripts/removeDev.js && npm install --force
 
 # 下载二进制依赖
 RUN pnpm run install:bin
@@ -28,6 +28,7 @@ RUN mkdir data && mkdir bin && mkdir video
 
 # 复制 backend 代码和 package.json
 COPY --from=build /app/packages/CLI/lib /app
+COPY --from=build /app/packages/CLI/node_modules /app/node_modules
 COPY --from=build /app/packages/app/resources/bin /app/bin
 COPY --from=build /app/docker/config.json ./
 

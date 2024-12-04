@@ -16,7 +16,9 @@ services:
       # 映射的配置目录，用于持久化配置文件
       - ./data:/app/data
       # 用于处理webhook数据
-      - D:\录播:/app/video
+      - ./video:/app/video
+      # 字体目录
+      - ./fonts:/usr/local/share/fonts
     environment:
       # 登录密钥
       - BILILIVE_TOOLS_PASSKEY=your_passkey

@@ -14,7 +14,7 @@ COPY . .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
 
 # 构建前端项目
-ENV VITE_DEFAULT_SERVER=http://api:18010
+ENV VITE_DEFAULT_SERVER=http://127.0.0.1:18010
 RUN pnpm run build:webui
 
 # 从另一个基础镜像开始，安装运行时依赖

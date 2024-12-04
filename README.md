@@ -67,9 +67,9 @@ services:
   # 接口镜像
   api:
     image: bililive-tools-backend
-    # ports:
-    #   # 接口地址，按需启用
-    #   - "18010:18010"
+    ports:
+      # 接口地址，按需启用
+      - "18010:18010"
     volumes:
       # 映射的配置目录，用于持久化配置文件
       - ./data:/app/data
@@ -112,14 +112,15 @@ services:
   # 接口镜像
   api:
     image: bililive-tools-backend
-    # ports:
-    #   # 接口地址，按需启用
-    #   - "18010:18010"
+    ports:
+      - "18010:18010"
     volumes:
       # 映射的配置目录，用于持久化配置文件
       - ./data:/app/data
-      # 用于处理webhook数据，按需修改，和录播姬的参数一致
+      # 用于处理webhook数据，按需修改，与录播姬的参数一致
       - ./video:/app/video
+      # 字体目录
+      - ./fonts:/usr/local/share/fonts
     environment:
       # 登录密钥，自行修改
       - BILILIVE_TOOLS_PASSKEY=your_passkey

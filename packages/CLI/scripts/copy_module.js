@@ -26,6 +26,24 @@ function main() {
   fs.cpSync(path.join(pnpm_node_modules, "font-ls"), path.join(cli_node_modules, "font-ls"), {
     recursive: true,
   });
+  // 复制better-sqlite3相关文件，
+  fs.cpSync(
+    path.join(pnpm_node_modules, "better-sqlite3"),
+    path.join(cli_node_modules, "better-sqlite3"),
+    {
+      recursive: true,
+    },
+  );
+  fs.cpSync(
+    path.join(pnpm_node_modules, "file-uri-to-path"),
+    path.join(cli_node_modules, "file-uri-to-path"),
+    {
+      recursive: true,
+    },
+  );
+  fs.cpSync(path.join(pnpm_node_modules, "bindings"), path.join(cli_node_modules, "bindings"), {
+    recursive: true,
+  });
 }
 
 main();
