@@ -5,45 +5,44 @@ import { replaceExtName } from "./utils.js";
 import type { Recorder } from "./recorder.js";
 
 export class SegmentManager {
-  segmentData: { startTime: number; rawname: string };
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   init = true;
   getSavePath: (opts: any) => string;
   owner: string;
   title: string;
   recorder: Recorder;
+  /** 原始的ffmpeg文件名，用于重命名 */
+  rawRecordingVideoPath: string;
+  /** 输出文件名名，不包含拓展名 */
+  outputVideoFilePath: string;
+  /** 开始时间 */
+  startTime: number;
 
   constructor(
     recorder: Recorder,
     getSavePath: (opts: any) => string,
     owner: string,
     title: string,
-    recordSavePath: string,
   ) {
     this.getSavePath = getSavePath;
     this.owner = owner;
     this.title = title;
     this.recorder = recorder;
-
-    this.segmentData = { startTime: Date.now(), rawname: recordSavePath };
+    this.startTime = Date.now();
   }
 
   async handleSegmentEnd() {
-    this.getExtraDataController()?.setMeta({ recordStopTimestamp: Date.now() });
-    console.log("handle segmentData", this.segmentData);
-
-    const trueFilepath = this.getSavePath({
-      owner: this.owner,
-      title: this.title,
-      startTime: this.segmentData.startTime,
-    });
+    if (!this.outputVideoFilePath) {
+      throw new Error("Should call onSegmentStart first");
+    }
+    this.extraDataController?.setMeta({ recordStopTimestamp: Date.now() });
 
     try {
       await Promise.all([
-        fs.rename(this.segmentData.rawname, `${trueFilepath}.ts`),
+        fs.rename(this.rawRecordingVideoPath, `${this.outputVideoFilePath}.ts`),
         this.extraDataController?.flush(),
       ]);
-      this.recorder.emit("videoFileCompleted", { filename: `${trueFilepath}.ts` });
+      this.recorder.emit("videoFileCompleted", { filename: `${this.outputVideoFilePath}.ts` });
     } catch (err) {
       this.recorder.emit("DebugLog", {
         type: "common",
@@ -57,41 +56,32 @@ export class SegmentManager {
       await this.handleSegmentEnd();
     }
     this.init = false;
-    this.segmentData.startTime = Date.now();
+    this.startTime = Date.now();
 
-    const trueFilepath = this.getSavePath({
+    this.outputVideoFilePath = this.getSavePath({
       owner: this.owner,
       title: this.title,
-      startTime: this.segmentData.startTime,
+      startTime: this.startTime,
     });
-    this.extraDataController = createRecordExtraDataController(`${trueFilepath}.json`);
+
+    this.extraDataController = createRecordExtraDataController(`${this.outputVideoFilePath}.json`);
     this.extraDataController.setMeta({ title: this.title });
 
     const regex = /'([^']+)'/;
     const match = stderrLine.match(regex);
     if (match) {
       const filename = match[1];
-      this.segmentData.rawname = filename;
-      this.recorder.emit("videoFileCreated", { filename: `${trueFilepath}.ts` });
+      this.rawRecordingVideoPath = filename;
+      this.recorder.emit("videoFileCreated", { filename: `${this.outputVideoFilePath}.ts` });
     } else {
       this.recorder.emit("DebugLog", { type: "ffmpeg", text: "No match found" });
-      console.log("No match found");
     }
-  }
-
-  getSegmentData() {
-    return this.segmentData;
-  }
-
-  getExtraDataController() {
-    return this.extraDataController;
   }
 }
 
 export class StreamManager {
   private segmentManager: SegmentManager | null = null;
   private extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
-  extraDataSavePath: string;
   recorder: Recorder;
   owner: string;
   title: string;
@@ -106,23 +96,18 @@ export class StreamManager {
     hasSegment: boolean,
   ) {
     this.recordSavePath = recordSavePath;
-    this.extraDataSavePath = replaceExtName(recordSavePath, ".json");
     this.recorder = recorder;
-    this.owner = owner;
-    this.title = title;
+
     if (hasSegment) {
-      this.segmentManager = new SegmentManager(recorder, getSavePath, owner, title, recordSavePath);
+      this.segmentManager = new SegmentManager(recorder, getSavePath, owner, title);
     } else {
-      this.extraDataController = createRecordExtraDataController(this.extraDataSavePath);
+      const extraDataSavePath = replaceExtName(recordSavePath, ".json");
+      this.extraDataController = createRecordExtraDataController(extraDataSavePath);
       this.extraDataController.setMeta({ title });
     }
   }
 
   async handleVideoStarted(stderrLine?: string) {
-    // if (!stderrLine && this.segmentManager) {
-    //   this.segmentManager.segmentData.startTime = Date.now();
-    // }
-
     if (this.segmentManager) {
       if (stderrLine) {
         await this.segmentManager.onSegmentStart(stderrLine);
@@ -143,11 +128,7 @@ export class StreamManager {
   }
 
   getExtraDataController() {
-    return this.segmentManager?.getExtraDataController() || this.extraDataController;
-  }
-
-  getSegmentData() {
-    return this.segmentManager?.getSegmentData();
+    return this.segmentManager?.extraDataController || this.extraDataController;
   }
 
   get videoFilePath() {

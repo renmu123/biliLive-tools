@@ -118,12 +118,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const savePath = getSavePath({ owner, title });
   const hasSegment = !!this.segment;
   const streamManager = new StreamManager(this, getSavePath, owner, title, savePath, hasSegment);
-  const templateSavePath = streamManager.getVideoFilepath();
-  const extraDataSavePath = streamManager.extraDataSavePath;
 
   try {
-    // TODO: 这个 ensure 或许应该放在 createRecordExtraDataController 里实现？
-    ensureFolderExist(extraDataSavePath);
     ensureFolderExist(savePath);
   } catch (err) {
     this.state = "idle";
@@ -275,7 +271,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       "Referer: https://live.bilibili.com/",
     )
     .outputOptions(ffmpegOutputOptions)
-    .output(templateSavePath)
+    .output(streamManager.videoFilePath)
     .on("start", () => {
       streamManager.handleVideoStarted();
     })
