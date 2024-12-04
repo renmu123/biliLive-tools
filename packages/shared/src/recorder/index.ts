@@ -210,6 +210,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const live = LiveService.upadteEndTime(filename, endTime.getTime());
     if (!live) {
       logger.error("Manager videoFileCompleted live error", { recorder, filename });
+      return;
     }
 
     const { danmu, sc, gift, guard } = await parseDanmu(replaceExtName(filename, ".xml"), {

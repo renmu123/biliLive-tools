@@ -17,7 +17,6 @@ import { serverStart } from "@biliLive-tools/http";
 import { handlers as danmuHandlers } from "./danmu";
 import { commonHandlers, getTempPath } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
-import { handlers as notidyHandlers } from "./notify";
 import icon from "../../resources/icon.png?asset";
 import {
   FFMPEG_PATH,
@@ -84,7 +83,6 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, ffmpegHandlers);
   registerHandlers(ipcMain, danmuHandlers);
   registerHandlers(ipcMain, configHandlers);
-  registerHandlers(ipcMain, notidyHandlers);
   registerHandlers(ipcMain, commonHandlers);
 };
 

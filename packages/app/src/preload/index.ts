@@ -168,9 +168,6 @@ export const api = {
         );
       }
     },
-    notifyTest: (title: string, desp: string, config: AppConfig) => {
-      return ipcRenderer.invoke("notify:sendTest", title, desp, config);
-    },
   },
   common: {
     getTempPath: async () => {

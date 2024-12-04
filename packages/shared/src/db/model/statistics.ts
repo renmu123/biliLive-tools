@@ -62,6 +62,7 @@ export default class StreamerController {
   }
   query(stat_key: string): BaseStatistics | null {
     const sql = `SELECT * FROM ${this.model.tableName} WHERE stat_key = ?`;
+    // @ts-ignore
     return this.model.db.prepare(sql).get(stat_key);
   }
 }
