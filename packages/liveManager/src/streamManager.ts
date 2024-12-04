@@ -92,7 +92,6 @@ export class StreamManager {
   private segmentManager: SegmentManager | null = null;
   private extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   extraDataSavePath: string;
-  videoFilePath: string;
   recorder: Recorder;
   owner: string;
   title: string;
@@ -106,13 +105,11 @@ export class StreamManager {
     recordSavePath: string,
     hasSegment: boolean,
   ) {
+    this.recordSavePath = recordSavePath;
     this.extraDataSavePath = replaceExtName(recordSavePath, ".json");
-    this.videoFilePath = this.getVideoFilepath();
     this.recorder = recorder;
     this.owner = owner;
     this.title = title;
-    this.recordSavePath = recordSavePath;
-
     if (hasSegment) {
       this.segmentManager = new SegmentManager(recorder, getSavePath, owner, title, recordSavePath);
     } else {
@@ -153,7 +150,7 @@ export class StreamManager {
     return this.segmentManager?.getSegmentData();
   }
 
-  getVideoFilepath() {
+  get videoFilePath() {
     return this.segmentManager ? `${this.recordSavePath}-PART%03d.ts` : `${this.recordSavePath}.ts`;
   }
 }
