@@ -28,3 +28,7 @@
 23. 录制页面更多视图
 24. 录制支持额外webhook，webhook支持webhook
 25. 录制支持保存封面，线路
+
+# Bug
+
+1. 修复视频预设标题超过80字符无法保存的bug [#41](https://github.com/renmu123/biliLive-tools/issues/41)
