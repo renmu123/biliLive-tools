@@ -337,15 +337,6 @@ const quit = async () => {
       mainWin.getNormalBounds(),
     );
 
-    console.log(
-      "quit",
-      windowConfig,
-      {
-        isMaximized: mainWin.isMaximized(),
-      },
-      mainWin.getNormalBounds(),
-    );
-
     WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
 
     const canQuited = await canQuit();
