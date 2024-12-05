@@ -90,6 +90,7 @@ export namespace API {
       | "segment"
       | "sendToWebhook"
       | "uid"
+      | "saveCover"
     >;
 
     export type Resp = ClientRecorder;

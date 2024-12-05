@@ -124,6 +124,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "idle";
     throw err;
   }
+  this.on("videoFileCreated", async ({ filename }) => {
+    if (this.saveCover) {
+      const coverPath = utils.replaceExtName(filename, ".jpg");
+      const { cover } = await this.getLiveInfo();
+      utils.downloadImage(cover, coverPath);
+    }
+  });
 
   let client: ReturnType<typeof startListen> | null = null;
   if (!this.disableProvideCommentsWhenRecording) {

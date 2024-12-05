@@ -90,6 +90,12 @@
       </n-form-item>
       <n-form-item>
         <template #label>
+          <span> 保存封面 </span>
+        </template>
+        <n-switch v-model:value="config.recorder.saveCover" />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
           <span> 调试模式 </span>
         </template>
         <n-switch v-model:value="config.recorder.debugMode" />

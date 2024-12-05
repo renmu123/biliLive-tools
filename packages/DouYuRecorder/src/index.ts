@@ -129,6 +129,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
+  this.on("videoFileCreated", async ({ filename }) => {
+    if (this.saveCover) {
+      const coverPath = utils.replaceExtName(filename, ".jpg");
+      utils.downloadImage(stream.cover, coverPath);
+    }
+  });
+
   const client = createDYClient(Number(this.channelId), {
     notAutoStart: true,
   });

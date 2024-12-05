@@ -125,6 +125,7 @@ router.post("/add", async (ctx) => {
     "segment",
     "sendToWebhook",
     "uid",
+    "saveCover",
   );
 
   const data = await addRecorder(args);
@@ -150,6 +151,7 @@ router.put("/:id", (ctx) => {
     "disableProvideCommentsWhenRecording",
     "saveGiftDanma",
     "saveSCDanma",
+    "saveCover",
     "segment",
     "sendToWebhook",
     "uid",

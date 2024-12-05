@@ -31,6 +31,7 @@ export default class RecorderConfig {
       disableProvideCommentsWhenRecording: getValue("disableProvideCommentsWhenRecording") ?? true,
       saveGiftDanma: getValue("saveGiftDanma") ?? false,
       saveSCDanma: getValue("saveSCDanma") ?? true,
+      saveCover: getValue("saveCover") ?? false,
       segment: getValue("segment") ?? 60,
       uid: getValue("uid"),
     };

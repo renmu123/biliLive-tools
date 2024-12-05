@@ -263,6 +263,8 @@ interface BaseRecordr {
   segment?: number;
   /** 账号 */
   uid?: string;
+  /** 保存封面 */
+  saveCover?: boolean;
 }
 
 export interface GlobalRecorder extends BaseRecordr {

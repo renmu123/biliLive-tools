@@ -43,6 +43,7 @@ export function defaultToJSON<E extends AnyObject>(
       "extra",
       "segment",
       "saveSCDanma",
+      "saveCover",
       "saveGiftDanma",
       "disableProvideCommentsWhenRecording",
       "liveInfo",

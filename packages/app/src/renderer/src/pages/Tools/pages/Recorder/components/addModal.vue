@@ -120,6 +120,15 @@
             >全局</n-checkbox
           >
         </n-form-item>
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex"> 保存封面 </span>
+          </template>
+          <n-switch v-model:value="config.saveCover" :disabled="globalFieldsObj.saveCover" />
+          <n-checkbox v-model:checked="globalFieldsObj.saveCover" class="global-checkbox"
+            >全局</n-checkbox
+          >
+        </n-form-item>
 
         <h2>弹幕录制</h2>
         <n-form-item>
@@ -196,6 +205,7 @@ const hasGlobalFields: (keyof Omit<BaseRecordr, "line">)[] = [
   "saveGiftDanma",
   "saveSCDanma",
   "segment",
+  "saveCover",
 ];
 
 // @ts-ignore
@@ -217,6 +227,7 @@ const config = ref<Omit<LocalRecordr, "id">>({
   disableAutoCheck: false,
   sendToWebhook: false,
   noGlobalFollowFields: [],
+  saveCover: false,
 });
 
 const qualityOptions = [
@@ -295,6 +306,7 @@ watchEffect(async () => {
       sendToWebhook: false,
       noGlobalFollowFields: [],
       uid: "",
+      saveCover: false,
     };
   }
   if (props.id) {
@@ -310,6 +322,7 @@ watchEffect(async () => {
     saveSCDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
     segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
     uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
+    saveCover: !(config.value?.noGlobalFollowFields ?? []).includes("saveCover"),
   };
 });
 
