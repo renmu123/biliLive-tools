@@ -641,8 +641,8 @@ export class BiliCommentQueue {
 // 验证配置
 export const validateBiliupConfig = async (config: BiliupConfig) => {
   let msg: string | undefined = undefined;
-  if (config.title.length > 80) {
-    msg = "标题不能超过80个字符";
+  if (!config.title) {
+    msg = "标题不能为空";
   }
   if (config.copyright === 2) {
     if (!config.source) {
