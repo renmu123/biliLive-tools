@@ -63,12 +63,12 @@ export default class DanmaController {
   }
 
   list(options: Partial<Danmu>): Danmu[] {
-    const data = Danmu.parse(options);
+    const data = Danmu.partial().parse(options);
     return this.model.list(data);
   }
 
   query(options: Partial<Danmu>) {
-    const data = Danmu.parse(options);
+    const data = Danmu.partial().parse(options);
     return this.model.query(data);
   }
 }

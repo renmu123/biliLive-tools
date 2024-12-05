@@ -64,18 +64,20 @@ export default class LiveController {
     return this.model.insertMany(filterList);
   }
   list(options: Partial<Live>): Live[] {
-    const data = Live.parse(options);
+    const data = Live.partial().parse(options);
     return this.model.list(data);
   }
   query(options: Partial<Live>) {
-    const data = Live.parse(options);
+    const data = Live.partial().parse(options);
     return this.model.query(data);
   }
   upsert(options: { where: Partial<Live & { id: number }>; create: BaseLive }) {
     return this.model.upsert(options);
   }
   update(options: Partial<Live & { id: number }>) {
-    const data = Live.parse(options);
+    const data = Live.required({
+      id: true,
+    }).parse(options);
     return this.model.update(data);
   }
 }

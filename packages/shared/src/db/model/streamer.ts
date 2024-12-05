@@ -56,11 +56,11 @@ export default class StreamerController {
     return this.model.insertMany(filterList);
   }
   list(options: Partial<Streamer>): Streamer[] {
-    const data = Streamer.parse(options);
+    const data = Streamer.partial().parse(options);
     return this.model.list(data);
   }
   query(options: Partial<Streamer>) {
-    const data = Streamer.parse(options);
+    const data = Streamer.partial().parse(options);
     return this.model.query(data);
   }
   upsert(options: { where: Partial<Streamer & { id: number }>; create: BaseStreamer }) {

@@ -216,7 +216,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const { danmu, sc, gift, guard } = await parseDanmu(replaceExtName(filename, ".xml"), {
       parseHotProgress: false,
     });
-    console.log("danmu", danmu, sc, gift, guard, live);
+    // console.log("danmu", danmu, sc, gift, guard, live);
 
     DanmuService.addMany(danmu.map((item) => ({ ...item, live_id: live.id })));
     DanmuService.addMany(sc.map((item) => ({ ...item, live_id: live.id })));
