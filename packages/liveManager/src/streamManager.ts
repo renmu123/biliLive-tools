@@ -96,7 +96,8 @@ export class StreamManager {
 
         await this.segmentManager.onSegmentStart(stderrLine);
       } else {
-        throw new Error("StderrLine should not be empty");
+        console.error("StderrLine should not be empty");
+        this.recorder.emit("DebugLog", { type: "common", text: "StderrLine should not be empty" });
       }
     } else {
       const extraDataSavePath = replaceExtName(this.recordSavePath, ".json");
@@ -113,7 +114,9 @@ export class StreamManager {
       if (this.segmentManager) {
         await this.segmentManager.handleSegmentEnd();
       } else {
-        throw new Error("Segment should not be empty");
+        console.error("Segment should not be empty");
+        this.recorder.emit("DebugLog", { type: "common", text: "Segment should not be empty" });
+        // throw new Error("Segment should not be empty");
       }
     } else {
       await this.getExtraDataController()?.flush();
@@ -126,6 +129,6 @@ export class StreamManager {
   }
 
   get videoFilePath() {
-    return this.segmentManager ? `${this.recordSavePath}-PART%03d.ts` : `${this.recordSavePath}.ts`;
+    return this.hasSegment ? `${this.recordSavePath}-PART%03d.ts` : `${this.recordSavePath}.ts`;
   }
 }

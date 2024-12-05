@@ -94,7 +94,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!living) return null;
 
   this.state = "recording";
-  let res;
+  let res: Awaited<ReturnType<typeof getStream>>;
   // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
     res = await getStream({
@@ -126,8 +126,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
   this.on("videoFileCreated", async ({ filename }) => {
     if (this.saveCover) {
+      const liveInfo = await this.getLiveInfo();
       const coverPath = utils.replaceExtName(filename, ".jpg");
-      utils.downloadImage(stream.cover, coverPath);
+      utils.downloadImage(liveInfo.cover, coverPath);
     }
   });
 

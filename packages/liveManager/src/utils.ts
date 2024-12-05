@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
+import { Readable } from "node:stream";
+import { finished } from "node:stream/promises";
 import { DebouncedFunc, throttle, range } from "lodash-es";
 import filenamify from "filenamify";
 
@@ -251,23 +253,13 @@ export function createTimeoutChecker(
 }
 
 async function downloadImage(imageUrl: string, savePath: string) {
-  const response = await fetch(imageUrl);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch image: ${response.statusText}`);
+  const res = await fetch(imageUrl);
+  if (!res.body) {
+    throw new Error("No body in response");
   }
-  if (response.body === null) {
-    throw new Error(`Failed to fetch image: no body`);
-  }
-
-  // 创建文件流写入
-  const fileStream = fs.createWriteStream(savePath);
-  return new Promise((resolve, reject) => {
-    // @ts-ignore
-    response.body.pipe(fileStream);
-    // @ts-ignore
-    response.body.on("error", reject);
-    fileStream.on("finish", resolve);
-  });
+  const fileStream = fs.createWriteStream(savePath, { flags: "wx" });
+  // @ts-ignore
+  await finished(Readable.fromWeb(res.body).pipe(fileStream));
 }
 
 export default {

@@ -102,8 +102,8 @@ const params = ref<API.getRecorders.Args>({
 });
 const platformOptions = ref([
   {
-    label: "DouYu",
-    value: "斗鱼",
+    label: "斗鱼",
+    value: "DouYu",
   },
   {
     label: "B站",
