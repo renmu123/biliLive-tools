@@ -12,6 +12,7 @@ export default [
         dir: "lib",
         format: "cjs",
         entryFileNames: "[name].cjs",
+        chunkFileNames: "[name]-[hash].cjs",
       },
     ],
     // inlineDynamicImports: true,
