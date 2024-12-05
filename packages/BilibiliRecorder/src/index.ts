@@ -341,6 +341,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
       await streamManager.handleVideoCompleted();
       this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
+      this.off("videoFileCreated");
       this.recordHandle = undefined;
       this.state = "idle";
     },

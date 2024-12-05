@@ -14,7 +14,7 @@ const BaseDanmu = z.object({
 });
 const Danmu = BaseDanmu.extend({
   id: z.number(),
-  created_at: z.number(),
+  created_at: z.number().optional(),
 });
 
 export type BaseDanmu = z.infer<typeof BaseDanmu>;

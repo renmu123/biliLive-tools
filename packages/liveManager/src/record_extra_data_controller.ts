@@ -59,6 +59,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
   };
 
   const flush: RecordExtraDataController["flush"] = async () => {
+    scheduleSave.flush();
     scheduleSave.cancel();
 
     const xmlContent = convert2Xml(data);

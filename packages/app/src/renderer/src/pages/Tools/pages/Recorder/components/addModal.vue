@@ -308,22 +308,21 @@ watchEffect(async () => {
       uid: "",
       saveCover: false,
     };
-
-    globalFieldsObj.value = {
-      quality: !(config.value?.noGlobalFollowFields ?? []).includes("quality"),
-      disableProvideCommentsWhenRecording: !(config.value?.noGlobalFollowFields ?? []).includes(
-        "disableProvideCommentsWhenRecording",
-      ),
-      saveGiftDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftDanma"),
-      saveSCDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
-      segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
-      uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
-      saveCover: !(config.value?.noGlobalFollowFields ?? []).includes("saveCover"),
-    };
   }
   if (props.id) {
     await getRecordSetting();
   }
+  globalFieldsObj.value = {
+    quality: !(config.value?.noGlobalFollowFields ?? []).includes("quality"),
+    disableProvideCommentsWhenRecording: !(config.value?.noGlobalFollowFields ?? []).includes(
+      "disableProvideCommentsWhenRecording",
+    ),
+    saveGiftDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftDanma"),
+    saveSCDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
+    segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
+    uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
+    saveCover: !(config.value?.noGlobalFollowFields ?? []).includes("saveCover"),
+  };
 });
 
 watch(

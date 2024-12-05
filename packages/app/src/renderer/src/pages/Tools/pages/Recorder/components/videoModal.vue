@@ -4,7 +4,9 @@
       <Artplayer
         ref="videoRef"
         style="aspect-ratio: 16 / 9"
-        :option="{}"
+        :option="{
+          url: props.videoUrl,
+        }"
         is-live
         :plugins="['danmuku', 'hls']"
         @ready="handleVideoReady"
@@ -66,7 +68,8 @@ const handleVideoReady = async (instance: ArtplayerType) => {
   // console.log("video ready", instance);
   videoInstance.value = instance;
   if (props.videoUrl) {
-    videoRef.value?.switchUrl(props.videoUrl, props.videoUrl.endsWith(".flv") ? "flv" : "");
+    // videoRef.value?.switchUrl(props.videoUrl, props.videoUrl.endsWith(".flv") ? "flv" : "");
+    // instance.play();
   }
   // if (props.files.video) {
   //   videoRef.value?.switchUrl(props.files.video, props.files.video.endsWith(".flv") ? "flv" : "");

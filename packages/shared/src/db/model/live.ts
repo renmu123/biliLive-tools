@@ -14,7 +14,7 @@ const BaseLive = z.object({
 
 const Live = BaseLive.extend({
   id: z.number(),
-  created_at: z.number(),
+  created_at: z.number().optional(),
 });
 
 export type BaseLive = z.infer<typeof BaseLive>;
@@ -75,9 +75,11 @@ export default class LiveController {
     return this.model.upsert(options);
   }
   update(options: Partial<Live & { id: number }>) {
-    const data = Live.required({
-      id: true,
-    }).parse(options);
+    const data = Live.partial()
+      .required({
+        id: true,
+      })
+      .parse(options);
     return this.model.update(data);
   }
 }

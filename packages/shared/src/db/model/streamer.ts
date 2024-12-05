@@ -11,7 +11,7 @@ const BaseStreamer = z.object({
 
 const Streamer = BaseStreamer.extend({
   id: z.number(),
-  created_at: z.number(),
+  created_at: z.number().optional(),
 });
 
 export type BaseStreamer = z.infer<typeof BaseStreamer>;
