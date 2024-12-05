@@ -37,3 +37,7 @@ web发布
 这样ClI用户应该可以更好一步进行使用了~~大概也没什么CLI用户吧~~
 
 密钥为`appConfig.json`的`passKey`字段，部分选项仅针对客户端生效
+
+# Bug
+
+1. 修复视频预设标题超过80字符无法保存的bug [#41](https://github.com/renmu123/biliLive-tools/issues/41)
