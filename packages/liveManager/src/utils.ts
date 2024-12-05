@@ -187,6 +187,69 @@ export const formatTemplate = function template(string: string, ...args: any[]) 
   });
 };
 
+export function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean {
+  let prevFrame = 0;
+  let frameUnchangedCount = 0;
+
+  return (ffmpegLogLine) => {
+    const streamInfo = ffmpegLogLine.match(
+      /frame=\s*(\d+) fps=.*? q=.*? size=\s*(\d+)kB time=.*? bitrate=.*? speed=.*?/,
+    );
+    if (streamInfo != null) {
+      const [, frameText] = streamInfo;
+      const frame = Number(frameText);
+
+      if (frame === prevFrame) {
+        if (++frameUnchangedCount >= 10) {
+          return true;
+        }
+      } else {
+        prevFrame = frame;
+        frameUnchangedCount = 0;
+      }
+
+      return false;
+    }
+
+    if (ffmpegLogLine.includes("HTTP error 404 Not Found")) {
+      return true;
+    }
+
+    return false;
+  };
+}
+
+export function createTimeoutChecker(
+  onTimeout: () => void,
+  time: number,
+): {
+  update: () => void;
+  stop: () => void;
+} {
+  let timer: NodeJS.Timeout | null = null;
+  let stopped: boolean = false;
+
+  const update = () => {
+    if (stopped) return;
+    if (timer != null) clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      onTimeout();
+    }, time);
+  };
+
+  update();
+
+  return {
+    update,
+    stop() {
+      stopped = true;
+      if (timer != null) clearTimeout(timer);
+      timer = null;
+    },
+  };
+}
+
 export default {
   replaceExtName,
   singleton,
@@ -198,4 +261,6 @@ export default {
   assertObjectType,
   asyncThrottle,
   isFfmpegStartSegment,
+  createInvalidStreamChecker,
+  createTimeoutChecker,
 };

@@ -16,7 +16,6 @@ export interface RecordExtraData {
     recordStartTimestamp: number;
     recordStopTimestamp?: number;
     ffmpegArgs?: string[];
-    // TODO: 要再加个 video width / height，给之后可能会做的 ass 使用
   };
   /** 这个数组预期上是一个根据 timestamp 排序的有序数组，方便做一些时间段查询 */
   messages: Message[];
@@ -45,6 +44,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
     return fs.promises.writeFile(savePath, JSON.stringify(data));
   };
 
+  // TODO: 将所有数据存放在内存中可能存在问题
   const addMessage: RecordExtraDataController["addMessage"] = (comment) => {
     data.messages.push(comment);
     scheduleSave();
@@ -59,8 +59,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
   };
 
   const flush: RecordExtraDataController["flush"] = async () => {
-    // TODO: 这里可能会有内存占用问题
-    scheduleSave.flush();
+    scheduleSave.cancel();
 
     const xmlContent = convert2Xml(data);
     const parsedPath = path.parse(savePath);

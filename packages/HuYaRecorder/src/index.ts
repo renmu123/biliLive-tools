@@ -113,10 +113,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.availableSources = availableSources.map((s) => s.name);
   this.usedStream = stream.name;
   this.usedSource = stream.source;
-  // TODO: emit update event
 
   const savePath = getSavePath({ owner, title });
-
   const hasSegment = !!this.segment;
   const streamManager = new StreamManager(this, getSavePath, owner, title, savePath, hasSegment);
 
@@ -195,8 +193,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const isInvalidStream = createInvalidStreamChecker();
-  const timeoutChecker = createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
+  const isInvalidStream = utils.createInvalidStreamChecker();
+  const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
   const command = createFFMPEGBuilder()
     .input(stream.url)
     .addInputOptions(
@@ -257,7 +255,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       // @ts-ignore
       command.ffmpegProc?.stdin?.write("q");
       // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
-      // client?.stop()
+      client?.stop();
 
       this.usedStream = undefined;
       this.usedSource = undefined;
@@ -284,69 +282,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   return this.recordHandle;
 };
-
-function createTimeoutChecker(
-  onTimeout: () => void,
-  time: number,
-): {
-  update: () => void;
-  stop: () => void;
-} {
-  let timer: NodeJS.Timeout | null = null;
-  let stopped: boolean = false;
-
-  const update = () => {
-    if (stopped) return;
-    if (timer != null) clearTimeout(timer);
-    timer = setTimeout(() => {
-      timer = null;
-      onTimeout();
-    }, time);
-  };
-
-  update();
-
-  return {
-    update,
-    stop() {
-      stopped = true;
-      if (timer != null) clearTimeout(timer);
-      timer = null;
-    },
-  };
-}
-
-function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean {
-  let prevFrame = 0;
-  let frameUnchangedCount = 0;
-
-  return (ffmpegLogLine) => {
-    const streamInfo = ffmpegLogLine.match(
-      /frame=\s*(\d+) fps=.*? q=.*? size=\s*(\d+)kB time=.*? bitrate=.*? speed=.*?/,
-    );
-    if (streamInfo != null) {
-      const [, frameText] = streamInfo;
-      const frame = Number(frameText);
-
-      if (frame === prevFrame) {
-        if (++frameUnchangedCount >= 10) {
-          return true;
-        }
-      } else {
-        prevFrame = frame;
-        frameUnchangedCount = 0;
-      }
-
-      return false;
-    }
-
-    if (ffmpegLogLine.includes("HTTP error 404 Not Found")) {
-      return true;
-    }
-
-    return false;
-  };
-}
 
 export const provider: RecorderProvider<Record<string, unknown>> = {
   id: "HuYa",

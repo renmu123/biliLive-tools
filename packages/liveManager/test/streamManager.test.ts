@@ -105,7 +105,6 @@ describe("StreamManager", () => {
 
 describe("Segment", () => {
   let recorderMock: any;
-  let getSavePathMock: any;
   let segmentManager: Segment;
 
   beforeEach(() => {
@@ -128,6 +127,14 @@ describe("Segment", () => {
       filename: "mocked/path.ts",
     });
   });
+  it("should handle segment manual end", async () => {
+    const stderrLine = "'mockedFilename.ts'";
+    await segmentManager.onSegmentStart(stderrLine);
+    await segmentManager.onSegmentStart("'mockedFilename.ts'");
+    expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCompleted", {
+      filename: "mocked/path.ts",
+    });
+  });
 
   it("should handle segment start", async () => {
     const stderrLine = "'mockedFilename.ts'";
@@ -135,5 +142,6 @@ describe("Segment", () => {
     expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCreated", {
       filename: "mocked/path.ts",
     });
+    expect(segmentManager.init).toBe(false);
   });
 });

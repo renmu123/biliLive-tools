@@ -81,12 +81,6 @@ export class StreamManager {
     this.owner = owner;
     this.title = title;
     this.getSavePath = getSavePath;
-
-    if (!hasSegment) {
-      const extraDataSavePath = replaceExtName(recordSavePath, ".json");
-      this.extraDataController = createRecordExtraDataController(extraDataSavePath);
-      this.extraDataController.setMeta({ title });
-    }
   }
 
   async handleVideoStarted(stderrLine?: string) {
@@ -105,6 +99,9 @@ export class StreamManager {
         throw new Error("StderrLine should not be empty");
       }
     } else {
+      const extraDataSavePath = replaceExtName(this.recordSavePath, ".json");
+      this.extraDataController = createRecordExtraDataController(extraDataSavePath);
+      this.extraDataController.setMeta({ title: this.title });
       this.recorder.emit("videoFileCreated", { filename: this.videoFilePath });
     }
   }

@@ -134,13 +134,10 @@ export async function getStream(
     expectSource = sourcesWithPriority[0];
   }
 
-  // console.log("流", expectStream, expectSource, sourcesWithPriority, opts.sourcePriorities);
-
   if (
     (expectStream != null && liveInfo.currentStream.rate !== expectStream.rate) ||
     (expectSource != null && liveInfo.currentStream.source !== expectSource.cdn)
   ) {
-    // console.log("切换流", expectStream, expectSource);
     // 当前流不是预期的流或源，需要切换。
     // TODO: 这一步可能会导致原画的流被切走并且没法再取得，需要额外进行提示。
     if (!liveInfo.isSupportRateSwitch) {
