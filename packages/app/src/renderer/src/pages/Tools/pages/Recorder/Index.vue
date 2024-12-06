@@ -28,7 +28,9 @@
       <div v-for="(item, index) in list" :key="index" class="recorder">
         <div class="cover-container">
           <img v-if="item.cover" class="cover" :src="item.cover" referrerpolicy="no-referrer" />
-          <span v-if="item.roomTitle" class="room-title">{{ item.roomTitle }}</span>
+          <span v-if="item.roomTitle" class="room-title" :title="item.roomTitle">{{
+            item.roomTitle
+          }}</span>
           <div v-if="item.state === 'recording'" class="recording-container">
             <div class="recording"></div>
             <span class="source">{{ item.usedSource }}</span>
@@ -280,17 +282,14 @@ const openSavePath = (path: string) => {
   gap: 10px;
 }
 .recorder {
-  // border: 2px solid #78a379;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   border-radius: 5px;
-  // padding: 10px;
   position: relative;
 
   .cover-container {
     position: relative;
-    width: 100%;
-    min-width: 320px;
-    height: 180px;
+    width: 288px;
+    height: 162px;
     border-radius: 5px 5px 0px 0px;
     border-color: white;
 
@@ -300,16 +299,23 @@ const openSavePath = (path: string) => {
       position: absolute;
       left: 0;
       top: 0;
+      object-fit: cover;
     }
 
     .room-title {
+      display: inline-block;
       color: white;
       background-color: rgba(0, 0, 0, 0.5);
-      padding: 5px;
+      // padding: 5px;
       border-radius: 5px;
       position: relative;
       top: 5px;
       left: 5px;
+      // 超过忽略
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 95%;
     }
     .recording-container {
       display: flex;
@@ -340,10 +346,10 @@ const openSavePath = (path: string) => {
     gap: 10px;
     margin: 10px;
     .avatar {
-      width: 60px;
-      height: 60px;
+      width: 50px;
+      height: 50px;
       border-radius: 5px;
-      // margin-left: 10px;
+      margin-left: -10px;
     }
     .owner {
       font-size: 20px;

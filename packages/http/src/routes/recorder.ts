@@ -199,18 +199,14 @@ router.get("/manager/liveInfo", async (ctx) => {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
   const recorders = recorderManager.manager.recorders;
 
+  const requests = recorders.map((recorder) => recorder.getLiveInfo());
+  // 改成并发
   const list: {
     owner: string;
     title: string;
     avatar: string;
     cover: string;
-  }[] = [];
-  for (const recoder of recorders) {
-    const info = await recoder.getLiveInfo();
-    list.push(info);
-  }
-
-  // const livingStatus = await Promise.all(ids.map(getLiveStatus));
+  }[] = await Promise.all(requests);
 
   ctx.body = {
     payload: list,
