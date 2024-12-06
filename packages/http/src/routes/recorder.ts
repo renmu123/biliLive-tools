@@ -14,8 +14,6 @@ const router = new Router({
 });
 
 // API 的实际实现，这里负责实现对外暴露的接口，并假设 Args 都已经由上一层解析好了
-// TODO: 暂时先一起放这个文件里，后面要拆分放到合适的地方
-
 async function getRecorders(params: API.getRecorders.Args): Promise<API.getRecorders.Resp> {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
   let list = recorderManager.manager.recorders.map((item) => recorderToClient(item));
@@ -26,6 +24,11 @@ async function getRecorders(params: API.getRecorders.Args): Promise<API.getRecor
   if (params.recordStatus) {
     list = list.filter(
       (item) => (item.recordHandle != null) === (params.recordStatus === "recording"),
+    );
+  }
+  if (params.name) {
+    list = list.filter(
+      (item) => item.remarks?.includes(params.name) || item.channelId.includes(params.name),
     );
   }
   return list;

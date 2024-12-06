@@ -54,6 +54,7 @@ export namespace API {
     export interface Args {
       platform?: string;
       recordStatus?: "recording" | "unrecorded";
+      name?: string;
     }
 
     export type Resp = ClientRecorder[];

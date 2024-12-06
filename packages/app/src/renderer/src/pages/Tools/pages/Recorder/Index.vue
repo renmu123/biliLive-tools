@@ -1,6 +1,12 @@
 <template>
   <div class="container">
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px">
+      <n-input
+        v-model:value="params.name"
+        placeholder="备注或房间号"
+        style="width: 140px"
+        clearable
+      />
       <n-select
         v-model:value="params.platform"
         :options="platformOptions"
@@ -99,6 +105,7 @@ const notice = useNotification();
 const params = ref<API.getRecorders.Args>({
   platform: undefined,
   recordStatus: undefined,
+  name: undefined,
 });
 const platformOptions = ref([
   {

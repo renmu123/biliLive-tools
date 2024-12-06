@@ -285,6 +285,7 @@ const onChannelIdInputEnd = async () => {
 
   config.value.channelId = res.channelId;
   config.value.providerId = res.providerId;
+  config.value.remarks = res.owner;
   owner.value = res.owner;
 };
 
