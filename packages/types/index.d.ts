@@ -1,4 +1,3 @@
-// @ts-ignore
 import type { Line as UploadLine } from "@renmu/bili-api";
 
 // 弹幕配置
@@ -10,7 +9,7 @@ export type DanmuConfig = {
   customDensity: number;
   fontname: string;
   fontsize: number;
-  /**   百分制下的透明度 */
+  /** 百分制下的透明度 */
   opacity100: number;
   outline: number;
   shadow: number;

@@ -183,8 +183,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           extra: {
             hits: Number(msg.hits),
           },
-          // @ts-ignore
-          // raw: msg,
         };
         this.emit("Message", gift);
         extraDataController.addMessage(gift);

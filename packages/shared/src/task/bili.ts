@@ -640,7 +640,6 @@ export class BiliCommentQueue {
     rpid: number;
   }> {
     const client = await createClient(item.uid);
-    // @ts-ignore
     return client.reply.add({
       oid: item.aid,
       type: 1,

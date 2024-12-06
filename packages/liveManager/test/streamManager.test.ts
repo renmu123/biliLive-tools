@@ -103,45 +103,48 @@ describe("StreamManager", () => {
   });
 });
 
-// describe("Segment", () => {
-//   let recorderMock: any;
-//   let segmentManager: Segment;
+describe("Segment", () => {
+  let recorderMock: any;
+  let segmentManager: Segment;
+  let getSavePathMock: any;
 
-//   beforeEach(() => {
-//     recorderMock = {
-//       emit: vi.fn(),
-//     };
-//     segmentManager = new Segment(recorderMock, "mocked/path");
-//   });
+  beforeEach(() => {
+    recorderMock = {
+      emit: vi.fn(),
+    };
+    getSavePathMock = vi.fn().mockReturnValue("mocked/path");
 
-//   it("should initialize Segment", () => {
-//     expect(segmentManager).toBeInstanceOf(Segment);
-//     // expect(segmentManager.getSegmentData()).toBeDefined();
-//   });
+    segmentManager = new Segment(recorderMock, getSavePathMock, "owner", "title");
+  });
 
-//   it("should handle segment end", async () => {
-//     const stderrLine = "'mockedFilename.ts'";
-//     await segmentManager.onSegmentStart(stderrLine);
-//     await segmentManager.handleSegmentEnd();
-//     expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCompleted", {
-//       filename: "mocked/path.ts",
-//     });
-//   });
-//   it("should handle segment manual end", async () => {
-//     const stderrLine = "'mockedFilename.ts'";
-//     await segmentManager.onSegmentStart(stderrLine);
-//     await segmentManager.onSegmentStart("'mockedFilename.ts'");
-//     expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCompleted", {
-//       filename: "mocked/path.ts",
-//     });
-//   });
+  it("should initialize Segment", () => {
+    expect(segmentManager).toBeInstanceOf(Segment);
+    // expect(segmentManager.getSegmentData()).toBeDefined();
+  });
 
-//   it("should handle segment start", async () => {
-//     const stderrLine = "'mockedFilename.ts'";
-//     await segmentManager.onSegmentStart(stderrLine);
-//     expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCreated", {
-//       filename: "mocked/path.ts",
-//     });
-//     expect(segmentManager.init).toBe(false);
-//   });
-// });
+  it("should handle segment end", async () => {
+    const stderrLine = "'mockedFilename.ts'";
+    await segmentManager.onSegmentStart(stderrLine);
+    await segmentManager.handleSegmentEnd();
+    expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCompleted", {
+      filename: "mocked/path.ts",
+    });
+  });
+  it("should handle segment manual end", async () => {
+    const stderrLine = "'mockedFilename.ts'";
+    await segmentManager.onSegmentStart(stderrLine);
+    await segmentManager.onSegmentStart("'mockedFilename.ts'");
+    expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCompleted", {
+      filename: "mocked/path.ts",
+    });
+  });
+
+  it("should handle segment start", async () => {
+    const stderrLine = "'mockedFilename.ts'";
+    await segmentManager.onSegmentStart(stderrLine);
+    expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCreated", {
+      filename: "mocked/path.ts",
+    });
+    expect(segmentManager.init).toBe(false);
+  });
+});

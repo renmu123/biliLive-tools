@@ -39,10 +39,9 @@ router.get("/archives", async (ctx) => {
  * 用户视频详情
  */
 router.get("/user/archive/:bvid", async (ctx) => {
-  const params = ctx.request.query;
+  const params = ctx.request.query as unknown as { uid: number };
   const { uid } = params;
   const { bvid } = ctx.params;
-  // @ts-ignore
   const data = await biliApi.getArchiveDetail(bvid, uid);
   ctx.body = data;
 });
@@ -97,7 +96,6 @@ router.get("/typeDesc", async (ctx) => {
 });
 
 router.post("/download", async (ctx) => {
-  // @ts-ignore
   const { options, uid } = ctx.request.body;
   // @ts-ignore
   const data = await biliApi.download(options, uid);
@@ -108,7 +106,6 @@ router.post("/download", async (ctx) => {
  * 上传以及续传视频
  */
 router.post("/upload", async (ctx) => {
-  // @ts-ignore
   const data = ctx.request.body as {
     uid: number;
     vid?: number;
