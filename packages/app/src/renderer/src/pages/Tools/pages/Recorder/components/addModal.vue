@@ -106,7 +106,7 @@
         </n-form-item>
         <n-form-item v-if="config.providerId === 'Bilibili'">
           <template #label>
-            <Tip text="B站录制账号"></Tip>
+            <Tip text="B站录制账号">登录才能录制高清画质</Tip>
           </template>
           <n-select
             v-model:value="config.uid"

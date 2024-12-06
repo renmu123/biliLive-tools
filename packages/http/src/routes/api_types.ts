@@ -55,6 +55,7 @@ export namespace API {
       platform?: string;
       recordStatus?: "recording" | "unrecorded";
       name?: string;
+      autoCheck?: "1" | "2";
     }
 
     export type Resp = ClientRecorder[];

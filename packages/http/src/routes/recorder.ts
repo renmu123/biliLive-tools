@@ -31,6 +31,9 @@ async function getRecorders(params: API.getRecorders.Args): Promise<API.getRecor
       (item) => item.remarks?.includes(params.name) || item.channelId.includes(params.name),
     );
   }
+  if (params.autoCheck) {
+    list = list.filter((item) => (item.disableAutoCheck ? "2" : "1") === params.autoCheck);
+  }
   return list;
 }
 
@@ -99,10 +102,6 @@ async function stopRecord(args: API.stopRecord.Args): Promise<API.stopRecord.Res
 // API 与外部系统的连接，负责将外部系统传递的数据解析为正确的参数后调用合适的 API 并返回结果
 
 router.get("/list", async (ctx) => {
-  // {
-  //   platform?: string;
-  //   recordStatus?: "recording" | "unrecorded";
-  // }
   const query: API.getRecorders.Args = ctx.request.query;
 
   ctx.body = { payload: await getRecorders(query) };

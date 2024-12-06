@@ -21,6 +21,13 @@
         style="width: 140px"
         clearable
       />
+      <n-select
+        v-model:value="params.autoCheck"
+        :options="recordOptions"
+        placeholder="自动录制"
+        style="width: 140px"
+        clearable
+      />
       <n-button type="primary" @click="add">添加</n-button>
     </div>
 
@@ -43,7 +50,10 @@
             <div style="display: flex; gap: 5px; align-items: center">
               <div class="owner" :title="item.remarks">{{ item.owner }}</div>
               <n-icon v-if="item.living" size="20" title="直播中">
-                <Live24Regular />
+                <Live24Regular style="color: gray" />
+              </n-icon>
+              <n-icon v-if="!item.disableAutoCheck" size="20" title="自动录制">
+                <AccessTime24Regular style="color: gray" />
               </n-icon>
             </div>
             <div class="channel-id">
@@ -98,7 +108,7 @@ import { useConfirm } from "@renderer/hooks";
 import addModal from "./components/addModal.vue";
 import videoModal from "./components/videoModal.vue";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
-import { Live24Regular } from "@vicons/fluent";
+import { Live24Regular, AccessTime24Regular } from "@vicons/fluent";
 import { useEventListener } from "@vueuse/core";
 
 import type { ClientRecorder, API } from "@biliLive-tools/http";
@@ -108,6 +118,7 @@ const params = ref<API.getRecorders.Args>({
   platform: undefined,
   recordStatus: undefined,
   name: undefined,
+  autoCheck: undefined,
 });
 const platformOptions = ref([
   {
@@ -131,6 +142,16 @@ const statusOptions = ref([
   {
     label: "未录制",
     value: "unrecorded",
+  },
+]);
+const recordOptions = ref([
+  {
+    label: "自动录制",
+    value: "1",
+  },
+  {
+    label: "手动录制",
+    value: "2",
   },
 ]);
 
