@@ -111,10 +111,10 @@ import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 import { Live24Regular, AccessTime24Regular } from "@vicons/fluent";
 import { useEventListener } from "@vueuse/core";
 
-import type { ClientRecorder, API } from "@biliLive-tools/http";
+import type { ClientRecorder } from "@biliLive-tools/http/types/recorder.js";
 
 const notice = useNotification();
-const params = ref<API.getRecorders.Args>({
+const params = ref<Parameters<typeof recoderApi.infoList>[0]>({
   platform: undefined,
   recordStatus: undefined,
   name: undefined,
@@ -160,7 +160,7 @@ watch(params, () => {
 });
 
 const recorderList = ref<ClientRecorder[]>([]);
-const liveInfos = ref<API.getLiveInfo.LiveInfo[]>([]);
+const liveInfos = ref<Awaited<ReturnType<typeof recoderApi.getLiveInfo>>>([]);
 const list = computed(() => {
   return recorderList.value.map((item) => {
     const liveInfo = liveInfos.value.find((liveInfo) => liveInfo.channelId === item.channelId);

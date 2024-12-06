@@ -1,4 +1,6 @@
 import Router from "koa-router";
+import { z } from "zod";
+
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { TvQrcodeLogin } from "@renmu/bili-api";
 import { v4 as uuid } from "uuid";
@@ -46,49 +48,50 @@ router.get("/user/archive/:bvid", async (ctx) => {
 });
 
 router.post("/checkTag", async (ctx) => {
-  // @ts-ignore
-  const { tag, uid } = ctx.request.body;
-  // @ts-ignore
+  const {
+    tag,
+    uid,
+  }: {
+    tag: string;
+    uid: number;
+  } = ctx.request.body;
   const data = await biliApi.checkTag(tag, uid);
   ctx.body = data;
 });
 
 router.get("/searchTopic", async (ctx) => {
-  const { keyword, uid } = ctx.request.query;
-  // @ts-ignore
+  const { keyword, uid } = ctx.request.query as unknown as {
+    keyword: string;
+    uid: number;
+  };
   const data = await biliApi.searchTopic(keyword, uid);
   ctx.body = data;
 });
 
 router.get("/seasons", async (ctx) => {
-  const { uid } = ctx.request.query;
-  // @ts-ignore
+  const { uid } = ctx.request.query as unknown as { uid: number };
   const data = await biliApi.getSeasonList(uid);
   ctx.body = data;
 });
 router.get("/season/:aid", async (ctx) => {
-  const { uid } = ctx.request.query;
+  const { uid } = ctx.request.query as unknown as { uid: number };
   const { aid } = ctx.params;
-  // @ts-ignore
-  const data = await biliApi.getSessionId(aid, uid);
+  const data = await biliApi.getSessionId(Number(aid), uid);
   ctx.body = data;
 });
 
 router.get("/platformArchiveDetail", async (ctx) => {
-  const { aid, uid } = ctx.request.query;
-  // @ts-ignore
+  const { aid, uid } = ctx.request.query as unknown as { aid: number; uid: number };
   const data = await biliApi.getPlatformArchiveDetail(aid, uid);
   ctx.body = data;
 });
 router.get("/platformPre", async (ctx) => {
-  const { uid } = ctx.request.query;
-  // @ts-ignore
+  const { uid } = ctx.request.query as unknown as { uid: number };
   const data = await biliApi.getPlatformPre(uid);
   ctx.body = data;
 });
 router.get("/typeDesc", async (ctx) => {
-  const { tid, uid } = ctx.request.query;
-  // @ts-ignore
+  const { tid, uid } = ctx.request.query as unknown as { tid: number; uid: number };
   const data = await biliApi.getTypeDesc(tid, uid);
   ctx.body = data;
 });

@@ -9,7 +9,6 @@ import { bodyParser } from "@koa/bodyparser";
 import sse from "koa-sse-stream";
 
 import errorMiddleware from "./middleware/error.js";
-export * from "./routes/api_types.js";
 
 import webhookRouter from "./routes/webhook.js";
 import configRouter from "./routes/config.js";

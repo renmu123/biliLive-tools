@@ -1,116 +1,22 @@
 import Router from "koa-router";
-import { v4 as uuid } from "uuid";
 
-import { createRecorderManager } from "@biliLive-tools/shared";
-import { container } from "../index.js";
 import { pick } from "lodash-es";
-import { API } from "./api_types.js";
-import { recorderToClient } from "./utils.js";
+import recorderService from "../services/recorder.js";
 
-type createRecorderManagerType = Awaited<ReturnType<typeof createRecorderManager>>;
+import type { RecorderAPI } from "../types/recorder.js";
 
 const router = new Router({
   prefix: "/recorder",
 });
 
-// API 的实际实现，这里负责实现对外暴露的接口，并假设 Args 都已经由上一层解析好了
-async function getRecorders(params: API.getRecorders.Args): Promise<API.getRecorders.Resp> {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  let list = recorderManager.manager.recorders.map((item) => recorderToClient(item));
-
-  if (params.platform) {
-    list = list.filter((item) => item.providerId === params.platform);
-  }
-  if (params.recordStatus) {
-    list = list.filter(
-      (item) => (item.recordHandle != null) === (params.recordStatus === "recording"),
-    );
-  }
-  if (params.name) {
-    list = list.filter(
-      (item) => item.remarks?.includes(params.name) || item.channelId.includes(params.name),
-    );
-  }
-  if (params.autoCheck) {
-    list = list.filter((item) => (item.disableAutoCheck ? "2" : "1") === params.autoCheck);
-  }
-  return list;
-}
-
-function getRecorder(args: API.getRecorder.Args): API.getRecorder.Resp {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
-  // TODO: 之后再处理
-  if (recorder == null) throw new Error("404");
-
-  return recorderToClient(recorder);
-}
-
-async function addRecorder(args: API.addRecorder.Args): Promise<API.addRecorder.Resp> {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-
-  const config = {
-    id: uuid(),
-    ...args,
-    extra: {
-      createTimestamp: Date.now(),
-    },
-  };
-  const recorder = await recorderManager.addRecorder(config);
-  if (recorder == null) throw new Error("添加失败：不可重复添加");
-  return recorderToClient(recorder);
-}
-
-async function updateRecorder(args: API.updateRecorder.Args): Promise<API.updateRecorder.Resp> {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  const recorder = await recorderManager.updateRecorder(args);
-  if (recorder == null) throw new Error("配置不存在");
-
-  return recorderToClient(recorder);
-}
-
-function removeRecorder(args: API.removeRecorder.Args): API.removeRecorder.Resp {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
-  if (recorder == null) return null;
-
-  recorderManager.config.remove(args.id);
-  recorderManager.manager.removeRecorder(recorder);
-  return null;
-}
-
-async function startRecord(args: API.startRecord.Args): Promise<API.startRecord.Resp> {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  const recorder = await recorderManager.startRecord(args.id);
-  if (recorder == null) throw new Error("开始录制失败");
-
-  return recorderToClient(recorder);
-}
-
-async function stopRecord(args: API.stopRecord.Args): Promise<API.stopRecord.Resp> {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
-  if (recorder == null) throw new Error("配置不存在");
-
-  if (recorder.recordHandle != null) {
-    await recorder.recordHandle.stop("manual stop", true);
-    // TODO: 或许还应该自动将 recorder.disableAutoCheck 设置为 true
-  }
-  return recorderToClient(recorder);
-}
-
-// API 与外部系统的连接，负责将外部系统传递的数据解析为正确的参数后调用合适的 API 并返回结果
-
 router.get("/list", async (ctx) => {
-  const query: API.getRecorders.Args = ctx.request.query;
+  const query: RecorderAPI["getRecorders"]["Args"] = ctx.request.query;
 
-  ctx.body = { payload: await getRecorders(query) };
+  ctx.body = { payload: await recorderService.getRecorders(query) };
 });
 router.post("/add", async (ctx) => {
-  // TODO: 这里的类型限制还是有些问题，Nullable 的 key（如 extra）如果没写在这也不会报错，之后想想怎么改
   const args = pick(
-    // TODO: 这里先不做 schema 校验，以后再加
-    (ctx.request.body ?? {}) as Omit<API.addRecorder.Args, "id">,
+    (ctx.request.body ?? {}) as RecorderAPI["addRecorder"]["Args"],
     "providerId",
     "channelId",
     "remarks",
@@ -130,19 +36,18 @@ router.post("/add", async (ctx) => {
     "saveCover",
   );
 
-  const data = await addRecorder(args);
+  const data = await recorderService.addRecorder(args);
   ctx.body = { payload: data };
 });
 
 router.get("/:id", (ctx) => {
   const { id } = ctx.params;
-  ctx.body = { payload: getRecorder({ id }) };
+  ctx.body = { payload: recorderService.getRecorder({ id }) };
 });
 router.put("/:id", (ctx) => {
   const { id } = ctx.params;
   const patch = pick(
-    // TODO: 这里先不做 schema 校验，以后再加
-    ctx.request.body as Omit<API.updateRecorder.Args, "id">,
+    ctx.request.body as Omit<RecorderAPI["updateRecorder"]["Args"], "id">,
     "remarks",
     "disableAutoCheck",
     "quality",
@@ -159,25 +64,25 @@ router.put("/:id", (ctx) => {
     "uid",
   );
 
-  ctx.body = { payload: updateRecorder({ id, ...patch }) };
+  ctx.body = { payload: recorderService.updateRecorder({ id, ...patch }) };
 });
 router.delete("/:id", (ctx) => {
   const { id } = ctx.params;
-  ctx.body = { payload: removeRecorder({ id }) };
+  ctx.body = { payload: recorderService.removeRecorder({ id }) };
 });
 
 router.post("/:id/start_record", async (ctx) => {
   const { id } = ctx.params;
-  ctx.body = { payload: await startRecord({ id }) };
+  ctx.body = { payload: await recorderService.startRecord({ id }) };
 });
 router.post("/:id/stop_record", async (ctx) => {
   const { id } = ctx.params;
-  ctx.body = { payload: await stopRecord({ id }) };
+  ctx.body = { payload: await recorderService.stopRecord({ id }) };
 });
 
 router.post("/:id/stop_record", async (ctx) => {
   const { id } = ctx.params;
-  ctx.body = { payload: await stopRecord({ id }) };
+  ctx.body = { payload: await recorderService.stopRecord({ id }) };
 });
 
 // router.get(":id/history", async (ctx) => {
@@ -188,25 +93,14 @@ router.post("/:id/stop_record", async (ctx) => {
 // });
 
 router.get("/manager/resolveChannel", async (ctx) => {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-
   const { url } = ctx.query;
-  ctx.body = { payload: await recorderManager.resolveChannel(url as string) };
+  const data = await recorderService.resolveChannel(url as string);
+
+  ctx.body = { payload: data };
 });
 
 router.get("/manager/liveInfo", async (ctx) => {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  const recorders = recorderManager.manager.recorders;
-
-  const requests = recorders.map((recorder) => recorder.getLiveInfo());
-  // 改成并发
-  const list: {
-    owner: string;
-    title: string;
-    avatar: string;
-    cover: string;
-  }[] = await Promise.all(requests);
-
+  const list = await recorderService.getLiveInfo();
   ctx.body = {
     payload: list,
   };

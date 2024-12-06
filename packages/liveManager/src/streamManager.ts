@@ -4,7 +4,7 @@ import { replaceExtName } from "./utils.js";
 
 import type { Recorder } from "./recorder.js";
 
-export class SegmentManager {
+export class Segment {
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   init = true;
   getSavePath: (opts: any) => string;
@@ -12,9 +12,9 @@ export class SegmentManager {
   title: string;
   recorder: Recorder;
   /** 原始的ffmpeg文件名，用于重命名 */
-  rawRecordingVideoPath: string;
+  rawRecordingVideoPath!: string;
   /** 输出文件名名，不包含拓展名 */
-  outputVideoFilePath: string;
+  outputVideoFilePath!: string;
 
   constructor(
     recorder: Recorder,
@@ -77,7 +77,7 @@ export class SegmentManager {
 }
 
 export class StreamManager {
-  private segmentManager: SegmentManager | null = null;
+  private segmentManager: Segment | null = null;
   private extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   recorder: Recorder;
   owner: string;
@@ -94,9 +94,11 @@ export class StreamManager {
   ) {
     this.recordSavePath = recordSavePath;
     this.recorder = recorder;
+    this.owner = owner;
+    this.title = title;
 
     if (hasSegment) {
-      this.segmentManager = new SegmentManager(recorder, getSavePath, owner, title);
+      this.segmentManager = new Segment(recorder, getSavePath, owner, title);
     } else {
       const extraDataSavePath = replaceExtName(recordSavePath, ".json");
       this.extraDataController = createRecordExtraDataController(extraDataSavePath);

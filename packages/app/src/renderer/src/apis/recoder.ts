@@ -1,12 +1,12 @@
 import request from "./request";
 
-import type { ClientRecorder, API } from "@biliLive-tools/http";
+import type { ClientRecorder, RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 import type { LocalRecordr } from "@biliLive-tools/types";
 
 /**
  * 获取录制器列表，非配置信息
  */
-const infoList = async (params: API.getRecorders.Args = {}): Promise<ClientRecorder[]> => {
+const infoList = async (params: RecorderAPI["getRecorders"]["Args"]): Promise<ClientRecorder[]> => {
   const res = await request.get(`/recorder/list`, { params });
   return res.data.payload;
 };
@@ -19,20 +19,22 @@ const get = async (id: string): Promise<LocalRecordr> => {
   return res.data.payload;
 };
 
-const add = async (data: API.addRecorder.Args): Promise<API.addRecorder.Resp> => {
+const add = async (
+  data: RecorderAPI["addRecorder"]["Args"],
+): Promise<RecorderAPI["addRecorder"]["Resp"]> => {
   const res = await request.post(`/recorder/add`, data);
   return res.data.payload;
 };
 
-const remove = async (id: string): Promise<API.removeRecorder.Resp> => {
+const remove = async (id: string): Promise<RecorderAPI["removeRecorder"]["Resp"]> => {
   const res = await request.delete(`/recorder/${id}`);
   return res.data.payload;
 };
 
 const update = async (
   id: string,
-  preset: API.updateRecorder.Args,
-): Promise<API.updateRecorder.Resp> => {
+  preset: RecorderAPI["updateRecorder"]["Args"],
+): Promise<RecorderAPI["updateRecorder"]["Resp"]> => {
   const res = await request.put(`/recorder/${id}`, preset);
   return res.data.payload;
 };
@@ -51,14 +53,14 @@ const stopRecord = async (id: string) => {
   return res.data.payload;
 };
 
-const resolveChannel = async (url: string): Promise<API.resolveChannel.Resp> => {
+const resolveChannel = async (url: string): Promise<RecorderAPI["resolveChannel"]["Resp"]> => {
   const res = await request.get(`/recorder/manager/resolveChannel`, {
     params: { url },
   });
   return res.data.payload;
 };
 
-const getLiveInfo = async (): Promise<API.getLiveInfo.Resp> => {
+const getLiveInfo = async (): Promise<RecorderAPI["getLiveInfo"]["Resp"]> => {
   const res = await request.get(`/recorder/manager/liveInfo`);
   return res.data.payload;
 };

@@ -12,6 +12,11 @@
       "types": "./src/index.ts",
       "development": "./src/index.ts",
       "default": "./lib/index.js"
+    },
+    "./*.js": {
+      "types": "./src/*.ts",
+      "development": "./src/*.ts",
+      "default": "./lib/*.js"
     }
   },
   "scripts": {
