@@ -328,3 +328,48 @@ export function replaceExtName(filePath: string, newExtName: string) {
     path.basename(filePath, path.extname(filePath)) + newExtName,
   );
 }
+
+/**
+ * 根据时间间隔统计有序时间数组的计数（起始时间默认为 0）
+ * @param times 时间数组（以秒为单位）
+ * @param interval 时间间隔（秒）
+ * @returns 一个数组，每个元素表示该时间间隔内的计数
+ */
+export function countByIntervalInSeconds(
+  times: number[],
+  interval: number,
+): { start: number; count: number }[] {
+  if (times.length === 0) return [];
+
+  const result: { start: number; count: number }[] = [];
+  let currentIntervalStart = 0; // 当前分组的起始时间固定为 0
+  let count = 0;
+
+  for (const time of times) {
+    while (time >= currentIntervalStart + interval) {
+      // 时间超出当前分组范围，保存当前分组并移动到下一个分组
+      result.push({ start: currentIntervalStart, count });
+      currentIntervalStart += interval;
+      count = 0; // 重置计数
+    }
+    count++; // 当前时间点计入当前分组
+  }
+
+  // 记录最后一个分组
+  result.push({ start: currentIntervalStart, count });
+
+  return result;
+}
+
+// 归一化函数
+export function normalizePoints(points: { x: number; y: number }[], width: number, height: number) {
+  const xMin = Math.min(...points.map((p) => p.x));
+  const xMax = Math.max(...points.map((p) => p.x));
+  const yMin = Math.min(...points.map((p) => p.y));
+  const yMax = Math.max(...points.map((p) => p.y));
+
+  return points.map((p) => ({
+    x: ((p.x - xMin) / (xMax - xMin)) * width,
+    y: ((p.y - yMin) / (yMax - yMin)) * height,
+  }));
+}

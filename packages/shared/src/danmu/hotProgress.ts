@@ -1,126 +1,13 @@
 import fs from "fs-extra";
 import path from "node:path";
 import { compile } from "ass-compiler";
-import { keyBy } from "lodash-es";
 import { parseXmlFile } from "./index.js";
 import { createCanvas } from "@napi-rs/canvas";
+import { countByIntervalInSeconds } from "../utils/index.js";
 
 import type { hotProgressOptions } from "@biliLive-tools/types";
 
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
-
-async function handleAss(
-  content: string,
-  options = {
-    interval: 30,
-  },
-) {
-  // 解析Ass文件
-  const assData = compile(content, {});
-
-  const items = Array.from(
-    groupBy(
-      assData["dialogues"],
-      (item) => Math.floor(item.start / options.interval) * options.interval,
-    ),
-  ).map(([key, items]) => {
-    return {
-      time: key,
-      value: items.length,
-    };
-  });
-  return items;
-}
-
-/**
- * 处理弹幕为高能弹幕所需数据格式
- */
-function handleDanmu(
-  danmuku: {
-    "@_p": string;
-  }[],
-  options = {
-    interval: 30,
-  },
-) {
-  const data = danmuku.map((item) => {
-    return {
-      start: item["@_p"].split(",")[0],
-    };
-  });
-  const items = Array.from(
-    groupBy(data, (item) => Math.floor(item.start / options.interval) * options.interval),
-  ).map(([key, items]) => {
-    return {
-      time: key,
-      value: items.length,
-    };
-  });
-  return items;
-}
-
-/**
- * 处理数据为高能弹幕所需要数据结构
- */
-const handleItems = (
-  items: {
-    time: any;
-    value: any;
-  }[],
-  config: {
-    interval: number;
-    duration: number;
-    color?: string;
-  },
-) => {
-  const map = keyBy(items, "time");
-
-  const data: { time: number; value: number; color?: string }[] = [];
-  for (let i = 0; i < config.duration - config.interval; i += config.interval) {
-    const item = map[i];
-    if (item) {
-      data.push({ ...item, color: config.color });
-    } else {
-      data.push({
-        time: i,
-        value: 0,
-        color: config.color,
-      });
-    }
-  }
-  return data;
-};
-
-/**
- * 根据ass生成的高能弹幕数据
- */
-export const genHotDataByAss = async (
-  file: string,
-  options: {
-    interval: number;
-    duration: number;
-    color?: string;
-  },
-) => {
-  const content = await fs.readFile(file, "utf-8");
-  const items = await handleAss(content, options);
-  return handleItems(items, options);
-};
-
-/**
- * 根据xml生成高能弹幕数据
- */
-export const genHotDataByXml = async (
-  danmuku: { "@_p": string }[],
-  options: {
-    interval: number;
-    duration: number;
-    color?: string;
-  },
-) => {
-  const items = handleDanmu(danmuku, options);
-  return handleItems(items, options);
-};
 
 export const genTimeData = async (input: string): Promise<number[]> => {
   const ext = path.extname(input);
@@ -140,27 +27,20 @@ export const genTimeData = async (input: string): Promise<number[]> => {
 
 export const generateDanmakuData = async (
   input: string,
-  iOptions: {
-    interval?: number;
+  options: {
+    interval: number;
     duration: number;
-    color?: string;
+    color: string;
   },
 ) => {
-  const defaultOptions = {
-    interval: 30,
-    color: "#f9f5f3",
-  };
-  const options = Object.assign(defaultOptions, iOptions);
-
-  const ext = path.extname(input);
-  if (ext === ".xml") {
-    const { danmuku } = await parseXmlFile(input);
-    return genHotDataByXml(danmuku, options);
-  } else if (ext === ".ass") {
-    return genHotDataByAss(input, options);
-  } else {
-    throw new Error("not support file");
-  }
+  const data = await genTimeData(input);
+  let fData = data.filter((time) => time < options.duration).sort((a, b) => a - b);
+  const countData = countByIntervalInSeconds(fData, options.interval);
+  return countData.map((item) => ({
+    time: item.start,
+    value: item.count,
+    color: options.color,
+  }));
 };
 
 // 生成高能弹幕图片
@@ -185,7 +65,6 @@ export const generateDanmakuImage = async (
     const canvas = await drawSmoothLineChart(data, options.width, options.height);
     const outputPath = path.join(output, `${String(i).padStart(4, "0")}.png`);
     const stream = await canvas.encode("png");
-    // @ts-ignore
     await fs.promises.writeFile(outputPath, stream);
   }
   return data;
