@@ -17,7 +17,12 @@ import log from "../utils/log.js";
 import { sleep, encrypt, decrypt, getTempPath } from "../utils/index.js";
 import { sendNotify } from "../notify.js";
 
-import type { BiliupConfig, BiliUser, GlobalConfig } from "@biliLive-tools/types";
+import type {
+  BiliupConfig,
+  BiliUser,
+  GlobalConfig,
+  AppConfig as AppConfigType,
+} from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
 import type { getArchivesReturnType } from "@renmu/bili-api/dist/types/platform.js";
 import type { AppConfig } from "../config.js";
@@ -246,6 +251,26 @@ export async function editMediaApi(
   return client.platform.editMediaClientApi(video, { aid, ...mediaOptions }, "append");
 }
 
+/**
+ * 格式化上传稿件参数，并非上传接口
+ */
+function formatMediaOptions(options: AppConfigType["biliUpload"]) {
+  let line = options.line ?? "auto";
+  const splitedLine = line.split("-");
+  let zone = "";
+
+  if (splitedLine.length === 2) {
+    // @ts-ignore
+    [zone, line] = splitedLine;
+  }
+
+  return {
+    ...options,
+    line: line,
+    zone: zone,
+  };
+}
+
 async function addMedia(
   filePath:
     | string[]
@@ -317,7 +342,7 @@ async function addMedia(
       path: typeof item === "string" ? item : item.path,
       title: typeof item === "string" ? path.parse(item).name : item.title,
     };
-    const uploader = new WebVideoUploader(part, client.auth, uploadOptions);
+    const uploader = new WebVideoUploader(part, client.auth, formatMediaOptions(uploadOptions));
 
     const task = new BiliPartVideoTask(
       uploader,
@@ -378,7 +403,7 @@ export async function editMedia(
       path: typeof item === "string" ? item : item.path,
       title: typeof item === "string" ? path.parse(item).name : item.title,
     };
-    const uploader = new WebVideoUploader(part, client.auth, uploadOptions);
+    const uploader = new WebVideoUploader(part, client.auth, formatMediaOptions(uploadOptions));
 
     const task = new BiliPartVideoTask(
       uploader,

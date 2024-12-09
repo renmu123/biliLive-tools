@@ -72,10 +72,16 @@ const config = defineModel<AppConfig>("data", {
 
 const lineOptions = [
   { label: "自动", value: "auto" },
-  { label: "bda2", value: "bda2" },
-  { label: "qn", value: "qn" },
-  { label: "qnhk", value: "qnhk" },
-  { label: "bldsa", value: "bldsa" },
+  { label: "cs-bda2", value: "cs-bda2" },
+  { label: "cs-bldsa", value: "cs-bldsa" },
+  { label: "cs-tx", value: "cs-tx" },
+  { label: "cs-txa", value: "cs-txa" },
+  { label: "cs-alia", value: "cs-alia" },
+  { label: "jd-bldsa", value: "jd-bldsa" },
+  { label: "jd-bd", value: "jd-bd" },
+  { label: "jd-tx", value: "jd-tx" },
+  { label: "jd-txa", value: "jd-txa" },
+  { label: "jd-alia", value: "jd-alia" },
 ];
 </script>
 
