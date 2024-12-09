@@ -84,7 +84,7 @@ onMounted(async () => {
       }),
     );
 
-    plugins.push(artplayerPluginHeatmap({}));
+    plugins.push(artplayerPluginHeatmap([], {}));
   }
   instance = new Artplayer({
     url: "",

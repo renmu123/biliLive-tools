@@ -13,6 +13,7 @@
 4. 增加了看板页面
 5. 支持 [push-all-in-cloud](https://github.com/CaoMeiYouRen/push-all-in-cloud) 推送
 6. 更新额外的上传线路，**设置自定义上传先线路的可能需要手动更新，虽然也做了兼容**
+7. 重写切片中的高能弹幕展示，增加更多自定义选项
 
 ## 优化
 

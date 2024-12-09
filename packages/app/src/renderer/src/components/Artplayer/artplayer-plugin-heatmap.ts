@@ -1,5 +1,14 @@
 import type Artplayer from "artplayer";
 
+type DanmaKu = number[];
+
+interface Options {
+  sampling?: number;
+  height?: number;
+  color?: string;
+  fillColor?: string;
+}
+
 /**
  * 根据时间间隔统计有序时间数组的计数（起始时间默认为 0）
  * @param times 时间数组（以秒为单位）
@@ -45,39 +54,42 @@ function normalizePoints(points: { x: number; y: number }[], width: number, heig
   }));
 }
 
-export default function artplayerPluginHeatmap(options: any) {
+export default function artplayerPluginHeatmap(danmuku: DanmaKu = [], options: Options = {}) {
   return (art: Artplayer) => {
-    heatmap(art, [1, 1, 1, 1, 2, 3, 4, 5, 6, 6, 6, 6], options);
+    const requiredOptions = Object.assign(
+      {
+        sampling: 10,
+        height: 20,
+        fillColor: "#f9f5f3",
+        color: "#333333",
+      },
+      options,
+    );
+    heatmap(art, danmuku, requiredOptions);
 
     return {
       name: "artplayerPluginHeatmap",
-      setData(data: number[]) {
+      setData(data: DanmaKu) {
         // @ts-ignore
         art.emit("artplayerPluginHeatmap:setPoints", data);
       },
-
-      // ass: ass,
-      // show: ass.show(),
-      // hide: ass.hide(),
-      // switch: switchContent,
-      // destroy: () => {
-      //   ass.destroy();
-      // },
+      show() {},
+      hide() {},
     };
   };
 }
 
-function heatmap(art: Artplayer, danmuku, options) {
+function heatmap(art: Artplayer, danmuku: DanmaKu, options: Required<Options>) {
   art.controls.add({
     name: "heatmap",
     position: "top",
     html: "",
     style: {
       position: "absolute",
-      top: "-100px",
+      top: `-${options.height}px`,
       left: "0px",
       right: "0px",
-      height: "100px",
+      height: `${options.height}px`,
       width: "100%",
       pointerEvents: "none",
     },
@@ -125,6 +137,8 @@ function heatmap(art: Artplayer, danmuku, options) {
         ctx: CanvasRenderingContext2D,
         width: number,
       ) {
+        if (danmaPoints.length === 0) return;
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // 绘制红色部分
@@ -132,7 +146,7 @@ function heatmap(art: Artplayer, danmuku, options) {
         ctx.beginPath();
         ctx.rect(0, 0, width, canvas.height); // 红色区域的剪辑
         ctx.clip();
-        drawEntireLine(ctx, "red", danmaPoints);
+        drawEntireLine(ctx, options.color, danmaPoints);
         ctx.restore();
 
         // 绘制蓝色部分
@@ -140,7 +154,7 @@ function heatmap(art: Artplayer, danmuku, options) {
         ctx.beginPath();
         ctx.rect(width, 0, canvas.width - width, canvas.height); // 蓝色区域的剪辑
         ctx.clip();
-        drawEntireLine(ctx, "blue", danmaPoints);
+        drawEntireLine(ctx, options.fillColor, danmaPoints);
         ctx.restore();
       }
 
@@ -167,14 +181,15 @@ function heatmap(art: Artplayer, danmuku, options) {
         ctx.stroke();
       }
 
-      function init(danmuku = []) {
+      function init(danmuku: DanmaKu = []) {
         $heatmap.innerHTML = `<canvas></canvas>`;
 
         if (!art.duration || art.option.isLive) return;
+        console.log("init", $heatmap.offsetWidth, danmuku);
         draw(danmuku, {
           width: $heatmap.offsetWidth,
-          height: 100,
-          sampling: 1,
+          height: options.height,
+          sampling: options.sampling,
           duration: art.duration,
         });
       }
@@ -199,7 +214,6 @@ function heatmap(art: Artplayer, danmuku, options) {
       });
 
       art.on("ready", () => init(danmuku));
-      // TODO: 需要修复
       art.on("resize", () => {
         const width = art.played * $heatmap.offsetWidth;
         update(width);
@@ -207,7 +221,6 @@ function heatmap(art: Artplayer, danmuku, options) {
 
       // @ts-ignore
       art.on("artplayerPluginHeatmap:setPoints", (points) => {
-        console.log("setPoints", points);
         // @ts-ignore
         init(points);
       });

@@ -22,8 +22,6 @@
       </n-button>
     </div>
 
-    <input type="range" v-model="clipX" min="0" max="100" value="1" />
-
     <div class="content">
       <div v-show="files.videoPath" class="video cut-video">
         <Artplayer
@@ -33,7 +31,6 @@
           @ready="handleVideoReady"
           @video:durationchange="handleVideoDurationChange"
         ></Artplayer>
-        <canvas ref="hotProgressCanvas"></canvas>
       </div>
 
       <FileArea
@@ -76,7 +73,7 @@ import SegmentList from "./components/SegmentList.vue";
 import { useLlcProject } from "./hooks";
 import { useDrive } from "@renderer/hooks/drive";
 import hotkeys from "hotkeys-js";
-import { useElementSize, useDebounceFn, toReactive } from "@vueuse/core";
+import { useElementSize, toReactive } from "@vueuse/core";
 import { sortBy } from "lodash-es";
 
 import type ArtplayerType from "artplayer";
@@ -325,15 +322,9 @@ const generateDanmakuData = async (file: string) => {
   }
 
   const data = await window.api.danmu.genTimeData(file);
-  tempDrawData = data;
-  console.log(tempDrawData);
 
   // @ts-ignore
   videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
-
-  setTimeout(() => {
-    draw();
-  }, 1000);
 };
 /**
  * xml文件转换为ass
@@ -410,32 +401,8 @@ const videoToggle = () => {
   videoInstance.value.toggle();
 };
 
-const hotProgressCanvas = ref<HTMLCanvasElement | null>(null);
-
-let tempDrawData: number[] = [];
-function draw() {
-  if (!videoWidth.value) return;
-  if (!tempDrawData.length) return;
-  generateHotProgress(tempDrawData, {
-    width: videoWidth.value,
-    height: 50,
-    sampling: 1,
-    duration: videoDuration.value,
-  });
-}
-const debouncedDraw = useDebounceFn(() => {
-  draw();
-}, 500);
-
-window.addEventListener("resize", debouncedDraw);
-
-onUnmounted(() => {
-  window.removeEventListener("resize", debouncedDraw);
-});
-
 const fileList = ref<any[]>([]);
 const handleFileChange = (fileList: any[]) => {
-  console.log(files);
   if (!fileList.length) return;
   const file = fileList[0];
   const { path, ext } = file;
@@ -451,137 +418,6 @@ const { videoCutDrive } = useDrive();
 onMounted(() => {
   videoCutDrive();
 });
-
-const danmaPoints = ref<{ x: number; y: number }[]>([]);
-/**
- * 生成高能弹幕进度条所需参数
- */
-const generateHotProgress = async (
-  data: number[],
-  options: { width: number; height: number; sampling: number; duration: number },
-) => {
-  let fData = data.filter((time) => time < options.duration).sort((a, b) => a - b);
-  const countData = countByIntervalInSeconds(fData, options.sampling);
-  danmaPoints.value = normalizePoints(
-    countData.map((item) => ({ x: item.start, y: item.count })),
-    options.width,
-    options.height,
-  );
-
-  const canvas = hotProgressCanvas.value;
-  if (!canvas) return;
-  canvas.width = options.width;
-  canvas.height = options.height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-  ctx.scale(1, -1);
-  ctx.translate(0, -options.height);
-  drawSmoothCurve(canvas, ctx);
-};
-
-/**
- * 根据时间间隔统计有序时间数组的计数（起始时间默认为 0）
- * @param times 时间数组（以秒为单位）
- * @param interval 时间间隔（秒）
- * @returns 一个数组，每个元素表示该时间间隔内的计数
- */
-function countByIntervalInSeconds(
-  times: number[],
-  interval: number,
-): { start: number; count: number }[] {
-  if (times.length === 0) return [];
-
-  const result: { start: number; count: number }[] = [];
-  let currentIntervalStart = 0; // 当前分组的起始时间固定为 0
-  let count = 0;
-
-  for (const time of times) {
-    while (time >= currentIntervalStart + interval) {
-      // 时间超出当前分组范围，保存当前分组并移动到下一个分组
-      result.push({ start: currentIntervalStart, count });
-      currentIntervalStart += interval;
-      count = 0; // 重置计数
-    }
-    count++; // 当前时间点计入当前分组
-  }
-
-  // 记录最后一个分组
-  result.push({ start: currentIntervalStart, count });
-
-  return result;
-}
-
-// 归一化函数
-function normalizePoints(points: { x: number; y: number }[], width: number, height: number) {
-  const xMin = Math.min(...points.map((p) => p.x));
-  const xMax = Math.max(...points.map((p) => p.x));
-  const yMin = Math.min(...points.map((p) => p.y));
-  const yMax = Math.max(...points.map((p) => p.y));
-
-  return points.map((p) => ({
-    x: ((p.x - xMin) / (xMax - xMin)) * width,
-    y: ((p.y - yMin) / (yMax - yMin)) * height,
-  }));
-}
-
-const clipX = ref(0);
-
-watch(clipX, () => {
-  const canvas = hotProgressCanvas.value;
-  if (!canvas) return;
-  const ctx = canvas?.getContext("2d");
-  if (!ctx) return;
-
-  drawSmoothCurve(canvas, ctx);
-});
-
-/**
- * 绘制平滑曲线
- * @param points 点集
- * @param ctx 画布上下文
- */
-function drawSmoothCurve(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // 绘制红色部分
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(0, 0, clipX.value, canvas.height); // 红色区域的剪辑
-  ctx.clip();
-  drawEntireLine(ctx, "red", danmaPoints.value);
-  ctx.restore();
-
-  // 绘制蓝色部分
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(clipX.value, 0, canvas.width - clipX.value, canvas.height); // 蓝色区域的剪辑
-  ctx.clip();
-  drawEntireLine(ctx, "blue", danmaPoints.value);
-  ctx.restore();
-}
-
-function drawEntireLine(
-  ctx: CanvasRenderingContext2D,
-  color: string,
-  points: { x: number; y: number }[],
-) {
-  ctx.beginPath();
-  ctx.moveTo(points[0].x, points[0].y); // 起点
-
-  for (let i = 0; i < points.length - 1; i++) {
-    const p1 = points[i];
-    const p2 = points[i + 1];
-
-    const xc = (p1.x + p2.x) / 2;
-    const yc = (p1.y + p2.y) / 2;
-
-    ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
-  }
-
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
-  ctx.stroke();
-}
 </script>
 
 <style scoped lang="less">
