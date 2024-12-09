@@ -12,6 +12,7 @@
 3. ffmpeg预设中的"时间戳"功能支持字体跟随弹幕预设，自定义内容格式（具体见[strftime](https://strftime.org/)，`:`需要转义），额外自定义参数（见[ffmpeg文档](https://ffmpeg.org/ffmpeg-filters.html#drawtext-1)） [#38](https://github.com/renmu123/biliLive-tools/issues/38)
 4. 增加了看板页面
 5. 支持 [push-all-in-cloud](https://github.com/CaoMeiYouRen/push-all-in-cloud) 推送
+6. 更新额外的上传线路，**设置自定义上传先线路的需要手动更新，虽然也做了兼容**
 
 ## 优化
 

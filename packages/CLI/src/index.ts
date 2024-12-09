@@ -18,6 +18,13 @@ interface Config {
   passKey?: string;
 }
 
+process.on("uncaughtException", function (error) {
+  console.error("uncaughtException", error);
+});
+process.on("unhandledRejection", function (error) {
+  console.error("unhandledRejection", error);
+});
+
 const program = new Command();
 program.name("biliLive").description("biliLive-tools命令行").version(version);
 
