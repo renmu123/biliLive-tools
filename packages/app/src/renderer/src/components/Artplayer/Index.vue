@@ -8,6 +8,7 @@ import flvjs from "flv.js";
 import Hls from "hls.js";
 
 import artplayerPluginAss from "./artplayer-plugin-assjs";
+import artplayerPluginHeatmap from "./artplayer-plugin-heatmap";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 
@@ -82,6 +83,8 @@ onMounted(async () => {
         content: "",
       }),
     );
+
+    plugins.push(artplayerPluginHeatmap({}));
   }
   instance = new Artplayer({
     url: "",
@@ -121,6 +124,8 @@ onMounted(async () => {
 
   // @ts-ignore
   instance.artplayerPluginDanmuku = instance?.plugins?.artplayerPluginDanmuku;
+  // @ts-ignore
+  instance.artplayerPluginHeatmap = instance?.plugins?.artplayerPluginHeatmap;
   await nextTick();
   emits("ready", instance);
   instance.on("error", (error, reconnectTime) => {

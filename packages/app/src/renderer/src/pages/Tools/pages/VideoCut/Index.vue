@@ -325,9 +325,11 @@ const generateDanmakuData = async (file: string) => {
   }
 
   const data = await window.api.danmu.genTimeData(file);
-
   tempDrawData = data;
   console.log(tempDrawData);
+
+  // @ts-ignore
+  videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
 
   setTimeout(() => {
     draw();
