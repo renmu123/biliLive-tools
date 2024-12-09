@@ -3,8 +3,6 @@ import path from "node:path";
 import readline from "node:readline";
 import { XMLParser } from "fast-xml-parser";
 
-import { genHotDataByXml } from "./hotProgress.js";
-
 import type { Danmu, SC, Gift, Guard } from "@biliLive-tools/types";
 
 const traversalObject = (obj: any, callback: (key: string, value: any) => any) => {
@@ -137,32 +135,13 @@ export const parseMetadata = (jObj: any) => {
 export const parseDanmu = async (
   input: string,
   iOptions: {
-    parseHotProgress?: boolean;
     type?: "bililiverecorder" | "blrec" | "ddtv";
     roomId?: string;
-    interval?: number;
-    duration?: number;
-    color?: string;
   } = {},
 ) => {
-  const defaultOptins = {
-    parseHotProgress: false,
-    interval: 30,
-    duration: 0,
-    color: "#f9f5f3",
-  };
+  const defaultOptins = {};
   const options = Object.assign(defaultOptins, iOptions);
   const { danmuku, sc, jObj, gift, guard } = await parseXmlFile(input);
-
-  let hotProgress: {
-    time: number;
-    value: number;
-    color?: string;
-  }[] = [];
-  if (options.parseHotProgress) {
-    if (!options.duration) throw new Error("duration is required when parseHotProgress is true");
-    hotProgress = await genHotDataByXml(danmuku, options);
-  }
 
   // 如果是bililiverecorder和blrec录制的，平台为Bilibili
   let platform: string;
@@ -235,5 +214,5 @@ export const parseDanmu = async (
     return data;
   });
 
-  return { danmu: parsedDanmuku, sc: parsedSC, gift: parsedGift, guard: parsedGuard, hotProgress };
+  return { danmu: parsedDanmuku, sc: parsedSC, gift: parsedGift, guard: parsedGuard };
 };

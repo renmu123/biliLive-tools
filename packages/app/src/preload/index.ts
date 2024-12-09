@@ -62,25 +62,11 @@ export const api = {
     genHotProgress(input: string, options: hotProgressOptions) {
       return ipcRenderer.invoke("danmu:genHotProgress", input, options);
     },
-    generateDanmakuData(
-      input: string,
-      options: {
-        interval?: number;
-        duration: number;
-        color?: string;
-      },
-    ) {
-      return ipcRenderer.invoke("danmu:generateDanmakuData", input, options);
+
+    genTimeData(input: string) {
+      return ipcRenderer.invoke("danmu:genTimeData", input);
     },
-    parseDanmu(
-      input: string,
-      options: {
-        parseHotProgress?: boolean;
-        interval?: number;
-        duration?: number;
-        color?: string;
-      } = {},
-    ): Promise<{
+    parseDanmu(input: string): Promise<{
       danmu: DanmuItem[];
       sc: DanmuItem[];
       hotProgress: {
@@ -89,7 +75,7 @@ export const api = {
         color: string;
       }[];
     }> {
-      return ipcRenderer.invoke("danmu:parseDanmu", input, options);
+      return ipcRenderer.invoke("danmu:parseDanmu", input, {});
     },
   },
   task: {

@@ -314,24 +314,19 @@ const generateDanmakuData = async (file: string) => {
   if (!videoDuration.value) return;
 
   if (file.endsWith(".ass")) {
-    const data = await window.api.danmu.generateDanmakuData(file, {
-      duration: videoDuration.value,
-      interval: 10,
-    });
-    tempDrawData = data;
     danmaList.value = [];
   } else if (file.endsWith(".xml")) {
-    const data = await window.api.danmu.parseDanmu(file, {
-      parseHotProgress: true,
-      duration: videoDuration.value,
-      interval: 10,
-    });
-    tempDrawData = data.hotProgress;
-    console.log(tempDrawData);
+    const data = await window.api.danmu.parseDanmu(file);
     danmaList.value = sortBy([...data.sc, ...data.danmu], "ts");
   } else {
     throw new Error("不支持的文件类型");
   }
+
+  const data = await window.api.danmu.genTimeData(file);
+
+  tempDrawData = data;
+  console.log(tempDrawData);
+
   setTimeout(() => {
     draw();
   }, 1000);
@@ -411,70 +406,18 @@ const videoToggle = () => {
   videoInstance.value.toggle();
 };
 
-// 绘制平滑曲线
-function drawSmoothCurve(ctx, points) {
-  const len = points.length;
-
-  let lastX = points[0].x;
-  let lastY = points[0].y;
-  for (let i = 1; i < len - 1; i++) {
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-
-    ctx.strokeStyle = points[i].color;
-    const xc = (points[i].x + points[i + 1].x) / 2;
-    const yc = (points[i].y + points[i + 1].y) / 2;
-
-    ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
-    lastX = xc;
-    lastY = yc;
-    ctx.stroke();
-  }
-}
-
 const hotProgressCanvas = ref<HTMLCanvasElement | null>(null);
-// 绘制平滑折线图
-function drawSmoothLineChart(data, width: number, height: number) {
-  if (!hotProgressCanvas.value) return;
 
-  const canvas = hotProgressCanvas.value;
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, width, height);
-
-  const length = data.length;
-  const maxValue = Math.max(...data.map((item) => item.value));
-  // const minValue = Math.min(...data.map((item) => item.value));
-  const xRation = width / (length - 1);
-  const yRatio = height / maxValue;
-
-  const points: any[] = [];
-
-  // 计算数据点的坐标
-  for (let i = 0; i < data.length; i++) {
-    const item = data[i];
-
-    const x = i * xRation;
-    const y = height - item.value * yRatio;
-    points.push({
-      x: x,
-      y: y,
-      color: item.color ?? "#333333",
-    });
-  }
-
-  drawSmoothCurve(ctx, points);
-  return canvas;
-}
-
-let tempDrawData: any[] = [];
+let tempDrawData: number[] = [];
 function draw() {
   if (!videoWidth.value) return;
   if (!tempDrawData.length) return;
-  drawSmoothLineChart(tempDrawData, videoWidth.value, 50);
+  generateHotProgress(tempDrawData, {
+    width: videoWidth.value,
+    height: 50,
+    sampling: 1,
+    duration: videoDuration.value,
+  });
 }
 const debouncedDraw = useDebounceFn(() => {
   draw();
@@ -504,6 +447,101 @@ const { videoCutDrive } = useDrive();
 onMounted(() => {
   videoCutDrive();
 });
+
+/**
+ * 生成高能弹幕进度条所需参数
+ */
+const generateHotProgress = async (
+  data: number[],
+  options: { width: number; height: number; sampling: number; duration: number },
+) => {
+  let fData = data.filter((time) => time < options.duration).sort((a, b) => a - b);
+  const countData = countByIntervalInSeconds(fData, options.sampling);
+  let result = normalizePoints(
+    countData.map((item) => ({ x: item.start, y: item.count })),
+    options.width,
+    options.height,
+  );
+
+  const canvas = hotProgressCanvas.value;
+  if (!canvas) return;
+  canvas.width = options.width;
+  canvas.height = options.height;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.scale(1, -1);
+  ctx.translate(0, -options.height);
+  drawSmoothCurve(ctx, result);
+};
+
+/**
+ * 根据时间间隔统计有序时间数组的计数（起始时间默认为 0）
+ * @param times 时间数组（以秒为单位）
+ * @param interval 时间间隔（秒）
+ * @returns 一个数组，每个元素表示该时间间隔内的计数
+ */
+function countByIntervalInSeconds(
+  times: number[],
+  interval: number,
+): { start: number; count: number }[] {
+  if (times.length === 0) return [];
+
+  const result: { start: number; count: number }[] = [];
+  let currentIntervalStart = 0; // 当前分组的起始时间固定为 0
+  let count = 0;
+
+  for (const time of times) {
+    while (time >= currentIntervalStart + interval) {
+      // 时间超出当前分组范围，保存当前分组并移动到下一个分组
+      result.push({ start: currentIntervalStart, count });
+      currentIntervalStart += interval;
+      count = 0; // 重置计数
+    }
+    count++; // 当前时间点计入当前分组
+  }
+
+  // 记录最后一个分组
+  result.push({ start: currentIntervalStart, count });
+
+  return result;
+}
+
+// 归一化函数
+function normalizePoints(points: { x: number; y: number }[], width: number, height: number) {
+  const xMin = Math.min(...points.map((p) => p.x));
+  const xMax = Math.max(...points.map((p) => p.x));
+  const yMin = Math.min(...points.map((p) => p.y));
+  const yMax = Math.max(...points.map((p) => p.y));
+
+  return points.map((p) => ({
+    x: ((p.x - xMin) / (xMax - xMin)) * width,
+    y: ((p.y - yMin) / (yMax - yMin)) * height,
+  }));
+}
+
+/**
+ * 绘制平滑曲线
+ * @param points 点集
+ * @param ctx 画布上下文
+ */
+function drawSmoothCurve(ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) {
+  ctx.beginPath();
+  ctx.moveTo(points[0].x, points[0].y); // 起点
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const p1 = points[i];
+    const p2 = points[i + 1];
+
+    const xc = (p1.x + p2.x) / 2;
+    const yc = (p1.y + p2.y) / 2;
+
+    ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+  }
+
+  ctx.strokeStyle = "blue";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+}
 </script>
 
 <style scoped lang="less">

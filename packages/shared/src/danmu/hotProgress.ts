@@ -59,52 +59,6 @@ function handleDanmu(
   return items;
 }
 
-export const _generateDanmakuData = async (
-  input: string,
-  options: {
-    interval?: number;
-    duration: number;
-    color?: string;
-  },
-) => {
-  const defaultOptions = {
-    interval: 30,
-    color: "#f9f5f3",
-  };
-  const config = Object.assign(defaultOptions, options);
-  let items: { time: number; value: number }[] = [];
-  const ext = path.extname(input);
-  if (ext === ".xml") {
-    // 读取xml文件
-    const { danmuku } = await parseXmlFile(input);
-
-    items = handleDanmu(danmuku, {
-      interval: config.interval,
-    });
-  } else if (ext === ".ass") {
-    items = await handleAss(input, {
-      interval: config.interval,
-    });
-  }
-
-  const map = keyBy(items, "time");
-
-  const data: { time: number; value: number; color: string }[] = [];
-  for (let i = 0; i < config.duration - config.interval; i += config.interval) {
-    const item = map[i];
-    if (item) {
-      data.push({ ...item, color: config.color });
-    } else {
-      data.push({
-        time: i,
-        value: 0,
-        color: config.color,
-      });
-    }
-  }
-  return data;
-};
-
 /**
  * 处理数据为高能弹幕所需要数据结构
  */
@@ -166,6 +120,22 @@ export const genHotDataByXml = async (
 ) => {
   const items = handleDanmu(danmuku, options);
   return handleItems(items, options);
+};
+
+export const genTimeData = async (input: string): Promise<number[]> => {
+  const ext = path.extname(input);
+  if (ext === ".xml") {
+    const { danmuku } = await parseXmlFile(input);
+    return danmuku.map((item) => {
+      return Math.floor(item["@_p"].split(",")[0]);
+    });
+  } else if (ext === ".ass") {
+    const content = await fs.readFile(input, "utf-8");
+    const assData = compile(content, {});
+    return assData["dialogues"].map((item) => Math.floor(item.start));
+  } else {
+    throw new Error("not support file");
+  }
 };
 
 export const generateDanmakuData = async (
