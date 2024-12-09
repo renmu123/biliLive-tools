@@ -7,7 +7,7 @@ import Artplayer from "artplayer";
 import flvjs from "flv.js";
 import Hls from "hls.js";
 
-import artplayerPluginAss from "./artplayer-plugin-assjs";
+import artplayerPluginAssJS from "artplayer-plugin-assjs";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 
@@ -45,7 +45,7 @@ onMounted(async () => {
     }
     if (props.plugins.includes("ass")) {
       plugins.push(
-        artplayerPluginAss({
+        artplayerPluginAssJS({
           content: "",
         }),
       );
@@ -78,7 +78,7 @@ onMounted(async () => {
     }
   } else {
     plugins.push(
-      artplayerPluginAss({
+      artplayerPluginAssJS({
         content: "",
       }),
     );
@@ -146,7 +146,7 @@ const switchUrl = async (url: string, type: "" | "flv" = "") => {
 
 const switchAss = async (subtitle?: string) => {
   if (instance) {
-    instance.plugins.artplayerPluginAss.switch(subtitle || "");
+    instance.plugins.artplayerPluginAssJS.switch(subtitle || "");
   }
 };
 
