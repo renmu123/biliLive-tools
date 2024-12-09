@@ -22,6 +22,8 @@
       </n-button>
     </div>
 
+    <input type="range" v-model="clipX" min="0" max="100" value="1" />
+
     <div class="content">
       <div v-show="files.videoPath" class="video cut-video">
         <Artplayer
@@ -448,6 +450,7 @@ onMounted(() => {
   videoCutDrive();
 });
 
+const danmaPoints = ref<{ x: number; y: number }[]>([]);
 /**
  * 生成高能弹幕进度条所需参数
  */
@@ -457,7 +460,7 @@ const generateHotProgress = async (
 ) => {
   let fData = data.filter((time) => time < options.duration).sort((a, b) => a - b);
   const countData = countByIntervalInSeconds(fData, options.sampling);
-  let result = normalizePoints(
+  danmaPoints.value = normalizePoints(
     countData.map((item) => ({ x: item.start, y: item.count })),
     options.width,
     options.height,
@@ -471,7 +474,7 @@ const generateHotProgress = async (
   if (!ctx) return;
   ctx.scale(1, -1);
   ctx.translate(0, -options.height);
-  drawSmoothCurve(ctx, result);
+  drawSmoothCurve(canvas, ctx);
 };
 
 /**
@@ -519,12 +522,47 @@ function normalizePoints(points: { x: number; y: number }[], width: number, heig
   }));
 }
 
+const clipX = ref(0);
+
+watch(clipX, () => {
+  const canvas = hotProgressCanvas.value;
+  if (!canvas) return;
+  const ctx = canvas?.getContext("2d");
+  if (!ctx) return;
+
+  drawSmoothCurve(canvas, ctx);
+});
+
 /**
  * 绘制平滑曲线
  * @param points 点集
  * @param ctx 画布上下文
  */
-function drawSmoothCurve(ctx: CanvasRenderingContext2D, points: { x: number; y: number }[]) {
+function drawSmoothCurve(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 绘制红色部分
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, clipX.value, canvas.height); // 红色区域的剪辑
+  ctx.clip();
+  drawEntireLine(ctx, "red", danmaPoints.value);
+  ctx.restore();
+
+  // 绘制蓝色部分
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(clipX.value, 0, canvas.width - clipX.value, canvas.height); // 蓝色区域的剪辑
+  ctx.clip();
+  drawEntireLine(ctx, "blue", danmaPoints.value);
+  ctx.restore();
+}
+
+function drawEntireLine(
+  ctx: CanvasRenderingContext2D,
+  color: string,
+  points: { x: number; y: number }[],
+) {
   ctx.beginPath();
   ctx.moveTo(points[0].x, points[0].y); // 起点
 
@@ -538,7 +576,7 @@ function drawSmoothCurve(ctx: CanvasRenderingContext2D, points: { x: number; y: 
     ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
   }
 
-  ctx.strokeStyle = "blue";
+  ctx.strokeStyle = color;
   ctx.lineWidth = 1;
   ctx.stroke();
 }
