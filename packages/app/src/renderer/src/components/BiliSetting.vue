@@ -206,7 +206,13 @@
           </div>
         </div>
       </n-form-item>
-      <n-form-item label="自动评论">
+      <n-form-item>
+        <template #label>
+          <Tip
+            tip="谨慎使用，可能会导致评论被shadowban，以及可能的风控等级上升"
+            text="自动评论"
+          ></Tip>
+        </template>
         <div class="inline-items">
           <n-checkbox
             v-model:checked="options.config.autoComment"
