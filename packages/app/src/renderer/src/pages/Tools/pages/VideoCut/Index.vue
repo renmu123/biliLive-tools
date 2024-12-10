@@ -188,15 +188,6 @@ const danmuTitle = computed(() => {
   return files.value.danmuPath ? "替换弹幕" : "添加弹幕";
 });
 
-const clientOptions = useStorage("cut-hotprogress", {
-  visible: true,
-  showSetting: true,
-  sampling: 10,
-  height: 30,
-  fillColor: "#f9f5f3",
-  color: "#333333",
-});
-
 const {
   selectedCuts,
   handleProjectClick,
@@ -358,9 +349,6 @@ const danmaList = ref<DanmuItem[]>([]);
  * 生成高能进度条数据和sc等数据
  */
 const generateDanmakuData = async (file: string) => {
-  console.log(file);
-  if (!videoDuration.value) return;
-
   if (file.endsWith(".ass")) {
     danmaList.value = [];
   } else if (file.endsWith(".xml")) {
@@ -370,6 +358,7 @@ const generateDanmakuData = async (file: string) => {
     throw new Error("不支持的文件类型");
   }
 
+  if (!videoDuration.value) return;
   const data = await window.api.danmu.genTimeData(file);
 
   // @ts-ignore
@@ -466,6 +455,15 @@ const handleFileChange = (fileList: any[]) => {
 const { videoCutDrive } = useDrive();
 onMounted(() => {
   videoCutDrive();
+});
+
+const clientOptions = useStorage("cut-hotprogress", {
+  visible: true,
+  showSetting: true,
+  sampling: 10,
+  height: 50,
+  fillColor: "#f9f5f3",
+  color: "#333333",
 });
 
 watch(
