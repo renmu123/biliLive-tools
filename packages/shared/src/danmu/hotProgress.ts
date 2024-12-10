@@ -35,7 +35,7 @@ export const generateDanmakuData = async (
 ) => {
   const data = await genTimeData(input);
   let fData = data.filter((time) => time < options.duration).sort((a, b) => a - b);
-  const countData = countByIntervalInSeconds(fData, options.interval);
+  const countData = countByIntervalInSeconds(fData, options.interval, options.duration);
   return countData.map((item) => ({
     time: item.start,
     value: item.count,
