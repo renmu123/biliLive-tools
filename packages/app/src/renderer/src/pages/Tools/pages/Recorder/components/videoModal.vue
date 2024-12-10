@@ -5,6 +5,7 @@
         ref="videoRef"
         style="aspect-ratio: 16 / 9"
         :option="{
+          fullscreen: true,
           url: props.videoUrl,
         }"
         is-live

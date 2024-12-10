@@ -52,12 +52,6 @@ export const api = {
     isEmptyDanmu(input: string) {
       return ipcRenderer.invoke("danmu:isEmptyDanmu", input);
     },
-    saveReport(input: string, output: string) {
-      return ipcRenderer.invoke("danmu:saveReport", {
-        input,
-        output,
-      });
-    },
     // danmu:generateDanmakuImage
     genHotProgress(input: string, options: hotProgressOptions) {
       return ipcRenderer.invoke("danmu:genHotProgress", input, options);

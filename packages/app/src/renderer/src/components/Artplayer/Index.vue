@@ -15,6 +15,8 @@ import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 const props = withDefaults(
   defineProps<{
     option: {
+      fullscreen?: boolean;
+      url?: string;
       string?: any;
       plugins?: {
         heatmap?: {

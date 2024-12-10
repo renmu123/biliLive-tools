@@ -27,11 +27,49 @@
         <Artplayer
           v-show="files.videoPath"
           ref="videoRef"
-          :option="{}"
+          :option="{
+            fullscreen: true,
+            plugins: {
+              heatmap: {
+                option: clientOptions,
+              },
+            },
+          }"
           :plugins="['ass', 'heatmap']"
           @ready="handleVideoReady"
           @video:durationchange="handleVideoDurationChange"
         ></Artplayer>
+        <div
+          v-if="clientOptions.showSetting"
+          style="display: flex; gap: 20px; align-items: center; margin-top: 20px"
+        >
+          <div>
+            <n-input-number
+              v-model:value="clientOptions.sampling"
+              placeholder="单位秒"
+              min="1"
+              style="width: 140px"
+            >
+              <template #suffix> 秒 </template></n-input-number
+            >
+          </div>
+          <div>
+            <n-input-number
+              v-model:value="clientOptions.height"
+              placeholder="单位像素"
+              min="10"
+              style="width: 140px"
+            >
+              <template #suffix> 像素 </template></n-input-number
+            >
+          </div>
+          <div>
+            <n-color-picker v-model:value="clientOptions.color" style="width: 140px" />
+          </div>
+          <div>
+            <n-color-picker v-model:value="clientOptions.fillColor" style="width: 140px" />
+          </div>
+        </div>
       </div>
 
       <FileArea
@@ -70,6 +108,7 @@ import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingD
 import { useSegmentStore, useAppConfig } from "@renderer/stores";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
+import { useStorage } from "@vueuse/core";
 
 import { useLlcProject } from "./hooks";
 import { useDrive } from "@renderer/hooks/drive";
@@ -147,6 +186,15 @@ const videoTitle = computed(() => {
 });
 const danmuTitle = computed(() => {
   return files.value.danmuPath ? "替换弹幕" : "添加弹幕";
+});
+
+const clientOptions = useStorage("cut-hotprogress", {
+  visible: true,
+  showSetting: true,
+  sampling: 10,
+  height: 30,
+  fillColor: "#f9f5f3",
+  color: "#333333",
 });
 
 const {
@@ -419,6 +467,20 @@ const { videoCutDrive } = useDrive();
 onMounted(() => {
   videoCutDrive();
 });
+
+watch(
+  clientOptions,
+  () => {
+    if (!videoInstance.value) return;
+    // @ts-ignore
+    if (!videoInstance.value.artplayerPluginHeatmap) return;
+    // @ts-ignore
+    videoInstance.value.artplayerPluginHeatmap.setOptions(clientOptions.value);
+  },
+  {
+    deep: true,
+  },
+);
 </script>
 
 <style scoped lang="less">

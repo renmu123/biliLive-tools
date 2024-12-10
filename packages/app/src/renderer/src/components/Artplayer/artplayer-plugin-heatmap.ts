@@ -98,6 +98,8 @@ function heatmap(art: Artplayer, danmuku: DanmaKu, options: Required<Options>) {
       pointerEvents: "none",
     },
     mounted($heatmap) {
+      let ininData = danmuku;
+
       let danmaPoints: {
         x: number;
         y: number;
@@ -106,11 +108,13 @@ function heatmap(art: Artplayer, danmuku: DanmaKu, options: Required<Options>) {
       /**
        * 生成高能弹幕进度条所需参数
        */
-      const draw = async (
-        data: number[],
-        options: { width: number; height: number; sampling: number; duration: number },
-      ) => {
-        let fData = data.filter((time) => time < options.duration).sort((a, b) => a - b);
+      const draw = async (options: {
+        width: number;
+        height: number;
+        sampling: number;
+        duration: number;
+      }) => {
+        let fData = ininData.sort((a, b) => a - b);
         const countData = countByIntervalInSeconds(fData, options.sampling);
         danmaPoints = normalizePoints(
           countData.map((item) => ({ x: item.start, y: item.count })),
@@ -185,12 +189,11 @@ function heatmap(art: Artplayer, danmuku: DanmaKu, options: Required<Options>) {
         ctx.stroke();
       }
 
-      function init(danmuku: DanmaKu = []) {
+      function init() {
         $heatmap.innerHTML = `<canvas></canvas>`;
 
         if (!art.duration || art.option.isLive) return;
-        console.log("init", $heatmap.offsetWidth, danmuku);
-        draw(danmuku, {
+        draw({
           width: $heatmap.offsetWidth,
           height: options.height,
           sampling: options.sampling,
@@ -217,22 +220,31 @@ function heatmap(art: Artplayer, danmuku: DanmaKu, options: Required<Options>) {
         }
       });
 
-      art.on("ready", () => init(danmuku));
+      art.on("ready", () => {
+        ininData = danmuku;
+        init();
+      });
       art.on("resize", () => {
         const width = art.played * $heatmap.offsetWidth;
         update(width);
       });
 
       // @ts-ignore
-      art.on("artplayerPluginHeatmap:setPoints", (points) => {
-        // @ts-ignore
-        init(points);
+      art.on("artplayerPluginHeatmap:setPoints", (points: DanmaKu) => {
+        ininData = points;
+        init();
       });
 
       // @ts-ignore
       art.on("artplayerPluginHeatmap:setOptions", (newOptions: Options) => {
         Object.assign(options, newOptions);
-        init(danmuku);
+        console.log(options);
+        $heatmap.style.top = `-${options.height}px`;
+        $heatmap.style.height = `${options.height}px`;
+
+        init();
+        const width = art.played * $heatmap.offsetWidth;
+        update(width);
       });
     },
   });
