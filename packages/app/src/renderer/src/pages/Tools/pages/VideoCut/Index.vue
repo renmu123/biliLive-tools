@@ -27,11 +27,49 @@
         <Artplayer
           v-show="files.videoPath"
           ref="videoRef"
-          :option="{}"
+          :option="{
+            fullscreen: true,
+            plugins: {
+              heatmap: {
+                option: clientOptions,
+              },
+            },
+          }"
+          :plugins="['ass', 'heatmap']"
           @ready="handleVideoReady"
           @video:durationchange="handleVideoDurationChange"
         ></Artplayer>
-        <canvas ref="hotProgressCanvas"></canvas>
+        <div
+          v-if="clientOptions.showSetting"
+          style="display: flex; gap: 20px; align-items: center; margin-top: 20px"
+        >
+          <div>
+            <n-input-number
+              v-model:value="clientOptions.sampling"
+              placeholder="单位秒"
+              min="1"
+              style="width: 140px"
+            >
+              <template #suffix> 秒 </template></n-input-number
+            >
+          </div>
+          <div>
+            <n-input-number
+              v-model:value="clientOptions.height"
+              placeholder="单位像素"
+              min="10"
+              style="width: 140px"
+            >
+              <template #suffix> 像素 </template></n-input-number
+            >
+          </div>
+          <div>
+            <n-color-picker v-model:value="clientOptions.color" style="width: 140px" />
+          </div>
+          <div>
+            <n-color-picker v-model:value="clientOptions.fillColor" style="width: 140px" />
+          </div>
+        </div>
       </div>
 
       <FileArea
@@ -70,11 +108,12 @@ import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingD
 import { useSegmentStore, useAppConfig } from "@renderer/stores";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
+import { useStorage } from "@vueuse/core";
 
 import { useLlcProject } from "./hooks";
 import { useDrive } from "@renderer/hooks/drive";
 import hotkeys from "hotkeys-js";
-import { useElementSize, useDebounceFn, toReactive } from "@vueuse/core";
+import { useElementSize, toReactive } from "@vueuse/core";
 import { sortBy } from "lodash-es";
 
 import type ArtplayerType from "artplayer";
@@ -310,31 +349,20 @@ const danmaList = ref<DanmuItem[]>([]);
  * 生成高能进度条数据和sc等数据
  */
 const generateDanmakuData = async (file: string) => {
-  console.log(file);
-  if (!videoDuration.value) return;
-
   if (file.endsWith(".ass")) {
-    const data = await window.api.danmu.generateDanmakuData(file, {
-      duration: videoDuration.value,
-      interval: 10,
-    });
-    tempDrawData = data;
     danmaList.value = [];
   } else if (file.endsWith(".xml")) {
-    const data = await window.api.danmu.parseDanmu(file, {
-      parseHotProgress: true,
-      duration: videoDuration.value,
-      interval: 10,
-    });
-    tempDrawData = data.hotProgress;
-    console.log(tempDrawData);
+    const data = await window.api.danmu.parseDanmu(file);
     danmaList.value = sortBy([...data.sc, ...data.danmu], "ts");
   } else {
     throw new Error("不支持的文件类型");
   }
-  setTimeout(() => {
-    draw();
-  }, 1000);
+
+  if (!videoDuration.value) return;
+  const data = await window.api.danmu.genTimeData(file);
+
+  // @ts-ignore
+  videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
 };
 /**
  * xml文件转换为ass
@@ -411,84 +439,8 @@ const videoToggle = () => {
   videoInstance.value.toggle();
 };
 
-// 绘制平滑曲线
-function drawSmoothCurve(ctx, points) {
-  const len = points.length;
-
-  let lastX = points[0].x;
-  let lastY = points[0].y;
-  for (let i = 1; i < len - 1; i++) {
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-
-    ctx.strokeStyle = points[i].color;
-    const xc = (points[i].x + points[i + 1].x) / 2;
-    const yc = (points[i].y + points[i + 1].y) / 2;
-
-    ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
-    lastX = xc;
-    lastY = yc;
-    ctx.stroke();
-  }
-}
-
-const hotProgressCanvas = ref<HTMLCanvasElement | null>(null);
-// 绘制平滑折线图
-function drawSmoothLineChart(data, width: number, height: number) {
-  if (!hotProgressCanvas.value) return;
-
-  const canvas = hotProgressCanvas.value;
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return;
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, width, height);
-
-  const length = data.length;
-  const maxValue = Math.max(...data.map((item) => item.value));
-  // const minValue = Math.min(...data.map((item) => item.value));
-  const xRation = width / (length - 1);
-  const yRatio = height / maxValue;
-
-  const points: any[] = [];
-
-  // 计算数据点的坐标
-  for (let i = 0; i < data.length; i++) {
-    const item = data[i];
-
-    const x = i * xRation;
-    const y = height - item.value * yRatio;
-    points.push({
-      x: x,
-      y: y,
-      color: item.color ?? "#333333",
-    });
-  }
-
-  drawSmoothCurve(ctx, points);
-  return canvas;
-}
-
-let tempDrawData: any[] = [];
-function draw() {
-  if (!videoWidth.value) return;
-  if (!tempDrawData.length) return;
-  drawSmoothLineChart(tempDrawData, videoWidth.value, 50);
-}
-const debouncedDraw = useDebounceFn(() => {
-  draw();
-}, 500);
-
-window.addEventListener("resize", debouncedDraw);
-
-onUnmounted(() => {
-  window.removeEventListener("resize", debouncedDraw);
-});
-
 const fileList = ref<any[]>([]);
 const handleFileChange = (fileList: any[]) => {
-  console.log(files);
   if (!fileList.length) return;
   const file = fileList[0];
   const { path, ext } = file;
@@ -504,6 +456,29 @@ const { videoCutDrive } = useDrive();
 onMounted(() => {
   videoCutDrive();
 });
+
+const clientOptions = useStorage("cut-hotprogress", {
+  visible: true,
+  showSetting: true,
+  sampling: 10,
+  height: 50,
+  fillColor: "#f9f5f3",
+  color: "#333333",
+});
+
+watch(
+  clientOptions,
+  () => {
+    if (!videoInstance.value) return;
+    // @ts-ignore
+    if (!videoInstance.value.artplayerPluginHeatmap) return;
+    // @ts-ignore
+    videoInstance.value.artplayerPluginHeatmap.setOptions(clientOptions.value);
+  },
+  {
+    deep: true,
+  },
+);
 </script>
 
 <style scoped lang="less">

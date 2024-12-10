@@ -265,13 +265,7 @@ const preHandle = async (
     });
     return false;
   }
-  if (clientOptions.hotProgress && !hasXmlFile) {
-    notice.error({
-      title: "只有xml文件支持高能进度条",
-      duration: 1000,
-    });
-    return false;
-  }
+
   // 弹幕处理
   const videoMeta = await window.api.readVideoMeta(videoFile.path);
   const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
