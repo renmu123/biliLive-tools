@@ -14,7 +14,20 @@ import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 
 const props = withDefaults(
   defineProps<{
-    option: any;
+    option: {
+      string?: any;
+      plugins?: {
+        heatmap?: {
+          data?: any[];
+          option?: {
+            sampling?: number;
+            height?: number;
+            color?: string;
+            fillColor?: string;
+          };
+        };
+      };
+    };
     plugins?: string[];
     isLive?: boolean;
   }>(),
@@ -29,7 +42,7 @@ const emits = defineEmits<{
   (event: "video:durationchange", value: number): void;
 }>();
 
-const artRef = ref(null);
+const artRef = ref<HTMLDivElement | null>(null);
 let instance: Artplayer | null = null;
 
 onMounted(async () => {
@@ -77,14 +90,19 @@ onMounted(async () => {
         }),
       );
     }
+    if (props.plugins.includes("heatmap")) {
+      plugins.push(artplayerPluginHeatmap([], props?.option?.plugins?.heatmap?.option ?? {}));
+    }
   } else {
     plugins.push(
       artplayerPluginAss({
         content: "",
       }),
     );
-
-    plugins.push(artplayerPluginHeatmap([], {}));
+  }
+  if (artRef.value === null) {
+    console.error("artRef is null");
+    return;
   }
   instance = new Artplayer({
     url: "",

@@ -73,6 +73,10 @@ export default function artplayerPluginHeatmap(danmuku: DanmaKu = [], options: O
         // @ts-ignore
         art.emit("artplayerPluginHeatmap:setPoints", data);
       },
+      setOptions(options: Options) {
+        // @ts-ignore
+        art.emit("artplayerPluginHeatmap:setOptions", options);
+      },
       show() {},
       hide() {},
     };
@@ -223,6 +227,12 @@ function heatmap(art: Artplayer, danmuku: DanmaKu, options: Required<Options>) {
       art.on("artplayerPluginHeatmap:setPoints", (points) => {
         // @ts-ignore
         init(points);
+      });
+
+      // @ts-ignore
+      art.on("artplayerPluginHeatmap:setOptions", (newOptions: Options) => {
+        Object.assign(options, newOptions);
+        init(danmuku);
       });
     },
   });

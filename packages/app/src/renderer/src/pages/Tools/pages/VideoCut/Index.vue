@@ -28,6 +28,7 @@
           v-show="files.videoPath"
           ref="videoRef"
           :option="{}"
+          :plugins="['ass', 'heatmap']"
           @ready="handleVideoReady"
           @video:durationchange="handleVideoDurationChange"
         ></Artplayer>
