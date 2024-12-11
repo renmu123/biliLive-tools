@@ -6,7 +6,6 @@ import Koa from "koa";
 import Router from "koa-router";
 import cors from "@koa/cors";
 import { bodyParser } from "@koa/bodyparser";
-import sse from "koa-sse-stream";
 
 import errorMiddleware from "./middleware/error.js";
 
@@ -103,16 +102,9 @@ export async function serverStart(
   app.use(recocderRouter.routes());
   app.use(biliRouter.routes());
   app.use(taskRouter.routes());
-  app.use(router.allowedMethods());
 
-  // sse
-  app.use(
-    sse({
-      maxClients: 5000,
-      pingInterval: 30000,
-    }),
-  );
   app.use(SSERouter.routes());
+  app.use(router.allowedMethods());
 
   await createServer(options);
   return app;
