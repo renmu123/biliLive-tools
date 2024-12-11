@@ -15,7 +15,7 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="convert"> 立即合并 </n-button>
+      <n-button type="primary" @click="convert" :disabled="isWeb"> 立即合并 </n-button>
       <Tip
         tip="注意：并非所有容器都支持流复制。如果出现播放问题或未合并文件，则可能需要重新编码。"
         :size="26"
@@ -47,6 +47,7 @@ const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
+const isWeb = computed(() => window.isWeb);
 
 const options = toReactive(
   computed({
