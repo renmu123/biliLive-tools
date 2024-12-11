@@ -13,19 +13,21 @@ interface Options {
  * 根据时间间隔统计有序时间数组的计数（起始时间默认为 0）
  * @param times 时间数组（以秒为单位）
  * @param interval 时间间隔（秒）
+ * @param maxTime 最大时间（秒），超过此时间的时间点将被丢弃
  * @returns 一个数组，每个元素表示该时间间隔内的计数
  */
-function countByIntervalInSeconds(
+export function countByIntervalInSeconds(
   times: number[],
   interval: number,
+  maxTime: number,
 ): { start: number; count: number }[] {
-  if (times.length === 0) return [];
-
   const result: { start: number; count: number }[] = [];
   let currentIntervalStart = 0; // 当前分组的起始时间固定为 0
   let count = 0;
 
   for (const time of times) {
+    if (time >= maxTime) break; // 超过最大时间，停止计数
+
     while (time >= currentIntervalStart + interval) {
       // 时间超出当前分组范围，保存当前分组并移动到下一个分组
       result.push({ start: currentIntervalStart, count });
@@ -35,8 +37,13 @@ function countByIntervalInSeconds(
     count++; // 当前时间点计入当前分组
   }
 
-  // 记录最后一个分组
   result.push({ start: currentIntervalStart, count });
+
+  // 按间隔补齐到 maxTime
+  while (currentIntervalStart + interval <= maxTime) {
+    currentIntervalStart += interval;
+    result.push({ start: currentIntervalStart, count: 0 });
+  }
 
   return result;
 }
@@ -120,7 +127,7 @@ function heatmap(art: Artplayer, danmuku: DanmaKu, options: Required<Options>) {
         duration: number;
       }) => {
         let fData = ininData.sort((a, b) => a - b);
-        const countData = countByIntervalInSeconds(fData, options.sampling);
+        const countData = countByIntervalInSeconds(fData, options.sampling, art.duration);
         danmaPoints = normalizePoints(
           countData.map((item) => ({ x: item.start, y: item.count })),
           options.width,
@@ -230,8 +237,9 @@ function heatmap(art: Artplayer, danmuku: DanmaKu, options: Required<Options>) {
         init();
       });
       art.on("resize", () => {
-        const width = art.played * $heatmap.offsetWidth;
-        update(width);
+        // const width = art.played * $heatmap.offsetWidth;
+        // update(width);
+        init();
       });
 
       // @ts-ignore

@@ -63,6 +63,156 @@ describe.concurrent("getHardwareAcceleration", () => {
       getHardwareAcceleration(encoder);
     }).toThrowError("未知的编码器: unknown_encoder");
   });
+
+  describe("countByIntervalInSeconds", () => {
+    it("should return an empty array when times array is empty", () => {
+      const times: number[] = [];
+      const interval = 10;
+      const maxTime = 100;
+      const result = countByIntervalInSeconds(times, interval, maxTime);
+      expect(result).toEqual([
+        {
+          start: 0,
+          count: 0,
+        },
+        {
+          start: 10,
+          count: 0,
+        },
+        {
+          start: 20,
+          count: 0,
+        },
+        {
+          start: 30,
+          count: 0,
+        },
+        {
+          start: 40,
+          count: 0,
+        },
+        {
+          start: 50,
+          count: 0,
+        },
+        {
+          start: 60,
+          count: 0,
+        },
+        {
+          start: 70,
+          count: 0,
+        },
+        {
+          start: 80,
+          count: 0,
+        },
+        {
+          start: 90,
+          count: 0,
+        },
+        {
+          start: 100,
+          count: 0,
+        },
+      ]);
+    });
+
+    it("should count times correctly within intervals", () => {
+      const times = [5, 15, 25, 35, 45, 55, 65, 75, 85, 95];
+      const interval = 10;
+      const maxTime = 100;
+      const result = countByIntervalInSeconds(times, interval, maxTime);
+      expect(result).toEqual([
+        { start: 0, count: 1 },
+        { start: 10, count: 1 },
+        { start: 20, count: 1 },
+        { start: 30, count: 1 },
+        { start: 40, count: 1 },
+        { start: 50, count: 1 },
+        { start: 60, count: 1 },
+        { start: 70, count: 1 },
+        { start: 80, count: 1 },
+        { start: 90, count: 1 },
+        { start: 100, count: 0 },
+      ]);
+    });
+
+    it("should handle times that exceed maxTime", () => {
+      const times = [5, 15, 25, 35, 45, 55, 65, 75, 85, 95, 105];
+      const interval = 10;
+      const maxTime = 100;
+      const result = countByIntervalInSeconds(times, interval, maxTime);
+      expect(result).toEqual([
+        { start: 0, count: 1 },
+        { start: 10, count: 1 },
+        { start: 20, count: 1 },
+        { start: 30, count: 1 },
+        { start: 40, count: 1 },
+        { start: 50, count: 1 },
+        { start: 60, count: 1 },
+        { start: 70, count: 1 },
+        { start: 80, count: 1 },
+        { start: 90, count: 1 },
+        { start: 100, count: 0 },
+      ]);
+    });
+
+    it("should fill intervals with zero counts if no times fall within them", () => {
+      const times = [25, 45, 65, 85];
+      const interval = 10;
+      const maxTime = 100;
+      const result = countByIntervalInSeconds(times, interval, maxTime);
+      expect(result).toEqual([
+        { start: 0, count: 0 },
+        { start: 10, count: 0 },
+        { start: 20, count: 1 },
+        { start: 30, count: 0 },
+        { start: 40, count: 1 },
+        { start: 50, count: 0 },
+        { start: 60, count: 1 },
+        { start: 70, count: 0 },
+        { start: 80, count: 1 },
+        { start: 90, count: 0 },
+        { start: 100, count: 0 },
+      ]);
+    });
+
+    it("should handle times that fall exactly on interval boundaries", () => {
+      const times = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+      const interval = 10;
+      const maxTime = 100;
+      const result = countByIntervalInSeconds(times, interval, maxTime);
+      expect(result).toEqual([
+        { start: 0, count: 0 },
+        { start: 10, count: 1 },
+        { start: 20, count: 1 },
+        { start: 30, count: 1 },
+        { start: 40, count: 1 },
+        { start: 50, count: 1 },
+        { start: 60, count: 1 },
+        { start: 70, count: 1 },
+        { start: 80, count: 1 },
+        { start: 90, count: 1 },
+        { start: 100, count: 0 },
+      ]);
+    });
+
+    it("should handle times that with other interval", () => {
+      const times = [10, 20, 30];
+      const interval = 6;
+      const maxTime = 31;
+      const result = countByIntervalInSeconds(times, interval, maxTime);
+      expect(result).toEqual([
+        { start: 0, count: 0 },
+        { start: 6, count: 1 },
+        { start: 12, count: 0 },
+        { start: 18, count: 1 },
+        { start: 24, count: 0 },
+        { start: 30, count: 1 },
+      ]);
+    });
+  });
 });
 
 describe("normalizePoints", () => {
