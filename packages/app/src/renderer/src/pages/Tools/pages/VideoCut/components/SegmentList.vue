@@ -48,25 +48,27 @@
           ></path>
         </svg>
       </n-icon>
-      <n-icon size="24" class="pointer icon cut-sc-view" title="切换视图" @click="toggleSc">
-        <Refresh></Refresh>
-      </n-icon>
-      <n-icon
+      <!-- <n-icon
         size="24"
         class="pointer icon cut-search-danmu"
         title="搜索弹幕，仅限xml"
         @click="searchDanmu"
       >
         <SearchIcon></SearchIcon>
-      </n-icon>
+      </n-icon> -->
+      <SearchPopover
+        v-model:visible="searchDanmuVisible"
+        :file="props.files.originDanmuPath"
+        :danma-list="props.danmaList"
+        @add-segment="addCut"
+      >
+        <n-icon size="24" class="pointer icon cut-search-danmu" title="搜索弹幕">
+          <SearchIcon></SearchIcon>
+        </n-icon>
+      </SearchPopover>
       <Tip class="cut-search-danmu">
         <h4>快捷键</h4>
         <ul>
-          <li>ctrl+s 保存到llc项目</li>
-          <li>ctrl+shift+s 另存为llc项目</li>
-          <li>ctrl+enter 导出</li>
-          <li>ctrl+z 撤销</li>
-          <li>ctrl+shift+z 重做</li>
           <li>I 在当前时间开始当前片段</li>
           <li>O 在当前时间结束当前片段</li>
           <li>up 上一个片段</li>
@@ -75,62 +77,49 @@
           <li>space 播放/暂停</li>
           <li>ctrl+left 后退1秒</li>
           <li>ctrl+right 前进1秒</li>
-          <li>ctrl+k 切换视图</li>
+          <li>ctrl+s 保存到llc项目</li>
+          <li>ctrl+shift+s 另存为llc项目</li>
+          <li>ctrl+enter 导出</li>
+          <li>ctrl+z 撤销</li>
+          <li>ctrl+shift+z 重做</li>
         </ul>
       </Tip>
     </div>
 
     <div class="view">
-      <template v-if="scView">
-        <div v-if="scList.length" class="sc-list">
-          <div
-            v-for="(sc, index) in scList"
-            :key="index"
-            class="cut"
-            style="opacity: 1"
-            @dblclick="navVideo(sc.ts)"
-          >
-            <div class="time">{{ sc.user }}-{{ secondsToTimemark(sc.ts) }}</div>
-            <div class="text">{{ sc.text }}</div>
-          </div>
+      <div
+        v-for="(cut, index) in cuts"
+        :key="index"
+        class="cut"
+        role="button"
+        :class="{
+          checked: cut.checked,
+          selected: selectCutIndex === index,
+        }"
+        @click="selectCut(index)"
+        @dblclick="navVideo(cut.start)"
+      >
+        <div class="time">
+          {{ secondsToTimemark(cut.start) }}-<span>{{ secondsToTimemark(cut.end) }}</span>
         </div>
-        <div v-else class="empty" style="text-align: center">没有解析到sc</div>
-      </template>
-      <template v-else>
-        <div
-          v-for="(cut, index) in cuts"
-          :key="index"
-          class="cut"
-          role="button"
-          :class="{
-            checked: cut.checked,
-            selected: selectCutIndex === index,
-          }"
-          @click="selectCut(index)"
-          @dblclick="navVideo(cut.start)"
-        >
-          <div class="time">
-            {{ secondsToTimemark(cut.start) }}-<span>{{ secondsToTimemark(cut.end) }}</span>
-          </div>
-          <div class="name" style="color: skyblue">{{ cut.name }}</div>
-          <div v-if="cut.end" class="duration">
-            持续时间：{{ secondsToTimemark(cut.end - cut.start) }}
-          </div>
-          <div class="icon">
-            <n-icon v-if="cut.checked" size="20" :depth="3" @click.stop="toggleChecked(index)">
-              <CheckmarkCircleOutline></CheckmarkCircleOutline>
-            </n-icon>
-            <n-icon v-else size="20" :depth="3" @click.stop="toggleChecked(index)">
-              <RadioButtonOffSharp></RadioButtonOffSharp>
-            </n-icon>
-          </div>
-          <div class="edit-icon">
-            <n-icon size="20" :depth="3" @click.stop="editCut(index)">
-              <Pencil></Pencil>
-            </n-icon>
-          </div>
+        <div class="name" style="color: skyblue">{{ cut.name }}</div>
+        <div v-if="cut.end" class="duration">
+          持续时间：{{ secondsToTimemark(cut.end - cut.start) }}
         </div>
-      </template>
+        <div class="icon">
+          <n-icon v-if="cut.checked" size="20" :depth="3" @click.stop="toggleChecked(index)">
+            <CheckmarkCircleOutline></CheckmarkCircleOutline>
+          </n-icon>
+          <n-icon v-else size="20" :depth="3" @click.stop="toggleChecked(index)">
+            <RadioButtonOffSharp></RadioButtonOffSharp>
+          </n-icon>
+        </div>
+        <div class="edit-icon">
+          <n-icon size="20" :depth="3" @click.stop="editCut(index)">
+            <Pencil></Pencil>
+          </n-icon>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -152,23 +141,16 @@
       <n-button type="primary" @click="confirmEditCutName">确定</n-button>
     </template>
   </n-modal>
-  <SearchModal
-    v-model:visible="searchDanmuVisible"
-    :file="props.files.originDanmuPath"
-    :danma-list="props.danmaList"
-    @add-segment="addCut"
-  ></SearchModal>
 </template>
 
 <script setup lang="ts">
-import SearchModal from "./SearchModal.vue";
+import SearchPopover from "./SearchPopover.vue";
 import { secondsToTimemark } from "@renderer/utils";
 import { useSegmentStore } from "@renderer/stores";
 import {
   RadioButtonOffSharp,
   CheckmarkCircleOutline,
   Pencil,
-  Refresh,
   Search as SearchIcon,
 } from "@vicons/ionicons5";
 import { MinusOutlined, PlusOutlined } from "@vicons/material";
@@ -204,10 +186,6 @@ onActivated(() => {
   hotkeys("del", function () {
     deleteCut();
   });
-  // 切换视图
-  hotkeys("ctrl+k", function () {
-    toggleSc();
-  });
   // 切换到当前开始片段
   // hotkeys("enter", function () {});
 });
@@ -223,9 +201,6 @@ const props = withDefaults(defineProps<Props>(), {
   danmaList: () => [],
 });
 
-const scList = computed(() => {
-  return props.danmaList.filter((item) => item.type === "sc");
-});
 // const emits = defineEmits<{
 //   (event: "seek", value: number): void;
 // }>();
@@ -372,14 +347,6 @@ const prevSegment = () => {
     return;
   }
   selectCut(selectCutIndex.value - 1);
-};
-
-const scView = ref(false);
-/**
- * 切换为sc视图
- */
-const toggleSc = () => {
-  scView.value = !scView.value;
 };
 
 const searchDanmuVisible = ref(false);

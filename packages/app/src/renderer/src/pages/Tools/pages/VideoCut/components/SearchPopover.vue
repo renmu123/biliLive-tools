@@ -1,13 +1,9 @@
 <template>
-  <n-modal v-model:show="showModal" auto-focus :on-after-enter="handleOpen">
-    <n-card
-      style="width: calc(100% - 60px); max-height: 80%"
-      :bordered="false"
-      size="huge"
-      role="dialog"
-      aria-modal="true"
-      class="card"
-    >
+  <n-popover trigger="click" :on-update:show="handleVisible">
+    <template #trigger>
+      <slot></slot>
+    </template>
+    <div style="width: 500px; resize: both">
       <n-spin :show="loading">
         <n-input-group>
           <n-input v-model:value="form.value" placeholder="请输入关键字" @keyup.enter="search" />
@@ -43,8 +39,8 @@
           </template>
         </n-virtual-list>
       </n-spin>
-    </n-card>
-  </n-modal>
+    </div>
+  </n-popover>
 </template>
 
 <script setup lang="ts">
@@ -58,7 +54,7 @@ interface Props {
   danmaList: DanmuItem[];
 }
 const props = defineProps<Props>();
-const showModal = defineModel<boolean>("visible", { required: true, default: false });
+// const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const emits = defineEmits<{
   (
     event: "add-segment",
@@ -80,9 +76,15 @@ const form = reactive({
 const list = computed(() => props.danmaList);
 const loading = ref(false);
 
-const handleOpen = async () => {
-  getDisplayList();
+const handleVisible = async (visible: boolean) => {
+  console.log(visible);
+  if (visible) {
+    getDisplayList();
+  }
 };
+// const handleOpen = async () => {
+//   getDisplayList();
+// };
 const search = async () => {
   if (!form.value) return;
 };

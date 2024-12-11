@@ -8,7 +8,7 @@
 ## 功能
 
 1. 支持斗鱼、虎牙、B站直播录制，感谢[LiveAutoRecord](https://github.com/WhiteMinds/LiveAutoRecord)，绝大部分录制代码都来自该项目
-2. web版本支持，现在可以使用web来管理cli或者远程本地，并非有所有客户端功能都会被支持，**如果你的接口是http协议，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者选择自部署**，线上地址：https://bililive.irenmu.com
+2. web版本支持，现在可以使用web来管理cli或者远程本地，并非有所有客户端功能都会被支持，**如果你的接口是http协议，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者选择[自部署](https://github.com/renmu123/biliLive-webui/tree/webui)**，线上地址：https://bililive.irenmu.com
 3. ffmpeg预设中的"时间戳"功能支持字体跟随弹幕预设，自定义内容格式（具体见[strftime](https://strftime.org/)，`:`需要转义），额外自定义参数（见[ffmpeg文档](https://ffmpeg.org/ffmpeg-filters.html#drawtext-1)） [#38](https://github.com/renmu123/biliLive-tools/issues/38)
 4. 增加了看板页面
 5. 支持 [push-all-in-cloud](https://github.com/CaoMeiYouRen/push-all-in-cloud) 推送
@@ -24,6 +24,7 @@
 4. 优化任务查询接口
 5. **为自动评论添加提示，谨慎使用，可能会导致评论被shadowban，以及可能的风控等级上升**
 6. ffmpeg依赖版本升级
+7. 优化切片UI，移除了sc视图，可在弹幕搜索中查询
 
 ## Bug修复
 
