@@ -1,60 +1,69 @@
 <template>
-  <n-popover trigger="click" :on-update:show="handleVisible">
+  <n-popover :show="visible" trigger="manual" :on-clickoutside="handleOutside">
     <template #trigger>
       <slot></slot>
     </template>
-    <div style="width: 500px; resize: both">
-      <n-spin :show="loading">
-        <n-input-group>
-          <n-input v-model:value="form.value" placeholder="请输入关键字" @keyup.enter="search" />
-          <n-button type="primary" ghost @click="search"> 搜索 </n-button>
-        </n-input-group>
-        <div style="margin-top: 10px">
-          <n-radio-group v-model:value="form.content" name="radiogroup">
-            <n-space>
-              <n-radio value="content"> 内容 </n-radio>
-              <n-radio value="user"> 用户名 </n-radio>
-            </n-space>
-          </n-radio-group>
-          <n-checkbox v-model:checked="form.sc">sc</n-checkbox>
-        </div>
+    <div style="width: 500px">
+      <n-input-group>
+        <n-input
+          ref="inputRef"
+          v-model:value="form.value"
+          placeholder="请输入关键字"
+          @keyup.enter="search"
+        />
+        <n-button type="primary" ghost @click="search"> 搜索 </n-button>
+      </n-input-group>
+      <div style="margin-top: 10px">
+        <n-radio-group v-model:value="form.content" name="radiogroup">
+          <n-space>
+            <n-radio value="content"> 内容 </n-radio>
+            <n-radio value="user"> 用户名 </n-radio>
+          </n-space>
+        </n-radio-group>
+        <n-checkbox v-model:checked="form.sc">sc</n-checkbox>
+      </div>
 
-        <n-virtual-list class="content" :item-size="30" :items="displayList">
-          <template #default="{ item }">
-            <div :key="`${item.ts}-${item.text}`" class="item" style="height: 30px">
-              <span>{{ secondsToTimemark(item.ts) }}</span>
-              <span style="color: #2b94ff">{{ item.user }}</span>
-              <span v-if="item.type === 'sc'" style="color: #e57272">sc</span>
-              <span> {{ item.text }}</span>
-              <n-icon
-                class="pointer"
-                size="20"
-                :depth="3"
-                title="添加到切片"
-                @click="addSegment(item)"
-              >
-                <AddIcon></AddIcon>
-              </n-icon>
-            </div>
-          </template>
-        </n-virtual-list>
-      </n-spin>
+      <n-virtual-list class="content" :item-size="30" :items="displayList">
+        <template #default="{ item }">
+          <div :key="`${item.ts}-${item.text}`" class="item" style="height: 30px">
+            <span>{{ secondsToTimemark(item.ts, false) }}</span>
+            <span style="color: #2b94ff">{{ item.user }}</span>
+            <span v-if="item.type === 'sc'" style="color: #e57272">sc</span>
+            <span> {{ item.text }}</span>
+            <n-icon
+              class="pointer"
+              size="20"
+              :depth="3"
+              title="添加到切片"
+              @click="addSegment(item)"
+            >
+              <AddIcon></AddIcon>
+            </n-icon>
+
+            <n-icon class="pointer" size="20" :depth="3" title="定位" @click="setLocation(item)">
+              <LocationOutline></LocationOutline>
+            </n-icon>
+          </div>
+        </template>
+      </n-virtual-list>
     </div>
   </n-popover>
 </template>
 
 <script setup lang="ts">
 import { secondsToTimemark } from "@renderer/utils";
-import { AddCircleOutline as AddIcon } from "@vicons/ionicons5";
+import { AddCircleOutline as AddIcon, LocationOutline } from "@vicons/ionicons5";
 import { watchThrottled } from "@vueuse/core";
 import type { DanmuItem } from "@biliLive-tools/types";
 
 interface Props {
   file: string | null;
   danmaList: DanmuItem[];
+  danmaSearchMask: boolean;
 }
 const props = defineProps<Props>();
-// const showModal = defineModel<boolean>("visible", { required: true, default: false });
+const visible = defineModel<boolean>("visible", { required: true, default: false });
+
 const emits = defineEmits<{
   (
     event: "add-segment",
@@ -64,6 +73,7 @@ const emits = defineEmits<{
       name?: string;
     },
   ): void;
+  (event: "set-location", value: number): void;
 }>();
 const notice = useNotification();
 
@@ -74,17 +84,27 @@ const form = reactive({
 });
 
 const list = computed(() => props.danmaList);
-const loading = ref(false);
+const inputRef = ref<HTMLInputElement | null>(null);
 
-const handleVisible = async (visible: boolean) => {
-  console.log(visible);
-  if (visible) {
-    getDisplayList();
+watch(
+  () => visible.value,
+  (value) => {
+    if (value) {
+      getDisplayList();
+      setTimeout(() => {
+        inputRef.value?.focus();
+      }, 0);
+    }
+  },
+);
+
+const handleOutside = (e) => {
+  if (props.danmaSearchMask) {
+    setTimeout(() => {
+      visible.value = false;
+    }, 0);
   }
 };
-// const handleOpen = async () => {
-//   getDisplayList();
-// };
 const search = async () => {
   if (!form.value) return;
 };
@@ -152,6 +172,10 @@ const addSegment = (item: DanmuItem) => {
     duration: 1000,
   });
 };
+
+const setLocation = (item: DanmuItem) => {
+  emits("set-location", item.ts);
+};
 </script>
 
 <style scoped lang="less">
@@ -162,7 +186,7 @@ const addSegment = (item: DanmuItem) => {
 
   .item {
     display: flex;
-    gap: 10px;
+    gap: 8px;
   }
 }
 </style>

@@ -38,7 +38,7 @@ export function sanitizeFileName(fileName: string) {
   return sanitizedFileName;
 }
 
-export function secondsToTimemark(seconds: number) {
+export function secondsToTimemark(seconds: number, showMilliseconds = true) {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
@@ -51,10 +51,14 @@ export function secondsToTimemark(seconds: number) {
   const secsStr = secsFloor.toString().padStart(2, "0");
   const millisecondsStr = milliseconds.toString().padStart(3, "0");
 
-  // 根据是否有小时来决定是否包含小时部分
-  const timemark = `${hoursStr}:${minutesStr}:${secsStr}.${millisecondsStr}`;
-
-  return timemark;
+  if (!showMilliseconds) {
+    // 根据是否有小时来决定是否包含小时部分
+    const timemark = `${hoursStr}:${minutesStr}:${secsStr}.${millisecondsStr}`;
+    return timemark;
+  } else {
+    const timemark = `${hoursStr}:${minutesStr}:${secsStr}`;
+    return timemark;
+  }
 }
 
 export const supportedVideoExtensions = [

@@ -43,6 +43,7 @@
           v-if="clientOptions.showSetting"
           style="display: flex; gap: 20px; align-items: center; margin-top: 20px"
         >
+          <n-checkbox v-model:checked="hotProgressVisible"></n-checkbox>
           <div>
             <n-input-number
               v-model:value="clientOptions.sampling"
@@ -69,6 +70,7 @@
           <div>
             <n-color-picker v-model:value="clientOptions.fillColor" style="width: 140px" />
           </div>
+          <n-checkbox v-model:checked="danmaSearchMask">弹幕搜索栏遮罩</n-checkbox>
         </div>
       </div>
 
@@ -87,7 +89,11 @@
         </template>
       </FileArea>
       <div class="cut-list">
-        <SegmentList :danma-list="danmaList" :files="files"></SegmentList>
+        <SegmentList
+          :danma-list="danmaList"
+          :files="files"
+          :danmaSearchMask="danmaSearchMask"
+        ></SegmentList>
       </div>
     </div>
   </div>
@@ -458,13 +464,14 @@ onMounted(() => {
 });
 
 const clientOptions = useStorage("cut-hotprogress", {
-  visible: true,
   showSetting: true,
   sampling: 10,
   height: 50,
   fillColor: "#f9f5f3",
   color: "#333333",
 });
+const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
+const danmaSearchMask = useStorage("cut-danma-search-mask", true);
 
 watch(
   clientOptions,
@@ -479,6 +486,21 @@ watch(
     deep: true,
   },
 );
+
+watch(hotProgressVisible, () => {
+  if (!videoInstance.value) return;
+  // @ts-ignore
+  if (!videoInstance.value.artplayerPluginHeatmap) return;
+
+  // @ts-ignore
+  if (hotProgressVisible.value) {
+    // @ts-ignore
+    videoInstance.value.artplayerPluginHeatmap.show();
+  } else {
+    // @ts-ignore
+    videoInstance.value.artplayerPluginHeatmap.hide();
+  }
+});
 </script>
 
 <style scoped lang="less">

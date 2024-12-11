@@ -48,24 +48,7 @@
           ></path>
         </svg>
       </n-icon>
-      <!-- <n-icon
-        size="24"
-        class="pointer icon cut-search-danmu"
-        title="搜索弹幕，仅限xml"
-        @click="searchDanmu"
-      >
-        <SearchIcon></SearchIcon>
-      </n-icon> -->
-      <SearchPopover
-        v-model:visible="searchDanmuVisible"
-        :file="props.files.originDanmuPath"
-        :danma-list="props.danmaList"
-        @add-segment="addCut"
-      >
-        <n-icon size="24" class="pointer icon cut-search-danmu" title="搜索弹幕">
-          <SearchIcon></SearchIcon>
-        </n-icon>
-      </SearchPopover>
+
       <Tip class="cut-search-danmu">
         <h4>快捷键</h4>
         <ul>
@@ -82,6 +65,8 @@
           <li>ctrl+enter 导出</li>
           <li>ctrl+z 撤销</li>
           <li>ctrl+shift+z 重做</li>
+          <li>ctrl+k 唤起弹幕搜索</li>
+          <li>ctrl+shift+k 关闭弹幕搜索</li>
         </ul>
       </Tip>
     </div>
@@ -141,6 +126,27 @@
       <n-button type="primary" @click="confirmEditCutName">确定</n-button>
     </template>
   </n-modal>
+
+  <SearchPopover
+    v-model:visible="searchDanmuVisible"
+    :file="props.files.originDanmuPath"
+    :danma-list="props.danmaList"
+    :danmaSearchMask="props.danmaSearchMask"
+    @add-segment="addCut"
+    @set-location="navVideo"
+  >
+    <span
+      size="30"
+      class="pointer icon cut-search-danmu"
+      title="搜索弹幕，可拖动"
+      style="position: fixed; display: inline-block; width: 30px; height: 30px; z-index: 10"
+      ref="el"
+      :style="style"
+      @click="searchDanmu"
+    >
+      <SearchIcon></SearchIcon>
+    </span>
+  </SearchPopover>
 </template>
 
 <script setup lang="ts">
@@ -155,6 +161,7 @@ import {
 } from "@vicons/ionicons5";
 import { MinusOutlined, PlusOutlined } from "@vicons/material";
 import hotkeys from "hotkeys-js";
+import { useDraggable, useEventListener, useWindowSize } from "@vueuse/core";
 
 import type ArtplayerType from "artplayer";
 import type { DanmuItem } from "@biliLive-tools/types";
@@ -186,6 +193,15 @@ onActivated(() => {
   hotkeys("del", function () {
     deleteCut();
   });
+  // 唤起弹幕搜索
+  hotkeys("ctrl+k", function () {
+    console.log("ctrl+k");
+    searchDanmu();
+  });
+  // 关闭弹幕搜索
+  hotkeys("ctrl+shift+k", function () {
+    searchDanmuVisible.value = false;
+  });
   // 切换到当前开始片段
   // hotkeys("enter", function () {});
 });
@@ -195,15 +211,26 @@ interface Props {
   files: {
     originDanmuPath: string | null;
   };
+  danmaSearchMask: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   danmaList: () => [],
 });
 
-// const emits = defineEmits<{
-//   (event: "seek", value: number): void;
-// }>();
+const el = ref<HTMLElement | null>(null);
+
+const { width, height } = useWindowSize();
+
+const { x, y, style } = useDraggable(el, {
+  initialValue: { x: width.value - 80, y: height.value - 80 },
+});
+
+useEventListener(window, "resize", (e) => {
+  x.value = width.value - 80;
+  y.value = height.value - 80;
+});
+
 const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;
 
 const notice = useNotification();
@@ -354,21 +381,7 @@ const searchDanmuVisible = ref(false);
  * 搜索弹幕
  */
 const searchDanmu = () => {
-  if (!props.files.originDanmuPath) {
-    notice.warning({
-      title: "请先导入弹幕",
-      duration: 1000,
-    });
-    return;
-  }
-  if (!props.files.originDanmuPath.endsWith(".xml")) {
-    notice.warning({
-      title: "仅支持xml格式弹幕",
-      duration: 1000,
-    });
-    return;
-  }
-  searchDanmuVisible.value = true;
+  searchDanmuVisible.value = !searchDanmuVisible.value;
 };
 </script>
 

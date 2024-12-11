@@ -89,8 +89,14 @@ export default function artplayerPluginHeatmap(danmuku: DanmaKu = [], options: O
         // @ts-ignore
         art.emit("artplayerPluginHeatmap:setOptions", options);
       },
-      show() {},
-      hide() {},
+      show() {
+        // @ts-ignore
+        art.emit("artplayerPluginHeatmap:show");
+      },
+      hide() {
+        // @ts-ignore
+        art.emit("artplayerPluginHeatmap:hide");
+      },
     };
   };
 }
@@ -251,13 +257,21 @@ function heatmap(art: Artplayer, danmuku: DanmaKu, options: Required<Options>) {
       // @ts-ignore
       art.on("artplayerPluginHeatmap:setOptions", (newOptions: Options) => {
         Object.assign(options, newOptions);
-        console.log(options);
         $heatmap.style.top = `-${options.height}px`;
         $heatmap.style.height = `${options.height}px`;
 
         init();
         const width = art.played * $heatmap.offsetWidth;
         update(width);
+      });
+
+      // @ts-ignore
+      art.on("artplayerPluginHeatmap:show", () => {
+        $heatmap.style.display = "block";
+      });
+      // @ts-ignore
+      art.on("artplayerPluginHeatmap:hide", () => {
+        $heatmap.style.display = "none";
       });
     },
   });
