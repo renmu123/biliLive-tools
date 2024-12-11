@@ -48,16 +48,21 @@ export function countByIntervalInSeconds(
   return result;
 }
 
-// 归一化函数
-function normalizePoints(points: { x: number; y: number }[], width: number, height: number) {
+/**
+ * 将点集归一化到指定的宽度和高度
+ */
+export function normalizePoints(points: { x: number; y: number }[], width: number, height: number) {
   const xMin = Math.min(...points.map((p) => p.x));
   const xMax = Math.max(...points.map((p) => p.x));
   const yMin = Math.min(...points.map((p) => p.y));
   const yMax = Math.max(...points.map((p) => p.y));
 
+  const xRange = xMax - xMin || 1; // Avoid division by zero
+  const yRange = yMax - yMin || 1; // Avoid division by zero
+
   return points.map((p) => ({
-    x: ((p.x - xMin) / (xMax - xMin)) * width,
-    y: ((p.y - yMin) / (yMax - yMin)) * height,
+    x: ((p.x - xMin) / xRange) * width,
+    y: ((p.y - yMin) / yRange) * height,
   }));
 }
 

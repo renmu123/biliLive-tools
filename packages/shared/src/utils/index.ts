@@ -375,8 +375,11 @@ export function normalizePoints(points: { x: number; y: number }[], width: numbe
   const yMin = Math.min(...points.map((p) => p.y));
   const yMax = Math.max(...points.map((p) => p.y));
 
+  const xRange = xMax - xMin || 1; // Avoid division by zero
+  const yRange = yMax - yMin || 1; // Avoid division by zero
+
   return points.map((p) => ({
-    x: ((p.x - xMin) / (xMax - xMin)) * width,
-    y: ((p.y - yMin) / (yMax - yMin)) * height,
+    x: ((p.x - xMin) / xRange) * width,
+    y: ((p.y - yMin) / yRange) * height,
   }));
 }

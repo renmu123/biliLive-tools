@@ -2,7 +2,12 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { expect, describe, it } from "vitest";
-import { escaped, countByIntervalInSeconds, getHardwareAcceleration } from "../../src/utils/index";
+import {
+  escaped,
+  getHardwareAcceleration,
+  countByIntervalInSeconds,
+  normalizePoints,
+} from "../../src/utils/index";
 
 export const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -18,8 +23,6 @@ describe("escaped", () => {
     const output = escaped(input);
     expect(output).toEqual("file\\\\:with\\\\:colons.txt");
   });
-
-  // Add more test cases if needed
 });
 
 describe.concurrent("getHardwareAcceleration", () => {
@@ -209,5 +212,83 @@ describe.concurrent("getHardwareAcceleration", () => {
         { start: 30, count: 1 },
       ]);
     });
+  });
+});
+
+describe("normalizePoints", () => {
+  it("should normalize points to the given width and height", () => {
+    const points = [
+      { x: 0, y: 0 },
+      { x: 10, y: 10 },
+      { x: 20, y: 20 },
+    ];
+    const width = 100;
+    const height = 100;
+    const result = normalizePoints(points, width, height);
+    expect(result).toEqual([
+      { x: 0, y: 0 },
+      { x: 50, y: 50 },
+      { x: 100, y: 100 },
+    ]);
+  });
+
+  it("should handle points with negative coordinates", () => {
+    const points = [
+      { x: -10, y: -10 },
+      { x: 0, y: 0 },
+      { x: 10, y: 10 },
+    ];
+    const width = 100;
+    const height = 100;
+    const result = normalizePoints(points, width, height);
+    expect(result).toEqual([
+      { x: 0, y: 0 },
+      { x: 50, y: 50 },
+      { x: 100, y: 100 },
+    ]);
+  });
+
+  it("should handle points with different ranges", () => {
+    const points = [
+      { x: 0, y: 0 },
+      { x: 5, y: 15 },
+      { x: 10, y: 30 },
+    ];
+    const width = 100;
+    const height = 100;
+    const result = normalizePoints(points, width, height);
+    expect(result).toEqual([
+      { x: 0, y: 0 },
+      { x: 50, y: 50 },
+      { x: 100, y: 100 },
+    ]);
+  });
+
+  it("should handle points with zero width and height", () => {
+    const points = [
+      { x: 0, y: 0 },
+      { x: 10, y: 10 },
+    ];
+    const width = 0;
+    const height = 0;
+    const result = normalizePoints(points, width, height);
+    expect(result).toEqual([
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+    ]);
+  });
+
+  it("should handle points with single point", () => {
+    const points = [
+      { x: 5, y: 5 },
+      { x: 5, y: 5 },
+    ];
+    const width = 100;
+    const height = 100;
+    const result = normalizePoints(points, width, height);
+    expect(result).toEqual([
+      { x: 0, y: 0 },
+      { x: 0, y: 0 },
+    ]);
   });
 });
