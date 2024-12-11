@@ -148,7 +148,7 @@ services:
 
 密钥为`appConfig.json`的`passKey`字段。
 
-不会保证web的兼容性，请自行保证网页端与服务端版本一致，以及浏览器的兼容性。
+不会保证web的兼容性，请自行保证网页端与服务端版本一致，浏览器兼容性为最新chrome版本
 
 线上地址：https://bililive.irenmu.com
 
