@@ -1,5 +1,4 @@
 import Router from "koa-router";
-import { z } from "zod";
 
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { TvQrcodeLogin } from "@renmu/bili-api";

@@ -14,7 +14,8 @@ export const genTimeData = async (input: string): Promise<number[]> => {
   if (ext === ".xml") {
     const { danmuku } = await parseXmlFile(input);
     return danmuku.map((item) => {
-      return Math.floor(item["@_p"].split(",")[0]);
+      const p = item["@_p"] as string;
+      return Math.floor(Number(p.split(",")[0]));
     });
   } else if (ext === ".ass") {
     const content = await fs.readFile(input, "utf-8");

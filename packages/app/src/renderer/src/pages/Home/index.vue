@@ -249,7 +249,6 @@ const preHandle = async (
       item.ext === ".flv" || item.ext === ".mp4" || item.ext === ".m4s" || item.ext === ".ts",
   );
   const danmuFile = files.find((item) => item.ext === ".xml" || item.ext === ".ass");
-  const hasXmlFile = files.some((item) => item.ext === ".xml");
 
   if (!videoFile) {
     notice.error({
