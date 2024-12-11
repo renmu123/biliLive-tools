@@ -1,4 +1,4 @@
-import path from "path-browserify";
+import path from "path-unified";
 
 import { ElectronAPI } from "@electron-toolkit/preload";
 import { api } from "../preload/index";
