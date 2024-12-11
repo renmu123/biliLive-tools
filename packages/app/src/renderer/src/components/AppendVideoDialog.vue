@@ -143,7 +143,7 @@ const selectMedia = (item) => {
     @media screen and (prefers-color-scheme: dark) {
       background: none;
     }
-    border: 1px solid #eee;
+    border: 2px solid #eee;
     border-radius: 5px;
 
     width: 160px;
