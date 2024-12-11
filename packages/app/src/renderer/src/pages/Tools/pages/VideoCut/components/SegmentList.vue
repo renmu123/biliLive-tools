@@ -50,7 +50,6 @@
       </n-icon>
 
       <Tip class="cut-search-danmu">
-        <h4>快捷键</h4>
         <ul>
           <li>I 在当前时间开始当前片段</li>
           <li>O 在当前时间结束当前片段</li>
@@ -195,7 +194,6 @@ onActivated(() => {
   });
   // 唤起弹幕搜索
   hotkeys("ctrl+k", function () {
-    console.log("ctrl+k");
     searchDanmu();
   });
   // 关闭弹幕搜索

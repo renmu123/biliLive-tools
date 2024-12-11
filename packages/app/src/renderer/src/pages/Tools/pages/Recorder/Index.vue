@@ -327,7 +327,7 @@ const openSavePath = (path: string) => {
       display: inline-block;
       color: white;
       background-color: rgba(0, 0, 0, 0.5);
-      // padding: 5px;
+      padding: 0 5px;
       border-radius: 5px;
       position: relative;
       top: 5px;
