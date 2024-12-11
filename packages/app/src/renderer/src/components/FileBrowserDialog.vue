@@ -52,6 +52,7 @@
 <script lang="ts" setup>
 import { commonApi } from "@renderer/apis";
 import { darkTheme, lightTheme, useOsTheme, dateZhCN, zhCN } from "naive-ui";
+import { useStorage } from "@vueuse/core";
 
 interface Props {
   type?: "file" | "directory";
@@ -78,19 +79,33 @@ const files = ref<
     path: string;
   }[]
 >([]);
-const currentPath = ref("/"); // 跟踪当前路径
+// const currentPath = ref("/"); // 跟踪当前路径
+const currentPath = useStorage("file-store", "/");
+
 // const selectedExt = ref<string[]>([]); // 跟踪当前选择的扩展名
 const selectedFiles = ref<string[]>([]); // 跟踪当前选择的文件
 const parentPath = ref();
 
+let runCount = 0;
 // 获取文件列表
 const fetchFiles = async () => {
   selectedFiles.value = [];
-  const res = await commonApi.getFiles({
-    path: currentPath.value,
-    exts: props.exts,
-    type: props.type,
-  });
+  const res = await commonApi
+    .getFiles({
+      path: currentPath.value,
+      exts: props.exts,
+      type: props.type,
+    })
+    .catch((err) => {
+      runCount++;
+      currentPath.value = "/";
+      if (runCount > 4) {
+        throw err;
+      }
+      fetchFiles();
+      throw err;
+    });
+  runCount = 0;
   files.value = res.list;
   parentPath.value = res.parent;
 };
@@ -124,17 +139,24 @@ const selectFile = (file: { name: string; type: "file" | "directory"; path: stri
 
 // 关闭弹框
 const closeDialog = () => {
+  showModal.value = false;
   // emit("close");
   props.close();
-  showModal.value = false;
 };
 
 const confirm = () => {
   // emit("confirm", { path: selectedFiles.value });
-  props.confirm(selectedFiles.value);
   showModal.value = false;
+  props.confirm(selectedFiles.value);
   // closeDialog();
 };
+
+// watch(
+//   () => showModal.value,
+//   () => {
+//     filePath.value = currentPath.value;
+//   },
+// );
 
 onMounted(() => {
   fetchFiles();

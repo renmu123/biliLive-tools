@@ -328,9 +328,9 @@ importers:
       naive-ui:
         specifier: ^2.40.3
         version: 2.40.3(vue@3.5.13(typescript@5.6.3))
-      path-browserify:
-        specifier: ^1.0.1
-        version: 1.0.1
+      path-unified:
+        specifier: ^0.2.0
+        version: 0.2.0
       pinia:
         specifier: ^2.2.8
         version: 2.2.8(typescript@5.6.3)(vue@3.5.13(typescript@5.6.3))
@@ -4012,6 +4012,9 @@ packages:
   path-type@5.0.0:
     resolution: {integrity: sha512-5HviZNaZcfqP95rwpv+1HDgUamezbqdSYTyzjTvwtJSnIH+3vnbmWsItli8OFEndS984VT55M3jduxZbX351gg==}
     engines: {node: '>=12'}
+
+  path-unified@0.2.0:
+    resolution: {integrity: sha512-MNKqvrKbbbb5p7XHXV6ZAsf/1f/yJQa13S/fcX0uua8ew58Tgc6jXV+16JyAbnR/clgCH+euKDxrF2STxMHdrg==}
 
   pathe@1.1.2:
     resolution: {integrity: sha512-whLdWMYL2TwI08hn8/ZqAbrVemu0LNaNNJZX73O6qaIdCTfXutsLhMkjdENX0qhsQ9uIimo4/aQOmXkoon2nDQ==}
@@ -8924,6 +8927,8 @@ snapshots:
   path-type@4.0.0: {}
 
   path-type@5.0.0: {}
+
+  path-unified@0.2.0: {}
 
   pathe@1.1.2: {}
 

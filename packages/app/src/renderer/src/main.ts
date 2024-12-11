@@ -3,11 +3,13 @@ import App from "./App.vue";
 import router from "./routers";
 import { createPinia } from "pinia";
 import { init as axiosInit } from "./apis/request";
-import path from "path-browserify";
+// @ts-ignore
+import path from "path-unified";
 
 const isWeb = !window.api;
 window.isWeb = isWeb;
 if (isWeb) {
+  // @ts-ignore
   window.path = path;
 }
 
