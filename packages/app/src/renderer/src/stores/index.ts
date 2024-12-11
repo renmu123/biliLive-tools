@@ -1,4 +1,4 @@
-import { cloneDeep } from "lodash-es";
+import { cloneDeep, isArray } from "lodash-es";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
 import { getUserList } from "@renderer/apis/user";
@@ -258,8 +258,12 @@ export const useQueueStore = defineStore("queue", () => {
 
   const getQuenu = async () => {
     const res = await taskApi.list(params.value);
-    queue.value = res.list.toReversed();
-    runningTaskNum.value = res.runningTaskNum;
+    if (isArray(res)) {
+      queue.value = res.reverse();
+    } else {
+      queue.value = res.list.reverse();
+      runningTaskNum.value = res.runningTaskNum;
+    }
   };
 
   watch(
