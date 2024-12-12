@@ -224,14 +224,13 @@ const { x, y, style } = useDraggable(el, {
   initialValue: { x: width.value - 80, y: height.value - 80 },
 });
 
-useEventListener(window, "resize", (e) => {
+useEventListener(window, "resize", () => {
   x.value = width.value - 80;
   y.value = height.value - 80;
 });
 
 const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;
 
-const notice = useNotification();
 const { cuts } = storeToRefs(useSegmentStore());
 const { addSegment, removeSegment, updateSegment, toggleSegment } = useSegmentStore();
 

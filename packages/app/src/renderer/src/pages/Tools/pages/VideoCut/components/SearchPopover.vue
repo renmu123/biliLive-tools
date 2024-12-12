@@ -98,7 +98,7 @@ watch(
   },
 );
 
-const handleOutside = (e) => {
+const handleOutside = () => {
   if (props.danmaSearchMask) {
     setTimeout(() => {
       visible.value = false;

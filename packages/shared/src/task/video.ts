@@ -13,7 +13,6 @@ import {
   trashItem,
   uuid,
   executeCommand,
-  formatFile,
   getHardwareAcceleration,
   timemarkToSeconds,
   readLines,
@@ -22,12 +21,7 @@ import {
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask } from "./task.js";
 
-import type {
-  FfmpegOptions,
-  VideoMergeOptions,
-  Video2Mp4Options,
-  GlobalConfig,
-} from "@biliLive-tools/types";
+import type { FfmpegOptions, VideoMergeOptions, GlobalConfig } from "@biliLive-tools/types";
 import type Ffmpeg from "@biliLive-tools/types/ffmpeg.js";
 
 export const getFfmpegPath = () => {
