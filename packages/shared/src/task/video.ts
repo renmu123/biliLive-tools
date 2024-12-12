@@ -563,6 +563,48 @@ export const mergeAssMp4 = async (
 };
 
 /**
+ * 切割视频
+ */
+export const cutVideo = async (
+  inputVideo: string,
+  outputName: string,
+  ffmpegOptions: FfmpegOptions,
+  option: {
+    assFilePath?: string;
+    override?: boolean;
+    /** 支持绝对路径和相对路径 */
+    savePath?: string;
+    /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
+    saveType: 1 | 2;
+  },
+) => {
+  const options = Object.assign(
+    {
+      override: false,
+      removeOrigin: false,
+      saveType: 1,
+      savePath: "",
+    },
+    option,
+  );
+  let savePath = await parseSavePath(inputVideo, options);
+  const output = path.join(savePath, outputName);
+  return mergeAssMp4(
+    {
+      videoFilePath: inputVideo,
+      assFilePath: options.assFilePath,
+      outputPath: output,
+      hotProgressFilePath: undefined,
+    },
+    {
+      removeOrigin: false,
+      override: options.override,
+    },
+    ffmpegOptions,
+  );
+};
+
+/**
  * 转码
  */
 export const transcode = async (
@@ -588,6 +630,33 @@ export const transcode = async (
     },
     option,
   );
+  let savePath = await parseSavePath(input, options);
+  const output = path.join(savePath, outputName);
+  return mergeAssMp4(
+    {
+      videoFilePath: input,
+      assFilePath: undefined,
+      outputPath: output,
+      hotProgressFilePath: undefined,
+    },
+    {
+      removeOrigin: options.removeOrigin,
+      override: options.override,
+    },
+    ffmpegOptions,
+  );
+};
+
+/**
+ * 解析出保存文件夹
+ */
+export const parseSavePath = async (
+  input: string,
+  options: {
+    saveType: 1 | 2;
+    savePath: string;
+  },
+) => {
   let savePath: string;
   if (options.saveType === 1) {
     savePath = path.dirname(input);
@@ -603,20 +672,8 @@ export const transcode = async (
   if (!(await pathExists(savePath))) {
     await fs.ensureDir(savePath);
   }
-  const output = path.join(savePath, outputName);
-  return mergeAssMp4(
-    {
-      videoFilePath: input,
-      assFilePath: undefined,
-      outputPath: output,
-      hotProgressFilePath: undefined,
-    },
-    {
-      removeOrigin: options.removeOrigin,
-      override: options.override,
-    },
-    ffmpegOptions,
-  );
+
+  return savePath;
 };
 
 /**
@@ -643,6 +700,12 @@ async function getUnusedFileName(filePath: string): Promise<string> {
   return newFilePath;
 }
 
+/**
+ * 合并视频
+ * @param inputFiles 输入文件
+ * @param output 输出文件
+ * @param options 选项
+ */
 export const mergeVideos = async (
   inputFiles: string[],
   output: string,

@@ -65,24 +65,6 @@ const onOpen = async () => {
       text.value = res.failReason;
     }
   }, 2000);
-
-  // window.api.bili.onLogin("completed", async (_, res) => {
-  //   console.log("completed", res);
-  //   text.value = "登录成功，请关闭本窗口";
-  //   notice.success({
-  //     title: "登录成功",
-  //     duration: 1000,
-  //   });
-  //   confirm();
-  // });
-  // window.api.bili.onLogin("error", (_, res) => {
-  //   console.log("error", res);
-  //   notice.error({
-  //     title: "登录失败",
-  //     description: res.message,
-  //   });
-  //   text.value = res.message;
-  // });
 };
 
 const close = () => {

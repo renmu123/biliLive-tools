@@ -367,24 +367,8 @@ const convert = async () => {
     await upload(output, rawPresetOptions, rawAid);
   }
 
-  // if (rawClientOptions.openFolder) {
-  //   window.api.common.showItemInFolder(outputPath);
-  // }
   return true;
 };
-
-// const hotProgressConvert = async () => {
-//   const input = toRaw(fileList.value)[0].path;
-//   const file = await genHotProgress(input, {
-//     width: 1920,
-//     duration: 60 * 60 * 2,
-//     interval: clientOptions.value.hotProgressSample,
-//     height: clientOptions.value.hotProgressHeight,
-//     color: clientOptions.value.hotProgressColor,
-//     fillColor: clientOptions.value.hotProgressFillColor,
-//   });
-//   console.log("file", file);
-// };
 
 /**
  * 处理高能进度条
@@ -578,7 +562,6 @@ const uploadVideo = async (file: string, presetOptions: BiliupPreset) => {
     videos: [file],
     config: presetOptions.config,
   });
-  // await window.api.bili.uploadVideo(userInfo.value.uid, [file], presetOptions.config);
 };
 // 续传任务
 const appendVideoVisible = ref(false);
@@ -590,11 +573,6 @@ const appendVideo = async (aid: number, file: string, presetOptions: BiliupPrese
     videos: [file],
     config: presetOptions.config,
   });
-
-  // await window.api.bili.appendVideo(userInfo.value.uid, [file], {
-  //   ...presetOptions.config,
-  //   vid: aid,
-  // });
 };
 
 // @ts-ignore

@@ -49,28 +49,10 @@ const props = withDefaults(defineProps<Props>(), {
 });
 const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 
-// watch(
-//   () => props.files,
-//   async (files) => {
-//     if (files.danmu) {
-//       const content = await window.api.common.readFile(props.files.danmu);
-//       videoRef.value?.switchAss(content);
-
-//       const data = await window.api.danmu.genTimeData(props.files.danmu);
-//       // @ts-ignore
-//       videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
-//     }
-//   },
-//   { deep: true },
-// );
-
 watch(showModal, async (show) => {
-  console.log(show);
   if (show) {
     const content = await window.api.common.readFile(props.files.danmu);
-
     const data = await window.api.danmu.genTimeData(props.files.danmu);
-    console.log(data, videoInstance.value);
 
     setTimeout(() => {
       videoRef.value?.switchAss(content);
