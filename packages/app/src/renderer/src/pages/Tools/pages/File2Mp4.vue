@@ -6,7 +6,7 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" :disabled="isWeb" @click="convert"> 立即转换 </n-button>
+      <n-button type="primary" @click="convert"> 立即转换 </n-button>
       <n-cascader
         v-model:value="options.ffmpegPresetId"
         placeholder="请选择预设"
@@ -25,15 +25,13 @@
         <n-radio-group v-model:value="options.saveRadio" class="radio-group2">
           <n-space class="flex align-center column">
             <n-radio :value="1"> 保存到原始文件夹 </n-radio>
-            <n-radio :value="2">
-              <n-input
-                v-model:value="options.savePath"
-                type="text"
-                placeholder="选择文件夹"
-                style="width: 300px"
-                :title="options.savePath"
-              />
-            </n-radio>
+            <n-radio :value="2"> </n-radio>
+            <n-input
+              v-model:value="options.savePath"
+              placeholder="选择文件夹"
+              style="width: 300px"
+              :title="options.savePath"
+            />
             <n-icon size="30" style="margin-left: -10px" class="pointer" @click="getDir">
               <FolderOpenOutline />
             </n-icon>
@@ -69,7 +67,6 @@ const notice = useNotification();
 const confirm = useConfirm();
 const { appConfig } = storeToRefs(useAppConfig());
 const { ffmpegOptions } = storeToRefs(useFfmpegPreset());
-const isWeb = computed(() => window.isWeb);
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 const options = toReactive(
@@ -103,7 +100,6 @@ const convert = async () => {
     return;
   }
   const ffmpegOptions = ffmpegConfig.config;
-  console.log(ffmpegOptions);
 
   if (fileList.value.length === 0) {
     notice.error({
@@ -126,55 +122,16 @@ const convert = async () => {
   const files = cloneDeep(fileList.value);
 
   for (let i = 0; i < files.length; i++) {
-    // try {
     const input = files[i].path;
     const outputName = `${files[i].title}.mp4`;
     await taskApi.transcode(input, outputName, ffmpegOptions, {
       override: options.override,
-      removeOrigin: false,
+      removeOrigin: options.removeOrigin,
       savePath: options.savePath,
       saveType: options.saveRadio,
     });
     fileList.value.splice(i, 1);
-
-    // let savePath: string;
-    // if (options.saveRadio === 1) {
-    //   savePath = window.path.dirname(fileList.value[i].path);
-    // } else if (options.saveRadio === 2) {
-    //   if (options.savePath === "") {
-    //     notice.error({
-    //       title: "请选择保存路径",
-    //       duration: 1000,
-    //     });
-    //     return;
-    //   }
-    //   savePath = options.savePath;
-    // } else {
-    //   notice.error({
-    //     title: "不支持此项配置",
-    //     duration: 1000,
-    //   });
-    //   return;
-    // }
-
-    // window.api.mergeAssMp4(
-    //   {
-    //     videoFilePath: fileList.value[i].path,
-    //     assFilePath: undefined,
-    //     outputPath: window.path.join(savePath, `${fileList.value[i].title}.mp4`),
-    //     hotProgressFilePath: undefined,
-    //   },
-    //   { override: options.override, removeOrigin: false },
-    //   ffmpegOptions,
-    // );
-    // } catch (err) {
-    //   notice.error({
-    //     title: err as string,
-    //     duration: 1000,
-    //   });
-    // }
   }
-  // fileList.value = [];
   notice.warning({
     title: `已加入任务队列，可在任务列表中查看进度`,
     duration: 1000,

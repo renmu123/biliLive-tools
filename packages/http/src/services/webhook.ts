@@ -6,7 +6,7 @@ import { FFmpegPreset, VideoPreset, DanmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import { biliApi } from "@biliLive-tools/shared/task/bili.js";
 import { convertXml2Ass, genHotProgress, isEmptyDanmu } from "@biliLive-tools/shared/task/danmu.js";
-import { mergeAssMp4, readVideoMeta, convertVideo2Mp4 } from "@biliLive-tools/shared/task/video.js";
+import { mergeAssMp4, readVideoMeta, transcode } from "@biliLive-tools/shared/task/video.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import {
   getFileSize,
@@ -586,22 +586,19 @@ export class WebhookHandler {
     if (await fs.pathExists(output)) return output;
 
     return new Promise((resolve, reject) => {
-      convertVideo2Mp4(
-        {
-          input: videoFile,
-        },
-        {
-          saveRadio: 1,
-          saveOriginPath: true,
-          savePath: "",
-          override: false,
-          removeOrigin: true,
-        },
+      transcode(
+        videoFile,
+        `${name}.mp4`,
         {
           encoder: "copy",
           audioCodec: "copy",
         },
-        false,
+        {
+          saveType: 1,
+          savePath: ".",
+          override: false,
+          removeOrigin: true,
+        },
       ).then((task) => {
         task.on("task-end", () => {
           resolve(output);

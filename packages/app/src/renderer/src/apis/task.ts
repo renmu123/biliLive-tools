@@ -90,7 +90,7 @@ const transcode = async (
   /** 包含后缀 */
   outputName: string,
   ffmpegOptions: FfmpegOptions,
-  option: {
+  options: {
     override?: boolean;
     removeOrigin?: boolean;
     /** 支持绝对路径和相对路径 */
@@ -103,7 +103,7 @@ const transcode = async (
     input,
     outputName,
     ffmpegOptions,
-    option,
+    options,
   });
   return res.data;
 };
