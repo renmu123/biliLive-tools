@@ -47,7 +47,7 @@
             <n-radio :value="false"> 跳过存在文件 </n-radio>
           </n-space>
         </n-radio-group>
-        <!-- <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox> -->
+        <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
       </div>
     </div>
   </div>
@@ -57,11 +57,12 @@
 import { toReactive } from "@vueuse/core";
 
 import { useConfirm } from "@renderer/hooks";
-import { ffmpegPresetApi } from "@renderer/apis";
+import { ffmpegPresetApi, taskApi } from "@renderer/apis";
 import { useAppConfig, useFfmpegPreset } from "@renderer/stores";
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 import hotkeys from "hotkeys-js";
+import { cloneDeep } from "lodash-es";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 
 const notice = useNotification();
@@ -111,64 +112,69 @@ const convert = async () => {
     });
     return;
   }
-  if (options.saveRadio === 2 && !(await window.api.exits(options.savePath))) {
-    notice.error({
-      title: `保存文件夹不存在`,
-      duration: 1000,
-    });
-    return;
-  }
 
   if (ffmpegOptions.encoder !== "copy" || ffmpegOptions.audioCodec !== "copy") {
     const [status] = await confirm.warning({
       content:
-        "你可能正在对视频或音频进行重编码，将耗费大量时间，是否继续？（如果你只是想转换格式，可以选择预设中的 copy 选项）",
+        "你可能正在对视频进行重编码，将耗费大量时间，是否继续？（如果你只是想转封装，可以选择预设中的 copy 选项）",
       showCheckbox: true,
       showAgainKey: "video2mp4Convert",
     });
     if (!status) return;
   }
 
-  for (let i = 0; i < fileList.value.length; i++) {
-    try {
-      let savePath: string;
-      if (options.saveRadio === 1) {
-        savePath = window.path.dirname(fileList.value[i].path);
-      } else if (options.saveRadio === 2) {
-        if (options.savePath === "") {
-          notice.error({
-            title: "请选择保存路径",
-            duration: 1000,
-          });
-          return;
-        }
-        savePath = options.savePath;
-      } else {
-        notice.error({
-          title: "不支持此项配置",
-          duration: 1000,
-        });
-        return;
-      }
+  const files = cloneDeep(fileList.value);
 
-      window.api.mergeAssMp4(
-        {
-          videoFilePath: fileList.value[i].path,
-          assFilePath: undefined,
-          outputPath: window.path.join(savePath, `${fileList.value[i].title}.mp4`),
-          hotProgressFilePath: undefined,
-        },
-        { override: options.override, removeOrigin: false },
-        ffmpegOptions,
-      );
-    } catch (err) {
-      notice.error({
-        title: err as string,
-        duration: 1000,
-      });
-    }
+  for (let i = 0; i < files.length; i++) {
+    // try {
+    const input = files[i].path;
+    const outputName = `${files[i].title}.mp4`;
+    await taskApi.transcode(input, outputName, ffmpegOptions, {
+      override: options.override,
+      removeOrigin: false,
+      savePath: options.savePath,
+      saveType: options.saveRadio,
+    });
+    fileList.value.splice(i, 1);
+
+    // let savePath: string;
+    // if (options.saveRadio === 1) {
+    //   savePath = window.path.dirname(fileList.value[i].path);
+    // } else if (options.saveRadio === 2) {
+    //   if (options.savePath === "") {
+    //     notice.error({
+    //       title: "请选择保存路径",
+    //       duration: 1000,
+    //     });
+    //     return;
+    //   }
+    //   savePath = options.savePath;
+    // } else {
+    //   notice.error({
+    //     title: "不支持此项配置",
+    //     duration: 1000,
+    //   });
+    //   return;
+    // }
+
+    // window.api.mergeAssMp4(
+    //   {
+    //     videoFilePath: fileList.value[i].path,
+    //     assFilePath: undefined,
+    //     outputPath: window.path.join(savePath, `${fileList.value[i].title}.mp4`),
+    //     hotProgressFilePath: undefined,
+    //   },
+    //   { override: options.override, removeOrigin: false },
+    //   ffmpegOptions,
+    // );
+    // } catch (err) {
+    //   notice.error({
+    //     title: err as string,
+    //     duration: 1000,
+    //   });
+    // }
   }
-  fileList.value = [];
+  // fileList.value = [];
   notice.warning({
     title: `已加入任务队列，可在任务列表中查看进度`,
     duration: 1000,

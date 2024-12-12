@@ -13,6 +13,7 @@ import { convertXml2Ass } from "@biliLive-tools/shared/task/danmu.js";
 import {
   // mergeAssMp4,
   mergeVideos,
+  transcode,
 } from "@biliLive-tools/shared/task/video.js";
 
 import type { DanmuConfig } from "@biliLive-tools/types";
@@ -133,6 +134,35 @@ router.post("/mergeVideo", async (ctx) => {
   }
 
   const task = await mergeVideos(inputVideos, output, options);
+  ctx.body = { taskId: task.taskId };
+});
+
+router.post("/transcode", async (ctx) => {
+  const { input, outputName, ffmpegOptions, options } = ctx.request.body as {
+    input: string;
+    outputName: string;
+    ffmpegOptions: any;
+    options: {
+      override?: boolean;
+      removeOrigin?: boolean;
+      /** 支持绝对路径和相对路径 */
+      savePath?: string;
+      /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
+      saveType: 1 | 2;
+    };
+  };
+  if (!input) {
+    ctx.status = 400;
+    ctx.body = { message: "inputVideos length must be greater than 1" };
+    return;
+  }
+  if (!outputName) {
+    ctx.status = 400;
+    ctx.body = { message: "outputName is required" };
+    return;
+  }
+
+  const task = await transcode(input, outputName, ffmpegOptions, options);
   ctx.body = { taskId: task.taskId };
 });
 

@@ -1,6 +1,7 @@
 import request from "./request";
+
 import type { Task } from "@renderer/types";
-import type { DanmuPreset } from "@biliLive-tools/types";
+import type { DanmuPreset, FfmpegOptions } from "@biliLive-tools/types";
 
 /**
  * 获取任务列表
@@ -84,6 +85,29 @@ const mergeVideos = async (
   return res.data;
 };
 
+const transcode = async (
+  input: string,
+  /** 包含后缀 */
+  outputName: string,
+  ffmpegOptions: FfmpegOptions,
+  option: {
+    override?: boolean;
+    removeOrigin?: boolean;
+    /** 支持绝对路径和相对路径 */
+    savePath?: string;
+    /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
+    saveType: 1 | 2;
+  },
+) => {
+  const res = await request.post(`/task/transcode`, {
+    input,
+    outputName,
+    ffmpegOptions,
+    option,
+  });
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -95,6 +119,7 @@ const task = {
   start,
   convertXml2Ass,
   mergeVideos,
+  transcode,
 };
 
 export default task;

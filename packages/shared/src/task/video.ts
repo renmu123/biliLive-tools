@@ -606,9 +606,6 @@ export const mergeAssMp4 = async (
     override: true,
   };
   options = { ...defaultOptions, ...options };
-
-  await setFfmpegPath();
-
   const videoInput = files.videoFilePath;
   const output = files.outputPath;
 
@@ -628,6 +625,7 @@ export const mergeAssMp4 = async (
     timestampFont: options.timestampFont,
   });
 
+  await setFfmpegPath();
   const task = new FFmpegTask(
     command,
     {
@@ -671,6 +669,63 @@ export const mergeAssMp4 = async (
   taskQueue.addTask(task, false);
 
   return task;
+};
+
+/**
+ * 转码
+ */
+export const transcode = async (
+  input: string,
+  /** 包含后缀 */
+  outputName: string,
+  ffmpegOptions: FfmpegOptions,
+  option: {
+    override?: boolean;
+    removeOrigin?: boolean;
+    /** 支持绝对路径和相对路径 */
+    savePath?: string;
+    /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
+    saveType: 1 | 2;
+  },
+) => {
+  const options = Object.assign(
+    {
+      override: false,
+      removeOrigin: false,
+      saveType: 1,
+      savePath: "",
+    },
+    option,
+  );
+  let savePath: string;
+  if (options.saveType === 1) {
+    savePath = path.dirname(input);
+  } else if (options.saveType === 2) {
+    savePath = path.resolve(path.dirname(input), options.savePath);
+  } else {
+    throw new Error("保存类型错误");
+  }
+
+  if (!savePath) {
+    throw new Error("没有找到保存路径");
+  }
+  if (!(await pathExists(savePath))) {
+    await fs.ensureDir(savePath);
+  }
+  const output = path.join(savePath, outputName);
+  return mergeAssMp4(
+    {
+      videoFilePath: input,
+      assFilePath: undefined,
+      outputPath: output,
+      hotProgressFilePath: undefined,
+    },
+    {
+      removeOrigin: options.removeOrigin,
+      override: options.override,
+    },
+    ffmpegOptions,
+  );
 };
 
 /**
