@@ -118,6 +118,7 @@ router.post("/mergeVideo", async (ctx) => {
     output: string;
     options: {
       removeOrigin: boolean;
+      saveOriginPath: boolean;
     };
   };
   if (!inputVideos || inputVideos.length < 2) {

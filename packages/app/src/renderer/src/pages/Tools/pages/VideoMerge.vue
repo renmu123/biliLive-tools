@@ -15,7 +15,7 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="convert" :disabled="isWeb"> 立即合并 </n-button>
+      <n-button type="primary" @click="convert" :disabled="disabled"> 立即合并 </n-button>
       <Tip
         tip="注意：并非所有容器都支持流复制。如果出现播放问题或未合并文件，则可能需要重新编码。"
         :size="26"
@@ -48,6 +48,17 @@ const { appConfig } = storeToRefs(useAppConfig());
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 const isWeb = computed(() => window.isWeb);
+
+const disabled = computed(() => {
+  if (isWeb.value) {
+    if (options.saveOriginPath) {
+      return false;
+    }
+    return true;
+  } else {
+    return false;
+  }
+});
 
 const options = toReactive(
   computed({
@@ -82,19 +93,7 @@ const convert = async () => {
   const { dir, name } = formatFile(fileList.value[0].path);
   filePath = window.path.join(dir, `${name}-合并.mp4`);
 
-  if (options.saveOriginPath) {
-    if (await window.api.exits(filePath)) {
-      notice.error({
-        title: `${filePath}-文件已存在，请手动选择路径`,
-        duration: 1000,
-      });
-      const file = await getDir(filePath);
-      if (!file) {
-        return;
-      }
-      filePath = file;
-    }
-  } else {
+  if (!options.saveOriginPath) {
     const file = await getDir(filePath);
     if (!file) {
       return;
@@ -102,9 +101,6 @@ const convert = async () => {
     filePath = file;
   }
 
-  // const files = fileList.value.map((file) => {
-  //   return formatFile(file.path);
-  // });
   try {
     taskApi.mergeVideos(
       fileList.value.map((item) => item.path),

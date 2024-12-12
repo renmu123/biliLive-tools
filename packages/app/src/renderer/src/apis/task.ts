@@ -73,6 +73,7 @@ const mergeVideos = async (
   output: string,
   options: {
     removeOrigin: boolean;
+    saveOriginPath: boolean;
   },
 ): Promise<string> => {
   const res = await request.post(`/task/mergeVideo`, {
