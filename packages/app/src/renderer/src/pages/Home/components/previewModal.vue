@@ -4,7 +4,15 @@
       <Artplayer
         ref="videoRef"
         style="aspect-ratio: 16 / 9"
-        :option="{}"
+        :option="{
+          fullscreen: true,
+          plugins: {
+            heatmap: {
+              option: props.hotProgress,
+            },
+          },
+        }"
+        :plugins="['ass', 'heatmap']"
         @ready="handleVideoReady"
       ></Artplayer>
     </n-card>
@@ -21,6 +29,13 @@ interface Props {
     video: string;
     danmu: string;
   };
+  hotProgress: {
+    visible: boolean;
+    sampling: number;
+    height: number;
+    fillColor: string;
+    color: string;
+  };
 }
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
@@ -34,17 +49,47 @@ const props = withDefaults(defineProps<Props>(), {
 });
 const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 
-watch(
-  () => props.files,
-  async (files) => {
-    if (files.danmu) {
-      console.log(files.danmu);
-      const content = await window.api.common.readFile(props.files.danmu);
+// watch(
+//   () => props.files,
+//   async (files) => {
+//     if (files.danmu) {
+//       const content = await window.api.common.readFile(props.files.danmu);
+//       videoRef.value?.switchAss(content);
+
+//       const data = await window.api.danmu.genTimeData(props.files.danmu);
+//       // @ts-ignore
+//       videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
+//     }
+//   },
+//   { deep: true },
+// );
+
+watch(showModal, async (show) => {
+  console.log(show);
+  if (show) {
+    const content = await window.api.common.readFile(props.files.danmu);
+
+    const data = await window.api.danmu.genTimeData(props.files.danmu);
+    console.log(data, videoInstance.value);
+
+    setTimeout(() => {
       videoRef.value?.switchAss(content);
-    }
-  },
-  { deep: true },
-);
+
+      // @ts-ignore
+      videoInstance.value.artplayerPluginHeatmap.setOptions(props.hotProgress);
+      // @ts-ignore
+      videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
+
+      if (props.hotProgress.visible) {
+        // @ts-ignore
+        videoInstance.value?.artplayerPluginHeatmap.show();
+      } else {
+        // @ts-ignore
+        videoInstance.value?.artplayerPluginHeatmap.hide();
+      }
+    }, 300);
+  }
+});
 
 const videoInstance = ref<ArtplayerType | null>(null);
 const handleVideoReady = async (instance: ArtplayerType) => {

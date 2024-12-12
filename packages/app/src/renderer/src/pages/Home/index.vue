@@ -153,7 +153,17 @@
     </n-modal>
 
     <AppendVideoDialog v-model:visible="appendVideoVisible" v-model="aid"></AppendVideoDialog>
-    <PreviewModal v-model:visible="previewModalVisible" :files="previewFiles"></PreviewModal>
+    <PreviewModal
+      v-model:visible="previewModalVisible"
+      :files="previewFiles"
+      :hotProgress="{
+        visible: clientOptions.hotProgress,
+        sampling: clientOptions.hotProgressSample,
+        height: clientOptions.hotProgressHeight,
+        color: clientOptions.hotProgressColor,
+        fillColor: clientOptions.hotProgressFillColor,
+      }"
+    ></PreviewModal>
   </div>
 </template>
 
