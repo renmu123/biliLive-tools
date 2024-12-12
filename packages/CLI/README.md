@@ -6,7 +6,11 @@
 
 `npm i bililive-cli -g`
 
-或者安装二进制[文件](https://github.com/renmu123/biliLive-tools/releases)
+也有可能需要使用
+
+`npm i bililive-cli -g --force`
+
+或者下载二进制[文件](https://github.com/renmu123/biliLive-tools/releases)
 
 # 使用
 
@@ -44,6 +48,6 @@ Options:
 
 鉴权密钥为 `config/appConfig.json` 的 `passKey` 参数，或者设置 `BILILIVE_TOOLS_PASSKEY` 环境变量
 
-你可以选择线上页面：https://github.com/renmu123/biliLive-webui
+你可以选择线上页面：https://bililive.irenmu.com/
 
-或者也可以使用[官方项目](https://github.com/renmu123/biliLive-webui)自行部署
+或者也可以自行[部署](https://github.com/renmu123/biliLive-webui)
