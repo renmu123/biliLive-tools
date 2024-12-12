@@ -95,6 +95,8 @@
           <n-input
             v-model:value="config.notification.setting.tg.key"
             placeholder="请输入tg bot的token"
+            type="password"
+            show-password-on="click"
           ></n-input> </n-form-item
         ><n-form-item>
           <template #label>
@@ -142,6 +144,8 @@
           <n-input
             v-model:value="config.notification.setting.allInOne.key"
             placeholder="请输入push key"
+            type="password"
+            show-password-on="click"
           ></n-input> </n-form-item
       ></template>
 
