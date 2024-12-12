@@ -562,17 +562,6 @@ const getPlatformTypes = async () => {
 };
 
 const descMaxLength = ref(2000);
-// const getTypeDesc = async (tid: number) => {
-//   if (!userInfoStore?.userInfo?.uid) {
-//     return;
-//   }
-//   const data = await window.api.bili.getTypeDesc(tid, userInfoStore.userInfo.uid);
-//   if (data) {
-//     descMaxLength.value = 2000;
-//   } else {
-//     descMaxLength.value = 250;
-//   }
-// };
 
 watch(
   () => options.value.config.seasonId,

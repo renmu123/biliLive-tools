@@ -115,6 +115,7 @@
                   size="24"
                   class="pointer"
                   title="选择文件"
+                  v-if="!isWeb"
                   @click="selectFile('ffmpeg', config.ffmpegPath)"
                 >
                   <FolderOpenOutline />
@@ -138,6 +139,7 @@
                   style="margin-left: 10px"
                   size="24"
                   class="pointer"
+                  v-if="!isWeb"
                   @click="selectFile('ffprobe', config.ffprobePath)"
                 >
                   <FolderOpenOutline />
@@ -161,6 +163,7 @@
                   style="margin-left: 10px"
                   size="24"
                   class="pointer"
+                  v-if="!isWeb"
                   @click="selectFile('danmakuFactory', config.danmuFactoryPath)"
                 >
                   <FolderOpenOutline />
@@ -186,6 +189,7 @@
                 style="margin-left: 10px"
                 size="26"
                 class="pointer"
+                v-if="!isWeb"
                 @click="selectFile('losslessCut', config.losslessCutPath)"
               >
                 <FolderOpenOutline />
@@ -365,6 +369,7 @@ const themeOptions = ref<{ label: string; value: Theme }[]>([
 const confirm = useConfirm();
 const saveConfig = async () => {
   if (
+    !isWeb.value &&
     initConfig.value.webhook.recoderFolder &&
     initConfig.value.webhook.recoderFolder !== config.value.webhook.recoderFolder
   ) {
