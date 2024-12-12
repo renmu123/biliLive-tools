@@ -2,7 +2,7 @@
   <div class="">
     <div style="display: flex; gap: 10px; align-items: center">
       <h2>录制配置</h2>
-      <p>此项大部分配置不直接即时生效，需重新开始一个录制方可生效</p>
+      <p>此项大部分配置不即时生效，需重新开始一个录制方可生效</p>
     </div>
 
     <n-form label-placement="left" :label-width="140">
