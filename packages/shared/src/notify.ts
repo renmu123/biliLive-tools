@@ -156,8 +156,6 @@ export async function _send(title: string, desp: string, appConfig: AppConfig) {
     case "allInOne":
       await sendByAllInOne(title, desp, appConfig?.notification?.setting?.allInOne);
       break;
-    default:
-      throw new Error("未知的通知类型");
   }
 }
 
