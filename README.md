@@ -73,9 +73,10 @@ services:
     volumes:
       # 映射的配置目录，用于持久化配置文件
       - ./data:/app/data
-      # 用于处理webhook数据
+      # 存储文件的默认目录
       - ./video:/app/video
       # 字体文件夹，待施工
+      - ./fonts:/usr/local/share/fonts
     environment:
       # 登录密钥
       - BILILIVE_TOOLS_PASSKEY=your_passkey
@@ -84,15 +85,6 @@ services:
 ```
 
 具体支持的环境变量见[文档](./README.md#支持的环境变量)
-
-### 持久化
-
-你可以设置卷来进行数据持久化
-
-`./data:/app/data`
-
-TODO
-字体
 
 ### webhook
 
@@ -105,13 +97,13 @@ version: "3.8"
 services:
   # UI镜像
   webui:
-    image: bililive-tools-frontend
+    image: renmu1234/bililive-tools-frontend
     ports:
       # 前者按需改动
       - "3000:3000"
   # 接口镜像
   api:
-    image: bililive-tools-backend
+    image: renmu1234/bililive-tools-backend
     ports:
       - "18010:18010"
     volumes:
@@ -126,6 +118,7 @@ services:
       - BILILIVE_TOOLS_PASSKEY=your_passkey
       # 账户加密密钥，自行修改
       - BILILIVE_TOOLS_BILIKEY=your_bilikey
+  # 录播姬
   recorder:
     image: bililive/recorder:latest
     restart: unless-stopped
