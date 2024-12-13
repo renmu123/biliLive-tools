@@ -162,9 +162,11 @@ const editPart = (file: Part) => {
 const selectFolder = async () => {
   let dir: string | undefined;
   if (window.isWeb) {
-    dir = await showDirectoryDialog({
-      type: "directory",
-    })[0];
+    dir = (
+      await showDirectoryDialog({
+        type: "directory",
+      })
+    )?.[0];
   } else {
     dir = await window.api.openDirectory({
       defaultPath: options.savePath,

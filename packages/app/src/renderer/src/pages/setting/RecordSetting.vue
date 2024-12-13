@@ -165,9 +165,11 @@ const selectFolder = async (type: "recorder") => {
   let file: string | undefined;
 
   if (window.isWeb) {
-    file = await showDirectoryDialog({
-      type: "directory",
-    })[0];
+    file = (
+      await showDirectoryDialog({
+        type: "directory",
+      })
+    )?.[0];
   } else {
     file = await window.api.openDirectory({
       defaultPath: config.value.webhook.recoderFolder,
