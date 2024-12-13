@@ -49,29 +49,35 @@ const props = withDefaults(defineProps<Props>(), {
 });
 const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 
-watch(showModal, async (show) => {
-  if (show) {
-    const content = await window.api.common.readFile(props.files.danmu);
+watch(
+  () => props.files.danmu,
+  async () => {
+    initDanma();
+  },
+);
+
+const initDanma = async () => {
+  if (!props.files.danmu) return;
+
+  const content = await window.api.common.readFile(props.files.danmu);
+  videoRef.value?.switchAss(content);
+
+  if (props.hotProgress.visible) {
     const data = await window.api.danmu.genTimeData(props.files.danmu);
-
+    // @ts-ignore
+    videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
     setTimeout(() => {
-      videoRef.value?.switchAss(content);
-
       // @ts-ignore
       videoInstance.value.artplayerPluginHeatmap.setOptions(props.hotProgress);
-      // @ts-ignore
-      videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
 
-      if (props.hotProgress.visible) {
-        // @ts-ignore
-        videoInstance.value?.artplayerPluginHeatmap.show();
-      } else {
-        // @ts-ignore
-        videoInstance.value?.artplayerPluginHeatmap.hide();
-      }
-    }, 300);
+      // @ts-ignore
+      videoInstance.value?.artplayerPluginHeatmap.show();
+    }, 200);
+  } else {
+    // @ts-ignore
+    videoInstance.value?.artplayerPluginHeatmap.hide();
   }
-});
+};
 
 const videoInstance = ref<ArtplayerType | null>(null);
 const handleVideoReady = async (instance: ArtplayerType) => {
@@ -79,10 +85,7 @@ const handleVideoReady = async (instance: ArtplayerType) => {
   if (props.files.video) {
     videoRef.value?.switchUrl(props.files.video, props.files.video.endsWith(".flv") ? "flv" : "");
   }
-  if (props.files.danmu) {
-    const content = await window.api.common.readFile(props.files.danmu);
-    videoRef.value?.switchAss(content);
-  }
+  initDanma();
 };
 </script>
 

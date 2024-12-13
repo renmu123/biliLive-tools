@@ -243,8 +243,6 @@ function heatmap(art: Artplayer, danmuku: DanmaKu, options: Required<Options>) {
         init();
       });
       art.on("resize", () => {
-        // const width = art.played * $heatmap.offsetWidth;
-        // update(width);
         init();
       });
 
