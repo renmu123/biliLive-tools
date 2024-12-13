@@ -13,6 +13,7 @@ jobs:
     strategy:
       matrix:
         platform: [linux/amd64, linux/arm64]
+        service: [frontend, backend]
 
     steps:
       - name: Checkout repository
@@ -27,25 +28,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push frontend image
+      - name: Build and push ${{ matrix.service }} image
         uses: docker/build-push-action@v6
         with:
-          file: ./docker/frontend-dockerfile
+          file: ./docker/${{ matrix.service }}-dockerfile
           platforms: ${{ matrix.platform }}
           push: true
           tags: |
-            ${{ secrets.DOCKER_USERNAME }}/bililive-tools-frontend:latest
-            ${{ secrets.DOCKER_USERNAME }}/bililive-tools-frontend:${{ github.ref_name }}
-
-      - name: Build and push backend image
-        uses: docker/build-push-action@v6
-        with:
-          file: ./docker/backend-dockerfile
-          platforms: ${{ matrix.platform }}
-          push: true
-          tags: |
-            ${{ secrets.DOCKER_USERNAME }}/bililive-tools-backend:latest
-            ${{ secrets.DOCKER_USERNAME }}/bililive-tools-backend:${{ github.ref_name }}
+            ${{ secrets.DOCKER_USERNAME }}/bililive-tools-${{ matrix.service }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/bililive-tools-${{ matrix.service }}:${{ github.ref_name }}
 
   manual-build:
     if: github.event_name == 'workflow_dispatch'
@@ -53,6 +44,7 @@ jobs:
     strategy:
       matrix:
         platform: [linux/amd64, linux/arm64]
+        service: [frontend, backend]
 
     steps:
       - name: Checkout repository
@@ -67,18 +59,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push frontend image
+      - name: Build and push ${{ matrix.service }} image
         uses: docker/build-push-action@v6
         with:
-          platforms: ${{ matrix.platform }}
-          file: ./docker/frontend-dockerfile
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-frontend:test
-
-      - name: Build and push backend image
-        uses: docker/build-push-action@v6
-        with:
-          file: ./docker/backend-dockerfile
+          file: ./docker/${{ matrix.service }}-dockerfile
           platforms: ${{ matrix.platform }}
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-backend:test
+          tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-${{ matrix.service }}:test
