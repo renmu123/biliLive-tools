@@ -12,7 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [linux/amd64, linux/arm64]
         service: [frontend, backend]
 
     steps:
@@ -32,7 +31,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           file: ./docker/${{ matrix.service }}-dockerfile
-          platforms: ${{ matrix.platform }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/bililive-tools-${{ matrix.service }}:latest
@@ -43,7 +42,6 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        platform: [linux/amd64, linux/arm64]
         service: [frontend, backend]
 
     steps:
@@ -63,6 +61,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           file: ./docker/${{ matrix.service }}-dockerfile
-          platforms: ${{ matrix.platform }}
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-${{ matrix.service }}:test
