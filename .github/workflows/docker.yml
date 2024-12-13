@@ -24,9 +24,8 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push frontend image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
-          context: .
           file: ./docker/frontend-dockerfile
           push: true
           tags: |
@@ -34,9 +33,8 @@ jobs:
             ${{ secrets.DOCKER_USERNAME }}/bililive-tools-frontend:${{ github.ref_name }}
 
       - name: Build and push backend image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
-          context: .
           file: ./docker/backend-dockerfile
           push: true
           tags: |
@@ -61,17 +59,15 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push frontend image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
-          context: .
           file: ./docker/frontend-dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-frontend:test
 
       - name: Build and push backend image
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
-          context: .
           file: ./docker/backend-dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-backend:test
