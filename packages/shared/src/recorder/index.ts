@@ -223,6 +223,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
   });
 
   appConfig.on("update", () => {
+    const { ffmpegPath } = getFfmpegPath();
+    setFFMPEGPath(ffmpegPath);
     updateRecorderManager(manager, appConfig);
   });
 
