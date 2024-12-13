@@ -26,6 +26,7 @@ jobs:
       - name: Build and push frontend image
         uses: docker/build-push-action@v2
         with:
+          context: .
           file: ./docker/frontend-dockerfile
           push: true
           tags: |
@@ -35,6 +36,7 @@ jobs:
       - name: Build and push backend image
         uses: docker/build-push-action@v2
         with:
+          context: .
           file: ./docker/backend-dockerfile
           push: true
           tags: |
@@ -61,7 +63,7 @@ jobs:
       - name: Build and push frontend image
         uses: docker/build-push-action@v2
         with:
-          context: ./docker
+          context: .
           file: ./docker/frontend-dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-frontend:test
@@ -69,7 +71,7 @@ jobs:
       - name: Build and push backend image
         uses: docker/build-push-action@v2
         with:
-          context: ./docker
+          context: .
           file: ./docker/backend-dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-backend:test
