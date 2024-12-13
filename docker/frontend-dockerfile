@@ -13,9 +13,6 @@ COPY . .
 # 安装目录依赖
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
 
-RUN pnpm run install:bin
-
-
 # 构建前端项目
 ENV VITE_DEFAULT_SERVER=http://127.0.0.1:18010
 RUN pnpm run build:webui
