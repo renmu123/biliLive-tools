@@ -1,7 +1,18 @@
+import os from "node:os";
+
 import CommonPreset from "./preset.js";
 
 import type { DanmuConfig, DanmuPreset as DanmuPresetType } from "@biliLive-tools/types";
 import type { GlobalConfig } from "@biliLive-tools/types";
+
+let fontname = "SimHei";
+if (os.platform() === "win32") {
+  fontname = "Microsoft YaHei";
+} else if (os.platform() === "darwin") {
+  fontname = "PingFang SC";
+} else if (os.platform() === "linux") {
+  fontname = "Noto Sans SC";
+}
 
 export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   resolution: [1920, 1080],

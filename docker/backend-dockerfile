@@ -33,7 +33,7 @@ COPY --from=build /app/packages/app/resources/bin /app/bin
 COPY --from=build /app/docker/config.json ./
 
 # 下载字体文件
-RUN curl -L -o /usr/local/share/fonts/simhei.ttf https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/simhei.ttf
+RUN curl -L -o /usr/local/share/fonts/NotoSansSC-Regular.ttf https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/NotoSansSC-Regular.ttf 
 
 ENV NODE_ENV=production
 ENV IS_DOCKER=true
