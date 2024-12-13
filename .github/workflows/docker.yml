@@ -10,6 +10,9 @@ jobs:
   build:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [linux/amd64, linux/arm64]
 
     steps:
       - name: Checkout repository
@@ -28,7 +31,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           file: ./docker/frontend-dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/bililive-tools-frontend:latest
@@ -38,7 +41,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           file: ./docker/backend-dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/bililive-tools-backend:latest
@@ -47,6 +50,9 @@ jobs:
   manual-build:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [linux/amd64, linux/arm64]
 
     steps:
       - name: Checkout repository
@@ -64,7 +70,7 @@ jobs:
       - name: Build and push frontend image
         uses: docker/build-push-action@v6
         with:
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           file: ./docker/frontend-dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-frontend:test
@@ -73,6 +79,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           file: ./docker/backend-dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ matrix.platform }}
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-backend:test
