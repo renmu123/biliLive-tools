@@ -28,6 +28,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           file: ./docker/frontend-dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/bililive-tools-frontend:latest
@@ -37,6 +38,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           file: ./docker/backend-dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/bililive-tools-backend:latest
@@ -62,6 +64,7 @@ jobs:
       - name: Build and push frontend image
         uses: docker/build-push-action@v6
         with:
+          platforms: linux/amd64,linux/arm64
           file: ./docker/frontend-dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-frontend:test
@@ -70,5 +73,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           file: ./docker/backend-dockerfile
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-backend:test
