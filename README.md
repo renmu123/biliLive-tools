@@ -139,7 +139,9 @@ services:
 
 可用于国内未备案机器，或懒得自部署的情况，如果你的接口是http协议，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者自部署，自部署参考[项目](https://github.com/renmu123/biliLive-webui)
 
-密钥为`appConfig.json`的`passKey`字段
+密钥为`appConfig.json`的`passKey`字段。
+
+不会保证web的兼容性，请自行保证网页端与服务端版本一致，浏览器兼容性为最新chrome版本
 
 线上地址：https://bililive.irenmu.com
 
