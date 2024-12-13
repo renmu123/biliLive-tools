@@ -1,13 +1,14 @@
 name: build and push docker
 
 on:
-  # push:
-  #   tags:
-  #     - "*"
+  push:
+    tags:
+      - "*"
   workflow_dispatch:
 
 jobs:
   build:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
