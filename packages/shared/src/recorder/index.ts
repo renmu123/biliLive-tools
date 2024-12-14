@@ -134,17 +134,15 @@ export async function createRecorderManager(appConfig: AppConfig) {
   });
 
   manager.on("RecorderDebugLog", ({ recorder, ...log }) => {
-    // console.error("Manager debug", log);
+    // TODO: 测试阶段，记录日志
+    // const debugMode = config.recorder.debugMode;
+    // if (!debugMode) return;
 
-    const debugMode = config.recorder.debugMode;
-    if (!debugMode) return;
-
-    if (log.type === "ffmpeg" && recorder.recordHandle) {
+    if (recorder.recordHandle) {
       const logFilePath = utils.replaceExtName(
         `${recorder.recordHandle.savePath}_${recorder.id}`,
         ".ffmpeg.log",
       );
-      // console.log("logFilePath", logFilePath);
       fs.appendFileSync(logFilePath, log.text + "\n");
       return;
     }
@@ -167,13 +165,13 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
     await sleep(4000);
     if (!recorder.liveInfo) {
-      logger.error("Manager videoFileCreated", { recorder, filename });
+      logger.error("Manager videoFileCreated Error", { recorder, filename });
       return;
     }
     const data = recorderConfig.get(recorder.id);
 
     data?.sendToWebhook &&
-      axios.post("http://localhost:18010/webhook/custom", {
+      axios.post("http://127.0.0.1:18010/webhook/custom", {
         event: "FileOpening",
         filePath: filename,
         roomId: recorder.channelId,
@@ -198,7 +196,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const data = recorderConfig.get(recorder.id);
 
     data?.sendToWebhook &&
-      axios.post("http://localhost:18010/webhook/custom", {
+      axios.post("http://127.0.0.1:18010/webhook/custom", {
         event: "FileClosed",
         filePath: filename,
         roomId: recorder.channelId,

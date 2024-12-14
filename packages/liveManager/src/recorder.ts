@@ -83,7 +83,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     living: boolean;
     owner: string;
     title: string;
-    startTime: Date;
+    startTime?: Date;
     avatar: string;
     cover: string;
   };

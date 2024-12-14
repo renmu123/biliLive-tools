@@ -59,7 +59,7 @@
         <n-form-item>
           <template #label>
             <span class="inline-flex">
-              发送至软件webhook
+              发送至webhook
               <Tip tip="你可以在设置中进行处理，主要用于弹幕压制以及上传功能"></Tip>
             </span>
           </template>
