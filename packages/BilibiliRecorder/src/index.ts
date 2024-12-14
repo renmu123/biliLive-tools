@@ -17,7 +17,7 @@ import type { Comment, GiveGift, SuperChat, Guard } from "@autorecord/manager";
 
 import { getInfo, getStream } from "./stream.js";
 import { assertStringType, ensureFolderExist } from "./utils.js";
-import { startListen, MsgHandler } from "blive-message-listener";
+import { startListen, MsgHandler } from "./blive-message-listener/index.js";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
@@ -147,7 +147,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           type: "comment",
           timestamp: msg.timestamp,
           text: msg.body.content,
+          // @ts-ignore
           color: msg.body.content_color,
+          // @ts-ignore
           mode: msg.body.type,
 
           sender: {
