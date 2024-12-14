@@ -64,29 +64,13 @@ jobs:
       - name: build
         run: pnpm run build:app
 
-      - name: build-cli-win
+      - name: Build Cli
         if: startsWith(matrix.os, 'windows')
-        run: pnpm run build:cli && pnpm run --filter bililive-cli zip:win
+        run: pnpm run --filter bililive-cli build:cli && pnpm run --filter bililive-cli zip:win
 
-      - name: build-cli-linux
+      - name: Build Cli
         if: startsWith(matrix.os, 'ubuntu')
-        run: pnpm run build:cli && pnpm run --filter bililive-cli zip:linux
-
-      # - name: remove ffmpeg.exe
-      #   if: startsWith(matrix.os, 'windows')
-      #   uses: JesseTG/rm@v1.0.3
-      #   with:
-      #     path: packages\app\resources\bin\ffmpeg.exe
-
-      # - name: remove ffprobe.exe
-      #   if: startsWith(matrix.os, 'windows')
-      #   uses: JesseTG/rm@v1.0.3
-      #   with:
-      #     path: packages\app\resources\bin\ffprobe.exe
-
-      # - name: build-win-no-ffmpeg
-      #   if: startsWith(matrix.os, 'windows')
-      #   run: pnpm run buid:win:app
+        run: pnpm run --filter bililive-cli build:cli && pnpm run --filter bililive-cli zip:linux
 
       - name: release
         if: env.is_tag == 'true'
@@ -101,18 +85,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload win artifact
+      - name: Upload artifact
         if: startsWith(matrix.os, 'windows') && env.is_tag == 'false'
         uses: actions/upload-artifact@v4
         with:
           name: Windows
           path: |
+            packages/app/dist/*.deb
+            packages/app/dist/*.snap
+            packages/app/dist/*.zip
+            packages/CLI/dist/*.zip
             packages/app/dist/*.exe
             packages/app/dist/*.zip
             packages/CLI/dist/*.zip
             packages/CLI/dist/*.exe
 
-      - name: Upload linux artifact
+      - name: Upload artifact
         if: startsWith(matrix.os, 'ubuntu') && env.is_tag == 'false'
         uses: actions/upload-artifact@v4
         with:
@@ -122,5 +110,9 @@ jobs:
             packages/app/dist/*.snap
             packages/app/dist/*.zip
             packages/CLI/dist/*.zip
+            packages/app/dist/*.exe
+            packages/app/dist/*.zip
+            packages/CLI/dist/*.zip
+            packages/CLI/dist/*.exe
 permissions:
   contents: write
