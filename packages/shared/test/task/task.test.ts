@@ -180,7 +180,7 @@ describe("TaskQueue", () => {
         expect(task1.exec).toHaveBeenCalled();
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(100);
+        await sleep(50);
         expect(task3.exec).toHaveBeenCalled();
         expect(task1.status).toBe("completed");
         expect(task2.status).toBe("completed");
@@ -307,7 +307,7 @@ describe("TaskQueue", () => {
         expect(task1.exec).toHaveBeenCalled();
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(100);
+        await sleep(50);
         expect(task3.exec).toHaveBeenCalled();
         expect(task1.status).toBe("completed");
         expect(task2.status).toBe("completed");
@@ -464,7 +464,7 @@ describe("TaskQueue", () => {
         expect(task1.exec).toHaveBeenCalled();
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(100);
+        await sleep(50);
         expect(task3.exec).toHaveBeenCalled();
         expect(task1.status).toBe("completed");
         expect(task2.status).toBe("completed");
