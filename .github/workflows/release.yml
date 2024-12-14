@@ -39,9 +39,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: install-deps-for-better-sqlite3
-        run: node ./scripts/github-ci-better-sqlite3.js
-
       - name: Cache Electron
         uses: actions/cache@v4
         with:
