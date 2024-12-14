@@ -86,10 +86,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifact
-        if: startsWith(matrix.os, 'windows') && env.is_tag == 'false'
+        if: env.is_tag == 'false'
         uses: actions/upload-artifact@v4
         with:
-          name: Windows
+          name: ${{ matrix.os }}
           path: |
             packages/app/dist/*.deb
             packages/app/dist/*.snap
@@ -100,19 +100,5 @@ jobs:
             packages/CLI/dist/*.zip
             packages/CLI/dist/*.exe
 
-      - name: Upload artifact
-        if: startsWith(matrix.os, 'ubuntu') && env.is_tag == 'false'
-        uses: actions/upload-artifact@v4
-        with:
-          name: Linux
-          path: |
-            packages/app/dist/*.deb
-            packages/app/dist/*.snap
-            packages/app/dist/*.zip
-            packages/CLI/dist/*.zip
-            packages/app/dist/*.exe
-            packages/app/dist/*.zip
-            packages/CLI/dist/*.zip
-            packages/CLI/dist/*.exe
 permissions:
   contents: write
