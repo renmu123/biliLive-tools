@@ -383,3 +383,33 @@ export function normalizePoints(points: { x: number; y: number }[], width: numbe
     y: ((p.y - yMin) / yRange) * height,
   }));
 }
+
+/**
+ * 解析出保存文件夹
+ */
+export const parseSavePath = async (
+  input: string,
+  options: {
+    saveType: 1 | 2;
+    savePath: string;
+  },
+  createDir = true,
+) => {
+  let savePath: string;
+  if (options.saveType === 1) {
+    savePath = path.dirname(input);
+  } else if (options.saveType === 2) {
+    savePath = path.resolve(path.dirname(input), options.savePath);
+  } else {
+    throw new Error("保存类型错误");
+  }
+
+  if (!savePath) {
+    throw new Error("没有找到保存路径");
+  }
+  if (createDir && !(await pathExists(savePath))) {
+    await fs.ensureDir(savePath);
+  }
+
+  return savePath;
+};

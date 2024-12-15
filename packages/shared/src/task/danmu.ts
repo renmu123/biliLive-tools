@@ -4,7 +4,7 @@ import os from "node:os";
 import readline from "node:readline";
 import { isNumber } from "lodash-es";
 
-import { pathExists, trashItem, uuid, getTempPath } from "../utils/index.js";
+import { pathExists, trashItem, uuid, getTempPath, parseSavePath } from "../utils/index.js";
 import log from "../utils/log.js";
 import { appConfig } from "../config.js";
 import { DanmakuFactory } from "../danmu/danmakuFactory.js";
@@ -36,7 +36,6 @@ const addConvertDanmu2AssTask = async (
   originInput: string,
   output: string,
   danmuOptions: DanmuConfig,
-  autoRun: boolean = true,
   options: { removeOrigin: boolean; copyInput?: boolean },
 ) => {
   if (await pathExists(output)) {
@@ -80,7 +79,7 @@ const addConvertDanmu2AssTask = async (
     },
     {
       onEnd: async () => {
-        if (options.removeOrigin && (await pathExists(originInput))) {
+        if (options.removeOrigin) {
           await trashItem(originInput);
         }
 
@@ -107,14 +106,14 @@ const addConvertDanmu2AssTask = async (
       },
     },
   );
-  taskQueue.addTask(task, autoRun);
+  taskQueue.addTask(task, true);
   return task;
 };
 
 export const convertXml2Ass = async (
   file: {
     input: string;
-    output?: string;
+    output: string;
   },
   danmuOptions: DanmuConfig,
   options: DanmuOptions = {
@@ -122,36 +121,13 @@ export const convertXml2Ass = async (
     copyInput: false,
   },
 ) => {
-  if (options.saveRadio === 2 && !options.savePath) {
-    throw new Error("savePath 不能为空");
-  }
-  if (options.saveRadio === 2 && !(await fs.pathExists(options.savePath!))) {
-    throw new Error("保存路径不存在");
-  }
-
-  const tasks: {
-    output?: string;
-    taskId?: string;
-  }[] = [];
-
-  const { dir, name } = parse(file.input);
-
-  let outputName = file.output;
-  if (!outputName) {
-    outputName = `${name}.ass`;
-  } else {
-    outputName = `${outputName}.ass`;
-  }
-  let output = join(dir, outputName);
-  if (options.saveRadio === 2 && options.savePath) {
-    output = join(options.savePath, `${outputName}`);
-  }
-
-  const input = file.input;
-  const task = await addConvertDanmu2AssTask(input, output, danmuOptions, true, options);
-  tasks.push({
-    taskId: task.taskId,
+  let savePath = await parseSavePath(file.input, {
+    saveType: options.saveRadio,
+    savePath: options.savePath,
   });
+  const output = join(savePath, `${file.output}.ass`);
+
+  const task = await addConvertDanmu2AssTask(file.input, output, danmuOptions, options);
 
   return task;
 };

@@ -30,24 +30,23 @@
       <n-radio-group v-model:value="options.saveRadio" class="radio-group">
         <n-space class="flex align-center column">
           <n-radio :value="1"> 保存到原始文件夹 </n-radio>
-          <n-radio :value="2">
-            <n-input
-              v-model:value="options.savePath"
-              type="text"
-              placeholder="选择文件夹"
-              style="width: 300px"
-            />
-          </n-radio>
+          <n-radio :value="2"> </n-radio>
+          <n-input
+            title="支持相对路径"
+            v-model:value="options.savePath"
+            type="text"
+            placeholder="选择文件夹"
+            style="width: 300px"
+          />
           <n-icon size="30" style="margin-left: -10px" class="pointer" @click="getDir">
             <FolderOpenOutline />
           </n-icon>
         </n-space>
       </n-radio-group>
-      <!-- <div style="margin-top: 10px">
+      <div style="margin-top: 10px">
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
-
-        <n-checkbox v-model:checked="options.openFolder"> 完成后打开文件夹 </n-checkbox>
-      </div> -->
+        <!-- <n-checkbox v-model:checked="options.openFolder"> 完成后打开文件夹 </n-checkbox> -->
+      </div>
     </div>
     <DanmuFactorySettingDailog
       v-model:visible="show"
@@ -112,7 +111,6 @@ const convert = async () => {
     showCheckbox: true,
     showAgainKey: "danmuFactoryConvert-filename",
   });
-  console.log(status);
   if (!status) return;
 
   const presetId = danmuPresetId.value;
