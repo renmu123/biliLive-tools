@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  trash:
+    hash: knfqho266jmayp7bpztl4tszxi
+    path: patches/trash.patch
+
 importers:
 
   .:
@@ -224,7 +229,7 @@ importers:
         version: 7.6.3
       trash:
         specifier: ^9.0.0
-        version: 9.0.0
+        version: 9.0.0(patch_hash=knfqho266jmayp7bpztl4tszxi)
       utf-8-validate:
         specifier: ^6.0.5
         version: 6.0.5
@@ -521,7 +526,7 @@ importers:
         version: 2.1.0
       trash:
         specifier: ^9.0.0
-        version: 9.0.0
+        version: 9.0.0(patch_hash=knfqho266jmayp7bpztl4tszxi)
       tree-kill:
         specifier: ^1.2.2
         version: 1.2.2
@@ -9567,7 +9572,7 @@ snapshots:
 
   tr46@0.0.3: {}
 
-  trash@9.0.0:
+  trash@9.0.0(patch_hash=knfqho266jmayp7bpztl4tszxi):
     dependencies:
       '@sindresorhus/chunkify': 1.0.0
       '@stroncium/procfs': 1.2.1

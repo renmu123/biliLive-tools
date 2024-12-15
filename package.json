@@ -20,11 +20,11 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "axios": "^1.7.8",
     "fs-extra": "^11.2.0",
     "jszip": "^3.10.1",
     "lodash-es": "^4.17.21",
-    "uuid": "^10.0.0",
-    "axios": "^1.7.8"
+    "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@kineticcafe/rollup-plugin-delete": "3.0.1",
@@ -43,5 +43,10 @@
     "typescript": "5.6.3",
     "vitest": "^2.1.8"
   },
-  "packageManager": "pnpm@9.12.3+sha512.cce0f9de9c5a7c95bef944169cc5dfe8741abfb145078c0d508b868056848a87c81e626246cb60967cbd7fd29a6c062ef73ff840d96b3c86c40ac92cf4a813ee"
+  "packageManager": "pnpm@9.12.3+sha512.cce0f9de9c5a7c95bef944169cc5dfe8741abfb145078c0d508b868056848a87c81e626246cb60967cbd7fd29a6c062ef73ff840d96b3c86c40ac92cf4a813ee",
+  "pnpm": {
+    "patchedDependencies": {
+      "trash": "patches/trash.patch"
+    }
+  }
 }

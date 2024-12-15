@@ -1,0 +1,12 @@
+diff --git a/lib/chunked-exec.js b/lib/chunked-exec.js
+index 9004c2fbfc36e965661a92483c46167e1db5606b..74e28fda835e4bc7d3ec04b682fe5747d9f2e2c2 100644
+--- a/lib/chunked-exec.js
++++ b/lib/chunked-exec.js
+@@ -8,6 +8,6 @@ const pExecFile = promisify(execFile);
+ export default async function chunkedExec(binary, paths, maxPaths) {
+ 	for (const chunk of chunkify(paths, maxPaths)) {
+ 		// eslint-disable-next-line no-await-in-loop
+-		await pExecFile(fileURLToPath(binary), chunk);
++		await pExecFile(fileURLToPath(binary).replace("app.asar", "app.asar.unpacked"), chunk);
+ 	}
+ }
