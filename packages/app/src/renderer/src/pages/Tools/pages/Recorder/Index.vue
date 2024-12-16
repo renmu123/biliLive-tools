@@ -258,6 +258,14 @@ function cleanInterval() {
   intervalId = null;
 }
 
+// 十分钟更新一次直播间信息
+setInterval(
+  () => {
+    getLiveInfo();
+  },
+  10 * 60 * 1000,
+);
+
 onDeactivated(() => {
   cleanInterval();
 });

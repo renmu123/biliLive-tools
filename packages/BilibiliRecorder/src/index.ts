@@ -146,9 +146,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       onIncomeDanmu: (msg) => {
         const extraDataController = streamManager.getExtraDataController();
         if (!extraDataController) return;
-        // console.log("msg", msg.body.content);
 
-        // TODO: 颜色处理，需要等上游发布
         const comment: Comment = {
           type: "comment",
           timestamp: msg.timestamp,
