@@ -41,6 +41,7 @@ async function streamLogs() {
   eventSource.onmessage = function (event) {
     const data = JSON.parse(event.data);
     if (!videoInstance.value) return;
+    if (!data.text) return;
 
     // @ts-ignore
     videoInstance?.value?.artplayerPluginDanmuku?.emit({
