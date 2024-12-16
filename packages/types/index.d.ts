@@ -411,8 +411,8 @@ export interface AppConfig {
 // export type LogLevel = ElectronLoGLevel;
 
 export interface DanmuOptions {
-  saveRadio?: 1 | 2; // 1：保存到原始文件夹，2：保存到特定文件夹
-  savePath?: string;
+  saveRadio: 1 | 2; // 1：保存到原始文件夹，2：保存到特定文件夹
+  savePath: string;
 
   removeOrigin: boolean; // 完成后移除源文件
   copyInput?: boolean; // 复制源文件到临时文件夹

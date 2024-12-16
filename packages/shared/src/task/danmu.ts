@@ -117,6 +117,8 @@ export const convertXml2Ass = async (
   },
   danmuOptions: DanmuConfig,
   options: DanmuOptions = {
+    saveRadio: 1,
+    savePath: "",
     removeOrigin: false,
     copyInput: false,
   },
