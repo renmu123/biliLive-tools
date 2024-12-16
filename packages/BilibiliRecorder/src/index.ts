@@ -275,7 +275,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   };
 
   const isInvalidStream = createInvalidStreamChecker();
-  const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
+  const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 3 * 10e3);
   const command = createFFMPEGBuilder()
     .input(stream.url)
     .addInputOptions(
@@ -286,15 +286,25 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     )
     .outputOptions(ffmpegOutputOptions)
     .output(streamManager.videoFilePath)
-    .on("start", () => {
-      streamManager.handleVideoStarted();
+    .on("start", async () => {
+      try {
+        await streamManager.handleVideoStarted();
+      } catch (err) {
+        onEnd("ffmpeg start error");
+        this.emit("DebugLog", { type: "common", text: String(err) });
+      }
     })
     .on("error", onEnd)
     .on("end", () => onEnd("finished"))
     .on("stderr", async (stderrLine) => {
       assertStringType(stderrLine);
       if (utils.isFfmpegStartSegment(stderrLine)) {
-        await streamManager.handleVideoStarted(stderrLine);
+        try {
+          await streamManager.handleVideoStarted(stderrLine);
+        } catch (err) {
+          onEnd("ffmpeg start error");
+          this.emit("DebugLog", { type: "common", text: String(err) });
+        }
       }
       this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 
