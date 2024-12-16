@@ -153,9 +153,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           type: "comment",
           timestamp: msg.timestamp,
           text: msg.body.content,
-          // @ts-ignore
           color: msg.body.content_color,
-          // @ts-ignore
           mode: msg.body.type,
 
           sender: {
