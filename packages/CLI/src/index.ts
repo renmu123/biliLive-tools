@@ -19,10 +19,10 @@ interface Config {
 }
 
 process.on("uncaughtException", function (error) {
-  console.error("uncaughtException", error);
+  console.error(`${new Date().toISOString()} uncaughtException`, error);
 });
 process.on("unhandledRejection", function (error) {
-  console.error("unhandledRejection", error);
+  console.error(`${new Date().toISOString()} unhandledRejection`, error);
 });
 
 const program = new Command();
