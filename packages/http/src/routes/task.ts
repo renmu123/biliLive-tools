@@ -84,7 +84,7 @@ router.post("/convertXml2Ass", async (ctx) => {
     preset: DanmuConfig;
     options: {
       saveRadio: 1 | 2;
-      savePath?: string;
+      savePath: string;
       removeOrigin?: boolean;
       copyInput?: boolean;
     };
