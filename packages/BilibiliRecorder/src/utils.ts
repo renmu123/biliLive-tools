@@ -67,3 +67,35 @@ export function assertNumberType(data: unknown, msg?: string): asserts data is n
 export function assertObjectType(data: unknown, msg?: string): asserts data is object {
   assert(typeof data === "object", msg);
 }
+
+export function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean {
+  let prevFrame = 0;
+  let frameUnchangedCount = 0;
+
+  return (ffmpegLogLine) => {
+    const streamInfo = ffmpegLogLine.match(
+      /frame=\s*(\d+) fps=.*? q=.*? size=\s*(\d+)kB time=.*? bitrate=.*? speed=.*?/,
+    );
+    if (streamInfo != null) {
+      const [, frameText] = streamInfo;
+      const frame = Number(frameText);
+
+      if (frame === prevFrame) {
+        if (++frameUnchangedCount >= 10) {
+          return true;
+        }
+      } else {
+        prevFrame = frame;
+        frameUnchangedCount = 0;
+      }
+
+      return false;
+    }
+
+    // if (ffmpegLogLine.includes("HTTP error 404 Not Found")) {
+    //   return true;
+    // }
+
+    return false;
+  };
+}

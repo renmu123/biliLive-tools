@@ -16,7 +16,7 @@ import {
 import type { Comment, GiveGift, SuperChat, Guard } from "@autorecord/manager";
 
 import { getInfo, getStream } from "./stream.js";
-import { assertStringType, ensureFolderExist } from "./utils.js";
+import { assertStringType, ensureFolderExist, createInvalidStreamChecker } from "./utils.js";
 import { startListen, MsgHandler } from "./blive-message-listener/index.js";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
@@ -82,6 +82,12 @@ const ffmpegOutputOptions: string[] = [
   "frag_keyframe",
   "-min_frag_duration",
   "60000000",
+  "-reconnect",
+  "1",
+  "-reconnect_streamed",
+  "1",
+  "-reconnect_delay_max",
+  "5",
 ];
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
@@ -268,7 +274,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const isInvalidStream = utils.createInvalidStreamChecker();
+  const isInvalidStream = createInvalidStreamChecker();
   const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
   const command = createFFMPEGBuilder()
     .input(stream.url)
