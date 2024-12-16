@@ -20,9 +20,16 @@ import {
   parseSavePath,
 } from "../utils/index.js";
 import log from "../utils/log.js";
-import { taskQueue, FFmpegTask } from "./task.js";
+import { taskQueue, FFmpegTask, AbstractTask } from "./task.js";
+import { isEmptyDanmu, convertXml2Ass, genHotProgress } from "./danmu.js";
 
-import type { FfmpegOptions, VideoMergeOptions, GlobalConfig } from "@biliLive-tools/types";
+import type {
+  FfmpegOptions,
+  VideoMergeOptions,
+  GlobalConfig,
+  DanmuConfig,
+  hotProgressOptions,
+} from "@biliLive-tools/types";
 import type Ffmpeg from "@biliLive-tools/types/ffmpeg.js";
 
 export const getFfmpegPath = () => {
@@ -741,4 +748,110 @@ export const mergeVideos = async (
     text: "添加到任务队列",
     taskId: task.taskId,
   };
+};
+
+const promiseTask = async (task: AbstractTask) => {
+  return new Promise((resolve, reject) => {
+    task.on("task-end", () => {
+      resolve(task.output);
+    });
+    task.on("task-error", () => {
+      reject();
+    });
+    task.on("task-cancel", () => {
+      reject();
+    });
+  });
+};
+
+/**
+ * 烧录字幕到视频
+ */
+export const burn = async (
+  files: { videoFilePath: string; subtitleFilePath: string },
+  output: string,
+  options: {
+    danmaOptions: DanmuConfig;
+    ffmpegOptions: FfmpegOptions;
+    hotProgressOptions: Omit<hotProgressOptions, "videoPath">;
+    hasHotProgress: boolean;
+  },
+) => {
+  if (options.ffmpegOptions.encoder === "copy") {
+    throw new Error("视频编码不能为copy");
+  }
+
+  const { videoFilePath, subtitleFilePath } = files;
+  let assFilePath = subtitleFilePath;
+  let hotProgressInput: string | undefined = undefined;
+  let startTimestamp = 0;
+  let timestampFont: string | undefined = undefined;
+
+  const videoMeta = await readVideoMeta(videoFilePath);
+  const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
+  const { width, height } = videoStream || {};
+  const duration = videoMeta.format.duration;
+
+  // 弹幕转换
+  if (subtitleFilePath.endsWith(".xml")) {
+    if (await isEmptyDanmu(subtitleFilePath)) {
+      throw new Error("弹幕文件为空，无需压制");
+    }
+    const name = uuid();
+    assFilePath = join(getTempPath(), `${name}.ass`);
+    const danmaOptions = options.danmaOptions;
+    // 开启跟随视频分辨率
+    if (danmaOptions.resolutionResponsive && width && height) {
+      danmaOptions.resolution[0] = width;
+      danmaOptions.resolution[1] = height;
+    }
+    const task = await convertXml2Ass(
+      {
+        input: subtitleFilePath,
+        output: name,
+      },
+      options.danmaOptions,
+      {
+        saveRadio: 2,
+        savePath: getTempPath(),
+        removeOrigin: false,
+        copyInput: true,
+      },
+    );
+    await promiseTask(task);
+    startTimestamp = await readXmlTimestamp(files.subtitleFilePath);
+    if (options.ffmpegOptions.timestampFollowDanmu) {
+      timestampFont = options.danmaOptions.fontname;
+    }
+  }
+  // 高能进度条转换
+  if (options.hasHotProgress) {
+    const hotProgressOptions = options.hotProgressOptions;
+    const task = await genHotProgress(files.subtitleFilePath, {
+      ...hotProgressOptions,
+      width,
+      duration,
+    });
+    await promiseTask(task);
+    hotProgressInput = task.output;
+  }
+
+  // 烧录
+  const task = await mergeAssMp4(
+    {
+      videoFilePath,
+      assFilePath,
+      outputPath: output,
+      hotProgressFilePath: hotProgressInput,
+    },
+    {
+      removeOrigin: false,
+      override: true,
+      startTimestamp,
+      timestampFont,
+    },
+    options.ffmpegOptions,
+  );
+
+  return task;
 };

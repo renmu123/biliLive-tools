@@ -1,7 +1,12 @@
 import request from "./request";
 
 import type { Task } from "@renderer/types";
-import type { DanmuPreset, FfmpegOptions } from "@biliLive-tools/types";
+import type {
+  DanmuPreset,
+  FfmpegOptions,
+  DanmuConfig,
+  hotProgressOptions,
+} from "@biliLive-tools/types";
 
 /**
  * 获取任务列表
@@ -108,6 +113,24 @@ const transcode = async (
   return res.data;
 };
 
+const burn = async (
+  files: { videoFilePath: string; subtitleFilePath: string },
+  output: string,
+  options: {
+    danmaOptions: DanmuConfig;
+    ffmpegOptions: FfmpegOptions;
+    hotProgressOptions: Omit<hotProgressOptions, "videoPath">;
+    hasHotProgress: boolean;
+  },
+) => {
+  const res = await request.post(`/task/burn`, {
+    files,
+    output,
+    options,
+  });
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -120,6 +143,7 @@ const task = {
   convertXml2Ass,
   mergeVideos,
   transcode,
+  burn,
 };
 
 export default task;

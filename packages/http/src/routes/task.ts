@@ -14,6 +14,7 @@ import {
   // mergeAssMp4,
   mergeVideos,
   transcode,
+  burn,
 } from "@biliLive-tools/shared/task/video.js";
 
 import type { DanmuConfig } from "@biliLive-tools/types";
@@ -165,6 +166,13 @@ router.post("/transcode", async (ctx) => {
   }
 
   const task = await transcode(input, outputName, ffmpegOptions, options);
+  ctx.body = { taskId: task.taskId };
+});
+
+router.post("/burn", async (ctx) => {
+  const { files, output, options } = ctx.request.body as any;
+
+  const task = await burn(files, output, options);
   ctx.body = { taskId: task.taskId };
 });
 

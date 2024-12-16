@@ -178,7 +178,7 @@ import ffmpegSetting from "./components/ffmpegSetting.vue";
 import PreviewModal from "./components/previewModal.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
 import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
-import { danmuPresetApi, biliApi, commonApi } from "@renderer/apis";
+import { danmuPresetApi, biliApi, taskApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 
 import { deepRaw, uuid, formatFile } from "@renderer/utils";
@@ -190,7 +190,6 @@ import type {
   DanmuConfig,
   BiliupPreset,
   FfmpegPreset,
-  hotProgressOptions,
   DanmuOptions,
 } from "@biliLive-tools/types";
 
@@ -324,214 +323,53 @@ const convert = async () => {
 
   let { inputDanmuFile } = data;
   const { inputVideoFile } = data;
-  const rawInputDanmuFile = inputDanmuFile;
-  const isXmlFile = inputDanmuFile.ext === ".xml";
+
+  const { taskId } = await taskApi.burn(
+    {
+      videoFilePath: inputVideoFile.path,
+      subtitleFilePath: inputDanmuFile.path,
+    },
+    outputPath,
+    {
+      danmaOptions: rawDanmuConfig,
+      ffmpegOptions: rawFfmpegOptions,
+      hotProgressOptions: {
+        interval: rawClientOptions.hotProgressSample,
+        height: rawClientOptions.hotProgressHeight,
+        color: rawClientOptions.hotProgressColor,
+        fillColor: rawClientOptions.hotProgressFillColor,
+      },
+      hasHotProgress: rawClientOptions.hotProgress,
+    },
+  );
+  await listenTask(taskId);
   // console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
 
-  if (isXmlFile) {
-    // xml文件转换
-    const targetAssFile = await handleXmlFile(
-      inputDanmuFile,
-      { ...rawClientOptions, removeOrigin: false },
-      rawDanmuConfig,
-    );
-    inputDanmuFile = targetAssFile;
-  }
-
-  let hotProgressInput: string | undefined = undefined;
-  if (rawClientOptions.hotProgress) {
-    hotProgressInput = await genHotProgress(inputDanmuFile.path, {
-      interval: rawClientOptions.hotProgressSample,
-      height: rawClientOptions.hotProgressHeight,
-      color: rawClientOptions.hotProgressColor,
-      fillColor: rawClientOptions.hotProgressFillColor,
-      videoPath: inputVideoFile.path,
-    });
-  }
-
-  // 压制任务
-  const output = await handleVideoMerge(
-    {
-      inputVideoFilePath: inputVideoFile?.path,
-      inputAssFilePath: inputDanmuFile.path,
-      inputHotProgressFilePath: hotProgressInput,
-      outputPath: outputPath,
-      rawInputDanmuFile: rawInputDanmuFile,
-      timestampFont: isXmlFile ? rawDanmuConfig.fontname : undefined,
-    },
-    rawClientOptions,
-    rawFfmpegOptions,
-  );
-
   if (rawClientOptions.autoUpload) {
-    await upload(output, rawPresetOptions, rawAid);
+    await upload(outputPath, rawPresetOptions, rawAid);
   }
 
   return true;
 };
 
-/**
- * 处理高能进度条
- */
-const genHotProgress = async (input: string, options: hotProgressOptions): Promise<string> => {
+// 任务监听
+const listenTask = async (taskId: string): Promise<string> => {
   return new Promise((resolve, reject) => {
-    window.api.danmu.genHotProgress(input, options).then((result: any) => {
-      const taskId = result.taskId;
-      window.api.task.on(taskId, "end", (data) => {
-        console.log("end", data);
-        notice.success({
-          title: "高能进度条转换成功",
-          duration: 3000,
-        });
-        resolve(data.output);
-      });
+    fileList.value = [];
+    aid.value = "";
 
-      window.api.task.on(taskId, "error", (data) => {
-        reject(data.err);
+    window.api.task.on(taskId, "end", (data) => {
+      console.log("end", data);
+      notice.success({
+        title: "压制成功",
+        duration: 3000,
       });
+      resolve(data.output);
     });
-  });
-};
 
-// 处理xml文件
-const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfig: DanmuConfig) => {
-  const isEmpty = await window.api.danmu.isEmptyDanmu(danmuFile.path);
-  if (isEmpty) {
-    const msg = "弹幕文件中不存在弹幕，无需压制";
-    notice.warning({
-      title: msg,
-      duration: 1000,
+    window.api.task.on(taskId, "error", (data) => {
+      reject(data.err);
     });
-    throw new Error(msg);
-  }
-
-  const targetAssFilePath = await convertDanmu2Ass(
-    {
-      input: danmuFile.path,
-      output: uuid(),
-    },
-    { ...options, saveRadio: 2, savePath: await window.api.common.getTempPath() },
-    danmuConfig,
-  );
-
-  return formatFile(targetAssFilePath);
-};
-
-/**
- * xml文件转换为ass
- */
-const convertDanmu2Ass = async (
-  file: {
-    input: string;
-    output: string;
-  },
-  options: DanmuOptions,
-  config: DanmuConfig,
-): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    window.api.danmu
-      .convertXml2Ass(file, config, { ...options, copyInput: true })
-      .then((result: any) => {
-        const taskId = result.taskId;
-        window.api.task.on(taskId, "end", (data) => {
-          resolve(data.output);
-        });
-
-        window.api.task.on(taskId, "error", (data) => {
-          reject(data.err);
-        });
-      });
-  });
-};
-
-// 视频压制
-const handleVideoMerge = async (
-  convertOptions: {
-    inputVideoFilePath: string;
-    inputAssFilePath: string;
-    outputPath: string;
-    inputHotProgressFilePath: string | undefined;
-    rawInputDanmuFile: File;
-    timestampFont?: string;
-  },
-  options: ClientOptions,
-  ffmpegOptions: FfmpegOptions,
-) => {
-  const { inputVideoFilePath, inputAssFilePath, outputPath, inputHotProgressFilePath } =
-    convertOptions;
-  notice.info({
-    title: "已加入队列，根据不同设置压制需要消耗大量时间，CPU，GPU，期间请勿关闭本软件",
-    duration: 3000,
-  });
-
-  let output: string;
-  try {
-    let startTimestamp = 0;
-    if (convertOptions.rawInputDanmuFile.ext === ".xml") {
-      try {
-        startTimestamp = await commonApi.readXmlTimestamp(convertOptions.rawInputDanmuFile.path);
-      } catch (err) {
-        console.log(err);
-      }
-    }
-    output = await createMergeVideoAssTask(
-      inputVideoFilePath,
-      inputAssFilePath,
-      inputHotProgressFilePath,
-      outputPath,
-      { ...deepRaw(options), startTimestamp, timestampFont: convertOptions.timestampFont },
-      ffmpegOptions,
-    );
-  } catch (err) {
-    let msg = "转换失败";
-    if (err) {
-      msg = msg + err;
-    }
-    throw new Error(msg);
-  }
-
-  return output;
-};
-
-// 压制任务
-const createMergeVideoAssTask = async (
-  videoFilePath: string,
-  assFilePath: string,
-  hotProgressFilePath: string | undefined,
-  outputPath: string,
-  options: ClientOptions & { startTimestamp: number; timestampFont?: string },
-  ffmpegOptions: FfmpegOptions,
-): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    window.api
-      .mergeAssMp4(
-        {
-          videoFilePath: videoFilePath,
-          assFilePath: assFilePath,
-          outputPath: outputPath,
-          hotProgressFilePath: hotProgressFilePath,
-        },
-        { ...options, removeOrigin: false, override: true },
-        ffmpegOptions,
-      )
-      .then(({ taskId, output }: { taskId?: string; output?: string }) => {
-        if (!taskId) return resolve(output as string);
-        fileList.value = [];
-        aid.value = "";
-
-        window.api.task.on(taskId, "end", (data) => {
-          console.log("end", data);
-          notice.success({
-            title: "压制成功",
-            duration: 3000,
-          });
-          resolve(data.output);
-        });
-
-        window.api.task.on(taskId, "error", (data) => {
-          reject(data.err);
-        });
-      });
   });
 };
 
@@ -692,6 +530,57 @@ const preview = async () => {
   } else if (data.inputDanmuFile.path.endsWith(".ass")) {
     previewFiles.value.danmu = data.inputDanmuFile.path;
   }
+};
+
+// 处理xml文件
+const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfig: DanmuConfig) => {
+  const isEmpty = await window.api.danmu.isEmptyDanmu(danmuFile.path);
+  if (isEmpty) {
+    const msg = "弹幕文件中不存在弹幕，无需压制";
+    notice.warning({
+      title: msg,
+      duration: 1000,
+    });
+    throw new Error(msg);
+  }
+
+  const targetAssFilePath = await convertDanmu2Ass(
+    {
+      input: danmuFile.path,
+      output: uuid(),
+    },
+    { ...options, saveRadio: 2, savePath: await window.api.common.getTempPath() },
+    danmuConfig,
+  );
+
+  return formatFile(targetAssFilePath);
+};
+
+/**
+ * xml文件转换为ass
+ */
+const convertDanmu2Ass = async (
+  file: {
+    input: string;
+    output: string;
+  },
+  options: DanmuOptions,
+  config: DanmuConfig,
+): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    window.api.danmu
+      .convertXml2Ass(file, config, { ...options, copyInput: true })
+      .then((result: any) => {
+        const taskId = result.taskId;
+        window.api.task.on(taskId, "end", (data) => {
+          resolve(data.output);
+        });
+
+        window.api.task.on(taskId, "error", (data) => {
+          reject(data.err);
+        });
+      });
+  });
 };
 </script>
 
