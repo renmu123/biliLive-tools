@@ -343,17 +343,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         command.ffmpegProc?.stdin?.write("q");
         // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
         client?.close();
+        this.usedStream = undefined;
+        this.usedSource = undefined;
+
+        await streamManager.handleVideoCompleted();
       } catch (err) {
         // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
         this.emit("DebugLog", { type: "common", text: String(err) });
       }
 
-      this.usedStream = undefined;
-      this.usedSource = undefined;
-      // TODO: other codes
-      // TODO: emit update event
-
-      await streamManager.handleVideoCompleted();
       this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
       this.off("videoFileCreated");
       this.recordHandle = undefined;
