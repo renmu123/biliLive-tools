@@ -34,6 +34,8 @@ export async function getRoomInit(roomIdOrShortId: number) {
       uid: number;
       live_status: LiveStatus;
       live_time: number;
+      // 是否加密
+      encrypted: boolean;
       // 普通直播间 / 付费直播间
       is_sp: 0 | 1;
     }>
@@ -112,6 +114,35 @@ export async function getStatusInfoByUIDs<UID extends number>(userIds: UID[]) {
   assert(res.data.code === 0, `Unexpected resp, code ${res.data.code}, msg ${res.data.message}`);
 
   return res.data.data;
+}
+
+export async function getRoomBaseInfo<RoomId extends number>(roomId: RoomId) {
+  const res = await requester.get<
+    BilibiliResp<{
+      by_uids: {};
+      by_room_ids: Record<
+        RoomId,
+        {
+          title: string;
+          uname: string;
+          live_time: string;
+          // face: string;
+          live_status: LiveStatus;
+          cover: string;
+          // live_time: number;
+          // online: number;
+          // room_id: number;
+          // short_id: number;
+        }
+      >;
+    }>
+  >("https://api.live.bilibili.com/xlive/web-room/v1/index/getRoomBaseInfo", {
+    params: { room_ids: roomId, req_biz: "web_room_componet" },
+  });
+
+  assert(res.data.code === 0, `Unexpected resp, code ${res.data.code}, msg ${res.data.message}`);
+
+  return res.data.data.by_room_ids;
 }
 
 export async function getPlayURL(

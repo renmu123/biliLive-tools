@@ -166,7 +166,9 @@ export async function getLiveInfo() {
     title: string;
     avatar: string;
     cover: string;
-  }[] = await Promise.all(requests);
+  }[] = (await Promise.allSettled(requests))
+    .filter((item) => item.status === "fulfilled")
+    .map((item) => item.value);
   return list;
 }
 

@@ -15,7 +15,7 @@ import {
 } from "@autorecord/manager";
 import type { Comment, GiveGift, SuperChat, Guard } from "@autorecord/manager";
 
-import { getInfo, getStream } from "./stream.js";
+import { getInfo, getStream, getLiveStatus } from "./stream.js";
 import { assertStringType, ensureFolderExist, createInvalidStreamChecker } from "./utils.js";
 import { startListen, MsgHandler } from "./blive-message-listener/index.js";
 
@@ -94,11 +94,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 }) {
   this.tempStopIntervalCheck = false;
   if (this.recordHandle != null) return this.recordHandle;
+  const living = await getLiveStatus(this.channelId);
+  if (!living) return null;
 
   const liveInfo = await getInfo(this.channelId);
-  const { living, owner, title, roomId } = liveInfo;
+  const { owner, title, roomId } = liveInfo;
   this.liveInfo = liveInfo;
-  if (!living) return null;
 
   this.state = "recording";
   let res: Awaited<ReturnType<typeof getStream>>;

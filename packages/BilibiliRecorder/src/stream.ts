@@ -8,9 +8,15 @@ import {
   ProtocolInfo,
   SourceProfile,
   StreamProfile,
+  getRoomBaseInfo,
 } from "./bilibili_api.js";
 import { assert, getValuesFromArrayLikeFlexSpaceBetween } from "./utils.js";
 import { sortBy } from "lodash-es";
+
+export async function getLiveStatus(channelId: string): Promise<boolean> {
+  const roomInit = await getRoomInit(Number(channelId));
+  return roomInit.live_status === 1 && !roomInit.encrypted;
+}
 
 export async function getInfo(channelId: string): Promise<{
   living: boolean;
@@ -20,18 +26,36 @@ export async function getInfo(channelId: string): Promise<{
   shortId: number;
   avatar: string;
   cover: string;
+  start_time: Date;
 }> {
   const roomInit = await getRoomInit(Number(channelId));
   const { [roomInit.uid]: status } = await getStatusInfoByUIDs([roomInit.uid]);
+  if (!status) {
+    // 未获取到直播间信息，可能是加密，尝试换一个接口
+    const data = await getRoomBaseInfo(Number(channelId));
+    const status = data[channelId];
+
+    return {
+      living: roomInit.live_status === 1 && !roomInit.encrypted,
+      owner: status.uname,
+      title: status.title,
+      start_time: new Date(status.live_time),
+      avatar: "",
+      cover: status.cover,
+      roomId: roomInit.room_id,
+      shortId: roomInit.short_id,
+    };
+  }
 
   return {
-    living: status.live_status === 1,
+    living: roomInit.live_status === 1 && !roomInit.encrypted,
     owner: status.uname,
     title: status.title,
     avatar: status.face,
     cover: status.cover_from_user,
     roomId: roomInit.room_id,
     shortId: roomInit.short_id,
+    start_time: new Date(status.live_time * 1000),
   };
 }
 
