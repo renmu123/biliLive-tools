@@ -34,13 +34,6 @@ export const useDrive = () => {
           popover: { title: "设置结束时间", description: "设置片段的结束时间" },
         },
         {
-          element: ".cut-sc-view",
-          popover: {
-            title: "sc视图",
-            description: "如果你前面加载了弹幕，而且是B站录播文件，这里可以查看SC",
-          },
-        },
-        {
           element: ".cut-search-danmu",
           popover: { title: "弹幕搜索", description: "点击后查询弹幕，快速添加片段" },
         },
