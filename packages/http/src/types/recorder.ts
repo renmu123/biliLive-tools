@@ -141,7 +141,20 @@ export type RecorderAPI = {
   };
   getRecorders: {
     Args: GetRecordersArgs;
-    Resp: GetRecordersResp;
+    Resp: Pick<
+      ClientRecorder,
+      | "id"
+      | "channelId"
+      | "remarks"
+      | "disableAutoCheck"
+      | "providerId"
+      | "channelURL"
+      | "recordHandle"
+      | "liveInfo"
+      | "state"
+      | "usedSource"
+      | "usedStream"
+    >[];
   };
   getRecorder: {
     Args: GetRecorderArgs;

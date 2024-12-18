@@ -111,7 +111,7 @@ import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 import { Live24Regular, AccessTime24Regular } from "@vicons/fluent";
 import { useEventListener } from "@vueuse/core";
 
-import type { ClientRecorder } from "@biliLive-tools/http/types/recorder.js";
+import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 
 const notice = useNotification();
 const params = ref<Parameters<typeof recoderApi.infoList>[0]>({
@@ -159,7 +159,7 @@ watch(params, () => {
   getList();
 });
 
-const recorderList = ref<ClientRecorder[]>([]);
+const recorderList = ref<RecorderAPI["getRecorders"]["Resp"]>([]);
 const liveInfos = ref<Awaited<ReturnType<typeof recoderApi.getLiveInfo>>>([]);
 const list = computed(() => {
   return recorderList.value.map((item) => {
