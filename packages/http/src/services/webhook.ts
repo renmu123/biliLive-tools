@@ -6,7 +6,12 @@ import { FFmpegPreset, VideoPreset, DanmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import { biliApi } from "@biliLive-tools/shared/task/bili.js";
 import { convertXml2Ass, genHotProgress, isEmptyDanmu } from "@biliLive-tools/shared/task/danmu.js";
-import { mergeAssMp4, readVideoMeta, transcode } from "@biliLive-tools/shared/task/video.js";
+import {
+  mergeAssMp4,
+  readVideoMeta,
+  transcode,
+  readXmlTimestamp,
+} from "@biliLive-tools/shared/task/video.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import {
   getFileSize,
@@ -220,6 +225,15 @@ export class WebhookHandler {
           currentPart.uploadStatus = "error";
           return;
         }
+        let startTimestamp = 0;
+        try {
+          if (ffmpegPreset.config?.addTimestamp) {
+            startTimestamp = await readXmlTimestamp(xmlFilePath);
+          }
+        } catch {
+          log.error("readXmlTimestamp error: ", xmlFilePath);
+        }
+
         const output = await this.addMergeAssMp4Task(
           options.filePath,
           assFilePath,
@@ -228,7 +242,7 @@ export class WebhookHandler {
           {
             removeVideo: removeOriginAfterConvert,
             suffix: "弹幕版",
-            startTimestamp: Math.floor((currentPart.startTime ?? 0) / 1000),
+            startTimestamp: startTimestamp || Math.floor((currentPart.startTime ?? 0) / 1000),
             timestampFont: danmuConfig.fontname,
           },
         );
