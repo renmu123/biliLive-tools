@@ -114,8 +114,8 @@ export async function getStream(
   }
 
   const defaultOpts = {
-    protocol: "http_hls",
-    format: "ts",
+    protocol: "http_stream",
+    format: "flv",
     codec: "avc",
   };
 
