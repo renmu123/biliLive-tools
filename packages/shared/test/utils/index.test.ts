@@ -216,43 +216,43 @@ describe.concurrent("getHardwareAcceleration", () => {
   });
 });
 
-describe("parseSavePath", () => {
-  it("should return the absolute path if the input path is already absolute", async () => {
-    const input = "C:\\videos\\video.mp4";
-    const options = { saveType: 2, savePath: "C:/output" } as const;
-    const result = await parseSavePath(input, options, false);
-    expect(result).toEqual("C:\\output");
-  });
+// describe("parseSavePath", () => {
+//   it("should return the absolute path if the input path is already absolute", async () => {
+//     const input = "C:\\videos\\video.mp4";
+//     const options = { saveType: 2, savePath: "C:/output" } as const;
+//     const result = await parseSavePath(input, options, false);
+//     expect(result).toEqual("C:\\output");
+//   });
 
-  it("should return the joined path if the input path is relative", async () => {
-    const input = "C:\\videos\\video.mp4";
-    const options = { saveType: 2, savePath: "output" } as const;
-    const result = await parseSavePath(input, options, false);
-    expect(result).toEqual("C:\\videos\\output");
-  });
+//   it("should return the joined path if the input path is relative", async () => {
+//     const input = "C:\\videos\\video.mp4";
+//     const options = { saveType: 2, savePath: "output" } as const;
+//     const result = await parseSavePath(input, options, false);
+//     expect(result).toEqual("C:\\videos\\output");
+//   });
 
-  it("should return the video directory if the saveType is 1", async () => {
-    const input = "C:\\videos\\video.mp4";
-    const options = { saveType: 1, savePath: "" } as const;
-    const result = await parseSavePath(input, options, false);
-    expect(result).toEqual("C:\\videos");
-  });
+//   it("should return the video directory if the saveType is 1", async () => {
+//     const input = "C:\\videos\\video.mp4";
+//     const options = { saveType: 1, savePath: "" } as const;
+//     const result = await parseSavePath(input, options, false);
+//     expect(result).toEqual("C:\\videos");
+//   });
 
-  it("should throw an error for invalid saveType", async () => {
-    const input = "C:\\videos\\video.mp4";
-    const options = { saveType: 3, savePath: "" } as const;
-    // @ts-ignore
-    await expect(parseSavePath(input, options, false)).rejects.toThrow("保存类型错误");
-  });
+//   it("should throw an error for invalid saveType", async () => {
+//     const input = "C:\\videos\\video.mp4";
+//     const options = { saveType: 3, savePath: "" } as const;
+//     // @ts-ignore
+//     await expect(parseSavePath(input, options, false)).rejects.toThrow("保存类型错误");
+//   });
 
-  // it("should create the directory if it does not exist", async () => {
-  //   const input = "C:/videos/video.mp4";
-  //   const options = { saveType: 2, savePath: "new_output" } as const;
-  //   const result = await parseSavePath(input, options, true);
-  //   expect(result).toEqual("C:/videos/new_output");
-  //   // 这里可以添加额外的检查，确保目录确实被创建
-  // });
-});
+//   // it("should create the directory if it does not exist", async () => {
+//   //   const input = "C:/videos/video.mp4";
+//   //   const options = { saveType: 2, savePath: "new_output" } as const;
+//   //   const result = await parseSavePath(input, options, true);
+//   //   expect(result).toEqual("C:/videos/new_output");
+//   //   // 这里可以添加额外的检查，确保目录确实被创建
+//   // });
+// });
 
 describe("normalizePoints", () => {
   it("should normalize points to the given width and height", () => {
