@@ -31,7 +31,11 @@ export class Segment {
 
   async handleSegmentEnd() {
     if (!this.outputVideoFilePath) {
-      throw new Error("Should call onSegmentStart first");
+      this.recorder.emit("DebugLog", {
+        type: "common",
+        text: "Should call onSegmentStart first",
+      });
+      return;
     }
     this.extraDataController?.setMeta({ recordStopTimestamp: Date.now() });
 
