@@ -170,7 +170,7 @@ const list = computed(() => {
       owner: liveInfo?.owner,
       avatar: liveInfo?.avatar,
       roomTitle: liveInfo?.title,
-      living: liveInfo?.living,
+      living: item?.liveInfo?.living ?? liveInfo?.living,
     };
   });
 });

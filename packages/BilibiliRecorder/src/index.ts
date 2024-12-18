@@ -95,6 +95,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.tempStopIntervalCheck = false;
   if (this.recordHandle != null) return this.recordHandle;
   const living = await getLiveStatus(this.channelId);
+  this.liveInfo = {
+    living,
+    owner: "",
+    title: "",
+    avatar: "",
+    cover: "",
+  };
   if (!living) return null;
 
   const liveInfo = await getInfo(this.channelId);
