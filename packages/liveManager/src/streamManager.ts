@@ -66,6 +66,7 @@ export class Segment {
 
     this.extraDataController = createRecordExtraDataController(`${this.outputVideoFilePath}.json`);
     this.extraDataController.setMeta({ title: this.title });
+    // TODO: 增加platform参数，直播开始时间
 
     const regex = /'([^']+)'/;
     const match = stderrLine.match(regex);
@@ -106,6 +107,7 @@ export class StreamManager {
       const extraDataSavePath = replaceExtName(recordSavePath, ".json");
       this.extraDataController = createRecordExtraDataController(extraDataSavePath);
       this.extraDataController.setMeta({ title });
+      // TODO: 增加platform参数，直播开始时间
     }
   }
 
