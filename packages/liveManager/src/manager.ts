@@ -271,7 +271,7 @@ export function createRecorderManager<
     const args = parseArgsStringToArgv(ffmpegOutputArgs);
     manager.providers.forEach((p) => p.setFFMPEGOutputArgs(args));
   };
-  setProvidersFFMPEGOutputArgs(manager.ffmpegOutputArgs);
+  // setProvidersFFMPEGOutputArgs(manager.ffmpegOutputArgs);
 
   const proxyManager = new Proxy(manager, {
     set(obj, prop, value) {
