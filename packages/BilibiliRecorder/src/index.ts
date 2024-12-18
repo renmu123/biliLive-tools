@@ -98,7 +98,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!living) return null;
 
   const liveInfo = await getInfo(this.channelId);
-  const { owner, title, roomId } = liveInfo;
+  const { owner, title, roomId, cover } = liveInfo;
   this.liveInfo = liveInfo;
 
   this.state = "recording";
@@ -137,7 +137,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const saveCover = async ({ filename }) => {
     if (this.saveCover) {
       const coverPath = utils.replaceExtName(filename, ".jpg");
-      const { cover } = await this.getLiveInfo();
       utils.downloadImage(cover, coverPath);
     }
   };

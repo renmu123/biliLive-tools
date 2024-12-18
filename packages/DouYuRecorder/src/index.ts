@@ -95,7 +95,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const liveInfo = await getInfo(this.channelId);
   this.liveInfo = liveInfo;
-  const { living, owner, title } = liveInfo;
+  const { living, owner, title, cover } = liveInfo;
   if (!living) return null;
 
   this.state = "recording";
@@ -131,9 +131,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const saveCover = async ({ filename }) => {
     if (this.saveCover) {
-      const liveInfo = await this.getLiveInfo();
       const coverPath = utils.replaceExtName(filename, ".jpg");
-      utils.downloadImage(liveInfo.cover, coverPath);
+      utils.downloadImage(cover, coverPath);
     }
   };
   this.on("videoFileCreated", saveCover);
