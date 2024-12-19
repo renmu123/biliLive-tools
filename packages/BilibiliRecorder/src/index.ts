@@ -364,6 +364,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
       this.off("videoFileCreated", saveCover);
       this.recordHandle = undefined;
+      this.liveInfo = undefined;
       this.state = "idle";
     },
   );
