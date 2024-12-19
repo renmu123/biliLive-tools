@@ -1,4 +1,3 @@
-import path from "node:path";
 import fs from "fs-extra";
 import { createRecordExtraDataController } from "./record_extra_data_controller.js";
 import { replaceExtName, ensureFolderExist } from "./utils.js";
@@ -66,7 +65,7 @@ export class Segment {
       startTime: startTime,
     });
 
-    ensureFolderExist(path.dirname(this.outputVideoFilePath));
+    ensureFolderExist(this.outputVideoFilePath);
 
     this.extraDataController = createRecordExtraDataController(`${this.outputVideoFilePath}.json`);
     this.extraDataController.setMeta({ title: this.title });
