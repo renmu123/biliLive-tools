@@ -108,6 +108,19 @@ const transcode = async (
   return res.data;
 };
 
+const sendToWebhook = async (data: {
+  event: "FileOpening" | "FileClosed";
+  filePath: string;
+  danmuPath?: string;
+  roomId: string;
+  time: string;
+  title: string;
+  username: string;
+}) => {
+  const res = await request.post(`/webhook/custom`, data);
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -120,6 +133,7 @@ const task = {
   convertXml2Ass,
   mergeVideos,
   transcode,
+  sendToWebhook,
 };
 
 export default task;

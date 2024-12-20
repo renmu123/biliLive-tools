@@ -88,6 +88,8 @@ const ffmpegOutputOptions: string[] = [
   "1",
   "-reconnect_delay_max",
   "5",
+  "-rw_timeout",
+  "5000000",
 ];
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,

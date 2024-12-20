@@ -6,7 +6,7 @@ import multer from "../middleware/multer.js";
 import Router from "koa-router";
 import { formatTitle, getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
-import { readXmlTimestamp } from "@biliLive-tools/shared/task/video.js";
+import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
 
 import { config } from "../index.js";
@@ -166,6 +166,15 @@ router.post("/danma/timestamp", async (ctx) => {
   };
 
   ctx.body = await readXmlTimestamp(filepath);
+});
+
+router.post("/parseMeta", async (ctx) => {
+  const files = ctx.request.body as {
+    videoFilePath?: string;
+    danmaFilePath?: string;
+  };
+
+  ctx.body = await parseMeta(files);
 });
 
 /**

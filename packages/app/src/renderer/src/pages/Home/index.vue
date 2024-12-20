@@ -3,6 +3,9 @@
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
+        <n-button type="primary" title="某些情况下你可能需要这个功能" @click="sendToWebhook">
+          发送至webhook
+        </n-button>
         <n-button
           type="primary"
           title="仅供参考，以实际渲染为主！"
@@ -164,6 +167,7 @@
         fillColor: clientOptions.hotProgressFillColor,
       }"
     ></PreviewModal>
+    <sendWebhookModal v-model:visible="webhookVisible" :files="previewFiles"></sendWebhookModal>
   </div>
 </template>
 
@@ -174,8 +178,8 @@ import FileArea from "@renderer/components/FileArea.vue";
 import DanmuFactorySetting from "@renderer/components/DanmuFactorySetting.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
 import ffmpegSetting from "./components/ffmpegSetting.vue";
-// @ts-ignore
 import PreviewModal from "./components/previewModal.vue";
+import sendWebhookModal from "./components/sendWebhookModal.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
 import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
 import { danmuPresetApi, biliApi, commonApi } from "@renderer/apis";
@@ -692,6 +696,29 @@ const preview = async () => {
   } else if (data.inputDanmuFile.path.endsWith(".ass")) {
     previewFiles.value.danmu = data.inputDanmuFile.path;
   }
+};
+
+const webhookVisible = ref(false);
+const sendToWebhook = () => {
+  const videoFile = fileList.value.find(
+    (item) =>
+      item.ext === ".flv" || item.ext === ".mp4" || item.ext === ".m4s" || item.ext === ".ts",
+  );
+  const danmuFile = fileList.value.find((item) => item.ext === ".xml" || item.ext === ".ass");
+
+  if (!videoFile) {
+    notice.error({
+      title: "请选择一个flv、mp4、m4s、ts文件",
+      duration: 1000,
+    });
+    return;
+  }
+
+  previewFiles.value.video = videoFile.path;
+  previewFiles.value.danmu = danmuFile?.path || "";
+
+  webhookVisible.value = true;
+  return;
 };
 </script>
 

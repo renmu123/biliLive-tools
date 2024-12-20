@@ -120,6 +120,11 @@ export async function readXmlTimestamp(filepath: string): Promise<number> {
   return res.data;
 }
 
+export async function parseMeta(files: { videoFilePath?: string; danmaFilePath?: string }) {
+  const res = await request.post("/common/parseMeta", files);
+  return res.data;
+}
+
 export async function getFontList(): Promise<
   {
     postscriptName: string;
@@ -164,6 +169,7 @@ const common = {
   appStartTime,
   getDanmaStream,
   exportLogs,
+  parseMeta,
 };
 
 export default common;
