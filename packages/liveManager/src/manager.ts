@@ -83,7 +83,6 @@ export interface RecorderManager<
     Updated: ConfigurableProp[];
   }> {
   providers: P[];
-  // TODO: 这个或许可以去掉或者改改，感觉不是很有必要
   getChannelURLMatchedRecorderProviders: (
     this: RecorderManager<ME, P, PE, E>,
     channelURL: string,

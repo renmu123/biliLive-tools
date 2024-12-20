@@ -266,6 +266,13 @@ interface BaseRecordr {
   saveCover?: boolean;
 }
 
+interface BilibiliRecorderConfig {
+  /** 账号 */
+  uid: string;
+  /** 画质 30000：杜比 20000：蓝光 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
+  quality: 30000 | 20000 | 10000 | 400 | 250 | 150 | 80;
+}
+
 export interface GlobalRecorder extends BaseRecordr {
   /** 保存根目录 */
   savePath: string;
@@ -277,6 +284,8 @@ export interface GlobalRecorder extends BaseRecordr {
   checkInterval: number;
   /** 调试模式 */
   debugMode: boolean;
+  /** B站特有的配置 */
+  bilibili: BilibiliRecorderConfig;
 }
 
 export interface LocalRecordr extends BaseRecordr {
