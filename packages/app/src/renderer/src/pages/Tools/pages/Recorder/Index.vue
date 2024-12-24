@@ -130,8 +130,8 @@ const platformOptions = ref([
     value: "Bilibili",
   },
   {
-    label: "HuYa",
-    value: "虎牙",
+    label: "虎牙",
+    value: "HuYa",
   },
 ]);
 const statusOptions = ref([
