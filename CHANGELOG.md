@@ -34,6 +34,7 @@
 2. 修复CLI有概率错误退出的bug（蜜汁这个版本就没有了）
 3. 修复视频预设标题超过80字符无法保存的bug [#41](https://github.com/renmu123/biliLive-tools/issues/41)
 4. 修复windows下的删除到回收站失效
+5. 修复关闭登录弹框时未清除定时器 [#43](https://github.com/renmu123/biliLive-tools/issues/43)
 
 # 1.6.2(2024.12.5)
 

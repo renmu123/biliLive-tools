@@ -38,6 +38,13 @@ const url = ref("");
 const id = ref("");
 const text = ref("");
 const interval = ref<number | null>(null);
+
+const clearLoginInterval = () => {
+  if (interval.value !== null) {
+    clearInterval(interval.value);
+    interval.value = null;
+  }
+};
 const onOpen = async () => {
   text.value = "";
   const res = await biliApi.qrcode();
@@ -49,7 +56,7 @@ const onOpen = async () => {
     const res = await biliApi.loginPoll(id.value);
     console.log(res);
     if (res.status === "completed") {
-      clearInterval(interval.value!);
+      clearLoginInterval();
       text.value = "登录成功，请关闭本窗口";
       notice.success({
         title: "登录成功",
@@ -57,7 +64,7 @@ const onOpen = async () => {
       });
       confirm();
     } else if (res.status === "error") {
-      clearInterval(interval.value!);
+      clearLoginInterval();
       notice.error({
         title: "登录失败",
         description: res.failReason,
@@ -81,6 +88,7 @@ watch(
     if (showModal.value) {
       onOpen();
     } else {
+      clearLoginInterval();
       biliApi.loginCancel(id.value);
       emits("close");
     }
