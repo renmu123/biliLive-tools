@@ -33,7 +33,7 @@
         </n-popover>
       </div>
     </div>
-    <BiliLoginDialog v-model="loginTvDialogVisible" @close="getUserInfo"></BiliLoginDialog>
+    <BiliLoginDialog v-model="loginTvDialogVisible" @confirm="loginConfirm"></BiliLoginDialog>
   </div>
 </template>
 
@@ -45,7 +45,7 @@ import BiliLoginDialog from "./components/BiliLoginDialog.vue";
 import { useConfirm } from "@renderer/hooks";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 
-const { getUserInfo, changeUser } = useUserInfoStore();
+const { getUsers, changeUser } = useUserInfoStore();
 const { appConfig } = storeToRefs(useAppConfig());
 const { userInfo, userList } = storeToRefs(useUserInfoStore());
 const notice = useNotification();
@@ -75,13 +75,20 @@ const logout = async (uid: number) => {
   }
 
   await userApi.delete(uid);
-  if (uid === userInfo.value.uid && userList.value.length !== 0) {
-    changeAccount(userList.value[0].uid);
+  await getUsers();
+  if (uid === userInfo.value.uid) {
+    changeAccount(userList.value[0]?.uid);
   }
-  getUserInfo();
 };
 const changeAccount = async (uid: number) => {
   changeUser(uid);
+};
+
+const loginConfirm = async () => {
+  await getUsers();
+  if (!userInfo.value.uid) {
+    changeAccount(userList.value[0]?.uid ?? "");
+  }
 };
 
 const updateAccountInfo = async (uid: number) => {
@@ -90,11 +97,11 @@ const updateAccountInfo = async (uid: number) => {
     title: "已获取最新数据",
     duration: 1000,
   });
-  getUserInfo();
+  getUsers();
 };
 
 onActivated(() => {
-  getUserInfo();
+  getUsers();
 });
 </script>
 

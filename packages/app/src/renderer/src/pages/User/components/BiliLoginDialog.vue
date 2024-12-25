@@ -30,6 +30,7 @@ import { biliApi } from "@renderer/apis";
 const showModal = defineModel<boolean>({ required: true, default: false });
 const emits = defineEmits<{
   close: [];
+  confirm: [];
 }>();
 
 const notice = useNotification();
@@ -79,6 +80,7 @@ const close = () => {
 };
 
 const confirm = () => {
+  emits("confirm");
   showModal.value = false;
 };
 
