@@ -396,7 +396,7 @@ const beforeTagCreate = async (tag: string) => {
     return true;
   } catch (e) {
     notice.error({
-      title: "无法添加标签",
+      title: String(e),
       duration: 1000,
     });
     return false;
