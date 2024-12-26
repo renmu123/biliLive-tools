@@ -14,6 +14,20 @@ router.get("/list", async (ctx) => {
 
   ctx.body = { payload: await recorderService.getRecorders(query) };
 });
+
+/**
+ * 判断是否有正在录制的任务
+ */
+router.get("/hasRecording", async (ctx) => {
+  const recorders = await recorderService.getRecorders({});
+  if (recorders.some((recorder) => recorder.recordHandle != null)) {
+    ctx.body = { payload: true };
+    return;
+  } else {
+    ctx.body = { payload: false };
+    return;
+  }
+});
 router.post("/add", async (ctx) => {
   const args = pick(
     (ctx.request.body ?? {}) as RecorderAPI["addRecorder"]["Args"],

@@ -11,7 +11,7 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
 import log from "./utils/log";
 import { notify } from "./utils/index";
-import { init } from "@biliLive-tools/shared";
+import { init, createRecorderManager } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
 import { handlers as danmuHandlers } from "./danmu";
@@ -307,14 +307,22 @@ function createMenu(): void {
   Menu.setApplicationMenu(menu);
 }
 
+type createRecorderManagerType = Awaited<ReturnType<typeof createRecorderManager>>;
+
 const canQuit = async () => {
   const taskQueue = container.resolve<TaskQueue>("taskQueue");
+  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
 
   const tasks = taskQueue.list();
-  const isRunning = tasks.some((task) => ["running", "paused", "pending"].includes(task.status));
-  if (isRunning) {
+  const isRunningTask = tasks.some((task) =>
+    ["running", "paused", "pending"].includes(task.status),
+  );
+  let isRecordingTask = recorderManager.manager.recorders.some(
+    (item) => item.state === "recording",
+  );
+  if (isRunningTask || isRecordingTask) {
     const confirm = await dialog.showMessageBox(mainWin, {
-      message: "检测到有未完成的任务，是否退出？",
+      message: "检测到有未完成的任务或录制，是否退出？",
       buttons: ["取消", "退出"],
     });
     if (confirm.response === 1) {
