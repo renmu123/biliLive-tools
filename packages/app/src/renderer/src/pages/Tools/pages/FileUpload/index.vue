@@ -95,7 +95,7 @@ const upload = async () => {
     duration: 1000,
   });
   await biliApi.upload({
-    uid: userInfo.value.uid,
+    uid: userInfo.value.uid!,
     videos: deepRaw(fileList.value),
     config: deepRaw(presetOptions.value.config),
   });
@@ -131,7 +131,7 @@ const appendVideo = async () => {
     duration: 1000,
   });
   await biliApi.upload({
-    uid: userInfo.value.uid,
+    uid: userInfo.value.uid!,
     vid: Number(aid.value),
     videos: deepRaw(fileList.value),
     config: deepRaw(presetOptions.value.config),

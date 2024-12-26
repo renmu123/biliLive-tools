@@ -43,6 +43,7 @@ const archiveDeatil = ref<{
 });
 const downloadOptions = ref({
   hasDanmuOptions: false,
+  hasAudioOnlyOptions: false,
 });
 
 const selectCids = ref<(number | string)[]>([]);
@@ -71,12 +72,14 @@ const parse = async () => {
     await handleDouyu(formatUrl);
     downloadOptions.value = {
       hasDanmuOptions: true,
+      hasAudioOnlyOptions: false,
     };
   } else if (formatUrl.includes("bilibili")) {
     videoType.value = "bili";
     await handleBili(formatUrl);
     downloadOptions.value = {
       hasDanmuOptions: false,
+      hasAudioOnlyOptions: true,
     };
   }
 };
@@ -179,6 +182,7 @@ const confirm = async (options: {
   danmu: "none" | "xml" | "ass";
   resoltion: string | "highest";
   override: boolean;
+  onlyAudio: boolean;
 }) => {
   const selectPages = archiveDeatil.value.pages.filter((item) => options.ids.includes(item.cid));
 
@@ -195,12 +199,13 @@ const confirm = async (options: {
         },
       );
     } else if (videoType.value === "bili") {
-      biliApi.download(
+      await biliApi.download(
         {
           output: window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
           cid: page.cid as number,
           bvid: archiveDeatil.value.vid,
           override: options.override,
+          onlyAudio: options.onlyAudio,
         },
         uid.value,
       );

@@ -660,9 +660,6 @@ export class BiliDownloadVideoTask extends AbstractTask {
     //   emitter.emit("task-start", { taskId: this.taskId });
     //   this.startTime = Date.now();
     // });
-    this.status = "running";
-    this.startTime = Date.now();
-    this.emitter.emit("task-start", { taskId: this.taskId });
 
     command.emitter.on("completed", async (data) => {
       log.info(`task ${this.taskId} end`);
@@ -680,6 +677,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
       callback.onError && callback.onError(err);
       this.error = err;
       this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+      this.endTime = Date.now();
     });
     let size = 0;
     let time = Date.now();
@@ -712,7 +710,11 @@ export class BiliDownloadVideoTask extends AbstractTask {
     });
   }
   exec() {
-    // this.command.run();
+    if (this.status !== "pending") return;
+    this.status = "running";
+    this.command.start();
+    this.startTime = Date.now();
+    this.emitter.emit("task-start", { taskId: this.taskId });
   }
   pause() {
     if (this.status !== "running") return;
@@ -734,6 +736,7 @@ export class BiliDownloadVideoTask extends AbstractTask {
     if (this.status === "completed" || this.status === "error" || this.status === "canceled")
       return;
     log.warn(`task ${this.taskId} killed`);
+    this.endTime = Date.now();
     this.status = "canceled";
     this.command.cancel();
     this.emit("task-cancel", { taskId: this.taskId, autoStart: true });
@@ -796,6 +799,7 @@ export class DouyuDownloadVideoTask extends AbstractTask {
       callback.onError && callback.onError(err);
       this.error = err;
       this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+      this.endTime = Date.now();
     });
     command.on("progress", (progress: { downloaded: number; total: number }) => {
       const percent = Math.floor((progress.downloaded / progress.total) * 100);
@@ -890,32 +894,43 @@ export class TaskQueue {
     } else {
       const config = this.appConfig.getAll();
 
-      if (task.type === TaskType.ffmpeg) {
-        const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
-        if (ffmpegMaxNum >= 0) {
-          this.filter({ type: TaskType.ffmpeg, status: "running" }).length < ffmpegMaxNum &&
+      switch (task.type) {
+        case TaskType.ffmpeg:
+          const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
+          if (ffmpegMaxNum >= 0) {
+            this.filter({ type: task.type, status: "running" }).length < ffmpegMaxNum &&
+              task.exec();
+          } else {
             task.exec();
-        } else {
-          task.exec();
-        }
-      }
-      if (task.type === TaskType.douyuDownload) {
-        const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
-        if (douyuDownloadMaxNum >= 0) {
-          this.filter({ type: TaskType.douyuDownload, status: "running" }).length <
-            douyuDownloadMaxNum && task.exec();
-        } else {
-          task.exec();
-        }
-      }
-      if (task.type === TaskType.biliUpload) {
-        const biliUploadMaxNum = config?.task?.biliUploadMaxNum ?? -1;
-        if (biliUploadMaxNum >= 0) {
-          this.filter({ type: TaskType.biliUpload, status: "running" }).length < biliUploadMaxNum &&
+          }
+          break;
+        case TaskType.douyuDownload:
+          const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
+          if (douyuDownloadMaxNum >= 0) {
+            this.filter({ type: task.type, status: "running" }).length < douyuDownloadMaxNum &&
+              task.exec();
+          } else {
             task.exec();
-        } else {
-          task.exec();
-        }
+          }
+          break;
+        case TaskType.biliUpload:
+          const biliUploadMaxNum = config?.task?.biliUploadMaxNum ?? -1;
+          if (biliUploadMaxNum >= 0) {
+            this.filter({ type: task.type, status: "running" }).length < biliUploadMaxNum &&
+              task.exec();
+          } else {
+            task.exec();
+          }
+          break;
+        case TaskType.biliDownload:
+          const biliDownloadMaxNum = config?.task?.biliDownloadMaxNum ?? -1;
+          if (biliDownloadMaxNum >= 0) {
+            this.filter({ type: task.type, status: "running" }).length < biliDownloadMaxNum &&
+              task.exec();
+          } else {
+            task.exec();
+          }
+          break;
       }
     }
   }
@@ -1022,6 +1037,8 @@ export class TaskQueue {
     this.taskLimit(config?.task?.douyuDownloadMaxNum ?? -1, TaskType.douyuDownload);
     // B站上传任务
     this.taskLimit(config?.task?.biliUploadMaxNum ?? -1, TaskType.biliUpload);
+    // B站下载任务
+    this.taskLimit(config?.task?.biliDownloadMaxNum ?? -1, TaskType.biliDownload);
   };
 }
 

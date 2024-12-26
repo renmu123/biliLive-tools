@@ -562,7 +562,7 @@ const upload = async (file: string, presetOptions: BiliupPreset, aid?: number) =
 // 新上传任务
 const uploadVideo = async (file: string, presetOptions: BiliupPreset) => {
   await biliApi.upload({
-    uid: userInfo.value.uid,
+    uid: userInfo.value.uid!,
     videos: [file],
     config: presetOptions.config,
   });
@@ -573,7 +573,7 @@ const aid = ref();
 const appendVideo = async (aid: number, file: string, presetOptions: BiliupPreset) => {
   await biliApi.upload({
     vid: aid,
-    uid: userInfo.value.uid,
+    uid: userInfo.value.uid!,
     videos: [file],
     config: presetOptions.config,
   });

@@ -348,6 +348,7 @@ const config: Ref<AppConfig> = ref({
     ffmpegMaxNum: -1,
     douyuDownloadMaxNum: -1,
     biliUploadMaxNum: -1,
+    biliDownloadMaxNum: -1,
   },
 });
 // @ts-ignore

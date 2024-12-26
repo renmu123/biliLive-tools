@@ -37,10 +37,17 @@ async function createClient(uid?: number) {
 
   const mid = uid || appConfig.get("uid");
 
-  if (!mid) throw new Error("请先登录");
+  if (!mid) {
+    return client;
+  }
   const user = await readUser(mid);
-  client.setAuth(user!.cookie, user!.mid, user!.accessToken);
-  return client;
+  if (user) {
+    client.setAuth(user!.cookie, user!.mid, user!.accessToken);
+    return client;
+  } else {
+    log.error("用户不存在", mid);
+    return client;
+  }
 }
 
 export async function getRoomInfo(room_id: number, uid?: number) {
@@ -91,7 +98,7 @@ async function getArchiveDetail(bvid: string, uid?: number) {
 }
 
 async function download(
-  options: { bvid: string; cid: number; output: string; override: boolean },
+  options: { bvid: string; cid: number; output: string; override: boolean; onlyAudio: true },
   uid: number,
 ) {
   if ((await fs.pathExists(options.output)) && !options.override)
@@ -100,9 +107,10 @@ async function download(
   const client = await createClient(uid);
   const ffmpegBinPath = appConfig.get("ffmpegPath");
   const tmpPath = getTempPath();
-  const command = await client.video.download(
-    { ...options, ffmpegBinPath, cachePath: tmpPath },
+  const command = await client.video.dashDownload(
+    { ...options, ffmpegBinPath, cachePath: tmpPath, disableVideo: options.onlyAudio },
     {},
+    false,
   );
 
   const task = new BiliDownloadVideoTask(
@@ -113,7 +121,7 @@ async function download(
     {},
   );
 
-  taskQueue.addTask(task, true);
+  taskQueue.addTask(task, false);
 
   return {
     taskId: task.taskId,

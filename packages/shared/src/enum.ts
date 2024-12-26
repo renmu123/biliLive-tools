@@ -110,6 +110,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       danmu: "none",
       douyuResolution: "highest",
       override: false,
+      onlyAudio: false,
     },
     translate: {
       presetId: undefined,
@@ -131,6 +132,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     ffmpegMaxNum: -1,
     douyuDownloadMaxNum: 2,
     biliUploadMaxNum: -1,
+    biliDownloadMaxNum: 2,
   },
   notification: {
     task: {

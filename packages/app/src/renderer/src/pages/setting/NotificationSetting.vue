@@ -223,6 +223,13 @@
         <n-input-number v-model:value="config.task.biliUploadMaxNum" min="-1" max="65535">
         </n-input-number>
       </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> Bilibili下载 </span>
+        </template>
+        <n-input-number v-model:value="config.task.biliDownloadMaxNum" min="-1" max="65535">
+        </n-input-number>
+      </n-form-item>
     </n-form>
   </div>
 </template>

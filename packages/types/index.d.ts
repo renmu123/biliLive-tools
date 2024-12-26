@@ -179,6 +179,8 @@ export type ToolConfig = {
     douyuResolution: "highest" | string;
     /** 下载时覆盖已有文件 */
     override: boolean;
+    /** 只下载音频 */
+    onlyAudio: boolean;
   };
   /** 切片 */
   videoCut: {
@@ -388,6 +390,7 @@ export interface AppConfig {
     ffmpegMaxNum: number;
     douyuDownloadMaxNum: number;
     biliUploadMaxNum: number;
+    biliDownloadMaxNum: number;
   };
   /** 上传配置 */
   biliUpload: {

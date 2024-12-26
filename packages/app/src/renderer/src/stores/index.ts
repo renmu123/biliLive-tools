@@ -264,6 +264,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         danmu: "none",
         douyuResolution: "highest",
         override: false,
+        onlyAudio: false,
       },
       translate: {
         presetId: undefined,

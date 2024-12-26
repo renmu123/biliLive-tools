@@ -20,7 +20,7 @@ const getArchives = async (
 
 const getArchiveDetail = async (
   bvid: string,
-  uid: number,
+  uid?: number,
 ): Promise<ReturnType<BiliApi["getArchiveDetail"]>> => {
   const res = await request.get(`/bili/user/archive/${bvid}`, {
     params: { uid },
@@ -82,8 +82,8 @@ const getTypeDesc = async (
 };
 
 const download = async (
-  options: { bvid: string; cid: number; output: string; override: boolean },
-  uid: number,
+  options: { bvid: string; cid: number; output: string; override: boolean; onlyAudio: boolean },
+  uid?: number,
 ) => {
   const res = await request.post("/bili/download", {
     options,
