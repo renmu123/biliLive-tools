@@ -6,8 +6,21 @@
         <n-form-item label="房间号">
           <n-input v-model:value="params.roomId" placeholder="房间号" />
         </n-form-item>
-        <n-form-item label="开始时间">
-          <n-date-picker v-model:value="params.startTimestamp" type="datetime" />
+        <n-form-item>
+          <template #label>
+            <Tip text="开始时间"
+              >视频录制开始时间，与标题时间占位符、断播续传相关，默认从弹幕或视频中读取</Tip
+            >
+          </template>
+          <n-date-picker v-model:value="params.startTimestamp" type="datetime" clearable />
+        </n-form-item>
+        <n-form-item>
+          <template #label>
+            <Tip text="结束时间"
+              >视频录制结束时间，与断播续传相关，默认从弹幕或视频中读取，如果不在意</Tip
+            >
+          </template>
+          <n-date-picker v-model:value="params.endTimestamp" type="datetime" clearable />
         </n-form-item>
         <n-form-item label="标题">
           <n-input v-model:value="params.title" placeholder="标题" />
@@ -28,6 +41,7 @@
 
 <script setup lang="ts">
 import { taskApi, commonApi } from "@renderer/apis";
+import { sleep } from "@renderer/utils";
 
 interface Props {
   files: {
@@ -49,14 +63,18 @@ const props = withDefaults(defineProps<Props>(), {
 
 const params = ref<{
   startTimestamp: number | null;
+  endTimestamp: number | null;
   roomId: string | null;
   title: string | null;
   username: string | null;
+  duration: number;
 }>({
   roomId: "",
   startTimestamp: null,
+  endTimestamp: null,
   title: "",
   username: "",
+  duration: 0,
 });
 
 const confirm = async () => {
@@ -72,6 +90,9 @@ const confirm = async () => {
   if (!data.startTimestamp) {
     data.startTimestamp = new Date().getTime();
   }
+  if (!data.endTimestamp) {
+    data.endTimestamp = data.startTimestamp + 100000;
+  }
   if (!data.title) {
     data.title = "未知";
   }
@@ -80,8 +101,19 @@ const confirm = async () => {
   }
 
   await taskApi.sendToWebhook({
-    event: "FileClosed",
+    event: "FileOpening",
     time: new Date(data.startTimestamp).toISOString(),
+    filePath: props.files.video,
+    danmuPath: props.files.danmu,
+    roomId: data.roomId,
+    title: data.title,
+    username: data.username,
+  });
+  sleep(1000);
+
+  await taskApi.sendToWebhook({
+    event: "FileClosed",
+    time: new Date(data.endTimestamp).toISOString(),
     filePath: props.files.video,
     danmuPath: props.files.danmu,
     roomId: data.roomId,
@@ -102,6 +134,9 @@ watch(showModal, async (val) => {
       videoFilePath: props.files.video,
       danmaFilePath: props.files.danmu,
     });
+    params.value.endTimestamp = params.value.startTimestamp
+      ? (params.value.startTimestamp + params.value.duration) * 1000
+      : null;
     params.value.startTimestamp = params.value.startTimestamp
       ? params.value.startTimestamp * 1000
       : null;

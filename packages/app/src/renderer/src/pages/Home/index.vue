@@ -3,16 +3,11 @@
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
+        <n-button title="仅供参考，以实际渲染为主！" :disabled="isWeb" @click="preview">
+          预览
+        </n-button>
         <n-button type="primary" title="某些情况下你可能需要这个功能" @click="sendToWebhook">
           发送至webhook
-        </n-button>
-        <n-button
-          type="primary"
-          title="仅供参考，以实际渲染为主！"
-          :disabled="isWeb"
-          @click="preview"
-        >
-          预览
         </n-button>
         <n-button type="primary" :disabled="isWeb" @click="handleConvert"> 启动！ </n-button>
         <!-- <n-button type="primary" @click="hotProgressConvert"> 测试高能弹幕进度条生成 </n-button> -->

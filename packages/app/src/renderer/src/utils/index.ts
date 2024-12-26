@@ -80,3 +80,7 @@ export function formatFile(filepath: string) {
   const formatFile = window.path.parse(filepath);
   return { ...formatFile, path: filepath, filename: formatFile.base };
 }
+
+export async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

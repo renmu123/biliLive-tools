@@ -364,11 +364,13 @@ export async function parseMeta(files: { videoFilePath?: string; danmaFilePath?:
     roomId: number | null;
     title: string | null;
     username: string | null;
+    duration: number;
   } = {
     startTimestamp: null,
     roomId: null,
     title: null,
     username: null,
+    duration: 0,
   };
   let content = "";
   if (files.danmaFilePath && (await fs.pathExists(files.danmaFilePath))) {
@@ -377,10 +379,11 @@ export async function parseMeta(files: { videoFilePath?: string; danmaFilePath?:
 
   if (files.videoFilePath && (await fs.pathExists(files.videoFilePath))) {
     try {
-      const data = await readVideoMeta(files.videoFilePath, {
+      const meta = await readVideoMeta(files.videoFilePath, {
         json: true,
       });
-      content += String(data?.format?.tags?.comment) ?? "";
+      content += String(meta?.format?.tags?.comment) ?? "";
+      data.duration = parseInt(String(Number(meta?.format?.duration) || 0));
     } catch (e) {
       log.error("parseMeta, read video file error", e);
     }

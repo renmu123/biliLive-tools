@@ -381,7 +381,7 @@ const openSavePath = (path: string) => {
       margin-left: -10px;
     }
     .owner {
-      font-size: 20px;
+      font-size: 16px;
       font-weight: bold;
     }
   }
