@@ -5,9 +5,9 @@
     auto-focus
     preset="dialog"
     :show-icon="false"
+    :title="props.detail.title"
   >
     <div class="container">
-      <h4>{{ props.detail.title }}</h4>
       <div style="margin-bottom: 10px">
         <n-checkbox :checked="allChecked" @update:checked="handleCheckedChange" />
         选集：({{ selectIds.length }}/{{ props.detail.pages.length }})
@@ -202,9 +202,6 @@ const handleCheckedChange = (value: boolean) => {
 </script>
 
 <style scoped lang="less">
-.container {
-  margin-top: 40px;
-}
 .file-container {
   height: 200px;
   overflow: auto;
