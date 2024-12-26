@@ -174,7 +174,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const data = recorderConfig.get(recorder.id);
 
     data?.sendToWebhook &&
-      axios.post("http://127.0.0.1:18010/webhook/custom", {
+      axios.post(`http://127.0.0.1:${config.port}/webhook/custom`, {
         event: "FileOpening",
         filePath: filename,
         roomId: recorder.channelId,
@@ -199,7 +199,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const data = recorderConfig.get(recorder.id);
 
     data?.sendToWebhook &&
-      axios.post("http://127.0.0.1:18010/webhook/custom", {
+      axios.post(`http://127.0.0.1:${config.port}/webhook/custom`, {
         event: "FileClosed",
         filePath: filename,
         roomId: recorder.channelId,
