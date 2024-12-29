@@ -129,9 +129,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
   },
   task: {
-    ffmpegMaxNum: -1,
+    ffmpegMaxNum: 3,
     douyuDownloadMaxNum: 2,
-    biliUploadMaxNum: -1,
+    biliUploadMaxNum: 2,
     biliDownloadMaxNum: 2,
   },
   notification: {

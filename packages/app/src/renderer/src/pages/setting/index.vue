@@ -345,7 +345,7 @@ const isWeb = computed(() => window.isWeb);
 // @ts-ignore
 const config: Ref<AppConfig> = ref({
   task: {
-    ffmpegMaxNum: -1,
+    ffmpegMaxNum: 3,
     douyuDownloadMaxNum: -1,
     biliUploadMaxNum: -1,
     biliDownloadMaxNum: -1,
