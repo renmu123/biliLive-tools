@@ -193,6 +193,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     saveCover: false,
     uid: undefined,
     debugMode: false,
+    bilibili: {
+      uid: undefined,
+      quality: 10000,
+    },
   },
   recorders: [],
 };

@@ -120,13 +120,17 @@
           <Tip text="录制账号">登录才能录制高清画质</Tip>
         </template>
         <n-select
-          v-model:value="config.recorder.uid"
+          v-model:value="config.recorder.bilibili.uid"
           :options="userList"
           label-field="name"
           value-field="uid"
           clearable
         />
       </n-form-item>
+      <template #label>
+        <span class="inline-flex"> 画质 </span>
+      </template>
+      <n-select v-model:value="config.recorder.bilibili.quality" :options="qualityOptions" />
     </n-form>
   </div>
 </template>
