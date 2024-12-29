@@ -47,7 +47,7 @@
         <template #label>
           <span class="inline-flex">
             限速
-            <Tip tip="0为不限速"></Tip>
+            <Tip tip="0为不限速，仅为单个上传任务的限速，并非全局"></Tip>
           </span>
         </template>
         <n-input-number v-model:value="config.biliUpload.limitRate" min="0" step="1024">
