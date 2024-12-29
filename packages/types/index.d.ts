@@ -402,6 +402,8 @@ export interface AppConfig {
     retryDelay: number;
     /** 并发 */
     concurrency: number;
+    /** 上传限速 */
+    limitRate: number;
     /** 检查稿件间隔 */
     checkInterval: number;
   };

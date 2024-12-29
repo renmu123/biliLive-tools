@@ -268,7 +268,6 @@ function formatMediaOptions(options: AppConfigType["biliUpload"]) {
   let zone = "";
 
   if (splitedLine.length === 2) {
-    // @ts-ignore
     [zone, line] = splitedLine;
   }
 
@@ -276,6 +275,7 @@ function formatMediaOptions(options: AppConfigType["biliUpload"]) {
     ...options,
     line: line,
     zone: zone,
+    limitRate: Math.floor((options.limitRate || 0) / (options.concurrency || 1)),
   };
 }
 

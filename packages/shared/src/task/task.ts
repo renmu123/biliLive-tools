@@ -352,15 +352,33 @@ export class BiliPartVideoTask extends AbstractTask {
       this.endTime = Date.now();
     });
 
+    let progressHistory: { size: number; time: number }[] = [];
+
     command.emitter.on("progress", (event) => {
-      let progress = event.progress * 100;
-      // console.log("progress", progress);
+      if (event.event === "uploading") {
+        const nowSize = event?.data?.loaded || 0;
+        const nowTime = Date.now();
 
-      if (callback.onProgress) {
-        progress = callback.onProgress(progress);
+        progressHistory.push({ size: nowSize, time: nowTime });
+        if (progressHistory.length > 4) {
+          progressHistory.shift();
+        }
+
+        if (progressHistory.length > 1) {
+          const first = progressHistory[0];
+          const last = progressHistory[progressHistory.length - 1];
+          const sizeDistance = Math.abs(last.size - first.size);
+          const timeDistance = (last.time - first.time) / 1000;
+
+          if (timeDistance > 0) {
+            this.custsomProgressMsg = `速度: ${(sizeDistance / 1024 / 1024 / timeDistance).toFixed(2)}MB/s`;
+          }
+        }
       }
-      this.progress = progress;
 
+      let progress = event.progress * 100;
+      this.progress = progress;
+      callback.onProgress && callback.onProgress(progress);
       this.emitter.emit("task-progress", { taskId: this.taskId });
     });
   }
@@ -394,6 +412,7 @@ export class BiliPartVideoTask extends AbstractTask {
     this.status = "canceled";
     this.command.cancel();
     this.emit("task-cancel", { taskId: this.taskId, autoStart: triggerAutoStart });
+    this.endTime = Date.now();
     return true;
   }
 }
@@ -679,30 +698,29 @@ export class BiliDownloadVideoTask extends AbstractTask {
       this.emitter.emit("task-error", { taskId: this.taskId, error: err });
       this.endTime = Date.now();
     });
-    let size = 0;
-    let time = Date.now();
-    let lastProgressMsg = `速度: 0MB/s`;
+    let progressHistory: { size: number; time: number }[] = [];
     command.emitter.on("progress", (event: any) => {
       if (event.event === "download") {
         const progress = event.progress.progress * 100;
         this.progress = progress;
         const nowSize = event.progress.loaded;
         const nowTime = Date.now();
-        const timeDistance = (nowTime - time) / 1000;
-        const sizeDistance = nowSize - size;
 
-        time = nowTime;
-        size = nowSize;
-
-        if (timeDistance < 0.1) {
-          this.custsomProgressMsg = `速度: 0MB/s`;
-          this.custsomProgressMsg = lastProgressMsg;
-        } else {
-          this.custsomProgressMsg = `速度: ${(sizeDistance / 1024 / 1024 / timeDistance).toFixed(2)}MB/s`;
-          lastProgressMsg = this.custsomProgressMsg;
+        progressHistory.push({ size: nowSize, time: nowTime });
+        if (progressHistory.length > 4) {
+          progressHistory.shift();
         }
-        // progress.percentage = progress.progress * 100;
-        // progress.progress = progress.percentage;
+
+        if (progressHistory.length > 1) {
+          const first = progressHistory[0];
+          const last = progressHistory[progressHistory.length - 1];
+          const sizeDistance = last.size - first.size;
+          const timeDistance = (last.time - first.time) / 1000;
+
+          if (timeDistance > 0) {
+            this.custsomProgressMsg = `速度: ${(sizeDistance / 1024 / 1024 / timeDistance).toFixed(2)}MB/s`;
+          }
+        }
 
         callback.onProgress && callback.onProgress(progress);
         this.emitter.emit("task-progress", { taskId: this.taskId });
