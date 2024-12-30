@@ -128,7 +128,7 @@ export async function getStream(
     qn: qn,
     cookie: opts.cookie,
   });
-  console.log(JSON.stringify(liveInfo, null, 2));
+  // console.log(JSON.stringify(liveInfo, null, 2));
 
   // let expectStream: StreamProfile | null = null;
   if (liveInfo.current_qn !== qn) {

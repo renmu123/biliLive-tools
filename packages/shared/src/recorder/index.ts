@@ -279,7 +279,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
       const recorder = manager.recorders.find((item) => item.id === id);
       if (recorder == null) return null;
       recorderConfig.update(args);
-      console.log("updateRecorder", args);
 
       return updateRecorder(recorder, args);
     },
