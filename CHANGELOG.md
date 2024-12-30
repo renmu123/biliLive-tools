@@ -38,6 +38,7 @@
 3. 修复视频预设标题超过80字符无法保存的bug [#41](https://github.com/renmu123/biliLive-tools/issues/41)
 4. 修复windows下的删除到回收站失效
 5. 修复关闭登录弹框时未清除定时器 [#43](https://github.com/renmu123/biliLive-tools/issues/43)
+6. 修复使用copy预设切片时时间戳错误的情况
 
 # 1.6.2(2024.12.5)
 

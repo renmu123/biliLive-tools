@@ -530,7 +530,9 @@ export const genMergeAssMp4Command = async (
   // 切片
   if (ffmpegOptions.ss) {
     command.inputOptions(`-ss ${ffmpegOptions.ss}`);
-    command.inputOptions("-copyts");
+    if (ffmpegOptions.encoder !== "copy") {
+      command.inputOptions("-copyts");
+    }
   }
   if (ffmpegOptions.to) {
     command.inputOptions(`-to ${ffmpegOptions.to}`);
