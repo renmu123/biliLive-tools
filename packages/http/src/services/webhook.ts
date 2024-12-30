@@ -102,6 +102,12 @@ export class Live {
       throw new Error("type error");
     }
   }
+  removePart(partId: string) {
+    const part = this.parts.findIndex((part) => part.partId === partId);
+    if (part !== -1) {
+      this.parts.splice(part, 1);
+    }
+  }
 }
 
 export class WebhookHandler {
@@ -146,15 +152,6 @@ export class WebhookHandler {
       return;
     }
 
-    if (options.event === EventType.CloseEvent) {
-      // 在录制结束时判断大小，如果文件太小，直接返回
-      const fileSize = await getFileSize(options.filePath);
-      if (fileSize / 1024 / 1024 < minSize) {
-        log.warn(`${options.filePath}: file size is too small`);
-        return;
-      }
-    }
-
     // 计算live
     const currentLiveIndex = await this.handleLiveData(options, partMergeMinute);
 
@@ -165,7 +162,22 @@ export class WebhookHandler {
 
     const currentLive = this.liveData[currentLiveIndex];
     const currentPart = currentLive.findPartByFilePath(options.filePath);
+
+    // 在录制结束时判断大小，如果文件太小，直接返回
+    const fileSize = await getFileSize(options.filePath);
+    if (fileSize / 1024 / 1024 < minSize) {
+      log.warn(`${options.filePath}: file size is too small`);
+      if (currentLive) {
+        const part = currentLive.findPartByFilePath(options.filePath);
+        if (part) {
+          currentLive.removePart(part.partId);
+        }
+      }
+      return;
+    }
+
     if (!currentPart) return;
+    log.debug(this.liveData);
 
     // TODO:重构
     if (useLiveCover) {
