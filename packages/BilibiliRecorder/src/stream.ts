@@ -1,4 +1,4 @@
-import { Qualities, Recorder } from "@autorecord/manager";
+import { Recorder } from "@autorecord/manager";
 import {
   CodecInfo,
   FormatInfo,
@@ -10,7 +10,7 @@ import {
   StreamProfile,
   getRoomBaseInfo,
 } from "./bilibili_api.js";
-import { assert, getValuesFromArrayLikeFlexSpaceBetween } from "./utils.js";
+import { assert } from "./utils.js";
 import { sortBy } from "lodash-es";
 
 export async function getLiveStatus(channelId: string): Promise<boolean> {
