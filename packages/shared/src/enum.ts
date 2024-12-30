@@ -194,7 +194,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     uid: undefined,
     debugMode: false,
     bilibili: {
-      uid: undefined,
+      uid: "",
       quality: 10000,
     },
   },

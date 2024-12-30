@@ -251,7 +251,7 @@ export type Theme = "system" | "light" | "dark";
 
 interface BaseRecordr {
   /** 画质 */
-  quality: "lowest" | "low" | "medium" | "high" | "highest";
+  quality: "lowest" | "low" | "medium" | "high" | "highest" | BilibiliRecorderConfig["quality"];
   /** 线路 */
   line?: string; // "auto" | "tct-h5" | "hw-h5"
   /** 录制弹幕 */
@@ -271,7 +271,7 @@ interface BaseRecordr {
 interface BilibiliRecorderConfig {
   /** 账号 */
   uid: string;
-  /** 画质 30000：杜比 20000：蓝光 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
+  /** 画质 30000：杜比 20000：4K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
   quality: 30000 | 20000 | 10000 | 400 | 250 | 150 | 80;
 }
 

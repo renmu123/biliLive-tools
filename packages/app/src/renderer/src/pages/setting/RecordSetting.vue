@@ -127,10 +127,12 @@
           clearable
         />
       </n-form-item>
-      <template #label>
-        <span class="inline-flex"> 画质 </span>
-      </template>
-      <n-select v-model:value="config.recorder.bilibili.quality" :options="qualityOptions" />
+      <n-form-item>
+        <template #label>
+          <Tip text="画质">如果找不到对应画质，会使用更清晰的源</Tip>
+        </template>
+        <n-select v-model:value="config.recorder.bilibili.quality" :options="biliQualityOptions" />
+      </n-form-item>
     </n-form>
   </div>
 </template>
@@ -154,6 +156,36 @@ const qualityOptions = [
   { value: "medium", label: "中" },
   { value: "low", label: "低" },
   { value: "lowest", label: "最低" },
+];
+const biliQualityOptions = [
+  {
+    value: 10000,
+    label: "原画(10000)",
+  },
+  {
+    value: 30000,
+    label: "杜比(30000)",
+  },
+  {
+    value: 20000,
+    label: "4K(20000)",
+  },
+  {
+    value: 400,
+    label: "蓝光(400)",
+  },
+  {
+    value: 250,
+    label: "超清(250)",
+  },
+  {
+    value: 150,
+    label: "高清(150)",
+  },
+  {
+    value: 80,
+    label: "流畅(80)",
+  },
 ];
 
 const selectFolder = async (type: "recorder") => {

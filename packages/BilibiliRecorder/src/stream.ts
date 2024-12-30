@@ -119,33 +119,23 @@ export async function getStream(
     codec: "avc",
   };
 
+  const qn = [30000, 20000, 10000, 400, 250, 150, 80].includes(opts.quality as number)
+    ? (opts.quality as number)
+    : 10000;
+
   let liveInfo = await getLiveInfo(roomId, {
     ...defaultOpts,
+    qn: qn,
     cookie: opts.cookie,
   });
+  console.log(JSON.stringify(liveInfo, null, 2));
 
-  let expectStream: StreamProfile | null = null;
-  const streamsWithPriority = sortAndFilterStreamsByPriority(
-    liveInfo.streams,
-    opts.streamPriorities,
-  );
-  if (streamsWithPriority.length > 0) {
-    // 通过优先级来选择对应流
-    expectStream = streamsWithPriority[0];
-  } else {
-    // 通过设置的画质选项来选择对应流
-    const flexedStreams = getValuesFromArrayLikeFlexSpaceBetween(
-      // 接口给的画质列表是按照清晰到模糊的顺序的，这里翻转下
-      liveInfo.streams.toReversed(),
-      Qualities.length,
-    );
-    expectStream = flexedStreams[Qualities.indexOf(opts.quality)];
-  }
-
-  if (expectStream != null && liveInfo.current_qn !== expectStream.qn) {
+  // let expectStream: StreamProfile | null = null;
+  if (liveInfo.current_qn !== qn) {
     // 当前流不是预期的流，需要切换。
+    const acceptQn = liveInfo.accept_qn[0];
     liveInfo = await getLiveInfo(roomId, {
-      qn: expectStream.qn,
+      qn: acceptQn,
       ...defaultOpts,
       cookie: opts.cookie,
     });
@@ -170,29 +160,6 @@ export async function getStream(
       url: expectSource.host + liveInfo.base_url + expectSource.extra,
     },
   };
-}
-
-/**
- * 按提供的流优先级去给流列表排序，并过滤掉不在优先级配置中的流
- */
-function sortAndFilterStreamsByPriority(
-  streams: StreamProfile[],
-  streamPriorities: Recorder["streamPriorities"],
-): (StreamProfile & {
-  priority: number;
-})[] {
-  if (streamPriorities.length === 0) return [];
-
-  return sortBy(
-    // 分配优先级属性，数字越大优先级越高
-    streams
-      .map((stream) => ({
-        ...stream,
-        priority: streamPriorities.toReversed().indexOf(stream.desc),
-      }))
-      .filter(({ priority }) => priority !== -1),
-    "priority",
-  );
 }
 
 /**
