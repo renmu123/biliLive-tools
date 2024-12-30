@@ -485,6 +485,15 @@ describe("WebhookHandler", () => {
     });
     it("should handle the options and return if the file size is too small", async () => {
       // Arrange
+      const options1: Options = {
+        roomId: 123,
+        event: "FileOpening",
+        filePath: "/path/to/part1.mp4",
+        time: "2022-01-01T00:00:00Z",
+        username: "test",
+        platform: "blrec",
+        title: "test video",
+      };
       const options: Options = {
         roomId: 123,
         event: "FileClosed",
@@ -508,12 +517,13 @@ describe("WebhookHandler", () => {
       getConfigSpy.mockReturnValue({ open: true, minSize: 100, title: "test" });
 
       // Act
+      await webhookHandler.handle(options1);
       const result = await webhookHandler.handle(options);
 
       // Assert
       expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
       expect(result).toBeUndefined();
-      expect(webhookHandler.liveData.length).toBe(0);
+      expect(webhookHandler.liveData[0].parts.length).toBe(0);
     });
   });
   describe("handleLive", () => {
