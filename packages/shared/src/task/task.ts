@@ -352,30 +352,7 @@ export class BiliPartVideoTask extends AbstractTask {
       this.endTime = Date.now();
     });
 
-    let progressHistory: { size: number; time: number }[] = [];
-
     command.emitter.on("progress", (event) => {
-      if (event.event === "uploading") {
-        const nowSize = event?.data?.loaded || 0;
-        const nowTime = Date.now();
-
-        progressHistory.push({ size: nowSize, time: nowTime });
-        if (progressHistory.length > 4) {
-          progressHistory.shift();
-        }
-
-        if (progressHistory.length > 1) {
-          const first = progressHistory[0];
-          const last = progressHistory[progressHistory.length - 1];
-          const sizeDistance = Math.abs(last.size - first.size);
-          const timeDistance = (last.time - first.time) / 1000;
-
-          if (timeDistance > 0) {
-            this.custsomProgressMsg = `速度: ${(sizeDistance / 1024 / 1024 / timeDistance).toFixed(2)}MB/s`;
-          }
-        }
-      }
-
       let progress = event.progress * 100;
       this.progress = progress;
       callback.onProgress && callback.onProgress(progress);
