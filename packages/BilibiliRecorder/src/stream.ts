@@ -131,7 +131,7 @@ export async function getStream(
   // console.log(JSON.stringify(liveInfo, null, 2));
 
   // let expectStream: StreamProfile | null = null;
-  if (liveInfo.current_qn !== qn) {
+  if ((liveInfo?.accept_qn ?? []).length !== 0 && liveInfo.current_qn !== qn) {
     // 当前流不是预期的流，需要切换。
     const acceptQn = liveInfo.accept_qn[0];
     liveInfo = await getLiveInfo(roomId, {

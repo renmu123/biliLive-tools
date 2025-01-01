@@ -144,6 +144,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   const saveCover = async ({ filename }) => {
+    const extraDataController = streamManager?.getExtraDataController();
+    extraDataController?.setMeta({
+      room_id: String(roomId),
+      platform: provider?.id,
+    });
     if (this.saveCover) {
       const coverPath = utils.replaceExtName(filename, ".jpg");
       utils.downloadImage(cover, coverPath);
