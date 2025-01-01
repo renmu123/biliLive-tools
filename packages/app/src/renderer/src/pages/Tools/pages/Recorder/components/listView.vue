@@ -49,6 +49,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   list: () => [],
 });
+
+const list = computed(() => props.list);
 </script>
 
 <style scoped lang="less">
