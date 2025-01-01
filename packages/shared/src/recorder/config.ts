@@ -1,4 +1,4 @@
-import { at } from "lodash-es";
+import { get } from "lodash-es";
 
 import type { LocalRecordr, BaseRecordr } from "@biliLive-tools/types";
 import type { AppConfig } from "../config.js";
@@ -23,7 +23,7 @@ export default class RecorderConfig {
         return setting?.[key];
       } else {
         // @ts-ignore
-        return at(globalConfig, key);
+        return get(globalConfig, key);
       }
     };
 

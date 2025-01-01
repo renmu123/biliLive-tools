@@ -112,7 +112,10 @@ export async function getStream(
     );
     // console.log("画质列表", streams);
 
-    expectStream = streams[Qualities.indexOf(opts.quality)];
+    const qn = (
+      Qualities.includes(opts.quality as any) ? opts.quality : "highest"
+    ) as (typeof Qualities)[number];
+    expectStream = streams[Qualities.indexOf(qn)];
     // }
   }
 

@@ -45,7 +45,10 @@ export async function getStream(
       info.streams.toReversed(),
       Qualities.length,
     );
-    expectStream = flexedStreams[Qualities.indexOf(opts.quality)];
+    const qn = (
+      Qualities.includes(opts.quality as any) ? opts.quality : "highest"
+    ) as (typeof Qualities)[number];
+    expectStream = flexedStreams[Qualities.indexOf(qn)];
   }
 
   let expectSource: SourceProfile | null = null;
