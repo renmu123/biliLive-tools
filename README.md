@@ -47,11 +47,7 @@ CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/maste
 
 ## docker
 
-尚未施工完成
-
 **由于软件并非针对web设计，无法保证安全性，请谨慎暴露在公网中**
-
-我们这里以本软件和录播姬共用作为示例：
 
 你可以通过运行`docker-compose up -d`来快速搭建
 
@@ -81,6 +77,8 @@ services:
       - BILILIVE_TOOLS_PASSKEY=your_passkey
       # 账户加密密钥
       - BILILIVE_TOOLS_BILIKEY=your_bilikey
+      # 中国时区
+      - TZ=Asia/Shanghai
 ```
 
 具体支持的环境变量见[文档](./README.md#支持的环境变量)
@@ -117,6 +115,8 @@ services:
       - BILILIVE_TOOLS_PASSKEY=your_passkey
       # 账户加密密钥，自行修改
       - BILILIVE_TOOLS_BILIKEY=your_bilikey
+      # 中国时区
+      - TZ=Asia/Shanghai
   # 录播姬
   recorder:
     image: bililive/recorder:latest
