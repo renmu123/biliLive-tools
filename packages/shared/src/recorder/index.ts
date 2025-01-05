@@ -137,9 +137,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
   });
 
   manager.on("RecorderDebugLog", ({ recorder, ...log }) => {
-    // TODO: 测试阶段，记录日志
-    // const debugMode = config.recorder.debugMode;
-    // if (!debugMode) return;
+    const debugMode = config.recorder.debugMode;
+    if (!debugMode) return;
 
     if (recorder.recordHandle) {
       const logFilePath = utils.replaceExtName(
