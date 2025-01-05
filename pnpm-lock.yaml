@@ -474,8 +474,8 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       '@renmu/bili-api':
-        specifier: 2.3.1
-        version: 2.3.1
+        specifier: 2.3.2
+        version: 2.3.2
       '@renmu/fluent-ffmpeg':
         specifier: 2.3.2
         version: 2.3.2
@@ -1205,8 +1205,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@renmu/bili-api@2.3.1':
-    resolution: {integrity: sha512-aJgZAs3FqAGwucYqm0zQ1NOjLS4zqCJEc3TpiAccLx0N78qpvirzEfSyZGbNGCtsUWre1ng5YDJy+jwsxUq7wA==}
+  '@renmu/bili-api@2.3.2':
+    resolution: {integrity: sha512-moi8W7rV3Qj4+9gjjtgjJAD/RRLYXjlzuSptG7RRCG/H9Tfb8dnvji1J5NoukBaqTfL2TPuKGA+7mPbPy3pxvw==}
     engines: {node: '>=18'}
 
   '@renmu/fluent-ffmpeg@2.3.2':
@@ -1216,6 +1216,10 @@ packages:
   '@renmu/m3u8-downloader@0.3.1':
     resolution: {integrity: sha512-JyVWlh3X0m9umuVf7fN5XqO3oZoIhwQdpwh5UcTmG50J1kj5L8BMg2TYkERzNP6sHRQSAG0bxSn4eDvdyJc0zg==}
     engines: {node: '>=18'}
+
+  '@renmu/throttle@1.0.3':
+    resolution: {integrity: sha512-6ArdPb+EJ3IXnvemzNDj8YIAJMgyU8NMCi3Ad4nL0Vr9R8TfAk4KvHHsu9tWbmOmgrbp3bCYYO7AAQRN0MRQuw==}
+    engines: {node: '>= v0.8.0'}
 
   '@rollup/plugin-commonjs@26.0.3':
     resolution: {integrity: sha512-2BJcolt43MY+y5Tz47djHkodCC3c1VKVrBDKpVqHKpQ9z9S158kCCqB8NF6/gzxLdNlYW9abB3Ibh+kOWLp8KQ==}
@@ -4602,10 +4606,6 @@ packages:
   text-table@0.2.0:
     resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
 
-  throttle@1.0.3:
-    resolution: {integrity: sha512-VYINSQFQeFdmhCds0tTqvQmLmdAjzGX1D6GnRQa4zlq8OpTtWSMddNyRq8Z4Snw/d6QZrWt9cM/cH8xTiGUkYA==}
-    engines: {node: '>= v0.8.0'}
-
   through@2.3.8:
     resolution: {integrity: sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==}
 
@@ -5722,14 +5722,14 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@renmu/bili-api@2.3.1':
+  '@renmu/bili-api@2.3.2':
     dependencies:
+      '@renmu/throttle': 1.0.3
       axios: 1.7.8
       axios-retry: 4.5.0(axios@1.7.8)
       fast-xml-parser: 4.5.0
       p-queue: 8.0.1
       protobufjs: 7.4.0
-      throttle: 1.0.3
       tiny-typed-emitter: 2.1.0
     transitivePeerDependencies:
       - debug
@@ -5750,6 +5750,12 @@ snapshots:
       tiny-typed-emitter: 2.1.0
     transitivePeerDependencies:
       - debug
+
+  '@renmu/throttle@1.0.3':
+    dependencies:
+      stream-parser: 0.3.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@rollup/plugin-commonjs@26.0.3(rollup@4.24.4)':
     dependencies:
@@ -9555,13 +9561,6 @@ snapshots:
       minimatch: 9.0.5
 
   text-table@0.2.0: {}
-
-  throttle@1.0.3:
-    dependencies:
-      readable-stream: 3.6.2
-      stream-parser: 0.3.1
-    transitivePeerDependencies:
-      - supports-color
 
   through@2.3.8: {}
 
