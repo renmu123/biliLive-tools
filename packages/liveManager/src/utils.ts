@@ -195,7 +195,7 @@ export function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean
 
   return (ffmpegLogLine) => {
     const streamInfo = ffmpegLogLine.match(
-      /frame=\s*(\d+) fps=.*? q=.*? size=\s*(\d+)kB time=.*? bitrate=.*? speed=.*?/,
+      /frame=\s*(\d+) fps=.*? q=.*? size=.*? time=.*? bitrate=.*? speed=.*?/,
     );
     if (streamInfo != null) {
       const [, frameText] = streamInfo;
