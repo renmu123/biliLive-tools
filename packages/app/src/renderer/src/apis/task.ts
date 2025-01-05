@@ -45,6 +45,11 @@ const remove = async (id: string): Promise<string> => {
   const res = await request.post(`/task/${id}/remove`);
   return res.data;
 };
+// 批量删除
+const removeBatch = async (ids: string[]): Promise<string> => {
+  const res = await request.post(`/task/removeBatch`, { ids });
+  return res.data;
+};
 
 const start = async (id: string): Promise<string> => {
   const res = await request.post(`/task/${id}/start`);
@@ -134,6 +139,7 @@ const task = {
   mergeVideos,
   transcode,
   sendToWebhook,
+  removeBatch,
 };
 
 export default task;
