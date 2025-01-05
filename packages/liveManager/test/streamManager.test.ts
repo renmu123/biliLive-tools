@@ -80,6 +80,7 @@ describe("StreamManager", () => {
     });
     expect(streamManager.getExtraDataController()?.setMeta).toHaveBeenCalledWith({
       title: "title",
+      user_name: "owner",
     });
     expect(streamManager.getExtraDataController()?.data.meta.recordStartTimestamp).toBeDefined();
   });
