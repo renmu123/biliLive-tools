@@ -25,10 +25,10 @@ export const useUserInfoStore = defineStore("userInfo", () => {
     }[]
   >([]);
 
-  const calcExpireTime = (user: { expires: number }) => {
+  const calcExpireTime = (expires: number) => {
     const date = new Date();
-    if (user.expires) {
-      const expireTime = new Date(user.expires * 1000);
+    if (expires) {
+      const expireTime = new Date(expires * 1000);
       if (date > expireTime) {
         return "已过期!";
       } else {
@@ -41,7 +41,12 @@ export const useUserInfoStore = defineStore("userInfo", () => {
   };
 
   async function getUsers() {
-    userList.value = await getUserList();
+    userList.value = (await getUserList()).map((item) => {
+      return {
+        ...item,
+        expiresText: calcExpireTime(item.expires),
+      };
+    });
   }
 
   function changeUser(uid: number) {
@@ -57,9 +62,6 @@ export const useUserInfoStore = defineStore("userInfo", () => {
       profile: {
         face: user?.face,
         name: user?.name,
-        expiresText: calcExpireTime({
-          expires: user?.expires || 0,
-        }),
       },
     };
   });
