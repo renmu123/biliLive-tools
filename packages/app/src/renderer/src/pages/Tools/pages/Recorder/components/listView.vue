@@ -18,7 +18,7 @@
         </td>
         <td>{{ item.owner }}</td>
         <td>{{ item.roomTitle }}</td>
-        <td>{{ item.living ? "直播中" : "尚未开始" }}</td>
+        <td>{{ item.living ? "直播中" : "未开始" }}</td>
         <td
           :title="`${item.usedSource}-${item.usedStream}`"
           :class="{
