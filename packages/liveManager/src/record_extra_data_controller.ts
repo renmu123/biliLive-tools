@@ -16,6 +16,9 @@ export interface RecordExtraData {
     recordStartTimestamp: number;
     recordStopTimestamp?: number;
     ffmpegArgs?: string[];
+    platform?: string;
+    user_name?: string;
+    room_id?: string;
   };
   /** 这个数组预期上是一个根据 timestamp 排序的有序数组，方便做一些时间段查询 */
   messages: Message[];
@@ -172,8 +175,11 @@ export function convert2Xml(data: RecordExtraData) {
   const xmlContent = builder.build({
     i: {
       metadata: {
-        platform: "douyu",
+        platform: metadata.platform,
         video_start_time: metadata.recordStartTimestamp,
+        room_title: metadata.title,
+        user_name: metadata.user_name,
+        room_id: metadata.room_id,
       },
       d: comments,
       gift: gifts,

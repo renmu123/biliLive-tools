@@ -85,7 +85,7 @@
             >全局</n-checkbox
           >
         </n-form-item>
-        <n-form-item>
+        <n-form-item v-if="config.providerId !== 'Bilibili'">
           <template #label>
             <span class="inline-flex"> 画质 </span>
           </template>
@@ -98,28 +98,12 @@
             >全局</n-checkbox
           >
         </n-form-item>
-        <n-form-item>
+        <!-- <n-form-item>
           <template #label>
             <span class="inline-flex"> 线路 </span>
           </template>
           待实现
-        </n-form-item>
-        <n-form-item v-if="config.providerId === 'Bilibili'">
-          <template #label>
-            <Tip text="B站录制账号">登录才能录制高清画质</Tip>
-          </template>
-          <n-select
-            v-model:value="config.uid"
-            :options="userList"
-            label-field="name"
-            value-field="uid"
-            clearable
-            :disabled="globalFieldsObj.uid"
-          />
-          <n-checkbox v-model:checked="globalFieldsObj.uid" class="global-checkbox"
-            >全局</n-checkbox
-          >
-        </n-form-item>
+        </n-form-item> -->
         <n-form-item>
           <template #label>
             <span class="inline-flex"> 保存封面 </span>
@@ -130,7 +114,7 @@
           >
         </n-form-item>
 
-        <h2>弹幕录制</h2>
+        <h2>弹幕</h2>
         <n-form-item>
           <template #label>
             <span class="inline-flex"> 弹幕录制 </span>
@@ -168,6 +152,39 @@
             >全局</n-checkbox
           >
         </n-form-item>
+
+        <template v-if="config.providerId === 'Bilibili'">
+          <h2>B站</h2>
+          <n-form-item>
+            <template #label>
+              <Tip text="B站录制账号">登录才能录制高清画质</Tip>
+            </template>
+            <n-select
+              v-model:value="config.uid"
+              :options="userList"
+              label-field="name"
+              value-field="uid"
+              clearable
+              :disabled="globalFieldsObj.uid"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.uid" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="画质">如果找不到对应画质，会使用更清晰的源</Tip>
+            </template>
+            <n-select
+              v-model:value="config.quality"
+              :options="biliQualityOptions"
+              :disabled="globalFieldsObj.quality"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+        </template>
       </n-form>
       <template #footer>
         <div class="footer">
@@ -237,6 +254,36 @@ const qualityOptions = [
   { value: "low", label: "低" },
   { value: "lowest", label: "最低" },
 ];
+const biliQualityOptions = [
+  {
+    value: 10000,
+    label: "原画(10000)",
+  },
+  {
+    value: 30000,
+    label: "杜比(30000)",
+  },
+  {
+    value: 20000,
+    label: "4K(20000)",
+  },
+  {
+    value: 400,
+    label: "蓝光(400)",
+  },
+  {
+    value: 250,
+    label: "超清(250)",
+  },
+  {
+    value: 150,
+    label: "高清(150)",
+  },
+  {
+    value: 80,
+    label: "流畅(80)",
+  },
+];
 
 const confirm = async () => {
   if (!config.value.channelId) {
@@ -287,6 +334,9 @@ const onChannelIdInputEnd = async () => {
   config.value.providerId = res.providerId;
   config.value.remarks = res.owner;
   owner.value = res.owner;
+  if (res.providerId === "Bilibili") {
+    config.value.quality = 10000;
+  }
 };
 
 watchEffect(async () => {
@@ -330,7 +380,11 @@ watch(
   () => globalFieldsObj.value,
   (val) => {
     if (val.quality) {
-      config.value.quality = appConfig.value.recorder.quality;
+      if (config.value.providerId === "Bilibili") {
+        config.value.quality = appConfig.value.recorder.bilibili.quality;
+      } else {
+        config.value.quality = appConfig.value.recorder.quality;
+      }
     }
     if (val.disableProvideCommentsWhenRecording) {
       config.value.disableProvideCommentsWhenRecording =
@@ -346,7 +400,7 @@ watch(
       config.value.segment = appConfig.value.recorder.segment;
     }
     if (val.uid) {
-      config.value.uid = appConfig.value.recorder.uid;
+      config.value.uid = appConfig.value.recorder.bilibili.uid;
     }
     if (val.saveCover) {
       config.value.saveCover = appConfig.value.recorder.saveCover;

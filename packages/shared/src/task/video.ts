@@ -248,19 +248,79 @@ export class ComplexFilter {
 }
 
 /**
- * 弹幕元数据时间匹配
+ * 弹幕元数据开始时间匹配
  * @param {string} str 需要匹配的字符串
  */
 export const matchDanmaTimestamp = (str: string): number | null => {
-  const bililiveRecorderRegex = /start_time="(.+)"/;
-  const blrecRegex = /<record_start_time>(.+)<\/record_start_time>/;
-  const douyuRegex = /<video_start_time>(.+)<\/video_start_time>/;
+  const bililiveRecorderRegex = /start_time="(.+?)"/;
+  const blrecRegex = /<record_start_time>(.+?)<\/record_start_time>/;
+  const douyuRegex = /<video_start_time>(.+?)<\/video_start_time>/;
+  const bililiveRecorderVideoRegex = /录制时间: (.+)/;
 
-  const regexes = [bililiveRecorderRegex, blrecRegex, douyuRegex];
+  const regexes = [bililiveRecorderRegex, blrecRegex, douyuRegex, bililiveRecorderVideoRegex];
   for (const regex of regexes) {
     const timestamp = matchTimestamp(str, regex);
     if (timestamp) {
       return timestamp;
+    }
+  }
+  return null;
+};
+
+/**
+ * 元数据房间号匹配
+ * @param {string} str 需要匹配的字符串
+ */
+export const matchRoomId = (str: string): number | null => {
+  const bililiveRecorderRegex = /roomid="(.+?)"/;
+  // douyu的和blrec的参数一致
+  const blrecRegex = /<room_id>(.+?)<\/room_id>/;
+
+  const regexes = [bililiveRecorderRegex, blrecRegex];
+  for (const regex of regexes) {
+    const match = str.match(regex);
+    if (match) {
+      return Number(match[1]) || null;
+    }
+  }
+  return null;
+};
+
+/**
+ * 元数据标题匹配
+ * @param {string} str 需要匹配的字符串
+ */
+export const matchTitle = (str: string): string | null => {
+  const bililiveRecorderRegex = /title="(.+?)"/;
+  // douyu的和blrec的参数一致
+  const blrecRegex = /<room_title>(.+?)<\/room_title>/;
+  const bililiveRecorderVideoRegex = /直播标题: (.+)/;
+
+  const regexes = [bililiveRecorderRegex, blrecRegex, bililiveRecorderVideoRegex];
+  for (const regex of regexes) {
+    const match = str.match(regex);
+    if (match) {
+      return match[1];
+    }
+  }
+  return null;
+};
+
+/**
+ * 元数据用户名匹配
+ * @param {string} str 需要匹配的字符串
+ */
+export const matchUser = (str: string): string | null => {
+  const bililiveRecorderRegex = /name="(.+?)"/;
+  // douyu的和blrec的参数一致
+  const blrecRegex = /<user_name>(.+?)<\/user_name>/;
+  const bililiveRecorderVideoRegex = /主播名: (.+)/;
+
+  const regexes = [bililiveRecorderRegex, blrecRegex, bililiveRecorderVideoRegex];
+  for (const regex of regexes) {
+    const match = str.match(regex);
+    if (match) {
+      return match[1];
     }
   }
   return null;
@@ -275,12 +335,8 @@ function matchTimestamp(str: string, regex: RegExp): number | null {
   const match = str.match(regex);
   if (match) {
     const time = match[1];
-    try {
-      const timestamp = Math.floor(new Date(time).getTime() / 1000);
-      return timestamp;
-    } catch {
-      // do nothing
-    }
+    const timestamp = Math.floor(new Date(time).getTime() / 1000);
+    return timestamp || null;
   }
 
   return null;
@@ -300,6 +356,54 @@ export async function readXmlTimestamp(filePath: string): Promise<number | 0> {
   const timestamp = matchDanmaTimestamp(content.join("\n"));
 
   return timestamp ? timestamp : 0;
+}
+
+/**
+ * 解析元数据
+ * @param files
+ * @param files.videoFilePath 视频文件路径
+ * @param files.assFilePath 弹幕文件路径
+ */
+export async function parseMeta(files: { videoFilePath?: string; danmaFilePath?: string }) {
+  const data: {
+    // 秒级时间戳
+    startTimestamp: number | null;
+    roomId: number | null;
+    title: string | null;
+    username: string | null;
+    duration: number;
+  } = {
+    startTimestamp: null,
+    roomId: null,
+    title: null,
+    username: null,
+    duration: 0,
+  };
+  let content = "";
+  if (files.danmaFilePath && (await fs.pathExists(files.danmaFilePath))) {
+    content += (await readLines(files.danmaFilePath, 0, 30)).join("\n");
+  }
+
+  if (files.videoFilePath && (await fs.pathExists(files.videoFilePath))) {
+    try {
+      const meta = await readVideoMeta(files.videoFilePath, {
+        json: true,
+      });
+      content += String(meta?.format?.tags?.comment) ?? "";
+      data.duration = parseInt(String(Number(meta?.format?.duration) || 0));
+    } catch (e) {
+      log.error("parseMeta, read video file error", e);
+    }
+  }
+  if (!content) {
+    return data;
+  }
+  data.startTimestamp = matchDanmaTimestamp(content);
+  data.roomId = matchRoomId(content);
+  data.title = matchTitle(content);
+  data.username = matchUser(content);
+
+  return data;
 }
 
 /**
@@ -433,7 +537,9 @@ export const genMergeAssMp4Command = async (
   // 切片
   if (ffmpegOptions.ss) {
     command.inputOptions(`-ss ${ffmpegOptions.ss}`);
-    command.inputOptions("-copyts");
+    if (ffmpegOptions.encoder !== "copy") {
+      command.inputOptions("-copyts");
+    }
   }
   if (ffmpegOptions.to) {
     command.inputOptions(`-to ${ffmpegOptions.to}`);

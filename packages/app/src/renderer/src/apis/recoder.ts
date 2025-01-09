@@ -1,12 +1,14 @@
 import request from "./request";
 
-import type { ClientRecorder, RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
+import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 import type { LocalRecordr } from "@biliLive-tools/types";
 
 /**
  * 获取录制器列表，非配置信息
  */
-const infoList = async (params: RecorderAPI["getRecorders"]["Args"]): Promise<ClientRecorder[]> => {
+const infoList = async (
+  params: RecorderAPI["getRecorders"]["Args"],
+): Promise<RecorderAPI["getRecorders"]["Resp"]> => {
   const res = await request.get(`/recorder/list`, { params });
   return res.data.payload;
 };

@@ -3,7 +3,8 @@ import { AnyObject, UnknownObject } from "./utils.js";
 export type ChannelId = string;
 
 export const Qualities = ["lowest", "low", "medium", "high", "highest"] as const;
-export type Quality = (typeof Qualities)[number];
+export const BiliQualities = [30000, 20000, 10000, 400, 250, 150, 80] as const;
+export type Quality = (typeof Qualities)[number] | (typeof BiliQualities)[number];
 
 export interface MessageSender<E extends AnyObject = UnknownObject> {
   uid?: string;

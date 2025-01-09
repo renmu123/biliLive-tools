@@ -52,7 +52,7 @@
         <template #label>
           <span class="inline-flex">
             检查间隔
-            <Tip tip="直播状态检查，注意风控"></Tip>
+            <Tip tip="直播状态检查，太快任意被风控~"></Tip>
           </span>
         </template>
         <n-input-number v-model:value="config.recorder.checkInterval" min="10" step="10">
@@ -76,18 +76,7 @@
         </template>
         <n-select v-model:value="config.recorder.quality" :options="qualityOptions" />
       </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip text="B站录制账号">登录才能录制高清画质</Tip>
-        </template>
-        <n-select
-          v-model:value="config.recorder.uid"
-          :options="userList"
-          label-field="name"
-          value-field="uid"
-          clearable
-        />
-      </n-form-item>
+
       <n-form-item>
         <template #label>
           <span> 保存封面 </span>
@@ -101,7 +90,7 @@
         <n-switch v-model:value="config.recorder.debugMode" />
       </n-form-item>
 
-      <h2>弹幕录制</h2>
+      <h3>弹幕</h3>
       <n-form-item>
         <template #label>
           <span class="inline-flex"> 弹幕录制 </span>
@@ -124,18 +113,26 @@
         </template>
         <n-switch v-model:value="config.recorder.saveSCDanma" />
       </n-form-item>
-      <!-- <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
+
+      <h2>B站</h2>
+      <n-form-item>
         <template #label>
-          <span class="inline-flex"> 自动转换为ass </span>
+          <Tip text="录制账号">登录才能录制高清画质</Tip>
         </template>
-        待实现
+        <n-select
+          v-model:value="config.recorder.bilibili.uid"
+          :options="userList"
+          label-field="name"
+          value-field="uid"
+          clearable
+        />
       </n-form-item>
-      <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording && false">
+      <n-form-item>
         <template #label>
-          <span class="inline-flex"> ass转换预设 </span>
+          <Tip text="画质">如果找不到对应画质，会使用更清晰的源</Tip>
         </template>
-        待实现
-      </n-form-item> -->
+        <n-select v-model:value="config.recorder.bilibili.quality" :options="biliQualityOptions" />
+      </n-form-item>
     </n-form>
   </div>
 </template>
@@ -159,6 +156,36 @@ const qualityOptions = [
   { value: "medium", label: "中" },
   { value: "low", label: "低" },
   { value: "lowest", label: "最低" },
+];
+const biliQualityOptions = [
+  {
+    value: 10000,
+    label: "原画(10000)",
+  },
+  {
+    value: 30000,
+    label: "杜比(30000)",
+  },
+  {
+    value: 20000,
+    label: "4K(20000)",
+  },
+  {
+    value: 400,
+    label: "蓝光(400)",
+  },
+  {
+    value: 250,
+    label: "超清(250)",
+  },
+  {
+    value: 150,
+    label: "高清(150)",
+  },
+  {
+    value: 80,
+    label: "流畅(80)",
+  },
 ];
 
 const selectFolder = async (type: "recorder") => {
@@ -277,5 +304,12 @@ const setTitleVar = async (value: string) => {
   &.disabled {
     cursor: not-allowed;
   }
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  margin-left: 20px;
 }
 </style>

@@ -179,6 +179,8 @@ export type ToolConfig = {
     douyuResolution: "highest" | string;
     /** 下载时覆盖已有文件 */
     override: boolean;
+    /** 只下载音频 */
+    onlyAudio: boolean;
   };
   /** 切片 */
   videoCut: {
@@ -249,7 +251,7 @@ export type Theme = "system" | "light" | "dark";
 
 interface BaseRecordr {
   /** 画质 */
-  quality: "lowest" | "low" | "medium" | "high" | "highest";
+  quality: "lowest" | "low" | "medium" | "high" | "highest" | BilibiliRecorderConfig["quality"];
   /** 线路 */
   line?: string; // "auto" | "tct-h5" | "hw-h5"
   /** 录制弹幕 */
@@ -266,6 +268,13 @@ interface BaseRecordr {
   saveCover?: boolean;
 }
 
+interface BilibiliRecorderConfig {
+  /** 账号 */
+  uid: string;
+  /** 画质 30000：杜比 20000：4K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
+  quality: 30000 | 20000 | 10000 | 400 | 250 | 150 | 80;
+}
+
 export interface GlobalRecorder extends BaseRecordr {
   /** 保存根目录 */
   savePath: string;
@@ -277,6 +286,8 @@ export interface GlobalRecorder extends BaseRecordr {
   checkInterval: number;
   /** 调试模式 */
   debugMode: boolean;
+  /** B站特有的配置 */
+  bilibili: BilibiliRecorderConfig;
 }
 
 export interface LocalRecordr extends BaseRecordr {
@@ -388,6 +399,7 @@ export interface AppConfig {
     ffmpegMaxNum: number;
     douyuDownloadMaxNum: number;
     biliUploadMaxNum: number;
+    biliDownloadMaxNum: number;
   };
   /** 上传配置 */
   biliUpload: {
@@ -399,6 +411,8 @@ export interface AppConfig {
     retryDelay: number;
     /** 并发 */
     concurrency: number;
+    /** 上传限速 */
+    limitRate: number;
     /** 检查稿件间隔 */
     checkInterval: number;
   };

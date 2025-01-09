@@ -1,3 +1,5 @@
+import { get } from "lodash-es";
+
 import type { LocalRecordr, BaseRecordr } from "@biliLive-tools/types";
 import type { AppConfig } from "../config.js";
 
@@ -12,9 +14,16 @@ export default class RecorderConfig {
   public get(id: string): LocalRecordr | null {
     const getValue = <K extends keyof BaseRecordr>(key: K): BaseRecordr[K] => {
       if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
-        return setting![key];
+        if (key.includes(".")) {
+          const [_, k] = key.split(".");
+          // @ts-ignore
+          return setting[k];
+        }
+        // @ts-ignore
+        return setting?.[key];
       } else {
-        return globalConfig[key];
+        // @ts-ignore
+        return get(globalConfig, key);
       }
     };
 
@@ -33,7 +42,8 @@ export default class RecorderConfig {
       saveSCDanma: getValue("saveSCDanma") ?? true,
       saveCover: getValue("saveCover") ?? false,
       segment: getValue("segment") ?? 60,
-      uid: getValue("uid"),
+      // @ts-ignore
+      uid: getValue("bilibili.uid"),
     };
   }
   public list(): LocalRecordr[] {

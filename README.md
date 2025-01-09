@@ -47,11 +47,7 @@ CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/maste
 
 ## docker
 
-尚未施工完成
-
 **由于软件并非针对web设计，无法保证安全性，请谨慎暴露在公网中**
-
-我们这里以本软件和录播姬共用作为示例：
 
 你可以通过运行`docker-compose up -d`来快速搭建
 
@@ -61,27 +57,28 @@ version: "3"
 services:
   # UI镜像
   webui:
-    image: bililive-tools-webui
+    image: renmu1234/bililive-tools-frontend
     ports:
       - "3000:3000"
   # 接口镜像
   api:
-    image: bililive-tools-backend
+    image: renmu1234/bililive-tools-backend
     ports:
-      # 接口地址，按需启用
       - "18010:18010"
     volumes:
       # 映射的配置目录，用于持久化配置文件
       - ./data:/app/data
       # 存储文件的默认目录
       - ./video:/app/video
-      # 字体文件夹，待施工
+      # 字体目录
       - ./fonts:/usr/local/share/fonts
     environment:
       # 登录密钥
       - BILILIVE_TOOLS_PASSKEY=your_passkey
       # 账户加密密钥
       - BILILIVE_TOOLS_BILIKEY=your_bilikey
+      # 中国时区
+      - TZ=Asia/Shanghai
 ```
 
 具体支持的环境变量见[文档](./README.md#支持的环境变量)
@@ -93,7 +90,7 @@ docker下由于存储和网络的隔离，webhook使用其他安装方式并不�
 运行之后打开录播姬的配置webhookV2为`http://api:18010/webhook/bililiverecorder`，无须在软件中设置“录播姬工作目录”
 
 ```yaml
-version: "3.8"
+version: "3"
 services:
   # UI镜像
   webui:
@@ -118,6 +115,8 @@ services:
       - BILILIVE_TOOLS_PASSKEY=your_passkey
       # 账户加密密钥，自行修改
       - BILILIVE_TOOLS_BILIKEY=your_bilikey
+      # 中国时区
+      - TZ=Asia/Shanghai
   # 录播姬
   recorder:
     image: bililive/recorder:latest
@@ -390,6 +389,10 @@ zip包并非传统意义上的绿色包，数据和安装包文件的不会存�
 ## 字体问题
 
 web和客户端使用的字体方式并不相同，会有差异，再加上获取字体 `postscriptName` 的微妙的有些不同，导致某些字体web中选择后无法使用。
+
+## 显示的上传下载速度不准确
+
+所有相关速度仅限参考~
 
 # TODO
 

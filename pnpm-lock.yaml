@@ -474,8 +474,8 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       '@renmu/bili-api':
-        specifier: 2.2.0
-        version: 2.2.0
+        specifier: 2.3.2
+        version: 2.3.2
       '@renmu/fluent-ffmpeg':
         specifier: 2.3.2
         version: 2.3.2
@@ -1205,8 +1205,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@renmu/bili-api@2.2.0':
-    resolution: {integrity: sha512-n1I7tpoU8iUYHiN5PIJzWrRlY3gBITgNqT8t9WvUd5uDeegAJRq/ZewZzlsKXHq0t5WO/15L5hhY41XMhcJBCg==}
+  '@renmu/bili-api@2.3.2':
+    resolution: {integrity: sha512-moi8W7rV3Qj4+9gjjtgjJAD/RRLYXjlzuSptG7RRCG/H9Tfb8dnvji1J5NoukBaqTfL2TPuKGA+7mPbPy3pxvw==}
     engines: {node: '>=18'}
 
   '@renmu/fluent-ffmpeg@2.3.2':
@@ -1216,6 +1216,10 @@ packages:
   '@renmu/m3u8-downloader@0.3.1':
     resolution: {integrity: sha512-JyVWlh3X0m9umuVf7fN5XqO3oZoIhwQdpwh5UcTmG50J1kj5L8BMg2TYkERzNP6sHRQSAG0bxSn4eDvdyJc0zg==}
     engines: {node: '>=18'}
+
+  '@renmu/throttle@1.0.3':
+    resolution: {integrity: sha512-6ArdPb+EJ3IXnvemzNDj8YIAJMgyU8NMCi3Ad4nL0Vr9R8TfAk4KvHHsu9tWbmOmgrbp3bCYYO7AAQRN0MRQuw==}
+    engines: {node: '>= v0.8.0'}
 
   '@rollup/plugin-commonjs@26.0.3':
     resolution: {integrity: sha512-2BJcolt43MY+y5Tz47djHkodCC3c1VKVrBDKpVqHKpQ9z9S158kCCqB8NF6/gzxLdNlYW9abB3Ibh+kOWLp8KQ==}
@@ -2335,6 +2339,14 @@ packages:
   debounce-fn@6.0.0:
     resolution: {integrity: sha512-rBMW+F2TXryBwB54Q0d8drNEI+TfoS9JpNTAoVpukbWEhjXQq4rySFYLaqXMFXwdv61Zb2OHtj5bviSoimqxRQ==}
     engines: {node: '>=18'}
+
+  debug@2.6.9:
+    resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
 
   debug@4.3.7:
     resolution: {integrity: sha512-Er2nc/H7RrMXZBFCEim6TCmMk02Z8vLC2Rbi1KEBggpo0fS6l0S1nnapwmIi3yW/+GOJap1Krg4w0Hg80oCqgQ==}
@@ -3713,6 +3725,9 @@ packages:
     resolution: {integrity: sha512-4aE3U7CCBWgrQlQDMq8da4woBWDGHioJFiOZ8Ie6Yq2uwYQ9V2kGhTz4x3u6Wc+OU17nw0yc3rJ/lQ4jIiPe3A==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
+  ms@2.0.0:
+    resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
+
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
@@ -4465,6 +4480,9 @@ packages:
 
   stream-meter@1.0.4:
     resolution: {integrity: sha512-4sOEtrbgFotXwnEuzzsQBYEV1elAeFSO8rSGeTwabuX1RRn/kEq9JVH7I0MRBhKVRR0sJkr0M0QCH7yOLf9fhQ==}
+
+  stream-parser@0.3.1:
+    resolution: {integrity: sha512-bJ/HgKq41nlKvlhccD5kaCr/P+Hu0wPNKPJOH7en+YrJu/9EgqUF+88w5Jb6KNcjOFMhfX4B2asfeAtIGuHObQ==}
 
   stream@0.0.2:
     resolution: {integrity: sha512-gCq3NDI2P35B2n6t76YJuOp7d6cN/C7Rt0577l91wllh0sY9ZBuw9KaSGqH/b0hzn3CWWJbpbW0W0WvQ1H/Q7g==}
@@ -5704,8 +5722,9 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@renmu/bili-api@2.2.0':
+  '@renmu/bili-api@2.3.2':
     dependencies:
+      '@renmu/throttle': 1.0.3
       axios: 1.7.8
       axios-retry: 4.5.0(axios@1.7.8)
       fast-xml-parser: 4.5.0
@@ -5714,6 +5733,7 @@ snapshots:
       tiny-typed-emitter: 2.1.0
     transitivePeerDependencies:
       - debug
+      - supports-color
 
   '@renmu/fluent-ffmpeg@2.3.2':
     dependencies:
@@ -5730,6 +5750,12 @@ snapshots:
       tiny-typed-emitter: 2.1.0
     transitivePeerDependencies:
       - debug
+
+  '@renmu/throttle@1.0.3':
+    dependencies:
+      stream-parser: 0.3.1
+    transitivePeerDependencies:
+      - supports-color
 
   '@rollup/plugin-commonjs@26.0.3(rollup@4.24.4)':
     dependencies:
@@ -7092,6 +7118,10 @@ snapshots:
   debounce-fn@6.0.0:
     dependencies:
       mimic-function: 5.0.1
+
+  debug@2.6.9:
+    dependencies:
+      ms: 2.0.0
 
   debug@4.3.7:
     dependencies:
@@ -8634,6 +8664,8 @@ snapshots:
     dependencies:
       path-exists: 5.0.0
 
+  ms@2.0.0: {}
+
   ms@2.1.3: {}
 
   muggle-string@0.4.1: {}
@@ -9375,6 +9407,12 @@ snapshots:
   stream-meter@1.0.4:
     dependencies:
       readable-stream: 2.3.8
+
+  stream-parser@0.3.1:
+    dependencies:
+      debug: 2.6.9
+    transitivePeerDependencies:
+      - supports-color
 
   stream@0.0.2:
     dependencies:

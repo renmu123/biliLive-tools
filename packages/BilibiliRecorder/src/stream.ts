@@ -1,4 +1,4 @@
-import { Qualities, Recorder } from "@autorecord/manager";
+import { Recorder } from "@autorecord/manager";
 import {
   CodecInfo,
   FormatInfo,
@@ -8,9 +8,15 @@ import {
   ProtocolInfo,
   SourceProfile,
   StreamProfile,
+  getRoomBaseInfo,
 } from "./bilibili_api.js";
-import { assert, getValuesFromArrayLikeFlexSpaceBetween } from "./utils.js";
+import { assert } from "./utils.js";
 import { sortBy } from "lodash-es";
+
+export async function getLiveStatus(channelId: string): Promise<boolean> {
+  const roomInit = await getRoomInit(Number(channelId));
+  return roomInit.live_status === 1 && !roomInit.encrypted;
+}
 
 export async function getInfo(channelId: string): Promise<{
   living: boolean;
@@ -20,18 +26,36 @@ export async function getInfo(channelId: string): Promise<{
   shortId: number;
   avatar: string;
   cover: string;
+  start_time: Date;
 }> {
   const roomInit = await getRoomInit(Number(channelId));
   const { [roomInit.uid]: status } = await getStatusInfoByUIDs([roomInit.uid]);
+  if (!status) {
+    // 未获取到直播间信息，可能是加密，尝试换一个接口
+    const data = await getRoomBaseInfo(Number(channelId));
+    const status = data[channelId];
+
+    return {
+      living: roomInit.live_status === 1 && !roomInit.encrypted,
+      owner: status.uname,
+      title: status.title,
+      start_time: new Date(status.live_time),
+      avatar: "",
+      cover: status.cover,
+      roomId: roomInit.room_id,
+      shortId: roomInit.short_id,
+    };
+  }
 
   return {
-    living: status.live_status === 1,
+    living: roomInit.live_status === 1 && !roomInit.encrypted,
     owner: status.uname,
     title: status.title,
     avatar: status.face,
     cover: status.cover_from_user,
     roomId: roomInit.room_id,
     shortId: roomInit.short_id,
+    start_time: new Date(status.live_time * 1000),
   };
 }
 
@@ -90,38 +114,28 @@ export async function getStream(
   }
 
   const defaultOpts = {
-    protocol: "http_hls",
-    format: "ts",
+    protocol: "http_stream",
+    format: "flv",
     codec: "avc",
   };
 
+  const qn = [30000, 20000, 10000, 400, 250, 150, 80].includes(opts.quality as number)
+    ? (opts.quality as number)
+    : 10000;
+
   let liveInfo = await getLiveInfo(roomId, {
     ...defaultOpts,
+    qn: qn,
     cookie: opts.cookie,
   });
+  // console.log(JSON.stringify(liveInfo, null, 2));
 
-  let expectStream: StreamProfile | null = null;
-  const streamsWithPriority = sortAndFilterStreamsByPriority(
-    liveInfo.streams,
-    opts.streamPriorities,
-  );
-  if (streamsWithPriority.length > 0) {
-    // 通过优先级来选择对应流
-    expectStream = streamsWithPriority[0];
-  } else {
-    // 通过设置的画质选项来选择对应流
-    const flexedStreams = getValuesFromArrayLikeFlexSpaceBetween(
-      // 接口给的画质列表是按照清晰到模糊的顺序的，这里翻转下
-      liveInfo.streams.toReversed(),
-      Qualities.length,
-    );
-    expectStream = flexedStreams[Qualities.indexOf(opts.quality)];
-  }
-
-  if (expectStream != null && liveInfo.current_qn !== expectStream.qn) {
+  // let expectStream: StreamProfile | null = null;
+  if ((liveInfo?.accept_qn ?? []).length !== 0 && liveInfo.current_qn !== qn) {
     // 当前流不是预期的流，需要切换。
+    const acceptQn = liveInfo.accept_qn[0];
     liveInfo = await getLiveInfo(roomId, {
-      qn: expectStream.qn,
+      qn: acceptQn,
       ...defaultOpts,
       cookie: opts.cookie,
     });
@@ -146,29 +160,6 @@ export async function getStream(
       url: expectSource.host + liveInfo.base_url + expectSource.extra,
     },
   };
-}
-
-/**
- * 按提供的流优先级去给流列表排序，并过滤掉不在优先级配置中的流
- */
-function sortAndFilterStreamsByPriority(
-  streams: StreamProfile[],
-  streamPriorities: Recorder["streamPriorities"],
-): (StreamProfile & {
-  priority: number;
-})[] {
-  if (streamPriorities.length === 0) return [];
-
-  return sortBy(
-    // 分配优先级属性，数字越大优先级越高
-    streams
-      .map((stream) => ({
-        ...stream,
-        priority: streamPriorities.toReversed().indexOf(stream.desc),
-      }))
-      .filter(({ priority }) => priority !== -1),
-    "priority",
-  );
 }
 
 /**

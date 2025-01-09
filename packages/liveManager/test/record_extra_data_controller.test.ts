@@ -48,7 +48,6 @@ describe("convert2Xml", () => {
     const expectedXml = `<?xml version="1.0" encoding="utf-8"?>
 <i>
   <metadata>
-    <platform>douyu</platform>
     <video_start_time>1633072800000</video_start_time>
   </metadata>
   <d p="1,1,25,16777215,1633072801000,0,123,123,0" user="user1" uid="123">Hello World</d>

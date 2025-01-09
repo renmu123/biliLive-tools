@@ -1,4 +1,4 @@
-import path from "node:path";
+// import path from "node:path";
 import { createContainer, asValue, asClass } from "awilix";
 
 export * from "./presets/index.js";
@@ -9,8 +9,8 @@ import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
 import { BiliCommentQueue, migrateBiliUser } from "./task/bili.js";
 import { createRecorderManager } from "./recorder/index.js";
-import { initDB } from "./db/index.js";
-import StatisticsService from "./db/service/statisticsService.js";
+// import { initDB } from "./db/index.js";
+// import StatisticsService from "./db/service/statisticsService.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 
@@ -25,8 +25,8 @@ const init = async (config: GlobalConfig) => {
   const logLevel = appConfig.get("logLevel");
   initLogger(config.logPath, logLevel);
 
-  const dbPath = path.join(config.userDataPath, "data2.db");
-  initDB(dbPath);
+  // const dbPath = path.join(config.userDataPath, "data2.db");
+  // initDB(dbPath);
 
   container.register({
     appConfig: asValue(appConfig),
@@ -48,14 +48,9 @@ const init = async (config: GlobalConfig) => {
   const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
   commentQueue.checkLoop();
   // 设置开始时间
-  StatisticsService.addOrUpdate({
-    where: { stat_key: "start_time" },
-    create: { stat_key: "start_time", value: Date.now().toString() },
-  });
-
-  // appConfig.on("update", () => {
-  //   const appconfig = container.resolve<AppConfig>("appConfig");
-  //   const config = appconfig.getAll();
+  // StatisticsService.addOrUpdate({
+  //   where: { stat_key: "start_time" },
+  //   create: { stat_key: "start_time", value: Date.now().toString() },
   // });
 
   return container;

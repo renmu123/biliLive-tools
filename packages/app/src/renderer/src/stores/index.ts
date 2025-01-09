@@ -9,26 +9,12 @@ import {
   configApi,
   taskApi,
 } from "@renderer/apis";
-// import { APP_DEFAULT_CONFIG } from "@biliLive-tools/shared/enum.js";
 
 import type { Task } from "@renderer/types";
 
 export const useUserInfoStore = defineStore("userInfo", () => {
   const appConfigStore = useAppConfig();
 
-  const userInfo = ref<{
-    uid: number;
-    profile: {
-      face?: string;
-      name?: string;
-    };
-  }>({
-    uid: 0,
-    profile: {
-      face: "",
-      name: "",
-    },
-  });
   const userList = ref<
     {
       uid: number;
@@ -39,7 +25,7 @@ export const useUserInfoStore = defineStore("userInfo", () => {
     }[]
   >([]);
 
-  const calcExpireTime = (user: { uid: number; expires: number; name?: string; face?: string }) => {
+  const calcExpireTime = (user: { expires: number }) => {
     const date = new Date();
     if (user.expires) {
       const expireTime = new Date(user.expires * 1000);
@@ -54,79 +40,31 @@ export const useUserInfoStore = defineStore("userInfo", () => {
     return "";
   };
 
-  async function getUserInfo() {
-    const uid = appConfigStore.appConfig.uid;
+  async function getUsers() {
     userList.value = await getUserList();
-    userList.value = userList.value.map((item) => {
-      return {
-        ...item,
-        expiresText: calcExpireTime(item),
-      };
-    });
-
-    if (userList.value.length === 0) {
-      userInfo.value = {
-        uid: 0,
-        profile: {
-          face: "",
-          name: "",
-        },
-      };
-    } else {
-      if (!uid) {
-        userInfo.value = {
-          uid: userList.value[0].uid,
-          profile: {
-            face: userList.value[0].face,
-            name: userList.value[0].name,
-          },
-        };
-        appConfigStore.set("uid", userList.value[0].uid);
-      } else {
-        const user = userList.value.find((item) => item.uid === uid);
-        if (user) {
-          userInfo.value = {
-            uid: user.uid,
-            profile: {
-              face: user.face,
-              name: user.name,
-            },
-          };
-        }
-      }
-    }
   }
-
-  watch(
-    () => appConfigStore.appConfig.uid,
-    (newVal, oldVal) => {
-      if (newVal === oldVal) return;
-      if (!newVal) return;
-
-      getUserInfo();
-    },
-    {
-      once: true,
-    },
-  );
 
   function changeUser(uid: number) {
-    const user = userList.value.find((item) => item.uid === uid);
-    if (user) {
-      userInfo.value = {
-        uid: user.uid,
-        profile: {
-          face: user.face,
-          name: user.name,
-        },
-      };
-      appConfigStore.set("uid", uid);
-    }
+    appConfigStore.set("uid", uid);
   }
 
-  // getUserInfo();
+  getUsers();
+  const userInfo = computed(() => {
+    const uid = appConfigStore.appConfig.uid;
+    const user = userList.value.find((item) => item.uid === uid);
+    return {
+      uid: uid,
+      profile: {
+        face: user?.face,
+        name: user?.name,
+        expiresText: calcExpireTime({
+          expires: user?.expires || 0,
+        }),
+      },
+    };
+  });
 
-  return { userInfo, getUserInfo, userList, changeUser };
+  return { userInfo, getUsers, userList, changeUser };
 });
 
 export const useDanmuPreset = defineStore("danmuPreset", () => {
@@ -326,6 +264,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         danmu: "none",
         douyuResolution: "highest",
         override: false,
+        onlyAudio: false,
       },
       translate: {
         presetId: undefined,

@@ -80,7 +80,7 @@ const ffmpegOutputOptions: string[] = [
   "-c",
   "copy",
   "-movflags",
-  "frag_keyframe",
+  "faststart+frag_keyframe+empty_moov",
   "-min_frag_duration",
   "60000000",
 ];
@@ -91,7 +91,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (this.recordHandle != null) return this.recordHandle;
 
   const liveInfo = await getInfo(this.channelId);
-  const { living, owner, title } = liveInfo;
+  const { living, owner, title, cover } = liveInfo;
   this.liveInfo = liveInfo;
   if (!living) return null;
 
@@ -126,13 +126,18 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "idle";
     throw err;
   }
-  this.on("videoFileCreated", async ({ filename }) => {
+  const saveCover = async ({ filename }) => {
+    const extraDataController = streamManager?.getExtraDataController();
+    extraDataController?.setMeta({
+      room_id: this.channelId,
+      platform: provider?.id,
+    });
     if (this.saveCover) {
-      const liveInfo = await this.getLiveInfo();
       const coverPath = utils.replaceExtName(filename, ".jpg");
-      utils.downloadImage(liveInfo.cover, coverPath);
+      utils.downloadImage(cover, coverPath);
     }
-  });
+  };
+  this.on("videoFileCreated", saveCover);
 
   let client: HuYaDanMu | null = null;
   if (!this.disableProvideCommentsWhenRecording) {
@@ -271,8 +276,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
       await streamManager.handleVideoCompleted();
       this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
-      this.off("videoFileCreated");
+      this.off("videoFileCreated", saveCover);
       this.recordHandle = undefined;
+      this.liveInfo = undefined;
       this.state = "idle";
     },
   );

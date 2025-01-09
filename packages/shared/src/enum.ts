@@ -110,6 +110,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       danmu: "none",
       douyuResolution: "highest",
       override: false,
+      onlyAudio: false,
     },
     translate: {
       presetId: undefined,
@@ -128,9 +129,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
   },
   task: {
-    ffmpegMaxNum: -1,
+    ffmpegMaxNum: 3,
     douyuDownloadMaxNum: 2,
-    biliUploadMaxNum: -1,
+    biliUploadMaxNum: 2,
+    biliDownloadMaxNum: 2,
   },
   notification: {
     task: {
@@ -172,6 +174,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   biliUpload: {
     line: "auto",
     concurrency: 3,
+    limitRate: 0,
     retryTimes: 5,
     retryDelay: 7000,
     checkInterval: 600,
@@ -190,6 +193,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     saveCover: false,
     uid: undefined,
     debugMode: false,
+    bilibili: {
+      uid: "",
+      quality: 10000,
+    },
   },
   recorders: [],
 };

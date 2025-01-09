@@ -41,10 +41,21 @@ async function streamLogs() {
   eventSource.onmessage = function (event) {
     const data = JSON.parse(event.data);
     if (!videoInstance.value) return;
+    if (!data.text) return;
+    let mode = 0;
+
+    if ([1, 2, 3].includes(data.mode ?? "")) {
+      mode = 0;
+    } else if (data.mode === 4) {
+      mode = 2;
+    } else if (data.mode === 5) {
+      mode = 1;
+    }
 
     // @ts-ignore
     videoInstance?.value?.artplayerPluginDanmuku?.emit({
-      // TODO:差一个mode，0: 滚动(默认)，1: 顶部，2: 底部
+      // mode，0: 滚动(默认)，1: 顶部，2: 底部
+      mode: mode,
       text: data.text,
       color: data.color,
       border: false,

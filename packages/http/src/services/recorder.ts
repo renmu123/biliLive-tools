@@ -2,7 +2,7 @@ import { v4 as uuid } from "uuid";
 import { container } from "../index.js";
 import { createRecorderManager } from "@biliLive-tools/shared";
 import { Recorder } from "@autorecord/manager";
-import { omit } from "lodash-es";
+import { omit, pick, isEmpty } from "lodash-es";
 
 import type { RecorderAPI, ClientRecorder } from "../types/recorder.js";
 
@@ -33,7 +33,26 @@ async function getRecorders(
   if (params.autoCheck) {
     list = list.filter((item) => (item.disableAutoCheck ? "2" : "1") === params.autoCheck);
   }
-  return list;
+  return list.map((item) => {
+    const data = pick(
+      item,
+      "id",
+      "providerId",
+      "channelId",
+      "remarks",
+      "disableAutoCheck",
+      "channelURL",
+      "recordHandle",
+      "liveInfo",
+      "state",
+      "usedSource",
+      "usedStream",
+    );
+    data.recordHandle = isEmpty(data.recordHandle)
+      ? data.recordHandle
+      : omit(data.recordHandle, "ffmpegArgs");
+    return data;
+  });
 }
 
 function getRecorder(args: RecorderAPI["getRecorder"]["Args"]): RecorderAPI["getRecorder"]["Resp"] {
@@ -166,7 +185,9 @@ export async function getLiveInfo() {
     title: string;
     avatar: string;
     cover: string;
-  }[] = await Promise.all(requests);
+  }[] = (await Promise.allSettled(requests))
+    .filter((item) => item.status === "fulfilled")
+    .map((item) => item.value);
   return list;
 }
 

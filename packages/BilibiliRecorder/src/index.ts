@@ -15,7 +15,7 @@ import {
 } from "@autorecord/manager";
 import type { Comment, GiveGift, SuperChat, Guard } from "@autorecord/manager";
 
-import { getInfo, getStream } from "./stream.js";
+import { getInfo, getStream, getLiveStatus } from "./stream.js";
 import { assertStringType, ensureFolderExist, createInvalidStreamChecker } from "./utils.js";
 import { startListen, MsgHandler } from "./blive-message-listener/index.js";
 
@@ -79,7 +79,7 @@ const ffmpegOutputOptions: string[] = [
   "-c",
   "copy",
   "-movflags",
-  "frag_keyframe",
+  "faststart+frag_keyframe+empty_moov",
   "-min_frag_duration",
   "60000000",
   "-reconnect",
@@ -88,17 +88,27 @@ const ffmpegOutputOptions: string[] = [
   "1",
   "-reconnect_delay_max",
   "5",
+  "-rw_timeout",
+  "5000000",
 ];
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
 }) {
   this.tempStopIntervalCheck = false;
   if (this.recordHandle != null) return this.recordHandle;
+  const living = await getLiveStatus(this.channelId);
+  this.liveInfo = {
+    living,
+    owner: "",
+    title: "",
+    avatar: "",
+    cover: "",
+  };
+  if (!living) return null;
 
   const liveInfo = await getInfo(this.channelId);
-  const { living, owner, title, roomId } = liveInfo;
+  const { owner, title, roomId, cover } = liveInfo;
   this.liveInfo = liveInfo;
-  if (!living) return null;
 
   this.state = "recording";
   let res: Awaited<ReturnType<typeof getStream>>;
@@ -132,13 +142,19 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "idle";
     throw err;
   }
-  this.on("videoFileCreated", async ({ filename }) => {
+
+  const saveCover = async ({ filename }) => {
+    const extraDataController = streamManager?.getExtraDataController();
+    extraDataController?.setMeta({
+      room_id: String(roomId),
+      platform: provider?.id,
+    });
     if (this.saveCover) {
       const coverPath = utils.replaceExtName(filename, ".jpg");
-      const { cover } = await this.getLiveInfo();
       utils.downloadImage(cover, coverPath);
     }
-  });
+  };
+  this.on("videoFileCreated", saveCover);
 
   let client: ReturnType<typeof startListen> | null = null;
   if (!this.disableProvideCommentsWhenRecording) {
@@ -146,16 +162,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       onIncomeDanmu: (msg) => {
         const extraDataController = streamManager.getExtraDataController();
         if (!extraDataController) return;
-        // console.log("msg", msg.body.content);
 
-        // TODO: 颜色处理，需要等上游发布
         const comment: Comment = {
           type: "comment",
           timestamp: msg.timestamp,
           text: msg.body.content,
-          // @ts-ignore
           color: msg.body.content_color,
-          // @ts-ignore
           mode: msg.body.type,
 
           sender: {
@@ -275,7 +287,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   };
 
   const isInvalidStream = createInvalidStreamChecker();
-  const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
+  const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 3 * 10e3);
   const command = createFFMPEGBuilder()
     .input(stream.url)
     .addInputOptions(
@@ -286,15 +298,25 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     )
     .outputOptions(ffmpegOutputOptions)
     .output(streamManager.videoFilePath)
-    .on("start", () => {
-      streamManager.handleVideoStarted();
+    .on("start", async () => {
+      try {
+        await streamManager.handleVideoStarted();
+      } catch (err) {
+        onEnd("ffmpeg start error");
+        this.emit("DebugLog", { type: "common", text: String(err) });
+      }
     })
     .on("error", onEnd)
     .on("end", () => onEnd("finished"))
     .on("stderr", async (stderrLine) => {
       assertStringType(stderrLine);
       if (utils.isFfmpegStartSegment(stderrLine)) {
-        await streamManager.handleVideoStarted(stderrLine);
+        try {
+          await streamManager.handleVideoStarted(stderrLine);
+        } catch (err) {
+          onEnd("ffmpeg start error");
+          this.emit("DebugLog", { type: "common", text: String(err) });
+        }
       }
       this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 
@@ -337,20 +359,19 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         command.ffmpegProc?.stdin?.write("q");
         // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
         client?.close();
+        this.usedStream = undefined;
+        this.usedSource = undefined;
+
+        await streamManager.handleVideoCompleted();
       } catch (err) {
         // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
         this.emit("DebugLog", { type: "common", text: String(err) });
       }
 
-      this.usedStream = undefined;
-      this.usedSource = undefined;
-      // TODO: other codes
-      // TODO: emit update event
-
-      await streamManager.handleVideoCompleted();
       this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
-      this.off("videoFileCreated");
+      this.off("videoFileCreated", saveCover);
       this.recordHandle = undefined;
+      this.liveInfo = undefined;
       this.state = "idle";
     },
   );

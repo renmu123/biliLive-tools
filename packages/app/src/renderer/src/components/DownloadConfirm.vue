@@ -5,9 +5,9 @@
     auto-focus
     preset="dialog"
     :show-icon="false"
+    :title="props.detail.title"
   >
     <div class="container">
-      <h4>{{ props.detail.title }}</h4>
       <div style="margin-bottom: 10px">
         <n-checkbox :checked="allChecked" @update:checked="handleCheckedChange" />
         选集：({{ selectIds.length }}/{{ props.detail.pages.length }})
@@ -46,6 +46,7 @@
           </n-space>
         </n-radio-group>
       </div>
+
       <div
         v-if="resoltions.length > 0"
         style="margin-top: 10px; display: flex; align-items: center"
@@ -67,6 +68,13 @@
       >
         <span style="font-size: 12px; flex: none">弹幕：</span>
         <n-select v-model:value="options.danmu" :options="danmuOptions" style="width: 100px" />
+      </div>
+      <div
+        v-if="cOptions.hasAudioOnlyOptions"
+        style="margin-top: 10px; display: flex; align-items: center"
+      >
+        <span style="font-size: 12px; flex: none">只下载音频：</span>
+        <n-switch v-model:value="options.onlyAudio" />
       </div>
 
       <div style="margin-top: 10px">
@@ -112,6 +120,7 @@ interface Props {
   };
   cOptions: {
     hasDanmuOptions: boolean;
+    hasAudioOnlyOptions: boolean;
   };
   resoltions: { label: string; value: string }[];
 }
@@ -136,6 +145,7 @@ const emits = defineEmits<{
       danmu: "none" | "xml" | "ass";
       resoltion: string | "highest";
       override: boolean;
+      onlyAudio: boolean;
     },
   ): void;
 }>();
@@ -145,6 +155,7 @@ const download = () => {
     ids: selectIds.value,
     savePath: options.savePath,
     danmu: options.danmu,
+    onlyAudio: options.onlyAudio,
     resoltion: options.douyuResolution,
     override: options.override,
   });
@@ -191,9 +202,6 @@ const handleCheckedChange = (value: boolean) => {
 </script>
 
 <style scoped lang="less">
-.container {
-  margin-top: 40px;
-}
 .file-container {
   height: 200px;
   overflow: auto;

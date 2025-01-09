@@ -83,7 +83,6 @@ export interface RecorderManager<
     Updated: ConfigurableProp[];
   }> {
   providers: P[];
-  // TODO: 这个或许可以去掉或者改改，感觉不是很有必要
   getChannelURLMatchedRecorderProviders: (
     this: RecorderManager<ME, P, PE, E>,
     channelURL: string,
@@ -271,7 +270,7 @@ export function createRecorderManager<
     const args = parseArgsStringToArgv(ffmpegOutputArgs);
     manager.providers.forEach((p) => p.setFFMPEGOutputArgs(args));
   };
-  setProvidersFFMPEGOutputArgs(manager.ffmpegOutputArgs);
+  // setProvidersFFMPEGOutputArgs(manager.ffmpegOutputArgs);
 
   const proxyManager = new Proxy(manager, {
     set(obj, prop, value) {

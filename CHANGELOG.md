@@ -1,3 +1,11 @@
+# 1.7.1
+
+## Bug修复
+
+1. 修复某些情况下B站录制弹幕解析失败
+2. 修复录制模式调试日志无法关闭的bug
+3. 修复某些情况下录制未被中断的bug
+
 # 1.7.0
 
 ## 破坏性更新
@@ -9,24 +17,28 @@
 
 1. 支持斗鱼、虎牙、B站直播录制，感谢[LiveAutoRecord](https://github.com/WhiteMinds/LiveAutoRecord)，绝大部分录制代码都来自该项目
 2. web版本支持，现在可以使用web来管理cli或者远程本地，并非有所有客户端功能都会被支持，**如果你的接口是http协议，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者选择[自部署](https://github.com/renmu123/biliLive-webui/tree/webui)**，线上地址：https://bililive.irenmu.com
-3. ffmpeg预设中的"时间戳"功能支持字体跟随弹幕预设，自定义内容格式（具体见[strftime](https://strftime.org/)，`:`需要转义），额外自定义参数（见[ffmpeg文档](https://ffmpeg.org/ffmpeg-filters.html#drawtext-1)） [#38](https://github.com/renmu123/biliLive-tools/issues/38)
-4. 增加了看板页面
-5. 支持 [push-all-in-cloud](https://github.com/CaoMeiYouRen/push-all-in-cloud) 推送
-6. 更新额外的上传线路，**设置自定义上传先线路的可能需要手动更新，虽然也做了兼容**
-7. 压制时ass支持高能进度条
-8. 预览支持高能进度条
-9. 重写切片部分UI，主要是高能进度条与弹幕搜索，目标是减少会导致中断的操作，新增`ctrl+k`和`ctrl+shift+k`快捷键，移除sc视图
+3. ffmpeg预设中的"时间戳"功能支持字体跟随弹幕预设，自定义内容格式（具体见[strftime](https://strftime.org/)，`:`需要转义），额外自定义参数（见[ffmpeg文档](https://ffmpeg.org/ffmpeg-filters.html#drawtext-1)） [#38](https://github.com/renmu123/biliLive-tools/issues/38)，优化webhook中参数的获取
+4. 支持 [push-all-in-cloud](https://github.com/CaoMeiYouRen/push-all-in-cloud) 推送
+5. 更新额外的上传线路，**设置自定义上传先线路的可能需要手动更新，虽然也做了兼容**
+6. 压制时ass支持高能进度条
+7. 预览支持高能进度条
+8. 重写切片部分UI，主要是高能进度条与弹幕搜索，目标是减少会导致中断的操作，新增`ctrl+k`和`ctrl+shift+k`快捷键，移除sc视图
+9. 压制支持推送到webhhook
+10. B站下载支持设置最大任务处理数，只下载音频选项，超时重试逻辑
+11. B站上传支持限速
 
 ## 优化
 
 1. 修改弹幕预设默认值，字体大小：38->40、阴影：1->0、描边：0->1、滚动显示区域：1->0.7、显示礼物框：显示->不显示、Linux默认字体：思源黑
 2. 修改英伟达默认ffmpeg参数：medium->fast
-3. 配置备份支持封面
-4. log查看页面支持导出，移除任务栏菜单的“打开log文件夹”选项
-5. 优化任务查询接口
-6. **为自动评论添加提示，谨慎使用，可能会导致评论被shadowban，以及可能的风控等级上升**
-7. ffmpeg依赖版本升级
-8. 转码、弹幕转换支持相对文件夹、完成后删除源文件选项
+3. ffmpeg最大任务数默认值修改为3，B站上传默认值修改为2
+4. 配置备份支持封面
+5. log查看页面支持导出，移除任务栏菜单的“打开log文件夹”选项
+6. 优化任务查询接口
+7. **为自动评论添加提示，谨慎使用，可能会导致评论被shadowban，以及可能的风控等级上升**
+8. ffmpeg依赖版本升级
+9. 转码、弹幕转换支持相对文件夹、完成后删除源文件选项
+10. 优化队列清除记录接口请求
 
 ## Bug修复
 
@@ -34,6 +46,8 @@
 2. 修复CLI有概率错误退出的bug（蜜汁这个版本就没有了）
 3. 修复视频预设标题超过80字符无法保存的bug [#41](https://github.com/renmu123/biliLive-tools/issues/41)
 4. 修复windows下的删除到回收站失效
+5. 修复关闭登录弹框时未清除定时器 [#43](https://github.com/renmu123/biliLive-tools/issues/43)
+6. 修复使用copy预设切片时时间戳错误的情况
 
 # 1.6.2(2024.12.5)
 

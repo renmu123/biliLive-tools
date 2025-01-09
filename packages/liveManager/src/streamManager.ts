@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import { createRecordExtraDataController } from "./record_extra_data_controller.js";
-import { replaceExtName } from "./utils.js";
+import { replaceExtName, ensureFolderExist } from "./utils.js";
 
 import type { Recorder } from "./recorder.js";
 
@@ -30,7 +30,11 @@ export class Segment {
 
   async handleSegmentEnd() {
     if (!this.outputVideoFilePath) {
-      throw new Error("Should call onSegmentStart first");
+      this.recorder.emit("DebugLog", {
+        type: "common",
+        text: "Should call onSegmentStart first",
+      });
+      return;
     }
     this.extraDataController?.setMeta({ recordStopTimestamp: Date.now() });
 
@@ -61,8 +65,10 @@ export class Segment {
       startTime: startTime,
     });
 
+    ensureFolderExist(this.outputVideoFilePath);
+
     this.extraDataController = createRecordExtraDataController(`${this.outputVideoFilePath}.json`);
-    this.extraDataController.setMeta({ title: this.title });
+    this.extraDataController.setMeta({ title: this.title, user_name: this.owner });
 
     const regex = /'([^']+)'/;
     const match = stderrLine.match(regex);
@@ -102,7 +108,8 @@ export class StreamManager {
     } else {
       const extraDataSavePath = replaceExtName(recordSavePath, ".json");
       this.extraDataController = createRecordExtraDataController(extraDataSavePath);
-      this.extraDataController.setMeta({ title });
+      this.extraDataController.setMeta({ title, user_name: owner });
+      // TODO: 增加platform参数，直播开始时间
     }
   }
 

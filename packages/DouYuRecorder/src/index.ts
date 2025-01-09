@@ -82,7 +82,7 @@ const ffmpegOutputOptions: string[] = [
   "-c",
   "copy",
   "-movflags",
-  "frag_keyframe",
+  "faststart+frag_keyframe+empty_moov",
   "-min_frag_duration",
   "60000000",
 ];
@@ -95,7 +95,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const liveInfo = await getInfo(this.channelId);
   this.liveInfo = liveInfo;
-  const { living, owner, title } = liveInfo;
+  const { living, owner, title, cover } = liveInfo;
   if (!living) return null;
 
   this.state = "recording";
@@ -129,13 +129,18 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  this.on("videoFileCreated", async ({ filename }) => {
+  const saveCover = async ({ filename }) => {
+    const extraDataController = streamManager?.getExtraDataController();
+    extraDataController?.setMeta({
+      room_id: this.channelId,
+      platform: provider?.id,
+    });
     if (this.saveCover) {
-      const liveInfo = await this.getLiveInfo();
       const coverPath = utils.replaceExtName(filename, ".jpg");
-      utils.downloadImage(liveInfo.cover, coverPath);
+      utils.downloadImage(cover, coverPath);
     }
-  });
+  };
+  this.on("videoFileCreated", saveCover);
 
   const client = createDYClient(Number(this.channelId), {
     notAutoStart: true,
@@ -307,8 +312,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       // TODO: emit update event
       await streamManager.handleVideoCompleted();
       this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
-      this.off("videoFileCreated");
+      this.off("videoFileCreated", saveCover);
       this.recordHandle = undefined;
+      this.liveInfo = undefined;
       this.state = "idle";
     },
   );
