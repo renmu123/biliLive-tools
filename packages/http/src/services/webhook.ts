@@ -217,7 +217,7 @@ export class WebhookHandler {
         }
         await sleep(10000);
         if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
-          log.info("没有找到弹幕文件，直接上传", xmlFilePath);
+          log.info("没有找到弹幕文件", xmlFilePath);
           currentPart.recordStatus = "handled";
           return;
         }

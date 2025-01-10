@@ -42,10 +42,11 @@ async function convert2Mp4(videoFile: string): Promise<string> {
   const output = replaceExtName(videoFile, ".mp4");
   if (await fs.pathExists(output)) return output;
 
+  const name = path.basename(output);
   return new Promise((resolve, reject) => {
     transcode(
       videoFile,
-      output,
+      name,
       {
         encoder: "copy",
         audioCodec: "copy",
@@ -54,7 +55,7 @@ async function convert2Mp4(videoFile: string): Promise<string> {
         saveType: 1,
         savePath: ".",
         override: false,
-        removeOrigin: true,
+        removeOrigin: false,
       },
     ).then((task) => {
       task.on("task-end", () => {
@@ -222,10 +223,14 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
     const endTime = new Date();
     const data = recorderConfig.get(recorder.id);
+    const title = recorder.liveInfo?.title;
+    const username = recorder.liveInfo?.owner;
+    const channelId = recorder.channelId;
 
     if (data?.convert2Mp4) {
       try {
         await convert2Mp4(filename);
+        await fs.unlink(filename);
       } catch (error) {
         logger.error("convert2Mp4 error", error);
       }
@@ -235,10 +240,10 @@ export async function createRecorderManager(appConfig: AppConfig) {
       axios.post(`http://127.0.0.1:${config.port}/webhook/custom`, {
         event: "FileClosed",
         filePath: filename,
-        roomId: recorder.channelId,
+        roomId: channelId,
         time: endTime.toISOString(),
-        title: recorder?.liveInfo?.title,
-        username: recorder?.liveInfo?.owner,
+        title: title,
+        username: username,
       });
 
     // const live = LiveService.upadteEndTime(filename, endTime.getTime());
