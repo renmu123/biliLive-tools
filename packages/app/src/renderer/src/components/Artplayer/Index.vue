@@ -1,5 +1,5 @@
 <template>
-  <div ref="artRef" class="artplayer"></div>
+  <div ref="artRef" class="artplayer" tabindex="0"></div>
 </template>
 
 <script lang="ts" setup>
