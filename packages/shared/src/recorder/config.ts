@@ -44,6 +44,7 @@ export default class RecorderConfig {
       segment: getValue("segment") ?? 60,
       // @ts-ignore
       uid: getValue("bilibili.uid"),
+      convert2Mp4: globalConfig["convert2Mp4"] ?? false,
     };
   }
   public list(): LocalRecordr[] {

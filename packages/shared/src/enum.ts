@@ -193,6 +193,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     saveCover: false,
     uid: undefined,
     debugMode: false,
+    convert2Mp4: false,
     bilibili: {
       uid: "",
       quality: 10000,

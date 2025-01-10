@@ -266,6 +266,8 @@ interface BaseRecordr {
   uid?: string;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 录制后转换为mp4 */
+  convert2Mp4?: boolean;
 }
 
 interface BilibiliRecorderConfig {

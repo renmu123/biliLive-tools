@@ -1,4 +1,4 @@
-import fs from "node:fs";
+import fs from "fs-extra";
 import path from "node:path";
 import axios from "axios";
 import { omit } from "lodash-es";
@@ -15,13 +15,10 @@ import {
 
 // import LiveService from "../db/service/liveService.js";
 // import DanmuService from "../db/service/danmuService.js";
-import { getFfmpegPath } from "../task/video.js";
+import { getFfmpegPath, transcode } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
-import {
-  sleep,
-  // replaceExtName
-} from "../utils/index.js";
+import { sleep, replaceExtName } from "../utils/index.js";
 import { readUser } from "../task/bili.js";
 // import { parseDanmu } from "../danmu/index.js";
 
@@ -39,6 +36,35 @@ async function getCookies(uid: number) {
       .join("; ");
   }
   return "";
+}
+
+async function convert2Mp4(videoFile: string): Promise<string> {
+  const output = replaceExtName(videoFile, ".mp4");
+  if (await fs.pathExists(output)) return output;
+
+  return new Promise((resolve, reject) => {
+    transcode(
+      videoFile,
+      output,
+      {
+        encoder: "copy",
+        audioCodec: "copy",
+      },
+      {
+        saveType: 1,
+        savePath: ".",
+        override: false,
+        removeOrigin: true,
+      },
+    ).then((task) => {
+      task.on("task-end", () => {
+        resolve(output);
+      });
+      task.on("task-error", () => {
+        reject();
+      });
+    });
+  });
 }
 
 export async function createRecorderManager(appConfig: AppConfig) {
@@ -196,6 +222,14 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
     const endTime = new Date();
     const data = recorderConfig.get(recorder.id);
+
+    if (data?.convert2Mp4) {
+      try {
+        await convert2Mp4(filename);
+      } catch (error) {
+        logger.error("convert2Mp4 error", error);
+      }
+    }
 
     data?.sendToWebhook &&
       axios.post(`http://127.0.0.1:${config.port}/webhook/custom`, {
