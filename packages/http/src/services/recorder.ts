@@ -61,7 +61,7 @@ function getRecorder(args: RecorderAPI["getRecorder"]["Args"]): RecorderAPI["get
   if (recorder == null) throw new Error("404");
   const data = recorderManager.config.getRaw(args.id);
 
-  return { ...recorderToClient(recorder), uid: data.uid };
+  return { ...recorderToClient(recorder), uid: data?.uid };
 }
 
 async function addRecorder(
