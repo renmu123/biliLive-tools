@@ -56,7 +56,7 @@
     "@vue/eslint-config-typescript": "^14.1.4",
     "@vueuse/components": "^12.0.0",
     "@vueuse/core": "^12.0.0",
-    "artplayer": "5.1.7",
+    "artplayer": "^5.2.1",
     "artplayer-plugin-assjs": "^0.1.2",
     "artplayer-plugin-danmuku": "5.1.4",
     "artplayer-plugin-hls-control": "^1.0.1",
