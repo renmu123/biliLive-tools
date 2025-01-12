@@ -804,6 +804,31 @@ export const addUser = async (data: any) => {
   await updateUserInfo(user.mid);
 };
 
+const updateAuth = async (uid: number) => {
+  const user = await readUser(uid);
+  if (!user) throw new Error("用户不存在");
+  const client = new TvQrcodeLogin();
+  let data: any = await client.refresh(user.accessToken, user.refreshToken);
+
+  data = {
+    ...data,
+    ...data?.token_info,
+  };
+  const cookieObj = {};
+  (data?.cookie_info?.cookies || []).map((item: any) => (cookieObj[item.name] = item.value));
+
+  const newUser: BiliUser = {
+    ...user,
+    rawAuth: JSON.stringify(data),
+    cookie: cookieObj as any,
+    expires: data.expires_in,
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    platform: "TV",
+  };
+  await writeUser(newUser);
+};
+
 export const biliApi = {
   getArchives,
   checkTag,
@@ -826,6 +851,7 @@ export const biliApi = {
   readUserList,
   migrateBiliUser,
   addUser,
+  updateAuth,
 };
 
 export default biliApi;
