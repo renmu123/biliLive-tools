@@ -59,8 +59,9 @@ function getRecorder(args: RecorderAPI["getRecorder"]["Args"]): RecorderAPI["get
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
   const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
   if (recorder == null) throw new Error("404");
+  const data = recorderManager.config.getRaw(args.id);
 
-  return recorderToClient(recorder);
+  return { ...recorderToClient(recorder), uid: data.uid };
 }
 
 async function addRecorder(
