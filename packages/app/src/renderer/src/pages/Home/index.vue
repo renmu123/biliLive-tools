@@ -9,7 +9,7 @@
         <n-button type="primary" title="某些情况下你可能需要这个功能" @click="sendToWebhook">
           发送至webhook
         </n-button>
-        <n-button type="primary" :disabled="isWeb" @click="handleConvert"> 启动！ </n-button>
+        <n-button type="primary" @click="handleConvert"> 启动！ </n-button>
         <!-- <n-button type="primary" @click="hotProgressConvert"> 测试高能弹幕进度条生成 </n-button> -->
       </div>
     </div>
@@ -177,20 +177,12 @@ import PreviewModal from "./components/previewModal.vue";
 import sendWebhookModal from "./components/sendWebhookModal.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
 import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
-import { danmuPresetApi, biliApi, taskApi } from "@renderer/apis";
+import { danmuPresetApi, taskApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
-
-import { deepRaw, uuid, formatFile } from "@renderer/utils";
+import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 
-import type {
-  File,
-  FfmpegOptions,
-  DanmuConfig,
-  BiliupPreset,
-  FfmpegPreset,
-  DanmuOptions,
-} from "@biliLive-tools/types";
+import type { File, FfmpegOptions, DanmuConfig, FfmpegPreset } from "@biliLive-tools/types";
 
 defineOptions({
   name: "Home",
@@ -232,25 +224,15 @@ const clientOptions = toReactive(
   }),
 );
 
-const handleConvert = async () => {
-  convert();
-};
-
 type ClientOptions = typeof appConfig.value.tool.home;
 
-const preHandle = async (
-  files: File[],
-  clientOptions: ClientOptions,
-  danmuConfig: DanmuConfig,
-  presetOptions: any,
-) => {
+const preHandle = async (files: File[], clientOptions: ClientOptions, danmuConfig: DanmuConfig) => {
   if (files.length === 0) {
     return false;
   }
 
-  if (clientOptions.autoUpload && !aid.value) {
-    await biliUpCheck(presetOptions);
-  }
+  if (ffmpegOptions.value.encoder === "copy") throw new Error("视频编码不能为copy");
+  if (clientOptions.autoUpload) await biliUpCheck();
 
   const videoFile = files.find(
     (item) =>
@@ -273,22 +255,20 @@ const preHandle = async (
     return false;
   }
 
-  // 弹幕处理
-  const videoMeta = await window.api.readVideoMeta(videoFile.path);
-  const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
-  const { width, height } = videoStream || {};
-  if (danmuConfig.resolutionResponsive) {
-    danmuConfig.resolution[0] = width!;
-    danmuConfig.resolution[1] = height!;
-  }
+  if (danmuFile.ext === ".xml") {
+    // 弹幕处理
+    const videoMeta = await taskApi.readVideoMeta(videoFile.path);
+    const videoStream = videoMeta?.streams?.find((stream) => stream.codec_type === "video");
+    const { width, height } = videoStream || {};
 
-  if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
-    const [status] = await confirm.warning({
-      content: `目标视频分辨率为${width}*${height}，与设置的弹幕分辨率不一致，是否继续？`,
-      showCheckbox: true,
-      showAgainKey: "danmuResolution",
-    });
-    if (!status) return false;
+    if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
+      const [status] = await confirm.warning({
+        content: `目标视频分辨率为${width}*${height}，与设置的弹幕分辨率不一致，是否继续？`,
+        showCheckbox: true,
+        showAgainKey: "danmuResolution",
+      });
+      if (!status) return false;
+    }
   }
 
   return {
@@ -297,18 +277,11 @@ const preHandle = async (
   };
 };
 
-const convert = async () => {
+const handleConvert = async () => {
   const files = toRaw(fileList.value);
   const rawClientOptions = toRaw(clientOptions);
-  const rawDanmuConfig = deepRaw(danmuPreset.value.config);
-  const rawPresetOptions = toRaw(presetOptions.value);
-  const rawFfmpegOptions = toRaw(ffmpegOptions.value);
-  const rawAid = toRaw(aid.value);
-  if (rawFfmpegOptions.encoder === "copy") {
-    throw new Error("视频编码不能为copy");
-  }
 
-  const data = await preHandle(files, rawClientOptions, rawDanmuConfig, rawPresetOptions);
+  const data = await preHandle(files, rawClientOptions, danmuPreset.value.config);
   if (!data) return false;
   // 视频验证
   const outputPath = await window.api.showSaveDialog({
@@ -320,18 +293,16 @@ const convert = async () => {
   });
   if (!outputPath) return false;
 
-  let { inputDanmuFile } = data;
-  const { inputVideoFile } = data;
-
-  const { taskId } = await taskApi.burn(
+  const { inputVideoFile, inputDanmuFile } = data;
+  await taskApi.burn(
     {
       videoFilePath: inputVideoFile.path,
       subtitleFilePath: inputDanmuFile.path,
     },
     outputPath,
     {
-      danmaOptions: rawDanmuConfig,
-      ffmpegOptions: rawFfmpegOptions,
+      danmaOptions: danmuPreset.value.config,
+      ffmpegOptions: ffmpegOptions.value,
       hotProgressOptions: {
         interval: rawClientOptions.hotProgressSample,
         height: rawClientOptions.hotProgressHeight,
@@ -340,78 +311,30 @@ const convert = async () => {
       },
       hasHotProgress: rawClientOptions.hotProgress,
       override: true,
+      uploadOptions: {
+        upload: rawClientOptions.autoUpload,
+        config: presetOptions.value.config,
+        aid: aid.value,
+        filePath: outputPath,
+        uid: userInfo.value.uid!,
+      },
     },
   );
-  await listenTask(taskId);
-  // console.log("inputDanmuFile", inputDanmuFile, inputVideoFile, outputPath, rawOptions);
-
-  if (rawClientOptions.autoUpload) {
-    await upload(outputPath, rawPresetOptions, rawAid);
-  }
-
-  return true;
+  fileList.value = [];
 };
 
-// 任务监听
-const listenTask = async (taskId: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    fileList.value = [];
-    aid.value = "";
-
-    window.api.task.on(taskId, "end", (data) => {
-      console.log("end", data);
-      notice.success({
-        title: "压制成功",
-        duration: 3000,
-      });
-      resolve(data.output);
-    });
-
-    window.api.task.on(taskId, "error", (data) => {
-      reject(data.err);
-    });
-  });
-};
-
-const biliUpCheck = async (presetOptions: BiliupPreset) => {
+const biliUpCheck = async () => {
   const hasLogin = !!userInfo.value.uid;
   if (!hasLogin) {
     throw new Error(`请先进行登录`);
   }
 
-  await biliApi.validUploadParams(presetOptions.config);
-
   return true;
 };
 
-// 上传任务
-const upload = async (file: string, presetOptions: BiliupPreset, aid?: number) => {
-  if (aid) {
-    appendVideo(aid, file, presetOptions);
-  } else {
-    uploadVideo(file, presetOptions);
-  }
-};
-
-// 新上传任务
-const uploadVideo = async (file: string, presetOptions: BiliupPreset) => {
-  await biliApi.upload({
-    uid: userInfo.value.uid!,
-    videos: [file],
-    config: presetOptions.config,
-  });
-};
 // 续传任务
 const appendVideoVisible = ref(false);
 const aid = ref();
-const appendVideo = async (aid: number, file: string, presetOptions: BiliupPreset) => {
-  await biliApi.upload({
-    vid: aid,
-    uid: userInfo.value.uid!,
-    videos: [file],
-    config: presetOptions.config,
-  });
-};
 
 // @ts-ignore
 const ffmpegOptions: Ref<FfmpegOptions> = ref({});
@@ -509,9 +432,8 @@ const preview = async () => {
   const files = toRaw(fileList.value);
   const rawClientOptions = toRaw(clientOptions);
   const rawDanmuConfig = deepRaw(danmuPreset.value.config);
-  const rawPresetOptions = toRaw(presetOptions.value);
 
-  const data = await preHandle(files, rawClientOptions, rawDanmuConfig, rawPresetOptions);
+  const data = await preHandle(files, rawClientOptions, rawDanmuConfig);
   if (!data) return;
 
   previewFiles.value.video = data.inputVideoFile.path;
@@ -520,67 +442,22 @@ const preview = async () => {
 
   if (data.inputDanmuFile.path.endsWith(".xml")) {
     previewFiles.value.danmu = "";
-    // xml文件转换
-    const targetAssFile = await handleXmlFile(
-      data.inputDanmuFile,
-      { ...rawClientOptions, removeOrigin: false },
+    const targetAssFilePath = await taskApi.convertXml2Ass(
+      data.inputDanmuFile.path,
+      "随便取个名字",
       rawDanmuConfig,
+      {
+        copyInput: true,
+        removeOrigin: false,
+        saveRadio: 2,
+        temp: true,
+      },
     );
-    previewFiles.value.danmu = targetAssFile.path;
+
+    previewFiles.value.danmu = targetAssFilePath;
   } else if (data.inputDanmuFile.path.endsWith(".ass")) {
     previewFiles.value.danmu = data.inputDanmuFile.path;
   }
-};
-
-// 处理xml文件
-const handleXmlFile = async (danmuFile: File, options: ClientOptions, danmuConfig: DanmuConfig) => {
-  const isEmpty = await window.api.danmu.isEmptyDanmu(danmuFile.path);
-  if (isEmpty) {
-    const msg = "弹幕文件中不存在弹幕，无需压制";
-    notice.warning({
-      title: msg,
-      duration: 1000,
-    });
-    throw new Error(msg);
-  }
-
-  const targetAssFilePath = await convertDanmu2Ass(
-    {
-      input: danmuFile.path,
-      output: uuid(),
-    },
-    { ...options, saveRadio: 2, savePath: await window.api.common.getTempPath() },
-    danmuConfig,
-  );
-
-  return formatFile(targetAssFilePath);
-};
-
-/**
- * xml文件转换为ass
- */
-const convertDanmu2Ass = async (
-  file: {
-    input: string;
-    output: string;
-  },
-  options: DanmuOptions,
-  config: DanmuConfig,
-): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    window.api.danmu
-      .convertXml2Ass(file, config, { ...options, copyInput: true })
-      .then((result: any) => {
-        const taskId = result.taskId;
-        window.api.task.on(taskId, "end", (data) => {
-          resolve(data.output);
-        });
-
-        window.api.task.on(taskId, "error", (data) => {
-          reject(data.err);
-        });
-      });
-  });
 };
 
 const webhookVisible = ref(false);

@@ -252,7 +252,7 @@
             v-model:value="options.config.seasonId"
             :options="seasonList"
             placeholder="请选择合集"
-            style="width: 200px; flex: none"
+            style="width: 250px; flex: none"
             clearable
           />
           <n-select
@@ -262,7 +262,7 @@
             label-field="title"
             value-field="id"
             placeholder="请选择小节"
-            style="width: 200px; flex: none"
+            style="width: 250px; flex: none"
             clearable
           />
           <n-checkbox

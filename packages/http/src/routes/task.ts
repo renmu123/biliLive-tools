@@ -10,12 +10,8 @@ import {
   handleQueryTask,
 } from "@biliLive-tools/shared/task/task.js";
 import { convertXml2Ass } from "@biliLive-tools/shared/task/danmu.js";
-import {
-  // mergeAssMp4,
-  mergeVideos,
-  transcode,
-  burn,
-} from "@biliLive-tools/shared/task/video.js";
+import { mergeVideos, transcode, burn, readVideoMeta } from "@biliLive-tools/shared/task/video.js";
+import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 
 import type { DanmuConfig } from "@biliLive-tools/types";
 
@@ -83,6 +79,18 @@ router.post("/:id/start", async (ctx) => {
   ctx.body = { code: 0 };
 });
 
+router.post("/videoMeta", async (ctx) => {
+  const { file } = ctx.request.body as { file: string };
+  console.log(ctx.params);
+  if (!file) {
+    ctx.status = 400;
+    ctx.body = "file is required";
+    return;
+  }
+  const data = await readVideoMeta(file, {});
+  ctx.body = data;
+});
+
 router.post("/convertXml2Ass", async (ctx) => {
   const { input, output, preset, options } = ctx.request.body as {
     input: string;
@@ -93,6 +101,7 @@ router.post("/convertXml2Ass", async (ctx) => {
       savePath: string;
       removeOrigin?: boolean;
       copyInput?: boolean;
+      temp?: boolean;
     };
   };
   if (!input || !output) {
@@ -174,10 +183,35 @@ router.post("/transcode", async (ctx) => {
   ctx.body = { taskId: task.taskId };
 });
 
+/**
+ * 烧录
+ */
 router.post("/burn", async (ctx) => {
   const { files, output, options } = ctx.request.body as any;
 
+  if (options?.uploadOptions?.upload && !options?.uploadOptions?.aid) {
+    const [status, msg] = validateBiliupConfig(options?.uploadOptions?.config || {});
+    if (!status) {
+      ctx.status = 400;
+      ctx.body = msg;
+      return;
+    }
+  }
   const task = await burn(files, output, options);
+
+  if (options?.uploadOptions?.upload) {
+    task.on("task-end", (task) => {
+      const aid = options?.uploadOptions?.aid;
+      const uid = options?.uploadOptions?.uid;
+      const file = options?.uploadOptions?.filePath;
+      if (aid) {
+        biliApi.editMedia(aid as number, [file], options?.uploadOptions?.config, uid);
+      } else {
+        biliApi.addMedia([file], options?.uploadOptions?.config, uid);
+      }
+    });
+  }
+
   ctx.body = { taskId: task.taskId };
 });
 

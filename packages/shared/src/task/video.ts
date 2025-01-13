@@ -914,7 +914,6 @@ export const burn = async (
       throw new Error("弹幕文件为空，无需压制");
     }
     const name = uuid();
-    assFilePath = join(getTempPath(), `${name}.ass`);
     const danmaOptions = options.danmaOptions;
     // 开启跟随视频分辨率
     if (danmaOptions.resolutionResponsive && width && height) {
@@ -935,6 +934,7 @@ export const burn = async (
       },
     );
     await promiseTask(task);
+    assFilePath = task.output;
     startTimestamp = await readXmlTimestamp(files.subtitleFilePath);
     if (options.ffmpegOptions.timestampFollowDanmu) {
       timestampFont = options.danmaOptions.fontname;

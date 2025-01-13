@@ -697,7 +697,7 @@ export class BiliCommentQueue {
 }
 
 // 验证配置
-export const validateBiliupConfig = async (config: BiliupConfig) => {
+export const validateBiliupConfig = (config: BiliupConfig): [boolean, string | null] => {
   let msg: string | undefined = undefined;
   if (!config.title) {
     msg = "标题不能为空";

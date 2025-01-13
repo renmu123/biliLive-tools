@@ -121,13 +121,24 @@ export const convertXml2Ass = async (
     savePath: "",
     removeOrigin: false,
     copyInput: false,
+    temp: false,
   },
 ) => {
-  let savePath = await parseSavePath(file.input, {
-    saveType: options.saveRadio,
-    savePath: options.savePath,
-  });
-  const output = join(savePath, `${file.output}.ass`);
+  if (await isEmptyDanmu(file.input)) {
+    throw new Error("弹幕为空，无须处理");
+  }
+
+  let output: string;
+  if (options.temp) {
+    let savePath = await parseSavePath(file.input, {
+      saveType: options.saveRadio,
+      savePath: options.savePath,
+    });
+    output = join(savePath, `${file.output}.ass`);
+  } else {
+    const tempFile = join(getTempPath(), `${uuid()}.ass`);
+    output = tempFile;
+  }
 
   const task = await addConvertDanmu2AssTask(file.input, output, danmuOptions, options);
 

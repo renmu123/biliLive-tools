@@ -17,7 +17,6 @@ import type {
   DanmuItem,
 } from "@biliLive-tools/types";
 import type { OpenDialogOptions } from "../types";
-import type ffmpeg from "@renmu/fluent-ffmpeg";
 
 type startCallback = (params: { command?: string }) => void;
 type endCallback = (params: { output?: string }) => void;
@@ -51,10 +50,6 @@ export const api = {
     ) => {
       return ipcRenderer.invoke("danmu:convertXml2Ass", file, config, options);
     },
-    isEmptyDanmu(input: string) {
-      return ipcRenderer.invoke("danmu:isEmptyDanmu", input);
-    },
-    // danmu:generateDanmakuImage
     genHotProgress(input: string, options: hotProgressOptions) {
       return ipcRenderer.invoke("danmu:genHotProgress", input, options);
     },
@@ -220,9 +215,6 @@ export const api = {
     },
   ) => {
     return await ipcRenderer.invoke("mergeAssMp4", files, options, ffmpegOptions);
-  },
-  readVideoMeta: (file: string): Promise<ffmpeg.FfprobeData> => {
-    return ipcRenderer.invoke("readVideoMeta", file);
   },
 
   // 通用函数

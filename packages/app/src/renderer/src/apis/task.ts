@@ -6,6 +6,7 @@ import type {
   FfmpegOptions,
   DanmuConfig,
   hotProgressOptions,
+  BiliupPreset,
 } from "@biliLive-tools/types";
 
 /**
@@ -68,6 +69,10 @@ const convertXml2Ass = async (
   options: {
     saveRadio: 1 | 2;
     savePath?: string;
+    removeOrigin?: boolean;
+    copyInput?: boolean;
+    // 生成在临时文件夹
+    temp?: boolean;
   },
 ): Promise<string> => {
   const res = await request.post(`/task/convertXml2Ass`, {
@@ -132,6 +137,13 @@ const burn = async (
     savePath?: string;
     /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
     saveType?: 1 | 2;
+    uploadOptions?: {
+      upload: boolean;
+      config: BiliupPreset["config"];
+      filePath: string;
+      uid: number;
+      aid?: number;
+    };
   },
 ) => {
   const res = await request.post(`/task/burn`, {
@@ -155,6 +167,11 @@ const sendToWebhook = async (data: {
   return res.data;
 };
 
+const readVideoMeta = async (input: string) => {
+  const res = await request.post(`/task/videoMeta`, { file: input });
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -170,6 +187,7 @@ const task = {
   burn,
   sendToWebhook,
   removeBatch,
+  readVideoMeta,
 };
 
 export default task;

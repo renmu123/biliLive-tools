@@ -1,7 +1,5 @@
 import { appConfig } from "@biliLive-tools/shared";
 import { mergeAssMp4 } from "@biliLive-tools/shared/task/video.js";
-import { invokeWrap } from "./utils/index";
-import { getAvailableEncoders, readVideoMeta } from "@biliLive-tools/shared/task/video.js";
 
 import type { AppConfig } from "@biliLive-tools/types";
 import type { IpcMainInvokeEvent } from "electron";
@@ -28,6 +26,4 @@ export const ffmpegHandlers = {
       taskId: task.taskId,
     };
   },
-  getAvailableEncoders: getAvailableEncoders,
-  readVideoMeta: invokeWrap(readVideoMeta),
 };
