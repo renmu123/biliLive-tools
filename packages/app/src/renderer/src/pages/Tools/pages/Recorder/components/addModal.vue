@@ -216,7 +216,7 @@ const emits = defineEmits<{
   (event: "confirm"): void;
 }>();
 
-const hasGlobalFields: (keyof Omit<BaseRecordr, "line">)[] = [
+const hasGlobalFields: (keyof Omit<BaseRecordr, "line" | "convert2Mp4">)[] = [
   "quality",
   "disableProvideCommentsWhenRecording",
   "saveGiftDanma",

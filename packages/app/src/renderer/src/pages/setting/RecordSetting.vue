@@ -61,10 +61,7 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            分段录制
-            <Tip tip="0为不分段"></Tip>
-          </span>
+          <Tip tip="0为不分段" text="分段录制"></Tip>
         </template>
         <n-input-number v-model:value="config.recorder.segment" min="0" step="10">
           <template #suffix>分钟</template>
@@ -82,6 +79,15 @@
           <span> 保存封面 </span>
         </template>
         <n-switch v-model:value="config.recorder.saveCover" />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip
+            tip="转封装后将删除源文件，如果你需要使用webhook功能，请在webhook设置该选项，可能会有更好的兼容性"
+            text="转封装为mp4"
+          ></Tip>
+        </template>
+        <n-switch v-model:value="config.recorder.convert2Mp4" />
       </n-form-item>
       <n-form-item>
         <template #label>

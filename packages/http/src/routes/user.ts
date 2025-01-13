@@ -33,4 +33,10 @@ router.post("/update", async (ctx) => {
   ctx.status = 200;
 });
 
+router.post("/update_auth", async (ctx) => {
+  const { uid } = ctx.request.body as { uid: number };
+  await biliService.updateAuth(uid);
+  ctx.status = 200;
+});
+
 export default router;

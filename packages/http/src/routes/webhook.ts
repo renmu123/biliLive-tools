@@ -172,6 +172,10 @@ router.post("/webhook/custom", async (ctx) => {
   log.info("custom: webhook", ctx.request.body);
   const event = ctx.request.body as CustomEvent;
 
+  if (["FileOpening", "FileClosed"].includes(event.event) === false) {
+    throw new Error("event should be FileOpening or FileClosed");
+  }
+
   if (!event.filePath) {
     throw new Error("filePath is required");
   }
@@ -187,10 +191,8 @@ router.post("/webhook/custom", async (ctx) => {
   if (!event.username) {
     throw new Error("username is required");
   }
-  if (["FileOpening", "FileClosed"].includes(event.event) === false) {
-    throw new Error("event should be FileOpening or FileClosed");
-  }
-  if (webhook?.open && (event.event === "FileOpening" || event.event === "FileClosed")) {
+
+  if (webhook?.open) {
     handler.handle({
       event: event.event,
       filePath: event.filePath,

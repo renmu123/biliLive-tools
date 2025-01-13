@@ -29,6 +29,7 @@
             使用
           </div>
           <div class="section" @click="updateAccountInfo(item.uid)">刷新信息</div>
+          <div class="section" @click="updateAuth(item.uid)">刷新授权</div>
           <div class="section" style="color: #e88080" @click="logout(item.uid)">退出账号</div>
         </n-popover>
       </div>
@@ -95,6 +96,14 @@ const updateAccountInfo = async (uid: number) => {
   await userApi.refresh(uid);
   notice.success({
     title: "已获取最新数据",
+    duration: 1000,
+  });
+  getUsers();
+};
+const updateAuth = async (uid: number) => {
+  await userApi.updateAuth(uid);
+  notice.success({
+    title: "已刷新授权",
     duration: 1000,
   });
   getUsers();

@@ -162,7 +162,7 @@ services:
 
 ### [DDTV](https://github.com/CHKZL/DDTV)
 
-默认webhook地址：http://127.0.0.1:18010/webhook/custom
+默认webhook地址：http://127.0.0.1:18010/webhook/ddtv
 
 需要将DDTV的软件“设置-文件与路径设置-录制文件保存路径”设置为绝对路径，打开弹幕录制。
 
@@ -423,7 +423,7 @@ web和客户端使用的字体方式并不相同，会有差异，再加上获�
   - [x] 虎牙
   - [x] B站
 - [ ] 弹幕分析
-- [ ] web&docker版本支持
+- [x] web&docker版本支持
 
 # 开发
 

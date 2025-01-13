@@ -10,6 +10,10 @@ export default class RecorderConfig {
   constructor(appConfig: AppConfig) {
     this.appConfig = appConfig;
   }
+  public getRaw(id: string) {
+    const setting = this.appConfig.get("recorders");
+    return setting.find((setting) => setting.id === id);
+  }
 
   public get(id: string): LocalRecordr | null {
     const getValue = <K extends keyof BaseRecordr>(key: K): BaseRecordr[K] => {
@@ -44,6 +48,7 @@ export default class RecorderConfig {
       segment: getValue("segment") ?? 60,
       // @ts-ignore
       uid: getValue("bilibili.uid"),
+      convert2Mp4: globalConfig["convert2Mp4"] ?? false,
     };
   }
   public list(): LocalRecordr[] {

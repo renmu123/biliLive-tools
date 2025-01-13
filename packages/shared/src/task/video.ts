@@ -717,7 +717,7 @@ export const cutVideo = async (
  */
 export const transcode = async (
   input: string,
-  /** 包含后缀 */
+  /** 文件名非绝对路径，包含后缀 */
   outputName: string,
   ffmpegOptions: FfmpegOptions,
   option: {

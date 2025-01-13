@@ -162,6 +162,17 @@ export class WebhookHandler {
 
     const currentLive = this.liveData[currentLiveIndex];
     const currentPart = currentLive.findPartByFilePath(options.filePath);
+    if (!currentPart) return;
+
+    // 如果源文件不存在，那么尝试将后缀替换为mp4再判断是否存在
+    if (!(await fs.pathExists(options.filePath))) {
+      const mp4FilePath = replaceExtName(options.filePath, ".mp4");
+      if (await fs.pathExists(mp4FilePath)) {
+        options.filePath = mp4FilePath;
+        currentPart.filePath = mp4FilePath;
+        currentPart.rawFilePath = mp4FilePath;
+      }
+    }
 
     // 在录制结束时判断大小，如果文件太小，直接返回
     const fileSize = await getFileSize(options.filePath);
@@ -176,7 +187,6 @@ export class WebhookHandler {
       return;
     }
 
-    if (!currentPart) return;
     log.debug(this.liveData);
 
     // TODO:重构
@@ -207,7 +217,7 @@ export class WebhookHandler {
         }
         await sleep(10000);
         if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
-          log.info("没有找到弹幕文件，直接上传", xmlFilePath);
+          log.info("没有找到弹幕文件", xmlFilePath);
           currentPart.recordStatus = "handled";
           return;
         }

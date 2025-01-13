@@ -148,9 +148,10 @@ onActivated(() => {
   });
   // 播放/暂停
   hotkeys("space", function (event) {
-    console.log(event);
     // @ts-ignore
     if (event?.target?.tagName === "BUTTON") return;
+    // @ts-ignore
+    if (event?.target?.className.includes("artplayer")) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     event.stopPropagation();

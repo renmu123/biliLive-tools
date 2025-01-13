@@ -2,9 +2,8 @@
 <template>
   <n-popover trigger="hover">
     <template #trigger>
-      <span style="display: inline-flex">
-        {{ props.text
-        }}<n-icon :size="props.size" style="cursor: help"> <HelpCircleOutline /> </n-icon>
+      <span style="display: inline-flex; cursor: help">
+        {{ props.text }}<n-icon :size="props.size"> <HelpCircleOutline /> </n-icon>
       </span>
     </template>
     <span v-if="props.tip" v-html="props.tip"></span>
