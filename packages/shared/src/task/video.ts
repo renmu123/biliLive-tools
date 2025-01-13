@@ -881,6 +881,12 @@ export const burn = async (
     ffmpegOptions: FfmpegOptions;
     hotProgressOptions: Omit<hotProgressOptions, "videoPath">;
     hasHotProgress: boolean;
+    override?: boolean;
+    removeOrigin?: boolean;
+    /** 支持绝对路径和相对路径 */
+    savePath?: string;
+    /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
+    saveType?: 1 | 2;
   },
 ) => {
   if (options.ffmpegOptions.encoder === "copy") {
@@ -892,6 +898,10 @@ export const burn = async (
   let hotProgressInput: string | undefined = undefined;
   let startTimestamp = 0;
   let timestampFont: string | undefined = undefined;
+
+  const hasHotProgress = options.hasHotProgress || false;
+  const override = options.override || false;
+  const removeOrigin = options.removeOrigin || false;
 
   const videoMeta = await readVideoMeta(videoFilePath);
   const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
@@ -920,7 +930,7 @@ export const burn = async (
       {
         saveRadio: 2,
         savePath: getTempPath(),
-        removeOrigin: false,
+        removeOrigin: removeOrigin,
         copyInput: true,
       },
     );
@@ -931,7 +941,7 @@ export const burn = async (
     }
   }
   // 高能进度条转换
-  if (options.hasHotProgress) {
+  if (hasHotProgress) {
     const hotProgressOptions = options.hotProgressOptions;
     const task = await genHotProgress(files.subtitleFilePath, {
       ...hotProgressOptions,
@@ -943,16 +953,24 @@ export const burn = async (
   }
 
   // 烧录
+  let outputFile = output;
+  if (!path.isAbsolute(output)) {
+    let savePath = await parseSavePath(videoFilePath, {
+      saveType: options.saveType,
+      savePath: options.savePath,
+    });
+    outputFile = path.join(savePath, output);
+  }
   const task = await mergeAssMp4(
     {
       videoFilePath,
       assFilePath,
-      outputPath: output,
+      outputPath: outputFile,
       hotProgressFilePath: hotProgressInput,
     },
     {
-      removeOrigin: false,
-      override: true,
+      removeOrigin: removeOrigin,
+      override: override,
       startTimestamp,
       timestampFont,
     },

@@ -162,6 +162,8 @@ export type ToolConfig = {
     removeOrigin: boolean;
     /** ffmpeg预设 */
     ffmpegPresetId: string;
+    /** 弹幕预设 */
+    danmuPresetId: string;
   };
   videoMerge: {
     /** 保存到原始文件夹 */

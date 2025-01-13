@@ -126,6 +126,12 @@ const burn = async (
     ffmpegOptions: FfmpegOptions;
     hotProgressOptions: Omit<hotProgressOptions, "videoPath">;
     hasHotProgress: boolean;
+    override?: boolean;
+    removeOrigin?: boolean;
+    /** 支持绝对路径和相对路径 */
+    savePath?: string;
+    /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
+    saveType?: 1 | 2;
   },
 ) => {
   const res = await request.post(`/task/burn`, {

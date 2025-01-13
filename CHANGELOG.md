@@ -1,3 +1,9 @@
+# 1.8.0
+
+## 功能
+
+1. 转码页面支持压制弹幕 [#45](https://github.com/renmu123/biliLive-tools/issues/45)
+
 # 1.7.1
 
 ## 功能

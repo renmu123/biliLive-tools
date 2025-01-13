@@ -339,6 +339,7 @@ const convert = async () => {
         fillColor: rawClientOptions.hotProgressFillColor,
       },
       hasHotProgress: rawClientOptions.hotProgress,
+      override: true,
     },
   );
   await listenTask(taskId);

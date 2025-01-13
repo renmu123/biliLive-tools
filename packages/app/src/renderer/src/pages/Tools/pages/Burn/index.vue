@@ -16,9 +16,21 @@
         :show-path="false"
         :filterable="true"
         style="width: 140px; text-align: left"
+        title="ffmpeg预设"
+      />
+      <n-select
+        v-model:value="options.danmuPresetId"
+        :options="danmuPresetsOptions"
+        placeholder="选择预设"
+        style="width: 140px"
       />
     </div>
-    <FileSelect ref="fileSelect" v-model="fileList" :sort="false"></FileSelect>
+    <FileSelect
+      ref="fileSelect"
+      v-model="fileList"
+      :sort="false"
+      :extensions="[...supportedVideoExtensions, 'xml', 'ass']"
+    ></FileSelect>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div>
@@ -55,20 +67,22 @@
 import { toReactive } from "@vueuse/core";
 
 import { useConfirm } from "@renderer/hooks";
-import { ffmpegPresetApi, taskApi } from "@renderer/apis";
-import { useAppConfig, useFfmpegPreset } from "@renderer/stores";
-import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
+import { ffmpegPresetApi, taskApi, danmuPresetApi } from "@renderer/apis";
+import { useAppConfig, useFfmpegPreset, useDanmuPreset } from "@renderer/stores";
+import FileSelect from "./components/FileSelect.vue";
 import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 import hotkeys from "hotkeys-js";
 import { cloneDeep } from "lodash-es";
 import { FolderOpenOutline } from "@vicons/ionicons5";
+import { supportedVideoExtensions } from "@renderer/utils";
 
 const notice = useNotification();
 const confirm = useConfirm();
 const { appConfig } = storeToRefs(useAppConfig());
 const { ffmpegOptions } = storeToRefs(useFfmpegPreset());
+const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());
 
-const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
+const fileList = ref<{ id: string; title: string; videoPath: string; danmakuPath?: string }[]>([]);
 const options = toReactive(
   computed({
     get: () => appConfig.value.tool.video2mp4,
@@ -99,7 +113,17 @@ const convert = async () => {
     });
     return;
   }
+  const rawDanmuConfig = await danmuPresetApi.get(options.danmuPresetId);
+  if (!rawDanmuConfig) {
+    notice.error({
+      title: `弹幕预设不存在，请重新选择`,
+      duration: 1000,
+    });
+    return;
+  }
+
   const ffmpegOptions = ffmpegConfig.config;
+  const danmuOptions = rawDanmuConfig?.config;
 
   if (fileList.value.length === 0) {
     notice.error({
@@ -107,6 +131,17 @@ const convert = async () => {
       duration: 1000,
     });
     return;
+  }
+
+  // 如果存在弹幕，那么不允许使用copy
+  if (ffmpegOptions.encoder === "copy") {
+    if (fileList.value.find((item) => item.danmakuPath)) {
+      notice.error({
+        title: `存在弹幕文件，视频预设编码器不允许使用 copy 选项`,
+        duration: 1000,
+      });
+      return;
+    }
   }
 
   if (ffmpegOptions.encoder !== "copy" || ffmpegOptions.audioCodec !== "copy") {
@@ -122,15 +157,36 @@ const convert = async () => {
   const files = cloneDeep(fileList.value);
 
   for (let i = 0; i < files.length; i++) {
-    const input = files[i].path;
+    const videoPath = files[i].videoPath;
+    const danmakuPath = files[i].danmakuPath;
     const outputName = `${files[i].title}.mp4`;
-    await taskApi.transcode(input, outputName, ffmpegOptions, {
-      override: options.override,
-      removeOrigin: options.removeOrigin,
-      savePath: options.savePath,
-      saveType: options.saveRadio,
-    });
-    fileList.value.splice(i, 1);
+    if (danmakuPath) {
+      await taskApi.burn(
+        {
+          videoFilePath: videoPath,
+          subtitleFilePath: danmakuPath,
+        },
+        outputName,
+        {
+          danmaOptions: danmuOptions,
+          ffmpegOptions: ffmpegOptions,
+          hotProgressOptions: {},
+          hasHotProgress: false,
+          override: options.override,
+          removeOrigin: options.removeOrigin,
+          savePath: options.savePath,
+          saveType: options.saveRadio,
+        },
+      );
+    } else {
+      await taskApi.transcode(videoPath, outputName, ffmpegOptions, {
+        override: options.override,
+        removeOrigin: options.removeOrigin,
+        savePath: options.savePath,
+        saveType: options.saveRadio,
+      });
+    }
+    fileList.value.shift();
   }
   notice.warning({
     title: `已加入任务队列，可在任务列表中查看进度`,

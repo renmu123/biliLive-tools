@@ -43,7 +43,7 @@ const router = createRouter({
         {
           path: "/convert2mp4",
           name: "Convert2Mp4",
-          component: () => import("../pages/Tools/pages/File2Mp4.vue"),
+          component: () => import("../pages/Tools/pages/Burn/index.vue"),
         },
         {
           path: "/videoMerge",
