@@ -102,6 +102,7 @@ router.post("/convertXml2Ass", async (ctx) => {
       removeOrigin?: boolean;
       copyInput?: boolean;
       temp?: boolean;
+      sync?: boolean;
     };
   };
   if (!input || !output) {
@@ -127,7 +128,19 @@ router.post("/convertXml2Ass", async (ctx) => {
       ...options,
     },
   );
-  ctx.body = { taskId: task.taskId };
+  if (options.sync) {
+    const outputFile = await new Promise((resolve, reject) => {
+      task.on("task-end", () => {
+        resolve(task.output);
+      });
+      task.on("task-error", (err) => {
+        reject(err);
+      });
+    });
+    ctx.body = { taskId: task.taskId, output: outputFile };
+  } else {
+    ctx.body = { taskId: task.taskId, output: task.output };
+  }
 });
 
 router.post("/mergeVideo", async (ctx) => {

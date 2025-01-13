@@ -488,27 +488,27 @@ const appInit = async () => {
   if (appConfig.get("autoUpdate")) {
     checkUpdate();
   }
-  taskQueueListen(container);
+  // taskQueueListen(container);
 };
 
-const taskQueueListen = (container: AwilixContainer) => {
-  const taskQueue = container.resolve<TaskQueue>("taskQueue");
-  taskQueue.on("task-start", ({ taskId }) => {
-    mainWin.webContents.send("task-start", { taskId: taskId });
-  });
-  taskQueue.on("task-end", ({ taskId }) => {
-    mainWin.webContents.send("task-end", {
-      taskId: taskId,
-      output: taskQueue.queryTask(taskId)?.output,
-    });
-  });
-  taskQueue.on("task-error", ({ taskId }) => {
-    mainWin.webContents.send("task-error", { taskId: taskId });
-  });
-  taskQueue.on("task-progress", ({ taskId }) => {
-    mainWin.webContents.send("task-progress", { taskId: taskId });
-  });
-};
+// const taskQueueListen = (container: AwilixContainer) => {
+//   const taskQueue = container.resolve<TaskQueue>("taskQueue");
+//   taskQueue.on("task-start", ({ taskId }) => {
+//     mainWin.webContents.send("task-start", { taskId: taskId });
+//   });
+//   taskQueue.on("task-end", ({ taskId }) => {
+//     mainWin.webContents.send("task-end", {
+//       taskId: taskId,
+//       output: taskQueue.queryTask(taskId)?.output,
+//     });
+//   });
+//   taskQueue.on("task-error", ({ taskId }) => {
+//     mainWin.webContents.send("task-error", { taskId: taskId });
+//   });
+//   taskQueue.on("task-progress", ({ taskId }) => {
+//     mainWin.webContents.send("task-progress", { taskId: taskId });
+//   });
+// };
 
 const openDirectory = async (
   _event: IpcMainInvokeEvent,

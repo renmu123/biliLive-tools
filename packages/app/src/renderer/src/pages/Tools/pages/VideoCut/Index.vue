@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { uuid, supportedVideoExtensions } from "@renderer/utils";
+import { supportedVideoExtensions } from "@renderer/utils";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
@@ -115,6 +115,7 @@ import { useSegmentStore, useAppConfig } from "@renderer/stores";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 import { useStorage } from "@vueuse/core";
+import { taskApi } from "@renderer/apis";
 
 import { useLlcProject } from "./hooks";
 import { useDrive } from "@renderer/hooks/drive";
@@ -335,19 +336,17 @@ const danmuConfirm = async (config: DanmuConfig) => {
     config.resolution[0] = width!;
     config.resolution[1] = height!;
   }
-
-  const path = await convertDanmu2Ass(
-    {
-      input: tempXmlFile.value,
-      output: uuid(),
-    },
-    { saveRadio: 2, savePath: await window.api.common.getTempPath(), removeOrigin: false },
-    config,
-  );
-  // files.value.danmu = path;
-  const content = await window.api.common.readFile(path);
+  const { output } = await taskApi.convertXml2Ass(tempXmlFile.value, "随便填", config, {
+    copyInput: true,
+    removeOrigin: false,
+    saveRadio: 2,
+    temp: true,
+    savePath: "",
+    sync: true,
+  });
+  const content = await window.api.common.readFile(output);
   convertDanmuLoading.value = false;
-  files.value.danmuPath = path;
+  files.value.danmuPath = output;
   videoRef.value?.switchAss(content);
 };
 
@@ -370,44 +369,6 @@ const generateDanmakuData = async (file: string) => {
 
   // @ts-ignore
   videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
-};
-/**
- * xml文件转换为ass
- */
-const convertDanmu2Ass = async (
-  file: {
-    input: string;
-    output: string;
-  },
-  options: DanmuOptions,
-  config: DanmuConfig,
-): Promise<string> => {
-  notice.info({
-    title: "弹幕开始转换为ass",
-    duration: 1000,
-  });
-  return new Promise((resolve, reject) => {
-    window.api.danmu
-      .convertXml2Ass(file, toRaw(config), { ...options, copyInput: true })
-      .then((result: any) => {
-        const taskId = result.taskId;
-        window.api.task.on(taskId, "end", (data) => {
-          notice.success({
-            title: "转换成功",
-            duration: 1000,
-          });
-          resolve(data.output);
-        });
-
-        window.api.task.on(taskId, "error", (data) => {
-          notice.error({
-            title: "转换失败",
-            duration: 1000,
-          });
-          reject(data.err);
-        });
-      });
-  });
 };
 
 const exportVisible = ref(false);

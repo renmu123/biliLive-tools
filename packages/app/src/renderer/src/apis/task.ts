@@ -73,8 +73,13 @@ const convertXml2Ass = async (
     copyInput?: boolean;
     // 生成在临时文件夹
     temp?: boolean;
+    // 同步返回
+    sync?: boolean;
   },
-): Promise<string> => {
+): Promise<{
+  taskId: string;
+  output: string;
+}> => {
   const res = await request.post(`/task/convertXml2Ass`, {
     input,
     output,

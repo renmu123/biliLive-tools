@@ -442,7 +442,8 @@ const preview = async () => {
 
   if (data.inputDanmuFile.path.endsWith(".xml")) {
     previewFiles.value.danmu = "";
-    const targetAssFilePath = await taskApi.convertXml2Ass(
+    // TODO: 有bug
+    const { output } = await taskApi.convertXml2Ass(
       data.inputDanmuFile.path,
       "随便取个名字",
       rawDanmuConfig,
@@ -450,11 +451,13 @@ const preview = async () => {
         copyInput: true,
         removeOrigin: false,
         saveRadio: 2,
+        savePath: "",
         temp: true,
+        sync: true,
       },
     );
 
-    previewFiles.value.danmu = targetAssFilePath;
+    previewFiles.value.danmu = output;
   } else if (data.inputDanmuFile.path.endsWith(".ass")) {
     previewFiles.value.danmu = data.inputDanmuFile.path;
   }

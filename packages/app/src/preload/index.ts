@@ -35,25 +35,6 @@ export const api = {
     return ipcRenderer.invoke("db:addWithStreamer", options);
   },
   danmu: {
-    convertXml2Ass: (
-      file: {
-        input: string;
-        output?: string;
-      },
-      config: DanmuConfig,
-      options: DanmuOptions = {
-        saveRadio: 1,
-        savePath: "",
-        removeOrigin: false,
-        copyInput: false,
-      },
-    ) => {
-      return ipcRenderer.invoke("danmu:convertXml2Ass", file, config, options);
-    },
-    genHotProgress(input: string, options: hotProgressOptions) {
-      return ipcRenderer.invoke("danmu:genHotProgress", input, options);
-    },
-
     genTimeData(input: string) {
       return ipcRenderer.invoke("danmu:genTimeData", input);
     },
@@ -67,83 +48,6 @@ export const api = {
       }[];
     }> {
       return ipcRenderer.invoke("danmu:parseDanmu", input, {});
-    },
-  },
-  task: {
-    on(
-      taskId: string,
-      event: "start" | "end" | "error" | "progress",
-      callback: startCallback | endCallback | errorCallback | progressCallback,
-    ) {
-      if (event === "start") {
-        ipcRenderer.on(
-          `task-start`,
-          (
-            _event,
-            data: {
-              taskId: string;
-              command: string;
-            },
-          ) => {
-            console.log("render:start", data);
-            if (data.taskId === taskId) {
-              callback({ command: data.command });
-            }
-          },
-        );
-      } else if (event === "end") {
-        ipcRenderer.on(
-          `task-end`,
-          (
-            _event,
-            data: {
-              taskId: string;
-              output: string;
-            },
-          ) => {
-            if (data.taskId === taskId) {
-              callback({
-                output: data.output,
-                taskId: data.taskId,
-              });
-            }
-          },
-        );
-      } else if (event === "error") {
-        ipcRenderer.on(
-          `task-error`,
-          (
-            _event,
-            data: {
-              taskId: string;
-              err: string;
-            },
-          ) => {
-            if (data.taskId === taskId) {
-              callback({
-                err: data.err,
-              });
-            }
-          },
-        );
-      } else if (event === "progress") {
-        ipcRenderer.on(
-          `task-progress`,
-          (
-            _event,
-            data: {
-              taskId: string;
-              progress: Progress;
-            },
-          ) => {
-            if (data.taskId === taskId) {
-              callback({
-                // percentage: data.progress,
-              });
-            }
-          },
-        );
-      }
     },
   },
   common: {
