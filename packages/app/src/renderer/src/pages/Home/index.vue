@@ -176,8 +176,8 @@ import ffmpegSetting from "./components/ffmpegSetting.vue";
 import PreviewModal from "./components/previewModal.vue";
 import sendWebhookModal from "./components/sendWebhookModal.vue";
 import { useConfirm, useBili } from "@renderer/hooks";
-import { useDanmuPreset, useUserInfoStore, useAppConfig } from "@renderer/stores";
-import { danmuPresetApi, taskApi } from "@renderer/apis";
+import { useDanmuPreset, useUserInfoStore, useAppConfig, useQueueStore } from "@renderer/stores";
+import { danmuPresetApi, taskApi, commonApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
@@ -206,6 +206,8 @@ const { danmuPresetsOptions, danmuPresetId, danmuPreset } = storeToRefs(useDanmu
 const { getDanmuPresets } = useDanmuPreset();
 const { userInfo } = storeToRefs(useUserInfoStore());
 const { appConfig } = storeToRefs(useAppConfig());
+const quenuStore = useQueueStore();
+
 const { handlePresetOptions, presetOptions } = useBili();
 const isWeb = computed(() => window.isWeb);
 
@@ -485,6 +487,20 @@ const sendToWebhook = () => {
   webhookVisible.value = true;
   return;
 };
+
+let eventSource: EventSource | null = null;
+async function getRunningTaskNum() {
+  if (eventSource && eventSource?.readyState !== 2) return;
+  eventSource = await commonApi.getRunningTaskNum();
+
+  eventSource.onmessage = function (event) {
+    const data = JSON.parse(event.data || "{}");
+    quenuStore.setRunningTaskNum(data.num);
+  };
+}
+onActivated(() => {
+  getRunningTaskNum();
+});
 </script>
 
 <style scoped lang="less">

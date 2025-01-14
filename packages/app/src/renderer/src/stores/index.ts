@@ -203,8 +203,11 @@ export const useQueueStore = defineStore("queue", () => {
       queue.value = res.reverse();
     } else {
       queue.value = res.list.reverse();
-      runningTaskNum.value = res.runningTaskNum;
+      // runningTaskNum.value = res.runningTaskNum;
     }
+  };
+  const setRunningTaskNum = (num: number) => {
+    runningTaskNum.value = num;
   };
 
   watch(
@@ -219,6 +222,7 @@ export const useQueueStore = defineStore("queue", () => {
     getQuenu,
     queue,
     params,
+    setRunningTaskNum,
   };
 });
 
@@ -256,6 +260,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         override: false,
         removeOrigin: false,
         ffmpegPresetId: "b_copy",
+        danmuPresetId: "default",
       },
       videoMerge: {
         saveOriginPath: false,

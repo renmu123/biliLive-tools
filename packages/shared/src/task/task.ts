@@ -842,11 +842,13 @@ export class TaskQueue {
   queue: AbstractTask[];
   emitter = new TypedEmitter<TaskEvents>();
   on: TypedEmitter<TaskEvents>["on"];
+  off: TypedEmitter<TaskEvents>["off"];
 
   constructor(appConfig: AppConfig) {
     this.queue = [];
     this.appConfig = appConfig;
     this.on = this.emitter.on.bind(this.emitter);
+    this.off = this.emitter.off.bind(this.emitter);
     this.on("task-end", () => {
       this.addTaskForLimit();
     });

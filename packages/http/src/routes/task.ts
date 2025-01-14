@@ -1,4 +1,5 @@
 import Router from "koa-router";
+
 import {
   handleStartTask,
   handlePauseTask,
@@ -67,15 +68,16 @@ router.post("/:id/remove", async (ctx) => {
   handleRemoveTask(id);
   ctx.body = { code: 0 };
 });
-router.post("/removeBatch", async (ctx) => {
-  const { ids } = ctx.request.body as { ids: string[] };
-  ids.forEach((id) => handleRemoveTask(id));
-  ctx.body = { code: 0 };
-});
 
 router.post("/:id/start", async (ctx) => {
   const { id } = ctx.params;
   handleStartTask(id);
+  ctx.body = { code: 0 };
+});
+
+router.post("/removeBatch", async (ctx) => {
+  const { ids } = ctx.request.body as { ids: string[] };
+  ids.forEach((id) => handleRemoveTask(id));
   ctx.body = { code: 0 };
 });
 

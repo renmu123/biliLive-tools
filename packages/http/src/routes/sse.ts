@@ -1,8 +1,9 @@
 import fs from "node:fs";
 import Router from "koa-router";
 import chokidar from "chokidar";
-import { createRecorderManager } from "@biliLive-tools/shared";
 import sse from "koa-sse-stream";
+import { createRecorderManager } from "@biliLive-tools/shared";
+import { handleListTask, taskQueue } from "@biliLive-tools/shared/task/task.js";
 
 import { config, container } from "../index.js";
 
@@ -79,6 +80,43 @@ router.get(
         ctx.sse.send(JSON.stringify(message));
       }
     });
+  },
+);
+
+router.get(
+  "/task/runningNum",
+  sse({
+    maxClients: 5000,
+    pingInterval: 30000,
+  }),
+  async (ctx) => {
+    const getRunningTask = () => {
+      let data = handleListTask();
+      const num = data.filter((item) => item.status === "running").length;
+      console.log("running task num", num);
+      // @ts-ignore
+      ctx.sse.send(JSON.stringify({ num }));
+    };
+    const tasks = container.resolve<typeof taskQueue>("taskQueue");
+    tasks.on("task-start", getRunningTask);
+    tasks.on("task-update", getRunningTask);
+    tasks.on("task-end", getRunningTask);
+    tasks.on("task-error", getRunningTask);
+    tasks.on("task-pause", getRunningTask);
+    tasks.on("task-resume", getRunningTask);
+    tasks.on("task-cancel", getRunningTask);
+
+    ctx.req.on("close", () => {
+      console.log("Client closed connection");
+      tasks.off("task-start", getRunningTask);
+      tasks.off("task-update", getRunningTask);
+      tasks.off("task-end", getRunningTask);
+      tasks.off("task-error", getRunningTask);
+      tasks.off("task-pause", getRunningTask);
+      tasks.off("task-resume", getRunningTask);
+      tasks.off("task-cancel", getRunningTask);
+    });
+    getRunningTask();
   },
 );
 

@@ -39,6 +39,19 @@ export const getDanmaStream = async (recorderId: string) => {
   return eventSource;
 };
 
+export const getRunningTaskNum = async () => {
+  let key = window.localStorage.getItem("key");
+  if (!window.isWeb) {
+    const appConfig = await configApi.get();
+    key = appConfig.passKey;
+  }
+
+  const eventSource = new EventSource(
+    `${request.defaults.baseURL}/sse/task/runningNum?auth=${key}`,
+  );
+  return eventSource;
+};
+
 export const version = async (): Promise<string> => {
   const res = await request.get(`/common/version`);
   return res.data;
@@ -170,6 +183,7 @@ const common = {
   getDanmaStream,
   exportLogs,
   parseMeta,
+  getRunningTaskNum,
 };
 
 export default common;

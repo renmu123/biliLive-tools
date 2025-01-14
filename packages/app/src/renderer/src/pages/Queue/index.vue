@@ -161,6 +161,28 @@ const now = ref(Date.now());
 setInterval(() => {
   now.value = Date.now();
 }, 1000);
+
+let intervalId: NodeJS.Timeout | null = null;
+const createInterval = () => {
+  if (intervalId) return;
+  const interval = window.isWeb ? 2000 : 1000;
+  intervalId = setInterval(() => {
+    store.getQuenu();
+  }, interval);
+};
+function cleanInterval() {
+  intervalId && clearInterval(intervalId);
+  intervalId = null;
+}
+
+onDeactivated(() => {
+  store.getQuenu();
+  cleanInterval();
+});
+
+onActivated(() => {
+  createInterval();
+});
 </script>
 
 <style scoped lang="less">

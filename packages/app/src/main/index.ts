@@ -30,7 +30,7 @@ import {
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
 import type { Theme, GlobalConfig } from "@biliLive-tools/types";
-import type { AwilixContainer } from "awilix";
+// import type { AwilixContainer } from "awilix";
 import type { AppConfig, TaskQueue } from "@biliLive-tools/shared";
 
 export let mainWin: BrowserWindow;

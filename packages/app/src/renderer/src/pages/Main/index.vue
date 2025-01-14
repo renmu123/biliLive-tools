@@ -372,15 +372,6 @@ window.addEventListener("unhandledrejection", (error) => {
   });
 });
 
-const interval = isWeb.value ? 2000 : 1000;
-const intervalId = setInterval(() => {
-  quenuStore.getQuenu();
-}, interval);
-
-onUnmounted(() => {
-  clearInterval(intervalId);
-});
-
 // 更新日志处理
 const changelogVisible = ref(false);
 const initChanglog = async () => {
