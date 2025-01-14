@@ -34,7 +34,7 @@
     "@biliLive-tools/types": "workspace:*",
     "@koa/bodyparser": "^5.1.1",
     "@koa/cors": "^5.0.0",
-    "chokidar": "^3.6.0",
+    "chokidar": "^4.0.3",
     "cli-progress": "^3.12.0",
     "koa": "^2.15.3",
     "koa-router": "^13.0.1",
