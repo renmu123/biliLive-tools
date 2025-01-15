@@ -193,7 +193,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     saveSCDanma: true,
     saveCover: false,
     uid: undefined,
-    debugMode: false,
+    debugMode: true,
     convert2Mp4: false,
     bilibili: {
       uid: "",
