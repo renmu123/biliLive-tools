@@ -261,7 +261,7 @@ const titleList = ref([
   },
 ]);
 const titleTip = computed(() => {
-  const base = `请带上时间相关参数，避免文件被覆盖`;
+  const base = `<b>谨慎修改，可能会导致无法录制</b><br/>`;
   return titleList.value
     .map((item) => {
       return `${item.label}：${item.value}<br/>`;
