@@ -4,6 +4,7 @@
 
 1. 转码页面支持压制弹幕 [#45](https://github.com/renmu123/biliLive-tools/issues/45)
 2. 首页压制支持web版本
+3. 新增选项支持自动更新账号授权
 
 ## 优化
 

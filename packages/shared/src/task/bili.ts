@@ -762,18 +762,35 @@ export const writeUser = async (data: BiliUser) => {
   appConfig.set("bilibiliUser", users);
 };
 
+// 解码用户数据并增加expires参数
+const decodeUser = (data: string) => {
+  const passKey = getPassKey();
+  const user = JSON.parse(decrypt(data, passKey));
+  let expires = 0;
+  try {
+    expires = JSON.parse(user.rawAuth ?? "{}")?.cookie_info?.cookies?.find(
+      (item) => item.name === "SESSDATA",
+    )?.expires;
+  } catch (e) {
+    console.log("解析用户expires失败", e);
+  }
+
+  return {
+    ...user,
+    expires: expires * 1000,
+  };
+};
+
 // 读取用户数据
 export const readUser = async (mid: number): Promise<BiliUser | undefined> => {
   const users = appConfig.getAll().bilibiliUser || {};
-  const passKey = getPassKey();
-  return users[mid] ? JSON.parse(decrypt(users[mid], passKey)) : undefined;
+  return users[mid] ? decodeUser(users[mid]) : undefined;
 };
 
 // 读取用户列表
 export const readUserList = (): BiliUser[] => {
   const users = appConfig.getAll().bilibiliUser || {};
-  const passKey = getPassKey();
-  return Object.values(users).map((item: string) => JSON.parse(decrypt(item, passKey)));
+  return Object.values(users).map((item: string) => decodeUser(item));
 };
 
 const updateUserInfo = async (uid: number) => {
@@ -804,6 +821,9 @@ export const addUser = async (data: any) => {
   await updateUserInfo(user.mid);
 };
 
+/**
+ * 刷新授权
+ */
 const updateAuth = async (uid: number) => {
   const user = await readUser(uid);
   if (!user) throw new Error("用户不存在");
@@ -827,6 +847,25 @@ const updateAuth = async (uid: number) => {
     platform: "TV",
   };
   await writeUser(newUser);
+};
+
+// 检查b站账号有效期
+export const checkAccountLoop = () => {
+  const canAutoCheck = appConfig.get("biliUpload")?.accountAutoCheck ?? false;
+  try {
+    if (!canAutoCheck) return;
+    const userList = readUserList();
+    // 如果有效期小于10天更新授权
+    userList.forEach((user) => {
+      if (!user.expires) return;
+      if (user.expires - Date.now() < 10 * 24 * 60 * 60 * 1000) {
+        updateAuth(user.mid);
+      }
+    });
+  } finally {
+    // 24小时检查一次
+    setTimeout(checkAccountLoop, 24 * 60 * 60 * 1000);
+  }
 };
 
 export const biliApi = {

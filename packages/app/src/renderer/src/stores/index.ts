@@ -28,7 +28,7 @@ export const useUserInfoStore = defineStore("userInfo", () => {
   const calcExpireTime = (expires: number) => {
     const date = new Date();
     if (expires) {
-      const expireTime = new Date(expires * 1000);
+      const expireTime = new Date(expires);
       if (date > expireTime) {
         return "已过期!";
       } else {

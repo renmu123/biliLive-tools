@@ -419,6 +419,8 @@ export interface AppConfig {
     limitRate: number;
     /** 检查稿件间隔 */
     checkInterval: number;
+    /** 账号授权自动更新 */
+    accountAutoCheck: boolean;
   };
   /** 录制配置 */
   recorder: GlobalRecorder;

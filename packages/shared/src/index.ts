@@ -7,7 +7,7 @@ import { appConfig, AppConfig } from "./config.js";
 import { DanmuPreset, VideoPreset, FFmpegPreset } from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import { initLogger } from "./utils/log.js";
-import { BiliCommentQueue, migrateBiliUser } from "./task/bili.js";
+import { BiliCommentQueue, migrateBiliUser, checkAccountLoop } from "./task/bili.js";
 import { createRecorderManager } from "./recorder/index.js";
 // import { initDB } from "./db/index.js";
 // import StatisticsService from "./db/service/statisticsService.js";
@@ -47,6 +47,7 @@ const init = async (config: GlobalConfig) => {
   setFfmpegPath();
   const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
   commentQueue.checkLoop();
+  checkAccountLoop();
   // 设置开始时间
   // StatisticsService.addOrUpdate({
   //   where: { stat_key: "start_time" },

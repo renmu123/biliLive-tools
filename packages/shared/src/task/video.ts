@@ -51,7 +51,6 @@ export const getFfmpegPath = () => {
 export const setFfmpegPath = async () => {
   const { ffmpegPath, ffprobePath } = getFfmpegPath();
 
-  log.info("setFfmpegPath", ffmpegPath, ffprobePath);
   ffmpeg.setFfmpegPath(ffmpegPath);
   ffmpeg.setFfprobePath(ffprobePath);
 };

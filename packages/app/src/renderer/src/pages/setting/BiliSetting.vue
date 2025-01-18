@@ -1,7 +1,7 @@
 <template>
   <div class="">
     <h2>Bilibili上传配置</h2>
-    <n-form label-placement="left" :label-width="140">
+    <n-form label-placement="left" :label-width="150">
       <n-form-item>
         <template #label>
           <span class="inline-flex">
@@ -69,6 +69,15 @@
         >
           <template #suffix>秒</template>
         </n-input-number>
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip
+            text="自动更新帐号授权"
+            tip="一天检查一次，过期时间在十天以下时会尝试自动更新，如果因某些情况授权已失效，会更新失败"
+          ></Tip>
+        </template>
+        <n-switch v-model:value="config.biliUpload.accountAutoCheck" />
       </n-form-item>
     </n-form>
   </div>

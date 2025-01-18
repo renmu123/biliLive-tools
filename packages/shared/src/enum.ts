@@ -179,6 +179,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     retryTimes: 5,
     retryDelay: 7000,
     checkInterval: 600,
+    accountAutoCheck: false,
   },
   recorder: {
     savePath: "",

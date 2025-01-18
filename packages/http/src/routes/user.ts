@@ -9,14 +9,11 @@ router.get("/list", async (ctx) => {
   const list = biliService.readUserList();
 
   ctx.body = list.map((item) => {
-    const expires = JSON.parse(item.rawAuth)?.cookie_info?.cookies?.find(
-      (item) => item.name === "SESSDATA",
-    )?.expires;
     return {
       uid: item.mid,
       name: item.name,
       face: item.avatar,
-      expires,
+      expires: item.expires,
     };
   });
 });
