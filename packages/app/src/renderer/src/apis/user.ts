@@ -1,4 +1,5 @@
 import request from "./request";
+import { generateHMACSHA256 } from "../utils";
 
 /**
  * @description Get user list
@@ -42,11 +43,27 @@ const updateAuth = async (uid: number) => {
   return res.data;
 };
 
+const getCookie = async (uid: number) => {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const secret = "r96gkr8ahc34fsrewr34";
+  const signature = await generateHMACSHA256(`${uid}${timestamp}`, secret);
+
+  const res = await request.post(`/user/get_cookie`, {
+    uid,
+    timestamp,
+    signature,
+  });
+  const data = res.data;
+
+  return data;
+};
+
 const userApi = {
   getList: getUserList,
   refresh,
   delete: deleteUser,
   updateAuth,
+  getCookie,
 };
 
 export default userApi;

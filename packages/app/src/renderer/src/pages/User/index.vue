@@ -30,6 +30,7 @@
           </div>
           <div class="section" @click="updateAccountInfo(item.uid)">刷新信息</div>
           <div class="section" @click="updateAuth(item.uid)">刷新授权</div>
+          <div class="section" @click="getCookie(item.uid)">复制cookie</div>
           <div class="section" style="color: #e88080" @click="logout(item.uid)">退出账号</div>
         </n-popover>
       </div>
@@ -40,6 +41,7 @@
 
 <script setup lang="ts">
 import { userApi } from "@renderer/apis";
+import { useClipboard } from "@vueuse/core";
 
 import { useUserInfoStore, useAppConfig } from "@renderer/stores";
 import BiliLoginDialog from "./components/BiliLoginDialog.vue";
@@ -107,6 +109,17 @@ const updateAuth = async (uid: number) => {
     duration: 1000,
   });
   getUsers();
+};
+
+const { copy } = useClipboard();
+const getCookie = async (uid: number) => {
+  const cookie = await userApi.getCookie(uid);
+  await copy(cookie);
+
+  notice.success({
+    title: "已复制到剪切板",
+    duration: 1000,
+  });
 };
 
 onActivated(() => {

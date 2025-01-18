@@ -1,5 +1,6 @@
 import path from "node:path";
 import fs from "fs-extra";
+import axios from "axios";
 
 import { Client, TvQrcodeLogin, WebVideoUploader } from "@renmu/bili-api";
 import { uniq } from "lodash-es";
@@ -849,6 +850,13 @@ const updateAuth = async (uid: number) => {
   await writeUser(newUser);
 };
 
+// 获取cookie
+const getCookie = async (uid: number) => {
+  const user = await readUser(uid);
+  if (!user) throw new Error("用户不存在");
+  return user.cookie;
+};
+
 // 检查b站账号有效期
 export const checkAccountLoop = () => {
   const canAutoCheck = appConfig.get("biliUpload")?.accountAutoCheck ?? false;
@@ -867,6 +875,24 @@ export const checkAccountLoop = () => {
     setTimeout(checkAccountLoop, 24 * 60 * 60 * 1000);
   }
 };
+
+export async function getBuvidConf(): Promise<{
+  code: number;
+  message: string;
+  data: {
+    b_3: string;
+    b_4: string;
+  };
+}> {
+  const res = await axios.get("https://api.bilibili.com/x/frontend/finger/spi", {
+    headers: {
+      user_agent:
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
+      Referer: "https://www.bilibili.com/",
+    },
+  });
+  return res.data;
+}
 
 export const biliApi = {
   getArchives,
@@ -891,6 +917,8 @@ export const biliApi = {
   migrateBiliUser,
   addUser,
   updateAuth,
+  getCookie,
+  getBuvidConf,
 };
 
 export default biliApi;

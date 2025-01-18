@@ -84,3 +84,28 @@ export function formatFile(filepath: string) {
 export async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+export async function generateHMACSHA256(message: string, secretKey: string) {
+  // 将密钥和消息转换为二进制数据
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secretKey);
+  const messageData = encoder.encode(message);
+
+  // 导入密钥，指定为 HMAC 和 SHA-256
+  const cryptoKey = await window.crypto.subtle.importKey(
+    "raw", // 原始密钥格式
+    keyData, // 密钥数据
+    { name: "HMAC", hash: { name: "SHA-256" } }, // HMAC 和 SHA-256 算法
+    false, // 不需要导出密钥
+    ["sign"], // 只用于签名
+  );
+
+  // 使用密钥生成签名（哈希）
+  const signature = await window.crypto.subtle.sign("HMAC", cryptoKey, messageData);
+
+  // 将结果转换为十六进制字符串
+  const hashArray = Array.from(new Uint8Array(signature));
+  const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
+
+  return hashHex;
+}
