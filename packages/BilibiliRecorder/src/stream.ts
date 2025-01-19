@@ -70,13 +70,53 @@ async function getLiveInfo(
   } = {},
 ) {
   const res = await getRoomPlayInfo(roomIdOrShortId, opts);
-  // console.log(JSON.stringify(res.playurl_info.playurl.stream, null, 2));
 
-  const streamInfo = res.playurl_info.playurl.stream
-    .find(({ protocol_name }) => protocol_name === (opts.protocol ?? "http_stream"))
-    ?.format.find(({ format_name }) => format_name === (opts.format ?? "flv"))
-    ?.codec.find(({ codec_name }) => codec_name === (opts.codec ?? "avc"));
-  assert(streamInfo, "Unexpected getRoomPlayInfo resp");
+  // 由于b站的flv hevc 是非标，ffmpeg并不支持
+  const conditons = [
+    {
+      protocol_name: opts.protocol,
+      format_name: opts.format,
+      codec_name: opts.codec,
+    },
+    {
+      protocol_name: "http_stream",
+      format_name: "flv",
+      codec_name: "avc",
+    },
+    {
+      protocol_name: "http_hls",
+      format_name: "ts",
+      codec_name: "avc",
+    },
+    {
+      protocol_name: "http_hls",
+      format_name: "fmp4",
+      codec_name: "avc",
+    },
+    {
+      protocol_name: "http_hls",
+      format_name: "ts",
+      codec_name: "hevc",
+    },
+    {
+      protocol_name: "http_hls",
+      format_name: "fmp4",
+      codec_name: "hevc",
+    },
+  ];
+
+  let streamInfo: CodecInfo | null = null;
+  for (const condition of conditons) {
+    streamInfo = res.playurl_info.playurl.stream
+      .find(({ protocol_name }) => protocol_name === condition.protocol_name)
+      ?.format.find(({ format_name }) => format_name === condition.format_name)
+      ?.codec.find(({ codec_name }) => codec_name === condition.codec_name);
+
+    if (streamInfo) {
+      break;
+    }
+  }
+  assert(streamInfo, "没有找到支持的流");
 
   const streams: StreamProfile[] = streamInfo.accept_qn.map((qn) => {
     const qnDesc = res.playurl_info.playurl.g_qn_desc.find((item) => item.qn === qn);
