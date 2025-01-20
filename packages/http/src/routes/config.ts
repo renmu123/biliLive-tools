@@ -163,10 +163,11 @@ router.post("/import", upload.single("file"), async (ctx) => {
             filename,
           )
         ) {
-          // 配置文件
-          await fs.copyFile(filePath, path.join(userDataPath, `${filename}.backup`));
-          await fs.writeFile(filePath, content);
+          // 备份文件
+          if (await fs.pathExists(filePath))
+            await fs.copyFile(filePath, path.join(userDataPath, `${filename}.backup`));
 
+          await fs.writeFile(filePath, content);
           // 如果filename是 appConfig.json，那么替换掉ffmpegPath、ffprobePath、danmuFactoryPath配置
           if (filename === "appConfig.json") {
             const data = await fs.readJSON(path.join(userDataPath, `${filename}.backup`));
