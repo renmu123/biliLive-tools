@@ -146,8 +146,12 @@ const closeDialog = () => {
 
 const confirm = () => {
   // emit("confirm", { path: selectedFiles.value });
+  let result = selectedFiles.value;
+  if (props.type === "directory" && !result.length) {
+    result = [currentPath.value];
+  }
   showModal.value = false;
-  props.confirm(selectedFiles.value);
+  props.confirm(result);
   // closeDialog();
 };
 
