@@ -933,7 +933,7 @@ export const burn = async (
       },
     );
     await promiseTask(task);
-    assFilePath = task.output;
+    assFilePath = task.output!;
     startTimestamp = await readXmlTimestamp(files.subtitleFilePath);
     if (options.ffmpegOptions.timestampFollowDanmu) {
       timestampFont = options.danmaOptions.fontname;

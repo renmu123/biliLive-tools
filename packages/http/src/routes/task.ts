@@ -215,7 +215,7 @@ router.post("/burn", async (ctx) => {
   const task = await burn(files, output, options);
 
   if (options?.uploadOptions?.upload) {
-    task.on("task-end", (task) => {
+    task.on("task-end", () => {
       const aid = options?.uploadOptions?.aid;
       const uid = options?.uploadOptions?.uid;
       const file = options?.uploadOptions?.filePath;

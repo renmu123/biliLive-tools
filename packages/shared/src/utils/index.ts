@@ -390,11 +390,13 @@ export function normalizePoints(points: { x: number; y: number }[], width: numbe
 export const parseSavePath = async (
   input: string,
   options: {
-    saveType: 1 | 2;
-    savePath: string;
+    saveType?: 1 | 2;
+    savePath?: string;
   },
   createDir = true,
 ) => {
+  if (!options.savePath) throw new Error("没有找到保存路径");
+
   let savePath: string;
   if (options.saveType === 1) {
     savePath = path.dirname(input);

@@ -6,22 +6,8 @@ import { electronAPI } from "@electron-toolkit/preload";
 import { webUtils } from "electron";
 
 import type { IpcRendererEvent, SaveDialogOptions } from "electron";
-import type {
-  Progress,
-  DanmuOptions,
-  FfmpegOptions,
-  AppConfig,
-  DanmuConfig,
-  hotProgressOptions,
-  Theme,
-  DanmuItem,
-} from "@biliLive-tools/types";
+import type { FfmpegOptions, AppConfig, Theme, DanmuItem } from "@biliLive-tools/types";
 import type { OpenDialogOptions } from "../types";
-
-type startCallback = (params: { command?: string }) => void;
-type endCallback = (params: { output?: string }) => void;
-type errorCallback = (params: { err?: string; taskId?: string }) => void;
-type progressCallback = (params: { percentage?: number }) => void;
 
 // Custom APIs for renderer
 export const api = {

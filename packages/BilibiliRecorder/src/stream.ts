@@ -105,7 +105,7 @@ async function getLiveInfo(
     },
   ];
 
-  let streamInfo: CodecInfo | null = null;
+  let streamInfo: CodecInfo | undefined;
   for (const condition of conditons) {
     streamInfo = res.playurl_info.playurl.stream
       .find(({ protocol_name }) => protocol_name === condition.protocol_name)

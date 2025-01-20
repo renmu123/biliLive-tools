@@ -284,7 +284,7 @@ const handleConvert = async () => {
   const rawClientOptions = toRaw(clientOptions);
 
   const data = await preHandle(files, rawClientOptions, danmuPreset.value.config);
-  if (!data) return false;
+  if (!data) return;
   // 视频验证
   const outputPath = await window.api.showSaveDialog({
     defaultPath: `${data.inputVideoFile.name}-弹幕版.mp4`,
@@ -293,7 +293,7 @@ const handleConvert = async () => {
       { name: "所有文件", extensions: ["*"] },
     ],
   });
-  if (!outputPath) return false;
+  if (!outputPath) return;
 
   const { inputVideoFile, inputDanmuFile } = data;
   await taskApi.burn(

@@ -124,7 +124,7 @@ import { useElementSize, toReactive } from "@vueuse/core";
 import { sortBy } from "lodash-es";
 
 import type ArtplayerType from "artplayer";
-import type { DanmuConfig, DanmuOptions, DanmuItem } from "@biliLive-tools/types";
+import type { DanmuConfig, DanmuItem } from "@biliLive-tools/types";
 
 onActivated(() => {
   // 撤销
