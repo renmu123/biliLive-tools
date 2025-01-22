@@ -3,7 +3,9 @@
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
-        <n-button title="仅供参考，以实际渲染为主！" v-if="isWeb" @click="preview"> 预览 </n-button>
+        <n-button title="仅供参考，以实际渲染为主！" v-if="!isWeb" @click="preview">
+          预览
+        </n-button>
         <n-button
           type="primary"
           style="display: none"
@@ -28,14 +30,7 @@
         <div class="flex column">
           <div></div>
           <div style="margin-top: 10px">
-            <!-- <n-radio-group v-model:value="options.override">
-                <n-space>
-                  <n-radio :value="true"> 覆盖文件 </n-radio>
-                  <n-radio :value="false"> 跳过存在文件 </n-radio>
-                </n-space>
-              </n-radio-group> -->
-            <!-- <n-checkbox v-model:checked="clientOptions.removeOrigin"> 完成后移除源文件 </n-checkbox>
-            <n-checkbox v-model:checked="clientOptions.openFolder"> 完成后打开文件夹 </n-checkbox> -->
+            <!-- <n-checkbox v-model:checked="clientOptions.removeOrigin"> 完成后移除源文件 </n-checkbox> -->
             <n-checkbox v-model:checked="clientOptions.hotProgress"> 高能进度条 </n-checkbox>
             <n-checkbox v-model:checked="clientOptions.autoUpload"> 完成后自动上传 </n-checkbox>
             <template v-if="clientOptions.autoUpload">
