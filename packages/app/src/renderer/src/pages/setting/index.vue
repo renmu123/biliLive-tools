@@ -655,7 +655,8 @@ onImportFileChange((files) => {
 });
 const importSettingZip = async () => {
   const [status] = await confirm.warning({
-    content: "导入后所有配置都将被替换，是否继续？",
+    content:
+      "导入前请尽量保持版本一致，部分配置将在重启后生效，导入后所有配置都将被替换，是否继续？",
   });
   if (!status) return;
   openImportFile();
