@@ -7,9 +7,13 @@ logger.transports.file.format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}]{scope}
 
 export function initLogger(path: string, level: LevelOption) {
   logger.transports.file.resolvePathFn = () => path;
-  logger.transports.file.level = level;
+  setLogLevel(level);
   logger.transports.file.setAppName("biliLive-tools");
   return logger;
+}
+
+export function setLogLevel(level: LevelOption) {
+  logger.transports.file.level = level;
 }
 
 export default logger;

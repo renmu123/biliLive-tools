@@ -6,7 +6,7 @@ import { taskQueue, TaskQueue } from "./task/task.js";
 import { appConfig, AppConfig } from "./config.js";
 import { DanmuPreset, VideoPreset, FFmpegPreset } from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
-import { initLogger } from "./utils/log.js";
+import { initLogger, setLogLevel } from "./utils/log.js";
 import { BiliCommentQueue, migrateBiliUser } from "./task/bili.js";
 import { createRecorderManager } from "./recorder/index.js";
 // import { initDB } from "./db/index.js";
@@ -24,6 +24,10 @@ const init = async (config: GlobalConfig) => {
   });
   const logLevel = appConfig.get("logLevel");
   initLogger(config.logPath, logLevel);
+
+  appConfig.on("update", (data) => {
+    setLogLevel(data.logLevel);
+  });
 
   // const dbPath = path.join(config.userDataPath, "data2.db");
   // initDB(dbPath);
