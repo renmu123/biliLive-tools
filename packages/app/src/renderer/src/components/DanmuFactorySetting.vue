@@ -186,7 +186,17 @@
       <h2 title="仅限blrec&录播姬弹幕格式">礼物栏</h2>
       <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
         <n-form-item>
-          <n-checkbox v-model:checked="config.showmsgbox"> 显示礼物框 </n-checkbox>
+          <n-popover trigger="hover">
+            <template #trigger>
+              <n-checkbox v-model:checked="config.showmsgbox"> 显示礼物框 </n-checkbox>
+            </template>
+            <div>
+              <div>
+                <img width="450" height="300" src="../../src/assets/images/gift-postion.png" />
+              </div>
+              <h3>注意礼物框高度不要高过分辨率</h3>
+            </div>
+          </n-popover>
         </n-form-item>
         <template v-if="config.showmsgbox">
           <n-form-item v-if="isAdvancedMode" label="礼物框尺寸">
@@ -195,27 +205,27 @@
               class="input-number"
               :min="0"
               :step="100"
+              title="宽"
             />&nbsp;X&nbsp;
             <n-input-number
               v-model:value.number="config.msgboxsize[1]"
               class="input-number"
               :min="0"
               :step="100"
+              title="高"
             />
           </n-form-item>
-          <n-form-item
-            v-if="isAdvancedMode"
-            label="礼物框位置"
-            title="第二个输入框修改为负数，可以向上调节位置"
-          >
+          <n-form-item v-if="isAdvancedMode" label="礼物框位置">
             <n-input-number
               v-model:value.number="config.msgboxpos[0]"
               class="input-number"
+              title="X轴"
               :step="10"
             />&nbsp;X&nbsp;
             <n-input-number
               v-model:value.number="config.msgboxpos[1]"
               class="input-number"
+              title="Y轴，负值向上"
               :step="10"
             />
           </n-form-item>
