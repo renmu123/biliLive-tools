@@ -18,16 +18,16 @@ export default class RecorderConfig {
   public get(id: string): LocalRecordr | null {
     const getValue = <K extends keyof BaseRecordr>(key: K): BaseRecordr[K] => {
       if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
-        if (key.includes(".")) {
-          const [_, k] = key.split(".");
-          // @ts-ignore
-          return setting[k];
-        }
         // @ts-ignore
         return setting?.[key];
       } else {
-        // @ts-ignore
-        return get(globalConfig, key);
+        if (key === "uid") {
+          // @ts-ignore
+          return get(globalConfig, "bilibili.uid");
+        } else {
+          // @ts-ignore
+          return get(globalConfig, key);
+        }
       }
     };
 
@@ -46,8 +46,7 @@ export default class RecorderConfig {
       saveSCDanma: getValue("saveSCDanma") ?? true,
       saveCover: getValue("saveCover") ?? false,
       segment: getValue("segment") ?? 60,
-      // @ts-ignore
-      uid: getValue("bilibili.uid"),
+      uid: getValue("uid"),
       convert2Mp4: globalConfig["convert2Mp4"] ?? false,
     };
   }
