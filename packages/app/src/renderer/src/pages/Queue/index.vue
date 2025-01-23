@@ -29,13 +29,12 @@
       <div v-for="item in displayQueue" :key="item.taskId" class="item">
         <Item
           :item="item"
-          :now="now"
           :show-progress="item.children ? false : true"
           :show-info="item.children ? false : true"
         />
         <template v-if="item.children">
           <div v-for="child in item.children" :key="child.taskId" class="sub-item">
-            <Item :item="child" :now="now" />
+            <Item :item="child" />
           </div>
         </template>
       </div>
@@ -157,11 +156,6 @@ const handlePauseTasks = async () => {
   store.getQuenu();
 };
 
-const now = ref(Date.now());
-setInterval(() => {
-  now.value = Date.now();
-}, 1000);
-
 let intervalId: NodeJS.Timeout | null = null;
 const createInterval = () => {
   if (intervalId) return;
@@ -176,11 +170,11 @@ function cleanInterval() {
 }
 
 onDeactivated(() => {
-  store.getQuenu();
   cleanInterval();
 });
 
 onActivated(() => {
+  store.getQuenu();
   createInterval();
 });
 </script>

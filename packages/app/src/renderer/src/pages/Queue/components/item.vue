@@ -145,7 +145,6 @@ import type { Status } from "@biliLive-tools/types/task.d.ts";
 import type { Task } from "@renderer/types";
 
 interface Props {
-  now: number;
   item: Task;
   showProgress?: boolean;
   showInfo?: boolean;

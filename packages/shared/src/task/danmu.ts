@@ -129,7 +129,7 @@ export const convertXml2Ass = async (
   }
 
   let output: string;
-  if (options.temp) {
+  if (!options.temp) {
     let savePath = await parseSavePath(file.input, {
       saveType: options.saveRadio,
       savePath: options.savePath,
