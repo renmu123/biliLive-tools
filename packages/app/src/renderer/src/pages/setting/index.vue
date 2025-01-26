@@ -24,7 +24,7 @@
             </n-form-item>
             <n-form-item v-if="!isWeb">
               <template #label>
-                <span class="inline-flex"> 启动时检查更新 </span>
+                <span class="inline-flex"> 自动检查更新 </span>
               </template>
               <n-switch v-model:value="config.autoUpdate" />
             </n-form-item>
@@ -288,7 +288,10 @@
         <n-tab-pane name="recorder" tab="直播录制">
           <RecordSetting v-model:data="config"></RecordSetting>
         </n-tab-pane>
-        <n-tab-pane name="notification" tab="任务">
+        <n-tab-pane name="task" tab="任务">
+          <TaskSetting v-model:data="config"></TaskSetting>
+        </n-tab-pane>
+        <n-tab-pane name="notification" tab="通知">
           <NotificationSetting v-model:data="config"></NotificationSetting>
         </n-tab-pane>
         <!-- <n-tab-pane name="translate" tab="翻译">
@@ -325,6 +328,7 @@ import CommonSetting from "./CommonWebhookSetting.vue";
 import NotificationSetting from "./NotificationSetting.vue";
 import BiliSetting from "./BiliSetting.vue";
 import RecordSetting from "./RecordSetting.vue";
+import TaskSetting from "./TaskSetting.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
