@@ -222,6 +222,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       }
     }
   });
+  client.on("error", (err) => {
+    this.emit("DebugLog", { type: "common", text: String(err) });
+  });
   // console.log("this.disableProvideCommentsWhenRecording", this.disableProvideCommentsWhenRecording);
   if (!this.disableProvideCommentsWhenRecording) {
     client.start();

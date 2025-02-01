@@ -115,6 +115,7 @@ export type Message = Message$Chat | Message$Gift | Message$CommChat;
 export interface DYClient
   extends Emitter<{
     message: Message;
+    error: unknown;
   }> {
   start: () => void;
   stop: () => void;
@@ -128,6 +129,7 @@ export function createDYClient(
   } = {},
 ): DYClient {
   let ws: WebSocket | null = null;
+  let maxRetry = 5;
   let coder = new BufferCoder();
   let heartbeatTimer: NodeJS.Timer | null = null;
 
@@ -154,8 +156,16 @@ export function createDYClient(
   };
 
   const onError = (err: unknown) => {
-    console.error(err);
-    // TODO: 自动重连
+    if (maxRetry > 0) {
+      maxRetry -= 1;
+      stop();
+      setTimeout(() => {
+        start();
+      }, 3e3);
+    } else {
+      client.emit("error", err);
+      client.emit("error", new Error("重连次数过多，停止重连"));
+    }
   };
 
   const onMessage = (message: unknown) => {
@@ -187,13 +197,17 @@ export function createDYClient(
       }
 
       coder.decode(data, (messageText) => {
-        const message = STT.deserialize(messageText);
-        // @ts-ignore
-        if (message?.type === "comm_chatmsg" && message?.chatmsg) {
+        try {
+          const message = STT.deserialize(messageText);
           // @ts-ignore
-          message.chatmsg = STT.deserialize(message?.chatmsg);
+          if (message?.type === "comm_chatmsg" && message?.chatmsg) {
+            // @ts-ignore
+            message.chatmsg = STT.deserialize(message?.chatmsg);
+          }
+          onMessage(message);
+        } catch (error) {
+          client.emit("error", error);
         }
-        onMessage(message);
       });
     });
   };
