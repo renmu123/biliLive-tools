@@ -954,7 +954,7 @@ const updateAuth = async (uid: number) => {
 };
 
 // 获取cookie
-const getCookie = async (uid: number) => {
+export const getCookie = async (uid: number) => {
   const user = await readUser(uid);
   if (!user) throw new Error("用户不存在");
   return user.cookie;

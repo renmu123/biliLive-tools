@@ -30,6 +30,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   saveCover?: boolean;
   /** 身份验证 */
   auth?: string;
+  /** 画质匹配重试次数 */
+  qualityRetry?: number;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
 }
@@ -79,6 +81,10 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   usedStream?: string;
   usedSource?: string;
   state: RecorderState;
+  // 默认画质重试次数
+  qualityMaxRetry: 0;
+  // 画质重试次数上限
+  qualityRetry: 0;
   liveInfo?: {
     living: boolean;
     owner: string;
@@ -98,6 +104,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     this: Recorder<E>,
     opts: {
       getSavePath(data: { owner: string; title: string; startTime?: number }): string;
+      qualityRetry?: number;
     },
   ) => Promise<RecordHandle | null>;
   // 正在进行的录制的操作接口

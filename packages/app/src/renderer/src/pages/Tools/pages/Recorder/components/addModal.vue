@@ -113,6 +113,37 @@
             >全局</n-checkbox
           >
         </n-form-item>
+        <template v-if="config.providerId === 'Bilibili'">
+          <n-form-item>
+            <template #label>
+              <Tip text="B站录制账号">登录才能录制高清画质</Tip>
+            </template>
+            <n-select
+              v-model:value="config.uid"
+              :options="userList"
+              label-field="name"
+              value-field="uid"
+              clearable
+              :disabled="globalFieldsObj.uid"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.uid" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.quality"
+              :options="biliQualityOptions"
+              :disabled="globalFieldsObj.quality"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+        </template>
 
         <h2>弹幕</h2>
         <n-form-item>
@@ -152,39 +183,6 @@
             >全局</n-checkbox
           >
         </n-form-item>
-
-        <template v-if="config.providerId === 'Bilibili'">
-          <h2>B站</h2>
-          <n-form-item>
-            <template #label>
-              <Tip text="B站录制账号">登录才能录制高清画质</Tip>
-            </template>
-            <n-select
-              v-model:value="config.uid"
-              :options="userList"
-              label-field="name"
-              value-field="uid"
-              clearable
-              :disabled="globalFieldsObj.uid"
-            />
-            <n-checkbox v-model:checked="globalFieldsObj.uid" class="global-checkbox"
-              >全局</n-checkbox
-            >
-          </n-form-item>
-          <n-form-item>
-            <template #label>
-              <Tip text="画质">如果找不到对应画质，会使用更清晰的源</Tip>
-            </template>
-            <n-select
-              v-model:value="config.quality"
-              :options="biliQualityOptions"
-              :disabled="globalFieldsObj.quality"
-            />
-            <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
-              >全局</n-checkbox
-            >
-          </n-form-item>
-        </template>
       </n-form>
       <template #footer>
         <div class="footer">

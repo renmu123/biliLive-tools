@@ -5,7 +5,7 @@
       <p>此项大部分配置不即时生效，需重新开始一个录制方可生效</p>
     </div>
 
-    <n-form label-placement="left" :label-width="140">
+    <n-form label-placement="left" :label-width="145">
       <n-form-item>
         <template #label>
           <span class="inline-flex"> 保存文件夹 </span>
@@ -50,10 +50,7 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            检查间隔
-            <Tip tip="直播状态检查，太快任意被风控~"></Tip>
-          </span>
+          <Tip tip="直播状态检查，太快任意被风控~" text="检查间隔"></Tip>
         </template>
         <n-input-number v-model:value="config.recorder.checkInterval" min="10" step="10">
           <template #suffix>秒</template>
@@ -135,9 +132,19 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip text="画质">如果找不到对应画质，会使用更清晰的源</Tip>
+          <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
         </template>
         <n-select v-model:value="config.recorder.bilibili.quality" :options="biliQualityOptions" />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip
+            tip="如果选项为零，那么匹配不到画质时会自动选择其他画质，否则会多次尝试匹配"
+            text="画质匹配重试次数"
+          ></Tip>
+        </template>
+        <n-input-number v-model:value="config.recorder.bilibili.qualityRetry" min="0" step="1">
+        </n-input-number>
       </n-form-item>
     </n-form>
   </div>

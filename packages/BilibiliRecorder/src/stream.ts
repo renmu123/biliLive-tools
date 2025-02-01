@@ -143,8 +143,9 @@ async function getLiveInfo(
 }
 
 export async function getStream(
-  opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities"> & {
+  opts: Pick<Recorder, "channelId" | "quality"> & {
     cookie?: string;
+    strictQuality?: boolean;
   },
 ) {
   const roomId = Number(opts.channelId);
@@ -171,6 +172,9 @@ export async function getStream(
   // console.log(JSON.stringify(liveInfo, null, 2));
 
   // let expectStream: StreamProfile | null = null;
+  if (liveInfo.current_qn !== qn && opts.strictQuality) {
+    throw new Error("Can not get expect quality because of strictQuality");
+  }
   if ((liveInfo?.accept_qn ?? []).length !== 0 && liveInfo.current_qn !== qn) {
     // 当前流不是预期的流，需要切换。
     const acceptQn = liveInfo.accept_qn[0];
@@ -181,15 +185,9 @@ export async function getStream(
     });
   }
 
-  let expectSource: SourceProfile | null = null;
-  const sourcesWithPriority = sortAndFilterSourcesByPriority(
-    liveInfo.sources,
-    opts.sourcePriorities,
-  );
-  if (sourcesWithPriority.length > 0) {
-    expectSource = sourcesWithPriority[0];
-  } else {
-    expectSource = liveInfo.sources[0];
+  let expectSource = liveInfo.sources[0];
+  if (!expectSource) {
+    throw new Error("Can not get expect source");
   }
 
   return {
@@ -200,27 +198,4 @@ export async function getStream(
       url: expectSource.host + liveInfo.base_url + expectSource.extra,
     },
   };
-}
-
-/**
- * 按提供的源优先级去给源列表排序，并过滤掉不在优先级配置中的源
- */
-function sortAndFilterSourcesByPriority(
-  sources: SourceProfile[],
-  sourcePriorities: Recorder["sourcePriorities"],
-): (SourceProfile & {
-  priority: number;
-})[] {
-  if (sourcePriorities.length === 0) return [];
-
-  return sortBy(
-    // 分配优先级属性，数字越大优先级越高
-    sources
-      .map((source) => ({
-        ...source,
-        priority: sourcePriorities.toReversed().indexOf(source.name),
-      }))
-      .filter(({ priority }) => priority !== -1),
-    "priority",
-  );
 }

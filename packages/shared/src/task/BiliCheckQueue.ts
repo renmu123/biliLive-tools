@@ -72,7 +72,6 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
         }
       }
     }
-    console.log("this.list", this.list);
     this.list = this.list.filter((item) => item.status === "pending");
   }
 

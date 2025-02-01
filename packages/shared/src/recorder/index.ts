@@ -82,6 +82,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
         getSavePath(data) {
           return genSavePathFromRule(manager, recorder, data);
         },
+        qualityRetry: 0,
       });
     }
 

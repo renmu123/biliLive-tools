@@ -205,6 +205,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     bilibili: {
       uid: "",
       quality: 10000,
+      qualityRetry: 0,
     },
   },
   recorders: [],

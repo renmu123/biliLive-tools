@@ -287,6 +287,8 @@ interface BilibiliRecorderConfig {
   uid: string;
   /** 画质 30000：杜比 20000：4K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
   quality: 30000 | 20000 | 10000 | 400 | 250 | 150 | 80;
+  /** 画质匹配重试次数 */
+  qualityRetry: number;
 }
 
 export interface GlobalRecorder extends BaseRecordr {

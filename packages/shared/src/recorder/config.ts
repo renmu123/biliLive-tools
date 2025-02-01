@@ -1,4 +1,5 @@
 import { get } from "lodash-es";
+import { getCookie } from "../task/bili.js";
 
 import type { LocalRecordr, BaseRecordr } from "@biliLive-tools/types";
 import type { AppConfig } from "../config.js";
@@ -15,7 +16,7 @@ export default class RecorderConfig {
     return setting.find((setting) => setting.id === id);
   }
 
-  public get(id: string): LocalRecordr | null {
+  public get(id: string): (LocalRecordr & { qualityRetry: number; auth?: string }) | null {
     const getValue = <K extends keyof BaseRecordr>(key: K): BaseRecordr[K] => {
       if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
         // @ts-ignore
@@ -24,6 +25,10 @@ export default class RecorderConfig {
         if (key === "uid") {
           // @ts-ignore
           return get(globalConfig, "bilibili.uid");
+          // @ts-ignore
+        } else if (key === "qualityRetry") {
+          // @ts-ignore
+          return get(globalConfig, "bilibili.qualityRetry");
         } else {
           // @ts-ignore
           return get(globalConfig, key);
@@ -37,6 +42,17 @@ export default class RecorderConfig {
     const setting = settings.find((setting) => setting.id === id);
     if (!setting) return null;
 
+    const uid = getValue("uid");
+    let auth: string | undefined;
+    if (uid) {
+      const cookies = getCookie(Number(uid));
+      auth = Object.entries(cookies)
+        .map(([key, value]) => {
+          return `${key}=${value}`;
+        })
+        .join("; ");
+    }
+
     return {
       ...setting,
       quality: getValue("quality") ?? "highest",
@@ -46,17 +62,20 @@ export default class RecorderConfig {
       saveSCDanma: getValue("saveSCDanma") ?? true,
       saveCover: getValue("saveCover") ?? false,
       segment: getValue("segment") ?? 60,
-      uid: getValue("uid"),
+      uid: uid,
       convert2Mp4: globalConfig["convert2Mp4"] ?? false,
+      // @ts-ignore
+      qualityRetry: (getValue("qualityRetry") as number) ?? 0,
+      // auth: auth,
     };
   }
-  public list(): LocalRecordr[] {
+  public list() {
     const recorders = this.appConfig.get("recorders");
     return recorders
       .map((recorder) => {
         return this.get(recorder.id);
       })
-      .filter((recorder): recorder is LocalRecordr => recorder != null);
+      .filter((recorder) => recorder != null);
   }
   public add(recorder: LocalRecordr) {
     const recorders = this.appConfig.get("recorders");

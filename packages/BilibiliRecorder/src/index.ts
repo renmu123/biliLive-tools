@@ -32,6 +32,8 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     availableStreams: [],
     availableSources: [],
     state: "idle",
+    qualityMaxRetry: opts.qualityRetry ?? 0,
+    qualityRetry: opts.qualityRetry ?? 0,
 
     getChannelURL() {
       return `https://live.bilibili.com/${this.channelId}`;
@@ -53,8 +55,6 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       const res = await getStream({
         channelId: this.channelId,
         quality: this.quality,
-        streamPriorities: this.streamPriorities,
-        sourcePriorities: this.sourcePriorities,
       });
       return res.currentStream;
     },
@@ -93,7 +93,9 @@ const ffmpegOutputOptions: string[] = [
 ];
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
+  qualityRetry,
 }) {
+  console.log("this.qualityRetry", this.qualityRetry);
   this.tempStopIntervalCheck = false;
   if (this.recordHandle != null) return this.recordHandle;
   const living = await getLiveStatus(this.channelId);
@@ -114,14 +116,19 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   let res: Awaited<ReturnType<typeof getStream>>;
   // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
+    let strictQuality = !!this.qualityRetry;
+    if (qualityRetry !== undefined) {
+      strictQuality = !!qualityRetry;
+    }
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
-      streamPriorities: this.streamPriorities,
-      sourcePriorities: this.sourcePriorities,
       cookie: this.auth,
+      strictQuality: strictQuality,
     });
   } catch (err) {
+    console.error(err);
+    this.qualityRetry -= 1;
     this.state = "idle";
     throw err;
   }
@@ -373,6 +380,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       this.recordHandle = undefined;
       this.liveInfo = undefined;
       this.state = "idle";
+      this.qualityRetry = this.qualityMaxRetry;
     },
   );
 
