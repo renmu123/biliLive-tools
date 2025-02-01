@@ -886,7 +886,7 @@ const decodeUser = (data: string) => {
 };
 
 // 读取用户数据
-export const readUser = async (mid: number): Promise<BiliUser | undefined> => {
+export const readUser = (mid: number): BiliUser | undefined => {
   const users = appConfig.getAll().bilibiliUser || {};
   return users[mid] ? decodeUser(users[mid]) : undefined;
 };
@@ -954,8 +954,8 @@ const updateAuth = async (uid: number) => {
 };
 
 // 获取cookie
-export const getCookie = async (uid: number) => {
-  const user = await readUser(uid);
+export const getCookie = (uid: number) => {
+  const user = readUser(uid);
   if (!user) throw new Error("用户不存在");
   return user.cookie;
 };

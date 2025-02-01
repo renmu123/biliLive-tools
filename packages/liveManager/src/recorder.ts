@@ -126,6 +126,4 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     name: string;
     url: string;
   }>;
-
-  uid?: string;
 }

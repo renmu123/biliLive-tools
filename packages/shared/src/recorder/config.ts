@@ -66,7 +66,7 @@ export default class RecorderConfig {
       convert2Mp4: globalConfig["convert2Mp4"] ?? false,
       // @ts-ignore
       qualityRetry: (getValue("qualityRetry") as number) ?? 0,
-      // auth: auth,
+      auth: auth,
     };
   }
   public list() {

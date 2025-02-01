@@ -109,7 +109,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!living) return null;
 
   const liveInfo = await getInfo(this.channelId);
-  const { owner, title, roomId, cover } = liveInfo;
+  const { owner, title, roomId, cover, uid } = liveInfo;
   this.liveInfo = liveInfo;
 
   this.state = "recording";
@@ -276,7 +276,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         headers: {
           Cookie: this.auth ?? "",
         },
-        uid: (this.uid as unknown as number) ?? 0,
+        uid: this.auth ? uid : 0,
       },
     });
   }

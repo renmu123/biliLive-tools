@@ -19,7 +19,6 @@ import { getFfmpegPath, transcode } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
 import { sleep, replaceExtName } from "../utils/index.js";
-import { readUser } from "../task/bili.js";
 // import { parseDanmu } from "../danmu/index.js";
 
 import type { AppConfig } from "../config.js";
@@ -27,16 +26,6 @@ import type { LocalRecordr } from "@biliLive-tools/types";
 import type { Recorder } from "@autorecord/manager";
 
 export { RecorderConfig };
-
-async function getCookies(uid: number) {
-  const user = await readUser(uid);
-  if (user) {
-    return Object.entries(user.cookie)
-      .map((item: [string, string]) => `${item[0]}=${item[1]}`)
-      .join("; ");
-  }
-  return "";
-}
 
 async function convert2Mp4(videoFile: string): Promise<string> {
   const output = replaceExtName(videoFile, ".mp4");
@@ -98,13 +87,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     recorder: Recorder,
     args: Omit<LocalRecordr, "channelId" | "providerId">,
   ) {
-    const uid = recorder.uid;
-    let auth: string | undefined = undefined;
-    if (uid) {
-      auth = await getCookies(Number(uid));
-    }
-
-    Object.assign(recorder, { ...omit(args, ["id"]), auth });
+    Object.assign(recorder, { ...omit(args, ["id"]) });
     return recorder;
   }
 
@@ -270,12 +253,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   // TODO: 增加更新监听，处理配置更新
   const recorderConfig = new RecorderConfig(appConfig);
   for (const recorder of recorderConfig.list()) {
-    const uid = recorder.uid;
-    let auth: string | undefined = undefined;
-    if (uid) {
-      auth = await getCookies(Number(uid));
-    }
-    manager.addRecorder({ ...recorder, auth: auth });
+    manager.addRecorder({ ...recorder });
   }
 
   if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
@@ -297,15 +275,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
       const data = recorderConfig.get(recorder.id);
       if (!data) return null;
 
-      // TODO: 需要写成函数方便复用
-      const uid = recorder.uid;
-      let auth: string | undefined = undefined;
-      if (uid) {
-        auth = await getCookies(Number(uid));
-      }
       const recoder = manager.addRecorder({
         ...data,
-        auth: auth,
       });
 
       if (!data.disableAutoCheck) {

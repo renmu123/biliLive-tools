@@ -60,7 +60,7 @@ router.post("/get_cookie", async (ctx) => {
     return;
   }
 
-  const obj = await biliService.getCookie(uid);
+  const obj = biliService.getCookie(uid);
   const cookie = Object.entries(obj)
     .map(([key, value]) => {
       return `${key}=${value}`;
