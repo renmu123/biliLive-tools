@@ -30,7 +30,7 @@
           <Tip> 推荐采用质量模式，以自适应视频质量，视频编码器不能使用copy </Tip>
         </div>
         <div class="flex" style="align-items: center">
-          <n-radio-group v-model:value="exportOptions.saveRadio" class="radio-group2">
+          <n-radio-group v-model:value="exportOptions.saveRadio">
             <n-space class="flex align-center column">
               <n-radio :value="1"> 保存到视频文件夹 </n-radio>
               <n-radio :value="2"> </n-radio>
@@ -270,11 +270,6 @@ const exportError = computed(() => {
   text-align: right;
   .btn + .btn {
     margin-left: 10px;
-  }
-}
-.radio-group2 {
-  :deep(.n-radio) {
-    align-items: center;
   }
 }
 

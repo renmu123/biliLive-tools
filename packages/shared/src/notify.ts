@@ -139,7 +139,7 @@ export function send(title: string, desp: string) {
 export async function _send(title: string, desp: string, appConfig: AppConfig) {
   switch (appConfig?.notification?.setting?.type) {
     case "server":
-      sendByServer(title, desp, appConfig?.notification?.setting?.server);
+      await sendByServer(title, desp, appConfig?.notification?.setting?.server);
       break;
     case "mail":
       await sendByMail(title, desp, appConfig?.notification?.setting?.mail);

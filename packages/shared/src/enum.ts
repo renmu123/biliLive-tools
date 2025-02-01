@@ -61,6 +61,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     limitUploadTime: false,
     uploadNoDanmu: false,
     noDanmuVideoPreset: undefined,
+    removeOriginAfterUploadCheck: false,
   },
   ffmpegPath: "",
   ffprobePath: "",
@@ -77,6 +78,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       removeOrigin: false,
       openFolder: false,
       autoUpload: false,
+      removeOriginAfterUploadCheck: false,
       hotProgress: false,
       hotProgressSample: 30,
       hotProgressHeight: 60,
@@ -85,6 +87,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     upload: {
       uploadPresetId: "default",
+      removeOriginAfterUploadCheck: false,
     },
     danmu: {
       danmuPresetId: "default",
@@ -105,6 +108,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     videoMerge: {
       saveOriginPath: false,
       removeOrigin: false,
+    },
+    videoUpload: {
+      removeOriginAfterUploadCheck: false,
     },
     download: {
       savePath: "",

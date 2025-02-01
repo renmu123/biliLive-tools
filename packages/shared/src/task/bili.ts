@@ -3,7 +3,6 @@ import fs from "fs-extra";
 import axios from "axios";
 
 import { Client, TvQrcodeLogin, WebVideoUploader } from "@renmu/bili-api";
-import { uniq } from "lodash-es";
 import { appConfig } from "../config.js";
 import { container } from "../index.js";
 
@@ -15,7 +14,8 @@ import {
   BiliEditVideoTask,
 } from "./task.js";
 import log from "../utils/log.js";
-import { sleep, encrypt, decrypt, getTempPath } from "../utils/index.js";
+import BiliCheckQueue from "./BiliCheckQueue.js";
+import { sleep, encrypt, decrypt, getTempPath, trashItem } from "../utils/index.js";
 import { sendNotify } from "../notify.js";
 
 import type {
@@ -25,8 +25,6 @@ import type {
   AppConfig as AppConfigType,
 } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
-import type { getArchivesReturnType } from "@renmu/bili-api/dist/types/platform.js";
-import type { AppConfig } from "../config.js";
 
 type ClientInstance = InstanceType<typeof Client>;
 
@@ -280,6 +278,81 @@ function formatMediaOptions(options: AppConfigType["biliUpload"]) {
   };
 }
 
+/**
+ * 审核后的相关操作
+ */
+async function biliMediaAction(
+  status: "completed" | "error",
+  options: {
+    comment?: string;
+    top?: boolean;
+    notification?: boolean;
+    uid?: number;
+    aid?: number;
+    removeOriginAfterUploadCheck?: boolean;
+    files: string[];
+  },
+  media: Awaited<ReturnType<typeof biliApi.getArchives>>["arc_audits"][0],
+) {
+  if (status === "completed") {
+    // 通知
+    if (options.notification) {
+      const notification = appConfig.get("notification")?.task?.mediaStatusCheck;
+      if (notification?.includes("success")) {
+        try {
+          sendNotify(
+            `${media.Archive.title}稿件审核通过`,
+            `请前往B站创作中心查看详情\n稿件名：${media.Archive.title}`,
+          );
+        } catch (error) {
+          log.error("发送通知失败", error);
+        }
+      }
+    }
+    // 评论
+    if (options.comment) {
+      try {
+        const client = await createClient(options.uid);
+        const res = await client.reply.add({
+          oid: options.aid,
+          type: 1,
+          message: options.comment,
+          plat: 1,
+        });
+        await sleep(5000);
+        await client.reply.top({ oid: options.aid, type: 1, action: 1, rpid: res.rpid });
+      } catch (error) {
+        log.error("评论失败", error);
+      }
+    }
+    // 删除源文件
+    if (options.removeOriginAfterUploadCheck) {
+      for (const file of options.files) {
+        try {
+          await trashItem(file);
+        } catch (error) {
+          log.error("删除源文件失败", error);
+        }
+      }
+    }
+  } else {
+    // 通知
+    if (options.notification) {
+      const notification = appConfig.get("notification")?.task?.mediaStatusCheck;
+      if (notification?.includes("failure")) {
+        try {
+          sendNotify(
+            `${media.Archive.title}稿件审核未通过`,
+            `请前往B站创作中心查看详情\n稿件名：${media.Archive.title}\n状态：${media.Archive.state_desc}`,
+          );
+        } catch (error) {
+          log.error("发送通知失败", error);
+        }
+      }
+    }
+  }
+}
+
 async function addMedia(
   filePath:
     | string[]
@@ -325,20 +398,33 @@ async function addMedia(
         } catch (error) {
           log.error("加入合集失败", error);
         }
-        // 自动评论
-        if (options.autoComment && options.comment) {
-          const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
-          commentQueue.addCommentTask({
+        // 稿件检查
+        if (
+          (options.autoComment && options.comment) ||
+          appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
+          options.removeOriginAfterUploadCheck
+        ) {
+          const commentQueue = container.resolve<BiliCheckQueue>("commentQueue");
+          commentQueue.add({
             aid: data.aid,
-            content: options.comment || "",
             uid: uid,
-            top: options.commentTop || false,
           });
-        }
-        // 审核检查
-        if (appConfig.get("notification")?.task?.mediaStatusCheck?.length) {
-          const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
-          commentQueue.addCheckTask({ aid: data.aid, uid });
+
+          commentQueue.once("update", (_, status, media) => {
+            console.log("审核结果", status, media);
+
+            biliMediaAction(
+              status,
+              {
+                comment: options.comment,
+                top: options.commentTop || false,
+                notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
+                removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,
+                files: filePath.map((item) => (typeof item === "string" ? item : item.path)),
+              },
+              media,
+            );
+          });
         }
       },
     },
@@ -397,9 +483,26 @@ export async function editMedia(
     {
       onEnd: async () => {
         // 审核检查
-        if (appConfig.get("notification")?.task?.mediaStatusCheck?.length) {
-          const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
-          commentQueue.addCheckTask({ aid: aid, uid });
+        if (
+          appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
+          options.removeOriginAfterUploadCheck
+        ) {
+          const commentQueue = container.resolve<BiliCheckQueue>("commentQueue");
+          commentQueue.add({ aid: aid, uid });
+          commentQueue.once("update", (_, status, media) => {
+            console.log("审核结果", status, media);
+            biliMediaAction(
+              status,
+              {
+                comment: "",
+                top: false,
+                notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
+                removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,
+                files: filePath.map((item) => (typeof item === "string" ? item : item.path)),
+              },
+              media,
+            );
+          });
         }
       },
     },
@@ -486,216 +589,216 @@ async function getTypeDesc(tid: number, uid: number) {
 }
 
 // b站审核队列
-export class BiliCommentQueue {
-  list: {
-    type: "comment" | "checkStatus";
-    uid: number;
-    aid: number;
-    status: "pending" | "completed" | "error";
-    content: string;
-    startTime: number;
-    updateTime: number;
-    top: boolean;
-  }[] = [];
-  mediaList: getArchivesReturnType["arc_audits"] = [];
-  appConfig: AppConfig;
-  constructor({ appConfig }: { appConfig: AppConfig }) {
-    this.list = [];
-    this.appConfig = appConfig;
-  }
+// export class BiliCommentQueue {
+//   list: {
+//     type: "comment" | "checkStatus";
+//     uid: number;
+//     aid: number;
+//     status: "pending" | "completed" | "error";
+//     content: string;
+//     startTime: number;
+//     updateTime: number;
+//     top: boolean;
+//   }[] = [];
+//   mediaList: getArchivesReturnType["arc_audits"] = [];
+//   appConfig: AppConfig;
+//   constructor({ appConfig }: { appConfig: AppConfig }) {
+//     this.list = [];
+//     this.appConfig = appConfig;
+//   }
 
-  /**
-   * 添加检查审核状态任务
-   */
-  addCheckTask(data: { uid: number; aid: number }) {
-    const index = this.list
-      .filter((item) => item.type === "checkStatus")
-      .findIndex((item) => item.aid === data.aid);
-    if (index !== -1) {
-      // 如果已经存在，重置状态
-      this.list[index].status = "pending";
-    } else {
-      this.list.push({
-        type: "checkStatus",
-        uid: data.uid,
-        aid: data.aid,
-        status: "pending",
-        content: "",
-        startTime: Date.now(),
-        updateTime: Date.now(),
-        top: false,
-      });
-    }
+//   /**
+//    * 添加检查审核状态任务
+//    */
+//   addCheckTask(data: { uid: number; aid: number }) {
+//     const index = this.list
+//       .filter((item) => item.type === "checkStatus")
+//       .findIndex((item) => item.aid === data.aid);
+//     if (index !== -1) {
+//       // 如果已经存在，重置状态
+//       this.list[index].status = "pending";
+//     } else {
+//       this.list.push({
+//         type: "checkStatus",
+//         uid: data.uid,
+//         aid: data.aid,
+//         status: "pending",
+//         content: "",
+//         startTime: Date.now(),
+//         updateTime: Date.now(),
+//         top: false,
+//       });
+//     }
 
-    // console.log("addCheckTask", this.list);
-  }
-  /**
-   * 添加评论任务
-   */
-  addCommentTask(data: { aid: number; content: string; uid: number; top: boolean }) {
-    if (this.list.filter((item) => item.type === "comment").some((item) => item.aid === data.aid))
-      return;
-    this.list.push({
-      type: "comment",
-      uid: data.uid,
-      aid: data.aid,
-      content: data.content,
-      top: data.top,
-      status: "pending",
-      startTime: Date.now(),
-      updateTime: Date.now(),
-    });
-  }
-  async check() {
-    // console.log("list", this.list);
-    if (this.list.filter((item) => item.status === "pending").length === 0) return;
-    await this.getArchiveList();
-    this.handlingList();
-    // console.log("handling", this.list);
-    await this.commentCheck();
-    await this.statusCheck();
-  }
-  async sendNotify(title: string, desp: string) {
-    sendNotify(title, desp);
-  }
-  /**
-   * 审核状态通知任务检查
-   */
-  async statusCheck() {
-    const list = this.filter("checkStatus");
-    // console.log("checkStatus", list);
-    const notification = this.appConfig.get("notification")?.task?.mediaStatusCheck;
-    for (const item of list) {
-      const media = this.mediaList.find((media) => media.Archive.aid === item.aid);
-      if (!media) {
-        item.status = "error";
-        continue;
-      }
-      // 根据选项发送通知
-      if (media.Archive.state === 0) {
-        if (notification?.includes("success")) {
-          log.info("稿件审核通过", media.Archive.title);
-          this.sendNotify(
-            `${media.Archive.title}稿件审核通过`,
-            `请前往B站创作中心查看详情\n稿件名：${media.Archive.title}`,
-          );
-          item.status = "completed";
-        } else {
-          item.status = "error";
-        }
-      } else if (media.Archive.state < 0) {
-        if (media.Archive.state === -30 || media.Archive.state === -6) {
-          continue;
-        }
-        if (notification?.includes("failure")) {
-          log.error("稿件审核未通过", media.Archive.title, media);
-          this.sendNotify(
-            `${media.Archive.title}稿件审核未通过`,
-            `请前往B站创作中心查看详情\n稿件名：${media.Archive.title}\n状态：${media.Archive.state_desc}`,
-          );
-          item.status = "completed";
-        } else {
-          item.status = "error";
-        }
-      } else {
-        log.warn("稿件状态未检测成功", media);
-      }
-    }
-  }
-  /**
-   * 评论任务检查
-   */
-  async commentCheck() {
-    const allowCommentList: number[] = this.mediaList
-      .filter((item) => item.stat.aid)
-      .map((item) => item.Archive.aid);
+//     // console.log("addCheckTask", this.list);
+//   }
+//   /**
+//    * 添加评论任务
+//    */
+//   addCommentTask(data: { aid: number; content: string; uid: number; top: boolean }) {
+//     if (this.list.filter((item) => item.type === "comment").some((item) => item.aid === data.aid))
+//       return;
+//     this.list.push({
+//       type: "comment",
+//       uid: data.uid,
+//       aid: data.aid,
+//       content: data.content,
+//       top: data.top,
+//       status: "pending",
+//       startTime: Date.now(),
+//       updateTime: Date.now(),
+//     });
+//   }
+//   async check() {
+//     // console.log("list", this.list);
+//     if (this.list.filter((item) => item.status === "pending").length === 0) return;
+//     await this.getArchiveList();
+//     this.handlingList();
+//     // console.log("handling", this.list);
+//     await this.commentCheck();
+//     await this.statusCheck();
+//   }
+//   async sendNotify(title: string, desp: string) {
+//     sendNotify(title, desp);
+//   }
+//   /**
+//    * 审核状态通知任务检查
+//    */
+//   async statusCheck() {
+//     const list = this.filter("checkStatus");
+//     // console.log("checkStatus", list);
+//     const notification = this.appConfig.get("notification")?.task?.mediaStatusCheck;
+//     for (const item of list) {
+//       const media = this.mediaList.find((media) => media.Archive.aid === item.aid);
+//       if (!media) {
+//         item.status = "error";
+//         continue;
+//       }
+//       // 根据选项发送通知
+//       if (media.Archive.state === 0) {
+//         if (notification?.includes("success")) {
+//           log.info("稿件审核通过", media.Archive.title);
+//           this.sendNotify(
+//             `${media.Archive.title}稿件审核通过`,
+//             `请前往B站创作中心查看详情\n稿件名：${media.Archive.title}`,
+//           );
+//           item.status = "completed";
+//         } else {
+//           item.status = "error";
+//         }
+//       } else if (media.Archive.state < 0) {
+//         if (media.Archive.state === -30 || media.Archive.state === -6) {
+//           continue;
+//         }
+//         if (notification?.includes("failure")) {
+//           log.error("稿件审核未通过", media.Archive.title, media);
+//           this.sendNotify(
+//             `${media.Archive.title}稿件审核未通过`,
+//             `请前往B站创作中心查看详情\n稿件名：${media.Archive.title}\n状态：${media.Archive.state_desc}`,
+//           );
+//           item.status = "completed";
+//         } else {
+//           item.status = "error";
+//         }
+//       } else {
+//         log.warn("稿件状态未检测成功", media);
+//       }
+//     }
+//   }
+//   /**
+//    * 评论任务检查
+//    */
+//   async commentCheck() {
+//     const allowCommentList: number[] = this.mediaList
+//       .filter((item) => item.stat.aid)
+//       .map((item) => item.Archive.aid);
 
-    const list = this.filter("comment").filter((item) => {
-      return allowCommentList.some((aid) => aid === item.aid);
-    });
-    // log.debug("评论队列", list);
+//     const list = this.filter("comment").filter((item) => {
+//       return allowCommentList.some((aid) => aid === item.aid);
+//     });
+//     // log.debug("评论队列", list);
 
-    for (const item of list) {
-      try {
-        const res = await this.addCommentApi(item);
-        console.log("评论成功", res);
-        await sleep(3000);
-        await this.commentTopApi(res.rpid, item);
-        item.status = "completed";
-      } catch (error) {
-        item.status = "error";
-        log.error("评论失败", error);
-      }
-    }
-  }
-  /**
-   * 查询稿件列表
-   */
-  async getArchiveList(): Promise<getArchivesReturnType["arc_audits"]> {
-    const list: any[] = [];
-    const uids = uniq(
-      this.list.filter((item) => item.status === "pending").map((item) => item.uid),
-    );
-    for (const uid of uids) {
-      const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
-      list.push(...res.arc_audits);
-    }
-    this.mediaList = list;
-    return list;
-  }
-  /**
-   * 筛选数据
-   */
-  filter(type: "comment" | "checkStatus") {
-    return this.list
-      .filter((item) => item.status === "pending")
-      .filter((item) => item.type === type);
-  }
-  /**
-   * 对列表数据进行处理
-   */
-  async handlingList() {
-    this.list.map((item) => {
-      if (item.status !== "pending") return;
-      // 更新操作时间，如果超过24小时，状态设置为error
-      item.updateTime = Date.now();
-      if (item.updateTime - item.startTime > 1000 * 60 * 60 * 24) {
-        item.status = "error";
-        log.error("B站稿件任务超时", item);
-      }
-      // 如果list中存在，但是稿件列表不存在，状态设置为error
-      if (!this.mediaList.some((media) => media.Archive.aid == item.aid)) {
-        item.status = "error";
-        log.error("B站稿件不存在", item);
-      }
-    });
-  }
-  async addCommentApi(item: { aid: number; content: string; uid: number }): Promise<{
-    rpid: number;
-  }> {
-    const client = await createClient(item.uid);
-    return client.reply.add({
-      oid: item.aid,
-      type: 1,
-      message: item.content,
-      plat: 1,
-    });
-  }
-  async commentTopApi(rpid: number, item: { aid: number; uid: number }) {
-    const client = await createClient(item.uid);
+//     for (const item of list) {
+//       try {
+//         const res = await this.addCommentApi(item);
+//         console.log("评论成功", res);
+//         await sleep(3000);
+//         await this.commentTopApi(res.rpid, item);
+//         item.status = "completed";
+//       } catch (error) {
+//         item.status = "error";
+//         log.error("评论失败", error);
+//       }
+//     }
+//   }
+//   /**
+//    * 查询稿件列表
+//    */
+//   async getArchiveList(): Promise<getArchivesReturnType["arc_audits"]> {
+//     const list: any[] = [];
+//     const uids = uniq(
+//       this.list.filter((item) => item.status === "pending").map((item) => item.uid),
+//     );
+//     for (const uid of uids) {
+//       const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
+//       list.push(...res.arc_audits);
+//     }
+//     this.mediaList = list;
+//     return list;
+//   }
+//   /**
+//    * 筛选数据
+//    */
+//   filter(type: "comment" | "checkStatus") {
+//     return this.list
+//       .filter((item) => item.status === "pending")
+//       .filter((item) => item.type === type);
+//   }
+//   /**
+//    * 对列表数据进行处理
+//    */
+//   async handlingList() {
+//     this.list.map((item) => {
+//       if (item.status !== "pending") return;
+//       // 更新操作时间，如果超过24小时，状态设置为error
+//       item.updateTime = Date.now();
+//       if (item.updateTime - item.startTime > 1000 * 60 * 60 * 24) {
+//         item.status = "error";
+//         log.error("B站稿件任务超时", item);
+//       }
+//       // 如果list中存在，但是稿件列表不存在，状态设置为error
+//       if (!this.mediaList.some((media) => media.Archive.aid == item.aid)) {
+//         item.status = "error";
+//         log.error("B站稿件不存在", item);
+//       }
+//     });
+//   }
+//   async addCommentApi(item: { aid: number; content: string; uid: number }): Promise<{
+//     rpid: number;
+//   }> {
+//     const client = await createClient(item.uid);
+//     return client.reply.add({
+//       oid: item.aid,
+//       type: 1,
+//       message: item.content,
+//       plat: 1,
+//     });
+//   }
+//   async commentTopApi(rpid: number, item: { aid: number; uid: number }) {
+//     const client = await createClient(item.uid);
 
-    return client.reply.top({ oid: item.aid, type: 1, action: 1, rpid });
-  }
+//     return client.reply.top({ oid: item.aid, type: 1, action: 1, rpid });
+//   }
 
-  checkLoop = async () => {
-    const interval = this.appConfig.get("biliUpload")?.checkInterval ?? 600;
-    try {
-      await this.check();
-    } finally {
-      setTimeout(this.checkLoop, interval * 1000);
-    }
-  };
-}
+//   checkLoop = async () => {
+//     const interval = this.appConfig.get("biliUpload")?.checkInterval ?? 600;
+//     try {
+//       await this.check();
+//     } finally {
+//       setTimeout(this.checkLoop, interval * 1000);
+//     }
+//   };
+// }
 
 // 验证配置
 export const validateBiliupConfig = (config: BiliupConfig): [boolean, string | null] => {

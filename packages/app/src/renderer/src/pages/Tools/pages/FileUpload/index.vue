@@ -8,6 +8,9 @@
       <n-button @click="addVideo"> 添加 </n-button>
       <n-button type="primary" @click="upload"> 立即上传 </n-button>
       <n-button type="primary" @click="appendVideoVisible = true"> 续传 </n-button>
+      <n-checkbox v-model:checked="options.removeOriginAfterUploadCheck">
+        审核通过后移除源文件
+      </n-checkbox>
     </div>
     <FileSelect ref="fileSelect" v-model="fileList"></FileSelect>
 
@@ -134,7 +137,10 @@ const appendVideo = async () => {
     uid: userInfo.value.uid!,
     vid: Number(aid.value),
     videos: deepRaw(fileList.value),
-    config: deepRaw(presetOptions.value.config),
+    config: {
+      removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,
+      ...deepRaw(presetOptions.value.config),
+    },
   });
   fileList.value = [];
 };

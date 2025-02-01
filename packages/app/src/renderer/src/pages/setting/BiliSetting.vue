@@ -1,6 +1,5 @@
 <template>
   <div class="">
-    <h2>Bilibili上传配置</h2>
     <n-form label-placement="left" :label-width="150">
       <n-form-item>
         <template #label>
@@ -57,7 +56,7 @@
       <n-form-item>
         <template #label>
           <span class="inline-flex">
-            检查间隔
+            稿件检查间隔
             <Tip tip="用于自动评论及上传审核的检查稿件间隔时间，请勿设置过短以免触发风控"></Tip>
           </span>
         </template>

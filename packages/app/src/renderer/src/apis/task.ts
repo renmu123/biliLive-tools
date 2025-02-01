@@ -143,6 +143,7 @@ const burn = async (
     /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
     saveType?: 1 | 2;
     uploadOptions?: {
+      removeOriginAfterUploadCheck: boolean;
       upload: boolean;
       config: BiliupPreset["config"];
       filePath: string;

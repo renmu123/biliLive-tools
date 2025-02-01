@@ -7,7 +7,8 @@ import { appConfig, AppConfig } from "./config.js";
 import { DanmuPreset, VideoPreset, FFmpegPreset } from "./presets/index.js";
 import { setFfmpegPath } from "./task/video.js";
 import { initLogger, setLogLevel } from "./utils/log.js";
-import { BiliCommentQueue, migrateBiliUser, checkAccountLoop } from "./task/bili.js";
+import { migrateBiliUser, checkAccountLoop } from "./task/bili.js";
+import BiliCheckQueue from "./task/BiliCheckQueue.js";
 import { createRecorderManager } from "./recorder/index.js";
 // import { initDB } from "./db/index.js";
 // import StatisticsService from "./db/service/statisticsService.js";
@@ -37,7 +38,7 @@ const init = async (config: GlobalConfig) => {
     logger: asValue(console),
     globalConfig: asValue(config),
     taskQueue: asValue(taskQueue),
-    commentQueue: asClass(BiliCommentQueue).singleton(),
+    commentQueue: asClass(BiliCheckQueue).singleton(),
     danmuPreset: asClass(DanmuPreset).singleton(),
     videoPreset: asClass(VideoPreset).singleton(),
     ffmpegPreset: asClass(FFmpegPreset).singleton(),
@@ -49,7 +50,7 @@ const init = async (config: GlobalConfig) => {
 
   await migrate();
   setFfmpegPath();
-  const commentQueue = container.resolve<BiliCommentQueue>("commentQueue");
+  const commentQueue = container.resolve<BiliCheckQueue>("commentQueue");
   commentQueue.checkLoop();
   checkAccountLoop();
   // 设置开始时间

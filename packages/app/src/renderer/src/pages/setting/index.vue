@@ -211,7 +211,7 @@
             </n-form-item>
           </n-form>
         </n-tab-pane>
-        <n-tab-pane name="webhook" tab="webhook">
+        <n-tab-pane name="webhook" tab="Webhook">
           <n-form label-placement="left" :label-width="130">
             <n-form-item>
               <template #label>
@@ -279,7 +279,6 @@
               >
               <n-button type="primary" @click="addRoom"> 添加 </n-button>
             </div>
-            <!-- </div> -->
           </n-form>
         </n-tab-pane>
         <n-tab-pane name="upload" tab="B站上传">
@@ -533,6 +532,7 @@ const globalFields = ref([
   "useVideoAsTitle",
   "removeOriginAfterConvert",
   "removeOriginAfterUpload",
+  "removeOriginAfterUploadCheck",
   "noConvertHandleVideo",
   "uploadHandleTime",
   "limitUploadTime",
@@ -597,6 +597,7 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   convert2Mp4: false,
   removeOriginAfterConvert: false,
   removeOriginAfterUpload: false,
+  removeOriginAfterUploadCheck: false,
   noConvertHandleVideo: false,
   uploadHandleTime: ["00:00:00", "23:59:59"],
   limitUploadTime: false,

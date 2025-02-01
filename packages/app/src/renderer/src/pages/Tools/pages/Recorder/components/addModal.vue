@@ -9,7 +9,7 @@
       class="card"
     >
       <n-form label-placement="left" :label-width="140">
-        <h4>支持斗鱼、虎牙平台、B站，这并非是经过严格检测的录播工具，请谨慎在生产环境使用</h4>
+        <h4>支持斗鱼、虎牙平台、B站，玩具级录播，请做好踩坑的准备</h4>
 
         <n-form-item v-if="!isEdit">
           <template #label>

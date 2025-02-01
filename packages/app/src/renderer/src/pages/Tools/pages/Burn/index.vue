@@ -34,7 +34,7 @@
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div>
-        <n-radio-group v-model:value="options.saveRadio" class="radio-group2">
+        <n-radio-group v-model:value="options.saveRadio">
           <n-space class="flex align-center column">
             <n-radio :value="1"> 保存到原始文件夹 </n-radio>
             <n-radio :value="2"> </n-radio>
@@ -222,11 +222,6 @@ const clear = () => {
 </script>
 
 <style scoped lang="less">
-.radio-group2 {
-  :deep(.n-radio) {
-    align-items: center;
-  }
-}
 .btns {
   display: flex;
   gap: 10px;

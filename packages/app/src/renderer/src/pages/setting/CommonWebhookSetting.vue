@@ -154,21 +154,23 @@
       </n-form-item>
     </template>
   </template>
-  <n-form-item v-if="data.danmu || (!data.danmu && data.noConvertHandleVideo)">
-    <template #label>
-      <span class="inline-flex"> 完成后删除源文件 </span>
-    </template>
-    <n-switch
-      v-model:value="data.removeOriginAfterConvert"
-      :disabled="globalFieldsObj.removeOriginAfterConvert"
-    />
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.removeOriginAfterConvert"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
+  <templat v-if="data.danmu || (!data.danmu && data.noConvertHandleVideo)">
+    <n-form-item>
+      <template #label>
+        <span class="inline-flex"> 完成后删除源文件 </span>
+      </template>
+      <n-switch
+        v-model:value="data.removeOriginAfterConvert"
+        :disabled="globalFieldsObj.removeOriginAfterConvert"
+      />
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.removeOriginAfterConvert"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+    </n-form-item>
+  </templat>
 
   <n-form-item>
     <template #label>
@@ -262,6 +264,23 @@
       >全局</n-checkbox
     >
   </n-form-item>
+
+  <n-form-item v-if="!data.removeOriginAfterUpload">
+    <template #label>
+      <span class="inline-flex"> 审核通过后删除源文件 </span>
+    </template>
+    <n-switch
+      v-model:value="data.removeOriginAfterUploadCheck"
+      :disabled="globalFieldsObj.removeOriginAfterUploadCheck"
+    />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.removeOriginAfterUploadCheck"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+
   <n-form-item>
     <template #label>
       <span class="inline-flex">

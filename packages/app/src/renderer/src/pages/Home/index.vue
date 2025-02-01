@@ -37,6 +37,12 @@
               <n-button ghost type="primary" @click="appendVideoVisible = true">
                 续传 <span v-if="aid">(已选择)</span>
               </n-button>
+              <n-checkbox
+                v-model:checked="clientOptions.removeOriginAfterUploadCheck"
+                style="margin-left: 10px"
+              >
+                审核后通过删除源文件
+              </n-checkbox>
             </template>
 
             <div
@@ -317,6 +323,7 @@ const handleConvert = async () => {
         aid: aid.value,
         filePath: outputPath,
         uid: userInfo.value.uid!,
+        removeOriginAfterUploadCheck: rawClientOptions.removeOriginAfterUploadCheck,
       },
     },
   );

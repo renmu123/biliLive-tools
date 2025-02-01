@@ -91,6 +91,8 @@ type CommonRoomConfig = {
   uploadNoDanmu?: boolean;
   // 上传非视频版预设
   noDanmuVideoPreset?: string;
+  // 审核通过后删除源文件
+  removeOriginAfterUploadCheck?: boolean;
 };
 
 // webhook房间配置
@@ -116,6 +118,8 @@ export type ToolConfig = {
     openFolder: boolean;
     /** 完成后自动上传 */
     autoUpload: boolean;
+    /** 审核通过后删除源文件 */
+    removeOriginAfterUploadCheck: boolean;
     /** 高能进度条 */
     hotProgress: boolean;
     /** 采样间隔 */
@@ -135,6 +139,8 @@ export type ToolConfig = {
   upload: {
     /** 上传预设 */
     uploadPresetId: string;
+    /** 审核通过后删除源文件 */
+    removeOriginAfterUploadCheck: boolean;
   };
   /** 弹幕转换配置 */
   danmu: {
@@ -170,6 +176,10 @@ export type ToolConfig = {
     saveOriginPath: boolean;
     /** 完成后移除源文件 */
     removeOrigin: boolean;
+  };
+  videoUpload: {
+    /** 审核通过后删除源文件 */
+    removeOriginAfterUploadCheck: boolean;
   };
   /** 下载页 */
   download: {
@@ -610,6 +620,8 @@ export interface BiliupConfig {
   topic_name?: string | null;
   /** 是否仅自己可见 */
   is_only_self?: 0 | 1;
+  /** 审核通过后删除源文件 */
+  removeOriginAfterUploadCheck?: boolean;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {
