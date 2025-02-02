@@ -73,9 +73,15 @@ export class DanmuPreset extends CommonPreset<DanmuConfig> {
   async list() {
     return super.list();
   }
-  async save(presets: DanmuPresetType) {
+  async save(preset: DanmuPresetType) {
     // const requiredFields = Object.keys(DANMU_DEAFULT_CONFIG);
-    return super.save(presets);
+    // 检测preset.config中的值是否存在为null，如果有，报错
+    for (const key in preset.config) {
+      if (preset.config[key] === null) {
+        throw new Error(`Field ${key} is required`);
+      }
+    }
+    return super.save(preset);
   }
   async delete(id: string) {
     return super.delete(id);
