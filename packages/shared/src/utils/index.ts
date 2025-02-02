@@ -395,8 +395,6 @@ export const parseSavePath = async (
   },
   createDir = true,
 ) => {
-  if (!options.savePath) throw new Error("没有找到保存路径");
-
   let savePath: string;
   if (options.saveType === 1) {
     savePath = path.dirname(input);
