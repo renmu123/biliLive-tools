@@ -26,11 +26,13 @@
         </template>
         <n-input
           ref="titleInput"
+          :disabled="!allowEdit"
           v-model:value="config.recorder.nameRule"
           placeholder="请输入文件命名规则"
           clearable
           spellcheck="false"
         />
+        <n-checkbox v-model:checked="allowEdit" style="margin: 0 10px"></n-checkbox>
         <template #feedback>
           <span
             v-for="item in titleList"
@@ -155,6 +157,7 @@ import { FolderOpenOutline } from "@vicons/ionicons5";
 import { templateRef } from "@vueuse/core";
 import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 import { useUserInfoStore } from "@renderer/stores";
+import { useConfirm } from "@renderer/hooks";
 
 import type { AppConfig } from "@biliLive-tools/types";
 
@@ -293,6 +296,19 @@ const setTitleVar = async (value: string) => {
     config.value.recorder.nameRule += value;
   }
 };
+
+const confirm = useConfirm();
+const allowEdit = ref(false);
+watch(allowEdit, async (val) => {
+  if (val) {
+    const [status] = await confirm.warning({
+      content: "修改前确保知道此项参数含义，谨慎修改，可能会导致无法录制",
+    });
+    if (!status) {
+      allowEdit.value = false;
+    }
+  }
+});
 </script>
 
 <style scoped lang="less">
