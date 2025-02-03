@@ -197,6 +197,28 @@
         </n-space>
       </n-checkbox-group>
     </n-form-item>
+    <n-form-item>
+      <template #label>
+        <Tip
+          tip="检测目录的磁盘空间，如果低于阈值则发送通知，两个小时检查一次"
+          text="硬盘容量检测"
+        ></Tip>
+      </template>
+      <n-checkbox-group v-model:value="config.notification.task.diskSpaceCheck.values">
+        <n-space item-style="display: flex;">
+          <n-checkbox value="bilirecorder" label="录播姬所在文件夹" />
+          <n-checkbox value="bililiveTools" label="直播录制文件夹" />
+        </n-space>
+      </n-checkbox-group>
+
+      <n-input-number
+        v-model:value="config.notification.task.diskSpaceCheck.threshold"
+        step="1"
+        min="1"
+      >
+        <template #suffix> GB </template>
+      </n-input-number>
+    </n-form-item>
   </n-form>
 </template>
 

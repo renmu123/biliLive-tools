@@ -149,6 +149,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       download: [],
       douyuDownload: [],
       mediaStatusCheck: [],
+      diskSpaceCheck: {
+        values: [],
+        threshold: 10,
+      },
     },
     setting: {
       type: undefined,

@@ -1,5 +1,7 @@
 // import path from "node:path";
+import fs from "fs-extra";
 import { createContainer, asValue, asClass } from "awilix";
+import { default as checkDiskSpace } from "check-disk-space";
 
 export * from "./presets/index.js";
 import { taskQueue, TaskQueue } from "./task/task.js";
@@ -10,6 +12,7 @@ import { initLogger, setLogLevel } from "./utils/log.js";
 import { migrateBiliUser, checkAccountLoop } from "./task/bili.js";
 import BiliCheckQueue from "./task/BiliCheckQueue.js";
 import { createRecorderManager } from "./recorder/index.js";
+import { sendNotify } from "./notify.js";
 // import { initDB } from "./db/index.js";
 // import StatisticsService from "./db/service/statisticsService.js";
 
@@ -53,6 +56,7 @@ const init = async (config: GlobalConfig) => {
   const commentQueue = container.resolve<BiliCheckQueue>("commentQueue");
   commentQueue.checkLoop();
   checkAccountLoop();
+  checkDiskSpaceLoop();
   // 设置开始时间
   // StatisticsService.addOrUpdate({
   //   where: { stat_key: "start_time" },
@@ -65,6 +69,39 @@ const init = async (config: GlobalConfig) => {
 // 迁移数据
 const migrate = async () => {
   await migrateBiliUser();
+};
+
+const checkDiskSpaceLoop = async () => {
+  setInterval(
+    async () => {
+      const config = appConfig.getAll();
+      const threshold = config?.notification?.task?.diskSpaceCheck?.threshold ?? 10;
+      if (config?.notification?.task?.diskSpaceCheck?.values?.includes("bilirecorder")) {
+        if (
+          config?.webhook?.recoderFolder &&
+          (await fs.pathExists(config?.webhook?.recoderFolder))
+        ) {
+          // @ts-ignore
+          const diskInfo = await checkDiskSpace(config?.webhook?.recoderFolder);
+          if (diskInfo.free < threshold * 1024 * 1024 * 1024) {
+            console.warn("录播姬磁盘空间不足，请及时处理");
+            sendNotify("空间不足", "录播姬磁盘空间不足，请及时处理");
+          }
+        }
+      }
+      if (config?.notification?.task?.diskSpaceCheck?.values?.includes("bililiveTools")) {
+        if (config?.recorder?.savePath && (await fs.pathExists(config?.recorder?.savePath))) {
+          // @ts-ignore
+          const diskInfo = await checkDiskSpace(config?.recorder?.savePath);
+          if (diskInfo.free < threshold * 1024 * 1024 * 1024) {
+            console.warn("biliLiveTools录制磁盘空间不足，请及时处理");
+            sendNotify("空间不足", "biliLiveTools录制磁盘空间不足，请及时处理");
+          }
+        }
+      }
+    },
+    1000 * 60 * 60 * 2,
+  );
 };
 
 export { init, AppConfig, appConfig, TaskQueue, migrate, createRecorderManager, container };

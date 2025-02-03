@@ -378,6 +378,11 @@ export interface AppConfig {
       download: NotificationTaskStatus[];
       douyuDownload: NotificationTaskStatus[];
       mediaStatusCheck: NotificationTaskStatus[];
+      diskSpaceCheck: {
+        values: Array<"bilirecorder" | "bililiveTools">;
+        /** 磁盘空间不足阈值，单位GB */
+        threshold: number;
+      };
     };
     /** 通知配置项 */
     setting: {
