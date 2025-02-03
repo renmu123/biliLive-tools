@@ -366,6 +366,9 @@ async function addMedia(
     limitedUploadTime?: [] | [string, string];
   },
 ) {
+  if (options.title.length > 80) {
+    throw new Error("标题不能超过80个字符");
+  }
   const client = await createClient(uid);
 
   const pTask = new BiliAddVideoTask(

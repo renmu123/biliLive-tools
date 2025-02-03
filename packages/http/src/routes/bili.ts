@@ -178,7 +178,6 @@ router.post("/login", async (ctx) => {
     loginObj[id].res = JSON.stringify(res);
     loginObj[id].status = "completed";
 
-    console.log("completed", res);
     const data = res.data;
     await biliApi.addUser(data);
   });
