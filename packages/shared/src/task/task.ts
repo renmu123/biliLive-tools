@@ -3,7 +3,7 @@ import { TypedEmitter } from "tiny-typed-emitter";
 // @ts-ignore
 import * as ntsuspend from "ntsuspend";
 
-import { uuid, isWin32, retry } from "../utils/index.js";
+import { uuid, isWin32, retry, isBetweenTime } from "../utils/index.js";
 import log from "../utils/log.js";
 import { sendNotify } from "../notify.js";
 import { appConfig } from "../config.js";
@@ -47,6 +47,7 @@ export abstract class AbstractTask {
   pauseStartTime: number | null = 0;
   totalPausedDuration: number = 0;
   emitter = new TypedEmitter<TaskEvents>();
+  limitTime?: [] | [string, string];
   on: TypedEmitter<TaskEvents>["on"];
   emit: TypedEmitter<TaskEvents>["emit"];
 
@@ -314,6 +315,7 @@ export class BiliPartVideoTask extends AbstractTask {
     options: {
       name: string;
       pid: string;
+      limitTime: [] | [string, string];
     },
     callback: {
       onStart?: () => void;
@@ -326,6 +328,7 @@ export class BiliPartVideoTask extends AbstractTask {
     this.command = command;
     this.progress = 0;
     this.action = ["kill", "pause"];
+    this.limitTime = options.limitTime;
     if (options.name) {
       this.name = options.name;
     }
@@ -837,6 +840,17 @@ export class DouyuDownloadVideoTask extends AbstractTask {
   }
 }
 
+const isBetweenTimeRange = (range: [] | [string, string]) => {
+  if (!range) return true;
+  if (range.length !== 2) return true;
+
+  try {
+    const status = isBetweenTime(new Date(), range);
+    return status;
+  } catch (error) {
+    return true;
+  }
+};
 export class TaskQueue {
   appConfig: AppConfig;
   queue: AbstractTask[];
@@ -861,6 +875,27 @@ export class TaskQueue {
     this.on("task-cancel", ({ autoStart }) => {
       if (autoStart) this.addTaskForLimit();
     });
+
+    setInterval(() => {
+      this.addTaskForLimit();
+    }, 1000 * 60);
+  }
+  runTask(task: AbstractTask) {
+    const typeMap = {
+      [TaskType.ffmpeg]: "ffmpegMaxNum",
+      [TaskType.douyuDownload]: "douyuDownloadMaxNum",
+      [TaskType.biliUpload]: "biliUploadMaxNum",
+      [TaskType.biliDownload]: "biliDownloadMaxNum",
+    };
+    const config = this.appConfig.getAll();
+    const maxNum = config?.task?.[typeMap[task.type]] ?? -1;
+    if (maxNum >= 0) {
+      this.filter({ type: task.type, status: "running" }).length < maxNum &&
+        isBetweenTimeRange(task.limitTime) &&
+        task.exec();
+    } else {
+      isBetweenTimeRange(task.limitTime) && task.exec();
+    }
   }
   addTask(task: AbstractTask, autoRun = true) {
     task.emitter.on("task-end", ({ taskId }) => {
@@ -886,49 +921,11 @@ export class TaskQueue {
     });
 
     this.queue.push(task);
+
     if (autoRun) {
       task.exec();
     } else {
-      const config = this.appConfig.getAll();
-
-      switch (task.type) {
-        case TaskType.ffmpeg:
-          const ffmpegMaxNum = config?.task?.ffmpegMaxNum ?? -1;
-          if (ffmpegMaxNum >= 0) {
-            this.filter({ type: task.type, status: "running" }).length < ffmpegMaxNum &&
-              task.exec();
-          } else {
-            task.exec();
-          }
-          break;
-        case TaskType.douyuDownload:
-          const douyuDownloadMaxNum = config?.task?.douyuDownloadMaxNum ?? -1;
-          if (douyuDownloadMaxNum >= 0) {
-            this.filter({ type: task.type, status: "running" }).length < douyuDownloadMaxNum &&
-              task.exec();
-          } else {
-            task.exec();
-          }
-          break;
-        case TaskType.biliUpload:
-          const biliUploadMaxNum = config?.task?.biliUploadMaxNum ?? -1;
-          if (biliUploadMaxNum >= 0) {
-            this.filter({ type: task.type, status: "running" }).length < biliUploadMaxNum &&
-              task.exec();
-          } else {
-            task.exec();
-          }
-          break;
-        case TaskType.biliDownload:
-          const biliDownloadMaxNum = config?.task?.biliDownloadMaxNum ?? -1;
-          if (biliDownloadMaxNum >= 0) {
-            this.filter({ type: task.type, status: "running" }).length < biliDownloadMaxNum &&
-              task.exec();
-          } else {
-            task.exec();
-          }
-          break;
-      }
+      this.runTask(task);
     }
   }
   queryTask(taskId: string) {
@@ -1011,7 +1008,9 @@ export class TaskQueue {
   }
 
   private taskLimit(maxNum: number, type: string) {
-    const pendingFFmpegTask = this.filter({ type: type, status: "pending" });
+    const pendingFFmpegTask = this.filter({ type: type, status: "pending" }).filter((task) => {
+      return isBetweenTimeRange(task.limitTime);
+    });
     if (maxNum !== -1) {
       const runningTaskCount = this.filter({
         type: type,
@@ -1023,6 +1022,11 @@ export class TaskQueue {
           task.exec();
         });
       }
+    } else {
+      // TODO: 补充单元测试
+      pendingFFmpegTask.forEach((task) => {
+        task.exec();
+      });
     }
   }
   private addTaskForLimit = () => {

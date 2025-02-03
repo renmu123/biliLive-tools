@@ -767,11 +767,14 @@ export class WebhookHandler {
     uid: number,
     pathArray: string[],
     options: BiliupConfig,
-    removeOrigin?: boolean,
+    removeOrigin: boolean,
+    limitedUploadTime: [] | [string, string],
   ) => {
     return new Promise((resolve, reject) => {
       biliApi
-        .addMedia(pathArray, options, uid)
+        .addMedia(pathArray, options, uid, {
+          limitedUploadTime,
+        })
         .then((task) => {
           task.on("task-end", () => {
             if (removeOrigin) {
@@ -799,11 +802,13 @@ export class WebhookHandler {
     aid: number,
     pathArray: string[],
     removeOrigin?: boolean,
+    limitedUploadTime?: [string, string] | [],
   ) => {
     return new Promise((resolve, reject) => {
-      log.debug("editUploadTask", uid, pathArray, removeOrigin);
       biliApi
-        .editMedia(aid, pathArray, {}, uid)
+        .editMedia(aid, pathArray, {}, uid, {
+          limitedUploadTime: limitedUploadTime,
+        })
         .then((task) => {
           task.on("task-end", () => {
             if (removeOrigin) {
@@ -903,7 +908,7 @@ export class WebhookHandler {
         return;
       }
 
-      if (limitUploadTime && !this.isBetweenTime(new Date(), uploadHandleTime)) return;
+      const limitedUploadTime: [] | [string, string] = limitUploadTime ? uploadHandleTime : [];
 
       let uploadPreset = DEFAULT_BILIUP_CONFIG;
       const presetId = type === "handled" ? uploadPresetId : noDanmuVideoPreset;
@@ -919,7 +924,13 @@ export class WebhookHandler {
           live.parts.map((item) => {
             if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploading";
           });
-          await this.addEditMediaTask(uid, live[aidField], filePaths, removeOriginAfterUpload);
+          await this.addEditMediaTask(
+            uid,
+            live[aidField],
+            filePaths,
+            removeOriginAfterUpload,
+            limitedUploadTime,
+          );
           live.parts.map((item) => {
             if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploaded";
           });
@@ -981,6 +992,7 @@ export class WebhookHandler {
             filePaths,
             uploadPreset,
             type === "raw" ? false : removeOriginAfterUpload,
+            limitedUploadTime,
           )) as number;
           live[aidField] = Number(aid);
 
@@ -1000,35 +1012,4 @@ export class WebhookHandler {
 
     await Promise.all([uploadVideo("handled"), uploadVideo("raw")]);
   };
-  /**
-   * 当前时间是否在两个时间'HH:mm:ss'之间，如果是["22:00:00","05:00:00"]，当前时间是凌晨3点，返回true
-   * @param {string} currentTime 当前时间
-   * @param {string[]} timeRange 时间范围
-   */
-  isBetweenTime(currentTime: Date, timeRange: [string, string]): boolean {
-    const [startTime, endTime] = timeRange;
-    if (!startTime || !endTime) return true;
-
-    const [startHour, startMinute, startSecond] = startTime.split(":").map(Number);
-    const [endHour, endMinute, endSecond] = endTime.split(":").map(Number);
-    const [currentHour, currentMinute, currentSecond] = [
-      currentTime.getHours(),
-      currentTime.getMinutes(),
-      currentTime.getSeconds(),
-    ];
-
-    const start = startHour * 3600 + startMinute * 60 + startSecond;
-    let end = endHour * 3600 + endMinute * 60 + endSecond;
-    let current = currentHour * 3600 + currentMinute * 60 + currentSecond;
-
-    // 如果结束时间小于开始时间，说明跨越了午夜
-    if (end < start) {
-      end += 24 * 3600; // 将结束时间加上24小时
-      if (current < start) {
-        current += 24 * 3600; // 如果当前时间小于开始时间，也加上24小时
-      }
-    }
-
-    return start <= current && current <= end;
-  }
 }

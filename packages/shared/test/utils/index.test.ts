@@ -1,12 +1,13 @@
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, vi } from "vitest";
 import {
   escaped,
   getHardwareAcceleration,
   countByIntervalInSeconds,
   normalizePoints,
+  isBetweenTime,
   parseSavePath, // 添加导入
 } from "../../src/utils/index";
 
@@ -329,5 +330,81 @@ describe("normalizePoints", () => {
       { x: 0, y: 0 },
       { x: 0, y: 0 },
     ]);
+  });
+});
+
+describe.concurrent("isBetweenTime", () => {
+  it("should return true when current time is between start and end time", () => {
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+      }),
+    };
+    // @ts-ignore
+    webhookHandler = new WebhookHandler(appConfig);
+    const currentTime = new Date("2022-01-01T12:00:00");
+    const timeRange: [string, string] = ["10:00:00", "14:00:00"];
+
+    const result = isBetweenTime(currentTime, timeRange);
+
+    expect(result).toBe(true);
+  });
+
+  it("should return false when current time is before start time", () => {
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+      }),
+    };
+    // @ts-ignore
+    webhookHandler = new WebhookHandler(appConfig);
+    const currentTime = new Date("2022-01-01T09:00:00");
+    const timeRange: [string, string] = ["10:00:00", "14:00:00"];
+
+    const result = isBetweenTime(currentTime, timeRange);
+
+    expect(result).toBe(false);
+  });
+
+  it("should return false when current time is after end time", () => {
+    const appConfig = {
+      getAll: vi.fn(),
+    };
+    // @ts-ignore
+    webhookHandler = new WebhookHandler(appConfig);
+    const currentTime = new Date("2022-01-01T15:00:00");
+    const timeRange: [string, string] = ["10:00:00", "14:00:00"];
+
+    const result = isBetweenTime(currentTime, timeRange);
+
+    expect(result).toBe(false);
+  });
+
+  it("should return true when start and end time are not provided", () => {
+    const appConfig = {
+      getAll: vi.fn(),
+    };
+    // @ts-ignore
+    webhookHandler = new WebhookHandler(appConfig);
+    const currentTime = new Date("2022-01-01T12:00:00");
+    const timeRange: [string, string] = ["", ""];
+
+    const result = isBetweenTime(currentTime, timeRange);
+
+    expect(result).toBe(true);
+  });
+
+  it("should return true when current time is between start and end time", () => {
+    const appConfig = {
+      getAll: vi.fn(),
+    };
+    // @ts-ignore
+    webhookHandler = new WebhookHandler(appConfig);
+    const currentTime = new Date("2022-01-01T04:00:00");
+    const timeRange: [string, string] = ["22:00:00", "06:00:00"];
+
+    const result = isBetweenTime(currentTime, timeRange);
+
+    expect(result).toBe(true);
   });
 });

@@ -362,6 +362,9 @@ async function addMedia(
       }[],
   options: BiliupConfig,
   uid: number,
+  extraOptions?: {
+    limitedUploadTime?: [] | [string, string];
+  },
 ) {
   const client = await createClient(uid);
 
@@ -444,6 +447,7 @@ async function addMedia(
       {
         name: `上传视频：${part.title}`,
         pid: pTask.taskId,
+        limitTime: extraOptions?.limitedUploadTime ?? [],
       },
       {},
     );
@@ -466,6 +470,9 @@ export async function editMedia(
       }[],
   options: BiliupConfig | any,
   uid: number,
+  extraOptions?: {
+    limitedUploadTime?: [] | [string, string];
+  },
 ) {
   if (filePath.length === 0) {
     throw new Error("请至少上传一个视频");
@@ -522,6 +529,7 @@ export async function editMedia(
       {
         name: `上传视频：${part.title}`,
         pid: pTask.taskId,
+        limitTime: extraOptions?.limitedUploadTime ?? [],
       },
       {},
     );
