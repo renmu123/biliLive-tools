@@ -186,6 +186,45 @@
     >
   </n-form-item>
 
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex">
+        限制处理时间
+        <Tip tip="开启后，支持只在某段时间执行处理"></Tip>
+      </span>
+    </template>
+    <n-switch
+      v-model:value="data.limitVideoConvertTime"
+      :disabled="globalFieldsObj.limitVideoConvertTime"
+    />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.limitVideoConvertTime"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item v-if="data.limitVideoConvertTime">
+    <template #label>
+      <span class="inline-flex"> 允许处理时间段 </span>
+    </template>
+    <n-time-picker
+      v-model:formatted-value="data.videoHandleTime[0]"
+      :disabled="globalFieldsObj.videoHandleTime"
+    />
+    ~
+    <n-time-picker
+      v-model:formatted-value="data.videoHandleTime[1]"
+      :disabled="globalFieldsObj.videoHandleTime"
+    />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.videoHandleTime"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+
   <h2>上传配置</h2>
   <n-form-item label="上传账号">
     <n-select
@@ -231,7 +270,7 @@
   </n-form-item>
   <n-form-item v-if="data.limitUploadTime">
     <template #label>
-      <span class="inline-flex"> 允许上传的时间段 </span>
+      <span class="inline-flex"> 允许上传时间段 </span>
     </template>
     <n-time-picker
       v-model:formatted-value="data.uploadHandleTime[0]"

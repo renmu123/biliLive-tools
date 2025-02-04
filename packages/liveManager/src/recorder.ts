@@ -85,6 +85,8 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   qualityMaxRetry: 0;
   // 画质重试次数上限
   qualityRetry: 0;
+  // B站弹幕录制，cookie拥有者的uid
+  uid?: number;
   liveInfo?: {
     living: boolean;
     owner: string;

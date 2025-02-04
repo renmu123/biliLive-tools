@@ -78,6 +78,10 @@ type CommonRoomConfig = {
   convert2Mp4?: boolean;
   /** 压制完成后删除文件 */
   removeOriginAfterConvert?: boolean;
+  /** 限制只在某一段时间处理视频 */
+  limitVideoConvertTime?: boolean;
+  /** 允许视频处理时间 */
+  videoHandleTime: [string, string];
   /** 上传完成后删除文件 */
   removeOriginAfterUpload?: boolean;
   /** 不压制后处理 */

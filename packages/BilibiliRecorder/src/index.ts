@@ -95,7 +95,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   getSavePath,
   qualityRetry,
 }) {
-  console.log("this.qualityRetry", this.qualityRetry);
   this.tempStopIntervalCheck = false;
   if (this.recordHandle != null) return this.recordHandle;
   const living = await getLiveStatus(this.channelId);
@@ -276,7 +275,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         headers: {
           Cookie: this.auth ?? "",
         },
-        uid: this.auth ? uid : 0,
+        uid: this.uid ?? 0,
       },
     });
   }

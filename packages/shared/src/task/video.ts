@@ -588,6 +588,7 @@ export const mergeAssMp4 = async (
     startTimestamp?: number;
     override?: boolean;
     timestampFont?: string;
+    limitTime?: [] | [string, string];
   } = {
     removeOrigin: false,
     startTimestamp: 0,
@@ -629,6 +630,7 @@ export const mergeAssMp4 = async (
     {
       output,
       name: `压制任务:${parse(output).name}`,
+      limitTime: options.limitTime,
     },
     {
       onProgress(progress) {

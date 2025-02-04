@@ -166,6 +166,7 @@ export class FFmpegTask extends AbstractTask {
     options: {
       output: string;
       name: string;
+      limitTime?: [] | [string, string];
     },
     callback: {
       onStart?: () => void;
@@ -179,6 +180,7 @@ export class FFmpegTask extends AbstractTask {
     this.output = options.output;
     this.progress = 0;
     this.action = ["kill", "pause", "interrupt"];
+    this.limitTime = options.limitTime;
     if (options.name) {
       this.name = options.name;
     }

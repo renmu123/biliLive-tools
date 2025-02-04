@@ -146,6 +146,7 @@ export class WebhookHandler {
       convert2Mp4Option,
       removeOriginAfterConvert,
       noConvertHandleVideo,
+      videoHandleTime,
     } = this.getConfig(options.roomId);
     if (!open) {
       log.info(`${options.roomId} is not open`);
@@ -266,6 +267,7 @@ export class WebhookHandler {
             suffix: "弹幕版",
             startTimestamp: startTimestamp || Math.floor((currentPart.startTime ?? 0) / 1000),
             timestampFont: danmuConfig.fontname,
+            limitTime: videoHandleTime,
           },
         );
         if (removeOriginAfterConvert) {
@@ -290,7 +292,11 @@ export class WebhookHandler {
           undefined,
           undefined,
           preset?.config,
-          { removeVideo: removeOriginAfterConvert, suffix: "后处理" },
+          {
+            removeVideo: removeOriginAfterConvert,
+            suffix: "后处理",
+            limitTime: videoHandleTime,
+          },
         );
         currentPart.filePath = output;
       }
@@ -406,6 +412,10 @@ export class WebhookHandler {
     uploadNoDanmu: boolean;
     /** 同时上传无弹幕视频预设 */
     noDanmuVideoPreset: string;
+    /** 限制只在某一段时间处理视频 */
+    limitVideoConvertTime?: boolean;
+    /** 允许视频处理时间 */
+    videoHandleTime?: [string, string];
   } {
     const config = this.appConfig.getAll();
     const roomSetting: AppRoomConfig | undefined = config.webhook?.rooms?.[roomId];
@@ -427,6 +437,9 @@ export class WebhookHandler {
     const hotProgressColor = getRoomSetting("hotProgressColor");
     const hotProgressFillColor = getRoomSetting("hotProgressFillColor");
     const convert2Mp4 = getRoomSetting("convert2Mp4");
+    const limitVideoConvertTime = getRoomSetting("limitVideoConvertTime") ?? false;
+    const videoHandleTime = getRoomSetting("videoHandleTime") || ["00:00:00", "23:59:59"];
+
     const useVideoAsTitle = getRoomSetting("useVideoAsTitle");
     const removeOriginAfterConvert = getRoomSetting("removeOriginAfterConvert") ?? false;
     const removeOriginAfterUpload = getRoomSetting("removeOriginAfterUpload") ?? false;
@@ -479,6 +492,7 @@ export class WebhookHandler {
       uploadHandleTime,
       uploadNoDanmu: !!(uid && uploadNoDanmu && !removeOriginAfterConvert),
       noDanmuVideoPreset,
+      videoHandleTime: limitVideoConvertTime ? videoHandleTime : undefined,
     };
     // log.debug("final config", options);
 
@@ -718,6 +732,7 @@ export class WebhookHandler {
       suffix: string;
       startTimestamp?: number;
       timestampFont?: string;
+      limitTime?: [string, string];
     } = {
       removeVideo: false,
       suffix: "弹幕版",
@@ -746,6 +761,7 @@ export class WebhookHandler {
               startTimestamp: options.startTimestamp,
               override: true,
               timestampFont: options.timestampFont,
+              limitTime: options.limitTime,
             },
             preset,
           ).then((task) => {
