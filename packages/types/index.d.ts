@@ -208,6 +208,8 @@ export type ToolConfig = {
     title: string;
     /** 弹幕预设 */
     danmuPresetId: string;
+    /** 忽略弹幕 */
+    ignoreDanmu: boolean;
   };
 };
 

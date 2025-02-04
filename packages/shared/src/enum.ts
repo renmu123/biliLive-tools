@@ -123,16 +123,13 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       presetId: undefined,
     },
     videoCut: {
-      /** 保存类型 */
       saveRadio: 1,
-      /** 保存路径 */
       savePath: ".\\导出文件夹",
-      /** 覆盖已存在的文件 */
       override: false,
-      /** ffmpeg预设 */
       ffmpegPresetId: "b_libx264",
       title: "{{filename}}-{{label}}-{{num}}",
       danmuPresetId: "default",
+      ignoreDanmu: false,
     },
   },
   task: {

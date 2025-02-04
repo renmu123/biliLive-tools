@@ -54,6 +54,11 @@
           </n-radio-group>
         </div>
         <div>
+          <n-checkbox v-model:checked="exportOptions.ignoreDanmu" style="margin-top: 10px">
+            忽略弹幕
+          </n-checkbox>
+        </div>
+        <div>
           <div style="margin-bottom: 5px">
             输出文件名：<span style="color: red">{{ exportError }}</span>
           </div>
@@ -191,7 +196,7 @@ const confirmExport = async () => {
     await window.api.mergeAssMp4(
       {
         videoFilePath: props.files.videoPath!,
-        assFilePath: props.files.danmuPath,
+        assFilePath: exportOptions.ignoreDanmu ? "" : props.files.danmuPath,
         outputPath: window.path.join(savePath, `${title}.mp4`),
         hotProgressFilePath: undefined,
       },
