@@ -5,7 +5,7 @@ import { expect, describe, it, beforeEach, vi } from "vitest";
 
 describe("TaskQueue", () => {
   class TestTask extends AbstractTask {
-    type: "test";
+    type: TaskType.biliDownload;
     exec = vi.fn();
     pause = vi.fn();
     resume = vi.fn();
@@ -601,7 +601,12 @@ describe("TaskQueue", () => {
         // @ts-ignore
         taskQueue.appConfig = {
           getAll: vi.fn().mockReturnValue({
-            task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+            task: {
+              ffmpegMaxNum: -1,
+              douyuDownloadMaxNum: -1,
+              biliUploadMaxNum: -1,
+              biliDownloadMaxNum: -1,
+            },
           }),
         };
 

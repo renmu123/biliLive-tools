@@ -588,6 +588,7 @@ describe("WebhookHandler", () => {
             title: "webhook-title",
           },
           false,
+          [],
         );
       });
       it("应在webhook存在占位符时，使用webhook标题进行格式化", async () => {
@@ -636,6 +637,7 @@ describe("WebhookHandler", () => {
             title: "webhook-title-live-title",
           },
           false,
+          [],
         );
       });
       it("应用live和part数据正常格式化标题", async () => {
@@ -686,6 +688,7 @@ describe("WebhookHandler", () => {
             title: "live-title-username-2022.01.01-123",
           },
           false,
+          [],
         );
       });
     });
@@ -752,6 +755,7 @@ describe("WebhookHandler", () => {
             cover: "/path/to/cover.jpg",
           },
           true,
+          [],
         );
         expect(live.aid).toBe(789);
         expect(live.parts[0].uploadStatus).toBe("uploaded");
@@ -938,6 +942,7 @@ describe("WebhookHandler", () => {
           789,
           ["/path/to/part2.mp4", "/path/to/part3.mp4"],
           true,
+          [],
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.aid).toBe(789);
@@ -998,6 +1003,7 @@ describe("WebhookHandler", () => {
           789,
           ["/path/to/part2.mp4", "/path/to/part3.mp4"],
           true,
+          [],
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.aid).toBe(789);
@@ -1174,6 +1180,7 @@ describe("WebhookHandler", () => {
             cover: "/path/to/cover.jpg",
           },
           false,
+          [],
         );
         expect(live.rawAid).toBe(789);
         expect(live.parts[0].rawUploadStatus).toBe("uploaded");
@@ -1372,6 +1379,7 @@ describe("WebhookHandler", () => {
           789,
           ["/path/to/part2.mp4", "/path/to/part3.mp4"],
           true,
+          [],
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);
@@ -1436,6 +1444,7 @@ describe("WebhookHandler", () => {
           789,
           ["/path/to/part2.mp4", "/path/to/part3.mp4"],
           true,
+          [],
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);

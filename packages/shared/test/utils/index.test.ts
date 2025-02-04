@@ -341,7 +341,6 @@ describe.concurrent("isBetweenTime", () => {
       }),
     };
     // @ts-ignore
-    webhookHandler = new WebhookHandler(appConfig);
     const currentTime = new Date("2022-01-01T12:00:00");
     const timeRange: [string, string] = ["10:00:00", "14:00:00"];
 
@@ -351,13 +350,6 @@ describe.concurrent("isBetweenTime", () => {
   });
 
   it("should return false when current time is before start time", () => {
-    const appConfig = {
-      getAll: vi.fn().mockReturnValue({
-        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
-      }),
-    };
-    // @ts-ignore
-    webhookHandler = new WebhookHandler(appConfig);
     const currentTime = new Date("2022-01-01T09:00:00");
     const timeRange: [string, string] = ["10:00:00", "14:00:00"];
 
@@ -367,11 +359,6 @@ describe.concurrent("isBetweenTime", () => {
   });
 
   it("should return false when current time is after end time", () => {
-    const appConfig = {
-      getAll: vi.fn(),
-    };
-    // @ts-ignore
-    webhookHandler = new WebhookHandler(appConfig);
     const currentTime = new Date("2022-01-01T15:00:00");
     const timeRange: [string, string] = ["10:00:00", "14:00:00"];
 
@@ -381,11 +368,6 @@ describe.concurrent("isBetweenTime", () => {
   });
 
   it("should return true when start and end time are not provided", () => {
-    const appConfig = {
-      getAll: vi.fn(),
-    };
-    // @ts-ignore
-    webhookHandler = new WebhookHandler(appConfig);
     const currentTime = new Date("2022-01-01T12:00:00");
     const timeRange: [string, string] = ["", ""];
 
@@ -395,11 +377,6 @@ describe.concurrent("isBetweenTime", () => {
   });
 
   it("should return true when current time is between start and end time", () => {
-    const appConfig = {
-      getAll: vi.fn(),
-    };
-    // @ts-ignore
-    webhookHandler = new WebhookHandler(appConfig);
     const currentTime = new Date("2022-01-01T04:00:00");
     const timeRange: [string, string] = ["22:00:00", "06:00:00"];
 

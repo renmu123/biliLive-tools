@@ -281,7 +281,7 @@ interface BaseRecordr {
   /**分段时长，单位分钟 */
   segment?: number;
   /** 账号 */
-  uid?: string;
+  uid?: number;
   /** 保存封面 */
   saveCover?: boolean;
   /** 录制后转换为mp4 */

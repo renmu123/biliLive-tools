@@ -890,7 +890,7 @@ export class TaskQueue {
       [TaskType.biliDownload]: "biliDownloadMaxNum",
     };
     const config = this.appConfig.getAll();
-    const maxNum = config?.task?.[typeMap[task.type]] ?? -1;
+    const maxNum = config?.task?.[typeMap[task.type]] ?? 0;
     if (maxNum >= 0) {
       this.filter({ type: task.type, status: "running" }).length < maxNum &&
         isBetweenTimeRange(task.limitTime) &&
