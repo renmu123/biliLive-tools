@@ -206,7 +206,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     debugMode: true,
     convert2Mp4: false,
     bilibili: {
-      uid: "",
+      uid: undefined,
       quality: 10000,
       qualityRetry: 0,
     },

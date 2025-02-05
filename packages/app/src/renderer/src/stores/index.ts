@@ -242,9 +242,11 @@ export const useAppConfig = defineStore("appConfig", () => {
         hotProgressHeight: 60,
         hotProgressColor: "#f9f5f3",
         hotProgressFillColor: "#333333",
+        removeOriginAfterUploadCheck: false,
       },
       upload: {
         uploadPresetId: "default",
+        removeOriginAfterUploadCheck: false,
       },
       danmu: {
         danmuPresetId: "default",
@@ -287,6 +289,11 @@ export const useAppConfig = defineStore("appConfig", () => {
         ffmpegPresetId: "b_libx264",
         title: "{{filename}}-{{label}}-{{num}}",
         danmuPresetId: "default",
+        ignoreDanmu: false,
+      },
+      videoUpload: {
+        /** 审核通过后删除源文件 */
+        removeOriginAfterUploadCheck: false,
       },
     },
   });

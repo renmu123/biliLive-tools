@@ -354,7 +354,7 @@ watchEffect(async () => {
       disableAutoCheck: false,
       sendToWebhook: false,
       noGlobalFollowFields: [],
-      uid: "",
+      uid: undefined,
       saveCover: false,
     };
   }
