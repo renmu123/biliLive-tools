@@ -207,6 +207,7 @@ export class WebhookHandler {
       currentPart.filePath = file;
       currentPart.rawFilePath = file;
     }
+    currentPart.recordStatus = "prehandled";
 
     if (danmu) {
       try {
@@ -881,7 +882,7 @@ export class WebhookHandler {
             break;
           }
         } else if (type === "raw") {
-          if (part.recordStatus !== "recording") {
+          if (part.recordStatus == "prehandled" || part.recordStatus === "handled") {
             filePaths.push(part[filePathField]);
             if (!cover) cover = part.cover;
           } else {
