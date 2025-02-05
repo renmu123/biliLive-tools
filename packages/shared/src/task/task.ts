@@ -842,7 +842,7 @@ export class DouyuDownloadVideoTask extends AbstractTask {
   }
 }
 
-const isBetweenTimeRange = (range: [] | [string, string]) => {
+const isBetweenTimeRange = (range: undefined | [] | [string, string]) => {
   if (!range) return true;
   if (range.length !== 2) return true;
 

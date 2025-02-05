@@ -33,6 +33,8 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
 
     availableStreams: [],
     availableSources: [],
+    qualityMaxRetry: opts.qualityRetry ?? 0,
+    qualityRetry: opts.qualityRetry ?? 0,
     state: "idle",
 
     getChannelURL() {

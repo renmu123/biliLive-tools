@@ -399,6 +399,9 @@ export const parseSavePath = async (
   if (options.saveType === 1) {
     savePath = path.dirname(input);
   } else if (options.saveType === 2) {
+    if (!options.savePath) {
+      throw new Error("没有找到保存路径");
+    }
     savePath = path.resolve(path.dirname(input), options.savePath);
   } else {
     throw new Error("保存类型错误");

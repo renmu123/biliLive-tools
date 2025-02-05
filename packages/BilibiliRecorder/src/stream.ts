@@ -11,7 +11,6 @@ import {
   getRoomBaseInfo,
 } from "./bilibili_api.js";
 import { assert } from "./utils.js";
-import { sortBy } from "lodash-es";
 
 export async function getLiveStatus(channelId: string): Promise<boolean> {
   const roomInit = await getRoomInit(Number(channelId));
