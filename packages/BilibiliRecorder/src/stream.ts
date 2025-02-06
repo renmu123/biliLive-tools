@@ -12,9 +12,17 @@ import {
 } from "./bilibili_api.js";
 import { assert } from "./utils.js";
 
-export async function getLiveStatus(channelId: string): Promise<boolean> {
+export async function getLiveStatus(channelId: string): Promise<{
+  living: boolean;
+  liveId: string;
+}> {
   const roomInit = await getRoomInit(Number(channelId));
-  return roomInit.live_status === 1 && !roomInit.encrypted;
+  const startTime = new Date(roomInit.live_time * 1000);
+  return {
+    living: roomInit.live_status === 1 && !roomInit.encrypted,
+    liveId: utils.md5(`${roomInit.room_id}-${startTime?.getTime()}`),
+    ...roomInit,
+  };
 }
 
 export async function getInfo(channelId: string): Promise<{
@@ -52,6 +60,7 @@ export async function getInfo(channelId: string): Promise<{
   }
 
   const startTime = new Date(status.live_time * 1000);
+
   return {
     uid: roomInit.uid,
     living: roomInit.live_status === 1 && !roomInit.encrypted,

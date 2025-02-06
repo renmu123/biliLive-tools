@@ -93,7 +93,6 @@ router.get(
     const getRunningTask = () => {
       let data = handleListTask();
       const num = data.filter((item) => item.status === "running").length;
-      console.log("running task num", num);
       // @ts-ignore
       ctx.sse.send(JSON.stringify({ num }));
     };

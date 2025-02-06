@@ -97,7 +97,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   banLiveId,
 }) {
   if (this.recordHandle != null) return this.recordHandle;
-  const living = await getLiveStatus(this.channelId);
+  const { living, liveId } = await getLiveStatus(this.channelId);
   this.liveInfo = {
     living,
     owner: "",
@@ -107,16 +107,16 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     liveId: "",
   };
 
-  if (!living) return null;
-
-  const liveInfo = await getInfo(this.channelId);
-  const { owner, title, roomId, cover } = liveInfo;
-  if (liveInfo.liveId === banLiveId) {
+  if (liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
     this.tempStopIntervalCheck = false;
   }
   if (this.tempStopIntervalCheck) return null;
+  if (!living) return null;
+
+  const liveInfo = await getInfo(this.channelId);
+  const { owner, title, roomId, cover } = liveInfo;
   this.liveInfo = liveInfo;
 
   this.state = "recording";
