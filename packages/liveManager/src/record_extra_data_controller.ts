@@ -15,6 +15,7 @@ export interface RecordExtraData {
     title?: string;
     recordStartTimestamp: number;
     recordStopTimestamp?: number;
+    liveStartTimestamp?: number;
     ffmpegArgs?: string[];
     platform?: string;
     user_name?: string;
@@ -177,6 +178,7 @@ export function convert2Xml(data: RecordExtraData) {
       metadata: {
         platform: metadata.platform,
         video_start_time: metadata.recordStartTimestamp,
+        live_start_time: metadata.liveStartTimestamp,
         room_title: metadata.title,
         user_name: metadata.user_name,
         room_id: metadata.room_id,

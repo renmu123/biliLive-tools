@@ -255,6 +255,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     );
   }
   const ffmpegArgs = command._getArguments();
+  streamManager?.getExtraDataController()?.setMeta({
+    liveStartTimestamp: liveInfo.startTime?.getTime(),
+  });
   command.run();
 
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {

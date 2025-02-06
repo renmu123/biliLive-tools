@@ -292,6 +292,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     );
   }
   const ffmpegArgs = command._getArguments();
+  streamManager?.getExtraDataController()?.setMeta({
+    liveStartTimestamp: liveInfo.startTime?.getTime(),
+  });
   command.run();
 
   // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
