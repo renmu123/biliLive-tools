@@ -205,10 +205,13 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     uid: undefined,
     debugMode: true,
     convert2Mp4: false,
+    qualityRetry: 0,
     bilibili: {
       uid: undefined,
       quality: 10000,
-      qualityRetry: 0,
+    },
+    douyu: {
+      quality: 0,
     },
   },
   recorders: [],

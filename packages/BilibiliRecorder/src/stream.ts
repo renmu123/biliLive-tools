@@ -1,4 +1,4 @@
-import { Recorder } from "@autorecord/manager";
+import { Recorder, BiliQualities } from "@autorecord/manager";
 import {
   CodecInfo,
   FormatInfo,
@@ -162,9 +162,7 @@ export async function getStream(
     codec: "avc",
   };
 
-  const qn = [30000, 20000, 10000, 400, 250, 150, 80].includes(opts.quality as number)
-    ? (opts.quality as number)
-    : 10000;
+  const qn = BiliQualities.includes(opts.quality as any) ? (opts.quality as number) : 10000;
 
   let liveInfo = await getLiveInfo(roomId, {
     ...defaultOpts,

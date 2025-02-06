@@ -56,7 +56,7 @@ export interface GetRecorderArgs {
 }
 export type GetRecorderResp = ClientRecorder;
 
-export type AddRecorderArgs = Omit<LocalRecordr, "id">;
+export type AddRecorderArgs = Omit<LocalRecordr, "id" | "qualityRetry">;
 export type AddRecorderResp = ClientRecorder;
 
 export type UpdateRecorderArgs = Pick<

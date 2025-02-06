@@ -1,9 +1,8 @@
 import { sortBy } from "lodash-es";
 import { live } from "douyu-api";
 
-import { Qualities, Recorder } from "@autorecord/manager";
+import { DouyuQualities, Recorder } from "@autorecord/manager";
 import { getLiveInfo, SourceProfile, StreamProfile } from "./dy_api.js";
-import { getValuesFromArrayLikeFlexSpaceBetween } from "./utils.js";
 import { requester } from "./requester.js";
 
 export async function getInfo(channelId: string): Promise<{
@@ -81,68 +80,42 @@ export async function getInfo(channelId: string): Promise<{
 }
 
 export async function getStream(
-  opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities"> & {
+  opts: Pick<Recorder, "channelId" | "quality"> & {
     rejectCache?: boolean;
+    strictQuality?: boolean;
   },
 ) {
+  const qn = (
+    DouyuQualities.includes(opts.quality as any) ? opts.quality : 0
+  ) as (typeof DouyuQualities)[number];
+
   let liveInfo = await getLiveInfo({
     channelId: opts.channelId,
-    cdn: opts.sourcePriorities[0],
+    rate: qn,
   });
-  // console.log("liveInfo", liveInfo);
-  if (!liveInfo.living) throw new Error();
+  if (!liveInfo.living) throw new Error("It must be called getStream when living");
 
-  let expectStream: StreamProfile | null = null;
-  const streamsWithPriority = sortAndFilterStreamsByPriority(
-    liveInfo.streams,
-    opts.streamPriorities,
-  );
-  if (streamsWithPriority.length > 0) {
-    // 通过优先级来选择对应流
-    expectStream = streamsWithPriority[0];
-  } else {
-    // 通过设置的画质选项来选择对应流
-    // const isHighestAsExpected = opts.quality === "highest";
-    // if (!isHighestAsExpected) {
-    //   console.log("非最高画质", isHighestAsExpected, liveInfo.isOriginalStream);
-    const streams = getValuesFromArrayLikeFlexSpaceBetween(
-      // 斗鱼给的画质列表是按照清晰到模糊的顺序的，这里翻转下
-      liveInfo.streams.toReversed(),
-      Qualities.length,
-    );
-    // console.log("画质列表", streams);
+  // console.log(JSON.stringify(liveInfo, null, 2));
 
-    const qn = (
-      Qualities.includes(opts.quality as any) ? opts.quality : "highest"
-    ) as (typeof Qualities)[number];
-    expectStream = streams[Qualities.indexOf(qn)];
-    // }
+  if (liveInfo.currentStream.rate !== qn && opts.strictQuality) {
+    throw new Error("Can not get expect quality because of strictQuality");
   }
 
-  let expectSource: SourceProfile | null = null;
-  const sourcesWithPriority = sortAndFilterSourcesByPriority(
-    liveInfo.sources,
-    opts.sourcePriorities,
-  );
-  if (sourcesWithPriority.length > 0) {
-    expectSource = sourcesWithPriority[0];
+  let expectSource = liveInfo.sources[0];
+  if (!expectSource) {
+    throw new Error("Source list is empty");
   }
 
-  if (
-    (expectStream != null && liveInfo.currentStream.rate !== expectStream.rate) ||
-    (expectSource != null && liveInfo.currentStream.source !== expectSource.cdn)
-  ) {
-    // 当前流不是预期的流或源，需要切换。
-    // TODO: 这一步可能会导致原画的流被切走并且没法再取得，需要额外进行提示。
-    if (!liveInfo.isSupportRateSwitch) {
-      // TODO: 无法切换
+  // 是否存在画质下没有source的情况，可能需要切换画质
+  if (liveInfo.currentStream.rate !== qn) {
+    if (liveInfo.streams.length === 0) {
+      throw new Error("Can not get expect quality because of no available stream");
     } else {
       liveInfo = await getLiveInfo({
         channelId: opts.channelId,
-        rate: expectStream?.rate,
-        cdn: expectSource?.cdn,
+        rate: liveInfo.streams[0].rate,
       });
-      if (!liveInfo.living) throw new Error();
+      if (!liveInfo.living) throw new Error("It must be called getStream when living");
     }
   }
 

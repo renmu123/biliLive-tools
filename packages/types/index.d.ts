@@ -269,7 +269,14 @@ export type Theme = "system" | "light" | "dark";
 
 interface BaseRecordr {
   /** 画质 */
-  quality: "lowest" | "low" | "medium" | "high" | "highest" | BilibiliRecorderConfig["quality"];
+  quality:
+    | "lowest"
+    | "low"
+    | "medium"
+    | "high"
+    | "highest"
+    | BilibiliRecorderConfig["quality"]
+    | DouyuRecorderConfig["quality"];
   /** 线路 */
   line?: string; // "auto" | "tct-h5" | "hw-h5"
   /** 录制弹幕 */
@@ -286,6 +293,8 @@ interface BaseRecordr {
   saveCover?: boolean;
   /** 录制后转换为mp4 */
   convert2Mp4?: boolean;
+  /** 画质匹配重试次数 */
+  qualityRetry: number;
 }
 
 interface BilibiliRecorderConfig {
@@ -293,8 +302,10 @@ interface BilibiliRecorderConfig {
   uid?: number;
   /** 画质 30000：杜比 20000：4K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
   quality: 30000 | 20000 | 10000 | 400 | 250 | 150 | 80;
-  /** 画质匹配重试次数 */
-  qualityRetry: number;
+}
+interface DouyuRecorderConfig {
+  /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
+  quality: 0 | 2 | 3 | 4 | 8;
 }
 
 export interface GlobalRecorder extends BaseRecordr {
@@ -310,6 +321,8 @@ export interface GlobalRecorder extends BaseRecordr {
   debugMode: boolean;
   /** B站特有的配置 */
   bilibili: BilibiliRecorderConfig;
+  /** 斗鱼特有的配置 */
+  douyu: DouyuRecorderConfig;
 }
 
 export interface LocalRecordr extends BaseRecordr {

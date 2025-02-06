@@ -66,12 +66,6 @@
           <template #suffix>分钟</template>
         </n-input-number>
       </n-form-item>
-      <n-form-item>
-        <template #label>
-          <span class="inline-flex"> 画质 </span>
-        </template>
-        <n-select v-model:value="config.recorder.quality" :options="qualityOptions" />
-      </n-form-item>
 
       <n-form-item>
         <template #label>
@@ -145,8 +139,34 @@
             text="画质匹配重试次数"
           ></Tip>
         </template>
-        <n-input-number v-model:value="config.recorder.bilibili.qualityRetry" min="0" step="1">
+        <n-input-number v-model:value="config.recorder.qualityRetry" min="0" step="1">
         </n-input-number>
+      </n-form-item>
+
+      <h2>斗鱼</h2>
+      <n-form-item>
+        <template #label>
+          <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
+        </template>
+        <n-select v-model:value="config.recorder.douyu.quality" :options="douyuQualityOptions" />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip
+            tip="如果选项为零，那么匹配不到画质时会自动选择其他画质，否则会多次尝试匹配"
+            text="画质匹配重试次数"
+          ></Tip>
+        </template>
+        <n-input-number v-model:value="config.recorder.qualityRetry" min="0" step="1">
+        </n-input-number>
+      </n-form-item>
+
+      <h2>虎牙</h2>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> 画质 </span>
+        </template>
+        <n-select v-model:value="config.recorder.quality" :options="qualityOptions" />
       </n-form-item>
     </n-form>
   </div>
@@ -201,6 +221,29 @@ const biliQualityOptions = [
   {
     value: 80,
     label: "流畅(80)",
+  },
+];
+
+const douyuQualityOptions = [
+  {
+    value: 0,
+    label: "原画",
+  },
+  {
+    value: 8,
+    label: "蓝光8M",
+  },
+  {
+    value: 4,
+    label: "蓝光4M",
+  },
+  {
+    value: 3,
+    label: "超清",
+  },
+  {
+    value: 2,
+    label: "高清",
   },
 ];
 

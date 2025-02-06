@@ -25,10 +25,6 @@ export default class RecorderConfig {
         if (key === "uid") {
           // @ts-ignore
           return get(globalConfig, "bilibili.uid");
-          // @ts-ignore
-        } else if (key === "qualityRetry") {
-          // @ts-ignore
-          return get(globalConfig, "bilibili.qualityRetry");
         } else {
           // @ts-ignore
           return get(globalConfig, key);
@@ -65,7 +61,7 @@ export default class RecorderConfig {
       uid: uid,
       convert2Mp4: globalConfig["convert2Mp4"] ?? false,
       // @ts-ignore
-      qualityRetry: (getValue("qualityRetry") as number) ?? 0,
+      qualityRetry: getValue("qualityRetry") ?? 0,
       auth: auth,
     };
   }

@@ -126,7 +126,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       strictQuality: strictQuality,
     });
   } catch (err) {
-    console.error(err);
     this.qualityRetry -= 1;
     this.state = "idle";
     throw err;

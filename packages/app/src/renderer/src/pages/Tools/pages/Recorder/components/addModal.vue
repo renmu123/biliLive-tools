@@ -85,7 +85,7 @@
             >全局</n-checkbox
           >
         </n-form-item>
-        <n-form-item v-if="config.providerId !== 'Bilibili'">
+        <n-form-item v-if="config.providerId !== 'Bilibili' && config.providerId !== 'DouYu'">
           <template #label>
             <span class="inline-flex"> 画质 </span>
           </template>
@@ -137,6 +137,21 @@
             <n-select
               v-model:value="config.quality"
               :options="biliQualityOptions"
+              :disabled="globalFieldsObj.quality"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+        </template>
+        <template v-if="config.providerId === 'DouYu'">
+          <n-form-item>
+            <template #label>
+              <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.quality"
+              :options="douyuQualityOptions"
               :disabled="globalFieldsObj.quality"
             />
             <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
@@ -214,7 +229,7 @@ const emits = defineEmits<{
   (event: "confirm"): void;
 }>();
 
-const hasGlobalFields: (keyof Omit<BaseRecordr, "line" | "convert2Mp4">)[] = [
+const hasGlobalFields: (keyof Omit<BaseRecordr, "line" | "convert2Mp4" | "qualityRetry">)[] = [
   "quality",
   "disableProvideCommentsWhenRecording",
   "saveGiftDanma",
@@ -229,7 +244,7 @@ for (const key of hasGlobalFields) {
   globalFieldsObj.value[key] = true;
 }
 
-const config = ref<Omit<LocalRecordr, "id">>({
+const config = ref<Omit<LocalRecordr, "id" | "qualityRetry">>({
   providerId: "DouYu",
   channelId: "",
   segment: 60,
@@ -280,6 +295,29 @@ const biliQualityOptions = [
   {
     value: 80,
     label: "流畅(80)",
+  },
+];
+
+const douyuQualityOptions = [
+  {
+    value: 0,
+    label: "原画",
+  },
+  {
+    value: 8,
+    label: "蓝光8M",
+  },
+  {
+    value: 4,
+    label: "蓝光4M",
+  },
+  {
+    value: 3,
+    label: "超清",
+  },
+  {
+    value: 2,
+    label: "高清",
   },
 ];
 
@@ -334,6 +372,8 @@ const onChannelIdInputEnd = async () => {
   owner.value = res.owner;
   if (res.providerId === "Bilibili") {
     config.value.quality = 10000;
+  } else if (res.providerId === "DouYu") {
+    config.value.quality = 0;
   }
 };
 
@@ -345,7 +385,7 @@ watchEffect(async () => {
       providerId: "DouYu",
       channelId: "",
       segment: 60,
-      quality: "highest",
+      quality: 0,
       disableProvideCommentsWhenRecording: true,
       saveGiftDanma: false,
       saveSCDanma: true,
@@ -380,6 +420,8 @@ watch(
     if (val.quality) {
       if (config.value.providerId === "Bilibili") {
         config.value.quality = appConfig.value.recorder.bilibili.quality;
+      } else if (config.value.providerId === "DouYu") {
+        config.value.quality = appConfig.value.recorder.douyu.quality;
       } else {
         config.value.quality = appConfig.value.recorder.quality;
       }
