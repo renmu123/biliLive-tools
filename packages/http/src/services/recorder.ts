@@ -76,6 +76,7 @@ async function addRecorder(
       createTimestamp: Date.now(),
     },
   };
+  // TODO: recorder配置重写
   const recorder = await recorderManager.addRecorder(config);
   if (recorder == null) throw new Error("添加失败：不可重复添加");
   return recorderToClient(recorder);
@@ -85,6 +86,7 @@ async function updateRecorder(
   args: RecorderAPI["updateRecorder"]["Args"],
 ): Promise<RecorderAPI["updateRecorder"]["Resp"]> {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  // TODO: recorder配置重写
   const recorder = await recorderManager.updateRecorder(args);
   if (recorder == null) throw new Error("配置不存在");
 

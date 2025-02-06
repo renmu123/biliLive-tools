@@ -1,8 +1,7 @@
-import { sortBy } from "lodash-es";
 import { live } from "douyu-api";
 
 import { DouyuQualities, Recorder } from "@autorecord/manager";
-import { getLiveInfo, SourceProfile, StreamProfile } from "./dy_api.js";
+import { getLiveInfo } from "./dy_api.js";
 import { requester } from "./requester.js";
 
 export async function getInfo(channelId: string): Promise<{
@@ -125,49 +124,4 @@ export async function getStream(
   // if (!json.data.streamStatus) return
 
   return liveInfo;
-}
-
-/**
- * 按提供的流优先级去给流列表排序，并过滤掉不在优先级配置中的流
- */
-function sortAndFilterStreamsByPriority(
-  streams: StreamProfile[],
-  streamPriorities: Recorder["streamPriorities"],
-): (StreamProfile & {
-  priority: number;
-})[] {
-  if (streamPriorities.length === 0) return [];
-
-  return sortBy(
-    // 分配优先级属性，数字越大优先级越高
-    streams
-      .map((stream) => ({
-        ...stream,
-        priority: streamPriorities.toReversed().indexOf(stream.name),
-      }))
-      .filter(({ priority }) => priority !== -1),
-    "priority",
-  );
-}
-
-/**
- * 按提供的源优先级去给源列表排序，并过滤掉不在优先级配置中的源
- */
-function sortAndFilterSourcesByPriority(
-  sources: SourceProfile[],
-  sourcePriorities: Recorder["sourcePriorities"],
-): (SourceProfile & {
-  priority: number;
-})[] {
-  if (sourcePriorities.length === 0) return [];
-  return sortBy(
-    // 分配优先级属性，数字越大优先级越高
-    sources
-      .map((source) => ({
-        ...source,
-        priority: sourcePriorities.toReversed().indexOf(source.cdn),
-      }))
-      .filter(({ priority }) => priority !== -1),
-    "priority",
-  );
 }

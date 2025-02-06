@@ -49,7 +49,6 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
           const item = this.list.find((data) => data.aid == media.Archive.aid);
           if (!item) continue;
           item.data = media;
-          console.log("media2", media);
 
           if (media.Archive.state === 0) {
             item.status = "completed";
