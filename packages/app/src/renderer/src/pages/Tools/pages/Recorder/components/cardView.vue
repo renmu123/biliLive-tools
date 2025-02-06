@@ -23,6 +23,9 @@
             <n-icon v-if="!item.disableAutoCheck" size="20" title="自动录制">
               <AccessTime24Regular style="color: gray" />
             </n-icon>
+            <n-icon v-if="item.tempStopIntervalCheck" size="20" title="跳过本场直播">
+              <RecordStop16Regular style="color: gray" />
+            </n-icon>
           </div>
           <div class="channel-id">
             房间号：<a class="link" target="_blank" :href="item.channelURL">{{ item.channelId }}</a>
@@ -44,7 +47,7 @@
 
 <script setup lang="ts">
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
-import { Live24Regular, AccessTime24Regular } from "@vicons/fluent";
+import { Live24Regular, AccessTime24Regular, RecordStop16Regular } from "@vicons/fluent";
 
 interface Props {
   list: any[];

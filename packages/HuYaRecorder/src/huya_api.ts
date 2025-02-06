@@ -1,4 +1,6 @@
 import axios from "axios";
+
+import { utils } from "@autorecord/manager";
 import { assert } from "./utils.js";
 import { initInfo } from "./anticode.js";
 
@@ -14,6 +16,8 @@ export async function getRoomInfo(roomIdOrShortId: string) {
 
   const hyPlayerConfig: HYPlayerConfig = new Function(`return ${hyPlayerConfigString}`)();
   assert(hyPlayerConfig, `Unexpected resp, hyPlayerConfig is null`);
+
+  // console.log(JSON.stringify(hyPlayerConfig, null, 2));
 
   const { vMultiStreamInfo } = hyPlayerConfig.stream;
   const streams: StreamProfile[] = vMultiStreamInfo.map((info) => ({
@@ -34,6 +38,7 @@ export async function getRoomInfo(roomIdOrShortId: string) {
     }),
   }));
 
+  const startTime = new Date(data.gameLiveInfo?.startTime * 1000);
   return {
     living: vMultiStreamInfo.length > 0 && data.gameStreamInfoList.length > 0,
     id: data.gameLiveInfo.profileRoom,
@@ -44,6 +49,8 @@ export async function getRoomInfo(roomIdOrShortId: string) {
     cover: data.gameLiveInfo.screenshot,
     streams,
     sources,
+    startTime,
+    liveId: utils.md5(`${roomIdOrShortId}-${startTime?.getTime()}`),
   };
 }
 

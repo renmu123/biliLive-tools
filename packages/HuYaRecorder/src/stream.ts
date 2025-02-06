@@ -10,6 +10,8 @@ export async function getInfo(channelId: string): Promise<{
   roomId: number;
   avatar: string;
   cover: string;
+  startTime: Date;
+  liveId?: string;
 }> {
   const info = await getRoomInfo(channelId);
 
@@ -20,6 +22,8 @@ export async function getInfo(channelId: string): Promise<{
     avatar: info.avatar,
     cover: info.cover,
     roomId: info.roomId,
+    startTime: info.startTime,
+    liveId: info.liveId,
   };
 }
 

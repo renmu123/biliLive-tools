@@ -6,12 +6,7 @@ import { omit } from "lodash-es";
 import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
 import { provider as providerForHuYa } from "@autorecord/huya-recorder";
 import { provider as providerForBiliBili } from "@autorecord/bilibili-recorder";
-import {
-  createRecorderManager as createManager,
-  setFFMPEGPath,
-  utils,
-  genSavePathFromRule,
-} from "@autorecord/manager";
+import { createRecorderManager as createManager, setFFMPEGPath, utils } from "@autorecord/manager";
 
 // import LiveService from "../db/service/liveService.js";
 // import DanmuService from "../db/service/danmuService.js";
@@ -58,26 +53,6 @@ async function convert2Mp4(videoFile: string): Promise<string> {
 }
 
 export async function createRecorderManager(appConfig: AppConfig) {
-  /**
-   * 开始录制
-   * @param id - recorder id
-   */
-  async function startRecord(id: string) {
-    const recorder = manager.recorders.find((item) => item.id === id);
-    if (recorder == null) return null;
-
-    if (recorder.recordHandle == null) {
-      await recorder.checkLiveStatusAndRecord({
-        getSavePath(data) {
-          return genSavePathFromRule(manager, recorder, data);
-        },
-        qualityRetry: 0,
-      });
-    }
-
-    return recorder;
-  }
-
   /**
    * 更新录制器
    * @param args - 更新参数
@@ -280,7 +255,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
       });
 
       if (!data.disableAutoCheck) {
-        startRecord(recoder.id);
+        manager.startRecord(recoder.id);
       }
       return recoder;
     },
@@ -304,9 +279,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
         };
       }
       return null;
-    },
-    startRecord: async (id: string) => {
-      return startRecord(id);
     },
   };
 }

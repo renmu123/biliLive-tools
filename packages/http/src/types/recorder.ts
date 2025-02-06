@@ -154,6 +154,7 @@ export type RecorderAPI = {
       | "state"
       | "usedSource"
       | "usedStream"
+      | "tempStopIntervalCheck"
     >[];
   };
   getRecorder: {

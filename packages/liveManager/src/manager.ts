@@ -91,6 +91,11 @@ export interface RecorderManager<
   recorders: Recorder<E>[];
   addRecorder: (this: RecorderManager<ME, P, PE, E>, opts: RecorderCreateOpts<E>) => Recorder<E>;
   removeRecorder: (this: RecorderManager<ME, P, PE, E>, recorder: Recorder<E>) => void;
+  startRecord: (
+    this: RecorderManager<ME, P, PE, E>,
+    id: string,
+  ) => Promise<Recorder<E> | undefined>;
+  stopRecord: (this: RecorderManager<ME, P, PE, E>, id: string) => Promise<Recorder<E> | undefined>;
 
   autoCheckLiveStatusAndRecord: boolean;
   autoCheckInterval: number;
@@ -127,18 +132,19 @@ export function createRecorderManager<
     const maxThreadCount = 3;
     // 这里暂时不打算用 state == recording 来过滤，provider 必须内部自己处理录制过程中的 check，
     // 这样可以防止一些意外调用 checkLiveStatusAndRecord 时出现重复录制。
-    const needCheckRecorders = recorders
-      .filter((r) => !r.disableAutoCheck)
-      .filter((r) => !r.tempStopIntervalCheck);
+    const needCheckRecorders = recorders.filter((r) => !r.disableAutoCheck);
 
     const checkOnce = async () => {
       const recorder = needCheckRecorders.shift();
       if (recorder == null) return;
 
+      const banLiveId = tempBanObj[recorder.channelId];
+      console.log("banLiveId", banLiveId);
       await recorder.checkLiveStatusAndRecord({
         getSavePath(data) {
           return genSavePathFromRule(manager, recorder, data);
         },
+        banLiveId,
       });
     };
 
@@ -154,6 +160,9 @@ export function createRecorderManager<
 
     await Promise.all(threads);
   };
+
+  // 用于记录暂时被 ban 掉的直播间
+  const tempBanObj: Record<string, string> = {};
 
   const manager: RecorderManager<ME, P, PE, E> = {
     // @ts-ignore
@@ -202,7 +211,38 @@ export function createRecorderManager<
       if (idx === -1) return;
       recorder.recordHandle?.stop("remove recorder");
       this.recorders.splice(idx, 1);
+
+      delete tempBanObj[recorder.channelId];
       this.emit("RecorderRemoved", recorder);
+    },
+    async startRecord(id: string) {
+      const recorder = this.recorders.find((item) => item.id === id);
+      if (recorder == null) return;
+      if (recorder.recordHandle != null) return;
+
+      await recorder.checkLiveStatusAndRecord({
+        getSavePath(data) {
+          return genSavePathFromRule(manager, recorder, data);
+        },
+        qualityRetry: 0,
+      });
+      delete tempBanObj[recorder.channelId];
+      recorder.tempStopIntervalCheck = false;
+      return recorder;
+    },
+    async stopRecord(id: string) {
+      const recorder = this.recorders.find((item) => item.id === id);
+      if (recorder == null) return;
+      if (recorder.recordHandle == null) return;
+      const liveId = recorder.liveInfo?.liveId;
+
+      await recorder.recordHandle.stop("manual stop", true);
+      if (liveId) {
+        tempBanObj[recorder.channelId] = liveId;
+        recorder.tempStopIntervalCheck = true;
+      }
+      console.log("tempBanObj", tempBanObj);
+      return recorder;
     },
 
     autoCheckLiveStatusAndRecord: opts.autoCheckLiveStatusAndRecord ?? true,

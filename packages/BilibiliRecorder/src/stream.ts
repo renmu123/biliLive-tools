@@ -1,4 +1,4 @@
-import { Recorder, BiliQualities } from "@autorecord/manager";
+import { Recorder, BiliQualities, utils } from "@autorecord/manager";
 import {
   CodecInfo,
   FormatInfo,
@@ -25,8 +25,9 @@ export async function getInfo(channelId: string): Promise<{
   shortId: number;
   avatar: string;
   cover: string;
-  start_time: Date;
+  startTime: Date;
   uid: number;
+  liveId: string;
 }> {
   const roomInit = await getRoomInit(Number(channelId));
   const { [roomInit.uid]: status } = await getStatusInfoByUIDs([roomInit.uid]);
@@ -35,19 +36,22 @@ export async function getInfo(channelId: string): Promise<{
     const data = await getRoomBaseInfo(Number(channelId));
     const status = data[channelId];
 
+    const startTime = new Date(status.live_time);
     return {
       uid: roomInit.uid,
       living: roomInit.live_status === 1 && !roomInit.encrypted,
       owner: status.uname,
       title: status.title,
-      start_time: new Date(status.live_time),
+      startTime: startTime,
       avatar: "",
       cover: status.cover,
       roomId: roomInit.room_id,
       shortId: roomInit.short_id,
+      liveId: utils.md5(`${roomInit.room_id}-${startTime?.getTime()}`),
     };
   }
 
+  const startTime = new Date(status.live_time * 1000);
   return {
     uid: roomInit.uid,
     living: roomInit.live_status === 1 && !roomInit.encrypted,
@@ -57,7 +61,8 @@ export async function getInfo(channelId: string): Promise<{
     cover: status.cover_from_user,
     roomId: roomInit.room_id,
     shortId: roomInit.short_id,
-    start_time: new Date(status.live_time * 1000),
+    startTime: startTime,
+    liveId: utils.md5(`${roomInit.room_id}-${startTime.getTime()}`),
   };
 }
 
@@ -171,7 +176,6 @@ export async function getStream(
   });
   // console.log(JSON.stringify(liveInfo, null, 2));
 
-  // let expectStream: StreamProfile | null = null;
   if (liveInfo.current_qn !== qn && opts.strictQuality) {
     throw new Error("Can not get expect quality because of strictQuality");
   }

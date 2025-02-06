@@ -1,6 +1,6 @@
 import { live } from "douyu-api";
 
-import { DouyuQualities, Recorder } from "@autorecord/manager";
+import { DouyuQualities, Recorder, utils } from "@autorecord/manager";
 import { getLiveInfo } from "./dy_api.js";
 import { requester } from "./requester.js";
 
@@ -11,6 +11,7 @@ export async function getInfo(channelId: string): Promise<{
   startTime: Date;
   avatar: string;
   cover: string;
+  liveId: string;
   // gifts: {
   //   id: string;
   //   name: string;
@@ -62,13 +63,16 @@ export async function getInfo(channelId: string): Promise<{
     }
   }
 
+  const startTime = new Date(data.room.show_time * 1000);
   return {
     living,
     owner: data.room.nickname,
     title: data.room.room_name,
     avatar: data.room.avatar.big,
     cover: data.room.room_pic,
-    startTime: new Date(data.room.show_time * 1000),
+    startTime: startTime,
+    liveId: utils.md5(`${channelId}-${startTime?.getTime() ?? Date.now()}`),
+
     // gifts: data.gift.map((g) => ({
     //   id: g.id,
     //   name: g.name,

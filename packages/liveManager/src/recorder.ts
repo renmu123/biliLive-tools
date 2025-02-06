@@ -94,6 +94,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     startTime?: Date;
     avatar: string;
     cover: string;
+    liveId?: string;
   };
   tempStopIntervalCheck?: boolean;
   // TODO: 随机的一条近期弹幕 / 评论，这或许应该放在 manager 层做，上面再加个频率统计之类的
@@ -107,6 +108,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     opts: {
       getSavePath(data: { owner: string; title: string; startTime?: number }): string;
       qualityRetry?: number;
+      banLiveId?: string;
     },
   ) => Promise<RecordHandle | null>;
   // 正在进行的录制的操作接口
@@ -122,6 +124,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     cover: string;
     channelId: ChannelId;
     living: boolean;
+    startTime: Date;
   }>;
   getStream: (this: Recorder<E>) => Promise<{
     source: string;

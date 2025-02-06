@@ -47,6 +47,7 @@ async function getRecorders(
       "state",
       "usedSource",
       "usedStream",
+      "tempStopIntervalCheck",
     );
     data.recordHandle = isEmpty(data.recordHandle)
       ? data.recordHandle
@@ -77,6 +78,7 @@ async function addRecorder(
     },
   };
   // TODO: recorder配置重写
+  // @ts-ignore
   const recorder = await recorderManager.addRecorder(config);
   if (recorder == null) throw new Error("添加失败：不可重复添加");
   return recorderToClient(recorder);
@@ -87,6 +89,7 @@ async function updateRecorder(
 ): Promise<RecorderAPI["updateRecorder"]["Resp"]> {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
   // TODO: recorder配置重写
+  // @ts-ignore
   const recorder = await recorderManager.updateRecorder(args);
   if (recorder == null) throw new Error("配置不存在");
 
@@ -105,27 +108,18 @@ function removeRecorder(
   return null;
 }
 
-async function startRecord(
-  args: RecorderAPI["startRecord"]["Args"],
-): Promise<RecorderAPI["startRecord"]["Resp"]> {
+async function startRecord(args: RecorderAPI["startRecord"]["Args"]): Promise<null> {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  const recorder = await recorderManager.startRecord(args.id);
-  if (recorder == null) throw new Error("开始录制失败");
-
-  return recorderToClient(recorder);
+  await recorderManager.manager.startRecord(args.id);
+  return null;
+  // return recorderToClient(recorder);
 }
 
-async function stopRecord(
-  args: RecorderAPI["stopRecord"]["Args"],
-): Promise<RecorderAPI["stopRecord"]["Resp"]> {
+async function stopRecord(args: RecorderAPI["stopRecord"]["Args"]): Promise<null> {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
-  if (recorder == null) throw new Error("配置不存在");
-
-  if (recorder.recordHandle != null) {
-    await recorder.recordHandle.stop("manual stop", true);
-  }
-  return recorderToClient(recorder);
+  await recorderManager.manager.stopRecord(args.id);
+  return null;
+  // return recorderToClient(recorder);
 }
 
 type PagedResultGetter<T = unknown> = (

@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
@@ -262,6 +263,10 @@ async function downloadImage(imageUrl: string, savePath: string) {
   await finished(Readable.fromWeb(res.body).pipe(fileStream));
 }
 
+const md5 = (str: string) => {
+  return crypto.createHash("md5").update(str).digest("hex");
+};
+
 export default {
   replaceExtName,
   singleton,
@@ -276,4 +281,5 @@ export default {
   createInvalidStreamChecker,
   createTimeoutChecker,
   downloadImage,
+  md5,
 };

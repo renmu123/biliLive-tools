@@ -27,7 +27,13 @@
         >
           {{ item.state === "recording" ? "录制中" : "尚未开始" }}
         </td>
-        <td>{{ item.disableAutoCheck ? "手动" : "自动" }}</td>
+        <td>
+          {{
+            item.disableAutoCheck
+              ? "手动"
+              : `自动${item.tempStopIntervalCheck ? "(跳过本场直播)" : ""}`
+          }}
+        </td>
         <td>
           <n-popover placement="right-start" trigger="hover">
             <template #trigger>

@@ -94,8 +94,8 @@ const ffmpegOutputOptions: string[] = [
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
   qualityRetry,
+  banLiveId,
 }) {
-  this.tempStopIntervalCheck = false;
   if (this.recordHandle != null) return this.recordHandle;
   const living = await getLiveStatus(this.channelId);
   this.liveInfo = {
@@ -104,11 +104,19 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     title: "",
     avatar: "",
     cover: "",
+    liveId: "",
   };
+
   if (!living) return null;
 
   const liveInfo = await getInfo(this.channelId);
   const { owner, title, roomId, cover } = liveInfo;
+  if (liveInfo.liveId === banLiveId) {
+    this.tempStopIntervalCheck = true;
+  } else {
+    this.tempStopIntervalCheck = false;
+  }
+  if (this.tempStopIntervalCheck) return null;
   this.liveInfo = liveInfo;
 
   this.state = "recording";
@@ -341,46 +349,39 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     );
   }
   const ffmpegArgs = command._getArguments();
-  // extraDataController.setMeta({
-  //   recordStartTimestamp: Date.now(),
-  //   ffmpegArgs,
-  // });
   command.run();
 
   // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
 
-  const stop = utils.singleton<RecordHandle["stop"]>(
-    async (reason?: string, tempStopIntervalCheck?: boolean) => {
-      if (!this.recordHandle) return;
-      this.tempStopIntervalCheck = !!tempStopIntervalCheck;
+  const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
+    if (!this.recordHandle) return;
 
-      this.state = "stopping-record";
-      // TODO: emit update event
+    this.state = "stopping-record";
+    // TODO: emit update event
 
-      timeoutChecker.stop();
+    timeoutChecker.stop();
 
-      try {
-        // @ts-ignore
-        command.ffmpegProc?.stdin?.write("q");
-        // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
-        client?.close();
-        this.usedStream = undefined;
-        this.usedSource = undefined;
+    try {
+      // @ts-ignore
+      command.ffmpegProc?.stdin?.write("q");
+      // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
+      client?.close();
+      this.usedStream = undefined;
+      this.usedSource = undefined;
 
-        await streamManager.handleVideoCompleted();
-      } catch (err) {
-        // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
-        this.emit("DebugLog", { type: "common", text: String(err) });
-      }
+      await streamManager.handleVideoCompleted();
+    } catch (err) {
+      // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
+      this.emit("DebugLog", { type: "common", text: String(err) });
+    }
 
-      this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
-      this.off("videoFileCreated", saveCover);
-      this.recordHandle = undefined;
-      this.liveInfo = undefined;
-      this.state = "idle";
-      this.qualityRetry = this.qualityMaxRetry;
-    },
-  );
+    this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
+    this.off("videoFileCreated", saveCover);
+    this.recordHandle = undefined;
+    this.liveInfo = undefined;
+    this.state = "idle";
+    this.qualityRetry = this.qualityMaxRetry;
+  });
 
   this.recordHandle = {
     id: genRecordUUID(),
