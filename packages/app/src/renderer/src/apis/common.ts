@@ -119,7 +119,7 @@ export async function douyuVideoDownload(
   },
 ) {
   const res = await request.post(`/common/douyu/download`, {
-    output,
+    output: output,
     decodeData,
     options,
   });

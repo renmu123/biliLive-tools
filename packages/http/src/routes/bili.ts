@@ -1,9 +1,10 @@
+import path from "node:path";
 import Router from "koa-router";
+import { v4 as uuid } from "uuid";
+import { omit } from "lodash-es";
 
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { TvQrcodeLogin } from "@renmu/bili-api";
-import { v4 as uuid } from "uuid";
-import { omit } from "lodash-es";
 
 import type { BiliupConfig } from "@biliLive-tools/types";
 
@@ -96,6 +97,7 @@ router.get("/typeDesc", async (ctx) => {
 
 router.post("/download", async (ctx) => {
   const { options, uid } = ctx.request.body;
+  options.output = path.normalize(options.output);
   // @ts-ignore
   const data = await biliApi.download(options, uid);
   ctx.body = data;

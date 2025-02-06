@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import request from "./request";
 
 import type { Task } from "@renderer/types";
@@ -99,7 +101,7 @@ const mergeVideos = async (
 ): Promise<string> => {
   const res = await request.post(`/task/mergeVideo`, {
     inputVideos,
-    output,
+    output: path.normalize(output),
     options,
   });
   return res.data;

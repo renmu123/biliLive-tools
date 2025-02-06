@@ -156,7 +156,7 @@ router.post("/douyu/download", async (ctx) => {
     decodeData: any;
     options: any;
   };
-  const { taskId } = await douyu.download(output, decodeData, options);
+  const { taskId } = await douyu.download(path.normalize(output), decodeData, options);
   ctx.body = { taskId: taskId };
 });
 
