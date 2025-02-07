@@ -9,6 +9,8 @@ import type { LocalRecordr } from "@biliLive-tools/types";
 
 export interface RecorderExtra {
   createTimestamp: number;
+  /** B站主播的uid */
+  recorderUid?: string;
 }
 
 export interface PagedArgs {
@@ -107,6 +109,7 @@ export type ResolveChannelResp = {
   providerId: string;
   channelId: string;
   owner: string;
+  uid?: number;
 } | null;
 
 export interface GetManagerDefaultArgs {}

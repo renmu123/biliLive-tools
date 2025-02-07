@@ -3,6 +3,7 @@ import mitt, { Emitter } from "mitt";
 import { omit, range } from "lodash-es";
 import { parseArgsStringToArgv } from "string-argv";
 import { ChannelId, Message } from "./common.js";
+import { getBiliStatusInfoByUIDs } from "./api.js";
 import {
   RecorderCreateOpts,
   Recorder,
@@ -36,6 +37,7 @@ export interface RecorderProvider<E extends AnyObject> {
     id: ChannelId;
     title: string;
     owner: string;
+    uid?: number;
   } | null>;
   createRecorder: (
     this: RecorderProvider<E>,
@@ -53,6 +55,7 @@ const configurableProps = [
   "autoCheckLiveStatusAndRecord",
   "autoCheckInterval",
   "ffmpegOutputArgs",
+  "biliBatchQuery",
 ] as const;
 type ConfigurableProp = (typeof configurableProps)[number];
 function isConfigurableProp(prop: unknown): prop is ConfigurableProp {
@@ -106,6 +109,8 @@ export interface RecorderManager<
   savePathRule: string;
   autoRemoveSystemReservedChars: boolean;
   ffmpegOutputArgs: string;
+  /** b站使用批量查询接口 */
+  biliBatchQuery: boolean;
 }
 
 export type RecorderManagerCreateOpts<
@@ -128,18 +133,58 @@ export function createRecorderManager<
   let checkLoopTimer: NodeJS.Timeout | undefined;
 
   const multiThreadCheck = async (manager: RecorderManager<ME, P, PE, E>) => {
-    // TODO: 先用写死的数量，后面改成可以设置的
+    const handleBatchQuery = async (obj: Record<string, boolean>) => {
+      for (const recorder of recorders) {
+        if (recorder.extra.recorderUid == null) continue;
+
+        const isLive = obj[recorder.extra.recorderUid];
+        if (isLive) {
+          await recorder.checkLiveStatusAndRecord({
+            getSavePath(data) {
+              return genSavePathFromRule(manager, recorder, data);
+            },
+            banLiveId: tempBanObj[recorder.channelId],
+          });
+        }
+      }
+    };
+
     const maxThreadCount = 3;
     // 这里暂时不打算用 state == recording 来过滤，provider 必须内部自己处理录制过程中的 check，
     // 这样可以防止一些意外调用 checkLiveStatusAndRecord 时出现重复录制。
-    const needCheckRecorders = recorders.filter((r) => !r.disableAutoCheck);
+    let needCheckRecorders = recorders.filter((r) => !r.disableAutoCheck);
+    let threads: Promise<void>[] = [];
+
+    if (manager.biliBatchQuery) {
+      const biliNeedCheckRecorders = needCheckRecorders.filter(
+        (r) => r.providerId === "Bilibili" && r.extra?.recorderUid,
+      );
+      needCheckRecorders = needCheckRecorders.filter((r) => {
+        if (r.providerId !== "Bilibili") return true;
+        if (r.providerId === "Bilibili" && !r.extra?.recorderUid) return true;
+
+        return false;
+      });
+
+      const uids = biliNeedCheckRecorders.map((r) => r.extra?.recorderUid) as number[];
+      console.log("uids", uids);
+      try {
+        if (uids.length !== 0) {
+          const biliStatus = await getBiliStatusInfoByUIDs(uids);
+          console.log("biliStatus", biliStatus);
+
+          threads.push(handleBatchQuery(biliStatus));
+        }
+      } catch (err) {
+        manager.emit("error", { source: "getBiliStatusInfoByUIDs", err });
+      }
+    }
 
     const checkOnce = async () => {
       const recorder = needCheckRecorders.shift();
       if (recorder == null) return;
 
       const banLiveId = tempBanObj[recorder.channelId];
-      console.log("banLiveId", banLiveId);
       await recorder.checkLiveStatusAndRecord({
         getSavePath(data) {
           return genSavePathFromRule(manager, recorder, data);
@@ -148,15 +193,17 @@ export function createRecorderManager<
       });
     };
 
-    const threads = range(0, maxThreadCount).map(async () => {
-      while (needCheckRecorders.length > 0) {
-        try {
-          await checkOnce();
-        } catch (err) {
-          manager.emit("error", { source: "checkOnceInThread", err });
+    threads = threads.concat(
+      range(0, maxThreadCount).map(async () => {
+        while (needCheckRecorders.length > 0) {
+          try {
+            await checkOnce();
+          } catch (err) {
+            manager.emit("error", { source: "checkOnceInThread", err });
+          }
         }
-      }
-    });
+      }),
+    );
 
     await Promise.all(threads);
   };
@@ -284,6 +331,7 @@ export function createRecorderManager<
       ),
 
     autoRemoveSystemReservedChars: opts.autoRemoveSystemReservedChars ?? true,
+    biliBatchQuery: opts.biliBatchQuery ?? false,
 
     ffmpegOutputArgs:
       opts.ffmpegOutputArgs ??

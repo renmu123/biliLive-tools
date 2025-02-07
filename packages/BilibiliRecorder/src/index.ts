@@ -58,6 +58,9 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       });
       return res.currentStream;
     },
+    // batchLiveStatusCheck: async function (channels: string[]) {
+    //   const data = await getStatusInfoByUIDs([roomInit.uid]);
+    // },
   };
 
   const recorderWithSupportUpdatedEvent = new Proxy(recorder, {
@@ -419,6 +422,7 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
       id: info.roomId.toString(),
       title: info.title,
       owner: info.owner,
+      uid: info.uid,
     };
   },
 

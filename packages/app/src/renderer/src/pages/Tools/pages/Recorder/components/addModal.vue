@@ -258,6 +258,7 @@ const config = ref<Omit<LocalRecordr, "id" | "qualityRetry">>({
   sendToWebhook: false,
   noGlobalFollowFields: [],
   saveCover: false,
+  extra: {},
 });
 
 const qualityOptions = [
@@ -356,7 +357,6 @@ const channelIdUrl = ref("");
 const owner = ref("");
 const onChannelIdInputEnd = async () => {
   if (!channelIdUrl.value) return;
-  console.log("onChannelIdInputEnd");
   const res = await recoderApi.resolveChannel(channelIdUrl.value);
   if (!res) {
     notice.error({
@@ -370,15 +370,18 @@ const onChannelIdInputEnd = async () => {
   config.value.providerId = res.providerId;
   config.value.remarks = res.owner;
   owner.value = res.owner;
+  config.value.extra = config.value.extra ?? {};
+  config.value.extra!.createTimestamp = Date.now();
   if (res.providerId === "Bilibili") {
     config.value.quality = 10000;
+    config.value.extra!.recorderUid = res.uid;
   } else if (res.providerId === "DouYu") {
     config.value.quality = 0;
   }
 };
 
-watchEffect(async () => {
-  if (showModal.value) {
+watch(showModal, async (val) => {
+  if (val) {
     channelIdUrl.value = "";
     owner.value = "";
     config.value = {
@@ -397,21 +400,22 @@ watchEffect(async () => {
       uid: undefined,
       saveCover: false,
     };
+
+    if (props.id) {
+      await getRecordSetting();
+    }
+    globalFieldsObj.value = {
+      quality: !(config.value?.noGlobalFollowFields ?? []).includes("quality"),
+      disableProvideCommentsWhenRecording: !(config.value?.noGlobalFollowFields ?? []).includes(
+        "disableProvideCommentsWhenRecording",
+      ),
+      saveGiftDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftDanma"),
+      saveSCDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
+      segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
+      uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
+      saveCover: !(config.value?.noGlobalFollowFields ?? []).includes("saveCover"),
+    };
   }
-  if (props.id) {
-    await getRecordSetting();
-  }
-  globalFieldsObj.value = {
-    quality: !(config.value?.noGlobalFollowFields ?? []).includes("quality"),
-    disableProvideCommentsWhenRecording: !(config.value?.noGlobalFollowFields ?? []).includes(
-      "disableProvideCommentsWhenRecording",
-    ),
-    saveGiftDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftDanma"),
-    saveSCDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
-    segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
-    uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
-    saveCover: !(config.value?.noGlobalFollowFields ?? []).includes("saveCover"),
-  };
 });
 
 watch(

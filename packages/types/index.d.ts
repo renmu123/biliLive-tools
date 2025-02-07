@@ -302,6 +302,8 @@ interface BilibiliRecorderConfig {
   uid?: number;
   /** 画质 30000：杜比 20000：4K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
   quality: 30000 | 20000 | 10000 | 400 | 250 | 150 | 80;
+  /** 使用批量查询接口  */
+  useBatchQuery: boolean;
 }
 interface DouyuRecorderConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
@@ -332,7 +334,11 @@ export interface LocalRecordr extends BaseRecordr {
   remarks?: string;
   streamPriorities: any[];
   sourcePriorities: any[];
-  extra?: { createTimestamp?: number };
+  extra?: {
+    createTimestamp?: number;
+    /** B站主播的uid */
+    recorderUid?: number;
+  };
   disableAutoCheck?: boolean;
   /** 发送至发送至软件webhook */
   sendToWebhook?: boolean;

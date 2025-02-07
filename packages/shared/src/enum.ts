@@ -209,6 +209,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     bilibili: {
       uid: undefined,
       quality: 10000,
+      useBatchQuery: false,
     },
     douyu: {
       quality: 0,

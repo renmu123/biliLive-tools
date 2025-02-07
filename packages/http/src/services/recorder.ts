@@ -73,9 +73,6 @@ async function addRecorder(
   const config = {
     id: uuid(),
     ...args,
-    extra: {
-      createTimestamp: Date.now(),
-    },
   };
   // TODO: recorder配置重写
   // @ts-ignore

@@ -81,6 +81,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     manager.autoCheckInterval = autoCheckInterval * 1000;
     manager.autoCheckLiveStatusAndRecord = autoCheckLiveStatusAndRecord;
     manager.savePathRule = savePathRule;
+    manager.biliBatchQuery = config?.recorder?.bilibili.useBatchQuery ?? false;
 
     if (autoCheckLiveStatusAndRecord) {
       if (autoCheckLiveStatusAndRecord && !manager.isCheckLoopRunning) {
@@ -120,6 +121,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     // 这个参数其实是有问题的，并没有实际生效
     autoCheckLiveStatusAndRecord: autoCheckLiveStatusAndRecord,
     savePathRule: savePathRule,
+    biliBatchQuery: config?.recorder?.bilibili.useBatchQuery ?? false,
   });
 
   manager.on("RecorderDebugLog", ({ recorder, ...log }) => {
@@ -228,6 +230,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   // TODO: 增加更新监听，处理配置更新
   const recorderConfig = new RecorderConfig(appConfig);
   for (const recorder of recorderConfig.list()) {
+    // console.log("addRecorder", recorder);
     manager.addRecorder({ ...recorder });
   }
 
@@ -276,6 +279,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           providerId: provider.id,
           channelId: info.id,
           owner: info.owner,
+          uid: info.uid,
         };
       }
       return null;

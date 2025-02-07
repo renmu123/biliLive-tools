@@ -142,6 +142,15 @@
         <n-input-number v-model:value="config.recorder.qualityRetry" min="0" step="1">
         </n-input-number>
       </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip
+            tip="如果你录制了大量的直播间，可以尝试开启此选项，减少被风控的可能性"
+            text="使用批量查询接口"
+          ></Tip>
+        </template>
+        <n-switch v-model:value="config.recorder.bilibili.useBatchQuery" />
+      </n-form-item>
 
       <h2>斗鱼</h2>
       <n-form-item>
