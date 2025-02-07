@@ -167,11 +167,11 @@ export function createRecorderManager<
       });
 
       const uids = biliNeedCheckRecorders.map((r) => r.extra?.recorderUid) as number[];
-      console.log("uids", uids);
+      // console.log("uids", uids);
       try {
         if (uids.length !== 0) {
           const biliStatus = await getBiliStatusInfoByUIDs(uids);
-          console.log("biliStatus", biliStatus);
+          // console.log("biliStatus", biliStatus);
 
           threads.push(handleBatchQuery(biliStatus));
         }
