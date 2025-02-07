@@ -18,7 +18,13 @@
         </td>
         <td>{{ item.owner }}</td>
         <td>{{ item.roomTitle }}</td>
-        <td>{{ item.living ? "直播中" : "未开始" }}</td>
+        <td
+          :style="{
+            color: item.living ? 'skyblue' : 'normal',
+          }"
+        >
+          {{ item.living ? "直播中" : "未开始" }}
+        </td>
         <td
           :title="`${item.usedSource}-${item.usedStream}`"
           :class="{
@@ -31,7 +37,7 @@
           {{
             item.disableAutoCheck
               ? "手动"
-              : `自动${item.tempStopIntervalCheck ? "(跳过本场直播)" : ""}`
+              : `自动${item.tempStopIntervalCheck && !item.disableAutoCheck ? "(跳过本场直播)" : ""}`
           }}
         </td>
         <td>

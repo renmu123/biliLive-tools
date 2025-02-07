@@ -23,7 +23,11 @@
             <n-icon v-if="!item.disableAutoCheck" size="20" title="自动录制">
               <AccessTime24Regular style="color: gray" />
             </n-icon>
-            <n-icon v-if="item.tempStopIntervalCheck" size="20" title="跳过本场直播">
+            <n-icon
+              v-if="item.tempStopIntervalCheck && !item.disableAutoCheck"
+              size="20"
+              title="跳过本场直播"
+            >
               <RecordStop16Regular style="color: gray" />
             </n-icon>
           </div>

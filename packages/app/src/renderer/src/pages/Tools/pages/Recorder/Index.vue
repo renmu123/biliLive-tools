@@ -46,7 +46,7 @@
             <div class="section" @click="edit(item.id)">直播间设置</div>
             <div class="section" @click="getLiveInfo">刷新直播间信息</div>
             <div
-              v-if="item.recordHandle?.savePath"
+              v-if="item.recordHandle?.savePath && false"
               class="section"
               @click="open(item.id, item?.recordHandle?.url)"
             >
