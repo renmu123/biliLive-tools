@@ -1,5 +1,3 @@
-import path from "node:path";
-
 import request from "./request";
 
 import type { Task } from "@renderer/types";
