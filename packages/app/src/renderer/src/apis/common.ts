@@ -87,6 +87,14 @@ export const getFiles = async (params: {
   return res.data;
 };
 
+const fileJoin = async (dir: string, name: string): Promise<string> => {
+  const res = await request.post(`/common/fileJoin`, {
+    dir,
+    name,
+  });
+  return res.data;
+};
+
 export async function getVideoStreams(params: {
   decodeData: string;
 }): Promise<{ label: string; value: string }[]> {
@@ -184,6 +192,7 @@ const common = {
   exportLogs,
   parseMeta,
   getRunningTaskNum,
+  fileJoin,
 };
 
 export default common;

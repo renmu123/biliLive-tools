@@ -15,7 +15,7 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="convert" :disabled="disabled"> 立即合并 </n-button>
+      <n-button type="primary" @click="convert"> 立即合并 </n-button>
       <Tip
         tip="注意：并非所有容器都支持流复制。如果出现播放问题或未合并文件，则可能需要重新编码。"
         :size="26"
@@ -42,23 +42,12 @@ import Tip from "@renderer/components/Tip.vue";
 import { useAppConfig } from "@renderer/stores";
 import { formatFile } from "@renderer/utils";
 import { taskApi } from "@renderer/apis";
+import { showSaveDialog } from "@renderer/utils/fileSystem";
 
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
-const isWeb = computed(() => window.isWeb);
-
-const disabled = computed(() => {
-  if (isWeb.value) {
-    if (options.saveOriginPath) {
-      return false;
-    }
-    return true;
-  } else {
-    return false;
-  }
-});
 
 const options = toReactive(
   computed({
@@ -94,7 +83,9 @@ const convert = async () => {
   if (!options.saveOriginPath) {
     const { dir, name } = formatFile(fileList.value[0].path);
     const filePath = window.path.join(dir, `${name}-合并.mp4`);
-    const file = await getDir(filePath);
+    const file = await showSaveDialog({
+      defaultPath: filePath,
+    });
     if (!file) {
       return;
     }
@@ -119,17 +110,6 @@ const convert = async () => {
     fileList.value = [];
   }
 };
-
-async function getDir(defaultPath: string) {
-  const path = await window.api.showSaveDialog({
-    defaultPath: defaultPath,
-    filters: [
-      { name: "视频文件", extensions: ["mp4"] },
-      { name: "所有文件", extensions: ["*"] },
-    ],
-  });
-  return path;
-}
 
 const fileSelect = ref<InstanceType<typeof FileSelect> | null>(null);
 const addVideo = async () => {

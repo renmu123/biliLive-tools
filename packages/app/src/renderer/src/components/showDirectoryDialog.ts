@@ -3,12 +3,14 @@ import FileBrowserDialog from "./FileBrowserDialog.vue";
 
 export default async function showDirectoryDialog(
   options: {
-    type?: "file" | "directory";
+    type?: "file" | "directory" | "save";
     multi?: boolean;
     exts?: string[];
+    extension?: string;
   } = {},
 ): Promise<string[] | undefined> {
   return new Promise((resolve) => {
+    console.log("showDirectoryDialog", options);
     const mountNode = document.createElement("div");
     let dialogApp: App<Element> | undefined = createApp(FileBrowserDialog, {
       visible: true,

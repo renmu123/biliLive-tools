@@ -15,7 +15,13 @@
           </div> -->
 
           <!-- 当前路径显示 -->
-          <p>Current Path: {{ currentPath }}</p>
+          <div>
+            <n-input
+              v-model:value="currentPath"
+              placeholder="请输入文件夹路径"
+              @keyup.enter="openDirectory({ path: currentPath })"
+            />
+          </div>
 
           <!-- 文件夹与文件展示 -->
           <ul class="file-list">
@@ -33,15 +39,28 @@
           </ul>
         </div>
         <template #footer>
-          <div style="text-align: right">
-            <n-button style="margin-left: 10px" @click="closeDialog">取消</n-button>
-            <n-button
-              :disabled="!selectedFiles"
-              type="primary"
-              style="margin-left: 10px"
-              @click="confirm"
-              >确认</n-button
-            >
+          <div style="display: flex; justify-content: space-between">
+            <div style="flex: 1">
+              <n-input
+                v-if="props.type === 'save'"
+                v-model:value="filename"
+                placeholder="请输入文件名"
+                @keyup.enter="confirm"
+                ><template #suffix>
+                  {{ props.extension ? `.${props.extension}` : "" }}
+                </template></n-input
+              >
+            </div>
+            <div style="flex: none">
+              <n-button @click="closeDialog">取消</n-button>
+              <n-button
+                :disabled="!selectedFiles"
+                type="primary"
+                style="margin-left: 10px"
+                @click="confirm"
+                >{{ confirmText }}</n-button
+              >
+            </div>
           </div>
         </template>
       </n-card>
@@ -55,9 +74,10 @@ import { darkTheme, lightTheme, useOsTheme, dateZhCN, zhCN } from "naive-ui";
 import { useStorage } from "@vueuse/core";
 
 interface Props {
-  type?: "file" | "directory";
+  type?: "file" | "directory" | "save";
   multi?: boolean;
   exts?: string[];
+  extension?: string;
   close: () => void;
   confirm: (path: string[]) => void;
 }
@@ -67,6 +87,7 @@ const showModal = defineModel<boolean>("visible", { required: true, default: fal
 const props = withDefaults(defineProps<Props>(), {
   type: "file",
   multi: false,
+  extension: "",
   exts: () => [],
   close: () => {},
   confirm: () => {},
@@ -81,6 +102,7 @@ const files = ref<
 >([]);
 // const currentPath = ref("/"); // 跟踪当前路径
 const currentPath = useStorage("file-store", "/");
+const filename = ref(""); // 跟踪当前文件名
 
 // const selectedExt = ref<string[]>([]); // 跟踪当前选择的扩展名
 const selectedFiles = ref<string[]>([]); // 跟踪当前选择的文件
@@ -90,11 +112,16 @@ let runCount = 0;
 // 获取文件列表
 const fetchFiles = async () => {
   selectedFiles.value = [];
+  const typeMap = {
+    file: "file",
+    directory: "directory",
+    save: "directory",
+  } as const;
   const res = await commonApi
     .getFiles({
       path: currentPath.value,
       exts: props.exts,
-      type: props.type,
+      type: typeMap[props.type],
     })
     .catch((err) => {
       runCount++;
@@ -109,6 +136,18 @@ const fetchFiles = async () => {
   files.value = res.list;
   parentPath.value = res.parent;
 };
+
+const confirmText = computed(() => {
+  if (props.type === "directory") {
+    return "选择文件夹";
+  } else if (props.type === "save") {
+    return "保存";
+  } else if (props.type === "file") {
+    return "打开";
+  } else {
+    return "确定";
+  }
+});
 
 // 进入文件夹
 const openDirectory = (file) => {
@@ -144,11 +183,14 @@ const closeDialog = () => {
   props.close();
 };
 
-const confirm = () => {
+const confirm = async () => {
   // emit("confirm", { path: selectedFiles.value });
   let result = selectedFiles.value;
   if (props.type === "directory" && !result.length) {
     result = [currentPath.value];
+  } else if (props.type === "save") {
+    const filePath = await commonApi.fileJoin(currentPath.value, filename.value);
+    result = [filePath + `.${props.extension}`];
   }
   showModal.value = false;
   props.confirm(result);

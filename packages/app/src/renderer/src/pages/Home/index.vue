@@ -185,6 +185,7 @@ import { danmuPresetApi, taskApi, commonApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
+import { showSaveDialog } from "@renderer/utils/fileSystem";
 
 import type { File, FfmpegOptions, DanmuConfig, FfmpegPreset } from "@biliLive-tools/types";
 
@@ -290,12 +291,15 @@ const handleConvert = async () => {
   const data = await preHandle(files, rawClientOptions, danmuPreset.value.config);
   if (!data) return;
   // 视频验证
-  const outputPath = await window.api.showSaveDialog({
+  // const outputPath = await window.api.showSaveDialog({
+  //   defaultPath: `${data.inputVideoFile.name}-弹幕版.mp4`,
+  //   filters: [
+  //     { name: "视频文件", extensions: ["mp4"] },
+  //     { name: "所有文件", extensions: ["*"] },
+  //   ],
+  // });
+  const outputPath = await showSaveDialog({
     defaultPath: `${data.inputVideoFile.name}-弹幕版.mp4`,
-    filters: [
-      { name: "视频文件", extensions: ["mp4"] },
-      { name: "所有文件", extensions: ["*"] },
-    ],
   });
   if (!outputPath) return;
 

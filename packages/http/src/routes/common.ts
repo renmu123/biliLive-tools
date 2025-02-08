@@ -125,6 +125,20 @@ router.get("/files", async (ctx) => {
   }
 });
 
+router.post("/fileJoin", async (ctx) => {
+  const { dir, name } = ctx.request.body as {
+    dir: string;
+    name: string;
+  };
+  if (!fs.existsSync(dir)) {
+    ctx.status = 400;
+    ctx.body = "文件夹不存在";
+    return;
+  }
+  const filePath = path.join(dir, name);
+  ctx.body = filePath;
+});
+
 router.post("/douyu/parse", async (ctx) => {
   const { url } = ctx.request.body as { url: string };
   const data = await douyu.parseVideo(url);
