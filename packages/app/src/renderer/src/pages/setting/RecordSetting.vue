@@ -11,12 +11,7 @@
           <span class="inline-flex"> 保存文件夹 </span>
         </template>
         <n-input v-model:value="config.recorder.savePath" placeholder="请选择要保存的文件夹" />
-        <n-icon
-          style="margin-left: 10px"
-          size="26"
-          class="pointer"
-          @click="selectFolder('recorder')"
-        >
+        <n-icon style="margin-left: 10px" size="26" class="pointer" @click="selectFolder">
           <FolderOpenOutline />
         </n-icon>
       </n-form-item>
@@ -184,7 +179,7 @@
 <script setup lang="ts">
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { templateRef } from "@vueuse/core";
-import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
+import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { useUserInfoStore } from "@renderer/stores";
 import { useConfirm } from "@renderer/hooks";
 
@@ -256,25 +251,13 @@ const douyuQualityOptions = [
   },
 ];
 
-const selectFolder = async (type: "recorder") => {
-  let file: string | undefined;
+const selectFolder = async () => {
+  let file: string | undefined = await showDirectoryDialog({
+    defaultPath: config.value.webhook.recoderFolder,
+  });
 
-  if (window.isWeb) {
-    file = (
-      await showDirectoryDialog({
-        type: "directory",
-      })
-    )?.[0];
-  } else {
-    file = await window.api.openDirectory({
-      defaultPath: config.value.webhook.recoderFolder,
-    });
-  }
   if (!file) return;
-
-  if (type === "recorder") {
-    config.value.recorder.savePath = file;
-  }
+  config.value.recorder.savePath = file;
 };
 const titleList = ref([
   {

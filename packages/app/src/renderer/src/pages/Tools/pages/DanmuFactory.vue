@@ -59,7 +59,7 @@
 import { toReactive } from "@vueuse/core";
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
-import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
+import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { useDanmuPreset, useAppConfig } from "@renderer/stores";
 import { danmuPresetApi, taskApi } from "@renderer/apis";
 import { Settings as SettingIcon, FolderOpenOutline } from "@vicons/ionicons5";
@@ -144,18 +144,10 @@ const openSetting = () => {
 };
 
 async function getDir() {
-  let dir: string | undefined;
-  if (window.isWeb) {
-    dir = (
-      await showDirectoryDialog({
-        type: "directory",
-      })
-    )?.[0];
-  } else {
-    dir = await window.api.openDirectory({
-      defaultPath: options.savePath,
-    });
-  }
+  let dir: string | undefined = await showDirectoryDialog({
+    defaultPath: options.savePath,
+  });
+
   if (!dir) return;
   options.savePath = dir;
   options.saveRadio = 2;

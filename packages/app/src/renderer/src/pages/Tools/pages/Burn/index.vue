@@ -70,7 +70,7 @@ import { useConfirm } from "@renderer/hooks";
 import { ffmpegPresetApi, taskApi, danmuPresetApi } from "@renderer/apis";
 import { useAppConfig, useFfmpegPreset, useDanmuPreset } from "@renderer/stores";
 import FileSelect from "./components/FileSelect.vue";
-import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
+import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import hotkeys from "hotkeys-js";
 import { cloneDeep } from "lodash-es";
 import { FolderOpenOutline } from "@vicons/ionicons5";
@@ -195,18 +195,10 @@ const convert = async () => {
 };
 
 async function getDir() {
-  let dir: string | undefined;
-  if (window.isWeb) {
-    dir = (
-      await showDirectoryDialog({
-        type: "directory",
-      })
-    )?.[0];
-  } else {
-    dir = await window.api.openDirectory({
-      defaultPath: options.savePath,
-    });
-  }
+  let dir: string | undefined = await showDirectoryDialog({
+    defaultPath: options.savePath,
+  });
+
   if (!dir) return;
   options.savePath = dir;
   options.saveRadio = 2;

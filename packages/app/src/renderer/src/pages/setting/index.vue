@@ -247,7 +247,7 @@
               </template>
               <n-input
                 v-model:value="config.webhook.recoderFolder"
-                placeholder="请输入录播姬工作目录，docker版本不用配置"
+                placeholder="请输入录播姬工作目录"
               />
               <n-icon
                 style="margin-left: 10px"
@@ -335,8 +335,8 @@ import { saveAs } from "file-saver";
 import { useConfirm } from "@renderer/hooks";
 import { FolderOpenOutline, Refresh } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
+import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
-import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig, Theme } from "@biliLive-tools/types";
 
@@ -458,19 +458,9 @@ const resetBin = async (type: "ffmpeg" | "ffprobe" | "danmakuFactory") => {
 };
 
 const selectFolder = async (type: "recorder") => {
-  let file: string | undefined;
-
-  if (window.isWeb) {
-    file = (
-      await showDirectoryDialog({
-        type: "directory",
-      })
-    )?.[0];
-  } else {
-    file = await window.api.openDirectory({
-      defaultPath: config.value.webhook.recoderFolder,
-    });
-  }
+  let file: string | undefined = await showDirectoryDialog({
+    defaultPath: config.value.webhook.recoderFolder,
+  });
 
   if (!file) return;
 

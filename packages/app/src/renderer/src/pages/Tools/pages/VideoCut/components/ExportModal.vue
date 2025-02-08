@@ -98,6 +98,7 @@ import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useFfmpegPreset, useAppConfig, useSegmentStore } from "@renderer/stores";
 import filenamify from "filenamify/browser";
 import { secondsToTimemark } from "@renderer/utils";
+import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 
 interface Props {
   files: {
@@ -225,7 +226,7 @@ const noDanmuTips = computed(() => {
 });
 
 async function getDir() {
-  const path = await window.api.openDirectory({
+  const path = await showDirectoryDialog({
     defaultPath: exportOptions.savePath,
   });
   if (!path) return;

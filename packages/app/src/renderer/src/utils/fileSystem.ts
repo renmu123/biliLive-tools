@@ -1,11 +1,11 @@
-import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
+import showDialog from "@renderer/components/showDirectoryDialog";
 
 export const showSaveDialog = async (options: {
   defaultPath?: string;
 }): Promise<string | undefined> => {
   if (window.isWeb) {
     const filePath = (
-      await showDirectoryDialog({
+      await showDialog({
         type: "save",
         extension: "mp4",
       })
@@ -20,5 +20,23 @@ export const showSaveDialog = async (options: {
       ],
     });
     return outputPath;
+  }
+};
+
+export const showDirectoryDialog = async (options: {
+  defaultPath?: string;
+}): Promise<string | undefined> => {
+  if (window.isWeb) {
+    const filePath = (
+      await showDialog({
+        type: "directory",
+      })
+    )?.[0];
+    return filePath;
+  } else {
+    const file = await window.api.openDirectory({
+      defaultPath: options.defaultPath,
+    });
+    return file;
   }
 };
