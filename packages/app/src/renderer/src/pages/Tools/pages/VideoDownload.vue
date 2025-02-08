@@ -188,20 +188,19 @@ const confirm = async (options: {
 
   for (const page of selectPages) {
     if (videoType.value === "douyu") {
-      await commonApi.douyuVideoDownload(
-        window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
-        page.cid as string,
-        {
-          danmu: options.danmu,
-          resoltion: options.resoltion,
-          override: options.override,
-          ...page.metadata,
-        },
-      );
+      await commonApi.douyuVideoDownload(page.cid as string, {
+        savePath: options.savePath,
+        name: `${sanitizeFileName(page.part)}.mp4`,
+        danmu: options.danmu,
+        resoltion: options.resoltion,
+        override: options.override,
+        ...page.metadata,
+      });
     } else if (videoType.value === "bili") {
       await biliApi.download(
         {
-          output: window.path.join(options.savePath, `${sanitizeFileName(page.part)}.mp4`),
+          savePath: options.savePath,
+          name: `${sanitizeFileName(page.part)}.mp4`,
           cid: page.cid as number,
           bvid: archiveDeatil.value.vid,
           override: options.override,

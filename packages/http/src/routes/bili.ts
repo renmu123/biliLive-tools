@@ -97,7 +97,7 @@ router.get("/typeDesc", async (ctx) => {
 
 router.post("/download", async (ctx) => {
   const { options, uid } = ctx.request.body;
-  options.output = path.normalize(options.output);
+  options.output = path.join(options.savePath, options.name);
   // @ts-ignore
   const data = await biliApi.download(options, uid);
   ctx.body = data;

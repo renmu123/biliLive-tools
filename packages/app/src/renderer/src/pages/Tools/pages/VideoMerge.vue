@@ -89,23 +89,22 @@ const convert = async () => {
     });
     return;
   }
-  let filePath!: string;
-  const { dir, name } = formatFile(fileList.value[0].path);
-  filePath = window.path.join(dir, `${name}-合并.mp4`);
+  let output: string | undefined = undefined;
 
   if (!options.saveOriginPath) {
+    const { dir, name } = formatFile(fileList.value[0].path);
+    const filePath = window.path.join(dir, `${name}-合并.mp4`);
     const file = await getDir(filePath);
     if (!file) {
       return;
     }
-    filePath = file;
+    output = file;
   }
 
   try {
     taskApi.mergeVideos(
       fileList.value.map((item) => item.path),
-      filePath,
-      options,
+      { output: output, ...options },
     );
     notice.warning({
       title: `已加入任务队列，可在任务列表中查看进度`,

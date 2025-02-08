@@ -93,15 +93,15 @@ const convertXml2Ass = async (
 
 const mergeVideos = async (
   inputVideos: string[],
-  output: string,
   options: {
+    // 如果存在output，那么其他的文件参数都被忽略
+    output?: string;
     removeOrigin: boolean;
     saveOriginPath: boolean;
   },
 ): Promise<string> => {
   const res = await request.post(`/task/mergeVideo`, {
     inputVideos,
-    output: path.normalize(output),
     options,
   });
   return res.data;

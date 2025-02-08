@@ -490,6 +490,7 @@ export interface Video2Mp4Options {
 }
 
 export interface VideoMergeOptions {
+  output?: string;
   removeOrigin: boolean; // 完成后移除源文件
   saveOriginPath: boolean; // 保存到原始文件夹
 }

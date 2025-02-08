@@ -104,9 +104,10 @@ export async function douyuVideoParse(url: string) {
 }
 
 export async function douyuVideoDownload(
-  output: string,
   decodeData: string,
   options: {
+    savePath: string;
+    name: string;
     danmu: "none" | "xml" | "ass";
     resoltion: "highest" | string;
     override: boolean;
@@ -119,7 +120,6 @@ export async function douyuVideoDownload(
   },
 ) {
   const res = await request.post(`/common/douyu/download`, {
-    output: output,
     decodeData,
     options,
   });

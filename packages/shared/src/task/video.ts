@@ -788,15 +788,26 @@ async function getUnusedFileName(filePath: string): Promise<string> {
  */
 export const mergeVideos = async (
   inputFiles: string[],
-  output: string,
   options: VideoMergeOptions = {
     removeOrigin: false,
     saveOriginPath: false,
   },
 ) => {
-  let outputFile = output;
+  if (!inputFiles || inputFiles.length < 2) {
+    throw new Error("inputVideos length must be greater than 1");
+  }
+
+  let outputFile: string | undefined = undefined;
   if (options.saveOriginPath) {
-    outputFile = await getUnusedFileName(output);
+    const { dir, name } = path.parse(inputFiles[0]);
+    const filePath = path.join(dir, `${name}-合并.mp4`);
+
+    outputFile = await getUnusedFileName(filePath);
+  } else {
+    outputFile = options.output;
+  }
+  if (!outputFile) {
+    throw new Error("output is required or saveOriginPath should be true");
   }
   await setFfmpegPath();
 

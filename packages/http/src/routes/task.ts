@@ -146,10 +146,10 @@ router.post("/convertXml2Ass", async (ctx) => {
 });
 
 router.post("/mergeVideo", async (ctx) => {
-  const { inputVideos, output, options } = ctx.request.body as {
+  const { inputVideos, options } = ctx.request.body as {
     inputVideos: string[];
-    output: string;
     options: {
+      output?: string;
       removeOrigin: boolean;
       saveOriginPath: boolean;
     };
@@ -159,13 +159,13 @@ router.post("/mergeVideo", async (ctx) => {
     ctx.body = { message: "inputVideos length must be greater than 1" };
     return;
   }
-  if (!output) {
+  if (!options.output && !options.saveOriginPath) {
     ctx.status = 400;
-    ctx.body = { message: "output is required" };
+    ctx.body = { message: "output is required or saveOriginPath should be true" };
     return;
   }
 
-  const task = await mergeVideos(inputVideos, output, options);
+  const task = await mergeVideos(inputVideos, options);
   ctx.body = { taskId: task.taskId };
 });
 

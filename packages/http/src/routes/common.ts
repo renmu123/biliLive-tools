@@ -151,12 +151,15 @@ router.get("/download/streams", async (ctx) => {
 });
 
 router.post("/douyu/download", async (ctx) => {
-  const { output, decodeData, options } = ctx.request.body as {
-    output: string;
+  const { decodeData, options } = ctx.request.body as {
     decodeData: any;
     options: any;
   };
-  const { taskId } = await douyu.download(path.normalize(output), decodeData, options);
+  const { taskId } = await douyu.download(
+    path.join(options.savePath, options.name),
+    decodeData,
+    options,
+  );
   ctx.body = { taskId: taskId };
 });
 
