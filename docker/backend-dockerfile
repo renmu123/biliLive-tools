@@ -1,5 +1,5 @@
 # 使用 Node.js 作为基础镜像
-FROM node:20.16 AS build
+FROM node:20 AS build
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable && corepack prepare pnpm@9.15.2 --activate
@@ -20,7 +20,7 @@ RUN pnpm run build:base && pnpm run --filter bililive-cli build && cd packages/C
 RUN pnpm run install:bin
 
 # 从另一个基础镜像开始，安装运行时依赖
-FROM node:20.16 AS runtime
+FROM node:20 AS runtime
 
 # 设置工作目录
 WORKDIR /app
