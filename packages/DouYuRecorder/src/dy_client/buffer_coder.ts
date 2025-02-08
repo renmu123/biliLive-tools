@@ -21,7 +21,6 @@ export class BufferCoder {
     if (littleEndian == null) {
       littleEndian = this.littleEndian;
     }
-    // @ts-ignore
     this.buffer = this.concat(this.buffer, newBuffer).buffer;
 
     while (this.buffer && this.buffer.byteLength > 0) {
@@ -45,7 +44,7 @@ export class BufferCoder {
     if (littleEndian == null) {
       littleEndian = this.littleEndian;
     }
-    // @ts-ignore
+
     const out = this.concat(this.encoder.encode(msg), Uint8Array.of(0));
     const formatBodySize = 8 + out.length;
     const dv = new DataView(new ArrayBuffer(formatBodySize + 4));
