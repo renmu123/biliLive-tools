@@ -189,6 +189,9 @@ const confirm = async () => {
   if (props.type === "directory" && !result.length) {
     result = [currentPath.value];
   } else if (props.type === "save") {
+    if (!filename.value) {
+      return;
+    }
     const filePath = await commonApi.fileJoin(currentPath.value, filename.value);
     result = [filePath + `.${props.extension}`];
   }
