@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { useUserInfoStore } from "@renderer/stores";
-import DownloadConfirm from "@renderer/components/DownloadConfirm.vue";
+import DownloadConfirm from "./components/DownloadConfirm.vue";
 import { sanitizeFileName } from "@renderer/utils";
 import { biliApi, commonApi } from "@renderer/apis";
 
