@@ -13,7 +13,6 @@ declare module 'vue' {
     ChangelogModal: typeof import('./src/components/ChangelogModal.vue')['default']
     DanmuFactorySetting: typeof import('./src/components/DanmuFactorySetting.vue')['default']
     DanmuFactorySettingDailog: typeof import('./src/components/DanmuFactorySettingDailog.vue')['default']
-    DownloadConfirm: typeof import('./src/components/DownloadConfirm.vue')['default']
     DynamicTags: typeof import('./src/components/DynamicTags.vue')['default']
     EditableText: typeof import('./src/components/EditableText.vue')['default']
     FileArea: typeof import('./src/components/FileArea.vue')['default']

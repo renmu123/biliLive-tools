@@ -21,7 +21,7 @@ export type VideoAPI = {
       resolution?: string;
       extra?: Record<string, any>;
       danmu: "none" | "xml";
-      override?: boolean;
+      override: boolean;
       onlyAudio?: boolean;
     };
   };

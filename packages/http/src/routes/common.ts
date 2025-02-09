@@ -5,7 +5,6 @@ import multer from "../middleware/multer.js";
 
 import Router from "koa-router";
 import { formatTitle, getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
-import douyu from "@biliLive-tools/shared/task/douyu.js";
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
 

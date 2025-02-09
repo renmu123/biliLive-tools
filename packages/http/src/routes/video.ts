@@ -139,7 +139,7 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
     }
     await douyu.download(filepath, options?.extra?.decodeData, {
       danmu: options.danmu,
-      resoltion: options.resolution,
+      resoltion: options.resolution ?? "highest",
       override: options.override,
       vid: options.id,
       danmuMeta: {
