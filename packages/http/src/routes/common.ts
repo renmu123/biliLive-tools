@@ -139,44 +139,6 @@ router.post("/fileJoin", async (ctx) => {
   ctx.body = filePath;
 });
 
-router.post("/douyu/parse", async (ctx) => {
-  const { url } = ctx.request.body as { url: string };
-  const data = await douyu.parseVideo(url);
-  ctx.body = data;
-});
-
-/**
- * @api {get} /common/download/streams 获取视频流信息
- */
-router.get("/download/streams", async (ctx) => {
-  const { decodeData } = ctx.request.query as { decodeData: string };
-  const data: {
-    value: string;
-    label: string;
-  }[] = (await douyu.getAvailableStreams(decodeData)).map((item) => ({
-    value: item.stream_type,
-    label: item.name,
-  }));
-  data.unshift({
-    value: "highest",
-    label: "最高",
-  });
-  ctx.body = data;
-});
-
-router.post("/douyu/download", async (ctx) => {
-  const { decodeData, options } = ctx.request.body as {
-    decodeData: any;
-    options: any;
-  };
-  const { taskId } = await douyu.download(
-    path.join(options.savePath, options.name),
-    decodeData,
-    options,
-  );
-  ctx.body = { taskId: taskId };
-});
-
 router.post("/danma/timestamp", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;

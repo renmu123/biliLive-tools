@@ -95,45 +95,6 @@ const fileJoin = async (dir: string, name: string): Promise<string> => {
   return res.data;
 };
 
-export async function getVideoStreams(params: {
-  decodeData: string;
-}): Promise<{ label: string; value: string }[]> {
-  const res = await request.get(`/common/download/streams`, {
-    params,
-  });
-  return res.data;
-}
-
-export async function douyuVideoParse(url: string) {
-  const res = await request.post(`/common/douyu/parse`, {
-    url,
-  });
-  return res.data;
-}
-
-export async function douyuVideoDownload(
-  decodeData: string,
-  options: {
-    savePath: string;
-    name: string;
-    danmu: "none" | "xml" | "ass";
-    resoltion: "highest" | string;
-    override: boolean;
-    vid?: string;
-    user_name?: string;
-    room_id?: string;
-    room_title?: string;
-    live_start_time?: string;
-    platform?: "douyu";
-  },
-) {
-  const res = await request.post(`/common/douyu/download`, {
-    decodeData,
-    options,
-  });
-  return res.data;
-}
-
 export async function readXmlTimestamp(filepath: string): Promise<number> {
   const res = await request.post(`/common/danma/timestamp`, {
     filepath,
@@ -181,9 +142,6 @@ const common = {
   version,
   versionTest,
   getFiles,
-  douyuVideoParse,
-  douyuVideoDownload,
-  getVideoStreams,
   readXmlTimestamp,
   getFontList,
   uploadCover,

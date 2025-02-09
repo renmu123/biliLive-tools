@@ -20,6 +20,7 @@ import recocderRouter from "./routes/recorder.js";
 import biliRouter from "./routes/bili.js";
 import taskRouter from "./routes/task.js";
 import assetsRouter from "./routes/assets.js";
+import videoRouter from "./routes/video.js";
 import { WebhookHandler } from "./services/webhook.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
@@ -102,6 +103,7 @@ export async function serverStart(
   app.use(recocderRouter.routes());
   app.use(biliRouter.routes());
   app.use(taskRouter.routes());
+  app.use(videoRouter.routes());
 
   app.use(SSERouter.routes());
   app.use(router.allowedMethods());

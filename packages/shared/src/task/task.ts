@@ -745,11 +745,11 @@ export class BiliDownloadVideoTask extends AbstractTask {
 }
 
 /**
- * 斗鱼录播下载任务
+ * m3u8下载任务
  */
-export class DouyuDownloadVideoTask extends AbstractTask {
+export class M3U8DownloadTask extends AbstractTask {
   command: M3U8Downloader;
-  type = TaskType.douyuDownload;
+  type = TaskType.m3u8Download;
   emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
   constructor(
     command: M3U8Downloader,
@@ -761,7 +761,7 @@ export class DouyuDownloadVideoTask extends AbstractTask {
       onEnd?: (output: string) => void;
       onError?: (err: string) => void;
       onProgress?: (progress: number) => any;
-    },
+    } = {},
   ) {
     super();
     this.command = command;
@@ -771,16 +771,6 @@ export class DouyuDownloadVideoTask extends AbstractTask {
     if (options.name) {
       this.name = options.name;
     }
-
-    // command.emitter.on("start", (commandLine: string) => {
-    //   this.progress = 0;
-    //   log.info(`task ${this.taskId} start, command: ${commandLine}`);
-    //   this.status = "running";
-
-    //   callback.onStart && callback.onStart();
-    //   emitter.emit("task-start", { taskId: this.taskId });
-    //   this.startTime = Date.now();
-    // });
 
     command.on("completed", async () => {
       const output = this.command.output;
@@ -840,6 +830,20 @@ export class DouyuDownloadVideoTask extends AbstractTask {
     this.emit("task-cancel", { taskId: this.taskId, autoStart: true });
     return true;
   }
+}
+
+/**
+ * 斗鱼录播下载任务
+ */
+export class DouyuDownloadVideoTask extends M3U8DownloadTask {
+  type = TaskType.douyuDownload;
+}
+
+/**
+ * 虎牙录播下载任务
+ */
+export class HuyaDownloadVideoTask extends M3U8DownloadTask {
+  type = TaskType.huyaDownload;
 }
 
 const isBetweenTimeRange = (range: undefined | [] | [string, string]) => {

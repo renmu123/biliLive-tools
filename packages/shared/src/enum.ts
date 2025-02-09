@@ -7,6 +7,8 @@ export enum TaskType {
   biliUpload = "biliUpload",
   biliDownload = "biliDownload",
   douyuDownload = "douyuDownload",
+  m3u8Download = "m3u8Download",
+  huyaDownload = "huyaDownload",
   subtitleTranslate = "subtitleTranslate",
 }
 

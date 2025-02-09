@@ -1,3 +1,5 @@
+import filenamify from "filenamify/browser";
+
 export const deepRaw = <T>(data: T): T => {
   return JSON.parse(JSON.stringify(data));
 };
@@ -25,17 +27,7 @@ export function formatSeconds(seconds: number) {
 }
 
 export function sanitizeFileName(fileName: string) {
-  // 定义不允许出现在文件名中的字符
-  const invalidChars = ["/", "\\\\", ":", "*", "?", '"', "<", ">", "|"];
-
-  // 替换不允许的字符为空格
-  const sanitizedFileName = fileName.replace(
-    new RegExp("[" + invalidChars.join("") + "]", "g"),
-    " ",
-  );
-  // sanitizedFileName = sanitizedFileName.replaceAll("\\", "");
-
-  return sanitizedFileName;
+  return filenamify(fileName, { replacement: "_" });
 }
 
 export function secondsToTimemark(seconds: number, showMilliseconds = true) {

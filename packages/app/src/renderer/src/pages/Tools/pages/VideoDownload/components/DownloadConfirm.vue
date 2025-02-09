@@ -10,16 +10,16 @@
     <div class="container">
       <div style="margin-bottom: 10px">
         <n-checkbox :checked="allChecked" @update:checked="handleCheckedChange" />
-        选集：({{ selectIds.length }}/{{ props.detail.pages.length }})
+        选集：({{ selectIds.length }}/{{ props.detail.parts.length }})
       </div>
       <div class="file-container">
         <n-checkbox-group v-model:value="selectIds">
-          <div v-for="file in props.detail.pages" :key="file.cid" class="file">
-            <n-checkbox :value="file.cid" style="margin-right: 10px" />
-            <span v-if="!file.editable">{{ file.part }}.mp4</span>
+          <div v-for="file in props.detail.parts" :key="file.partId" class="file">
+            <n-checkbox :value="file.partId" style="margin-right: 10px" />
+            <span v-if="!file.isEditing">{{ file.name }}.mp4</span>
             <n-input
               v-else
-              v-model:value="file.part"
+              v-model:value="file.name"
               placeholder="请输入文件名"
               @keyup.enter="editPart(file)"
             >
@@ -48,7 +48,7 @@
       </div>
 
       <div
-        v-if="resoltions.length > 0"
+        v-if="props.detail.resolutions.length > 0"
         style="margin-top: 10px; display: flex; align-items: center"
       >
         <span
@@ -58,7 +58,7 @@
         >
         <n-select
           v-model:value="options.douyuResolution"
-          :options="resoltions"
+          :options="props.detail.resolutions"
           style="width: 150px"
         />
       </div>
@@ -106,23 +106,14 @@ import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useAppConfig } from "@renderer/stores";
 import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 
-interface Part {
-  cid: number | string;
-  part: string;
-  editable: boolean;
-}
+import type { VideoAPI } from "@biliLive-tools/http/types/video.js";
 
 interface Props {
-  detail: {
-    vid: string;
-    title: string;
-    pages: Part[];
-  };
+  detail: VideoAPI["parseVideo"]["Resp"];
   cOptions: {
     hasDanmuOptions: boolean;
     hasAudioOnlyOptions: boolean;
   };
-  resoltions: { label: string; value: string }[];
 }
 
 const danmuOptions = [
@@ -142,7 +133,7 @@ const emits = defineEmits<{
     value: {
       ids: (number | string)[];
       savePath: string;
-      danmu: "none" | "xml" | "ass";
+      danmu: "none" | "xml";
       resoltion: string | "highest";
       override: boolean;
       onlyAudio: boolean;
@@ -159,15 +150,14 @@ const download = () => {
     resoltion: options.douyuResolution,
     override: options.override,
   });
-  showModal.value = false;
 };
 
-const editPart = (file: Part) => {
-  file.part = sanitizeFileName(file.part);
-  if (file.part.trim() === "") {
-    file.part = "未命名";
+const editPart = (file: { name: string; isEditing: boolean }) => {
+  file.name = sanitizeFileName(file.name.trim());
+  if (file.name === "") {
+    file.name = "未命名";
   }
-  file.editable = !file.editable;
+  file.isEditing = !file.isEditing;
 };
 
 const selectFolder = async () => {
@@ -190,9 +180,9 @@ const selectFolder = async () => {
 };
 
 const allChecked = computed({
-  get: () => selectIds.value.length === props.detail.pages.length,
+  get: () => selectIds.value.length === props.detail.parts.length,
   set: (value: boolean) => {
-    selectIds.value = value ? props.detail.pages.map((p) => p.cid) : [];
+    selectIds.value = value ? props.detail.parts.map((p) => p.partId) : [];
   },
 });
 

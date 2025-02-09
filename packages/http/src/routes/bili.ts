@@ -95,14 +95,6 @@ router.get("/typeDesc", async (ctx) => {
   ctx.body = data;
 });
 
-router.post("/download", async (ctx) => {
-  const { options, uid } = ctx.request.body;
-  options.output = path.join(options.savePath, options.name);
-  // @ts-ignore
-  const data = await biliApi.download(options, uid);
-  ctx.body = data;
-});
-
 /**
  * 上传以及续传视频
  */

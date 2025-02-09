@@ -81,24 +81,6 @@ const getTypeDesc = async (
   return res.data;
 };
 
-const download = async (
-  options: {
-    savePath: string;
-    name: string;
-    bvid: string;
-    cid: number;
-    override: boolean;
-    onlyAudio: boolean;
-  },
-  uid?: number,
-) => {
-  const res = await request.post("/bili/download", {
-    options,
-    uid,
-  });
-  return res.data;
-};
-
 const qrcode = async (): Promise<{
   url: string;
   id: string;
@@ -151,7 +133,6 @@ const bili = {
   getPlatformArchiveDetail,
   getPlatformPre,
   getTypeDesc,
-  download,
   qrcode,
   loginCancel,
   loginPoll,

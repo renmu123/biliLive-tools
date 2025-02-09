@@ -190,7 +190,7 @@ export type ToolConfig = {
     /** 保存路径 */
     savePath: string;
     /** 弹幕参数 */
-    danmu: "none" | "xml" | "ass";
+    danmu: "none" | "xml";
     /** 斗鱼下载分辨率 */
     douyuResolution: "highest" | string;
     /** 下载时覆盖已有文件 */

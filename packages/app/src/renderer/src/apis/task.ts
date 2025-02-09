@@ -8,6 +8,7 @@ import type {
   hotProgressOptions,
   BiliupPreset,
 } from "@biliLive-tools/types";
+import type { VideoAPI } from "@biliLive-tools/http/types/video.js";
 
 /**
  * 获取任务列表
@@ -178,6 +179,16 @@ const readVideoMeta = async (input: string) => {
   return res.data;
 };
 
+const parseVideo = async (url: string): Promise<VideoAPI["parseVideo"]["Resp"]> => {
+  const res = await request.post(`/video/parse`, { url });
+  return res.data;
+};
+
+const downloadVideo = async (data: VideoAPI["downloadVideo"]["Args"]) => {
+  const res = await request.post(`/video/download`, data);
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -194,6 +205,8 @@ const task = {
   sendToWebhook,
   removeBatch,
   readVideoMeta,
+  parseVideo,
+  downloadVideo,
 };
 
 export default task;

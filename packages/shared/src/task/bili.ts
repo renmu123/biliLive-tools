@@ -31,7 +31,7 @@ type ClientInstance = InstanceType<typeof Client>;
 /**
  * 生成client
  */
-async function createClient(uid?: number) {
+function createClient(uid?: number) {
   const client = new Client();
 
   const mid = uid || appConfig.get("uid");
@@ -39,7 +39,7 @@ async function createClient(uid?: number) {
   if (!mid) {
     return client;
   }
-  const user = await readUser(mid);
+  const user = readUser(mid);
   if (user) {
     client.setAuth(user!.cookie, user!.mid, user!.accessToken);
     return client;
@@ -50,7 +50,7 @@ async function createClient(uid?: number) {
 }
 
 export async function getRoomInfo(room_id: number, uid?: number) {
-  const client = await createClient(uid);
+  const client = createClient(uid);
   await client.live.getRoomInfo(room_id);
 }
 
@@ -58,17 +58,17 @@ async function getArchives(
   params?: Parameters<ClientInstance["platform"]["getArchives"]>[0],
   uid?: number,
 ) {
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.platform.getArchives(params);
 }
 
 async function checkTag(tag: string, uid: number) {
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.platform.checkTag(tag);
 }
 
 async function searchTopic(keyword: string, uid: number) {
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.platform.searchTopic({
     page_size: 20,
     offset: 0,
@@ -77,12 +77,12 @@ async function searchTopic(keyword: string, uid: number) {
 }
 
 async function getUserInfo(uid: number) {
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.user.getUserInfo(uid);
 }
 
 async function getMyInfo(uid: number) {
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.user.getMyInfo();
 }
 
@@ -92,18 +92,18 @@ function login() {
 }
 
 async function getArchiveDetail(bvid: string, uid?: number) {
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.video.detail({ bvid });
 }
 
 async function download(
-  options: { bvid: string; cid: number; output: string; override: boolean; onlyAudio: true },
-  uid: number,
+  options: { bvid: string; cid: number; output: string; override: boolean; onlyAudio: boolean },
+  uid?: number,
 ) {
   if ((await fs.pathExists(options.output)) && !options.override)
     throw new Error(`${options.output}已存在`);
 
-  const client = await createClient(uid);
+  const client = createClient(uid);
   const ffmpegBinPath = appConfig.get("ffmpegPath");
   const tmpPath = getTempPath();
   const command = await client.video.dashDownload(
@@ -222,7 +222,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
  * 合集列表
  */
 async function getSeasonList(uid: number) {
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.platform.getSeasonList();
 }
 
@@ -236,7 +236,7 @@ export async function addMediaApi(
 ) {
   const globalConfig = container.resolve<GlobalConfig>("globalConfig");
   const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.platform.addMediaClientApi(video, mediaOptions);
 }
 
@@ -254,7 +254,7 @@ export async function editMediaApi(
 
   // const globalConfig = container.resolve<GlobalConfig>("globalConfig");
   // const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.platform.editMediaClientApi(video, { aid, ...mediaOptions }, "append");
 }
 
@@ -312,7 +312,7 @@ async function biliMediaAction(
     // 评论
     if (options.comment) {
       try {
-        const client = await createClient(options.uid);
+        const client = createClient(options.uid);
         const res = await client.reply.add({
           oid: options.aid,
           type: 1,
@@ -369,7 +369,7 @@ async function addMedia(
   if (options.title.length > 80) {
     throw new Error("标题不能超过80个字符");
   }
-  const client = await createClient(uid);
+  const client = createClient(uid);
 
   const pTask = new BiliAddVideoTask(
     {
@@ -480,7 +480,7 @@ export async function editMedia(
   if (filePath.length === 0) {
     throw new Error("请至少上传一个视频");
   }
-  const client = await createClient(uid);
+  const client = createClient(uid);
   const title = typeof filePath[0] === "string" ? filePath[0] : filePath[0].title;
 
   const pTask = new BiliEditVideoTask(
@@ -571,7 +571,7 @@ async function getSessionId(
   season_price: number;
   is_opened: number;
 }> {
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.platform.getSessionId(aid);
 }
 
@@ -579,7 +579,7 @@ async function getSessionId(
  * 获取创作中心的稿件详情
  */
 async function getPlatformArchiveDetail(aid: number, uid: number) {
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.platform.getArchive({ aid });
 }
 
@@ -587,7 +587,7 @@ async function getPlatformArchiveDetail(aid: number, uid: number) {
  * 获取投稿分区
  */
 async function getPlatformPre(uid: number) {
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.platform.getArchivePre();
 }
 
@@ -595,7 +595,7 @@ async function getPlatformPre(uid: number) {
  * 获取分区简介信息
  */
 async function getTypeDesc(tid: number, uid: number) {
-  const client = await createClient(uid);
+  const client = createClient(uid);
   return client.platform.getTypeDesc(tid);
 }
 
@@ -697,7 +697,7 @@ export const readUserList = (): BiliUser[] => {
 };
 
 const updateUserInfo = async (uid: number) => {
-  const user = await readUser(uid);
+  const user = readUser(uid);
   if (!user) throw new Error("用户不存在");
   const userInfo = await biliApi.getMyInfo(uid);
   user.name = userInfo.profile.name;
@@ -728,7 +728,7 @@ export const addUser = async (data: any) => {
  * 刷新授权
  */
 const updateAuth = async (uid: number) => {
-  const user = await readUser(uid);
+  const user = readUser(uid);
   if (!user) throw new Error("用户不存在");
   const client = new TvQrcodeLogin();
   let data: any = await client.refresh(user.accessToken, user.refreshToken);

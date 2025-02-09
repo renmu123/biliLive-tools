@@ -3,7 +3,6 @@ import fs from "fs-extra";
 
 import { video, convert2Xml } from "douyu-api";
 import M3U8Downloader from "@renmu/m3u8-downloader";
-import { cloneDeep } from "lodash-es";
 
 import { taskQueue, DouyuDownloadVideoTask } from "./task.js";
 import { getFfmpegPath } from "./video.js";
@@ -48,13 +47,16 @@ async function download(
   options: {
     danmu: "none" | "xml" | "ass";
     resoltion: "highest" | string;
-    override: boolean;
+    override?: boolean;
     vid?: string;
-    user_name?: string;
-    room_id?: string;
-    room_title?: string;
-    live_start_time?: string;
-    platform?: "douyu";
+    danmuMeta?: {
+      user_name?: string;
+      room_id?: string;
+      room_title?: string;
+      live_start_time?: string;
+      video_start_time?: string;
+      platform?: "douyu";
+    };
   },
 ) {
   if ((await fs.pathExists(output)) && !options.override) throw new Error(`${output}已存在`);
@@ -83,19 +85,7 @@ async function download(
       onEnd: async () => {
         if (options.danmu !== "none" && options.vid) {
           const danmu = await video.getVideoDanmu(options.vid);
-          const metatdata: {
-            user_name?: string;
-            room_id?: string;
-            room_title?: string;
-            live_start_time?: string;
-            video_start_time?: string;
-            platform?: "douyu";
-            danmu?: string;
-            vid?: string;
-          } = cloneDeep(options);
-          delete metatdata.danmu;
-          delete metatdata.vid;
-          const xml = convert2Xml(danmu, metatdata);
+          const xml = convert2Xml(danmu, options.danmuMeta || {});
           fs.writeFile(path.join(path.dirname(output), `${path.parse(output).name}.xml`), xml);
         }
       },
@@ -126,7 +116,7 @@ const parseVideo = async (url: string) => {
   await Promise.all(
     res.list.map(async (item) => {
       const videoData = await video.parseVideo(buildVideoUrl(item.hash_id));
-      videoList.push({ ...videoData });
+      videoList.push(videoData);
     }),
   );
   videoList = videoList.sort((a, b) => a?.DATA?.content?.start_time - b?.DATA?.content?.start_time);
