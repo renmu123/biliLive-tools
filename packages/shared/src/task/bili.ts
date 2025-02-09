@@ -97,7 +97,7 @@ async function getArchiveDetail(bvid: string, uid?: number) {
 }
 
 async function download(
-  options: { bvid: string; cid: number; output: string; override: boolean; onlyAudio?: boolean },
+  options: { bvid: string; cid: number; output: string; override?: boolean; onlyAudio?: boolean },
   uid?: number,
 ) {
   if ((await fs.pathExists(options.output)) && !options.override)
