@@ -64,6 +64,11 @@ const parse = async () => {
       hasDanmuOptions: true,
       hasAudioOnlyOptions: false,
     };
+  } else if (videoInfo.platform === "huya") {
+    downloadOptions.value = {
+      hasDanmuOptions: true,
+      hasAudioOnlyOptions: false,
+    };
   }
 };
 
