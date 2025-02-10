@@ -288,7 +288,6 @@ export function createRecorderManager<
         tempBanObj[recorder.channelId] = liveId;
         recorder.tempStopIntervalCheck = true;
       }
-      console.log("tempBanObj", tempBanObj);
       return recorder;
     },
 
