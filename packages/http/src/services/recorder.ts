@@ -63,7 +63,7 @@ function getRecorder(args: RecorderAPI["getRecorder"]["Args"]): RecorderAPI["get
   if (recorder == null) throw new Error("404");
   const data = recorderManager.config.getRaw(args.id);
 
-  return { ...recorderToClient(recorder), uid: data?.uid };
+  return data;
 }
 
 async function addRecorder(
@@ -110,19 +110,18 @@ async function startRecord(args: RecorderAPI["startRecord"]["Args"]): Promise<nu
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
   await recorderManager.manager.startRecord(args.id);
   return null;
-  // return recorderToClient(recorder);
 }
 
 async function stopRecord(args: RecorderAPI["stopRecord"]["Args"]): Promise<null> {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
   await recorderManager.manager.stopRecord(args.id);
   return null;
-  // return recorderToClient(recorder);
 }
 
 async function getBiliStream(id: string) {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
   const recorder = recorderManager.manager.recorders.find((item) => item.id === id);
+  if (!recorder) throw new Error("未找到录制器");
   if (recorder.providerId !== "Bilibili") throw new Error("只支持bilibili录制");
 
   const url = recorder?.recordHandle?.url;

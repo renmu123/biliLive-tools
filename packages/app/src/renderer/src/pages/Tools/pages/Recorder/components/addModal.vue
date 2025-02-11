@@ -235,7 +235,7 @@ import {
   textInfo,
 } from "@renderer/enums/recorder";
 
-import type { LocalRecordr, BaseRecordr } from "@biliLive-tools/types";
+import type { Recorder } from "@biliLive-tools/types";
 
 interface Props {
   id?: string;
@@ -250,22 +250,19 @@ const emits = defineEmits<{
   (event: "confirm"): void;
 }>();
 
-const hasGlobalFields: (keyof Omit<BaseRecordr, "line" | "convert2Mp4" | "qualityRetry">)[] = [
-  "quality",
-  "disableProvideCommentsWhenRecording",
-  "saveGiftDanma",
-  "saveSCDanma",
-  "segment",
-  "saveCover",
-];
+const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>[number], boolean>>(
+  {
+    quality: true,
+    disableProvideCommentsWhenRecording: true,
+    saveGiftDanma: true,
+    saveSCDanma: true,
+    segment: true,
+    uid: true,
+    saveCover: true,
+  },
+);
 
-// @ts-ignore
-const globalFieldsObj = ref<Record<(typeof hasGlobalFields)[number], boolean>>({});
-for (const key of hasGlobalFields) {
-  globalFieldsObj.value[key] = true;
-}
-
-const config = ref<Omit<LocalRecordr, "id" | "qualityRetry">>({
+const config = ref<Omit<Recorder, "id">>({
   providerId: "DouYu",
   channelId: "",
   segment: 60,
@@ -290,9 +287,9 @@ const confirm = async () => {
     });
     return;
   }
-  config.value.noGlobalFollowFields = Object.keys(globalFieldsObj.value).filter(
-    (key) => !globalFieldsObj.value[key as keyof typeof globalFieldsObj.value],
-  ) as (keyof BaseRecordr)[];
+  config.value.noGlobalFollowFields = (
+    Object.keys(globalFieldsObj.value) as Recorder["noGlobalFollowFields"]
+  ).filter((key) => !globalFieldsObj.value[key]);
   if (isEdit.value) {
     if (!props.id) return;
     await recoderApi.update(props.id, { id: props.id, ...config.value });
@@ -359,6 +356,7 @@ watch(showModal, async (val) => {
       noGlobalFollowFields: [],
       uid: undefined,
       saveCover: false,
+      extra: {},
     };
 
     if (props.id) {

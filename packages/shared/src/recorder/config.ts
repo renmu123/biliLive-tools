@@ -1,7 +1,7 @@
 import { get } from "lodash-es";
 import { getCookie } from "../task/bili.js";
 
-import type { LocalRecordr, BaseRecordr } from "@biliLive-tools/types";
+import type { Recorder } from "@biliLive-tools/types";
 import type { AppConfig } from "../config.js";
 
 // 定义独立配置类
@@ -18,8 +18,8 @@ export default class RecorderConfig {
 
   public get(
     id: string,
-  ): (LocalRecordr & { qualityRetry: number; auth?: string; useM3U8Proxy: boolean }) | null {
-    const getValue = <K extends keyof BaseRecordr>(key: K): BaseRecordr[K] => {
+  ): (Recorder & { qualityRetry: number; auth?: string; useM3U8Proxy: boolean }) | null {
+    const getValue = (key: any): any => {
       if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
         // @ts-ignore
         return setting?.[key];
@@ -65,7 +65,6 @@ export default class RecorderConfig {
       saveCover: getValue("saveCover") ?? false,
       segment: getValue("segment") ?? 60,
       uid: uid,
-      convert2Mp4: globalConfig["convert2Mp4"] ?? false,
       // @ts-ignore
       qualityRetry: getValue("qualityRetry") ?? 0,
       auth: auth,
@@ -81,7 +80,7 @@ export default class RecorderConfig {
       })
       .filter((recorder) => recorder != null);
   }
-  public add(recorder: LocalRecordr) {
+  public add(recorder: Recorder) {
     const recorders = this.appConfig.get("recorders");
     recorders.push(recorder);
     this.appConfig.set("recorders", recorders);
@@ -93,7 +92,7 @@ export default class RecorderConfig {
     recorders.splice(index, 1);
     this.appConfig.set("recorders", recorders);
   }
-  public update(recorder: Omit<LocalRecordr, "providerId" | "channelId" | "owner">) {
+  public update(recorder: Omit<Recorder, "providerId" | "channelId" | "owner">) {
     const recorders = this.appConfig.get("recorders");
     const item = recorders.find((item) => item.id === recorder.id);
     if (item == null) return;

@@ -267,18 +267,37 @@ export interface NotificationPushAllInAllConfig {
 
 export type Theme = "system" | "light" | "dark";
 
-interface BaseRecordr {
+interface BilibiliRecorderConfig {
+  /** 账号 */
+  uid?: number;
+  /** 画质 30000：杜比 20000：4K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
+  quality: 30000 | 20000 | 10000 | 400 | 250 | 150 | 80;
+  /** 使用批量查询接口  */
+  useBatchQuery: boolean;
+  /** 使用本地反向代理避免分段 */
+  useM3U8Proxy: boolean;
+}
+interface DouyuRecorderConfig {
+  /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
+  quality: 0 | 2 | 3 | 4 | 8;
+}
+
+// 录制全局配置
+export interface GlobalRecorder {
+  /** 保存根目录 */
+  savePath: string;
+  /** 命名规则 */
+  nameRule: string;
+  /** 自动录制 */
+  autoRecord: boolean;
+  /** 检查间隔 */
+  checkInterval: number;
+  /** 调试模式 */
+  debugMode: boolean;
   /** 画质 */
-  quality:
-    | "lowest"
-    | "low"
-    | "medium"
-    | "high"
-    | "highest"
-    | BilibiliRecorderConfig["quality"]
-    | DouyuRecorderConfig["quality"];
+  quality: "lowest" | "low" | "medium" | "high" | "highest";
   /** 线路 */
-  line?: string; // "auto" | "tct-h5" | "hw-h5"
+  line?: string;
   /** 录制弹幕 */
   disableProvideCommentsWhenRecording?: boolean;
   /** 保存礼物弹幕 */
@@ -295,48 +314,20 @@ interface BaseRecordr {
   convert2Mp4?: boolean;
   /** 画质匹配重试次数 */
   qualityRetry: number;
-}
-
-interface BilibiliRecorderConfig {
-  /** 账号 */
-  uid?: number;
-  /** 画质 30000：杜比 20000：4K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
-  quality: 30000 | 20000 | 10000 | 400 | 250 | 150 | 80;
-  /** 使用批量查询接口  */
-  useBatchQuery: boolean;
-  /** 使用本地反向代理避免分段 */
-  useM3U8Proxy: boolean;
-}
-interface DouyuRecorderConfig {
-  /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
-  quality: 0 | 2 | 3 | 4 | 8;
-}
-
-export interface GlobalRecorder extends BaseRecordr {
-  /** 保存根目录 */
-  savePath: string;
-  /** 命名规则 */
-  nameRule: string;
-  /** 自动录制 */
-  autoRecord: boolean;
-  /** 检查间隔 */
-  checkInterval: number;
-  /** 调试模式 */
-  debugMode: boolean;
   /** B站特有的配置 */
   bilibili: BilibiliRecorderConfig;
   /** 斗鱼特有的配置 */
   douyu: DouyuRecorderConfig;
 }
 
-export interface LocalRecordr extends BaseRecordr {
+interface Recorder {
   providerId: string;
   id: string;
   channelId: string;
   remarks?: string;
   streamPriorities: any[];
   sourcePriorities: any[];
-  extra?: {
+  extra: {
     createTimestamp?: number;
     /** B站主播的uid */
     recorderUid?: number;
@@ -344,8 +335,46 @@ export interface LocalRecordr extends BaseRecordr {
   disableAutoCheck?: boolean;
   /** 发送至发送至软件webhook */
   sendToWebhook?: boolean;
+  /** 画质 */
+  quality:
+    | "lowest"
+    | "low"
+    | "medium"
+    | "high"
+    | "highest"
+    | BilibiliRecorderConfig["quality"]
+    | DouyuRecorderConfig["quality"];
+  /** 线路，尚未使用 */
+  line?: string;
+  /** 录制弹幕 */
+  disableProvideCommentsWhenRecording?: boolean;
+  /** 保存礼物弹幕 */
+  saveGiftDanma?: boolean;
+  /** 保存高能弹幕 */
+  saveSCDanma?: boolean;
+  /**分段时长，单位分钟 */
+  segment?: number;
+  /** 账号 */
+  uid?: number;
+  /** 保存封面 */
+  saveCover?: boolean;
   // 不跟随全局配置字段
-  noGlobalFollowFields?: (keyof BaseRecordr)[];
+  noGlobalFollowFields: Array<
+    Exclude<
+      keyof Recorder,
+      | "providerId"
+      | "id"
+      | "channelId"
+      | "remarks"
+      | "extra"
+      | "disableAutoCheck"
+      | "sendToWebhook"
+      | "streamPriorities"
+      | "sourcePriorities"
+      | "noGlobalFollowFields"
+      | "line"
+    >
+  >;
 }
 
 // 全局配置
@@ -469,10 +498,8 @@ export interface AppConfig {
   /** 录制配置 */
   recorder: GlobalRecorder;
   /** 直播间管理 */
-  recorders: LocalRecordr[];
+  recorders: Recorder[];
 }
-
-// export type LogLevel = ElectronLoGLevel;
 
 export interface DanmuOptions {
   saveRadio: 1 | 2; // 1：保存到原始文件夹，2：保存到特定文件夹

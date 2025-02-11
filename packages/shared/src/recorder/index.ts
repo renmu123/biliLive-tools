@@ -17,7 +17,7 @@ import { sleep, replaceExtName } from "../utils/index.js";
 // import { parseDanmu } from "../danmu/index.js";
 
 import type { AppConfig } from "../config.js";
-import type { LocalRecordr } from "@biliLive-tools/types";
+import type { Recorder as RecorderConfigType } from "@biliLive-tools/types";
 import type { Recorder } from "@autorecord/manager";
 
 export { RecorderConfig };
@@ -60,7 +60,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
    */
   async function updateRecorder(
     recorder: Recorder,
-    args: Omit<LocalRecordr, "channelId" | "providerId">,
+    args: Omit<RecorderConfigType, "channelId" | "providerId">,
   ) {
     Object.assign(recorder, { ...omit(args, ["id"]) });
     return recorder;
@@ -187,8 +187,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const title = recorder.liveInfo?.title;
     const username = recorder.liveInfo?.owner;
     const channelId = recorder.channelId;
+    const config = appConfig.getAll();
 
-    if (data?.convert2Mp4) {
+    if (config?.recorder?.convert2Mp4) {
       try {
         await convert2Mp4(filename);
         await fs.unlink(filename);
@@ -231,10 +232,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
   const recorderConfig = new RecorderConfig(appConfig);
   for (const recorder of recorderConfig.list()) {
     // console.log("addRecorder", recorder);
-    console.log({
-      ...recorder,
-      m3u8ProxyUrl: `http://127.0.0.1:${config.port}/bili/stream`,
-    });
     manager.addRecorder({
       ...recorder,
       m3u8ProxyUrl: `http://127.0.0.1:${config.port}/bili/stream`,
@@ -246,7 +243,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   return {
     manager,
     config: recorderConfig,
-    addRecorder: async (recorder: LocalRecordr) => {
+    addRecorder: async (recorder: RecorderConfigType) => {
       const recorders = recorderConfig.list();
       if (
         recorders.findIndex(
@@ -271,7 +268,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
       }
       return recoder;
     },
-    updateRecorder: async (args: Omit<LocalRecordr, "channelId" | "providerId">) => {
+    updateRecorder: async (args: Omit<RecorderConfigType, "channelId" | "providerId">) => {
       const { id } = args;
       const recorder = manager.recorders.find((item) => item.id === id);
       if (recorder == null) return null;

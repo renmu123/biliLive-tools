@@ -101,12 +101,12 @@ export async function getInfo(channelId: string): Promise<{
 async function getLiveInfo(
   roomIdOrShortId: number,
   opts: {
-    qn?: number;
-    protocol?: ProtocolInfo["protocol_name"];
-    format?: FormatInfo["format_name"];
-    codec?: CodecInfo["codec_name"];
+    qn: number;
+    protocol: ProtocolInfo["protocol_name"];
+    format: FormatInfo["format_name"];
+    codec: CodecInfo["codec_name"];
     cookie?: string;
-  } = {},
+  },
 ) {
   const res = await getRoomPlayInfo(roomIdOrShortId, opts);
 
@@ -145,12 +145,12 @@ async function getLiveInfo(
   ];
 
   let streamInfo: CodecInfo | undefined;
-  let streamOptions: {
+  let streamOptions!: {
     protocol_name: string;
     format_name: string;
     codec_name: string;
     qn: number;
-  } = null;
+  };
   for (const condition of conditons) {
     streamInfo = res.playurl_info.playurl.stream
       .find(({ protocol_name }) => protocol_name === condition.protocol_name)
@@ -160,7 +160,7 @@ async function getLiveInfo(
     if (streamInfo) {
       streamOptions = {
         ...condition,
-        qn: opts.qn,
+        qn: streamInfo.current_qn,
       };
       break;
     }

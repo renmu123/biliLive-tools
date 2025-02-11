@@ -1,17 +1,10 @@
 import type {
   Recorder,
-  RecorderManagerCreateOpts,
-  RecordExtraData,
+  // RecorderManagerCreateOpts,
   RecordHandle,
 } from "@autorecord/manager";
 
-import type { LocalRecordr } from "@biliLive-tools/types";
-
-export interface RecorderExtra {
-  createTimestamp: number;
-  /** B站主播的uid */
-  recorderUid?: string;
-}
+import type { Recorder as RecoderConfig } from "@biliLive-tools/types";
 
 export interface PagedArgs {
   page: number;
@@ -23,7 +16,7 @@ export interface PagedResp extends PagedArgs {
 }
 
 export type ClientRecorder = Omit<
-  Recorder<RecorderExtra>,
+  Recorder<RecoderConfig["extra"]>,
   "all" | "getChannelURL" | "checkLiveStatusAndRecord" | "recordHandle" | "toJSON" | "getLiveInfo"
 > & {
   channelURL: string;
@@ -54,15 +47,15 @@ export interface GetRecordersArgs {
 export type GetRecordersResp = ClientRecorder[];
 
 export interface GetRecorderArgs {
-  id: Recorder["id"];
+  id: RecoderConfig["id"];
 }
-export type GetRecorderResp = ClientRecorder;
+export type GetRecorderResp = RecoderConfig;
 
-export type AddRecorderArgs = Omit<LocalRecordr, "id" | "qualityRetry">;
+export type AddRecorderArgs = Omit<RecoderConfig, "id" | "qualityRetry">;
 export type AddRecorderResp = ClientRecorder;
 
 export type UpdateRecorderArgs = Pick<
-  LocalRecordr,
+  RecoderConfig,
   | "id"
   | "remarks"
   | "disableAutoCheck"
@@ -82,25 +75,25 @@ export type UpdateRecorderArgs = Pick<
 export type UpdateRecorderResp = ClientRecorder;
 
 export interface RemoveRecorderArgs {
-  id: Recorder["id"];
+  id: RecoderConfig["id"];
 }
 export type RemoveRecorderResp = null;
 
 export interface StartRecordArgs {
-  id: Recorder["id"];
+  id: RecoderConfig["id"];
 }
 export type StartRecordResp = ClientRecorder;
 
 export interface StopRecordArgs {
-  id: Recorder["id"];
+  id: RecoderConfig["id"];
 }
 export type StopRecordResp = ClientRecorder;
 
 export interface GetManagerArgs {}
-export type GetManagerResp = Omit<RecorderManagerCreateOpts, "providers">;
+// export type GetManagerResp = Omit<RecorderManagerCreateOpts, "providers">;
 
-export type UpdateManagerArgs = Omit<RecorderManagerCreateOpts, "providers">;
-export type UpdateManagerResp = Omit<RecorderManagerCreateOpts, "providers">;
+// export type UpdateManagerArgs = Omit<RecorderManagerCreateOpts, "providers">;
+// export type UpdateManagerResp = Omit<RecorderManagerCreateOpts, "providers">;
 
 export interface ResolveChannelArgs {
   channelURL: string;
@@ -113,15 +106,15 @@ export type ResolveChannelResp = {
 } | null;
 
 export interface GetManagerDefaultArgs {}
-export type GetManagerDefaultResp = Omit<RecorderManagerCreateOpts, "providers">;
+// export type GetManagerDefaultResp = Omit<RecorderManagerCreateOpts, "providers">;
 
 export interface ClearInvalidRecordsArgs {
-  recorderId?: Recorder["id"];
+  recorderId?: RecoderConfig["id"];
 }
 export type ClearInvalidRecordsResp = number;
 
 export interface GetRecordsArgs extends PagedArgs {
-  recorderId?: Recorder["id"];
+  recorderId?: RecoderConfig["id"];
 }
 export interface GetRecordsResp extends PagedResp {
   items: ClientRecord[];
@@ -135,7 +128,6 @@ export type GetRecordResp = ClientRecord;
 export interface GetRecordExtraDataArgs {
   id: string;
 }
-export type GetRecordExtraDataResp = RecordExtraData;
 
 export type RecorderAPI = {
   getLiveInfo: {
@@ -184,22 +176,22 @@ export type RecorderAPI = {
     Args: StopRecordArgs;
     Resp: StopRecordResp;
   };
-  getManager: {
-    Args: GetManagerArgs;
-    Resp: GetManagerResp;
-  };
-  updateManager: {
-    Args: UpdateManagerArgs;
-    Resp: UpdateManagerResp;
-  };
+  // getManager: {
+  //   Args: GetManagerArgs;
+  //   Resp: GetManagerResp;
+  // };
+  // updateManager: {
+  //   Args: UpdateManagerArgs;
+  //   Resp: UpdateManagerResp;
+  // };
   resolveChannel: {
     Args: ResolveChannelArgs;
     Resp: ResolveChannelResp;
   };
-  getManagerDefault: {
-    Args: GetManagerDefaultArgs;
-    Resp: GetManagerDefaultResp;
-  };
+  // getManagerDefault: {
+  //   Args: GetManagerDefaultArgs;
+  //   Resp: GetManagerDefaultResp;
+  // };
   clearInvalidRecords: {
     Args: ClearInvalidRecordsArgs;
     Resp: ClearInvalidRecordsResp;
@@ -211,10 +203,6 @@ export type RecorderAPI = {
   getRecord: {
     Args: GetRecordArgs;
     Resp: GetRecordResp;
-  };
-  getRecordExtraData: {
-    Args: GetRecordExtraDataArgs;
-    Resp: GetRecordExtraDataResp;
   };
 };
 
