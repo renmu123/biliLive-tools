@@ -16,23 +16,16 @@ export default class RecorderConfig {
     return setting.find((setting) => setting.id === id);
   }
 
-  public get(
-    id: string,
-  ): (Recorder & { qualityRetry: number; auth?: string; useM3U8Proxy: boolean }) | null {
+  public get(id: string): (Recorder & { auth?: string; useM3U8Proxy: boolean }) | null {
     const getValue = (key: any): any => {
       if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
-        // @ts-ignore
         return setting?.[key];
       } else {
         if (key === "uid") {
-          // @ts-ignore
           return get(globalConfig, "bilibili.uid");
-          // @ts-ignore
         } else if (key === "useM3U8Proxy") {
-          // @ts-ignore
           return get(globalConfig, "bilibili.useM3U8Proxy");
         } else {
-          // @ts-ignore
           return get(globalConfig, key);
         }
       }
@@ -65,10 +58,8 @@ export default class RecorderConfig {
       saveCover: getValue("saveCover") ?? false,
       segment: getValue("segment") ?? 60,
       uid: uid,
-      // @ts-ignore
       qualityRetry: getValue("qualityRetry") ?? 0,
       auth: auth,
-      // @ts-ignore
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
     };
   }

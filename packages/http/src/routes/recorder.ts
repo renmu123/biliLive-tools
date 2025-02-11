@@ -48,6 +48,7 @@ router.post("/add", async (ctx) => {
     "sendToWebhook",
     "uid",
     "saveCover",
+    "qualityRetry",
   );
 
   const data = await recorderService.addRecorder(args);
@@ -76,6 +77,7 @@ router.put("/:id", (ctx) => {
     "segment",
     "sendToWebhook",
     "uid",
+    "qualityRetry",
   );
 
   ctx.body = { payload: recorderService.updateRecorder({ id, ...patch }) };

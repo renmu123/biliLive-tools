@@ -8,7 +8,7 @@
       aria-modal="true"
       class="card"
     >
-      <n-form label-placement="left" :label-width="140">
+      <n-form label-placement="left" :label-width="150">
         <h4>支持斗鱼、虎牙平台、B站，玩具级录播，请做好踩坑的准备</h4>
 
         <n-form-item v-if="!isEdit">
@@ -127,6 +127,24 @@
               :disabled="globalFieldsObj.uid"
             />
             <n-checkbox v-model:checked="globalFieldsObj.uid" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.bili.qualityRetry.tip"
+                :text="textInfo.bili.qualityRetry.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.qualityRetry"
+              min="0"
+              step="1"
+              :disabled="globalFieldsObj.qualityRetry"
+            >
+            </n-input-number>
+            <n-checkbox v-model:checked="globalFieldsObj.qualityRetry" class="global-checkbox"
               >全局</n-checkbox
             >
           </n-form-item>
@@ -259,6 +277,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     segment: true,
     uid: true,
     saveCover: true,
+    qualityRetry: true,
   },
 );
 
@@ -277,6 +296,7 @@ const config = ref<Omit<Recorder, "id">>({
   noGlobalFollowFields: [],
   saveCover: false,
   extra: {},
+  qualityRetry: 0,
 });
 
 const confirm = async () => {
@@ -357,6 +377,7 @@ watch(showModal, async (val) => {
       uid: undefined,
       saveCover: false,
       extra: {},
+      qualityRetry: 0,
     };
 
     if (props.id) {
@@ -372,6 +393,7 @@ watch(showModal, async (val) => {
       segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
       uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
       saveCover: !(config.value?.noGlobalFollowFields ?? []).includes("saveCover"),
+      qualityRetry: !(config.value?.noGlobalFollowFields ?? []).includes("qualityRetry"),
     };
   }
 });
@@ -406,6 +428,9 @@ watch(
     }
     if (val.saveCover) {
       config.value.saveCover = appConfig.value.recorder.saveCover;
+    }
+    if (val.qualityRetry) {
+      config.value.qualityRetry = appConfig.value.recorder.qualityRetry;
     }
   },
   {

@@ -358,6 +358,7 @@ interface Recorder {
   uid?: number;
   /** 保存封面 */
   saveCover?: boolean;
+  qualityRetry: GlobalRecorder["qualityRetry"];
   // 不跟随全局配置字段
   noGlobalFollowFields: Array<
     Exclude<

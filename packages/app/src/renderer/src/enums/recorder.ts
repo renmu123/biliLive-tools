@@ -67,12 +67,16 @@ export const textInfo = {
       tip: "登录才能录制高清画质",
     },
     useM3U8Proxy: {
-      text: "反向代理避免hls自动分段",
+      text: "避免hls自动分段",
       tip: "由于B站hls流存在过期时间，ffmpeg命令行无法处理导致会被一小时强制分段，通过本地代理可以避免分段，但是会增加网络请求以及可能的不稳定性",
     },
     quality: {
       text: "画质",
       tip: "如果找不到对应画质，会使用较清晰的源",
+    },
+    qualityRetry: {
+      text: "画质匹配重试次数",
+      tip: "如果选项为零，那么匹配不到画质时会自动选择其他画质，否则会多次尝试匹配",
     },
   },
 } as const;

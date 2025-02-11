@@ -51,7 +51,7 @@ export interface GetRecorderArgs {
 }
 export type GetRecorderResp = RecoderConfig;
 
-export type AddRecorderArgs = Omit<RecoderConfig, "id" | "qualityRetry">;
+export type AddRecorderArgs = Omit<RecoderConfig, "id">;
 export type AddRecorderResp = ClientRecorder;
 
 export type UpdateRecorderArgs = Pick<
@@ -71,6 +71,7 @@ export type UpdateRecorderArgs = Pick<
   | "sendToWebhook"
   | "uid"
   | "saveCover"
+  | "qualityRetry"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 

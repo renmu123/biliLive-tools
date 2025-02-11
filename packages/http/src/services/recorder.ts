@@ -57,7 +57,9 @@ async function getRecorders(
   });
 }
 
-function getRecorder(args: RecorderAPI["getRecorder"]["Args"]): RecorderAPI["getRecorder"]["Resp"] {
+function getRecorder(
+  args: RecorderAPI["getRecorder"]["Args"],
+): RecorderAPI["getRecorder"]["Resp"] | undefined {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
   const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
   if (recorder == null) throw new Error("404");

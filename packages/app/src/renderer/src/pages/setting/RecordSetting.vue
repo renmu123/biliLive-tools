@@ -135,10 +135,7 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip
-            tip="如果选项为零，那么匹配不到画质时会自动选择其他画质，否则会多次尝试匹配"
-            text="画质匹配重试次数"
-          ></Tip>
+          <Tip :tip="textInfo.bili.qualityRetry.tip" :text="textInfo.bili.qualityRetry.text"></Tip>
         </template>
         <n-input-number v-model:value="config.recorder.qualityRetry" min="0" step="1">
         </n-input-number>
