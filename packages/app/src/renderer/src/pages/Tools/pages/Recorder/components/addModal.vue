@@ -116,7 +116,7 @@
         <template v-if="config.providerId === 'Bilibili'">
           <n-form-item>
             <template #label>
-              <Tip text="B站录制账号">登录才能录制高清画质</Tip>
+              <Tip :text="textInfo.bili.uid.text">{{ textInfo.bili.uid.tip }}</Tip>
             </template>
             <n-select
               v-model:value="config.uid"
@@ -133,8 +133,8 @@
           <!-- <n-form-item>
             <template #label>
               <Tip
-                tip="由于B站hls流存在过期时间，ffmpeg命令行无法处理导致会被一小时强制分段，通过本地代理可以避免分段，但是会增加网络请求以及可能的不稳定性"
-                text="反向代理避免hls自动分段"
+                :tip="textInfo.bili.useM3U8Proxy.tip"
+                :text="textInfo.bili.useM3U8Proxy.text"
               ></Tip>
             </template>
             <n-switch
@@ -147,7 +147,7 @@
           </n-form-item> -->
           <n-form-item>
             <template #label>
-              <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
+              <Tip :text="textInfo.bili.quality.text" :tip="textInfo.bili.quality.tip"></Tip>
             </template>
             <n-select
               v-model:value="config.quality"
@@ -228,6 +228,12 @@
 import { recoderApi } from "@renderer/apis";
 import { useAppConfig } from "@renderer/stores";
 import { useUserInfoStore } from "@renderer/stores";
+import {
+  qualityOptions,
+  biliQualityOptions,
+  douyuQualityOptions,
+  textInfo,
+} from "@renderer/enums/recorder";
 
 import type { LocalRecordr, BaseRecordr } from "@biliLive-tools/types";
 
@@ -275,67 +281,6 @@ const config = ref<Omit<LocalRecordr, "id" | "qualityRetry">>({
   saveCover: false,
   extra: {},
 });
-
-const qualityOptions = [
-  { value: "highest", label: "最高" },
-  { value: "high", label: "高" },
-  { value: "medium", label: "中" },
-  { value: "low", label: "低" },
-  { value: "lowest", label: "最低" },
-];
-const biliQualityOptions = [
-  {
-    value: 10000,
-    label: "原画(10000)",
-  },
-  {
-    value: 30000,
-    label: "杜比(30000)",
-  },
-  {
-    value: 20000,
-    label: "4K(20000)",
-  },
-  {
-    value: 400,
-    label: "蓝光(400)",
-  },
-  {
-    value: 250,
-    label: "超清(250)",
-  },
-  {
-    value: 150,
-    label: "高清(150)",
-  },
-  {
-    value: 80,
-    label: "流畅(80)",
-  },
-];
-
-const douyuQualityOptions = [
-  {
-    value: 0,
-    label: "原画",
-  },
-  {
-    value: 8,
-    label: "蓝光8M",
-  },
-  {
-    value: 4,
-    label: "蓝光4M",
-  },
-  {
-    value: 3,
-    label: "超清",
-  },
-  {
-    value: 2,
-    label: "高清",
-  },
-];
 
 const confirm = async () => {
   if (!config.value.channelId) {

@@ -47,7 +47,7 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip tip="直播状态检查，太快任意被风控~" text="检查间隔"></Tip>
+          <Tip tip="直播状态检查，太快容易被风控~" text="检查间隔"></Tip>
         </template>
         <n-input-number v-model:value="config.recorder.checkInterval" min="10" step="10">
           <template #suffix>秒</template>
@@ -111,7 +111,7 @@
       <h2>B站</h2>
       <n-form-item>
         <template #label>
-          <Tip text="录制账号">登录才能录制高清画质</Tip>
+          <Tip :text="textInfo.bili.uid.text">{{ textInfo.bili.uid.text }}</Tip>
         </template>
         <n-select
           v-model:value="config.recorder.bilibili.uid"
@@ -123,16 +123,13 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip
-            tip="由于B站hls流存在过期时间，ffmpeg命令行无法处理导致会被一小时强制分段，通过本地代理可以避免分段，但是会增加网络请求以及可能的不稳定性"
-            text="反向代理避免hls自动分段"
-          ></Tip>
+          <Tip :tip="textInfo.bili.useM3U8Proxy.tip" :text="textInfo.bili.useM3U8Proxy.text"></Tip>
         </template>
         <n-switch v-model:value="config.recorder.bilibili.useM3U8Proxy" />
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
+          <Tip :text="textInfo.bili.quality.text" :tip="textInfo.bili.quality.tip"></Tip>
         </template>
         <n-select v-model:value="config.recorder.bilibili.quality" :options="biliQualityOptions" />
       </n-form-item>
@@ -191,6 +188,12 @@ import { templateRef } from "@vueuse/core";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { useUserInfoStore } from "@renderer/stores";
 import { useConfirm } from "@renderer/hooks";
+import {
+  qualityOptions,
+  biliQualityOptions,
+  douyuQualityOptions,
+  textInfo,
+} from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";
 
@@ -199,66 +202,6 @@ const config = defineModel<AppConfig>("data", {
 });
 
 const { userList } = storeToRefs(useUserInfoStore());
-const qualityOptions = [
-  { value: "highest", label: "最高" },
-  { value: "high", label: "高" },
-  { value: "medium", label: "中" },
-  { value: "low", label: "低" },
-  { value: "lowest", label: "最低" },
-];
-const biliQualityOptions = [
-  {
-    value: 10000,
-    label: "原画(10000)",
-  },
-  {
-    value: 30000,
-    label: "杜比(30000)",
-  },
-  {
-    value: 20000,
-    label: "4K(20000)",
-  },
-  {
-    value: 400,
-    label: "蓝光(400)",
-  },
-  {
-    value: 250,
-    label: "超清(250)",
-  },
-  {
-    value: 150,
-    label: "高清(150)",
-  },
-  {
-    value: 80,
-    label: "流畅(80)",
-  },
-];
-
-const douyuQualityOptions = [
-  {
-    value: 0,
-    label: "原画",
-  },
-  {
-    value: 8,
-    label: "蓝光8M",
-  },
-  {
-    value: 4,
-    label: "蓝光4M",
-  },
-  {
-    value: 3,
-    label: "超清",
-  },
-  {
-    value: 2,
-    label: "高清",
-  },
-];
 
 const selectFolder = async () => {
   let file: string | undefined = await showDirectoryDialog({
