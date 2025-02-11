@@ -71,24 +71,24 @@ export const streamFormatOptions = [
     value: "flv",
   },
   {
-    label: "优先hls",
-    value: "hls",
+    label: "优先hls(fmp4)",
+    value: "fmp4",
   },
   {
-    label: "优先fmp4",
-    value: "fmp4",
+    label: "优先hls(ts)",
+    value: "hls",
   },
   {
     label: "强制flv",
     value: "flv_only",
   },
   {
-    label: "强制hls",
-    value: "hls_only",
+    label: "强制hls(fmp4)",
+    value: "fmp4_only",
   },
   {
-    label: "强制fmp4",
-    value: "fmp4_only",
+    label: "强制hls(ts)",
+    value: "hls_only",
   },
 ];
 
