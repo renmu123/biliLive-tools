@@ -266,6 +266,7 @@ export interface NotificationPushAllInAllConfig {
 }
 
 export type Theme = "system" | "light" | "dark";
+type formatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 
 interface BilibiliRecorderConfig {
   /** 账号 */
@@ -276,6 +277,8 @@ interface BilibiliRecorderConfig {
   useBatchQuery: boolean;
   /** 使用本地反向代理避免分段 */
   useM3U8Proxy: boolean;
+  /** 流格式 */
+  formatName: formatName;
 }
 interface DouyuRecorderConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */

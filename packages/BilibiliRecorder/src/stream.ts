@@ -12,6 +12,8 @@ import {
 } from "./bilibili_api.js";
 import { assert } from "./utils.js";
 
+import type { RecorderCreateOpts } from "@autorecord/manager";
+
 export async function getStrictStream(
   roomId: number,
   options: {
@@ -102,47 +104,74 @@ async function getLiveInfo(
   roomIdOrShortId: number,
   opts: {
     qn: number;
-    protocol: ProtocolInfo["protocol_name"];
-    format: FormatInfo["format_name"];
-    codec: CodecInfo["codec_name"];
     cookie?: string;
+    formatName: RecorderCreateOpts["formatName"];
   },
 ) {
   const res = await getRoomPlayInfo(roomIdOrShortId, opts);
 
   // 由于b站的flv hevc 是非标，ffmpeg并不支持
-  const conditons = [
-    {
-      protocol_name: opts.protocol,
-      format_name: opts.format,
-      codec_name: opts.codec,
-    },
+  let conditons: {
+    protocol_name: ProtocolInfo["protocol_name"];
+    format_name: FormatInfo["format_name"];
+    codec_name: CodecInfo["codec_name"];
+    sort: number;
+  }[] = [
     {
       protocol_name: "http_stream",
       format_name: "flv",
       codec_name: "avc",
+      sort: 9,
     },
     {
       protocol_name: "http_hls",
       format_name: "ts",
       codec_name: "avc",
+      sort: 8,
     },
     {
       protocol_name: "http_hls",
       format_name: "fmp4",
       codec_name: "avc",
+      sort: 7,
     },
     {
       protocol_name: "http_hls",
       format_name: "ts",
       codec_name: "hevc",
+      sort: 6,
     },
     {
       protocol_name: "http_hls",
       format_name: "fmp4",
       codec_name: "hevc",
+      sort: 5,
     },
   ];
+  if (opts.formatName === "flv_only") {
+    conditons = conditons.filter((item) => item.format_name === "flv");
+  } else if (opts.formatName === "hls_only") {
+    conditons = conditons.filter((item) => item.format_name === "ts");
+  } else if (opts.formatName === "fmp4_only") {
+    conditons = conditons.filter((item) => item.format_name === "fmp4");
+  } else if (opts.formatName === "hls") {
+    // hls优先,avc比hevc优先
+    conditons.forEach((item) => {
+      if (item.format_name === "ts") {
+        item.sort += 10;
+      }
+    });
+    conditons = conditons.sort((a, b) => b.sort - a.sort);
+  } else if (opts.formatName === "fmp4") {
+    // fmp4优先,将format_name=fmp4的放在前面,avc比hevc优先
+    conditons.forEach((item) => {
+      if (item.format_name === "fmp4") {
+        item.sort += 10;
+      }
+    });
+    conditons = conditons.sort((a, b) => b.sort - a.sort);
+  }
+  console.log("conditons", conditons);
 
   let streamInfo: CodecInfo | undefined;
   let streamOptions!: {
@@ -165,6 +194,7 @@ async function getLiveInfo(
       break;
     }
   }
+  console.log("streamOptions", streamOptions);
   assert(streamInfo, "没有找到支持的流");
 
   const streams: StreamProfile[] = streamInfo.accept_qn.map((qn) => {
@@ -196,6 +226,7 @@ export async function getStream(
   opts: Pick<Recorder, "channelId" | "quality"> & {
     cookie?: string;
     strictQuality?: boolean;
+    formatName: RecorderCreateOpts["formatName"];
   },
 ) {
   const roomId = Number(opts.channelId);
@@ -204,18 +235,12 @@ export async function getStream(
     throw new Error("It must be called getStream when living");
   }
 
-  const defaultOpts = {
-    protocol: "http_stream",
-    format: "flv",
-    codec: "avc",
-  };
-
   const qn = BiliQualities.includes(opts.quality as any) ? (opts.quality as number) : 10000;
 
   let liveInfo = await getLiveInfo(roomId, {
-    ...defaultOpts,
     qn: qn,
     cookie: opts.cookie,
+    formatName: opts.formatName,
   });
   // console.log(JSON.stringify(liveInfo, null, 2));
 
@@ -227,8 +252,8 @@ export async function getStream(
     const acceptQn = liveInfo.accept_qn[0];
     liveInfo = await getLiveInfo(roomId, {
       qn: acceptQn,
-      ...defaultOpts,
       cookie: opts.cookie,
+      formatName: opts.formatName,
     });
   }
 

@@ -60,6 +60,38 @@ export const douyuQualityOptions = [
   },
 ];
 
+// b站流格式
+export const streamFormatOptions = [
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    label: "优先flv",
+    value: "flv",
+  },
+  {
+    label: "优先hls",
+    value: "hls",
+  },
+  {
+    label: "优先fmp4",
+    value: "fmp4",
+  },
+  {
+    label: "强制flv",
+    value: "flv_only",
+  },
+  {
+    label: "强制hls",
+    value: "hls_only",
+  },
+  {
+    label: "强制fmp4",
+    value: "fmp4_only",
+  },
+];
+
 export const textInfo = {
   bili: {
     uid: {
@@ -77,6 +109,10 @@ export const textInfo = {
     qualityRetry: {
       text: "画质匹配重试次数",
       tip: "如果选项为零，那么匹配不到画质时会自动选择其他画质，否则会多次尝试匹配",
+    },
+    formatName: {
+      text: "流格式",
+      tip: "不支持flv hevc",
     },
   },
 } as const;

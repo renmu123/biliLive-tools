@@ -3,6 +3,8 @@ import { ChannelId, Message, Quality } from "./common.js";
 import { RecorderProvider } from "./manager.js";
 import { AnyObject, PickRequired, UnknownObject } from "./utils.js";
 
+type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
+
 export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   providerId: RecorderProvider<E>["id"];
   channelId: ChannelId;
@@ -36,6 +38,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   useM3U8Proxy?: boolean;
   /**B站m3u8代理url */
   m3u8ProxyUrl?: string;
+  /** 流格式 */
+  formatName?: FormatName;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
 }

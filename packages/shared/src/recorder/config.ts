@@ -16,7 +16,9 @@ export default class RecorderConfig {
     return setting.find((setting) => setting.id === id);
   }
 
-  public get(id: string): (Recorder & { auth?: string; useM3U8Proxy: boolean }) | null {
+  public get(
+    id: string,
+  ): (Recorder & { auth?: string; useM3U8Proxy: boolean; formatName: string }) | null {
     const getValue = (key: any): any => {
       if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
         return setting?.[key];
@@ -25,6 +27,8 @@ export default class RecorderConfig {
           return get(globalConfig, "bilibili.uid");
         } else if (key === "useM3U8Proxy") {
           return get(globalConfig, "bilibili.useM3U8Proxy");
+        } else if (key === "formatName") {
+          return get(globalConfig, "bilibili.formatName");
         } else {
           return get(globalConfig, key);
         }
@@ -61,6 +65,7 @@ export default class RecorderConfig {
       qualityRetry: getValue("qualityRetry") ?? 0,
       auth: auth,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
+      formatName: getValue("formatName") ?? "auto",
     };
   }
   public list() {

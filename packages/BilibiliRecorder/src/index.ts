@@ -36,6 +36,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     qualityRetry: opts.qualityRetry ?? 0,
     useM3U8Proxy: opts.useM3U8Proxy ?? false,
     m3u8ProxyUrl: opts.m3u8ProxyUrl,
+    formatName: opts.formatName ?? "auto",
 
     getChannelURL() {
       return `https://live.bilibili.com/${this.channelId}`;
@@ -57,6 +58,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       const res = await getStream({
         channelId: this.channelId,
         quality: this.quality,
+        formatName: this.formatName,
       });
       return res.currentStream;
     },
@@ -137,6 +139,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       quality: this.quality,
       cookie: this.auth,
       strictQuality: strictQuality,
+      formatName: this.formatName,
     });
   } catch (err) {
     this.qualityRetry -= 1;

@@ -123,15 +123,24 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip :tip="textInfo.bili.useM3U8Proxy.tip" :text="textInfo.bili.useM3U8Proxy.text"></Tip>
+          <Tip :text="textInfo.bili.formatName.text" :tip="textInfo.bili.formatName.tip"></Tip>
         </template>
-        <n-switch v-model:value="config.recorder.bilibili.useM3U8Proxy" />
+        <n-select
+          v-model:value="config.recorder.bilibili.formatName"
+          :options="streamFormatOptions"
+        />
       </n-form-item>
       <n-form-item>
         <template #label>
           <Tip :text="textInfo.bili.quality.text" :tip="textInfo.bili.quality.tip"></Tip>
         </template>
         <n-select v-model:value="config.recorder.bilibili.quality" :options="biliQualityOptions" />
+      </n-form-item>
+      <n-form-item v-if="config.recorder.bilibili.formatName !== 'flv_only'">
+        <template #label>
+          <Tip :tip="textInfo.bili.useM3U8Proxy.tip" :text="textInfo.bili.useM3U8Proxy.text"></Tip>
+        </template>
+        <n-switch v-model:value="config.recorder.bilibili.useM3U8Proxy" />
       </n-form-item>
       <n-form-item>
         <template #label>
@@ -190,6 +199,7 @@ import {
   biliQualityOptions,
   douyuQualityOptions,
   textInfo,
+  streamFormatOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";

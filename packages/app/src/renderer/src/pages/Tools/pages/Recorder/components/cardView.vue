@@ -6,7 +6,11 @@
         <span v-if="item.roomTitle" class="room-title" :title="item.roomTitle">{{
           item.roomTitle
         }}</span>
-        <div v-if="item.state === 'recording'" class="recording-container">
+        <div
+          v-if="item.state === 'recording'"
+          class="recording-container"
+          :title="item?.recordHandle?.url"
+        >
           <div class="recording"></div>
           <span class="source">{{ item.usedSource }}</span>
           <span class="line">{{ item.usedStream }}</span>

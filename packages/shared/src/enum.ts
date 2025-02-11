@@ -213,6 +213,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       quality: 10000,
       useBatchQuery: false,
       useM3U8Proxy: false,
+      formatName: "auto",
     },
     douyu: {
       quality: 0,
