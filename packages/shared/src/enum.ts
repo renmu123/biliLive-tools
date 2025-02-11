@@ -212,6 +212,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       uid: undefined,
       quality: 10000,
       useBatchQuery: false,
+      useM3U8Proxy: false,
     },
     douyu: {
       quality: 0,

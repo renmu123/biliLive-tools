@@ -123,6 +123,15 @@
       </n-form-item>
       <n-form-item>
         <template #label>
+          <Tip
+            tip="由于B站hls流存在过期时间，ffmpeg命令行无法处理导致会被一小时强制分段，通过本地代理可以避免分段，但是会增加网络请求以及可能的不稳定性"
+            text="反向代理避免hls自动分段"
+          ></Tip>
+        </template>
+        <n-switch v-model:value="config.recorder.bilibili.useM3U8Proxy" />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
           <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
         </template>
         <n-select v-model:value="config.recorder.bilibili.quality" :options="biliQualityOptions" />

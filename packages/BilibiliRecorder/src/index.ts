@@ -15,7 +15,7 @@ import {
 } from "@autorecord/manager";
 import type { Comment, GiveGift, SuperChat, Guard } from "@autorecord/manager";
 
-import { getInfo, getStream, getLiveStatus } from "./stream.js";
+import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
 import { assertStringType, ensureFolderExist, createInvalidStreamChecker } from "./utils.js";
 import { startListen, MsgHandler } from "./blive-message-listener/index.js";
 
@@ -34,6 +34,8 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     state: "idle",
     qualityMaxRetry: opts.qualityRetry ?? 0,
     qualityRetry: opts.qualityRetry ?? 0,
+    useM3U8Proxy: opts.useM3U8Proxy ?? false,
+    m3u8ProxyUrl: opts.m3u8ProxyUrl,
 
     getChannelURL() {
       return `https://live.bilibili.com/${this.channelId}`;
@@ -141,12 +143,44 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "idle";
     throw err;
   }
-  const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
+  const {
+    streamOptions,
+    currentStream: stream,
+    sources: availableSources,
+    streams: availableStreams,
+  } = res;
   this.availableStreams = availableStreams.map((s) => s.desc);
   this.availableSources = availableSources.map((s) => s.name);
   this.usedStream = stream.name;
   this.usedSource = stream.source;
-  // TODO: emit update event
+  let url = stream.url;
+
+  let intervalId: NodeJS.Timeout = null;
+  if (this.useM3U8Proxy && streamOptions.protocol_name === "http_hls") {
+    url = `${this.m3u8ProxyUrl}?id=${this.id}`;
+    this.emit("DebugLog", {
+      type: "common",
+      text: `is hls stream, use proxy: ${url}`,
+    });
+    intervalId = setInterval(
+      async () => {
+        const url = await getStrictStream(Number(this.channelId), {
+          qn: streamOptions.qn,
+          cookie: this.auth,
+          protocol_name: streamOptions.protocol_name,
+          format_name: streamOptions.format_name,
+          codec_name: streamOptions.codec_name,
+        });
+        stream.url = url;
+        this.emit("DebugLog", {
+          type: "common",
+          text: `update stream: ${url}`,
+        });
+      },
+      50 * 60 * 1000,
+    );
+  }
+  // console.log(streamOptions.protocol_name, url);
 
   const savePath = getSavePath({ owner, title });
   const hasSegment = !!this.segment;
@@ -305,7 +339,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const isInvalidStream = createInvalidStreamChecker();
   const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 3 * 10e3);
   const command = createFFMPEGBuilder()
-    .input(stream.url)
+    .input(url)
     .addInputOptions(
       "-user_agent",
       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
@@ -357,8 +391,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   });
   command.run();
 
-  // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
-
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
 
@@ -370,7 +402,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     try {
       // @ts-ignore
       command.ffmpegProc?.stdin?.write("q");
-      // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
       client?.close();
       this.usedStream = undefined;
       this.usedSource = undefined;
@@ -380,13 +411,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
       this.emit("DebugLog", { type: "common", text: String(err) });
     }
-
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.off("videoFileCreated", saveCover);
     this.recordHandle = undefined;
     this.liveInfo = undefined;
     this.state = "idle";
     this.qualityRetry = this.qualityMaxRetry;
+    intervalId && clearInterval(intervalId);
   });
 
   this.recordHandle = {

@@ -5,6 +5,7 @@ import { Client } from "@renmu/bili-api";
 
 import { handler, appConfig } from "../index.js";
 import log from "@biliLive-tools/shared/utils/log.js";
+import recorderService from "../services/recorder.js";
 
 import type { BlrecEventType } from "../types/blrecEvent.js";
 import type { CloseEvent, OpenEvent, CustomEvent } from "../types/webhook.js";
@@ -218,5 +219,19 @@ async function checkFileInterval() {
     }
   }, 1000 * 60);
 }
+
+router.get("/bili/stream", async (ctx) => {
+  const { id } = ctx.query as {
+    id: string;
+  };
+  try {
+    const m3u8Content = await recorderService.getBiliStream(id);
+    ctx.set("Content-Type", "application/vnd.apple.mpegurl");
+    ctx.body = m3u8Content;
+  } catch (error) {
+    log.error("获取bili录播姬直播流失败", error);
+    ctx.status = 403;
+  }
+});
 
 export default router;

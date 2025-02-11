@@ -231,7 +231,14 @@ export async function createRecorderManager(appConfig: AppConfig) {
   const recorderConfig = new RecorderConfig(appConfig);
   for (const recorder of recorderConfig.list()) {
     // console.log("addRecorder", recorder);
-    manager.addRecorder({ ...recorder });
+    console.log({
+      ...recorder,
+      m3u8ProxyUrl: `http://127.0.0.1:${config.port}/bili/stream`,
+    });
+    manager.addRecorder({
+      ...recorder,
+      m3u8ProxyUrl: `http://127.0.0.1:${config.port}/bili/stream`,
+    });
   }
 
   if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
@@ -253,8 +260,10 @@ export async function createRecorderManager(appConfig: AppConfig) {
       const data = recorderConfig.get(recorder.id);
       if (!data) return null;
 
+      // TODO: 配置可视化
       const recoder = manager.addRecorder({
         ...data,
+        m3u8ProxyUrl: `http://127.0.0.1:${config.port}/bili/stream`,
       });
 
       if (!data.disableAutoCheck) {

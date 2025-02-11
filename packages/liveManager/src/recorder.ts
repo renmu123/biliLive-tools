@@ -32,6 +32,10 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   auth?: string;
   /** 画质匹配重试次数 */
   qualityRetry?: number;
+  /** B站使用m3u8代理 */
+  useM3U8Proxy?: boolean;
+  /**B站m3u8代理url */
+  m3u8ProxyUrl?: string;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
 }

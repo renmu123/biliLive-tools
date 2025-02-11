@@ -12,6 +12,29 @@ import {
 } from "./bilibili_api.js";
 import { assert } from "./utils.js";
 
+export async function getStrictStream(
+  roomId: number,
+  options: {
+    qn: number;
+    cookie?: string;
+    protocol_name: string;
+    format_name: string;
+    codec_name: string;
+  },
+) {
+  const res = await getRoomPlayInfo(roomId, options);
+  const streamInfo = res.playurl_info.playurl.stream
+    .find(({ protocol_name }) => protocol_name === options.protocol_name)
+    ?.format.find(({ format_name }) => format_name === options.format_name)
+    ?.codec.find(({ codec_name }) => codec_name === options.codec_name);
+
+  assert(streamInfo, "没有找到支持的流");
+
+  const expectSource = streamInfo.url_info[0];
+  const url = expectSource.host + streamInfo.base_url + expectSource.extra;
+  return url;
+}
+
 export async function getLiveStatus(channelId: string): Promise<{
   living: boolean;
   liveId: string;
@@ -122,6 +145,12 @@ async function getLiveInfo(
   ];
 
   let streamInfo: CodecInfo | undefined;
+  let streamOptions: {
+    protocol_name: string;
+    format_name: string;
+    codec_name: string;
+    qn: number;
+  } = null;
   for (const condition of conditons) {
     streamInfo = res.playurl_info.playurl.stream
       .find(({ protocol_name }) => protocol_name === condition.protocol_name)
@@ -129,6 +158,10 @@ async function getLiveInfo(
       ?.codec.find(({ codec_name }) => codec_name === condition.codec_name);
 
     if (streamInfo) {
+      streamOptions = {
+        ...condition,
+        qn: opts.qn,
+      };
       break;
     }
   }
@@ -155,6 +188,7 @@ async function getLiveInfo(
     streams,
     sources,
     name: currentStreamName,
+    streamOptions,
   };
 }
 

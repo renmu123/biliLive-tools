@@ -304,6 +304,8 @@ interface BilibiliRecorderConfig {
   quality: 30000 | 20000 | 10000 | 400 | 250 | 150 | 80;
   /** 使用批量查询接口  */
   useBatchQuery: boolean;
+  /** 使用本地反向代理避免分段 */
+  useM3U8Proxy: boolean;
 }
 interface DouyuRecorderConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */

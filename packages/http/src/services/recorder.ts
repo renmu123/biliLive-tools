@@ -1,3 +1,4 @@
+import axios from "axios";
 import { v4 as uuid } from "uuid";
 import { container } from "../index.js";
 import { createRecorderManager } from "@biliLive-tools/shared";
@@ -119,6 +120,45 @@ async function stopRecord(args: RecorderAPI["stopRecord"]["Args"]): Promise<null
   // return recorderToClient(recorder);
 }
 
+async function getBiliStream(id: string) {
+  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const recorder = recorderManager.manager.recorders.find((item) => item.id === id);
+  if (recorder.providerId !== "Bilibili") throw new Error("只支持bilibili录制");
+
+  const url = recorder?.recordHandle?.url;
+  if (url == null) throw new Error("未找到录制地址");
+
+  const res = await axios.get(url, {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
+      Referer: "https://live.bilibili.com/",
+    },
+  });
+  if (res.status !== 200) throw new Error("请求失败");
+
+  const m3u8 = res.data;
+  // console.log(m3u8 + "\n");
+  const lines = m3u8.split("\n");
+  const items: string[] = [];
+  for (const line of lines) {
+    if (!line) continue;
+    if (line.startsWith("#")) {
+      // 还要处理EXT-X-MAP:URI
+      if (line.startsWith("#EXT-X-MAP:URI=")) {
+        const absoluteUrl = line.replace("#EXT-X-MAP:URI=", "").replaceAll('"', "");
+        items.push(`#EXT-X-MAP:URI="${new URL(absoluteUrl, url).toString()}"`);
+      } else {
+        items.push(line);
+      }
+    } else {
+      items.push(new URL(line, url).toString());
+    }
+  }
+
+  return items.join("\n");
+}
+
 type PagedResultGetter<T = unknown> = (
   page: number,
   pageSize: number,
@@ -195,4 +235,5 @@ export default {
   stopRecord,
   getLiveInfo,
   resolveChannel,
+  getBiliStream,
 };
