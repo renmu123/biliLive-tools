@@ -362,6 +362,8 @@ interface Recorder {
   /** 保存封面 */
   saveCover?: boolean;
   qualityRetry: GlobalRecorder["qualityRetry"];
+  formatName: GlobalRecorder["bilibili"]["formatName"];
+  useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];
   // 不跟随全局配置字段
   noGlobalFollowFields: Array<
     Exclude<

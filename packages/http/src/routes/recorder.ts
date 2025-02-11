@@ -49,6 +49,8 @@ router.post("/add", async (ctx) => {
     "uid",
     "saveCover",
     "qualityRetry",
+    "formatName",
+    "useM3U8Proxy",
   );
 
   const data = await recorderService.addRecorder(args);
@@ -78,6 +80,8 @@ router.put("/:id", (ctx) => {
     "sendToWebhook",
     "uid",
     "qualityRetry",
+    "formatName",
+    "useM3U8Proxy",
   );
 
   ctx.body = { payload: recorderService.updateRecorder({ id, ...patch }) };

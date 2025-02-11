@@ -123,18 +123,18 @@
       </n-form-item>
       <n-form-item>
         <template #label>
+          <Tip :text="textInfo.bili.quality.text" :tip="textInfo.bili.quality.tip"></Tip>
+        </template>
+        <n-select v-model:value="config.recorder.bilibili.quality" :options="biliQualityOptions" />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
           <Tip :text="textInfo.bili.formatName.text" :tip="textInfo.bili.formatName.tip"></Tip>
         </template>
         <n-select
           v-model:value="config.recorder.bilibili.formatName"
           :options="streamFormatOptions"
         />
-      </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip :text="textInfo.bili.quality.text" :tip="textInfo.bili.quality.tip"></Tip>
-        </template>
-        <n-select v-model:value="config.recorder.bilibili.quality" :options="biliQualityOptions" />
       </n-form-item>
       <n-form-item v-if="config.recorder.bilibili.formatName !== 'flv_only'">
         <template #label>

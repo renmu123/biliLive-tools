@@ -65,26 +65,6 @@
           </template>
           <n-switch v-model:value="config.sendToWebhook" />
         </n-form-item>
-        <n-form-item>
-          <template #label>
-            <span class="inline-flex">
-              分段录制
-              <Tip tip="0为不分段"></Tip>
-            </span>
-          </template>
-          <n-input-number
-            v-model:value="config.segment"
-            min="0"
-            step="10"
-            style="width: 100%"
-            :disabled="globalFieldsObj.segment"
-          >
-            <template #suffix>分钟</template>
-          </n-input-number>
-          <n-checkbox v-model:checked="globalFieldsObj.segment" class="global-checkbox"
-            >全局</n-checkbox
-          >
-        </n-form-item>
         <n-form-item v-if="config.providerId !== 'Bilibili' && config.providerId !== 'DouYu'">
           <template #label>
             <span class="inline-flex"> 画质 </span>
@@ -104,15 +84,7 @@
           </template>
           待实现
         </n-form-item> -->
-        <n-form-item>
-          <template #label>
-            <span class="inline-flex"> 保存封面 </span>
-          </template>
-          <n-switch v-model:value="config.saveCover" :disabled="globalFieldsObj.saveCover" />
-          <n-checkbox v-model:checked="globalFieldsObj.saveCover" class="global-checkbox"
-            >全局</n-checkbox
-          >
-        </n-form-item>
+
         <template v-if="config.providerId === 'Bilibili'">
           <n-form-item>
             <template #label>
@@ -127,6 +99,47 @@
               :disabled="globalFieldsObj.uid"
             />
             <n-checkbox v-model:checked="globalFieldsObj.uid" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.bili.quality.text" :tip="textInfo.bili.quality.tip"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.quality"
+              :options="biliQualityOptions"
+              :disabled="globalFieldsObj.quality"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.bili.formatName.text" :tip="textInfo.bili.formatName.tip"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.formatName"
+              :options="streamFormatOptions"
+              :disabled="globalFieldsObj.formatName"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.formatName" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item v-if="config.formatName !== 'flv_only'">
+            <template #label>
+              <Tip
+                :tip="textInfo.bili.useM3U8Proxy.tip"
+                :text="textInfo.bili.useM3U8Proxy.text"
+              ></Tip>
+            </template>
+            <n-switch
+              v-model:value="config.useM3U8Proxy"
+              :disabled="globalFieldsObj.useM3U8Proxy"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.useM3U8Proxy" class="global-checkbox"
               >全局</n-checkbox
             >
           </n-form-item>
@@ -163,19 +176,6 @@
               >全局</n-checkbox
             >
           </n-form-item> -->
-          <n-form-item>
-            <template #label>
-              <Tip :text="textInfo.bili.quality.text" :tip="textInfo.bili.quality.tip"></Tip>
-            </template>
-            <n-select
-              v-model:value="config.quality"
-              :options="biliQualityOptions"
-              :disabled="globalFieldsObj.quality"
-            />
-            <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
-              >全局</n-checkbox
-            >
-          </n-form-item>
         </template>
         <template v-if="config.providerId === 'DouYu'">
           <n-form-item>
@@ -210,6 +210,35 @@
             >
           </n-form-item>
         </template>
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex">
+              分段录制
+              <Tip tip="0为不分段"></Tip>
+            </span>
+          </template>
+          <n-input-number
+            v-model:value="config.segment"
+            min="0"
+            step="10"
+            style="width: 100%"
+            :disabled="globalFieldsObj.segment"
+          >
+            <template #suffix>分钟</template>
+          </n-input-number>
+          <n-checkbox v-model:checked="globalFieldsObj.segment" class="global-checkbox"
+            >全局</n-checkbox
+          >
+        </n-form-item>
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex"> 保存封面 </span>
+          </template>
+          <n-switch v-model:value="config.saveCover" :disabled="globalFieldsObj.saveCover" />
+          <n-checkbox v-model:checked="globalFieldsObj.saveCover" class="global-checkbox"
+            >全局</n-checkbox
+          >
+        </n-form-item>
 
         <h2>弹幕</h2>
         <n-form-item>
@@ -268,6 +297,7 @@ import {
   qualityOptions,
   biliQualityOptions,
   douyuQualityOptions,
+  streamFormatOptions,
   textInfo,
 } from "@renderer/enums/recorder";
 
@@ -296,6 +326,8 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     uid: true,
     saveCover: true,
     qualityRetry: true,
+    formatName: true,
+    useM3U8Proxy: true,
   },
 );
 
@@ -315,6 +347,8 @@ const config = ref<Omit<Recorder, "id">>({
   saveCover: false,
   extra: {},
   qualityRetry: 0,
+  formatName: "auto",
+  useM3U8Proxy: false,
 });
 
 const confirm = async () => {
@@ -396,6 +430,8 @@ watch(showModal, async (val) => {
       saveCover: false,
       extra: {},
       qualityRetry: 0,
+      formatName: "auto",
+      useM3U8Proxy: false,
     };
 
     if (props.id) {
@@ -412,6 +448,8 @@ watch(showModal, async (val) => {
       uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
       saveCover: !(config.value?.noGlobalFollowFields ?? []).includes("saveCover"),
       qualityRetry: !(config.value?.noGlobalFollowFields ?? []).includes("qualityRetry"),
+      formatName: !(config.value?.noGlobalFollowFields ?? []).includes("formatName"),
+      useM3U8Proxy: !(config.value?.noGlobalFollowFields ?? []).includes("useM3U8Proxy"),
     };
   }
 });
@@ -449,6 +487,12 @@ watch(
     }
     if (val.qualityRetry) {
       config.value.qualityRetry = appConfig.value.recorder.qualityRetry;
+    }
+    if (val.formatName) {
+      config.value.formatName = appConfig.value.recorder.bilibili.formatName;
+    }
+    if (val.useM3U8Proxy) {
+      config.value.useM3U8Proxy = appConfig.value.recorder.bilibili.useM3U8Proxy;
     }
   },
   {
