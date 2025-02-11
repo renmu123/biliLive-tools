@@ -106,6 +106,7 @@ async function getLiveInfo(
     qn: number;
     cookie?: string;
     formatName: RecorderCreateOpts["formatName"];
+    codecName: RecorderCreateOpts["codecName"];
   },
 ) {
   const res = await getRoomPlayInfo(roomIdOrShortId, opts);
@@ -148,6 +149,8 @@ async function getLiveInfo(
       sort: 5,
     },
   ];
+
+  // 处理formatName
   if (opts.formatName === "flv_only") {
     conditons = conditons.filter((item) => item.format_name === "flv");
   } else if (opts.formatName === "hls_only") {
@@ -171,7 +174,22 @@ async function getLiveInfo(
     });
     conditons = conditons.sort((a, b) => b.sort - a.sort);
   }
-  console.log("conditons", conditons);
+
+  // 处理codecName
+  if (opts.codecName === "avc_only") {
+    conditons = conditons.filter((item) => item.codec_name === "avc");
+  } else if (opts.codecName === "hevc_only") {
+    conditons = conditons.filter((item) => item.codec_name === "hevc");
+  } else if (opts.codecName === "hevc") {
+    conditons.forEach((item) => {
+      if (item.codec_name === "hevc") {
+        item.sort += 100;
+      }
+    });
+    conditons = conditons.sort((a, b) => b.sort - a.sort);
+  }
+
+  console.log("conditons", opts.codecName, conditons);
 
   let streamInfo: CodecInfo | undefined;
   let streamOptions!: {
@@ -227,6 +245,7 @@ export async function getStream(
     cookie?: string;
     strictQuality?: boolean;
     formatName: RecorderCreateOpts["formatName"];
+    codecName: RecorderCreateOpts["codecName"];
   },
 ) {
   const roomId = Number(opts.channelId);
@@ -241,6 +260,7 @@ export async function getStream(
     qn: qn,
     cookie: opts.cookie,
     formatName: opts.formatName,
+    codecName: opts.codecName,
   });
   // console.log(JSON.stringify(liveInfo, null, 2));
 
@@ -254,6 +274,7 @@ export async function getStream(
       qn: acceptQn,
       cookie: opts.cookie,
       formatName: opts.formatName,
+      codecName: opts.codecName,
     });
   }
 

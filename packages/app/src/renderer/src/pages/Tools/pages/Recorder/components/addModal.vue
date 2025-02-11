@@ -128,6 +128,19 @@
               >全局</n-checkbox
             >
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.bili.codecName.text" :tip="textInfo.bili.codecName.tip"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.codecName"
+              :options="streamCodecOptions"
+              :disabled="globalFieldsObj.codecName"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.codecName" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
           <n-form-item v-if="config.formatName !== 'flv_only'">
             <template #label>
               <Tip
@@ -299,6 +312,7 @@ import {
   douyuQualityOptions,
   streamFormatOptions,
   textInfo,
+  streamCodecOptions,
 } from "@renderer/enums/recorder";
 
 import type { Recorder } from "@biliLive-tools/types";
@@ -328,6 +342,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     qualityRetry: true,
     formatName: true,
     useM3U8Proxy: true,
+    codecName: true,
   },
 );
 
@@ -349,6 +364,7 @@ const config = ref<Omit<Recorder, "id">>({
   qualityRetry: 0,
   formatName: "auto",
   useM3U8Proxy: false,
+  codecName: "auto",
 });
 
 const confirm = async () => {
@@ -432,6 +448,7 @@ watch(showModal, async (val) => {
       qualityRetry: 0,
       formatName: "auto",
       useM3U8Proxy: false,
+      codecName: "auto",
     };
 
     if (props.id) {
@@ -450,6 +467,7 @@ watch(showModal, async (val) => {
       qualityRetry: !(config.value?.noGlobalFollowFields ?? []).includes("qualityRetry"),
       formatName: !(config.value?.noGlobalFollowFields ?? []).includes("formatName"),
       useM3U8Proxy: !(config.value?.noGlobalFollowFields ?? []).includes("useM3U8Proxy"),
+      codecName: !(config.value?.noGlobalFollowFields ?? []).includes("codecName"),
     };
   }
 });
@@ -493,6 +511,9 @@ watch(
     }
     if (val.useM3U8Proxy) {
       config.value.useM3U8Proxy = appConfig.value.recorder.bilibili.useM3U8Proxy;
+    }
+    if (val.codecName) {
+      config.value.codecName = appConfig.value.recorder.bilibili.codecName;
     }
   },
   {

@@ -92,6 +92,30 @@ export const streamFormatOptions = [
   },
 ];
 
+// b站流编码
+export const streamCodecOptions = [
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    label: "优先avc",
+    value: "avc",
+  },
+  {
+    label: "优先hevc",
+    value: "hevc",
+  },
+  {
+    label: "强制avc",
+    value: "avc_only",
+  },
+  {
+    label: "强制hevc",
+    value: "hevc_only",
+  },
+];
+
 export const textInfo = {
   bili: {
     uid: {
@@ -112,7 +136,11 @@ export const textInfo = {
     },
     formatName: {
       text: "流格式",
-      tip: "不支持flv hevc",
+      tip: "默认情况下等于优先flv模式，不支持flv hevc",
+    },
+    codecName: {
+      text: "流编码",
+      tip: "默认情况下等于优先avc模式，不支持flv hevc",
     },
   },
 } as const;

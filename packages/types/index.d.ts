@@ -266,7 +266,8 @@ export interface NotificationPushAllInAllConfig {
 }
 
 export type Theme = "system" | "light" | "dark";
-type formatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
+type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
+type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
 
 interface BilibiliRecorderConfig {
   /** 账号 */
@@ -278,7 +279,9 @@ interface BilibiliRecorderConfig {
   /** 使用本地反向代理避免分段 */
   useM3U8Proxy: boolean;
   /** 流格式 */
-  formatName: formatName;
+  formatName: FormatName;
+  /** 流编码 */
+  codecName: CodecName;
 }
 interface DouyuRecorderConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
@@ -364,6 +367,7 @@ interface Recorder {
   qualityRetry: GlobalRecorder["qualityRetry"];
   formatName: GlobalRecorder["bilibili"]["formatName"];
   useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];
+  codecName: GlobalRecorder["bilibili"]["codecName"];
   // 不跟随全局配置字段
   noGlobalFollowFields: Array<
     Exclude<

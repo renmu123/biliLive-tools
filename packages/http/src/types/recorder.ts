@@ -74,6 +74,7 @@ export type UpdateRecorderArgs = Pick<
   | "qualityRetry"
   | "formatName"
   | "useM3U8Proxy"
+  | "codecName"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 

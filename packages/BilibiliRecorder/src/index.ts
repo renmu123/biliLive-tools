@@ -37,6 +37,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     useM3U8Proxy: opts.useM3U8Proxy ?? false,
     m3u8ProxyUrl: opts.m3u8ProxyUrl,
     formatName: opts.formatName ?? "auto",
+    codecName: opts.codecName ?? "auto",
 
     getChannelURL() {
       return `https://live.bilibili.com/${this.channelId}`;
@@ -59,6 +60,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         channelId: this.channelId,
         quality: this.quality,
         formatName: this.formatName,
+        codecName: this.codecName,
       });
       return res.currentStream;
     },
@@ -140,6 +142,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       cookie: this.auth,
       strictQuality: strictQuality,
       formatName: this.formatName,
+      codecName: this.codecName,
     });
   } catch (err) {
     this.qualityRetry -= 1;

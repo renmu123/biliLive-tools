@@ -51,6 +51,7 @@ router.post("/add", async (ctx) => {
     "qualityRetry",
     "formatName",
     "useM3U8Proxy",
+    "codecName",
   );
 
   const data = await recorderService.addRecorder(args);
@@ -82,6 +83,7 @@ router.put("/:id", (ctx) => {
     "qualityRetry",
     "formatName",
     "useM3U8Proxy",
+    "codecName",
   );
 
   ctx.body = { payload: recorderService.updateRecorder({ id, ...patch }) };

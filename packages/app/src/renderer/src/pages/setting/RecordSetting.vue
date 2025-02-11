@@ -136,6 +136,15 @@
           :options="streamFormatOptions"
         />
       </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip :text="textInfo.bili.codecName.text" :tip="textInfo.bili.codecName.tip"></Tip>
+        </template>
+        <n-select
+          v-model:value="config.recorder.bilibili.codecName"
+          :options="streamCodecOptions"
+        />
+      </n-form-item>
       <n-form-item v-if="config.recorder.bilibili.formatName !== 'flv_only'">
         <template #label>
           <Tip :tip="textInfo.bili.useM3U8Proxy.tip" :text="textInfo.bili.useM3U8Proxy.text"></Tip>
@@ -200,6 +209,7 @@ import {
   douyuQualityOptions,
   textInfo,
   streamFormatOptions,
+  streamCodecOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";

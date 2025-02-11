@@ -16,9 +16,7 @@ export default class RecorderConfig {
     return setting.find((setting) => setting.id === id);
   }
 
-  public get(
-    id: string,
-  ): (Recorder & { auth?: string; useM3U8Proxy: boolean; formatName: string }) | null {
+  public get(id: string): (Recorder & { auth?: string }) | null {
     const getValue = (key: any): any => {
       if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
         return setting?.[key];
@@ -66,6 +64,7 @@ export default class RecorderConfig {
       auth: auth,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
       formatName: getValue("formatName") ?? "auto",
+      codecName: getValue("codecName") ?? "auto",
     };
   }
   public list() {
