@@ -191,6 +191,24 @@
               >全局</n-checkbox
             >
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.bili.qualityRetry.tip"
+                :text="textInfo.bili.qualityRetry.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.qualityRetry"
+              min="0"
+              step="1"
+              :disabled="globalFieldsObj.qualityRetry"
+            >
+            </n-input-number>
+            <n-checkbox v-model:checked="globalFieldsObj.qualityRetry" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
         </template>
 
         <h2>弹幕</h2>
