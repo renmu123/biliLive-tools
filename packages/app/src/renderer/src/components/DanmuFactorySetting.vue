@@ -149,14 +149,14 @@
           <n-input-number
             v-model:value.number="config.resolution[0]"
             class="input-number"
-            :min="-1"
+            :min="1"
             :step="100"
             placeholder="宽"
           />&nbsp;X&nbsp;
           <n-input-number
             v-model:value.number="config.resolution[1]"
             class="input-number"
-            :min="-1"
+            :min="1"
             :step="100"
             placeholder="高"
           />
