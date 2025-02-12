@@ -27,6 +27,16 @@ export default class RecorderConfig {
           return get(globalConfig, "bilibili.useM3U8Proxy");
         } else if (key === "formatName") {
           return get(globalConfig, "bilibili.formatName");
+        } else if (key === "quality") {
+          if (setting.providerId === "Bilibili") {
+            return get(globalConfig, "bilibili.quality");
+          } else if (setting.providerId === "Douyu") {
+            return get(globalConfig, "douyu.quality");
+          }
+        } else if (key === "codecName") {
+          return get(globalConfig, "bilibili.codecName");
+        } else if (key === "qualityRetry") {
+          return get(globalConfig, "bilibili.qualityRetry");
         } else {
           return get(globalConfig, key);
         }
