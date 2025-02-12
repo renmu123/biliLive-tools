@@ -873,11 +873,11 @@ const promiseTask = async (task: AbstractTask) => {
     task.on("task-end", () => {
       resolve(task.output);
     });
-    task.on("task-error", () => {
-      reject();
+    task.on("task-error", ({ error }) => {
+      reject(new Error(error));
     });
     task.on("task-cancel", () => {
-      reject();
+      reject(new Error("任务取消"));
     });
   });
 };
