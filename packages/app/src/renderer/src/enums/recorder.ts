@@ -136,11 +136,11 @@ export const textInfo = {
     },
     formatName: {
       text: "流格式",
-      tip: "默认情况下等于优先flv模式，不支持flv hevc",
+      tip: "默认情况下等于优先flv模式，优先avc编码",
     },
     codecName: {
       text: "流编码",
-      tip: "默认情况下等于优先avc模式，不支持flv hevc",
+      tip: "默认情况下等于优先avc模式",
     },
   },
 } as const;

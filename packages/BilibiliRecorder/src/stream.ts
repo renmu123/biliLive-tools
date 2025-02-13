@@ -111,7 +111,7 @@ async function getLiveInfo(
 ) {
   const res = await getRoomPlayInfo(roomIdOrShortId, opts);
 
-  // 由于b站的flv hevc 是非标，ffmpeg并不支持
+  // https://github.com/FFmpeg/FFmpeg/commit/b76053d8bf322b197a9d07bd27bbdad14fd5bc15
   let conditons: {
     protocol_name: ProtocolInfo["protocol_name"];
     format_name: FormatInfo["format_name"];
@@ -137,16 +137,22 @@ async function getLiveInfo(
       sort: 7,
     },
     {
-      protocol_name: "http_hls",
-      format_name: "fmp4",
+      protocol_name: "http_stream",
+      format_name: "flv",
       codec_name: "hevc",
       sort: 6,
     },
     {
       protocol_name: "http_hls",
-      format_name: "ts",
+      format_name: "fmp4",
       codec_name: "hevc",
       sort: 5,
+    },
+    {
+      protocol_name: "http_hls",
+      format_name: "ts",
+      codec_name: "hevc",
+      sort: 4,
     },
   ];
 
