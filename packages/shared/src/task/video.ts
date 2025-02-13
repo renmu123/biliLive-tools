@@ -206,13 +206,9 @@ export class ComplexFilter {
           scaleFilter += `:interp_algo=${swsFlags}:passthrough=1`;
         }
         return this.addFilter("hwupload_cuda,scale_cuda", scaleFilter);
+      } else if (hardware === "qsv") {
+        return this.addFilter("hwupload,scale_qsv", scaleFilter);
       }
-
-      // if (!hardwareDecode) {
-      //   return this.addFilter("hwupload_cuda, scale_cuda", scaleFilter);
-      // } else {
-      //   return this.addFilter("scale_cuda", scaleFilter);
-      // }
     }
     if (swsFlags && swsFlags !== "auto") {
       scaleFilter += `:flags=${swsFlags}`;
@@ -588,16 +584,21 @@ export const genMergeAssMp4Command = async (
       command.inputOptions("-hwaccel_output_format cuda");
     }
   }
+
+  // 如果存在scale_qsv滤镜，添加硬件相关代码
+  if (complexFilter.getFilters().some((filter) => filter.filter === "hwupload,scale_qsv")) {
+    command.inputOptions("-init_hw_device qsv=hw");
+    command.inputOptions("-filter_hw_device hw");
+  }
+
   // 当存在filter存在hwupload_cuda,scale_cuda且在第一个时，需要硬件解码
   if (complexFilter.getFilters()?.[0]?.filter === "hwupload_cuda,scale_cuda") {
     command.inputOptions("-hwaccel cuda");
     command.inputOptions("-hwaccel_output_format cuda");
     complexFilter.getFilters()[0].filter = "scale_cuda";
-    // else if (hardware === "amf") {
-    //   command.inputOptions("-hwaccel d3d11va");
-    //   // command.inputOptions("-hwaccel_output_format d3d11");
-    //   command.inputOptions("-extra_hw_frames 10");
-    // }
+  } else if (complexFilter.getFilters()?.[0]?.filter === "scale_qsv") {
+    // 仅在第一个时，需要硬件解码，其他情况不需要
+    command.inputOptions("-hwaccel qsv");
   }
 
   // 构建最后的输出内容
