@@ -205,7 +205,7 @@ export class ComplexFilter {
         if (swsFlags && swsFlags !== "auto") {
           scaleFilter += `:interp_algo=${swsFlags}:passthrough=1`;
         }
-        return this.addFilter("hwupload_cuda, scale_cuda", scaleFilter);
+        return this.addFilter("hwupload_cuda,scale_cuda", scaleFilter);
       }
 
       // if (!hardwareDecode) {
@@ -563,11 +563,6 @@ export const genMergeAssMp4Command = async (
     await addDefaultComplexFilter(true);
   }
 
-  if (complexFilter.getFilters().length) {
-    command.complexFilter(complexFilter.getFilters(), complexFilter.getLatestOutputStream());
-    command.outputOptions("-map 0:a");
-  }
-
   // 输入参数
   if (assFile) {
     if (files.hotProgressFilePath) {
@@ -585,20 +580,32 @@ export const genMergeAssMp4Command = async (
     command.inputOptions(`-to ${ffmpegOptions.to}`);
   }
 
-  // 硬件解码
-  // if (ffmpegOptions.decode) {
-  //   const hardware = getHardwareAcceleration(ffmpegOptions.encoder);
-  //   if (hardware === "nvenc") {
-  //     command.inputOptions("-hwaccel cuda");
-  //     command.inputOptions("-hwaccel_output_format cuda");
-  //   } else if (hardware === "amf") {
-  //     command.inputOptions("-hwaccel d3d11va");
-  //     // command.inputOptions("-hwaccel_output_format d3d11");
-  //     command.inputOptions("-extra_hw_frames 10");
-  //   }
-  // }
-  const ffmpegParams = genFfmpegParams(ffmpegOptions);
+  // 如果不存在滤镜，但存在硬件编码，添加硬件解码
+  if (!complexFilter.getFilters().length) {
+    const hardware = getHardwareAcceleration(ffmpegOptions.encoder);
+    if (hardware === "nvenc") {
+      command.inputOptions("-hwaccel cuda");
+      command.inputOptions("-hwaccel_output_format cuda");
+    }
+  }
+  // 当存在filter存在hwupload_cuda,scale_cuda且在第一个时，需要硬件解码
+  if (complexFilter.getFilters()?.[0]?.filter === "hwupload_cuda,scale_cuda") {
+    command.inputOptions("-hwaccel cuda");
+    command.inputOptions("-hwaccel_output_format cuda");
+    complexFilter.getFilters()[0].filter = "scale_cuda";
+    // else if (hardware === "amf") {
+    //   command.inputOptions("-hwaccel d3d11va");
+    //   // command.inputOptions("-hwaccel_output_format d3d11");
+    //   command.inputOptions("-extra_hw_frames 10");
+    // }
+  }
 
+  // 构建最后的输出内容
+  if (complexFilter.getFilters().length) {
+    command.complexFilter(complexFilter.getFilters(), complexFilter.getLatestOutputStream());
+    command.outputOptions("-map 0:a");
+  }
+  const ffmpegParams = genFfmpegParams(ffmpegOptions);
   ffmpegParams.forEach((param) => {
     command.outputOptions(param);
   });
