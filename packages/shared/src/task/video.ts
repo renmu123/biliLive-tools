@@ -184,9 +184,37 @@ export class ComplexFilter {
     return outputStream;
   }
 
-  addScaleFilter(resolutionWidth: number, resolutionHeight: number, swsFlags?: string) {
+  addScaleFilter({
+    resolutionWidth,
+    resolutionHeight,
+    swsFlags,
+    encoder,
+    useHardware,
+  }: {
+    resolutionWidth: number;
+    resolutionHeight: number;
+    swsFlags: string;
+    encoder: FfmpegOptions["encoder"];
+    useHardware: boolean;
+  }) {
     let scaleFilter = `${resolutionWidth}:${resolutionHeight}`;
-    if (swsFlags) {
+
+    const hardware = getHardwareAcceleration(encoder);
+    if (useHardware) {
+      if (hardware === "nvenc") {
+        if (swsFlags && swsFlags !== "auto") {
+          scaleFilter += `:interp_algo=${swsFlags}:passthrough=1`;
+        }
+        return this.addFilter("hwupload_cuda, scale_cuda", scaleFilter);
+      }
+
+      // if (!hardwareDecode) {
+      //   return this.addFilter("hwupload_cuda, scale_cuda", scaleFilter);
+      // } else {
+      //   return this.addFilter("scale_cuda", scaleFilter);
+      // }
+    }
+    if (swsFlags && swsFlags !== "auto") {
       scaleFilter += `:flags=${swsFlags}`;
     }
     return this.addFilter("scale", scaleFilter);
@@ -453,8 +481,9 @@ export const genMergeAssMp4Command = async (
     return commentTimestamp;
   }
 
-  async function addDefaultComplexFilter() {
+  async function addDefaultComplexFilter(scaleHardware: boolean = false) {
     const scaleMethod = selectScaleMethod(ffmpegOptions);
+    const startTimestamp = await getDrawtextParams();
 
     // 先缩放后渲染
     if (
@@ -462,11 +491,17 @@ export const genMergeAssMp4Command = async (
       ffmpegOptions.resolutionWidth &&
       ffmpegOptions.resolutionHeight
     ) {
-      complexFilter.addScaleFilter(
-        ffmpegOptions.resolutionWidth,
-        ffmpegOptions.resolutionHeight,
-        ffmpegOptions.swsFlags,
-      );
+      let uesHardwareScale = false;
+      if (scaleHardware) {
+        uesHardwareScale = !assFile && !startTimestamp;
+      }
+      complexFilter.addScaleFilter({
+        resolutionWidth: ffmpegOptions.resolutionWidth,
+        resolutionHeight: ffmpegOptions.resolutionHeight,
+        swsFlags: ffmpegOptions.swsFlags ?? "",
+        encoder: ffmpegOptions.encoder,
+        useHardware: uesHardwareScale,
+      });
     }
 
     if (assFile) {
@@ -484,15 +519,21 @@ export const genMergeAssMp4Command = async (
       ffmpegOptions.resolutionWidth &&
       ffmpegOptions.resolutionHeight
     ) {
-      complexFilter.addScaleFilter(
-        ffmpegOptions.resolutionWidth,
-        ffmpegOptions.resolutionHeight,
-        ffmpegOptions.swsFlags,
-      );
+      let uesHardwareScale = false;
+      if (scaleHardware) {
+        uesHardwareScale = !startTimestamp;
+      }
+
+      complexFilter.addScaleFilter({
+        resolutionWidth: ffmpegOptions.resolutionWidth,
+        resolutionHeight: ffmpegOptions.resolutionHeight,
+        swsFlags: ffmpegOptions.swsFlags ?? "",
+        encoder: ffmpegOptions.encoder,
+        useHardware: uesHardwareScale,
+      });
     }
 
     // 如果设置了添加时间戳
-    const startTimestamp = await getDrawtextParams();
     if (startTimestamp) {
       complexFilter.addDrawtextFilter({
         startTimestamp: startTimestamp,
@@ -519,7 +560,7 @@ export const genMergeAssMp4Command = async (
     }
   } else {
     // 添加默认滤镜
-    await addDefaultComplexFilter();
+    await addDefaultComplexFilter(true);
   }
 
   if (complexFilter.getFilters().length) {
@@ -545,18 +586,17 @@ export const genMergeAssMp4Command = async (
   }
 
   // 硬件解码
-  if (ffmpegOptions.decode) {
-    const hardware = getHardwareAcceleration(ffmpegOptions.encoder);
-    if (hardware === "nvenc") {
-      command.inputOptions("-hwaccel cuda");
-      command.inputOptions("-hwaccel_output_format cuda");
-      command.inputOptions("-extra_hw_frames 10");
-    } else if (hardware === "amf") {
-      command.inputOptions("-hwaccel d3d11va");
-      // command.inputOptions("-hwaccel_output_format d3d11");
-      command.inputOptions("-extra_hw_frames 10");
-    }
-  }
+  // if (ffmpegOptions.decode) {
+  //   const hardware = getHardwareAcceleration(ffmpegOptions.encoder);
+  //   if (hardware === "nvenc") {
+  //     command.inputOptions("-hwaccel cuda");
+  //     command.inputOptions("-hwaccel_output_format cuda");
+  //   } else if (hardware === "amf") {
+  //     command.inputOptions("-hwaccel d3d11va");
+  //     // command.inputOptions("-hwaccel_output_format d3d11");
+  //     command.inputOptions("-extra_hw_frames 10");
+  //   }
+  // }
   const ffmpegParams = genFfmpegParams(ffmpegOptions);
 
   ffmpegParams.forEach((param) => {

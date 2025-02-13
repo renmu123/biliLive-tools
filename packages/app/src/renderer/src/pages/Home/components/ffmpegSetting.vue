@@ -133,7 +133,7 @@
           placeholder="请选择预设"
         />
       </n-form-item>
-      <n-form-item
+      <!-- <n-form-item
         v-if="
           ['h264_nvenc', 'hevc_nvenc', 'av1_nvenc', 'h264_amf', 'hevc_amf', 'av1_amf'].includes(
             ffmpegOptions.config.encoder,
@@ -149,7 +149,7 @@
           </span>
         </template>
         <n-checkbox v-model:checked="ffmpegOptions.config.decode"></n-checkbox>
-      </n-form-item>
+      </n-form-item> -->
       <n-form-item v-if="['libsvtav1'].includes(ffmpegOptions.config.encoder)">
         <template #label>
           <span class="inline-flex">
