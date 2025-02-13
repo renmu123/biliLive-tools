@@ -218,7 +218,7 @@ async function getLiveInfo(
       break;
     }
   }
-  console.log("streamOptions", streamOptions);
+  console.log("streamOptions", streamOptions, res.playurl_info.playurl.stream);
   assert(streamInfo, "没有找到支持的流");
 
   const streams: StreamProfile[] = streamInfo.accept_qn.map((qn) => {
