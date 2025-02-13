@@ -1,17 +1,11 @@
 import path from "node:path";
-import os from "node:os";
 import fs from "fs-extra";
 
 import { FFmpegPreset, VideoPreset, DanmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import { biliApi } from "@biliLive-tools/shared/task/bili.js";
-import { convertXml2Ass, genHotProgress, isEmptyDanmu } from "@biliLive-tools/shared/task/danmu.js";
-import {
-  mergeAssMp4,
-  readVideoMeta,
-  transcode,
-  readXmlTimestamp,
-} from "@biliLive-tools/shared/task/video.js";
+import { isEmptyDanmu } from "@biliLive-tools/shared/task/danmu.js";
+import { transcode, burn } from "@biliLive-tools/shared/task/video.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import {
   getFileSize,
@@ -30,6 +24,7 @@ import type {
   DanmuConfig,
   AppRoomConfig,
   CommonRoomConfig,
+  HotProgressOptions,
 } from "@biliLive-tools/types";
 import type { AppConfig } from "@biliLive-tools/shared/config.js";
 import type { Options, Platform, Part, PickPartial } from "../types/webhook.js";
@@ -201,7 +196,16 @@ export class WebhookHandler {
     }
 
     if (convert2Mp4Option) {
-      const file = await this.convert2Mp4(options.filePath);
+      const file = await this.transcode(
+        options.filePath,
+        {
+          encoder: "copy",
+          audioCodec: "copy",
+        },
+        {
+          removeVideo: true,
+        },
+      );
       log.debug("convert2Mp4 output", file);
       options.filePath = file;
       currentPart.filePath = file;
@@ -223,16 +227,6 @@ export class WebhookHandler {
           currentPart.recordStatus = "handled";
           return;
         }
-        let hotProgressFile: string | undefined;
-        if (hotProgress) {
-          // 生成高能进度条文件
-          hotProgressFile = await this.genHotProgressTask(xmlFilePath, options.filePath, {
-            internal: hotProgressSample || 30,
-            color: hotProgressColor || "#f9f5f3",
-            fillColor: hotProgressFillColor || "#333333",
-            height: hotProgressHeight || 60,
-          });
-        }
 
         const danmuConfig = (await this.danmuPreset.get(danmuPresetId))?.config;
         if (!danmuConfig) {
@@ -240,40 +234,33 @@ export class WebhookHandler {
           currentPart.uploadStatus = "error";
           return;
         }
-
-        const assFilePath = await this.addDanmuTask(xmlFilePath, options.filePath, danmuConfig);
-
         const ffmpegPreset = await this.ffmpegPreset.get(videoPresetId);
         if (!ffmpegPreset) {
           log.error("ffmpegPreset not found", videoPresetId);
           currentPart.uploadStatus = "error";
           return;
         }
-        let startTimestamp = 0;
-        try {
-          if (ffmpegPreset.config?.addTimestamp) {
-            startTimestamp = await readXmlTimestamp(xmlFilePath);
-          }
-        } catch {
-          log.error("readXmlTimestamp error: ", xmlFilePath);
-        }
 
-        const output = await this.addMergeAssMp4Task(
-          options.filePath,
-          assFilePath,
-          hotProgressFile,
-          ffmpegPreset?.config,
+        const output = await this.burn(
           {
-            removeVideo: removeOriginAfterConvert,
-            suffix: "弹幕版",
-            startTimestamp: startTimestamp || Math.floor((currentPart.startTime ?? 0) / 1000),
-            timestampFont: danmuConfig.fontname,
+            videoFilePath: options.filePath,
+            subtitleFilePath: xmlFilePath,
+          },
+          {
+            danmaOptions: danmuConfig,
+            ffmpegOptions: ffmpegPreset.config,
+            hasHotProgress: hotProgress,
+            hotProgressOptions: {
+              interval: hotProgressSample || 30,
+              color: hotProgressColor || "#f9f5f3",
+              fillColor: hotProgressFillColor || "#333333",
+              height: hotProgressHeight || 60,
+            },
+            removeOrigin: removeOriginAfterConvert,
             limitTime: videoHandleTime,
           },
         );
-        if (removeOriginAfterConvert) {
-          trashItem(xmlFilePath);
-        }
+
         currentPart.filePath = output;
         currentPart.recordStatus = "handled";
       } catch (error) {
@@ -288,17 +275,11 @@ export class WebhookHandler {
           currentPart.uploadStatus = "error";
           return;
         }
-        const output = await this.addMergeAssMp4Task(
-          options.filePath,
-          undefined,
-          undefined,
-          preset?.config,
-          {
-            removeVideo: removeOriginAfterConvert,
-            suffix: "后处理",
-            limitTime: videoHandleTime,
-          },
-        );
+        const output = await this.transcode(options.filePath, preset.config, {
+          removeVideo: removeOriginAfterConvert,
+          suffix: "-后处理",
+          limitTime: videoHandleTime,
+        });
         currentPart.filePath = output;
       }
       currentPart.recordStatus = "handled";
@@ -627,54 +608,27 @@ export class WebhookHandler {
   }
 
   // 转封装为mp4
-  async convert2Mp4(videoFile: string): Promise<string> {
-    const formatFile = (filePath: string) => {
-      const formatFile = path.parse(filePath);
-      return { ...formatFile, path: filePath, filename: formatFile.base };
-    };
-    const { dir, name } = formatFile(videoFile);
-    const output = path.join(dir, `${name}.mp4`);
+  async transcode(
+    videoFile: string,
+    preset: FfmpegOptions,
+    options: {
+      removeVideo: boolean;
+      suffix?: string;
+      limitTime?: [string, string];
+    },
+  ): Promise<string> {
+    const { dir, name } = path.parse(videoFile);
+    const outputName = `${name}${options.suffix ?? ""}.mp4`;
+
+    const output = path.join(dir, outputName);
     if (await fs.pathExists(output)) return output;
 
     return new Promise((resolve, reject) => {
-      transcode(
-        videoFile,
-        `${name}.mp4`,
-        {
-          encoder: "copy",
-          audioCodec: "copy",
-        },
-        {
-          saveType: 1,
-          savePath: ".",
-          override: false,
-          removeOrigin: true,
-        },
-      ).then((task) => {
-        task.on("task-end", () => {
-          resolve(output);
-        });
-        task.on("task-error", () => {
-          reject();
-        });
-      });
-    });
-  }
-  // 生成高能进度条
-  async genHotProgressTask(
-    xmlFile: string,
-    videoFile: string,
-    options: {
-      internal: number;
-      color: string;
-      fillColor: string;
-      height: number;
-    },
-  ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      genHotProgress(xmlFile, {
-        videoPath: videoFile,
-        ...options,
+      transcode(videoFile, outputName, preset, {
+        saveType: 2,
+        savePath: dir,
+        override: false,
+        removeOrigin: options.removeVideo,
       }).then((task) => {
         task.on("task-end", () => {
           resolve(task.output as string);
@@ -686,60 +640,19 @@ export class WebhookHandler {
     });
   }
 
-  // xml转ass
-  addDanmuTask = (input: string, videoFile: string, danmuConfig: DanmuConfig): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      readVideoMeta(videoFile)
-        .then((videoMeta) => {
-          const videoStream = videoMeta.streams.find((stream) => stream.codec_type === "video");
-          const { width, height } = videoStream || {};
-          if (danmuConfig.resolutionResponsive) {
-            danmuConfig.resolution[0] = width!;
-            danmuConfig.resolution[1] = height!;
-          }
-
-          return convertXml2Ass(
-            {
-              input: input,
-              output: uuid(),
-            },
-            danmuConfig,
-            {
-              copyInput: true,
-              removeOrigin: false,
-              saveRadio: 2,
-              savePath: os.tmpdir(),
-            },
-          );
-        })
-        .then((task) => {
-          task.on("task-end", () => {
-            resolve(task.output as string);
-          });
-          task.on("task-error", () => {
-            reject();
-          });
-        });
-    });
-  };
-
-  addMergeAssMp4Task = (
-    videoInput: string,
-    assInput: string | undefined,
-    hotProgressFile: string | undefined,
-    preset: FfmpegOptions,
+  burn = (
+    files: { videoFilePath: string; subtitleFilePath: string },
     options: {
-      removeVideo: boolean;
-      suffix: string;
-      startTimestamp?: number;
-      timestampFont?: string;
+      danmaOptions: DanmuConfig;
+      ffmpegOptions: FfmpegOptions;
+      hotProgressOptions: Omit<HotProgressOptions, "videoPath">;
+      hasHotProgress: boolean;
+      removeOrigin?: boolean;
       limitTime?: [string, string];
-    } = {
-      removeVideo: false,
-      suffix: "弹幕版",
     },
   ): Promise<string> => {
-    const suffix = options.suffix || "弹幕版";
+    const videoInput = files.videoFilePath;
+    const suffix = "弹幕版";
     const file = path.parse(videoInput);
     return new Promise((resolve, reject) => {
       let output = path.join(file.dir, `${file.name}-${suffix}.mp4`);
@@ -750,30 +663,12 @@ export class WebhookHandler {
           }
         })
         .then(() => {
-          mergeAssMp4(
-            {
-              videoFilePath: videoInput,
-              assFilePath: assInput,
-              outputPath: output,
-              hotProgressFilePath: hotProgressFile,
-            },
-            {
-              removeOrigin: false,
-              startTimestamp: options.startTimestamp,
-              override: true,
-              timestampFont: options.timestampFont,
-              limitTime: options.limitTime,
-            },
-            preset,
-          ).then((task) => {
+          burn(files, output, { ...options, override: false }).then((task) => {
             task.on("task-end", () => {
-              if (assInput) fs.unlink(assInput);
-              if (options?.removeVideo || false) trashItem(videoInput);
               resolve(output);
             });
-            task.on("task-error", () => {
-              if (assInput) fs.unlink(assInput);
-              reject();
+            task.on("task-error", ({ error }) => {
+              reject(new Error(error));
             });
           });
         });

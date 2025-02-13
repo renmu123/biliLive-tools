@@ -723,7 +723,7 @@ export interface BiliUser {
   platform: "TV";
 }
 
-export type hotProgressOptions = {
+export type HotProgressOptions = {
   width?: number;
   height?: number;
   interval?: number;

@@ -28,7 +28,7 @@ import type {
   VideoMergeOptions,
   GlobalConfig,
   DanmuConfig,
-  hotProgressOptions,
+  HotProgressOptions,
 } from "@biliLive-tools/types";
 import type Ffmpeg from "@biliLive-tools/types/ffmpeg.js";
 
@@ -100,12 +100,12 @@ export const convertImage2Video = async (
   output: string,
   options: {
     removeOrigin: boolean;
-    internal?: number;
+    interval?: number;
   },
 ) => {
   await setFfmpegPath();
   const command = ffmpeg(join(inputDir, "%4d.png"))
-    .inputOption("-r", `1/${options.internal || 30}`)
+    .inputOption("-r", `1/${options.interval || 30}`)
     .output(output);
   const task = new FFmpegTask(
     command,
@@ -728,6 +728,8 @@ export const transcode = async (
     savePath?: string;
     /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
     saveType: 1 | 2;
+    /** 限制处理时间 */
+    limitTime?: [string, string];
   },
 ) => {
   const options = Object.assign(
@@ -751,6 +753,7 @@ export const transcode = async (
     {
       removeOrigin: options.removeOrigin,
       override: options.override,
+      limitTime: options.limitTime,
     },
     ffmpegOptions,
   );
@@ -891,7 +894,7 @@ export const burn = async (
   options: {
     danmaOptions: DanmuConfig;
     ffmpegOptions: FfmpegOptions;
-    hotProgressOptions: Omit<hotProgressOptions, "videoPath">;
+    hotProgressOptions: Omit<HotProgressOptions, "videoPath">;
     hasHotProgress: boolean;
     override?: boolean;
     removeOrigin?: boolean;
@@ -899,6 +902,7 @@ export const burn = async (
     savePath?: string;
     /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
     saveType?: 1 | 2;
+    limitTime?: [string, string];
   },
 ) => {
   if (options.ffmpegOptions.encoder === "copy") {
@@ -985,6 +989,7 @@ export const burn = async (
       override: override,
       startTimestamp,
       timestampFont,
+      limitTime: options.limitTime,
     },
     options.ffmpegOptions,
   );

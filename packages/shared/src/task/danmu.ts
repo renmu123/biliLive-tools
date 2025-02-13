@@ -16,7 +16,7 @@ import { container } from "../index.js";
 import type {
   DanmuConfig,
   DanmuOptions,
-  hotProgressOptions,
+  HotProgressOptions,
   GlobalConfig,
 } from "@biliLive-tools/types";
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
@@ -172,7 +172,7 @@ export const isEmptyDanmu = async (filepath: string) => {
 /**
  * 生成高能进度条，输出文件在临时文件夹
  */
-export const genHotProgress = async (input: string, options: hotProgressOptions) => {
+export const genHotProgress = async (input: string, options: HotProgressOptions) => {
   const output = join(getTempPath(), `${uuid()}.mp4`);
   return _genHotProgress(input, output, options);
 };
@@ -183,7 +183,7 @@ export const genHotProgress = async (input: string, options: hotProgressOptions)
 export const _genHotProgress = async (
   input: string,
   output: string,
-  options: hotProgressOptions,
+  options: HotProgressOptions,
 ) => {
   log.debug("generateDanmakuImage config", options);
   if (options.videoPath) {
@@ -204,12 +204,12 @@ export const _genHotProgress = async (
   const data = await generateDanmakuImage(
     input,
     imageDir,
-    options as WithRequired<hotProgressOptions, "duration">,
+    options as WithRequired<HotProgressOptions, "duration">,
   );
   log.debug("generateDanmakuImage done", `${data.length} images generated`);
 
   return convertImage2Video(imageDir, output, {
     removeOrigin: true,
-    internal: options.interval,
+    interval: options.interval,
   });
 };

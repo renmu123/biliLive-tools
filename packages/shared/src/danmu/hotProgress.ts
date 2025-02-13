@@ -5,7 +5,7 @@ import { parseXmlFile } from "./index.js";
 import { createCanvas } from "@napi-rs/canvas";
 import { countByIntervalInSeconds } from "../utils/index.js";
 
-import type { hotProgressOptions } from "@biliLive-tools/types";
+import type { HotProgressOptions } from "@biliLive-tools/types";
 
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
@@ -48,7 +48,7 @@ export const generateDanmakuData = async (
 export const generateDanmakuImage = async (
   input: string,
   output: string,
-  iOptions: WithRequired<hotProgressOptions, "duration">,
+  iOptions: WithRequired<HotProgressOptions, "duration">,
 ) => {
   const defaultOptins = {
     interval: 30,

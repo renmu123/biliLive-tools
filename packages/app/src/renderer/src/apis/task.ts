@@ -5,7 +5,7 @@ import type {
   DanmuPreset,
   FfmpegOptions,
   DanmuConfig,
-  hotProgressOptions,
+  HotProgressOptions,
   BiliupPreset,
 } from "@biliLive-tools/types";
 import type { VideoAPI } from "@biliLive-tools/http/types/video.js";
@@ -135,7 +135,7 @@ const burn = async (
   options: {
     danmaOptions: DanmuConfig;
     ffmpegOptions: FfmpegOptions;
-    hotProgressOptions: Omit<hotProgressOptions, "videoPath">;
+    hotProgressOptions: Omit<HotProgressOptions, "videoPath">;
     hasHotProgress: boolean;
     override?: boolean;
     removeOrigin?: boolean;
