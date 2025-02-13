@@ -39,7 +39,7 @@ const commonPresetParams: {
   resolutionWidth: 2880,
   resolutionHeight: 1620,
   audioCodec: "copy",
-  swsFlags: "bilinear",
+  swsFlags: "auto",
   scaleMethod: "auto",
   addTimestamp: false,
   timestampX: 10,

@@ -857,6 +857,10 @@ const encoderOptions = computed(() => {
 
 const swsOptions = ref([
   {
+    value: "auto",
+    label: "默认",
+  },
+  {
     value: "bilinear",
     label: "bilinear(双线性插值)",
   },
