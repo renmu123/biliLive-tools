@@ -549,7 +549,7 @@ export const genMergeAssMp4Command = async (
   }
 
   if (ffmpegOptions.vf) {
-    const vfArray = ffmpegOptions.vf.split(";");
+    const vfArray = ffmpegOptions.vf.split(";").filter((vf) => vf);
     for (const vf of vfArray) {
       if (vf === "$origin") {
         await addDefaultComplexFilter();
