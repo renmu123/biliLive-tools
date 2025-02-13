@@ -101,13 +101,16 @@ router.post("/upload", async (ctx) => {
   const data = ctx.request.body as {
     uid: number;
     vid?: number;
-    videos?:
+    videos:
       | string[]
       | {
           path: string;
           title?: string;
         }[];
-    config?: BiliupConfig;
+    config: BiliupConfig;
+    options?: {
+      removeOriginAfterUploadCheck?: boolean;
+    };
   };
   if (!data.uid) {
     ctx.body = "uid required";
@@ -126,12 +129,16 @@ router.post("/upload", async (ctx) => {
   }
 
   if (data.vid) {
-    const task = await biliApi.editMedia(data.vid as number, data.videos, data.config, data.uid);
+    const task = await biliApi.editMedia(data.vid as number, data.videos, data.config, data.uid, {
+      removeOriginAfterUploadCheck: data.options?.removeOriginAfterUploadCheck,
+    });
     ctx.body = {
       taskId: task.taskId,
     };
   } else {
-    const task = await biliApi.addMedia(data.videos, data.config, data.uid);
+    const task = await biliApi.addMedia(data.videos, data.config, data.uid, {
+      removeOriginAfterUploadCheck: data.options?.removeOriginAfterUploadCheck,
+    });
     ctx.body = {
       taskId: task.taskId,
     };

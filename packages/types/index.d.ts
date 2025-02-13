@@ -181,10 +181,6 @@ export type ToolConfig = {
     /** 完成后移除源文件 */
     removeOrigin: boolean;
   };
-  videoUpload: {
-    /** 审核通过后删除源文件 */
-    removeOriginAfterUploadCheck: boolean;
-  };
   /** 下载页 */
   download: {
     /** 保存路径 */
@@ -692,8 +688,6 @@ export interface BiliupConfig {
   topic_name?: string | null;
   /** 是否仅自己可见 */
   is_only_self?: 0 | 1;
-  /** 审核通过后删除源文件 */
-  removeOriginAfterUploadCheck?: boolean;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

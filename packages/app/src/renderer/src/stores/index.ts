@@ -291,10 +291,6 @@ export const useAppConfig = defineStore("appConfig", () => {
         danmuPresetId: "default",
         ignoreDanmu: false,
       },
-      videoUpload: {
-        /** 审核通过后删除源文件 */
-        removeOriginAfterUploadCheck: false,
-      },
     },
   });
 

@@ -113,9 +113,6 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       saveOriginPath: false,
       removeOrigin: false,
     },
-    videoUpload: {
-      removeOriginAfterUploadCheck: false,
-    },
     download: {
       savePath: "",
       danmu: "none",

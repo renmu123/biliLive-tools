@@ -403,6 +403,8 @@ export class WebhookHandler {
     removeOriginAfterConvert: boolean;
     /** 上传完成后删除文件 */
     removeOriginAfterUpload: boolean;
+    /** 审核完成后删除文件 */
+    removeOriginAfterUploadCheck: boolean;
     /** 不压制后处理 */
     noConvertHandleVideo?: boolean;
     /** 限制只在某一段时间上传 */
@@ -449,6 +451,7 @@ export class WebhookHandler {
     const uploadHandleTime = getRoomSetting("uploadHandleTime") || ["00:00:00", "23:59:59"];
     const uploadNoDanmu = getRoomSetting("uploadNoDanmu") ?? false;
     const noDanmuVideoPreset = getRoomSetting("noDanmuVideoPreset") || "default";
+    const removeOriginAfterUploadCheck = getRoomSetting("removeOriginAfterUploadCheck") ?? false;
 
     // 如果没有开启断播续传，那么不需要合并part
     if (!mergePart) partMergeMinute = -1;
@@ -494,6 +497,7 @@ export class WebhookHandler {
       uploadNoDanmu: !!(uid && uploadNoDanmu && !removeOriginAfterConvert),
       noDanmuVideoPreset,
       videoHandleTime: limitVideoConvertTime ? videoHandleTime : undefined,
+      removeOriginAfterUploadCheck: removeOriginAfterUpload ? false : removeOriginAfterUploadCheck,
     };
     // log.debug("final config", options);
 
@@ -786,11 +790,13 @@ export class WebhookHandler {
     options: BiliupConfig,
     removeOrigin: boolean,
     limitedUploadTime: [] | [string, string],
+    removeOriginAfterUploadCheck: boolean,
   ) => {
     return new Promise((resolve, reject) => {
       biliApi
         .addMedia(pathArray, options, uid, {
           limitedUploadTime,
+          removeOriginAfterUploadCheck: removeOriginAfterUploadCheck,
         })
         .then((task) => {
           task.on("task-end", () => {
@@ -818,13 +824,15 @@ export class WebhookHandler {
     uid: number,
     aid: number,
     pathArray: string[],
-    removeOrigin?: boolean,
-    limitedUploadTime?: [string, string] | [],
+    removeOrigin: boolean,
+    limitedUploadTime: [string, string] | [],
+    removeOriginAfterUploadCheck: boolean,
   ) => {
     return new Promise((resolve, reject) => {
       biliApi
         .editMedia(aid, pathArray, {}, uid, {
           limitedUploadTime: limitedUploadTime,
+          removeOriginAfterUploadCheck: removeOriginAfterUploadCheck,
         })
         .then((task) => {
           task.on("task-end", () => {
@@ -906,6 +914,7 @@ export class WebhookHandler {
         title,
         uploadNoDanmu,
         noDanmuVideoPreset,
+        removeOriginAfterUploadCheck,
       } = this.getConfig(live.roomId);
 
       if (!uid) {
@@ -947,6 +956,7 @@ export class WebhookHandler {
             filePaths,
             removeOriginAfterUpload,
             limitedUploadTime,
+            removeOriginAfterUploadCheck,
           );
           live.parts.map((item) => {
             if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploaded";
@@ -1010,6 +1020,7 @@ export class WebhookHandler {
             uploadPreset,
             type === "raw" ? false : removeOriginAfterUpload,
             limitedUploadTime,
+            removeOriginAfterUploadCheck,
           )) as number;
           live[aidField] = Number(aid);
 
