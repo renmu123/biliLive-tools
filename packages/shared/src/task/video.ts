@@ -202,7 +202,7 @@ export class ComplexFilter {
     const hardware = getHardwareAcceleration(encoder);
     if (useHardware) {
       if (hardware === "nvenc") {
-        if (swsFlags && swsFlags !== "auto") {
+        if (swsFlags && swsFlags !== "auto" && swsFlags !== "neighbor") {
           scaleFilter += `:interp_algo=${swsFlags}:passthrough=1`;
         }
         return this.addFilter("hwupload_cuda,scale_cuda", scaleFilter);
