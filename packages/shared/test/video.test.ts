@@ -714,7 +714,7 @@ describe.concurrent("ComplexFilter", () => {
     console.log(filter.getFilters());
     expect(filter.getFilters()).toEqual([
       {
-        filter: "hwupload_cuda, scale_cuda",
+        filter: "hwupload_cuda,scale_cuda",
         options: "1920:1080:interp_algo=bicubic:passthrough=1",
         inputs: ["0:v"],
         outputs: "0:video",

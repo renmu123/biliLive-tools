@@ -589,6 +589,7 @@ describe("WebhookHandler", () => {
           },
           false,
           [],
+          undefined,
         );
       });
       it("应在webhook存在占位符时，使用webhook标题进行格式化", async () => {
@@ -638,6 +639,7 @@ describe("WebhookHandler", () => {
           },
           false,
           [],
+          undefined,
         );
       });
       it("应用live和part数据正常格式化标题", async () => {
@@ -689,6 +691,7 @@ describe("WebhookHandler", () => {
           },
           false,
           [],
+          undefined,
         );
       });
     });
@@ -756,6 +759,7 @@ describe("WebhookHandler", () => {
           },
           true,
           [],
+          undefined,
         );
         expect(live.aid).toBe(789);
         expect(live.parts[0].uploadStatus).toBe("uploaded");
@@ -943,6 +947,7 @@ describe("WebhookHandler", () => {
           ["/path/to/part2.mp4", "/path/to/part3.mp4"],
           true,
           [],
+          undefined,
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.aid).toBe(789);
@@ -1004,6 +1009,7 @@ describe("WebhookHandler", () => {
           ["/path/to/part2.mp4", "/path/to/part3.mp4"],
           true,
           [],
+          undefined,
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.aid).toBe(789);
@@ -1181,6 +1187,7 @@ describe("WebhookHandler", () => {
           },
           false,
           [],
+          undefined,
         );
         expect(live.rawAid).toBe(789);
         expect(live.parts[0].rawUploadStatus).toBe("uploaded");
@@ -1380,6 +1387,7 @@ describe("WebhookHandler", () => {
           ["/path/to/part2.mp4", "/path/to/part3.mp4"],
           true,
           [],
+          undefined,
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);
@@ -1445,6 +1453,7 @@ describe("WebhookHandler", () => {
           ["/path/to/part2.mp4", "/path/to/part3.mp4"],
           true,
           [],
+          undefined,
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);
