@@ -268,7 +268,12 @@ const preHandle = async (files: File[], clientOptions: ClientOptions, danmuConfi
     const videoStream = videoMeta?.streams?.find((stream) => stream.codec_type === "video");
     const { width, height } = videoStream || {};
 
-    if (width && danmuConfig.resolution[0] !== width && danmuConfig.resolution[1] !== height) {
+    if (
+      width &&
+      !danmuConfig.resolutionResponsive &&
+      danmuConfig.resolution[0] !== width &&
+      danmuConfig.resolution[1] !== height
+    ) {
       const [status] = await confirm.warning({
         content: `目标视频分辨率为${width}*${height}，与设置的弹幕分辨率不一致，是否继续？`,
         showCheckbox: true,
