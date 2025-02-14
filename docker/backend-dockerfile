@@ -27,6 +27,11 @@ FROM node:20.16-slim AS runtime
 
 # 设置工作目录
 WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libfontconfig1-dev && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN mkdir data && mkdir bin && mkdir video
 
 # 复制 backend 代码和 package.json
