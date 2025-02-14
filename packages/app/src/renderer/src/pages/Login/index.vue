@@ -53,7 +53,7 @@ const login = async () => {
   await commonApi.versionTest(api.value, key.value);
   window.localStorage.setItem("api", api.value);
   window.localStorage.setItem("key", key.value);
-  router.push({ name: "Main" });
+  router.push({ name: "Home" });
 
   request.defaults.baseURL = api.value;
 };

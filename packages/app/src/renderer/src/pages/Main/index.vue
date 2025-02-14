@@ -52,13 +52,14 @@
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
 import { NIcon } from "naive-ui";
-import { RouterLink, useRoute } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
   BuildOutline as BookIcon,
   HomeOutline as HomeIcon,
   InformationCircleOutline as InfoIcon,
   GitPullRequestOutline as QueueIcon,
   SettingsOutline as SettingIcon,
+  LogOutOutline,
 } from "@vicons/ionicons5";
 // import { DashboardOutlined as DashboardIcon } from "@vicons/material";
 
@@ -120,6 +121,7 @@ function renderImg(src: string) {
     h("img", { src, style: { height: "30px", width: "30px" }, referrerpolicy: "no-referrer" });
 }
 
+const router = useRouter();
 const footerMenuOptions = computed<MenuOption[]>(() => {
   const menus: {
     label: () => VNode;
@@ -127,6 +129,24 @@ const footerMenuOptions = computed<MenuOption[]>(() => {
     icon?: () => VNode;
   }[] = [];
   if (isWeb.value) {
+    menus.push({
+      label: () =>
+        h(
+          "a",
+          {
+            onClick: () => {
+              window.localStorage.setItem("key", "");
+              router.push({ name: "Login" });
+            },
+            // style: {
+            //   marginLeft: "25px",
+            // },
+          },
+          { default: () => "登出" },
+        ),
+      key: "log",
+      icon: renderIcon(LogOutOutline),
+    });
     menus.push({
       label: () =>
         h(
