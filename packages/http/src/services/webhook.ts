@@ -494,7 +494,7 @@ export class WebhookHandler {
       noConvertHandleVideo,
       limitUploadTime,
       uploadHandleTime,
-      uploadNoDanmu: !!(uid && uploadNoDanmu && !removeOriginAfterConvert),
+      uploadNoDanmu,
       noDanmuVideoPreset,
       videoHandleTime: limitVideoConvertTime ? videoHandleTime : undefined,
       removeOriginAfterUploadCheck: removeOriginAfterUpload ? false : removeOriginAfterUploadCheck,
@@ -954,9 +954,9 @@ export class WebhookHandler {
             uid,
             live[aidField],
             filePaths,
-            removeOriginAfterUpload,
+            type === "raw" ? false : removeOriginAfterUpload,
             limitedUploadTime,
-            removeOriginAfterUploadCheck,
+            type === "raw" ? false : removeOriginAfterUploadCheck,
           );
           live.parts.map((item) => {
             if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploaded";
@@ -1020,7 +1020,7 @@ export class WebhookHandler {
             uploadPreset,
             type === "raw" ? false : removeOriginAfterUpload,
             limitedUploadTime,
-            removeOriginAfterUploadCheck,
+            type === "raw" ? false : removeOriginAfterUploadCheck,
           )) as number;
           live[aidField] = Number(aid);
 
