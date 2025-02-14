@@ -1,3 +1,4 @@
+import fs from "fs-extra";
 import Router from "koa-router";
 
 import {
@@ -9,10 +10,12 @@ import {
   handleListTask,
   handleRemoveTask,
   handleQueryTask,
+  taskQueue,
 } from "@biliLive-tools/shared/task/task.js";
 import { convertXml2Ass } from "@biliLive-tools/shared/task/danmu.js";
 import { mergeVideos, transcode, burn, readVideoMeta } from "@biliLive-tools/shared/task/video.js";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
+import { trashItem } from "@biliLive-tools/shared/utils/index.js";
 
 import type { DanmuConfig } from "@biliLive-tools/types";
 
@@ -63,9 +66,29 @@ router.post("/:id/interrupt", async (ctx) => {
   ctx.body = { code: 0 };
 });
 
-router.post("/:id/remove", async (ctx) => {
+router.post("/:id/removeRecord", async (ctx) => {
   const { id } = ctx.params;
   handleRemoveTask(id);
+  ctx.body = { code: 0 };
+});
+
+router.post("/:id/removeFile", async (ctx) => {
+  const { id } = ctx.params;
+  const task = taskQueue.queryTask(id);
+  if (!task) {
+    throw new Error("任务不存在");
+  }
+  if (task.status !== "completed" && task.status !== "error") {
+    throw new Error("任务状态错误");
+  }
+  if (task.type !== "ffmpeg") {
+    throw new Error("不支持的任务");
+  }
+  if (!(await fs.pathExists(task.output))) {
+    throw new Error("文件不存在");
+  }
+
+  await trashItem(task.output);
   ctx.body = { code: 0 };
 });
 
