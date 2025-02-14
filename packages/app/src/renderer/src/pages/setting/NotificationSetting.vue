@@ -206,8 +206,8 @@
       </template>
       <n-checkbox-group v-model:value="config.notification.task.diskSpaceCheck.values">
         <n-space item-style="display: flex;">
-          <n-checkbox value="bilirecorder" label="录播姬所在文件夹" />
-          <n-checkbox value="bililiveTools" label="直播录制文件夹" />
+          <n-checkbox value="bilirecorder" label="录播姬工作目录" />
+          <n-checkbox value="bililiveTools" label="直播录制目录" />
         </n-space>
       </n-checkbox-group>
 
