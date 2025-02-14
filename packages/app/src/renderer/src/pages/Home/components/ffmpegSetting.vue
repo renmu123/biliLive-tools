@@ -216,7 +216,6 @@
             :options="scaleMethodOptions"
             title="缩放顺序"
             placeholder="请选择缩放顺序"
-            clearable
             style="width: 200px; flex: none; margin-left: 10px"
           />
         </template>
