@@ -496,7 +496,7 @@ export const genMergeAssMp4Command = async (
         resolutionHeight: ffmpegOptions.resolutionHeight,
         swsFlags: ffmpegOptions.swsFlags ?? "",
         encoder: ffmpegOptions.encoder,
-        useHardware: uesHardwareScale,
+        useHardware: ffmpegOptions.hardwareScaleFilter ? uesHardwareScale : false,
       });
     }
 
@@ -525,7 +525,7 @@ export const genMergeAssMp4Command = async (
         resolutionHeight: ffmpegOptions.resolutionHeight,
         swsFlags: ffmpegOptions.swsFlags ?? "",
         encoder: ffmpegOptions.encoder,
-        useHardware: uesHardwareScale,
+        useHardware: ffmpegOptions.hardwareScaleFilter ? uesHardwareScale : false,
       });
     }
 

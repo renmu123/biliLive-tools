@@ -166,7 +166,7 @@
             <span>分辨率</span>
             <Tip>
               <p>
-                实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间。
+                实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间，可以尝试开启硬件过滤器，某些情况下可以大幅加快。
               </p>
               <p>
                 B站4k画质要求短边大于1600，如果原视频为1080，可以尝试设置为2880x1620<br />
@@ -185,39 +185,47 @@
           style="margin-right: 20px"
         ></n-checkbox>
         <template v-if="ffmpegOptions.config.resetResolution">
-          <n-input-number
-            v-model:value.number="ffmpegOptions.config.resolutionWidth"
-            class="input-number"
-            :min="-1"
-            :step="100"
-            title="宽"
-            placeholder="宽"
-            style="width: 100px"
-          />&nbsp;X&nbsp;
-          <n-input-number
-            v-model:value.number="ffmpegOptions.config.resolutionHeight"
-            class="input-number"
-            :min="-1"
-            :step="100"
-            title="高"
-            placeholder="高"
-            style="width: 100px"
-          />
-          <n-select
-            v-model:value="ffmpegOptions.config.swsFlags"
-            :options="swsOptions"
-            title="缩放算法"
-            placeholder="请选择缩放算法，默认为自动"
-            clearable
-            style="width: 200px; flex: none; margin-left: 10px"
-          />
-          <n-select
-            v-model:value="ffmpegOptions.config.scaleMethod"
-            :options="scaleMethodOptions"
-            title="缩放顺序"
-            placeholder="请选择缩放顺序"
-            style="width: 200px; flex: none; margin-left: 10px"
-          />
+          <div style="display: flex; align-items: center; width: 100%; gap: 10px">
+            <n-input-number
+              v-model:value.number="ffmpegOptions.config.resolutionWidth"
+              class="input-number"
+              :min="-1"
+              :step="100"
+              title="宽"
+              placeholder="宽"
+              style="width: 100px; flex: none"
+            />X
+            <n-input-number
+              v-model:value.number="ffmpegOptions.config.resolutionHeight"
+              class="input-number"
+              :min="-1"
+              :step="100"
+              title="高"
+              placeholder="高"
+              style="width: 100px; flex: none"
+            />
+            <n-select
+              v-if="hardwareAcceleration !== 'qsv'"
+              v-model:value="ffmpegOptions.config.swsFlags"
+              :options="swsOptions"
+              title="缩放算法"
+              placeholder="请选择缩放算法，默认为自动"
+              clearable
+              style="flex-basis: 200px"
+            />
+            <n-select
+              v-model:value="ffmpegOptions.config.scaleMethod"
+              :options="scaleMethodOptions"
+              title="缩放顺序"
+              placeholder="请选择缩放顺序"
+              style="flex-basis: 200px; min-width: 100px"
+            />
+            <n-checkbox
+              v-if="['qsv', 'nvenc'].includes(hardwareAcceleration)"
+              v-model:checked="ffmpegOptions.config.hardwareScaleFilter"
+              >硬件过滤器</n-checkbox
+            >
+          </div>
         </template>
       </n-form-item>
       <n-form-item>
@@ -1002,6 +1010,23 @@ const crfMinMax = computed(() => {
     return [0, 51];
   } else {
     return [0, 51];
+  }
+});
+
+const hardwareAcceleration = computed(() => {
+  const encoder = ffmpegOptions.value.config.encoder;
+  if (["h264_nvenc", "hevc_nvenc", "av1_nvenc"].includes(encoder)) {
+    return "nvenc";
+  } else if (["h264_qsv", "hevc_qsv", "av1_qsv"].includes(encoder)) {
+    return "qsv";
+  } else if (["h264_amf", "hevc_amf", "av1_amf"].includes(encoder)) {
+    return "amf";
+  } else if (["copy"].includes(encoder)) {
+    return "copy";
+  } else if (["libx264", "libx265", "libsvtav1"].includes(encoder)) {
+    return "cpu";
+  } else {
+    return "unknown";
   }
 });
 

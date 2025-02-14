@@ -23,6 +23,7 @@ const commonPresetParams: {
   audioCodec: audioCodec;
   swsFlags: string;
   scaleMethod: "auto" | "before" | "after";
+  hardwareScaleFilter: boolean;
   addTimestamp: boolean;
   timestampX: number;
   timestampY: number;
@@ -41,6 +42,7 @@ const commonPresetParams: {
   audioCodec: "copy",
   swsFlags: "auto",
   scaleMethod: "auto",
+  hardwareScaleFilter: false,
   addTimestamp: false,
   timestampX: 10,
   timestampY: 10,

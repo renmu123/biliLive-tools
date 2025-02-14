@@ -625,6 +625,8 @@ export interface FfmpegOptions {
   swsFlags?: string;
   /** 缩放方式，控制先缩放后渲染还是先渲染后缩放 */
   scaleMethod?: "auto" | "before" | "after";
+  /** 是否支持硬件scale过滤器 */
+  hardwareScaleFilter?: boolean;
 
   /** 添加时间戳 */
   addTimestamp?: boolean;
