@@ -34,7 +34,7 @@ COPY --from=build /app/packages/CLI/lib /app
 COPY --from=build /app/packages/CLI/node_modules /app/node_modules
 COPY --from=build /app/packages/app/resources/bin /app/bin
 COPY --from=build /app/docker/config.json ./
-COPY --from=build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/local/share/fonts/NotoSansSC-Regular.ttf
+COPY --from=build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts/NotoSansSC-Regular.ttf
 
 ENV NODE_ENV=production
 ENV IS_DOCKER=true
