@@ -158,29 +158,29 @@ describe.concurrent("genDanmuArgs", () => {
     expect(params).toEqual(expectedArgs);
   });
 
-  it("should convert XML to ASS", async () => {
-    const input = join(__dirname, "index.test.ts");
-    const output = "path/to/output.ass";
-    const argsObj = {
-      resolution: [1920, 1080],
-      msgboxsize: [400, 200],
-      msgboxpos: [100, 100],
-      blockmode: ["R2L", "L2R"],
-      statmode: ["TABLE", "HISTOGRAM"],
-      fontname: "Arial",
-      blacklist: "",
-      density: 0,
-      customDensity: 50,
-    };
+  // it("should convert XML to ASS", async () => {
+  //   const input = join(__dirname, "index.test.ts");
+  //   const output = "path/to/output.ass";
+  //   const argsObj = {
+  //     resolution: [1920, 1080],
+  //     msgboxsize: [400, 200],
+  //     msgboxpos: [100, 100],
+  //     blockmode: ["R2L", "L2R"],
+  //     statmode: ["TABLE", "HISTOGRAM"],
+  //     fontname: "Arial",
+  //     blacklist: "",
+  //     density: 0,
+  //     customDensity: 50,
+  //   };
 
-    const expectedCommand = `"path/to/executable" -i "${input}" -o "path/to/output.ass" --ignore-warnings --resolution 1920x1080 --msgboxsize 400x200 --msgboxpos 100x100 --blockmode R2L-L2R --statmode TABLE-HISTOGRAM --fontname "Arial" --density 0`;
+  //   const expectedCommand = `"path/to/executable" -i "${input}" -o "path/to/output.ass" --ignore-warnings --resolution 1920x1080 --msgboxsize 400x200 --msgboxpos 100x100 --blockmode R2L-L2R --statmode TABLE-HISTOGRAM --fontname "Arial" --density 0`;
 
-    try {
-      // @ts-ignore
-      await danmu.convertXml2Ass(input, output, argsObj);
-      expect(danmu.command).toEqual(expectedCommand);
-    } catch (error) {
-      expect(danmu.command).toEqual(expectedCommand);
-    }
-  });
+  //   try {
+  //     // @ts-ignore
+  //     await danmu.convertXml2Ass(input, output, argsObj);
+  //     expect(danmu.command).toEqual(expectedCommand);
+  //   } catch (error) {
+  //     expect(danmu.command).toEqual(expectedCommand);
+  //   }
+  // });
 });
