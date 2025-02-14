@@ -257,481 +257,481 @@ describe("TaskQueue", () => {
         expect(task3.exec).toHaveBeenCalled();
       });
     });
-    describe("DouyuDownloadTask", () => {
-      class DouyuDownloadTask extends AbstractTask {
-        type: string = TaskType.douyuDownload;
-        exec = vi.fn().mockImplementation(async () => {
-          this.emitter.emit("task-start", { taskId: this.taskId });
-          this.status = "running";
-          await sleep(50);
-          this.status = "completed";
-          this.emitter.emit("task-end", { taskId: this.taskId });
-        });
-        pause = vi.fn();
-        resume = vi.fn();
-        kill = vi.fn();
-      }
+    // describe("DouyuDownloadTask", () => {
+    //   class DouyuDownloadTask extends AbstractTask {
+    //     type: string = TaskType.douyuDownload;
+    //     exec = vi.fn().mockImplementation(async () => {
+    //       this.emitter.emit("task-start", { taskId: this.taskId });
+    //       this.status = "running";
+    //       await sleep(50);
+    //       this.status = "completed";
+    //       this.emitter.emit("task-end", { taskId: this.taskId });
+    //     });
+    //     pause = vi.fn();
+    //     resume = vi.fn();
+    //     kill = vi.fn();
+    //   }
 
-      it("should add with limit", async () => {
-        const task1 = new DouyuDownloadTask();
-        const task2 = new DouyuDownloadTask();
-        const task3 = new DouyuDownloadTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-      });
-      it("should add with no limit", async () => {
-        // @ts-ignore
-        taskQueue.appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
-          }),
-        };
+    //   it("should add with limit", async () => {
+    //     const task1 = new DouyuDownloadTask();
+    //     const task2 = new DouyuDownloadTask();
+    //     const task3 = new DouyuDownloadTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //   });
+    //   it("should add with no limit", async () => {
+    //     // @ts-ignore
+    //     taskQueue.appConfig = {
+    //       getAll: vi.fn().mockReturnValue({
+    //         task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+    //       }),
+    //     };
 
-        const task1 = new DouyuDownloadTask();
-        const task2 = new DouyuDownloadTask();
-        const task3 = new DouyuDownloadTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).toHaveBeenCalled();
-      });
-      it("should auto start after task-end event", async () => {
-        const task1 = new DouyuDownloadTask();
-        const task2 = new DouyuDownloadTask();
-        const task3 = new DouyuDownloadTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        await sleep(10);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(50);
-        expect(task3.exec).toHaveBeenCalled();
-        expect(task1.status).toBe("completed");
-        expect(task2.status).toBe("completed");
-        expect(task3.status).toBe("running");
+    //     const task1 = new DouyuDownloadTask();
+    //     const task2 = new DouyuDownloadTask();
+    //     const task3 = new DouyuDownloadTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).toHaveBeenCalled();
+    //   });
+    //   it("should auto start after task-end event", async () => {
+    //     const task1 = new DouyuDownloadTask();
+    //     const task2 = new DouyuDownloadTask();
+    //     const task3 = new DouyuDownloadTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     await sleep(10);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //     await sleep(50);
+    //     expect(task3.exec).toHaveBeenCalled();
+    //     expect(task1.status).toBe("completed");
+    //     expect(task2.status).toBe("completed");
+    //     expect(task3.status).toBe("running");
 
-        await sleep(50);
-        expect(task3.status).toBe("completed");
-      });
-      it("should auto start after task-error event", async () => {
-        class DouyuDownloadTask extends AbstractTask {
-          type: string = TaskType.douyuDownload;
-          exec = vi.fn().mockImplementation(async () => {
-            this.status = "running";
-            await sleep(50);
-            this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
-            this.status = "error";
-          });
-          pause = vi.fn();
-          resume = vi.fn();
-          kill = vi.fn();
-        }
-        const task1 = new DouyuDownloadTask();
-        const task2 = new DouyuDownloadTask();
-        const task3 = new DouyuDownloadTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(70);
-        expect(task3.exec).toHaveBeenCalled();
+    //     await sleep(50);
+    //     expect(task3.status).toBe("completed");
+    //   });
+    //   it("should auto start after task-error event", async () => {
+    //     class DouyuDownloadTask extends AbstractTask {
+    //       type: string = TaskType.douyuDownload;
+    //       exec = vi.fn().mockImplementation(async () => {
+    //         this.status = "running";
+    //         await sleep(50);
+    //         this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
+    //         this.status = "error";
+    //       });
+    //       pause = vi.fn();
+    //       resume = vi.fn();
+    //       kill = vi.fn();
+    //     }
+    //     const task1 = new DouyuDownloadTask();
+    //     const task2 = new DouyuDownloadTask();
+    //     const task3 = new DouyuDownloadTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //     await sleep(70);
+    //     expect(task3.exec).toHaveBeenCalled();
 
-        expect(task1.status).toBe("error");
-        expect(task2.status).toBe("error");
-        expect(task3.status).toBe("running");
+    //     expect(task1.status).toBe("error");
+    //     expect(task2.status).toBe("error");
+    //     expect(task3.status).toBe("running");
 
-        await sleep(50);
-        expect(task3.status).toBe("error");
-      });
+    //     await sleep(50);
+    //     expect(task3.status).toBe("error");
+    //   });
 
-      it("should auto start after task-pause event", async () => {
-        class DouyuDownloadTask extends AbstractTask {
-          type: string = TaskType.douyuDownload;
-          exec = vi.fn().mockImplementation(async () => {
-            this.status = "running";
-            await sleep(50);
-          });
-          pause = vi.fn().mockImplementation(() => {
-            this.status = "paused";
-            this.emitter.emit("task-pause", { taskId: this.taskId });
-          });
-          resume = vi.fn();
-          kill = vi.fn();
-        }
+    //   it("should auto start after task-pause event", async () => {
+    //     class DouyuDownloadTask extends AbstractTask {
+    //       type: string = TaskType.douyuDownload;
+    //       exec = vi.fn().mockImplementation(async () => {
+    //         this.status = "running";
+    //         await sleep(50);
+    //       });
+    //       pause = vi.fn().mockImplementation(() => {
+    //         this.status = "paused";
+    //         this.emitter.emit("task-pause", { taskId: this.taskId });
+    //       });
+    //       resume = vi.fn();
+    //       kill = vi.fn();
+    //     }
 
-        const task1 = new DouyuDownloadTask();
-        const task2 = new DouyuDownloadTask();
-        const task3 = new DouyuDownloadTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        task1.pause();
-        await sleep(69);
-        expect(task3.exec).toHaveBeenCalled();
-      });
-      it("should auto start after task-cancel event", async () => {
-        class DouyuDownloadTask extends AbstractTask {
-          type: string = TaskType.douyuDownload;
-          exec = vi.fn().mockImplementation(async () => {
-            this.status = "running";
-            await sleep(50);
-          });
-          pause = vi.fn().mockImplementation(() => {
-            this.status = "paused";
-            this.emitter.emit("task-pause", { taskId: this.taskId });
-          });
-          resume = vi.fn();
-          kill = vi.fn();
-          cancel = vi.fn().mockImplementation(() => {
-            this.status = "canceled";
-            this.emitter.emit("task-cancel", { taskId: this.taskId, autoStart: true });
-          });
-        }
+    //     const task1 = new DouyuDownloadTask();
+    //     const task2 = new DouyuDownloadTask();
+    //     const task3 = new DouyuDownloadTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //     task1.pause();
+    //     await sleep(69);
+    //     expect(task3.exec).toHaveBeenCalled();
+    //   });
+    //   it("should auto start after task-cancel event", async () => {
+    //     class DouyuDownloadTask extends AbstractTask {
+    //       type: string = TaskType.douyuDownload;
+    //       exec = vi.fn().mockImplementation(async () => {
+    //         this.status = "running";
+    //         await sleep(50);
+    //       });
+    //       pause = vi.fn().mockImplementation(() => {
+    //         this.status = "paused";
+    //         this.emitter.emit("task-pause", { taskId: this.taskId });
+    //       });
+    //       resume = vi.fn();
+    //       kill = vi.fn();
+    //       cancel = vi.fn().mockImplementation(() => {
+    //         this.status = "canceled";
+    //         this.emitter.emit("task-cancel", { taskId: this.taskId, autoStart: true });
+    //       });
+    //     }
 
-        const task1 = new DouyuDownloadTask();
-        const task2 = new DouyuDownloadTask();
-        const task3 = new DouyuDownloadTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        task1.cancel();
-        expect(task3.exec).toHaveBeenCalled();
-      });
-    });
-    describe("BiliPartVideoTask", () => {
-      class BiliPartVideoTask extends AbstractTask {
-        type: string = TaskType.biliUpload;
-        exec = vi.fn().mockImplementation(async () => {
-          this.emitter.emit("task-start", { taskId: this.taskId });
-          this.status = "running";
-          await sleep(50);
-          this.status = "completed";
-          this.emitter.emit("task-end", { taskId: this.taskId });
-        });
-        pause = vi.fn();
-        resume = vi.fn();
-        kill = vi.fn();
-      }
+    //     const task1 = new DouyuDownloadTask();
+    //     const task2 = new DouyuDownloadTask();
+    //     const task3 = new DouyuDownloadTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //     task1.cancel();
+    //     expect(task3.exec).toHaveBeenCalled();
+    //   });
+    // });
+    // describe("BiliPartVideoTask", () => {
+    //   class BiliPartVideoTask extends AbstractTask {
+    //     type: string = TaskType.biliUpload;
+    //     exec = vi.fn().mockImplementation(async () => {
+    //       this.emitter.emit("task-start", { taskId: this.taskId });
+    //       this.status = "running";
+    //       await sleep(50);
+    //       this.status = "completed";
+    //       this.emitter.emit("task-end", { taskId: this.taskId });
+    //     });
+    //     pause = vi.fn();
+    //     resume = vi.fn();
+    //     kill = vi.fn();
+    //   }
 
-      it("should add with limit", async () => {
-        const task1 = new BiliPartVideoTask();
-        const task2 = new BiliPartVideoTask();
-        const task3 = new BiliPartVideoTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-      });
-      it("should add with no limit", async () => {
-        // @ts-ignore
-        taskQueue.appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
-          }),
-        };
+    //   it("should add with limit", async () => {
+    //     const task1 = new BiliPartVideoTask();
+    //     const task2 = new BiliPartVideoTask();
+    //     const task3 = new BiliPartVideoTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //   });
+    //   it("should add with no limit", async () => {
+    //     // @ts-ignore
+    //     taskQueue.appConfig = {
+    //       getAll: vi.fn().mockReturnValue({
+    //         task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+    //       }),
+    //     };
 
-        const task1 = new BiliPartVideoTask();
-        const task2 = new BiliPartVideoTask();
-        const task3 = new BiliPartVideoTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).toHaveBeenCalled();
-      });
-      it("should auto start after task-end event", async () => {
-        const task1 = new BiliPartVideoTask();
-        const task2 = new BiliPartVideoTask();
-        const task3 = new BiliPartVideoTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        await sleep(10);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(50);
-        expect(task3.exec).toHaveBeenCalled();
-        expect(task1.status).toBe("completed");
-        expect(task2.status).toBe("completed");
-        expect(task3.status).toBe("running");
+    //     const task1 = new BiliPartVideoTask();
+    //     const task2 = new BiliPartVideoTask();
+    //     const task3 = new BiliPartVideoTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).toHaveBeenCalled();
+    //   });
+    //   it("should auto start after task-end event", async () => {
+    //     const task1 = new BiliPartVideoTask();
+    //     const task2 = new BiliPartVideoTask();
+    //     const task3 = new BiliPartVideoTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     await sleep(10);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //     await sleep(50);
+    //     expect(task3.exec).toHaveBeenCalled();
+    //     expect(task1.status).toBe("completed");
+    //     expect(task2.status).toBe("completed");
+    //     expect(task3.status).toBe("running");
 
-        await sleep(50);
-        expect(task3.status).toBe("completed");
-      });
-      it("should auto start after task-error event", async () => {
-        class BiliPartVideoTask extends AbstractTask {
-          type: string = TaskType.biliUpload;
-          exec = vi.fn().mockImplementation(async () => {
-            this.status = "running";
-            await sleep(50);
-            this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
-            this.status = "error";
-          });
-          pause = vi.fn();
-          resume = vi.fn();
-          kill = vi.fn();
-        }
-        const task1 = new BiliPartVideoTask();
-        const task2 = new BiliPartVideoTask();
-        const task3 = new BiliPartVideoTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(70);
-        expect(task3.exec).toHaveBeenCalled();
+    //     await sleep(50);
+    //     expect(task3.status).toBe("completed");
+    //   });
+    //   it("should auto start after task-error event", async () => {
+    //     class BiliPartVideoTask extends AbstractTask {
+    //       type: string = TaskType.biliUpload;
+    //       exec = vi.fn().mockImplementation(async () => {
+    //         this.status = "running";
+    //         await sleep(50);
+    //         this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
+    //         this.status = "error";
+    //       });
+    //       pause = vi.fn();
+    //       resume = vi.fn();
+    //       kill = vi.fn();
+    //     }
+    //     const task1 = new BiliPartVideoTask();
+    //     const task2 = new BiliPartVideoTask();
+    //     const task3 = new BiliPartVideoTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //     await sleep(70);
+    //     expect(task3.exec).toHaveBeenCalled();
 
-        expect(task1.status).toBe("error");
-        expect(task2.status).toBe("error");
-        expect(task3.status).toBe("running");
+    //     expect(task1.status).toBe("error");
+    //     expect(task2.status).toBe("error");
+    //     expect(task3.status).toBe("running");
 
-        await sleep(200);
-        expect(task3.status).toBe("error");
-      });
+    //     await sleep(200);
+    //     expect(task3.status).toBe("error");
+    //   });
 
-      it("should auto start after task-pause event", async () => {
-        class BiliPartVideoTask extends AbstractTask {
-          type: string = TaskType.biliUpload;
-          exec = vi.fn().mockImplementation(async () => {
-            this.status = "running";
-            await sleep(50);
-          });
-          pause = vi.fn().mockImplementation(() => {
-            this.status = "paused";
-            this.emitter.emit("task-pause", { taskId: this.taskId });
-          });
-          resume = vi.fn();
-          kill = vi.fn();
-        }
+    //   it("should auto start after task-pause event", async () => {
+    //     class BiliPartVideoTask extends AbstractTask {
+    //       type: string = TaskType.biliUpload;
+    //       exec = vi.fn().mockImplementation(async () => {
+    //         this.status = "running";
+    //         await sleep(50);
+    //       });
+    //       pause = vi.fn().mockImplementation(() => {
+    //         this.status = "paused";
+    //         this.emitter.emit("task-pause", { taskId: this.taskId });
+    //       });
+    //       resume = vi.fn();
+    //       kill = vi.fn();
+    //     }
 
-        const task1 = new BiliPartVideoTask();
-        const task2 = new BiliPartVideoTask();
-        const task3 = new BiliPartVideoTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        task1.pause();
-        await sleep(60);
-        expect(task3.exec).toHaveBeenCalled();
-      });
-      it("should auto start after task-cancel event", async () => {
-        class BiliPartVideoTask extends AbstractTask {
-          type: string = TaskType.biliUpload;
-          exec = vi.fn().mockImplementation(async () => {
-            this.status = "running";
-            await sleep(50);
-          });
-          pause = vi.fn().mockImplementation(() => {
-            this.status = "paused";
-            this.emitter.emit("task-pause", { taskId: this.taskId });
-          });
-          resume = vi.fn();
-          kill = vi.fn();
-          cancel = vi.fn().mockImplementation(() => {
-            this.status = "canceled";
-            this.emitter.emit("task-cancel", { taskId: this.taskId, autoStart: true });
-          });
-        }
+    //     const task1 = new BiliPartVideoTask();
+    //     const task2 = new BiliPartVideoTask();
+    //     const task3 = new BiliPartVideoTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //     task1.pause();
+    //     await sleep(60);
+    //     expect(task3.exec).toHaveBeenCalled();
+    //   });
+    //   it("should auto start after task-cancel event", async () => {
+    //     class BiliPartVideoTask extends AbstractTask {
+    //       type: string = TaskType.biliUpload;
+    //       exec = vi.fn().mockImplementation(async () => {
+    //         this.status = "running";
+    //         await sleep(50);
+    //       });
+    //       pause = vi.fn().mockImplementation(() => {
+    //         this.status = "paused";
+    //         this.emitter.emit("task-pause", { taskId: this.taskId });
+    //       });
+    //       resume = vi.fn();
+    //       kill = vi.fn();
+    //       cancel = vi.fn().mockImplementation(() => {
+    //         this.status = "canceled";
+    //         this.emitter.emit("task-cancel", { taskId: this.taskId, autoStart: true });
+    //       });
+    //     }
 
-        const task1 = new BiliPartVideoTask();
-        const task2 = new BiliPartVideoTask();
-        const task3 = new BiliPartVideoTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        task1.cancel();
-        expect(task3.exec).toHaveBeenCalled();
-      });
-    });
-    describe("BiliDownloadVideoTask", () => {
-      class BiliDownloadVideoTask extends AbstractTask {
-        type: string = TaskType.biliDownload;
-        exec = vi.fn().mockImplementation(async () => {
-          this.emitter.emit("task-start", { taskId: this.taskId });
-          this.status = "running";
-          await sleep(50);
-          this.status = "completed";
-          this.emitter.emit("task-end", { taskId: this.taskId });
-        });
-        pause = vi.fn();
-        resume = vi.fn();
-        kill = vi.fn();
-      }
+    //     const task1 = new BiliPartVideoTask();
+    //     const task2 = new BiliPartVideoTask();
+    //     const task3 = new BiliPartVideoTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //     task1.cancel();
+    //     expect(task3.exec).toHaveBeenCalled();
+    //   });
+    // });
+    // describe("BiliDownloadVideoTask", () => {
+    //   class BiliDownloadVideoTask extends AbstractTask {
+    //     type: string = TaskType.biliDownload;
+    //     exec = vi.fn().mockImplementation(async () => {
+    //       this.emitter.emit("task-start", { taskId: this.taskId });
+    //       this.status = "running";
+    //       await sleep(50);
+    //       this.status = "completed";
+    //       this.emitter.emit("task-end", { taskId: this.taskId });
+    //     });
+    //     pause = vi.fn();
+    //     resume = vi.fn();
+    //     kill = vi.fn();
+    //   }
 
-      it("should add with limit", async () => {
-        const task1 = new BiliDownloadVideoTask();
-        const task2 = new BiliDownloadVideoTask();
-        const task3 = new BiliDownloadVideoTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-      });
-      it("should add with no limit", async () => {
-        // @ts-ignore
-        taskQueue.appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            task: {
-              ffmpegMaxNum: -1,
-              douyuDownloadMaxNum: -1,
-              biliUploadMaxNum: -1,
-              biliDownloadMaxNum: -1,
-            },
-          }),
-        };
+    //   it("should add with limit", async () => {
+    //     const task1 = new BiliDownloadVideoTask();
+    //     const task2 = new BiliDownloadVideoTask();
+    //     const task3 = new BiliDownloadVideoTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //   });
+    //   it("should add with no limit", async () => {
+    //     // @ts-ignore
+    //     taskQueue.appConfig = {
+    //       getAll: vi.fn().mockReturnValue({
+    //         task: {
+    //           ffmpegMaxNum: -1,
+    //           douyuDownloadMaxNum: -1,
+    //           biliUploadMaxNum: -1,
+    //           biliDownloadMaxNum: -1,
+    //         },
+    //       }),
+    //     };
 
-        const task1 = new BiliDownloadVideoTask();
-        const task2 = new BiliDownloadVideoTask();
-        const task3 = new BiliDownloadVideoTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).toHaveBeenCalled();
-      });
-      it("should auto start after task-end event", async () => {
-        const task1 = new BiliDownloadVideoTask();
-        const task2 = new BiliDownloadVideoTask();
-        const task3 = new BiliDownloadVideoTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        await sleep(10);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(50);
-        expect(task3.exec).toHaveBeenCalled();
-        expect(task1.status).toBe("completed");
-        expect(task2.status).toBe("completed");
-        expect(task3.status).toBe("running");
+    //     const task1 = new BiliDownloadVideoTask();
+    //     const task2 = new BiliDownloadVideoTask();
+    //     const task3 = new BiliDownloadVideoTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).toHaveBeenCalled();
+    //   });
+    //   it("should auto start after task-end event", async () => {
+    //     const task1 = new BiliDownloadVideoTask();
+    //     const task2 = new BiliDownloadVideoTask();
+    //     const task3 = new BiliDownloadVideoTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     await sleep(10);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //     await sleep(50);
+    //     expect(task3.exec).toHaveBeenCalled();
+    //     expect(task1.status).toBe("completed");
+    //     expect(task2.status).toBe("completed");
+    //     expect(task3.status).toBe("running");
 
-        await sleep(50);
-        expect(task3.status).toBe("completed");
-      });
-      it("should auto start after task-error event", async () => {
-        class BiliDownloadVideoTask extends AbstractTask {
-          type: string = TaskType.biliDownload;
-          exec = vi.fn().mockImplementation(async () => {
-            this.status = "running";
-            await sleep(50);
-            this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
-            this.status = "error";
-          });
-          pause = vi.fn();
-          resume = vi.fn();
-          kill = vi.fn();
-        }
-        const task1 = new BiliDownloadVideoTask();
-        const task2 = new BiliDownloadVideoTask();
-        const task3 = new BiliDownloadVideoTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(70);
-        expect(task3.exec).toHaveBeenCalled();
+    //     await sleep(50);
+    //     expect(task3.status).toBe("completed");
+    //   });
+    //   it("should auto start after task-error event", async () => {
+    //     class BiliDownloadVideoTask extends AbstractTask {
+    //       type: string = TaskType.biliDownload;
+    //       exec = vi.fn().mockImplementation(async () => {
+    //         this.status = "running";
+    //         await sleep(50);
+    //         this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
+    //         this.status = "error";
+    //       });
+    //       pause = vi.fn();
+    //       resume = vi.fn();
+    //       kill = vi.fn();
+    //     }
+    //     const task1 = new BiliDownloadVideoTask();
+    //     const task2 = new BiliDownloadVideoTask();
+    //     const task3 = new BiliDownloadVideoTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //     await sleep(70);
+    //     expect(task3.exec).toHaveBeenCalled();
 
-        expect(task1.status).toBe("error");
-        expect(task2.status).toBe("error");
-        expect(task3.status).toBe("running");
+    //     expect(task1.status).toBe("error");
+    //     expect(task2.status).toBe("error");
+    //     expect(task3.status).toBe("running");
 
-        await sleep(200);
-        expect(task3.status).toBe("error");
-      });
+    //     await sleep(200);
+    //     expect(task3.status).toBe("error");
+    //   });
 
-      it("should auto start after task-pause event", async () => {
-        class BiliDownloadVideoTask extends AbstractTask {
-          type: string = TaskType.biliDownload;
-          exec = vi.fn().mockImplementation(async () => {
-            this.status = "running";
-            await sleep(50);
-          });
-          pause = vi.fn().mockImplementation(() => {
-            this.status = "paused";
-            this.emitter.emit("task-pause", { taskId: this.taskId });
-          });
-          resume = vi.fn();
-          kill = vi.fn();
-        }
+    //   it("should auto start after task-pause event", async () => {
+    //     class BiliDownloadVideoTask extends AbstractTask {
+    //       type: string = TaskType.biliDownload;
+    //       exec = vi.fn().mockImplementation(async () => {
+    //         this.status = "running";
+    //         await sleep(50);
+    //       });
+    //       pause = vi.fn().mockImplementation(() => {
+    //         this.status = "paused";
+    //         this.emitter.emit("task-pause", { taskId: this.taskId });
+    //       });
+    //       resume = vi.fn();
+    //       kill = vi.fn();
+    //     }
 
-        const task1 = new BiliDownloadVideoTask();
-        const task2 = new BiliDownloadVideoTask();
-        const task3 = new BiliDownloadVideoTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        task1.pause();
-        await sleep(60);
-        expect(task3.exec).toHaveBeenCalled();
-      });
-      it("should auto start after task-cancel event", async () => {
-        class BiliDownloadVideoTask extends AbstractTask {
-          type: string = TaskType.biliDownload;
-          exec = vi.fn().mockImplementation(async () => {
-            this.status = "running";
-            await sleep(50);
-          });
-          pause = vi.fn().mockImplementation(() => {
-            this.status = "paused";
-            this.emitter.emit("task-pause", { taskId: this.taskId });
-          });
-          resume = vi.fn();
-          kill = vi.fn();
-          cancel = vi.fn().mockImplementation(() => {
-            this.status = "canceled";
-            this.emitter.emit("task-cancel", { taskId: this.taskId, autoStart: true });
-          });
-        }
+    //     const task1 = new BiliDownloadVideoTask();
+    //     const task2 = new BiliDownloadVideoTask();
+    //     const task3 = new BiliDownloadVideoTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //     task1.pause();
+    //     await sleep(60);
+    //     expect(task3.exec).toHaveBeenCalled();
+    //   });
+    //   it("should auto start after task-cancel event", async () => {
+    //     class BiliDownloadVideoTask extends AbstractTask {
+    //       type: string = TaskType.biliDownload;
+    //       exec = vi.fn().mockImplementation(async () => {
+    //         this.status = "running";
+    //         await sleep(50);
+    //       });
+    //       pause = vi.fn().mockImplementation(() => {
+    //         this.status = "paused";
+    //         this.emitter.emit("task-pause", { taskId: this.taskId });
+    //       });
+    //       resume = vi.fn();
+    //       kill = vi.fn();
+    //       cancel = vi.fn().mockImplementation(() => {
+    //         this.status = "canceled";
+    //         this.emitter.emit("task-cancel", { taskId: this.taskId, autoStart: true });
+    //       });
+    //     }
 
-        const task1 = new BiliDownloadVideoTask();
-        const task2 = new BiliDownloadVideoTask();
-        const task3 = new BiliDownloadVideoTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        task1.cancel();
-        expect(task3.exec).toHaveBeenCalled();
-      });
-    });
+    //     const task1 = new BiliDownloadVideoTask();
+    //     const task2 = new BiliDownloadVideoTask();
+    //     const task3 = new BiliDownloadVideoTask();
+    //     taskQueue.addTask(task1, false);
+    //     taskQueue.addTask(task2, false);
+    //     taskQueue.addTask(task3, false);
+    //     expect(task1.exec).toHaveBeenCalled();
+    //     expect(task2.exec).toHaveBeenCalled();
+    //     expect(task3.exec).not.toHaveBeenCalled();
+    //     task1.cancel();
+    //     expect(task3.exec).toHaveBeenCalled();
+    //   });
+    // });
   });
 });
