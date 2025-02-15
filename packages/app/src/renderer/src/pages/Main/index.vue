@@ -61,7 +61,10 @@ import {
   SettingsOutline as SettingIcon,
   LogOutOutline,
 } from "@vicons/ionicons5";
-// import { DashboardOutlined as DashboardIcon } from "@vicons/material";
+import {
+  // DashboardOutlined as DashboardIcon,
+  LiveTvRound,
+} from "@vicons/material";
 
 import defaultUserAvatar from "../../assets/images/moehime.jpg";
 import AppSettingDialog from "../../pages/setting/index.vue";
@@ -212,7 +215,7 @@ const menuOptions = computed<MenuOption[]>(() => {
               name: "Upload",
             },
           },
-          { default: () => "上传" },
+          { default: () => "B站上传" },
         ),
     },
     {
@@ -226,19 +229,6 @@ const menuOptions = computed<MenuOption[]>(() => {
             },
           },
           { default: () => "弹幕转换" },
-        ),
-    },
-    {
-      key: "recorder",
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: "recorder",
-            },
-          },
-          { default: () => "直播录制" },
         ),
     },
     {
@@ -316,6 +306,20 @@ const menuOptions = computed<MenuOption[]>(() => {
       key: "Home",
       icon: renderIcon(HomeIcon),
     },
+    {
+      key: "recorder",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "recorder",
+            },
+          },
+          { default: () => "直播录制" },
+        ),
+      icon: renderIcon(LiveTvRound),
+    },
     // {
     //   label: () =>
     //     h(
@@ -331,7 +335,7 @@ const menuOptions = computed<MenuOption[]>(() => {
     //   icon: renderIcon(DashboardIcon),
     // },
     {
-      label: () => h("span", "工具页"),
+      label: () => h("span", "工具"),
       key: "tools",
       icon: renderIcon(BookIcon),
       children: toolsSubMenus,
@@ -345,7 +349,7 @@ const menuOptions = computed<MenuOption[]>(() => {
               name: "Queue",
             },
           },
-          { default: () => "队列" },
+          { default: () => "任务队列" },
         ),
       key: "Queue",
       icon: renderQueueIcon(QueueIcon),
