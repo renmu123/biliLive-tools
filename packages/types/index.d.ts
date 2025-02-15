@@ -627,7 +627,8 @@ export interface FfmpegOptions {
   scaleMethod?: "auto" | "before" | "after";
   /** 是否支持硬件scale过滤器 */
   hardwareScaleFilter?: boolean;
-
+  /** 编码线程数 */
+  encoderThreads?: number;
   /** 添加时间戳 */
   addTimestamp?: boolean;
   /** 时间戳x轴坐标 */

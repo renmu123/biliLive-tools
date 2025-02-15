@@ -24,6 +24,7 @@ const commonPresetParams: {
   swsFlags: string;
   scaleMethod: "auto" | "before" | "after";
   hardwareScaleFilter: boolean;
+  encoderThreads: number;
   addTimestamp: boolean;
   timestampX: number;
   timestampY: number;
@@ -44,6 +45,7 @@ const commonPresetParams: {
   scaleMethod: "auto",
   hardwareScaleFilter: false,
   addTimestamp: false,
+  encoderThreads: -1,
   timestampX: 10,
   timestampY: 10,
   timestampFontSize: 24,

@@ -166,8 +166,9 @@
             <span>分辨率</span>
             <Tip>
               <p>
-                实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间，可以尝试开启硬件过滤器，某些情况下可以大幅加快。
+                实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间。
               </p>
+              <p>可以尝试开启硬件过滤器，某些情况下可以大幅加快。</p>
               <p>
                 B站4k画质要求短边大于1600，如果原视频为1080，可以尝试设置为2880x1620<br />
                 也可以设置为-1:1620来进行自适应
@@ -336,6 +337,22 @@
             />
           </n-form-item>
         </n-form>
+      </n-form-item>
+
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex">
+            <Tip text="编码线程数"> 默认值为-1，由ffmpeg自动选择 </Tip>
+          </span>
+        </template>
+        <n-input-number
+          v-model:value.number="ffmpegOptions.config.encoderThreads"
+          class="input-number"
+          :min="-1"
+          :step="1"
+          placeholder="编码线程数"
+          style="width: 100px; flex: none"
+        />
       </n-form-item>
     </template>
 

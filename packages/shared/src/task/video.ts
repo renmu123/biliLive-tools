@@ -611,6 +611,11 @@ export const genMergeAssMp4Command = async (
     command.outputOptions(param);
   });
 
+  // 编码线程数
+  if (ffmpegOptions.encoderThreads && ffmpegOptions.encoderThreads > 0) {
+    command.outputOptions(`-threads ${ffmpegOptions.encoderThreads}`);
+  }
+
   return command;
 };
 
