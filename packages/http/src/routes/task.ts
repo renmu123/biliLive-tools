@@ -84,11 +84,11 @@ router.post("/:id/removeFile", async (ctx) => {
   if (task.type !== "ffmpeg") {
     throw new Error("不支持的任务");
   }
-  if (!(await fs.pathExists(task.output))) {
+  if (task.output && !(await fs.pathExists(task?.output))) {
     throw new Error("文件不存在");
   }
 
-  await trashItem(task.output);
+  await trashItem(task.output!);
   ctx.body = { code: 0 };
 });
 
