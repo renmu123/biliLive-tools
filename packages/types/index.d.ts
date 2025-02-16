@@ -158,6 +158,8 @@ export type ToolConfig = {
     removeOrigin: boolean;
     /** 完成后打开文件夹 */
     openFolder: boolean;
+    /** 覆盖已存在的文件 */
+    override: boolean;
   };
   video2mp4: {
     /** 保存类型 */
@@ -514,6 +516,7 @@ export interface DanmuOptions {
   removeOrigin: boolean; // 完成后移除源文件
   copyInput?: boolean; // 复制源文件到临时文件夹
   temp?: boolean; // 生成到临时文件夹
+  override?: boolean; // 覆盖已存在的文件
 }
 export interface Video2Mp4Options {
   saveRadio: 1 | 2; // 1：保存到原始文件夹，2：保存到特定文件夹

@@ -119,7 +119,7 @@ export const streamCodecOptions = [
 export const textInfo = {
   bili: {
     uid: {
-      text: "B站录制账号",
+      text: "录制账号",
       tip: "登录才能录制高清画质",
     },
     useM3U8Proxy: {

@@ -713,6 +713,7 @@ export class WebhookHandler {
               removeOrigin: false,
               saveRadio: 2,
               savePath: os.tmpdir(),
+              override: true,
             },
           );
         })

@@ -128,6 +128,7 @@ router.post("/convertXml2Ass", async (ctx) => {
       copyInput?: boolean;
       temp?: boolean;
       sync?: boolean;
+      override?: boolean;
     };
   };
   if (!input || !output) {

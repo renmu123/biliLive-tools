@@ -32,6 +32,9 @@ const getDanmuFactoryPath = () => {
   return danmuFactoryPath;
 };
 
+/**
+ * 不要调用，调用convertXml2Ass
+ */
 const addConvertDanmu2AssTask = async (
   originInput: string,
   output: string,
@@ -48,7 +51,6 @@ const addConvertDanmu2AssTask = async (
     await fs.unlink(output);
   }
   const DANMUKUFACTORY_PATH = getDanmuFactoryPath();
-  log.info("danmufactory", DANMUKUFACTORY_PATH);
   const danmu = new DanmakuFactory(DANMUKUFACTORY_PATH);
   let tempInput: string | undefined;
 
@@ -138,6 +140,10 @@ export const convertXml2Ass = async (
   } else {
     const tempFile = join(getTempPath(), `${uuid()}.ass`);
     output = tempFile;
+  }
+
+  if (!options.override && (await pathExists(output))) {
+    throw new Error(`${output}文件已存在`);
   }
 
   const task = await addConvertDanmu2AssTask(file.input, output, danmuOptions, options);

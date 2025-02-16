@@ -82,6 +82,7 @@ const convertXml2Ass = async (
     temp?: boolean;
     // 同步返回
     sync?: boolean;
+    override?: boolean;
   },
 ): Promise<{
   taskId: string;

@@ -99,6 +99,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       savePath: "",
       removeOrigin: false,
       openFolder: false,
+      override: true,
     },
     video2mp4: {
       saveRadio: 1,
