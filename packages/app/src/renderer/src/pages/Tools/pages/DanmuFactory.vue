@@ -74,7 +74,7 @@ import hotkeys from "hotkeys-js";
 const { danmuPresetsOptions, danmuPresetId } = storeToRefs(useDanmuPreset());
 const { appConfig } = storeToRefs(useAppConfig());
 
-const notice = useNotification();
+const notice = useNotice();
 const confirm = useConfirm();
 // const isWeb = computed(() => window.isWeb);
 
@@ -105,7 +105,6 @@ const convert = async () => {
   if (fileList.value.length === 0) {
     notice.error({
       title: `至少选择一个文件`,
-      duration: 1000,
     });
     return;
   }
@@ -133,7 +132,6 @@ const convert = async () => {
     } catch (err) {
       notice.error({
         title: err as string,
-        duration: 1500,
       });
     }
   }

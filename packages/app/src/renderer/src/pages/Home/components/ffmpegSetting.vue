@@ -211,7 +211,6 @@
               :options="swsOptions"
               title="缩放算法"
               placeholder="请选择缩放算法，默认为自动"
-              clearable
               style="flex-basis: 200px"
             />
             <n-select

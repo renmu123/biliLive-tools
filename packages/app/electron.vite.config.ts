@@ -43,6 +43,9 @@ export default defineConfig({
             "naive-ui": ["useDialog", "useMessage", "useNotification", "useLoadingBar"],
           },
           "pinia",
+          {
+            "@renderer/hooks/useNotice": ["useNotice"],
+          },
         ],
       }),
       Components({
