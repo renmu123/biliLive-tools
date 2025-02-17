@@ -17,7 +17,7 @@ import { mergeVideos, transcode, burn, readVideoMeta } from "@biliLive-tools/sha
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { trashItem } from "@biliLive-tools/shared/utils/index.js";
 
-import type { DanmuConfig } from "@biliLive-tools/types";
+import type { DanmuPreset, DanmaOptions } from "@biliLive-tools/types";
 
 const router = new Router({
   prefix: "/task",
@@ -120,15 +120,9 @@ router.post("/convertXml2Ass", async (ctx) => {
   const { input, output, preset, options } = ctx.request.body as {
     input: string;
     output: string;
-    preset: DanmuConfig;
-    options: {
-      saveRadio: 1 | 2;
-      savePath: string;
-      removeOrigin?: boolean;
-      copyInput?: boolean;
-      temp?: boolean;
+    preset: DanmuPreset["config"];
+    options: DanmaOptions & {
       sync?: boolean;
-      override?: boolean;
     };
   };
   if (!input || !output) {

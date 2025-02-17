@@ -4,9 +4,9 @@ import type { Task } from "@renderer/types";
 import type {
   DanmuPreset,
   FfmpegOptions,
-  DanmuConfig,
   hotProgressOptions,
   BiliupPreset,
+  DanmaOptions,
 } from "@biliLive-tools/types";
 import type { VideoAPI } from "@biliLive-tools/http/types/video.js";
 
@@ -73,16 +73,8 @@ const convertXml2Ass = async (
   input: string,
   output: string,
   preset: DanmuPreset["config"],
-  options: {
-    saveRadio: 1 | 2;
-    savePath?: string;
-    removeOrigin?: boolean;
-    copyInput?: boolean;
-    // 生成在临时文件夹
-    temp?: boolean;
-    // 同步返回
+  options: DanmaOptions & {
     sync?: boolean;
-    override?: boolean;
   },
 ): Promise<{
   taskId: string;
@@ -140,7 +132,7 @@ const burn = async (
   files: { videoFilePath: string; subtitleFilePath: string },
   output: string,
   options: {
-    danmaOptions: DanmuConfig;
+    danmaOptions: DanmuPreset["config"];
     ffmpegOptions: FfmpegOptions;
     hotProgressOptions: Omit<hotProgressOptions, "videoPath">;
     hasHotProgress: boolean;

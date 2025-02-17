@@ -15,7 +15,7 @@ import { container } from "../index.js";
 
 import type {
   DanmuConfig,
-  DanmuOptions,
+  DanmaOptions,
   hotProgressOptions,
   GlobalConfig,
 } from "@biliLive-tools/types";
@@ -39,7 +39,7 @@ const addConvertDanmu2AssTask = async (
   originInput: string,
   output: string,
   danmuOptions: DanmuConfig,
-  options: { removeOrigin: boolean; copyInput?: boolean },
+  options: Pick<DanmaOptions, "copyInput" | "removeOrigin"> = {},
 ) => {
   if (await pathExists(output)) {
     log.info("danmufactory", {
@@ -118,13 +118,7 @@ export const convertXml2Ass = async (
     output: string;
   },
   danmuOptions: DanmuConfig,
-  options: DanmuOptions = {
-    saveRadio: 1,
-    savePath: "",
-    removeOrigin: false,
-    copyInput: false,
-    temp: false,
-  },
+  options: DanmaOptions,
 ) => {
   if (await isEmptyDanmu(file.input)) {
     throw new Error("弹幕为空，无须处理");

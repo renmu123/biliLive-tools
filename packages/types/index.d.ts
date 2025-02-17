@@ -1,3 +1,4 @@
+export * from "./task.js";
 import type { Line as UploadLine } from "@renmu/bili-api";
 
 // 弹幕配置
@@ -509,15 +510,6 @@ export interface AppConfig {
   recorders: Recorder[];
 }
 
-export interface DanmuOptions {
-  saveRadio: 1 | 2; // 1：保存到原始文件夹，2：保存到特定文件夹
-  savePath: string;
-
-  removeOrigin: boolean; // 完成后移除源文件
-  copyInput?: boolean; // 复制源文件到临时文件夹
-  temp?: boolean; // 生成到临时文件夹
-  override?: boolean; // 覆盖已存在的文件
-}
 export interface Video2Mp4Options {
   saveRadio: 1 | 2; // 1：保存到原始文件夹，2：保存到特定文件夹
   saveOriginPath: boolean;
