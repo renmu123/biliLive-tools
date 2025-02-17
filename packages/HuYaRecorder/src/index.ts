@@ -134,18 +134,19 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "idle";
     throw err;
   }
-  const saveCover = async ({ filename }) => {
+  const handleVideoCreated = async ({ filename }) => {
     const extraDataController = streamManager?.getExtraDataController();
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
+      liveStartTimestamp: liveInfo.startTime?.getTime(),
     });
     if (this.saveCover) {
       const coverPath = utils.replaceExtName(filename, ".jpg");
       utils.downloadImage(cover, coverPath);
     }
   };
-  this.on("videoFileCreated", saveCover);
+  this.on("videoFileCreated", handleVideoCreated);
 
   let client: HuYaDanMu | null = null;
   if (!this.disableProvideCommentsWhenRecording) {
@@ -255,9 +256,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     );
   }
   const ffmpegArgs = command._getArguments();
-  streamManager?.getExtraDataController()?.setMeta({
-    liveStartTimestamp: liveInfo.startTime?.getTime(),
-  });
   command.run();
 
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
@@ -280,7 +278,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
     await streamManager.handleVideoCompleted();
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
-    this.off("videoFileCreated", saveCover);
+    this.off("videoFileCreated", handleVideoCreated);
     this.recordHandle = undefined;
     this.liveInfo = undefined;
     this.state = "idle";

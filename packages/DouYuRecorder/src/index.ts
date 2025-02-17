@@ -140,18 +140,19 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  const saveCover = async ({ filename }) => {
+  const handleVideoCreated = async ({ filename }) => {
     const extraDataController = streamManager?.getExtraDataController();
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
+      liveStartTimestamp: liveInfo.startTime?.getTime(),
     });
     if (this.saveCover) {
       const coverPath = utils.replaceExtName(filename, ".jpg");
       utils.downloadImage(cover, coverPath);
     }
   };
-  this.on("videoFileCreated", saveCover);
+  this.on("videoFileCreated", handleVideoCreated);
 
   const client = createDYClient(Number(this.channelId), {
     notAutoStart: true,
@@ -292,9 +293,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     );
   }
   const ffmpegArgs = command._getArguments();
-  streamManager?.getExtraDataController()?.setMeta({
-    liveStartTimestamp: liveInfo.startTime?.getTime(),
-  });
   command.run();
 
   // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
@@ -322,7 +320,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     // TODO: emit update event
     await streamManager.handleVideoCompleted();
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
-    this.off("videoFileCreated", saveCover);
+    this.off("videoFileCreated", handleVideoCreated);
     this.recordHandle = undefined;
     this.liveInfo = undefined;
     this.state = "idle";
