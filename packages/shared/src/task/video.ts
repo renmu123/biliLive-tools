@@ -208,6 +208,8 @@ export class ComplexFilter {
         return this.addFilter("hwupload_cuda,scale_cuda", scaleFilter);
       } else if (hardware === "qsv") {
         return this.addFilter("hwupload,scale_qsv", scaleFilter);
+      } else if (hardware === "amf") {
+        return this.addFilter("vpp_amf", scaleFilter);
       }
     }
     if (swsFlags && swsFlags !== "auto") {
@@ -599,6 +601,10 @@ export const genMergeAssMp4Command = async (
   } else if (complexFilter.getFilters()?.[0]?.filter === "scale_qsv") {
     // 仅在第一个时，需要硬件解码，其他情况不需要
     command.inputOptions("-hwaccel qsv");
+  } else if (complexFilter.getFilters()?.[0]?.filter === "vpp_amf") {
+    command.inputOptions("-hwaccel amf");
+    command.inputOptions("-init_hw_device amf=amf");
+    command.inputOptions("-filter_hw_device amf");
   }
 
   // 构建最后的输出内容

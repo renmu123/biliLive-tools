@@ -168,7 +168,7 @@
               <p>
                 实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间。
               </p>
-              <p>可以尝试开启硬件过滤器，某些情况下可以大幅加快。</p>
+              <p>可以尝试开启硬件过滤器，某些情况下可以大幅加快，也有可能并不能。</p>
               <p>
                 B站4k画质要求短边大于1600，如果原视频为1080，可以尝试设置为2880x1620<br />
                 也可以设置为-1:1620来进行自适应
@@ -222,7 +222,7 @@
               style="flex-basis: 200px; min-width: 100px"
             />
             <n-checkbox
-              v-if="['qsv', 'nvenc'].includes(hardwareAcceleration)"
+              v-if="['qsv', 'nvenc', 'amf'].includes(hardwareAcceleration)"
               v-model:checked="ffmpegOptions.config.hardwareScaleFilter"
               >硬件过滤器</n-checkbox
             >
