@@ -49,7 +49,7 @@ export type CommonPreset<T> = {
 // ffmpeg预设配置
 export type FfmpegPreset = CommonPreset<FfmpegOptions>;
 
-type CommonRoomConfig = {
+export type CommonRoomConfig = {
   open: boolean;
   minSize: number;
   /** 视频标题 */
@@ -119,8 +119,6 @@ export type ToolConfig = {
     ffmpegPresetId: string;
     /** 完成后移除源文件 */
     removeOrigin: boolean;
-    /** 完成后打开文件夹 */
-    openFolder: boolean;
     /** 完成后自动上传 */
     autoUpload: boolean;
     /** 审核通过后删除源文件 */
@@ -157,8 +155,6 @@ export type ToolConfig = {
     savePath: string;
     /** 完成后移除源文件 */
     removeOrigin: boolean;
-    /** 完成后打开文件夹 */
-    openFolder: boolean;
     /** 覆盖已存在的文件 */
     override: boolean;
   };
@@ -325,7 +321,7 @@ export interface GlobalRecorder {
   douyu: DouyuRecorderConfig;
 }
 
-interface Recorder {
+export interface Recorder {
   providerId: string;
   id: string;
   channelId: string;

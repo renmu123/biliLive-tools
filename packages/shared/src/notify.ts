@@ -130,8 +130,6 @@ export async function sendByAllInOne(
 }
 
 export function send(title: string, desp: string) {
-  // log.info("send notfiy", title, desp);
-
   const config = appConfig.getAll();
   _send(title, desp, config);
 }

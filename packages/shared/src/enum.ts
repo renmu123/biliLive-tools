@@ -80,7 +80,6 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       danmuPresetId: "default",
       ffmpegPresetId: "b_libx264",
       removeOrigin: false,
-      openFolder: false,
       autoUpload: false,
       removeOriginAfterUploadCheck: false,
       hotProgress: false,
@@ -98,7 +97,6 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       saveRadio: 1,
       savePath: "",
       removeOrigin: false,
-      openFolder: false,
       override: true,
     },
     video2mp4: {
