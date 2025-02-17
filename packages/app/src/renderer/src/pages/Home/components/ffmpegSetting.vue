@@ -171,7 +171,7 @@
               <p>可以尝试开启硬件过滤器，某些情况下可以大幅加快，也有可能并不能。</p>
               <p>
                 B站4k画质要求短边大于1600，如果原视频为1080，可以尝试设置为2880x1620<br />
-                也可以设置为-1:1620来进行自适应
+                也可以设置为-2:1620来进行自适应
               </p>
               <p>4K：3840X2160<br />2K：2560X1440<br />1080：1920X1080</p>
               <p>
@@ -190,7 +190,7 @@
             <n-input-number
               v-model:value.number="ffmpegOptions.config.resolutionWidth"
               class="input-number"
-              :min="-1"
+              :min="-2"
               :step="100"
               title="宽"
               placeholder="宽"
@@ -199,7 +199,7 @@
             <n-input-number
               v-model:value.number="ffmpegOptions.config.resolutionHeight"
               class="input-number"
-              :min="-1"
+              :min="-2"
               :step="100"
               title="高"
               placeholder="高"
