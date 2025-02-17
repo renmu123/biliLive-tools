@@ -209,6 +209,12 @@ export class ComplexFilter {
       } else if (hardware === "qsv") {
         return this.addFilter("hwupload,scale_qsv", scaleFilter);
       } else if (hardware === "amf") {
+        if (resolutionHeight === -1) {
+          scaleFilter = `${resolutionWidth}:-2`;
+        }
+        if (resolutionWidth === -1) {
+          scaleFilter = `-2:${resolutionHeight}`;
+        }
         if (["bilinear", "bicubic"].includes(swsFlags)) {
           scaleFilter += `:scale_type=${swsFlags}`;
         }
