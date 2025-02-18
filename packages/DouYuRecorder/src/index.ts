@@ -131,7 +131,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // TODO: emit update event
   const savePath = getSavePath({ owner, title });
   const hasSegment = !!this.segment;
-  const streamManager = new StreamManager(this, getSavePath, owner, title, savePath, hasSegment);
+  const streamManager = new StreamManager(getSavePath, owner, title, savePath, hasSegment);
 
   try {
     ensureFolderExist(savePath);
@@ -141,18 +141,28 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   const handleVideoCreated = async ({ filename }) => {
+    this.emit("videoFileCreated", { filename });
     const extraDataController = streamManager?.getExtraDataController();
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
       liveStartTimestamp: liveInfo.startTime?.getTime(),
+      recordStopTimestamp: Date.now(),
+      title: title,
+      user_name: owner,
     });
     if (this.saveCover) {
       const coverPath = utils.replaceExtName(filename, ".jpg");
       utils.downloadImage(cover, coverPath);
     }
   };
-  this.on("videoFileCreated", handleVideoCreated);
+  streamManager.on("videoFileCreated", handleVideoCreated);
+  streamManager.on("videoFileCompleted", ({ filename }) => {
+    this.emit("videoFileCompleted", { filename });
+  });
+  streamManager.on("DebugLog", (data) => {
+    this.emit("DebugLog", data);
+  });
 
   const client = createDYClient(Number(this.channelId), {
     notAutoStart: true,
@@ -320,7 +330,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     // TODO: emit update event
     await streamManager.handleVideoCompleted();
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
-    this.off("videoFileCreated", handleVideoCreated);
     this.recordHandle = undefined;
     this.liveInfo = undefined;
     this.state = "idle";
