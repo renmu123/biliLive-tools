@@ -103,7 +103,7 @@
       </n-form-item>
       <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
         <template #label>
-          <span class="inline-flex"> 高能弹幕(sc) </span>
+          <span class="inline-flex"> 高能弹幕(SC) </span>
         </template>
         <n-switch v-model:value="config.recorder.saveSCDanma" />
       </n-form-item>
