@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish-huya-danmu:
+  publish-npm:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,11 +31,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # - name: Build package
-      #   run: pnpm run build --filter=huya-danmu
+      - name: Build package
+        run: pnpm --filter @bililive-tools/* --parallel run build
 
       - name: Publish to npm
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --filter=huya-danma-listener --access public --no-git-checks
+        run: pnpm publish --filter=huya-danma-listener --filter @bililive-tools/* --access public --no-git-checks
