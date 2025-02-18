@@ -27,7 +27,7 @@
             :filterable="true"
             style="width: 200px; text-align: left"
           />
-          <Tip> 推荐采用质量模式，以自适应视频质量，视频编码器不能使用copy </Tip>
+          <Tip> 推荐采用质量模式，以自适应视频质量，视频编码不能使用copy </Tip>
         </div>
         <div class="flex" style="align-items: center">
           <n-radio-group v-model:value="exportOptions.saveRadio">

@@ -23,7 +23,7 @@
                 'justify-content': 'flex-end',
               }"
             >
-              视频编码器 <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
+              视频编码 <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
             ></span>
           </template>
           <p style="color: red">请勿选择不支持的硬件加速方案，如果报错请尝试更新驱动</p>
