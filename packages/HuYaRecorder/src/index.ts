@@ -113,7 +113,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
     });
-    // console.log('live info', res)
   } catch (err) {
     this.state = "idle";
     throw err;
@@ -124,9 +123,17 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedStream = stream.name;
   this.usedSource = stream.source;
 
-  const savePath = getSavePath({ owner, title });
   const hasSegment = !!this.segment;
-  const streamManager = new StreamManager(getSavePath, owner, title, savePath, hasSegment);
+  const streamManager = new StreamManager(
+    (opts: { startTime?: number }) =>
+      getSavePath({
+        owner,
+        title,
+        startTime: opts.startTime,
+      }),
+    hasSegment,
+  );
+  const savePath = streamManager.videoFilePath;
 
   try {
     ensureFolderExist(savePath);

@@ -128,10 +128,17 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.availableSources = availableSources.map((s) => s.name);
   this.usedStream = stream.name;
   this.usedSource = stream.source;
-  // TODO: emit update event
-  const savePath = getSavePath({ owner, title });
   const hasSegment = !!this.segment;
-  const streamManager = new StreamManager(getSavePath, owner, title, savePath, hasSegment);
+  const streamManager = new StreamManager(
+    (opts: { startTime?: number }) =>
+      getSavePath({
+        owner,
+        title,
+        startTime: opts.startTime,
+      }),
+    hasSegment,
+  );
+  const savePath = streamManager.videoFilePath;
 
   try {
     ensureFolderExist(savePath);

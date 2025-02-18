@@ -4,26 +4,20 @@ import fs from "fs-extra";
 import { createRecordExtraDataController } from "./record_extra_data_controller.js";
 import { replaceExtName, ensureFolderExist } from "./utils.js";
 
-import type { Recorder, GetSavePath } from "./recorder.js";
-
-// export type GetSavePath = (data: { owner: string; title: string; startTime?: number }) => string;
+export type GetSavePath = (data: { startTime: number }) => string;
 
 export class Segment extends EventEmitter {
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   init = true;
   getSavePath: GetSavePath;
-  owner: string;
-  title: string;
   /** 原始的ffmpeg文件名，用于重命名 */
   rawRecordingVideoPath!: string;
   /** 输出文件名名，不包含拓展名 */
   outputVideoFilePath!: string;
 
-  constructor(getSavePath: GetSavePath, owner: string, title: string) {
+  constructor(getSavePath: GetSavePath) {
     super();
     this.getSavePath = getSavePath;
-    this.owner = owner;
-    this.title = title;
   }
 
   async handleSegmentEnd() {
@@ -57,8 +51,6 @@ export class Segment extends EventEmitter {
     const startTime = Date.now();
 
     this.outputVideoFilePath = this.getSavePath({
-      owner: this.owner,
-      title: this.title,
       startTime: startTime,
     });
 
@@ -81,24 +73,13 @@ export class Segment extends EventEmitter {
 export class StreamManager extends EventEmitter {
   private segmentManager: Segment | null = null;
   private extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
-  owner: string;
-  title: string;
-  recordSavePath: string;
+  recordSavePath?: string;
 
-  constructor(
-    getSavePath: GetSavePath,
-    owner: string,
-    title: string,
-    recordSavePath: string,
-    hasSegment: boolean,
-  ) {
+  constructor(getSavePath: GetSavePath, hasSegment: boolean) {
     super();
-    this.recordSavePath = recordSavePath;
-    this.owner = owner;
-    this.title = title;
 
     if (hasSegment) {
-      this.segmentManager = new Segment(getSavePath, owner, title);
+      this.segmentManager = new Segment(getSavePath);
       this.segmentManager.on("DebugLog", (data) => {
         this.emit("DebugLog", data);
       });
@@ -109,6 +90,8 @@ export class StreamManager extends EventEmitter {
         this.emit("videoFileCompleted", data);
       });
     } else {
+      const recordSavePath = getSavePath({ startTime: Date.now() });
+      this.recordSavePath = recordSavePath;
       const extraDataSavePath = replaceExtName(recordSavePath, ".json");
       this.extraDataController = createRecordExtraDataController(extraDataSavePath);
     }

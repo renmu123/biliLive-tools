@@ -188,9 +188,18 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
   // console.log(streamOptions.protocol_name, url);
 
-  const savePath = getSavePath({ owner, title });
   const hasSegment = !!this.segment;
-  const streamManager = new StreamManager(getSavePath, owner, title, savePath, hasSegment);
+  const streamManager = new StreamManager(
+    (opts: { startTime?: number }) =>
+      getSavePath({
+        owner,
+        title,
+        startTime: opts.startTime,
+      }),
+    hasSegment,
+  );
+
+  const savePath = streamManager.videoFilePath;
 
   try {
     ensureFolderExist(savePath);
