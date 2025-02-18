@@ -34,4 +34,4 @@ jobs:
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --filter=huya-danmu --access public
+        run: pnpm publish --filter=huya-danma-listener --access public
