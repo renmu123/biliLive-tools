@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { utils } from "@autorecord/manager";
+import { utils } from "@bililive-tools/manager";
 import { assert } from "./utils.js";
 import { initInfo } from "./anticode.js";
 

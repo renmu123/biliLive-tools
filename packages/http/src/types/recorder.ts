@@ -2,7 +2,7 @@ import type {
   Recorder,
   // RecorderManagerCreateOpts,
   RecordHandle,
-} from "@autorecord/manager";
+} from "@bililive-tools/manager";
 
 import type { Recorder as RecoderConfig } from "@biliLive-tools/types";
 

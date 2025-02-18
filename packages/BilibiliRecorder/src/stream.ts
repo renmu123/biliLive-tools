@@ -1,4 +1,4 @@
-import { Recorder, BiliQualities, utils } from "@autorecord/manager";
+import { Recorder, BiliQualities, utils } from "@bililive-tools/manager";
 import {
   CodecInfo,
   FormatInfo,
@@ -12,7 +12,7 @@ import {
 } from "./bilibili_api.js";
 import { assert } from "./utils.js";
 
-import type { RecorderCreateOpts } from "@autorecord/manager";
+import type { RecorderCreateOpts } from "@bililive-tools/manager";
 
 export async function getStrictStream(
   roomId: number,

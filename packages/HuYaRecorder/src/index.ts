@@ -14,7 +14,7 @@ import {
   GiveGift,
   StreamManager,
   utils,
-} from "@autorecord/manager";
+} from "@bililive-tools/manager";
 import { getInfo, getStream } from "./stream.js";
 import { assertStringType, ensureFolderExist } from "./utils.js";
 import HuYaDanMu, { HuYaMessage } from "huya-danma-listener";

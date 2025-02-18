@@ -1,4 +1,4 @@
-import { Qualities, Recorder } from "@autorecord/manager";
+import { Qualities, Recorder } from "@bililive-tools/manager";
 import { getRoomInfo, SourceProfile, StreamProfile } from "./huya_api.js";
 import { getValuesFromArrayLikeFlexSpaceBetween } from "./utils.js";
 import { sortBy } from "lodash-es";

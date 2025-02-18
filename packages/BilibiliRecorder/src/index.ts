@@ -12,8 +12,8 @@ import {
   genRecordUUID,
   StreamManager,
   utils,
-} from "@autorecord/manager";
-import type { Comment, GiveGift, SuperChat, Guard } from "@autorecord/manager";
+} from "@bililive-tools/manager";
+import type { Comment, GiveGift, SuperChat, Guard } from "@bililive-tools/manager";
 
 import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
 import { assertStringType, ensureFolderExist, createInvalidStreamChecker } from "./utils.js";

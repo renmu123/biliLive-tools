@@ -1,6 +1,6 @@
 // execute in shell `ts-node src/test.ts` to run test
 // TODO: add to scripts
-import { createRecorderManager } from "@autorecord/manager";
+import { createRecorderManager } from "@bililive-tools/manager";
 import { provider } from "./index.js";
 
 const manager = createRecorderManager({ providers: [provider] });
