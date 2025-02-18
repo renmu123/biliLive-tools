@@ -41,8 +41,8 @@ export class VideoPreset extends CommonPreset<BiliupConfig> {
   async list() {
     return super.list();
   }
-  async save(presets: BiliupPreset) {
-    return super.save(presets);
+  async save(preset: BiliupPreset) {
+    return super.save(preset);
   }
   async delete(id: string) {
     return super.delete(id);

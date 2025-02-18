@@ -69,6 +69,8 @@ export interface DebugLog {
   text: string;
 }
 
+export type GetSavePath = (data: { owner: string; title: string; startTime?: number }) => string;
+
 export interface Recorder<E extends AnyObject = UnknownObject>
   extends Emitter<{
       RecordStart: RecordHandle;
@@ -117,7 +119,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   checkLiveStatusAndRecord: (
     this: Recorder<E>,
     opts: {
-      getSavePath(data: { owner: string; title: string; startTime?: number }): string;
+      getSavePath: GetSavePath;
       qualityRetry?: number;
       banLiveId?: string;
     },

@@ -235,7 +235,6 @@ export const useAppConfig = defineStore("appConfig", () => {
         danmuPresetId: "default",
         ffmpegPresetId: "b_libx264",
         removeOrigin: false,
-        openFolder: false,
         autoUpload: false,
         hotProgress: false,
         hotProgressSample: 30,
@@ -253,7 +252,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         saveRadio: 1,
         savePath: "",
         removeOrigin: false,
-        openFolder: false,
+        override: true,
       },
       video2mp4: {
         saveRadio: 1,
@@ -290,10 +289,6 @@ export const useAppConfig = defineStore("appConfig", () => {
         title: "{{filename}}-{{label}}-{{num}}",
         danmuPresetId: "default",
         ignoreDanmu: false,
-      },
-      videoUpload: {
-        /** 审核通过后删除源文件 */
-        removeOriginAfterUploadCheck: false,
       },
     },
   });

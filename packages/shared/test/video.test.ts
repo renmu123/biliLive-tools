@@ -417,8 +417,6 @@ describe.concurrent("genMergeAssMp4Command", () => {
         "cuda",
         "-hwaccel_output_format",
         "cuda",
-        "-extra_hw_frames",
-        "10",
         "-i",
         "/path/to/video.mp4",
         "-y",
@@ -683,13 +681,41 @@ describe.concurrent("ComplexFilter", () => {
 
   it("should add a scale filter", () => {
     const filter = new ComplexFilter();
-    const outputStream = filter.addScaleFilter(1920, 1080, "bicubic");
+    const outputStream = filter.addScaleFilter({
+      resolutionWidth: 1920,
+      resolutionHeight: 1080,
+      swsFlags: "bicubic",
+      encoder: "libx264",
+      useHardware: false,
+    });
     expect(outputStream).toBe("0:video");
     expect(filter.getLatestOutputStream()).toBe("0:video");
     expect(filter.getFilters()).toEqual([
       {
         filter: "scale",
         options: "1920:1080:flags=bicubic",
+        inputs: ["0:v"],
+        outputs: "0:video",
+      },
+    ]);
+  });
+
+  it("should add a cuda scale filter", () => {
+    const filter = new ComplexFilter();
+    const outputStream = filter.addScaleFilter({
+      resolutionWidth: 1920,
+      resolutionHeight: 1080,
+      swsFlags: "bicubic",
+      encoder: "h264_nvenc",
+      useHardware: true,
+    });
+    expect(outputStream).toBe("0:video");
+    expect(filter.getLatestOutputStream()).toBe("0:video");
+    console.log(filter.getFilters());
+    expect(filter.getFilters()).toEqual([
+      {
+        filter: "hwupload_cuda,scale_cuda",
+        options: "1920:1080:interp_algo=bicubic:passthrough=1",
         inputs: ["0:v"],
         outputs: "0:video",
       },

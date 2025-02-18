@@ -36,8 +36,5 @@
     "filenamify": "^6.0.0",
     "mitt": "^3.0.1",
     "string-argv": "^0.3.2"
-  },
-  "devDependencies": {
-    "@biliLive-tools/types": "workspace:*"
   }
 }

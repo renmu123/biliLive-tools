@@ -23,6 +23,8 @@ const commonPresetParams: {
   audioCodec: audioCodec;
   swsFlags: string;
   scaleMethod: "auto" | "before" | "after";
+  hardwareScaleFilter: boolean;
+  encoderThreads: number;
   addTimestamp: boolean;
   timestampX: number;
   timestampY: number;
@@ -39,9 +41,11 @@ const commonPresetParams: {
   resolutionWidth: 2880,
   resolutionHeight: 1620,
   audioCodec: "copy",
-  swsFlags: "bilinear",
+  swsFlags: "auto",
   scaleMethod: "auto",
+  hardwareScaleFilter: false,
   addTimestamp: false,
+  encoderThreads: -1,
   timestampX: 10,
   timestampY: 10,
   timestampFontSize: 24,
@@ -231,9 +235,11 @@ export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
   init(presetPath: string) {
     super.init(presetPath);
   }
+  // validate(config: FfmpegPresetType["config"]) {}
   // 保存预设
-  save(presets: FfmpegPresetType) {
-    return super.save(presets);
+  save(preset: FfmpegPresetType) {
+    // this.validate(preset.config);
+    return super.save(preset);
   }
   async get(id: string) {
     const ffmpegPresets = await this.list();

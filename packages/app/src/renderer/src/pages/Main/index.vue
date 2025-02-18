@@ -52,15 +52,19 @@
 <script setup lang="ts">
 import { useStorage } from "@vueuse/core";
 import { NIcon } from "naive-ui";
-import { RouterLink, useRoute } from "vue-router";
+import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
   BuildOutline as BookIcon,
   HomeOutline as HomeIcon,
   InformationCircleOutline as InfoIcon,
   GitPullRequestOutline as QueueIcon,
   SettingsOutline as SettingIcon,
+  LogOutOutline,
 } from "@vicons/ionicons5";
-// import { DashboardOutlined as DashboardIcon } from "@vicons/material";
+import {
+  // DashboardOutlined as DashboardIcon,
+  LiveTvRound,
+} from "@vicons/material";
 
 import defaultUserAvatar from "../../assets/images/moehime.jpg";
 import AppSettingDialog from "../../pages/setting/index.vue";
@@ -120,6 +124,7 @@ function renderImg(src: string) {
     h("img", { src, style: { height: "30px", width: "30px" }, referrerpolicy: "no-referrer" });
 }
 
+const router = useRouter();
 const footerMenuOptions = computed<MenuOption[]>(() => {
   const menus: {
     label: () => VNode;
@@ -127,6 +132,24 @@ const footerMenuOptions = computed<MenuOption[]>(() => {
     icon?: () => VNode;
   }[] = [];
   if (isWeb.value) {
+    menus.push({
+      label: () =>
+        h(
+          "a",
+          {
+            onClick: () => {
+              window.localStorage.setItem("key", "");
+              router.push({ name: "Login" });
+            },
+            // style: {
+            //   marginLeft: "25px",
+            // },
+          },
+          { default: () => "登出" },
+        ),
+      key: "log",
+      icon: renderIcon(LogOutOutline),
+    });
     menus.push({
       label: () =>
         h(
@@ -192,7 +215,7 @@ const menuOptions = computed<MenuOption[]>(() => {
               name: "Upload",
             },
           },
-          { default: () => "上传" },
+          { default: () => "B站上传" },
         ),
     },
     {
@@ -206,19 +229,6 @@ const menuOptions = computed<MenuOption[]>(() => {
             },
           },
           { default: () => "弹幕转换" },
-        ),
-    },
-    {
-      key: "recorder",
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: "recorder",
-            },
-          },
-          { default: () => "直播录制" },
         ),
     },
     {
@@ -296,6 +306,20 @@ const menuOptions = computed<MenuOption[]>(() => {
       key: "Home",
       icon: renderIcon(HomeIcon),
     },
+    {
+      key: "recorder",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "recorder",
+            },
+          },
+          { default: () => "直播录制" },
+        ),
+      icon: renderIcon(LiveTvRound),
+    },
     // {
     //   label: () =>
     //     h(
@@ -311,7 +335,7 @@ const menuOptions = computed<MenuOption[]>(() => {
     //   icon: renderIcon(DashboardIcon),
     // },
     {
-      label: () => h("span", "工具页"),
+      label: () => h("span", "工具"),
       key: "tools",
       icon: renderIcon(BookIcon),
       children: toolsSubMenus,
@@ -325,7 +349,7 @@ const menuOptions = computed<MenuOption[]>(() => {
               name: "Queue",
             },
           },
-          { default: () => "队列" },
+          { default: () => "任务队列" },
         ),
       key: "Queue",
       icon: renderQueueIcon(QueueIcon),

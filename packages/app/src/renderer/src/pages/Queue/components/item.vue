@@ -85,6 +85,19 @@
         </n-icon>
         <n-icon
           v-if="
+            item.type === TaskType.ffmpeg &&
+            item.output &&
+            (item.status === 'error' || item.status === 'completed')
+          "
+          :size="20"
+          class="btn pointer"
+          title="删除文件"
+          @click="handleRemoveFile(item.taskId)"
+        >
+          <CloseSharp />
+        </n-icon>
+        <n-icon
+          v-if="
             item.status === 'completed' ||
             item.status === 'error' ||
             item.status === 'pending' ||
@@ -133,6 +146,7 @@ import {
   TrashOutline,
   CloseOutline,
   AlertCircleOutline,
+  CloseSharp,
 } from "@vicons/ionicons5";
 import { FileOpenOutlined, FolderOpenOutlined, LiveTvOutlined } from "@vicons/material";
 import { useConfirm } from "@renderer/hooks";
@@ -261,8 +275,22 @@ const openExternal = (item: Task) => {
 };
 
 const handleRemoveRecord = async (taskId: string) => {
-  await taskApi.remove(taskId);
+  await taskApi.removeRecord(taskId);
   store.getQuenu();
+};
+
+const notice = useNotification();
+const handleRemoveFile = async (taskId: string) => {
+  const [status] = await confirm.warning({
+    content: "确定要删除输出文件吗？",
+    showCheckbox: false,
+  });
+  if (!status) return;
+  await taskApi.removeFile(taskId);
+  notice.success({
+    title: "移除成功",
+    duration: 1000,
+  });
 };
 </script>
 

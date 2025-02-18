@@ -52,8 +52,6 @@ CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/maste
 你可以通过运行`docker-compose up -d`来快速搭建
 
 ```yaml
-version: "3"
-
 services:
   # UI镜像
   webui:
@@ -90,7 +88,6 @@ docker下由于存储和网络的隔离，webhook使用其他安装方式并不�
 运行之后打开录播姬的配置webhookV2为`http://api:18010/webhook/bililiverecorder`，无须在软件中设置“录播姬工作目录”
 
 ```yaml
-version: "3"
 services:
   # UI镜像
   webui:

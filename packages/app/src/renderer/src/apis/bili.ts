@@ -108,13 +108,16 @@ const loginPoll = async (
 const upload = async (options: {
   uid: number;
   vid?: number;
-  videos?:
+  videos:
     | string[]
     | {
         path: string;
         title?: string;
       }[];
-  config?: BiliupConfig;
+  config: BiliupConfig;
+  options?: {
+    removeOriginAfterUploadCheck: boolean;
+  };
 }): Promise<{
   taskId: string;
 }> => {

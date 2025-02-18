@@ -364,7 +364,7 @@ describe("WebhookHandler", () => {
         const result = webhookHandler.getConfig(roomId);
         expect(result.uploadNoDanmu).toBe(true);
       });
-      it("should uploadNoDanmu return true when has uid && uploadNoDanmu && removeOriginAfterConvert is true", () => {
+      it("should uploadNoDanmu return true when has uid && uploadNoDanmu is true", () => {
         const appConfig = {
           getAll: vi.fn().mockReturnValue({
             webhook: {
@@ -381,26 +381,7 @@ describe("WebhookHandler", () => {
         const webhookHandler = new WebhookHandler(appConfig);
         const roomId = 123;
         const result = webhookHandler.getConfig(roomId);
-        expect(result.uploadNoDanmu).toBe(false);
-      });
-      it("should uploadNoDanmu return true when not have uid && uploadNoDanmu && removeOriginAfterConvert is false", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              uid: undefined,
-              uploadNoDanmu: true,
-              removeOriginAfterConvert: true,
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.uploadNoDanmu).toBe(false);
+        expect(result.uploadNoDanmu).toBe(true);
       });
     });
   });
@@ -589,6 +570,7 @@ describe("WebhookHandler", () => {
           },
           false,
           [],
+          undefined,
         );
       });
       it("应在webhook存在占位符时，使用webhook标题进行格式化", async () => {
@@ -638,6 +620,7 @@ describe("WebhookHandler", () => {
           },
           false,
           [],
+          undefined,
         );
       });
       it("应用live和part数据正常格式化标题", async () => {
@@ -689,6 +672,7 @@ describe("WebhookHandler", () => {
           },
           false,
           [],
+          undefined,
         );
       });
     });
@@ -756,6 +740,7 @@ describe("WebhookHandler", () => {
           },
           true,
           [],
+          undefined,
         );
         expect(live.aid).toBe(789);
         expect(live.parts[0].uploadStatus).toBe("uploaded");
@@ -943,6 +928,7 @@ describe("WebhookHandler", () => {
           ["/path/to/part2.mp4", "/path/to/part3.mp4"],
           true,
           [],
+          undefined,
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.aid).toBe(789);
@@ -1004,6 +990,7 @@ describe("WebhookHandler", () => {
           ["/path/to/part2.mp4", "/path/to/part3.mp4"],
           true,
           [],
+          undefined,
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.aid).toBe(789);
@@ -1181,6 +1168,7 @@ describe("WebhookHandler", () => {
           },
           false,
           [],
+          false,
         );
         expect(live.rawAid).toBe(789);
         expect(live.parts[0].rawUploadStatus).toBe("uploaded");
@@ -1378,8 +1366,9 @@ describe("WebhookHandler", () => {
           456,
           789,
           ["/path/to/part2.mp4", "/path/to/part3.mp4"],
-          true,
+          false,
           [],
+          false,
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);
@@ -1443,8 +1432,9 @@ describe("WebhookHandler", () => {
           456,
           789,
           ["/path/to/part2.mp4", "/path/to/part3.mp4"],
-          true,
+          false,
           [],
+          false,
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);

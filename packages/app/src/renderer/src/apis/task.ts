@@ -4,9 +4,9 @@ import type { Task } from "@renderer/types";
 import type {
   DanmuPreset,
   FfmpegOptions,
-  DanmuConfig,
   HotProgressOptions,
   BiliupPreset,
+  DanmaOptions,
 } from "@biliLive-tools/types";
 import type { VideoAPI } from "@biliLive-tools/http/types/video.js";
 
@@ -48,10 +48,16 @@ const interrupt = async (id: string): Promise<string> => {
   return res.data;
 };
 
-const remove = async (id: string): Promise<string> => {
-  const res = await request.post(`/task/${id}/remove`);
+const removeRecord = async (id: string): Promise<string> => {
+  const res = await request.post(`/task/${id}/removeRecord`);
   return res.data;
 };
+
+const removeFile = async (id: string): Promise<string> => {
+  const res = await request.post(`/task/${id}/removeFile`);
+  return res.data;
+};
+
 // 批量删除
 const removeBatch = async (ids: string[]): Promise<string> => {
   const res = await request.post(`/task/removeBatch`, { ids });
@@ -67,14 +73,7 @@ const convertXml2Ass = async (
   input: string,
   output: string,
   preset: DanmuPreset["config"],
-  options: {
-    saveRadio: 1 | 2;
-    savePath?: string;
-    removeOrigin?: boolean;
-    copyInput?: boolean;
-    // 生成在临时文件夹
-    temp?: boolean;
-    // 同步返回
+  options: DanmaOptions & {
     sync?: boolean;
   },
 ): Promise<{
@@ -133,7 +132,7 @@ const burn = async (
   files: { videoFilePath: string; subtitleFilePath: string },
   output: string,
   options: {
-    danmaOptions: DanmuConfig;
+    danmaOptions: DanmuPreset["config"];
     ffmpegOptions: FfmpegOptions;
     hotProgressOptions: Omit<HotProgressOptions, "videoPath">;
     hasHotProgress: boolean;
@@ -196,7 +195,8 @@ const task = {
   resume,
   cancel,
   interrupt,
-  remove,
+  removeRecord,
+  removeFile,
   start,
   convertXml2Ass,
   mergeVideos,

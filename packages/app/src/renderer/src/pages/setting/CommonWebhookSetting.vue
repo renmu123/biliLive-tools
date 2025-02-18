@@ -253,106 +253,7 @@
       >全局</n-checkbox
     >
   </n-form-item>
-  <n-form-item>
-    <template #label>
-      <span class="inline-flex">
-        限制上传时间
-        <Tip tip="开启后，支持只在某段时间执行上传操作"></Tip>
-      </span>
-    </template>
-    <n-switch v-model:value="data.limitUploadTime" :disabled="globalFieldsObj.limitUploadTime" />
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.limitUploadTime"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-  <n-form-item v-if="data.limitUploadTime">
-    <template #label>
-      <span class="inline-flex"> 允许上传时间段 </span>
-    </template>
-    <n-time-picker
-      v-model:formatted-value="data.uploadHandleTime[0]"
-      :disabled="globalFieldsObj.uploadHandleTime"
-    />
-    ~
-    <n-time-picker
-      v-model:formatted-value="data.uploadHandleTime[1]"
-      :disabled="globalFieldsObj.uploadHandleTime"
-    />
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.uploadHandleTime"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-  <n-form-item>
-    <template #label>
-      <span class="inline-flex"> 完成后删除源文件 </span>
-    </template>
-    <n-switch
-      v-model:value="data.removeOriginAfterUpload"
-      :disabled="globalFieldsObj.removeOriginAfterUpload"
-    />
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.removeOriginAfterUpload"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
 
-  <n-form-item v-if="!data.removeOriginAfterUpload">
-    <template #label>
-      <span class="inline-flex"> 审核通过后删除源文件 </span>
-    </template>
-    <n-switch
-      v-model:value="data.removeOriginAfterUploadCheck"
-      :disabled="globalFieldsObj.removeOriginAfterUploadCheck"
-    />
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.removeOriginAfterUploadCheck"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-
-  <n-form-item>
-    <template #label>
-      <span class="inline-flex">
-        最小上传大小
-        <Tip tip="小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播"></Tip>
-      </span>
-    </template>
-    <n-input-number
-      v-model:value="data.minSize"
-      placeholder="单位MB"
-      min="0"
-      :disabled="globalFieldsObj.minSize"
-    >
-      <template #suffix> M </template></n-input-number
-    >
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.minSize" class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-  <n-form-item>
-    <template #label>
-      <span class="inline-flex">
-        使用直播封面
-        <Tip
-          tip="使用直播封面作为视频封面，默认寻找视频目录下文件名为'视频文件名+.cover.jpg|.jpg的文件"
-        ></Tip>
-      </span>
-    </template>
-    <n-switch v-model:value="data.useLiveCover" :disabled="globalFieldsObj.useLiveCover" />
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.useLiveCover" class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
   <n-form-item>
     <template #label>
       <span class="inline-flex">
@@ -398,6 +299,20 @@
       >
     </template>
   </n-form-item>
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex">
+        使用直播封面
+        <Tip
+          tip="使用直播封面作为视频封面，默认寻找视频目录下文件名为'视频文件名+.cover.jpg|.jpg的文件"
+        ></Tip>
+      </span>
+    </template>
+    <n-switch v-model:value="data.useLiveCover" :disabled="globalFieldsObj.useLiveCover" />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.useLiveCover" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
 
   <n-form-item>
     <template #label>
@@ -436,9 +351,93 @@
       >全局</n-checkbox
     >
   </n-form-item>
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex"> 完成后删除源文件 </span>
+    </template>
+    <n-switch
+      v-model:value="data.removeOriginAfterUpload"
+      :disabled="globalFieldsObj.removeOriginAfterUpload"
+    />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.removeOriginAfterUpload"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item v-if="!data.removeOriginAfterUpload">
+    <template #label>
+      <span class="inline-flex"> 审核通过后删除源文件 </span>
+    </template>
+    <n-switch
+      v-model:value="data.removeOriginAfterUploadCheck"
+      :disabled="globalFieldsObj.removeOriginAfterUploadCheck"
+    />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.removeOriginAfterUploadCheck"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex">
+        最小上传大小
+        <Tip tip="小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播"></Tip>
+      </span>
+    </template>
+    <n-input-number
+      v-model:value="data.minSize"
+      placeholder="单位MB"
+      min="0"
+      :disabled="globalFieldsObj.minSize"
+    >
+      <template #suffix> M </template></n-input-number
+    >
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.minSize" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex">
+        限制上传时间
+        <Tip tip="开启后，支持只在某段时间执行上传操作"></Tip>
+      </span>
+    </template>
+    <n-switch v-model:value="data.limitUploadTime" :disabled="globalFieldsObj.limitUploadTime" />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.limitUploadTime"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item v-if="data.limitUploadTime">
+    <template #label>
+      <span class="inline-flex"> 允许上传时间段 </span>
+    </template>
+    <n-time-picker
+      v-model:formatted-value="data.uploadHandleTime[0]"
+      :disabled="globalFieldsObj.uploadHandleTime"
+    />
+    ~
+    <n-time-picker
+      v-model:formatted-value="data.uploadHandleTime[1]"
+      :disabled="globalFieldsObj.uploadHandleTime"
+    />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.uploadHandleTime"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
 
   <!-- 非弹幕版相关配置 -->
-  <template v-if="data.uid && !data.removeOriginAfterConvert">
+  <template v-if="data.uid">
     <n-divider />
     <n-form-item>
       <template #label>

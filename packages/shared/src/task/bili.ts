@@ -364,6 +364,7 @@ async function addMedia(
   uid: number,
   extraOptions?: {
     limitedUploadTime?: [] | [string, string];
+    removeOriginAfterUploadCheck?: boolean;
   },
 ) {
   if (options.title.length > 80) {
@@ -408,7 +409,7 @@ async function addMedia(
         if (
           (options.autoComment && options.comment) ||
           appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
-          options.removeOriginAfterUploadCheck
+          extraOptions?.removeOriginAfterUploadCheck
         ) {
           const commentQueue = container.resolve<BiliCheckQueue>("commentQueue");
           commentQueue.add({
@@ -425,7 +426,7 @@ async function addMedia(
                 comment: options.comment,
                 top: options.commentTop || false,
                 notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
-                removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,
+                removeOriginAfterUploadCheck: extraOptions?.removeOriginAfterUploadCheck,
                 files: filePath.map((item) => (typeof item === "string" ? item : item.path)),
               },
               media,
@@ -475,6 +476,7 @@ export async function editMedia(
   uid: number,
   extraOptions?: {
     limitedUploadTime?: [] | [string, string];
+    removeOriginAfterUploadCheck?: boolean;
   },
 ) {
   if (filePath.length === 0) {
@@ -495,7 +497,7 @@ export async function editMedia(
         // 审核检查
         if (
           appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
-          options.removeOriginAfterUploadCheck
+          extraOptions?.removeOriginAfterUploadCheck
         ) {
           const commentQueue = container.resolve<BiliCheckQueue>("commentQueue");
           commentQueue.add({ aid: aid, uid });
@@ -507,7 +509,7 @@ export async function editMedia(
                 comment: "",
                 top: false,
                 notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
-                removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,
+                removeOriginAfterUploadCheck: extraOptions?.removeOriginAfterUploadCheck,
                 files: filePath.map((item) => (typeof item === "string" ? item : item.path)),
               },
               media,

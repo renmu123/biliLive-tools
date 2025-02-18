@@ -44,8 +44,13 @@
         </n-space>
       </n-radio-group>
       <div style="margin-top: 10px">
+        <n-radio-group v-model:value="options.override">
+          <n-space>
+            <n-radio :value="true"> 覆盖文件 </n-radio>
+            <n-radio :value="false"> 跳过存在文件 </n-radio>
+          </n-space>
+        </n-radio-group>
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
-        <!-- <n-checkbox v-model:checked="options.openFolder"> 完成后打开文件夹 </n-checkbox> -->
       </div>
     </div>
     <DanmuFactorySettingDailog
@@ -69,7 +74,7 @@ import hotkeys from "hotkeys-js";
 const { danmuPresetsOptions, danmuPresetId } = storeToRefs(useDanmuPreset());
 const { appConfig } = storeToRefs(useAppConfig());
 
-const notice = useNotification();
+const notice = useNotice();
 const confirm = useConfirm();
 // const isWeb = computed(() => window.isWeb);
 
@@ -100,7 +105,6 @@ const convert = async () => {
   if (fileList.value.length === 0) {
     notice.error({
       title: `至少选择一个文件`,
-      duration: 1000,
     });
     return;
   }
@@ -116,6 +120,7 @@ const convert = async () => {
   const presetId = danmuPresetId.value;
   const config = (await danmuPresetApi.get(presetId)).config;
 
+  let canHandleNum = 0;
   for (let i = 0; i < fileList.value.length; i++) {
     const file = {
       input: fileList.value[i].path,
@@ -123,17 +128,19 @@ const convert = async () => {
     };
     try {
       await taskApi.convertXml2Ass(file.input, file.output, config, options);
+      canHandleNum++;
     } catch (err) {
       notice.error({
         title: err as string,
-        duration: 1000,
       });
     }
   }
-  notice.info({
-    title: `生成${fileList.value.length}个任务，可在任务列表中查看进度`,
-    duration: 1000,
-  });
+  if (canHandleNum) {
+    notice.info({
+      title: `生成${canHandleNum}个任务，可在任务队列中查看进度`,
+      duration: 1000,
+    });
+  }
 
   fileList.value = [];
 };

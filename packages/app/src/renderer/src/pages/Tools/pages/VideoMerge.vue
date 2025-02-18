@@ -98,7 +98,7 @@ const convert = async () => {
       { output: output, ...options },
     );
     notice.warning({
-      title: `已加入任务队列，可在任务列表中查看进度`,
+      title: `已加入任务，可在任务队列中查看进度`,
       duration: 1000,
     });
   } catch (err) {

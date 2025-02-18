@@ -71,6 +71,7 @@ declare global {
   const useLoadingBar: typeof import('naive-ui')['useLoadingBar']
   const useMessage: typeof import('naive-ui')['useMessage']
   const useModel: typeof import('vue')['useModel']
+  const useNotice: typeof import('@renderer/hooks/useNotice')['useNotice']
   const useNotification: typeof import('naive-ui')['useNotification']
   const useSlots: typeof import('vue')['useSlots']
   const useTemplateRef: typeof import('vue')['useTemplateRef']

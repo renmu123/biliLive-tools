@@ -2,12 +2,12 @@ import fs from "fs-extra";
 import { createRecordExtraDataController } from "./record_extra_data_controller.js";
 import { replaceExtName, ensureFolderExist } from "./utils.js";
 
-import type { Recorder } from "./recorder.js";
+import type { Recorder, GetSavePath } from "./recorder.js";
 
 export class Segment {
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   init = true;
-  getSavePath: (opts: any) => string;
+  getSavePath: GetSavePath;
   owner: string;
   title: string;
   recorder: Recorder;
@@ -16,12 +16,7 @@ export class Segment {
   /** 输出文件名名，不包含拓展名 */
   outputVideoFilePath!: string;
 
-  constructor(
-    recorder: Recorder,
-    getSavePath: (opts: any) => string,
-    owner: string,
-    title: string,
-  ) {
+  constructor(recorder: Recorder, getSavePath: GetSavePath, owner: string, title: string) {
     this.getSavePath = getSavePath;
     this.owner = owner;
     this.title = title;
@@ -92,7 +87,7 @@ export class StreamManager {
 
   constructor(
     recorder: Recorder,
-    getSavePath: (opts: any) => string,
+    getSavePath: GetSavePath,
     owner: string,
     title: string,
     recordSavePath: string,

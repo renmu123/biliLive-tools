@@ -138,8 +138,10 @@ const appendVideo = async () => {
     vid: Number(aid.value),
     videos: deepRaw(fileList.value),
     config: {
-      removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,
       ...deepRaw(presetOptions.value.config),
+    },
+    options: {
+      removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,
     },
   });
   fileList.value = [];

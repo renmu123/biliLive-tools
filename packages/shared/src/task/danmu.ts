@@ -15,7 +15,7 @@ import { container } from "../index.js";
 
 import type {
   DanmuConfig,
-  DanmuOptions,
+  DanmaOptions,
   HotProgressOptions,
   GlobalConfig,
 } from "@biliLive-tools/types";
@@ -32,11 +32,14 @@ const getDanmuFactoryPath = () => {
   return danmuFactoryPath;
 };
 
+/**
+ * 不要调用，调用convertXml2Ass
+ */
 const addConvertDanmu2AssTask = async (
   originInput: string,
   output: string,
   danmuOptions: DanmuConfig,
-  options: { removeOrigin: boolean; copyInput?: boolean },
+  options: Pick<DanmaOptions, "copyInput" | "removeOrigin"> = {},
 ) => {
   if (await pathExists(output)) {
     log.info("danmufactory", {
@@ -48,7 +51,6 @@ const addConvertDanmu2AssTask = async (
     await fs.unlink(output);
   }
   const DANMUKUFACTORY_PATH = getDanmuFactoryPath();
-  log.info("danmufactory", DANMUKUFACTORY_PATH);
   const danmu = new DanmakuFactory(DANMUKUFACTORY_PATH);
   let tempInput: string | undefined;
 
@@ -116,13 +118,7 @@ export const convertXml2Ass = async (
     output: string;
   },
   danmuOptions: DanmuConfig,
-  options: DanmuOptions = {
-    saveRadio: 1,
-    savePath: "",
-    removeOrigin: false,
-    copyInput: false,
-    temp: false,
-  },
+  options: DanmaOptions,
 ) => {
   if (await isEmptyDanmu(file.input)) {
     throw new Error("弹幕为空，无须处理");
@@ -138,6 +134,10 @@ export const convertXml2Ass = async (
   } else {
     const tempFile = join(getTempPath(), `${uuid()}.ass`);
     output = tempFile;
+  }
+
+  if (!options.override && (await pathExists(output))) {
+    throw new Error(`${output}文件已存在`);
   }
 
   const task = await addConvertDanmu2AssTask(file.input, output, danmuOptions, options);

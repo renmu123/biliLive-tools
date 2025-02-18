@@ -1,3 +1,4 @@
+export * from "./task.js";
 import type { Line as UploadLine } from "@renmu/bili-api";
 
 // 弹幕配置
@@ -48,7 +49,7 @@ export type CommonPreset<T> = {
 // ffmpeg预设配置
 export type FfmpegPreset = CommonPreset<FfmpegOptions>;
 
-type CommonRoomConfig = {
+export type CommonRoomConfig = {
   open: boolean;
   minSize: number;
   /** 视频标题 */
@@ -118,8 +119,6 @@ export type ToolConfig = {
     ffmpegPresetId: string;
     /** 完成后移除源文件 */
     removeOrigin: boolean;
-    /** 完成后打开文件夹 */
-    openFolder: boolean;
     /** 完成后自动上传 */
     autoUpload: boolean;
     /** 审核通过后删除源文件 */
@@ -156,8 +155,8 @@ export type ToolConfig = {
     savePath: string;
     /** 完成后移除源文件 */
     removeOrigin: boolean;
-    /** 完成后打开文件夹 */
-    openFolder: boolean;
+    /** 覆盖已存在的文件 */
+    override: boolean;
   };
   video2mp4: {
     /** 保存类型 */
@@ -180,10 +179,6 @@ export type ToolConfig = {
     saveOriginPath: boolean;
     /** 完成后移除源文件 */
     removeOrigin: boolean;
-  };
-  videoUpload: {
-    /** 审核通过后删除源文件 */
-    removeOriginAfterUploadCheck: boolean;
   };
   /** 下载页 */
   download: {
@@ -326,7 +321,7 @@ export interface GlobalRecorder {
   douyu: DouyuRecorderConfig;
 }
 
-interface Recorder {
+export interface Recorder {
   providerId: string;
   id: string;
   channelId: string;
@@ -511,14 +506,6 @@ export interface AppConfig {
   recorders: Recorder[];
 }
 
-export interface DanmuOptions {
-  saveRadio: 1 | 2; // 1：保存到原始文件夹，2：保存到特定文件夹
-  savePath: string;
-
-  removeOrigin: boolean; // 完成后移除源文件
-  copyInput?: boolean; // 复制源文件到临时文件夹
-  temp?: boolean; // 生成到临时文件夹
-}
 export interface Video2Mp4Options {
   saveRadio: 1 | 2; // 1：保存到原始文件夹，2：保存到特定文件夹
   saveOriginPath: boolean;
@@ -629,7 +616,10 @@ export interface FfmpegOptions {
   swsFlags?: string;
   /** 缩放方式，控制先缩放后渲染还是先渲染后缩放 */
   scaleMethod?: "auto" | "before" | "after";
-
+  /** 是否支持硬件scale过滤器 */
+  hardwareScaleFilter?: boolean;
+  /** 编码线程数 */
+  encoderThreads?: number;
   /** 添加时间戳 */
   addTimestamp?: boolean;
   /** 时间戳x轴坐标 */
@@ -692,8 +682,6 @@ export interface BiliupConfig {
   topic_name?: string | null;
   /** 是否仅自己可见 */
   is_only_self?: 0 | 1;
-  /** 审核通过后删除源文件 */
-  removeOriginAfterUploadCheck?: boolean;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

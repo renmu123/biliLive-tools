@@ -184,9 +184,44 @@ export class ComplexFilter {
     return outputStream;
   }
 
-  addScaleFilter(resolutionWidth: number, resolutionHeight: number, swsFlags?: string) {
+  addScaleFilter({
+    resolutionWidth,
+    resolutionHeight,
+    swsFlags,
+    encoder,
+    useHardware,
+  }: {
+    resolutionWidth: number;
+    resolutionHeight: number;
+    swsFlags: string;
+    encoder: FfmpegOptions["encoder"];
+    useHardware: boolean;
+  }) {
     let scaleFilter = `${resolutionWidth}:${resolutionHeight}`;
-    if (swsFlags) {
+
+    const hardware = getHardwareAcceleration(encoder);
+    if (useHardware) {
+      if (hardware === "nvenc") {
+        if (swsFlags && swsFlags !== "auto" && swsFlags !== "neighbor") {
+          scaleFilter += `:interp_algo=${swsFlags}:passthrough=1`;
+        }
+        return this.addFilter("hwupload_cuda,scale_cuda", scaleFilter);
+      } else if (hardware === "qsv") {
+        return this.addFilter("hwupload,scale_qsv", scaleFilter);
+      } else if (hardware === "amf") {
+        if (resolutionHeight === -1) {
+          scaleFilter = `${resolutionWidth}:-2`;
+        }
+        if (resolutionWidth === -1) {
+          scaleFilter = `-2:${resolutionHeight}`;
+        }
+        if (["bilinear", "bicubic"].includes(swsFlags)) {
+          scaleFilter += `:scale_type=${swsFlags}`;
+        }
+        return this.addFilter("vpp_amf", scaleFilter);
+      }
+    }
+    if (swsFlags && swsFlags !== "auto") {
       scaleFilter += `:flags=${swsFlags}`;
     }
     return this.addFilter("scale", scaleFilter);
@@ -453,8 +488,9 @@ export const genMergeAssMp4Command = async (
     return commentTimestamp;
   }
 
-  async function addDefaultComplexFilter() {
+  async function addDefaultComplexFilter(scaleHardware: boolean = false) {
     const scaleMethod = selectScaleMethod(ffmpegOptions);
+    const startTimestamp = await getDrawtextParams();
 
     // 先缩放后渲染
     if (
@@ -462,11 +498,17 @@ export const genMergeAssMp4Command = async (
       ffmpegOptions.resolutionWidth &&
       ffmpegOptions.resolutionHeight
     ) {
-      complexFilter.addScaleFilter(
-        ffmpegOptions.resolutionWidth,
-        ffmpegOptions.resolutionHeight,
-        ffmpegOptions.swsFlags,
-      );
+      let uesHardwareScale = false;
+      if (scaleHardware) {
+        uesHardwareScale = !assFile && !startTimestamp;
+      }
+      complexFilter.addScaleFilter({
+        resolutionWidth: ffmpegOptions.resolutionWidth,
+        resolutionHeight: ffmpegOptions.resolutionHeight,
+        swsFlags: ffmpegOptions.swsFlags ?? "",
+        encoder: ffmpegOptions.encoder,
+        useHardware: ffmpegOptions.hardwareScaleFilter ? uesHardwareScale : false,
+      });
     }
 
     if (assFile) {
@@ -484,15 +526,21 @@ export const genMergeAssMp4Command = async (
       ffmpegOptions.resolutionWidth &&
       ffmpegOptions.resolutionHeight
     ) {
-      complexFilter.addScaleFilter(
-        ffmpegOptions.resolutionWidth,
-        ffmpegOptions.resolutionHeight,
-        ffmpegOptions.swsFlags,
-      );
+      let uesHardwareScale = false;
+      if (scaleHardware) {
+        uesHardwareScale = !startTimestamp;
+      }
+
+      complexFilter.addScaleFilter({
+        resolutionWidth: ffmpegOptions.resolutionWidth,
+        resolutionHeight: ffmpegOptions.resolutionHeight,
+        swsFlags: ffmpegOptions.swsFlags ?? "",
+        encoder: ffmpegOptions.encoder,
+        useHardware: ffmpegOptions.hardwareScaleFilter ? uesHardwareScale : false,
+      });
     }
 
     // 如果设置了添加时间戳
-    const startTimestamp = await getDrawtextParams();
     if (startTimestamp) {
       complexFilter.addDrawtextFilter({
         startTimestamp: startTimestamp,
@@ -508,7 +556,7 @@ export const genMergeAssMp4Command = async (
   }
 
   if (ffmpegOptions.vf) {
-    const vfArray = ffmpegOptions.vf.split(";");
+    const vfArray = ffmpegOptions.vf.split(";").filter((vf) => vf);
     for (const vf of vfArray) {
       if (vf === "$origin") {
         await addDefaultComplexFilter();
@@ -519,12 +567,7 @@ export const genMergeAssMp4Command = async (
     }
   } else {
     // 添加默认滤镜
-    await addDefaultComplexFilter();
-  }
-
-  if (complexFilter.getFilters().length) {
-    command.complexFilter(complexFilter.getFilters(), complexFilter.getLatestOutputStream());
-    command.outputOptions("-map 0:a");
+    await addDefaultComplexFilter(true);
   }
 
   // 输入参数
@@ -544,24 +587,49 @@ export const genMergeAssMp4Command = async (
     command.inputOptions(`-to ${ffmpegOptions.to}`);
   }
 
-  // 硬件解码
-  if (ffmpegOptions.decode) {
+  // 如果不存在滤镜，但存在硬件编码，添加硬件解码
+  if (!complexFilter.getFilters().length) {
     const hardware = getHardwareAcceleration(ffmpegOptions.encoder);
     if (hardware === "nvenc") {
       command.inputOptions("-hwaccel cuda");
       command.inputOptions("-hwaccel_output_format cuda");
-      command.inputOptions("-extra_hw_frames 10");
-    } else if (hardware === "amf") {
-      command.inputOptions("-hwaccel d3d11va");
-      // command.inputOptions("-hwaccel_output_format d3d11");
-      command.inputOptions("-extra_hw_frames 10");
     }
   }
-  const ffmpegParams = genFfmpegParams(ffmpegOptions);
 
+  // 如果存在scale_qsv滤镜，添加硬件相关代码
+  if (complexFilter.getFilters().some((filter) => filter.filter === "hwupload,scale_qsv")) {
+    command.inputOptions("-init_hw_device qsv=hw");
+    command.inputOptions("-filter_hw_device hw");
+  }
+
+  // 当存在filter存在hwupload_cuda,scale_cuda且在第一个时，需要硬件解码
+  if (complexFilter.getFilters()?.[0]?.filter === "hwupload_cuda,scale_cuda") {
+    command.inputOptions("-hwaccel cuda");
+    command.inputOptions("-hwaccel_output_format cuda");
+    complexFilter.getFilters()[0].filter = "scale_cuda";
+  } else if (complexFilter.getFilters()?.[0]?.filter === "scale_qsv") {
+    // 仅在第一个时，需要硬件解码，其他情况不需要
+    command.inputOptions("-hwaccel qsv");
+  } else if (complexFilter.getFilters()?.[0]?.filter === "vpp_amf") {
+    command.inputOptions("-hwaccel amf");
+    command.inputOptions("-init_hw_device amf=amf");
+    command.inputOptions("-filter_hw_device amf");
+  }
+
+  // 构建最后的输出内容
+  if (complexFilter.getFilters().length) {
+    command.complexFilter(complexFilter.getFilters(), complexFilter.getLatestOutputStream());
+    command.outputOptions("-map 0:a");
+  }
+  const ffmpegParams = genFfmpegParams(ffmpegOptions);
   ffmpegParams.forEach((param) => {
     command.outputOptions(param);
   });
+
+  // 编码线程数
+  if (ffmpegOptions.encoderThreads && ffmpegOptions.encoderThreads > 0) {
+    command.outputOptions(`-threads ${ffmpegOptions.encoderThreads}`);
+  }
 
   return command;
 };
