@@ -448,10 +448,6 @@ importers:
       string-argv:
         specifier: ^0.3.2
         version: 0.3.2
-    devDependencies:
-      '@biliLive-tools/types':
-        specifier: workspace:*
-        version: link:../types
 
   packages/shared:
     dependencies:
