@@ -71,36 +71,36 @@ export class Segment extends EventEmitter {
 }
 
 export class StreamManager extends EventEmitter {
-  private segmentManager: Segment | null = null;
+  private segment: Segment | null = null;
   private extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
-  recordSavePath?: string;
+  recordSavePath: string;
 
   constructor(getSavePath: GetSavePath, hasSegment: boolean) {
     super();
+    const recordSavePath = getSavePath({ startTime: Date.now() });
+    this.recordSavePath = recordSavePath;
 
     if (hasSegment) {
-      this.segmentManager = new Segment(getSavePath);
-      this.segmentManager.on("DebugLog", (data) => {
+      this.segment = new Segment(getSavePath);
+      this.segment.on("DebugLog", (data) => {
         this.emit("DebugLog", data);
       });
-      this.segmentManager.on("videoFileCreated", (data) => {
+      this.segment.on("videoFileCreated", (data) => {
         this.emit("videoFileCreated", data);
       });
-      this.segmentManager.on("videoFileCompleted", (data) => {
+      this.segment.on("videoFileCompleted", (data) => {
         this.emit("videoFileCompleted", data);
       });
     } else {
-      const recordSavePath = getSavePath({ startTime: Date.now() });
-      this.recordSavePath = recordSavePath;
       const extraDataSavePath = replaceExtName(recordSavePath, ".json");
       this.extraDataController = createRecordExtraDataController(extraDataSavePath);
     }
   }
 
   async handleVideoStarted(stderrLine?: string) {
-    if (this.segmentManager) {
+    if (this.segment) {
       if (stderrLine) {
-        await this.segmentManager.onSegmentStart(stderrLine);
+        await this.segment.onSegmentStart(stderrLine);
       }
     } else {
       this.emit("videoFileCreated", { filename: this.videoFilePath });
@@ -108,8 +108,8 @@ export class StreamManager extends EventEmitter {
   }
 
   async handleVideoCompleted() {
-    if (this.segmentManager) {
-      await this.segmentManager.handleSegmentEnd();
+    if (this.segment) {
+      await this.segment.handleSegmentEnd();
     } else {
       await this.getExtraDataController()?.flush();
       this.emit("videoFileCompleted", { filename: this.videoFilePath });
@@ -117,10 +117,10 @@ export class StreamManager extends EventEmitter {
   }
 
   getExtraDataController() {
-    return this.segmentManager?.extraDataController || this.extraDataController;
+    return this.segment?.extraDataController || this.extraDataController;
   }
 
   get videoFilePath() {
-    return this.segmentManager ? `${this.recordSavePath}-PART%03d.ts` : `${this.recordSavePath}.ts`;
+    return this.segment ? `${this.recordSavePath}-PART%03d.ts` : `${this.recordSavePath}.ts`;
   }
 }
