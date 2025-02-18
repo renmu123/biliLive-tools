@@ -1,5 +1,7 @@
 # huya-danmu
 
+原始仓库：https://github.com/BacooTang/huya-danmu
+
 huya-danmu 是Node.js版本虎牙直播弹幕监听模块。
 
 简单易用，使用不到三十行代码，你就可以使用Node.js基于弹幕进一步开发。
@@ -7,6 +9,8 @@ huya-danmu 是Node.js版本虎牙直播弹幕监听模块。
 ## FIXED
 
 @20210626
+
+来自：https://github.com/damonpeng/huya-danmu-fix#readme
 
 1. 虎牙改版，数据结构发生了变化
 2. skipField 方法补充了 EN_INT64，避免采集时的 warning
@@ -18,10 +22,10 @@ huya-danmu 是Node.js版本虎牙直播弹幕监听模块。
 
 ## Installation
 
-可以通过本命令安装 huya-danma:
+可以通过本命令安装 huya-danma-listener:
 
 ```bash
-npm install huya-danma --save
+npm install huya-danma-listener --save
 ```
 
 ## Simple uses
@@ -29,8 +33,8 @@ npm install huya-danma --save
 通过如下代码，可以初步通过Node.js对弹幕进行处理。
 
 ```javascript
-const huya_danmu = require("huya-danmu");
-const roomid = "edc595";
+const huya_danmu = require("huya-danma-listener");
+const roomid = "910323";
 const client = new huya_danmu(roomid);
 
 client.on("connect", () => {
@@ -67,8 +71,8 @@ client.start();
 ### 开始监听弹幕
 
 ```javascript
-const huya_danmu = require("huya-danmu");
-const roomid = "kaerlol";
+const huya_danmu = require("huya-danma-listener");
+const roomid = "910323";
 const client = new huya_danmu(roomid);
 client.start();
 ```
@@ -76,8 +80,8 @@ client.start();
 ### 使用socks5代理监听
 
 ```javascript
-const huya_danmu = require("huya-danmu");
-const roomid = "80000";
+const huya_danmu = require("huya-danma-listener");
+const roomid = "910323";
 const proxy = "socks://name:pass@127.0.0.1:1080";
 const client = new huya_danmu({ roomid, proxy });
 client.start();
