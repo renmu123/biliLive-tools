@@ -173,7 +173,7 @@ importers:
       '@autorecord/manager':
         specifier: workspace:*
         version: link:../liveManager
-      huya-danma:
+      huya-danma-listener:
         specifier: workspace:*
         version: link:../huya-danmu
       mitt:

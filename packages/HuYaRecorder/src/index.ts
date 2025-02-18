@@ -17,7 +17,7 @@ import {
 } from "@autorecord/manager";
 import { getInfo, getStream } from "./stream.js";
 import { assertStringType, ensureFolderExist } from "./utils.js";
-import HuYaDanMu, { HuYaMessage } from "huya-danma";
+import HuYaDanMu, { HuYaMessage } from "huya-danma-listener";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过

@@ -31,7 +31,7 @@
   "license": "LGPL",
   "dependencies": {
     "@autorecord/manager": "workspace:*",
-    "huya-danma": "workspace:*",
+    "huya-danma-listener": "workspace:*",
     "mitt": "^3.0.1"
   },
   "devDependencies": {},

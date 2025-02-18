@@ -1,5 +1,5 @@
 {
-  "name": "huya-danma",
+  "name": "huya-danma-listener",
   "version": "0.1.0",
   "description": "huya danmu module",
   "main": "index.js",
@@ -18,12 +18,12 @@
   "author": "BacooTang",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/damonpeng/huya-danmu-fix/issues"
+    "url": "https://github.com/renmu123/biliLive-tools/tree/master/packages/huya-danmu"
   },
   "dependencies": {
     "socks-proxy-agent": "^3.0.1",
     "to-arraybuffer": "^1.0.1",
     "ws": "^4.1.0"
   },
-  "homepage": "https://github.com/damonpeng/huya-danmu-fix#readme"
+  "homepage": "https://github.com/renmu123/biliLive-tools/tree/master/packages/huya-danmu"
 }
