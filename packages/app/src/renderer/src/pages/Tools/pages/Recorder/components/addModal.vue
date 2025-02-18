@@ -284,7 +284,7 @@
         </n-form-item>
         <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
           <template #label>
-            <span class="inline-flex"> 保存高能弹幕 </span>
+            <span class="inline-flex"> 高能弹幕(sc) </span>
           </template>
           <n-switch v-model:value="config.saveSCDanma" :disabled="globalFieldsObj.saveSCDanma" />
           <n-checkbox v-model:checked="globalFieldsObj.saveSCDanma" class="global-checkbox"
