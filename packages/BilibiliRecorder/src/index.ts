@@ -228,7 +228,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         const comment: Comment = {
           type: "comment",
           timestamp: msg.timestamp,
-          text: msg.body.content,
+          text: content,
           color: msg.body.content_color,
           mode: msg.body.type,
 
@@ -248,13 +248,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       onIncomeSuperChat: (msg) => {
         const extraDataController = streamManager.getExtraDataController();
         if (!extraDataController) return;
-
         if (this.saveSCDanma === false) return;
+
+        const content = msg.body.content.replaceAll(/[\r\n]/g, "");
         // console.log(msg.id, msg.body);
         const comment: SuperChat = {
           type: "super_chat",
           timestamp: msg.timestamp,
-          text: msg.body.content,
+          text: content,
           price: msg.body.price,
           sender: {
             uid: String(msg.body.user.uid),
