@@ -34,7 +34,6 @@ const commonPresetParams: {
   timestampFollowDanmu: boolean;
   timestampExtra: string;
   timestampFormat: string;
-
   vf: string;
 } = {
   resetResolution: false,
@@ -120,6 +119,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       bit10: false,
+      preset: "0",
     },
   },
   {
@@ -171,6 +171,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       bit10: false,
+      preset: "0",
     },
   },
 
@@ -182,7 +183,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       encoder: "libsvtav1",
       bitrateControl: "CRF",
       crf: 31,
-      preset: "6",
+      preset: "10",
       bitrate: 8000,
       extraOptions: "-svtav1-params tune=0",
       bit10: false,
@@ -224,6 +225,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       bit10: false,
+      preset: "0",
     },
   },
 ];
