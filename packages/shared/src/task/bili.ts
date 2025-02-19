@@ -727,7 +727,7 @@ export const addUser = async (data: any) => {
 };
 
 /**
- * 刷新授权
+ * 更新授权
  */
 const updateAuth = async (uid: number) => {
   const user = readUser(uid);
