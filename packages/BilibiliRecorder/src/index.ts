@@ -220,6 +220,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         const extraDataController = streamManager.getExtraDataController();
         if (!extraDataController) return;
 
+        let content = msg.body.content;
+        // 去除前后空格，回车，换行
+        content = content.replace(/(^\s*)|(\s*$)/g, "").replace(/[\r\n]/g, "");
+        if (content === "") return;
+
         const comment: Comment = {
           type: "comment",
           timestamp: msg.timestamp,
