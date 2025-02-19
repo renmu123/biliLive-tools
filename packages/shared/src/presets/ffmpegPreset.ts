@@ -6,6 +6,8 @@ import type {
   audioCodec,
   CommonPreset as CommonPresetType,
 } from "@biliLive-tools/types";
+import { videoEncoders } from "../enum.js";
+
 import type { GlobalConfig } from "@biliLive-tools/types";
 
 const DefaultFfmpegOptions: FfmpegOptions = {
@@ -237,10 +239,18 @@ export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
   init(presetPath: string) {
     super.init(presetPath);
   }
-  // validate(config: FfmpegPresetType["config"]) {}
+  validate(config: FfmpegPresetType["config"]) {
+    const encoder = videoEncoders.find((item) => item.value === config.encoder);
+    if (!encoder) {
+      throw new Error("无效的编码器");
+    }
+    if (encoder.presets.findIndex((item) => item.value === config.preset) === -1) {
+      throw new Error("无效的preset");
+    }
+  }
   // 保存预设
   save(preset: FfmpegPresetType) {
-    // this.validate(preset.config);
+    this.validate(preset.config);
     return super.save(preset);
   }
   async get(id: string) {

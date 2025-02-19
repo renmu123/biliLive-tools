@@ -9,7 +9,7 @@
 
       <n-form-item>
         <template #label>
-          <Tip tip="非必选，默认由B站决定" text="封面"></Tip>
+          <Tip tip="非必选，不设置B站会自动进行选择" text="封面"></Tip>
         </template>
         <image-crop v-model="options.config.cover"></image-crop>
       </n-form-item>
