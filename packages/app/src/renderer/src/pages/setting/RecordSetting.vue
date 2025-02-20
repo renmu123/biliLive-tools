@@ -111,7 +111,7 @@
       <h2>B站</h2>
       <n-form-item>
         <template #label>
-          <Tip :text="textInfo.bili.uid.text">{{ textInfo.bili.uid.text }}</Tip>
+          <Tip :text="textInfo.bili.uid.text">{{ textInfo.bili.uid.tip }}</Tip>
         </template>
         <n-select
           v-model:value="config.recorder.bilibili.uid"

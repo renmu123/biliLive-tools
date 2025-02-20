@@ -1,6 +1,6 @@
 import { live } from "douyu-api";
 
-import { DouyuQualities, Recorder, utils } from "@autorecord/manager";
+import { DouyuQualities, Recorder, utils } from "@bililive-tools/manager";
 import { getLiveInfo } from "./dy_api.js";
 import { requester } from "./requester.js";
 

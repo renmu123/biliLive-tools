@@ -4,7 +4,12 @@ import log from "../utils/log.js";
 
 import type { AppConfig } from "../config.js";
 
-type Item = Awaited<ReturnType<typeof biliApi.getArchives>>["arc_audits"][0];
+export type Item = {
+  aid: number;
+  state: number;
+  title: string;
+  state_desc: string;
+};
 
 interface Events {
   update: (aid: number, status: "completed" | "error", data: Item) => void;
@@ -15,7 +20,6 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
     aid: number;
     startTime: number;
     status: "pending" | "completed" | "error";
-    data?: Item;
   }[] = [];
   appConfig: AppConfig;
   constructor({ appConfig }: { appConfig: AppConfig }) {
@@ -41,36 +45,73 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
       return now - item.startTime < 1000 * 60 * 60 * 24;
     });
 
-    const uids = this.list.map((item) => item.uid);
+    const uids = new Set(this.list.map((item) => item.uid));
+    const mediaList: Item[] = [];
+    // 先找一下第一页内容，绝大部分情况下都是在第一页
     for (const uid of uids) {
-      const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
-      for (const media of res.arc_audits) {
-        if (media.stat.aid) {
-          const item = this.list.find((data) => data.aid == media.Archive.aid);
-          if (!item) continue;
-          item.data = media;
-
-          if (media.Archive.state === 0) {
-            item.status = "completed";
-            this.emit("update", media.Archive.aid, "completed", media);
-          } else if (media.Archive.state < 0) {
-            if (media.Archive.state === -30 || media.Archive.state === -6) {
-              // 审核中， 不要干啥操作
-              continue;
-            } else if (media.Archive.state === -50) {
-              // 仅自己可见
-              item.status = "completed";
-              this.emit("update", media.Archive.aid, "completed", media);
-            } else {
-              item.status = "error";
-              this.emit("update", media.Archive.aid, "error", media);
-            }
-          } else {
-            log.warn("稿件状态未检测成功", media);
+      try {
+        const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
+        for (const media of res.arc_audits) {
+          if (media.stat.aid) {
+            mediaList.push({
+              aid: media.stat.aid,
+              state: media.Archive.state,
+              title: media.Archive.title,
+              state_desc: media.Archive.state_desc ?? "",
+            });
           }
         }
+      } catch (error) {
+        log.error("查询稿件列表失败", error);
       }
     }
+    // 如果没有找到，那就根据详情页查询
+    for (const item of this.list) {
+      if (mediaList.some((media) => media.aid === item.aid)) continue;
+      try {
+        const media = await biliApi.getPlatformArchiveDetail(item.uid, item.aid);
+        mediaList.push({
+          aid: item.aid,
+          state: media.archive.state,
+          title: media.archive.title,
+          state_desc: media.archive.state_desc,
+        });
+      } catch (e) {
+        log.error("查询稿件详情失败", e);
+      }
+    }
+
+    for (const item of this.list) {
+      const media = mediaList.find((media) => media.aid === item.aid);
+      if (!media) {
+        // 经过两次查询还未找到，那大概是稿件不存在，为用户主动删除，不要触发状态变更并进行通知
+        log.error("未找到稿件", item);
+        item.status = "error";
+        continue;
+      }
+
+      if (media.state === 0) {
+        // 通过审核
+        item.status = "completed";
+        this.emit("update", media.aid, "completed", media);
+      } else if (media.state < 0) {
+        if (media.state === -30 || media.state === -6) {
+          // 审核中，不要干啥操作
+          continue;
+        } else if (media.state === -50) {
+          // 仅自己可见，不需要触发错误
+          item.status = "completed";
+          this.emit("update", media.aid, "completed", media);
+        } else {
+          item.status = "error";
+          this.emit("update", media.aid, "error", media);
+        }
+      } else {
+        this.emit("update", media.aid, "error", media);
+        log.warn("稿件状态未检测成功", media);
+      }
+    }
+
     this.list = this.list.filter((item) => item.status === "pending");
   }
 

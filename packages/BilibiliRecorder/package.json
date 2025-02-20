@@ -1,6 +1,6 @@
 {
-  "name": "@autorecord/bilibili-recorder",
-  "version": "1.2.0",
+  "name": "@bililive-tools/bilibili-recorder",
+  "version": "1.0.0",
   "description": "LAR bilibili recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
@@ -26,11 +26,11 @@
   "files": [
     "lib"
   ],
-  "repository": "https://github.com/WhiteMinds/BilibiliRecorder",
-  "author": "WhiteMind",
+  "repository": "https://github.com/renmu123/biliLive-tools/tree/master/packages/BilibiliRecorder",
+  "author": "renmu123",
   "license": "LGPL",
   "dependencies": {
-    "@autorecord/manager": "workspace:*",
+    "@bililive-tools/manager": "workspace:*",
     "blive-message-listener": "^0.5.0",
     "mitt": "^3.0.1",
     "tiny-bilibili-ws": "^1.0.1"

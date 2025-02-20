@@ -29,7 +29,7 @@
   },
   "keywords": [],
   "dependencies": {
-    "@autorecord/manager": "workspace:*",
+    "@bililive-tools/manager": "workspace:*",
     "@biliLive-tools/shared": "workspace:*",
     "@biliLive-tools/types": "workspace:*",
     "@koa/bodyparser": "^5.1.1",

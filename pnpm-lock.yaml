@@ -77,7 +77,7 @@ importers:
 
   packages/BilibiliRecorder:
     dependencies:
-      '@autorecord/manager':
+      '@bililive-tools/manager':
         specifier: workspace:*
         version: link:../liveManager
       blive-message-listener:
@@ -138,7 +138,7 @@ importers:
 
   packages/DouYuRecorder:
     dependencies:
-      '@autorecord/manager':
+      '@bililive-tools/manager':
         specifier: workspace:*
         version: link:../liveManager
       mitt:
@@ -170,10 +170,10 @@ importers:
 
   packages/HuYaRecorder:
     dependencies:
-      '@autorecord/manager':
+      '@bililive-tools/manager':
         specifier: workspace:*
         version: link:../liveManager
-      huya-danma:
+      huya-danma-listener:
         specifier: workspace:*
         version: link:../huya-danmu
       mitt:
@@ -369,15 +369,15 @@ importers:
 
   packages/http:
     dependencies:
-      '@autorecord/manager':
-        specifier: workspace:*
-        version: link:../liveManager
       '@biliLive-tools/shared':
         specifier: workspace:*
         version: link:../shared
       '@biliLive-tools/types':
         specifier: workspace:*
         version: link:../types
+      '@bililive-tools/manager':
+        specifier: workspace:*
+        version: link:../liveManager
       '@koa/bodyparser':
         specifier: ^5.1.1
         version: 5.1.1(koa@2.15.3)
@@ -448,28 +448,24 @@ importers:
       string-argv:
         specifier: ^0.3.2
         version: 0.3.2
-    devDependencies:
-      '@biliLive-tools/types':
-        specifier: workspace:*
-        version: link:../types
 
   packages/shared:
     dependencies:
-      '@autorecord/bilibili-recorder':
-        specifier: workspace:*
-        version: link:../BilibiliRecorder
-      '@autorecord/douyu-recorder':
-        specifier: workspace:*
-        version: link:../DouYuRecorder
-      '@autorecord/huya-recorder':
-        specifier: workspace:*
-        version: link:../HuYaRecorder
-      '@autorecord/manager':
-        specifier: workspace:*
-        version: link:../liveManager
       '@biliLive-tools/types':
         specifier: workspace:*
         version: link:../types
+      '@bililive-tools/bilibili-recorder':
+        specifier: workspace:*
+        version: link:../BilibiliRecorder
+      '@bililive-tools/douyu-recorder':
+        specifier: workspace:*
+        version: link:../DouYuRecorder
+      '@bililive-tools/huya-recorder':
+        specifier: workspace:*
+        version: link:../HuYaRecorder
+      '@bililive-tools/manager':
+        specifier: workspace:*
+        version: link:../liveManager
       '@napi-rs/canvas':
         specifier: ^0.1.60
         version: 0.1.60

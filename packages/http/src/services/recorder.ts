@@ -2,7 +2,7 @@ import axios from "axios";
 import { v4 as uuid } from "uuid";
 import { container } from "../index.js";
 import { createRecorderManager } from "@biliLive-tools/shared";
-import { Recorder } from "@autorecord/manager";
+import { Recorder } from "@bililive-tools/manager";
 import { omit, pick, isEmpty } from "lodash-es";
 
 import type { RecorderAPI, ClientRecorder } from "../types/recorder.js";

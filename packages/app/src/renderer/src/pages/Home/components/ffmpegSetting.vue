@@ -1,6 +1,9 @@
 <template>
   <n-form ref="formRef" label-width="130px" label-placement="left" label-align="right">
-    <n-form-item label="预设">
+    <n-form-item>
+      <template #label>
+        <Tip text="预设"> 修改编码器时优先从预设中修改，不同的预设会有不同的默认参数 </Tip>
+      </template>
       <n-cascader
         v-model:value="presetId"
         placeholder="请选择预设"
@@ -23,11 +26,15 @@
                 'justify-content': 'flex-end',
               }"
             >
-              视频编码器 <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
+              视频编码 <n-icon size="18" class="pointer"> <HelpCircleOutline /> </n-icon
             ></span>
           </template>
           <p style="color: red">请勿选择不支持的硬件加速方案，如果报错请尝试更新驱动</p>
-          <p>如果想更换编码器，最好从预设中修改，不同的编码器会有一些不同的默认参数</p>
+          <p>
+            如果想更换编码器，最好从预设中修改，不同的编码器会有一些不同的默认参数，<b
+              >请多多尝试来确定使用的编码</b
+            >
+          </p>
           <p>lib 使用 CPU 进行编码，无硬件加速，速度较慢，但效果可能是最好的</p>
           <p>QSV 是 Intel 的核显加速</p>
           <p>NVEnc 是 NVIDIA 的显卡加速</p>
@@ -101,14 +108,11 @@
       </n-form-item>
       <n-form-item v-else-if="ffmpegOptions.config.bitrateControl === 'VBR'">
         <template #label>
-          <span class="inline-flex">
-            <span>码率</span>
-            <Tip>
-              如果你完全不懂参数代表什么，又觉得画质差，请拉高此参数。<br />
-              一般杂谈录播视频，码率 5000k 够了。如果是游戏，可以拉到
-              10000k及以上，如果弹幕较多，可以尝试拉到更高，具体码率可自行测试。
-            </Tip>
-          </span>
+          <Tip text="码率">
+            如果你完全不懂参数代表什么，又觉得画质差，请拉高此参数。<br />
+            一般杂谈录播视频，码率 5000k 够了。如果是游戏，可以拉到
+            10000k及以上，如果弹幕较多，可以尝试拉到更高，具体码率可自行测试。
+          </Tip>
         </template>
         <n-input-number
           v-model:value.number="ffmpegOptions.config.bitrate"
@@ -122,10 +126,7 @@
 
       <n-form-item v-if="(encoderOptions?.presets || []).length !== 0">
         <template #label>
-          <span class="inline-flex">
-            <span>预设</span>
-            <Tip> 推荐使用medium或者fast，不推荐任何人使用slowest </Tip>
-          </span>
+          <Tip text="preset"> 推荐使用medium及以上参数 </Tip>
         </template>
         <n-select
           v-model:value="ffmpegOptions.config.preset"
@@ -133,52 +134,31 @@
           placeholder="请选择预设"
         />
       </n-form-item>
-      <!-- <n-form-item
-        v-if="
-          ['h264_nvenc', 'hevc_nvenc', 'av1_nvenc', 'h264_amf', 'hevc_amf', 'av1_amf'].includes(
-            ffmpegOptions.config.encoder,
-          )
-        "
-      >
-        <template #label>
-          <span class="inline-flex">
-            <span>硬件解码</span>
-            <Tip>
-              使用硬件解码器，开启后<b>可能</b>会减少压制时间，nvidia会使用nvdec，如果压制失败请关闭
-            </Tip>
-          </span>
-        </template>
-        <n-checkbox v-model:checked="ffmpegOptions.config.decode"></n-checkbox>
-      </n-form-item> -->
       <n-form-item v-if="['libsvtav1'].includes(ffmpegOptions.config.encoder)">
         <template #label>
-          <span class="inline-flex">
-            <span>10bit</span>
-            <Tip> AV1 10bit 会占用更多的硬件资源，但画质会更好，如果硬件支持，建议开启 </Tip>
-          </span>
+          <Tip text="10bit">
+            AV1 10bit 会占用更多的硬件资源，但画质会更好，如果硬件支持，建议开启
+          </Tip>
         </template>
         <n-checkbox v-model:checked="ffmpegOptions.config.bit10"></n-checkbox>
       </n-form-item>
 
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            <span>分辨率</span>
-            <Tip>
-              <p>
-                实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间。
-              </p>
-              <p>可以尝试开启硬件过滤器，某些情况下可以大幅加快，也有可能并不能。</p>
-              <p>
-                B站4k画质要求短边大于1600，如果原视频为1080，可以尝试设置为2880x1620<br />
-                也可以设置为-2:1620来进行自适应，<b>请尽量将分辨率设置为偶数</b>
-              </p>
-              <p>4K：3840X2160<br />2K：2560X1440<br />1080：1920X1080</p>
-              <p>
-                如果需要放大分辨率，可以选择先渲染后缩放，如果是缩小分辨率，可以选择先缩放后渲染，自动策略为先渲染后缩放
-              </p>
-            </Tip>
-          </span>
+          <Tip text="分辨率">
+            <p>
+              实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间。
+            </p>
+            <p>可以尝试开启硬件过滤器，某些情况下可以大幅加快，也有可能并不能。</p>
+            <p>
+              B站4k画质要求短边大于1600，如果原视频为1080，可以尝试设置为2880x1620<br />
+              也可以设置为-2:1620来进行自适应，<b>请尽量将分辨率设置为偶数</b>
+            </p>
+            <p>4K：3840X2160<br />2K：2560X1440<br />1080：1920X1080</p>
+            <p>
+              如果需要放大分辨率，可以选择先渲染后缩放，如果是缩小分辨率，可以选择先缩放后渲染，自动策略为先渲染后缩放
+            </p>
+          </Tip>
         </template>
 
         <n-checkbox
@@ -230,13 +210,10 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            <span>时间戳</span>
-            <Tip>
-              添加时间戳到视频中，优先从webhook中读取、其次是弹幕元数据（支持录播姬、blrec、本软件下载的录播）、最后是视频元数据（如录播姬注释）。<br />
-              即使你开启此选项，如果一条都未被匹配到，也是不会被渲染的<br />
-            </Tip>
-          </span>
+          <Tip text="时间戳">
+            添加时间戳到视频中，优先从webhook中读取、其次是弹幕元数据（支持录播姬、blrec、本软件下载的录播）、最后是视频元数据（如录播姬注释）。<br />
+            即使你开启此选项，如果一条都未被匹配到，也是不会被渲染的<br />
+          </Tip>
         </template>
 
         <n-checkbox
@@ -300,18 +277,15 @@
       </n-form-item>
       <n-form-item v-if="ffmpegOptions.config.addTimestamp">
         <template #label>
-          <span class="inline-flex">
-            <span>时间戳参数</span>
-            <Tip>
-              内容格式占位符具体见
-              <a target="_blank" href="https://strftime.org/">strftime</a>
-              （<code>:</code> 需要额外转义）<br />
-              自定义参数具体见
-              <a target="_blank" href="https://ffmpeg.org/ffmpeg-filters.html#drawtext-1"
-                >ffmpeg滤镜文档</a
-              >，示例：<code>box=1:boxcolor=#ff0000</code>
-            </Tip>
-          </span>
+          <Tip text="时间戳参数">
+            内容格式占位符具体见
+            <a target="_blank" href="https://strftime.org/">strftime</a>
+            （<code>:</code> 需要额外转义）<br />
+            自定义参数具体见
+            <a target="_blank" href="https://ffmpeg.org/ffmpeg-filters.html#drawtext-1"
+              >ffmpeg滤镜文档</a
+            >，示例：<code>box=1:boxcolor=#ff0000</code>
+          </Tip>
         </template>
         <n-form
           inline
@@ -340,9 +314,7 @@
 
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            <Tip text="编码线程数"> 默认值为-1，由ffmpeg自动选择 </Tip>
-          </span>
+          <Tip text="编码线程数"> 默认值为-1，由ffmpeg自动选择 </Tip>
         </template>
         <n-input-number
           v-model:value.number="ffmpegOptions.config.encoderThreads"
@@ -375,15 +347,12 @@
 
     <n-form-item v-if="ffmpegOptions.config.encoder !== 'copy'">
       <template #label>
-        <span class="inline-flex">
-          <span>视频滤镜</span>
-          <Tip>
-            <code>$origin</code>
-            是由其他配置生成的默认参数，如果没有该参数，谁也不知道会发生什么事<br />
-            例：hflip;$origin;transpose=1 解释：先水平翻转，然后应用默认参数，最后旋转90度<br />
-            如果使用了该自定义设置，那么分辨率参数可能不会如你所愿，请手动设置
-          </Tip>
-        </span>
+        <Tip text="视频滤镜">
+          <code>$origin</code>
+          是由其他配置生成的默认参数，如果没有该参数，谁也不知道会发生什么事<br />
+          例：hflip;$origin;transpose=1 解释：先水平翻转，然后应用默认参数，最后旋转90度<br />
+          如果使用了该自定义设置，那么分辨率参数可能不会如你所愿，请手动设置
+        </Tip>
       </template>
       <n-input
         v-model:value="ffmpegOptions.config.vf"
@@ -396,10 +365,7 @@
 
     <n-form-item>
       <template #label>
-        <span class="inline-flex">
-          <span>额外输出参数</span>
-          <Tip> 参数将被附加到ffmpeg输出参数中，参数错误可能会导致无法运行 </Tip>
-        </span>
+        <Tip text="额外输出参数"> 参数将被附加到ffmpeg输出参数中，参数错误可能会导致无法运行 </Tip>
       </template>
       <n-input
         v-model:value="ffmpegOptions.config.extraOptions"
@@ -454,6 +420,7 @@ import { uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 import { useFfmpegPreset, useAppConfig } from "@renderer/stores";
 import { ffmpegPresetApi } from "@renderer/apis";
+import { videoEncoders as videoEncoderList } from "@biliLive-tools/shared/enum.js";
 
 import type { FfmpegPreset, VideoCodec } from "@biliLive-tools/types";
 
@@ -467,385 +434,6 @@ const emits = defineEmits<{
 }>();
 
 const presetId = defineModel<string>({ required: true });
-
-const nvencPresets = [
-  {
-    value: "p1",
-    label: "fastest",
-  },
-  {
-    value: "p2",
-    label: "faster",
-  },
-  {
-    value: "p3",
-    label: "fast",
-  },
-  {
-    value: "p4",
-    label: "medium",
-  },
-  {
-    value: "p5",
-    label: "slow",
-  },
-  {
-    value: "p6",
-    label: "slower",
-  },
-  {
-    value: "p7",
-    label: "slowest",
-  },
-];
-const qsvPresets = [
-  {
-    value: "veryfast",
-    label: "veryfast",
-  },
-  {
-    value: "faster",
-    label: "faster",
-  },
-  {
-    value: "fast",
-    label: "fast",
-  },
-  {
-    value: "medium",
-    label: "medium",
-  },
-  {
-    value: "slow",
-    label: "slow",
-  },
-  {
-    value: "slower",
-    label: "slower",
-  },
-  {
-    value: "veryslow",
-    label: "veryslow",
-  },
-];
-const videoEncoders = ref([
-  {
-    value: "copy",
-    label: "copy(复制流)",
-    birateControls: [
-      {
-        value: "CRF",
-        label: "CRF",
-      },
-    ],
-  },
-  {
-    value: "libx264",
-    label: "H.264(x264)",
-    birateControls: [
-      {
-        value: "CRF",
-        label: "CRF",
-      },
-      {
-        value: "VBR",
-        label: "平均比特率",
-      },
-    ],
-    presets: [
-      {
-        value: "ultrafast",
-        label: "ultrafast",
-      },
-      {
-        value: "superfast",
-        label: "superfast",
-      },
-      {
-        value: "veryfast",
-        label: "veryfast",
-      },
-      {
-        value: "faster",
-        label: "faster",
-      },
-      {
-        value: "fast",
-        label: "fast",
-      },
-      {
-        value: "medium",
-        label: "medium",
-      },
-      {
-        value: "slow",
-        label: "slow",
-      },
-      {
-        value: "slower",
-        label: "slower",
-      },
-      {
-        value: "veryslow",
-        label: "veryslow",
-      },
-      {
-        value: "placebo",
-        label: "placebo",
-      },
-    ],
-  },
-  {
-    value: "h264_qsv",
-    label: "H.264(Intel QSV)",
-    birateControls: [
-      {
-        value: "ICQ",
-        label: "ICQ",
-      },
-      {
-        value: "VBR",
-        label: "平均比特率",
-      },
-    ],
-    presets: qsvPresets,
-  },
-  {
-    value: "h264_nvenc",
-    label: "H.264(NVIDIA NVEnc)",
-    birateControls: [
-      {
-        value: "CQ",
-        label: "CQ",
-      },
-      {
-        value: "VBR",
-        label: "平均比特率",
-      },
-    ],
-    presets: nvencPresets,
-  },
-  {
-    value: "h264_amf",
-    label: "H.264(AMD AMF)",
-    birateControls: [
-      {
-        value: "VBR",
-        label: "平均比特率",
-      },
-    ],
-  },
-
-  {
-    value: "libx265",
-    label: "H.265(x265)",
-    birateControls: [
-      {
-        value: "CRF",
-        label: "CRF",
-      },
-      {
-        value: "VBR",
-        label: "平均比特率",
-      },
-    ],
-    presets: [
-      {
-        value: "ultrafast",
-        label: "ultrafast",
-      },
-      {
-        value: "superfast",
-        label: "superfast",
-      },
-      {
-        value: "veryfast",
-        label: "veryfast",
-      },
-      {
-        value: "faster",
-        label: "faster",
-      },
-      {
-        value: "fast",
-        label: "fast",
-      },
-      {
-        value: "medium",
-        label: "medium",
-      },
-      {
-        value: "slow",
-        label: "slow",
-      },
-      {
-        value: "slower",
-        label: "slower",
-      },
-      {
-        value: "veryslow",
-        label: "veryslow",
-      },
-      {
-        value: "placebo",
-        label: "placebo",
-      },
-    ],
-  },
-  {
-    value: "hevc_qsv",
-    label: "H.265(Intel QSV)",
-    birateControls: [
-      {
-        value: "ICQ",
-        label: "ICQ",
-      },
-      {
-        value: "VBR",
-        label: "平均比特率",
-      },
-    ],
-    presets: qsvPresets,
-  },
-  {
-    value: "hevc_nvenc",
-    label: "H.265(NVIDIA NVEnc)",
-    birateControls: [
-      {
-        value: "CQ",
-        label: "CQ",
-      },
-      {
-        value: "VBR",
-        label: "平均比特率",
-      },
-    ],
-    presets: nvencPresets,
-  },
-  {
-    value: "hevc_amf",
-    label: "H.265(AMD AMF)",
-    birateControls: [
-      {
-        value: "VBR",
-        label: "平均比特率",
-      },
-    ],
-  },
-
-  {
-    value: "libsvtav1",
-    label: "AV1 (libsvtav1)",
-    birateControls: [
-      {
-        value: "CRF",
-        label: "CRF",
-      },
-      {
-        value: "VBR",
-        label: "平均比特率",
-      },
-    ],
-    presets: [
-      {
-        value: "0",
-        label: "0",
-      },
-      {
-        value: "1",
-        label: "1",
-      },
-      {
-        value: "2",
-        label: "2",
-      },
-      {
-        value: "3",
-        label: "3",
-      },
-      {
-        value: "4",
-        label: "4",
-      },
-      {
-        value: "5",
-        label: "5",
-      },
-      {
-        value: "6",
-        label: "6",
-      },
-      {
-        value: "7",
-        label: "7",
-      },
-      {
-        value: "8",
-        label: "8",
-      },
-      {
-        value: "9",
-        label: "9",
-      },
-      {
-        value: "10",
-        label: "10",
-      },
-      {
-        value: "11",
-        label: "11",
-      },
-      {
-        value: "12",
-        label: "12",
-      },
-      {
-        value: "13",
-        label: "13",
-      },
-    ],
-  },
-  {
-    value: "av1_qsv",
-    label: "AV1 (Intel QSV)",
-    birateControls: [
-      {
-        value: "ICQ",
-        label: "ICQ",
-      },
-      {
-        value: "VBR",
-        label: "平均比特率",
-      },
-    ],
-    presets: qsvPresets,
-  },
-  {
-    value: "av1_nvenc",
-    label: "AV1 (NVIDIA NVEnc)",
-    birateControls: [
-      {
-        value: "CQ",
-        label: "CQ",
-      },
-      {
-        value: "VBR",
-        label: "平均比特率",
-      },
-    ],
-    presets: nvencPresets,
-  },
-  {
-    value: "av1_amf",
-    label: "AV1 (AMD AMF)",
-    birateControls: [
-      {
-        value: "VBR",
-        label: "平均比特率",
-      },
-    ],
-  },
-]);
 
 const audioEncoders = ref([
   {
@@ -873,6 +461,7 @@ const audioEncoders = ref([
     label: "FLAC",
   },
 ]);
+const videoEncoders = ref(videoEncoderList);
 
 const encoderOptions = computed(() => {
   return videoEncoders.value.find((item) => item.value === ffmpegOptions.value?.config?.encoder);

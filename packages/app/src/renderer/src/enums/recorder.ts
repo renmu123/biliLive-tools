@@ -120,7 +120,7 @@ export const textInfo = {
   bili: {
     uid: {
       text: "录制账号",
-      tip: "登录才能录制高清画质",
+      tip: "B站只有登录才能录制清晰画质",
     },
     useM3U8Proxy: {
       text: "避免hls自动分段",
@@ -128,19 +128,19 @@ export const textInfo = {
     },
     quality: {
       text: "画质",
-      tip: "如果找不到对应画质，会使用较清晰的源",
+      tip: "如果无法找到对应画质，会结合其他选项后选择更清晰的画质",
     },
     qualityRetry: {
       text: "画质匹配重试次数",
-      tip: "如果选项为零，那么匹配不到画质时会自动选择其他画质，否则会多次尝试匹配",
+      tip: "根据次数强制查询匹配画质，在未选择原画的情况下，可能会导致开头漏录",
     },
     formatName: {
       text: "流格式",
-      tip: "默认情况下等于优先flv模式，优先avc编码",
+      tip: "默认优先flv模式，其次fmp4，最后为ts",
     },
     codecName: {
       text: "流编码",
-      tip: "默认情况下等于优先avc模式",
+      tip: "默认优先avc模式",
     },
   },
 } as const;

@@ -3,10 +3,14 @@ import path from "node:path";
 import axios from "axios";
 import { omit } from "lodash-es";
 
-import { provider as providerForDouYu } from "@autorecord/douyu-recorder";
-import { provider as providerForHuYa } from "@autorecord/huya-recorder";
-import { provider as providerForBiliBili } from "@autorecord/bilibili-recorder";
-import { createRecorderManager as createManager, setFFMPEGPath, utils } from "@autorecord/manager";
+import { provider as providerForDouYu } from "@bililive-tools/douyu-recorder";
+import { provider as providerForHuYa } from "@bililive-tools/huya-recorder";
+import { provider as providerForBiliBili } from "@bililive-tools/bilibili-recorder";
+import {
+  createRecorderManager as createManager,
+  setFFMPEGPath,
+  utils,
+} from "@bililive-tools/manager";
 
 // import LiveService from "../db/service/liveService.js";
 // import DanmuService from "../db/service/danmuService.js";
@@ -18,7 +22,7 @@ import { sleep, replaceExtName } from "../utils/index.js";
 
 import type { AppConfig } from "../config.js";
 import type { Recorder as RecorderConfigType } from "@biliLive-tools/types";
-import type { Recorder } from "@autorecord/manager";
+import type { Recorder } from "@bililive-tools/manager";
 
 export { RecorderConfig };
 

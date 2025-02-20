@@ -11,8 +11,8 @@ import {
   genRecordUUID,
   StreamManager,
   utils,
-} from "@autorecord/manager";
-import type { Comment, GiveGift, SuperChat } from "@autorecord/manager";
+} from "@bililive-tools/manager";
+import type { Comment, GiveGift, SuperChat } from "@bililive-tools/manager";
 
 import { getInfo, getStream } from "./stream.js";
 import { getRoomInfo } from "./dy_api.js";

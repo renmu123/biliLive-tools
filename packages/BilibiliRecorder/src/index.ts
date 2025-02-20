@@ -12,8 +12,8 @@ import {
   genRecordUUID,
   StreamManager,
   utils,
-} from "@autorecord/manager";
-import type { Comment, GiveGift, SuperChat, Guard } from "@autorecord/manager";
+} from "@bililive-tools/manager";
+import type { Comment, GiveGift, SuperChat, Guard } from "@bililive-tools/manager";
 
 import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
 import { assertStringType, ensureFolderExist, createInvalidStreamChecker } from "./utils.js";
@@ -239,10 +239,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         const extraDataController = streamManager.getExtraDataController();
         if (!extraDataController) return;
 
+        let content = msg.body.content;
+        // 去除前后空格，回车，换行
+        content = content.replace(/(^\s*)|(\s*$)/g, "").replace(/[\r\n]/g, "");
+        if (content === "") return;
+
         const comment: Comment = {
           type: "comment",
           timestamp: msg.timestamp,
-          text: msg.body.content,
+          text: content,
           color: msg.body.content_color,
           mode: msg.body.type,
 
@@ -262,13 +267,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       onIncomeSuperChat: (msg) => {
         const extraDataController = streamManager.getExtraDataController();
         if (!extraDataController) return;
-
         if (this.saveSCDanma === false) return;
+
+        const content = msg.body.content.replaceAll(/[\r\n]/g, "");
         // console.log(msg.id, msg.body);
         const comment: SuperChat = {
           type: "super_chat",
           timestamp: msg.timestamp,
-          text: msg.body.content,
+          text: content,
           price: msg.body.price,
           sender: {
             uid: String(msg.body.user.uid),
