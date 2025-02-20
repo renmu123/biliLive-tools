@@ -53,7 +53,7 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       };
       const output = genFfmpegParams(input);
       const result = [`-c:v ${encoder}`, "-rc vbr", "-cq 34"];
-      if (["cpu", "qsv", "nvenc"].includes(getHardwareAcceleration(encoder))) {
+      if (["cpu", "qsv", "nvenc", "amf"].includes(getHardwareAcceleration(encoder))) {
         result.push("-preset p4");
       }
       result.push("-c:a copy");

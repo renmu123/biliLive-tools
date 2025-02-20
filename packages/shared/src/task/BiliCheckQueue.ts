@@ -57,7 +57,7 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
               aid: media.stat.aid,
               state: media.Archive.state,
               title: media.Archive.title,
-              state_desc: media.Archive.state_desc,
+              state_desc: media.Archive.state_desc ?? "",
             });
           }
         }
