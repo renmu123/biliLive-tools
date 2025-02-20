@@ -127,7 +127,7 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
         }
         break;
     }
-    if (["cpu", "qsv", "nvenc"].includes(getHardwareAcceleration(options.encoder))) {
+    if (["cpu", "qsv", "nvenc", "amf"].includes(getHardwareAcceleration(options.encoder))) {
       if (options.preset) {
         result.push(`-preset ${options.preset}`);
       }
