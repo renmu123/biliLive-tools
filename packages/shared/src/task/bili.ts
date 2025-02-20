@@ -25,6 +25,7 @@ import type {
   AppConfig as AppConfigType,
 } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
+import type { Item as MediaItem } from "./BiliCheckQueue.js";
 
 type ClientInstance = InstanceType<typeof Client>;
 
@@ -292,7 +293,7 @@ async function biliMediaAction(
     removeOriginAfterUploadCheck?: boolean;
     files: string[];
   },
-  media: Awaited<ReturnType<typeof biliApi.getArchives>>["arc_audits"][0],
+  media: MediaItem,
 ) {
   if (status === "completed") {
     // 通知
@@ -301,8 +302,8 @@ async function biliMediaAction(
       if (notification?.includes("success")) {
         try {
           sendNotify(
-            `${media.Archive.title}稿件审核通过`,
-            `请前往B站创作中心查看详情\n稿件名：${media.Archive.title}`,
+            `${media.title}稿件审核通过`,
+            `请前往B站创作中心查看详情\n稿件名：${media.title}`,
           );
         } catch (error) {
           log.error("发送通知失败", error);
@@ -342,8 +343,8 @@ async function biliMediaAction(
       if (notification?.includes("failure")) {
         try {
           sendNotify(
-            `${media.Archive.title}稿件审核未通过`,
-            `请前往B站创作中心查看详情\n稿件名：${media.Archive.title}\n状态：${media.Archive.state_desc}`,
+            `${media.title}稿件审核未通过`,
+            `请前往B站创作中心查看详情\n稿件名：${media.title}\n状态：${media.state_desc}`,
           );
         } catch (error) {
           log.error("发送通知失败", error);
