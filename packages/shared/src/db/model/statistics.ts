@@ -34,7 +34,7 @@ class StatisticsModel extends BaseModel<BaseStatistics> {
   }
 }
 
-export default class StreamerController {
+export default class StatisticsController {
   private model!: StatisticsModel;
   init(db: Database) {
     this.model = new StatisticsModel(db);

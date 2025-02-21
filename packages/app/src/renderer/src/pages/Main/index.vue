@@ -61,10 +61,7 @@ import {
   SettingsOutline as SettingIcon,
   LogOutOutline,
 } from "@vicons/ionicons5";
-import {
-  // DashboardOutlined as DashboardIcon,
-  LiveTvRound,
-} from "@vicons/material";
+import { DashboardOutlined as DashboardIcon, LiveTvRound } from "@vicons/material";
 
 import defaultUserAvatar from "../../assets/images/moehime.jpg";
 import AppSettingDialog from "../../pages/setting/index.vue";
@@ -280,7 +277,7 @@ const menuOptions = computed<MenuOption[]>(() => {
               name: "BiliDownload",
             },
           },
-          { default: () => "视频下载" },
+          { default: () => "下载订阅" },
         ),
     },
   ];
@@ -320,20 +317,20 @@ const menuOptions = computed<MenuOption[]>(() => {
         ),
       icon: renderIcon(LiveTvRound),
     },
-    // {
-    //   label: () =>
-    //     h(
-    //       RouterLink,
-    //       {
-    //         to: {
-    //           name: "Dashboard",
-    //         },
-    //       },
-    //       { default: () => "看板" },
-    //     ),
-    //   key: "Dashboard",
-    //   icon: renderIcon(DashboardIcon),
-    // },
+    {
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "Dashboard",
+            },
+          },
+          { default: () => "看板" },
+        ),
+      key: "Dashboard",
+      icon: renderIcon(DashboardIcon),
+    },
     {
       label: () => h("span", "工具"),
       key: "tools",

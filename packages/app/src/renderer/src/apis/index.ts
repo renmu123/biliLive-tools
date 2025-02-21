@@ -6,5 +6,6 @@ import taskApi from "./task";
 import commonApi from "./common";
 import biliApi from "./bili";
 import api from "./request";
+import videoApi from "./video";
 
-export { userApi, recoderApi, configApi, taskApi, commonApi, biliApi, api };
+export { userApi, recoderApi, configApi, taskApi, commonApi, biliApi, api, videoApi };

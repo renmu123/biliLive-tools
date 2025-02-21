@@ -5,6 +5,7 @@ import douyu from "@biliLive-tools/shared/task/douyu.js";
 import huya from "@biliLive-tools/shared/task/huya.js";
 import biliApi from "@biliLive-tools/shared/task/bili.js";
 import log from "@biliLive-tools/shared/utils/log.js";
+import videoSub from "@biliLive-tools/shared/task/videoSub.js";
 
 import type { VideoAPI } from "../types/video.js";
 
@@ -25,6 +26,45 @@ router.post("/download", async (ctx) => {
   let options = ctx.request.body;
 
   ctx.body = await downloadVideo(options);
+});
+
+router.post("/sub/parse", async (ctx) => {
+  let data = ctx.request.body;
+  if (!data.url) {
+    throw new Error("url is required");
+  }
+  const res = await videoSub.parse(data.url);
+  ctx.body = res;
+});
+
+router.post("/sub/add", async (ctx) => {
+  let data = ctx.request.body;
+
+  const res = videoSub.add(data);
+  ctx.body = res;
+});
+
+router.post("/sub/remove", async (ctx) => {
+  let data = ctx.request.body;
+  if (!data.id) {
+    throw new Error("id is required");
+  }
+  const res = videoSub.remove(data.id);
+  ctx.body = res;
+});
+
+router.post("/sub/update", async (ctx) => {
+  let data = ctx.request.body;
+  if (!data.id || !data.name || !data.platform || !data.subId) {
+    throw new Error("id, name, platform, subId is required");
+  }
+  const res = videoSub.update(data);
+  ctx.body = res;
+});
+
+router.get("/sub/list", async (ctx) => {
+  const res = videoSub.list();
+  ctx.body = res;
 });
 
 async function parseVideo({
