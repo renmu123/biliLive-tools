@@ -290,12 +290,15 @@
         <n-tab-pane name="task" tab="任务">
           <TaskSetting v-model:data="config"></TaskSetting>
         </n-tab-pane>
-        <n-tab-pane name="notification" tab="通知">
-          <NotificationSetting v-model:data="config"></NotificationSetting>
+        <n-tab-pane name="translate" tab="视频订阅">
+          <VideoSetting v-model:data="config"></VideoSetting>
         </n-tab-pane>
         <!-- <n-tab-pane name="translate" tab="翻译">
           <TranslateSetting v-model:data="config"></TranslateSetting>
         </n-tab-pane> -->
+        <n-tab-pane name="notification" tab="通知">
+          <NotificationSetting v-model:data="config"></NotificationSetting>
+        </n-tab-pane>
       </n-tabs>
       <template #footer>
         <div class="footer">
@@ -328,6 +331,7 @@ import NotificationSetting from "./NotificationSetting.vue";
 import BiliSetting from "./BiliSetting.vue";
 import RecordSetting from "./RecordSetting.vue";
 import TaskSetting from "./TaskSetting.vue";
+import VideoSetting from "./VideoSetting.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";

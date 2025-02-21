@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import DownloadConfirm from "./components/DownloadConfirm.vue";
+import DownloadConfirm from "./components/DownloadModal.vue";
 import { sanitizeFileName } from "@renderer/utils";
 import { taskApi } from "@renderer/apis";
 import { videoApi } from "@renderer/apis";

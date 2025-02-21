@@ -15,8 +15,15 @@ const VideoSub = BaseVideoSub.extend({
   created_at: z.number().optional(),
 });
 
+const UpdateVideoSub = z.object({
+  id: z.number(),
+  name: z.string().optional(),
+  options: z.string().optional(),
+});
+
 export type BaseVideoSub = z.infer<typeof BaseVideoSub>;
 export type VideoSub = z.infer<typeof VideoSub>;
+export type UpdateVideoSub = z.infer<typeof UpdateVideoSub>;
 
 class VideoSubModel extends BaseModel<BaseVideoSub> {
   table = "video_sub";
@@ -67,8 +74,8 @@ export default class VideoSubController {
   upsert(options: { where: Partial<VideoSub & { id: number }>; create: BaseVideoSub }) {
     return this.model.upsert(options);
   }
-  update(options: VideoSub) {
-    const data = VideoSub.parse(options);
+  update(options: UpdateVideoSub) {
+    const data = UpdateVideoSub.parse(options);
     return this.model.update(data);
   }
 

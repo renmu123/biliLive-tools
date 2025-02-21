@@ -3,12 +3,10 @@
     <n-form label-placement="left" :label-width="150">
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            线路
-            <Tip
-              :tip="`上传线路，自动会根据网络情况选择最优线路，如果上传失败请手动选择线路，切换后请上传测试线路能否实际使用。<br/>访问查询：<a href='https://member.bilibili.com/preupload?r=ping' target='_blank'>https://member.bilibili.com/preupload?r=ping</a>`"
-            ></Tip>
-          </span>
+          <Tip
+            text="线路"
+            tip="上传线路，自动会根据网络情况选择最优线路，如果上传失败请手动选择线路，切换后请上传测试线路能否实际使用。<br/>访问查询：<a href='https://member.bilibili.com/preupload?r=ping' target='_blank'>https://member.bilibili.com/preupload?r=ping</a>"
+          ></Tip>
         </template>
         <n-select v-model:value="config.biliUpload.line" :options="lineOptions" />
       </n-form-item>
@@ -34,20 +32,14 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            并发
-            <Tip tip="单个分P上传并发数，并非全局最大上传数"></Tip>
-          </span>
+          <Tip text="并发" tip="单个分P上传并发数，并非全局最大上传数"></Tip>
         </template>
         <n-input-number v-model:value="config.biliUpload.concurrency" min="1" max="128">
         </n-input-number>
       </n-form-item>
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            限速
-            <Tip tip="0为不限速，仅为单个上传任务的限速，并非全局"></Tip>
-          </span>
+          <Tip text="限速" tip="0为不限速，仅为单个上传任务的限速，并非全局"></Tip>
         </template>
         <n-input-number v-model:value="config.biliUpload.limitRate" min="0" step="1024">
           <template #suffix>KB</template>
@@ -55,10 +47,10 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            稿件检查间隔
-            <Tip tip="用于自动评论及上传审核的检查稿件间隔时间，请勿设置过短以免触发风控"></Tip>
-          </span>
+          <Tip
+            text="稿件检查间隔"
+            tip="用于自动评论及上传审核的检查稿件间隔时间，请勿设置过短以免触发风控"
+          ></Tip>
         </template>
         <n-input-number
           v-model:value="config.biliUpload.checkInterval"
