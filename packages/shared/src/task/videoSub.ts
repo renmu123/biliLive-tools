@@ -56,8 +56,6 @@ export function update(data: Options & { id: number }) {
   return videoSubModel.update({
     id: data.id,
     name: data.name,
-    platform: data.platform,
-    subId: data.subId,
     options,
   });
 }

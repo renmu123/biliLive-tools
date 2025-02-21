@@ -54,7 +54,7 @@ const router = createRouter({
         {
           path: "/biliDownload",
           name: "BiliDownload",
-          component: () => import("../pages/Tools/pages/VideoDownload/index.vue"),
+          component: () => import("../pages/Tools/pages/Video/index.vue"),
         },
         {
           path: "/recorder",
