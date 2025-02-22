@@ -1,7 +1,7 @@
 {
   "name": "@bililive-tools/huya-recorder",
   "version": "1.0.0",
-  "description": "LAR huya recorder implemention",
+  "description": "bililive-tools huya recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
   "publishConfig": {

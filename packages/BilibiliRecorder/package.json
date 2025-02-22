@@ -1,7 +1,7 @@
 {
   "name": "@bililive-tools/bilibili-recorder",
   "version": "1.0.0",
-  "description": "LAR bilibili recorder implemention",
+  "description": "bililive-tools bilibili recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
   "publishConfig": {
