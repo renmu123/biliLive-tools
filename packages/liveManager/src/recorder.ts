@@ -33,9 +33,11 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   saveCover?: boolean;
   /** 身份验证 */
   auth?: string;
+  /** cookie所有者uid,B站弹幕录制 */
+  uid?: number;
   /** 画质匹配重试次数 */
   qualityRetry?: number;
-  /** B站使用m3u8代理 */
+  /** B站是否使用m3u8代理 */
   useM3U8Proxy?: boolean;
   /**B站m3u8代理url */
   m3u8ProxyUrl?: string;

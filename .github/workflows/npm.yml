@@ -32,10 +32,10 @@ jobs:
         run: pnpm install
 
       - name: Build package
-        run: pnpm --filter @bililive-tools/* --parallel run build
+        run: pnpm --filter @bililive-tools/* --filter bililive-cli --parallel run build
 
       - name: Publish to npm
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --filter=huya-danma-listener --filter @bililive-tools/* --access public --no-git-checks
+        run: pnpm publish --filter=huya-danma-listener --filter bililive-cli --filter @bililive-tools/* --access public --no-git-checks
