@@ -74,6 +74,10 @@ manager.startCheckLoop();
 
 错误
 
+### RecorderDebugLog
+
+录制相关的log
+
 ### videoFileCreated
 
 录制文件开始，如果开启分段，分段时会触发这两个事件，可以用来实现webhook
