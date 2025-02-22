@@ -60,6 +60,28 @@ manager.startCheckLoop();
 | {min}       | 分     |
 | {sec}       | 秒     |
 
+## 事件
+
+### RecordStart
+
+录制开始
+
+### RecordStop
+
+录制结束
+
+### error
+
+错误
+
+### videoFileCreated
+
+录制文件开始，如果开启分段，分段时会触发这两个事件，可以用来实现webhook
+
+### videoFileCompleted
+
+录制文件结束
+
 # 协议
 
 与原项目保存一致为 LGPL
