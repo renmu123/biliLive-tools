@@ -18,36 +18,26 @@ vi.mock("../src/record_extra_data_controller", () => ({
 vi.mock("../src/utils");
 
 describe("StreamManager", () => {
-  let recorderMock: any;
   let getSavePathMock: any;
   let streamManager: StreamManager;
 
   beforeEach(() => {
-    recorderMock = {
-      emit: vi.fn(),
-    };
     getSavePathMock = vi.fn().mockReturnValue("mocked/path");
-    streamManager = new StreamManager(
-      recorderMock,
-      getSavePathMock,
-      "owner",
-      "title",
-      "recordSavePath",
-      true,
-    );
+    streamManager = new StreamManager(getSavePathMock, true);
+    vi.spyOn(streamManager, "emit");
   });
 
   it("should initialize StreamManager with Segment", () => {
     expect(streamManager).toBeInstanceOf(StreamManager);
     // @ts-ignore
-    expect(streamManager.segmentManager).toBeDefined();
+    expect(streamManager.segment).toBeDefined();
   });
 
   it("should handle video started with segment", async () => {
     const stderrLine = "'mockedFilename.ts'";
 
     await streamManager.handleVideoStarted(stderrLine);
-    expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCreated", {
+    expect(streamManager.emit).toHaveBeenCalledWith("videoFileCreated", {
       filename: "mocked/path.ts",
     });
   });
@@ -57,65 +47,41 @@ describe("StreamManager", () => {
 
     await streamManager.handleVideoStarted(stderrLine);
     await streamManager.handleVideoCompleted();
-    expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCompleted", {
+    expect(streamManager.emit).toHaveBeenCalledWith("videoFileCompleted", {
       filename: "mocked/path.ts",
-    });
-    expect(streamManager.getExtraDataController()?.setMeta).toHaveBeenCalledWith({
-      recordStopTimestamp: expect.any(Number),
     });
   });
 
   it("should handle video started without segment", async () => {
-    streamManager = new StreamManager(
-      recorderMock,
-      getSavePathMock,
-      "owner",
-      "title",
-      "recordSavePath",
-      false,
-    );
+    streamManager = new StreamManager(getSavePathMock, false);
+    vi.spyOn(streamManager, "emit");
+
     await streamManager.handleVideoStarted();
-    expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCreated", {
-      filename: "recordSavePath.ts",
+    expect(streamManager.emit).toHaveBeenCalledWith("videoFileCreated", {
+      filename: "mocked/path.ts",
     });
-    expect(streamManager.getExtraDataController()?.setMeta).toHaveBeenCalledWith({
-      title: "title",
-      user_name: "owner",
-    });
-    expect(streamManager.getExtraDataController()?.data.meta.recordStartTimestamp).toBeDefined();
   });
 
   it("should handle video completed without segment", async () => {
-    streamManager = new StreamManager(
-      recorderMock,
-      getSavePathMock,
-      "owner",
-      "title",
-      "recordSavePath",
-      false,
-    );
+    streamManager = new StreamManager(getSavePathMock, false);
+    vi.spyOn(streamManager, "emit");
+
     await streamManager.handleVideoCompleted();
-    expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCompleted", {
-      filename: "recordSavePath.ts",
-    });
-    expect(streamManager.getExtraDataController()?.setMeta).toHaveBeenCalledWith({
-      recordStopTimestamp: expect.any(Number),
+    expect(streamManager.emit).toHaveBeenCalledWith("videoFileCompleted", {
+      filename: "mocked/path.ts",
     });
   });
 });
 
 describe("Segment", () => {
-  let recorderMock: any;
   let segmentManager: Segment;
   let getSavePathMock: any;
 
   beforeEach(() => {
-    recorderMock = {
-      emit: vi.fn(),
-    };
     getSavePathMock = vi.fn().mockReturnValue("mocked/path");
 
-    segmentManager = new Segment(recorderMock, getSavePathMock, "owner", "title");
+    segmentManager = new Segment(getSavePathMock);
+    vi.spyOn(segmentManager, "emit");
   });
 
   it("should initialize Segment", () => {
@@ -127,7 +93,7 @@ describe("Segment", () => {
     const stderrLine = "'mockedFilename.ts'";
     await segmentManager.onSegmentStart(stderrLine);
     await segmentManager.handleSegmentEnd();
-    expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCompleted", {
+    expect(segmentManager.emit).toHaveBeenCalledWith("videoFileCompleted", {
       filename: "mocked/path.ts",
     });
   });
@@ -135,7 +101,7 @@ describe("Segment", () => {
     const stderrLine = "'mockedFilename.ts'";
     await segmentManager.onSegmentStart(stderrLine);
     await segmentManager.onSegmentStart("'mockedFilename.ts'");
-    expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCompleted", {
+    expect(segmentManager.emit).toHaveBeenCalledWith("videoFileCompleted", {
       filename: "mocked/path.ts",
     });
   });
@@ -143,7 +109,7 @@ describe("Segment", () => {
   it("should handle segment start", async () => {
     const stderrLine = "'mockedFilename.ts'";
     await segmentManager.onSegmentStart(stderrLine);
-    expect(recorderMock.emit).toHaveBeenCalledWith("videoFileCreated", {
+    expect(segmentManager.emit).toHaveBeenCalledWith("videoFileCreated", {
       filename: "mocked/path.ts",
     });
     expect(segmentManager.init).toBe(false);

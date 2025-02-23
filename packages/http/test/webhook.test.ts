@@ -449,7 +449,7 @@ describe("WebhookHandler", () => {
         // @ts-ignore
         .mockReturnValue({ open: true, title: "test", convert2Mp4Option: true });
       const convert2Mp4Spy = vi
-        .spyOn(webhookHandler, "convert2Mp4")
+        .spyOn(webhookHandler, "transcode")
         .mockResolvedValue("/path/to/part1.mp4");
 
       const utils = await import("@biliLive-tools/shared/utils/index.js");
@@ -460,7 +460,16 @@ describe("WebhookHandler", () => {
 
       // Assert
       expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
-      expect(convert2Mp4Spy).toHaveBeenCalledWith("/path/to/part1.flv");
+      expect(convert2Mp4Spy).toHaveBeenCalledWith(
+        "/path/to/part1.flv",
+        {
+          audioCodec: "copy",
+          encoder: "copy",
+        },
+        {
+          removeVideo: true,
+        },
+      );
       expect(webhookHandler.liveData[0].parts[0].filePath).toBe("/path/to/part1.mp4");
       expect(webhookHandler.liveData[0].parts[0].rawFilePath).toBe("/path/to/part1.mp4");
     });
