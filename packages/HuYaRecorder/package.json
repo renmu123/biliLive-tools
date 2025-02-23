@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/huya-recorder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "bililive-tools huya recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
@@ -40,7 +40,9 @@
   "dependencies": {
     "@bililive-tools/manager": "workspace:*",
     "huya-danma-listener": "workspace:*",
-    "mitt": "^3.0.1"
+    "mitt": "^3.0.1",
+    "lodash-es": "catalog:",
+    "axios": "catalog:"
   },
   "devDependencies": {},
   "peerDependencies": {

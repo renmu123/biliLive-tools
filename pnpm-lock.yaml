@@ -4,6 +4,15 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    axios:
+      specifier: ^1.7.8
+      version: 1.7.8
+    lodash-es:
+      specifier: ^4.17.21
+      version: 4.17.21
+
 patchedDependencies:
   trash:
     hash: knfqho266jmayp7bpztl4tszxi
@@ -80,9 +89,15 @@ importers:
       '@bililive-tools/manager':
         specifier: workspace:*
         version: link:../liveManager
+      axios:
+        specifier: 'catalog:'
+        version: 1.7.8
       blive-message-listener:
         specifier: ^0.5.0
         version: 0.5.0(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+      lodash-es:
+        specifier: 'catalog:'
+        version: 4.17.21
       mitt:
         specifier: ^3.0.1
         version: 3.0.1
@@ -141,6 +156,15 @@ importers:
       '@bililive-tools/manager':
         specifier: workspace:*
         version: link:../liveManager
+      axios:
+        specifier: 'catalog:'
+        version: 1.7.8
+      douyu-api:
+        specifier: ^0.1.0
+        version: 0.1.0
+      lodash-es:
+        specifier: 'catalog:'
+        version: 4.17.21
       mitt:
         specifier: ^3.0.1
         version: 3.0.1
@@ -161,9 +185,6 @@ importers:
         specifier: ^6.0.5
         version: 6.0.5
     devDependencies:
-      '@biliLive-tools/types':
-        specifier: workspace:*
-        version: link:../types
       '@types/ws':
         specifier: ^8.5.13
         version: 8.5.13
@@ -173,9 +194,15 @@ importers:
       '@bililive-tools/manager':
         specifier: workspace:*
         version: link:../liveManager
+      axios:
+        specifier: 'catalog:'
+        version: 1.7.8
       huya-danma-listener:
         specifier: workspace:*
         version: link:../huya-danmu
+      lodash-es:
+        specifier: 'catalog:'
+        version: 4.17.21
       mitt:
         specifier: ^3.0.1
         version: 3.0.1
@@ -436,12 +463,21 @@ importers:
       '@renmu/fluent-ffmpeg':
         specifier: 2.3.2
         version: 2.3.2
+      axios:
+        specifier: 'catalog:'
+        version: 1.7.8
       fast-xml-parser:
         specifier: ^4.5.0
         version: 4.5.0
       filenamify:
         specifier: ^6.0.0
         version: 6.0.0
+      fs-extra:
+        specifier: ^11.2.0
+        version: 11.2.0
+      lodash-es:
+        specifier: 'catalog:'
+        version: 4.17.21
       mitt:
         specifier: ^3.0.1
         version: 3.0.1
@@ -1987,9 +2023,6 @@ packages:
     resolution: {integrity: sha512-aR99oXhpEDGo0UuAlYcn2iGRds30k366Zfa05XWScR9QaQD4JYiP3/1Qt1u7YlefUOK+cn0CcwoL1oefavQUlQ==}
     peerDependencies:
       axios: 0.x || 1.x
-
-  axios@1.7.7:
-    resolution: {integrity: sha512-S4kL7XrjgBmvdGut0sN3yJxqYzrDOnivkBiN0OFs6hLiUam3UPvswUo0kqGyhqUZGEOytHyumEdXsAkgCOUf3Q==}
 
   axios@1.7.8:
     resolution: {integrity: sha512-Uu0wb7KNqK2t5K+YQyVCLM76prD5sRFjKHbJYCP1J7JFGEQ6nN7HWn9+04LAeiJ3ji54lgS/gZCH1oxyrf1SPw==}
@@ -5745,8 +5778,8 @@ snapshots:
 
   '@renmu/m3u8-downloader@0.3.1':
     dependencies:
-      axios: 1.7.7
-      axios-retry: 4.5.0(axios@1.7.7)
+      axios: 1.7.8
+      axios-retry: 4.5.0(axios@1.7.8)
       fs-extra: 11.2.0
       m3u8-parser: 7.2.0
       p-queue: 8.0.1
@@ -6674,23 +6707,10 @@ snapshots:
       camel-case: 4.1.2
       fast-glob: 3.3.2
 
-  axios-retry@4.5.0(axios@1.7.7):
-    dependencies:
-      axios: 1.7.7
-      is-retry-allowed: 2.2.0
-
   axios-retry@4.5.0(axios@1.7.8):
     dependencies:
       axios: 1.7.8
       is-retry-allowed: 2.2.0
-
-  axios@1.7.7:
-    dependencies:
-      follow-redirects: 1.15.9
-      form-data: 4.0.1
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
 
   axios@1.7.8:
     dependencies:
@@ -7281,7 +7301,7 @@ snapshots:
 
   douyu-api@0.1.0:
     dependencies:
-      axios: 1.7.7
+      axios: 1.7.8
       fast-xml-parser: 4.5.0
       safe-eval: 0.4.1
     transitivePeerDependencies:

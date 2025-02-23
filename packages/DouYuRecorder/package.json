@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/douyu-recorder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "bililive-tools douyu recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
@@ -42,10 +42,12 @@
     "mitt": "^3.0.1",
     "query-string": "^9.1.1",
     "safe-eval": "^0.4.1",
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "lodash-es": "catalog:",
+    "axios": "catalog:",
+    "douyu-api": "^0.1.0"
   },
   "devDependencies": {
-    "@biliLive-tools/types": "workspace:*",
     "@types/ws": "^8.5.13"
   },
   "peerDependencies": {

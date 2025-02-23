@@ -1,7 +1,6 @@
 // forked from https://github.com/WhiteMinds/LiveAutoRecord
 import ffmpeg from "@renmu/fluent-ffmpeg";
 import { omit, pick } from "lodash-es";
-import { v4 as uuid } from "uuid";
 import { RecorderProvider } from "./manager.js";
 import { SerializedRecorder, Recorder, RecordHandle } from "./recorder.js";
 import { AnyObject } from "./utils.js";
@@ -55,10 +54,10 @@ export function defaultToJSON<E extends AnyObject>(
 // 目前是假设使用环境的规模都比较小，不太容易遇到性能问题，所以用 string uuid 作为 id 来简化开发的复杂度。
 // 后面如果需要再高一些的规模，可以优化成分布式 id 生成器，或者其他的异步生成 id 的方案。
 export function genRecorderUUID(): Recorder["id"] {
-  return uuid();
+  return utils.uuid();
 }
 export function genRecordUUID(): RecordHandle["id"] {
-  return uuid();
+  return utils.uuid();
 }
 
 let ffmpegPath: string = "ffmpeg";

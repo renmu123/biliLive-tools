@@ -190,7 +190,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const savePath = getSavePath({ owner, title });
   const hasSegment = !!this.segment;
-  const streamManager = new StreamManager(this, getSavePath, owner, title, savePath, hasSegment);
 
   try {
     ensureFolderExist(savePath);
@@ -199,6 +198,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
+  const streamManager = new StreamManager(this, getSavePath, owner, title, savePath, hasSegment);
   const handleVideoCreated = async ({ filename }) => {
     const extraDataController = streamManager?.getExtraDataController();
     extraDataController?.setMeta({
