@@ -17,7 +17,7 @@ import { provider } from "@bililive-tools/douyin-recorder";
 const manager = createRecorderManager({ providers: [provider] });
 manager.addRecorder({
   providerId: provider.id,
-  channelId: "7734200",
+  channelId: "203641303310",
   quality: "highest",
   streamPriorities: [],
   sourcePriorities: [],
@@ -51,7 +51,7 @@ interface Options {
 ```ts
 import { provider } from "@bililive-tools/douyin-recorder";
 
-const url = "https://live.bilibili.com/5055636";
+const url = "https://live.douyin.com/203641303310";
 const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
 

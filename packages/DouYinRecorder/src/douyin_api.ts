@@ -1,19 +1,37 @@
 import axios from "axios";
-import { wrapper } from "axios-cookiejar-support";
-import { CookieJar } from "tough-cookie";
 import { assert } from "./utils.js";
 
-const jar = new CookieJar();
-const requester = wrapper(
-  axios.create({
-    timeout: 10e3,
-    jar,
-    // axios 会自动读取环境变量中的 http_proxy 和 https_proxy 并应用，这会让请求发往代理的 host。
-    // 于是 set-cookie 的 domain 与请求的 host 无法匹配上，tough-cookie 在检查时会丢弃它，导致 cookie 丢失。
-    // 所以这里需要主动禁用代理功能。
-    proxy: false,
-  }),
-);
+const requester = axios.create({
+  timeout: 10e3,
+  // axios 会自动读取环境变量中的 http_proxy 和 https_proxy 并应用，这会让请求发往代理的 host。
+  // 所以这里需要主动禁用代理功能。
+  proxy: false,
+});
+
+let cookieCache: {
+  startTimestamp: number;
+  cookies: string;
+};
+
+const getCookie = async () => {
+  const now = new Date().getTime();
+  // 缓存24小时
+  if (cookieCache?.startTimestamp && now - cookieCache.startTimestamp < 24 * 60 * 60 * 1000) {
+    return cookieCache.cookies;
+  }
+  const res = await requester.get("https://live.douyin.com/");
+  const cookies = res.headers["set-cookie"]
+    .map((cookie) => {
+      return cookie.split(";")[0];
+    })
+    .join("; ");
+
+  cookieCache = {
+    startTimestamp: now,
+    cookies,
+  };
+  return cookies;
+};
 
 export async function getRoomInfo(
   webRoomId: string,
@@ -31,7 +49,7 @@ export async function getRoomInfo(
 }> {
   // 抖音的 'webcast/room/web/enter' api 会需要 ttwid 的 cookie，这个 cookie 是由这个请求的响应头设置的，
   // 所以在这里请求一次自动设置。
-  await requester.get("https://live.douyin.com/");
+  const cookies = await getCookie();
 
   const res = await requester.get<EnterRoomApiResp>(
     "https://live.douyin.com/webcast/room/web/enter/",
@@ -54,6 +72,9 @@ export async function getRoomInfo(
         "Room-Enter-User-Login-Ab": 0,
         is_need_double_stream: "false",
       },
+      headers: {
+        cookie: cookies,
+      },
     },
   );
   // console.log(JSON.stringify(res.data, null, 2));
@@ -61,7 +82,14 @@ export async function getRoomInfo(
   // 无 cookie 时 code 为 10037
   if (res.data.status_code === 10037 && retryOnSpecialCode) {
     // resp 自动设置 cookie
-    await requester.get("https://live.douyin.com/favicon.ico");
+    // const cookieRes = await requester.get("https://live.douyin.com/favicon.ico");
+    // const cookies = cookieRes.headers["set-cookie"]
+    //   .map((cookie) => {
+    //     return cookie.split(";")[0];
+    //   })
+    //   .join("; ");
+
+    // console.log("cookies", cookies);
     return getRoomInfo(webRoomId, false);
   }
 
