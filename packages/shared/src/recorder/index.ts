@@ -83,7 +83,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
 
     manager.autoCheckInterval = autoCheckInterval * 1000;
-    manager.autoCheckLiveStatusAndRecord = autoCheckLiveStatusAndRecord;
     manager.savePathRule = savePathRule;
     manager.biliBatchQuery = config?.recorder?.bilibili.useBatchQuery ?? false;
 
@@ -122,8 +121,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
     providers: [providerForDouYu, providerForHuYa, providerForBiliBili],
     autoRemoveSystemReservedChars: true,
     autoCheckInterval: autoCheckInterval * 1000,
-    // 这个参数其实是有问题的，并没有实际生效
-    autoCheckLiveStatusAndRecord: autoCheckLiveStatusAndRecord,
     savePathRule: savePathRule,
     biliBatchQuery: config?.recorder?.bilibili.useBatchQuery ?? false,
   });
