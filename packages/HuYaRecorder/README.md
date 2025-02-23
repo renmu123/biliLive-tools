@@ -46,15 +46,15 @@ interface Options {
 
 ### 画质
 
-遗漏了部分画质，有了解的可以提PR
+相对画质
 
-| 画质   | 值  |
-| ------ | --- |
-| 原画   | 0   |
-| 蓝光8M | 8   |
-| 蓝光4M | 4   |
-| 超清   | 3   |
-| 高清   | 2   |
+| 画质 | 值      |
+| ---- | ------- |
+| 最高 | highest |
+| 高   | high    |
+| 中等 | medium  |
+| 低   | low     |
+| 最低 | lowest  |
 
 ## 直播间ID解析
 
@@ -63,7 +63,7 @@ interface Options {
 ```ts
 import { provider } from "@bililive-tools/huya-recorder";
 
-const url = "https://live.bilibili.com/5055636";
+const url = "https://www.huya.com/910323";
 const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
 

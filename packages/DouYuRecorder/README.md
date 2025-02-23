@@ -64,7 +64,7 @@ interface Options {
 ```ts
 import { provider } from "@bililive-tools/douyu-recorder";
 
-const url = "https://live.bilibili.com/5055636";
+const url = "https://www.douyu.com/2140934";
 const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
 
