@@ -1,0 +1,55 @@
+{
+  "name": "@bililive-tools/douyin-recorder",
+  "version": "1.0.0",
+  "description": "@bililive-tools/bilibili-recorder douyin recorder implemention",
+  "main": "./lib/index.js",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./lib/index.js"
+    },
+    "./*.js": {
+      "types": "./src/*.ts",
+      "development": "./src/*.ts",
+      "default": "./lib/*.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "files": [
+    "lib"
+  ],
+  "keywords": [
+    "douyin",
+    "recorder",
+    "bililive-tools",
+    "直播",
+    "录制",
+    "抖音"
+  ],
+  "repository": "https://github.com/renmu123/biliLive-tools/tree/master/packages/BilibiliRecorder",
+  "author": "WhiteMind",
+  "license": "LGPL",
+  "dependencies": {
+    "axios-cookiejar-support": "^4.0.3",
+    "mitt": "^3.0.0",
+    "tough-cookie": "^4.1.2",
+    "lodash-es": "catalog:",
+    "axios": "catalog:"
+  },
+  "devDependencies": {
+    "@autorecord/manager": "^1.0.3",
+    "@types/node": "*",
+    "@types/tough-cookie": "^4.0.2"
+  },
+  "peerDependencies": {
+    "@autorecord/manager": "*"
+  }
+}
