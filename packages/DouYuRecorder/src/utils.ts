@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { range } from "lodash-es";
 
 /**
@@ -55,3 +56,7 @@ export function assert(assertion: unknown, msg?: string): asserts assertion {
     throw new Error(msg);
   }
 }
+
+export const uuid = () => {
+  return crypto.randomUUID();
+};

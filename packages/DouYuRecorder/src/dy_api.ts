@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 
-import { v4 as uuid4 } from "uuid";
 import safeEval from "safe-eval";
+import { uuid } from "./utils.js";
 
 import queryString from "query-string";
 import { requester } from "./requester.js";
@@ -33,7 +33,7 @@ export async function getLiveInfo(opts: {
     }
 > {
   const sign = await getSignFn(opts.channelId, opts.rejectSignFnCache);
-  const did = uuid4().replace(/-/g, "");
+  const did = uuid().replace(/-/g, "");
   const time = Math.ceil(Date.now() / 1000);
   const signedStr = String(sign(opts.channelId, did, time));
 

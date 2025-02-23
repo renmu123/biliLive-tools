@@ -323,7 +323,7 @@ export function createRecorderManager<
       opts.savePathRule ??
       path.join(
         process.cwd(),
-        "{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}.mp4",
+        "{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}",
       ),
 
     autoRemoveSystemReservedChars: opts.autoRemoveSystemReservedChars ?? true,

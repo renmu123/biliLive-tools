@@ -18,7 +18,7 @@ const manager = createRecorderManager({ providers: [provider] });
 manager.addRecorder({
   providerId: provider.id,
   channelId: "7734200",
-  quality: 10000,
+  quality: "highest",
   streamPriorities: [],
   sourcePriorities: [],
 });

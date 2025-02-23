@@ -17,8 +17,8 @@ import { provider } from "@bililive-tools/douyu-recorder";
 const manager = createRecorderManager({ providers: [provider] });
 manager.addRecorder({
   providerId: provider.id,
-  channelId: "7734200",
-  quality: 10000,
+  channelId: "74751",
+  quality: 0,
   streamPriorities: [],
   sourcePriorities: [],
 });

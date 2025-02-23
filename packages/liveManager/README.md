@@ -82,6 +82,8 @@ setFFMPEGPath("ffmpeg.exe");
 
 ## savePathRule 占位符参数
 
+默认值为 `{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}`
+
 | 值          | 标签   |
 | ----------- | ------ |
 | {platform}  | 平台   |

@@ -195,7 +195,7 @@ async function getLiveInfo(
     conditons = conditons.sort((a, b) => b.sort - a.sort);
   }
 
-  console.log("conditons", opts.codecName, conditons);
+  // console.log("conditons", opts.codecName, conditons);
 
   let streamInfo: CodecInfo | undefined;
   let streamOptions!: {

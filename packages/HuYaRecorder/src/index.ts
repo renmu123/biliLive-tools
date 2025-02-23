@@ -141,6 +141,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "idle";
     throw err;
   }
+
   const handleVideoCreated = async ({ filename }) => {
     this.emit("videoFileCreated", { filename });
     const extraDataController = streamManager?.getExtraDataController();

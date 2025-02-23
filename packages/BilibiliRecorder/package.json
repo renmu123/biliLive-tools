@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/bilibili-recorder",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "bililive-tools bilibili recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
@@ -41,6 +41,8 @@
     "@bililive-tools/manager": "workspace:*",
     "blive-message-listener": "^0.5.0",
     "mitt": "^3.0.1",
-    "tiny-bilibili-ws": "^1.0.1"
+    "tiny-bilibili-ws": "^1.0.1",
+    "lodash-es": "catalog:",
+    "axios": "catalog:"
   }
 }

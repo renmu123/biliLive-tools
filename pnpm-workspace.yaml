@@ -5,3 +5,8 @@ packages:
   - "components/**"
   # exclude packages that are inside test directories
   - "!**/test/**"
+
+# 定义目录和依赖版本号
+catalog:
+  lodash-es: ^4.17.21
+  axios: ^1.7.8

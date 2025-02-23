@@ -267,6 +267,10 @@ const md5 = (str: string) => {
   return crypto.createHash("md5").update(str).digest("hex");
 };
 
+const uuid = () => {
+  return crypto.randomUUID();
+};
+
 export default {
   replaceExtName,
   singleton,
@@ -282,4 +286,5 @@ export default {
   createTimeoutChecker,
   downloadImage,
   md5,
+  uuid,
 };

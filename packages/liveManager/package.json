@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/manager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Batch scheduling recorders",
   "main": "./lib/index.js",
   "type": "module",
@@ -41,6 +41,9 @@
     "fast-xml-parser": "^4.5.0",
     "filenamify": "^6.0.0",
     "mitt": "^3.0.1",
-    "string-argv": "^0.3.2"
+    "string-argv": "^0.3.2",
+    "lodash-es": "catalog:",
+    "axios": "catalog:",
+    "fs-extra": "^11.2.0"
   }
 }
