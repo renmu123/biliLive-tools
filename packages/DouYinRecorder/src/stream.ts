@@ -1,49 +1,63 @@
-import { Qualities, Recorder } from '@autorecord/manager'
-import { getRoomInfo, SourceProfile, StreamProfile } from './douyin_api'
-import * as R from 'ramda'
-import { getValuesFromArrayLikeFlexSpaceBetween } from './utils'
+import { Qualities, Recorder, utils } from "@bililive-tools/manager";
+import { getRoomInfo, SourceProfile, StreamProfile } from "./douyin_api.js";
+import { sortBy } from "lodash-es";
 
 export async function getInfo(channelId: string): Promise<{
-  living: boolean
-  owner: string
-  title: string
-  roomId: string
+  living: boolean;
+  owner: string;
+  title: string;
+  roomId: string;
+  avatar: string;
+  cover: string;
+  startTime: Date;
+  liveId?: string;
 }> {
-  const info = await getRoomInfo(channelId)
+  const info = await getRoomInfo(channelId);
 
   return {
     living: info.living,
     owner: info.owner,
     title: info.title,
     roomId: info.roomId,
-  }
+    avatar: "",
+    cover: "",
+    startTime: new Date(),
+  };
 }
 
 export async function getStream(
-  opts: Pick<Recorder, 'channelId' | 'quality' | 'streamPriorities' | 'sourcePriorities'> & { rejectCache?: boolean },
+  opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities"> & {
+    rejectCache?: boolean;
+  },
 ) {
-  const info = await getRoomInfo(opts.channelId)
+  const info = await getRoomInfo(opts.channelId);
   if (!info.living) {
-    throw new Error('It must be called getStream when living')
+    throw new Error("It must be called getStream when living");
   }
 
-  let expectStream: StreamProfile
-  const streamsWithPriority = sortAndFilterStreamsByPriority(info.streams, opts.streamPriorities)
+  let expectStream: StreamProfile;
+  const streamsWithPriority = sortAndFilterStreamsByPriority(info.streams, opts.streamPriorities);
   if (streamsWithPriority.length > 0) {
     // 通过优先级来选择对应流
-    expectStream = streamsWithPriority[0]
+    expectStream = streamsWithPriority[0];
   } else {
     // 通过设置的画质选项来选择对应流
-    const flexedStreams = getValuesFromArrayLikeFlexSpaceBetween(info.streams, Qualities.length)
-    expectStream = flexedStreams[Qualities.indexOf(opts.quality)]
+    const flexedStreams = utils.getValuesFromArrayLikeFlexSpaceBetween(
+      info.streams,
+      Qualities.length,
+    );
+    const qn = (
+      Qualities.includes(opts.quality as any) ? opts.quality : "highest"
+    ) as (typeof Qualities)[number];
+    expectStream = flexedStreams[Qualities.indexOf(qn)];
   }
 
-  let expectSource: SourceProfile | null = null
-  const sourcesWithPriority = sortAndFilterSourcesByPriority(info.sources, opts.sourcePriorities)
+  let expectSource: SourceProfile | null = null;
+  const sourcesWithPriority = sortAndFilterSourcesByPriority(info.sources, opts.sourcePriorities);
   if (sourcesWithPriority.length > 0) {
-    expectSource = sourcesWithPriority[0]
+    expectSource = sourcesWithPriority[0];
   } else {
-    expectSource = info.sources[0]
+    expectSource = info.sources[0];
   }
 
   return {
@@ -53,7 +67,7 @@ export async function getStream(
       source: expectSource.name,
       url: expectSource.streamMap[expectStream.key].main.flv,
     },
-  }
+  };
 }
 
 /**
@@ -61,22 +75,22 @@ export async function getStream(
  */
 function sortAndFilterStreamsByPriority(
   streams: StreamProfile[],
-  streamPriorities: Recorder['streamPriorities'],
+  streamPriorities: Recorder["streamPriorities"],
 ): (StreamProfile & {
-  priority: number
+  priority: number;
 })[] {
-  if (streamPriorities.length === 0) return []
+  if (streamPriorities.length === 0) return [];
 
-  return R.sortBy(
-    R.prop('priority'),
+  return sortBy(
     // 分配优先级属性，数字越大优先级越高
     streams
       .map((stream) => ({
         ...stream,
-        priority: R.reverse(streamPriorities).indexOf(stream.desc),
+        priority: streamPriorities.toReversed().indexOf(stream.desc),
       }))
       .filter(({ priority }) => priority !== -1),
-  )
+    "priority",
+  );
 }
 
 /**
@@ -84,20 +98,20 @@ function sortAndFilterStreamsByPriority(
  */
 function sortAndFilterSourcesByPriority(
   sources: SourceProfile[],
-  sourcePriorities: Recorder['sourcePriorities'],
+  sourcePriorities: Recorder["sourcePriorities"],
 ): (SourceProfile & {
-  priority: number
+  priority: number;
 })[] {
-  if (sourcePriorities.length === 0) return []
+  if (sourcePriorities.length === 0) return [];
 
-  return R.sortBy(
-    R.prop('priority'),
+  return sortBy(
     // 分配优先级属性，数字越大优先级越高
     sources
       .map((source) => ({
         ...source,
-        priority: R.reverse(sourcePriorities).indexOf(source.name),
+        priority: sourcePriorities.toReversed().indexOf(source.name),
       }))
       .filter(({ priority }) => priority !== -1),
-  )
+    "priority",
+  );
 }

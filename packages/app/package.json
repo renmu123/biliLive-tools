@@ -39,7 +39,8 @@
     "ntsuspend": "^1.0.2",
     "semver": "^7.6.3",
     "utf-8-validate": "^6.0.5",
-    "trash": "^9.0.0"
+    "trash": "^9.0.0",
+    "http-cookie-agent": "^6.0.8"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.2",
