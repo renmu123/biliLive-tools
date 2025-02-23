@@ -32,7 +32,7 @@ jobs:
         run: pnpm install
 
       - name: Build package
-        run: pnpm --filter @bililive-tools/* --filter bililive-cli --parallel run build
+        run: pnpm run build:base
 
       - name: Publish to npm
         shell: bash
