@@ -44,6 +44,42 @@ manager.addRecorder({
 manager.startCheckLoop();
 ```
 
+### 函数
+
+### addRecorder
+
+添加录制器，具体参数见各录制插件
+
+### removeRecorder
+
+移除录制器
+
+### startCheckLoop
+
+开启自动监听
+
+### stopCheckLoop
+
+停止自动监听
+
+### startRecord
+
+手动开启录制
+
+### stopRecord
+
+手动开启录制
+
+### setFFMPEGPath
+
+设置ffmpeg可执行路径
+
+```ts
+import { setFFMPEGPath } from "@bililive-tools/manager";
+
+setFFMPEGPath("ffmpeg.exe");
+```
+
 ## savePathRule 占位符参数
 
 | 值          | 标签   |

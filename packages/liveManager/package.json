@@ -27,6 +27,12 @@
   "files": [
     "lib"
   ],
+  "keywords": [
+    "bililive-tools",
+    "manager",
+    "scheduling",
+    "recorders"
+  ],
   "repository": "https://github.com/renmu123/biliLive-tools",
   "author": "renmu123",
   "license": "LGPL",
