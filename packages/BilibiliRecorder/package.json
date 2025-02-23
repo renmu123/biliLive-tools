@@ -26,6 +26,14 @@
   "files": [
     "lib"
   ],
+  "keywords": [
+    "bilibili",
+    "recorder",
+    "bililive-tools",
+    "直播",
+    "录制",
+    "哔哩哔哩"
+  ],
   "repository": "https://github.com/renmu123/biliLive-tools/tree/master/packages/BilibiliRecorder",
   "author": "renmu123",
   "license": "LGPL",

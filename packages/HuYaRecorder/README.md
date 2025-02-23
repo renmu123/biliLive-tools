@@ -2,7 +2,7 @@
 
 原项目：https://github.com/WhiteMinds/HuYaRecorder
 
-这是 [biliLive-tools](https://github.com/renmu123/biliLive-tools) 的一个平台插件，为其支持了虎牙平台
+这是 [biliLive-tools](https://github.com/renmu123/biliLive-tools) 的一个平台插件，为其支持了虎牙平台录制
 
 # 安装
 
@@ -22,6 +22,8 @@ manager.addRecorder({
   streamPriorities: [],
   sourcePriorities: [],
 });
+
+// 录制前请设置好ffmepg的环境变量，或手动指定，具体见`@bililive-tools/manager`文档
 manager.startCheckLoop();
 ```
 

@@ -467,6 +467,13 @@ $ pnpm run build:cli
 
 地址：https://github.com/renmu123/biliLive-webui
 
+## 直播录制相关库
+
+- [录制管理](https://www.npmjs.com/package/@bililive-tools/manager)
+- [B站录制](https://www.npmjs.com/package/@bililive-tools/bilibili-recorder)
+- [斗鱼录制](https://www.npmjs.com/package/@bililive-tools/douyu-recorder)
+- [虎牙录制](https://www.npmjs.com/package/@bililive-tools/huya-recorder)
+
 # 赞赏
 
 如果本项目对你有帮助，请我喝瓶快乐水吧，有助于项目更好维护。  
