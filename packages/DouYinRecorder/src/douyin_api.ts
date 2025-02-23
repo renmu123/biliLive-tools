@@ -25,6 +25,9 @@ export async function getRoomInfo(
   title: string;
   streams: StreamProfile[];
   sources: SourceProfile[];
+  avatar: string;
+  cover: string;
+  liveId: string;
 }> {
   // 抖音的 'webcast/room/web/enter' api 会需要 ttwid 的 cookie，这个 cookie 是由这个请求的响应头设置的，
   // 所以在这里请求一次自动设置。
@@ -53,7 +56,7 @@ export async function getRoomInfo(
       },
     },
   );
-  console.log(JSON.stringify(res.data, null, 2));
+  // console.log(JSON.stringify(res.data, null, 2));
 
   // 无 cookie 时 code 为 10037
   if (res.data.status_code === 10037 && retryOnSpecialCode) {
@@ -78,6 +81,9 @@ export async function getRoomInfo(
       title: room?.title ?? data.user.nickname,
       streams: [],
       sources: [],
+      avatar: data.user?.avatar_thumb?.url_list?.[0],
+      cover: room.cover?.url_list?.[0],
+      liveId: room.id_str,
     };
   }
 
@@ -109,6 +115,9 @@ export async function getRoomInfo(
     title: room.title,
     streams,
     sources,
+    avatar: data.user.avatar_thumb.url_list[0],
+    cover: room.cover?.url_list?.[0],
+    liveId: room.id_str,
   };
 }
 

@@ -11,36 +11,36 @@
 # 使用
 
 ```ts
-import { createRecorderManager } from '@bililive-tools/manager'
-import { provider } from '@bililive-tools/huya-recorder'
+import { createRecorderManager } from "@bililive-tools/manager";
+import { provider } from "@bililive-tools/douyin-recorder";
 
-const manager = createRecorderManager({ providers: [provider] })
+const manager = createRecorderManager({ providers: [provider] });
 manager.addRecorder({
   providerId: provider.id,
-  channelId: '7734200',
-  quality: 'highest',
+  channelId: "7734200",
+  quality: "highest",
   streamPriorities: [],
   sourcePriorities: [],
-})
+});
 
 // 录制前请设置好ffmepg的环境变量，或手动指定，具体见`@bililive-tools/manager`文档
-manager.startCheckLoop()
+manager.startCheckLoop();
 ```
 
 ## 参数
 
 ```ts
 interface Options {
-  channelId: string // 直播间ID，具体解析见文档，也可自行解析
-  quality: number // 见画质参数
-  qualityRetry?: number // 画质匹配重试次数
-  streamPriorities: [] // 废弃
-  sourcePriorities: [] // 废弃
-  disableAutoCheck?: boolean // 为 true 时 manager 将跳过自动检查
-  segment?: number // 分段参数
-  disableProvideCommentsWhenRecording?: boolean // 禁用弹幕录制
-  saveGiftDanma?: boolean // 保存礼物弹幕
-  saveCover?: boolean // 保存封面
+  channelId: string; // 直播间ID，具体解析见文档，也可自行解析
+  quality: number; // 见画质参数
+  qualityRetry?: number; // 画质匹配重试次数
+  streamPriorities: []; // 废弃
+  sourcePriorities: []; // 废弃
+  disableAutoCheck?: boolean; // 为 true 时 manager 将跳过自动检查
+  segment?: number; // 分段参数
+  disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
+  saveGiftDanma?: boolean; // 保存礼物弹幕
+  saveCover?: boolean; // 保存封面
 }
 ```
 
@@ -49,10 +49,10 @@ interface Options {
 解析出真实直播间ID
 
 ```ts
-import { provider } from '@bililive-tools/huya-recorder'
+import { provider } from "@bililive-tools/douyin-recorder";
 
-const url = 'https://live.bilibili.com/5055636'
-const { id } = await provider.resolveChannelInfoFromURL(url)
+const url = "https://live.bilibili.com/5055636";
+const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
 
 # 协议

@@ -19,9 +19,10 @@ export async function getInfo(channelId: string): Promise<{
     owner: info.owner,
     title: info.title,
     roomId: info.roomId,
-    avatar: "",
-    cover: "",
+    avatar: info.avatar,
+    cover: info.cover,
     startTime: new Date(),
+    liveId: info.liveId,
   };
 }
 
