@@ -81,7 +81,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (this.recordHandle != null) return this.recordHandle;
 
   const liveInfo = await getInfo(this.channelId);
-  const { living, owner, title } = liveInfo;
+  const { living, owner, title, cover } = liveInfo;
   this.liveInfo = liveInfo;
 
   if (liveInfo.liveId === banLiveId) {
@@ -143,10 +143,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       title: title,
       user_name: owner,
     });
-    // if (this.saveCover) {
-    //   const coverPath = utils.replaceExtName(filename, ".jpg");
-    //   utils.downloadImage(cover, coverPath);
-    // }
+    if (this.saveCover) {
+      const coverPath = utils.replaceExtName(filename, ".jpg");
+      utils.downloadImage(cover, coverPath);
+    }
   };
   streamManager.on("videoFileCreated", handleVideoCreated);
   streamManager.on("videoFileCompleted", ({ filename }) => {
