@@ -282,7 +282,9 @@
             >全局</n-checkbox
           >
         </n-form-item>
-        <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+        <n-form-item
+          v-if="!config.disableProvideCommentsWhenRecording && config.providerId !== 'HuYa'"
+        >
           <template #label>
             <span class="inline-flex"> 高能弹幕(SC) </span>
           </template>
