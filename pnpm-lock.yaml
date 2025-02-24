@@ -9,9 +9,18 @@ catalogs:
     axios:
       specifier: ^1.7.8
       version: 1.7.8
+    better-sqlite3:
+      specifier: 11.6.0
+      version: 11.6.0
+    font-ls:
+      specifier: 0.3.2
+      version: 0.3.2
     lodash-es:
       specifier: ^4.17.21
       version: 4.17.21
+    ntsuspend:
+      specifier: ^1.0.2
+      version: 1.0.2
 
 patchedDependencies:
   trash:
@@ -111,13 +120,13 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       better-sqlite3:
-        specifier: 11.6.0
+        specifier: 'catalog:'
         version: 11.6.0
       font-ls:
-        specifier: 0.3.2
+        specifier: 'catalog:'
         version: 0.3.2
       ntsuspend:
-        specifier: ^1.0.2
+        specifier: 'catalog:'
         version: 1.0.2
     devDependencies:
       '@biliLive-tools/http':
@@ -228,7 +237,7 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       better-sqlite3:
-        specifier: 11.6.0
+        specifier: 'catalog:'
         version: 11.6.0
       bufferutil:
         specifier: ^4.0.8
@@ -246,10 +255,10 @@ importers:
         specifier: ^6.3.9
         version: 6.3.9
       font-ls:
-        specifier: 0.3.2
+        specifier: 'catalog:'
         version: 0.3.2
       ntsuspend:
-        specifier: ^1.0.2
+        specifier: 'catalog:'
         version: 1.0.2
       semver:
         specifier: ^7.6.3
@@ -521,7 +530,7 @@ importers:
         specifier: ^11.0.4
         version: 11.0.4
       better-sqlite3:
-        specifier: 11.6.0
+        specifier: 'catalog:'
         version: 11.6.0
       check-disk-space:
         specifier: ^3.4.0
@@ -536,13 +545,13 @@ importers:
         specifier: ^4.5.0
         version: 4.5.0
       font-ls:
-        specifier: 0.3.2
+        specifier: 'catalog:'
         version: 0.3.2
       nodemailer:
         specifier: ^6.9.16
         version: 6.9.16
       ntsuspend:
-        specifier: ^1.0.2
+        specifier: 'catalog:'
         version: 1.0.2
       ollama:
         specifier: ^0.5.9
