@@ -16,7 +16,7 @@ export function useNotice() {
         keepAliveOnHover: true,
       };
       if (typeof input === "object") {
-        return error({
+        return info({
           ...iOptions,
           ...input,
         });
@@ -33,7 +33,7 @@ export function useNotice() {
         keepAliveOnHover: true,
       };
       if (typeof input === "object") {
-        return error({
+        return success({
           ...iOptions,
           ...input,
         });
@@ -50,7 +50,7 @@ export function useNotice() {
         keepAliveOnHover: true,
       };
       if (typeof input === "object") {
-        return error({
+        return warning({
           ...iOptions,
           ...input,
         });
