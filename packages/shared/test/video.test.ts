@@ -22,20 +22,8 @@ describe.concurrent("通用ffmpeg参数生成", () => {
     const output1 = genFfmpegParams(input);
     expect(output1).toEqual(["-c:v h264_nvenc", "-rc vbr", "-cq 34", "-preset p4", "-c:a copy"]);
   });
-  it("有无preset参数", () => {
-    const videoEncoders: VideoCodec[] = [
-      "libx264",
-      "h264_qsv",
-      "h264_nvenc",
-      "h264_amf",
-      "libx265",
-      "hevc_qsv",
-      "hevc_nvenc",
-      "hevc_amf",
-      "libsvtav1",
-      "av1_qsv",
-      "av1_amf",
-    ];
+  it("preset参数：未过滤", () => {
+    const videoEncoders: VideoCodec[] = ["h264_nvenc"];
     for (const encoder of videoEncoders) {
       const input: FfmpegOptions = {
         encoder: encoder,
@@ -53,9 +41,31 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       };
       const output = genFfmpegParams(input);
       const result = [`-c:v ${encoder}`, "-rc vbr", "-cq 34"];
-      if (["cpu", "qsv", "nvenc", "amf"].includes(getHardwareAcceleration(encoder))) {
-        result.push("-preset p4");
-      }
+      result.push("-preset p4");
+      result.push("-c:a copy");
+      expect(output).toEqual(result);
+    }
+  });
+
+  it("preset参数：过滤非该编码器", () => {
+    const videoEncoders: VideoCodec[] = ["libx264"];
+    for (const encoder of videoEncoders) {
+      const input: FfmpegOptions = {
+        encoder: encoder,
+        bitrateControl: "CQ",
+        crf: 34,
+        preset: "p4",
+        audioCodec: "copy",
+        bitrate: 8000,
+        decode: true,
+        extraOptions: "",
+        bit10: false,
+        resetResolution: false,
+        resolutionWidth: 3840,
+        resolutionHeight: 2160,
+      };
+      const output = genFfmpegParams(input);
+      const result = [`-c:v ${encoder}`, "-rc vbr", "-cq 34"];
       result.push("-c:a copy");
       expect(output).toEqual(result);
     }
@@ -127,7 +137,6 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       encoder: "libsvtav1",
       bitrateControl: "CRF",
       crf: 28,
-      preset: "p4",
       audioCodec: "flac",
       bitrate: 8000,
       decode: false,
@@ -138,20 +147,13 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       resolutionHeight: 2160,
     };
     const output1 = genFfmpegParams(input);
-    expect(output1).toEqual([
-      "-c:v libsvtav1",
-      "-crf 28",
-      "-preset p4",
-      "-pix_fmt yuv420p10le",
-      "-c:a flac",
-    ]);
+    expect(output1).toEqual(["-c:v libsvtav1", "-crf 28", "-pix_fmt yuv420p10le", "-c:a flac"]);
   });
   it("视频编码器是libsvtav1且是CRF模式", () => {
     const input: FfmpegOptions = {
       encoder: "libsvtav1",
       bitrateControl: "CRF",
       crf: 28,
-      preset: "p4",
       audioCodec: "flac",
       bitrate: 8000,
       decode: false,
@@ -162,20 +164,13 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       resolutionHeight: 2160,
     };
     const output1 = genFfmpegParams(input);
-    expect(output1).toEqual([
-      "-c:v libsvtav1",
-      "-crf 28",
-      "-preset p4",
-      "-pix_fmt yuv420p10le",
-      "-c:a flac",
-    ]);
+    expect(output1).toEqual(["-c:v libsvtav1", "-crf 28", "-pix_fmt yuv420p10le", "-c:a flac"]);
   });
   it("视频编码器是libsvtav1且是VBR模式", () => {
     const input: FfmpegOptions = {
       encoder: "libsvtav1",
       bitrateControl: "VBR",
       crf: 28,
-      preset: "p4",
       audioCodec: "flac",
       bitrate: 8000,
       decode: false,
@@ -186,13 +181,7 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       resolutionHeight: 2160,
     };
     const output1 = genFfmpegParams(input);
-    expect(output1).toEqual([
-      "-c:v libsvtav1",
-      "-b:v 8000k",
-      "-preset p4",
-      "-pix_fmt yuv420p10le",
-      "-c:a flac",
-    ]);
+    expect(output1).toEqual(["-c:v libsvtav1", "-b:v 8000k", "-pix_fmt yuv420p10le", "-c:a flac"]);
   });
   it("视频编码器是h264_nvenc且是CQ模式", () => {
     const input: FfmpegOptions = {
@@ -217,7 +206,6 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       encoder: "h264_qsv",
       bitrateControl: "ICQ",
       crf: 28,
-      preset: "p4",
       audioCodec: "flac",
       bitrate: 8000,
       decode: false,
@@ -228,14 +216,13 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       resolutionHeight: 2160,
     };
     const output1 = genFfmpegParams(input);
-    expect(output1).toEqual(["-c:v h264_qsv", "-global_quality 28", "-preset p4", "-c:a flac"]);
+    expect(output1).toEqual(["-c:v h264_qsv", "-global_quality 28", "-c:a flac"]);
   });
   it("设置分辨率", () => {
     const input: FfmpegOptions = {
       encoder: "h264_qsv",
       bitrateControl: "ICQ",
       crf: 28,
-      preset: "p4",
       audioCodec: "flac",
       bitrate: 8000,
       decode: false,
@@ -246,7 +233,7 @@ describe.concurrent("通用ffmpeg参数生成", () => {
       resolutionHeight: 2160,
     };
     const output1 = genFfmpegParams(input);
-    expect(output1).toEqual(["-c:v h264_qsv", "-global_quality 28", "-preset p4", "-c:a flac"]);
+    expect(output1).toEqual(["-c:v h264_qsv", "-global_quality 28", "-c:a flac"]);
   });
 });
 
