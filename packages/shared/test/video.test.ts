@@ -238,7 +238,7 @@ describe.concurrent("通用ffmpeg参数生成", () => {
 });
 
 describe.concurrent("genMergeAssMp4Command", () => {
-  it("压制参数：高能进度条+弹幕", async () => {
+  it("高能进度条+弹幕", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -272,7 +272,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：弹幕+无高能弹幕", async () => {
+  it("弹幕+无高能弹幕", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -304,7 +304,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：无弹幕+无高能弹幕", async () => {
+  it("无弹幕+无高能弹幕", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: undefined,
@@ -330,7 +330,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：弹幕+无高能弹幕+有切割参数", async () => {
+  it("弹幕+无高能弹幕+有切割参数", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -371,7 +371,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：hevc硬件解码", async () => {
+  it("nvenc硬件解码：无滤镜", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: undefined,
@@ -379,43 +379,61 @@ describe.concurrent("genMergeAssMp4Command", () => {
       hotProgressFilePath: undefined,
     };
 
-    const ffmpegOptions: FfmpegOptions[] = [
-      {
-        encoder: "h264_nvenc",
-        audioCodec: "copy",
-        decode: true,
-      },
-      {
-        encoder: "hevc_nvenc",
-        audioCodec: "copy",
-        decode: true,
-      },
-      {
-        encoder: "av1_nvenc",
-        audioCodec: "copy",
-        decode: true,
-      },
-    ];
-    for (const option of ffmpegOptions) {
-      const command = await genMergeAssMp4Command(files, option);
-      const args = command._getArguments();
-      expect(args).toEqual([
-        "-hwaccel",
-        "cuda",
-        "-hwaccel_output_format",
-        "cuda",
-        "-i",
-        "/path/to/video.mp4",
-        "-y",
-        "-c:v",
-        option.encoder,
-        "-c:a",
-        "copy",
-        "/path/to/output.mp4",
-      ]);
-    }
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "h264_nvenc",
+      audioCodec: "copy",
+      decode: true,
+    };
+
+    const command = await genMergeAssMp4Command(files, ffmpegOptions);
+    const args = command._getArguments();
+    expect(args).toEqual([
+      "-hwaccel",
+      "cuda",
+      "-hwaccel_output_format",
+      "cuda",
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-c:v",
+      ffmpegOptions.encoder,
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
   });
-  it("压制参数：弹幕+先缩放", async () => {
+  it("qsv硬件解码：无滤镜", async () => {
+    const files = {
+      videoFilePath: "/path/to/video.mp4",
+      assFilePath: undefined,
+      outputPath: "/path/to/output.mp4",
+      hotProgressFilePath: undefined,
+    };
+
+    const ffmpegOptions: FfmpegOptions = {
+      encoder: "h264_qsv",
+      audioCodec: "copy",
+      decode: true,
+    };
+
+    const command = await genMergeAssMp4Command(files, ffmpegOptions);
+    const args = command._getArguments();
+    expect(args).toEqual([
+      "-init_hw_device",
+      "qsv=hw",
+      "-filter_hw_device",
+      "hw",
+      "-i",
+      "/path/to/video.mp4",
+      "-y",
+      "-c:v",
+      "h264_qsv",
+      "-c:a",
+      "copy",
+      "/path/to/output.mp4",
+    ]);
+  });
+  it("弹幕+先缩放", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -451,7 +469,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：弹幕+后缩放", async () => {
+  it("弹幕+后缩放", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -487,7 +505,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：弹幕+时间戳", async () => {
+  it("弹幕+时间戳", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",
@@ -523,7 +541,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：无弹幕+缩放", async () => {
+  it("无弹幕+缩放", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: undefined,
@@ -559,7 +577,7 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
-  it("压制参数：弹幕+自定义视频滤镜", async () => {
+  it("弹幕+自定义视频滤镜", async () => {
     const files = {
       videoFilePath: "/path/to/video.mp4",
       assFilePath: "/path/to/subtitle.ass",

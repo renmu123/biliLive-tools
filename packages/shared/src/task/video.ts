@@ -588,11 +588,14 @@ export const genMergeAssMp4Command = async (
   }
 
   // 如果不存在滤镜，但存在硬件编码，添加硬件解码
-  if (!complexFilter.getFilters().length) {
+  if (!complexFilter.getFilters().length && ffmpegOptions.decode) {
     const hardware = getHardwareAcceleration(ffmpegOptions.encoder);
     if (hardware === "nvenc") {
       command.inputOptions("-hwaccel cuda");
       command.inputOptions("-hwaccel_output_format cuda");
+    } else if (hardware === "qsv") {
+      command.inputOptions("-init_hw_device qsv=hw");
+      command.inputOptions("-filter_hw_device hw");
     }
   }
 
