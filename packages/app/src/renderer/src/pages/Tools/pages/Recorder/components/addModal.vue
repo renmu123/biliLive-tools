@@ -422,6 +422,8 @@ const onChannelIdInputEnd = async () => {
     config.value.extra!.recorderUid = res.uid;
   } else if (res.providerId === "DouYu") {
     config.value.quality = 0;
+  } else {
+    config.value.quality = "highest";
   }
 };
 
@@ -432,7 +434,7 @@ watch(showModal, async (val) => {
     config.value = {
       providerId: "DouYu",
       channelId: "",
-      segment: 60,
+      segment: 90,
       quality: 0,
       disableProvideCommentsWhenRecording: true,
       saveGiftDanma: false,
