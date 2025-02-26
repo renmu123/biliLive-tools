@@ -614,6 +614,375 @@ describe.concurrent("genMergeAssMp4Command", () => {
       "/path/to/output.mp4",
     ]);
   });
+  describe("硬件scale过滤器", () => {
+    describe("nvidia", () => {
+      it("只有scale过滤器", async () => {
+        const files = {
+          videoFilePath: "/path/to/video.mp4",
+          assFilePath: undefined,
+          outputPath: "/path/to/output.mp4",
+          hotProgressFilePath: undefined,
+        };
+
+        const ffmpegOptions: FfmpegOptions = {
+          encoder: "h264_nvenc",
+          audioCodec: "copy",
+          decode: true,
+          resolutionHeight: 1920,
+          resolutionWidth: 1080,
+          resetResolution: true,
+          hardwareScaleFilter: true,
+        };
+
+        const command = await genMergeAssMp4Command(files, ffmpegOptions);
+        const args = command._getArguments();
+        expect(args).toEqual([
+          "-hwaccel",
+          "cuda",
+          "-hwaccel_output_format",
+          "cuda",
+          "-i",
+          "/path/to/video.mp4",
+          "-y",
+          "-filter_complex",
+          "[0:v]scale_cuda=1080:1920[0:video]",
+          "-map",
+          "[0:video]",
+          "-map",
+          "0:a",
+          "-c:v",
+          "h264_nvenc",
+          "-c:a",
+          "copy",
+          "/path/to/output.mp4",
+        ]);
+      });
+      it("先缩放后渲染", async () => {
+        const files = {
+          videoFilePath: "/path/to/video.mp4",
+          assFilePath: "subtitle.ass",
+          outputPath: "/path/to/output.mp4",
+          hotProgressFilePath: undefined,
+        };
+
+        const ffmpegOptions: FfmpegOptions = {
+          encoder: "h264_nvenc",
+          audioCodec: "copy",
+          decode: true,
+          resolutionHeight: 1920,
+          resolutionWidth: 1080,
+          resetResolution: true,
+          hardwareScaleFilter: true,
+          scaleMethod: "before",
+        };
+
+        const command = await genMergeAssMp4Command(files, ffmpegOptions);
+        const args = command._getArguments();
+        expect(args).toEqual([
+          "-i",
+          "/path/to/video.mp4",
+          "-y",
+          "-filter_complex",
+          "[0:v]scale=1080:1920[0:video];[0:video]subtitles=subtitle.ass[1:video]",
+          "-map",
+          "[1:video]",
+          "-map",
+          "0:a",
+          "-c:v",
+          "h264_nvenc",
+          "-c:a",
+          "copy",
+          "/path/to/output.mp4",
+        ]);
+      });
+      it("先渲染后缩放", async () => {
+        const files = {
+          videoFilePath: "/path/to/video.mp4",
+          assFilePath: "subtitle.ass",
+          outputPath: "/path/to/output.mp4",
+          hotProgressFilePath: undefined,
+        };
+
+        const ffmpegOptions: FfmpegOptions = {
+          encoder: "h264_nvenc",
+          audioCodec: "copy",
+          decode: true,
+          resolutionHeight: 1920,
+          resolutionWidth: 1080,
+          resetResolution: true,
+          hardwareScaleFilter: true,
+          scaleMethod: "after",
+        };
+
+        const command = await genMergeAssMp4Command(files, ffmpegOptions);
+        const args = command._getArguments();
+        expect(args).toEqual([
+          "-i",
+          "/path/to/video.mp4",
+          "-y",
+          "-filter_complex",
+          "[0:v]subtitles=subtitle.ass[0:video];[0:video]hwupload_cuda,scale_cuda=1080:1920[1:video]",
+          "-map",
+          "[1:video]",
+          "-map",
+          "0:a",
+          "-c:v",
+          "h264_nvenc",
+          "-c:a",
+          "copy",
+          "/path/to/output.mp4",
+        ]);
+      });
+    });
+    describe("qsv", () => {
+      it("只有scale过滤器", async () => {
+        const files = {
+          videoFilePath: "/path/to/video.mp4",
+          assFilePath: undefined,
+          outputPath: "/path/to/output.mp4",
+          hotProgressFilePath: undefined,
+        };
+
+        const ffmpegOptions: FfmpegOptions = {
+          encoder: "h264_qsv",
+          audioCodec: "copy",
+          decode: true,
+          resolutionHeight: 1920,
+          resolutionWidth: 1080,
+          resetResolution: true,
+          hardwareScaleFilter: true,
+        };
+
+        const command = await genMergeAssMp4Command(files, ffmpegOptions);
+        const args = command._getArguments();
+        expect(args).toEqual([
+          "-init_hw_device",
+          "qsv=hw",
+          "-filter_hw_device",
+          "hw",
+          "-i",
+          "/path/to/video.mp4",
+          "-y",
+          "-filter_complex",
+          "[0:v]hwupload,scale_qsv=1080:1920[0:video]",
+          "-map",
+          "[0:video]",
+          "-map",
+          "0:a",
+          "-c:v",
+          "h264_qsv",
+          "-c:a",
+          "copy",
+          "/path/to/output.mp4",
+        ]);
+      });
+      it("先缩放后渲染", async () => {
+        const files = {
+          videoFilePath: "/path/to/video.mp4",
+          assFilePath: "subtitle.ass",
+          outputPath: "/path/to/output.mp4",
+          hotProgressFilePath: undefined,
+        };
+
+        const ffmpegOptions: FfmpegOptions = {
+          encoder: "h264_qsv",
+          audioCodec: "copy",
+          decode: true,
+          resolutionHeight: 1920,
+          resolutionWidth: 1080,
+          resetResolution: true,
+          hardwareScaleFilter: true,
+          scaleMethod: "before",
+        };
+
+        const command = await genMergeAssMp4Command(files, ffmpegOptions);
+        const args = command._getArguments();
+
+        expect(args).toEqual([
+          "-i",
+          "/path/to/video.mp4",
+          "-y",
+          "-filter_complex",
+          "[0:v]scale=1080:1920[0:video];[0:video]subtitles=subtitle.ass[1:video]",
+          "-map",
+          "[1:video]",
+          "-map",
+          "0:a",
+          "-c:v",
+          "h264_qsv",
+          "-c:a",
+          "copy",
+          "/path/to/output.mp4",
+        ]);
+      });
+      it("先渲染后缩放", async () => {
+        const files = {
+          videoFilePath: "/path/to/video.mp4",
+          assFilePath: "subtitle.ass",
+          outputPath: "/path/to/output.mp4",
+          hotProgressFilePath: undefined,
+        };
+
+        const ffmpegOptions: FfmpegOptions = {
+          encoder: "h264_qsv",
+          audioCodec: "copy",
+          decode: true,
+          resolutionHeight: 1920,
+          resolutionWidth: 1080,
+          resetResolution: true,
+          hardwareScaleFilter: true,
+          scaleMethod: "after",
+        };
+
+        const command = await genMergeAssMp4Command(files, ffmpegOptions);
+        const args = command._getArguments();
+        expect(args).toEqual([
+          "-init_hw_device",
+          "qsv=hw",
+          "-filter_hw_device",
+          "hw",
+          "-i",
+          "/path/to/video.mp4",
+          "-y",
+          "-filter_complex",
+          "[0:v]subtitles=subtitle.ass[0:video];[0:video]hwupload,scale_qsv=1080:1920[1:video]",
+          "-map",
+          "[1:video]",
+          "-map",
+          "0:a",
+          "-c:v",
+          "h264_qsv",
+          "-c:a",
+          "copy",
+          "/path/to/output.mp4",
+        ]);
+      });
+    });
+    describe("amd", () => {
+      it("只有scale过滤器", async () => {
+        const files = {
+          videoFilePath: "/path/to/video.mp4",
+          assFilePath: undefined,
+          outputPath: "/path/to/output.mp4",
+          hotProgressFilePath: undefined,
+        };
+
+        const ffmpegOptions: FfmpegOptions = {
+          encoder: "h264_amf",
+          audioCodec: "copy",
+          decode: true,
+          resolutionHeight: 1920,
+          resolutionWidth: 1080,
+          resetResolution: true,
+          hardwareScaleFilter: true,
+        };
+
+        const command = await genMergeAssMp4Command(files, ffmpegOptions);
+        const args = command._getArguments();
+
+        expect(args).toEqual([
+          "-hwaccel",
+          "amf",
+          "-init_hw_device",
+          "amf=amf",
+          "-filter_hw_device",
+          "amf",
+          "-i",
+          "/path/to/video.mp4",
+          "-y",
+          "-filter_complex",
+          "[0:v]vpp_amf=1080:1920[0:video]",
+          "-map",
+          "[0:video]",
+          "-map",
+          "0:a",
+          "-c:v",
+          "h264_amf",
+          "-c:a",
+          "copy",
+          "/path/to/output.mp4",
+        ]);
+      });
+      it("先缩放后渲染", async () => {
+        const files = {
+          videoFilePath: "/path/to/video.mp4",
+          assFilePath: "subtitle.ass",
+          outputPath: "/path/to/output.mp4",
+          hotProgressFilePath: undefined,
+        };
+
+        const ffmpegOptions: FfmpegOptions = {
+          encoder: "h264_amf",
+          audioCodec: "copy",
+          decode: true,
+          resolutionHeight: 1920,
+          resolutionWidth: 1080,
+          resetResolution: true,
+          hardwareScaleFilter: true,
+          scaleMethod: "before",
+        };
+
+        const command = await genMergeAssMp4Command(files, ffmpegOptions);
+        const args = command._getArguments();
+
+        expect(args).toEqual([
+          "-i",
+          "/path/to/video.mp4",
+          "-y",
+          "-filter_complex",
+          "[0:v]scale=1080:1920[0:video];[0:video]subtitles=subtitle.ass[1:video]",
+          "-map",
+          "[1:video]",
+          "-map",
+          "0:a",
+          "-c:v",
+          "h264_amf",
+          "-c:a",
+          "copy",
+          "/path/to/output.mp4",
+        ]);
+      });
+      it("先渲染后缩放", async () => {
+        const files = {
+          videoFilePath: "/path/to/video.mp4",
+          assFilePath: "subtitle.ass",
+          outputPath: "/path/to/output.mp4",
+          hotProgressFilePath: undefined,
+        };
+
+        const ffmpegOptions: FfmpegOptions = {
+          encoder: "h264_amf",
+          audioCodec: "copy",
+          decode: true,
+          resolutionHeight: 1920,
+          resolutionWidth: 1080,
+          resetResolution: true,
+          hardwareScaleFilter: true,
+          scaleMethod: "after",
+        };
+
+        const command = await genMergeAssMp4Command(files, ffmpegOptions);
+        const args = command._getArguments();
+        console.log(args);
+        expect(args).toEqual([
+          "-i",
+          "/path/to/video.mp4",
+          "-y",
+          "-filter_complex",
+          "[0:v]subtitles=subtitle.ass[0:video];[0:video]vpp_amf=1080:1920[1:video]",
+          "-map",
+          "[1:video]",
+          "-map",
+          "0:a",
+          "-c:v",
+          "h264_amf",
+          "-c:a",
+          "copy",
+          "/path/to/output.mp4",
+        ]);
+      });
+    });
+  });
 });
 
 describe.concurrent("selectScaleMethod", () => {
