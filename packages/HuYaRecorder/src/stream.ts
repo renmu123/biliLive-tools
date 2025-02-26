@@ -1,7 +1,11 @@
-import { Qualities, Recorder } from "@bililive-tools/manager";
-import { getRoomInfo, SourceProfile, StreamProfile } from "./huya_api.js";
-import { getValuesFromArrayLikeFlexSpaceBetween } from "./utils.js";
 import { sortBy } from "lodash-es";
+import { Qualities, Recorder } from "@bililive-tools/manager";
+
+import { getRoomInfo as getRoomInfoByWeb } from "./huya_api.js";
+import { getRoomInfo as getRoomInfoByMobile } from "./huya_mobile_api.js";
+import { getValuesFromArrayLikeFlexSpaceBetween } from "./utils.js";
+
+import type { SourceProfile, StreamProfile } from "./huya_api.js";
 
 export async function getInfo(channelId: string): Promise<{
   living: boolean;
@@ -13,7 +17,7 @@ export async function getInfo(channelId: string): Promise<{
   startTime: Date;
   liveId?: string;
 }> {
-  const info = await getRoomInfo(channelId);
+  const info = await getRoomInfoByWeb(channelId);
 
   return {
     living: info.living,
@@ -32,7 +36,8 @@ export async function getStream(
     rejectCache?: boolean;
   },
 ) {
-  const info = await getRoomInfo(opts.channelId);
+  // 修改后可能lol分区会出问题
+  const info = await getRoomInfoByMobile(opts.channelId);
   if (!info.living) {
     throw new Error("It must be called getStream when living");
   }
