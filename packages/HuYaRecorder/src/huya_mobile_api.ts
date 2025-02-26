@@ -1,5 +1,5 @@
-import { createHash, randomInt } from "node:crypto";
-import { URLSearchParams } from "node:url";
+// import { createHash, randomInt } from "node:crypto";
+// import { URLSearchParams } from "node:url";
 
 import axios from "axios";
 
@@ -169,13 +169,13 @@ export async function getRoomInfo(roomIdOrShortId: string) {
 //   return Buffer.from(str, "base64").toString("utf-8");
 // }
 
-interface CacheProfileOffData {
-  liveStatus: "OFF";
-}
+// interface CacheProfileOffData {
+//   liveStatus: "OFF";
+// }
 
-interface CacheProfileReplayData {
-  liveStatus: "REPLAY";
-}
+// interface CacheProfileReplayData {
+//   liveStatus: "REPLAY";
+// }
 
 interface CacheProfileOnData {
   liveStatus: "ON";
@@ -232,7 +232,7 @@ interface CacheProfileOnData {
   };
 }
 
-type CacheProfileData = CacheProfileOffData | CacheProfileReplayData | CacheProfileOnData;
+// type CacheProfileData = CacheProfileOffData | CacheProfileReplayData | CacheProfileOnData;
 
 const cdn = {
   AL: "阿里",
