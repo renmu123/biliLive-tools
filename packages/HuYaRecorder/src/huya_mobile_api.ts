@@ -234,18 +234,6 @@ interface CacheProfileOnData {
 
 type CacheProfileData = CacheProfileOffData | CacheProfileReplayData | CacheProfileOnData;
 
-interface CacheProfile {
-  status: number;
-  message: string;
-  data: CacheProfileData & {
-    liveData: {
-      nick: string;
-      gameFullName: string;
-      introduction: string;
-    };
-  };
-}
-
 const cdn = {
   AL: "阿里",
   AL13: "阿里13",
