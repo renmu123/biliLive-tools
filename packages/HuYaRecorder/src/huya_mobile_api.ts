@@ -82,92 +82,92 @@ export async function getRoomInfo(roomIdOrShortId: string) {
   };
 }
 
-async function getAnonymousUid() {
-  const url = "https://udblgn.huya.com/web/anonymousLogin";
-  const json = {
-    appId: 5002,
-    byPass: 3,
-    context: "",
-    version: "2.4",
-    data: {},
-  };
+// async function getAnonymousUid() {
+//   const url = "https://udblgn.huya.com/web/anonymousLogin";
+//   const json = {
+//     appId: 5002,
+//     byPass: 3,
+//     context: "",
+//     version: "2.4",
+//     data: {},
+//   };
 
-  const res = await requester.post(url, json);
-  // const obj = (await resp.json()) as { data: { uid: string } };
-  console.log("uid", res.data);
+//   const res = await requester.post(url, json);
+//   // const obj = (await resp.json()) as { data: { uid: string } };
+//   console.log("uid", res.data);
 
-  return res.data?.data?.uid;
-}
+//   return res.data?.data?.uid;
+// }
 
-function newUuid() {
-  const now = new Date().getTime();
-  const rand = Math.floor(Math.random() * 1000) | 0;
-  return ((now % 10000000000) * 1000 + rand) % 4294967295;
-}
+// function newUuid() {
+//   const now = new Date().getTime();
+//   const rand = Math.floor(Math.random() * 1000) | 0;
+//   return ((now % 10000000000) * 1000 + rand) % 4294967295;
+// }
 
-function parseAnticode(code: string, uid: string, streamname: string) {
-  const q = {} as Record<string, [string]>;
-  for (const [k, v] of new URLSearchParams(code)) {
-    q[k] = [v];
-  }
-  q.ver = ["1"];
-  q.sv = ["2110211124"];
+// function parseAnticode(code: string, uid: string, streamname: string) {
+//   const q = {} as Record<string, [string]>;
+//   for (const [k, v] of new URLSearchParams(code)) {
+//     q[k] = [v];
+//   }
+//   q.ver = ["1"];
+//   q.sv = ["2110211124"];
 
-  q.seqid = [String(Number.parseInt(uid) + new Date().getTime())];
-  console.log("seqid", q.seqid);
+//   q.seqid = [String(Number.parseInt(uid) + new Date().getTime())];
+//   console.log("seqid", q.seqid);
 
-  q.uid = [uid];
-  q.uuid = [String(newUuid())];
-  console.log("uuid", q.uuid);
+//   q.uid = [uid];
+//   q.uuid = [String(newUuid())];
+//   console.log("uuid", q.uuid);
 
-  const ss = createHash("md5").update(`${q.seqid[0]}|${q.ctype[0]}|${q.t[0]}`).digest("hex");
-  console.log("ss", ss);
+//   const ss = createHash("md5").update(`${q.seqid[0]}|${q.ctype[0]}|${q.t[0]}`).digest("hex");
+//   console.log("ss", ss);
 
-  q.fm[0] = Buffer.from(q.fm[0], "base64")
-    .toString("utf-8")
-    .replace("$0", q.uid[0])
-    .replace("$1", streamname)
-    .replace("$2", ss)
-    .replace("$3", q.wsTime[0]);
+//   q.fm[0] = Buffer.from(q.fm[0], "base64")
+//     .toString("utf-8")
+//     .replace("$0", q.uid[0])
+//     .replace("$1", streamname)
+//     .replace("$2", ss)
+//     .replace("$3", q.wsTime[0]);
 
-  q.wsSecret[0] = createHash("md5").update(q.fm[0]).digest("hex");
-  console.log("wsSecret", q.wsSecret);
+//   q.wsSecret[0] = createHash("md5").update(q.fm[0]).digest("hex");
+//   console.log("wsSecret", q.wsSecret);
 
-  delete q.fm;
-  if ("txyp" in q) {
-    delete q.txyp;
-  }
+//   delete q.fm;
+//   if ("txyp" in q) {
+//     delete q.txyp;
+//   }
 
-  const queryString = Object.entries(q)
-    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value[0])}`)
-    .join("&");
+//   const queryString = Object.entries(q)
+//     .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value[0])}`)
+//     .join("&");
 
-  return queryString;
-}
+//   return queryString;
+// }
 
-function generateStreamParams(streamInfo: { sFlvAntiCode: string; sStreamName: string }) {
-  const urlQuery = new URLSearchParams(streamInfo.sFlvAntiCode);
-  const uid = randomInt(1400000000000, 1500000000000);
-  const ws_time = Math.floor(Date.now() / 1000 + 21600).toString(16);
-  const seq_id = Math.round(Date.now()) + uid;
+// function generateStreamParams(streamInfo: { sFlvAntiCode: string; sStreamName: string }) {
+//   const urlQuery = new URLSearchParams(streamInfo.sFlvAntiCode);
+//   const uid = randomInt(1400000000000, 1500000000000);
+//   const ws_time = Math.floor(Date.now() / 1000 + 21600).toString(16);
+//   const seq_id = Math.round(Date.now()) + uid;
 
-  const fmDecoded = base64Decode(decodeURIComponent(urlQuery.get("fm") || ""));
-  const ws_secret_prefix = fmDecoded.split("_")[0];
+//   const fmDecoded = base64Decode(decodeURIComponent(urlQuery.get("fm") || ""));
+//   const ws_secret_prefix = fmDecoded.split("_")[0];
 
-  const ws_secret_hash = createHash("md5")
-    .update(`${seq_id}|${urlQuery.get("ctype")}|${urlQuery.get("t")}`)
-    .digest("hex");
+//   const ws_secret_hash = createHash("md5")
+//     .update(`${seq_id}|${urlQuery.get("ctype")}|${urlQuery.get("t")}`)
+//     .digest("hex");
 
-  const ws_secret = createHash("md5")
-    .update(`${ws_secret_prefix}_${uid}_${streamInfo.sStreamName}_${ws_secret_hash}_${ws_time}`)
-    .digest("hex");
+//   const ws_secret = createHash("md5")
+//     .update(`${ws_secret_prefix}_${uid}_${streamInfo.sStreamName}_${ws_secret_hash}_${ws_time}`)
+//     .digest("hex");
 
-  return { uid, ws_time, seq_id, ws_secret, urlQuery };
-}
+//   return { uid, ws_time, seq_id, ws_secret, urlQuery };
+// }
 
-function base64Decode(str: string): string {
-  return Buffer.from(str, "base64").toString("utf-8");
-}
+// function base64Decode(str: string): string {
+//   return Buffer.from(str, "base64").toString("utf-8");
+// }
 
 interface CacheProfileOffData {
   liveStatus: "OFF";
