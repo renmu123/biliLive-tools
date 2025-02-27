@@ -44,5 +44,8 @@
     "tiny-bilibili-ws": "^1.0.1",
     "lodash-es": "catalog:",
     "axios": "catalog:"
+  },
+  "peerDependencies": {
+    "@bililive-tools/manager": "^1.0.0"
   }
 }

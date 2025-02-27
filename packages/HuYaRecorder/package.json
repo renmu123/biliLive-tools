@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/huya-recorder",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "bililive-tools huya recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
@@ -46,6 +46,6 @@
   },
   "devDependencies": {},
   "peerDependencies": {
-    "@bililive-tools/manager": "*"
+    "@bililive-tools/manager": "^1.1.0"
   }
 }

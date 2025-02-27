@@ -6,6 +6,8 @@
 
 # 安装
 
+**建议所有录制器和manager包都升级到最新版，我不会对兼容性做过多考虑**
+
 `npm i @bililive-tools/huya-recorder @bililive-tools/manager`
 
 # 使用

@@ -51,7 +51,7 @@
     "@types/ws": "^8.5.13"
   },
   "peerDependencies": {
-    "@bililive-tools/manager": "*"
+    "@bililive-tools/manager": "^1.0.0"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8",
