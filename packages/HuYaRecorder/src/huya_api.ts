@@ -51,6 +51,7 @@ export async function getRoomInfo(roomIdOrShortId: string) {
     sources,
     startTime,
     liveId: utils.md5(`${roomIdOrShortId}-${startTime?.getTime()}`),
+    gid: data.gameLiveInfo.gid,
   };
 }
 

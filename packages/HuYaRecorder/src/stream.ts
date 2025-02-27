@@ -31,13 +31,27 @@ export async function getInfo(channelId: string): Promise<{
   };
 }
 
+async function getRoomInfo(channelId: string, api: "auto" | "mobile" | "web" = "auto") {
+  if (api == "auto") {
+    const info = await getRoomInfoByWeb(channelId);
+    if (info.gid == 1663) {
+      return getRoomInfoByMobile(channelId);
+    }
+  } else if (api == "mobile") {
+    return getRoomInfoByMobile(channelId);
+  } else if (api == "web") {
+    return getRoomInfoByWeb(channelId);
+  } else {
+    throw new Error("Invalid api");
+  }
+}
+
 export async function getStream(
   opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities"> & {
     rejectCache?: boolean;
   },
 ) {
-  // 修改后可能lol分区会出问题
-  const info = await getRoomInfoByMobile(opts.channelId);
+  const info = await getRoomInfo(opts.channelId);
   if (!info.living) {
     throw new Error("It must be called getStream when living");
   }

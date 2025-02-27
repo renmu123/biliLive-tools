@@ -229,6 +229,8 @@ interface CacheProfileOnData {
     introduction: string;
     avatar180: string;
     screenshot: string;
+    /** 分区：1英雄联盟，1633星秀  */
+    gid: number;
   };
 }
 
