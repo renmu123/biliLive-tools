@@ -14,7 +14,10 @@ const requester = axios.create({
   },
 });
 
-export async function getRoomInfo(roomIdOrShortId: string) {
+export async function getRoomInfo(
+  roomIdOrShortId: string,
+  formatName: "auto" | "flv" | "hls" = "auto",
+) {
   const res = await requester.get(
     `https://mp.huya.com/cache.php?m=Live&do=profileRoom&roomid=${roomIdOrShortId}`,
   );
@@ -75,8 +78,8 @@ export async function getRoomInfo(roomIdOrShortId: string) {
     roomId: profile.liveData.profileRoom,
     avatar: profile.liveData.avatar180,
     cover: profile.liveData.screenshot,
-    streams: streams.flv,
-    sources: sources.flv,
+    streams: formatName === "hls" ? streams.hls : streams.flv,
+    sources: formatName === "hls" ? sources.hls : sources.flv,
     startTime,
     liveId: utils.md5(`${roomIdOrShortId}-${startTime?.getTime()}`),
   };
@@ -239,6 +242,9 @@ interface CacheProfileOnData {
 const cdn = {
   AL: "阿里",
   AL13: "阿里13",
+  TX15: "腾讯15",
+  HW16: "华为16",
+  HYZJ: "不知道是啥",
   TX: "腾讯",
   HW: "华为",
   HS: "火山",

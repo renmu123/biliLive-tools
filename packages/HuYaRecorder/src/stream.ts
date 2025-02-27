@@ -33,26 +33,35 @@ export async function getInfo(channelId: string): Promise<{
 
 async function getRoomInfo(
   channelId: string,
-  api: "auto" | "mp" | "web" = "auto",
+  options: {
+    api: "auto" | "mp" | "web";
+    formatName: "auto" | "flv" | "hls";
+  },
 ): ReturnType<typeof getRoomInfoByMobile> {
-  if (api == "auto") {
-    const info = await getRoomInfoByWeb(channelId);
+  if (options.api == "auto") {
+    const info = await getRoomInfoByWeb(channelId, options.formatName);
     if (info.gid == 1663) {
-      return getRoomInfoByMobile(channelId);
+      return getRoomInfoByMobile(channelId, options.formatName);
     }
     return info;
-  } else if (api == "mp") {
-    return getRoomInfoByMobile(channelId);
-  } else if (api == "web") {
-    return getRoomInfoByWeb(channelId);
+  } else if (options.api == "mp") {
+    return getRoomInfoByMobile(channelId, options.formatName);
+  } else if (options.api == "web") {
+    return getRoomInfoByWeb(channelId, options.formatName);
   }
   assert(false, "Invalid api");
 }
 
 export async function getStream(
-  opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "api">,
+  opts: Pick<
+    Recorder,
+    "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "api" | "formatName"
+  >,
 ) {
-  const info = await getRoomInfo(opts.channelId, opts.api ?? "auto");
+  const info = await getRoomInfo(opts.channelId, {
+    api: opts.api ?? "auto",
+    formatName: (opts.formatName as "auto" | "flv" | "hls") ?? "auto",
+  });
   if (!info.living) {
     throw new Error("It must be called getStream when living");
   }

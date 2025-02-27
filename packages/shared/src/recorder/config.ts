@@ -26,7 +26,13 @@ export default class RecorderConfig {
         } else if (key === "useM3U8Proxy") {
           return get(globalConfig, "bilibili.useM3U8Proxy");
         } else if (key === "formatName") {
-          return get(globalConfig, "bilibili.formatName");
+          if (setting.providerId === "Bilibili") {
+            return get(globalConfig, "bilibili.formatName");
+          } else if (setting.providerId === "HuYa") {
+            return "auto";
+          } else {
+            return "auto";
+          }
         } else if (key === "quality") {
           if (setting.providerId === "Bilibili") {
             return get(globalConfig, "bilibili.quality");

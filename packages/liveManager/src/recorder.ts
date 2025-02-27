@@ -23,6 +23,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   streamPriorities: string[];
   // 该项为用户配置，不同源（CDN）的优先级，如果设置了此项，将优先根据此决定使用哪个源，除非所有的指定源无效
   sourcePriorities: string[];
+  // 按提供的源优先级去给CDN列表排序，并过滤掉不在优先级配置中的源
+  formatPriorities?: string[];
   // 该项为用户配置，指定录制的片段时长，单位为秒，如果设置了此项，将按此时长切片录制
   segment?: number;
   // 保存礼物弹幕

@@ -36,7 +36,8 @@ interface Options {
   channelId: string; // 直播间ID，具体解析见文档，也可自行解析
   quality: number; // 见画质参数
   streamPriorities: []; // 废弃
-  sourcePriorities: []; // 废弃
+  sourcePriorities: []; // 按提供的源优先级去给CDN列表排序，并过滤掉不在优先级配置中的源，在未匹配到的情况下会优先使用TX的CDN，具体参数见 CDN 参数
+  formatName?: "auto" | "flv" | "hls"; // 支持 flv,hls参数，默认使用flv，具体见文档
   disableAutoCheck?: boolean; // 为 true 时 manager 将跳过自动检查
   segment?: number; // 分段参数
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
@@ -63,15 +64,21 @@ interface Options {
 
 不同直播间可能支持的cdn并不一致
 
-| 画质 | 值  |
-| ---- | --- |
-| 阿里 | AL  |
-| 腾讯 | TX  |
-| 华为 | HW  |
-| 火山 | HS  |
-| 网宿 | WS  |
+| 画质                       | 值   |
+| -------------------------- | ---- |
+| 阿里                       | AL   |
+| 腾讯                       | TX   |
+| 华为                       | HW   |
+| 火山                       | HS   |
+| 网宿                       | WS   |
+| 阿里13                     | AL13 |
+| 腾讯15                     | TX15 |
+| 华为16                     | HW16 |
+| 不知道是啥(可能是虎牙自建) | HYZJ |
 
 ### 流格式
+
+hls 可能并不适合 mp 的 api，也许你能找到可以使用的cdn
 
 支持 hls 和 flv
 

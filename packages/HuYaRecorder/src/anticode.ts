@@ -251,15 +251,21 @@ class Anticode {
 }
 
 export function initInfo(
-  info: { sFlvUrl: string; sFlvAntiCode: string; sStreamName: string; _sessionId: number },
+  info: {
+    baseUrl: string;
+    antiCode: string;
+    sStreamName: string;
+    _sessionId: number;
+    suffix: string;
+  },
   t?: unknown,
 ) {
-  if (info.sFlvUrl && info.sStreamName) {
-    info.url = "".concat(info.sFlvUrl, "/").concat(info.sStreamName, ".flv");
+  if (info.baseUrl && info.sStreamName) {
+    info.url = "".concat(info.baseUrl, "/").concat(info.sStreamName, `.${info.suffix}`);
   }
   var i = [];
   const anticode = new Anticode();
-  anticode.init(info.sFlvUrl, info.sStreamName, info.sFlvAntiCode);
+  anticode.init(info.baseUrl, info.sStreamName, info.antiCode);
   if (anticode.hasAnticode()) {
     i.push(anticode.getAnticode(t));
     // c.a.log('FlvPlayer.initInfo, anticode='.concat(this.anticode.getAnticode(t)))
