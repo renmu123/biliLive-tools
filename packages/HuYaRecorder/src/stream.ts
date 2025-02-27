@@ -93,7 +93,7 @@ export async function getStream(
   if (sourcesWithPriority.length > 0) {
     expectSource = sourcesWithPriority[0];
   } else {
-    expectSource = info.sources.find((source) => source.name === "TX");
+    expectSource = info.sources.find((source) => source.name === "TX") ?? null;
     if (!expectSource) {
       expectSource = info.sources[0];
     }
