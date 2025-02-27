@@ -45,6 +45,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   formatName?: FormatName;
   /** 流编码 */
   codecName?: CodecName;
+  /** 选择使用的api，虎牙支持 */
+  api?: "auto" | "web" | "mp";
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
 }

@@ -34,6 +34,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     qualityMaxRetry: opts.qualityRetry ?? 0,
     qualityRetry: opts.qualityRetry ?? 0,
     state: "idle",
+    api: opts.api ?? "auto",
 
     getChannelURL() {
       return `https://www.huya.com/${this.channelId}`;
@@ -112,6 +113,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       quality: this.quality,
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
+      api: this.api,
     });
   } catch (err) {
     this.state = "idle";

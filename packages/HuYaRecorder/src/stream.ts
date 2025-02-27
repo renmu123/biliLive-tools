@@ -33,7 +33,7 @@ export async function getInfo(channelId: string): Promise<{
 
 async function getRoomInfo(
   channelId: string,
-  api: "auto" | "mobile" | "web" = "auto",
+  api: "auto" | "mp" | "web" = "auto",
 ): ReturnType<typeof getRoomInfoByMobile> {
   if (api == "auto") {
     const info = await getRoomInfoByWeb(channelId);
@@ -41,7 +41,7 @@ async function getRoomInfo(
       return getRoomInfoByMobile(channelId);
     }
     return info;
-  } else if (api == "mobile") {
+  } else if (api == "mp") {
     return getRoomInfoByMobile(channelId);
   } else if (api == "web") {
     return getRoomInfoByWeb(channelId);
@@ -50,11 +50,9 @@ async function getRoomInfo(
 }
 
 export async function getStream(
-  opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities"> & {
-    rejectCache?: boolean;
-  },
+  opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "api">,
 ) {
-  const info = await getRoomInfo(opts.channelId);
+  const info = await getRoomInfo(opts.channelId, opts.api ?? "auto");
   if (!info.living) {
     throw new Error("It must be called getStream when living");
   }

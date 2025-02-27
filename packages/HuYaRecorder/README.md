@@ -35,7 +35,6 @@ manager.startCheckLoop();
 interface Options {
   channelId: string; // 直播间ID，具体解析见文档，也可自行解析
   quality: number; // 见画质参数
-  qualityRetry?: number; // 画质匹配重试次数
   streamPriorities: []; // 废弃
   sourcePriorities: []; // 废弃
   disableAutoCheck?: boolean; // 为 true 时 manager 将跳过自动检查
@@ -43,6 +42,7 @@ interface Options {
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
   saveGiftDanma?: boolean; // 保存礼物弹幕
   saveCover?: boolean; // 保存封面
+  api?: "auto" | "mp" | "web"; // 默认为auto，在星秀区使用mp接口，其他使用web接口，你也可以强制指定
 }
 ```
 
