@@ -283,6 +283,22 @@ interface DouyuRecorderConfig {
   quality: 0 | 2 | 3 | 4 | 8;
 }
 
+// | 画质     | 值    |
+// | -------- | ----- |
+// | 2K HDR   | 14100 |
+// | 2K       | 14000 |
+// | HDR(10M) | 4200  |
+// | 原画     | 0     |
+// | 蓝光8M   | 8000  |
+// | 蓝光4M   | 4000  |
+// | 超清     | 2000  |
+// | 流畅     | 500   |
+
+interface HuyaRecorderConfig {
+  /** 画质：0:原画 14100: 2khdr 14000: 2k 4200:hdr(10m) 8000:蓝光8m 4000:蓝光4m 2000:超清 500:流畅 */
+  quality: 0 | 14100 | 14000 | 4200 | 8000 | 4000 | 2000 | 500;
+}
+
 // 录制全局配置
 export interface GlobalRecorder {
   /** 保存根目录 */
@@ -319,10 +335,12 @@ export interface GlobalRecorder {
   bilibili: BilibiliRecorderConfig;
   /** 斗鱼特有的配置 */
   douyu: DouyuRecorderConfig;
+  /** 虎牙特有的配置 */
+  huya: HuyaRecorderConfig;
 }
 
 export interface Recorder {
-  providerId: string;
+  providerId: "DouYu" | "HuYa" | "Bilibili";
   id: string;
   channelId: string;
   remarks?: string;
@@ -344,7 +362,8 @@ export interface Recorder {
     | "high"
     | "highest"
     | BilibiliRecorderConfig["quality"]
-    | DouyuRecorderConfig["quality"];
+    | DouyuRecorderConfig["quality"]
+    | HuyaRecorderConfig["quality"];
   /** 线路，尚未使用 */
   line?: string;
   /** 录制弹幕 */

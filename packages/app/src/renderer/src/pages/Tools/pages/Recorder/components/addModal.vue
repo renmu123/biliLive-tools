@@ -65,7 +65,13 @@
           </template>
           <n-switch v-model:value="config.sendToWebhook" />
         </n-form-item>
-        <n-form-item v-if="config.providerId !== 'Bilibili' && config.providerId !== 'DouYu'">
+        <n-form-item
+          v-if="
+            config.providerId !== 'Bilibili' &&
+            config.providerId !== 'DouYu' &&
+            config.providerId !== 'HuYa'
+          "
+        >
           <template #label>
             <span class="inline-flex"> 画质 </span>
           </template>
@@ -223,6 +229,39 @@
             >
           </n-form-item>
         </template>
+        <template v-if="config.providerId === 'HuYa'">
+          <n-form-item>
+            <template #label>
+              <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.quality"
+              :options="huyaQualityOptions"
+              :disabled="globalFieldsObj.quality"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <!-- <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.bili.qualityRetry.tip"
+                :text="textInfo.bili.qualityRetry.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.qualityRetry"
+              min="0"
+              step="1"
+              :disabled="globalFieldsObj.qualityRetry"
+            >
+            </n-input-number>
+            <n-checkbox v-model:checked="globalFieldsObj.qualityRetry" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item> -->
+        </template>
         <n-form-item>
           <template #label>
             <span class="inline-flex">
@@ -313,6 +352,7 @@ import {
   streamFormatOptions,
   textInfo,
   streamCodecOptions,
+  huyaQualityOptions,
 } from "@renderer/enums/recorder";
 
 import type { Recorder } from "@biliLive-tools/types";
@@ -422,6 +462,8 @@ const onChannelIdInputEnd = async () => {
     config.value.extra!.recorderUid = res.uid;
   } else if (res.providerId === "DouYu") {
     config.value.quality = 0;
+  } else if (res.providerId === "HuYa") {
+    config.value.quality = 0;
   } else {
     config.value.quality = "highest";
   }
@@ -482,6 +524,8 @@ watch(
         config.value.quality = appConfig.value.recorder.bilibili.quality;
       } else if (config.value.providerId === "DouYu") {
         config.value.quality = appConfig.value.recorder.douyu.quality;
+      } else if (config.value.providerId === "HuYa") {
+        config.value.quality = appConfig.value.recorder.huya.quality;
       } else {
         config.value.quality = appConfig.value.recorder.quality;
       }

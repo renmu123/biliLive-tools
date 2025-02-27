@@ -189,9 +189,9 @@
       <h2>虎牙</h2>
       <n-form-item>
         <template #label>
-          <span class="inline-flex"> 画质 </span>
+          <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
         </template>
-        <n-select v-model:value="config.recorder.quality" :options="qualityOptions" />
+        <n-select v-model:value="config.recorder.huya.quality" :options="huyaQualityOptions" />
       </n-form-item>
     </n-form>
   </div>
@@ -204,9 +204,10 @@ import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { useUserInfoStore } from "@renderer/stores";
 import { useConfirm } from "@renderer/hooks";
 import {
-  qualityOptions,
+  // qualityOptions,
   biliQualityOptions,
   douyuQualityOptions,
+  huyaQualityOptions,
   textInfo,
   streamFormatOptions,
   streamCodecOptions,

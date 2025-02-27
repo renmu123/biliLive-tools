@@ -6,6 +6,7 @@ export const qualityOptions = [
   { value: "lowest", label: "最低" },
 ];
 
+// B站画质选项
 export const biliQualityOptions = [
   {
     value: 10000,
@@ -37,6 +38,7 @@ export const biliQualityOptions = [
   },
 ];
 
+// 斗鱼画质选项
 export const douyuQualityOptions = [
   {
     value: 0,
@@ -57,6 +59,42 @@ export const douyuQualityOptions = [
   {
     value: 2,
     label: "高清",
+  },
+];
+
+// 虎牙画质选项
+export const huyaQualityOptions = [
+  {
+    value: 0,
+    label: "原画",
+  },
+  {
+    value: 14100,
+    label: "2K HDR",
+  },
+  {
+    value: 14000,
+    label: "2K",
+  },
+  {
+    value: 4200,
+    label: "HDR(10M)",
+  },
+  {
+    value: 8000,
+    label: "蓝光8M",
+  },
+  {
+    value: 4000,
+    label: "蓝光4M",
+  },
+  {
+    value: 2000,
+    label: "超清",
+  },
+  {
+    value: 500,
+    label: "流畅",
   },
 ];
 

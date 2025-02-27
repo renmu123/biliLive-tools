@@ -30,8 +30,10 @@ export default class RecorderConfig {
         } else if (key === "quality") {
           if (setting?.providerId === "Bilibili") {
             return get(globalConfig, "bilibili.quality");
-          } else if (setting?.providerId === "Douyu") {
+          } else if (setting?.providerId === "DouYu") {
             return get(globalConfig, "douyu.quality");
+          } else if (setting?.providerId === "HuYa") {
+            return get(globalConfig, "huya.quality");
           }
         } else if (key === "codecName") {
           return get(globalConfig, "bilibili.codecName");
