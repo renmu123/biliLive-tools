@@ -49,7 +49,7 @@ export async function getRoomInfo(roomIdOrShortId: string) {
     }
     if (item.sHlsAntiCode && item.sHlsAntiCode.length > 0) {
       const url = `${item.sHlsUrl}/${item.sStreamName}.${item.sHlsUrlSuffix}?${item.sHlsAntiCode}`;
-      sources.flv.push({
+      sources.hls.push({
         name: item.sCdnType,
         url,
       });
