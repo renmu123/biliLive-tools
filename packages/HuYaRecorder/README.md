@@ -18,7 +18,7 @@ const manager = createRecorderManager({ providers: [provider] });
 manager.addRecorder({
   providerId: provider.id,
   channelId: "7734200",
-  quality: "highest",
+  quality: 0,
   streamPriorities: [],
   sourcePriorities: [],
 });
@@ -52,6 +52,7 @@ interface Options {
 | 2K       | 14000 |
 | HDR(10M) | 4200  |
 | 原画     | 0     |
+| 蓝光8M   | 8000  |
 | 蓝光4M   | 4000  |
 | 超清     | 2000  |
 | 流畅     | 500   |
