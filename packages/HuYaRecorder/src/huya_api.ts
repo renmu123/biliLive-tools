@@ -29,7 +29,7 @@ export async function getRoomInfo(roomIdOrShortId: string) {
   assert(data, `Unexpected resp, data is null`);
 
   const sources: SourceProfile[] = data.gameStreamInfoList.map((info) => ({
-    name: `直播线路 ${info.iLineIndex}`,
+    name: info.sCdnType,
     url: initInfo({
       sFlvUrl: info.sFlvUrl,
       sStreamName: info.sStreamName,

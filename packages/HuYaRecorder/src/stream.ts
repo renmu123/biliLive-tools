@@ -40,6 +40,7 @@ async function getRoomInfo(
     if (info.gid == 1663) {
       return getRoomInfoByMobile(channelId);
     }
+    return info;
   } else if (api == "mobile") {
     return getRoomInfoByMobile(channelId);
   } else if (api == "web") {
