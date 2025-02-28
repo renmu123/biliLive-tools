@@ -40,6 +40,8 @@ export default class RecorderConfig {
             return get(globalConfig, "douyu.quality");
           } else if (setting.providerId === "HuYa") {
             return get(globalConfig, "huya.quality");
+          } else {
+            return get(globalConfig, "quality");
           }
         } else if (key === "codecName") {
           return get(globalConfig, "bilibili.codecName");
