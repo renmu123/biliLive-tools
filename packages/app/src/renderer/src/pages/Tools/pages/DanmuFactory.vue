@@ -120,7 +120,12 @@ const convert = async () => {
   const presetId = danmuPresetId.value;
   const config = (await danmuPresetApi.get(presetId)).config;
 
-  let canHandleNum = 0;
+  if (config.resolutionResponsive) {
+    notice.warning({
+      duration: 5000,
+      title: `本次转换无法使用自适应分辨率，将替换使用${config.resolution[0]}X${config.resolution}分辨率，请确认与你的视频分辨率一致`,
+    });
+  }
   for (let i = 0; i < fileList.value.length; i++) {
     const file = {
       input: fileList.value[i].path,
@@ -128,18 +133,11 @@ const convert = async () => {
     };
     try {
       await taskApi.convertXml2Ass(file.input, file.output, config, options);
-      canHandleNum++;
     } catch (err) {
       notice.error({
         title: err as string,
       });
     }
-  }
-  if (canHandleNum) {
-    notice.info({
-      title: `生成${canHandleNum}个任务，可在任务队列中查看进度`,
-      duration: 1000,
-    });
   }
 
   fileList.value = [];
