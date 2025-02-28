@@ -1,4 +1,4 @@
-import path from "path";
+import path from "node:path";
 import mitt from "mitt";
 import {
   Recorder,
@@ -10,14 +10,11 @@ import {
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  Comment,
-  GiveGift,
   StreamManager,
   utils,
 } from "@bililive-tools/manager";
 import { getInfo, getStream } from "./stream.js";
-import { assertStringType, ensureFolderExist } from "./utils.js";
-import HuYaDanMu, { HuYaMessage } from "huya-danma-listener";
+import { assertStringType, ensureFolderExist, singleton } from "./utils.js";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
@@ -34,13 +31,11 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     qualityMaxRetry: opts.qualityRetry ?? 0,
     qualityRetry: opts.qualityRetry ?? 0,
     state: "idle",
-    api: opts.api ?? "auto",
-    formatName: opts.formatName ?? "auto",
 
     getChannelURL() {
-      return `https://www.huya.com/${this.channelId}`;
+      return `https://live.douyin.com/${this.channelId}`;
     },
-    checkLiveStatusAndRecord: utils.singleton(checkLiveStatusAndRecord),
+    checkLiveStatusAndRecord: singleton(checkLiveStatusAndRecord),
 
     toJSON() {
       return defaultToJSON(provider, this);
@@ -53,15 +48,6 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         channelId,
         ...info,
       };
-    },
-    async getStream() {
-      const res = await getStream({
-        channelId: this.channelId,
-        quality: this.quality,
-        streamPriorities: this.streamPriorities,
-        sourcePriorities: this.sourcePriorities,
-      });
-      return res.currentStream;
     },
   };
 
@@ -84,7 +70,7 @@ const ffmpegOutputOptions: string[] = [
   "-c",
   "copy",
   "-movflags",
-  "faststart+frag_keyframe+empty_moov",
+  "frag_keyframe",
   "-min_frag_duration",
   "60000000",
 ];
@@ -97,6 +83,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const liveInfo = await getInfo(this.channelId);
   const { living, owner, title, cover } = liveInfo;
   this.liveInfo = liveInfo;
+
   if (liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
@@ -106,7 +93,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!living) return null;
 
   this.state = "recording";
-  let res: Awaited<ReturnType<typeof getStream>>;
+  let res;
   // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
     res = await getStream({
@@ -114,8 +101,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       quality: this.quality,
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
-      api: this.api,
-      formatName: this.formatName,
     });
   } catch (err) {
     this.state = "idle";
@@ -126,6 +111,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.availableSources = availableSources.map((s) => s.name);
   this.usedStream = stream.name;
   this.usedSource = stream.source;
+  // TODO: emit update event
 
   const hasSegment = !!this.segment;
   const streamManager = new StreamManager(
@@ -152,7 +138,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
-      liveStartTimestamp: liveInfo.startTime?.getTime(),
+      // liveStartTimestamp: liveInfo.startTime?.getTime(),
       recordStopTimestamp: Date.now(),
       title: title,
       user_name: owner,
@@ -170,61 +156,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("DebugLog", data);
   });
 
-  let client: HuYaDanMu | null = null;
-  if (!this.disableProvideCommentsWhenRecording) {
-    client = new HuYaDanMu(this.channelId);
-    client.on("message", (msg: HuYaMessage) => {
-      const extraDataController = streamManager.getExtraDataController();
-      if (!extraDataController) return;
+  // // TODO: 之后可能要结合 disableRecordMeta 之类的来确认是否要创建文件。
+  // const extraDataController = createRecordExtraDataController(extraDataSavePath);
+  // extraDataController.setMeta({ title });
 
-      switch (msg.type) {
-        case "chat": {
-          const comment: Comment = {
-            type: "comment",
-            timestamp: Date.now(),
-            text: msg.content,
-            color: msg.color,
-            sender: {
-              uid: msg.from.rid,
-              name: msg.from.name,
-            },
-          };
-          this.emit("Message", comment);
-          extraDataController.addMessage(comment);
-          break;
-        }
-        case "gift": {
-          if (this.saveGiftDanma === false) return;
-
-          // console.log('gift', msg)
-          const gift: GiveGift = {
-            type: "give_gift",
-            timestamp: Date.now(),
-            name: msg.name,
-            count: msg.count,
-            // 保留一位小数
-            price: Number((msg.price / msg.count).toFixed(2)),
-            sender: {
-              uid: msg.from.rid,
-              name: msg.from.name,
-            },
-          };
-          this.emit("Message", gift);
-          extraDataController.addMessage(gift);
-          break;
-        }
-      }
-    });
-    client.on("error", (e: unknown) => {
-      this.emit("DebugLog", { type: "common", text: String(e) });
-    });
-    try {
-      await client.start();
-    } catch (err) {
-      this.state = "idle";
-      throw err;
-    }
-  }
+  // TODO: 弹幕录制
 
   let isEnded = false;
   const onEnd = (...args: unknown[]) => {
@@ -238,13 +174,23 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const isInvalidStream = utils.createInvalidStreamChecker();
-  const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
+  const isInvalidStream = createInvalidStreamChecker();
+  const timeoutChecker = createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
   const command = createFFMPEGBuilder()
     .input(stream.url)
-    .addInputOptions(
+    .inputOptions(
       "-user_agent",
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
+      /**
+       * ffmpeg 在处理抖音提供的某些直播间的流时，它会在 avformat_find_stream_info 阶段花费过多时间，这会让录制的过程推迟很久，从而触发超时。
+       * 这里通过降低 avformat_find_stream_info 所需要的字节数量（默认为 5000000）来解决这个问题。
+       *
+       * Refs:
+       * https://github.com/Sunoo/homebridge-camera-ffmpeg/issues/462#issuecomment-617723949
+       * https://stackoverflow.com/a/49273163/21858805
+       */
+      "-probesize",
+      (64 * 1024).toString(),
     )
     .outputOptions(ffmpegOutputOptions)
     .output(streamManager.videoFilePath)
@@ -278,20 +224,22 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     );
   }
   const ffmpegArgs = command._getArguments();
+  // extraDataController.setMeta({
+  //   recordStartTimestamp: Date.now(),
+  //   ffmpegArgs,
+  // });
   command.run();
 
-  const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
+  const stop = singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
-
     this.state = "stopping-record";
-    // TODO: emit update event
 
     timeoutChecker.stop();
 
     // @ts-ignore
     command.ffmpegProc?.stdin?.write("q");
     // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
-    client?.stop();
+    // client?.close()
 
     this.usedStream = undefined;
     this.usedSource = undefined;
@@ -319,13 +267,77 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   return this.recordHandle;
 };
 
-export const provider: RecorderProvider<Record<string, unknown>> = {
-  id: "HuYa",
-  name: "虎牙",
-  siteURL: "https://www.huya.com/",
+function createTimeoutChecker(
+  onTimeout: () => void,
+  time: number,
+): {
+  update: () => void;
+  stop: () => void;
+} {
+  let timer: NodeJS.Timeout | null = null;
+  let stopped: boolean = false;
+
+  const update = () => {
+    if (stopped) return;
+    if (timer != null) clearTimeout(timer);
+    timer = setTimeout(() => {
+      timer = null;
+      onTimeout();
+    }, time);
+  };
+
+  update();
+
+  return {
+    update,
+    stop() {
+      stopped = true;
+      if (timer != null) clearTimeout(timer);
+      timer = null;
+    },
+  };
+}
+
+function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean {
+  let prevFrame = 0;
+  let frameUnchangedCount = 0;
+
+  return (ffmpegLogLine) => {
+    const streamInfo = ffmpegLogLine.match(
+      /frame=\s*(\d+) fps=.*? q=.*? size=\s*(\d+)kB time=.*? bitrate=.*? speed=.*?/,
+    );
+    if (streamInfo != null) {
+      const [, frameText] = streamInfo;
+      const frame = Number(frameText);
+
+      if (frame === prevFrame) {
+        if (++frameUnchangedCount >= 10) {
+          return true;
+        }
+      } else {
+        prevFrame = frame;
+        frameUnchangedCount = 0;
+      }
+
+      return false;
+    }
+
+    if (ffmpegLogLine.includes("HTTP error 404 Not Found")) {
+      return true;
+    }
+
+    return false;
+  };
+}
+
+export const provider: RecorderProvider<{}> = {
+  id: "DouYin",
+  name: "抖音",
+  siteURL: "https://live.douyin.com/",
 
   matchURL(channelURL) {
-    return /https?:\/\/(?:.*?\.)?huya.com\//.test(channelURL);
+    // TODO: 暂时不支持 v.douyin.com
+    return /https?:\/\/live\.douyin\.com\//.test(channelURL);
   },
 
   async resolveChannelInfoFromURL(channelURL) {
@@ -335,7 +347,7 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     const info = await getInfo(id);
 
     return {
-      id: info.roomId.toString(),
+      id: info.roomId,
       title: info.title,
       owner: info.owner,
     };

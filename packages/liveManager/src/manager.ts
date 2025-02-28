@@ -52,7 +52,6 @@ export interface RecorderProvider<E extends AnyObject> {
 const configurableProps = [
   "savePathRule",
   "autoRemoveSystemReservedChars",
-  "autoCheckLiveStatusAndRecord",
   "autoCheckInterval",
   "ffmpegOutputArgs",
   "biliBatchQuery",
@@ -100,7 +99,6 @@ export interface RecorderManager<
   ) => Promise<Recorder<E> | undefined>;
   stopRecord: (this: RecorderManager<ME, P, PE, E>, id: string) => Promise<Recorder<E> | undefined>;
 
-  autoCheckLiveStatusAndRecord: boolean;
   autoCheckInterval: number;
   isCheckLoopRunning: boolean;
   startCheckLoop: (this: RecorderManager<ME, P, PE, E>) => void;
@@ -291,7 +289,6 @@ export function createRecorderManager<
       return recorder;
     },
 
-    autoCheckLiveStatusAndRecord: opts.autoCheckLiveStatusAndRecord ?? true,
     autoCheckInterval: opts.autoCheckInterval ?? 1000,
     isCheckLoopRunning: false,
     startCheckLoop() {

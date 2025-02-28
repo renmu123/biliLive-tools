@@ -523,6 +523,13 @@ export interface AppConfig {
   recorder: GlobalRecorder;
   /** 直播间管理 */
   recorders: Recorder[];
+  // 视频订阅
+  video: {
+    /** 订阅间隔 */
+    subCheckInterval: number;
+    /** 保存路径 */
+    subSavePath: string;
+  };
 }
 
 export interface Video2Mp4Options {
@@ -730,7 +737,7 @@ export interface BiliUser {
   platform: "TV";
 }
 
-export type hotProgressOptions = {
+export type HotProgressOptions = {
   width?: number;
   height?: number;
   interval?: number;

@@ -219,6 +219,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       quality: 0,
     },
   },
+  video: {
+    subCheckInterval: 60,
+    subSavePath: "",
+  },
   recorders: [],
 };
 

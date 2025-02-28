@@ -6,6 +6,8 @@ import { omit } from "lodash-es";
 import { provider as providerForDouYu } from "@bililive-tools/douyu-recorder";
 import { provider as providerForHuYa } from "@bililive-tools/huya-recorder";
 import { provider as providerForBiliBili } from "@bililive-tools/bilibili-recorder";
+import { provider as providerForDouYin } from "@bililive-tools/douyin-recorder";
+
 import {
   createRecorderManager as createManager,
   setFFMPEGPath,
@@ -83,7 +85,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
 
     manager.autoCheckInterval = autoCheckInterval * 1000;
-    manager.autoCheckLiveStatusAndRecord = autoCheckLiveStatusAndRecord;
     manager.savePathRule = savePathRule;
     manager.biliBatchQuery = config?.recorder?.bilibili.useBatchQuery ?? false;
 
@@ -119,11 +120,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
   const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
 
   const manager = createManager({
-    providers: [providerForDouYu, providerForHuYa, providerForBiliBili],
+    providers: [providerForDouYu, providerForHuYa, providerForBiliBili, providerForDouYin],
     autoRemoveSystemReservedChars: true,
     autoCheckInterval: autoCheckInterval * 1000,
-    // 这个参数其实是有问题的，并没有实际生效
-    autoCheckLiveStatusAndRecord: autoCheckLiveStatusAndRecord,
     savePathRule: savePathRule,
     biliBatchQuery: config?.recorder?.bilibili.useBatchQuery ?? false,
   });

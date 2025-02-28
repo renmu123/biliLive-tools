@@ -100,6 +100,10 @@ class BaseModel<T extends object> {
     return this.db.prepare(sql).all(...values) as any;
   }
 
+  delete(id: number) {
+    this.db.prepare(`DELETE FROM ${this.tableName} WHERE id = ?`).run(id);
+  }
+
   transaction(fn: () => Promise<void>) {
     this.db.exec("BEGIN TRANSACTION");
     try {

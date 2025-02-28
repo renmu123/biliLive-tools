@@ -12,12 +12,7 @@ const getTime = async () => {
   appStartTime.value = time;
 };
 
-getTime();
-
 const now = ref(Date.now());
-setInterval(() => {
-  now.value = Date.now();
-}, 1000);
 
 const formatTime = (time: number) => {
   const seconds = Math.floor((time / 1000) % 60);
@@ -25,6 +20,28 @@ const formatTime = (time: number) => {
   const hours = Math.floor((time / 1000 / 60 / 60) % 24);
   return `${hours}小时${minutes}分钟${seconds}秒`;
 };
+
+let intervalId: NodeJS.Timeout | null = null;
+const createInterval = () => {
+  if (intervalId) return;
+  const interval = window.isWeb ? 1000 : 1000;
+  intervalId = setInterval(() => {
+    now.value = Date.now();
+  }, interval);
+};
+function cleanInterval() {
+  intervalId && clearInterval(intervalId);
+  intervalId = null;
+}
+
+onDeactivated(() => {
+  cleanInterval();
+});
+
+onActivated(() => {
+  getTime();
+  createInterval();
+});
 </script>
 
 <style scoped lang="less">

@@ -4,7 +4,7 @@ import type { Task } from "@renderer/types";
 import type {
   DanmuPreset,
   FfmpegOptions,
-  hotProgressOptions,
+  HotProgressOptions,
   BiliupPreset,
   DanmaOptions,
 } from "@biliLive-tools/types";
@@ -134,7 +134,7 @@ const burn = async (
   options: {
     danmaOptions: DanmuPreset["config"];
     ffmpegOptions: FfmpegOptions;
-    hotProgressOptions: Omit<hotProgressOptions, "videoPath">;
+    hotProgressOptions: Omit<HotProgressOptions, "videoPath">;
     hasHotProgress: boolean;
     override?: boolean;
     removeOrigin?: boolean;
