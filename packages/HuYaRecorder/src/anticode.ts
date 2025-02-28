@@ -11,40 +11,40 @@ const PLATFORM_TYPE = {
   mini_app: 102,
   wap: 103,
   web: 100,
-}
+};
 
 const PLATFORM_TYPE_NAME = {
-  web: 'web',
-  wap: 'wap',
-}
+  web: "web",
+  wap: "wap",
+};
 
 function pe(e, t) {
-  var i = (65535 & e) + (65535 & t)
-  return (((e >> 16) + (t >> 16) + (i >> 16)) << 16) | (65535 & i)
+  var i = (65535 & e) + (65535 & t);
+  return (((e >> 16) + (t >> 16) + (i >> 16)) << 16) | (65535 & i);
 }
 function fe(e, t, i, s, a, r) {
-  return pe(((n = pe(pe(t, e), pe(s, r))) << (o = a)) | (n >>> (32 - o)), i)
-  var n, o
+  return pe(((n = pe(pe(t, e), pe(s, r))) << (o = a)) | (n >>> (32 - o)), i);
+  var n, o;
 }
 function _e(e, t, i, s, a, r, n) {
-  return fe((t & i) | (~t & s), e, t, a, r, n)
+  return fe((t & i) | (~t & s), e, t, a, r, n);
 }
 function me(e, t, i, s, a, r, n) {
-  return fe((t & s) | (i & ~s), e, t, a, r, n)
+  return fe((t & s) | (i & ~s), e, t, a, r, n);
 }
 function ye(e, t, i, s, a, r, n) {
-  return fe(t ^ i ^ s, e, t, a, r, n)
+  return fe(t ^ i ^ s, e, t, a, r, n);
 }
 function ve(e, t, i, s, a, r, n) {
-  return fe(i ^ (t | ~s), e, t, a, r, n)
+  return fe(i ^ (t | ~s), e, t, a, r, n);
 }
 function ge(e, t) {
-  var i, s, a, r, n
-  ;(e[t >> 5] |= 128 << t % 32), (e[14 + (((t + 64) >>> 9) << 4)] = t)
+  var i, s, a, r, n;
+  (e[t >> 5] |= 128 << t % 32), (e[14 + (((t + 64) >>> 9) << 4)] = t);
   var o = 1732584193,
     h = -271733879,
     u = -1732584194,
-    l = 271733878
+    l = 271733878;
   for (i = 0; i < e.length; i += 16)
     (s = o),
       (a = h),
@@ -114,39 +114,40 @@ function ge(e, t) {
       (o = pe(o, s)),
       (h = pe(h, a)),
       (u = pe(u, r)),
-      (l = pe(l, n))
-  return [o, h, u, l]
+      (l = pe(l, n));
+  return [o, h, u, l];
 }
 function Se(e) {
   var t,
-    i = '',
-    s = 32 * e.length
-  for (t = 0; t < s; t += 8) i += String.fromCharCode((e[t >> 5] >>> t % 32) & 255)
-  return i
+    i = "",
+    s = 32 * e.length;
+  for (t = 0; t < s; t += 8) i += String.fromCharCode((e[t >> 5] >>> t % 32) & 255);
+  return i;
 }
 function Te(e) {
   var t,
-    i = []
-  for (i[(e.length >> 2) - 1] = void 0, t = 0; t < i.length; t += 1) i[t] = 0
-  var s = 8 * e.length
-  for (t = 0; t < s; t += 8) i[t >> 5] |= (255 & e.charCodeAt(t / 8)) << t % 32
-  return i
+    i = [];
+  for (i[(e.length >> 2) - 1] = void 0, t = 0; t < i.length; t += 1) i[t] = 0;
+  var s = 8 * e.length;
+  for (t = 0; t < s; t += 8) i[t >> 5] |= (255 & e.charCodeAt(t / 8)) << t % 32;
+  return i;
 }
 function Pe(e) {
   var t,
     i,
-    s = ''
+    s = "";
   for (i = 0; i < e.length; i += 1)
-    (t = e.charCodeAt(i)), (s += '0123456789abcdef'.charAt((t >>> 4) & 15) + '0123456789abcdef'.charAt(15 & t))
-  return s
+    (t = e.charCodeAt(i)),
+      (s += "0123456789abcdef".charAt((t >>> 4) & 15) + "0123456789abcdef".charAt(15 & t));
+  return s;
 }
 function Ee(e) {
-  return unescape(encodeURIComponent(e))
+  return unescape(encodeURIComponent(e));
 }
 function Ce(e) {
   return (function (e) {
-    return Se(ge(Te(e), 8 * e.length))
-  })(Ee(e))
+    return Se(ge(Te(e), 8 * e.length));
+  })(Ee(e));
 }
 function Ae(e, t) {
   return (function (e, t) {
@@ -154,108 +155,119 @@ function Ae(e, t) {
       s,
       a = Te(e),
       r = [],
-      n = []
+      n = [];
     for (r[15] = n[15] = void 0, a.length > 16 && (a = ge(a, 8 * e.length)), i = 0; i < 16; i += 1)
-      (r[i] = 909522486 ^ a[i]), (n[i] = 1549556828 ^ a[i])
-    return (s = ge(r.concat(Te(t)), 512 + 8 * t.length)), Se(ge(n.concat(s), 640))
-  })(Ee(e), Ee(t))
+      (r[i] = 909522486 ^ a[i]), (n[i] = 1549556828 ^ a[i]);
+    return (s = ge(r.concat(Te(t)), 512 + 8 * t.length)), Se(ge(n.concat(s), 640));
+  })(Ee(e), Ee(t));
 }
 var keHash = function (e, t, i) {
-  return t ? (i ? Ae(t, e) : Pe(Ae(t, e))) : i ? Ce(e) : Pe(Ce(e))
-}
+  return t ? (i ? Ae(t, e) : Pe(Ae(t, e))) : i ? Ce(e) : Pe(Ce(e));
+};
 
 function randomInt(e, t) {
-  return Math.floor(Math.random() * (t - e + 1) + e)
+  return Math.floor(Math.random() * (t - e + 1) + e);
 }
 
 class Anticode {
-  uuid = randomInt(4e9, 5e9)
-  uid = Date.now()
-  convertUid = Date.now()
+  uuid = randomInt(4e9, 5e9);
+  uid = Date.now();
+  convertUid = Date.now();
 
   init(e, t, i, s) {
-    this._sFlvUrl = e
-    this._sStreamName = t
-    this.parseAnticode(i)
-    this._nimoTid = s
+    this._sFlvUrl = e;
+    this._sStreamName = t;
+    this.parseAnticode(i);
+    this._nimoTid = s;
   }
 
   parseAnticode(e) {
-    var self = this
-    this._fm = ''
-    this['_wsTime'] = ''
-    this['_ctype'] = ''
-    this['_params'] = []
-    this._sFlvAnticode = e
+    var self = this;
+    this._fm = "";
+    this["_wsTime"] = "";
+    this["_ctype"] = "";
+    this["_params"] = [];
+    this._sFlvAnticode = e;
 
-    e.split('&').forEach(function (e) {
-      let [key, val] = e.split('=')
-      if (key === 'fm') {
-        val = decodeURI(val)
-        val = unescape(val)
-        val = atob(val)
-        self._fm = val
-      } else if (key === 'wsTime') {
-        self['_wsTime'] = val
-        var r = 1e3 * parseInt(val, 16) + 3e5
-        self['_invalidTime'] = performance.now() + (r - Date.now())
-        self['_nextRefreshTime'] = self['_invalidTime'] - 3e4
-      } else key == 'ctype' ? (self['_ctype'] = val) : key !== 'wsSecret' && self['_params'].push(e)
-    })
+    e.split("&").forEach(function (e) {
+      let [key, val] = e.split("=");
+      if (key === "fm") {
+        val = decodeURI(val);
+        val = unescape(val);
+        val = atob(val);
+        self._fm = val;
+      } else if (key === "wsTime") {
+        self["_wsTime"] = val;
+        var r = 1e3 * parseInt(val, 16) + 3e5;
+        self["_invalidTime"] = performance.now() + (r - Date.now());
+        self["_nextRefreshTime"] = self["_invalidTime"] - 3e4;
+      } else
+        key == "ctype" ? (self["_ctype"] = val) : key !== "wsSecret" && self["_params"].push(e);
+    });
   }
 
   hasAnticode() {
-    return '' !== this._sFlvAnticode
+    return "" !== this._sFlvAnticode;
   }
 
   getAnticode(e) {
-    if ('' === this._fm) return this._sFlvAnticode
+    if ("" === this._fm) return this._sFlvAnticode;
 
-    const platform = 'web'
-    const i = PLATFORM_TYPE[platform] || PLATFORM_TYPE.web
-    this._seqid = Number(this.uid) + Date.now()
-    var s = keHash(''.concat(this._seqid, '|').concat(this._ctype, '|').concat(i))
-    var uid = platform === PLATFORM_TYPE_NAME.wap ? this.uid : this.convertUid
-    var r = this._fm.replace('$0', uid).replace('$1', this._sStreamName).replace('$2', s).replace('$3', this._wsTime)
-    if (e) r += Ye
+    const platform = "web";
+    const i = PLATFORM_TYPE[platform] || PLATFORM_TYPE.web;
+    this._seqid = Number(this.uid) + Date.now();
+    var s = keHash("".concat(this._seqid, "|").concat(this._ctype, "|").concat(i));
+    var uid = platform === PLATFORM_TYPE_NAME.wap ? this.uid : this.convertUid;
+    var r = this._fm
+      .replace("$0", uid)
+      .replace("$1", this._sStreamName)
+      .replace("$2", s)
+      .replace("$3", this._wsTime);
+    if (e) r += Ye;
 
-    var n = ''
-      .concat('wsSecret')
-      .concat('=')
+    var n = ""
+      .concat("wsSecret")
+      .concat("=")
       .concat(keHash(r))
-      .concat('&')
-      .concat('wsTime')
-      .concat('=')
+      .concat("&")
+      .concat("wsTime")
+      .concat("=")
       .concat(this._wsTime)
-      .concat('&')
-      .concat('seqid')
-      .concat('=')
+      .concat("&")
+      .concat("seqid")
+      .concat("=")
       .concat(this._seqid)
-      .concat('&')
-      .concat('ctype')
-      .concat('=')
+      .concat("&")
+      .concat("ctype")
+      .concat("=")
       .concat(this._ctype)
-      .concat('&')
-      .concat('ver=1')
+      .concat("&")
+      .concat("ver=1");
     if (this._params.length > 0) {
-      n += '&' + this._params.join('&')
+      n += "&" + this._params.join("&");
     }
-    return n
+    return n;
   }
 }
 
 export function initInfo(
-  info: { sFlvUrl: string; sFlvAntiCode: string; sStreamName: string; _sessionId: number },
+  info: {
+    baseUrl: string;
+    antiCode: string;
+    sStreamName: string;
+    _sessionId: number;
+    suffix: string;
+  },
   t?: unknown,
 ) {
-  if (info.sFlvUrl && info.sStreamName) {
-    info.url = ''.concat(info.sFlvUrl, '/').concat(info.sStreamName, '.flv')
+  if (info.baseUrl && info.sStreamName) {
+    info.url = "".concat(info.baseUrl, "/").concat(info.sStreamName, `.${info.suffix}`);
   }
-  var i = []
-  const anticode = new Anticode()
-  anticode.init(info.sFlvUrl, info.sStreamName, info.sFlvAntiCode)
+  var i = [];
+  const anticode = new Anticode();
+  anticode.init(info.baseUrl, info.sStreamName, info.antiCode);
   if (anticode.hasAnticode()) {
-    i.push(anticode.getAnticode(t))
+    i.push(anticode.getAnticode(t));
     // c.a.log('FlvPlayer.initInfo, anticode='.concat(this.anticode.getAnticode(t)))
   }
 
@@ -266,7 +278,7 @@ export function initInfo(
   // } else {
   //   localStorage._ratio && i.push('&ratio='.concat(localStorage._ratio))
   // }
-  i.push('ratio='.concat(info.curBitrate))
+  // i.push('ratio='.concat(info.curBitrate))
 
   // if (
   //   !info.httpDomainOnly &&
@@ -280,44 +292,48 @@ export function initInfo(
   // }
 
   if (i.length > 0) {
-    info.url += (-1 !== info.url.indexOf('?') ? '&' : '?') + ''.concat(i.join('&'))
+    info.url += (-1 !== info.url.indexOf("?") ? "&" : "?") + "".concat(i.join("&"));
   }
 
   // if (this.isUseAV1(e)) e.url += '&codec=av1'
   // else if (this.h265Proxy.isReady || this.h265Proxy.isH265MseCodec) this.h265Proxy.checkUrl(e)
-  info.url += '&codec=264'
+  info.url += "&codec=264";
 
   // info.url += '&dMod='.concat(getDMod(info._dMod, info._sMod))
   // this.url = info.url
   // this.lineType = info.lineType
 
-  info.url = _getUrlParams(info.url, !1, 'firstCdn')
+  info.url = _getUrlParams(info.url, !1, "firstCdn");
 
   function _getUrlParams(url, t, i) {
-    var s = ''
+    var s = "";
     // s += t ? "pulltype=pcdn&" : "sdkPcdn=".concat(this._cdnCnt, "_").concat(this._getSdkPcdnReason(i), "&");
-    s += t ? 'pulltype=pcdn&' : 'sdkPcdn='.concat(1, '_').concat(1, '&')
-    var platform = 'web'
-    var r = PLATFORM_TYPE[platform] || PLATFORM_TYPE.web
+    s += t ? "pulltype=pcdn&" : "sdkPcdn=".concat(1, "_").concat(1, "&");
+    var platform = "web";
+    var r = PLATFORM_TYPE[platform] || PLATFORM_TYPE.web;
     var n =
       platform === PLATFORM_TYPE_NAME.wap
-        ? 'uid='.concat(anticode.uid, '&uuid=').concat(anticode.uuid)
-        : 'u='.concat(anticode.convertUid)
+        ? "uid=".concat(anticode.uid, "&uuid=").concat(anticode.uuid)
+        : "u=".concat(anticode.convertUid);
 
     // s += ''.concat(n, '&t=').concat(r, '&sv=').concat(2401040319, '&sdk_sid=').concat(this._flvPlayer.info._sessionId)
-    s += ''.concat(n, '&t=').concat(r, '&sv=').concat(2401040319, '&sdk_sid=').concat(info._sessionId)
-    ;-1 === url.indexOf('?') ? (url += '?') : (url += '&')
-    return url + s
+    s += ""
+      .concat(n, "&t=")
+      .concat(r, "&sv=")
+      .concat(2401040319, "&sdk_sid=")
+      .concat(info._sessionId);
+    -1 === url.indexOf("?") ? (url += "?") : (url += "&");
+    return url + s;
   }
 
-  return info.url
+  return info.url;
 }
 
 function getDMod(e, t) {
   return (
-    'mseh' !== e && 'wcs' !== e && 'wasm' !== e && 'mses' !== e && (e = 'unknow'),
+    "mseh" !== e && "wcs" !== e && "wasm" !== e && "mses" !== e && (e = "unknow"),
     (t = Number(t)),
     isNaN(t) && (t = 0),
-    ''.concat(e, '-').concat(t)
-  )
+    "".concat(e, "-").concat(t)
+  );
 }

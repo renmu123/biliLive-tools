@@ -1,7 +1,11 @@
-import { Qualities, Recorder } from "@bililive-tools/manager";
-import { getRoomInfo, SourceProfile, StreamProfile } from "./huya_api.js";
-import { getValuesFromArrayLikeFlexSpaceBetween } from "./utils.js";
 import { sortBy } from "lodash-es";
+import { HuYaQualities, Recorder } from "@bililive-tools/manager";
+
+import { getRoomInfo as getRoomInfoByWeb } from "./huya_api.js";
+import { getRoomInfo as getRoomInfoByMobile } from "./huya_mobile_api.js";
+import { assert } from "./utils.js";
+
+import type { SourceProfile, StreamProfile } from "./huya_api.js";
 
 export async function getInfo(channelId: string): Promise<{
   living: boolean;
@@ -13,7 +17,7 @@ export async function getInfo(channelId: string): Promise<{
   startTime: Date;
   liveId?: string;
 }> {
-  const info = await getRoomInfo(channelId);
+  const info = await getRoomInfoByWeb(channelId);
 
   return {
     living: info.living,
@@ -27,32 +31,52 @@ export async function getInfo(channelId: string): Promise<{
   };
 }
 
-export async function getStream(
-  opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities"> & {
-    rejectCache?: boolean;
+async function getRoomInfo(
+  channelId: string,
+  options: {
+    api: "auto" | "mp" | "web";
+    formatName: "auto" | "flv" | "hls";
   },
+): ReturnType<typeof getRoomInfoByMobile> {
+  if (options.api == "auto") {
+    const info = await getRoomInfoByWeb(channelId, options.formatName);
+    if (info.gid == 1663) {
+      return getRoomInfoByMobile(channelId, options.formatName);
+    }
+    return info;
+  } else if (options.api == "mp") {
+    return getRoomInfoByMobile(channelId, options.formatName);
+  } else if (options.api == "web") {
+    return getRoomInfoByWeb(channelId, options.formatName);
+  }
+  assert(false, "Invalid api");
+}
+
+export async function getStream(
+  opts: Pick<
+    Recorder,
+    "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "api" | "formatName"
+  >,
 ) {
-  const info = await getRoomInfo(opts.channelId);
+  const info = await getRoomInfo(opts.channelId, {
+    api: opts.api ?? "auto",
+    formatName: (opts.formatName as "auto" | "flv" | "hls") ?? "auto",
+  });
   if (!info.living) {
     throw new Error("It must be called getStream when living");
   }
+  if (info.streams.length === 0) {
+    throw new Error(`No stream found in huya ${opts.channelId} room`);
+  }
 
-  let expectStream: StreamProfile;
-  const streamsWithPriority = sortAndFilterStreamsByPriority(info.streams, opts.streamPriorities);
-  if (streamsWithPriority.length > 0) {
-    // 通过优先级来选择对应流
-    expectStream = streamsWithPriority[0];
-  } else {
-    // 通过设置的画质选项来选择对应流
-    const flexedStreams = getValuesFromArrayLikeFlexSpaceBetween(
-      // 接口给的画质列表是按照清晰到模糊的顺序的，这里翻转下
-      info.streams.toReversed(),
-      Qualities.length,
-    );
-    const qn = (
-      Qualities.includes(opts.quality as any) ? opts.quality : "highest"
-    ) as (typeof Qualities)[number];
-    expectStream = flexedStreams[Qualities.indexOf(qn)];
+  const qn = (
+    HuYaQualities.includes(opts.quality as any) ? opts.quality : 0
+  ) as (typeof HuYaQualities)[number];
+  let expectStream: StreamProfile | undefined = info.streams.find(
+    (stream) => stream.bitRate === qn,
+  );
+  if (!expectStream) {
+    expectStream = info.streams[0];
   }
 
   let expectSource: SourceProfile | null = null;
@@ -60,7 +84,10 @@ export async function getStream(
   if (sourcesWithPriority.length > 0) {
     expectSource = sourcesWithPriority[0];
   } else {
-    expectSource = info.sources[0];
+    expectSource = info.sources.find((source) => source.name === "TX") ?? null;
+    if (!expectSource) {
+      expectSource = info.sources[0];
+    }
   }
 
   return {
@@ -73,28 +100,28 @@ export async function getStream(
   };
 }
 
-/**
- * 按提供的流优先级去给流列表排序，并过滤掉不在优先级配置中的流
- */
-function sortAndFilterStreamsByPriority(
-  streams: StreamProfile[],
-  streamPriorities: Recorder["streamPriorities"],
-): (StreamProfile & {
-  priority: number;
-})[] {
-  if (streamPriorities.length === 0) return [];
+// /**
+//  * 按提供的流优先级去给流列表排序，并过滤掉不在优先级配置中的流
+//  */
+// function sortAndFilterStreamsByPriority(
+//   streams: StreamProfile[],
+//   streamPriorities: Recorder["streamPriorities"],
+// ): (StreamProfile & {
+//   priority: number;
+// })[] {
+//   if (streamPriorities.length === 0) return [];
 
-  return sortBy(
-    // 分配优先级属性，数字越大优先级越高
-    streams
-      .map((stream) => ({
-        ...stream,
-        priority: streamPriorities.toReversed().indexOf(stream.desc),
-      }))
-      .filter(({ priority }) => priority !== -1),
-    "priority",
-  );
-}
+//   return sortBy(
+//     // 分配优先级属性，数字越大优先级越高
+//     streams
+//       .map((stream) => ({
+//         ...stream,
+//         priority: streamPriorities.toReversed().indexOf(stream.desc),
+//       }))
+//       .filter(({ priority }) => priority !== -1),
+//     "priority",
+//   );
+// }
 
 /**
  * 按提供的源优先级去给源列表排序，并过滤掉不在优先级配置中的源

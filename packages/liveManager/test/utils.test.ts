@@ -14,6 +14,7 @@ import {
   formatDate,
   removeSystemReservedChars,
   formatTemplate,
+  sortByKeyOrder,
 } from "../src/utils.js";
 
 describe("utils", () => {
@@ -219,6 +220,84 @@ describe("utils", () => {
       const template = "Hello, {{0}}!";
       const result = formatTemplate(template, "world");
       expect(result).toBe("Hello, {0}!");
+    });
+  });
+
+  describe("sortByKeyOrder", () => {
+    it("should sort objects by specified key order", () => {
+      const objects = [
+        { id: 3, name: "Charlie" },
+        { id: 1, name: "Alice" },
+        { id: 2, name: "Bob" },
+      ];
+      const order = [2, 3, 1];
+      const result = sortByKeyOrder(objects, order, "id");
+      expect(result).toEqual([
+        { id: 2, name: "Bob" },
+        { id: 3, name: "Charlie" },
+        { id: 1, name: "Alice" },
+      ]);
+    });
+
+    it("should sort objjects by string key order", () => {
+      const objects = [
+        { id: "c", name: "Charlie" },
+        { id: "a", name: "Alice" },
+        { id: "b", name: "Bob" },
+      ];
+      const order = ["b", "c", "a"];
+      const result = sortByKeyOrder(objects, order, "id");
+      expect(result).toEqual([
+        { id: "b", name: "Bob" },
+        { id: "c", name: "Charlie" },
+        { id: "a", name: "Alice" },
+      ]);
+    });
+
+    it("should place objects with keys not in order at the end", () => {
+      const objects = [
+        { id: 3, name: "Charlie" },
+        { id: 1, name: "Alice" },
+        { id: 2, name: "Bob" },
+        { id: 4, name: "Dave" },
+      ];
+      const order = [2, 3];
+      const result = sortByKeyOrder(objects, order, "id");
+      expect(result).toEqual([
+        { id: 2, name: "Bob" },
+        { id: 3, name: "Charlie" },
+        { id: 1, name: "Alice" },
+        { id: 4, name: "Dave" },
+      ]);
+    });
+
+    it("should handle empty objects array", () => {
+      const objects: { id: number; name: string }[] = [];
+      const order = [2, 3, 1];
+      const result = sortByKeyOrder(objects, order, "id");
+      expect(result).toEqual([]);
+    });
+
+    it("should handle empty order array", () => {
+      const objects = [
+        { id: 3, name: "Charlie" },
+        { id: 1, name: "Alice" },
+        { id: 2, name: "Bob" },
+      ];
+      const order: number[] = [];
+      const result = sortByKeyOrder(objects, order, "id");
+      expect(result).toEqual(objects);
+    });
+
+    it("should handle objects with missing keys", () => {
+      const objects = [{ id: 3, name: "Charlie" }, { id: 1, name: "Alice" }, { name: "Bob" }];
+      const order = [2, 3, 1];
+      const result = sortByKeyOrder(objects, order, "id");
+      expect(result).toEqual([
+        { id: 3, name: "Charlie" },
+        { id: 1, name: "Alice" },
+        { name: "Bob" },
+      ]);
     });
   });
 });

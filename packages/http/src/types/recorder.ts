@@ -103,7 +103,7 @@ export interface ResolveChannelArgs {
   channelURL: string;
 }
 export type ResolveChannelResp = {
-  providerId: string;
+  providerId: RecoderConfig["providerId"];
   channelId: string;
   owner: string;
   uid?: number;

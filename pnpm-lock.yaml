@@ -160,6 +160,25 @@ importers:
         specifier: ^4.19.2
         version: 4.19.2
 
+  packages/DouYinRecorder:
+    dependencies:
+      '@bililive-tools/manager':
+        specifier: workspace:*
+        version: link:../liveManager
+      axios:
+        specifier: 'catalog:'
+        version: 1.7.8
+      lodash-es:
+        specifier: 'catalog:'
+        version: 4.17.21
+      mitt:
+        specifier: ^3.0.0
+        version: 3.0.1
+    devDependencies:
+      '@types/node':
+        specifier: '*'
+        version: 20.17.6
+
   packages/DouYuRecorder:
     dependencies:
       '@bililive-tools/manager':
@@ -502,6 +521,9 @@ importers:
       '@bililive-tools/bilibili-recorder':
         specifier: workspace:*
         version: link:../BilibiliRecorder
+      '@bililive-tools/douyin-recorder':
+        specifier: workspace:*
+        version: link:../DouYinRecorder
       '@bililive-tools/douyu-recorder':
         specifier: workspace:*
         version: link:../DouYuRecorder
@@ -5946,7 +5968,7 @@ snapshots:
 
   '@types/cli-progress@3.11.6':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
 
   '@types/connect@3.4.38':
     dependencies:
@@ -6016,7 +6038,7 @@ snapshots:
       '@types/http-errors': 2.0.4
       '@types/keygrip': 1.0.6
       '@types/koa-compose': 3.2.8
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
 
   '@types/lodash-es@4.17.12':
     dependencies:
@@ -6080,7 +6102,7 @@ snapshots:
 
   '@types/ws@8.5.13':
     dependencies:
-      '@types/node': 22.9.0
+      '@types/node': 20.17.6
 
   '@types/yauzl@2.10.3':
     dependencies:

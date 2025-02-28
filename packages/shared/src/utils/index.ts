@@ -9,6 +9,7 @@ import trash from "trash";
 import { appConfig } from "../config.js";
 export * from "./webhook.js";
 export * from "./crypto.js";
+import { videoEncoders } from "../enum.js";
 
 import type { FfmpegOptions, VideoCodec } from "@biliLive-tools/types";
 
@@ -127,8 +128,9 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
         }
         break;
     }
-    if (["cpu", "qsv", "nvenc", "amf"].includes(getHardwareAcceleration(options.encoder))) {
-      if (options.preset) {
+    if (options.preset) {
+      const encoder = videoEncoders.find((item) => item.value === options.encoder);
+      if ((encoder?.presets ?? []).findIndex((item) => item.value === options.preset) !== -1) {
         result.push(`-preset ${options.preset}`);
       }
     }

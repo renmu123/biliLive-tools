@@ -9,7 +9,7 @@
       class="card"
     >
       <n-form label-placement="left" :label-width="150">
-        <h4>支持斗鱼、虎牙平台、B站，玩具级录播，请做好踩坑的准备</h4>
+        <h4>支持斗鱼、虎牙平台、B站、抖音，玩具级录播，请做好踩坑的准备</h4>
 
         <n-form-item v-if="!isEdit">
           <template #label>
@@ -65,7 +65,13 @@
           </template>
           <n-switch v-model:value="config.sendToWebhook" />
         </n-form-item>
-        <n-form-item v-if="config.providerId !== 'Bilibili' && config.providerId !== 'DouYu'">
+        <n-form-item
+          v-if="
+            config.providerId !== 'Bilibili' &&
+            config.providerId !== 'DouYu' &&
+            config.providerId !== 'HuYa'
+          "
+        >
           <template #label>
             <span class="inline-flex"> 画质 </span>
           </template>
@@ -223,6 +229,80 @@
             >
           </n-form-item>
         </template>
+        <template v-if="config.providerId === 'HuYa'">
+          <n-form-item>
+            <template #label>
+              <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.quality"
+              :options="huyaQualityOptions"
+              :disabled="globalFieldsObj.quality"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <!-- <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.bili.qualityRetry.tip"
+                :text="textInfo.bili.qualityRetry.text"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.qualityRetry"
+              min="0"
+              step="1"
+              :disabled="globalFieldsObj.qualityRetry"
+            >
+            </n-input-number>
+            <n-checkbox v-model:checked="globalFieldsObj.qualityRetry" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item> -->
+        </template>
+        <template v-if="config.providerId !== 'DouYin'">
+          <h2>弹幕</h2>
+          <n-form-item>
+            <template #label>
+              <span class="inline-flex"> 弹幕录制 </span>
+            </template>
+            <n-switch
+              v-model:value="config.disableProvideCommentsWhenRecording"
+              :disabled="globalFieldsObj.disableProvideCommentsWhenRecording"
+              :checked-value="false"
+              :unchecked-value="true"
+            />
+            <n-checkbox
+              v-model:checked="globalFieldsObj.disableProvideCommentsWhenRecording"
+              class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+            <template #label>
+              <span class="inline-flex"> 保存礼物 </span>
+            </template>
+            <n-switch
+              v-model:value="config.saveGiftDanma"
+              :disabled="globalFieldsObj.saveGiftDanma"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.saveGiftDanma" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+            <template #label>
+              <span class="inline-flex"> 高能弹幕(SC) </span>
+            </template>
+            <n-switch v-model:value="config.saveSCDanma" :disabled="globalFieldsObj.saveSCDanma" />
+            <n-checkbox v-model:checked="globalFieldsObj.saveSCDanma" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+        </template>
+
         <n-form-item>
           <template #label>
             <span class="inline-flex">
@@ -315,6 +395,7 @@ import {
   streamFormatOptions,
   textInfo,
   streamCodecOptions,
+  huyaQualityOptions,
 } from "@renderer/enums/recorder";
 
 import type { Recorder } from "@biliLive-tools/types";
@@ -424,6 +505,10 @@ const onChannelIdInputEnd = async () => {
     config.value.extra!.recorderUid = res.uid;
   } else if (res.providerId === "DouYu") {
     config.value.quality = 0;
+  } else if (res.providerId === "HuYa") {
+    config.value.quality = 0;
+  } else {
+    config.value.quality = "highest";
   }
 };
 
@@ -434,7 +519,7 @@ watch(showModal, async (val) => {
     config.value = {
       providerId: "DouYu",
       channelId: "",
-      segment: 60,
+      segment: 90,
       quality: 0,
       disableProvideCommentsWhenRecording: true,
       saveGiftDanma: false,
@@ -482,6 +567,8 @@ watch(
         config.value.quality = appConfig.value.recorder.bilibili.quality;
       } else if (config.value.providerId === "DouYu") {
         config.value.quality = appConfig.value.recorder.douyu.quality;
+      } else if (config.value.providerId === "HuYa") {
+        config.value.quality = appConfig.value.recorder.huya.quality;
       } else {
         config.value.quality = appConfig.value.recorder.quality;
       }

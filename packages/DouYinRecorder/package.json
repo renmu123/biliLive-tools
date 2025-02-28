@@ -1,7 +1,7 @@
 {
-  "name": "@bililive-tools/bilibili-recorder",
-  "version": "1.0.1",
-  "description": "bililive-tools bilibili recorder implemention",
+  "name": "@bililive-tools/douyin-recorder",
+  "version": "1.0.0",
+  "description": "@bililive-tools douyin recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
   "publishConfig": {
@@ -27,25 +27,23 @@
     "lib"
   ],
   "keywords": [
-    "bilibili",
+    "douyin",
     "recorder",
     "bililive-tools",
     "直播",
     "录制",
-    "哔哩哔哩"
+    "抖音"
   ],
   "repository": "https://github.com/renmu123/biliLive-tools/tree/master/packages/BilibiliRecorder",
-  "author": "renmu123",
+  "author": "WhiteMind",
   "license": "LGPL",
   "dependencies": {
     "@bililive-tools/manager": "workspace:*",
-    "blive-message-listener": "^0.5.0",
-    "mitt": "^3.0.1",
-    "tiny-bilibili-ws": "^1.0.1",
+    "axios": "catalog:",
     "lodash-es": "catalog:",
-    "axios": "catalog:"
+    "mitt": "^3.0.0"
   },
-  "peerDependencies": {
-    "@bililive-tools/manager": "^1.0.0"
+  "devDependencies": {
+    "@types/node": "*"
   }
 }

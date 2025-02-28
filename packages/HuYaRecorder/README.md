@@ -6,6 +6,8 @@
 
 # 安装
 
+**建议所有录制器和manager包都升级到最新版，我不会对兼容性做过多考虑**
+
 `npm i @bililive-tools/huya-recorder @bililive-tools/manager`
 
 # 使用
@@ -18,7 +20,7 @@ const manager = createRecorderManager({ providers: [provider] });
 manager.addRecorder({
   providerId: provider.id,
   channelId: "7734200",
-  quality: "highest",
+  quality: 0,
   streamPriorities: [],
   sourcePriorities: [],
 });
@@ -33,28 +35,52 @@ manager.startCheckLoop();
 interface Options {
   channelId: string; // 直播间ID，具体解析见文档，也可自行解析
   quality: number; // 见画质参数
-  qualityRetry?: number; // 画质匹配重试次数
   streamPriorities: []; // 废弃
-  sourcePriorities: []; // 废弃
+  sourcePriorities: []; // 按提供的源优先级去给CDN列表排序，并过滤掉不在优先级配置中的源，在未匹配到的情况下会优先使用TX的CDN，具体参数见 CDN 参数
+  formatName?: "auto" | "flv" | "hls"; // 支持 flv,hls参数，默认使用flv，具体见文档
   disableAutoCheck?: boolean; // 为 true 时 manager 将跳过自动检查
-  segment?: number; // 分段参数
+  segment?: number; // 分段参数，单位分钟
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
   saveGiftDanma?: boolean; // 保存礼物弹幕
   saveCover?: boolean; // 保存封面
+  api?: "auto" | "mp" | "web"; // 默认为auto，在星秀区使用mp接口，其他使用web接口，你也可以强制指定
 }
 ```
 
 ### 画质
 
-遗漏了部分画质，有了解的可以提PR
+| 画质     | 值    |
+| -------- | ----- |
+| 2K HDR   | 14100 |
+| 2K       | 14000 |
+| HDR(10M) | 4200  |
+| 原画     | 0     |
+| 蓝光8M   | 8000  |
+| 蓝光4M   | 4000  |
+| 超清     | 2000  |
+| 流畅     | 500   |
 
-| 画质   | 值  |
-| ------ | --- |
-| 原画   | 0   |
-| 蓝光8M | 8   |
-| 蓝光4M | 4   |
-| 超清   | 3   |
-| 高清   | 2   |
+### CDN
+
+不同直播间可能支持的cdn并不一致
+
+| 画质                       | 值   |
+| -------------------------- | ---- |
+| 阿里                       | AL   |
+| 腾讯                       | TX   |
+| 华为                       | HW   |
+| 火山                       | HS   |
+| 网宿                       | WS   |
+| 阿里13                     | AL13 |
+| 腾讯15                     | TX15 |
+| 华为16                     | HW16 |
+| 不知道是啥(可能是虎牙自建) | HYZJ |
+
+### 流格式
+
+hls 可能并不适合 mp 的 api，也许你能找到可以使用的cdn
+
+支持 hls 和 flv
 
 ## 直播间ID解析
 
@@ -63,7 +89,7 @@ interface Options {
 ```ts
 import { provider } from "@bililive-tools/huya-recorder";
 
-const url = "https://live.bilibili.com/5055636";
+const url = "https://www.huya.com/910323";
 const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
 

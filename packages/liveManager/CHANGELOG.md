@@ -1,3 +1,9 @@
+# 1.1.0
+
+## 功能
+
+1. 增加虎牙 `quality` 类型、`api`，`formatName` 参数支持
+
 # 1.0.1
 
 ## Bug fix

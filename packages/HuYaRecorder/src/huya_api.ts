@@ -8,7 +8,10 @@ const requester = axios.create({
   timeout: 10e3,
 });
 
-export async function getRoomInfo(roomIdOrShortId: string) {
+export async function getRoomInfo(
+  roomIdOrShortId: string,
+  formatName: "auto" | "flv" | "hls" = "auto",
+) {
   const res = await requester.get<string>(`https://www.huya.com/${roomIdOrShortId}`);
   const html = res.data;
   const match = html.match(/var hyPlayerConfig = ({[^]+?};)/);
@@ -28,15 +31,48 @@ export async function getRoomInfo(roomIdOrShortId: string) {
   const data = hyPlayerConfig.stream.data[0];
   assert(data, `Unexpected resp, data is null`);
 
-  const sources: SourceProfile[] = data.gameStreamInfoList.map((info) => ({
-    name: `直播线路 ${info.iLineIndex}`,
-    url: initInfo({
-      sFlvUrl: info.sFlvUrl,
-      sStreamName: info.sStreamName,
-      sFlvAntiCode: info.sFlvAntiCode,
-      _sessionId: Date.now(),
-    }),
-  }));
+  const sources = {
+    flv: [],
+    hls: [],
+  } as StreamResult;
+
+  // const sources: SourceProfile[] = data.gameStreamInfoList.map((info) => ({
+  //   name: info.sCdnType,
+  //   url: initInfo({
+  //     sFlvUrl: info.sFlvUrl,
+  //     sStreamName: info.sStreamName,
+  //     sFlvAntiCode: info.sFlvAntiCode,
+  //     _sessionId: Date.now(),
+  //   }),
+  // }));
+  for (const item of data?.gameStreamInfoList ?? []) {
+    if (item.sFlvAntiCode && item.sFlvAntiCode.length > 0) {
+      const url = initInfo({
+        baseUrl: item.sFlvUrl,
+        sStreamName: item.sStreamName,
+        antiCode: item.sFlvAntiCode,
+        suffix: item.sFlvUrlSuffix,
+        _sessionId: Date.now(),
+      });
+      sources.flv.push({
+        name: item.sCdnType,
+        url,
+      });
+    }
+    if (item.sHlsAntiCode && item.sHlsAntiCode.length > 0) {
+      const url = initInfo({
+        baseUrl: item.sHlsUrl,
+        sStreamName: item.sStreamName,
+        antiCode: item.sHlsAntiCode,
+        suffix: item.sHlsUrlSuffix,
+        _sessionId: Date.now(),
+      });
+      sources.hls.push({
+        name: item.sCdnType,
+        url,
+      });
+    }
+  }
 
   const startTime = new Date(data.gameLiveInfo?.startTime * 1000);
   return {
@@ -48,10 +84,22 @@ export async function getRoomInfo(roomIdOrShortId: string) {
     avatar: data.gameLiveInfo.avatar180,
     cover: data.gameLiveInfo.screenshot,
     streams,
-    sources,
+    sources: formatName === "hls" ? sources.hls : sources.flv,
     startTime,
     liveId: utils.md5(`${roomIdOrShortId}-${startTime?.getTime()}`),
+    gid: data.gameLiveInfo.gid,
   };
+}
+
+interface StreamResult {
+  flv: {
+    name: string;
+    url: string;
+  }[];
+  hls: {
+    name: string;
+    url: string;
+  }[];
 }
 
 export interface StreamProfile {

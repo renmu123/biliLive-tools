@@ -26,12 +26,22 @@ export default class RecorderConfig {
         } else if (key === "useM3U8Proxy") {
           return get(globalConfig, "bilibili.useM3U8Proxy");
         } else if (key === "formatName") {
-          return get(globalConfig, "bilibili.formatName");
+          if (setting.providerId === "Bilibili") {
+            return get(globalConfig, "bilibili.formatName");
+          } else if (setting.providerId === "HuYa") {
+            return "auto";
+          } else {
+            return "auto";
+          }
         } else if (key === "quality") {
-          if (setting?.providerId === "Bilibili") {
+          if (setting.providerId === "Bilibili") {
             return get(globalConfig, "bilibili.quality");
-          } else if (setting?.providerId === "Douyu") {
+          } else if (setting.providerId === "DouYu") {
             return get(globalConfig, "douyu.quality");
+          } else if (setting.providerId === "HuYa") {
+            return get(globalConfig, "huya.quality");
+          } else {
+            return get(globalConfig, "quality");
           }
         } else if (key === "codecName") {
           return get(globalConfig, "bilibili.codecName");
@@ -68,7 +78,7 @@ export default class RecorderConfig {
       saveGiftDanma: getValue("saveGiftDanma") ?? false,
       saveSCDanma: getValue("saveSCDanma") ?? true,
       saveCover: getValue("saveCover") ?? false,
-      segment: getValue("segment") ?? 60,
+      segment: getValue("segment") ?? 90,
       uid: uid,
       qualityRetry: getValue("qualityRetry") ?? 0,
       auth: auth,

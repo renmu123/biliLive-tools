@@ -1,26 +1,24 @@
 # Intro
 
-原项目：https://github.com/WhiteMinds/DouYuRecorder
+原项目：https://github.com/WhiteMinds/DouYinRecorder
 
-这是 [biliLive-tools](https://github.com/renmu123/biliLive-tools) 的一个平台插件，为其支持了斗鱼平台录制
+这是 [biliLive-tools](https://github.com/renmu123/biliLive-tools) 的一个平台插件，为其支持了抖音平台录制
 
 # 安装
 
-**建议所有录制器和manager包都升级到最新版，我不会对兼容性做过多考虑**
-
-`npm i @bililive-tools/douyu-recorder @bililive-tools/manager`
+`npm i @bililive-tools/douyin-recorder @bililive-tools/manager`
 
 # 使用
 
 ```ts
 import { createRecorderManager } from "@bililive-tools/manager";
-import { provider } from "@bililive-tools/douyu-recorder";
+import { provider } from "@bililive-tools/douyin-recorder";
 
 const manager = createRecorderManager({ providers: [provider] });
 manager.addRecorder({
   providerId: provider.id,
-  channelId: "74751",
-  quality: 0,
+  channelId: "203641303310",
+  quality: "highest",
   streamPriorities: [],
   sourcePriorities: [],
 });
@@ -42,31 +40,18 @@ interface Options {
   segment?: number; // 分段参数，单位分钟
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
   saveGiftDanma?: boolean; // 保存礼物弹幕
-  saveSCDanma?: boolean; // 保存高能弹幕
   saveCover?: boolean; // 保存封面
 }
 ```
-
-### 画质
-
-遗漏了部分画质，有了解的可以提PR
-
-| 画质   | 值  |
-| ------ | --- |
-| 原画   | 0   |
-| 蓝光8M | 8   |
-| 蓝光4M | 4   |
-| 超清   | 3   |
-| 高清   | 2   |
 
 ## 直播间ID解析
 
 解析出真实直播间ID
 
 ```ts
-import { provider } from "@bililive-tools/douyu-recorder";
+import { provider } from "@bililive-tools/douyin-recorder";
 
-const url = "https://www.douyu.com/2140934";
+const url = "https://live.douyin.com/203641303310";
 const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
 

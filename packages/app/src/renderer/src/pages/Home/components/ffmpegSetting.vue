@@ -142,7 +142,12 @@
         </template>
         <n-checkbox v-model:checked="ffmpegOptions.config.bit10"></n-checkbox>
       </n-form-item>
-
+      <n-form-item v-if="['qsv', 'nvenc'].includes(hardwareAcceleration)">
+        <template #label>
+          <Tip text="硬件解码"> 仅在未使用滤镜是才会开启硬件解码 </Tip>
+        </template>
+        <n-checkbox v-model:checked="ffmpegOptions.config.decode"></n-checkbox>
+      </n-form-item>
       <n-form-item>
         <template #label>
           <Tip text="分辨率">

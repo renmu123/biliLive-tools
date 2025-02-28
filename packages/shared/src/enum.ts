@@ -215,6 +215,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     douyu: {
       quality: 0,
     },
+    huya: {
+      quality: 0,
+    },
   },
   video: {
     subCheckInterval: 60,

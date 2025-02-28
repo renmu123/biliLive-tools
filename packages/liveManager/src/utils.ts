@@ -271,6 +271,23 @@ const uuid = () => {
   return crypto.randomUUID();
 };
 
+/**
+ * 根据指定的顺序对对象数组进行排序
+ * @param objects 要排序的对象数组
+ * @param order 指定的顺序
+ * @param key 用于排序的键
+ * @returns 排序后的对象数组
+ */
+export function sortByKeyOrder<T, K extends keyof T>(objects: T[], order: T[K][], key: K): T[] {
+  const orderMap = new Map(order.map((value, index) => [value, index]));
+
+  return [...objects].sort((a, b) => {
+    const indexA = orderMap.get(a[key]) ?? Number.MAX_VALUE;
+    const indexB = orderMap.get(b[key]) ?? Number.MAX_VALUE;
+    return indexA - indexB;
+  });
+}
+
 export default {
   replaceExtName,
   singleton,
@@ -287,4 +304,5 @@ export default {
   downloadImage,
   md5,
   uuid,
+  sortByKeyOrder,
 };
