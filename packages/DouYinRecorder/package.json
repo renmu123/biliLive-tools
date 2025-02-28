@@ -43,6 +43,9 @@
     "lodash-es": "catalog:",
     "mitt": "^3.0.0"
   },
+  "peerDependencies": {
+    "@bililive-tools/manager": "^1.0.0"
+  },
   "devDependencies": {
     "@types/node": "*"
   }
