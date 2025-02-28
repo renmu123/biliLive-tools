@@ -212,7 +212,7 @@ import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { useUserInfoStore } from "@renderer/stores";
 import { useConfirm } from "@renderer/hooks";
 import {
-  // qualityOptions,
+  qualityOptions,
   biliQualityOptions,
   douyuQualityOptions,
   huyaQualityOptions,
