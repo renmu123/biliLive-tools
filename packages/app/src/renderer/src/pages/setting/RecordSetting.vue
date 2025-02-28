@@ -161,8 +161,8 @@
       <n-form-item>
         <template #label>
           <Tip
-            tip="如果你录制了大量的直播间，可以尝试开启此选项，减少被风控的可能性"
-            text="使用批量查询接口"
+            tip="使用批量检查直播状态接口，如果你录制了大量的直播间，可以尝试开启此选项，减少被风控的可能性"
+            text="批量查询接口"
           ></Tip>
         </template>
         <n-switch v-model:value="config.recorder.bilibili.useBatchQuery" />
@@ -178,7 +178,7 @@
       <n-form-item>
         <template #label>
           <Tip
-            tip="如果选项为零，那么匹配不到画质时会自动选择其他画质，否则会多次尝试匹配"
+            tip="如果值为0，那么匹配不到画质时会自动选择其他画质，否则会多次尝试匹配"
             text="画质匹配重试次数"
           ></Tip>
         </template>

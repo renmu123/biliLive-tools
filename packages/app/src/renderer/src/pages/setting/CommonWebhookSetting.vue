@@ -2,10 +2,7 @@
   <h2>压制配置</h2>
   <n-form-item>
     <template #label>
-      <span class="inline-flex">
-        弹幕压制
-        <Tip tip="将弹幕文件硬编码到视频中"></Tip>
-      </span>
+      <Tip text="弹幕压制" tip="将弹幕文件硬编码到视频中"></Tip>
     </template>
     <n-switch v-model:value="data.danmu" :disabled="globalFieldsObj.danmu" />
 
@@ -15,10 +12,7 @@
   </n-form-item>
   <n-form-item v-if="!data.danmu">
     <template #label>
-      <span class="inline-flex">
-        不压制后处理
-        <Tip tip="关闭弹幕压制但仍对视频调用ffmepg进行处理"></Tip>
-      </span>
+      <Tip text="不压制后处理" tip="关闭弹幕压制但仍对视频调用ffmepg进行处理"></Tip>
     </template>
     <n-switch
       v-model:value="data.noConvertHandleVideo"
@@ -81,10 +75,7 @@
     <template v-if="data.hotProgress">
       <n-form-item>
         <template #label>
-          <span class="inline-flex">
-            采样间隔
-            <Tip tip="每隔一段时间对弹幕进行一次汇总计算，影响波峰"></Tip>
-          </span>
+          <Tip text="采样间隔" tip="每隔一段时间对弹幕进行一次汇总计算，影响波峰"></Tip>
         </template>
         <n-input-number
           v-model:value="data.hotProgressSample"
@@ -174,10 +165,7 @@
 
   <n-form-item>
     <template #label>
-      <span class="inline-flex">
-        转封装为mp4
-        <Tip tip="将视频文件转换为mp4封装格式，转换完毕后会删除原始视频文件"></Tip>
-      </span>
+      <Tip text="转封装为mp4" tip="将视频文件转换为mp4封装格式，转换完毕后会删除原始视频文件"></Tip>
     </template>
     <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
 
@@ -188,10 +176,7 @@
 
   <n-form-item>
     <template #label>
-      <span class="inline-flex">
-        限制处理时间
-        <Tip tip="开启后，支持只在某段时间执行处理"></Tip>
-      </span>
+      <Tip text="限制处理时间" tip="开启后，支持只在某段时间执行处理"></Tip>
     </template>
     <n-switch
       v-model:value="data.limitVideoConvertTime"
@@ -238,7 +223,7 @@
       >全局</n-checkbox
     >
   </n-form-item>
-  <n-form-item label="上传预设">
+  <n-form-item label="预设">
     <n-select
       v-model:value="data.uploadPresetId"
       :options="props.biliupPresetsOptions"
@@ -254,20 +239,6 @@
     >
   </n-form-item>
 
-  <n-form-item>
-    <template #label>
-      <span class="inline-flex">
-        使用视频文件名 <Tip tip="使用本地视频文件名作为视频标题"></Tip>
-      </span>
-    </template>
-    <n-switch v-model:value="data.useVideoAsTitle" :disabled="globalFieldsObj.useVideoAsTitle" />
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.useVideoAsTitle"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
   <n-form-item v-if="!data.useVideoAsTitle">
     <template #label>
       <Tip :tip="titleTip" text="视频标题"></Tip>
@@ -301,12 +272,25 @@
   </n-form-item>
   <n-form-item>
     <template #label>
-      <span class="inline-flex">
-        使用直播封面
-        <Tip
-          tip="使用直播封面作为视频封面，默认寻找视频目录下文件名为'视频文件名+.cover.jpg|.jpg的文件"
-        ></Tip>
-      </span>
+      <Tip
+        text="使用视频文件名"
+        tip="使用视频文件名作为视频标题，推荐使用自定义视频标题，以获得更高自由度"
+      ></Tip>
+    </template>
+    <n-switch v-model:value="data.useVideoAsTitle" :disabled="globalFieldsObj.useVideoAsTitle" />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.useVideoAsTitle"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item>
+    <template #label>
+      <Tip
+        text="使用直播封面"
+        tip="使用直播封面作为视频封面，默认寻找视频目录下文件名为'视频文件名+.cover.jpg|.jpg的文件"
+      ></Tip>
     </template>
     <n-switch v-model:value="data.useLiveCover" :disabled="globalFieldsObj.useLiveCover" />
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.useLiveCover" class="global-checkbox"
@@ -316,10 +300,7 @@
 
   <n-form-item>
     <template #label>
-      <span class="inline-flex">
-        断播续传
-        <Tip tip="开启后，会将某主播一场直播上传到同一个视频中"></Tip>
-      </span>
+      <Tip text="断播续传" tip="开启后，会将某主播一场直播上传到同一个视频中"></Tip>
     </template>
     <n-switch v-model:value="data.autoPartMerge" :disabled="globalFieldsObj.autoPartMerge" />
     <n-checkbox
@@ -331,10 +312,10 @@
   </n-form-item>
   <n-form-item v-if="data.autoPartMerge">
     <template #label>
-      <span class="inline-flex">
-        上传到同分p间隔时间
-        <Tip tip="检测直播是否为同一场的时间间隔"></Tip>
-      </span>
+      <Tip
+        text="分p间隔时间"
+        tip="检测直播是否为同一场的时间间隔，避免因网络中断原因出现错误分P"
+      ></Tip>
     </template>
     <n-input-number
       v-model:value="data.partMergeMinute"
@@ -383,10 +364,10 @@
   </n-form-item>
   <n-form-item>
     <template #label>
-      <span class="inline-flex">
-        最小上传大小
-        <Tip tip="小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播"></Tip>
-      </span>
+      <Tip
+        text="最小上传大小"
+        tip="小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播"
+      ></Tip>
     </template>
     <n-input-number
       v-model:value="data.minSize"
@@ -402,10 +383,7 @@
   </n-form-item>
   <n-form-item>
     <template #label>
-      <span class="inline-flex">
-        限制上传时间
-        <Tip tip="开启后，支持只在某段时间执行上传操作"></Tip>
-      </span>
+      <Tip text="限制上传时间" tip="开启后，支持只在某段时间执行上传操作"></Tip>
     </template>
     <n-switch v-model:value="data.limitUploadTime" :disabled="globalFieldsObj.limitUploadTime" />
     <n-checkbox
@@ -441,13 +419,11 @@
     <n-divider />
     <n-form-item>
       <template #label>
-        <span class="inline-flex">
-          上传非弹幕版
-          <Tip
-            tip="用于在上传弹幕版后同时上传一份非弹幕版本，大部分配置与上面的共用，不含包“完成后删除源文件”选项
+        <Tip
+          text="上传非弹幕版"
+          tip="用于在上传弹幕版后同时上传一份非弹幕版本，大部分配置与上面的共用，不含包“完成后删除源文件”选项
             <br/>视频标题去上传预设中配置，标题模板不要与弹幕版完全一致，不然b站可能会上传错误"
-          ></Tip>
-        </span>
+        ></Tip>
       </template>
       <n-switch v-model:value="data.uploadNoDanmu" :disabled="globalFieldsObj.uploadNoDanmu" />
       <n-checkbox
@@ -566,10 +542,9 @@ const titleList = ref([
   },
 ]);
 const titleTip = computed(() => {
-  const base = `推荐在上传预设设置模板标题，但如果预设标题中不存在占位符，为了兼容性考虑，依然使用webhook配置。<br/>
-  <b>预计后续版本中会移除此字段，请使用者尽快迁移。</b><br/>
+  const base = `推荐在上传预设设置模板标题，但如果预设标题中不存在占位符，依然使用webhook配置。<br/>
   支持{{title}},{{user}},{{now}}等占位符，如【{{user}}】{{title}}-{{now}}<br/>
-  不要在直播开始后修改字段，本场直播不会生效，更多模板引擎等高级用法见文档<br/>`;
+  更多模板引擎等高级用法见文档<br/>`;
   return titleList.value
     .map((item) => {
       return `${item.label}：${item.value}<br/>`;

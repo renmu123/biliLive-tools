@@ -1,6 +1,6 @@
 <template>
   <div class="">
-    <h2>最多处理数<Tip :tip="`-1为无限`"></Tip></h2>
+    <h2>并发处理数<Tip :tip="`-1为无限`"></Tip></h2>
     <n-form label-placement="left" :label-width="140">
       <n-form-item>
         <template #label>

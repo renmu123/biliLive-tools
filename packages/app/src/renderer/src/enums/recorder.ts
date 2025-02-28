@@ -158,7 +158,7 @@ export const textInfo = {
   bili: {
     uid: {
       text: "录制账号",
-      tip: "B站只有登录才能录制清晰画质",
+      tip: "B站只有登录才能录制清晰画质，推荐使用小号避免可能的风控",
     },
     useM3U8Proxy: {
       text: "避免hls自动分段",

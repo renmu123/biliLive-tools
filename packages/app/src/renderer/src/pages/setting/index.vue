@@ -13,12 +13,10 @@
           <n-form ref="formRef" label-placement="left" :label-width="160">
             <n-form-item>
               <template #label>
-                <span class="inline-flex">
-                  删除至回收站
-                  <Tip
-                    tip="关闭后若使用“删除源文件”等选项，文件将被直接删除，不会进入回收站，如果使用的文件为smb等远程协议挂载，可能会删除失败"
-                  ></Tip>
-                </span>
+                <Tip
+                  text="删除至回收站"
+                  tip="关闭后若使用“删除源文件”等选项，文件将被直接删除，不会进入回收站，如果使用的文件为smb等远程协议挂载，可能会删除失败"
+                ></Tip>
               </template>
               <n-switch v-model:value="config.trash" />
             </n-form-item>
@@ -62,30 +60,22 @@
             </n-form-item> -->
             <n-form-item>
               <template #label>
-                <span class="inline-flex">
-                  host
-                  <Tip :tip="`修改后需重启生效`"></Tip>
-                </span>
+                <Tip text="host" :tip="`修改后需重启生效`"></Tip>
               </template>
               <n-input v-model:value="config.host"> </n-input>
             </n-form-item>
             <n-form-item>
               <template #label>
-                <span class="inline-flex">
-                  port
-                  <Tip
-                    :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/><b>修改后需重启生效</b>`"
-                  ></Tip>
-                </span>
+                <Tip
+                  text="port"
+                  :tip="`你可以在浏览器访问 http://127.0.0.1:${config.port} 查询是否启动成功<br/><b>修改后需重启生效</b>`"
+                ></Tip>
               </template>
               <n-input-number v-model:value="config.port" min="1" max="65535"> </n-input-number>
             </n-form-item>
             <n-form-item>
               <template #label>
-                <span class="inline-flex">
-                  鉴权密钥
-                  <Tip tip="用于webui鉴权，修改后需重启生效"></Tip>
-                </span>
+                <Tip text="鉴权密钥" tip="用于webui鉴权，修改后需重启生效"></Tip>
               </template>
               <n-input v-model:value="config.passKey" type="password" show-password-on="click">
               </n-input>
@@ -96,8 +86,8 @@
             <n-form-item>
               <template #label>
                 <span class="inline-flex">
-                  自定义二进制文件
                   <Tip
+                    text="自定义二进制文件"
                     :tip="`开启后，将无法自动使用项目内二进制文件，可能导致应用无法使用，请谨慎开启`"
                   ></Tip>
                 </span>
@@ -197,12 +187,10 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <span class="inline-flex">
-                  配置
-                  <Tip
-                    tip="导出配置文件，导入后重启应用生效，尽量保持版本一致，如果按钮无法使用，请参照常见问题进行手动备份"
-                  ></Tip>
-                </span>
+                <Tip
+                  text="配置"
+                  tip="导出配置文件，导入后重启应用生效，尽量保持版本一致，如果按钮无法使用，请参照常见问题进行手动备份"
+                ></Tip>
               </template>
               <n-button type="primary" @click="exportSettingZip">导出配置</n-button>
               <n-button type="primary" style="margin-left: 10px" @click="importSettingZip"
@@ -215,23 +203,19 @@
           <n-form label-placement="left" :label-width="130">
             <n-form-item>
               <template #label>
-                <span class="inline-flex">
-                  webhook
-                  <Tip
-                    :tip="`webhook路径：<br/>B站录播姬：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec：http://127.0.0.1:${config.port}/webhook/blrec<br/>DDTV：http://127.0.0.1:${config.port}/webhook/ddtv<br/>自定义：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
-                  ></Tip>
-                </span>
+                <Tip
+                  text="webhook"
+                  :tip="`webhook路径：<br/>B站录播姬：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec：http://127.0.0.1:${config.port}/webhook/blrec<br/>DDTV：http://127.0.0.1:${config.port}/webhook/ddtv<br/>自定义（参数见文档）：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
+                ></Tip>
               </template>
               <n-switch v-model:value="config.webhook.open" />
             </n-form-item>
             <n-form-item>
               <template #label>
-                <span class="inline-flex">
-                  黑名单
-                  <Tip
-                    tip="设置后相应直播间的视频不会被处理，用英文逗号分隔，如: 123456,1234567，也可以使用*，代表所有房间号"
-                  ></Tip>
-                </span>
+                <Tip
+                  text="黑名单"
+                  tip="设置后相应直播间的视频不会被处理，用英文逗号分隔，如: 123456,1234567，也可以使用*，代表所有房间号"
+                ></Tip>
               </template>
               <n-input
                 v-model:value="config.webhook.blacklist"
@@ -240,14 +224,11 @@
             </n-form-item>
             <n-form-item label="录播姬工作目录">
               <template #label>
-                <span class="inline-flex">
-                  录播姬工作目录
-                  <Tip tip="仅当你使用录播姬的webhook时，需要配置此选项"></Tip>
-                </span>
+                <Tip text="录播姬工作目录" tip="仅当你使用录播姬的webhook时，需要配置此选项"></Tip>
               </template>
               <n-input
                 v-model:value="config.webhook.recoderFolder"
-                placeholder="请输入录播姬工作目录"
+                placeholder="请选择录播姬工作目录"
               />
               <n-icon
                 style="margin-left: 10px"
