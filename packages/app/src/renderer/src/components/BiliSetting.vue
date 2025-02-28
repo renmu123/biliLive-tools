@@ -273,6 +273,7 @@
             style="flex: none"
             >此稿件不生成更新推送</n-checkbox
           >
+          <n-button @click="getSeasonList(true)" type="primary">强制刷新</n-button>
         </div>
       </n-form-item>
     </n-form>
@@ -537,11 +538,26 @@ const seasonList = ref<
 const currentSections = computed(() => {
   return seasonList.value.find((item) => item.value === options.value.config.seasonId)?.sections;
 });
-const getSeasonList = async () => {
+const getSeasonList = async (force?: boolean) => {
   if (!userInfoStore?.userInfo?.uid) {
     seasonList.value = [];
     return;
   }
+
+  // 优先从本地缓存获取
+  const rawLocalData = window.localStorage.getItem("seasonListWithUID");
+  if (!force && rawLocalData) {
+    try {
+      const data = JSON.parse(rawLocalData);
+      if (userInfoStore?.userInfo?.uid && data?.[userInfoStore.userInfo.uid]) {
+        seasonList.value = data[userInfoStore.userInfo.uid];
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   const data = await biliApi.getSeasonList(userInfoStore.userInfo.uid);
   seasonList.value = (data.seasons || []).map((item) => {
     return {
@@ -550,15 +566,48 @@ const getSeasonList = async () => {
       sections: item?.sections?.sections || [],
     };
   });
+
+  try {
+    if (rawLocalData) {
+      const data = JSON.parse(rawLocalData);
+      data[userInfoStore.userInfo.uid] = seasonList.value;
+      window.localStorage.setItem("seasonListWithUID", JSON.stringify(data));
+    } else {
+      window.localStorage.setItem(
+        "seasonListWithUID",
+        JSON.stringify({ [userInfoStore.userInfo.uid]: seasonList.value }),
+      );
+    }
+    if (force) {
+      notice.success({
+        title: "刷新成功",
+        duration: 1000,
+      });
+    }
+  } catch (e) {
+    console.error(e);
+  }
 };
 
 const areaData = ref<any[]>([]);
 const getPlatformTypes = async () => {
+  // 优先从本地缓存获取
+  const rawLocalData = window.localStorage.getItem("areaData");
+  if (rawLocalData) {
+    try {
+      areaData.value = JSON.parse(rawLocalData);
+      return;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   if (!userInfoStore?.userInfo?.uid) {
     return;
   }
   const data = await biliApi.getPlatformPre(userInfoStore.userInfo.uid);
   areaData.value = data.typelist;
+  window.localStorage.setItem("areaData", JSON.stringify(data.typelist));
 };
 
 const descMaxLength = ref(2000);
