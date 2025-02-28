@@ -44,7 +44,7 @@
             <div class="section" @click="startRecord(item.id)">开始录制</div>
             <div class="section" @click="stopRecord(item.id)">停止录制</div>
             <div class="section" @click="edit(item.id)">直播间设置</div>
-            <div class="section" @click="getLiveInfo">刷新直播间信息</div>
+            <div class="section" @click="refresh(item.id)">刷新直播间信息</div>
             <div
               v-if="item.recordHandle?.savePath && false"
               class="section"
@@ -66,9 +66,9 @@
       </component>
     </template>
 
-    <h1 v-else>木有主播捏，添加看看吧，支持斗鱼、虎牙平台、B站</h1>
+    <h1 v-else>还木有添加直播捏，添加一个看看吧，支持斗鱼、虎牙、B站、抖音</h1>
 
-    <addModal :id="editId" v-model:visible="addModalVisible" @confirm="init"></addModal>
+    <addModal :id="editId" v-model:visible="addModalVisible" @confirm="handleModalClose"></addModal>
     <videoModal :id="editId" v-model:visible="videoModalVisible" :video-url="videoUrl"></videoModal>
   </div>
 </template>
@@ -109,6 +109,10 @@ const platformOptions = ref([
   {
     label: "虎牙",
     value: "HuYa",
+  },
+  {
+    label: "抖音",
+    value: "DouYin",
   },
 ]);
 const statusOptions = ref([
@@ -231,6 +235,24 @@ const open = async (id: string, streamUrl: string) => {
 const getLiveInfo = async () => {
   if (recorderList.value.length === 0) return;
   liveInfos.value = await recoderApi.getLiveInfo();
+};
+
+// 刷新直播间信息
+const refresh = async (id: string) => {
+  const data = await recoderApi.getLiveInfo(id);
+  liveInfos.value = liveInfos.value.map((item) => {
+    if (item.channelId === id) {
+      return data[0];
+    }
+    return item;
+  });
+};
+
+const handleModalClose = () => {
+  // 仅在添加时刷新列表
+  if (!editId.value) {
+    init();
+  }
 };
 
 const init = async () => {

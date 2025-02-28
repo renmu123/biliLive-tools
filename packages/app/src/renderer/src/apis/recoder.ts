@@ -62,8 +62,10 @@ const resolveChannel = async (url: string): Promise<RecorderAPI["resolveChannel"
   return res.data.payload;
 };
 
-const getLiveInfo = async (): Promise<RecorderAPI["getLiveInfo"]["Resp"]> => {
-  const res = await request.get(`/recorder/manager/liveInfo`);
+const getLiveInfo = async (id?: string): Promise<RecorderAPI["getLiveInfo"]["Resp"]> => {
+  const res = await request.get(`/recorder/manager/liveInfo`, {
+    params: { id },
+  });
   return res.data.payload;
 };
 

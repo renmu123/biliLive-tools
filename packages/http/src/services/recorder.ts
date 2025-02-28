@@ -210,20 +210,27 @@ export function resolveChannel(url: string) {
   return recorderManager.resolveChannel(url);
 }
 
-export async function getLiveInfo() {
+export async function getLiveInfo(id: string | undefined) {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
   const recorders = recorderManager.manager.recorders;
 
-  const requests = recorders.map((recorder) => recorder.getLiveInfo());
-  const list: {
-    owner: string;
-    title: string;
-    avatar: string;
-    cover: string;
-  }[] = (await Promise.allSettled(requests))
-    .filter((item) => item.status === "fulfilled")
-    .map((item) => item.value);
-  return list;
+  if (!id) {
+    const requests = recorders.map((recorder) => recorder.getLiveInfo());
+    const list: {
+      owner: string;
+      title: string;
+      avatar: string;
+      cover: string;
+    }[] = (await Promise.allSettled(requests))
+      .filter((item) => item.status === "fulfilled")
+      .map((item) => item.value);
+    return list;
+  } else {
+    const recorder = recorders.find((item) => item.id === id);
+    if (!recorder) throw new Error("未找到录制器");
+    const data = await recorder.getLiveInfo();
+    return [data];
+  }
 }
 
 export default {

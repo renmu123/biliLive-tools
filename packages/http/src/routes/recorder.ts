@@ -122,7 +122,9 @@ router.get("/manager/resolveChannel", async (ctx) => {
 });
 
 router.get("/manager/liveInfo", async (ctx) => {
-  const list = await recorderService.getLiveInfo();
+  const { id } = ctx.query;
+
+  const list = await recorderService.getLiveInfo(id as string);
   ctx.body = {
     payload: list,
   };
