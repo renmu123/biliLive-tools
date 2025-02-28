@@ -340,7 +340,7 @@ export interface GlobalRecorder {
 }
 
 export interface Recorder {
-  providerId: "DouYu" | "HuYa" | "Bilibili";
+  providerId: "DouYu" | "HuYa" | "Bilibili" | "DouYin";
   id: string;
   channelId: string;
   remarks?: string;
