@@ -3,8 +3,8 @@
     <div class="btns page-header">
       <ButtonGroup
         title="请选择LosslessCut项目文件"
-        :options="exportBtns"
-        @click="handleProjectClick"
+        :options="exportOptions"
+        @click="handleProjectBtnClick"
         >导入项目文件</ButtonGroup
       >
       <n-button type="primary" @click="handleVideoChange"> {{ videoTitle }} </n-button>
@@ -20,6 +20,7 @@
       <n-button class="cut-export" type="info" :disabled="!files.videoPath" @click="exportCuts">
         导出切片
       </n-button>
+      <!-- <n-button @click="closeVideo" class="back-btn">关闭</n-button> -->
     </div>
 
     <div class="content">
@@ -205,6 +206,23 @@ const {
   saveAsAnother,
   handleProject,
 } = useLlcProject(files);
+
+const exportOptions = computed(() => {
+  return [
+    ...exportBtns.value,
+    { label: "关闭视频", key: "closeVideo", disabled: !files.value.videoPath },
+  ];
+});
+
+const handleProjectBtnClick = (key?: string | number) => {
+  if (key === "closeVideo") {
+    handleVideo("");
+    fileList.value = [];
+  } else {
+    handleProjectClick;
+  }
+};
+
 const { duration: videoDuration } = storeToRefs(useSegmentStore());
 const { appConfig } = storeToRefs(useAppConfig());
 
