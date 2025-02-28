@@ -193,6 +193,14 @@
         </template>
         <n-select v-model:value="config.recorder.quality" :options="qualityOptions" />
       </n-form-item>
+
+      <h2>抖音</h2>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> 画质 </span>
+        </template>
+        <n-select v-model:value="config.recorder.quality" :options="qualityOptions" />
+      </n-form-item>
     </n-form>
   </div>
 </template>
