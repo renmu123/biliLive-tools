@@ -154,7 +154,7 @@
       </n-form-item>
     </template>
   </template>
-  <templat v-if="data.danmu || (!data.danmu && data.noConvertHandleVideo)">
+  <template v-if="data.danmu || (!data.danmu && data.noConvertHandleVideo)">
     <n-form-item>
       <template #label>
         <span class="inline-flex"> 完成后删除源文件 </span>
@@ -170,7 +170,7 @@
         >全局</n-checkbox
       >
     </n-form-item>
-  </templat>
+  </template>
 
   <n-form-item>
     <template #label>

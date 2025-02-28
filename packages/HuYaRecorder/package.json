@@ -40,7 +40,7 @@
   "dependencies": {
     "@bililive-tools/manager": "workspace:*",
     "huya-danma-listener": "workspace:*",
-    "mitt": "^3.0.1",
+    "mitt": "catalog:",
     "lodash-es": "catalog:",
     "axios": "catalog:"
   },

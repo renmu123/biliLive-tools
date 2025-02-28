@@ -44,7 +44,7 @@
       </n-layout>
     </n-layout>
   </n-space>
-  <AppSettingDialog v-model="settingVisible"></AppSettingDialog>
+  <AppSettingDialog v-model="settingVisible" ref="settingDialogRef"></AppSettingDialog>
   <ChangelogModal v-model:visible="changelogVisible"></ChangelogModal>
   <logModal v-model:visible="logVisible"></logModal>
 </template>
@@ -70,6 +70,7 @@ import logModal from "../../components/logModal.vue";
 import { useUserInfoStore, useQueueStore, useAppConfig } from "../../stores";
 import { commonApi } from "@renderer/apis";
 import logSvg from "./logSvg.vue";
+import eventBus from "@renderer/utils/eventBus";
 
 import type { MenuOption } from "naive-ui";
 
@@ -187,7 +188,7 @@ const footerMenuOptions = computed<MenuOption[]>(() => {
             "a",
             {
               onClick: () => {
-                settingVisible.value = true;
+                openSetting();
               },
             },
             { default: () => "设置" },
@@ -370,11 +371,32 @@ const menuOptions = computed<MenuOption[]>(() => {
 });
 
 const settingVisible = ref(false);
-window?.api?.openSetting(() => {
-  settingVisible.value = true;
+
+onMounted(() => {
+  eventBus.on("open-setting-dialog", ({ extra }) => {
+    openSetting("webhook", extra);
+  });
 });
 
+const settingDialogRef = ref<InstanceType<typeof AppSettingDialog> | null>(null);
+const openSetting = async (
+  tab?: string,
+  extra?: {
+    roomId?: string;
+  },
+) => {
+  settingVisible.value = true;
+  if (tab) {
+    setTimeout(() => {
+      settingDialogRef.value?.set(tab, extra);
+    }, 500);
+  }
+};
+
 const logVisible = ref(false);
+window?.api?.openSetting(() => {
+  openSetting();
+});
 window?.api?.openLog(() => {
   logVisible.value = true;
 });

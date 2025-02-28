@@ -22,6 +22,7 @@
 
 <script setup lang="ts">
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
+import { FolderOpenOutline } from "@vicons/ionicons5";
 
 import type { AppConfig } from "@biliLive-tools/types";
 

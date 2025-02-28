@@ -40,7 +40,7 @@
   "dependencies": {
     "@bililive-tools/manager": "workspace:*",
     "blive-message-listener": "^0.5.0",
-    "mitt": "^3.0.1",
+    "mitt": "catalog:",
     "tiny-bilibili-ws": "^1.0.1",
     "lodash-es": "catalog:",
     "axios": "catalog:"

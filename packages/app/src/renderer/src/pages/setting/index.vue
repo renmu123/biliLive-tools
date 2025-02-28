@@ -8,7 +8,7 @@
       aria-modal="true"
       class="card"
     >
-      <n-tabs type="bar" animated placement="left" class="setting-tab">
+      <n-tabs v-model:value="selectTab" type="bar" animated placement="left" class="setting-tab">
         <n-tab-pane name="common" tab="基本">
           <n-form ref="formRef" label-placement="left" :label-width="160">
             <n-form-item>
@@ -673,6 +673,25 @@ const confirmImportSettingZip = async (file: File) => {
   });
   showModal.value = false;
 };
+
+const selectTab = ref<string>("common");
+defineExpose({
+  set: async (
+    tab?: string,
+    extra?: {
+      roomId?: string;
+    },
+  ) => {
+    if (tab) {
+      selectTab.value = tab;
+    }
+    if (selectTab.value === "webhook" && extra?.roomId) {
+      if (config?.value?.webhook?.rooms?.[extra.roomId]) {
+        handleRoomDetail(extra.roomId);
+      }
+    }
+  },
+});
 </script>
 
 <style scoped lang="less">

@@ -41,7 +41,7 @@
     "@bililive-tools/manager": "workspace:*",
     "axios": "catalog:",
     "lodash-es": "catalog:",
-    "mitt": "^3.0.0"
+    "mitt": "catalog:"
   },
   "peerDependencies": {
     "@bililive-tools/manager": "^1.0.0"

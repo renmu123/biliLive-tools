@@ -39,7 +39,7 @@
   "license": "LGPL",
   "dependencies": {
     "@bililive-tools/manager": "workspace:*",
-    "mitt": "^3.0.1",
+    "mitt": "catalog:",
     "query-string": "^9.1.1",
     "safe-eval": "^0.4.1",
     "ws": "^8.18.0",

@@ -60,6 +60,7 @@
               打开录制文件夹
             </div>
 
+            <div class="section" @click="toWebhook(item.channelId)">Webhook配置</div>
             <div class="section" style="color: #e88080" @click="remove(item.id)">删除房间</div>
           </div>
         </template>
@@ -82,6 +83,7 @@ import cardView from "./components/cardView.vue";
 import listView from "./components/listView.vue";
 
 import { useEventListener, useStorage } from "@vueuse/core";
+import eventBus from "@renderer/utils/eventBus";
 
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 
@@ -320,6 +322,15 @@ const isWeb = ref(window.isWeb);
  */
 const openSavePath = (path: string) => {
   window.api.openPath(window.path.dirname(path));
+};
+
+const toWebhook = (channelId: string) => {
+  eventBus.emit("open-setting-dialog", {
+    tab: "webhook",
+    extra: {
+      roomId: channelId,
+    },
+  });
 };
 </script>
 
