@@ -124,9 +124,11 @@
             @click="deleteDanmu"
             >删除</n-button
           >
-          <n-button type="primary" @click="renameDanmu">重命名</n-button>
+          <ButtonGroup :options="actionBtns" @click="handleActionClick">保存</ButtonGroup>
+
+          <!-- <n-button type="primary" @click="renameDanmu">重命名</n-button>
           <n-button type="primary" @click="saveAsDanmu">另存为</n-button>
-          <n-button type="primary" @click="saveDanmuPreset">保存</n-button>
+          <n-button type="primary" @click="saveDanmuPreset">保存</n-button> -->
         </div>
       </n-tab-pane>
       <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
@@ -186,6 +188,7 @@ import hotkeys from "hotkeys-js";
 import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 import { showSaveDialog } from "@renderer/utils/fileSystem";
+import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 
 import type { File, FfmpegOptions, DanmuConfig, FfmpegPreset } from "@biliLive-tools/types";
 
@@ -515,6 +518,44 @@ async function getRunningTaskNum() {
 onActivated(() => {
   getRunningTaskNum();
 });
+
+const actionBtns = ref([
+  { label: "另存为", key: "saveAnother" },
+  { label: "重命名", key: "rename" },
+  { label: "导出", key: "export" },
+  // { label: "导入", key: "import" },
+]);
+const handleActionClick = async (key?: string | number) => {
+  console.log(key);
+  switch (key) {
+    case "saveAnother":
+      saveAsDanmu();
+      break;
+    case "rename":
+      renameDanmu();
+      break;
+    case "export":
+      exportPreset();
+      break;
+    // case "import":
+    //   open();
+    //   break;
+    case undefined:
+      saveDanmuPreset();
+      break;
+  }
+};
+
+const exportPreset = async () => {
+  const preset = danmuPreset.value.config;
+  const blob = new Blob([JSON.stringify(preset)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${danmuPreset.value.name}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
 </script>
 
 <style scoped lang="less">

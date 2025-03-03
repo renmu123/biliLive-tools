@@ -37,12 +37,7 @@
           <!-- <n-button type="primary" class="btn" @click="rename">重命名</n-button> -->
           <!-- <n-button type="primary" class="btn" @click="saveAs">另存为</n-button> -->
           <!-- <n-button type="primary" class="btn" @click="saveConfig">保存</n-button> -->
-          <ButtonGroup
-            title="请选择LosslessCut项目文件"
-            :options="actionBtns"
-            @click="handleActionClick"
-            >保存</ButtonGroup
-          >
+          <ButtonGroup :options="actionBtns" @click="handleActionClick">保存</ButtonGroup>
         </div>
       </template>
 
@@ -239,7 +234,7 @@ const importPreset = async (file: File) => {
 const actionBtns = ref([
   { label: "另存为", key: "saveAnother" },
   { label: "重命名", key: "rename" },
-  // { label: "导出", key: "export" },
+  { label: "导出", key: "export" },
   // { label: "导入", key: "import" },
 ]);
 const handleActionClick = async (key?: string | number) => {
