@@ -421,15 +421,15 @@ const saveDanmuPreset = async () => {
   getDanmuPresets();
 };
 
-watch(
-  () => danmuPresetId.value,
-  async (value) => {
-    danmuPreset.value = await danmuPresetApi.get(value);
-  },
-  {
-    immediate: true,
-  },
-);
+// watch(
+//   () => danmuPresetId.value,
+//   async (value) => {
+//     danmuPreset.value = await danmuPresetApi.get(value);
+//   },
+//   {
+//     immediate: true,
+//   },
+// );
 
 window?.api?.onMainNotify((_event, data) => {
   notice[data.type]({

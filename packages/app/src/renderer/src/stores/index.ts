@@ -71,7 +71,6 @@ export const useUserInfoStore = defineStore("userInfo", () => {
 
 export const useDanmuPreset = defineStore("danmuPreset", () => {
   const { appConfig } = storeToRefs(useAppConfig());
-  console.log(appConfig.value);
 
   // const danmuPresetId = toRef(appConfig.value.tool.danmu, "danmuPresetId");
   const danmuPresetId = computed({
@@ -103,13 +102,9 @@ export const useDanmuPreset = defineStore("danmuPreset", () => {
     });
   });
 
-  watch(
-    danmuPresetId,
-    () => {
-      getDanmuPreset();
-    },
-    { immediate: true },
-  );
+  watch(danmuPresetId, () => {
+    getDanmuPreset();
+  });
 
   getDanmuPresets();
 
@@ -220,7 +215,7 @@ export const useAppConfig = defineStore("appConfig", () => {
     tool: {
       home: {
         uploadPresetId: "",
-        danmuPresetId: "default",
+        danmuPresetId: "",
         ffmpegPresetId: "b_libx264",
         removeOrigin: false,
         autoUpload: false,
@@ -236,7 +231,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         removeOriginAfterUploadCheck: false,
       },
       danmu: {
-        danmuPresetId: "default",
+        danmuPresetId: "",
         saveRadio: 1,
         savePath: "",
         removeOrigin: false,
