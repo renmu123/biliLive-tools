@@ -56,7 +56,7 @@ export default class RecorderConfig {
     const settings = this.appConfig.get("recorders");
     const globalConfig = this.appConfig.get("recorder");
 
-    const setting = settings.find((setting) => setting.id === id);
+    const setting = settings.find((setting) => setting.id === id)!;
     if (!setting) return null;
 
     const uid = getValue("uid");

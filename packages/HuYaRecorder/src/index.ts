@@ -87,6 +87,14 @@ const ffmpegOutputOptions: string[] = [
   "faststart+frag_keyframe+empty_moov",
   "-min_frag_duration",
   "60000000",
+  "-reconnect",
+  "1",
+  "-reconnect_streamed",
+  "1",
+  "-reconnect_delay_max",
+  "5",
+  "-rw_timeout",
+  "5000000",
 ];
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,

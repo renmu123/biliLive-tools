@@ -20,7 +20,10 @@ const getCookie = async () => {
     return cookieCache.cookies;
   }
   const res = await requester.get("https://live.douyin.com/");
-  const cookies = res.headers["set-cookie"]
+  if (!res.headers["set-cookie"]) {
+    throw new Error("No cookie in response");
+  }
+  const cookies = (res.headers["set-cookie"] ?? [])
     .map((cookie) => {
       return cookie.split(";")[0];
     })
@@ -100,6 +103,7 @@ export async function getRoomInfo(
 
   const data = res.data.data;
   const room = data.data[0];
+  assert(room, `No room data, id ${webRoomId}`);
 
   if (room?.stream_url == null) {
     return {

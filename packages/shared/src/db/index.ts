@@ -1,8 +1,8 @@
 import Database from "better-sqlite3";
 
-// import DanmaModel from "./model/danmu.js";
-// import StreamModel from "./model/streamer.js";
-// import LiveModel from "./model/live.js";
+import DanmaModel from "./model/danmu.js";
+import StreamModel from "./model/streamer.js";
+import LiveModel from "./model/live.js";
 import VideoSubModel from "./model/videoSub.js";
 import StatisticsModel from "./model/statistics.js";
 
@@ -30,9 +30,9 @@ class DB {
 }
 
 const db = new DB();
-// export const danmuModel = new DanmaModel();
-// export const streamerModel = new StreamModel();
-// export const liveModel = new LiveModel();
+export const danmuModel = new DanmaModel();
+export const streamerModel = new StreamModel();
+export const liveModel = new LiveModel();
 export const statisticsModel = new StatisticsModel();
 export const videoSubModel = new VideoSubModel();
 
