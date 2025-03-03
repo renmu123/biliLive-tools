@@ -158,9 +158,6 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
   async function getUploadPresets() {
     uploadPresets.value = await videoPresetApi.list();
   }
-  async function getUploadPreset() {
-    uploadPreset.value = await videoPresetApi.get(upladPresetId.value);
-  }
 
   const uploaPresetsOptions = computed(() => {
     return uploadPresets.value.map((item) => {
@@ -171,14 +168,6 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
     });
   });
 
-  watch(
-    upladPresetId,
-    () => {
-      getUploadPreset();
-    },
-    { immediate: true },
-  );
-
   getUploadPresets();
 
   return {
@@ -187,7 +176,6 @@ export const useUploadPreset = defineStore("uploadPreset", () => {
     uploaPresetsOptions,
     upladPresetId,
     uploadPreset,
-    getUploadPreset,
   };
 });
 
