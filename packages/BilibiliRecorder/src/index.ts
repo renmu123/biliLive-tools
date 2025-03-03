@@ -368,7 +368,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const isInvalidStream = createInvalidStreamChecker();
+  let invalidCount = 10;
+  if (streamOptions.protocol_name === "htto_hls") {
+    invalidCount = 20;
+  }
+  const isInvalidStream = createInvalidStreamChecker(invalidCount);
   const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 3 * 10e3);
   const command = createFFMPEGBuilder()
     .input(url)

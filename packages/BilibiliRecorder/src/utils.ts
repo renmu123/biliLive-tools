@@ -68,7 +68,7 @@ export function assertObjectType(data: unknown, msg?: string): asserts data is o
   assert(typeof data === "object", msg);
 }
 
-export function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean {
+export function createInvalidStreamChecker(count: number = 10): (ffmpegLogLine: string) => boolean {
   let prevFrame = 0;
   let frameUnchangedCount = 0;
 
@@ -81,7 +81,7 @@ export function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean
       const frame = Number(frameText);
 
       if (frame === prevFrame) {
-        if (++frameUnchangedCount >= 10) {
+        if (++frameUnchangedCount >= count) {
           return true;
         }
       } else {
