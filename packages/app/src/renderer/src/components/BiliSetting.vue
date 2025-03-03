@@ -79,7 +79,8 @@
           <Tip tip="话题也会占据一个tag栏~" text="话题"></Tip>
         </template>
         <n-select
-          v-model:value="options.config.topic_name"
+          :value="options.config.topic_name"
+          @update:value="handleTopicChange"
           filterable
           placeholder="搜索话题"
           :options="topicOptions"
@@ -431,14 +432,6 @@ const saveAnotherPresetConfirm = async () => {
   }
   const preset = cloneDeep(options.value);
 
-  if (preset?.config?.desc && preset?.config?.desc?.length > descMaxLength.value) {
-    notice.error({
-      title: "简介超过字数限制",
-      duration: 1000,
-    });
-    return;
-  }
-
   if (!isRename.value) preset.id = uuid();
   preset.name = tempPresetName.value;
 
@@ -480,13 +473,6 @@ const savePreset = async () => {
   const data = options.value;
   if (userInfoStore.userInfo?.uid) {
     data.config.uid = userInfoStore.userInfo.uid;
-  }
-  if (data?.config?.desc && data?.config?.desc?.length > descMaxLength.value) {
-    notice.error({
-      title: "简介超过字数限制",
-      duration: 1000,
-    });
-    return;
   }
   await _savePreset(options.value);
   notice.success({
@@ -648,22 +634,20 @@ const handleSearch = async (query: string) => {
   topicLoading.value = false;
 };
 
-watch(
-  () => options.value.config.topic_name,
-  () => {
-    if (options.value.config.topic_name) {
-      options.value.config.topic_id = topicOptions.value.find(
-        (item) => item.value === options.value.config.topic_name,
-      )?.id;
-      options.value.config.mission_id = topicOptions.value.find(
-        (item) => item.value === options.value.config.topic_name,
-      )?.mission_id;
-    } else {
-      options.value.config.topic_id = undefined;
-      options.value.config.mission_id = undefined;
-    }
-  },
-);
+const handleTopicChange = (topicName: string) => {
+  options.value.config.topic_name = topicName;
+  if (options.value.config.topic_name) {
+    options.value.config.topic_id = topicOptions.value.find(
+      (item) => item.value === options.value.config.topic_name,
+    )?.id;
+    options.value.config.mission_id = topicOptions.value.find(
+      (item) => item.value === options.value.config.topic_name,
+    )?.mission_id;
+  } else {
+    options.value.config.topic_id = undefined;
+    options.value.config.mission_id = undefined;
+  }
+};
 
 const titleList = ref([
   {
