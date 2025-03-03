@@ -245,6 +245,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         removeOrigin: false,
         ffmpegPresetId: "b_copy",
         danmuPresetId: "default",
+        hotProgress: false,
       },
       videoMerge: {
         saveOriginPath: false,

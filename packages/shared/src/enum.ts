@@ -107,6 +107,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       removeOrigin: false,
       ffmpegPresetId: "b_copy",
       danmuPresetId: "default",
+      hotProgress: false,
     },
     videoMerge: {
       saveOriginPath: false,

@@ -12,7 +12,7 @@ export function useNotice() {
   return {
     info: (input: string | Options) => {
       const iOptions = {
-        duration: 1000,
+        duration: 1500,
         keepAliveOnHover: true,
       };
       if (typeof input === "object") {

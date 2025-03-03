@@ -173,6 +173,8 @@ export type ToolConfig = {
     ffmpegPresetId: string;
     /** 弹幕预设 */
     danmuPresetId: string;
+    /** 高能进度条 */
+    hotProgress: boolean;
   };
   videoMerge: {
     /** 保存到原始文件夹 */

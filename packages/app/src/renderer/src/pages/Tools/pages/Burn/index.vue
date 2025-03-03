@@ -9,7 +9,7 @@
       <n-button type="primary" @click="convert"> 立即转换 </n-button>
       <n-cascader
         v-model:value="options.ffmpegPresetId"
-        placeholder="请选择预设"
+        placeholder="请选择视频预设"
         expand-trigger="click"
         :options="ffmpegOptions"
         check-strategy="child"
@@ -21,9 +21,12 @@
       <n-select
         v-model:value="options.danmuPresetId"
         :options="danmuPresetsOptions"
-        placeholder="选择预设"
+        placeholder="选择弹幕预设"
         style="width: 140px"
       />
+      <n-checkbox v-model:checked="options.hotProgress" title="使用首页的数据">
+        高能进度条
+      </n-checkbox>
     </div>
     <FileSelect
       ref="fileSelect"
@@ -92,6 +95,10 @@ const options = toReactive(
   }),
 );
 
+const homeOptions = computed(() => {
+  return appConfig.value.tool.home;
+});
+
 onActivated(() => {
   hotkeys("ctrl+enter", function () {
     convert();
@@ -128,7 +135,7 @@ const convert = async () => {
   if (fileList.value.length === 0) {
     notice.error({
       title: `至少选择一个文件`,
-      duration: 1000,
+      duration: 1500,
     });
     return;
   }
@@ -138,7 +145,7 @@ const convert = async () => {
     if (fileList.value.find((item) => item.danmakuPath)) {
       notice.error({
         title: `存在弹幕文件，视频预设编码器不允许使用 copy 选项`,
-        duration: 1000,
+        duration: 1500,
       });
       return;
     }
@@ -160,6 +167,13 @@ const convert = async () => {
     const videoPath = files[i].videoPath;
     const danmakuPath = files[i].danmakuPath;
     const outputName = `${files[i].title}.mp4`;
+    if (!danmakuPath && options.hotProgress) {
+      notice.error({
+        title: `未选择弹幕文件，无法使用高能进度条`,
+        duration: 1500,
+      });
+      return;
+    }
     if (danmakuPath) {
       await taskApi.burn(
         {
@@ -170,8 +184,13 @@ const convert = async () => {
         {
           danmaOptions: danmuOptions,
           ffmpegOptions: ffmpegOptions,
-          hotProgressOptions: {},
-          hasHotProgress: false,
+          hotProgressOptions: {
+            interval: homeOptions.value.hotProgressSample,
+            height: homeOptions.value.hotProgressHeight,
+            color: homeOptions.value.hotProgressColor,
+            fillColor: homeOptions.value.hotProgressFillColor,
+          },
+          hasHotProgress: options.hotProgress,
           override: options.override,
           removeOrigin: options.removeOrigin,
           savePath: options.savePath,
