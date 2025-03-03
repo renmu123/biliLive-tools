@@ -219,7 +219,7 @@ export const useAppConfig = defineStore("appConfig", () => {
   const appConfig = ref<AppConfig>({
     tool: {
       home: {
-        uploadPresetId: "default",
+        uploadPresetId: "",
         danmuPresetId: "default",
         ffmpegPresetId: "b_libx264",
         removeOrigin: false,
@@ -232,7 +232,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         removeOriginAfterUploadCheck: false,
       },
       upload: {
-        uploadPresetId: "default",
+        uploadPresetId: "",
         removeOriginAfterUploadCheck: false,
       },
       danmu: {

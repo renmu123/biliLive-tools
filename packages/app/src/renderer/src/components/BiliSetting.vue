@@ -333,7 +333,7 @@ const emits = defineEmits<{
 }>();
 
 // const presetId = ref<string>("default");
-const presetId = defineModel<string>({ required: false, default: "default" });
+const presetId = defineModel<string>({ required: false });
 
 // @ts-ignore
 const options: Ref<BiliupPreset> = ref({
@@ -360,7 +360,7 @@ const noSideSpace = (value: string) => !value.startsWith(" ") && !value.endsWith
 watch(
   () => presetId.value,
   (value) => {
-    handlePresetChange(value);
+    value && handlePresetChange(value);
   },
   {
     immediate: true,

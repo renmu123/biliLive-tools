@@ -45,7 +45,7 @@ import { biliApi } from "@renderer/apis";
 const { appConfig } = storeToRefs(useAppConfig());
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
-const aid = defineModel<string>({ required: true });
+const aid = defineModel<string>({ required: false });
 const emits = defineEmits<{
   confirm: [aid: string];
 }>();
