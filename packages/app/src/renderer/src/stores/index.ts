@@ -216,7 +216,7 @@ export const useAppConfig = defineStore("appConfig", () => {
       home: {
         uploadPresetId: "",
         danmuPresetId: "",
-        ffmpegPresetId: "b_libx264",
+        ffmpegPresetId: "",
         removeOrigin: false,
         autoUpload: false,
         hotProgress: false,

@@ -639,11 +639,6 @@ const hardwareAcceleration = computed(() => {
     return "unknown";
   }
 });
-
-onMounted(async () => {
-  await getPresetOptions();
-  handlePresetChange();
-});
 </script>
 
 <style scoped lang="less">
