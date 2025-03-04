@@ -6,6 +6,38 @@ import { DANMU_DEAFULT_CONFIG } from "../presets/danmuPreset.js";
 
 import type { DanmuConfig } from "@biliLive-tools/types";
 
+export function getFontSize(heightMap: [number, number][], currentHeight: number): number {
+  if (heightMap.length === 0) {
+    throw new Error("heightMap is empty");
+  }
+  // 按高度排序，确保计算正确
+  heightMap.sort((a, b) => a[0] - b[0]);
+
+  const slope = 0.03; // 设定默认斜率
+
+  if (currentHeight <= heightMap[0][0]) {
+    // 线性外推，使用默认斜率
+    const [h1, size1] = heightMap[0];
+    const extrapolatedSize = size1 + (currentHeight - h1) * slope;
+    return Math.ceil(extrapolatedSize);
+  }
+
+  for (let i = 0; i < heightMap.length - 1; i++) {
+    const [h1, size1] = heightMap[i];
+    const [h2, size2] = heightMap[i + 1];
+    if (currentHeight >= h1 && currentHeight <= h2) {
+      // 线性插值计算
+      const interpolatedSize = size1 + (size2 - size1) * ((currentHeight - h1) / (h2 - h1));
+      return Math.ceil(interpolatedSize);
+    }
+  }
+
+  // 线性外推，使用默认斜率
+  const [hLast, sizeLast] = heightMap[heightMap.length - 1];
+  const extrapolatedSize = sizeLast + (currentHeight - hLast) * slope;
+  return Math.ceil(extrapolatedSize);
+}
+
 export class DanmakuFactory {
   execPath: string;
   command?: string;
@@ -15,6 +47,16 @@ export class DanmakuFactory {
   }
 
   genDanmuArgs = (config: DanmuConfig) => {
+    if (config.fontSizeResponsive) {
+      const fontSizeResponsiveParams = config.fontSizeResponsiveParams;
+      try {
+        const fontSize = getFontSize(fontSizeResponsiveParams, config.resolution[1]);
+        config.fontsize = fontSize;
+      } catch (e) {
+        log.error("fontSizeResponsive error: ", e);
+      }
+    }
+
     const params = Object.entries(config).map(([key, value]) => {
       // 如果配置字段不在默认中，则直接返回，用于处理版本回退可能导致的问题
       if (!Object.hasOwn(DANMU_DEAFULT_CONFIG, key)) return "";
@@ -39,7 +81,14 @@ export class DanmakuFactory {
       } else if (key === "fontname") {
         return `--${key} "${value}"`;
       } else if (
-        ["resolutionResponsive", "customDensity", "opacity", "giftmergetolerance"].includes(key)
+        [
+          "resolutionResponsive",
+          "customDensity",
+          "opacity",
+          "giftmergetolerance",
+          "fontSizeResponsive",
+          "fontSizeResponsiveParams",
+        ].includes(key)
       ) {
         // do nothing
         return "";

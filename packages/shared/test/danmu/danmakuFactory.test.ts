@@ -1,7 +1,7 @@
 import { join } from "node:path";
 import { expect, describe, it, beforeEach, afterEach } from "vitest";
 
-import { DanmakuFactory } from "../../src/danmu/danmakuFactory";
+import { DanmakuFactory, getFontSize } from "../../src/danmu/danmakuFactory";
 
 describe.concurrent("genDanmuArgs", () => {
   let danmu: DanmakuFactory;
@@ -157,6 +157,19 @@ describe.concurrent("genDanmuArgs", () => {
     // console.log(params);
     expect(params).toEqual(expectedArgs);
   });
+  it("弹幕参数：弹幕字体大小自适应", () => {
+    const expectedArgs = ["--resolution 1920x1080", "--fontsize 40"];
+    const config = {
+      resolution: [1920, 1080],
+      fontSizeResponsive: true,
+      fontSizeResponsiveParams: [[1080, 40]],
+      fontsize: 45,
+    };
+
+    // @ts-ignore
+    const params = danmu.genDanmuArgs(config);
+    expect(params).toEqual(expectedArgs);
+  });
 
   // it("should convert XML to ASS", async () => {
   //   const input = join(__dirname, "index.test.ts");
@@ -183,4 +196,68 @@ describe.concurrent("genDanmuArgs", () => {
   //     expect(danmu.command).toEqual(expectedCommand);
   //   }
   // });
+});
+
+describe.concurrent("getFontSize", () => {
+  it("should return the correct font size for a height within the range", () => {
+    const heightMap: [number, number][] = [
+      [1080, 40],
+      [1660, 50],
+    ];
+    const currentHeight = 1440;
+    const expectedSize = 47;
+    const size = getFontSize(heightMap, currentHeight);
+    expect(size).toBe(expectedSize);
+  });
+
+  it("should return the correct font size for a height below the minimum range", () => {
+    const heightMap: [number, number][] = [
+      [100, 10],
+      [200, 20],
+      [300, 30],
+    ];
+    const currentHeight = 50;
+    const expectedSize = 9;
+    const size = getFontSize(heightMap, currentHeight);
+    expect(size).toBe(expectedSize);
+  });
+
+  it("should return the correct font size for a height above the maximum range", () => {
+    const heightMap: [number, number][] = [
+      [1080, 40],
+      [1660, 50],
+      [1920, 60],
+    ];
+    const currentHeight = 2440;
+    const expectedSize = 76;
+    const size = getFontSize(heightMap, currentHeight);
+    expect(size).toBe(expectedSize);
+  });
+
+  it("should return the correct font size for a height exactly at a known point", () => {
+    const heightMap: [number, number][] = [
+      [100, 10],
+      [200, 20],
+      [300, 30],
+    ];
+    const currentHeight = 200;
+    const expectedSize = 20;
+    const size = getFontSize(heightMap, currentHeight);
+    expect(size).toBe(expectedSize);
+  });
+
+  it("should handle a height map with only one point", () => {
+    const heightMap: [number, number][] = [[100, 10]];
+    const currentHeight = 150;
+    const expectedSize = 12;
+    const size = getFontSize(heightMap, currentHeight);
+    expect(size).toBe(expectedSize);
+  });
+
+  it("should handle a height map with no points", () => {
+    const heightMap: [number, number][] = [];
+    const currentHeight = 150;
+
+    expect(() => getFontSize(heightMap, currentHeight)).toThrow("heightMap is empty");
+  });
 });

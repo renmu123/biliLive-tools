@@ -5,6 +5,15 @@
       <n-form ref="formRef" inline :model="config" label-placement="left" label-align="right">
         <n-form-item label="文字大小">
           <n-input-number v-model:value.number="config.fontsize" class="input-number" :min="0" />
+          <n-checkbox v-model:checked="config.fontSizeResponsive" style="margin-left: 10px">
+            自适应分辨率
+          </n-checkbox>
+          <n-button
+            v-if="config.fontSizeResponsive"
+            type="primary"
+            @click="changeFontSizeResponsive"
+            >修改配置</n-button
+          >
         </n-form-item>
         <n-form-item v-if="isAdvancedMode" label="阴影">
           <n-input-number
@@ -283,6 +292,52 @@
         />
       </n-form-item>
     </div>
+
+    <n-modal v-model:show="fontSizeResponsiveVisible">
+      <n-card style="width: 600px" :bordered="false" role="dialog" aria-modal="true">
+        <h3>
+          可以为不同分辨率高度设置不同的字体大小，如果最后高度在你设置的两个高度之间，会采用线性方法计算。
+          第一个参数为高度，第二个为字体大小
+        </h3>
+        <div
+          v-for="(item, index) in sizeResponsiveParams"
+          :key="index"
+          style="display: flex; gap: 10px; margin-bottom: 10px"
+        >
+          <n-input-number
+            v-model:value="item[0]"
+            placeholder="请输入预定的分辨率高度"
+            min="0"
+            step="100"
+          >
+          </n-input-number>
+          <n-input-number
+            v-model:value="item[1]"
+            placeholder="请输入分辨率高度下的字体大小"
+            min="0"
+            step="1"
+          >
+          </n-input-number>
+          <n-button
+            type="error"
+            v-if="sizeResponsiveParams.length !== 1"
+            @click="sizeResponsiveParams.splice(index, 1)"
+            >删除</n-button
+          >
+          <n-button type="primary" @click="sizeResponsiveParams.splice(index + 1, 0, [0, 0])"
+            >新增</n-button
+          >
+        </div>
+        <template #footer>
+          <div style="text-align: right">
+            <n-button @click="fontSizeResponsiveVisible = false">取消</n-button>
+            <n-button type="primary" style="margin-left: 10px" @click="fontSizeResponsiveConfirm"
+              >确认</n-button
+            >
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
@@ -293,6 +348,7 @@ import { commonApi } from "@renderer/apis";
 import type { DanmuConfig } from "@biliLive-tools/types";
 
 const config = defineModel<DanmuConfig>({ required: true, default: {} });
+const notice = useNotice();
 
 const emits = defineEmits<{
   (event: "change", value: DanmuConfig): void;
@@ -349,6 +405,35 @@ watch(
     deep: true,
   },
 );
+
+const fontSizeResponsiveVisible = ref(false);
+const sizeResponsiveParams = ref<[number, number][]>([]);
+const changeFontSizeResponsive = () => {
+  fontSizeResponsiveVisible.value = true;
+  sizeResponsiveParams.value = config.value.fontSizeResponsiveParams;
+};
+
+const fontSizeResponsiveConfirm = () => {
+  const data = sizeResponsiveParams.value.toSorted((a, b) => a[0] - b[0]);
+  // 分辨率不能重复
+  for (let i = 0; i < data.length - 1; i++) {
+    if (data[i][0] === data[i + 1][0]) {
+      notice.error("分辨率高度不能重复");
+      return;
+    }
+  }
+
+  // 分辨率较大的字体大小需大于分辨率较小的字体大小
+  for (let i = 0; i < data.length - 1; i++) {
+    if (data[i][1] >= data[i + 1][1]) {
+      notice.error("分辨率高度较大的字体大小需大于等于分辨率高度较小的字体大小");
+      return;
+    }
+  }
+
+  config.value.fontSizeResponsiveParams = data;
+  fontSizeResponsiveVisible.value = false;
+};
 </script>
 
 <style scoped lang="less">

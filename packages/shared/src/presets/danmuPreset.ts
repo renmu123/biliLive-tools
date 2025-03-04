@@ -45,6 +45,11 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   resolutionResponsive: false,
   blacklist: "",
   timeshift: 0,
+  fontSizeResponsiveParams: [
+    [1080, 40],
+    [1620, 56],
+  ],
+  fontSizeResponsive: false,
 };
 
 // export function validateAndFilter<T>(options: T, requiredKeys: Array<keyof T>): T {

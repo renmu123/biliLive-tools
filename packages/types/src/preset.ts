@@ -1,5 +1,7 @@
 import { type } from "arktype";
 
+const fontSizeResponsiveParam = type(["number", "number"]);
+
 export const danmuConfig = type({
   resolution: ["number > 0", "number > 0"],
   scrolltime: "number",
@@ -8,7 +10,7 @@ export const danmuConfig = type({
   customDensity: "number",
   fontname: "string",
   fontsize: "number > 0",
-  // /** 百分制下的透明度 */
+  /** 百分制下的透明度 */
   opacity100: "number > 0",
   outline: "number",
   shadow: "number",
@@ -25,7 +27,12 @@ export const danmuConfig = type({
   giftminprice: "number",
   blockmode: '("R2L" | "L2R" | "TOP" | "BOTTOM" | "SPECIAL" | "COLOR" | "REPEAT")[]',
   statmode: "string[]",
+  /** 分辨率自适应 */
   resolutionResponsive: "boolean",
+  /** 字体大小自适应 */
+  fontSizeResponsive: "boolean",
+  /** 字体大小自适应参数， */
+  fontSizeResponsiveParams: fontSizeResponsiveParam.array(),
   blacklist: "string",
   timeshift: "number",
 });

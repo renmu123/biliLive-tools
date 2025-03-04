@@ -123,7 +123,7 @@ const convert = async () => {
   if (config.resolutionResponsive) {
     notice.warning({
       duration: 5000,
-      title: `本次转换无法使用自适应分辨率，将替换使用${config.resolution[0]}X${config.resolution}分辨率，请确认与你的视频分辨率一致`,
+      title: `本次转换无法使用自适应分辨率，将使用${config.resolution[0]}X${config.resolution[1]}分辨率，请确认与你的视频分辨率一致`,
     });
   }
   for (let i = 0; i < fileList.value.length; i++) {
