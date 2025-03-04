@@ -369,7 +369,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   };
 
   let invalidCount = 10;
-  if (streamOptions.protocol_name === "htto_hls") {
+  if (streamOptions.protocol_name === "http_hls") {
     invalidCount = 20;
   }
   const isInvalidStream = createInvalidStreamChecker(invalidCount);

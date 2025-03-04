@@ -199,7 +199,7 @@ async function getLiveInfo(
 
   let streamInfo: CodecInfo | undefined;
   let streamOptions!: {
-    protocol_name: string;
+    protocol_name: "http_stream" | "http_hls";
     format_name: string;
     codec_name: string;
     qn: number;

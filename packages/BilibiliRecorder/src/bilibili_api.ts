@@ -225,7 +225,7 @@ export async function getRoomPlayInfo(
 }
 
 export interface ProtocolInfo {
-  protocol_name: string | "http_stream" | "http_hls";
+  protocol_name: "http_stream" | "http_hls";
   format: FormatInfo[];
 }
 
