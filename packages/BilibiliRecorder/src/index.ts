@@ -368,9 +368,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  let invalidCount = 10;
+  let invalidCount = 15;
   if (streamOptions.protocol_name === "http_hls") {
-    invalidCount = 20;
+    invalidCount = 25;
   }
   const isInvalidStream = createInvalidStreamChecker(invalidCount);
   const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 3 * 10e3);

@@ -320,7 +320,7 @@ function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean {
       const frame = Number(frameText);
 
       if (frame === prevFrame) {
-        if (++frameUnchangedCount >= 10) {
+        if (++frameUnchangedCount >= 15) {
           return true;
         }
       } else {

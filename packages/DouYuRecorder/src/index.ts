@@ -16,7 +16,7 @@ import type { Comment, GiveGift, SuperChat } from "@bililive-tools/manager";
 
 import { getInfo, getStream } from "./stream.js";
 import { getRoomInfo } from "./dy_api.js";
-import { assert, ensureFolderExist } from "./utils.js";
+import { assert, ensureFolderExist, createInvalidStreamChecker } from "./utils.js";
 import { createDYClient } from "./dy_client/index.js";
 import { giftMap, colorTab } from "./danma.js";
 import { requester } from "./requester.js";
@@ -272,7 +272,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const isInvalidStream = utils.createInvalidStreamChecker();
+  const isInvalidStream = createInvalidStreamChecker();
   const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
   const command = createFFMPEGBuilder(stream.url)
     .inputOptions(

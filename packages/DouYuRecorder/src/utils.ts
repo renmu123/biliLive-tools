@@ -60,3 +60,35 @@ export function assert(assertion: unknown, msg?: string): asserts assertion {
 export const uuid = () => {
   return crypto.randomUUID();
 };
+
+export function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean {
+  let prevFrame = 0;
+  let frameUnchangedCount = 0;
+
+  return (ffmpegLogLine) => {
+    const streamInfo = ffmpegLogLine.match(
+      /frame=\s*(\d+) fps=.*? q=.*? size=.*? time=.*? bitrate=.*? speed=.*?/,
+    );
+    if (streamInfo != null) {
+      const [, frameText] = streamInfo;
+      const frame = Number(frameText);
+
+      if (frame === prevFrame) {
+        if (++frameUnchangedCount >= 15) {
+          return true;
+        }
+      } else {
+        prevFrame = frame;
+        frameUnchangedCount = 0;
+      }
+
+      return false;
+    }
+
+    if (ffmpegLogLine.includes("HTTP error 404 Not Found")) {
+      return true;
+    }
+
+    return false;
+  };
+}

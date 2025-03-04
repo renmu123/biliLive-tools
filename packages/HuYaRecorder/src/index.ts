@@ -16,7 +16,7 @@ import {
   utils,
 } from "@bililive-tools/manager";
 import { getInfo, getStream } from "./stream.js";
-import { assertStringType, ensureFolderExist } from "./utils.js";
+import { assertStringType, ensureFolderExist, createInvalidStreamChecker } from "./utils.js";
 import HuYaDanMu, { HuYaMessage } from "huya-danma-listener";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
@@ -246,7 +246,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const isInvalidStream = utils.createInvalidStreamChecker();
+  const isInvalidStream = createInvalidStreamChecker();
   const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
   const command = createFFMPEGBuilder()
     .input(stream.url)
