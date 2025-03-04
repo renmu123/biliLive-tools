@@ -91,6 +91,8 @@ const ffmpegOutputOptions: string[] = [
   "faststart+frag_keyframe+empty_moov",
   "-min_frag_duration",
   "60000000",
+];
+const ffmpegInputOptions: string[] = [
   "-reconnect",
   "1",
   "-reconnect_streamed",
@@ -99,6 +101,10 @@ const ffmpegOutputOptions: string[] = [
   "5",
   "-rw_timeout",
   "5000000",
+  "-user_agent",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
+  "-headers",
+  "Referer:https://live.bilibili.com/",
 ];
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
@@ -370,18 +376,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   let invalidCount = 15;
   if (streamOptions.protocol_name === "http_hls") {
-    invalidCount = 25;
+    invalidCount = 35;
   }
   const isInvalidStream = createInvalidStreamChecker(invalidCount);
   const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 3 * 10e3);
   const command = createFFMPEGBuilder()
     .input(url)
-    .addInputOptions(
-      "-user_agent",
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
-      "-headers",
-      "Referer: https://live.bilibili.com/",
-    )
+    .addInputOptions(ffmpegInputOptions)
     .outputOptions(ffmpegOutputOptions)
     .output(streamManager.videoFilePath)
     .on("start", async () => {

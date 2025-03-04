@@ -87,6 +87,8 @@ const ffmpegOutputOptions: string[] = [
   "faststart+frag_keyframe+empty_moov",
   "-min_frag_duration",
   "60000000",
+];
+const ffmpegInputOptions: string[] = [
   "-reconnect",
   "1",
   "-reconnect_streamed",
@@ -95,7 +97,10 @@ const ffmpegOutputOptions: string[] = [
   "5",
   "-rw_timeout",
   "5000000",
+  "-user_agent",
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
 ];
+
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
   banLiveId,
@@ -250,10 +255,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
   const command = createFFMPEGBuilder()
     .input(stream.url)
-    .addInputOptions(
-      "-user_agent",
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
-    )
+    .addInputOptions(ffmpegInputOptions)
     .outputOptions(ffmpegOutputOptions)
     .output(streamManager.videoFilePath)
     .on("start", () => {

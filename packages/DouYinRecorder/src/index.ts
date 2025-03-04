@@ -79,7 +79,7 @@ const ffmpegOutputOptions: string[] = [
   "-c",
   "copy",
   "-movflags",
-  "frag_keyframe",
+  "faststart+frag_keyframe+empty_moov",
   "-min_frag_duration",
   "60000000",
 ];
