@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { useStorage, useFileDialog } from "@vueuse/core";
+import { useStorage } from "@vueuse/core";
 
 import DanmuFactorySetting from "./DanmuFactorySetting.vue";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
@@ -72,6 +72,7 @@ import { useConfirm } from "@renderer/hooks";
 import { uuid } from "@renderer/utils";
 import { useDanmuPreset, useAppConfig } from "@renderer/stores";
 import { danmuPresetApi } from "@renderer/apis";
+import { usePresetFile } from "@renderer/hooks/danmuPreset";
 
 import { cloneDeep } from "lodash-es";
 
@@ -194,51 +195,15 @@ const saveConfirm = async () => {
   confirm();
 };
 
-const exportPreset = async () => {
-  const preset = config.value.config;
-  const blob = new Blob([JSON.stringify(preset)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${config.value.name}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
-
-const { open, onChange } = useFileDialog({
-  accept: ".json", // Set to accept only image files
-  directory: false, // Select directories instead of files if set true
-  multiple: false,
-});
-
-onChange((files) => {
-  if (!files) return;
-  if (files.length === 0) return;
-  importPreset(files[0]);
-});
-
-const importPreset = async (file: File) => {
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    const preset = JSON.parse(e.target?.result as string) as DanmuPreset;
-    await danmuPresetApi.save(preset);
-    getDanmuPresets();
-    notice.success({
-      title: "导入成功",
-      duration: 1000,
-    });
-  };
-  reader.readAsText(file);
-};
-
 const actionBtns = ref([
   { label: "另存为", key: "saveAnother" },
   { label: "重命名", key: "rename" },
   { label: "导出", key: "export" },
-  // { label: "导入", key: "import" },
+  { label: "导入", key: "import" },
 ]);
+
+const { exportPreset, importPreset } = usePresetFile();
 const handleActionClick = async (key?: string | number) => {
-  console.log(key);
   switch (key) {
     case "saveAnother":
       saveAs();
@@ -247,11 +212,10 @@ const handleActionClick = async (key?: string | number) => {
       rename();
       break;
     case "export":
-      exportPreset();
+      exportPreset(config.value.config, config.value.name);
       break;
     case "import":
-      // @ts-ignore
-      open();
+      importPreset();
       break;
     case undefined:
       saveConfig();

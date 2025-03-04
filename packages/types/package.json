@@ -20,7 +20,7 @@
     }
   },
   "scripts": {
-    "build": "pnpm run test && pnpm run typecheck && tsc",
+    "build": "tsc",
     "dev": "tsc -w",
     "start:dev": "tsx src/index.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json --composite false",

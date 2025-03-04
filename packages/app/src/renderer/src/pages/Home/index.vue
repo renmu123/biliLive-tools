@@ -125,10 +125,6 @@
             >删除</n-button
           >
           <ButtonGroup :options="actionBtns" @click="handleActionClick">保存</ButtonGroup>
-
-          <!-- <n-button type="primary" @click="renameDanmu">重命名</n-button>
-          <n-button type="primary" @click="saveAsDanmu">另存为</n-button>
-          <n-button type="primary" @click="saveDanmuPreset">保存</n-button> -->
         </div>
       </n-tab-pane>
       <n-tab-pane name="ffmpeg-setting" tab="ffmpeg设置" display-directive="show">
@@ -189,6 +185,7 @@ import { deepRaw, uuid } from "@renderer/utils";
 import { cloneDeep } from "lodash-es";
 import { showSaveDialog } from "@renderer/utils/fileSystem";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
+import { usePresetFile } from "@renderer/hooks/danmuPreset";
 
 import type { File, FfmpegOptions, DanmuConfig, FfmpegPreset } from "@biliLive-tools/types";
 
@@ -367,73 +364,6 @@ const handleDanmuChange = (value: DanmuConfig) => {
   danmuPreset.value.config = value;
 };
 
-// 弹幕预设相关
-const nameModelVisible = ref(false);
-const tempPresetName = ref("");
-const isRename = ref(false);
-const renameDanmu = async () => {
-  tempPresetName.value = danmuPreset.value.name;
-  isRename.value = true;
-  nameModelVisible.value = true;
-};
-const saveAsDanmu = async () => {
-  isRename.value = false;
-  tempPresetName.value = "";
-  nameModelVisible.value = true;
-};
-const deleteDanmu = async () => {
-  const [status] = await confirm.warning({
-    content: "是否确认删除该预设？",
-  });
-  if (!status) return;
-  await danmuPresetApi.remove(danmuPresetId.value);
-  // @ts-ignore
-  danmuPresetId.value = "default";
-  await getDanmuPresets();
-};
-
-const saveConfirm = async () => {
-  if (!tempPresetName.value) {
-    notice.warning({
-      title: "预设名称不得为空",
-      duration: 2000,
-    });
-    return;
-  }
-  const preset = cloneDeep(danmuPreset.value);
-  if (!isRename.value) preset.id = uuid();
-  preset.name = tempPresetName.value;
-
-  await danmuPresetApi.save(preset);
-  nameModelVisible.value = false;
-  notice.success({
-    title: "保存成功",
-    duration: 1000,
-  });
-  getDanmuPresets();
-};
-
-const saveDanmuPreset = async () => {
-  const preset = cloneDeep(danmuPreset.value);
-
-  await danmuPresetApi.save(preset);
-  notice.success({
-    title: "保存成功",
-    duration: 1000,
-  });
-  getDanmuPresets();
-};
-
-// watch(
-//   () => danmuPresetId.value,
-//   async (value) => {
-//     danmuPreset.value = await danmuPresetApi.get(value);
-//   },
-//   {
-//     immediate: true,
-//   },
-// );
-
 window?.api?.onMainNotify((_event, data) => {
   notice[data.type]({
     title: data.content,
@@ -519,14 +449,15 @@ onActivated(() => {
   getRunningTaskNum();
 });
 
+// 弹幕预设相关
+const { exportPreset, importPreset } = usePresetFile();
 const actionBtns = ref([
   { label: "另存为", key: "saveAnother" },
   { label: "重命名", key: "rename" },
   { label: "导出", key: "export" },
-  // { label: "导入", key: "import" },
+  { label: "导入", key: "import" },
 ]);
 const handleActionClick = async (key?: string | number) => {
-  console.log(key);
   switch (key) {
     case "saveAnother":
       saveAsDanmu();
@@ -535,26 +466,71 @@ const handleActionClick = async (key?: string | number) => {
       renameDanmu();
       break;
     case "export":
-      exportPreset();
+      exportPreset(danmuPreset.value.config, danmuPreset.value.name);
       break;
-    // case "import":
-    //   open();
-    //   break;
+    case "import":
+      importPreset();
+      break;
     case undefined:
       saveDanmuPreset();
       break;
   }
 };
 
-const exportPreset = async () => {
-  const preset = danmuPreset.value.config;
-  const blob = new Blob([JSON.stringify(preset)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `${danmuPreset.value.name}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
+const nameModelVisible = ref(false);
+const tempPresetName = ref("");
+const isRename = ref(false);
+const renameDanmu = async () => {
+  tempPresetName.value = danmuPreset.value.name;
+  isRename.value = true;
+  nameModelVisible.value = true;
+};
+const saveAsDanmu = async () => {
+  isRename.value = false;
+  tempPresetName.value = "";
+  nameModelVisible.value = true;
+};
+const deleteDanmu = async () => {
+  const [status] = await confirm.warning({
+    content: "是否确认删除该预设？",
+  });
+  if (!status) return;
+  await danmuPresetApi.remove(danmuPresetId.value);
+  // @ts-ignore
+  danmuPresetId.value = "default";
+  await getDanmuPresets();
+};
+
+const saveConfirm = async () => {
+  if (!tempPresetName.value) {
+    notice.warning({
+      title: "预设名称不得为空",
+      duration: 2000,
+    });
+    return;
+  }
+  const preset = cloneDeep(danmuPreset.value);
+  if (!isRename.value) preset.id = uuid();
+  preset.name = tempPresetName.value;
+
+  await danmuPresetApi.save(preset);
+  nameModelVisible.value = false;
+  notice.success({
+    title: "保存成功",
+    duration: 1000,
+  });
+  getDanmuPresets();
+};
+
+const saveDanmuPreset = async () => {
+  const preset = cloneDeep(danmuPreset.value);
+
+  await danmuPresetApi.save(preset);
+  notice.success({
+    title: "保存成功",
+    duration: 1000,
+  });
+  getDanmuPresets();
 };
 </script>
 
