@@ -9,6 +9,7 @@
     "esModuleInterop": true,
     "declaration": true,
     "skipLibCheck": true,
+    "strictNullChecks": true
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]
