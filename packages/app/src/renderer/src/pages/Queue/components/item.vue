@@ -155,7 +155,6 @@ import { formatSeconds } from "@renderer/utils";
 import { TaskType } from "@biliLive-tools/shared/enum.js";
 import { taskApi } from "@renderer/apis";
 
-import type { Status } from "@biliLive-tools/types/task.d.ts";
 import type { Task } from "@renderer/types";
 
 interface Props {
@@ -176,7 +175,7 @@ const confirm = useConfirm();
 const store = useQueueStore();
 
 const statusMap: {
-  [key in Status]: {
+  [key in Task["status"]]: {
     text: string;
     color: string;
     progressStatus: "default" | "success" | "warning" | "error";

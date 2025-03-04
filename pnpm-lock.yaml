@@ -551,6 +551,9 @@ importers:
       '@renmu/m3u8-downloader':
         specifier: ^0.3.1
         version: 0.3.1
+      arktype:
+        specifier: ^2.1.2
+        version: 2.1.2
       ass-compiler:
         specifier: ^0.1.14
         version: 0.1.14
@@ -623,6 +626,12 @@ packages:
 
   '@antfu/utils@0.7.10':
     resolution: {integrity: sha512-+562v9k4aI80m1+VuMHehNJWLOFjBnXn3tdOitzD0il5b7smkSBal4+a3oKiQTbrwMmN/TBUMDvbdoWDehgOww==}
+
+  '@ark/schema@0.43.1':
+    resolution: {integrity: sha512-B28ceusolthB9bmHQEG9Lp16keUTt5JhuoB9Uhaw7MQh9+ODSbH4d2KJDD/yrMSeoXiNqEGuWmhlR6YO2pdNvA==}
+
+  '@ark/util@0.43.1':
+    resolution: {integrity: sha512-sRx5bZiNoilA7mr5lAu78ZHOJx88nCagLER9Ns1FfoWWHrDWj8J8xU+VFj0g1ujJrAxWsVJRVElOEZ0XzXCrDw==}
 
   '@babel/code-frame@7.26.2':
     resolution: {integrity: sha512-RJlIHRueQgwWitWgF8OdFYGZX328Ax5BCemNGlqHfplnRT9ESi8JkFlvaVYbS+UubVY6dpv87Fs2u5M29iNFVQ==}
@@ -1983,6 +1992,9 @@ packages:
 
   argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
+
+  arktype@2.1.2:
+    resolution: {integrity: sha512-+uwghWzB1C0WoN6TpVB6wqXpshbRu19LykgddVcD8fk2SZHSgXWcxaTnq+cHnAqtZZOfJ/OI/QDTBmf9SiUFCw==}
 
   array-union@1.0.2:
     resolution: {integrity: sha512-Dxr6QJj/RdU/hCaBjOfxW+q6lyuVE6JFWIrAUpuOOhoJJoQ99cUn3igRaHVB5P9WrgFVN0FfArM3x0cueOU8ng==}
@@ -5216,6 +5228,12 @@ snapshots:
 
   '@antfu/utils@0.7.10': {}
 
+  '@ark/schema@0.43.1':
+    dependencies:
+      '@ark/util': 0.43.1
+
+  '@ark/util@0.43.1': {}
+
   '@babel/code-frame@7.26.2':
     dependencies:
       '@babel/helper-validator-identifier': 7.25.9
@@ -6687,6 +6705,11 @@ snapshots:
       zip-stream: 4.1.1
 
   argparse@2.0.1: {}
+
+  arktype@2.1.2:
+    dependencies:
+      '@ark/schema': 0.43.1
+      '@ark/util': 0.43.1
 
   array-union@1.0.2:
     dependencies:

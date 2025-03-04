@@ -13,8 +13,7 @@ import { TaskType } from "../enum.js";
 
 import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { Client, WebVideoUploader } from "@renmu/bili-api";
-import type { Progress, NotificationTaskStatus, BiliupConfig } from "@biliLive-tools/types";
-import type { Status } from "@biliLive-tools/types/task.d.ts";
+import type { Progress, NotificationTaskStatus, BiliupConfig, Status } from "@biliLive-tools/types";
 import type M3U8Downloader from "@renmu/m3u8-downloader";
 import type { AppConfig } from "../config.js";
 import type { DanmakuFactory } from "../danmu/danmakuFactory.js";

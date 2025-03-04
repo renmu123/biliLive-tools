@@ -1,13 +1,16 @@
 {
   "compilerOptions": {
-    "composite": true,
+    // "composite": true,
     "outDir": "./lib",
-    "rootDir": ".",
-    "module": "ESNext",
-    "target": "ESNext",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
+    "rootDir": "./src",
+    "target": "es2023",
+    "module": "Node16",
+    "moduleResolution": "Node16",
     "esModuleInterop": true,
+    "declaration": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true
   },
-  "include": ["*.ts"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules"]
 }

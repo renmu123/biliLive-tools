@@ -54,8 +54,9 @@ const handleSelect = (key?: string | number) => {
 
   .icon {
     position: absolute;
+    left: 50%;
     top: 50%;
-    transform: translate(0%, -50%);
+    transform: translate(-50%, -50%);
   }
   .cart-down-icon {
     color: white;

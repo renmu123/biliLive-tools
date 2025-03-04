@@ -1,43 +1,37 @@
 export * from "./task.js";
 import type { Line as UploadLine } from "@renmu/bili-api";
+export * from "./preset.js";
 
 // 弹幕配置
-export type DanmuConfig = {
-  resolution: [number, number];
-  scrolltime: number;
-  fixtime: number;
-  density: number;
-  customDensity: number;
-  fontname: string;
-  fontsize: number;
-  /** 百分制下的透明度 */
-  opacity100: number;
-  outline: number;
-  shadow: number;
-  displayarea: number;
-  scrollarea: number;
-  bold: boolean;
-  showusernames: boolean;
-  saveblocked: boolean;
-  showmsgbox: boolean;
-  msgboxsize: [number, number];
-  msgboxpos: [number, number];
-  msgboxfontsize: number;
-  msgboxduration: number;
-  giftminprice: number;
-  blockmode: ("R2L" | "L2R" | "TOP" | "BOTTOM" | "SPECIAL" | "COLOR" | "REPEAT")[];
-  statmode: ("TABLE" | "HISTOGRAM")[];
-  resolutionResponsive: false;
-  blacklist: string;
-  timeshift: number;
-};
-
-// 弹幕预设配置
-export type DanmuPreset = {
-  id: string;
-  name: string;
-  config: DanmuConfig;
-};
+// export type DanmuConfig = {
+//   resolution: [number, number];
+//   scrolltime: number;
+//   fixtime: number;
+//   density: number;
+//   customDensity: number;
+//   fontname: string;
+//   fontsize: number;
+//   /** 百分制下的透明度 */
+//   opacity100: number;
+//   outline: number;
+//   shadow: number;
+//   displayarea: number;
+//   scrollarea: number;
+//   bold: boolean;
+//   showusernames: boolean;
+//   saveblocked: boolean;
+//   showmsgbox: boolean;
+//   msgboxsize: [number, number];
+//   msgboxpos: [number, number];
+//   msgboxfontsize: number;
+//   msgboxduration: number;
+//   giftminprice: number;
+//   blockmode: ("R2L" | "L2R" | "TOP" | "BOTTOM" | "SPECIAL" | "COLOR" | "REPEAT")[];
+//   statmode: ("TABLE" | "HISTOGRAM")[];
+//   resolutionResponsive: false;
+//   blacklist: string;
+//   timeshift: number;
+// };
 
 // 通用预设
 export type CommonPreset<T> = {

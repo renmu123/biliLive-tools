@@ -1,9 +1,13 @@
 import os from "node:os";
 
 import CommonPreset from "./preset.js";
+import { danmuPresetSchema } from "@biliLive-tools/types";
 
-import type { DanmuConfig, DanmuPreset as DanmuPresetType } from "@biliLive-tools/types";
-import type { GlobalConfig } from "@biliLive-tools/types";
+import type {
+  DanmuConfig,
+  DanmuPreset as DanmuPresetType,
+  GlobalConfig,
+} from "@biliLive-tools/types";
 
 let fontname = "SimHei";
 if (os.platform() === "win32") {
@@ -43,22 +47,23 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   timeshift: 0,
 };
 
-export function validateAndFilter<T>(options: T, requiredKeys: Array<keyof T>): T {
-  const filteredOptions: Partial<T> = {};
-  for (const key in options) {
-    if (requiredKeys.includes(key as keyof T)) {
-      filteredOptions[key as keyof T] = options[key];
-    }
-  }
+// export function validateAndFilter<T>(options: T, requiredKeys: Array<keyof T>): T {
+//   const filteredOptions: Partial<T> = {};
+//   for (const key in options) {
+//     if (requiredKeys.includes(key as keyof T)) {
+//       filteredOptions[key as keyof T] = options[key];
+//     }
+//   }
 
-  for (const key of requiredKeys) {
-    if (!(key in filteredOptions)) {
-      throw new Error(`Missing required field: ${String(key)}`);
-    }
-  }
+//   for (const key of requiredKeys) {
+//     if (!(key in filteredOptions)) {
+//       throw new Error(`Missing required field: ${String(key)}`);
+//     }
+//   }
 
-  return filteredOptions as T;
-}
+//   danmuConfig.assert(options);
+//   return filteredOptions as T;
+// }
 
 export class DanmuPreset extends CommonPreset<DanmuConfig> {
   constructor({ globalConfig }: { globalConfig: Pick<GlobalConfig, "danmuPresetPath"> }) {
@@ -74,13 +79,8 @@ export class DanmuPreset extends CommonPreset<DanmuConfig> {
     return super.list();
   }
   async save(preset: DanmuPresetType) {
-    // const requiredFields = Object.keys(DANMU_DEAFULT_CONFIG);
-    // 检测preset.config中的值是否存在为null，如果有，报错
-    for (const key in preset.config) {
-      if (preset.config[key] === null) {
-        throw new Error(`Field ${key} is required`);
-      }
-    }
+    danmuPresetSchema.assert(preset);
+
     return super.save(preset);
   }
   async delete(id: string) {

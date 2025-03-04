@@ -1,4 +1,4 @@
-import type { Status } from "@biliLive-tools/types/task.d.ts";
+import type { Status } from "@biliLive-tools/types";
 import { TaskType } from "@biliLive-tools/shared/enum.js";
 
 export interface Task {
