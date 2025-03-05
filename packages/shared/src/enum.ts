@@ -58,7 +58,6 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     hotProgressColor: "#f9f5f3",
     hotProgressFillColor: "#333333",
     convert2Mp4: false,
-    useVideoAsTitle: false,
     uploadHandleTime: ["00:00:00", "23:59:59"],
     limitUploadTime: false,
     uploadNoDanmu: false,

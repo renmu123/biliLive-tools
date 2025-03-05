@@ -321,6 +321,7 @@ import { useUploadPreset, useAppConfig, useUserInfoStore } from "@renderer/store
 import { cloneDeep } from "lodash-es";
 import { templateRef } from "@vueuse/core";
 import DynamicTags from "./DynamicTags.vue";
+import { uploadTitleTemplate } from "@renderer/enums";
 
 import type { BiliupPreset } from "@biliLive-tools/types";
 
@@ -649,48 +650,7 @@ const handleTopicChange = (topicName: string) => {
   }
 };
 
-const titleList = ref([
-  {
-    value: "{{title}}",
-    label: "视频标题",
-  },
-  {
-    value: "{{user}}",
-    label: "主播名",
-  },
-  {
-    value: "{{roomId}}",
-    label: "房间号",
-  },
-  {
-    value: "{{now}}",
-    label: "视频录制时间（示例：2024.01.24）",
-  },
-  {
-    value: "{{yyyy}}",
-    label: "年",
-  },
-  {
-    value: "{{MM}}",
-    label: "月（补零）",
-  },
-  {
-    value: "{{dd}}",
-    label: "日（补零）",
-  },
-  {
-    value: "{{HH}}",
-    label: "时（补零）",
-  },
-  {
-    value: "{{mm}}",
-    label: "分（补零）",
-  },
-  {
-    value: "{{ss}}",
-    label: "秒（补零）",
-  },
-]);
+const titleList = ref(uploadTitleTemplate);
 const titleTip = computed(() => {
   const base = `上限80字，多余的会被截断。<br/>
   占位符用于支持webhook中的相关功能，如果你是手动上传，和你基本上没关系，如【{{user}}】{{title}}-{{now}}<br/>

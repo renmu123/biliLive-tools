@@ -354,8 +354,6 @@ export class WebhookHandler {
     uploadPresetId: string;
     /* 上传标题 */
     title: string;
-    /** 使用视频文件名做标题 */
-    useVideoAsTitle?: boolean;
     /* 弹幕preset */
     danmuPresetId: string;
     /* 视频压制preset */
@@ -424,7 +422,6 @@ export class WebhookHandler {
     const limitVideoConvertTime = getRoomSetting("limitVideoConvertTime") ?? false;
     const videoHandleTime = getRoomSetting("videoHandleTime") || ["00:00:00", "23:59:59"];
 
-    const useVideoAsTitle = getRoomSetting("useVideoAsTitle");
     const removeOriginAfterConvert = getRoomSetting("removeOriginAfterConvert") ?? false;
     const removeOriginAfterUpload = getRoomSetting("removeOriginAfterUpload") ?? false;
     const noConvertHandleVideo = getRoomSetting("noConvertHandleVideo") ?? false;
@@ -469,7 +466,6 @@ export class WebhookHandler {
       hotProgressColor,
       hotProgressFillColor,
       convert2Mp4Option: convert2Mp4,
-      useVideoAsTitle,
       removeOriginAfterConvert,
       removeOriginAfterUpload,
       noConvertHandleVideo,
@@ -805,7 +801,6 @@ export class WebhookHandler {
         useLiveCover,
         limitUploadTime,
         uploadHandleTime,
-        useVideoAsTitle,
         title,
         uploadNoDanmu,
         noDanmuVideoPreset,
@@ -864,45 +859,44 @@ export class WebhookHandler {
         }
       } else {
         try {
-          const part = live.findPartByFilePath(filePaths[0], type);
+          const part = live.findPartByFilePath(filePaths[0], type)!;
+          const filename = path.parse(part[filePathField]).name;
 
-          if (part && useVideoAsTitle) {
-            uploadPreset.title = path.parse(part[filePathField]).name.slice(0, 80);
-          } else {
-            let template = uploadPreset.title;
-            if (type === "handled") {
-              const list = [
-                "{{title}}",
-                "{{user}}",
-                "{{roomId}}",
-                "{{now}}",
-                "{{yyyy}}",
-                "{{MM}}",
-                "{{dd}}",
-                "{{HH}}",
-                "{{mm}}",
-                "{{ss}}",
-              ];
-              // 目前如果预设标题中不存在占位符，为了兼容性考虑，依然使用webhook配置，预计后续版本中会移除此字段
-              if (!list.some((item) => template.includes(item))) {
-                template = title;
-              }
+          let template = uploadPreset.title;
+          if (type === "handled") {
+            const list = [
+              "{{title}}",
+              "{{user}}",
+              "{{roomId}}",
+              "{{now}}",
+              "{{yyyy}}",
+              "{{MM}}",
+              "{{dd}}",
+              "{{HH}}",
+              "{{mm}}",
+              "{{ss}}",
+              "{{filename}}",
+            ];
+            // 目前如果预设标题中不存在占位符，为了兼容性考虑，依然使用webhook配置，预计后续版本中会移除此字段
+            if (!list.some((item) => template.includes(item))) {
+              template = title;
             }
-            const videoTitle = formatTitle(
-              {
-                title: live.title,
-                username: live.username,
-                roomId: live.roomId,
-                time: part?.startTime
-                  ? new Date(part.startTime).toISOString()
-                  : new Date().toISOString(),
-              },
-              template,
-            );
-            // console.log("template111", template, part, filePaths, videoTitle, type, presetId);
-
-            uploadPreset.title = videoTitle;
           }
+          const videoTitle = formatTitle(
+            {
+              title: live.title,
+              username: live.username,
+              roomId: live.roomId,
+              time: part?.startTime
+                ? new Date(part.startTime).toISOString()
+                : new Date().toISOString(),
+              filename,
+            },
+            template,
+          );
+          uploadPreset.title = videoTitle;
+
+          // console.log("template111", template, part, filePaths, videoTitle, type, presetId);
 
           live.parts.map((item) => {
             if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploading";

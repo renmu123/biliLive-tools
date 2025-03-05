@@ -27,6 +27,7 @@ router.post("/formatTitle", async (ctx) => {
       username: "主播名",
       time: new Date().toISOString(),
       roomId: 123456,
+      filename: "文件名",
     },
     template,
   );

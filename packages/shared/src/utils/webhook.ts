@@ -12,11 +12,14 @@ import log from "./log.js";
  * 时（补零）：{{HH}}<br/>
  * 分（补零）：{{mm}}<br/>
  * 秒（补零）：{{ss}}<br/>
+ * 文件名：{{filename}}<br/>
  *
  * @param {object} options 格式化参数
  * @param {string} options.title 直播标题
  * @param {string} options.username 主播名
  * @param {string} options.time 直播时间
+ * @param {number} options.roomId 房间号
+ * @param {string} options.filename 文件名
  * @param {string} template 格式化模板
  */
 export function formatTitle(
@@ -25,6 +28,7 @@ export function formatTitle(
     username: string;
     time: string;
     roomId: number;
+    filename: string;
   },
   template: string,
 ) {
@@ -36,6 +40,7 @@ export function formatTitle(
       user: options.username,
       time: new Date(options.time),
       roomId: options.roomId,
+      filename: options.filename,
     };
     renderText = ejs.render(template, renderOptions);
   } catch (error) {
@@ -53,6 +58,7 @@ export function formatTitle(
     .replaceAll("{{HH}}", hours)
     .replaceAll("{{mm}}", minutes)
     .replaceAll("{{ss}}", seconds)
+    .replaceAll("{{filename}}", options.filename)
     .trim()
     .slice(0, 80);
 

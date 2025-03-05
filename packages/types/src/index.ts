@@ -48,8 +48,6 @@ export type CommonRoomConfig = {
   minSize: number;
   /** 视频标题 */
   title: string;
-  /** 使用视频文件名作为标题 */
-  useVideoAsTitle?: boolean;
   uploadPresetId?: string;
   danmu: boolean;
   ffmpegPreset?: string;

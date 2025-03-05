@@ -239,7 +239,7 @@
     >
   </n-form-item>
 
-  <n-form-item v-if="!data.useVideoAsTitle">
+  <n-form-item>
     <template #label>
       <Tip :tip="titleTip" text="视频标题"></Tip>
     </template>
@@ -269,21 +269,6 @@
         >{{ item.value }}</span
       >
     </template>
-  </n-form-item>
-  <n-form-item>
-    <template #label>
-      <Tip
-        text="使用视频文件名"
-        tip="使用视频文件名作为视频标题，推荐使用自定义视频标题，以获得更高自由度"
-      ></Tip>
-    </template>
-    <n-switch v-model:value="data.useVideoAsTitle" :disabled="globalFieldsObj.useVideoAsTitle" />
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.useVideoAsTitle"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
   </n-form-item>
   <n-form-item>
     <template #label>
@@ -455,6 +440,7 @@
 import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
 import { previewWebhookTitle } from "@renderer/apis/common";
 import { templateRef } from "@vueuse/core";
+import { uploadTitleTemplate } from "@renderer/enums";
 
 import type { AppRoomConfig } from "@biliLive-tools/types";
 
@@ -499,48 +485,7 @@ const userOptins = computed(() => {
   ];
 });
 
-const titleList = ref([
-  {
-    value: "{{title}}",
-    label: "视频标题",
-  },
-  {
-    value: "{{user}}",
-    label: "主播名",
-  },
-  {
-    value: "{{roomId}}",
-    label: "房间号",
-  },
-  {
-    value: "{{now}}",
-    label: "当前时间（示例：2024.01.24）",
-  },
-  {
-    value: "{{yyyy}}",
-    label: "年",
-  },
-  {
-    value: "{{MM}}",
-    label: "月（补零）",
-  },
-  {
-    value: "{{dd}}",
-    label: "日（补零）",
-  },
-  {
-    value: "{{HH}}",
-    label: "时（补零）",
-  },
-  {
-    value: "{{mm}}",
-    label: "分（补零）",
-  },
-  {
-    value: "{{ss}}",
-    label: "秒（补零）",
-  },
-]);
+const titleList = ref(uploadTitleTemplate);
 const titleTip = computed(() => {
   const base = `推荐在上传预设设置模板标题，但如果预设标题中不存在占位符，依然使用webhook配置。<br/>
   支持{{title}},{{user}},{{now}}等占位符，如【{{user}}】{{title}}-{{now}}<br/>
