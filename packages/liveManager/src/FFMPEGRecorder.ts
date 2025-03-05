@@ -35,7 +35,7 @@ export class FFMPEGRecorder extends EventEmitter {
     this.command = this.createCommand();
 
     this.streamManager.on("videoFileCreated", ({ filename }) => {
-      this.emit("videoFileCompleted", { filename });
+      this.emit("videoFileCreated", { filename });
     });
     this.streamManager.on("videoFileCompleted", ({ filename }) => {
       this.emit("videoFileCompleted", { filename });
