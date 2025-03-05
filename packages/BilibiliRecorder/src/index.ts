@@ -187,7 +187,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           format_name: streamOptions.format_name,
           codec_name: streamOptions.codec_name,
         });
-        this.recordHandle.url = url;
+        if (this.recordHandle) {
+          this.recordHandle.url = url;
+        }
         this.emit("DebugLog", {
           type: "common",
           text: `update stream: ${url}`,
