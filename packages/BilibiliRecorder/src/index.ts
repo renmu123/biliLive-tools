@@ -103,8 +103,6 @@ const ffmpegInputOptions: string[] = [
   "5000000",
   "-extra_window_size",
   "10",
-  "-window_size",
-  "10",
   "-user_agent",
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
   "-headers",
