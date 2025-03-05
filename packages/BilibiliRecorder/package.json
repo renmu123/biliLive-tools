@@ -38,7 +38,7 @@
   "author": "renmu123",
   "license": "LGPL",
   "dependencies": {
-    "@bililive-tools/manager": "workspace:*",
+    "@bililive-tools/manager": "workspace:^",
     "blive-message-listener": "^0.5.0",
     "mitt": "catalog:",
     "tiny-bilibili-ws": "^1.0.1",
@@ -46,6 +46,6 @@
     "axios": "catalog:"
   },
   "peerDependencies": {
-    "@bililive-tools/manager": "^1.0.0"
+    "@bililive-tools/manager": "^1.1.0"
   }
 }

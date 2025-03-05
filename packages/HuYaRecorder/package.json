@@ -38,7 +38,7 @@
   "author": "renmu123",
   "license": "LGPL",
   "dependencies": {
-    "@bililive-tools/manager": "workspace:*",
+    "@bililive-tools/manager": "workspace:^",
     "huya-danma-listener": "workspace:*",
     "mitt": "catalog:",
     "lodash-es": "catalog:",

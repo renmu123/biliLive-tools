@@ -38,7 +38,7 @@
   "author": "renmu123",
   "license": "LGPL",
   "dependencies": {
-    "@bililive-tools/manager": "workspace:*",
+    "@bililive-tools/manager": "workspace:^",
     "mitt": "catalog:",
     "query-string": "^9.1.1",
     "safe-eval": "^0.4.1",

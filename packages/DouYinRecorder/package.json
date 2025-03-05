@@ -38,13 +38,13 @@
   "author": "WhiteMind",
   "license": "LGPL",
   "dependencies": {
-    "@bililive-tools/manager": "workspace:*",
+    "@bililive-tools/manager": "workspace:^",
     "axios": "catalog:",
     "lodash-es": "catalog:",
     "mitt": "catalog:"
   },
   "peerDependencies": {
-    "@bililive-tools/manager": "^1.0.0"
+    "@bililive-tools/manager": "^1.1.0"
   },
   "devDependencies": {
     "@types/node": "*"
