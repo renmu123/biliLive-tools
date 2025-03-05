@@ -1,18 +1,20 @@
 import path from "node:path";
 import mitt from "mitt";
 import {
-  Recorder,
-  RecorderCreateOpts,
-  RecorderProvider,
-  createFFMPEGBuilder,
-  RecordHandle,
   defaultFromJSON,
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  StreamManager,
   utils,
+  FFMPEGRecorder,
 } from "@bililive-tools/manager";
+import type {
+  Recorder,
+  RecorderCreateOpts,
+  RecorderProvider,
+  RecordHandle,
+} from "@bililive-tools/manager";
+
 import { getInfo, getStream } from "./stream.js";
 import { assertStringType, ensureFolderExist, singleton } from "./utils.js";
 
@@ -102,8 +104,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!living) return null;
 
   this.state = "recording";
-  let res;
-  // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
+  let res: Awaited<ReturnType<typeof getStream>>;
   try {
     res = await getStream({
       channelId: this.channelId,
@@ -122,17 +123,21 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedSource = stream.source;
   // TODO: emit update event
 
-  const hasSegment = !!this.segment;
-  const streamManager = new StreamManager(
-    (opts: { startTime?: number }) =>
-      getSavePath({
-        owner,
-        title,
-        startTime: opts.startTime,
-      }),
-    hasSegment,
+  let isEnded = false;
+  const recorder = new FFMPEGRecorder(
+    {
+      url: stream.url,
+      outputOptions: ffmpegOutputOptions,
+      segment: this.segment,
+      getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
+    },
+    onEnd,
   );
-  const savePath = streamManager.videoFilePath;
+
+  const savePath = getSavePath({
+    owner,
+    title,
+  });
 
   try {
     ensureFolderExist(savePath);
@@ -143,25 +148,25 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const handleVideoCreated = async ({ filename }) => {
     this.emit("videoFileCreated", { filename });
-    const extraDataController = streamManager?.getExtraDataController();
-    extraDataController?.setMeta({
-      room_id: this.channelId,
-      platform: provider?.id,
-      // liveStartTimestamp: liveInfo.startTime?.getTime(),
-      recordStopTimestamp: Date.now(),
-      title: title,
-      user_name: owner,
-    });
+    // const extraDataController = recorder?.getExtraDataController();
+    // extraDataController?.setMeta({
+    //   room_id: this.channelId,
+    //   platform: provider?.id,
+    //   // liveStartTimestamp: liveInfo.startTime?.getTime(),
+    //   recordStopTimestamp: Date.now(),
+    //   title: title,
+    //   user_name: owner,
+    // });
     if (this.saveCover) {
       const coverPath = utils.replaceExtName(filename, ".jpg");
       utils.downloadImage(cover, coverPath);
     }
   };
-  streamManager.on("videoFileCreated", handleVideoCreated);
-  streamManager.on("videoFileCompleted", ({ filename }) => {
+  recorder.on("videoFileCreated", handleVideoCreated);
+  recorder.on("videoFileCompleted", ({ filename }) => {
     this.emit("videoFileCompleted", { filename });
   });
-  streamManager.on("DebugLog", (data) => {
+  recorder.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
   });
 
@@ -171,8 +176,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // TODO: 弹幕录制
 
-  let isEnded = false;
-  const onEnd = (...args: unknown[]) => {
+  function onEnd(...args: unknown[]) {
     if (isEnded) return;
     isEnded = true;
     this.emit("DebugLog", {
@@ -181,81 +185,25 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
-  };
-
-  const isInvalidStream = createInvalidStreamChecker();
-  const timeoutChecker = createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
-  const command = createFFMPEGBuilder()
-    .input(stream.url)
-    .inputOptions(
-      "-user_agent",
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
-      /**
-       * ffmpeg 在处理抖音提供的某些直播间的流时，它会在 avformat_find_stream_info 阶段花费过多时间，这会让录制的过程推迟很久，从而触发超时。
-       * 这里通过降低 avformat_find_stream_info 所需要的字节数量（默认为 5000000）来解决这个问题。
-       *
-       * Refs:
-       * https://github.com/Sunoo/homebridge-camera-ffmpeg/issues/462#issuecomment-617723949
-       * https://stackoverflow.com/a/49273163/21858805
-       */
-      "-probesize",
-      (64 * 1024).toString(),
-    )
-    .outputOptions(ffmpegOutputOptions)
-    .output(streamManager.videoFilePath)
-    .on("start", () => {
-      streamManager.handleVideoStarted();
-    })
-    .on("error", onEnd)
-    .on("end", () => onEnd("finished"))
-    .on("stderr", async (stderrLine) => {
-      if (utils.isFfmpegStartSegment(stderrLine)) {
-        await streamManager.handleVideoStarted(stderrLine);
-      }
-
-      assertStringType(stderrLine);
-      this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
-
-      if (isInvalidStream(stderrLine)) {
-        onEnd("invalid stream");
-      }
-    })
-    .on("stderr", timeoutChecker.update);
-
-  if (hasSegment) {
-    command.outputOptions(
-      "-f",
-      "segment",
-      "-segment_time",
-      String(this.segment! * 60),
-      "-reset_timestamps",
-      "1",
-    );
   }
-  const ffmpegArgs = command._getArguments();
+
+  const ffmpegArgs = recorder.getArguments();
   // extraDataController.setMeta({
   //   recordStartTimestamp: Date.now(),
   //   ffmpegArgs,
   // });
-  command.run();
+  recorder.run();
 
   const stop = singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
     this.state = "stopping-record";
 
-    timeoutChecker.stop();
-
-    // @ts-ignore
-    command.ffmpegProc?.stdin?.write("q");
-    // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
-    // client?.close()
+    recorder.stop();
 
     this.usedStream = undefined;
     this.usedSource = undefined;
-    // TODO: other codes
-    // TODO: emit update event
 
-    await streamManager.handleVideoCompleted();
+    await recorder.handleVideoCompleted();
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.liveInfo = undefined;
@@ -275,69 +223,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   return this.recordHandle;
 };
-
-function createTimeoutChecker(
-  onTimeout: () => void,
-  time: number,
-): {
-  update: () => void;
-  stop: () => void;
-} {
-  let timer: NodeJS.Timeout | null = null;
-  let stopped: boolean = false;
-
-  const update = () => {
-    if (stopped) return;
-    if (timer != null) clearTimeout(timer);
-    timer = setTimeout(() => {
-      timer = null;
-      onTimeout();
-    }, time);
-  };
-
-  update();
-
-  return {
-    update,
-    stop() {
-      stopped = true;
-      if (timer != null) clearTimeout(timer);
-      timer = null;
-    },
-  };
-}
-
-function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean {
-  let prevFrame = 0;
-  let frameUnchangedCount = 0;
-
-  return (ffmpegLogLine) => {
-    const streamInfo = ffmpegLogLine.match(
-      /frame=\s*(\d+) fps=.*? q=.*? size=\s*(\d+)kB time=.*? bitrate=.*? speed=.*?/,
-    );
-    if (streamInfo != null) {
-      const [, frameText] = streamInfo;
-      const frame = Number(frameText);
-
-      if (frame === prevFrame) {
-        if (++frameUnchangedCount >= 15) {
-          return true;
-        }
-      } else {
-        prevFrame = frame;
-        frameUnchangedCount = 0;
-      }
-
-      return false;
-    }
-
-    if (ffmpegLogLine.includes("HTTP error 404 Not Found")) {
-      return true;
-    }
-
-    return false;
-  };
-}
 
 export const provider: RecorderProvider<{}> = {
   id: "DouYin",

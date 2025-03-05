@@ -1,22 +1,25 @@
 import mitt from "mitt";
 import {
-  Recorder,
-  RecorderCreateOpts,
-  RecorderProvider,
-  createFFMPEGBuilder,
-  RecordHandle,
   defaultFromJSON,
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  StreamManager,
   utils,
+  FFMPEGRecorder,
 } from "@bililive-tools/manager";
-import type { Comment, GiveGift, SuperChat } from "@bililive-tools/manager";
+import type {
+  Comment,
+  GiveGift,
+  SuperChat,
+  Recorder,
+  RecorderCreateOpts,
+  RecorderProvider,
+  RecordHandle,
+} from "@bililive-tools/manager";
 
 import { getInfo, getStream } from "./stream.js";
 import { getRoomInfo } from "./dy_api.js";
-import { assert, ensureFolderExist, createInvalidStreamChecker } from "./utils.js";
+import { ensureFolderExist } from "./utils.js";
 import { createDYClient } from "./dy_client/index.js";
 import { giftMap, colorTab } from "./danma.js";
 import { requester } from "./requester.js";
@@ -128,17 +131,22 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.availableSources = availableSources.map((s) => s.name);
   this.usedStream = stream.name;
   this.usedSource = stream.source;
-  const hasSegment = !!this.segment;
-  const streamManager = new StreamManager(
-    (opts: { startTime?: number }) =>
-      getSavePath({
-        owner,
-        title,
-        startTime: opts.startTime,
-      }),
-    hasSegment,
+
+  let isEnded = false;
+  const recorder = new FFMPEGRecorder(
+    {
+      url: stream.url,
+      outputOptions: ffmpegOutputOptions,
+      segment: this.segment,
+      getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
+    },
+    onEnd,
   );
-  const savePath = streamManager.videoFilePath;
+
+  const savePath = getSavePath({
+    owner,
+    title,
+  });
 
   try {
     ensureFolderExist(savePath);
@@ -149,7 +157,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const handleVideoCreated = async ({ filename }) => {
     this.emit("videoFileCreated", { filename });
-    const extraDataController = streamManager?.getExtraDataController();
+    const extraDataController = recorder?.getExtraDataController();
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
@@ -163,11 +171,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       utils.downloadImage(cover, coverPath);
     }
   };
-  streamManager.on("videoFileCreated", handleVideoCreated);
-  streamManager.on("videoFileCompleted", ({ filename }) => {
+  recorder.on("videoFileCreated", handleVideoCreated);
+  recorder.on("videoFileCompleted", ({ filename }) => {
     this.emit("videoFileCompleted", { filename });
   });
-  streamManager.on("DebugLog", (data) => {
+  recorder.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
   });
 
@@ -175,7 +183,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     notAutoStart: true,
   });
   client.on("message", (msg) => {
-    const extraDataController = streamManager.getExtraDataController();
+    const extraDataController = recorder.getExtraDataController();
     if (!extraDataController) return;
     switch (msg.type) {
       case "chatmsg": {
@@ -259,8 +267,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     client.start();
   }
 
-  let isEnded = false;
-  const onEnd = async (...args: unknown[]) => {
+  function onEnd(...args: unknown[]) {
     if (isEnded) return;
     isEnded = true;
 
@@ -270,72 +277,23 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
-  };
-
-  const isInvalidStream = createInvalidStreamChecker();
-  const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
-  const command = createFFMPEGBuilder(stream.url)
-    .inputOptions(
-      "-user_agent",
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
-    )
-    .outputOptions(ffmpegOutputOptions)
-    .output(streamManager.videoFilePath)
-    .on("start", () => {
-      streamManager.handleVideoStarted();
-    })
-    .on("error", onEnd)
-    .on("end", () => onEnd("finished"))
-    .on("stderr", async (stderrLine) => {
-      assert(typeof stderrLine === "string");
-      if (utils.isFfmpegStartSegment(stderrLine)) {
-        await streamManager.handleVideoStarted(stderrLine);
-      }
-      // TODO:解析时间
-      this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
-
-      if (isInvalidStream(stderrLine)) {
-        onEnd("invalid stream");
-      }
-    })
-    .on("stderr", timeoutChecker.update);
-  if (hasSegment) {
-    command.outputOptions(
-      "-f",
-      "segment",
-      "-segment_time",
-      String(this.segment! * 60),
-      "-reset_timestamps",
-      "1",
-    );
   }
-  const ffmpegArgs = command._getArguments();
-  command.run();
+
+  const ffmpegArgs = recorder.getArguments();
+  recorder.run();
 
   // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
 
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
     this.state = "stopping-record";
-    // TODO: emit update event
 
-    timeoutChecker.stop();
-
-    try {
-      // @ts-ignore
-      command.ffmpegProc?.stdin?.write("q");
-      // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
-      client.stop();
-    } catch (err) {
-      // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
-      this.emit("DebugLog", { type: "common", text: String(err) });
-    }
+    recorder.stop();
+    client.stop();
 
     this.usedStream = undefined;
     this.usedSource = undefined;
-    // TODO: other codes
-    // TODO: emit update event
-    await streamManager.handleVideoCompleted();
+    await recorder.handleVideoCompleted();
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.liveInfo = undefined;
