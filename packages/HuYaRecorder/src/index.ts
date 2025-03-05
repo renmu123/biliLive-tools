@@ -170,10 +170,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       title: title,
       user_name: owner,
     });
-    if (this.saveCover) {
-      const coverPath = utils.replaceExtName(filename, ".jpg");
-      utils.downloadImage(cover, coverPath);
-    }
   };
   streamManager.on("videoFileCreated", handleVideoCreated);
   streamManager.on("videoFileCompleted", ({ filename }) => {

@@ -17,6 +17,8 @@ import {
   formatDate,
   removeSystemReservedChars,
   formatTemplate,
+  replaceExtName,
+  downloadImage,
 } from "./utils.js";
 import { StreamManager } from "./streamManager.js";
 
@@ -234,9 +236,13 @@ export function createRecorderManager<
       recorder.on("RecordSegment", (recordHandle) =>
         this.emit("RecordSegment", { recorder, recordHandle }),
       );
-      recorder.on("videoFileCreated", ({ filename }) =>
-        this.emit("videoFileCreated", { recorder, filename }),
-      );
+      recorder.on("videoFileCreated", ({ filename }) => {
+        if (recorder.saveCover && recorder?.liveInfo?.cover) {
+          const coverPath = replaceExtName(filename, ".jpg");
+          downloadImage(recorder?.liveInfo?.cover, coverPath);
+        }
+        this.emit("videoFileCreated", { recorder, filename });
+      });
       recorder.on("videoFileCompleted", ({ filename }) =>
         this.emit("videoFileCompleted", { recorder, filename }),
       );

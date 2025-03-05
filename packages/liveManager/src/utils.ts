@@ -253,7 +253,7 @@ export function createTimeoutChecker(
   };
 }
 
-async function downloadImage(imageUrl: string, savePath: string) {
+export async function downloadImage(imageUrl: string, savePath: string) {
   const res = await fetch(imageUrl);
   if (!res.body) {
     throw new Error("No body in response");
