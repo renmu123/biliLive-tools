@@ -430,6 +430,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     // TODO: emit update event
 
     timeoutChecker.stop();
+    intervalId && clearInterval(intervalId);
 
     try {
       // @ts-ignore
@@ -448,7 +449,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.liveInfo = undefined;
     this.state = "idle";
     this.qualityRetry = this.qualityMaxRetry;
-    intervalId && clearInterval(intervalId);
   });
 
   this.recordHandle = {
