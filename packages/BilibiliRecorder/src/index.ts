@@ -131,7 +131,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!living) return null;
 
   const liveInfo = await getInfo(this.channelId);
-  const { owner, title, roomId, cover } = liveInfo;
+  const { owner, title, roomId } = liveInfo;
   this.liveInfo = liveInfo;
 
   this.state = "recording";
