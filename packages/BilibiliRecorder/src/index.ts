@@ -33,6 +33,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     availableSources: [],
     state: "idle",
     qualityMaxRetry: opts.qualityRetry ?? 0,
+    danmakuRetry: 5,
     qualityRetry: opts.qualityRetry ?? 0,
     useM3U8Proxy: opts.useM3U8Proxy ?? false,
     m3u8ProxyUrl: opts.m3u8ProxyUrl,
@@ -358,6 +359,19 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         uid: this.uid ?? 0,
       },
     });
+    client.live.on("error", (err) => {
+      this.emit("DebugLog", { type: "common", text: String(err) });
+      this.danmakuRetry -= 1;
+      if (this.danmakuRetry > 0) {
+        setTimeout(
+          () => {
+            client.reconnect();
+          },
+          2000 * (5 - this.danmakuRetry),
+        );
+      }
+    });
+    console.log("start listen", roomId, this.auth, this.uid);
   }
 
   let isEnded = false;
@@ -449,6 +463,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.liveInfo = undefined;
     this.state = "idle";
     this.qualityRetry = this.qualityMaxRetry;
+    this.danmakuRetry = 5;
   });
 
   this.recordHandle = {
