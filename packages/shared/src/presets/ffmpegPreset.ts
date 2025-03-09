@@ -247,6 +247,14 @@ export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
     if ((encoder.presets ?? []).findIndex((item) => item.value === config.preset) === -1) {
       throw new Error("无效的preset参数");
     }
+    if (config.resetResolution) {
+      if (Number(config?.resolutionWidth) === 0 || Number(config?.resolutionHeight) === 0) {
+        throw new Error("分辨率参数不得为0");
+      }
+      if (Number(config?.resolutionWidth) < 0 && Number(config?.resolutionHeight) < 0) {
+        throw new Error("分辨率参数不得都为负数");
+      }
+    }
   }
   // 保存预设
   save(preset: FfmpegPresetType) {
