@@ -13,6 +13,7 @@ import {
   sleep,
   trashItem,
   formatTitle,
+  formatPartTitle,
   replaceExtName,
 } from "@biliLive-tools/shared/utils/index.js";
 
@@ -398,6 +399,8 @@ export class WebhookHandler {
     limitVideoConvertTime?: boolean;
     /** 允许视频处理时间 */
     videoHandleTime?: [string, string];
+    /** 分p标题模板 */
+    partTitleTemplate: string;
   } {
     const config = this.appConfig.getAll();
     const roomSetting: AppRoomConfig | undefined = config.webhook?.rooms?.[roomId];
@@ -475,6 +478,7 @@ export class WebhookHandler {
       noDanmuVideoPreset,
       videoHandleTime: limitVideoConvertTime ? videoHandleTime : undefined,
       removeOriginAfterUploadCheck: removeOriginAfterUpload ? false : removeOriginAfterUploadCheck,
+      partTitleTemplate: getRoomSetting("partTitleTemplate") || "{{filename}}",
     };
     // log.debug("final config", options);
 
@@ -677,7 +681,12 @@ export class WebhookHandler {
 
   addUploadTask = async (
     uid: number,
-    pathArray: string[],
+    pathArray:
+      | string[]
+      | {
+          path: string;
+          title: string;
+        }[],
     options: BiliupConfig,
     removeOrigin: boolean,
     limitedUploadTime: [] | [string, string],
@@ -805,6 +814,7 @@ export class WebhookHandler {
         uploadNoDanmu,
         noDanmuVideoPreset,
         removeOriginAfterUploadCheck,
+        partTitleTemplate,
       } = this.getConfig(live.roomId);
 
       if (!uid) {
@@ -896,16 +906,42 @@ export class WebhookHandler {
           );
           uploadPreset.title = videoTitle;
 
-          // console.log("template111", template, part, filePaths, videoTitle, type, presetId);
-
           live.parts.map((item) => {
             if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploading";
           });
-          log.info("上传", live, filePaths, uploadPreset);
+
+          const files = filePaths.map((file) => {
+            const filename = path.parse(file).name;
+
+            let title = filename;
+            try {
+              title = formatPartTitle(
+                {
+                  title: live.title,
+                  username: live.username,
+                  roomId: live.roomId,
+                  // time: part?.startTime
+                  //   ? new Date(part.startTime).toISOString()
+                  //   : new Date().toISOString(),
+                  filename,
+                },
+                partTitleTemplate,
+              );
+            } catch (error) {
+              log.error(error);
+            }
+
+            return {
+              path: file,
+              title: title,
+            };
+          });
+
+          log.info("上传", live, files, uploadPreset);
 
           const aid = (await this.addUploadTask(
             uid,
-            filePaths,
+            files,
             uploadPreset,
             type === "raw" ? false : removeOriginAfterUpload,
             limitedUploadTime,

@@ -270,6 +270,7 @@
       >
     </template>
   </n-form-item>
+
   <n-form-item>
     <template #label>
       <Tip
@@ -295,28 +296,68 @@
       >全局</n-checkbox
     >
   </n-form-item>
-  <n-form-item v-if="data.autoPartMerge">
-    <template #label>
-      <Tip
-        text="分p间隔时间"
-        tip="检测直播是否为同一场的时间间隔，避免因网络中断原因出现错误分P"
-      ></Tip>
-    </template>
-    <n-input-number
-      v-model:value="data.partMergeMinute"
-      placeholder="请输入分钟"
-      min="0.1"
-      :disabled="globalFieldsObj.partMergeMinute"
-    >
-      <template #suffix> 分钟 </template></n-input-number
-    >
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.partMergeMinute"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
+
+  <template v-if="data.autoPartMerge">
+    <n-form-item>
+      <template #label>
+        <Tip
+          text="分p间隔时间"
+          tip="检测直播是否为同一场的时间间隔，避免因网络中断原因出现错误分P"
+        ></Tip>
+      </template>
+      <n-input-number
+        v-model:value="data.partMergeMinute"
+        placeholder="请输入分钟"
+        min="0.1"
+        :disabled="globalFieldsObj.partMergeMinute"
+      >
+        <template #suffix> 分钟 </template></n-input-number
+      >
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.partMergeMinute"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+    </n-form-item>
+    <n-form-item>
+      <template #label>
+        <Tip :tip="partTitleTip" text="分P标题"></Tip>
+      </template>
+      <n-input
+        ref="partTitleInput"
+        v-model:value="data.partTitleTemplate"
+        placeholder="请输入分P标题"
+        clearable
+        :disabled="globalFieldsObj.partTitleTemplate"
+        style="margin-right: 10px"
+        spellcheck="false"
+      />
+      <n-button style="margin-right: 10px" @click="previewPartTitle(data.partTitleTemplate)"
+        >预览</n-button
+      >
+      <n-checkbox
+        v-if="isRoom"
+        v-model:checked="globalFieldsObj.partTitleTemplate"
+        class="global-checkbox"
+        >全局</n-checkbox
+      >
+      <template #feedback>
+        <span
+          v-for="item in partTitleList"
+          :key="item.value"
+          :title="item.label"
+          class="title-var"
+          :class="{
+            disabled: globalFieldsObj.partTitleTemplate,
+          }"
+          @click="setPartTitleVar(item.value)"
+          >{{ item.value }}</span
+        >
+      </template>
+    </n-form-item>
+  </template>
+
   <n-form-item>
     <template #label>
       <span class="inline-flex"> 完成后删除源文件 </span>
@@ -438,7 +479,7 @@
 
 <script setup lang="ts">
 import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
-import { previewWebhookTitle } from "@renderer/apis/common";
+import { previewWebhookTitle, previewWebhookPartTitle } from "@renderer/apis/common";
 import { templateRef } from "@vueuse/core";
 import { uploadTitleTemplate } from "@renderer/enums";
 
@@ -496,7 +537,6 @@ const titleTip = computed(() => {
     })
     .reduce((prev, cur) => prev + cur, base);
 });
-
 const titleInput = templateRef("titleInput");
 const setTitleVar = async (value: string) => {
   if (globalFieldsObj.value.title) return;
@@ -514,6 +554,59 @@ const setTitleVar = async (value: string) => {
   } else {
     data.value.title += value;
   }
+};
+
+// 分p标题
+const partTitleList = ref([
+  {
+    label: "标题",
+    value: "{{title}}",
+  },
+  {
+    value: "{{user}}",
+    label: "主播名",
+  },
+  {
+    value: "{{roomId}}",
+    label: "房间号",
+  },
+  {
+    label: "文件名",
+    value: "{{filename}}",
+  },
+]);
+const partTitleTip = computed(() => {
+  const base = `更多模板引擎等高级用法见文档<br/>`;
+  return partTitleList.value
+    .map((item) => {
+      return `${item.label}：${item.value}<br/>`;
+    })
+    .reduce((prev, cur) => prev + cur, base);
+});
+const partTitleInput = templateRef("partTitleInput");
+const setPartTitleVar = async (value: string) => {
+  if (globalFieldsObj.value.partTitleTemplate) return;
+  const input = partTitleInput.value?.inputElRef;
+  if (input) {
+    // 获取input光标位置
+    const start = input.selectionStart ?? data.value.partTitleTemplate.length;
+    const end = input.selectionEnd ?? data.value.partTitleTemplate.length;
+    const oldValue = data.value.partTitleTemplate;
+    data.value.partTitleTemplate = oldValue.slice(0, start) + value + oldValue.slice(end);
+    // 设置光标位置
+    input.focus();
+    await nextTick();
+    input.setSelectionRange(start + value.length, start + value.length);
+  } else {
+    data.value.partTitleTemplate += value;
+  }
+};
+const previewPartTitle = async (template: string) => {
+  const data = await previewWebhookPartTitle(template);
+  notice.info({
+    title: data,
+    duration: 3000,
+  });
 };
 
 const isRoom = computed(() => props.type === "room");
@@ -535,7 +628,7 @@ watch(
 
 const previewTitle = async (template: string) => {
   const data = await previewWebhookTitle(template);
-  notice.warning({
+  notice.info({
     title: data,
     duration: 3000,
   });

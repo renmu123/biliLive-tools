@@ -8,6 +8,13 @@ export const previewWebhookTitle = async (template: string): Promise<string> => 
   return res.data;
 };
 
+export const previewWebhookPartTitle = async (template: string): Promise<string> => {
+  const res = await request.post(`/common/formatPartTitle`, {
+    template,
+  });
+  return res.data;
+};
+
 export const getStreamLogs = async () => {
   let key = window.localStorage.getItem("key");
   if (!window.isWeb) {

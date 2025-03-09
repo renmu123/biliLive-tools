@@ -4,7 +4,12 @@ import fs from "fs-extra";
 import multer from "../middleware/multer.js";
 
 import Router from "koa-router";
-import { formatTitle, getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
+import {
+  formatTitle,
+  getTempPath,
+  uuid,
+  formatPartTitle,
+} from "@biliLive-tools/shared/utils/index.js";
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
 
@@ -22,6 +27,25 @@ router.post("/formatTitle", async (ctx) => {
   const template = (data.template || "") as string;
 
   const title = formatTitle(
+    {
+      title: "标题",
+      username: "主播名",
+      time: new Date().toISOString(),
+      roomId: 123456,
+      filename: "文件名",
+    },
+    template,
+  );
+  ctx.body = title;
+});
+
+router.post("/formatPartTitle", async (ctx) => {
+  const data = ctx.request.body as {
+    template: string;
+  };
+  const template = (data.template || "") as string;
+
+  const title = formatPartTitle(
     {
       title: "标题",
       username: "主播名",

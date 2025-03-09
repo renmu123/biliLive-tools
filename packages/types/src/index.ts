@@ -83,6 +83,8 @@ export type CommonRoomConfig = {
   limitUploadTime?: boolean;
   /** 允许上传处理时间 */
   uploadHandleTime: [string, string];
+  /** 分p标题模板 */
+  partTitleTemplate: string;
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
