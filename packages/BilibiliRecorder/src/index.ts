@@ -33,7 +33,6 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     availableSources: [],
     state: "idle",
     qualityMaxRetry: opts.qualityRetry ?? 0,
-    danmakuRetry: 5,
     qualityRetry: opts.qualityRetry ?? 0,
     useM3U8Proxy: opts.useM3U8Proxy ?? false,
     m3u8ProxyUrl: opts.m3u8ProxyUrl,
@@ -122,6 +121,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     cover: "",
     liveId: "",
   };
+  let danmakuRetry = 5;
 
   if (liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
@@ -361,13 +361,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     });
     client.live.on("error", (err) => {
       this.emit("DebugLog", { type: "common", text: String(err) });
-      this.danmakuRetry -= 1;
-      if (this.danmakuRetry > 0) {
+      danmakuRetry -= 1;
+      if (danmakuRetry > 0) {
         setTimeout(
           () => {
-            client.reconnect();
+            client && client.reconnect();
           },
-          2000 * (5 - this.danmakuRetry),
+          2000 * (5 - danmakuRetry),
         );
       }
     });
@@ -463,7 +463,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.liveInfo = undefined;
     this.state = "idle";
     this.qualityRetry = this.qualityMaxRetry;
-    this.danmakuRetry = 5;
   });
 
   this.recordHandle = {

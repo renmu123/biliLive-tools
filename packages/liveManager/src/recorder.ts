@@ -106,8 +106,6 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   qualityRetry: number;
   // B站弹幕录制，cookie拥有者的uid
   uid?: number;
-  // 弹幕服务重试次数
-  danmakuRetry: number;
   liveInfo?: {
     living: boolean;
     owner: string;

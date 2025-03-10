@@ -132,12 +132,23 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedStream = stream.name;
   this.usedSource = stream.source;
 
+  const onEnd = (...args: unknown[]) => {
+    if (isEnded) return;
+    isEnded = true;
+
+    this.emit("DebugLog", {
+      type: "common",
+      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
+    });
+    const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
+    this.recordHandle?.stop(reason);
+  };
   let isEnded = false;
   const recorder = new FFMPEGRecorder(
     {
       url: stream.url,
       outputOptions: ffmpegOutputOptions,
-      segment: this.segment,
+      segment: this.segment ?? 0,
       getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
     },
     onEnd,
@@ -261,18 +272,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // console.log("this.disableProvideCommentsWhenRecording", this.disableProvideCommentsWhenRecording);
   if (!this.disableProvideCommentsWhenRecording) {
     client.start();
-  }
-
-  function onEnd(...args: unknown[]) {
-    if (isEnded) return;
-    isEnded = true;
-
-    this.emit("DebugLog", {
-      type: "common",
-      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
-    });
-    const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
-    this.recordHandle?.stop(reason);
   }
 
   const ffmpegArgs = recorder.getArguments();

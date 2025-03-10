@@ -5,7 +5,6 @@ import {
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  utils,
   FFMPEGRecorder,
 } from "@bililive-tools/manager";
 import type {
@@ -16,7 +15,7 @@ import type {
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream } from "./stream.js";
-import { assertStringType, ensureFolderExist, singleton } from "./utils.js";
+import { ensureFolderExist, singleton } from "./utils.js";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
@@ -124,11 +123,22 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // TODO: emit update event
 
   let isEnded = false;
+  const onEnd = (...args: unknown[]) => {
+    if (isEnded) return;
+    isEnded = true;
+    this.emit("DebugLog", {
+      type: "common",
+      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
+    });
+    const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
+    this.recordHandle?.stop(reason);
+  };
+
   const recorder = new FFMPEGRecorder(
     {
       url: stream.url,
       outputOptions: ffmpegOutputOptions,
-      segment: this.segment,
+      segment: this.segment ?? 0,
       getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
     },
     onEnd,
@@ -171,17 +181,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // extraDataController.setMeta({ title });
 
   // TODO: 弹幕录制
-
-  function onEnd(...args: unknown[]) {
-    if (isEnded) return;
-    isEnded = true;
-    this.emit("DebugLog", {
-      type: "common",
-      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
-    });
-    const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
-    this.recordHandle?.stop(reason);
-  }
 
   const ffmpegArgs = recorder.getArguments();
   // extraDataController.setMeta({

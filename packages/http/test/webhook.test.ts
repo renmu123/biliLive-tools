@@ -572,7 +572,12 @@ describe("WebhookHandler", () => {
         // Assert
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
-          ["/path/to/part1.mp4"],
+          [
+            {
+              path: "/path/to/part1.mp4",
+              title: "part1",
+            },
+          ],
           {
             ...DEFAULT_BILIUP_CONFIG,
             title: "webhook-title",
@@ -622,7 +627,12 @@ describe("WebhookHandler", () => {
         // Assert
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
-          ["/path/to/part1.mp4"],
+          [
+            {
+              path: "/path/to/part1.mp4",
+              title: "part1",
+            },
+          ],
           {
             ...DEFAULT_BILIUP_CONFIG,
             title: "webhook-title-live-title",
@@ -674,7 +684,12 @@ describe("WebhookHandler", () => {
         // Assert
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
-          ["/path/to/part1.mp4"],
+          [
+            {
+              path: "/path/to/part1.mp4",
+              title: "part1",
+            },
+          ],
           {
             ...DEFAULT_BILIUP_CONFIG,
             title: "live-title-username-2022.01.01-123",
@@ -741,7 +756,20 @@ describe("WebhookHandler", () => {
         expect(addEditMediaTaskSpy).not.toHaveBeenCalled();
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
-          ["/path/to/part1.mp4", "/path/to/part2.mp4", "/path/to/part3.mp4"],
+          [
+            {
+              path: "/path/to/part1.mp4",
+              title: "part1",
+            },
+            {
+              path: "/path/to/part2.mp4",
+              title: "part2",
+            },
+            {
+              path: "/path/to/part3.mp4",
+              title: "part3",
+            },
+          ],
           {
             ...DEFAULT_BILIUP_CONFIG,
             title: "webhook-title",
@@ -1169,7 +1197,20 @@ describe("WebhookHandler", () => {
         expect(addEditMediaTaskSpy).not.toHaveBeenCalled();
         expect(addUploadTaskSpy).toHaveBeenCalledWith(
           456,
-          ["/rawPath/to/part1.mp4", "/rawPath/to/part2.mp4", "/rawPath/to/part3.mp4"],
+          [
+            {
+              path: "/rawPath/to/part1.mp4",
+              title: "part1",
+            },
+            {
+              path: "/rawPath/to/part2.mp4",
+              title: "part2",
+            },
+            {
+              path: "/rawPath/to/part3.mp4",
+              title: "part3",
+            },
+          ],
           {
             ...DEFAULT_BILIUP_CONFIG,
             title: "preset-title",
