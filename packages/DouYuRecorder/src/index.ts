@@ -236,8 +236,33 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         this.emit("Message", gift);
         extraDataController.addMessage(gift);
         break;
-
         // TODO: 还有一些其他礼物相关的 msg 要处理，目前先简单点只处理 dgb
+      }
+      // 开通钻粉
+      case "odfbc": {
+        if (this.saveGiftDanma === false) return;
+        const gift: GiveGift = {
+          type: "give_gift",
+          timestamp: Date.now(),
+          name: "钻粉",
+          price: Number(msg.price) / 100,
+          count: 1,
+          color: "#ffffff",
+          sender: {
+            uid: msg.uid,
+            name: msg.nick,
+            // avatar: msg.ic,
+            // extra: {
+            //   level: msg.level,
+            // },
+          },
+          // extra: {
+          //   hits: Number(msg.hits),
+          // },
+        };
+        this.emit("Message", gift);
+        extraDataController.addMessage(gift);
+        break;
       }
       case "comm_chatmsg": {
         if (this.saveSCDanma === false) return;
