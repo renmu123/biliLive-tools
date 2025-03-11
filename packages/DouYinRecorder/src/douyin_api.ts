@@ -13,7 +13,7 @@ let cookieCache: {
   cookies: string;
 };
 
-const getCookie = async () => {
+export const getCookie = async () => {
   const now = new Date().getTime();
   // 缓存24小时
   if (cookieCache?.startTimestamp && now - cookieCache.startTimestamp < 24 * 60 * 60 * 1000) {
