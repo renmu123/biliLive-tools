@@ -134,7 +134,7 @@ export async function getRoomInfo(
   // 看起来抖音是自动切换 cdn 的，所以这里固定返回一个默认的 source。
   const sources: SourceProfile[] = [
     {
-      name: "自动切换线路",
+      name: "自动",
       streamMap: streamData,
     },
   ];

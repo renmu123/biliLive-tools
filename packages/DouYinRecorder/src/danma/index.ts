@@ -80,7 +80,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
 
   async connect() {
     const [url] = await this.getWsInfo(this.roomId);
-    console.log("ws url:", url);
     this.url = url;
     const cookies = await getCookie();
     this.ws = new WebSocket(this.url, {
@@ -88,7 +87,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
         Cookie: cookies,
       },
     });
-    console.log("ws:", cookies);
 
     this.ws.on("open", () => {
       this.emit("open");
@@ -145,8 +143,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
    * 处理弹幕消息
    */
   async handleChatMessage(chatMessage: ChatMessage) {
-    // console.log("chatMessage:", JSON.stringify(chatMessage, null, 2));
-
     this.emit("chat", chatMessage);
     this.emit("message", chatMessage);
   }
@@ -155,8 +151,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
    * 处理进入房间
    */
   async handleEnterRoomMessage(message: MemberMessage) {
-    // console.log("member message:", JSON.stringify(message, null, 2));
-
     this.emit("member", message);
     this.emit("message", message);
   }
@@ -165,8 +159,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
    * 处理礼物消息
    */
   async handleGiftMessage(message: GiftMessage) {
-    // console.log("gift message:", JSON.stringify(message, null, 2));
-
     this.emit("gift", message);
     this.emit("message", message);
   }
@@ -175,8 +167,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
    * 处理点赞消息
    */
   async handleLikeMessage(message: LikeMessage) {
-    // console.log("like message:", JSON.stringify(message, null, 2));
-
     this.emit("like", message);
     this.emit("message", message);
   }
@@ -185,8 +175,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
    * 处理social消息
    */
   async handleSocialMessage(message: SocialMessage) {
-    // console.log("social message:", JSON.stringify(message, null, 2));
-
     this.emit("social", message);
     this.emit("message", message);
   }
@@ -195,8 +183,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
    * 处理RoomUserSeqMessage
    */
   async handleRoomUserSeqMessage(message: RoomUserSeqMessage) {
-    // console.log("RoomUserSeqMessage:", JSON.stringify(message, null, 2));
-
     this.emit("roomUserSeq", message);
     this.emit("message", message);
   }
@@ -205,8 +191,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
    * 处理 WebcastRoomStatsMessage
    */
   async handleRoomStatsMessage(message: RoomStatsMessage) {
-    // console.log("RoomStatsMessage:", JSON.stringify(message, null, 2));
-
     this.emit("roomStats", message);
     this.emit("message", message);
   }
@@ -215,8 +199,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
    * 处理 WebcastRoomRankMessage
    */
   async handleRoomRankMessage(message: RoomRankMessage) {
-    // console.log("RoomRankMessage:", JSON.stringify(message, null, 2));
-
     this.emit("roomRank", message);
     this.emit("message", message);
   }
@@ -225,7 +207,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
    * 处理其他消息
    */
   async handleOtherMessage(message: any) {
-    console.log("other message:", message);
     this.emit("message", message);
   }
 
@@ -241,7 +222,6 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     const RoomStatsMessage = protobuf.douyin.RoomStatsMessage;
     const RoomRankMessage = protobuf.douyin.RoomRankMessage;
     const wssPackage = PushFrame.decode(data);
-    // console.log("wssPackage", wssPackage);
 
     // @ts-ignore
     const logId = wssPackage.logId;
@@ -256,19 +236,16 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
         return;
       }
     } catch (e) {
-      // @ts-ignore
-      console.error("解压缩失败:", e, wssPackage.payload);
-      return [[], null];
+      this.emit("error", e);
+      return;
     }
 
     const payloadPackage = Response.decode(decompressed);
-    // console.log("payloadPackage", payloadPackage, logId, payloadPackage.toJSON());
 
     let ack = null;
     // @ts-ignore
     if (payloadPackage.needAck) {
       const obj = PushFrame.create({
-        // payloadType: "ack",
         logId: logId,
         // @ts-ignore
         payloadType: payloadPackage.internalExt,
@@ -307,14 +284,12 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
           this.handleRoomRankMessage(message.toJSON() as RoomRankMessage);
         } else {
           // WebcastRanklistHourEntranceMessage,WebcastInRoomBannerMessage,WebcastRoomStreamAdaptationMessage
-          // console.error("other msg: ", msg);
         }
       } catch (e) {
-        console.error("ChatMessage error:", e, msg);
+        console.error("error:", e, msg);
       }
     }
     if (ack) {
-      // console.log("send ack");
       this.send(ack);
     }
     return [msgs, ack];
@@ -345,8 +320,8 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     try {
       const m = getXMsStub(sigParams);
       signature = getSignature(m); // 这里应该获取签名
-      console.log("m:", m, sigParams, signature);
     } catch (e) {
+      this.emit("error", e);
       console.error("获取抖音弹幕签名失败:", e);
     }
 
