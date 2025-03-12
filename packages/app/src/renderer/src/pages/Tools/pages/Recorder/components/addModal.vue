@@ -293,51 +293,49 @@
           >
         </n-form-item>
 
-        <template template v-if="config.providerId !== 'DouYin'">
-          <h2>弹幕</h2>
-          <n-form-item>
-            <template #label>
-              <span class="inline-flex"> 弹幕录制 </span>
-            </template>
-            <n-switch
-              v-model:value="config.disableProvideCommentsWhenRecording"
-              :disabled="globalFieldsObj.disableProvideCommentsWhenRecording"
-              :checked-value="false"
-              :unchecked-value="true"
-            />
-            <n-checkbox
-              v-model:checked="globalFieldsObj.disableProvideCommentsWhenRecording"
-              class="global-checkbox"
-              >全局</n-checkbox
-            >
-          </n-form-item>
-          <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
-            <template #label>
-              <span class="inline-flex"> 保存礼物 </span>
-            </template>
-            <n-switch
-              v-model:value="config.saveGiftDanma"
-              :disabled="globalFieldsObj.saveGiftDanma"
-            />
-            <n-checkbox v-model:checked="globalFieldsObj.saveGiftDanma" class="global-checkbox"
-              >全局</n-checkbox
-            >
-          </n-form-item>
-          <n-form-item
-            v-if="
-              !config.disableProvideCommentsWhenRecording &&
-              ['Bilibili', 'DouYu'].includes(config.providerId)
-            "
+        <h2>弹幕</h2>
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex"> 弹幕录制 </span>
+          </template>
+          <n-switch
+            v-model:value="config.disableProvideCommentsWhenRecording"
+            :disabled="globalFieldsObj.disableProvideCommentsWhenRecording"
+            :checked-value="false"
+            :unchecked-value="true"
+          />
+          <n-checkbox
+            v-model:checked="globalFieldsObj.disableProvideCommentsWhenRecording"
+            class="global-checkbox"
+            >全局</n-checkbox
           >
-            <template #label>
-              <span class="inline-flex"> 高能弹幕(SC) </span>
-            </template>
-            <n-switch v-model:value="config.saveSCDanma" :disabled="globalFieldsObj.saveSCDanma" />
-            <n-checkbox v-model:checked="globalFieldsObj.saveSCDanma" class="global-checkbox"
-              >全局</n-checkbox
-            >
-          </n-form-item>
-        </template>
+        </n-form-item>
+        <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+          <template #label>
+            <span class="inline-flex"> 保存礼物 </span>
+          </template>
+          <n-switch
+            v-model:value="config.saveGiftDanma"
+            :disabled="globalFieldsObj.saveGiftDanma"
+          />
+          <n-checkbox v-model:checked="globalFieldsObj.saveGiftDanma" class="global-checkbox"
+            >全局</n-checkbox
+          >
+        </n-form-item>
+        <n-form-item
+          v-if="
+            !config.disableProvideCommentsWhenRecording &&
+            ['Bilibili', 'DouYu'].includes(config.providerId)
+          "
+        >
+          <template #label>
+            <span class="inline-flex"> 高能弹幕(SC) </span>
+          </template>
+          <n-switch v-model:value="config.saveSCDanma" :disabled="globalFieldsObj.saveSCDanma" />
+          <n-checkbox v-model:checked="globalFieldsObj.saveSCDanma" class="global-checkbox"
+            >全局</n-checkbox
+          >
+        </n-form-item>
       </n-form>
       <template #footer>
         <div class="footer">

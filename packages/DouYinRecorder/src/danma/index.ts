@@ -1,6 +1,6 @@
-import EventEmitter from "node:events";
 import { parse, format } from "node:url";
 import WebSocket from "ws";
+import { TypedEmitter } from "tiny-typed-emitter";
 
 import { decompressGzip, getXMsStub, getSignature, getUserUniqueId } from "./utils.js";
 import protobuf from "./proto.js";
@@ -15,6 +15,7 @@ import type {
   RoomUserSeqMessage,
   RoomStatsMessage,
   RoomRankMessage,
+  Message,
 } from "./types.js";
 
 function buildRequestUrl(url: string): string {
@@ -34,7 +35,24 @@ function buildRequestUrl(url: string): string {
   return format(parsedUrl);
 }
 
-class DouYinDanmaClient extends EventEmitter {
+interface Events {
+  open: () => void;
+  close: () => void;
+  reconnect: (count: number) => void;
+  heartbeat: () => void;
+  error: (error: Error) => void;
+  chat: (message: ChatMessage) => void;
+  member: (message: MemberMessage) => void;
+  like: (message: LikeMessage) => void;
+  social: (message: SocialMessage) => void;
+  gift: (message: GiftMessage) => void;
+  roomUserSeq: (message: RoomUserSeqMessage) => void;
+  roomStats: (message: RoomStatsMessage) => void;
+  roomRank: (message: RoomRankMessage) => void;
+  message: (message: Message) => void;
+}
+
+class DouYinDanmaClient extends TypedEmitter<Events> {
   private ws: WebSocket;
   private roomId: string;
   private url: string;
@@ -87,6 +105,7 @@ class DouYinDanmaClient extends EventEmitter {
       if (this.reconnectAttempts < this.autoReconnect) {
         this.reconnectAttempts++;
         this.connect();
+        this.emit("reconnect", this.reconnectAttempts);
       }
     });
 
@@ -111,7 +130,7 @@ class DouYinDanmaClient extends EventEmitter {
 
   private startHeartbeat() {
     this.heartbeatTimer = setInterval(() => {
-      console.log("send heartbeat");
+      this.emit("heartbeat");
       this.send(":\x02hb");
     }, this.heartbeatInterval);
   }
@@ -295,7 +314,7 @@ class DouYinDanmaClient extends EventEmitter {
       }
     }
     if (ack) {
-      console.log("send ack");
+      // console.log("send ack");
       this.send(ack);
     }
     return [msgs, ack];

@@ -47,11 +47,10 @@ message ChatMessage {
   bool sendReview = 16;
   bool fromIntercom = 17;
   bool intercomHideUserCard = 18;
-  repeated uint32 chatTags = 19;
+//  repeated chatTagsList = 19;
   string chatBy  = 20;
   uint32 individualChatPriority = 21;
-  Text rtfContent = 40;
-  Text rtfContentV2 = 42;
+  Text rtfContent = 22;
 }
 
 message LandscapeAreaCommon {

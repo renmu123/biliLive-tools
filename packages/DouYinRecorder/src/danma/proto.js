@@ -1108,11 +1108,9 @@ export const douyin = ($root.douyin = (() => {
      * @property {boolean|null} [sendReview] ChatMessage sendReview
      * @property {boolean|null} [fromIntercom] ChatMessage fromIntercom
      * @property {boolean|null} [intercomHideUserCard] ChatMessage intercomHideUserCard
-     * @property {Array.<number>|null} [chatTags] ChatMessage chatTags
      * @property {string|null} [chatBy] ChatMessage chatBy
      * @property {number|null} [individualChatPriority] ChatMessage individualChatPriority
      * @property {douyin.IText|null} [rtfContent] ChatMessage rtfContent
-     * @property {douyin.IText|null} [rtfContentV2] ChatMessage rtfContentV2
      */
 
     /**
@@ -1124,7 +1122,6 @@ export const douyin = ($root.douyin = (() => {
      * @param {douyin.IChatMessage=} [properties] Properties to set
      */
     function ChatMessage(properties) {
-      this.chatTags = [];
       if (properties)
         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
           if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
@@ -1259,14 +1256,6 @@ export const douyin = ($root.douyin = (() => {
     ChatMessage.prototype.intercomHideUserCard = false;
 
     /**
-     * ChatMessage chatTags.
-     * @member {Array.<number>} chatTags
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.chatTags = $util.emptyArray;
-
-    /**
      * ChatMessage chatBy.
      * @member {string} chatBy
      * @memberof douyin.ChatMessage
@@ -1289,14 +1278,6 @@ export const douyin = ($root.douyin = (() => {
      * @instance
      */
     ChatMessage.prototype.rtfContent = null;
-
-    /**
-     * ChatMessage rtfContentV2.
-     * @member {douyin.IText|null|undefined} rtfContentV2
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.rtfContentV2 = null;
 
     /**
      * Creates a new ChatMessage instance using the specified properties.
@@ -1389,11 +1370,6 @@ export const douyin = ($root.douyin = (() => {
         Object.hasOwnProperty.call(message, "intercomHideUserCard")
       )
         writer.uint32(/* id 18, wireType 0 =*/ 144).bool(message.intercomHideUserCard);
-      if (message.chatTags != null && message.chatTags.length) {
-        writer.uint32(/* id 19, wireType 2 =*/ 154).fork();
-        for (let i = 0; i < message.chatTags.length; ++i) writer.uint32(message.chatTags[i]);
-        writer.ldelim();
-      }
       if (message.chatBy != null && Object.hasOwnProperty.call(message, "chatBy"))
         writer.uint32(/* id 20, wireType 2 =*/ 162).string(message.chatBy);
       if (
@@ -1404,12 +1380,7 @@ export const douyin = ($root.douyin = (() => {
       if (message.rtfContent != null && Object.hasOwnProperty.call(message, "rtfContent"))
         $root.douyin.Text.encode(
           message.rtfContent,
-          writer.uint32(/* id 40, wireType 2 =*/ 322).fork(),
-        ).ldelim();
-      if (message.rtfContentV2 != null && Object.hasOwnProperty.call(message, "rtfContentV2"))
-        $root.douyin.Text.encode(
-          message.rtfContentV2,
-          writer.uint32(/* id 42, wireType 2 =*/ 338).fork(),
+          writer.uint32(/* id 22, wireType 2 =*/ 178).fork(),
         ).ldelim();
       return writer;
     };
@@ -1515,14 +1486,6 @@ export const douyin = ($root.douyin = (() => {
             message.intercomHideUserCard = reader.bool();
             break;
           }
-          case 19: {
-            if (!(message.chatTags && message.chatTags.length)) message.chatTags = [];
-            if ((tag & 7) === 2) {
-              let end2 = reader.uint32() + reader.pos;
-              while (reader.pos < end2) message.chatTags.push(reader.uint32());
-            } else message.chatTags.push(reader.uint32());
-            break;
-          }
           case 20: {
             message.chatBy = reader.string();
             break;
@@ -1531,12 +1494,8 @@ export const douyin = ($root.douyin = (() => {
             message.individualChatPriority = reader.uint32();
             break;
           }
-          case 40: {
+          case 22: {
             message.rtfContent = $root.douyin.Text.decode(reader, reader.uint32());
-            break;
-          }
-          case 42: {
-            message.rtfContentV2 = $root.douyin.Text.decode(reader, reader.uint32());
             break;
           }
           default:
@@ -1637,11 +1596,6 @@ export const douyin = ($root.douyin = (() => {
       if (message.intercomHideUserCard != null && message.hasOwnProperty("intercomHideUserCard"))
         if (typeof message.intercomHideUserCard !== "boolean")
           return "intercomHideUserCard: boolean expected";
-      if (message.chatTags != null && message.hasOwnProperty("chatTags")) {
-        if (!Array.isArray(message.chatTags)) return "chatTags: array expected";
-        for (let i = 0; i < message.chatTags.length; ++i)
-          if (!$util.isInteger(message.chatTags[i])) return "chatTags: integer[] expected";
-      }
       if (message.chatBy != null && message.hasOwnProperty("chatBy"))
         if (!$util.isString(message.chatBy)) return "chatBy: string expected";
       if (
@@ -1653,10 +1607,6 @@ export const douyin = ($root.douyin = (() => {
       if (message.rtfContent != null && message.hasOwnProperty("rtfContent")) {
         let error = $root.douyin.Text.verify(message.rtfContent);
         if (error) return "rtfContent." + error;
-      }
-      if (message.rtfContentV2 != null && message.hasOwnProperty("rtfContentV2")) {
-        let error = $root.douyin.Text.verify(message.rtfContentV2);
-        if (error) return "rtfContentV2." + error;
       }
       return null;
     };
@@ -1742,13 +1692,6 @@ export const douyin = ($root.douyin = (() => {
       if (object.fromIntercom != null) message.fromIntercom = Boolean(object.fromIntercom);
       if (object.intercomHideUserCard != null)
         message.intercomHideUserCard = Boolean(object.intercomHideUserCard);
-      if (object.chatTags) {
-        if (!Array.isArray(object.chatTags))
-          throw TypeError(".douyin.ChatMessage.chatTags: array expected");
-        message.chatTags = [];
-        for (let i = 0; i < object.chatTags.length; ++i)
-          message.chatTags[i] = object.chatTags[i] >>> 0;
-      }
       if (object.chatBy != null) message.chatBy = String(object.chatBy);
       if (object.individualChatPriority != null)
         message.individualChatPriority = object.individualChatPriority >>> 0;
@@ -1756,11 +1699,6 @@ export const douyin = ($root.douyin = (() => {
         if (typeof object.rtfContent !== "object")
           throw TypeError(".douyin.ChatMessage.rtfContent: object expected");
         message.rtfContent = $root.douyin.Text.fromObject(object.rtfContent);
-      }
-      if (object.rtfContentV2 != null) {
-        if (typeof object.rtfContentV2 !== "object")
-          throw TypeError(".douyin.ChatMessage.rtfContentV2: object expected");
-        message.rtfContentV2 = $root.douyin.Text.fromObject(object.rtfContentV2);
       }
       return message;
     };
@@ -1777,7 +1715,6 @@ export const douyin = ($root.douyin = (() => {
     ChatMessage.toObject = function toObject(message, options) {
       if (!options) options = {};
       let object = {};
-      if (options.arrays || options.defaults) object.chatTags = [];
       if (options.defaults) {
         object.common = null;
         object.user = null;
@@ -1814,7 +1751,6 @@ export const douyin = ($root.douyin = (() => {
         object.chatBy = "";
         object.individualChatPriority = 0;
         object.rtfContent = null;
-        object.rtfContentV2 = null;
       }
       if (message.common != null && message.hasOwnProperty("common"))
         object.common = $root.douyin.Common.toObject(message.common, options);
@@ -1878,10 +1814,6 @@ export const douyin = ($root.douyin = (() => {
         object.fromIntercom = message.fromIntercom;
       if (message.intercomHideUserCard != null && message.hasOwnProperty("intercomHideUserCard"))
         object.intercomHideUserCard = message.intercomHideUserCard;
-      if (message.chatTags && message.chatTags.length) {
-        object.chatTags = [];
-        for (let j = 0; j < message.chatTags.length; ++j) object.chatTags[j] = message.chatTags[j];
-      }
       if (message.chatBy != null && message.hasOwnProperty("chatBy"))
         object.chatBy = message.chatBy;
       if (
@@ -1891,8 +1823,6 @@ export const douyin = ($root.douyin = (() => {
         object.individualChatPriority = message.individualChatPriority;
       if (message.rtfContent != null && message.hasOwnProperty("rtfContent"))
         object.rtfContent = $root.douyin.Text.toObject(message.rtfContent, options);
-      if (message.rtfContentV2 != null && message.hasOwnProperty("rtfContentV2"))
-        object.rtfContentV2 = $root.douyin.Text.toObject(message.rtfContentV2, options);
       return object;
     };
 

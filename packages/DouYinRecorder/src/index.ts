@@ -12,6 +12,8 @@ import type {
   RecorderCreateOpts,
   RecorderProvider,
   RecordHandle,
+  Comment,
+  GiveGift,
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream } from "./stream.js";
@@ -178,25 +180,70 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("DebugLog", data);
   });
 
-  // // TODO: 之后可能要结合 disableRecordMeta 之类的来确认是否要创建文件。
-  // const extraDataController = createRecordExtraDataController(extraDataSavePath);
-  // extraDataController.setMeta({ title });
-
-  // TODO: 弹幕录制
   const client = new DouYinDanmaClient(liveInfo.liveId);
-  client.connect();
-  client.on("chat", (message) => {
-    console.log("message", message.content);
+  client.on("chat", (msg) => {
+    const extraDataController = recorder.getExtraDataController();
+    if (!extraDataController) return;
+    const comment: Comment = {
+      type: "comment",
+      timestamp: Date.now(),
+      text: msg.content,
+      color: "#ffffff",
+      sender: {
+        uid: msg.user.id,
+        name: msg.user.nickName,
+        // avatar: msg.user.AvatarThumb.urlListList[0],
+        // extra: {
+        //   level: msg.level,
+        // },
+      },
+    };
+    console.log("comment", comment.text);
+    this.emit("Message", comment);
+    extraDataController.addMessage(comment);
   });
-  client.on("open", (err) => {
-    console.log("open", err);
+  client.on("gift", (msg) => {
+    const extraDataController = recorder.getExtraDataController();
+    if (!extraDataController) return;
+    if (this.saveGiftDanma === false) return;
+    // console.log("gift", msg);
+    const gift: GiveGift = {
+      type: "give_gift",
+      timestamp: new Date(msg.sendTime).getTime(),
+      name: msg.gift.name,
+      price: 1,
+      count: Number(msg.totalCount),
+      color: "#ffffff",
+      sender: {
+        uid: msg.user.id,
+        name: msg.user.nickName,
+        // avatar: msg.ic,
+        // extra: {
+        //   level: msg.level,
+        // },
+      },
+    };
+    // console.log("gift", gift);
+    this.emit("Message", gift);
+    extraDataController.addMessage(gift);
   });
-  client.on("close", (err) => {
-    console.log("close", err);
-  });
-  client.on("error", (err) => {
-    console.log("error", err);
-  });
+
+  // client.on("open", () => {
+  //   console.log("open");
+  // });
+  // client.on("close", () => {
+  //   console.log("close");
+  // });
+  // client.on("error", (err) => {
+  //   console.log("error", err);
+  // });
+  // client.on("heartbeat", () => {
+  //   // console.log("heartbeat");
+  // });
+
+  if (!this.disableProvideCommentsWhenRecording) {
+    client.connect();
+  }
 
   const ffmpegArgs = recorder.getArguments();
   // extraDataController.setMeta({
@@ -210,6 +257,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "stopping-record";
 
     recorder.stop();
+    client.close();
 
     this.usedStream = undefined;
     this.usedSource = undefined;
