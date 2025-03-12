@@ -21,7 +21,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "gen:proto": "pbjs -t static-module -w es6 -o src/danma/proto.js src/danma/dy.proto"
   },
   "files": [
     "lib"
@@ -41,9 +42,13 @@
     "@bililive-tools/manager": "workspace:^",
     "axios": "catalog:",
     "lodash-es": "catalog:",
-    "mitt": "catalog:"
+    "mitt": "catalog:",
+    "protobufjs": "^7.4.0",
+    "tiny-typed-emitter": "^2.1.0",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
-    "@types/node": "*"
+    "@types/node": "*",
+    "protobufjs-cli": "^1.1.3"
   }
 }

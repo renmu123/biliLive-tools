@@ -1,3 +1,15 @@
+interface Common {
+  method: string;
+  msgId: string;
+  roomId: string;
+  isShowMsg: boolean;
+  priorityScore?: string;
+  foldType?: string;
+  anchorFoldType?: string;
+  anchorFoldTypeV2?: string;
+  createTime?: string;
+}
+
 interface AvatarThumb {
   urlListList: string[];
   uri: string;
@@ -96,13 +108,7 @@ interface Rank {
 }
 
 export interface ChatMessage {
-  common: {
-    method: "WebcastChatMessage";
-    msgId: string;
-    roomId: string;
-    isShowMsg: boolean;
-    priorityScore: string;
-  };
+  common: Common & { method: "WebcastChatMessage" };
   user: User;
   content: string;
   giftImage: {
@@ -114,16 +120,7 @@ export interface ChatMessage {
 }
 
 export interface MemberMessage {
-  common: {
-    method: "WebcastMemberMessage";
-    msgId: string;
-    roomId: string;
-    isShowMsg: boolean;
-    foldType: string;
-    anchorFoldType: string;
-    priorityScore: string;
-    anchorFoldTypeV2: string;
-  };
+  common: Common & { method: "WebcastMemberMessage" };
   user: User;
   memberCount: string;
   action: string;
@@ -132,14 +129,7 @@ export interface MemberMessage {
 }
 
 export interface LikeMessage {
-  common: {
-    method: "WebcastLikeMessage";
-    msgId: string;
-    roomId: string;
-    isShowMsg: boolean;
-    anchorFoldType: string;
-    anchorFoldTypeV2: string;
-  };
+  common: Common & { method: "WebcastLikeMessage" };
   count: string;
   total: string;
   user: User;
@@ -147,13 +137,7 @@ export interface LikeMessage {
 }
 
 export interface SocialMessage {
-  common: {
-    method: "WebcastSocialMessage";
-    msgId: string;
-    roomId: string;
-    isShowMsg: boolean;
-    priorityScore: string;
-  };
+  common: Common & { method: "WebcastSocialMessage" };
   user: User;
   action: string;
   shareTarget: string;
@@ -162,13 +146,7 @@ export interface SocialMessage {
 }
 
 export interface GiftMessage {
-  common: {
-    method: "WebcastSocialMessage";
-    msgId: string;
-    roomId: string;
-    isShowMsg: boolean;
-    priorityScore: string;
-  };
+  common: Common & { method: "WebcastGiftMessage" };
   user: User;
   groupId: string;
   gift: Gift;
@@ -180,12 +158,7 @@ export interface GiftMessage {
 }
 
 export interface RoomUserSeqMessage {
-  common: {
-    method: "WebcastRoomUserSeqMessage";
-    msgId: string;
-    roomId: string;
-    createTime: string;
-  };
+  common: Common & { method: "WebcastRoomUserSeqMessage" };
   ranksList: Rank[];
   total: string;
   totalUser: string;
@@ -196,12 +169,7 @@ export interface RoomUserSeqMessage {
 }
 
 export interface RoomStatsMessage {
-  common: {
-    method: "WebcastRoomStatsMessage";
-    msgId: string;
-    roomId: string;
-    createTime: string;
-  };
+  common: Common & { method: "WebcastRoomStatsMessage" };
   displayShort: string;
   displayMiddle: string;
   displayLong: string;
@@ -212,12 +180,7 @@ export interface RoomStatsMessage {
 }
 
 export interface RoomRankMessage {
-  common: {
-    method: "WebcastRoomRankMessage";
-    msgId: string;
-    roomId: string;
-    createTime: string;
-  };
+  common: Common & { method: "WebcastRoomRankMessage" };
   ranks: {
     user: User;
   }[];

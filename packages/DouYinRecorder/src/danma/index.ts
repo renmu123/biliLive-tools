@@ -1,9 +1,9 @@
 import EventEmitter from "node:events";
 import { parse, format } from "node:url";
-import protobuf from "protobufjs";
 import WebSocket from "ws";
 
 import { decompressGzip, getXMsStub, getSignature, getUserUniqueId } from "./utils.js";
+import protobuf from "./proto.js";
 import { getCookie } from "../douyin_api.js";
 
 import type {
@@ -15,7 +15,7 @@ import type {
   RoomUserSeqMessage,
   RoomStatsMessage,
   RoomRankMessage,
-} from "./types.ts";
+} from "./types.js";
 
 function buildRequestUrl(url: string): string {
   const parsedUrl = parse(url, true);
@@ -40,11 +40,24 @@ class DouYinDanmaClient extends EventEmitter {
   private url: string;
   private heartbeatInterval: number;
   private heartbeatTimer: NodeJS.Timeout;
+  private autoStart: boolean;
+  private autoReconnect: number;
+  private reconnectAttempts: number;
 
-  constructor(roomId: string) {
+  constructor(
+    roomId: string,
+    options: { autoStart?: boolean; autoReconnect?: number; heartbeatInterval?: number } = {},
+  ) {
     super();
     this.roomId = roomId;
-    this.heartbeatInterval = 5000;
+    this.heartbeatInterval = options.heartbeatInterval ?? 5000;
+    this.autoStart = options.autoStart ?? false;
+    this.autoReconnect = options.autoReconnect ?? 3;
+    this.reconnectAttempts = 0;
+
+    if (this.autoStart) {
+      this.connect();
+    }
   }
 
   async connect() {
@@ -71,11 +84,19 @@ class DouYinDanmaClient extends EventEmitter {
     this.ws.on("close", () => {
       this.emit("close");
       this.stopHeartbeat();
+      if (this.reconnectAttempts < this.autoReconnect) {
+        this.reconnectAttempts++;
+        this.connect();
+      }
     });
 
     this.ws.on("error", (error) => {
       this.emit("error", error);
       this.stopHeartbeat();
+      if (this.reconnectAttempts < this.autoReconnect) {
+        this.reconnectAttempts++;
+        this.connect();
+      }
     });
   }
 
@@ -85,6 +106,7 @@ class DouYinDanmaClient extends EventEmitter {
 
   close() {
     this.ws.close();
+    this.reconnectAttempts = 0;
   }
 
   private startHeartbeat() {
@@ -189,20 +211,16 @@ class DouYinDanmaClient extends EventEmitter {
   }
 
   async decode(data: Buffer) {
-    const root = await protobuf.load(
-      "C:\\Users\\renmu\\Desktop\\biliLive-tools\\packages\\DouYinRecorder\\src\\danma\\dy.proto",
-    );
-    const PushFrame = root.lookupType("PushFrame");
-    const Response = root.lookupType("Response");
-    const ChatMessage = root.lookupType("ChatMessage");
-    const RoomUserSeqMessage = root.lookupType("RoomUserSeqMessage");
-    const MemberMessage = root.lookupType("MemberMessage");
-    const GiftMessage = root.lookupType("GiftMessage");
-    const LikeMessage = root.lookupType("LikeMessage");
-    const SocialMessage = root.lookupType("SocialMessage");
-    const RoomStatsMessage = root.lookupType("RoomStatsMessage");
-    const RoomRankMessage = root.lookupType("RoomRankMessage");
-
+    const PushFrame = protobuf.douyin.PushFrame;
+    const Response = protobuf.douyin.Response;
+    const ChatMessage = protobuf.douyin.ChatMessage;
+    const RoomUserSeqMessage = protobuf.douyin.RoomUserSeqMessage;
+    const MemberMessage = protobuf.douyin.MemberMessage;
+    const GiftMessage = protobuf.douyin.GiftMessage;
+    const LikeMessage = protobuf.douyin.LikeMessage;
+    const SocialMessage = protobuf.douyin.SocialMessage;
+    const RoomStatsMessage = protobuf.douyin.RoomStatsMessage;
+    const RoomRankMessage = protobuf.douyin.RoomRankMessage;
     const wssPackage = PushFrame.decode(data);
     // console.log("wssPackage", wssPackage);
 
