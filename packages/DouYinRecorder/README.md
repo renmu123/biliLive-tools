@@ -18,7 +18,7 @@ const manager = createRecorderManager({ providers: [provider] });
 manager.addRecorder({
   providerId: provider.id,
   channelId: "203641303310",
-  quality: "highest",
+  quality: "origin",
   streamPriorities: [],
   sourcePriorities: [],
 });
@@ -32,7 +32,7 @@ manager.startCheckLoop();
 ```ts
 interface Options {
   channelId: string; // 直播间ID，具体解析见文档，也可自行解析
-  quality: number; // 见画质参数
+  quality: string; // 见画质参数
   qualityRetry?: number; // 画质匹配重试次数
   streamPriorities: []; // 废弃
   sourcePriorities: []; // 废弃
@@ -43,6 +43,19 @@ interface Options {
   saveCover?: boolean; // 保存封面
 }
 ```
+
+## 画质
+
+遗漏了部分画质，有了解的可以提PR
+
+| 画质   | 值     |
+| ------ | ------ |
+| 原画   | origin |
+| 蓝光   | uhd    |
+| 超清   | hd     |
+| 高清   | sd     |
+| 标清   | ld     |
+| 音频流 | ao     |
 
 ## 直播间ID解析
 

@@ -295,6 +295,10 @@ interface HuyaRecorderConfig {
   quality: 0 | 14100 | 14000 | 4200 | 8000 | 4000 | 2000 | 500;
 }
 
+interface DouyinRecorderConfig {
+  quality: "origin" | "uhd" | "hd" | "sd" | "ld" | "ao";
+}
+
 // 录制全局配置
 export interface GlobalRecorder {
   /** 保存根目录 */
@@ -333,6 +337,8 @@ export interface GlobalRecorder {
   douyu: DouyuRecorderConfig;
   /** 虎牙特有的配置 */
   huya: HuyaRecorderConfig;
+  /** 抖音特有的配置 */
+  douyin: DouyinRecorderConfig;
 }
 
 export interface Recorder {
@@ -359,7 +365,8 @@ export interface Recorder {
     | "highest"
     | BilibiliRecorderConfig["quality"]
     | DouyuRecorderConfig["quality"]
-    | HuyaRecorderConfig["quality"];
+    | HuyaRecorderConfig["quality"]
+    | DouyinRecorderConfig["quality"];
   /** 线路，尚未使用 */
   line?: string;
   /** 录制弹幕 */

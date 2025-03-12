@@ -199,7 +199,7 @@
         <template #label>
           <span class="inline-flex"> 画质 </span>
         </template>
-        <n-select v-model:value="config.recorder.quality" :options="qualityOptions" />
+        <n-select v-model:value="config.recorder.douyin.quality" :options="douyinQualityOptions" />
       </n-form-item>
     </n-form>
   </div>
@@ -212,13 +212,14 @@ import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { useUserInfoStore } from "@renderer/stores";
 import { useConfirm } from "@renderer/hooks";
 import {
-  qualityOptions,
+  // qualityOptions,
   biliQualityOptions,
   douyuQualityOptions,
   huyaQualityOptions,
   textInfo,
   streamFormatOptions,
   streamCodecOptions,
+  douyinQualityOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";

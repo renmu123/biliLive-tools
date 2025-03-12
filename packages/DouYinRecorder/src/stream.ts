@@ -1,6 +1,7 @@
-import { Qualities, Recorder, utils } from "@bililive-tools/manager";
 import { getRoomInfo, SourceProfile, StreamProfile } from "./douyin_api.js";
 import { sortBy } from "lodash-es";
+
+import type { Recorder } from "@bililive-tools/manager";
 
 export async function getInfo(channelId: string): Promise<{
   living: boolean;
@@ -36,37 +37,55 @@ export async function getStream(
     throw new Error("It must be called getStream when living");
   }
 
-  let expectStream: StreamProfile;
-  const streamsWithPriority = sortAndFilterStreamsByPriority(info.streams, opts.streamPriorities);
-  if (streamsWithPriority.length > 0) {
-    // 通过优先级来选择对应流
-    expectStream = streamsWithPriority[0];
-  } else {
-    // 通过设置的画质选项来选择对应流
-    const flexedStreams = utils.getValuesFromArrayLikeFlexSpaceBetween(
-      info.streams,
-      Qualities.length,
-    );
-    const qn = (
-      Qualities.includes(opts.quality as any) ? opts.quality : "highest"
-    ) as (typeof Qualities)[number];
-    expectStream = flexedStreams[Qualities.indexOf(qn)];
-  }
+  const qualityMap = [
+    {
+      key: "origin",
+      desc: "原画",
+    },
+    {
+      key: "uhd",
+      desc: "蓝光",
+    },
+    {
+      key: "hd",
+      desc: "超清",
+    },
+    {
+      key: "sd",
+      desc: "高清",
+    },
+    {
+      key: "标清",
+      desc: "ld",
+    },
+  ];
+  console.log("opts.quality", opts.quality);
+  const sources = info.sources[0];
 
-  let expectSource: SourceProfile | null = null;
-  const sourcesWithPriority = sortAndFilterSourcesByPriority(info.sources, opts.sourcePriorities);
-  if (sourcesWithPriority.length > 0) {
-    expectSource = sourcesWithPriority[0];
-  } else {
-    expectSource = info.sources[0];
+  let url = sources.streamMap[opts.quality]?.main?.flv;
+  let qualityName: string = qualityMap.find((q) => q.key === opts.quality)?.desc ?? "未知";
+  // 如果url不存在，那么按照优先级选择
+  if (!url) {
+    for (const quality of qualityMap) {
+      url = sources.streamMap[quality.key]?.main?.flv;
+      if (url) {
+        console.log("quality", quality);
+        qualityName = quality.desc;
+        break;
+      }
+    }
   }
+  if (!url) {
+    throw new Error("未找到对应的流");
+  }
+  console.log("url", url, qualityName);
 
   return {
     ...info,
     currentStream: {
-      name: expectStream.desc,
-      source: expectSource.name,
-      url: expectSource.streamMap[expectStream.key].main.flv,
+      name: qualityName,
+      source: "自动",
+      url: url,
     },
   };
 }

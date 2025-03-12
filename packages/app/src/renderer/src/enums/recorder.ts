@@ -98,6 +98,34 @@ export const huyaQualityOptions = [
   },
 ];
 
+// 抖音画质选项
+export const douyinQualityOptions = [
+  {
+    value: "origin",
+    label: "原画",
+  },
+  {
+    value: "uhd",
+    label: "蓝光",
+  },
+  {
+    value: "hd",
+    label: "超清",
+  },
+  {
+    value: "sd",
+    label: "高清",
+  },
+  {
+    value: "ld",
+    label: "标清",
+  },
+  {
+    value: "ao",
+    label: "音频流",
+  },
+];
+
 // b站流格式
 export const streamFormatOptions = [
   {

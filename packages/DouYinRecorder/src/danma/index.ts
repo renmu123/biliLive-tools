@@ -113,6 +113,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       if (this.reconnectAttempts < this.autoReconnect) {
         this.reconnectAttempts++;
         this.connect();
+        this.emit("reconnect", this.reconnectAttempts);
       }
     });
   }
@@ -122,8 +123,8 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   close() {
+    this.reconnectAttempts = this.autoReconnect;
     this.ws.close();
-    this.reconnectAttempts = 0;
   }
 
   private startHeartbeat() {
