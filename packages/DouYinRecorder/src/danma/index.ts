@@ -1,22 +1,21 @@
-import path from "node:path";
+import EventEmitter from "node:events";
 import { parse, format } from "node:url";
-import { gunzip } from "node:zlib";
 import protobuf from "protobufjs";
+import WebSocket from "ws";
 
+import { decompressGzip, getXMsStub, getSignature, getUserUniqueId } from "./utils.js";
 import { getCookie } from "../douyin_api.js";
-import { getUserUniqueId, getXMsStub, getSignature } from "./utils.js";
 
-function decompressGzip(buffer) {
-  return new Promise((resolve, reject) => {
-    gunzip(buffer, (err, result) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(result);
-      }
-    });
-  });
-}
+import type {
+  ChatMessage,
+  MemberMessage,
+  LikeMessage,
+  SocialMessage,
+  GiftMessage,
+  RoomUserSeqMessage,
+  RoomStatsMessage,
+  RoomRankMessage,
+} from "./types.ts";
 
 function buildRequestUrl(url: string): string {
   const parsedUrl = parse(url, true);
@@ -35,24 +34,257 @@ function buildRequestUrl(url: string): string {
   return format(parsedUrl);
 }
 
-export default class DouyinDanma {
-  private static heartbeat = Buffer.from(":\x02hb");
-  private static heartbeatInterval = 10;
-  private headers: Record<string, string>;
+class DouYinDanmaClient extends EventEmitter {
+  private ws: WebSocket;
+  private roomId: string;
+  private url: string;
+  private heartbeatInterval: number;
+  private heartbeatTimer: NodeJS.Timeout;
 
-  constructor() {}
-  async getCookie() {
-    const cookies = await getCookie();
-    this.headers = {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36",
-      cookie: cookies,
-    };
+  constructor(roomId: string) {
+    super();
+    this.roomId = roomId;
+    this.heartbeatInterval = 5000;
   }
 
+  async connect() {
+    const [url] = await this.getWsInfo(this.roomId);
+    console.log("ws url:", url);
+    this.url = url;
+    const cookies = await getCookie();
+    this.ws = new WebSocket(this.url, {
+      headers: {
+        Cookie: cookies,
+      },
+    });
+    console.log("ws:", cookies);
+
+    this.ws.on("open", () => {
+      this.emit("open");
+      this.startHeartbeat();
+    });
+
+    this.ws.on("message", (data) => {
+      this.decode(data as Buffer);
+    });
+
+    this.ws.on("close", () => {
+      this.emit("close");
+      this.stopHeartbeat();
+    });
+
+    this.ws.on("error", (error) => {
+      this.emit("error", error);
+      this.stopHeartbeat();
+    });
+  }
+
+  send(data: any) {
+    this.ws.send(data);
+  }
+
+  close() {
+    this.ws.close();
+  }
+
+  private startHeartbeat() {
+    this.heartbeatTimer = setInterval(() => {
+      console.log("send heartbeat");
+      this.send(":\x02hb");
+    }, this.heartbeatInterval);
+  }
+
+  private stopHeartbeat() {
+    clearInterval(this.heartbeatTimer);
+  }
+
+  async handleMessage() {}
+
+  /**
+   * 处理弹幕消息
+   */
+  async handleChatMessage(chatMessage: ChatMessage) {
+    // console.log("chatMessage:", JSON.stringify(chatMessage, null, 2));
+
+    this.emit("chat", chatMessage);
+    this.emit("message", chatMessage);
+  }
+
+  /**
+   * 处理进入房间
+   */
+  async handleEnterRoomMessage(message: MemberMessage) {
+    // console.log("member message:", JSON.stringify(message, null, 2));
+
+    this.emit("member", message);
+    this.emit("message", message);
+  }
+
+  /**
+   * 处理礼物消息
+   */
+  async handleGiftMessage(message: GiftMessage) {
+    // console.log("gift message:", JSON.stringify(message, null, 2));
+
+    this.emit("gift", message);
+    this.emit("message", message);
+  }
+
+  /**
+   * 处理点赞消息
+   */
+  async handleLikeMessage(message: LikeMessage) {
+    // console.log("like message:", JSON.stringify(message, null, 2));
+
+    this.emit("like", message);
+    this.emit("message", message);
+  }
+
+  /**
+   * 处理social消息
+   */
+  async handleSocialMessage(message: SocialMessage) {
+    // console.log("social message:", JSON.stringify(message, null, 2));
+
+    this.emit("social", message);
+    this.emit("message", message);
+  }
+
+  /**
+   * 处理RoomUserSeqMessage
+   */
+  async handleRoomUserSeqMessage(message: RoomUserSeqMessage) {
+    // console.log("RoomUserSeqMessage:", JSON.stringify(message, null, 2));
+
+    this.emit("roomUserSeq", message);
+    this.emit("message", message);
+  }
+
+  /**
+   * 处理 WebcastRoomStatsMessage
+   */
+  async handleRoomStatsMessage(message: RoomStatsMessage) {
+    // console.log("RoomStatsMessage:", JSON.stringify(message, null, 2));
+
+    this.emit("roomStats", message);
+    this.emit("message", message);
+  }
+
+  /**
+   * 处理 WebcastRoomRankMessage
+   */
+  async handleRoomRankMessage(message: RoomRankMessage) {
+    // console.log("RoomRankMessage:", JSON.stringify(message, null, 2));
+
+    this.emit("roomRank", message);
+    this.emit("message", message);
+  }
+
+  /**
+   * 处理其他消息
+   */
+  async handleOtherMessage(message: any) {
+    console.log("other message:", message);
+    this.emit("message", message);
+  }
+
+  async decode(data: Buffer) {
+    const root = await protobuf.load(
+      "C:\\Users\\renmu\\Desktop\\biliLive-tools\\packages\\DouYinRecorder\\src\\danma\\dy.proto",
+    );
+    const PushFrame = root.lookupType("PushFrame");
+    const Response = root.lookupType("Response");
+    const ChatMessage = root.lookupType("ChatMessage");
+    const RoomUserSeqMessage = root.lookupType("RoomUserSeqMessage");
+    const MemberMessage = root.lookupType("MemberMessage");
+    const GiftMessage = root.lookupType("GiftMessage");
+    const LikeMessage = root.lookupType("LikeMessage");
+    const SocialMessage = root.lookupType("SocialMessage");
+    const RoomStatsMessage = root.lookupType("RoomStatsMessage");
+    const RoomRankMessage = root.lookupType("RoomRankMessage");
+
+    const wssPackage = PushFrame.decode(data);
+    // console.log("wssPackage", wssPackage);
+
+    // @ts-ignore
+    const logId = wssPackage.logId;
+
+    let decompressed;
+    try {
+      // @ts-ignore
+      if (wssPackage.payload instanceof Buffer) {
+        // @ts-ignore
+        decompressed = await decompressGzip(wssPackage.payload);
+      } else {
+        return;
+      }
+    } catch (e) {
+      // @ts-ignore
+      console.error("解压缩失败:", e, wssPackage.payload);
+      return [[], null];
+    }
+
+    const payloadPackage = Response.decode(decompressed);
+    // console.log("payloadPackage", payloadPackage, logId, payloadPackage.toJSON());
+
+    let ack = null;
+    // @ts-ignore
+    if (payloadPackage.needAck) {
+      const obj = PushFrame.create({
+        // payloadType: "ack",
+        logId: logId,
+        // @ts-ignore
+        payloadType: payloadPackage.internalExt,
+      });
+      ack = PushFrame.encode(obj).finish();
+    }
+
+    const msgs: any[] = [];
+    // @ts-ignore
+    for (const msg of payloadPackage.messagesList) {
+      const now = new Date();
+      try {
+        if (msg.method === "WebcastChatMessage") {
+          const chatMessage = ChatMessage.decode(msg.payload);
+          this.handleChatMessage(chatMessage.toJSON() as ChatMessage);
+        } else if (msg.method === "WebcastMemberMessage") {
+          const memberMessage = MemberMessage.decode(msg.payload);
+          this.handleEnterRoomMessage(memberMessage.toJSON() as MemberMessage);
+        } else if (msg.method === "WebcastGiftMessage") {
+          const giftMessage = GiftMessage.decode(msg.payload);
+          this.handleGiftMessage(giftMessage.toJSON() as GiftMessage);
+        } else if (msg.method === "WebcastLikeMessage") {
+          const message = LikeMessage.decode(msg.payload);
+          this.handleLikeMessage(message.toJSON() as LikeMessage);
+        } else if (msg.method === "WebcastSocialMessage") {
+          const message = SocialMessage.decode(msg.payload);
+          this.handleSocialMessage(message.toJSON() as SocialMessage);
+        } else if (msg.method === "WebcastRoomUserSeqMessage") {
+          const message = RoomUserSeqMessage.decode(msg.payload);
+          this.handleRoomUserSeqMessage(message.toJSON() as RoomUserSeqMessage);
+        } else if (msg.method === "WebcastRoomStatsMessage") {
+          const message = RoomStatsMessage.decode(msg.payload);
+          this.handleRoomStatsMessage(message.toJSON() as RoomStatsMessage);
+        } else if (msg.method === "WebcastRoomRankMessage") {
+          const message = RoomRankMessage.decode(msg.payload);
+          this.handleRoomRankMessage(message.toJSON() as RoomRankMessage);
+        } else {
+          // WebcastRanklistHourEntranceMessage,WebcastInRoomBannerMessage,WebcastRoomStreamAdaptationMessage
+          // console.error("other msg: ", msg);
+        }
+      } catch (e) {
+        console.error("ChatMessage error:", e, msg);
+      }
+    }
+    if (ack) {
+      console.log("send ack");
+      this.send(ack);
+    }
+    return [msgs, ack];
+  }
   async getWsInfo(roomId: string): Promise<[string, any[]]> {
-    // const userUniqueId = getUserUniqueId();
-    const userUniqueId = "7877922945687137703";
+    const userUniqueId = getUserUniqueId();
+    // const userUniqueId = "7877922945687137703";
     const versionCode = 180800;
     const webcastSdkVersion = "1.0.14-beta.0";
 
@@ -96,55 +328,6 @@ export default class DouyinDanma {
     const wssUrl = `wss://webcast5-ws-web-lf.douyin.com/webcast/im/push/v2/?${new URLSearchParams(webcast5Params).toString()}`;
     return [buildRequestUrl(wssUrl), []];
   }
-
-  async decodeMsg(data: Buffer) {
-    const root = await protobuf.load(
-      "C:\\Users\\renmu\\Desktop\\biliLive-tools\\packages\\DouYinRecorder\\src\\danma\\dy.proto",
-    );
-    const PushFrame = root.lookupType("PushFrame");
-    const Response = root.lookupType("Response");
-    const ChatMessage = root.lookupType("ChatMessage");
-    // console.log("PushFrame:", PushFrame);
-
-    const wssPackage = PushFrame.decode(data);
-    // console.log("wssPackage", wssPackage);
-    const logId = wssPackage.logId;
-
-    let decompressed;
-    try {
-      decompressed = await decompressGzip(wssPackage.payload);
-    } catch (e) {
-      console.error("解压缩失败:", e, wssPackage.payload);
-      return [[], null];
-    }
-
-    const payloadPackage = Response.decode(decompressed);
-    // console.log("payloadPackage", payloadPackage);
-
-    let ack = null;
-    if (payloadPackage.needAck) {
-      const obj = PushFrame.create({
-        // payloadType: "ack",
-        logId: logId,
-        payloadType: payloadPackage.internalExt,
-      });
-      ack = PushFrame.encode(obj).finish();
-    }
-
-    const msgs: any[] = [];
-    for (const msg of payloadPackage.messagesList) {
-      const now = new Date();
-      let msgDict;
-      if (msg.method === "WebcastChatMessage") {
-        const chatMessage = ChatMessage.decode(msg.payload);
-        const name = chatMessage.user.nickName;
-        const content = chatMessage.content;
-        msgDict = { time: now, name, content, msg_type: "danmaku", color: "ffffff" };
-      } else {
-        msgDict = { time: now, name: "", content: "", msg_type: "other", raw_data: msg };
-      }
-      msgs.push(msgDict);
-    }
-    return [msgs, ack];
-  }
 }
+
+export default DouYinDanmaClient;

@@ -17,7 +17,7 @@ import type {
 import { getInfo, getStream } from "./stream.js";
 import { ensureFolderExist, singleton } from "./utils.js";
 
-import WebSocketClient from "./danma/ws.js";
+import DouYinDanmaClient from "./danma/index.js";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
@@ -160,15 +160,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const handleVideoCreated = async ({ filename }) => {
     this.emit("videoFileCreated", { filename });
-    // const extraDataController = recorder?.getExtraDataController();
-    // extraDataController?.setMeta({
-    //   room_id: this.channelId,
-    //   platform: provider?.id,
-    //   // liveStartTimestamp: liveInfo.startTime?.getTime(),
-    //   recordStopTimestamp: Date.now(),
-    //   title: title,
-    //   user_name: owner,
-    // });
+    const extraDataController = recorder?.getExtraDataController();
+    extraDataController?.setMeta({
+      room_id: this.channelId,
+      platform: provider?.id,
+      // liveStartTimestamp: liveInfo.startTime?.getTime(),
+      recordStopTimestamp: Date.now(),
+      title: title,
+      user_name: owner,
+    });
   };
   recorder.on("videoFileCreated", handleVideoCreated);
   recorder.on("videoFileCompleted", ({ filename }) => {
@@ -183,8 +183,20 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // extraDataController.setMeta({ title });
 
   // TODO: 弹幕录制
-  const client = new WebSocketClient(liveInfo.liveId);
+  const client = new DouYinDanmaClient(liveInfo.liveId);
   client.connect();
+  client.on("chat", (message) => {
+    console.log("message", message.content);
+  });
+  client.on("open", (err) => {
+    console.log("open", err);
+  });
+  client.on("close", (err) => {
+    console.log("close", err);
+  });
+  client.on("error", (err) => {
+    console.log("error", err);
+  });
 
   const ffmpegArgs = recorder.getArguments();
   // extraDataController.setMeta({

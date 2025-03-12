@@ -47,10 +47,11 @@ message ChatMessage {
   bool sendReview = 16;
   bool fromIntercom = 17;
   bool intercomHideUserCard = 18;
-//  repeated chatTagsList = 19;
+  repeated uint32 chatTags = 19;
   string chatBy  = 20;
   uint32 individualChatPriority = 21;
-  Text rtfContent = 22;
+  Text rtfContent = 40;
+  Text rtfContentV2 = 42;
 }
 
 message LandscapeAreaCommon {
@@ -503,4 +504,73 @@ message HeadersList {
 enum CommentTypeTag {
   COMMENTTYPETAGUNKNOWN = 0;
   COMMENTTYPETAGSTAR = 1;
+}
+
+message LiveShoppingMessage {
+  Common common = 1;
+  int32 msgType = 2;
+  int64 promotionId = 4;
+}
+
+message RoomStatsMessage {
+  Common common = 1;
+  string displayShort = 2;
+  string displayMiddle = 3;
+  string displayLong = 4;
+  int64 displayValue = 5;
+  int64 displayVersion = 6;
+  bool incremental = 7;
+  bool isHidden = 8;
+  int64 total = 9;
+  int64 displayType = 10;
+}
+
+message ProductInfo {
+  int64 promotionId = 1;
+  int32 index = 2;
+  repeated int64 targetFlashUidsList = 3;
+  int64 explainType = 4;
+}
+message CategoryInfo {
+  int32 id = 1;
+  string name = 2;
+  repeated int64 promotionIdsList = 3;
+  string type = 4;
+  string uniqueIndex = 5;
+}
+
+message ProductChangeMessage {
+  Common common = 1;
+  int64 updateTimestamp = 2;
+  string updateToast = 3;
+  repeated ProductInfo updateProductInfoList = 4;
+  int64 total = 5;
+  repeated CategoryInfo updateCategoryInfoList = 8;
+}
+
+message RoomRank {
+  User user = 1;
+  string score_str = 2;
+  bool profile_hidden = 3;
+}
+
+message RoomRankMessage {
+  Common common = 1;
+  repeated RoomRank ranks = 2;
+}
+
+// from https://github.com/HaoDong108/DouyinBarrageGrab/blob/main/BarrageGrab/proto/message.proto
+// status = 3 下播
+message ControlMessage {
+  Common common = 1;
+  int32 status = 2;
+}
+
+// from https://github.com/HaoDong108/DouyinBarrageGrab/blob/main/BarrageGrab/proto/message.proto
+message FansclubMessage {
+  Common commonInfo = 1;
+  // 升级是1，加入是2
+  int32 type = 2;
+  string content = 3;
+  User user = 4;
 }

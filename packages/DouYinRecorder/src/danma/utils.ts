@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { gunzip } from "node:zlib";
 
 import { get_sign } from "./webmssdk.js";
 
@@ -26,23 +27,20 @@ export function getXMsStub(params: Record<string, string | number>): string {
 export function getSignature(xMsStub: string): string {
   try {
     return get_sign(xMsStub);
-    // const jsDom = `
-    //         document = {};
-    //         window = {};
-    //         navigator = { userAgent: '' };
-    //     `;
-
-    // const jsEnc = loadWebmssdk("webmssdk.js");
-    // const finalJs = jsDom + jsEnc;
-
-    // const context = vm.createContext({});
-    // vm.runInContext(finalJs, context);
-
-    // if (typeof context.get_sign === "function") {
-    //   return context.get_sign(xMsStub);
-    // }
   } catch {
     return "00000000";
   }
   return "00000000";
+}
+
+export function decompressGzip(buffer: Buffer) {
+  return new Promise((resolve, reject) => {
+    gunzip(buffer, (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
 }
