@@ -1,5 +1,4 @@
 import { getRoomInfo, SourceProfile, StreamProfile } from "./douyin_api.js";
-import { sortBy } from "lodash-es";
 
 import type { Recorder } from "@bililive-tools/manager";
 
@@ -59,7 +58,6 @@ export async function getStream(
       desc: "ld",
     },
   ];
-  console.log("opts.quality", opts.quality);
   const sources = info.sources[0];
 
   let url = sources.streamMap[opts.quality]?.main?.flv;
@@ -69,7 +67,6 @@ export async function getStream(
     for (const quality of qualityMap) {
       url = sources.streamMap[quality.key]?.main?.flv;
       if (url) {
-        console.log("quality", quality);
         qualityName = quality.desc;
         break;
       }
@@ -78,7 +75,6 @@ export async function getStream(
   if (!url) {
     throw new Error("未找到对应的流");
   }
-  console.log("url", url, qualityName);
 
   return {
     ...info,
@@ -88,50 +84,4 @@ export async function getStream(
       url: url,
     },
   };
-}
-
-/**
- * 按提供的流优先级去给流列表排序，并过滤掉不在优先级配置中的流
- */
-function sortAndFilterStreamsByPriority(
-  streams: StreamProfile[],
-  streamPriorities: Recorder["streamPriorities"],
-): (StreamProfile & {
-  priority: number;
-})[] {
-  if (streamPriorities.length === 0) return [];
-
-  return sortBy(
-    // 分配优先级属性，数字越大优先级越高
-    streams
-      .map((stream) => ({
-        ...stream,
-        priority: streamPriorities.toReversed().indexOf(stream.desc),
-      }))
-      .filter(({ priority }) => priority !== -1),
-    "priority",
-  );
-}
-
-/**
- * 按提供的源优先级去给源列表排序，并过滤掉不在优先级配置中的源
- */
-function sortAndFilterSourcesByPriority(
-  sources: SourceProfile[],
-  sourcePriorities: Recorder["sourcePriorities"],
-): (SourceProfile & {
-  priority: number;
-})[] {
-  if (sourcePriorities.length === 0) return [];
-
-  return sortBy(
-    // 分配优先级属性，数字越大优先级越高
-    sources
-      .map((source) => ({
-        ...source,
-        priority: sourcePriorities.toReversed().indexOf(source.name),
-      }))
-      .filter(({ priority }) => priority !== -1),
-    "priority",
-  );
 }
