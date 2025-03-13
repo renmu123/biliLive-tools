@@ -5,13 +5,13 @@
 # 安装
 
 ```sh
-npm install
+npm install douyin-danma-listener
 ```
 
 # 使用
 
 ```javascript
-import DouYinDanmaClient from "./danma/index.js";
+import DouYinDanmaClient from "douyin-danma-listener";
 
 // roomId并非是你看到的房间号，你可以在 https://live.douyin.com/webcast/room/web/enter/ 中找到id_str参数
 const client = new DouYinDanmaClient("id_str");

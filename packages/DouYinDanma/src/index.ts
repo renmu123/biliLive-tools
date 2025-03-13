@@ -4,7 +4,7 @@ import { TypedEmitter } from "tiny-typed-emitter";
 
 import { decompressGzip, getXMsStub, getSignature, getUserUniqueId } from "./utils.js";
 import protobuf from "./proto.js";
-import { getCookie } from "../douyin_api.js";
+import { getCookie } from "./api.js";
 
 import type {
   ChatMessage,
@@ -16,7 +16,7 @@ import type {
   RoomStatsMessage,
   RoomRankMessage,
   Message,
-} from "./types.js";
+} from "../types/types.js";
 
 function buildRequestUrl(url: string): string {
   const parsedUrl = parse(url, true);

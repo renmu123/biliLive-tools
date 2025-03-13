@@ -163,20 +163,8 @@ importers:
         specifier: ^4.19.2
         version: 4.19.2
 
-  packages/DouYinRecorder:
+  packages/DouYinDanma:
     dependencies:
-      '@bililive-tools/manager':
-        specifier: workspace:^
-        version: link:../liveManager
-      axios:
-        specifier: 'catalog:'
-        version: 1.7.8
-      lodash-es:
-        specifier: 'catalog:'
-        version: 4.17.21
-      mitt:
-        specifier: 'catalog:'
-        version: 3.0.1
       protobufjs:
         specifier: ^7.4.0
         version: 7.4.0
@@ -193,6 +181,28 @@ importers:
       protobufjs-cli:
         specifier: ^1.1.3
         version: 1.1.3(protobufjs@7.4.0)
+
+  packages/DouYinRecorder:
+    dependencies:
+      '@bililive-tools/manager':
+        specifier: workspace:^
+        version: link:../liveManager
+      axios:
+        specifier: 'catalog:'
+        version: 1.7.8
+      douyin-danma-listener:
+        specifier: workspace:*
+        version: link:../DouYinDanma
+      lodash-es:
+        specifier: 'catalog:'
+        version: 4.17.21
+      mitt:
+        specifier: 'catalog:'
+        version: 3.0.1
+    devDependencies:
+      '@types/node':
+        specifier: '*'
+        version: 20.17.6
 
   packages/DouYuRecorder:
     dependencies:

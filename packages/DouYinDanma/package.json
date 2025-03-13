@@ -1,0 +1,48 @@
+{
+  "name": "douyin-danma-listener",
+  "version": "0.1.0",
+  "description": "douyin danma listener",
+  "main": "./lib/index.js",
+  "types": "./types/index.d.ts",
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "gen:proto": "pbjs -t static-module -w es6 -o src/danma/proto.js src/danma/dy.proto"
+  },
+  "files": [
+    "lib",
+    "types"
+  ],
+  "keywords": [
+    "douyin",
+    "recorder",
+    "bililive-tools",
+    "直播",
+    "danma",
+    "弹幕",
+    "抖音"
+  ],
+  "repository": "https://github.com/renmu123/biliLive-tools/tree/master/packages/DouYinDanma",
+  "author": "renmu123",
+  "license": "GPLV3",
+  "dependencies": {
+    "protobufjs": "^7.4.0",
+    "tiny-typed-emitter": "^2.1.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "*",
+    "protobufjs-cli": "^1.1.3"
+  }
+}
