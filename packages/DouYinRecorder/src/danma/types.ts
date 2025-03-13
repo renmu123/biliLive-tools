@@ -111,12 +111,12 @@ export interface ChatMessage {
   common: Common & { method: "WebcastChatMessage" };
   user: User;
   content: string;
-  giftImage: {
-    urlListList: string[];
-    width: string;
-    content: Record<string, unknown>;
-  };
-  individualChatPriority: number;
+  // giftImage: {
+  //   urlListList: string[];
+  //   width: string;
+  //   content: Record<string, unknown>;
+  // };
+  // individualChatPriority: number;
 }
 
 export interface MemberMessage {

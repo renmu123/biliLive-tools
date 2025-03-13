@@ -1095,22 +1095,6 @@ export const douyin = ($root.douyin = (() => {
      * @property {douyin.ICommon|null} [common] ChatMessage common
      * @property {douyin.IUser|null} [user] ChatMessage user
      * @property {string|null} [content] ChatMessage content
-     * @property {boolean|null} [visibleToSender] ChatMessage visibleToSender
-     * @property {douyin.IImage|null} [backgroundImage] ChatMessage backgroundImage
-     * @property {string|null} [fullScreenTextColor] ChatMessage fullScreenTextColor
-     * @property {douyin.IImage|null} [backgroundImageV2] ChatMessage backgroundImageV2
-     * @property {douyin.IPublicAreaCommon|null} [publicAreaCommon] ChatMessage publicAreaCommon
-     * @property {douyin.IImage|null} [giftImage] ChatMessage giftImage
-     * @property {number|Long|null} [agreeMsgId] ChatMessage agreeMsgId
-     * @property {number|null} [priorityLevel] ChatMessage priorityLevel
-     * @property {douyin.ILandscapeAreaCommon|null} [landscapeAreaCommon] ChatMessage landscapeAreaCommon
-     * @property {number|Long|null} [eventTime] ChatMessage eventTime
-     * @property {boolean|null} [sendReview] ChatMessage sendReview
-     * @property {boolean|null} [fromIntercom] ChatMessage fromIntercom
-     * @property {boolean|null} [intercomHideUserCard] ChatMessage intercomHideUserCard
-     * @property {string|null} [chatBy] ChatMessage chatBy
-     * @property {number|null} [individualChatPriority] ChatMessage individualChatPriority
-     * @property {douyin.IText|null} [rtfContent] ChatMessage rtfContent
      */
 
     /**
@@ -1152,134 +1136,6 @@ export const douyin = ($root.douyin = (() => {
     ChatMessage.prototype.content = "";
 
     /**
-     * ChatMessage visibleToSender.
-     * @member {boolean} visibleToSender
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.visibleToSender = false;
-
-    /**
-     * ChatMessage backgroundImage.
-     * @member {douyin.IImage|null|undefined} backgroundImage
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.backgroundImage = null;
-
-    /**
-     * ChatMessage fullScreenTextColor.
-     * @member {string} fullScreenTextColor
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.fullScreenTextColor = "";
-
-    /**
-     * ChatMessage backgroundImageV2.
-     * @member {douyin.IImage|null|undefined} backgroundImageV2
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.backgroundImageV2 = null;
-
-    /**
-     * ChatMessage publicAreaCommon.
-     * @member {douyin.IPublicAreaCommon|null|undefined} publicAreaCommon
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.publicAreaCommon = null;
-
-    /**
-     * ChatMessage giftImage.
-     * @member {douyin.IImage|null|undefined} giftImage
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.giftImage = null;
-
-    /**
-     * ChatMessage agreeMsgId.
-     * @member {number|Long} agreeMsgId
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.agreeMsgId = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
-
-    /**
-     * ChatMessage priorityLevel.
-     * @member {number} priorityLevel
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.priorityLevel = 0;
-
-    /**
-     * ChatMessage landscapeAreaCommon.
-     * @member {douyin.ILandscapeAreaCommon|null|undefined} landscapeAreaCommon
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.landscapeAreaCommon = null;
-
-    /**
-     * ChatMessage eventTime.
-     * @member {number|Long} eventTime
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.eventTime = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
-
-    /**
-     * ChatMessage sendReview.
-     * @member {boolean} sendReview
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.sendReview = false;
-
-    /**
-     * ChatMessage fromIntercom.
-     * @member {boolean} fromIntercom
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.fromIntercom = false;
-
-    /**
-     * ChatMessage intercomHideUserCard.
-     * @member {boolean} intercomHideUserCard
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.intercomHideUserCard = false;
-
-    /**
-     * ChatMessage chatBy.
-     * @member {string} chatBy
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.chatBy = "";
-
-    /**
-     * ChatMessage individualChatPriority.
-     * @member {number} individualChatPriority
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.individualChatPriority = 0;
-
-    /**
-     * ChatMessage rtfContent.
-     * @member {douyin.IText|null|undefined} rtfContent
-     * @memberof douyin.ChatMessage
-     * @instance
-     */
-    ChatMessage.prototype.rtfContent = null;
-
-    /**
      * Creates a new ChatMessage instance using the specified properties.
      * @function create
      * @memberof douyin.ChatMessage
@@ -1314,74 +1170,6 @@ export const douyin = ($root.douyin = (() => {
         ).ldelim();
       if (message.content != null && Object.hasOwnProperty.call(message, "content"))
         writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.content);
-      if (message.visibleToSender != null && Object.hasOwnProperty.call(message, "visibleToSender"))
-        writer.uint32(/* id 4, wireType 0 =*/ 32).bool(message.visibleToSender);
-      if (message.backgroundImage != null && Object.hasOwnProperty.call(message, "backgroundImage"))
-        $root.douyin.Image.encode(
-          message.backgroundImage,
-          writer.uint32(/* id 5, wireType 2 =*/ 42).fork(),
-        ).ldelim();
-      if (
-        message.fullScreenTextColor != null &&
-        Object.hasOwnProperty.call(message, "fullScreenTextColor")
-      )
-        writer.uint32(/* id 6, wireType 2 =*/ 50).string(message.fullScreenTextColor);
-      if (
-        message.backgroundImageV2 != null &&
-        Object.hasOwnProperty.call(message, "backgroundImageV2")
-      )
-        $root.douyin.Image.encode(
-          message.backgroundImageV2,
-          writer.uint32(/* id 7, wireType 2 =*/ 58).fork(),
-        ).ldelim();
-      if (
-        message.publicAreaCommon != null &&
-        Object.hasOwnProperty.call(message, "publicAreaCommon")
-      )
-        $root.douyin.PublicAreaCommon.encode(
-          message.publicAreaCommon,
-          writer.uint32(/* id 8, wireType 2 =*/ 66).fork(),
-        ).ldelim();
-      if (message.giftImage != null && Object.hasOwnProperty.call(message, "giftImage"))
-        $root.douyin.Image.encode(
-          message.giftImage,
-          writer.uint32(/* id 9, wireType 2 =*/ 74).fork(),
-        ).ldelim();
-      if (message.agreeMsgId != null && Object.hasOwnProperty.call(message, "agreeMsgId"))
-        writer.uint32(/* id 11, wireType 0 =*/ 88).uint64(message.agreeMsgId);
-      if (message.priorityLevel != null && Object.hasOwnProperty.call(message, "priorityLevel"))
-        writer.uint32(/* id 12, wireType 0 =*/ 96).uint32(message.priorityLevel);
-      if (
-        message.landscapeAreaCommon != null &&
-        Object.hasOwnProperty.call(message, "landscapeAreaCommon")
-      )
-        $root.douyin.LandscapeAreaCommon.encode(
-          message.landscapeAreaCommon,
-          writer.uint32(/* id 13, wireType 2 =*/ 106).fork(),
-        ).ldelim();
-      if (message.eventTime != null && Object.hasOwnProperty.call(message, "eventTime"))
-        writer.uint32(/* id 15, wireType 0 =*/ 120).uint64(message.eventTime);
-      if (message.sendReview != null && Object.hasOwnProperty.call(message, "sendReview"))
-        writer.uint32(/* id 16, wireType 0 =*/ 128).bool(message.sendReview);
-      if (message.fromIntercom != null && Object.hasOwnProperty.call(message, "fromIntercom"))
-        writer.uint32(/* id 17, wireType 0 =*/ 136).bool(message.fromIntercom);
-      if (
-        message.intercomHideUserCard != null &&
-        Object.hasOwnProperty.call(message, "intercomHideUserCard")
-      )
-        writer.uint32(/* id 18, wireType 0 =*/ 144).bool(message.intercomHideUserCard);
-      if (message.chatBy != null && Object.hasOwnProperty.call(message, "chatBy"))
-        writer.uint32(/* id 20, wireType 2 =*/ 162).string(message.chatBy);
-      if (
-        message.individualChatPriority != null &&
-        Object.hasOwnProperty.call(message, "individualChatPriority")
-      )
-        writer.uint32(/* id 21, wireType 0 =*/ 168).uint32(message.individualChatPriority);
-      if (message.rtfContent != null && Object.hasOwnProperty.call(message, "rtfContent"))
-        $root.douyin.Text.encode(
-          message.rtfContent,
-          writer.uint32(/* id 22, wireType 2 =*/ 178).fork(),
-        ).ldelim();
       return writer;
     };
 
@@ -1428,76 +1216,6 @@ export const douyin = ($root.douyin = (() => {
             message.content = reader.string();
             break;
           }
-          case 4: {
-            message.visibleToSender = reader.bool();
-            break;
-          }
-          case 5: {
-            message.backgroundImage = $root.douyin.Image.decode(reader, reader.uint32());
-            break;
-          }
-          case 6: {
-            message.fullScreenTextColor = reader.string();
-            break;
-          }
-          case 7: {
-            message.backgroundImageV2 = $root.douyin.Image.decode(reader, reader.uint32());
-            break;
-          }
-          case 8: {
-            message.publicAreaCommon = $root.douyin.PublicAreaCommon.decode(
-              reader,
-              reader.uint32(),
-            );
-            break;
-          }
-          case 9: {
-            message.giftImage = $root.douyin.Image.decode(reader, reader.uint32());
-            break;
-          }
-          case 11: {
-            message.agreeMsgId = reader.uint64();
-            break;
-          }
-          case 12: {
-            message.priorityLevel = reader.uint32();
-            break;
-          }
-          case 13: {
-            message.landscapeAreaCommon = $root.douyin.LandscapeAreaCommon.decode(
-              reader,
-              reader.uint32(),
-            );
-            break;
-          }
-          case 15: {
-            message.eventTime = reader.uint64();
-            break;
-          }
-          case 16: {
-            message.sendReview = reader.bool();
-            break;
-          }
-          case 17: {
-            message.fromIntercom = reader.bool();
-            break;
-          }
-          case 18: {
-            message.intercomHideUserCard = reader.bool();
-            break;
-          }
-          case 20: {
-            message.chatBy = reader.string();
-            break;
-          }
-          case 21: {
-            message.individualChatPriority = reader.uint32();
-            break;
-          }
-          case 22: {
-            message.rtfContent = $root.douyin.Text.decode(reader, reader.uint32());
-            break;
-          }
           default:
             reader.skipType(tag & 7);
             break;
@@ -1541,73 +1259,6 @@ export const douyin = ($root.douyin = (() => {
       }
       if (message.content != null && message.hasOwnProperty("content"))
         if (!$util.isString(message.content)) return "content: string expected";
-      if (message.visibleToSender != null && message.hasOwnProperty("visibleToSender"))
-        if (typeof message.visibleToSender !== "boolean")
-          return "visibleToSender: boolean expected";
-      if (message.backgroundImage != null && message.hasOwnProperty("backgroundImage")) {
-        let error = $root.douyin.Image.verify(message.backgroundImage);
-        if (error) return "backgroundImage." + error;
-      }
-      if (message.fullScreenTextColor != null && message.hasOwnProperty("fullScreenTextColor"))
-        if (!$util.isString(message.fullScreenTextColor))
-          return "fullScreenTextColor: string expected";
-      if (message.backgroundImageV2 != null && message.hasOwnProperty("backgroundImageV2")) {
-        let error = $root.douyin.Image.verify(message.backgroundImageV2);
-        if (error) return "backgroundImageV2." + error;
-      }
-      if (message.publicAreaCommon != null && message.hasOwnProperty("publicAreaCommon")) {
-        let error = $root.douyin.PublicAreaCommon.verify(message.publicAreaCommon);
-        if (error) return "publicAreaCommon." + error;
-      }
-      if (message.giftImage != null && message.hasOwnProperty("giftImage")) {
-        let error = $root.douyin.Image.verify(message.giftImage);
-        if (error) return "giftImage." + error;
-      }
-      if (message.agreeMsgId != null && message.hasOwnProperty("agreeMsgId"))
-        if (
-          !$util.isInteger(message.agreeMsgId) &&
-          !(
-            message.agreeMsgId &&
-            $util.isInteger(message.agreeMsgId.low) &&
-            $util.isInteger(message.agreeMsgId.high)
-          )
-        )
-          return "agreeMsgId: integer|Long expected";
-      if (message.priorityLevel != null && message.hasOwnProperty("priorityLevel"))
-        if (!$util.isInteger(message.priorityLevel)) return "priorityLevel: integer expected";
-      if (message.landscapeAreaCommon != null && message.hasOwnProperty("landscapeAreaCommon")) {
-        let error = $root.douyin.LandscapeAreaCommon.verify(message.landscapeAreaCommon);
-        if (error) return "landscapeAreaCommon." + error;
-      }
-      if (message.eventTime != null && message.hasOwnProperty("eventTime"))
-        if (
-          !$util.isInteger(message.eventTime) &&
-          !(
-            message.eventTime &&
-            $util.isInteger(message.eventTime.low) &&
-            $util.isInteger(message.eventTime.high)
-          )
-        )
-          return "eventTime: integer|Long expected";
-      if (message.sendReview != null && message.hasOwnProperty("sendReview"))
-        if (typeof message.sendReview !== "boolean") return "sendReview: boolean expected";
-      if (message.fromIntercom != null && message.hasOwnProperty("fromIntercom"))
-        if (typeof message.fromIntercom !== "boolean") return "fromIntercom: boolean expected";
-      if (message.intercomHideUserCard != null && message.hasOwnProperty("intercomHideUserCard"))
-        if (typeof message.intercomHideUserCard !== "boolean")
-          return "intercomHideUserCard: boolean expected";
-      if (message.chatBy != null && message.hasOwnProperty("chatBy"))
-        if (!$util.isString(message.chatBy)) return "chatBy: string expected";
-      if (
-        message.individualChatPriority != null &&
-        message.hasOwnProperty("individualChatPriority")
-      )
-        if (!$util.isInteger(message.individualChatPriority))
-          return "individualChatPriority: integer expected";
-      if (message.rtfContent != null && message.hasOwnProperty("rtfContent")) {
-        let error = $root.douyin.Text.verify(message.rtfContent);
-        if (error) return "rtfContent." + error;
-      }
       return null;
     };
 
@@ -1633,73 +1284,6 @@ export const douyin = ($root.douyin = (() => {
         message.user = $root.douyin.User.fromObject(object.user);
       }
       if (object.content != null) message.content = String(object.content);
-      if (object.visibleToSender != null) message.visibleToSender = Boolean(object.visibleToSender);
-      if (object.backgroundImage != null) {
-        if (typeof object.backgroundImage !== "object")
-          throw TypeError(".douyin.ChatMessage.backgroundImage: object expected");
-        message.backgroundImage = $root.douyin.Image.fromObject(object.backgroundImage);
-      }
-      if (object.fullScreenTextColor != null)
-        message.fullScreenTextColor = String(object.fullScreenTextColor);
-      if (object.backgroundImageV2 != null) {
-        if (typeof object.backgroundImageV2 !== "object")
-          throw TypeError(".douyin.ChatMessage.backgroundImageV2: object expected");
-        message.backgroundImageV2 = $root.douyin.Image.fromObject(object.backgroundImageV2);
-      }
-      if (object.publicAreaCommon != null) {
-        if (typeof object.publicAreaCommon !== "object")
-          throw TypeError(".douyin.ChatMessage.publicAreaCommon: object expected");
-        message.publicAreaCommon = $root.douyin.PublicAreaCommon.fromObject(
-          object.publicAreaCommon,
-        );
-      }
-      if (object.giftImage != null) {
-        if (typeof object.giftImage !== "object")
-          throw TypeError(".douyin.ChatMessage.giftImage: object expected");
-        message.giftImage = $root.douyin.Image.fromObject(object.giftImage);
-      }
-      if (object.agreeMsgId != null)
-        if ($util.Long)
-          (message.agreeMsgId = $util.Long.fromValue(object.agreeMsgId)).unsigned = true;
-        else if (typeof object.agreeMsgId === "string")
-          message.agreeMsgId = parseInt(object.agreeMsgId, 10);
-        else if (typeof object.agreeMsgId === "number") message.agreeMsgId = object.agreeMsgId;
-        else if (typeof object.agreeMsgId === "object")
-          message.agreeMsgId = new $util.LongBits(
-            object.agreeMsgId.low >>> 0,
-            object.agreeMsgId.high >>> 0,
-          ).toNumber(true);
-      if (object.priorityLevel != null) message.priorityLevel = object.priorityLevel >>> 0;
-      if (object.landscapeAreaCommon != null) {
-        if (typeof object.landscapeAreaCommon !== "object")
-          throw TypeError(".douyin.ChatMessage.landscapeAreaCommon: object expected");
-        message.landscapeAreaCommon = $root.douyin.LandscapeAreaCommon.fromObject(
-          object.landscapeAreaCommon,
-        );
-      }
-      if (object.eventTime != null)
-        if ($util.Long)
-          (message.eventTime = $util.Long.fromValue(object.eventTime)).unsigned = true;
-        else if (typeof object.eventTime === "string")
-          message.eventTime = parseInt(object.eventTime, 10);
-        else if (typeof object.eventTime === "number") message.eventTime = object.eventTime;
-        else if (typeof object.eventTime === "object")
-          message.eventTime = new $util.LongBits(
-            object.eventTime.low >>> 0,
-            object.eventTime.high >>> 0,
-          ).toNumber(true);
-      if (object.sendReview != null) message.sendReview = Boolean(object.sendReview);
-      if (object.fromIntercom != null) message.fromIntercom = Boolean(object.fromIntercom);
-      if (object.intercomHideUserCard != null)
-        message.intercomHideUserCard = Boolean(object.intercomHideUserCard);
-      if (object.chatBy != null) message.chatBy = String(object.chatBy);
-      if (object.individualChatPriority != null)
-        message.individualChatPriority = object.individualChatPriority >>> 0;
-      if (object.rtfContent != null) {
-        if (typeof object.rtfContent !== "object")
-          throw TypeError(".douyin.ChatMessage.rtfContent: object expected");
-        message.rtfContent = $root.douyin.Text.fromObject(object.rtfContent);
-      }
       return message;
     };
 
@@ -1719,38 +1303,6 @@ export const douyin = ($root.douyin = (() => {
         object.common = null;
         object.user = null;
         object.content = "";
-        object.visibleToSender = false;
-        object.backgroundImage = null;
-        object.fullScreenTextColor = "";
-        object.backgroundImageV2 = null;
-        object.publicAreaCommon = null;
-        object.giftImage = null;
-        if ($util.Long) {
-          let long = new $util.Long(0, 0, true);
-          object.agreeMsgId =
-            options.longs === String
-              ? long.toString()
-              : options.longs === Number
-                ? long.toNumber()
-                : long;
-        } else object.agreeMsgId = options.longs === String ? "0" : 0;
-        object.priorityLevel = 0;
-        object.landscapeAreaCommon = null;
-        if ($util.Long) {
-          let long = new $util.Long(0, 0, true);
-          object.eventTime =
-            options.longs === String
-              ? long.toString()
-              : options.longs === Number
-                ? long.toNumber()
-                : long;
-        } else object.eventTime = options.longs === String ? "0" : 0;
-        object.sendReview = false;
-        object.fromIntercom = false;
-        object.intercomHideUserCard = false;
-        object.chatBy = "";
-        object.individualChatPriority = 0;
-        object.rtfContent = null;
       }
       if (message.common != null && message.hasOwnProperty("common"))
         object.common = $root.douyin.Common.toObject(message.common, options);
@@ -1758,71 +1310,6 @@ export const douyin = ($root.douyin = (() => {
         object.user = $root.douyin.User.toObject(message.user, options);
       if (message.content != null && message.hasOwnProperty("content"))
         object.content = message.content;
-      if (message.visibleToSender != null && message.hasOwnProperty("visibleToSender"))
-        object.visibleToSender = message.visibleToSender;
-      if (message.backgroundImage != null && message.hasOwnProperty("backgroundImage"))
-        object.backgroundImage = $root.douyin.Image.toObject(message.backgroundImage, options);
-      if (message.fullScreenTextColor != null && message.hasOwnProperty("fullScreenTextColor"))
-        object.fullScreenTextColor = message.fullScreenTextColor;
-      if (message.backgroundImageV2 != null && message.hasOwnProperty("backgroundImageV2"))
-        object.backgroundImageV2 = $root.douyin.Image.toObject(message.backgroundImageV2, options);
-      if (message.publicAreaCommon != null && message.hasOwnProperty("publicAreaCommon"))
-        object.publicAreaCommon = $root.douyin.PublicAreaCommon.toObject(
-          message.publicAreaCommon,
-          options,
-        );
-      if (message.giftImage != null && message.hasOwnProperty("giftImage"))
-        object.giftImage = $root.douyin.Image.toObject(message.giftImage, options);
-      if (message.agreeMsgId != null && message.hasOwnProperty("agreeMsgId"))
-        if (typeof message.agreeMsgId === "number")
-          object.agreeMsgId =
-            options.longs === String ? String(message.agreeMsgId) : message.agreeMsgId;
-        else
-          object.agreeMsgId =
-            options.longs === String
-              ? $util.Long.prototype.toString.call(message.agreeMsgId)
-              : options.longs === Number
-                ? new $util.LongBits(
-                    message.agreeMsgId.low >>> 0,
-                    message.agreeMsgId.high >>> 0,
-                  ).toNumber(true)
-                : message.agreeMsgId;
-      if (message.priorityLevel != null && message.hasOwnProperty("priorityLevel"))
-        object.priorityLevel = message.priorityLevel;
-      if (message.landscapeAreaCommon != null && message.hasOwnProperty("landscapeAreaCommon"))
-        object.landscapeAreaCommon = $root.douyin.LandscapeAreaCommon.toObject(
-          message.landscapeAreaCommon,
-          options,
-        );
-      if (message.eventTime != null && message.hasOwnProperty("eventTime"))
-        if (typeof message.eventTime === "number")
-          object.eventTime =
-            options.longs === String ? String(message.eventTime) : message.eventTime;
-        else
-          object.eventTime =
-            options.longs === String
-              ? $util.Long.prototype.toString.call(message.eventTime)
-              : options.longs === Number
-                ? new $util.LongBits(
-                    message.eventTime.low >>> 0,
-                    message.eventTime.high >>> 0,
-                  ).toNumber(true)
-                : message.eventTime;
-      if (message.sendReview != null && message.hasOwnProperty("sendReview"))
-        object.sendReview = message.sendReview;
-      if (message.fromIntercom != null && message.hasOwnProperty("fromIntercom"))
-        object.fromIntercom = message.fromIntercom;
-      if (message.intercomHideUserCard != null && message.hasOwnProperty("intercomHideUserCard"))
-        object.intercomHideUserCard = message.intercomHideUserCard;
-      if (message.chatBy != null && message.hasOwnProperty("chatBy"))
-        object.chatBy = message.chatBy;
-      if (
-        message.individualChatPriority != null &&
-        message.hasOwnProperty("individualChatPriority")
-      )
-        object.individualChatPriority = message.individualChatPriority;
-      if (message.rtfContent != null && message.hasOwnProperty("rtfContent"))
-        object.rtfContent = $root.douyin.Text.toObject(message.rtfContent, options);
       return object;
     };
 
@@ -15606,6 +15093,7 @@ export const douyin = ($root.douyin = (() => {
      * @property {number|Long|null} [channelId] Common channelId
      * @property {number|Long|null} [diffSei2absSecond] Common diffSei2absSecond
      * @property {number|Long|null} [anchorFoldDuration] Common anchorFoldDuration
+     * @property {number|Long|null} [appId] Common appId
      */
 
     /**
@@ -15791,6 +15279,14 @@ export const douyin = ($root.douyin = (() => {
     Common.prototype.anchorFoldDuration = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
 
     /**
+     * Common appId.
+     * @member {number|Long} appId
+     * @memberof douyin.Common
+     * @instance
+     */
+    Common.prototype.appId = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+    /**
      * Creates a new Common instance using the specified properties.
      * @function create
      * @memberof douyin.Common
@@ -15879,6 +15375,8 @@ export const douyin = ($root.douyin = (() => {
         Object.hasOwnProperty.call(message, "anchorFoldDuration")
       )
         writer.uint32(/* id 23, wireType 0 =*/ 184).uint64(message.anchorFoldDuration);
+      if (message.appId != null && Object.hasOwnProperty.call(message, "appId"))
+        writer.uint32(/* id 24, wireType 0 =*/ 192).uint64(message.appId);
       return writer;
     };
 
@@ -15995,6 +15493,10 @@ export const douyin = ($root.douyin = (() => {
           }
           case 23: {
             message.anchorFoldDuration = reader.uint64();
+            break;
+          }
+          case 24: {
+            message.appId = reader.uint64();
             break;
           }
           default:
@@ -16170,6 +15672,16 @@ export const douyin = ($root.douyin = (() => {
           )
         )
           return "anchorFoldDuration: integer|Long expected";
+      if (message.appId != null && message.hasOwnProperty("appId"))
+        if (
+          !$util.isInteger(message.appId) &&
+          !(
+            message.appId &&
+            $util.isInteger(message.appId.low) &&
+            $util.isInteger(message.appId.high)
+          )
+        )
+          return "appId: integer|Long expected";
       return null;
     };
 
@@ -16338,6 +15850,15 @@ export const douyin = ($root.douyin = (() => {
             object.anchorFoldDuration.low >>> 0,
             object.anchorFoldDuration.high >>> 0,
           ).toNumber(true);
+      if (object.appId != null)
+        if ($util.Long) (message.appId = $util.Long.fromValue(object.appId)).unsigned = true;
+        else if (typeof object.appId === "string") message.appId = parseInt(object.appId, 10);
+        else if (typeof object.appId === "number") message.appId = object.appId;
+        else if (typeof object.appId === "object")
+          message.appId = new $util.LongBits(
+            object.appId.low >>> 0,
+            object.appId.high >>> 0,
+          ).toNumber(true);
       return message;
     };
 
@@ -16471,6 +15992,15 @@ export const douyin = ($root.douyin = (() => {
                 ? long.toNumber()
                 : long;
         } else object.anchorFoldDuration = options.longs === String ? "0" : 0;
+        if ($util.Long) {
+          let long = new $util.Long(0, 0, true);
+          object.appId =
+            options.longs === String
+              ? long.toString()
+              : options.longs === Number
+                ? long.toNumber()
+                : long;
+        } else object.appId = options.longs === String ? "0" : 0;
       }
       if (message.method != null && message.hasOwnProperty("method"))
         object.method = message.method;
@@ -16658,6 +16188,18 @@ export const douyin = ($root.douyin = (() => {
                     message.anchorFoldDuration.high >>> 0,
                   ).toNumber(true)
                 : message.anchorFoldDuration;
+      if (message.appId != null && message.hasOwnProperty("appId"))
+        if (typeof message.appId === "number")
+          object.appId = options.longs === String ? String(message.appId) : message.appId;
+        else
+          object.appId =
+            options.longs === String
+              ? $util.Long.prototype.toString.call(message.appId)
+              : options.longs === Number
+                ? new $util.LongBits(message.appId.low >>> 0, message.appId.high >>> 0).toNumber(
+                    true,
+                  )
+                : message.appId;
       return object;
     };
 
@@ -16716,6 +16258,8 @@ export const douyin = ($root.douyin = (() => {
      * @property {string|null} [ShareQrcodeUri] User ShareQrcodeUri
      * @property {number|null} [IncomeSharePercent] User IncomeSharePercent
      * @property {Array.<douyin.IImage>|null} [BadgeImageList] User BadgeImageList
+     * @property {douyin.IFollowInfo|null} [FollowInfo] User FollowInfo
+     * @property {douyin.IFansClub|null} [FansClub] User FansClub
      * @property {string|null} [SpecialId] User SpecialId
      * @property {douyin.IImage|null} [AvatarBorder] User AvatarBorder
      * @property {douyin.IImage|null} [Medal] User Medal
@@ -16907,6 +16451,22 @@ export const douyin = ($root.douyin = (() => {
     User.prototype.BadgeImageList = $util.emptyArray;
 
     /**
+     * User FollowInfo.
+     * @member {douyin.IFollowInfo|null|undefined} FollowInfo
+     * @memberof douyin.User
+     * @instance
+     */
+    User.prototype.FollowInfo = null;
+
+    /**
+     * User FansClub.
+     * @member {douyin.IFansClub|null|undefined} FansClub
+     * @memberof douyin.User
+     * @instance
+     */
+    User.prototype.FansClub = null;
+
+    /**
      * User SpecialId.
      * @member {string} SpecialId
      * @memberof douyin.User
@@ -17019,6 +16579,16 @@ export const douyin = ($root.douyin = (() => {
             message.BadgeImageList[i],
             writer.uint32(/* id 21, wireType 2 =*/ 170).fork(),
           ).ldelim();
+      if (message.FollowInfo != null && Object.hasOwnProperty.call(message, "FollowInfo"))
+        $root.douyin.FollowInfo.encode(
+          message.FollowInfo,
+          writer.uint32(/* id 22, wireType 2 =*/ 178).fork(),
+        ).ldelim();
+      if (message.FansClub != null && Object.hasOwnProperty.call(message, "FansClub"))
+        $root.douyin.FansClub.encode(
+          message.FansClub,
+          writer.uint32(/* id 24, wireType 2 =*/ 194).fork(),
+        ).ldelim();
       if (message.SpecialId != null && Object.hasOwnProperty.call(message, "SpecialId"))
         writer.uint32(/* id 26, wireType 2 =*/ 210).string(message.SpecialId);
       if (message.AvatarBorder != null && Object.hasOwnProperty.call(message, "AvatarBorder"))
@@ -17155,6 +16725,14 @@ export const douyin = ($root.douyin = (() => {
             if (!(message.BadgeImageList && message.BadgeImageList.length))
               message.BadgeImageList = [];
             message.BadgeImageList.push($root.douyin.Image.decode(reader, reader.uint32()));
+            break;
+          }
+          case 22: {
+            message.FollowInfo = $root.douyin.FollowInfo.decode(reader, reader.uint32());
+            break;
+          }
+          case 24: {
+            message.FansClub = $root.douyin.FansClub.decode(reader, reader.uint32());
             break;
           }
           case 26: {
@@ -17298,6 +16876,14 @@ export const douyin = ($root.douyin = (() => {
           if (error) return "BadgeImageList." + error;
         }
       }
+      if (message.FollowInfo != null && message.hasOwnProperty("FollowInfo")) {
+        let error = $root.douyin.FollowInfo.verify(message.FollowInfo);
+        if (error) return "FollowInfo." + error;
+      }
+      if (message.FansClub != null && message.hasOwnProperty("FansClub")) {
+        let error = $root.douyin.FansClub.verify(message.FansClub);
+        if (error) return "FansClub." + error;
+      }
       if (message.SpecialId != null && message.hasOwnProperty("SpecialId"))
         if (!$util.isString(message.SpecialId)) return "SpecialId: string expected";
       if (message.AvatarBorder != null && message.hasOwnProperty("AvatarBorder")) {
@@ -17414,6 +17000,16 @@ export const douyin = ($root.douyin = (() => {
           message.BadgeImageList[i] = $root.douyin.Image.fromObject(object.BadgeImageList[i]);
         }
       }
+      if (object.FollowInfo != null) {
+        if (typeof object.FollowInfo !== "object")
+          throw TypeError(".douyin.User.FollowInfo: object expected");
+        message.FollowInfo = $root.douyin.FollowInfo.fromObject(object.FollowInfo);
+      }
+      if (object.FansClub != null) {
+        if (typeof object.FansClub !== "object")
+          throw TypeError(".douyin.User.FansClub: object expected");
+        message.FansClub = $root.douyin.FansClub.fromObject(object.FansClub);
+      }
       if (object.SpecialId != null) message.SpecialId = String(object.SpecialId);
       if (object.AvatarBorder != null) {
         if (typeof object.AvatarBorder !== "object")
@@ -17515,6 +17111,8 @@ export const douyin = ($root.douyin = (() => {
         object.Secret = 0;
         object.ShareQrcodeUri = "";
         object.IncomeSharePercent = 0;
+        object.FollowInfo = null;
+        object.FansClub = null;
         object.SpecialId = "";
         object.AvatarBorder = null;
         object.Medal = null;
@@ -17619,6 +17217,10 @@ export const douyin = ($root.douyin = (() => {
             options,
           );
       }
+      if (message.FollowInfo != null && message.hasOwnProperty("FollowInfo"))
+        object.FollowInfo = $root.douyin.FollowInfo.toObject(message.FollowInfo, options);
+      if (message.FansClub != null && message.hasOwnProperty("FansClub"))
+        object.FansClub = $root.douyin.FansClub.toObject(message.FansClub, options);
       if (message.SpecialId != null && message.hasOwnProperty("SpecialId"))
         object.SpecialId = message.SpecialId;
       if (message.AvatarBorder != null && message.hasOwnProperty("AvatarBorder"))
@@ -17665,12 +17267,1621 @@ export const douyin = ($root.douyin = (() => {
     return User;
   })();
 
+  douyin.FollowInfo = (function () {
+    /**
+     * Properties of a FollowInfo.
+     * @memberof douyin
+     * @interface IFollowInfo
+     * @property {number|Long|null} [followingCount] FollowInfo followingCount
+     * @property {number|Long|null} [followerCount] FollowInfo followerCount
+     * @property {number|Long|null} [followStatus] FollowInfo followStatus
+     * @property {number|Long|null} [pushStatus] FollowInfo pushStatus
+     * @property {string|null} [remarkName] FollowInfo remarkName
+     * @property {string|null} [followerCountStr] FollowInfo followerCountStr
+     * @property {string|null} [followingCountStr] FollowInfo followingCountStr
+     * @property {boolean|null} [invalidFollowStatus] FollowInfo invalidFollowStatus
+     */
+
+    /**
+     * Constructs a new FollowInfo.
+     * @memberof douyin
+     * @classdesc Represents a FollowInfo.
+     * @implements IFollowInfo
+     * @constructor
+     * @param {douyin.IFollowInfo=} [properties] Properties to set
+     */
+    function FollowInfo(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * FollowInfo followingCount.
+     * @member {number|Long} followingCount
+     * @memberof douyin.FollowInfo
+     * @instance
+     */
+    FollowInfo.prototype.followingCount = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+    /**
+     * FollowInfo followerCount.
+     * @member {number|Long} followerCount
+     * @memberof douyin.FollowInfo
+     * @instance
+     */
+    FollowInfo.prototype.followerCount = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+    /**
+     * FollowInfo followStatus.
+     * @member {number|Long} followStatus
+     * @memberof douyin.FollowInfo
+     * @instance
+     */
+    FollowInfo.prototype.followStatus = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+    /**
+     * FollowInfo pushStatus.
+     * @member {number|Long} pushStatus
+     * @memberof douyin.FollowInfo
+     * @instance
+     */
+    FollowInfo.prototype.pushStatus = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+    /**
+     * FollowInfo remarkName.
+     * @member {string} remarkName
+     * @memberof douyin.FollowInfo
+     * @instance
+     */
+    FollowInfo.prototype.remarkName = "";
+
+    /**
+     * FollowInfo followerCountStr.
+     * @member {string} followerCountStr
+     * @memberof douyin.FollowInfo
+     * @instance
+     */
+    FollowInfo.prototype.followerCountStr = "";
+
+    /**
+     * FollowInfo followingCountStr.
+     * @member {string} followingCountStr
+     * @memberof douyin.FollowInfo
+     * @instance
+     */
+    FollowInfo.prototype.followingCountStr = "";
+
+    /**
+     * FollowInfo invalidFollowStatus.
+     * @member {boolean} invalidFollowStatus
+     * @memberof douyin.FollowInfo
+     * @instance
+     */
+    FollowInfo.prototype.invalidFollowStatus = false;
+
+    /**
+     * Creates a new FollowInfo instance using the specified properties.
+     * @function create
+     * @memberof douyin.FollowInfo
+     * @static
+     * @param {douyin.IFollowInfo=} [properties] Properties to set
+     * @returns {douyin.FollowInfo} FollowInfo instance
+     */
+    FollowInfo.create = function create(properties) {
+      return new FollowInfo(properties);
+    };
+
+    /**
+     * Encodes the specified FollowInfo message. Does not implicitly {@link douyin.FollowInfo.verify|verify} messages.
+     * @function encode
+     * @memberof douyin.FollowInfo
+     * @static
+     * @param {douyin.IFollowInfo} message FollowInfo message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    FollowInfo.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.followingCount != null && Object.hasOwnProperty.call(message, "followingCount"))
+        writer.uint32(/* id 1, wireType 0 =*/ 8).uint64(message.followingCount);
+      if (message.followerCount != null && Object.hasOwnProperty.call(message, "followerCount"))
+        writer.uint32(/* id 2, wireType 0 =*/ 16).uint64(message.followerCount);
+      if (message.followStatus != null && Object.hasOwnProperty.call(message, "followStatus"))
+        writer.uint32(/* id 3, wireType 0 =*/ 24).uint64(message.followStatus);
+      if (message.pushStatus != null && Object.hasOwnProperty.call(message, "pushStatus"))
+        writer.uint32(/* id 4, wireType 0 =*/ 32).uint64(message.pushStatus);
+      if (message.remarkName != null && Object.hasOwnProperty.call(message, "remarkName"))
+        writer.uint32(/* id 5, wireType 2 =*/ 42).string(message.remarkName);
+      if (
+        message.followerCountStr != null &&
+        Object.hasOwnProperty.call(message, "followerCountStr")
+      )
+        writer.uint32(/* id 6, wireType 2 =*/ 50).string(message.followerCountStr);
+      if (
+        message.followingCountStr != null &&
+        Object.hasOwnProperty.call(message, "followingCountStr")
+      )
+        writer.uint32(/* id 7, wireType 2 =*/ 58).string(message.followingCountStr);
+      if (
+        message.invalidFollowStatus != null &&
+        Object.hasOwnProperty.call(message, "invalidFollowStatus")
+      )
+        writer.uint32(/* id 8, wireType 0 =*/ 64).bool(message.invalidFollowStatus);
+      return writer;
+    };
+
+    /**
+     * Encodes the specified FollowInfo message, length delimited. Does not implicitly {@link douyin.FollowInfo.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof douyin.FollowInfo
+     * @static
+     * @param {douyin.IFollowInfo} message FollowInfo message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    FollowInfo.encodeDelimited = function encodeDelimited(message, writer) {
+      return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a FollowInfo message from the specified reader or buffer.
+     * @function decode
+     * @memberof douyin.FollowInfo
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {douyin.FollowInfo} FollowInfo
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    FollowInfo.decode = function decode(reader, length) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.douyin.FollowInfo();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            message.followingCount = reader.uint64();
+            break;
+          }
+          case 2: {
+            message.followerCount = reader.uint64();
+            break;
+          }
+          case 3: {
+            message.followStatus = reader.uint64();
+            break;
+          }
+          case 4: {
+            message.pushStatus = reader.uint64();
+            break;
+          }
+          case 5: {
+            message.remarkName = reader.string();
+            break;
+          }
+          case 6: {
+            message.followerCountStr = reader.string();
+            break;
+          }
+          case 7: {
+            message.followingCountStr = reader.string();
+            break;
+          }
+          case 8: {
+            message.invalidFollowStatus = reader.bool();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Decodes a FollowInfo message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof douyin.FollowInfo
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {douyin.FollowInfo} FollowInfo
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    FollowInfo.decodeDelimited = function decodeDelimited(reader) {
+      if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+      return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a FollowInfo message.
+     * @function verify
+     * @memberof douyin.FollowInfo
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    FollowInfo.verify = function verify(message) {
+      if (typeof message !== "object" || message === null) return "object expected";
+      if (message.followingCount != null && message.hasOwnProperty("followingCount"))
+        if (
+          !$util.isInteger(message.followingCount) &&
+          !(
+            message.followingCount &&
+            $util.isInteger(message.followingCount.low) &&
+            $util.isInteger(message.followingCount.high)
+          )
+        )
+          return "followingCount: integer|Long expected";
+      if (message.followerCount != null && message.hasOwnProperty("followerCount"))
+        if (
+          !$util.isInteger(message.followerCount) &&
+          !(
+            message.followerCount &&
+            $util.isInteger(message.followerCount.low) &&
+            $util.isInteger(message.followerCount.high)
+          )
+        )
+          return "followerCount: integer|Long expected";
+      if (message.followStatus != null && message.hasOwnProperty("followStatus"))
+        if (
+          !$util.isInteger(message.followStatus) &&
+          !(
+            message.followStatus &&
+            $util.isInteger(message.followStatus.low) &&
+            $util.isInteger(message.followStatus.high)
+          )
+        )
+          return "followStatus: integer|Long expected";
+      if (message.pushStatus != null && message.hasOwnProperty("pushStatus"))
+        if (
+          !$util.isInteger(message.pushStatus) &&
+          !(
+            message.pushStatus &&
+            $util.isInteger(message.pushStatus.low) &&
+            $util.isInteger(message.pushStatus.high)
+          )
+        )
+          return "pushStatus: integer|Long expected";
+      if (message.remarkName != null && message.hasOwnProperty("remarkName"))
+        if (!$util.isString(message.remarkName)) return "remarkName: string expected";
+      if (message.followerCountStr != null && message.hasOwnProperty("followerCountStr"))
+        if (!$util.isString(message.followerCountStr)) return "followerCountStr: string expected";
+      if (message.followingCountStr != null && message.hasOwnProperty("followingCountStr"))
+        if (!$util.isString(message.followingCountStr)) return "followingCountStr: string expected";
+      if (message.invalidFollowStatus != null && message.hasOwnProperty("invalidFollowStatus"))
+        if (typeof message.invalidFollowStatus !== "boolean")
+          return "invalidFollowStatus: boolean expected";
+      return null;
+    };
+
+    /**
+     * Creates a FollowInfo message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof douyin.FollowInfo
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {douyin.FollowInfo} FollowInfo
+     */
+    FollowInfo.fromObject = function fromObject(object) {
+      if (object instanceof $root.douyin.FollowInfo) return object;
+      let message = new $root.douyin.FollowInfo();
+      if (object.followingCount != null)
+        if ($util.Long)
+          (message.followingCount = $util.Long.fromValue(object.followingCount)).unsigned = true;
+        else if (typeof object.followingCount === "string")
+          message.followingCount = parseInt(object.followingCount, 10);
+        else if (typeof object.followingCount === "number")
+          message.followingCount = object.followingCount;
+        else if (typeof object.followingCount === "object")
+          message.followingCount = new $util.LongBits(
+            object.followingCount.low >>> 0,
+            object.followingCount.high >>> 0,
+          ).toNumber(true);
+      if (object.followerCount != null)
+        if ($util.Long)
+          (message.followerCount = $util.Long.fromValue(object.followerCount)).unsigned = true;
+        else if (typeof object.followerCount === "string")
+          message.followerCount = parseInt(object.followerCount, 10);
+        else if (typeof object.followerCount === "number")
+          message.followerCount = object.followerCount;
+        else if (typeof object.followerCount === "object")
+          message.followerCount = new $util.LongBits(
+            object.followerCount.low >>> 0,
+            object.followerCount.high >>> 0,
+          ).toNumber(true);
+      if (object.followStatus != null)
+        if ($util.Long)
+          (message.followStatus = $util.Long.fromValue(object.followStatus)).unsigned = true;
+        else if (typeof object.followStatus === "string")
+          message.followStatus = parseInt(object.followStatus, 10);
+        else if (typeof object.followStatus === "number")
+          message.followStatus = object.followStatus;
+        else if (typeof object.followStatus === "object")
+          message.followStatus = new $util.LongBits(
+            object.followStatus.low >>> 0,
+            object.followStatus.high >>> 0,
+          ).toNumber(true);
+      if (object.pushStatus != null)
+        if ($util.Long)
+          (message.pushStatus = $util.Long.fromValue(object.pushStatus)).unsigned = true;
+        else if (typeof object.pushStatus === "string")
+          message.pushStatus = parseInt(object.pushStatus, 10);
+        else if (typeof object.pushStatus === "number") message.pushStatus = object.pushStatus;
+        else if (typeof object.pushStatus === "object")
+          message.pushStatus = new $util.LongBits(
+            object.pushStatus.low >>> 0,
+            object.pushStatus.high >>> 0,
+          ).toNumber(true);
+      if (object.remarkName != null) message.remarkName = String(object.remarkName);
+      if (object.followerCountStr != null)
+        message.followerCountStr = String(object.followerCountStr);
+      if (object.followingCountStr != null)
+        message.followingCountStr = String(object.followingCountStr);
+      if (object.invalidFollowStatus != null)
+        message.invalidFollowStatus = Boolean(object.invalidFollowStatus);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a FollowInfo message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof douyin.FollowInfo
+     * @static
+     * @param {douyin.FollowInfo} message FollowInfo
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    FollowInfo.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        if ($util.Long) {
+          let long = new $util.Long(0, 0, true);
+          object.followingCount =
+            options.longs === String
+              ? long.toString()
+              : options.longs === Number
+                ? long.toNumber()
+                : long;
+        } else object.followingCount = options.longs === String ? "0" : 0;
+        if ($util.Long) {
+          let long = new $util.Long(0, 0, true);
+          object.followerCount =
+            options.longs === String
+              ? long.toString()
+              : options.longs === Number
+                ? long.toNumber()
+                : long;
+        } else object.followerCount = options.longs === String ? "0" : 0;
+        if ($util.Long) {
+          let long = new $util.Long(0, 0, true);
+          object.followStatus =
+            options.longs === String
+              ? long.toString()
+              : options.longs === Number
+                ? long.toNumber()
+                : long;
+        } else object.followStatus = options.longs === String ? "0" : 0;
+        if ($util.Long) {
+          let long = new $util.Long(0, 0, true);
+          object.pushStatus =
+            options.longs === String
+              ? long.toString()
+              : options.longs === Number
+                ? long.toNumber()
+                : long;
+        } else object.pushStatus = options.longs === String ? "0" : 0;
+        object.remarkName = "";
+        object.followerCountStr = "";
+        object.followingCountStr = "";
+        object.invalidFollowStatus = false;
+      }
+      if (message.followingCount != null && message.hasOwnProperty("followingCount"))
+        if (typeof message.followingCount === "number")
+          object.followingCount =
+            options.longs === String ? String(message.followingCount) : message.followingCount;
+        else
+          object.followingCount =
+            options.longs === String
+              ? $util.Long.prototype.toString.call(message.followingCount)
+              : options.longs === Number
+                ? new $util.LongBits(
+                    message.followingCount.low >>> 0,
+                    message.followingCount.high >>> 0,
+                  ).toNumber(true)
+                : message.followingCount;
+      if (message.followerCount != null && message.hasOwnProperty("followerCount"))
+        if (typeof message.followerCount === "number")
+          object.followerCount =
+            options.longs === String ? String(message.followerCount) : message.followerCount;
+        else
+          object.followerCount =
+            options.longs === String
+              ? $util.Long.prototype.toString.call(message.followerCount)
+              : options.longs === Number
+                ? new $util.LongBits(
+                    message.followerCount.low >>> 0,
+                    message.followerCount.high >>> 0,
+                  ).toNumber(true)
+                : message.followerCount;
+      if (message.followStatus != null && message.hasOwnProperty("followStatus"))
+        if (typeof message.followStatus === "number")
+          object.followStatus =
+            options.longs === String ? String(message.followStatus) : message.followStatus;
+        else
+          object.followStatus =
+            options.longs === String
+              ? $util.Long.prototype.toString.call(message.followStatus)
+              : options.longs === Number
+                ? new $util.LongBits(
+                    message.followStatus.low >>> 0,
+                    message.followStatus.high >>> 0,
+                  ).toNumber(true)
+                : message.followStatus;
+      if (message.pushStatus != null && message.hasOwnProperty("pushStatus"))
+        if (typeof message.pushStatus === "number")
+          object.pushStatus =
+            options.longs === String ? String(message.pushStatus) : message.pushStatus;
+        else
+          object.pushStatus =
+            options.longs === String
+              ? $util.Long.prototype.toString.call(message.pushStatus)
+              : options.longs === Number
+                ? new $util.LongBits(
+                    message.pushStatus.low >>> 0,
+                    message.pushStatus.high >>> 0,
+                  ).toNumber(true)
+                : message.pushStatus;
+      if (message.remarkName != null && message.hasOwnProperty("remarkName"))
+        object.remarkName = message.remarkName;
+      if (message.followerCountStr != null && message.hasOwnProperty("followerCountStr"))
+        object.followerCountStr = message.followerCountStr;
+      if (message.followingCountStr != null && message.hasOwnProperty("followingCountStr"))
+        object.followingCountStr = message.followingCountStr;
+      if (message.invalidFollowStatus != null && message.hasOwnProperty("invalidFollowStatus"))
+        object.invalidFollowStatus = message.invalidFollowStatus;
+      return object;
+    };
+
+    /**
+     * Converts this FollowInfo to JSON.
+     * @function toJSON
+     * @memberof douyin.FollowInfo
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    FollowInfo.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for FollowInfo
+     * @function getTypeUrl
+     * @memberof douyin.FollowInfo
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    FollowInfo.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/douyin.FollowInfo";
+    };
+
+    return FollowInfo;
+  })();
+
+  douyin.FansClub = (function () {
+    /**
+     * Properties of a FansClub.
+     * @memberof douyin
+     * @interface IFansClub
+     * @property {douyin.FansClub.IFansClubData|null} [data] FansClub data
+     * @property {Object.<string,douyin.FansClub.IFansClubData>|null} [preferData] FansClub preferData
+     */
+
+    /**
+     * Constructs a new FansClub.
+     * @memberof douyin
+     * @classdesc Represents a FansClub.
+     * @implements IFansClub
+     * @constructor
+     * @param {douyin.IFansClub=} [properties] Properties to set
+     */
+    function FansClub(properties) {
+      this.preferData = {};
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * FansClub data.
+     * @member {douyin.FansClub.IFansClubData|null|undefined} data
+     * @memberof douyin.FansClub
+     * @instance
+     */
+    FansClub.prototype.data = null;
+
+    /**
+     * FansClub preferData.
+     * @member {Object.<string,douyin.FansClub.IFansClubData>} preferData
+     * @memberof douyin.FansClub
+     * @instance
+     */
+    FansClub.prototype.preferData = $util.emptyObject;
+
+    /**
+     * Creates a new FansClub instance using the specified properties.
+     * @function create
+     * @memberof douyin.FansClub
+     * @static
+     * @param {douyin.IFansClub=} [properties] Properties to set
+     * @returns {douyin.FansClub} FansClub instance
+     */
+    FansClub.create = function create(properties) {
+      return new FansClub(properties);
+    };
+
+    /**
+     * Encodes the specified FansClub message. Does not implicitly {@link douyin.FansClub.verify|verify} messages.
+     * @function encode
+     * @memberof douyin.FansClub
+     * @static
+     * @param {douyin.IFansClub} message FansClub message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    FansClub.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.data != null && Object.hasOwnProperty.call(message, "data"))
+        $root.douyin.FansClub.FansClubData.encode(
+          message.data,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      if (message.preferData != null && Object.hasOwnProperty.call(message, "preferData"))
+        for (let keys = Object.keys(message.preferData), i = 0; i < keys.length; ++i) {
+          writer
+            .uint32(/* id 2, wireType 2 =*/ 18)
+            .fork()
+            .uint32(/* id 1, wireType 0 =*/ 8)
+            .int32(keys[i]);
+          $root.douyin.FansClub.FansClubData.encode(
+            message.preferData[keys[i]],
+            writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+          )
+            .ldelim()
+            .ldelim();
+        }
+      return writer;
+    };
+
+    /**
+     * Encodes the specified FansClub message, length delimited. Does not implicitly {@link douyin.FansClub.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof douyin.FansClub
+     * @static
+     * @param {douyin.IFansClub} message FansClub message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    FansClub.encodeDelimited = function encodeDelimited(message, writer) {
+      return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a FansClub message from the specified reader or buffer.
+     * @function decode
+     * @memberof douyin.FansClub
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {douyin.FansClub} FansClub
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    FansClub.decode = function decode(reader, length) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.douyin.FansClub(),
+        key,
+        value;
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            message.data = $root.douyin.FansClub.FansClubData.decode(reader, reader.uint32());
+            break;
+          }
+          case 2: {
+            if (message.preferData === $util.emptyObject) message.preferData = {};
+            let end2 = reader.uint32() + reader.pos;
+            key = 0;
+            value = null;
+            while (reader.pos < end2) {
+              let tag2 = reader.uint32();
+              switch (tag2 >>> 3) {
+                case 1:
+                  key = reader.int32();
+                  break;
+                case 2:
+                  value = $root.douyin.FansClub.FansClubData.decode(reader, reader.uint32());
+                  break;
+                default:
+                  reader.skipType(tag2 & 7);
+                  break;
+              }
+            }
+            message.preferData[key] = value;
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Decodes a FansClub message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof douyin.FansClub
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {douyin.FansClub} FansClub
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    FansClub.decodeDelimited = function decodeDelimited(reader) {
+      if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+      return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a FansClub message.
+     * @function verify
+     * @memberof douyin.FansClub
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    FansClub.verify = function verify(message) {
+      if (typeof message !== "object" || message === null) return "object expected";
+      if (message.data != null && message.hasOwnProperty("data")) {
+        let error = $root.douyin.FansClub.FansClubData.verify(message.data);
+        if (error) return "data." + error;
+      }
+      if (message.preferData != null && message.hasOwnProperty("preferData")) {
+        if (!$util.isObject(message.preferData)) return "preferData: object expected";
+        let key = Object.keys(message.preferData);
+        for (let i = 0; i < key.length; ++i) {
+          if (!$util.key32Re.test(key[i])) return "preferData: integer key{k:int32} expected";
+          {
+            let error = $root.douyin.FansClub.FansClubData.verify(message.preferData[key[i]]);
+            if (error) return "preferData." + error;
+          }
+        }
+      }
+      return null;
+    };
+
+    /**
+     * Creates a FansClub message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof douyin.FansClub
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {douyin.FansClub} FansClub
+     */
+    FansClub.fromObject = function fromObject(object) {
+      if (object instanceof $root.douyin.FansClub) return object;
+      let message = new $root.douyin.FansClub();
+      if (object.data != null) {
+        if (typeof object.data !== "object")
+          throw TypeError(".douyin.FansClub.data: object expected");
+        message.data = $root.douyin.FansClub.FansClubData.fromObject(object.data);
+      }
+      if (object.preferData) {
+        if (typeof object.preferData !== "object")
+          throw TypeError(".douyin.FansClub.preferData: object expected");
+        message.preferData = {};
+        for (let keys = Object.keys(object.preferData), i = 0; i < keys.length; ++i) {
+          if (typeof object.preferData[keys[i]] !== "object")
+            throw TypeError(".douyin.FansClub.preferData: object expected");
+          message.preferData[keys[i]] = $root.douyin.FansClub.FansClubData.fromObject(
+            object.preferData[keys[i]],
+          );
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a FansClub message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof douyin.FansClub
+     * @static
+     * @param {douyin.FansClub} message FansClub
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    FansClub.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.objects || options.defaults) object.preferData = {};
+      if (options.defaults) object.data = null;
+      if (message.data != null && message.hasOwnProperty("data"))
+        object.data = $root.douyin.FansClub.FansClubData.toObject(message.data, options);
+      let keys2;
+      if (message.preferData && (keys2 = Object.keys(message.preferData)).length) {
+        object.preferData = {};
+        for (let j = 0; j < keys2.length; ++j)
+          object.preferData[keys2[j]] = $root.douyin.FansClub.FansClubData.toObject(
+            message.preferData[keys2[j]],
+            options,
+          );
+      }
+      return object;
+    };
+
+    /**
+     * Converts this FansClub to JSON.
+     * @function toJSON
+     * @memberof douyin.FansClub
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    FansClub.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for FansClub
+     * @function getTypeUrl
+     * @memberof douyin.FansClub
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    FansClub.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/douyin.FansClub";
+    };
+
+    FansClub.FansClubData = (function () {
+      /**
+       * Properties of a FansClubData.
+       * @memberof douyin.FansClub
+       * @interface IFansClubData
+       * @property {string|null} [clubName] FansClubData clubName
+       * @property {number|null} [level] FansClubData level
+       * @property {number|null} [userFansClubStatus] FansClubData userFansClubStatus
+       * @property {douyin.FansClub.FansClubData.IUserBadge|null} [badge] FansClubData badge
+       * @property {Array.<number|Long>|null} [availableGiftIds] FansClubData availableGiftIds
+       * @property {number|Long|null} [anchorId] FansClubData anchorId
+       * @property {number|null} [badgeType] FansClubData badgeType
+       * @property {number|null} [userGuardStatus] FansClubData userGuardStatus
+       * @property {number|Long|null} [guardExpiredTime] FansClubData guardExpiredTime
+       * @property {string|null} [anchorOpenId] FansClubData anchorOpenId
+       */
+
+      /**
+       * Constructs a new FansClubData.
+       * @memberof douyin.FansClub
+       * @classdesc Represents a FansClubData.
+       * @implements IFansClubData
+       * @constructor
+       * @param {douyin.FansClub.IFansClubData=} [properties] Properties to set
+       */
+      function FansClubData(properties) {
+        this.availableGiftIds = [];
+        if (properties)
+          for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+            if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+      }
+
+      /**
+       * FansClubData clubName.
+       * @member {string} clubName
+       * @memberof douyin.FansClub.FansClubData
+       * @instance
+       */
+      FansClubData.prototype.clubName = "";
+
+      /**
+       * FansClubData level.
+       * @member {number} level
+       * @memberof douyin.FansClub.FansClubData
+       * @instance
+       */
+      FansClubData.prototype.level = 0;
+
+      /**
+       * FansClubData userFansClubStatus.
+       * @member {number} userFansClubStatus
+       * @memberof douyin.FansClub.FansClubData
+       * @instance
+       */
+      FansClubData.prototype.userFansClubStatus = 0;
+
+      /**
+       * FansClubData badge.
+       * @member {douyin.FansClub.FansClubData.IUserBadge|null|undefined} badge
+       * @memberof douyin.FansClub.FansClubData
+       * @instance
+       */
+      FansClubData.prototype.badge = null;
+
+      /**
+       * FansClubData availableGiftIds.
+       * @member {Array.<number|Long>} availableGiftIds
+       * @memberof douyin.FansClub.FansClubData
+       * @instance
+       */
+      FansClubData.prototype.availableGiftIds = $util.emptyArray;
+
+      /**
+       * FansClubData anchorId.
+       * @member {number|Long} anchorId
+       * @memberof douyin.FansClub.FansClubData
+       * @instance
+       */
+      FansClubData.prototype.anchorId = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+      /**
+       * FansClubData badgeType.
+       * @member {number} badgeType
+       * @memberof douyin.FansClub.FansClubData
+       * @instance
+       */
+      FansClubData.prototype.badgeType = 0;
+
+      /**
+       * FansClubData userGuardStatus.
+       * @member {number} userGuardStatus
+       * @memberof douyin.FansClub.FansClubData
+       * @instance
+       */
+      FansClubData.prototype.userGuardStatus = 0;
+
+      /**
+       * FansClubData guardExpiredTime.
+       * @member {number|Long} guardExpiredTime
+       * @memberof douyin.FansClub.FansClubData
+       * @instance
+       */
+      FansClubData.prototype.guardExpiredTime = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+      /**
+       * FansClubData anchorOpenId.
+       * @member {string} anchorOpenId
+       * @memberof douyin.FansClub.FansClubData
+       * @instance
+       */
+      FansClubData.prototype.anchorOpenId = "";
+
+      /**
+       * Creates a new FansClubData instance using the specified properties.
+       * @function create
+       * @memberof douyin.FansClub.FansClubData
+       * @static
+       * @param {douyin.FansClub.IFansClubData=} [properties] Properties to set
+       * @returns {douyin.FansClub.FansClubData} FansClubData instance
+       */
+      FansClubData.create = function create(properties) {
+        return new FansClubData(properties);
+      };
+
+      /**
+       * Encodes the specified FansClubData message. Does not implicitly {@link douyin.FansClub.FansClubData.verify|verify} messages.
+       * @function encode
+       * @memberof douyin.FansClub.FansClubData
+       * @static
+       * @param {douyin.FansClub.IFansClubData} message FansClubData message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      FansClubData.encode = function encode(message, writer) {
+        if (!writer) writer = $Writer.create();
+        if (message.clubName != null && Object.hasOwnProperty.call(message, "clubName"))
+          writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.clubName);
+        if (message.level != null && Object.hasOwnProperty.call(message, "level"))
+          writer.uint32(/* id 2, wireType 0 =*/ 16).int32(message.level);
+        if (
+          message.userFansClubStatus != null &&
+          Object.hasOwnProperty.call(message, "userFansClubStatus")
+        )
+          writer.uint32(/* id 3, wireType 0 =*/ 24).int32(message.userFansClubStatus);
+        if (message.badge != null && Object.hasOwnProperty.call(message, "badge"))
+          $root.douyin.FansClub.FansClubData.UserBadge.encode(
+            message.badge,
+            writer.uint32(/* id 4, wireType 2 =*/ 34).fork(),
+          ).ldelim();
+        if (message.availableGiftIds != null && message.availableGiftIds.length) {
+          writer.uint32(/* id 5, wireType 2 =*/ 42).fork();
+          for (let i = 0; i < message.availableGiftIds.length; ++i)
+            writer.uint64(message.availableGiftIds[i]);
+          writer.ldelim();
+        }
+        if (message.anchorId != null && Object.hasOwnProperty.call(message, "anchorId"))
+          writer.uint32(/* id 6, wireType 0 =*/ 48).uint64(message.anchorId);
+        if (message.badgeType != null && Object.hasOwnProperty.call(message, "badgeType"))
+          writer.uint32(/* id 7, wireType 0 =*/ 56).int32(message.badgeType);
+        if (
+          message.userGuardStatus != null &&
+          Object.hasOwnProperty.call(message, "userGuardStatus")
+        )
+          writer.uint32(/* id 8, wireType 0 =*/ 64).int32(message.userGuardStatus);
+        if (
+          message.guardExpiredTime != null &&
+          Object.hasOwnProperty.call(message, "guardExpiredTime")
+        )
+          writer.uint32(/* id 9, wireType 0 =*/ 72).uint64(message.guardExpiredTime);
+        if (message.anchorOpenId != null && Object.hasOwnProperty.call(message, "anchorOpenId"))
+          writer.uint32(/* id 5000, wireType 2 =*/ 40002).string(message.anchorOpenId);
+        return writer;
+      };
+
+      /**
+       * Encodes the specified FansClubData message, length delimited. Does not implicitly {@link douyin.FansClub.FansClubData.verify|verify} messages.
+       * @function encodeDelimited
+       * @memberof douyin.FansClub.FansClubData
+       * @static
+       * @param {douyin.FansClub.IFansClubData} message FansClubData message or plain object to encode
+       * @param {$protobuf.Writer} [writer] Writer to encode to
+       * @returns {$protobuf.Writer} Writer
+       */
+      FansClubData.encodeDelimited = function encodeDelimited(message, writer) {
+        return this.encode(message, writer).ldelim();
+      };
+
+      /**
+       * Decodes a FansClubData message from the specified reader or buffer.
+       * @function decode
+       * @memberof douyin.FansClub.FansClubData
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @param {number} [length] Message length if known beforehand
+       * @returns {douyin.FansClub.FansClubData} FansClubData
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      FansClubData.decode = function decode(reader, length) {
+        if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+        let end = length === undefined ? reader.len : reader.pos + length,
+          message = new $root.douyin.FansClub.FansClubData();
+        while (reader.pos < end) {
+          let tag = reader.uint32();
+          switch (tag >>> 3) {
+            case 1: {
+              message.clubName = reader.string();
+              break;
+            }
+            case 2: {
+              message.level = reader.int32();
+              break;
+            }
+            case 3: {
+              message.userFansClubStatus = reader.int32();
+              break;
+            }
+            case 4: {
+              message.badge = $root.douyin.FansClub.FansClubData.UserBadge.decode(
+                reader,
+                reader.uint32(),
+              );
+              break;
+            }
+            case 5: {
+              if (!(message.availableGiftIds && message.availableGiftIds.length))
+                message.availableGiftIds = [];
+              if ((tag & 7) === 2) {
+                let end2 = reader.uint32() + reader.pos;
+                while (reader.pos < end2) message.availableGiftIds.push(reader.uint64());
+              } else message.availableGiftIds.push(reader.uint64());
+              break;
+            }
+            case 6: {
+              message.anchorId = reader.uint64();
+              break;
+            }
+            case 7: {
+              message.badgeType = reader.int32();
+              break;
+            }
+            case 8: {
+              message.userGuardStatus = reader.int32();
+              break;
+            }
+            case 9: {
+              message.guardExpiredTime = reader.uint64();
+              break;
+            }
+            case 5000: {
+              message.anchorOpenId = reader.string();
+              break;
+            }
+            default:
+              reader.skipType(tag & 7);
+              break;
+          }
+        }
+        return message;
+      };
+
+      /**
+       * Decodes a FansClubData message from the specified reader or buffer, length delimited.
+       * @function decodeDelimited
+       * @memberof douyin.FansClub.FansClubData
+       * @static
+       * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+       * @returns {douyin.FansClub.FansClubData} FansClubData
+       * @throws {Error} If the payload is not a reader or valid buffer
+       * @throws {$protobuf.util.ProtocolError} If required fields are missing
+       */
+      FansClubData.decodeDelimited = function decodeDelimited(reader) {
+        if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+        return this.decode(reader, reader.uint32());
+      };
+
+      /**
+       * Verifies a FansClubData message.
+       * @function verify
+       * @memberof douyin.FansClub.FansClubData
+       * @static
+       * @param {Object.<string,*>} message Plain object to verify
+       * @returns {string|null} `null` if valid, otherwise the reason why it is not
+       */
+      FansClubData.verify = function verify(message) {
+        if (typeof message !== "object" || message === null) return "object expected";
+        if (message.clubName != null && message.hasOwnProperty("clubName"))
+          if (!$util.isString(message.clubName)) return "clubName: string expected";
+        if (message.level != null && message.hasOwnProperty("level"))
+          if (!$util.isInteger(message.level)) return "level: integer expected";
+        if (message.userFansClubStatus != null && message.hasOwnProperty("userFansClubStatus"))
+          if (!$util.isInteger(message.userFansClubStatus))
+            return "userFansClubStatus: integer expected";
+        if (message.badge != null && message.hasOwnProperty("badge")) {
+          let error = $root.douyin.FansClub.FansClubData.UserBadge.verify(message.badge);
+          if (error) return "badge." + error;
+        }
+        if (message.availableGiftIds != null && message.hasOwnProperty("availableGiftIds")) {
+          if (!Array.isArray(message.availableGiftIds)) return "availableGiftIds: array expected";
+          for (let i = 0; i < message.availableGiftIds.length; ++i)
+            if (
+              !$util.isInteger(message.availableGiftIds[i]) &&
+              !(
+                message.availableGiftIds[i] &&
+                $util.isInteger(message.availableGiftIds[i].low) &&
+                $util.isInteger(message.availableGiftIds[i].high)
+              )
+            )
+              return "availableGiftIds: integer|Long[] expected";
+        }
+        if (message.anchorId != null && message.hasOwnProperty("anchorId"))
+          if (
+            !$util.isInteger(message.anchorId) &&
+            !(
+              message.anchorId &&
+              $util.isInteger(message.anchorId.low) &&
+              $util.isInteger(message.anchorId.high)
+            )
+          )
+            return "anchorId: integer|Long expected";
+        if (message.badgeType != null && message.hasOwnProperty("badgeType"))
+          if (!$util.isInteger(message.badgeType)) return "badgeType: integer expected";
+        if (message.userGuardStatus != null && message.hasOwnProperty("userGuardStatus"))
+          if (!$util.isInteger(message.userGuardStatus)) return "userGuardStatus: integer expected";
+        if (message.guardExpiredTime != null && message.hasOwnProperty("guardExpiredTime"))
+          if (
+            !$util.isInteger(message.guardExpiredTime) &&
+            !(
+              message.guardExpiredTime &&
+              $util.isInteger(message.guardExpiredTime.low) &&
+              $util.isInteger(message.guardExpiredTime.high)
+            )
+          )
+            return "guardExpiredTime: integer|Long expected";
+        if (message.anchorOpenId != null && message.hasOwnProperty("anchorOpenId"))
+          if (!$util.isString(message.anchorOpenId)) return "anchorOpenId: string expected";
+        return null;
+      };
+
+      /**
+       * Creates a FansClubData message from a plain object. Also converts values to their respective internal types.
+       * @function fromObject
+       * @memberof douyin.FansClub.FansClubData
+       * @static
+       * @param {Object.<string,*>} object Plain object
+       * @returns {douyin.FansClub.FansClubData} FansClubData
+       */
+      FansClubData.fromObject = function fromObject(object) {
+        if (object instanceof $root.douyin.FansClub.FansClubData) return object;
+        let message = new $root.douyin.FansClub.FansClubData();
+        if (object.clubName != null) message.clubName = String(object.clubName);
+        if (object.level != null) message.level = object.level | 0;
+        if (object.userFansClubStatus != null)
+          message.userFansClubStatus = object.userFansClubStatus | 0;
+        if (object.badge != null) {
+          if (typeof object.badge !== "object")
+            throw TypeError(".douyin.FansClub.FansClubData.badge: object expected");
+          message.badge = $root.douyin.FansClub.FansClubData.UserBadge.fromObject(object.badge);
+        }
+        if (object.availableGiftIds) {
+          if (!Array.isArray(object.availableGiftIds))
+            throw TypeError(".douyin.FansClub.FansClubData.availableGiftIds: array expected");
+          message.availableGiftIds = [];
+          for (let i = 0; i < object.availableGiftIds.length; ++i)
+            if ($util.Long)
+              (message.availableGiftIds[i] = $util.Long.fromValue(
+                object.availableGiftIds[i],
+              )).unsigned = true;
+            else if (typeof object.availableGiftIds[i] === "string")
+              message.availableGiftIds[i] = parseInt(object.availableGiftIds[i], 10);
+            else if (typeof object.availableGiftIds[i] === "number")
+              message.availableGiftIds[i] = object.availableGiftIds[i];
+            else if (typeof object.availableGiftIds[i] === "object")
+              message.availableGiftIds[i] = new $util.LongBits(
+                object.availableGiftIds[i].low >>> 0,
+                object.availableGiftIds[i].high >>> 0,
+              ).toNumber(true);
+        }
+        if (object.anchorId != null)
+          if ($util.Long)
+            (message.anchorId = $util.Long.fromValue(object.anchorId)).unsigned = true;
+          else if (typeof object.anchorId === "string")
+            message.anchorId = parseInt(object.anchorId, 10);
+          else if (typeof object.anchorId === "number") message.anchorId = object.anchorId;
+          else if (typeof object.anchorId === "object")
+            message.anchorId = new $util.LongBits(
+              object.anchorId.low >>> 0,
+              object.anchorId.high >>> 0,
+            ).toNumber(true);
+        if (object.badgeType != null) message.badgeType = object.badgeType | 0;
+        if (object.userGuardStatus != null) message.userGuardStatus = object.userGuardStatus | 0;
+        if (object.guardExpiredTime != null)
+          if ($util.Long)
+            (message.guardExpiredTime = $util.Long.fromValue(object.guardExpiredTime)).unsigned =
+              true;
+          else if (typeof object.guardExpiredTime === "string")
+            message.guardExpiredTime = parseInt(object.guardExpiredTime, 10);
+          else if (typeof object.guardExpiredTime === "number")
+            message.guardExpiredTime = object.guardExpiredTime;
+          else if (typeof object.guardExpiredTime === "object")
+            message.guardExpiredTime = new $util.LongBits(
+              object.guardExpiredTime.low >>> 0,
+              object.guardExpiredTime.high >>> 0,
+            ).toNumber(true);
+        if (object.anchorOpenId != null) message.anchorOpenId = String(object.anchorOpenId);
+        return message;
+      };
+
+      /**
+       * Creates a plain object from a FansClubData message. Also converts values to other types if specified.
+       * @function toObject
+       * @memberof douyin.FansClub.FansClubData
+       * @static
+       * @param {douyin.FansClub.FansClubData} message FansClubData
+       * @param {$protobuf.IConversionOptions} [options] Conversion options
+       * @returns {Object.<string,*>} Plain object
+       */
+      FansClubData.toObject = function toObject(message, options) {
+        if (!options) options = {};
+        let object = {};
+        if (options.arrays || options.defaults) object.availableGiftIds = [];
+        if (options.defaults) {
+          object.clubName = "";
+          object.level = 0;
+          object.userFansClubStatus = 0;
+          object.badge = null;
+          if ($util.Long) {
+            let long = new $util.Long(0, 0, true);
+            object.anchorId =
+              options.longs === String
+                ? long.toString()
+                : options.longs === Number
+                  ? long.toNumber()
+                  : long;
+          } else object.anchorId = options.longs === String ? "0" : 0;
+          object.badgeType = 0;
+          object.userGuardStatus = 0;
+          if ($util.Long) {
+            let long = new $util.Long(0, 0, true);
+            object.guardExpiredTime =
+              options.longs === String
+                ? long.toString()
+                : options.longs === Number
+                  ? long.toNumber()
+                  : long;
+          } else object.guardExpiredTime = options.longs === String ? "0" : 0;
+          object.anchorOpenId = "";
+        }
+        if (message.clubName != null && message.hasOwnProperty("clubName"))
+          object.clubName = message.clubName;
+        if (message.level != null && message.hasOwnProperty("level")) object.level = message.level;
+        if (message.userFansClubStatus != null && message.hasOwnProperty("userFansClubStatus"))
+          object.userFansClubStatus = message.userFansClubStatus;
+        if (message.badge != null && message.hasOwnProperty("badge"))
+          object.badge = $root.douyin.FansClub.FansClubData.UserBadge.toObject(
+            message.badge,
+            options,
+          );
+        if (message.availableGiftIds && message.availableGiftIds.length) {
+          object.availableGiftIds = [];
+          for (let j = 0; j < message.availableGiftIds.length; ++j)
+            if (typeof message.availableGiftIds[j] === "number")
+              object.availableGiftIds[j] =
+                options.longs === String
+                  ? String(message.availableGiftIds[j])
+                  : message.availableGiftIds[j];
+            else
+              object.availableGiftIds[j] =
+                options.longs === String
+                  ? $util.Long.prototype.toString.call(message.availableGiftIds[j])
+                  : options.longs === Number
+                    ? new $util.LongBits(
+                        message.availableGiftIds[j].low >>> 0,
+                        message.availableGiftIds[j].high >>> 0,
+                      ).toNumber(true)
+                    : message.availableGiftIds[j];
+        }
+        if (message.anchorId != null && message.hasOwnProperty("anchorId"))
+          if (typeof message.anchorId === "number")
+            object.anchorId =
+              options.longs === String ? String(message.anchorId) : message.anchorId;
+          else
+            object.anchorId =
+              options.longs === String
+                ? $util.Long.prototype.toString.call(message.anchorId)
+                : options.longs === Number
+                  ? new $util.LongBits(
+                      message.anchorId.low >>> 0,
+                      message.anchorId.high >>> 0,
+                    ).toNumber(true)
+                  : message.anchorId;
+        if (message.badgeType != null && message.hasOwnProperty("badgeType"))
+          object.badgeType = message.badgeType;
+        if (message.userGuardStatus != null && message.hasOwnProperty("userGuardStatus"))
+          object.userGuardStatus = message.userGuardStatus;
+        if (message.guardExpiredTime != null && message.hasOwnProperty("guardExpiredTime"))
+          if (typeof message.guardExpiredTime === "number")
+            object.guardExpiredTime =
+              options.longs === String
+                ? String(message.guardExpiredTime)
+                : message.guardExpiredTime;
+          else
+            object.guardExpiredTime =
+              options.longs === String
+                ? $util.Long.prototype.toString.call(message.guardExpiredTime)
+                : options.longs === Number
+                  ? new $util.LongBits(
+                      message.guardExpiredTime.low >>> 0,
+                      message.guardExpiredTime.high >>> 0,
+                    ).toNumber(true)
+                  : message.guardExpiredTime;
+        if (message.anchorOpenId != null && message.hasOwnProperty("anchorOpenId"))
+          object.anchorOpenId = message.anchorOpenId;
+        return object;
+      };
+
+      /**
+       * Converts this FansClubData to JSON.
+       * @function toJSON
+       * @memberof douyin.FansClub.FansClubData
+       * @instance
+       * @returns {Object.<string,*>} JSON object
+       */
+      FansClubData.prototype.toJSON = function toJSON() {
+        return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+      };
+
+      /**
+       * Gets the default type url for FansClubData
+       * @function getTypeUrl
+       * @memberof douyin.FansClub.FansClubData
+       * @static
+       * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+       * @returns {string} The default type url
+       */
+      FansClubData.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+        if (typeUrlPrefix === undefined) {
+          typeUrlPrefix = "type.googleapis.com";
+        }
+        return typeUrlPrefix + "/douyin.FansClub.FansClubData";
+      };
+
+      FansClubData.UserBadge = (function () {
+        /**
+         * Properties of a UserBadge.
+         * @memberof douyin.FansClub.FansClubData
+         * @interface IUserBadge
+         * @property {Object.<string,douyin.IImage>|null} [icons] UserBadge icons
+         * @property {string|null} [title] UserBadge title
+         */
+
+        /**
+         * Constructs a new UserBadge.
+         * @memberof douyin.FansClub.FansClubData
+         * @classdesc Represents a UserBadge.
+         * @implements IUserBadge
+         * @constructor
+         * @param {douyin.FansClub.FansClubData.IUserBadge=} [properties] Properties to set
+         */
+        function UserBadge(properties) {
+          this.icons = {};
+          if (properties)
+            for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+              if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * UserBadge icons.
+         * @member {Object.<string,douyin.IImage>} icons
+         * @memberof douyin.FansClub.FansClubData.UserBadge
+         * @instance
+         */
+        UserBadge.prototype.icons = $util.emptyObject;
+
+        /**
+         * UserBadge title.
+         * @member {string} title
+         * @memberof douyin.FansClub.FansClubData.UserBadge
+         * @instance
+         */
+        UserBadge.prototype.title = "";
+
+        /**
+         * Creates a new UserBadge instance using the specified properties.
+         * @function create
+         * @memberof douyin.FansClub.FansClubData.UserBadge
+         * @static
+         * @param {douyin.FansClub.FansClubData.IUserBadge=} [properties] Properties to set
+         * @returns {douyin.FansClub.FansClubData.UserBadge} UserBadge instance
+         */
+        UserBadge.create = function create(properties) {
+          return new UserBadge(properties);
+        };
+
+        /**
+         * Encodes the specified UserBadge message. Does not implicitly {@link douyin.FansClub.FansClubData.UserBadge.verify|verify} messages.
+         * @function encode
+         * @memberof douyin.FansClub.FansClubData.UserBadge
+         * @static
+         * @param {douyin.FansClub.FansClubData.IUserBadge} message UserBadge message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        UserBadge.encode = function encode(message, writer) {
+          if (!writer) writer = $Writer.create();
+          if (message.icons != null && Object.hasOwnProperty.call(message, "icons"))
+            for (let keys = Object.keys(message.icons), i = 0; i < keys.length; ++i) {
+              writer
+                .uint32(/* id 1, wireType 2 =*/ 10)
+                .fork()
+                .uint32(/* id 1, wireType 0 =*/ 8)
+                .int32(keys[i]);
+              $root.douyin.Image.encode(
+                message.icons[keys[i]],
+                writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+              )
+                .ldelim()
+                .ldelim();
+            }
+          if (message.title != null && Object.hasOwnProperty.call(message, "title"))
+            writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.title);
+          return writer;
+        };
+
+        /**
+         * Encodes the specified UserBadge message, length delimited. Does not implicitly {@link douyin.FansClub.FansClubData.UserBadge.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof douyin.FansClub.FansClubData.UserBadge
+         * @static
+         * @param {douyin.FansClub.FansClubData.IUserBadge} message UserBadge message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        UserBadge.encodeDelimited = function encodeDelimited(message, writer) {
+          return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes a UserBadge message from the specified reader or buffer.
+         * @function decode
+         * @memberof douyin.FansClub.FansClubData.UserBadge
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {douyin.FansClub.FansClubData.UserBadge} UserBadge
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        UserBadge.decode = function decode(reader, length) {
+          if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+          let end = length === undefined ? reader.len : reader.pos + length,
+            message = new $root.douyin.FansClub.FansClubData.UserBadge(),
+            key,
+            value;
+          while (reader.pos < end) {
+            let tag = reader.uint32();
+            switch (tag >>> 3) {
+              case 1: {
+                if (message.icons === $util.emptyObject) message.icons = {};
+                let end2 = reader.uint32() + reader.pos;
+                key = 0;
+                value = null;
+                while (reader.pos < end2) {
+                  let tag2 = reader.uint32();
+                  switch (tag2 >>> 3) {
+                    case 1:
+                      key = reader.int32();
+                      break;
+                    case 2:
+                      value = $root.douyin.Image.decode(reader, reader.uint32());
+                      break;
+                    default:
+                      reader.skipType(tag2 & 7);
+                      break;
+                  }
+                }
+                message.icons[key] = value;
+                break;
+              }
+              case 2: {
+                message.title = reader.string();
+                break;
+              }
+              default:
+                reader.skipType(tag & 7);
+                break;
+            }
+          }
+          return message;
+        };
+
+        /**
+         * Decodes a UserBadge message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof douyin.FansClub.FansClubData.UserBadge
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {douyin.FansClub.FansClubData.UserBadge} UserBadge
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        UserBadge.decodeDelimited = function decodeDelimited(reader) {
+          if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+          return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies a UserBadge message.
+         * @function verify
+         * @memberof douyin.FansClub.FansClubData.UserBadge
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        UserBadge.verify = function verify(message) {
+          if (typeof message !== "object" || message === null) return "object expected";
+          if (message.icons != null && message.hasOwnProperty("icons")) {
+            if (!$util.isObject(message.icons)) return "icons: object expected";
+            let key = Object.keys(message.icons);
+            for (let i = 0; i < key.length; ++i) {
+              if (!$util.key32Re.test(key[i])) return "icons: integer key{k:int32} expected";
+              {
+                let error = $root.douyin.Image.verify(message.icons[key[i]]);
+                if (error) return "icons." + error;
+              }
+            }
+          }
+          if (message.title != null && message.hasOwnProperty("title"))
+            if (!$util.isString(message.title)) return "title: string expected";
+          return null;
+        };
+
+        /**
+         * Creates a UserBadge message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof douyin.FansClub.FansClubData.UserBadge
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {douyin.FansClub.FansClubData.UserBadge} UserBadge
+         */
+        UserBadge.fromObject = function fromObject(object) {
+          if (object instanceof $root.douyin.FansClub.FansClubData.UserBadge) return object;
+          let message = new $root.douyin.FansClub.FansClubData.UserBadge();
+          if (object.icons) {
+            if (typeof object.icons !== "object")
+              throw TypeError(".douyin.FansClub.FansClubData.UserBadge.icons: object expected");
+            message.icons = {};
+            for (let keys = Object.keys(object.icons), i = 0; i < keys.length; ++i) {
+              if (typeof object.icons[keys[i]] !== "object")
+                throw TypeError(".douyin.FansClub.FansClubData.UserBadge.icons: object expected");
+              message.icons[keys[i]] = $root.douyin.Image.fromObject(object.icons[keys[i]]);
+            }
+          }
+          if (object.title != null) message.title = String(object.title);
+          return message;
+        };
+
+        /**
+         * Creates a plain object from a UserBadge message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof douyin.FansClub.FansClubData.UserBadge
+         * @static
+         * @param {douyin.FansClub.FansClubData.UserBadge} message UserBadge
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        UserBadge.toObject = function toObject(message, options) {
+          if (!options) options = {};
+          let object = {};
+          if (options.objects || options.defaults) object.icons = {};
+          if (options.defaults) object.title = "";
+          let keys2;
+          if (message.icons && (keys2 = Object.keys(message.icons)).length) {
+            object.icons = {};
+            for (let j = 0; j < keys2.length; ++j)
+              object.icons[keys2[j]] = $root.douyin.Image.toObject(
+                message.icons[keys2[j]],
+                options,
+              );
+          }
+          if (message.title != null && message.hasOwnProperty("title"))
+            object.title = message.title;
+          return object;
+        };
+
+        /**
+         * Converts this UserBadge to JSON.
+         * @function toJSON
+         * @memberof douyin.FansClub.FansClubData.UserBadge
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        UserBadge.prototype.toJSON = function toJSON() {
+          return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        /**
+         * Gets the default type url for UserBadge
+         * @function getTypeUrl
+         * @memberof douyin.FansClub.FansClubData.UserBadge
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        UserBadge.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+          if (typeUrlPrefix === undefined) {
+            typeUrlPrefix = "type.googleapis.com";
+          }
+          return typeUrlPrefix + "/douyin.FansClub.FansClubData.UserBadge";
+        };
+
+        return UserBadge;
+      })();
+
+      return FansClubData;
+    })();
+
+    return FansClub;
+  })();
+
   douyin.Image = (function () {
     /**
      * Properties of an Image.
      * @memberof douyin
      * @interface IImage
-     * @property {Array.<string>|null} [urlListList] Image urlListList
      * @property {string|null} [uri] Image uri
      * @property {number|Long|null} [height] Image height
      * @property {number|Long|null} [width] Image width
@@ -17692,19 +18903,10 @@ export const douyin = ($root.douyin = (() => {
      * @param {douyin.IImage=} [properties] Properties to set
      */
     function Image(properties) {
-      this.urlListList = [];
       if (properties)
         for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
           if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
     }
-
-    /**
-     * Image urlListList.
-     * @member {Array.<string>} urlListList
-     * @memberof douyin.Image
-     * @instance
-     */
-    Image.prototype.urlListList = $util.emptyArray;
 
     /**
      * Image uri.
@@ -17809,9 +19011,6 @@ export const douyin = ($root.douyin = (() => {
      */
     Image.encode = function encode(message, writer) {
       if (!writer) writer = $Writer.create();
-      if (message.urlListList != null && message.urlListList.length)
-        for (let i = 0; i < message.urlListList.length; ++i)
-          writer.uint32(/* id 1, wireType 2 =*/ 10).string(message.urlListList[i]);
       if (message.uri != null && Object.hasOwnProperty.call(message, "uri"))
         writer.uint32(/* id 2, wireType 2 =*/ 18).string(message.uri);
       if (message.height != null && Object.hasOwnProperty.call(message, "height"))
@@ -17875,11 +19074,6 @@ export const douyin = ($root.douyin = (() => {
       while (reader.pos < end) {
         let tag = reader.uint32();
         switch (tag >>> 3) {
-          case 1: {
-            if (!(message.urlListList && message.urlListList.length)) message.urlListList = [];
-            message.urlListList.push(reader.string());
-            break;
-          }
           case 2: {
             message.uri = reader.string();
             break;
@@ -17953,11 +19147,6 @@ export const douyin = ($root.douyin = (() => {
      */
     Image.verify = function verify(message) {
       if (typeof message !== "object" || message === null) return "object expected";
-      if (message.urlListList != null && message.hasOwnProperty("urlListList")) {
-        if (!Array.isArray(message.urlListList)) return "urlListList: array expected";
-        for (let i = 0; i < message.urlListList.length; ++i)
-          if (!$util.isString(message.urlListList[i])) return "urlListList: string[] expected";
-      }
       if (message.uri != null && message.hasOwnProperty("uri"))
         if (!$util.isString(message.uri)) return "uri: string expected";
       if (message.height != null && message.hasOwnProperty("height"))
@@ -18014,13 +19203,6 @@ export const douyin = ($root.douyin = (() => {
     Image.fromObject = function fromObject(object) {
       if (object instanceof $root.douyin.Image) return object;
       let message = new $root.douyin.Image();
-      if (object.urlListList) {
-        if (!Array.isArray(object.urlListList))
-          throw TypeError(".douyin.Image.urlListList: array expected");
-        message.urlListList = [];
-        for (let i = 0; i < object.urlListList.length; ++i)
-          message.urlListList[i] = String(object.urlListList[i]);
-      }
       if (object.uri != null) message.uri = String(object.uri);
       if (object.height != null)
         if ($util.Long) (message.height = $util.Long.fromValue(object.height)).unsigned = true;
@@ -18074,7 +19256,6 @@ export const douyin = ($root.douyin = (() => {
     Image.toObject = function toObject(message, options) {
       if (!options) options = {};
       let object = {};
-      if (options.arrays || options.defaults) object.urlListList = [];
       if (options.defaults) {
         object.uri = "";
         if ($util.Long) {
@@ -18102,11 +19283,6 @@ export const douyin = ($root.douyin = (() => {
         object.isAnimated = false;
         object.FlexSettingList = null;
         object.TextSettingList = null;
-      }
-      if (message.urlListList && message.urlListList.length) {
-        object.urlListList = [];
-        for (let j = 0; j < message.urlListList.length; ++j)
-          object.urlListList[j] = message.urlListList[j];
       }
       if (message.uri != null && message.hasOwnProperty("uri")) object.uri = message.uri;
       if (message.height != null && message.hasOwnProperty("height"))

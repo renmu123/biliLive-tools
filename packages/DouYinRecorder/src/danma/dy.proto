@@ -34,23 +34,24 @@ message ChatMessage {
   Common common = 1;
   User user = 2;
   string content = 3;
-  bool visibleToSender = 4;
-  Image backgroundImage = 5;
-  string fullScreenTextColor = 6;
-  Image backgroundImageV2 = 7;
-  PublicAreaCommon publicAreaCommon = 8;
-  Image giftImage = 9;
-  uint64 agreeMsgId = 11;
-  uint32 priorityLevel = 12;
-  LandscapeAreaCommon landscapeAreaCommon = 13;
-  uint64 eventTime = 15;
-  bool sendReview = 16;
-  bool fromIntercom = 17;
-  bool intercomHideUserCard = 18;
-//  repeated chatTagsList = 19;
-  string chatBy  = 20;
-  uint32 individualChatPriority = 21;
-  Text rtfContent = 22;
+  // bool visibleToSender = 4;
+  // Image backgroundImage = 5;
+  // string fullScreenTextColor = 6;
+  // Image backgroundImageV2 = 7;
+  // PublicAreaCommon publicAreaCommon = 8;
+  // Image giftImage = 9;
+  // uint64 agreeMsgId = 11;
+  // int32 priorityLevel = 12;
+  // LandscapeAreaCommon landscapeAreaCommon = 13;
+  // uint64 eventTime = 15;
+  // bool sendReview = 16;
+  // bool fromIntercom = 17;
+  // bool intercomHideUserCard = 18;
+  // repeated int32 chatTags = 19;
+  // uint64 chatBy  = 20;
+  // uint32 individualChatPriority = 21;
+  // Text rtfContent = 40;
+  // Text rtfContentV2 = 41;
 }
 
 message LandscapeAreaCommon {
@@ -424,6 +425,7 @@ message Common {
   uint64 channelId = 21;
   uint64 diffSei2absSecond = 22;
   uint64 anchorFoldDuration = 23;
+  uint64 appId = 24;
 }
 
 message User {
@@ -448,9 +450,9 @@ message User {
   string ShareQrcodeUri = 19;
   uint32 IncomeSharePercent = 20;
   repeated Image BadgeImageList = 21;
-//  FollowInfo FollowInfo = 22;
-//  PayGrade PayGrade = 23;
-//  FansClub FansClub = 24;
+  FollowInfo FollowInfo = 22;
+  // PayGrade PayGrade = 23;
+  FansClub FansClub = 24;
 //  Border Border = 25;
   string SpecialId = 26;
   Image AvatarBorder = 27;
@@ -458,8 +460,82 @@ message User {
   repeated Image RealTimeIconsList = 29;
 }
 
+message FollowInfo {
+  uint64 following_count = 1;
+  uint64 follower_count = 2;
+  uint64 follow_status = 3;
+  uint64 push_status = 4;
+  string remark_name = 5;
+  string follower_count_str = 6;
+  string following_count_str = 7;
+  bool invalid_follow_status = 8;
+}
+
+// message PayGrade {
+//   uint64 total_diamond_count = 1;
+//   Image diamond_icon = 2;
+//   string name = 3;
+//   Image icon = 4;
+//   string next_name = 5;
+//   uint64 level = 6;
+//   Image next_icon = 7;
+//   uint64 next_diamond = 8;
+//   uint64 now_diamond = 9;
+//   uint64 this_grade_min_diamond = 10;
+//   uint64 this_grade_max_diamond = 11;
+//   uint64 pay_diamond_bak = 12;
+//   string grade_describe = 13;
+//   repeated GradeIcon grade_icon_list = 14;
+//   uint64 screen_chat_type = 15;
+//   Image im_icon = 16;
+//   Image im_icon_with_level = 17;
+//   Image live_icon = 18;
+//   Image new_im_icon_with_level = 19;
+//   Image new_live_icon = 20;
+//   uint64 upgrade_need_consume = 21;
+//   string next_privileges = 22;
+//   Image background = 23;
+//   Image background_back = 24;
+//   uint64 score = 25;
+//   GradeBuffInfo buff_info = 26;
+//   bool grade_describe_shining = 27;
+//   string grade_banner = 1001;
+//   Image profile_dialog_bg = 1002;
+//   Image profile_dialog_bg_back = 1003;
+
+//   message GradeIcon {
+//     Image icon = 1;
+//     uint64 icon_diamond = 2;
+//     uint64 level = 3;
+//     string level_str = 4;
+//   }
+// }
+
+message FansClub {
+  FansClubData data = 1;
+  map<int32, FansClubData> prefer_data = 2;
+
+  message FansClubData {
+    string club_name = 1;
+    int32 level = 2;
+    int32 user_fans_club_status = 3;
+    UserBadge badge = 4;
+    repeated uint64 available_gift_ids = 5;
+    uint64 anchor_id = 6;
+    int32 badge_type = 7;
+    int32 user_guard_status = 8;
+    uint64 guard_expired_time = 9;
+    string anchor_open_id = 5000;
+
+    message UserBadge {
+      map<int32, Image> icons = 1;
+      string title = 2;
+    }
+  }
+}
+
 message Image {
-  repeated string urlListList = 1;
+  // repeated string urlListList = 1;
   string uri = 2;
   uint64 height = 3;
   uint64 width = 4;
