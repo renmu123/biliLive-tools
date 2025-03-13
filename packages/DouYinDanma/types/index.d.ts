@@ -36,6 +36,7 @@ declare class DouYinDanmaClient extends TypedEmitter<Events> {
       autoStart?: boolean;
       autoReconnect?: number;
       heartbeatInterval?: number;
+      cookie?: string;
     },
   );
   connect(): Promise<void>;
