@@ -219,6 +219,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     huya: {
       quality: 0,
     },
+    douyin: {
+      quality: "origin",
+    },
   },
   video: {
     subCheckInterval: 60,

@@ -29,7 +29,7 @@ function buildRequestUrl(url: string): string {
   existingParams["browser_name"] = "Mozilla";
   existingParams["browser_version"] = "92.0.4515.159";
 
-  parsedUrl.search = undefined;
+  parsedUrl.search = null;
   parsedUrl.query = existingParams;
 
   return format(parsedUrl);
@@ -79,7 +79,11 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   async connect() {
-    const [url] = await this.getWsInfo(this.roomId);
+    const url = await this.getWsInfo(this.roomId);
+    if (!url) {
+      this.emit("error", new Error("获取抖音弹幕签名失败"));
+      return;
+    }
     this.url = url;
     const cookies = await getCookie();
     this.ws = new WebSocket(this.url, {
@@ -257,7 +261,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     const msgs: any[] = [];
     // @ts-ignore
     for (const msg of payloadPackage.messagesList) {
-      const now = new Date();
+      // const now = new Date();
       try {
         if (msg.method === "WebcastChatMessage") {
           const chatMessage = ChatMessage.decode(msg.payload);
@@ -295,7 +299,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     }
     return [msgs, ack];
   }
-  async getWsInfo(roomId: string): Promise<[string, any[]]> {
+  async getWsInfo(roomId: string): Promise<string | undefined> {
     const userUniqueId = getUserUniqueId();
     // const userUniqueId = "7877922945687137703";
     const versionCode = 180800;
@@ -322,8 +326,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       const m = getXMsStub(sigParams);
       signature = getSignature(m); // 这里应该获取签名
     } catch (e) {
-      this.emit("error", e);
-      console.error("获取抖音弹幕签名失败:", e);
+      return;
     }
 
     const webcast5Params = {
@@ -339,7 +342,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     };
 
     const wssUrl = `wss://webcast5-ws-web-lf.douyin.com/webcast/im/push/v2/?${new URLSearchParams(webcast5Params).toString()}`;
-    return [buildRequestUrl(wssUrl), []];
+    return buildRequestUrl(wssUrl);
   }
 }
 
