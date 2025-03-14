@@ -48,6 +48,7 @@ export function defaultToJSON<E extends AnyObject>(
       "disableProvideCommentsWhenRecording",
       "liveInfo",
       "uid",
+      "titleKeywords",
     ]),
   };
 }

@@ -223,6 +223,15 @@
               >全局</n-checkbox
             >
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="标题关键词" tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔"></Tip>
+            </template>
+            <n-input
+              v-model:value="config.titleKeywords"
+              placeholder="例如：回放,录播,重播"
+            />
+          </n-form-item>
         </template>
         <template v-if="config.providerId === 'HuYa'">
           <n-form-item>
@@ -404,6 +413,7 @@ const config = ref<Omit<Recorder, "id">>({
   formatName: "auto",
   useM3U8Proxy: false,
   codecName: "auto",
+  titleKeywords: "",
 });
 
 const confirm = async () => {
@@ -461,6 +471,7 @@ const onChannelIdInputEnd = async () => {
     config.value.extra!.recorderUid = res.uid;
   } else if (res.providerId === "DouYu") {
     config.value.quality = 0;
+    config.value.titleKeywords = "";
   } else if (res.providerId === "HuYa") {
     config.value.quality = 0;
   } else if (res.providerId === "DouYin") {
@@ -494,6 +505,7 @@ watch(showModal, async (val) => {
       formatName: "auto",
       useM3U8Proxy: false,
       codecName: "auto",
+      titleKeywords: "",
     };
 
     if (props.id) {

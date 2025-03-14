@@ -385,6 +385,8 @@ export interface Recorder {
   formatName: GlobalRecorder["bilibili"]["formatName"];
   useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];
   codecName: GlobalRecorder["bilibili"]["codecName"];
+  /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
+  titleKeywords?: string;
   // 不跟随全局配置字段
   noGlobalFollowFields: Array<
     Exclude<
@@ -400,6 +402,7 @@ export interface Recorder {
       | "sourcePriorities"
       | "noGlobalFollowFields"
       | "line"
+      | "titleKeywords"
     >
   >;
 }
