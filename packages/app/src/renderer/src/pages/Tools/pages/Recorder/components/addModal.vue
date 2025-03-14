@@ -58,10 +58,10 @@
         </n-form-item>
         <n-form-item>
           <template #label>
-            <span class="inline-flex">
-              发送至webhook
-              <Tip tip="你可以在设置中进行处理，主要用于弹幕压制以及上传功能"></Tip>
-            </span>
+            <Tip
+              text="发送至webhook"
+              tip="你可以在设置中进行处理，主要用于弹幕压制以及上传功能"
+            ></Tip>
           </template>
           <n-switch v-model:value="config.sendToWebhook" />
         </n-form-item>
@@ -225,12 +225,12 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip text="标题关键词" tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔"></Tip>
+              <Tip
+                text="标题关键词"
+                tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查"
+              ></Tip>
             </template>
-            <n-input
-              v-model:value="config.titleKeywords"
-              placeholder="例如：回放,录播,重播"
-            />
+            <n-input v-model:value="config.titleKeywords" placeholder="例如：回放,录播,重播" />
           </n-form-item>
         </template>
         <template v-if="config.providerId === 'HuYa'">
@@ -266,10 +266,7 @@
 
         <n-form-item>
           <template #label>
-            <span class="inline-flex">
-              分段录制
-              <Tip tip="0为不分段"></Tip>
-            </span>
+            <Tip text="分段录制" tip="0为不分段"></Tip>
           </template>
           <n-input-number
             v-model:value="config.segment"
