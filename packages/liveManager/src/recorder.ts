@@ -49,6 +49,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   codecName?: CodecName;
   /** 选择使用的api，虎牙支持 */
   api?: "auto" | "web" | "mp";
+  /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
+  titleKeywords?: string;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
 }
@@ -128,6 +130,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
       getSavePath: GetSavePath;
       qualityRetry?: number;
       banLiveId?: string;
+      isManualStart?: boolean;
     },
   ) => Promise<RecordHandle | null>;
   // 正在进行的录制的操作接口

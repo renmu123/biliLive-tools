@@ -94,12 +94,60 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   getSavePath,
   qualityRetry,
   banLiveId,
+  isManualStart,
 }) {
-  if (this.recordHandle != null) return this.recordHandle;
-
+  // 如果已经在录制中，只在需要检查标题关键词时才获取最新信息
+  if (this.recordHandle != null) {
+    // 只有当设置了标题关键词时，并且不是手动启动的录制，才获取最新的直播间信息
+    if (!isManualStart && this.titleKeywords && typeof this.titleKeywords === 'string' && this.titleKeywords.trim()) {
+      const now = Date.now();
+      // 每5分钟检查一次标题变化
+      const titleCheckInterval = 5 * 60 * 1000; // 5分钟
+      
+      // 获取上次检查时间
+      const lastCheckTime = typeof this.extra.lastTitleCheckTime === 'number' 
+        ? this.extra.lastTitleCheckTime 
+        : 0;
+      
+      // 如果距离上次检查时间不足指定间隔，则跳过检查
+      if (now - lastCheckTime < titleCheckInterval) {
+        return this.recordHandle;
+      }
+      
+      // 更新检查时间
+      this.extra.lastTitleCheckTime = now;
+      
+      // 获取直播间信息
+      const liveInfo = await getInfo(this.channelId);
+      const { title } = liveInfo;
+      
+      // 检查标题是否包含关键词
+      const keywords = this.titleKeywords.split(',').map(k => k.trim()).filter(k => k);
+      const hasTitleKeyword = keywords.some(keyword => 
+        title.toLowerCase().includes(keyword.toLowerCase())
+      );
+      
+      if (hasTitleKeyword) {
+        this.emit("DebugLog", {
+          type: "common",
+          text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
+        });
+        
+        // 返回 null，停止录制
+        return null;
+      }
+    }
+    
+    // 已经在录制中，直接返回
+    return this.recordHandle;
+  }
+  
+  // 获取直播间信息
   const liveInfo = await getInfo(this.channelId);
-  this.liveInfo = liveInfo;
   const { living, owner, title } = liveInfo;
+  
+  this.liveInfo = liveInfo;
+  
   if (liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
@@ -107,6 +155,22 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
   if (this.tempStopIntervalCheck) return null;
   if (!living) return null;
+  
+  // 检查标题是否包含关键词，如果包含则不自动录制
+  // 手动开始录制时不检查标题关键词
+  if (!isManualStart && this.titleKeywords && typeof this.titleKeywords === 'string' && this.titleKeywords.trim()) {
+    const keywords = this.titleKeywords.split(',').map(k => k.trim()).filter(k => k);
+    const hasTitleKeyword = keywords.some(keyword => 
+      title.toLowerCase().includes(keyword.toLowerCase())
+    );
+    if (hasTitleKeyword) {
+      this.emit("DebugLog", {
+        type: "common",
+        text: `跳过录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
+      });
+      return null;
+    }
+  }
 
   this.state = "recording";
   let res: Awaited<ReturnType<typeof getStream>>;
