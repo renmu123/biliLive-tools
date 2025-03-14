@@ -133,6 +133,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
         });
         
+        // 停止录制
+        await this.recordHandle.stop("直播间标题包含关键词");
         // 返回 null，停止录制
         return null;
       }
