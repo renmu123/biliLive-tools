@@ -1,23 +1,26 @@
-import path from "path";
+import path from "node:path";
 import mitt from "mitt";
 import {
-  Recorder,
-  RecorderCreateOpts,
-  RecorderProvider,
-  createFFMPEGBuilder,
-  RecordHandle,
   defaultFromJSON,
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
+  utils,
+  FFMPEGRecorder,
+} from "@bililive-tools/manager";
+
+import { getInfo, getStream } from "./stream.js";
+import { ensureFolderExist } from "./utils.js";
+import HuYaDanMu, { HuYaMessage } from "huya-danma-listener";
+
+import type {
   Comment,
   GiveGift,
-  StreamManager,
-  utils,
+  Recorder,
+  RecorderCreateOpts,
+  RecorderProvider,
+  RecordHandle,
 } from "@bililive-tools/manager";
-import { getInfo, getStream } from "./stream.js";
-import { assertStringType, ensureFolderExist, createInvalidStreamChecker } from "./utils.js";
-import HuYaDanMu, { HuYaMessage } from "huya-danma-listener";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
@@ -140,17 +143,33 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedStream = stream.name;
   this.usedSource = stream.source;
 
-  const hasSegment = !!this.segment;
-  const streamManager = new StreamManager(
-    (opts: { startTime?: number }) =>
-      getSavePath({
-        owner,
-        title,
-        startTime: opts.startTime,
-      }),
-    hasSegment,
+  let isEnded = false;
+  const onEnd = (...args: unknown[]) => {
+    if (isEnded) return;
+    isEnded = true;
+    this.emit("DebugLog", {
+      type: "common",
+      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
+    });
+    const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
+    this.recordHandle?.stop(reason);
+  };
+
+  const recorder = new FFMPEGRecorder(
+    {
+      url: stream.url,
+      outputOptions: ffmpegOutputOptions,
+      inputOptions: ffmpegInputOptions,
+      segment: this.segment,
+      getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
+    },
+    onEnd,
   );
-  const savePath = streamManager.videoFilePath;
+
+  const savePath = getSavePath({
+    owner,
+    title,
+  });
 
   try {
     ensureFolderExist(savePath);
@@ -161,7 +180,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const handleVideoCreated = async ({ filename }) => {
     this.emit("videoFileCreated", { filename });
-    const extraDataController = streamManager?.getExtraDataController();
+    const extraDataController = recorder?.getExtraDataController();
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
@@ -171,11 +190,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       user_name: owner,
     });
   };
-  streamManager.on("videoFileCreated", handleVideoCreated);
-  streamManager.on("videoFileCompleted", ({ filename }) => {
+  recorder.on("videoFileCreated", handleVideoCreated);
+  recorder.on("videoFileCompleted", ({ filename }) => {
     this.emit("videoFileCompleted", { filename });
   });
-  streamManager.on("DebugLog", (data) => {
+  recorder.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
   });
 
@@ -183,7 +202,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!this.disableProvideCommentsWhenRecording) {
     client = new HuYaDanMu(this.channelId);
     client.on("message", (msg: HuYaMessage) => {
-      const extraDataController = streamManager.getExtraDataController();
+      const extraDataController = recorder.getExtraDataController();
       if (!extraDataController) return;
 
       switch (msg.type) {
@@ -235,80 +254,26 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
   }
 
-  let isEnded = false;
-  const onEnd = (...args: unknown[]) => {
-    if (isEnded) return;
-    isEnded = true;
-    this.emit("DebugLog", {
-      type: "common",
-      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
-    });
-    const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
-    this.recordHandle?.stop(reason);
-  };
-
-  const isInvalidStream = createInvalidStreamChecker();
-  const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 10e3);
-  const command = createFFMPEGBuilder()
-    .input(stream.url)
-    .addInputOptions(ffmpegInputOptions)
-    .outputOptions(ffmpegOutputOptions)
-    .output(streamManager.videoFilePath)
-    .on("start", () => {
-      streamManager.handleVideoStarted();
-    })
-    .on("error", onEnd)
-    .on("end", () => onEnd("finished"))
-    .on("stderr", async (stderrLine) => {
-      if (utils.isFfmpegStartSegment(stderrLine)) {
-        await streamManager.handleVideoStarted(stderrLine);
-      }
-
-      assertStringType(stderrLine);
-      this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
-
-      if (isInvalidStream(stderrLine)) {
-        onEnd("invalid stream");
-      }
-    })
-    .on("stderr", timeoutChecker.update);
-
-  if (hasSegment) {
-    command.outputOptions(
-      "-f",
-      "segment",
-      "-segment_time",
-      String(this.segment! * 60),
-      "-reset_timestamps",
-      "1",
-    );
-  }
-  const ffmpegArgs = command._getArguments();
-  command.run();
+  const ffmpegArgs = recorder.getArguments();
+  recorder.run();
 
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
 
     this.state = "stopping-record";
-    // TODO: emit update event
 
-    timeoutChecker.stop();
-
-    // @ts-ignore
-    command.ffmpegProc?.stdin?.write("q");
-    // TODO: 这里可能会有内存泄露，因为事件还没清，之后再检查下看看。
     client?.stop();
+    recorder.stop();
 
     this.usedStream = undefined;
     this.usedSource = undefined;
-    // TODO: other codes
-    // TODO: emit update event
 
-    await streamManager.handleVideoCompleted();
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.liveInfo = undefined;
     this.state = "idle";
+
+    await recorder.handleVideoCompleted();
   });
 
   this.recordHandle = {
