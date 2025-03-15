@@ -69,16 +69,12 @@ export const huyaQualityOptions = [
     label: "原画",
   },
   {
-    value: 14100,
-    label: "2K HDR",
+    value: 20000,
+    label: "蓝光20M",
   },
   {
-    value: 14000,
-    label: "2K",
-  },
-  {
-    value: 4200,
-    label: "HDR(10M)",
+    value: 10000,
+    label: "蓝光10M",
   },
   {
     value: 8000,
@@ -95,6 +91,18 @@ export const huyaQualityOptions = [
   {
     value: 500,
     label: "流畅",
+  },
+  {
+    value: 14100,
+    label: "2K HDR",
+  },
+  {
+    value: 14000,
+    label: "2K",
+  },
+  {
+    value: 4200,
+    label: "HDR(10M)",
   },
 ];
 
