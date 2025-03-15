@@ -64,17 +64,11 @@ export class FFMPEGRecorder extends EventEmitter {
       ])
       .outputOptions(this.ffmpegOutputOptions)
       .output(this.streamManager.videoFilePath)
-      .on("start", () => {
-        // TODO: 不要在这里检测，在stderr中检测for reading
-        this.streamManager.handleVideoStarted();
-      })
       .on("error", this.onEnd)
       .on("end", () => this.onEnd("finished"))
       .on("stderr", async (stderrLine) => {
         assert(typeof stderrLine === "string");
-        if (utils.isFfmpegStartSegment(stderrLine)) {
-          await this.streamManager.handleVideoStarted(stderrLine);
-        }
+        await this.streamManager.handleVideoStarted(stderrLine);
         // TODO:解析时间
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 

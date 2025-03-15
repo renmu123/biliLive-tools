@@ -2,7 +2,7 @@ import EventEmitter from "node:events";
 
 import fs from "fs-extra";
 import { createRecordExtraDataController } from "./record_extra_data_controller.js";
-import { replaceExtName, ensureFolderExist } from "./utils.js";
+import { replaceExtName, ensureFolderExist, isFfmpegStartSegment, isFfmpegStart } from "./utils.js";
 
 export type GetSavePath = (data: { startTime: number }) => string;
 
@@ -74,6 +74,7 @@ export class StreamManager extends EventEmitter {
   private segment: Segment | null = null;
   private extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   recordSavePath: string;
+  recordStartTime: number;
 
   constructor(getSavePath: GetSavePath, hasSegment: boolean) {
     super();
@@ -97,13 +98,18 @@ export class StreamManager extends EventEmitter {
     }
   }
 
-  async handleVideoStarted(stderrLine?: string) {
+  async handleVideoStarted(stderrLine: string) {
     if (this.segment) {
-      if (stderrLine) {
+      if (isFfmpegStartSegment(stderrLine)) {
         await this.segment.onSegmentStart(stderrLine);
       }
     } else {
-      this.emit("videoFileCreated", { filename: this.videoFilePath });
+      // 不能直接在onStart回调进行判断，在某些情况下会链接无法录制的情况
+      if (isFfmpegStart(stderrLine)) {
+        if (this.recordStartTime) return;
+        this.recordStartTime = Date.now();
+        this.emit("videoFileCreated", { filename: this.videoFilePath });
+      }
     }
   }
 
@@ -111,9 +117,10 @@ export class StreamManager extends EventEmitter {
     if (this.segment) {
       await this.segment.handleSegmentEnd();
     } else {
-      //TODO: 如果在没有分段的情况下，且没有触发过 videoFileCreated，那么不需要触发 videoFileCompleted
-      await this.getExtraDataController()?.flush();
-      this.emit("videoFileCompleted", { filename: this.videoFilePath });
+      if (this.recordStartTime) {
+        await this.getExtraDataController()?.flush();
+        this.emit("videoFileCompleted", { filename: this.videoFilePath });
+      }
     }
   }
 

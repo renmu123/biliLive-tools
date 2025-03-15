@@ -159,6 +159,10 @@ export function isFfmpegStartSegment(line: string) {
   return line.includes("Opening ") && line.includes("for writing");
 }
 
+export function isFfmpegStart(line: string) {
+  return line.includes("frame=") && line.includes("fps=");
+}
+
 export const formatTemplate = function template(string: string, ...args: any[]) {
   const nargs = /\{([0-9a-zA-Z_]+)\}/g;
 
