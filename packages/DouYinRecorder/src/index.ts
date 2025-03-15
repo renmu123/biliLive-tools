@@ -246,10 +246,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   const ffmpegArgs = recorder.getArguments();
-  // extraDataController.setMeta({
-  //   recordStartTimestamp: Date.now(),
-  //   ffmpegArgs,
-  // });
   recorder.run();
 
   const stop = singleton<RecordHandle["stop"]>(async (reason?: string) => {

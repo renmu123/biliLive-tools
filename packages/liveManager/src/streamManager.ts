@@ -111,6 +111,7 @@ export class StreamManager extends EventEmitter {
     if (this.segment) {
       await this.segment.handleSegmentEnd();
     } else {
+      //TODO: 如果在没有分段的情况下，且没有触发过 videoFileCreated，那么不需要触发 videoFileCompleted
       await this.getExtraDataController()?.flush();
       this.emit("videoFileCompleted", { filename: this.videoFilePath });
     }

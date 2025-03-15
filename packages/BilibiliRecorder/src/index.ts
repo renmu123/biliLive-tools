@@ -1,23 +1,28 @@
 import path from "node:path";
 import mitt from "mitt";
 import {
-  Recorder,
-  RecorderCreateOpts,
-  RecorderProvider,
-  createFFMPEGBuilder,
-  RecordHandle,
   defaultFromJSON,
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  StreamManager,
   utils,
+  FFMPEGRecorder,
 } from "@bililive-tools/manager";
-import type { Comment, GiveGift, SuperChat, Guard } from "@bililive-tools/manager";
 
 import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
-import { assertStringType, ensureFolderExist, createInvalidStreamChecker } from "./utils.js";
+import { ensureFolderExist } from "./utils.js";
 import { startListen, MsgHandler } from "./blive-message-listener/index.js";
+
+import type {
+  Comment,
+  GiveGift,
+  SuperChat,
+  Guard,
+  Recorder,
+  RecorderCreateOpts,
+  RecorderProvider,
+  RecordHandle,
+} from "@bililive-tools/manager";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
@@ -101,8 +106,6 @@ const ffmpegInputOptions: string[] = [
   "5",
   "-rw_timeout",
   "5000000",
-  "-user_agent",
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
   "-headers",
   "Referer:https://live.bilibili.com/",
 ];
@@ -121,7 +124,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     cover: "",
     liveId: "",
   };
-  let danmakuRetry = 5;
 
   if (liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
@@ -195,20 +197,35 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       50 * 60 * 1000,
     );
   }
-  // console.log(streamOptions.protocol_name, url);
 
-  const hasSegment = !!this.segment;
-  const streamManager = new StreamManager(
-    (opts: { startTime?: number }) =>
-      getSavePath({
-        owner,
-        title,
-        startTime: opts.startTime,
-      }),
-    hasSegment,
+  let isEnded = false;
+  const onEnd = (...args: unknown[]) => {
+    if (isEnded) return;
+    isEnded = true;
+    this.emit("DebugLog", {
+      type: "common",
+      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
+    });
+    const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
+    this.recordHandle?.stop(reason);
+  };
+
+  const recorder = new FFMPEGRecorder(
+    {
+      url: stream.url,
+      outputOptions: ffmpegOutputOptions,
+      inputOptions: ffmpegInputOptions,
+      segment: this.segment,
+      getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
+      isHls: streamOptions.protocol_name === "http_hls",
+    },
+    onEnd,
   );
 
-  const savePath = streamManager.videoFilePath;
+  const savePath = getSavePath({
+    owner,
+    title,
+  });
 
   try {
     ensureFolderExist(savePath);
@@ -219,7 +236,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const handleVideoCreated = async ({ filename }) => {
     this.emit("videoFileCreated", { filename });
-    const extraDataController = streamManager?.getExtraDataController();
+    const extraDataController = recorder?.getExtraDataController();
     extraDataController?.setMeta({
       room_id: String(roomId),
       platform: provider?.id,
@@ -229,19 +246,20 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       user_name: owner,
     });
   };
-  streamManager.on("videoFileCreated", handleVideoCreated);
-  streamManager.on("videoFileCompleted", ({ filename }) => {
+  recorder.on("videoFileCreated", handleVideoCreated);
+  recorder.on("videoFileCompleted", ({ filename }) => {
     this.emit("videoFileCompleted", { filename });
   });
-  streamManager.on("DebugLog", (data) => {
+  recorder.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
   });
 
+  let danmakuRetry = 5;
   let client: ReturnType<typeof startListen> | null = null;
   if (!this.disableProvideCommentsWhenRecording) {
     const handler: MsgHandler = {
       onIncomeDanmu: (msg) => {
-        const extraDataController = streamManager.getExtraDataController();
+        const extraDataController = recorder.getExtraDataController();
         if (!extraDataController) return;
 
         let content = msg.body.content;
@@ -270,7 +288,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         extraDataController.addMessage(comment);
       },
       onIncomeSuperChat: (msg) => {
-        const extraDataController = streamManager.getExtraDataController();
+        const extraDataController = recorder.getExtraDataController();
         if (!extraDataController) return;
         if (this.saveSCDanma === false) return;
 
@@ -295,7 +313,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         extraDataController.addMessage(comment);
       },
       onGuardBuy: (msg) => {
-        const extraDataController = streamManager.getExtraDataController();
+        const extraDataController = recorder.getExtraDataController();
         if (!extraDataController) return;
 
         // console.log("guard", msg);
@@ -321,7 +339,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         extraDataController.addMessage(gift);
       },
       onGift: (msg) => {
-        const extraDataController = streamManager.getExtraDataController();
+        const extraDataController = recorder.getExtraDataController();
         if (!extraDataController) return;
 
         // console.log("gift", msg);
@@ -374,88 +392,22 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     console.log("start listen", roomId, this.auth, this.uid);
   }
 
-  let isEnded = false;
-  const onEnd = (...args: unknown[]) => {
-    if (isEnded) return;
-    isEnded = true;
-    this.emit("DebugLog", {
-      type: "common",
-      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
-    });
-    const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
-    this.recordHandle?.stop(reason);
-  };
-
-  let invalidCount = 15;
-  if (streamOptions.protocol_name === "http_hls") {
-    invalidCount = 35;
-  }
-  const isInvalidStream = createInvalidStreamChecker(invalidCount);
-  const timeoutChecker = utils.createTimeoutChecker(() => onEnd("ffmpeg timeout"), 3 * 10e3);
-  const command = createFFMPEGBuilder()
-    .input(url)
-    .addInputOptions(ffmpegInputOptions)
-    .outputOptions(ffmpegOutputOptions)
-    .output(streamManager.videoFilePath)
-    .on("start", async () => {
-      try {
-        await streamManager.handleVideoStarted();
-      } catch (err) {
-        onEnd("ffmpeg start error");
-        this.emit("DebugLog", { type: "common", text: String(err) });
-      }
-    })
-    .on("error", onEnd)
-    .on("end", () => onEnd("finished"))
-    .on("stderr", async (stderrLine) => {
-      assertStringType(stderrLine);
-      if (utils.isFfmpegStartSegment(stderrLine)) {
-        try {
-          await streamManager.handleVideoStarted(stderrLine);
-        } catch (err) {
-          onEnd("ffmpeg start error");
-          this.emit("DebugLog", { type: "common", text: String(err) });
-        }
-      }
-      this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
-
-      if (isInvalidStream(stderrLine)) {
-        onEnd("invalid stream");
-      }
-    })
-    .on("stderr", timeoutChecker.update);
-  if (hasSegment) {
-    command.outputOptions(
-      "-f",
-      "segment",
-      "-segment_time",
-      String(this.segment! * 60),
-      "-reset_timestamps",
-      "1",
-    );
-  }
-  const ffmpegArgs = command._getArguments();
-  command.run();
+  const ffmpegArgs = recorder.getArguments();
+  recorder.run();
 
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
 
     this.state = "stopping-record";
-    // TODO: emit update event
-
-    timeoutChecker.stop();
     intervalId && clearInterval(intervalId);
+    this.usedStream = undefined;
+    this.usedSource = undefined;
+    client?.close();
+    recorder.stop();
 
     try {
-      // @ts-ignore
-      command.ffmpegProc?.stdin?.write("q");
-      client?.close();
-      this.usedStream = undefined;
-      this.usedSource = undefined;
-
-      await streamManager.handleVideoCompleted();
+      await recorder.handleVideoCompleted();
     } catch (err) {
-      // TODO: 这个 stop 经常报错，这里先把错误吞掉，以后再处理。
       this.emit("DebugLog", { type: "common", text: String(err) });
     }
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });

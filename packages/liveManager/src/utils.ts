@@ -190,7 +190,7 @@ export const formatTemplate = function template(string: string, ...args: any[]) 
   });
 };
 
-export function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean {
+export function createInvalidStreamChecker(count: number = 15): (ffmpegLogLine: string) => boolean {
   let prevFrame = 0;
   let frameUnchangedCount = 0;
 
@@ -203,7 +203,7 @@ export function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean
       const frame = Number(frameText);
 
       if (frame === prevFrame) {
-        if (++frameUnchangedCount >= 10) {
+        if (++frameUnchangedCount >= count) {
           return true;
         }
       } else {
@@ -212,10 +212,6 @@ export function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean
       }
 
       return false;
-    }
-
-    if (ffmpegLogLine.includes("HTTP error 404 Not Found")) {
-      return true;
     }
 
     return false;

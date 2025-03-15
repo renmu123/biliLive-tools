@@ -92,10 +92,6 @@ export function createInvalidStreamChecker(count: number = 10): (ffmpegLogLine: 
       return false;
     }
 
-    // if (ffmpegLogLine.includes("HTTP error 404 Not Found")) {
-    //   return true;
-    // }
-
     return false;
   };
 }

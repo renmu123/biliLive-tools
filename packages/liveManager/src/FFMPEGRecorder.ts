@@ -11,6 +11,8 @@ export class FFMPEGRecorder extends EventEmitter {
   getSavePath: (data: { startTime: number }) => string;
   segment: number;
   ffmpegOutputOptions: string[] = [];
+  inputOptions: string[] = [];
+  isHls: boolean = false;
   url: string;
 
   constructor(
@@ -19,18 +21,22 @@ export class FFMPEGRecorder extends EventEmitter {
       getSavePath: (data: { startTime: number }) => string;
       segment: number;
       outputOptions: string[];
+      inputOptions?: string[];
+      isHls?: boolean;
     },
     private onEnd: (...args: unknown[]) => void,
   ) {
     super();
     const hasSegment = !!opts.segment;
     this.streamManager = new StreamManager(opts.getSavePath, hasSegment);
-    this.timeoutChecker = utils.createTimeoutChecker(() => this.onEnd("ffmpeg timeout"), 10e3);
+    this.timeoutChecker = utils.createTimeoutChecker(() => this.onEnd("ffmpeg timeout"), 3 * 10e3);
     this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
     this.ffmpegOutputOptions = opts.outputOptions;
+    this.inputOptions = opts.inputOptions ?? [];
     this.url = opts.url;
     this.segment = opts.segment;
+    this.isHls = opts.isHls ?? false;
 
     this.command = this.createCommand();
 
@@ -46,17 +52,20 @@ export class FFMPEGRecorder extends EventEmitter {
   }
 
   private createCommand() {
-    const isInvalidStream = createInvalidStreamChecker();
+    const invalidCount = this.isHls ? 35 : 15;
+    const isInvalidStream = createInvalidStreamChecker(invalidCount);
 
     const command = createFFMPEGBuilder()
       .input(this.url)
-      .inputOptions(
+      .inputOptions([
+        ...this.inputOptions,
         "-user_agent",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
-      )
+      ])
       .outputOptions(this.ffmpegOutputOptions)
       .output(this.streamManager.videoFilePath)
       .on("start", () => {
+        // TODO: 不要在这里检测，在stderr中检测for reading
         this.streamManager.handleVideoStarted();
       })
       .on("error", this.onEnd)
