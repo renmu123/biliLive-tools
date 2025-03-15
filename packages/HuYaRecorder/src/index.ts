@@ -246,12 +246,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     client.on("error", (e: unknown) => {
       this.emit("DebugLog", { type: "common", text: String(e) });
     });
-    try {
-      await client.start();
-    } catch (err) {
-      this.state = "idle";
-      throw err;
-    }
+    client.start();
   }
 
   const ffmpegArgs = recorder.getArguments();
