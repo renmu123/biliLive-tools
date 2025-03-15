@@ -11,13 +11,9 @@ import {
 
 import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
 import { ensureFolderExist } from "./utils.js";
-import { startListen, MsgHandler } from "./blive-message-listener/index.js";
+import DanmaClient from "./danma.js";
 
 import type {
-  Comment,
-  GiveGift,
-  SuperChat,
-  Guard,
   Recorder,
   RecorderCreateOpts,
   RecorderProvider,
@@ -254,142 +250,20 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("DebugLog", data);
   });
 
-  let danmakuRetry = 5;
-  let client: ReturnType<typeof startListen> | null = null;
+  let danmaClient = new DanmaClient(roomId, this.auth, this.uid);
   if (!this.disableProvideCommentsWhenRecording) {
-    const handler: MsgHandler = {
-      onIncomeDanmu: (msg) => {
-        const extraDataController = recorder.getExtraDataController();
-        if (!extraDataController) return;
+    danmaClient = danmaClient.on("Message", (msg) => {
+      const extraDataController = recorder.getExtraDataController();
+      if (!extraDataController) return;
 
-        let content = msg.body.content;
-        // 去除前后空格，回车，换行
-        content = content.replace(/(^\s*)|(\s*$)/g, "").replace(/[\r\n]/g, "");
-        if (content === "") return;
+      if (msg.type === "super_chat" && this.saveSCDanma === false) return;
+      if ((msg.type === "give_gift" || msg.type === "guard") && this.saveGiftDanma === false)
+        return;
 
-        const comment: Comment = {
-          type: "comment",
-          timestamp: msg.timestamp,
-          text: content,
-          color: msg.body.content_color,
-          mode: msg.body.type,
-
-          sender: {
-            uid: String(msg.body.user.uid),
-            name: msg.body.user.uname,
-            avatar: msg.body.user.face,
-            extra: {
-              badgeName: msg.body.user.badge?.name,
-              badgeLevel: msg.body.user.badge?.level,
-            },
-          },
-        };
-        this.emit("Message", comment);
-        extraDataController.addMessage(comment);
-      },
-      onIncomeSuperChat: (msg) => {
-        const extraDataController = recorder.getExtraDataController();
-        if (!extraDataController) return;
-        if (this.saveSCDanma === false) return;
-
-        const content = msg.body.content.replaceAll(/[\r\n]/g, "");
-        // console.log(msg.id, msg.body);
-        const comment: SuperChat = {
-          type: "super_chat",
-          timestamp: msg.timestamp,
-          text: content,
-          price: msg.body.price,
-          sender: {
-            uid: String(msg.body.user.uid),
-            name: msg.body.user.uname,
-            avatar: msg.body.user.face,
-            extra: {
-              badgeName: msg.body.user.badge?.name,
-              badgeLevel: msg.body.user.badge?.level,
-            },
-          },
-        };
-        this.emit("Message", comment);
-        extraDataController.addMessage(comment);
-      },
-      onGuardBuy: (msg) => {
-        const extraDataController = recorder.getExtraDataController();
-        if (!extraDataController) return;
-
-        // console.log("guard", msg);
-        if (this.saveGiftDanma === false) return;
-        const gift: Guard = {
-          type: "guard",
-          timestamp: msg.timestamp,
-          name: msg.body.gift_name,
-          price: msg.body.price,
-          count: 1,
-          level: msg.body.guard_level,
-          sender: {
-            uid: String(msg.body.user.uid),
-            name: msg.body.user.uname,
-            avatar: msg.body.user.face,
-            extra: {
-              badgeName: msg.body.user.badge?.name,
-              badgeLevel: msg.body.user.badge?.level,
-            },
-          },
-        };
-        this.emit("Message", gift);
-        extraDataController.addMessage(gift);
-      },
-      onGift: (msg) => {
-        const extraDataController = recorder.getExtraDataController();
-        if (!extraDataController) return;
-
-        // console.log("gift", msg);
-        if (this.saveGiftDanma === false) return;
-
-        const gift: GiveGift = {
-          type: "give_gift",
-          timestamp: msg.timestamp,
-          name: msg.body.gift_name,
-          count: msg.body.amount,
-          price: msg.body.coin_type === "silver" ? 0 : msg.body.price / 1000,
-          sender: {
-            uid: String(msg.body.user.uid),
-            name: msg.body.user.uname,
-            avatar: msg.body.user.face,
-            extra: {
-              badgeName: msg.body.user.badge?.name,
-              badgeLevel: msg.body.user.badge?.level,
-            },
-          },
-          extra: {
-            hits: msg.body.combo?.combo_num,
-          },
-        };
-        this.emit("Message", gift);
-        extraDataController.addMessage(gift);
-      },
-    };
-    // 弹幕协议不能走短 id，所以不能直接用 channelId。
-    client = startListen(roomId, handler, {
-      ws: {
-        headers: {
-          Cookie: this.auth ?? "",
-        },
-        uid: this.uid ?? 0,
-      },
+      this.emit("Message", msg);
+      extraDataController.addMessage(msg);
     });
-    client.live.on("error", (err) => {
-      this.emit("DebugLog", { type: "common", text: String(err) });
-      danmakuRetry -= 1;
-      if (danmakuRetry > 0) {
-        setTimeout(
-          () => {
-            client && client.reconnect();
-          },
-          2000 * (5 - danmakuRetry),
-        );
-      }
-    });
-    console.log("start listen", roomId, this.auth, this.uid);
+    danmaClient.start();
   }
 
   const ffmpegArgs = recorder.getArguments();
@@ -402,7 +276,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     intervalId && clearInterval(intervalId);
     this.usedStream = undefined;
     this.usedSource = undefined;
-    client?.close();
+    danmaClient.stop();
     recorder.stop();
 
     try {
