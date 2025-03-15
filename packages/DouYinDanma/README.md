@@ -5,13 +5,13 @@
 # 安装
 
 ```sh
-npm install
+npm install douyin-danma-listener
 ```
 
 # 使用
 
 ```javascript
-import DouYinDanmaClient from "./danma/index.js";
+import DouYinDanmaClient from "douyin-danma-listener";
 
 // roomId并非是你看到的房间号，你可以在 https://live.douyin.com/webcast/room/web/enter/ 中找到id_str参数
 const client = new DouYinDanmaClient("id_str");
@@ -21,7 +21,16 @@ client.on("chat", (message) => {
 client.connect();
 ```
 
-# 事件
+## 参数
+
+配置项如下：
+
+- `autoStart` (boolean): 是否自动开始连接，默认为 `false`
+- `autoReconnect` (number): 自动重连次数，默认为 `3`
+- `heartbeatInterval` (number): 心跳包发送间隔，单位为毫秒，默认为 `5000`
+- `cookie` (string): 可选的 Cookie 字符串，不传会去自动拿一个，用户名可能为星号
+
+## 事件
 
 只支持了部分事件的解析
 

@@ -4,7 +4,7 @@ import { TypedEmitter } from "tiny-typed-emitter";
 
 import { decompressGzip, getXMsStub, getSignature, getUserUniqueId } from "./utils.js";
 import protobuf from "./proto.js";
-import { getCookie } from "../douyin_api.js";
+import { getCookie } from "./api.js";
 
 import type {
   ChatMessage,
@@ -16,7 +16,7 @@ import type {
   RoomStatsMessage,
   RoomRankMessage,
   Message,
-} from "./types.js";
+} from "../types/types.js";
 
 function buildRequestUrl(url: string): string {
   const parsedUrl = parse(url, true);
@@ -61,10 +61,16 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   private autoStart: boolean;
   private autoReconnect: number;
   private reconnectAttempts: number;
+  private cookie?: string;
 
   constructor(
     roomId: string,
-    options: { autoStart?: boolean; autoReconnect?: number; heartbeatInterval?: number } = {},
+    options: {
+      autoStart?: boolean;
+      autoReconnect?: number;
+      heartbeatInterval?: number;
+      cookie?: string;
+    } = {},
   ) {
     super();
     this.roomId = roomId;
@@ -72,6 +78,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.autoStart = options.autoStart ?? false;
     this.autoReconnect = options.autoReconnect ?? 3;
     this.reconnectAttempts = 0;
+    this.cookie = options.cookie;
 
     if (this.autoStart) {
       this.connect();
@@ -85,7 +92,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       return;
     }
     this.url = url;
-    const cookies = await getCookie();
+    const cookies = this.cookie ?? (await getCookie());
     this.ws = new WebSocket(this.url, {
       headers: {
         Cookie: cookies,
