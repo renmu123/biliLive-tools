@@ -252,17 +252,16 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (!this.recordHandle) return;
     this.state = "stopping-record";
 
-    recorder.stop();
     client.close();
 
     this.usedStream = undefined;
     this.usedSource = undefined;
 
-    await recorder.handleVideoCompleted();
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.liveInfo = undefined;
     this.state = "idle";
+    await recorder.stop();
   });
 
   this.recordHandle = {

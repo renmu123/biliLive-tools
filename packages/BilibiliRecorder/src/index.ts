@@ -277,18 +277,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.usedStream = undefined;
     this.usedSource = undefined;
     danmaClient.stop();
-    recorder.stop();
 
-    try {
-      await recorder.handleVideoCompleted();
-    } catch (err) {
-      this.emit("DebugLog", { type: "common", text: String(err) });
-    }
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.liveInfo = undefined;
     this.state = "idle";
     this.qualityRetry = this.qualityMaxRetry;
+    await recorder.stop();
   });
 
   this.recordHandle = {

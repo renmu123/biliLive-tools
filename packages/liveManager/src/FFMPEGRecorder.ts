@@ -104,19 +104,17 @@ export class FFMPEGRecorder extends EventEmitter {
     return this.command._getArguments();
   }
 
-  public stop() {
+  public async stop() {
     this.timeoutChecker.stop();
     try {
       // @ts-ignore
       this.command.ffmpegProc?.stdin?.write("q");
+      await this.streamManager.handleVideoCompleted();
     } catch (err) {
       this.emit("DebugLog", { type: "common", text: String(err) });
     }
   }
 
-  public handleVideoCompleted() {
-    return this.streamManager.handleVideoCompleted();
-  }
   public getExtraDataController() {
     return this.streamManager?.getExtraDataController();
   }
