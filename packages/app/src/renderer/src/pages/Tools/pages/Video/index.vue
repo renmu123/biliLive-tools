@@ -58,7 +58,7 @@ const parse = async () => {
 
   if (videoInfo.platform === "bilibili") {
     downloadOptions.value = {
-      hasDanmuOptions: false,
+      hasDanmuOptions: true,
       hasAudioOnlyOptions: true,
     };
   } else if (videoInfo.platform === "douyu") {

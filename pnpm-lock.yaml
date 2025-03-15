@@ -555,8 +555,8 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       '@renmu/bili-api':
-        specifier: 2.4.1
-        version: 2.4.1
+        specifier: 2.5.0
+        version: 2.5.0
       '@renmu/fluent-ffmpeg':
         specifier: 2.3.2
         version: 2.3.2
@@ -721,6 +721,9 @@ packages:
   '@babel/types@7.26.0':
     resolution: {integrity: sha512-Z/yiTPj+lDVnF7lWeKCIJzaIkI0vYO87dMpZ4bg4TDrFe4XXLFWL1TbXU27gBP3QccxV9mZICCrnjnYlJjXHOA==}
     engines: {node: '>=6.9.0'}
+
+  '@bufbuild/protobuf@2.2.3':
+    resolution: {integrity: sha512-tFQoXHJdkEOSwj5tRIZSPNUuXK3RaR7T1nUrPgbYX1pUbvqqaaZAsfo+NXBPsz5rZMSKVFrgK1WL8Q/MSLvprg==}
 
   '@css-render/plugin-bem@0.15.14':
     resolution: {integrity: sha512-QK513CJ7yEQxm/P3EwsI+d+ha8kSOcjGvD6SevM41neEMxdULE+18iuQK6tEChAWMOQNQPLG/Rw3Khb69r5neg==}
@@ -1302,8 +1305,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@renmu/bili-api@2.4.1':
-    resolution: {integrity: sha512-qArMW5hlU4sjDfCCVVaQQT8D9rqrqwcnaNhT2+iE2KnR01I5sCz8Ov1OguI5qW1sjSL34zXg0KF6QMI1VPJv+Q==}
+  '@renmu/bili-api@2.5.0':
+    resolution: {integrity: sha512-xzXJP9mGTFKcwzgdgl31sPmZizceXmhiroldaup2cJogS5FD1zTdF5fTrZ3cz1AZGXymWUuQe6o/YsVxJnvyNg==}
     engines: {node: '>=18'}
 
   '@renmu/fluent-ffmpeg@2.3.2':
@@ -5466,6 +5469,8 @@ snapshots:
       '@babel/helper-string-parser': 7.25.9
       '@babel/helper-validator-identifier': 7.25.9
 
+  '@bufbuild/protobuf@2.2.3': {}
+
   '@css-render/plugin-bem@0.15.14(css-render@0.15.14)':
     dependencies:
       css-render: 0.15.14
@@ -5940,14 +5945,14 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@renmu/bili-api@2.4.1':
+  '@renmu/bili-api@2.5.0':
     dependencies:
+      '@bufbuild/protobuf': 2.2.3
       '@renmu/throttle': 1.0.3
       axios: 1.7.8
       axios-retry: 4.5.0(axios@1.7.8)
       fast-xml-parser: 4.5.0
       p-queue: 8.0.1
-      protobufjs: 7.4.0
       tiny-typed-emitter: 2.1.0
     transitivePeerDependencies:
       - debug

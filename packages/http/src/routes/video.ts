@@ -201,6 +201,7 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
       output: filepath,
       override: options.override,
       onlyAudio: options.onlyAudio,
+      danmu: options.danmu,
     });
   } else if (options.platform === "huya") {
     const data = await huya.parseVideo(options.id);

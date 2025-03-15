@@ -2,7 +2,7 @@ import path from "node:path";
 import fs from "fs-extra";
 import axios from "axios";
 
-import { Client, TvQrcodeLogin, WebVideoUploader } from "@renmu/bili-api";
+import { Client, TvQrcodeLogin, WebVideoUploader, utils } from "@renmu/bili-api";
 import { appConfig } from "../config.js";
 import { container } from "../index.js";
 
@@ -98,7 +98,14 @@ async function getArchiveDetail(bvid: string, uid?: number) {
 }
 
 async function download(
-  options: { bvid: string; cid: number; output: string; override?: boolean; onlyAudio?: boolean },
+  options: {
+    bvid: string;
+    cid: number;
+    output: string;
+    override?: boolean;
+    onlyAudio?: boolean;
+    danmu?: "none" | "xml";
+  },
   uid?: number,
 ) {
   if ((await fs.pathExists(options.output)) && !options.override)
@@ -118,7 +125,18 @@ async function download(
     {
       name: `下载任务：${path.parse(options.output).name}`,
     },
-    {},
+    {
+      onEnd: async () => {
+        if (options.danmu !== "none") {
+          const data = await client.video.getAllDm({ bvid: options.bvid, cid: options.cid });
+          const xmlContent = await utils.protoBufToXml(data);
+          fs.writeFile(
+            path.join(path.dirname(options.output), `${path.parse(options.output).name}.xml`),
+            xmlContent,
+          );
+        }
+      },
+    },
   );
 
   taskQueue.addTask(task, false);
