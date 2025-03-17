@@ -28,7 +28,7 @@
 import DownloadConfirm from "./components/DownloadModal.vue";
 import { sanitizeFileName } from "@renderer/utils";
 import { taskApi } from "@renderer/apis";
-import { videoApi } from "@renderer/apis";
+// import { videoApi } from "@renderer/apis";
 import type { VideoAPI } from "@biliLive-tools/http/types/video.js";
 
 const notice = useNotification();
@@ -75,10 +75,10 @@ const parse = async () => {
   }
 };
 
-const subscribe = async () => {
-  const res = await videoApi.subParse(url.value);
-  console.log(res);
-};
+// const subscribe = async () => {
+//   const res = await videoApi.subParse(url.value);
+//   console.log(res);
+// };
 
 const download = async () => {
   if (!url.value) return;

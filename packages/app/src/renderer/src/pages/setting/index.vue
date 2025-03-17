@@ -312,7 +312,7 @@ import NotificationSetting from "./NotificationSetting.vue";
 import BiliSetting from "./BiliSetting.vue";
 import RecordSetting from "./RecordSetting.vue";
 import TaskSetting from "./TaskSetting.vue";
-import VideoSetting from "./VideoSetting.vue";
+// import VideoSetting from "./VideoSetting.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";

@@ -61,7 +61,10 @@ import {
   SettingsOutline as SettingIcon,
   LogOutOutline,
 } from "@vicons/ionicons5";
-import { DashboardOutlined as DashboardIcon, LiveTvRound } from "@vicons/material";
+import {
+  //  DashboardOutlined as DashboardIcon,
+  LiveTvRound,
+} from "@vicons/material";
 
 import defaultUserAvatar from "../../assets/images/moehime.jpg";
 import AppSettingDialog from "../../pages/setting/index.vue";

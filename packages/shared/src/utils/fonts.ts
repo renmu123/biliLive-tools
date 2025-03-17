@@ -17,7 +17,9 @@ export async function getFontsList(): Promise<
     fullName: string;
   }[]
 > {
+  // @ts-ignore
   const fonts = await font.getAvailableFonts();
+  // @ts-ignore
   return fonts.map((font) => {
     if (isAscii(font.postscriptName)) {
       return {
