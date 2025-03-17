@@ -79,7 +79,7 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <span> 调试模式 </span>
+          <Tip tip="用于提交反馈" text="调试模式"></Tip>
         </template>
         <n-switch v-model:value="config.recorder.debugMode" />
       </n-form-item>
