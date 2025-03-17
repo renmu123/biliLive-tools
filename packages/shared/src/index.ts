@@ -13,8 +13,8 @@ import { migrateBiliUser, checkAccountLoop } from "./task/bili.js";
 import BiliCheckQueue from "./task/BiliCheckQueue.js";
 import { createRecorderManager } from "./recorder/index.js";
 import { sendNotify } from "./notify.js";
-import { initDB } from "./db/index.js";
-import StatisticsService from "./db/service/statisticsService.js";
+// import { initDB } from "./db/index.js";
+// import StatisticsService from "./db/service/statisticsService.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 
@@ -33,8 +33,8 @@ const init = async (config: GlobalConfig) => {
     setLogLevel(data.logLevel);
   });
 
-  const dbPath = path.join(config.userDataPath, "app-test.db");
-  initDB(dbPath);
+  // const dbPath = path.join(config.userDataPath, "app-test.db");
+  // initDB(dbPath);
 
   container.register({
     appConfig: asValue(appConfig),
@@ -58,10 +58,10 @@ const init = async (config: GlobalConfig) => {
   checkAccountLoop();
   checkDiskSpaceLoop();
   // 设置开始时间
-  StatisticsService.addOrUpdate({
-    where: { stat_key: "start_time" },
-    create: { stat_key: "start_time", value: Date.now().toString() },
-  });
+  // StatisticsService.addOrUpdate({
+  //   where: { stat_key: "start_time" },
+  //   create: { stat_key: "start_time", value: Date.now().toString() },
+  // });
 
   return container;
 };

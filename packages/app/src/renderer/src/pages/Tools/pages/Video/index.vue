@@ -1,7 +1,8 @@
 <template>
   <div class="container">
     <n-spin :show="loading">
-      <h2>支持B站视频、斗鱼录播、虎牙录播下载；斗鱼、虎牙录播订阅</h2>
+      <!-- <h2>支持B站视频、斗鱼录播、虎牙录播下载；斗鱼、虎牙录播订阅</h2> -->
+      <h2>支持B站视频、斗鱼录播、虎牙录播下载</h2>
       <div class="input">
         <n-input
           v-model:value="url"
@@ -10,7 +11,7 @@
           @keyup.enter="download"
         />
         <n-button type="primary" ghost :disabled="!url" @click="download"> 下载 </n-button>
-        <n-button type="primary" :disabled="!url" @click="subscribe"> 订阅 </n-button>
+        <!-- <n-button type="primary" :disabled="!url" @click="subscribe"> 订阅 </n-button> -->
       </div>
       <DownloadConfirm
         v-model:visible="visible"

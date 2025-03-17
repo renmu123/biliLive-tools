@@ -271,7 +271,7 @@
         <n-tab-pane name="task" tab="任务">
           <TaskSetting v-model:data="config"></TaskSetting>
         </n-tab-pane>
-        <n-tab-pane name="translate" tab="视频订阅">
+        <n-tab-pane name="translate" tab="视频">
           <VideoSetting v-model:data="config"></VideoSetting>
         </n-tab-pane>
         <!-- <n-tab-pane name="translate" tab="翻译">

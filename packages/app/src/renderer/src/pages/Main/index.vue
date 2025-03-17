@@ -318,20 +318,20 @@ const menuOptions = computed<MenuOption[]>(() => {
         ),
       icon: renderIcon(LiveTvRound),
     },
-    {
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: "Dashboard",
-            },
-          },
-          { default: () => "看板" },
-        ),
-      key: "Dashboard",
-      icon: renderIcon(DashboardIcon),
-    },
+    // {
+    //   label: () =>
+    //     h(
+    //       RouterLink,
+    //       {
+    //         to: {
+    //           name: "Dashboard",
+    //         },
+    //       },
+    //       { default: () => "看板" },
+    //     ),
+    //   key: "Dashboard",
+    //   icon: renderIcon(DashboardIcon),
+    // },
     {
       label: () => h("span", "工具"),
       key: "tools",
