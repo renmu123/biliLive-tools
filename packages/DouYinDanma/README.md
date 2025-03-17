@@ -4,6 +4,8 @@
 
 # 安装
 
+node>=18
+
 ```sh
 npm install douyin-danma-listener
 ```
@@ -28,7 +30,7 @@ client.connect();
 - `autoStart` (boolean): 是否自动开始连接，默认为 `false`
 - `autoReconnect` (number): 自动重连次数，默认为 `3`
 - `heartbeatInterval` (number): 心跳包发送间隔，单位为毫秒，默认为 `5000`
-- `cookie` (string): 可选的 Cookie 字符串，不传会去自动拿一个，用户名可能为星号
+- `cookie` (string): 可选的 Cookie 字符串，某些直播间可能需要？
 
 ## 事件
 
