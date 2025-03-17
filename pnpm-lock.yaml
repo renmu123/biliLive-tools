@@ -10,11 +10,11 @@ catalogs:
       specifier: ^1.7.8
       version: 1.7.8
     better-sqlite3:
-      specifier: 11.6.0
-      version: 11.6.0
+      specifier: 11.9.0
+      version: 11.9.0
     font-ls:
-      specifier: 0.3.2
-      version: 0.3.2
+      specifier: 0.4.0
+      version: 0.4.0
     lodash-es:
       specifier: ^4.17.21
       version: 4.17.21
@@ -124,10 +124,10 @@ importers:
         version: 0.1.60
       better-sqlite3:
         specifier: 'catalog:'
-        version: 11.6.0
+        version: 11.9.0
       font-ls:
         specifier: 'catalog:'
-        version: 0.3.2
+        version: 0.4.0
       ntsuspend:
         specifier: 'catalog:'
         version: 1.0.2
@@ -282,7 +282,7 @@ importers:
         version: 0.1.60
       better-sqlite3:
         specifier: 'catalog:'
-        version: 11.6.0
+        version: 11.9.0
       bufferutil:
         specifier: ^4.0.8
         version: 4.0.8
@@ -300,7 +300,7 @@ importers:
         version: 6.3.9
       font-ls:
         specifier: 'catalog:'
-        version: 0.3.2
+        version: 0.4.0
       ntsuspend:
         specifier: 'catalog:'
         version: 1.0.2
@@ -584,7 +584,7 @@ importers:
         version: 11.0.4
       better-sqlite3:
         specifier: 'catalog:'
-        version: 11.6.0
+        version: 11.9.0
       check-disk-space:
         specifier: ^3.4.0
         version: 3.4.0
@@ -599,7 +599,7 @@ importers:
         version: 4.5.0
       font-ls:
         specifier: 'catalog:'
-        version: 0.3.2
+        version: 0.4.0
       nodemailer:
         specifier: ^6.9.16
         version: 6.9.16
@@ -2125,8 +2125,8 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
-  better-sqlite3@11.6.0:
-    resolution: {integrity: sha512-2J6k/eVxcFYY2SsTxsXrj6XylzHWPxveCn4fKPKZFv/Vqn/Cd7lOuX4d7rGQXT5zL+97MkNL3nSbCrIoe3LkgA==}
+  better-sqlite3@11.9.0:
+    resolution: {integrity: sha512-4b9xYnoaskj8eIkke9ZCB42p5bOPabptSku8Rl4Yww70Jf+aHeLvrIjXDJrKQxUEjdppsFb+fdJSjoH4TklROA==}
 
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
@@ -3037,8 +3037,8 @@ packages:
       debug:
         optional: true
 
-  font-ls@0.3.2:
-    resolution: {integrity: sha512-KmI1SgHkNr0dPXPOGPo1pOFfy+5b0Q0lm6hcdJHuezafmSTjSEhpclzMpSsQOj1La3GWnxqf6qs/4BlRIrs0gA==}
+  font-ls@0.4.0:
+    resolution: {integrity: sha512-WO4uWO/4yj5qGJZzqrlb+HhrNzbHCfJMPd2jKlHm6G9yU1/7AMcc1f0rYMNsS3K+msufhCaH0IBJBJA+JZDClw==}
 
   foreground-child@3.3.0:
     resolution: {integrity: sha512-Ld2g8rrAyMYFXBhEqMz8ZAHBi4J4uS1i/CxGMDnjyFWddMXLVcDp051DZfu+t7+ab7Wv6SMqpWmyFIj5UbfFvg==}
@@ -3964,8 +3964,8 @@ packages:
   node-addon-api@1.7.2:
     resolution: {integrity: sha512-ibPK3iA+vaY1eEjESkQkM0BbCqFOaZMiXRTtdB0u7b4djtY6JnsjvPdUHVMg6xQt3B8fpTTWHI9A+ADjM9frzg==}
 
-  node-addon-api@8.2.2:
-    resolution: {integrity: sha512-9emqXAKhVoNrQ792nLI/wpzPpJ/bj/YXxW0CvAau1+RdGBcCRF1Dmz7719zgVsQNrzHl9Tzn3ImZ4qWFarWL0A==}
+  node-addon-api@8.3.1:
+    resolution: {integrity: sha512-lytcDEdxKjGJPTLEfW4mYMigRezMlyJY8W4wxJK8zE533Jlb8L8dRuObJFWg2P+AuOIxoCgKF+2Oq4d4Zd0OUA==}
     engines: {node: ^18 || ^20 || >= 21}
 
   node-api-version@0.2.0:
@@ -6943,7 +6943,7 @@ snapshots:
       which: 2.0.2
       yargs: 16.2.0
 
-  better-sqlite3@11.6.0:
+  better-sqlite3@11.9.0:
     dependencies:
       bindings: 1.5.0
       prebuild-install: 7.1.2
@@ -8026,9 +8026,9 @@ snapshots:
 
   follow-redirects@1.15.9: {}
 
-  font-ls@0.3.2:
+  font-ls@0.4.0:
     dependencies:
-      node-addon-api: 8.2.2
+      node-addon-api: 8.3.1
 
   foreground-child@3.3.0:
     dependencies:
@@ -9049,7 +9049,7 @@ snapshots:
   node-addon-api@1.7.2:
     optional: true
 
-  node-addon-api@8.2.2: {}
+  node-addon-api@8.3.1: {}
 
   node-api-version@0.2.0:
     dependencies:
