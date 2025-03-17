@@ -7,7 +7,7 @@
         <th>标题</th>
         <th>直播状态</th>
         <th>录制状态</th>
-        <td>画质</td>
+        <td>录制参数</td>
         <th>监听状态</th>
         <th>操作</th>
       </tr>
@@ -34,7 +34,7 @@
           {{ item.state === "recording" ? "录制中" : "尚未开始" }}
         </td>
         <td :title="item?.recordHandle?.url">
-          {{ item.state === "recording" ? `${item.usedStream}/${item.usedSource}` : "" }}
+          {{ item.state === "recording" ? `${item.usedSource}/${item.usedStream}` : "" }}
         </td>
         <td>
           {{

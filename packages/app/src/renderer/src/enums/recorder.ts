@@ -210,7 +210,7 @@ export const textInfo = {
     },
     formatName: {
       text: "流格式",
-      tip: "默认优先flv模式，其次fmp4，最后为ts",
+      tip: "默认优先flv模式，其次ts，最后为fmp4，fmp4模式挺容易碎成一堆，我也不知道为什么",
     },
     codecName: {
       text: "流编码",

@@ -12,7 +12,7 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <span class="inline-flex"> 重试次数 </span>
+          <Tip text="重试次数" tip="如果你经常上传失败，那么试试拉大参数吧"></Tip>
         </template>
         <n-input-number v-model:value="config.biliUpload.retryTimes" min="0" max="20">
         </n-input-number>

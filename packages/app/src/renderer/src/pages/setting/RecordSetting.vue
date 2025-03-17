@@ -316,7 +316,7 @@ const allowEdit = ref(false);
 watch(allowEdit, async (val) => {
   if (val) {
     const [status] = await confirm.warning({
-      content: "修改前确保知道此项参数含义，谨慎修改，可能会导致无法录制",
+      content: "修改前确保知道此项参数含义，文件名中至少存在时分秒，谨慎修改，可能会导致无法录制",
     });
     if (!status) {
       allowEdit.value = false;
