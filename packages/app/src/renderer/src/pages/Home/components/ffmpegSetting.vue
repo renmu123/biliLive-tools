@@ -206,7 +206,7 @@
               style="flex-basis: 200px; min-width: 100px"
             />
             <n-checkbox
-              v-if="['qsv', 'nvenc', 'amf'].includes(hardwareAcceleration)"
+              v-if="['qsv', 'nvenc'].includes(hardwareAcceleration)"
               v-model:checked="ffmpegOptions.config.hardwareScaleFilter"
               >硬件过滤器</n-checkbox
             >

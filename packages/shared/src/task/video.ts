@@ -208,18 +208,19 @@ export class ComplexFilter {
         return this.addFilter("hwupload_cuda,scale_cuda", scaleFilter);
       } else if (hardware === "qsv") {
         return this.addFilter("hwupload,scale_qsv", scaleFilter);
-      } else if (hardware === "amf") {
-        if (resolutionHeight === -1) {
-          scaleFilter = `${resolutionWidth}:-2`;
-        }
-        if (resolutionWidth === -1) {
-          scaleFilter = `-2:${resolutionHeight}`;
-        }
-        if (["bilinear", "bicubic"].includes(swsFlags)) {
-          scaleFilter += `:scale_type=${swsFlags}`;
-        }
-        return this.addFilter("vpp_amf", scaleFilter);
       }
+      // else if (hardware === "amf") {
+      //   if (resolutionHeight === -1) {
+      //     scaleFilter = `${resolutionWidth}:-2`;
+      //   }
+      //   if (resolutionWidth === -1) {
+      //     scaleFilter = `-2:${resolutionHeight}`;
+      //   }
+      //   if (["bilinear", "bicubic"].includes(swsFlags)) {
+      //     scaleFilter += `:scale_type=${swsFlags}`;
+      //   }
+      //   return this.addFilter("vpp_amf", scaleFilter);
+      // }
     }
     if (swsFlags && swsFlags !== "auto") {
       scaleFilter += `:flags=${swsFlags}`;
