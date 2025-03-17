@@ -80,7 +80,7 @@
         v-model="fileList"
         :style="{ height: '100%' }"
         class="video empty cut-file-area"
-        :extensions="['llc', 'flv', 'mp4', 'm4s']"
+        :extensions="['llc', 'flv', 'mp4', 'm4s', 'ts']"
         :max="1"
         @change="handleFileChange"
       >
@@ -433,7 +433,7 @@ const handleFileChange = (fileList: any[]) => {
 
   if (ext === ".llc") {
     handleProject(path);
-  } else if ([".mp4", ".flv", ".m4s"].includes(ext)) {
+  } else {
     handleVideo(path);
   }
 };

@@ -139,6 +139,33 @@ onMounted(async () => {
           art.notice.show = "Unsupported playback format: m3u8";
         }
       },
+      ts: function play(video, url, art) {
+        const duration = 5;
+        const tsFile = url;
+        const m3u8Content = `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:${duration}
+#EXT-X-MEDIA-SEQUENCE:0
+#EXTINF:${duration},
+${tsFile}
+#EXT-X-ENDLIST`;
+
+        const blob = new Blob([m3u8Content], { type: "application/vnd.apple.mpegurl" });
+        const m3u8URL = URL.createObjectURL(blob);
+
+        if (Hls.isSupported()) {
+          if (art.hls) art.hls.destroy();
+          const hls = new Hls();
+          hls.loadSource(m3u8URL);
+          hls.attachMedia(video);
+          art.hls = hls;
+          art.on("destroy", () => hls.destroy());
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = url;
+        } else {
+          art.notice.show = "Unsupported playback format: m3u8";
+        }
+      },
     },
   });
 

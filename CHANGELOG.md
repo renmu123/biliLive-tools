@@ -17,6 +17,7 @@
 8. webhook分p标题支持自定义，默认为文件名
 9. 斗鱼录制支持标题关键词来不进行录制 [#53](https://github.com/renmu123/biliLive-tools/pull/53)
 10. B站下载视频时支持弹幕
+11. 切片支持ts文件
 
 ## 优化
 
