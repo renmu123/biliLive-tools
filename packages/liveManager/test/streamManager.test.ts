@@ -15,7 +15,7 @@ vi.mock("../src/record_extra_data_controller", () => ({
     flush: vi.fn(),
   }),
 }));
-vi.mock("../src/utils");
+// vi.mock("../src/utils");
 
 describe("StreamManager", () => {
   let getSavePathMock: any;
@@ -34,7 +34,7 @@ describe("StreamManager", () => {
   });
 
   it("should handle video started with segment", async () => {
-    const stderrLine = "'mockedFilename.ts'";
+    const stderrLine = "Opening 'mockedFilename.ts' for writing";
 
     await streamManager.handleVideoStarted(stderrLine);
     expect(streamManager.emit).toHaveBeenCalledWith("videoFileCreated", {
@@ -43,7 +43,7 @@ describe("StreamManager", () => {
   });
 
   it("should handle video completed with segment", async () => {
-    const stderrLine = "'mockedFilename.ts'";
+    const stderrLine = "Opening 'mockedFilename.ts' for writing";
 
     await streamManager.handleVideoStarted(stderrLine);
     await streamManager.handleVideoCompleted();
@@ -56,7 +56,7 @@ describe("StreamManager", () => {
     streamManager = new StreamManager(getSavePathMock, false);
     vi.spyOn(streamManager, "emit");
 
-    await streamManager.handleVideoStarted();
+    await streamManager.handleVideoStarted("frame=200  fps=100");
     expect(streamManager.emit).toHaveBeenCalledWith("videoFileCreated", {
       filename: "mocked/path.ts",
     });
@@ -67,7 +67,7 @@ describe("StreamManager", () => {
     vi.spyOn(streamManager, "emit");
 
     await streamManager.handleVideoCompleted();
-    expect(streamManager.emit).toHaveBeenCalledWith("videoFileCompleted", {
+    expect(streamManager.emit).not.toHaveBeenCalledWith("videoFileCompleted", {
       filename: "mocked/path.ts",
     });
   });

@@ -211,7 +211,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       url: stream.url,
       outputOptions: ffmpegOutputOptions,
       inputOptions: ffmpegInputOptions,
-      segment: this.segment,
+      segment: this.segment ?? 0,
       getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
       isHls: streamOptions.protocol_name === "http_hls",
     },

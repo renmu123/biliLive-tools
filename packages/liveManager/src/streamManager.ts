@@ -74,7 +74,7 @@ export class StreamManager extends EventEmitter {
   private segment: Segment | null = null;
   private extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   recordSavePath: string;
-  recordStartTime: number;
+  recordStartTime?: number;
 
   constructor(getSavePath: GetSavePath, hasSegment: boolean) {
     super();

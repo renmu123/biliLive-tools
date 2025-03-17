@@ -53,11 +53,10 @@ interface Events {
 }
 
 class DouYinDanmaClient extends TypedEmitter<Events> {
-  private ws: WebSocket;
+  private ws!: WebSocket;
   private roomId: string;
-  private url: string;
   private heartbeatInterval: number;
-  private heartbeatTimer: NodeJS.Timeout;
+  private heartbeatTimer!: NodeJS.Timeout;
   private autoStart: boolean;
   private autoReconnect: number;
   private reconnectAttempts: number;
@@ -91,9 +90,8 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       this.emit("error", new Error("获取抖音弹幕签名失败"));
       return;
     }
-    this.url = url;
     const cookies = this.cookie ?? (await getCookie());
-    this.ws = new WebSocket(this.url, {
+    this.ws = new WebSocket(url, {
       headers: {
         Cookie: cookies,
       },
@@ -130,10 +128,16 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   send(data: any) {
+    if (!this.ws) {
+      return;
+    }
     this.ws.send(data);
   }
 
   close() {
+    if (!this.ws) {
+      return;
+    }
     this.reconnectAttempts = this.autoReconnect;
     this.ws.close();
   }
@@ -248,7 +252,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
         return;
       }
     } catch (e) {
-      this.emit("error", e);
+      this.emit("error", e as Error);
       return;
     }
 

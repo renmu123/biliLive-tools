@@ -1,4 +1,4 @@
-import { getRoomInfo, SourceProfile, StreamProfile } from "./douyin_api.js";
+import { getRoomInfo } from "./douyin_api.js";
 
 import type { Recorder } from "@bililive-tools/manager";
 

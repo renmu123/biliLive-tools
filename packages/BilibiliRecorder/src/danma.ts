@@ -123,6 +123,7 @@ class DanmaClient extends EventEmitter {
           2000 * (5 - this.retryCount),
         );
       }
+      this.emit("error", err);
     });
   }
 
