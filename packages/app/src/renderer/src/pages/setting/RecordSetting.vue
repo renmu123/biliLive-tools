@@ -55,7 +55,7 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip tip="0为不分段" text="分段录制"></Tip>
+          <Tip tip="0为不分段" text="分段时间"></Tip>
         </template>
         <n-input-number v-model:value="config.recorder.segment" min="0" step="10">
           <template #suffix>分钟</template>

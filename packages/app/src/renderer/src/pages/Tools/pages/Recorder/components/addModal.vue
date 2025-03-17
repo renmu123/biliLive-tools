@@ -266,7 +266,7 @@
 
         <n-form-item>
           <template #label>
-            <Tip text="分段录制" tip="0为不分段"></Tip>
+            <Tip text="分段时间" tip="0为不分段"></Tip>
           </template>
           <n-input-number
             v-model:value="config.segment"

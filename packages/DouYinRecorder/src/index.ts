@@ -144,6 +144,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       outputOptions: ffmpegOutputOptions,
       segment: this.segment ?? 0,
       getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
+      disableDanma: this.disableProvideCommentsWhenRecording,
     },
     onEnd,
   );
@@ -162,7 +163,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const handleVideoCreated = async ({ filename }) => {
     this.emit("videoFileCreated", { filename });
-    const extraDataController = recorder?.getExtraDataController();
+    const extraDataController = recorder.getExtraDataController();
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,

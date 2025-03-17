@@ -14,10 +14,12 @@ export class Segment extends EventEmitter {
   rawRecordingVideoPath!: string;
   /** 输出文件名名，不包含拓展名 */
   outputVideoFilePath!: string;
+  disableDanma: boolean;
 
-  constructor(getSavePath: GetSavePath) {
+  constructor(getSavePath: GetSavePath, disableDanma: boolean) {
     super();
     this.getSavePath = getSavePath;
+    this.disableDanma = disableDanma;
   }
 
   async handleSegmentEnd() {
@@ -56,7 +58,11 @@ export class Segment extends EventEmitter {
 
     ensureFolderExist(this.outputVideoFilePath);
 
-    this.extraDataController = createRecordExtraDataController(`${this.outputVideoFilePath}.json`);
+    if (!this.disableDanma) {
+      this.extraDataController = createRecordExtraDataController(
+        `${this.outputVideoFilePath}.json`,
+      );
+    }
 
     const regex = /'([^']+)'/;
     const match = stderrLine.match(regex);
@@ -76,13 +82,13 @@ export class StreamManager extends EventEmitter {
   recordSavePath: string;
   recordStartTime?: number;
 
-  constructor(getSavePath: GetSavePath, hasSegment: boolean) {
+  constructor(getSavePath: GetSavePath, hasSegment: boolean, disableDanma: boolean) {
     super();
     const recordSavePath = getSavePath({ startTime: Date.now() });
     this.recordSavePath = recordSavePath;
 
     if (hasSegment) {
-      this.segment = new Segment(getSavePath);
+      this.segment = new Segment(getSavePath, disableDanma);
       this.segment.on("DebugLog", (data) => {
         this.emit("DebugLog", data);
       });
@@ -94,7 +100,9 @@ export class StreamManager extends EventEmitter {
       });
     } else {
       const extraDataSavePath = replaceExtName(recordSavePath, ".json");
-      this.extraDataController = createRecordExtraDataController(extraDataSavePath);
+      if (!disableDanma) {
+        this.extraDataController = createRecordExtraDataController(extraDataSavePath);
+      }
     }
   }
 

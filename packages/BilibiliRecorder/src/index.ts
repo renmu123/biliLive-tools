@@ -214,6 +214,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       segment: this.segment ?? 0,
       getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
       isHls: streamOptions.protocol_name === "http_hls",
+      disableDanma: this.disableProvideCommentsWhenRecording,
     },
     onEnd,
   );
@@ -232,7 +233,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const handleVideoCreated = async ({ filename }) => {
     this.emit("videoFileCreated", { filename });
-    const extraDataController = recorder?.getExtraDataController();
+    const extraDataController = recorder.getExtraDataController();
     extraDataController?.setMeta({
       room_id: String(roomId),
       platform: provider?.id,

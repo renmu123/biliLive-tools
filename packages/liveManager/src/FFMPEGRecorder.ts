@@ -13,6 +13,7 @@ export class FFMPEGRecorder extends EventEmitter {
   ffmpegOutputOptions: string[] = [];
   inputOptions: string[] = [];
   isHls: boolean = false;
+  disableDanma: boolean = false;
   url: string;
 
   constructor(
@@ -23,12 +24,14 @@ export class FFMPEGRecorder extends EventEmitter {
       outputOptions: string[];
       inputOptions?: string[];
       isHls?: boolean;
+      disableDanma?: boolean;
     },
     private onEnd: (...args: unknown[]) => void,
   ) {
     super();
     const hasSegment = !!opts.segment;
-    this.streamManager = new StreamManager(opts.getSavePath, hasSegment);
+    this.disableDanma = opts.disableDanma ?? false;
+    this.streamManager = new StreamManager(opts.getSavePath, hasSegment, this.disableDanma);
     this.timeoutChecker = utils.createTimeoutChecker(() => this.onEnd("ffmpeg timeout"), 3 * 10e3);
     this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
