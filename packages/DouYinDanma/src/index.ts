@@ -227,15 +227,25 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   async decode(data: Buffer) {
+    // @ts-ignore
     const PushFrame = protobuf.douyin.PushFrame;
+    // @ts-ignore
     const Response = protobuf.douyin.Response;
+    // @ts-ignore
     const ChatMessage = protobuf.douyin.ChatMessage;
+    // @ts-ignore
     const RoomUserSeqMessage = protobuf.douyin.RoomUserSeqMessage;
+    // @ts-ignore
     const MemberMessage = protobuf.douyin.MemberMessage;
+    // @ts-ignore
     const GiftMessage = protobuf.douyin.GiftMessage;
+    // @ts-ignore
     const LikeMessage = protobuf.douyin.LikeMessage;
+    // @ts-ignore
     const SocialMessage = protobuf.douyin.SocialMessage;
+    // @ts-ignore
     const RoomStatsMessage = protobuf.douyin.RoomStatsMessage;
+    // @ts-ignore
     const RoomRankMessage = protobuf.douyin.RoomRankMessage;
     const wssPackage = PushFrame.decode(data);
 

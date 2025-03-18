@@ -2,6 +2,8 @@
 // Modified by @hua0512
 // Date: 2024-06-21
 // Below is a modification to make it work without the original environment
+import { createHash } from "crypto";
+import { Buffer } from "buffer";
 
 var crawler;
 
@@ -6258,27 +6260,37 @@ if (!window.byted_acrawler) {
             return _0x4c275f;
           },
           _0x4d7e2d = function (_0x1afe1b) {
-            var _0x3e0a6e = eval("var _0x13db80 = w_0x25f3;require(_0x13db80(628));"),
-              _0x5bfe7e = eval("var _0x20dc8b = w_0x25f3;require('buffer')[_0x20dc8b(424)];"),
-              _0x3d7396 = function (_0x5142ff) {
-                var _0x30639a = w_0x25f3;
-                if (_0x30639a(0x33c) == typeof _0x5142ff)
-                  return _0x3e0a6e[_0x30639a(0x1ca)](_0x30639a(0x35c))
-                    [_0x30639a(0x2d5)](_0x5142ff, _0x30639a(0x2a8))
-                    [_0x30639a(0x19b)](_0x30639a(0x352));
-                if (null == _0x5142ff) throw _0x1f977a;
-                return (
-                  _0x5142ff[_0x30639a(0x2ac)] === ArrayBuffer &&
-                    (_0x5142ff = new Uint8Array(_0x5142ff)),
-                  Array[_0x30639a(0x2af)](_0x5142ff) ||
-                  ArrayBuffer[_0x30639a(0x2c7)](_0x5142ff) ||
-                  _0x5142ff[_0x30639a(0x2ac)] === _0x5bfe7e
-                    ? _0x3e0a6e[_0x30639a(0x1ca)](_0x30639a(0x35c))
-                        ["update"](new _0x5bfe7e(_0x5142ff))
-                        [_0x30639a(0x19b)](_0x30639a(0x352))
-                    : _0x1afe1b(_0x5142ff)
-                );
-              };
+            const _0x3e0a6e = createHash;
+            const _0x5bfe7e = Buffer;
+
+            const _0x3d7396 = function (_0x5142ff) {
+              const _0x30639a = w_0x25f3; // 假设w_0x25f3已在外部定义
+
+              if (_0x30639a(0x33c) === typeof _0x5142ff) {
+                return _0x3e0a6e(_0x30639a(0x35c))
+                  .update(_0x5142ff, _0x30639a(0x2a8))
+                  .digest(_0x30639a(0x352));
+              }
+
+              if (_0x5142ff === null) throw _0x1f977a; // 假设_0x1f977a已定义
+
+              if (_0x5142ff.constructor === ArrayBuffer) {
+                _0x5142ff = new Uint8Array(_0x5142ff);
+              }
+
+              if (
+                Array.isArray(_0x5142ff) ||
+                ArrayBuffer.isView(_0x5142ff) ||
+                _0x5142ff.constructor === _0x5bfe7e
+              ) {
+                return _0x3e0a6e(_0x30639a(0x35c))
+                  .update(new _0x5bfe7e(_0x5142ff))
+                  .digest(_0x30639a(0x352));
+              }
+
+              return _0x1afe1b(_0x5142ff);
+            };
+
             return _0x3d7396;
           };
 
