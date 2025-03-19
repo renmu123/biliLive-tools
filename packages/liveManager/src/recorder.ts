@@ -58,6 +58,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
 export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id">;
 
 export type RecorderState = "idle" | "recording" | "stopping-record";
+export type Progress = { time: string | null };
 
 export interface RecordHandle {
   // 表示这一次录制操作的唯一 id
@@ -66,6 +67,7 @@ export interface RecordHandle {
   source: string;
   url: string;
   ffmpegArgs?: string[];
+  progress?: Progress;
 
   savePath: string;
 
@@ -85,6 +87,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
       RecordSegment?: RecordHandle;
       videoFileCreated: { filename: string };
       videoFileCompleted: { filename: string };
+      progress: Progress;
       RecordStop: { recordHandle: RecordHandle; reason?: string };
       Updated: (string | keyof Recorder)[];
       Message: Message;

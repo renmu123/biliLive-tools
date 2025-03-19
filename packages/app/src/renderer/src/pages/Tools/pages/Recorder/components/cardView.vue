@@ -14,6 +14,7 @@
           <div class="recording"></div>
           <span class="source">{{ item.usedSource }}</span>
           <span class="line">{{ item.usedStream }}</span>
+          <span>{{ formatTime(item?.recordHandle?.progress?.time) }}</span>
         </div>
       </div>
       <div class="content">
@@ -66,6 +67,11 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const list = computed(() => props.list);
+
+function formatTime(time?: string) {
+  if (!time) return "";
+  return time.split(".")[0];
+}
 </script>
 
 <style scoped lang="less">

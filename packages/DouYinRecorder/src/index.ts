@@ -193,6 +193,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   recorder.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
   });
+  recorder.on("progress", (progress) => {
+    if (this.recordHandle) {
+      this.recordHandle.progress = progress;
+    }
+    this.emit("progress", progress);
+  });
 
   const client = new DouYinDanmaClient(liveInfo.liveId);
   client.on("chat", (msg) => {

@@ -126,6 +126,8 @@ setFFMPEGPath("ffmpeg.exe");
 
 录制文件结束
 
+### progress
+
 # 协议
 
 与原项目保存一致为 LGPL

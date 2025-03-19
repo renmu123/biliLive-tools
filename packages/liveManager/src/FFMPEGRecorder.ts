@@ -75,6 +75,9 @@ export class FFMPEGRecorder extends EventEmitter {
         // TODO:解析时间
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 
+        const info = this.formatLine(stderrLine);
+        this.emit("progress", info);
+
         if (isInvalidStream(stderrLine)) {
           this.onEnd("invalid stream");
         }
@@ -91,6 +94,19 @@ export class FFMPEGRecorder extends EventEmitter {
       );
     }
     return command;
+  }
+
+  formatLine(line: string) {
+    let time: string | null = null;
+
+    const timeMatch = line.match(/time=([0-9:.]+)/);
+    if (timeMatch) {
+      time = timeMatch[1];
+    }
+
+    return {
+      time,
+    };
   }
 
   public run() {
