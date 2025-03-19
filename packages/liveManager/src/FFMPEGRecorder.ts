@@ -76,7 +76,9 @@ export class FFMPEGRecorder extends EventEmitter {
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 
         const info = this.formatLine(stderrLine);
-        this.emit("progress", info);
+        if (info) {
+          this.emit("progress", info);
+        }
 
         if (isInvalidStream(stderrLine)) {
           this.onEnd("invalid stream");
@@ -97,6 +99,9 @@ export class FFMPEGRecorder extends EventEmitter {
   }
 
   formatLine(line: string) {
+    if (!line.includes("time=")) {
+      return null;
+    }
     let time: string | null = null;
 
     const timeMatch = line.match(/time=([0-9:.]+)/);
