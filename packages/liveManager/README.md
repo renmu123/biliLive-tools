@@ -126,7 +126,9 @@ setFFMPEGPath("ffmpeg.exe");
 
 录制文件结束
 
-### progress
+### RecorderProgress
+
+ffmpeg录制相关数据
 
 # 协议
 

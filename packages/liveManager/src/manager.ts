@@ -75,7 +75,7 @@ export interface RecorderManager<
     RecordSegment: { recorder: Recorder<E>; recordHandle?: RecordHandle };
     videoFileCreated: { recorder: Recorder<E>; filename: string };
     videoFileCompleted: { recorder: Recorder<E>; filename: string };
-    progress: { recorder: Recorder<E>; progress: Progress };
+    RecorderProgress: { recorder: Recorder<E>; progress: Progress };
 
     RecordStop: { recorder: Recorder<E>; recordHandle: RecordHandle; reason?: string };
     Message: { recorder: Recorder<E>; message: Message };
@@ -255,7 +255,7 @@ export function createRecorderManager<
       recorder.on("Updated", (keys) => this.emit("RecorderUpdated", { recorder, keys }));
       recorder.on("DebugLog", (log) => this.emit("RecorderDebugLog", { recorder, ...log }));
       recorder.on("progress", (progress) => {
-        this.emit("progress", { recorder, progress });
+        this.emit("RecorderProgress", { recorder, progress });
       });
 
       this.emit("RecorderAdded", recorder);
