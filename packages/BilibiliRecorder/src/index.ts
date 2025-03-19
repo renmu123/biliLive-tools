@@ -107,7 +107,7 @@ const ffmpegInputOptions: string[] = [
 ];
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
-  qualityRetry,
+  isManualStart,
   banLiveId,
 }) {
   if (this.recordHandle != null) return this.recordHandle;
@@ -137,9 +137,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   let res: Awaited<ReturnType<typeof getStream>>;
   // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
-    let strictQuality = !!this.qualityRetry;
-    if (qualityRetry !== undefined) {
-      strictQuality = !!qualityRetry;
+    let strictQuality = false;
+    if (this.qualityRetry > 0) {
+      strictQuality = true;
+    }
+    if (this.qualityMaxRetry < 0) {
+      strictQuality = true;
+    }
+    if (isManualStart) {
+      strictQuality = false;
     }
     res = await getStream({
       channelId: this.channelId,

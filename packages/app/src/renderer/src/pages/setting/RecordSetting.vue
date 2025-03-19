@@ -155,7 +155,7 @@
         <template #label>
           <Tip :tip="textInfo.bili.qualityRetry.tip" :text="textInfo.bili.qualityRetry.text"></Tip>
         </template>
-        <n-input-number v-model:value="config.recorder.qualityRetry" min="0" step="1">
+        <n-input-number v-model:value="config.recorder.qualityRetry" min="-1" step="1">
         </n-input-number>
       </n-form-item>
       <n-form-item>
@@ -178,11 +178,11 @@
       <n-form-item>
         <template #label>
           <Tip
-            tip="如果值为0，那么匹配不到画质时会自动选择其他画质，否则会多次尝试匹配"
+            tip="根据次数强制查询匹配画质，在未选择原画的情况下，可能会导致开头漏录。匹配次数结束后如果无法匹配对应画质时会自动选择其他画质，-1为强制匹配画质"
             text="画质匹配重试次数"
           ></Tip>
         </template>
-        <n-input-number v-model:value="config.recorder.qualityRetry" min="0" step="1">
+        <n-input-number v-model:value="config.recorder.qualityRetry" min="-1" step="1">
         </n-input-number>
       </n-form-item>
 

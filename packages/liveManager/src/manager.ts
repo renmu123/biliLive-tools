@@ -275,7 +275,6 @@ export function createRecorderManager<
         getSavePath(data) {
           return genSavePathFromRule(manager, recorder, data);
         },
-        qualityRetry: 0,
         isManualStart: true,
       });
       delete tempBanObj[recorder.channelId];

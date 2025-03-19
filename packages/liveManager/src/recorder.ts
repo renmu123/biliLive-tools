@@ -128,7 +128,6 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     this: Recorder<E>,
     opts: {
       getSavePath: GetSavePath;
-      qualityRetry?: number;
       banLiveId?: string;
       isManualStart?: boolean;
     },

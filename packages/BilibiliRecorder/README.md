@@ -35,7 +35,7 @@ manager.startCheckLoop();
 interface Options {
   channelId: string; // 长直播间ID，具体解析见文档，也可自行解析
   quality: number; // 见画质参数
-  qualityRetry?: number; // 画质匹配重试次数
+  qualityRetry?: number; // 画质匹配重试次数, -1为强制匹配画质，0为自动配置，正整数为最大匹配次数
   streamPriorities: []; // 废弃
   sourcePriorities: []; // 废弃
   disableAutoCheck?: boolean; // 为 true 时 manager 将跳过自动检查

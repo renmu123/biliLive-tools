@@ -5,6 +5,7 @@
 1. 优化 http_hls 流优化非法流的判定
 2. ts流比fmp4优先级更高
 3. 弹幕服务器增加重试
+4. `qualityRetry` 支持 -1 参数
 
 ## Bug fix
 
