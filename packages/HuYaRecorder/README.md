@@ -35,6 +35,7 @@ manager.startCheckLoop();
 interface Options {
   channelId: string; // 直播间ID，具体解析见文档，也可自行解析
   quality: number; // 见画质参数
+  qualityRetry?: number; // 画质匹配重试次数, -1为强制匹配画质，0为自动配置，正整数为最大匹配次数
   streamPriorities: []; // 废弃
   sourcePriorities: []; // 按提供的源优先级去给CDN列表排序，并过滤掉不在优先级配置中的源，在未匹配到的情况下会优先使用TX的CDN，具体参数见 CDN 参数
   formatName?: "auto" | "flv" | "hls"; // 支持 flv,hls参数，默认使用flv，具体见文档

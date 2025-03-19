@@ -29,6 +29,7 @@ export async function getInfo(channelId: string): Promise<{
 export async function getStream(
   opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities"> & {
     rejectCache?: boolean;
+    strictQuality?: boolean;
   },
 ) {
   const info = await getRoomInfo(opts.channelId);
@@ -62,6 +63,10 @@ export async function getStream(
 
   let url = sources.streamMap[opts.quality]?.main?.flv;
   let qualityName: string = qualityMap.find((q) => q.key === opts.quality)?.desc ?? "未知";
+
+  if (!url && opts.strictQuality) {
+    throw new Error("Can not get expect quality because of strictQuality");
+  }
   // 如果url不存在，那么按照优先级选择
   if (!url) {
     for (const quality of qualityMap) {

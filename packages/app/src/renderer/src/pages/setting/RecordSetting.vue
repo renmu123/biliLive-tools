@@ -79,6 +79,16 @@
       </n-form-item>
       <n-form-item>
         <template #label>
+          <Tip
+            :tip="textInfo.douyu.qualityRetry.tip"
+            :text="textInfo.douyu.qualityRetry.text"
+          ></Tip>
+        </template>
+        <n-input-number v-model:value="config.recorder.qualityRetry" min="-1" step="1">
+        </n-input-number>
+      </n-form-item>
+      <n-form-item>
+        <template #label>
           <Tip tip="用于提交反馈" text="调试模式"></Tip>
         </template>
         <n-switch v-model:value="config.recorder.debugMode" />
@@ -153,13 +163,6 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip :tip="textInfo.bili.qualityRetry.tip" :text="textInfo.bili.qualityRetry.text"></Tip>
-        </template>
-        <n-input-number v-model:value="config.recorder.qualityRetry" min="-1" step="1">
-        </n-input-number>
-      </n-form-item>
-      <n-form-item>
-        <template #label>
           <Tip
             tip="使用批量检查直播状态接口，如果你录制了大量的直播间，可以尝试开启此选项，减少被风控的可能性"
             text="批量查询接口"
@@ -171,25 +174,15 @@
       <h2>斗鱼</h2>
       <n-form-item>
         <template #label>
-          <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
+          <Tip :text="textInfo.douyu.quality.text" :tip="textInfo.douyu.quality.tip"></Tip>
         </template>
         <n-select v-model:value="config.recorder.douyu.quality" :options="douyuQualityOptions" />
-      </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip
-            tip="根据次数强制查询匹配画质，在未选择原画的情况下，可能会导致开头漏录。匹配次数结束后如果无法匹配对应画质时会自动选择其他画质，-1为强制匹配画质"
-            text="画质匹配重试次数"
-          ></Tip>
-        </template>
-        <n-input-number v-model:value="config.recorder.qualityRetry" min="-1" step="1">
-        </n-input-number>
       </n-form-item>
 
       <h2>虎牙</h2>
       <n-form-item>
         <template #label>
-          <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
+          <Tip :text="textInfo.huya.quality.text" :tip="textInfo.huya.quality.tip"></Tip>
         </template>
         <n-select v-model:value="config.recorder.huya.quality" :options="huyaQualityOptions" />
       </n-form-item>
@@ -197,7 +190,7 @@
       <h2>抖音</h2>
       <n-form-item>
         <template #label>
-          <span class="inline-flex"> 画质 </span>
+          <Tip :text="textInfo.douyin.quality.text" :tip="textInfo.douyin.quality.tip"></Tip>
         </template>
         <n-select v-model:value="config.recorder.douyin.quality" :options="douyinQualityOptions" />
       </n-form-item>

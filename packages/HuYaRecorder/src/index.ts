@@ -107,6 +107,7 @@ const ffmpegInputOptions: string[] = [
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
   banLiveId,
+  isManualStart,
 }) {
   if (this.recordHandle != null) return this.recordHandle;
 
@@ -121,22 +122,34 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (this.tempStopIntervalCheck) return null;
   if (!living) return null;
 
-  this.state = "recording";
   let res: Awaited<ReturnType<typeof getStream>>;
   // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
+    let strictQuality = false;
+    if (this.qualityRetry > 0) {
+      strictQuality = true;
+    }
+    if (this.qualityMaxRetry < 0) {
+      strictQuality = true;
+    }
+    if (isManualStart) {
+      strictQuality = false;
+    }
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
       api: this.api,
+      strictQuality,
       formatName: this.formatName,
     });
   } catch (err) {
     this.state = "idle";
     throw err;
   }
+
+  this.state = "recording";
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
   this.availableStreams = availableStreams.map((s) => s.desc);
   this.availableSources = availableSources.map((s) => s.name);

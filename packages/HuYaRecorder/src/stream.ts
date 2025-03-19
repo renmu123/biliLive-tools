@@ -56,7 +56,9 @@ export async function getStream(
   opts: Pick<
     Recorder,
     "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "api" | "formatName"
-  >,
+  > & {
+    strictQuality?: boolean;
+  },
 ) {
   const info = await getRoomInfo(opts.channelId, {
     api: opts.api ?? "auto",
@@ -75,8 +77,14 @@ export async function getStream(
   let expectStream: StreamProfile | undefined = info.streams.find(
     (stream) => stream.bitRate === qn,
   );
+  if (!expectStream && opts.strictQuality) {
+    throw new Error("Can not get expect quality because of strictQuality");
+  }
   if (!expectStream) {
     expectStream = info.streams[0];
+  }
+  if (!expectStream) {
+    throw new Error("未找到对应的流");
   }
 
   let expectSource: SourceProfile | null = null;

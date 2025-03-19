@@ -91,6 +91,7 @@ const ffmpegOutputOptions: string[] = [
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
   banLiveId,
+  isManualStart,
 }) {
   if (this.recordHandle != null) return this.recordHandle;
 
@@ -106,19 +107,31 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (this.tempStopIntervalCheck) return null;
   if (!living) return null;
 
-  this.state = "recording";
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
+    let strictQuality = false;
+    if (this.qualityRetry > 0) {
+      strictQuality = true;
+    }
+    if (this.qualityMaxRetry < 0) {
+      strictQuality = true;
+    }
+    if (isManualStart) {
+      strictQuality = false;
+    }
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
+      strictQuality: strictQuality,
     });
   } catch (err) {
     this.state = "idle";
     throw err;
   }
+
+  this.state = "recording";
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
   this.availableStreams = availableStreams.map((s) => s.desc);
   this.availableSources = availableSources.map((s) => s.name);

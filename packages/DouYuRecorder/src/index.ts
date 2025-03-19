@@ -188,7 +188,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
   }
 
-  this.state = "recording";
   let res: Awaited<ReturnType<typeof getStream>>;
   // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
@@ -212,6 +211,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.qualityRetry -= 1;
     throw err;
   }
+
+  this.state = "recording";
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
   this.availableStreams = availableStreams.map((s) => s.name);
   this.availableSources = availableSources.map((s) => s.name);

@@ -133,7 +133,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const { owner, title, roomId } = liveInfo;
   this.liveInfo = liveInfo;
 
-  this.state = "recording";
   let res: Awaited<ReturnType<typeof getStream>>;
   // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
@@ -160,6 +159,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "idle";
     throw err;
   }
+
+  this.state = "recording";
   const {
     streamOptions,
     currentStream: stream,
