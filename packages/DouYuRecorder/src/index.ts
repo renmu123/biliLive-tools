@@ -324,7 +324,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         this.emit("Message", gift);
         extraDataController.addMessage(gift);
         break;
-        // TODO: 还有一些其他礼物相关的 msg 要处理，目前先简单点只处理 dgb
       }
       // 开通钻粉
       case "odfbc": {

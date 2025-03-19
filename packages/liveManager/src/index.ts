@@ -73,6 +73,5 @@ export const createFFMPEGBuilder = (...args: Parameters<typeof ffmpeg>) => {
 };
 
 export function getDataFolderPath<E extends AnyObject>(provider: RecorderProvider<E>): string {
-  // TODO: 改成 AppData 之类的目录
   return "./" + provider.id;
 }
