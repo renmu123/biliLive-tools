@@ -65,6 +65,12 @@
           </template>
           <n-switch v-model:value="config.sendToWebhook" />
         </n-form-item>
+        <n-form-item v-if="!config.disableAutoCheck">
+          <template #label>
+            <Tip text="开播通知" tip="仅限客户端"></Tip>
+          </template>
+          <n-switch v-model:value="config.liveStartNotification" />
+        </n-form-item>
         <n-form-item
           v-if="
             config.providerId !== 'Bilibili' &&
@@ -393,6 +399,7 @@ const config = ref<Omit<Recorder, "id">>({
   useM3U8Proxy: false,
   codecName: "auto",
   titleKeywords: "",
+  liveStartNotification: false,
 });
 
 const confirm = async () => {
@@ -485,6 +492,7 @@ watch(showModal, async (val) => {
       useM3U8Proxy: false,
       codecName: "auto",
       titleKeywords: "",
+      liveStartNotification: false,
     };
 
     if (props.id) {

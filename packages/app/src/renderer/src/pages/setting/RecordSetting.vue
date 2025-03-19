@@ -39,12 +39,6 @@
           >
         </template>
       </n-form-item>
-      <n-form-item style="display: none">
-        <template #label>
-          <span class="inline-flex"> 自动录制 </span>
-        </template>
-        <n-switch v-model:value="config.recorder.autoRecord" />
-      </n-form-item>
       <n-form-item>
         <template #label>
           <Tip tip="直播状态检查，太快容易被风控~" text="检查间隔"></Tip>

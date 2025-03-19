@@ -130,6 +130,10 @@ setFFMPEGPath("ffmpeg.exe");
 
 ffmpeg录制相关数据
 
+### RecoderLiveStart
+
+直播开始，**并非录制开始，同一场直播不会重复触发**
+
 # 协议
 
 与原项目保存一致为 LGPL

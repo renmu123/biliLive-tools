@@ -20,6 +20,7 @@ import { getFfmpegPath, transcode } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
 import { sleep, replaceExtName } from "../utils/index.js";
+import { sendBySystem } from "../notify.js";
 // import { parseDanmu } from "../danmu/index.js";
 
 import type { AppConfig } from "../config.js";
@@ -148,6 +149,24 @@ export async function createRecorderManager(appConfig: AppConfig) {
   });
   manager.on("error", (error) => {
     logger.error("Manager error", error);
+  });
+  manager.on("RecoderLiveStart", async ({ recorder }) => {
+    // 只有客户端&自动监听&开始推送时才会发送
+    const config = recorderConfig.get(recorder.id);
+    if (!config) return;
+    if (config?.liveStartNotification && !config?.disableAutoCheck) {
+      const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
+      const event = await sendBySystem(
+        `${name}(${config.channelId}) 开播了`,
+        `${recorder?.liveInfo?.title}\n点击打开直播间`,
+      );
+      const { shell } = await import("electron");
+      event?.on("click", () => {
+        const url = recorder.getChannelURL();
+        console.log("openExternal", url);
+        shell.openExternal(url);
+      });
+    }
   });
   // manager.on("RecordSegment", (debug) => {
   //   console.error("Manager segment", debug);

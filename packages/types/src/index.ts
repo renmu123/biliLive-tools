@@ -376,6 +376,8 @@ export interface Recorder {
   codecName: GlobalRecorder["bilibili"]["codecName"];
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
   titleKeywords?: string;
+  /** 开播推送 */
+  liveStartNotification?: boolean;
   // 不跟随全局配置字段
   noGlobalFollowFields: Array<
     Exclude<
@@ -392,6 +394,7 @@ export interface Recorder {
       | "noGlobalFollowFields"
       | "line"
       | "titleKeywords"
+      | "liveStartNotification"
     >
   >;
 }

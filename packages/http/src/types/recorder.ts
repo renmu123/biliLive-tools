@@ -76,6 +76,7 @@ export type UpdateRecorderArgs = Pick<
   | "useM3U8Proxy"
   | "codecName"
   | "titleKeywords"
+  | "liveStartNotification"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 

@@ -129,6 +129,7 @@ export async function getRoomBaseInfo<RoomId extends number>(roomId: RoomId) {
           // face: string;
           live_status: LiveStatus;
           cover: string;
+          is_encrypted: boolean;
           // live_time: number;
           // online: number;
           // room_id: number;

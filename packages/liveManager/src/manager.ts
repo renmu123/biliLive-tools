@@ -76,6 +76,7 @@ export interface RecorderManager<
     videoFileCreated: { recorder: Recorder<E>; filename: string };
     videoFileCompleted: { recorder: Recorder<E>; filename: string };
     RecorderProgress: { recorder: Recorder<E>; progress: Progress };
+    RecoderLiveStart: { recorder: Recorder<E> };
 
     RecordStop: { recorder: Recorder<E>; recordHandle: RecordHandle; reason?: string };
     Message: { recorder: Recorder<E>; message: Message };
@@ -213,6 +214,9 @@ export function createRecorderManager<
   // 用于记录暂时被 ban 掉的直播间
   const tempBanObj: Record<string, string> = {};
 
+  // 用于是否触发LiveStart事件，不要重复触发
+  const liveStartObj: Record<string, boolean> = {};
+
   const manager: RecorderManager<ME, P, PE, E> = {
     // @ts-ignore
     ...mitt(),
@@ -256,6 +260,13 @@ export function createRecorderManager<
       recorder.on("DebugLog", (log) => this.emit("RecorderDebugLog", { recorder, ...log }));
       recorder.on("progress", (progress) => {
         this.emit("RecorderProgress", { recorder, progress });
+      });
+      recorder.on("LiveStart", ({ liveId }) => {
+        const key = `${recorder.channelId}-${liveId}`;
+        if (liveStartObj[key]) return;
+        liveStartObj[key] = true;
+
+        this.emit("RecoderLiveStart", { recorder });
       });
 
       this.emit("RecorderAdded", recorder);

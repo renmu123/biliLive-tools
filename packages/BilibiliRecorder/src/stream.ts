@@ -40,7 +40,21 @@ export async function getStrictStream(
 export async function getLiveStatus(channelId: string): Promise<{
   living: boolean;
   liveId: string;
+  owner?: string;
+  title?: string;
 }> {
+  const obj = await getRoomBaseInfo(Number(channelId));
+  const data = obj[Number(channelId)];
+  if (data) {
+    const startTime = new Date(data.live_time);
+    return {
+      living: data.live_status === 1 && !data.is_encrypted,
+      liveId: utils.md5(`${channelId}-${startTime?.getTime()}`),
+      owner: data.uname,
+      title: data.title,
+    };
+  }
+
   const roomInit = await getRoomInit(Number(channelId));
   const startTime = new Date(roomInit.live_time * 1000);
   return {
@@ -55,7 +69,6 @@ export async function getInfo(channelId: string): Promise<{
   owner: string;
   title: string;
   roomId: number;
-  shortId: number;
   avatar: string;
   cover: string;
   startTime: Date;
@@ -79,7 +92,6 @@ export async function getInfo(channelId: string): Promise<{
       avatar: "",
       cover: status.cover,
       roomId: roomInit.room_id,
-      shortId: roomInit.short_id,
       liveId: utils.md5(`${roomInit.room_id}-${startTime?.getTime()}`),
     };
   }
@@ -94,7 +106,6 @@ export async function getInfo(channelId: string): Promise<{
     avatar: status.face,
     cover: status.cover_from_user,
     roomId: roomInit.room_id,
-    shortId: roomInit.short_id,
     startTime: startTime,
     liveId: utils.md5(`${roomInit.room_id}-${startTime.getTime()}`),
   };

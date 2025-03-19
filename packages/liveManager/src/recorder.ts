@@ -88,6 +88,9 @@ export interface Recorder<E extends AnyObject = UnknownObject>
       videoFileCreated: { filename: string };
       videoFileCompleted: { filename: string };
       progress: Progress;
+      LiveStart: {
+        liveId: string;
+      };
       RecordStop: { recordHandle: RecordHandle; reason?: string };
       Updated: (string | keyof Recorder)[];
       Message: Message;

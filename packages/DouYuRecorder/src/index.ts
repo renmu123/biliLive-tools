@@ -152,9 +152,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // 获取直播间信息
   const liveInfo = await getInfo(this.channelId);
-  const { living, owner, title } = liveInfo;
+  const { living, owner, title, liveId } = liveInfo;
 
   this.liveInfo = liveInfo;
+  this.emit("LiveStart", { liveId });
 
   if (liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;

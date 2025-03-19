@@ -81,11 +81,15 @@ export async function sendByTg(title: string, desp: string, options: Notificatio
  * 通过系统通知
  */
 export async function sendBySystem(title: string, desp: string) {
+  // 非electron环境不触发
+  if (process.type !== "browser") return;
   const { Notification } = await import("electron");
-  new Notification({
+  const event = new Notification({
     title: title,
     body: desp,
-  }).show();
+  });
+  event.show();
+  return event;
 }
 
 /**
