@@ -63,6 +63,15 @@ interface Message$ODFBC {
   price: string; // 价格，单位分
 }
 
+// 续费钻粉
+interface Message$RNDFBC {
+  type: "rndfbc";
+  uid: string; // 用户 id
+  rid: string; // 房间 ID
+  nick: string; // 用户昵称
+  price: string; // 价格，单位分
+}
+
 interface Message$CommChatPandora {
   type: "comm_chatmsg";
   rid: string; // 房间 ID
@@ -119,7 +128,12 @@ interface Message$CommChatVoiceDanmu {
 }
 
 type Message$CommChat = Message$CommChatPandora | Message$CommChatVoiceDanmu;
-export type Message = Message$Chat | Message$Gift | Message$CommChat | Message$ODFBC;
+export type Message =
+  | Message$Chat
+  | Message$Gift
+  | Message$CommChat
+  | Message$ODFBC
+  | Message$RNDFBC;
 
 export interface DYClient
   extends Emitter<{
