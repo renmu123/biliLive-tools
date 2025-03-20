@@ -33,7 +33,19 @@
               size="20"
               title="跳过本场直播"
             >
-              <RecordStop16Regular style="color: gray" />
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="color: gray">
+                <g fill="none">
+                  <!-- 保持原有外圈 -->
+                  <path
+                    d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12s4.477 10 10 10s10-4.477 10-10zM3.5 12a8.5 8.5 0 1 1 17 0a8.5 8.5 0 0 1-17 0z"
+                    fill="currentColor"
+                  />
+
+                  <!-- 新增暂停符号 -->
+                  <rect x="9" y="8" width="2" height="8" rx="1" fill="currentColor" />
+                  <rect x="13" y="8" width="2" height="8" rx="1" fill="currentColor" />
+                </g>
+              </svg>
             </n-icon>
           </div>
           <div class="channel-id">
@@ -56,7 +68,7 @@
 
 <script setup lang="ts">
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
-import { Live24Regular, AccessTime24Regular, RecordStop16Regular } from "@vicons/fluent";
+import { Live24Regular, AccessTime24Regular } from "@vicons/fluent";
 
 interface Props {
   list: any[];
