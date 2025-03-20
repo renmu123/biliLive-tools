@@ -152,6 +152,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   });
   manager.on("RecoderLiveStart", async ({ recorder }) => {
     // 只有客户端&自动监听&开始推送时才会发送
+    if (process.type !== "browser") return;
     const config = recorderConfig.get(recorder.id);
     if (!config) return;
     if (config?.liveStartNotification && !config?.disableAutoCheck) {

@@ -65,7 +65,7 @@
           </template>
           <n-switch v-model:value="config.sendToWebhook" />
         </n-form-item>
-        <n-form-item v-if="!config.disableAutoCheck">
+        <n-form-item v-if="isWeb && !config.disableAutoCheck">
           <template #label>
             <Tip text="开播通知" tip="仅限客户端"></Tip>
           </template>
@@ -356,6 +356,7 @@ interface Props {
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
 const { userList } = storeToRefs(useUserInfoStore());
+const isWeb = computed(() => window.isWeb);
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const props = defineProps<Props>();
