@@ -140,6 +140,7 @@ export class WebhookHandler {
       hotProgressColor,
       hotProgressFillColor,
       convert2Mp4Option,
+      removeSourceAferrConvert2Mp4,
       removeOriginAfterConvert,
       noConvertHandleVideo,
       videoHandleTime,
@@ -204,7 +205,7 @@ export class WebhookHandler {
           audioCodec: "copy",
         },
         {
-          removeVideo: true,
+          removeVideo: removeSourceAferrConvert2Mp4 ?? true,
         },
       );
       log.debug("convert2Mp4 output", file);
@@ -379,6 +380,8 @@ export class WebhookHandler {
     hotProgressFillColor?: string;
     /** 转封装为mp4 */
     convert2Mp4Option?: boolean;
+    /** 转封装后删除源文件 */
+    removeSourceAferrConvert2Mp4?: boolean;
     /** 压制完成后删除文件 */
     removeOriginAfterConvert: boolean;
     /** 上传完成后删除文件 */
@@ -422,6 +425,7 @@ export class WebhookHandler {
     const hotProgressColor = getRoomSetting("hotProgressColor");
     const hotProgressFillColor = getRoomSetting("hotProgressFillColor");
     const convert2Mp4 = getRoomSetting("convert2Mp4");
+    const removeSourceAferrConvert2Mp4 = getRoomSetting("removeSourceAferrConvert2Mp4");
     const limitVideoConvertTime = getRoomSetting("limitVideoConvertTime") ?? false;
     const videoHandleTime = getRoomSetting("videoHandleTime") || ["00:00:00", "23:59:59"];
 
@@ -469,6 +473,7 @@ export class WebhookHandler {
       hotProgressColor,
       hotProgressFillColor,
       convert2Mp4Option: convert2Mp4,
+      removeSourceAferrConvert2Mp4,
       removeOriginAfterConvert,
       removeOriginAfterUpload,
       noConvertHandleVideo,

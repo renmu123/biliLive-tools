@@ -148,7 +148,7 @@
   <template v-if="data.danmu || (!data.danmu && data.noConvertHandleVideo)">
     <n-form-item>
       <template #label>
-        <span class="inline-flex"> 完成后删除源文件 </span>
+        <span class="inline-flex"> 压制后删除源文件 </span>
       </template>
       <n-switch
         v-model:value="data.removeOriginAfterConvert"
@@ -170,6 +170,16 @@
     <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
 
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item v-if="data.convert2Mp4">
+    <template #label>
+      <span>封装后删除源文件</span>
+    </template>
+    <n-switch v-model:value="data.removeSourceAferrConvert2Mp4" :disabled="globalFieldsObj.removeSourceAferrConvert2Mp4" />
+
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.removeSourceAferrConvert2Mp4" class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
