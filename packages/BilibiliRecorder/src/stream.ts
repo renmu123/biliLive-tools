@@ -40,8 +40,8 @@ export async function getStrictStream(
 export async function getLiveStatus(channelId: string): Promise<{
   living: boolean;
   liveId: string;
-  owner?: string;
-  title?: string;
+  owner: string;
+  title: string;
 }> {
   const obj = await getRoomBaseInfo(Number(channelId));
   const data = obj[Number(channelId)];
@@ -61,6 +61,8 @@ export async function getLiveStatus(channelId: string): Promise<{
     living: roomInit.live_status === 1 && !roomInit.encrypted,
     liveId: utils.md5(`${roomInit.room_id}-${startTime?.getTime()}`),
     ...roomInit,
+    owner: "",
+    title: "",
   };
 }
 
