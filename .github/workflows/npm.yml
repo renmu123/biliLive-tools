@@ -38,4 +38,4 @@ jobs:
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --filter=huya-danma-listener --filter bililive-cli --filter @bililive-tools/* --access public --no-git-checks
+        run: pnpm publish --filter=huya-danma-listener --filter douyin-danma-listener --filter bililive-cli --filter @bililive-tools/* --access public --no-git-checks
