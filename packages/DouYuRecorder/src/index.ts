@@ -429,7 +429,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "stopping-record";
 
     client.stop();
-
+    try {
+      await recorder.stop();
+    } catch (err) {
+      this.emit("DebugLog", {
+        type: "common",
+        text: `stop ffmpeg error: ${String(err)}`,
+      });
+    }
     this.usedStream = undefined;
     this.usedSource = undefined;
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
@@ -437,7 +444,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.liveInfo = undefined;
     this.state = "idle";
     this.qualityRetry = this.qualityMaxRetry;
-    await recorder.stop();
   });
 
   this.recordHandle = {
