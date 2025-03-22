@@ -882,6 +882,9 @@ export class TaskQueue {
     });
 
     setInterval(() => {
+      // @ts-ignore
+      const isVitest = process.env.NODE_ENV === "test";
+      if (isVitest) return;
       this.addTaskForLimit();
     }, 1000 * 60);
   }
