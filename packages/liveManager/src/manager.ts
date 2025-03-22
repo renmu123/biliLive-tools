@@ -3,7 +3,7 @@ import mitt, { Emitter } from "mitt";
 import { omit, range } from "lodash-es";
 import { parseArgsStringToArgv } from "string-argv";
 import { ChannelId, Message } from "./common.js";
-import { getBiliStatusInfoByUIDs } from "./api.js";
+import { getBiliStatusInfoByRoomIds } from "./api.js";
 import {
   RecorderCreateOpts,
   Recorder,
@@ -137,11 +137,10 @@ export function createRecorderManager<
 
   const multiThreadCheck = async (manager: RecorderManager<ME, P, PE, E>) => {
     const handleBatchQuery = async (obj: Record<string, boolean>) => {
-      for (const recorder of recorders) {
-        if (recorder.extra.recorderUid == null) continue;
-
-        const isLive = obj[recorder.extra.recorderUid];
-        if (isLive) {
+      for (const recorder of recorders.filter((r) => r.providerId === "Bilibili")) {
+        const isLive = obj[recorder.channelId];
+        // 如果是undefined，说明这个接口查不到相关信息，使用录制器内的再查一次
+        if (isLive === true || isLive === undefined) {
           await recorder.checkLiveStatusAndRecord({
             getSavePath(data) {
               return genSavePathFromRule(manager, recorder, data);
@@ -159,23 +158,13 @@ export function createRecorderManager<
     let threads: Promise<void>[] = [];
 
     if (manager.biliBatchQuery) {
-      const biliNeedCheckRecorders = needCheckRecorders.filter(
-        (r) => r.providerId === "Bilibili" && r.extra?.recorderUid,
-      );
-      needCheckRecorders = needCheckRecorders.filter((r) => {
-        if (r.providerId !== "Bilibili") return true;
-        if (r.providerId === "Bilibili" && !r.extra?.recorderUid) return true;
+      const biliNeedCheckRecorders = needCheckRecorders.filter((r) => r.providerId === "Bilibili");
+      needCheckRecorders = needCheckRecorders.filter((r) => r.providerId !== "Bilibili");
 
-        return false;
-      });
-
-      const uids = biliNeedCheckRecorders.map((r) => r.extra?.recorderUid) as number[];
-      // console.log("uids", uids);
+      const roomIds = biliNeedCheckRecorders.map((r) => r.channelId).map(Number);
       try {
-        if (uids.length !== 0) {
-          const biliStatus = await getBiliStatusInfoByUIDs(uids);
-          // console.log("biliStatus", biliStatus);
-
+        if (roomIds.length !== 0) {
+          const biliStatus = await getBiliStatusInfoByRoomIds(roomIds);
           threads.push(handleBatchQuery(biliStatus));
         }
       } catch (err) {

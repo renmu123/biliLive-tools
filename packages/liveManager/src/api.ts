@@ -23,34 +23,37 @@ type LiveStatus =
   // 轮播中
   | 2;
 
-export async function getBiliStatusInfoByUIDs<UID extends number>(userIds: UID[]) {
+export async function getBiliStatusInfoByRoomIds<RoomId extends number>(RoomIds: RoomId[]) {
+  const roomParams = `${RoomIds.map((id) => `room_ids=${id}`).join("&")}`;
   const res = await requester.get<
-    BilibiliResp<
-      Record<
-        UID,
+    BilibiliResp<{
+      by_uids: {};
+      by_room_ids: Record<
+        RoomId,
         {
           title: string;
           uname: string;
-          face: string;
+          live_time: string;
           live_status: LiveStatus;
-          cover_from_user: string;
-          live_time: number;
-          online: number;
-          room_id: number;
-          short_id: number;
+          cover: string;
+          is_encrypted: boolean;
         }
-      >
-    >
-  >("http://api.live.bilibili.com/room/v1/Room/get_status_info_by_uids", {
-    params: { uids: userIds },
-  });
+      >;
+    }>
+  >(
+    `https://api.live.bilibili.com/xlive/web-room/v1/index/getRoomBaseInfo?${roomParams}&req_biz=web_room_componet`,
+  );
 
   assert(res.data.code === 0, `Unexpected resp, code ${res.data.code}, msg ${res.data.message}`);
 
   const obj: Record<string, boolean> = {};
-  for (const uid of userIds) {
-    const data = res.data.data?.[uid];
-    obj[uid] = data?.live_status === 1;
+  for (const roomId of RoomIds) {
+    try {
+      const data = res.data.data.by_room_ids[roomId];
+      obj[roomId] = data?.live_status === 1;
+    } catch (e) {
+      continue;
+    }
   }
   return obj;
 }
