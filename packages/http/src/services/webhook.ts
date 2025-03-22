@@ -728,7 +728,12 @@ export class WebhookHandler {
   addEditMediaTask = async (
     uid: number,
     aid: number,
-    pathArray: string[],
+    pathArray:
+      | string[]
+      | {
+          path: string;
+          title: string;
+        }[],
     removeOrigin: boolean,
     limitedUploadTime: [string, string] | [],
     removeOriginAfterUploadCheck: boolean,
@@ -761,7 +766,7 @@ export class WebhookHandler {
     });
   };
 
-  handleLive = async (live: Live) => {
+  handleLive = async (live: Live, type?: "handled" | "raw") => {
     /**
      * @param type 区分是弹幕版还是原始版
      * raw: 非弹幕版
@@ -777,36 +782,13 @@ export class WebhookHandler {
       if (isUploading) return;
 
       // 需要上传的视频列表
-      const filePaths: string[] = [];
-      // 过滤掉已经上传的part
-      const filterParts = live.parts.filter(
-        (item) => item[updateStatusField] !== "uploaded" && item[updateStatusField] !== "error",
-      );
-
-      let cover: string | undefined;
-      // 找到前几个为handled的part
-      for (let i = 0; i < filterParts.length; i++) {
-        const part = filterParts[i];
-        if (type === "handled") {
-          if (part.recordStatus === "handled") {
-            filePaths.push(part[filePathField]);
-            if (!cover) cover = part.cover;
-          } else {
-            break;
-          }
-        } else if (type === "raw") {
-          if (part.recordStatus == "prehandled" || part.recordStatus === "handled") {
-            filePaths.push(part[filePathField]);
-            if (!cover) cover = part.cover;
-          } else {
-            break;
-          }
-        } else {
-          throw new Error("type error");
-        }
-      }
-
-      if (filePaths.length === 0) return;
+      const filePaths: {
+        path: string;
+        title: string;
+      }[] = [];
+      // 过滤掉错误的视频
+      const filterParts = live.parts.filter((item) => item[updateStatusField] !== "error");
+      if (filterParts.length === 0) return;
 
       const {
         uploadPresetId,
@@ -822,9 +804,61 @@ export class WebhookHandler {
         partTitleTemplate,
       } = this.getConfig(live.roomId);
 
+      let cover: string | undefined;
+      let indexMap: {
+        handled: number;
+        raw: number;
+      } = {
+        handled: 1,
+        raw: 1,
+      };
+      // 找到前几个为handled的part
+      for (let i = 0; i < filterParts.length; i++) {
+        const part = filterParts[i];
+        if (part[updateStatusField] === "uploaded") {
+          indexMap[type] = indexMap[type] + 1;
+          continue;
+        }
+        const filename = path.parse(part[filePathField]).name;
+        const title = formatPartTitle(
+          {
+            title: live.title,
+            username: live.username,
+            roomId: live.roomId,
+            time: part?.startTime
+              ? new Date(part.startTime).toISOString()
+              : new Date().toISOString(),
+            filename,
+            index: indexMap[type],
+          },
+          partTitleTemplate ?? "{{filename}}",
+        );
+
+        if (type === "handled") {
+          if (part.recordStatus === "handled") {
+            filePaths.push({ path: part[filePathField], title });
+            if (!cover) cover = part.cover;
+            indexMap.handled = indexMap[type] + 1;
+          } else {
+            break;
+          }
+        } else if (type === "raw") {
+          if (part.recordStatus == "prehandled" || part.recordStatus === "handled") {
+            filePaths.push({ path: part[filePathField], title });
+            if (!cover) cover = part.cover;
+            indexMap.raw = indexMap[type] + 1;
+          } else {
+            break;
+          }
+        } else {
+          throw new Error("type error");
+        }
+      }
+      if (filePaths.length === 0) return;
+
       if (!uid) {
         for (let i = 0; i < filePaths.length; i++) {
-          const part = live.findPartByFilePath(filePaths[i], type);
+          const part = live.findPartByFilePath(filePaths[i].path, type);
           if (part) part[updateStatusField] = "error";
         }
         return;
@@ -833,7 +867,7 @@ export class WebhookHandler {
       // 如果是非弹幕版，但是不允许上传无弹幕视频，那么直接设置为error
       if (type === "raw" && !uploadNoDanmu) {
         for (let i = 0; i < filePaths.length; i++) {
-          const part = live.findPartByFilePath(filePaths[i], type);
+          const part = live.findPartByFilePath(filePaths[i].path, type);
           if (part) part[updateStatusField] = "error";
         }
         return;
@@ -849,12 +883,13 @@ export class WebhookHandler {
         uploadPreset.cover = cover;
       }
 
-      if (live[aidField]) {
-        log.info("续传", filePaths);
-        try {
-          live.parts.map((item) => {
-            if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploading";
-          });
+      try {
+        live.parts.map((item) => {
+          if (filePaths.map((item) => item.path).includes(item[filePathField]))
+            item[updateStatusField] = "uploading";
+        });
+        if (live[aidField]) {
+          log.info("续传", filePaths);
           await this.addEditMediaTask(
             uid,
             live[aidField],
@@ -864,17 +899,11 @@ export class WebhookHandler {
             type === "raw" ? false : removeOriginAfterUploadCheck,
           );
           live.parts.map((item) => {
-            if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploaded";
+            if (filePaths.map((item) => item.path).includes(item[filePathField]))
+              item[updateStatusField] = "uploaded";
           });
-        } catch (error) {
-          log.error(error);
-          live.parts.map((item) => {
-            if (filePaths.includes(item[filePathField])) item[updateStatusField] = "error";
-          });
-        }
-      } else {
-        try {
-          const part = live.findPartByFilePath(filePaths[0], type)!;
+        } else {
+          const part = live.findPartByFilePath(filePaths[0].path, type)!;
           const filename = path.parse(part[filePathField]).name;
 
           let template = uploadPreset.title;
@@ -911,42 +940,11 @@ export class WebhookHandler {
           );
           uploadPreset.title = videoTitle;
 
-          live.parts.map((item) => {
-            if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploading";
-          });
-
-          const files = filePaths.map((file) => {
-            const filename = path.parse(file).name;
-
-            let title = filename;
-            try {
-              title = formatPartTitle(
-                {
-                  title: live.title,
-                  username: live.username,
-                  roomId: live.roomId,
-                  // time: part?.startTime
-                  //   ? new Date(part.startTime).toISOString()
-                  //   : new Date().toISOString(),
-                  filename,
-                },
-                partTitleTemplate,
-              );
-            } catch (error) {
-              log.error(error);
-            }
-
-            return {
-              path: file,
-              title: title,
-            };
-          });
-
-          log.info("上传", live, files, uploadPreset);
+          log.info("上传", live, filePaths, uploadPreset);
 
           const aid = (await this.addUploadTask(
             uid,
-            files,
+            filePaths,
             uploadPreset,
             type === "raw" ? false : removeOriginAfterUpload,
             limitedUploadTime,
@@ -956,18 +954,30 @@ export class WebhookHandler {
 
           // 设置状态为成功
           live.parts.map((item) => {
-            if (filePaths.includes(item[filePathField])) item[updateStatusField] = "uploaded";
-          });
-        } catch (error) {
-          log.error(error);
-          // 设置状态为失败
-          live.parts.map((item) => {
-            if (filePaths.includes(item[filePathField])) item[updateStatusField] = "error";
+            if (filePaths.map((item) => item.path).includes(item[filePathField]))
+              item[updateStatusField] = "uploaded";
           });
         }
+      } catch (error) {
+        log.error(error);
+        // 设置状态为失败
+        live.parts.map((item) => {
+          if (filePaths.map((item) => item.path).includes(item[filePathField]))
+            item[updateStatusField] = "error";
+        });
       }
     };
 
-    await Promise.all([uploadVideo("handled"), uploadVideo("raw")]);
+    if (type) {
+      if (type === "handled") {
+        await uploadVideo("handled");
+      } else if (type === "raw") {
+        await uploadVideo("raw");
+      } else {
+        throw new Error("type error");
+      }
+    } else {
+      await Promise.all([uploadVideo("handled"), uploadVideo("raw")]);
+    }
   };
 }

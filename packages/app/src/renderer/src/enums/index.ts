@@ -12,12 +12,12 @@ export const uploadTitleTemplate = [
     label: "房间号",
   },
   {
-    value: "{{now}}",
-    label: "视频录制时间（示例：2024.01.24）",
-  },
-  {
     value: "{{filename}}",
     label: "视频文件名",
+  },
+  {
+    value: "{{now}}",
+    label: "视频录制时间（示例：2024.01.24）",
   },
   {
     value: "{{yyyy}}",

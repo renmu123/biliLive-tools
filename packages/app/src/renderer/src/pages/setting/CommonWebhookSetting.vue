@@ -177,9 +177,15 @@
     <template #label>
       <span>封装后删除源文件</span>
     </template>
-    <n-switch v-model:value="data.removeSourceAferrConvert2Mp4" :disabled="globalFieldsObj.removeSourceAferrConvert2Mp4" />
+    <n-switch
+      v-model:value="data.removeSourceAferrConvert2Mp4"
+      :disabled="globalFieldsObj.removeSourceAferrConvert2Mp4"
+    />
 
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.removeSourceAferrConvert2Mp4" class="global-checkbox"
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.removeSourceAferrConvert2Mp4"
+      class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
@@ -583,6 +589,34 @@ const partTitleList = ref([
   {
     label: "文件名",
     value: "{{filename}}",
+  },
+  {
+    label: "序号",
+    value: "{{index}}",
+  },
+  {
+    value: "{{yyyy}}",
+    label: "年",
+  },
+  {
+    value: "{{MM}}",
+    label: "月（补零）",
+  },
+  {
+    value: "{{dd}}",
+    label: "日（补零）",
+  },
+  {
+    value: "{{HH}}",
+    label: "时（补零）",
+  },
+  {
+    value: "{{mm}}",
+    label: "分（补零）",
+  },
+  {
+    value: "{{ss}}",
+    label: "秒（补零）",
   },
 ]);
 const partTitleTip = computed(() => {

@@ -92,19 +92,20 @@ export function formatPartTitle(
   options: {
     title: string;
     username: string;
-    // time: string;
+    time: string;
     roomId: number;
     filename: string;
+    index: number;
   },
   template: string,
 ) {
-  // const { year, month, day, hours, minutes, seconds, now } = formatTime(options.time);
+  const { year, month, day, hours, minutes, seconds } = formatTime(options.time);
   let renderText = template;
   try {
     const renderOptions = {
       title: options.title,
       user: options.username,
-      // time: new Date(options.time),
+      time: new Date(options.time),
       roomId: options.roomId,
       filename: options.filename,
     };
@@ -117,14 +118,14 @@ export function formatPartTitle(
     .replaceAll("{{title}}", options.title)
     .replaceAll("{{user}}", options.username)
     .replaceAll("{{roomId}}", String(options.roomId))
-    // .replaceAll("{{now}}", now)
-    // .replaceAll("{{yyyy}}", year)
-    // .replaceAll("{{MM}}", month)
-    // .replaceAll("{{dd}}", day)
-    // .replaceAll("{{HH}}", hours)
-    // .replaceAll("{{mm}}", minutes)
-    // .replaceAll("{{ss}}", seconds)
+    .replaceAll("{{yyyy}}", year)
+    .replaceAll("{{MM}}", month)
+    .replaceAll("{{dd}}", day)
+    .replaceAll("{{HH}}", hours)
+    .replaceAll("{{mm}}", minutes)
+    .replaceAll("{{ss}}", seconds)
     .replaceAll("{{filename}}", options.filename)
+    .replaceAll("{{index}}", String(options.index))
     .trim()
     .slice(0, 80);
 
