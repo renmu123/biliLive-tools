@@ -123,13 +123,13 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       better-sqlite3:
-        specifier: 'catalog:'
+        specifier: 11.9.0
         version: 11.9.0
       font-ls:
-        specifier: 'catalog:'
+        specifier: 0.4.0
         version: 0.4.0
       ntsuspend:
-        specifier: 'catalog:'
+        specifier: ^1.0.2
         version: 1.0.2
     devDependencies:
       '@biliLive-tools/http':
