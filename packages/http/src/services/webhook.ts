@@ -781,11 +781,6 @@ export class WebhookHandler {
       const isUploading = live.parts.some((item) => item[updateStatusField] === "uploading");
       if (isUploading) return;
 
-      // 需要上传的视频列表
-      const filePaths: {
-        path: string;
-        title: string;
-      }[] = [];
       // 过滤掉错误的视频
       const filterParts = live.parts.filter((item) => item[updateStatusField] !== "error");
       if (filterParts.length === 0) return;
@@ -812,6 +807,12 @@ export class WebhookHandler {
         handled: 1,
         raw: 1,
       };
+      // 需要上传的视频列表
+      const filePaths: {
+        part: Part;
+        path: string;
+        title: string;
+      }[] = [];
       // 找到前几个为handled的part
       for (let i = 0; i < filterParts.length; i++) {
         const part = filterParts[i];
@@ -836,30 +837,28 @@ export class WebhookHandler {
 
         if (type === "handled") {
           if (part.recordStatus === "handled") {
-            filePaths.push({ path: part[filePathField], title });
-            if (!cover) cover = part.cover;
-            indexMap.handled = indexMap[type] + 1;
+            filePaths.push({ path: part[filePathField], title, part });
           } else {
             break;
           }
         } else if (type === "raw") {
           if (part.recordStatus == "prehandled" || part.recordStatus === "handled") {
-            filePaths.push({ path: part[filePathField], title });
-            if (!cover) cover = part.cover;
-            indexMap.raw = indexMap[type] + 1;
+            filePaths.push({ path: part[filePathField], title, part });
           } else {
             break;
           }
         } else {
           throw new Error("type error");
         }
+
+        if (!cover) cover = part.cover;
+        indexMap[type] = indexMap[type] + 1;
       }
       if (filePaths.length === 0) return;
 
       if (!uid) {
         for (let i = 0; i < filePaths.length; i++) {
-          const part = live.findPartByFilePath(filePaths[i].path, type);
-          if (part) part[updateStatusField] = "error";
+          filePaths[i].part[updateStatusField] = "error";
         }
         return;
       }
@@ -867,8 +866,7 @@ export class WebhookHandler {
       // 如果是非弹幕版，但是不允许上传无弹幕视频，那么直接设置为error
       if (type === "raw" && !uploadNoDanmu) {
         for (let i = 0; i < filePaths.length; i++) {
-          const part = live.findPartByFilePath(filePaths[i].path, type);
-          if (part) part[updateStatusField] = "error";
+          filePaths[i].part[updateStatusField] = "error";
         }
         return;
       }
@@ -884,26 +882,29 @@ export class WebhookHandler {
       }
 
       try {
-        live.parts.map((item) => {
-          if (filePaths.map((item) => item.path).includes(item[filePathField]))
-            item[updateStatusField] = "uploading";
+        filePaths.map((item) => {
+          item.part[updateStatusField] = "uploading";
         });
         if (live[aidField]) {
           log.info("续传", filePaths);
           await this.addEditMediaTask(
             uid,
             live[aidField],
-            filePaths,
+            filePaths.map((item) => {
+              return {
+                path: item.path,
+                title: item.title,
+              };
+            }),
             type === "raw" ? false : removeOriginAfterUpload,
             limitedUploadTime,
             type === "raw" ? false : removeOriginAfterUploadCheck,
           );
-          live.parts.map((item) => {
-            if (filePaths.map((item) => item.path).includes(item[filePathField]))
-              item[updateStatusField] = "uploaded";
+          filePaths.map((item) => {
+            item.part[updateStatusField] = "uploaded";
           });
         } else {
-          const part = live.findPartByFilePath(filePaths[0].path, type)!;
+          const part = filePaths[0].part;
           const filename = path.parse(part[filePathField]).name;
 
           let template = uploadPreset.title;
@@ -944,7 +945,12 @@ export class WebhookHandler {
 
           const aid = (await this.addUploadTask(
             uid,
-            filePaths,
+            filePaths.map((item) => {
+              return {
+                path: item.path,
+                title: item.title,
+              };
+            }),
             uploadPreset,
             type === "raw" ? false : removeOriginAfterUpload,
             limitedUploadTime,
@@ -953,17 +959,15 @@ export class WebhookHandler {
           live[aidField] = Number(aid);
 
           // 设置状态为成功
-          live.parts.map((item) => {
-            if (filePaths.map((item) => item.path).includes(item[filePathField]))
-              item[updateStatusField] = "uploaded";
+          filePaths.map((item) => {
+            item.part[updateStatusField] = "uploaded";
           });
         }
       } catch (error) {
         log.error(error);
         // 设置状态为失败
-        live.parts.map((item) => {
-          if (filePaths.map((item) => item.path).includes(item[filePathField]))
-            item[updateStatusField] = "error";
+        filePaths.map((item) => {
+          item.part[updateStatusField] = "error";
         });
       }
     };
