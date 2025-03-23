@@ -245,7 +245,7 @@ export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
       throw new Error("无效的编码器");
     }
     if ((encoder.presets ?? []).findIndex((item) => item.value === config.preset) === -1) {
-      throw new Error("无效的preset参数");
+      throw new Error("无效的preset参数，可能使用了其他编码器的preset，请尝试修改");
     }
     if (config.resetResolution) {
       if (Number(config?.resolutionWidth) === 0 || Number(config?.resolutionHeight) === 0) {
