@@ -6,188 +6,209 @@
     </div>
 
     <n-form label-placement="left" :label-width="145">
-      <n-form-item>
-        <template #label>
-          <span class="inline-flex"> 保存文件夹 </span>
-        </template>
-        <n-input v-model:value="config.recorder.savePath" placeholder="请选择要保存的文件夹" />
-        <n-icon style="margin-left: 10px" size="26" class="pointer" @click="selectFolder">
-          <FolderOpenOutline />
-        </n-icon>
-      </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip :tip="titleTip" text="文件命名规则"></Tip>
-        </template>
-        <n-input
-          ref="titleInput"
-          :disabled="!allowEdit"
-          v-model:value="config.recorder.nameRule"
-          placeholder="请输入文件命名规则"
-          clearable
-          spellcheck="false"
-        />
-        <n-checkbox v-model:checked="allowEdit" style="margin: 0 10px"></n-checkbox>
-        <template #feedback>
-          <span
-            v-for="item in titleList"
-            :key="item.value"
-            :title="item.label"
-            class="title-var"
-            @click="setTitleVar(item.value)"
-            >{{ item.value }}</span
-          >
-        </template>
-      </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip tip="直播状态检查，太快容易被风控~" text="检查间隔"></Tip>
-        </template>
-        <n-input-number v-model:value="config.recorder.checkInterval" min="10" step="10">
-          <template #suffix>秒</template>
-        </n-input-number>
-      </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip tip="0为不分段" text="分段时间"></Tip>
-        </template>
-        <n-input-number v-model:value="config.recorder.segment" min="0" step="10">
-          <template #suffix>分钟</template>
-        </n-input-number>
-      </n-form-item>
+      <n-tabs type="segment" style="margin-top: 10px" class="tabs">
+        <n-tab-pane
+          class="tab-pane"
+          name="common-setting"
+          tab="基础设置"
+          display-directive="show:lazy"
+        >
+          <n-form-item>
+            <template #label>
+              <span class="inline-flex"> 保存文件夹 </span>
+            </template>
+            <n-input v-model:value="config.recorder.savePath" placeholder="请选择要保存的文件夹" />
+            <n-icon style="margin-left: 10px" size="26" class="pointer" @click="selectFolder">
+              <FolderOpenOutline />
+            </n-icon>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :tip="titleTip" text="文件命名规则"></Tip>
+            </template>
+            <n-input
+              ref="titleInput"
+              :disabled="!allowEdit"
+              v-model:value="config.recorder.nameRule"
+              placeholder="请输入文件命名规则"
+              clearable
+              spellcheck="false"
+            />
+            <n-checkbox v-model:checked="allowEdit" style="margin: 0 10px"></n-checkbox>
+            <template #feedback>
+              <span
+                v-for="item in titleList"
+                :key="item.value"
+                :title="item.label"
+                class="title-var"
+                @click="setTitleVar(item.value)"
+                >{{ item.value }}</span
+              >
+            </template>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip tip="直播状态检查，太快容易被风控~" text="检查间隔"></Tip>
+            </template>
+            <n-input-number v-model:value="config.recorder.checkInterval" min="10" step="10">
+              <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip tip="0为不分段" text="分段时间"></Tip>
+            </template>
+            <n-input-number v-model:value="config.recorder.segment" min="0" step="10">
+              <template #suffix>分钟</template>
+            </n-input-number>
+          </n-form-item>
 
-      <n-form-item>
-        <template #label>
-          <span> 保存封面 </span>
-        </template>
-        <n-switch v-model:value="config.recorder.saveCover" />
-      </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip
-            tip="转封装后将删除源文件，如果你需要使用webhook功能，请在webhook设置该选项，可能会有更好的兼容性"
-            text="转封装为mp4"
-          ></Tip>
-        </template>
-        <n-switch v-model:value="config.recorder.convert2Mp4" />
-      </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip
-            :tip="textInfo.douyu.qualityRetry.tip"
-            :text="textInfo.douyu.qualityRetry.text"
-          ></Tip>
-        </template>
-        <n-input-number v-model:value="config.recorder.qualityRetry" min="-1" step="1">
-        </n-input-number>
-      </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip tip="用于提交反馈" text="调试模式"></Tip>
-        </template>
-        <n-switch v-model:value="config.recorder.debugMode" />
-      </n-form-item>
+          <n-form-item>
+            <template #label>
+              <span> 保存封面 </span>
+            </template>
+            <n-switch v-model:value="config.recorder.saveCover" />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                tip="转封装后将删除源文件，如果你需要使用webhook功能，请在webhook设置该选项，可能会有更好的兼容性"
+                text="转封装为mp4"
+              ></Tip>
+            </template>
+            <n-switch v-model:value="config.recorder.convert2Mp4" />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :tip="textInfo.douyu.qualityRetry.tip"
+                :text="textInfo.douyu.qualityRetry.text"
+              ></Tip>
+            </template>
+            <n-input-number v-model:value="config.recorder.qualityRetry" min="-1" step="1">
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip tip="用于提交反馈" text="调试模式"></Tip>
+            </template>
+            <n-switch v-model:value="config.recorder.debugMode" />
+          </n-form-item>
 
-      <h3>弹幕</h3>
-      <n-form-item>
-        <template #label>
-          <span class="inline-flex"> 弹幕录制 </span>
-        </template>
-        <n-switch
-          v-model:value="config.recorder.disableProvideCommentsWhenRecording"
-          :checked-value="false"
-          :unchecked-value="true"
-        />
-      </n-form-item>
-      <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
-        <template #label>
-          <span class="inline-flex"> 保存礼物 </span>
-        </template>
-        <n-switch v-model:value="config.recorder.saveGiftDanma" />
-      </n-form-item>
-      <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
-        <template #label>
-          <span class="inline-flex"> 高能弹幕(SC) </span>
-        </template>
-        <n-switch v-model:value="config.recorder.saveSCDanma" />
-      </n-form-item>
-
-      <h2>B站</h2>
-      <n-form-item>
-        <template #label>
-          <Tip :text="textInfo.bili.uid.text">{{ textInfo.bili.uid.tip }}</Tip>
-        </template>
-        <n-select
-          v-model:value="config.recorder.bilibili.uid"
-          :options="userList"
-          label-field="name"
-          value-field="uid"
-          clearable
-        />
-      </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip :text="textInfo.bili.quality.text" :tip="textInfo.bili.quality.tip"></Tip>
-        </template>
-        <n-select v-model:value="config.recorder.bilibili.quality" :options="biliQualityOptions" />
-      </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip :text="textInfo.bili.formatName.text" :tip="textInfo.bili.formatName.tip"></Tip>
-        </template>
-        <n-select
-          v-model:value="config.recorder.bilibili.formatName"
-          :options="streamFormatOptions"
-        />
-      </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip :text="textInfo.bili.codecName.text" :tip="textInfo.bili.codecName.tip"></Tip>
-        </template>
-        <n-select
-          v-model:value="config.recorder.bilibili.codecName"
-          :options="streamCodecOptions"
-        />
-      </n-form-item>
-      <n-form-item v-if="config.recorder.bilibili.formatName !== 'flv_only'">
-        <template #label>
-          <Tip :tip="textInfo.bili.useM3U8Proxy.tip" :text="textInfo.bili.useM3U8Proxy.text"></Tip>
-        </template>
-        <n-switch v-model:value="config.recorder.bilibili.useM3U8Proxy" />
-      </n-form-item>
-      <n-form-item>
-        <template #label>
-          <Tip
-            tip="使用批量检查直播状态接口，如果你录制了大量的直播间，可以尝试开启此选项，减少被风控的可能性"
-            text="批量查询接口"
-          ></Tip>
-        </template>
-        <n-switch v-model:value="config.recorder.bilibili.useBatchQuery" />
-      </n-form-item>
-
-      <h2>斗鱼</h2>
-      <n-form-item>
-        <template #label>
-          <Tip :text="textInfo.douyu.quality.text" :tip="textInfo.douyu.quality.tip"></Tip>
-        </template>
-        <n-select v-model:value="config.recorder.douyu.quality" :options="douyuQualityOptions" />
-      </n-form-item>
-
-      <h2>虎牙</h2>
-      <n-form-item>
-        <template #label>
-          <Tip :text="textInfo.huya.quality.text" :tip="textInfo.huya.quality.tip"></Tip>
-        </template>
-        <n-select v-model:value="config.recorder.huya.quality" :options="huyaQualityOptions" />
-      </n-form-item>
-
-      <h2>抖音</h2>
-      <n-form-item>
-        <template #label>
-          <Tip :text="textInfo.douyin.quality.text" :tip="textInfo.douyin.quality.tip"></Tip>
-        </template>
-        <n-select v-model:value="config.recorder.douyin.quality" :options="douyinQualityOptions" />
-      </n-form-item>
+          <h3>弹幕</h3>
+          <n-form-item>
+            <template #label>
+              <span class="inline-flex"> 弹幕录制 </span>
+            </template>
+            <n-switch
+              v-model:value="config.recorder.disableProvideCommentsWhenRecording"
+              :checked-value="false"
+              :unchecked-value="true"
+            />
+          </n-form-item>
+          <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
+            <template #label>
+              <span class="inline-flex"> 保存礼物 </span>
+            </template>
+            <n-switch v-model:value="config.recorder.saveGiftDanma" />
+          </n-form-item>
+          <n-form-item v-if="!config.recorder.disableProvideCommentsWhenRecording">
+            <template #label>
+              <span class="inline-flex"> 高能弹幕(SC) </span>
+            </template>
+            <n-switch v-model:value="config.recorder.saveSCDanma" />
+          </n-form-item>
+        </n-tab-pane>
+        <n-tab-pane class="tab-pane" name="bilibili" tab="B站" display-directive="show:lazy">
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.bili.uid.text">{{ textInfo.bili.uid.tip }}</Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.bilibili.uid"
+              :options="userList"
+              label-field="name"
+              value-field="uid"
+              clearable
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.bili.quality.text" :tip="textInfo.bili.quality.tip"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.bilibili.quality"
+              :options="biliQualityOptions"
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.bili.formatName.text" :tip="textInfo.bili.formatName.tip"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.bilibili.formatName"
+              :options="streamFormatOptions"
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.bili.codecName.text" :tip="textInfo.bili.codecName.tip"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.bilibili.codecName"
+              :options="streamCodecOptions"
+            />
+          </n-form-item>
+          <n-form-item v-if="config.recorder.bilibili.formatName !== 'flv_only'">
+            <template #label>
+              <Tip
+                :tip="textInfo.bili.useM3U8Proxy.tip"
+                :text="textInfo.bili.useM3U8Proxy.text"
+              ></Tip>
+            </template>
+            <n-switch v-model:value="config.recorder.bilibili.useM3U8Proxy" />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                tip="使用批量检查直播状态接口，如果你录制了大量的直播间，可以尝试开启此选项，减少被风控的可能性"
+                text="批量查询接口"
+              ></Tip>
+            </template>
+            <n-switch v-model:value="config.recorder.bilibili.useBatchQuery" />
+          </n-form-item>
+        </n-tab-pane>
+        <n-tab-pane class="tab-pane" name="douyu" tab="斗鱼" display-directive="show:lazy">
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.douyu.quality.text" :tip="textInfo.douyu.quality.tip"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.douyu.quality"
+              :options="douyuQualityOptions"
+            />
+          </n-form-item>
+        </n-tab-pane>
+        <n-tab-pane class="tab-pane" name="huya" tab="虎牙" display-directive="show:lazy">
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.huya.quality.text" :tip="textInfo.huya.quality.tip"></Tip>
+            </template>
+            <n-select v-model:value="config.recorder.huya.quality" :options="huyaQualityOptions" />
+          </n-form-item>
+        </n-tab-pane>
+        <n-tab-pane class="tab-pane" name="douyin" tab="抖音" display-directive="show:lazy">
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.douyin.quality.text" :tip="textInfo.douyin.quality.tip"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.douyin.quality"
+              :options="douyinQualityOptions"
+            />
+          </n-form-item>
+        </n-tab-pane>
+      </n-tabs>
     </n-form>
   </div>
 </template>
@@ -340,6 +361,14 @@ h1,
 h2,
 h3 {
   margin: 0;
-  margin-left: 20px;
+}
+
+.tab-pane {
+  padding: 12px 0 !important;
+}
+.tabs {
+  :deep(.n-tabs-tab) {
+    padding: 6px 0;
+  }
 }
 </style>

@@ -699,7 +699,7 @@ defineExpose({
     }
   }
 }
-.setting-tab :deep(.n-tab-pane) {
+.setting-tab > :deep(.n-tab-pane) {
   overflow: auto;
   height: calc(100vh - 200px);
 }
