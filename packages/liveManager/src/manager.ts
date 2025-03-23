@@ -137,7 +137,9 @@ export function createRecorderManager<
 
   const multiThreadCheck = async (manager: RecorderManager<ME, P, PE, E>) => {
     const handleBatchQuery = async (obj: Record<string, boolean>) => {
-      for (const recorder of recorders.filter((r) => r.providerId === "Bilibili")) {
+      for (const recorder of recorders
+        .filter((r) => !r.disableAutoCheck)
+        .filter((r) => r.providerId === "Bilibili")) {
         const isLive = obj[recorder.channelId];
         // 如果是undefined，说明这个接口查不到相关信息，使用录制器内的再查一次
         if (isLive === true || isLive === undefined) {
@@ -158,7 +160,9 @@ export function createRecorderManager<
     let threads: Promise<void>[] = [];
 
     if (manager.biliBatchQuery) {
-      const biliNeedCheckRecorders = needCheckRecorders.filter((r) => r.providerId === "Bilibili");
+      const biliNeedCheckRecorders = needCheckRecorders
+        .filter((r) => r.providerId === "Bilibili")
+        .filter((r) => r.recordHandle == null);
       needCheckRecorders = needCheckRecorders.filter((r) => r.providerId !== "Bilibili");
 
       const roomIds = biliNeedCheckRecorders.map((r) => r.channelId).map(Number);
@@ -168,7 +172,7 @@ export function createRecorderManager<
           threads.push(handleBatchQuery(biliStatus));
         }
       } catch (err) {
-        manager.emit("error", { source: "getBiliStatusInfoByUIDs", err });
+        manager.emit("error", { source: "getBiliStatusInfoByRoomIds", err });
       }
     }
 
