@@ -86,6 +86,7 @@ const globalFieldsObj = defineModel<{
   type: Object,
   default: () => {},
 });
+const confirm = useConfirm();
 
 const emits = defineEmits<{
   (event: "save", value: AppRoomConfig & { id?: string }): void;
@@ -93,7 +94,7 @@ const emits = defineEmits<{
 }>();
 const notice = useNotification();
 
-const saveRoomDetail = () => {
+const saveRoomDetail = async () => {
   if (!data.value.id) {
     notice.error({
       title: "请输入房间号",
@@ -101,17 +102,22 @@ const saveRoomDetail = () => {
     });
     return;
   }
+  // 如果id不是数字，增加额外确认
+  if (props.type === "add" && !/^\d+$/.test(data.value.id)) {
+    const [status] = await confirm.warning({
+      content: "确认输入的房间号是否正确？非直播间链接，短号等",
+    });
+    if (!status) return;
+  }
   data.value.noGlobal = Object.entries(globalFieldsObj.value)
     .filter(([, value]) => {
       return !value;
     })
     .map(([key]) => key);
-  console.log(data.value.noGlobal);
   emits("save", data.value);
   roomDetailVisible.value = false;
 };
 
-const confirm = useConfirm();
 const deleteRoom = async () => {
   const [status] = await confirm.warning({
     content: "是否确认删除？",
