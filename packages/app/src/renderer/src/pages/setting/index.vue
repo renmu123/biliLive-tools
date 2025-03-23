@@ -585,8 +585,8 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   videoHandleTime: ["00:00:00", "23:59:59"],
   partTitleTemplate: "",
 });
-const saveRoomDetail = ({ id }: AppRoomConfig & { id?: string }) => {
-  config.value.webhook.rooms[id!] = tempRoomDetail.value;
+const saveRoomDetail = (data: AppRoomConfig & { id?: string }) => {
+  config.value.webhook.rooms[data.id!] = data;
 };
 const deleteRoom = (roomId: string) => {
   delete config.value.webhook.rooms[roomId];

@@ -46,7 +46,33 @@
             删除
           </n-button>
           <n-button class="btn" @click="roomDetailVisible = false">取消</n-button>
+          <n-button type="info" class="btn" @click="copyRoom"> 复制 </n-button>
           <n-button type="primary" class="btn" @click="saveRoomDetail"> 确认 </n-button>
+        </div>
+      </template>
+    </n-card>
+  </n-modal>
+  <n-modal v-model:show="copyVisible" :mask-closable="false">
+    <n-card :bordered="false" size="small" role="dialog" aria-modal="true" style="width: 400px">
+      <n-form label-placement="left" label-width="auto">
+        <n-form-item label="房间号">
+          <n-input v-model:value="copyData.id" placeholder="请输入房间号" />
+        </n-form-item>
+        <n-form-item>
+          <template #label>
+            <span class="inline-flex">
+              备注
+              <Tip tip="仅用于提示"></Tip>
+            </span>
+          </template>
+          <n-input v-model:value="copyData.remark" placeholder="请输入备注" clearable />
+        </n-form-item>
+      </n-form>
+
+      <template #footer>
+        <div class="footer">
+          <n-button class="btn" @click="copyVisible = false">取消</n-button>
+          <n-button type="primary" class="btn" @click="saveCopyRoom"> 确认 </n-button>
         </div>
       </template>
     </n-card>
@@ -56,6 +82,7 @@
 <script setup lang="ts">
 import CommonSetting from "./CommonWebhookSetting.vue";
 import { useConfirm } from "@renderer/hooks";
+import { cloneDeep } from "lodash-es";
 
 import type { AppRoomConfig } from "@biliLive-tools/types";
 
@@ -125,6 +152,36 @@ const deleteRoom = async () => {
   if (!status) return;
   emits("delete", data.value.id!);
   roomDetailVisible.value = false;
+};
+
+// @ts-ignore
+const copyData = ref<AppRoomConfig & { id?: string }>({});
+const copyVisible = ref(false);
+const copyRoom = () => {
+  const cloneData = cloneDeep(data.value);
+  cloneData.id = "";
+  cloneData.remark = "";
+  copyData.value = cloneData;
+  copyVisible.value = true;
+};
+const saveCopyRoom = async () => {
+  if (!copyData.value.id) {
+    notice.error({
+      title: "请输入房间号",
+      duration: 1000,
+    });
+    return;
+  }
+  if (!/^\d+$/.test(copyData.value.id)) {
+    const [status] = await confirm.warning({
+      content: "确认输入的房间号是否正确？非直播间链接，短号等",
+    });
+    if (!status) return;
+  }
+  console.log("copyData.value", copyData.value);
+  emits("save", copyData.value);
+  roomDetailVisible.value = false;
+  copyVisible.value = false;
 };
 </script>
 
