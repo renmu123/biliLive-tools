@@ -46,7 +46,9 @@
             删除
           </n-button>
           <n-button class="btn" @click="roomDetailVisible = false">取消</n-button>
-          <n-button type="info" class="btn" @click="copyRoom"> 复制 </n-button>
+          <n-button v-if="props.type !== 'add'" type="info" class="btn" @click="copyRoom">
+            复制
+          </n-button>
           <n-button type="primary" class="btn" @click="saveRoomDetail"> 确认 </n-button>
         </div>
       </template>
