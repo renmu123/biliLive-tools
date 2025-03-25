@@ -92,8 +92,12 @@ const ffmpegOutputOptions: string[] = [
   "faststart+frag_keyframe+empty_moov",
   "-min_frag_duration",
   "60000000",
+  "-loglevel",
+  "debug",
 ];
 const ffmpegInputOptions: string[] = [
+  "-v",
+  "debug",
   "-reconnect",
   "1",
   "-reconnect_streamed",
@@ -313,7 +317,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     id: genRecordUUID(),
     stream: stream.name,
     source: stream.source,
-    url: url,
+    url: stream.url,
     ffmpegArgs,
     savePath: savePath,
     stop,
