@@ -216,7 +216,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   const recorder = new FFMPEGRecorder(
     {
-      url: stream.url,
+      url: url,
       outputOptions: ffmpegOutputOptions,
       inputOptions: ffmpegInputOptions,
       segment: this.segment ?? 0,
@@ -313,7 +313,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     id: genRecordUUID(),
     stream: stream.name,
     source: stream.source,
-    url: stream.url,
+    url: url,
     ffmpegArgs,
     savePath: savePath,
     stop,
