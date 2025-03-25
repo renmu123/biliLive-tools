@@ -573,6 +573,15 @@ export class WebhookHandler {
     if (currentLive) {
       const currentPart = currentLive.findPartByFilePath(options.filePath);
       if (currentPart) {
+        for (let i = 0; i < currentLive.parts.length; i++) {
+          const part = currentLive.parts[i];
+          if (part.recordStatus === "recording" && part.partId !== currentPart.partId) {
+            log.error(
+              "下一个录制完成时，上一个录制仍在录制中，设置为错误，未实现，待测试看看",
+              part,
+            );
+          }
+        }
         currentLive.updatePartValue(currentPart.partId, "endTime", timestamp);
         currentLive.updatePartValue(currentPart.partId, "recordStatus", "recorded");
       }
