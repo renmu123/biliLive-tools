@@ -177,7 +177,9 @@ export class WebhookHandler {
     if (fileSize / 1024 / 1024 < minSize) {
       log.warn(`${options.filePath}: file size is too small`);
       if (currentLive) {
+        log.warn("remove part", currentLive, options.filePath);
         const part = currentLive.findPartByFilePath(options.filePath);
+        log.warn("part", part);
         if (part) {
           currentLive.removePart(part.partId);
         }
