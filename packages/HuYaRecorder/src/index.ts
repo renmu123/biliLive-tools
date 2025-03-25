@@ -97,9 +97,9 @@ const ffmpegInputOptions: string[] = [
   "-reconnect_streamed",
   "1",
   "-reconnect_delay_max",
-  "5",
+  "10",
   "-rw_timeout",
-  "5000000",
+  "15000000",
   "-user_agent",
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
 ];

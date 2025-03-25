@@ -99,9 +99,9 @@ const ffmpegInputOptions: string[] = [
   "-reconnect_streamed",
   "1",
   "-reconnect_delay_max",
-  "5",
+  "10",
   "-rw_timeout",
-  "5000000",
+  "15000000",
   "-headers",
   "Referer:https://live.bilibili.com/",
 ];
