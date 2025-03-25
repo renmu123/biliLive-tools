@@ -92,12 +92,8 @@ const ffmpegOutputOptions: string[] = [
   "faststart+frag_keyframe+empty_moov",
   "-min_frag_duration",
   "60000000",
-  "-loglevel",
-  "debug",
 ];
 const ffmpegInputOptions: string[] = [
-  "-v",
-  "debug",
   "-reconnect",
   "1",
   "-reconnect_streamed",
