@@ -41,8 +41,6 @@
 
 CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/master/packages/CLI)
 
-下载地址：https://github.com/renmu123/biliLive-tools/releases
-
 也可以使用`npm i bililive-cli -g`来进行安装
 
 ## docker

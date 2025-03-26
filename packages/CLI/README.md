@@ -10,7 +10,7 @@
 
 `npm i bililive-cli -g --force`
 
-或者下载二进制[文件](https://github.com/renmu123/biliLive-tools/releases)
+<!-- 或者下载二进制[文件](https://github.com/renmu123/biliLive-tools/releases) -->
 
 # 使用
 
