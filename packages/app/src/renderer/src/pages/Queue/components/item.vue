@@ -51,7 +51,12 @@
         </n-icon>
         <template v-if="!isWeb">
           <n-icon
-            v-if="item.status === 'completed' && item.type !== TaskType.biliUpload && item.output"
+            v-if="
+              item.status === 'completed' &&
+              item.type !== TaskType.biliUpload &&
+              item.type !== TaskType.bili &&
+              item.output
+            "
             :size="20"
             class="btn pointer"
             title="打开文件夹"
