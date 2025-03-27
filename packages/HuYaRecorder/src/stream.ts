@@ -96,6 +96,11 @@ export async function getStream(
     if (!expectSource) {
       expectSource = info.sources[0];
     }
+    if (expectSource.name === "TX") {
+      expectSource.url = expectSource.url
+        .replace("&ctype=tars_mp", "&ctype=huya_webh5")
+        .replace("&fs=bhct", "&fs=bgct");
+    }
   }
 
   return {

@@ -1,3 +1,9 @@
+# 1.1.1
+
+## Bug修复
+
+1. 修复虎牙星秀区无法录制的bug，感谢 https://github.com/ihmily/DouyinLiveRecorder/pull/993
+
 # 1.1.0
 
 ## 破坏性更改
