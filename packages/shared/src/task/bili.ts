@@ -468,7 +468,7 @@ async function addMedia(
     const task = new BiliPartVideoTask(
       uploader,
       {
-        name: `上传视频：${part.title}`,
+        name: `上传视频：${part.title}(${path.parse(part.path).base})`,
         pid: pTask.taskId,
         limitTime: extraOptions?.limitedUploadTime ?? [],
       },
@@ -551,7 +551,7 @@ export async function editMedia(
     const task = new BiliPartVideoTask(
       uploader,
       {
-        name: `上传视频：${part.title}`,
+        name: `上传视频：${part.title}(${path.parse(part.path).base})`,
         pid: pTask.taskId,
         limitTime: extraOptions?.limitedUploadTime ?? [],
       },

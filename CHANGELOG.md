@@ -1,5 +1,9 @@
 # Next
 
+## 优化
+
+1. 任务列表中上传视频名称同时显示分p名称和视频文件名 [#56](https://github.com/renmu123/biliLive-tools/issues/56)
+
 ## Bug修复
 
 1. 修复虎牙星秀区无法录制的bug，感谢 https://github.com/ihmily/DouyinLiveRecorder/pull/993
