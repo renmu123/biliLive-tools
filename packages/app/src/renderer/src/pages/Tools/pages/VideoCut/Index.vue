@@ -234,7 +234,7 @@ const handleProjectBtnClick = (key?: string | number) => {
     fileList.value = [];
     rawCuts.value = [];
   } else {
-    handleProjectClick;
+    handleProjectClick(key);
   }
 };
 
