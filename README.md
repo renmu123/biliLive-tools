@@ -129,6 +129,12 @@ services:
       # 更多参数见录播姬文档
 ```
 
+### 硬件编码
+
+#### Intel核显(qsv)
+
+可以参考 [#59](https://github.com/renmu123/biliLive-tools/issues/59)
+
 ## webui
 
 可用于国内未备案机器，或懒得自部署的情况，如果你的接口是http协议，由于浏览器安全措施，需要关闭https和http混合的安全选项，或者自部署，自部署参考[项目](https://github.com/renmu123/biliLive-webui)
