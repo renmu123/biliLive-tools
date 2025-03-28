@@ -2,7 +2,7 @@
   <div id="cut-tool" class="container">
     <div class="btns page-header">
       <ButtonGroup
-        title="请选择LosslessCut项目文件"
+        title="请选择项目文件，兼容LosslessCut项目文件"
         :options="exportOptions"
         @click="handleProjectBtnClick"
         >导入项目文件</ButtonGroup
