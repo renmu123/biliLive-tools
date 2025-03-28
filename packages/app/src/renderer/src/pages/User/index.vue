@@ -111,7 +111,7 @@ const updateAuth = async (uid: number) => {
   getUsers();
 };
 
-const { copy } = useClipboard();
+const { copy } = useClipboard({ legacy: true });
 const getCookie = async (uid: number) => {
   const cookie = await userApi.getCookie(uid);
   await copy(cookie);

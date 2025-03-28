@@ -7,6 +7,7 @@
 ## Bug修复
 
 1. 修复虎牙星秀区无法录制的bug，感谢 https://github.com/ihmily/DouyinLiveRecorder/pull/993
+2. 修复某些 web 环境下无法复制 cookie 的 bug [#62](https://github.com/renmu123/biliLive-tools/issues/62)
 
 # 1.9.0
 
