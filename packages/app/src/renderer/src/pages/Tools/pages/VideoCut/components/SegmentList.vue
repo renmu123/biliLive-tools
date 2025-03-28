@@ -59,13 +59,12 @@
           <li>space 播放/暂停</li>
           <li>ctrl+left 后退1秒</li>
           <li>ctrl+right 前进1秒</li>
-          <li>ctrl+s 保存到llc项目</li>
-          <li>ctrl+shift+s 另存为llc项目</li>
+          <li>ctrl+s 保存到项目</li>
+          <li>ctrl+shift+s 另存为项目</li>
           <li>ctrl+enter 导出</li>
           <li>ctrl+z 撤销</li>
           <li>ctrl+shift+z 重做</li>
-          <li>ctrl+k 唤起弹幕搜索</li>
-          <li>ctrl+shift+k 关闭弹幕搜索</li>
+          <li>ctrl+k 切换弹幕搜索</li>
         </ul>
       </Tip>
     </div>
@@ -158,7 +157,7 @@ import {
   Pencil,
   Search as SearchIcon,
 } from "@vicons/ionicons5";
-import { MinusOutlined, PlusOutlined } from "@vicons/material";
+import { ControlPointSharp, MinusOutlined, PlusOutlined } from "@vicons/material";
 import hotkeys from "hotkeys-js";
 import { useDraggable, useEventListener, useWindowSize } from "@vueuse/core";
 
@@ -192,13 +191,9 @@ onActivated(() => {
   hotkeys("del", function () {
     deleteCut();
   });
-  // 唤起弹幕搜索
+  // 切换弹幕搜索
   hotkeys("ctrl+k", function () {
     searchDanmu();
-  });
-  // 关闭弹幕搜索
-  hotkeys("ctrl+shift+k", function () {
-    searchDanmuVisible.value = false;
   });
   // 切换到当前开始片段
   // hotkeys("enter", function () {});

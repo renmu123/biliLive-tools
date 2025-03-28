@@ -6,6 +6,7 @@
 2. 上传视频时支持将视频文件名应用到预设标题中 [#60](https://github.com/renmu123/biliLive-tools/issues/60)
 3. 切片：关闭视频时同时清除切片数据
 4. 切片：优化部分文案，增加快捷键提示
+5. 切片：移除 ctrl+shift+k 快捷键，使用 ctrl+k 快捷键进行切换，减轻心智负担
 
 ## Bug修复
 
