@@ -20,14 +20,14 @@ import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
 
 import { supportedVideoExtensions, uuid } from "@renderer/utils";
 
-const fileList = defineModel<
-  {
-    id: string;
-    title: string;
-    path: string;
-    visible: boolean;
-  }[]
->({ required: true });
+interface File {
+  id: string;
+  title: string;
+  path: string;
+  visible: boolean;
+}
+
+const fileList = defineModel<File[]>({ required: true });
 
 const props = withDefaults(
   defineProps<{
@@ -43,6 +43,9 @@ const props = withDefaults(
     extensions: () => supportedVideoExtensions,
   },
 );
+const emits = defineEmits<{
+  (event: "change", value: File[]): void;
+}>();
 
 const addOldFile = (data: { name: string; path: string }[]) => {
   fileList.value = data.map((item) => ({
@@ -92,6 +95,14 @@ const select = async () => {
     }));
   fileList.value = fileList.value.concat(newFiles);
 };
+
+watch(
+  fileList,
+  () => {
+    emits("change", fileList.value);
+  },
+  { deep: true },
+);
 
 defineExpose({
   select,
