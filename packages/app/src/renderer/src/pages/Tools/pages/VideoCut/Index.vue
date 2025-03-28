@@ -207,23 +207,7 @@ const {
   handleProject,
 } = useLlcProject(files);
 
-const exportOptions = computed(() => {
-  return [
-    ...exportBtns.value,
-    { label: "关闭视频", key: "closeVideo", disabled: !files.value.videoPath },
-  ];
-});
-
-const handleProjectBtnClick = (key?: string | number) => {
-  if (key === "closeVideo") {
-    handleVideo("");
-    fileList.value = [];
-  } else {
-    handleProjectClick;
-  }
-};
-
-const { duration: videoDuration } = storeToRefs(useSegmentStore());
+const { duration: videoDuration, rawCuts } = storeToRefs(useSegmentStore());
 const { appConfig } = storeToRefs(useAppConfig());
 
 const { undo, redo } = useSegmentStore();
@@ -236,6 +220,23 @@ const videoVCutOptions = toReactive(
     },
   }),
 );
+
+const exportOptions = computed(() => {
+  return [
+    ...exportBtns.value,
+    { label: "关闭视频", key: "closeVideo", disabled: !files.value.videoPath },
+  ];
+});
+
+const handleProjectBtnClick = (key?: string | number) => {
+  if (key === "closeVideo") {
+    handleVideo("");
+    fileList.value = [];
+    rawCuts.value = [];
+  } else {
+    handleProjectClick;
+  }
+};
 
 watchEffect(async () => {
   if (mediaPath.value) {
