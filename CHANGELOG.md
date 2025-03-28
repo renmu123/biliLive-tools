@@ -3,6 +3,7 @@
 ## 优化
 
 1. 任务列表中上传视频名称同时显示分p名称和视频文件名 [#56](https://github.com/renmu123/biliLive-tools/issues/56)
+2. 使用 `crypto-js` 替代 web 原生加密实现，以实现在 http 环境的解密 [#62](https://github.com/renmu123/biliLive-tools/issues/62)
 
 ## Bug修复
 
