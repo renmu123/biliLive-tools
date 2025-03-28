@@ -38,7 +38,7 @@
       </div>
 
       <div style="margin-top: 10px; display: flex; align-items: center">
-        <span style="font-size: 12px; flex: none">文件冲突：</span>
+        <span style="flex: none">文件冲突：</span>
         <n-radio-group v-model:value="options.override">
           <n-space>
             <n-radio :value="true"> 覆盖文件 </n-radio>
@@ -52,7 +52,7 @@
         style="margin-top: 10px; display: flex; align-items: center"
       >
         <span
-          style="font-size: 12px; flex: none"
+          style="flex: none"
           title="清晰度取第一P视频，如果后续视频不存在相应分清晰度，取最好清晰度"
           >清晰度：</span
         >
@@ -66,14 +66,14 @@
         v-if="cOptions.hasDanmuOptions"
         style="margin-top: 10px; display: flex; align-items: center"
       >
-        <span style="font-size: 12px; flex: none">弹幕：</span>
+        <span style="flex: none">弹幕：</span>
         <n-select v-model:value="options.danmu" :options="danmuOptions" style="width: 100px" />
       </div>
       <div
         v-if="cOptions.hasAudioOnlyOptions"
         style="margin-top: 10px; display: flex; align-items: center"
       >
-        <span style="font-size: 12px; flex: none">只下载音频：</span>
+        <span style="flex: none">只下载音频：</span>
         <n-switch v-model:value="options.onlyAudio" />
       </div>
 

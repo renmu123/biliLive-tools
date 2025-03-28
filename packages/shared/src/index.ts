@@ -11,6 +11,7 @@ import { setFfmpegPath } from "./task/video.js";
 import { initLogger, setLogLevel } from "./utils/log.js";
 import { migrateBiliUser, checkAccountLoop } from "./task/bili.js";
 import BiliCheckQueue from "./task/BiliCheckQueue.js";
+import { createInterval as checkSubLoop } from "./task/videoSub.js";
 import { createRecorderManager } from "./recorder/index.js";
 import { sendNotify } from "./notify.js";
 import { initDB } from "./db/index.js";
@@ -57,6 +58,7 @@ const init = async (config: GlobalConfig) => {
   commentQueue.checkLoop();
   checkAccountLoop();
   checkDiskSpaceLoop();
+  checkSubLoop();
   // 设置开始时间
   StatisticsService.addOrUpdate({
     where: { stat_key: "start_time" },

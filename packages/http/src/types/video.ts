@@ -1,3 +1,5 @@
+import videoSub from "@biliLive-tools/shared/task/videoSub.js";
+
 type Platform = "douyu" | "bilibili" | "huya";
 
 export type VideoAPI = {
@@ -24,5 +26,25 @@ export type VideoAPI = {
       override: boolean;
       onlyAudio?: boolean;
     };
+  };
+  SubList: {
+    Args: {};
+    Resp: ReturnType<(typeof videoSub)["list"]>;
+  };
+  SubAdd: {
+    Args: Parameters<(typeof videoSub)["add"]>[0];
+    Resp: number;
+  };
+  SubRemove: {
+    Args: { id: number };
+    Resp: number;
+  };
+  SubUpdate: {
+    Args: Parameters<(typeof videoSub)["update"]>[0];
+    Resp: number;
+  };
+  SubParse: {
+    Args: { url: string };
+    Resp: Parameters<(typeof videoSub)["add"]>[0];
   };
 };

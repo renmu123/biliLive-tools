@@ -4,6 +4,7 @@ import DanmaModel from "./model/danmu.js";
 import StreamModel from "./model/streamer.js";
 import LiveModel from "./model/live.js";
 import VideoSubModel from "./model/videoSub.js";
+import VideoSubDataModel from "./model/videoSubData.js";
 import StatisticsModel from "./model/statistics.js";
 
 import type { Database as DatabaseType } from "better-sqlite3";
@@ -35,6 +36,7 @@ export const streamerModel = new StreamModel();
 export const liveModel = new LiveModel();
 export const statisticsModel = new StatisticsModel();
 export const videoSubModel = new VideoSubModel();
+export const videoSubDataModel = new VideoSubDataModel();
 
 export const initDB = (filename: string) => {
   db.init(filename);
@@ -44,6 +46,7 @@ export const initDB = (filename: string) => {
   // liveModel.init(db.db);
   statisticsModel.init(db.db);
   videoSubModel.init(db.db);
+  videoSubDataModel.init(db.db);
   return db;
 };
 
