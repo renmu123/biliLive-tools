@@ -421,9 +421,11 @@ web和客户端使用的字体方式并不相同，会有差异，再加上获�
 - [ ] 支持斗鱼&虎牙录播自动搬运
 - [x] web&docker版本支持
 
-# 开发
+# 交流地址
 
-交流群：872011161
+交流 QQ 群：872011161
+
+# 开发
 
 node版本根据`.node-version`来进行选择
 
@@ -477,6 +479,9 @@ $ pnpm run build:cli
 - [B站录制](https://www.npmjs.com/package/@bililive-tools/bilibili-recorder)
 - [斗鱼录制](https://www.npmjs.com/package/@bililive-tools/douyu-recorder)
 - [虎牙录制](https://www.npmjs.com/package/@bililive-tools/huya-recorder)
+- [抖音录制](https://www.npmjs.com/package/@bililive-tools/douyin-recorder)
+- [虎牙弹幕监听](https://www.npmjs.com/package/huya-danma-listener)
+- [抖音弹幕监听](https://www.npmjs.com/package/huya-danma-listener)
 
 # 赞赏
 
