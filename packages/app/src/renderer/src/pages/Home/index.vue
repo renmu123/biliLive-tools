@@ -14,7 +14,9 @@
         >
           发送至webhook
         </n-button>
-        <n-button type="primary" @click="handleConvert"> 启动！ </n-button>
+        <n-button type="primary" @click="handleConvert" title="启动！(ctrl+enter)">
+          启动！
+        </n-button>
         <!-- <n-button type="primary" @click="hotProgressConvert"> 测试高能弹幕进度条生成 </n-button> -->
       </div>
     </div>
