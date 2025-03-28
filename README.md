@@ -456,6 +456,10 @@ $ pnpm run install:bin
 
 `pnpm run dev`
 
+## 关于PR
+
+提 PR 前，最好先提一个 issue，以防重复或者 PR 不被接收
+
 ## Build
 
 ```bash
