@@ -3,7 +3,8 @@
 ## 功能
 
 1. 新增看板页面
-2. 支持斗鱼录播订阅下载
+2. 支持斗鱼录播订阅下载 [#64](https://github.com/renmu123/biliLive-tools/issues/64)
+3.
 
 # 1.9.0
 
