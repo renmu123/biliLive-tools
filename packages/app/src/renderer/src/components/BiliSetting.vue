@@ -65,7 +65,10 @@
           filterable
         />
       </n-form-item>
-      <n-form-item label="标签">
+      <n-form-item>
+        <template #label>
+          <Tip tip="留着默认的tag，秋梨膏(๑>◡<๑)" text="标签"></Tip>
+        </template>
         <dynamic-tags
           v-model="options.config.tag"
           :max="10"
