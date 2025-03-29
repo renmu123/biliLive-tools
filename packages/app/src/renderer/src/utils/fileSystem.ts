@@ -40,3 +40,20 @@ export const showDirectoryDialog = async (options: {
     return file;
   }
 };
+
+export const showFileDialog = async (options: { defaultPath?: string }) => {
+  if (window.isWeb) {
+    const filePath = (
+      await showDialog({
+        type: "file",
+      })
+    )?.[0];
+    return filePath;
+  } else {
+    const files = await window.api.openFile({
+      multi: false,
+      defaultPath: options.defaultPath,
+    });
+    return files?.[0];
+  }
+};

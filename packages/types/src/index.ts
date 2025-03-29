@@ -476,6 +476,15 @@ export interface AppConfig {
       allInOne: NotificationPushAllInAllConfig;
     };
   };
+  // 同步
+  sync: {
+    baiduPCS: {
+      // 本地可执行文件路径
+      execPath: string;
+      // 网盘目标路径
+      targetPath: string;
+    };
+  };
   /** 翻译配置 */
   llmPresets: {
     id: string;

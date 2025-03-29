@@ -280,6 +280,9 @@
         <n-tab-pane name="notification" tab="通知">
           <NotificationSetting v-model:data="config"></NotificationSetting>
         </n-tab-pane>
+        <n-tab-pane name="sync" tab="同步">
+          <SyncSetting v-model:data="config"></SyncSetting>
+        </n-tab-pane>
       </n-tabs>
       <template #footer>
         <div class="footer">
@@ -312,6 +315,7 @@ import NotificationSetting from "./NotificationSetting.vue";
 import BiliSetting from "./BiliSetting.vue";
 import RecordSetting from "./RecordSetting.vue";
 import TaskSetting from "./TaskSetting.vue";
+import SyncSetting from "./SyncSetting.vue";
 // import VideoSetting from "./VideoSetting.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";

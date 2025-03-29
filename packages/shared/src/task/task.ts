@@ -10,6 +10,7 @@ import { appConfig } from "../config.js";
 import kill from "tree-kill";
 import { addMediaApi, editMediaApi } from "./bili.js";
 import { TaskType } from "../enum.js";
+import { BaiduPCS } from "../sync/index.js";
 
 import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { Client, WebVideoUploader } from "@renmu/bili-api";
@@ -843,6 +844,98 @@ export class DouyuDownloadVideoTask extends M3U8DownloadTask {
  */
 export class HuyaDownloadVideoTask extends M3U8DownloadTask {
   type = TaskType.huyaDownload;
+}
+
+/**
+ * 同步任务
+ */
+export class SyncTask extends AbstractTask {
+  instance: BaiduPCS;
+  input: string;
+  options: any;
+  type = TaskType.sync;
+  callback: {
+    onStart?: () => void;
+    onEnd?: (output: string) => void;
+    onError?: (err: string) => void;
+    onProgress?: (progress: Progress) => any;
+  };
+  constructor(
+    instance: BaiduPCS,
+    options: {
+      input: string;
+      output: string;
+      options?: any;
+      name: string;
+    },
+    callback?: {
+      onStart?: () => void;
+      onEnd?: (output: string) => void;
+      onError?: (err: string) => void;
+      onProgress?: (progress: Progress) => any;
+    },
+  ) {
+    super();
+    this.instance = instance;
+    this.input = options.input;
+    this.options = options.options;
+    this.output = options.output;
+    this.progress = 0;
+    if (options.name) {
+      this.name = options.name;
+    }
+    this.action = ["kill"];
+    this.callback = callback || {};
+
+    this.instance.on("progress", (progress: any) => {
+      console.log("sync progress", progress);
+      callback?.onProgress && callback.onProgress(progress.percentage);
+      this.progress = progress.percentage;
+      this.custsomProgressMsg = `速度: ${progress.speed}`;
+    });
+  }
+  exec() {
+    this.callback.onStart && this.callback.onStart();
+    this.status = "running";
+    this.progress = 0;
+    this.emitter.emit("task-start", { taskId: this.taskId });
+    this.startTime = Date.now();
+    this.instance
+      .uploadFile(this.input, this.output)
+      .then(() => {
+        console.log("upload complete");
+        this.status = "completed";
+        this.callback.onEnd && this.callback.onEnd(this.output as string);
+        this.progress = 100;
+        this.emitter.emit("task-end", { taskId: this.taskId });
+      })
+      .catch((err) => {
+        console.log("upload error", err);
+        this.status = "error";
+        this.callback.onError && this.callback.onError(err);
+        this.error = err;
+        this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+      })
+      .finally(() => {
+        this.endTime = Date.now();
+      });
+  }
+  pause() {
+    return false;
+  }
+  resume() {
+    return false;
+  }
+  kill() {
+    if (this.status === "completed" || this.status === "error" || this.status === "canceled")
+      return;
+    log.warn(`danmu task ${this.taskId} killed`);
+    this.status = "canceled";
+    if (this.instance?.cmd?.pid) {
+      kill(this.instance.cmd.pid);
+    }
+    return true;
+  }
 }
 
 const isBetweenTimeRange = (range: undefined | [] | [string, string]) => {

@@ -10,6 +10,7 @@ export enum TaskType {
   m3u8Download = "m3u8Download",
   huyaDownload = "huyaDownload",
   subtitleTranslate = "subtitleTranslate",
+  sync = "sync",
 }
 
 export enum NotificationType {
@@ -178,6 +179,12 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
         server: "",
         key: "",
       },
+    },
+  },
+  sync: {
+    baiduPCS: {
+      execPath: "",
+      targetPath: "/录播",
     },
   },
   llmPresets: [],
