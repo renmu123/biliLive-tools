@@ -157,7 +157,7 @@ import {
   Pencil,
   Search as SearchIcon,
 } from "@vicons/ionicons5";
-import { ControlPointSharp, MinusOutlined, PlusOutlined } from "@vicons/material";
+import { MinusOutlined, PlusOutlined } from "@vicons/material";
 import hotkeys from "hotkeys-js";
 import { useDraggable, useEventListener, useWindowSize } from "@vueuse/core";
 
