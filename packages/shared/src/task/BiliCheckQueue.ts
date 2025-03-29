@@ -69,7 +69,7 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
     for (const item of this.list) {
       if (mediaList.some((media) => media.aid === item.aid)) continue;
       try {
-        const media = await biliApi.getPlatformArchiveDetail(item.uid, item.aid);
+        const media = await biliApi.getPlatformArchiveDetail(item.aid, item.uid);
         mediaList.push({
           aid: item.aid,
           state: media.archive.state,

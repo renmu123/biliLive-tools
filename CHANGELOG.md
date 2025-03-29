@@ -14,7 +14,8 @@
 1. 修复虎牙星秀区无法录制的bug，感谢 https://github.com/ihmily/DouyinLiveRecorder/pull/993
 2. 修复某些 web 环境下无法复制 cookie 的 bug [#62](https://github.com/renmu123/biliLive-tools/issues/62)
 3. 修复 webui 授权错误时未正确跳转的 bug
-4. 切片：修复部分按钮无法点击的 bug
+4. 修复某些情况下查询稿件失败而导致的审核通知错误
+5. 切片：修复部分按钮无法点击的 bug
 
 # 1.9.0
 
