@@ -783,6 +783,7 @@ export const getCookie = (uid: number) => {
 // 检查b站账号有效期
 export const checkAccountLoop = () => {
   const canAutoCheck = appConfig.get("biliUpload")?.accountAutoCheck ?? false;
+  let interval = 24 * 60 * 60 * 1000;
   try {
     if (!canAutoCheck) return;
     const userList = readUserList();
@@ -790,12 +791,21 @@ export const checkAccountLoop = () => {
     userList.forEach((user) => {
       if (!user.expires) return;
       if (user.expires - Date.now() < 10 * 24 * 60 * 60 * 1000) {
+        const tasks = taskQueue.list();
+        const runningBiliTask = tasks
+          .filter((item) => ["bili", "biliUpload"].includes(item.type))
+          .filter((item) => item.status === "running");
+        if (runningBiliTask.length) {
+          log.warn("正在上传视频，无法更新授权，请稍后再试");
+          interval = 60 * 60 * 1000; // 1小时后再检查
+          return;
+        }
         updateAuth(user.mid);
       }
     });
   } finally {
     // 24小时检查一次
-    setTimeout(checkAccountLoop, 24 * 60 * 60 * 1000);
+    setTimeout(checkAccountLoop, interval);
   }
 };
 
