@@ -10,7 +10,7 @@
         <n-tab-pane
           class="tab-pane"
           name="BaiduPCS"
-          tab="BaiduPCS-GO"
+          tab="BaiduPCS-GO(百度网盘)"
           display-directive="show:lazy"
         >
           <n-form-item>
@@ -68,20 +68,9 @@
       >
         <n-input
           v-model:value="cookies"
-          placeholder="请输入cookie，具体见文档"
+          placeholder="请输入cookie，具体见文档，你也可以自己在命令行登录，本软件不会保存相关鉴权参数"
           type="textarea"
         ></n-input>
-        <!-- <div style="text-align: center">
-          <h2>{{ text }}</h2>
-          <h2>使用b站app扫码完成登录<br /></h2>
-          <n-qr-code
-            v-if="url"
-            :value="url"
-            color="#409eff"
-            background-color="#F5F5F5"
-            :size="250"
-          />
-        </div> -->
         <template #footer>
           <div class="footer">
             <n-button class="btn" @click="baiduPCSLoginVisible = false">取消</n-button>
@@ -107,7 +96,7 @@ const config = defineModel<AppConfig>("data", {
   default: () => {},
 });
 
-const isWeb = computed(() => window.isWeb);
+// const isWeb = computed(() => window.isWeb);
 
 const selectFolder = async () => {
   let file: string | undefined = await showFileDialog({
@@ -172,8 +161,6 @@ const baiduPCSUploadCheck = async () => {
 
   await syncApi.syncTestUpload({
     execPath: config.value.sync.baiduPCS.execPath,
-    localFilePath:
-      "c:\\Users\\renmu\\Downloads\\BaiduPCS-Go-v3.9.7-windows-x64\\BaiduPCS-Go-v3.9.7-windows-x64\\aa.mp4",
     remoteFolder: config.value.sync.baiduPCS.targetPath,
   });
   notice.success("上传测试成功");

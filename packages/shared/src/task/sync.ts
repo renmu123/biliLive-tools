@@ -13,10 +13,14 @@ export const addSyncTask = async ({
   input,
   remotePath,
   execPath,
+  retry,
+  policy,
 }: {
   input: string;
   remotePath?: string;
   execPath?: string;
+  retry?: number;
+  policy?: "fail" | "newcopy" | "overwrite" | "skip" | "rsync";
 }) => {
   const { binary: binaryPath, target: targetPath } = getConfig();
   const instance = new BaiduPCS({
@@ -29,6 +33,10 @@ export const addSyncTask = async ({
     {
       input: input,
       output: "",
+      options: {
+        retry: retry,
+        policy: policy,
+      },
       name: `同步任务: ${parse(input).base}`,
     },
     {},

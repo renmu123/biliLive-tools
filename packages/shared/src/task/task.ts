@@ -865,7 +865,10 @@ export class SyncTask extends AbstractTask {
     options: {
       input: string;
       output: string;
-      options?: any;
+      options?: {
+        retry?: number;
+        policy?: "fail" | "newcopy" | "overwrite" | "skip" | "rsync";
+      };
       name: string;
     },
     callback?: {
@@ -901,7 +904,10 @@ export class SyncTask extends AbstractTask {
     this.emitter.emit("task-start", { taskId: this.taskId });
     this.startTime = Date.now();
     this.instance
-      .uploadFile(this.input, this.output)
+      .uploadFile(this.input, this.output, {
+        retry: this?.options?.retry,
+        policy: this?.options?.policy,
+      })
       .then(() => {
         console.log("upload complete");
         this.status = "completed";

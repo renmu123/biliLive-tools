@@ -19,6 +19,8 @@ async function uploadTest(params: any) {
       input: tempFilePath,
       remotePath: params.remoteFolder,
       execPath: params.execPath,
+      retry: 0,
+      policy: "overwrite",
     });
     task.on("task-end", (data) => {
       console.log("task-end", data);
@@ -60,7 +62,7 @@ router.post("/loginByCookie", async (ctx) => {
   try {
     const success = await loginByCookie({ cookie, execPath });
     ctx.body = success ? "登录成功" : "登录失败";
-  } catch (error) {
+  } catch (error: any) {
     ctx.status = 500;
     ctx.body = `登录失败: ${error.message}`;
   }

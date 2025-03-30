@@ -88,6 +88,7 @@ export class AppConfig extends Config {
     if (isDocker) {
       APP_DEFAULT_CONFIG.tool.download.savePath = path.join("/app", "video");
       APP_DEFAULT_CONFIG.recorder.savePath = path.join("/app", "video");
+      APP_DEFAULT_CONFIG.sync.baiduPCS.execPath = "/app/bin/BaiduPCS-Go";
     }
     // 16位随机密码，包含大小写字母和数字
     APP_DEFAULT_CONFIG.passKey = Math.random().toString(36).slice(-16);

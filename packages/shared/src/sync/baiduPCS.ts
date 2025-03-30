@@ -76,7 +76,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
     try {
       const output = execSync(`${this.binary} who`, { encoding: "utf8" });
       console.log("BaiduPCS-Go who", output);
-      return !output.includes("未登录账号");
+      return !output.includes("uid: 0");
     } catch (error) {
       return false;
     }
@@ -111,14 +111,20 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
       });
 
       this.cmd.on("close", (code) => {
-        if (code === 0) {
+        // 检查完整的stdout是否包含上传失败信息
+        const uploadFailed = stdout.includes("文件上传失败");
+
+        if (code === 0 && !uploadFailed) {
           this.logger.info(`命令执行成功: ${args.join(" ")}`);
           this.cmd = null;
           resolve(stdout);
         } else {
+          const errorMsg = uploadFailed
+            ? `上传失败: 检测到"文件上传失败"信息`
+            : `命令执行失败: ${stderr}`;
           this.logger.error(`命令执行失败: ${args.join(" ")}`);
           this.cmd = null;
-          reject(new Error(`Command failed with code ${code}: ${stderr}`));
+          reject(new Error(`Command failed with code ${code}: ${errorMsg}`));
         }
       });
 
@@ -196,7 +202,15 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
    * @param remoteDir 远程目录路径（相对于基础远程路径）
    * @returns Promise<void> 上传成功时resolve，失败时reject
    */
-  public async uploadFile(localFilePath: string, remoteDir: string = ""): Promise<void> {
+  public async uploadFile(
+    localFilePath: string,
+    remoteDir: string = "",
+    options?: {
+      retry?: number;
+      // fail(默认，直接返回失败)、newcopy(重命名文件)、overwrite(覆盖)、skip(跳过)、rsync(仅跳过大小未变化的文件)
+      policy?: "fail" | "newcopy" | "overwrite" | "skip" | "rsync";
+    },
+  ): Promise<void> {
     if (!(await fs.pathExists(localFilePath))) {
       const error = new Error(`文件不存在: ${localFilePath}`);
       this.logger.error(error.message);
@@ -210,11 +224,18 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
     try {
       // 执行上传
       this.logger.info(`开始上传: ${localFilePath} 到 ${targetDir}`);
-      await this.executeCommand(["upload", localFilePath, targetDir, "--norapid"]);
+      const args = ["upload", localFilePath, targetDir, "--norapid"];
+      if (options?.retry !== undefined) {
+        args.push("--retry", options.retry.toString());
+      }
+      if (options?.policy) {
+        args.push("--policy", options.policy);
+      }
+      await this.executeCommand(args);
       const successMsg = `上传成功: ${localFilePath}`;
       this.logger.info(successMsg);
       this.emit("success", successMsg);
-    } catch (error) {
+    } catch (error: any) {
       this.emit("error", error);
       throw error;
     }
@@ -236,7 +257,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
       this.logger.info("尝试通过Cookie登录百度网盘...");
       await this.executeCommand(["login", "-cookies=" + cookie.trim()]);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`百度网盘登录失败: ${error.message}`);
       this.emit("error", error);
       return false;
@@ -264,7 +285,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
         });
 
       return fileList;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`获取文件列表失败: ${error.message}`);
       return [];
     }
@@ -281,7 +302,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
       await this.executeCommand(["rm", targetPath]);
       this.logger.info(`删除成功: ${targetPath}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`删除失败: ${error.message}`);
       return false;
     }

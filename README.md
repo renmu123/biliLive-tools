@@ -206,12 +206,18 @@ curl --location 'http://127.0.0.1:18010/webhook/custom' \
 }'
 ```
 
-## 录播
+## 直播录制
 
 1. 支持B站、斗鱼、虎牙三平台录制，包含弹幕和礼物，B站额外支持舰长以及SC，斗鱼支持高能弹幕
 2. 以最小的文件大小支持最全的danmakufactory兼容性
 3. B站录制支持所有流，以及批量查询接口
 4. 更加快捷的加入软件中的自动化视频压制与自动上传
+
+目前支持斗鱼、虎牙、B站、抖音几个平台，**除非我有需求，否则不会增加更多平台，支持PR**，支持录制弹幕及礼物，斗鱼和B站额外支持高能弹幕。
+
+最优先维护斗鱼、其次B站、虎牙和抖音随心
+
+大部分代码由 [LiveAutoRecord](https://github.com/WhiteMinds/LiveAutoRecord) 修改而来
 
 ## 断播续传
 
@@ -275,13 +281,13 @@ tg bot 的搭建请自行寻找教程
 
 项目地址：https://github.com/CaoMeiYouRen/push-all-in-cloud
 
-## 直播录制
+## 同步
 
-目前支持斗鱼、虎牙、B站、抖音几个平台，**除非我有需求，否则不会增加更多平台，请勿提ISSUE**，支持录制弹幕及礼物，斗鱼和B站额外支持高能弹幕。
+客户端不会带相关项目的编译包，docker会自带，**使用前请仔细查看相关文档**
 
-最优先维护斗鱼、其次B站、虎牙和抖音随心
+### BaiduPCS-Go(百度网盘)
 
-大部分代码由 [LiveAutoRecord](https://github.com/WhiteMinds/LiveAutoRecord) 修改而来
+项目地址：https://github.com/qjfoidnh/BaiduPCS-Go
 
 # 常见问题
 

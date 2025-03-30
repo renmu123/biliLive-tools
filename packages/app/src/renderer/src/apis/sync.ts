@@ -1,10 +1,6 @@
 import request from "./request";
 
-const syncTestUpload = async (data: {
-  localFilePath: string;
-  remoteFolder: string;
-  execPath: string;
-}) => {
+const syncTestUpload = async (data: { remoteFolder: string; execPath: string }) => {
   const res = await request.post(`/sync/uploadTest`, data);
   return res.data;
 };
