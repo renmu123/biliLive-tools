@@ -15,7 +15,7 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="convert"> 立即合并 </n-button>
+      <n-button type="primary" @click="convert" title="立即合并(ctrl+enter)"> 立即合并 </n-button>
       <Tip
         tip="注意：并非所有容器都支持流复制。如果出现播放问题或未合并文件，则可能需要重新编码。"
         :size="26"

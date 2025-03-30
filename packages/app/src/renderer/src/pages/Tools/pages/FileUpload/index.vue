@@ -6,7 +6,7 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="upload"> 立即上传 </n-button>
+      <n-button type="primary" @click="upload" title="立即上传(ctrl+enter)"> 立即上传 </n-button>
       <n-button type="primary" @click="appendVideoVisible = true"> 续传 </n-button>
       <n-checkbox v-model:checked="options.removeOriginAfterUploadCheck">
         审核通过后移除源文件

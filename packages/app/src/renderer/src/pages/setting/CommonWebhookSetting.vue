@@ -165,7 +165,7 @@
 
   <n-form-item>
     <template #label>
-      <Tip text="转封装为mp4" tip="将视频文件转换为mp4封装格式，转换完毕后会删除原始视频文件"></Tip>
+      <Tip text="转封装为mp4" tip="将视频文件转换为mp4封装格式"></Tip>
     </template>
     <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
 

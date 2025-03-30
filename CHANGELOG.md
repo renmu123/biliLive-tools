@@ -1,15 +1,27 @@
-# Next
+# 1.9.1
 
 ## 优化
 
 1. 任务列表中上传视频名称同时显示分p名称和视频文件名 [#56](https://github.com/renmu123/biliLive-tools/issues/56)
 2. 上传视频时支持将视频文件名应用到预设标题中 [#60](https://github.com/renmu123/biliLive-tools/issues/60)
+3. 为支持的按钮添加快捷键提示（PS：我都忘了还支持过快捷键）
+4. 优化审核相关操作的查询策略，减少请求
+5. "自动更新授权"在存在上传任务时不会进行更新，一个小时后重新尝试
+6. “手动更新授权”增加正在上传任务检测，增加提醒
+7. 切片：关闭视频时同时清除切片数据
+8. 切片：优化部分文案，增加快捷键提示
+9. 切片：移除 ctrl+shift+k 快捷键，使用 ctrl+k 快捷键进行切换，减轻心智负担
+10. 录制：添加B站直播间，且未设置录制账号时，添加额外提示
 
 ## Bug修复
 
 1. 修复虎牙星秀区无法录制的bug，感谢 https://github.com/ihmily/DouyinLiveRecorder/pull/993
 2. 修复某些 web 环境下无法复制 cookie 的 bug [#62](https://github.com/renmu123/biliLive-tools/issues/62)
-3. 修复 webui 授权错误时未正确跳转的bug
+3. 修复 webui 授权错误时未正确跳转的 bug
+4. 修复某些情况下查询稿件失败而导致的审核通知错误
+5. 切片：修复部分按钮无法点击的 bug
+6. 修复录制配置中“录制文件夹”默认打开文件夹错误的bug
+7. 修复 webhook 中“上传后删除源文件”选项失效的bug
 
 # 1.9.0
 

@@ -240,7 +240,7 @@ const { userList } = storeToRefs(useUserInfoStore());
 
 const selectFolder = async () => {
   let file: string | undefined = await showDirectoryDialog({
-    defaultPath: config.value.webhook.recoderFolder,
+    defaultPath: config.value.recorder.savePath,
   });
 
   if (!file) return;
