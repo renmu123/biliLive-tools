@@ -347,6 +347,7 @@ import {
   huyaQualityOptions,
   douyinQualityOptions,
 } from "@renderer/enums/recorder";
+import { useConfirm } from "@renderer/hooks";
 
 import type { Recorder } from "@biliLive-tools/types";
 
@@ -403,6 +404,7 @@ const config = ref<Omit<Recorder, "id">>({
   liveStartNotification: false,
 });
 
+const confirmDialog = useConfirm();
 const confirm = async () => {
   if (!config.value.channelId) {
     notice.error({
@@ -411,6 +413,17 @@ const confirm = async () => {
     });
     return;
   }
+
+  if (config.value.providerId === "Bilibili" && !config.value.uid) {
+    const [status] = await confirmDialog.warning({
+      title: "确认添加",
+      content: `B站录制高清画质需要设置账号，你可能尚未设置，是否继续？`,
+      showCheckbox: true,
+      showAgainKey: "recorder-bili-account",
+    });
+    if (!status) return;
+  }
+
   config.value.noGlobalFollowFields = (
     Object.keys(globalFieldsObj.value) as Recorder["noGlobalFollowFields"]
   ).filter((key) => !globalFieldsObj.value[key]);
