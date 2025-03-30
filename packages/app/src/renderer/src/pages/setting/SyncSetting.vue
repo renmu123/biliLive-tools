@@ -1,7 +1,7 @@
 <template>
   <div class="">
     <div style="display: flex; gap: 10px; align-items: center">
-      <h2>同步配置</h2>
+      <h2>Webhook 文件同步配置</h2>
       <p>使用前请务必了解相关同步库并<bold>仔细查看文档</bold></p>
     </div>
 

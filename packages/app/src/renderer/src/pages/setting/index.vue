@@ -262,6 +262,9 @@
             </div>
           </n-form>
         </n-tab-pane>
+        <n-tab-pane name="sync" tab="文件同步">
+          <SyncSetting v-model:data="config"></SyncSetting>
+        </n-tab-pane>
         <n-tab-pane name="upload" tab="B站上传">
           <BiliSetting v-model:data="config"></BiliSetting>
         </n-tab-pane>
@@ -279,9 +282,6 @@
         </n-tab-pane> -->
         <n-tab-pane name="notification" tab="通知">
           <NotificationSetting v-model:data="config"></NotificationSetting>
-        </n-tab-pane>
-        <n-tab-pane name="sync" tab="同步">
-          <SyncSetting v-model:data="config"></SyncSetting>
         </n-tab-pane>
       </n-tabs>
       <template #footer>
