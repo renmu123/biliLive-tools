@@ -697,12 +697,10 @@ export class WebhookHandler {
 
   addUploadTask = async (
     uid: number,
-    pathArray:
-      | string[]
-      | {
-          path: string;
-          title: string;
-        }[],
+    pathArray: {
+      path: string;
+      title: string;
+    }[],
     options: BiliupConfig,
     removeOrigin: boolean,
     limitedUploadTime: [] | [string, string],
@@ -718,7 +716,7 @@ export class WebhookHandler {
           task.on("task-end", () => {
             if (removeOrigin) {
               pathArray.map((item) => {
-                trashItem(item);
+                trashItem(item.path);
               });
             }
             resolve(task.output);
@@ -739,12 +737,10 @@ export class WebhookHandler {
   addEditMediaTask = async (
     uid: number,
     aid: number,
-    pathArray:
-      | string[]
-      | {
-          path: string;
-          title: string;
-        }[],
+    pathArray: {
+      path: string;
+      title: string;
+    }[],
     removeOrigin: boolean,
     limitedUploadTime: [string, string] | [],
     removeOriginAfterUploadCheck: boolean,
@@ -759,7 +755,7 @@ export class WebhookHandler {
           task.on("task-end", () => {
             if (removeOrigin) {
               pathArray.map((item) => {
-                trashItem(item);
+                trashItem(item.path);
               });
             }
             resolve(task.output);
