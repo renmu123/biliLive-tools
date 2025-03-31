@@ -190,12 +190,14 @@ export class ComplexFilter {
     swsFlags,
     encoder,
     useHardware,
+    forceOriginalAspectRatio,
   }: {
     resolutionWidth: number;
     resolutionHeight: number;
     swsFlags: string;
     encoder: FfmpegOptions["encoder"];
     useHardware: boolean;
+    forceOriginalAspectRatio: "auto" | "decrease" | "increase";
   }) {
     let scaleFilter = `${resolutionWidth}:${resolutionHeight}`;
 
@@ -224,6 +226,9 @@ export class ComplexFilter {
     }
     if (swsFlags && swsFlags !== "auto") {
       scaleFilter += `:flags=${swsFlags}`;
+    }
+    if (forceOriginalAspectRatio && forceOriginalAspectRatio !== "auto") {
+      scaleFilter += `:force_original_aspect_ratio=${forceOriginalAspectRatio}`;
     }
     return this.addFilter("scale", scaleFilter);
   }
@@ -509,6 +514,7 @@ export const genMergeAssMp4Command = async (
         swsFlags: ffmpegOptions.swsFlags ?? "",
         encoder: ffmpegOptions.encoder,
         useHardware: ffmpegOptions.hardwareScaleFilter ? uesHardwareScale : false,
+        forceOriginalAspectRatio: ffmpegOptions.forceOriginalAspectRatio ?? "auto",
       });
     }
 
@@ -538,6 +544,7 @@ export const genMergeAssMp4Command = async (
         swsFlags: ffmpegOptions.swsFlags ?? "",
         encoder: ffmpegOptions.encoder,
         useHardware: ffmpegOptions.hardwareScaleFilter ? uesHardwareScale : false,
+        forceOriginalAspectRatio: ffmpegOptions.forceOriginalAspectRatio ?? "auto",
       });
     }
 

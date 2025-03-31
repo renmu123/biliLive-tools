@@ -150,7 +150,7 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip text="分辨率">
+          <Tip text="分辨率" class="resolution-label">
             <p>
               实质上不会提升画质，但由于B站4K可拥有更高码率，可以通过缩放分辨率来减少二压对码率的影响，会影响压制时间。
             </p>
@@ -163,53 +163,75 @@
             <p>
               如果需要放大分辨率，可以选择先渲染后缩放，如果是缩小分辨率，可以选择先缩放后渲染，自动策略为先渲染后缩放
             </p>
+            <p>强制宽高比：具体参数含义自行尝试或查询文档</p>
           </Tip>
         </template>
 
         <n-checkbox
           v-model:checked="ffmpegOptions.config.resetResolution"
           style="margin-right: 20px"
-        ></n-checkbox>
+        >
+        </n-checkbox>
         <template v-if="ffmpegOptions.config.resetResolution">
-          <div style="display: flex; align-items: center; width: 100%; gap: 10px">
-            <n-input-number
-              v-model:value.number="ffmpegOptions.config.resolutionWidth"
-              class="input-number"
-              :min="-2"
-              :step="100"
-              title="宽"
-              placeholder="宽"
-              style="width: 100px; flex: none"
-            />X
-            <n-input-number
-              v-model:value.number="ffmpegOptions.config.resolutionHeight"
-              class="input-number"
-              :min="-2"
-              :step="100"
-              title="高"
-              placeholder="高"
-              style="width: 100px; flex: none"
-            />
-            <n-select
-              v-if="hardwareAcceleration !== 'qsv'"
-              v-model:value="ffmpegOptions.config.swsFlags"
-              :options="swsOptions"
-              title="缩放算法"
-              placeholder="请选择缩放算法，默认为自动"
-              style="flex-basis: 200px"
-            />
-            <n-select
-              v-model:value="ffmpegOptions.config.scaleMethod"
-              :options="scaleMethodOptions"
-              title="缩放顺序"
-              placeholder="请选择缩放顺序"
-              style="flex-basis: 200px; min-width: 100px"
-            />
-            <n-checkbox
+          <div class="resolution-settings">
+            <div class="resolution-dimension-group">
+              <n-input-number
+                v-model:value.number="ffmpegOptions.config.resolutionWidth"
+                class="input-number"
+                :min="-2"
+                :step="100"
+                title="宽"
+                placeholder="宽"
+                style="width: 100px; flex: none"
+              />
+              <span class="dimension-separator">X</span>
+              <n-input-number
+                v-model:value.number="ffmpegOptions.config.resolutionHeight"
+                class="input-number"
+                :min="-2"
+                :step="100"
+                title="高"
+                placeholder="高"
+                style="width: 100px; flex: none"
+              />
+            </div>
+            <div class="resolution-option-group" v-if="hardwareAcceleration !== 'qsv'">
+              <div class="resolution-section-title">缩放算法：</div>
+              <n-select
+                v-model:value="ffmpegOptions.config.swsFlags"
+                :options="swsOptions"
+                title="缩放算法"
+                placeholder="请选择缩放算法，默认为自动"
+                style="width: 200px"
+              />
+            </div>
+            <div class="resolution-option-group">
+              <div class="resolution-section-title">处理顺序：</div>
+              <n-select
+                v-model:value="ffmpegOptions.config.scaleMethod"
+                :options="scaleMethodOptions"
+                title="缩放顺序"
+                placeholder="请选择缩放顺序"
+                style="width: 150px"
+              />
+            </div>
+            <div class="resolution-option-group">
+              <div class="resolution-section-title">强制宽高比：</div>
+              <n-select
+                v-model:value="ffmpegOptions.config.forceOriginalAspectRatio"
+                :options="forceOriginalAspectRatioOptions"
+                title="force_original_aspect_ratio"
+                style="width: 100px"
+              />
+            </div>
+            <div
+              class="resolution-option-group"
               v-if="['qsv', 'nvenc'].includes(hardwareAcceleration)"
-              v-model:checked="ffmpegOptions.config.hardwareScaleFilter"
-              >硬件过滤器</n-checkbox
             >
+              <n-checkbox v-model:checked="ffmpegOptions.config.hardwareScaleFilter"
+                >硬件过滤器</n-checkbox
+              >
+            </div>
           </div>
         </template>
       </n-form-item>
@@ -509,6 +531,20 @@ const scaleMethodOptions = ref([
     label: "先渲染后缩放",
   },
 ]);
+const forceOriginalAspectRatioOptions = ref([
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    value: "decrease",
+    label: "缩小",
+  },
+  {
+    value: "increase",
+    label: "放大",
+  },
+]);
 
 // @ts-ignore
 const ffmpegOptions: Ref<FfmpegPreset> = ref({
@@ -646,5 +682,52 @@ const hardwareAcceleration = computed(() => {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
+}
+
+.resolution-control {
+  margin-bottom: 10px;
+}
+
+.resolution-checkbox-label {
+  font-weight: bold;
+  font-size: 14px;
+  color: #2080f0;
+}
+
+.resolution-settings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  width: 100%;
+  // padding: 12px 16px;
+  // border: 1px solid #ebeef5;
+  // border-radius: 8px;
+  // background-color: #f9fafc;
+}
+
+.resolution-dimension-group,
+.resolution-option-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.resolution-section-title {
+  font-weight: bold;
+  color: #606266;
+  white-space: nowrap;
+}
+
+.dimension-separator {
+  font-weight: bold;
+  margin: 0 4px;
+}
+
+.resolution-default-message {
+  display: flex;
+  align-items: center;
+  margin-left: 20px;
+  color: #909399;
+  font-style: italic;
 }
 </style>

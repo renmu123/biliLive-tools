@@ -1,8 +1,14 @@
 # Next
 
+## 功能
+
+- `scale` 支持 `force_original_aspect_ratio` 参数，优化分辨率配置UI
+
+## 优化
+
 ## Bug修复
 
-1. 修复开播通知条件错误显示的bug
+- 修复开播通知条件错误显示的bug
 
 # 1.9.1
 
