@@ -36,6 +36,11 @@ export const api = {
       return ipcRenderer.invoke("danmu:parseDanmu", input, {});
     },
   },
+  cookie: {
+    baiduLogin: () => {
+      return ipcRenderer.invoke("cookie:baidu");
+    },
+  },
   common: {
     getTempPath: async () => {
       return ipcRenderer.invoke("common:getTempPath");

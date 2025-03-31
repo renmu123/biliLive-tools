@@ -14,6 +14,7 @@ import { notify } from "./utils/index";
 import { init, createRecorderManager } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
+import { cookieHandlers } from "./cookie";
 import { handlers as danmuHandlers } from "./danmu";
 import { commonHandlers, getTempPath } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
@@ -84,6 +85,7 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, danmuHandlers);
   registerHandlers(ipcMain, configHandlers);
   registerHandlers(ipcMain, commonHandlers);
+  registerHandlers(ipcMain, cookieHandlers);
 };
 
 function createWindow(): void {

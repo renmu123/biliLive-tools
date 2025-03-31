@@ -74,7 +74,9 @@
         <template #footer>
           <div class="footer">
             <n-button class="btn" @click="baiduPCSLoginVisible = false">取消</n-button>
-            <!-- <n-button v-if="!isWeb" type="info" class="btn"> 试试客户端特有的登录 </n-button> -->
+            <n-button v-if="!isWeb" type="info" class="btn" @click="baiduPCSClientClogin">
+              试试客户端特有的登录
+            </n-button>
             <n-button type="primary" class="btn" @click="baiduPCSLoginConfirm"> 确认 </n-button>
           </div>
         </template>
@@ -96,7 +98,7 @@ const config = defineModel<AppConfig>("data", {
   default: () => {},
 });
 
-// const isWeb = computed(() => window.isWeb);
+const isWeb = computed(() => window.isWeb);
 
 const selectFolder = async () => {
   let file: string | undefined = await showFileDialog({
@@ -164,6 +166,11 @@ const baiduPCSUploadCheck = async () => {
     remoteFolder: config.value.sync.baiduPCS.targetPath,
   });
   notice.success("上传测试成功");
+};
+const baiduPCSClientClogin = async () => {
+  notice.info("登录完成后请关闭窗口");
+  const cookie = await window.api.cookie.baiduLogin();
+  cookies.value = cookie;
 };
 </script>
 
