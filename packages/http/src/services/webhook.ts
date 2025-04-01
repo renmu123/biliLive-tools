@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import { FFmpegPreset, VideoPreset, DanmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import { biliApi } from "@biliLive-tools/shared/task/bili.js";
-import { isEmptyDanmu } from "@biliLive-tools/shared/task/danmu.js";
+import { isEmptyDanmu, convertXml2Ass } from "@biliLive-tools/shared/task/danmu.js";
 import { transcode, burn } from "@biliLive-tools/shared/task/video.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import {
@@ -142,7 +142,6 @@ export class WebhookHandler {
       convert2Mp4Option,
       removeSourceAferrConvert2Mp4,
       removeOriginAfterConvert,
-      noConvertHandleVideo,
       videoHandleTime,
     } = this.getConfig(options.roomId);
     if (!open) {
@@ -217,33 +216,29 @@ export class WebhookHandler {
     }
     currentPart.recordStatus = "prehandled";
 
+    let xmlFilePath: string;
+    if (options.danmuPath) {
+      xmlFilePath = options.danmuPath;
+    } else {
+      xmlFilePath = replaceExtName(options.filePath, ".xml");
+    }
+
     if (danmu) {
       try {
-        let xmlFilePath: string;
-        if (options.danmuPath) {
-          xmlFilePath = options.danmuPath;
-        } else {
-          xmlFilePath = replaceExtName(options.filePath, ".xml");
-        }
         await sleep(10000);
         if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
           log.info("没有找到弹幕文件", xmlFilePath);
           currentPart.recordStatus = "handled";
           return;
         }
+        if (!danmuPresetId || !videoPresetId) {
+          log.error("没有找到预设", danmuPresetId, videoPresetId);
+          currentPart.uploadStatus = "error";
+          return;
+        }
 
-        const danmuConfig = (await this.danmuPreset.get(danmuPresetId))?.config;
-        if (!danmuConfig) {
-          log.error("danmuPreset not found", danmuPresetId);
-          currentPart.uploadStatus = "error";
-          return;
-        }
+        const danmuConfig = (await this.danmuPreset.get(danmuPresetId))!.config;
         const ffmpegPreset = await this.ffmpegPreset.get(videoPresetId);
-        if (!ffmpegPreset) {
-          log.error("ffmpegPreset not found", videoPresetId);
-          currentPart.uploadStatus = "error";
-          return;
-        }
 
         const output = await this.burn(
           {
@@ -252,7 +247,7 @@ export class WebhookHandler {
           },
           {
             danmaOptions: danmuConfig,
-            ffmpegOptions: ffmpegPreset.config,
+            ffmpegOptions: ffmpegPreset!.config,
             hasHotProgress: hotProgress,
             hotProgressOptions: {
               interval: hotProgressSample || 30,
@@ -272,7 +267,7 @@ export class WebhookHandler {
         currentPart.uploadStatus = "error";
       }
     } else {
-      if (noConvertHandleVideo) {
+      if (videoPresetId) {
         const preset = await this.ffmpegPreset.get(videoPresetId);
         if (!preset) {
           log.error("ffmpegPreset not found", videoPresetId);
@@ -287,6 +282,24 @@ export class WebhookHandler {
         currentPart.filePath = output;
       }
       currentPart.recordStatus = "handled";
+
+      // 弹幕错误也无所谓了
+      if (danmuPresetId) {
+        try {
+          const preset = await this.danmuPreset.get(danmuPresetId);
+          await convertXml2Ass(
+            { input: xmlFilePath, output: path.basename(xmlFilePath, "xml") },
+            preset!.config,
+            {
+              saveRadio: 1,
+              savePath: path.dirname(xmlFilePath),
+              removeOrigin: removeOriginAfterConvert,
+            },
+          );
+        } catch (error) {
+          log.error(error);
+        }
+      }
     }
   }
 
@@ -359,9 +372,9 @@ export class WebhookHandler {
     /* 上传标题 */
     title: string;
     /* 弹幕preset */
-    danmuPresetId: string;
+    danmuPresetId?: string;
     /* 视频压制preset */
-    videoPresetId: string;
+    videoPresetId?: string;
     /* 是否开启 */
     open?: boolean;
     /* 上传uid */
@@ -390,8 +403,6 @@ export class WebhookHandler {
     removeOriginAfterUpload: boolean;
     /** 审核完成后删除文件 */
     removeOriginAfterUploadCheck: boolean;
-    /** 不压制后处理 */
-    noConvertHandleVideo?: boolean;
     /** 限制只在某一段时间上传 */
     limitUploadTime?: boolean;
     /** 允许上传处理时间 */
@@ -416,8 +427,8 @@ export class WebhookHandler {
     const minSize = getRoomSetting("minSize") ?? 10;
     const uploadPresetId = getRoomSetting("uploadPresetId") || "default";
     const title = getRoomSetting("title") || "";
-    const danmuPresetId = getRoomSetting("danmuPreset") || "default";
-    const videoPresetId = getRoomSetting("ffmpegPreset") || "default";
+    const danmuPresetId = getRoomSetting("danmuPreset");
+    const videoPresetId = getRoomSetting("ffmpegPreset");
     const uid = getRoomSetting("uid");
     let partMergeMinute = getRoomSetting("partMergeMinute") ?? 10;
     const hotProgress = getRoomSetting("hotProgress");
@@ -433,7 +444,6 @@ export class WebhookHandler {
 
     const removeOriginAfterConvert = getRoomSetting("removeOriginAfterConvert") ?? false;
     const removeOriginAfterUpload = getRoomSetting("removeOriginAfterUpload") ?? false;
-    const noConvertHandleVideo = getRoomSetting("noConvertHandleVideo") ?? false;
     const limitUploadTime = getRoomSetting("limitUploadTime") ?? false;
     const uploadHandleTime = getRoomSetting("uploadHandleTime") || ["00:00:00", "23:59:59"];
     const uploadNoDanmu = getRoomSetting("uploadNoDanmu") ?? false;
@@ -478,7 +488,6 @@ export class WebhookHandler {
       removeSourceAferrConvert2Mp4,
       removeOriginAfterConvert,
       removeOriginAfterUpload,
-      noConvertHandleVideo,
       limitUploadTime,
       uploadHandleTime,
       uploadNoDanmu,

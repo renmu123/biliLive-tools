@@ -79,8 +79,6 @@ export type CommonRoomConfig = {
   videoHandleTime: [string, string];
   /** 上传完成后删除文件 */
   removeOriginAfterUpload?: boolean;
-  /** 不压制后处理 */
-  noConvertHandleVideo?: boolean;
   /** 限制只在某一段时间上传 */
   limitUploadTime?: boolean;
   /** 允许上传处理时间 */

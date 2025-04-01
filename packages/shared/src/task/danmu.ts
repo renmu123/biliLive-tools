@@ -120,6 +120,9 @@ export const convertXml2Ass = async (
   danmuOptions: DanmuConfig,
   options: DanmaOptions,
 ) => {
+  if (!(await pathExists(file.input))) {
+    throw new Error(`输入文件不存在: ${file.input}`);
+  }
   if (await isEmptyDanmu(file.input)) {
     throw new Error("弹幕为空，无须处理");
   }

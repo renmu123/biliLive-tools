@@ -20,10 +20,12 @@
     >
   </n-form-item>
 
-  <h2>压制配置</h2>
   <n-form-item>
     <template #label>
-      <Tip text="转封装为mp4" tip="将视频文件转换为mp4封装格式"></Tip>
+      <Tip
+        text="转封装为mp4"
+        tip="将视频文件转换为mp4封装格式，开启后，之后的源文件指向的都是转封装的视频"
+      ></Tip>
     </template>
     <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
 
@@ -47,6 +49,9 @@
       >全局</n-checkbox
     >
   </n-form-item>
+
+  <h2>压制配置</h2>
+
   <n-form-item>
     <template #label>
       <Tip text="弹幕压制" tip="将弹幕文件硬编码到视频中"></Tip>
@@ -57,27 +62,11 @@
       >全局</n-checkbox
     >
   </n-form-item>
-  <n-form-item v-if="!data.danmu">
-    <template #label>
-      <Tip text="不压制后处理" tip="关闭弹幕压制但仍对视频调用ffmepg进行处理"></Tip>
-    </template>
-    <n-switch
-      v-model:value="data.noConvertHandleVideo"
-      :disabled="globalFieldsObj.noConvertHandleVideo"
-    />
-
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.noConvertHandleVideo"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
 
   <!-- 当弹幕压制开启或弹幕压制关闭但不压制后处理开启时展示 -->
-  <n-form-item v-if="data.danmu || (!data.danmu && data.noConvertHandleVideo)">
+  <n-form-item>
     <template #label>
-      <span class="inline-flex"> 视频预设 </span>
+      <Tip text="视频预设" tip="你可以只处理视频而不压制，如果不想处理请置空"></Tip>
     </template>
     <n-cascader
       v-model:value="data.ffmpegPreset"
@@ -88,28 +77,30 @@
       :show-path="false"
       :filterable="true"
       :disabled="globalFieldsObj.ffmpegPreset"
-      style="margin-right: 10px"
+      style="margin-right: 10px; width: 200px"
+      clearable
     />
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.ffmpegPreset" class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
+  <n-form-item>
+    <template #label>
+      <Tip text="弹幕预设" tip="你可以只处理弹幕而不压制，如果不想处理请置空"></Tip>
+    </template>
+    <n-select
+      v-model:value="data.danmuPreset"
+      :options="danmuPresetsOptions"
+      placeholder="选择预设"
+      :disabled="globalFieldsObj.danmuPreset"
+      style="margin-right: 10px; width: 200px"
+      clearable
+    />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.danmuPreset" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
   <template v-if="data.danmu">
-    <n-form-item label="弹幕预设">
-      <n-select
-        v-model:value="data.danmuPreset"
-        :options="danmuPresetsOptions"
-        placeholder="选择预设"
-        :disabled="globalFieldsObj.danmuPreset"
-        style="margin-right: 10px"
-      />
-      <n-checkbox
-        v-if="isRoom"
-        v-model:checked="globalFieldsObj.danmuPreset"
-        class="global-checkbox"
-        >全局</n-checkbox
-      >
-    </n-form-item>
     <n-form-item label="高能进度条">
       <n-switch v-model:value="data.hotProgress" :disabled="globalFieldsObj.hotProgress" />
       <n-checkbox
@@ -192,27 +183,25 @@
       </n-form-item>
     </template>
   </template>
-  <template v-if="data.danmu || (!data.danmu && data.noConvertHandleVideo)">
-    <n-form-item>
-      <template #label>
-        <span class="inline-flex"> 压制后删除源文件 </span>
-      </template>
-      <n-switch
-        v-model:value="data.removeOriginAfterConvert"
-        :disabled="globalFieldsObj.removeOriginAfterConvert"
-      />
-      <n-checkbox
-        v-if="isRoom"
-        v-model:checked="globalFieldsObj.removeOriginAfterConvert"
-        class="global-checkbox"
-        >全局</n-checkbox
-      >
-    </n-form-item>
-  </template>
+  <n-form-item>
+    <template #label>
+      <span class="inline-flex"> 处理后删除源文件 </span>
+    </template>
+    <n-switch
+      v-model:value="data.removeOriginAfterConvert"
+      :disabled="globalFieldsObj.removeOriginAfterConvert"
+    />
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.removeOriginAfterConvert"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
 
   <n-form-item>
     <template #label>
-      <Tip text="限制处理时间" tip="开启后，支持只在某段时间执行处理"></Tip>
+      <Tip text="限制处理时间" tip="开启后，只会在某段时间执行处理，仅限视频"></Tip>
     </template>
     <n-switch
       v-model:value="data.limitVideoConvertTime"
