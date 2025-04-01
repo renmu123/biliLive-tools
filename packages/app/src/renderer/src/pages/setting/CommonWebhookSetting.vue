@@ -1,4 +1,25 @@
 <template>
+  <h2>通用配置</h2>
+  <n-form-item>
+    <template #label>
+      <Tip
+        text="最小处理文件"
+        tip="小于这个大小的视频不会被之后的流程处理，用于过滤因网络问题导致的分段录播"
+      ></Tip>
+    </template>
+    <n-input-number
+      v-model:value="data.minSize"
+      placeholder="单位MB"
+      min="0"
+      :disabled="globalFieldsObj.minSize"
+    >
+      <template #suffix> M </template></n-input-number
+    >
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.minSize" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+
   <h2>压制配置</h2>
   <n-form-item>
     <template #label>
@@ -404,25 +425,7 @@
       >全局</n-checkbox
     >
   </n-form-item>
-  <n-form-item>
-    <template #label>
-      <Tip
-        text="最小上传大小"
-        tip="小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播"
-      ></Tip>
-    </template>
-    <n-input-number
-      v-model:value="data.minSize"
-      placeholder="单位MB"
-      min="0"
-      :disabled="globalFieldsObj.minSize"
-    >
-      <template #suffix> M </template></n-input-number
-    >
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.minSize" class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
+
   <n-form-item>
     <template #label>
       <Tip text="限制上传时间" tip="开启后，支持只在某段时间执行上传操作"></Tip>

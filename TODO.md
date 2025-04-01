@@ -22,17 +22,10 @@
 ## 本版本
 
 1. 移除不压制后处理参数，破坏性更改
-2. 同步相关功能
-3. 虎牙支持并发处理数参数
-4. webhook 增加通用配置：同步器参数、转封装参数
-5. 最小上传大小 变为最小处理大小，提升到通用配置中
+2. 虎牙支持并发处理数参数
+3. webhook 增加通用配置：同步器参数、转封装参数
 
 ### 同步相关
-
-支持 https://github.com/qjfoidnh/BaiduPCS-Go  
-支持 https://github.com/tickstep/aliyunpan
-
-BaiduPCS-Go 客户端支持额外登录功能
 
 支持通知
 
