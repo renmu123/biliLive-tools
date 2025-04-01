@@ -3,6 +3,7 @@
 ## 功能
 
 - `scale` 支持 `force_original_aspect_ratio` 参数，优化分辨率配置UI
+- Win 下安装包支持自定义安装位置
 
 ## 优化
 
