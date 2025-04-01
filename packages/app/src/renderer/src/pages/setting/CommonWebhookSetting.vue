@@ -23,6 +23,32 @@
   <h2>压制配置</h2>
   <n-form-item>
     <template #label>
+      <Tip text="转封装为mp4" tip="将视频文件转换为mp4封装格式"></Tip>
+    </template>
+    <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
+
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item v-if="data.convert2Mp4">
+    <template #label>
+      <span>封装后删除源文件</span>
+    </template>
+    <n-switch
+      v-model:value="data.removeSourceAferrConvert2Mp4"
+      :disabled="globalFieldsObj.removeSourceAferrConvert2Mp4"
+    />
+
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.removeSourceAferrConvert2Mp4"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item>
+    <template #label>
       <Tip text="弹幕压制" tip="将弹幕文件硬编码到视频中"></Tip>
     </template>
     <n-switch v-model:value="data.danmu" :disabled="globalFieldsObj.danmu" />
@@ -183,33 +209,6 @@
       >
     </n-form-item>
   </template>
-
-  <n-form-item>
-    <template #label>
-      <Tip text="转封装为mp4" tip="将视频文件转换为mp4封装格式"></Tip>
-    </template>
-    <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
-
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-  <n-form-item v-if="data.convert2Mp4">
-    <template #label>
-      <span>封装后删除源文件</span>
-    </template>
-    <n-switch
-      v-model:value="data.removeSourceAferrConvert2Mp4"
-      :disabled="globalFieldsObj.removeSourceAferrConvert2Mp4"
-    />
-
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.removeSourceAferrConvert2Mp4"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
 
   <n-form-item>
     <template #label>
