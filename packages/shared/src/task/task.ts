@@ -10,7 +10,7 @@ import { appConfig } from "../config.js";
 import kill from "tree-kill";
 import { addMediaApi, editMediaApi } from "./bili.js";
 import { TaskType } from "../enum.js";
-import { BaiduPCS } from "../sync/index.js";
+import { SyncClient } from "../sync/index.js";
 
 import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { Client, WebVideoUploader } from "@renmu/bili-api";
@@ -850,7 +850,7 @@ export class HuyaDownloadVideoTask extends M3U8DownloadTask {
  * 同步任务
  */
 export class SyncTask extends AbstractTask {
-  instance: BaiduPCS;
+  instance: SyncClient;
   input: string;
   options: any;
   type = TaskType.sync;
@@ -861,7 +861,7 @@ export class SyncTask extends AbstractTask {
     onProgress?: (progress: Progress) => any;
   };
   constructor(
-    instance: BaiduPCS,
+    instance: SyncClient,
     options: {
       input: string;
       output: string;
@@ -937,9 +937,7 @@ export class SyncTask extends AbstractTask {
       return;
     log.warn(`danmu task ${this.taskId} killed`);
     this.status = "canceled";
-    if (this.instance?.cmd?.pid) {
-      kill(this.instance.cmd.pid);
-    }
+    this.instance.cancelUpload();
     return true;
   }
 }

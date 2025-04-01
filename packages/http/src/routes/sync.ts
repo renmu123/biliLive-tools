@@ -4,13 +4,22 @@ import path from "node:path";
 import fs from "fs-extra";
 import Router from "koa-router";
 
-import { addSyncTask, isLogin, loginByCookie } from "@biliLive-tools/shared/task/sync.js";
+import {
+  addSyncTask,
+  isLogin,
+  loginByCookie,
+  aliyunpanLogin,
+} from "@biliLive-tools/shared/task/sync.js";
 
 const router = new Router({
   prefix: "/sync",
 });
 
-async function uploadTest(params: any) {
+async function uploadTest(params: {
+  remoteFolder: string;
+  execPath: string;
+  type: "baiduPCS" | "aliyunpan";
+}) {
   // 在临时文件新建一个文件，内容为"biliLive-tools"
   const tempFilePath = path.join(os.tmpdir(), "biliLive-tools-upload-test.txt");
   await fs.writeFile(tempFilePath, "biliLive-tools");
@@ -21,6 +30,7 @@ async function uploadTest(params: any) {
       execPath: params.execPath,
       retry: 0,
       policy: "overwrite",
+      type: params.type,
     });
     task.on("task-end", (data) => {
       console.log("task-end", data);
@@ -71,9 +81,28 @@ router.post("/loginByCookie", async (ctx) => {
 router.get("/isLogin", async (ctx) => {
   const params = ctx.request.query;
   // @ts-ignore
-  const { execPath } = params;
-  const status = await isLogin({ execPath: execPath as string });
+  const { execPath, type } = params;
+  const status = await isLogin({
+    execPath: execPath as string,
+    type: type as "baiduPCS" | "aliyunpan",
+  });
   ctx.body = status;
+});
+
+router.get("/aliyunpanLogin", async (ctx) => {
+  const params = ctx.request.query;
+  // @ts-ignore
+  const { execPath, type } = params;
+  try {
+    const content = await aliyunpanLogin({
+      execPath: execPath as string,
+      type: type as "getUrl" | "cancel" | "confirm",
+    });
+    ctx.body = content;
+  } catch (error: any) {
+    ctx.body = `${error?.message}`;
+    ctx.status = 500;
+  }
 });
 
 export default router;

@@ -401,6 +401,8 @@ export interface Recorder {
   >;
 }
 
+export type SyncType = "baiduPCS" | "aliyunpan";
+
 // 全局配置
 export interface AppConfig {
   logLevel: any;
@@ -479,6 +481,12 @@ export interface AppConfig {
   // 同步
   sync: {
     baiduPCS: {
+      // 本地可执行文件路径
+      execPath: string;
+      // 网盘目标路径
+      targetPath: string;
+    };
+    aliyunpan: {
       // 本地可执行文件路径
       execPath: string;
       // 网盘目标路径

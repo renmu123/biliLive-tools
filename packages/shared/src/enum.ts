@@ -186,6 +186,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       execPath: "",
       targetPath: "/录播",
     },
+    aliyunpan: {
+      execPath: "",
+      targetPath: "/录播",
+    },
   },
   llmPresets: [],
   biliUpload: {

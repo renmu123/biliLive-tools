@@ -289,6 +289,14 @@ tg bot 的搭建请自行寻找教程
 
 项目地址：https://github.com/qjfoidnh/BaiduPCS-Go
 
+测试版本：3.9.7
+
+### aliyunpan(阿里云盘)
+
+项目地址：https://github.com/tickstep/aliyunpan
+
+测试版本：0.3.7
+
 # 常见问题
 
 ## 支持的环境变量

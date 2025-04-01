@@ -4,7 +4,7 @@
 
 ## 主要更新
 
-1. 支持了基于 [BaiduPCS-Go](https://github.com/qjfoidnh/BaiduPCS-Go) 的同步器，可以将文件备份到网盘中
+1. 支持了基于 [BaiduPCS-Go](https://github.com/qjfoidnh/BaiduPCS-Go)、[aliyunpan](https://github.com/tickstep/aliyunpan) 的同步器，可以将文件备份到网盘中
 2. 重构了webhook几个选项，减少了功能的复杂度。
 3. 引入了 sqlite 数据库来实现之后可能需要性能的数据查询以及持久化
 

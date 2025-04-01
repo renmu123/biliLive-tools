@@ -36,6 +36,19 @@ RUN mkdir -p /app/baidu-temp && \
     chmod +x /app/packages/app/resources/bin/BaiduPCS-Go && \
     rm -rf /app/baidu-temp
 
+# 下载 https://github.com/tickstep/aliyunpan 二进制文件
+RUN mkdir -p /app/aliyun-temp && \
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        curl -L -o /app/aliyun-temp/aliyunpan.zip https://github.com/tickstep/aliyunpan/releases/download/v0.3.7/aliyunpan-v0.3.7-linux-amd64.zip; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        curl -L -o /app/aliyun-temp/aliyunpan.zip https://github.com/tickstep/aliyunpan/releases/download/v0.3.7/aliyunpan-v0.3.7-linux-arm64.zip; \
+    fi && \
+    unzip /app/aliyun-temp/aliyunpan.zip -d /app/aliyun-temp && \
+    mv /app/aliyun-temp/aliyunpan-*/aliyunpan /app/packages/app/resources/bin/aliyunpan && \
+    chmod +x /app/packages/app/resources/bin/aliyunpan && \
+    rm -rf /app/aliyun-temp
+
 # 从另一个基础镜像开始，安装运行时依赖
 FROM node:20.16 AS runtime
 

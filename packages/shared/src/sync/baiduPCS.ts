@@ -44,7 +44,8 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
   private binary: string;
   private remotePath: string;
   private logger: typeof logger | Console;
-  public cmd: ChildProcess | null = null;
+  private cmd: ChildProcess | null = null;
+  private uploadCmd: ChildProcess | null = null;
 
   constructor(options?: BaiduPCSOptions) {
     super();
@@ -130,6 +131,59 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
 
       this.cmd.on("error", (error) => {
         this.cmd = null;
+        reject(error);
+      });
+    });
+  }
+
+  /**
+   * 执行上传命令（与其他操作隔离）
+   * @param args 命令参数
+   * @returns Promise<string> 命令输出
+   */
+  private async executeUploadCommand(args: string[]): Promise<string> {
+    return new Promise((resolve, reject) => {
+      this.uploadCmd = spawn(this.binary, args);
+      let stdout = "";
+      let stderr = "";
+
+      // @ts-expect-error
+      this.uploadCmd.stdout.on("data", (data) => {
+        const output = data.toString();
+        stdout += output;
+
+        // 解析进度信息并发送事件
+        this.parseProgress(output);
+
+        console.log(output);
+      });
+
+      // @ts-expect-error
+      this.uploadCmd.stderr.on("data", (data) => {
+        stderr += data.toString();
+        // console.error("stderr", data.toString());
+      });
+
+      this.uploadCmd.on("close", (code) => {
+        // 检查完整的stdout是否包含上传失败信息
+        const uploadFailed = stdout.includes("文件上传失败");
+
+        if (code === 0 && !uploadFailed) {
+          this.logger.info(`上传命令执行成功: ${args.join(" ")}`);
+          this.uploadCmd = null;
+          resolve(stdout);
+        } else {
+          const errorMsg = uploadFailed
+            ? `上传失败: 检测到"文件上传失败"信息`
+            : `命令执行失败: ${stderr}`;
+          this.logger.error(`上传命令执行失败: ${args.join(" ")}`);
+          this.uploadCmd = null;
+          reject(new Error(`Command failed with code ${code}: ${errorMsg}`));
+        }
+      });
+
+      this.uploadCmd.on("error", (error) => {
+        this.uploadCmd = null;
         reject(error);
       });
     });
@@ -231,7 +285,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
       if (options?.policy) {
         args.push("--policy", options.policy);
       }
-      await this.executeCommand(args);
+      await this.executeUploadCommand(args);
       const successMsg = `上传成功: ${localFilePath}`;
       this.logger.info(successMsg);
       this.emit("success", successMsg);
@@ -265,46 +319,16 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
   }
 
   /**
-   * 获取文件列表
-   * @param remotePath 远程目录路径（相对于基础远程路径）
-   * @returns Promise<string[]> 文件列表
+   * 取消当前上传操作
+   * @returns 是否成功取消上传（如果没有正在进行的上传将返回false）
    */
-  public async listFiles(remotePath: string = ""): Promise<string[]> {
-    try {
-      const targetPath = path.join(this.remotePath, remotePath).replace(/\\/g, "/");
-      const output = await this.executeCommand(["ls", targetPath]);
-
-      // 解析输出获取文件列表
-      const lines = output.split("\n").filter((line) => line.trim());
-      // 简单处理，实际应根据BaiduPCS-Go的输出格式进行调整
-      const fileList = lines
-        .filter((line) => !line.startsWith("-") && !line.includes("-----"))
-        .map((line) => {
-          const parts = line.trim().split(/\s+/);
-          return parts[parts.length - 1];
-        });
-
-      return fileList;
-    } catch (error: any) {
-      this.logger.error(`获取文件列表失败: ${error.message}`);
-      return [];
-    }
-  }
-
-  /**
-   * 删除远程文件
-   * @param remotePath 远程文件路径（相对于基础远程路径）
-   * @returns Promise<boolean> 删除是否成功
-   */
-  public async deleteFile(remotePath: string): Promise<boolean> {
-    try {
-      const targetPath = path.join(this.remotePath, remotePath).replace(/\\/g, "/");
-      await this.executeCommand(["rm", targetPath]);
-      this.logger.info(`删除成功: ${targetPath}`);
+  public cancelUpload(): boolean {
+    if (this.uploadCmd && !this.uploadCmd.killed) {
+      this.logger.info("取消上传操作");
+      this.uploadCmd.kill();
+      this.uploadCmd = null;
       return true;
-    } catch (error: any) {
-      this.logger.error(`删除失败: ${error.message}`);
-      return false;
     }
+    return false;
   }
 }
