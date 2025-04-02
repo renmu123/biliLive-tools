@@ -50,6 +50,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     rooms: {},
     ffmpegPreset: undefined,
     danmuPreset: undefined,
+    afterConvertAction: [],
     autoPartMerge: false,
     partMergeMinute: 10,
     hotProgress: false,

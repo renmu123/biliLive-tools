@@ -71,8 +71,8 @@ export type CommonRoomConfig = {
   convert2Mp4?: boolean;
   /** 转封装后删除源文件 */
   removeSourceAferrConvert2Mp4?: boolean;
-  /** 压制完成后删除文件 */
-  removeOriginAfterConvert?: boolean;
+  /** 压制完成后的操作 */
+  afterConvertAction?: Array<"removeVideo" | "removeXml">;
   /** 限制只在某一段时间处理视频 */
   limitVideoConvertTime?: boolean;
   /** 允许视频处理时间 */

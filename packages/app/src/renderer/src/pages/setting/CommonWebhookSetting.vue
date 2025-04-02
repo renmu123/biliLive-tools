@@ -185,15 +185,22 @@
   </template>
   <n-form-item>
     <template #label>
-      <span class="inline-flex"> 处理后删除源文件 </span>
+      <span class="inline-flex"> 处理后操作 </span>
     </template>
-    <n-switch
-      v-model:value="data.removeOriginAfterConvert"
-      :disabled="globalFieldsObj.removeOriginAfterConvert"
+    <n-select
+      v-model:value="data.afterConvertAction"
+      :options="[
+        { label: '删除原始视频文件', value: 'removeVideo' },
+        { label: '删除XML弹幕', value: 'removeXml' },
+      ]"
+      multiple
+      :disabled="globalFieldsObj.afterConvertAction"
+      style="margin-right: 10px"
+      placeholder="不选就是不做处理"
     />
     <n-checkbox
       v-if="isRoom"
-      v-model:checked="globalFieldsObj.removeOriginAfterConvert"
+      v-model:checked="globalFieldsObj.afterConvertAction"
       class="global-checkbox"
       >全局</n-checkbox
     >

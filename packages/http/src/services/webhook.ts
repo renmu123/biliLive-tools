@@ -141,7 +141,8 @@ export class WebhookHandler {
       hotProgressFillColor,
       convert2Mp4Option,
       removeSourceAferrConvert2Mp4,
-      removeOriginAfterConvert,
+      afterConvertRemoveVideo,
+      afterConvertRemoveXml,
       videoHandleTime,
     } = this.getConfig(options.roomId);
     if (!open) {
@@ -214,6 +215,7 @@ export class WebhookHandler {
       currentPart.filePath = file;
       currentPart.rawFilePath = file;
     }
+    // TODO:还是可能存在视频上传完但是源视频已经被删除的情况
     currentPart.recordStatus = "prehandled";
 
     let xmlFilePath: string;
@@ -255,7 +257,8 @@ export class WebhookHandler {
               fillColor: hotProgressFillColor || "#333333",
               height: hotProgressHeight || 60,
             },
-            removeOrigin: removeOriginAfterConvert,
+            removeVideo: afterConvertRemoveVideo,
+            removeDanmu: afterConvertRemoveXml,
             limitTime: videoHandleTime,
           },
         );
@@ -275,7 +278,7 @@ export class WebhookHandler {
           return;
         }
         const output = await this.transcode(options.filePath, preset.config, {
-          removeVideo: removeOriginAfterConvert,
+          removeVideo: afterConvertRemoveVideo,
           suffix: "-后处理",
           limitTime: videoHandleTime,
         });
@@ -293,7 +296,7 @@ export class WebhookHandler {
             {
               saveRadio: 1,
               savePath: path.dirname(xmlFilePath),
-              removeOrigin: removeOriginAfterConvert,
+              removeOrigin: afterConvertRemoveXml,
             },
           );
         } catch (error) {
@@ -397,8 +400,12 @@ export class WebhookHandler {
     convert2Mp4Option?: boolean;
     /** 转封装后删除源文件 */
     removeSourceAferrConvert2Mp4?: boolean;
-    /** 压制完成后删除文件 */
-    removeOriginAfterConvert: boolean;
+    /** 压制完成后的操作 */
+    afterConvertAction: Array<"removeVideo" | "removeXml" | "removeAss">;
+    /** 是否在处理后删除视频 */
+    afterConvertRemoveVideo: boolean;
+    /** 是否在处理后删除XML弹幕 */
+    afterConvertRemoveXml: boolean;
     /** 上传完成后删除文件 */
     removeOriginAfterUpload: boolean;
     /** 审核完成后删除文件 */
@@ -442,7 +449,10 @@ export class WebhookHandler {
     const limitVideoConvertTime = getRoomSetting("limitVideoConvertTime") ?? false;
     const videoHandleTime = getRoomSetting("videoHandleTime") || ["00:00:00", "23:59:59"];
 
-    const removeOriginAfterConvert = getRoomSetting("removeOriginAfterConvert") ?? false;
+    const afterConvertAction = getRoomSetting("afterConvertAction") ?? [];
+    const afterConvertRemoveVideo = afterConvertAction.includes("removeVideo");
+    const afterConvertRemoveXml = afterConvertAction.includes("removeXml");
+
     const removeOriginAfterUpload = getRoomSetting("removeOriginAfterUpload") ?? false;
     const limitUploadTime = getRoomSetting("limitUploadTime") ?? false;
     const uploadHandleTime = getRoomSetting("uploadHandleTime") || ["00:00:00", "23:59:59"];
@@ -486,7 +496,9 @@ export class WebhookHandler {
       hotProgressFillColor,
       convert2Mp4Option: convert2Mp4,
       removeSourceAferrConvert2Mp4,
-      removeOriginAfterConvert,
+      afterConvertAction,
+      afterConvertRemoveVideo,
+      afterConvertRemoveXml,
       removeOriginAfterUpload,
       limitUploadTime,
       uploadHandleTime,
@@ -676,7 +688,8 @@ export class WebhookHandler {
       ffmpegOptions: FfmpegOptions;
       hotProgressOptions: Omit<HotProgressOptions, "videoPath">;
       hasHotProgress: boolean;
-      removeOrigin?: boolean;
+      removeVideo?: boolean;
+      removeDanmu?: boolean;
       limitTime?: [string, string];
     },
   ): Promise<string> => {
@@ -692,8 +705,18 @@ export class WebhookHandler {
           }
         })
         .then(() => {
-          burn(files, output, { ...options, override: false }).then((task) => {
+          burn(files, output, {
+            ...options,
+            removeOrigin: false,
+            override: false,
+          }).then((task) => {
             task.on("task-end", () => {
+              if (options.removeVideo) {
+                trashItem(files.videoFilePath);
+              }
+              if (options.removeDanmu) {
+                trashItem(files.subtitleFilePath);
+              }
               resolve(output);
             });
             task.on("task-error", ({ error }) => {

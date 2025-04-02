@@ -335,7 +335,7 @@ describe("WebhookHandler", () => {
               partMergeMinute: 10,
               uid: undefined,
               uploadNoDanmu: false,
-              removeOriginAfterConvert: true,
+              afterConvertAction: [],
             },
           }),
         };
@@ -345,7 +345,7 @@ describe("WebhookHandler", () => {
         const result = webhookHandler.getConfig(roomId);
         expect(result.uploadNoDanmu).toBe(false);
       });
-      it("should uploadNoDanmu return true when has uid && uploadNoDanmu && !removeOriginAfterConvert", () => {
+      it("should uploadNoDanmu return true when has uid && uploadNoDanmu && afterConvertAction is not 'removeAll'", () => {
         const appConfig = {
           getAll: vi.fn().mockReturnValue({
             webhook: {
@@ -354,7 +354,7 @@ describe("WebhookHandler", () => {
               partMergeMinute: 10,
               uid: 123,
               uploadNoDanmu: true,
-              removeOriginAfterConvert: false,
+              afterConvertAction: "none",
             },
           }),
         };
@@ -373,7 +373,7 @@ describe("WebhookHandler", () => {
               partMergeMinute: 10,
               uid: 123,
               uploadNoDanmu: true,
-              removeOriginAfterConvert: true,
+              afterConvertAction: ["removeVideo", "removeXml"],
             },
           }),
         };
