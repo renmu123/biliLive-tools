@@ -555,7 +555,7 @@ describe("WebhookHandler", () => {
           uploadPresetId: "preset-id",
           uid: 456,
           title: "webhook-title",
-          removeOriginAfterUpload: false,
+          afterUploadDeletAction: "none",
         });
         // @ts-ignore
         webhookHandler.videoPreset = {
@@ -582,9 +582,8 @@ describe("WebhookHandler", () => {
             ...DEFAULT_BILIUP_CONFIG,
             title: "webhook-title",
           },
-          false,
           [],
-          undefined,
+          "none",
         );
       });
       it("应在webhook存在占位符时，使用webhook标题进行格式化", async () => {
@@ -610,7 +609,7 @@ describe("WebhookHandler", () => {
           uploadPresetId: "preset-id",
           uid: 456,
           title: "webhook-title-{{title}}",
-          removeOriginAfterUpload: false,
+          afterUploadDeletAction: "none",
         });
         // @ts-ignore
         webhookHandler.videoPreset = {
@@ -637,9 +636,8 @@ describe("WebhookHandler", () => {
             ...DEFAULT_BILIUP_CONFIG,
             title: "webhook-title-live-title",
           },
-          false,
           [],
-          undefined,
+          "none",
         );
       });
       it("应用live和part数据正常格式化标题", async () => {
@@ -666,7 +664,7 @@ describe("WebhookHandler", () => {
           uploadPresetId: "preset-id",
           uid: 456,
           title: "webhook-title",
-          removeOriginAfterUpload: false,
+          afterUploadDeletAction: "none",
         });
 
         // @ts-ignore
@@ -694,9 +692,8 @@ describe("WebhookHandler", () => {
             ...DEFAULT_BILIUP_CONFIG,
             title: "live-title-username-2022.01.01-123",
           },
-          false,
           [],
-          undefined,
+          "none",
         );
       });
     });
@@ -738,7 +735,7 @@ describe("WebhookHandler", () => {
         const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
-          removeOriginAfterUpload: true,
+          afterUploadDeletAction: "delete",
           useLiveCover: true,
           title: "webhook-title",
           uploadNoDanmu: false,
@@ -775,9 +772,8 @@ describe("WebhookHandler", () => {
             title: "webhook-title",
             cover: "/path/to/cover.jpg",
           },
-          true,
           [],
-          undefined,
+          "delete",
         );
         expect(live.aid).toBe(789);
         expect(live.parts[0].uploadStatus).toBe("uploaded");
@@ -806,7 +802,7 @@ describe("WebhookHandler", () => {
         const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: undefined,
-          removeOriginAfterUpload: true,
+          afterUploadDeletAction: "delete",
           useLiveCover: true,
         });
         const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(789);
@@ -939,7 +935,7 @@ describe("WebhookHandler", () => {
         const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
-          removeOriginAfterUpload: true,
+          afterUploadDeletAction: "delete",
           useLiveCover: true,
         });
         const addEditMediaTaskSpy = vi
@@ -967,9 +963,8 @@ describe("WebhookHandler", () => {
               title: "part3",
             },
           ],
-          true,
           [],
-          undefined,
+          "delete",
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.aid).toBe(789);
@@ -1011,7 +1006,7 @@ describe("WebhookHandler", () => {
         const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
-          removeOriginAfterUpload: true,
+          afterUploadDeletAction: "delete",
         });
         const addEditMediaTaskSpy = vi
           .spyOn(webhookHandler, "addEditMediaTask")
@@ -1038,9 +1033,8 @@ describe("WebhookHandler", () => {
               title: "part3",
             },
           ],
-          true,
           [],
-          undefined,
+          "delete",
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.aid).toBe(789);
@@ -1082,7 +1076,7 @@ describe("WebhookHandler", () => {
         const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
-          removeOriginAfterUpload: true,
+          afterUploadDeletAction: "delete",
           partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}",
         });
         const addEditMediaTaskSpy = vi
@@ -1106,9 +1100,8 @@ describe("WebhookHandler", () => {
               title: "part3-Test Video-username-123-3",
             },
           ],
-          true,
           [],
-          undefined,
+          "delete",
         );
       });
       it("应正确格式化分P标题：index", async () => {
@@ -1160,7 +1153,7 @@ describe("WebhookHandler", () => {
         const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
-          removeOriginAfterUpload: true,
+          afterUploadDeletAction: "delete",
           partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}",
         });
         const addEditMediaTaskSpy = vi
@@ -1184,9 +1177,8 @@ describe("WebhookHandler", () => {
               title: "part5-Test Video-username-123-3",
             },
           ],
-          true,
           [],
-          undefined,
+          "delete",
         );
       });
 
@@ -1212,7 +1204,7 @@ describe("WebhookHandler", () => {
       //   const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
       //     uploadPresetId: "preset-id",
       //     uid: 456,
-      //     removeOriginAfterUpload: true,
+      //     afterUploadDeletAction: "delete",
       //     uploadHandleTime: ["10:10:00", "18:18:00"],
       //     limitUploadTime: true,
       //     title: "webhook-title",
@@ -1256,7 +1248,7 @@ describe("WebhookHandler", () => {
       //   const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
       //     uploadPresetId: "preset-id",
       //     uid: 456,
-      //     removeOriginAfterUpload: true,
+      //     afterUploadDeletAction: "delete",
       //     uploadHandleTime: ["10:10:00", "12:12:00"],
       //     limitUploadTime: true,
       //   });
@@ -1321,7 +1313,7 @@ describe("WebhookHandler", () => {
         const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
-          removeOriginAfterUpload: true,
+          afterUploadDeletAction: "delete",
           useLiveCover: true,
           title: "webhook-title",
           uploadNoDanmu: true,
@@ -1371,9 +1363,8 @@ describe("WebhookHandler", () => {
             title: "preset-title",
             cover: "/path/to/cover.jpg",
           },
-          false,
           [],
-          false,
+          "none",
         );
         expect(live.rawAid).toBe(789);
         expect(live.parts[0].rawUploadStatus).toBe("uploaded");
@@ -1404,7 +1395,7 @@ describe("WebhookHandler", () => {
         const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: undefined,
-          removeOriginAfterUpload: true,
+          afterUploadDeletAction: "delete",
           useLiveCover: true,
           uploadNoDanmu: true,
           noDanmuVideoPreset: "no-preset-id",
@@ -1551,7 +1542,7 @@ describe("WebhookHandler", () => {
         const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
-          removeOriginAfterUpload: true,
+          afterUploadDeletAction: "delete",
           uploadNoDanmu: true,
           noDanmuVideoPreset: "no-preset-id",
         });
@@ -1580,9 +1571,8 @@ describe("WebhookHandler", () => {
               title: "part3",
             },
           ],
-          false,
           [],
-          false,
+          "none",
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);
@@ -1626,7 +1616,7 @@ describe("WebhookHandler", () => {
         const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
-          removeOriginAfterUpload: true,
+          afterUploadDeletAction: "delete",
           uploadNoDanmu: true,
           noDanmuVideoPreset: "no-preset-id",
         });
@@ -1655,9 +1645,8 @@ describe("WebhookHandler", () => {
               title: "part3",
             },
           ],
-          false,
           [],
-          false,
+          "none",
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);
@@ -1701,7 +1690,7 @@ describe("WebhookHandler", () => {
           uploadPresetId: "preset-id",
           uid: 456,
           uploadNoDanmu: true,
-          removeOriginAfterUpload: true,
+          afterUploadDeletAction: "delete",
           partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}",
         });
         const addEditMediaTaskSpy = vi
@@ -1725,9 +1714,8 @@ describe("WebhookHandler", () => {
               title: "part3-Test Video-username-123-3",
             },
           ],
-          false,
           [],
-          false,
+          "none",
         );
       });
       it("应正确格式化分P标题2：index", async () => {
@@ -1782,7 +1770,7 @@ describe("WebhookHandler", () => {
         const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
-          removeOriginAfterUpload: true,
+          afterUploadDeletAction: "delete",
           uploadNoDanmu: true,
           partTitleTemplate: "{{filename}}-{{title}}-{{user}}-{{roomId}}-{{index}}",
         });
@@ -1807,9 +1795,8 @@ describe("WebhookHandler", () => {
               title: "part5-Test Video-username-123-3",
             },
           ],
-          false,
           [],
-          false,
+          "none",
         );
       });
       // it("应仅在上传时间内处理上传操作2", async () => {
@@ -1836,7 +1823,7 @@ describe("WebhookHandler", () => {
       //   const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
       //     uploadPresetId: "preset-id",
       //     uid: 456,
-      //     removeOriginAfterUpload: true,
+      //     afterUploadDeletAction: "delete",
       //     uploadHandleTime: ["10:10:00", "18:18:00"],
       //     limitUploadTime: true,
       //     title: "webhook-title",
@@ -1884,7 +1871,7 @@ describe("WebhookHandler", () => {
       //   const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
       //     uploadPresetId: "preset-id",
       //     uid: 456,
-      //     removeOriginAfterUpload: true,
+      //     afterUploadDeletAction: "delete",
       //     uploadHandleTime: ["10:10:00", "12:12:00"],
       //     limitUploadTime: true,
       //     uploadNoDanmu: true,

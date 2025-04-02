@@ -383,7 +383,7 @@ async function addMedia(
   uid: number,
   extraOptions?: {
     limitedUploadTime?: [] | [string, string];
-    removeOriginAfterUploadCheck?: boolean;
+    afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
   },
 ) {
   if (options.title.length > 80) {
@@ -428,7 +428,7 @@ async function addMedia(
         if (
           (options.autoComment && options.comment) ||
           appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
-          extraOptions?.removeOriginAfterUploadCheck
+          extraOptions?.afterUploadDeletAction === "deleteAfterCheck"
         ) {
           const commentQueue = container.resolve<BiliCheckQueue>("commentQueue");
           commentQueue.add({
@@ -445,12 +445,24 @@ async function addMedia(
                 comment: options.comment,
                 top: options.commentTop || false,
                 notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
-                removeOriginAfterUploadCheck: extraOptions?.removeOriginAfterUploadCheck,
+                removeOriginAfterUploadCheck:
+                  extraOptions?.afterUploadDeletAction === "deleteAfterCheck",
                 files: filePath.map((item) => (typeof item === "string" ? item : item.path)),
               },
               media,
             );
           });
+        }
+
+        // 处理上传后操作
+        if (extraOptions?.afterUploadDeletAction === "delete") {
+          for (const item of filePath) {
+            try {
+              trashItem(typeof item === "string" ? item : item.path);
+            } catch (error) {
+              log.error("删除源文件失败", error);
+            }
+          }
         }
       },
     },
@@ -495,7 +507,7 @@ export async function editMedia(
   uid: number,
   extraOptions?: {
     limitedUploadTime?: [] | [string, string];
-    removeOriginAfterUploadCheck?: boolean;
+    afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
   },
 ) {
   if (filePath.length === 0) {
@@ -516,7 +528,7 @@ export async function editMedia(
         // 审核检查
         if (
           appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
-          extraOptions?.removeOriginAfterUploadCheck
+          extraOptions?.afterUploadDeletAction === "deleteAfterCheck"
         ) {
           const commentQueue = container.resolve<BiliCheckQueue>("commentQueue");
           commentQueue.add({ aid: aid, uid });
@@ -528,12 +540,23 @@ export async function editMedia(
                 comment: "",
                 top: false,
                 notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
-                removeOriginAfterUploadCheck: extraOptions?.removeOriginAfterUploadCheck,
+                removeOriginAfterUploadCheck:
+                  extraOptions?.afterUploadDeletAction === "deleteAfterCheck",
                 files: filePath.map((item) => (typeof item === "string" ? item : item.path)),
               },
               media,
             );
           });
+        }
+        // 处理上传后操作
+        if (extraOptions?.afterUploadDeletAction === "delete") {
+          for (const item of filePath) {
+            try {
+              trashItem(typeof item === "string" ? item : item.path);
+            } catch (error) {
+              log.error("删除源文件失败", error);
+            }
+          }
         }
       },
     },

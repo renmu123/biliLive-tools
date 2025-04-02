@@ -77,8 +77,8 @@ export type CommonRoomConfig = {
   limitVideoConvertTime?: boolean;
   /** 允许视频处理时间 */
   videoHandleTime: [string, string];
-  /** 上传完成后删除文件 */
-  removeOriginAfterUpload?: boolean;
+  /** 上传完成后删除操作 */
+  afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
   /** 限制只在某一段时间上传 */
   limitUploadTime?: boolean;
   /** 允许上传处理时间 */
@@ -90,8 +90,6 @@ export type CommonRoomConfig = {
   uploadNoDanmu?: boolean;
   // 上传非视频版预设
   noDanmuVideoPreset?: string;
-  // 审核通过后删除源文件
-  removeOriginAfterUploadCheck?: boolean;
 };
 
 // webhook房间配置

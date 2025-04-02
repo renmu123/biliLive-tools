@@ -303,7 +303,7 @@
     </template>
   </n-form-item>
 
-  <n-form-item>
+  <n-form-item style="margin-top: 15px">
     <template #label>
       <Tip
         text="使用直播封面"
@@ -390,32 +390,17 @@
     </n-form-item>
   </template>
 
-  <n-form-item>
-    <template #label>
-      <span class="inline-flex"> 完成后删除源文件 </span>
-    </template>
-    <n-switch
-      v-model:value="data.removeOriginAfterUpload"
-      :disabled="globalFieldsObj.removeOriginAfterUpload"
+  <n-form-item style="margin-top: 15px">
+    <template #label> 上传后操作 </template>
+    <n-select
+      v-model:value="data.afterUploadDeletAction"
+      :options="uploadAfterActionOptions"
+      :disabled="globalFieldsObj.afterUploadDeletAction"
+      style="margin-right: 10px"
     />
     <n-checkbox
       v-if="isRoom"
-      v-model:checked="globalFieldsObj.removeOriginAfterUpload"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-  <n-form-item v-if="!data.removeOriginAfterUpload">
-    <template #label>
-      <span class="inline-flex"> 审核通过后删除源文件 </span>
-    </template>
-    <n-switch
-      v-model:value="data.removeOriginAfterUploadCheck"
-      :disabled="globalFieldsObj.removeOriginAfterUploadCheck"
-    />
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.removeOriginAfterUploadCheck"
+      v-model:checked="globalFieldsObj.afterUploadDeletAction"
       class="global-checkbox"
       >全局</n-checkbox
     >
@@ -461,7 +446,7 @@
       <template #label>
         <Tip
           text="上传非弹幕版"
-          tip="用于在上传弹幕版后同时上传一份非弹幕版本，大部分配置与上面的共用，不含包“完成后删除源文件”选项
+          tip="用于在上传弹幕版后同时上传一份非弹幕版本，大部分配置与上面的共用，不含「上传后操作」选项
             <br/>视频标题去上传预设中配置，标题模板不要与弹幕版完全一致，不然b站可能会上传错误"
         ></Tip>
       </template>
@@ -527,6 +512,13 @@ const globalFieldsObj = defineModel<{
 const notice = useNotification();
 const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());
 const { userList } = storeToRefs(useUserInfoStore());
+
+const uploadAfterActionOptions = [
+  { label: "无操作", value: "none" },
+  { label: "上传后删除", value: "delete" },
+  { label: "审核通过后删除", value: "deleteAfterCheck" },
+];
+
 const userOptins = computed(() => {
   return [
     {

@@ -406,10 +406,6 @@ export class WebhookHandler {
     afterConvertRemoveVideo: boolean;
     /** 是否在处理后删除XML弹幕 */
     afterConvertRemoveXml: boolean;
-    /** 上传完成后删除文件 */
-    removeOriginAfterUpload: boolean;
-    /** 审核完成后删除文件 */
-    removeOriginAfterUploadCheck: boolean;
     /** 限制只在某一段时间上传 */
     limitUploadTime?: boolean;
     /** 允许上传处理时间 */
@@ -424,6 +420,8 @@ export class WebhookHandler {
     videoHandleTime?: [string, string];
     /** 分p标题模板 */
     partTitleTemplate: string;
+    /** 上传完成后删除操作 */
+    afterUploadDeletAction: "none" | "delete" | "deleteAfterCheck";
   } {
     const config = this.appConfig.getAll();
     const roomSetting: AppRoomConfig | undefined = config.webhook?.rooms?.[roomId];
@@ -453,12 +451,10 @@ export class WebhookHandler {
     const afterConvertRemoveVideo = afterConvertAction.includes("removeVideo");
     const afterConvertRemoveXml = afterConvertAction.includes("removeXml");
 
-    const removeOriginAfterUpload = getRoomSetting("removeOriginAfterUpload") ?? false;
     const limitUploadTime = getRoomSetting("limitUploadTime") ?? false;
     const uploadHandleTime = getRoomSetting("uploadHandleTime") || ["00:00:00", "23:59:59"];
     const uploadNoDanmu = getRoomSetting("uploadNoDanmu") ?? false;
     const noDanmuVideoPreset = getRoomSetting("noDanmuVideoPreset") || "default";
-    const removeOriginAfterUploadCheck = getRoomSetting("removeOriginAfterUploadCheck") ?? false;
 
     // 如果没有开启断播续传，那么不需要合并part
     if (!mergePart) partMergeMinute = -1;
@@ -499,14 +495,13 @@ export class WebhookHandler {
       afterConvertAction,
       afterConvertRemoveVideo,
       afterConvertRemoveXml,
-      removeOriginAfterUpload,
       limitUploadTime,
       uploadHandleTime,
       uploadNoDanmu,
       noDanmuVideoPreset,
       videoHandleTime: limitVideoConvertTime ? videoHandleTime : undefined,
-      removeOriginAfterUploadCheck: removeOriginAfterUpload ? false : removeOriginAfterUploadCheck,
       partTitleTemplate: getRoomSetting("partTitleTemplate") || "{{filename}}",
+      afterUploadDeletAction: getRoomSetting("afterUploadDeletAction") ?? "none",
     };
     // log.debug("final config", options);
 
@@ -734,23 +729,17 @@ export class WebhookHandler {
       title: string;
     }[],
     options: BiliupConfig,
-    removeOrigin: boolean,
     limitedUploadTime: [] | [string, string],
-    removeOriginAfterUploadCheck: boolean,
+    afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
     return new Promise((resolve, reject) => {
       biliApi
         .addMedia(pathArray, options, uid, {
           limitedUploadTime,
-          removeOriginAfterUploadCheck: removeOriginAfterUploadCheck,
+          afterUploadDeletAction,
         })
         .then((task) => {
           task.on("task-end", () => {
-            if (removeOrigin) {
-              pathArray.map((item) => {
-                trashItem(item.path);
-              });
-            }
             resolve(task.output);
           });
           task.on("task-error", () => {
@@ -773,23 +762,17 @@ export class WebhookHandler {
       path: string;
       title: string;
     }[],
-    removeOrigin: boolean,
     limitedUploadTime: [string, string] | [],
-    removeOriginAfterUploadCheck: boolean,
+    afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
     return new Promise((resolve, reject) => {
       biliApi
         .editMedia(aid, pathArray, {}, uid, {
           limitedUploadTime: limitedUploadTime,
-          removeOriginAfterUploadCheck: removeOriginAfterUploadCheck,
+          afterUploadDeletAction: afterUploadDeletAction,
         })
         .then((task) => {
           task.on("task-end", () => {
-            if (removeOrigin) {
-              pathArray.map((item) => {
-                trashItem(item.path);
-              });
-            }
             resolve(task.output);
           });
           task.on("task-error", () => {
@@ -827,15 +810,14 @@ export class WebhookHandler {
       const {
         uploadPresetId,
         uid,
-        removeOriginAfterUpload,
         useLiveCover,
         limitUploadTime,
         uploadHandleTime,
         title,
         uploadNoDanmu,
         noDanmuVideoPreset,
-        removeOriginAfterUploadCheck,
         partTitleTemplate,
+        afterUploadDeletAction,
       } = this.getConfig(live.roomId);
 
       let cover: string | undefined;
@@ -935,9 +917,8 @@ export class WebhookHandler {
                 title: item.title,
               };
             }),
-            type === "raw" ? false : removeOriginAfterUpload,
             limitedUploadTime,
-            type === "raw" ? false : removeOriginAfterUploadCheck,
+            type === "raw" ? "none" : afterUploadDeletAction,
           );
           filePaths.map((item) => {
             item.part[updateStatusField] = "uploaded";
@@ -991,9 +972,8 @@ export class WebhookHandler {
               };
             }),
             uploadPreset,
-            type === "raw" ? false : removeOriginAfterUpload,
             limitedUploadTime,
-            type === "raw" ? false : removeOriginAfterUploadCheck,
+            type === "raw" ? "none" : afterUploadDeletAction,
           )) as number;
           live[aidField] = Number(aid);
 

@@ -130,14 +130,18 @@ router.post("/upload", async (ctx) => {
 
   if (data.vid) {
     const task = await biliApi.editMedia(data.vid as number, data.videos, data.config, data.uid, {
-      removeOriginAfterUploadCheck: data.options?.removeOriginAfterUploadCheck,
+      afterUploadDeletAction: data.options?.removeOriginAfterUploadCheck
+        ? "deleteAfterCheck"
+        : "none",
     });
     ctx.body = {
       taskId: task.taskId,
     };
   } else {
     const task = await biliApi.addMedia(data.videos, data.config, data.uid, {
-      removeOriginAfterUploadCheck: data.options?.removeOriginAfterUploadCheck,
+      afterUploadDeletAction: data.options?.removeOriginAfterUploadCheck
+        ? "deleteAfterCheck"
+        : "none",
     });
     ctx.body = {
       taskId: task.taskId,

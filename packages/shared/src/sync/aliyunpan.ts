@@ -55,23 +55,19 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
 
     // 检查aliyunpan是否安装
     // this.checkInstallation();
-
-    // setInterval(() => {
-    //   console.log("当前进程", this.cmd, this.loginCmd);
-    // }, 1000 * 5);
   }
 
   /**
    * 检查aliyunpan是否已安装
    */
-  private checkInstallation(): void {
-    try {
-      execSync(`${this.binary} --version`, { stdio: "ignore" });
-    } catch (error) {
-      this.logger.error("aliyunpan 未安装或不在PATH中，请先安装 aliyunpan 工具");
-      throw new Error("aliyunpan not installed");
-    }
-  }
+  // private checkInstallation(): void {
+  //   try {
+  //     execSync(`${this.binary} --version`, { stdio: "ignore" });
+  //   } catch (error) {
+  //     this.logger.error("aliyunpan 未安装或不在PATH中，请先安装 aliyunpan 工具");
+  //     throw new Error("aliyunpan not installed");
+  //   }
+  // }
 
   /**
    * 检查用户是否已登录
@@ -167,28 +163,28 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
    * @param sizeStr 大小字符串，如 "305.06MB"
    * @returns 字节数
    */
-  private parseSize(sizeStr: string): number | null {
-    const match = sizeStr.match(/([\d.]+)([KMGT]?B)/i);
-    if (!match) return null;
+  // private parseSize(sizeStr: string): number | null {
+  //   const match = sizeStr.match(/([\d.]+)([KMGT]?B)/i);
+  //   if (!match) return null;
 
-    const [, size, unit] = match;
-    const sizeNum = parseFloat(size);
+  //   const [, size, unit] = match;
+  //   const sizeNum = parseFloat(size);
 
-    switch (unit.toUpperCase()) {
-      case "B":
-        return sizeNum;
-      case "KB":
-        return sizeNum * 1024;
-      case "MB":
-        return sizeNum * 1024 * 1024;
-      case "GB":
-        return sizeNum * 1024 * 1024 * 1024;
-      case "TB":
-        return sizeNum * 1024 * 1024 * 1024 * 1024;
-      default:
-        return sizeNum;
-    }
-  }
+  //   switch (unit.toUpperCase()) {
+  //     case "B":
+  //       return sizeNum;
+  //     case "KB":
+  //       return sizeNum * 1024;
+  //     case "MB":
+  //       return sizeNum * 1024 * 1024;
+  //     case "GB":
+  //       return sizeNum * 1024 * 1024 * 1024;
+  //     case "TB":
+  //       return sizeNum * 1024 * 1024 * 1024 * 1024;
+  //     default:
+  //       return sizeNum;
+  //   }
+  // }
 
   /**
    * 上传文件到阿里云盘
@@ -260,7 +256,6 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
         });
 
         let stdout = "";
-        let stderr = "";
 
         // 五秒钟后没有输出，认为获取链接失败
         const interval = setTimeout(() => {
