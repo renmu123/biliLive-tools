@@ -360,7 +360,6 @@ interface Props {
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
 const { userList } = storeToRefs(useUserInfoStore());
-const isWeb = computed(() => window.isWeb);
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const props = defineProps<Props>();

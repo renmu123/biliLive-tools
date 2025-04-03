@@ -160,7 +160,7 @@ export async function _send(
   desp: string,
   appConfig: AppConfig,
   notifyType: AppConfig["notification"]["setting"]["type"],
-) {
+): Promise<any | void> {
   switch (notifyType) {
     case "server":
       await sendByServer(title, desp, appConfig?.notification?.setting?.server);
