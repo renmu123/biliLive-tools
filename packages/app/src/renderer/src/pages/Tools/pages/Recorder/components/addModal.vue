@@ -65,9 +65,9 @@
           </template>
           <n-switch v-model:value="config.sendToWebhook" />
         </n-form-item>
-        <n-form-item v-if="!isWeb && !config.disableAutoCheck">
+        <n-form-item v-if="!config.disableAutoCheck">
           <template #label>
-            <Tip text="开播通知" tip="仅限客户端"></Tip>
+            <Tip text="开播通知" tip="默认使用系统通知，具体前往设置通知中修改"></Tip>
           </template>
           <n-switch v-model:value="config.liveStartNotification" />
         </n-form-item>

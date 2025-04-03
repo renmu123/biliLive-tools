@@ -475,6 +475,9 @@ export interface AppConfig {
       ntfy: NotificationNtfyConfig;
       allInOne: NotificationPushAllInAllConfig;
     };
+    taskNotificationType: {
+      liveStart: AppConfig["notification"]["setting"]["type"];
+    };
   };
   /** 翻译配置 */
   llmPresets: {

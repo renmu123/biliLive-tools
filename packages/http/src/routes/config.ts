@@ -193,8 +193,8 @@ router.post("/import", upload.single("file"), async (ctx) => {
 });
 
 router.post("/notifyTest", async (ctx) => {
-  const { title, desp, options } = ctx.request.body;
-  await _send(title, desp, options);
+  const { title, desp, options, notifyType } = ctx.request.body;
+  await _send(title, desp, options, notifyType);
   ctx.body = "success";
 });
 

@@ -4,6 +4,7 @@
 
 - `scale` 支持 `force_original_aspect_ratio` 参数，优化分辨率配置UI
 - Win 下安装包支持自定义安装位置
+- 开播通知支持其他通知选项
 
 ## 优化
 

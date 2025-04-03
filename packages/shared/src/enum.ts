@@ -179,6 +179,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
         key: "",
       },
     },
+    taskNotificationType: {
+      liveStart: "system",
+    },
   },
   llmPresets: [],
   biliUpload: {

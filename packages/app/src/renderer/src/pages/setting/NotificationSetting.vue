@@ -197,6 +197,15 @@
         </n-space>
       </n-checkbox-group>
     </n-form-item>
+    <n-form-item label="直播通知">
+      <n-select
+        v-model:value="config.notification.taskNotificationType.liveStart"
+        :options="typeOptions"
+        placeholder="请选择通知类型，不选则使用全局通知类型"
+        clearable
+        style="width: 200px"
+      />
+    </n-form-item>
     <n-form-item>
       <template #label>
         <Tip
@@ -245,7 +254,12 @@ const typeOptions = [
 const notice = useNotification();
 
 const notifyTest = async () => {
-  await configApi.notifyTest("我是一条测试信息", "我是一条测试信息", cloneDeep(config.value));
+  await configApi.notifyTest(
+    "我是一条测试信息",
+    "我是一条测试信息",
+    cloneDeep(config.value),
+    config.value.notification.setting.type,
+  );
   notice.info({
     title: "已尝试发送测试信息，请注意查收",
     duration: 2000,

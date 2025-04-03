@@ -20,7 +20,7 @@ import { getFfmpegPath, transcode } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
 import { sleep, replaceExtName } from "../utils/index.js";
-import { sendBySystem } from "../notify.js";
+import { sendBySystem, send } from "../notify.js";
 // import { parseDanmu } from "../danmu/index.js";
 
 import type { AppConfig } from "../config.js";
@@ -57,6 +57,32 @@ async function convert2Mp4(videoFile: string): Promise<string> {
       });
     });
   });
+}
+
+async function sendLiveNotification(
+  appConfig: AppConfig,
+  recorder: Recorder,
+  config: RecorderConfigType,
+) {
+  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
+  const title = `${name}(${config.channelId}) 开播了`;
+
+  const globalConfig = appConfig.getAll();
+  let notifyType = globalConfig?.notification?.setting?.type;
+  if (globalConfig?.notification?.taskNotificationType["liveStart"]) {
+    notifyType = globalConfig?.notification?.taskNotificationType["liveStart"];
+  }
+
+  if (notifyType === "system") {
+    const event = await sendBySystem(title, `${recorder?.liveInfo?.title}\n点击打开直播间`);
+    const { shell } = await import("electron");
+    event?.on("click", () => {
+      const url = recorder.getChannelURL();
+      shell.openExternal(url);
+    });
+  } else {
+    await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
+  }
 }
 
 export async function createRecorderManager(appConfig: AppConfig) {
@@ -156,17 +182,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const config = recorderConfig.get(recorder.id);
     if (!config) return;
     if (config?.liveStartNotification && !config?.disableAutoCheck) {
-      const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
-      const event = await sendBySystem(
-        `${name}(${config.channelId}) 开播了`,
-        `${recorder?.liveInfo?.title}\n点击打开直播间`,
-      );
-      const { shell } = await import("electron");
-      event?.on("click", () => {
-        const url = recorder.getChannelURL();
-        console.log("openExternal", url);
-        shell.openExternal(url);
-      });
+      sendLiveNotification(appConfig, recorder, config);
     }
   });
   // manager.on("RecordSegment", (debug) => {

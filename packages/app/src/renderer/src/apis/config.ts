@@ -44,8 +44,9 @@ export const notifyTest = async (
   title: string,
   desp: string,
   options: AppConfig,
+  notifyType: AppConfig["notification"]["setting"]["type"],
 ): Promise<void> => {
-  const res = await request.post(`/config/notifyTest`, { title, desp, options });
+  const res = await request.post(`/config/notifyTest`, { title, desp, options, notifyType });
   return res.data;
 };
 
