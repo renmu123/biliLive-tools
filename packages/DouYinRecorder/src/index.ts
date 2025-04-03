@@ -228,10 +228,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     const extraDataController = recorder.getExtraDataController();
     if (!extraDataController) return;
     if (this.saveGiftDanma === false) return;
-    // console.log("gift", msg);
     const gift: GiveGift = {
       type: "give_gift",
-      timestamp: new Date(msg.sendTime).getTime(),
+      timestamp: Number(msg.sendTime),
       name: msg.gift.name,
       price: 1,
       count: Number(msg.totalCount),
