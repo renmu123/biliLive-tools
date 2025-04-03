@@ -155,7 +155,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const { living, owner, title, liveId } = liveInfo;
 
   this.liveInfo = liveInfo;
-  this.emit("LiveStart", { liveId });
 
   if (liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
@@ -188,6 +187,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       return null;
     }
   }
+
+  this.emit("LiveStart", { liveId });
 
   let res: Awaited<ReturnType<typeof getStream>>;
   // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
