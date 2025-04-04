@@ -341,16 +341,24 @@ export const cpuPresets = [
 
 export const amfPresets = [
   {
-    value: "1",
+    value: "speed",
     label: "speed",
   },
   {
-    value: "0",
+    value: "balanced",
     label: "balanced",
   },
   {
-    value: "2",
+    value: "quality",
     label: "quality",
+  },
+];
+
+export const amfAv1Presets = [
+  ...amfPresets,
+  {
+    value: "high_quality",
+    label: "high quality",
   },
 ];
 
@@ -590,6 +598,6 @@ export const videoEncoders = [
         label: "平均比特率",
       },
     ],
-    presets: amfPresets,
+    presets: amfAv1Presets,
   },
 ];

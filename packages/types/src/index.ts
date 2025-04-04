@@ -623,7 +623,11 @@ export interface FfmpegOptions {
     | "p4"
     | "p5"
     | "p6"
-    | "p7";
+    | "p7"
+    | "balanced"
+    | "speed"
+    | "quality"
+    | "high_quality";
   /** 支持硬件解码 */
   decode?: boolean;
   /** 是否重缩放分辨率 */

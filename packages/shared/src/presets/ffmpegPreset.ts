@@ -123,7 +123,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       bit10: false,
-      preset: "0",
+      preset: "balanced",
     },
   },
   {
@@ -175,7 +175,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       bit10: false,
-      preset: "0",
+      preset: "balanced",
     },
   },
 
@@ -229,7 +229,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       bit10: false,
-      preset: "0",
+      preset: "balanced",
     },
   },
 ];
