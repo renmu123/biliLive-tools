@@ -36,6 +36,7 @@ interface Options {
   channelId: string; // 直播间ID，具体解析见文档，也可自行解析
   quality: number; // 见画质参数
   qualityRetry?: number; // 画质匹配重试次数, -1为强制匹配画质，0为自动配置，正整数为最大匹配次数
+  source?: string; // 指定 cdn，见文档，不传为自动
   streamPriorities: []; // 废弃
   sourcePriorities: []; // 废弃
   disableAutoCheck?: boolean; // 为 true 时 manager 将跳过自动检查
@@ -70,6 +71,20 @@ import { provider } from "@bililive-tools/douyu-recorder";
 const url = "https://www.douyu.com/2140934";
 const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
+
+## cdn
+
+如果有更多线路或者错误，请发issue
+
+| 线路   | 值        |
+| ------ | --------- |
+| 自动   | auto      |
+| 线路1  | scdnctshh |
+| 线路4  | tctc-h5   |
+| 线路5  | tct-h5    |
+| 线路6  | ali-h5    |
+| 线路7  | hw-h5     |
+| 线路13 | hs-h5     |
 
 # 协议
 

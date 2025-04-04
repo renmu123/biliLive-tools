@@ -219,6 +219,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     douyu: {
       quality: 0,
+      source: "auto",
     },
     huya: {
       quality: 0,

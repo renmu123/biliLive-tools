@@ -77,6 +77,7 @@ export type UpdateRecorderArgs = Pick<
   | "codecName"
   | "titleKeywords"
   | "liveStartNotification"
+  | "source"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 

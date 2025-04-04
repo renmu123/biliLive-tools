@@ -206,6 +206,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
+      source: this.source,
       strictQuality,
     });
   } catch (err) {

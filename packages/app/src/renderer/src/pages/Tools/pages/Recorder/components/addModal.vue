@@ -166,21 +166,6 @@
               >全局</n-checkbox
             >
           </n-form-item>
-          <!-- <n-form-item>
-            <template #label>
-              <Tip
-                :tip="textInfo.bili.useM3U8Proxy.tip"
-                :text="textInfo.bili.useM3U8Proxy.text"
-              ></Tip>
-            </template>
-            <n-switch
-              v-model:value="config.useM3U8Proxy"
-              :disabled="globalFieldsObj.useM3U8Proxy"
-            />
-            <n-checkbox v-model:checked="globalFieldsObj.useM3U8Proxy" class="global-checkbox"
-              >全局</n-checkbox
-            >
-          </n-form-item> -->
         </template>
         <template v-if="config.providerId === 'DouYu'">
           <n-form-item>
@@ -193,6 +178,19 @@
               :disabled="globalFieldsObj.quality"
             />
             <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="线路" tip="如果设置的不存在，会采用默认"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.source"
+              :options="douyuSourceOptions"
+              :disabled="globalFieldsObj.source"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.source" class="global-checkbox"
               >全局</n-checkbox
             >
           </n-form-item>
@@ -349,6 +347,7 @@ import {
   streamCodecOptions,
   huyaQualityOptions,
   douyinQualityOptions,
+  douyuSourceOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 
@@ -380,6 +379,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     formatName: true,
     useM3U8Proxy: true,
     codecName: true,
+    source: true,
   },
 );
 
@@ -404,6 +404,7 @@ const config = ref<Omit<Recorder, "id">>({
   codecName: "auto",
   titleKeywords: "",
   liveStartNotification: false,
+  source: "auto",
 });
 
 const confirmDialog = useConfirm();
@@ -509,6 +510,7 @@ watch(showModal, async (val) => {
       codecName: "auto",
       titleKeywords: "",
       liveStartNotification: false,
+      source: "auto",
     };
 
     if (props.id) {
@@ -528,6 +530,7 @@ watch(showModal, async (val) => {
       formatName: !(config.value?.noGlobalFollowFields ?? []).includes("formatName"),
       useM3U8Proxy: !(config.value?.noGlobalFollowFields ?? []).includes("useM3U8Proxy"),
       codecName: !(config.value?.noGlobalFollowFields ?? []).includes("codecName"),
+      source: !(config.value?.noGlobalFollowFields ?? []).includes("source"),
     };
   }
 });
@@ -578,6 +581,9 @@ watch(
     }
     if (val.codecName) {
       config.value.codecName = appConfig.value.recorder.bilibili.codecName;
+    }
+    if (val.source) {
+      config.value.source = appConfig.value.recorder.douyu.source;
     }
   },
   {

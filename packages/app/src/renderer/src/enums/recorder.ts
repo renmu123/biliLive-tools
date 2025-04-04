@@ -62,6 +62,38 @@ export const douyuQualityOptions = [
   },
 ];
 
+// 斗鱼线路选项
+export const douyuSourceOptions = [
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    value: "scdnctshh",
+    label: "线路1(scdnctshh)",
+  },
+  {
+    value: "tctc-h5",
+    label: "线路4(tctc-h5)",
+  },
+  {
+    value: "tct-h5",
+    label: "线路5(tct-h5)",
+  },
+  {
+    value: "ali-h5",
+    label: "线路6(ali-h5)",
+  },
+  {
+    value: "hw-h5",
+    label: "线路7(hw-h5)",
+  },
+  {
+    value: "hs-h5",
+    label: "线路13(hs-h5)",
+  },
+];
+
 // 虎牙画质选项
 export const huyaQualityOptions = [
   {

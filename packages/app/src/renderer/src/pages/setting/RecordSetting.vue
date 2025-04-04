@@ -188,6 +188,12 @@
               :options="douyuQualityOptions"
             />
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="线路" tip="如果设置的不存在，会采用默认"></Tip>
+            </template>
+            <n-select v-model:value="config.recorder.douyu.source" :options="douyuSourceOptions" />
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="huya" tab="虎牙" display-directive="show:lazy">
           <n-form-item>
@@ -228,6 +234,7 @@ import {
   streamFormatOptions,
   streamCodecOptions,
   douyinQualityOptions,
+  douyuSourceOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";

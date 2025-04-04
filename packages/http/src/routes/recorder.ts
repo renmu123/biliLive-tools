@@ -54,6 +54,7 @@ router.post("/add", async (ctx) => {
     "codecName",
     "titleKeywords",
     "liveStartNotification",
+    "source",
   );
 
   const data = await recorderService.addRecorder(args);
@@ -88,6 +89,7 @@ router.put("/:id", (ctx) => {
     "codecName",
     "titleKeywords",
     "liveStartNotification",
+    "source",
   );
 
   ctx.body = { payload: recorderService.updateRecorder({ id, ...patch }) };

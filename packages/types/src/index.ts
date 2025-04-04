@@ -279,6 +279,7 @@ interface BilibiliRecorderConfig {
 interface DouyuRecorderConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
   quality: 0 | 2 | 3 | 4 | 8;
+  source: string;
 }
 
 interface HuyaRecorderConfig {
@@ -376,6 +377,7 @@ export interface Recorder {
   formatName: GlobalRecorder["bilibili"]["formatName"];
   useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];
   codecName: GlobalRecorder["bilibili"]["codecName"];
+  source: GlobalRecorder["douyu"]["source"];
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
   titleKeywords?: string;
   /** 开播推送 */

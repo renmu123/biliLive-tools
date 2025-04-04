@@ -49,6 +49,8 @@ export default class RecorderConfig {
           return get(globalConfig, "bilibili.codecName");
         } else if (key === "qualityRetry") {
           return get(globalConfig, "bilibili.qualityRetry");
+        } else if (key === "source") {
+          return get(globalConfig, "douyu.source");
         } else {
           return get(globalConfig, key);
         }
@@ -87,6 +89,7 @@ export default class RecorderConfig {
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
       formatName: getValue("formatName") ?? "auto",
       codecName: getValue("codecName") ?? "auto",
+      source: getValue("source") ?? "auto",
     };
   }
   public list() {
