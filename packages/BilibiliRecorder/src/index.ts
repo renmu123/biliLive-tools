@@ -224,6 +224,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
       isHls: streamOptions.protocol_name === "http_hls",
       disableDanma: this.disableProvideCommentsWhenRecording,
+      videoFormat: this.videoFormat,
     },
     onEnd,
   );

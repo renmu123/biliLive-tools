@@ -160,6 +160,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       segment: this.segment ?? 0,
       getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
       disableDanma: this.disableProvideCommentsWhenRecording,
+      videoFormat: this.videoFormat ?? "auto",
     },
     onEnd,
   );

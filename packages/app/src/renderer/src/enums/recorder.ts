@@ -222,6 +222,22 @@ export const streamCodecOptions = [
   },
 ];
 
+// 视频格式选择
+export const videoFormatOptions = [
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    value: "ts",
+    label: "TS",
+  },
+  {
+    value: "mkv",
+    label: "MKV",
+  },
+];
+
 const qualityRetry = {
   text: "画质匹配重试次数",
   tip: "根据次数强制查询匹配画质，在未选择原画的情况下，可能会导致开头漏录。匹配次数结束后如果无法匹配对应画质时会自动选择其他画质，-1为强制匹配画质",
@@ -232,6 +248,12 @@ const quality = {
 };
 
 export const textInfo = {
+  common: {
+    format: {
+      text: "视频格式",
+      tip: "选择自动时，分段为ts，不分段为mp4",
+    },
+  },
   bili: {
     uid: {
       text: "录制账号",

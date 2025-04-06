@@ -85,6 +85,7 @@ export default class RecorderConfig {
       segment: getValue("segment") ?? 90,
       uid: uid,
       qualityRetry: getValue("qualityRetry") ?? 0,
+      videoFormat: getValue("videoFormat") ?? "auto",
       auth: auth,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
       formatName: getValue("formatName") ?? "auto",

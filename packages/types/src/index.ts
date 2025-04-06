@@ -323,6 +323,8 @@ export interface GlobalRecorder {
   convert2Mp4?: boolean;
   /** 画质匹配重试次数 */
   qualityRetry: number;
+  /** 视频格式 */
+  videoFormat: "auto" | "ts" | "mkv";
   /** B站特有的配置 */
   bilibili: BilibiliRecorderConfig;
   /** 斗鱼特有的配置 */
@@ -373,6 +375,8 @@ export interface Recorder {
   uid?: number;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 视频格式 */
+  videoFormat: GlobalRecorder["videoFormat"];
   qualityRetry: GlobalRecorder["qualityRetry"];
   formatName: GlobalRecorder["bilibili"]["formatName"];
   useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];

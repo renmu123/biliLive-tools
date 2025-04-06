@@ -50,7 +50,12 @@
             <template #label>
               <Tip tip="直播状态检查，太快容易被风控~" text="检查间隔"></Tip>
             </template>
-            <n-input-number v-model:value="config.recorder.checkInterval" min="10" step="10">
+            <n-input-number
+              v-model:value="config.recorder.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+            >
               <template #suffix>秒</template>
             </n-input-number>
           </n-form-item>
@@ -58,7 +63,12 @@
             <template #label>
               <Tip tip="0为不分段" text="分段时间"></Tip>
             </template>
-            <n-input-number v-model:value="config.recorder.segment" min="0" step="10">
+            <n-input-number
+              v-model:value="config.recorder.segment"
+              min="0"
+              step="10"
+              style="width: 220px"
+            >
               <template #suffix>分钟</template>
             </n-input-number>
           </n-form-item>
@@ -77,6 +87,16 @@
               ></Tip>
             </template>
             <n-switch v-model:value="config.recorder.convert2Mp4" />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.format.text" :tip="textInfo.common.format.tip"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.videoFormat"
+              :options="videoFormatOptions"
+              style="width: 220px"
+            />
           </n-form-item>
           <n-form-item>
             <template #label>
@@ -235,6 +255,7 @@ import {
   streamCodecOptions,
   douyinQualityOptions,
   douyuSourceOptions,
+  videoFormatOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";

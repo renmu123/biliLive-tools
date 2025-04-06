@@ -237,6 +237,19 @@
 
         <n-form-item>
           <template #label>
+            <Tip :text="textInfo.common.format.text" :tip="textInfo.common.format.tip"></Tip>
+          </template>
+          <n-select
+            v-model:value="config.videoFormat"
+            :options="videoFormatOptions"
+            :disabled="globalFieldsObj.videoFormat"
+          />
+          <n-checkbox v-model:checked="globalFieldsObj.videoFormat" class="global-checkbox"
+            >全局</n-checkbox
+          >
+        </n-form-item>
+        <n-form-item>
+          <template #label>
             <Tip
               :tip="textInfo.bili.qualityRetry.tip"
               :text="textInfo.bili.qualityRetry.text"
@@ -348,6 +361,7 @@ import {
   huyaQualityOptions,
   douyinQualityOptions,
   douyuSourceOptions,
+  videoFormatOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 
@@ -380,6 +394,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     useM3U8Proxy: true,
     codecName: true,
     source: true,
+    videoFormat: true,
   },
 );
 
@@ -405,6 +420,7 @@ const config = ref<Omit<Recorder, "id">>({
   titleKeywords: "",
   liveStartNotification: false,
   source: "auto",
+  videoFormat: "auto",
 });
 
 const confirmDialog = useConfirm();
@@ -511,6 +527,7 @@ watch(showModal, async (val) => {
       titleKeywords: "",
       liveStartNotification: false,
       source: "auto",
+      videoFormat: "auto",
     };
 
     if (props.id) {
@@ -531,6 +548,7 @@ watch(showModal, async (val) => {
       useM3U8Proxy: !(config.value?.noGlobalFollowFields ?? []).includes("useM3U8Proxy"),
       codecName: !(config.value?.noGlobalFollowFields ?? []).includes("codecName"),
       source: !(config.value?.noGlobalFollowFields ?? []).includes("source"),
+      videoFormat: !(config.value?.noGlobalFollowFields ?? []).includes("videoFormat"),
     };
   }
 });
@@ -584,6 +602,9 @@ watch(
     }
     if (val.source) {
       config.value.source = appConfig.value.recorder.douyu.source;
+    }
+    if (val.videoFormat) {
+      config.value.videoFormat = appConfig.value.recorder.videoFormat;
     }
   },
   {

@@ -46,6 +46,7 @@ interface Options {
   saveGiftDanma?: boolean; // 保存礼物弹幕
   saveSCDanma?: boolean; // 保存高能弹幕
   saveCover?: boolean; // 保存封面
+  videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"
 }
 ```
 

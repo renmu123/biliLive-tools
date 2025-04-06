@@ -25,13 +25,19 @@ export class FFMPEGRecorder extends EventEmitter {
       inputOptions?: string[];
       isHls?: boolean;
       disableDanma?: boolean;
+      videoFormat?: "auto" | "ts" | "mkv";
     },
     private onEnd: (...args: unknown[]) => void,
   ) {
     super();
     const hasSegment = !!opts.segment;
     this.disableDanma = opts.disableDanma ?? false;
-    this.streamManager = new StreamManager(opts.getSavePath, hasSegment, this.disableDanma);
+    this.streamManager = new StreamManager(
+      opts.getSavePath,
+      hasSegment,
+      this.disableDanma,
+      opts.videoFormat,
+    );
     this.timeoutChecker = utils.createTimeoutChecker(() => this.onEnd("ffmpeg timeout"), 3 * 10e3);
     this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
