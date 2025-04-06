@@ -319,8 +319,6 @@ export interface GlobalRecorder {
   uid?: number;
   /** 保存封面 */
   saveCover?: boolean;
-  /** 录制后转换为mp4 */
-  convert2Mp4?: boolean;
   /** 画质匹配重试次数 */
   qualityRetry: number;
   /** 视频格式 */

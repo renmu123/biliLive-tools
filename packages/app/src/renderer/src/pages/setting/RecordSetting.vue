@@ -81,15 +81,6 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip
-                tip="转封装后将删除源文件，如果你需要使用webhook功能，请在webhook设置该选项，可能会有更好的兼容性"
-                text="转封装为mp4"
-              ></Tip>
-            </template>
-            <n-switch v-model:value="config.recorder.convert2Mp4" />
-          </n-form-item>
-          <n-form-item>
-            <template #label>
               <Tip :text="textInfo.common.format.text" :tip="textInfo.common.format.tip"></Tip>
             </template>
             <n-select

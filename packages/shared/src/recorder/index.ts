@@ -29,36 +29,6 @@ import type { Recorder } from "@bililive-tools/manager";
 
 export { RecorderConfig };
 
-async function convert2Mp4(videoFile: string): Promise<string> {
-  const output = replaceExtName(videoFile, ".mp4");
-  if (await fs.pathExists(output)) return output;
-
-  const name = path.basename(output);
-  return new Promise((resolve, reject) => {
-    transcode(
-      videoFile,
-      name,
-      {
-        encoder: "copy",
-        audioCodec: "copy",
-      },
-      {
-        saveType: 1,
-        savePath: ".",
-        override: false,
-        removeOrigin: false,
-      },
-    ).then((task) => {
-      task.on("task-end", () => {
-        resolve(output);
-      });
-      task.on("task-error", () => {
-        reject();
-      });
-    });
-  });
-}
-
 async function sendLiveNotification(
   appConfig: AppConfig,
   recorder: Recorder,
@@ -226,15 +196,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const username = recorder.liveInfo?.owner;
     const channelId = recorder.channelId;
     const config = appConfig.getAll();
-
-    if (config?.recorder?.convert2Mp4) {
-      try {
-        await convert2Mp4(filename);
-        await fs.unlink(filename);
-      } catch (error) {
-        logger.error("convert2Mp4 error", error);
-      }
-    }
 
     data?.sendToWebhook &&
       axios.post(`http://127.0.0.1:${config.port}/webhook/custom`, {
