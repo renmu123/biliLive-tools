@@ -16,10 +16,10 @@ import {
 
 // import LiveService from "../db/service/liveService.js";
 // import DanmuService from "../db/service/danmuService.js";
-import { getFfmpegPath, transcode } from "../task/video.js";
+import { getFfmpegPath } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
-import { sleep, replaceExtName } from "../utils/index.js";
+import { sleep } from "../utils/index.js";
 import { sendBySystem, send } from "../notify.js";
 // import { parseDanmu } from "../danmu/index.js";
 
