@@ -674,6 +674,8 @@ export interface FfmpegOptions {
   timestampExtra?: string;
   /** 时间戳跟随弹幕字体 */
   timestampFollowDanmu?: boolean;
+  /** pk优化 */
+  pkOptimize?: boolean;
 }
 
 export interface BiliupConfig {

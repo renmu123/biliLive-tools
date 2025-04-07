@@ -6,12 +6,7 @@
         <n-button title="仅供参考，以实际渲染为主！" v-if="!isWeb" @click="preview">
           预览
         </n-button>
-        <n-button
-          type="primary"
-          style="display: none"
-          title="某些情况下你可能需要这个功能"
-          @click="sendToWebhook"
-        >
+        <n-button type="primary" title="某些情况下你可能需要这个功能" @click="sendToWebhook">
           发送至webhook
         </n-button>
         <n-button type="primary" @click="handleConvert" title="启动！(ctrl+enter)">

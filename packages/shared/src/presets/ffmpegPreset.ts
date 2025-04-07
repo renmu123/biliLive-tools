@@ -38,6 +38,7 @@ const commonPresetParams: {
   timestampExtra: string;
   timestampFormat: string;
   vf: string;
+  pkOptimize: boolean;
 } = {
   resetResolution: false,
   resolutionWidth: 2880,
@@ -58,6 +59,7 @@ const commonPresetParams: {
   timestampFollowDanmu: true,
   timestampExtra: "",
   timestampFormat: "%Y-%m-%d %T",
+  pkOptimize: false,
 };
 
 const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [

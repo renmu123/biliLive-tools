@@ -21,8 +21,8 @@
       >
     </p>
     <p>
-      备用下载地址：<a href="https://www.alipan.com/s/iRyhxjdqGeL" class="external" target="_blank"
-        >biliLive-tools</a
+      备用下载地址：<a href="https://pan.quark.cn/s/6da253a1ecb8" class="external" target="_blank"
+        >夸克网盘</a
       >
     </p>
     <p>

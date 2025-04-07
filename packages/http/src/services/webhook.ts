@@ -5,7 +5,7 @@ import { FFmpegPreset, VideoPreset, DanmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import { biliApi } from "@biliLive-tools/shared/task/bili.js";
 import { isEmptyDanmu } from "@biliLive-tools/shared/task/danmu.js";
-import { transcode, burn } from "@biliLive-tools/shared/task/video.js";
+import { transcode, burn, analyzeResolutionChanges } from "@biliLive-tools/shared/task/video.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import {
   getFileSize,
@@ -642,6 +642,18 @@ export class WebhookHandler {
 
     const output = path.join(dir, outputName);
     if (await fs.pathExists(output)) return output;
+
+    if (preset.pkOptimize) {
+      try {
+        const resolutionChanges = await analyzeResolutionChanges(videoFile);
+        console.log("resolutionChanges", resolutionChanges);
+        if (resolutionChanges.length <= 1) {
+          return videoFile;
+        }
+      } catch (error) {
+        log.error("分析分辨率变化失败", error);
+      }
+    }
 
     return new Promise((resolve, reject) => {
       transcode(videoFile, outputName, preset, {

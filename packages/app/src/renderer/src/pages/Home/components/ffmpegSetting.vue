@@ -164,6 +164,13 @@
               如果需要放大分辨率，可以选择先渲染后缩放，如果是缩小分辨率，可以选择先缩放后渲染，自动策略为先渲染后缩放
             </p>
             <p>强制宽高比：具体参数含义自行尝试或查询文档</p>
+            <p>
+              pk优化：特调解决上传B站后pk视频被拉伸，在开启后“强制宽高比”参数会被强制为“缩小”，会添加“pad=with:height:(ow-iw)/2:(oh-ih)/2”滤镜。<br />
+              在webhook使用时转码时进行分辨率检测，只会存在多个分辨率时才会进行转码（不针对弹幕）。<br />
+              如果你不知道分辨率如何设置，可以尝试设置为1920*1080，如果你在使用cpu转码，推荐码率控制使用crf，并设置在23或更大，再根据配置调整
+              preset 参数。
+              <bold>如果没有相关需求，请不要开启</bold>
+            </p>
           </Tip>
         </template>
 
@@ -196,7 +203,7 @@
               />
             </div>
             <div class="resolution-option-group" v-if="hardwareAcceleration !== 'qsv'">
-              <div class="resolution-section-title">缩放算法：</div>
+              <div class="resolution-section-title">缩放算法</div>
               <n-select
                 v-model:value="ffmpegOptions.config.swsFlags"
                 :options="swsOptions"
@@ -206,7 +213,7 @@
               />
             </div>
             <div class="resolution-option-group">
-              <div class="resolution-section-title">处理顺序：</div>
+              <div class="resolution-section-title">处理顺序</div>
               <n-select
                 v-model:value="ffmpegOptions.config.scaleMethod"
                 :options="scaleMethodOptions"
@@ -216,7 +223,7 @@
               />
             </div>
             <div class="resolution-option-group">
-              <div class="resolution-section-title">强制宽高比：</div>
+              <div class="resolution-section-title">强制宽高比</div>
               <n-select
                 v-model:value="ffmpegOptions.config.forceOriginalAspectRatio"
                 :options="forceOriginalAspectRatioOptions"
@@ -231,6 +238,9 @@
               <n-checkbox v-model:checked="ffmpegOptions.config.hardwareScaleFilter"
                 >硬件过滤器</n-checkbox
               >
+            </div>
+            <div class="resolution-option-group">
+              <n-checkbox v-model:checked="ffmpegOptions.config.pkOptimize">pk优化</n-checkbox>
             </div>
           </div>
         </template>
@@ -713,8 +723,8 @@ const hardwareAcceleration = computed(() => {
 }
 
 .resolution-section-title {
-  font-weight: bold;
-  color: #606266;
+  // font-weight: bold;
+  color: #000;
   white-space: nowrap;
 }
 

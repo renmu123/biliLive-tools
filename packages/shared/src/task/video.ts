@@ -1,4 +1,5 @@
 import path, { join, parse } from "node:path";
+import { spawn } from "node:child_process";
 
 import fs from "fs-extra";
 import ffmpeg from "@renmu/fluent-ffmpeg";
@@ -94,6 +95,72 @@ export const getAvailableEncoders = async () => {
     });
   });
 };
+
+interface Resolution {
+  width: number;
+  height: number;
+}
+
+/**
+ * 分析视频分辨率变化
+ * @param filePath 视频文件路径
+ * @returns 分辨率变化
+ */
+export async function analyzeResolutionChanges(filePath: string): Promise<Resolution[]> {
+  const command = `ffprobe`;
+  const args = [
+    "-v",
+    "error",
+    "-skip_frame",
+    "nokey",
+    "-select_streams",
+    "v:0",
+    "-show_entries",
+    "frame=width,height",
+    "-of",
+    "csv=p=0",
+    filePath,
+  ];
+
+  const ffprobe = spawn(command, args);
+
+  const resolutions: Resolution[] = [];
+
+  ffprobe.stdout.on("data", (data) => {
+    const lines = data.toString().trim().split("\n");
+    lines.forEach((line: string) => {
+      const [width, height] = line.split(",");
+      if (!width || !height) {
+        return;
+      }
+
+      // 不要添加重复的分辨率
+      const resolution = {
+        width: parseInt(width, 10),
+        height: parseInt(height, 10),
+      };
+      if (
+        !resolutions.some((r) => r.width === resolution.width && r.height === resolution.height)
+      ) {
+        resolutions.push(resolution);
+      }
+    });
+  });
+
+  ffprobe.stderr.on("data", (data) => {
+    console.error(`Stderr: ${data}`);
+  });
+
+  return new Promise((resolve, reject) => {
+    ffprobe.on("close", (code) => {
+      if (code !== 0) {
+        reject(`ffprobe process exited with code ${code}`);
+      } else {
+        resolve(resolutions);
+      }
+    });
+  });
+}
 
 export const convertImage2Video = async (
   inputDir: string,
@@ -495,6 +562,9 @@ export const genMergeAssMp4Command = async (
   }
 
   async function addDefaultComplexFilter(scaleHardware: boolean = false) {
+    if (ffmpegOptions.pkOptimize) {
+      ffmpegOptions.forceOriginalAspectRatio = "decrease";
+    }
     const scaleMethod = selectScaleMethod(ffmpegOptions);
     const startTimestamp = await getDrawtextParams();
 
@@ -560,6 +630,13 @@ export const genMergeAssMp4Command = async (
         format: ffmpegOptions.timestampFormat,
         extraOptions: ffmpegOptions.timestampExtra,
       });
+    }
+    // pk优化
+    if (ffmpegOptions.pkOptimize) {
+      complexFilter.addFilter(
+        "pad",
+        `${ffmpegOptions.resolutionWidth}:${ffmpegOptions.resolutionHeight}:(ow-iw)/2:(oh-ih)/2`,
+      );
     }
   }
 
