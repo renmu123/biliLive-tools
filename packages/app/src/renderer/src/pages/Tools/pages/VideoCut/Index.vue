@@ -80,7 +80,7 @@
         v-model="fileList"
         :style="{ height: '100%' }"
         class="video empty cut-file-area"
-        :extensions="['llc', 'flv', 'mp4', 'm4s', 'ts']"
+        :extensions="['llc', 'flv', 'mp4', 'm4s', 'ts', 'mkv']"
         :max="1"
         @change="handleFileChange"
       >

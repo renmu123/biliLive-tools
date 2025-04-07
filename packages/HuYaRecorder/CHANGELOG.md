@@ -1,3 +1,7 @@
+# 1.2.0
+
+1. 支持 `videoFormat`参数: "auto", "ts", "mkv"
+
 # 1.1.1
 
 ## Bug修复

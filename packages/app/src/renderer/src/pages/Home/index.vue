@@ -23,7 +23,7 @@
 
     <FileArea
       v-model="fileList"
-      :extensions="['flv', 'mp4', 'ass', 'xml', 'm4s', 'ts']"
+      :extensions="['flv', 'mp4', 'ass', 'xml', 'm4s', 'ts', 'mkv']"
       desc="请选择视频以及弹幕文件，如果为xml将自动转换为ass"
       :max="2"
     ></FileArea>

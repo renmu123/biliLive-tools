@@ -50,7 +50,12 @@
             <template #label>
               <Tip tip="直播状态检查，太快容易被风控~" text="检查间隔"></Tip>
             </template>
-            <n-input-number v-model:value="config.recorder.checkInterval" min="10" step="10">
+            <n-input-number
+              v-model:value="config.recorder.checkInterval"
+              min="10"
+              step="10"
+              style="width: 220px"
+            >
               <template #suffix>秒</template>
             </n-input-number>
           </n-form-item>
@@ -58,7 +63,12 @@
             <template #label>
               <Tip tip="0为不分段" text="分段时间"></Tip>
             </template>
-            <n-input-number v-model:value="config.recorder.segment" min="0" step="10">
+            <n-input-number
+              v-model:value="config.recorder.segment"
+              min="0"
+              step="10"
+              style="width: 220px"
+            >
               <template #suffix>分钟</template>
             </n-input-number>
           </n-form-item>
@@ -71,12 +81,13 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip
-                tip="转封装后将删除源文件，如果你需要使用webhook功能，请在webhook设置该选项，可能会有更好的兼容性"
-                text="转封装为mp4"
-              ></Tip>
+              <Tip :text="textInfo.common.format.text" :tip="textInfo.common.format.tip"></Tip>
             </template>
-            <n-switch v-model:value="config.recorder.convert2Mp4" />
+            <n-select
+              v-model:value="config.recorder.videoFormat"
+              :options="videoFormatOptions"
+              style="width: 220px"
+            />
           </n-form-item>
           <n-form-item>
             <template #label>
@@ -188,6 +199,12 @@
               :options="douyuQualityOptions"
             />
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="线路" tip="如果设置的不存在，会采用默认"></Tip>
+            </template>
+            <n-select v-model:value="config.recorder.douyu.source" :options="douyuSourceOptions" />
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="huya" tab="虎牙" display-directive="show:lazy">
           <n-form-item>
@@ -228,6 +245,8 @@ import {
   streamFormatOptions,
   streamCodecOptions,
   douyinQualityOptions,
+  douyuSourceOptions,
+  videoFormatOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";

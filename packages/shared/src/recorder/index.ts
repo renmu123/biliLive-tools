@@ -16,11 +16,11 @@ import {
 
 // import LiveService from "../db/service/liveService.js";
 // import DanmuService from "../db/service/danmuService.js";
-import { getFfmpegPath, transcode } from "../task/video.js";
+import { getFfmpegPath } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
-import { sleep, replaceExtName } from "../utils/index.js";
-import { sendBySystem } from "../notify.js";
+import { sleep } from "../utils/index.js";
+import { sendBySystem, send } from "../notify.js";
 // import { parseDanmu } from "../danmu/index.js";
 
 import type { AppConfig } from "../config.js";
@@ -29,34 +29,30 @@ import type { Recorder } from "@bililive-tools/manager";
 
 export { RecorderConfig };
 
-async function convert2Mp4(videoFile: string): Promise<string> {
-  const output = replaceExtName(videoFile, ".mp4");
-  if (await fs.pathExists(output)) return output;
+async function sendLiveNotification(
+  appConfig: AppConfig,
+  recorder: Recorder,
+  config: RecorderConfigType,
+) {
+  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
+  const title = `${name}(${config.channelId}) 开播了`;
 
-  const name = path.basename(output);
-  return new Promise((resolve, reject) => {
-    transcode(
-      videoFile,
-      name,
-      {
-        encoder: "copy",
-        audioCodec: "copy",
-      },
-      {
-        saveType: 1,
-        savePath: ".",
-        override: false,
-        removeOrigin: false,
-      },
-    ).then((task) => {
-      task.on("task-end", () => {
-        resolve(output);
-      });
-      task.on("task-error", () => {
-        reject();
-      });
+  const globalConfig = appConfig.getAll();
+  let notifyType = globalConfig?.notification?.setting?.type;
+  if (globalConfig?.notification?.taskNotificationType["liveStart"]) {
+    notifyType = globalConfig?.notification?.taskNotificationType["liveStart"];
+  }
+
+  if (notifyType === "system") {
+    const event = await sendBySystem(title, `${recorder?.liveInfo?.title}\n点击打开直播间`);
+    const { shell } = await import("electron");
+    event?.on("click", () => {
+      const url = recorder.getChannelURL();
+      shell.openExternal(url);
     });
-  });
+  } else {
+    await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
+  }
 }
 
 export async function createRecorderManager(appConfig: AppConfig) {
@@ -152,21 +148,10 @@ export async function createRecorderManager(appConfig: AppConfig) {
   });
   manager.on("RecoderLiveStart", async ({ recorder }) => {
     // 只有客户端&自动监听&开始推送时才会发送
-    if (process.type !== "browser") return;
     const config = recorderConfig.get(recorder.id);
     if (!config) return;
     if (config?.liveStartNotification && !config?.disableAutoCheck) {
-      const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
-      const event = await sendBySystem(
-        `${name}(${config.channelId}) 开播了`,
-        `${recorder?.liveInfo?.title}\n点击打开直播间`,
-      );
-      const { shell } = await import("electron");
-      event?.on("click", () => {
-        const url = recorder.getChannelURL();
-        console.log("openExternal", url);
-        shell.openExternal(url);
-      });
+      sendLiveNotification(appConfig, recorder, config);
     }
   });
   // manager.on("RecordSegment", (debug) => {
@@ -211,15 +196,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const username = recorder.liveInfo?.owner;
     const channelId = recorder.channelId;
     const config = appConfig.getAll();
-
-    if (config?.recorder?.convert2Mp4) {
-      try {
-        await convert2Mp4(filename);
-        await fs.unlink(filename);
-      } catch (error) {
-        logger.error("convert2Mp4 error", error);
-      }
-    }
 
     data?.sendToWebhook &&
       axios.post(`http://127.0.0.1:${config.port}/webhook/custom`, {

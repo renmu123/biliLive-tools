@@ -1,3 +1,8 @@
+# 1.2.0
+
+- 支持 `source` 参数，用于指定 cdn
+- 支持 `videoFormat`参数: "auto", "ts", "mkv"
+
 # 1.1.0
 
 1. 重用ffmpeg录制器

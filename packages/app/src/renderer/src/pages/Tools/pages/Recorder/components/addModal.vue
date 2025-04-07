@@ -65,9 +65,12 @@
           </template>
           <n-switch v-model:value="config.sendToWebhook" />
         </n-form-item>
-        <n-form-item v-if="isWeb && !config.disableAutoCheck">
+        <n-form-item v-if="!config.disableAutoCheck">
           <template #label>
-            <Tip text="开播通知" tip="仅限客户端"></Tip>
+            <Tip
+              text="录制开始通知"
+              tip="默认使用系统通知，具体前往设置通知中修改，一场直播只会通知一次"
+            ></Tip>
           </template>
           <n-switch v-model:value="config.liveStartNotification" />
         </n-form-item>
@@ -163,21 +166,6 @@
               >全局</n-checkbox
             >
           </n-form-item>
-          <!-- <n-form-item>
-            <template #label>
-              <Tip
-                :tip="textInfo.bili.useM3U8Proxy.tip"
-                :text="textInfo.bili.useM3U8Proxy.text"
-              ></Tip>
-            </template>
-            <n-switch
-              v-model:value="config.useM3U8Proxy"
-              :disabled="globalFieldsObj.useM3U8Proxy"
-            />
-            <n-checkbox v-model:checked="globalFieldsObj.useM3U8Proxy" class="global-checkbox"
-              >全局</n-checkbox
-            >
-          </n-form-item> -->
         </template>
         <template v-if="config.providerId === 'DouYu'">
           <n-form-item>
@@ -190,6 +178,19 @@
               :disabled="globalFieldsObj.quality"
             />
             <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="线路" tip="如果设置的不存在，会采用默认"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.source"
+              :options="douyuSourceOptions"
+              :disabled="globalFieldsObj.source"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.source" class="global-checkbox"
               >全局</n-checkbox
             >
           </n-form-item>
@@ -234,6 +235,19 @@
           </n-form-item>
         </template>
 
+        <n-form-item>
+          <template #label>
+            <Tip :text="textInfo.common.format.text" :tip="textInfo.common.format.tip"></Tip>
+          </template>
+          <n-select
+            v-model:value="config.videoFormat"
+            :options="videoFormatOptions"
+            :disabled="globalFieldsObj.videoFormat"
+          />
+          <n-checkbox v-model:checked="globalFieldsObj.videoFormat" class="global-checkbox"
+            >全局</n-checkbox
+          >
+        </n-form-item>
         <n-form-item>
           <template #label>
             <Tip
@@ -346,6 +360,8 @@ import {
   streamCodecOptions,
   huyaQualityOptions,
   douyinQualityOptions,
+  douyuSourceOptions,
+  videoFormatOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 
@@ -357,7 +373,6 @@ interface Props {
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
 const { userList } = storeToRefs(useUserInfoStore());
-const isWeb = computed(() => window.isWeb);
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const props = defineProps<Props>();
@@ -378,6 +393,8 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     formatName: true,
     useM3U8Proxy: true,
     codecName: true,
+    source: true,
+    videoFormat: true,
   },
 );
 
@@ -402,6 +419,8 @@ const config = ref<Omit<Recorder, "id">>({
   codecName: "auto",
   titleKeywords: "",
   liveStartNotification: false,
+  source: "auto",
+  videoFormat: "auto",
 });
 
 const confirmDialog = useConfirm();
@@ -507,6 +526,8 @@ watch(showModal, async (val) => {
       codecName: "auto",
       titleKeywords: "",
       liveStartNotification: false,
+      source: "auto",
+      videoFormat: "auto",
     };
 
     if (props.id) {
@@ -526,6 +547,8 @@ watch(showModal, async (val) => {
       formatName: !(config.value?.noGlobalFollowFields ?? []).includes("formatName"),
       useM3U8Proxy: !(config.value?.noGlobalFollowFields ?? []).includes("useM3U8Proxy"),
       codecName: !(config.value?.noGlobalFollowFields ?? []).includes("codecName"),
+      source: !(config.value?.noGlobalFollowFields ?? []).includes("source"),
+      videoFormat: !(config.value?.noGlobalFollowFields ?? []).includes("videoFormat"),
     };
   }
 });
@@ -576,6 +599,12 @@ watch(
     }
     if (val.codecName) {
       config.value.codecName = appConfig.value.recorder.bilibili.codecName;
+    }
+    if (val.source) {
+      config.value.source = appConfig.value.recorder.douyu.source;
+    }
+    if (val.videoFormat) {
+      config.value.videoFormat = appConfig.value.recorder.videoFormat;
     }
   },
   {

@@ -23,8 +23,9 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   streamPriorities: string[];
   // 该项为用户配置，不同源（CDN）的优先级，如果设置了此项，将优先根据此决定使用哪个源，除非所有的指定源无效
   sourcePriorities: string[];
-  // 按提供的源优先级去给CDN列表排序，并过滤掉不在优先级配置中的源
   formatPriorities?: string[];
+  // 指定cdn
+  source?: string;
   // 该项为用户配置，指定录制的片段时长，单位为秒，如果设置了此项，将按此时长切片录制
   segment?: number;
   // 保存礼物弹幕
@@ -51,6 +52,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   api?: "auto" | "web" | "mp";
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
   titleKeywords?: string;
+  /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
+  videoFormat?: "auto" | "ts" | "mkv";
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
 }

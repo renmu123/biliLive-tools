@@ -25,6 +25,7 @@ const commonPresetParams: {
   audioCodec: audioCodec;
   swsFlags: string;
   scaleMethod: "auto" | "before" | "after";
+  forceOriginalAspectRatio: "auto" | "decrease" | "increase";
   hardwareScaleFilter: boolean;
   encoderThreads: number;
   addTimestamp: boolean;
@@ -44,6 +45,7 @@ const commonPresetParams: {
   audioCodec: "copy",
   swsFlags: "auto",
   scaleMethod: "auto",
+  forceOriginalAspectRatio: "auto",
   hardwareScaleFilter: false,
   addTimestamp: false,
   encoderThreads: -1,
@@ -121,7 +123,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       bit10: false,
-      preset: "0",
+      preset: "balanced",
     },
   },
   {
@@ -173,7 +175,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       bit10: false,
-      preset: "0",
+      preset: "balanced",
     },
   },
 
@@ -227,7 +229,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       bit10: false,
-      preset: "0",
+      preset: "balanced",
     },
   },
 ];

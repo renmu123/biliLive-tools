@@ -155,7 +155,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const { living, owner, title, liveId } = liveInfo;
 
   this.liveInfo = liveInfo;
-  this.emit("LiveStart", { liveId });
 
   if (liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
@@ -189,6 +188,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
   }
 
+  this.emit("LiveStart", { liveId });
+
   let res: Awaited<ReturnType<typeof getStream>>;
   // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
@@ -205,6 +206,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
+      source: this.source,
       strictQuality,
     });
   } catch (err) {
@@ -239,6 +241,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       segment: this.segment ?? 0,
       getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
       disableDanma: this.disableProvideCommentsWhenRecording,
+      videoFormat: this.videoFormat ?? "auto",
     },
     onEnd,
   );

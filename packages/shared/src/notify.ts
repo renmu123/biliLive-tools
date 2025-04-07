@@ -133,13 +133,35 @@ export async function sendByAllInOne(
   });
 }
 
-export function send(title: string, desp: string) {
+type TaskType =
+  | "liveStart"
+  | "ffmpeg"
+  | "danmu"
+  | "upload"
+  | "download"
+  | "douyuDownload"
+  | "mediaStatusCheck"
+  | "diskSpaceCheck";
+
+export function send(title: string, desp: string, options?: { type?: TaskType }) {
   const config = appConfig.getAll();
-  _send(title, desp, config);
+  let notifyType = config?.notification?.setting?.type;
+
+  if (options?.type) {
+    if (config?.notification?.taskNotificationType[options.type]) {
+      notifyType = config?.notification?.taskNotificationType[options.type];
+    }
+  }
+  return _send(title, desp, config, notifyType);
 }
 
-export async function _send(title: string, desp: string, appConfig: AppConfig) {
-  switch (appConfig?.notification?.setting?.type) {
+export async function _send(
+  title: string,
+  desp: string,
+  appConfig: AppConfig,
+  notifyType: AppConfig["notification"]["setting"]["type"],
+): Promise<any | void> {
+  switch (notifyType) {
     case "server":
       await sendByServer(title, desp, appConfig?.notification?.setting?.server);
       break;
@@ -150,7 +172,7 @@ export async function _send(title: string, desp: string, appConfig: AppConfig) {
       await sendByTg(title, desp, appConfig?.notification?.setting?.tg);
       break;
     case "system":
-      await sendBySystem(title, desp);
+      return await sendBySystem(title, desp);
       break;
     case "ntfy":
       await sendByNtfy(title, desp, appConfig?.notification?.setting?.ntfy);

@@ -275,6 +275,7 @@ interface BilibiliRecorderConfig {
 interface DouyuRecorderConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
   quality: 0 | 2 | 3 | 4 | 8;
+  source: string;
 }
 
 interface HuyaRecorderConfig {
@@ -314,10 +315,10 @@ export interface GlobalRecorder {
   uid?: number;
   /** 保存封面 */
   saveCover?: boolean;
-  /** 录制后转换为mp4 */
-  convert2Mp4?: boolean;
   /** 画质匹配重试次数 */
   qualityRetry: number;
+  /** 视频格式 */
+  videoFormat: "auto" | "ts" | "mkv";
   /** B站特有的配置 */
   bilibili: BilibiliRecorderConfig;
   /** 斗鱼特有的配置 */
@@ -368,10 +369,13 @@ export interface Recorder {
   uid?: number;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 视频格式 */
+  videoFormat: GlobalRecorder["videoFormat"];
   qualityRetry: GlobalRecorder["qualityRetry"];
   formatName: GlobalRecorder["bilibili"]["formatName"];
   useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];
   codecName: GlobalRecorder["bilibili"]["codecName"];
+  source: GlobalRecorder["douyu"]["source"];
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
   titleKeywords?: string;
   /** 开播推送 */
@@ -472,6 +476,9 @@ export interface AppConfig {
       tg: NotificationTgConfig;
       ntfy: NotificationNtfyConfig;
       allInOne: NotificationPushAllInAllConfig;
+    };
+    taskNotificationType: {
+      liveStart: AppConfig["notification"]["setting"]["type"];
     };
   };
   // 同步
@@ -633,7 +640,11 @@ export interface FfmpegOptions {
     | "p4"
     | "p5"
     | "p6"
-    | "p7";
+    | "p7"
+    | "balanced"
+    | "speed"
+    | "quality"
+    | "high_quality";
   /** 支持硬件解码 */
   decode?: boolean;
   /** 是否重缩放分辨率 */
@@ -655,6 +666,7 @@ export interface FfmpegOptions {
   swsFlags?: string;
   /** 缩放方式，控制先缩放后渲染还是先渲染后缩放 */
   scaleMethod?: "auto" | "before" | "after";
+  forceOriginalAspectRatio?: "auto" | "decrease" | "increase";
   /** 是否支持硬件scale过滤器 */
   hardwareScaleFilter?: boolean;
   /** 编码线程数 */

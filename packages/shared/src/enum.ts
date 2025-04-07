@@ -181,6 +181,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
         key: "",
       },
     },
+    taskNotificationType: {
+      liveStart: "system",
+    },
   },
   sync: {
     baiduPCS: {
@@ -216,8 +219,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     saveCover: false,
     uid: undefined,
     debugMode: false,
-    convert2Mp4: false,
     qualityRetry: 0,
+    videoFormat: "auto",
     bilibili: {
       uid: undefined,
       quality: 10000,
@@ -228,6 +231,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     douyu: {
       quality: 0,
+      source: "auto",
     },
     huya: {
       quality: 0,
@@ -350,16 +354,24 @@ export const cpuPresets = [
 
 export const amfPresets = [
   {
-    value: "1",
+    value: "speed",
     label: "speed",
   },
   {
-    value: "0",
+    value: "balanced",
     label: "balanced",
   },
   {
-    value: "2",
+    value: "quality",
     label: "quality",
+  },
+];
+
+export const amfAv1Presets = [
+  ...amfPresets,
+  {
+    value: "high_quality",
+    label: "high quality",
   },
 ];
 
@@ -599,6 +611,6 @@ export const videoEncoders = [
         label: "平均比特率",
       },
     ],
-    presets: amfPresets,
+    presets: amfAv1Presets,
   },
 ];
