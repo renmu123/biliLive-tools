@@ -517,6 +517,7 @@ const globalFields = ref([
   "limitVideoConvertTime",
   "videoHandleTime",
   "partTitleTemplate",
+  "afterUploadDeletAction",
 ]);
 const webhookDefaultValue = computed(() => {
   if (!config.value.webhook) return {};
@@ -582,6 +583,7 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   limitVideoConvertTime: false,
   videoHandleTime: ["00:00:00", "23:59:59"],
   partTitleTemplate: "",
+  afterUploadDeletAction: "none",
 });
 const saveRoomDetail = (data: AppRoomConfig & { id?: string }) => {
   config.value.webhook.rooms[data.id!] = data;

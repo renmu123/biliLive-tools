@@ -472,7 +472,7 @@ export class WebhookHandler {
     }
 
     const open = this.canRoomOpen(roomSetting, config?.webhook?.blacklist, roomId);
-
+    console.log("qq", roomSetting, getRoomSetting("afterUploadDeletAction"), uid);
     const options = {
       danmu,
       mergePart,
@@ -961,7 +961,7 @@ export class WebhookHandler {
           );
           uploadPreset.title = videoTitle;
 
-          log.info("上传", live, filePaths, uploadPreset);
+          log.info("上传", afterUploadDeletAction);
 
           const aid = (await this.addUploadTask(
             uid,
