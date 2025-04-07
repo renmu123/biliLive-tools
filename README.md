@@ -35,7 +35,7 @@
 由于我不在Linux开发，测试覆盖不广，如果存在问题可以提issue。
 
 下载地址：https://github.com/renmu123/biliLive-tools/releases  
-备用阿里云盘：https://www.alipan.com/s/iRyhxjdqGeL
+备用下载地址：https://pan.quark.cn/s/6da253a1ecb8
 
 ## CLI
 
