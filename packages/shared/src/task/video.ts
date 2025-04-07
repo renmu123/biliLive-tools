@@ -107,7 +107,8 @@ interface Resolution {
  * @returns 分辨率变化
  */
 export async function analyzeResolutionChanges(filePath: string): Promise<Resolution[]> {
-  const command = `ffprobe`;
+  const { ffprobePath } = getFfmpegPath();
+  const command = `${ffprobePath}`;
   const args = [
     "-v",
     "error",

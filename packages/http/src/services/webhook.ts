@@ -646,8 +646,8 @@ export class WebhookHandler {
     if (preset.pkOptimize) {
       try {
         const resolutionChanges = await analyzeResolutionChanges(videoFile);
-        console.log("resolutionChanges", resolutionChanges);
         if (resolutionChanges.length <= 1) {
+          log.info("分辨率没有变化，不进行转码", resolutionChanges);
           return videoFile;
         }
       } catch (error) {
