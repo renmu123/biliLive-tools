@@ -776,10 +776,12 @@ export const mergeAssMp4 = async (
 
   const assFile = files.assFilePath;
   const startTimestamp = options.startTimestamp || 0;
+  log.debug("genMergeAssMp4Command start", startTimestamp);
   const command = await genMergeAssMp4Command(files, ffmpegOptions, {
     startTimestamp: startTimestamp,
     timestampFont: options.timestampFont,
   });
+  log.debug("mergrAssMp4, command");
 
   await setFfmpegPath();
   const task = new FFmpegTask(
@@ -823,6 +825,7 @@ export const mergeAssMp4 = async (
       },
     },
   );
+  log.debug("mergeAssMp4 start task", task.taskId);
   taskQueue.addTask(task, false);
 
   return task;
@@ -1106,9 +1109,14 @@ export const burn = async (
         copyInput: true,
       },
     );
+    log.debug("convertXml2Ass task start", task.taskId);
     await promiseTask(task);
+    log.debug("convertXml2Ass task end", task.taskId);
     assFilePath = task.output!;
-    startTimestamp = await readXmlTimestamp(files.subtitleFilePath);
+    if (options.ffmpegOptions.addTimestamp) {
+      startTimestamp = await readXmlTimestamp(files.subtitleFilePath);
+      log.debug("readXmlTimestamp end", startTimestamp);
+    }
     if (options.ffmpegOptions.timestampFollowDanmu) {
       timestampFont = options.danmaOptions.fontname;
     }
@@ -1134,6 +1142,7 @@ export const burn = async (
     });
     outputFile = path.join(savePath, output);
   }
+  log.debug("burn function call", outputFile);
   const task = await mergeAssMp4(
     {
       videoFilePath,
