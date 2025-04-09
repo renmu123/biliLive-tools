@@ -95,16 +95,30 @@
           placeholder="请输入tg bot的token"
           type="password"
           show-password-on="click"
-        ></n-input> </n-form-item
-      ><n-form-item>
+        ></n-input>
+      </n-form-item>
+      <n-form-item>
         <template #label>
           <span class="inline-flex"> chat_id </span>
         </template>
         <n-input
           v-model:value="config.notification.setting.tg.chat_id"
           placeholder="请输入chat_id"
-        ></n-input> </n-form-item
-    ></template>
+        ></n-input>
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip
+            text="反代url"
+            tip="默认使用官方api，如：https://api.telegram.org，带上协议，无须后缀"
+          ></Tip>
+        </template>
+        <n-input
+          v-model:value="config.notification.setting.tg.proxyUrl"
+          placeholder="默认使用官方api"
+        ></n-input>
+      </n-form-item>
+    </template>
     <template v-else-if="config.notification.setting.type === NotificationType.ntfy">
       <n-form-item>
         <template #label>

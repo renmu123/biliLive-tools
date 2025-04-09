@@ -57,7 +57,12 @@ export async function sendByTg(title: string, desp: string, options: Notificatio
   if (!options.key || !options.chat_id) {
     throw new Error("tg key或chat_id不能为空");
   }
-  const url = `https://api.telegram.org/bot${options.key}/sendMessage`;
+
+  let baseUrl = `https://api.telegram.org`;
+  if (options.proxyUrl) {
+    baseUrl = options.proxyUrl;
+  }
+  const url = `${baseUrl}/bot${options.key}/sendMessage`;
 
   const data = {
     chat_id: options.chat_id,
@@ -74,6 +79,7 @@ export async function sendByTg(title: string, desp: string, options: Notificatio
     log.info("sendByTg res", res);
   } catch (e) {
     log.error("sendByTg error", e);
+    throw e;
   }
 }
 

@@ -250,6 +250,7 @@ export interface NotificationNtfyConfig {
 export interface NotificationTgConfig {
   key: string;
   chat_id: string;
+  proxyUrl?: string;
 }
 
 /**

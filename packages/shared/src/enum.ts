@@ -170,6 +170,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       tg: {
         key: "",
         chat_id: "",
+        proxyUrl: "",
       },
       ntfy: {
         url: "",
