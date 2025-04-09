@@ -113,6 +113,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     videoMerge: {
       saveOriginPath: false,
       removeOrigin: false,
+      keepFirstVideoMeta: false,
     },
     download: {
       savePath: "",

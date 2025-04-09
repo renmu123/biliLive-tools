@@ -28,6 +28,7 @@
       <div style="margin-top: 10px">
         <n-checkbox v-model:checked="options.saveOriginPath"> 保存到原始文件夹 </n-checkbox>
         <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
+        <n-checkbox v-model:checked="options.keepFirstVideoMeta"> 保留第一个视频元数据 </n-checkbox>
       </div>
     </div>
   </div>

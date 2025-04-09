@@ -954,6 +954,7 @@ export const mergeVideos = async (
   options: VideoMergeOptions = {
     removeOrigin: false,
     saveOriginPath: false,
+    keepFirstVideoMeta: false,
   },
 ) => {
   if (!inputFiles || inputFiles.length < 2) {
@@ -978,12 +979,11 @@ export const mergeVideos = async (
   const fileTxtContent = inputFiles.map((videoFile) => `file '${videoFile}'`).join("\n");
   await fs.writeFile(fileTxtPath, fileTxtContent);
 
-  const command = ffmpeg(fileTxtPath)
-    .inputOptions("-f concat")
-    .inputOptions("-safe 0")
-    .videoCodec("copy")
-    .audioCodec("copy")
-    .output(outputFile);
+  const command = ffmpeg(fileTxtPath).inputOptions("-f concat").inputOptions("-safe 0");
+  if (options.keepFirstVideoMeta) {
+    command.input(inputFiles[0]).outputOptions("-map 0").outputOptions(`-map_metadata 1`);
+  }
+  command.outputOptions("-c copy").output(outputFile);
 
   let duration = 1;
   let videoMetas: Awaited<ReturnType<typeof readVideoMeta>>[] = [];
