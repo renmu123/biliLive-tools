@@ -15,6 +15,7 @@
 - 视频合并支持复制第一个视频的元数据 [#66](https://github.com/renmu123/biliLive-tools/issues/66)
 - 客户端任务栏图标新增重启功能
 - tg 通知支持反代url [#69](https://github.com/renmu123/biliLive-tools/issues/69)
+- 虎牙增加弹幕重连次数，默认为10
 
 ## 优化
 
