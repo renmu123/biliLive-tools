@@ -33,6 +33,7 @@
       >全局</n-checkbox
     >
   </n-form-item>
+
   <n-form-item v-if="data.convert2Mp4">
     <template #label>
       <span>封装后删除源文件</span>
@@ -46,6 +47,24 @@
       v-if="isRoom"
       v-model:checked="globalFieldsObj.removeSourceAferrConvert2Mp4"
       class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+
+  <n-form-item>
+    <template #label>
+      <Tip text="同步器" tip="选择要使用的同步器，用于将视频同步到网盘"></Tip>
+    </template>
+    <n-select
+      v-model:value="data.syncType"
+      :options="props.syncConfigs"
+      label-field="name"
+      value-field="id"
+      :disabled="globalFieldsObj.syncType"
+      style="margin-right: 10px; width: 200px"
+      clearable
+    />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.syncType" class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
@@ -496,10 +515,28 @@ const props = defineProps<{
   globalValue: {
     [key: string]: any;
   };
+  syncConfigs: {
+    id: string;
+    name: string;
+    syncSource: "baiduPCS" | "aliyunpan";
+  }[];
 }>();
 
 const data = defineModel<AppRoomConfig>("data", {
-  default: () => {},
+  default: () => ({
+    syncType: "",
+    open: true,
+    minSize: 0,
+    title: "",
+    danmu: false,
+    autoPartMerge: false,
+    hotProgress: false,
+    useLiveCover: false,
+    partTitleTemplate: "",
+    videoHandleTime: ["00:00:00", "23:59:59"],
+    uploadHandleTime: ["00:00:00", "23:59:59"],
+    afterUploadDeletAction: "none",
+  }),
 });
 
 const globalFieldsObj = defineModel<{

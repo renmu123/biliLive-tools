@@ -62,6 +62,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     hotProgressFillColor: "#333333",
     convert2Mp4: false,
     removeSourceAferrConvert2Mp4: true,
+    syncType: undefined,
     uploadHandleTime: ["00:00:00", "23:59:59"],
     limitUploadTime: false,
     uploadNoDanmu: false,
@@ -194,6 +195,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       execPath: "",
       targetPath: "/录播",
     },
+    syncConfigs: [],
   },
   llmPresets: [],
   biliUpload: {

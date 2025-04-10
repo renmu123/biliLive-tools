@@ -85,6 +85,8 @@ export type CommonRoomConfig = {
   uploadHandleTime: [string, string];
   /** 分p标题模板 */
   partTitleTemplate: string;
+  /** 同步器配置ID */
+  syncType?: string;
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
@@ -403,6 +405,15 @@ export interface Recorder {
 
 export type SyncType = "baiduPCS" | "aliyunpan";
 
+export type SyncConfig = {
+  id: string;
+  name: string;
+  syncSource: "baiduPCS" | "aliyunpan";
+  folderStructure: string;
+  postSyncAction: "none" | "copy" | "move";
+  targetFiles: ("source" | "danmaku" | "remux" | "xml" | "ass" | "cover")[];
+};
+
 // 全局配置
 export interface AppConfig {
   logLevel: any;
@@ -484,17 +495,14 @@ export interface AppConfig {
   // 同步
   sync: {
     baiduPCS: {
-      // 本地可执行文件路径
       execPath: string;
-      // 网盘目标路径
       targetPath: string;
     };
     aliyunpan: {
-      // 本地可执行文件路径
       execPath: string;
-      // 网盘目标路径
       targetPath: string;
     };
+    syncConfigs: SyncConfig[];
   };
   /** 翻译配置 */
   llmPresets: {

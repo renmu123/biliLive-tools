@@ -23,9 +23,11 @@
 ## 功能
 
 - “最小上传大小”参数名称修改为“最小处理文件”，功能实质未改变
+- 支持 [BaiduPCS-Go](https://github.com/qjfoidnh/BaiduPCS-Go)、[aliyunpan](https://github.com/tickstep/aliyunpan) 同步器
 - Webhook 移除“不压制后处理”参数，如果之前存在视频配置可能会导致错误调用
 - Webhook 替换 “处理后删除源文件” 为 “处理后操作” 支持更多场景
 - Webhook 合并 上传后和审核后删除 选项为“上传后操作”选项，减少了一个选项
+- webhook 支持同步
 
 ## 优化
 

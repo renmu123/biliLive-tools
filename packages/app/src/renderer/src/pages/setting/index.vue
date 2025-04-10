@@ -245,6 +245,7 @@
               :ffmpeg-options="ffmpegOptions"
               :global-value="webhookDefaultValue"
               :global-fields-obj="{}"
+              :syncConfigs="config.sync.syncConfigs"
               type="global"
             ></CommonSetting>
 
@@ -509,6 +510,7 @@ const globalFields = ref([
   "useLiveCover",
   "convert2Mp4",
   "removeSourceAferrConvert2Mp4",
+  "syncType",
   "afterConvertAction",
   "uploadHandleTime",
   "limitUploadTime",
@@ -575,6 +577,7 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   hotProgressFillColor: "#333333",
   convert2Mp4: false,
   removeSourceAferrConvert2Mp4: true,
+  syncType: undefined,
   afterConvertAction: [],
   uploadHandleTime: ["00:00:00", "23:59:59"],
   limitUploadTime: false,

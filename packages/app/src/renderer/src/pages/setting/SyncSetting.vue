@@ -1,12 +1,50 @@
 <template>
   <div class="">
     <div style="display: flex; gap: 10px; align-items: center">
-      <h2>Webhook 文件同步配置</h2>
+      <h2>文件同步配置</h2>
       <p>使用前请务必了解相关同步库并<bold>仔细查看文档</bold></p>
     </div>
 
     <n-form label-placement="left" :label-width="145">
       <n-tabs type="segment" style="margin-top: 10px" class="tabs">
+        <n-tab-pane
+          class="tab-pane"
+          name="syncConfig"
+          tab="Webhook 同步配置"
+          display-directive="show:lazy"
+        >
+          <div class="sync-config-list">
+            <n-card
+              v-for="(config, index) in config.sync.syncConfigs"
+              :key="config.id"
+              class="sync-config-card"
+            >
+              <template #header>
+                <n-text strong>{{ config.name }}</n-text>
+              </template>
+              <template #header-extra>
+                <n-space>
+                  <n-button type="primary" @click="editSyncConfig(index)">编辑</n-button>
+                  <n-button type="error" @click="deleteSyncConfig(index)">删除</n-button>
+                </n-space>
+              </template>
+              <n-space vertical>
+                <n-text>同步源: {{ getSyncSourceLabel(config.syncSource) }}</n-text>
+                <n-text>目录结构: {{ config.folderStructure }}</n-text>
+                <n-text>同步后操作: {{ getPostSyncActionLabel(config.postSyncAction) }}</n-text>
+                <n-text>处理文件: {{ getTargetFilesLabel(config.targetFiles) }}</n-text>
+              </n-space>
+            </n-card>
+            <n-card class="sync-config-card" @click="addSyncConfig">
+              <div class="add-card">
+                <n-icon size="48">
+                  <Add />
+                </n-icon>
+                <n-text>添加同步配置</n-text>
+              </div>
+            </n-card>
+          </div>
+        </n-tab-pane>
         <n-tab-pane
           class="tab-pane"
           name="BaiduPCS"
@@ -156,20 +194,94 @@
         </template>
       </n-card>
     </n-modal>
+    <n-modal v-model:show="syncConfigModalVisible" :mask-closable="false" auto-focus>
+      <n-card
+        style="width: 600px; max-height: 80%"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+        class="card"
+      >
+        <template #header>
+          <n-text>{{ editingConfigIndex === null ? "添加" : "编辑" }}同步配置</n-text>
+        </template>
+        <n-form label-placement="left" :label-width="100">
+          <n-form-item label="配置名称">
+            <n-input v-model:value="editingConfig.name" placeholder="请输入配置名称" />
+          </n-form-item>
+          <n-form-item label="同步源">
+            <n-select
+              v-model:value="editingConfig.syncSource"
+              :options="[
+                { label: '百度网盘', value: 'baiduPCS' },
+                { label: '阿里云盘', value: 'aliyunpan' },
+              ]"
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="目录结构"
+                tip="支持以下占位符：{{platform}}、{{owner}}、{{year}}、{{month}}、{{date}}、{{hour}}、{{min}}、{{sec}}、{{title}}"
+              >
+              </Tip>
+            </template>
+            <n-input v-model:value="editingConfig.folderStructure" placeholder="请输入目录结构" />
+          </n-form-item>
+          <n-form-item label="同步后操作">
+            <n-select
+              v-model:value="editingConfig.postSyncAction"
+              :options="[
+                { label: '无', value: 'none' },
+                { label: '删除', value: 'delete' },
+                { label: '复制', value: 'copy' },
+                { label: '移动', value: 'move' },
+              ]"
+            />
+          </n-form-item>
+          <n-form-item label="处理文件">
+            <n-checkbox-group v-model:value="editingConfig.targetFiles">
+              <n-space vertical>
+                <n-checkbox value="source">源文件</n-checkbox>
+                <n-checkbox value="danmaku">弹幕压制后的文件</n-checkbox>
+                <n-checkbox value="remux">转封装后的文件</n-checkbox>
+                <n-checkbox value="xml">XML文件</n-checkbox>
+                <n-checkbox value="ass">ASS文件</n-checkbox>
+                <n-checkbox value="cover">封面文件</n-checkbox>
+              </n-space>
+            </n-checkbox-group>
+          </n-form-item>
+        </n-form>
+        <template #footer>
+          <div class="footer">
+            <n-button class="btn" @click="syncConfigModalVisible = false">取消</n-button>
+            <n-button type="primary" class="btn" @click="saveSyncConfig">保存</n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { FolderOpenOutline } from "@vicons/ionicons5";
+import { FolderOpenOutline, Add } from "@vicons/ionicons5";
 import { showFileDialog } from "@renderer/utils/fileSystem";
+import { uuid } from "@renderer/utils";
 
 import { syncApi } from "@renderer/apis";
 // import { useConfirm } from "@renderer/hooks";
 
-import type { AppConfig, SyncType } from "@biliLive-tools/types";
+import type { AppConfig, SyncType, SyncConfig } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
-  default: () => {},
+  default: () => ({
+    sync: {
+      baiduPCS: { execPath: "", targetPath: "" },
+      aliyunpan: { execPath: "", targetPath: "" },
+      syncConfigs: [],
+    },
+  }),
 });
 
 const isWeb = computed(() => window.isWeb);
@@ -276,6 +388,84 @@ const baiduPCSClientClogin = async () => {
   const cookie = await window.api.cookie.baiduLogin();
   cookies.value = cookie;
 };
+
+// 同步配置相关
+const editingConfigIndex = ref<number | null>(null);
+const editingConfig = ref<SyncConfig>({
+  id: uuid(),
+  name: "",
+  syncSource: "baiduPCS",
+  folderStructure: "{{platform}}/{{owner}}/{{year}}-{{month}}-{{date}}",
+  postSyncAction: "none",
+  targetFiles: [],
+});
+
+const syncConfigModalVisible = ref(false);
+
+const getSyncSourceLabel = (value: string) => {
+  const options = {
+    baiduPCS: "BaiduPCS",
+    aliyunpan: "阿里云盘",
+  };
+  return options[value] || value;
+};
+
+const getPostSyncActionLabel = (value: string) => {
+  const options = {
+    none: "无",
+    copy: "复制",
+    move: "移动",
+  };
+  return options[value] || value;
+};
+
+const getTargetFilesLabel = (values: string[]) => {
+  const options = {
+    source: "源文件",
+    danmaku: "弹幕压制文件",
+    remux: "转封装文件",
+    xml: "XML文件",
+    ass: "ASS文件",
+    cover: "封面文件",
+  };
+  return values.map((v) => options[v] || v).join("、");
+};
+
+const addSyncConfig = () => {
+  editingConfigIndex.value = null;
+  editingConfig.value = {
+    id: uuid(),
+    name: "",
+    syncSource: "baiduPCS",
+    folderStructure: "{{platform}}/{{owner}}/{{year}}-{{month}}-{{date}}",
+    postSyncAction: "none",
+    targetFiles: [],
+  };
+  syncConfigModalVisible.value = true;
+};
+
+const editSyncConfig = (index: number) => {
+  editingConfigIndex.value = index;
+  editingConfig.value = { ...config.value.sync.syncConfigs[index] };
+  syncConfigModalVisible.value = true;
+};
+
+const deleteSyncConfig = (index: number) => {
+  config.value.sync.syncConfigs.splice(index, 1);
+};
+
+const saveSyncConfig = () => {
+  if (!editingConfig.value.name) {
+    notice.error("配置名称不能为空");
+    return;
+  }
+  if (editingConfigIndex.value === null) {
+    config.value.sync.syncConfigs.push({ ...editingConfig.value });
+  } else {
+    config.value.sync.syncConfigs[editingConfigIndex.value] = { ...editingConfig.value };
+  }
+  syncConfigModalVisible.value = false;
+};
 </script>
 
 <style scoped lang="less">
@@ -296,6 +486,27 @@ const baiduPCSClientClogin = async () => {
   text-align: right;
   .btn + .btn {
     margin-left: 10px;
+  }
+}
+
+.sync-config-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.sync-config-card {
+  height: 100%;
+  .add-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    &:hover {
+      background-color: var(--n-color-hover);
+    }
   }
 }
 </style>
