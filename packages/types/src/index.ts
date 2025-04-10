@@ -261,6 +261,20 @@ export interface NotificationPushAllInAllConfig {
   key: string;
 }
 
+/**
+ * 自定义HTTP通知配置
+ */
+export interface NotificationCustomHttpConfig {
+  /** 请求URL */
+  url: string;
+  /** 请求方法 */
+  method?: "GET" | "POST" | "PUT";
+  /** 请求体，支持{{title}}和{{desc}}占位符 */
+  body?: string;
+  /** 请求头，每行一个，格式为key: value */
+  headers?: string;
+}
+
 export type Theme = "system" | "light" | "dark";
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
@@ -474,13 +488,14 @@ export interface AppConfig {
     /** 通知配置项 */
     setting: {
       // 通知类型，支持server酱和邮件
-      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne";
+      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne" | "customHttp";
       // server酱key
       server: NotificationServerConfig;
       mail: NotificationMailConfig;
       tg: NotificationTgConfig;
       ntfy: NotificationNtfyConfig;
       allInOne: NotificationPushAllInAllConfig;
+      customHttp: NotificationCustomHttpConfig;
     };
     taskNotificationType: {
       liveStart: AppConfig["notification"]["setting"]["type"];

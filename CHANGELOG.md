@@ -16,6 +16,7 @@
 - 客户端任务栏图标新增重启功能
 - tg 通知支持反代url [#69](https://github.com/renmu123/biliLive-tools/issues/69)
 - 虎牙增加弹幕重连次数，默认为10
+- 支持自定义HTTP通知，真的是最后一个通知了
 
 ## 优化
 

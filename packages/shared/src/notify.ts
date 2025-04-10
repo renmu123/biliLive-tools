@@ -10,6 +10,7 @@ import type {
   NotificationTgConfig,
   NotificationNtfyConfig,
   NotificationPushAllInAllConfig,
+  NotificationCustomHttpConfig,
 } from "@biliLive-tools/types";
 
 /**
@@ -139,6 +140,55 @@ export async function sendByAllInOne(
   });
 }
 
+/**
+ * 通过自定义HTTP请求发送通知
+ */
+export async function sendByCustomHttp(
+  title: string,
+  desp: string,
+  options: NotificationCustomHttpConfig,
+) {
+  if (!options.url) {
+    throw new Error("自定义HTTP通知URL不能为空");
+  }
+
+  let url = options.url;
+  let body = options.body || "";
+  let headers: Record<string, string> = {};
+
+  // 处理headers
+  if (options.headers) {
+    const headerLines = options.headers.split("\n");
+    for (const line of headerLines) {
+      const [key, ...values] = line.split(":");
+      if (key && values.length > 0) {
+        headers[key.trim()] = values.join(":").trim();
+      }
+    }
+  }
+
+  // 替换占位符
+  url = url
+    .replace("{{title}}", encodeURIComponent(title))
+    .replace("{{desc}}", encodeURIComponent(desp));
+  body = body.replace("{{title}}", title).replace("{{desc}}", desp);
+
+  try {
+    const res = await fetch(url, {
+      method: options.method || "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...headers,
+      },
+      body: options.method === "GET" ? undefined : body,
+    });
+    log.info("sendByCustomHttp res", res);
+  } catch (e) {
+    log.error("sendByCustomHttp error", e);
+    throw e;
+  }
+}
+
 type TaskType =
   | "liveStart"
   | "ffmpeg"
@@ -185,6 +235,9 @@ export async function _send(
       break;
     case "allInOne":
       await sendByAllInOne(title, desp, appConfig?.notification?.setting?.allInOne);
+      break;
+    case "customHttp":
+      await sendByCustomHttp(title, desp, appConfig?.notification?.setting?.customHttp);
       break;
   }
 }

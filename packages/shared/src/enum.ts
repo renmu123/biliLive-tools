@@ -19,6 +19,7 @@ export enum NotificationType {
   system = "system",
   ntfy = "ntfy",
   allInOne = "allInOne",
+  customHttp = "customHttp",
 }
 
 export enum LLMType {
@@ -179,6 +180,12 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       allInOne: {
         server: "",
         key: "",
+      },
+      customHttp: {
+        url: "",
+        method: "GET",
+        body: "",
+        headers: "",
       },
     },
     taskNotificationType: {
