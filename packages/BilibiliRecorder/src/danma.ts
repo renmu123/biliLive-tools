@@ -116,12 +116,9 @@ class DanmaClient extends EventEmitter {
     this.client.live.on("error", (err) => {
       this.retryCount -= 1;
       if (this.retryCount > 0) {
-        setTimeout(
-          () => {
-            this.client && this.client.reconnect();
-          },
-          1000 * (10 - this.retryCount),
-        );
+        setTimeout(() => {
+          this.client && this.client.reconnect();
+        }, 2000);
       }
       this.emit("error", err);
     });
