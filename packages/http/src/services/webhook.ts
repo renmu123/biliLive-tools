@@ -18,6 +18,7 @@ import {
 } from "@biliLive-tools/shared/utils/index.js";
 
 import { config } from "../index.js";
+import FileLockManager from "./fileLockManager.js";
 
 import type {
   BiliupConfig,
@@ -112,6 +113,9 @@ export class WebhookHandler {
   videoPreset: VideoPreset;
   danmuPreset: DanmuPreset;
   appConfig: AppConfig;
+  // 存储已处理的文件名，避免重复处理
+  private processedFiles: Set<string> = new Set();
+  private fileLockManager: FileLockManager = new FileLockManager();
   constructor(appConfig: AppConfig) {
     this.ffmpegPreset = new FFmpegPreset({
       globalConfig: { ffmpegPresetPath: config.ffmpegPresetPath },
@@ -123,6 +127,9 @@ export class WebhookHandler {
       globalConfig: { danmuPresetPath: config.danmuPresetPath },
     });
     this.appConfig = appConfig;
+
+    // 定期清理过期的锁
+    setInterval(() => this.fileLockManager.cleanup(), 60 * 60 * 1000); // 每小时清理一次
   }
 
   async handle(options: Options) {
@@ -144,6 +151,9 @@ export class WebhookHandler {
       afterConvertRemoveVideo,
       afterConvertRemoveXml,
       videoHandleTime,
+      uid,
+      uploadNoDanmu,
+      noDanmuVideoPreset,
     } = this.getConfig(options.roomId);
     if (!open) {
       log.info(`${options.roomId} is not open`);
@@ -229,9 +239,12 @@ export class WebhookHandler {
       try {
         await sleep(10000);
         if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
-          log.error("没有找到弹幕文件", xmlFilePath);
           currentPart.recordStatus = "handled";
-          return;
+          // 等待1秒后，将上传状态设置为pending，不直接返回是由于后续有同步等相关操作
+          setTimeout(() => {
+            currentPart.uploadStatus = "pending";
+          }, 1000);
+          throw new Error(`没有找到弹幕文件：${xmlFilePath}`);
         }
         if (!danmuPresetId || !videoPresetId) {
           currentPart.uploadStatus = "error";
@@ -256,7 +269,7 @@ export class WebhookHandler {
               fillColor: hotProgressFillColor || "#333333",
               height: hotProgressHeight || 60,
             },
-            removeVideo: afterConvertRemoveVideo,
+            removeVideo: false,
             removeDanmu: false,
             limitTime: videoHandleTime,
           },
@@ -276,10 +289,11 @@ export class WebhookHandler {
             throw new Error(`ffmpegPreset not found ${videoPresetId}`);
           }
           const output = await this.transcode(options.filePath, preset.config, {
-            removeVideo: afterConvertRemoveVideo,
+            removeVideo: false,
             suffix: "-后处理",
             limitTime: videoHandleTime,
           });
+          currentPart.filePath = output;
         } catch (error) {
           log.error(error);
           currentPart.uploadStatus = "error";
@@ -310,19 +324,36 @@ export class WebhookHandler {
     if (cover) {
       this.handleCoverSync(options.roomId, cover, currentPart.partId);
     }
+
     // 处理弹幕文件同步和删除
-    this.handleDanmuSync(options.roomId, xmlFilePath, currentPart.partId, afterConvertRemoveXml);
+    if (xmlFilePath) {
+      this.handleDanmuSync(options.roomId, xmlFilePath, currentPart.partId, afterConvertRemoveXml);
+    }
 
-    // // 同步源文件（如果存在）
-    // if (await fs.pathExists(options.filePath)) {
-    //   this.handleFileSync(options.roomId, options.filePath, "source", currentPart.partId);
-    // }
+    if (uid) {
+      this.fileLockManager.acquireLock(currentPart.filePath, "upload");
 
-    // 同步处理后的视频文件（如果存在且与源文件不同）
-    // if (currentPart.filePath !== options.filePath && (await fs.pathExists(currentPart.filePath))) {
-    //   const fileType = danmu ? "danmaku" : "remux";
-    //   this.handleFileSync(options.roomId, currentPart.filePath, fileType, currentPart.partId);
-    // }
+      if (uploadNoDanmu && noDanmuVideoPreset) {
+        this.fileLockManager.acquireLock(currentPart.rawFilePath, "upload");
+      }
+    }
+
+    await this.handleVideoSync(
+      options.roomId,
+      currentPart.rawFilePath,
+      currentPart.partId,
+      afterConvertRemoveVideo,
+    ).catch((error) => {
+      log.error("handleVideoSync", error);
+    });
+    await this.handleVideoSync(
+      options.roomId,
+      currentPart.filePath,
+      currentPart.partId,
+      false,
+    ).catch((error) => {
+      log.error("handleVideoSync", error);
+    });
   }
 
   /**
@@ -344,11 +375,17 @@ export class WebhookHandler {
   async handleFileSync(
     roomId: number,
     filePath: string,
-    fileType: "source" | "danmaku" | "remux" | "xml" | "cover",
+    fileType: "source" | "danmaku" | "xml" | "cover",
     partId?: string,
     removeAfterSync: boolean = false,
   ) {
     if (!(await fs.pathExists(filePath))) return;
+
+    // 检查文件是否已经处理过
+    if (this.processedFiles.has(filePath)) {
+      log.info(`文件已处理过，跳过同步: ${filePath}`);
+      return;
+    }
 
     const { syncId } = this.getConfig(roomId);
     if (!syncId) return;
@@ -375,6 +412,10 @@ export class WebhookHandler {
     }
     if (!livePart) return;
 
+    // 将文件添加到已处理集合中
+    this.processedFiles.add(filePath);
+    this.fileLockManager.acquireLock(filePath, "sync");
+
     // 提取基本信息
     const { name: filename } = path.parse(filePath);
     let platform: Platform = "blrec";
@@ -394,24 +435,13 @@ export class WebhookHandler {
     // 准备格式化参数
     const formatParams = {
       platform,
-      owner: username,
       user: username,
-      title,
-      roomId,
-      filename,
-      time: partStartTime.toISOString(),
       year: partStartTime.getFullYear(),
       month: (partStartTime.getMonth() + 1).toString().padStart(2, "0"),
       date: partStartTime.getDate().toString().padStart(2, "0"),
-      hour: partStartTime.getHours().toString().padStart(2, "0"),
-      min: partStartTime.getMinutes().toString().padStart(2, "0"),
-      sec: partStartTime.getSeconds().toString().padStart(2, "0"),
       yyyy: partStartTime.getFullYear(),
       MM: (partStartTime.getMonth() + 1).toString().padStart(2, "0"),
       dd: partStartTime.getDate().toString().padStart(2, "0"),
-      HH: partStartTime.getHours().toString().padStart(2, "0"),
-      mm: partStartTime.getMinutes().toString().padStart(2, "0"),
-      ss: partStartTime.getSeconds().toString().padStart(2, "0"),
       now: `${partStartTime.getFullYear()}.${(partStartTime.getMonth() + 1).toString().padStart(2, "0")}.${partStartTime.getDate().toString().padStart(2, "0")}`,
       partId: livePart?.part?.partId || "",
     };
@@ -444,8 +474,16 @@ export class WebhookHandler {
       log.info(`同步${fileType}文件成功: ${filePath}`);
 
       task.on("task-end", async () => {
+        // 等待65秒，确保文件被释放
+        await sleep(1000 * 65);
+        this.fileLockManager.releaseLock(filePath, "sync");
         // 同步后删除源文件（如果需要）
         if (removeAfterSync) {
+          // 检查文件是否被锁定
+          if (this.fileLockManager.isLocked(filePath)) {
+            log.warn(`文件 ${filePath} 被锁定，跳过删除`);
+            return;
+          }
           await trashItem(filePath);
           log.info(`已删除同步后的源文件: ${filePath}`);
         }
@@ -578,7 +616,6 @@ export class WebhookHandler {
   } {
     const config = this.appConfig.getAll();
     const roomSetting: AppRoomConfig | undefined = config.webhook?.rooms?.[roomId];
-    // log.debug("room setting", roomId, roomSetting);
 
     const danmu = getRoomSetting("danmu");
     const mergePart = getRoomSetting("autoPartMerge");
@@ -891,10 +928,34 @@ export class WebhookHandler {
       biliApi
         .addMedia(pathArray, options, uid, {
           limitedUploadTime,
-          afterUploadDeletAction,
+          afterUploadDeletAction: "none",
+          checkCallback: (status) => {
+            if (status === "completed") {
+              for (const { path } of pathArray) {
+                const isLocked = this.fileLockManager.isLocked(path);
+                if (!isLocked) {
+                  if (afterUploadDeletAction === "deleteAfterCheck") {
+                    trashItem(path);
+                  }
+                }
+              }
+            }
+          },
         })
         .then((task) => {
           task.on("task-end", () => {
+            // 释放所有文件的锁
+            for (const { path } of pathArray) {
+              this.fileLockManager.releaseLock(path, "upload");
+            }
+            if (afterUploadDeletAction === "delete") {
+              for (const { path } of pathArray) {
+                const isLocked = this.fileLockManager.isLocked(path);
+                if (!isLocked) {
+                  trashItem(path);
+                }
+              }
+            }
             resolve(task.output);
           });
           task.on("task-error", () => {
@@ -924,10 +985,34 @@ export class WebhookHandler {
       biliApi
         .editMedia(aid, pathArray, {}, uid, {
           limitedUploadTime: limitedUploadTime,
-          afterUploadDeletAction: afterUploadDeletAction,
+          afterUploadDeletAction: "none",
+          checkCallback: (status) => {
+            if (status === "completed") {
+              for (const { path } of pathArray) {
+                const isLocked = this.fileLockManager.isLocked(path);
+                if (!isLocked) {
+                  if (afterUploadDeletAction === "deleteAfterCheck") {
+                    trashItem(path);
+                  }
+                }
+              }
+            }
+          },
         })
         .then((task) => {
           task.on("task-end", () => {
+            // 释放所有文件的锁
+            for (const { path } of pathArray) {
+              this.fileLockManager.releaseLock(path, "upload");
+            }
+            if (afterUploadDeletAction === "delete") {
+              for (const { path } of pathArray) {
+                const isLocked = this.fileLockManager.isLocked(path);
+                if (!isLocked) {
+                  trashItem(path);
+                }
+              }
+            }
             resolve(task.output);
           });
           task.on("task-error", () => {
@@ -1173,6 +1258,7 @@ export class WebhookHandler {
     shouldRemoveAfterSync: boolean,
   ) {
     // 检查文件是否存在
+    if (!xmlFilePath) return;
     if (!(await fs.pathExists(xmlFilePath))) {
       log.error(`弹幕文件不存在: ${xmlFilePath}`);
       return;
@@ -1191,6 +1277,46 @@ export class WebhookHandler {
       await this.handleFileSync(roomId, xmlFilePath, "xml", partId, shouldRemoveAfterSync);
     } catch (error) {
       log.error(`处理弹幕同步失败: ${xmlFilePath}`, error);
+    }
+  }
+
+  /**
+   * 处理原始视频文件删除和同步
+   * @param roomId 房间ID
+   * @param filePath 视频文件路径
+   * @param partId 分段ID
+   * @param shouldRemoveAfterSync 是否在同步后删除源文件
+   */
+  async handleVideoSync(
+    roomId: number,
+    filePath: string,
+    partId: string,
+    shouldRemoveAfterSync: boolean,
+  ) {
+    // 检查文件是否存在
+    if (!filePath) return;
+    if (!(await fs.pathExists(filePath))) {
+      log.error(`视频文件不存在: ${filePath}`);
+      return;
+    }
+
+    try {
+      const { syncId } = this.getConfig(roomId);
+      if (!syncId) {
+        if (shouldRemoveAfterSync && !this.fileLockManager.isLocked(filePath)) {
+          await trashItem(filePath);
+        }
+        return;
+      }
+      let fileType: "source" | "danmaku" = "source";
+      if (filePath.includes("-弹幕版") || filePath.includes("-后处理")) {
+        fileType = "danmaku";
+      }
+
+      // 首先同步视频文件
+      await this.handleFileSync(roomId, filePath, fileType, partId, shouldRemoveAfterSync);
+    } catch (error) {
+      log.error(`处理视频同步失败: ${filePath}`, error);
     }
   }
 }

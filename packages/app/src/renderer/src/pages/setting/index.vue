@@ -302,6 +302,7 @@
     :ffmpeg-options="ffmpegOptions"
     :global-fields-obj="roomGlobalCheckObj"
     :global-value="webhookDefaultValue"
+    :syncConfigs="config.sync.syncConfigs"
     @save="saveRoomDetail"
     @delete="deleteRoom"
   ></RoomSettingDialog>
@@ -342,6 +343,9 @@ const config: Ref<AppConfig> = ref({
     douyuDownloadMaxNum: -1,
     biliUploadMaxNum: -1,
     biliDownloadMaxNum: -1,
+  },
+  sync: {
+    syncConfigs: [],
   },
 });
 // @ts-ignore

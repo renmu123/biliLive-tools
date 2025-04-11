@@ -384,6 +384,7 @@ async function addMedia(
   extraOptions?: {
     limitedUploadTime?: [] | [string, string];
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
+    checkCallback?: (status: "completed" | "error") => void;
   },
 ) {
   if (options.title.length > 80) {
@@ -451,6 +452,7 @@ async function addMedia(
               },
               media,
             );
+            extraOptions?.checkCallback && extraOptions?.checkCallback(status);
           });
         }
 
@@ -508,6 +510,7 @@ export async function editMedia(
   extraOptions?: {
     limitedUploadTime?: [] | [string, string];
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
+    checkCallback?: (status: "completed" | "error") => void;
   },
 ) {
   if (filePath.length === 0) {
@@ -546,6 +549,7 @@ export async function editMedia(
               },
               media,
             );
+            extraOptions?.checkCallback && extraOptions?.checkCallback(status);
           });
         }
         // 处理上传后操作

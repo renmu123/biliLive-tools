@@ -410,7 +410,7 @@ export type SyncConfig = {
   name: string;
   syncSource: "baiduPCS" | "aliyunpan";
   folderStructure: string;
-  targetFiles: ("source" | "danmaku" | "remux" | "xml" | "cover")[];
+  targetFiles: ("source" | "danmaku" | "xml" | "cover")[];
 };
 
 // 全局配置

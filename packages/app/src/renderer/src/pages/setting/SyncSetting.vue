@@ -222,7 +222,7 @@
             <template #label>
               <Tip
                 text="目录结构"
-                tip="支持以下占位符：{{platform}}、{{owner}}、{{year}}、{{month}}、{{date}}、{{hour}}、{{min}}、{{sec}}、{{title}}"
+                tip="支持以下占位符：{{platform}}、{{user}}、{{year}}、{{month}}、{{date}}"
               >
               </Tip>
             </template>
@@ -233,7 +233,6 @@
               <n-space vertical>
                 <n-checkbox value="source">源文件</n-checkbox>
                 <n-checkbox value="danmaku">弹幕压制后的文件</n-checkbox>
-                <n-checkbox value="remux">转封装后的文件</n-checkbox>
                 <n-checkbox value="xml">XML文件</n-checkbox>
                 <n-checkbox value="cover">封面图片</n-checkbox>
               </n-space>
@@ -257,7 +256,7 @@ import { showFileDialog } from "@renderer/utils/fileSystem";
 import { uuid } from "@renderer/utils";
 
 import { syncApi } from "@renderer/apis";
-// import { useConfirm } from "@renderer/hooks";
+import { useConfirm } from "@renderer/hooks";
 
 import type { AppConfig, SyncType, SyncConfig } from "@biliLive-tools/types";
 
@@ -382,7 +381,7 @@ const editingConfig = ref<SyncConfig>({
   id: uuid(),
   name: "",
   syncSource: "baiduPCS",
-  folderStructure: "{{platform}}/{{owner}}/{{year}}-{{month}}-{{date}}",
+  folderStructure: "{{owner}}/{{year}}-{{month}}",
   targetFiles: [],
 });
 
@@ -400,7 +399,6 @@ const getTargetFilesLabel = (values: string[]) => {
   const options = {
     source: "源文件",
     danmaku: "弹幕压制文件",
-    remux: "转封装文件",
     xml: "XML文件",
     cover: "封面图片",
   };
@@ -432,8 +430,32 @@ const editSyncConfig = (index: number) => {
   syncConfigModalVisible.value = true;
 };
 
-const deleteSyncConfig = (index: number) => {
+const confirm = useConfirm();
+
+const deleteSyncConfig = async (index: number) => {
+  const configToDelete = config.value.sync.syncConfigs[index];
+
+  // 检查该同步配置是否正在被使用
+  const isInUse =
+    // 检查全局配置
+    config.value.webhook?.syncId === configToDelete.id ||
+    // 检查房间配置
+    Object.values(config.value.webhook?.rooms || {}).some(
+      (room) => room.syncId === configToDelete.id,
+    );
+
+  if (isInUse) {
+    notice.error("该同步配置正在被使用，无法删除。请先修改或删除使用此配置的房间设置。");
+    return;
+  }
+
+  const status = await confirm.warning({
+    content: `确定要删除同步配置？`,
+  });
+  if (!status) return;
+
   config.value.sync.syncConfigs.splice(index, 1);
+  notice.success("同步配置已删除");
 };
 
 const saveSyncConfig = () => {
