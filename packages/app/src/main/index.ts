@@ -332,6 +332,12 @@ const canQuit = async () => {
       buttons: ["取消", "退出"],
     });
     if (confirm.response === 1) {
+      // 手动停止正在录制的直播
+      for (const recorder of recorderManager.manager.recorders) {
+        if (recorder.state === "recording") {
+          await recorderManager.manager.stopRecord(recorder.id);
+        }
+      }
       return true;
     } else {
       return false;
