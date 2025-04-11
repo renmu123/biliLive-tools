@@ -1179,6 +1179,14 @@ export class WebhookHandler {
     }
 
     try {
+      const { syncId } = this.getConfig(roomId);
+      if (!syncId) {
+        if (shouldRemoveAfterSync) {
+          await trashItem(xmlFilePath);
+        }
+        return;
+      }
+
       // 首先同步弹幕文件
       await this.handleFileSync(roomId, xmlFilePath, "xml", partId, shouldRemoveAfterSync);
     } catch (error) {
