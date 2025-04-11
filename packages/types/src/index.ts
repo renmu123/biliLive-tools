@@ -86,7 +86,7 @@ export type CommonRoomConfig = {
   /** 分p标题模板 */
   partTitleTemplate: string;
   /** 同步器配置ID */
-  syncType?: string;
+  syncId?: string;
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
@@ -410,8 +410,7 @@ export type SyncConfig = {
   name: string;
   syncSource: "baiduPCS" | "aliyunpan";
   folderStructure: string;
-  postSyncAction: "none" | "copy" | "move";
-  targetFiles: ("source" | "danmaku" | "remux" | "xml" | "ass" | "cover")[];
+  targetFiles: ("source" | "danmaku" | "remux" | "xml" | "cover")[];
 };
 
 // 全局配置

@@ -189,9 +189,9 @@ export class WebhookHandler {
 
     log.debug(this.liveData);
 
-    // TODO:重构
+    const cover = await this.handleCover(options);
+
     if (useLiveCover) {
-      const cover = await this.handleCover(options);
       if (cover) {
         currentPart.cover = cover;
       } else {
@@ -229,14 +229,13 @@ export class WebhookHandler {
       try {
         await sleep(10000);
         if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
-          log.info("没有找到弹幕文件", xmlFilePath);
+          log.error("没有找到弹幕文件", xmlFilePath);
           currentPart.recordStatus = "handled";
           return;
         }
         if (!danmuPresetId || !videoPresetId) {
-          log.error("没有找到预设", danmuPresetId, videoPresetId);
           currentPart.uploadStatus = "error";
-          return;
+          throw new Error(`没有找到预设${danmuPresetId}或${videoPresetId}`);
         }
 
         const danmuConfig = (await this.danmuPreset.get(danmuPresetId))!.config;
@@ -258,7 +257,7 @@ export class WebhookHandler {
               height: hotProgressHeight || 60,
             },
             removeVideo: afterConvertRemoveVideo,
-            removeDanmu: afterConvertRemoveXml,
+            removeDanmu: false,
             limitTime: videoHandleTime,
           },
         );
@@ -271,18 +270,20 @@ export class WebhookHandler {
       }
     } else {
       if (videoPresetId) {
-        const preset = await this.ffmpegPreset.get(videoPresetId);
-        if (!preset) {
-          log.error("ffmpegPreset not found", videoPresetId);
+        try {
+          const preset = await this.ffmpegPreset.get(videoPresetId);
+          if (!preset) {
+            throw new Error(`ffmpegPreset not found ${videoPresetId}`);
+          }
+          const output = await this.transcode(options.filePath, preset.config, {
+            removeVideo: afterConvertRemoveVideo,
+            suffix: "-后处理",
+            limitTime: videoHandleTime,
+          });
+        } catch (error) {
+          log.error(error);
           currentPart.uploadStatus = "error";
-          return;
         }
-        const output = await this.transcode(options.filePath, preset.config, {
-          removeVideo: afterConvertRemoveVideo,
-          suffix: "-后处理",
-          limitTime: videoHandleTime,
-        });
-        currentPart.filePath = output;
       }
       currentPart.recordStatus = "handled";
 
@@ -296,7 +297,7 @@ export class WebhookHandler {
             {
               saveRadio: 1,
               savePath: path.dirname(xmlFilePath),
-              removeOrigin: afterConvertRemoveXml,
+              removeOrigin: false,
             },
           );
         } catch (error) {
@@ -304,6 +305,24 @@ export class WebhookHandler {
         }
       }
     }
+
+    // 处理封面同步
+    if (cover) {
+      this.handleCoverSync(options.roomId, cover, currentPart.partId);
+    }
+    // 处理弹幕文件同步和删除
+    this.handleDanmuSync(options.roomId, xmlFilePath, currentPart.partId, afterConvertRemoveXml);
+
+    // // 同步源文件（如果存在）
+    // if (await fs.pathExists(options.filePath)) {
+    //   this.handleFileSync(options.roomId, options.filePath, "source", currentPart.partId);
+    // }
+
+    // 同步处理后的视频文件（如果存在且与源文件不同）
+    // if (currentPart.filePath !== options.filePath && (await fs.pathExists(currentPart.filePath))) {
+    //   const fileType = danmu ? "danmaku" : "remux";
+    //   this.handleFileSync(options.roomId, currentPart.filePath, fileType, currentPart.partId);
+    // }
   }
 
   /**
@@ -312,6 +331,138 @@ export class WebhookHandler {
    */
   findLiveByFilePath(filePath: string) {
     return this.liveData.find((live) => live.parts.some((part) => part.filePath === filePath));
+  }
+
+  /**
+   * 通用文件同步处理
+   * @param roomId 房间ID
+   * @param filePath 文件路径
+   * @param fileType 文件类型
+   * @param partId 分段ID（可选），用于更准确地关联直播分段
+   * @param removeAfterSync 同步后是否删除源文件
+   */
+  async handleFileSync(
+    roomId: number,
+    filePath: string,
+    fileType: "source" | "danmaku" | "remux" | "xml" | "cover",
+    partId?: string,
+    removeAfterSync: boolean = false,
+  ) {
+    if (!(await fs.pathExists(filePath))) return;
+
+    const { syncId } = this.getConfig(roomId);
+    if (!syncId) return;
+
+    const config = this.appConfig.getAll();
+    const syncConfig = config.sync.syncConfigs.find((cfg) => cfg.id === syncId);
+    if (!syncConfig) return;
+
+    // 检查是否需要同步该类型的文件
+    if (!syncConfig.targetFiles.includes(fileType)) return;
+
+    // 准备直播信息和分段信息
+    let livePart: { live: Live; part?: Part } | undefined;
+
+    // 通过partId查找
+    if (partId) {
+      for (const live of this.liveData) {
+        const part = live.parts.find((p) => p.partId === partId);
+        if (part) {
+          livePart = { live, part };
+          break;
+        }
+      }
+    }
+    if (!livePart) return;
+
+    // 提取基本信息
+    const { name: filename } = path.parse(filePath);
+    let platform: Platform = "blrec";
+    let title = "unknown";
+    let username = "unknown";
+    let partStartTime = new Date();
+
+    const { live, part } = livePart;
+    platform = live.platform;
+    title = live.title;
+    username = live.username;
+
+    if (part?.startTime) {
+      partStartTime = new Date(part.startTime);
+    }
+
+    // 准备格式化参数
+    const formatParams = {
+      platform,
+      owner: username,
+      user: username,
+      title,
+      roomId,
+      filename,
+      time: partStartTime.toISOString(),
+      year: partStartTime.getFullYear(),
+      month: (partStartTime.getMonth() + 1).toString().padStart(2, "0"),
+      date: partStartTime.getDate().toString().padStart(2, "0"),
+      hour: partStartTime.getHours().toString().padStart(2, "0"),
+      min: partStartTime.getMinutes().toString().padStart(2, "0"),
+      sec: partStartTime.getSeconds().toString().padStart(2, "0"),
+      yyyy: partStartTime.getFullYear(),
+      MM: (partStartTime.getMonth() + 1).toString().padStart(2, "0"),
+      dd: partStartTime.getDate().toString().padStart(2, "0"),
+      HH: partStartTime.getHours().toString().padStart(2, "0"),
+      mm: partStartTime.getMinutes().toString().padStart(2, "0"),
+      ss: partStartTime.getSeconds().toString().padStart(2, "0"),
+      now: `${partStartTime.getFullYear()}.${(partStartTime.getMonth() + 1).toString().padStart(2, "0")}.${partStartTime.getDate().toString().padStart(2, "0")}`,
+      partId: livePart?.part?.partId || "",
+    };
+
+    // 格式化文件夹结构
+    let folderStructure = syncConfig.folderStructure;
+    for (const [key, value] of Object.entries(formatParams)) {
+      folderStructure = folderStructure.replace(new RegExp(`{{${key}}}`, "g"), String(value));
+    }
+
+    const { binary: binaryPath, target: targetPath } = {
+      binary: config.sync[syncConfig.syncSource].execPath,
+      target: config.sync[syncConfig.syncSource].targetPath,
+    };
+
+    // 如果没有配置同步源，直接返回
+    if (!binaryPath || !targetPath) return;
+
+    try {
+      // 调用同步函数
+      const { addSyncTask } = await import("@biliLive-tools/shared/task/sync.js");
+      const task = await addSyncTask({
+        input: filePath,
+        remotePath: path.join(targetPath, folderStructure),
+        execPath: binaryPath,
+        retry: 3,
+        policy: "skip",
+        type: syncConfig.syncSource,
+      });
+      log.info(`同步${fileType}文件成功: ${filePath}`);
+
+      task.on("task-end", async () => {
+        // 同步后删除源文件（如果需要）
+        if (removeAfterSync) {
+          await trashItem(filePath);
+          log.info(`已删除同步后的源文件: ${filePath}`);
+        }
+      });
+    } catch (error) {
+      log.error(`同步${fileType}文件失败: ${filePath}`, error);
+    }
+  }
+
+  /**
+   * 处理封面同步
+   * @param roomId 房间ID
+   * @param coverPath 封面路径
+   * @param partId 分段ID（可选）
+   */
+  async handleCoverSync(roomId: number, coverPath: string, partId: string) {
+    return this.handleFileSync(roomId, coverPath, "cover", partId);
   }
 
   /**
@@ -422,6 +573,8 @@ export class WebhookHandler {
     partTitleTemplate: string;
     /** 上传完成后删除操作 */
     afterUploadDeletAction: "none" | "delete" | "deleteAfterCheck";
+    /** 同步器 */
+    syncId?: string;
   } {
     const config = this.appConfig.getAll();
     const roomSetting: AppRoomConfig | undefined = config.webhook?.rooms?.[roomId];
@@ -446,6 +599,7 @@ export class WebhookHandler {
     const removeSourceAferrConvert2Mp4 = getRoomSetting("removeSourceAferrConvert2Mp4");
     const limitVideoConvertTime = getRoomSetting("limitVideoConvertTime") ?? false;
     const videoHandleTime = getRoomSetting("videoHandleTime") || ["00:00:00", "23:59:59"];
+    const syncId = getRoomSetting("syncId");
 
     const afterConvertAction = getRoomSetting("afterConvertAction") ?? [];
     const afterConvertRemoveVideo = afterConvertAction.includes("removeVideo");
@@ -472,7 +626,6 @@ export class WebhookHandler {
     }
 
     const open = this.canRoomOpen(roomSetting, config?.webhook?.blacklist, roomId);
-    console.log("qq", roomSetting, getRoomSetting("afterUploadDeletAction"), uid);
     const options = {
       danmu,
       mergePart,
@@ -502,6 +655,7 @@ export class WebhookHandler {
       videoHandleTime: limitVideoConvertTime ? videoHandleTime : undefined,
       partTitleTemplate: getRoomSetting("partTitleTemplate") || "{{filename}}",
       afterUploadDeletAction: getRoomSetting("afterUploadDeletAction") ?? "none",
+      syncId,
     };
     // log.debug("final config", options);
 
@@ -610,6 +764,7 @@ export class WebhookHandler {
         title: options.title,
         username: options.username,
       });
+      // TODO: 通过视频或者弹幕元数据获取开始时间
       live.addPart({
         partId: uuid(),
         filePath: options.filePath,
@@ -1003,4 +1158,31 @@ export class WebhookHandler {
       await Promise.all([uploadVideo("handled"), uploadVideo("raw")]);
     }
   };
+
+  /**
+   * 处理弹幕文件同步和删除
+   * @param roomId 房间ID
+   * @param xmlFilePath 弹幕文件路径
+   * @param partId 分段ID
+   * @param shouldRemoveAfterSync 是否在同步后删除源文件
+   */
+  async handleDanmuSync(
+    roomId: number,
+    xmlFilePath: string,
+    partId: string,
+    shouldRemoveAfterSync: boolean,
+  ) {
+    // 检查文件是否存在
+    if (!(await fs.pathExists(xmlFilePath))) {
+      log.error(`弹幕文件不存在: ${xmlFilePath}`);
+      return;
+    }
+
+    try {
+      // 首先同步弹幕文件
+      await this.handleFileSync(roomId, xmlFilePath, "xml", partId, shouldRemoveAfterSync);
+    } catch (error) {
+      log.error(`处理弹幕同步失败: ${xmlFilePath}`, error);
+    }
+  }
 }

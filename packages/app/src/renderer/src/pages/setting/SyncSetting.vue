@@ -31,7 +31,6 @@
               <n-space vertical>
                 <n-text>同步源: {{ getSyncSourceLabel(config.syncSource) }}</n-text>
                 <n-text>目录结构: {{ config.folderStructure }}</n-text>
-                <n-text>同步后操作: {{ getPostSyncActionLabel(config.postSyncAction) }}</n-text>
                 <n-text>处理文件: {{ getTargetFilesLabel(config.targetFiles) }}</n-text>
               </n-space>
             </n-card>
@@ -229,17 +228,6 @@
             </template>
             <n-input v-model:value="editingConfig.folderStructure" placeholder="请输入目录结构" />
           </n-form-item>
-          <n-form-item label="同步后操作">
-            <n-select
-              v-model:value="editingConfig.postSyncAction"
-              :options="[
-                { label: '无', value: 'none' },
-                { label: '删除', value: 'delete' },
-                { label: '复制', value: 'copy' },
-                { label: '移动', value: 'move' },
-              ]"
-            />
-          </n-form-item>
           <n-form-item label="处理文件">
             <n-checkbox-group v-model:value="editingConfig.targetFiles">
               <n-space vertical>
@@ -247,8 +235,7 @@
                 <n-checkbox value="danmaku">弹幕压制后的文件</n-checkbox>
                 <n-checkbox value="remux">转封装后的文件</n-checkbox>
                 <n-checkbox value="xml">XML文件</n-checkbox>
-                <n-checkbox value="ass">ASS文件</n-checkbox>
-                <n-checkbox value="cover">封面文件</n-checkbox>
+                <n-checkbox value="cover">封面图片</n-checkbox>
               </n-space>
             </n-checkbox-group>
           </n-form-item>
@@ -396,7 +383,6 @@ const editingConfig = ref<SyncConfig>({
   name: "",
   syncSource: "baiduPCS",
   folderStructure: "{{platform}}/{{owner}}/{{year}}-{{month}}-{{date}}",
-  postSyncAction: "none",
   targetFiles: [],
 });
 
@@ -404,17 +390,8 @@ const syncConfigModalVisible = ref(false);
 
 const getSyncSourceLabel = (value: string) => {
   const options = {
-    baiduPCS: "BaiduPCS",
+    baiduPCS: "百度网盘",
     aliyunpan: "阿里云盘",
-  };
-  return options[value] || value;
-};
-
-const getPostSyncActionLabel = (value: string) => {
-  const options = {
-    none: "无",
-    copy: "复制",
-    move: "移动",
   };
   return options[value] || value;
 };
@@ -425,8 +402,7 @@ const getTargetFilesLabel = (values: string[]) => {
     danmaku: "弹幕压制文件",
     remux: "转封装文件",
     xml: "XML文件",
-    ass: "ASS文件",
-    cover: "封面文件",
+    cover: "封面图片",
   };
   return values.map((v) => options[v] || v).join("、");
 };
@@ -438,7 +414,6 @@ const addSyncConfig = () => {
     name: "",
     syncSource: "baiduPCS",
     folderStructure: "{{platform}}/{{owner}}/{{year}}-{{month}}-{{date}}",
-    postSyncAction: "none",
     targetFiles: [],
   };
   syncConfigModalVisible.value = true;
@@ -446,7 +421,14 @@ const addSyncConfig = () => {
 
 const editSyncConfig = (index: number) => {
   editingConfigIndex.value = index;
-  editingConfig.value = { ...config.value.sync.syncConfigs[index] };
+  const originalConfig = config.value.sync.syncConfigs[index];
+  editingConfig.value = {
+    id: originalConfig.id,
+    name: originalConfig.name,
+    syncSource: originalConfig.syncSource,
+    folderStructure: originalConfig.folderStructure,
+    targetFiles: [...originalConfig.targetFiles],
+  };
   syncConfigModalVisible.value = true;
 };
 

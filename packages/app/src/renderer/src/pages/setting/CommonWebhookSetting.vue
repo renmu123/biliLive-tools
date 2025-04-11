@@ -56,15 +56,15 @@
       <Tip text="同步器" tip="选择要使用的同步器，用于将视频同步到网盘"></Tip>
     </template>
     <n-select
-      v-model:value="data.syncType"
+      v-model:value="data.syncId"
       :options="props.syncConfigs"
       label-field="name"
       value-field="id"
-      :disabled="globalFieldsObj.syncType"
+      :disabled="globalFieldsObj.syncId"
       style="margin-right: 10px; width: 200px"
       clearable
     />
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.syncType" class="global-checkbox"
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.syncId" class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
@@ -524,7 +524,7 @@ const props = defineProps<{
 
 const data = defineModel<AppRoomConfig>("data", {
   default: () => ({
-    syncType: "",
+    syncId: "",
     open: true,
     minSize: 0,
     title: "",
