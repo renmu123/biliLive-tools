@@ -206,6 +206,13 @@ export type ToolConfig = {
     /** 忽略弹幕 */
     ignoreDanmu: boolean;
   };
+  /** 文件同步 */
+  fileSync: {
+    /** 完成后移除源文件 */
+    removeOrigin: boolean;
+    /** 同步类型 */
+    syncType?: AppConfig["sync"]["syncConfigs"][number]["syncSource"];
+  };
 };
 
 export type NotificationTaskStatus = "success" | "failure";

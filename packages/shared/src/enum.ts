@@ -96,6 +96,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       uploadPresetId: "default",
       removeOriginAfterUploadCheck: false,
     },
+    fileSync: {
+      removeOrigin: false,
+      syncType: undefined,
+    },
     danmu: {
       danmuPresetId: "default",
       saveRadio: 1,

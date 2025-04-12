@@ -105,4 +105,16 @@ router.get("/aliyunpanLogin", async (ctx) => {
   }
 });
 
+router.post("/sync", async (ctx) => {
+  const params = ctx.request.body;
+  // @ts-ignore
+  const { file, type, options } = params;
+  const task = await addSyncTask({
+    input: file,
+    type: type as "baiduPCS" | "aliyunpan",
+    removeOrigin: options.removeOrigin,
+  });
+  ctx.body = task.taskId;
+});
+
 export default router;

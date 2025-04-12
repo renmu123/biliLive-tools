@@ -3,6 +3,7 @@ import { parse } from "node:path";
 import { appConfig } from "../config.js";
 import { SyncTask, taskQueue } from "./task.js";
 import { BaiduPCS, AliyunPan } from "../sync/index.js";
+import { trashItem } from "../utils/index.js";
 
 import type { SyncType } from "@biliLive-tools/types";
 
@@ -34,6 +35,7 @@ export const addSyncTask = async ({
   retry,
   policy,
   type,
+  removeOrigin,
 }: {
   input: string;
   remotePath?: string;
@@ -41,6 +43,7 @@ export const addSyncTask = async ({
   retry?: number;
   policy?: "fail" | "newcopy" | "overwrite" | "skip" | "rsync";
   type: SyncType;
+  removeOrigin?: boolean;
 }) => {
   const { binary: binaryPath, target: targetPath } = getConfig(type);
   const instance = createUploadInstance(type, execPath ?? binaryPath, remotePath ?? targetPath);
@@ -56,7 +59,13 @@ export const addSyncTask = async ({
       },
       name: `同步任务: ${parse(input).base}`,
     },
-    {},
+    {
+      onEnd: () => {
+        if (removeOrigin) {
+          trashItem(input);
+        }
+      },
+    },
   );
   taskQueue.addTask(task, true);
   return task;

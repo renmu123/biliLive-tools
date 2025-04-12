@@ -27,9 +27,19 @@ const aliyunpanLogin = async (data: {
   return res.data;
 };
 
+const sync = async (data: {
+  file: string;
+  type: "baiduPCS" | "aliyunpan";
+  options: { removeOrigin: boolean };
+}) => {
+  const res = await request.post(`/sync/sync`, data);
+  return res.data;
+};
+
 export default {
   syncTestUpload,
   syncTestLogin,
   loginByCookie,
   aliyunpanLogin,
+  sync,
 };
