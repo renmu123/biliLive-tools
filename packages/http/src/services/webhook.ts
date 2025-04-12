@@ -5,7 +5,7 @@ import { FFmpegPreset, VideoPreset, DanmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import { biliApi } from "@biliLive-tools/shared/task/bili.js";
 import { isEmptyDanmu } from "@biliLive-tools/shared/task/danmu.js";
-import { transcode, burn } from "@biliLive-tools/shared/task/video.js";
+import { transcode, burn, analyzeResolutionChanges } from "@biliLive-tools/shared/task/video.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import {
   getFileSize,
@@ -643,6 +643,18 @@ export class WebhookHandler {
     const output = path.join(dir, outputName);
     if (await fs.pathExists(output)) return output;
 
+    if (preset.pkOptimize) {
+      try {
+        const resolutionChanges = await analyzeResolutionChanges(videoFile);
+        if (resolutionChanges.length <= 1) {
+          log.info("分辨率没有变化，不进行转码", resolutionChanges);
+          return videoFile;
+        }
+      } catch (error) {
+        log.error("分析分辨率变化失败", error);
+      }
+    }
+
     return new Promise((resolve, reject) => {
       transcode(videoFile, outputName, preset, {
         saveType: 2,
@@ -697,12 +709,10 @@ export class WebhookHandler {
 
   addUploadTask = async (
     uid: number,
-    pathArray:
-      | string[]
-      | {
-          path: string;
-          title: string;
-        }[],
+    pathArray: {
+      path: string;
+      title: string;
+    }[],
     options: BiliupConfig,
     removeOrigin: boolean,
     limitedUploadTime: [] | [string, string],
@@ -718,7 +728,7 @@ export class WebhookHandler {
           task.on("task-end", () => {
             if (removeOrigin) {
               pathArray.map((item) => {
-                trashItem(item);
+                trashItem(item.path);
               });
             }
             resolve(task.output);
@@ -739,12 +749,10 @@ export class WebhookHandler {
   addEditMediaTask = async (
     uid: number,
     aid: number,
-    pathArray:
-      | string[]
-      | {
-          path: string;
-          title: string;
-        }[],
+    pathArray: {
+      path: string;
+      title: string;
+    }[],
     removeOrigin: boolean,
     limitedUploadTime: [string, string] | [],
     removeOriginAfterUploadCheck: boolean,
@@ -759,7 +767,7 @@ export class WebhookHandler {
           task.on("task-end", () => {
             if (removeOrigin) {
               pathArray.map((item) => {
-                trashItem(item);
+                trashItem(item.path);
               });
             }
             resolve(task.output);

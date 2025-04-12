@@ -23,7 +23,7 @@ describe("StreamManager", () => {
 
   beforeEach(() => {
     getSavePathMock = vi.fn().mockReturnValue("mocked/path");
-    streamManager = new StreamManager(getSavePathMock, true);
+    streamManager = new StreamManager(getSavePathMock, true, false, "ts");
     vi.spyOn(streamManager, "emit");
   });
 
@@ -53,7 +53,7 @@ describe("StreamManager", () => {
   });
 
   it("should handle video started without segment", async () => {
-    streamManager = new StreamManager(getSavePathMock, false);
+    streamManager = new StreamManager(getSavePathMock, false, false, "ts");
     vi.spyOn(streamManager, "emit");
 
     await streamManager.handleVideoStarted("frame=200  fps=100");
@@ -63,7 +63,7 @@ describe("StreamManager", () => {
   });
 
   it("should handle video completed without segment", async () => {
-    streamManager = new StreamManager(getSavePathMock, false);
+    streamManager = new StreamManager(getSavePathMock, false, false, "ts");
     vi.spyOn(streamManager, "emit");
 
     await streamManager.handleVideoCompleted();
@@ -80,7 +80,7 @@ describe("Segment", () => {
   beforeEach(() => {
     getSavePathMock = vi.fn().mockReturnValue("mocked/path");
 
-    segmentManager = new Segment(getSavePathMock);
+    segmentManager = new Segment(getSavePathMock, false, "ts");
     vi.spyOn(segmentManager, "emit");
   });
 

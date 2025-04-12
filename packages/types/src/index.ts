@@ -177,6 +177,8 @@ export type ToolConfig = {
     saveOriginPath: boolean;
     /** 完成后移除源文件 */
     removeOrigin: boolean;
+    /** 保留第一个视频元数据 */
+    keepFirstVideoMeta: boolean;
   };
   /** 下载页 */
   download: {
@@ -248,6 +250,7 @@ export interface NotificationNtfyConfig {
 export interface NotificationTgConfig {
   key: string;
   chat_id: string;
+  proxyUrl?: string;
 }
 
 /**
@@ -256,6 +259,20 @@ export interface NotificationTgConfig {
 export interface NotificationPushAllInAllConfig {
   server: string;
   key: string;
+}
+
+/**
+ * 自定义HTTP通知配置
+ */
+export interface NotificationCustomHttpConfig {
+  /** 请求URL */
+  url: string;
+  /** 请求方法 */
+  method?: "GET" | "POST" | "PUT";
+  /** 请求体，支持{{title}}和{{desc}}占位符 */
+  body?: string;
+  /** 请求头，每行一个，格式为key: value */
+  headers?: string;
 }
 
 export type Theme = "system" | "light" | "dark";
@@ -279,6 +296,7 @@ interface BilibiliRecorderConfig {
 interface DouyuRecorderConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
   quality: 0 | 2 | 3 | 4 | 8;
+  source: string;
 }
 
 interface HuyaRecorderConfig {
@@ -318,10 +336,10 @@ export interface GlobalRecorder {
   uid?: number;
   /** 保存封面 */
   saveCover?: boolean;
-  /** 录制后转换为mp4 */
-  convert2Mp4?: boolean;
   /** 画质匹配重试次数 */
   qualityRetry: number;
+  /** 视频格式 */
+  videoFormat: "auto" | "ts" | "mkv";
   /** B站特有的配置 */
   bilibili: BilibiliRecorderConfig;
   /** 斗鱼特有的配置 */
@@ -372,10 +390,13 @@ export interface Recorder {
   uid?: number;
   /** 保存封面 */
   saveCover?: boolean;
+  /** 视频格式 */
+  videoFormat: GlobalRecorder["videoFormat"];
   qualityRetry: GlobalRecorder["qualityRetry"];
   formatName: GlobalRecorder["bilibili"]["formatName"];
   useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];
   codecName: GlobalRecorder["bilibili"]["codecName"];
+  source: GlobalRecorder["douyu"]["source"];
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
   titleKeywords?: string;
   /** 开播推送 */
@@ -467,13 +488,17 @@ export interface AppConfig {
     /** 通知配置项 */
     setting: {
       // 通知类型，支持server酱和邮件
-      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne";
+      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne" | "customHttp";
       // server酱key
       server: NotificationServerConfig;
       mail: NotificationMailConfig;
       tg: NotificationTgConfig;
       ntfy: NotificationNtfyConfig;
       allInOne: NotificationPushAllInAllConfig;
+      customHttp: NotificationCustomHttpConfig;
+    };
+    taskNotificationType: {
+      liveStart: AppConfig["notification"]["setting"]["type"];
     };
   };
   /** 翻译配置 */
@@ -545,6 +570,7 @@ export interface VideoMergeOptions {
   output?: string;
   removeOrigin: boolean; // 完成后移除源文件
   saveOriginPath: boolean; // 保存到原始文件夹
+  keepFirstVideoMeta: boolean; // 保留第一个视频元数据
 }
 
 export interface File {
@@ -620,7 +646,11 @@ export interface FfmpegOptions {
     | "p4"
     | "p5"
     | "p6"
-    | "p7";
+    | "p7"
+    | "balanced"
+    | "speed"
+    | "quality"
+    | "high_quality";
   /** 支持硬件解码 */
   decode?: boolean;
   /** 是否重缩放分辨率 */
@@ -642,6 +672,7 @@ export interface FfmpegOptions {
   swsFlags?: string;
   /** 缩放方式，控制先缩放后渲染还是先渲染后缩放 */
   scaleMethod?: "auto" | "before" | "after";
+  forceOriginalAspectRatio?: "auto" | "decrease" | "increase";
   /** 是否支持硬件scale过滤器 */
   hardwareScaleFilter?: boolean;
   /** 编码线程数 */
@@ -662,6 +693,8 @@ export interface FfmpegOptions {
   timestampExtra?: string;
   /** 时间戳跟随弹幕字体 */
   timestampFollowDanmu?: boolean;
+  /** pk优化 */
+  pkOptimize?: boolean;
 }
 
 export interface BiliupConfig {

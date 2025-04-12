@@ -6,7 +6,7 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="convert"> 立即转换 </n-button>
+      <n-button type="primary" @click="convert" title="立即转化(ctrl+enter)"> 立即转换 </n-button>
       <n-cascader
         v-model:value="options.ffmpegPresetId"
         placeholder="请选择视频预设"

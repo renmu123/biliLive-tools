@@ -152,7 +152,7 @@ export function createDYClient(
   } = {},
 ): DYClient {
   let ws: WebSocket | null = null;
-  let maxRetry = 5;
+  let maxRetry = 10;
   let coder = new BufferCoder();
   let heartbeatTimer: NodeJS.Timer | null = null;
 

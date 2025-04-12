@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useRouter, useRoute } from "vue-router";
+import router from "../routers/index";
 
 const api = axios.create({
   headers: {
@@ -37,14 +37,12 @@ api.interceptors.request.use(
   },
 );
 
-const router = useRouter();
-const route = useRoute();
-
 api.interceptors.response.use(
   (response) => {
     return Promise.resolve(response);
   },
   (error) => {
+    const route = router.currentRoute.value;
     if (error?.response?.status === 401 && route.name !== "Login") {
       window.localStorage.removeItem("key");
       router.push("/login");

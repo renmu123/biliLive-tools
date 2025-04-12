@@ -1,4 +1,5 @@
 import path, { join, parse } from "node:path";
+import { spawn } from "node:child_process";
 
 import fs from "fs-extra";
 import ffmpeg from "@renmu/fluent-ffmpeg";
@@ -95,6 +96,73 @@ export const getAvailableEncoders = async () => {
   });
 };
 
+interface Resolution {
+  width: number;
+  height: number;
+}
+
+/**
+ * 分析视频分辨率变化
+ * @param filePath 视频文件路径
+ * @returns 分辨率变化
+ */
+export async function analyzeResolutionChanges(filePath: string): Promise<Resolution[]> {
+  const { ffprobePath } = getFfmpegPath();
+  const command = `${ffprobePath}`;
+  const args = [
+    "-v",
+    "error",
+    "-skip_frame",
+    "nokey",
+    "-select_streams",
+    "v:0",
+    "-show_entries",
+    "frame=width,height",
+    "-of",
+    "csv=p=0",
+    filePath,
+  ];
+
+  const ffprobe = spawn(command, args);
+
+  const resolutions: Resolution[] = [];
+
+  ffprobe.stdout.on("data", (data) => {
+    const lines = data.toString().trim().split("\n");
+    lines.forEach((line: string) => {
+      const [width, height] = line.split(",");
+      if (!width || !height) {
+        return;
+      }
+
+      // 不要添加重复的分辨率
+      const resolution = {
+        width: parseInt(width, 10),
+        height: parseInt(height, 10),
+      };
+      if (
+        !resolutions.some((r) => r.width === resolution.width && r.height === resolution.height)
+      ) {
+        resolutions.push(resolution);
+      }
+    });
+  });
+
+  ffprobe.stderr.on("data", (data) => {
+    console.error(`Stderr: ${data}`);
+  });
+
+  return new Promise((resolve, reject) => {
+    ffprobe.on("close", (code) => {
+      if (code !== 0) {
+        reject(`ffprobe process exited with code ${code}`);
+      } else {
+        resolve(resolutions);
+      }
+    });
+  });
+}
+
 export const convertImage2Video = async (
   inputDir: string,
   output: string,
@@ -190,12 +258,14 @@ export class ComplexFilter {
     swsFlags,
     encoder,
     useHardware,
+    forceOriginalAspectRatio,
   }: {
     resolutionWidth: number;
     resolutionHeight: number;
     swsFlags: string;
     encoder: FfmpegOptions["encoder"];
     useHardware: boolean;
+    forceOriginalAspectRatio: "auto" | "decrease" | "increase";
   }) {
     let scaleFilter = `${resolutionWidth}:${resolutionHeight}`;
 
@@ -224,6 +294,9 @@ export class ComplexFilter {
     }
     if (swsFlags && swsFlags !== "auto") {
       scaleFilter += `:flags=${swsFlags}`;
+    }
+    if (forceOriginalAspectRatio && forceOriginalAspectRatio !== "auto") {
+      scaleFilter += `:force_original_aspect_ratio=${forceOriginalAspectRatio}`;
     }
     return this.addFilter("scale", scaleFilter);
   }
@@ -490,6 +563,9 @@ export const genMergeAssMp4Command = async (
   }
 
   async function addDefaultComplexFilter(scaleHardware: boolean = false) {
+    if (ffmpegOptions.pkOptimize) {
+      ffmpegOptions.forceOriginalAspectRatio = "decrease";
+    }
     const scaleMethod = selectScaleMethod(ffmpegOptions);
     const startTimestamp = await getDrawtextParams();
 
@@ -509,6 +585,7 @@ export const genMergeAssMp4Command = async (
         swsFlags: ffmpegOptions.swsFlags ?? "",
         encoder: ffmpegOptions.encoder,
         useHardware: ffmpegOptions.hardwareScaleFilter ? uesHardwareScale : false,
+        forceOriginalAspectRatio: ffmpegOptions.forceOriginalAspectRatio ?? "auto",
       });
     }
 
@@ -538,6 +615,7 @@ export const genMergeAssMp4Command = async (
         swsFlags: ffmpegOptions.swsFlags ?? "",
         encoder: ffmpegOptions.encoder,
         useHardware: ffmpegOptions.hardwareScaleFilter ? uesHardwareScale : false,
+        forceOriginalAspectRatio: ffmpegOptions.forceOriginalAspectRatio ?? "auto",
       });
     }
 
@@ -553,6 +631,13 @@ export const genMergeAssMp4Command = async (
         format: ffmpegOptions.timestampFormat,
         extraOptions: ffmpegOptions.timestampExtra,
       });
+    }
+    // pk优化
+    if (ffmpegOptions.pkOptimize) {
+      complexFilter.addFilter(
+        "pad",
+        `${ffmpegOptions.resolutionWidth}:${ffmpegOptions.resolutionHeight}:(ow-iw)/2:(oh-ih)/2`,
+      );
     }
   }
 
@@ -691,10 +776,12 @@ export const mergeAssMp4 = async (
 
   const assFile = files.assFilePath;
   const startTimestamp = options.startTimestamp || 0;
+  log.debug("genMergeAssMp4Command start", startTimestamp);
   const command = await genMergeAssMp4Command(files, ffmpegOptions, {
     startTimestamp: startTimestamp,
     timestampFont: options.timestampFont,
   });
+  log.debug("mergrAssMp4, command");
 
   await setFfmpegPath();
   const task = new FFmpegTask(
@@ -738,6 +825,7 @@ export const mergeAssMp4 = async (
       },
     },
   );
+  log.debug("mergeAssMp4 start task", task.taskId);
   taskQueue.addTask(task, false);
 
   return task;
@@ -866,6 +954,7 @@ export const mergeVideos = async (
   options: VideoMergeOptions = {
     removeOrigin: false,
     saveOriginPath: false,
+    keepFirstVideoMeta: false,
   },
 ) => {
   if (!inputFiles || inputFiles.length < 2) {
@@ -890,12 +979,11 @@ export const mergeVideos = async (
   const fileTxtContent = inputFiles.map((videoFile) => `file '${videoFile}'`).join("\n");
   await fs.writeFile(fileTxtPath, fileTxtContent);
 
-  const command = ffmpeg(fileTxtPath)
-    .inputOptions("-f concat")
-    .inputOptions("-safe 0")
-    .videoCodec("copy")
-    .audioCodec("copy")
-    .output(outputFile);
+  const command = ffmpeg(fileTxtPath).inputOptions("-f concat").inputOptions("-safe 0");
+  if (options.keepFirstVideoMeta) {
+    command.input(inputFiles[0]).outputOptions("-map 0").outputOptions(`-map_metadata 1`);
+  }
+  command.outputOptions("-c copy").output(outputFile);
 
   let duration = 1;
   let videoMetas: Awaited<ReturnType<typeof readVideoMeta>>[] = [];
@@ -1021,9 +1109,14 @@ export const burn = async (
         copyInput: true,
       },
     );
+    log.debug("convertXml2Ass task start", task.taskId);
     await promiseTask(task);
+    log.debug("convertXml2Ass task end", task.taskId);
     assFilePath = task.output!;
-    startTimestamp = await readXmlTimestamp(files.subtitleFilePath);
+    if (options.ffmpegOptions.addTimestamp) {
+      startTimestamp = await readXmlTimestamp(files.subtitleFilePath);
+      log.debug("readXmlTimestamp end", startTimestamp);
+    }
     if (options.ffmpegOptions.timestampFollowDanmu) {
       timestampFont = options.danmaOptions.fontname;
     }
@@ -1049,6 +1142,7 @@ export const burn = async (
     });
     outputFile = path.join(savePath, output);
   }
+  log.debug("burn function call", outputFile);
   const task = await mergeAssMp4(
     {
       videoFilePath,

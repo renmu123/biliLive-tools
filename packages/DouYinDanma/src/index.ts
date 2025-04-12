@@ -75,7 +75,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.roomId = roomId;
     this.heartbeatInterval = options.heartbeatInterval ?? 5000;
     this.autoStart = options.autoStart ?? false;
-    this.autoReconnect = options.autoReconnect ?? 3;
+    this.autoReconnect = options.autoReconnect ?? 10;
     this.reconnectAttempts = 0;
     this.cookie = options.cookie;
 

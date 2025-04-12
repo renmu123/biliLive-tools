@@ -98,7 +98,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const liveInfo = await getInfo(this.channelId);
   const { living, owner, title, liveId } = liveInfo;
   this.liveInfo = liveInfo;
-  this.emit("LiveStart", { liveId });
 
   if (liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
@@ -107,6 +106,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
   if (this.tempStopIntervalCheck) return null;
   if (!living) return null;
+
+  this.emit("LiveStart", { liveId });
 
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
@@ -159,6 +160,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       segment: this.segment ?? 0,
       getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
       disableDanma: this.disableProvideCommentsWhenRecording,
+      videoFormat: this.videoFormat ?? "auto",
     },
     onEnd,
   );
@@ -227,10 +229,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     const extraDataController = recorder.getExtraDataController();
     if (!extraDataController) return;
     if (this.saveGiftDanma === false) return;
-    // console.log("gift", msg);
     const gift: GiveGift = {
       type: "give_gift",
-      timestamp: new Date(msg.sendTime).getTime(),
+      timestamp: Number(msg.sendTime),
       name: msg.gift.name,
       price: 1,
       count: Number(msg.totalCount),

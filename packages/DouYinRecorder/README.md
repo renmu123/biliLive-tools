@@ -41,6 +41,7 @@ interface Options {
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
   saveGiftDanma?: boolean; // 保存礼物弹幕
   saveCover?: boolean; // 保存封面
+  videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"
 }
 ```
 

@@ -65,7 +65,10 @@
           filterable
         />
       </n-form-item>
-      <n-form-item label="标签">
+      <n-form-item>
+        <template #label>
+          <Tip tip="留着默认的tag，秋梨膏(๑>◡<๑)" text="标签"></Tip>
+        </template>
         <dynamic-tags
           v-model="options.config.tag"
           :max="10"
@@ -498,12 +501,12 @@ watch(
 );
 
 watchEffect(() => {
-  if (options.value.config.closeReply) {
+  if (options.value?.config?.closeReply) {
     options.value.config.selectiionReply = 0;
   }
 });
 watchEffect(() => {
-  if (options.value.config.selectiionReply) {
+  if (options.value?.config?.selectiionReply) {
     options.value.config.closeReply = 0;
   }
 });
@@ -687,6 +690,18 @@ const setTitleVar = async (value: string) => {
     options.value.config.title += value;
   }
 };
+
+const setTitle = (name: string) => {
+  options.value.config.title = name;
+};
+const getTitle = () => {
+  return options.value?.config?.title;
+};
+
+defineExpose({
+  setTitle,
+  getTitle,
+});
 </script>
 
 <style scoped lang="less">

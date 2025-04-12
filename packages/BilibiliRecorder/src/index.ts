@@ -120,7 +120,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     cover: "",
     liveId: liveId,
   };
-  this.emit("LiveStart", { liveId });
 
   if (liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
@@ -129,6 +128,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
   if (this.tempStopIntervalCheck) return null;
   if (!living) return null;
+
+  this.emit("LiveStart", { liveId });
 
   const liveInfo = await getInfo(this.channelId);
   const { owner, title, roomId } = liveInfo;
@@ -223,6 +224,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
       isHls: streamOptions.protocol_name === "http_hls",
       disableDanma: this.disableProvideCommentsWhenRecording,
+      videoFormat: this.videoFormat,
     },
     onEnd,
   );

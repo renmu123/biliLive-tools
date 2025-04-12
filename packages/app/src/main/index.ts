@@ -195,6 +195,12 @@ function createWindow(): void {
       },
     },
     {
+      label: "重启",
+      click: () => {
+        relaunch();
+      },
+    },
+    {
       label: "退出",
       click: async () => {
         quit();
@@ -326,6 +332,12 @@ const canQuit = async () => {
       buttons: ["取消", "退出"],
     });
     if (confirm.response === 1) {
+      // 手动停止正在录制的直播
+      for (const recorder of recorderManager.manager.recorders) {
+        if (recorder.state === "recording") {
+          await recorderManager.manager.stopRecord(recorder.id);
+        }
+      }
       return true;
     } else {
       return false;
@@ -363,6 +375,15 @@ const quit = async () => {
 export const relaunch = async () => {
   const canQuited = await canQuit();
   if (canQuited) {
+    Object.assign(
+      windowConfig,
+      {
+        isMaximized: false,
+      },
+      mainWin.getNormalBounds(),
+    );
+
+    WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
     app.relaunch();
     app.exit(0);
   }

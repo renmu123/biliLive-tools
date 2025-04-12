@@ -52,9 +52,9 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
       try {
         const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
         for (const media of res.arc_audits) {
-          if (media.stat.aid) {
+          if (media.Archive.aid) {
             mediaList.push({
-              aid: media.stat.aid,
+              aid: media.Archive.aid,
               state: media.Archive.state,
               title: media.Archive.title,
               state_desc: media.Archive.state_desc ?? "",
@@ -69,7 +69,7 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
     for (const item of this.list) {
       if (mediaList.some((media) => media.aid === item.aid)) continue;
       try {
-        const media = await biliApi.getPlatformArchiveDetail(item.uid, item.aid);
+        const media = await biliApi.getPlatformArchiveDetail(item.aid, item.uid);
         mediaList.push({
           aid: item.aid,
           state: media.archive.state,
