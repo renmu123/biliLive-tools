@@ -724,7 +724,7 @@ const hardwareAcceleration = computed(() => {
 
 .resolution-section-title {
   // font-weight: bold;
-  color: #000;
+  // color: #000;
   white-space: nowrap;
 }
 
