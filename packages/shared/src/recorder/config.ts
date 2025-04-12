@@ -63,15 +63,19 @@ export default class RecorderConfig {
     const setting = settings.find((setting) => setting.id === id)!;
     if (!setting) return null;
 
-    const uid = getValue("uid");
+    let uid = undefined;
     let auth: string | undefined;
-    if (uid) {
-      const cookies = getCookie(Number(uid));
-      auth = Object.entries(cookies)
-        .map(([key, value]) => {
-          return `${key}=${value}`;
-        })
-        .join("; ");
+    if (setting.providerId === "Bilibili") {
+      uid = getValue("uid");
+      if (uid) {
+        console.log("getCookie", uid);
+        const cookies = getCookie(Number(uid));
+        auth = Object.entries(cookies)
+          .map(([key, value]) => {
+            return `${key}=${value}`;
+          })
+          .join("; ");
+      }
     }
 
     return {
