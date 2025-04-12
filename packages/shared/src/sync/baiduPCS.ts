@@ -76,7 +76,6 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
   public isLoggedIn(): boolean {
     try {
       const output = execSync(`${this.binary} who`, { encoding: "utf8" });
-      console.log("BaiduPCS-Go who", output);
       return !output.includes("uid: 0");
     } catch (error) {
       return false;
@@ -101,14 +100,11 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
 
         // 解析进度信息并发送事件
         this.parseProgress(output);
-
-        console.log(output);
       });
 
       // @ts-expect-error
       this.cmd.stderr.on("data", (data) => {
         stderr += data.toString();
-        console.error("stderr", data.toString());
       });
 
       this.cmd.on("close", (code) => {
@@ -154,8 +150,6 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
 
         // 解析进度信息并发送事件
         this.parseProgress(output);
-
-        console.log(output);
       });
 
       // @ts-expect-error

@@ -65,7 +65,7 @@
               placeholder="请选择要使用的可执行文件"
             />
             <template v-if="config.sync.baiduPCS.execPath">
-              <n-button style="margin-left: 10px" type="primary" @click="login('aliyunpan')"
+              <n-button style="margin-left: 10px" type="primary" @click="login('baiduPCS')"
                 >登录</n-button
               >
               <n-button style="margin-left: 10px" type="warning" @click="loginCheck('baiduPCS')"
@@ -293,6 +293,7 @@ const login = async (type: SyncType) => {
   cookies.value = "";
   loginType.value = type;
   if (type === "aliyunpan") {
+    notice.info("请求中，请稍等~");
     const content = await syncApi.aliyunpanLogin({
       execPath: config.value.sync.aliyunpan.execPath,
       type: "getUrl",
@@ -381,7 +382,7 @@ const editingConfig = ref<SyncConfig>({
   id: uuid(),
   name: "",
   syncSource: "baiduPCS",
-  folderStructure: "{{owner}}/{{year}}-{{month}}",
+  folderStructure: "{{user}}/{{year}}-{{month}}",
   targetFiles: [],
 });
 
@@ -411,7 +412,7 @@ const addSyncConfig = () => {
     id: uuid(),
     name: "",
     syncSource: "baiduPCS",
-    folderStructure: "{{platform}}/{{owner}}/{{year}}-{{month}}-{{date}}",
+    folderStructure: "{{user}}/{{year}}-{{month}}",
     targetFiles: [],
   };
   syncConfigModalVisible.value = true;

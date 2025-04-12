@@ -891,7 +891,7 @@ export class SyncTask extends AbstractTask {
     this.callback = callback || {};
 
     this.instance.on("progress", (progress: any) => {
-      console.log("sync progress", progress);
+      // console.log("sync progress", progress);
       callback?.onProgress && callback.onProgress(progress.percentage);
       this.progress = progress.percentage;
       this.custsomProgressMsg = `速度: ${progress.speed}`;

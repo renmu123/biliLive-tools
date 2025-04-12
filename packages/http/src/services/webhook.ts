@@ -322,12 +322,21 @@ export class WebhookHandler {
 
     // 处理封面同步
     if (cover) {
-      this.handleCoverSync(options.roomId, cover, currentPart.partId);
+      await this.handleCoverSync(options.roomId, cover, currentPart.partId).catch((error) => {
+        log.error("handleCoverSync", error);
+      });
     }
 
     // 处理弹幕文件同步和删除
     if (xmlFilePath) {
-      this.handleDanmuSync(options.roomId, xmlFilePath, currentPart.partId, afterConvertRemoveXml);
+      await this.handleDanmuSync(
+        options.roomId,
+        xmlFilePath,
+        currentPart.partId,
+        afterConvertRemoveXml,
+      ).catch((error) => {
+        log.error("handleDanmuSync", error);
+      });
     }
 
     if (uid) {
@@ -471,7 +480,7 @@ export class WebhookHandler {
         policy: "skip",
         type: syncConfig.syncSource,
       });
-      log.info(`同步${fileType}文件成功: ${filePath}`);
+      log.info(`开始同步${fileType}文件: ${filePath}`);
 
       task.on("task-end", async () => {
         // 等待65秒，确保文件被释放
@@ -1273,6 +1282,7 @@ export class WebhookHandler {
         return;
       }
 
+      await sleep(2000);
       // 首先同步弹幕文件
       await this.handleFileSync(roomId, xmlFilePath, "xml", partId, shouldRemoveAfterSync);
     } catch (error) {
@@ -1313,6 +1323,7 @@ export class WebhookHandler {
         fileType = "danmaku";
       }
 
+      await sleep(2000);
       // 首先同步视频文件
       await this.handleFileSync(roomId, filePath, fileType, partId, shouldRemoveAfterSync);
     } catch (error) {

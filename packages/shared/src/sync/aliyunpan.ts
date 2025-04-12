@@ -1,5 +1,6 @@
 import { execSync, spawn, ChildProcess } from "node:child_process";
 import path from "node:path";
+
 import fs from "fs-extra";
 import logger from "../utils/log.js";
 import { TypedEmitter } from "tiny-typed-emitter";
@@ -100,14 +101,11 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
 
         // 解析进度信息并发送事件
         this.parseProgress(output);
-
-        console.log(output);
       });
 
       // @ts-expect-error
       this.cmd.stderr.on("data", (data) => {
         stderr += data.toString();
-        console.error("stderr", data.toString());
       });
 
       this.cmd.on("close", (code) => {
@@ -140,19 +138,19 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
    * @param output 命令输出字符串
    */
   private parseProgress(output: string): void {
-    // 匹配上传进度信息，根据aliyunpan的输出格式调整
+    // 匹配上传进度信息，支持不同单位
     const progressRegex =
-      /(\d+\.\d+)% \[\=+>\s*\] (\d+(?:\.\d+)?(?:B|KB|MB|GB))\/(\d+(?:\.\d+)?(?:B|KB|MB|GB)) (\d+(?:\.\d+)?(?:B|KB|MB|GB)\/s)/;
+      /(\d+(?:\.\d+)?(?:B|KB|MB|GB))\/(\d+(?:\.\d+)?(?:B|KB|MB|GB))\((\d+\.\d+)%\)\s+(\d+(?:\.\d+)?(?:B|KB|MB|GB)\/s)/;
     const match = output.match(progressRegex);
 
     if (match) {
-      const [, percentageStr, uploaded, total, speed] = match;
+      const [, uploaded, total, percentage, speed] = match;
 
       // 发送进度事件
       this.emit("progress", {
-        percentage: parseFloat(percentageStr),
         uploaded,
         total,
+        percentage: parseFloat(percentage),
         speed,
       });
     }
@@ -210,6 +208,7 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
 
     // 确保目标文件夹存在
     const targetDir = path.join(this.remotePath, remoteDir).replace(/\\/g, "/");
+    await this.executeCommand(["mkdir", targetDir]);
 
     try {
       // 执行上传
@@ -263,7 +262,6 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
             this.logger.error("获取链接失败");
             reject(new Error("获取链接失败，请重新尝试，或根据文档手动登录"));
           }
-          console.log("获取链接失败", this.loginCmd);
         }, 5000);
 
         // @ts-expect-error
