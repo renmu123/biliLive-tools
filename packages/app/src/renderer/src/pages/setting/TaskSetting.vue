@@ -30,6 +30,13 @@
         <n-input-number v-model:value="config.task.biliDownloadMaxNum" min="-1" max="65535">
         </n-input-number>
       </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> 同步任务 </span>
+        </template>
+        <n-input-number v-model:value="config.task.syncMaxNum" min="-1" max="65535">
+        </n-input-number>
+      </n-form-item>
     </n-form>
   </div>
 </template>

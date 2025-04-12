@@ -991,6 +991,7 @@ export class TaskQueue {
       [TaskType.douyuDownload]: "douyuDownloadMaxNum",
       [TaskType.biliUpload]: "biliUploadMaxNum",
       [TaskType.biliDownload]: "biliDownloadMaxNum",
+      [TaskType.sync]: "syncMaxNum",
     };
     const config = this.appConfig.getAll();
     const maxNum = config?.task?.[typeMap[task.type]] ?? 0;
@@ -1145,6 +1146,8 @@ export class TaskQueue {
     this.taskLimit(config?.task?.biliUploadMaxNum ?? -1, TaskType.biliUpload);
     // B站下载任务
     this.taskLimit(config?.task?.biliDownloadMaxNum ?? -1, TaskType.biliDownload);
+    // 同步任务
+    this.taskLimit(config?.task?.syncMaxNum ?? 3, TaskType.sync);
   };
 }
 

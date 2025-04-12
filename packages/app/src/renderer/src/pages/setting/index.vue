@@ -343,6 +343,7 @@ const config: Ref<AppConfig> = ref({
     douyuDownloadMaxNum: -1,
     biliUploadMaxNum: -1,
     biliDownloadMaxNum: -1,
+    syncMaxNum: 3,
   },
   sync: {
     syncConfigs: [],

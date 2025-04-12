@@ -142,6 +142,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     douyuDownloadMaxNum: 2,
     biliUploadMaxNum: 2,
     biliDownloadMaxNum: 2,
+    syncMaxNum: 3,
   },
   notification: {
     task: {

@@ -528,6 +528,7 @@ export interface AppConfig {
     douyuDownloadMaxNum: number;
     biliUploadMaxNum: number;
     biliDownloadMaxNum: number;
+    syncMaxNum: number;
   };
   /** 上传配置 */
   biliUpload: {
