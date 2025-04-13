@@ -456,14 +456,29 @@ function matchTimestamp(str: string, regex: RegExp): number | null {
  * <record_start_time>2024-07-23T18:26:30+08:00</record_start_time>
  * <video_start_time>2024-11-06T15:14:02.000Z</video_start_time>
  */
-export async function readXmlTimestamp(filePath: string): Promise<number | 0> {
-  if (!(await pathExists(filePath))) {
+export async function readXmlTimestamp(filePath: string, timeout = 10000): Promise<number | 0> {
+  try {
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("读取xml时间戳超时")), timeout),
+    );
+
+    const result = await Promise.race([
+      (async () => {
+        if (!(await pathExists(filePath))) {
+          return 0;
+        }
+        const content = await readLines(filePath, 0, 30);
+        const timestamp = matchDanmaTimestamp(content.join("\n"));
+        return timestamp ? timestamp : 0;
+      })(),
+      timeoutPromise,
+    ]);
+
+    return result as number;
+  } catch (error) {
+    log.error("readXmlTimestamp error", error);
     return 0;
   }
-  const content = await readLines(filePath, 0, 30);
-  const timestamp = matchDanmaTimestamp(content.join("\n"));
-
-  return timestamp ? timestamp : 0;
 }
 
 /**
