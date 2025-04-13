@@ -68,7 +68,6 @@ export default class RecorderConfig {
     if (setting.providerId === "Bilibili") {
       uid = getValue("uid");
       if (uid) {
-        console.log("getCookie", uid);
         const cookies = getCookie(Number(uid));
         auth = Object.entries(cookies)
           .map(([key, value]) => {
