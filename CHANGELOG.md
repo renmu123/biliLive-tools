@@ -4,6 +4,7 @@
 
 - 检查更新增加备用下载地址
 - 弹幕读取时间戳函数可能存在无法停止的问题，添加了额外的超时处理
+- 支持hevc flv的视频切片 [#72](https://github.com/renmu123/biliLive-tools/issues/72)
 
 ## Bug修复
 
