@@ -319,7 +319,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
   public cancelUpload(): boolean {
     if (this.uploadCmd && !this.uploadCmd.killed) {
       this.logger.info("取消上传操作");
-      this.uploadCmd.kill();
+      this.uploadCmd.kill("SIGINT");
       this.uploadCmd = null;
       return true;
     }

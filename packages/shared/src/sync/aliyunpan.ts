@@ -456,7 +456,7 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
   public cancelUpload(): void {
     if (this.cmd) {
       this.logger.info("取消上传任务");
-      this.cmd.kill();
+      this.cmd.kill("SIGINT");
       this.cmd = null;
     }
   }
