@@ -248,7 +248,9 @@
         <template #label>
           <span class="inline-flex">
             <span>合集</span>
-            <Tip :tip="`仅适用于设置合集的账户(${options.config.uid})`"></Tip>
+            <Tip
+              :tip="`此处的合集为投稿中的合集功能，仅适用于设置合集的账户(${options.config.uid})`"
+            ></Tip>
           </span>
         </template>
         <div class="inline-items" style="align-items: center">
