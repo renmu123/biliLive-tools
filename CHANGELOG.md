@@ -6,6 +6,7 @@
 - 弹幕读取时间戳函数可能存在无法停止的问题，添加了额外的超时处理
 - 支持hevc flv的视频切片 [#72](https://github.com/renmu123/biliLive-tools/issues/72)
 - 优化在一个检查期间上传多个稿件导致多次发送通知的情况
+- ffmpeg中止任务时，现在会默认保存进度
 
 ## Bug修复
 
