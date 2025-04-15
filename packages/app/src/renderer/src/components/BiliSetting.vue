@@ -213,7 +213,7 @@
       <n-form-item>
         <template #label>
           <Tip
-            tip="谨慎使用，可能会导致评论被shadowban，以及可能的风控等级上升"
+            tip="谨慎使用，可能会导致评论被阿瓦隆风控，以及可能的风控等级上升"
             text="自动评论"
           ></Tip>
         </template>
