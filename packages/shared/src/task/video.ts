@@ -439,10 +439,15 @@ export const matchUser = (str: string): string | null => {
  * param {string} str 需要匹配的字符串
  * param {RegExp} regex 匹配的正则，捕获组为时间
  */
-function matchTimestamp(str: string, regex: RegExp): number | null {
+export function matchTimestamp(str: string, regex: RegExp): number | null {
   const match = str.match(regex);
   if (match) {
     const time = match[1];
+    // 检查是否是纯数字（支持毫秒时间戳）
+    if (/^\d+$/.test(time)) {
+      return Math.floor(parseInt(time, 10) / 1000);
+    }
+    // 尝试解析日期字符串
     const timestamp = Math.floor(new Date(time).getTime() / 1000);
     return timestamp || null;
   }
