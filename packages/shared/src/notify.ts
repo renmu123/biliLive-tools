@@ -184,7 +184,7 @@ export async function sendByCustomHttp(
     });
     log.info("sendByCustomHttp res", res);
   } catch (e) {
-    log.error("sendByCustomHttp error", e);
+    log.error("sendByCustomHttp error", e, url, body, headers);
     throw e;
   }
 }

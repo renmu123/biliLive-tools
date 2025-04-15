@@ -29,6 +29,43 @@ import type { Item as MediaItem } from "./BiliCheckQueue.js";
 
 type ClientInstance = InstanceType<typeof Client>;
 
+// 用于存储最近发送的通知，key为aid，value为发送时间戳
+const notificationCache = new Map<number, number>();
+
+/**
+ * 带限流功能的通知发送函数
+ * @param title 通知标题
+ * @param desp 通知内容
+ * @param aid 稿件ID
+ * @param options 通知选项
+ */
+async function sendNotifyWithThrottle(
+  title: string,
+  desp: string,
+  aid: number,
+  options?: { type?: "mediaStatusCheck" },
+) {
+  const now = Date.now();
+  const lastNotificationTime = notificationCache.get(aid);
+
+  // 如果5秒内已经发送过通知，则跳过
+  if (lastNotificationTime && now - lastNotificationTime < 5000) {
+    log.info(`稿件 ${aid} 的通知在5秒内已发送过，跳过`);
+    return;
+  }
+
+  // 更新缓存
+  notificationCache.set(aid, now);
+
+  // 发送通知
+  await sendNotify(title, desp, options);
+
+  // 5秒后清理缓存
+  setTimeout(() => {
+    notificationCache.delete(aid);
+  }, 5000);
+}
+
 /**
  * 生成client
  */
@@ -304,10 +341,10 @@ async function biliMediaAction(
   status: "completed" | "error",
   options: {
     comment?: string;
-    top?: boolean;
+    top: boolean;
     notification?: boolean;
-    uid?: number;
-    aid?: number;
+    uid: number;
+    aid: number;
     removeOriginAfterUploadCheck?: boolean;
     files: string[];
   },
@@ -319,9 +356,11 @@ async function biliMediaAction(
       const notification = appConfig.get("notification")?.task?.mediaStatusCheck;
       if (notification?.includes("success")) {
         try {
-          sendNotify(
-            `${media.title}稿件审核通过`,
+          await sendNotifyWithThrottle(
+            `《${media.title}》稿件审核通过`,
             `请前往B站创作中心查看详情\n稿件名：${media.title}`,
+            options.aid!,
+            { type: "mediaStatusCheck" },
           );
         } catch (error) {
           log.error("发送通知失败", error);
@@ -360,9 +399,11 @@ async function biliMediaAction(
       const notification = appConfig.get("notification")?.task?.mediaStatusCheck;
       if (notification?.includes("failure")) {
         try {
-          sendNotify(
-            `${media.title}稿件审核未通过`,
+          await sendNotifyWithThrottle(
+            `《${media.title}》稿件审核未通过`,
             `请前往B站创作中心查看详情\n稿件名：${media.title}\n状态：${media.state_desc}`,
+            options.aid!,
+            { type: "mediaStatusCheck" },
           );
         } catch (error) {
           log.error("发送通知失败", error);
@@ -437,8 +478,6 @@ async function addMedia(
           });
 
           commentQueue.once("update", (_, status, media) => {
-            console.log("审核结果", status, media);
-
             biliMediaAction(
               status,
               {
@@ -447,6 +486,8 @@ async function addMedia(
                 notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
                 removeOriginAfterUploadCheck: extraOptions?.removeOriginAfterUploadCheck,
                 files: filePath.map((item) => (typeof item === "string" ? item : item.path)),
+                uid: uid,
+                aid: data.aid,
               },
               media,
             );
@@ -530,6 +571,8 @@ export async function editMedia(
                 notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
                 removeOriginAfterUploadCheck: extraOptions?.removeOriginAfterUploadCheck,
                 files: filePath.map((item) => (typeof item === "string" ? item : item.path)),
+                uid: uid,
+                aid: aid,
               },
               media,
             );
