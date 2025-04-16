@@ -1,3 +1,7 @@
+# 1.2.1
+
+1. 修复 `videoFormat=auto` 时开启分段结束后的重命名错误
+
 # 1.2.0
 
 1. 支持 `videoFormat`参数: "auto", "ts", "mkv"

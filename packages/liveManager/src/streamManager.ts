@@ -87,6 +87,7 @@ export class StreamManager extends EventEmitter {
   private extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   recordSavePath: string;
   recordStartTime?: number;
+  hasSegment: boolean;
   private videoFormat?: "auto" | "ts" | "mkv";
 
   constructor(
@@ -99,6 +100,7 @@ export class StreamManager extends EventEmitter {
     const recordSavePath = getSavePath({ startTime: Date.now() });
     this.recordSavePath = recordSavePath;
     this.videoFormat = videoFormat;
+    this.hasSegment = hasSegment;
 
     if (hasSegment) {
       this.segment = new Segment(getSavePath, disableDanma, this.videoExt);
@@ -153,7 +155,7 @@ export class StreamManager extends EventEmitter {
     if (this.videoFormat === "mkv") {
       return "mkv";
     } else if (this.videoFormat === "auto") {
-      if (!this.segment) {
+      if (!this.hasSegment) {
         return "mp4";
       }
     }
