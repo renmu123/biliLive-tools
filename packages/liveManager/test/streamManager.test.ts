@@ -39,6 +39,8 @@ describe("StreamManager", () => {
     await streamManager.handleVideoStarted(stderrLine);
     expect(streamManager.emit).toHaveBeenCalledWith("videoFileCreated", {
       filename: "mocked/path.ts",
+      cover: "",
+      title: "",
     });
   });
 
@@ -111,6 +113,8 @@ describe("Segment", () => {
     await segmentManager.onSegmentStart(stderrLine);
     expect(segmentManager.emit).toHaveBeenCalledWith("videoFileCreated", {
       filename: "mocked/path.ts",
+      cover: "",
+      title: "",
     });
     expect(segmentManager.init).toBe(false);
   });

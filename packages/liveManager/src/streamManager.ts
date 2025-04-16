@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import { createRecordExtraDataController } from "./record_extra_data_controller.js";
 import { replaceExtName, ensureFolderExist, isFfmpegStartSegment, isFfmpegStart } from "./utils.js";
 
-export type GetSavePath = (data: { startTime: number }) => string;
+export type GetSavePath = (data: { startTime: number; title?: string }) => string;
 
 export class Segment extends EventEmitter {
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
@@ -47,15 +47,32 @@ export class Segment extends EventEmitter {
     }
   }
 
-  async onSegmentStart(stderrLine: string) {
+  async onSegmentStart(
+    stderrLine: string,
+    callBack?: { onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }> },
+  ) {
     if (!this.init) {
       await this.handleSegmentEnd();
     }
     this.init = false;
     const startTime = Date.now();
-
+    let liveInfo: {
+      title?: string;
+      cover?: string;
+    } = { title: "", cover: "" };
+    if (callBack?.onUpdateLiveInfo) {
+      try {
+        liveInfo = await callBack.onUpdateLiveInfo();
+      } catch (err) {
+        this.emit("DebugLog", {
+          type: "common",
+          text: "onUpdateLiveInfo error " + String(err),
+        });
+      }
+    }
     this.outputVideoFilePath = this.getSavePath({
       startTime: startTime,
+      title: liveInfo?.title,
     });
 
     ensureFolderExist(this.outputVideoFilePath);
@@ -71,7 +88,11 @@ export class Segment extends EventEmitter {
     if (match) {
       const filename = match[1];
       this.rawRecordingVideoPath = filename;
-      this.emit("videoFileCreated", { filename: this.outputFilePath });
+      this.emit("videoFileCreated", {
+        filename: this.outputFilePath,
+        title: liveInfo?.title,
+        cover: liveInfo?.cover,
+      });
     } else {
       this.emit("DebugLog", { type: "ffmpeg", text: "No match found" });
     }
@@ -88,17 +109,24 @@ export class StreamManager extends EventEmitter {
   recordSavePath: string;
   recordStartTime?: number;
   private videoFormat?: "auto" | "ts" | "mkv";
+  private callBack?: {
+    onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>;
+  };
 
   constructor(
     getSavePath: GetSavePath,
     hasSegment: boolean,
     disableDanma: boolean,
     videoFormat?: "auto" | "ts" | "mkv",
+    callBack?: {
+      onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>;
+    },
   ) {
     super();
     const recordSavePath = getSavePath({ startTime: Date.now() });
     this.recordSavePath = recordSavePath;
     this.videoFormat = videoFormat;
+    this.callBack = callBack;
 
     if (hasSegment) {
       this.segment = new Segment(getSavePath, disableDanma, this.videoExt);
@@ -122,7 +150,7 @@ export class StreamManager extends EventEmitter {
   async handleVideoStarted(stderrLine: string) {
     if (this.segment) {
       if (isFfmpegStartSegment(stderrLine)) {
-        await this.segment.onSegmentStart(stderrLine);
+        await this.segment.onSegmentStart(stderrLine, this.callBack);
       }
     } else {
       // 不能直接在onStart回调进行判断，在某些情况下会链接无法录制的情况

@@ -73,7 +73,7 @@ export interface RecorderManager<
     error: { source: string; err: unknown };
     RecordStart: { recorder: Recorder<E>; recordHandle: RecordHandle };
     RecordSegment: { recorder: Recorder<E>; recordHandle?: RecordHandle };
-    videoFileCreated: { recorder: Recorder<E>; filename: string };
+    videoFileCreated: { recorder: Recorder<E>; filename: string; cover?: string };
     videoFileCompleted: { recorder: Recorder<E>; filename: string };
     RecorderProgress: { recorder: Recorder<E>; progress: Progress };
     RecoderLiveStart: { recorder: Recorder<E> };
@@ -237,10 +237,10 @@ export function createRecorderManager<
       recorder.on("RecordSegment", (recordHandle) =>
         this.emit("RecordSegment", { recorder, recordHandle }),
       );
-      recorder.on("videoFileCreated", ({ filename }) => {
+      recorder.on("videoFileCreated", ({ filename, cover }) => {
         if (recorder.saveCover && recorder?.liveInfo?.cover) {
           const coverPath = replaceExtName(filename, ".jpg");
-          downloadImage(recorder?.liveInfo?.cover, coverPath);
+          downloadImage(cover ?? recorder?.liveInfo?.cover, coverPath);
         }
         this.emit("videoFileCreated", { recorder, filename });
       });
