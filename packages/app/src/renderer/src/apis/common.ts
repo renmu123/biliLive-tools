@@ -143,6 +143,37 @@ export async function appStartTime(): Promise<number> {
   return res.data;
 }
 
+export async function readAss(filepath: string): Promise<string> {
+  const res = await request.post("/common/readAss", {
+    filepath,
+  });
+  return res.data;
+}
+
+export async function genTimeData(filepath: string): Promise<number[]> {
+  const res = await request.post("/common/genTimeData", {
+    filepath,
+  });
+  return res.data;
+}
+
+export const applyVideoId = async (
+  videoPath: string,
+): Promise<{
+  videoId: string;
+  expireAt: number;
+  type: string;
+}> => {
+  const res = await request.post(`/common/apply-video-id`, {
+    videoPath,
+  });
+  return res.data;
+};
+
+export const getVideo = async (videoId: string): Promise<string> => {
+  return `${request.defaults.baseURL}/common/video/${videoId}`;
+};
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
@@ -158,6 +189,10 @@ const common = {
   parseMeta,
   getRunningTaskNum,
   fileJoin,
+  readAss,
+  genTimeData,
+  getVideo,
+  applyVideoId,
 };
 
 export default common;

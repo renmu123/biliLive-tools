@@ -3,9 +3,7 @@
   <div>
     <div class="flex justify-center column align-center" style="margin-bottom: 20px">
       <div class="flex" style="gap: 10px">
-        <n-button title="仅供参考，以实际渲染为主！" v-if="!isWeb" @click="preview">
-          预览
-        </n-button>
+        <n-button title="仅供参考，以实际渲染为主！" @click="preview"> 预览 </n-button>
         <n-button
           type="primary"
           style="display: none"
@@ -245,13 +243,17 @@ const preHandle = async (files: File[], clientOptions: ClientOptions, danmuConfi
 
   const videoFile = files.find(
     (item) =>
-      item.ext === ".flv" || item.ext === ".mp4" || item.ext === ".m4s" || item.ext === ".ts",
+      item.ext === ".flv" ||
+      item.ext === ".mp4" ||
+      item.ext === ".m4s" ||
+      item.ext === ".ts" ||
+      item.ext === ".mkv",
   );
   const danmuFile = files.find((item) => item.ext === ".xml" || item.ext === ".ass");
 
   if (!videoFile) {
     notice.error({
-      title: "请选择一个flv、mp4、m4s、ts文件",
+      title: "请选择一个flv、mp4、m4s、ts、mkv文件",
       duration: 1000,
     });
     return false;
@@ -378,6 +380,7 @@ const previewModalVisible = ref(false);
 const previewFiles = ref({
   video: "",
   danmu: "",
+  type: "",
 });
 const preview = async () => {
   const files = toRaw(fileList.value);
@@ -387,7 +390,17 @@ const preview = async () => {
   const data = await preHandle(files, rawClientOptions, rawDanmuConfig);
   if (!data) return;
 
-  previewFiles.value.video = data.inputVideoFile.path;
+  if (isWeb.value) {
+    const { videoId, type } = await commonApi.applyVideoId(data.inputVideoFile.path);
+    const videoUrl = await commonApi.getVideo(videoId);
+    previewFiles.value.video = videoUrl;
+    previewFiles.value.type = type;
+  } else {
+    previewFiles.value.video = data.inputVideoFile.path;
+    if (data.inputVideoFile.path.endsWith(".flv")) {
+      previewFiles.value.type = "flv";
+    }
+  }
 
   previewModalVisible.value = true;
 

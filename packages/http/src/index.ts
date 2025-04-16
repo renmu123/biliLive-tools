@@ -37,6 +37,11 @@ export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const authMiddleware = (passKey: string | number) => {
   return async (ctx: Koa.Context, next: Koa.Next) => {
     const authHeader = ctx.headers["authorization"] || ctx.request.query.auth;
+    // 忽略视频请求
+    if (ctx.path.includes("/common/video/")) {
+      await next();
+      return;
+    }
     if (!authHeader) {
       ctx.status = 401;
       ctx.body = "Authorization header is missing";

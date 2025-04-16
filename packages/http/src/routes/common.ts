@@ -11,6 +11,7 @@ import {
   formatPartTitle,
 } from "@biliLive-tools/shared/utils/index.js";
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
+import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
 
 import { config } from "../index.js";
@@ -219,6 +220,199 @@ router.get("/appStartTime", async (ctx) => {
 router.get("/exportLogs", async (ctx) => {
   const logFilePath = config.logPath;
   ctx.body = fs.createReadStream(logFilePath);
+});
+
+router.post("/readAss", async (ctx) => {
+  const { filepath } = ctx.request.body as {
+    filepath: string;
+  };
+  if (!filepath.endsWith(".ass")) {
+    ctx.status = 400;
+    ctx.body = "文件不是ass格式";
+    return;
+  }
+  if (!(await fs.pathExists(filepath))) {
+    ctx.status = 400;
+    ctx.body = "文件不存在";
+    return;
+  }
+  const content = await fs.readFile(filepath, "utf-8");
+  ctx.body = content;
+});
+
+router.post("/genTimeData", async (ctx) => {
+  const { filepath } = ctx.request.body as {
+    filepath: string;
+  };
+  if (!filepath.endsWith(".ass")) {
+    ctx.status = 400;
+    ctx.body = "文件不是ass格式";
+    return;
+  }
+  const data = await genTimeData(filepath);
+  ctx.body = data;
+});
+
+// 视频ID管理，用于临时访问授权
+const videoPathMap = new Map<string, { path: string; expireAt: number }>();
+
+// 定期清理过期的视频ID
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [id, info] of videoPathMap.entries()) {
+      if (info.expireAt < now) {
+        videoPathMap.delete(id);
+      }
+    }
+  },
+  60 * 60 * 1000,
+); // 每小时清理一次
+
+// 申请视频ID接口
+router.post("/apply-video-id", async (ctx) => {
+  const { videoPath } = ctx.request.body as { videoPath: string };
+
+  if (!(await fs.pathExists(videoPath))) {
+    ctx.status = 404;
+    ctx.body = { error: "视频文件不存在" };
+    return;
+  }
+
+  // 获取文件扩展名并检查是否为视频格式
+  const extname = path.extname(videoPath).toLowerCase();
+  const allowedExtensions = [".mp4", ".flv", ".m4s", ".ts", ".mkv", ".webm", ".avi", ".mov"];
+
+  if (!allowedExtensions.includes(extname)) {
+    ctx.status = 403;
+    ctx.body = { error: "只能访问视频文件" };
+    return;
+  }
+
+  // 检查文件的MIME类型
+  try {
+    const stat = await fs.stat(videoPath);
+
+    // 检查是否是文件而非目录
+    if (!stat.isFile()) {
+      ctx.status = 403;
+      ctx.body = { error: "请求的路径不是文件" };
+      return;
+    }
+
+    // 检查文件大小，确保是有效文件
+    if (stat.size === 0) {
+      ctx.status = 403;
+      ctx.body = { error: "文件大小为0，无效视频" };
+      return;
+    }
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = { error: "文件检查失败" };
+    return;
+  }
+
+  // 生成唯一ID
+  const videoId = uuid();
+
+  // 24小时过期
+  const expireAt = Date.now() + 24 * 60 * 60 * 1000;
+
+  // 存储ID和视频路径的映射关系
+  videoPathMap.set(videoId, { path: videoPath, expireAt });
+
+  let type = "";
+  switch (extname) {
+    case ".flv":
+      type = "flv";
+      break;
+    case ".ts":
+      type = "ts";
+      break;
+  }
+
+  ctx.body = {
+    videoId,
+    expireAt,
+    type,
+  };
+});
+
+router.get("/video/:videoId", async (ctx) => {
+  const videoId = ctx.params.videoId;
+
+  // 从映射表中获取视频路径
+  const videoInfo = videoPathMap.get(videoId);
+
+  if (!videoInfo) {
+    ctx.status = 404;
+    ctx.body = "视频ID无效或已过期";
+    return;
+  }
+
+  const videoPath = videoInfo.path;
+
+  if (!(await fs.pathExists(videoPath))) {
+    ctx.status = 404;
+    ctx.body = "视频文件不存在";
+    return;
+  }
+
+  // 获取文件扩展名并确定正确的Content-Type
+  const extname = path.extname(videoPath).toLowerCase();
+  let contentType = "video/mp4"; // 默认类型
+
+  // 设置不同格式的Content-Type
+  switch (extname) {
+    case ".mp4":
+      contentType = "video/mp4";
+      break;
+    case ".flv":
+      contentType = "video/x-flv";
+      break;
+    case ".m4s":
+      contentType = "video/iso.segment";
+      break;
+    case ".ts":
+      contentType = "video/mp2t";
+      break;
+    case ".mkv":
+      contentType = "video/x-matroska";
+      break;
+    case ".webm":
+      contentType = "video/webm";
+      break;
+    default:
+      contentType = "application/octet-stream"; // 未知类型默认为二进制流
+      break;
+  }
+
+  const stat = await fs.stat(videoPath);
+  const fileSize = stat.size;
+  const range = ctx.headers.range;
+
+  if (range) {
+    const parts = range.replace(/bytes=/, "").split("-");
+    const start = parseInt(parts[0], 10);
+    const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+    const chunksize = end - start + 1;
+    const file = fs.createReadStream(videoPath, { start, end });
+    const head = {
+      "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+      "Accept-Ranges": "bytes",
+      "Content-Length": chunksize,
+      "Content-Type": contentType,
+    };
+    ctx.res.writeHead(206, head);
+    ctx.body = file;
+  } else {
+    const head = {
+      "Content-Length": fileSize,
+      "Content-Type": contentType,
+    };
+    ctx.res.writeHead(200, head);
+    ctx.body = fs.createReadStream(videoPath);
+  }
 });
 
 export default router;
