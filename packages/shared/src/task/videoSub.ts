@@ -9,6 +9,7 @@ import { videoSubModel, videoSubDataModel } from "../db/index.js";
 import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
 import douyu from "./douyu.js";
+import huya from "./huya.js";
 import { sleep } from "../utils/index.js";
 
 import type { VideoSubItem } from "../db/model/videoSub.js";
@@ -32,7 +33,7 @@ export function add(data: Parameters<typeof videoSubModel.add>[0]) {
   if (!item) {
     return videoSubModel.add(data);
   } else {
-    throw new Error("订阅已经有了");
+    throw new Error("已存在相同订阅");
   }
 }
 
@@ -79,9 +80,32 @@ export async function parse(url: string): Promise<Parameters<typeof videoSubMode
       },
     };
   } else if (huyaMathReg.test(url)) {
-    throw new Error("不支持的平台");
+    const res = await axios.get<string>(url);
+    const html = res.data;
+    const match = html.match(/var hyPlayerConfig = ({[^]+?};)/);
+    const hyPlayerConfigString = match?.[1];
+    if (!hyPlayerConfigString) {
+      throw new Error(`解析失败，请检查链接: ${url}`);
+    }
 
-    // return "huya";
+    const hyPlayerConfig = new Function(`return ${hyPlayerConfigString}`)();
+    const gameLiveInfo = hyPlayerConfig?.stream?.data?.[0]?.gameLiveInfo;
+    if (!gameLiveInfo) {
+      throw new Error(`解析失败，请检查链接: ${url}`);
+    }
+    console.log(JSON.stringify(gameLiveInfo, null, 2));
+    return {
+      name: gameLiveInfo.nick,
+      subId: gameLiveInfo.uid,
+      platform: "huya",
+      enable: true,
+      roomId: String(gameLiveInfo.profileRoom),
+      options: {
+        danma: false,
+        sendWebhook: false,
+        quality: "highest",
+      },
+    };
   } else {
     throw new Error("不支持的平台");
   }
@@ -143,6 +167,67 @@ async function downloadDouyuVideo(videoId: string, item: VideoSubItem) {
   });
 }
 
+async function downloadHuyaVideo(videoId: string, item: VideoSubItem) {
+  // 解析视频信息
+  const videoData = await huya.parseVideo(videoId);
+  const rawName = videoData.moment.title;
+  const name = filenamify(rawName, { replacement: "_" });
+  const output = path.join(appConfig.data.video.subSavePath, `${name}.mp4`);
+
+  // 获取最高(或指定)清晰度的视频链接
+  const definitions = videoData.moment.videoInfo.definitions;
+  let videoUrl = "";
+
+  if (item.options.quality === "highest") {
+    // 获取最高清晰度
+    videoUrl = definitions[0].m3u8;
+  } else {
+    // 查找指定清晰度
+    const targetDef = definitions.find((def) => def.definition === item.options.quality);
+    videoUrl = targetDef ? targetDef.m3u8 : definitions[0].m3u8;
+  }
+  if (!videoUrl) {
+    throw new Error("无法找到对应的流");
+  }
+
+  // 下载视频
+  const task = await huya.download(output, videoUrl, {
+    override: false,
+  });
+
+  return new Promise((resolve, reject) => {
+    task.on("task-end", async () => {
+      if (item.options.sendWebhook) {
+        // 发送webhook
+        const webhookUrl = `http://127.0.0.1:${appConfig.data.port}/webhook/custom`;
+        await axios.post(webhookUrl, {
+          event: "FileOpening",
+          filePath: output,
+          roomId: item.roomId,
+          time: new Date().toISOString(),
+          title: rawName,
+          username: item.name,
+        });
+        await sleep(4000);
+        await axios.post(webhookUrl, {
+          event: "FileClosed",
+          filePath: output,
+          roomId: item.roomId,
+          time: new Date().toISOString(),
+          title: rawName,
+          username: item.name,
+        });
+      }
+      resolve(output);
+    });
+
+    task.on("task-error", (err) => {
+      logger.error("下载失败", err);
+      reject(err);
+    });
+  });
+}
+
 async function runDouyuTask(item: VideoSubItem) {
   const replayList = await video.getReplayList({
     up_id: item.subId,
@@ -184,7 +269,42 @@ async function runDouyuTask(item: VideoSubItem) {
   }
 }
 
-async function runHuyaTask(item: VideoSubItem) {}
+async function runHuyaTask(item: VideoSubItem) {
+  // 获取虎牙回放列表
+  const replayList = await huya.parseReplayList(item.subId);
+
+  // 获取已下载的视频ID列表
+  const downloadVideos = videoSubDataModel
+    .list({
+      platform: "huya",
+      subId: item.subId,
+    })
+    .map((item) => String(item.videoId));
+
+  // 过滤出未下载的视频
+  const videoIds = replayList
+    .slice(0, 1)
+    .map((video) => String(video.vid))
+    .filter((id) => !downloadVideos.includes(id));
+
+  // 下载新视频
+  for (const videoId of videoIds) {
+    videoSubDataModel.add({
+      subId: item.subId,
+      platform: "huya",
+      videoId,
+      completed: 1,
+      retry: 0,
+    });
+
+    try {
+      await downloadHuyaVideo(videoId, item);
+    } catch (error) {
+      logger.error(`下载虎牙视频${videoId}失败`, error);
+      throw error;
+    }
+  }
+}
 
 async function runTask(item: VideoSubItem) {
   if (item.platform === "douyu") {
