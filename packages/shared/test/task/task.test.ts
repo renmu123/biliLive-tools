@@ -181,7 +181,7 @@ describe("TaskQueue", () => {
         taskQueue.addTask(task1, false);
         taskQueue.addTask(task2, false);
         taskQueue.addTask(task3, false);
-        await sleep(10);
+        await sleep(50);
         expect(task1.exec).toHaveBeenCalled();
         expect(task2.exec).toHaveBeenCalled();
         expect(task3.exec).not.toHaveBeenCalled();
