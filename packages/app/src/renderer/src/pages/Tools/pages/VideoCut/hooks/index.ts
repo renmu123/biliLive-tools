@@ -144,12 +144,19 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
 
   const options = computed(() => {
     const disabled = !llcProjectPath.value;
-    return [
-      { label: "重新加载", key: "refresh", disabled },
-      { label: "保存(ctrl+s)", key: "save", disabled },
-      { label: "另存为(ctrl+shift+n)", key: "saveAnother", disabled: !files.value.videoPath },
-      { label: "打开", key: "open", disabled },
-    ];
+    const isWeb = window.isWeb;
+    const items: { label: string; key: string; disabled: boolean }[] = [];
+    if (!isWeb) {
+      items.push({ label: "重新加载", key: "refresh", disabled });
+      items.push({ label: "使用llc打开", key: "open", disabled });
+      items.push({ label: "保存(ctrl+s)", key: "save", disabled });
+    }
+    items.push({
+      label: "另存为(ctrl+shift+n)",
+      key: "saveAnother",
+      disabled: !files.value.videoPath,
+    });
+    return items;
   });
 
   return {

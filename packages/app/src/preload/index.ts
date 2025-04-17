@@ -20,22 +20,6 @@ export const api = {
   addWithStreamer: (options) => {
     return ipcRenderer.invoke("db:addWithStreamer", options);
   },
-  danmu: {
-    genTimeData(input: string) {
-      return ipcRenderer.invoke("danmu:genTimeData", input);
-    },
-    parseDanmu(input: string): Promise<{
-      danmu: DanmuItem[];
-      sc: DanmuItem[];
-      hotProgress: {
-        time: number;
-        value: number;
-        color: string;
-      }[];
-    }> {
-      return ipcRenderer.invoke("danmu:parseDanmu", input, {});
-    },
-  },
   common: {
     getTempPath: async () => {
       return ipcRenderer.invoke("common:getTempPath");

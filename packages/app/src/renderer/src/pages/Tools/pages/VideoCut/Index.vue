@@ -5,6 +5,7 @@
         title="请选择项目文件，兼容LosslessCut项目文件"
         :options="exportOptions"
         @click="handleProjectBtnClick"
+        v-if="!isWeb"
         >导入项目文件</ButtonGroup
       >
       <n-button type="primary" @click="handleVideoChange"> {{ videoTitle }} </n-button>
@@ -20,7 +21,6 @@
       <n-button class="cut-export" type="info" :disabled="!files.videoPath" @click="exportCuts">
         导出切片
       </n-button>
-      <!-- <n-button @click="closeVideo" class="back-btn">关闭</n-button> -->
     </div>
 
     <div class="content">
@@ -116,7 +116,8 @@ import { useSegmentStore, useAppConfig } from "@renderer/stores";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 import { useStorage } from "@vueuse/core";
-import { taskApi } from "@renderer/apis";
+import { showFileDialog } from "@renderer/utils/fileSystem";
+import { taskApi, commonApi } from "@renderer/apis";
 
 import { useLlcProject } from "./hooks";
 import { useDrive } from "@renderer/hooks/drive";
@@ -180,6 +181,7 @@ onUnmounted(() => {
 });
 
 const notice = useNotification();
+const isWeb = ref(window.isWeb);
 
 const files = ref<{
   videoPath: string | null;
@@ -240,18 +242,19 @@ const handleProjectBtnClick = (key?: string | number) => {
 
 watchEffect(async () => {
   if (mediaPath.value) {
-    const { dir, name } = window.path.parse(mediaPath.value);
     const videoPath = mediaPath.value;
-    if (await window.api.exits(videoPath)) {
-      await handleVideo(videoPath);
-    }
-    const assFilepath = window.path.join(dir, `${name}.ass`);
-    if (await window.api.exits(assFilepath)) {
-      handleDanmu(assFilepath);
-    } else {
-      const xmlFilepath = window.path.join(dir, `${name}.xml`);
-      if (await window.api.exits(xmlFilepath)) {
-        handleDanmu(xmlFilepath);
+    await handleVideo(videoPath);
+
+    if (!isWeb.value) {
+      const { dir, name } = window.path.parse(mediaPath.value);
+      const assFilepath = window.path.join(dir, `${name}.ass`);
+      if (await window.api.exits(assFilepath)) {
+        handleDanmu(assFilepath);
+      } else {
+        const xmlFilepath = window.path.join(dir, `${name}.xml`);
+        if (await window.api.exits(xmlFilepath)) {
+          handleDanmu(xmlFilepath);
+        }
       }
     }
   }
@@ -268,27 +271,27 @@ const handleVideoReady = (instance: ArtplayerType) => {
 };
 
 const handleVideoChange = async () => {
-  const files = await window.api.openFile({
-    multi: false,
-    filters: [
-      {
-        name: "media",
-        extensions: supportedVideoExtensions,
-      },
-    ],
-  });
+  const files = await showFileDialog({ extensions: supportedVideoExtensions });
   if (!files) return;
 
-  const path = files[0];
-  handleVideo(path);
+  const path = files?.[0];
+  path && handleVideo(path);
 };
 
 const handleVideo = async (path: string) => {
-  files.value.videoPath = path;
-  await videoRef.value?.switchUrl(path, path.endsWith(".flv") ? "flv" : "");
+  if (isWeb.value) {
+    const { videoId, type } = await commonApi.applyVideoId(path);
+    const videoUrl = await commonApi.getVideo(videoId);
+    console.log(videoUrl);
+    files.value.videoPath = videoUrl;
+    await videoRef.value?.switchUrl(videoUrl, type as any);
+  } else {
+    files.value.videoPath = path;
+    await videoRef.value?.switchUrl(path, path.endsWith(".flv") ? "flv" : "");
+  }
 
   if (files.value.danmuPath) {
-    const content = await window.api.common.readFile(files.value.danmuPath);
+    const content = await commonApi.readAss(files.value.danmuPath);
     videoRef?.value?.switchAss(content);
   }
 };
@@ -305,27 +308,11 @@ const xmlConvertVisible = ref(false);
 const tempXmlFile = ref("");
 const convertDanmuLoading = ref(false);
 const handleDanmuChange = async () => {
-  const files = await window.api.openFile({
-    multi: false,
-    filters: [
-      {
-        name: "file",
-        extensions: ["ass", "xml"],
-      },
-      {
-        name: "ass",
-        extensions: ["ass"],
-      },
-      {
-        name: "xml",
-        extensions: ["xml"],
-      },
-    ],
-  });
+  const files = await showFileDialog({ extensions: ["ass", "xml"] });
   if (!files) return;
 
-  const path = files[0];
-  await handleDanmu(path);
+  const path = files?.[0];
+  path && handleDanmu(path);
 };
 
 /**
@@ -335,7 +322,7 @@ const handleDanmu = async (path: string) => {
   files.value.originDanmuPath = path;
 
   if (path.endsWith(".ass")) {
-    const content = await window.api.common.readFile(path);
+    const content = await commonApi.readAss(path);
     files.value.danmuPath = path;
 
     videoRef.value?.switchAss(content);
@@ -363,7 +350,7 @@ const danmuConfirm = async (config: DanmuConfig) => {
     savePath: "",
     sync: true,
   });
-  const content = await window.api.common.readFile(output);
+  const content = await commonApi.readAss(output);
   convertDanmuLoading.value = false;
   files.value.danmuPath = output;
   videoRef.value?.switchAss(content);
@@ -377,14 +364,14 @@ const generateDanmakuData = async (file: string) => {
   if (file.endsWith(".ass")) {
     danmaList.value = [];
   } else if (file.endsWith(".xml")) {
-    const data = await window.api.danmu.parseDanmu(file);
+    const data = await commonApi.parseDanmu(file);
     danmaList.value = sortBy([...data.sc, ...data.danmu], "ts");
   } else {
     throw new Error("不支持的文件类型");
   }
 
   if (!videoDuration.value) return;
-  const data = await window.api.danmu.genTimeData(file);
+  const data = await commonApi.genTimeData(file);
 
   // @ts-ignore
   videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);

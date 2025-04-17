@@ -40,3 +40,29 @@ export const showDirectoryDialog = async (options: {
     return file;
   }
 };
+
+export const showFileDialog = async (options: { extensions: string[]; multi?: boolean }) => {
+  let files: string[] | undefined = [];
+  if (window.isWeb) {
+    files = await showDialog({
+      type: "file",
+      multi: options.multi,
+      exts: options.extensions,
+    });
+  } else {
+    files = await window.api.openFile({
+      multi: options.multi,
+      filters: [
+        {
+          name: "file",
+          extensions: options.extensions,
+        },
+        {
+          name: "所有文件",
+          extensions: ["*"],
+        },
+      ],
+    });
+  }
+  return files;
+};

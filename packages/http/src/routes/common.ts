@@ -12,6 +12,7 @@ import {
 } from "@biliLive-tools/shared/utils/index.js";
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
+import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
 import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
 
 import { config } from "../index.js";
@@ -244,11 +245,6 @@ router.post("/genTimeData", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;
   };
-  if (!filepath.endsWith(".ass")) {
-    ctx.status = 400;
-    ctx.body = "文件不是ass格式";
-    return;
-  }
   const data = await genTimeData(filepath);
   ctx.body = data;
 });
@@ -413,6 +409,14 @@ router.get("/video/:videoId", async (ctx) => {
     ctx.res.writeHead(200, head);
     ctx.body = fs.createReadStream(videoPath);
   }
+});
+
+router.post("/parseDanmu", async (ctx) => {
+  const { filepath } = ctx.request.body as {
+    filepath: string;
+  };
+  const data = await parseDanmu(filepath);
+  ctx.body = data;
 });
 
 export default router;
