@@ -135,6 +135,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
       );
       fs.appendFileSync(logFilePath, log.text + "\n");
       return;
+    } else {
+      logger.info(`record: ${log.text}`);
     }
   });
   manager.on("RecordStart", (debug) => {
@@ -161,7 +163,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
     logger.info("Manager videoFileCreated", { recorder, filename });
     const startTime = new Date();
 
-    await sleep(4000);
     if (!recorder.liveInfo) {
       logger.error("Manager videoFileCreated Error", { recorder, filename });
       return;

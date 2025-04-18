@@ -102,6 +102,9 @@ class DanmaClient extends EventEmitter {
         };
         this.emit("Message", gift);
       },
+      onRoomInfoChange: (msg) => {
+        this.emit("RoomInfoChange", msg);
+      },
     };
 
     this.client = startListen(this.roomId, handler, {

@@ -5,11 +5,12 @@
 - 新增看板页面
 - Web支持首页预览功能
 - Web支持切片功能
-- 录制：抖音支持解析 `https://v.douyin.com/xxx/` [#73](https://github.com/renmu123/biliLive-tools/issues/73)
+- 录制：B站支持标题关键字参数（仅在开启弹幕时生效）
 
 ## 优化
 
 - 修复 scale 相关参数在暗黑模式下的表现
+- 录制：抖音支持解析 `https://v.douyin.com/xxx/` [#73](https://github.com/renmu123/biliLive-tools/issues/73)
 
 # 1.10.0(2025.4.12)
 
