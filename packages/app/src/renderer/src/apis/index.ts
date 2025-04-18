@@ -7,5 +7,16 @@ import commonApi from "./common";
 import biliApi from "./bili";
 import api from "./request";
 import videoApi from "./video";
+import recordHistoryApi from "./recordHistory";
 
-export { userApi, recoderApi, configApi, taskApi, commonApi, biliApi, api, videoApi };
+export {
+  userApi,
+  recoderApi,
+  configApi,
+  taskApi,
+  commonApi,
+  biliApi,
+  api,
+  videoApi,
+  recordHistoryApi,
+};

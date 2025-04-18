@@ -61,6 +61,7 @@
             </div>
 
             <div class="section" @click="toWebhook(item.channelId)">Webhook配置</div>
+            <div class="section" @click="viewHistory(item)">录制历史</div>
             <div class="section" style="color: #e88080" @click="remove(item.id)">删除房间</div>
           </div>
         </template>
@@ -81,6 +82,7 @@ import addModal from "./components/addModal.vue";
 import videoModal from "./components/videoModal.vue";
 import cardView from "./components/cardView.vue";
 import listView from "./components/listView.vue";
+import { useRouter } from "vue-router";
 
 import { useEventListener, useStorage } from "@vueuse/core";
 import eventBus from "@renderer/utils/eventBus";
@@ -88,6 +90,7 @@ import eventBus from "@renderer/utils/eventBus";
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 
 const notice = useNotification();
+const router = useRouter();
 const params = ref<Parameters<typeof recoderApi.infoList>[0]>({
   platform: undefined,
   recordStatus: undefined,
@@ -227,7 +230,6 @@ const open = async (id: string, streamUrl: string) => {
   if (!streamUrl) {
     notice.error({
       title: "未找到直播流地址",
-      duration: 2000,
     });
     return;
   }
@@ -329,6 +331,22 @@ const toWebhook = (channelId: string) => {
     tab: "webhook",
     extra: {
       roomId: channelId,
+    },
+  });
+};
+
+/**
+ * 查看直播记录
+ * @param item 主播信息
+ */
+const viewHistory = (item: any) => {
+  router.push({
+    path: "/liveHistory",
+    query: {
+      id: item.id,
+      channelId: item.channelId,
+      platform: item.providerId,
+      name: item.owner,
     },
   });
 };
