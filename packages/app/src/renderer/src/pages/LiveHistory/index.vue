@@ -18,7 +18,8 @@
         placeholder="结束时间"
         style="width: 150px"
       />
-      <n-button type="primary" @click="handleQuery" style="margin-right: 12px"> 查询 </n-button>
+      <n-button type="primary" @click="handleQuery"> 查询 </n-button>
+      <n-button @click="goBack">返回</n-button>
     </div>
 
     <!-- 房间信息 -->
@@ -40,11 +41,12 @@
           style="margin-top: 20px"
           v-if="pagination.total > 0"
           v-model:page="pagination.page"
-          :page-count="Math.ceil(pagination.total / pagination.pageSize)"
           :page-size="pagination.pageSize"
           :item-count="pagination.total"
           show-size-picker
           @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+          :page-sizes="[10, 20, 30, 40]"
         />
       </n-spin>
     </div>
@@ -54,9 +56,10 @@
 </template>
 
 <script setup lang="ts">
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { recordHistoryApi } from "../../apis";
 import { DataTableColumns, NButton } from "naive-ui";
+
 // 类型定义
 interface StreamerInfo {
   platform: string;
@@ -181,6 +184,13 @@ onMounted(() => {
   }
 });
 
+// // 每次组件激活时都重新查询
+// onActivated(() => {
+//   if (streamerInfo.room_id && streamerInfo.platform) {
+//     handleQuery();
+//   }
+// });
+
 // 查询方法
 const handleQuery = async (): Promise<void> => {
   // 确保从路由参数更新最新的查询参数
@@ -224,6 +234,11 @@ const handlePageChange = (page: number): void => {
   handleQuery();
 };
 
+const handlePageSizeChange = (pageSize: number): void => {
+  queryParams.pageSize = pageSize;
+  handleQuery();
+};
+
 // 格式化时间
 const formatTime = (timestamp: number): string => {
   if (!timestamp) return "--";
@@ -257,25 +272,18 @@ const formatDuration = (startTime: number, endTime: number | null): string => {
 // 打开文件或文件夹
 const openFile = (filePath: string): void => {
   if (!filePath) return;
-  // 通过Electron API打开文件
-  window.electron.openFile(filePath);
+  window.api.openPath(filePath);
 };
 
 const openFolder = (filePath: string): void => {
   if (!filePath) return;
-  // 通过Electron API打开文件所在文件夹
-  window.electron.showItemInFolder(filePath);
+  window.api.common.showItemInFolder(filePath);
 };
 
-// 声明Window接口扩展，包含electron属性
-declare global {
-  interface Window {
-    electron: {
-      openFile: (filePath: string) => void;
-      showItemInFolder: (filePath: string) => void;
-    };
-  }
-}
+const router = useRouter();
+const goBack = () => {
+  router.back();
+};
 </script>
 
 <style scoped>
