@@ -19,7 +19,6 @@ import recordHistory from "./recordHistory.js";
 import { getFfmpegPath } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
-import { sleep } from "../utils/index.js";
 import { sendBySystem, send } from "../notify.js";
 // import { parseDanmu } from "../danmu/index.js";
 

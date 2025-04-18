@@ -37,7 +37,22 @@
 
       <n-layout class="main-container">
         <router-view v-slot="{ Component }">
-          <keep-alive>
+          <keep-alive
+            :include="[
+              'Home',
+              'Dashboard',
+              'Upload',
+              'DanmakuFactory',
+              'Convert2Mp4',
+              'VideoMerge',
+              'BiliDownload',
+              'recorder',
+              'videoCut',
+              'Queue',
+              'User',
+              'About',
+            ]"
+          >
             <component :is="Component" />
           </keep-alive>
         </router-view>

@@ -6,7 +6,7 @@ import { electronAPI } from "@electron-toolkit/preload";
 import { webUtils } from "electron";
 
 import type { IpcRendererEvent, SaveDialogOptions } from "electron";
-import type { FfmpegOptions, AppConfig, Theme, DanmuItem } from "@biliLive-tools/types";
+import type { FfmpegOptions, AppConfig, Theme } from "@biliLive-tools/types";
 import type { OpenDialogOptions } from "../types";
 
 // Custom APIs for renderer

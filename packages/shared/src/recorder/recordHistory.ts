@@ -82,7 +82,7 @@ export function queryRecordsByRoomAndPlatform(options: QueryRecordsOptions): Que
 
   // 获取总记录数
   const allRecords = recordHistoryModel.list(query);
-  const total = allRecords.length;
+  // const total = allRecords.length;
 
   // 过滤时间范围
   let filteredRecords = allRecords;

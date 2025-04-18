@@ -155,15 +155,15 @@ const columns: DataTableColumns<LiveRecord> = [
       if (window.isWeb) return null;
       if (!row.video_file) return null;
       return h("div", [
-        h(
-          NButton,
-          {
-            size: "small",
-            style: "margin-right: 8px",
-            onClick: () => openFile(row.video_file as string),
-          },
-          { default: () => "打开文件" },
-        ),
+        // h(
+        //   NButton,
+        //   {
+        //     size: "small",
+        //     style: "margin-right: 8px",
+        //     onClick: () => openFile(row.video_file as string),
+        //   },
+        //   { default: () => "打开文件" },
+        // ),
         h(
           NButton,
           {
@@ -183,13 +183,6 @@ onMounted(() => {
     handleQuery();
   }
 });
-
-// // 每次组件激活时都重新查询
-// onActivated(() => {
-//   if (streamerInfo.room_id && streamerInfo.platform) {
-//     handleQuery();
-//   }
-// });
 
 // 查询方法
 const handleQuery = async (): Promise<void> => {
@@ -270,10 +263,10 @@ const formatDuration = (startTime: number, endTime: number | null): string => {
 };
 
 // 打开文件或文件夹
-const openFile = (filePath: string): void => {
-  if (!filePath) return;
-  window.api.openPath(filePath);
-};
+// const openFile = (filePath: string): void => {
+//   if (!filePath) return;
+//   window.api.openPath(filePath);
+// };
 
 const openFolder = (filePath: string): void => {
   if (!filePath) return;

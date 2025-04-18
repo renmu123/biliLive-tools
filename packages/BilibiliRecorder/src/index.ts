@@ -300,7 +300,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       extraDataController.addMessage(msg);
     });
     danmaClient.on("onRoomInfoChange", (msg) => {
-      console.log("直播信息变更", msg);
       if (
         !isManualStart &&
         this.titleKeywords &&
@@ -317,7 +316,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           });
 
           // 停止录制
-          this.recordHandle.stop("直播间标题包含关键词");
+          this.recordHandle && this.recordHandle.stop("直播间标题包含关键词");
         }
       }
     });

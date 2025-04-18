@@ -42,13 +42,12 @@ router.get("/list", async (ctx) => {
       data: result.data,
       pagination: result.pagination,
     };
-  } catch (error) {
-    console.error("查询直播记录失败", error);
+  } catch (error: any) {
     ctx.status = 500;
     ctx.body = {
       code: 500,
       message: "查询直播记录失败",
-      error: error.message,
+      error: error?.message,
     };
   }
 });

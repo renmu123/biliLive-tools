@@ -325,8 +325,8 @@ export const provider: RecorderProvider<{}> = {
       // 处理短链接
       try {
         id = await resolveShortURL(channelURL);
-      } catch (err) {
-        throw new Error(`解析抖音短链接失败: ${err.message}`);
+      } catch (err: any) {
+        throw new Error(`解析抖音短链接失败: ${err?.message}`);
       }
     } else {
       // 处理常规直播链接
