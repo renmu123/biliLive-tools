@@ -5,6 +5,7 @@
 - 新增看板页面
 - Web支持首页预览功能
 - Web支持切片功能
+- 录制：抖音支持解析 `https://v.douyin.com/xxx/` [#73](https://github.com/renmu123/biliLive-tools/issues/73)
 
 ## 优化
 

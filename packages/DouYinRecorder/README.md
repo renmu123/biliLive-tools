@@ -66,6 +66,7 @@ interface Options {
 import { provider } from "@bililive-tools/douyin-recorder";
 
 const url = "https://live.douyin.com/203641303310";
+// 同样支持解析 https://v.douyin.com/DpfoBLAXoHM/
 const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
 

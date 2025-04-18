@@ -1,3 +1,7 @@
+# 1.3.0
+
+- 支持 `https://v.douyin.com/xxx/` 链接解析
+
 # 1.2.0
 
 1. 支持 `videoFormat`参数: "auto", "ts", "mkv"
