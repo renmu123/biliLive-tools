@@ -11,6 +11,7 @@
 
 - 修复 scale 相关参数在暗黑模式下的表现
 - 录制：抖音支持解析 `https://v.douyin.com/xxx/` [#73](https://github.com/renmu123/biliLive-tools/issues/73)
+- 录制：B站修改默认画质匹配逻辑以处理hevc真原画
 
 # 1.10.0(2025.4.12)
 
