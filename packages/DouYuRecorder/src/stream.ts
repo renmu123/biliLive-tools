@@ -86,6 +86,7 @@ export async function getStream(
   opts: Pick<Recorder, "channelId" | "quality"> & {
     rejectCache?: boolean;
     strictQuality?: boolean;
+    source?: string;
   },
 ) {
   const qn = (
@@ -95,6 +96,7 @@ export async function getStream(
   let liveInfo = await getLiveInfo({
     channelId: opts.channelId,
     rate: qn,
+    cdn: opts.source === "auto" ? undefined : opts.source,
   });
   if (!liveInfo.living) throw new Error("It must be called getStream when living");
 

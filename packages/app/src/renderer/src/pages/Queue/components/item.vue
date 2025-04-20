@@ -236,13 +236,13 @@ const handlePause = async (taskId: string) => {
 
 const handleKill = async (task: Task) => {
   if (task.type === TaskType.ffmpeg) {
-    const [status, savePorcess] = await confirm.warning({
-      content: "确定要中止任务吗？",
+    const [status, notSavePorcess] = await confirm.warning({
+      content: "确定要中止任务吗？注意保存进度需要额外时间",
       showCheckbox: true,
-      checkboxText: "保存进度",
+      checkboxText: "不保存进度",
     });
     if (!status) return;
-    if (savePorcess) {
+    if (notSavePorcess) {
       taskApi.interrupt(task.taskId);
     } else {
       taskApi.cancel(task.taskId);

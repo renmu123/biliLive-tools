@@ -1,4 +1,5 @@
 import filenamify from "filenamify/browser";
+import CryptoJS from "crypto-js";
 
 export const deepRaw = <T>(data: T): T => {
   return JSON.parse(JSON.stringify(data));
@@ -77,27 +78,14 @@ export async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function generateHMACSHA256(message: string, secretKey: string) {
-  // 将密钥和消息转换为二进制数据
-  const encoder = new TextEncoder();
-  const keyData = encoder.encode(secretKey);
-  const messageData = encoder.encode(message);
+export function generateHMACSHA256(message, secretKey) {
+  // 将消息和密钥编码为 UTF-8
+  const messageUtf8 = CryptoJS.enc.Utf8.parse(message);
+  const secretKeyUtf8 = CryptoJS.enc.Utf8.parse(secretKey);
 
-  // 导入密钥，指定为 HMAC 和 SHA-256
-  const cryptoKey = await window.crypto.subtle.importKey(
-    "raw", // 原始密钥格式
-    keyData, // 密钥数据
-    { name: "HMAC", hash: { name: "SHA-256" } }, // HMAC 和 SHA-256 算法
-    false, // 不需要导出密钥
-    ["sign"], // 只用于签名
-  );
+  // 计算 HMAC-SHA256
+  const hmac = CryptoJS.HmacSHA256(messageUtf8, secretKeyUtf8);
 
-  // 使用密钥生成签名（哈希）
-  const signature = await window.crypto.subtle.sign("HMAC", cryptoKey, messageData);
-
-  // 将结果转换为十六进制字符串
-  const hashArray = Array.from(new Uint8Array(signature));
-  const hashHex = hashArray.map((byte) => byte.toString(16).padStart(2, "0")).join("");
-
-  return hashHex;
+  // 转换为十六进制字符串
+  return hmac.toString(CryptoJS.enc.Hex);
 }

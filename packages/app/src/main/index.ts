@@ -14,7 +14,6 @@ import { notify } from "./utils/index";
 import { init, createRecorderManager } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
-import { handlers as danmuHandlers } from "./danmu";
 import { commonHandlers, getTempPath } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
 import icon from "../../resources/icon.png?asset";
@@ -81,7 +80,6 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:setTheme", setTheme);
 
   registerHandlers(ipcMain, ffmpegHandlers);
-  registerHandlers(ipcMain, danmuHandlers);
   registerHandlers(ipcMain, configHandlers);
   registerHandlers(ipcMain, commonHandlers);
 };
@@ -192,6 +190,12 @@ function createWindow(): void {
       label: "显示",
       click: () => {
         mainWin.show();
+      },
+    },
+    {
+      label: "重启",
+      click: () => {
+        relaunch();
       },
     },
     {
@@ -326,6 +330,12 @@ const canQuit = async () => {
       buttons: ["取消", "退出"],
     });
     if (confirm.response === 1) {
+      // 手动停止正在录制的直播
+      for (const recorder of recorderManager.manager.recorders) {
+        if (recorder.state === "recording") {
+          await recorderManager.manager.stopRecord(recorder.id);
+        }
+      }
       return true;
     } else {
       return false;
@@ -363,6 +373,15 @@ const quit = async () => {
 export const relaunch = async () => {
   const canQuited = await canQuit();
   if (canQuited) {
+    Object.assign(
+      windowConfig,
+      {
+        isMaximized: false,
+      },
+      mainWin.getNormalBounds(),
+    );
+
+    WindowState.set("winBounds", windowConfig); // saves window's properties using electron-store
     app.relaunch();
     app.exit(0);
   }
@@ -570,10 +589,12 @@ const checkUpdate = async () => {
   if (semver.gt(latestVersion, version)) {
     const confirm = await dialog.showMessageBox(mainWin, {
       message: "检测到有新版本，是否前往下载？",
-      buttons: ["取消", "确认"],
+      buttons: ["取消", "备用", "确认"],
     });
-    if (confirm.response === 1) {
+    if (confirm.response === 2) {
       shell.openExternal("https://github.com/renmu123/biliLive-tools/releases");
+    } else if (confirm.response === 1) {
+      shell.openExternal("https://pan.quark.cn/s/6da253a1ecb8");
     }
     return false;
   }

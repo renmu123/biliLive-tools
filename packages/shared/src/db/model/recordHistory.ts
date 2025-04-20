@@ -5,10 +5,10 @@ import type { Database } from "better-sqlite3";
 
 const BaseLive = z.object({
   streamer_id: z.number(),
-  start_time: z.number(),
+  live_start_time: z.number().optional(),
+  record_start_time: z.number(),
   title: z.string(),
-  end_time: z.number().optional(),
-  danmu_file: z.string().optional(),
+  record_end_time: z.number().optional(),
   video_file: z.string().optional(),
 });
 
@@ -22,22 +22,22 @@ export type BaseLive = z.infer<typeof BaseLive>;
 export type Live = z.infer<typeof Live>;
 
 class LiveModel extends BaseModel<BaseLive> {
-  table = "live";
+  table = "record_history";
 
   constructor(db: Database) {
-    super(db, "live");
+    super(db, "record_history");
   }
 
   async createTable() {
     const createTableSQL = `  
-      CREATE TABLE IF NOT EXISTS live (
+      CREATE TABLE IF NOT EXISTS record_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,                -- 自增主键
         created_at INTEGER DEFAULT (strftime('%s', 'now')),  -- 创建时间，时间戳，自动生成
         streamer_id INTEGER NOT NULL,                        -- 主播id
-        start_time INTEGER NOT NULL,                         -- 直播开始时间，秒时间戳
-        end_time INTEGER,                                    -- 直播结束时间，秒时间戳
+        live_start_time INTEGER NOT NULL,                    -- 直播开始时间，秒时间戳
+        record_start_time INTEGER NOT NULL,                  -- 录制开始时间，秒时间戳
+        record_end_time INTEGER,                             -- 录制结束时间，秒时间戳
         title TEXT,                                          -- 直播标题
-        danmu_file TEXT,                                     -- 弹幕文件路径
         video_file TEXT,                                     -- 视频文件路径
         FOREIGN KEY (streamer_id) REFERENCES streamer(id)    -- 外键约束
       ) STRICT;

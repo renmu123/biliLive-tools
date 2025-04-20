@@ -15,11 +15,13 @@ export class Segment extends EventEmitter {
   /** 输出文件名名，不包含拓展名 */
   outputVideoFilePath!: string;
   disableDanma: boolean;
+  videoExt: "ts" | "mkv" | "mp4";
 
-  constructor(getSavePath: GetSavePath, disableDanma: boolean) {
+  constructor(getSavePath: GetSavePath, disableDanma: boolean, videoExt: "ts" | "mkv" | "mp4") {
     super();
     this.getSavePath = getSavePath;
     this.disableDanma = disableDanma;
+    this.videoExt = videoExt;
   }
 
   async handleSegmentEnd() {
@@ -33,10 +35,10 @@ export class Segment extends EventEmitter {
 
     try {
       await Promise.all([
-        fs.rename(this.rawRecordingVideoPath, `${this.outputVideoFilePath}.ts`),
+        fs.rename(this.rawRecordingVideoPath, this.outputFilePath),
         this.extraDataController?.flush(),
       ]);
-      this.emit("videoFileCompleted", { filename: `${this.outputVideoFilePath}.ts` });
+      this.emit("videoFileCompleted", { filename: this.outputFilePath });
     } catch (err) {
       this.emit("DebugLog", {
         type: "common",
@@ -69,10 +71,14 @@ export class Segment extends EventEmitter {
     if (match) {
       const filename = match[1];
       this.rawRecordingVideoPath = filename;
-      this.emit("videoFileCreated", { filename: `${this.outputVideoFilePath}.ts` });
+      this.emit("videoFileCreated", { filename: this.outputFilePath });
     } else {
       this.emit("DebugLog", { type: "ffmpeg", text: "No match found" });
     }
+  }
+
+  get outputFilePath() {
+    return `${this.outputVideoFilePath}.${this.videoExt}`;
   }
 }
 
@@ -81,14 +87,23 @@ export class StreamManager extends EventEmitter {
   private extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   recordSavePath: string;
   recordStartTime?: number;
+  hasSegment: boolean;
+  private videoFormat?: "auto" | "ts" | "mkv";
 
-  constructor(getSavePath: GetSavePath, hasSegment: boolean, disableDanma: boolean) {
+  constructor(
+    getSavePath: GetSavePath,
+    hasSegment: boolean,
+    disableDanma: boolean,
+    videoFormat?: "auto" | "ts" | "mkv",
+  ) {
     super();
     const recordSavePath = getSavePath({ startTime: Date.now() });
     this.recordSavePath = recordSavePath;
+    this.videoFormat = videoFormat;
+    this.hasSegment = hasSegment;
 
     if (hasSegment) {
-      this.segment = new Segment(getSavePath, disableDanma);
+      this.segment = new Segment(getSavePath, disableDanma, this.videoExt);
       this.segment.on("DebugLog", (data) => {
         this.emit("DebugLog", data);
       });
@@ -136,7 +151,20 @@ export class StreamManager extends EventEmitter {
     return this.segment?.extraDataController || this.extraDataController;
   }
 
+  get videoExt() {
+    if (this.videoFormat === "mkv") {
+      return "mkv";
+    } else if (this.videoFormat === "auto") {
+      if (!this.hasSegment) {
+        return "mp4";
+      }
+    }
+    return "ts";
+  }
+
   get videoFilePath() {
-    return this.segment ? `${this.recordSavePath}-PART%03d.ts` : `${this.recordSavePath}.ts`;
+    return this.segment
+      ? `${this.recordSavePath}-PART%03d.${this.videoExt}`
+      : `${this.recordSavePath}.${this.videoExt}`;
   }
 }

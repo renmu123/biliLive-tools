@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { userApi } from "@renderer/apis";
+import { userApi, taskApi } from "@renderer/apis";
 import { useClipboard } from "@vueuse/core";
 
 import { useUserInfoStore, useAppConfig } from "@renderer/stores";
@@ -103,6 +103,17 @@ const updateAccountInfo = async (uid: number) => {
   getUsers();
 };
 const updateAuth = async (uid: number) => {
+  const tasks = (
+    await taskApi.list({
+      type: "bili",
+    })
+  ).list.filter((item) => item.status === "running");
+  if (tasks.length) {
+    const [status] = await confirm.warning({
+      content: "当前有正在上传的任务，更新后可能会失败，是否确认更新？",
+    });
+    if (!status) return;
+  }
   await userApi.updateAuth(uid);
   notice.success({
     title: "已更新授权",
@@ -111,7 +122,7 @@ const updateAuth = async (uid: number) => {
   getUsers();
 };
 
-const { copy } = useClipboard();
+const { copy } = useClipboard({ legacy: true });
 const getCookie = async (uid: number) => {
   const cookie = await userApi.getCookie(uid);
   await copy(cookie);

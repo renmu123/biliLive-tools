@@ -18,6 +18,7 @@ import type {
 
 import { getInfo, getStream } from "./stream.js";
 import { ensureFolderExist, singleton } from "./utils.js";
+import { resolveShortURL } from "./douyin_api.js";
 
 import DouYinDanmaClient from "douyin-danma-listener";
 
@@ -98,7 +99,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const liveInfo = await getInfo(this.channelId);
   const { living, owner, title, liveId } = liveInfo;
   this.liveInfo = liveInfo;
-  this.emit("LiveStart", { liveId });
 
   if (liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
@@ -107,6 +107,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
   if (this.tempStopIntervalCheck) return null;
   if (!living) return null;
+
+  this.emit("LiveStart", { liveId });
 
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
@@ -159,6 +161,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       segment: this.segment ?? 0,
       getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
       disableDanma: this.disableProvideCommentsWhenRecording,
+      videoFormat: this.videoFormat ?? "auto",
     },
     onEnd,
   );
@@ -227,10 +230,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     const extraDataController = recorder.getExtraDataController();
     if (!extraDataController) return;
     if (this.saveGiftDanma === false) return;
-    // console.log("gift", msg);
     const gift: GiveGift = {
       type: "give_gift",
-      timestamp: new Date(msg.sendTime).getTime(),
+      timestamp: Number(msg.sendTime),
       name: msg.gift.name,
       price: 1,
       count: Number(msg.totalCount),
@@ -311,14 +313,25 @@ export const provider: RecorderProvider<{}> = {
   siteURL: "https://live.douyin.com/",
 
   matchURL(channelURL) {
-    // TODO: 暂时不支持 v.douyin.com
-    return /https?:\/\/live\.douyin\.com\//.test(channelURL);
+    // 支持 v.douyin.com 和 live.douyin.com
+    return /https?:\/\/(live|v)\.douyin\.com\//.test(channelURL);
   },
 
   async resolveChannelInfoFromURL(channelURL) {
     if (!this.matchURL(channelURL)) return null;
 
-    const id = path.basename(new URL(channelURL).pathname);
+    let id: string;
+    if (channelURL.includes("v.douyin.com")) {
+      // 处理短链接
+      try {
+        id = await resolveShortURL(channelURL);
+      } catch (err: any) {
+        throw new Error(`解析抖音短链接失败: ${err?.message}`);
+      }
+    } else {
+      // 处理常规直播链接
+      id = path.basename(new URL(channelURL).pathname);
+    }
     const info = await getInfo(id);
 
     return {

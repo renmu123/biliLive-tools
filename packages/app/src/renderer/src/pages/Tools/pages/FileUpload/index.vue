@@ -6,17 +6,21 @@
         >清空</span
       >
       <n-button @click="addVideo"> 添加 </n-button>
-      <n-button type="primary" @click="upload"> 立即上传 </n-button>
+      <n-button type="primary" @click="upload" title="立即上传(ctrl+enter)"> 立即上传 </n-button>
       <n-button type="primary" @click="appendVideoVisible = true"> 续传 </n-button>
       <n-checkbox v-model:checked="options.removeOriginAfterUploadCheck">
         审核通过后移除源文件
       </n-checkbox>
     </div>
-    <FileSelect ref="fileSelect" v-model="fileList"></FileSelect>
+    <FileSelect ref="fileSelect" v-model="fileList" @change="fileChange"></FileSelect>
 
     <n-divider />
     <div class="" style="margin-top: 30px">
-      <BiliSetting v-model="options.uploadPresetId" @change="handlePresetOptions"></BiliSetting>
+      <BiliSetting
+        ref="biliSettingRef"
+        v-model="options.uploadPresetId"
+        @change="handlePresetOptions"
+      ></BiliSetting>
     </div>
 
     <AppendVideoDialog
@@ -29,6 +33,7 @@
 
 <script setup lang="ts">
 import { toReactive } from "@vueuse/core";
+import { NButton, useNotification } from "naive-ui";
 
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import BiliSetting from "@renderer/components/BiliSetting.vue";
@@ -153,6 +158,69 @@ const addVideo = async () => {
 };
 const clear = () => {
   fileList.value = [];
+};
+
+const biliSettingRef = ref<InstanceType<typeof BiliSetting> | null>(null);
+// 只提示一次，清空提示
+const hasNotice = ref(false);
+const notification = useNotification();
+const fileChange = (files: any) => {
+  if (files.length === 0) {
+    hasNotice.value = false;
+    return;
+  }
+  if (hasNotice.value) return;
+
+  const name = files[0].title;
+  if (biliSettingRef.value?.getTitle() === name) return;
+  const data = JSON.parse(localStorage.getItem("notShowAgain") || "{}");
+  if (data["bili-upload-title"] === true) return;
+
+  hasNotice.value = true;
+  const n = notification.create({
+    title: `是否将文件名改为视频标题？`,
+    keepAliveOnHover: true,
+    duration: 3000,
+    action: () =>
+      h(
+        "div",
+        {
+          style: "display: flex; gap: 10px; justify-content: center; align-items: center;",
+        },
+        {
+          default: () => [
+            h(
+              NButton,
+              {
+                type: "primary",
+                onClick: () => {
+                  biliSettingRef.value?.setTitle(name);
+                  n.destroy();
+                },
+              },
+              {
+                default: () => "确认",
+              },
+            ),
+            h(
+              NButton,
+              {
+                text: true,
+                type: "error",
+                onClick: () => {
+                  data["bili-upload-title"] = true;
+                  localStorage.setItem("notShowAgain", JSON.stringify(data));
+                  n.destroy();
+                },
+              },
+              {
+                default: () => "不再提示",
+              },
+            ),
+          ],
+        },
+      ),
+  });
 };
 </script>
 

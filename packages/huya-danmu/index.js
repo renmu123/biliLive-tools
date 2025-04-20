@@ -8,18 +8,24 @@ import { md5, intToHexColor } from "./utils.js";
 
 const heartbeat_interval = 60000;
 const fresh_gift_interval = 60 * 60 * 1000;
+const retry_interval = 2000;
 
 class huya_danmu extends events {
   constructor(opt) {
     super();
-    if (typeof opt === "string") this._roomid = opt;
-    else if (typeof opt === "object") {
+    if (typeof opt === "string") {
+      this._roomid = opt;
+      this._max_retries = 10;
+    } else if (typeof opt === "object") {
       this._roomid = opt.roomid;
+      this._max_retries = opt.maxRetries || 10;
       this.set_proxy(opt.proxy);
     }
     this._gift_info = {};
     this._chat_list = new List();
     this._emitter = new events.EventEmitter();
+    this._retry_count = 0;
+    this._is_manual_stop = false;
   }
 
   set_proxy(proxy) {
@@ -60,6 +66,10 @@ class huya_danmu extends events {
   async start() {
     if (this._starting) return;
     this._starting = true;
+    await this._try_connect();
+  }
+
+  async _try_connect() {
     this._info = await this._get_chat_info();
     if (!this._info) return this.emit("close");
     this._main_user_id = new HUYA.UserId();
@@ -86,10 +96,21 @@ class huya_danmu extends events {
     });
     this._client.on("error", (err) => {
       this.emit("error", err);
+      if (!this._is_manual_stop && this._retry_count < this._max_retries) {
+        this._retry_count++;
+        this.emit("retry", { count: this._retry_count, max: this._max_retries });
+        setTimeout(() => this._try_connect(), retry_interval);
+      }
     });
     this._client.on("close", async () => {
       this._stop();
-      this.emit("close");
+      if (!this._is_manual_stop && this._retry_count < this._max_retries) {
+        this._retry_count++;
+        this.emit("retry", { count: this._retry_count, max: this._max_retries });
+        setTimeout(() => this._try_connect(), retry_interval);
+      } else {
+        this.emit("close");
+      }
     });
     this._client.on("message", this._on_mes.bind(this));
     this._emitter.on("8006", (msg) => {
@@ -250,6 +271,7 @@ class huya_danmu extends events {
   }
 
   stop() {
+    this._is_manual_stop = true;
     this.removeAllListeners();
     this._stop();
   }

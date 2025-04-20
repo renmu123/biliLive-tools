@@ -62,6 +62,38 @@ export const douyuQualityOptions = [
   },
 ];
 
+// 斗鱼线路选项
+export const douyuSourceOptions = [
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    value: "scdnctshh",
+    label: "线路1(scdnctshh)",
+  },
+  {
+    value: "tctc-h5",
+    label: "线路4(tctc-h5)",
+  },
+  {
+    value: "tct-h5",
+    label: "线路5(tct-h5)",
+  },
+  {
+    value: "ali-h5",
+    label: "线路6(ali-h5)",
+  },
+  {
+    value: "hw-h5",
+    label: "线路7(hw-h5)",
+  },
+  {
+    value: "hs-h5",
+    label: "线路13(hs-h5)",
+  },
+];
+
 // 虎牙画质选项
 export const huyaQualityOptions = [
   {
@@ -190,6 +222,22 @@ export const streamCodecOptions = [
   },
 ];
 
+// 视频格式选择
+export const videoFormatOptions = [
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    value: "ts",
+    label: "TS",
+  },
+  {
+    value: "mkv",
+    label: "MKV",
+  },
+];
+
 const qualityRetry = {
   text: "画质匹配重试次数",
   tip: "根据次数强制查询匹配画质，在未选择原画的情况下，可能会导致开头漏录。匹配次数结束后如果无法匹配对应画质时会自动选择其他画质，-1为强制匹配画质",
@@ -200,6 +248,12 @@ const quality = {
 };
 
 export const textInfo = {
+  common: {
+    format: {
+      text: "视频格式",
+      tip: "选择自动时，分段为ts，不分段为mp4",
+    },
+  },
   bili: {
     uid: {
       text: "录制账号",

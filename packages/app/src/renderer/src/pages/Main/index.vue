@@ -37,7 +37,22 @@
 
       <n-layout class="main-container">
         <router-view v-slot="{ Component }">
-          <keep-alive>
+          <keep-alive
+            :include="[
+              'Home',
+              'Dashboard',
+              'Upload',
+              'DanmakuFactory',
+              'Convert2Mp4',
+              'VideoMerge',
+              'BiliDownload',
+              'recorder',
+              'videoCut',
+              'Queue',
+              'User',
+              'About',
+            ]"
+          >
             <component :is="Component" />
           </keep-alive>
         </router-view>
@@ -282,13 +297,6 @@ const menuOptions = computed<MenuOption[]>(() => {
         ),
     },
   ];
-  // 如果是web，不显示切片页
-  if (isWeb.value) {
-    const index = toolsSubMenus.findIndex((item) => item.key === "videoCut");
-    if (index !== -1) {
-      toolsSubMenus.splice(index, 1);
-    }
-  }
   const menus = [
     {
       label: () =>

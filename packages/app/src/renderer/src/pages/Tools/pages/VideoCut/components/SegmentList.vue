@@ -4,7 +4,7 @@
       <n-icon
         size="20"
         class="pointer icon"
-        title="在当前时间开始当前片段"
+        title="在当前时间开始当前片段(I)"
         style="padding: 2px"
         @click="setStartTime"
       >
@@ -24,13 +24,13 @@
       <n-icon size="24" class="pointer icon cut-add-segment" title="添加片段" @click="addCut">
         <PlusOutlined></PlusOutlined>
       </n-icon>
-      <n-icon size="24" class="pointer icon" title="删除片段" @click="deleteCut">
+      <n-icon size="24" class="pointer icon" title="删除片段(del)" @click="deleteCut">
         <MinusOutlined></MinusOutlined>
       </n-icon>
       <n-icon
         size="20"
         class="pointer icon cut-set-end"
-        title="在当前时间结束当前片段"
+        title="在当前时间结束当前片段(O)"
         style="padding: 2px"
         @click="setEndTime"
       >
@@ -59,13 +59,12 @@
           <li>space 播放/暂停</li>
           <li>ctrl+left 后退1秒</li>
           <li>ctrl+right 前进1秒</li>
-          <li>ctrl+s 保存到llc项目</li>
-          <li>ctrl+shift+s 另存为llc项目</li>
+          <li>ctrl+s 保存到项目</li>
+          <li>ctrl+shift+s 另存为项目</li>
           <li>ctrl+enter 导出</li>
           <li>ctrl+z 撤销</li>
           <li>ctrl+shift+z 重做</li>
-          <li>ctrl+k 唤起弹幕搜索</li>
-          <li>ctrl+shift+k 关闭弹幕搜索</li>
+          <li>ctrl+k 切换弹幕搜索</li>
         </ul>
       </Tip>
     </div>
@@ -110,14 +109,14 @@
   <n-modal
     v-model:show="cutEditVisible"
     preset="dialog"
-    title="编辑名称"
+    title="编辑片段名称"
     :show-icon="false"
     :closable="false"
     auto-focus
   >
     <n-input
       v-model:value="tempCutName"
-      placeholder="请输片段名称"
+      placeholder="请输入片段名称"
       @keydown.enter="confirmEditCutName"
     ></n-input>
     <template #action>
@@ -137,7 +136,7 @@
     <span
       size="30"
       class="pointer icon cut-search-danmu"
-      title="搜索弹幕，可拖动"
+      title="搜索弹幕，可拖动(ctrl+k)"
       style="position: fixed; display: inline-block; width: 30px; height: 30px; z-index: 10"
       ref="el"
       :style="style"
@@ -192,13 +191,9 @@ onActivated(() => {
   hotkeys("del", function () {
     deleteCut();
   });
-  // 唤起弹幕搜索
+  // 切换弹幕搜索
   hotkeys("ctrl+k", function () {
     searchDanmu();
-  });
-  // 关闭弹幕搜索
-  hotkeys("ctrl+shift+k", function () {
-    searchDanmuVisible.value = false;
   });
   // 切换到当前开始片段
   // hotkeys("enter", function () {});

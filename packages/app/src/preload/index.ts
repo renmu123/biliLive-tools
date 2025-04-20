@@ -6,7 +6,7 @@ import { electronAPI } from "@electron-toolkit/preload";
 import { webUtils } from "electron";
 
 import type { IpcRendererEvent, SaveDialogOptions } from "electron";
-import type { FfmpegOptions, AppConfig, Theme, DanmuItem } from "@biliLive-tools/types";
+import type { FfmpegOptions, AppConfig, Theme } from "@biliLive-tools/types";
 import type { OpenDialogOptions } from "../types";
 
 // Custom APIs for renderer
@@ -19,22 +19,6 @@ export const api = {
   },
   addWithStreamer: (options) => {
     return ipcRenderer.invoke("db:addWithStreamer", options);
-  },
-  danmu: {
-    genTimeData(input: string) {
-      return ipcRenderer.invoke("danmu:genTimeData", input);
-    },
-    parseDanmu(input: string): Promise<{
-      danmu: DanmuItem[];
-      sc: DanmuItem[];
-      hotProgress: {
-        time: number;
-        value: number;
-        color: string;
-      }[];
-    }> {
-      return ipcRenderer.invoke("danmu:parseDanmu", input, {});
-    },
   },
   common: {
     getTempPath: async () => {

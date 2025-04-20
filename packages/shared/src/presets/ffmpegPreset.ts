@@ -25,6 +25,7 @@ const commonPresetParams: {
   audioCodec: audioCodec;
   swsFlags: string;
   scaleMethod: "auto" | "before" | "after";
+  forceOriginalAspectRatio: "auto" | "decrease" | "increase";
   hardwareScaleFilter: boolean;
   encoderThreads: number;
   addTimestamp: boolean;
@@ -37,6 +38,7 @@ const commonPresetParams: {
   timestampExtra: string;
   timestampFormat: string;
   vf: string;
+  pkOptimize: boolean;
 } = {
   resetResolution: false,
   resolutionWidth: 2880,
@@ -44,6 +46,7 @@ const commonPresetParams: {
   audioCodec: "copy",
   swsFlags: "auto",
   scaleMethod: "auto",
+  forceOriginalAspectRatio: "auto",
   hardwareScaleFilter: false,
   addTimestamp: false,
   encoderThreads: -1,
@@ -56,6 +59,7 @@ const commonPresetParams: {
   timestampFollowDanmu: true,
   timestampExtra: "",
   timestampFormat: "%Y-%m-%d %T",
+  pkOptimize: false,
 };
 
 const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
@@ -121,7 +125,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       bit10: false,
-      preset: "0",
+      preset: "balanced",
     },
   },
   {
@@ -173,7 +177,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       bit10: false,
-      preset: "0",
+      preset: "balanced",
     },
   },
 
@@ -227,7 +231,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrateControl: "VBR",
       bitrate: 8000,
       bit10: false,
-      preset: "0",
+      preset: "balanced",
     },
   },
 ];
@@ -244,7 +248,10 @@ export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
     if (!encoder) {
       throw new Error("无效的编码器");
     }
-    if ((encoder.presets ?? []).findIndex((item) => item.value === config.preset) === -1) {
+    if (
+      encoder.presets &&
+      (encoder.presets ?? []).findIndex((item) => item.value === config.preset) === -1
+    ) {
       throw new Error("无效的preset参数，可能使用了其他编码器的preset，请尝试修改");
     }
     if (config.resetResolution) {

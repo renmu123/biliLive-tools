@@ -95,16 +95,30 @@
           placeholder="请输入tg bot的token"
           type="password"
           show-password-on="click"
-        ></n-input> </n-form-item
-      ><n-form-item>
+        ></n-input>
+      </n-form-item>
+      <n-form-item>
         <template #label>
           <span class="inline-flex"> chat_id </span>
         </template>
         <n-input
           v-model:value="config.notification.setting.tg.chat_id"
           placeholder="请输入chat_id"
-        ></n-input> </n-form-item
-    ></template>
+        ></n-input>
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip
+            text="反代url"
+            tip="默认使用官方api，如：https://api.telegram.org，带上协议，无须后缀"
+          ></Tip>
+        </template>
+        <n-input
+          v-model:value="config.notification.setting.tg.proxyUrl"
+          placeholder="默认使用官方api"
+        ></n-input>
+      </n-form-item>
+    </template>
     <template v-else-if="config.notification.setting.type === NotificationType.ntfy">
       <n-form-item>
         <template #label>
@@ -146,6 +160,54 @@
           show-password-on="click"
         ></n-input> </n-form-item
     ></template>
+    <template v-else-if="config.notification.setting.type === NotificationType.customHttp">
+      <n-form-item>
+        <template #label>
+          <Tip tip="支持{{title}}和{{desc}}占位符，GET请求会自动URL编码" text="请求URL"></Tip>
+        </template>
+        <n-input
+          v-model:value="config.notification.setting.customHttp.url"
+          placeholder="请输入请求URL"
+        ></n-input>
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <span class="inline-flex"> 请求方法 </span>
+        </template>
+        <n-select
+          v-model:value="config.notification.setting.customHttp.method"
+          :options="[
+            { value: 'GET', label: 'GET' },
+            { value: 'POST', label: 'POST' },
+            { value: 'PUT', label: 'PUT' },
+          ]"
+          placeholder="请选择请求方法"
+        />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip
+            tip="POST/PUT请求的请求体，默认为json，支持{{title}}和{{desc}}占位符"
+            text="请求体"
+          ></Tip>
+        </template>
+        <n-input
+          v-model:value="config.notification.setting.customHttp.body"
+          type="textarea"
+          placeholder="请输入请求体"
+        ></n-input>
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip tip="自定义请求头，每行一个，格式为key: value" text="请求头"></Tip>
+        </template>
+        <n-input
+          v-model:value="config.notification.setting.customHttp.headers"
+          type="textarea"
+          placeholder="请输入请求头"
+        ></n-input>
+      </n-form-item>
+    </template>
 
     <n-divider />
 
@@ -197,6 +259,15 @@
         </n-space>
       </n-checkbox-group>
     </n-form-item>
+    <n-form-item label="直播通知">
+      <n-select
+        v-model:value="config.notification.taskNotificationType.liveStart"
+        :options="typeOptions"
+        placeholder="请选择通知类型，不选则使用全局通知类型"
+        clearable
+        style="width: 200px"
+      />
+    </n-form-item>
     <n-form-item>
       <template #label>
         <Tip
@@ -240,12 +311,18 @@ const typeOptions = [
   { value: NotificationType.server, label: "server酱" },
   { value: NotificationType.ntfy, label: "ntfy" },
   { value: NotificationType.allInOne, label: "push all in cloud" },
+  { value: NotificationType.customHttp, label: "自定义HTTP" },
 ];
 
 const notice = useNotification();
 
 const notifyTest = async () => {
-  await configApi.notifyTest("我是一条测试信息", "我是一条测试信息", cloneDeep(config.value));
+  await configApi.notifyTest(
+    "我是一条测试信息",
+    "我是一条测试信息",
+    cloneDeep(config.value),
+    config.value.notification.setting.type,
+  );
   notice.info({
     title: "已尝试发送测试信息，请注意查收",
     duration: 2000,
