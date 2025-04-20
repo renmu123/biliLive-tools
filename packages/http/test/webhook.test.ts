@@ -1,6 +1,7 @@
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { WebhookHandler, Live } from "../src/services/webhook.js";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
+import * as utils from "@biliLive-tools/shared/utils/index.js";
 
 import type { Options, Part } from "../src/types/webhook.js";
 
@@ -12,6 +13,10 @@ vi.mock("../src/index.js", async (importOriginal) => {
       get: vi.fn().mockReturnValue({}),
     },
   };
+});
+
+vi.spyOn(utils, "sleep").mockImplementation(async () => {
+  return undefined;
 });
 
 describe("WebhookHandler", () => {

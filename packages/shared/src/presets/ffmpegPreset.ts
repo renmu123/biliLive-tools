@@ -38,6 +38,7 @@ const commonPresetParams: {
   timestampExtra: string;
   timestampFormat: string;
   vf: string;
+  pkOptimize: boolean;
 } = {
   resetResolution: false,
   resolutionWidth: 2880,
@@ -58,6 +59,7 @@ const commonPresetParams: {
   timestampFollowDanmu: true,
   timestampExtra: "",
   timestampFormat: "%Y-%m-%d %T",
+  pkOptimize: false,
 };
 
 const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
@@ -246,7 +248,10 @@ export class FFmpegPreset extends CommonPreset<FfmpegOptions> {
     if (!encoder) {
       throw new Error("无效的编码器");
     }
-    if ((encoder.presets ?? []).findIndex((item) => item.value === config.preset) === -1) {
+    if (
+      encoder.presets &&
+      (encoder.presets ?? []).findIndex((item) => item.value === config.preset) === -1
+    ) {
       throw new Error("无效的preset参数，可能使用了其他编码器的preset，请尝试修改");
     }
     if (config.resetResolution) {

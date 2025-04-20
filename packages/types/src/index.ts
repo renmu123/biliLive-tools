@@ -175,6 +175,8 @@ export type ToolConfig = {
     saveOriginPath: boolean;
     /** 完成后移除源文件 */
     removeOrigin: boolean;
+    /** 保留第一个视频元数据 */
+    keepFirstVideoMeta: boolean;
   };
   /** 下载页 */
   download: {
@@ -253,6 +255,7 @@ export interface NotificationNtfyConfig {
 export interface NotificationTgConfig {
   key: string;
   chat_id: string;
+  proxyUrl?: string;
 }
 
 /**
@@ -261,6 +264,20 @@ export interface NotificationTgConfig {
 export interface NotificationPushAllInAllConfig {
   server: string;
   key: string;
+}
+
+/**
+ * 自定义HTTP通知配置
+ */
+export interface NotificationCustomHttpConfig {
+  /** 请求URL */
+  url: string;
+  /** 请求方法 */
+  method?: "GET" | "POST" | "PUT";
+  /** 请求体，支持{{title}}和{{desc}}占位符 */
+  body?: string;
+  /** 请求头，每行一个，格式为key: value */
+  headers?: string;
 }
 
 export type Theme = "system" | "light" | "dark";
@@ -486,13 +503,14 @@ export interface AppConfig {
     /** 通知配置项 */
     setting: {
       // 通知类型，支持server酱和邮件
-      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne";
+      type?: "server" | "mail" | "tg" | "system" | "ntfy" | "allInOne" | "customHttp";
       // server酱key
       server: NotificationServerConfig;
       mail: NotificationMailConfig;
       tg: NotificationTgConfig;
       ntfy: NotificationNtfyConfig;
       allInOne: NotificationPushAllInAllConfig;
+      customHttp: NotificationCustomHttpConfig;
     };
     taskNotificationType: {
       liveStart: AppConfig["notification"]["setting"]["type"];
@@ -580,6 +598,7 @@ export interface VideoMergeOptions {
   output?: string;
   removeOrigin: boolean; // 完成后移除源文件
   saveOriginPath: boolean; // 保存到原始文件夹
+  keepFirstVideoMeta: boolean; // 保留第一个视频元数据
 }
 
 export interface File {
@@ -702,6 +721,8 @@ export interface FfmpegOptions {
   timestampExtra?: string;
   /** 时间戳跟随弹幕字体 */
   timestampFollowDanmu?: boolean;
+  /** pk优化 */
+  pkOptimize?: boolean;
 }
 
 export interface BiliupConfig {

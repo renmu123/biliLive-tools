@@ -173,6 +173,8 @@ export function createRecorderManager<
         }
       } catch (err) {
         manager.emit("error", { source: "getBiliStatusInfoByRoomIds", err });
+        // 如果批量查询失败，则使用单个查询
+        needCheckRecorders = needCheckRecorders.concat(biliNeedCheckRecorders);
       }
     }
 

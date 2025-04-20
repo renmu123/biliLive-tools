@@ -245,13 +245,17 @@ const preHandle = async (files: File[], clientOptions: ClientOptions, danmuConfi
 
   const videoFile = files.find(
     (item) =>
-      item.ext === ".flv" || item.ext === ".mp4" || item.ext === ".m4s" || item.ext === ".ts",
+      item.ext === ".flv" ||
+      item.ext === ".mp4" ||
+      item.ext === ".m4s" ||
+      item.ext === ".ts" ||
+      item.ext === ".mkv",
   );
   const danmuFile = files.find((item) => item.ext === ".xml" || item.ext === ".ass");
 
   if (!videoFile) {
     notice.error({
-      title: "请选择一个flv、mp4、m4s、ts文件",
+      title: "请选择一个flv、mp4、m4s、ts、mkv文件",
       duration: 1000,
     });
     return false;

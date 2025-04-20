@@ -20,6 +20,7 @@ export enum NotificationType {
   system = "system",
   ntfy = "ntfy",
   allInOne = "allInOne",
+  customHttp = "customHttp",
 }
 
 export enum LLMType {
@@ -120,6 +121,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     videoMerge: {
       saveOriginPath: false,
       removeOrigin: false,
+      keepFirstVideoMeta: false,
     },
     download: {
       savePath: "",
@@ -177,6 +179,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       tg: {
         key: "",
         chat_id: "",
+        proxyUrl: "",
       },
       ntfy: {
         url: "",
@@ -185,6 +188,12 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       allInOne: {
         server: "",
         key: "",
+      },
+      customHttp: {
+        url: "",
+        method: "GET",
+        body: "",
+        headers: "",
       },
     },
     taskNotificationType: {

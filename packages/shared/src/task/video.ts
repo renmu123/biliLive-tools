@@ -1,4 +1,5 @@
 import path, { join, parse } from "node:path";
+import { spawn } from "node:child_process";
 
 import fs from "fs-extra";
 import ffmpeg from "@renmu/fluent-ffmpeg";
@@ -94,6 +95,73 @@ export const getAvailableEncoders = async () => {
     });
   });
 };
+
+interface Resolution {
+  width: number;
+  height: number;
+}
+
+/**
+ * 分析视频分辨率变化
+ * @param filePath 视频文件路径
+ * @returns 分辨率变化
+ */
+export async function analyzeResolutionChanges(filePath: string): Promise<Resolution[]> {
+  const { ffprobePath } = getFfmpegPath();
+  const command = `${ffprobePath}`;
+  const args = [
+    "-v",
+    "error",
+    "-skip_frame",
+    "nokey",
+    "-select_streams",
+    "v:0",
+    "-show_entries",
+    "frame=width,height",
+    "-of",
+    "csv=p=0",
+    filePath,
+  ];
+
+  const ffprobe = spawn(command, args);
+
+  const resolutions: Resolution[] = [];
+
+  ffprobe.stdout.on("data", (data) => {
+    const lines = data.toString().trim().split("\n");
+    lines.forEach((line: string) => {
+      const [width, height] = line.split(",");
+      if (!width || !height) {
+        return;
+      }
+
+      // 不要添加重复的分辨率
+      const resolution = {
+        width: parseInt(width, 10),
+        height: parseInt(height, 10),
+      };
+      if (
+        !resolutions.some((r) => r.width === resolution.width && r.height === resolution.height)
+      ) {
+        resolutions.push(resolution);
+      }
+    });
+  });
+
+  ffprobe.stderr.on("data", (data) => {
+    console.error(`Stderr: ${data}`);
+  });
+
+  return new Promise((resolve, reject) => {
+    ffprobe.on("close", (code) => {
+      if (code !== 0) {
+        reject(`ffprobe process exited with code ${code}`);
+      } else {
+        resolve(resolutions);
+      }
+    });
+  });
+}
 
 export const convertImage2Video = async (
   inputDir: string,
@@ -371,10 +439,15 @@ export const matchUser = (str: string): string | null => {
  * param {string} str 需要匹配的字符串
  * param {RegExp} regex 匹配的正则，捕获组为时间
  */
-function matchTimestamp(str: string, regex: RegExp): number | null {
+export function matchTimestamp(str: string, regex: RegExp): number | null {
   const match = str.match(regex);
   if (match) {
     const time = match[1];
+    // 检查是否是纯数字（支持毫秒时间戳）
+    if (/^\d+$/.test(time)) {
+      return Math.floor(parseInt(time, 10) / 1000);
+    }
+    // 尝试解析日期字符串
     const timestamp = Math.floor(new Date(time).getTime() / 1000);
     return timestamp || null;
   }
@@ -388,14 +461,29 @@ function matchTimestamp(str: string, regex: RegExp): number | null {
  * <record_start_time>2024-07-23T18:26:30+08:00</record_start_time>
  * <video_start_time>2024-11-06T15:14:02.000Z</video_start_time>
  */
-export async function readXmlTimestamp(filePath: string): Promise<number | 0> {
-  if (!(await pathExists(filePath))) {
+export async function readXmlTimestamp(filePath: string, timeout = 10000): Promise<number | 0> {
+  try {
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("读取xml时间戳超时")), timeout),
+    );
+
+    const result = await Promise.race([
+      (async () => {
+        if (!(await pathExists(filePath))) {
+          return 0;
+        }
+        const content = await readLines(filePath, 0, 30);
+        const timestamp = matchDanmaTimestamp(content.join("\n"));
+        return timestamp ? timestamp : 0;
+      })(),
+      timeoutPromise,
+    ]);
+
+    return result as number;
+  } catch (error) {
+    log.error("readXmlTimestamp error", error);
     return 0;
   }
-  const content = await readLines(filePath, 0, 30);
-  const timestamp = matchDanmaTimestamp(content.join("\n"));
-
-  return timestamp ? timestamp : 0;
 }
 
 /**
@@ -495,6 +583,9 @@ export const genMergeAssMp4Command = async (
   }
 
   async function addDefaultComplexFilter(scaleHardware: boolean = false) {
+    if (ffmpegOptions.pkOptimize) {
+      ffmpegOptions.forceOriginalAspectRatio = "decrease";
+    }
     const scaleMethod = selectScaleMethod(ffmpegOptions);
     const startTimestamp = await getDrawtextParams();
 
@@ -560,6 +651,13 @@ export const genMergeAssMp4Command = async (
         format: ffmpegOptions.timestampFormat,
         extraOptions: ffmpegOptions.timestampExtra,
       });
+    }
+    // pk优化
+    if (ffmpegOptions.pkOptimize) {
+      complexFilter.addFilter(
+        "pad",
+        `${ffmpegOptions.resolutionWidth}:${ffmpegOptions.resolutionHeight}:(ow-iw)/2:(oh-ih)/2`,
+      );
     }
   }
 
@@ -698,10 +796,12 @@ export const mergeAssMp4 = async (
 
   const assFile = files.assFilePath;
   const startTimestamp = options.startTimestamp || 0;
+  log.debug("genMergeAssMp4Command start", startTimestamp);
   const command = await genMergeAssMp4Command(files, ffmpegOptions, {
     startTimestamp: startTimestamp,
     timestampFont: options.timestampFont,
   });
+  log.debug("mergrAssMp4, command");
 
   await setFfmpegPath();
   const task = new FFmpegTask(
@@ -745,6 +845,7 @@ export const mergeAssMp4 = async (
       },
     },
   );
+  log.debug("mergeAssMp4 start task", task.taskId);
   taskQueue.addTask(task, false);
 
   return task;
@@ -873,6 +974,7 @@ export const mergeVideos = async (
   options: VideoMergeOptions = {
     removeOrigin: false,
     saveOriginPath: false,
+    keepFirstVideoMeta: false,
   },
 ) => {
   if (!inputFiles || inputFiles.length < 2) {
@@ -897,12 +999,11 @@ export const mergeVideos = async (
   const fileTxtContent = inputFiles.map((videoFile) => `file '${videoFile}'`).join("\n");
   await fs.writeFile(fileTxtPath, fileTxtContent);
 
-  const command = ffmpeg(fileTxtPath)
-    .inputOptions("-f concat")
-    .inputOptions("-safe 0")
-    .videoCodec("copy")
-    .audioCodec("copy")
-    .output(outputFile);
+  const command = ffmpeg(fileTxtPath).inputOptions("-f concat").inputOptions("-safe 0");
+  if (options.keepFirstVideoMeta) {
+    command.input(inputFiles[0]).outputOptions("-map 0").outputOptions(`-map_metadata 1`);
+  }
+  command.outputOptions("-c copy").output(outputFile);
 
   let duration = 1;
   let videoMetas: Awaited<ReturnType<typeof readVideoMeta>>[] = [];
@@ -1028,9 +1129,14 @@ export const burn = async (
         copyInput: true,
       },
     );
+    log.debug("convertXml2Ass task start", task.taskId);
     await promiseTask(task);
+    log.debug("convertXml2Ass task end", task.taskId);
     assFilePath = task.output!;
-    startTimestamp = await readXmlTimestamp(files.subtitleFilePath);
+    if (options.ffmpegOptions.addTimestamp) {
+      startTimestamp = await readXmlTimestamp(files.subtitleFilePath);
+      log.debug("readXmlTimestamp end", startTimestamp);
+    }
     if (options.ffmpegOptions.timestampFollowDanmu) {
       timestampFont = options.danmaOptions.fontname;
     }
@@ -1056,6 +1162,7 @@ export const burn = async (
     });
     outputFile = path.join(savePath, output);
   }
+  log.debug("burn function call", outputFile);
   const task = await mergeAssMp4(
     {
       videoFilePath,

@@ -26,6 +26,12 @@ describe("matchDanmaTimestamp", () => {
     expect(result).toBe(1705575707); // Expected timestamp
   });
 
+  it("should return the correct timestamp from a string with 毫秒时间戳", () => {
+    const str = "<video_start_time>1744734385686</video_start_time>";
+    const result = matchDanmaTimestamp(str);
+    expect(result).toBe(1744734385); // Expected timestamp
+  });
+
   it("should return null if parsed time id unvalid", () => {
     const str = "2121<record_start_time>20ewewe</record_start_time>212";
     const result = matchDanmaTimestamp(str);

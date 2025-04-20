@@ -7,7 +7,7 @@ class DanmaClient extends EventEmitter {
   private roomId: number;
   private auth: string | undefined;
   private uid: number | undefined;
-  private retryCount: number = 5;
+  private retryCount: number = 10;
 
   constructor(roomId: number, auth: string | undefined, uid: number | undefined) {
     super();
@@ -116,12 +116,9 @@ class DanmaClient extends EventEmitter {
     this.client.live.on("error", (err) => {
       this.retryCount -= 1;
       if (this.retryCount > 0) {
-        setTimeout(
-          () => {
-            this.client && this.client.reconnect();
-          },
-          2000 * (5 - this.retryCount),
-        );
+        setTimeout(() => {
+          this.client && this.client.reconnect();
+        }, 2000);
       }
       this.emit("error", err);
     });

@@ -19,7 +19,7 @@ import {
 import { getFfmpegPath } from "../task/video.js";
 import logger from "../utils/log.js";
 import RecorderConfig from "./config.js";
-import { sleep } from "../utils/index.js";
+// import { sleep } from "../utils/index.js";
 import { sendBySystem, send } from "../notify.js";
 // import { parseDanmu } from "../danmu/index.js";
 
@@ -161,7 +161,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
     logger.info("Manager videoFileCreated", { recorder, filename });
     const startTime = new Date();
 
-    await sleep(4000);
     if (!recorder.liveInfo) {
       logger.error("Manager videoFileCreated Error", { recorder, filename });
       return;
