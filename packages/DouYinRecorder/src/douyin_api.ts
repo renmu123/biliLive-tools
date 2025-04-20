@@ -8,6 +8,24 @@ const requester = axios.create({
   proxy: false,
 });
 
+/**
+ * 从抖音短链接解析得到直播间ID
+ * @param shortURL 短链接，如 https://v.douyin.com/DpfoBLAXoHM/
+ * @returns webRoomId 直播间ID
+ */
+export async function resolveShortURL(shortURL: string): Promise<string> {
+  // 获取跳转后的页面内容
+  const response = await requester.get(shortURL);
+
+  // 尝试从页面内容中提取webRid
+  const webRidMatch = response.data.match(/"webRid\\":\\"(\d+)\\"/);
+  if (webRidMatch) {
+    return webRidMatch[1];
+  }
+
+  throw new Error("无法从短链接解析出直播间ID");
+}
+
 let cookieCache: {
   startTimestamp: number;
   cookies: string;

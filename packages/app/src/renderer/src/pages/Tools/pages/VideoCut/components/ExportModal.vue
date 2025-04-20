@@ -10,11 +10,11 @@
     >
       <div style="display: flex; flex-direction: column; gap: 10px">
         <h3>
-          共有{{ cuts.length }}个切片，此次将导出
+          共有{{ cuts.length }}个切片，本次将导出
           <span style="color: skyblue"> {{ selectedCuts.length }} </span> 个视频
         </h3>
 
-        <p style="color: red; margin-top: 0">{{ noDanmuTips }}</p>
+        <p v-if="noDanmuTips" style="color: red; margin-top: 0">{{ noDanmuTips }}</p>
         <div class="flex" style="align-items: center">
           选择视频预设：
           <n-cascader
@@ -93,7 +93,7 @@
 <script setup lang="ts">
 import { toReactive } from "@vueuse/core";
 
-import { ffmpegPresetApi } from "@renderer/apis";
+import { ffmpegPresetApi, taskApi } from "@renderer/apis";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { useFfmpegPreset, useAppConfig, useSegmentStore } from "@renderer/stores";
 import filenamify from "filenamify/browser";
@@ -145,38 +145,6 @@ const confirmExport = async () => {
     });
     return;
   }
-  let savePath: string;
-
-  if (exportOptions.saveRadio === 1) {
-    savePath = window.path.dirname(props.files.videoPath!);
-  } else if (exportOptions.saveRadio === 2) {
-    if (exportOptions.savePath === "") {
-      notice.error({
-        title: "请选择保存路径",
-        duration: 1000,
-      });
-      return;
-    }
-    if (window.path.isAbsolute(exportOptions.savePath)) {
-      savePath = exportOptions.savePath;
-    } else {
-      // 相对路径和视频路径拼接
-      savePath = window.path.join(
-        window.path.dirname(props.files.videoPath!),
-        exportOptions.savePath,
-      );
-      if (!(await window.api.exits(savePath))) {
-        // 不存在则创建
-        await window.api.common.mkdir(savePath);
-      }
-    }
-  } else {
-    notice.error({
-      title: "不支持此项配置",
-      duration: 1000,
-    });
-    return;
-  }
   const ffmpegOptiosn = (await ffmpegPresetApi.get(exportOptions.ffmpegPresetId)).config;
   let index = 1;
   for (const cut of selectedCuts.value) {
@@ -194,18 +162,24 @@ const confirmExport = async () => {
         .trim(),
       { replacement: "" },
     );
-    await window.api.mergeAssMp4(
+    await taskApi.burn(
       {
         videoFilePath: props.files.videoPath!,
-        assFilePath: exportOptions.ignoreDanmu ? "" : props.files.danmuPath,
-        outputPath: window.path.join(savePath, `${title}.mp4`),
-        hotProgressFilePath: undefined,
+        subtitleFilePath: exportOptions.ignoreDanmu ? "" : props.files.danmuPath!,
       },
-      { removeOrigin: false, override: exportOptions.override },
+      `${title}.mp4`,
       {
-        ...ffmpegOptiosn,
-        ss: start,
-        to: end,
+        ffmpegOptions: {
+          ...ffmpegOptiosn,
+          ss: start,
+          to: end,
+        },
+        // @ts-expect-error
+        danmaOptions: {},
+        override: exportOptions.override,
+        removeOrigin: false,
+        saveType: exportOptions.saveRadio,
+        savePath: exportOptions.savePath,
       },
     );
     index += 1;

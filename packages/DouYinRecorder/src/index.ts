@@ -18,6 +18,7 @@ import type {
 
 import { getInfo, getStream } from "./stream.js";
 import { ensureFolderExist, singleton } from "./utils.js";
+import { resolveShortURL } from "./douyin_api.js";
 
 import DouYinDanmaClient from "douyin-danma-listener";
 
@@ -312,14 +313,25 @@ export const provider: RecorderProvider<{}> = {
   siteURL: "https://live.douyin.com/",
 
   matchURL(channelURL) {
-    // TODO: 暂时不支持 v.douyin.com
-    return /https?:\/\/live\.douyin\.com\//.test(channelURL);
+    // 支持 v.douyin.com 和 live.douyin.com
+    return /https?:\/\/(live|v)\.douyin\.com\//.test(channelURL);
   },
 
   async resolveChannelInfoFromURL(channelURL) {
     if (!this.matchURL(channelURL)) return null;
 
-    const id = path.basename(new URL(channelURL).pathname);
+    let id: string;
+    if (channelURL.includes("v.douyin.com")) {
+      // 处理短链接
+      try {
+        id = await resolveShortURL(channelURL);
+      } catch (err: any) {
+        throw new Error(`解析抖音短链接失败: ${err?.message}`);
+      }
+    } else {
+      // 处理常规直播链接
+      id = path.basename(new URL(channelURL).pathname);
+    }
     const info = await getInfo(id);
 
     return {

@@ -11,7 +11,7 @@
         </n-icon>
       </n-form-item>
       <n-form-item>
-        <template #label> 检查间隔 </template>
+        <template #label> <Tip text="检查间隔" tip="设置太短没什么用"></Tip> </template>
         <n-input-number v-model:value="config.video.subCheckInterval" min="0" step="30">
           <template #suffix>分钟</template>
         </n-input-number>
@@ -32,11 +32,11 @@ const config = defineModel<AppConfig>("data", {
 
 const selectFolder = async () => {
   let file: string | undefined = await showDirectoryDialog({
-    defaultPath: config.value.webhook.recoderFolder,
+    defaultPath: config.value.video.subSavePath,
   });
 
   if (!file) return;
-  config.value.recorder.savePath = file;
+  config.value.video.subSavePath = file;
 };
 </script>
 

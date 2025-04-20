@@ -66,6 +66,11 @@ router.get("/sub/list", async (ctx) => {
   const res = videoSub.list();
   ctx.body = res;
 });
+router.post("/sub/check", async (ctx) => {
+  const data = ctx.request.body;
+  const res = await videoSub.check(data.id);
+  ctx.body = res;
+});
 
 async function parseVideo({
   url,

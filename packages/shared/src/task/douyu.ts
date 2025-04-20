@@ -93,9 +93,7 @@ async function download(
   );
   taskQueue.addTask(task, false);
 
-  return {
-    taskId: task.taskId,
-  };
+  return task;
 }
 
 /**

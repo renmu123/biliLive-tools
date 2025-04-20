@@ -21,6 +21,7 @@
 
 <script setup lang="ts">
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
+import { commonApi } from "@renderer/apis";
 
 import type ArtplayerType from "artplayer";
 
@@ -28,6 +29,7 @@ interface Props {
   files: {
     video: string;
     danmu: string;
+    type: string;
   };
   hotProgress: {
     visible: boolean;
@@ -44,6 +46,7 @@ const props = withDefaults(defineProps<Props>(), {
     return {
       video: "",
       danmu: "",
+      type: "",
     };
   },
 });
@@ -59,11 +62,11 @@ watch(
 const initDanma = async () => {
   if (!props.files.danmu) return;
 
-  const content = await window.api.common.readFile(props.files.danmu);
+  const content = await commonApi.readAss(props.files.danmu);
   videoRef.value?.switchAss(content);
 
   if (props.hotProgress.visible) {
-    const data = await window.api.danmu.genTimeData(props.files.danmu);
+    const data = await commonApi.genTimeData(props.files.danmu);
     // @ts-ignore
     videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
     setTimeout(() => {
@@ -83,7 +86,7 @@ const videoInstance = ref<ArtplayerType | null>(null);
 const handleVideoReady = async (instance: ArtplayerType) => {
   videoInstance.value = instance;
   if (props.files.video) {
-    videoRef.value?.switchUrl(props.files.video, props.files.video.endsWith(".flv") ? "flv" : "");
+    videoRef.value?.switchUrl(props.files.video, props.files.type as any);
   }
   initDanma();
 };

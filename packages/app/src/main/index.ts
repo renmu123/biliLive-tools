@@ -14,7 +14,6 @@ import { notify } from "./utils/index";
 import { init, createRecorderManager } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
-import { handlers as danmuHandlers } from "./danmu";
 import { commonHandlers, getTempPath } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
 import icon from "../../resources/icon.png?asset";
@@ -81,7 +80,6 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:setTheme", setTheme);
 
   registerHandlers(ipcMain, ffmpegHandlers);
-  registerHandlers(ipcMain, danmuHandlers);
   registerHandlers(ipcMain, configHandlers);
   registerHandlers(ipcMain, commonHandlers);
 };

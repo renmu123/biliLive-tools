@@ -749,7 +749,6 @@ export class BiliDownloadVideoTask extends AbstractTask {
 export class M3U8DownloadTask extends AbstractTask {
   command: M3U8Downloader;
   type = TaskType.m3u8Download;
-  emitter = new EventEmitter() as TypedEmitter<TaskEvents>;
   constructor(
     command: M3U8Downloader,
     options: {
@@ -757,7 +756,7 @@ export class M3U8DownloadTask extends AbstractTask {
     },
     callback: {
       onStart?: () => void;
-      onEnd?: (output: string) => void;
+      onEnd?: (output: string) => void | Promise<void>;
       onError?: (err: string) => void;
       onProgress?: (progress: number) => any;
     } = {},
@@ -777,7 +776,7 @@ export class M3U8DownloadTask extends AbstractTask {
       this.status = "completed";
       this.progress = 100;
       this.output = output;
-      callback.onEnd && callback.onEnd(output);
+      callback.onEnd && (await callback.onEnd(output));
       this.emitter.emit("task-end", { taskId: this.taskId });
       this.endTime = Date.now();
     });

@@ -28,9 +28,7 @@ async function download(
     name: `下载任务：${path.parse(output).name}`,
   });
   taskQueue.addTask(task, true);
-  return {
-    taskId: task.taskId,
-  };
+  return task;
 }
 
 /**
@@ -51,4 +49,26 @@ const parseVideo = async (
   return res.data.data;
 };
 
-export default { download, parseVideo };
+/**
+ * 解析录播列表
+ */
+const parseReplayList = async (uid: string): Promise<{ vid: number }[]> => {
+  const res = await axios.get(`https://www.huya.com/video/u/${uid}?tabName=live&pageIndex=1`);
+  const html = res.data;
+  const match = html.match(/window.HNF_GLOBAL_INIT = ({[^]+?}) \<\/script\>/);
+  if (!match) {
+    throw new Error("解析失败，请检查链接");
+  }
+  const initData = JSON.parse(match[1]);
+  const videoDataList = initData?.userPageLiveRecordVideoRsp?.videoDataList?.value ?? [];
+  const list = videoDataList.map((item) => {
+    const data = item.videoData;
+    return {
+      vid: data.vid,
+      title: data.videoTitle,
+    };
+  });
+  return list;
+};
+
+export default { download, parseVideo, parseReplayList };

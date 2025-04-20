@@ -37,7 +37,22 @@
 
       <n-layout class="main-container">
         <router-view v-slot="{ Component }">
-          <keep-alive>
+          <keep-alive
+            :include="[
+              'Home',
+              'Dashboard',
+              'Upload',
+              'DanmakuFactory',
+              'Convert2Mp4',
+              'VideoMerge',
+              'BiliDownload',
+              'recorder',
+              'videoCut',
+              'Queue',
+              'User',
+              'About',
+            ]"
+          >
             <component :is="Component" />
           </keep-alive>
         </router-view>
@@ -61,10 +76,7 @@ import {
   SettingsOutline as SettingIcon,
   LogOutOutline,
 } from "@vicons/ionicons5";
-import {
-  //  DashboardOutlined as DashboardIcon,
-  LiveTvRound,
-} from "@vicons/material";
+import { DashboardOutlined as DashboardIcon, LiveTvRound } from "@vicons/material";
 
 import defaultUserAvatar from "../../assets/images/moehime.jpg";
 import AppSettingDialog from "../../pages/setting/index.vue";
@@ -285,13 +297,6 @@ const menuOptions = computed<MenuOption[]>(() => {
         ),
     },
   ];
-  // 如果是web，不显示切片页
-  if (isWeb.value) {
-    const index = toolsSubMenus.findIndex((item) => item.key === "videoCut");
-    if (index !== -1) {
-      toolsSubMenus.splice(index, 1);
-    }
-  }
   const menus = [
     {
       label: () =>
@@ -321,20 +326,20 @@ const menuOptions = computed<MenuOption[]>(() => {
         ),
       icon: renderIcon(LiveTvRound),
     },
-    // {
-    //   label: () =>
-    //     h(
-    //       RouterLink,
-    //       {
-    //         to: {
-    //           name: "Dashboard",
-    //         },
-    //       },
-    //       { default: () => "看板" },
-    //     ),
-    //   key: "Dashboard",
-    //   icon: renderIcon(DashboardIcon),
-    // },
+    {
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "Dashboard",
+            },
+          },
+          { default: () => "看板" },
+        ),
+      key: "Dashboard",
+      icon: renderIcon(DashboardIcon),
+    },
     {
       label: () => h("span", "工具"),
       key: "tools",

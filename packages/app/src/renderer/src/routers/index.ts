@@ -82,6 +82,12 @@ const router = createRouter({
           name: "About",
           component: () => import("../pages/About.vue"),
         },
+        {
+          path: "/liveHistory",
+          name: "LiveHistory",
+          component: () => import("../pages/LiveHistory/index.vue"),
+          meta: { keepAlive: false },
+        },
       ],
     },
   ],

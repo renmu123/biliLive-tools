@@ -84,10 +84,13 @@ export class AppConfig extends Config {
   init(filepath: string, data: DeepPartial<AppConfigType> = {}) {
     APP_DEFAULT_CONFIG.tool.download.savePath = path.join(os.homedir(), "Downloads");
     APP_DEFAULT_CONFIG.recorder.savePath = path.join(os.homedir(), "Downloads");
+    APP_DEFAULT_CONFIG.video.subSavePath = path.join(os.homedir(), "Downloads");
+
     const isDocker = process.env.IS_DOCKER;
     if (isDocker) {
       APP_DEFAULT_CONFIG.tool.download.savePath = path.join("/app", "video");
       APP_DEFAULT_CONFIG.recorder.savePath = path.join("/app", "video");
+      APP_DEFAULT_CONFIG.video.subSavePath = path.join("/app", "video");
     }
     // 16位随机密码，包含大小写字母和数字
     APP_DEFAULT_CONFIG.passKey = Math.random().toString(36).slice(-16);

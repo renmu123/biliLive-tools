@@ -221,7 +221,10 @@ async function getLiveInfo(
     streamInfo = res.playurl_info.playurl.stream
       .find(({ protocol_name }) => protocol_name === condition.protocol_name)
       ?.format.find(({ format_name }) => format_name === condition.format_name)
-      ?.codec.find(({ codec_name }) => codec_name === condition.codec_name);
+      ?.codec.find(
+        ({ codec_name, current_qn }) =>
+          codec_name === condition.codec_name && current_qn == opts.qn,
+      );
 
     if (streamInfo) {
       streamOptions = {
@@ -231,7 +234,7 @@ async function getLiveInfo(
       break;
     }
   }
-  console.log("streamOptions", streamOptions, res.playurl_info.playurl.stream);
+  // console.log("streamOptions", streamOptions, res.playurl_info.playurl.stream);
   assert(streamInfo, "没有找到支持的流");
 
   const streams: StreamProfile[] = streamInfo.accept_qn.map((qn) => {

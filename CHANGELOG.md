@@ -1,3 +1,18 @@
+# 2.0.0
+
+## 功能
+
+- 支持斗鱼录播订阅下载 [#64](https://github.com/renmu123/biliLive-tools/issues/64)
+- 新增看板页面
+- Web支持首页预览功能
+- Web支持切片功能
+- 录制：B站支持标题关键字参数（仅在开启弹幕时生效）
+
+## 优化
+
+- 录制：抖音支持解析 `https://v.douyin.com/xxx/` [#73](https://github.com/renmu123/biliLive-tools/issues/73)
+- 录制：B站修改默认画质匹配逻辑以处理hevc真原画
+
 # 1.10.1(2025.4.20)
 
 ## 优化

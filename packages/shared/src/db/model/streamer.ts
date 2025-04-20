@@ -32,7 +32,7 @@ class StreamerModel extends BaseModel<BaseStreamer> {
         room_id TEXT NOT NULL,                          -- 房间id
         platform TEXT DEFAULT unknown,                -- 平台，bilibili，douyu，unknown
         created_at INTEGER DEFAULT (strftime('%s', 'now')),  -- 创建时间，时间戳，自动生成
-        UNIQUE(name, room_id)                           -- 唯一联合约束
+        UNIQUE(platform, room_id)                           -- 唯一联合约束
       ) STRICT;
     `;
     return super.createTable(createTableSQL);

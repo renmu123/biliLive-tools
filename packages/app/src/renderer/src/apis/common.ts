@@ -1,6 +1,8 @@
 import request from "./request";
 import configApi from "./config";
 
+import type { DanmuItem } from "@biliLive-tools/types";
+
 export const previewWebhookTitle = async (template: string): Promise<string> => {
   const res = await request.post(`/common/formatTitle`, {
     template,
@@ -143,6 +145,54 @@ export async function appStartTime(): Promise<number> {
   return res.data;
 }
 
+export async function readAss(filepath: string): Promise<string> {
+  const res = await request.post("/common/readAss", {
+    filepath,
+  });
+  return res.data;
+}
+
+export async function genTimeData(filepath: string): Promise<number[]> {
+  const res = await request.post("/common/genTimeData", {
+    filepath,
+  });
+  return res.data;
+}
+
+export const applyVideoId = async (
+  videoPath: string,
+): Promise<{
+  videoId: string;
+  expireAt: number;
+  type: string;
+}> => {
+  const res = await request.post(`/common/apply-video-id`, {
+    videoPath,
+  });
+  return res.data;
+};
+
+export const getVideo = async (videoId: string): Promise<string> => {
+  return `${request.defaults.baseURL}/common/video/${videoId}`;
+};
+
+export const parseDanmu = async (
+  filepath: string,
+): Promise<{
+  danmu: DanmuItem[];
+  sc: DanmuItem[];
+  hotProgress: {
+    time: number;
+    value: number;
+    color: string;
+  }[];
+}> => {
+  const res = await request.post("/common/parseDanmu", {
+    filepath,
+  });
+  return res.data;
+};
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
@@ -158,6 +208,11 @@ const common = {
   parseMeta,
   getRunningTaskNum,
   fileJoin,
+  readAss,
+  genTimeData,
+  getVideo,
+  applyVideoId,
+  parseDanmu,
 };
 
 export default common;

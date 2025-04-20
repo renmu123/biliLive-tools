@@ -10,7 +10,7 @@ import {
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
-import { ensureFolderExist } from "./utils.js";
+import { ensureFolderExist, hasKeyword } from "./utils.js";
 import DanmaClient from "./danma.js";
 
 import type {
@@ -105,6 +105,7 @@ const ffmpegInputOptions: string[] = [
   "-headers",
   "Referer:https://live.bilibili.com/",
 ];
+
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
   isManualStart,
@@ -128,6 +129,24 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
   if (this.tempStopIntervalCheck) return null;
   if (!living) return null;
+
+  // 检查标题是否包含关键词，如果包含则不自动录制
+  // 手动开始录制时不检查标题关键词
+  if (
+    !isManualStart &&
+    this.titleKeywords &&
+    typeof this.titleKeywords === "string" &&
+    this.titleKeywords.trim()
+  ) {
+    const hasTitleKeyword = hasKeyword(_title, this.titleKeywords);
+    if (hasTitleKeyword) {
+      this.emit("DebugLog", {
+        type: "common",
+        text: `跳过录制：直播间标题 "${_title}" 包含关键词 "${this.titleKeywords}"`,
+      });
+      return null;
+    }
+  }
 
   this.emit("LiveStart", { liveId });
 
@@ -269,7 +288,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   let danmaClient = new DanmaClient(roomId, this.auth, this.uid);
   if (!this.disableProvideCommentsWhenRecording) {
-    danmaClient = danmaClient.on("Message", (msg) => {
+    danmaClient.on("Message", (msg) => {
       const extraDataController = recorder.getExtraDataController();
       if (!extraDataController) return;
 
@@ -279,6 +298,27 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
       this.emit("Message", msg);
       extraDataController.addMessage(msg);
+    });
+    danmaClient.on("onRoomInfoChange", (msg) => {
+      if (
+        !isManualStart &&
+        this.titleKeywords &&
+        typeof this.titleKeywords === "string" &&
+        this.titleKeywords.trim()
+      ) {
+        const title = msg?.body?.title ?? "";
+        const hasTitleKeyword = hasKeyword(title, this.titleKeywords);
+
+        if (hasTitleKeyword) {
+          this.emit("DebugLog", {
+            type: "common",
+            text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
+          });
+
+          // 停止录制
+          this.recordHandle && this.recordHandle.stop("直播间标题包含关键词");
+        }
+      }
     });
     danmaClient.start();
   }
