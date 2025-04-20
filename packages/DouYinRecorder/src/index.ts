@@ -159,11 +159,16 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       url: stream.url,
       outputOptions: ffmpegOutputOptions,
       segment: this.segment ?? 0,
-      getSavePath: (opts) => getSavePath({ owner, title, startTime: opts.startTime }),
+      getSavePath: (opts) =>
+        getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
     },
     onEnd,
+    async () => {
+      const info = await getInfo(this.channelId);
+      return info;
+    },
   );
 
   const savePath = getSavePath({
@@ -178,8 +183,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  const handleVideoCreated = async ({ filename }) => {
-    this.emit("videoFileCreated", { filename });
+  const handleVideoCreated = async ({ filename, title, cover }) => {
+    this.emit("videoFileCreated", { filename, cover });
+
+    if (title && this?.liveInfo) {
+      this.liveInfo.title = title;
+    }
+    if (cover && this?.liveInfo) {
+      this.liveInfo.cover = cover;
+    }
     const extraDataController = recorder.getExtraDataController();
     extraDataController?.setMeta({
       room_id: this.channelId,

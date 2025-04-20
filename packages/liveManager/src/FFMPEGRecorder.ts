@@ -8,7 +8,7 @@ export class FFMPEGRecorder extends EventEmitter {
   private streamManager: StreamManager;
   private timeoutChecker: ReturnType<typeof utils.createTimeoutChecker>;
   hasSegment: boolean;
-  getSavePath: (data: { startTime: number }) => string;
+  getSavePath: (data: { startTime: number; title?: string }) => string;
   segment: number;
   ffmpegOutputOptions: string[] = [];
   inputOptions: string[] = [];
@@ -19,7 +19,7 @@ export class FFMPEGRecorder extends EventEmitter {
   constructor(
     opts: {
       url: string;
-      getSavePath: (data: { startTime: number }) => string;
+      getSavePath: (data: { startTime: number; title?: string }) => string;
       segment: number;
       outputOptions: string[];
       inputOptions?: string[];
@@ -28,6 +28,7 @@ export class FFMPEGRecorder extends EventEmitter {
       videoFormat?: "auto" | "ts" | "mkv";
     },
     private onEnd: (...args: unknown[]) => void,
+    private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
     const hasSegment = !!opts.segment;
@@ -37,6 +38,9 @@ export class FFMPEGRecorder extends EventEmitter {
       hasSegment,
       this.disableDanma,
       opts.videoFormat,
+      {
+        onUpdateLiveInfo: this.onUpdateLiveInfo,
+      },
     );
     this.timeoutChecker = utils.createTimeoutChecker(() => this.onEnd("ffmpeg timeout"), 3 * 10e3);
     this.hasSegment = hasSegment;
@@ -49,8 +53,8 @@ export class FFMPEGRecorder extends EventEmitter {
 
     this.command = this.createCommand();
 
-    this.streamManager.on("videoFileCreated", ({ filename }) => {
-      this.emit("videoFileCreated", { filename });
+    this.streamManager.on("videoFileCreated", ({ filename, cover }) => {
+      this.emit("videoFileCreated", { filename, cover });
     });
     this.streamManager.on("videoFileCompleted", ({ filename }) => {
       this.emit("videoFileCompleted", { filename });

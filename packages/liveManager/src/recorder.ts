@@ -88,7 +88,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   extends Emitter<{
       RecordStart: RecordHandle;
       RecordSegment?: RecordHandle;
-      videoFileCreated: { filename: string };
+      videoFileCreated: { filename: string; cover?: string };
       videoFileCompleted: { filename: string };
       progress: Progress;
       LiveStart: {
