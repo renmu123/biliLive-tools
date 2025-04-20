@@ -18,7 +18,7 @@ interface BilibiliResp<T = unknown> {
   data: T;
 }
 
-type LiveStatus =
+export type LiveStatus =
   // 未开播
   | 0
   // 直播中

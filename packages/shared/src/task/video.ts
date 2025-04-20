@@ -439,10 +439,15 @@ export const matchUser = (str: string): string | null => {
  * param {string} str 需要匹配的字符串
  * param {RegExp} regex 匹配的正则，捕获组为时间
  */
-function matchTimestamp(str: string, regex: RegExp): number | null {
+export function matchTimestamp(str: string, regex: RegExp): number | null {
   const match = str.match(regex);
   if (match) {
     const time = match[1];
+    // 检查是否是纯数字（支持毫秒时间戳）
+    if (/^\d+$/.test(time)) {
+      return Math.floor(parseInt(time, 10) / 1000);
+    }
+    // 尝试解析日期字符串
     const timestamp = Math.floor(new Date(time).getTime() / 1000);
     return timestamp || null;
   }
@@ -456,14 +461,29 @@ function matchTimestamp(str: string, regex: RegExp): number | null {
  * <record_start_time>2024-07-23T18:26:30+08:00</record_start_time>
  * <video_start_time>2024-11-06T15:14:02.000Z</video_start_time>
  */
-export async function readXmlTimestamp(filePath: string): Promise<number | 0> {
-  if (!(await pathExists(filePath))) {
+export async function readXmlTimestamp(filePath: string, timeout = 10000): Promise<number | 0> {
+  try {
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("读取xml时间戳超时")), timeout),
+    );
+
+    const result = await Promise.race([
+      (async () => {
+        if (!(await pathExists(filePath))) {
+          return 0;
+        }
+        const content = await readLines(filePath, 0, 30);
+        const timestamp = matchDanmaTimestamp(content.join("\n"));
+        return timestamp ? timestamp : 0;
+      })(),
+      timeoutPromise,
+    ]);
+
+    return result as number;
+  } catch (error) {
+    log.error("readXmlTimestamp error", error);
     return 0;
   }
-  const content = await readLines(filePath, 0, 30);
-  const timestamp = matchDanmaTimestamp(content.join("\n"));
-
-  return timestamp ? timestamp : 0;
 }
 
 /**

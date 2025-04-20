@@ -589,10 +589,12 @@ const checkUpdate = async () => {
   if (semver.gt(latestVersion, version)) {
     const confirm = await dialog.showMessageBox(mainWin, {
       message: "检测到有新版本，是否前往下载？",
-      buttons: ["取消", "确认"],
+      buttons: ["取消", "备用", "确认"],
     });
-    if (confirm.response === 1) {
+    if (confirm.response === 2) {
       shell.openExternal("https://github.com/renmu123/biliLive-tools/releases");
+    } else if (confirm.response === 1) {
+      shell.openExternal("https://pan.quark.cn/s/6da253a1ecb8");
     }
     return false;
   }

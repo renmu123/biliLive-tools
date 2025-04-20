@@ -213,7 +213,7 @@
       <n-form-item>
         <template #label>
           <Tip
-            tip="谨慎使用，可能会导致评论被shadowban，以及可能的风控等级上升"
+            tip="谨慎使用，可能会导致评论被阿瓦隆风控，以及可能的风控等级上升"
             text="自动评论"
           ></Tip>
         </template>
@@ -248,7 +248,9 @@
         <template #label>
           <span class="inline-flex">
             <span>合集</span>
-            <Tip :tip="`仅适用于设置合集的账户(${options.config.uid})`"></Tip>
+            <Tip
+              :tip="`此处的合集为投稿中的合集功能，仅适用于设置合集的账户(${options.config.uid})`"
+            ></Tip>
           </span>
         </template>
         <div class="inline-items" style="align-items: center">

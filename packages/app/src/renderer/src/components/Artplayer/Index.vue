@@ -4,8 +4,8 @@
 
 <script lang="ts" setup>
 import Artplayer from "artplayer";
-import flvjs from "flv.js";
 import Hls from "hls.js";
+import mpegts from "mpegts.js";
 
 import artplayerPluginAssJS from "artplayer-plugin-assjs";
 import artplayerPluginHeatmap from "./artplayer-plugin-heatmap";
@@ -114,11 +114,17 @@ onMounted(async () => {
     plugins: plugins,
     customType: {
       flv: (video, url, art) => {
-        if (flvjs.isSupported()) {
+        if (mpegts.isSupported()) {
           if (art.flv) art.flv.destroy();
-          const flv = flvjs.createPlayer({ type: "flv", url, isLive: props.isLive });
+
+          const flv = mpegts.createPlayer({
+            type: "flv",
+            url: url,
+          });
           flv.attachMediaElement(video);
           flv.load();
+          flv.play();
+
           art.flv = flv;
           art.on("destroy", () => flv.destroy());
         } else {
