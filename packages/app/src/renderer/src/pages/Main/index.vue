@@ -51,6 +51,7 @@
               'Queue',
               'User',
               'About',
+              'FileSync',
             ]"
           >
             <component :is="Component" />
