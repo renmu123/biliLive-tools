@@ -48,6 +48,10 @@ import BiliLoginDialog from "./components/BiliLoginDialog.vue";
 import { useConfirm } from "@renderer/hooks";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 
+defineOptions({
+  name: "User",
+});
+
 const { getUsers, changeUser } = useUserInfoStore();
 const { appConfig } = storeToRefs(useAppConfig());
 const { userInfo, userList } = storeToRefs(useUserInfoStore());

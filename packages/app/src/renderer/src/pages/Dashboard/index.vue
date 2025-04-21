@@ -5,6 +5,9 @@
 <script setup lang="ts">
 import { commonApi } from "@renderer/apis";
 
+defineOptions({
+  name: "Dashboard",
+});
 const appStartTime = ref(0);
 
 const getTime = async () => {

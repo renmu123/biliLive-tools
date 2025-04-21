@@ -89,6 +89,10 @@ import eventBus from "@renderer/utils/eventBus";
 
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
 
+defineOptions({
+  name: "recorder",
+});
+
 const notice = useNotification();
 const router = useRouter();
 const params = ref<Parameters<typeof recoderApi.infoList>[0]>({

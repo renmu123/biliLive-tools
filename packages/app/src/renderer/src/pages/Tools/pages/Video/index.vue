@@ -36,6 +36,9 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: "BiliDownload",
+});
 import DownloadConfirm from "./components/DownloadModal.vue";
 import SubscribeModal from "./components/SubscribeModal.vue";
 import SubVideoList from "./components/SubVideoList.vue";

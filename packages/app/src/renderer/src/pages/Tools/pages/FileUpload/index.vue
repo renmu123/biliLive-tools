@@ -45,6 +45,10 @@ import hotkeys from "hotkeys-js";
 
 import { deepRaw } from "@renderer/utils";
 
+defineOptions({
+  name: "Upload",
+});
+
 const { userInfo } = storeToRefs(useUserInfoStore());
 const { handlePresetOptions, presetOptions } = useBili();
 const { appConfig } = storeToRefs(useAppConfig());

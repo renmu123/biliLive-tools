@@ -71,6 +71,10 @@ import { Settings as SettingIcon, FolderOpenOutline } from "@vicons/ionicons5";
 import { useConfirm } from "@renderer/hooks";
 import hotkeys from "hotkeys-js";
 
+defineOptions({
+  name: "DanmakuFactory",
+});
+
 const { danmuPresetsOptions, danmuPresetId } = storeToRefs(useDanmuPreset());
 const { appConfig } = storeToRefs(useAppConfig());
 

@@ -112,6 +112,10 @@ const version = ref();
 onMounted(async () => {
   version.value = await commonApi.version();
 });
+
+defineOptions({
+  name: "About",
+});
 </script>
 
 <style scoped lang="less">

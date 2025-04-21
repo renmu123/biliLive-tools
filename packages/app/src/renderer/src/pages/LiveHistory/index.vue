@@ -277,6 +277,10 @@ const router = useRouter();
 const goBack = () => {
   router.back();
 };
+
+defineOptions({
+  name: "LiveHistory",
+});
 </script>
 
 <style scoped>

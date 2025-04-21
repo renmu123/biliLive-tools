@@ -66,6 +66,9 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: "Main",
+});
 import { useStorage } from "@vueuse/core";
 import { NIcon } from "naive-ui";
 import { RouterLink, useRoute, useRouter } from "vue-router";

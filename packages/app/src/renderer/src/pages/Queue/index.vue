@@ -46,6 +46,9 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: "Queue",
+});
 import Item from "./components/item.vue";
 import { useQueueStore } from "@renderer/stores";
 import { deepRaw } from "@renderer/utils";

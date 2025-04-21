@@ -45,6 +45,10 @@ import { formatFile } from "@renderer/utils";
 import { taskApi } from "@renderer/apis";
 import { showSaveDialog } from "@renderer/utils/fileSystem";
 
+defineOptions({
+  name: "VideoMerge",
+});
+
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
 

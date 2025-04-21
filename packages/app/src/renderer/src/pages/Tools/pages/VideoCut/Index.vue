@@ -108,6 +108,9 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: "videoCut",
+});
 import { supportedVideoExtensions } from "@renderer/utils";
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";

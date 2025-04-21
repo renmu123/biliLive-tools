@@ -304,6 +304,9 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: "Setting",
+});
 import { useFileDialog } from "@vueuse/core";
 
 import RoomSettingDialog from "./RoomSettingDialog.vue";
