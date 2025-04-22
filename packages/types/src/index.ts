@@ -179,6 +179,8 @@ export type ToolConfig = {
     removeOrigin: boolean;
     /** 保留第一个视频元数据 */
     keepFirstVideoMeta: boolean;
+    /** 合并弹幕 */
+    mergeXml: boolean;
   };
   /** 下载页 */
   download: {

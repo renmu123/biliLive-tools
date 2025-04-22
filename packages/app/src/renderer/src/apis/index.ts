@@ -8,6 +8,7 @@ import biliApi from "./bili";
 import api from "./request";
 import videoApi from "./video";
 import recordHistoryApi from "./recordHistory";
+import danmaApi from "./danma";
 
 export {
   userApi,
@@ -19,4 +20,5 @@ export {
   api,
   videoApi,
   recordHistoryApi,
+  danmaApi,
 };

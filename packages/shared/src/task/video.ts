@@ -19,6 +19,7 @@ import {
   readLines,
   getTempPath,
   parseSavePath,
+  getUnusedFileName,
 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask, AbstractTask } from "./task.js";
@@ -938,30 +939,6 @@ export const transcode = async (
     ffmpegOptions,
   );
 };
-
-/**
- * 生成一个未被使用的文件名
- * @param filePath 文件路径
- * @returns 未被使用的文件名
- */
-async function getUnusedFileName(filePath: string): Promise<string> {
-  const dir = path.dirname(filePath);
-  const ext = path.extname(filePath);
-  const baseName = path.basename(filePath, ext);
-
-  let newFilePath = filePath;
-  let counter = 1;
-
-  while (await fs.pathExists(newFilePath)) {
-    newFilePath = path.join(dir, `${baseName}(${counter})${ext}`);
-    counter++;
-    if (counter > 100) {
-      throw new Error("文件名生成失败");
-    }
-  }
-
-  return newFilePath;
-}
 
 /**
  * 合并视频
