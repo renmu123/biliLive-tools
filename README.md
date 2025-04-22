@@ -6,7 +6,7 @@
 如果你是录播man正在寻找xml弹幕转换、弹幕压制、webhook上传工具，如果你是切片man正在寻找下载录播视频工具，如果你厌倦了b站的多p上传，你可以来试试本软件。  
 做这款工具的初衷是为了解决录播工具的碎片化，往往想完整处理一场带有弹幕的录播要使用多个软件的配合，一些工具只有CLI，加大了使用难度。  
 软件的目标是开箱即用，体验优先，默认配置下满足大部分人使用需求，同时支持个性化需求来增加可用性。  
-你可以在B站查看[使用教程](https://www.bilibili.com/video/BV1Hs421M755/)
+你可以在B站查看[系列教程](https://www.bilibili.com/video/BV1Hs421M755/)
 
 **如果你使用了本软件，希望你在简介标注仓库地址或保留默认tag，本软件不存在任何数据追踪，我想大致知道使用使用人群及情况**
 
@@ -47,7 +47,7 @@ CLI的使用参考[文档](https://github.com/renmu123/biliLive-tools/tree/maste
 
 **由于软件并非针对web设计，无法保证安全性，请谨慎暴露在公网中**
 
-你可以通过运行`docker-compose up -d`来快速搭建
+你可以通过运行`docker-compose up -d`来快速搭建，也可以查看[视频教程](https://www.bilibili.com/video/BV1HVd5YdEGh)
 
 ```yaml
 services:
