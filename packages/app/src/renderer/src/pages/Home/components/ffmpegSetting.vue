@@ -56,6 +56,7 @@
         <n-select
           v-model:value="ffmpegOptions.config.bitrateControl"
           :options="encoderOptions?.birateControls || []"
+          clearable
         />
       </n-form-item>
       <n-form-item
