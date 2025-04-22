@@ -213,3 +213,13 @@ export const _genHotProgress = async (
     interval: options.interval,
   });
 };
+
+/**
+ * 根据视频合并xml弹幕
+ */
+export const mergeXml = async (
+  inputFiles: { videoPath: string; danmakuPath: string }[],
+  options: {
+    output?: string;
+  },
+) => {};

@@ -115,6 +115,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       saveOriginPath: false,
       removeOrigin: false,
       keepFirstVideoMeta: false,
+      mergeXml: false,
     },
     download: {
       savePath: "",

@@ -251,6 +251,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         saveOriginPath: false,
         removeOrigin: false,
         keepFirstVideoMeta: false,
+        mergeXml: false,
       },
       download: {
         savePath: "",

@@ -22,6 +22,7 @@ import taskRouter from "./routes/task.js";
 import assetsRouter from "./routes/assets.js";
 import videoRouter from "./routes/video.js";
 import recordHistoryRouter from "./routes/recordHistory.js";
+import danmaRouter from "./routes/danma.js";
 import { WebhookHandler } from "./services/webhook.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
@@ -111,6 +112,7 @@ export async function serverStart(
   app.use(taskRouter.routes());
   app.use(videoRouter.routes());
   app.use(recordHistoryRouter.routes());
+  app.use(danmaRouter.routes());
 
   app.use(SSERouter.routes());
   app.use(router.allowedMethods());

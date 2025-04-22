@@ -16,6 +16,8 @@
       >
       <n-button @click="addVideo"> 添加 </n-button>
       <n-button type="primary" @click="convert" title="立即合并(ctrl+enter)"> 立即合并 </n-button>
+      <n-checkbox v-model:checked="options.mergeXml"> 合并弹幕 </n-checkbox>
+
       <Tip
         tip="注意：并非所有容器都支持流复制。如果出现播放问题或未合并文件，则可能需要重新编码。"
         :size="26"
@@ -38,11 +40,11 @@
 import { toReactive } from "@vueuse/core";
 import hotkeys from "hotkeys-js";
 
-import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
+import FileSelect from "@renderer/pages/Tools/pages/Burn/components/FileSelect.vue";
 import Tip from "@renderer/components/Tip.vue";
 import { useAppConfig } from "@renderer/stores";
 import { formatFile } from "@renderer/utils";
-import { taskApi } from "@renderer/apis";
+import { taskApi, danmaApi } from "@renderer/apis";
 import { showSaveDialog } from "@renderer/utils/fileSystem";
 
 defineOptions({
@@ -52,7 +54,7 @@ defineOptions({
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
 
-const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
+const fileList = ref<{ id: string; title: string; videoPath: string; danmakuPath?: string }[]>([]);
 
 const options = toReactive(
   computed({
@@ -83,10 +85,20 @@ const convert = async () => {
     });
     return;
   }
-  let output: string | undefined = undefined;
+  if (options.mergeXml) {
+    // 如果开启合并弹幕，那么所有的视频都要有对应的弹幕文件
+    const hasDanmaku = fileList.value.every((item) => item.danmakuPath);
+    if (!hasDanmaku) {
+      notice.error({
+        title: `所有视频文件必须全部选择弹幕文件`,
+      });
+    }
+  }
+  let videoOutput: string | undefined = undefined;
+  let xmlOutput: string | undefined = undefined;
 
   if (!options.saveOriginPath) {
-    const { dir, name } = formatFile(fileList.value[0].path);
+    const { dir, name } = formatFile(fileList.value[0].videoPath);
     const filePath = window.path.join(dir, `${name}-合并.mp4`);
     const file = await showSaveDialog({
       defaultPath: filePath,
@@ -94,18 +106,35 @@ const convert = async () => {
     if (!file) {
       return;
     }
-    output = file;
+    videoOutput = file;
+
+    if (options.mergeXml) {
+      const { dir, name } = formatFile(fileList.value[0].danmakuPath!);
+      const filePath = window.path.join(dir, `${name}-合并.xml`);
+      const file = await showSaveDialog({
+        defaultPath: filePath,
+      });
+      if (!file) {
+        return;
+      }
+      xmlOutput = file;
+    }
   }
 
   try {
     taskApi.mergeVideos(
-      fileList.value.map((item) => item.path),
-      { output: output, ...options },
+      fileList.value.map((item) => item.videoPath),
+      { output: videoOutput, ...options },
     );
     notice.warning({
       title: `已加入任务，可在任务队列中查看进度`,
       duration: 1000,
     });
+
+    if (options.mergeXml) {
+      // @ts-expect-error
+      danmaApi.mergeXml(fileList.value, { output: xmlOutput, ...options });
+    }
   } catch (err) {
     notice.error({
       title: err as string,
