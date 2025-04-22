@@ -7,14 +7,14 @@ const router = new Router({
 });
 
 router.post("/mergeXml", async (ctx) => {
-  const { inputVideos, options } = ctx.request.body as {
-    inputVideos: { videoPath: string; danmakuPath: string }[];
+  const { inputFiles, options } = ctx.request.body as {
+    inputFiles: { videoPath: string; danmakuPath: string }[];
     options: {
       output?: string;
       saveOriginPath: boolean;
     };
   };
-  await mergeXml(inputVideos, options);
+  await mergeXml(inputFiles, options);
   ctx.body = "OK";
 });
 

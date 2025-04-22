@@ -23,7 +23,11 @@
         :size="26"
       ></Tip>
     </div>
-    <FileSelect ref="fileSelect" v-model="fileList"></FileSelect>
+    <FileSelect
+      ref="fileSelect"
+      v-model="fileList"
+      :extensions="[...supportedVideoExtensions, 'xml']"
+    ></FileSelect>
 
     <div class="flex align-center column" style="margin-top: 10px">
       <div></div>
@@ -43,7 +47,7 @@ import hotkeys from "hotkeys-js";
 import FileSelect from "@renderer/pages/Tools/pages/Burn/components/FileSelect.vue";
 import Tip from "@renderer/components/Tip.vue";
 import { useAppConfig } from "@renderer/stores";
-import { formatFile } from "@renderer/utils";
+import { formatFile, supportedVideoExtensions } from "@renderer/utils";
 import { taskApi, danmaApi } from "@renderer/apis";
 import { showSaveDialog } from "@renderer/utils/fileSystem";
 
@@ -133,7 +137,7 @@ const convert = async () => {
 
     if (options.mergeXml) {
       // @ts-expect-error
-      danmaApi.mergeXml(fileList.value, { output: xmlOutput, ...options });
+      danmaApi.mergeXml(fileList.value, { output: xmlOutput });
     }
   } catch (err) {
     notice.error({
