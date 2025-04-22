@@ -30,6 +30,10 @@ api.interceptors.request.use(
     if (keyStorage) {
       config.headers.Authorization = keyStorage;
     }
+    const baseURL = window.localStorage.getItem("api");
+    if (baseURL) {
+      config.baseURL = baseURL;
+    }
     return config;
   },
   (error) => {
