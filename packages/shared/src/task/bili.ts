@@ -481,7 +481,7 @@ async function addMedia(
             biliMediaAction(
               status,
               {
-                comment: options.comment,
+                comment: options.autoComment ? options.comment : "",
                 top: options.commentTop || false,
                 notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
                 removeOriginAfterUploadCheck: extraOptions?.removeOriginAfterUploadCheck,
