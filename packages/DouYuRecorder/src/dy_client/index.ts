@@ -26,6 +26,7 @@ interface Message$Chat {
   dc: string; // 酬勤数量: 默认值 0（表示没有酬勤数量）
   bdlv: string; // 最高酬勤等级: 默认值 0（表示全站都没有酬勤）
   ic: string; // 头像地址
+  cst: string; // 弹幕发送时间
 }
 
 interface Message$Gift {

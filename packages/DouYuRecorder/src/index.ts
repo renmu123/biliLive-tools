@@ -306,7 +306,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       case "chatmsg": {
         const comment: Comment = {
           type: "comment",
-          timestamp: Date.now(),
+          timestamp: Number(msg.cst),
           text: msg.txt,
           color: colorTab[msg.col] ?? "#ffffff",
           sender: {
