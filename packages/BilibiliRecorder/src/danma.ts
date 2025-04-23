@@ -25,7 +25,7 @@ class DanmaClient extends EventEmitter {
 
         const comment: Comment = {
           type: "comment",
-          timestamp: msg.timestamp,
+          timestamp: msg.body.timestamp,
           text: content,
           color: msg.body.content_color,
           mode: msg.body.type,
@@ -45,7 +45,7 @@ class DanmaClient extends EventEmitter {
         const content = msg.body.content.replaceAll(/[\r\n]/g, "");
         const comment: SuperChat = {
           type: "super_chat",
-          timestamp: msg.timestamp,
+          timestamp: msg.raw.send_time,
           text: content,
           price: msg.body.price,
           sender: {
@@ -83,7 +83,7 @@ class DanmaClient extends EventEmitter {
       onGift: (msg) => {
         const gift: GiveGift = {
           type: "give_gift",
-          timestamp: msg.timestamp,
+          timestamp: msg.raw.send_time,
           name: msg.body.gift_name,
           count: msg.body.amount,
           price: msg.body.coin_type === "silver" ? 0 : msg.body.price / 1000,
