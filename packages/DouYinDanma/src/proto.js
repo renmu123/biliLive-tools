@@ -1095,6 +1095,7 @@ export const douyin = ($root.douyin = (() => {
      * @property {douyin.ICommon|null} [common] ChatMessage common
      * @property {douyin.IUser|null} [user] ChatMessage user
      * @property {string|null} [content] ChatMessage content
+     * @property {number|Long|null} [eventTime] ChatMessage eventTime
      */
 
     /**
@@ -1136,6 +1137,14 @@ export const douyin = ($root.douyin = (() => {
     ChatMessage.prototype.content = "";
 
     /**
+     * ChatMessage eventTime.
+     * @member {number|Long} eventTime
+     * @memberof douyin.ChatMessage
+     * @instance
+     */
+    ChatMessage.prototype.eventTime = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+    /**
      * Creates a new ChatMessage instance using the specified properties.
      * @function create
      * @memberof douyin.ChatMessage
@@ -1170,6 +1179,8 @@ export const douyin = ($root.douyin = (() => {
         ).ldelim();
       if (message.content != null && Object.hasOwnProperty.call(message, "content"))
         writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.content);
+      if (message.eventTime != null && Object.hasOwnProperty.call(message, "eventTime"))
+        writer.uint32(/* id 15, wireType 0 =*/ 120).uint64(message.eventTime);
       return writer;
     };
 
@@ -1216,6 +1227,10 @@ export const douyin = ($root.douyin = (() => {
             message.content = reader.string();
             break;
           }
+          case 15: {
+            message.eventTime = reader.uint64();
+            break;
+          }
           default:
             reader.skipType(tag & 7);
             break;
@@ -1259,6 +1274,16 @@ export const douyin = ($root.douyin = (() => {
       }
       if (message.content != null && message.hasOwnProperty("content"))
         if (!$util.isString(message.content)) return "content: string expected";
+      if (message.eventTime != null && message.hasOwnProperty("eventTime"))
+        if (
+          !$util.isInteger(message.eventTime) &&
+          !(
+            message.eventTime &&
+            $util.isInteger(message.eventTime.low) &&
+            $util.isInteger(message.eventTime.high)
+          )
+        )
+          return "eventTime: integer|Long expected";
       return null;
     };
 
@@ -1284,6 +1309,17 @@ export const douyin = ($root.douyin = (() => {
         message.user = $root.douyin.User.fromObject(object.user);
       }
       if (object.content != null) message.content = String(object.content);
+      if (object.eventTime != null)
+        if ($util.Long)
+          (message.eventTime = $util.Long.fromValue(object.eventTime)).unsigned = true;
+        else if (typeof object.eventTime === "string")
+          message.eventTime = parseInt(object.eventTime, 10);
+        else if (typeof object.eventTime === "number") message.eventTime = object.eventTime;
+        else if (typeof object.eventTime === "object")
+          message.eventTime = new $util.LongBits(
+            object.eventTime.low >>> 0,
+            object.eventTime.high >>> 0,
+          ).toNumber(true);
       return message;
     };
 
@@ -1303,6 +1339,15 @@ export const douyin = ($root.douyin = (() => {
         object.common = null;
         object.user = null;
         object.content = "";
+        if ($util.Long) {
+          let long = new $util.Long(0, 0, true);
+          object.eventTime =
+            options.longs === String
+              ? long.toString()
+              : options.longs === Number
+                ? long.toNumber()
+                : long;
+        } else object.eventTime = options.longs === String ? "0" : 0;
       }
       if (message.common != null && message.hasOwnProperty("common"))
         object.common = $root.douyin.Common.toObject(message.common, options);
@@ -1310,6 +1355,20 @@ export const douyin = ($root.douyin = (() => {
         object.user = $root.douyin.User.toObject(message.user, options);
       if (message.content != null && message.hasOwnProperty("content"))
         object.content = message.content;
+      if (message.eventTime != null && message.hasOwnProperty("eventTime"))
+        if (typeof message.eventTime === "number")
+          object.eventTime =
+            options.longs === String ? String(message.eventTime) : message.eventTime;
+        else
+          object.eventTime =
+            options.longs === String
+              ? $util.Long.prototype.toString.call(message.eventTime)
+              : options.longs === Number
+                ? new $util.LongBits(
+                    message.eventTime.low >>> 0,
+                    message.eventTime.high >>> 0,
+                  ).toNumber(true)
+                : message.eventTime;
       return object;
     };
 

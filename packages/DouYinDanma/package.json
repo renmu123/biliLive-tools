@@ -1,6 +1,6 @@
 {
   "name": "douyin-danma-listener",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "douyin danma listener",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
@@ -18,7 +18,7 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "gen:proto": "pbjs -t static-module -w es6 -o src/danma/proto.js src/danma/dy.proto"
+    "gen:proto": "pbjs -t static-module -w es6 -o src/proto.js src/dy.proto"
   },
   "files": [
     "lib",

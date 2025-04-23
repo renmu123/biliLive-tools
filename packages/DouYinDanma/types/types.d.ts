@@ -111,6 +111,8 @@ export interface ChatMessage {
   common: Common & { method: "WebcastChatMessage" };
   user: User;
   content: string;
+  /** 秒级时间戳 */
+  eventTime: string;
   // giftImage: {
   //   urlListList: string[];
   //   width: string;

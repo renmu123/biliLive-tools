@@ -222,7 +222,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (!extraDataController) return;
     const comment: Comment = {
       type: "comment",
-      timestamp: Date.now(),
+      timestamp: Number(msg.eventTime) * 1000,
       text: msg.content,
       color: "#ffffff",
       sender: {

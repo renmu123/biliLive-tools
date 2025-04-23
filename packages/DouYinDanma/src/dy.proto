@@ -43,7 +43,7 @@ message ChatMessage {
   // uint64 agreeMsgId = 11;
   // int32 priorityLevel = 12;
   // LandscapeAreaCommon landscapeAreaCommon = 13;
-  // uint64 eventTime = 15;
+  uint64 eventTime = 15;
   // bool sendReview = 16;
   // bool fromIntercom = 17;
   // bool intercomHideUserCard = 18;
