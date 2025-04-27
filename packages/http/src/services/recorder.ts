@@ -3,6 +3,8 @@ import { v4 as uuid } from "uuid";
 import { container } from "../index.js";
 import { createRecorderManager } from "@biliLive-tools/shared";
 import { omit, pick, isEmpty } from "lodash-es";
+import recordHistory from "@biliLive-tools/shared/recorder/recordHistory.js";
+import logger from "@biliLive-tools/shared/utils/log.js";
 
 import type { RecorderAPI, ClientRecorder } from "../types/recorder.js";
 import type { Recorder } from "@bililive-tools/manager";
@@ -103,8 +105,18 @@ function removeRecorder(
   const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
   if (recorder == null) return null;
 
+  // 如果需要删除录制历史记录
+  if (args.removeHistory) {
+    try {
+      recordHistory.removeRecords(recorder.channelId, recorder.providerId);
+    } catch (error) {
+      logger.error("删除录制历史失败:", error, recorder);
+    }
+  }
+
   recorderManager.config.remove(args.id);
   recorderManager.manager.removeRecorder(recorder);
+
   return null;
 }
 

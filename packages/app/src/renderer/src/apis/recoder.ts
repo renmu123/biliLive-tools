@@ -28,8 +28,13 @@ const add = async (
   return res.data.payload;
 };
 
-const remove = async (id: string): Promise<RecorderAPI["removeRecorder"]["Resp"]> => {
-  const res = await request.delete(`/recorder/${id}`);
+const remove = async (
+  id: string,
+  removeHistory: boolean = false,
+): Promise<RecorderAPI["removeRecorder"]["Resp"]> => {
+  const res = await request.delete(`/recorder/${id}`, {
+    params: { removeHistory },
+  });
   return res.data.payload;
 };
 

@@ -84,6 +84,7 @@ export type UpdateRecorderResp = ClientRecorder;
 
 export interface RemoveRecorderArgs {
   id: RecoderConfig["id"];
+  removeHistory?: boolean;
 }
 export type RemoveRecorderResp = null;
 

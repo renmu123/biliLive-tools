@@ -82,4 +82,16 @@ export default class LiveController {
       .parse(options);
     return this.model.update(data);
   }
+  /**
+   * 批量删除录制历史记录
+   * @param streamerId 主播ID
+   * @returns 删除的记录数量
+   */
+  removeRecordsByStreamerId(streamerId: number): number {
+    const sql = `DELETE FROM ${this.model.tableName} WHERE streamer_id = ?`;
+    const stmt = this.model.db.prepare(sql);
+    const result = stmt.run(streamerId);
+
+    return result.changes;
+  }
 }

@@ -197,12 +197,14 @@ const add = async () => {
 
 const confirm = useConfirm();
 const remove = async (id: string) => {
-  const [status] = await confirm.warning({
+  const [status, removeHistory] = await confirm.warning({
     content: "是否确认删除录制？",
+    showCheckbox: true,
+    checkboxText: "删除录制历史",
   });
   if (!status) return;
 
-  await recoderApi.remove(id);
+  await recoderApi.remove(id, removeHistory);
   getList();
 };
 

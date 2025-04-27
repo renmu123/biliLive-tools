@@ -98,7 +98,10 @@ router.put("/:id", (ctx) => {
 });
 router.delete("/:id", (ctx) => {
   const { id } = ctx.params;
-  ctx.body = { payload: recorderService.removeRecorder({ id }) };
+  const { removeHistory } = ctx.request.query;
+  ctx.body = {
+    payload: recorderService.removeRecorder({ id, removeHistory: removeHistory === "true" }),
+  };
 });
 
 router.post("/:id/start_record", async (ctx) => {

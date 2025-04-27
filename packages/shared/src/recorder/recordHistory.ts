@@ -111,8 +111,22 @@ export function queryRecordsByRoomAndPlatform(options: QueryRecordsOptions): Que
   };
 }
 
+export async function removeRecords(channelId: string, providerId: string) {
+  // 查找主播ID
+  const streamer = streamerModel.query({
+    room_id: channelId,
+    platform: providerId,
+  });
+  if (!streamer) throw new Error("没有找到stream");
+
+  recordHistoryModel.removeRecordsByStreamerId(streamer.id);
+
+  return true;
+}
+
 export default {
   addWithStreamer,
   upadteEndTime,
   queryRecordsByRoomAndPlatform,
+  removeRecords,
 };
