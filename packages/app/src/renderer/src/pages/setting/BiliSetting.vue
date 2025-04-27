@@ -5,7 +5,8 @@
         <template #label>
           <Tip
             text="线路"
-            tip="上传线路，自动会根据网络情况选择最优线路，如果上传失败请手动选择线路，切换后请上传测试线路能否实际使用。<br/>访问查询：<a href='https://member.bilibili.com/preupload?r=ping' target='_blank'>https://member.bilibili.com/preupload?r=ping</a>"
+            tip="上传线路，自动会根据网络情况选择最优线路，如果上传失败请手动选择线路，切换后请上传测试线路能否实际使用。<br/>qn线路可能对海外机器有特效<br/>访问查询：<a href='https://member.bilibili.com/preupload?r=ping' target='_blank'>https://member.bilibili.com/preupload?r=ping</a>"
+            placement="bottom"
           ></Tip>
         </template>
         <n-select v-model:value="config.biliUpload.line" :options="lineOptions" />

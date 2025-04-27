@@ -20,6 +20,7 @@
 ## Bug修复
 
 - 修复在某些情况下未开启自动评论仍进行评论的bug
+- 修复上传线路的说明弹窗显示不全 [#79](https://github.com/renmu123/biliLive-tools/issues/79)
 
 # 1.10.1(2025.4.20)
 
