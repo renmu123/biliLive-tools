@@ -495,16 +495,14 @@ const onChannelIdInputEnd = async () => {
   config.value.extra = config.value.extra ?? {};
   config.value.extra!.createTimestamp = Date.now();
   if (res.providerId === "Bilibili") {
-    config.value.quality = 10000;
+    config.value.quality = appConfig.value.recorder.bilibili.quality;
     config.value.extra!.recorderUid = res.uid;
   } else if (res.providerId === "DouYu") {
-    config.value.quality = 0;
+    config.value.quality = appConfig.value.recorder.douyu.quality;
   } else if (res.providerId === "HuYa") {
-    config.value.quality = 0;
+    config.value.quality = appConfig.value.recorder.huya.quality;
   } else if (res.providerId === "DouYin") {
-    config.value.quality = "origin";
-  } else {
-    config.value.quality = "highest";
+    config.value.quality = appConfig.value.recorder.douyin.quality;
   }
 };
 
