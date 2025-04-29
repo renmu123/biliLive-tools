@@ -22,6 +22,7 @@
 - 修复在某些情况下未开启自动评论仍进行评论的bug
 - 修复上传线路的说明弹窗显示不全 [#79](https://github.com/renmu123/biliLive-tools/issues/79)
 - 修复添加录制时，全局画质被错误显示的bug [#80](https://github.com/renmu123/biliLive-tools/issues/80)
+- 修复某些情况下预设在重命名后点击保存仍使用原来名字的bug
 
 # 1.10.1(2025.4.20)
 

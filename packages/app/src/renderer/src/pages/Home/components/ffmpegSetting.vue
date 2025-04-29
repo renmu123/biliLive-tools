@@ -641,6 +641,9 @@ const saveConfirm = async () => {
     duration: 1000,
   });
   getPresetOptions();
+  if (isRename.value) {
+    ffmpegOptions.value.name = tempPresetName.value;
+  }
 };
 
 const handleVideoEncoderChange = (value: VideoCodec) => {

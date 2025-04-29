@@ -535,6 +535,9 @@ const saveConfirm = async () => {
     duration: 1000,
   });
   getDanmuPresets();
+  if (isRename.value) {
+    danmuPreset.value.name = tempPresetName.value;
+  }
 };
 
 const saveDanmuPreset = async () => {
