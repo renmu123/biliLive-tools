@@ -505,7 +505,11 @@ const appInit = async () => {
 
   // 检测更新
   if (appConfig.get("autoUpdate")) {
-    checkUpdate();
+    try {
+      await checkUpdate();
+    } catch (error) {
+      log.error(error);
+    }
   }
   // taskQueueListen(container);
 };
