@@ -242,7 +242,7 @@ const handleKill = async (task: Task) => {
       checkboxText: "不保存进度",
     });
     if (!status) return;
-    if (notSavePorcess) {
+    if (!notSavePorcess) {
       taskApi.interrupt(task.taskId);
     } else {
       taskApi.cancel(task.taskId);
