@@ -13,11 +13,6 @@ const BaseVideoSub = z.object({
   retry: z.number().default(0),
 });
 
-const VideoSub = BaseVideoSub.extend({
-  id: z.number(),
-  created_at: z.number().optional(),
-});
-
 export type BaseVideoSub = z.infer<typeof BaseVideoSub>;
 
 class VideoSubDataModel extends BaseModel<BaseVideoSub> {

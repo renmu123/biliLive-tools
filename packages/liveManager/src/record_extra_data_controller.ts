@@ -97,7 +97,7 @@ export function convert2Xml(data: RecordExtraData) {
   const comments = data.messages
     .filter((item) => item.type === "comment")
     .map((ele) => {
-      const progress = Math.min((ele.timestamp - metadata.recordStartTimestamp) / 1000, 0);
+      const progress = Math.max((ele.timestamp - metadata.recordStartTimestamp) / 1000, 0);
       const data = {
         "@@p": "",
         "@@progress": progress,
@@ -129,7 +129,7 @@ export function convert2Xml(data: RecordExtraData) {
   const gifts = data.messages
     .filter((item) => item.type === "give_gift")
     .map((ele) => {
-      const progress = Math.min((ele.timestamp - metadata.recordStartTimestamp) / 1000, 0);
+      const progress = Math.max((ele.timestamp - metadata.recordStartTimestamp) / 1000, 0);
       const data = {
         "@@ts": progress,
         "@@giftname": String(ele.name),
@@ -145,7 +145,7 @@ export function convert2Xml(data: RecordExtraData) {
   const superChats = data.messages
     .filter((item) => item.type === "super_chat")
     .map((ele) => {
-      const progress = Math.min((ele.timestamp - metadata.recordStartTimestamp) / 1000, 0);
+      const progress = Math.max((ele.timestamp - metadata.recordStartTimestamp) / 1000, 0);
       const data = {
         "@@ts": progress,
         "@@price": String(ele.price * 1000),
@@ -160,7 +160,7 @@ export function convert2Xml(data: RecordExtraData) {
   const guardGift = data.messages
     .filter((item) => item.type === "guard")
     .map((ele) => {
-      const progress = Math.min((ele.timestamp - metadata.recordStartTimestamp) / 1000, 0);
+      const progress = Math.max((ele.timestamp - metadata.recordStartTimestamp) / 1000, 0);
       const data = {
         "@@ts": progress,
         "@@price": String(ele.price * 1000),
