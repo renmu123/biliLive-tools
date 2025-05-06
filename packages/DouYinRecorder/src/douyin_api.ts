@@ -57,6 +57,7 @@ export const getCookie = async () => {
 export async function getRoomInfo(
   webRoomId: string,
   retryOnSpecialCode = true,
+  auth?: string,
 ): Promise<{
   living: boolean;
   roomId: string;
@@ -68,9 +69,14 @@ export async function getRoomInfo(
   cover: string;
   liveId: string;
 }> {
-  // 抖音的 'webcast/room/web/enter' api 会需要 ttwid 的 cookie，这个 cookie 是由这个请求的响应头设置的，
-  // 所以在这里请求一次自动设置。
-  const cookies = await getCookie();
+  let cookies: string | undefined = undefined;
+  if (auth) {
+    cookies = auth;
+  } else {
+    // 抖音的 'webcast/room/web/enter' api 会需要 ttwid 的 cookie，这个 cookie 是由这个请求的响应头设置的，
+    // 所以在这里请求一次自动设置。
+    cookies = await getCookie();
+  }
 
   const res = await requester.get<EnterRoomApiResp>(
     "https://live.douyin.com/webcast/room/web/enter/",
@@ -98,7 +104,6 @@ export async function getRoomInfo(
       },
     },
   );
-  // console.log(JSON.stringify(res.data, null, 2));
 
   // 无 cookie 时 code 为 10037
   if (res.data.status_code === 10037 && retryOnSpecialCode) {

@@ -30,9 +30,10 @@ export async function getStream(
   opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities"> & {
     rejectCache?: boolean;
     strictQuality?: boolean;
+    cookie?: string;
   },
 ) {
-  const info = await getRoomInfo(opts.channelId);
+  const info = await getRoomInfo(opts.channelId, true, opts.cookie);
   if (!info.living) {
     throw new Error("It must be called getStream when living");
   }

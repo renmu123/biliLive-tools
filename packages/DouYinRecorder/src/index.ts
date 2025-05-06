@@ -97,7 +97,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (this.recordHandle != null) return this.recordHandle;
 
   const liveInfo = await getInfo(this.channelId);
-  const { living, owner, title, liveId } = liveInfo;
+  const { living, owner, title } = liveInfo;
   this.liveInfo = liveInfo;
 
   if (liveInfo.liveId === banLiveId) {
@@ -126,6 +126,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
       strictQuality: strictQuality,
+      cookie: this.auth,
     });
   } catch (err) {
     this.state = "idle";
@@ -214,7 +215,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("progress", progress);
   });
 
-  const client = new DouYinDanmaClient(liveInfo.liveId);
+  const client = new DouYinDanmaClient(liveInfo.liveId, {
+    cookie: this.auth,
+  });
   client.on("chat", (msg) => {
     const extraDataController = recorder.getExtraDataController();
     if (!extraDataController) return;

@@ -224,6 +224,12 @@
               :options="douyinQualityOptions"
             />
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="Cookie" tip="用于录制会员直播"></Tip>
+            </template>
+            <n-input v-model:value="config.recorder.douyin.cookie" type="password" />
+          </n-form-item>
         </n-tab-pane>
       </n-tabs>
     </n-form>

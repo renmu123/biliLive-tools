@@ -34,7 +34,7 @@ async function sendLiveNotification(
   config: RecorderConfigType,
 ) {
   const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
-  const title = `${name}(${config.channelId}) 开播了`;
+  const title = `${name}(${config.channelId}) 正在直播`;
 
   const globalConfig = appConfig.getAll();
   let notifyType = globalConfig?.notification?.setting?.type;

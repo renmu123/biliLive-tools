@@ -90,7 +90,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       this.emit("error", new Error("获取抖音弹幕签名失败"));
       return;
     }
-    const cookies = this.cookie ?? (await getCookie());
+    const cookies = this.cookie || (await getCookie());
     this.ws = new WebSocket(url, {
       headers: {
         Cookie: cookies,

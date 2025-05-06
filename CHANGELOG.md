@@ -13,6 +13,7 @@
 - 录制：B站支持标题关键字参数（仅在开启弹幕时生效）
 - 录制：分段时下载最新封面以及使用最新标题
 - 录制：添加录制历史记录
+- 录制：抖音支持cookie [#85](https://github.com/renmu123/biliLive-tools/issues/85)
 - 视频合并页面支持弹幕合并 [#75](https://github.com/renmu123/biliLive-tools/issues/75)
 
 ## 优化

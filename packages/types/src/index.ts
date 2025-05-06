@@ -308,6 +308,8 @@ interface HuyaRecorderConfig {
 
 interface DouyinRecorderConfig {
   quality: "origin" | "uhd" | "hd" | "sd" | "ld" | "ao";
+  /** 抖音cookie */
+  cookie: string;
 }
 
 // 录制全局配置
@@ -403,6 +405,8 @@ export interface Recorder {
   titleKeywords?: string;
   /** 开播推送 */
   liveStartNotification?: boolean;
+  /** 抖音cookie */
+  cookie?: string;
   // 不跟随全局配置字段
   noGlobalFollowFields: Array<
     Exclude<

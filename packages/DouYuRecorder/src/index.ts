@@ -152,7 +152,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // 获取直播间信息
   const liveInfo = await getInfo(this.channelId);
-  const { living, owner, title, liveId } = liveInfo;
+  const { living, owner, title } = liveInfo;
 
   this.liveInfo = liveInfo;
 

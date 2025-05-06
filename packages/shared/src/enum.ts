@@ -236,6 +236,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     douyin: {
       quality: "origin",
+      cookie: "",
     },
   },
   video: {

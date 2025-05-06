@@ -51,6 +51,8 @@ export default class RecorderConfig {
           return get(globalConfig, "bilibili.qualityRetry");
         } else if (key === "source") {
           return get(globalConfig, "douyu.source");
+        } else if (key === "cookie") {
+          return get(globalConfig, "douyin.cookie");
         } else {
           return get(globalConfig, key);
         }
@@ -75,6 +77,8 @@ export default class RecorderConfig {
           })
           .join("; ");
       }
+    } else if (setting.providerId === "DouYin") {
+      auth = getValue("cookie");
     }
 
     return {

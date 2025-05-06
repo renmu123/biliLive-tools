@@ -79,6 +79,7 @@ export type UpdateRecorderArgs = Pick<
   | "liveStartNotification"
   | "source"
   | "videoFormat"
+  | "cookie"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 

@@ -242,6 +242,19 @@
               >全局</n-checkbox
             >
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="Cookie" tip="用于录制会员直播"></Tip>
+            </template>
+            <n-input
+              v-model:value="config.cookie"
+              type="password"
+              :disabled="globalFieldsObj.cookie"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.cookie" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
         </template>
 
         <n-form-item>
@@ -404,6 +417,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     codecName: true,
     source: true,
     videoFormat: true,
+    cookie: true,
   },
 );
 
@@ -430,6 +444,7 @@ const config = ref<Omit<Recorder, "id">>({
   liveStartNotification: false,
   source: "auto",
   videoFormat: "auto",
+  cookie: "",
 });
 
 const confirmDialog = useConfirm();
@@ -503,6 +518,7 @@ const onChannelIdInputEnd = async () => {
     config.value.quality = appConfig.value.recorder.huya.quality;
   } else if (res.providerId === "DouYin") {
     config.value.quality = appConfig.value.recorder.douyin.quality;
+    config.value.cookie = appConfig.value.recorder.douyin.cookie;
   }
 };
 
@@ -534,6 +550,7 @@ watch(showModal, async (val) => {
       liveStartNotification: false,
       source: "auto",
       videoFormat: "auto",
+      cookie: "",
     };
 
     if (props.id) {
@@ -555,6 +572,7 @@ watch(showModal, async (val) => {
       codecName: !(config.value?.noGlobalFollowFields ?? []).includes("codecName"),
       source: !(config.value?.noGlobalFollowFields ?? []).includes("source"),
       videoFormat: !(config.value?.noGlobalFollowFields ?? []).includes("videoFormat"),
+      cookie: !(config.value?.noGlobalFollowFields ?? []).includes("cookie"),
     };
   }
 });
@@ -611,6 +629,9 @@ watch(
     }
     if (val.videoFormat) {
       config.value.videoFormat = appConfig.value.recorder.videoFormat;
+    }
+    if (val.cookie) {
+      config.value.cookie = appConfig.value.recorder.douyin.cookie;
     }
   },
   {
