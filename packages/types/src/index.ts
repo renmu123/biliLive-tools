@@ -307,7 +307,7 @@ interface HuyaRecorderConfig {
 }
 
 interface DouyinRecorderConfig {
-  quality: "origin" | "uhd" | "hd" | "sd" | "ld" | "ao";
+  quality: "origin" | "uhd" | "hd" | "sd" | "ld" | "ao" | "real_origin";
   /** 抖音cookie */
   cookie: string;
 }

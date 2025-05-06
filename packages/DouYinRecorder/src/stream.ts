@@ -37,6 +37,10 @@ export async function getStream(
   if (!info.living) {
     throw new Error("It must be called getStream when living");
   }
+  let quality = opts.quality;
+  if (quality === "real_origin") {
+    quality = "ao";
+  }
 
   const qualityMap = [
     {
@@ -56,14 +60,28 @@ export async function getStream(
       desc: "高清",
     },
     {
-      key: "标清",
-      desc: "ld",
+      key: "ld",
+      desc: "标清",
+    },
+    {
+      key: "ao",
+      desc: "音频流",
+    },
+    {
+      key: "real_origin",
+      desc: "真原画",
     },
   ];
   const sources = info.sources[0];
+  console.log(JSON.stringify(sources.streamMap, null, 2));
 
-  let url = sources.streamMap[opts.quality]?.main?.flv;
+  let url = sources.streamMap[quality]?.main?.flv;
   let qualityName: string = qualityMap.find((q) => q.key === opts.quality)?.desc ?? "未知";
+
+  if (opts.quality === "real_origin") {
+    url = url.replace("&only_audio=1", "");
+    qualityName = "真原画";
+  }
 
   if (!url && opts.strictQuality) {
     throw new Error("Can not get expect quality because of strictQuality");

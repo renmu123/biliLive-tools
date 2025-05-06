@@ -21,6 +21,7 @@
 - 录制：抖音支持解析 `https://v.douyin.com/xxx/` [#73](https://github.com/renmu123/biliLive-tools/issues/73)
 - 录制：B站修改默认画质匹配逻辑以处理hevc真原画
 - 录制：B站、斗鱼、抖音弹幕时间使用服务端时间
+- 录制：抖音支持真原画选项
 - “码率控制”选项支持为空以支持需要在高级选项中自定义的需求
 - 重新实现录制开始通知以带来更好的通知
 
@@ -29,6 +30,7 @@
 - 修复在某些情况下未开启自动评论仍进行评论的bug
 - 修复上传线路的说明弹窗显示不全 [#79](https://github.com/renmu123/biliLive-tools/issues/79)
 - 修复添加录制时，全局画质被错误显示的bug [#80](https://github.com/renmu123/biliLive-tools/issues/80)
+- 修复抖音录制无法选择“标清”画质的bug
 - 修复某些情况下预设在重命名后点击保存仍使用原来名字的bug
 - 自动检查更新失败时不再报奇怪的错误
 

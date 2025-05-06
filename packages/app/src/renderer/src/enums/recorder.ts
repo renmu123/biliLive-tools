@@ -164,6 +164,10 @@ export const douyinQualityOptions = [
     value: "ao",
     label: "音频流",
   },
+  {
+    value: "real_origin",
+    label: "真原画",
+  },
 ];
 
 // b站流格式
