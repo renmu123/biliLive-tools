@@ -256,8 +256,10 @@ export function createRecorderManager<
       recorder.on("progress", (progress) => {
         this.emit("RecorderProgress", { recorder, progress });
       });
-      recorder.on("LiveStart", ({ liveId }) => {
-        const key = `${recorder.channelId}-${liveId}`;
+      recorder.on("videoFileCreated", () => {
+        if (!recorder.liveInfo?.liveId) return;
+
+        const key = `${recorder.channelId}-${recorder.liveInfo?.liveId}`;
         if (liveStartObj[key]) return;
         liveStartObj[key] = true;
 

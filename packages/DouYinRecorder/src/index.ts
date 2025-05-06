@@ -108,8 +108,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (this.tempStopIntervalCheck) return null;
   if (!living) return null;
 
-  this.emit("LiveStart", { liveId });
-
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
     let strictQuality = false;

@@ -11,7 +11,6 @@ type RecorderEvents = {
   videoFileCreated: { filename: string };
   videoFileCompleted: { filename: string };
   progress: { time: string | null };
-  LiveStart: { liveId: string };
   RecordStop: { recordHandle: RecordHandle; reason?: string };
   Updated: void;
   Message: string[];
@@ -581,9 +580,12 @@ describe("RecorderManager", () => {
       const liveStartHandler = vi.fn();
       manager.on("RecoderLiveStart", liveStartHandler);
 
-      // 模拟录制器触发 LiveStart 事件
-      biliRecorder.emit("LiveStart", { liveId: "live1" });
-      biliRecorder.emit("LiveStart", { liveId: "live1" }); // 相同的 liveId
+      // 设置 liveInfo 以便触发 RecoderLiveStart 事件
+      biliRecorder.liveInfo = { liveId: "live1" } as any;
+
+      // 模拟录制器触发 videoFileCreated 事件，这会间接触发 RecoderLiveStart 事件
+      biliRecorder.emit("videoFileCreated", { filename: "test1.mp4" });
+      biliRecorder.emit("videoFileCreated", { filename: "test2.mp4" }); // 相同的 liveId
 
       // 验证 LiveStart 事件只被触发一次
       expect(liveStartHandler).toHaveBeenCalledTimes(1);
@@ -605,9 +607,13 @@ describe("RecorderManager", () => {
       const liveStartHandler = vi.fn();
       manager.on("RecoderLiveStart", liveStartHandler);
 
-      // 模拟录制器触发 LiveStart 事件
-      biliRecorder.emit("LiveStart", { liveId: "live1" });
-      biliRecorder.emit("LiveStart", { liveId: "live2" }); // 不同的 liveId
+      // 设置 liveInfo 并触发第一个事件
+      biliRecorder.liveInfo = { liveId: "live1" } as any;
+      biliRecorder.emit("videoFileCreated", { filename: "test1.mp4" });
+
+      // 更改 liveId 并触发第二个事件
+      biliRecorder.liveInfo = { liveId: "live2" } as any;
+      biliRecorder.emit("videoFileCreated", { filename: "test2.mp4" });
 
       // 验证 LiveStart 事件被触发了两次
       expect(liveStartHandler).toHaveBeenCalledTimes(2);
@@ -638,9 +644,13 @@ describe("RecorderManager", () => {
       const liveStartHandler = vi.fn();
       manager.on("RecoderLiveStart", liveStartHandler);
 
-      // 模拟两个录制器分别触发 LiveStart 事件
-      biliRecorder1.emit("LiveStart", { liveId: "live1" });
-      biliRecorder2.emit("LiveStart", { liveId: "live2" });
+      // 分别设置 liveInfo 并触发事件
+      biliRecorder1.liveInfo = { liveId: "live1" } as any;
+      biliRecorder2.liveInfo = { liveId: "live2" } as any;
+
+      // 模拟两个录制器分别触发 videoFileCreated 事件
+      biliRecorder1.emit("videoFileCreated", { filename: "test1.mp4" });
+      biliRecorder2.emit("videoFileCreated", { filename: "test2.mp4" });
 
       // 验证 LiveStart 事件被触发了两次
       expect(liveStartHandler).toHaveBeenCalledTimes(2);
@@ -664,13 +674,19 @@ describe("RecorderManager", () => {
       manager.on("RecoderLiveStart", liveStartHandler);
 
       // 第一次直播
-      biliRecorder.emit("LiveStart", { liveId: "live1" });
+      biliRecorder.liveInfo = { liveId: "live1" } as any;
+      biliRecorder.emit("videoFileCreated", { filename: "test1.mp4" });
 
       // 停止直播
       biliRecorder.emit("RecordStop", { recordHandle: {} as RecordHandle });
 
-      // 重新开播
-      biliRecorder.emit("LiveStart", { liveId: "live2" }); // 新的 liveId
+      // 清除LiveStart状态缓存对象，模拟真实情况下重新开播
+      // @ts-ignore - 访问私有变量
+      manager["liveStartObj"] = {};
+
+      // 重新开播，使用新的liveId
+      biliRecorder.liveInfo = { liveId: "live2" } as any;
+      biliRecorder.emit("videoFileCreated", { filename: "test2.mp4" });
 
       // 验证 LiveStart 事件被触发了两次
       expect(liveStartHandler).toHaveBeenCalledTimes(2);

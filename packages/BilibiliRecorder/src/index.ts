@@ -148,8 +148,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
   }
 
-  this.emit("LiveStart", { liveId });
-
   const liveInfo = await getInfo(this.channelId);
   const { owner, title, roomId } = liveInfo;
   this.liveInfo = liveInfo;
