@@ -7,12 +7,7 @@
 
     <n-form label-placement="left" :label-width="145">
       <n-tabs type="segment" style="margin-top: 10px" class="tabs">
-        <n-tab-pane
-          class="tab-pane"
-          name="syncConfig"
-          tab="Webhook 同步配置"
-          display-directive="show:lazy"
-        >
+        <n-tab-pane class="tab-pane" name="syncConfig" tab="同步器" display-directive="show:lazy">
           <div class="sync-config-list">
             <n-card
               v-for="(config, index) in config.sync.syncConfigs"
@@ -39,7 +34,7 @@
                 <n-icon size="48">
                   <Add />
                 </n-icon>
-                <n-text>添加同步配置</n-text>
+                <n-text style="display: block">添加同步配置</n-text>
               </div>
             </n-card>
           </div>
@@ -503,11 +498,12 @@ const saveSyncConfig = () => {
 .sync-config-card {
   height: 100%;
   .add-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     cursor: pointer;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
     &:hover {
       background-color: var(--n-color-hover);
     }
