@@ -53,7 +53,7 @@
         <td>
           <a class="link" target="_blank" :href="item.channelURL">{{ item.channelId }}</a>
         </td>
-        <td>{{ item.owner }}</td>
+        <td>{{ item.owner || item.remarks }}</td>
         <td>{{ item.roomTitle }}</td>
         <td
           :style="{

@@ -94,7 +94,6 @@ export class FFMPEGRecorder extends EventEmitter {
       if (headers.length) {
         inputOptions.push("-headers", headers.join("\\r\\n"));
       }
-      console.log("inputOptions", inputOptions);
     }
 
     const command = createFFMPEGBuilder()
