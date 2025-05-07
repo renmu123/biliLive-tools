@@ -17,7 +17,7 @@ export class FFMPEGRecorder extends EventEmitter {
   url: string;
   headers:
     | {
-        [key: string]: string;
+        [key: string]: string | undefined;
       }
     | undefined;
 
@@ -32,7 +32,7 @@ export class FFMPEGRecorder extends EventEmitter {
       disableDanma?: boolean;
       videoFormat?: "auto" | "ts" | "mkv";
       headers?: {
-        [key: string]: string;
+        [key: string]: string | undefined;
       };
     },
     private onEnd: (...args: unknown[]) => void,
