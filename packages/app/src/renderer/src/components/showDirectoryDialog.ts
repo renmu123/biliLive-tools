@@ -10,7 +10,6 @@ export default async function showDirectoryDialog(
   } = {},
 ): Promise<string[] | undefined> {
   return new Promise((resolve) => {
-    console.log("showDirectoryDialog", options);
     const mountNode = document.createElement("div");
     let dialogApp: App<Element> | undefined = createApp(FileBrowserDialog, {
       visible: true,

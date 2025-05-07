@@ -96,7 +96,7 @@ router.get("/files", async (ctx) => {
     .filter((ext) => ext)
     .map((ext) => `.${ext}`);
   const type = params.type as string;
-  const allFiles = filterExts.length === 0 || filterExts.includes("*");
+  const allFiles = filterExts.length === 0 || filterExts.includes(".*");
 
   if (root == "/" && process.platform === "win32") {
     const drives = await getDriveLetters();
