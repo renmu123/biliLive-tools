@@ -12,7 +12,7 @@ export class FFMPEGRecorder extends EventEmitter {
   segment: number;
   ffmpegOutputOptions: string[] = [];
   inputOptions: string[] = [];
-  isHls: boolean = false;
+  isHls: boolean;
   disableDanma: boolean = false;
   url: string;
 
@@ -49,7 +49,11 @@ export class FFMPEGRecorder extends EventEmitter {
     this.inputOptions = opts.inputOptions ?? [];
     this.url = opts.url;
     this.segment = opts.segment;
-    this.isHls = opts.isHls ?? false;
+    if (opts.isHls === undefined) {
+      this.isHls = this.url.includes("m3u8");
+    } else {
+      this.isHls = opts.isHls;
+    }
 
     this.command = this.createCommand();
 
