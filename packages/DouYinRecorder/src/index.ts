@@ -164,6 +164,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
+      headers: {
+        Cookie: this.auth,
+      },
     },
     onEnd,
     async () => {

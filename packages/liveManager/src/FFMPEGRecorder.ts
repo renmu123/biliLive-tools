@@ -15,6 +15,11 @@ export class FFMPEGRecorder extends EventEmitter {
   isHls: boolean;
   disableDanma: boolean = false;
   url: string;
+  headers:
+    | {
+        [key: string]: string;
+      }
+    | undefined;
 
   constructor(
     opts: {
@@ -26,6 +31,9 @@ export class FFMPEGRecorder extends EventEmitter {
       isHls?: boolean;
       disableDanma?: boolean;
       videoFormat?: "auto" | "ts" | "mkv";
+      headers?: {
+        [key: string]: string;
+      };
     },
     private onEnd: (...args: unknown[]) => void,
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
@@ -49,6 +57,7 @@ export class FFMPEGRecorder extends EventEmitter {
     this.inputOptions = opts.inputOptions ?? [];
     this.url = opts.url;
     this.segment = opts.segment;
+    this.headers = opts.headers;
     if (opts.isHls === undefined) {
       this.isHls = this.url.includes("m3u8");
     } else {
@@ -71,14 +80,26 @@ export class FFMPEGRecorder extends EventEmitter {
   private createCommand() {
     const invalidCount = this.isHls ? 35 : 15;
     const isInvalidStream = createInvalidStreamChecker(invalidCount);
+    const inputOptions = [
+      ...this.inputOptions,
+      "-user_agent",
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
+    ];
+    if (this.headers) {
+      const headers: string[] = [];
+      Object.entries(this.headers).forEach(([key, value]) => {
+        if (!value) return;
+        headers.push(`${key}:${value}`);
+      });
+      if (headers.length) {
+        inputOptions.push("-headers", headers.join("\\r\\n"));
+      }
+      console.log("inputOptions", inputOptions);
+    }
 
     const command = createFFMPEGBuilder()
       .input(this.url)
-      .inputOptions([
-        ...this.inputOptions,
-        "-user_agent",
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
-      ])
+      .inputOptions(inputOptions)
       .outputOptions(this.ffmpegOutputOptions)
       .output(this.streamManager.videoFilePath)
       .on("error", this.onEnd)
@@ -86,7 +107,6 @@ export class FFMPEGRecorder extends EventEmitter {
       .on("stderr", async (stderrLine) => {
         assert(typeof stderrLine === "string");
         await this.streamManager.handleVideoStarted(stderrLine);
-        // TODO:解析时间
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 
         const info = this.formatLine(stderrLine);
