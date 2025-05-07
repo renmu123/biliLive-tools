@@ -209,7 +209,7 @@
     <n-select
       v-model:value="data.afterConvertAction"
       :options="[
-        { label: '删除原始视频文件', value: 'removeVideo' },
+        { label: '删除输入视频文件', value: 'removeVideo' },
         { label: '删除XML弹幕', value: 'removeXml' },
       ]"
       multiple

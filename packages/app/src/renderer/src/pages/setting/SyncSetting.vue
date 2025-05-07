@@ -252,7 +252,7 @@
 
 <script setup lang="ts">
 import { FolderOpenOutline, Add } from "@vicons/ionicons5";
-import { showFileDialog } from "@renderer/utils/fileSystem";
+import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { uuid } from "@renderer/utils";
 
 import { syncApi } from "@renderer/apis";
@@ -273,7 +273,7 @@ const config = defineModel<AppConfig>("data", {
 const isWeb = computed(() => window.isWeb);
 
 const selectFolder = async (type: SyncType) => {
-  let file: string | undefined = await showFileDialog({
+  let file: string | undefined = await showDirectoryDialog({
     defaultPath: config.value.sync[type].execPath,
   });
 

@@ -54,20 +54,20 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
     this.logger = logger;
 
     // 检查BaiduPCS-Go是否安装
-    this.checkInstallation();
+    // this.checkInstallation();
   }
 
   /**
    * 检查BaiduPCS-Go是否已安装
    */
-  private checkInstallation(): void {
-    try {
-      execSync(`${this.binary} --version`, { stdio: "ignore" });
-    } catch (error) {
-      this.logger.error("BaiduPCS-Go 未安装或不在PATH中，请先安装 BaiduPCS-Go");
-      throw new Error("BaiduPCS-Go not installed");
-    }
-  }
+  // private checkInstallation(): void {
+  //   try {
+  //     execSync(`${this.binary} --version`, { stdio: "ignore" });
+  //   } catch (error) {
+  //     this.logger.error("BaiduPCS-Go 未安装或不在PATH中，请先安装 BaiduPCS-Go");
+  //     throw new Error("BaiduPCS-Go not installed");
+  //   }
+  // }
 
   /**
    * 检查用户是否已登录

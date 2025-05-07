@@ -10,6 +10,8 @@ import videoApi from "./video";
 import recordHistoryApi from "./recordHistory";
 import danmaApi from "./danma";
 
+import syncApi from "./sync";
+
 export {
   userApi,
   recoderApi,
@@ -19,9 +21,7 @@ export {
   biliApi,
   api,
   videoApi,
+  syncApi,
   recordHistoryApi,
   danmaApi,
 };
-import syncApi from "./sync";
-
-export { userApi, recoderApi, configApi, taskApi, commonApi, biliApi, api, videoApi, syncApi };

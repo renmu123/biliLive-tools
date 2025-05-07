@@ -426,15 +426,14 @@ export class WebhookHandler {
     this.fileLockManager.acquireLock(filePath, "sync");
 
     // 提取基本信息
-    const { name: filename } = path.parse(filePath);
     let platform: Platform = "blrec";
-    let title = "unknown";
+    // let title = "unknown";
     let username = "unknown";
     let partStartTime = new Date();
 
     const { live, part } = livePart;
     platform = live.platform;
-    title = live.title;
+    // title = live.title;
     username = live.username;
 
     if (part?.startTime) {

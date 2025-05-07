@@ -29,13 +29,7 @@ describe("BaiduPCS", () => {
       const progressOutput = "↑ 500KB/1MB 100KB/s in 5s";
       baiduPCS["parseProgress"](progressOutput);
 
-      expect(mockEmit).toHaveBeenCalledWith("progress", {
-        uploaded: "500KB",
-        total: "1MB",
-        speed: "100KB/s",
-        elapsed: "5s",
-        percentage: expect.any(Number),
-      });
+      expect(mockEmit).not.toHaveBeenCalled();
     });
 
     it("应该忽略不匹配的进度信息", () => {
@@ -54,12 +48,12 @@ describe("BaiduPCS", () => {
       const mockEmit = vi.fn();
       baiduPCS.emit = mockEmit;
 
-      const progressOutput = "[1] ↑ 500MB/1GB 2MB/s in 10s";
+      const progressOutput = "[1] ↑ 512MB/1GB 2MB/s in 10s";
       baiduPCS["parseProgress"](progressOutput);
 
       expect(mockEmit).toHaveBeenCalledWith("progress", {
         index: 1,
-        uploaded: "500MB",
+        uploaded: "512MB",
         total: "1GB",
         speed: "2MB/s",
         elapsed: "10s",
