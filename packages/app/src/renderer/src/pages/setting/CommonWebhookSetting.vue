@@ -1,5 +1,76 @@
 <template>
+  <h2>通用配置</h2>
+  <n-form-item>
+    <template #label>
+      <Tip
+        text="最小处理文件"
+        tip="小于这个大小的视频不会被之后的流程处理，用于过滤因网络问题导致的分段录播"
+      ></Tip>
+    </template>
+    <n-input-number
+      v-model:value="data.minSize"
+      placeholder="单位MB"
+      min="0"
+      :disabled="globalFieldsObj.minSize"
+    >
+      <template #suffix> M </template></n-input-number
+    >
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.minSize" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+
+  <n-form-item>
+    <template #label>
+      <Tip
+        text="转封装为mp4"
+        tip="将视频文件转换为mp4封装格式，开启后，之后的源文件指向的都是转封装的视频"
+      ></Tip>
+    </template>
+    <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
+
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+
+  <n-form-item v-if="data.convert2Mp4">
+    <template #label>
+      <span>封装后删除源文件</span>
+    </template>
+    <n-switch
+      v-model:value="data.removeSourceAferrConvert2Mp4"
+      :disabled="globalFieldsObj.removeSourceAferrConvert2Mp4"
+    />
+
+    <n-checkbox
+      v-if="isRoom"
+      v-model:checked="globalFieldsObj.removeSourceAferrConvert2Mp4"
+      class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+
+  <n-form-item>
+    <template #label>
+      <Tip text="同步器" tip="选择要使用的同步器，用于将视频同步到网盘"></Tip>
+    </template>
+    <n-select
+      v-model:value="data.syncId"
+      :options="props.syncConfigs"
+      label-field="name"
+      value-field="id"
+      :disabled="globalFieldsObj.syncId"
+      style="margin-right: 10px; width: 200px"
+      clearable
+    />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.syncId" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+
   <h2>压制配置</h2>
+
   <n-form-item>
     <template #label>
       <Tip text="弹幕压制" tip="将弹幕文件硬编码到视频中"></Tip>
@@ -10,27 +81,11 @@
       >全局</n-checkbox
     >
   </n-form-item>
-  <n-form-item v-if="!data.danmu">
-    <template #label>
-      <Tip text="不压制后处理" tip="关闭弹幕压制但仍对视频调用ffmepg进行处理"></Tip>
-    </template>
-    <n-switch
-      v-model:value="data.noConvertHandleVideo"
-      :disabled="globalFieldsObj.noConvertHandleVideo"
-    />
-
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.noConvertHandleVideo"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
 
   <!-- 当弹幕压制开启或弹幕压制关闭但不压制后处理开启时展示 -->
-  <n-form-item v-if="data.danmu || (!data.danmu && data.noConvertHandleVideo)">
+  <n-form-item>
     <template #label>
-      <span class="inline-flex"> 视频预设 </span>
+      <Tip text="视频预设" tip="你可以只处理视频而不压制，如果不想处理请置空"></Tip>
     </template>
     <n-cascader
       v-model:value="data.ffmpegPreset"
@@ -41,28 +96,30 @@
       :show-path="false"
       :filterable="true"
       :disabled="globalFieldsObj.ffmpegPreset"
-      style="margin-right: 10px"
+      style="margin-right: 10px; width: 200px"
+      clearable
     />
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.ffmpegPreset" class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
+  <n-form-item>
+    <template #label>
+      <Tip text="弹幕预设" tip="你可以只处理弹幕而不压制，如果不想处理请置空"></Tip>
+    </template>
+    <n-select
+      v-model:value="data.danmuPreset"
+      :options="danmuPresetsOptions"
+      placeholder="选择预设"
+      :disabled="globalFieldsObj.danmuPreset"
+      style="margin-right: 10px; width: 200px"
+      clearable
+    />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.danmuPreset" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
   <template v-if="data.danmu">
-    <n-form-item label="弹幕预设">
-      <n-select
-        v-model:value="data.danmuPreset"
-        :options="danmuPresetsOptions"
-        placeholder="选择预设"
-        :disabled="globalFieldsObj.danmuPreset"
-        style="margin-right: 10px"
-      />
-      <n-checkbox
-        v-if="isRoom"
-        v-model:checked="globalFieldsObj.danmuPreset"
-        class="global-checkbox"
-        >全局</n-checkbox
-      >
-    </n-form-item>
     <n-form-item label="高能进度条">
       <n-switch v-model:value="data.hotProgress" :disabled="globalFieldsObj.hotProgress" />
       <n-checkbox
@@ -145,46 +202,24 @@
       </n-form-item>
     </template>
   </template>
-  <template v-if="data.danmu || (!data.danmu && data.noConvertHandleVideo)">
-    <n-form-item>
-      <template #label>
-        <span class="inline-flex"> 压制后删除源文件 </span>
-      </template>
-      <n-switch
-        v-model:value="data.removeOriginAfterConvert"
-        :disabled="globalFieldsObj.removeOriginAfterConvert"
-      />
-      <n-checkbox
-        v-if="isRoom"
-        v-model:checked="globalFieldsObj.removeOriginAfterConvert"
-        class="global-checkbox"
-        >全局</n-checkbox
-      >
-    </n-form-item>
-  </template>
-
   <n-form-item>
     <template #label>
-      <Tip text="转封装为mp4" tip="将视频文件转换为mp4封装格式"></Tip>
+      <span class="inline-flex"> 处理后操作 </span>
     </template>
-    <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
-
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-  <n-form-item v-if="data.convert2Mp4">
-    <template #label>
-      <span>封装后删除源文件</span>
-    </template>
-    <n-switch
-      v-model:value="data.removeSourceAferrConvert2Mp4"
-      :disabled="globalFieldsObj.removeSourceAferrConvert2Mp4"
+    <n-select
+      v-model:value="data.afterConvertAction"
+      :options="[
+        { label: '删除原始视频文件', value: 'removeVideo' },
+        { label: '删除XML弹幕', value: 'removeXml' },
+      ]"
+      multiple
+      :disabled="globalFieldsObj.afterConvertAction"
+      style="margin-right: 10px"
+      placeholder="不选就是不做处理"
     />
-
     <n-checkbox
       v-if="isRoom"
-      v-model:checked="globalFieldsObj.removeSourceAferrConvert2Mp4"
+      v-model:checked="globalFieldsObj.afterConvertAction"
       class="global-checkbox"
       >全局</n-checkbox
     >
@@ -192,7 +227,7 @@
 
   <n-form-item>
     <template #label>
-      <Tip text="限制处理时间" tip="开启后，支持只在某段时间执行处理"></Tip>
+      <Tip text="限制处理时间" tip="开启后，只会在某段时间执行处理，仅限视频"></Tip>
     </template>
     <n-switch
       v-model:value="data.limitVideoConvertTime"
@@ -287,7 +322,7 @@
     </template>
   </n-form-item>
 
-  <n-form-item>
+  <n-form-item style="margin-top: 15px">
     <template #label>
       <Tip
         text="使用直播封面"
@@ -374,55 +409,22 @@
     </n-form-item>
   </template>
 
-  <n-form-item>
-    <template #label>
-      <span class="inline-flex"> 完成后删除源文件 </span>
-    </template>
-    <n-switch
-      v-model:value="data.removeOriginAfterUpload"
-      :disabled="globalFieldsObj.removeOriginAfterUpload"
+  <n-form-item style="margin-top: 15px">
+    <template #label> 上传后操作 </template>
+    <n-select
+      v-model:value="data.afterUploadDeletAction"
+      :options="uploadAfterActionOptions"
+      :disabled="globalFieldsObj.afterUploadDeletAction"
+      style="margin-right: 10px"
     />
     <n-checkbox
       v-if="isRoom"
-      v-model:checked="globalFieldsObj.removeOriginAfterUpload"
+      v-model:checked="globalFieldsObj.afterUploadDeletAction"
       class="global-checkbox"
       >全局</n-checkbox
     >
   </n-form-item>
-  <n-form-item v-if="!data.removeOriginAfterUpload">
-    <template #label>
-      <span class="inline-flex"> 审核通过后删除源文件 </span>
-    </template>
-    <n-switch
-      v-model:value="data.removeOriginAfterUploadCheck"
-      :disabled="globalFieldsObj.removeOriginAfterUploadCheck"
-    />
-    <n-checkbox
-      v-if="isRoom"
-      v-model:checked="globalFieldsObj.removeOriginAfterUploadCheck"
-      class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-  <n-form-item>
-    <template #label>
-      <Tip
-        text="最小上传大小"
-        tip="小于这个大小的视频不会上传，用于过滤因网络问题导致的分段录播"
-      ></Tip>
-    </template>
-    <n-input-number
-      v-model:value="data.minSize"
-      placeholder="单位MB"
-      min="0"
-      :disabled="globalFieldsObj.minSize"
-    >
-      <template #suffix> M </template></n-input-number
-    >
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.minSize" class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
+
   <n-form-item>
     <template #label>
       <Tip text="限制上传时间" tip="开启后，支持只在某段时间执行上传操作"></Tip>
@@ -463,7 +465,7 @@
       <template #label>
         <Tip
           text="上传非弹幕版"
-          tip="用于在上传弹幕版后同时上传一份非弹幕版本，大部分配置与上面的共用，不含包“完成后删除源文件”选项
+          tip="用于在上传弹幕版后同时上传一份非弹幕版本，大部分配置与上面的共用，不含「上传后操作」选项
             <br/>视频标题去上传预设中配置，标题模板不要与弹幕版完全一致，不然b站可能会上传错误"
         ></Tip>
       </template>
@@ -513,10 +515,28 @@ const props = defineProps<{
   globalValue: {
     [key: string]: any;
   };
+  syncConfigs: {
+    id: string;
+    name: string;
+    syncSource: "baiduPCS" | "aliyunpan";
+  }[];
 }>();
 
 const data = defineModel<AppRoomConfig>("data", {
-  default: () => {},
+  default: () => ({
+    syncId: "",
+    open: true,
+    minSize: 0,
+    title: "",
+    danmu: false,
+    autoPartMerge: false,
+    hotProgress: false,
+    useLiveCover: false,
+    partTitleTemplate: "",
+    videoHandleTime: ["00:00:00", "23:59:59"],
+    uploadHandleTime: ["00:00:00", "23:59:59"],
+    afterUploadDeletAction: "none",
+  }),
 });
 
 const globalFieldsObj = defineModel<{
@@ -529,6 +549,13 @@ const globalFieldsObj = defineModel<{
 const notice = useNotification();
 const { danmuPresetsOptions } = storeToRefs(useDanmuPreset());
 const { userList } = storeToRefs(useUserInfoStore());
+
+const uploadAfterActionOptions = [
+  { label: "无操作", value: "none" },
+  { label: "上传后删除", value: "delete" },
+  { label: "审核通过后删除", value: "deleteAfterCheck" },
+];
+
 const userOptins = computed(() => {
   return [
     {

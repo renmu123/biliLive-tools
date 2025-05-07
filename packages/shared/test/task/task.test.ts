@@ -121,6 +121,7 @@ describe("TaskQueue", () => {
             douyuDownloadMaxNum: 2,
             biliUploadMaxNum: 2,
             biliDownloadMaxNum: 2,
+            syncMaxNum: 3,
           },
         }),
       };
@@ -255,6 +256,83 @@ describe("TaskQueue", () => {
         task1.pause();
         await sleep(60);
         expect(task3.exec).toHaveBeenCalled();
+      });
+    });
+    describe("SyncTask", () => {
+      class SyncTask extends AbstractTask {
+        type: string = TaskType.sync;
+        exec = vi.fn().mockImplementation(async () => {
+          this.emitter.emit("task-start", { taskId: this.taskId });
+          this.status = "running";
+          await sleep(50);
+          this.status = "completed";
+          this.emitter.emit("task-end", { taskId: this.taskId });
+        });
+        pause = vi.fn();
+        resume = vi.fn();
+        kill = vi.fn();
+      }
+
+      it("should add with limit", async () => {
+        const task1 = new SyncTask();
+        const task2 = new SyncTask();
+        const task3 = new SyncTask();
+        const task4 = new SyncTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        taskQueue.addTask(task4, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).toHaveBeenCalled();
+        expect(task4.exec).not.toHaveBeenCalled();
+      });
+
+      it("should add with no limit", async () => {
+        // @ts-ignore
+        taskQueue.appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            task: { syncMaxNum: -1 },
+          }),
+        };
+
+        const task1 = new SyncTask();
+        const task2 = new SyncTask();
+        const task3 = new SyncTask();
+        const task4 = new SyncTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        taskQueue.addTask(task4, false);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).toHaveBeenCalled();
+        expect(task4.exec).toHaveBeenCalled();
+      });
+
+      it("should auto start after task-end event", async () => {
+        const task1 = new SyncTask();
+        const task2 = new SyncTask();
+        const task3 = new SyncTask();
+        const task4 = new SyncTask();
+        taskQueue.addTask(task1, false);
+        taskQueue.addTask(task2, false);
+        taskQueue.addTask(task3, false);
+        taskQueue.addTask(task4, false);
+        await sleep(10);
+        expect(task1.exec).toHaveBeenCalled();
+        expect(task2.exec).toHaveBeenCalled();
+        expect(task3.exec).toHaveBeenCalled();
+        expect(task4.exec).not.toHaveBeenCalled();
+        await sleep(50);
+        expect(task4.exec).toHaveBeenCalled();
+        expect(task1.status).toBe("completed");
+        expect(task2.status).toBe("completed");
+        expect(task3.status).toBe("completed");
+        expect(task4.status).toBe("running");
+
+        await sleep(50);
+        expect(task4.status).toBe("completed");
       });
     });
     // describe("DouyuDownloadTask", () => {

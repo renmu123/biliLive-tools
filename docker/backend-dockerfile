@@ -22,6 +22,33 @@ RUN pnpm run install:bin
 # 下载字体文件
 RUN curl -L -o /usr/local/share/fonts/NotoSansSC-Regular.ttf https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/NotoSansSC-Regular.ttf 
 
+# 下载 https://github.com/qjfoidnh/BaiduPCS-Go 二进制文件
+RUN mkdir -p /app/baidu-temp && \
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        curl -L -o /app/baidu-temp/BaiduPCS-Go.zip https://github.com/qjfoidnh/BaiduPCS-Go/releases/download/v3.9.7/BaiduPCS-Go-v3.9.7-linux-amd64.zip; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        curl -L -o /app/baidu-temp/BaiduPCS-Go.zip https://github.com/qjfoidnh/BaiduPCS-Go/releases/download/v3.9.7/BaiduPCS-Go-v3.9.7-linux-arm64.zip; \
+    fi && \
+    apt-get update && apt-get install -y unzip && \
+    unzip /app/baidu-temp/BaiduPCS-Go.zip -d /app/baidu-temp && \
+    mv /app/baidu-temp/BaiduPCS-Go-*/BaiduPCS-Go /app/packages/app/resources/bin/BaiduPCS-Go && \
+    chmod +x /app/packages/app/resources/bin/BaiduPCS-Go && \
+    rm -rf /app/baidu-temp
+
+# 下载 https://github.com/tickstep/aliyunpan 二进制文件
+RUN mkdir -p /app/aliyun-temp && \
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        curl -L -o /app/aliyun-temp/aliyunpan.zip https://github.com/tickstep/aliyunpan/releases/download/v0.3.7/aliyunpan-v0.3.7-linux-amd64.zip; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        curl -L -o /app/aliyun-temp/aliyunpan.zip https://github.com/tickstep/aliyunpan/releases/download/v0.3.7/aliyunpan-v0.3.7-linux-arm64.zip; \
+    fi && \
+    unzip /app/aliyun-temp/aliyunpan.zip -d /app/aliyun-temp && \
+    mv /app/aliyun-temp/aliyunpan-*/aliyunpan /app/packages/app/resources/bin/aliyunpan && \
+    chmod +x /app/packages/app/resources/bin/aliyunpan && \
+    rm -rf /app/aliyun-temp
+
 # 从另一个基础镜像开始，安装运行时依赖
 FROM node:20.16 AS runtime
 

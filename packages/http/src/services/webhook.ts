@@ -4,7 +4,7 @@ import fs from "fs-extra";
 import { FFmpegPreset, VideoPreset, DanmuPreset } from "@biliLive-tools/shared";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import { biliApi } from "@biliLive-tools/shared/task/bili.js";
-import { isEmptyDanmu } from "@biliLive-tools/shared/task/danmu.js";
+import { isEmptyDanmu, convertXml2Ass } from "@biliLive-tools/shared/task/danmu.js";
 import { transcode, burn, analyzeResolutionChanges } from "@biliLive-tools/shared/task/video.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import {
@@ -18,6 +18,7 @@ import {
 } from "@biliLive-tools/shared/utils/index.js";
 
 import { config } from "../index.js";
+import FileLockManager from "./fileLockManager.js";
 
 import type {
   BiliupConfig,
@@ -112,6 +113,9 @@ export class WebhookHandler {
   videoPreset: VideoPreset;
   danmuPreset: DanmuPreset;
   appConfig: AppConfig;
+  // 存储已处理的文件名，避免重复处理
+  private processedFiles: Set<string> = new Set();
+  private fileLockManager: FileLockManager = new FileLockManager();
   constructor(appConfig: AppConfig) {
     this.ffmpegPreset = new FFmpegPreset({
       globalConfig: { ffmpegPresetPath: config.ffmpegPresetPath },
@@ -123,6 +127,9 @@ export class WebhookHandler {
       globalConfig: { danmuPresetPath: config.danmuPresetPath },
     });
     this.appConfig = appConfig;
+
+    // 定期清理过期的锁
+    setInterval(() => this.fileLockManager.cleanup(), 60 * 60 * 1000); // 每小时清理一次
   }
 
   async handle(options: Options) {
@@ -141,9 +148,12 @@ export class WebhookHandler {
       hotProgressFillColor,
       convert2Mp4Option,
       removeSourceAferrConvert2Mp4,
-      removeOriginAfterConvert,
-      noConvertHandleVideo,
+      afterConvertRemoveVideo,
+      afterConvertRemoveXml,
       videoHandleTime,
+      uid,
+      uploadNoDanmu,
+      noDanmuVideoPreset,
     } = this.getConfig(options.roomId);
     if (!open) {
       log.info(`${options.roomId} is not open`);
@@ -189,9 +199,9 @@ export class WebhookHandler {
 
     log.debug(this.liveData);
 
-    // TODO:重构
+    const cover = await this.handleCover(options);
+
     if (useLiveCover) {
-      const cover = await this.handleCover(options);
       if (cover) {
         currentPart.cover = cover;
       } else {
@@ -215,35 +225,34 @@ export class WebhookHandler {
       currentPart.filePath = file;
       currentPart.rawFilePath = file;
     }
+    // TODO:还是可能存在视频上传完但是源视频已经被删除的情况
     currentPart.recordStatus = "prehandled";
+
+    let xmlFilePath: string;
+    if (options.danmuPath) {
+      xmlFilePath = options.danmuPath;
+    } else {
+      xmlFilePath = replaceExtName(options.filePath, ".xml");
+    }
 
     if (danmu) {
       try {
-        let xmlFilePath: string;
-        if (options.danmuPath) {
-          xmlFilePath = options.danmuPath;
-        } else {
-          xmlFilePath = replaceExtName(options.filePath, ".xml");
-        }
         await sleep(10000);
         if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
-          log.info("没有找到弹幕文件", xmlFilePath);
           currentPart.recordStatus = "handled";
-          return;
+          // 等待1秒后，将上传状态设置为pending，不直接返回是由于后续有同步等相关操作
+          setTimeout(() => {
+            currentPart.uploadStatus = "pending";
+          }, 1000);
+          throw new Error(`没有找到弹幕文件：${xmlFilePath}`);
+        }
+        if (!danmuPresetId || !videoPresetId) {
+          currentPart.uploadStatus = "error";
+          throw new Error(`没有找到预设${danmuPresetId}或${videoPresetId}`);
         }
 
-        const danmuConfig = (await this.danmuPreset.get(danmuPresetId))?.config;
-        if (!danmuConfig) {
-          log.error("danmuPreset not found", danmuPresetId);
-          currentPart.uploadStatus = "error";
-          return;
-        }
+        const danmuConfig = (await this.danmuPreset.get(danmuPresetId))!.config;
         const ffmpegPreset = await this.ffmpegPreset.get(videoPresetId);
-        if (!ffmpegPreset) {
-          log.error("ffmpegPreset not found", videoPresetId);
-          currentPart.uploadStatus = "error";
-          return;
-        }
 
         const output = await this.burn(
           {
@@ -252,7 +261,7 @@ export class WebhookHandler {
           },
           {
             danmaOptions: danmuConfig,
-            ffmpegOptions: ffmpegPreset.config,
+            ffmpegOptions: ffmpegPreset!.config,
             hasHotProgress: hotProgress,
             hotProgressOptions: {
               interval: hotProgressSample || 30,
@@ -260,7 +269,8 @@ export class WebhookHandler {
               fillColor: hotProgressFillColor || "#333333",
               height: hotProgressHeight || 60,
             },
-            removeOrigin: removeOriginAfterConvert,
+            removeVideo: false,
+            removeDanmu: false,
             limitTime: videoHandleTime,
           },
         );
@@ -272,22 +282,87 @@ export class WebhookHandler {
         currentPart.uploadStatus = "error";
       }
     } else {
-      if (noConvertHandleVideo) {
-        const preset = await this.ffmpegPreset.get(videoPresetId);
-        if (!preset) {
-          log.error("ffmpegPreset not found", videoPresetId);
+      if (videoPresetId) {
+        try {
+          const preset = await this.ffmpegPreset.get(videoPresetId);
+          if (!preset) {
+            throw new Error(`ffmpegPreset not found ${videoPresetId}`);
+          }
+          const output = await this.transcode(options.filePath, preset.config, {
+            removeVideo: false,
+            suffix: "-后处理",
+            limitTime: videoHandleTime,
+          });
+          currentPart.filePath = output;
+        } catch (error) {
+          log.error(error);
           currentPart.uploadStatus = "error";
-          return;
         }
-        const output = await this.transcode(options.filePath, preset.config, {
-          removeVideo: removeOriginAfterConvert,
-          suffix: "-后处理",
-          limitTime: videoHandleTime,
-        });
-        currentPart.filePath = output;
       }
       currentPart.recordStatus = "handled";
+
+      // 弹幕错误也无所谓了
+      if (danmuPresetId) {
+        try {
+          const preset = await this.danmuPreset.get(danmuPresetId);
+          await convertXml2Ass(
+            { input: xmlFilePath, output: path.basename(xmlFilePath, "xml") },
+            preset!.config,
+            {
+              saveRadio: 1,
+              savePath: path.dirname(xmlFilePath),
+              removeOrigin: false,
+            },
+          );
+        } catch (error) {
+          log.error(error);
+        }
+      }
     }
+
+    // 处理封面同步
+    if (cover) {
+      await this.handleCoverSync(options.roomId, cover, currentPart.partId).catch((error) => {
+        log.error("handleCoverSync", error);
+      });
+    }
+
+    // 处理弹幕文件同步和删除
+    if (xmlFilePath) {
+      await this.handleDanmuSync(
+        options.roomId,
+        xmlFilePath,
+        currentPart.partId,
+        afterConvertRemoveXml,
+      ).catch((error) => {
+        log.error("handleDanmuSync", error);
+      });
+    }
+
+    if (uid) {
+      this.fileLockManager.acquireLock(currentPart.filePath, "upload");
+
+      if (uploadNoDanmu && noDanmuVideoPreset) {
+        this.fileLockManager.acquireLock(currentPart.rawFilePath, "upload");
+      }
+    }
+
+    await this.handleVideoSync(
+      options.roomId,
+      currentPart.rawFilePath,
+      currentPart.partId,
+      afterConvertRemoveVideo,
+    ).catch((error) => {
+      log.error("handleVideoSync", error);
+    });
+    await this.handleVideoSync(
+      options.roomId,
+      currentPart.filePath,
+      currentPart.partId,
+      false,
+    ).catch((error) => {
+      log.error("handleVideoSync", error);
+    });
   }
 
   /**
@@ -296,6 +371,145 @@ export class WebhookHandler {
    */
   findLiveByFilePath(filePath: string) {
     return this.liveData.find((live) => live.parts.some((part) => part.filePath === filePath));
+  }
+
+  /**
+   * 通用文件同步处理
+   * @param roomId 房间ID
+   * @param filePath 文件路径
+   * @param fileType 文件类型
+   * @param partId 分段ID（可选），用于更准确地关联直播分段
+   * @param removeAfterSync 同步后是否删除源文件
+   */
+  async handleFileSync(
+    roomId: number,
+    filePath: string,
+    fileType: "source" | "danmaku" | "xml" | "cover",
+    partId?: string,
+    removeAfterSync: boolean = false,
+  ) {
+    if (!(await fs.pathExists(filePath))) return;
+
+    // 检查文件是否已经处理过
+    if (this.processedFiles.has(filePath)) {
+      log.info(`文件已处理过，跳过同步: ${filePath}`);
+      return;
+    }
+
+    const { syncId } = this.getConfig(roomId);
+    if (!syncId) return;
+
+    const config = this.appConfig.getAll();
+    const syncConfig = config.sync.syncConfigs.find((cfg) => cfg.id === syncId);
+    if (!syncConfig) return;
+
+    // 检查是否需要同步该类型的文件
+    if (!syncConfig.targetFiles.includes(fileType)) return;
+
+    // 准备直播信息和分段信息
+    let livePart: { live: Live; part?: Part } | undefined;
+
+    // 通过partId查找
+    if (partId) {
+      for (const live of this.liveData) {
+        const part = live.parts.find((p) => p.partId === partId);
+        if (part) {
+          livePart = { live, part };
+          break;
+        }
+      }
+    }
+    if (!livePart) return;
+
+    // 将文件添加到已处理集合中
+    this.processedFiles.add(filePath);
+    this.fileLockManager.acquireLock(filePath, "sync");
+
+    // 提取基本信息
+    const { name: filename } = path.parse(filePath);
+    let platform: Platform = "blrec";
+    let title = "unknown";
+    let username = "unknown";
+    let partStartTime = new Date();
+
+    const { live, part } = livePart;
+    platform = live.platform;
+    title = live.title;
+    username = live.username;
+
+    if (part?.startTime) {
+      partStartTime = new Date(part.startTime);
+    }
+
+    // 准备格式化参数
+    const formatParams = {
+      platform,
+      user: username,
+      year: partStartTime.getFullYear(),
+      month: (partStartTime.getMonth() + 1).toString().padStart(2, "0"),
+      date: partStartTime.getDate().toString().padStart(2, "0"),
+      yyyy: partStartTime.getFullYear(),
+      MM: (partStartTime.getMonth() + 1).toString().padStart(2, "0"),
+      dd: partStartTime.getDate().toString().padStart(2, "0"),
+      now: `${partStartTime.getFullYear()}.${(partStartTime.getMonth() + 1).toString().padStart(2, "0")}.${partStartTime.getDate().toString().padStart(2, "0")}`,
+      partId: livePart?.part?.partId || "",
+    };
+
+    // 格式化文件夹结构
+    let folderStructure = syncConfig.folderStructure;
+    for (const [key, value] of Object.entries(formatParams)) {
+      folderStructure = folderStructure.replace(new RegExp(`{{${key}}}`, "g"), String(value));
+    }
+
+    const { binary: binaryPath, target: targetPath } = {
+      binary: config.sync[syncConfig.syncSource].execPath,
+      target: config.sync[syncConfig.syncSource].targetPath,
+    };
+
+    // 如果没有配置同步源，直接返回
+    if (!binaryPath || !targetPath) return;
+
+    try {
+      // 调用同步函数
+      const { addSyncTask } = await import("@biliLive-tools/shared/task/sync.js");
+      const task = await addSyncTask({
+        input: filePath,
+        remotePath: path.join(targetPath, folderStructure),
+        execPath: binaryPath,
+        retry: 3,
+        policy: "skip",
+        type: syncConfig.syncSource,
+      });
+      log.info(`开始同步${fileType}文件: ${filePath}`);
+
+      task.on("task-end", async () => {
+        // 等待65秒，确保文件被释放
+        await sleep(1000 * 65);
+        this.fileLockManager.releaseLock(filePath, "sync");
+        // 同步后删除源文件（如果需要）
+        if (removeAfterSync) {
+          // 检查文件是否被锁定
+          if (this.fileLockManager.isLocked(filePath)) {
+            log.warn(`文件 ${filePath} 被锁定，跳过删除`);
+            return;
+          }
+          await trashItem(filePath);
+          log.info(`已删除同步后的源文件: ${filePath}`);
+        }
+      });
+    } catch (error) {
+      log.error(`同步${fileType}文件失败: ${filePath}`, error);
+    }
+  }
+
+  /**
+   * 处理封面同步
+   * @param roomId 房间ID
+   * @param coverPath 封面路径
+   * @param partId 分段ID（可选）
+   */
+  async handleCoverSync(roomId: number, coverPath: string, partId: string) {
+    return this.handleFileSync(roomId, coverPath, "cover", partId);
   }
 
   /**
@@ -359,9 +573,9 @@ export class WebhookHandler {
     /* 上传标题 */
     title: string;
     /* 弹幕preset */
-    danmuPresetId: string;
+    danmuPresetId?: string;
     /* 视频压制preset */
-    videoPresetId: string;
+    videoPresetId?: string;
     /* 是否开启 */
     open?: boolean;
     /* 上传uid */
@@ -384,14 +598,12 @@ export class WebhookHandler {
     convert2Mp4Option?: boolean;
     /** 转封装后删除源文件 */
     removeSourceAferrConvert2Mp4?: boolean;
-    /** 压制完成后删除文件 */
-    removeOriginAfterConvert: boolean;
-    /** 上传完成后删除文件 */
-    removeOriginAfterUpload: boolean;
-    /** 审核完成后删除文件 */
-    removeOriginAfterUploadCheck: boolean;
-    /** 不压制后处理 */
-    noConvertHandleVideo?: boolean;
+    /** 压制完成后的操作 */
+    afterConvertAction: Array<"removeVideo" | "removeXml" | "removeAss">;
+    /** 是否在处理后删除视频 */
+    afterConvertRemoveVideo: boolean;
+    /** 是否在处理后删除XML弹幕 */
+    afterConvertRemoveXml: boolean;
     /** 限制只在某一段时间上传 */
     limitUploadTime?: boolean;
     /** 允许上传处理时间 */
@@ -406,18 +618,21 @@ export class WebhookHandler {
     videoHandleTime?: [string, string];
     /** 分p标题模板 */
     partTitleTemplate: string;
+    /** 上传完成后删除操作 */
+    afterUploadDeletAction: "none" | "delete" | "deleteAfterCheck";
+    /** 同步器 */
+    syncId?: string;
   } {
     const config = this.appConfig.getAll();
     const roomSetting: AppRoomConfig | undefined = config.webhook?.rooms?.[roomId];
-    // log.debug("room setting", roomId, roomSetting);
 
     const danmu = getRoomSetting("danmu");
     const mergePart = getRoomSetting("autoPartMerge");
     const minSize = getRoomSetting("minSize") ?? 10;
     const uploadPresetId = getRoomSetting("uploadPresetId") || "default";
     const title = getRoomSetting("title") || "";
-    const danmuPresetId = getRoomSetting("danmuPreset") || "default";
-    const videoPresetId = getRoomSetting("ffmpegPreset") || "default";
+    const danmuPresetId = getRoomSetting("danmuPreset");
+    const videoPresetId = getRoomSetting("ffmpegPreset");
     const uid = getRoomSetting("uid");
     let partMergeMinute = getRoomSetting("partMergeMinute") ?? 10;
     const hotProgress = getRoomSetting("hotProgress");
@@ -430,15 +645,16 @@ export class WebhookHandler {
     const removeSourceAferrConvert2Mp4 = getRoomSetting("removeSourceAferrConvert2Mp4");
     const limitVideoConvertTime = getRoomSetting("limitVideoConvertTime") ?? false;
     const videoHandleTime = getRoomSetting("videoHandleTime") || ["00:00:00", "23:59:59"];
+    const syncId = getRoomSetting("syncId");
 
-    const removeOriginAfterConvert = getRoomSetting("removeOriginAfterConvert") ?? false;
-    const removeOriginAfterUpload = getRoomSetting("removeOriginAfterUpload") ?? false;
-    const noConvertHandleVideo = getRoomSetting("noConvertHandleVideo") ?? false;
+    const afterConvertAction = getRoomSetting("afterConvertAction") ?? [];
+    const afterConvertRemoveVideo = afterConvertAction.includes("removeVideo");
+    const afterConvertRemoveXml = afterConvertAction.includes("removeXml");
+
     const limitUploadTime = getRoomSetting("limitUploadTime") ?? false;
     const uploadHandleTime = getRoomSetting("uploadHandleTime") || ["00:00:00", "23:59:59"];
     const uploadNoDanmu = getRoomSetting("uploadNoDanmu") ?? false;
     const noDanmuVideoPreset = getRoomSetting("noDanmuVideoPreset") || "default";
-    const removeOriginAfterUploadCheck = getRoomSetting("removeOriginAfterUploadCheck") ?? false;
 
     // 如果没有开启断播续传，那么不需要合并part
     if (!mergePart) partMergeMinute = -1;
@@ -456,7 +672,6 @@ export class WebhookHandler {
     }
 
     const open = this.canRoomOpen(roomSetting, config?.webhook?.blacklist, roomId);
-
     const options = {
       danmu,
       mergePart,
@@ -476,16 +691,17 @@ export class WebhookHandler {
       hotProgressFillColor,
       convert2Mp4Option: convert2Mp4,
       removeSourceAferrConvert2Mp4,
-      removeOriginAfterConvert,
-      removeOriginAfterUpload,
-      noConvertHandleVideo,
+      afterConvertAction,
+      afterConvertRemoveVideo,
+      afterConvertRemoveXml,
       limitUploadTime,
       uploadHandleTime,
       uploadNoDanmu,
       noDanmuVideoPreset,
       videoHandleTime: limitVideoConvertTime ? videoHandleTime : undefined,
-      removeOriginAfterUploadCheck: removeOriginAfterUpload ? false : removeOriginAfterUploadCheck,
       partTitleTemplate: getRoomSetting("partTitleTemplate") || "{{filename}}",
+      afterUploadDeletAction: getRoomSetting("afterUploadDeletAction") ?? "none",
+      syncId,
     };
     // log.debug("final config", options);
 
@@ -594,6 +810,7 @@ export class WebhookHandler {
         title: options.title,
         username: options.username,
       });
+      // TODO: 通过视频或者弹幕元数据获取开始时间
       live.addPart({
         partId: uuid(),
         filePath: options.filePath,
@@ -679,7 +896,8 @@ export class WebhookHandler {
       ffmpegOptions: FfmpegOptions;
       hotProgressOptions: Omit<HotProgressOptions, "videoPath">;
       hasHotProgress: boolean;
-      removeOrigin?: boolean;
+      removeVideo?: boolean;
+      removeDanmu?: boolean;
       limitTime?: [string, string];
     },
   ): Promise<string> => {
@@ -695,8 +913,18 @@ export class WebhookHandler {
           }
         })
         .then(() => {
-          burn(files, output, { ...options, override: false }).then((task) => {
+          burn(files, output, {
+            ...options,
+            removeOrigin: false,
+            override: false,
+          }).then((task) => {
             task.on("task-end", () => {
+              if (options.removeVideo) {
+                trashItem(files.videoFilePath);
+              }
+              if (options.removeDanmu) {
+                trashItem(files.subtitleFilePath);
+              }
               resolve(output);
             });
             task.on("task-error", ({ error }) => {
@@ -714,22 +942,40 @@ export class WebhookHandler {
       title: string;
     }[],
     options: BiliupConfig,
-    removeOrigin: boolean,
     limitedUploadTime: [] | [string, string],
-    removeOriginAfterUploadCheck: boolean,
+    afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
     return new Promise((resolve, reject) => {
       biliApi
         .addMedia(pathArray, options, uid, {
           limitedUploadTime,
-          removeOriginAfterUploadCheck: removeOriginAfterUploadCheck,
+          afterUploadDeletAction: "none",
+          checkCallback: (status) => {
+            if (status === "completed") {
+              for (const { path } of pathArray) {
+                const isLocked = this.fileLockManager.isLocked(path);
+                if (!isLocked) {
+                  if (afterUploadDeletAction === "deleteAfterCheck") {
+                    trashItem(path);
+                  }
+                }
+              }
+            }
+          },
         })
         .then((task) => {
           task.on("task-end", () => {
-            if (removeOrigin) {
-              pathArray.map((item) => {
-                trashItem(item.path);
-              });
+            // 释放所有文件的锁
+            for (const { path } of pathArray) {
+              this.fileLockManager.releaseLock(path, "upload");
+            }
+            if (afterUploadDeletAction === "delete") {
+              for (const { path } of pathArray) {
+                const isLocked = this.fileLockManager.isLocked(path);
+                if (!isLocked) {
+                  trashItem(path);
+                }
+              }
             }
             resolve(task.output);
           });
@@ -753,22 +999,40 @@ export class WebhookHandler {
       path: string;
       title: string;
     }[],
-    removeOrigin: boolean,
     limitedUploadTime: [string, string] | [],
-    removeOriginAfterUploadCheck: boolean,
+    afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
     return new Promise((resolve, reject) => {
       biliApi
         .editMedia(aid, pathArray, {}, uid, {
           limitedUploadTime: limitedUploadTime,
-          removeOriginAfterUploadCheck: removeOriginAfterUploadCheck,
+          afterUploadDeletAction: "none",
+          checkCallback: (status) => {
+            if (status === "completed") {
+              for (const { path } of pathArray) {
+                const isLocked = this.fileLockManager.isLocked(path);
+                if (!isLocked) {
+                  if (afterUploadDeletAction === "deleteAfterCheck") {
+                    trashItem(path);
+                  }
+                }
+              }
+            }
+          },
         })
         .then((task) => {
           task.on("task-end", () => {
-            if (removeOrigin) {
-              pathArray.map((item) => {
-                trashItem(item.path);
-              });
+            // 释放所有文件的锁
+            for (const { path } of pathArray) {
+              this.fileLockManager.releaseLock(path, "upload");
+            }
+            if (afterUploadDeletAction === "delete") {
+              for (const { path } of pathArray) {
+                const isLocked = this.fileLockManager.isLocked(path);
+                if (!isLocked) {
+                  trashItem(path);
+                }
+              }
             }
             resolve(task.output);
           });
@@ -807,15 +1071,14 @@ export class WebhookHandler {
       const {
         uploadPresetId,
         uid,
-        removeOriginAfterUpload,
         useLiveCover,
         limitUploadTime,
         uploadHandleTime,
         title,
         uploadNoDanmu,
         noDanmuVideoPreset,
-        removeOriginAfterUploadCheck,
         partTitleTemplate,
+        afterUploadDeletAction,
       } = this.getConfig(live.roomId);
 
       let cover: string | undefined;
@@ -915,9 +1178,8 @@ export class WebhookHandler {
                 title: item.title,
               };
             }),
-            type === "raw" ? false : removeOriginAfterUpload,
             limitedUploadTime,
-            type === "raw" ? false : removeOriginAfterUploadCheck,
+            type === "raw" ? "none" : afterUploadDeletAction,
           );
           filePaths.map((item) => {
             item.part[updateStatusField] = "uploaded";
@@ -960,7 +1222,7 @@ export class WebhookHandler {
           );
           uploadPreset.title = videoTitle;
 
-          log.info("上传", live, filePaths, uploadPreset);
+          log.info("上传", afterUploadDeletAction);
 
           const aid = (await this.addUploadTask(
             uid,
@@ -971,9 +1233,8 @@ export class WebhookHandler {
               };
             }),
             uploadPreset,
-            type === "raw" ? false : removeOriginAfterUpload,
             limitedUploadTime,
-            type === "raw" ? false : removeOriginAfterUploadCheck,
+            type === "raw" ? "none" : afterUploadDeletAction,
           )) as number;
           live[aidField] = Number(aid);
 
@@ -1003,4 +1264,82 @@ export class WebhookHandler {
       await Promise.all([uploadVideo("handled"), uploadVideo("raw")]);
     }
   };
+
+  /**
+   * 处理弹幕文件同步和删除
+   * @param roomId 房间ID
+   * @param xmlFilePath 弹幕文件路径
+   * @param partId 分段ID
+   * @param shouldRemoveAfterSync 是否在同步后删除源文件
+   */
+  async handleDanmuSync(
+    roomId: number,
+    xmlFilePath: string,
+    partId: string,
+    shouldRemoveAfterSync: boolean,
+  ) {
+    // 检查文件是否存在
+    if (!xmlFilePath) return;
+    if (!(await fs.pathExists(xmlFilePath))) {
+      log.error(`弹幕文件不存在: ${xmlFilePath}`);
+      return;
+    }
+
+    try {
+      const { syncId } = this.getConfig(roomId);
+      if (!syncId) {
+        if (shouldRemoveAfterSync) {
+          await trashItem(xmlFilePath);
+        }
+        return;
+      }
+
+      await sleep(2000);
+      // 首先同步弹幕文件
+      await this.handleFileSync(roomId, xmlFilePath, "xml", partId, shouldRemoveAfterSync);
+    } catch (error) {
+      log.error(`处理弹幕同步失败: ${xmlFilePath}`, error);
+    }
+  }
+
+  /**
+   * 处理原始视频文件删除和同步
+   * @param roomId 房间ID
+   * @param filePath 视频文件路径
+   * @param partId 分段ID
+   * @param shouldRemoveAfterSync 是否在同步后删除源文件
+   */
+  async handleVideoSync(
+    roomId: number,
+    filePath: string,
+    partId: string,
+    shouldRemoveAfterSync: boolean,
+  ) {
+    // 检查文件是否存在
+    if (!filePath) return;
+    if (!(await fs.pathExists(filePath))) {
+      log.error(`视频文件不存在: ${filePath}`);
+      return;
+    }
+
+    try {
+      const { syncId } = this.getConfig(roomId);
+      if (!syncId) {
+        if (shouldRemoveAfterSync && !this.fileLockManager.isLocked(filePath)) {
+          await trashItem(filePath);
+        }
+        return;
+      }
+      let fileType: "source" | "danmaku" = "source";
+      if (filePath.includes("-弹幕版") || filePath.includes("-后处理")) {
+        fileType = "danmaku";
+      }
+
+      await sleep(2000);
+      // 首先同步视频文件
+      await this.handleFileSync(roomId, filePath, fileType, partId, shouldRemoveAfterSync);
+    } catch (error) {
+      log.error(`处理视频同步失败: ${filePath}`, error);
+    }
+  }
 }

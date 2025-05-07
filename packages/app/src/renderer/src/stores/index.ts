@@ -230,6 +230,10 @@ export const useAppConfig = defineStore("appConfig", () => {
         uploadPresetId: "",
         removeOriginAfterUploadCheck: false,
       },
+      fileSync: {
+        removeOrigin: false,
+        syncType: undefined,
+      },
       danmu: {
         danmuPresetId: "",
         saveRadio: 1,

@@ -300,6 +300,19 @@ const menuOptions = computed<MenuOption[]>(() => {
           { default: () => "下载订阅" },
         ),
     },
+    {
+      key: "FileSync",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "FileSync",
+            },
+          },
+          { default: () => "文件同步" },
+        ),
+    },
   ];
   const menus = [
     {

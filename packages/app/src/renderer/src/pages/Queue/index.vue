@@ -116,6 +116,10 @@ const typeOptions = ref([
     value: TaskType.douyuDownload,
     label: "斗鱼视频下载",
   },
+  {
+    value: TaskType.sync,
+    label: "同步",
+  },
 ]);
 
 const selectedStatus = ref<string[]>([

@@ -29,6 +29,7 @@
           :biliup-presets-options="props.biliupPresetsOptions"
           :ffmpeg-options="props.ffmpegOptions"
           :global-value="props.globalValue"
+          :syncConfigs="props.syncConfigs"
           type="room"
         >
         </CommonSetting>
@@ -100,6 +101,11 @@ const props = defineProps<{
   globalValue: {
     [key: string]: any;
   };
+  syncConfigs: {
+    id: string;
+    name: string;
+    syncSource: "baiduPCS" | "aliyunpan";
+  }[];
 }>();
 
 const roomDetailVisible = defineModel("visible", {

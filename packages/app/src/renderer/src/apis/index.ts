@@ -22,3 +22,6 @@ export {
   recordHistoryApi,
   danmaApi,
 };
+import syncApi from "./sync";
+
+export { userApi, recoderApi, configApi, taskApi, commonApi, biliApi, api, videoApi, syncApi };

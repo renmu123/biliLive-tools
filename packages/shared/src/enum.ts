@@ -10,6 +10,7 @@ export enum TaskType {
   m3u8Download = "m3u8Download",
   huyaDownload = "huyaDownload",
   subtitleTranslate = "subtitleTranslate",
+  sync = "sync",
 }
 
 export enum NotificationType {
@@ -50,6 +51,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     rooms: {},
     ffmpegPreset: undefined,
     danmuPreset: undefined,
+    afterConvertAction: [],
     autoPartMerge: false,
     partMergeMinute: 10,
     hotProgress: false,
@@ -61,13 +63,14 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     hotProgressFillColor: "#333333",
     convert2Mp4: false,
     removeSourceAferrConvert2Mp4: true,
+    syncId: undefined,
     uploadHandleTime: ["00:00:00", "23:59:59"],
     limitUploadTime: false,
     uploadNoDanmu: false,
     noDanmuVideoPreset: undefined,
-    removeOriginAfterUploadCheck: false,
     limitVideoConvertTime: false,
     videoHandleTime: ["00:00:00", "23:59:59"],
+    afterUploadDeletAction: "none",
   },
   ffmpegPath: "",
   ffprobePath: "",
@@ -93,6 +96,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     upload: {
       uploadPresetId: "default",
       removeOriginAfterUploadCheck: false,
+    },
+    fileSync: {
+      removeOrigin: false,
+      syncType: undefined,
     },
     danmu: {
       danmuPresetId: "default",
@@ -142,6 +149,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     douyuDownloadMaxNum: 2,
     biliUploadMaxNum: 2,
     biliDownloadMaxNum: 2,
+    syncMaxNum: 3,
   },
   notification: {
     task: {
@@ -192,6 +200,17 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     taskNotificationType: {
       liveStart: "system",
     },
+  },
+  sync: {
+    baiduPCS: {
+      execPath: "",
+      targetPath: "/录播",
+    },
+    aliyunpan: {
+      execPath: "",
+      targetPath: "/录播",
+    },
+    syncConfigs: [],
   },
   llmPresets: [],
   biliUpload: {

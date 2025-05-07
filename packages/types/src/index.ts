@@ -71,29 +71,27 @@ export type CommonRoomConfig = {
   convert2Mp4?: boolean;
   /** 转封装后删除源文件 */
   removeSourceAferrConvert2Mp4?: boolean;
-  /** 压制完成后删除文件 */
-  removeOriginAfterConvert?: boolean;
+  /** 压制完成后的操作 */
+  afterConvertAction?: Array<"removeVideo" | "removeXml">;
   /** 限制只在某一段时间处理视频 */
   limitVideoConvertTime?: boolean;
   /** 允许视频处理时间 */
   videoHandleTime: [string, string];
-  /** 上传完成后删除文件 */
-  removeOriginAfterUpload?: boolean;
-  /** 不压制后处理 */
-  noConvertHandleVideo?: boolean;
+  /** 上传完成后删除操作 */
+  afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
   /** 限制只在某一段时间上传 */
   limitUploadTime?: boolean;
   /** 允许上传处理时间 */
   uploadHandleTime: [string, string];
   /** 分p标题模板 */
   partTitleTemplate: string;
+  /** 同步器配置ID */
+  syncId?: string;
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
   // 上传非视频版预设
   noDanmuVideoPreset?: string;
-  // 审核通过后删除源文件
-  removeOriginAfterUploadCheck?: boolean;
 };
 
 // webhook房间配置
@@ -211,6 +209,13 @@ export type ToolConfig = {
     danmuPresetId: string;
     /** 忽略弹幕 */
     ignoreDanmu: boolean;
+  };
+  /** 文件同步 */
+  fileSync: {
+    /** 完成后移除源文件 */
+    removeOrigin: boolean;
+    /** 同步类型 */
+    syncType?: AppConfig["sync"]["syncConfigs"][number]["syncSource"];
   };
 };
 
@@ -428,6 +433,16 @@ export interface Recorder {
   >;
 }
 
+export type SyncType = "baiduPCS" | "aliyunpan";
+
+export type SyncConfig = {
+  id: string;
+  name: string;
+  syncSource: "baiduPCS" | "aliyunpan";
+  folderStructure: string;
+  targetFiles: ("source" | "danmaku" | "xml" | "cover")[];
+};
+
 // 全局配置
 export interface AppConfig {
   logLevel: any;
@@ -507,6 +522,18 @@ export interface AppConfig {
       liveStart: AppConfig["notification"]["setting"]["type"];
     };
   };
+  // 同步
+  sync: {
+    baiduPCS: {
+      execPath: string;
+      targetPath: string;
+    };
+    aliyunpan: {
+      execPath: string;
+      targetPath: string;
+    };
+    syncConfigs: SyncConfig[];
+  };
   /** 翻译配置 */
   llmPresets: {
     id: string;
@@ -532,6 +559,7 @@ export interface AppConfig {
     douyuDownloadMaxNum: number;
     biliUploadMaxNum: number;
     biliDownloadMaxNum: number;
+    syncMaxNum: number;
   };
   /** 上传配置 */
   biliUpload: {

@@ -20,6 +20,11 @@ export const api = {
   addWithStreamer: (options) => {
     return ipcRenderer.invoke("db:addWithStreamer", options);
   },
+  cookie: {
+    baiduLogin: () => {
+      return ipcRenderer.invoke("cookie:baidu");
+    },
+  },
   common: {
     getTempPath: async () => {
       return ipcRenderer.invoke("common:getTempPath");

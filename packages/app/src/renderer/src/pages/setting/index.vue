@@ -245,6 +245,7 @@
               :ffmpeg-options="ffmpegOptions"
               :global-value="webhookDefaultValue"
               :global-fields-obj="{}"
+              :syncConfigs="config.sync.syncConfigs"
               type="global"
             ></CommonSetting>
 
@@ -261,6 +262,9 @@
               <n-button type="primary" @click="addRoom"> 添加 </n-button>
             </div>
           </n-form>
+        </n-tab-pane>
+        <n-tab-pane name="sync" tab="文件同步">
+          <SyncSetting v-model:data="config"></SyncSetting>
         </n-tab-pane>
         <n-tab-pane name="upload" tab="B站上传">
           <BiliSetting v-model:data="config"></BiliSetting>
@@ -298,6 +302,7 @@
     :ffmpeg-options="ffmpegOptions"
     :global-fields-obj="roomGlobalCheckObj"
     :global-value="webhookDefaultValue"
+    :syncConfigs="config.sync.syncConfigs"
     @save="saveRoomDetail"
     @delete="deleteRoom"
   ></RoomSettingDialog>
@@ -316,6 +321,7 @@ import BiliSetting from "./BiliSetting.vue";
 import RecordSetting from "./RecordSetting.vue";
 import TaskSetting from "./TaskSetting.vue";
 import VideoSetting from "./VideoSetting.vue";
+import SyncSetting from "./SyncSetting.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
@@ -340,6 +346,10 @@ const config: Ref<AppConfig> = ref({
     douyuDownloadMaxNum: -1,
     biliUploadMaxNum: -1,
     biliDownloadMaxNum: -1,
+    syncMaxNum: 3,
+  },
+  sync: {
+    syncConfigs: [],
   },
 });
 // @ts-ignore
@@ -508,10 +518,8 @@ const globalFields = ref([
   "useLiveCover",
   "convert2Mp4",
   "removeSourceAferrConvert2Mp4",
-  "removeOriginAfterConvert",
-  "removeOriginAfterUpload",
-  "removeOriginAfterUploadCheck",
-  "noConvertHandleVideo",
+  "syncId",
+  "afterConvertAction",
   "uploadHandleTime",
   "limitUploadTime",
   "uploadNoDanmu",
@@ -519,6 +527,7 @@ const globalFields = ref([
   "limitVideoConvertTime",
   "videoHandleTime",
   "partTitleTemplate",
+  "afterUploadDeletAction",
 ]);
 const webhookDefaultValue = computed(() => {
   if (!config.value.webhook) return {};
@@ -576,10 +585,8 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   hotProgressFillColor: "#333333",
   convert2Mp4: false,
   removeSourceAferrConvert2Mp4: true,
-  removeOriginAfterConvert: false,
-  removeOriginAfterUpload: false,
-  removeOriginAfterUploadCheck: false,
-  noConvertHandleVideo: false,
+  syncId: undefined,
+  afterConvertAction: [],
   uploadHandleTime: ["00:00:00", "23:59:59"],
   limitUploadTime: false,
   uploadNoDanmu: false,
@@ -587,6 +594,7 @@ const tempRoomDetail = ref<AppRoomConfig & { id?: string }>({
   limitVideoConvertTime: false,
   videoHandleTime: ["00:00:00", "23:59:59"],
   partTitleTemplate: "",
+  afterUploadDeletAction: "none",
 });
 const saveRoomDetail = (data: AppRoomConfig & { id?: string }) => {
   config.value.webhook.rooms[data.id!] = data;

@@ -14,6 +14,7 @@ import { notify } from "./utils/index";
 import { init, createRecorderManager } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
+import { cookieHandlers } from "./cookie";
 import { commonHandlers, getTempPath } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
 import icon from "../../resources/icon.png?asset";
@@ -82,6 +83,7 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, ffmpegHandlers);
   registerHandlers(ipcMain, configHandlers);
   registerHandlers(ipcMain, commonHandlers);
+  registerHandlers(ipcMain, cookieHandlers);
 };
 
 function createWindow(): void {
