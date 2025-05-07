@@ -228,10 +228,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
     updateRecorderManager(manager, appConfig);
   });
 
-  // TODO: 增加更新监听，处理配置更新
   const recorderConfig = new RecorderConfig(appConfig);
   for (const recorder of recorderConfig.list()) {
-    // console.log("addRecorder", recorder);
     manager.addRecorder({
       ...recorder,
       m3u8ProxyUrl: `http://127.0.0.1:${config.port}/bili/stream`,
@@ -273,7 +271,6 @@ export async function createRecorderManager(appConfig: AppConfig) {
       const recorder = manager.recorders.find((item) => item.id === id);
       if (recorder == null) return null;
       recorderConfig.update(args);
-      console.log("addRecorder", args);
 
       return updateRecorder(recorder, args);
     },

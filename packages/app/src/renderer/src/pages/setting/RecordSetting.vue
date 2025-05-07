@@ -158,7 +158,7 @@
             </template>
             <n-select
               v-model:value="config.recorder.bilibili.formatName"
-              :options="streamFormatOptions"
+              :options="biliStreamFormatOptions"
             />
           </n-form-item>
           <n-form-item>
@@ -226,6 +226,18 @@
           </n-form-item>
           <n-form-item>
             <template #label>
+              <Tip
+                :text="textInfo.douyin.formatName.text"
+                :tip="textInfo.douyin.formatName.tip"
+              ></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.douyin.formatName"
+              :options="douyinStreamFormatOptions"
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
               <Tip text="Cookie" tip="用于录制会员直播"></Tip>
             </template>
             <n-input v-model:value="config.recorder.douyin.cookie" type="password" />
@@ -248,11 +260,12 @@ import {
   douyuQualityOptions,
   huyaQualityOptions,
   textInfo,
-  streamFormatOptions,
+  biliStreamFormatOptions,
   streamCodecOptions,
   douyinQualityOptions,
   douyuSourceOptions,
   videoFormatOptions,
+  douyinStreamFormatOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";

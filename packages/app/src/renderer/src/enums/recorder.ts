@@ -171,7 +171,7 @@ export const douyinQualityOptions = [
 ];
 
 // b站流格式
-export const streamFormatOptions = [
+export const biliStreamFormatOptions = [
   {
     value: "auto",
     label: "自动",
@@ -242,6 +242,30 @@ export const videoFormatOptions = [
   },
 ];
 
+// 抖音流格式
+export const douyinStreamFormatOptions = [
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    label: "优先flv",
+    value: "flv",
+  },
+  {
+    label: "优先hls",
+    value: "hls",
+  },
+  {
+    label: "强制flv",
+    value: "flv_only",
+  },
+  {
+    label: "强制hls",
+    value: "hls_only",
+  },
+];
+
 const qualityRetry = {
   text: "画质匹配重试次数",
   tip: "根据次数强制查询匹配画质，在未选择原画的情况下，可能会导致开头漏录。匹配次数结束后如果无法匹配对应画质时会自动选择其他画质，-1为强制匹配画质",
@@ -289,5 +313,9 @@ export const textInfo = {
   douyin: {
     qualityRetry: qualityRetry,
     quality: quality,
+    formatName: {
+      text: "流格式",
+      tip: "默认优先flv模式，其次hls",
+    },
   },
 } as const;

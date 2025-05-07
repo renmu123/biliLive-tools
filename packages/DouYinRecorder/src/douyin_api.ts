@@ -26,6 +26,37 @@ export async function resolveShortURL(shortURL: string): Promise<string> {
   throw new Error("无法从短链接解析出直播间ID");
 }
 
+const qualityList = [
+  {
+    key: "origin",
+    desc: "原画",
+  },
+  {
+    key: "uhd",
+    desc: "蓝光",
+  },
+  {
+    key: "hd",
+    desc: "超清",
+  },
+  {
+    key: "sd",
+    desc: "高清",
+  },
+  {
+    key: "ld",
+    desc: "标清",
+  },
+  {
+    key: "ao",
+    desc: "音频流",
+  },
+  {
+    key: "real_origin",
+    desc: "真原画",
+  },
+];
+
 let cookieCache: {
   startTimestamp: number;
   cookies: string;
@@ -33,8 +64,8 @@ let cookieCache: {
 
 export const getCookie = async () => {
   const now = new Date().getTime();
-  // 缓存24小时
-  if (cookieCache?.startTimestamp && now - cookieCache.startTimestamp < 24 * 60 * 60 * 1000) {
+  // 缓存6小时
+  if (cookieCache?.startTimestamp && now - cookieCache.startTimestamp < 6 * 60 * 60 * 1000) {
     return cookieCache.cookies;
   }
   const res = await requester.get("https://live.douyin.com/");
@@ -154,17 +185,52 @@ export async function getRoomInfo(
     bitRate: info.v_bit_rate,
   }));
 
+  // 转换流数据结构
+  const streamList: StreamInfo[] = Object.entries(streamData)
+    .map(([quality, info]) => {
+      const stream = info?.main;
+      const name = qualityList.find((item) => item.key === quality)?.desc;
+      return {
+        quality: quality,
+        name: name ?? "未知",
+        flv: stream?.flv,
+        hls: stream?.hls,
+      };
+    })
+    .filter((stream) => stream.flv || stream.hls);
+
+  const aoStream = streamList.find((stream) => stream.quality === "ao");
+  if (!!aoStream) {
+    // 真原画流是在ao流中拿到的
+    streamList.push({
+      quality: "real_origin",
+      name: "真原画",
+      flv: aoStream.flv.replace("&only_audio=1", ""),
+      hls: aoStream.hls.replace("&only_audio=1", ""),
+    });
+  }
+  streamList.sort((a, b) => {
+    const aIndex = qualityList.findIndex((item) => item.key === a.quality);
+    const bIndex = qualityList.findIndex((item) => item.key === b.quality);
+    // 如果找不到对应的质量等级，将其排在最后
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
+
   // 看起来抖音是自动切换 cdn 的，所以这里固定返回一个默认的 source。
   const sources: SourceProfile[] = [
     {
       name: "自动",
       streamMap: streamData,
+      streams: streamList,
     },
   ];
 
+  // console.log(JSON.stringify(sources, null, 2), qualities);
+
   return {
     living: data.room_status === 0,
-    // 接口里不会再返回 web room id，只能直接用入参原路返回了。
     roomId: webRoomId,
     owner: data.user.nickname,
     title: room.title,
@@ -182,9 +248,17 @@ export interface StreamProfile {
   bitRate: number;
 }
 
+export interface StreamInfo {
+  quality: string;
+  name: string;
+  flv?: string;
+  hls?: string;
+}
+
 export interface SourceProfile {
   name: string;
   streamMap: StreamData["data"];
+  streams: StreamInfo[];
 }
 
 interface EnterRoomApiResp {

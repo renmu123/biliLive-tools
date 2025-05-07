@@ -31,70 +31,39 @@ export async function getStream(
     rejectCache?: boolean;
     strictQuality?: boolean;
     cookie?: string;
+    formatPriorities?: Array<"flv" | "hls">;
   },
 ) {
   const info = await getRoomInfo(opts.channelId, true, opts.cookie);
   if (!info.living) {
     throw new Error("It must be called getStream when living");
   }
-  let quality = opts.quality;
-  if (quality === "real_origin") {
-    quality = "ao";
+
+  // 抖音为自动cdn，所以指定选择第一个
+  const sources = info.sources[0];
+  const formatPriorities = opts.formatPriorities || ["flv", "hls"];
+
+  // 查找指定质量的流
+  let targetStream = sources.streams.find((s) => s.quality === opts.quality);
+  let qualityName = targetStream?.name ?? "未知";
+
+  // 如果找不到指定质量的流，按照流顺序选择第一个可用的流
+  if (!targetStream) {
+    targetStream = sources.streams.find((stream) => stream.flv || stream.hls);
+    if (targetStream) {
+      qualityName = targetStream.name;
+    }
   }
 
-  const qualityMap = [
-    {
-      key: "origin",
-      desc: "原画",
-    },
-    {
-      key: "uhd",
-      desc: "蓝光",
-    },
-    {
-      key: "hd",
-      desc: "超清",
-    },
-    {
-      key: "sd",
-      desc: "高清",
-    },
-    {
-      key: "ld",
-      desc: "标清",
-    },
-    {
-      key: "ao",
-      desc: "音频流",
-    },
-    {
-      key: "real_origin",
-      desc: "真原画",
-    },
-  ];
-  const sources = info.sources[0];
-  console.log(JSON.stringify(sources.streamMap, null, 2));
-
-  let url = sources.streamMap[quality]?.main?.flv;
-  let qualityName: string = qualityMap.find((q) => q.key === opts.quality)?.desc ?? "未知";
-
-  if (opts.quality === "real_origin") {
-    url = url.replace("&only_audio=1", "");
-    qualityName = "真原画";
+  // 根据格式优先级选择 URL
+  let url: string | undefined;
+  for (const format of formatPriorities) {
+    url = targetStream[format];
+    if (url) break;
   }
 
   if (!url && opts.strictQuality) {
     throw new Error("Can not get expect quality because of strictQuality");
-  }
-  // 如果url不存在，那么按照优先级选择
-  if (!url) {
-    for (const quality of qualityMap) {
-      url = sources.streamMap[quality.key]?.main?.flv;
-      if (url) {
-        qualityName = quality.desc;
-        break;
-      }
-    }
   }
   if (!url) {
     throw new Error("未找到对应的流");
@@ -105,7 +74,7 @@ export async function getStream(
     currentStream: {
       name: qualityName,
       source: "自动",
-      url: url,
+      url: url!,
     },
   };
 }

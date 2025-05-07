@@ -36,6 +36,7 @@ interface Options {
   qualityRetry?: number; // 画质匹配重试次数, -1为强制匹配画质，0为自动配置，正整数为最大匹配次数
   streamPriorities: []; // 废弃
   sourcePriorities: []; // 废弃
+  formatPriorities?: string[]; // 支持，`flv`和`hls` 参数，默认为['flv','hls']
   disableAutoCheck?: boolean; // 为 true 时 manager 将跳过自动检查
   segment?: number; // 分段参数，单位分钟
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制

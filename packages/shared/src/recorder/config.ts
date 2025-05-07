@@ -16,7 +16,9 @@ export default class RecorderConfig {
     return setting.find((setting) => setting.id === id);
   }
 
-  public get(id: string): (Recorder & { auth?: string }) | null {
+  public get(
+    id: string,
+  ): (Recorder & { auth?: string; formatPriorities: Array<"hls" | "flv"> }) | null {
     const getValue = (key: any): any => {
       if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
         return setting?.[key];
@@ -30,6 +32,8 @@ export default class RecorderConfig {
             return get(globalConfig, "bilibili.formatName");
           } else if (setting.providerId === "HuYa") {
             return "auto";
+          } else if (setting.providerId === "DouYin") {
+            return get(globalConfig, "douyin.formatName");
           } else {
             return "auto";
           }
@@ -65,6 +69,7 @@ export default class RecorderConfig {
     const setting = settings.find((setting) => setting.id === id)!;
     if (!setting) return null;
 
+    // 授权处理
     let uid = undefined;
     let auth: string | undefined;
     if (setting.providerId === "Bilibili") {
@@ -81,6 +86,21 @@ export default class RecorderConfig {
       auth = getValue("cookie");
     }
 
+    // 流格式处理
+    const formatName = getValue("formatName") ?? "auto";
+    let formatPriorities: Array<"flv" | "hls"> = [];
+    if (setting.providerId === "DouYin") {
+      if (formatName === "flv_only") {
+        formatPriorities = ["flv"];
+      } else if (formatName === "hls") {
+        formatPriorities = ["hls", "flv"];
+      } else if (formatName === "hls_only") {
+        formatPriorities = ["hls"];
+      } else {
+        formatPriorities = ["flv", "hls"];
+      }
+    }
+
     return {
       ...setting,
       quality: getValue("quality") ?? "highest",
@@ -95,9 +115,10 @@ export default class RecorderConfig {
       videoFormat: getValue("videoFormat") ?? "auto",
       auth: auth,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
-      formatName: getValue("formatName") ?? "auto",
+      formatName: formatName,
       codecName: getValue("codecName") ?? "auto",
       source: getValue("source") ?? "auto",
+      formatPriorities: formatPriorities,
     };
   }
   public list() {

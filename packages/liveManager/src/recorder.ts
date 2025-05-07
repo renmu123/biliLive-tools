@@ -23,7 +23,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   streamPriorities: string[];
   // 该项为用户配置，不同源（CDN）的优先级，如果设置了此项，将优先根据此决定使用哪个源，除非所有的指定源无效
   sourcePriorities: string[];
-  formatPriorities?: string[];
+  formatPriorities?: Array<"flv" | "hls">;
   // 指定cdn
   source?: string;
   // 该项为用户配置，指定录制的片段时长，单位为秒，如果设置了此项，将按此时长切片录制
@@ -54,6 +54,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   titleKeywords?: string;
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
   videoFormat?: "auto" | "ts" | "mkv";
+  /** 流格式优先级 */
+  formatriorities?: Array<"flv" | "hls">;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
 }

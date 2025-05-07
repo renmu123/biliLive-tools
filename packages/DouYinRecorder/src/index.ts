@@ -120,6 +120,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (isManualStart) {
       strictQuality = false;
     }
+
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
@@ -127,6 +128,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       sourcePriorities: this.sourcePriorities,
       strictQuality: strictQuality,
       cookie: this.auth,
+      formatPriorities: this.formatPriorities,
     });
   } catch (err) {
     this.state = "idle";

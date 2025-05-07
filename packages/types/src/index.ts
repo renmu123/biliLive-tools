@@ -315,6 +315,8 @@ interface DouyinRecorderConfig {
   quality: "origin" | "uhd" | "hd" | "sd" | "ld" | "ao" | "real_origin";
   /** 抖音cookie */
   cookie: string;
+  /** 流格式 */
+  formatName: FormatName;
 }
 
 // 录制全局配置
@@ -412,6 +414,8 @@ export interface Recorder {
   liveStartNotification?: boolean;
   /** 抖音cookie */
   cookie?: string;
+  /** 流格式优先级 */
+  // formatPriorities: Array<"flv" | "hls">;
   // 不跟随全局配置字段
   noGlobalFollowFields: Array<
     Exclude<

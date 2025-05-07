@@ -131,7 +131,7 @@
             </template>
             <n-select
               v-model:value="config.formatName"
-              :options="streamFormatOptions"
+              :options="biliStreamFormatOptions"
               :disabled="globalFieldsObj.formatName"
             />
             <n-checkbox v-model:checked="globalFieldsObj.formatName" class="global-checkbox"
@@ -239,6 +239,22 @@
               :disabled="globalFieldsObj.quality"
             />
             <n-checkbox v-model:checked="globalFieldsObj.quality" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :text="textInfo.douyin.formatName.text"
+                :tip="textInfo.douyin.formatName.tip"
+              ></Tip>
+            </template>
+            <n-select
+              v-model:value="config.formatName"
+              :options="douyinStreamFormatOptions"
+              :disabled="globalFieldsObj.formatName"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.formatName" class="global-checkbox"
               >全局</n-checkbox
             >
           </n-form-item>
@@ -377,13 +393,14 @@ import {
   qualityOptions,
   biliQualityOptions,
   douyuQualityOptions,
-  streamFormatOptions,
+  biliStreamFormatOptions,
   textInfo,
   streamCodecOptions,
   huyaQualityOptions,
   douyinQualityOptions,
   douyuSourceOptions,
   videoFormatOptions,
+  douyinStreamFormatOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 
@@ -460,7 +477,7 @@ const confirm = async () => {
   if (config.value.providerId === "Bilibili" && !config.value.uid) {
     const [status] = await confirmDialog.warning({
       title: "确认添加",
-      content: `B站录制高清画质需要设置账号，你可能尚未设置，是否继续？`,
+      content: `B站录制高清画质需要设置账号，你可能尚未设置，尽可能使用使用小号，使用此功能默认需要你为可能的风控负责，是否继续？`,
       showCheckbox: true,
       showAgainKey: "recorder-bili-account",
     });
@@ -593,6 +610,13 @@ watch(
         config.value.quality = appConfig.value.recorder.quality;
       }
     }
+    if (val.formatName) {
+      if (config.value.providerId === "Bilibili") {
+        config.value.formatName = appConfig.value.recorder.bilibili.formatName;
+      } else if (config.value.providerId === "DouYin") {
+        config.value.formatName = appConfig.value.recorder.douyin.formatName;
+      }
+    }
     if (val.disableProvideCommentsWhenRecording) {
       config.value.disableProvideCommentsWhenRecording =
         appConfig.value.recorder.disableProvideCommentsWhenRecording;
@@ -615,9 +639,7 @@ watch(
     if (val.qualityRetry) {
       config.value.qualityRetry = appConfig.value.recorder.qualityRetry;
     }
-    if (val.formatName) {
-      config.value.formatName = appConfig.value.recorder.bilibili.formatName;
-    }
+
     if (val.useM3U8Proxy) {
       config.value.useM3U8Proxy = appConfig.value.recorder.bilibili.useM3U8Proxy;
     }
