@@ -3,7 +3,7 @@
     <template #trigger>
       <slot></slot>
     </template>
-    <div style="width: 500px">
+    <div style="width: 600px">
       <n-input-group>
         <n-input
           ref="inputRef"
