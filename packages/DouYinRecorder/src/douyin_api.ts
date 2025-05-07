@@ -205,8 +205,8 @@ export async function getRoomInfo(
     streamList.push({
       quality: "real_origin",
       name: "真原画",
-      flv: aoStream.flv.replace("&only_audio=1", ""),
-      hls: aoStream.hls.replace("&only_audio=1", ""),
+      flv: (aoStream?.flv ?? "").replace("&only_audio=1", ""),
+      hls: (aoStream?.hls ?? "").replace("&only_audio=1", ""),
     });
   }
   streamList.sort((a, b) => {

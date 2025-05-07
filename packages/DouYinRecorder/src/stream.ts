@@ -58,6 +58,9 @@ export async function getStream(
       qualityName = targetStream.name;
     }
   }
+  if (!targetStream) {
+    throw new Error("未找到对应的流");
+  }
 
   // 根据格式优先级选择 URL
   let url: string | undefined;

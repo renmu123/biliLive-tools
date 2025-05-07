@@ -18,7 +18,7 @@ export default class RecorderConfig {
 
   public get(
     id: string,
-  ): (Recorder & { auth?: string; formatPriorities: Array<"hls" | "flv"> }) | null {
+  ): (Recorder & { auth?: string; formatPriorities?: Array<"hls" | "flv"> }) | null {
     const getValue = (key: any): any => {
       if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
         return setting?.[key];
@@ -88,7 +88,7 @@ export default class RecorderConfig {
 
     // 流格式处理
     const formatName = getValue("formatName") ?? "auto";
-    let formatPriorities: Array<"flv" | "hls"> = [];
+    let formatPriorities: Array<"flv" | "hls"> | undefined;
     if (setting.providerId === "DouYin") {
       if (formatName === "flv_only") {
         formatPriorities = ["flv"];

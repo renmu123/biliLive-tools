@@ -197,6 +197,7 @@ describe("RecorderConfig", () => {
         formatName: "auto",
         codecName: "h264",
         source: "auto",
+        formatPriorities: ["flv", "hls"],
       });
     });
 
