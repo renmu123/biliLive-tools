@@ -39,7 +39,7 @@
 - 录制：添加录制历史记录
 - 录制：抖音支持cookie [#85](https://github.com/renmu123/biliLive-tools/issues/85)
 - 录制：抖音支持`flv`和`hls`流选择
-- 录制：支持分页功能，默认为20
+- 录制：支持分页&排序功能，默认为20，分页以及排序参数支持持久化
 - 视频合并页面支持弹幕合并 [#75](https://github.com/renmu123/biliLive-tools/issues/75)
 - “最小上传大小”参数名称修改为“最小处理文件”，功能实质未改变
 - 支持 [BaiduPCS-Go](https://github.com/qjfoidnh/BaiduPCS-Go)、[aliyunpan](https://github.com/tickstep/aliyunpan) 同步器

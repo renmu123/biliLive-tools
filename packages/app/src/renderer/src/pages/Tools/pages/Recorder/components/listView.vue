@@ -97,58 +97,31 @@ import { ArrowUpOutline } from "@vicons/ionicons5";
 
 interface Props {
   list: any[];
+  sortField: string;
+  sortDirections: {
+    living: string;
+    state: string;
+    monitorStatus: string;
+  };
 }
 
 const props = withDefaults(defineProps<Props>(), {
   list: () => [],
+  sortField: "",
+  sortDirections: () => ({
+    living: "desc",
+    state: "desc",
+    monitorStatus: "desc",
+  }),
 });
 
-const sortField = ref("");
-const sortDirections = reactive({
-  living: "desc",
-  state: "desc",
-  monitorStatus: "desc",
-});
+const emit = defineEmits<{
+  (e: "sort", field: string): void;
+}>();
 
 const handleSort = (field: string) => {
-  if (sortField.value === field) {
-    // 如果点击的是当前排序字段，则切换排序方向
-    sortDirections[field] = sortDirections[field] === "asc" ? "desc" : "asc";
-  } else {
-    // 如果点击的是新字段，使用该字段已保存的排序方向
-    sortField.value = field;
-  }
+  emit("sort", field);
 };
-
-const list = computed(() => {
-  if (!sortField.value) return props.list;
-
-  return [...props.list].sort((a, b) => {
-    let comparison = 0;
-    const currentDirection = sortDirections[sortField.value];
-
-    if (sortField.value === "living") {
-      comparison = a.living === b.living ? 0 : a.living ? -1 : 1;
-    } else if (sortField.value === "state") {
-      comparison = a.state === b.state ? 0 : a.state === "recording" ? -1 : 1;
-    } else if (sortField.value === "monitorStatus") {
-      // 自动监听优先于手动
-      const aIsManual = a.disableAutoCheck;
-      const bIsManual = b.disableAutoCheck;
-
-      if (aIsManual === bIsManual) {
-        // 如果监听类型相同，比较是否跳过本场直播
-        const aIsSkipping = a.tempStopIntervalCheck && !a.disableAutoCheck;
-        const bIsSkipping = b.tempStopIntervalCheck && !b.disableAutoCheck;
-        comparison = aIsSkipping === bIsSkipping ? 0 : aIsSkipping ? 1 : -1;
-      } else {
-        comparison = aIsManual ? 1 : -1;
-      }
-    }
-
-    return currentDirection === "asc" ? -comparison : comparison;
-  });
-});
 </script>
 
 <style scoped lang="less">

@@ -32,19 +32,38 @@
         v-model:value="params.pageSize"
         :options="pageSizeOptions"
         placeholder="每页显示"
-        style="width: 100px"
+        style="width: 110px"
       />
       <n-select
         v-model:value="recorderLocalParams.view"
         :options="viewOptions"
         placeholder="视图"
-        style="width: 100px"
+        style="width: 110px"
       />
+      <SortButton
+        :field="sortField"
+        :direction="recorderLocalParams.sortDirection"
+        :options="[
+          { label: '默认状态', key: undefined },
+          { label: '直播状态', key: 'living' },
+          { label: '录制状态', key: 'state' },
+          { label: '监听状态', key: 'monitorStatus' },
+        ]"
+        @update:field="handleSortFieldChange"
+        @update:direction="handleSortDirectionChange"
+      />
+      <n-button type="warning" @click="getLiveInfo">刷新</n-button>
       <n-button type="primary" @click="add">添加</n-button>
     </div>
 
     <template v-if="list.length > 0">
-      <component :is="viewComponent" :list="list">
+      <component
+        :is="viewComponent"
+        :list="list"
+        :sort-field="sortField"
+        :sort-directions="sortDirections"
+        @sort="handleSort"
+      >
         <template #action="{ item }">
           <div style="margin-top: 10px" class="section-container">
             <div class="section" @click="startRecord(item.id)">开始录制</div>
@@ -109,6 +128,7 @@ import { useEventListener, useStorage } from "@vueuse/core";
 import eventBus from "@renderer/utils/eventBus";
 
 import type { RecorderAPI } from "@biliLive-tools/http/types/recorder.js";
+import SortButton from "./components/SortButton.vue";
 
 defineOptions({
   name: "recorder",
@@ -121,6 +141,8 @@ const recorderLocalParams = useStorage(
   {
     view: "card",
     pageSize: 20,
+    sortField: "",
+    sortDirection: "desc" as "asc" | "desc",
   },
   localStorage,
   { mergeDefaults: true },
@@ -194,6 +216,37 @@ const viewComponent = computed(() => {
   }
 });
 
+const sortField = ref(recorderLocalParams.value.sortField);
+const sortDirections = reactive({
+  living:
+    recorderLocalParams.value.sortField === "living"
+      ? recorderLocalParams.value.sortDirection
+      : "desc",
+  state:
+    recorderLocalParams.value.sortField === "state"
+      ? recorderLocalParams.value.sortDirection
+      : "desc",
+  monitorStatus:
+    recorderLocalParams.value.sortField === "monitorStatus"
+      ? recorderLocalParams.value.sortDirection
+      : "desc",
+});
+
+const handleSort = (field: string) => {
+  if (sortField.value === field) {
+    // 如果点击的是当前排序字段，则切换排序方向
+    const newDirection = sortDirections[field] === "asc" ? "desc" : "asc";
+    sortDirections[field] = newDirection;
+    // 保存当前排序方向
+    recorderLocalParams.value.sortDirection = newDirection;
+  } else {
+    // 如果点击的是新字段，使用该字段已保存的排序方向
+    sortField.value = field;
+    // 保存当前排序字段
+    recorderLocalParams.value.sortField = field;
+  }
+};
+
 watch(params, () => {
   getList();
 });
@@ -206,7 +259,7 @@ const pagination = ref({
 });
 
 const list = computed(() => {
-  return recorderList.value.map((item) => {
+  const mappedList = recorderList.value.map((item) => {
     const liveInfo = liveInfos.value.find((liveInfo) => liveInfo.channelId === item.channelId);
     return {
       ...item,
@@ -216,6 +269,34 @@ const list = computed(() => {
       roomTitle: liveInfo?.title,
       living: item?.liveInfo?.living ?? liveInfo?.living,
     };
+  });
+
+  if (!sortField.value) return mappedList;
+
+  return [...mappedList].sort((a, b) => {
+    let comparison = 0;
+    const currentDirection = sortDirections[sortField.value];
+
+    if (sortField.value === "living") {
+      comparison = a.living === b.living ? 0 : a.living ? -1 : 1;
+    } else if (sortField.value === "state") {
+      comparison = a.state === b.state ? 0 : a.state === "recording" ? -1 : 1;
+    } else if (sortField.value === "monitorStatus") {
+      // 自动监听优先于手动
+      const aIsManual = a.disableAutoCheck;
+      const bIsManual = b.disableAutoCheck;
+
+      if (aIsManual === bIsManual) {
+        // 如果监听类型相同，比较是否跳过本场直播
+        const aIsSkipping = a.tempStopIntervalCheck && !a.disableAutoCheck;
+        const bIsSkipping = b.tempStopIntervalCheck && !b.disableAutoCheck;
+        comparison = aIsSkipping === bIsSkipping ? 0 : aIsSkipping ? 1 : -1;
+      } else {
+        comparison = aIsManual ? 1 : -1;
+      }
+    }
+
+    return currentDirection === "asc" ? -comparison : comparison;
   });
 });
 
@@ -437,6 +518,22 @@ const pageSizeOptions = ref([
     value: 100,
   },
 ]);
+
+const handleSortFieldChange = (field: string) => {
+  sortField.value = field;
+  recorderLocalParams.value.sortField = field;
+};
+
+const handleSortDirectionChange = (direction: "asc" | "desc") => {
+  recorderLocalParams.value.sortDirection = direction;
+  if (sortField.value === "living") {
+    sortDirections.living = direction;
+  } else if (sortField.value === "state") {
+    sortDirections.state = direction;
+  } else if (sortField.value === "monitorStatus") {
+    sortDirections.monitorStatus = direction;
+  }
+};
 </script>
 
 <style scoped lang="less">
@@ -455,5 +552,10 @@ const pageSizeOptions = ref([
       }
     }
   }
+}
+.sort-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 </style>
