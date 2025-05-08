@@ -41,7 +41,6 @@
 - 录制：抖音支持`flv`和`hls`流选择
 - 录制：支持分页&排序功能，默认为20，分页以及排序参数支持持久化
 - 视频合并页面支持弹幕合并 [#75](https://github.com/renmu123/biliLive-tools/issues/75)
-- “最小上传大小”参数名称修改为“最小处理文件”，功能实质未改变
 - 支持 [BaiduPCS-Go](https://github.com/qjfoidnh/BaiduPCS-Go)、[aliyunpan](https://github.com/tickstep/aliyunpan) 同步器
 - Webhook 移除“不压制后处理”参数，如果之前存在视频配置可能会导致错误调用
 - Webhook 替换 “处理后删除源文件” 为 “处理后操作” 支持更多场景
@@ -56,6 +55,7 @@
 - 录制：抖音支持真原画选项
 - “码率控制”选项支持为空以支持需要在高级选项中自定义的需求
 - 重新实现录制开始通知以带来更好的通知
+- “最小上传大小”参数名称修改为“最小处理文件”，功能实质未改变
 
 ## Bug修复
 
