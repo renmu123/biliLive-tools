@@ -38,13 +38,37 @@ export interface LiveInfo {
 }
 export type GetLiveInfoResp = LiveInfo[];
 
-export interface GetRecordersArgs {
+export type GetRecordersArgs = {
   platform?: string;
   recordStatus?: "recording" | "unrecorded";
   name?: string;
-  autoCheck?: "1" | "2";
-}
-export type GetRecordersResp = ClientRecorder[];
+  autoCheck?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+export type GetRecordersResp = {
+  data: Pick<
+    ClientRecorder,
+    | "id"
+    | "channelId"
+    | "remarks"
+    | "disableAutoCheck"
+    | "providerId"
+    | "channelURL"
+    | "recordHandle"
+    | "liveInfo"
+    | "state"
+    | "usedSource"
+    | "usedStream"
+    | "tempStopIntervalCheck"
+  >[];
+  pagination: {
+    total: number;
+    page: number;
+    pageSize: number;
+  };
+};
 
 export interface GetRecorderArgs {
   id: RecoderConfig["id"];
@@ -146,21 +170,7 @@ export type RecorderAPI = {
   };
   getRecorders: {
     Args: GetRecordersArgs;
-    Resp: Pick<
-      ClientRecorder,
-      | "id"
-      | "channelId"
-      | "remarks"
-      | "disableAutoCheck"
-      | "providerId"
-      | "channelURL"
-      | "recordHandle"
-      | "liveInfo"
-      | "state"
-      | "usedSource"
-      | "usedStream"
-      | "tempStopIntervalCheck"
-    >[];
+    Resp: GetRecordersResp;
   };
   getRecorder: {
     Args: GetRecorderArgs;

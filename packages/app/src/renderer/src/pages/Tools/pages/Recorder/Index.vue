@@ -29,15 +29,21 @@
         clearable
       />
       <n-select
+        v-model:value="params.pageSize"
+        :options="pageSizeOptions"
+        placeholder="每页显示"
+        style="width: 100px"
+      />
+      <n-select
         v-model:value="recorderLocalParams.view"
         :options="viewOptions"
         placeholder="视图"
-        style="width: 140px"
+        style="width: 100px"
       />
       <n-button type="primary" @click="add">添加</n-button>
     </div>
 
-    <template v-if="list.length">
+    <template v-if="list.length > 0">
       <component :is="viewComponent" :list="list">
         <template #action="{ item }">
           <div style="margin-top: 10px" class="section-container">
@@ -66,6 +72,21 @@
           </div>
         </template>
       </component>
+      <div
+        style="margin-top: 20px; display: flex; justify-content: flex-end"
+        v-if="pagination.pageCount > 1"
+      >
+        <n-pagination
+          v-model:page="params.page"
+          v-model:page-size="params.pageSize"
+          :page-count="pagination.pageCount"
+          :item-count="pagination.itemCount"
+          show-size-picker
+          :page-sizes="[10, 20, 30, 40, 50, 100]"
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+        />
+      </div>
     </template>
 
     <h1 v-else>还木有添加直播捏，添加一个看看吧，支持斗鱼、虎牙、B站、抖音</h1>
@@ -93,17 +114,25 @@ defineOptions({
   name: "recorder",
 });
 
-const notice = useNotification();
+const notice = useNotice();
 const router = useRouter();
+const recorderLocalParams = useStorage(
+  "recorder",
+  {
+    view: "card",
+    pageSize: 20,
+  },
+  localStorage,
+  { mergeDefaults: true },
+);
+
 const params = ref<Parameters<typeof recoderApi.infoList>[0]>({
   platform: undefined,
   recordStatus: undefined,
   name: undefined,
   autoCheck: undefined,
-});
-
-const recorderLocalParams = useStorage("recorder", {
-  view: "card",
+  page: 1,
+  pageSize: recorderLocalParams.value.pageSize,
 });
 
 const platformOptions = ref([
@@ -169,8 +198,13 @@ watch(params, () => {
   getList();
 });
 
-const recorderList = ref<RecorderAPI["getRecorders"]["Resp"]>([]);
+const recorderList = ref<RecorderAPI["getRecorders"]["Resp"]["data"]>([]);
 const liveInfos = ref<Awaited<ReturnType<typeof recoderApi.getLiveInfo>>>([]);
+const pagination = ref({
+  pageCount: 0,
+  itemCount: 0,
+});
+
 const list = computed(() => {
   return recorderList.value.map((item) => {
     const liveInfo = liveInfos.value.find((liveInfo) => liveInfo.channelId === item.channelId);
@@ -186,7 +220,12 @@ const list = computed(() => {
 });
 
 const getList = async () => {
-  recorderList.value = await recoderApi.infoList(params.value);
+  const result = await recoderApi.infoList(params.value);
+  recorderList.value = result.data;
+  pagination.value = {
+    pageCount: Math.ceil(result.pagination.total / result.pagination.pageSize),
+    itemCount: result.pagination.total,
+  };
 };
 
 const addModalVisible = ref(false);
@@ -244,17 +283,21 @@ const open = async (id: string, streamUrl: string) => {
 
 const getLiveInfo = async () => {
   if (recorderList.value.length === 0) return;
-  liveInfos.value = await recoderApi.getLiveInfo();
+  const ids = recorderList.value.map((item) => item.id);
+  liveInfos.value = await recoderApi.getLiveInfo(ids);
 };
 
 // 刷新直播间信息
 const refresh = async (id: string) => {
-  const data = await recoderApi.getLiveInfo(id);
+  const data = await recoderApi.getLiveInfo([id]);
   liveInfos.value = liveInfos.value.map((item) => {
     if (item.channelId === id) {
       return data[0];
     }
     return item;
+  });
+  notice.success({
+    title: "刷新成功",
   });
 };
 
@@ -356,6 +399,44 @@ const viewHistory = (item: any) => {
     },
   });
 };
+
+const handlePageChange = (page: number) => {
+  params.value.page = page;
+  getList();
+};
+
+const handlePageSizeChange = (pageSize: number) => {
+  params.value.pageSize = pageSize;
+  recorderLocalParams.value.pageSize = pageSize;
+  params.value.page = 1;
+  getList();
+};
+const pageSizeOptions = ref([
+  {
+    label: "10条/页",
+    value: 10,
+  },
+  {
+    label: "20条/页",
+    value: 20,
+  },
+  {
+    label: "30条/页",
+    value: 30,
+  },
+  {
+    label: "40条/页",
+    value: 40,
+  },
+  {
+    label: "50条/页",
+    value: 50,
+  },
+  {
+    label: "100条/页",
+    value: 100,
+  },
+]);
 </script>
 
 <style scoped lang="less">

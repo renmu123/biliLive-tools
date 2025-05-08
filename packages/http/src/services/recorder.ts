@@ -36,27 +36,42 @@ async function getRecorders(
   if (params.autoCheck) {
     list = list.filter((item) => (item.disableAutoCheck ? "2" : "1") === params.autoCheck);
   }
-  return list.map((item) => {
-    const data = pick(
-      item,
-      "id",
-      "providerId",
-      "channelId",
-      "remarks",
-      "disableAutoCheck",
-      "channelURL",
-      "recordHandle",
-      "liveInfo",
-      "state",
-      "usedSource",
-      "usedStream",
-      "tempStopIntervalCheck",
-    );
-    data.recordHandle = isEmpty(data.recordHandle)
-      ? data.recordHandle
-      : omit(data.recordHandle, "ffmpegArgs");
-    return data;
-  });
+
+  // 添加分页逻辑
+  const page = Number(params.page) || 1;
+  const pageSize = Number(params.pageSize) || 10;
+  const start = (page - 1) * pageSize;
+  const end = start + pageSize;
+  const paginatedList = list.slice(start, end);
+
+  return {
+    data: paginatedList.map((item) => {
+      const data = pick(
+        item,
+        "id",
+        "providerId",
+        "channelId",
+        "remarks",
+        "disableAutoCheck",
+        "channelURL",
+        "recordHandle",
+        "liveInfo",
+        "state",
+        "usedSource",
+        "usedStream",
+        "tempStopIntervalCheck",
+      );
+      data.recordHandle = isEmpty(data.recordHandle)
+        ? data.recordHandle
+        : omit(data.recordHandle, "ffmpegArgs");
+      return data;
+    }),
+    pagination: {
+      total: list.length,
+      page,
+      pageSize,
+    },
+  };
 }
 
 function getRecorder(
@@ -222,27 +237,22 @@ export function resolveChannel(url: string) {
   return recorderManager.resolveChannel(url);
 }
 
-export async function getLiveInfo(id: string | undefined) {
+export async function getLiveInfo(ids: string[]) {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
   const recorders = recorderManager.manager.recorders;
 
-  if (!id) {
-    const requests = recorders.map((recorder) => recorder.getLiveInfo());
-    const list: {
-      owner: string;
-      title: string;
-      avatar: string;
-      cover: string;
-    }[] = (await Promise.allSettled(requests))
-      .filter((item) => item.status === "fulfilled")
-      .map((item) => item.value);
-    return list;
-  } else {
-    const recorder = recorders.find((item) => item.id === id);
-    if (!recorder) throw new Error("未找到录制器");
-    const data = await recorder.getLiveInfo();
-    return [data];
-  }
+  const requests = recorders
+    .filter((recorder) => ids.includes(recorder.id))
+    .map((recorder) => recorder.getLiveInfo());
+  const list: {
+    owner: string;
+    title: string;
+    avatar: string;
+    cover: string;
+  }[] = (await Promise.allSettled(requests))
+    .filter((item) => item.status === "fulfilled")
+    .map((item) => item.value);
+  return list;
 }
 
 export default {

@@ -15,19 +15,6 @@ router.get("/list", async (ctx) => {
   ctx.body = { payload: await recorderService.getRecorders(query) };
 });
 
-/**
- * 判断是否有正在录制的任务
- */
-router.get("/hasRecording", async (ctx) => {
-  const recorders = await recorderService.getRecorders({});
-  if (recorders.some((recorder) => recorder.recordHandle != null)) {
-    ctx.body = { payload: true };
-    return;
-  } else {
-    ctx.body = { payload: false };
-    return;
-  }
-});
 router.post("/add", async (ctx) => {
   const args = pick(
     (ctx.request.body ?? {}) as RecorderAPI["addRecorder"]["Args"],
@@ -134,10 +121,9 @@ router.get("/manager/resolveChannel", async (ctx) => {
   ctx.body = { payload: data };
 });
 
-router.get("/manager/liveInfo", async (ctx) => {
-  const { id } = ctx.query;
-
-  const list = await recorderService.getLiveInfo(id as string);
+router.post("/manager/liveInfo", async (ctx) => {
+  const { ids } = ctx.request.body;
+  const list = await recorderService.getLiveInfo(ids as unknown as string[]);
   ctx.body = {
     payload: list,
   };
