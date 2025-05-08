@@ -17,6 +17,7 @@ import log from "../utils/log.js";
 import BiliCheckQueue from "./BiliCheckQueue.js";
 import { sleep, encrypt, decrypt, getTempPath, trashItem } from "../utils/index.js";
 import { sendNotify } from "../notify.js";
+import { getFfmpegPath } from "./video.js";
 
 import type {
   BiliupConfig,
@@ -149,10 +150,10 @@ async function download(
     throw new Error(`${options.output}已存在`);
 
   const client = createClient(uid);
-  const ffmpegBinPath = appConfig.get("ffmpegPath");
+  const { ffmpegPath } = getFfmpegPath();
   const tmpPath = getTempPath();
   const command = await client.video.dashDownload(
-    { ...options, ffmpegBinPath, cachePath: tmpPath, disableVideo: options.onlyAudio },
+    { ...options, ffmpegBinPath: ffmpegPath, cachePath: tmpPath, disableVideo: options.onlyAudio },
     {},
     false,
   );

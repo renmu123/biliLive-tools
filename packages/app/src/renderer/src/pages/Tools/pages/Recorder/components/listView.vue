@@ -49,7 +49,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr v-for="item in list" :key="item.channelId">
+      <tr v-for="item in props.list" :key="item.channelId">
         <td>
           <a class="link" target="_blank" :href="item.channelURL">{{ item.channelId }}</a>
         </td>
