@@ -1194,6 +1194,11 @@ export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) =>
         sendNotify(title, desp);
       }
       break;
+    case TaskType.sync:
+      if (taskConfig.sync.includes(event)) {
+        sendNotify(title, desp);
+      }
+      break;
   }
 };
 

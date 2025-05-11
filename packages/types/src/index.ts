@@ -504,6 +504,7 @@ export interface AppConfig {
       download: NotificationTaskStatus[];
       douyuDownload: NotificationTaskStatus[];
       mediaStatusCheck: NotificationTaskStatus[];
+      sync: NotificationTaskStatus[];
       diskSpaceCheck: {
         values: Array<"bilirecorder" | "bililiveTools">;
         /** 磁盘空间不足阈值，单位GB */

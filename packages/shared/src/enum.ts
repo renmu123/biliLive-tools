@@ -163,6 +163,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
         values: [],
         threshold: 10,
       },
+      sync: [],
     },
     setting: {
       type: undefined,

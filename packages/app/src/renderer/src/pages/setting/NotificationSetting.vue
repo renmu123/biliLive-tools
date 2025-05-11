@@ -259,6 +259,14 @@
         </n-space>
       </n-checkbox-group>
     </n-form-item>
+    <n-form-item label="同步任务">
+      <n-checkbox-group v-model:value="config.notification.task.sync">
+        <n-space item-style="display: flex;">
+          <n-checkbox value="success" label="成功" />
+          <n-checkbox value="failure" label="失败" />
+        </n-space>
+      </n-checkbox-group>
+    </n-form-item>
     <n-form-item label="直播通知">
       <n-select
         v-model:value="config.notification.taskNotificationType.liveStart"

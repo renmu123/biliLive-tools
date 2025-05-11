@@ -197,7 +197,8 @@ type TaskType =
   | "download"
   | "douyuDownload"
   | "mediaStatusCheck"
-  | "diskSpaceCheck";
+  | "diskSpaceCheck"
+  | "sync";
 
 export function send(title: string, desp: string, options?: { type?: TaskType }) {
   const config = appConfig.getAll();
