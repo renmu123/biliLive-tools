@@ -65,6 +65,7 @@
 - 修复上传线路的说明弹窗显示不全 [#79](https://github.com/renmu123/biliLive-tools/issues/79)
 - 修复添加录制时，全局画质被错误显示的bug [#80](https://github.com/renmu123/biliLive-tools/issues/80)
 - 修复抖音录制无法选择“标清”画质的bug
+- 修复抖音部分礼物弹幕时间错误的bug
 - 修复某些情况下预设在重命名后点击保存仍使用原来名字的bug
 - 自动检查更新失败时不再报奇怪的错误
 - 修复自定义安装位置后，B站下载视频可能无法调用 ffmpeg 的bug [#86](https://github.com/renmu123/biliLive-tools/issues/86)

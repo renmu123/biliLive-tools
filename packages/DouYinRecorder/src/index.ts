@@ -252,7 +252,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         // },
       },
     };
-    // console.log("comment", comment);
     this.emit("Message", comment);
     extraDataController.addMessage(comment);
   });
@@ -262,10 +261,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (this.saveGiftDanma === false) return;
     const gift: GiveGift = {
       type: "give_gift",
-      timestamp: Number(msg.sendTime),
+      timestamp: Number(msg.common.createTime) * 1000,
       name: msg.gift.name,
       price: 1,
-      count: Number(msg.totalCount),
+      count: Number(msg.totalCount ?? 1),
       color: "#ffffff",
       sender: {
         uid: msg.user.id,
@@ -276,9 +275,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         // },
       },
     };
-    // console.log("gift", gift);
     this.emit("Message", gift);
     extraDataController.addMessage(gift);
+  });
+  client.on("reconnect", (attempts: number) => {
+    this.emit("DebugLog", {
+      type: "common",
+      text: `danma has reconnect ${attempts}`,
+    });
   });
 
   // client.on("open", () => {
