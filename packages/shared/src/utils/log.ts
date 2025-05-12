@@ -1,7 +1,7 @@
 import logger from "electron-log/node.js";
 import type { LevelOption } from "electron-log";
 
-logger.transports.file.maxSize = 1002430; // 10M
+logger.transports.file.maxSize = 1002430 * 5; // 5M
 logger.transports.file.format = "[{y}-{m}-{d} {h}:{i}:{s}.{ms}] [{level}]{scope} {text}";
 // logger.transports.file.resolvePathFn = () => path.join(app.getPath("logs"), `main.log`);
 
