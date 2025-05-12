@@ -89,6 +89,17 @@ const ffmpegOutputOptions: string[] = [
   "-min_frag_duration",
   "60000000",
 ];
+const ffmpegInputOptions: string[] = [
+  "-reconnect",
+  "1",
+  "-reconnect_streamed",
+  "1",
+  "-reconnect_delay_max",
+  "10",
+  "-rw_timeout",
+  "15000000",
+];
+
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
   banLiveId,
@@ -159,6 +170,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     {
       url: stream.url,
       outputOptions: ffmpegOutputOptions,
+      inputOptions: ffmpegInputOptions,
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
         getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),

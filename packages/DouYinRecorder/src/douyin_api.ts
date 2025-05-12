@@ -6,6 +6,10 @@ const requester = axios.create({
   // axios 会自动读取环境变量中的 http_proxy 和 https_proxy 并应用，这会让请求发往代理的 host。
   // 所以这里需要主动禁用代理功能。
   proxy: false,
+  headers: {
+    "User-Agent":
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+  },
 });
 
 /**

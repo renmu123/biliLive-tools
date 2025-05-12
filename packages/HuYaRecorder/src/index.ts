@@ -100,8 +100,6 @@ const ffmpegInputOptions: string[] = [
   "10",
   "-rw_timeout",
   "15000000",
-  "-user_agent",
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:107.0) Gecko/20100101 Firefox/107.0",
 ];
 
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({

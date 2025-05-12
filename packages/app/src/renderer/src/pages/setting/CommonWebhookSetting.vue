@@ -1,5 +1,6 @@
 <template>
-  <h2>通用配置</h2>
+  <h2>文件处理配置</h2>
+
   <n-form-item>
     <template #label>
       <Tip
@@ -53,26 +54,6 @@
 
   <n-form-item>
     <template #label>
-      <Tip text="同步器" tip="选择要使用的同步器，用于将视频同步到网盘"></Tip>
-    </template>
-    <n-select
-      v-model:value="data.syncId"
-      :options="props.syncConfigs"
-      label-field="name"
-      value-field="id"
-      :disabled="globalFieldsObj.syncId"
-      style="margin-right: 10px; width: 200px"
-      clearable
-    />
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.syncId" class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-
-  <h2>压制配置</h2>
-
-  <n-form-item>
-    <template #label>
       <Tip text="弹幕压制" tip="将弹幕文件硬编码到视频中"></Tip>
     </template>
     <n-switch v-model:value="data.danmu" :disabled="globalFieldsObj.danmu" />
@@ -119,7 +100,7 @@
       >全局</n-checkbox
     >
   </n-form-item>
-  <template v-if="data.danmu">
+  <template v-if="data.danmu && data.ffmpegPreset && data.danmuPreset">
     <n-form-item label="高能进度条">
       <n-switch v-model:value="data.hotProgress" :disabled="globalFieldsObj.hotProgress" />
       <n-checkbox
@@ -204,7 +185,24 @@
   </template>
   <n-form-item>
     <template #label>
-      <span class="inline-flex"> 处理后操作 </span>
+      <Tip text="同步器" tip="选择要使用的同步器，用于将视频同步到网盘"></Tip>
+    </template>
+    <n-select
+      v-model:value="data.syncId"
+      :options="props.syncConfigs"
+      label-field="name"
+      value-field="id"
+      :disabled="globalFieldsObj.syncId"
+      style="margin-right: 10px; width: 200px"
+      clearable
+    />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.syncId" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
+  <n-form-item>
+    <template #label>
+      <Tip text="处理后操作" tip="同步也会执行这些操作"></Tip>
     </template>
     <n-select
       v-model:value="data.afterConvertAction"
