@@ -31,6 +31,7 @@ client.connect();
 - `autoReconnect` (number): 自动重连次数，默认为 `3`
 - `heartbeatInterval` (number): 心跳包发送间隔，单位为毫秒，默认为 `5000`
 - `cookie` (string): 可选的 Cookie 字符串，某些直播间可能需要？
+- `timeoutInterval` (number): 没有数据返回但`ws`未被主动关闭时超时后重新连接，单位为秒，默认`100`
 
 ## 事件
 

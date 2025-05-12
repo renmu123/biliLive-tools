@@ -61,6 +61,9 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   private autoReconnect: number;
   private reconnectAttempts: number;
   private cookie?: string;
+  private timeoutInterval: number;
+  private lastMessageTime: number;
+  private timeoutTimer!: NodeJS.Timeout;
 
   constructor(
     roomId: string,
@@ -69,6 +72,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       autoReconnect?: number;
       heartbeatInterval?: number;
       cookie?: string;
+      timeoutInterval?: number;
     } = {},
   ) {
     super();
@@ -78,6 +82,8 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.autoReconnect = options.autoReconnect ?? 10;
     this.reconnectAttempts = 0;
     this.cookie = options.cookie;
+    this.timeoutInterval = options.timeoutInterval ?? 100000; // 默认100秒
+    this.lastMessageTime = Date.now();
 
     if (this.autoStart) {
       this.connect();
@@ -100,30 +106,22 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.ws.on("open", () => {
       this.emit("open");
       this.startHeartbeat();
+      this.startTimeoutCheck();
     });
 
     this.ws.on("message", (data) => {
+      this.lastMessageTime = Date.now();
       this.decode(data as Buffer);
     });
 
     this.ws.on("close", () => {
       this.emit("close");
-      this.stopHeartbeat();
-      if (this.reconnectAttempts < this.autoReconnect) {
-        this.reconnectAttempts++;
-        this.connect();
-        this.emit("reconnect", this.reconnectAttempts);
-      }
+      this.reconnect();
     });
 
     this.ws.on("error", (error) => {
       this.emit("error", error);
-      this.stopHeartbeat();
-      if (this.reconnectAttempts < this.autoReconnect) {
-        this.reconnectAttempts++;
-        this.connect();
-        this.emit("reconnect", this.reconnectAttempts);
-      }
+      this.reconnect();
     });
   }
 
@@ -139,6 +137,8 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       return;
     }
     this.reconnectAttempts = this.autoReconnect;
+    this.stopHeartbeat();
+    this.stopTimeoutCheck();
     this.ws.close();
   }
 
@@ -151,6 +151,31 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
 
   private stopHeartbeat() {
     clearInterval(this.heartbeatTimer);
+  }
+
+  private startTimeoutCheck() {
+    this.lastMessageTime = Date.now();
+    this.timeoutTimer = setInterval(() => {
+      const now = Date.now();
+      if (now - this.lastMessageTime > this.timeoutInterval) {
+        console.log("No message received for too long, reconnecting...");
+        this.reconnect();
+      }
+    }, 1000); // 每秒检查一次
+  }
+
+  private stopTimeoutCheck() {
+    clearInterval(this.timeoutTimer);
+  }
+
+  private reconnect() {
+    this.stopHeartbeat();
+    this.stopTimeoutCheck();
+    if (this.reconnectAttempts < this.autoReconnect) {
+      this.reconnectAttempts++;
+      this.connect();
+      this.emit("reconnect", this.reconnectAttempts);
+    }
   }
 
   async handleMessage() {}
