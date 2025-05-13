@@ -218,13 +218,19 @@ async function getLiveInfo(
     qn: number;
   };
   for (const condition of conditons) {
-    streamInfo = res.playurl_info.playurl.stream
+    const streamList = res.playurl_info.playurl.stream
       .find(({ protocol_name }) => protocol_name === condition.protocol_name)
       ?.format.find(({ format_name }) => format_name === condition.format_name)
-      ?.codec.find(
-        ({ codec_name, current_qn }) =>
-          codec_name === condition.codec_name && current_qn == opts.qn,
-      );
+      ?.codec.filter(({ codec_name }) => codec_name === condition.codec_name);
+
+    if (streamList.length > 1) {
+      // 由于录播姬直推hevc时，指定qn，服务端仍会返回其他画质的流，这里需要指定找一下流
+      streamInfo = streamList.find((item) => item.current_qn === opts.qn);
+    }
+
+    if (!streamInfo) {
+      streamInfo = streamList[0];
+    }
 
     if (streamInfo) {
       streamOptions = {
@@ -234,7 +240,11 @@ async function getLiveInfo(
       break;
     }
   }
-  // console.log("streamOptions", streamOptions, res.playurl_info.playurl.stream);
+  // console.log(
+  //   "streamOptions",
+  //   streamOptions,
+  //   JSON.stringify(res.playurl_info.playurl.stream, null, 2),
+  // );
   assert(streamInfo, "没有找到支持的流");
 
   const streams: StreamProfile[] = streamInfo.accept_qn.map((qn) => {
