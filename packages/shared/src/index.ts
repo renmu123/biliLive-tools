@@ -34,7 +34,7 @@ const init = async (config: GlobalConfig) => {
     setLogLevel(data.logLevel);
   });
 
-  const dbPath = path.join(config.userDataPath, "app-test.db");
+  const dbPath = path.join(config.userDataPath, "app.db");
   initDB(dbPath);
 
   container.register({
