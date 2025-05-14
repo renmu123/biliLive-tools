@@ -279,12 +279,12 @@ export function processDanmuOffset<T extends DanmuItem | CommonItem>(
         const pValues = (newItem as DanmuItem)["@_p"].split(",");
         const timestamp = parseFloat(pValues[0]);
         const newTimestamp = timestamp + startOffset;
-        pValues[0] = newTimestamp.toString();
+        pValues[0] = newTimestamp.toFixed(3).toString();
         (newItem as DanmuItem)["@_p"] = pValues.join(",");
       } else {
         // 处理其他类型
         const ts = parseFloat((newItem as CommonItem)["@_ts"]);
-        (newItem as CommonItem)["@_ts"] = (ts + startOffset).toString();
+        (newItem as CommonItem)["@_ts"] = (ts + startOffset).toFixed(3);
       }
 
       return newItem;
