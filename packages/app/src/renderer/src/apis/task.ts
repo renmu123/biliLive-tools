@@ -161,6 +161,27 @@ const burn = async (
   return res.data;
 };
 
+const cut = async (
+  files: { videoFilePath: string; assFilePath?: string },
+  output: string,
+  ffmpegOptions: FfmpegOptions,
+  options: {
+    override?: boolean;
+    /** 支持绝对路径和相对路径 */
+    savePath?: string;
+    /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
+    saveType?: 1 | 2;
+  },
+) => {
+  const res = await request.post(`/task/cut`, {
+    files,
+    output,
+    options,
+    ffmpegOptions,
+  });
+  return res.data;
+};
+
 const sendToWebhook = async (data: {
   event: "FileOpening" | "FileClosed";
   filePath: string;
@@ -208,6 +229,7 @@ const task = {
   readVideoMeta,
   parseVideo,
   downloadVideo,
+  cut,
 };
 
 export default task;

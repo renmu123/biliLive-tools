@@ -855,12 +855,11 @@ export const mergeAssMp4 = async (
 /**
  * 切割视频
  */
-export const cutVideo = async (
-  inputVideo: string,
-  outputName: string,
+export const cut = async (
+  files: { videoFilePath: string; assFilePath?: string },
+  output: string,
   ffmpegOptions: FfmpegOptions,
   option: {
-    assFilePath?: string;
     override?: boolean;
     /** 支持绝对路径和相对路径 */
     savePath?: string;
@@ -877,13 +876,21 @@ export const cutVideo = async (
     },
     option,
   );
-  let savePath = await parseSavePath(inputVideo, options);
-  const output = path.join(savePath, outputName);
+  let outputFile = output;
+  if (!path.isAbsolute(output)) {
+    let savePath = await parseSavePath(files.videoFilePath, {
+      saveType: options.saveType,
+      savePath: options.savePath,
+    });
+    outputFile = path.join(savePath, output);
+  }
+  log.debug("Cut function call", outputFile);
+
   return mergeAssMp4(
     {
-      videoFilePath: inputVideo,
-      assFilePath: options.assFilePath,
-      outputPath: output,
+      videoFilePath: files.videoFilePath,
+      assFilePath: files.assFilePath,
+      outputPath: outputFile,
       hotProgressFilePath: undefined,
     },
     {

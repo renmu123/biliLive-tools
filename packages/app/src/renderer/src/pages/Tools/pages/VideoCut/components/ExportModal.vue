@@ -147,6 +147,13 @@ const confirmExport = async () => {
   }
   const ffmpegOptiosn = (await ffmpegPresetApi.get(exportOptions.ffmpegPresetId)).config;
   let index = 1;
+  if (props.files.danmuPath && !exportOptions.ignoreDanmu) {
+    notice.error({
+      title: "存在弹幕时编码器不能为copy",
+      duration: 1000,
+    });
+    return;
+  }
   for (const cut of selectedCuts.value) {
     const start = cut.start;
     const end = cut.end;
@@ -162,22 +169,19 @@ const confirmExport = async () => {
         .trim(),
       { replacement: "" },
     );
-    await taskApi.burn(
+    await taskApi.cut(
       {
         videoFilePath: props.files.videoPath!,
-        subtitleFilePath: exportOptions.ignoreDanmu ? "" : props.files.danmuPath!,
+        assFilePath: exportOptions.ignoreDanmu ? "" : props.files.danmuPath!,
       },
       `${title}.mp4`,
       {
-        ffmpegOptions: {
-          ...ffmpegOptiosn,
-          ss: start,
-          to: end,
-        },
-        // @ts-expect-error
-        danmaOptions: {},
+        ...ffmpegOptiosn,
+        ss: start,
+        to: end,
+      },
+      {
         override: exportOptions.override,
-        removeOrigin: false,
         saveType: exportOptions.saveRadio,
         savePath: exportOptions.savePath,
       },

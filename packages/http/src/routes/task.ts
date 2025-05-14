@@ -13,7 +13,13 @@ import {
   taskQueue,
 } from "@biliLive-tools/shared/task/task.js";
 import { convertXml2Ass } from "@biliLive-tools/shared/task/danmu.js";
-import { mergeVideos, transcode, burn, readVideoMeta } from "@biliLive-tools/shared/task/video.js";
+import {
+  mergeVideos,
+  transcode,
+  burn,
+  readVideoMeta,
+  cut,
+} from "@biliLive-tools/shared/task/video.js";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { trashItem } from "@biliLive-tools/shared/utils/index.js";
 
@@ -246,6 +252,12 @@ router.post("/burn", async (ctx) => {
     });
   }
 
+  ctx.body = { taskId: task.taskId };
+});
+
+router.post("/cut", async (ctx) => {
+  const { files, output, options, ffmpegOptions } = ctx.request.body as any;
+  const task = await cut(files, output, ffmpegOptions, options);
   ctx.body = { taskId: task.taskId };
 });
 
