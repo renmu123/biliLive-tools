@@ -121,6 +121,7 @@ import SegmentList from "./components/SegmentList.vue";
 import { useStorage } from "@vueuse/core";
 import { showFileDialog } from "@renderer/utils/fileSystem";
 import { taskApi, commonApi } from "@renderer/apis";
+import { useConfirm } from "@renderer/hooks";
 
 import { useLlcProject } from "./hooks";
 import { useDrive } from "@renderer/hooks/drive";
@@ -215,7 +216,7 @@ const {
 const { duration: videoDuration, rawCuts } = storeToRefs(useSegmentStore());
 const { appConfig } = storeToRefs(useAppConfig());
 
-const { undo, redo } = useSegmentStore();
+const { undo, redo, clearHistory } = useSegmentStore();
 
 const videoVCutOptions = toReactive(
   computed({
@@ -229,15 +230,24 @@ const videoVCutOptions = toReactive(
 const exportOptions = computed(() => {
   return [
     ...exportBtns.value,
-    { label: "关闭视频", key: "closeVideo", disabled: !files.value.videoPath },
+    { label: "关闭", key: "closeVideo", disabled: !files.value.videoPath },
   ];
 });
+const confirm = useConfirm();
 
-const handleProjectBtnClick = (key?: string | number) => {
+const handleProjectBtnClick = async (key?: string | number) => {
   if (key === "closeVideo") {
+    const [status] = await confirm.warning({
+      content: "是否确认关闭？相关数据将被清理，且无法恢复",
+    });
+    if (!status) return;
+
     handleVideo("");
+    files.value.danmuPath = null;
+    files.value.originDanmuPath = null;
     fileList.value = [];
     rawCuts.value = [];
+    clearHistory();
   } else {
     handleProjectClick(key);
   }
@@ -285,7 +295,6 @@ const handleVideo = async (path: string) => {
   if (isWeb.value) {
     const { videoId, type } = await commonApi.applyVideoId(path);
     const videoUrl = await commonApi.getVideo(videoId);
-    console.log(videoUrl);
     files.value.videoPath = videoUrl;
     await videoRef.value?.switchUrl(videoUrl, type as any);
   } else {
