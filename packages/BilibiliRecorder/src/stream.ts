@@ -223,13 +223,13 @@ async function getLiveInfo(
       ?.format.find(({ format_name }) => format_name === condition.format_name)
       ?.codec.filter(({ codec_name }) => codec_name === condition.codec_name);
 
-    if (streamList.length > 1) {
+    if (streamList && streamList.length > 1) {
       // 由于录播姬直推hevc时，指定qn，服务端仍会返回其他画质的流，这里需要指定找一下流
       streamInfo = streamList.find((item) => item.current_qn === opts.qn);
     }
 
     if (!streamInfo) {
-      streamInfo = streamList[0];
+      streamInfo = streamList?.[0];
     }
 
     if (streamInfo) {
