@@ -23,8 +23,8 @@ describe("processDanmuOffset", () => {
     const result = processDanmuOffset(danmuItems, videoDuration, startOffset, isP);
 
     expect(result).toHaveLength(2);
-    expect(result[0]["@_p"]).toMatch(/^70.5,/); // 10.5 + 60
-    expect(result[1]["@_p"]).toMatch(/^80.8,/); // 20.8 + 60
+    expect(result[0]["@_p"]).toMatch(/^70.500,/); // 10.5 + 60
+    expect(result[1]["@_p"]).toMatch(/^80.800,/); // 20.8 + 60
   });
 
   // 测试其他类型弹幕(ts属性)的时间偏移
@@ -39,8 +39,8 @@ describe("processDanmuOffset", () => {
     const result = processDanmuOffset(items, videoDuration, startOffset);
 
     expect(result).toHaveLength(2);
-    expect(result[0]["@_ts"]).toBe("35.2"); // 5.2 + 30
-    expect(result[1]["@_ts"]).toBe("45.7"); // 15.7 + 30
+    expect(result[0]["@_ts"]).toBe("35.200"); // 5.2 + 30
+    expect(result[1]["@_ts"]).toBe("45.700"); // 15.7 + 30
   });
 
   // 测试过滤超出视频时长的弹幕
@@ -89,10 +89,10 @@ describe("processDanmuOffset", () => {
     const resultOther = processDanmuOffset(otherItems, 20, 10);
 
     expect(resultDanmu).toHaveLength(1);
-    expect(resultDanmu[0]["@_p"]).toMatch(/^35,/); // 30.0 + 5
+    expect(resultDanmu[0]["@_p"]).toMatch(/^35.000,/); // 30.0 + 5
 
     expect(resultOther).toHaveLength(1);
-    expect(resultOther[0]["@_ts"]).toBe("30"); // 20.0 + 10
+    expect(resultOther[0]["@_ts"]).toBe("30.000"); // 20.0 + 10
   });
 
   // 测试p属性中的其他参数保持不变
@@ -107,7 +107,7 @@ describe("processDanmuOffset", () => {
     const resultParts = result["@_p"].split(",");
 
     // 第一个参数是时间，应该被修改
-    expect(resultParts[0]).toBe("15.5"); // 10.5 + 5
+    expect(resultParts[0]).toBe("15.500"); // 10.5 + 5
 
     // 其他参数应该保持不变
     for (let i = 1; i < originalParts.length; i++) {
