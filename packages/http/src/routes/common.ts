@@ -15,7 +15,7 @@ import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
 import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
 
-import { config } from "../index.js";
+import { config, handler } from "../index.js";
 
 const router = new Router({
   prefix: "/common",
@@ -417,6 +417,45 @@ router.post("/parseDanmu", async (ctx) => {
   };
   const data = await parseDanmu(filepath);
   ctx.body = data;
+});
+
+router.post("/testWebhook", async (ctx) => {
+  const list: { id: string; file: string }[] = [];
+  // 检查所有live数据，如果存在同一个live中，前一个part还在录制中，但是后面的part已经是其他状态，则返回相关id以及文件
+  const liveList = handler.liveData;
+  for (const live of liveList) {
+    const partList = live.parts;
+    console.log(partList);
+    if (partList.length < 2) continue;
+    for (let i = 0; i < partList.length - 1; i++) {
+      const part1 = partList[i];
+      const part2 = partList[i + 1];
+      if (part1.recordStatus === "recording" && part2) {
+        list.push({
+          id: part1.partId,
+          file: part1.filePath,
+        });
+      }
+    }
+  }
+  ctx.body = list;
+});
+
+router.post("/handleWebhook", async (ctx) => {
+  const { data } = ctx.request.body as {
+    data: { id: string }[];
+  };
+  const liveList = handler.liveData;
+  for (const live of liveList) {
+    const partList = live.parts;
+    for (const part of partList) {
+      const item = data.find((item) => item.id === part.partId);
+      if (item) {
+        part.recordStatus = "recorded";
+      }
+    }
+  }
+  ctx.body = "success";
 });
 
 export default router;

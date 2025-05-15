@@ -193,6 +193,22 @@ export const parseDanmu = async (
   return res.data;
 };
 
+/**
+ * 测试webhook是否存在不正常数据，如果有则返回相关id以及文件
+ */
+export const testWebhook = async (): Promise<{ id: string; file: string }[]> => {
+  const res = await request.post("/common/testWebhook");
+  return res.data;
+};
+
+/**
+ * 处理webhook不正常数据
+ */
+export const handleWebhook = async (data: { id: string }[]) => {
+  const res = await request.post("/common/handleWebhook", { data });
+  return res.data;
+};
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
@@ -213,6 +229,8 @@ const common = {
   getVideo,
   applyVideoId,
   parseDanmu,
+  testWebhook,
+  handleWebhook,
 };
 
 export default common;

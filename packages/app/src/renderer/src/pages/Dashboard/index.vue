@@ -1,9 +1,14 @@
 <template>
-  <h1 class="center">已运行{{ formatTime(now - appStartTime) }}</h1>
+  <div class="center">
+    <h1>已运行{{ formatTime(now - appStartTime) }}</h1>
+
+    <n-button type="primary" @click="handleWebhook">Webhook卡住不能上传？点我试试</n-button>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { commonApi } from "@renderer/apis";
+import { useConfirm } from "@renderer/hooks";
 
 defineOptions({
   name: "Dashboard",
@@ -45,12 +50,30 @@ onActivated(() => {
   getTime();
   createInterval();
 });
+
+const confirm = useConfirm();
+const notice = useNotice();
+const handleWebhook = async () => {
+  const res = await commonApi.testWebhook();
+  if (res.length === 0) {
+    notice.warning("没有发现问题");
+    return false;
+  }
+  const list = res.map((item) => `${item.file}`).join("\n");
+
+  const [status] = await confirm.warning({
+    title: "以下数据存在问题，是否处理？",
+    content: `${list}`,
+  });
+  if (!status) return false;
+  await commonApi.handleWebhook(res);
+  notice.success("处理成功");
+  return true;
+};
 </script>
 
 <style scoped lang="less">
 .center {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  text-align: center;
 }
 </style>
