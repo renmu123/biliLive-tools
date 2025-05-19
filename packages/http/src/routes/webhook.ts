@@ -229,7 +229,7 @@ router.get("/bili/stream", async (ctx) => {
     ctx.set("Content-Type", "application/vnd.apple.mpegurl");
     ctx.body = m3u8Content;
   } catch (error) {
-    log.error("获取bili录播姬直播流失败", error);
+    log.error("获取bili直播流内容失败", error);
     ctx.status = 403;
   }
 });
