@@ -272,7 +272,6 @@
             clearable
           />
           <n-checkbox
-            v-if="options.config.seasonId"
             v-model:checked="options.config.no_disturbance"
             :checked-value="1"
             :unchecked-value="0"
