@@ -261,7 +261,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (this.saveGiftDanma === false) return;
     const gift: GiveGift = {
       type: "give_gift",
-      timestamp: Number(msg.common.createTime) * 1000,
+      timestamp:
+        Number(msg.common.createTime) > 9999999999
+          ? Number(msg.common.createTime)
+          : Number(msg.common.createTime) * 1000,
       name: msg.gift.name,
       price: 1,
       count: Number(msg.totalCount ?? 1),
