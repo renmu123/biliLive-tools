@@ -156,7 +156,7 @@ export async function getRoomInfo(
 
   assert(
     res.data.status_code === 0,
-    `Unexpected resp, code ${res.data.status_code}, msg ${res.data.data}, id ${webRoomId}`,
+    `Unexpected resp, code ${res.data.status_code}, msg ${JSON.stringify(res.data.data)}, id ${webRoomId}`,
   );
 
   const data = res.data.data;
