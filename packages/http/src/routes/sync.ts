@@ -7,9 +7,11 @@ import Router from "koa-router";
 import {
   addSyncTask,
   isLogin,
-  loginByCookie,
+  baiduPCSLogin,
   aliyunpanLogin,
 } from "@biliLive-tools/shared/task/sync.js";
+
+import type { SyncType } from "@biliLive-tools/types";
 
 const router = new Router({
   prefix: "/sync",
@@ -17,8 +19,11 @@ const router = new Router({
 
 async function uploadTest(params: {
   remoteFolder: string;
-  execPath: string;
-  type: "baiduPCS" | "aliyunpan";
+  type: SyncType;
+  execPath?: string;
+  apiUrl?: string;
+  username?: string;
+  password?: string;
 }) {
   // 在临时文件新建一个文件，内容为"biliLive-tools"
   const tempFilePath = path.join(os.tmpdir(), "biliLive-tools-upload-test.txt");
@@ -31,6 +36,9 @@ async function uploadTest(params: {
       retry: 0,
       policy: "overwrite",
       type: params.type,
+      apiUrl: params.apiUrl,
+      username: params.username,
+      password: params.password,
     });
     task.on("task-end", (data) => {
       console.log("task-end", data);
@@ -58,7 +66,7 @@ router.post("/uploadTest", async (ctx) => {
   }
 });
 
-router.post("/loginByCookie", async (ctx) => {
+router.post("/baiduPCSLogin", async (ctx) => {
   const params = ctx.request.body;
   // @ts-ignore
   const { cookie, execPath } = params;
@@ -70,7 +78,7 @@ router.post("/loginByCookie", async (ctx) => {
   }
 
   try {
-    const success = await loginByCookie({ cookie, execPath });
+    const success = await baiduPCSLogin({ cookie, execPath });
     ctx.body = success ? "登录成功" : "登录失败";
   } catch (error: any) {
     ctx.status = 500;
@@ -81,10 +89,13 @@ router.post("/loginByCookie", async (ctx) => {
 router.get("/isLogin", async (ctx) => {
   const params = ctx.request.query;
   // @ts-ignore
-  const { execPath, type } = params;
+  const { execPath, type, apiUrl, username, password } = params;
   const status = await isLogin({
     execPath: execPath as string,
-    type: type as "baiduPCS" | "aliyunpan",
+    type: type as SyncType,
+    apiUrl: apiUrl as string,
+    username: username as string,
+    password: password as string,
   });
   ctx.body = status;
 });
@@ -108,11 +119,12 @@ router.get("/aliyunpanLogin", async (ctx) => {
 router.post("/sync", async (ctx) => {
   const params = ctx.request.body;
   // @ts-ignore
-  const { file, type, options } = params;
+  const { file, type, options, targetPath } = params;
   const task = await addSyncTask({
     input: file,
-    type: type as "baiduPCS" | "aliyunpan",
+    type: type as SyncType,
     removeOrigin: options.removeOrigin,
+    remotePath: targetPath,
   });
   ctx.body = task.taskId;
 });

@@ -80,19 +80,6 @@
               <FolderOpenOutline />
             </n-icon>
           </n-form-item>
-          <!-- 百度网盘cookie -->
-          <n-form-item>
-            <template #label>
-              <Tip
-                tip="在网盘中保存文件的根目录，不会有重复文件检查，采用软件的设置"
-                text="网盘目标目录"
-              ></Tip>
-            </template>
-            <n-input
-              v-model:value="config.sync.baiduPCS.targetPath"
-              placeholder="请选择要上传的网盘目标路径"
-            />
-          </n-form-item>
         </n-tab-pane>
         <n-tab-pane
           class="tab-pane"
@@ -134,17 +121,27 @@
               <FolderOpenOutline />
             </n-icon>
           </n-form-item>
+        </n-tab-pane>
+        <n-tab-pane class="tab-pane" name="alist" tab="alist" display-directive="show:lazy">
           <n-form-item>
-            <template #label>
-              <Tip
-                tip="在网盘中保存文件的根目录，不会有重复文件检查，采用软件的设置"
-                text="网盘目标目录"
-              ></Tip>
+            <template #label> 项目地址 </template>
+            <a href="https://alistgo.com" class="external" target="_blank">https://alistgo.com</a>
+          </n-form-item>
+          <n-form-item>
+            <template #label> <Tip text="api地址" tip=""> </Tip> </template>
+
+            <n-input v-model:value="config.sync.alist.apiUrl" placeholder="请输入api地址" />
+            <template v-if="config.sync.alist.apiUrl">
+              <n-button style="margin-left: 10px" type="primary" @click="login('alist')"
+                >登录</n-button
+              >
+              <n-button style="margin-left: 10px" type="warning" @click="loginCheck('alist')"
+                >登录检查</n-button
+              >
+              <n-button style="margin-left: 10px" type="info" @click="uploadCheck('alist')"
+                >上传测试</n-button
+              >
             </template>
-            <n-input
-              v-model:value="config.sync.aliyunpan.targetPath"
-              placeholder="请选择要上传的网盘目标路径"
-            />
           </n-form-item>
         </n-tab-pane>
       </n-tabs>
@@ -166,7 +163,17 @@
           ></n-input>
         </template>
         <template v-else-if="loginType === 'aliyunpan'">
+          <h2>完成操作后点击确认按钮即可完成登录</h2>
           <h2>{{ cookies }}</h2>
+        </template>
+        <template v-else-if="loginType === 'alist'">
+          <n-input v-model:value="alistData.username" placeholder="请输入用户名" />
+          <n-input
+            v-model:value="alistData.password"
+            placeholder="请输入密码"
+            type="password"
+            style="margin-top: 20px"
+          />
         </template>
         <template v-else>
           <h2>登录类型错误</h2>
@@ -210,6 +217,7 @@
               :options="[
                 { label: '百度网盘', value: 'baiduPCS' },
                 { label: '阿里云盘', value: 'aliyunpan' },
+                { label: 'alist', value: 'alist' },
               ]"
             />
           </n-form-item>
@@ -242,13 +250,37 @@
         </template>
       </n-card>
     </n-modal>
+    <n-modal v-model:show="uploadPathModalVisible" :mask-closable="false" auto-focus>
+      <n-card
+        style="width: 600px"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+        class="card"
+      >
+        <template #header>
+          <n-text
+            >输入上传路径
+            <span v-if="currentUploadType === 'alist'">(alist需要带上挂载路径)</span>
+          </n-text>
+        </template>
+        <n-input v-model:value="uploadPath" placeholder="请输入上传路径，例如：/test" />
+        <template #footer>
+          <div class="footer">
+            <n-button class="btn" @click="uploadPathModalVisible = false">取消</n-button>
+            <n-button type="primary" class="btn" @click="confirmUploadCheck">确认</n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { FolderOpenOutline, Add } from "@vicons/ionicons5";
 import { showFileDialog } from "@renderer/utils/fileSystem";
-import { uuid } from "@renderer/utils";
+import { uuid, sha256 } from "@renderer/utils";
 
 import { syncApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
@@ -268,21 +300,31 @@ const config = defineModel<AppConfig>("data", {
 const isWeb = computed(() => window.isWeb);
 
 const selectFolder = async (type: SyncType) => {
-  let file = await showFileDialog({
-    extensions: ["*"],
-  });
-  if (!file || file.length === 0) return;
-  config.value.sync[type].execPath = file[0];
+  if (["aliyunpan", "baiduPCS"].includes(type)) {
+    let file = await showFileDialog({
+      extensions: ["*"],
+    });
+    if (!file || file.length === 0) return;
+    config.value.sync[type as "baiduPCS" | "aliyunpan"].execPath = file[0];
+  } else {
+    throw new Error("选择类型错误");
+  }
 };
 
 const notice = useNotice();
 const loginVisible = ref(false);
 const cookies = ref("");
+const alistData = ref({
+  username: "",
+  password: "",
+});
 const loginType = ref<SyncType>("baiduPCS");
 const login = async (type: SyncType) => {
-  if (!config.value.sync[type].execPath) {
-    notice.error("请先选择可执行文件");
-    return;
+  if (["aliyunpan", "baiduPCS"].includes(type)) {
+    if (!config.value.sync[type as "baiduPCS" | "aliyunpan"].execPath) {
+      notice.error("请先选择可执行文件");
+      return;
+    }
   }
   cookies.value = "";
   loginType.value = type;
@@ -293,17 +335,26 @@ const login = async (type: SyncType) => {
       type: "getUrl",
     });
     cookies.value = content;
+  } else if (type === "alist") {
+    alistData.value = {
+      username: config.value.sync.alist.username,
+      password: "",
+    };
   }
   loginVisible.value = true;
 };
 
+const sha256ForAlist = (password: string) => {
+  return sha256(`${password}-https://github.com/alist-org/alist`);
+};
+
 const loginConfirm = async () => {
-  if (!cookies.value) {
-    notice.error("请先输入cookie");
-    return;
-  }
   if (loginType.value === "baiduPCS") {
-    await syncApi.loginByCookie({
+    if (!cookies.value) {
+      notice.error("请先输入cookie");
+      return;
+    }
+    await syncApi.baiduPCSLogin({
       cookie: cookies.value,
       execPath: config.value.sync.baiduPCS.execPath,
     });
@@ -312,6 +363,15 @@ const loginConfirm = async () => {
       execPath: config.value.sync.aliyunpan.execPath,
       type: "confirm",
     });
+  } else if (loginType.value === "alist") {
+    await syncApi.syncTestLogin({
+      apiUrl: config.value.sync.alist.apiUrl,
+      username: alistData.value.username,
+      password: sha256ForAlist(alistData.value.password),
+      type: "alist",
+    });
+    config.value.sync.alist.hashPassword = sha256ForAlist(alistData.value.password);
+    config.value.sync.alist.username = alistData.value.username;
   } else {
     notice.error("登录类型错误，请重新登录");
     return;
@@ -332,38 +392,85 @@ const loginCancel = async () => {
 };
 
 const loginCheck = async (type: SyncType) => {
-  if (!config.value.sync[type].execPath) {
-    notice.error("请先选择可执行文件");
-    return;
+  let status = false;
+  if (["aliyunpan", "baiduPCS"].includes(type)) {
+    if (!config.value.sync[type as "baiduPCS" | "aliyunpan"].execPath) {
+      notice.error("请先选择可执行文件");
+      return;
+    }
+    status = await syncApi.syncTestLogin({
+      execPath: config.value.sync[type as "baiduPCS" | "aliyunpan"].execPath,
+      type: type as "baiduPCS" | "aliyunpan",
+    });
+  } else if (type === "alist") {
+    status = await syncApi.syncTestLogin({
+      apiUrl: config.value.sync.alist.apiUrl,
+      username: config.value.sync.alist.username,
+      password: config.value.sync.alist.hashPassword,
+      type: "alist",
+    });
+  } else {
+    throw new Error("登录类型错误");
   }
 
-  const status = await syncApi.syncTestLogin({
-    execPath: config.value.sync[type].execPath,
-    type,
-  });
   if (status) {
     notice.success("已存在登录信息");
   } else {
     notice.error("未检测到登录信息，请先登录");
   }
 };
+
+const uploadPathModalVisible = ref(false);
+const uploadPath = ref("/");
+const currentUploadType = ref<SyncType>("baiduPCS");
+
 const uploadCheck = async (type: SyncType) => {
-  if (!config.value.sync[type].execPath) {
-    notice.error("请先选择可执行文件");
-    return;
-  }
-  if (!config.value.sync[type].targetPath) {
-    notice.error("请先选择网盘目标路径");
-    return;
+  if (type === "alist") {
+    if (!config.value.sync.alist.apiUrl) {
+      notice.error("请先输入api地址");
+      return;
+    }
+    if (!config.value.sync.alist.username || !config.value.sync.alist.hashPassword) {
+      notice.error("请先登录");
+      return;
+    }
+  } else if (["aliyunpan", "baiduPCS"].includes(type)) {
+    if (!config.value.sync[type as "baiduPCS" | "aliyunpan"].execPath) {
+      notice.error("请先选择可执行文件");
+      return;
+    }
+  } else {
+    throw new Error("上传类型错误");
   }
 
-  await syncApi.syncTestUpload({
-    execPath: config.value.sync[type].execPath,
-    remoteFolder: config.value.sync[type].targetPath,
-    type,
-  });
-  notice.success("上传测试成功，请前往网盘进行查看");
+  currentUploadType.value = type;
+  uploadPath.value = "/";
+  uploadPathModalVisible.value = true;
 };
+
+const confirmUploadCheck = async () => {
+  const type = currentUploadType.value;
+
+  notice.info("上传中，请稍等~");
+  if (["aliyunpan", "baiduPCS"].includes(type)) {
+    await syncApi.syncTestUpload({
+      execPath: config.value.sync[type as "baiduPCS" | "aliyunpan"].execPath,
+      remoteFolder: uploadPath.value,
+      type,
+    });
+  } else if (type === "alist") {
+    await syncApi.syncTestUpload({
+      apiUrl: config.value.sync.alist.apiUrl,
+      username: config.value.sync.alist.username,
+      password: config.value.sync.alist.hashPassword,
+      remoteFolder: uploadPath.value,
+      type,
+    });
+  }
+  notice.success("上传测试成功，请前往目标目录进行查看");
+  uploadPathModalVisible.value = false;
+};
+
 const baiduPCSClientClogin = async () => {
   notice.info("登录完成后请关闭窗口");
   const cookie = await window.api.cookie.baiduLogin();
@@ -376,7 +483,7 @@ const editingConfig = ref<SyncConfig>({
   id: uuid(),
   name: "",
   syncSource: "baiduPCS",
-  folderStructure: "{{user}}/{{year}}-{{month}}",
+  folderStructure: "/录播/{{user}}/{{year}}-{{month}}",
   targetFiles: [],
 });
 
@@ -386,6 +493,7 @@ const getSyncSourceLabel = (value: string) => {
   const options = {
     baiduPCS: "百度网盘",
     aliyunpan: "阿里云盘",
+    alist: "alist",
   };
   return options[value] || value;
 };
@@ -406,7 +514,7 @@ const addSyncConfig = () => {
     id: uuid(),
     name: "",
     syncSource: "baiduPCS",
-    folderStructure: "{{user}}/{{year}}-{{month}}",
+    folderStructure: "/录播/{{user}}/{{year}}-{{month}}",
     targetFiles: [],
   };
   syncConfigModalVisible.value = true;

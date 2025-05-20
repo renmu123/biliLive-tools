@@ -16,6 +16,11 @@
         placeholder="选择同步类型"
         style="width: 140px; display: inline-block"
       />
+      <n-input
+        v-model:value="options.targetPath"
+        placeholder="请输入目标路径"
+        style="width: 200px"
+      />
       <n-checkbox v-model:checked="options.removeOrigin"> 完成后移除源文件 </n-checkbox>
     </div>
   </div>
@@ -65,6 +70,10 @@ const syncConfigOptions = computed(() => {
       label: "阿里云盘",
       value: "aliyunpan",
     },
+    {
+      label: "alist",
+      value: "alist",
+    },
   ];
 });
 
@@ -94,6 +103,7 @@ const sync = async () => {
     await syncApi.sync({
       file: file.path,
       type: options.syncType,
+      targetPath: options.targetPath,
       options: {
         removeOrigin: options.removeOrigin,
       },

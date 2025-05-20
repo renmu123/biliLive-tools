@@ -135,7 +135,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
       fs.appendFileSync(logFilePath, log.text + "\n");
       return;
     } else {
-      logger.info(`record: ${log.text}`);
+      logger.info(`recorder: ${log.text}`);
     }
   });
   manager.on("RecordStart", (debug) => {

@@ -460,21 +460,12 @@ export class WebhookHandler {
       folderStructure = folderStructure.replace(new RegExp(`{{${key}}}`, "g"), String(value));
     }
 
-    const { binary: binaryPath, target: targetPath } = {
-      binary: config.sync[syncConfig.syncSource].execPath,
-      target: config.sync[syncConfig.syncSource].targetPath,
-    };
-
-    // 如果没有配置同步源，直接返回
-    if (!binaryPath || !targetPath) return;
-
     try {
       // 调用同步函数
       const { addSyncTask } = await import("@biliLive-tools/shared/task/sync.js");
       const task = await addSyncTask({
         input: filePath,
-        remotePath: path.join(targetPath, folderStructure),
-        execPath: binaryPath,
+        remotePath: folderStructure,
         retry: 3,
         policy: "skip",
         type: syncConfig.syncSource,

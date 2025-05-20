@@ -294,7 +294,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
    * @param cookie BDUSS cookie值
    * @returns Promise<boolean> 登录是否成功
    */
-  public async loginByCookie(cookie: string): Promise<boolean> {
+  public async baiduPCSLogin(cookie: string): Promise<boolean> {
     try {
       // 确保cookie格式正确
       if (!cookie.trim()) {

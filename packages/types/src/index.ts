@@ -216,6 +216,8 @@ export type ToolConfig = {
     removeOrigin: boolean;
     /** 同步类型 */
     syncType?: AppConfig["sync"]["syncConfigs"][number]["syncSource"];
+    /** 目标路径 */
+    targetPath: string;
   };
 };
 
@@ -437,12 +439,12 @@ export interface Recorder {
   >;
 }
 
-export type SyncType = "baiduPCS" | "aliyunpan";
+export type SyncType = "baiduPCS" | "aliyunpan" | "alist";
 
 export type SyncConfig = {
   id: string;
   name: string;
-  syncSource: "baiduPCS" | "aliyunpan";
+  syncSource: SyncType;
   folderStructure: string;
   targetFiles: ("source" | "danmaku" | "xml" | "cover")[];
 };
@@ -531,11 +533,14 @@ export interface AppConfig {
   sync: {
     baiduPCS: {
       execPath: string;
-      targetPath: string;
     };
     aliyunpan: {
       execPath: string;
-      targetPath: string;
+    };
+    alist: {
+      apiUrl: string;
+      username: string;
+      hashPassword: string;
     };
     syncConfigs: SyncConfig[];
   };

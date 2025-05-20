@@ -100,6 +100,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     fileSync: {
       removeOrigin: false,
       syncType: undefined,
+      targetPath: "/",
     },
     danmu: {
       danmuPresetId: "default",
@@ -205,11 +206,14 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   sync: {
     baiduPCS: {
       execPath: "",
-      targetPath: "/录播",
     },
     aliyunpan: {
       execPath: "",
-      targetPath: "/录播",
+    },
+    alist: {
+      apiUrl: "",
+      username: "",
+      hashPassword: "",
     },
     syncConfigs: [],
   },

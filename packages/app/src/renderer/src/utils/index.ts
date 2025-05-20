@@ -89,3 +89,7 @@ export function generateHMACSHA256(message, secretKey) {
   // 转换为十六进制字符串
   return hmac.toString(CryptoJS.enc.Hex);
 }
+
+export function sha256(message: string) {
+  return CryptoJS.SHA256(message).toString(CryptoJS.enc.Hex);
+}

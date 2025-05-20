@@ -262,7 +262,7 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
             this.logger.error("获取链接失败");
             reject(new Error("获取链接失败，请重新尝试，或根据文档手动登录"));
           }
-        }, 5000);
+        }, 10000);
 
         // @ts-expect-error
         this.loginCmd.stdout.on("data", (data) => {

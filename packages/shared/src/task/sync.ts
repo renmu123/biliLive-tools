@@ -2,26 +2,53 @@ import { parse } from "node:path";
 
 import { appConfig } from "../config.js";
 import { SyncTask, taskQueue } from "./task.js";
-import { BaiduPCS, AliyunPan } from "../sync/index.js";
+import { BaiduPCS, AliyunPan, Alist } from "../sync/index.js";
 import { trashItem } from "../utils/index.js";
 
 import type { SyncType } from "@biliLive-tools/types";
 
 const getConfig = (type: SyncType) => {
   const config = appConfig.getAll();
-  return { binary: config.sync[type].execPath, target: config.sync[type].targetPath };
+  if (type === "alist") {
+    return {
+      binary: "",
+      apiUrl: config.sync[type as "alist"].apiUrl,
+      username: config.sync[type as "alist"].username,
+      password: config.sync[type as "alist"].hashPassword,
+    };
+  } else if (["aliyunpan", "baiduPCS"].includes(type)) {
+    return {
+      binary: config.sync[type].execPath,
+    };
+  } else {
+    throw new Error("Unsupported type");
+  }
 };
 
-const createUploadInstance = (type: SyncType, execPath: string, remotePath: string) => {
-  if (type === "baiduPCS") {
+const createUploadInstance = (opts: {
+  type: SyncType;
+  execPath: string;
+  remotePath: string;
+  apiUrl?: string;
+  username?: string;
+  password?: string;
+}) => {
+  if (opts.type === "baiduPCS") {
     return new BaiduPCS({
-      binary: execPath,
-      remotePath: remotePath ?? "",
+      binary: opts.execPath,
+      remotePath: opts.remotePath ?? "",
     });
-  } else if (type === "aliyunpan") {
+  } else if (opts.type === "aliyunpan") {
     return new AliyunPan({
-      binary: execPath,
-      remotePath: remotePath ?? "",
+      binary: opts.execPath,
+      remotePath: opts.remotePath ?? "",
+    });
+  } else if (opts.type === "alist") {
+    return new Alist({
+      server: opts.apiUrl,
+      username: opts.username,
+      password: opts.password,
+      remotePath: opts.remotePath ?? "",
     });
   } else {
     throw new Error("Unsupported type");
@@ -36,6 +63,9 @@ export const addSyncTask = async ({
   policy,
   type,
   removeOrigin,
+  apiUrl,
+  username,
+  password,
 }: {
   input: string;
   remotePath?: string;
@@ -44,9 +74,25 @@ export const addSyncTask = async ({
   policy?: "fail" | "newcopy" | "overwrite" | "skip" | "rsync";
   type: SyncType;
   removeOrigin?: boolean;
+  apiUrl?: string;
+  username?: string;
+  password?: string;
 }) => {
-  const { binary: binaryPath, target: targetPath } = getConfig(type);
-  const instance = createUploadInstance(type, execPath ?? binaryPath, remotePath ?? targetPath);
+  const {
+    binary: binaryPath,
+    apiUrl: iApiUrl,
+    username: iUsername,
+    password: iPassword,
+  } = getConfig(type);
+  console.log(type, binaryPath, iApiUrl, iUsername, iPassword);
+  const instance = createUploadInstance({
+    type,
+    execPath: execPath ?? binaryPath,
+    remotePath: remotePath ?? "/",
+    apiUrl: apiUrl ?? iApiUrl,
+    username: username ?? iUsername,
+    password: password ?? iPassword,
+  });
 
   const task = new SyncTask(
     instance,
@@ -71,7 +117,7 @@ export const addSyncTask = async ({
   return task;
 };
 
-export const loginByCookie = async ({
+export const baiduPCSLogin = async ({
   cookie,
   execPath,
 }: {
@@ -83,13 +129,37 @@ export const loginByCookie = async ({
     binary: execPath ?? binaryPath,
     remotePath: "",
   });
-  return instance.loginByCookie(cookie);
+  return instance.baiduPCSLogin(cookie);
 };
 
-export const isLogin = async ({ execPath, type }: { execPath?: string; type: SyncType }) => {
+export const isLogin = async ({
+  execPath,
+  type,
+  apiUrl,
+  username,
+  password,
+}: {
+  execPath?: string;
+  type: SyncType;
+  apiUrl?: string;
+  username?: string;
+  password?: string;
+}) => {
   const { binary: binaryPath } = getConfig(type);
-  const instance = createUploadInstance(type, execPath ?? binaryPath, "");
-  return instance.isLoggedIn();
+  const instance = createUploadInstance({
+    type,
+    execPath: execPath ?? binaryPath,
+    remotePath: "",
+    apiUrl,
+    username,
+    password,
+  });
+  if (type === "alist") {
+    const status = await (instance as Alist).login();
+    return status;
+  } else {
+    return instance.isLoggedIn();
+  }
 };
 
 let aliyunpanLoginInstance: AliyunPan | null = null;
