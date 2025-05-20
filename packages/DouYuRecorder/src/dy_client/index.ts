@@ -161,7 +161,12 @@ export function createDYClient(
 
   const sendLogin = () => send({ type: "loginreq", roomid: channelId });
   const sendJoinGroup = () => send({ type: "joingroup", rid: channelId, gid: -9999 });
-  const sendHeartbeat = () => send({ type: "mrkl" });
+  const sendHeartbeat = () => {
+    if (ws?.readyState !== WebSocket.OPEN) {
+      return;
+    }
+    send({ type: "mrkl" });
+  };
   const sendLogout = () => send({ type: "logout" });
 
   const onOpen = () => {

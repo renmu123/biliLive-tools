@@ -77,7 +77,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   ) {
     super();
     this.roomId = roomId;
-    this.heartbeatInterval = options.heartbeatInterval ?? 5000;
+    this.heartbeatInterval = options.heartbeatInterval ?? 10000;
     this.autoStart = options.autoStart ?? false;
     this.autoReconnect = options.autoReconnect ?? 10;
     this.reconnectAttempts = 0;
@@ -144,8 +144,12 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
 
   private startHeartbeat() {
     this.heartbeatTimer = setInterval(() => {
-      this.emit("heartbeat");
-      this.send(":\x02hb");
+      if (this.ws.readyState === WebSocket.OPEN) {
+        this.emit("heartbeat");
+        this.send(":\x02hb");
+      } else {
+        console.log("连接未就绪，当前状态:", this.ws.readyState);
+      }
     }, this.heartbeatInterval);
   }
 

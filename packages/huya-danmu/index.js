@@ -199,6 +199,9 @@ class huya_danmu extends events {
   }
 
   _heartbeat() {
+    if (this._client.readyState !== ws.OPEN) {
+      return;
+    }
     const heart_beat_req = new HUYA.UserHeartBeatReq();
     const user_id = new HUYA.UserId();
     user_id.sHuYaUA = "webh5&1.0.0&websocket";
