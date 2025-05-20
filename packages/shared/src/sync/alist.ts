@@ -4,7 +4,6 @@ import fs from "fs-extra";
 import logger from "../utils/log.js";
 import { TypedEmitter } from "tiny-typed-emitter";
 import axios, { AxiosInstance } from "axios";
-import FormData from "form-data";
 
 export interface AlistOptions {
   /**
@@ -222,13 +221,7 @@ export class Alist extends TypedEmitter<AlistEvents> {
    * @param remoteDir 远程目录路径（相对于基础远程路径）
    * @returns Promise<void> 上传成功时resolve，失败时reject
    */
-  public async uploadFile(
-    localFilePath: string,
-    remoteDir: string = "",
-    options?: {
-      retry?: number;
-    },
-  ): Promise<void> {
+  public async uploadFile(localFilePath: string, remoteDir: string = ""): Promise<void> {
     if (!(await fs.pathExists(localFilePath))) {
       const error = new Error(`文件不存在: ${localFilePath}`);
       this.logger.error(error.message);

@@ -889,6 +889,7 @@ export class SyncTask extends AbstractTask {
     this.action = ["kill"];
     this.callback = callback || {};
 
+    // @ts-expect-error
     this.instance.on("progress", (progress: any) => {
       // console.log("sync progress", progress);
       callback?.onProgress && callback.onProgress(progress.percentage);

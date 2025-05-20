@@ -87,7 +87,7 @@ import CommonSetting from "./CommonWebhookSetting.vue";
 import { useConfirm } from "@renderer/hooks";
 import { cloneDeep } from "lodash-es";
 
-import type { AppRoomConfig } from "@biliLive-tools/types";
+import type { AppRoomConfig, SyncType } from "@biliLive-tools/types";
 
 type Options = {
   value: string;
@@ -104,7 +104,7 @@ const props = defineProps<{
   syncConfigs: {
     id: string;
     name: string;
-    syncSource: "baiduPCS" | "aliyunpan";
+    syncSource: SyncType;
   }[];
 }>();
 

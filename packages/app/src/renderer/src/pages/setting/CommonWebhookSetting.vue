@@ -499,7 +499,7 @@ import { previewWebhookTitle, previewWebhookPartTitle } from "@renderer/apis/com
 import { templateRef } from "@vueuse/core";
 import { uploadTitleTemplate } from "@renderer/enums";
 
-import type { AppRoomConfig } from "@biliLive-tools/types";
+import type { AppRoomConfig, SyncType } from "@biliLive-tools/types";
 
 type Options = {
   value: string;
@@ -516,7 +516,7 @@ const props = defineProps<{
   syncConfigs: {
     id: string;
     name: string;
-    syncSource: "baiduPCS" | "aliyunpan";
+    syncSource: SyncType;
   }[];
 }>();
 

@@ -233,6 +233,7 @@ export const useAppConfig = defineStore("appConfig", () => {
       fileSync: {
         removeOrigin: false,
         syncType: undefined,
+        targetPath: "",
       },
       danmu: {
         danmuPresetId: "",
