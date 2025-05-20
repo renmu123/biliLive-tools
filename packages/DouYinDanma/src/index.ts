@@ -57,6 +57,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   private roomId: string;
   private heartbeatInterval: number;
   private heartbeatTimer!: NodeJS.Timeout;
+  private isHeartbeatRunning: boolean = false;
   private autoStart: boolean;
   private autoReconnect: number;
   private reconnectAttempts: number;
@@ -64,6 +65,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   private timeoutInterval: number;
   private lastMessageTime: number;
   private timeoutTimer!: NodeJS.Timeout;
+  private isTimeoutCheckRunning: boolean = false;
 
   constructor(
     roomId: string,
@@ -143,6 +145,13 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   private startHeartbeat() {
+    if (this.isHeartbeatRunning) {
+      return;
+    }
+
+    this.stopHeartbeat();
+    this.isHeartbeatRunning = true;
+
     this.heartbeatTimer = setInterval(() => {
       if (this.ws.readyState === WebSocket.OPEN) {
         this.emit("heartbeat");
@@ -154,22 +163,38 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   private stopHeartbeat() {
-    clearInterval(this.heartbeatTimer);
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.isHeartbeatRunning = false;
+    }
   }
 
   private startTimeoutCheck() {
+    if (this.isTimeoutCheckRunning) {
+      return;
+    }
+
+    this.stopTimeoutCheck();
+    this.isTimeoutCheckRunning = true;
+
+    // 重置最后消息时间，给连接一些初始化时间
     this.lastMessageTime = Date.now();
     this.timeoutTimer = setInterval(() => {
       const now = Date.now();
       if (now - this.lastMessageTime > this.timeoutInterval) {
         console.log("No message received for too long, reconnecting...");
+        // 在重连前重置时间，避免立即触发下一次重连
+        this.lastMessageTime = now;
         this.reconnect();
       }
-    }, 1000); // 每秒检查一次
+    }, 1000);
   }
 
   private stopTimeoutCheck() {
-    clearInterval(this.timeoutTimer);
+    if (this.timeoutTimer) {
+      clearInterval(this.timeoutTimer);
+      this.isTimeoutCheckRunning = false;
+    }
   }
 
   private reconnect() {
