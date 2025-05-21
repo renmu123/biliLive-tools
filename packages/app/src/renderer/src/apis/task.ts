@@ -106,6 +106,16 @@ const mergeVideos = async (
   return res.data;
 };
 
+const checkMergeVideos = async (
+  inputVideos: string[],
+): Promise<{
+  warnings: string[];
+  errors: string[];
+}> => {
+  const res = await request.post(`/task/checkMergeVideos`, { inputVideos });
+  return res.data;
+};
+
 const transcode = async (
   input: string,
   /** 包含后缀 */
@@ -230,6 +240,7 @@ const task = {
   parseVideo,
   downloadVideo,
   cut,
+  checkMergeVideos,
 };
 
 export default task;

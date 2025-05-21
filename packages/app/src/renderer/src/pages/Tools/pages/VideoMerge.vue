@@ -89,6 +89,20 @@ const convert = async () => {
     });
     return;
   }
+  const result = await taskApi.checkMergeVideos(fileList.value.map((item) => item.videoPath));
+  if (result.errors.length > 0) {
+    notice.error({
+      content: result.errors.join("\n"),
+      duration: 5000,
+    });
+    return;
+  }
+  if (result.warnings.length > 0) {
+    notice.warning({
+      content: result.warnings.join("\n"),
+      duration: 5000,
+    });
+  }
   if (options.mergeXml) {
     // 如果开启合并弹幕，那么所有的视频都要有对应的弹幕文件
     const hasDanmaku = fileList.value.every((item) => item.danmakuPath);

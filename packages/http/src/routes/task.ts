@@ -19,6 +19,7 @@ import {
   burn,
   readVideoMeta,
   cut,
+  checkMergeVideos,
 } from "@biliLive-tools/shared/task/video.js";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { trashItem } from "@biliLive-tools/shared/utils/index.js";
@@ -167,6 +168,14 @@ router.post("/convertXml2Ass", async (ctx) => {
   } else {
     ctx.body = { taskId: task.taskId, output: task.output };
   }
+});
+
+router.post("/checkMergeVideos", async (ctx) => {
+  const { inputVideos } = ctx.request.body as {
+    inputVideos: string[];
+  };
+  const result = await checkMergeVideos(inputVideos);
+  ctx.body = result;
 });
 
 router.post("/mergeVideo", async (ctx) => {
