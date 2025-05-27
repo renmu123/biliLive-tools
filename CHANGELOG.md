@@ -1,3 +1,9 @@
+# 1.10.2(2025.5.27)
+
+## Bug修复
+
+- 修复 B 站录制弹幕无法获取的[bug](https://github.com/starknt/tiny-bilibili-ws/pull/10)
+
 # 1.10.1(2025.4.20)
 
 ## 优化
