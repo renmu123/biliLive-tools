@@ -114,8 +114,8 @@ importers:
         specifier: 'catalog:'
         version: 3.0.1
       tiny-bilibili-ws:
-        specifier: ^1.0.1
-        version: 1.0.1(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+        specifier: ^1.0.2
+        version: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.5)
 
   packages/CLI:
     dependencies:
@@ -5064,8 +5064,8 @@ packages:
     resolution: {integrity: sha512-G7r3AhovYtr5YKOWQkta8RKAPb+J9IsO4uVmzjl8AZwfhs8UcUwTiD6gcJYSgOtzyjvQKrKYn41syHbUWMkafA==}
     engines: {node: '>=0.10.0'}
 
-  tiny-bilibili-ws@1.0.1:
-    resolution: {integrity: sha512-BpfvyFBITYl/28/CYtAGg7TICdhQyzKv1U6HX4GF46R3Mokz6cKxMWQVEdb5METMjFueQWo6hlvpuCfZt3+0xw==}
+  tiny-bilibili-ws@1.0.2:
+    resolution: {integrity: sha512-s3AuofXxOJU3RBRxQhQOI2nqqsu7WJcbGsNI8WyH+5JUYDGl/1tmKpfuk+Ig65u9nHZXuz1v2uUkvByO62oH9Q==}
 
   tiny-typed-emitter@2.1.0:
     resolution: {integrity: sha512-qVtvMxeXbVej0cQWKqVSSAHmKZEHAvxdF8HEUBFWts8h+xEo5m/lEiPakuyZ3BnCBjOD8i24kzNOiOLLgsSxhA==}
@@ -7394,7 +7394,7 @@ snapshots:
 
   blive-message-listener@0.5.0(bufferutil@4.0.8)(utf-8-validate@6.0.5):
     dependencies:
-      tiny-bilibili-ws: 1.0.1(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+      tiny-bilibili-ws: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.5)
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -10409,7 +10409,7 @@ snapshots:
 
   timed-out@4.0.1: {}
 
-  tiny-bilibili-ws@1.0.1(bufferutil@4.0.8)(utf-8-validate@6.0.5):
+  tiny-bilibili-ws@1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.5):
     dependencies:
       eventemitter3: 5.0.1
       pako: 2.1.0
