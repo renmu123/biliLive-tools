@@ -2,7 +2,13 @@ import EventEmitter from "node:events";
 
 import fs from "fs-extra";
 import { createRecordExtraDataController } from "./record_extra_data_controller.js";
-import { replaceExtName, ensureFolderExist, isFfmpegStartSegment, isFfmpegStart } from "./utils.js";
+import {
+  replaceExtName,
+  ensureFolderExist,
+  isFfmpegStartSegment,
+  isFfmpegStart,
+  retry,
+} from "./utils.js";
 
 export type GetSavePath = (data: { startTime: number; title?: string }) => string;
 
@@ -35,7 +41,7 @@ export class Segment extends EventEmitter {
 
     try {
       await Promise.all([
-        fs.rename(this.rawRecordingVideoPath, this.outputFilePath),
+        retry(() => fs.rename(this.rawRecordingVideoPath, this.outputFilePath)),
         this.extraDataController?.flush(),
       ]);
       this.emit("videoFileCompleted", { filename: this.outputFilePath });
