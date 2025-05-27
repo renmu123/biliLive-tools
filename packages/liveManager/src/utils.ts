@@ -289,32 +289,26 @@ export function sortByKeyOrder<T, K extends keyof T>(objects: T[], order: T[K][]
 }
 
 /**
- * 重试函数
- * @param fn 要重试的函数
- * @param times 重试次数
- * @param delay 重试间隔时间
+ * 重试执行异步函数
+ * @param fn 要重试的异步函数
+ * @param retries 重试次数,默认为3次
+ * @param delay 重试延迟时间(毫秒),默认为1000ms
+ * @returns Promise
  */
-export function retry<T>(
+export async function retry<T>(
   fn: () => Promise<T>,
-  times: number = 3,
+  retries: number = 3,
   delay: number = 1000,
 ): Promise<T> {
-  return new Promise((resolve, reject) => {
-    function attempt(currentTimes: number) {
-      fn()
-        .then(resolve)
-        .catch((err) => {
-          setTimeout(() => {
-            if (currentTimes === 1) {
-              reject(err);
-            } else {
-              attempt(currentTimes - 1);
-            }
-          }, delay);
-        });
+  try {
+    return await fn();
+  } catch (err) {
+    if (retries <= 0) {
+      throw err;
     }
-    attempt(times);
-  });
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    return retry(fn, retries - 1, delay);
+  }
 }
 
 export default {

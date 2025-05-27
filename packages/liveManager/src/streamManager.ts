@@ -1,6 +1,6 @@
 import EventEmitter from "node:events";
 
-import fs from "fs-extra";
+import fs from "fs/promises";
 import { createRecordExtraDataController } from "./record_extra_data_controller.js";
 import {
   replaceExtName,

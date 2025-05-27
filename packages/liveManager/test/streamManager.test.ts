@@ -1,7 +1,8 @@
+import fs from "fs/promises";
+
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { StreamManager, Segment } from "../src/streamManager";
 
-vi.mock("fs-extra");
 vi.mock("../src/record_extra_data_controller", () => ({
   createRecordExtraDataController: () => ({
     data: {
@@ -45,6 +46,7 @@ describe("StreamManager", () => {
   });
 
   it("should handle video completed with segment", async () => {
+    vi.spyOn(fs, "rename").mockResolvedValue();
     const stderrLine = "Opening 'mockedFilename.ts' for writing";
 
     await streamManager.handleVideoStarted(stderrLine);
