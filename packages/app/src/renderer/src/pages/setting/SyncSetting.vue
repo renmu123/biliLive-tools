@@ -26,7 +26,7 @@
               <n-space vertical>
                 <n-text>同步源: {{ getSyncSourceLabel(config.syncSource) }}</n-text>
                 <n-text>目录结构: {{ config.folderStructure }}</n-text>
-                <n-text>处理文件: {{ getTargetFilesLabel(config.targetFiles) }}</n-text>
+                <n-text>文件类型: {{ getTargetFilesLabel(config.targetFiles) }}</n-text>
               </n-space>
             </n-card>
             <n-card class="sync-config-card" @click="addSyncConfig">
@@ -225,7 +225,7 @@
             <template #label>
               <Tip
                 text="目录结构"
-                tip="支持以下占位符：{{platform}}、{{user}}、{{year}}、{{month}}、{{date}}"
+                tip="支持以下占位符：<br/>平台：{{platform}}<br/>主播名：{{user}}<br/>日期：{{now}}<br/>年：{{yyyy}}<br/>月：{{MM}}<br/>日：{{dd}}"
               >
               </Tip>
             </template>
@@ -483,7 +483,7 @@ const editingConfig = ref<SyncConfig>({
   id: uuid(),
   name: "",
   syncSource: "baiduPCS",
-  folderStructure: "/录播/{{user}}/{{year}}-{{month}}",
+  folderStructure: "/录播/{{user}}/{{yyyy}}-{{MM}}",
   targetFiles: [],
 });
 
@@ -514,7 +514,7 @@ const addSyncConfig = () => {
     id: uuid(),
     name: "",
     syncSource: "baiduPCS",
-    folderStructure: "/录播/{{user}}/{{year}}-{{month}}",
+    folderStructure: "/录播/{{user}}/{{yyyy}}-{{MM}}",
     targetFiles: [],
   };
   syncConfigModalVisible.value = true;
@@ -566,6 +566,11 @@ const saveSyncConfig = () => {
     notice.error("配置名称不能为空");
     return;
   }
+  // 必须要选择至少一个需要同步的文件类型
+  if (editingConfig.value.targetFiles.length === 0) {
+    notice.error("至少选择一个文件类型");
+    return;
+  }
   if (editingConfigIndex.value === null) {
     config.value.sync.syncConfigs.push({ ...editingConfig.value });
   } else {
@@ -605,6 +610,7 @@ const saveSyncConfig = () => {
 
 .sync-config-card {
   height: 100%;
+  min-height: 120px;
   .add-card {
     cursor: pointer;
     position: absolute;

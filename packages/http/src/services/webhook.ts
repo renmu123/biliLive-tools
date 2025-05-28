@@ -39,7 +39,7 @@ export const enum EventType {
 export class Live {
   eventId: string;
   platform: Platform;
-  startTime?: number;
+  startTime: number;
   roomId: number;
   // 直播标题
   title: string;
@@ -56,7 +56,7 @@ export class Live {
     roomId: number;
     title: string;
     username: string;
-    startTime?: number;
+    startTime: number;
     aid?: number;
     rawAid?: number;
   }) {
@@ -429,28 +429,25 @@ export class WebhookHandler {
     let platform: Platform = "blrec";
     // let title = "unknown";
     let username = "unknown";
-    let partStartTime = new Date();
 
-    const { live, part } = livePart;
+    const { live } = livePart;
     platform = live.platform;
     // title = live.title;
     username = live.username;
 
-    if (part?.startTime) {
-      partStartTime = new Date(part.startTime);
-    }
+    const liveStartTime = new Date(live.startTime);
 
     // 准备格式化参数
     const formatParams = {
       platform,
       user: username,
-      year: partStartTime.getFullYear(),
-      month: (partStartTime.getMonth() + 1).toString().padStart(2, "0"),
-      date: partStartTime.getDate().toString().padStart(2, "0"),
-      yyyy: partStartTime.getFullYear(),
-      MM: (partStartTime.getMonth() + 1).toString().padStart(2, "0"),
-      dd: partStartTime.getDate().toString().padStart(2, "0"),
-      now: `${partStartTime.getFullYear()}.${(partStartTime.getMonth() + 1).toString().padStart(2, "0")}.${partStartTime.getDate().toString().padStart(2, "0")}`,
+      year: liveStartTime.getFullYear(),
+      month: (liveStartTime.getMonth() + 1).toString().padStart(2, "0"),
+      date: liveStartTime.getDate().toString().padStart(2, "0"),
+      yyyy: liveStartTime.getFullYear(),
+      MM: (liveStartTime.getMonth() + 1).toString().padStart(2, "0"),
+      dd: liveStartTime.getDate().toString().padStart(2, "0"),
+      now: `${liveStartTime.getFullYear()}.${(liveStartTime.getMonth() + 1).toString().padStart(2, "0")}.${liveStartTime.getDate().toString().padStart(2, "0")}`,
       partId: livePart?.part?.partId || "",
     };
 
@@ -799,6 +796,7 @@ export class WebhookHandler {
         roomId: options.roomId,
         title: options.title,
         username: options.username,
+        startTime: timestamp,
       });
       // TODO: 通过视频或者弹幕元数据获取开始时间
       live.addPart({
