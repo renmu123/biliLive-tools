@@ -70,6 +70,7 @@
 - 自动检查更新失败时不再报奇怪的错误
 - 修复自定义安装位置后，B站下载视频可能无法调用 ffmpeg 的bug [#86](https://github.com/renmu123/biliLive-tools/issues/86)
 - 修复录制关闭视频未重置部分数据
+- 修复录制出错时重命名失败以及未发送webhook的bug
 
 ## 功能
 

@@ -62,7 +62,7 @@ const handleWebhook = async () => {
   const list = res.map((item) => `${item.file}`).join("\n");
 
   const [status] = await confirm.warning({
-    title: "以下数据存在问题，是否处理？",
+    title: "以下数据存在问题，是否处理，以下数据将会被认为是错误数据，请手动处理？",
     content: `${list}`,
   });
   if (!status) return false;
