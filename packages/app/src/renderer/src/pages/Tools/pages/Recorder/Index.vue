@@ -68,6 +68,7 @@
           <div style="margin-top: 10px" class="section-container">
             <div class="section" @click="startRecord(item.id)">开始录制</div>
             <div class="section" @click="stopRecord(item.id)">停止录制</div>
+            <div class="section" @click="cut(item.id)" style="display: none">切割</div>
             <div class="section" @click="edit(item.id)">直播间设置</div>
             <div class="section" @click="refresh(item.id)">刷新直播间信息</div>
             <div
@@ -335,6 +336,11 @@ const startRecord = async (id: string) => {
 
 const stopRecord = async (id: string) => {
   await recoderApi.stopRecord(id);
+  getList();
+};
+
+const cut = async (id: string) => {
+  await recoderApi.cut(id);
   getList();
 };
 

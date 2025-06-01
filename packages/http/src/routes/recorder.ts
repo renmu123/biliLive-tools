@@ -107,6 +107,11 @@ router.post("/:id/stop_record", async (ctx) => {
   ctx.body = { payload: await recorderService.stopRecord({ id }) };
 });
 
+router.post("/:id/cut", async (ctx) => {
+  const { id } = ctx.params;
+  ctx.body = { payload: await recorderService.cutRecord({ id }) };
+});
+
 // router.get(":id/history", async (ctx) => {
 // const { id } = ctx.params;
 // 分页

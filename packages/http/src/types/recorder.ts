@@ -123,6 +123,11 @@ export interface StopRecordArgs {
 }
 export type StopRecordResp = ClientRecorder;
 
+export interface CutRecordArgs {
+  id: RecoderConfig["id"];
+}
+export type CutRecordResp = ClientRecorder;
+
 export interface GetManagerArgs {}
 // export type GetManagerResp = Omit<RecorderManagerCreateOpts, "providers">;
 
@@ -195,6 +200,10 @@ export type RecorderAPI = {
   stopRecord: {
     Args: StopRecordArgs;
     Resp: StopRecordResp;
+  };
+  cutRecord: {
+    Args: CutRecordArgs;
+    Resp: CutRecordResp;
   };
   // getManager: {
   //   Args: GetManagerArgs;

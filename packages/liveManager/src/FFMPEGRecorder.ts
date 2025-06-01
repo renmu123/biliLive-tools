@@ -50,7 +50,11 @@ export class FFMPEGRecorder extends EventEmitter {
         onUpdateLiveInfo: this.onUpdateLiveInfo,
       },
     );
-    this.timeoutChecker = utils.createTimeoutChecker(() => this.onEnd("ffmpeg timeout"), 3 * 10e3);
+    this.timeoutChecker = utils.createTimeoutChecker(
+      () => this.onEnd("ffmpeg timeout"),
+      3 * 10e3,
+      false,
+    );
     this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
     this.ffmpegOutputOptions = opts.outputOptions;
@@ -77,7 +81,8 @@ export class FFMPEGRecorder extends EventEmitter {
     });
   }
 
-  private createCommand() {
+  createCommand() {
+    this.timeoutChecker?.start();
     const invalidCount = this.isHls ? 35 : 15;
     const isInvalidStream = createInvalidStreamChecker(invalidCount);
     const inputOptions = [
@@ -117,7 +122,7 @@ export class FFMPEGRecorder extends EventEmitter {
           this.onEnd("invalid stream");
         }
       })
-      .on("stderr", this.timeoutChecker.update);
+      .on("stderr", this.timeoutChecker?.update);
     if (this.hasSegment) {
       command.outputOptions(
         "-f",

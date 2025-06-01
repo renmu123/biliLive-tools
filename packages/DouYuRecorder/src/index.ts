@@ -87,7 +87,7 @@ const ffmpegOutputOptions: string[] = [
   "-movflags",
   "faststart+frag_keyframe+empty_moov",
   "-min_frag_duration",
-  "60000000",
+  "10000000",
 ];
 
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
@@ -221,6 +221,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedSource = stream.source;
 
   const onEnd = (...args: unknown[]) => {
+    if (isCutting) {
+      isCutting = false;
+      return;
+    }
     if (isEnded) return;
     isEnded = true;
 
@@ -232,6 +236,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
   let isEnded = false;
+  let isCutting = false;
   const recorder = new FFMPEGRecorder(
     {
       url: stream.url,
@@ -437,6 +442,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
 
+  const cut = utils.singleton<RecordHandle["cut"]>(async () => {
+    if (!this.recordHandle) return;
+    if (isCutting) return;
+    isCutting = true;
+    await recorder.stop();
+    recorder.createCommand();
+    recorder.run();
+  });
+
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
     this.state = "stopping-record";
@@ -467,6 +481,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     ffmpegArgs,
     savePath: savePath,
     stop,
+    cut,
   };
   this.emit("RecordStart", this.recordHandle);
 

@@ -77,6 +77,7 @@ export interface RecordHandle {
   savePath: string;
 
   stop: (this: RecordHandle, reason?: string, tempStopIntervalCheck?: boolean) => Promise<void>;
+  cut: (this: RecordHandle) => Promise<void>;
 }
 
 export interface DebugLog {

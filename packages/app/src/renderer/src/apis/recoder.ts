@@ -60,6 +60,13 @@ const stopRecord = async (id: string) => {
   return res.data.payload;
 };
 
+const cut = async (id: string) => {
+  const res = await request.post(`/recorder/${id}/cut`, {
+    id,
+  });
+  return res.data.payload;
+};
+
 const resolveChannel = async (url: string): Promise<RecorderAPI["resolveChannel"]["Resp"]> => {
   const res = await request.get(`/recorder/manager/resolveChannel`, {
     params: { url },
@@ -82,6 +89,7 @@ const recoder = {
   startRecord,
   resolveChannel,
   getLiveInfo,
+  cut,
 };
 
 export default recoder;

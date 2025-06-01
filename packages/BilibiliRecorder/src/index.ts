@@ -91,7 +91,7 @@ const ffmpegOutputOptions: string[] = [
   "-movflags",
   "faststart+frag_keyframe+empty_moov",
   "-min_frag_duration",
-  "60000000",
+  "10000000",
 ];
 const ffmpegInputOptions: string[] = [
   "-reconnect",
@@ -220,8 +220,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     );
   }
 
+  let isCutting = false;
   let isEnded = false;
   const onEnd = (...args: unknown[]) => {
+    if (isCutting) {
+      isCutting = false;
+      return;
+    }
     if (isEnded) return;
     isEnded = true;
     this.emit("DebugLog", {
@@ -336,6 +341,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const ffmpegArgs = recorder.getArguments();
   recorder.run();
 
+  const cut = utils.singleton<RecordHandle["cut"]>(async () => {
+    if (!this.recordHandle) return;
+    if (isCutting) return;
+    isCutting = true;
+    await recorder.stop();
+    recorder.createCommand();
+    recorder.run();
+  });
+
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
     if (!this.recordHandle) return;
 
@@ -369,6 +383,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     ffmpegArgs,
     savePath: savePath,
     stop,
+    cut,
   };
   this.emit("RecordStart", this.recordHandle);
 

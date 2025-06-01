@@ -225,9 +225,11 @@ export function createInvalidStreamChecker(count: number = 15): (ffmpegLogLine: 
 export function createTimeoutChecker(
   onTimeout: () => void,
   time: number,
+  autoStart: boolean = true,
 ): {
   update: () => void;
   stop: () => void;
+  start: () => void;
 } {
   let timer: NodeJS.Timeout | null = null;
   let stopped: boolean = false;
@@ -241,7 +243,14 @@ export function createTimeoutChecker(
     }, time);
   };
 
-  update();
+  const start = () => {
+    stopped = false;
+    update();
+  };
+
+  if (autoStart) {
+    start();
+  }
 
   return {
     update,
@@ -250,6 +259,7 @@ export function createTimeoutChecker(
       if (timer != null) clearTimeout(timer);
       timer = null;
     },
+    start,
   };
 }
 

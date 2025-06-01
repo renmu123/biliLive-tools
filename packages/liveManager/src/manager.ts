@@ -103,6 +103,7 @@ export interface RecorderManager<
     id: string,
   ) => Promise<Recorder<E> | undefined>;
   stopRecord: (this: RecorderManager<ME, P, PE, E>, id: string) => Promise<Recorder<E> | undefined>;
+  cutRecord: (this: RecorderManager<ME, P, PE, E>, id: string) => Promise<Recorder<E> | undefined>;
 
   autoCheckInterval: number;
   isCheckLoopRunning: boolean;
@@ -307,6 +308,13 @@ export function createRecorderManager<
       }
       return recorder;
     },
+    async cutRecord(id: string) {
+      const recorder = this.recorders.find((item) => item.id === id);
+      if (recorder == null) return;
+      if (recorder.recordHandle == null) return;
+      await recorder.recordHandle.cut();
+      return recorder;
+    },
 
     autoCheckInterval: opts.autoCheckInterval ?? 1000,
     isCheckLoopRunning: false,
@@ -366,7 +374,7 @@ export function createRecorderManager<
          *
          * TODO: 如果浏览器行为无法优化，并且想进一步优化加载速度，可以考虑录制时使用 fmp4，录制完成后再转一次普通 mp4。
          */
-        " -min_frag_duration 60000000",
+        " -min_frag_duration 10000000",
   };
 
   const setProvidersFFMPEGOutputArgs = (ffmpegOutputArgs: string) => {

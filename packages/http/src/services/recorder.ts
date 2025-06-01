@@ -147,6 +147,12 @@ async function stopRecord(args: RecorderAPI["stopRecord"]["Args"]): Promise<null
   return null;
 }
 
+async function cutRecord(args: RecorderAPI["cutRecord"]["Args"]): Promise<null> {
+  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  await recorderManager.manager.cutRecord(args.id);
+  return null;
+}
+
 async function getBiliStream(id: string) {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
   const recorder = recorderManager.manager.recorders.find((item) => item.id === id);
@@ -263,6 +269,7 @@ export default {
   removeRecorder,
   startRecord,
   stopRecord,
+  cutRecord,
   getLiveInfo,
   resolveChannel,
   getBiliStream,
