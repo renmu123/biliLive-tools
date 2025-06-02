@@ -119,6 +119,29 @@ async function parseVideo({
         };
       }),
     };
+  } else if (/https?:\/\/live.bilibili.com\/\d+/.test(url)) {
+    const liveId = path.basename(new URL(url).pathname);
+    const user = await biliApi.getRoomInfo(Number(liveId));
+    const data = await biliApi.getSliceList(Number(user.uid));
+    return {
+      videoId: liveId,
+      platform: "bilibiliLive",
+      title: "直播录像",
+      resolutions: [],
+      parts: data.replay_info.map((item) => {
+        return {
+          name: `${new Date(item.start_time * 1000).toLocaleString()} 场直播`,
+          partId: item.live_key.toString(),
+          isEditing: false,
+          extra: {
+            liveKey: item.live_key,
+            startTime: item.start_time,
+            endTime: item.end_time,
+            liveId: user.room_id,
+          },
+        };
+      }),
+    };
   } else if (url.includes("bilibili")) {
     const bvid = extractBVNumber(url);
     if (!bvid) {
@@ -196,6 +219,8 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
         video_start_time: options?.extra?.video_start_time,
       },
     });
+  } else if (options.platform === "bilibiliLive") {
+    // B站剪辑录播回放
   } else if (options.platform === "bilibili") {
     if (!options?.extra?.bvid) {
       throw new Error("bvid is required for bilibili download");

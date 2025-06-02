@@ -90,10 +90,20 @@ function createClient(uid?: number) {
 
 export async function getRoomInfo(room_id: number, uid?: number) {
   const client = createClient(uid);
-  await client.live.getRoomInfo(room_id);
+  return client.live.getRoomInfo(room_id);
 }
 
-async function getArchives(
+export async function getSliceList(liveUid: number) {
+  const client = createClient();
+  return client.live.getSliceList({
+    live_uid: liveUid,
+    time_range: 3,
+    page: 1,
+    page_size: 50,
+  });
+}
+
+export async function getArchives(
   params?: Parameters<ClientInstance["platform"]["getArchives"]>[0],
   uid?: number,
 ) {
@@ -923,6 +933,8 @@ export const biliApi = {
   updateAuth,
   getCookie,
   getBuvidConf,
+  getRoomInfo,
+  getSliceList,
 };
 
 export default biliApi;

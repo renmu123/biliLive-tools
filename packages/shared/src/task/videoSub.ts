@@ -10,6 +10,7 @@ import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
 import douyu from "./douyu.js";
 import huya from "./huya.js";
+import bili from "./bili.js";
 import { sleep } from "../utils/index.js";
 
 import type { VideoSubItem } from "../db/model/videoSub.js";
@@ -93,7 +94,6 @@ export async function parse(url: string): Promise<Parameters<typeof videoSubMode
     if (!gameLiveInfo) {
       throw new Error(`解析失败，请检查链接: ${url}`);
     }
-    console.log(JSON.stringify(gameLiveInfo, null, 2));
     return {
       name: gameLiveInfo.nick,
       subId: gameLiveInfo.uid,

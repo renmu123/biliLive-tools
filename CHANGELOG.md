@@ -27,6 +27,7 @@
 ## 功能
 
 - 支持斗鱼录播订阅下载 [#64](https://github.com/renmu123/biliLive-tools/issues/64)
+- 支持部分支持剪辑的主播的录播回放下载，API由@Chihiro提供
 - 新增看板页面
 - Web支持首页预览功能
 - Web支持切片功能

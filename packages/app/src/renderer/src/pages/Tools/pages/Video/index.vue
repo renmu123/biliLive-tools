@@ -1,7 +1,7 @@
 <template>
   <div class="container">
     <n-spin :show="loading">
-      <h2>支持B站视频、斗鱼录播、虎牙录播下载；斗鱼、虎牙录播订阅</h2>
+      <h2>支持B站视频、B站剪辑回放、斗鱼录播、虎牙录播下载；斗鱼、虎牙录播订阅</h2>
       <div class="input">
         <n-input
           v-model:value="url"
@@ -85,6 +85,11 @@ const parse = async () => {
       hasAudioOnlyOptions: false,
     };
   } else if (videoInfo.platform === "huya") {
+    downloadOptions.value = {
+      hasDanmuOptions: false,
+      hasAudioOnlyOptions: false,
+    };
+  } else {
     downloadOptions.value = {
       hasDanmuOptions: false,
       hasAudioOnlyOptions: false,

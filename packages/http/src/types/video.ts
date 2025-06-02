@@ -1,6 +1,6 @@
 import videoSub from "@biliLive-tools/shared/task/videoSub.js";
 
-type Platform = "douyu" | "bilibili" | "huya";
+type Platform = "douyu" | "bilibili" | "huya" | "bilibiliLive";
 
 export type VideoAPI = {
   parseVideo: {
