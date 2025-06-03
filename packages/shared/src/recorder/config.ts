@@ -89,7 +89,7 @@ export default class RecorderConfig {
     // 流格式处理
     const formatName = getValue("formatName") ?? "auto";
     let formatPriorities: Array<"flv" | "hls"> | undefined;
-    if (setting.providerId === "DouYin") {
+    if (setting.providerId === "DouYin" || setting.providerId === "HuYa") {
       if (formatName === "flv_only") {
         formatPriorities = ["flv"];
       } else if (formatName === "hls") {
