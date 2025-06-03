@@ -109,7 +109,7 @@ export async function getSliceStream(params: {
   live_key: string;
   start_time: number;
   end_time: number;
-  room_id: number;
+  live_uid: number;
 }) {
   const client = createClient();
   return client.live.getSliceStream(params);
@@ -175,6 +175,7 @@ async function sliceDownload(
     ffmpegPath: ffmpegPath,
     segmentsDir: path.join(getTempPath(), uuid()),
     suffix: "m4s",
+    retries: 8,
   });
 
   const task = new BilibiliLiveDownloadVideoTask(downloader, {

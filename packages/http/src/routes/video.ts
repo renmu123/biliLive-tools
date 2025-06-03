@@ -137,7 +137,7 @@ async function parseVideo({
             liveKey: item.live_key,
             startTime: item.start_time,
             endTime: item.end_time,
-            liveId: user.room_id,
+            uid: user.uid,
           },
         };
       }),
@@ -224,7 +224,7 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
       !options?.extra?.liveKey ||
       !options?.extra?.startTime ||
       !options?.extra?.endTime ||
-      !options?.extra?.liveId
+      !options?.extra?.uid
     ) {
       throw new Error("liveKey, startTime, endTime, liveId is required for bilibiliLive download");
     }
@@ -233,9 +233,12 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
       live_key: options.extra.liveKey,
       start_time: options.extra.startTime,
       end_time: options.extra.endTime,
-      room_id: options.extra.liveId,
+      live_uid: options.extra.uid,
     });
     const streams = stream.list;
+    if (!streams) {
+      throw new Error("无法找到对应的流");
+    }
     for (const stream of streams) {
       await biliApi.sliceDownload(filepath, stream.stream, {
         override: options.override,

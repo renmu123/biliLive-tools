@@ -79,11 +79,11 @@
                 </tr>
                 <tr>
                   <td>斗鱼录播</td>
-                  <td></td>
+                  <td>https://v.douyu.com/show/yVY8WwDpGmovLOz9</td>
                 </tr>
                 <tr>
                   <td>虎牙录播</td>
-                  <td></td>
+                  <td>https://www.huya.com/video/play/1062079466.html</td>
                 </tr>
               </tbody>
             </n-table>
@@ -103,7 +103,7 @@
                 </tr>
                 <tr>
                   <td>虎牙录播</td>
-                  <td></td>
+                  <td>https://www.huya.com/910323</td>
                 </tr>
               </tbody>
             </n-table>
