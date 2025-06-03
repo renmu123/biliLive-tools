@@ -465,6 +465,9 @@ async function biliMediaAction(
   }
 }
 
+/**
+ * 上传稿件
+ */
 async function addMedia(
   filePath:
     | string[]
@@ -590,6 +593,9 @@ async function addMedia(
   return pTask;
 }
 
+/**
+ * 编辑稿件
+ */
 export async function editMedia(
   aid: number,
   filePath:
@@ -688,6 +694,36 @@ export async function editMedia(
   return pTask;
 }
 
+/**
+ * 为稿件任务添加额外的视频任务
+ */
+export function addExtraVideoTask(pTaskId: string, filePath: string, partName: string) {
+  const pTask = taskQueue.queryTask(pTaskId) as BiliAddVideoTask;
+  if (!pTask) {
+    throw new Error("任务不存在");
+  }
+  const config = appConfig.getAll();
+  const uploadOptions = config.biliUpload;
+  const part = {
+    path: filePath,
+    title: partName,
+  };
+  const client = createClient(pTask.uid);
+  const uploader = new WebVideoUploader(part, client.auth, formatMediaOptions(uploadOptions));
+
+  const task = new BiliPartVideoTask(
+    uploader,
+    {
+      name: `上传视频：${part.title}(${path.parse(part.path).base})`,
+      pid: pTask.taskId,
+      limitTime: [],
+    },
+    {},
+  );
+
+  taskQueue.addTask(task, false);
+  pTask.addTask(task);
+}
 async function getSessionId(
   aid: number,
   uid: number,
@@ -978,6 +1014,7 @@ export const biliApi = {
   getSliceList,
   getSliceStream,
   sliceDownload,
+  addExtraVideoTask,
 };
 
 export default biliApi;

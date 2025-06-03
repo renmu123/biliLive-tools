@@ -270,4 +270,14 @@ router.post("/cut", async (ctx) => {
   ctx.body = { taskId: task.taskId };
 });
 
+router.post("/addExtraVideoTask", async (ctx) => {
+  const { taskId, filePath, partName } = ctx.request.body as {
+    taskId: string;
+    filePath: string;
+    partName: string;
+  };
+  biliApi.addExtraVideoTask(taskId, filePath, partName);
+  ctx.body = { code: 0 };
+});
+
 export default router;

@@ -80,6 +80,17 @@
           </n-icon>
         </template>
         <n-icon
+          v-if="
+            ['pending', 'running', 'paused'].includes(item.status) && item.type === TaskType.bili
+          "
+          :size="20"
+          class="btn pointer"
+          title="添加视频"
+          @click="addExtraVideoTask(item.taskId)"
+        >
+          <AddCircleOutline />
+        </n-icon>
+        <n-icon
           v-if="item.status === 'completed' && item.type === TaskType.bili && item.output"
           :size="20"
           class="btn pointer"
@@ -152,13 +163,15 @@ import {
   CloseOutline,
   AlertCircleOutline,
   CloseSharp,
+  AddCircleOutline,
 } from "@vicons/ionicons5";
 import { FileOpenOutlined, FolderOpenOutlined, LiveTvOutlined } from "@vicons/material";
 import { useConfirm } from "@renderer/hooks";
 import { useQueueStore } from "@renderer/stores";
-import { formatSeconds } from "@renderer/utils";
+import { formatSeconds, supportedVideoExtensions } from "@renderer/utils";
 import { TaskType } from "@biliLive-tools/shared/enum.js";
 import { taskApi } from "@renderer/apis";
+import { showFileDialog } from "@renderer/utils/fileSystem";
 
 import type { Task } from "@renderer/types";
 
@@ -295,6 +308,18 @@ const handleRemoveFile = async (taskId: string) => {
     title: "移除成功",
     duration: 1000,
   });
+};
+
+const addExtraVideoTask = async (taskId: string) => {
+  const files = await showFileDialog({
+    extensions: supportedVideoExtensions,
+  });
+  if (!files) return;
+
+  const filePath = files?.[0];
+  const partName = window.path.parse(filePath).name.slice(0, 80);
+  taskApi.addExtraVideoTask(taskId, filePath, partName);
+  store.getQuenu();
 };
 </script>
 

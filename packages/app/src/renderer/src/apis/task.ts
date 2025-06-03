@@ -220,6 +220,11 @@ const downloadVideo = async (data: VideoAPI["downloadVideo"]["Args"]) => {
   return res.data;
 };
 
+const addExtraVideoTask = async (taskId: string, filePath: string, partName: string) => {
+  const res = await request.post(`/task/addExtraVideoTask`, { taskId, filePath, partName });
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -241,6 +246,7 @@ const task = {
   downloadVideo,
   cut,
   checkMergeVideos,
+  addExtraVideoTask,
 };
 
 export default task;
