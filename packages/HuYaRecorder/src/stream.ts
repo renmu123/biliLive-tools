@@ -5,7 +5,7 @@ import { getRoomInfo as getRoomInfoByWeb } from "./huya_api.js";
 import { getRoomInfo as getRoomInfoByMobile } from "./huya_mobile_api.js";
 import { assert } from "./utils.js";
 
-import type { SourceProfile, StreamProfile } from "./huya_api.js";
+import type { SourceProfile, StreamProfile } from "./types.js";
 
 export async function getInfo(channelId: string): Promise<{
   living: boolean;
@@ -35,19 +35,19 @@ async function getRoomInfo(
   channelId: string,
   options: {
     api: "auto" | "mp" | "web";
-    formatName: "auto" | "flv" | "hls";
+    formatPriorities: Array<"flv" | "hls">;
   },
 ): ReturnType<typeof getRoomInfoByMobile> {
   if (options.api == "auto") {
-    const info = await getRoomInfoByWeb(channelId, options.formatName);
+    const info = await getRoomInfoByWeb(channelId, options.formatPriorities);
     if (info.gid == 1663) {
-      return getRoomInfoByMobile(channelId, options.formatName);
+      return getRoomInfoByMobile(channelId, options.formatPriorities);
     }
     return info;
   } else if (options.api == "mp") {
-    return getRoomInfoByMobile(channelId, options.formatName);
+    return getRoomInfoByMobile(channelId, options.formatPriorities);
   } else if (options.api == "web") {
-    return getRoomInfoByWeb(channelId, options.formatName);
+    return getRoomInfoByWeb(channelId, options.formatPriorities);
   }
   assert(false, "Invalid api");
 }
@@ -55,14 +55,14 @@ async function getRoomInfo(
 export async function getStream(
   opts: Pick<
     Recorder,
-    "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "api" | "formatName"
+    "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "api" | "formatPriorities"
   > & {
     strictQuality?: boolean;
   },
 ) {
   const info = await getRoomInfo(opts.channelId, {
     api: opts.api ?? "auto",
-    formatName: (opts.formatName as "auto" | "flv" | "hls") ?? "auto",
+    formatPriorities: opts.formatPriorities,
   });
   if (!info.living) {
     throw new Error("It must be called getStream when living");

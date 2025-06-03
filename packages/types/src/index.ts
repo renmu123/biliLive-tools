@@ -311,6 +311,8 @@ interface DouyuRecorderConfig {
 interface HuyaRecorderConfig {
   /** 画质：0:原画 14100: 2khdr 14000: 2k 4200:hdr(10m) 8000:蓝光8m 4000:蓝光4m 2000:超清 500:流畅 */
   quality: 0 | 20000 | 10000 | 14100 | 14000 | 4200 | 8000 | 4000 | 2000 | 500;
+  /** 流格式 */
+  formatName: FormatName;
 }
 
 interface DouyinRecorderConfig {

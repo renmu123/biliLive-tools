@@ -257,6 +257,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     },
     huya: {
       quality: 0,
+      formatName: "auto",
     },
     douyin: {
       quality: "origin",

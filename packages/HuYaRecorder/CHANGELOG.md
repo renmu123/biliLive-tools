@@ -1,6 +1,8 @@
 # 1.3.0
 
 1. 分P时获取更加准确的标题以及封面信息
+2. 废弃 `formatName` 参数，转为使用 `formatPriorities` 参数，默
+3. 认为['flv','hls']
 
 # 1.2.0
 

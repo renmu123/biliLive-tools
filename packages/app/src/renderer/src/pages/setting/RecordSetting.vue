@@ -213,6 +213,18 @@
             </template>
             <n-select v-model:value="config.recorder.huya.quality" :options="huyaQualityOptions" />
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :text="textInfo.douyin.formatName.text"
+                :tip="textInfo.douyin.formatName.tip"
+              ></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.huya.formatName"
+              :options="douyinStreamFormatOptions"
+            />
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="douyin" tab="抖音" display-directive="show:lazy">
           <n-form-item>

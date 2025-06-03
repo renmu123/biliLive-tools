@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { range } from "lodash-es";
 
+import type { StreamResult, StreamProfile, SourceProfile } from "./types.js";
+
 /**
  * 从数组中按照特定算法提取一些值（允许同个索引重复提取）。
  * 算法的行为类似 flex 的 space-between。
@@ -98,4 +100,24 @@ export function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean
 
     return false;
   };
+}
+
+// 根据formatPriorities获取最终的sources
+// 如果formatPriorities为空或者undefined，则使用['flv','hls']
+// 如果有参数，按照顺序进行匹配，如果匹配的值不存在或者为空，则使用下一个参数，最后返回的是流数组
+export function getFormatSources(
+  sources: StreamResult,
+  formatPriorities: Array<"flv" | "hls"> = ["flv", "hls"],
+): { sources: SourceProfile[]; formatName: "flv" | "hls" } {
+  for (const format of formatPriorities) {
+    if (sources[format] && sources[format].length > 0) {
+      return {
+        sources: sources[format],
+        formatName: format,
+      };
+    }
+  }
+
+  // 如果没有匹配到任何格式,使用默认的flv格式
+  return null;
 }

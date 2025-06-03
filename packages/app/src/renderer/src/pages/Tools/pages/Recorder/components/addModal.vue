@@ -227,6 +227,22 @@
               >全局</n-checkbox
             >
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                :text="textInfo.douyin.formatName.text"
+                :tip="textInfo.douyin.formatName.tip"
+              ></Tip>
+            </template>
+            <n-select
+              v-model:value="config.formatName"
+              :options="douyinStreamFormatOptions"
+              :disabled="globalFieldsObj.formatName"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.formatName" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
         </template>
         <template v-if="config.providerId === 'DouYin'">
           <n-form-item>
@@ -615,6 +631,8 @@ watch(
         config.value.formatName = appConfig.value.recorder.bilibili.formatName;
       } else if (config.value.providerId === "DouYin") {
         config.value.formatName = appConfig.value.recorder.douyin.formatName;
+      } else if (config.value.providerId === "HuYa") {
+        config.value.formatName = appConfig.value.recorder.huya.formatName;
       }
     }
     if (val.disableProvideCommentsWhenRecording) {

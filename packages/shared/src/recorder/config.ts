@@ -31,7 +31,7 @@ export default class RecorderConfig {
           if (setting.providerId === "Bilibili") {
             return get(globalConfig, "bilibili.formatName");
           } else if (setting.providerId === "HuYa") {
-            return "auto";
+            return get(globalConfig, "huya.formatName");
           } else if (setting.providerId === "DouYin") {
             return get(globalConfig, "douyin.formatName");
           } else {

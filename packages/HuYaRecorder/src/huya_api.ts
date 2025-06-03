@@ -1,8 +1,10 @@
 import axios from "axios";
 
 import { utils } from "@bililive-tools/manager";
-import { assert } from "./utils.js";
+import { assert, getFormatSources } from "./utils.js";
 import { initInfo } from "./anticode.js";
+
+import type { StreamResult, StreamProfile } from "./types.js";
 
 const requester = axios.create({
   timeout: 10e3,
@@ -10,7 +12,7 @@ const requester = axios.create({
 
 export async function getRoomInfo(
   roomIdOrShortId: string,
-  formatName: "auto" | "flv" | "hls" = "auto",
+  formatPriorities: Array<"flv" | "hls"> = ["flv", "hls"],
 ) {
   const res = await requester.get<string>(`https://www.huya.com/${roomIdOrShortId}`);
   const html = res.data;
@@ -75,6 +77,10 @@ export async function getRoomInfo(
   }
 
   const startTime = new Date(data.gameLiveInfo?.startTime * 1000);
+  const formatSources = getFormatSources(sources, formatPriorities);
+  if (!formatSources) {
+    throw new Error("No format sources found");
+  }
   return {
     living: vMultiStreamInfo.length > 0 && data.gameStreamInfoList.length > 0,
     id: data.gameLiveInfo.profileRoom,
@@ -84,32 +90,11 @@ export async function getRoomInfo(
     avatar: data.gameLiveInfo.avatar180,
     cover: data.gameLiveInfo.screenshot,
     streams,
-    sources: formatName === "hls" ? sources.hls : sources.flv,
+    sources: formatSources.sources,
     startTime,
     liveId: utils.md5(`${roomIdOrShortId}-${startTime?.getTime()}`),
     gid: data.gameLiveInfo.gid,
   };
-}
-
-interface StreamResult {
-  flv: {
-    name: string;
-    url: string;
-  }[];
-  hls: {
-    name: string;
-    url: string;
-  }[];
-}
-
-export interface StreamProfile {
-  desc: string;
-  bitRate: number;
-}
-
-export interface SourceProfile {
-  name: string;
-  url: string;
 }
 
 interface HYPlayerConfig {
