@@ -3,6 +3,7 @@ import fs from "fs-extra";
 import axios from "axios";
 
 import { Client, TvQrcodeLogin, WebVideoUploader, utils } from "@renmu/bili-api";
+import M3U8Downloader from "@renmu/m3u8-downloader";
 import { appConfig } from "../config.js";
 import { container } from "../index.js";
 
@@ -12,10 +13,11 @@ import {
   BiliDownloadVideoTask,
   BiliPartVideoTask,
   BiliEditVideoTask,
+  BilibiliLiveDownloadVideoTask,
 } from "./task.js";
 import log from "../utils/log.js";
 import BiliCheckQueue from "./BiliCheckQueue.js";
-import { sleep, encrypt, decrypt, getTempPath, trashItem } from "../utils/index.js";
+import { sleep, encrypt, decrypt, getTempPath, trashItem, uuid } from "../utils/index.js";
 import { sendNotify } from "../notify.js";
 import { getFfmpegPath } from "./video.js";
 
@@ -103,6 +105,16 @@ export async function getSliceList(liveUid: number) {
   });
 }
 
+export async function getSliceStream(params: {
+  live_key: string;
+  start_time: number;
+  end_time: number;
+  room_id: number;
+}) {
+  const client = createClient();
+  return client.live.getSliceStream(params);
+}
+
 export async function getArchives(
   params?: Parameters<ClientInstance["platform"]["getArchives"]>[0],
   uid?: number,
@@ -145,6 +157,34 @@ async function getArchiveDetail(bvid: string, uid?: number) {
   return client.video.detail({ bvid });
 }
 
+/**
+ * 直播回放下载
+ */
+async function sliceDownload(
+  output: string,
+  url: string,
+  options: {
+    override?: boolean;
+  },
+) {
+  if ((await fs.pathExists(output)) && !options.override) throw new Error(`${output}已存在`);
+
+  const { ffmpegPath } = getFfmpegPath();
+  const downloader = new M3U8Downloader(url, output, {
+    convert2Mp4: true,
+    ffmpegPath: ffmpegPath,
+    segmentsDir: path.join(getTempPath(), uuid()),
+  });
+
+  const task = new BilibiliLiveDownloadVideoTask(downloader, {
+    name: `下载任务：${path.parse(output).name}`,
+  });
+  taskQueue.addTask(task, false);
+
+  return task;
+}
+
+// 下载视频
 async function download(
   options: {
     bvid: string;
@@ -935,6 +975,8 @@ export const biliApi = {
   getBuvidConf,
   getRoomInfo,
   getSliceList,
+  getSliceStream,
+  sliceDownload,
 };
 
 export default biliApi;

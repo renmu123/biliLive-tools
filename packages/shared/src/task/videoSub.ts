@@ -10,7 +10,6 @@ import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
 import douyu from "./douyu.js";
 import huya from "./huya.js";
-import bili from "./bili.js";
 import { sleep } from "../utils/index.js";
 
 import type { VideoSubItem } from "../db/model/videoSub.js";

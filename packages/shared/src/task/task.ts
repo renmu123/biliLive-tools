@@ -846,6 +846,13 @@ export class HuyaDownloadVideoTask extends M3U8DownloadTask {
 }
 
 /**
+ * B站录播下载任务
+ */
+export class BilibiliLiveDownloadVideoTask extends M3U8DownloadTask {
+  type = TaskType.biliDownload;
+}
+
+/**
  * 同步任务
  */
 export class SyncTask extends AbstractTask {

@@ -220,8 +220,29 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
       },
     });
   } else if (options.platform === "bilibiliLive") {
+    if (
+      !options?.extra?.liveKey ||
+      !options?.extra?.startTime ||
+      !options?.extra?.endTime ||
+      !options?.extra?.liveId
+    ) {
+      throw new Error("liveKey, startTime, endTime, liveId is required for bilibiliLive download");
+    }
     // B站剪辑录播回放
+    const stream = await biliApi.getSliceStream({
+      live_key: options.extra.liveKey,
+      start_time: options.extra.startTime,
+      end_time: options.extra.endTime,
+      room_id: options.extra.liveId,
+    });
+    const streams = stream.list;
+    for (const stream of streams) {
+      await biliApi.sliceDownload(filepath, stream.stream, {
+        override: options.override,
+      });
+    }
   } else if (options.platform === "bilibili") {
+    // B站视频
     if (!options?.extra?.bvid) {
       throw new Error("bvid is required for bilibili download");
     }
