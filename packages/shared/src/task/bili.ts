@@ -174,6 +174,7 @@ async function sliceDownload(
     convert2Mp4: true,
     ffmpegPath: ffmpegPath,
     segmentsDir: path.join(getTempPath(), uuid()),
+    suffix: "m4s",
   });
 
   const task = new BilibiliLiveDownloadVideoTask(downloader, {
