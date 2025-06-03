@@ -1,7 +1,16 @@
 <template>
   <div class="container">
     <n-spin :show="loading">
-      <h2>支持B站视频、B站剪辑回放、斗鱼录播、虎牙录播下载；斗鱼、虎牙录播订阅</h2>
+      <h2>
+        支持B站视频、B站剪辑回放、斗鱼录播、虎牙录播下载；斗鱼、虎牙录播订阅
+        <n-icon
+          :size="24"
+          style="vertical-align: middle; cursor: pointer"
+          @click="showHelpModal = true"
+        >
+          <HelpCircleOutline />
+        </n-icon>
+      </h2>
       <div class="input">
         <n-input
           v-model:value="url"
@@ -31,6 +40,76 @@
         @update="getSuscribeList"
         @add="getSuscribeList"
       ></SubscribeModal>
+
+      <!-- 帮助弹框 -->
+      <n-modal v-model:show="showHelpModal">
+        <n-card
+          style="width: 600px"
+          title="示例"
+          :bordered="false"
+          size="huge"
+          role="dialog"
+          aria-modal="true"
+        >
+          <template #header-extra>
+            <n-button quaternary circle @click="showHelpModal = false">
+              <n-icon size="24">
+                <CloseOutline />
+              </n-icon>
+            </n-button>
+          </template>
+
+          <div class="help-content">
+            <h3>下载</h3>
+            <n-table :bordered="false" :single-line="false">
+              <thead>
+                <tr>
+                  <th>平台</th>
+                  <th>示例</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>B站视频</td>
+                  <td>https://www.bilibili.com/video/BV1Hs421M755/</td>
+                </tr>
+                <tr>
+                  <td>B站录播回放</td>
+                  <td>https://live.bilibili.com/32736947</td>
+                </tr>
+                <tr>
+                  <td>斗鱼录播</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>虎牙录播</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </n-table>
+
+            <h3 style="margin-top: 24px">订阅</h3>
+            <n-table :bordered="false" :single-line="false">
+              <thead>
+                <tr>
+                  <th>平台</th>
+                  <th>示例</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>斗鱼录播</td>
+                  <td>https://www.douyu.com/93589</td>
+                </tr>
+                <tr>
+                  <td>虎牙录播</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </n-table>
+          </div>
+        </n-card>
+      </n-modal>
     </n-spin>
   </div>
 </template>
@@ -39,6 +118,7 @@
 defineOptions({
   name: "BiliDownload",
 });
+import { HelpCircleOutline, CloseOutline } from "@vicons/ionicons5";
 import DownloadConfirm from "./components/DownloadModal.vue";
 import SubscribeModal from "./components/SubscribeModal.vue";
 import SubVideoList from "./components/SubVideoList.vue";
@@ -200,6 +280,8 @@ const handleEdit = (item: VideoAPI["SubList"]["Resp"][0]) => {
     roomId: item.roomId,
   };
 };
+
+const showHelpModal = ref(false);
 </script>
 
 <style scoped lang="less">
@@ -215,5 +297,28 @@ const handleEdit = (item: VideoAPI["SubList"]["Resp"][0]) => {
 .input {
   display: flex;
   align-items: center;
+}
+
+.help-content {
+  h3 {
+    color: #18a058;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  :deep(.n-table) {
+    th {
+      background-color: #f8f9fa;
+      font-weight: 600;
+    }
+
+    td {
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    tr:hover {
+      background-color: #f8f9fa;
+    }
+  }
 }
 </style>
