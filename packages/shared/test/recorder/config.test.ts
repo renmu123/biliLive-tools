@@ -166,6 +166,7 @@ describe("RecorderConfig", () => {
         uid: undefined,
         qualityRetry: 3,
         videoFormat: "auto",
+        formatPriorities: ["flv", "hls"],
         auth: undefined,
         useM3U8Proxy: true,
         formatName: "auto",

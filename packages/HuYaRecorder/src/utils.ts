@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { range } from "lodash-es";
 
-import type { StreamResult, StreamProfile, SourceProfile } from "./types.js";
+import type { StreamResult, SourceProfile } from "./types.js";
 
 /**
  * 从数组中按照特定算法提取一些值（允许同个索引重复提取）。
@@ -108,7 +108,7 @@ export function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean
 export function getFormatSources(
   sources: StreamResult,
   formatPriorities: Array<"flv" | "hls"> = ["flv", "hls"],
-): { sources: SourceProfile[]; formatName: "flv" | "hls" } {
+): { sources: SourceProfile[]; formatName: "flv" | "hls" } | null {
   for (const format of formatPriorities) {
     if (sources[format] && sources[format].length > 0) {
       return {

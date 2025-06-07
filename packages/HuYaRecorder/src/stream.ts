@@ -62,7 +62,7 @@ export async function getStream(
 ) {
   const info = await getRoomInfo(opts.channelId, {
     api: opts.api ?? "auto",
-    formatPriorities: opts.formatPriorities,
+    formatPriorities: opts.formatPriorities ?? ["flv", "hls"],
   });
   if (!info.living) {
     throw new Error("It must be called getStream when living");
