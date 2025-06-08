@@ -1,4 +1,5 @@
 import axios from "axios";
+import { isEmpty } from "lodash-es";
 import { assert } from "./utils.js";
 
 const requester = axios.create({
@@ -91,8 +92,11 @@ export const getCookie = async () => {
 
 export async function getRoomInfo(
   webRoomId: string,
-  retryOnSpecialCode = true,
-  auth?: string,
+  opts: {
+    retryOnSpecialCode?: boolean;
+    auth?: string;
+    doubleScreen?: boolean;
+  } = {},
 ): Promise<{
   living: boolean;
   roomId: string;
@@ -105,8 +109,8 @@ export async function getRoomInfo(
   liveId: string;
 }> {
   let cookies: string | undefined = undefined;
-  if (auth) {
-    cookies = auth;
+  if (opts.auth) {
+    cookies = opts.auth;
   } else {
     // 抖音的 'webcast/room/web/enter' api 会需要 ttwid 的 cookie，这个 cookie 是由这个请求的响应头设置的，
     // 所以在这里请求一次自动设置。
@@ -141,7 +145,7 @@ export async function getRoomInfo(
   );
 
   // 无 cookie 时 code 为 10037
-  if (res.data.status_code === 10037 && retryOnSpecialCode) {
+  if (res.data.status_code === 10037 && opts.retryOnSpecialCode) {
     // resp 自动设置 cookie
     // const cookieRes = await requester.get("https://live.douyin.com/favicon.ico");
     // const cookies = cookieRes.headers["set-cookie"]
@@ -151,7 +155,10 @@ export async function getRoomInfo(
     //   .join("; ");
 
     // console.log("cookies", cookies);
-    return getRoomInfo(webRoomId, false);
+    return getRoomInfo(webRoomId, {
+      retryOnSpecialCode: false,
+      doubleScreen: opts.doubleScreen,
+    });
   }
 
   assert(
@@ -177,10 +184,22 @@ export async function getRoomInfo(
     };
   }
 
-  const {
-    options: { qualities },
-    stream_data,
-  } = room.stream_url.live_core_sdk_data.pull_data;
+  let qualities: QualityInfo[] = [];
+  let stream_data: string = "";
+  if (opts.doubleScreen && !isEmpty(room.stream_url.pull_datas)) {
+    const pull_data = Object.values(room.stream_url.pull_datas)[0] ?? {
+      options: {
+        qualities: [],
+      },
+      stream_data: "",
+    };
+    qualities = pull_data.options.qualities;
+    stream_data = pull_data.stream_data;
+  }
+  if (!stream_data) {
+    qualities = room.stream_url.live_core_sdk_data.pull_data.options.qualities;
+    stream_data = room.stream_url.live_core_sdk_data.pull_data.stream_data;
+  }
   const streamData = (JSON.parse(stream_data) as StreamData).data;
 
   const streams: StreamProfile[] = qualities.map((info) => ({

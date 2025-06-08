@@ -263,6 +263,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       quality: "origin",
       formatName: "auto",
       cookie: "",
+      doubleScreen: true,
     },
   },
   video: {

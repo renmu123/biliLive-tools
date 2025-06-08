@@ -321,6 +321,8 @@ interface DouyinRecorderConfig {
   cookie: string;
   /** 流格式 */
   formatName: FormatName;
+  /** 是否使用双屏直播流 */
+  doubleScreen: boolean;
 }
 
 // 录制全局配置
@@ -418,6 +420,8 @@ export interface Recorder {
   liveStartNotification?: boolean;
   /** 抖音cookie */
   cookie?: string;
+  /** 是否使用双屏直播流 */
+  doubleScreen?: boolean;
   /** 流格式优先级 */
   // formatPriorities: Array<"flv" | "hls">;
   // 不跟随全局配置字段

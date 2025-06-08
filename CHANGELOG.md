@@ -1,5 +1,9 @@
 # Next
 
+## 功能
+
+- 录制：抖音支持双屏直播流，如果需要分割，需要重编码，具体参数见 README 中说明 [#97](https://github.com/renmu123/biliLive-tools/issues/97)
+
 ## 优化
 
 1. 移除合并视频的“完成后移除源文件”选项 [#96](https://github.com/renmu123/biliLive-tools/issues/96)

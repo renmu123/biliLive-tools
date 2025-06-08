@@ -287,6 +287,18 @@
               >全局</n-checkbox
             >
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="双屏直播流" tip="开启后如果是双屏直播，那么就使用拼接的流"></Tip>
+            </template>
+            <n-switch
+              v-model:value="config.doubleScreen"
+              :disabled="globalFieldsObj.doubleScreen"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.doubleScreen" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
         </template>
 
         <n-form-item>
@@ -451,6 +463,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     source: true,
     videoFormat: true,
     cookie: true,
+    doubleScreen: true,
   },
 );
 
@@ -478,6 +491,7 @@ const config = ref<Omit<Recorder, "id">>({
   source: "auto",
   videoFormat: "auto",
   cookie: "",
+  doubleScreen: true,
 });
 
 const confirmDialog = useConfirm();
@@ -584,6 +598,7 @@ watch(showModal, async (val) => {
       source: "auto",
       videoFormat: "auto",
       cookie: "",
+      doubleScreen: true,
     };
 
     if (props.id) {
@@ -606,6 +621,7 @@ watch(showModal, async (val) => {
       source: !(config.value?.noGlobalFollowFields ?? []).includes("source"),
       videoFormat: !(config.value?.noGlobalFollowFields ?? []).includes("videoFormat"),
       cookie: !(config.value?.noGlobalFollowFields ?? []).includes("cookie"),
+      doubleScreen: !(config.value?.noGlobalFollowFields ?? []).includes("doubleScreen"),
     };
   }
 });
@@ -672,6 +688,9 @@ watch(
     }
     if (val.cookie) {
       config.value.cookie = appConfig.value.recorder.douyin.cookie;
+    }
+    if (val.doubleScreen) {
+      config.value.doubleScreen = appConfig.value.recorder.douyin.doubleScreen;
     }
   },
   {

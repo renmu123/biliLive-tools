@@ -254,6 +254,12 @@
             </template>
             <n-input v-model:value="config.recorder.douyin.cookie" type="password" />
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="双屏直播流" tip="开启后如果是双屏直播，那么就使用拼接的流"></Tip>
+            </template>
+            <n-switch v-model:value="config.recorder.douyin.doubleScreen" />
+          </n-form-item>
         </n-tab-pane>
       </n-tabs>
     </n-form>

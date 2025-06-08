@@ -57,6 +57,12 @@ export default class RecorderConfig {
           return get(globalConfig, "douyu.source");
         } else if (key === "cookie") {
           return get(globalConfig, "douyin.cookie");
+        } else if (key === "doubleScreen") {
+          if (setting.providerId === "DouYin") {
+            return get(globalConfig, "douyin.doubleScreen");
+          } else {
+            return undefined;
+          }
         } else {
           return get(globalConfig, key);
         }
@@ -119,6 +125,7 @@ export default class RecorderConfig {
       codecName: getValue("codecName") ?? "auto",
       source: getValue("source") ?? "auto",
       formatPriorities: formatPriorities,
+      doubleScreen: getValue("doubleScreen"),
     };
   }
   public list() {

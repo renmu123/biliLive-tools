@@ -42,6 +42,7 @@ describe("RecorderConfig", () => {
           },
           douyin: {
             quality: "high",
+            doubleScreen: true,
           },
           quality: "default",
         };
@@ -199,6 +200,7 @@ describe("RecorderConfig", () => {
         codecName: "h264",
         source: "auto",
         formatPriorities: ["flv", "hls"],
+        doubleScreen: true,
       });
     });
 

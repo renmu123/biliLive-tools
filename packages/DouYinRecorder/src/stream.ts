@@ -32,9 +32,14 @@ export async function getStream(
     strictQuality?: boolean;
     cookie?: string;
     formatPriorities?: Array<"flv" | "hls">;
+    doubleScreen?: boolean;
   },
 ) {
-  const info = await getRoomInfo(opts.channelId, true, opts.cookie);
+  const info = await getRoomInfo(opts.channelId, {
+    retryOnSpecialCode: true,
+    doubleScreen: opts.doubleScreen ?? true,
+    auth: opts.cookie,
+  });
   if (!info.living) {
     throw new Error("It must be called getStream when living");
   }

@@ -40,6 +40,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   uid?: number;
   /** 画质匹配重试次数 */
   qualityRetry?: number;
+  /** 抖音是否使用双屏直播流，开启后如果是双屏直播，那么就使用拼接的流，默认为true */
+  doubleScreen?: boolean;
   /** B站是否使用m3u8代理 */
   useM3U8Proxy?: boolean;
   /**B站m3u8代理url */

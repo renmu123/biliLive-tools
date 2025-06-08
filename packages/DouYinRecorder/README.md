@@ -43,6 +43,7 @@ interface Options {
   saveGiftDanma?: boolean; // 保存礼物弹幕
   saveCover?: boolean; // 保存封面
   videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"
+  doubleScreen?: boolean; // 是否使用双屏直播流，开启后如果是双屏直播，那么就使用拼接的流，默认为true
   auth?: string; // 传递cookie，用于录制会员视频
 }
 ```
