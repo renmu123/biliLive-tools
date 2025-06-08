@@ -311,7 +311,7 @@
           </template>
           <n-input-number
             v-model:value="config.qualityRetry"
-            min="0"
+            min="-1"
             step="1"
             :disabled="globalFieldsObj.qualityRetry"
           >
