@@ -183,7 +183,6 @@ router.post("/mergeVideo", async (ctx) => {
     inputVideos: string[];
     options: {
       output?: string;
-      removeOrigin: boolean;
       saveOriginPath: boolean;
       keepFirstVideoMeta: boolean;
     };
@@ -199,7 +198,10 @@ router.post("/mergeVideo", async (ctx) => {
     return;
   }
 
-  const task = await mergeVideos(inputVideos, options);
+  const task = await mergeVideos(inputVideos, {
+    ...options,
+    removeOrigin: false,
+  });
   ctx.body = { taskId: task.taskId };
 });
 

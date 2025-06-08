@@ -2,6 +2,8 @@
 
 ## 优化
 
+1. 移除合并视频的“完成后移除源文件”选项 [#96](https://github.com/renmu123/biliLive-tools/issues/96)
+
 ## Bug修复
 
 1. 修复单独的直播间配置“画质匹配重试次数”选项，无法设置为-1的bug

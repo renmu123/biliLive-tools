@@ -94,7 +94,6 @@ const mergeVideos = async (
   options: {
     // 如果存在output，那么其他的文件参数都被忽略
     output?: string;
-    removeOrigin: boolean;
     saveOriginPath: boolean;
     keepFirstVideoMeta: boolean;
   },
