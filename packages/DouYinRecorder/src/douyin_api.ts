@@ -331,7 +331,15 @@ interface EnterRoomApiResp {
               sw_roi: boolean;
               bytevc1_enable: boolean;
             };
-            pull_datas: unknown;
+            pull_datas: Record<
+              string,
+              {
+                options: {
+                  qualities: QualityInfo[];
+                };
+                stream_data: string;
+              }
+            >;
           };
           mosaic_status: number;
           mosaic_status_str: string;
