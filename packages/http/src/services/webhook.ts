@@ -235,6 +235,11 @@ export class WebhookHandler {
       xmlFilePath = replaceExtName(options.filePath, ".xml");
     }
 
+    // 用于跟踪转换是否成功
+    let conversionSuccessful = true;
+    // 用于跟踪弹幕转换是否成功
+    let danmuConversionSuccessful = true;
+
     if (danmu) {
       try {
         await sleep(10000);
@@ -280,6 +285,8 @@ export class WebhookHandler {
       } catch (error) {
         log.error(error);
         currentPart.uploadStatus = "error";
+        conversionSuccessful = false;
+        danmuConversionSuccessful = false;
       }
     } else {
       if (videoPresetId) {
@@ -297,6 +304,7 @@ export class WebhookHandler {
         } catch (error) {
           log.error(error);
           currentPart.uploadStatus = "error";
+          conversionSuccessful = false;
         }
       }
       currentPart.recordStatus = "handled";
@@ -308,8 +316,21 @@ export class WebhookHandler {
           await this.convertDanmu(xmlFilePath, preset!.config);
         } catch (error) {
           log.error(error);
+          danmuConversionSuccessful = false;
         }
       }
+    }
+
+    // 如果转换失败，不删除原始文件
+    const shouldRemoveVideo = conversionSuccessful && afterConvertRemoveVideo;
+    if (!conversionSuccessful && afterConvertRemoveVideo) {
+      log.warn("转换失败，已取消删除原始视频文件的操作");
+    }
+
+    // 如果弹幕转换失败，不删除XML弹幕文件
+    const shouldRemoveXml = danmuConversionSuccessful && afterConvertRemoveXml;
+    if (!danmuConversionSuccessful && afterConvertRemoveXml) {
+      log.warn("弹幕转换失败，已取消删除XML弹幕文件的操作");
     }
 
     // 处理封面同步
@@ -325,7 +346,7 @@ export class WebhookHandler {
         options.roomId,
         xmlFilePath,
         currentPart.partId,
-        afterConvertRemoveXml,
+        shouldRemoveXml,
       ).catch((error) => {
         log.error("handleDanmuSync", error);
       });
@@ -343,7 +364,7 @@ export class WebhookHandler {
       options.roomId,
       currentPart.rawFilePath,
       currentPart.partId,
-      afterConvertRemoveVideo,
+      shouldRemoveVideo,
     ).catch((error) => {
       log.error("handleVideoSync", error);
     });
@@ -580,7 +601,6 @@ export class WebhookHandler {
     removeSourceAferrConvert2Mp4?: boolean;
     /** 压制完成后的操作 */
     afterConvertAction: Array<"removeVideo" | "removeXml" | "removeAss">;
-    // TODO: 需要修改afterConvertRemoveVideo和afterConvertRemoveXml的逻辑，与danmuPresetId和videoPresetId相关
     /** 是否在处理后删除视频 */
     afterConvertRemoveVideo: boolean;
     /** 是否在处理后删除XML弹幕 */
