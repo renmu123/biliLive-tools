@@ -26,9 +26,6 @@ export const api = {
     },
   },
   common: {
-    getTempPath: async () => {
-      return ipcRenderer.invoke("common:getTempPath");
-    },
     readFile: (path: string) => {
       return fs.readFile(path, "utf-8");
     },
