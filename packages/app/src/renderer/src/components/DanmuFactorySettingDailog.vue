@@ -90,6 +90,7 @@ const showModal = defineModel<boolean>("visible", { required: true, default: fal
 const presetId = defineModel<string>({ required: true, default: "default" });
 const emits = defineEmits<{
   (event: "confirm", value: DanmuConfig): void;
+  (event: "cancel"): void;
 }>();
 
 const notice = useNotification();
@@ -119,6 +120,7 @@ const confirm = () => {
 };
 const close = () => {
   showModal.value = false;
+  emits("cancel");
 };
 
 watch(

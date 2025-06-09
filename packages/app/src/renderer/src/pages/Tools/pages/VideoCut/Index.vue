@@ -103,6 +103,7 @@
     v-model="videoVCutOptions.danmuPresetId"
     :show-preset="true"
     @confirm="danmuConfirm"
+    @cancel="convertDanmuLoading = false"
   ></DanmuFactorySettingDailog>
   <ExportModal v-model="exportVisible" :files="files"></ExportModal>
 </template>
@@ -354,18 +355,21 @@ const danmuConfirm = async (config: DanmuConfig) => {
     config.resolution[0] = width!;
     config.resolution[1] = height!;
   }
-  const { output } = await taskApi.convertXml2Ass(tempXmlFile.value, "随便填", config, {
-    copyInput: true,
-    removeOrigin: false,
-    saveRadio: 2,
-    temp: true,
-    savePath: "",
-    sync: true,
-  });
-  const content = await commonApi.readAss(output);
-  convertDanmuLoading.value = false;
-  files.value.danmuPath = output;
-  videoRef.value?.switchAss(content);
+  try {
+    const { output } = await taskApi.convertXml2Ass(tempXmlFile.value, "随便填", config, {
+      copyInput: true,
+      removeOrigin: false,
+      saveRadio: 2,
+      temp: true,
+      savePath: "",
+      sync: true,
+    });
+    const content = await commonApi.readAss(output);
+    files.value.danmuPath = output;
+    videoRef.value?.switchAss(content);
+  } finally {
+    convertDanmuLoading.value = false;
+  }
 };
 
 const danmaList = ref<DanmuItem[]>([]);
