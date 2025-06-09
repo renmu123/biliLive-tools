@@ -102,16 +102,16 @@ import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 
 interface Props {
   files: {
-    videoPath: string | null;
     danmuPath: string | null;
+    originVideoPath: string | null;
   };
 }
 
 const props = withDefaults(defineProps<Props>(), {
   files: () => {
     return {
-      videoPath: null,
       danmuPath: null,
+      originVideoPath: null,
     };
   },
 });
@@ -162,7 +162,7 @@ const confirmExport = async () => {
 
     const title = filenamify(
       exportOptions.title
-        .replace("{{filename}}", window.path.parse(props.files.videoPath!).name)
+        .replace("{{filename}}", window.path.parse(props.files.originVideoPath!).name)
         .replace("{{label}}", label)
         .replace("{{num}}", index.toString())
         .replace("{{from}}", secondsToTimemark(start).replaceAll(":", "."))
@@ -172,7 +172,7 @@ const confirmExport = async () => {
     );
     await taskApi.cut(
       {
-        videoFilePath: props.files.videoPath!,
+        videoFilePath: props.files.originVideoPath!,
         assFilePath: exportOptions.ignoreDanmu ? "" : props.files.danmuPath!,
       },
       `${title}.mp4`,

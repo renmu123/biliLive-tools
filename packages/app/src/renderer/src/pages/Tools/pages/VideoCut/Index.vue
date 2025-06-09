@@ -192,10 +192,12 @@ const files = ref<{
   videoPath: string | null;
   danmuPath: string | null;
   originDanmuPath: string | null;
+  originVideoPath: string | null;
 }>({
   videoPath: null,
   danmuPath: null,
   originDanmuPath: null,
+  originVideoPath: null,
 });
 const videoTitle = computed(() => {
   return files.value.videoPath ? "替换视频" : "添加视频";
@@ -293,6 +295,7 @@ const handleVideoChange = async () => {
 };
 
 const handleVideo = async (path: string) => {
+  files.value.originVideoPath = path;
   if (isWeb.value) {
     const { videoId, type } = await commonApi.applyVideoId(path);
     const videoUrl = await commonApi.getVideo(videoId);
