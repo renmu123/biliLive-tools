@@ -117,7 +117,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
           resolve(stdout);
         } else {
           const errorMsg = uploadFailed
-            ? `上传失败: 检测到"文件上传失败"信息`
+            ? `上传失败: 检测到"文件上传失败"信息 ${stdout}`
             : `命令执行失败: ${stderr}`;
           this.logger.error(`命令执行失败: ${args.join(" ")}`);
           this.cmd = null;

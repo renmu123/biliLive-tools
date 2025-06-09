@@ -118,7 +118,7 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
           resolve(stdout);
         } else {
           const errorMsg = uploadFailed
-            ? `上传失败: 检测到"上传失败"信息`
+            ? `上传失败: 检测到"上传失败"信息 ${stderr}`
             : `命令执行失败: ${stderr}`;
           this.logger.error(`命令执行失败: ${args.join(" ")}`);
           this.cmd = null;
