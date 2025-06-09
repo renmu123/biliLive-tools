@@ -54,7 +54,10 @@
 
   <n-form-item>
     <template #label>
-      <Tip text="弹幕压制" tip="将弹幕文件硬编码到视频中"></Tip>
+      <Tip
+        text="弹幕压制"
+        tip="将弹幕文件硬编码到视频中，如果你开启了该选项，那么必然要选择视频以及弹幕预设"
+      ></Tip>
     </template>
     <n-switch v-model:value="data.danmu" :disabled="globalFieldsObj.danmu" />
 
@@ -202,7 +205,10 @@
   </n-form-item>
   <n-form-item>
     <template #label>
-      <Tip text="处理后操作" tip="同步也会执行这些操作"></Tip>
+      <Tip
+        text="处理后操作"
+        tip="同步也会执行这些操作，如果你未操作相关文件，也请不要选择相关文件删除"
+      ></Tip>
     </template>
     <n-select
       v-model:value="data.afterConvertAction"

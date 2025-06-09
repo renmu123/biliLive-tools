@@ -305,15 +305,7 @@ export class WebhookHandler {
       if (danmuPresetId) {
         try {
           const preset = await this.danmuPreset.get(danmuPresetId);
-          await convertXml2Ass(
-            { input: xmlFilePath, output: path.basename(xmlFilePath, "xml") },
-            preset!.config,
-            {
-              saveRadio: 1,
-              savePath: path.dirname(xmlFilePath),
-              removeOrigin: false,
-            },
-          );
+          await this.convertDanmu(xmlFilePath, preset!.config);
         } catch (error) {
           log.error(error);
         }
@@ -919,6 +911,40 @@ export class WebhookHandler {
               reject(new Error(error));
             });
           });
+        });
+    });
+  };
+
+  convertDanmu = (
+    xmlFilePath: string,
+    danmuConfig: DanmuConfig,
+    options: {
+      removeXml?: boolean;
+    } = {},
+  ): Promise<string> => {
+    const file = path.parse(xmlFilePath);
+    const outputName = path.basename(xmlFilePath, ".xml");
+    const outputPath = path.join(file.dir, `${outputName}.ass`);
+
+    return new Promise((resolve, reject) => {
+      convertXml2Ass({ input: xmlFilePath, output: outputName }, danmuConfig, {
+        saveRadio: 1,
+        savePath: file.dir,
+        removeOrigin: false,
+      })
+        .then((task) => {
+          task.on("task-end", () => {
+            if (options.removeXml) {
+              trashItem(xmlFilePath);
+            }
+            resolve(outputPath);
+          });
+          task.on("task-error", ({ error }) => {
+            reject(new Error(error));
+          });
+        })
+        .catch((error) => {
+          reject(error);
         });
     });
   };
