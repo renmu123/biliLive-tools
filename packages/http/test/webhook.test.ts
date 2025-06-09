@@ -330,6 +330,80 @@ describe("WebhookHandler", () => {
       const result = webhookHandler.getConfig(roomId);
       expect(result.partMergeMinute).toBe(-1);
     });
+    // afterConvertRemoveVideo必须在videoPresetId存在时，才有效
+    it("should afterConvertRemoveVideo return false when videoPresetId is not exist", () => {
+      const appConfig = {
+        getAll: vi.fn().mockReturnValue({
+          webhook: {
+            open: true,
+            mergePart: false,
+            partMergeMinute: 10,
+            afterConvertAction: ["removeVideo"],
+            ffmpegPreset: undefined,
+          },
+        }),
+      };
+      // @ts-ignore
+      const webhookHandler = new WebhookHandler(appConfig);
+      const roomId = 123;
+      const result = webhookHandler.getConfig(roomId);
+      expect(result.afterConvertRemoveVideo).toBe(false);
+    });
+    it("should afterConvertRemoveVideo return true when videoPresetId is exist and afterConvertAction is 'removeVideo'", () => {
+      const appConfig = {
+        getAll: vi.fn().mockReturnValue({
+          webhook: {
+            open: true,
+            mergePart: false,
+            partMergeMinute: 10,
+            afterConvertAction: ["removeVideo"],
+            ffmpegPreset: "123",
+          },
+        }),
+      };
+      // @ts-ignore
+      const webhookHandler = new WebhookHandler(appConfig);
+      const roomId = 123;
+      const result = webhookHandler.getConfig(roomId);
+      expect(result.afterConvertRemoveVideo).toBe(true);
+    });
+    // afterConvertRemoveXml
+    it("should afterConvertRemoveXml return false when danmuPresetId is not exist", () => {
+      const appConfig = {
+        getAll: vi.fn().mockReturnValue({
+          webhook: {
+            open: true,
+            mergePart: false,
+            partMergeMinute: 10,
+            afterConvertAction: ["removeXml"],
+            danmuPreset: undefined,
+          },
+        }),
+      };
+      // @ts-ignore
+      const webhookHandler = new WebhookHandler(appConfig);
+      const roomId = 123;
+      const result = webhookHandler.getConfig(roomId);
+      expect(result.afterConvertRemoveXml).toBe(false);
+    });
+    it("should afterConvertRemoveXml return true when danmuPresetId is exist and afterConvertAction is 'removeXml'", () => {
+      const appConfig = {
+        getAll: vi.fn().mockReturnValue({
+          webhook: {
+            open: true,
+            mergePart: false,
+            partMergeMinute: 10,
+            afterConvertAction: ["removeXml"],
+            danmuPreset: "123",
+          },
+        }),
+      };
+      // @ts-ignore
+      const webhookHandler = new WebhookHandler(appConfig);
+      const roomId = 123;
+      const result = webhookHandler.getConfig(roomId);
+      expect(result.afterConvertRemoveXml).toBe(true);
+    });
     describe("uploadNoDanmu", () => {
       it("should uploadNoDanmu return true when uploadNoDanmu is false", () => {
         const appConfig = {
@@ -2410,6 +2484,7 @@ describe("Live", () => {
       roomId: 123,
       title: "Test Video",
       username: "username",
+      startTime: 1616161616161,
     });
     const part: Part = {
       partId: "part1",
@@ -2432,6 +2507,7 @@ describe("Live", () => {
       roomId: 123,
       title: "Test Video",
       username: "username",
+      startTime: 1616161616161,
     });
     const part: Part = {
       partId: "part1",
@@ -2455,6 +2531,7 @@ describe("Live", () => {
       roomId: 123,
       title: "Test Video",
       username: "username",
+      startTime: 1616161616161,
     });
     const part1: Part = {
       partId: "part1",
@@ -2488,6 +2565,7 @@ describe("Live", () => {
       roomId: 123,
       title: "Test Video",
       username: "username",
+      startTime: 1616161616161,
     });
     const part: Part = {
       partId: "part1",
@@ -2527,6 +2605,7 @@ describe("Live", () => {
         roomId: 123,
         title: "Test Video 1",
         username: "username1",
+        startTime: 1616161616161,
       });
       live1.addPart({
         partId: "part1",
@@ -2543,6 +2622,7 @@ describe("Live", () => {
         roomId: 456,
         title: "Test Video 2",
         username: "username2",
+        startTime: 1616161616161,
       });
       live2.addPart({
         partId: "part2",
@@ -2569,6 +2649,7 @@ describe("Live", () => {
         roomId: 123,
         title: "Test Video",
         username: "username",
+        startTime: 1616161616161,
       });
       live.addPart({
         partId: "part1",

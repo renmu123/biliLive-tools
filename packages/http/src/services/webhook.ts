@@ -338,7 +338,7 @@ export class WebhookHandler {
         this.fileLockManager.acquireLock(currentPart.rawFilePath, "upload");
       }
     }
-
+    // 处理原始视频
     await this.handleVideoSync(
       options.roomId,
       currentPart.rawFilePath,
@@ -347,6 +347,7 @@ export class WebhookHandler {
     ).catch((error) => {
       log.error("handleVideoSync", error);
     });
+    // 处理压制后的视频，这里不需要处理删除操作
     await this.handleVideoSync(
       options.roomId,
       currentPart.filePath,
@@ -579,6 +580,7 @@ export class WebhookHandler {
     removeSourceAferrConvert2Mp4?: boolean;
     /** 压制完成后的操作 */
     afterConvertAction: Array<"removeVideo" | "removeXml" | "removeAss">;
+    // TODO: 需要修改afterConvertRemoveVideo和afterConvertRemoveXml的逻辑，与danmuPresetId和videoPresetId相关
     /** 是否在处理后删除视频 */
     afterConvertRemoveVideo: boolean;
     /** 是否在处理后删除XML弹幕 */
@@ -671,8 +673,9 @@ export class WebhookHandler {
       convert2Mp4Option: convert2Mp4,
       removeSourceAferrConvert2Mp4,
       afterConvertAction,
-      afterConvertRemoveVideo,
-      afterConvertRemoveXml,
+      afterConvertRemoveVideo:
+        afterConvertRemoveVideo && videoPresetId ? afterConvertRemoveVideo : false,
+      afterConvertRemoveXml: afterConvertRemoveXml && danmuPresetId ? afterConvertRemoveXml : false,
       limitUploadTime,
       uploadHandleTime,
       uploadNoDanmu,
@@ -682,7 +685,6 @@ export class WebhookHandler {
       afterUploadDeletAction: getRoomSetting("afterUploadDeletAction") ?? "none",
       syncId,
     };
-    // log.debug("final config", options);
 
     return options;
   }
