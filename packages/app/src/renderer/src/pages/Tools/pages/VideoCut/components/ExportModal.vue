@@ -147,7 +147,8 @@ const confirmExport = async () => {
   }
   const ffmpegOptiosn = (await ffmpegPresetApi.get(exportOptions.ffmpegPresetId)).config;
   let index = 1;
-  if (props.files.danmuPath && !exportOptions.ignoreDanmu) {
+  // 存在弹幕时编码器不能为copy
+  if (ffmpegOptiosn.encoder === "copy" && props.files.danmuPath && !exportOptions.ignoreDanmu) {
     notice.error({
       title: "存在弹幕时编码器不能为copy",
       duration: 1000,
