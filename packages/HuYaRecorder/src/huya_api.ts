@@ -78,9 +78,6 @@ export async function getRoomInfo(
 
   const startTime = new Date(data.gameLiveInfo?.startTime * 1000);
   const formatSources = getFormatSources(sources, formatPriorities);
-  if (!formatSources) {
-    throw new Error("No format sources found");
-  }
   return {
     living: vMultiStreamInfo.length > 0 && data.gameStreamInfoList.length > 0,
     id: data.gameLiveInfo.profileRoom,
@@ -90,7 +87,7 @@ export async function getRoomInfo(
     avatar: data.gameLiveInfo.avatar180,
     cover: data.gameLiveInfo.screenshot,
     streams,
-    sources: formatSources.sources,
+    sources: formatSources?.sources ?? [],
     startTime,
     liveId: utils.md5(`${roomIdOrShortId}-${startTime?.getTime()}`),
     gid: data.gameLiveInfo.gid,
