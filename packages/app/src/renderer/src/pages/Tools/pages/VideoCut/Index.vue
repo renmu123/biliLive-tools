@@ -447,7 +447,9 @@ const handleFileChange = (fileList: any[]) => {
 
 const { videoCutDrive } = useDrive();
 onMounted(() => {
-  videoCutDrive();
+  if (!isWeb.value) {
+    videoCutDrive();
+  }
 });
 
 const clientOptions = useStorage("cut-hotprogress", {

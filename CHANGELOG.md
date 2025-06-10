@@ -7,6 +7,7 @@
 ## 优化
 
 - 移除合并视频的“完成后移除源文件”选项 [#96](https://github.com/renmu123/biliLive-tools/issues/96)
+- 由于一些bug，web端移除切片页的教程
 
 ## Bug修复
 
