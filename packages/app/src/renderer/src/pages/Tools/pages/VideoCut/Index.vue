@@ -86,7 +86,9 @@
       >
         <template #desc>
           请导入视频或<a href="https://github.com/mifi/lossless-cut" target="_blank">lossless-cut</a
-          >项目文件，如果你不会使用，请先<span title="鸽了">查看教程</span>
+          >项目文件，如果你不会使用，请先<span title="鸽了"
+            >查看教程，如果视频无法播放，请尝试转封装为mp4</span
+          >
         </template>
       </FileArea>
       <div class="cut-list">
