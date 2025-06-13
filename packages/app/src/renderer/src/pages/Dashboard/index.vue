@@ -4,7 +4,7 @@
 
     <n-button type="primary" @click="handleWebhook">Webhook卡住不能上传？点我试试</n-button>
 
-    <n-button type="primary" @click="whyUploadFailed">我怎么不能上传？</n-button>
+    <n-button type="primary" @click="whyUploadFailed">为什么webhook里的xx不能工作？</n-button>
   </div>
 </template>
 
