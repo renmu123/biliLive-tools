@@ -1,7 +1,9 @@
 <template>
   <div class="">
     <div style="display: flex; gap: 10px; align-items: center">
-      <h2>文件同步配置</h2>
+      <h2 style="display: inline-flex; align-items: center">
+        文件同步配置<Tip :size="22">配置完成去webhook配置中配置相关同步器</Tip>
+      </h2>
       <p>使用前请务必了解相关同步库并<bold>仔细查看文档</bold></p>
     </div>
 
