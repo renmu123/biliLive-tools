@@ -5,6 +5,7 @@ import os from "node:os";
 import { defaultsDeep, get, cloneDeep } from "lodash-es";
 import { TypedEmitter } from "tiny-typed-emitter";
 import { APP_DEFAULT_CONFIG } from "./enum.js";
+import { log } from "./utils/log.js";
 
 import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/types";
 
@@ -52,8 +53,14 @@ export default class Config extends TypedEmitter<ConfigEvents> {
     if (!fs.existsSync(this.filepath)) {
       this.data = initData;
     } else {
-      this.read();
-      this.data = defaultsDeep(this.data, initData);
+      try {
+        this.read();
+        this.data = defaultsDeep(this.data, initData);
+      } catch (e) {
+        this.data = initData;
+        log.error(e);
+        log.error("读取配置文件失败，初始化配置");
+      }
     }
     this.save();
   }
