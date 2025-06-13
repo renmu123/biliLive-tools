@@ -249,7 +249,9 @@
               type="global"
             ></CommonSetting>
 
-            <h2>独立配置<Tip tip="单独设置房间号的上传配置，会覆盖全局配置"></Tip></h2>
+            <h2 style="display: inline-flex; align-items: center">
+              独立配置<Tip tip="单独设置房间号的上传配置，会覆盖全局配置" :size="22"></Tip>
+            </h2>
             <!-- <div class="flex" style="align-items: center"> -->
             <div class="room-list">
               <span
