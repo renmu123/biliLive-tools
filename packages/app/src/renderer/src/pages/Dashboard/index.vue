@@ -3,6 +3,8 @@
     <h1>已运行{{ formatTime(now - appStartTime) }}</h1>
 
     <n-button type="primary" @click="handleWebhook">Webhook卡住不能上传？点我试试</n-button>
+
+    <n-button type="primary" @click="whyUploadFailed">我怎么不能上传？</n-button>
   </div>
 </template>
 
@@ -69,6 +71,11 @@ const handleWebhook = async () => {
   await commonApi.handleWebhook(res);
   notice.success("处理成功");
   return true;
+};
+
+const whyUploadFailed = async () => {
+  const res = await commonApi.whyUploadFailed("1233");
+  console.log(res);
 };
 </script>
 

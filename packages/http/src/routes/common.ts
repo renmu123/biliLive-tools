@@ -15,7 +15,9 @@ import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
 import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
 
-import { config, handler } from "../index.js";
+import { config, handler, appConfig } from "../index.js";
+import { container } from "../index.js";
+import { createRecorderManager } from "@biliLive-tools/shared";
 
 const router = new Router({
   prefix: "/common",
@@ -458,6 +460,185 @@ router.post("/handleWebhook", async (ctx) => {
     }
   }
   ctx.body = "success";
+});
+
+/**
+ * 检测为何无法上传
+ * 检查是否为内部录制，如果是，检查是否开启webhook，接下来走下面的流程
+ * 如果不是，检查全局webhook配置，判断是否开启全局开关，判断是否在黑名单，判断配置是否配置了上传预设，上传账号
+ * 返回{hasError:boolean,errorInfo:string}
+ */
+router.get("/whyUploadFailed", async (ctx) => {
+  const { roomId } = ctx.request.query as { roomId: string };
+
+  if (!roomId) {
+    ctx.status = 400;
+    ctx.body = { hasError: true, errorInfo: "缺少roomId参数" };
+    return;
+  }
+
+  const roomIdNum = Number(roomId);
+  const errorInfoList: string[] = [];
+  let hasError = false;
+
+  try {
+    // 检查是否为内部录制
+    type RecorderManagerType = Awaited<ReturnType<typeof createRecorderManager>>;
+    const recorderManager = container.resolve<RecorderManagerType>("recorderManager");
+    const internalRecorder = recorderManager.manager.recorders.find(
+      (recorder) => recorder.channelId == roomId,
+    );
+
+    if (internalRecorder) {
+      // 是内部录制，检查录制器配置
+      const recorderConfig = recorderManager.config.get(internalRecorder.id);
+      if (!recorderConfig?.sendToWebhook) {
+        errorInfoList.push(
+          `内部录制器 ${recorderConfig!.remarks || recorderConfig!.channelId} 未开启webhook`,
+        );
+        hasError = true;
+      }
+    }
+
+    // 检查全局webhook配置
+    const webhook = appConfig.get("webhook");
+    if (!webhook.open) {
+      errorInfoList.push("全局webhook未开启");
+      hasError = true;
+    }
+
+    // 检查单独webhook配置
+    const webhookConfig = handler.getConfig(roomIdNum);
+
+    if (!webhookConfig.open) {
+      errorInfoList.push("单独webhook未开启");
+
+      // // 检查具体原因
+      // const appConfigData = handler.appConfig.getAll();
+      // const roomSetting = appConfigData.webhook?.rooms?.[roomIdNum];
+
+      // if (roomSetting && !roomSetting.open) {
+      //   errorInfoList.push("房间配置中webhook已关闭");
+      // } else {
+      //   // 检查黑名单
+      //   const blacklist = (appConfigData?.webhook?.blacklist || "").split(",");
+      //   if (blacklist.includes("*")) {
+      //     errorInfoList.push("全局黑名单设置为 * (禁用所有房间)");
+      //   } else if (blacklist.includes(roomId)) {
+      //     errorInfoList.push("房间在webhook黑名单中");
+      //   } else {
+      //     errorInfoList.push("webhook未开启");
+      //   }
+      // }
+      hasError = true;
+    }
+
+    // 检查上传账号
+    if (!webhookConfig.uid) {
+      errorInfoList.push("未配置上传账号(uid)");
+      hasError = true;
+    }
+
+    // 检查上传预设
+    if (webhookConfig.uploadPresetId) {
+      try {
+        const preset = await handler.videoPreset.get(webhookConfig.uploadPresetId);
+        if (!preset) {
+          errorInfoList.push(`上传预设 '${webhookConfig.uploadPresetId}' 不存在`);
+          hasError = true;
+        }
+      } catch (error) {
+        errorInfoList.push(`获取上传预设失败: ${error}`);
+        hasError = true;
+      }
+    } else {
+      errorInfoList.push("未配置上传预设");
+      hasError = true;
+    }
+
+    // // 检查弹幕预设（如果启用了弹幕）
+    // if (webhookConfig.danmu && webhookConfig.danmuPresetId) {
+    //   try {
+    //     const danmuPreset = await handler.danmuPreset.get(webhookConfig.danmuPresetId);
+    //     if (!danmuPreset) {
+    //       errorInfoList.push(`弹幕预设 '${webhookConfig.danmuPresetId}' 不存在`);
+    //       hasError = true;
+    //     }
+    //   } catch (error) {
+    //     errorInfoList.push(`获取弹幕预设失败: ${error}`);
+    //     hasError = true;
+    //   }
+    // }
+
+    // // 检查视频处理预设（如果配置了）
+    // if (webhookConfig.videoPresetId) {
+    //   try {
+    //     const videoPreset = await handler.ffmpegPreset.get(webhookConfig.videoPresetId);
+    //     if (!videoPreset) {
+    //       errorInfoList.push(`视频处理预设 '${webhookConfig.videoPresetId}' 不存在`);
+    //       hasError = true;
+    //     }
+    //   } catch (error) {
+    //     errorInfoList.push(`获取视频处理预设失败: ${error}`);
+    //     hasError = true;
+    //   }
+    // }
+
+    // // 检查文件大小限制
+    // if (webhookConfig.minSize && webhookConfig.minSize > 0) {
+    //   // 这个只是提示信息，不算错误
+    //   if (webhookConfig.minSize > 100) {
+    //     errorInfoList.push(
+    //       `最小文件大小设置较大 (${webhookConfig.minSize}MB)，可能导致小文件被跳过`,
+    //     );
+    //   }
+    // }
+
+    // // 检查直播数据
+    // const live = handler.liveData.find((item) => item.roomId === roomIdNum);
+    // let liveStatus = "无直播数据";
+    // if (live) {
+    //   const pendingParts = live.parts.filter((part) => part.uploadStatus === "pending");
+    //   const errorParts = live.parts.filter((part) => part.uploadStatus === "error");
+    //   const uploadingParts = live.parts.filter((part) => part.uploadStatus === "uploading");
+    //   const uploadedParts = live.parts.filter((part) => part.uploadStatus === "uploaded");
+
+    //   liveStatus = `直播数据: ${live.parts.length}个分段, 待上传:${pendingParts.length}, 上传中:${uploadingParts.length}, 已上传:${uploadedParts.length}, 错误:${errorParts.length}`;
+
+    //   if (errorParts.length > 0) {
+    //     errorInfoList.push(`有${errorParts.length}个分段上传失败`);
+    //   }
+    // }
+
+    const result = {
+      hasError,
+      errorInfo: hasError ? errorInfoList.join("; ") : "配置正常",
+      // details: {
+      // isInternalRecording: internalRecorders.length > 0,
+      // internalRecorders: internalRecorders.map((r) => ({
+      //   id: r.id,
+      //   remarks: r.remarks,
+      //   sendToWebhook: recorderManager.config.getRaw(r.id)?.sendToWebhook,
+      // })),
+      // webhookOpen: webhookConfig.open,
+      // hasUID: !!webhookConfig.uid,
+      // uploadPresetId: webhookConfig.uploadPresetId,
+      // danmuEnabled: webhookConfig.danmu,
+      // danmuPresetId: webhookConfig.danmuPresetId,
+      // videoPresetId: webhookConfig.videoPresetId,
+      // minSize: webhookConfig.minSize,
+      // },
+    };
+
+    ctx.body = result;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = {
+      hasError: true,
+      errorInfo: `检查过程中发生错误: ${error}`,
+      details: {},
+    };
+  }
 });
 
 export default router;

@@ -209,6 +209,15 @@ export const handleWebhook = async (data: { id: string }[]) => {
   return res.data;
 };
 
+export const whyUploadFailed = async (roomId: string) => {
+  const res = await request.get("/common/whyUploadFailed", {
+    params: {
+      roomId,
+    },
+  });
+  return res.data;
+};
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
@@ -231,6 +240,7 @@ const common = {
   parseDanmu,
   testWebhook,
   handleWebhook,
+  whyUploadFailed,
 };
 
 export default common;
