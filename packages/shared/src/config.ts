@@ -5,7 +5,7 @@ import os from "node:os";
 import { defaultsDeep, get, cloneDeep } from "lodash-es";
 import { TypedEmitter } from "tiny-typed-emitter";
 import { APP_DEFAULT_CONFIG } from "./enum.js";
-import { log } from "./utils/log.js";
+import log from "./utils/log.js";
 
 import type { AppConfig as AppConfigType, DeepPartial } from "@biliLive-tools/types";
 
