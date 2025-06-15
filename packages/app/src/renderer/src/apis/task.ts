@@ -224,6 +224,13 @@ const addExtraVideoTask = async (taskId: string, filePath: string, partName: str
   return res.data;
 };
 
+const downloadFile = async (taskId: string): Promise<Blob> => {
+  const res = await request.get(`/task/${taskId}/download`, {
+    responseType: "blob",
+  });
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -246,6 +253,7 @@ const task = {
   cut,
   checkMergeVideos,
   addExtraVideoTask,
+  downloadFile,
 };
 
 export default task;
