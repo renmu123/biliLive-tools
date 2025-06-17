@@ -323,7 +323,6 @@ export class WebhookHandler {
 
     // 如果转换失败，不删除原始文件
     const shouldRemoveVideo = conversionSuccessful && afterConvertRemoveVideo;
-    console.log("22222222222222", conversionSuccessful, afterConvertRemoveVideo);
     if (!conversionSuccessful && afterConvertRemoveVideo) {
       log.warn("转换失败，已取消删除原始视频文件的操作");
     }
@@ -485,7 +484,6 @@ export class WebhookHandler {
       log.info(`开始同步${fileType}文件: ${filePath}`);
 
       task.on("task-end", async () => {
-        console.log("ppppppppppppppppppppppp", removeAfterSync);
         // 等待65秒，确保文件被释放
         await sleep(1000 * 65);
         this.fileLockManager.releaseLock(filePath, "sync");
@@ -1371,7 +1369,6 @@ export class WebhookHandler {
     partId: string,
     shouldRemoveAfterSync: boolean,
   ) {
-    console.log("1111111111111", shouldRemoveAfterSync, filePath, await fs.pathExists(filePath));
     // 检查文件是否存在
     if (!filePath) return;
     if (!(await fs.pathExists(filePath))) {
