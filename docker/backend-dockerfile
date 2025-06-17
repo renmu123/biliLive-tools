@@ -70,6 +70,8 @@ COPY --from=build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts
 
 ENV NODE_ENV=production
 ENV IS_DOCKER=true
+ENV BAIDUPCS_GO_CONFIG_DIR=/app/data
+ENV ALIYUNPAN_CONFIG_DIR=/app/data
 
 # 暴露 API 端口
 EXPOSE 18010
