@@ -112,7 +112,11 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
         const uploadFailed = stdout.includes("文件上传失败");
 
         if (code === 0 && !uploadFailed) {
-          this.logger.info(`命令执行成功: ${args.join(" ")}`);
+          if (args.includes("login")) {
+            this.logger.info("login 命令执行成功");
+          } else {
+            this.logger.info(`命令执行成功: ${args.join(" ")}`);
+          }
           this.cmd = null;
           resolve(stdout);
         } else {
