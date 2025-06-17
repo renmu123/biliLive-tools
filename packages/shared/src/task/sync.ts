@@ -113,7 +113,7 @@ export const addSyncTask = async ({
       },
     },
   );
-  taskQueue.addTask(task, true);
+  taskQueue.addTask(task, false);
   return task;
 };
 
