@@ -323,6 +323,7 @@ export class WebhookHandler {
 
     // 如果转换失败，不删除原始文件
     const shouldRemoveVideo = conversionSuccessful && afterConvertRemoveVideo;
+    console.log("22222222222222", conversionSuccessful, afterConvertRemoveVideo);
     if (!conversionSuccessful && afterConvertRemoveVideo) {
       log.warn("转换失败，已取消删除原始视频文件的操作");
     }
@@ -484,6 +485,7 @@ export class WebhookHandler {
       log.info(`开始同步${fileType}文件: ${filePath}`);
 
       task.on("task-end", async () => {
+        console.log("ppppppppppppppppppppppp", removeAfterSync);
         // 等待65秒，确保文件被释放
         await sleep(1000 * 65);
         this.fileLockManager.releaseLock(filePath, "sync");
@@ -649,8 +651,8 @@ export class WebhookHandler {
     const syncId = getRoomSetting("syncId");
 
     const afterConvertAction = getRoomSetting("afterConvertAction") ?? [];
-    const afterConvertRemoveVideo = afterConvertAction.includes("removeVideo");
-    const afterConvertRemoveXml = afterConvertAction.includes("removeXml");
+    const afterConvertRemoveVideoRaw = afterConvertAction.includes("removeVideo");
+    const afterConvertRemoveXmlRaw = afterConvertAction.includes("removeXml");
 
     const limitUploadTime = getRoomSetting("limitUploadTime") ?? false;
     const uploadHandleTime = getRoomSetting("uploadHandleTime") || ["00:00:00", "23:59:59"];
@@ -672,7 +674,26 @@ export class WebhookHandler {
       }
     }
 
+    let afterConvertRemoveVideo: boolean = afterConvertRemoveVideoRaw;
+    let afterConvertRemoveXml: boolean = afterConvertRemoveXmlRaw;
+    // 如果存在同步器，那么使用原始配置，如果未开启，那么只有存在视频预设时才会进行删除
+    if (!syncId) {
+      if (videoPresetId) {
+        afterConvertRemoveVideo = afterConvertRemoveVideoRaw;
+      } else {
+        afterConvertRemoveVideo = false;
+      }
+    }
+    if (!syncId) {
+      if (danmuPresetId) {
+        afterConvertRemoveXml = afterConvertRemoveXmlRaw;
+      } else {
+        afterConvertRemoveXml = false;
+      }
+    }
+
     const open = this.canRoomOpen(roomSetting, config?.webhook?.blacklist, roomId);
+
     const options = {
       danmu,
       mergePart,
@@ -693,9 +714,8 @@ export class WebhookHandler {
       convert2Mp4Option: convert2Mp4,
       removeSourceAferrConvert2Mp4,
       afterConvertAction,
-      afterConvertRemoveVideo:
-        afterConvertRemoveVideo && videoPresetId ? afterConvertRemoveVideo : false,
-      afterConvertRemoveXml: afterConvertRemoveXml && danmuPresetId ? afterConvertRemoveXml : false,
+      afterConvertRemoveVideo,
+      afterConvertRemoveXml,
       limitUploadTime,
       uploadHandleTime,
       uploadNoDanmu,
@@ -1351,6 +1371,7 @@ export class WebhookHandler {
     partId: string,
     shouldRemoveAfterSync: boolean,
   ) {
+    console.log("1111111111111", shouldRemoveAfterSync, filePath, await fs.pathExists(filePath));
     // 检查文件是否存在
     if (!filePath) return;
     if (!(await fs.pathExists(filePath))) {

@@ -330,80 +330,200 @@ describe("WebhookHandler", () => {
       const result = webhookHandler.getConfig(roomId);
       expect(result.partMergeMinute).toBe(-1);
     });
-    // afterConvertRemoveVideo必须在videoPresetId存在时，才有效
-    it("should afterConvertRemoveVideo return false when videoPresetId is not exist", () => {
-      const appConfig = {
-        getAll: vi.fn().mockReturnValue({
-          webhook: {
-            open: true,
-            mergePart: false,
-            partMergeMinute: 10,
-            afterConvertAction: ["removeVideo"],
-            ffmpegPreset: undefined,
-          },
-        }),
-      };
-      // @ts-ignore
-      const webhookHandler = new WebhookHandler(appConfig);
-      const roomId = 123;
-      const result = webhookHandler.getConfig(roomId);
-      expect(result.afterConvertRemoveVideo).toBe(false);
+    describe("afterConvertRemoveVideo", () => {
+      it("should afterConvertRemoveVideo return false when videoPresetId is not exist", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              afterConvertAction: ["removeVideo"],
+              ffmpegPreset: undefined,
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveVideo).toBe(false);
+      });
+      it("should afterConvertRemoveVideo return true when videoPresetId is exist and afterConvertAction is 'removeVideo'", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              afterConvertAction: ["removeVideo"],
+              ffmpegPreset: "123",
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveVideo).toBe(true);
+      });
+      it("should afterConvertRemoveVideo return true when videoPresetId is not exist and afterConvertAction is 'removeVideo' and syncId is exist", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              afterConvertAction: ["removeVideo"],
+              ffmpegPreset: undefined,
+              syncId: "123",
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveVideo).toBe(true);
+      });
+      it("当存在syncId且afterConvertAction为空时,afterConvertRemoveVideo应该为false", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              afterConvertAction: [],
+              ffmpegPreset: "123",
+              syncId: "123",
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveVideo).toBe(false);
+      });
+      it("当不存在syncId且不存在videoPresetId时,afterConvertAction包含removeVideo时,afterConvertRemoveVideo应该为false", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              afterConvertAction: ["removeVideo"],
+              ffmpegPreset: undefined,
+              syncId: undefined,
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveVideo).toBe(false);
+      });
     });
-    it("should afterConvertRemoveVideo return true when videoPresetId is exist and afterConvertAction is 'removeVideo'", () => {
-      const appConfig = {
-        getAll: vi.fn().mockReturnValue({
-          webhook: {
-            open: true,
-            mergePart: false,
-            partMergeMinute: 10,
-            afterConvertAction: ["removeVideo"],
-            ffmpegPreset: "123",
-          },
-        }),
-      };
-      // @ts-ignore
-      const webhookHandler = new WebhookHandler(appConfig);
-      const roomId = 123;
-      const result = webhookHandler.getConfig(roomId);
-      expect(result.afterConvertRemoveVideo).toBe(true);
+
+    describe("afterConvertRemoveXml", () => {
+      // afterConvertRemoveXml
+      it("should afterConvertRemoveXml return false when danmuPresetId is not exist", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              afterConvertAction: ["removeXml"],
+              danmuPreset: undefined,
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveXml).toBe(false);
+      });
+      it("should afterConvertRemoveXml return true when danmuPresetId is exist and afterConvertAction is 'removeXml'", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              afterConvertAction: ["removeXml"],
+              danmuPreset: "123",
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveXml).toBe(true);
+      });
+      it("当存在syncId时,应该使用原始的afterConvertRemoveXml配置", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              afterConvertAction: ["removeXml"],
+              danmuPreset: undefined,
+              syncId: "123",
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveXml).toBe(true);
+      });
+
+      it("当不存在syncId且没有danmuPreset时,afterConvertRemoveXml应该为false", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              afterConvertAction: ["removeXml"],
+              danmuPreset: undefined,
+              syncId: undefined,
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveXml).toBe(false);
+      });
+      it("当存在syncId时且存在danmuPreset,afterConvertAction为空时,afterConvertRemoveXml应该为true", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              afterConvertAction: [],
+              danmuPreset: "123",
+              syncId: "123",
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveXml).toBe(false);
+      });
     });
-    // afterConvertRemoveXml
-    it("should afterConvertRemoveXml return false when danmuPresetId is not exist", () => {
-      const appConfig = {
-        getAll: vi.fn().mockReturnValue({
-          webhook: {
-            open: true,
-            mergePart: false,
-            partMergeMinute: 10,
-            afterConvertAction: ["removeXml"],
-            danmuPreset: undefined,
-          },
-        }),
-      };
-      // @ts-ignore
-      const webhookHandler = new WebhookHandler(appConfig);
-      const roomId = 123;
-      const result = webhookHandler.getConfig(roomId);
-      expect(result.afterConvertRemoveXml).toBe(false);
-    });
-    it("should afterConvertRemoveXml return true when danmuPresetId is exist and afterConvertAction is 'removeXml'", () => {
-      const appConfig = {
-        getAll: vi.fn().mockReturnValue({
-          webhook: {
-            open: true,
-            mergePart: false,
-            partMergeMinute: 10,
-            afterConvertAction: ["removeXml"],
-            danmuPreset: "123",
-          },
-        }),
-      };
-      // @ts-ignore
-      const webhookHandler = new WebhookHandler(appConfig);
-      const roomId = 123;
-      const result = webhookHandler.getConfig(roomId);
-      expect(result.afterConvertRemoveXml).toBe(true);
-    });
+
     describe("uploadNoDanmu", () => {
       it("should uploadNoDanmu return true when uploadNoDanmu is false", () => {
         const appConfig = {
