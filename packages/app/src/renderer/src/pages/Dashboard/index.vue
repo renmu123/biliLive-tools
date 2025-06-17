@@ -1,11 +1,58 @@
 <template>
   <div class="center">
     <h1>已运行{{ formatTime(now - appStartTime) }}</h1>
-
-    <n-button type="primary" @click="handleWebhook">Webhook卡住不能上传？点我试试</n-button>
-
-    <n-button type="primary" @click="whyUploadFailed">为什么webhook里的xx不能工作？</n-button>
+    <div>
+      <n-button type="primary" @click="handleWebhook">Webhook卡住不能上传？点我试试</n-button>
+    </div>
+    <div style="margin-top: 10px">
+      <n-button type="primary" @click="whyUploadFailed">为什么webhook里的xx不能上传？</n-button>
+    </div>
   </div>
+
+  <!-- 输入直播间号弹框 -->
+  <n-modal v-model:show="roomIdModalVisible" :mask-closable="false" auto-focus>
+    <n-card style="width: 500px" :bordered="false" role="dialog" aria-modal="true">
+      <template #header>
+        <div style="font-size: 16px; font-weight: bold">输入直播间号</div>
+      </template>
+      <n-input
+        v-model:value="roomIdInput"
+        placeholder="请输入直播间号"
+        maxlength="20"
+        @keyup.enter="handleRoomIdConfirm"
+      />
+      <template #footer>
+        <div style="text-align: right">
+          <n-button @click="roomIdModalVisible = false">取消</n-button>
+          <n-button type="primary" style="margin-left: 10px" @click="handleRoomIdConfirm">
+            确认
+          </n-button>
+        </div>
+      </template>
+    </n-card>
+  </n-modal>
+
+  <!-- 结果显示弹框 -->
+  <n-modal v-model:show="resultModalVisible" :mask-closable="false" auto-focus>
+    <n-card style="width: 600px" :bordered="false" role="dialog" aria-modal="true">
+      <template #header>
+        <div style="font-size: 16px; font-weight: bold">检测结果</div>
+      </template>
+      <div v-if="checkResult">
+        <div :style="{ color: checkResult.hasError ? '#f56565' : '#48bb78' }">
+          {{ checkResult.hasError ? "发现问题" : "配置正常" }}
+        </div>
+        <div style="margin-top: 12px; white-space: pre-wrap; line-height: 1.5">
+          {{ checkResult.errorInfo }}
+        </div>
+      </div>
+      <template #footer>
+        <div style="text-align: right">
+          <n-button type="primary" @click="resultModalVisible = false">关闭</n-button>
+        </div>
+      </template>
+    </n-card>
+  </n-modal>
 </template>
 
 <script setup lang="ts">
@@ -73,9 +120,32 @@ const handleWebhook = async () => {
   return true;
 };
 
-const whyUploadFailed = async () => {
-  const res = await commonApi.whyUploadFailed("1233");
-  console.log(res);
+// 直播间号输入相关
+const roomIdModalVisible = ref(false);
+const roomIdInput = ref("");
+const resultModalVisible = ref(false);
+const checkResult = ref<{ hasError: boolean; errorInfo: string } | null>(null);
+
+const whyUploadFailed = () => {
+  roomIdInput.value = "";
+  roomIdModalVisible.value = true;
+};
+
+const handleRoomIdConfirm = async () => {
+  if (!roomIdInput.value.trim()) {
+    notice.warning("请输入直播间号");
+    return;
+  }
+
+  roomIdModalVisible.value = false;
+
+  try {
+    const res = await commonApi.whyUploadFailed(roomIdInput.value.trim());
+    checkResult.value = res;
+    resultModalVisible.value = true;
+  } catch (error) {
+    notice.error("检测失败，请检查直播间号是否正确");
+  }
 };
 </script>
 

@@ -499,9 +499,7 @@ router.get("/whyUploadFailed", async (ctx) => {
       // 是内部录制，检查录制器配置
       const recorderConfig = recorderManager.config.get(internalRecorder.id);
       if (!recorderConfig?.sendToWebhook) {
-        errorInfoList.push(
-          `内部录制器 ${recorderConfig!.remarks || recorderConfig!.channelId} 未开启webhook`,
-        );
+        errorInfoList.push(`内部录制设置未开启webhook`);
         hasError = true;
       }
     }
@@ -517,7 +515,7 @@ router.get("/whyUploadFailed", async (ctx) => {
     const webhookConfig = handler.getConfig(roomIdNum);
 
     if (!webhookConfig.open) {
-      errorInfoList.push("单独webhook未开启");
+      errorInfoList.push("处于黑名单或单独关闭开关");
 
       // // 检查具体原因
       // const appConfigData = handler.appConfig.getAll();
