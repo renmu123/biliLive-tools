@@ -79,6 +79,17 @@
             <FileOpenOutlined />
           </n-icon>
         </template>
+        <template v-else>
+          <n-icon
+            v-if="item.status === 'completed' && item.type === TaskType.ffmpeg && item.output"
+            :size="20"
+            class="btn pointer"
+            title="下载"
+            @click="handleDownload(item)"
+          >
+            <DownloadOutline />
+          </n-icon>
+        </template>
         <n-icon
           v-if="
             ['pending', 'running', 'paused'].includes(item.status) && item.type === TaskType.bili
@@ -164,6 +175,7 @@ import {
   AlertCircleOutline,
   CloseSharp,
   AddCircleOutline,
+  DownloadOutline,
 } from "@vicons/ionicons5";
 import { FileOpenOutlined, FolderOpenOutlined, LiveTvOutlined } from "@vicons/material";
 import { useConfirm } from "@renderer/hooks";
@@ -308,6 +320,25 @@ const handleRemoveFile = async (taskId: string) => {
     title: "移除成功",
     duration: 1000,
   });
+};
+
+const handleDownload = async (item: Task) => {
+  try {
+    const blob = await taskApi.downloadFile(item.taskId);
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = window.path.basename(item.output!);
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  } catch (error) {
+    notice.error({
+      title: "下载失败",
+      content: error instanceof Error ? error.message : "未知错误",
+    });
+  }
 };
 
 const addExtraVideoTask = async (taskId: string) => {

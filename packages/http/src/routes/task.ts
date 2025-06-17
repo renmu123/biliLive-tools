@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import Router from "koa-router";
+import path from "path";
 
 import {
   handleStartTask,
@@ -280,6 +281,35 @@ router.post("/addExtraVideoTask", async (ctx) => {
   };
   biliApi.addExtraVideoTask(taskId, filePath, partName);
   ctx.body = { code: 0 };
+});
+
+router.get("/:id/download", async (ctx) => {
+  const { id } = ctx.params;
+  const task = taskQueue.queryTask(id);
+  if (!task) {
+    ctx.status = 404;
+    ctx.body = { message: "任务不存在" };
+    return;
+  }
+  if (task.type !== "ffmpeg") {
+    ctx.status = 400;
+    ctx.body = { message: "不支持的任务类型" };
+    return;
+  }
+  if (!task.output || !(await fs.pathExists(task.output))) {
+    ctx.status = 404;
+    ctx.body = { message: "文件不存在" };
+    return;
+  }
+
+  const stat = await fs.stat(task.output);
+  ctx.set("Content-Length", stat.size.toString());
+  ctx.set("Content-Type", "application/octet-stream");
+  ctx.set(
+    "Content-Disposition",
+    `attachment; filename=${encodeURIComponent(path.basename(task.output))}`,
+  );
+  ctx.body = fs.createReadStream(task.output);
 });
 
 export default router;
