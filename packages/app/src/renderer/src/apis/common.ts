@@ -35,6 +35,11 @@ export const exportLogs = async (): Promise<Buffer> => {
   return res.data;
 };
 
+export const getLogContent = async (): Promise<string> => {
+  const res = await request.get(`/common/getLogContent`);
+  return res.data;
+};
+
 export const getDanmaStream = async (recorderId: string) => {
   let key = window.localStorage.getItem("key");
   if (!window.isWeb) {
@@ -230,6 +235,7 @@ const common = {
   appStartTime,
   getDanmaStream,
   exportLogs,
+  getLogContent,
   parseMeta,
   getRunningTaskNum,
   fileJoin,

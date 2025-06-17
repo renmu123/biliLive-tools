@@ -225,6 +225,12 @@ router.get("/exportLogs", async (ctx) => {
   ctx.body = fs.createReadStream(logFilePath);
 });
 
+router.get("/getLogContent", async (ctx) => {
+  const logFilePath = config.logPath;
+  const content = await fs.readFile(logFilePath, "utf-8");
+  ctx.body = content;
+});
+
 router.post("/readAss", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;

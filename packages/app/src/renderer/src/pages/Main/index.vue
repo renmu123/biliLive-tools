@@ -164,7 +164,7 @@ const footerMenuOptions = computed<MenuOption[]>(() => {
           },
           { default: () => "登出" },
         ),
-      key: "log",
+      key: "logout",
       icon: renderIcon(LogOutOutline),
     });
     menus.push({

@@ -9,46 +9,82 @@
           >导出</span
         >
       </template>
-      <n-log ref="logInst" style="height: calc(100vh - 200px)" :rows="40" :log="logs"> </n-log>
+      <n-virtual-list
+        style="height: calc(100vh - 200px)"
+        :item-size="20"
+        :items="logs"
+        item-resizable
+        ref="logInst"
+      >
+        <template #default="{ item, index }">
+          <div :key="index" class="item">
+            {{ item.message }}
+          </div>
+        </template>
+      </n-virtual-list>
     </n-card>
   </n-modal>
 </template>
 
 <script setup lang="ts">
-import { getStreamLogs, exportLogs } from "@renderer/apis/common";
+import { exportLogs, getLogContent } from "@renderer/apis/common";
 import { saveAs } from "file-saver";
 
-import type { LogInst } from "naive-ui";
+import type { VirtualListInst } from "naive-ui";
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 
-const logs = ref("");
-const logInst = ref<LogInst | null>(null);
+const logs = ref<
+  {
+    value: number;
+    key: number;
+    message: string;
+  }[]
+>([]);
+const logInst = ref<null | VirtualListInst>(null);
 
-let eventSource: EventSource | null = null;
+// let eventSource: EventSource | null = null;
 
-async function streamLogs() {
-  eventSource = await getStreamLogs();
+// async function streamLogs() {
+//   eventSource = await getStreamLogs();
 
-  eventSource.onmessage = function (event) {
-    logs.value += event.data;
-    nextTick(() => {
-      logInst.value?.scrollTo({ position: "bottom", silent: true });
+//   eventSource.onmessage = function (event) {
+//     logs.value += event.data;
+//     nextTick(() => {
+//       logInst.value?.scrollTo({ position: "bottom", silent: true });
+//     });
+//   };
+
+//   eventSource.onerror = function () {
+//     logs.value = "";
+//   };
+// }
+
+const getLog = async () => {
+  const content = await getLogContent();
+  logs.value = content.split("\n").map((item, index) => {
+    return {
+      value: index,
+      key: index,
+      message: item,
+    };
+  });
+
+  nextTick(() => {
+    logInst.value?.scrollTo({
+      index: logs.value?.at(-1)?.key,
     });
-  };
+  });
+};
 
-  eventSource.onerror = function () {
-    logs.value = "";
-  };
-}
 watch(
   () => showModal.value,
   (value) => {
     if (value) {
-      streamLogs();
+      getLog();
     } else {
-      logs.value = "";
-      eventSource?.close();
+      logs.value = [];
+      // eventSource?.close();
     }
   },
 );
@@ -60,4 +96,8 @@ const exportLogFile = async () => {
 };
 </script>
 
-<style scoped lang="less"></style>
+<style scoped lang="less">
+.item {
+  white-space: pre;
+}
+</style>
