@@ -23,15 +23,15 @@
         <n-checkbox v-model:checked="form.sc">sc</n-checkbox>
       </div>
 
-      <n-virtual-list class="content" :item-size="30" :items="displayList">
+      <n-virtual-list class="content" :item-size="28" :items="displayList">
         <template #default="{ item }">
-          <div :key="`${item.ts}-${item.text}`" class="item" style="height: 30px">
-            <span>{{ secondsToTimemark(item.ts, false) }}</span>
-            <span style="color: #2b94ff">{{ item.user }}</span>
+          <div :key="`${item.ts}-${item.text}`" class="item" style="min-height: 28px">
+            <span style="flex: none">{{ secondsToTimemark(item.ts, false) }}</span>
+            <span style="color: #2b94ff; flex: none">{{ item.user }}</span>
             <span v-if="item.type === 'sc'" style="color: #e57272">sc</span>
             <span> {{ item.text }}</span>
             <n-icon
-              class="pointer"
+              class="pointer action"
               size="20"
               :depth="3"
               title="添加到切片"
@@ -40,7 +40,13 @@
               <AddIcon></AddIcon>
             </n-icon>
 
-            <n-icon class="pointer" size="20" :depth="3" title="定位" @click="setLocation(item)">
+            <n-icon
+              class="pointer action"
+              size="20"
+              :depth="3"
+              title="定位"
+              @click="setLocation(item)"
+            >
               <LocationOutline></LocationOutline>
             </n-icon>
           </div>
@@ -187,6 +193,16 @@ const setLocation = (item: DanmuItem) => {
   .item {
     display: flex;
     gap: 8px;
+
+    .action {
+      display: none;
+    }
+
+    &:hover {
+      .action {
+        display: inline-block;
+      }
+    }
   }
 }
 </style>
