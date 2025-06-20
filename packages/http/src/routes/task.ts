@@ -292,6 +292,14 @@ router.post("/editVideoPartName", async (ctx) => {
   ctx.body = { code: 0 };
 });
 
+router.post("/queryVideoStatus", async (ctx) => {
+  const { taskId } = ctx.request.body as {
+    taskId: string;
+  };
+  const res = await biliApi.queryVideoStatus(taskId);
+  ctx.body = res;
+});
+
 router.get("/:id/download", async (ctx) => {
   const { id } = ctx.params;
   const task = taskQueue.queryTask(id);

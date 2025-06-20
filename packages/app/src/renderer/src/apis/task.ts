@@ -224,6 +224,11 @@ const addExtraVideoTask = async (taskId: string, filePath: string, partName: str
   return res.data;
 };
 
+const queryVideoStatus = async (taskId: string) => {
+  const res = await request.post(`/task/queryVideoStatus`, { taskId });
+  return res.data;
+};
+
 const editVideoPartName = async (taskId: string, partName: string) => {
   const res = await request.post(`/task/editVideoPartName`, { taskId, partName });
   return res.data;
@@ -260,6 +265,7 @@ const task = {
   addExtraVideoTask,
   downloadFile,
   editVideoPartName,
+  queryVideoStatus,
 };
 
 export default task;

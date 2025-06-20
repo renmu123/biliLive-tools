@@ -704,6 +704,9 @@ export function addExtraVideoTask(pTaskId: string, filePath: string, partName: s
   if (!pTask) {
     throw new Error("任务不存在");
   }
+  if (pTask.type !== "bili") {
+    throw new Error("不支持的任务类型");
+  }
   const config = appConfig.getAll();
   const uploadOptions = config.biliUpload;
   const part = {
@@ -735,7 +738,26 @@ async function editVideoPartName(taskId: string, partName: string) {
   if (!task) {
     throw new Error("任务不存在");
   }
+  if (task.type !== "biliUpload") {
+    throw new Error("不支持的任务类型");
+  }
   task.command.title = partName;
+}
+
+/**
+ * 查询视频状态
+ */
+async function queryVideoStatus(taskId: string) {
+  const task = taskQueue.queryTask(taskId) as BiliAddVideoTask;
+  if (!task) {
+    throw new Error("任务不存在");
+  }
+  if (task.type !== "bili") {
+    throw new Error("不支持的任务类型");
+  }
+  const client = createClient(task.uid);
+  const res = await client.platform.getArchive({ aid: Number(task.output) });
+  return res;
 }
 
 async function getSessionId(
@@ -1030,6 +1052,7 @@ export const biliApi = {
   sliceDownload,
   addExtraVideoTask,
   editVideoPartName,
+  queryVideoStatus,
 };
 
 export default biliApi;

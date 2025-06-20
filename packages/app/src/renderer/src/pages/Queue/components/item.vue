@@ -20,6 +20,15 @@
         </n-icon>
       </div>
       <div class="btns">
+        <!-- <n-icon
+          v-if="['completed'].includes(item.status) && item.type === TaskType.bili"
+          :size="20"
+          class="btn pointer"
+          title="视频状态"
+          @click="queryVideoStatus(item.taskId)"
+        >
+          <SearchInfo24Regular />
+        </n-icon> -->
         <n-icon
           v-if="
             ['pending', 'running', 'paused'].includes(item.status) && item.type === TaskType.bili
@@ -193,6 +202,7 @@ import {
   PencilOutline,
 } from "@vicons/ionicons5";
 import { FileOpenOutlined, FolderOpenOutlined, LiveTvOutlined } from "@vicons/material";
+import { SearchInfo24Regular } from "@vicons/fluent";
 import { useConfirm } from "@renderer/hooks";
 import { useQueueStore } from "@renderer/stores";
 import { formatSeconds, supportedVideoExtensions } from "@renderer/utils";
@@ -377,6 +387,11 @@ const editVideoPartName = async (taskId: string) => {
   if (!partName) return;
   taskApi.editVideoPartName(taskId, partName);
   store.getQuenu();
+};
+
+const queryVideoStatus = async (taskId: string) => {
+  const res = await taskApi.queryVideoStatus(taskId);
+  console.log(res);
 };
 </script>
 
