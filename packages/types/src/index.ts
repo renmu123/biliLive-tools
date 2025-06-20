@@ -791,6 +791,8 @@ export interface BiliupConfig {
   topic_name?: string | null;
   /** 是否仅自己可见 */
   is_only_self?: 0 | 1;
+  /** 新分区 */
+  human_type2?: number;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

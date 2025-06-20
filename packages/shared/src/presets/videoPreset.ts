@@ -11,6 +11,7 @@ export const DEFAULT_BILIUP_CONFIG: BiliupConfig = {
   copyright: 1,
   tag: ["biliLive-tools"], // tag应该为""以,分割的字符串
   tid: 138,
+  human_type2: undefined,
   source: "",
   dynamic: "",
   cover: "",

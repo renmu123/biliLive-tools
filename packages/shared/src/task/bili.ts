@@ -306,6 +306,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     cover: cover,
     title: options.title,
     tid: options.tid,
+    human_type2: options.human_type2,
     tag: tags.slice(0, 10).join(","),
     copyright: options.copyright,
     source: options.source,
