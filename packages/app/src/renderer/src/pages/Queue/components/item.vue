@@ -21,6 +21,30 @@
       </div>
       <div class="btns">
         <n-icon
+          v-if="
+            ['pending', 'running', 'paused'].includes(item.status) && item.type === TaskType.bili
+          "
+          :size="20"
+          class="btn pointer"
+          title="添加视频"
+          @click="addExtraVideoTask(item.taskId)"
+        >
+          <AddCircleOutline />
+        </n-icon>
+        <n-icon
+          v-if="
+            ['pending', 'running', 'paused'].includes(item.status) &&
+            item.type === TaskType.biliUpload
+          "
+          :size="20"
+          class="btn pointer"
+          title="编辑名称"
+          @click="editVideoPartName(item.taskId)"
+        >
+          <PencilOutline />
+        </n-icon>
+
+        <n-icon
           v-if="item.status === 'pending' || item.status === 'paused'"
           :size="20"
           class="btn pointer"
@@ -90,17 +114,7 @@
             <DownloadOutline />
           </n-icon>
         </template>
-        <n-icon
-          v-if="
-            ['pending', 'running', 'paused'].includes(item.status) && item.type === TaskType.bili
-          "
-          :size="20"
-          class="btn pointer"
-          title="添加视频"
-          @click="addExtraVideoTask(item.taskId)"
-        >
-          <AddCircleOutline />
-        </n-icon>
+
         <n-icon
           v-if="item.status === 'completed' && item.type === TaskType.bili && item.output"
           :size="20"
@@ -176,6 +190,7 @@ import {
   CloseSharp,
   AddCircleOutline,
   DownloadOutline,
+  PencilOutline,
 } from "@vicons/ionicons5";
 import { FileOpenOutlined, FolderOpenOutlined, LiveTvOutlined } from "@vicons/material";
 import { useConfirm } from "@renderer/hooks";
@@ -184,6 +199,7 @@ import { formatSeconds, supportedVideoExtensions } from "@renderer/utils";
 import { TaskType } from "@biliLive-tools/shared/enum.js";
 import { taskApi } from "@renderer/apis";
 import { showFileDialog } from "@renderer/utils/fileSystem";
+import showInput from "@renderer/components/showInput";
 
 import type { Task } from "@renderer/types";
 
@@ -350,6 +366,16 @@ const addExtraVideoTask = async (taskId: string) => {
   const filePath = files?.[0];
   const partName = window.path.parse(filePath).name.slice(0, 80);
   taskApi.addExtraVideoTask(taskId, filePath, partName);
+  store.getQuenu();
+};
+
+const editVideoPartName = async (taskId: string) => {
+  const partName = await showInput({
+    title: "编辑分p名称",
+    placeholder: "请输入分p名称",
+  });
+  if (!partName) return;
+  taskApi.editVideoPartName(taskId, partName);
   store.getQuenu();
 };
 </script>

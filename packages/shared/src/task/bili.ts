@@ -726,6 +726,18 @@ export function addExtraVideoTask(pTaskId: string, filePath: string, partName: s
   taskQueue.addTask(task, false);
   pTask.addTask(task);
 }
+
+/**
+ * 编辑分p名称
+ */
+async function editVideoPartName(taskId: string, partName: string) {
+  const task = taskQueue.queryTask(taskId) as BiliPartVideoTask;
+  if (!task) {
+    throw new Error("任务不存在");
+  }
+  task.command.title = partName;
+}
+
 async function getSessionId(
   aid: number,
   uid: number,
@@ -1017,6 +1029,7 @@ export const biliApi = {
   getSliceStream,
   sliceDownload,
   addExtraVideoTask,
+  editVideoPartName,
 };
 
 export default biliApi;

@@ -283,6 +283,15 @@ router.post("/addExtraVideoTask", async (ctx) => {
   ctx.body = { code: 0 };
 });
 
+router.post("/editVideoPartName", async (ctx) => {
+  const { taskId, partName } = ctx.request.body as {
+    taskId: string;
+    partName: string;
+  };
+  biliApi.editVideoPartName(taskId, partName);
+  ctx.body = { code: 0 };
+});
+
 router.get("/:id/download", async (ctx) => {
   const { id } = ctx.params;
   const task = taskQueue.queryTask(id);
