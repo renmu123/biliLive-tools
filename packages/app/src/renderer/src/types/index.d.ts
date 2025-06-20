@@ -16,4 +16,5 @@ export interface Task {
   error?: string;
   children?: Task[];
   duration: number;
+  extra?: Record<string, any>;
 }

@@ -742,6 +742,7 @@ async function editVideoPartName(taskId: string, partName: string) {
     throw new Error("不支持的任务类型");
   }
   task.command.title = partName;
+  task.name = `上传视频：${partName}(${path.parse(task.command.filePath).base})`;
 }
 
 /**

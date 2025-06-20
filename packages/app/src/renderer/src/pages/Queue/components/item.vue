@@ -48,7 +48,7 @@
           :size="20"
           class="btn pointer"
           title="编辑名称"
-          @click="editVideoPartName(item.taskId)"
+          @click="editVideoPartName(item.taskId, item)"
         >
           <PencilOutline />
         </n-icon>
@@ -202,7 +202,7 @@ import {
   PencilOutline,
 } from "@vicons/ionicons5";
 import { FileOpenOutlined, FolderOpenOutlined, LiveTvOutlined } from "@vicons/material";
-import { SearchInfo24Regular } from "@vicons/fluent";
+// import { SearchInfo24Regular } from "@vicons/fluent";
 import { useConfirm } from "@renderer/hooks";
 import { useQueueStore } from "@renderer/stores";
 import { formatSeconds, supportedVideoExtensions } from "@renderer/utils";
@@ -270,7 +270,6 @@ const statusMap: {
 };
 
 const handleStart = (taskId: string, task: Task) => {
-  console.log("handleStart", taskId);
   if (task.status === "paused") {
     taskApi.resume(taskId);
   } else if (task.status === "pending") {
@@ -280,7 +279,6 @@ const handleStart = (taskId: string, task: Task) => {
 };
 
 const handlePause = async (taskId: string) => {
-  console.log("handlePause", taskId);
   await taskApi.pause(taskId);
   store.getQuenu();
 };
@@ -379,20 +377,21 @@ const addExtraVideoTask = async (taskId: string) => {
   store.getQuenu();
 };
 
-const editVideoPartName = async (taskId: string) => {
+const editVideoPartName = async (taskId: string, item: Task) => {
   const partName = await showInput({
     title: "编辑分p名称",
     placeholder: "请输入分p名称",
+    defaultValue: item?.extra?.title,
   });
   if (!partName) return;
   taskApi.editVideoPartName(taskId, partName);
   store.getQuenu();
 };
 
-const queryVideoStatus = async (taskId: string) => {
-  const res = await taskApi.queryVideoStatus(taskId);
-  console.log(res);
-};
+// const queryVideoStatus = async (taskId: string) => {
+//   const res = await taskApi.queryVideoStatus(taskId);
+//   console.log(res);
+// };
 </script>
 
 <style scoped lang="less">

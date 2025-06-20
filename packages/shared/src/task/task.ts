@@ -48,6 +48,7 @@ export abstract class AbstractTask {
   totalPausedDuration: number = 0;
   emitter = new TypedEmitter<TaskEvents>();
   limitTime?: [] | [string, string];
+  extra?: Record<string, any>;
   on: TypedEmitter<TaskEvents>["on"];
   emit: TypedEmitter<TaskEvents>["emit"];
 
@@ -335,6 +336,9 @@ export class BiliPartVideoTask extends AbstractTask {
       this.name = options.name;
     }
     this.pid = options.pid;
+    this.extra = {
+      title: this?.command?.title,
+    };
 
     command.emitter.on(
       "completed",
@@ -1062,6 +1066,7 @@ export class TaskQueue {
         custsomProgressMsg: task.custsomProgressMsg,
         error: task.error ? String(task.error) : "",
         duration: task.getDuration(),
+        extra: task.extra,
       };
     });
   }
