@@ -157,6 +157,68 @@ function createWindow(): void {
     log.error(`preload-error: ${preloadPath},${error}`);
   });
 
+  // 添加更多渲染进程相关的事件监听
+  content.on("crashed" as any, (_event, killed) => {
+    log.error("=== 渲染进程崩溃 (Renderer Process Crashed) ===");
+    log.error("是否被杀死:", killed);
+    log.error("崩溃时间:", new Date().toISOString());
+    log.error("进程ID:", content.getOSProcessId());
+    log.error("=== 渲染进程崩溃结束 ===");
+  });
+
+  content.on("unresponsive" as any, () => {
+    log.error("=== 渲染进程无响应 (Renderer Process Unresponsive) ===");
+    log.error("无响应时间:", new Date().toISOString());
+    log.error("进程ID:", content.getOSProcessId());
+    log.error("=== 渲染进程无响应结束 ===");
+  });
+
+  content.on("responsive" as any, () => {
+    log.info("=== 渲染进程恢复响应 (Renderer Process Responsive) ===");
+    log.info("恢复时间:", new Date().toISOString());
+    log.info("进程ID:", content.getOSProcessId());
+    log.info("=== 渲染进程恢复响应结束 ===");
+  });
+
+  content.on(
+    "did-fail-load" as any,
+    (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+      log.error("=== 页面加载失败 (Page Load Failed) ===");
+      log.error("错误代码:", errorCode);
+      log.error("错误描述:", errorDescription);
+      log.error("验证URL:", validatedURL);
+      log.error("是否主框架:", isMainFrame);
+      log.error("失败时间:", new Date().toISOString());
+      log.error("=== 页面加载失败结束 ===");
+    },
+  );
+
+  content.on(
+    "did-fail-provisional-load" as any,
+    (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+      log.error("=== 临时页面加载失败 (Provisional Load Failed) ===");
+      log.error("错误代码:", errorCode);
+      log.error("错误描述:", errorDescription);
+      log.error("验证URL:", validatedURL);
+      log.error("是否主框架:", isMainFrame);
+      log.error("失败时间:", new Date().toISOString());
+      log.error("=== 临时页面加载失败结束 ===");
+    },
+  );
+
+  // content.on("console-message" as any, (_event, level, message, line, sourceId) => {
+  //   if (level >= 2) {
+  //     // 只记录警告和错误级别的控制台消息
+  //     log.warn("=== 渲染进程控制台消息 ===");
+  //     log.warn("级别:", level);
+  //     log.warn("消息:", message);
+  //     log.warn("行号:", line);
+  //     log.warn("源ID:", sourceId);
+  //     log.warn("时间:", new Date().toISOString());
+  //     log.warn("=== 渲染进程控制台消息结束 ===");
+  //   }
+  // });
+
   // 触发关闭时触发
   mainWin.on("close", (event) => {
     const appConfig = container.resolve<AppConfig>("appConfig");
@@ -426,6 +488,23 @@ if (!gotTheLock) {
   });
 
   process.on("uncaughtException", function (error) {
+    log.error("=== 未捕获异常 (Uncaught Exception) ===");
+    log.error("错误信息:", error.message);
+    log.error("错误堆栈:", error.stack);
+    log.error("错误名称:", error.name);
+    log.error("错误代码:", (error as any).code);
+    log.error("错误信号:", (error as any).signal);
+    log.error("进程ID:", process.pid);
+    log.error("Node版本:", process.version);
+    log.error("平台:", process.platform);
+    log.error("架构:", process.arch);
+    log.error("内存使用:", {
+      rss: process.memoryUsage().rss,
+      heapTotal: process.memoryUsage().heapTotal,
+      heapUsed: process.memoryUsage().heapUsed,
+      external: process.memoryUsage().external,
+    });
+
     if (error.message.includes("listen EADDRINUSE")) {
       setTimeout(() => {
         const appConfig = container.resolve<AppConfig>("appConfig");
@@ -435,16 +514,59 @@ if (!gotTheLock) {
         });
       }, 1000);
     }
-    log.error("uncaughtException", error);
-    // log.error(error);
+    log.error("=== 未捕获异常结束 ===");
   });
-  process.on("unhandledRejection", function (error) {
-    log.error("unhandledRejection", error);
-    // event.sender.send("notify", data);
-    mainWin.webContents.send("notify", {
-      type: "error",
-      content: String(error),
-    });
+
+  process.on("unhandledRejection", function (reason, promise) {
+    log.error("=== 未处理的Promise拒绝 (Unhandled Rejection) ===");
+    log.error("拒绝原因:", reason);
+    log.error("Promise对象:", promise);
+    log.error("进程ID:", process.pid);
+    log.error("时间戳:", new Date().toISOString());
+
+    if (reason instanceof Error) {
+      log.error("错误名称:", reason.name);
+      log.error("错误消息:", reason.message);
+      log.error("错误堆栈:", reason.stack);
+    }
+
+    // 发送通知到渲染进程
+    if (mainWin && !mainWin.isDestroyed()) {
+      mainWin.webContents.send("notify", {
+        type: "error",
+        content: String(reason),
+      });
+    }
+    log.error("=== 未处理的Promise拒绝结束 ===");
+  });
+
+  // 添加更多进程事件监听
+  process.on("warning", function (warning) {
+    log.warn("=== 进程警告 (Process Warning) ===");
+    log.warn("警告名称:", warning.name);
+    log.warn("警告消息:", warning.message);
+    log.warn("警告堆栈:", warning.stack);
+    log.warn("警告代码:", (warning as any).code);
+    log.warn("=== 进程警告结束 ===");
+  });
+
+  process.on("exit", function (code) {
+    log.info("=== 进程退出 (Process Exit) ===");
+    log.info("退出代码:", code);
+    log.info("退出时间:", new Date().toISOString());
+    log.info("=== 进程退出结束 ===");
+  });
+
+  process.on("SIGTERM", function () {
+    log.info("=== 收到SIGTERM信号 ===");
+    log.info("时间:", new Date().toISOString());
+    log.info("=== SIGTERM信号处理结束 ===");
+  });
+
+  process.on("SIGINT", function () {
+    log.info("=== 收到SIGINT信号 ===");
+    log.info("时间:", new Date().toISOString());
+    log.info("=== SIGINT信号处理结束 ===");
   });
 
   app.on("second-instance", () => {
@@ -470,6 +592,21 @@ if (!gotTheLock) {
 // 业务相关的初始化
 const appInit = async () => {
   fs.ensureDir(getTempPath());
+
+  // 记录应用启动信息
+  log.info("=== 应用启动信息 ===");
+  log.info("应用版本:", app.getVersion());
+  log.info("Electron版本:", process.versions.electron);
+  log.info("Node版本:", process.versions.node);
+  log.info("Chrome版本:", process.versions.chrome);
+  log.info("V8版本:", process.versions.v8);
+  log.info("操作系统:", process.platform);
+  log.info("架构:", process.arch);
+  log.info("启动时间:", new Date().toISOString());
+  log.info("用户数据路径:", app.getPath("userData"));
+  log.info("临时文件路径:", app.getPath("temp"));
+  log.info("日志路径:", app.getPath("logs"));
+  log.info("=== 应用启动信息结束 ===");
 
   const {
     APP_CONFIG_PATH,
@@ -510,7 +647,7 @@ const appInit = async () => {
     try {
       await checkUpdate();
     } catch (error) {
-      log.error(error);
+      log.error("自动更新检查失败:", error);
     }
   }
   // taskQueueListen(container);
