@@ -120,6 +120,9 @@ describe("RecorderConfig", () => {
         formatName: "bilibili_format",
         codecName: "h264",
         source: "auto",
+        doubleScreen: undefined,
+        formatPriorities: undefined,
+        sourcePriorities: [],
       });
     });
 
@@ -146,33 +149,95 @@ describe("RecorderConfig", () => {
         formatName: "auto",
         codecName: "h264",
         source: "auto",
+        doubleScreen: undefined,
+        formatPriorities: undefined,
+        sourcePriorities: [],
       });
     });
 
-    it("应该正确处理 HuYa 录制器的配置", () => {
-      const result = recorderConfig.get("test3");
+    describe("应该正确处理 HuYa 录制器的配置", () => {
+      it("应该正确处理 HuYa 录制器的配置", () => {
+        const result = recorderConfig.get("test3");
 
-      expect(result).toEqual({
-        id: "test3",
-        providerId: "HuYa",
-        channelId: "789",
-        owner: "test_owner3",
-        quality: "high",
-        line: undefined,
-        disableProvideCommentsWhenRecording: true,
-        saveGiftDanma: false,
-        saveSCDanma: true,
-        saveCover: false,
-        segment: 90,
-        uid: undefined,
-        qualityRetry: 3,
-        videoFormat: "auto",
-        formatPriorities: ["flv", "hls"],
-        auth: undefined,
-        useM3U8Proxy: true,
-        formatName: "auto",
-        codecName: "h264",
-        source: "auto",
+        expect(result).toEqual({
+          id: "test3",
+          providerId: "HuYa",
+          channelId: "789",
+          owner: "test_owner3",
+          quality: "high",
+          line: undefined,
+          disableProvideCommentsWhenRecording: true,
+          saveGiftDanma: false,
+          saveSCDanma: true,
+          saveCover: false,
+          segment: 90,
+          uid: undefined,
+          qualityRetry: 3,
+          videoFormat: "auto",
+          formatPriorities: ["flv", "hls"],
+          auth: undefined,
+          useM3U8Proxy: true,
+          formatName: "auto",
+          codecName: "h264",
+          source: "auto",
+          doubleScreen: undefined,
+          sourcePriorities: [],
+        });
+      });
+      it("正确处理HuYa source全局参数", () => {
+        // 修改全局配置，添加测试配置
+        mockAppConfig.get.mockImplementation((key: string) => {
+          if (key === "recorder") {
+            return {
+              huya: {
+                source: "AL",
+              },
+            };
+          }
+          if (key === "recorders") {
+            return [
+              {
+                id: "test6",
+                providerId: "HuYa",
+                channelId: "123",
+                noGlobalFollowFields: [],
+                source: "auto",
+              },
+            ];
+          }
+          return null;
+        });
+
+        const result = recorderConfig.get("test6");
+        expect(result?.sourcePriorities).toEqual(["AL"]);
+      });
+
+      it("正确处理HuYa source非全局参数", () => {
+        // 修改全局配置，添加测试配置
+        mockAppConfig.get.mockImplementation((key: string) => {
+          if (key === "recorder") {
+            return {
+              huya: {
+                source: "auto",
+              },
+            };
+          }
+          if (key === "recorders") {
+            return [
+              {
+                id: "test6",
+                providerId: "HuYa",
+                channelId: "123",
+                noGlobalFollowFields: ["source"],
+                source: "TX",
+              },
+            ];
+          }
+          return null;
+        });
+
+        const result = recorderConfig.get("test6");
+        expect(result?.sourcePriorities).toEqual(["TX"]);
       });
     });
 
@@ -201,6 +266,7 @@ describe("RecorderConfig", () => {
         source: "auto",
         formatPriorities: ["flv", "hls"],
         doubleScreen: true,
+        sourcePriorities: [],
       });
     });
 
@@ -294,6 +360,9 @@ describe("RecorderConfig", () => {
         formatName: "bilibili_format",
         codecName: "h264",
         source: "auto",
+        doubleScreen: undefined,
+        formatPriorities: undefined,
+        sourcePriorities: [],
       });
     });
   });
