@@ -94,6 +94,50 @@ export const douyuSourceOptions = [
   },
 ];
 
+// 虎牙线路选项
+export const huyaSourceOptions = [
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    value: "AL",
+    label: "阿里(AL)",
+  },
+  {
+    value: "TX",
+    label: "腾讯(TX)",
+  },
+  {
+    value: "HW",
+    label: "华为(HW)",
+  },
+  {
+    value: "HS",
+    label: "火山(HS)",
+  },
+  {
+    value: "WS",
+    label: "网宿(WS)",
+  },
+  {
+    value: "AL13",
+    label: "阿里13(AL13)",
+  },
+  {
+    value: "TX15",
+    label: "腾讯15(TX15)",
+  },
+  {
+    value: "HW16",
+    label: "华为16(HW16)",
+  },
+  {
+    value: "HYZJ",
+    label: "虎牙自建(HYZJ)",
+  },
+];
+
 // 虎牙画质选项
 export const huyaQualityOptions = [
   {

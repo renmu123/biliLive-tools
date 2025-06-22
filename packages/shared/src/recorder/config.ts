@@ -63,6 +63,20 @@ export default class RecorderConfig {
           } else {
             return undefined;
           }
+        } else if (key === "sourcePriorities") {
+          if (setting.providerId === "HuYa") {
+            const source = get(globalConfig, "huya.source");
+            if (!source) {
+              return [];
+            }
+            if (source === "auto") {
+              return [];
+            } else {
+              return [source];
+            }
+          } else {
+            return [];
+          }
         } else {
           return get(globalConfig, key);
         }
@@ -107,6 +121,18 @@ export default class RecorderConfig {
       }
     }
 
+    // 虎牙cdn处理
+    let sourcePriorities: string[] = [];
+    if (setting.providerId === "HuYa") {
+      if ((setting?.noGlobalFollowFields ?? []).includes("source")) {
+        if (setting.source !== "auto") {
+          sourcePriorities = [setting.source];
+        }
+      } else {
+        sourcePriorities = getValue("sourcePriorities");
+      }
+    }
+
     return {
       ...setting,
       quality: getValue("quality") ?? "highest",
@@ -126,6 +152,7 @@ export default class RecorderConfig {
       source: getValue("source") ?? "auto",
       formatPriorities: formatPriorities,
       doubleScreen: getValue("doubleScreen"),
+      sourcePriorities: sourcePriorities,
     };
   }
   public list() {

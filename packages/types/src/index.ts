@@ -313,6 +313,7 @@ interface HuyaRecorderConfig {
   quality: 0 | 20000 | 10000 | 14100 | 14000 | 4200 | 8000 | 4000 | 2000 | 500;
   /** 流格式 */
   formatName: FormatName;
+  source: string;
 }
 
 interface DouyinRecorderConfig {

@@ -243,6 +243,19 @@
               >全局</n-checkbox
             >
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="线路" tip="如果设置的不存在，会采用默认"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.source"
+              :options="huyaSourceOptions"
+              :disabled="globalFieldsObj.source"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.source" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
         </template>
         <template v-if="config.providerId === 'DouYin'">
           <n-form-item>
@@ -429,6 +442,7 @@ import {
   douyuSourceOptions,
   videoFormatOptions,
   douyinStreamFormatOptions,
+  huyaSourceOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 
@@ -681,7 +695,13 @@ watch(
       config.value.codecName = appConfig.value.recorder.bilibili.codecName;
     }
     if (val.source) {
-      config.value.source = appConfig.value.recorder.douyu.source;
+      if (config.value.providerId === "DouYu") {
+        config.value.source = appConfig.value.recorder.douyu.source;
+      } else if (config.value.providerId === "HuYa") {
+        config.value.source = appConfig.value.recorder.huya.source;
+      } else {
+        config.value.source = "auto";
+      }
     }
     if (val.videoFormat) {
       config.value.videoFormat = appConfig.value.recorder.videoFormat;
