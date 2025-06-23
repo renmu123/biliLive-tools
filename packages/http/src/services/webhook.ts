@@ -770,6 +770,7 @@ export class WebhookHandler {
         uploadStatus: "pending",
         rawFilePath: options.filePath,
         rawUploadStatus: "pending",
+        title: options.title,
       };
       currentLive.addPart(part);
     } else {
@@ -790,6 +791,7 @@ export class WebhookHandler {
         uploadStatus: "pending",
         rawFilePath: options.filePath,
         rawUploadStatus: "pending",
+        title: options.title,
       });
       this.liveData.push(live);
     }
@@ -839,6 +841,7 @@ export class WebhookHandler {
         uploadStatus: "pending",
         rawFilePath: options.filePath,
         rawUploadStatus: "pending",
+        title: options.title,
       });
       this.liveData.push(live);
 
@@ -1159,7 +1162,7 @@ export class WebhookHandler {
         const filename = path.parse(part[filePathField]).name;
         const title = formatPartTitle(
           {
-            title: live.title,
+            title: part.title,
             username: live.username,
             roomId: live.roomId,
             time: part?.startTime

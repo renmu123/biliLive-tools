@@ -56,12 +56,14 @@ describe("WebhookHandler", () => {
         filePath: "/path/to/existing-video1.mp4",
         recordStatus: "recorded",
         endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        title: "Existing Video",
       });
       existingLive.addPart({
         partId: "existing-part-id",
         startTime: new Date("2022-01-01T00:08:00Z").getTime(),
         filePath: "/path/to/existing-video2.mp4",
         recordStatus: "recording",
+        title: "Existing Video",
       });
 
       webhookHandler.liveData.push(existingLive);
@@ -116,6 +118,7 @@ describe("WebhookHandler", () => {
         startTime: new Date("2022-01-01T00:08:00Z").getTime(),
         filePath: "/path/to/existing-video2.mp4",
         recordStatus: "recording",
+        title: "Existing Video",
       });
 
       webhookHandler.liveData.push(existingLive);
@@ -747,6 +750,7 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
           cover: "/path/to/cover.jpg",
+          title: "part1",
         });
 
         // @ts-ignore
@@ -801,6 +805,7 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
           cover: "/path/to/cover.jpg",
+          title: "part1",
         });
 
         // @ts-ignore
@@ -856,6 +861,7 @@ describe("WebhookHandler", () => {
           endTime: new Date("2023-01-01T00:05:00Z").getTime(),
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           cover: "/path/to/cover.jpg",
+          title: "part1",
         });
 
         // @ts-ignore
@@ -914,6 +920,7 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
           cover: "/path/to/cover.jpg",
+          title: "part1",
         });
         live.addPart({
           partId: "part-2",
@@ -921,6 +928,7 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
           cover: "/path/to/cover.jpg",
+          title: "part2",
         });
         live.addPart({
           partId: "part-3",
@@ -928,6 +936,7 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
           cover: "/path/to/cover.jpg",
+          title: "part3",
         });
 
         // @ts-ignore
@@ -995,6 +1004,7 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
           cover: "/path/to/cover.jpg",
+          title: "part1",
         });
 
         // @ts-ignore
@@ -1033,6 +1043,7 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           uploadStatus: "error",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part1",
         });
         // @ts-ignore
         vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
@@ -1066,17 +1077,20 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           uploadStatus: "error",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part1",
         });
         live.addPart({
           partId: "part-2",
           filePath: "/path/to/part2.mp4",
           recordStatus: "recording",
+          title: "part2",
         });
         live.addPart({
           partId: "part-3",
           filePath: "/path/to/part3.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part3",
         });
 
         // @ts-ignore
@@ -1116,18 +1130,21 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           uploadStatus: "uploaded",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part1",
         });
         live.addPart({
           partId: "part-2",
           filePath: "/path/to/part2.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+          title: "part2",
         });
         live.addPart({
           partId: "part-3",
           filePath: "/path/to/part3.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+          title: "part3",
         });
 
         // @ts-ignore
@@ -1187,18 +1204,21 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           uploadStatus: "uploaded",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part1",
         });
         live.addPart({
           partId: "part-2",
           filePath: "/path/to/part2.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+          title: "part2",
         });
         live.addPart({
           partId: "part-3",
           filePath: "/path/to/part3.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+          title: "part3",
         });
 
         // @ts-ignore
@@ -1257,18 +1277,21 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           uploadStatus: "uploaded",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part1",
         });
         live.addPart({
           partId: "part-2",
           filePath: "/path/to/part2.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+          title: "part2",
         });
         live.addPart({
           partId: "part-3",
           filePath: "/path/to/part3.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+          title: "part3",
         });
 
         // @ts-ignore
@@ -1292,11 +1315,11 @@ describe("WebhookHandler", () => {
           [
             {
               path: "/path/to/part2.mp4",
-              title: "part2-Test Video-username-123-2",
+              title: "part2-part2-username-123-2",
             },
             {
               path: "/path/to/part3.mp4",
-              title: "part3-Test Video-username-123-3",
+              title: "part3-part3-username-123-3",
             },
           ],
           [],
@@ -1320,6 +1343,7 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           uploadStatus: "uploaded",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part1",
         });
         live.addPart({
           partId: "part-2",
@@ -1327,12 +1351,14 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           uploadStatus: "error",
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+          title: "part2",
         });
         live.addPart({
           partId: "part-3",
           filePath: "/path/to/part3.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+          title: "part3",
         });
         live.addPart({
           partId: "part-2",
@@ -1340,12 +1366,14 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           uploadStatus: "error",
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+          title: "part4",
         });
         live.addPart({
           partId: "part-3",
           filePath: "/path/to/part5.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+          title: "part5",
         });
 
         // @ts-ignore
@@ -1369,11 +1397,11 @@ describe("WebhookHandler", () => {
           [
             {
               path: "/path/to/part3.mp4",
-              title: "part3-Test Video-username-123-2",
+              title: "part3-part3-username-123-2",
             },
             {
               path: "/path/to/part5.mp4",
-              title: "part5-Test Video-username-123-3",
+              title: "part5-part5-username-123-3",
             },
           ],
           [],
@@ -1488,6 +1516,7 @@ describe("WebhookHandler", () => {
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
           cover: "/path/to/cover.jpg",
           uploadStatus: "uploaded",
+          title: "part1",
         });
         live.addPart({
           partId: "part-2",
@@ -1497,6 +1526,7 @@ describe("WebhookHandler", () => {
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
           cover: "/path/to/cover.jpg",
           uploadStatus: "uploaded",
+          title: "part2",
         });
         live.addPart({
           partId: "part-3",
@@ -1506,6 +1536,7 @@ describe("WebhookHandler", () => {
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
           cover: "/path/to/cover.jpg",
           uploadStatus: "uploaded",
+          title: "part3",
         });
 
         // @ts-ignore
@@ -1588,6 +1619,7 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
           cover: "/path/to/cover.jpg",
+          title: "part1",
         });
 
         // @ts-ignore
@@ -1630,6 +1662,7 @@ describe("WebhookHandler", () => {
           uploadStatus: "error",
           rawUploadStatus: "error",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part1",
         });
         // @ts-ignore
         vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
@@ -1667,17 +1700,20 @@ describe("WebhookHandler", () => {
           uploadStatus: "error",
           rawUploadStatus: "error",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part1",
         });
         live.addPart({
           partId: "part-2",
           filePath: "/path/to/part2.mp4",
           recordStatus: "recording",
+          title: "part2",
         });
         live.addPart({
           partId: "part-3",
           filePath: "/path/to/part3.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part3",
         });
 
         // @ts-ignore
@@ -1721,6 +1757,7 @@ describe("WebhookHandler", () => {
           uploadStatus: "uploaded",
           rawUploadStatus: "uploaded",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part1",
         });
         live.addPart({
           partId: "part-2",
@@ -1728,6 +1765,7 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           uploadStatus: "uploaded",
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+          title: "part2",
         });
         live.addPart({
           partId: "part-3",
@@ -1735,6 +1773,7 @@ describe("WebhookHandler", () => {
           recordStatus: "handled",
           uploadStatus: "uploaded",
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+          title: "part3",
         });
 
         // @ts-ignore
@@ -1797,18 +1836,21 @@ describe("WebhookHandler", () => {
           uploadStatus: "uploaded",
           rawUploadStatus: "uploaded",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part1",
         });
         live.addPart({
           partId: "part-2",
           filePath: "/path/to/part2.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+          title: "part2",
         });
         live.addPart({
           partId: "part-3",
           filePath: "/path/to/part3.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+          title: "part3",
         });
 
         // @ts-ignore
@@ -1870,18 +1912,21 @@ describe("WebhookHandler", () => {
           uploadStatus: "uploaded",
           rawUploadStatus: "uploaded",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part1",
         });
         live.addPart({
           partId: "part-2",
           filePath: "/path/to/part2.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+          title: "part2",
         });
         live.addPart({
           partId: "part-3",
           filePath: "/path/to/part3.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+          title: "part3",
         });
 
         // @ts-ignore
@@ -1906,11 +1951,11 @@ describe("WebhookHandler", () => {
           [
             {
               path: "/path/to/part2.mp4",
-              title: "part2-Test Video-username-123-2",
+              title: "part2-part2-username-123-2",
             },
             {
               path: "/path/to/part3.mp4",
-              title: "part3-Test Video-username-123-3",
+              title: "part3-part3-username-123-3",
             },
           ],
           [],
@@ -1935,6 +1980,7 @@ describe("WebhookHandler", () => {
           uploadStatus: "uploaded",
           rawUploadStatus: "uploaded",
           endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+          title: "part1",
         });
         live.addPart({
           partId: "part-2",
@@ -1943,12 +1989,14 @@ describe("WebhookHandler", () => {
           uploadStatus: "error",
           rawUploadStatus: "error",
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+          title: "part2",
         });
         live.addPart({
           partId: "part-3",
           filePath: "/path/to/part3.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+          title: "part3",
         });
         live.addPart({
           partId: "part-2",
@@ -1957,12 +2005,14 @@ describe("WebhookHandler", () => {
           uploadStatus: "error",
           rawUploadStatus: "error",
           endTime: new Date("2022-01-01T00:10:00Z").getTime(),
+          title: "part4",
         });
         live.addPart({
           partId: "part-3",
           filePath: "/path/to/part5.mp4",
           recordStatus: "handled",
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
+          title: "part5",
         });
 
         // @ts-ignore
@@ -1987,11 +2037,11 @@ describe("WebhookHandler", () => {
           [
             {
               path: "/path/to/part3.mp4",
-              title: "part3-Test Video-username-123-2",
+              title: "part3-part3-username-123-2",
             },
             {
               path: "/path/to/part5.mp4",
-              title: "part5-Test Video-username-123-3",
+              title: "part5-part5-username-123-3",
             },
           ],
           [],
@@ -2120,6 +2170,7 @@ describe("WebhookHandler", () => {
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         filePath: "/path/to/existing-video.mp4",
         recordStatus: "recording",
+        title: "Existing Video",
       });
       webhookHandler.liveData.push(existingLive);
 
@@ -2202,12 +2253,14 @@ describe("WebhookHandler", () => {
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         filePath: "/path/to/existing-video-1.mp4",
         recordStatus: "recording",
+        title: "part1",
       });
       existingLive.addPart({
         partId: "existing-part-id-2",
         startTime: new Date("2022-01-01T00:05:00Z").getTime(),
         filePath: "/path/to/existing-video-2.mp4",
         recordStatus: "recording",
+        title: "part2",
       });
       // @ts-ignore
       webhookHandler = new WebhookHandler(appConfig);
@@ -2269,6 +2322,7 @@ describe("WebhookHandler", () => {
         filePath: "/path/to/existing-video.mp4",
         recordStatus: "recorded",
         endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        title: "part1",
       });
       webhookHandler.liveData.push(existingLive);
 
@@ -2318,6 +2372,7 @@ describe("WebhookHandler", () => {
         filePath: "/path/to/existing-video.mp4",
         recordStatus: "recording",
         endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        title: "part1",
       });
       webhookHandler.liveData.push(existingLive);
 
@@ -2400,6 +2455,7 @@ describe("WebhookHandler", () => {
         filePath: "/path/to/existing-video.mp4",
         recordStatus: "recording",
         endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        title: "part1",
       });
       webhookHandler.liveData.push(existingLive);
 
@@ -2448,6 +2504,7 @@ describe("WebhookHandler", () => {
         filePath: "/path/to/existing-video.mp4",
         recordStatus: "recorded",
         endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        title: "part1",
       });
       webhookHandler.liveData.push(existingLive);
 
@@ -2495,6 +2552,7 @@ describe("WebhookHandler", () => {
         filePath: "/path/to/existing-video.mp4",
         recordStatus: "recorded",
         endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        title: "part1",
       });
       webhookHandler.liveData.push(existingLive);
 
@@ -2542,6 +2600,7 @@ describe("WebhookHandler", () => {
         filePath: "/path/to/existing-video.mp4",
         recordStatus: "recorded",
         endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        title: "part1",
       });
       webhookHandler.liveData.push(existingLive);
 
@@ -2613,6 +2672,7 @@ describe("Live", () => {
       rawFilePath: "/path/to/raw/part1.mp4",
       uploadStatus: "uploaded",
       rawUploadStatus: "uploaded",
+      title: "part1",
     };
 
     live.addPart(part);
@@ -2636,6 +2696,7 @@ describe("Live", () => {
       rawFilePath: "/path/to/raw/part1.mp4",
       uploadStatus: "uploaded",
       rawUploadStatus: "uploaded",
+      title: "part1",
     };
 
     live.addPart(part);
@@ -2660,6 +2721,7 @@ describe("Live", () => {
       rawFilePath: "/path/to/raw/part1.mp4",
       uploadStatus: "uploaded",
       rawUploadStatus: "uploaded",
+      title: "part1",
     };
     const part2: Part = {
       partId: "part2",
@@ -2668,6 +2730,7 @@ describe("Live", () => {
       rawFilePath: "/path/to/raw/part1.mp4",
       uploadStatus: "uploaded",
       rawUploadStatus: "uploaded",
+      title: "part2",
     };
 
     live.addPart(part1);
@@ -2694,6 +2757,7 @@ describe("Live", () => {
       rawFilePath: "/path/to/raw/part1.mp4",
       uploadStatus: "uploaded",
       rawUploadStatus: "uploaded",
+      title: "part1",
     };
 
     live.addPart(part);
@@ -2734,6 +2798,7 @@ describe("Live", () => {
         rawFilePath: "/path/to/raw/part1.mp4",
         uploadStatus: "uploaded",
         rawUploadStatus: "uploaded",
+        title: "part1",
       });
 
       const live2 = new Live({
@@ -2751,6 +2816,7 @@ describe("Live", () => {
         rawFilePath: "/path/to/raw/part2.mp4",
         uploadStatus: "uploaded",
         rawUploadStatus: "uploaded",
+        title: "part2",
       });
 
       webhookHandler.liveData.push(live1, live2);
@@ -2778,6 +2844,7 @@ describe("Live", () => {
         rawFilePath: "/path/to/raw/part1.mp4",
         uploadStatus: "uploaded",
         rawUploadStatus: "uploaded",
+        title: "part1",
       });
 
       webhookHandler.liveData.push(live);

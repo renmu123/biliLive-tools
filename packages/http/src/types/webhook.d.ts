@@ -6,6 +6,7 @@ export type CloseEvent = "FileClosed";
 
 export interface Part {
   partId: string;
+  title: string;
   startTime?: number;
   endTime?: number;
   // 录制状态, recording: 正在录制, recorded: 已录制, prehandled: 已处理完转码, handled: 已全部处理完成
