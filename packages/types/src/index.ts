@@ -425,6 +425,8 @@ export interface Recorder {
   doubleScreen?: boolean;
   /** 流格式优先级 */
   // formatPriorities: Array<"flv" | "hls">;
+  /** 只录制音频 */
+  onlyAudio?: boolean;
   // 不跟随全局配置字段
   noGlobalFollowFields: Array<
     Exclude<
@@ -442,6 +444,7 @@ export interface Recorder {
       | "line"
       | "titleKeywords"
       | "liveStartNotification"
+      | "onlyAudio"
     >
   >;
 }

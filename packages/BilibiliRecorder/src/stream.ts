@@ -120,6 +120,7 @@ async function getLiveInfo(
     cookie?: string;
     formatName: RecorderCreateOpts["formatName"];
     codecName: RecorderCreateOpts["codecName"];
+    onlyAudio?: boolean;
   },
 ) {
   const res = await getRoomPlayInfo(roomIdOrShortId, opts);
@@ -278,6 +279,7 @@ export async function getStream(
     strictQuality?: boolean;
     formatName: RecorderCreateOpts["formatName"];
     codecName: RecorderCreateOpts["codecName"];
+    onlyAudio?: boolean;
   },
 ) {
   const roomId = Number(opts.channelId);
@@ -293,6 +295,7 @@ export async function getStream(
     cookie: opts.cookie,
     formatName: opts.formatName,
     codecName: opts.codecName,
+    onlyAudio: opts.onlyAudio,
   });
   // console.log(JSON.stringify(liveInfo, null, 2));
 
@@ -307,6 +310,7 @@ export async function getStream(
       cookie: opts.cookie,
       formatName: opts.formatName,
       codecName: opts.codecName,
+      onlyAudio: opts.onlyAudio,
     });
   }
 

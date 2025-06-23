@@ -58,6 +58,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   videoFormat?: "auto" | "ts" | "mkv";
   /** 流格式优先级 */
   formatriorities?: Array<"flv" | "hls">;
+  /** 只录制音频 */
+  onlyAudio?: boolean;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
 }

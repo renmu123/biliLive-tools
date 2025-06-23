@@ -45,6 +45,7 @@ router.post("/add", async (ctx) => {
     "videoFormat",
     "cookie",
     "doubleScreen",
+    "onlyAudio",
   );
 
   const data = await recorderService.addRecorder(args);
@@ -83,6 +84,7 @@ router.put("/:id", (ctx) => {
     "videoFormat",
     "cookie",
     "doubleScreen",
+    "onlyAudio",
   );
 
   ctx.body = { payload: recorderService.updateRecorder({ id, ...patch }) };

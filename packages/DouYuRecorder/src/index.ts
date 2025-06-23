@@ -206,6 +206,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       quality: this.quality,
       source: this.source,
       strictQuality,
+      onlyAudio: this.onlyAudio,
     });
   } catch (err) {
     this.state = "idle";

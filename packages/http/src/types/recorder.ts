@@ -105,6 +105,7 @@ export type UpdateRecorderArgs = Pick<
   | "videoFormat"
   | "cookie"
   | "doubleScreen"
+  | "onlyAudio"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 

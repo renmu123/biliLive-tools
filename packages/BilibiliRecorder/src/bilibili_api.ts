@@ -187,6 +187,7 @@ export async function getRoomPlayInfo(
   opts: {
     qn?: number;
     cookie?: string;
+    onlyAudio?: boolean;
   } = {},
 ) {
   const res = await requester.get<
@@ -214,6 +215,7 @@ export async function getRoomPlayInfo(
       codec: "0,1",
       // 0 flv, 1 ts, 2 fmp4
       format: "0,1,2",
+      only_audio: opts.onlyAudio ? "1" : "0",
     },
     headers: {
       Cookie: opts.cookie,

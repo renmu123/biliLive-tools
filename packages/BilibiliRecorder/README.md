@@ -51,6 +51,7 @@ interface Options {
   useM3U8Proxy?: boolean; // 是否使用m3u8代理，由于hls及fmp4存在一个小时超时时间，需自行实现代理避免
   m3u8ProxyUrl?: string; // 代理链接，文档待补充
   videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"
+  onlyAudio?: boolean; // 只录制音频，默认为否
 }
 ```
 

@@ -87,6 +87,7 @@ export async function getStream(
     rejectCache?: boolean;
     strictQuality?: boolean;
     source?: string;
+    onlyAudio?: boolean;
   },
 ) {
   const qn = (
@@ -97,6 +98,7 @@ export async function getStream(
     channelId: opts.channelId,
     rate: qn,
     cdn: opts.source === "auto" ? undefined : opts.source,
+    onlyAudio: opts.onlyAudio,
   });
   if (!liveInfo.living) throw new Error("It must be called getStream when living");
 
@@ -119,6 +121,7 @@ export async function getStream(
       liveInfo = await getLiveInfo({
         channelId: opts.channelId,
         rate: liveInfo.streams[0].rate,
+        onlyAudio: opts.onlyAudio,
       });
       if (!liveInfo.living) throw new Error("It must be called getStream when living");
     }

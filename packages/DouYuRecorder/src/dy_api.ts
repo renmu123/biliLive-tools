@@ -14,6 +14,7 @@ export async function getLiveInfo(opts: {
   cdn?: string;
   rate?: number;
   rejectSignFnCache?: boolean;
+  onlyAudio?: boolean;
 }): Promise<
   | {
       living: false;
@@ -57,6 +58,8 @@ export async function getLiveInfo(opts: {
       cdn: opts.cdn ?? "",
       // 相当于清晰度类型的 id，给 -1 会由后端决定，0为原画
       rate: String(opts.rate ?? 0),
+      // 是否只录制音频
+      fa: opts.onlyAudio ? "1" : undefined,
     }),
   );
 

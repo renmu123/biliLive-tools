@@ -94,6 +94,12 @@
             >全局</n-checkbox
           >
         </n-form-item>
+        <n-form-item v-if="config.providerId !== 'HuYa' && config.providerId !== 'DouYin'">
+          <template #label>
+            <span class="inline-flex"> 只录制音频 </span>
+          </template>
+          <n-switch v-model:value="config.onlyAudio" />
+        </n-form-item>
 
         <template v-if="config.providerId === 'Bilibili'">
           <n-form-item>
