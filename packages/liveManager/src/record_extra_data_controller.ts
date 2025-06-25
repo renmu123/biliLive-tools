@@ -40,6 +40,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
     },
     messages: [],
   };
+  let hasCompleted = false;
 
   const scheduleSave = asyncThrottle(() => save(), 30e3, {
     immediateRunWhenEndOfDefer: true,
@@ -50,11 +51,13 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
 
   // TODO: 将所有数据存放在内存中可能存在问题
   const addMessage: RecordExtraDataController["addMessage"] = (comment) => {
+    if (hasCompleted) return;
     data.messages.push(comment);
     scheduleSave();
   };
 
   const setMeta: RecordExtraDataController["setMeta"] = (meta) => {
+    if (hasCompleted) return;
     data.meta = {
       ...data.meta,
       ...meta,
@@ -63,7 +66,8 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
   };
 
   const flush: RecordExtraDataController["flush"] = async () => {
-    scheduleSave.flush();
+    if (hasCompleted) return;
+    hasCompleted = true;
     scheduleSave.cancel();
 
     const xmlContent = convert2Xml(data);
@@ -71,6 +75,7 @@ export function createRecordExtraDataController(savePath: string): RecordExtraDa
     const xmlPath = path.join(parsedPath.dir, parsedPath.name + ".xml");
     await fs.promises.writeFile(xmlPath, xmlContent);
     await fs.promises.rm(savePath);
+    data.messages = [];
   };
 
   return {

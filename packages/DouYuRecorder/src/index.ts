@@ -281,7 +281,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       room_id: this.channelId,
       platform: provider?.id,
       liveStartTimestamp: liveInfo.startTime?.getTime(),
-      recordStopTimestamp: Date.now(),
+      // recordStopTimestamp: Date.now(),
       title: title,
       user_name: owner,
     });
