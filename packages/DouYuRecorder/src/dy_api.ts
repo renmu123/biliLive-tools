@@ -59,7 +59,7 @@ export async function getLiveInfo(opts: {
       // 相当于清晰度类型的 id，给 -1 会由后端决定，0为原画
       rate: String(opts.rate ?? 0),
       // 是否只录制音频
-      fa: opts.onlyAudio ? "1" : undefined,
+      fa: opts.onlyAudio ? "1" : "0",
     }),
   );
 
