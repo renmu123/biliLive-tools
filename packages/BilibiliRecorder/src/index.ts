@@ -172,6 +172,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       strictQuality: strictQuality,
       formatName: this.formatName,
       codecName: this.codecName,
+      onlyAudio: this.onlyAudio,
     });
   } catch (err) {
     this.qualityRetry -= 1;
