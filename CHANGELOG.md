@@ -8,6 +8,7 @@
 ## 优化
 
 - Webhook中的分p标题采用当前标题进行格式化
+- 复制B站cookie时增加buvid3参数
 
 ## Bug修复
 
