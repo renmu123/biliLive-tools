@@ -95,12 +95,16 @@ export default class RecorderConfig {
     if (setting.providerId === "Bilibili") {
       uid = getValue("uid");
       if (uid) {
-        const cookies = getCookie(Number(uid));
-        auth = Object.entries(cookies)
-          .map(([key, value]) => {
-            return `${key}=${value}`;
-          })
-          .join("; ");
+        try {
+          const cookies = getCookie(Number(uid));
+          auth = Object.entries(cookies)
+            .map(([key, value]) => {
+              return `${key}=${value}`;
+            })
+            .join("; ");
+        } catch (error) {
+          console.error(error);
+        }
       }
     } else if (setting.providerId === "DouYin") {
       auth = getValue("cookie");
