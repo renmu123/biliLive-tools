@@ -38,27 +38,19 @@ async function getBuvidConfWithRetry(maxRetries = 3, retryDelay = 1000) {
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      console.log(`尝试获取 buvid 配置 (第 ${attempt}/${maxRetries} 次)`);
       const result = await getBuvidConf();
 
-      // 请求成功，返回结果
-      if (attempt > 1) {
-        console.log(`buvid 配置获取成功 (重试 ${attempt - 1} 次后成功)`);
-      }
       return result;
     } catch (error) {
       lastError = error as Error;
-      console.error(`获取 buvid 配置失败 (第 ${attempt}/${maxRetries} 次):`, error.message);
 
       // 如果是最后一次尝试，直接抛出错误
       if (attempt === maxRetries) {
-        console.error(`buvid 配置获取失败，已重试 ${maxRetries} 次，放弃重试`);
-        throw new Error(`获取 buvid 配置失败，已重试 ${maxRetries} 次: ${lastError.message}`);
+        throw error;
       }
 
       // 等待指定时间后重试，使用指数退避策略
       const delay = retryDelay * Math.pow(2, attempt - 1);
-      console.log(`等待 ${delay}ms 后进行第 ${attempt + 1} 次重试...`);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
@@ -106,7 +98,6 @@ class DanmaClient extends EventEmitter {
             },
           },
         };
-        console.log("comment", comment.sender.name, comment.text);
         this.emit("Message", comment);
       },
       onIncomeSuperChat: (msg) => {
@@ -175,7 +166,7 @@ class DanmaClient extends EventEmitter {
       },
     };
     let lastAuth = "";
-    if (this.auth.includes("buvid3")) {
+    if (this.auth?.includes("buvid3")) {
       lastAuth = this.auth;
     } else {
       if (this.auth) {
