@@ -29,7 +29,7 @@
         clearable
       />
       <n-select
-        v-model:value="params.pageSize"
+        v-model:value="recorderLocalParams.pageSize"
         :options="pageSizeOptions"
         placeholder="每页显示"
         style="width: 110px"
@@ -98,7 +98,7 @@
       >
         <n-pagination
           v-model:page="params.page"
-          v-model:page-size="params.pageSize"
+          v-model:page-size="recorderLocalParams.pageSize"
           :page-count="pagination.pageCount"
           :item-count="pagination.itemCount"
           show-size-picker
@@ -155,7 +155,6 @@ const params = ref<Parameters<typeof recoderApi.infoList>[0]>({
   name: undefined,
   autoCheck: undefined,
   page: 1,
-  pageSize: recorderLocalParams.value.pageSize,
 });
 
 const platformOptions = ref([
@@ -302,7 +301,10 @@ const list = computed(() => {
 });
 
 const getList = async () => {
-  const result = await recoderApi.infoList(params.value);
+  const result = await recoderApi.infoList({
+    ...params.value,
+    pageSize: recorderLocalParams.value.pageSize,
+  });
   recorderList.value = result.data;
   pagination.value = {
     pageCount: Math.ceil(result.pagination.total / result.pagination.pageSize),
@@ -493,7 +495,6 @@ const handlePageChange = (page: number) => {
 };
 
 const handlePageSizeChange = (pageSize: number) => {
-  params.value.pageSize = pageSize;
   recorderLocalParams.value.pageSize = pageSize;
   params.value.page = 1;
   getList();
