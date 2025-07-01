@@ -273,7 +273,7 @@ const calculateGiftPrice = ({ gift, sc, guard }) => {
 };
 
 // 生成弹幕报告
-export const report = async (
+export const danmaReport = async (
   input: string,
   options: {
     top: number;
@@ -326,18 +326,24 @@ export const report = async (
   // 总流水计算
   const giftPrice = calculateGiftPrice({ sc, guard, gift });
 
-  const report = `弹幕总数：${danmukuLength}
-互动人数：${uniqMember}
-sc总数：${scLength}
-上船总数：${guardLength}
-流水：${giftPrice}元
+  //   const report = `弹幕总数：${danmukuLength}
+  // 互动人数：${uniqMember}
+  // sc总数：${scLength}
+  // 上船总数：${guardLength}
+  // 流水：${giftPrice}元
 
-富哥V我50：
-${giftGroupByUser.map((item) => `用户：${item.user}，流水：${item.value}元`).join("\n")}
+  // 富哥V我50：
+  // ${giftGroupByUser.map((item) => `用户：${item.user}，流水：${item.value}元`).join("\n")}
 
-谁是大水王：
-${danmukuGroupByUser.map((item) => `用户：${item.user}，弹幕数量：${item.value}`).join("\n")}
-`;
+  // 谁是大水王：
+  // ${danmukuGroupByUser.map((item) => `用户：${item.user}，弹幕数量：${item.value}`).join("\n")}
+  // `;
 
-  return report;
+  return {
+    danmaNum: danmukuLength,
+    uniqMember,
+    scNum: scLength,
+    guardNum: guardLength,
+    giftPrice,
+  };
 };

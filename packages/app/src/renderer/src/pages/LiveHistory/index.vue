@@ -22,6 +22,31 @@
       <n-button @click="goBack">返回</n-button>
     </div>
 
+    <!-- 列显示控制 -->
+    <n-collapse style="margin-bottom: 20px">
+      <n-collapse-item title="列显示设置" name="columns">
+        <n-space>
+          <n-checkbox-group v-model:value="visibleColumns">
+            <n-space>
+              <n-checkbox
+                v-for="column in columnConfig"
+                :key="column.key"
+                :value="column.key"
+                :label="column.title"
+              />
+            </n-space>
+          </n-checkbox-group>
+        </n-space>
+        <div style="margin-top: 10px">
+          <n-button size="small" @click="selectAllColumns">全选</n-button>
+          <n-button size="small" @click="clearAllColumns" style="margin-left: 8px">清空</n-button>
+          <n-button size="small" @click="resetDefaultColumns" style="margin-left: 8px"
+            >重置默认</n-button
+          >
+        </div>
+      </n-collapse-item>
+    </n-collapse>
+
     <!-- 房间信息 -->
     <n-card v-if="streamerInfo.room_id" class="room-info" size="small">
       <n-space>
@@ -34,7 +59,12 @@
     <!-- 结果展示 -->
     <div class="result-container" v-if="recordList.length > 0 || loading">
       <n-spin :show="loading">
-        <n-data-table v-if="!loading" :columns="columns" :data="recordList" :pagination="false" />
+        <n-data-table
+          v-if="!loading"
+          :columns="visibleTableColumns"
+          :data="recordList"
+          :pagination="false"
+        />
 
         <!-- 分页 -->
         <n-pagination
@@ -90,7 +120,16 @@ interface LiveRecord {
   record_end_time: number | null;
   video_file?: string;
   streamer_name?: string;
+  danma_num?: number;
+  interact_num?: number;
+  video_duration?: number;
   [key: string]: any;
+}
+
+interface ColumnConfig {
+  key: string;
+  title: string;
+  defaultVisible: boolean;
 }
 
 const route = useRoute();
@@ -122,8 +161,78 @@ const pagination = reactive<Pagination>({
 const loading = ref<boolean>(false);
 const hasQueried = ref<boolean>(false);
 
-// 表格列定义
-const columns: DataTableColumns<LiveRecord> = [
+// 列配置
+const columnConfig: ColumnConfig[] = [
+  { key: "title", title: "标题", defaultVisible: true },
+  { key: "live_start_time", title: "开播时间", defaultVisible: true },
+  { key: "record_start_time", title: "录制开始时间", defaultVisible: true },
+  { key: "record_end_time", title: "录制结束时间", defaultVisible: true },
+  { key: "duration", title: "持续时长", defaultVisible: true },
+  { key: "video_duration", title: "视频时长", defaultVisible: true },
+  { key: "danma_num", title: "弹幕数量", defaultVisible: true },
+  { key: "interact_num", title: "弹幕互动人数", defaultVisible: true },
+  { key: "actions", title: "操作", defaultVisible: true },
+];
+
+// 可见列配置
+const visibleColumns = ref<string[]>([]);
+
+// 本地存储键名
+const STORAGE_KEY = "live-history-visible-columns";
+
+// 初始化列配置
+const initColumnConfig = () => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      visibleColumns.value = JSON.parse(saved);
+    } catch (error) {
+      console.error("解析保存的列配置失败:", error);
+      visibleColumns.value = getDefaultColumns();
+    }
+  } else {
+    visibleColumns.value = getDefaultColumns();
+  }
+};
+
+// 获取默认显示的列
+const getDefaultColumns = (): string[] => {
+  return columnConfig.filter((col) => col.defaultVisible).map((col) => col.key);
+};
+
+// 保存列配置到本地存储
+const saveColumnConfig = (value: string[]) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
+};
+
+// 全选列
+const selectAllColumns = () => {
+  visibleColumns.value = columnConfig.map((col) => col.key);
+};
+
+// 清空列选择
+const clearAllColumns = () => {
+  visibleColumns.value = [];
+};
+
+// 重置为默认列
+const resetDefaultColumns = () => {
+  visibleColumns.value = getDefaultColumns();
+};
+
+watch(
+  () => visibleColumns.value,
+  (newVal) => {
+    saveColumnConfig(newVal);
+  },
+);
+
+// 完整的表格列定义
+const allColumns: {
+  key: string;
+  title: string;
+  render?: (row: LiveRecord) => any;
+}[] = [
   {
     title: "标题",
     key: "title",
@@ -144,9 +253,22 @@ const columns: DataTableColumns<LiveRecord> = [
     render: (row: LiveRecord) => (row.record_end_time ? formatTime(row.record_end_time) : "未结束"),
   },
   {
-    title: "时长",
+    title: "持续时长",
     key: "duration",
     render: (row: LiveRecord) => formatDuration(row.record_start_time, row.record_end_time),
+  },
+  {
+    title: "视频时长",
+    key: "video_duration",
+    render: (row: LiveRecord) => _formatDuration(row.video_duration),
+  },
+  {
+    title: "弹幕数量",
+    key: "danma_num",
+  },
+  {
+    title: "弹幕互动人数",
+    key: "interact_num",
   },
   {
     title: "操作",
@@ -177,8 +299,17 @@ const columns: DataTableColumns<LiveRecord> = [
   },
 ];
 
-// 页面初始化时自动查询
+// 根据可见列配置过滤表格列
+const visibleTableColumns = computed(() => {
+  return allColumns.filter((column) => visibleColumns.value.includes(column.key as string));
+});
+
+// 页面初始化
 onMounted(() => {
+  // 初始化列配置
+  initColumnConfig();
+
+  // 如果有查询参数，自动查询
   if (streamerInfo.room_id && streamerInfo.platform) {
     handleQuery();
   }
@@ -254,7 +385,11 @@ const formatDuration = (startTime: number, endTime: number | null): string => {
   if (!startTime || !endTime) return "--";
 
   const duration = (endTime - startTime) / 1000; // 秒
+  return _formatDuration(duration);
+};
 
+const _formatDuration = (duration?: number) => {
+  if (!duration) return "--";
   const hours = Math.floor(duration / 3600);
   const minutes = Math.floor((duration % 3600) / 60);
   const seconds = Math.floor(duration % 60);

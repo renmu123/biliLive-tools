@@ -16,11 +16,12 @@ import {
 
 import recordHistory from "./recordHistory.js";
 // import DanmuService from "../db/service/danmuService.js";
-import { getFfmpegPath } from "../task/video.js";
+import { getFfmpegPath, readVideoMeta } from "../task/video.js";
 import logger from "../utils/log.js";
+import { replaceExtName } from "../utils/index.js";
 import RecorderConfig from "./config.js";
 import { sendBySystem, send } from "../notify.js";
-// import { parseDanmu } from "../danmu/index.js";
+import { danmaReport } from "../danmu/index.js";
 
 import type { AppConfig } from "../config.js";
 import type { Recorder as RecorderConfigType } from "@biliLive-tools/types";
@@ -208,10 +209,24 @@ export async function createRecorderManager(appConfig: AppConfig) {
         username: username,
       });
 
-    const live = recordHistory.upadteEndTime(filename, endTime.getTime());
-    if (!live) {
-      logger.error("Manager videoFileCompleted live error", { recorder, filename });
-      return;
+    try {
+      const videoMeta = await readVideoMeta(filename);
+      const duration = videoMeta?.format?.duration ?? 0;
+      recordHistory.upadteLive(filename, {
+        record_end_time: endTime.getTime(),
+        video_duration: duration,
+      });
+
+      const xmlFile = replaceExtName(filename, ".xml");
+      if (await fs.pathExists(xmlFile)) {
+        const { uniqMember, danmaNum } = await danmaReport(xmlFile);
+        recordHistory.upadteLive(filename, {
+          danma_num: danmaNum,
+          interact_num: uniqMember,
+        });
+      }
+    } catch (error) {
+      logger.error("Update live error", { recorder, filename, error });
     }
 
     // const { danmu, sc, gift, guard } = await parseDanmu(replaceExtName(filename, ".xml"));
