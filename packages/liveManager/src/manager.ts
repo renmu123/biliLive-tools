@@ -1,5 +1,6 @@
 import path from "node:path";
 import mitt, { Emitter } from "mitt";
+import ejs from "ejs";
 import { omit, range } from "lodash-es";
 import { parseArgsStringToArgv } from "string-argv";
 import { ChannelId, Message } from "./common.js";
@@ -438,7 +439,13 @@ export function genSavePathFromRule<
     }
   }
 
-  return formatTemplate(manager.savePathRule, params);
+  let savePathRule = manager.savePathRule;
+  try {
+    savePathRule = ejs.render(savePathRule, params);
+  } catch (error) {
+    console.error("模板解析错误", error);
+  }
+  return formatTemplate(savePathRule, params);
 }
 
 export type GetProviderExtra<P> = P extends RecorderProvider<infer E> ? E : never;

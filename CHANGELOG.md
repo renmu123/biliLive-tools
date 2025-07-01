@@ -1,3 +1,13 @@
+# 2.3.0
+
+## 功能
+
+- 录制：文件命名规则支持 [ejs](https://ejs.co/) 模板引擎 [#107](https://github.com/renmu123/biliLive-tools/issues/107)
+
+## 优化
+
+## Bug修复
+
 # 2.2.0(2025.6.28)
 
 ## 功能

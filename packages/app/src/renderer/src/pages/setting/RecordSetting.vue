@@ -356,7 +356,7 @@ const titleList = ref([
   },
 ]);
 const titleTip = computed(() => {
-  const base = `<b>谨慎修改，可能会导致无法录制</b><br/>`;
+  const base = `<b>谨慎修改，可能会导致无法录制</b><br/>支持ejs引擎<br/>`;
   return titleList.value
     .map((item) => {
       return `${item.label}：${item.value}<br/>`;
