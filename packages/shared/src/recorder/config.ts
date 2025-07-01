@@ -103,7 +103,9 @@ export default class RecorderConfig {
               return `${key}=${value}`;
             })
             .join("; ");
-        } catch {}
+        } catch (error) {
+          console.error(error);
+        }
       }
     } else if (setting.providerId === "DouYin") {
       auth = getValue("cookie");

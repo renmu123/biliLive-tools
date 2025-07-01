@@ -227,6 +227,21 @@ export async function getRoomPlayInfo(
   return res.data.data;
 }
 
+export async function getBuvidConf() {
+  const res = await fetch("https://api.bilibili.com/x/frontend/finger/spi", {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    },
+  });
+
+  if (!res.ok) throw new Error(`Failed to get buvid conf: ${res.statusText}`);
+
+  const data = await res.json();
+
+  return data;
+}
+
 export interface ProtocolInfo {
   protocol_name: "http_stream" | "http_hls";
   format: FormatInfo[];

@@ -60,13 +60,21 @@ router.post("/get_cookie", async (ctx) => {
     return;
   }
 
-  const obj = biliService.getCookie(uid);
-  const cookie = Object.entries(obj)
-    .map(([key, value]) => {
-      return `${key}=${value}`;
-    })
-    .join("; ");
-  ctx.body = cookie;
+  try {
+    const data = await biliService.getBuvidConf();
+    const buvid = data.data.b_3;
+
+    const obj = biliService.getCookie(uid);
+    const cookie = Object.entries(obj)
+      .map(([key, value]) => {
+        return `${key}=${value}`;
+      })
+      .join("; ");
+    ctx.body = `${cookie}; buvid3=${buvid}`;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = "获取失败，请重试";
+  }
 });
 
 export default router;
