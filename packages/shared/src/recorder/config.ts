@@ -94,7 +94,6 @@ export default class RecorderConfig {
     let auth: string | undefined;
     if (setting.providerId === "Bilibili") {
       uid = getValue("uid");
-      let auth = "";
       if (uid) {
         try {
           const cookies = getCookie(Number(uid));
