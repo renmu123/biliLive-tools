@@ -214,7 +214,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
       const duration = videoMeta?.format?.duration ?? 0;
       recordHistory.upadteLive(filename, {
         record_end_time: endTime.getTime(),
-        video_duration: duration,
+        video_duration: isNaN(Number(duration)) ? 0 : duration,
       });
 
       const xmlFile = replaceExtName(filename, ".xml");
