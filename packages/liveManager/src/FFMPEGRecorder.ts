@@ -163,9 +163,14 @@ export class FFMPEGRecorder extends EventEmitter {
   public async stop() {
     this.timeoutChecker.stop();
     try {
-      this.command.kill("SIGINT");
-      // @ts-ignore
-      // this.command.ffmpegProc?.stdin?.write("q");
+      // ts文件使用write("q")需要十来秒进行处理，直接中断，其他格式使用sigint会导致缺少数据
+      if (this.streamManager.videoFilePath.endsWith(".ts")) {
+        this.command.kill("SIGINT");
+      } else {
+        // @ts-ignore
+        this.command.ffmpegProc?.stdin?.write("q");
+      }
+
       await this.streamManager.handleVideoCompleted();
     } catch (err) {
       this.emit("DebugLog", { type: "common", text: String(err) });

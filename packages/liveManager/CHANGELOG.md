@@ -1,6 +1,7 @@
 # 1.4.0
 
 - `savePathRule` 支持 [ejs](https://ejs.co/) 模板引擎
+- 修复 `.mp4` 及 `.mkv` 录制出错时数据不完整的bug
 
 # 1.3.0
 
