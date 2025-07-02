@@ -142,7 +142,7 @@ class DanmaClient extends EventEmitter {
       onGift: (msg) => {
         const gift: GiveGift = {
           type: "give_gift",
-          timestamp: msg.raw.send_time,
+          timestamp: msg?.raw?.data?.timestamp * 1000,
           name: msg.body.gift_name,
           count: msg.body.amount,
           price: msg.body.coin_type === "silver" ? 0 : msg.body.price / 1000,
