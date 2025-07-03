@@ -27,16 +27,24 @@ export function addWithStreamer(data: Omit<BaseLive, "streamer_id"> & BaseStream
   return live;
 }
 
-export function upadteEndTime(video_file: string, record_end_time: number) {
+export function upadteLive(
+  video_file: string,
+  params: {
+    record_end_time?: number;
+    video_duration?: number;
+    danma_num?: number;
+    interact_num?: number;
+  },
+) {
   const live = recordHistoryModel.query({ video_file });
   if (live) {
     recordHistoryModel.update({
       id: live.id,
-      record_end_time,
+      ...params,
     });
     return {
       ...live,
-      record_end_time,
+      ...params,
     };
   }
 
@@ -126,7 +134,7 @@ export async function removeRecords(channelId: string, providerId: string) {
 
 export default {
   addWithStreamer,
-  upadteEndTime,
+  upadteLive,
   queryRecordsByRoomAndPlatform,
   removeRecords,
 };
