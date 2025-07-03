@@ -74,6 +74,10 @@ const syncConfigOptions = computed(() => {
       label: "alist",
       value: "alist",
     },
+    // {
+    //   label: "本地复制",
+    //   value: "copy",
+    // },
   ];
 });
 

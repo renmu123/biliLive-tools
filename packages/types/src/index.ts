@@ -449,7 +449,7 @@ export interface Recorder {
   >;
 }
 
-export type SyncType = "baiduPCS" | "aliyunpan" | "alist";
+export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "copy";
 
 export type SyncConfig = {
   id: string;

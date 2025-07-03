@@ -2,7 +2,7 @@ import { parse } from "node:path";
 
 import { appConfig } from "../config.js";
 import { SyncTask, taskQueue } from "./task.js";
-import { BaiduPCS, AliyunPan, Alist } from "../sync/index.js";
+import { BaiduPCS, AliyunPan, Alist, LocalCopy } from "../sync/index.js";
 import { trashItem } from "../utils/index.js";
 
 import type { SyncType } from "@biliLive-tools/types";
@@ -19,6 +19,10 @@ const getConfig = (type: SyncType) => {
   } else if (["aliyunpan", "baiduPCS"].includes(type)) {
     return {
       binary: config.sync[type].execPath,
+    };
+  } else if (type === "copy") {
+    return {
+      binary: "",
     };
   } else {
     throw new Error("Unsupported type");
@@ -49,6 +53,10 @@ const createUploadInstance = (opts: {
       username: opts.username,
       password: opts.password,
       remotePath: opts.remotePath ?? "",
+    });
+  } else if (opts.type === "copy") {
+    return new LocalCopy({
+      targetPath: opts.remotePath ?? "",
     });
   } else {
     throw new Error("Unsupported type");

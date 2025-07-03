@@ -221,7 +221,16 @@ export class Alist extends TypedEmitter<AlistEvents> {
    * @param remoteDir 远程目录路径（相对于基础远程路径）
    * @returns Promise<void> 上传成功时resolve，失败时reject
    */
-  public async uploadFile(localFilePath: string, remoteDir: string = ""): Promise<void> {
+  public async uploadFile(
+    localFilePath: string,
+    remoteDir: string = "",
+    // @ts-ignore
+    options?: {
+      retry?: number;
+      // 覆盖选项: overwrite(覆盖)、skip(跳过)
+      policy?: "overwrite" | "skip";
+    },
+  ): Promise<void> {
     if (!(await fs.pathExists(localFilePath))) {
       const error = new Error(`文件不存在: ${localFilePath}`);
       this.logger.error(error.message);
