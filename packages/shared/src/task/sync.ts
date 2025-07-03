@@ -84,7 +84,6 @@ export const addSyncTask = async ({
     username: iUsername,
     password: iPassword,
   } = getConfig(type);
-  console.log(type, binaryPath, iApiUrl, iUsername, iPassword);
   const instance = createUploadInstance({
     type,
     execPath: execPath ?? binaryPath,

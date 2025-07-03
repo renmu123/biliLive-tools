@@ -30,6 +30,15 @@
           <SearchInfo24Regular />
         </n-icon> -->
         <n-icon
+          v-if="['error'].includes(item.status) && item.action.includes('restart')"
+          :size="20"
+          class="btn pointer"
+          title="重试任务"
+          @click="handleRestart(item.taskId)"
+        >
+          <Refresh />
+        </n-icon>
+        <n-icon
           v-if="
             ['pending', 'running', 'paused'].includes(item.status) && item.type === TaskType.bili
           "
@@ -200,6 +209,7 @@ import {
   AddCircleOutline,
   DownloadOutline,
   PencilOutline,
+  Refresh,
 } from "@vicons/ionicons5";
 import { FileOpenOutlined, FolderOpenOutlined, LiveTvOutlined } from "@vicons/material";
 // import { SearchInfo24Regular } from "@vicons/fluent";
@@ -329,6 +339,11 @@ const openExternal = (item: Task) => {
 
 const handleRemoveRecord = async (taskId: string) => {
   await taskApi.removeRecord(taskId);
+  store.getQuenu();
+};
+
+const handleRestart = async (taskId: string) => {
+  await taskApi.restart(taskId);
   store.getQuenu();
 };
 

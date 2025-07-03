@@ -40,7 +40,7 @@ export abstract class AbstractTask {
   output?: string;
   progress: number;
   custsomProgressMsg: string;
-  action: ("pause" | "kill" | "interrupt")[];
+  action: ("pause" | "kill" | "interrupt" | "restart")[];
   startTime: number = 0;
   endTime?: number;
   error?: string;
@@ -897,7 +897,7 @@ export class SyncTask extends AbstractTask {
     if (options.name) {
       this.name = options.name;
     }
-    this.action = ["kill"];
+    this.action = ["kill", "restart"];
     this.callback = callback || {};
 
     // @ts-expect-error
@@ -936,6 +936,11 @@ export class SyncTask extends AbstractTask {
       .finally(() => {
         this.endTime = Date.now();
       });
+  }
+  restart() {
+    if (this.status !== "error") return;
+    this.error = undefined;
+    this.exec();
   }
   pause() {
     return false;
@@ -1115,6 +1120,14 @@ export class TaskQueue {
     if (!task) return;
     task.kill();
   }
+  restart(taskId: string) {
+    const task = this.queryTask(taskId);
+    if (!task) return;
+    if (task.action.includes("restart")) {
+      // @ts-ignore
+      task.restart();
+    }
+  }
   interrupt(taskId: string) {
     const task = this.queryTask(taskId);
     if (!task) return;
@@ -1256,4 +1269,9 @@ export const handleStartTask = (taskId: string) => {
 };
 export const handleRemoveTask = (taskId: string) => {
   return taskQueue.remove(taskId);
+};
+
+export const handleRestartTask = (taskId: string) => {
+  const task = taskQueue.restart(taskId);
+  return task;
 };

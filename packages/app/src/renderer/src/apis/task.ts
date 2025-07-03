@@ -58,6 +58,11 @@ const removeFile = async (id: string): Promise<string> => {
   return res.data;
 };
 
+const restart = async (id: string): Promise<string> => {
+  const res = await request.post(`/task/${id}/restart`);
+  return res.data;
+};
+
 // 批量删除
 const removeBatch = async (ids: string[]): Promise<string> => {
   const res = await request.post(`/task/removeBatch`, { ids });
@@ -266,6 +271,7 @@ const task = {
   downloadFile,
   editVideoPartName,
   queryVideoStatus,
+  restart,
 };
 
 export default task;

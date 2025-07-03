@@ -9,7 +9,7 @@ export interface Task {
   type: TaskType;
   output?: any;
   progress: number;
-  action: ("pause" | "kill" | "interrupt")[];
+  action: ("pause" | "kill" | "interrupt" | "restart")[];
   startTime?: number;
   endTime?: number;
   custsomProgressMsg?: string;

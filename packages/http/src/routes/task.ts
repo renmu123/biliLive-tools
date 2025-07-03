@@ -12,6 +12,7 @@ import {
   handleRemoveTask,
   handleQueryTask,
   taskQueue,
+  handleRestartTask,
 } from "@biliLive-tools/shared/task/task.js";
 import { convertXml2Ass } from "@biliLive-tools/shared/task/danmu.js";
 import {
@@ -77,6 +78,12 @@ router.post("/:id/interrupt", async (ctx) => {
 router.post("/:id/removeRecord", async (ctx) => {
   const { id } = ctx.params;
   handleRemoveTask(id);
+  ctx.body = { code: 0 };
+});
+
+router.post("/:id/restart", async (ctx) => {
+  const { id } = ctx.params;
+  handleRestartTask(id);
   ctx.body = { code: 0 };
 });
 
