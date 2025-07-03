@@ -518,11 +518,7 @@ if (!gotTheLock) {
   });
 
   process.on("unhandledRejection", function (reason, promise) {
-    log.error("=== 未处理的Promise拒绝 (Unhandled Rejection) ===");
-    log.error("拒绝原因:", reason);
-    log.error("Promise对象:", promise);
-    log.error("进程ID:", process.pid);
-    log.error("时间戳:", new Date().toISOString());
+    log.error("拒绝原因:", reason, promise);
 
     if (reason instanceof Error) {
       log.error("错误名称:", reason.name);
@@ -537,7 +533,6 @@ if (!gotTheLock) {
         content: String(reason),
       });
     }
-    log.error("=== 未处理的Promise拒绝结束 ===");
   });
 
   // 添加更多进程事件监听
