@@ -59,12 +59,7 @@
     <!-- 结果展示 -->
     <div class="result-container" v-if="recordList.length > 0 || loading">
       <n-spin :show="loading">
-        <n-data-table
-          v-if="!loading"
-          :columns="visibleTableColumns"
-          :data="recordList"
-          :pagination="false"
-        />
+        <n-data-table :columns="visibleTableColumns" :data="recordList" :pagination="false" />
 
         <!-- 分页 -->
         <n-pagination
