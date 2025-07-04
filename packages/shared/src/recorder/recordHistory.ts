@@ -85,34 +85,21 @@ export function queryRecordsByRoomAndPlatform(options: QueryRecordsOptions): Que
     };
   }
 
-  // 使用封装的API而不是直接访问db
-  let query: Partial<Live> = { streamer_id: streamer.id };
-
-  // 获取总记录数
-  const allRecords = recordHistoryModel.list(query);
-  // const total = allRecords.length;
-
-  // 过滤时间范围
-  let filteredRecords = allRecords;
-  if (startTime) {
-    filteredRecords = filteredRecords.filter((record) => record.record_start_time >= startTime);
-  }
-  if (endTime) {
-    filteredRecords = filteredRecords.filter((record) => record.record_start_time <= endTime);
-  }
-
-  // 按时间降序排序
-  filteredRecords.sort((a, b) => b.record_start_time - a.record_start_time);
-
-  // 分页
-  const start = (page - 1) * pageSize;
-  const end = start + pageSize;
-  const records = filteredRecords.slice(start, end);
+  // 使用数据库分页而不是内存分页
+  const result = recordHistoryModel.paginate({
+    where: { streamer_id: streamer.id },
+    page,
+    pageSize,
+    startTime,
+    endTime,
+    orderBy: "id",
+    orderDirection: "DESC",
+  });
 
   return {
-    data: records,
+    data: result.data,
     pagination: {
-      total: filteredRecords.length,
+      total: result.total,
       page,
       pageSize,
     },

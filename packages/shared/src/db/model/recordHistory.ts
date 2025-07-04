@@ -114,6 +114,77 @@ export default class LiveController {
     const data = Live.partial().parse(options);
     return this.model.list(data);
   }
+
+  /**
+   * 分页查询记录历史，支持时间范围过滤和排序
+   * @param options 查询参数
+   * @returns 分页结果
+   */
+  paginate(options: {
+    where: Partial<Live>;
+    page?: number;
+    pageSize?: number;
+    startTime?: number;
+    endTime?: number;
+    orderBy?: string;
+    orderDirection?: "ASC" | "DESC";
+  }): { data: Live[]; total: number } {
+    const {
+      where,
+      page = 1,
+      pageSize = 100,
+      startTime,
+      endTime,
+      orderBy = "id",
+      orderDirection = "DESC",
+    } = options;
+
+    // 构建WHERE条件
+    const whereConditions: string[] = [];
+    const params: any[] = [];
+
+    // 处理基本条件
+    if (where.streamer_id) {
+      whereConditions.push("streamer_id = ?");
+      params.push(where.streamer_id);
+    }
+    if (where.video_file) {
+      whereConditions.push("video_file = ?");
+      params.push(where.video_file);
+    }
+
+    // 处理时间范围过滤
+    if (startTime) {
+      whereConditions.push("record_start_time >= ?");
+      params.push(startTime);
+    }
+    if (endTime) {
+      whereConditions.push("record_start_time <= ?");
+      params.push(endTime);
+    }
+
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : "";
+
+    // 获取总记录数
+    const countSql = `SELECT COUNT(*) as total FROM ${this.model.tableName} ${whereClause}`;
+    const countStmt = this.model.db.prepare(countSql);
+    const countResult = countStmt.get(...params) as { total: number };
+    const total = countResult.total;
+
+    // 获取分页数据
+    const offset = (page - 1) * pageSize;
+    const dataSql = `
+      SELECT * FROM ${this.model.tableName} 
+      ${whereClause} 
+      ORDER BY ${orderBy} ${orderDirection} 
+      LIMIT ? OFFSET ?
+    `;
+    const dataStmt = this.model.db.prepare(dataSql);
+    const data = dataStmt.all(...params, pageSize, offset) as Live[];
+
+    return { data, total };
+  }
+
   query(options: Partial<Live>) {
     const data = Live.partial().parse(options);
     return this.model.query(data);
