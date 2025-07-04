@@ -493,11 +493,6 @@ if (!gotTheLock) {
     log.error("错误堆栈:", error.stack);
     log.error("错误名称:", error.name);
     log.error("错误代码:", (error as any).code);
-    log.error("错误信号:", (error as any).signal);
-    log.error("进程ID:", process.pid);
-    log.error("Node版本:", process.version);
-    log.error("平台:", process.platform);
-    log.error("架构:", process.arch);
     log.error("内存使用:", {
       rss: process.memoryUsage().rss,
       heapTotal: process.memoryUsage().heapTotal,
