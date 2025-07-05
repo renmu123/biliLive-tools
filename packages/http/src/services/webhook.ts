@@ -484,9 +484,10 @@ export class WebhookHandler {
       log.info(`开始同步${fileType}文件: ${filePath}`);
 
       task.on("task-end", async () => {
-        // 等待65秒，确保文件被释放
-        await sleep(1000 * 65);
+        // 等待65秒，确保文件被释放，不需要的原因是上传任务锁必定先执行
+        // await sleep(1000 * 65);
         this.fileLockManager.releaseLock(filePath, "sync");
+        log.info(`同步${filePath}文件成功`);
         // 同步后删除源文件（如果需要）
         if (removeAfterSync) {
           // 检查文件是否被锁定
