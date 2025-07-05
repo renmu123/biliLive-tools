@@ -251,26 +251,26 @@ const uniqBy = (arr, predicate) => {
 // @_raw.coin_type === "gold" 金瓜子礼物
 // <sc> @_price 为这条sc的人民币价格，换算成金瓜子需要乘1000
 // <guard> @_raw.price*@_raw.num，单位金瓜子
-const calculateGiftPrice = ({ gift, sc, guard }) => {
-  const giftPrice = gift.reduce((acc, cur) => {
-    const raw = JSON.parse(cur["@_raw"]);
-    if (raw.coin_type === "gold") {
-      return acc + raw.total_coin;
-    }
-    return acc;
-  }, 0);
+// const calculateGiftPrice = ({ gift, sc, guard }) => {
+//   const giftPrice = gift.reduce((acc, cur) => {
+//     const raw = JSON.parse(cur["@_raw"]);
+//     if (raw.coin_type === "gold") {
+//       return acc + raw.total_coin;
+//     }
+//     return acc;
+//   }, 0);
 
-  const scPrice = sc.reduce((acc, cur) => {
-    return acc + cur["@_price"] * 1000;
-  }, 0);
+//   const scPrice = sc.reduce((acc, cur) => {
+//     return acc + cur["@_price"] * 1000;
+//   }, 0);
 
-  const guardPrice = guard.reduce((acc, cur) => {
-    const raw = JSON.parse(cur["@_raw"]);
-    return acc + raw.price * raw.num;
-  }, 0);
+//   const guardPrice = guard.reduce((acc, cur) => {
+//     const raw = JSON.parse(cur["@_raw"]);
+//     return acc + raw.price * raw.num;
+//   }, 0);
 
-  return (giftPrice + scPrice + guardPrice) / 1000;
-};
+//   return (giftPrice + scPrice + guardPrice) / 1000;
+// };
 
 // 生成弹幕报告
 export const danmaReport = async (
@@ -303,28 +303,28 @@ export const danmaReport = async (
   danmukuGroupByUser.splice(options.top);
 
   // 礼物价格根据@_user进行groupby并统计数量，并取前5名
-  const priceDanmu = [
-    ...sc.map((item: any) => ({ ...item, type: "sc" })),
-    ...guard.map((item: any) => ({ ...item, type: "guard" })),
-    ...gift.map((item: any) => ({ ...item, type: "gift" })),
-  ];
-  const giftGroupByUser = Array.from(groupBy(priceDanmu, (item) => item["@_user"])).map(
-    ([key, items]) => {
-      return {
-        user: key,
-        value: calculateGiftPrice({
-          gift: items.filter((item: any) => item.type === "gift"),
-          sc: items.filter((item: any) => item.type === "sc"),
-          guard: items.filter((item: any) => item.type === "guard"),
-        }),
-      };
-    },
-  );
-  giftGroupByUser.sort((a, b) => b.value - a.value);
-  giftGroupByUser.splice(options.top);
+  // const priceDanmu = [
+  //   ...sc.map((item: any) => ({ ...item, type: "sc" })),
+  //   ...guard.map((item: any) => ({ ...item, type: "guard" })),
+  //   ...gift.map((item: any) => ({ ...item, type: "gift" })),
+  // ];
+  // const giftGroupByUser = Array.from(groupBy(priceDanmu, (item) => item["@_user"])).map(
+  //   ([key, items]) => {
+  //     return {
+  //       user: key,
+  //       value: calculateGiftPrice({
+  //         gift: items.filter((item: any) => item.type === "gift"),
+  //         sc: items.filter((item: any) => item.type === "sc"),
+  //         guard: items.filter((item: any) => item.type === "guard"),
+  //       }),
+  //     };
+  //   },
+  // );
+  // giftGroupByUser.sort((a, b) => b.value - a.value);
+  // giftGroupByUser.splice(options.top);
 
   // 总流水计算
-  const giftPrice = calculateGiftPrice({ sc, guard, gift });
+  // const giftPrice = calculateGiftPrice({ sc, guard, gift });
 
   //   const report = `弹幕总数：${danmukuLength}
   // 互动人数：${uniqMember}
@@ -344,6 +344,6 @@ export const danmaReport = async (
     uniqMember,
     scNum: scLength,
     guardNum: guardLength,
-    giftPrice,
+    // giftPrice,
   };
 };

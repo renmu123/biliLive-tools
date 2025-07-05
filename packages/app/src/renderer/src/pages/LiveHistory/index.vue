@@ -83,7 +83,7 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
 import { recordHistoryApi } from "../../apis";
-import { DataTableColumns, NButton } from "naive-ui";
+import { NButton } from "naive-ui";
 
 // 类型定义
 interface StreamerInfo {
