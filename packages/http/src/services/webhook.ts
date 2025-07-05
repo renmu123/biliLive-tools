@@ -197,7 +197,7 @@ export class WebhookHandler {
       return;
     }
 
-    log.debug(this.liveData);
+    log.debug(currentLive);
 
     const cover = await this.handleCover(options);
 

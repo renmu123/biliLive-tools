@@ -234,7 +234,7 @@
             </template>
             <n-input v-model:value="editingConfig.folderStructure" placeholder="请输入目录结构" />
           </n-form-item>
-          <n-form-item label="处理文件">
+          <n-form-item label="同步文件类型">
             <n-checkbox-group v-model:value="editingConfig.targetFiles">
               <n-space vertical>
                 <n-checkbox value="source">源文件</n-checkbox>
