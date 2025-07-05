@@ -19,14 +19,22 @@ class DB {
   init(filename: string) {
     this.filename = filename;
 
-    const db = Database(filename);
+    this.open();
+  }
+  open() {
+    const db = Database(this.filename);
     // 启用外键支持
     db.pragma("foreign_keys = ON");
     db.pragma("journal_mode = WAL");
     this.db = db;
+
+    console.log("open db", this.db.open);
   }
   close() {
     this.db.close();
+  }
+  backup(filename: string) {
+    return this.db.backup(filename);
   }
 }
 
@@ -41,6 +49,16 @@ export const videoSubDataModel = new VideoSubDataModel();
 export const initDB = (filename: string) => {
   db.init(filename);
 
+  // danmuModel.init(db.db);
+  streamerModel.init(db.db);
+  recordHistoryModel.init(db.db);
+  statisticsModel.init(db.db);
+  videoSubModel.init(db.db);
+  videoSubDataModel.init(db.db);
+  return db;
+};
+
+export const reconnectDB = () => {
   // danmuModel.init(db.db);
   streamerModel.init(db.db);
   recordHistoryModel.init(db.db);

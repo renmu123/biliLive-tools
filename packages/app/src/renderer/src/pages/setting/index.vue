@@ -192,7 +192,9 @@
                   tip="导出配置文件，导入后重启应用生效，尽量保持版本一致，如果按钮无法使用，请参照常见问题进行手动备份"
                 ></Tip>
               </template>
-              <n-button type="primary" @click="exportSettingZip">导出配置</n-button>
+              <n-button type="primary" @click="exportSettingZip" :loading="exportLoading"
+                >导出配置</n-button
+              >
               <n-button type="primary" style="margin-left: 10px" @click="importSettingZip"
                 >导入配置</n-button
               >
@@ -628,15 +630,26 @@ const addRoom = () => {
   }
   console.log(roomGlobalCheckObj.value);
 };
+const exportLoading = ref(false);
 
 // 导出配置
 const exportSettingZip = async () => {
-  const version = await commonApi.version();
-  const name = `biliLive-tools-${version}-${new Date().getTime()}-配置备份.zip`;
+  exportLoading.value = true;
+  try {
+    const version = await commonApi.version();
+    const name = `biliLive-tools-${version}-${new Date().getTime()}-配置备份.zip`;
 
-  // 导出文件
-  const blob = await configApi.exportConfig();
-  saveAs(blob, name);
+    // 导出文件
+    const blob = await configApi.exportConfig();
+    saveAs(blob, name);
+  } catch {
+    notice.error({
+      title: "导出失败",
+      duration: 1000,
+    });
+  } finally {
+    exportLoading.value = false;
+  }
 };
 
 // 导入配置

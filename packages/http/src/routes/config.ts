@@ -1,3 +1,4 @@
+import os from "node:os";
 import path from "node:path";
 import fs from "fs-extra";
 import JSZip from "jszip";
@@ -7,6 +8,7 @@ import { appConfig, container } from "../index.js";
 import multer from "../middleware/multer.js";
 import { _send } from "@biliLive-tools/shared/notify.js";
 import { getTempPath } from "@biliLive-tools/shared/utils/index.js";
+import db, { reconnectDB } from "@biliLive-tools/shared/db/index.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 import type { VideoPreset } from "@biliLive-tools/shared";
@@ -67,6 +69,7 @@ async function exportConfig(opts: {
   danmuPresetPath: string;
   ffmpegPresetPath: string;
   coverPath: string;
+  dbPath: string;
   usedImageSet: Set<string | undefined>;
 }) {
   async function addToZip(file: string) {
@@ -97,6 +100,7 @@ async function exportConfig(opts: {
     addToZip(opts.videoPresetPath),
     addToZip(opts.danmuPresetPath),
     addToZip(opts.ffmpegPresetPath),
+    addToZip(opts.dbPath),
     AddCoverToZip(opts.coverPath),
   ]);
 
@@ -119,6 +123,10 @@ router.get("/export", async (ctx) => {
       .filter((cover) => cover && !path.isAbsolute(cover));
 
     const usedImageSet = new Set(usedImages);
+    const backupPath = path.join(os.tmpdir(), "biliLive-tools");
+    await fs.ensureDir(backupPath);
+    const dbPath = path.join(backupPath, "app.db");
+    await db.backup(dbPath);
 
     const buffer = await exportConfig({
       configPath,
@@ -126,6 +134,7 @@ router.get("/export", async (ctx) => {
       danmuPresetPath,
       ffmpegPresetPath,
       coverPath,
+      dbPath,
       usedImageSet,
     });
     ctx.body = buffer;
@@ -180,6 +189,17 @@ router.post("/import", upload.single("file"), async (ctx) => {
             appConfig.losslessCutPath = data.losslessCutPath;
             await fs.writeJSON(filePath, appConfig);
           }
+        } else if (filename === "app.db") {
+          // 备份文件
+          db.close();
+          if (await fs.pathExists(filePath)) {
+            await fs.move(filePath, path.join(userDataPath, `${filename}.backup`), {
+              overwrite: true,
+            });
+          }
+          await fs.writeFile(filePath, content);
+          db.open();
+          reconnectDB();
         } else if (filename.startsWith("cover/")) {
           await fs.writeFile(filePath, content);
         } else {
