@@ -1324,6 +1324,21 @@ export class WebhookHandler {
   };
 
   /**
+   * 同步中是否存在对应类型
+   */
+  async hasTypeInSync(roomId: number, type: "source" | "danmaku" | "xml" | "cover") {
+    const { syncId } = this.getConfig(roomId);
+    if (!syncId) return false;
+
+    const config = this.appConfig.getAll();
+    const syncConfig = config.sync.syncConfigs.find((cfg) => cfg.id === syncId);
+    if (!syncConfig) return false;
+
+    // raw对应mp4,handled对应flv
+    return syncConfig.targetFiles.includes(type);
+  }
+
+  /**
    * 处理弹幕文件同步和删除
    * @param roomId 房间ID
    * @param xmlFilePath 弹幕文件路径
@@ -1344,14 +1359,13 @@ export class WebhookHandler {
     }
 
     try {
-      const { syncId } = this.getConfig(roomId);
-      if (!syncId) {
+      const shouldSync = await this.hasTypeInSync(roomId, "xml");
+      if (!shouldSync) {
         if (shouldRemoveAfterSync) {
           await trashItem(xmlFilePath);
         }
         return;
       }
-
       await sleep(2000);
       // 首先同步弹幕文件
       await this.handleFileSync(roomId, xmlFilePath, "xml", partId, shouldRemoveAfterSync);
@@ -1381,16 +1395,17 @@ export class WebhookHandler {
     }
 
     try {
-      const { syncId } = this.getConfig(roomId);
-      if (!syncId) {
+      let fileType: "source" | "danmaku" = "source";
+      if (filePath.includes("-弹幕版") || filePath.includes("-后处理")) {
+        fileType = "danmaku";
+      }
+
+      const shouldSync = await this.hasTypeInSync(roomId, fileType);
+      if (!shouldSync) {
         if (shouldRemoveAfterSync && !this.fileLockManager.isLocked(filePath)) {
           await trashItem(filePath);
         }
         return;
-      }
-      let fileType: "source" | "danmaku" = "source";
-      if (filePath.includes("-弹幕版") || filePath.includes("-后处理")) {
-        fileType = "danmaku";
       }
 
       await sleep(2000);
