@@ -75,7 +75,13 @@ const formatTime = (time: number) => {
   const seconds = Math.floor((time / 1000) % 60);
   const minutes = Math.floor((time / 1000 / 60) % 60);
   const hours = Math.floor((time / 1000 / 60 / 60) % 24);
-  return `${hours}小时${minutes}分钟${seconds}秒`;
+  const days = Math.floor(time / 1000 / 60 / 60 / 24);
+
+  if (days > 0) {
+    return `${days}天${hours}小时${minutes}分钟${seconds}秒`;
+  } else {
+    return `${hours}小时${minutes}分钟${seconds}秒`;
+  }
 };
 
 let intervalId: NodeJS.Timeout | null = null;
