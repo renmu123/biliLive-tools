@@ -52,7 +52,56 @@ class LiveModel extends BaseModel<BaseLive> {
         FOREIGN KEY (streamer_id) REFERENCES streamer(id)    -- 外键约束
       ) STRICT;
     `;
-    return super.createTable(createTableSQL);
+
+    // 创建表
+    const result = super.createTable(createTableSQL);
+
+    // 创建索引
+    this.createIndexes();
+
+    return result;
+  }
+
+  /**
+   * 检查索引是否存在
+   * @param indexName 索引名称
+   * @returns 是否存在
+   */
+  private checkIndexExists(indexName: string): boolean {
+    const result = this.db
+      .prepare(
+        `SELECT name FROM sqlite_master 
+         WHERE type='index' AND tbl_name='record_history' AND name=?`,
+      )
+      .get(indexName);
+    return !!result;
+  }
+
+  /**
+   * 创建数据库索引
+   */
+  private createIndexes() {
+    try {
+      const indexes = [
+        {
+          name: "idx_record_history_streamer_id",
+          sql: `CREATE INDEX IF NOT EXISTS idx_record_history_streamer_id ON record_history(streamer_id)`,
+        },
+        {
+          name: "idx_record_history_streamer_time",
+          sql: `CREATE INDEX IF NOT EXISTS idx_record_history_streamer_time ON record_history(streamer_id, record_start_time)`,
+        },
+      ];
+
+      for (const index of indexes) {
+        if (!this.checkIndexExists(index.name)) {
+          this.db.prepare(index.sql).run();
+          logger.info(`已创建索引: ${index.name}`);
+        }
+      }
+    } catch (error) {
+      logger.error(`创建 record_history 表索引失败:`, error);
+    }
   }
 
   migrate() {
