@@ -4,42 +4,39 @@ import BaseModel from "./baseModel.js";
 import type { Database } from "better-sqlite3";
 
 const BaseDanmu = z.object({
-  live_id: z.number(),
+  record_id: z.number(),
   ts: z.number(),
   type: z.enum(["text", "gift", "guard", "sc"]),
   text: z.string().optional(),
   user: z.string().optional(),
   gift_price: z.number().optional(),
-  p: z.string().optional(),
 });
 const Danmu = BaseDanmu.extend({
   id: z.number(),
-  created_at: z.number().optional(),
 });
 
 export type BaseDanmu = z.infer<typeof BaseDanmu>;
 export type Danmu = z.infer<typeof Danmu>;
 
 class DanmaModel extends BaseModel<BaseDanmu> {
-  table = "danma";
+  table: string;
 
-  constructor(db: Database) {
-    super(db, "danma");
+  constructor(db: Database, platform: string, roomId: string) {
+    const tableName = `danma_${platform}_${roomId}`;
+    super(db, tableName);
+    this.table = tableName;
   }
 
   async createTable() {
     const createTableSQL = `
       CREATE TABLE IF NOT EXISTS ${this.table} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,           -- 自增主键
-        text TEXT,                                      -- 弹幕内容
-        ts REAL,                                        -- 相对时间戳
+        record_id INTEGER,                              -- 直播场次id
+        ts INTEGER,                                     -- 时间戳
         type TEXT DEFAULT unknown,                      -- 弹幕类型，text：普通弹幕，gift：礼物弹幕，guard：上舰弹幕，sc：SC弹幕，unknown：未知
         user TEXT,                                      -- 发送用户名
-        gift_price INTEGER DEFAULT 0,                   -- 礼物价格，默认为0
-        live_id INTEGER,                                -- 直播场次id
-        p TEXT,                                         -- 普通弹幕的基础数据
-        created_at INTEGER DEFAULT (strftime('%s', 'now')),  -- 创建时间，时间戳，自动生成
-        FOREIGN KEY (live_id) REFERENCES live(id)            -- 外键约束
+        gift_price INTEGER DEFAULT 0,                   -- 礼物价格，默认为0，单位人民币
+        text TEXT,                                      -- 普通弹幕的基础数据
         ) STRICT;
     `;
     return super.createTable(createTableSQL);
@@ -47,28 +44,83 @@ class DanmaModel extends BaseModel<BaseDanmu> {
 }
 
 export default class DanmaController {
-  private model!: DanmaModel;
+  private models: Map<string, DanmaModel> = new Map();
+  private db!: Database;
+
   init(db: Database) {
-    this.model = new DanmaModel(db);
-    this.model.createTable();
+    this.db = db;
   }
 
-  addDanma(options: BaseDanmu) {
-    const data = BaseDanmu.parse(options);
-    return this.model.insert(data);
-  }
-  addMany(list: BaseDanmu[]) {
-    const filterList = list.map((item) => BaseDanmu.parse(item));
-    return this.model.insertMany(filterList);
+  private getModel(platform: string, roomId: string): DanmaModel {
+    const key = `${platform}_${roomId}`;
+    const tableName = `danma_${platform}_${roomId}`;
+    // 检查表是否存在
+    const tableExists = this.db
+      .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`)
+      .get(tableName);
+
+    const model = new DanmaModel(this.db, platform, roomId);
+    if (!tableExists) {
+      model.createTable();
+    }
+    return model;
   }
 
-  list(options: Partial<Danmu>): Danmu[] {
+  addDanma(
+    raw: BaseDanmu,
+    options: {
+      platform: string;
+      roomId: string;
+    },
+  ) {
+    const data = BaseDanmu.parse(raw);
+    const model = this.getModel(options.platform, options.roomId);
+    return model.insert(data);
+  }
+
+  addMany(
+    list: BaseDanmu[],
+    options: {
+      platform: string;
+      roomId: string;
+    },
+  ) {
+    if (list.length === 0) return;
+
+    // 按照 platform 和 room_id 分组
+    const groups = new Map<string, BaseDanmu[]>();
+    list.forEach((item) => {
+      const data = BaseDanmu.parse(item);
+      const key = `${options.platform}_${options.roomId}`;
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key)!.push(data);
+    });
+
+    // 分别插入每个分组
+    const results = [];
+    for (const [key, items] of groups) {
+      const [platform, roomId] = key.split("_");
+      const model = this.getModel(platform, roomId);
+      results.push(model.insertMany(items));
+    }
+    return Promise.all(results);
+  }
+
+  list(
+    platform: string,
+    roomId: string,
+    options: Partial<Omit<Danmu, "platform" | "room_id">>,
+  ): Danmu[] {
+    const model = this.getModel(platform, roomId);
     const data = Danmu.partial().parse(options);
-    return this.model.list(data);
+    return model.list(data);
   }
 
-  query(options: Partial<Danmu>) {
+  query(platform: string, roomId: string, options: Partial<Omit<Danmu, "platform" | "room_id">>) {
+    const model = this.getModel(platform, roomId);
     const data = Danmu.partial().parse(options);
-    return this.model.query(data);
+    return model.query(data);
   }
 }

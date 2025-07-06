@@ -1,3 +1,4 @@
+import path from "node:path";
 import Database from "better-sqlite3";
 
 import DanmaModel from "./model/danmu.js";
@@ -39,6 +40,7 @@ class DB {
 }
 
 const db = new DB();
+const danmaDb = new DB();
 export const danmuModel = new DanmaModel();
 export const streamerModel = new StreamModel();
 export const recordHistoryModel = new RecordHistoryModel();
@@ -46,15 +48,22 @@ export const statisticsModel = new StatisticsModel();
 export const videoSubModel = new VideoSubModel();
 export const videoSubDataModel = new VideoSubDataModel();
 
-export const initDB = (filename: string) => {
-  db.init(filename);
+export const initDB = (dbPath: string) => {
+  const mainDBPath = path.join(dbPath, "app.db");
+  const danmaDBPath = path.join(dbPath, "dm0.db");
 
-  // danmuModel.init(db.db);
+  db.init(mainDBPath);
+  danmaDb.init(danmaDBPath);
+
   streamerModel.init(db.db);
   recordHistoryModel.init(db.db);
   statisticsModel.init(db.db);
   videoSubModel.init(db.db);
   videoSubDataModel.init(db.db);
+
+  // 弹幕数据库
+  danmuModel.init(danmaDb.db);
+
   return db;
 };
 
