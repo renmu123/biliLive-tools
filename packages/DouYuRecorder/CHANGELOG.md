@@ -1,3 +1,7 @@
+# 1.5.0
+
+- 支持 `useServerTimestamp` 控制弹幕是否使用服务端时间戳
+
 # 1.4.0
 
 - 支持 `onlyAudio` 来只录制音频

@@ -36,6 +36,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     qualityMaxRetry: opts.qualityRetry ?? 0,
     qualityRetry: opts.qualityRetry ?? 0,
     useM3U8Proxy: opts.useM3U8Proxy ?? false,
+    useServerTimestamp: opts.useServerTimestamp ?? true,
     m3u8ProxyUrl: opts.m3u8ProxyUrl,
     formatName: opts.formatName ?? "auto",
     codecName: opts.codecName ?? "auto",
@@ -302,7 +303,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("progress", progress);
   });
 
-  let danmaClient = new DanmaClient(roomId, this.auth, this.uid);
+  let danmaClient = new DanmaClient(roomId, {
+    auth: this.auth,
+    uid: this.uid,
+    useServerTimestamp: this.useServerTimestamp,
+  });
   if (!this.disableProvideCommentsWhenRecording) {
     danmaClient.on("Message", (msg) => {
       const extraDataController = recorder.getExtraDataController();

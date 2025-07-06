@@ -38,6 +38,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     availableSources: [],
     qualityMaxRetry: opts.qualityRetry ?? 0,
     qualityRetry: opts.qualityRetry ?? 0,
+    useServerTimestamp: opts.useServerTimestamp ?? true,
     state: "idle",
 
     getChannelURL() {
@@ -308,9 +309,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (!extraDataController) return;
     switch (msg.type) {
       case "chatmsg": {
+        const timestamp = this.useServerTimestamp ? Number(msg.cst) : Date.now();
         const comment: Comment = {
           type: "comment",
-          timestamp: Number(msg.cst),
+          timestamp: timestamp,
           text: msg.txt,
           color: colorTab[msg.col] ?? "#ffffff",
           sender: {

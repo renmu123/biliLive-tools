@@ -45,6 +45,7 @@ interface Options {
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
   saveGiftDanma?: boolean; // 保存礼物弹幕
   saveSCDanma?: boolean; // 保存高能弹幕
+  useServerTimestamp?: boolean; // 控制弹幕是否使用服务端时间戳，默认为true，斗鱼服务端时间戳只对文字弹幕生效，礼物等不生效
   saveCover?: boolean; // 保存封面
   videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"
   onlyAudio?: boolean; // 只录制音频，默认为否

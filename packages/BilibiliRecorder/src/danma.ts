@@ -65,12 +65,21 @@ class DanmaClient extends EventEmitter {
   private auth: string | undefined;
   private uid: number | undefined;
   private retryCount: number = 10;
+  private useServerTimestamp: boolean;
 
-  constructor(roomId: number, auth: string | undefined, uid: number | undefined) {
+  constructor(
+    roomId: number,
+    {
+      auth,
+      uid,
+      useServerTimestamp,
+    }: { auth: string | undefined; uid: number | undefined; useServerTimestamp: boolean },
+  ) {
     super();
     this.roomId = roomId;
     this.auth = auth;
     this.uid = uid;
+    this.useServerTimestamp = useServerTimestamp;
   }
 
   async start() {
@@ -84,7 +93,7 @@ class DanmaClient extends EventEmitter {
 
         const comment: Comment = {
           type: "comment",
-          timestamp: msg.body.timestamp,
+          timestamp: this.useServerTimestamp ? msg.body.timestamp : Date.now(),
           text: content,
           color: msg.body.content_color,
           mode: msg.body.type,
@@ -104,7 +113,7 @@ class DanmaClient extends EventEmitter {
         const content = msg.body.content.replaceAll(/[\r\n]/g, "");
         const comment: SuperChat = {
           type: "super_chat",
-          timestamp: msg.raw.send_time,
+          timestamp: this.useServerTimestamp ? msg.raw.send_time : Date.now(),
           text: content,
           price: msg.body.price,
           sender: {
@@ -122,7 +131,7 @@ class DanmaClient extends EventEmitter {
       onGuardBuy: (msg) => {
         const gift: Guard = {
           type: "guard",
-          timestamp: msg.timestamp,
+          timestamp: this.useServerTimestamp ? msg.timestamp : Date.now(),
           name: msg.body.gift_name,
           price: msg.body.price,
           count: 1,
@@ -142,7 +151,7 @@ class DanmaClient extends EventEmitter {
       onGift: (msg) => {
         const gift: GiveGift = {
           type: "give_gift",
-          timestamp: msg?.raw?.data?.timestamp * 1000,
+          timestamp: this.useServerTimestamp ? msg?.raw?.data?.timestamp * 1000 : Date.now(),
           name: msg.body.gift_name,
           count: msg.body.amount,
           price: msg.body.coin_type === "silver" ? 0 : msg.body.price / 1000,

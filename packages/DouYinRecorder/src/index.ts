@@ -36,6 +36,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     availableSources: [],
     qualityMaxRetry: opts.qualityRetry ?? 0,
     qualityRetry: opts.qualityRetry ?? 0,
+    useServerTimestamp: opts.useServerTimestamp ?? true,
     state: "idle",
 
     getChannelURL() {
@@ -246,7 +247,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (!extraDataController) return;
     const comment: Comment = {
       type: "comment",
-      timestamp: Number(msg.eventTime) * 1000,
+      timestamp: this.useServerTimestamp ? Number(msg.eventTime) * 1000 : Date.now(),
       text: msg.content,
       color: "#ffffff",
       sender: {
@@ -265,12 +266,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     const extraDataController = recorder.getExtraDataController();
     if (!extraDataController) return;
     if (this.saveGiftDanma === false) return;
+
+    const serverTimestamp =
+      Number(msg.common.createTime) > 9999999999
+        ? Number(msg.common.createTime)
+        : Number(msg.common.createTime) * 1000;
     const gift: GiveGift = {
       type: "give_gift",
-      timestamp:
-        Number(msg.common.createTime) > 9999999999
-          ? Number(msg.common.createTime)
-          : Number(msg.common.createTime) * 1000,
+      timestamp: this.useServerTimestamp ? serverTimestamp : Date.now(),
       name: msg.gift.name,
       price: 1,
       count: Number(msg.totalCount ?? 1),

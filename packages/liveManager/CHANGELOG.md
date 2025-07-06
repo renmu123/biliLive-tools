@@ -2,6 +2,7 @@
 
 - `savePathRule` 支持 [ejs](https://ejs.co/) 模板引擎
 - 修复 `.mp4` 及 `.mkv` 录制出错时数据不完整的bug
+- 支持 `useServerTimestamp` 控制弹幕是否使用服务端时间戳
 
 # 1.3.0
 
