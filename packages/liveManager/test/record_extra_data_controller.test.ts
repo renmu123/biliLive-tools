@@ -50,10 +50,10 @@ describe("convert2Xml", () => {
   <metadata>
     <video_start_time>1633072800000</video_start_time>
   </metadata>
-  <d p="1,1,25,16777215,1633072801000,0,123,123,0" user="user1" uid="123">Hello World</d>
-  <gift ts="2" giftname="Gift" giftcount="1" price="100000" user="user2" uid="124"></gift>
-  <sc ts="3" price="200000" user="user3" uid="125">Super Chat</sc>
-  <guard ts="4" price="300000" giftname="Guard" giftcount="1" level="1" user="user4" uid="126"></guard>
+  <d p="1,1,25,16777215,1633072801000,0,123,123,0" user="user1" uid="123" timestamp="1633072801000">Hello World</d>
+  <gift ts="2" giftname="Gift" giftcount="1" price="100000" user="user2" uid="124" timestamp="1633072802000"></gift>
+  <sc ts="3" price="200000" user="user3" uid="125" timestamp="1633072803000">Super Chat</sc>
+  <guard ts="4" price="300000" giftname="Guard" giftcount="1" level="1" user="user4" uid="126" timestamp="1633072804000"></guard>
 </i>
 `;
 

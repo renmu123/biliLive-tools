@@ -231,6 +231,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     }
 
     if (config.recorder.saveDanma2DB && xmlFile && (await fs.pathExists(xmlFile))) {
+      logger.info("写入弹幕文件：", xmlFile);
       const history = recordHistory.getRecord({
         file: filename,
       });
