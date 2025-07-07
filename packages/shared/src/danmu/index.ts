@@ -183,7 +183,7 @@ export const parseDanmu = async (
       live_start_time: metadata.live_start_time,
       live_title: metadata.live_title,
       gift_count: 1,
-      gift_price: item["price"],
+      gift_price: item["@_price"],
     };
     return data;
   });
@@ -201,8 +201,8 @@ export const parseDanmu = async (
       live_start_time: metadata.live_start_time,
       live_title: metadata.live_title,
       gift_name: item["@_giftname"],
-      gift_count: item["@giftcount"],
-      gift_price: item["price"],
+      gift_count: item["@_giftcount"],
+      gift_price: item["@_price"],
     };
     return data;
   });
@@ -220,8 +220,8 @@ export const parseDanmu = async (
       live_start_time: metadata.live_start_time,
       live_title: metadata.live_title,
       gift_name: item["@_giftname"],
-      gift_count: item["@giftcount"],
-      gift_price: item["price"],
+      gift_count: item["@_giftcount"],
+      gift_price: item["@_price"],
     };
     return data;
   });
