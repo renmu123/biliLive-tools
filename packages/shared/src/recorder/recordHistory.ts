@@ -119,9 +119,14 @@ export async function removeRecords(channelId: string, providerId: string) {
   return true;
 }
 
+export function getRecord(data: { file: string }) {
+  return recordHistoryModel.query({ video_file: data.file });
+}
+
 export default {
   addWithStreamer,
   upadteLive,
   queryRecordsByRoomAndPlatform,
   removeRecords,
+  getRecord,
 };

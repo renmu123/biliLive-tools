@@ -5,7 +5,7 @@ import type { Database } from "better-sqlite3";
 
 const BaseDanmu = z.object({
   record_id: z.number(),
-  ts: z.number(),
+  ts: z.number().optional(),
   type: z.enum(["text", "gift", "guard", "sc"]),
   text: z.string().optional(),
   user: z.string().optional(),
@@ -32,19 +32,37 @@ class DanmaModel extends BaseModel<BaseDanmu> {
       CREATE TABLE IF NOT EXISTS ${this.table} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,           -- 自增主键
         record_id INTEGER,                              -- 直播场次id
-        ts INTEGER,                                     -- 时间戳
+        ts INTEGER DEFAULT 0,                           -- 时间戳
         type TEXT DEFAULT unknown,                      -- 弹幕类型，text：普通弹幕，gift：礼物弹幕，guard：上舰弹幕，sc：SC弹幕，unknown：未知
-        user TEXT,                                      -- 发送用户名
-        gift_price INTEGER DEFAULT 0,                   -- 礼物价格，默认为0，单位人民币
-        text TEXT,                                      -- 普通弹幕的基础数据
+        user TEXT DEFAULT "",                           -- 发送用户名
+        gift_price INTEGER DEFAULT 0,                   -- 礼物价格，默认为0，单位分
+        text TEXT DEFAULT "",                           -- 普通弹幕的基础数据
         ) STRICT;
     `;
-    return super.createTable(createTableSQL);
+
+    const result = super.createTable(createTableSQL);
+
+    // 创建索引
+    const createIndexSQL = `
+        CREATE INDEX IF NOT EXISTS idx_${this.table}_record_id ON ${this.table}(record_id);
+        CREATE INDEX IF NOT EXISTS idx_${this.table}_ts ON ${this.table}(ts);
+        CREATE INDEX IF NOT EXISTS idx_${this.table}_type ON ${this.table}(type);
+        CREATE INDEX IF NOT EXISTS idx_${this.table}_record_ts ON ${this.table}(record_id, ts);
+      `;
+
+    // 创建索引
+    const indexStatements = createIndexSQL.split(";").filter((sql) => sql.trim());
+    for (const indexSQL of indexStatements) {
+      if (indexSQL.trim()) {
+        this.db.prepare(indexSQL).run();
+      }
+    }
+
+    return result;
   }
 }
 
 export default class DanmaController {
-  private models: Map<string, DanmaModel> = new Map();
   private db!: Database;
 
   init(db: Database) {
@@ -52,7 +70,6 @@ export default class DanmaController {
   }
 
   private getModel(platform: string, roomId: string): DanmaModel {
-    const key = `${platform}_${roomId}`;
     const tableName = `danma_${platform}_${roomId}`;
     // 检查表是否存在
     const tableExists = this.db
@@ -87,25 +104,9 @@ export default class DanmaController {
   ) {
     if (list.length === 0) return;
 
-    // 按照 platform 和 room_id 分组
-    const groups = new Map<string, BaseDanmu[]>();
-    list.forEach((item) => {
-      const data = BaseDanmu.parse(item);
-      const key = `${options.platform}_${options.roomId}`;
-      if (!groups.has(key)) {
-        groups.set(key, []);
-      }
-      groups.get(key)!.push(data);
-    });
-
     // 分别插入每个分组
-    const results = [];
-    for (const [key, items] of groups) {
-      const [platform, roomId] = key.split("_");
-      const model = this.getModel(platform, roomId);
-      results.push(model.insertMany(items));
-    }
-    return Promise.all(results);
+    const model = this.getModel(options.platform, options.roomId);
+    model.insertMany(list);
   }
 
   list(

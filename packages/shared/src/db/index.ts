@@ -28,8 +28,6 @@ class DB {
     db.pragma("foreign_keys = ON");
     db.pragma("journal_mode = WAL");
     this.db = db;
-
-    console.log("open db", this.db.open);
   }
   close() {
     this.db.close();

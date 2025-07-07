@@ -266,6 +266,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       cookie: "",
       doubleScreen: true,
     },
+    saveDanma2DB: false,
   },
   video: {
     subCheckInterval: 60,

@@ -15,13 +15,14 @@ import {
 } from "@bililive-tools/manager";
 
 import recordHistory from "./recordHistory.js";
+import { danmuModel } from "../db/index.js";
 // import DanmuService from "../db/service/danmuService.js";
 import { getFfmpegPath, readVideoMeta } from "../task/video.js";
 import logger from "../utils/log.js";
 import { replaceExtName } from "../utils/index.js";
 import RecorderConfig from "./config.js";
 import { sendBySystem, send } from "../notify.js";
-import { danmaReport } from "../danmu/index.js";
+import { danmaReport, parseDanmu } from "../danmu/index.js";
 
 import type { AppConfig } from "../config.js";
 import type { Recorder as RecorderConfigType } from "@biliLive-tools/types";
@@ -209,6 +210,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
         username: username,
       });
 
+    const xmlFile = replaceExtName(filename, ".xml");
     try {
       const videoMeta = await readVideoMeta(filename);
       const duration = videoMeta?.format?.duration ?? 0;
@@ -217,8 +219,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
         video_duration: isNaN(Number(duration)) ? 0 : duration,
       });
 
-      const xmlFile = replaceExtName(filename, ".xml");
-      if (await fs.pathExists(xmlFile)) {
+      if (xmlFile && (await fs.pathExists(xmlFile))) {
         const { uniqMember, danmaNum } = await danmaReport(xmlFile);
         recordHistory.upadteLive(filename, {
           danma_num: danmaNum,
@@ -229,12 +230,66 @@ export async function createRecorderManager(appConfig: AppConfig) {
       logger.error("Update live error", { recorder, filename, error });
     }
 
-    // const { danmu, sc, gift, guard } = await parseDanmu(replaceExtName(filename, ".xml"));
+    if (config.recorder.saveDanma2DB && xmlFile && (await fs.pathExists(xmlFile))) {
+      const history = recordHistory.getRecord({
+        file: filename,
+      });
+      if (!history) return;
+      const { danmu, sc, gift, guard } = await parseDanmu(replaceExtName(filename, ".xml"));
+      const result: {
+        record_id: number;
+        ts: number;
+        type: "text" | "gift" | "guard" | "sc";
+        user?: string;
+        gift_price: number;
+        text: string;
+      }[] = [];
 
-    // DanmuService.addMany(danmu.map((item) => ({ ...item, live_id: live.id })));
-    // DanmuService.addMany(sc.map((item) => ({ ...item, live_id: live.id })));
-    // DanmuService.addMany(gift.map((item) => ({ ...item, live_id: live.id })));
-    // DanmuService.addMany(guard.map((item) => ({ ...item, live_id: live.id })));
+      for (const item of danmu) {
+        result.push({
+          record_id: history.id,
+          ts: item.ts,
+          type: item.type,
+          user: item.user,
+          gift_price: 0,
+          text: item.text ?? "",
+        });
+      }
+      for (const item of sc) {
+        result.push({
+          record_id: history.id,
+          ts: item.ts,
+          type: item.type,
+          user: item.user,
+          gift_price: 0,
+          text: item.text ?? "",
+        });
+      }
+      for (const item of gift) {
+        result.push({
+          record_id: history.id,
+          ts: item.ts,
+          type: item.type,
+          user: item.user,
+          gift_price: 0,
+          text: item.text ?? "",
+        });
+      }
+      for (const item of guard) {
+        result.push({
+          record_id: history.id,
+          ts: item.ts,
+          type: item.type,
+          user: item.user,
+          gift_price: 0,
+          text: item.text ?? "",
+        });
+      }
+      danmuModel.addMany(result, {
+        platform: recorder.providerId,
+        roomId: recorder.channelId,
+      });
+    }
   });
 
   appConfig.on("update", () => {

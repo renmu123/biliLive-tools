@@ -358,6 +358,8 @@ export interface GlobalRecorder {
   qualityRetry: number;
   /** 视频格式 */
   videoFormat: "auto" | "ts" | "mkv";
+  /** 保存弹幕测试 */
+  saveDanma2DB: boolean;
   /** B站特有的配置 */
   bilibili: BilibiliRecorderConfig;
   /** 斗鱼特有的配置 */
@@ -843,6 +845,7 @@ export type DanmaType = "text" | "sc" | "gift" | "guard" | "unknown";
 export interface DanmuItem {
   text?: string;
   ts: number;
+  timestamp?: number;
   type: DanmaType;
   user?: string;
   streamer?: string;

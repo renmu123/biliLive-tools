@@ -152,12 +152,14 @@ export const parseDanmu = async (
   const metadata = parseMetadata(jObj);
 
   const parsedDanmuku = danmuku.map((item) => {
+    const pArray = (item["@_p"] as string).split(",");
     const data: Danmu = {
       type: "text",
 
       text: item["#text"],
       user: item["@_user"],
-      ts: Number((item["@_p"] as string).split(",")[0]),
+      ts: Number(pArray[0]),
+      timestamp: item["@_timestamp"] ? Number(item["@_timestamp"]) : Number(pArray[7]),
       p: item["@_p"],
       platform: platform ?? metadata.platform ?? "unknown",
       source,
@@ -171,10 +173,10 @@ export const parseDanmu = async (
   const parsedSC = sc.map((item) => {
     const data: SC = {
       type: "sc",
-
       text: item["#text"],
       user: item["@_user"],
       ts: Number(item["@_ts"]),
+      timestamp: item["@_timestamp"] ? Number(item["@_timestamp"]) : undefined,
       platform: platform ?? metadata.platform ?? "unknown",
       source,
       room_id: options.roomId ?? metadata.room_id,
@@ -190,6 +192,7 @@ export const parseDanmu = async (
       text: "",
       user: item["@_user"],
       ts: Number(item["@_ts"]),
+      timestamp: item["@_timestamp"] ? Number(item["@_timestamp"]) : undefined,
       platform: platform ?? metadata.platform ?? "unknown",
       source,
       room_id: options.roomId ?? metadata.room_id,
@@ -205,6 +208,7 @@ export const parseDanmu = async (
       text: "",
       user: item["@_user"],
       ts: Number(item["@_ts"]),
+      timestamp: item["@_timestamp"] ? Number(item["@_timestamp"]) : undefined,
       platform: platform ?? metadata.platform ?? "unknown",
       source,
       room_id: options.roomId ?? metadata.room_id,

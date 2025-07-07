@@ -116,6 +116,7 @@ export function convert2Xml(data: RecordExtraData) {
         "@@weight": String(0),
         "@@user": String(ele.sender?.name),
         "@@uid": String(ele?.sender?.uid),
+        "@@timestamp": String(ele.timestamp),
       };
       data["@@p"] = [
         data["@@progress"],
@@ -142,6 +143,7 @@ export function convert2Xml(data: RecordExtraData) {
         "@@price": String(ele.price * 1000),
         "@@user": String(ele.sender?.name),
         "@@uid": String(ele?.sender?.uid),
+        "@@timestamp": String(ele.timestamp),
         // "@@raw": JSON.stringify(ele),
       };
       return data;
@@ -157,6 +159,7 @@ export function convert2Xml(data: RecordExtraData) {
         "#text": String(ele.text),
         "@@user": String(ele.sender?.name),
         "@@uid": String(ele?.sender?.uid),
+        "@@timestamp": String(ele.timestamp),
         // "@@raw": JSON.stringify(ele),
       };
       return data;
@@ -174,6 +177,7 @@ export function convert2Xml(data: RecordExtraData) {
         "@@level": String(ele.level),
         "@@user": String(ele.sender?.name),
         "@@uid": String(ele?.sender?.uid),
+        "@@timestamp": String(ele.timestamp),
         // "@@raw": JSON.stringify(ele),
       };
       return data;
