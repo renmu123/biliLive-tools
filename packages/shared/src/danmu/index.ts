@@ -159,7 +159,7 @@ export const parseDanmu = async (
       text: item["#text"],
       user: item["@_user"],
       ts: Number(pArray[0]),
-      timestamp: item["@_timestamp"] ? Number(item["@_timestamp"]) : Number(pArray[7]),
+      timestamp: item["@_timestamp"] ? Number(item["@_timestamp"]) : Number(pArray[4]),
       p: item["@_p"],
       platform: platform ?? metadata.platform ?? "unknown",
       source,
@@ -182,6 +182,8 @@ export const parseDanmu = async (
       room_id: options.roomId ?? metadata.room_id,
       live_start_time: metadata.live_start_time,
       live_title: metadata.live_title,
+      gift_count: 1,
+      gift_price: item["price"],
     };
     return data;
   });
@@ -198,6 +200,9 @@ export const parseDanmu = async (
       room_id: options.roomId ?? metadata.room_id,
       live_start_time: metadata.live_start_time,
       live_title: metadata.live_title,
+      gift_name: item["@_giftname"],
+      gift_count: item["@giftcount"],
+      gift_price: item["price"],
     };
     return data;
   });
@@ -214,6 +219,9 @@ export const parseDanmu = async (
       room_id: options.roomId ?? metadata.room_id,
       live_start_time: metadata.live_start_time,
       live_title: metadata.live_title,
+      gift_name: item["@_giftname"],
+      gift_count: item["@giftcount"],
+      gift_price: item["price"],
     };
     return data;
   });

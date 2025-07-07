@@ -129,7 +129,7 @@ export function convert2Xml(data: RecordExtraData) {
         data["@@uid"],
         data["@@weight"],
       ].join(",");
-      return pick(data, ["@@p", "#text", "@@user", "@@uid"]);
+      return pick(data, ["@@p", "#text", "@@user", "@@uid", "@@timestamp"]);
     });
 
   const gifts = data.messages

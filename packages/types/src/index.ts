@@ -859,6 +859,7 @@ export interface DanmuItem {
 }
 export interface SC extends DanmuItem {
   type: "sc";
+  gift_count?: number;
 }
 
 export interface Danmu extends DanmuItem {
@@ -867,10 +868,14 @@ export interface Danmu extends DanmuItem {
 
 export interface Gift extends DanmuItem {
   type: "gift";
+  gift_name?: string;
+  gift_count?: number;
 }
 
 export interface Guard extends DanmuItem {
   type: "guard";
+  gift_name?: string;
+  gift_count?: number;
 }
 
 export type DeepPartial<T> = T extends object

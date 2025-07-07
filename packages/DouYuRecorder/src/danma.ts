@@ -10,6 +10,7 @@ export const colorTab = {
 /**
  * from https://webconf.douyucdn.cn/resource/common/prop_gift_list/prop_gift_config.json
  */
+// 粉丝荧光棒被手动置为0了
 
 export const giftMap: Partial<Record<string, { name: string; pc: number }>> = {
   "192": { name: "赞", pc: 10 },
@@ -41,7 +42,7 @@ export const giftMap: Partial<Record<string, { name: string; pc: number }>> = {
   "804": { name: "铜牌", pc: 10 },
   "805": { name: "银牌", pc: 30 },
   "806": { name: "金牌", pc: 60 },
-  "824": { name: "粉丝荧光棒", pc: 10 },
+  "824": { name: "粉丝荧光棒", pc: 0 },
   "947": { name: "狼抓手", pc: 10 },
   "1005": { name: "超级火箭", pc: 200000 },
   "1075": { name: "这都不叫事", pc: 200000 },
@@ -255,13 +256,13 @@ export const giftMap: Partial<Record<string, { name: string; pc: number }>> = {
   "1800": { name: "69式饺子", pc: 200000 },
   "1804": { name: "帝国舰队", pc: 50100 },
   "1805": { name: "可爱羡羡火箭", pc: 50000 },
-  "1806": { name: "粉丝荧光棒", pc: 10 },
+  "1806": { name: "粉丝荧光棒", pc: 0 },
   "1813": { name: "石西叽", pc: 200000 },
   "1814": { name: "一箭丹心", pc: 200000 },
   "1823": { name: "赞", pc: 10 },
   "1824": { name: "弱鸡", pc: 20 },
   "1828": { name: "帝国舰队", pc: 10100 },
-  "1838": { name: "粉丝荧光棒", pc: 10 },
+  "1838": { name: "粉丝荧光棒", pc: 0 },
   "1844": { name: "英嘤英", pc: 200000 },
   "1850": { name: "一只狗", pc: 200000 },
   "1852": { name: "穷逼火箭", pc: 200000 },
@@ -282,7 +283,7 @@ export const giftMap: Partial<Record<string, { name: string; pc: number }>> = {
   "1897": { name: "大马猴火箭", pc: 50000 },
   "1912": { name: "岁月静好", pc: 200000 },
   "1913": { name: "吃鸡", pc: 10 },
-  "1914": { name: "粉丝荧光棒", pc: 10 },
+  "1914": { name: "粉丝荧光棒", pc: 0 },
   "1923": { name: "伊C", pc: 200000 },
   "1924": { name: "装逼王超火", pc: 200000 },
   "1925": { name: "超级达克宁", pc: 200000 },
@@ -379,7 +380,7 @@ export const giftMap: Partial<Record<string, { name: string; pc: number }>> = {
   "20384": { name: "测试专用皮肤", pc: 10 },
   "20388": { name: "全民乐PK", pc: 10000 },
   "20389": { name: "挚爱超火", pc: 200000 },
-  "20422": { name: "粉丝荧光棒", pc: 10 },
+  "20422": { name: "粉丝荧光棒", pc: 0 },
   "20426": { name: "不网恋超火", pc: 200000 },
   "20434": { name: "抢位道具卡", pc: 100 },
   "20435": { name: "普通家庭超火", pc: 200000 },

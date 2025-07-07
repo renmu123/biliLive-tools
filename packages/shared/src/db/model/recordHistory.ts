@@ -144,7 +144,6 @@ class LiveModel extends BaseModel<BaseLive> {
 export default class LiveController {
   private model!: LiveModel;
   init(db: Database) {
-    console.log("init live");
     this.model = new LiveModel(db);
     this.model.createTable();
     this.model.migrate();

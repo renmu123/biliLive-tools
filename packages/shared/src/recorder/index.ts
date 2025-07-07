@@ -239,50 +239,55 @@ export async function createRecorderManager(appConfig: AppConfig) {
       const result: {
         record_id: number;
         ts: number;
-        type: "text" | "gift" | "guard" | "sc";
+        type: "text" | "gift";
         user?: string;
-        gift_price: number;
+        gift_price?: number;
+        gift_name?: string;
         text: string;
       }[] = [];
 
       for (const item of danmu) {
         result.push({
           record_id: history.id,
-          ts: item.ts,
+          ts: item.timestamp!,
           type: item.type,
           user: item.user,
-          gift_price: 0,
+          gift_price: undefined,
           text: item.text ?? "",
+          gift_name: "",
         });
       }
       for (const item of sc) {
         result.push({
           record_id: history.id,
-          ts: item.ts,
-          type: item.type,
+          ts: item.timestamp!,
+          type: "gift",
           user: item.user,
-          gift_price: 0,
+          gift_price: item.gift_price,
           text: item.text ?? "",
+          gift_name: "SC",
         });
       }
       for (const item of gift) {
         result.push({
           record_id: history.id,
-          ts: item.ts,
+          ts: item.timestamp!,
           type: item.type,
           user: item.user,
-          gift_price: 0,
-          text: item.text ?? "",
+          gift_price: Number(item.gift_price) * Number(item.gift_count),
+          text: "",
+          gift_name: item.gift_name,
         });
       }
       for (const item of guard) {
         result.push({
           record_id: history.id,
-          ts: item.ts,
-          type: item.type,
+          ts: item.timestamp!,
+          type: "gift",
           user: item.user,
-          gift_price: 0,
-          text: item.text ?? "",
+          gift_price: Number(item.gift_price) * Number(item.gift_count),
+          text: "",
+          gift_name: item.gift_name,
         });
       }
       danmuModel.addMany(result, {
