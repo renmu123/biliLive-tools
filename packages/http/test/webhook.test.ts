@@ -1,3 +1,4 @@
+import fs from "fs-extra";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 import { WebhookHandler, Live } from "../src/services/webhook.js";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
@@ -12,6 +13,14 @@ vi.mock("../src/index.js", async (importOriginal) => {
     config: {
       get: vi.fn().mockReturnValue({}),
     },
+  };
+});
+
+vi.mock("@biliLive-tools/shared/utils/index.js", async (importOriginal) => {
+  const mod = await importOriginal<typeof import("@biliLive-tools/shared/utils/index.js")>();
+  return {
+    ...mod,
+    trashItem: vi.fn().mockResolvedValue(true),
   };
 });
 
@@ -2632,6 +2641,20 @@ describe("WebhookHandler", () => {
       expect(liveData[1].parts[0].filePath).toBe(options.filePath);
       expect(liveData[1].parts[0].recordStatus).toBe("recording");
     });
+  });
+
+  describe("handleVideoSync", () => {
+    it("同步且删除", async () => {
+      // @ts-ignore
+      vi.spyOn(fs, "pathExists").mockResolvedValue(true);
+      // @ts-ignore
+      vi.spyOn(webhookHandler, "hasTypeInSync").mockResolvedValue(true);
+      // 调用handleVideoSync
+      await webhookHandler.handleVideoSync(123, "/path/to/video.mp4", "part1", true);
+    });
+    it("同步且不删除", () => {});
+    it("不同步且删除", () => {});
+    it("不同步且不删除", () => {});
   });
 });
 
