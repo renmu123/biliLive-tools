@@ -182,6 +182,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
     recordHistory.addWithStreamer({
       live_start_time: recorder.liveInfo.startTime?.getTime(),
+      live_id: recorder?.liveInfo?.liveId,
       record_start_time: startTime.getTime(),
       room_id: recorder.channelId,
       title: recorder.liveInfo.title,
@@ -214,17 +215,29 @@ export async function createRecorderManager(appConfig: AppConfig) {
     try {
       const videoMeta = await readVideoMeta(filename);
       const duration = videoMeta?.format?.duration ?? 0;
-      recordHistory.upadteLive(filename, {
-        record_end_time: endTime.getTime(),
-        video_duration: isNaN(Number(duration)) ? 0 : duration,
-      });
+      recordHistory.upadteLive(
+        {
+          video_file: filename,
+          live_id: recorder?.liveInfo?.liveId,
+        },
+        {
+          record_end_time: endTime.getTime(),
+          video_duration: isNaN(Number(duration)) ? 0 : duration,
+        },
+      );
 
       if (xmlFile && (await fs.pathExists(xmlFile))) {
         const { uniqMember, danmaNum } = await danmaReport(xmlFile);
-        recordHistory.upadteLive(filename, {
-          danma_num: danmaNum,
-          interact_num: uniqMember,
-        });
+        recordHistory.upadteLive(
+          {
+            video_file: filename,
+            live_id: recorder?.liveInfo?.liveId,
+          },
+          {
+            danma_num: danmaNum,
+            interact_num: uniqMember,
+          },
+        );
       }
     } catch (error) {
       logger.error("Update live error", { recorder, filename, error });
@@ -234,6 +247,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
       logger.info("写入弹幕文件：", xmlFile);
       const history = recordHistory.getRecord({
         file: filename,
+        live_id: recorder?.liveInfo?.liveId,
       });
       if (!history) return;
       const { danmu, sc, gift, guard } = await parseDanmu(replaceExtName(filename, ".xml"));

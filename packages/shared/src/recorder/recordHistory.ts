@@ -3,6 +3,24 @@ import { streamerModel, recordHistoryModel } from "../db/index.js";
 import type { BaseLive, Live } from "../db/model/recordHistory.js";
 import type { BaseStreamer } from "../db/model/streamer.js";
 
+export interface QueryRecordsOptions {
+  room_id: string;
+  platform: string;
+  page?: number;
+  pageSize?: number;
+  startTime?: number;
+  endTime?: number;
+}
+
+export interface QueryRecordsResult {
+  data: Array<Live>;
+  pagination: {
+    total: number;
+    page: number;
+    pageSize: number;
+  };
+}
+
 export function addWithStreamer(data: Omit<BaseLive, "streamer_id"> & BaseStreamer) {
   const streamer = streamerModel.upsert({
     where: {
@@ -23,12 +41,13 @@ export function addWithStreamer(data: Omit<BaseLive, "streamer_id"> & BaseStream
     live_start_time: data.live_start_time,
     record_start_time: data.record_start_time,
     video_file: data.video_file,
+    live_id: data.live_id,
   });
   return live;
 }
 
 export function upadteLive(
-  video_file: string,
+  query: { video_file: string; live_id?: string },
   params: {
     record_end_time?: number;
     video_duration?: number;
@@ -36,7 +55,7 @@ export function upadteLive(
     interact_num?: number;
   },
 ) {
-  const live = recordHistoryModel.query({ video_file });
+  const live = recordHistoryModel.query({ video_file: query.video_file, live_id: query.live_id });
   if (live) {
     recordHistoryModel.update({
       id: live.id,
@@ -49,24 +68,6 @@ export function upadteLive(
   }
 
   return null;
-}
-
-export interface QueryRecordsOptions {
-  room_id: string;
-  platform: string;
-  page?: number;
-  pageSize?: number;
-  startTime?: number;
-  endTime?: number;
-}
-
-export interface QueryRecordsResult {
-  data: Array<Live>;
-  pagination: {
-    total: number;
-    page: number;
-    pageSize: number;
-  };
 }
 
 export function queryRecordsByRoomAndPlatform(options: QueryRecordsOptions): QueryRecordsResult {
@@ -119,8 +120,8 @@ export async function removeRecords(channelId: string, providerId: string) {
   return true;
 }
 
-export function getRecord(data: { file: string }) {
-  return recordHistoryModel.query({ video_file: data.file });
+export function getRecord(data: { file: string; live_id?: string }) {
+  return recordHistoryModel.query({ video_file: data.file, live_id: data.live_id });
 }
 
 export default {

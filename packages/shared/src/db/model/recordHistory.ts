@@ -17,6 +17,8 @@ const BaseLive = z.object({
   danma_num: z.number().optional(),
   // 互动人数
   interact_num: z.number().optional(),
+  // 直播id
+  live_id: z.string().optional(),
 });
 
 const Live = BaseLive.extend({
@@ -41,6 +43,7 @@ class LiveModel extends BaseModel<BaseLive> {
         id INTEGER PRIMARY KEY AUTOINCREMENT,                -- 自增主键
         created_at INTEGER DEFAULT (strftime('%s', 'now')),  -- 创建时间，时间戳，自动生成
         streamer_id INTEGER NOT NULL,                        -- 主播id
+        live_id TEXT,                                       -- 直播id
         live_start_time INTEGER NOT NULL,                    -- 直播开始时间，秒时间戳
         record_start_time INTEGER NOT NULL,                  -- 录制开始时间，秒时间戳
         record_end_time INTEGER,                             -- 录制结束时间，秒时间戳
@@ -91,6 +94,10 @@ class LiveModel extends BaseModel<BaseLive> {
           name: "idx_record_history_streamer_time",
           sql: `CREATE INDEX IF NOT EXISTS idx_record_history_streamer_time ON record_history(streamer_id, record_start_time)`,
         },
+        {
+          name: "idx_record_history_live_video",
+          sql: `CREATE INDEX IF NOT EXISTS idx_record_history_live_video ON record_history(live_id, video_file)`,
+        },
       ];
 
       for (const index of indexes) {
@@ -114,6 +121,8 @@ class LiveModel extends BaseModel<BaseLive> {
       const hasDanmaNumColumn = columns.some((col) => col.name === "danma_num");
       // @ts-ignore
       const hasInteractNumColumn = columns.some((col) => col.name === "interact_num");
+      // @ts-ignore
+      const hasLiveIdColumn = columns.some((col) => col.name === "live_id");
 
       if (!hasVideoDurationColumn) {
         // 添加video_duration列
@@ -131,6 +140,12 @@ class LiveModel extends BaseModel<BaseLive> {
         // 添加interactNum列
         this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN interact_num INTEGER`).run();
         logger.info(`已为${this.tableName}表添加interactNum列`);
+      }
+
+      if (!hasLiveIdColumn) {
+        // 添加live_id列
+        this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN live_id TEXT`).run();
+        logger.info(`已为${this.tableName}表添加live_id列`);
       }
 
       return true;
