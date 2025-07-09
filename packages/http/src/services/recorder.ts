@@ -60,6 +60,7 @@ async function getRecorders(
         "usedSource",
         "usedStream",
         "tempStopIntervalCheck",
+        "onlyAudio",
       );
       data.recordHandle = isEmpty(data.recordHandle)
         ? data.recordHandle

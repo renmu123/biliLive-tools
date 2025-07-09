@@ -28,6 +28,9 @@
             <n-icon v-if="!item.disableAutoCheck" size="20" title="自动录制">
               <AccessTime24Regular style="color: gray" />
             </n-icon>
+            <n-icon v-if="item.onlyAudio" size="20" title="仅录制音频">
+              <AudiotrackRound style="color: gray" />
+            </n-icon>
             <n-icon
               v-if="item.tempStopIntervalCheck && !item.disableAutoCheck"
               size="20"
@@ -69,6 +72,7 @@
 <script setup lang="ts">
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 import { Live24Regular, AccessTime24Regular } from "@vicons/fluent";
+import { AudiotrackRound } from "@vicons/material";
 
 interface Props {
   list: any[];
