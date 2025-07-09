@@ -154,6 +154,7 @@ export class WebhookHandler {
       uid,
       uploadNoDanmu,
       noDanmuVideoPreset,
+      afterUploadDeletAction,
     } = this.getConfig(options.roomId);
     if (!open) {
       log.info(`${options.roomId} is not open`);
@@ -368,12 +369,12 @@ export class WebhookHandler {
     ).catch((error) => {
       log.error("handleVideoSync", error);
     });
-    // 处理压制后的视频，这里不需要处理删除操作
+    // 处理压制后的视频
     await this.handleVideoSync(
       options.roomId,
       currentPart.filePath,
       currentPart.partId,
-      false,
+      afterUploadDeletAction && afterUploadDeletAction !== "none",
     ).catch((error) => {
       log.error("handleVideoSync", error);
     });
@@ -487,7 +488,7 @@ export class WebhookHandler {
         // 等待65秒，确保文件被释放，不需要的原因是上传任务锁必定先执行
         // await sleep(1000 * 65);
         this.fileLockManager.releaseLock(filePath, "sync");
-        log.info(`同步${filePath}文件成功`);
+        log.info(`同步 ${filePath} 文件成功，是否删除文件：${removeAfterSync}`);
         // 同步后删除源文件（如果需要）
         if (removeAfterSync) {
           // 检查文件是否被锁定
@@ -1379,14 +1380,9 @@ export class WebhookHandler {
    * @param roomId 房间ID
    * @param filePath 视频文件路径
    * @param partId 分段ID
-   * @param shouldRemoveAfterSync 是否在同步后删除源文件
+   * @param shouldRemove 是否在操作后删除源文件
    */
-  async handleVideoSync(
-    roomId: number,
-    filePath: string,
-    partId: string,
-    shouldRemoveAfterSync: boolean,
-  ) {
+  async handleVideoSync(roomId: number, filePath: string, partId: string, shouldRemove: boolean) {
     // 检查文件是否存在
     if (!filePath) return;
     if (!(await fs.pathExists(filePath))) {
@@ -1402,7 +1398,7 @@ export class WebhookHandler {
 
       const shouldSync = await this.hasTypeInSync(roomId, fileType);
       if (!shouldSync) {
-        if (shouldRemoveAfterSync && !this.fileLockManager.isLocked(filePath)) {
+        if (shouldRemove && fileType === "source" && !this.fileLockManager.isLocked(filePath)) {
           await trashItem(filePath);
         }
         return;
@@ -1410,7 +1406,7 @@ export class WebhookHandler {
 
       await sleep(2000);
       // 首先同步视频文件
-      await this.handleFileSync(roomId, filePath, fileType, partId, shouldRemoveAfterSync);
+      await this.handleFileSync(roomId, filePath, fileType, partId, shouldRemove);
     } catch (error) {
       log.error(`处理视频同步失败: ${filePath}`, error);
     }
