@@ -2644,13 +2644,17 @@ describe("WebhookHandler", () => {
   });
 
   describe("handleVideoSync", () => {
-    it("同步且删除", async () => {
-      // @ts-ignore
-      vi.spyOn(fs, "pathExists").mockResolvedValue(true);
-      // @ts-ignore
-      vi.spyOn(webhookHandler, "hasTypeInSync").mockResolvedValue(true);
-      // 调用handleVideoSync
+    // @ts-ignore
+    vi.spyOn(fs, "pathExists").mockResolvedValue(true);
+
+    it("原始视频：不同步且删除", async () => {
+      vi.spyOn(webhookHandler, "hasTypeInSync").mockResolvedValue(false);
+      vi.spyOn(webhookHandler, "handleFileSync").mockResolvedValue(undefined);
+
+      const trashSpy = vi.spyOn(utils, "trashItem").mockResolvedValue(undefined);
+
       await webhookHandler.handleVideoSync(123, "/path/to/video.mp4", "part1", true);
+      expect(trashSpy).toHaveBeenCalledWith("/path/to/video.mp4");
     });
     it("同步且不删除", () => {});
     it("不同步且删除", () => {});
