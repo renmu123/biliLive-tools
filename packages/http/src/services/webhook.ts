@@ -411,11 +411,7 @@ export class WebhookHandler {
       return;
     }
 
-    const { syncId } = this.getConfig(roomId);
-    if (!syncId) return;
-
-    const config = this.appConfig.getAll();
-    const syncConfig = config.sync.syncConfigs.find((cfg) => cfg.id === syncId);
+    const syncConfig = this.getSyncConfig(roomId);
     if (!syncConfig) return;
 
     // 检查是否需要同步该类型的文件
@@ -1325,14 +1321,22 @@ export class WebhookHandler {
   };
 
   /**
+   * 获取同步配置
+   */
+  getSyncConfig(roomId: number) {
+    const { syncId } = this.getConfig(roomId);
+    if (!syncId) return null;
+    const config = this.appConfig.getAll();
+    const syncConfig = config.sync.syncConfigs.find((cfg) => cfg.id === syncId);
+    if (!syncConfig) return null;
+    return syncConfig;
+  }
+
+  /**
    * 同步中是否存在对应类型
    */
   async hasTypeInSync(roomId: number, type: "source" | "danmaku" | "xml" | "cover") {
-    const { syncId } = this.getConfig(roomId);
-    if (!syncId) return false;
-
-    const config = this.appConfig.getAll();
-    const syncConfig = config.sync.syncConfigs.find((cfg) => cfg.id === syncId);
+    const syncConfig = this.getSyncConfig(roomId);
     if (!syncConfig) return false;
 
     // raw对应mp4,handled对应flv
