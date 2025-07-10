@@ -33,7 +33,7 @@ export class Segment extends EventEmitter {
   async handleSegmentEnd() {
     if (!this.outputVideoFilePath) {
       this.emit("DebugLog", {
-        type: "common",
+        type: "error",
         text: "Should call onSegmentStart first",
       });
       return;
@@ -47,7 +47,7 @@ export class Segment extends EventEmitter {
       this.emit("videoFileCompleted", { filename: this.outputFilePath });
     } catch (err) {
       this.emit("DebugLog", {
-        type: "common",
+        type: "error",
         text: "videoFileCompleted error " + String(err),
       });
     }
@@ -71,7 +71,7 @@ export class Segment extends EventEmitter {
         liveInfo = await callBack.onUpdateLiveInfo();
       } catch (err) {
         this.emit("DebugLog", {
-          type: "common",
+          type: "error",
           text: "onUpdateLiveInfo error " + String(err),
         });
       }

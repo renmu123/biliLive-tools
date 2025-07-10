@@ -308,7 +308,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       await recorder.stop();
     } catch (err) {
       this.emit("DebugLog", {
-        type: "common",
+        type: "error",
         text: `stop ffmpeg error: ${String(err)}`,
       });
     }

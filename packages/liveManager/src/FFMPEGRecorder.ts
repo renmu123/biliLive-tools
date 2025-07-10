@@ -173,7 +173,7 @@ export class FFMPEGRecorder extends EventEmitter {
 
       await this.streamManager.handleVideoCompleted();
     } catch (err) {
-      this.emit("DebugLog", { type: "common", text: String(err) });
+      this.emit("DebugLog", { type: "error", text: String(err) });
     }
   }
 

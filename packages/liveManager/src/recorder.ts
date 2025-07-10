@@ -87,7 +87,7 @@ export interface RecordHandle {
 }
 
 export interface DebugLog {
-  type: string | "common" | "ffmpeg";
+  type: string | "common" | "ffmpeg" | "error";
   text: string;
 }
 
