@@ -59,9 +59,6 @@ class LiveModel extends BaseModel<BaseLive> {
     // 创建表
     const result = super.createTable(createTableSQL);
 
-    // 创建索引
-    this.createIndexes();
-
     return result;
   }
 
@@ -83,7 +80,7 @@ class LiveModel extends BaseModel<BaseLive> {
   /**
    * 创建数据库索引
    */
-  private createIndexes() {
+  public createIndexes() {
     try {
       const indexes = [
         {
@@ -162,6 +159,7 @@ export default class LiveController {
     this.model = new LiveModel(db);
     this.model.createTable();
     this.model.migrate();
+    this.model.createIndexes();
   }
 
   add(options: BaseLive) {
