@@ -1,5 +1,6 @@
 <template>
   <div class="live-history">
+    <!-- TODO:增加一个header来展示主播相关数据，支持聚合通过liveId来进行聚合展示 -->
     <!-- 查询表单 -->
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px">
       <n-date-picker
@@ -19,11 +20,17 @@
         style="width: 150px"
       />
       <n-button type="primary" @click="handleQuery"> 查询 </n-button>
+      <n-select
+        v-model:value="visibleColumns"
+        multiple
+        :options="columnConfig"
+        style="width: 200px"
+      />
       <n-button @click="goBack">返回</n-button>
     </div>
 
     <!-- 列显示控制 -->
-    <n-collapse style="margin-bottom: 20px">
+    <!-- <n-collapse style="margin-bottom: 20px">
       <n-collapse-item title="列显示设置" name="columns">
         <n-space>
           <n-checkbox-group v-model:value="visibleColumns">
@@ -45,7 +52,7 @@
           >
         </div>
       </n-collapse-item>
-    </n-collapse>
+    </n-collapse> -->
 
     <!-- 房间信息 -->
     <n-card v-if="streamerInfo.room_id" class="room-info" size="small">
@@ -122,8 +129,8 @@ interface LiveRecord {
 }
 
 interface ColumnConfig {
-  key: string;
-  title: string;
+  value: string;
+  label: string;
   defaultVisible: boolean;
 }
 
@@ -158,15 +165,15 @@ const hasQueried = ref<boolean>(false);
 
 // 列配置
 const columnConfig: ColumnConfig[] = [
-  { key: "title", title: "标题", defaultVisible: true },
-  { key: "live_start_time", title: "开播时间", defaultVisible: true },
-  { key: "record_start_time", title: "录制开始时间", defaultVisible: true },
-  { key: "record_end_time", title: "录制结束时间", defaultVisible: true },
-  { key: "duration", title: "持续时长", defaultVisible: true },
-  { key: "video_duration", title: "视频时长", defaultVisible: true },
-  { key: "danma_num", title: "弹幕数量", defaultVisible: true },
-  { key: "interact_num", title: "弹幕互动人数", defaultVisible: true },
-  { key: "actions", title: "操作", defaultVisible: true },
+  { value: "title", label: "标题", defaultVisible: true },
+  { value: "live_start_time", label: "开播时间", defaultVisible: true },
+  { value: "record_start_time", label: "录制开始时间", defaultVisible: true },
+  { value: "record_end_time", label: "录制结束时间", defaultVisible: true },
+  { value: "duration", label: "持续时长", defaultVisible: true },
+  { value: "video_duration", label: "视频时长", defaultVisible: true },
+  { value: "danma_num", label: "弹幕数量", defaultVisible: true },
+  { value: "interact_num", label: "弹幕互动人数", defaultVisible: true },
+  { value: "actions", label: "操作", defaultVisible: true },
 ];
 
 // 可见列配置

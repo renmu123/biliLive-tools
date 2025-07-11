@@ -1,11 +1,17 @@
 <template>
-  <div class="center">
-    <h1>已运行{{ formatTime(now - appStartTime) }}</h1>
-    <div>
-      <n-button type="primary" @click="handleWebhook">Webhook卡住不能上传？点我试试</n-button>
+  <div>
+    <div class="header">
+      <h1>已运行{{ formatTime(now - appStartTime) }}</h1>
+      <div>
+        <n-button type="primary" @click="handleWebhook">Webhook卡住不能上传？点我试试</n-button>
+      </div>
+      <div>
+        <n-button type="primary" @click="whyUploadFailed">为什么webhook里的xx不能上传？</n-button>
+      </div>
     </div>
-    <div style="margin-top: 10px">
-      <n-button type="primary" @click="whyUploadFailed">为什么webhook里的xx不能上传？</n-button>
+    <div class="content">
+      <!-- TODO:总主播数量，监控数量，正在录制数量 -->
+      <!-- 录制时长-折线图，总时长，周同比 -->
     </div>
   </div>
 
@@ -158,5 +164,12 @@ const handleRoomIdConfirm = async () => {
 <style scoped lang="less">
 .center {
   text-align: center;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  // padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
 }
 </style>
