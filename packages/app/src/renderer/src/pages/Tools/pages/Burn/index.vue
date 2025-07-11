@@ -178,6 +178,17 @@ const convert = async () => {
       });
       return;
     }
+    if (options.saveRadio === 1) {
+      // 如果保存到原始文件夹，且输入文件名与输出文件名相同，则报错
+      const inputFileName = window.path.basename(videoPath);
+      if (inputFileName === outputName) {
+        notice.error({
+          title: `输入文件与输出文件名相同：${inputFileName}，请修改保存路径或文件名`,
+          duration: 3000,
+        });
+        return;
+      }
+    }
     if (danmakuPath) {
       await taskApi.burn(
         {
