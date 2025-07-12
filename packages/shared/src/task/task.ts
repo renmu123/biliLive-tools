@@ -555,7 +555,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
       });
     if (parts.length === 0) return;
     try {
-      const data = await retry(() => addMediaApi(this.uid, parts, this.mediaOptions));
+      const data = await retry(() => addMediaApi(this.uid, parts, this.mediaOptions), 8);
       this.status = "completed";
       this.progress = 100;
       this.callback.onEnd && this.callback.onEnd(data);
@@ -611,7 +611,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
       return;
     }
     try {
-      const data = await retry(() => editMediaApi(this.uid, this.aid, parts, this.mediaOptions));
+      const data = await retry(() => editMediaApi(this.uid, this.aid, parts, this.mediaOptions), 8);
       this.status = "completed";
       this.progress = 100;
       this.callback.onEnd && this.callback.onEnd(data);
