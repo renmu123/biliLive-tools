@@ -23,36 +23,11 @@
       <n-select
         v-model:value="visibleColumns"
         multiple
-        :options="columnConfig"
+        :options="columnConfig.map((col) => ({ label: col.label, value: col.value }))"
         style="width: 200px"
       />
       <n-button @click="goBack">返回</n-button>
     </div>
-
-    <!-- 列显示控制 -->
-    <!-- <n-collapse style="margin-bottom: 20px">
-      <n-collapse-item title="列显示设置" name="columns">
-        <n-space>
-          <n-checkbox-group v-model:value="visibleColumns">
-            <n-space>
-              <n-checkbox
-                v-for="column in columnConfig"
-                :key="column.key"
-                :value="column.key"
-                :label="column.title"
-              />
-            </n-space>
-          </n-checkbox-group>
-        </n-space>
-        <div style="margin-top: 10px">
-          <n-button size="small" @click="selectAllColumns">全选</n-button>
-          <n-button size="small" @click="clearAllColumns" style="margin-left: 8px">清空</n-button>
-          <n-button size="small" @click="resetDefaultColumns" style="margin-left: 8px"
-            >重置默认</n-button
-          >
-        </div>
-      </n-collapse-item>
-    </n-collapse> -->
 
     <!-- 房间信息 -->
     <n-card v-if="streamerInfo.room_id" class="room-info" size="small">
@@ -199,27 +174,12 @@ const initColumnConfig = () => {
 
 // 获取默认显示的列
 const getDefaultColumns = (): string[] => {
-  return columnConfig.filter((col) => col.defaultVisible).map((col) => col.key);
+  return columnConfig.filter((col) => col.defaultVisible).map((col) => col.value);
 };
 
 // 保存列配置到本地存储
 const saveColumnConfig = (value: string[]) => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
-};
-
-// 全选列
-const selectAllColumns = () => {
-  visibleColumns.value = columnConfig.map((col) => col.key);
-};
-
-// 清空列选择
-const clearAllColumns = () => {
-  visibleColumns.value = [];
-};
-
-// 重置为默认列
-const resetDefaultColumns = () => {
-  visibleColumns.value = getDefaultColumns();
 };
 
 watch(
