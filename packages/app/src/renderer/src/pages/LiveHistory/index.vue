@@ -24,7 +24,8 @@
         v-model:value="visibleColumns"
         multiple
         :options="columnConfig.map((col) => ({ label: col.label, value: col.value }))"
-        style="width: 200px"
+        style="width: 150px"
+        max-tag-count="responsive"
       />
       <n-button @click="goBack">返回</n-button>
     </div>
