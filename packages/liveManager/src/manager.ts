@@ -435,7 +435,7 @@ export function genSavePathFromRule<
   };
   if (manager.autoRemoveSystemReservedChars) {
     for (const key in params) {
-      params[key] = removeSystemReservedChars(String(params[key]));
+      params[key] = removeSystemReservedChars(String(params[key])).trim();
     }
   }
 
