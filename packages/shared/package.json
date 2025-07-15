@@ -1,6 +1,6 @@
 {
   "name": "@biliLive-tools/shared",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "type": "module",
   "description": "",
   "main": "./lib/index.js",
@@ -35,7 +35,7 @@
     "@bililive-tools/huya-recorder": "workspace:*",
     "@bililive-tools/manager": "workspace:*",
     "@napi-rs/canvas": "^0.1.60",
-    "@renmu/bili-api": "2.7.0",
+    "@renmu/bili-api": "2.8.0",
     "@renmu/fluent-ffmpeg": "2.3.2",
     "@renmu/m3u8-downloader": "^0.4.0",
     "arktype": "^2.1.2",

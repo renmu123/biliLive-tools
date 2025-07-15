@@ -347,7 +347,7 @@ export async function addMediaApi(
   const globalConfig = container.resolve<GlobalConfig>("globalConfig");
   const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
   const client = createClient(uid);
-  return client.platform.addMediaClientApi(video, mediaOptions);
+  return client.platform.addMediaWebApiV3(video, mediaOptions);
 }
 
 /**
@@ -365,7 +365,7 @@ export async function editMediaApi(
   // const globalConfig = container.resolve<GlobalConfig>("globalConfig");
   // const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
   const client = createClient(uid);
-  return client.platform.editMediaClientApi(video, { aid, ...mediaOptions }, "append");
+  return client.platform.editMediaWebApi(video, { aid, ...mediaOptions }, "append");
 }
 
 /**
