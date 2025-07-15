@@ -4,6 +4,7 @@ import Router from "koa-router";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
 import huya from "@biliLive-tools/shared/task/huya.js";
 import biliApi from "@biliLive-tools/shared/task/bili.js";
+import kuaishou from "@biliLive-tools/shared/task/kuaishou.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import videoSub from "@biliLive-tools/shared/task/videoSub.js";
 
@@ -193,6 +194,30 @@ async function parseVideo({
         },
       ],
     };
+  } else if (url.includes("kuaishou.com/playback")) {
+    const kuaishouMatch = url.match(/playback\/([A-Za-z0-9]+)/);
+    if (!kuaishouMatch) {
+      throw new Error("请输入正确的快手视频链接");
+    }
+    const videoId = kuaishouMatch[1];
+    const data = await kuaishou.parseVideo(videoId);
+    console.log(data);
+    return {
+      videoId: videoId,
+      platform: "kuaishou",
+      title: "直播录像",
+      resolutions: [],
+      parts: [
+        {
+          partId: videoId,
+          name: `${new Date(data.currentWork.createTime).toLocaleString()} 场直播`,
+          isEditing: false,
+          extra: {
+            url: data.currentWork.playUrlV2.h264,
+          },
+        },
+      ],
+    };
   } else {
     throw new Error("暂不支持该链接");
   }
@@ -269,6 +294,13 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
       throw new Error("无法找到对应的流");
     }
     await huya.download(filepath, m3u8Url, {
+      override: options.override,
+    });
+  } else if (options.platform === "kuaishou") {
+    if (!options?.extra?.url) {
+      throw new Error("url is required for kuaishou download");
+    }
+    await kuaishou.download(filepath, options.extra.url, {
       override: options.override,
     });
   } else {

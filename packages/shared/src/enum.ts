@@ -9,6 +9,7 @@ export enum TaskType {
   douyuDownload = "douyuDownload",
   m3u8Download = "m3u8Download",
   huyaDownload = "huyaDownload",
+  kuaishouDownload = "kuaishouDownload",
   subtitleTranslate = "subtitleTranslate",
   sync = "sync",
 }

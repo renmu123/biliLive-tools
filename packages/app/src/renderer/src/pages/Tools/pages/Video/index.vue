@@ -2,7 +2,7 @@
   <div class="container">
     <n-spin :show="loading">
       <h2>
-        支持B站视频、B站剪辑回放、斗鱼录播、虎牙录播下载；斗鱼、虎牙录播订阅
+        支持B站视频、B站剪辑回放、斗鱼录播、虎牙录播、快手录播下载；斗鱼、虎牙录播订阅
         <n-icon
           :size="24"
           style="vertical-align: middle; cursor: pointer"
@@ -84,6 +84,10 @@
                 <tr>
                   <td>虎牙录播</td>
                   <td>https://www.huya.com/video/play/1062079466.html</td>
+                </tr>
+                <tr>
+                  <td>快手录播</td>
+                  <td>https://live.kuaishou.com/playback/3xfhg6rsxsbrddq</td>
                 </tr>
               </tbody>
             </n-table>

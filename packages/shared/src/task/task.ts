@@ -857,6 +857,13 @@ export class BilibiliLiveDownloadVideoTask extends M3U8DownloadTask {
 }
 
 /**
+ * 快手录播下载任务
+ */
+export class KuaishouDownloadVideoTask extends M3U8DownloadTask {
+  type = TaskType.kuaishouDownload;
+}
+
+/**
  * 同步任务
  */
 export class SyncTask extends AbstractTask {
