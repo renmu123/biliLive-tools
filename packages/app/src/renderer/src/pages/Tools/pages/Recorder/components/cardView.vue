@@ -141,20 +141,29 @@ function formatTime(time?: string) {
       align-items: center;
       box-sizing: border-box;
       color: white;
-      background-color: rgba(0, 0, 0, 0.5);
-      padding: 2px 5px;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 4px 8px;
       position: absolute;
       width: 100%;
-
       bottom: 0px;
       left: 0px;
+
       .recording {
         display: inline-block;
-        width: 15px;
-        height: 15px;
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
-        background-color: red;
+        background-color: #ff4d4f;
         vertical-align: middle;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      .source {
+        font-weight: 500;
+      }
+
+      .line {
+        color: rgba(255, 255, 255, 0.85);
       }
     }
   }
@@ -189,5 +198,22 @@ function formatTime(time?: string) {
 .link {
   text-decoration: none;
   color: inherit;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.7);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(255, 77, 79, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0);
+  }
 }
 </style>

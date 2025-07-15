@@ -130,7 +130,7 @@ const handleSort = (field: string) => {
   color: inherit;
 }
 .recording {
-  color: skyblue;
+  color: #ff4d4f;
 }
 .sort-icon {
   cursor: pointer;
