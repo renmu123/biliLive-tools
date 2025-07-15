@@ -283,6 +283,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     client.on("error", (e: unknown) => {
       this.emit("DebugLog", { type: "common", text: String(e) });
     });
+    client.on("retry", (e: { count: number; max: number }) => {
+      this.emit("DebugLog", {
+        type: "common",
+        text: `huya danmu retry: ${e.count}/${e.max}`,
+      });
+    });
     client.start();
   }
 
