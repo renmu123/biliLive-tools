@@ -64,6 +64,12 @@
       </n-form-item>
       <n-form-item>
         <template #label>
+          <Tip text="使用必剪api" tip="仅支持上传，不支持编辑，应该能突破大小限制"></Tip>
+        </template>
+        <n-switch v-model:value="config.biliUpload.useBCutAPI" />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
           <Tip
             text="自动更新帐号授权"
             tip="一天检查一次，过期时间在十天以下时会尝试自动更新，如果因某些情况授权已失效，会更新失败"

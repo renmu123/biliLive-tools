@@ -347,6 +347,9 @@ export async function addMediaApi(
   const globalConfig = container.resolve<GlobalConfig>("globalConfig");
   const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
   const client = createClient(uid);
+  if (appConfig?.get("biliUpload")?.useBCutAPI) {
+    return client.platform.addMediaBCutApi(video, mediaOptions);
+  }
   return client.platform.addMediaWebApiV3(video, mediaOptions);
 }
 

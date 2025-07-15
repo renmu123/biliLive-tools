@@ -599,6 +599,8 @@ export interface AppConfig {
     checkInterval: number;
     /** 账号授权自动更新 */
     accountAutoCheck: boolean;
+    /** 使用必剪api */
+    useBCutAPI: boolean;
   };
   /** 录制配置 */
   recorder: GlobalRecorder;
