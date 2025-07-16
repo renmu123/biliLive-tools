@@ -808,17 +808,17 @@ export class WebhookHandler {
     if (currentLive) {
       const currentPart = currentLive.findPartByFilePath(options.filePath);
       if (currentPart) {
-        for (let i = 0; i < currentLive.parts.length; i++) {
-          const part = currentLive.parts[i];
-          if (part.recordStatus === "recording" && part.partId !== currentPart.partId) {
-            log.error(
-              "下一个录制完成时，上一个录制仍在录制中，设置为错误，未实现，待测试看看",
-              part,
-            );
-          }
-        }
         currentLive.updatePartValue(currentPart.partId, "endTime", timestamp);
         currentLive.updatePartValue(currentPart.partId, "recordStatus", "recorded");
+
+        const partIndex = currentLive.parts.findIndex((part) => part.partId === currentPart.partId);
+        for (let i = 0; i < partIndex; i++) {
+          const part = currentLive.parts[i];
+          if (part.recordStatus === "recording") {
+            log.error("下一个录制完成时，上一个录制仍在录制中，设置为成功", part);
+            currentLive.updatePartValue(part.partId, "recordStatus", "recorded");
+          }
+        }
       }
     } else {
       const liveEventId = uuid();

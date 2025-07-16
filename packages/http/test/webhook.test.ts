@@ -2305,6 +2305,62 @@ describe("WebhookHandler", () => {
       expect(liveData[0].parts[1].endTime).toBe(new Date(options.time).getTime());
       expect(liveData[0].parts[1].recordStatus).toBe("recorded");
     });
+
+    it("当接手到close事件时，如果之前part还在录制中，则设置为成功", async () => {
+      // Arrange
+      const existingLive = new Live({
+        eventId: "existing-event-id",
+        platform: "bili-recorder",
+        roomId: 123,
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Existing Video",
+        username: "username",
+      });
+      existingLive.addPart({
+        partId: "existing-part-id-1",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/existing-video-1.mp4",
+        recordStatus: "recording",
+        title: "part1",
+      });
+      existingLive.addPart({
+        partId: "existing-part-id-3",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/existing-video-3.mp4",
+        recordStatus: "recording",
+        title: "part3",
+      });
+      existingLive.addPart({
+        partId: "existing-part-id-2",
+        startTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        filePath: "/path/to/existing-video-2.mp4",
+        recordStatus: "recording",
+        title: "part2",
+      });
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      webhookHandler.liveData.push(existingLive);
+
+      const options: Options = {
+        event: "FileClosed",
+        roomId: 123,
+        platform: "bili-recorder",
+        time: "2022-01-01T00:10:00Z",
+        title: "Existing Video",
+        filePath: "/path/to/existing-video-2.mp4",
+        username: "test",
+      };
+
+      // Act
+      webhookHandler.handleCloseEvent(options);
+
+      // Assert
+      const liveData = webhookHandler.liveData;
+
+      expect(liveData[0].parts[0].recordStatus).toBe("recorded");
+      expect(liveData[0].parts[1].recordStatus).toBe("recorded");
+      expect(liveData[0].parts[2].recordStatus).toBe("recorded");
+    });
   });
   describe("handleOpenEvent", () => {
     const appConfig = {
