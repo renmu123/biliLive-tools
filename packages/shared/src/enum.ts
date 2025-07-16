@@ -228,6 +228,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     checkInterval: 600,
     accountAutoCheck: false,
     useBCutAPI: false,
+    useUploadPartPersistence: false,
   },
   recorder: {
     savePath: "",

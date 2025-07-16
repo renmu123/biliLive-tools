@@ -7,6 +7,7 @@ import RecordHistoryModel from "./model/recordHistory.js";
 import VideoSubModel from "./model/videoSub.js";
 import VideoSubDataModel from "./model/videoSubData.js";
 import StatisticsModel from "./model/statistics.js";
+import UploadPartController from "./model/uploadPart.js";
 
 import type { Database as DatabaseType } from "better-sqlite3";
 
@@ -45,6 +46,7 @@ export const recordHistoryModel = new RecordHistoryModel();
 export const statisticsModel = new StatisticsModel();
 export const videoSubModel = new VideoSubModel();
 export const videoSubDataModel = new VideoSubDataModel();
+export const uploadPartModel = new UploadPartController();
 
 export const initDB = (dbPath: string) => {
   const mainDBPath = path.join(dbPath, "app.db");
@@ -58,6 +60,7 @@ export const initDB = (dbPath: string) => {
   statisticsModel.init(db.db);
   videoSubModel.init(db.db);
   videoSubDataModel.init(db.db);
+  uploadPartModel.init(db.db);
 
   // 弹幕数据库
   danmuModel.init(danmaDb.db);
@@ -72,6 +75,7 @@ export const reconnectDB = () => {
   statisticsModel.init(db.db);
   videoSubModel.init(db.db);
   videoSubDataModel.init(db.db);
+  uploadPartModel.init(db.db);
   return db;
 };
 

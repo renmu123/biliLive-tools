@@ -601,6 +601,8 @@ export interface AppConfig {
     accountAutoCheck: boolean;
     /** 使用必剪api */
     useBCutAPI: boolean;
+    /** 上传分p持久化 */
+    useUploadPartPersistence: boolean;
   };
   /** 录制配置 */
   recorder: GlobalRecorder;

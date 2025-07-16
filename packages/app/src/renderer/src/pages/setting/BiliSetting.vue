@@ -64,6 +64,15 @@
       </n-form-item>
       <n-form-item>
         <template #label>
+          <Tip
+            text="测试功能：上传持久化"
+            tip="将上传视频完成后持久化到本地，如果出现提交失败，那么将重新上传"
+          ></Tip>
+        </template>
+        <n-switch v-model:value="config.biliUpload.useUploadPartPersistence" />
+      </n-form-item>
+      <n-form-item>
+        <template #label>
           <Tip text="使用必剪api" tip="仅支持上传，不支持编辑，应该能突破大小限制"></Tip>
         </template>
         <n-switch v-model:value="config.biliUpload.useBCutAPI" />

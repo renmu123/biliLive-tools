@@ -2,6 +2,8 @@ import os from "node:os";
 import { exec } from "node:child_process";
 import path from "node:path";
 import readline from "node:readline";
+import crypto from "node:crypto";
+import { createReadStream } from "node:fs";
 
 import fs from "fs-extra";
 import trash from "trash";
@@ -473,4 +475,29 @@ export async function getUnusedFileName(filePath: string): Promise<string> {
   }
 
   return newFilePath;
+}
+
+/**
+ * 计算大文件的MD5值
+ * @param filePath 文件路径
+ * @param chunkSize 每次读取的块大小，默认64KB
+ * @returns MD5哈希值
+ */
+export function calculateFileMd5(filePath: string, chunkSize: number = 64 * 1024): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash("md5");
+    const stream = createReadStream(filePath, { highWaterMark: chunkSize });
+
+    stream.on("data", (chunk) => {
+      hash.update(chunk);
+    });
+
+    stream.on("end", () => {
+      resolve(hash.digest("hex"));
+    });
+
+    stream.on("error", (error) => {
+      reject(error);
+    });
+  });
 }
