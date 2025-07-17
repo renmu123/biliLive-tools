@@ -6,7 +6,7 @@ import * as ntsuspend from "ntsuspend";
 import kill from "tree-kill";
 import { isAxiosError } from "axios";
 
-import { uuid, isWin32, retry, isBetweenTime, calculateFileQuickHash } from "../utils/index.js";
+import { uuid, isWin32, isBetweenTime, calculateFileQuickHash } from "../utils/index.js";
 import log from "../utils/log.js";
 import { sendNotify } from "../notify.js";
 import { appConfig } from "../config.js";
@@ -322,7 +322,7 @@ export class BiliPartVideoTask extends AbstractTask {
     onProgress?: (progress: number) => number;
   };
   useUploadPartPersistence: boolean;
-  completedPart: { cid: number; filename: string; title: string };
+  completedPart: { cid: number; filename: string; title: string } | null = null;
   constructor(
     command: WebVideoUploader,
     options: {
@@ -638,7 +638,8 @@ export class BiliAddVideoTask extends BiliVideoTask {
       .filter((task) => task.status === "completed")
       .map((task) => {
         return task.completedPart;
-      });
+      })
+      .filter((part) => part !== null);
     if (parts.length === 0) return;
     try {
       const data = await retryWithAxiosError(
@@ -695,7 +696,8 @@ export class BiliEditVideoTask extends BiliVideoTask {
       .filter((task) => task.status === "completed")
       .map((task) => {
         return task.completedPart;
-      });
+      })
+      .filter((part) => part !== null);
     if (parts.length === 0) {
       log.error("没有上传成功的视频");
       return;

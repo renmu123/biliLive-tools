@@ -134,6 +134,8 @@ export default class UploadPartController {
     return result.changes;
   }
   removeByCids(cids: number[]) {
+    if (!cids.length) return;
+    // @ts-ignore
     const sql = `DELETE FROM ${this.model.table} WHERE cid IN (${cids.map((cid) => `?`).join(",")})`;
     const stmt = this.model.db.prepare(sql);
     const result = stmt.run(cids);
