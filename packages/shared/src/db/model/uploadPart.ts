@@ -104,6 +104,7 @@ export default class UploadPartController {
       return this.model.update({
         id: part.id,
         expire_time,
+        cid: options.cid,
       });
     } else {
       return this.model.insert({
