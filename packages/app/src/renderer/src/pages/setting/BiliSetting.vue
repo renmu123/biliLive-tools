@@ -66,7 +66,7 @@
         <template #label>
           <Tip
             text="测试功能：上传持久化"
-            tip="将上传视频完成后持久化到本地，如果出现提交失败，那么将重新上传"
+            tip="将上传视频完成后持久化到本地，如果出现提交失败，那么可以避免视频的重新上传"
           ></Tip>
         </template>
         <n-switch v-model:value="config.biliUpload.useUploadPartPersistence" />

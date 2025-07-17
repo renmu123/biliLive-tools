@@ -1,16 +1,18 @@
+import fs from "fs-extra";
 import EventEmitter from "node:events";
 import { TypedEmitter } from "tiny-typed-emitter";
 // @ts-ignore
 import * as ntsuspend from "ntsuspend";
+import kill from "tree-kill";
 
-import { uuid, isWin32, retry, isBetweenTime } from "../utils/index.js";
+import { uuid, isWin32, retry, isBetweenTime, calculateFileQuickHash } from "../utils/index.js";
 import log from "../utils/log.js";
 import { sendNotify } from "../notify.js";
 import { appConfig } from "../config.js";
-import kill from "tree-kill";
 import { addMediaApi, editMediaApi } from "./bili.js";
 import { TaskType } from "../enum.js";
 import { SyncClient } from "../sync/index.js";
+import { uploadPartModel } from "../db/index.js";
 
 import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { Client, WebVideoUploader } from "@renmu/bili-api";
@@ -312,7 +314,13 @@ type WithoutPromise<T> = T extends Promise<infer U> ? U : T;
 export class BiliPartVideoTask extends AbstractTask {
   command: WebVideoUploader;
   type = TaskType.biliUpload;
-
+  callback: {
+    onStart?: () => void;
+    onEnd?: (output: { cid: number; filename: string; title: string }) => void;
+    onError?: (err: string) => void;
+    onProgress?: (progress: number) => number;
+  };
+  useUploadPartPersistence: boolean;
   constructor(
     command: WebVideoUploader,
     options: {
@@ -332,6 +340,7 @@ export class BiliPartVideoTask extends AbstractTask {
     this.progress = 0;
     this.action = ["kill", "pause"];
     this.limitTime = options.limitTime;
+    this.callback = callback;
     if (options.name) {
       this.name = options.name;
     }
@@ -339,6 +348,7 @@ export class BiliPartVideoTask extends AbstractTask {
     this.extra = {
       title: this?.command?.title,
     };
+    this.useUploadPartPersistence = appConfig.get("biliUpload")?.useUploadPartPersistence;
 
     command.emitter.on(
       "completed",
@@ -349,6 +359,16 @@ export class BiliPartVideoTask extends AbstractTask {
         callback.onEnd && callback.onEnd(data);
         this.emitter.emit("task-end", { taskId: this.taskId });
         this.endTime = Date.now();
+        if (this.useUploadPartPersistence) {
+          const fileHash = await calculateFileQuickHash(this.command.filePath);
+          const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
+          uploadPartModel.addOrUpdate({
+            file_hash: fileHash,
+            file_size: fileSize,
+            cid: data.cid,
+            filename: data.filename,
+          });
+        }
       },
     );
     command.emitter.on("error", (err) => {
@@ -368,7 +388,30 @@ export class BiliPartVideoTask extends AbstractTask {
       this.emitter.emit("task-progress", { taskId: this.taskId });
     });
   }
-  exec() {
+  async exec() {
+    // 处理上传分p持久化
+    if (this.useUploadPartPersistence) {
+      try {
+        const fileHash = await calculateFileQuickHash(this.command.filePath);
+        const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
+        const part = uploadPartModel.findValidPartByHash(fileHash, fileSize);
+        if (part) {
+          this.status = "completed";
+          this.progress = 100;
+          this.callback.onEnd &&
+            this.callback.onEnd({
+              cid: part.cid,
+              filename: part.filename,
+              title: this.command.title,
+            });
+          this.emitter.emit("task-end", { taskId: this.taskId });
+          return;
+        }
+      } catch (error) {
+        log.error(`task ${this.taskId} error: ${error}`);
+      }
+    }
+
     this.status = "running";
     this.startTime = Date.now();
     this.emitter.emit("task-start", { taskId: this.taskId });
@@ -561,6 +604,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
       this.callback.onEnd && this.callback.onEnd(data);
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
+      uploadPartModel.removeByCids(parts.map((part) => part.cid));
     } catch (err) {
       log.error("上传失败", err);
       this.status = "error";
@@ -617,6 +661,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
       this.callback.onEnd && this.callback.onEnd(data);
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
+      uploadPartModel.removeByCids(parts.map((part) => part.cid));
     } catch (err) {
       log.error("编辑失败", err);
       this.status = "error";

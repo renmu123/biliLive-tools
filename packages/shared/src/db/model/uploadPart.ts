@@ -5,7 +5,8 @@ import logger from "../../utils/log.js";
 import type { Database } from "better-sqlite3";
 
 const BaseUploadPart = z.object({
-  file_md5: z.string(),
+  file_hash: z.string(),
+  file_size: z.number(),
   cid: z.number(),
   filename: z.string(),
   expire_time: z.number(),
@@ -31,7 +32,8 @@ class UploadPartModel extends BaseModel<BaseUploadPart> {
       CREATE TABLE IF NOT EXISTS upload_parts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         created_at INTEGER DEFAULT (strftime('%s', 'now')),
-        file_md5 TEXT NOT NULL,
+        file_hash TEXT NOT NULL,
+        file_size INTEGER NOT NULL,
         cid INTEGER NOT NULL,
         filename TEXT NOT NULL,
         expire_time INTEGER NOT NULL
@@ -60,8 +62,8 @@ class UploadPartModel extends BaseModel<BaseUploadPart> {
     try {
       const indexes = [
         {
-          name: "idx_upload_parts_md5",
-          sql: `CREATE INDEX IF NOT EXISTS idx_upload_parts_md5 ON upload_parts(file_md5)`,
+          name: "idx_upload_parts_hash_size",
+          sql: `CREATE INDEX IF NOT EXISTS idx_upload_parts_hash_size ON upload_parts(file_hash, file_size)`,
         },
         {
           name: "idx_upload_parts_cid",
@@ -94,25 +96,47 @@ export default class UploadPartController {
     const data = BaseUploadPart.parse(options);
     return this.model.insert(data);
   }
-
-  findByMd5(file_md5: string) {
-    return this.model.query({ file_md5 });
+  addOrUpdate(options: Omit<BaseUploadPart, "expire_time">) {
+    const part = this.findValidPartByHash(options.file_hash, options.file_size);
+    // 过期时间为当前时间加上3天
+    const expire_time = Date.now() + 1000 * 60 * 60 * 24 * 3;
+    if (part) {
+      return this.model.update({
+        id: part.id,
+        expire_time,
+      });
+    } else {
+      return this.model.insert({
+        ...options,
+        expire_time,
+      });
+    }
   }
 
-  findValidPartByMd5(file_md5: string) {
+  findByHash(file_hash: string, file_size: number) {
+    return this.model.query({ file_hash, file_size });
+  }
+
+  findValidPartByHash(file_hash: string, file_size: number): UploadPart | null {
     const sql = `
       SELECT * FROM ${this.model.table} 
-      WHERE file_md5 = ? AND expire_time > ?
+      WHERE file_hash = ? AND file_size = ? AND expire_time > ?
     `;
     return this.model.db
       .prepare(sql)
-      .get(file_md5, Math.floor(Date.now() / 1000)) as UploadPart | null;
+      .get(file_hash, file_size, Math.floor(Date.now() / 1000)) as UploadPart | null;
   }
 
   removeExpired() {
     const sql = `DELETE FROM ${this.model.table} WHERE expire_time <= ?`;
     const stmt = this.model.db.prepare(sql);
     const result = stmt.run(Math.floor(Date.now() / 1000));
+    return result.changes;
+  }
+  removeByCids(cids: number[]) {
+    const sql = `DELETE FROM ${this.model.table} WHERE cid IN (${cids.map((cid) => `?`).join(",")})`;
+    const stmt = this.model.db.prepare(sql);
+    const result = stmt.run(cids);
     return result.changes;
   }
 }

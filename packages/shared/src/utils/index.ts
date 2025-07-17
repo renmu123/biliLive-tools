@@ -501,3 +501,52 @@ export function calculateFileMd5(filePath: string, chunkSize: number = 64 * 1024
     });
   });
 }
+
+/**
+ * 快速计算文件特征值，只读取文件头部
+ * @param filePath 文件路径
+ * @param readSize 读取的字节数，默认10MB
+ * @returns SHA256哈希值
+ */
+export function calculateFileQuickHash(
+  filePath: string,
+  readSize: number = 10 * 1024 * 1024,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash("sha256");
+    const stream = createReadStream(filePath, {
+      start: 0,
+      end: readSize - 1,
+      highWaterMark: 64 * 1024, // 64KB chunks
+    });
+
+    stream.on("data", (chunk) => {
+      hash.update(chunk);
+    });
+
+    stream.on("end", () => {
+      resolve(hash.digest("hex"));
+    });
+
+    stream.on("error", (error: NodeJS.ErrnoException) => {
+      // 如果文件小于readSize，会触发EOVERFLOW错误
+      if (error.code === "EOVERFLOW") {
+        // 如果文件较小，直接读取整个文件
+        const fullStream = createReadStream(filePath);
+        const newHash = crypto.createHash("sha256");
+
+        fullStream.on("data", (chunk) => {
+          newHash.update(chunk);
+        });
+
+        fullStream.on("end", () => {
+          resolve(newHash.digest("hex"));
+        });
+
+        fullStream.on("error", reject);
+      } else {
+        reject(error);
+      }
+    });
+  });
+}
