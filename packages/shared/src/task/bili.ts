@@ -1001,6 +1001,8 @@ export const checkAccountLoop = () => {
         updateAuth(user.mid);
       }
     });
+  } catch (e) {
+    console.log("检查授权失败", e);
   } finally {
     // 24小时检查一次
     setTimeout(checkAccountLoop, interval);

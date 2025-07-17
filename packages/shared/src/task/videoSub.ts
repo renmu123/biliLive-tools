@@ -358,6 +358,8 @@ export async function checkAll() {
 export async function createInterval() {
   try {
     await checkAll();
+  } catch (error) {
+    logger.error("检查订阅失败", error);
   } finally {
     const interval = appConfig?.data?.video?.subCheckInterval ?? 60;
     setTimeout(checkAll, interval * 60 * 1000);
