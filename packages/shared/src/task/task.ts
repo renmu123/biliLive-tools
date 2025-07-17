@@ -356,19 +356,25 @@ export class BiliPartVideoTask extends AbstractTask {
         log.info(`task ${this.taskId} end`, data);
         this.status = "completed";
         this.progress = 100;
+
+        if (this.useUploadPartPersistence) {
+          try {
+            const fileHash = await calculateFileQuickHash(this.command.filePath);
+            const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
+            uploadPartModel.addOrUpdate({
+              file_hash: fileHash,
+              file_size: fileSize,
+              cid: data.cid,
+              filename: data.filename,
+            });
+          } catch (error) {
+            log.error(`task ${this.taskId} error: ${error}`);
+          }
+        }
+
         callback.onEnd && callback.onEnd(data);
         this.emitter.emit("task-end", { taskId: this.taskId });
         this.endTime = Date.now();
-        if (this.useUploadPartPersistence) {
-          const fileHash = await calculateFileQuickHash(this.command.filePath);
-          const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
-          uploadPartModel.addOrUpdate({
-            file_hash: fileHash,
-            file_size: fileSize,
-            cid: data.cid,
-            filename: data.filename,
-          });
-        }
       },
     );
     command.emitter.on("error", (err) => {
