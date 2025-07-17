@@ -4,6 +4,7 @@ import { TypedEmitter } from "tiny-typed-emitter";
 // @ts-ignore
 import * as ntsuspend from "ntsuspend";
 import kill from "tree-kill";
+import { isAxiosError } from "axios";
 
 import { uuid, isWin32, retry, isBetweenTime, calculateFileQuickHash } from "../utils/index.js";
 import log from "../utils/log.js";
@@ -321,6 +322,7 @@ export class BiliPartVideoTask extends AbstractTask {
     onProgress?: (progress: number) => number;
   };
   useUploadPartPersistence: boolean;
+  completedPart: { cid: number; filename: string; title: string };
   constructor(
     command: WebVideoUploader,
     options: {
@@ -372,6 +374,7 @@ export class BiliPartVideoTask extends AbstractTask {
           }
         }
 
+        this.completedPart = data;
         callback.onEnd && callback.onEnd(data);
         this.emitter.emit("task-end", { taskId: this.taskId });
         this.endTime = Date.now();
@@ -404,12 +407,12 @@ export class BiliPartVideoTask extends AbstractTask {
         if (part) {
           this.status = "completed";
           this.progress = 100;
-          this.callback.onEnd &&
-            this.callback.onEnd({
-              cid: part.cid,
-              filename: part.filename,
-              title: this.command.title,
-            });
+          this.completedPart = {
+            cid: part.cid,
+            filename: part.filename,
+            title: this.command.title,
+          };
+          this.callback.onEnd && this.callback.onEnd(this.completedPart);
           this.emitter.emit("task-end", { taskId: this.taskId });
           return;
         }
@@ -494,7 +497,7 @@ export class BiliVideoTask extends AbstractTask {
   addTask(task: BiliPartVideoTask) {
     this.taskList.push(task);
 
-    task.command.on("completed", async () => {
+    task.on("task-end", async () => {
       // console.log("completed", this.completedTask);
       this.completedTask++;
 
@@ -533,9 +536,9 @@ export class BiliVideoTask extends AbstractTask {
       this.status = "error";
       this.emit("task-error", { taskId: this.taskId, error: "上传失败" });
     }
-    if (this.taskList.length >= this.completedTask) {
-      this.emit("completed");
-    }
+    // if (this.taskList.length >= this.completedTask) {
+    //   this.emit("completed");
+    // }
   }
 
   exec() {
@@ -571,6 +574,40 @@ export class BiliVideoTask extends AbstractTask {
 }
 
 /**
+ * 重试函数，仅针对axios的错误进行重试
+ * @param fn 要重试的函数
+ * @param times 重试次数
+ * @param delay 重试间隔时间
+ */
+export function retryWithAxiosError<T>(
+  fn: () => Promise<T>,
+  times: number = 3,
+  delay: number = 1000,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    function attempt(currentTimes: number) {
+      fn()
+        .then(resolve)
+        .catch((err) => {
+          console.log("err", err, currentTimes);
+          if (isAxiosError(err)) {
+            if (currentTimes === 1) {
+              reject(err);
+            } else {
+              setTimeout(() => {
+                attempt(currentTimes - 1);
+              }, delay);
+            }
+          } else {
+            reject(err);
+          }
+        });
+    }
+    attempt(times);
+  });
+}
+
+/**
  * B站视频上传提交任务
  */
 export class BiliAddVideoTask extends BiliVideoTask {
@@ -600,11 +637,14 @@ export class BiliAddVideoTask extends BiliVideoTask {
     const parts = this.taskList
       .filter((task) => task.status === "completed")
       .map((task) => {
-        return task.command.completedPart;
+        return task.completedPart;
       });
     if (parts.length === 0) return;
     try {
-      const data = await retry(() => addMediaApi(this.uid, parts, this.mediaOptions), 8);
+      const data = await retryWithAxiosError(
+        () => addMediaApi(this.uid, parts, this.mediaOptions),
+        5,
+      );
       this.status = "completed";
       this.progress = 100;
       this.callback.onEnd && this.callback.onEnd(data);
@@ -654,14 +694,17 @@ export class BiliEditVideoTask extends BiliVideoTask {
     const parts = this.taskList
       .filter((task) => task.status === "completed")
       .map((task) => {
-        return task.command.completedPart;
+        return task.completedPart;
       });
     if (parts.length === 0) {
       log.error("没有上传成功的视频");
       return;
     }
     try {
-      const data = await retry(() => editMediaApi(this.uid, this.aid, parts, this.mediaOptions), 8);
+      const data = await retryWithAxiosError(
+        () => editMediaApi(this.uid, this.aid, parts, this.mediaOptions),
+        5,
+      );
       this.status = "completed";
       this.progress = 100;
       this.callback.onEnd && this.callback.onEnd(data);
