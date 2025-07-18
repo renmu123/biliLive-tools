@@ -23,6 +23,32 @@ export interface BaiduPCSOptions {
   logger?: typeof logger;
 }
 
+/**
+ * 百度网盘文件元数据接口
+ */
+export interface BaiduPCSFileMeta {
+  /** 文件类型 */
+  type?: string;
+  /** 文件路径 */
+  path?: string;
+  /** 文件名称 */
+  filename?: string;
+  /** 文件大小（字节） */
+  size?: number;
+  /** 文件大小（可读格式，如：7.5MB） */
+  sizeReadable?: string;
+  /** 文件MD5值 */
+  md5?: string;
+  /** 应用ID */
+  appId?: number;
+  /** 文件系统ID */
+  fsId?: number;
+  /** 创建时间 */
+  createTime?: Date;
+  /** 修改时间 */
+  modifyTime?: Date;
+}
+
 interface BaiduPCSEvents {
   progress: (progress: {
     index?: number;
@@ -284,6 +310,14 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
         args.push("--policy", options.policy);
       }
       await this.executeUploadCommand(args);
+
+      const remoteFilepath = path.posix.join(targetDir, path.parse(localFilePath).base);
+      const data = await this.getFileMeta(remoteFilepath);
+      if (data.size === 0) {
+        const error = new Error("文件大小为0，上传失败");
+        throw error;
+      }
+
       const successMsg = `上传成功: ${localFilePath}`;
       this.logger.info(successMsg);
       this.emit("success", successMsg);
@@ -291,6 +325,39 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
       this.emit("error", error);
       throw error;
     }
+  }
+
+  /**
+   * 获取文件元数据信息
+   * @param remotePath 远程文件路径
+   * @returns 文件元数据信息
+   */
+  async getFileMeta(remotePath: string): Promise<BaiduPCSFileMeta> {
+    const data = await this.executeCommand(["meta", remotePath]);
+
+    // 使用正则表达式解析输出
+    const typeMatch = data.match(/类型\s+(.+)/);
+    const pathMatch = data.match(/文件路径\s+(.+)/);
+    const filenameMatch = data.match(/文件名称\s+(.+)/);
+    const sizeMatch = data.match(/文件大小\s+(\d+),\s+([\d.]+[KMG]B)/);
+    const md5Match = data.match(/md5 \(可能不正确\)\s+([a-f0-9]{32})/i);
+    const appIdMatch = data.match(/app_id\s+(\d+)/);
+    const fsIdMatch = data.match(/fs_id\s+(\d+)/);
+    const createTimeMatch = data.match(/创建日期\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})/);
+    const modifyTimeMatch = data.match(/修改日期\s+(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})/);
+
+    return {
+      type: typeMatch?.[1]?.trim(),
+      path: pathMatch?.[1]?.trim() || "",
+      filename: filenameMatch?.[1]?.trim() || "",
+      size: parseInt(sizeMatch?.[1] || "0", 10) || 0,
+      sizeReadable: sizeMatch?.[2]?.trim() || "",
+      md5: md5Match?.[1]?.trim() || "",
+      appId: parseInt(appIdMatch?.[1] || "0", 10),
+      fsId: parseInt(fsIdMatch?.[1] || "0", 10),
+      createTime: createTimeMatch?.[1] ? new Date(createTimeMatch[1]) : undefined,
+      modifyTime: modifyTimeMatch?.[1] ? new Date(modifyTimeMatch[1]) : undefined,
+    };
   }
 
   /**
