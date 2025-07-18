@@ -83,7 +83,7 @@ export class FFMPEGRecorder extends EventEmitter {
 
   createCommand() {
     this.timeoutChecker?.start();
-    const invalidCount = this.isHls ? 35 : 15;
+    const invalidCount = this.isHls ? 35 : 18;
     const isInvalidStream = createInvalidStreamChecker(invalidCount);
     const inputOptions = [
       ...this.inputOptions,
