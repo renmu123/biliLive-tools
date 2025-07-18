@@ -4,6 +4,7 @@ import path from "node:path";
 import readline from "node:readline";
 import crypto from "node:crypto";
 import { createReadStream } from "node:fs";
+import { isAxiosError } from "axios";
 
 import fs from "fs-extra";
 import trash from "trash";
@@ -548,5 +549,38 @@ export function calculateFileQuickHash(
         reject(error);
       }
     });
+  });
+}
+
+/**
+ * 重试函数，仅针对axios的错误进行重试
+ * @param fn 要重试的函数
+ * @param times 重试次数
+ * @param delay 重试间隔时间
+ */
+export function retryWithAxiosError<T>(
+  fn: () => Promise<T>,
+  times: number = 3,
+  delay: number = 1000,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    function attempt(currentTimes: number) {
+      fn()
+        .then(resolve)
+        .catch((err) => {
+          if (isAxiosError(err)) {
+            if (currentTimes === 1) {
+              reject(err);
+            } else {
+              setTimeout(() => {
+                attempt(currentTimes - 1);
+              }, delay);
+            }
+          } else {
+            reject(err);
+          }
+        });
+    }
+    attempt(times);
   });
 }

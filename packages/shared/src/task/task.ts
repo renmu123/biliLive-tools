@@ -4,9 +4,14 @@ import { TypedEmitter } from "tiny-typed-emitter";
 // @ts-ignore
 import * as ntsuspend from "ntsuspend";
 import kill from "tree-kill";
-import { isAxiosError } from "axios";
 
-import { uuid, isWin32, isBetweenTime, calculateFileQuickHash } from "../utils/index.js";
+import {
+  uuid,
+  isWin32,
+  isBetweenTime,
+  calculateFileQuickHash,
+  retryWithAxiosError,
+} from "../utils/index.js";
 import log from "../utils/log.js";
 import { sendNotify } from "../notify.js";
 import { appConfig } from "../config.js";
@@ -571,40 +576,6 @@ export class BiliVideoTask extends AbstractTask {
     this.emit("task-cancel", { taskId: this.taskId, autoStart: true });
     return true;
   }
-}
-
-/**
- * 重试函数，仅针对axios的错误进行重试
- * @param fn 要重试的函数
- * @param times 重试次数
- * @param delay 重试间隔时间
- */
-export function retryWithAxiosError<T>(
-  fn: () => Promise<T>,
-  times: number = 3,
-  delay: number = 1000,
-): Promise<T> {
-  return new Promise((resolve, reject) => {
-    function attempt(currentTimes: number) {
-      fn()
-        .then(resolve)
-        .catch((err) => {
-          console.log("err", err, currentTimes);
-          if (isAxiosError(err)) {
-            if (currentTimes === 1) {
-              reject(err);
-            } else {
-              setTimeout(() => {
-                attempt(currentTimes - 1);
-              }, delay);
-            }
-          } else {
-            reject(err);
-          }
-        });
-    }
-    attempt(times);
-  });
 }
 
 /**

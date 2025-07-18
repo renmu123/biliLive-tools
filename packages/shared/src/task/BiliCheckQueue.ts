@@ -1,6 +1,7 @@
 import { TypedEmitter } from "tiny-typed-emitter";
 import biliApi from "./bili.js";
 import log from "../utils/log.js";
+import { retryWithAxiosError } from "../utils/index.js";
 
 import type { AppConfig } from "../config.js";
 
@@ -50,7 +51,7 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
     // 先找一下第一页内容，绝大部分情况下都是在第一页
     for (const uid of uids) {
       try {
-        const res = await biliApi.getArchives({ pn: 1, ps: 20 }, uid);
+        const res = await retryWithAxiosError(() => biliApi.getArchives({ pn: 1, ps: 20 }, uid));
         for (const media of res.arc_audits) {
           if (media.Archive.aid) {
             mediaList.push({
@@ -69,7 +70,9 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
     for (const item of this.list) {
       if (mediaList.some((media) => media.aid === item.aid)) continue;
       try {
-        const media = await biliApi.getPlatformArchiveDetail(item.aid, item.uid);
+        const media = await retryWithAxiosError(() =>
+          biliApi.getPlatformArchiveDetail(item.aid, item.uid),
+        );
         mediaList.push({
           aid: item.aid,
           state: media.archive.state,
