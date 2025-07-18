@@ -36,7 +36,7 @@
                 <n-icon size="48">
                   <Add />
                 </n-icon>
-                <n-text style="display: block">添加同步配置</n-text>
+                <n-text style="display: block">添加同步器</n-text>
               </div>
             </n-card>
           </div>
