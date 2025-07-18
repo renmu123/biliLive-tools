@@ -197,9 +197,14 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
           this.uploadCmd = null;
           resolve(stdout);
         } else {
-          const errorMsg = uploadFailed
-            ? `上传失败: 检测到"文件上传失败"信息`
-            : `命令执行失败: ${stderr}`;
+          let errorMsg = `命令执行失败: ${stderr}`;
+          if (stdout) {
+            // 忽略cookie保存到log中
+            let stdoutArr = stdout.split("\n").filter((line) => line);
+            if (stdoutArr.length > 1) {
+              errorMsg += stdoutArr.slice(1, stdoutArr.length).join("\n");
+            }
+          }
           this.logger.error(`上传命令执行失败: ${args.join(" ")}`);
           this.uploadCmd = null;
           reject(new Error(`Command failed with code ${code}: ${errorMsg}`));
