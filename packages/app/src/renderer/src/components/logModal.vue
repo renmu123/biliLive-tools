@@ -6,22 +6,25 @@
         <span
           style="color: skyblue; font-size: 12px; margin-left: 10px; cursor: pointer"
           @click="exportLogFile"
-          >导出</span
+          :disabled="exporting"
+          >{{ exporting ? "导出中..." : "导出" }}</span
         >
       </template>
-      <n-virtual-list
-        style="height: calc(100vh - 200px)"
-        :item-size="20"
-        :items="logs"
-        item-resizable
-        ref="logInst"
-      >
-        <template #default="{ item, index }">
-          <div :key="index" class="item">
-            {{ item.message }}
-          </div>
-        </template>
-      </n-virtual-list>
+      <n-spin :show="loading" :delay="200">
+        <n-virtual-list
+          style="height: calc(100vh - 200px)"
+          :item-size="20"
+          :items="logs"
+          item-resizable
+          ref="logInst"
+        >
+          <template #default="{ item, index }">
+            <div :key="index" class="item">
+              {{ item.message }}
+            </div>
+          </template>
+        </n-virtual-list>
+      </n-spin>
     </n-card>
   </n-modal>
 </template>
@@ -33,6 +36,9 @@ import { saveAs } from "file-saver";
 import type { VirtualListInst } from "naive-ui";
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
+const loading = ref(false);
+const exporting = ref(false);
+let exportingTimer: NodeJS.Timeout | null = null;
 
 const logs = ref<
   {
@@ -60,21 +66,39 @@ const logInst = ref<null | VirtualListInst>(null);
 //   };
 // }
 
-const getLog = async () => {
-  const content = await getLogContent();
-  logs.value = content.split("\n").map((item, index) => {
-    return {
-      value: index,
-      key: index,
-      message: item,
-    };
-  });
+const setExporting = (value: boolean) => {
+  if (exportingTimer) {
+    clearTimeout(exportingTimer);
+  }
+  if (value) {
+    exportingTimer = setTimeout(() => {
+      exporting.value = true;
+    }, 200);
+  } else {
+    exporting.value = false;
+  }
+};
 
-  nextTick(() => {
-    logInst.value?.scrollTo({
-      index: logs.value?.at(-1)?.key,
+const getLog = async () => {
+  loading.value = true;
+  try {
+    const content = await getLogContent();
+    logs.value = content.split("\n").map((item, index) => {
+      return {
+        value: index,
+        key: index,
+        message: item,
+      };
     });
-  });
+
+    nextTick(() => {
+      logInst.value?.scrollTo({
+        index: logs.value?.at(-1)?.key,
+      });
+    });
+  } finally {
+    loading.value = false;
+  }
 };
 
 watch(
@@ -90,14 +114,29 @@ watch(
 );
 
 const exportLogFile = async () => {
-  // 导出文件
-  const blob = await exportLogs();
-  saveAs(blob, "main.log");
+  if (exporting.value) return;
+
+  setExporting(true);
+
+  try {
+    // 导出文件
+    const blob = await exportLogs();
+    saveAs(blob, "main.log");
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setExporting(false);
+  }
 };
 </script>
 
 <style scoped lang="less">
 .item {
   white-space: pre;
+}
+
+span[disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 </style>
