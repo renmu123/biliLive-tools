@@ -274,22 +274,35 @@
       <n-form-item style="width: 100%">
         <template #label>
           <Tip
-            text="屏蔽词"
+            text="屏蔽规则"
             tip="
-              目前支持三种屏蔽方式，分别是弹幕内容，uid，用户名，需以英文逗号分隔<br/>
-              弹幕内容：部分匹配，包含sc内容<br/>
-              uid：全匹配，格式为<10995238>，弹幕姬用户注意，即是你开启了记录raw，出于性能原因，此过滤也是无法使用的，请使用用户名替代<br/>
-              用户名：全匹配，格式为[暮色312]<br/>
-              此功能正在测试，如果出现开启后无法转换的情况请反馈"
+              目前支持四种屏蔽规则，分别是：<br/>
+              <ol>
+                <li>关键词屏蔽：弹幕（包括SC）内容中包含屏蔽词的，将会被屏蔽</li>
+                <li>UID屏蔽：弹幕由指定的UID发送的，将会被屏蔽。格式示例：<10995238></li>
+                <li>用户名屏蔽：弹幕由指定的用户名发送的，将会被屏蔽。格式示例：[暮色312]</li>
+                <li>正则表达式屏蔽：弹幕内容符合正则表达式的，将会被屏蔽</li>
+              </ol>
+
+              Ps: 弹幕姬用户注意：出于性能原因，即使已开启了记录raw，UID屏蔽也是<strong>无法使用</strong>的，请使用用户名屏蔽替代<br/>
+
+              <small>此功能正在测试，如果出现开启后无法转换的情况请反馈</small>"
           ></Tip>
         </template>
         <n-input
           v-model:value="config.blacklist"
           type="textarea"
-          placeholder="请输入需要屏蔽的关键词，以英文逗号分隔"
+          placeholder="请输入自定义屏蔽规则，使用英文逗号分隔"
           style="width: 100%"
           :input-props="{ spellcheck: 'false' }"
         />
+      </n-form-item>
+      <n-form-item label-placement="left">
+        <template #label> 正则表达式匹配 </template>
+        <n-switch v-model:value="config['blacklist-regex']"></n-switch>
+        <Tip
+          tip="开启后，<strong>所有屏蔽规则</strong>将被视为正则表达式，<strong>UID屏蔽和用户名屏蔽</strong>将会失效！"
+        ></Tip>
       </n-form-item>
     </div>
 
