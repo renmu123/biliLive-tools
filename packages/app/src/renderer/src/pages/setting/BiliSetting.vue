@@ -73,7 +73,10 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip text="使用必剪api" tip="仅支持上传，不支持编辑，应该能突破大小限制"></Tip>
+          <Tip
+            text="使用必剪api"
+            tip="开启后，投稿使用必剪接口，编辑仍然使用web接口，用于解决部分风控"
+          ></Tip>
         </template>
         <n-switch v-model:value="config.biliUpload.useBCutAPI" />
       </n-form-item>
