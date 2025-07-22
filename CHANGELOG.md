@@ -2,6 +2,10 @@
 
 - **预计之后版本即将移除“自动评论功能”，如果存在还在使用该功能的用户请及时反馈**
 
+## 功能
+
+- 弹幕转换：添加正则支持 [#126](https://github.com/renmu123/biliLive-tools/pull/126)
+
 ## 优化
 
 - 优化B站录制某些cdn结束录制仍推流的情况 [#123](https://github.com/renmu123/biliLive-tools/issues/123)
