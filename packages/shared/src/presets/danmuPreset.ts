@@ -44,6 +44,7 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   statmode: [],
   resolutionResponsive: false,
   blacklist: "",
+  "blacklist-regex": false,
   timeshift: 0,
   fontSizeResponsiveParams: [
     [1080, 40],

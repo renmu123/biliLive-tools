@@ -34,6 +34,7 @@ export const danmuConfig = type({
   /** 字体大小自适应参数， */
   fontSizeResponsiveParams: fontSizeResponsiveParam.array(),
   blacklist: "string",
+  "blacklist-regex": "boolean",
   timeshift: "number",
 });
 export type DanmuConfig = typeof danmuConfig.infer;
