@@ -1,3 +1,9 @@
+# 2.4.0
+
+## 优化
+
+- 优化B站录制某些cdn结束录制仍推流的情况 [#123](https://github.com/renmu123/biliLive-tools/issues/123)
+
 # 2.3.0(2025.7.19)
 
 ## 功能

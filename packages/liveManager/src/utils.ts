@@ -199,6 +199,10 @@ export function createInvalidStreamChecker(count: number = 15): (ffmpegLogLine: 
   let frameUnchangedCount = 0;
 
   return (ffmpegLogLine) => {
+    // B站某些cdn在直播结束后仍会返回一些数据 https://github.com/renmu123/biliLive-tools/issues/123
+    if (ffmpegLogLine.includes("New subtitle stream with index")) {
+      return true;
+    }
     const streamInfo = ffmpegLogLine.match(
       /frame=\s*(\d+) fps=.*? q=.*? size=.*? time=.*? bitrate=.*? speed=.*?/,
     );
