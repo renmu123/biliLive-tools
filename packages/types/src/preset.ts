@@ -35,6 +35,7 @@ export const danmuConfig = type({
   fontSizeResponsiveParams: fontSizeResponsiveParam.array(),
   blacklist: "string",
   "blacklist-regex": "boolean",
+  "line-spacing": "number",
   timeshift: "number",
 });
 export type DanmuConfig = typeof danmuConfig.infer;

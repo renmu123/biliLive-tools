@@ -154,6 +154,13 @@
             :step="0.1"
           />
         </n-form-item>
+        <n-form-item v-if="isAdvancedMode" label="行间距">
+          <n-input-number
+            v-model:value.number="config['line-spacing']"
+            class="input-number"
+            :step="1"
+          />
+        </n-form-item>
         <n-form-item label="分辨率">
           <n-input-number
             v-model:value.number="config.resolution[0]"

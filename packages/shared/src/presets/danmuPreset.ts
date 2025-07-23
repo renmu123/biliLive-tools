@@ -45,6 +45,7 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   resolutionResponsive: false,
   blacklist: "",
   "blacklist-regex": false,
+  "line-spacing": 0,
   timeshift: 0,
   fontSizeResponsiveParams: [
     [1080, 40],

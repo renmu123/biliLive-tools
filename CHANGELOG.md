@@ -5,6 +5,7 @@
 ## 功能
 
 - 弹幕转换：添加正则支持 [#126](https://github.com/renmu123/biliLive-tools/pull/126)
+- 弹幕转换：支持行间距参数
 
 ## 优化
 
