@@ -11,6 +11,7 @@
 
 - 优化B站录制某些cdn结束录制仍推流的情况 [#123](https://github.com/renmu123/biliLive-tools/issues/123)
 - 投稿默认使用必剪api
+- 虎牙弹幕录制的初始化请求添加3次重试
 
 # 2.3.0(2025.7.19)
 

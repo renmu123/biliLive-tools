@@ -32,16 +32,43 @@ class huya_danmu extends events {
     this._agent = new socks_agent(proxy);
   }
 
+  // 重试辅助函数
+  async _retry_async(asyncFn, retries = 3, delay = 1000) {
+    let lastError;
+    for (let i = 0; i <= retries; i++) {
+      try {
+        return await asyncFn();
+      } catch (error) {
+        lastError = error;
+        if (i === retries) {
+          throw lastError;
+        }
+        // 等待指定时间后重试
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+
   async _get_chat_info() {
     try {
-      const response = await fetch(`https://m.huya.com/${this._roomid}`, {
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36",
-        },
-        agent: this._agent,
-      });
-      const body = await response.text();
+      const fetchData = async () => {
+        const response = await fetch(`https://m.huya.com/${this._roomid}`, {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36",
+          },
+          agent: this._agent,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        return await response.text();
+      };
+
+      const body = await this._retry_async(fetchData, 3, 1000);
+
       const info = {};
       // @deprecated
       // let subsid_array = body.match(/var SUBSID = '(.*)';/)
@@ -59,7 +86,7 @@ class huya_danmu extends events {
       info.yyuid = parseInt(yyuid_array[1]);
       return info;
     } catch (e) {
-      this.emit("error", new Error("Fail to get info"));
+      this.emit("error", e);
     }
   }
 
@@ -71,7 +98,7 @@ class huya_danmu extends events {
 
   async _try_connect() {
     this._info = await this._get_chat_info();
-    if (!this._info) return this.emit("error", new Error("Fail to get info"));
+    if (!this._info) return this.emit("error", new Error("Fail to parse info"));
     this._main_user_id = new HUYA.UserId();
     this._main_user_id.lUid = this._info.yyuid;
     this._main_user_id.sHuYaUA = "webh5&1.0.0&websocket";
