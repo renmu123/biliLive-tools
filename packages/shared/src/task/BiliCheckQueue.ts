@@ -100,6 +100,7 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
       } else if (media.state < 0) {
         if (media.state === -30 || media.state === -6) {
           // 审核中，不要干啥操作
+          // TODO: 如果是复核中状态也不要操作啥，但我也不知道状态码是什么
           continue;
         } else if (media.state === -50) {
           // 仅自己可见，不需要触发错误
