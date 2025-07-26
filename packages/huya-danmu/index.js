@@ -98,7 +98,7 @@ class huya_danmu extends events {
   }
 
   async _try_connect() {
-    this._info = await this._retry_async(() => this._get_chat_info(), 10, 1000);
+    this._info = await this._retry_async(() => this._get_chat_info(), 10, 2000);
     if (!this._info) return this.emit("error", new Error("Fail to parse info"));
     this._main_user_id = new HUYA.UserId();
     this._main_user_id.lUid = this._info.yyuid;
