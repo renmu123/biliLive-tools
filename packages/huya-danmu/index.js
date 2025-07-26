@@ -39,6 +39,7 @@ class huya_danmu extends events {
       try {
         return await asyncFn();
       } catch (error) {
+        console.log(error);
         lastError = error;
         if (i === retries) {
           throw lastError;
@@ -67,7 +68,7 @@ class huya_danmu extends events {
         return await response.text();
       };
 
-      const body = await this._retry_async(fetchData, 3, 1000);
+      const body = await fetchData();
 
       const info = {};
       // @deprecated
@@ -80,7 +81,7 @@ class huya_danmu extends events {
       const topsid_array = body.match(/"lChannelId"\s*:\s*([^,]*)/);
       const yyuid_array = body.match(/"lUid"\s*:\s*([^,]*)/);
 
-      if (!subsid_array || !topsid_array || !yyuid_array) return;
+      if (!subsid_array || !topsid_array || !yyuid_array) throw new Error("Fail to parse info");
       info.subsid = subsid_array[1] === "" ? 0 : parseInt(subsid_array[1]);
       info.topsid = topsid_array[1] === "" ? 0 : parseInt(topsid_array[1]);
       info.yyuid = parseInt(yyuid_array[1]);
@@ -97,7 +98,7 @@ class huya_danmu extends events {
   }
 
   async _try_connect() {
-    this._info = await this._get_chat_info();
+    this._info = await this._retry_async(() => this._get_chat_info(), 10, 1000);
     if (!this._info) return this.emit("error", new Error("Fail to parse info"));
     this._main_user_id = new HUYA.UserId();
     this._main_user_id.lUid = this._info.yyuid;
