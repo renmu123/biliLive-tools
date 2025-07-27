@@ -459,7 +459,9 @@ router.post("/handleWebhook", async (ctx) => {
     for (const part of partList) {
       const item = data.find((item) => item.id === part.partId);
       if (item) {
-        part.recordStatus = "recorded";
+        part.recordStatus = "handled";
+        part.uploadStatus = "error";
+        part.rawUploadStatus = "error";
       }
     }
   }
