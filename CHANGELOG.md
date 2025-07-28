@@ -12,6 +12,7 @@
 - 优化B站录制某些cdn结束录制仍推流的情况 [#123](https://github.com/renmu123/biliLive-tools/issues/123)
 - 投稿默认使用必剪api
 - 虎牙弹幕录制的初始化请求添加重试
+- 合集分页调整至100，也许有用 [#127](https://github.com/renmu123/biliLive-tools/issues/127)
 
 # 2.3.0(2025.7.19)
 

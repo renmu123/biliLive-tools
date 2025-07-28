@@ -333,7 +333,10 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
  */
 async function getSeasonList(uid: number) {
   const client = createClient(uid);
-  return client.platform.getSeasonList();
+  return client.platform.getSeasonList({
+    pn: 1,
+    ps: 100,
+  });
 }
 
 /**
