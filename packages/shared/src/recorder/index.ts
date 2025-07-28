@@ -129,7 +129,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     if (log.type !== "ffmpeg") {
       logger.info(`recorder: ${log.text}`);
     }
-    const debugMode = config.recorder.debugMode;
+    const debugMode = appConfig?.data?.recorder?.debugMode;
     if (!debugMode) return;
 
     if (recorder.recordHandle) {
