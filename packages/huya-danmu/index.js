@@ -51,44 +51,40 @@ class huya_danmu extends events {
   }
 
   async _get_chat_info() {
-    try {
-      const fetchData = async () => {
-        const response = await fetch(`https://m.huya.com/${this._roomid}`, {
-          headers: {
-            "User-Agent":
-              "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36",
-          },
-          agent: this._agent,
-        });
+    const fetchData = async () => {
+      const response = await fetch(`https://m.huya.com/${this._roomid}`, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Linux; Android 5.1.1; Nexus 6 Build/LYZ28E) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.84 Mobile Safari/537.36",
+        },
+        agent: this._agent,
+      });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-        return await response.text();
-      };
+      return await response.text();
+    };
 
-      const body = await fetchData();
+    const body = await fetchData();
 
-      const info = {};
-      // @deprecated
-      // let subsid_array = body.match(/var SUBSID = '(.*)';/)
-      // let topsid_array = body.match(/var TOPSID = '(.*)';/)
-      // let yyuid_array = body.match(/ayyuid: '(.*)',/)
+    const info = {};
+    // @deprecated
+    // let subsid_array = body.match(/var SUBSID = '(.*)';/)
+    // let topsid_array = body.match(/var TOPSID = '(.*)';/)
+    // let yyuid_array = body.match(/ayyuid: '(.*)',/)
 
-      // data structure updated of huya new version, see test_data_20210626.html
-      const subsid_array = body.match(/"lSubChannelId"\s*:\s*([^,]*)/);
-      const topsid_array = body.match(/"lChannelId"\s*:\s*([^,]*)/);
-      const yyuid_array = body.match(/"lUid"\s*:\s*([^,]*)/);
+    // data structure updated of huya new version, see test_data_20210626.html
+    const subsid_array = body.match(/"lSubChannelId"\s*:\s*([^,]*)/);
+    const topsid_array = body.match(/"lChannelId"\s*:\s*([^,]*)/);
+    const yyuid_array = body.match(/"lUid"\s*:\s*([^,]*)/);
 
-      if (!subsid_array || !topsid_array || !yyuid_array) throw new Error("Fail to parse info");
-      info.subsid = subsid_array[1] === "" ? 0 : parseInt(subsid_array[1]);
-      info.topsid = topsid_array[1] === "" ? 0 : parseInt(topsid_array[1]);
-      info.yyuid = parseInt(yyuid_array[1]);
-      return info;
-    } catch (e) {
-      this.emit("error", e);
-    }
+    if (!subsid_array || !topsid_array || !yyuid_array) throw new Error("Fail to parse raw info");
+    info.subsid = subsid_array[1] === "" ? 0 : parseInt(subsid_array[1]);
+    info.topsid = topsid_array[1] === "" ? 0 : parseInt(topsid_array[1]);
+    info.yyuid = parseInt(yyuid_array[1]);
+    return info;
   }
 
   async start() {
@@ -98,8 +94,15 @@ class huya_danmu extends events {
   }
 
   async _try_connect() {
-    this._info = await this._retry_async(() => this._get_chat_info(), 10, 2000);
-    if (!this._info) return this.emit("error", new Error("Fail to parse info"));
+    try {
+      this._info = await this._retry_async(() => this._get_chat_info(), 10, 2000);
+      if (!this._info) return this.emit("error", new Error("Fail to parse info"));
+    } catch (error) {
+      this.emit("error", error);
+      this._starting = false;
+      return;
+    }
+
     this._main_user_id = new HUYA.UserId();
     this._main_user_id.lUid = this._info.yyuid;
     this._main_user_id.sHuYaUA = "webh5&1.0.0&websocket";
