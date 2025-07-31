@@ -585,7 +585,7 @@ const getRecordSetting = async () => {
   if (!props.id) return;
   config.value = await recoderApi.get(props.id);
   if (!config.value.handleTime) {
-    config.value.handleTime = ["", ""];
+    config.value.handleTime = [null, null];
   }
 };
 const isEdit = computed(() => !!props.id);
@@ -653,7 +653,7 @@ watch(showModal, async (val) => {
       cookie: "",
       doubleScreen: true,
       useServerTimestamp: true,
-      handleTime: ["", ""],
+      handleTime: [null, null],
     };
 
     if (props.id) {

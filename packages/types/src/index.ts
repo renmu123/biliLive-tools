@@ -434,7 +434,7 @@ export interface Recorder {
   /** 只录制音频 */
   onlyAudio?: boolean;
   /** 监控时间段 */
-  handleTime: [string, string];
+  handleTime: [string | null, string | null];
   // 不跟随全局配置字段
   noGlobalFollowFields: Array<
     Exclude<

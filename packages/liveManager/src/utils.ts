@@ -325,12 +325,13 @@ export async function retry<T>(
   }
 }
 
-export const isBetweenTimeRange = (range: undefined | [] | [string, string]) => {
+export const isBetweenTimeRange = (range: undefined | [] | [string | null, string | null]) => {
   if (!range) return true;
   if (range.length !== 2) return true;
+  if (range[0] === null || range[1] === null) return true;
 
   try {
-    const status = isBetweenTime(new Date(), range);
+    const status = isBetweenTime(new Date(), range as [string, string]);
     return status;
   } catch (error) {
     return true;
