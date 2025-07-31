@@ -1,6 +1,6 @@
 <template>
   <n-dropdown :options="options" trigger="click" @select="handleFieldChange">
-    <div class="sort-button" style="width: 80px">
+    <div class="sort-button" style="width: 80px; flex: none">
       <span class="label">{{ currentLabel || "默认状态" }}</span>
       <div class="sort-icon-wrapper" @click.stop="handleDirectionChange">
         <n-icon
