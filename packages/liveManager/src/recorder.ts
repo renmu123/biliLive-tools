@@ -61,7 +61,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   /** 只录制音频 */
   onlyAudio?: boolean;
   /** 监控时间段 */
-  handleTime?: [string, string];
+  handleTime?: [string | null, string | null];
   /** 控制弹幕是否使用服务端时间戳 */
   useServerTimestamp?: boolean;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
