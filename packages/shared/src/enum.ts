@@ -246,6 +246,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     debugMode: false,
     qualityRetry: 0,
     videoFormat: "auto",
+    useServerTimestamp: true,
     bilibili: {
       uid: undefined,
       quality: 10000,

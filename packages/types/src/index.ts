@@ -348,6 +348,8 @@ export interface GlobalRecorder {
   saveGiftDanma?: boolean;
   /** 保存高能弹幕 */
   saveSCDanma?: boolean;
+  /** 弹幕是否使用服务端时间戳 */
+  useServerTimestamp: boolean;
   /**分段时长，单位分钟 */
   segment?: number;
   /** 账号 */
@@ -402,6 +404,8 @@ export interface Recorder {
   disableProvideCommentsWhenRecording?: boolean;
   /** 保存礼物弹幕 */
   saveGiftDanma?: boolean;
+  /** 弹幕是否使用服务端时间戳 */
+  useServerTimestamp: boolean;
   /** 保存高能弹幕 */
   saveSCDanma?: boolean;
   /**分段时长，单位分钟 */

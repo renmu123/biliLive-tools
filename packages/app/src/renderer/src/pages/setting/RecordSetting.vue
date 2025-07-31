@@ -129,6 +129,15 @@
             </template>
             <n-switch v-model:value="config.recorder.saveSCDanma" />
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="服务端时间戳"
+                tip="使用服务端返回的弹幕时间戳而非本地收到的时间戳，用于处理某些主播的弹幕时间戳不准确的问题"
+              ></Tip>
+            </template>
+            <n-switch v-model:value="config.recorder.useServerTimestamp" />
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="bilibili" tab="B站" display-directive="show:lazy">
           <n-form-item>

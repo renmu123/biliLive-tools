@@ -421,6 +421,25 @@
             >全局</n-checkbox
           >
         </n-form-item>
+        <n-form-item
+          v-if="
+            !config.disableProvideCommentsWhenRecording && !['HuYa'].includes(config.providerId)
+          "
+        >
+          <template #label>
+            <Tip
+              text="服务端时间戳"
+              tip="使用服务端返回的弹幕时间戳而非本地收到的时间戳，用于处理某些主播的弹幕时间戳不准确的问题"
+            ></Tip>
+          </template>
+          <n-switch
+            v-model:value="config.useServerTimestamp"
+            :disabled="globalFieldsObj.useServerTimestamp"
+          />
+          <n-checkbox v-model:checked="globalFieldsObj.useServerTimestamp" class="global-checkbox"
+            >全局</n-checkbox
+          >
+        </n-form-item>
       </n-form>
       <template #footer>
         <div class="footer">
@@ -484,6 +503,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     videoFormat: true,
     cookie: true,
     doubleScreen: true,
+    useServerTimestamp: true,
   },
 );
 
@@ -512,6 +532,7 @@ const config = ref<Omit<Recorder, "id">>({
   videoFormat: "auto",
   cookie: "",
   doubleScreen: true,
+  useServerTimestamp: true,
 });
 
 const confirmDialog = useConfirm();
@@ -619,6 +640,7 @@ watch(showModal, async (val) => {
       videoFormat: "auto",
       cookie: "",
       doubleScreen: true,
+      useServerTimestamp: true,
     };
 
     if (props.id) {
@@ -642,6 +664,9 @@ watch(showModal, async (val) => {
       videoFormat: !(config.value?.noGlobalFollowFields ?? []).includes("videoFormat"),
       cookie: !(config.value?.noGlobalFollowFields ?? []).includes("cookie"),
       doubleScreen: !(config.value?.noGlobalFollowFields ?? []).includes("doubleScreen"),
+      useServerTimestamp: !(config.value?.noGlobalFollowFields ?? []).includes(
+        "useServerTimestamp",
+      ),
     };
   }
 });
@@ -717,6 +742,9 @@ watch(
     }
     if (val.doubleScreen) {
       config.value.doubleScreen = appConfig.value.recorder.douyin.doubleScreen;
+    }
+    if (val.useServerTimestamp) {
+      config.value.useServerTimestamp = appConfig.value.recorder.useServerTimestamp;
     }
   },
   {
