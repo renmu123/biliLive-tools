@@ -325,6 +325,50 @@ export async function retry<T>(
   }
 }
 
+export const isBetweenTimeRange = (range: undefined | [] | [string, string]) => {
+  if (!range) return true;
+  if (range.length !== 2) return true;
+
+  try {
+    const status = isBetweenTime(new Date(), range);
+    return status;
+  } catch (error) {
+    return true;
+  }
+};
+
+/**
+ * 当前时间是否在两个时间'HH:mm:ss'之间，如果是["22:00:00","05:00:00"]，当前时间是凌晨3点，返回true
+ * @param {string} currentTime 当前时间
+ * @param {string[]} timeRange 时间范围
+ */
+function isBetweenTime(currentTime: Date, timeRange: [string, string]): boolean {
+  const [startTime, endTime] = timeRange;
+  if (!startTime || !endTime) return true;
+
+  const [startHour, startMinute, startSecond] = startTime.split(":").map(Number);
+  const [endHour, endMinute, endSecond] = endTime.split(":").map(Number);
+  const [currentHour, currentMinute, currentSecond] = [
+    currentTime.getHours(),
+    currentTime.getMinutes(),
+    currentTime.getSeconds(),
+  ];
+
+  const start = startHour * 3600 + startMinute * 60 + startSecond;
+  let end = endHour * 3600 + endMinute * 60 + endSecond;
+  let current = currentHour * 3600 + currentMinute * 60 + currentSecond;
+
+  // 如果结束时间小于开始时间，说明跨越了午夜
+  if (end < start) {
+    end += 24 * 3600; // 将结束时间加上24小时
+    if (current < start) {
+      current += 24 * 3600; // 如果当前时间小于开始时间，也加上24小时
+    }
+  }
+
+  return start <= current && current <= end;
+}
+
 export default {
   replaceExtName,
   singleton,
@@ -343,4 +387,5 @@ export default {
   uuid,
   sortByKeyOrder,
   retry,
+  isBetweenTimeRange,
 };

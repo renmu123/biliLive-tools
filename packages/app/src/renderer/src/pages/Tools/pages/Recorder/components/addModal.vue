@@ -377,6 +377,14 @@
             >全局</n-checkbox
           >
         </n-form-item>
+        <n-form-item>
+          <template #label>
+            <Tip text="监控时间段" tip="仅在时间段内进行监控，有助于减少风控的可能"></Tip>
+          </template>
+          <n-time-picker v-model:formatted-value="config.handleTime[0]" clearable />
+          ~
+          <n-time-picker v-model:formatted-value="config.handleTime[1]" clearable />
+        </n-form-item>
 
         <h2>弹幕</h2>
         <n-form-item>
@@ -533,6 +541,7 @@ const config = ref<Omit<Recorder, "id">>({
   cookie: "",
   doubleScreen: true,
   useServerTimestamp: true,
+  handleTime: ["", ""],
 });
 
 const confirmDialog = useConfirm();
@@ -575,6 +584,9 @@ const cancel = () => {
 const getRecordSetting = async () => {
   if (!props.id) return;
   config.value = await recoderApi.get(props.id);
+  if (!config.value.handleTime) {
+    config.value.handleTime = ["", ""];
+  }
 };
 const isEdit = computed(() => !!props.id);
 
@@ -641,6 +653,7 @@ watch(showModal, async (val) => {
       cookie: "",
       doubleScreen: true,
       useServerTimestamp: true,
+      handleTime: ["", ""],
     };
 
     if (props.id) {

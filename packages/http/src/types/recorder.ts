@@ -107,6 +107,7 @@ export type UpdateRecorderArgs = Pick<
   | "doubleScreen"
   | "onlyAudio"
   | "useServerTimestamp"
+  | "handleTime"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 

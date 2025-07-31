@@ -21,6 +21,7 @@ import {
   formatTemplate,
   replaceExtName,
   downloadImage,
+  isBetweenTimeRange,
 } from "./utils.js";
 import { StreamManager } from "./streamManager.js";
 
@@ -158,8 +159,12 @@ export function createRecorderManager<
     const maxThreadCount = 3;
     // 这里暂时不打算用 state == recording 来过滤，provider 必须内部自己处理录制过程中的 check，
     // 这样可以防止一些意外调用 checkLiveStatusAndRecord 时出现重复录制。
-    let needCheckRecorders = recorders.filter((r) => !r.disableAutoCheck);
+    let needCheckRecorders = recorders
+      .filter((r) => !r.disableAutoCheck)
+      .filter((r) => isBetweenTimeRange(r.handleTime));
     let threads: Promise<void>[] = [];
+
+    console.log("needCheckRecorders", needCheckRecorders);
 
     if (manager.biliBatchQuery) {
       const biliNeedCheckRecorders = needCheckRecorders

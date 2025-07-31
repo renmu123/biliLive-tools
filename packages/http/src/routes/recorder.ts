@@ -47,6 +47,7 @@ router.post("/add", async (ctx) => {
     "doubleScreen",
     "onlyAudio",
     "useServerTimestamp",
+    "handleTime",
   );
 
   const data = await recorderService.addRecorder(args);
@@ -87,6 +88,7 @@ router.put("/:id", (ctx) => {
     "doubleScreen",
     "onlyAudio",
     "useServerTimestamp",
+    "handleTime",
   );
 
   ctx.body = { payload: recorderService.updateRecorder({ id, ...patch }) };

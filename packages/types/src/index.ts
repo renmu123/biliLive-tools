@@ -433,6 +433,8 @@ export interface Recorder {
   // formatPriorities: Array<"flv" | "hls">;
   /** 只录制音频 */
   onlyAudio?: boolean;
+  /** 监控时间段 */
+  handleTime: [string, string];
   // 不跟随全局配置字段
   noGlobalFollowFields: Array<
     Exclude<
@@ -451,6 +453,7 @@ export interface Recorder {
       | "titleKeywords"
       | "liveStartNotification"
       | "onlyAudio"
+      | "handleTime"
     >
   >;
 }
