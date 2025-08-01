@@ -725,7 +725,7 @@ describe("WebhookHandler", () => {
       // Assert
       expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
       expect(result).toBeUndefined();
-      expect(webhookHandler.liveData[0].parts.length).toBe(0);
+      expect(webhookHandler.liveData.length).toBe(0);
     });
   });
   describe("handleLive", () => {

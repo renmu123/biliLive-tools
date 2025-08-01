@@ -17,9 +17,10 @@
 - 合集分页调整至100，也许有用 [#127](https://github.com/renmu123/biliLive-tools/issues/127)
 - 回退：当由于某些原因webhook未收到结束请求时，在收到下一个结束请求时，将之前的录制设置为true
 
-## 优化
+## Bug修复
 
 - 录制：修复抖音录制
+- Webhook: 当删除part后，如果live的part列表为空，则删除该live，有助于缓解[#133](https://github.com/renmu123/biliLive-tools/issues/133)的出现
 
 # 2.3.0(2025.7.19)
 
