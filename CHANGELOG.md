@@ -16,6 +16,7 @@
 - 投稿默认使用必剪api
 - 合集分页调整至100，也许有用 [#127](https://github.com/renmu123/biliLive-tools/issues/127)
 - 回退：当由于某些原因webhook未收到结束请求时，在收到下一个结束请求时，将之前的录制设置为true
+- web登录时不要使用前端地址作为API地址啊！！！
 
 ## Bug修复
 

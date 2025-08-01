@@ -48,7 +48,11 @@ const login = async () => {
     notice.error({ title: "请输入API地址和密钥", duration: 1000 });
     return;
   }
-  await commonApi.versionTest(api.value, key.value);
+  const serverVersion = await commonApi.versionTest(api.value, key.value);
+  if (serverVersion.includes('id="app"')) {
+    notice.error({ title: "不要使用前端地址啊！！", duration: 1000 });
+    return;
+  }
   window.localStorage.setItem("api", api.value);
   window.localStorage.setItem("key", key.value);
   router.push({ name: "Home" });
@@ -63,6 +67,10 @@ const test = async () => {
   }
   try {
     const serverVersion = await commonApi.versionTest(api.value, key.value);
+    if (serverVersion.includes('id="app"')) {
+      notice.error({ title: "不要使用前端地址啊！！", duration: 1000 });
+      return;
+    }
     const webVersion = import.meta.env.VITE_VERSION;
 
     if (serverVersion != webVersion) {
