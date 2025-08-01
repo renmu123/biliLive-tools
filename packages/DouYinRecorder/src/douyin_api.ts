@@ -137,6 +137,7 @@ export async function getRoomInfo(
         // enter_source:,
         "Room-Enter-User-Login-Ab": 0,
         is_need_double_stream: "false",
+        a_bogus: "1",
       },
       headers: {
         cookie: cookies,
