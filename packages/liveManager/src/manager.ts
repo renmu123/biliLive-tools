@@ -164,8 +164,6 @@ export function createRecorderManager<
       .filter((r) => isBetweenTimeRange(r.handleTime));
     let threads: Promise<void>[] = [];
 
-    console.log("needCheckRecorders", needCheckRecorders);
-
     if (manager.biliBatchQuery) {
       const biliNeedCheckRecorders = needCheckRecorders
         .filter((r) => r.providerId === "Bilibili")
