@@ -96,7 +96,7 @@
         </n-form-item>
         <n-form-item v-if="config.providerId !== 'HuYa' && config.providerId !== 'DouYin'">
           <template #label>
-            <span class="inline-flex"> 只录制音频 </span>
+            <Tip text="只录制音频" tip="会选择纯音频流，B站只支持flv流，抖音请在画质中选择"></Tip>
           </template>
           <n-switch v-model:value="config.onlyAudio" />
         </n-form-item>
