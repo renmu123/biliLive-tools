@@ -143,6 +143,9 @@ async function createServer(options: { port: number; host: string }) {
     //   app.callback(),
     // );
     const httpsServer = https.createServer({ key: "", cert: "" }, app.callback());
+    httpsServer.on("error", (err) => {
+      throw err;
+    });
     httpsServer.listen(options.port, options.host, () => {
       console.log(`Server is running at https://${options.host}:${options.port}`);
     });
