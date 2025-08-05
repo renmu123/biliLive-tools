@@ -99,7 +99,6 @@
         <n-pagination
           v-model:page="params.page"
           v-model:page-size="recorderLocalParams.pageSize"
-          :page-count="pagination.pageCount"
           :item-count="pagination.itemCount"
           show-size-picker
           :page-sizes="[10, 20, 30, 40, 50, 100]"
@@ -247,10 +246,6 @@ const handleSort = (field: string) => {
   }
 };
 
-watch(params, () => {
-  getList();
-});
-
 const recorderList = ref<RecorderAPI["getRecorders"]["Resp"]["data"]>([]);
 const liveInfos = ref<Awaited<ReturnType<typeof recoderApi.getLiveInfo>>>([]);
 const pagination = ref({
@@ -310,6 +305,13 @@ const getList = async () => {
     pageCount: Math.ceil(result.pagination.total / result.pagination.pageSize),
     itemCount: result.pagination.total,
   };
+  if (
+    params.value.page &&
+    pagination.value.pageCount &&
+    params.value.page > pagination.value.pageCount
+  ) {
+    params.value.page = pagination.value.pageCount;
+  }
 };
 
 const addModalVisible = ref(false);
