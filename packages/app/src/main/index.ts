@@ -3,7 +3,18 @@ import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
 import contextMenu from "electron-context-menu";
-import { app, dialog, BrowserWindow, ipcMain, shell, Tray, Menu, net, nativeTheme } from "electron";
+import {
+  app,
+  dialog,
+  BrowserWindow,
+  ipcMain,
+  shell,
+  Tray,
+  Menu,
+  net,
+  nativeTheme,
+  crashReporter,
+} from "electron";
 import { createContainer } from "awilix";
 
 import installExtension from "electron-devtools-installer";
@@ -461,6 +472,9 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
+  crashReporter.start({
+    uploadToServer: false,
+  });
   app.whenReady().then(() => {
     electronApp.setAppUserModelId("com.electron");
     installExtension("nhdogjmejiglipccpnnnanhbledajbpd")
