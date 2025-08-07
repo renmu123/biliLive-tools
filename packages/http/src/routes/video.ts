@@ -105,6 +105,14 @@ async function parseVideo({
       title: videos[0].DATA.content.title,
       resolutions: resolutions,
       parts: videos.map((item) => {
+        let liveStartTime = item?.DATA?.liveShow?.starttime;
+        let videoStartTime = item?.DATA?.content?.start_time;
+        if (!liveStartTime) {
+          liveStartTime = item?.DATA?.content?.create_time;
+        }
+        if (!videoStartTime) {
+          videoStartTime = item?.DATA?.content?.create_time;
+        }
         return {
           name: item.ROOM.name,
           partId: item.ROOM.vid,
@@ -114,8 +122,8 @@ async function parseVideo({
             user_name: item?.ROOM?.author_name,
             room_id: item?.DATA?.content.room_id,
             room_title: item?.DATA?.content.title,
-            live_start_time: new Date(item?.DATA?.liveShow?.starttime * 1000).toISOString(),
-            video_start_time: new Date(item?.DATA?.content?.start_time * 1000).toISOString(),
+            live_start_time: new Date(liveStartTime).toISOString(),
+            video_start_time: new Date(videoStartTime).toISOString(),
           },
         };
       }),

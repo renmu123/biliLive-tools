@@ -111,6 +111,10 @@ const parseVideo = async (url: string) => {
   const res = await video.getVideos(videoData.ROOM.vid, videoData.ROOM.up_id);
 
   let videoList: Video[] = [];
+  if (!res?.list?.length) {
+    return [videoData];
+  }
+
   await Promise.all(
     res.list.map(async (item) => {
       const videoData = await video.parseVideo(buildVideoUrl(item.hash_id));
