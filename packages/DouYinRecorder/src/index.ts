@@ -370,7 +370,7 @@ export const provider: RecorderProvider<{}> = {
 
   matchURL(channelURL) {
     // 支持 v.douyin.com 和 live.douyin.com
-    return /https?:\/\/(live|v)\.douyin\.com\//.test(channelURL);
+    return /https?:\/\/(live|v|www)\.douyin\.com\//.test(channelURL);
   },
 
   async resolveChannelInfoFromURL(channelURL) {

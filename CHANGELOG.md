@@ -3,6 +3,7 @@
 ### 优化
 
 - 优化录制筛选后的页码参数 [#139](https://github.com/renmu123/biliLive-tools/issues/139)
+- 录制：增加更多抖音直播间链接的解析
 
 ## Bug修复
 
