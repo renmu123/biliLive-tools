@@ -108,9 +108,11 @@ async function parseVideo({
         let liveStartTime = item?.DATA?.liveShow?.starttime;
         let videoStartTime = item?.DATA?.content?.start_time;
         if (!liveStartTime) {
+          // @ts-ignore
           liveStartTime = item?.DATA?.content?.create_time;
         }
         if (!videoStartTime) {
+          // @ts-ignore
           videoStartTime = item?.DATA?.content?.create_time;
         }
         return {
