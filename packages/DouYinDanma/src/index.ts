@@ -36,6 +36,7 @@ function buildRequestUrl(url: string): string {
 }
 
 interface Events {
+  init: (url: string) => void;
   open: () => void;
   close: () => void;
   reconnect: (count: number) => void;
@@ -98,6 +99,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       this.emit("error", new Error("获取抖音弹幕签名失败"));
       return;
     }
+    this.emit("init", url);
     const cookies = this.cookie || (await getCookie());
     this.ws = new WebSocket(url, {
       headers: {

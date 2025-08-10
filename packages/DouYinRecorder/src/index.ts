@@ -293,7 +293,31 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   client.on("reconnect", (attempts: number) => {
     this.emit("DebugLog", {
       type: "common",
-      text: `danma has reconnect ${attempts}`,
+      text: `douyin ${this.channelId}  danma has reconnect ${attempts}`,
+    });
+  });
+  client.on("error", (err) => {
+    this.emit("DebugLog", {
+      type: "common",
+      text: `douyin ${this.channelId}  danma error: ${String(err)}`,
+    });
+  });
+  client.on("init", (url) => {
+    this.emit("DebugLog", {
+      type: "common",
+      text: `douyin ${this.channelId}  danma init ${url}`,
+    });
+  });
+  client.on("open", () => {
+    this.emit("DebugLog", {
+      type: "common",
+      text: `douyin ${this.channelId} danma open`,
+    });
+  });
+  client.on("close", () => {
+    this.emit("DebugLog", {
+      type: "common",
+      text: `douyin danma close`,
     });
   });
 
