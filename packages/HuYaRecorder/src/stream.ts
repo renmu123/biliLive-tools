@@ -103,12 +103,18 @@ export async function getStream(
     }
   }
 
+  let url = expectSource.url;
+  // MP协议下原画不需要添加ratio参数
+  if (expectStream.bitRate) {
+    url = url + "&ratio=" + expectStream.bitRate;
+  }
+
   return {
     ...info,
     currentStream: {
       name: expectStream.desc,
       source: expectSource.name,
-      url: expectSource.url + "&ratio=" + expectStream.bitRate,
+      url,
     },
   };
 }

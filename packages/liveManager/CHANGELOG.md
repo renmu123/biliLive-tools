@@ -1,3 +1,7 @@
+# 1.4.1
+
+- 修复星秀区录制原画可能失败的bug
+
 # 1.4.0
 
 - `savePathRule` 支持 [ejs](https://ejs.co/) 模板引擎
