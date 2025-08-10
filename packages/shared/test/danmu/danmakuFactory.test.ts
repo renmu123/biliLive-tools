@@ -56,6 +56,8 @@ describe.concurrent("genDanmuArgs", () => {
       fontname: "Arial",
       blacklist: "",
       opacity100: 100,
+      "outline-blur": 1,
+      "outline-opacity-percentage": 60,
     };
 
     const expectedArgs = [
@@ -66,6 +68,8 @@ describe.concurrent("genDanmuArgs", () => {
       "--statmode TABLE-HISTOGRAM",
       '--fontname "Arial"',
       "--opacity 255",
+      "--outline-blur 1",
+      "--outline-opacity 153",
     ];
 
     // @ts-ignore

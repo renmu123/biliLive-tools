@@ -13,6 +13,8 @@ export const danmuConfig = type({
   /** 百分制下的透明度 */
   opacity100: "number > 0",
   outline: "number",
+  "outline-blur": "number >= 0",
+  "outline-opacity-percentage": "0 <= number <= 100",
   shadow: "number",
   displayarea: "number",
   scrollarea: "number",

@@ -31,9 +31,30 @@
             :max="4"
           />
         </n-form-item>
-        <n-form-item label="不透明度">
+
+        <n-form-item v-if="isAdvancedMode" label="描边模糊半径">
+          <n-input-number
+            v-model:value.number="config['outline-blur']"
+            class="input-number"
+            :min="0"
+          />
+        </n-form-item>
+
+        <n-form-item label="文字不透明度">
           <n-input-number
             v-model:value.number="config.opacity100"
+            class="input-number"
+            :min="0"
+            :max="100"
+            style="width: 130px"
+            :precision="2"
+          >
+            <template #suffix> % </template></n-input-number
+          >
+        </n-form-item>
+        <n-form-item label="描边不透明度">
+          <n-input-number
+            v-model:value.number="config['outline-opacity-percentage']"
             class="input-number"
             :min="0"
             :max="100"
