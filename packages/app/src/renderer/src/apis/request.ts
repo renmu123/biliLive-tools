@@ -1,6 +1,10 @@
 import axios from "axios";
 import router from "../routers/index";
 
+if (import.meta.hot) {
+  init();
+}
+
 const api = axios.create({
   headers: {
     "Content-Type": "application/json",
