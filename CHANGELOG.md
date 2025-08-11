@@ -5,6 +5,7 @@
 - 录制：新增直播间时保存头像到数据库中
 - 录制：排序使用接口实现，除直播状态外
 - 录制：录制历史支持删除 [#145](https://github.com/renmu123/biliLive-tools/issues/145)
+- 录制：录制历史中的视频文件支持默认程序打开 [#145](https://github.com/renmu123/biliLive-tools/issues/145)
 
 ## 优化
 

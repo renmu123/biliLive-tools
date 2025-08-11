@@ -69,6 +69,7 @@ import { recordHistoryApi } from "../../apis";
 import { NIcon } from "naive-ui";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 import { Delete20Regular } from "@vicons/fluent";
+import { FileOpenOutlined } from "@vicons/material";
 import { VNode } from "vue";
 import { useConfirm } from "@renderer/hooks";
 
@@ -251,8 +252,22 @@ const allColumns: {
               style: {
                 cursor: "pointer",
               },
+              title: "打开文件",
+              onClick: () => openFile(row.id),
+            },
+            { default: () => h(FileOpenOutlined) },
+          ),
+        );
+        subNodes.push(
+          h(
+            NIcon,
+            {
+              size: "20",
+              style: {
+                cursor: "pointer",
+              },
               title: "打开文件夹",
-              onClick: () => openFolder(row.video_file as string),
+              onClick: () => openFolder(row.id),
             },
             { default: () => h(FolderOpenOutline) },
           ),
@@ -268,15 +283,6 @@ const allColumns: {
           },
         },
         [
-          // h(
-          //   NButton,
-          //   {
-          //     size: "small",
-          //     style: "margin-right: 8px",
-          //     onClick: () => openFile(row.video_file as string),
-          //   },
-          //   { default: () => "打开文件" },
-          // ),
           ...subNodes,
           h(
             NIcon,
@@ -395,12 +401,16 @@ const _formatDuration = (duration?: number) => {
 };
 
 // 打开文件或文件夹
-// const openFile = (filePath: string): void => {
-//   if (!filePath) return;
-//   window.api.openPath(filePath);
-// };
+const openFile = async (id: number) => {
+  if (!id) return;
+  const filePath = await recordHistoryApi.getVideoFile(id);
+  if (!filePath) return;
+  window.api.openPath(filePath);
+};
 
-const openFolder = (filePath: string): void => {
+const openFolder = async (id: number) => {
+  if (!id) return;
+  const filePath = await recordHistoryApi.getVideoFile(id);
   if (!filePath) return;
   window.api.common.showItemInFolder(filePath);
 };
@@ -408,7 +418,7 @@ const openFolder = (filePath: string): void => {
 const confirm = useConfirm();
 const notice = useNotification();
 
-const removeRecord = async (id: number): Promise<void> => {
+const removeRecord = async (id: number) => {
   const [status] = await confirm.warning({
     content: "确定要删除这条直播记录吗？此操作不可撤销。",
   });

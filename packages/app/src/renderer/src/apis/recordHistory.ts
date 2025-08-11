@@ -55,7 +55,18 @@ export async function removeRecord(id: number) {
   return res.data;
 }
 
+/**
+ * 获取视频文件
+ * @param id 记录ID
+ * @returns 视频文件路径
+ */
+export async function getVideoFile(id: number) {
+  const res = await request.get(`/record-history/video/${id}`);
+  return res.data;
+}
+
 export default {
   queryRecords,
   removeRecord,
+  getVideoFile,
 };

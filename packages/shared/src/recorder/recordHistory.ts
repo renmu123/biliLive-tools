@@ -124,6 +124,10 @@ export function getRecord(data: { file: string; live_id?: string }) {
   return recordHistoryModel.query({ video_file: data.file, live_id: data.live_id });
 }
 
+export function getRecordById(id: number) {
+  return recordHistoryModel.query({ id });
+}
+
 export function removeRecord(id: number): boolean {
   const deletedCount = recordHistoryModel.removeRecord(id);
   return deletedCount > 0;
@@ -136,4 +140,5 @@ export default {
   removeRecords,
   removeRecord,
   getRecord,
+  getRecordById,
 };
