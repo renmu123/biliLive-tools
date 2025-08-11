@@ -1,6 +1,7 @@
 # 1.5.2
 
 - `resolveChannelInfoFromURL` 新增返回参数：`avatar`
+- 增加更多链接的解析
 
 # 1.5.1
 

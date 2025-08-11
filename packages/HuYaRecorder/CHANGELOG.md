@@ -1,3 +1,8 @@
+# 1.3.2
+
+- 修复星秀区录制原画可能失败的bug
+- `resolveChannelInfoFromURL` 新增返回参数：`avatar`
+
 # 1.3.1
 
 - 修复获取未直播主播时的信息失败
