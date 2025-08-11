@@ -609,6 +609,7 @@ const onChannelIdInputEnd = async () => {
   owner.value = res.owner;
   config.value.extra = config.value.extra ?? {};
   config.value.extra!.createTimestamp = Date.now();
+  config.value.extra!.avatar = res.avatar;
   if (res.providerId === "Bilibili") {
     config.value.quality = appConfig.value.recorder.bilibili.quality;
     config.value.extra!.recorderUid = res.uid;

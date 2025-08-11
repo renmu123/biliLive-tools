@@ -416,6 +416,7 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
       title: info.title,
       owner: info.owner,
       uid: info.uid,
+      avatar: info.avatar,
     };
   },
 

@@ -260,7 +260,7 @@ const list = computed(() => {
       ...item,
       cover: liveInfo?.cover,
       owner: liveInfo?.owner,
-      avatar: liveInfo?.avatar,
+      avatar: liveInfo?.avatar ?? item?.extra?.avatar,
       roomTitle: liveInfo?.title,
       living: item?.liveInfo?.living ?? liveInfo?.living,
     };

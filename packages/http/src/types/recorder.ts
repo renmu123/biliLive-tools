@@ -62,6 +62,7 @@ export type GetRecordersResp = {
     | "usedSource"
     | "usedStream"
     | "tempStopIntervalCheck"
+    | "extra"
   >[];
   pagination: {
     total: number;
@@ -146,6 +147,7 @@ export type ResolveChannelResp = {
   channelId: string;
   owner: string;
   uid?: number;
+  avatar?: string;
 } | null;
 
 export interface GetManagerDefaultArgs {}

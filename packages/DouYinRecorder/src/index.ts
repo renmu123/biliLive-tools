@@ -394,6 +394,7 @@ export const provider: RecorderProvider<{}> = {
       id: info.roomId,
       title: info.title,
       owner: info.owner,
+      avatar: info.avatar,
     };
   },
 

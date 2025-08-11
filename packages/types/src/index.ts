@@ -383,6 +383,8 @@ export interface Recorder {
     createTimestamp?: number;
     /** B站主播的uid */
     recorderUid?: number;
+    /** 头像 */
+    avatar?: string;
   };
   disableAutoCheck?: boolean;
   /** 发送至发送至软件webhook */

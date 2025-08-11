@@ -1,3 +1,7 @@
+# 1.4.1
+
+- `resolveChannelInfoFromURL` 新增返回参数：`avatar`
+
 # 1.4.0
 
 - `savePathRule` 支持 [ejs](https://ejs.co/) 模板引擎

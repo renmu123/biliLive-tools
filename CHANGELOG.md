@@ -1,6 +1,10 @@
 # Next
 
-### 优化
+## 功能
+
+- 录制：新增直播间时保存头像到数据库中
+
+## 优化
 
 - 优化录制筛选后的页码参数 [#139](https://github.com/renmu123/biliLive-tools/issues/139)
 

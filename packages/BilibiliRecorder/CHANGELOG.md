@@ -1,3 +1,7 @@
+# 1.5.1
+
+- `resolveChannelInfoFromURL` 新增返回参数：`avatar`
+
 # 1.5.0
 
 - 修复部分服务端礼物弹幕时间戳错误的bug

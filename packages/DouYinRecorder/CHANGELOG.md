@@ -1,3 +1,7 @@
+# 1.5.2
+
+- `resolveChannelInfoFromURL` 新增返回参数：`avatar`
+
 # 1.5.1
 
 - 增加 `a_bogus` 修复抖音无法录制的bug

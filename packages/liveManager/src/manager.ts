@@ -43,6 +43,7 @@ export interface RecorderProvider<E extends AnyObject> {
     title: string;
     owner: string;
     uid?: number;
+    avatar?: string;
   } | null>;
   createRecorder: (
     this: RecorderProvider<E>,

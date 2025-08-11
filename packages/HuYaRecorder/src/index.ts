@@ -361,6 +361,7 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
       id: info.roomId.toString(),
       title: info.title,
       owner: info.owner,
+      avatar: info.avatar,
     };
   },
 

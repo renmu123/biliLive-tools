@@ -518,6 +518,7 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
       id: matched[1].trim(),
       title: roomInfo.room.room_name,
       owner: roomInfo.room.nickname,
+      avatar: roomInfo.room.avatar?.big,
     };
   },
 

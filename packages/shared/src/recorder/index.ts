@@ -377,6 +377,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           channelId: info.id,
           owner: info.owner,
           uid: info.uid,
+          avatar: info.avatar,
         };
       }
       return null;

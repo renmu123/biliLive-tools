@@ -1,3 +1,7 @@
+# 1.5.1
+
+- `resolveChannelInfoFromURL` 新增返回参数：`avatar`
+
 # 1.5.0
 
 - 支持 `useServerTimestamp` 控制弹幕是否使用服务端时间戳
