@@ -354,8 +354,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (!this.recordHandle) return;
     this.state = "stopping-record";
 
-    client.close();
     try {
+      client.close();
       await recorder.stop();
     } catch (err) {
       this.emit("DebugLog", {

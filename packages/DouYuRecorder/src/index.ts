@@ -96,7 +96,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   banLiveId,
   isManualStart,
 }) {
-  console.log("this.useServerTimestamp", this.useServerTimestamp);
   // 如果已经在录制中，只在需要检查标题关键词时才获取最新信息
   if (this.recordHandle != null) {
     // 只有当设置了标题关键词时，并且不是手动启动的录制，才获取最新的直播间信息
@@ -459,8 +458,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (!this.recordHandle) return;
     this.state = "stopping-record";
 
-    client.stop();
     try {
+      client.stop();
       await recorder.stop();
     } catch (err) {
       this.emit("DebugLog", {

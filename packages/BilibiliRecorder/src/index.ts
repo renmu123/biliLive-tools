@@ -362,8 +362,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "stopping-record";
     intervalId && clearInterval(intervalId);
 
-    danmaClient.stop();
     try {
+      danmaClient.stop();
       await recorder.stop();
     } catch (err) {
       this.emit("DebugLog", {
