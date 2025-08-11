@@ -134,6 +134,8 @@ defineOptions({
   name: "recorder",
 });
 
+type SortField = "living" | "state" | "monitorStatus";
+
 const notice = useNotice();
 const router = useRouter();
 const recorderLocalParams = useStorage(
@@ -141,7 +143,7 @@ const recorderLocalParams = useStorage(
   {
     view: "card",
     pageSize: 20,
-    sortField: "",
+    sortField: "" as SortField,
     sortDirection: "desc" as "asc" | "desc",
   },
   localStorage,
@@ -215,7 +217,7 @@ const viewComponent = computed(() => {
   }
 });
 
-const sortField = ref(recorderLocalParams.value.sortField);
+const sortField = ref<SortField>(recorderLocalParams.value.sortField);
 const sortDirections = reactive({
   living:
     recorderLocalParams.value.sortField === "living"
@@ -231,7 +233,7 @@ const sortDirections = reactive({
       : "desc",
 });
 
-const handleSort = (field: string) => {
+const handleSort = (field: SortField) => {
   if (sortField.value === field) {
     // 如果点击的是当前排序字段，则切换排序方向
     const newDirection = sortDirections[field] === "asc" ? "desc" : "asc";
@@ -244,6 +246,8 @@ const handleSort = (field: string) => {
     // 保存当前排序字段
     recorderLocalParams.value.sortField = field;
   }
+  // 重新获取数据
+  getList();
 };
 
 const recorderList = ref<RecorderAPI["getRecorders"]["Resp"]["data"]>([]);
@@ -254,7 +258,8 @@ const pagination = ref({
 });
 
 const list = computed(() => {
-  const mappedList = recorderList.value.map((item) => {
+  // 后端已经处理了排序，前端只需要合并直播信息
+  return recorderList.value.map((item) => {
     const liveInfo = liveInfos.value.find((liveInfo) => liveInfo.channelId === item.channelId);
     return {
       ...item,
@@ -265,40 +270,14 @@ const list = computed(() => {
       living: item?.liveInfo?.living ?? liveInfo?.living,
     };
   });
-
-  if (!sortField.value) return mappedList;
-
-  return [...mappedList].sort((a, b) => {
-    let comparison = 0;
-    const currentDirection = sortDirections[sortField.value];
-
-    if (sortField.value === "living") {
-      comparison = a.living === b.living ? 0 : a.living ? -1 : 1;
-    } else if (sortField.value === "state") {
-      comparison = a.state === b.state ? 0 : a.state === "recording" ? -1 : 1;
-    } else if (sortField.value === "monitorStatus") {
-      // 自动监听优先于手动
-      const aIsManual = a.disableAutoCheck;
-      const bIsManual = b.disableAutoCheck;
-
-      if (aIsManual === bIsManual) {
-        // 如果监听类型相同，比较是否跳过本场直播
-        const aIsSkipping = a.tempStopIntervalCheck && !a.disableAutoCheck;
-        const bIsSkipping = b.tempStopIntervalCheck && !b.disableAutoCheck;
-        comparison = aIsSkipping === bIsSkipping ? 0 : aIsSkipping ? 1 : -1;
-      } else {
-        comparison = aIsManual ? 1 : -1;
-      }
-    }
-
-    return currentDirection === "asc" ? -comparison : comparison;
-  });
 });
 
 const getList = async () => {
   const result = await recoderApi.infoList({
     ...params.value,
     pageSize: recorderLocalParams.value.pageSize,
+    sortField: sortField.value || undefined,
+    sortDirection: recorderLocalParams.value.sortDirection,
   });
   recorderList.value = result.data;
   pagination.value = {
@@ -529,8 +508,9 @@ const pageSizeOptions = ref([
 ]);
 
 const handleSortFieldChange = (field: string) => {
-  sortField.value = field;
-  recorderLocalParams.value.sortField = field;
+  sortField.value = field as SortField;
+  recorderLocalParams.value.sortField = field as SortField;
+  getList();
 };
 
 const handleSortDirectionChange = (direction: "asc" | "desc") => {
@@ -542,6 +522,7 @@ const handleSortDirectionChange = (direction: "asc" | "desc") => {
   } else if (sortField.value === "monitorStatus") {
     sortDirections.monitorStatus = direction;
   }
+  getList();
 };
 </script>
 

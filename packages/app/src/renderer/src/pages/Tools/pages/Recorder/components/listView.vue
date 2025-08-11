@@ -139,9 +139,10 @@ const handleSort = (field: string) => {
   color: #ccc; /* 默认未激活颜色 */
   transition: fill 0.2s;
   vertical-align: middle;
+  transition: all 0.2s;
 
   &.active {
-    color: skyblue; /* 激活状态颜色 */
+    color: #36ad6a; /* 激活状态颜色 */
   }
   &.asc {
     transform: rotate(180deg);
