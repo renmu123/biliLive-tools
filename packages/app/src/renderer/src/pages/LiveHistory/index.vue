@@ -66,7 +66,11 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
 import { recordHistoryApi } from "../../apis";
-import { NButton } from "naive-ui";
+import { NIcon } from "naive-ui";
+import { FolderOpenOutline } from "@vicons/ionicons5";
+import { Delete20Regular } from "@vicons/fluent";
+import { VNode } from "vue";
+import { useConfirm } from "@renderer/hooks";
 
 // 类型定义
 interface StreamerInfo {
@@ -237,27 +241,57 @@ const allColumns: {
     title: "操作",
     key: "actions",
     render: (row: LiveRecord) => {
-      if (window.isWeb) return null;
-      if (!row.video_file) return null;
-      return h("div", [
-        // h(
-        //   NButton,
-        //   {
-        //     size: "small",
-        //     style: "margin-right: 8px",
-        //     onClick: () => openFile(row.video_file as string),
-        //   },
-        //   { default: () => "打开文件" },
-        // ),
-        h(
-          NButton,
-          {
-            size: "small",
-            onClick: () => openFolder(row.video_file as string),
+      const subNodes: VNode[] = [];
+      if (!window.isWeb) {
+        subNodes.push(
+          h(
+            NIcon,
+            {
+              size: "20",
+              style: {
+                cursor: "pointer",
+              },
+              title: "打开文件夹",
+              onClick: () => openFolder(row.video_file as string),
+            },
+            { default: () => h(FolderOpenOutline) },
+          ),
+        );
+      }
+      return h(
+        "div",
+        {
+          style: {
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
           },
-          { default: () => "打开目录" },
-        ),
-      ]);
+        },
+        [
+          // h(
+          //   NButton,
+          //   {
+          //     size: "small",
+          //     style: "margin-right: 8px",
+          //     onClick: () => openFile(row.video_file as string),
+          //   },
+          //   { default: () => "打开文件" },
+          // ),
+          ...subNodes,
+          h(
+            NIcon,
+            {
+              size: "20",
+              style: {
+                cursor: "pointer",
+              },
+              title: "删除记录",
+              onClick: () => removeRecord(row.id),
+            },
+            { default: () => h(Delete20Regular) },
+          ),
+        ],
+      );
     },
   },
 ];
@@ -369,6 +403,23 @@ const _formatDuration = (duration?: number) => {
 const openFolder = (filePath: string): void => {
   if (!filePath) return;
   window.api.common.showItemInFolder(filePath);
+};
+
+const confirm = useConfirm();
+const notice = useNotification();
+
+const removeRecord = async (id: number): Promise<void> => {
+  const [status] = await confirm.warning({
+    content: "确定要删除这条直播记录吗？此操作不可撤销。",
+  });
+  if (!status) return;
+  await recordHistoryApi.removeRecord(id);
+  notice.success({
+    title: `删除成功`,
+    duration: 1000,
+  });
+  // 重新查询数据
+  await handleQuery();
 };
 
 const router = useRouter();

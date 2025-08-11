@@ -52,4 +52,46 @@ router.get("/list", async (ctx) => {
   }
 });
 
+/**
+ * 删除单个直播记录
+ * @route DELETE /record-history/:id
+ * @param {number} id - 记录ID
+ */
+router.delete("/:id", async (ctx) => {
+  const { id } = ctx.params;
+
+  if (!id || isNaN(parseInt(id))) {
+    ctx.status = 400;
+    ctx.body = {
+      code: 400,
+      message: "记录ID不能为空且必须为数字",
+    };
+    return;
+  }
+
+  try {
+    const success = recordHistory.removeRecord(parseInt(id));
+
+    if (success) {
+      ctx.body = {
+        code: 200,
+        message: "删除成功",
+      };
+    } else {
+      ctx.status = 404;
+      ctx.body = {
+        code: 404,
+        message: "记录不存在或已被删除",
+      };
+    }
+  } catch (error: any) {
+    ctx.status = 500;
+    ctx.body = {
+      code: 500,
+      message: "删除直播记录失败",
+      error: error?.message,
+    };
+  }
+});
+
 export default router;

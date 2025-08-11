@@ -124,10 +124,16 @@ export function getRecord(data: { file: string; live_id?: string }) {
   return recordHistoryModel.query({ video_file: data.file, live_id: data.live_id });
 }
 
+export function removeRecord(id: number): boolean {
+  const deletedCount = recordHistoryModel.removeRecord(id);
+  return deletedCount > 0;
+}
+
 export default {
   addWithStreamer,
   upadteLive,
   queryRecordsByRoomAndPlatform,
   removeRecords,
+  removeRecord,
   getRecord,
 };

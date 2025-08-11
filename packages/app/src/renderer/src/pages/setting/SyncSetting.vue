@@ -20,9 +20,9 @@
                 <n-text strong>{{ config.name }}</n-text>
               </template>
               <template #header-extra>
-                <n-space>
+                <n-space align="center">
                   <n-button type="primary" @click="editSyncConfig(index)">编辑</n-button>
-                  <n-button type="error" @click="deleteSyncConfig(index)">删除</n-button>
+                  <n-button type="error" text @click="deleteSyncConfig(index)">删除</n-button>
                 </n-space>
               </template>
               <n-space vertical>

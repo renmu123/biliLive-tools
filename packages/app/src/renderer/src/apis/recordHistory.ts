@@ -45,6 +45,17 @@ export async function queryRecords(params: QueryRecordsParams) {
   return res.data;
 }
 
+/**
+ * 删除单个直播记录
+ * @param id 记录ID
+ * @returns 删除结果
+ */
+export async function removeRecord(id: number) {
+  const res = await request.delete(`/record-history/${id}`);
+  return res.data;
+}
+
 export default {
   queryRecords,
+  removeRecord,
 };
