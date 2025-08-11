@@ -37,50 +37,30 @@ async function getRecorders(
     list = list.filter((item) => (item.disableAutoCheck ? "2" : "1") === params.autoCheck);
   }
 
-  // 获取直播信息用于排序
-  let liveInfoMap: Map<string, any> = new Map();
-  if (params.sortField === "living") {
-    const ids = list.map((item) => item.id);
-    try {
-      const liveInfos = await getLiveInfo(ids);
-      liveInfoMap = new Map(liveInfos.map((info) => [info.channelId, info]));
-    } catch (error) {
-      logger.error("获取直播信息失败:", error);
-    }
-  }
-
   // 排序逻辑
-  if (params.sortField) {
-    list = [...list].sort((a, b) => {
-      let comparison = 0;
-      const sortDirection = params.sortDirection || "desc";
+  list.sort((a, b) => {
+    let comparison = 1;
+    const sortDirection = params.sortDirection || "desc";
 
-      if (params.sortField === "living") {
-        const aLiveInfo = liveInfoMap.get(a.channelId);
-        const bLiveInfo = liveInfoMap.get(b.channelId);
-        const aLiving = a.liveInfo?.living ?? aLiveInfo?.living ?? false;
-        const bLiving = b.liveInfo?.living ?? bLiveInfo?.living ?? false;
-        comparison = aLiving === bLiving ? 0 : aLiving ? -1 : 1;
-      } else if (params.sortField === "state") {
-        comparison = a.state === b.state ? 0 : a.state === "recording" ? -1 : 1;
-      } else if (params.sortField === "monitorStatus") {
-        // 自动监听优先于手动
-        const aIsManual = a.disableAutoCheck;
-        const bIsManual = b.disableAutoCheck;
+    if (params.sortField === "state") {
+      comparison = a.state === b.state ? 0 : a.state === "recording" ? -1 : 1;
+    } else if (params.sortField === "monitorStatus") {
+      // 自动监听优先于手动
+      const aIsManual = a.disableAutoCheck;
+      const bIsManual = b.disableAutoCheck;
 
-        if (aIsManual === bIsManual) {
-          // 如果监听类型相同，比较是否跳过本场直播
-          const aIsSkipping = a.tempStopIntervalCheck && !a.disableAutoCheck;
-          const bIsSkipping = b.tempStopIntervalCheck && !b.disableAutoCheck;
-          comparison = aIsSkipping === bIsSkipping ? 0 : aIsSkipping ? 1 : -1;
-        } else {
-          comparison = aIsManual ? 1 : -1;
-        }
+      if (aIsManual === bIsManual) {
+        // 如果监听类型相同，比较是否跳过本场直播
+        const aIsSkipping = a.tempStopIntervalCheck && !a.disableAutoCheck;
+        const bIsSkipping = b.tempStopIntervalCheck && !b.disableAutoCheck;
+        comparison = aIsSkipping === bIsSkipping ? 0 : aIsSkipping ? 1 : -1;
+      } else {
+        comparison = aIsManual ? 1 : -1;
       }
+    }
 
-      return sortDirection === "asc" ? -comparison : comparison;
-    });
-  }
+    return sortDirection === "asc" ? -comparison : comparison;
+  });
 
   // 添加分页逻辑
   const page = Number(params.page) || 1;

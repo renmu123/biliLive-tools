@@ -259,7 +259,7 @@ const pagination = ref({
 
 const list = computed(() => {
   // 后端已经处理了排序，前端只需要合并直播信息
-  return recorderList.value.map((item) => {
+  const mappedList = recorderList.value.map((item) => {
     const liveInfo = liveInfos.value.find((liveInfo) => liveInfo.channelId === item.channelId);
     return {
       ...item,
@@ -269,6 +269,19 @@ const list = computed(() => {
       roomTitle: liveInfo?.title,
       living: item?.liveInfo?.living ?? liveInfo?.living,
     };
+  });
+
+  if (!sortField.value) return mappedList;
+
+  return [...mappedList].sort((a, b) => {
+    let comparison = 0;
+    const currentDirection = sortDirections[sortField.value];
+
+    if (sortField.value === "living") {
+      comparison = a.living === b.living ? 0 : a.living ? -1 : 1;
+    }
+
+    return currentDirection === "asc" ? -comparison : comparison;
   });
 });
 
