@@ -1,6 +1,7 @@
 # 1.5.1
 
 - `resolveChannelInfoFromURL` 新增返回参数：`avatar`
+- 优化直播间解析
 
 # 1.5.0
 

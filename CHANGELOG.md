@@ -11,6 +11,7 @@
 
 - 录制：设置筛选后页码自动设置为第一页 [#139](https://github.com/renmu123/biliLive-tools/issues/139)
 - 录制：支持更多抖音直播间链接的解析
+- 录制：支持斗鱼更多链接解析
 
 ## Bug修复
 

@@ -508,13 +508,23 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     const html = res.data;
 
     const matched = html.match(/\$ROOM\.room_id.?=(.*?);/);
-    if (!matched) return null;
-    const room_id = matched[1].trim();
+    let roomId: string | undefined = undefined;
+    if (matched) {
+      roomId = matched[1].trim();
+    } else {
+      // 解析<link rel="canonical" href="xxxxxxx"/>中的href
+      const canonicalLink = html.match(/<link rel="canonical" href="(.*?)"/);
+      if (canonicalLink) {
+        const url = canonicalLink[1];
+        roomId = url.split("/").pop();
+      }
+    }
+    if (!roomId) return null;
 
-    const roomInfo = await getRoomInfo(Number(room_id));
+    const roomInfo = await getRoomInfo(Number(roomId));
 
     return {
-      id: matched[1].trim(),
+      id: roomId,
       title: roomInfo.room.room_name,
       owner: roomInfo.room.nickname,
       avatar: roomInfo.room.avatar?.big,
