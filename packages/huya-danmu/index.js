@@ -95,7 +95,7 @@ class huya_danmu extends events {
 
   async _try_connect() {
     try {
-      this._info = await this._retry_async(() => this._get_chat_info(), 10, 2000);
+      this._info = await this._retry_async(() => this._get_chat_info(), 10, 4000);
       if (!this._info) return this.emit("error", new Error("Fail to parse info"));
     } catch (error) {
       this.emit("error", error);
