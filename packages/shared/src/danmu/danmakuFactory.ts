@@ -101,6 +101,9 @@ export class DanmakuFactory {
       } else if (key === "opacity100") {
         const value = ((config.opacity100 / 100) * 255).toFixed(0);
         return `--opacity ${value}`;
+      } else if (key === "outline-opacity-percentage") {
+        const value = ((config["outline-opacity-percentage"] / 100) * 255).toFixed(0);
+        return `--outline-opacity ${value}`;
       } else {
         return `--${key} ${value}`;
       }

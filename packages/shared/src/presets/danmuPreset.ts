@@ -28,6 +28,8 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   fontsize: 40,
   opacity100: 100,
   outline: 1.0,
+  "outline-blur": 0,
+  "outline-opacity-percentage": 100,
   shadow: 0.0,
   displayarea: 1.0,
   scrollarea: 0.7,
