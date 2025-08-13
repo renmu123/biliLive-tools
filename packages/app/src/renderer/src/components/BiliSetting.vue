@@ -144,6 +144,9 @@
               // 默认设置为当前时间+2小时
               scheduledTimestampMillis = Date.now() + 2 * 60 * 60 * 1000 + 10000;
             }
+            if (!value) {
+              options.config.dtime = undefined;
+            }
           }"
         ></n-switch>
         <n-date-picker
