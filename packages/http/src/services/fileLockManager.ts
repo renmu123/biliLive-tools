@@ -1,7 +1,7 @@
 // 文件锁类型定义
 type FileLock = {
   timestamp: number;
-  type: "upload" | "sync";
+  type: "upload" | "sync" | "deleteAfterCheck";
 };
 
 // 文件锁管理器
@@ -10,7 +10,7 @@ class FileLockManager {
   private readonly LOCK_TIMEOUT = 48 * 60 * 60 * 1000; // 24小时超时
 
   // 获取文件锁
-  acquireLock(filePath: string, type: "upload" | "sync"): boolean {
+  acquireLock(filePath: string, type: FileLock["type"]): boolean {
     const now = Date.now();
     const fileLocks = this.locks.get(filePath) || new Set<FileLock>();
 
@@ -35,7 +35,7 @@ class FileLockManager {
   }
 
   // 释放文件锁
-  releaseLock(filePath: string, type: "upload" | "sync"): boolean {
+  releaseLock(filePath: string, type: FileLock["type"]): boolean {
     const fileLocks = this.locks.get(filePath);
     if (!fileLocks) return false;
 
@@ -55,7 +55,7 @@ class FileLockManager {
   }
 
   // 检查文件是否被特定类型的锁锁定
-  isLocked(filePath: string, type?: "upload" | "sync"): boolean {
+  isLocked(filePath: string, type?: FileLock["type"]): boolean {
     const fileLocks = this.locks.get(filePath);
     if (!fileLocks) return false;
 

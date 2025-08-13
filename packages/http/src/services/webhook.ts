@@ -1011,6 +1011,12 @@ export class WebhookHandler {
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
     return new Promise((resolve, reject) => {
+      // 如果是审核后删除，需要额外加锁
+      if (afterUploadDeletAction === "deleteAfterCheck") {
+        for (const { path } of pathArray) {
+          this.fileLockManager.acquireLock(path, "deleteAfterCheck");
+        }
+      }
       biliApi
         .addMedia(pathArray, options, uid, {
           limitedUploadTime,
@@ -1018,6 +1024,7 @@ export class WebhookHandler {
           checkCallback: (status) => {
             if (status === "completed") {
               for (const { path } of pathArray) {
+                this.fileLockManager.releaseLock(path, "deleteAfterCheck");
                 const isLocked = this.fileLockManager.isLocked(path);
                 if (!isLocked) {
                   if (afterUploadDeletAction === "deleteAfterCheck") {
@@ -1068,6 +1075,12 @@ export class WebhookHandler {
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
     return new Promise((resolve, reject) => {
+      // 如果是审核后删除，需要额外加锁
+      if (afterUploadDeletAction === "deleteAfterCheck") {
+        for (const { path } of pathArray) {
+          this.fileLockManager.acquireLock(path, "deleteAfterCheck");
+        }
+      }
       biliApi
         .editMedia(aid, pathArray, {}, uid, {
           limitedUploadTime: limitedUploadTime,
@@ -1075,6 +1088,7 @@ export class WebhookHandler {
           checkCallback: (status) => {
             if (status === "completed") {
               for (const { path } of pathArray) {
+                this.fileLockManager.releaseLock(path, "deleteAfterCheck");
                 const isLocked = this.fileLockManager.isLocked(path);
                 if (!isLocked) {
                   if (afterUploadDeletAction === "deleteAfterCheck") {
