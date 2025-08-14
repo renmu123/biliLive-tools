@@ -11,6 +11,6 @@ catalog:
   lodash-es: ^4.17.21
   axios: ^1.7.8
   better-sqlite3: 11.9.0
-  font-ls: 0.4.0
+  font-ls: 0.5.0
   ntsuspend: ^1.0.2
   mitt: ^3.0.1

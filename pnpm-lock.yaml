@@ -13,8 +13,8 @@ catalogs:
       specifier: 11.9.0
       version: 11.9.0
     font-ls:
-      specifier: 0.4.0
-      version: 0.4.0
+      specifier: 0.5.0
+      version: 0.5.0
     lodash-es:
       specifier: ^4.17.21
       version: 4.17.21
@@ -126,8 +126,8 @@ importers:
         specifier: 11.9.0
         version: 11.9.0
       font-ls:
-        specifier: 0.4.0
-        version: 0.4.0
+        specifier: 0.5.0
+        version: 0.5.0
       ntsuspend:
         specifier: ^1.0.2
         version: 1.0.2
@@ -300,7 +300,7 @@ importers:
         version: 6.3.9
       font-ls:
         specifier: 'catalog:'
-        version: 0.4.0
+        version: 0.5.0
       ntsuspend:
         specifier: 'catalog:'
         version: 1.0.2
@@ -608,7 +608,7 @@ importers:
         version: 4.5.0
       font-ls:
         specifier: 'catalog:'
-        version: 0.4.0
+        version: 0.5.0
       nodemailer:
         specifier: ^6.9.16
         version: 6.9.16
@@ -3249,8 +3249,8 @@ packages:
       debug:
         optional: true
 
-  font-ls@0.4.0:
-    resolution: {integrity: sha512-WO4uWO/4yj5qGJZzqrlb+HhrNzbHCfJMPd2jKlHm6G9yU1/7AMcc1f0rYMNsS3K+msufhCaH0IBJBJA+JZDClw==}
+  font-ls@0.5.0:
+    resolution: {integrity: sha512-5y8V5EeQSVTe3113dCZnrk7mePIbyu2OrTULAHF+rULdhOGC3dPgNeFRUFyORXHyRlqwZ5/CkNXFGbBFu9zgzQ==}
 
   foreground-child@3.3.0:
     resolution: {integrity: sha512-Ld2g8rrAyMYFXBhEqMz8ZAHBi4J4uS1i/CxGMDnjyFWddMXLVcDp051DZfu+t7+ab7Wv6SMqpWmyFIj5UbfFvg==}
@@ -3810,6 +3810,7 @@ packages:
   koa-router@13.0.1:
     resolution: {integrity: sha512-4/sijXdSxocIe2wv7RFFSxvo2ic1pDzPSmy11yCGztng1hx408qfw1wVmN3aqhQaU7U6nJ039JKC8ObE73Ohgw==}
     engines: {node: '>= 18'}
+    deprecated: 'Please use @koa/router instead, starting from v9! '
 
   koa-sse-stream@0.2.0:
     resolution: {integrity: sha512-Dyp3YS5HfnpE17Mk8HWl+6IMVgO/VU5rGXPKjgej+BrfdZZfRv2AXAm6osd380xcjhcXJgaHg23ntdLbpjCIDQ==}
@@ -8478,7 +8479,7 @@ snapshots:
 
   follow-redirects@1.15.9: {}
 
-  font-ls@0.4.0:
+  font-ls@0.5.0:
     dependencies:
       node-addon-api: 8.3.1
 
