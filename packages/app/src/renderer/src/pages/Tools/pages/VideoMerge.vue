@@ -33,7 +33,12 @@
       <div></div>
       <div style="margin-top: 10px">
         <n-checkbox v-model:checked="options.saveOriginPath"> 保存到原始文件夹 </n-checkbox>
-        <n-checkbox v-model:checked="options.keepFirstVideoMeta"> 保留第一个视频元数据 </n-checkbox>
+        <n-checkbox
+          v-model:checked="options.keepFirstVideoMeta"
+          title="将保留第一个文件的相关元数据，除了可能影响压制时间戳参数之外，对普通用户应该没啥太大用处"
+        >
+          保留元数据
+        </n-checkbox>
       </div>
     </div>
   </div>
@@ -149,8 +154,21 @@ const convert = async () => {
     });
 
     if (options.mergeXml) {
-      // @ts-expect-error
-      danmaApi.mergeXml(fileList.value, { output: xmlOutput });
+      danmaApi
+        // @ts-expect-error
+        .mergeXml(fileList.value, { output: xmlOutput, saveMeta: options.keepFirstVideoMeta })
+        .then(() => {
+          notice.success({
+            title: `弹幕合并成功`,
+            duration: 1000,
+          });
+        })
+        .catch((err) => {
+          notice.error({
+            title: err as string,
+            duration: 1000,
+          });
+        });
     }
   } catch (err) {
     notice.error({

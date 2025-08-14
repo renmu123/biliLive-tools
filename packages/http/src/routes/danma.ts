@@ -12,6 +12,7 @@ router.post("/mergeXml", async (ctx) => {
     options: {
       output?: string;
       saveOriginPath: boolean;
+      saveMeta?: boolean;
     };
   };
   await mergeXml(inputFiles, options);

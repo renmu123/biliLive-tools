@@ -175,7 +175,7 @@ export type ToolConfig = {
     saveOriginPath: boolean;
     /** 完成后移除源文件 */
     removeOrigin: boolean;
-    /** 保留第一个视频元数据 */
+    /** 保留元数据 */
     keepFirstVideoMeta: boolean;
     /** 合并弹幕 */
     mergeXml: boolean;
