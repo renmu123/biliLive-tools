@@ -7,6 +7,7 @@
 - 录制：录制历史支持删除 [#145](https://github.com/renmu123/biliLive-tools/issues/145)
 - 录制：录制历史中的视频文件支持默认程序打开 [#145](https://github.com/renmu123/biliLive-tools/issues/145)
 - 弹幕转换：增加描边模糊半径和描边不透明度设置 [#144](https://github.com/renmu123/biliLive-tools/pull/126)
+- 上传：支持定时发布参数 [#146](https://github.com/renmu123/biliLive-tools/pull/146)
 
 ## 优化
 
