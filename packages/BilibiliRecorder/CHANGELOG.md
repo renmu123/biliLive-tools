@@ -1,6 +1,7 @@
 # 1.5.1
 
 - `resolveChannelInfoFromURL` 新增返回参数：`avatar`
+- 弹幕录制切换回原项目`blive-message-listener`
 
 # 1.5.0
 

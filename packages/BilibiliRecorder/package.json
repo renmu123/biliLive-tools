@@ -39,7 +39,7 @@
   "license": "LGPL",
   "dependencies": {
     "@bililive-tools/manager": "workspace:^",
-    "blive-message-listener": "^0.5.0",
+    "blive-message-listener": "^0.5.1",
     "mitt": "catalog:",
     "tiny-bilibili-ws": "^1.0.2",
     "lodash-es": "catalog:",

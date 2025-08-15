@@ -1,5 +1,5 @@
 import { EventEmitter } from "node:events";
-import { startListen, MsgHandler } from "./blive-message-listener/index.js";
+import { startListen, MsgHandler } from "blive-message-listener";
 import { getBuvidConf } from "./bilibili_api.js";
 import type { Comment, GiveGift, SuperChat, Guard } from "@bililive-tools/manager";
 
