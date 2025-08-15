@@ -134,7 +134,7 @@
         <template #label>
           <Tip
             text="定时发布"
-            tip="可选择距离当前最早≥2小时/最晚≤15天的时间，花火稿件或距发布不足5分钟时不可修改/取消"
+            tip="可选择距离当前最早≥2小时/最晚≤15天的时间，花火稿件或距发布不足5分钟时不可修改/取消，不会保存到配置中"
           ></Tip>
         </template>
         <n-date-picker
@@ -543,6 +543,13 @@ const savePreset = async () => {
     data.config.uid = userInfoStore.userInfo.uid;
   }
   await _savePreset(options.value);
+  if (options.value.config.dtime) {
+    notice.warning({
+      title: "保存成功，但定时发布不会保存到配置文件中",
+      duration: 1000,
+    });
+    return;
+  }
   notice.success({
     title: "保存成功",
     duration: 1000,

@@ -2,6 +2,7 @@ import Router from "koa-router";
 import { container } from "../index.js";
 
 import type { DanmuPreset, VideoPreset, FFmpegPreset } from "@biliLive-tools/shared";
+import { omit } from "lodash-es";
 
 const router = new Router({
   prefix: "/preset",
@@ -43,6 +44,8 @@ router.get("/video/:id", async (ctx) => {
 router.post("/video", async (ctx) => {
   const preset = container.resolve<VideoPreset>("videoPreset");
   const data: any = ctx.request.body;
+
+  data.config = omit(data.config, ["dtime"]);
   ctx.body = await preset.save(data);
 });
 router.del("/video/:id", async (ctx) => {
@@ -52,6 +55,8 @@ router.del("/video/:id", async (ctx) => {
 router.put("/video/:id", async (ctx) => {
   const preset = container.resolve<VideoPreset>("videoPreset");
   const data: any = ctx.request.body;
+
+  data.config = omit(data.config, ["dtime"]);
   ctx.body = await preset.save({ ...data, id: ctx.params.id });
 });
 
