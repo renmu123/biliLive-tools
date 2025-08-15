@@ -137,26 +137,16 @@
             tip="可选择距离当前最早≥2小时/最晚≤15天的时间，花火稿件或距发布不足5分钟时不可修改/取消"
           ></Tip>
         </template>
-        <n-switch
-          v-model:value="isScheduledPublishOption"
-          @update:value="(value) => {
-            if (value && !options.config.dtime) {
-              // 默认设置为当前时间+2小时
-              scheduledTimestampMillis = Date.now() + 2 * 60 * 60 * 1000 + 10000;
-            }
-            if (!value) {
-              options.config.dtime = undefined;
-            }
-          }"
-        ></n-switch>
         <n-date-picker
           type="datetime"
-          v-show="isScheduledPublishOption"
-          style="margin-left: 1em"
+          clearable
+          placeholder="请选择定时发布时间"
           :value="scheduledTimestampMillis"
-          :on-update:value="(value) => {
-            scheduledTimestampMillis = value;
-          }"
+          :on-update:value="
+            (value) => {
+              scheduledTimestampMillis = value;
+            }
+          "
         ></n-date-picker>
       </n-form-item>
 
@@ -474,22 +464,19 @@ const rename = () => {
   nameModelVisible.value = true;
 };
 
-const isScheduledPublishOption = ref(false);
 const scheduledDatetimeRule: FormItemRule = {
   trigger: ["blur", "change"],
   validator() {
-    if (isScheduledPublishOption.value) {
-      if (!options.value.config.dtime) {
-        return new Error("请选择定时发布时间");
-      }
-      const now = Date.now() / 1000;
-      const dtime = options.value.config.dtime;
-      if (dtime < now + 2 * 60 * 60) {
-        return new Error("定时发布时间必须≥当前时间+2小时");
-      }
-      if (dtime > now + 15 * 24 * 60 * 60) {
-        return new Error("定时发布时间必须≤当前时间+15天");
-      }
+    if (!options.value.config.dtime) {
+      return true;
+    }
+    const now = Date.now() / 1000;
+    const dtime = options.value.config.dtime;
+    if (dtime < now + 2 * 60 * 60) {
+      return new Error("定时发布时间必须≥当前时间+2小时");
+    }
+    if (dtime > now + 15 * 24 * 60 * 60) {
+      return new Error("定时发布时间必须≤当前时间+15天");
     }
     return true;
   },
