@@ -83,6 +83,14 @@ export const getCookie = async () => {
     })
     .join("; ");
 
+  if (!cookies.includes("ttwid")) {
+    // 如果不含ttwid，且已经存在含ttwid的cookie，将缓存时间直接增加1小时，复用之前的参数
+    if (cookieCache?.cookies) {
+      cookieCache.startTimestamp += 60 * 60 * 1000; // 增加1小时
+      return cookieCache.cookies;
+    }
+  }
+
   cookieCache = {
     startTimestamp: now,
     cookies,
@@ -164,7 +172,7 @@ export async function getRoomInfo(
 
   assert(
     res.data.status_code === 0,
-    `Unexpected resp, code ${res.data.status_code}, msg ${JSON.stringify(res.data.data)}, id ${webRoomId}`,
+    `Unexpected resp, code ${res.data.status_code}, msg ${JSON.stringify(res.data.data)}, id ${webRoomId}, cookies: ${cookies}`,
   );
 
   const data = res.data.data;

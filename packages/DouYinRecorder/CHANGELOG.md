@@ -2,6 +2,7 @@
 
 - `resolveChannelInfoFromURL` 新增返回参数：`avatar`
 - 增加更多链接的解析
+- 优化获取ttwid的策略
 
 # 1.5.1
 

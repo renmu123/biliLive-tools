@@ -175,7 +175,7 @@ export type ToolConfig = {
     saveOriginPath: boolean;
     /** 完成后移除源文件 */
     removeOrigin: boolean;
-    /** 保留第一个视频元数据 */
+    /** 保留元数据 */
     keepFirstVideoMeta: boolean;
     /** 合并弹幕 */
     mergeXml: boolean;
@@ -812,6 +812,8 @@ export interface BiliupConfig {
   is_only_self?: 0 | 1;
   /** 新分区 */
   human_type2?: number;
+  /** 定时发布：10位秒级时间戳。必须距离提交时间>7200秒 */
+  dtime?: number;
 }
 
 export type BiliupConfigAppend = Partial<BiliupConfig> & {

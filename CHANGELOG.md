@@ -7,17 +7,24 @@
 - 录制：录制历史支持删除 [#145](https://github.com/renmu123/biliLive-tools/issues/145)
 - 录制：录制历史中的视频文件支持默认程序打开 [#145](https://github.com/renmu123/biliLive-tools/issues/145)
 - 弹幕转换：增加描边模糊半径和描边不透明度设置 [#144](https://github.com/renmu123/biliLive-tools/pull/126)
+- 上传：支持定时发布参数 [#146](https://github.com/renmu123/biliLive-tools/pull/146)
 
 ## 优化
 
 - 录制：设置筛选后页码自动设置为第一页 [#139](https://github.com/renmu123/biliLive-tools/issues/139)
 - 录制：支持更多抖音直播间链接的解析
 - 录制：支持斗鱼更多链接解析
+- 合并：“保留第一个视频元数据”修改为“保留元数据”，同时对弹幕生效
+
+## 其他
+
+- electron升级到37版本
 
 ## Bug修复
 
 - 修复某些老古董斗鱼录播无法下载的bug
 - 录制：修复虎牙星秀区录制原画可能失败的bug
+- 录制：修复B站某些弹幕解析失败的bug
 - webhook：修复某些情况下开启同步和审核后删除，审核失败仍然删除文件的bug
 
 # 2.4.0(2025.8.5)

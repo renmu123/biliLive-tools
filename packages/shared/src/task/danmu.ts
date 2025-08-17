@@ -299,6 +299,7 @@ export function generateMergedXmlContent(
   mergedGift: CommonItem[],
   mergedSc: CommonItem[],
   mergedGuard: CommonItem[],
+  metadata: Record<string, any> | null = null,
 ): string {
   const builder = new XMLBuilder({
     ignoreAttributes: false,
@@ -307,6 +308,7 @@ export function generateMergedXmlContent(
   });
 
   const xmlContent = builder.build({
+    metadata,
     i: {
       d: mergedDanmuku,
       gift: mergedGift,
@@ -325,6 +327,7 @@ export const mergeXml = async (
   inputFiles: { videoPath: string; danmakuPath: string }[],
   options: {
     output?: string;
+    saveMeta?: boolean;
   } = {},
 ) => {
   if (inputFiles.length === 0) {
@@ -378,6 +381,8 @@ export const mergeXml = async (
   const mergedGuard: CommonItem[] = [];
   const mergedGift: CommonItem[] = [];
 
+  const metadata = options.saveMeta ? videoData[0]?.meta : null;
+
   for (const data of videoData) {
     // 处理各类型弹幕并添加到对应数组
     mergedDanmuku.push(
@@ -389,7 +394,13 @@ export const mergeXml = async (
   }
 
   // 生成XML内容
-  const xmlContent = generateMergedXmlContent(mergedDanmuku, mergedGift, mergedSc, mergedGuard);
+  const xmlContent = generateMergedXmlContent(
+    mergedDanmuku,
+    mergedGift,
+    mergedSc,
+    mergedGuard,
+    metadata,
+  );
 
   // 写入合并后的XML文件
   await fs.writeFile(outputPath, xmlContent);

@@ -130,6 +130,26 @@
         />
       </n-form-item>
 
+      <n-form-item path="dtime" :rule="scheduledDatetimeRule">
+        <template #label>
+          <Tip
+            text="定时发布"
+            tip="可选择距离当前最早≥2小时/最晚≤15天的时间，花火稿件或距发布不足5分钟时不可修改/取消，不会保存到配置中"
+          ></Tip>
+        </template>
+        <n-date-picker
+          type="datetime"
+          clearable
+          placeholder="请选择定时发布时间"
+          :value="scheduledTimestampMillis"
+          :on-update:value="
+            (value) => {
+              scheduledTimestampMillis = value;
+            }
+          "
+        ></n-date-picker>
+      </n-form-item>
+
       <n-form-item label="粉丝动态">
         <n-input
           v-model:value="options.config.dynamic"
@@ -331,18 +351,20 @@
 </template>
 
 <script setup lang="ts">
-import { deepRaw, uuid } from "@renderer/utils";
-import { useConfirm } from "@renderer/hooks";
-import { videoPresetApi, biliApi } from "@renderer/apis";
+import { biliApi, videoPresetApi } from "@renderer/apis";
 import { previewWebhookTitle } from "@renderer/apis/common";
+import { useConfirm } from "@renderer/hooks";
+import { deepRaw, uuid } from "@renderer/utils";
 
-import { useUploadPreset, useAppConfig, useUserInfoStore } from "@renderer/stores";
-import { cloneDeep } from "lodash-es";
-import { templateRef } from "@vueuse/core";
-import DynamicTags from "./DynamicTags.vue";
 import { uploadTitleTemplate } from "@renderer/enums";
+import { useAppConfig, useUploadPreset, useUserInfoStore } from "@renderer/stores";
+import { templateRef } from "@vueuse/core";
+import { cloneDeep } from "lodash-es";
+import DynamicTags from "./DynamicTags.vue";
 
 import type { BiliupPreset } from "@biliLive-tools/types";
+import { FormItemRule } from "naive-ui";
+import { computed } from "vue";
 
 const confirm = useConfirm();
 const { getUploadPresets } = useUploadPreset();
@@ -442,6 +464,32 @@ const rename = () => {
   nameModelVisible.value = true;
 };
 
+const scheduledDatetimeRule: FormItemRule = {
+  trigger: ["blur", "change"],
+  validator() {
+    if (!options.value.config.dtime) {
+      return true;
+    }
+    const now = Date.now() / 1000;
+    const dtime = options.value.config.dtime;
+    if (dtime < now + 2 * 60 * 60) {
+      return new Error("定时发布时间必须≥当前时间+2小时");
+    }
+    if (dtime > now + 15 * 24 * 60 * 60) {
+      return new Error("定时发布时间必须≤当前时间+15天");
+    }
+    return true;
+  },
+};
+const scheduledTimestampMillis = computed({
+  get() {
+    return options.value.config.dtime ? options.value.config.dtime * 1000 : undefined;
+  },
+  set(value) {
+    options.value.config.dtime = value ? Math.floor(value / 1000) : undefined;
+  },
+});
+
 const saveAnotherPresetConfirm = async () => {
   if (!tempPresetName.value) {
     notice.warning({
@@ -495,6 +543,13 @@ const savePreset = async () => {
     data.config.uid = userInfoStore.userInfo.uid;
   }
   await _savePreset(options.value);
+  if (options.value.config.dtime) {
+    notice.warning({
+      title: "保存成功，但定时发布不会保存到配置文件中",
+      duration: 1000,
+    });
+    return;
+  }
   notice.success({
     title: "保存成功",
     duration: 1000,

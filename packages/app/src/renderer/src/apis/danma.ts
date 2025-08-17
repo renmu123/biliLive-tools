@@ -5,6 +5,7 @@ export const mergeXml = async (
   options: {
     output?: string;
     saveOriginPath: boolean;
+    saveMeta?: boolean;
   },
 ) => {
   const res = await request.post("/danma/mergeXml", {
