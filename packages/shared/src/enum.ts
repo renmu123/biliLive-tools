@@ -223,7 +223,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     line: "auto",
     concurrency: 3,
     limitRate: 0,
-    retryTimes: 7,
+    retryTimes: 10,
     retryDelay: 7000,
     checkInterval: 600,
     accountAutoCheck: false,

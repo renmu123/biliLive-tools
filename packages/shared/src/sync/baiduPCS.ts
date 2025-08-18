@@ -344,7 +344,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
     const typeMatch = data.match(/类型\s+(.+)/);
     const pathMatch = data.match(/文件路径\s+(.+)/);
     const filenameMatch = data.match(/文件名称\s+(.+)/);
-    const sizeMatch = data.match(/文件大小\s+(\d+),\s+([\d.]+[KMG]B)/);
+    const sizeMatch = data.match(/文件大小\s+(\d+),\s+([\d.]+[KMG]?B)/);
     const md5Match = data.match(/md5 \(可能不正确\)\s+([a-f0-9]{32})/i);
     const appIdMatch = data.match(/app_id\s+(\d+)/);
     const fsIdMatch = data.match(/fs_id\s+(\d+)/);
