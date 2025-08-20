@@ -9,6 +9,8 @@ const syncTestUpload = async (data: {
   apiUrl?: string;
   username?: string;
   password?: string;
+  clientId?: string;
+  clientSecret?: string;
 }) => {
   const res = await request.post(`/sync/uploadTest`, data);
   return res.data;
@@ -20,6 +22,8 @@ const syncTestLogin = async (data: {
   apiUrl?: string;
   username?: string;
   password?: string;
+  clientId?: string;
+  clientSecret?: string;
 }) => {
   const res = await request.get(`/sync/isLogin`, { params: data });
   return res.data;
