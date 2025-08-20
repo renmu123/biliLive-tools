@@ -379,7 +379,7 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
 
       // 执行登录命令
       this.logger.info("尝试通过Cookie登录百度网盘...");
-      await this.executeCommand(["login", "-cookies=" + cookie.trim()]);
+      await this.executeCommand(["login", "-cookies", cookie.trim()]);
       return true;
     } catch (error: any) {
       this.logger.error(`百度网盘登录失败: ${error.message}`);
