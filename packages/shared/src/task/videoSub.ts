@@ -362,7 +362,7 @@ export async function createInterval() {
     logger.error("检查订阅失败", error);
   } finally {
     const interval = appConfig?.data?.video?.subCheckInterval ?? 60;
-    setTimeout(checkAll, interval * 60 * 1000);
+    setTimeout(createInterval, interval * 60 * 1000);
   }
 }
 
