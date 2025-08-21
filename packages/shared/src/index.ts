@@ -11,6 +11,7 @@ import logger, { initLogger, setLogLevel } from "./utils/log.js";
 import { migrateBiliUser, checkAccountLoop } from "./task/bili.js";
 import BiliCheckQueue from "./task/BiliCheckQueue.js";
 import { createInterval as checkSubLoop } from "./task/videoSub.js";
+import { check as checkVirtualRecordLoop } from "./task/virtualRecord.js";
 import { createRecorderManager } from "./recorder/index.js";
 import { sendNotify } from "./notify.js";
 import { initDB } from "./db/index.js";
@@ -58,6 +59,7 @@ const init = async (config: GlobalConfig) => {
     checkAccountLoop();
     checkDiskSpaceLoop();
     checkSubLoop();
+    checkVirtualRecordLoop();
   } catch (error) {
     logger.error("初始化失败", error);
   }
