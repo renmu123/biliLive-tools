@@ -33,7 +33,7 @@ class huya_danmu extends events {
   }
 
   // 重试辅助函数
-  async _retry_async(asyncFn, retries = 3, delay = 1000) {
+  async _retry_async(asyncFn, retries = 3, baseDelay = 1000) {
     let lastError;
     for (let i = 0; i <= retries; i++) {
       try {
@@ -44,8 +44,9 @@ class huya_danmu extends events {
         if (i === retries) {
           throw lastError;
         }
-        // 等待指定时间后重试
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        // 使用递增延迟：基础延迟 * (重试次数 + 1)
+        const currentDelay = baseDelay * (i + 1);
+        await new Promise((resolve) => setTimeout(resolve, currentDelay));
       }
     }
   }
@@ -95,7 +96,7 @@ class huya_danmu extends events {
 
   async _try_connect() {
     try {
-      this._info = await this._retry_async(() => this._get_chat_info(), 10, 4000);
+      this._info = await this._retry_async(() => this._get_chat_info(), 10, 3000);
       if (!this._info) return this.emit("error", new Error("Fail to parse info"));
     } catch (error) {
       this.emit("error", error);
