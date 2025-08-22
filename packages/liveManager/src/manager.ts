@@ -261,9 +261,10 @@ export function createRecorderManager<
       );
       recorder.on("RecordStop", ({ recordHandle, reason }) => {
         this.emit("RecordStop", { recorder, recordHandle, reason });
-        // 如果reason中存在"invalid stream"，说明直播可能由于某些原因中断了，虽然会在下一次检查中继续，但是会遗漏一段时间。
+        // 如果reason中存在"invalid stream"，说明直播由于某些原因中断了，虽然会在下一次周期检查中继续，但是会遗漏一段时间。
         // 这时候可以触发一次检查，但出于直播可能抽风的原因，为避免风控，一场直播最多触发五次。
         // 测试阶段，还需要一个开关，默认关闭，几个版本后转正使用
+        // 也许之后还能链接复用，但也会引入更多复杂度，需要谨慎考虑
         if (
           manager.recordRetryImmediately &&
           reason &&
