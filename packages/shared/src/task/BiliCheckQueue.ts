@@ -98,7 +98,7 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
         item.status = "completed";
         this.emit("update", media.aid, "completed", media);
       } else if (media.state < 0) {
-        if (media.state === -30 || media.state === -6) {
+        if (media.state === -30 || media.state === -6 || media.state === -60) {
           // 审核中，不要干啥操作
           // TODO: 如果是复核中状态也不要操作啥，但我也不知道状态码是什么
           continue;

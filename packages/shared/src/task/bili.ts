@@ -462,7 +462,7 @@ async function biliMediaAction(
         try {
           await sendNotifyWithThrottle(
             `《${media.title}》稿件审核未通过`,
-            `请前往B站创作中心查看详情\n稿件名：${media.title}\n状态：${media.state_desc}`,
+            `请前往B站创作中心查看详情\n稿件名：${media.title}\n状态：${media.state_desc}\n状态码：${media.state}`,
             options.aid!,
             { type: "mediaStatusCheck" },
           );
