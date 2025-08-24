@@ -624,6 +624,19 @@ export interface AppConfig {
     /** 保存路径 */
     subSavePath: string;
   };
+  // 虚拟录制
+  virtualRecord: {
+    config: {
+      id: string;
+      // 是否启用
+      switch: boolean;
+      // 虚拟直播间号
+      roomId: string;
+      /** 监听文件夹 */
+      watchFolder: string;
+    }[];
+    startTime: number;
+  };
 }
 
 export interface Video2Mp4Options {

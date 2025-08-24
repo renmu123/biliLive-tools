@@ -276,6 +276,9 @@
         <n-tab-pane name="recorder" tab="直播录制">
           <RecordSetting v-model:data="config"></RecordSetting>
         </n-tab-pane>
+        <n-tab-pane name="virtualRecord" tab="虚拟录制">
+          <VirtualRecordSetting v-model:data="config"></VirtualRecordSetting>
+        </n-tab-pane>
         <n-tab-pane name="task" tab="任务">
           <TaskSetting v-model:data="config"></TaskSetting>
         </n-tab-pane>
@@ -326,6 +329,7 @@ import RecordSetting from "./RecordSetting.vue";
 import TaskSetting from "./TaskSetting.vue";
 import VideoSetting from "./VideoSetting.vue";
 import SyncSetting from "./SyncSetting.vue";
+import VirtualRecordSetting from "./VirtualRecordSetting.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
