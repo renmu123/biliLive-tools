@@ -145,12 +145,16 @@ export const isLogin = async ({
   apiUrl,
   username,
   password,
+  clientId,
+  clientSecret,
 }: {
   execPath?: string;
   type: SyncType;
   apiUrl?: string;
   username?: string;
   password?: string;
+  clientId?: string;
+  clientSecret?: string;
 }) => {
   const { binary: binaryPath } = getConfig(type);
   const instance = createUploadInstance({

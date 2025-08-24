@@ -460,7 +460,7 @@ export interface Recorder {
   >;
 }
 
-export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "copy";
+export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "pan123" | "copy";
 
 export type SyncConfig = {
   id: string;
@@ -562,6 +562,10 @@ export interface AppConfig {
       apiUrl: string;
       username: string;
       hashPassword: string;
+    };
+    pan123: {
+      clientId: string;
+      clientSecret: string;
     };
     syncConfigs: SyncConfig[];
   };
