@@ -324,7 +324,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     topic_id: options.topic_id,
     mission_id: options.mission_id,
     is_only_self: options.is_only_self || 0,
-    dtime: options.dtime,
+    dtime: options.dtime ? options.dtime : undefined,
   };
   return data;
 }
