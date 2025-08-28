@@ -11,6 +11,8 @@ import {
 } from "./utils.js";
 
 export type GetSavePath = (data: { startTime: number; title?: string }) => string;
+type RecorderType = "ffmpeg" | "mesio";
+type VideoFormat = "auto" | "ts" | "mkv" | "flv" | "mp4";
 
 export class Segment extends EventEmitter {
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
@@ -21,9 +23,9 @@ export class Segment extends EventEmitter {
   /** 输出文件名名，不包含拓展名 */
   outputVideoFilePath!: string;
   disableDanma: boolean;
-  videoExt: "ts" | "mkv" | "mp4";
+  videoExt: VideoFormat;
 
-  constructor(getSavePath: GetSavePath, disableDanma: boolean, videoExt: "ts" | "mkv" | "mp4") {
+  constructor(getSavePath: GetSavePath, disableDanma: boolean, videoExt: VideoFormat) {
     super();
     this.getSavePath = getSavePath;
     this.disableDanma = disableDanma;
@@ -115,7 +117,8 @@ export class StreamManager extends EventEmitter {
   recordSavePath: string;
   recordStartTime?: number;
   hasSegment: boolean;
-  private videoFormat?: "auto" | "ts" | "mkv";
+  recorderType: RecorderType = "ffmpeg";
+  private videoFormat?: VideoFormat;
   private callBack?: {
     onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>;
   };
@@ -124,7 +127,8 @@ export class StreamManager extends EventEmitter {
     getSavePath: GetSavePath,
     hasSegment: boolean,
     disableDanma: boolean,
-    videoFormat?: "auto" | "ts" | "mkv",
+    recorderType: RecorderType,
+    videoFormat?: VideoFormat,
     callBack?: {
       onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>;
     },
@@ -133,6 +137,7 @@ export class StreamManager extends EventEmitter {
     const recordSavePath = getSavePath({ startTime: Date.now() });
     this.recordSavePath = recordSavePath;
     this.videoFormat = videoFormat;
+    this.recorderType = recorderType;
     this.hasSegment = hasSegment;
     this.callBack = callBack;
 
@@ -192,6 +197,8 @@ export class StreamManager extends EventEmitter {
       if (!this.hasSegment) {
         return "mp4";
       }
+    } else if (this.videoFormat === "flv") {
+      return "flv";
     }
     return "ts";
   }

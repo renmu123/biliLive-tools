@@ -72,6 +72,16 @@ export const createFFMPEGBuilder = (...args: Parameters<typeof ffmpeg>) => {
   return ffmpeg(...args);
 };
 
+// Mesio path management
+let mesioPath: string = "mesio";
+export function setMesioPath(newPath: string) {
+  mesioPath = newPath;
+}
+
+export function getMesioPath(): string {
+  return mesioPath;
+}
+
 export function getDataFolderPath<E extends AnyObject>(provider: RecorderProvider<E>): string {
   return "./" + provider.id;
 }
