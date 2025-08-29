@@ -2,22 +2,13 @@ import fs from "fs-extra";
 import logger from "../utils/log.js";
 import { TypedEmitter } from "tiny-typed-emitter";
 import { Uploader, getAccessToken, Client } from "pan123-uploader";
+import statisticsService from "../db/service/statisticsService.js";
 
 export interface Pan123Options {
   /**
-   * 123网盘客户端ID
-   */
-  clientId?: string;
-
-  /**
-   * 123网盘客户端密钥
-   */
-  clientSecret?: string;
-
-  /**
    * 访问令牌
    */
-  accessToken?: string;
+  accessToken: string;
 
   /**
    * 上传目标路径
@@ -50,46 +41,18 @@ interface Pan123Events {
  * 使用123pan-uploader进行文件上传
  */
 export class Pan123 extends TypedEmitter<Pan123Events> {
-  private clientId: string;
-  private clientSecret: string;
-  private accessToken: string | null = null;
+  private accessToken: string;
   private remotePath: string;
   private logger: typeof logger | Console;
-  private client: Client | null = null;
+  private client: Client;
   private currentUploader: Uploader | null = null;
 
-  constructor(options?: Pan123Options) {
+  constructor(options: Pan123Options) {
     super();
-    this.clientId = options?.clientId || "";
-    this.clientSecret = options?.clientSecret || "";
-    this.accessToken = options?.accessToken || null;
+    this.accessToken = options.accessToken;
     this.remotePath = options?.remotePath || "/录播";
     this.logger = options?.logger || logger;
-  }
-
-  /**
-   * 获取访问令牌
-   * @returns Promise<boolean> 获取是否成功
-   */
-  public async getToken(): Promise<boolean> {
-    try {
-      if (!this.clientId || !this.clientSecret) {
-        throw new Error("缺少clientId或clientSecret");
-      }
-
-      const response = await getAccessToken(this.clientId, this.clientSecret);
-
-      if (response.code === 0 && response?.data?.accessToken) {
-        this.accessToken = response.data.accessToken;
-        this.client = new Client(this.accessToken!);
-        this.logger.debug("123网盘访问令牌获取成功");
-        return true;
-      } else {
-        throw new Error(`123网盘访问令牌获取失败: ${response.message}`);
-      }
-    } catch (error: any) {
-      throw new Error(`123网盘访问令牌获取出错: ${error.message}`);
-    }
+    this.client = new Client(this.accessToken);
   }
 
   /**
@@ -97,10 +60,9 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
    * @returns boolean 是否已获取访问令牌
    */
   public hasToken(): boolean {
-    return this.accessToken !== null && this.client !== null;
+    return this.accessToken !== null;
   }
   public async isLoggedIn(): Promise<boolean> {
-    await this.getToken();
     return this.hasToken();
   }
 
@@ -141,14 +103,6 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
     }
 
     try {
-      if (!this.hasToken()) {
-        await this.getToken();
-      }
-
-      if (!this.client) {
-        throw new Error("未能获取123网盘客户端");
-      }
-
       // 需要获取目标目录的ID
       let parentFileID = await this.client.mkdirRecursive(this.remotePath);
 
@@ -239,5 +193,73 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
     } else {
       return `${(size / 1024 / 1024 / 1024).toFixed(2)}GB`;
     }
+  }
+}
+
+export async function pan123Login(clientId: string, clientSecret: string): Promise<string> {
+  try {
+    const response = await getAccessToken(clientId, clientSecret);
+
+    if (response.code === 0 && response?.data?.accessToken) {
+      const expiredAt = response.data.expiredAt;
+      // 保存登录信息到StatisticsService
+      const tokenData = {
+        clientId: clientId,
+        access: response.data.accessToken,
+        expired: new Date(expiredAt).getTime(),
+      };
+
+      statisticsService.addOrUpdate({
+        where: { stat_key: "pan123_token" },
+        create: {
+          stat_key: "pan123_token",
+          value: JSON.stringify(tokenData),
+        },
+      });
+
+      return response.data.accessToken;
+    } else {
+      throw new Error(`123网盘访问令牌获取失败: ${response.message}`);
+    }
+  } catch (error: any) {
+    throw new Error(`123网盘访问令牌获取出错: ${error.message}`);
+  }
+}
+
+export async function getToken(clientId: string, clientSecret: string): Promise<string> {
+  if (!clientId || !clientSecret) {
+    throw new Error("缺少clientId或clientSecret");
+  }
+  try {
+    // 从数据库查询现有的token信息
+    const existingData = statisticsService.query("pan123_token");
+
+    if (existingData) {
+      try {
+        const tokenData = JSON.parse(existingData.value);
+
+        // 检查clientId是否匹配
+        if (tokenData.clientId === clientId) {
+          const currentTime = Date.now();
+          const expiredTime = tokenData.expired;
+          const oneDayInMs = 24 * 60 * 60 * 1000; // 一天的毫秒数
+
+          // 检查是否会在一天后过期或已过期
+          if (expiredTime > currentTime + oneDayInMs) {
+            // token还有超过一天的有效期，直接返回
+            return tokenData.access;
+          }
+        }
+      } catch (parseError) {
+        // 数据解析失败，继续执行登录流程
+        logger.warn("解析已存储的123网盘token数据失败，将重新登录");
+      }
+    }
+
+    // 如果没有找到匹配的token，或者token即将过期/已过期，则调用登录
+    const newToken = await pan123Login(clientId, clientSecret);
+    return newToken;
+  } catch (error: any) {
+    throw new Error(`获取123网盘token失败: ${error.message}`);
   }
 }

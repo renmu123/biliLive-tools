@@ -9,6 +9,7 @@ import {
   isLogin,
   baiduPCSLogin,
   aliyunpanLogin,
+  pan123Login,
 } from "@biliLive-tools/shared/task/sync.js";
 
 import type { SyncType } from "@biliLive-tools/types";
@@ -83,6 +84,26 @@ router.post("/baiduPCSLogin", async (ctx) => {
 
   try {
     const success = await baiduPCSLogin({ cookie, execPath });
+    ctx.body = success ? "登录成功" : "登录失败";
+  } catch (error: any) {
+    ctx.status = 500;
+    ctx.body = `登录失败: ${error.message}`;
+  }
+});
+
+router.post("/pan123Login", async (ctx) => {
+  const params = ctx.request.body;
+  // @ts-ignore
+  const { clientId, clientSecret } = params;
+
+  if (!clientId || !clientSecret) {
+    ctx.status = 400;
+    ctx.body = "clientId和clientSecret不能为空";
+    return;
+  }
+
+  try {
+    const success = await pan123Login({ clientId, clientSecret });
     ctx.body = success ? "登录成功" : "登录失败";
   } catch (error: any) {
     ctx.status = 500;

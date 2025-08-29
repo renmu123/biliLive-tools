@@ -3,6 +3,7 @@ import { parse } from "node:path";
 import { appConfig } from "../config.js";
 import { SyncTask, taskQueue } from "./task.js";
 import { BaiduPCS, AliyunPan, Alist, LocalCopy, Pan123 } from "../sync/index.js";
+import { pan123Login as pan123LoginAPi, getToken as getPan123AccessToken } from "../sync/pan123.js";
 import { trashItem } from "../utils/index.js";
 
 import type { SyncType } from "@biliLive-tools/types";
@@ -34,7 +35,7 @@ const getConfig = (type: SyncType) => {
   }
 };
 
-const createUploadInstance = (opts: {
+const createUploadInstance = async (opts: {
   type: SyncType;
   execPath: string;
   remotePath: string;
@@ -66,9 +67,12 @@ const createUploadInstance = (opts: {
       targetPath: opts.remotePath ?? "",
     });
   } else if (opts.type === "pan123") {
+    const accessToken = await getPan123AccessToken(
+      opts.clientId as string,
+      opts.clientSecret as string,
+    );
     return new Pan123({
-      clientId: opts.clientId,
-      clientSecret: opts.clientSecret,
+      accessToken,
       remotePath: opts.remotePath ?? "",
     });
   } else {
@@ -111,7 +115,7 @@ export const addSyncTask = async ({
     clientId: iClientId,
     clientSecret: iClientSecret,
   } = getConfig(type);
-  const instance = createUploadInstance({
+  const instance = await createUploadInstance({
     type,
     execPath: execPath ?? binaryPath,
     remotePath: remotePath ?? "/",
@@ -178,7 +182,7 @@ export const isLogin = async ({
   clientSecret?: string;
 }) => {
   const { binary: binaryPath } = getConfig(type);
-  const instance = createUploadInstance({
+  const instance = await createUploadInstance({
     type,
     execPath: execPath ?? binaryPath,
     remotePath: "",
@@ -194,6 +198,16 @@ export const isLogin = async ({
   } else {
     return instance.isLoggedIn();
   }
+};
+
+export const pan123Login = async ({
+  clientId,
+  clientSecret,
+}: {
+  clientId: string;
+  clientSecret: string;
+}) => {
+  return pan123LoginAPi(clientId, clientSecret);
 };
 
 let aliyunpanLoginInstance: AliyunPan | null = null;

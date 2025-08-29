@@ -42,6 +42,11 @@ const aliyunpanLogin = async (data: {
   return res.data;
 };
 
+const pan123Login = async (data: { clientId: string; clientSecret: string }) => {
+  const res = await request.post(`/sync/pan123Login`, data);
+  return res.data;
+};
+
 const sync = async (data: {
   file: string;
   type: SyncType;
@@ -57,5 +62,6 @@ export default {
   syncTestLogin,
   baiduPCSLogin,
   aliyunpanLogin,
+  pan123Login,
   sync,
 };

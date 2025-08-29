@@ -199,6 +199,11 @@
           />
         </template>
         <template v-else-if="loginType === 'pan123'">
+          <p>
+            你可以前往
+            <a href="https://www.123pan.com/developer" target="_blank">开放平台</a>
+            申请Client ID和Client Secret，请谨慎保管！
+          </p>
           <n-input v-model:value="pan123Data.clientId" placeholder="请输入Client ID" />
           <n-input
             v-model:value="pan123Data.clientSecret"
@@ -416,13 +421,11 @@ const loginConfirm = async () => {
     config.value.sync.alist.hashPassword = sha256ForAlist(alistData.value.password);
     config.value.sync.alist.username = alistData.value.username;
   } else if (loginType.value === "pan123") {
-    await syncApi.syncTestLogin({
+    await syncApi.pan123Login({
       clientId: pan123Data.value.clientId,
       clientSecret: pan123Data.value.clientSecret,
-      type: "pan123",
     });
     config.value.sync.pan123.clientId = pan123Data.value.clientId;
-    // TODO:需要加密
     config.value.sync.pan123.clientSecret = pan123Data.value.clientSecret;
   } else {
     notice.error("登录类型错误，请重新登录");
