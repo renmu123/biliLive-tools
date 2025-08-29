@@ -265,8 +265,10 @@ export function createRecorderManager<
         // 这时候可以触发一次检查，但出于直播可能抽风的原因，为避免风控，一场直播最多触发五次。
         // 测试阶段，还需要一个开关，默认关闭，几个版本后转正使用
         // 也许之后还能链接复用，但也会引入更多复杂度，需要谨慎考虑
+        // 虎牙直播结束后可能额外触发导致错误，忽略虎牙直播间：https://www.huya.com/910323
         if (
           manager.recordRetryImmediately &&
+          recorder.providerId !== "Huya" &&
           reason &&
           reason.includes("invalid stream") &&
           recorder?.liveInfo?.liveId
@@ -280,6 +282,11 @@ export function createRecorderManager<
           if (retryCountObj[key] < 5) {
             retryCountObj[key]++;
           }
+          this.emit("RecorderDebugLog", {
+            recorder,
+            type: "common",
+            text: `录制因“${reason}”中断，触发重试直播（${retryCountObj[key]}）`,
+          });
           // 触发一次检查，等待一秒使状态清理完毕
           setTimeout(() => {
             recorder.checkLiveStatusAndRecord({
