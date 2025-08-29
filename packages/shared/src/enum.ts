@@ -216,6 +216,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       username: "",
       hashPassword: "",
     },
+    pan123: {
+      clientId: "",
+      clientSecret: "",
+    },
     syncConfigs: [],
   },
   llmPresets: [],

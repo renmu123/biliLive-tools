@@ -24,6 +24,8 @@ async function uploadTest(params: {
   apiUrl?: string;
   username?: string;
   password?: string;
+  clientId?: string;
+  clientSecret?: string;
 }) {
   // 在临时文件新建一个文件，内容为"biliLive-tools"
   const tempFilePath = path.join(os.tmpdir(), "biliLive-tools-upload-test.txt");
@@ -89,13 +91,15 @@ router.post("/baiduPCSLogin", async (ctx) => {
 router.get("/isLogin", async (ctx) => {
   const params = ctx.request.query;
   // @ts-ignore
-  const { execPath, type, apiUrl, username, password } = params;
+  const { execPath, type, apiUrl, username, password, clientId, clientSecret } = params;
   const status = await isLogin({
     execPath: execPath as string,
     type: type as SyncType,
     apiUrl: apiUrl as string,
     username: username as string,
     password: password as string,
+    clientId: clientId as string,
+    clientSecret: clientSecret as string,
   });
   ctx.body = status;
 });
