@@ -627,14 +627,27 @@ export interface AppConfig {
   // 虚拟录制
   virtualRecord: {
     config: {
+      mode: "normal" | "advance";
+      // uuid
       id: string;
       // 是否启用
       switch: boolean;
       // 虚拟直播间号
       roomId: string;
+      // 房间号正则
+      roomIdRegex: string;
+      // 标题
+      title: string;
+      // 标题正则
+      titleRegex: string;
+      // 主播名称
+      username: string;
+      // 主播名称正则
+      usernameRegex: string;
       /** 监听文件夹 */
-      watchFolder: string;
+      watchFolder: string[];
     }[];
+    // mode: "watch" | "interval";
     startTime: number;
   };
 }
