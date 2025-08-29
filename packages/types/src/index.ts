@@ -636,8 +636,6 @@ export interface AppConfig {
       roomId: string;
       // 房间号正则
       roomIdRegex: string;
-      // 标题
-      title: string;
       // 标题正则
       titleRegex: string;
       // 主播名称

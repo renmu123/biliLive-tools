@@ -120,7 +120,7 @@ const processFile = async (file: FileInfo, config: VirtualRecordConfig, port: nu
     const filename = path.basename(file.path);
 
     let roomId = config.roomId;
-    let title = config.title || "未知标题";
+    let title = "未知标题";
     let username = config.username || "未知主播";
 
     // 高级模式：从文件名中提取信息
@@ -133,20 +133,20 @@ const processFile = async (file: FileInfo, config: VirtualRecordConfig, port: nu
       }
       roomId = extractedRoomId;
 
-      // 提取标题（可选）
-      if (config.titleRegex) {
-        const extractedTitle = extractInfoFromFilename(filename, config.titleRegex);
-        if (extractedTitle) {
-          title = extractedTitle;
-        }
-      }
-
       // 提取主播名称（可选）
       if (config.usernameRegex) {
         const extractedUsername = extractInfoFromFilename(filename, config.usernameRegex);
         if (extractedUsername) {
           username = extractedUsername;
         }
+      }
+    }
+
+    // 提取标题（两种模式都支持）
+    if (config.titleRegex) {
+      const extractedTitle = extractInfoFromFilename(filename, config.titleRegex);
+      if (extractedTitle) {
+        title = extractedTitle;
       }
     }
 

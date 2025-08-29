@@ -48,10 +48,6 @@
             <n-text>{{ virtualConfig.roomIdRegex || "未设置" }}</n-text>
           </div>
           <div class="info-item">
-            <n-text depth="3">标题:</n-text>
-            <n-text>{{ virtualConfig.title || "未设置" }}</n-text>
-          </div>
-          <div v-if="virtualConfig.mode === 'advance'" class="info-item">
             <n-text depth="3">标题正则:</n-text>
             <n-text>{{ virtualConfig.titleRegex || "未设置" }}</n-text>
           </div>
@@ -150,15 +146,6 @@
                 clearable
               />
             </n-form-item>
-
-            <n-form-item label="标题">
-              <n-input
-                v-model:value="editingConfig.title"
-                placeholder="可选，设置固定标题"
-                clearable
-              />
-            </n-form-item>
-
             <n-form-item label="主播名称">
               <n-input
                 v-model:value="editingConfig.username"
@@ -166,19 +153,29 @@
                 clearable
               />
             </n-form-item>
+            <n-form-item label="标题正则">
+              <n-input
+                v-model:value="editingConfig.titleRegex"
+                placeholder="可选，用于从文件名中提取标题的正则表达式"
+                clearable
+              />
+              <template #suffix>
+                <Tip tip="可选的正则表达式，用于从文件名中提取标题信息" />
+              </template>
+            </n-form-item>
           </template>
 
           <!-- 高级模式配置 -->
           <template v-if="editingConfig.mode === 'advance'">
             <n-form-item label="房间号正则" path="roomIdRegex">
+              <template #suffix>
+                <Tip tip="正则表达式用于从文件名中提取房间号，如果匹配失败将跳过处理" />
+              </template>
               <n-input
                 v-model:value="editingConfig.roomIdRegex"
                 placeholder="用于从文件名中提取房间号的正则表达式"
                 clearable
               />
-              <template #suffix>
-                <Tip tip="正则表达式用于从文件名中提取房间号，如果匹配失败将跳过处理" />
-              </template>
             </n-form-item>
 
             <n-form-item label="标题正则">
@@ -278,7 +275,6 @@ const editingConfig = ref({
   id: "",
   switch: true,
   roomId: "",
-  title: "",
   titleRegex: "",
   roomIdRegex: "",
   username: "",
@@ -331,7 +327,6 @@ const addVirtualRecord = () => {
     id: uuid(),
     switch: true,
     roomId: "",
-    title: "",
     titleRegex: "",
     roomIdRegex: "",
     username: "",
@@ -351,7 +346,6 @@ const editVirtualRecord = (index: number) => {
     id: originalConfig.id,
     switch: originalConfig.switch,
     roomId: originalConfig.roomId || "",
-    title: originalConfig.title || "",
     titleRegex: originalConfig.titleRegex || "",
     roomIdRegex: originalConfig.roomIdRegex || "",
     username: originalConfig.username || "",
