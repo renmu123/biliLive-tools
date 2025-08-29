@@ -23,3 +23,10 @@
 19. 支持设置缓存文件夹（需取消启动时删除文件）
 20. 斗鱼、虎牙下载支持失败持久化
 21. B站下载支持更多选项
+
+## Mesio支持
+
+项目地址：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md
+
+这是一个新的录制工具，支持flv修复，效果可能比ffmpeg的flv录制好，让我们来实验性支持一下看看。
+我们暂时只支持flv流，需要测试pk的分段情况

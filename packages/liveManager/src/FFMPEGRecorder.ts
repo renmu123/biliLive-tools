@@ -45,6 +45,7 @@ export class FFMPEGRecorder extends EventEmitter {
       opts.getSavePath,
       hasSegment,
       this.disableDanma,
+      "ffmpeg",
       opts.videoFormat,
       {
         onUpdateLiveInfo: this.onUpdateLiveInfo,
