@@ -452,6 +452,8 @@ const saveVirtualRecord = async () => {
 .virtual-record-card {
   height: 100%;
   min-height: 120px;
+  max-height: 300px;
+  overflow-y: auto;
   transition: all 0.3s ease;
 
   &:hover {
