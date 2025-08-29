@@ -6,6 +6,7 @@ import {
   replaceExtName,
   ensureFolderExist,
   isFfmpegStartSegment,
+  isMesioStartSegment,
   isFfmpegStart,
   retry,
 } from "./utils.js";
@@ -18,7 +19,7 @@ export class Segment extends EventEmitter {
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
   init = true;
   getSavePath: GetSavePath;
-  /** 原始的ffmpeg文件名，用于重命名 */
+  /** 原始的文件名，用于重命名 */
   rawRecordingVideoPath!: string;
   /** 输出文件名名，不包含拓展名 */
   outputVideoFilePath!: string;
@@ -91,8 +92,17 @@ export class Segment extends EventEmitter {
       );
     }
 
-    const regex = /'([^']+)'/;
-    const match = stderrLine.match(regex);
+    // 支持两种格式的正则表达式
+    // 1. FFmpeg格式: Opening 'filename' for writing
+    // 2. Mesio格式: Opening FLV segment path=filename Processing
+    const ffmpegRegex = /'([^']+)'/;
+    const mesioRegex = /segment path=([^\s]+)/;
+
+    let match = stderrLine.match(ffmpegRegex);
+    if (!match) {
+      match = stderrLine.match(mesioRegex);
+    }
+
     if (match) {
       const filename = match[1];
       this.rawRecordingVideoPath = filename;
@@ -161,27 +171,39 @@ export class StreamManager extends EventEmitter {
   }
 
   async handleVideoStarted(stderrLine: string) {
-    if (this.segment) {
-      if (isFfmpegStartSegment(stderrLine)) {
-        await this.segment.onSegmentStart(stderrLine, this.callBack);
+    if (this.recorderType === "ffmpeg") {
+      if (this.segment) {
+        if (isFfmpegStartSegment(stderrLine)) {
+          await this.segment.onSegmentStart(stderrLine, this.callBack);
+        }
+      } else {
+        // 不能直接在onStart回调进行判断，在某些情况下会链接无法录制的情况
+        if (isFfmpegStart(stderrLine)) {
+          if (this.recordStartTime) return;
+          this.recordStartTime = Date.now();
+          this.emit("videoFileCreated", { filename: this.videoFilePath });
+        }
       }
-    } else {
-      // 不能直接在onStart回调进行判断，在某些情况下会链接无法录制的情况
-      if (isFfmpegStart(stderrLine)) {
-        if (this.recordStartTime) return;
-        this.recordStartTime = Date.now();
-        this.emit("videoFileCreated", { filename: this.videoFilePath });
+    } else if (this.recorderType === "mesio") {
+      if (this.segment && isMesioStartSegment(stderrLine)) {
+        await this.segment.onSegmentStart(stderrLine, this.callBack);
       }
     }
   }
 
   async handleVideoCompleted() {
-    if (this.segment) {
-      await this.segment.handleSegmentEnd();
-    } else {
-      if (this.recordStartTime) {
-        await this.getExtraDataController()?.flush();
-        this.emit("videoFileCompleted", { filename: this.videoFilePath });
+    if (this.recorderType === "ffmpeg") {
+      if (this.segment) {
+        await this.segment.handleSegmentEnd();
+      } else {
+        if (this.recordStartTime) {
+          await this.getExtraDataController()?.flush();
+          this.emit("videoFileCompleted", { filename: this.videoFilePath });
+        }
+      }
+    } else if (this.recorderType === "mesio") {
+      if (this.segment) {
+        await this.segment.handleSegmentEnd();
       }
     }
   }
@@ -204,8 +226,14 @@ export class StreamManager extends EventEmitter {
   }
 
   get videoFilePath() {
-    return this.segment
-      ? `${this.recordSavePath}-PART%03d.${this.videoExt}`
-      : `${this.recordSavePath}.${this.videoExt}`;
+    if (this.recorderType === "ffmpeg") {
+      return this.segment
+        ? `${this.recordSavePath}-PART%03d.${this.videoExt}`
+        : `${this.recordSavePath}.${this.videoExt}`;
+    } else if (this.recorderType === "mesio") {
+      return `${this.recordSavePath}-PART%i.${this.videoExt}`;
+    }
+
+    return `${this.recordSavePath}.${this.videoExt}`;
   }
 }

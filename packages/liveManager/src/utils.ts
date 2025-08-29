@@ -159,6 +159,10 @@ export function isFfmpegStartSegment(line: string) {
   return line.includes("Opening ") && line.includes("for writing");
 }
 
+export function isMesioStartSegment(line: string) {
+  return line.includes("Opening ") && line.includes("segment path=");
+}
+
 export function isFfmpegStart(line: string) {
   return line.includes("frame=") && line.includes("fps=");
 }

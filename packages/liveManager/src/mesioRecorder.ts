@@ -1,8 +1,8 @@
+import path from "node:path";
 import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
-import { StreamManager, utils, getMesioPath } from "./index.js";
-import { createInvalidStreamChecker, assert } from "./utils.js";
+import { StreamManager, getMesioPath } from "./index.js";
 
 // Mesio command builder class similar to ffmpeg
 class MesioCommand extends EventEmitter {
@@ -10,7 +10,6 @@ class MesioCommand extends EventEmitter {
   private _input: string = "";
   private _output: string = "";
   private _inputOptions: string[] = [];
-  private _outputOptions: string[] = [];
   private process: ChildProcess | null = null;
 
   constructor() {
@@ -35,31 +34,22 @@ class MesioCommand extends EventEmitter {
     return this;
   }
 
-  outputOptions(options: string[]): MesioCommand;
-  outputOptions(...options: string[]): MesioCommand;
-  outputOptions(...options: any[]): MesioCommand {
-    const opts = Array.isArray(options[0]) ? options[0] : options;
-    this._outputOptions.push(...opts);
-    return this;
-  }
-
   _getArguments(): string[] {
     const args: string[] = [];
 
     // Add input options first
     args.push(...this._inputOptions);
 
+    // Add output target
+    if (this._output) {
+      const { dir, name } = path.parse(this._output);
+      args.push("-o", dir);
+      args.push("-n", name);
+    }
+
     // Add input source
     if (this._input) {
       args.push(this._input);
-    }
-
-    // Add output options
-    args.push(...this._outputOptions);
-
-    // Add output target
-    if (this._output) {
-      args.push("-o", this._output);
     }
 
     return args;
@@ -146,7 +136,7 @@ export class mesioRecorder extends EventEmitter {
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
-    const hasSegment = !!opts.segment;
+    const hasSegment = true;
     this.disableDanma = opts.disableDanma ?? false;
     this.streamManager = new StreamManager(
       opts.getSavePath,
@@ -197,6 +187,9 @@ export class mesioRecorder extends EventEmitter {
         inputOptions.push("-H", `${key}: ${value}`);
       });
     }
+    if (this.hasSegment) {
+      inputOptions.push("-d", `${this.segment * 60}s`);
+    }
 
     const command = createMesioBuilder()
       .input(this.url)
@@ -208,10 +201,6 @@ export class mesioRecorder extends EventEmitter {
         await this.streamManager.handleVideoStarted(stderrLine);
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
       });
-
-    if (this.hasSegment) {
-      command.outputOptions("-d", `${this.segment * 60}s`);
-    }
 
     return command;
   }
