@@ -41,6 +41,8 @@ async function uploadTest(params: {
       apiUrl: params.apiUrl,
       username: params.username,
       password: params.password,
+      clientId: params.clientId,
+      clientSecret: params.clientSecret,
     });
     task.on("task-end", (data) => {
       console.log("task-end", data);

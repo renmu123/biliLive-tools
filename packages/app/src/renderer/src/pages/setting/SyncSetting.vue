@@ -154,15 +154,17 @@
             >
           </n-form-item>
           <n-form-item>
-            <n-button style="margin-left: 10px" type="primary" @click="login('pan123')"
-              >登录</n-button
-            >
-            <n-button style="margin-left: 10px" type="warning" @click="loginCheck('pan123')"
-              >登录检查</n-button
-            >
-            <n-button style="margin-left: 10px" type="info" @click="uploadCheck('pan123')"
-              >上传测试</n-button
-            >
+            <div style="text-align: right; width: 100%">
+              <n-button style="margin-left: 10px" type="primary" @click="login('pan123')"
+                >登录</n-button
+              >
+              <n-button style="margin-left: 10px" type="warning" @click="loginCheck('pan123')"
+                >登录检查</n-button
+              >
+              <n-button style="margin-left: 10px" type="info" @click="uploadCheck('pan123')"
+                >上传测试</n-button
+              >
+            </div>
           </n-form-item>
         </n-tab-pane>
       </n-tabs>
