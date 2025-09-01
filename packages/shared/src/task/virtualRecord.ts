@@ -72,7 +72,7 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
     });
 
   if (videoFiles.length === 0) {
-    logger.debug(`没有找到符合条件的文件：${folderPath}`);
+    // logger.debug(`没有找到符合条件的文件：${folderPath}`);
     return;
   }
 
@@ -105,7 +105,7 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
     });
 
   if (validFiles.length === 0) {
-    logger.debug(`没有找到符合条件的新文件：${folderPath}`);
+    // logger.debug(`没有找到符合条件的新文件：${folderPath}`);
     return;
   }
 
@@ -115,7 +115,7 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
   const newRecords = validFiles.filter((file) => !existingPathSets.has(file.path));
 
   if (newRecords.length === 0) {
-    logger.debug(`没有新的未处理文件：${folderPath}`);
+    // logger.debug(`没有新的未处理文件：${folderPath}`);
     return;
   }
 
@@ -245,7 +245,7 @@ async function checkVirtualRecordLoop() {
   } catch (error) {
     logger.error("虚拟录制检查失败", error);
   } finally {
-    setTimeout(checkVirtualRecordLoop, 1 * 60 * 1000);
+    setTimeout(checkVirtualRecordLoop, 2 * 60 * 1000);
   }
 }
 

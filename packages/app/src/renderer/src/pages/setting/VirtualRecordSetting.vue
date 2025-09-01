@@ -177,18 +177,6 @@
                 clearable
               />
             </n-form-item>
-
-            <n-form-item label="标题正则">
-              <n-input
-                v-model:value="editingConfig.titleRegex"
-                placeholder="可选，用于从文件名中提取标题的正则表达式"
-                clearable
-              />
-              <template #suffix>
-                <Tip tip="可选的正则表达式，用于从文件名中提取标题信息" />
-              </template>
-            </n-form-item>
-
             <n-form-item label="主播名称正则">
               <n-input
                 v-model:value="editingConfig.usernameRegex"
@@ -197,6 +185,16 @@
               />
               <template #suffix>
                 <Tip tip="可选的正则表达式，用于从文件名中提取主播名称信息" />
+              </template>
+            </n-form-item>
+            <n-form-item label="标题正则">
+              <n-input
+                v-model:value="editingConfig.titleRegex"
+                placeholder="可选，用于从文件名中提取标题的正则表达式"
+                clearable
+              />
+              <template #suffix>
+                <Tip tip="可选的正则表达式，用于从文件名中提取标题信息" />
               </template>
             </n-form-item>
           </template>
