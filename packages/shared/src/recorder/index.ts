@@ -137,7 +137,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     if (recorder.recordHandle) {
       const logFilePath = utils.replaceExtName(
         `${recorder.recordHandle.savePath}_${recorder.id}`,
-        ".ffmpeg.log",
+        ".recorder.log",
       );
       fs.appendFileSync(logFilePath, log.text + "\n");
       return;

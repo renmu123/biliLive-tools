@@ -44,7 +44,7 @@ export const getFfmpegPath = () => {
     ffprobePath = globalConfig.defaultFfprobePath;
   }
 
-  const mesioPath = "mesio.exe";
+  const mesioPath = config.mesioPath || "mesio";
   return {
     ffmpegPath,
     ffprobePath,

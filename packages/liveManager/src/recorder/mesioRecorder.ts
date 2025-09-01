@@ -57,6 +57,7 @@ class MesioCommand extends EventEmitter {
 
   run(): void {
     const args = this._getArguments();
+    console.log("Starting mesio with args:", args);
     const mesioExecutable = getMesioPath();
 
     this.process = spawn(mesioExecutable, args, {
@@ -66,13 +67,15 @@ class MesioCommand extends EventEmitter {
     if (this.process.stdout) {
       this.process.stdout.on("data", (data) => {
         const output = data.toString();
-        this.emit("progress", output);
+        // console.log(output);
+        this.emit("stderr", output);
       });
     }
 
     if (this.process.stderr) {
       this.process.stderr.on("data", (data) => {
         const output = data.toString();
+        // console.error(output);
         this.emit("stderr", output);
       });
     }

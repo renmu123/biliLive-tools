@@ -11,6 +11,7 @@ export * from "./recorder.js";
 export * from "./manager.js";
 export * from "./record_extra_data_controller.js";
 export * from "./recorder/FFMPEGRecorder.js";
+export { createBaseRecorder } from "./recorder/index.js";
 export { utils };
 
 /**

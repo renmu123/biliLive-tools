@@ -5,7 +5,7 @@ import {
   genRecorderUUID,
   genRecordUUID,
   utils,
-  FFMPEGRecorder,
+  createBaseRecorder,
 } from "@bililive-tools/manager";
 import type {
   Comment,
@@ -239,9 +239,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   };
   let isEnded = false;
   let isCutting = false;
-  const recorder = new FFMPEGRecorder(
+  const recorder = createBaseRecorder(
+    "ffmpeg",
     {
       url: stream.url,
+      // @ts-ignore
       outputOptions: ffmpegOutputOptions,
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
