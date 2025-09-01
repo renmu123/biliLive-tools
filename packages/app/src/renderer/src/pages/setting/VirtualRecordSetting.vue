@@ -201,6 +201,19 @@
             </n-form-item>
           </template>
 
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="忽略文件规则"
+                tip="正则表达式，用于匹配需要忽略的文件名，匹配的文件将不会被处理<br/>默认忽略包含'-弹幕版'或'-后处理'的文件"
+              />
+            </template>
+            <n-input
+              v-model:value="editingConfig.ignoreFileRegex"
+              placeholder="正则表达式，匹配的文件将被忽略处理"
+              clearable
+            />
+          </n-form-item>
           <n-form-item label="监听文件夹" path="watchFolder">
             <div style="width: 100%">
               <div class="folder-input-container">
@@ -280,6 +293,7 @@ const editingConfig = ref({
   username: "",
   usernameRegex: "",
   watchFolder: [] as string[],
+  ignoreFileRegex: "",
 });
 
 // 新文件夹路径输入
@@ -332,6 +346,7 @@ const addVirtualRecord = () => {
     username: "",
     usernameRegex: "",
     watchFolder: [],
+    ignoreFileRegex: "-(弹幕版|后处理)",
   };
   newFolderPath.value = "";
   modalVisible.value = true;
@@ -351,6 +366,7 @@ const editVirtualRecord = (index: number) => {
     username: originalConfig.username || "",
     usernameRegex: originalConfig.usernameRegex || "",
     watchFolder: [...(originalConfig.watchFolder || [])],
+    ignoreFileRegex: originalConfig.ignoreFileRegex || "-(弹幕版|后处理)",
   };
   newFolderPath.value = "";
   modalVisible.value = true;

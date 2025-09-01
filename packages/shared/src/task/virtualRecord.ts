@@ -52,6 +52,21 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
   // 筛选出mp4,ts,flv,mkv后缀的文件
   const videoFiles = files
     .filter((file) => /\.(mp4|ts|flv|mkv)$/.test(file))
+    .filter((file) => {
+      // 如果配置了忽略文件规则，则过滤掉匹配的文件
+      if (config.ignoreFileRegex) {
+        try {
+          const ignoreRegex = new RegExp(config.ignoreFileRegex);
+          if (ignoreRegex.test(file)) {
+            logger.debug(`文件被忽略规则匹配，跳过: ${file}`);
+            return false;
+          }
+        } catch (error) {
+          logger.error(`忽略文件正则表达式解析失败: ${config.ignoreFileRegex}`, error);
+        }
+      }
+      return true;
+    })
     .map((file) => {
       return path.join(folderPath, file);
     });
@@ -238,7 +253,6 @@ async function checkVirtualRecordLoop() {
  * 启动虚拟录制检查
  */
 export async function check() {
-  logger.info("启动虚拟录制检查服务");
   // 默认使用轮询方式实现
   checkVirtualRecordLoop();
   // TODO: 之后可能采取 watch 方式实现

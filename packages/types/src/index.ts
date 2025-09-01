@@ -644,6 +644,8 @@ export interface AppConfig {
       usernameRegex: string;
       /** 监听文件夹 */
       watchFolder: string[];
+      /** 忽略文件正则，匹配的文件将被忽略 */
+      ignoreFileRegex: string;
     }[];
     // mode: "watch" | "interval";
     startTime: number;
