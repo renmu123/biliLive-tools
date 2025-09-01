@@ -76,12 +76,20 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
     return;
   }
 
-  const stats = await Promise.allSettled(videoFiles.map((file) => fs.stat(file)));
+  // 读取数据库，排除掉已存在的记录
+  const existingRecords = virtualRecordModel.list();
+  const existingPathSets = new Set(existingRecords.map((item) => item.path));
+  const unprocessedFiles = videoFiles.filter((file) => !existingPathSets.has(file));
 
-  const validFiles: FileInfo[] = stats
+  if (unprocessedFiles.length === 0) {
+    return;
+  }
+
+  const stats = await Promise.allSettled(unprocessedFiles.map((file) => fs.stat(file)));
+  const newRecords: FileInfo[] = stats
     .map((item, index) => {
       return {
-        path: videoFiles[index],
+        path: unprocessedFiles[index],
         ...item,
       };
     })
@@ -104,18 +112,8 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
       return a.birthtimeMs - b.birthtimeMs;
     });
 
-  if (validFiles.length === 0) {
-    // logger.debug(`没有找到符合条件的新文件：${folderPath}`);
-    return;
-  }
-
-  // 读取数据库，排除掉已存在的记录
-  const existingRecords = virtualRecordModel.list();
-  const existingPathSets = new Set(existingRecords.map((item) => item.path));
-  const newRecords = validFiles.filter((file) => !existingPathSets.has(file.path));
-
   if (newRecords.length === 0) {
-    // logger.debug(`没有新的未处理文件：${folderPath}`);
+    // logger.debug(`没有找到符合条件的新文件：${folderPath}`);
     return;
   }
 
