@@ -98,12 +98,12 @@ export default class BiliCheckQueue extends TypedEmitter<Events> {
         item.status = "completed";
         this.emit("update", media.aid, "completed", media);
       } else if (media.state < 0) {
-        if (media.state === -30 || media.state === -6) {
+        if (media.state === -30 || media.state === -6 || media.state === -60) {
           // 审核中，不要干啥操作
           // TODO: 如果是复核中状态也不要操作啥，但我也不知道状态码是什么
           continue;
-        } else if (media.state === -50) {
-          // 仅自己可见，不需要触发错误
+        } else if (media.state === -50 || media.state === -40) {
+          // -50: 仅自己可见 -40: 通过审核，等待发布 ，不需要触发错误
           item.status = "completed";
           this.emit("update", media.aid, "completed", media);
         } else {

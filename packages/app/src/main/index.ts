@@ -478,7 +478,7 @@ if (!gotTheLock) {
   app.whenReady().then(() => {
     electronApp.setAppUserModelId("com.electron");
     installExtension("nhdogjmejiglipccpnnnanhbledajbpd")
-      .then((name) => log.debug(`Added Extension:  ${name}`))
+      .then(({ name }) => log.debug(`Added Extension:  ${name}`))
       .catch((err) => log.debug("An error occurred: ", err));
 
     log.info(`app start, version: ${app.getVersion()}`);

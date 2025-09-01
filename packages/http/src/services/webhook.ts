@@ -1021,6 +1021,7 @@ export class WebhookHandler {
         .addMedia(pathArray, options, uid, {
           limitedUploadTime,
           afterUploadDeletAction: "none",
+          forceCheck: afterUploadDeletAction === "deleteAfterCheck",
           checkCallback: (status) => {
             if (status === "completed") {
               for (const { path } of pathArray) {
@@ -1085,6 +1086,7 @@ export class WebhookHandler {
         .editMedia(aid, pathArray, {}, uid, {
           limitedUploadTime: limitedUploadTime,
           afterUploadDeletAction: "none",
+          forceCheck: afterUploadDeletAction === "deleteAfterCheck",
           checkCallback: (status) => {
             if (status === "completed") {
               for (const { path } of pathArray) {

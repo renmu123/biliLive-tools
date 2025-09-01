@@ -32,7 +32,6 @@
               class="file"
               :class="{ selected: selectedFiles.includes(file.path) }"
               @click="selectFile(file)"
-              @dblclick="file.type === 'directory' ? openDirectory(file) : ''"
             >
               {{ file.type === "directory" ? "📁" : "📄" }} {{ file.name }}
             </li>
@@ -163,6 +162,11 @@ const goUpDirectory = () => {
 
 // 选择文件
 const selectFile = (file: { name: string; type: "file" | "directory"; path: string }) => {
+  if (props.type === "file" && file.type === "directory") {
+    openDirectory(file);
+    return;
+  }
+
   if (props.type !== file.type) return;
 
   if (props.multi) {

@@ -1,3 +1,7 @@
+# 1.5.0
+
+- 修复未设置分段时录制音频时不触发文件创建和结束时间的bug
+
 # 1.4.1
 
 - `resolveChannelInfoFromURL` 新增返回参数：`avatar`
