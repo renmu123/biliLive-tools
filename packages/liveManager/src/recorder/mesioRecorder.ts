@@ -2,7 +2,7 @@ import path from "node:path";
 import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
-import { StreamManager, getMesioPath } from "./index.js";
+import { StreamManager, getMesioPath } from "../index.js";
 
 // Mesio command builder class similar to ffmpeg
 class MesioCommand extends EventEmitter {

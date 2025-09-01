@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { StreamManager, Segment } from "../src/streamManager";
+import { StreamManager, Segment } from "../src/recorder/streamManager";
 
 vi.mock("../src/record_extra_data_controller", () => ({
   createRecordExtraDataController: () => ({

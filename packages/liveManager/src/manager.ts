@@ -23,7 +23,7 @@ import {
   downloadImage,
   isBetweenTimeRange,
 } from "./utils.js";
-import { StreamManager } from "./streamManager.js";
+import { StreamManager } from "./recorder/streamManager.js";
 
 export interface RecorderProvider<E extends AnyObject> {
   // Provider 的唯一 id，最好只由英文 + 数字组成

@@ -10,7 +10,7 @@ export * from "./common.js";
 export * from "./recorder.js";
 export * from "./manager.js";
 export * from "./record_extra_data_controller.js";
-export * from "./FFMPEGRecorder.js";
+export * from "./recorder/FFMPEGRecorder.js";
 export { utils };
 
 /**

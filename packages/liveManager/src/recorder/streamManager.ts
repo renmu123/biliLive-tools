@@ -1,7 +1,7 @@
 import EventEmitter from "node:events";
 
 import fs from "fs/promises";
-import { createRecordExtraDataController } from "./record_extra_data_controller.js";
+import { createRecordExtraDataController } from "../record_extra_data_controller.js";
 import {
   replaceExtName,
   ensureFolderExist,
@@ -9,7 +9,7 @@ import {
   isMesioStartSegment,
   isFfmpegStart,
   retry,
-} from "./utils.js";
+} from "../utils.js";
 
 export type GetSavePath = (data: { startTime: number; title?: string }) => string;
 type RecorderType = "ffmpeg" | "mesio";
