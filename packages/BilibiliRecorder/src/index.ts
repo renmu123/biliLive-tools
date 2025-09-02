@@ -248,6 +248,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       url: url,
       outputOptions: ffmpegOutputOptions,
       inputOptions: ffmpegInputOptions,
+      mesioOptions: ["-H", "Referer:https://live.bilibili.com/"],
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
         getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),

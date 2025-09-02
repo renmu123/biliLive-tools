@@ -42,7 +42,6 @@ export class Segment extends EventEmitter {
       });
       return;
     }
-    console.log("before rename", this.rawRecordingVideoPath, this.outputFilePath);
 
     try {
       await Promise.all([
@@ -98,18 +97,16 @@ export class Segment extends EventEmitter {
     // 1. FFmpeg格式: Opening 'filename' for writing
     // 2. Mesio格式: Opening FLV segment path=filename Processing
     const ffmpegRegex = /'([^']+)'/;
-    const mesioRegex = /segment path=(.+?)(?:\s|$)/;
+    const mesioRegex = /segment path=([^\n]*)/i;
 
     let match = stderrLine.match(ffmpegRegex);
     if (!match) {
-      console.log("111111111111111111", cleanTerminalText(stderrLine));
       match = cleanTerminalText(stderrLine).match(mesioRegex);
     }
 
     if (match) {
       const filename = match[1];
       this.rawRecordingVideoPath = filename;
-      console.log("this.rawRecordingVideoPath", this.rawRecordingVideoPath);
       this.emit("videoFileCreated", {
         filename: this.outputFilePath,
         title: liveInfo?.title,
@@ -217,16 +214,22 @@ export class StreamManager extends EventEmitter {
   }
 
   get videoExt() {
-    if (this.videoFormat === "mkv") {
-      return "mkv";
-    } else if (this.videoFormat === "auto") {
-      if (!this.hasSegment) {
-        return "mp4";
+    if (this.recorderType === "ffmpeg") {
+      if (this.videoFormat === "mkv") {
+        return "mkv";
+      } else if (this.videoFormat === "auto") {
+        if (!this.hasSegment) {
+          return "mp4";
+        }
+      } else if (this.videoFormat === "flv") {
+        return "flv";
       }
-    } else if (this.videoFormat === "flv") {
+      return "ts";
+    } else if (this.recorderType === "mesio") {
       return "flv";
+    } else {
+      throw new Error("Unknown recorderType");
     }
-    return "ts";
   }
 
   get videoFilePath() {

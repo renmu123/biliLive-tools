@@ -84,7 +84,7 @@ export type RecorderInstance<T extends RecorderType> = T extends "ffmpeg"
  */
 export function createBaseRecorder<T extends RecorderType>(
   type: T,
-  opts: RecorderOptions<T>,
+  opts: RecorderOptions<T> & { mesioOptions: string[] },
   onEnd: (...args: unknown[]) => void,
   onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
 ): RecorderInstance<T> {
@@ -96,7 +96,7 @@ export function createBaseRecorder<T extends RecorderType>(
     ) as RecorderInstance<T>;
   } else if (type === "mesio") {
     return new mesioRecorder(
-      opts as MesioRecorderOptions,
+      { ...(opts as MesioRecorderOptions), inputOptions: opts.mesioOptions ?? [] },
       onEnd,
       onUpdateLiveInfo,
     ) as RecorderInstance<T>;
