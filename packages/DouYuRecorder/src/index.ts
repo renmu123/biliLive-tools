@@ -201,7 +201,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (isManualStart) {
       strictQuality = false;
     }
-    // TODO:如果使用mesio类型，那么要禁用斗鱼的边缘cdn
     // TODO: 还需要测试仅音频流的情况，mesio可能并不支持
     res = await getStream({
       channelId: this.channelId,
@@ -209,7 +208,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       source: this.source,
       strictQuality,
       onlyAudio: this.onlyAudio,
-      disableEdgeCDN: false,
+      avoidEdgeCDN: this.recorderType === "mesio",
     });
   } catch (err) {
     this.state = "idle";

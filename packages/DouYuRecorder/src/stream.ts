@@ -88,19 +88,21 @@ export async function getStream(
     strictQuality?: boolean;
     source?: string;
     onlyAudio?: boolean;
-    disableEdgeCDN?: boolean;
+    avoidEdgeCDN?: boolean;
   },
 ) {
   const qn = (
     DouyuQualities.includes(opts.quality as any) ? opts.quality : 0
   ) as (typeof DouyuQualities)[number];
 
-  // TODO: 如果cdn===auto且disableEdgeCDN=true,那么默认cdn为HS，减少一次请求
-  // 还要处理cdn不存在的情况，根据找到的cdn，再请求一次接口，如果只有边缘cdn，那就使用
+  let cdn = opts.source === "auto" ? undefined : opts.source;
+  if (opts.source === "auto" && opts.avoidEdgeCDN) {
+    cdn = "hw-h5";
+  }
   let liveInfo = await getLiveInfo({
     channelId: opts.channelId,
     rate: qn,
-    cdn: opts.source === "auto" ? undefined : opts.source,
+    cdn,
     onlyAudio: opts.onlyAudio,
   });
   if (!liveInfo.living) throw new Error("It must be called getStream when living");

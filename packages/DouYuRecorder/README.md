@@ -78,6 +78,8 @@ const { id } = await provider.resolveChannelInfoFromURL(url);
 
 ## cdn
 
+在 `cdn=auto` 且 `recorderType=mesio` 时，默认使用 `hw-h5` 线路
+
 如果有更多线路或者错误，请发issue
 
 | 线路   | 值        |
