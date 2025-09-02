@@ -164,7 +164,10 @@ export function isMesioStartSegment(line: string) {
 }
 
 export function isFfmpegStart(line: string) {
-  return line.includes("frame=") && line.includes("fps=");
+  return (
+    (line.includes("frame=") && line.includes("fps=")) ||
+    (line.includes("speed=") && line.includes("time="))
+  );
 }
 
 export const formatTemplate = function template(string: string, ...args: any[]) {
