@@ -56,7 +56,6 @@ class MesioCommand extends EventEmitter {
 
   run(): void {
     const args = this._getArguments();
-    console.log("Starting mesio with args:", args);
     const mesioExecutable = getMesioPath();
 
     this.process = spawn(mesioExecutable, args, {

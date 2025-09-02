@@ -9,6 +9,7 @@ import {
   isMesioStartSegment,
   isFfmpegStart,
   retry,
+  cleanTerminalText,
 } from "../utils.js";
 
 export type GetSavePath = (data: { startTime: number; title?: string }) => string;
@@ -41,6 +42,7 @@ export class Segment extends EventEmitter {
       });
       return;
     }
+    console.log("before rename", this.rawRecordingVideoPath, this.outputFilePath);
 
     try {
       await Promise.all([
@@ -96,16 +98,18 @@ export class Segment extends EventEmitter {
     // 1. FFmpeg格式: Opening 'filename' for writing
     // 2. Mesio格式: Opening FLV segment path=filename Processing
     const ffmpegRegex = /'([^']+)'/;
-    const mesioRegex = /segment path=([^\s]+)/;
+    const mesioRegex = /segment path=(.+?)(?:\s|$)/;
 
     let match = stderrLine.match(ffmpegRegex);
     if (!match) {
-      match = stderrLine.match(mesioRegex);
+      console.log("111111111111111111", cleanTerminalText(stderrLine));
+      match = cleanTerminalText(stderrLine).match(mesioRegex);
     }
 
     if (match) {
       const filename = match[1];
       this.rawRecordingVideoPath = filename;
+      console.log("this.rawRecordingVideoPath", this.rawRecordingVideoPath);
       this.emit("videoFileCreated", {
         filename: this.outputFilePath,
         title: liveInfo?.title,

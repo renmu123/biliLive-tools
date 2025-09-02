@@ -160,7 +160,7 @@ export function isFfmpegStartSegment(line: string) {
 }
 
 export function isMesioStartSegment(line: string) {
-  return line.includes("Opening ") && line.includes("segment path=");
+  return line.includes("Opening ") && line.includes("Opening FLV segment");
 }
 
 export function isFfmpegStart(line: string) {
@@ -168,6 +168,10 @@ export function isFfmpegStart(line: string) {
     (line.includes("frame=") && line.includes("fps=")) ||
     (line.includes("speed=") && line.includes("time="))
   );
+}
+
+export function cleanTerminalText(text: string) {
+  return text.replace(/\x1B\[[0-9;]*[a-zA-Z]/g, "").replace(/[\x00-\x1F\x7F]/g, "");
 }
 
 export const formatTemplate = function template(string: string, ...args: any[]) {
