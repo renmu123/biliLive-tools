@@ -360,6 +360,8 @@ export interface GlobalRecorder {
   qualityRetry: number;
   /** 视频格式 */
   videoFormat: "auto" | "ts" | "mkv";
+  /** 支持的录制器 */
+  recorderType: "ffmpeg" | "mesio";
   /** 保存弹幕测试 */
   saveDanma2DB: boolean;
   /** B站特有的配置 */
@@ -418,6 +420,8 @@ export interface Recorder {
   saveCover?: boolean;
   /** 视频格式 */
   videoFormat: GlobalRecorder["videoFormat"];
+  /** 录制器类型 */
+  recorderType: GlobalRecorder["recorderType"];
   qualityRetry: GlobalRecorder["qualityRetry"];
   formatName: GlobalRecorder["bilibili"]["formatName"];
   useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];

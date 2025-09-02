@@ -56,6 +56,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   titleKeywords?: string;
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
   videoFormat?: "auto" | "ts" | "mkv";
+  /** 录制类型 */
+  recorderType?: "ffmpeg" | "mesio";
   /** 流格式优先级 */
   formatriorities?: Array<"flv" | "hls">;
   /** 只录制音频 */

@@ -29,4 +29,4 @@
 项目地址：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md
 
 这是一个新的录制工具，支持flv修复，效果可能比ffmpeg的flv录制好，让我们来实验性支持一下看看。
-我们暂时只支持flv流，需要测试pk的分段情况
+需要hls以及fmp4的支持、测试pk的分段、flv hevc的支持，只录制音频的支持。

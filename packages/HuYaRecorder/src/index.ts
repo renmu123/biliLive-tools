@@ -6,7 +6,7 @@ import {
   genRecorderUUID,
   genRecordUUID,
   utils,
-  FFMPEGRecorder,
+  createBaseRecorder,
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream } from "./stream.js";
@@ -172,7 +172,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const recorder = new FFMPEGRecorder(
+  let recorderType: "ffmpeg" | "mesio" = this.recorderType;
+  const recorder = createBaseRecorder(
+    recorderType,
     {
       url: stream.url,
       outputOptions: ffmpegOutputOptions,

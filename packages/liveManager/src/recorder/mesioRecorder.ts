@@ -6,7 +6,6 @@ import { StreamManager, getMesioPath } from "../index.js";
 
 // Mesio command builder class similar to ffmpeg
 class MesioCommand extends EventEmitter {
-  private args: string[] = [];
   private _input: string = "";
   private _output: string = "";
   private _inputOptions: string[] = [];

@@ -241,8 +241,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   };
   let isEnded = false;
   let isCutting = false;
+
+  let recorderType: "ffmpeg" | "mesio" = this.recorderType;
   const recorder = createBaseRecorder(
-    "ffmpeg",
+    recorderType,
     {
       url: stream.url,
       // @ts-ignore

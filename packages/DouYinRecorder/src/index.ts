@@ -5,7 +5,7 @@ import {
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  FFMPEGRecorder,
+  createBaseRecorder,
 } from "@bililive-tools/manager";
 import type {
   Recorder,
@@ -173,7 +173,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const recorder = new FFMPEGRecorder(
+  let recorderType: "ffmpeg" | "mesio" = this.recorderType;
+  // TODO:测试只录制音频，hls以及fmp4
+  const recorder = createBaseRecorder(
+    recorderType,
     {
       url: stream.url,
       outputOptions: ffmpegOutputOptions,

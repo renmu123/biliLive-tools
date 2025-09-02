@@ -149,6 +149,7 @@ export default class RecorderConfig {
       uid: uid,
       qualityRetry: getValue("qualityRetry") ?? 0,
       videoFormat: getValue("videoFormat") ?? "auto",
+      recorderType: getValue("recorderType") ?? "ffmpeg",
       auth: auth,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
       formatName: formatName,

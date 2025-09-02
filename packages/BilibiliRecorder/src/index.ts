@@ -6,7 +6,7 @@ import {
   genRecorderUUID,
   genRecordUUID,
   utils,
-  FFMPEGRecorder,
+  createBaseRecorder,
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
@@ -40,6 +40,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     m3u8ProxyUrl: opts.m3u8ProxyUrl,
     formatName: opts.formatName ?? "auto",
     codecName: opts.codecName ?? "auto",
+    recorderType: opts.recorderType ?? "ffmpeg",
 
     getChannelURL() {
       return `https://live.bilibili.com/${this.channelId}`;
@@ -239,7 +240,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const recorder = new FFMPEGRecorder(
+  let recorderType: "ffmpeg" | "mesio" = this.recorderType;
+  // TODO:测试只录制音频，hls以及fmp4，测试分辨率变化
+  const recorder = createBaseRecorder(
+    recorderType,
     {
       url: url,
       outputOptions: ffmpegOutputOptions,
