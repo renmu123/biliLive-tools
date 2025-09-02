@@ -190,7 +190,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   let res: Awaited<ReturnType<typeof getStream>>;
-  // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
     let strictQuality = false;
     if (this.qualityRetry > 0) {
@@ -202,12 +201,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (isManualStart) {
       strictQuality = false;
     }
+    // TODO:如果使用mesio类型，那么要禁用斗鱼的边缘cdn
+    // TODO: 还需要测试仅音频流的情况，mesio可能并不支持
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
       source: this.source,
       strictQuality,
       onlyAudio: this.onlyAudio,
+      disableEdgeCDN: false,
     });
   } catch (err) {
     this.state = "idle";
