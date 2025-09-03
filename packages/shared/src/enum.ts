@@ -277,6 +277,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     subSavePath: "",
   },
   recorders: [],
+  virtualRecord: {
+    config: [],
+    startTime: Date.now(),
+  },
 };
 
 export const nvencPresets = [
