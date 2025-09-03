@@ -403,6 +403,11 @@ export class BiliPartVideoTask extends AbstractTask {
     });
   }
   async exec() {
+    if (this.status !== "pending") return;
+    this.status = "running";
+    this.startTime = Date.now();
+    this.emitter.emit("task-start", { taskId: this.taskId });
+
     // 处理上传分p持久化
     if (this.useUploadPartPersistence) {
       try {
