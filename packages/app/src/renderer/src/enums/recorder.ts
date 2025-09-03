@@ -335,7 +335,7 @@ export const textInfo = {
   common: {
     format: {
       text: "视频格式",
-      tip: "选择自动时，分段为ts，不分段为mp4",
+      tip: "ffmpeg模式：选择自动时，分段为ts，不分段为mp4<br/>mesio模式：不支持指定",
     },
     recorderType: {
       text: "测试：录制器",
