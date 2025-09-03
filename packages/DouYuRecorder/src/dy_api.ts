@@ -91,7 +91,7 @@ export async function getLiveInfo(opts: {
   let cdn = json.data.rtmp_cdn;
   try {
     const url = new URL(streamUrl);
-    cdn = url.searchParams.get("fcdn");
+    cdn = url.searchParams.get("fcdn") ?? "";
   } catch (error) {
     console.warn("解析 rtmp_url 失败", error);
   }

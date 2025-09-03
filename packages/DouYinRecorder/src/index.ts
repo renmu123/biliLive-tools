@@ -167,13 +167,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     isEnded = true;
     this.emit("DebugLog", {
       type: "common",
-      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
+      text: `record end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
     });
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
   };
 
-  let recorderType: "ffmpeg" | "mesio" = this.recorderType;
+  let recorderType: "ffmpeg" | "mesio" = this.recorderType ?? "ffmpeg";
   // TODO:测试只录制音频，hls以及fmp4
   const recorder = createBaseRecorder(
     recorderType,

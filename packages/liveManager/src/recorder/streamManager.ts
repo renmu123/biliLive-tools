@@ -129,7 +129,7 @@ export class StreamManager extends EventEmitter {
   recordStartTime?: number;
   hasSegment: boolean;
   recorderType: RecorderType = "ffmpeg";
-  private videoFormat?: VideoFormat;
+  private videoFormat: VideoFormat;
   private callBack?: {
     onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>;
   };
@@ -139,7 +139,7 @@ export class StreamManager extends EventEmitter {
     hasSegment: boolean,
     disableDanma: boolean,
     recorderType: RecorderType,
-    videoFormat?: VideoFormat,
+    videoFormat: VideoFormat,
     callBack?: {
       onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>;
     },
@@ -147,7 +147,7 @@ export class StreamManager extends EventEmitter {
     super();
     const recordSavePath = getSavePath({ startTime: Date.now() });
     this.recordSavePath = recordSavePath;
-    this.videoFormat = videoFormat;
+    this.videoFormat = videoFormat ?? "auto";
     this.recorderType = recorderType;
     this.hasSegment = hasSegment;
     this.callBack = callBack;
@@ -226,7 +226,7 @@ export class StreamManager extends EventEmitter {
       }
       return "ts";
     } else if (this.recorderType === "mesio") {
-      return "flv";
+      return this.videoFormat;
     } else {
       throw new Error("Unknown recorderType");
     }

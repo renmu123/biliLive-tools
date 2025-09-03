@@ -233,7 +233,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
     this.emit("DebugLog", {
       type: "common",
-      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
+      text: `record end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
     });
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
@@ -241,7 +241,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   let isEnded = false;
   let isCutting = false;
 
-  let recorderType: "ffmpeg" | "mesio" = this.recorderType;
+  let recorderType: "ffmpeg" | "mesio" = this.recorderType ?? "ffmpeg";
   const recorder = createBaseRecorder(
     recorderType,
     {
@@ -440,7 +440,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   client.on("error", (err) => {
     this.emit("DebugLog", { type: "common", text: String(err) });
   });
-  // console.log("this.disableProvideCommentsWhenRecording", this.disableProvideCommentsWhenRecording);
   if (!this.disableProvideCommentsWhenRecording) {
     client.start();
   }
