@@ -335,11 +335,11 @@ export const textInfo = {
   common: {
     format: {
       text: "视频格式",
-      tip: "ffmpeg模式：选择自动时，分段为ts，不分段为mp4<br/>mesio模式：不支持指定",
+      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为mp4<br/>mesio录制器：不支持指定",
     },
     recorderType: {
       text: "测试：录制器",
-      tip: "影响最底层的录制，请谨慎大规模使用，使用mesio前请先去配置二进制文件，遇到mesio不支持的情况，会降级到使用ffmpeg",
+      tip: "影响最底层的录制，使用mesio前请先去配置二进制文件，遇到mesio不支持的情况，会降级到使用ffmpeg，<b>mesio并未为生产做好准备</b>",
     },
   },
   bili: {
