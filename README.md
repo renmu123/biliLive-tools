@@ -303,7 +303,7 @@ tg bot 的搭建请自行寻找教程
 
 项目地址：https://github.com/qjfoidnh/BaiduPCS-Go
 
-测试版本：3.9.7
+测试版本：3.9.9
 
 ### aliyunpan(阿里云盘)
 

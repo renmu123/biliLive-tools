@@ -55,7 +55,11 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip text="可执行文件" tip="测试版本为3.9.7"> </Tip>
+              <Tip
+                text="可执行文件"
+                tip="测试版本为3.9.9，上传不携带任何参数，需要自定义请直接去修改配置文件"
+              >
+              </Tip>
             </template>
             <n-input
               v-model:value="config.sync.baiduPCS.execPath"
