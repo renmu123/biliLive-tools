@@ -128,6 +128,7 @@ export class mesioRecorder extends EventEmitter {
       inputOptions?: string[];
       isHls?: boolean;
       disableDanma?: boolean;
+      formatName?: "flv" | "ts" | "fmp4";
       headers?: {
         [key: string]: string | undefined;
       };
@@ -139,9 +140,18 @@ export class mesioRecorder extends EventEmitter {
     const hasSegment = true;
     this.disableDanma = opts.disableDanma ?? false;
 
-    let videoFormat: "flv" | "ts" = "flv";
+    let videoFormat: "flv" | "ts" | "m4s" = "flv";
     if (opts.url.includes(".m3u8")) {
       videoFormat = "ts";
+    }
+    if (opts.formatName) {
+      if (opts.formatName === "fmp4") {
+        videoFormat = "m4s";
+      } else if (opts.formatName === "ts") {
+        videoFormat = "ts";
+      } else if (opts.formatName === "flv") {
+        videoFormat = "flv";
+      }
     }
 
     this.streamManager = new StreamManager(

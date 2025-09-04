@@ -14,7 +14,7 @@ import {
 
 export type GetSavePath = (data: { startTime: number; title?: string }) => string;
 type RecorderType = "ffmpeg" | "mesio";
-type VideoFormat = "auto" | "ts" | "mkv" | "flv" | "mp4";
+type VideoFormat = "auto" | "ts" | "mkv" | "flv" | "mp4" | "m4s";
 
 export class Segment extends EventEmitter {
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
