@@ -35,7 +35,6 @@ export function defaultToJSON<E extends AnyObject>(
     ...pick(recorder, [
       "id",
       "channelId",
-      "owner",
       "remarks",
       "disableAutoCheck",
       "quality",
@@ -50,6 +49,7 @@ export function defaultToJSON<E extends AnyObject>(
       "liveInfo",
       "uid",
       "titleKeywords",
+      // "recordHandle",
     ]),
   };
 }

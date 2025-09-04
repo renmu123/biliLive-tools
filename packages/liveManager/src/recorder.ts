@@ -70,7 +70,27 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   extra?: Partial<E>;
 }
 
-export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id">;
+export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id"> &
+  Pick<
+    Recorder<E>,
+    | "id"
+    | "channelId"
+    | "remarks"
+    | "disableAutoCheck"
+    | "quality"
+    | "streamPriorities"
+    | "sourcePriorities"
+    | "extra"
+    | "segment"
+    | "saveSCDanma"
+    | "saveCover"
+    | "saveGiftDanma"
+    | "disableProvideCommentsWhenRecording"
+    | "liveInfo"
+    | "uid"
+    | "titleKeywords"
+    // | "recordHandle"
+  >;
 
 export type RecorderState = "idle" | "recording" | "stopping-record";
 export type Progress = { time: string | null };

@@ -74,21 +74,21 @@ export interface RecorderManager<
   E extends AnyObject = ME & PE,
 > extends Emitter<{
     error: { source: string; err: unknown };
-    RecordStart: { recorder: Recorder<E>; recordHandle: RecordHandle };
-    RecordSegment: { recorder: Recorder<E>; recordHandle?: RecordHandle };
-    videoFileCreated: { recorder: Recorder<E>; filename: string; cover?: string };
-    videoFileCompleted: { recorder: Recorder<E>; filename: string };
-    RecorderProgress: { recorder: Recorder<E>; progress: Progress };
+    RecordStart: { recorder: SerializedRecorder<E>; recordHandle: RecordHandle };
+    RecordSegment: { recorder: SerializedRecorder<E>; recordHandle?: RecordHandle };
+    videoFileCreated: { recorder: SerializedRecorder<E>; filename: string; cover?: string };
+    videoFileCompleted: { recorder: SerializedRecorder<E>; filename: string };
+    RecorderProgress: { recorder: SerializedRecorder<E>; progress: Progress };
     RecoderLiveStart: { recorder: Recorder<E> };
 
-    RecordStop: { recorder: Recorder<E>; recordHandle: RecordHandle; reason?: string };
-    Message: { recorder: Recorder<E>; message: Message };
+    RecordStop: { recorder: SerializedRecorder<E>; recordHandle: RecordHandle; reason?: string };
+    Message: { recorder: SerializedRecorder<E>; message: Message };
     RecorderUpdated: {
-      recorder: Recorder<E>;
+      recorder: SerializedRecorder<E>;
       keys: (string | keyof Recorder<E>)[];
     };
-    RecorderAdded: Recorder<E>;
-    RecorderRemoved: Recorder<E>;
+    RecorderAdded: SerializedRecorder<E>;
+    RecorderRemoved: SerializedRecorder<E>;
     RecorderDebugLog: DebugLog & { recorder: Recorder<E> };
     Updated: ConfigurableProp[];
   }> {
@@ -238,29 +238,35 @@ export function createRecorderManager<
       this.recorders.push(recorder);
 
       recorder.on("RecordStart", (recordHandle) =>
-        this.emit("RecordStart", { recorder, recordHandle }),
+        this.emit("RecordStart", { recorder: recorder.toJSON(), recordHandle }),
       );
       recorder.on("RecordSegment", (recordHandle) =>
-        this.emit("RecordSegment", { recorder, recordHandle }),
+        this.emit("RecordSegment", { recorder: recorder.toJSON(), recordHandle }),
       );
       recorder.on("videoFileCreated", ({ filename, cover }) => {
         if (recorder.saveCover && recorder?.liveInfo?.cover) {
           const coverPath = replaceExtName(filename, ".jpg");
           downloadImage(cover ?? recorder?.liveInfo?.cover, coverPath);
         }
-        this.emit("videoFileCreated", { recorder, filename });
+        this.emit("videoFileCreated", { recorder: recorder.toJSON(), filename });
       });
       recorder.on("videoFileCompleted", ({ filename }) =>
-        this.emit("videoFileCompleted", { recorder, filename }),
+        this.emit("videoFileCompleted", { recorder: recorder.toJSON(), filename }),
       );
       recorder.on("RecordStop", ({ recordHandle, reason }) =>
-        this.emit("RecordStop", { recorder, recordHandle, reason }),
+        this.emit("RecordStop", { recorder: recorder.toJSON(), recordHandle, reason }),
       );
-      recorder.on("Message", (message) => this.emit("Message", { recorder, message }));
-      recorder.on("Updated", (keys) => this.emit("RecorderUpdated", { recorder, keys }));
-      recorder.on("DebugLog", (log) => this.emit("RecorderDebugLog", { recorder, ...log }));
+      recorder.on("Message", (message) =>
+        this.emit("Message", { recorder: recorder.toJSON(), message }),
+      );
+      recorder.on("Updated", (keys) =>
+        this.emit("RecorderUpdated", { recorder: recorder.toJSON(), keys }),
+      );
+      recorder.on("DebugLog", (log) =>
+        this.emit("RecorderDebugLog", { recorder: recorder, ...log }),
+      );
       recorder.on("progress", (progress) => {
-        this.emit("RecorderProgress", { recorder, progress });
+        this.emit("RecorderProgress", { recorder: recorder.toJSON(), progress });
       });
       recorder.on("videoFileCreated", () => {
         if (!recorder.liveInfo?.liveId) return;
@@ -269,10 +275,10 @@ export function createRecorderManager<
         if (liveStartObj[key]) return;
         liveStartObj[key] = true;
 
-        this.emit("RecoderLiveStart", { recorder });
+        this.emit("RecoderLiveStart", { recorder: recorder });
       });
 
-      this.emit("RecorderAdded", recorder);
+      this.emit("RecorderAdded", recorder.toJSON());
 
       return recorder;
     },
@@ -283,7 +289,7 @@ export function createRecorderManager<
       this.recorders.splice(idx, 1);
 
       delete tempBanObj[recorder.channelId];
-      this.emit("RecorderRemoved", recorder);
+      this.emit("RecorderRemoved", recorder.toJSON());
     },
     async startRecord(id: string) {
       const recorder = this.recorders.find((item) => item.id === id);
