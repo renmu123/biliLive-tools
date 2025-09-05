@@ -8,8 +8,8 @@
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "type": "module",
   "scripts": {
-    "dev": "chcp 65001 && electron-vite dev",
-    "devMain": "chcp 65001 && electron-vite dev --watch",
+    "dev": "electron-vite dev",
+    "devMain": "electron-vite dev --watch",
     "start": "electron-vite preview",
     "build": "pnpm run typecheck && electron-vite build",
     "build:webui": "pnpm run typecheck && electron-vite build --mode webui",
