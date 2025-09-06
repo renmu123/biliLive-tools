@@ -27,10 +27,9 @@ const Live = BaseLive.extend({
 });
 
 export type BaseLive = z.infer<typeof BaseLive>;
-
 export type Live = z.infer<typeof Live>;
 
-class LiveModel extends BaseModel<BaseLive> {
+class LiveModel extends BaseModel<Live> {
   table = "record_history";
 
   constructor(db: Database) {
@@ -250,9 +249,9 @@ export default class LiveController {
     const data = Live.partial().parse(options);
     return this.model.query(data);
   }
-  upsert(options: { where: Partial<Live & { id: number }>; create: BaseLive }) {
-    return this.model.upsert(options);
-  }
+  // upsert(options: { where: Partial<Live & { id: number }>; create: BaseLive }) {
+  //   return this.model.upsert(options);
+  // }
   update(options: Partial<Live & { id: number }>) {
     const data = Live.partial()
       .required({
@@ -267,11 +266,7 @@ export default class LiveController {
    * @returns 删除的记录数量
    */
   removeRecord(id: number): number {
-    const sql = `DELETE FROM ${this.model.tableName} WHERE id = ?`;
-    const stmt = this.model.db.prepare(sql);
-    const result = stmt.run(id);
-
-    return result.changes;
+    return this.model.deleteBy("id", id);
   }
 
   /**
@@ -280,10 +275,6 @@ export default class LiveController {
    * @returns 删除的记录数量
    */
   removeRecordsByStreamerId(streamerId: number): number {
-    const sql = `DELETE FROM ${this.model.tableName} WHERE streamer_id = ?`;
-    const stmt = this.model.db.prepare(sql);
-    const result = stmt.run(streamerId);
-
-    return result.changes;
+    return this.model.deleteBy("streamer_id", streamerId);
   }
 }

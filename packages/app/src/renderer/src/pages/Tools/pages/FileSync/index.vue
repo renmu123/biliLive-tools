@@ -27,6 +27,10 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: "FileSync",
+});
+
 import { toReactive } from "@vueuse/core";
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 

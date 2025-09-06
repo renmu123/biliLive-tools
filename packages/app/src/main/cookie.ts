@@ -19,7 +19,7 @@ export const cookieHandlers = {
       });
 
       win.on("closed", async () => {
-        const cookies = await session.defaultSession.cookies.get({ domain: "baidu.com" });
+        const cookies = await session.defaultSession.cookies.get({ domain: "pan.baidu.com" });
         if (cookies.length) {
           resolve(
             cookies

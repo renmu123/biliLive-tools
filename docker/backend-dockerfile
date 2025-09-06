@@ -26,9 +26,9 @@ RUN curl -L -o /usr/local/share/fonts/NotoSansSC-Regular.ttf https://github.com/
 RUN mkdir -p /app/baidu-temp && \
     ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then \
-        curl -L -o /app/baidu-temp/BaiduPCS-Go.zip https://github.com/qjfoidnh/BaiduPCS-Go/releases/download/v3.9.7/BaiduPCS-Go-v3.9.7-linux-amd64.zip; \
+        curl -L -o /app/baidu-temp/BaiduPCS-Go.zip https://github.com/qjfoidnh/BaiduPCS-Go/releases/download/v3.9.9/BaiduPCS-Go-v3.9.9-linux-amd64.zip; \
     elif [ "$ARCH" = "aarch64" ]; then \
-        curl -L -o /app/baidu-temp/BaiduPCS-Go.zip https://github.com/qjfoidnh/BaiduPCS-Go/releases/download/v3.9.7/BaiduPCS-Go-v3.9.7-linux-arm64.zip; \
+        curl -L -o /app/baidu-temp/BaiduPCS-Go.zip https://github.com/qjfoidnh/BaiduPCS-Go/releases/download/v3.9.9/BaiduPCS-Go-v3.9.9-linux-arm64.zip; \
     fi && \
     apt-get update && apt-get install -y unzip && \
     unzip /app/baidu-temp/BaiduPCS-Go.zip -d /app/baidu-temp && \
