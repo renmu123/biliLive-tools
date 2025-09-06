@@ -339,7 +339,7 @@ export const textInfo = {
     },
     recorderType: {
       text: "测试：录制器",
-      tip: "影响最底层的录制，使用mesio前请先去配置二进制文件，遇到mesio不支持的情况，会降级到使用ffmpeg，<b>mesio并未为生产做好准备</b>",
+      tip: "影响最底层的录制，使用mesio前请先去基本配置中配置二进制文件，遇到mesio不支持的情况，会降级到使用ffmpeg，<b>mesio并未为生产做好准备</b>",
     },
   },
   bili: {
