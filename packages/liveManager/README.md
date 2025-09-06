@@ -72,14 +72,16 @@ manager.startCheckLoop();
 
 手动开启录制
 
-### setFFMPEGPath
-
-设置ffmpeg可执行路径
+### setFFMPEGPath & setMesioPath
 
 ```ts
-import { setFFMPEGPath } from "@bililive-tools/manager";
+import { setFFMPEGPath, setMesioPath } from "@bililive-tools/manager";
 
+// 设置ffmpeg可执行路径
 setFFMPEGPath("ffmpeg.exe");
+
+// 设置mesio可执行文件路径
+setMesioPath("mesio.exe");
 ```
 
 ## savePathRule 占位符参数

@@ -5,7 +5,7 @@ import {
   genRecorderUUID,
   genRecordUUID,
   utils,
-  FFMPEGRecorder,
+  createBaseRecorder,
 } from "@bililive-tools/manager";
 import type {
   Comment,
@@ -190,7 +190,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   let res: Awaited<ReturnType<typeof getStream>>;
-  // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
     let strictQuality = false;
     if (this.qualityRetry > 0) {
@@ -202,12 +201,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (isManualStart) {
       strictQuality = false;
     }
+    // TODO: 还需要测试仅音频流的情况，mesio可能并不支持
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
       source: this.source,
       strictQuality,
       onlyAudio: this.onlyAudio,
+      avoidEdgeCDN: this.recorderType === "mesio",
     });
   } catch (err) {
     this.state = "idle";
@@ -232,16 +233,20 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
     this.emit("DebugLog", {
       type: "common",
-      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
+      text: `record end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
     });
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
   };
   let isEnded = false;
   let isCutting = false;
-  const recorder = new FFMPEGRecorder(
+
+  let recorderType: "ffmpeg" | "mesio" = this.recorderType ?? "ffmpeg";
+  const recorder = createBaseRecorder(
+    recorderType,
     {
       url: stream.url,
+      // @ts-ignore
       outputOptions: ffmpegOutputOptions,
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
@@ -435,7 +440,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   client.on("error", (err) => {
     this.emit("DebugLog", { type: "common", text: String(err) });
   });
-  // console.log("this.disableProvideCommentsWhenRecording", this.disableProvideCommentsWhenRecording);
   if (!this.disableProvideCommentsWhenRecording) {
     client.start();
   }

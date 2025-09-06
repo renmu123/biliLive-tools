@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/douyin-recorder",
-  "version": "1.5.2",
+  "version": "1.6.0",
   "description": "@bililive-tools douyin recorder implemention",
   "main": "./lib/index.js",
   "type": "module",

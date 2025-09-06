@@ -6,7 +6,7 @@ import {
   genRecorderUUID,
   genRecordUUID,
   utils,
-  FFMPEGRecorder,
+  createBaseRecorder,
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
@@ -40,6 +40,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     m3u8ProxyUrl: opts.m3u8ProxyUrl,
     formatName: opts.formatName ?? "auto",
     codecName: opts.codecName ?? "auto",
+    recorderType: opts.recorderType ?? "ffmpeg",
 
     getChannelURL() {
       return `https://live.bilibili.com/${this.channelId}`;
@@ -196,7 +197,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   let intervalId: NodeJS.Timeout | null = null;
   if (this.useM3U8Proxy && streamOptions.protocol_name === "http_hls") {
-    url = `${this.m3u8ProxyUrl}?id=${this.id}`;
+    url = `${this.m3u8ProxyUrl}?id=${this.id}&format=hls`;
     this.emit("DebugLog", {
       type: "common",
       text: `is hls stream, use proxy: ${url}`,
@@ -233,21 +234,26 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     isEnded = true;
     this.emit("DebugLog", {
       type: "common",
-      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
+      text: `record end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
     });
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
   };
 
-  const recorder = new FFMPEGRecorder(
+  let recorderType: "ffmpeg" | "mesio" = this.recorderType ?? "ffmpeg";
+  // TODO:测试只录制音频，hls以及fmp4，测试分辨率变化
+  const recorder = createBaseRecorder(
+    recorderType,
     {
       url: url,
       outputOptions: ffmpegOutputOptions,
       inputOptions: ffmpegInputOptions,
+      mesioOptions: ["-H", "Referer:https://live.bilibili.com/"],
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
         getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),
       isHls: streamOptions.protocol_name === "http_hls",
+      formatName: streamOptions.format_name as "flv" | "ts" | "fmp4",
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat,
     },

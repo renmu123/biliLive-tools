@@ -1,7 +1,7 @@
 import EventEmitter from "node:events";
 
-import { createFFMPEGBuilder, StreamManager, utils } from "./index.js";
-import { createInvalidStreamChecker, assert } from "./utils.js";
+import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
+import { createInvalidStreamChecker, assert } from "../utils.js";
 
 export class FFMPEGRecorder extends EventEmitter {
   private command: ReturnType<typeof createFFMPEGBuilder>;
@@ -45,7 +45,8 @@ export class FFMPEGRecorder extends EventEmitter {
       opts.getSavePath,
       hasSegment,
       this.disableDanma,
-      opts.videoFormat,
+      "ffmpeg",
+      opts.videoFormat ?? "auto",
       {
         onUpdateLiveInfo: this.onUpdateLiveInfo,
       },

@@ -1,3 +1,8 @@
+# 1.6.0
+
+- 支持 `recorderType` 参数用于配置底层录制器，支持`ffmpeg | mesio`
+- 修复cdn错误显示
+
 # 1.5.1
 
 - `resolveChannelInfoFromURL` 新增返回参数：`avatar`
