@@ -168,6 +168,21 @@ services:
 
 实现由 [LiveAutoRecord](https://github.com/WhiteMinds/LiveAutoRecord) 拓展而来
 
+### 录制器
+
+FFMPEG 是默认的录制器，几乎支持所有的格式。
+
+mesio 作为测试录制器被引入，用于支持 flv 修复等功能，当你选择了 mesio 不支持的配置，会尝试使用 FFMPEG 来进行录制，以可以录制作为第一保障
+
+| 功能     | ffmpeg     | mesio           |
+| -------- | ---------- | --------------- |
+| FLV 录制 | ✅         | ✅              |
+| HLS 录制 | ✅         | 暂不支持webhook |
+| 时长分段 | ✅         | ✅              |
+| 只音频   | ✅         | ❌              |
+| 容器支持 | MP4,TS,MKV | 跟随链接容器    |
+| FLV 修复 | ❌         | ✅              |
+
 ## webhook
 
 ### [B站录播姬](https://github.com/BililiveRecorder)
