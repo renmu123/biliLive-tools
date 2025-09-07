@@ -307,13 +307,14 @@ export class BaiduPCS extends TypedEmitter<BaiduPCSEvents> {
     try {
       // 执行上传
       this.logger.info(`开始上传: ${localFilePath} 到 ${targetDir}`);
-      const args = ["upload", localFilePath, targetDir, "--norapid"];
-      if (options?.retry !== undefined) {
-        args.push("--retry", options.retry.toString());
-      }
-      if (options?.policy) {
-        args.push("--policy", options.policy);
-      }
+      const args = ["upload", localFilePath, targetDir];
+      console.log(options);
+      // if (options?.retry !== undefined) {
+      //   args.push("--retry", options.retry.toString());
+      // }
+      // if (options?.policy) {
+      //   args.push("--policy", options.policy);
+      // }
       await this.executeUploadCommand(args);
 
       const remoteFilepath = path.posix.join(targetDir, path.parse(localFilePath).base);

@@ -1,6 +1,6 @@
 {
   "name": "biliLive-tools",
-  "version": "2.5.1",
+  "version": "2.5.2",
   "description": "B站直播录制处理工具",
   "main": "./out/main/index.js",
   "author": "renmu123",
@@ -8,8 +8,8 @@
   "homepage": "https://github.com/renmu123/biliLive-tools",
   "type": "module",
   "scripts": {
-    "dev": "chcp 65001 && electron-vite dev",
-    "devMain": "chcp 65001 && electron-vite dev --watch",
+    "dev": "electron-vite dev",
+    "devMain": "electron-vite dev --watch",
     "start": "electron-vite preview",
     "build": "pnpm run typecheck && electron-vite build",
     "build:webui": "pnpm run typecheck && electron-vite build --mode webui",
@@ -64,7 +64,7 @@
     "driver.js": "^1.3.1",
     "electron": "37.2.6",
     "electron-builder": "^24.13.3",
-    "electron-devtools-installer": "^3.2.0",
+    "electron-devtools-installer": "^4.0.0",
     "electron-vite": "^3.1.0",
     "eslint": "^8.57.1",
     "eslint-plugin-vue": "^9.32.0",

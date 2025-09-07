@@ -489,6 +489,8 @@ async function addMedia(
   extraOptions?: {
     limitedUploadTime?: [] | [string, string];
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
+    // 强制检查稿件状态
+    forceCheck?: boolean;
     checkCallback?: (status: "completed" | "error") => void;
   },
 ) {
@@ -532,6 +534,7 @@ async function addMedia(
         }
         // 稿件检查
         if (
+          extraOptions?.forceCheck ||
           (options.autoComment && options.comment) ||
           appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
           extraOptions?.afterUploadDeletAction === "deleteAfterCheck"
@@ -618,6 +621,8 @@ export async function editMedia(
   extraOptions?: {
     limitedUploadTime?: [] | [string, string];
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
+    // 强制检查稿件状态
+    forceCheck?: boolean;
     checkCallback?: (status: "completed" | "error") => void;
   },
 ) {
@@ -638,6 +643,7 @@ export async function editMedia(
       onEnd: async () => {
         // 审核检查
         if (
+          extraOptions?.forceCheck ||
           appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
           extraOptions?.afterUploadDeletAction === "deleteAfterCheck"
         ) {

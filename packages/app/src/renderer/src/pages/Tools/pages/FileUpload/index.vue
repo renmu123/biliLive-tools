@@ -110,6 +110,9 @@ const upload = async () => {
     uid: userInfo.value.uid!,
     videos: deepRaw(fileList.value),
     config: deepRaw(presetOptions.value.config),
+    options: {
+      removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,
+    },
   });
   fileList.value = [];
 };

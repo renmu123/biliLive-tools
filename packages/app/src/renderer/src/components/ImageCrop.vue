@@ -77,6 +77,10 @@ const handleCoverChange = async (e: Event) => {
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const selectImage = () => {
+  // 重置input的value，以支持重复选择同一个文件
+  if (fileInputRef.value) {
+    fileInputRef.value.value = "";
+  }
   fileInputRef.value?.click();
 };
 

@@ -381,8 +381,8 @@ importers:
         specifier: ^24.13.3
         version: 24.13.3(electron-builder-squirrel-windows@24.13.3(dmg-builder@24.13.3))
       electron-devtools-installer:
-        specifier: ^3.2.0
-        version: 3.2.0
+        specifier: ^4.0.0
+        version: 4.0.0
       electron-vite:
         specifier: ^3.1.0
         version: 3.1.0(vite@6.2.5(@types/node@22.9.0)(less@4.2.1)(tsx@4.19.2))
@@ -574,8 +574,8 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       '@renmu/bili-api':
-        specifier: 2.9.2
-        version: 2.9.2
+        specifier: 2.9.3
+        version: 2.9.3
       '@renmu/fluent-ffmpeg':
         specifier: 2.3.2
         version: 2.3.2
@@ -1371,8 +1371,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@renmu/bili-api@2.9.2':
-    resolution: {integrity: sha512-v5cxemmfOaHQd4FnSt4J+z+CzhvM7zN5G73gO3peW9NdbfU77YDjxONx4auTjHRv4pmGOW7+UKqWtnM/vHl8zg==}
+  '@renmu/bili-api@2.9.3':
+    resolution: {integrity: sha512-s6sxBge/H5oxK/7R8ITBb2OZ8/1HfPM8l72LB6wGSSGgMG+OifhiWg6oOwdiHaQiNE/N12Hql4EM8e263rESSw==}
     engines: {node: '>=18'}
 
   '@renmu/fluent-ffmpeg@2.3.2':
@@ -2857,8 +2857,8 @@ packages:
     resolution: {integrity: sha512-XPGj35npL8+MG9Lx5ukmK/h8KLmjYJ3e1GvwWKrNZvf2ocv746WXIyltoV1yWtkEPT7g2kQ8hFmu0ZupK5KieA==}
     engines: {node: '>=18'}
 
-  electron-devtools-installer@3.2.0:
-    resolution: {integrity: sha512-t3UczsYugm4OAbqvdImMCImIMVdFzJAHgbwHpkl5jmfu1izVgUcP/mnrPqJIpEeCK1uZGpt+yHgWEN+9EwoYhQ==}
+  electron-devtools-installer@4.0.0:
+    resolution: {integrity: sha512-9Tntu/jtfSn0n6N/ZI6IdvRqXpDyLQiDuuIbsBI+dL+1Ef7C8J2JwByw58P3TJiNeuqyV3ZkphpNWuZK5iSY2w==}
 
   electron-dl@4.0.0:
     resolution: {integrity: sha512-USiB9816d2JzKv0LiSbreRfTg5lDk3lWh0vlx/gugCO92ZIJkHVH0UM18EHvKeadErP6Xn4yiTphWzYfbA2Ong==}
@@ -6311,7 +6311,7 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@renmu/bili-api@2.9.2':
+  '@renmu/bili-api@2.9.3':
     dependencies:
       '@bufbuild/protobuf': 2.2.3
       '@renmu/throttle': 1.0.3
@@ -8031,11 +8031,8 @@ snapshots:
       electron-dl: 4.0.0
       electron-is-dev: 3.0.1
 
-  electron-devtools-installer@3.2.0:
+  electron-devtools-installer@4.0.0:
     dependencies:
-      rimraf: 3.0.2
-      semver: 7.6.3
-      tslib: 2.8.1
       unzip-crx-3: 0.2.0
 
   electron-dl@4.0.0:

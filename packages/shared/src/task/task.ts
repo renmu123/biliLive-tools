@@ -380,9 +380,9 @@ export class BiliPartVideoTask extends AbstractTask {
         }
 
         this.completedPart = data;
+        this.endTime = Date.now();
         callback.onEnd && callback.onEnd(data);
         this.emitter.emit("task-end", { taskId: this.taskId });
-        this.endTime = Date.now();
       },
     );
     command.emitter.on("error", (err) => {
@@ -403,6 +403,11 @@ export class BiliPartVideoTask extends AbstractTask {
     });
   }
   async exec() {
+    if (this.status !== "pending") return;
+    this.status = "running";
+    this.startTime = Date.now();
+    this.emitter.emit("task-start", { taskId: this.taskId });
+
     // 处理上传分p持久化
     if (this.useUploadPartPersistence) {
       try {
@@ -417,6 +422,7 @@ export class BiliPartVideoTask extends AbstractTask {
             filename: part.filename,
             title: this.command.title,
           };
+          this.endTime = Date.now();
           this.callback.onEnd && this.callback.onEnd(this.completedPart);
           this.emitter.emit("task-end", { taskId: this.taskId });
           return;
