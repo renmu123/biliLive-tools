@@ -28,7 +28,7 @@ import { serverStart } from "@biliLive-tools/http";
 import { cookieHandlers } from "./cookie";
 import { commonHandlers, getTempPath } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
-import icon from "../../resources/icon.png?asset";
+// import icon from "../../resources/icon.png?asset";
 import {
   FFMPEG_PATH,
   FFPROBE_PATH,
@@ -107,7 +107,7 @@ function createWindow(): void {
     autoHideMenuBar: false,
     minHeight: 400,
     minWidth: 600,
-    ...(process.platform === "linux" ? { icon } : {}),
+    ...(process.platform === "linux" ? { icon: join(__dirname, "../../resources/icon.png") } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.mjs"),
       sandbox: false,
@@ -256,7 +256,7 @@ function createWindow(): void {
   });
 
   // 新建托盘
-  const tray = new Tray(join(icon));
+  const tray = new Tray(join(__dirname, "../../resources/icon.png"));
   // 托盘名称
   tray.setToolTip("biliLive-tools");
   // 托盘菜单

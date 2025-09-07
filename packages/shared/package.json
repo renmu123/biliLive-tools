@@ -35,8 +35,8 @@
     "@bililive-tools/huya-recorder": "workspace:*",
     "@bililive-tools/manager": "workspace:*",
     "@napi-rs/canvas": "^0.1.60",
+    "@renmu/fluent-ffmpeg": "2.3.3",
     "@renmu/bili-api": "2.9.3",
-    "@renmu/fluent-ffmpeg": "2.3.2",
     "@renmu/m3u8-downloader": "^0.4.0",
     "arktype": "^2.1.2",
     "ass-compiler": "^0.1.14",
@@ -56,7 +56,8 @@
     "tiny-typed-emitter": "^2.1.0",
     "trash": "^9.0.0",
     "tree-kill": "^1.2.2",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "pan123-uploader": "0.1.0"
   },
   "devDependencies": {
     "@types/nodemailer": "^6.4.17"

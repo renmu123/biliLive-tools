@@ -9,6 +9,7 @@ import {
   isLogin,
   baiduPCSLogin,
   aliyunpanLogin,
+  pan123Login,
 } from "@biliLive-tools/shared/task/sync.js";
 
 import type { SyncType } from "@biliLive-tools/types";
@@ -24,6 +25,8 @@ async function uploadTest(params: {
   apiUrl?: string;
   username?: string;
   password?: string;
+  clientId?: string;
+  clientSecret?: string;
 }) {
   // 在临时文件新建一个文件，内容为"biliLive-tools"
   const tempFilePath = path.join(os.tmpdir(), "biliLive-tools-upload-test.txt");
@@ -39,6 +42,8 @@ async function uploadTest(params: {
       apiUrl: params.apiUrl,
       username: params.username,
       password: params.password,
+      clientId: params.clientId,
+      clientSecret: params.clientSecret,
     });
     task.on("task-end", (data) => {
       console.log("task-end", data);
@@ -86,16 +91,38 @@ router.post("/baiduPCSLogin", async (ctx) => {
   }
 });
 
+router.post("/pan123Login", async (ctx) => {
+  const params = ctx.request.body;
+  // @ts-ignore
+  const { clientId, clientSecret } = params;
+
+  if (!clientId || !clientSecret) {
+    ctx.status = 400;
+    ctx.body = "clientId和clientSecret不能为空";
+    return;
+  }
+
+  try {
+    const success = await pan123Login({ clientId, clientSecret });
+    ctx.body = success ? "登录成功" : "登录失败";
+  } catch (error: any) {
+    ctx.status = 500;
+    ctx.body = `登录失败: ${error.message}`;
+  }
+});
+
 router.get("/isLogin", async (ctx) => {
   const params = ctx.request.query;
   // @ts-ignore
-  const { execPath, type, apiUrl, username, password } = params;
+  const { execPath, type, apiUrl, username, password, clientId, clientSecret } = params;
   const status = await isLogin({
     execPath: execPath as string,
     type: type as SyncType,
     apiUrl: apiUrl as string,
     username: username as string,
     password: password as string,
+    clientId: clientId as string,
+    clientSecret: clientSecret as string,
   });
   ctx.body = status;
 });
