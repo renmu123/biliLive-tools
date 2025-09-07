@@ -324,7 +324,7 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     topic_id: options.topic_id,
     mission_id: options.mission_id,
     is_only_self: options.is_only_self || 0,
-    dtime: options.dtime,
+    dtime: options.dtime ? options.dtime : undefined,
   };
   return data;
 }
@@ -462,7 +462,7 @@ async function biliMediaAction(
         try {
           await sendNotifyWithThrottle(
             `《${media.title}》稿件审核未通过`,
-            `请前往B站创作中心查看详情\n稿件名：${media.title}\n状态：${media.state_desc}`,
+            `请前往B站创作中心查看详情\n稿件名：${media.title}\n状态：${media.state_desc}\n状态码：${media.state}`,
             options.aid!,
             { type: "mediaStatusCheck" },
           );
@@ -489,6 +489,8 @@ async function addMedia(
   extraOptions?: {
     limitedUploadTime?: [] | [string, string];
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
+    // 强制检查稿件状态
+    forceCheck?: boolean;
     checkCallback?: (status: "completed" | "error") => void;
   },
 ) {
@@ -532,6 +534,7 @@ async function addMedia(
         }
         // 稿件检查
         if (
+          extraOptions?.forceCheck ||
           (options.autoComment && options.comment) ||
           appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
           extraOptions?.afterUploadDeletAction === "deleteAfterCheck"
@@ -618,6 +621,8 @@ export async function editMedia(
   extraOptions?: {
     limitedUploadTime?: [] | [string, string];
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck";
+    // 强制检查稿件状态
+    forceCheck?: boolean;
     checkCallback?: (status: "completed" | "error") => void;
   },
 ) {
@@ -638,6 +643,7 @@ export async function editMedia(
       onEnd: async () => {
         // 审核检查
         if (
+          extraOptions?.forceCheck ||
           appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
           extraOptions?.afterUploadDeletAction === "deleteAfterCheck"
         ) {

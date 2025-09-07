@@ -85,6 +85,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     manager.autoCheckInterval = autoCheckInterval * 1000;
     manager.savePathRule = savePathRule;
     manager.biliBatchQuery = config?.recorder?.bilibili.useBatchQuery ?? false;
+    manager.recordRetryImmediately = config?.recorder?.recordRetryImmediately ?? false;
 
     if (autoCheckLiveStatusAndRecord) {
       if (autoCheckLiveStatusAndRecord && !manager.isCheckLoopRunning) {
@@ -123,6 +124,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     autoCheckInterval: autoCheckInterval * 1000,
     savePathRule: savePathRule,
     biliBatchQuery: config?.recorder?.bilibili.useBatchQuery ?? false,
+    recordRetryImmediately: config?.recorder?.recordRetryImmediately ?? false,
   });
 
   manager.on("RecorderDebugLog", ({ recorder, ...log }) => {
@@ -199,9 +201,10 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
     const endTime = new Date();
     const data = recorderConfig.get(recorder.id);
-    const title = recorder.liveInfo?.title;
-    const username = recorder.liveInfo?.owner;
-    const channelId = recorder.channelId;
+    const title = recorder?.liveInfo?.title;
+    const username = recorder?.liveInfo?.owner;
+    const channelId = recorder?.channelId;
+    const liveId = recorder?.liveInfo?.liveId;
     const config = appConfig.getAll();
 
     data?.sendToWebhook &&
@@ -221,7 +224,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
       recordHistory.upadteLive(
         {
           video_file: filename,
-          live_id: recorder?.liveInfo?.liveId,
+          live_id: liveId,
         },
         {
           record_end_time: endTime.getTime(),
@@ -234,7 +237,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
         recordHistory.upadteLive(
           {
             video_file: filename,
-            live_id: recorder?.liveInfo?.liveId,
+            live_id: liveId,
           },
           {
             danma_num: danmaNum,
@@ -247,12 +250,12 @@ export async function createRecorderManager(appConfig: AppConfig) {
     }
 
     if (config.recorder.saveDanma2DB && xmlFile && (await fs.pathExists(xmlFile))) {
-      logger.info("写入弹幕文件：", xmlFile);
       const history = recordHistory.getRecord({
         file: filename,
-        live_id: recorder?.liveInfo?.liveId,
+        live_id: liveId,
       });
       if (!history) return;
+      logger.info("写入弹幕文件：", xmlFile);
       const { danmu, sc, gift, guard } = await parseDanmu(replaceExtName(filename, ".xml"));
       const result: {
         record_id: number;

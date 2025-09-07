@@ -1,3 +1,8 @@
+# 1.5.0
+
+- 修复未设置分段时录制音频时不触发文件创建和结束时间的bug
+- 新增`recordRetryImmediately`即“录制错误立即重试”选项，用于在触发"invalid stream"后自动重试，一场直播最多触发五次，不对虎牙生效
+
 # 1.4.1
 
 - `resolveChannelInfoFromURL` 新增返回参数：`avatar`

@@ -20,7 +20,7 @@ const VideoSub = BaseVideoSub.extend({
 
 export type BaseVideoSub = z.infer<typeof BaseVideoSub>;
 
-class VideoSubModel extends BaseModel<BaseVideoSub> {
+class VideoSubModel extends BaseModel<z.infer<typeof VideoSub>> {
   table = "video_sub";
 
   constructor(db: Database) {
@@ -145,7 +145,7 @@ export default class VideoSubController {
   }
 
   delete(id: number) {
-    return this.model.delete(id);
+    return this.model.deleteBy("id", id);
   }
 }
 
