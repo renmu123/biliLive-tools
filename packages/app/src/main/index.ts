@@ -90,12 +90,45 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:relaunch", relaunch);
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:setTheme", setTheme);
+  ipcMain.handle("common:createSubWindow", createCutWindow);
 
   registerHandlers(ipcMain, ffmpegHandlers);
   registerHandlers(ipcMain, configHandlers);
   registerHandlers(ipcMain, commonHandlers);
   registerHandlers(ipcMain, cookieHandlers);
 };
+
+function createCutWindow() {
+  const css = `
+  .layout>div>aside {
+    display: none;
+  }
+`;
+
+  const subWindow = new BrowserWindow({
+    webPreferences: {
+      preload: join(__dirname, "../preload/index.mjs"),
+      sandbox: false,
+      webSecurity: false,
+    },
+  });
+
+  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+    subWindow.loadURL(process.env["ELECTRON_RENDERER_URL"] + "/#/videoCut2");
+  } else {
+    subWindow.loadFile(join(__dirname, "../renderer/index.html"), {
+      hash: "videoCut2",
+    });
+  }
+
+  subWindow.webContents.on("did-finish-load", () => {
+    subWindow.webContents.insertCSS(css);
+  });
+  // subWindow.webContents.openDevTools();
+  subWindow.maximize();
+  return true;
+  return subWindow;
+}
 
 function createWindow(): void {
   Object.assign(windowConfig, WindowState.get("winBounds"));

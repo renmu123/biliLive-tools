@@ -53,6 +53,9 @@ export const api = {
     execFile: (file: string, args: string[]) => {
       return ipcRenderer.invoke("common:execFile", file, args);
     },
+    createSubWindow: () => {
+      return ipcRenderer.invoke("common:createSubWindow", {});
+    },
   },
   config: {
     save: (newConfig: AppConfig) => {

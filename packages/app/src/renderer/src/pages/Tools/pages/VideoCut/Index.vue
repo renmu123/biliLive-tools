@@ -21,6 +21,7 @@
       <n-button class="cut-export" type="info" :disabled="!files.videoPath" @click="exportCuts">
         导出切片
       </n-button>
+      <n-button @click="openSubWindow" v-if="!isWeb">打开独立窗口</n-button>
     </div>
 
     <div class="content">
@@ -207,6 +208,17 @@ const videoTitle = computed(() => {
 const danmuTitle = computed(() => {
   return files.value.danmuPath ? "替换弹幕" : "添加弹幕";
 });
+
+const openSubWindow = async () => {
+  if (isWeb.value) {
+    notice.warning({
+      title: "网页版不支持打开新窗口~",
+      duration: 2000,
+    });
+    return;
+  }
+  await window.api.common.createSubWindow();
+};
 
 const {
   selectedCuts,
