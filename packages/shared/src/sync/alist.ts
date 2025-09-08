@@ -285,6 +285,7 @@ export class Alist extends TypedEmitter<AlistEvents> {
         headers: {
           "Content-Type": "application/octet-stream",
           "Content-Length": fileSize.toString(),
+          ...(this.token ? { "Authorization": this.token } : {}),
           "File-Path": encodeURIComponent(remotePath),
           "As-Task": "true",
         },
