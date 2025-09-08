@@ -279,6 +279,9 @@ export class Alist extends TypedEmitter<AlistEvents> {
       const response = await fetch(`${this.server}/api/fs/put`, {
         method: "PUT",
         body: fileStream as any, // Node.js fetch 支持 ReadableStream
+        ...({
+          duplex: "half"
+        } as { duplex: "half" }),
         headers: {
           "Content-Type": "application/octet-stream",
           "Content-Length": fileSize.toString(),
