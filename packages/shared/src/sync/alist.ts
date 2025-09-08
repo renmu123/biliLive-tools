@@ -257,81 +257,49 @@ export class Alist extends TypedEmitter<AlistEvents> {
       const fileSize = stat.size;
 
       // 创建文件流
-      const fileStream = fs.createReadStream(localFilePath);
-
-      // // 设置上传进度回调
-      // let lastTime = Date.now();
-      // let lastLoaded = 0;
-      // let uploadedBytes = 0;
-
-      // // 监听数据流事件来计算上传进度
-      // fileStream.on("data", (chunk) => {
-      //   uploadedBytes += chunk.length;
-
-      //   const currentTime = Date.now();
-      //   const timeDiff = (currentTime - lastTime) / 1000; // 转换为秒
-
-      //   if (timeDiff > 0.5) {
-      //     // 每0.5秒更新一次
-      //     const loadedDiff = uploadedBytes - lastLoaded;
-      //     const speed = loadedDiff / timeDiff; // 字节/秒
-      //     const percentage = Math.round((uploadedBytes / fileSize) * 100);
-
-      //     // 格式化速度
-      //     // let speedStr =
-      //     //   speed < 1024
-      //     //     ? `${speed.toFixed(2)}B/s`
-      //     //     : speed < 1024 * 1024
-      //     //       ? `${(speed / 1024).toFixed(2)}KB/s`
-      //     //       : `${(speed / 1024 / 1024).toFixed(2)}MB/s`;
-
-      //     this.emit("progress", {
-      //       uploaded: this.formatSize(uploadedBytes),
-      //       total: this.formatSize(fileSize),
-      //       percentage,
-      //       speed: "",
-      //     });
-      //     // console.log({
-      //     //   uploaded: this.formatSize(uploadedBytes),
-      //     //   total: this.formatSize(fileSize),
-      //     //   percentage,
-      //     //   speed: speedStr,
-      //     // });
-
-      //     lastTime = currentTime;
-      //     lastLoaded = uploadedBytes;
-      //   }
-      // });
-
-      // 创建新的AbortController
-      this.abortController = new AbortController();
-
-      const response = await this.client.put("/api/fs/put", fileStream, {
-        headers: {
-          "Content-Type": "application/octet-stream",
-          "Content-Length": fileSize,
-          "File-Path": encodeURIComponent(remotePath),
-          "As-Task": true,
-        },
-        maxContentLength: Infinity,
-        maxBodyLength: Infinity,
-        signal: this.abortController.signal,
-        onUploadProgress: (progressEvent: any) => {
-          this.emit("progress", {
-            uploaded: this.formatSize(progressEvent.loaded),
-            total: this.formatSize(fileSize),
-            percentage: Math.round((progressEvent.loaded / fileSize) * 100),
-            speed: "",
-          });
-        },
+      const fileStream = fs.createReadStream(localFilePath, {
+        highWaterMark: 1024 * 1024, // 每次读取 1MB
       });
 
-      if (response.data.code === 200) {
+      // 进度监听
+      let uploaded = 0;
+      fileStream.on("data", (chunk) => {
+        uploaded += chunk.length;
+        this.emit("progress", {
+          uploaded: this.formatSize(uploaded),
+          total: this.formatSize(fileSize),
+          percentage: Math.round((uploaded / fileSize) * 100),
+          speed: "",
+        });
+      });
+
+      // 用于取消上传
+      this.abortController = new AbortController();
+
+      const response = await fetch(`${this.server}/api/fs/put`, {
+        method: "PUT",
+        body: fileStream as any, // Node.js fetch 支持 ReadableStream
+        headers: {
+          "Content-Type": "application/octet-stream",
+          "Content-Length": fileSize.toString(),
+          "File-Path": encodeURIComponent(remotePath),
+          "As-Task": "true",
+        },
+        signal: this.abortController.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.code === 200) {
         const successMsg = `上传成功: ${localFilePath}`;
         this.logger.debug(successMsg);
         this.emit("success", successMsg);
       } else {
-        throw new Error(`上传失败: ${response.data.message}`);
+        throw new Error(`上传失败: ${result.message}`);
       }
     } catch (error: any) {
       if (error.name === "AbortError") {
