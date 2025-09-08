@@ -1,3 +1,4 @@
+import path from "node:path";
 import fs from "fs-extra";
 
 import Router from "koa-router";
@@ -97,6 +98,24 @@ router.delete("/:id", async (ctx) => {
   }
 });
 
+const getVideoFile = async (id: number): Promise<string | null> => {
+  const data = recordHistory.getRecordById(id);
+  if (!data) {
+    throw new Error("记录不存在");
+  }
+  if (!data.video_file) {
+    throw new Error("视频文件不存在");
+  }
+  if (await fs.pathExists(data.video_file)) {
+    return data.video_file;
+  }
+  const mp4File = replaceExtName(data.video_file, ".mp4");
+  if (await fs.pathExists(mp4File)) {
+    return mp4File;
+  }
+  return null;
+};
+
 /**
  * 获取视频文件
  * @route GET /record-history/video-file
@@ -110,30 +129,46 @@ router.get("/video/:id", async (ctx) => {
     ctx.body = "记录ID不能为空且必须为数字";
   }
 
-  const data = recordHistory.getRecordById(parseInt(id));
-  if (!data) {
-    ctx.status = 400;
-    ctx.body = "记录不存在";
-    return;
-  }
-  if (!data.video_file) {
-    ctx.status = 400;
-    ctx.body = "视频文件不存在";
-    return;
-  }
-
-  if (await fs.pathExists(data.video_file)) {
-    ctx.body = data.video_file;
-    return;
-  }
-  const mp4File = replaceExtName(data.video_file, ".mp4");
-  if (await fs.pathExists(mp4File)) {
-    ctx.body = mp4File;
+  const file = await getVideoFile(parseInt(id));
+  if (file) {
+    ctx.body = file;
     return;
   }
 
   ctx.status = 400;
   ctx.body = "视频文件不存在";
+});
+
+/**
+ * 下载视频文件
+ * @route GET /record-history/download/:id
+ * @param {number} id - 记录ID
+ */
+router.get("/download/:id", async (ctx) => {
+  const { id } = ctx.params;
+
+  if (!id || isNaN(parseInt(id))) {
+    ctx.status = 400;
+    ctx.body = "记录ID不能为空且必须为数字";
+  }
+
+  const file = await getVideoFile(parseInt(id));
+  if (!file) {
+    ctx.status = 400;
+    ctx.body = "视频文件不存在";
+    return;
+  }
+
+  const stat = await fs.stat(file);
+  ctx.set("Content-Length", stat.size.toString());
+  ctx.set("Content-Type", "application/octet-stream");
+  ctx.set(
+    "Content-Disposition",
+    `attachment; filename*=UTF-8''${encodeURIComponent(path.basename(file))}`,
+  );
+  ctx.set("X-Filename", encodeURIComponent(path.basename(file)));
+  ctx.set("Access-Control-Expose-Headers", "Content-Disposition, X-Filename");
+  ctx.body = fs.createReadStream(file);
 });
 
 export default router;

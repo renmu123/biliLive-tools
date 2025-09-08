@@ -67,7 +67,7 @@
 import { useRoute, useRouter } from "vue-router";
 import { recordHistoryApi } from "../../apis";
 import { NIcon } from "naive-ui";
-import { FolderOpenOutline } from "@vicons/ionicons5";
+import { FolderOpenOutline, DownloadOutline } from "@vicons/ionicons5";
 import { Delete20Regular } from "@vicons/fluent";
 import { FileOpenOutlined } from "@vicons/material";
 import { VNode } from "vue";
@@ -273,6 +273,23 @@ const allColumns: {
           ),
         );
       }
+      if (window.isWeb) {
+        subNodes.push(
+          h(
+            NIcon,
+            {
+              size: "20",
+              style: {
+                cursor: "pointer",
+              },
+              title: "下载",
+              onClick: () => downloadFile(row.id),
+            },
+            { default: () => h(DownloadOutline) },
+          ),
+        );
+      }
+
       return h(
         "div",
         {
@@ -400,12 +417,26 @@ const _formatDuration = (duration?: number) => {
   return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 };
 
-// 打开文件或文件夹
+// 打开文件
 const openFile = async (id: number) => {
   if (!id) return;
   const filePath = await recordHistoryApi.getVideoFile(id);
   if (!filePath) return;
   window.api.openPath(filePath);
+};
+
+// 下载文件
+const downloadFile = async (id: number) => {
+  const { blob, fileName } = await recordHistoryApi.downloadFile(id);
+
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  document.body.appendChild(a);
+  a.click();
+  window.URL.revokeObjectURL(url);
+  document.body.removeChild(a);
 };
 
 const openFolder = async (id: number) => {
