@@ -2,6 +2,7 @@
 
 - 支持 `recorderType` 参数用于配置底层录制器，支持`ffmpeg | mesio`
 - 修复cdn错误显示
+- 增加更多礼物
 
 # 1.5.1
 
