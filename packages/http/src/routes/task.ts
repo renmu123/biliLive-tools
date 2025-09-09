@@ -1,6 +1,5 @@
 import fs from "fs-extra";
 import Router from "koa-router";
-import path from "path";
 
 import {
   handleStartTask,
