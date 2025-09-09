@@ -106,6 +106,7 @@ interface LiveRecord {
   danma_num?: number;
   interact_num?: number;
   video_duration?: number;
+  danma_density?: number | null; // 弹幕密度，弹幕数量/视频时长
   [key: string]: any;
 }
 
@@ -154,6 +155,7 @@ const columnConfig: ColumnConfig[] = [
   { value: "video_duration", label: "视频时长", defaultVisible: true },
   { value: "danma_num", label: "弹幕数量", defaultVisible: true },
   { value: "interact_num", label: "弹幕互动人数", defaultVisible: true },
+  { value: "danma_density", label: "弹幕密度", defaultVisible: true },
   { value: "actions", label: "操作", defaultVisible: true },
 ];
 
@@ -237,6 +239,14 @@ const allColumns: {
   {
     title: "弹幕互动人数",
     key: "interact_num",
+  },
+  {
+    title: "弹幕密度",
+    key: "danma_density",
+    render: (row: LiveRecord) =>
+      row.danma_density !== null && row.danma_density !== undefined
+        ? `${row.danma_density}/秒`
+        : "",
   },
   {
     title: "操作",

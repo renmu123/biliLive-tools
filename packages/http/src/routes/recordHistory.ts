@@ -19,6 +19,7 @@ const router = new Router({
  * @param {number} [pageSize=100] - 每页条数
  * @param {number} [startTime] - 开始时间（时间戳）
  * @param {number} [endTime] - 结束时间（时间戳）
+ * @returns 返回数据包含弹幕密度字段（弹幕数量/视频时长，单位：条/秒）
  */
 router.get("/list", async (ctx) => {
   const { room_id, platform, page, pageSize, startTime, endTime } = ctx.query;
@@ -42,9 +43,18 @@ router.get("/list", async (ctx) => {
       endTime: endTime ? parseInt(endTime as string) : undefined,
     });
 
+    // 为每条记录计算弹幕密度
+    const dataWithDensity = result.data.map((record) => ({
+      ...record,
+      danma_density:
+        record.danma_num && record.video_duration && record.video_duration > 0
+          ? Math.round((record.danma_num / record.video_duration) * 100) / 100 // 保留两位小数
+          : null,
+    }));
+
     ctx.body = {
       code: 200,
-      data: result.data,
+      data: dataWithDensity,
       pagination: result.pagination,
     };
   } catch (error: any) {

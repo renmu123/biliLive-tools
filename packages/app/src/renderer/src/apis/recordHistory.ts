@@ -23,6 +23,10 @@ export interface RecordHistoryItem {
   title: string;
   video_file?: string;
   created_at: number;
+  video_duration?: number;
+  danma_num?: number;
+  interact_num?: number;
+  danma_density?: number | null; // 弹幕密度，弹幕数量/视频时长
 }
 
 export interface QueryRecordsResponse {
