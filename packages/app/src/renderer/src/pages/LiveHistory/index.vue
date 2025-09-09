@@ -427,15 +427,12 @@ const openFile = async (id: number) => {
 
 // 下载文件
 const downloadFile = async (id: number) => {
-  const { blob, fileName } = await recordHistoryApi.downloadFile(id);
+  const fileUrl = await recordHistoryApi.downloadFile(id);
 
-  const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
-  a.href = url;
-  a.download = fileName;
+  a.href = fileUrl;
   document.body.appendChild(a);
   a.click();
-  window.URL.revokeObjectURL(url);
   document.body.removeChild(a);
 };
 

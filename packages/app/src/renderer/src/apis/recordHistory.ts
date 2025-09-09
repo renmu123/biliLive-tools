@@ -68,12 +68,11 @@ export async function getVideoFile(id: number) {
 /**
  * 下载视频文件
  */
-export async function downloadFile(id: number): Promise<{ fileName: string; blob: Blob }> {
-  const res = await request.get(`/record-history/download/${id}`, {
-    responseType: "blob",
-  });
-  const fileName = res.headers["x-filename"];
-  return { fileName: decodeURIComponent(fileName), blob: res.data };
+export async function downloadFile(id: number): Promise<string> {
+  const res = await request.get(`/record-history/download/${id}`);
+  const fileId = res.data;
+  const fileUrl = `${request.defaults.baseURL}/assets/download/${fileId}`;
+  return fileUrl;
 }
 
 export default {

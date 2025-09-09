@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import Router from "koa-router";
 import { replaceExtName } from "@biliLive-tools/shared/utils/index.js";
 import recordHistory from "@biliLive-tools/shared/recorder/recordHistory.js";
+import { fileCache } from "../index.js";
 
 const router = new Router({
   prefix: "/record-history",
@@ -159,16 +160,8 @@ router.get("/download/:id", async (ctx) => {
     return;
   }
 
-  const stat = await fs.stat(file);
-  ctx.set("Content-Length", stat.size.toString());
-  ctx.set("Content-Type", "application/octet-stream");
-  ctx.set(
-    "Content-Disposition",
-    `attachment; filename*=UTF-8''${encodeURIComponent(path.basename(file))}`,
-  );
-  ctx.set("X-Filename", encodeURIComponent(path.basename(file)));
-  ctx.set("Access-Control-Expose-Headers", "Content-Disposition, X-Filename");
-  ctx.body = fs.createReadStream(file);
+  const fileId = fileCache.setFile(file);
+  ctx.body = fileId;
 });
 
 export default router;
