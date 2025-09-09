@@ -25,6 +25,7 @@ import recordHistoryRouter from "./routes/recordHistory.js";
 import danmaRouter from "./routes/danma.js";
 import syncRouter from "./routes/sync.js";
 import { WebhookHandler } from "./services/webhook.js";
+import { createFileCache } from "./services/fileCache.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 import type { AwilixContainer } from "awilix";
@@ -34,6 +35,7 @@ export let config: GlobalConfig;
 export let handler!: WebhookHandler;
 export let appConfig!: AppConfig;
 export let container!: AwilixContainer;
+export const fileCache = createFileCache();
 
 export const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

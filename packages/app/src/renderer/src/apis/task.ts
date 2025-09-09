@@ -239,11 +239,12 @@ const editVideoPartName = async (taskId: string, partName: string) => {
   return res.data;
 };
 
-const downloadFile = async (taskId: string): Promise<Blob> => {
-  const res = await request.get(`/task/${taskId}/download`, {
-    responseType: "blob",
-  });
-  return res.data;
+const downloadFile = async (taskId: string): Promise<string> => {
+  const res = await request.get(`/task/${taskId}/download`);
+  const fileId = res.data;
+  const fileUrl = `${request.defaults.baseURL}/assets/download/${fileId}`;
+
+  return fileUrl;
 };
 
 const task = {

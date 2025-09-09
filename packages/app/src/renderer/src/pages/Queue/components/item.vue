@@ -362,14 +362,12 @@ const handleRemoveFile = async (taskId: string) => {
 };
 
 const handleDownload = async (item: Task) => {
-  const blob = await taskApi.downloadFile(item.taskId);
-  const url = window.URL.createObjectURL(blob);
+  const url = await taskApi.downloadFile(item.taskId);
   const a = document.createElement("a");
   a.href = url;
   a.download = window.path.basename(item.output!);
   document.body.appendChild(a);
   a.click();
-  window.URL.revokeObjectURL(url);
   document.body.removeChild(a);
 };
 
