@@ -1,3 +1,7 @@
+# 1.5.3
+
+- 修复抖音调用接口错误
+
 # 1.5.2
 
 - `resolveChannelInfoFromURL` 新增返回参数：`avatar`

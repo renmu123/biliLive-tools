@@ -1,6 +1,7 @@
 import axios from "axios";
 import { isEmpty } from "lodash-es";
 import { assert } from "./utils.js";
+import { ABogus } from "./sign.js";
 
 const requester = axios.create({
   timeout: 10e3,
@@ -125,30 +126,34 @@ export async function getRoomInfo(
     cookies = await getCookie();
   }
 
+  const params: Record<any, any> = {
+    aid: 6383,
+    live_id: 1,
+    device_platform: "web",
+    language: "zh-CN",
+    enter_from: "web_live",
+    cookie_enabled: "true",
+    screen_width: 1920,
+    screen_height: 1080,
+    browser_language: "zh-CN",
+    browser_platform: "MacIntel",
+    browser_name: "Chrome",
+    browser_version: "108.0.0.0",
+    web_rid: webRoomId,
+    // enter_source:,
+    "Room-Enter-User-Login-Ab": 0,
+    is_need_double_stream: "false",
+  };
+
+  const abogus = new ABogus();
+  const [query, _, ua] = abogus.generateAbogus(new URLSearchParams(params).toString(), "");
+
   const res = await requester.get<EnterRoomApiResp>(
-    "https://live.douyin.com/webcast/room/web/enter/",
+    `https://live.douyin.com/webcast/room/web/enter/?${query}`,
     {
-      params: {
-        aid: 6383,
-        live_id: 1,
-        device_platform: "web",
-        language: "zh-CN",
-        enter_from: "web_live",
-        cookie_enabled: "true",
-        screen_width: 1920,
-        screen_height: 1080,
-        browser_language: "zh-CN",
-        browser_platform: "MacIntel",
-        browser_name: "Chrome",
-        browser_version: "108.0.0.0",
-        web_rid: webRoomId,
-        // enter_source:,
-        "Room-Enter-User-Login-Ab": 0,
-        is_need_double_stream: "false",
-        a_bogus: "1",
-      },
       headers: {
         cookie: cookies,
+        "User-Agent": ua,
       },
     },
   );
