@@ -63,15 +63,6 @@ export function get__ac_signature(one_time_stamp, one_site, one_nonce, ua_n) {
     }
     return k;
   }
-  function cal_one_str_2(one_str, orgi_iv) {
-    // 计算data_Url
-    var k = orgi_iv,
-      a = one_str.length;
-    for (var i = 0; i < 32; i++) {
-      k = (k * 65599 + one_str.charCodeAt(k % a)) >>> 0;
-    }
-    return k;
-  }
   function cal_one_str_3(one_str, orgi_iv) {
     // 用于计算后两位
     var k = orgi_iv;
