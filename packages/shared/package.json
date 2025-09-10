@@ -1,6 +1,6 @@
 {
   "name": "@biliLive-tools/shared",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "type": "module",
   "description": "",
   "main": "./lib/index.js",
