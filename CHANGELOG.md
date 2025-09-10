@@ -1,3 +1,9 @@
+# 2.5.3(2025.9.10)
+
+## Bug修复
+
+- 录制：修复抖音无法录制的bug [159](https://github.com/renmu123/biliLive-tools/issues/159)
+
 # 2.5.2(2025.9.6)
 
 ## 优化
