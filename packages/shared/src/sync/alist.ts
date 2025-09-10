@@ -277,12 +277,14 @@ export class Alist extends TypedEmitter<AlistEvents> {
 
     // 用于取消上传
     let req: http.ClientRequest;
-    this.abortController = new AbortController();
-    this.abortController.abort = (reason?: any) => {
-      fileStream.destroy();
-      req?.destroy(new Error("上传已取消"));
-      this.logger.info("上传已取消");
-      this.emit("canceled", "上传已取消");
+    this.abortController = {
+      signal: new AbortController().signal,
+      abort: () => {
+        fileStream.destroy();
+        req?.destroy(new Error("上传已取消"));
+        this.logger.info("上传已取消");
+        this.emit("canceled", "上传已取消");
+      },
     };
 
     const url = new URL(`${this.server}/api/fs/put`);
