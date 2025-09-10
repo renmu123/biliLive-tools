@@ -1,6 +1,6 @@
 import axios from "axios";
 import { isEmpty } from "lodash-es";
-import { assert } from "./utils.js";
+import { assert, get__ac_signature } from "./utils.js";
 import { ABogus } from "./sign.js";
 
 const requester = axios.create({
@@ -277,6 +277,33 @@ export async function getRoomInfo(
     cover: room.cover?.url_list?.[0],
     liveId: room.id_str,
   };
+}
+
+/**
+ * 解析抖音号
+ * @param url
+ */
+export async function parseUser(url: string) {
+  const time_stamp = Math.floor(Date.now() / 1000);
+  const ua =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0";
+  const nonce = "068c1931500551a53245e";
+  const signed = get__ac_signature(time_stamp, url, nonce, ua);
+
+  const res = await requester.get(url, {
+    headers: {
+      "User-Agent": ua,
+      cookie: `__ac_nonce=${nonce}; __ac_signature=${signed}`,
+    },
+  });
+  const text = res.data;
+  const regex = /\\"uniqueId\\":\\"(.*?)\\"/;
+  const match = text.match(regex);
+  if (match && match[1]) {
+    return match[1];
+  }
+
+  return null;
 }
 
 export interface StreamProfile {
