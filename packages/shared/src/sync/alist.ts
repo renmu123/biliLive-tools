@@ -4,6 +4,9 @@ import fs from "fs-extra";
 import logger from "../utils/log.js";
 import { TypedEmitter } from "tiny-typed-emitter";
 import axios, { AxiosInstance } from "axios";
+import * as http from "http";
+import * as https from "https";
+import { URL } from "url";
 
 export interface AlistOptions {
   /**
@@ -238,85 +241,103 @@ export class Alist extends TypedEmitter<AlistEvents> {
       throw error;
     }
 
-    try {
-      if (!this.isLoggedIn()) {
-        await this.login();
-      }
-
-      // 确保目标文件夹存在
-      const targetDir = path.join(this.remotePath, remoteDir).replace(/\\/g, "/");
-      await this.mkdir(remoteDir);
-
-      const fileName = path.basename(localFilePath);
-      const remotePath = path.join(targetDir, fileName).replace(/\\/g, "/");
-
-      this.logger.debug(`开始上传: ${localFilePath} 到 ${remotePath}`);
-
-      // 获取文件信息以获取大小
-      const stat = await fs.stat(localFilePath);
-      const fileSize = stat.size;
-
-      // 创建文件流
-      const fileStream = fs.createReadStream(localFilePath, {
-        highWaterMark: 1024 * 1024, // 每次读取 1MB
-      });
-
-      // 进度监听
-      let uploaded = 0;
-      fileStream.on("data", (chunk) => {
-        uploaded += chunk.length;
-        this.emit("progress", {
-          uploaded: this.formatSize(uploaded),
-          total: this.formatSize(fileSize),
-          percentage: Math.round((uploaded / fileSize) * 100),
-          speed: "",
-        });
-      });
-
-      // 用于取消上传
-      this.abortController = new AbortController();
-
-      const response = await fetch(`${this.server}/api/fs/put`, {
-        method: "PUT",
-        body: fileStream as any, // Node.js fetch 支持 ReadableStream
-        ...({
-          duplex: "half"
-        } as { duplex: "half" }),
-        headers: {
-          "Content-Type": "application/octet-stream",
-          "Content-Length": fileSize.toString(),
-          ...(this.token ? { "Authorization": this.token } : {}),
-          "File-Path": encodeURIComponent(remotePath),
-          "As-Task": "true",
-        },
-        signal: this.abortController.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      if (result.code === 200) {
-        const successMsg = `上传成功: ${localFilePath}`;
-        this.logger.debug(successMsg);
-        this.emit("success", successMsg);
-      } else {
-        throw new Error(`上传失败: ${result.message}`);
-      }
-    } catch (error: any) {
-      if (error.name === "AbortError") {
-        this.logger.info("上传已取消");
-        this.emit("canceled", "上传已取消");
-      } else {
-        this.logger.error(`上传文件出错: ${error.message}`);
-        this.emit("error", error);
-      }
-      throw error;
-    } finally {
-      this.abortController = null;
+    if (!this.isLoggedIn()) {
+      await this.login();
     }
+
+    // 确保目标文件夹存在
+    const targetDir = path.join(this.remotePath, remoteDir).replace(/\\/g, "/");
+    await this.mkdir(remoteDir);
+
+    const fileName = path.basename(localFilePath);
+    const remotePath = path.join(targetDir, fileName).replace(/\\/g, "/");
+
+    this.logger.debug(`开始上传: ${localFilePath} 到 ${remotePath}`);
+
+    // 获取文件信息以获取大小
+    const stat = await fs.stat(localFilePath);
+    const fileSize = stat.size;
+
+    // 创建文件流
+    const fileStream = fs.createReadStream(localFilePath, {
+      highWaterMark: 1024 * 1024, // 每次读取 1MB
+    });
+
+    // 进度监听
+    let uploaded = 0;
+    fileStream.on("data", (chunk) => {
+      uploaded += chunk.length;
+      this.emit("progress", {
+        uploaded: this.formatSize(uploaded),
+        total: this.formatSize(fileSize),
+        percentage: Math.round((uploaded / fileSize) * 100),
+        speed: "",
+      });
+    });
+
+    // 用于取消上传
+    let req: http.ClientRequest;
+    this.abortController = new AbortController();
+    this.abortController.abort = (reason?: any) => {
+      fileStream.destroy();
+      req?.destroy(new Error("上传已取消"));
+      this.logger.info("上传已取消");
+      this.emit("canceled", "上传已取消");
+    };
+
+    const url = new URL(`${this.server}/api/fs/put`);
+    const httpModule = url.protocol === "https:" ? https : http;
+
+    await new Promise<void>((resolve, reject) => {
+      req = httpModule.request(
+        {
+          method: "PUT",
+          hostname: url.hostname,
+          port: url.port ? Number(url.port) : (url.protocol === "https:" ? 443 : 80),
+          path: url.pathname,
+          headers: {
+            "Content-Type": "application/octet-stream",
+            "Content-Length": fileSize.toString(),
+            ...(this.token ? { "Authorization": this.token } : {}),
+            "File-Path": encodeURIComponent(remotePath),
+            "As-Task": "true",
+          },
+        },
+        (res) => {
+          let body = "";
+          res.on("data", (chunk) => {
+            body += chunk;
+          });
+          res.on("end", () => {
+            try {
+              if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+                const result = JSON.parse(body || "{}");
+                if (result.code === 200) {
+                  const successMsg = `上传成功: ${localFilePath}`;
+                  this.logger.debug(successMsg);
+                  this.emit("success", successMsg);
+                  resolve();
+                } else {
+                  reject(new Error(`上传失败: ${result.message || body}`));
+                }
+              } else {
+                reject(new Error(`上传失败: ${res.statusCode} ${res.statusMessage}`));
+              }
+            } catch (err) {
+              reject(err);
+            }
+          });
+        }
+      );
+      req.on("error", (err) => {
+        this.logger.error(`上传请求出错: ${err.message}`);
+        this.emit("error", err);
+        reject(err);
+      });
+      fileStream.pipe(req);
+    });
+
+    this.abortController = null;
   }
 
   /**
