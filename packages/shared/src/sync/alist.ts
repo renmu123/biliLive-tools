@@ -331,10 +331,15 @@ export class Alist extends TypedEmitter<AlistEvents> {
           });
         }
       );
-      req.on("error", (err) => {
-        this.logger.error(`上传请求出错: ${err.message}`);
-        this.emit("error", err);
-        reject(err);
+      req.on("error", (error: any) => {      
+        if (error.name === "AbortError") {
+          this.logger.info("上传已取消");
+          this.emit("canceled", "上传已取消");
+        } else {
+          this.logger.error(`上传文件出错: ${error.message}`);
+          this.emit("error", error);
+        }
+        throw error;
       });
       fileStream.pipe(req);
     });
