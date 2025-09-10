@@ -169,9 +169,20 @@ router.get("/download/:id", async (ctx) => {
     ctx.body = "视频文件不存在";
     return;
   }
+  const extname = path.extname(file).toLowerCase();
 
   const fileId = fileCache.setFile(file);
-  ctx.body = fileId;
+  let type = "";
+  switch (extname) {
+    case ".flv":
+      type = "flv";
+      break;
+    case ".ts":
+      type = "ts";
+      break;
+  }
+
+  ctx.body = { fileId, type };
 });
 
 export default router;

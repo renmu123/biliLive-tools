@@ -60,18 +60,32 @@
     </div>
 
     <n-empty v-else-if="!loading && hasQueried" description="没有查询到相关记录" />
+
+    <PreviewModal
+      v-model:visible="previewModalVisible"
+      :files="previewFiles"
+      :hotProgress="{
+        visible: false,
+        sampling: 0,
+        height: 0,
+        color: 'white',
+        fillColor: 'white',
+      }"
+    ></PreviewModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
-import { recordHistoryApi } from "../../apis";
+import { recordHistoryApi, commonApi } from "../../apis";
 import { NIcon } from "naive-ui";
 import { FolderOpenOutline, DownloadOutline } from "@vicons/ionicons5";
-import { Delete20Regular } from "@vicons/fluent";
+import { Delete20Regular, PlayCircle24Regular } from "@vicons/fluent";
 import { FileOpenOutlined } from "@vicons/material";
-import { VNode } from "vue";
 import { useConfirm } from "@renderer/hooks";
+import PreviewModal from "../Home/components/previewModal.vue";
+
+import type { VNode } from "vue";
 
 // 类型定义
 interface StreamerInfo {
@@ -253,6 +267,21 @@ const allColumns: {
     key: "actions",
     render: (row: LiveRecord) => {
       const subNodes: VNode[] = [];
+      subNodes.push(
+        h(
+          NIcon,
+          {
+            size: "20",
+            style: {
+              cursor: "pointer",
+            },
+            title: "视频预览",
+            onClick: () => previewVideo(row.id),
+          },
+          { default: () => h(PlayCircle24Regular) },
+        ),
+      );
+
       if (!window.isWeb) {
         subNodes.push(
           h(
@@ -473,6 +502,27 @@ const removeRecord = async (id: number) => {
 const router = useRouter();
 const goBack = () => {
   router.back();
+};
+
+const previewModalVisible = ref(false);
+const previewFiles = ref({
+  video: "",
+  danmu: "",
+  type: "",
+});
+const previewVideo = async (id: number) => {
+  const { fileId, type } = await recordHistoryApi.getTempVideoId(id);
+  if (type === "ts") {
+    notice.warning({
+      title: `暂不支持预览ts格式的视频`,
+      duration: 2000,
+    });
+    return;
+  }
+  const videoUrl = await commonApi.getVideo(fileId);
+  previewFiles.value.video = videoUrl;
+  previewFiles.value.type = type;
+  previewModalVisible.value = true;
 };
 
 defineOptions({
