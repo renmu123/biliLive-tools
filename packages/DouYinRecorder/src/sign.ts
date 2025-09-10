@@ -148,7 +148,7 @@ export class CryptoUtility {
     let i = 0;
     j = 0;
     const ptBytes = StringProcessor.toCharArray(plaintext);
-    const ct = [];
+    const ct: any[] = [];
     for (const charVal of ptBytes) {
       i = (i + 1) & 0xff;
       j = (j + S[i]) & 0xff;
