@@ -66,8 +66,8 @@
       :files="previewFiles"
       :hotProgress="{
         visible: false,
-        sampling: 0,
-        height: 0,
+        sampling: 60,
+        height: 10,
         color: 'white',
         fillColor: 'white',
       }"
