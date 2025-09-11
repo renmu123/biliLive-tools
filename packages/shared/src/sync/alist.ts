@@ -280,8 +280,10 @@ export class Alist extends TypedEmitter<AlistEvents> {
     this.abortController = {
       signal: new AbortController().signal,
       abort: () => {
+        const uploadCancelError = new Error("上传已取消");
+        uploadCancelError.name = "AbortError";
         fileStream.destroy();
-        req?.destroy(new Error("上传已取消"));
+        req?.destroy(uploadCancelError);
         this.logger.info("上传已取消");
         this.emit("canceled", "上传已取消");
       },
