@@ -362,6 +362,8 @@ export interface GlobalRecorder {
   qualityRetry: number;
   /** 视频格式 */
   videoFormat: "auto" | "ts" | "mkv";
+  /** 支持的录制器 */
+  recorderType: "ffmpeg" | "mesio";
   /** 保存弹幕测试 */
   saveDanma2DB: boolean;
   /** B站特有的配置 */
@@ -420,6 +422,8 @@ export interface Recorder {
   saveCover?: boolean;
   /** 视频格式 */
   videoFormat: GlobalRecorder["videoFormat"];
+  /** 录制器类型 */
+  recorderType: GlobalRecorder["recorderType"];
   qualityRetry: GlobalRecorder["qualityRetry"];
   formatName: GlobalRecorder["bilibili"]["formatName"];
   useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];
@@ -482,6 +486,8 @@ export interface AppConfig {
   danmuFactoryPath: string;
   /** lossles-cut可执行路径 */
   losslessCutPath: string;
+  /** mesio 可执行路径 */
+  mesioPath: string;
   /** 保存到回收站 */
   trash: boolean;
   /** 自动检查更新 */

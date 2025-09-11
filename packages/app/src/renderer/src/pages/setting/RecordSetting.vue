@@ -92,6 +92,19 @@
           <n-form-item>
             <template #label>
               <Tip
+                :text="textInfo.common.recorderType.text"
+                :tip="textInfo.common.recorderType.tip"
+              ></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.recorderType"
+              :options="recorderTypeOptions"
+              style="width: 220px"
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
                 :tip="textInfo.douyu.qualityRetry.tip"
                 :text="textInfo.douyu.qualityRetry.text"
               ></Tip>
@@ -310,6 +323,7 @@ import {
   videoFormatOptions,
   douyinStreamFormatOptions,
   huyaSourceOptions,
+  recorderTypeOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";

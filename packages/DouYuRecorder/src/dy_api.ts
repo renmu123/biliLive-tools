@@ -86,12 +86,15 @@ export async function getLiveInfo(opts: {
 
     throw new Error("Unexpected error code, " + json.error);
   }
-  // console.log("json", json, {
-  //   ...signed,
-  //   cdn: opts.cdn ?? "",
-  //   // 相当于清晰度类型的 id，给 -1 会由后端决定，0 为原画
-  //   rate: String(opts.rate ?? 0),
-  // });
+
+  const streamUrl = `${json.data.rtmp_url}/${json.data.rtmp_live}`;
+  let cdn = json.data.rtmp_cdn;
+  try {
+    const url = new URL(streamUrl);
+    cdn = url.searchParams.get("fcdn") ?? "";
+  } catch (error) {
+    console.warn("解析 rtmp_url 失败", error);
+  }
 
   return {
     living: true,
@@ -100,13 +103,13 @@ export async function getLiveInfo(opts: {
     isSupportRateSwitch: json.data.rateSwitch === 1,
     isOriginalStream: json.data.rateSwitch !== 1,
     currentStream: {
-      source: json.data.rtmp_cdn,
+      source: cdn,
       name:
         json.data.rateSwitch !== 1
           ? "原画"
           : (json.data.multirates.find(({ rate }) => rate === json.data.rate)?.name ?? "未知"),
       rate: json.data.rate,
-      url: `${json.data.rtmp_url}/${json.data.rtmp_live}`,
+      url: streamUrl,
     },
   };
 }

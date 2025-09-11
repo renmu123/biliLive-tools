@@ -114,6 +114,7 @@ describe("RecorderConfig", () => {
         segment: 90,
         uid: "123456",
         qualityRetry: 3,
+        recorderType: "ffmpeg",
         videoFormat: "auto",
         auth: "SESSDATA=test_sessdata; bili_jct=test_jct",
         useM3U8Proxy: true,
@@ -143,6 +144,7 @@ describe("RecorderConfig", () => {
         segment: 90,
         uid: undefined,
         qualityRetry: 3,
+        recorderType: "ffmpeg",
         videoFormat: "auto",
         auth: undefined,
         useM3U8Proxy: true,
@@ -173,6 +175,7 @@ describe("RecorderConfig", () => {
           segment: 90,
           uid: undefined,
           qualityRetry: 3,
+          recorderType: "ffmpeg",
           videoFormat: "auto",
           formatPriorities: ["flv", "hls"],
           auth: undefined,
@@ -258,6 +261,7 @@ describe("RecorderConfig", () => {
         segment: 90,
         uid: undefined,
         qualityRetry: 3,
+        recorderType: "ffmpeg",
         videoFormat: "auto",
         auth: undefined,
         useM3U8Proxy: true,
@@ -354,6 +358,7 @@ describe("RecorderConfig", () => {
         segment: 90,
         uid: undefined,
         qualityRetry: 3,
+        recorderType: "ffmpeg",
         videoFormat: "auto",
         auth: undefined,
         useM3U8Proxy: true,
@@ -405,6 +410,9 @@ describe("RecorderConfig", () => {
         useM3U8Proxy: false,
         codecName: "auto" as const,
         source: "auto",
+        recorderType: "ffmpeg" as const,
+        useServerTimestamp: false,
+        handleTime: ["", ""] as [string | null, string | null],
       };
 
       recorderConfig.add(newRecorder);
@@ -450,6 +458,9 @@ describe("RecorderConfig", () => {
         useM3U8Proxy: false,
         codecName: "auto" as const,
         source: "auto",
+        recorderType: "ffmpeg" as const,
+        useServerTimestamp: false,
+        handleTime: ["", ""] as [string | null, string | null],
       };
 
       recorderConfig.update(updatedRecorder);
