@@ -215,16 +215,7 @@ export class StreamManager extends EventEmitter {
 
   get videoExt() {
     if (this.recorderType === "ffmpeg") {
-      if (this.videoFormat === "mkv") {
-        return "mkv";
-      } else if (this.videoFormat === "auto") {
-        if (!this.hasSegment) {
-          return "mp4";
-        }
-      } else if (this.videoFormat === "flv") {
-        return "flv";
-      }
-      return "ts";
+      return this.videoFormat;
     } else if (this.recorderType === "mesio") {
       return this.videoFormat;
     } else {

@@ -69,6 +69,7 @@ class TestProvider implements RecorderProvider<{}> {
         quality: "highest",
         streamPriorities: [],
         sourcePriorities: [],
+        extra: {},
       }),
       // @ts-ignore
       on: <K extends keyof RecorderEvents>(type: K, handler: Handler<RecorderEvents[K]>) => {
@@ -151,6 +152,7 @@ class BilibiliTestProvider implements RecorderProvider<{}> {
         quality: opts.quality ?? "highest",
         streamPriorities: opts.streamPriorities ?? [],
         sourcePriorities: opts.sourcePriorities ?? [],
+        extra: {},
       }),
       // @ts-ignore
       on: <K extends keyof RecorderEvents>(type: K, handler: Handler<RecorderEvents[K]>) => {

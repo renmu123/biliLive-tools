@@ -17,9 +17,11 @@ export interface BaseRecorderOptions {
   getSavePath: (data: { startTime: number; title?: string }) => string;
   segment: number;
   inputOptions?: string[];
-  isHls?: boolean;
   disableDanma?: boolean;
+  // 保存的文件类型
   videoFormat?: "auto" | "ts" | "mkv";
+  // 实际的流格式
+  formatName?: "flv" | "ts" | "fmp4";
   headers?: {
     [key: string]: string | undefined;
   };
@@ -84,7 +86,7 @@ export type RecorderInstance<T extends RecorderType> = T extends "ffmpeg"
  */
 export function createBaseRecorder<T extends RecorderType>(
   type: T,
-  opts: RecorderOptions<T> & { mesioOptions?: string[]; formatName?: "flv" | "ts" | "fmp4" },
+  opts: RecorderOptions<T> & { mesioOptions?: string[] },
   onEnd: (...args: unknown[]) => void,
   onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
 ): RecorderInstance<T> {
