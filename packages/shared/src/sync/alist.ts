@@ -313,7 +313,7 @@ export class Alist extends TypedEmitter<AlistEvents> {
           res.on("end", () => {
             try {
               if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-                const result = JSON.parse(body || "{}");
+                const result = JSON.parse(body);
                 if (result.code === 200) {
                   const successMsg = `上传成功: ${localFilePath}`;
                   this.logger.debug(successMsg);
@@ -331,8 +331,9 @@ export class Alist extends TypedEmitter<AlistEvents> {
           });
         }
       );
-      req.on("error", (error: any) => {      
-        if (error.name === "AbortError") {
+      req.on("error", (error: any) => {
+        this.logger.info('fack upload error name：' + error?.name);
+        if (error?.name === "AbortError") {
           this.logger.info("上传已取消");
           this.emit("canceled", "上传已取消");
         } else {
