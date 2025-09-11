@@ -50,8 +50,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   formatName?: FormatName;
   /** 流编码 */
   codecName?: CodecName;
-  /** 选择使用的api，虎牙支持 */
-  api?: "auto" | "web" | "mp";
+  /** 选择使用的api，虎牙支持: auto,web,mp，抖音支持：web,webHTML */
+  api?: "auto" | "web" | "mp" | "webHTML";
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
   titleKeywords?: string;
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */

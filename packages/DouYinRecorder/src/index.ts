@@ -142,6 +142,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       cookie: this.auth,
       formatPriorities: this.formatPriorities,
       doubleScreen: this.doubleScreen,
+      api: this.api as "web" | "webHTML",
     });
   } catch (err) {
     this.state = "idle";

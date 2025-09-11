@@ -324,6 +324,8 @@ interface DouyinRecorderConfig {
   formatName: FormatName;
   /** 是否使用双屏直播流 */
   doubleScreen: boolean;
+  /** 接口类型 */
+  api: "web" | "webHTML";
 }
 
 // 录制全局配置

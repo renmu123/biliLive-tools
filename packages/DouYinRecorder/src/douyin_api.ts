@@ -99,24 +99,76 @@ export const getCookie = async () => {
   return cookies;
 };
 
-export async function getRoomInfo(
+/**
+ * 通过解析html页面来获取房间数据
+ * @param webRoomId
+ * @param opts
+ */
+async function getRoomInfoByHtml(
   webRoomId: string,
   opts: {
-    retryOnSpecialCode?: boolean;
     auth?: string;
     doubleScreen?: boolean;
   } = {},
-): Promise<{
-  living: boolean;
-  roomId: string;
-  owner: string;
-  title: string;
-  streams: StreamProfile[];
-  sources: SourceProfile[];
-  avatar: string;
-  cover: string;
-  liveId: string;
-}> {
+) {
+  let cookies: string | undefined = undefined;
+  const url = `https://live.douyin.com/${webRoomId}`;
+  const ua =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36";
+
+  if (opts.auth) {
+    cookies = opts.auth;
+  } else {
+    // 抖音的 'webcast/room/web/enter' api 会需要 ttwid 的 cookie，这个 cookie 是由这个请求的响应头设置的，
+    // 所以在这里请求一次自动设置。
+    cookies = await getCookie();
+  }
+  const res = await axios.get(url, {
+    headers: {
+      "User-Agent": ua,
+      // TODO: cookie需要重新抓包
+
+      cookie:
+        "ttwid=1%7CgrnMwzx00lbcLXynAaw8ThLL4P8tVom8IeKtIf7A6AE%7C1757477005%7C8250bfdf8166ffa3ded94c8c3d6be489d7594ce03689ad371c19a76b0dfe3f97; UIFID_TEMP=d0e230a07fa0d9d6cc843b2a6f3839e84e72c08555f437f7b0bc997f27781834de1a4154e9abc7c7644d49184b3b53a9d5c4b31b785973246e0d86958a56875571adc7829c0eb63e717b9a7ee3c2af5f; odin_tt=6da36aa62d6bd252c6d9082d86503cd05b2c298799d703d97d43d40a65efa579f7602b5802eb4aee6a20cca03c026f7cc974e050992790569e972a6c66256bd34a1606acec155f40fba900984c35b947; UIFID=d0e230a07fa0d9d6cc843b2a6f3839e84e72c08555f437f7b0bc997f27781834de1a4154e9abc7c7644d49184b3b53a995a79020a5e6f020c8cd734da8081f42364edad76bc233f7c603790d7f9257b7245a375b1dbc6f5cacc3f574ab7529c42dedfac4c2a1baa5e088bffe1a3f42b7d7d062fd516fb53b61d8474d2e7a33c8b1e8a3935c0471416505efe23f52e225e22590ae20444f1f60dbac0cdc441eeb; hevc_supported=true; volume_info=%7B%22isUserMute%22%3Afalse%2C%22isMute%22%3Atrue%2C%22volume%22%3A0.5%7D; enter_pc_once=1; __live_version__=%221.1.3.9670%22; live_use_vvc=%22false%22; xgplayer_user_id=320347364629; fpk1=U2FsdGVkX19q6UEFRjq0NKPGmeddFEcVfva4J7/Lby93r+HtQuZdMHdhW0qDSrmSseIaaFbCDoUmjaRdz11Ofg==; fpk2=72c62ac3761e65106bdcc23caec06ba2; passport_csrf_token=7fecbb03402f9e46aabe599fe6bd2c87; passport_csrf_token_default=7fecbb03402f9e46aabe599fe6bd2c87; __security_mc_1_s_sdk_crypt_sdk=2f230e9b-4f49-b2ae; bd_ticket_guard_client_web_domain=2; live_can_add_dy_2_desktop=%220%22; IsDouyinActive=false; xgplayer_device_id=88131642898; x-web-secsdk-uid=bf7608a7-f8c4-4f8d-a9d3-8d8464c93a82; has_avx2=null; device_web_cpu_core=16; device_web_memory_size=-1; webcast_local_quality=null; csrf_session_id=b2397f5993ec5fb72dc6761bbbfac943; biz_trace_id=a2cf30e0; webcast_leading_last_show_time=1756357537235; webcast_leading_total_show_times=1; home_can_add_dy_2_desktop=%220%22; stream_recommend_feed_params=%22%7B%5C%22cookie_enabled%5C%22%3Atrue%2C%5C%22screen_width%5C%22%3A1493%2C%5C%22screen_height%5C%22%3A933%2C%5C%22browser_online%5C%22%3Atrue%2C%5C%22cpu_core_num%5C%22%3A16%2C%5C%22device_memory%5C%22%3A0%2C%5C%22downlink%5C%22%3A%5C%22%5C%22%2C%5C%22effective_type%5C%22%3A%5C%22%5C%22%2C%5C%22round_trip_time%5C%22%3A0%7D%22; strategyABtestKey=%221757476347.955%22; download_guide=%223%2F20250910%2F0%22; SEARCH_RESULT_LIST_TYPE=%22single%22; bd_ticket_guard_client_data=eyJiZC10aWNrZXQtZ3VhcmQtdmVyc2lvbiI6MiwiYmQtdGlja2V0LWd1YXJkLWl0ZXJhdGlvbi12ZXJzaW9uIjoxLCJiZC10aWNrZXQtZ3VhcmQtcmVlLXB1YmxpYy1rZXkiOiJCS1hLVEpYbVcxVkdaaFc5Q2tTd0FpYnVxenNWam9CcXllK2VweElLRTlzZUxSeDc5MDk3Q3BqRkxLV3pDb2piSld3QVBOUGVCVGc5TXMrU1o4bnJXeW89IiwiYmQtdGlja2V0LWd1YXJkLXdlYi12ZXJzaW9uIjoyfQ%3D%3D; __ac_signature=_02B4Z6wo00f01H98I7AAAIDCR5BAvTe9qBR.TScAAHcl6a; __ac_nonce=068c1247300c7d2f0a912",
+    },
+  });
+  const regex = /(\{\\"state\\":.*?)\]\\n"\]\)/;
+  const match = res.data.match(regex);
+
+  if (!match) {
+    throw new Error("No match found in HTML");
+  }
+  let jsonStr = match[1];
+  jsonStr = jsonStr.replace(/\\"/g, '"');
+  jsonStr = jsonStr.replace(/\\"/g, '"');
+  try {
+    const data = JSON.parse(jsonStr);
+    console.log(JSON.stringify(data, null, 2));
+    const roomInfo = data.state.roomStore.roomInfo;
+    return {
+      living: roomInfo.room.status === 2,
+      nickname: roomInfo.user.nickname,
+      avatar: roomInfo.anchor.avatar_thumb.url_list[0],
+      room: {
+        title: roomInfo.room.title,
+        cover: roomInfo.room.cover.url_list[0],
+        id_str: roomInfo.room.id_str,
+        stream_url: roomInfo.room.stream_url,
+      },
+    };
+  } catch (e) {
+    console.error("Failed to parse JSON:", e);
+    throw e;
+  }
+}
+
+async function getRoomInfoByWeb(
+  webRoomId: string,
+  opts: {
+    auth?: string;
+    doubleScreen?: boolean;
+  } = {},
+) {
   let cookies: string | undefined = undefined;
   if (opts.auth) {
     cookies = opts.auth;
@@ -140,7 +192,6 @@ export async function getRoomInfo(
     browser_name: "Chrome",
     browser_version: "108.0.0.0",
     web_rid: webRoomId,
-    // enter_source:,
     "Room-Enter-User-Login-Ab": 0,
     is_need_double_stream: "false",
   };
@@ -158,23 +209,6 @@ export async function getRoomInfo(
     },
   );
 
-  // 无 cookie 时 code 为 10037
-  if (res.data.status_code === 10037 && opts.retryOnSpecialCode) {
-    // resp 自动设置 cookie
-    // const cookieRes = await requester.get("https://live.douyin.com/favicon.ico");
-    // const cookies = cookieRes.headers["set-cookie"]
-    //   .map((cookie) => {
-    //     return cookie.split(";")[0];
-    //   })
-    //   .join("; ");
-
-    // console.log("cookies", cookies);
-    return getRoomInfo(webRoomId, {
-      retryOnSpecialCode: false,
-      doubleScreen: opts.doubleScreen,
-    });
-  }
-
   assert(
     res.data.status_code === 0,
     `Unexpected resp, code ${res.data.status_code}, msg ${JSON.stringify(res.data.data)}, id ${webRoomId}, cookies: ${cookies}`,
@@ -184,16 +218,56 @@ export async function getRoomInfo(
   const room = data.data[0];
   assert(room, `No room data, id ${webRoomId}`);
 
+  return {
+    living: data.room_status === 0,
+    nickname: data.user.nickname,
+    avatar: data?.user?.avatar_thumb?.url_list?.[0],
+    room: {
+      title: room.title,
+      cover: room.cover?.url_list?.[0],
+      id_str: room.id_str,
+      stream_url: room.stream_url,
+    },
+  };
+}
+
+export async function getRoomInfo(
+  webRoomId: string,
+  opts: {
+    auth?: string;
+    doubleScreen?: boolean;
+    api?: "web" | "webHTML";
+  } = {},
+): Promise<{
+  living: boolean;
+  roomId: string;
+  owner: string;
+  title: string;
+  streams: StreamProfile[];
+  sources: SourceProfile[];
+  avatar: string;
+  cover: string;
+  liveId: string;
+}> {
+  let data: Awaited<ReturnType<typeof getRoomInfoByWeb> | ReturnType<typeof getRoomInfoByHtml>>;
+
+  if (opts.api === "webHTML") {
+    data = await getRoomInfoByHtml(webRoomId, opts);
+  } else {
+    data = await getRoomInfoByWeb(webRoomId, opts);
+  }
+  const room = data.room;
+  assert(room, `No room data, id ${webRoomId}`);
   if (room?.stream_url == null) {
     return {
       living: false,
       roomId: webRoomId,
-      owner: data.user.nickname,
-      title: room?.title ?? data.user.nickname,
+      owner: data.nickname,
+      title: room?.title ?? data.nickname,
       streams: [],
       sources: [],
-      avatar: data.user?.avatar_thumb?.url_list?.[0],
-      cover: room.cover?.url_list?.[0],
+      avatar: data.avatar,
+      cover: room.cover,
       liveId: room.id_str,
     };
   }
@@ -207,7 +281,9 @@ export async function getRoomInfo(
       },
       stream_data: "",
     };
+    // @ts-ignore
     qualities = pull_data.options.qualities;
+    // @ts-ignore
     stream_data = pull_data.stream_data;
   }
   if (!stream_data) {
@@ -267,14 +343,14 @@ export async function getRoomInfo(
   // console.log(JSON.stringify(sources, null, 2), qualities);
 
   return {
-    living: data.room_status === 0,
+    living: data.living,
     roomId: webRoomId,
-    owner: data.user.nickname,
+    owner: data.nickname,
     title: room.title,
     streams,
     sources,
-    avatar: data.user.avatar_thumb.url_list[0],
-    cover: room.cover?.url_list?.[0],
+    avatar: data.avatar,
+    cover: room.cover,
     liveId: room.id_str,
   };
 }
