@@ -341,8 +341,8 @@ export class Alist extends TypedEmitter<AlistEvents> {
         } else {
           this.logger.error(`上传文件出错: ${error.message}`);
           this.emit("error", error);
+          throw error;
         }
-        throw error;
       });
       fileStream.pipe(req);
     });
