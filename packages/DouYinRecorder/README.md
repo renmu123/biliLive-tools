@@ -72,7 +72,7 @@ interface Options {
 import { provider } from "@bililive-tools/douyin-recorder";
 
 const url = "https://live.douyin.com/203641303310";
-// 同样支持解析 https://v.douyin.com/DpfoBLAXoHM/
+// 同样支持解析 https://v.douyin.com/DpfoBLAXoHM/, https://www.douyin.com/user/MS4wLjABAAAAE2ebAEBniL_0rF0vIDV4vCpdcH5RxpYBovopAURblNs
 const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
 

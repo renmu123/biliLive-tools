@@ -18,7 +18,7 @@ import type {
 
 import { getInfo, getStream } from "./stream.js";
 import { ensureFolderExist, singleton } from "./utils.js";
-import { resolveShortURL } from "./douyin_api.js";
+import { resolveShortURL, parseUser } from "./douyin_api.js";
 
 import DouYinDanmaClient from "douyin-danma-listener";
 
@@ -410,6 +410,12 @@ export const provider: RecorderProvider<{}> = {
         id = await resolveShortURL(channelURL);
       } catch (err: any) {
         throw new Error(`解析抖音短链接失败: ${err?.message}`);
+      }
+    } else if (channelURL.includes("/user/")) {
+      // 解析用户主页
+      id = await parseUser(channelURL);
+      if (!id) {
+        throw new Error(`解析抖音用户主页失败`);
       }
     } else {
       // 处理常规直播链接

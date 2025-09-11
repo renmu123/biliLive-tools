@@ -37,7 +37,7 @@
   "author": "renmu123",
   "license": "LGPL",
   "dependencies": {
-    "@renmu/fluent-ffmpeg": "2.3.2",
+    "@renmu/fluent-ffmpeg": "2.3.3",
     "fast-xml-parser": "^4.5.0",
     "filenamify": "^6.0.0",
     "mitt": "catalog:",

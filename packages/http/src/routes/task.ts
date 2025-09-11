@@ -1,6 +1,5 @@
 import fs from "fs-extra";
 import Router from "koa-router";
-import path from "path";
 
 import {
   handleStartTask,
@@ -25,6 +24,7 @@ import {
 } from "@biliLive-tools/shared/task/video.js";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { trashItem } from "@biliLive-tools/shared/utils/index.js";
+import { fileCache } from "../index.js";
 
 import type { DanmuPreset, DanmaOptions } from "@biliLive-tools/types";
 
@@ -325,15 +325,9 @@ router.get("/:id/download", async (ctx) => {
     ctx.body = { message: "文件不存在" };
     return;
   }
+  const fileId = fileCache.setFile(task.output);
 
-  const stat = await fs.stat(task.output);
-  ctx.set("Content-Length", stat.size.toString());
-  ctx.set("Content-Type", "application/octet-stream");
-  ctx.set(
-    "Content-Disposition",
-    `attachment; filename=${encodeURIComponent(path.basename(task.output))}`,
-  );
-  ctx.body = fs.createReadStream(task.output);
+  ctx.body = fileId;
 });
 
 export default router;

@@ -338,6 +338,8 @@ export interface GlobalRecorder {
   checkInterval: number;
   /** 调试模式 */
   debugMode: boolean;
+  /** 测试：录制错误立即重试 */
+  recordRetryImmediately: boolean;
   /** 画质 */
   quality: "lowest" | "low" | "medium" | "high" | "highest";
   /** 线路 */
@@ -464,7 +466,7 @@ export interface Recorder {
   >;
 }
 
-export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "copy";
+export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "pan123" | "copy";
 
 export type SyncConfig = {
   id: string;
@@ -568,6 +570,10 @@ export interface AppConfig {
       apiUrl: string;
       username: string;
       hashPassword: string;
+    };
+    pan123: {
+      clientId: string;
+      clientSecret: string;
     };
     syncConfigs: SyncConfig[];
   };

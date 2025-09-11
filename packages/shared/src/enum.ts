@@ -217,6 +217,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       username: "",
       hashPassword: "",
     },
+    pan123: {
+      clientId: "",
+      clientSecret: "",
+    },
     syncConfigs: [],
   },
   llmPresets: [],
@@ -249,6 +253,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     videoFormat: "auto",
     recorderType: "ffmpeg",
     useServerTimestamp: true,
+    recordRetryImmediately: false,
     bilibili: {
       uid: undefined,
       quality: 10000,

@@ -86,6 +86,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     manager.autoCheckInterval = autoCheckInterval * 1000;
     manager.savePathRule = savePathRule;
     manager.biliBatchQuery = config?.recorder?.bilibili.useBatchQuery ?? false;
+    manager.recordRetryImmediately = config?.recorder?.recordRetryImmediately ?? false;
 
     if (autoCheckLiveStatusAndRecord) {
       if (autoCheckLiveStatusAndRecord && !manager.isCheckLoopRunning) {
@@ -125,6 +126,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     autoCheckInterval: autoCheckInterval * 1000,
     savePathRule: savePathRule,
     biliBatchQuery: config?.recorder?.bilibili.useBatchQuery ?? false,
+    recordRetryImmediately: config?.recorder?.recordRetryImmediately ?? false,
   });
 
   manager.on("RecorderDebugLog", ({ recorder, ...log }) => {

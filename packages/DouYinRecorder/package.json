@@ -40,10 +40,11 @@
   "license": "LGPL",
   "dependencies": {
     "@bililive-tools/manager": "workspace:^",
-    "douyin-danma-listener": "workspace:*",
     "axios": "catalog:",
+    "douyin-danma-listener": "workspace:*",
     "lodash-es": "catalog:",
-    "mitt": "catalog:"
+    "mitt": "catalog:",
+    "sm-crypto": "^0.3.13"
   },
   "devDependencies": {
     "@types/node": "*"

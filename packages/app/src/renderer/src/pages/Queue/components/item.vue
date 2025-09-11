@@ -362,22 +362,13 @@ const handleRemoveFile = async (taskId: string) => {
 };
 
 const handleDownload = async (item: Task) => {
-  try {
-    const blob = await taskApi.downloadFile(item.taskId);
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = window.path.basename(item.output!);
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-    document.body.removeChild(a);
-  } catch (error) {
-    notice.error({
-      title: "下载失败",
-      content: error instanceof Error ? error.message : "未知错误",
-    });
-  }
+  const url = await taskApi.downloadFile(item.taskId);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = window.path.basename(item.output!);
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 };
 
 const addExtraVideoTask = async (taskId: string) => {

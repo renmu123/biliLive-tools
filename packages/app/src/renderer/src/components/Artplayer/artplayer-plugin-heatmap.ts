@@ -139,6 +139,10 @@ function heatmap(art: Artplayer, danmuku: DanmaKu, options: Required<Options>) {
         sampling: number;
         duration: number;
       }) => {
+        if (options.sampling <= 0) {
+          console.error("Sampling interval must be greater than 0");
+          return;
+        }
         let fData = ininData.sort((a, b) => a - b);
         const countData = countByIntervalInSeconds(fData, options.sampling, art.duration);
         danmaPoints = normalizePoints(

@@ -61,6 +61,7 @@ const configurableProps = [
   "autoCheckInterval",
   "ffmpegOutputArgs",
   "biliBatchQuery",
+  "recordRetryImmediately",
 ] as const;
 type ConfigurableProp = (typeof configurableProps)[number];
 function isConfigurableProp(prop: unknown): prop is ConfigurableProp {
@@ -118,6 +119,8 @@ export interface RecorderManager<
   ffmpegOutputArgs: string;
   /** b站使用批量查询接口 */
   biliBatchQuery: boolean;
+  /** 测试：录制错误立即重试 */
+  recordRetryImmediately: boolean;
 }
 
 export type RecorderManagerCreateOpts<
@@ -218,6 +221,9 @@ export function createRecorderManager<
   // 用于是否触发LiveStart事件，不要重复触发
   const liveStartObj: Record<string, boolean> = {};
 
+  // 用于记录触发重试直播场次的次数
+  const retryCountObj: Record<string, number> = {};
+
   const manager: RecorderManager<ME, P, PE, E> = {
     // @ts-ignore
     ...mitt(),
@@ -253,9 +259,6 @@ export function createRecorderManager<
       recorder.on("videoFileCompleted", ({ filename }) =>
         this.emit("videoFileCompleted", { recorder: recorder.toJSON(), filename }),
       );
-      recorder.on("RecordStop", ({ recordHandle, reason }) =>
-        this.emit("RecordStop", { recorder: recorder.toJSON(), recordHandle, reason }),
-      );
       recorder.on("Message", (message) =>
         this.emit("Message", { recorder: recorder.toJSON(), message }),
       );
@@ -265,6 +268,44 @@ export function createRecorderManager<
       recorder.on("DebugLog", (log) =>
         this.emit("RecorderDebugLog", { recorder: recorder, ...log }),
       );
+      recorder.on("RecordStop", ({ recordHandle, reason }) => {
+        this.emit("RecordStop", { recorder: recorder.toJSON(), recordHandle, reason });
+        // 如果reason中存在"invalid stream"，说明直播由于某些原因中断了，虽然会在下一次周期检查中继续，但是会遗漏一段时间。
+        // 这时候可以触发一次检查，但出于直播可能抽风的原因，为避免风控，一场直播最多触发五次。
+        // 测试阶段，还需要一个开关，默认关闭，几个版本后转正使用
+        // 也许之后还能链接复用，但也会引入更多复杂度，需要谨慎考虑
+        // 虎牙直播结束后可能额外触发导致错误，忽略虎牙直播间：https://www.huya.com/910323
+        if (
+          manager.recordRetryImmediately &&
+          recorder.providerId !== "Huya" &&
+          reason &&
+          reason.includes("invalid stream") &&
+          recorder?.liveInfo?.liveId
+        ) {
+          const key = `${recorder.channelId}-${recorder.liveInfo?.liveId}`;
+
+          if (retryCountObj[key] > 5) return;
+          if (!retryCountObj[key]) {
+            retryCountObj[key] = 0;
+          }
+          if (retryCountObj[key] < 5) {
+            retryCountObj[key]++;
+          }
+          this.emit("RecorderDebugLog", {
+            recorder,
+            type: "common",
+            text: `录制因“${reason}”中断，触发重试直播（${retryCountObj[key]}）`,
+          });
+          // 触发一次检查，等待一秒使状态清理完毕
+          setTimeout(() => {
+            recorder.checkLiveStatusAndRecord({
+              getSavePath(data) {
+                return genSavePathFromRule(manager, recorder, data);
+              },
+            });
+          }, 1000);
+        }
+      });
       recorder.on("progress", (progress) => {
         this.emit("RecorderProgress", { recorder: recorder.toJSON(), progress });
       });
@@ -366,6 +407,7 @@ export function createRecorderManager<
 
     autoRemoveSystemReservedChars: opts.autoRemoveSystemReservedChars ?? true,
     biliBatchQuery: opts.biliBatchQuery ?? false,
+    recordRetryImmediately: opts.recordRetryImmediately ?? false,
 
     ffmpegOutputArgs:
       opts.ffmpegOutputArgs ??
