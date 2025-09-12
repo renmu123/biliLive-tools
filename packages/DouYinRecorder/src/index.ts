@@ -50,21 +50,24 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
 
     async getLiveInfo() {
       const channelId = this.channelId;
-      const info = await getInfo(channelId);
+      const info = await getInfo(channelId, {
+        cookie: this.auth,
+        api: this.api as "web" | "webHTML",
+      });
       return {
         channelId,
         ...info,
       };
     },
-    async getStream() {
-      const res = await getStream({
-        channelId: this.channelId,
-        quality: this.quality,
-        streamPriorities: this.streamPriorities,
-        sourcePriorities: this.sourcePriorities,
-      });
-      return res.currentStream;
-    },
+    // async getStream() {
+    //   const res = await getStream({
+    //     channelId: this.channelId,
+    //     quality: this.quality,
+    //     streamPriorities: this.streamPriorities,
+    //     sourcePriorities: this.sourcePriorities,
+    //   });
+    //   return res.currentStream;
+    // },
   };
 
   const recorderWithSupportUpdatedEvent = new Proxy(recorder, {
@@ -108,7 +111,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 }) {
   if (this.recordHandle != null) return this.recordHandle;
 
-  const liveInfo = await getInfo(this.channelId);
+  const liveInfo = await getInfo(this.channelId, {
+    cookie: this.auth,
+    api: this.api as "web" | "webHTML",
+  });
   const { living, owner, title } = liveInfo;
   this.liveInfo = liveInfo;
 
@@ -155,7 +161,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.availableSources = availableSources.map((s) => s.name);
   this.usedStream = stream.name;
   this.usedSource = stream.source;
-  // TODO: emit update event
 
   let isEnded = false;
   let isCutting = false;

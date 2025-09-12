@@ -58,6 +58,7 @@ export async function getStream(
     "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "api" | "formatPriorities"
   > & {
     strictQuality?: boolean;
+    api?: "web" | "mp" | "auto";
   },
 ) {
   const info = await getRoomInfo(opts.channelId, {

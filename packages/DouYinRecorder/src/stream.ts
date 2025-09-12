@@ -2,7 +2,13 @@ import { getRoomInfo } from "./douyin_api.js";
 
 import type { Recorder } from "@bililive-tools/manager";
 
-export async function getInfo(channelId: string): Promise<{
+export async function getInfo(
+  channelId: string,
+  opts?: {
+    cookie?: string;
+    api?: "web" | "webHTML";
+  },
+): Promise<{
   living: boolean;
   owner: string;
   title: string;
@@ -12,7 +18,7 @@ export async function getInfo(channelId: string): Promise<{
   startTime: Date;
   liveId: string;
 }> {
-  const info = await getRoomInfo(channelId);
+  const info = await getRoomInfo(channelId, opts ?? {});
 
   return {
     living: info.living,
