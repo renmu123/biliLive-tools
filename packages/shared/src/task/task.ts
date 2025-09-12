@@ -1005,7 +1005,6 @@ export class SyncTask extends AbstractTask {
         policy: this?.options?.policy,
       })
       .then(() => {
-        console.log("upload complete");
         this.status = "completed";
         this.callback.onEnd && this.callback.onEnd(this.output as string);
         this.progress = 100;

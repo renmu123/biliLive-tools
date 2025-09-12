@@ -57,7 +57,7 @@
     "trash": "^9.0.0",
     "tree-kill": "^1.2.2",
     "zod": "^3.23.8",
-    "pan123-uploader": "0.1.0"
+    "pan123-uploader": "0.2.0"
   },
   "devDependencies": {
     "@types/nodemailer": "^6.4.17"

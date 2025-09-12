@@ -481,7 +481,7 @@ const loginCheck = async (type: SyncType) => {
   if (status) {
     notice.success("已存在登录信息");
   } else {
-    notice.error("未检测到登录信息，请先登录");
+    notice.error("未检测到登录信息或凭证已过期，请登录");
   }
 };
 
