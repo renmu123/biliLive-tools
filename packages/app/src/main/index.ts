@@ -34,7 +34,7 @@ import {
   FFPROBE_PATH,
   DANMUKUFACTORY_PATH,
   LOG_PATH,
-  __dirname,
+  __dirname2,
   getConfigPath,
 } from "./appConstant";
 
@@ -107,9 +107,9 @@ function createWindow(): void {
     autoHideMenuBar: false,
     minHeight: 400,
     minWidth: 600,
-    ...(process.platform === "linux" ? { icon: join(__dirname, "../../resources/icon.png") } : {}),
+    ...(process.platform === "linux" ? { icon: join(__dirname2, "../../resources/icon.png") } : {}),
     webPreferences: {
-      preload: join(__dirname, "../preload/index.mjs"),
+      preload: join(__dirname2, "../preload/index.mjs"),
       sandbox: false,
       webSecurity: false,
       // nodeIntegrationInWorker: true,
@@ -143,7 +143,7 @@ function createWindow(): void {
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
-    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+    mainWindow.loadFile(join(__dirname2, "../renderer/index.html"));
   }
   mainWin = mainWindow;
   const content = mainWindow.webContents;
@@ -256,7 +256,7 @@ function createWindow(): void {
   });
 
   // 新建托盘
-  const tray = new Tray(join(__dirname, "../../resources/icon.png"));
+  const tray = new Tray(join(__dirname2, "../../resources/icon.png"));
   // 托盘名称
   tray.setToolTip("biliLive-tools");
   // 托盘菜单
