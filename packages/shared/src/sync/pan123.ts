@@ -304,8 +304,8 @@ export async function pan123Login(clientId: string, clientSecret: string): Promi
 }
 
 export async function getToken(clientId: string, clientSecret: string): Promise<string> {
-  if (!clientId || !clientSecret) {
-    throw new Error("缺少clientId或clientSecret");
+  if (!clientId) {
+    throw new Error("缺少clientId");
   }
   try {
     // 从数据库查询现有的token信息
@@ -333,6 +333,7 @@ export async function getToken(clientId: string, clientSecret: string): Promise<
       }
     }
 
+    if (!clientSecret) throw new Error("缺少clientSecret");
     // 如果没有找到匹配的token，或者token即将过期/已过期，则调用登录
     const newToken = await pan123Login(clientId, clientSecret);
     return newToken;

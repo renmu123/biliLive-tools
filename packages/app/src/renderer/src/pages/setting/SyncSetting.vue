@@ -471,7 +471,6 @@ const loginCheck = async (type: SyncType) => {
   } else if (type === "pan123") {
     status = await syncApi.syncTestLogin({
       clientId: config.value.sync.pan123.clientId,
-      clientSecret: config.value.sync.pan123.clientSecret,
       type: "pan123",
     });
   } else {
