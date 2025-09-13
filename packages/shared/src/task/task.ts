@@ -124,28 +124,35 @@ export class DanmuTask extends AbstractTask {
     this.controller = new AbortController();
   }
   exec() {
-    this.callback.onStart && this.callback.onStart();
-    this.status = "running";
-    this.progress = 0;
-    this.emitter.emit("task-start", { taskId: this.taskId });
-    this.startTime = Date.now();
-    this.danmu
-      .convertXml2Ass(this.input, this.output as string, this.options)
-      .then(() => {
-        this.status = "completed";
-        this.callback.onEnd && this.callback.onEnd(this.output as string);
-        this.progress = 100;
-        this.emitter.emit("task-end", { taskId: this.taskId });
-      })
-      .catch((err) => {
-        this.status = "error";
-        this.callback.onError && this.callback.onError(err);
-        this.error = err;
-        this.emitter.emit("task-error", { taskId: this.taskId, error: err });
-      })
-      .finally(() => {
-        this.endTime = Date.now();
-      });
+    try {
+      this.callback.onStart && this.callback.onStart();
+      this.status = "running";
+      this.progress = 0;
+      this.emitter.emit("task-start", { taskId: this.taskId });
+      this.startTime = Date.now();
+      this.danmu
+        .convertXml2Ass(this.input, this.output as string, this.options)
+        .then(() => {
+          this.status = "completed";
+          this.callback.onEnd && this.callback.onEnd(this.output as string);
+          this.progress = 100;
+          this.emitter.emit("task-end", { taskId: this.taskId });
+        })
+        .catch((err) => {
+          this.status = "error";
+          this.callback.onError && this.callback.onError(err);
+          this.error = err;
+          log.error(`task-error ${this.taskId} error: ${err}`);
+          this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+        })
+        .finally(() => {
+          log.info(`task ${this.taskId} end this.endTime = ${Date.now()}`);
+          this.endTime = Date.now();
+        });
+    } catch (error) {
+      log.error(`task-error ${this.taskId} error: ${error}`);
+      throw error;
+    }
   }
   pause() {
     return false;
@@ -159,6 +166,7 @@ export class DanmuTask extends AbstractTask {
     log.warn(`danmu task ${this.taskId} killed`);
     this.status = "canceled";
     if (this.danmu?.child?.pid) {
+      log.warn(`killing danmu task ${this.taskId} child process ${this.danmu.child.pid}`);
       kill(this.danmu.child.pid);
     }
     return true;
