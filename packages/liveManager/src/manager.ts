@@ -268,7 +268,7 @@ export function createRecorderManager<
         // 虎牙直播结束后可能额外触发导致错误，忽略虎牙直播间：https://www.huya.com/910323
         if (
           manager.recordRetryImmediately &&
-          recorder.providerId !== "Huya" &&
+          recorder.providerId !== "HuYa" &&
           reason &&
           reason.includes("invalid stream") &&
           recorder?.liveInfo?.liveId
@@ -285,7 +285,7 @@ export function createRecorderManager<
           this.emit("RecorderDebugLog", {
             recorder,
             type: "common",
-            text: `录制因“${reason}”中断，触发重试直播（${retryCountObj[key]}）`,
+            text: `录制${recorder?.channelId}因“${reason}”中断，触发重试直播（${retryCountObj[key]}）`,
           });
           // 触发一次检查，等待一秒使状态清理完毕
           setTimeout(() => {
