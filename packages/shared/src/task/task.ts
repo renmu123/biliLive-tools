@@ -124,35 +124,30 @@ export class DanmuTask extends AbstractTask {
     this.controller = new AbortController();
   }
   exec() {
-    try {
-      this.callback.onStart && this.callback.onStart();
-      this.status = "running";
-      this.progress = 0;
-      this.emitter.emit("task-start", { taskId: this.taskId });
-      this.startTime = Date.now();
-      this.danmu
-        .convertXml2Ass(this.input, this.output as string, this.options)
-        .then(() => {
-          this.status = "completed";
-          this.callback.onEnd && this.callback.onEnd(this.output as string);
-          this.progress = 100;
-          this.emitter.emit("task-end", { taskId: this.taskId });
-        })
-        .catch((err) => {
-          this.status = "error";
-          this.callback.onError && this.callback.onError(err);
-          this.error = err;
-          log.error(`task-error ${this.taskId} error: ${err}`);
-          this.emitter.emit("task-error", { taskId: this.taskId, error: err });
-        })
-        .finally(() => {
-          log.info(`task ${this.taskId} end this.endTime = ${Date.now()}`);
-          this.endTime = Date.now();
-        });
-    } catch (error) {
-      log.error(`task-error ${this.taskId} error: ${error}`);
-      throw error;
-    }
+    this.callback.onStart && this.callback.onStart();
+    this.status = "running";
+    this.progress = 0;
+    this.emitter.emit("task-start", { taskId: this.taskId });
+    this.startTime = Date.now();
+    this.danmu
+      .convertXml2Ass(this.input, this.output as string, this.options)
+      .then(() => {
+        this.status = "completed";
+        this.callback.onEnd && this.callback.onEnd(this.output as string);
+        this.progress = 100;
+        this.emitter.emit("task-end", { taskId: this.taskId });
+      })
+      .catch((err) => {
+        this.status = "error";
+        this.callback.onError && this.callback.onError(err);
+        this.error = err;
+        log.error(`task-error ${this.taskId} error: ${err}`);
+        this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+      })
+      .finally(() => {
+        log.info(`task ${this.taskId} end this.endTime = ${Date.now()}`);
+        this.endTime = Date.now();
+      });
   }
   pause() {
     return false;
@@ -990,7 +985,6 @@ export class SyncTask extends AbstractTask {
 
     // @ts-expect-error
     this.instance.on("progress", (progress: any) => {
-      // console.log("sync progress", progress);
       callback?.onProgress && callback.onProgress(progress.percentage);
       this.progress = progress.percentage;
       this.custsomProgressMsg = `速度: ${progress.speed}`;

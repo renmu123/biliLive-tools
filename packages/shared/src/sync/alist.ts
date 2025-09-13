@@ -265,13 +265,24 @@ export class Alist extends TypedEmitter<AlistEvents> {
 
     // 进度监听
     let uploaded = 0;
+    let lastUploaded = 0;
+    let lastTime = Date.now();
     fileStream.on("data", (chunk) => {
       uploaded += chunk.length;
+      const now = Date.now();
+      const timeDiff = (now - lastTime) / 1000; // 秒
+      let speedStr = "";
+      if (timeDiff > 0) {
+        const speed = (uploaded - lastUploaded) / timeDiff; // B/s
+        speedStr = this.formatSize(speed) + "/s";
+        lastUploaded = uploaded;
+        lastTime = now;
+      }
       this.emit("progress", {
         uploaded: this.formatSize(uploaded),
         total: this.formatSize(fileSize),
         percentage: Math.round((uploaded / fileSize) * 100),
-        speed: "",
+        speed: speedStr,
       });
     });
 
@@ -292,62 +303,65 @@ export class Alist extends TypedEmitter<AlistEvents> {
     const url = new URL(`${this.server}/api/fs/put`);
     const httpModule = url.protocol === "https:" ? https : http;
 
-    await new Promise<void>((resolve, reject) => {
-      req = httpModule.request(
-        {
-          method: "PUT",
-          hostname: url.hostname,
-          port: url.port ? Number(url.port) : (url.protocol === "https:" ? 443 : 80),
-          path: url.pathname,
-          headers: {
-            "Content-Type": "application/octet-stream",
-            "Content-Length": fileSize.toString(),
-            ...(this.token ? { "Authorization": this.token } : {}),
-            "File-Path": encodeURIComponent(remotePath),
-            "As-Task": "true",
+    try {
+      await new Promise<void>((resolve, reject) => {
+        req = httpModule.request(
+          {
+            method: "PUT",
+            hostname: url.hostname,
+            port: url.port ? Number(url.port) : (url.protocol === "https:" ? 443 : 80),
+            path: url.pathname,
+            headers: {
+              "Content-Type": "application/octet-stream",
+              "Content-Length": fileSize.toString(),
+              ...(this.token ? { "Authorization": this.token } : {}),
+              "File-Path": encodeURIComponent(remotePath),
+              "As-Task": "true",
+            },
           },
-        },
-        (res) => {
-          let body = "";
-          res.on("data", (chunk) => {
-            body += chunk;
-          });
-          res.on("end", () => {
-            try {
-              if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-                const result = JSON.parse(body);
-                if (result.code === 200) {
-                  const successMsg = `上传成功: ${localFilePath}`;
-                  this.logger.debug(successMsg);
-                  this.emit("success", successMsg);
-                  resolve();
+          (res) => {
+            let body = "";
+            res.on("data", (chunk) => {
+              body += chunk;
+            });
+            res.on("end", () => {
+              try {
+                if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
+                  const result = JSON.parse(body);
+                  if (result.code === 200) {
+                    const successMsg = `上传成功: ${localFilePath}`;
+                    this.logger.debug(successMsg);
+                    this.emit("success", successMsg);
+                    resolve();
+                  } else {
+                    reject(new Error(`上传失败: ${result.message || body}`));
+                  }
                 } else {
-                  reject(new Error(`上传失败: ${result.message || body}`));
+                  reject(new Error(`上传失败: ${res.statusCode} ${res.statusMessage}`));
                 }
-              } else {
-                reject(new Error(`上传失败: ${res.statusCode} ${res.statusMessage}`));
+              } catch (err) {
+                reject(err);
               }
-            } catch (err) {
-              reject(err);
-            }
-          });
-        }
-      );
-      req.on("error", (error: any) => {
-        this.logger.info('fack upload error name：' + error?.name);
-        if (error?.name === "AbortError") {
-          this.logger.info("上传已取消");
-          this.emit("canceled", "上传已取消");
-        } else {
-          this.logger.error(`上传文件出错: ${error.message}`);
-          this.emit("error", error);
-          throw error;
-        }
+            });
+          }
+        );
+        req.on("error", (error: any) => {
+          reject(error);
+        });
+        fileStream.pipe(req);
       });
-      fileStream.pipe(req);
-    });
-
-    this.abortController = null;
+    } catch (error: any) {
+      if (error?.name === "AbortError") {
+        this.logger.info("上传已取消");
+        this.emit("canceled", "上传已取消");
+      } else {
+        this.logger.error(`上传文件出错: ${error.message}`);
+        this.emit("error", error);
+      }
+      throw error;
+    } finally {
+      this.abortController = null;
+    }
   }
 
   /**
