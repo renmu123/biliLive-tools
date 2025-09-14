@@ -27,6 +27,7 @@
 ## Bug修复
 
 - 录制：修复抖音、虎牙“画质匹配重试次数”不生效的bug
+- 修复AList流式上传导致的内存占用过高问题 [#163](https://github.com/renmu123/biliLive-tools/pull/163)
 
 # 2.5.3(2025.9.10)
 
