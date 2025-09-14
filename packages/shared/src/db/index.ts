@@ -6,6 +6,7 @@ import StreamModel from "./model/streamer.js";
 import RecordHistoryModel from "./model/recordHistory.js";
 import VideoSubModel from "./model/videoSub.js";
 import VideoSubDataModel from "./model/videoSubData.js";
+import VirtualRecordController from "./model/virtualRecord.js";
 import StatisticsModel from "./model/statistics.js";
 import UploadPartController from "./model/uploadPart.js";
 
@@ -47,6 +48,7 @@ export const statisticsModel = new StatisticsModel();
 export const videoSubModel = new VideoSubModel();
 export const videoSubDataModel = new VideoSubDataModel();
 export const uploadPartModel = new UploadPartController();
+export const virtualRecordModel = new VirtualRecordController();
 
 export const initDB = (dbPath: string) => {
   const mainDBPath = path.join(dbPath, "app.db");
@@ -61,6 +63,7 @@ export const initDB = (dbPath: string) => {
   videoSubModel.init(db.db);
   videoSubDataModel.init(db.db);
   uploadPartModel.init(db.db);
+  virtualRecordModel.init(db.db);
 
   // 弹幕数据库
   danmuModel.init(danmaDb.db);
@@ -76,6 +79,7 @@ export const reconnectDB = () => {
   videoSubModel.init(db.db);
   videoSubDataModel.init(db.db);
   uploadPartModel.init(db.db);
+  virtualRecordModel.init(db.db);
   return db;
 };
 
