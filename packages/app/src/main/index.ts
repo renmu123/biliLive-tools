@@ -34,6 +34,7 @@ import {
   FFPROBE_PATH,
   DANMUKUFACTORY_PATH,
   LOG_PATH,
+  MESIO_PATH,
   __dirname,
   getConfigPath,
 } from "./appConstant";
@@ -628,6 +629,7 @@ const appInit = async () => {
     logPath: LOG_PATH,
     defaultFfmpegPath: FFMPEG_PATH,
     defaultFfprobePath: FFPROBE_PATH,
+    defaultMesioPath: MESIO_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
     userDataPath,
     version: app.getVersion(),
