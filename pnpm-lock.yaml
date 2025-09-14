@@ -26,6 +26,9 @@ catalogs:
       version: 1.0.2
 
 patchedDependencies:
+  blive-message-listener@0.5.1:
+    hash: otopwp2ijcc7vzdxvqkdqkalsu
+    path: patches/blive-message-listener@0.5.1.patch
   trash:
     hash: knfqho266jmayp7bpztl4tszxi
     path: patches/trash.patch
@@ -106,7 +109,7 @@ importers:
         version: 1.7.8
       blive-message-listener:
         specifier: ^0.5.1
-        version: 0.5.1(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+        version: 0.5.1(patch_hash=otopwp2ijcc7vzdxvqkdqkalsu)(bufferutil@4.0.8)(utf-8-validate@6.0.5)
       lodash-es:
         specifier: 'catalog:'
         version: 4.17.21
@@ -5546,8 +5549,8 @@ packages:
   webworkify-webpack@2.1.5:
     resolution: {integrity: sha512-2akF8FIyUvbiBBdD+RoHpoTbHMQF2HwjcxfDvgztAX5YwbZNyrtfUMgvfgFVsgDhDPVTlkbb5vyasqDHfIDPQw==}
 
-  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
-    resolution: {commit: 24d1e719b4a6cac37a518b2bb10fe124527ef4ef, repo: git@github.com:xqq/webworkify-webpack.git, type: git}
+  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
+    resolution: {tarball: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef}
     version: 2.1.5
 
   whatwg-fetch@3.6.20:
@@ -7470,7 +7473,7 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  blive-message-listener@0.5.1(bufferutil@4.0.8)(utf-8-validate@6.0.5):
+  blive-message-listener@0.5.1(patch_hash=otopwp2ijcc7vzdxvqkdqkalsu)(bufferutil@4.0.8)(utf-8-validate@6.0.5):
     dependencies:
       tiny-bilibili-ws: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.5)
     transitivePeerDependencies:
@@ -9560,7 +9563,7 @@ snapshots:
   mpegts.js@1.8.0:
     dependencies:
       es6-promise: 4.2.8
-      webworkify-webpack: git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef
+      webworkify-webpack: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef
 
   ms@2.0.0: {}
 
@@ -10984,7 +10987,7 @@ snapshots:
 
   webworkify-webpack@2.1.5: {}
 
-  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
+  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
 
   whatwg-fetch@3.6.20: {}
 
