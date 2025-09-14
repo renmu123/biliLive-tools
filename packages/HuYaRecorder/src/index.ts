@@ -144,6 +144,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       formatPriorities: this.formatPriorities,
     });
   } catch (err) {
+    this.qualityRetry -= 1;
     this.state = "idle";
     throw err;
   }
