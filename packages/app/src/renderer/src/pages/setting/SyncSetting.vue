@@ -4,7 +4,14 @@
       <h2 style="display: inline-flex; align-items: center">
         文件同步配置<Tip :size="22">配置完成去webhook配置中配置相关同步器</Tip>
       </h2>
-      <p>使用前请务必了解相关同步库并<bold>仔细查看文档</bold></p>
+      <p>
+        使用前请务必了解相关同步库并<b>仔细查看文档</b>，或查看<a
+          href="https://www.bilibili.com/video/BV1DieEzgE7y/"
+          class="external"
+          target="_blank"
+          >视频教程</a
+        >
+      </p>
     </div>
 
     <n-form label-placement="left" :label-width="145">
