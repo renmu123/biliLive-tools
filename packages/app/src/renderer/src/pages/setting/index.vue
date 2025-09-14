@@ -168,26 +168,26 @@
                   <Refresh />
                 </n-icon>
               </n-form-item>
+              <n-form-item>
+                <template #label>
+                  <Tip
+                    text="mesio路径"
+                    tip="最新测试过的版本为0.3.2，请先去项目查看文档：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md"
+                  ></Tip>
+                </template>
+                <n-input v-model:value="config.mesioPath" placeholder="请输入mesio可执行文件路径" />
+                <n-icon
+                  style="margin-left: 10px"
+                  size="26"
+                  class="pointer"
+                  v-if="!isWeb"
+                  @click="selectFile('mesio', config.mesioPath)"
+                >
+                  <FolderOpenOutline />
+                </n-icon>
+              </n-form-item>
             </template>
 
-            <n-form-item>
-              <template #label>
-                <Tip
-                  text="mesio路径"
-                  tip="最新测试过的版本为0.3.2，请先去项目查看文档：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md"
-                ></Tip>
-              </template>
-              <n-input v-model:value="config.mesioPath" placeholder="请输入mesio可执行文件路径" />
-              <n-icon
-                style="margin-left: 10px"
-                size="26"
-                class="pointer"
-                v-if="!isWeb"
-                @click="selectFile('mesio', config.mesioPath)"
-              >
-                <FolderOpenOutline />
-              </n-icon>
-            </n-form-item>
             <n-form-item label="lossless-cut路径">
               <n-input
                 v-model:value="config.losslessCutPath"

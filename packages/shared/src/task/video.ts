@@ -38,13 +38,14 @@ export const getFfmpegPath = () => {
   const config = appConfig.getAll();
   let ffmpegPath = config.ffmpegPath;
   let ffprobePath = config.ffprobePath;
+  let mesioPath = config.mesioPath;
   if (!config.customExecPath) {
     const globalConfig = container.resolve<GlobalConfig>("globalConfig");
     ffmpegPath = globalConfig.defaultFfmpegPath;
     ffprobePath = globalConfig.defaultFfprobePath;
+    mesioPath = globalConfig.defaultMesioPath;
   }
 
-  const mesioPath = config.mesioPath || "mesio";
   return {
     ffmpegPath,
     ffprobePath,
