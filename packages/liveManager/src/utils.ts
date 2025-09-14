@@ -160,7 +160,7 @@ export function isFfmpegStartSegment(line: string) {
 }
 
 export function isMesioStartSegment(line: string) {
-  return line.includes("Opening ") && line.includes("Opening FLV segment");
+  return line.includes("Opening ") && line.includes("Opening segment");
 }
 
 export function isFfmpegStart(line: string) {
