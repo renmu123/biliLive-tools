@@ -24,6 +24,7 @@ import {
   isBetweenTimeRange,
 } from "./utils.js";
 import { StreamManager } from "./recorder/streamManager.js";
+import { Cache } from "./cache.js";
 
 export interface RecorderProvider<E extends AnyObject> {
   // Provider 的唯一 id，最好只由英文 + 数字组成
@@ -121,6 +122,9 @@ export interface RecorderManager<
   biliBatchQuery: boolean;
   /** 测试：录制错误立即重试 */
   recordRetryImmediately: boolean;
+
+  /** 缓存实例 */
+  cache: Cache;
 }
 
 export type RecorderManagerCreateOpts<
@@ -224,6 +228,9 @@ export function createRecorderManager<
   // 用于记录触发重试直播场次的次数
   const retryCountObj: Record<string, number> = {};
 
+  // 获取缓存单例
+  const cache = Cache.getInstance();
+
   const manager: RecorderManager<ME, P, PE, E> = {
     // @ts-ignore
     ...mitt(),
@@ -242,6 +249,9 @@ export function createRecorderManager<
       // provider.createRecorder 能返回 Recorder<PE> 才能进一步优化。
       const recorder = provider.createRecorder(omit(opts, ["providerId"])) as Recorder<E>;
       this.recorders.push(recorder);
+
+      // 设置 recorder 的缓存引用
+      recorder.cache = cache;
 
       recorder.on("RecordStart", (recordHandle) =>
         this.emit("RecordStart", { recorder: recorder.toJSON(), recordHandle }),
@@ -428,6 +438,8 @@ export function createRecorderManager<
          * TODO: 如果浏览器行为无法优化，并且想进一步优化加载速度，可以考虑录制时使用 fmp4，录制完成后再转一次普通 mp4。
          */
         " -min_frag_duration 10000000",
+
+    cache,
   };
 
   const setProvidersFFMPEGOutputArgs = (ffmpegOutputArgs: string) => {
@@ -501,4 +513,4 @@ export function genSavePathFromRule<
 }
 
 export type GetProviderExtra<P> = P extends RecorderProvider<infer E> ? E : never;
-export { StreamManager };
+export { StreamManager, Cache };

@@ -2,6 +2,7 @@ import { Emitter } from "mitt";
 import { ChannelId, Message, Quality } from "./common.js";
 import { RecorderProvider } from "./manager.js";
 import { AnyObject, PickRequired, UnknownObject } from "./utils.js";
+import { Cache } from "./cache.js";
 
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
@@ -159,6 +160,9 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   tempStopIntervalCheck?: boolean;
   // TODO: 随机的一条近期弹幕 / 评论，这或许应该放在 manager 层做，上面再加个频率统计之类的
   // recently comment: { time, text, ... }
+
+  /** 缓存实例引用，由 manager 设置 */
+  cache: Cache;
 
   getChannelURL: (this: Recorder<E>) => string;
 
