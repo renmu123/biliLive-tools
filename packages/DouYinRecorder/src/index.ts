@@ -151,7 +151,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       api: this.api as "web" | "webHTML",
     });
   } catch (err) {
-    this.qualityRetry -= 1;
+    if (this.qualityRetry > 0) this.qualityRetry -= 1;
+
     this.state = "idle";
     throw err;
   }
