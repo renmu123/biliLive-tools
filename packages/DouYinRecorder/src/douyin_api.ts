@@ -1,3 +1,4 @@
+import { URL, URLSearchParams } from "url";
 import axios from "axios";
 import { isEmpty } from "lodash-es";
 import { assert, get__ac_signature } from "./utils.js";
@@ -22,6 +23,14 @@ const requester = axios.create({
 export async function resolveShortURL(shortURL: string): Promise<string> {
   // 获取跳转后的页面内容
   const response = await requester.get(shortURL);
+  const redirectedURL = response.request.res.responseUrl;
+  if (redirectedURL.includes("/user/")) {
+    const secUid = new URL(redirectedURL).searchParams.get("sec_uid");
+    if (!secUid) {
+      throw new Error("无法从短链接解析出直播间ID");
+    }
+    return parseUser(`https://www.douyin.com/user/${secUid}`);
+  }
 
   // 尝试从页面内容中提取webRid
   const webRidMatch = response.data.match(/"webRid\\":\\"(\d+)\\"/);
