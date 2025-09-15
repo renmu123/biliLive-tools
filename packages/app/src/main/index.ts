@@ -505,14 +505,6 @@ if (!gotTheLock) {
     log.error("=== 未捕获异常 (Uncaught Exception) ===");
     log.error("错误信息:", error.message);
     log.error("错误堆栈:", error.stack);
-    log.error("错误名称:", error.name);
-    log.error("错误代码:", (error as any).code);
-    log.error("内存使用:", {
-      rss: process.memoryUsage().rss,
-      heapTotal: process.memoryUsage().heapTotal,
-      heapUsed: process.memoryUsage().heapUsed,
-      external: process.memoryUsage().external,
-    });
 
     if (error.message.includes("listen EADDRINUSE")) {
       setTimeout(() => {
