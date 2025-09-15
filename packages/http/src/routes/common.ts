@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import multer from "../middleware/multer.js";
 
 import Router from "koa-router";
+import semver from "semver";
 import {
   formatTitle,
   getTempPath,
@@ -625,6 +626,40 @@ router.get("/whyUploadFailed", async (ctx) => {
       hasError: true,
       errorInfo: `检查过程中发生错误: ${error}`,
       details: {},
+    };
+  }
+});
+
+/**
+ * @api {get} /common/checkUpdate 检查是否有新版本
+ * @apiSuccess {string} latestVersion 最新版本号
+ * @apiSuccess {string} currentVersion 当前版本号
+ * @apiSuccess {boolean} needUpdate 是否需要更新
+ * @apiSuccess {string} [downloadUrl] 下载地址
+ */
+router.get("/checkUpdate", async (ctx) => {
+  try {
+    const res = await fetch(
+      "https://githubraw.irenmu.com/renmu123/biliLive-tools/master/package.json",
+    );
+    const data = await res.json();
+    const latestVersion = data.version;
+    const currentVersion = config.version;
+    const needUpdate = semver.gt(latestVersion, currentVersion);
+    ctx.body = {
+      message: needUpdate ? "检测到有新版本，是否前往下载？" : "当前已是最新版本",
+      error: false,
+      needUpdate,
+      downloadUrl: "https://github.com/renmu123/biliLive-tools/releases",
+      backupUrl: "https://pan.quark.cn/s/6da253a1ecb8",
+    };
+  } catch (error) {
+    ctx.body = {
+      message: "检查更新失败，请前往仓库查看",
+      error: true,
+      needUpdate: false,
+      downloadUrl: "https://github.com/renmu123/biliLive-tools/releases",
+      backupUrl: "https://pan.quark.cn/s/6da253a1ecb8",
     };
   }
 });

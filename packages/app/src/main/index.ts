@@ -90,6 +90,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:relaunch", relaunch);
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:setTheme", setTheme);
+  ipcMain.handle("common:checkUpdate", manualCheckUpdate);
 
   registerHandlers(ipcMain, ffmpegHandlers);
   registerHandlers(ipcMain, configHandlers);
@@ -738,4 +739,25 @@ const checkUpdate = async () => {
     return false;
   }
   return true;
+};
+
+const manualCheckUpdate = async () => {
+  try {
+    const status = await checkUpdate();
+    if (status) {
+      dialog.showMessageBox(mainWin, {
+        message: "当前已经是最新版本",
+        buttons: ["确认"],
+      });
+    }
+  } catch (error) {
+    log.error(error);
+    const confirm = await dialog.showMessageBox(mainWin, {
+      message: "检查更新失败，请前往仓库查看",
+      buttons: ["取消", "确认"],
+    });
+    if (confirm.response === 1) {
+      shell.openExternal("https://github.com/renmu123/biliLive-tools/releases");
+    }
+  }
 };

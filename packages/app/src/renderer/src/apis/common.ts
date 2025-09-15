@@ -214,12 +214,32 @@ export const handleWebhook = async (data: { id: string }[]) => {
   return res.data;
 };
 
+/**
+ * 为什么上传失败
+ * @param roomId 房间号
+ * @returns
+ */
 export const whyUploadFailed = async (roomId: string) => {
   const res = await request.get("/common/whyUploadFailed", {
     params: {
       roomId,
     },
   });
+  return res.data;
+};
+
+/**
+ * 检查更新
+ *
+ */
+export const checkUpdate = async (): Promise<{
+  message: string;
+  error: boolean;
+  needUpdate: boolean;
+  downloadUrl: string;
+  backupUrl: string;
+}> => {
+  const res = await request.get("/common/checkUpdate");
   return res.data;
 };
 
@@ -247,6 +267,7 @@ const common = {
   testWebhook,
   handleWebhook,
   whyUploadFailed,
+  checkUpdate,
 };
 
 export default common;
