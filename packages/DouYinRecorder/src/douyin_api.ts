@@ -374,6 +374,24 @@ export async function getRoomInfo(
 }
 
 /**
+ * 获取nonce
+ */
+async function getNonce(url: string) {
+  const res = await requester.get(url);
+  if (!res.headers["set-cookie"]) {
+    throw new Error("No cookie in response");
+  }
+  const cookies = {};
+  (res.headers["set-cookie"] ?? []).forEach((cookie) => {
+    const [key, _] = cookie.split(";");
+    const [keyPart, valuePart] = key.split("=");
+    if (!keyPart || !valuePart) return;
+    cookies[keyPart.trim()] = valuePart.trim();
+  });
+  return cookies["__ac_nonce"];
+}
+
+/**
  * 解析抖音号
  * @param url
  */
@@ -381,7 +399,7 @@ export async function parseUser(url: string) {
   const timestamp = Math.floor(Date.now() / 1000);
   const ua =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0";
-  const nonce = generateNonce();
+  const nonce = (await getNonce(url)) ?? generateNonce();
   const signed = get__ac_signature(timestamp, url, nonce, ua);
 
   const res = await requester.get(url, {
