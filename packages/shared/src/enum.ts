@@ -219,6 +219,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     pan123: {
       clientId: "",
       clientSecret: "",
+      limitRate: 0,
     },
     syncConfigs: [],
   },

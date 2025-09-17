@@ -570,6 +570,7 @@ export interface AppConfig {
     pan123: {
       clientId: string;
       clientSecret: string;
+      limitRate: number; // KB
     };
     syncConfigs: SyncConfig[];
   };

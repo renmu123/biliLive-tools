@@ -20,6 +20,11 @@ export interface Pan123Options {
    * 日志记录器
    */
   logger?: typeof logger;
+  /**
+   * 限速，单位KB，0为不限速
+   * @default 0
+   */
+  limitRate?: number;
 }
 
 interface Pan123Events {
@@ -46,6 +51,7 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
   private logger: typeof logger | Console;
   private client: Client;
   private currentUploader: Uploader | null = null;
+  private limitRate: number; // KB
   private progressHistory: Array<{ loaded: number; timestamp: number }> = [];
   private readonly speedWindowMs: number = 3000; // 3秒时间窗口
 
@@ -53,6 +59,7 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
     super();
     this.accessToken = options.accessToken;
     this.remotePath = options?.remotePath || "/录播";
+    this.limitRate = options?.limitRate || 0;
     this.logger = options?.logger || logger;
     this.client = new Client(this.accessToken);
   }
@@ -137,14 +144,16 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
 
       // const fileName = path.basename(localFilePath);
       this.logger.debug(`123网盘开始上传: ${localFilePath} 到 ${this.remotePath}`);
-      console.log(remoteDir);
 
+      const concurrency = options?.concurrency || 3;
+      const limitRate = this.limitRate / concurrency;
       // 创建上传实例
       this.currentUploader = new Uploader(localFilePath, this.accessToken!, String(parentFileID), {
-        concurrency: options?.concurrency || 3,
+        concurrency: concurrency,
         retryTimes: options?.retry || 3,
         retryDelay: 3000,
         duplicate: options?.policy === "skip" ? 2 : 1, // 1: 覆盖, 2: 跳过
+        limitRate,
       });
 
       // 初始化上传计时

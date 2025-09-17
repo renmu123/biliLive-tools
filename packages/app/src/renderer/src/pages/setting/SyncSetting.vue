@@ -160,22 +160,41 @@
         <n-tab-pane class="tab-pane" name="pan123" tab="123网盘" display-directive="show:lazy">
           <n-form-item>
             <template #label> 项目地址 </template>
-            <a href="https://github.com/renmu123/123pan-uploader" class="external" target="_blank"
-              >https://github.com/renmu123/123pan-uploader</a
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+              "
             >
+              <a
+                href="https://github.com/renmu123/123pan-uploader"
+                class="external"
+                target="_blank"
+                style="flex: none"
+                >https://github.com/renmu123/123pan-uploader</a
+              >
+              <div style="text-align: right; width: 100%">
+                <n-button style="margin-left: 10px" type="primary" @click="login('pan123')"
+                  >登录</n-button
+                >
+                <n-button style="margin-left: 10px" type="warning" @click="loginCheck('pan123')"
+                  >登录检查</n-button
+                >
+                <n-button style="margin-left: 10px" type="info" @click="uploadCheck('pan123')"
+                  >上传测试</n-button
+                >
+              </div>
+            </div>
           </n-form-item>
           <n-form-item>
-            <div style="text-align: right; width: 100%">
-              <n-button style="margin-left: 10px" type="primary" @click="login('pan123')"
-                >登录</n-button
-              >
-              <n-button style="margin-left: 10px" type="warning" @click="loginCheck('pan123')"
-                >登录检查</n-button
-              >
-              <n-button style="margin-left: 10px" type="info" @click="uploadCheck('pan123')"
-                >上传测试</n-button
-              >
-            </div>
+            <template #label>
+              <Tip text="限速" tip="0为不限速，仅为单个上传任务的限速，并非全局"></Tip>
+            </template>
+            <n-input-number v-model:value="config.sync.pan123.limitRate" min="0" step="1024">
+              <template #suffix>KB</template>
+            </n-input-number>
           </n-form-item>
         </n-tab-pane>
       </n-tabs>
