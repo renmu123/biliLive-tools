@@ -215,6 +215,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       apiUrl: "",
       username: "",
       hashPassword: "",
+      limitRate: 0, // KB
     },
     pan123: {
       clientId: "",

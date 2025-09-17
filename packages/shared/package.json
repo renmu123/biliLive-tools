@@ -35,9 +35,10 @@
     "@bililive-tools/huya-recorder": "workspace:*",
     "@bililive-tools/manager": "workspace:*",
     "@napi-rs/canvas": "^0.1.60",
-    "@renmu/fluent-ffmpeg": "2.3.3",
     "@renmu/bili-api": "2.9.3",
+    "@renmu/fluent-ffmpeg": "2.3.3",
     "@renmu/m3u8-downloader": "^0.4.0",
+    "@renmu/throttle": "^1.0.3",
     "arktype": "^2.1.2",
     "ass-compiler": "^0.1.14",
     "awilix": "^11.0.4",
@@ -51,13 +52,13 @@
     "ntsuspend": "catalog:",
     "ollama": "^0.5.9",
     "p-limit": "^6.1.0",
+    "pan123-uploader": "0.3.0",
     "serverchan-sdk": "^1.0.6",
     "subtitle": "^4.2.1",
     "tiny-typed-emitter": "^2.1.0",
     "trash": "^9.0.0",
     "tree-kill": "^1.2.2",
-    "zod": "^3.23.8",
-    "pan123-uploader": "0.2.0"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/nodemailer": "^6.4.17"

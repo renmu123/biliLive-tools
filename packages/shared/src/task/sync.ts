@@ -16,6 +16,7 @@ const getConfig = (type: SyncType) => {
       apiUrl: config.sync[type as "alist"].apiUrl,
       username: config.sync[type as "alist"].username,
       password: config.sync[type as "alist"].hashPassword,
+      limitRate: config.sync[type as "alist"].limitRate,
     };
   } else if (["aliyunpan", "baiduPCS"].includes(type)) {
     return {
@@ -63,6 +64,7 @@ const createUploadInstance = async (opts: {
       username: opts.username,
       password: opts.password,
       remotePath: opts.remotePath ?? "",
+      limitRate: opts.limitRate ?? 0,
     });
   } else if (opts.type === "copy") {
     return new LocalCopy({

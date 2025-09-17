@@ -566,6 +566,7 @@ export interface AppConfig {
       apiUrl: string;
       username: string;
       hashPassword: string;
+      limitRate: number; // KB
     };
     pan123: {
       clientId: string;

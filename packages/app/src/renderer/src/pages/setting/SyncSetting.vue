@@ -156,6 +156,14 @@
               >
             </template>
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="限速" tip="0为不限速，仅为单个上传任务的限速，并非全局"></Tip>
+            </template>
+            <n-input-number v-model:value="config.sync.alist.limitRate" min="0" step="1024">
+              <template #suffix>KB</template>
+            </n-input-number>
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="pan123" tab="123网盘" display-directive="show:lazy">
           <n-form-item>

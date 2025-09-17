@@ -1,12 +1,13 @@
 import path from "node:path";
+import http from "node:http";
+import https from "node:https";
+import { URL } from "node:url";
 
 import fs from "fs-extra";
+import Throttle from "@renmu/throttle";
 import logger from "../utils/log.js";
 import { TypedEmitter } from "tiny-typed-emitter";
 import axios, { AxiosInstance } from "axios";
-import * as http from "http";
-import * as https from "https";
-import { URL } from "url";
 
 export interface AlistOptions {
   /**
@@ -37,6 +38,11 @@ export interface AlistOptions {
    * 日志记录器
    */
   logger?: typeof logger;
+  /**
+   * 速率限制，单位KB/s，0为不限速
+   * @default 0
+   */
+  limitRate?: number;
 }
 
 interface AlistEvents {
@@ -66,6 +72,7 @@ export class Alist extends TypedEmitter<AlistEvents> {
   private token: string | null = null;
   private client: AxiosInstance;
   private abortController: AbortController | null = null;
+  private limitRate: number;
 
   constructor(options?: AlistOptions) {
     super();
@@ -74,6 +81,7 @@ export class Alist extends TypedEmitter<AlistEvents> {
     this.password = options?.password || "";
     this.remotePath = options?.remotePath || "/录播";
     this.logger = options?.logger || logger;
+    this.limitRate = options?.limitRate || 0;
 
     // 创建axios实例
     this.client = axios.create({
@@ -259,9 +267,13 @@ export class Alist extends TypedEmitter<AlistEvents> {
     const fileSize = stat.size;
 
     // 创建文件流
-    const fileStream = fs.createReadStream(localFilePath, {
+    let fileStream = fs.createReadStream(localFilePath, {
       highWaterMark: 1024 * 1024, // 每次读取 1MB
     });
+
+    if (this.limitRate > 0) {
+      fileStream = fileStream.pipe(new Throttle(this.limitRate * 1024));
+    }
 
     // 进度监听
     let uploaded = 0;
@@ -308,12 +320,12 @@ export class Alist extends TypedEmitter<AlistEvents> {
           {
             method: "PUT",
             hostname: url.hostname,
-            port: url.port ? Number(url.port) : (url.protocol === "https:" ? 443 : 80),
+            port: url.port ? Number(url.port) : url.protocol === "https:" ? 443 : 80,
             path: url.pathname,
             headers: {
               "Content-Type": "application/octet-stream",
               "Content-Length": fileSize.toString(),
-              ...(this.token ? { "Authorization": this.token } : {}),
+              ...(this.token ? { Authorization: this.token } : {}),
               "File-Path": encodeURIComponent(remotePath),
               "As-Task": "true",
             },
@@ -342,7 +354,7 @@ export class Alist extends TypedEmitter<AlistEvents> {
                 reject(err);
               }
             });
-          }
+          },
         );
         req.on("error", (error: any) => {
           reject(error);
@@ -354,7 +366,7 @@ export class Alist extends TypedEmitter<AlistEvents> {
         this.logger.info("上传已取消");
         this.emit("canceled", "上传已取消");
       } else {
-        this.logger.error(`上传文件出错: ${error?.message || 'unknown error'}`);
+        this.logger.error(`上传文件出错: ${error?.message || "unknown error"}`);
         this.emit("error", error);
       }
       throw error;
