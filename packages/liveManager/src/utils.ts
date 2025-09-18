@@ -205,15 +205,30 @@ export const formatTemplate = function template(string: string, ...args: any[]) 
   });
 };
 
-export function createInvalidStreamChecker(count: number = 15): (ffmpegLogLine: string) => boolean {
+/**
+ * 检查ffmpeg无效流
+ * @param count 连续多少次帧数不变就判定为无效流
+ * @returns
+ * "receive repart stream": b站最后的无限流
+ * "receive invalid aac stream": ADTS无法被解析的flv流
+ * "invalid stream": 一段时间内帧数不变
+ */
+export function createInvalidStreamChecker(
+  count: number = 15,
+): (ffmpegLogLine: string) => [boolean, string] {
   let prevFrame = 0;
   let frameUnchangedCount = 0;
 
   return (ffmpegLogLine) => {
     // B站某些cdn在直播结束后仍会返回一些数据 https://github.com/renmu123/biliLive-tools/issues/123
     if (ffmpegLogLine.includes("New subtitle stream with index")) {
-      return true;
+      return [true, "receive repart stream"];
     }
+    // 虎牙某些cdn会返回无法解析ADTS的flv流 https://github.com/renmu123/biliLive-tools/issues/150
+    if (ffmpegLogLine.includes("AAC bitstream not in ADTS format and extradata missing")) {
+      return [true, "receive invalid aac stream"];
+    }
+
     const streamInfo = ffmpegLogLine.match(
       /frame=\s*(\d+) fps=.*? q=.*? size=.*? time=.*? bitrate=.*? speed=.*?/,
     );
@@ -223,17 +238,17 @@ export function createInvalidStreamChecker(count: number = 15): (ffmpegLogLine: 
 
       if (frame === prevFrame) {
         if (++frameUnchangedCount >= count) {
-          return true;
+          return [true, "invalid stream"];
         }
       } else {
         prevFrame = frame;
         frameUnchangedCount = 0;
       }
 
-      return false;
+      return [false, ""];
     }
 
-    return false;
+    return [false, ""];
   };
 }
 

@@ -133,16 +133,17 @@ export class FFMPEGRecorder extends EventEmitter {
       .on("end", () => this.onEnd("finished"))
       .on("stderr", async (stderrLine) => {
         assert(typeof stderrLine === "string");
-        await this.streamManager.handleVideoStarted(stderrLine);
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 
+        const [isInvalid, reason] = isInvalidStream(stderrLine);
+        if (isInvalid) {
+          this.onEnd(reason);
+        }
+
+        await this.streamManager.handleVideoStarted(stderrLine);
         const info = this.formatLine(stderrLine);
         if (info) {
           this.emit("progress", info);
-        }
-
-        if (isInvalidStream(stderrLine)) {
-          this.onEnd("invalid stream");
         }
       })
       .on("stderr", this.timeoutChecker?.update);
