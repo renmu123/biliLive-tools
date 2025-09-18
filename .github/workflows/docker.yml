@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        service: [frontend, backend]
+        service: [frontend, backend, backend-nvidia]
 
     steps:
       - name: Checkout repository
@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [frontend, backend]
+        service: [frontend, backend, backend-nvidia]
 
     steps:
       - name: Checkout repository

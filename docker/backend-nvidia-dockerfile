@@ -1,0 +1,91 @@
+# 使用 Node.js 作为基础镜像
+FROM node:20.16 AS build
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable && corepack prepare pnpm@9.15.2 --activate
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制项目文件到容器中
+COPY . .
+
+# 安装目录依赖
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --ignore-scripts
+
+# 构建后端项目
+RUN pnpm run build:base && pnpm run --filter bililive-cli build && cd packages/CLI && node ./scripts/removeDev.js && npm install --force
+
+# 下载二进制依赖
+RUN pnpm run install:bin
+
+# 下载字体文件
+RUN curl -L -o /usr/local/share/fonts/NotoSansSC-Regular.ttf https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/NotoSansSC-Regular.ttf 
+
+# 下载 https://github.com/qjfoidnh/BaiduPCS-Go 二进制文件
+RUN mkdir -p /app/baidu-temp && \
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        curl -L -o /app/baidu-temp/BaiduPCS-Go.zip https://github.com/qjfoidnh/BaiduPCS-Go/releases/download/v3.9.9/BaiduPCS-Go-v3.9.9-linux-amd64.zip; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        curl -L -o /app/baidu-temp/BaiduPCS-Go.zip https://github.com/qjfoidnh/BaiduPCS-Go/releases/download/v3.9.9/BaiduPCS-Go-v3.9.9-linux-arm64.zip; \
+    fi && \
+    apt-get update && apt-get install -y unzip && \
+    unzip /app/baidu-temp/BaiduPCS-Go.zip -d /app/baidu-temp && \
+    mv /app/baidu-temp/BaiduPCS-Go-*/BaiduPCS-Go /app/packages/app/resources/bin/BaiduPCS-Go && \
+    chmod +x /app/packages/app/resources/bin/BaiduPCS-Go && \
+    rm -rf /app/baidu-temp
+
+# 下载 https://github.com/tickstep/aliyunpan 二进制文件
+RUN mkdir -p /app/aliyun-temp && \
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        curl -L -o /app/aliyun-temp/aliyunpan.zip https://github.com/tickstep/aliyunpan/releases/download/v0.3.7/aliyunpan-v0.3.7-linux-amd64.zip; \
+    elif [ "$ARCH" = "aarch64" ]; then \
+        curl -L -o /app/aliyun-temp/aliyunpan.zip https://github.com/tickstep/aliyunpan/releases/download/v0.3.7/aliyunpan-v0.3.7-linux-arm64.zip; \
+    fi && \
+    unzip /app/aliyun-temp/aliyunpan.zip -d /app/aliyun-temp && \
+    mv /app/aliyun-temp/aliyunpan-*/aliyunpan /app/packages/app/resources/bin/aliyunpan && \
+    chmod +x /app/packages/app/resources/bin/aliyunpan && \
+    rm -rf /app/aliyun-temp
+
+# 从另一个基础镜像开始，安装运行时依赖
+FROM nvidia/cuda:12.6.2-base-ubuntu24.04 AS runtime
+
+# install node 20.16
+RUN apt-get update && apt-get install -y libfontconfig1-dev curl ca-certificates gnupg \
+    && mkdir -p /etc/apt/keyrings \
+    && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+    && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" \
+    > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update \
+    && apt-get install -y nodejs=20.16.0-1nodesource1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy fonts and fontconfig from builder
+COPY --from=build /usr/share/fonts /usr/share/fonts
+COPY --from=build /usr/share/fontconfig /usr/share/fontconfig
+COPY --from=build /usr/bin/fc-* /usr/bin/
+
+# 设置工作目录
+WORKDIR /app
+
+RUN mkdir data && mkdir bin && mkdir video
+
+# 复制 backend 代码和 package.json
+COPY --from=build /app/packages/CLI/lib /app
+COPY --from=build /app/packages/CLI/node_modules /app/node_modules
+COPY --from=build /app/packages/app/resources/bin /app/bin
+COPY --from=build /app/docker/config.json ./
+COPY --from=build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts/NotoSansSC-Regular.ttf
+
+ENV NODE_ENV=production
+ENV IS_DOCKER=true
+ENV BAIDUPCS_GO_CONFIG_DIR=/app/data
+ENV ALIYUNPAN_CONFIG_DIR=/app/data
+
+# 暴露 API 端口
+EXPOSE 18010
+
+# 启动后端服务器
+CMD ["node", "index.cjs", "server", "--config", "config.json"]
