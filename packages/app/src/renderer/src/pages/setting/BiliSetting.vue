@@ -65,8 +65,8 @@
       <n-form-item>
         <template #label>
           <Tip
-            text="测试功能：上传持久化"
-            tip="将上传视频完成后持久化到本地，如果出现提交失败，那么可以避免视频的重新上传"
+            text="缓存投稿失败视频"
+            tip="将上传完成的视频缓存到本地，如果出现投稿失败，可以直接复用视频ID，避免视频被重新"
           ></Tip>
         </template>
         <n-switch v-model:value="config.biliUpload.useUploadPartPersistence" />

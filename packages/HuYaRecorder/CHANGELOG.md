@@ -2,6 +2,8 @@
 
 - 支持 `recorderType` 参数用于配置底层录制器，支持`ffmpeg | mesio`
 - 修复 `videoFormat=auto` 时某些情况下格式的判断
+- 支持真原画画质
+- 修复“画质匹配重试次数”不生效的bug
 
 # 1.3.2
 

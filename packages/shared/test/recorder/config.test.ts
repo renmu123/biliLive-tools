@@ -124,6 +124,7 @@ describe("RecorderConfig", () => {
         doubleScreen: undefined,
         formatPriorities: undefined,
         sourcePriorities: [],
+        api: "auto",
       });
     });
 
@@ -154,6 +155,7 @@ describe("RecorderConfig", () => {
         doubleScreen: undefined,
         formatPriorities: undefined,
         sourcePriorities: [],
+        api: "auto",
       });
     });
 
@@ -185,6 +187,7 @@ describe("RecorderConfig", () => {
           source: "auto",
           doubleScreen: undefined,
           sourcePriorities: [],
+          api: "auto",
         });
       });
       it("正确处理HuYa source全局参数", () => {
@@ -271,6 +274,7 @@ describe("RecorderConfig", () => {
         formatPriorities: ["flv", "hls"],
         doubleScreen: true,
         sourcePriorities: [],
+        api: "auto",
       });
     });
 
@@ -320,6 +324,7 @@ describe("RecorderConfig", () => {
               saveGiftDanma: true,
               saveSCDanma: false,
               saveCover: true,
+              api: "auto",
             },
           };
         }
@@ -335,6 +340,7 @@ describe("RecorderConfig", () => {
               saveGiftDanma: false,
               saveSCDanma: true,
               saveCover: false,
+              api: "auto",
             },
           ];
         }
@@ -368,6 +374,7 @@ describe("RecorderConfig", () => {
         doubleScreen: undefined,
         formatPriorities: undefined,
         sourcePriorities: [],
+        api: "auto",
       });
     });
   });

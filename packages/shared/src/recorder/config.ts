@@ -16,9 +16,13 @@ export default class RecorderConfig {
     return setting.find((setting) => setting.id === id);
   }
 
-  public get(
-    id: string,
-  ): (Recorder & { auth?: string; formatPriorities?: Array<"hls" | "flv"> }) | null {
+  public get(id: string):
+    | (Recorder & {
+        auth?: string;
+        formatPriorities?: Array<"hls" | "flv">;
+        api?: "web" | "webHTML";
+      })
+    | null {
     const getValue = (key: any): any => {
       if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
         return setting?.[key];
@@ -76,6 +80,12 @@ export default class RecorderConfig {
             }
           } else {
             return [];
+          }
+        } else if (key === "api") {
+          if (setting.providerId === "DouYin") {
+            return get(globalConfig, "douyin.api");
+          } else {
+            return "auto";
           }
         } else {
           return get(globalConfig, key);
@@ -158,6 +168,7 @@ export default class RecorderConfig {
       formatPriorities: formatPriorities,
       doubleScreen: getValue("doubleScreen"),
       sourcePriorities: sourcePriorities,
+      api: getValue("api") ?? "auto",
     };
   }
   public list() {

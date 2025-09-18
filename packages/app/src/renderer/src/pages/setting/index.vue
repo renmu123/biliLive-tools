@@ -20,11 +20,14 @@
               </template>
               <n-switch v-model:value="config.trash" />
             </n-form-item>
-            <n-form-item v-if="!isWeb">
+            <n-form-item>
               <template #label>
                 <span class="inline-flex"> 自动检查更新 </span>
               </template>
-              <n-switch v-model:value="config.autoUpdate" />
+              <div style="display: inline-flex; align-items: center; gap: 10px">
+                <n-switch v-if="!isWeb" v-model:value="config.autoUpdate" />
+                <n-button type="primary" ghost @click="checkForUpdates">检查更新</n-button>
+              </div>
             </n-form-item>
             <n-form-item v-if="!isWeb">
               <template #label>
@@ -34,13 +37,13 @@
             </n-form-item>
             <n-form-item v-if="!isWeb">
               <template #label>
-                <span class="inline-flex"> 最小化到任务栏 </span>
+                <span class="inline-flex"> 最小化到托盘 </span>
               </template>
               <n-switch v-model:value="config.minimizeToTray" />
             </n-form-item>
             <n-form-item v-if="!isWeb">
               <template #label>
-                <span class="inline-flex"> 关闭到任务栏 </span>
+                <span class="inline-flex"> 关闭到托盘 </span>
               </template>
               <n-switch v-model:value="config.closeToTray" />
             </n-form-item>
@@ -328,6 +331,9 @@
     @save="saveRoomDetail"
     @delete="deleteRoom"
   ></RoomSettingDialog>
+
+  <!-- 检查更新弹框 -->
+  <CheckUpdateModal v-model:visible="checkUpdateVisible" />
 </template>
 
 <script setup lang="ts">
@@ -344,6 +350,7 @@ import RecordSetting from "./RecordSetting.vue";
 import TaskSetting from "./TaskSetting.vue";
 import VideoSetting from "./VideoSetting.vue";
 import SyncSetting from "./SyncSetting.vue";
+import CheckUpdateModal from "@renderer/components/checkUpdateModal.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
@@ -721,6 +728,18 @@ defineExpose({
     }
   },
 });
+
+const checkUpdateVisible = ref(false);
+// 检查更新
+const checkForUpdates = async () => {
+  if (isWeb.value) {
+    // const res = await commonApi.checkUpdate();
+    checkUpdateVisible.value = true;
+    return;
+  } else {
+    await window.api.common.checkUpdate();
+  }
+};
 </script>
 
 <style scoped lang="less">

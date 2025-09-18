@@ -210,7 +210,7 @@ mesio 作为测试录制器被引入，用于支持 flv 修复等功能，当你
 如果想接入webhook相关功能，你可以自行构造参数并调用接口，采用`post`方法，端口为`/webhook/custom`，接收后立刻返回http code=200。
 
 参数：
-`event`: `FileClosed`|`FileOpening` (如果你想使用断播续传功能，请在上一个`FileClosed`事件后在设置的时间间隔内发送`FileOpening`事件)  
+`event`: `FileClosed`|`FileOpening`|`FileError` 如果你想使用断播续传功能，请在上一个`FileClosed`事件后在设置的时间间隔内发送`FileOpening`事件，`FileError` 用于将该视频标注为错误，避免阻塞流程。  
 `filePath`: 视频文件的绝对路径
 `coverPath`: 可选，视频封面的绝对路径，如果为空，会读取与视频文件名相同的后缀为`jpg`的文件
 `danmuPath`: 可选，视频弹幕`xml`文件，如果为空，会读取与视频文件名相同的`xml`文件

@@ -4,7 +4,14 @@
       <h2 style="display: inline-flex; align-items: center">
         文件同步配置<Tip :size="22">配置完成去webhook配置中配置相关同步器</Tip>
       </h2>
-      <p>使用前请务必了解相关同步库并<bold>仔细查看文档</bold></p>
+      <p>
+        使用前请务必了解相关同步库并<b>仔细查看文档</b>，或查看<a
+          href="https://www.bilibili.com/video/BV1DieEzgE7y/"
+          class="external"
+          target="_blank"
+          >视频教程</a
+        >
+      </p>
     </div>
 
     <n-form label-placement="left" :label-width="145">
@@ -149,26 +156,53 @@
               >
             </template>
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="限速" tip="0为不限速，仅为单个上传任务的限速，并非全局"></Tip>
+            </template>
+            <n-input-number v-model:value="config.sync.alist.limitRate" min="0" step="1024">
+              <template #suffix>KB</template>
+            </n-input-number>
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="pan123" tab="123网盘" display-directive="show:lazy">
           <n-form-item>
             <template #label> 项目地址 </template>
-            <a href="https://github.com/renmu123/123pan-uploader" class="external" target="_blank"
-              >https://github.com/renmu123/123pan-uploader</a
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+              "
             >
+              <a
+                href="https://github.com/renmu123/123pan-uploader"
+                class="external"
+                target="_blank"
+                style="flex: none"
+                >https://github.com/renmu123/123pan-uploader</a
+              >
+              <div style="text-align: right; width: 100%">
+                <n-button style="margin-left: 10px" type="primary" @click="login('pan123')"
+                  >登录</n-button
+                >
+                <n-button style="margin-left: 10px" type="warning" @click="loginCheck('pan123')"
+                  >登录检查</n-button
+                >
+                <n-button style="margin-left: 10px" type="info" @click="uploadCheck('pan123')"
+                  >上传测试</n-button
+                >
+              </div>
+            </div>
           </n-form-item>
           <n-form-item>
-            <div style="text-align: right; width: 100%">
-              <n-button style="margin-left: 10px" type="primary" @click="login('pan123')"
-                >登录</n-button
-              >
-              <n-button style="margin-left: 10px" type="warning" @click="loginCheck('pan123')"
-                >登录检查</n-button
-              >
-              <n-button style="margin-left: 10px" type="info" @click="uploadCheck('pan123')"
-                >上传测试</n-button
-              >
-            </div>
+            <template #label>
+              <Tip text="限速" tip="0为不限速，仅为单个上传任务的限速，并非全局"></Tip>
+            </template>
+            <n-input-number v-model:value="config.sync.pan123.limitRate" min="0" step="1024">
+              <template #suffix>KB</template>
+            </n-input-number>
           </n-form-item>
         </n-tab-pane>
       </n-tabs>
@@ -471,7 +505,6 @@ const loginCheck = async (type: SyncType) => {
   } else if (type === "pan123") {
     status = await syncApi.syncTestLogin({
       clientId: config.value.sync.pan123.clientId,
-      clientSecret: config.value.sync.pan123.clientSecret,
       type: "pan123",
     });
   } else {
@@ -481,7 +514,7 @@ const loginCheck = async (type: SyncType) => {
   if (status) {
     notice.success("已存在登录信息");
   } else {
-    notice.error("未检测到登录信息，请先登录");
+    notice.error("未检测到登录信息或凭证已过期，请登录");
   }
 };
 

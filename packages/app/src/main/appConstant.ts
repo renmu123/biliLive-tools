@@ -3,7 +3,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import fs from "fs-extra";
 
-export const __dirname = dirname(fileURLToPath(import.meta.url));
+export const __dirname2 = dirname(fileURLToPath(import.meta.url));
 
 const binPath = join(
   dirname(app.getPath("exe")),
