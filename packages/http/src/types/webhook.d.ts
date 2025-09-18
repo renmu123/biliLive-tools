@@ -3,6 +3,7 @@ export type PickPartial<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>> & P
 export type UploadStatus = "pending" | "uploading" | "uploaded" | "error";
 export type OpenEvent = "FileOpening";
 export type CloseEvent = "FileClosed";
+export type ErrorEvent = "FileError";
 
 export interface Part {
   partId: string;
@@ -23,7 +24,7 @@ export interface Part {
 }
 
 export interface Options {
-  event: OpenEvent | CloseEvent;
+  event: OpenEvent | CloseEvent | ErrorEvent;
   filePath: string;
   roomId: number;
   time: string;
