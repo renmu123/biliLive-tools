@@ -9,7 +9,10 @@
         >
         </Tip>
       </h2>
-      <p>配置虚拟直播间，监听指定文件夹中的新文件</p>
+      <p>
+        配置虚拟直播间，监听指定文件夹中的新文件，<a @click="setStartTime" class="link">点击</a
+        >设置起始时间
+      </p>
     </div>
 
     <div class="virtual-record-list">
@@ -453,6 +456,15 @@ const saveVirtualRecord = async () => {
     // 表单验证失败，不做任何操作
   }
 };
+
+// 设置起始时间
+const setStartTime = async () => {
+  config.value.virtualRecord.startTime = Date.now();
+  notice.success({
+    title: "起始时间已更新为当前时间，之前的文件将不会被处理",
+    duration: 5000,
+  });
+};
 </script>
 
 <style scoped lang="less">
@@ -552,5 +564,10 @@ const saveVirtualRecord = async () => {
 
 .item {
   display: flex;
+}
+.link {
+  cursor: pointer;
+  color: skyblue;
+  text-decoration: underline;
 }
 </style>
