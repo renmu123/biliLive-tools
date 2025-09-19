@@ -51,7 +51,7 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
   const files = await fs.readdir(folderPath);
   // 筛选出mp4,ts,flv,mkv后缀的文件
   const videoFiles = files
-    .filter((file) => /\.(mp4|ts|flv|mkv)$/.test(file))
+    .filter((file) => /\.(mp4|ts|flv|mkv|m4s)$/.test(file))
     .filter((file) => {
       // 如果配置了忽略文件规则，则过滤掉匹配的文件
       if (config.ignoreFileRegex) {
