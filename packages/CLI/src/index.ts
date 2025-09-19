@@ -13,6 +13,7 @@ interface Config {
   configFolder: string;
   ffmpegPath: string;
   ffprobePath: string;
+  mesioPath: string;
   danmakuFactoryPath: string;
   logPath: string;
   passKey?: string;
@@ -58,6 +59,7 @@ program
       defaultFfmpegPath: c.ffmpegPath,
       defaultFfprobePath: c.ffprobePath,
       defaultDanmakuFactoryPath: c.danmakuFactoryPath,
+      defaultMesioPath: c.mesioPath,
       version: version,
       userDataPath: c.configFolder,
     };
@@ -121,6 +123,7 @@ function generateConfig(configPath: string) {
     configFolder: "",
     ffmpegPath: "ffmpeg.exe",
     ffprobePath: "ffprobe.exe",
+    mesioPath: "mesio.exe",
     danmakuFactoryPath: "DanmakuFactory.exe",
     logPath: "main.log",
   };
@@ -134,6 +137,7 @@ function generateConfig(configPath: string) {
   } else if (process.platform === "linux") {
     defaultConfig.ffmpegPath = "ffmpeg";
     defaultConfig.ffprobePath = "ffprobe";
+    defaultConfig.mesioPath = "mesio";
     defaultConfig.danmakuFactoryPath = "DanmakuFactory";
   }
   fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2));

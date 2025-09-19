@@ -10,7 +10,8 @@ export * from "./common.js";
 export * from "./recorder.js";
 export * from "./manager.js";
 export * from "./record_extra_data_controller.js";
-export * from "./FFMPEGRecorder.js";
+export * from "./recorder/FFMPEGRecorder.js";
+export { createBaseRecorder } from "./recorder/index.js";
 export { utils };
 
 /**
@@ -34,7 +35,6 @@ export function defaultToJSON<E extends AnyObject>(
     ...pick(recorder, [
       "id",
       "channelId",
-      "owner",
       "remarks",
       "disableAutoCheck",
       "quality",
@@ -49,6 +49,7 @@ export function defaultToJSON<E extends AnyObject>(
       "liveInfo",
       "uid",
       "titleKeywords",
+      // "recordHandle",
     ]),
   };
 }
@@ -71,6 +72,16 @@ export const createFFMPEGBuilder = (...args: Parameters<typeof ffmpeg>) => {
   ffmpeg.setFfmpegPath(ffmpegPath);
   return ffmpeg(...args);
 };
+
+// Mesio path management
+let mesioPath: string = "mesio";
+export function setMesioPath(newPath: string) {
+  mesioPath = newPath;
+}
+
+export function getMesioPath(): string {
+  return mesioPath;
+}
 
 export function getDataFolderPath<E extends AnyObject>(provider: RecorderProvider<E>): string {
   return "./" + provider.id;

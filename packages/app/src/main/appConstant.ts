@@ -45,9 +45,11 @@ export const getConfigPath = async () => {
 export let FFMPEG_PATH = join(binPath, "ffmpeg.exe");
 export let FFPROBE_PATH = join(binPath, "ffprobe.exe");
 export let DANMUKUFACTORY_PATH = join(binPath, "DanmakuFactory.exe");
+export let MESIO_PATH = join(binPath, "mesio.exe");
 
 if (process.platform === "linux") {
   FFMPEG_PATH = join(binPath, "ffmpeg");
   FFPROBE_PATH = join(binPath, "ffprobe");
   DANMUKUFACTORY_PATH = join(binPath, "DanmakuFactory");
+  MESIO_PATH = join(binPath, "mesio");
 }

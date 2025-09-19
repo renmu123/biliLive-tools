@@ -49,6 +49,7 @@ interface Options {
   saveCover?: boolean; // 保存封面
   videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"
   onlyAudio?: boolean; // 只录制音频，默认为否
+  recorderType?: "ffmpeg" | "mesio"; // 底层录制器，使用mesio时videoFormat参数无效
 }
 ```
 
@@ -76,6 +77,8 @@ const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
 
 ## cdn
+
+在 `cdn=auto` 且 `recorderType=mesio` 时，默认使用 `hw-h5` 线路
 
 如果有更多线路或者错误，请发issue
 

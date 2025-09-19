@@ -290,6 +290,18 @@ export const videoFormatOptions = [
   },
 ];
 
+// 录制器
+export const recorderTypeOptions = [
+  {
+    value: "ffmpeg",
+    label: "ffmpeg",
+  },
+  {
+    value: "mesio",
+    label: "mesio",
+  },
+];
+
 // 抖音流格式
 export const douyinStreamFormatOptions = [
   {
@@ -327,7 +339,11 @@ export const textInfo = {
   common: {
     format: {
       text: "视频格式",
-      tip: "选择自动时，分段为ts，不分段为mp4",
+      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为mp4<br/>mesio录制器：不支持指定",
+    },
+    recorderType: {
+      text: "测试：录制器",
+      tip: "影响最底层的录制，使用mesio前请先去基本配置中配置二进制文件，遇到mesio不支持的情况，会降级到使用ffmpeg",
     },
   },
   bili: {
