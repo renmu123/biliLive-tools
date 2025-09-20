@@ -63,6 +63,10 @@
             <n-text>{{ virtualConfig.usernameRegex || "未设置" }}</n-text>
           </div>
           <div class="info-item">
+            <n-text depth="3">文件匹配规则:</n-text>
+            <n-text>{{ virtualConfig.fileMatchRegex || "未设置" }}</n-text>
+          </div>
+          <div class="info-item">
             <n-text depth="3">监听文件夹:</n-text>
             <div class="folder-list">
               <n-tag
@@ -205,7 +209,20 @@
           <n-form-item>
             <template #label>
               <Tip
-                text="忽略文件规则"
+                text="文件匹配规则"
+                tip="正则表达式，用于匹配需要处理的文件名，只有匹配的文件才会被处理<br/>默认匹配视频文件：mp4、ts、flv、mkv、m4s"
+              />
+            </template>
+            <n-input
+              v-model:value="editingConfig.fileMatchRegex"
+              placeholder="正则表达式，只有匹配的文件才会被处理"
+              clearable
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="文件忽略规则"
                 tip="正则表达式，用于匹配需要忽略的文件名，匹配的文件将不会被处理<br/>默认忽略包含'-弹幕版'或'-后处理'的文件"
               />
             </template>
@@ -294,6 +311,7 @@ const editingConfig = ref({
   username: "",
   usernameRegex: "",
   watchFolder: [] as string[],
+  fileMatchRegex: "",
   ignoreFileRegex: "",
 });
 
@@ -347,6 +365,7 @@ const addVirtualRecord = () => {
     username: "",
     usernameRegex: "",
     watchFolder: [],
+    fileMatchRegex: "\\.(mp4|ts|flv|mkv|m4s)$",
     ignoreFileRegex: "-(弹幕版|后处理)",
   };
   newFolderPath.value = "";
@@ -367,6 +386,7 @@ const editVirtualRecord = (index: number) => {
     username: originalConfig.username || "",
     usernameRegex: originalConfig.usernameRegex || "",
     watchFolder: [...(originalConfig.watchFolder || [])],
+    fileMatchRegex: originalConfig.fileMatchRegex,
     ignoreFileRegex: originalConfig.ignoreFileRegex || "-(弹幕版|后处理)",
   };
   newFolderPath.value = "";

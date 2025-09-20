@@ -49,9 +49,20 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
 
   // 筛选出符合条件的文件
   const files = await fs.readdir(folderPath);
-  // 筛选出mp4,ts,flv,mkv后缀的文件
+
   const videoFiles = files
-    .filter((file) => /\.(mp4|ts|flv|mkv|m4s)$/.test(file))
+    .filter((file) => {
+      // 使用配置的文件匹配规则，如果未配置则使用默认规则
+      const matchRegex = config.fileMatchRegex || "\\.(mp4|ts|flv|mkv|m4s)$";
+      try {
+        const regex = new RegExp(matchRegex);
+        return regex.test(file);
+      } catch (error) {
+        logger.error(`文件匹配正则表达式解析失败: ${matchRegex}`, error);
+        // 如果正则表达式解析失败，使用默认规则
+        return /\.(mp4|ts|flv|mkv|m4s)$/.test(file);
+      }
+    })
     .filter((file) => {
       // 如果配置了忽略文件规则，则过滤掉匹配的文件
       if (config.ignoreFileRegex) {
