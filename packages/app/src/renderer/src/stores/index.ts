@@ -102,9 +102,15 @@ export const useDanmuPreset = defineStore("danmuPreset", () => {
     });
   });
 
-  watch(danmuPresetId, () => {
-    getDanmuPreset();
-  });
+  watch(
+    danmuPresetId,
+    (newVal) => {
+      newVal && getDanmuPreset();
+    },
+    {
+      immediate: true,
+    },
+  );
 
   getDanmuPresets();
 
