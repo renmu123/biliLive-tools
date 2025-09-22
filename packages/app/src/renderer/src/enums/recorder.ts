@@ -293,12 +293,16 @@ export const videoFormatOptions = [
 // 录制器
 export const recorderTypeOptions = [
   {
+    value: "auto",
+    label: "自动",
+  },
+  {
     value: "ffmpeg",
-    label: "ffmpeg",
+    label: "ffmpeg优先",
   },
   {
     value: "mesio",
-    label: "mesio",
+    label: "mesio优先",
   },
 ];
 
@@ -343,7 +347,7 @@ export const textInfo = {
     },
     recorderType: {
       text: "测试：录制器",
-      tip: "影响最底层的录制，使用mesio前请先去基本配置中配置二进制文件，遇到mesio不支持的情况，会降级到使用ffmpeg",
+      tip: "影响最底层的录制，自动选择默认使用ffmpeg，如果使用ffmpeg经常出现问题，如时间戳跳变，卡顿，音画不同步等，可以尝试切换mesio",
     },
   },
   bili: {

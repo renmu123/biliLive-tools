@@ -45,7 +45,7 @@ interface Options {
   videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"
   useServerTimestamp?: boolean; // 控制弹幕是否使用服务端时间戳，默认为true
   doubleScreen?: boolean; // 是否使用双屏直播流，开启后如果是双屏直播，那么就使用拼接的流，默认为true
-  recorderType?: "ffmpeg" | "mesio"; // 底层录制器，使用mesio时videoFormat参数无效
+  recorderType?: "auto" | "ffmpeg" | "mesio"; // 底层录制器，使用mesio时videoFormat参数无效
   auth?: string; // 传递cookie，
   api?: "web" | "webHTML"; // 使用不同的接口
 }

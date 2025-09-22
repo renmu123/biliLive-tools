@@ -174,7 +174,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  let recorderType: "ffmpeg" | "mesio" = this.recorderType ?? "ffmpeg";
+  let recorderType: Parameters<typeof createBaseRecorder>[0] =
+    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   const recorder = createBaseRecorder(
     recorderType,
     {

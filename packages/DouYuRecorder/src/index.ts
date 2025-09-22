@@ -189,6 +189,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
   }
 
+  let recorderType: Parameters<typeof createBaseRecorder>[0] =
+    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
     let strictQuality = false;
@@ -208,7 +210,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       source: this.source,
       strictQuality,
       onlyAudio: this.onlyAudio,
-      avoidEdgeCDN: this.recorderType === "mesio",
+      avoidEdgeCDN: recorderType === "mesio",
     });
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
@@ -242,7 +244,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   let isEnded = false;
   let isCutting = false;
 
-  let recorderType: "ffmpeg" | "mesio" = this.recorderType ?? "ffmpeg";
   const recorder = createBaseRecorder(
     recorderType,
     {

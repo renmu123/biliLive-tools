@@ -45,6 +45,7 @@ class MesioCommand extends EventEmitter {
       args.push("-o", dir);
       args.push("-n", name);
     }
+    // args.push("-v");
 
     // Add input source
     if (this._input) {

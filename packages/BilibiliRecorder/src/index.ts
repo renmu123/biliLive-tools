@@ -240,8 +240,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  let recorderType: "ffmpeg" | "mesio" = this.recorderType ?? "ffmpeg";
-  // TODO:测试只录制音频，hls以及fmp4，测试分辨率变化
+  let recorderType: Parameters<typeof createBaseRecorder>[0] =
+    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   const recorder = createBaseRecorder(
     recorderType,
     {

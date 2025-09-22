@@ -1,6 +1,6 @@
 # 1.6.0
 
-- 支持 `recorderType` 参数用于配置底层录制器，支持`ffmpeg | mesio`
+- 支持 `recorderType` 参数用于配置底层录制器，支持`auto | ffmpeg | mesio`
 - 修复未设置分段时录制音频时不触发文件创建和结束时间的bug
 - 部分事件的参数修改为序列化参数
 - 新增`recordRetryImmediately`即“录制错误立即重试”选项，用于在触发"invalid stream"后自动重试，一场直播最多触发五次，不对虎牙生效
