@@ -101,7 +101,10 @@ export interface RecorderManager<
   ) => P[];
 
   recorders: Recorder<E>[];
-  addRecorder: (this: RecorderManager<ME, P, PE, E>, opts: RecorderCreateOpts<E>) => Recorder<E>;
+  addRecorder: (
+    this: RecorderManager<ME, P, PE, E>,
+    opts: Omit<RecorderCreateOpts<E>, "cache">,
+  ) => Recorder<E>;
   removeRecorder: (this: RecorderManager<ME, P, PE, E>, recorder: Recorder<E>) => void;
   startRecord: (
     this: RecorderManager<ME, P, PE, E>,
@@ -247,11 +250,11 @@ export function createRecorderManager<
 
       // TODO: 因为泛型函数内部是不持有具体泛型的，这里被迫用了 as，没什么好的思路处理，除非
       // provider.createRecorder 能返回 Recorder<PE> 才能进一步优化。
-      const recorder = provider.createRecorder(omit(opts, ["providerId"])) as Recorder<E>;
+      const recorder = provider.createRecorder({
+        ...omit(opts, ["providerId"]),
+        cache,
+      }) as Recorder<E>;
       this.recorders.push(recorder);
-
-      // 设置 recorder 的缓存引用
-      recorder.cache = cache;
 
       recorder.on("RecordStart", (recordHandle) =>
         this.emit("RecordStart", { recorder: recorder.toJSON(), recordHandle }),

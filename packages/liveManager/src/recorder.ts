@@ -69,6 +69,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   useServerTimestamp?: boolean;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
+  cache: Cache;
 }
 
 export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id"> &
