@@ -139,6 +139,18 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
       throw error;
     }
 
+    // 检查文件大小是否超过10GB
+    const stats = await fs.stat(localFilePath);
+    const fileSize = stats.size;
+    const maxSize = 10 * 1024 * 1024 * 1024; // 10GB
+
+    if (fileSize > maxSize) {
+      const error = new Error(`文件大小超过限制: ${this.formatSize(fileSize)}，最大允许 10GB`);
+      this.logger.error(error.message);
+      this.emit("error", error);
+      throw error;
+    }
+
     try {
       // 需要获取目标目录的ID
       let parentFileID = await this.client.mkdirRecursive(this.remotePath);
