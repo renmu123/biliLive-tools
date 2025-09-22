@@ -9,6 +9,19 @@ const router = new Router({
   prefix: "/recorder",
 });
 
+/**
+ * 录制任务相关接口
+ * @route GET /recorder/list
+ * @param platform 直播平台
+ * @param recordStatus 录制状态 recording: 录制中 unrecorded: 未录制
+ * @param name 备注名称，模糊搜索
+ * @param autoCheck 是否监控
+ * @param page 页码
+ * @param pageSize 每页数量
+ * @param sortField 排序字段 living: 直播状态 state: 录制状态 monitorStatus: 监控状态
+ * @param sortDirection 排序方向 asc: 升序 desc: 降序
+ * @returns 录制任务列表
+ */
 router.get("/list", async (ctx) => {
   const query: RecorderAPI["getRecorders"]["Args"] = ctx.request.query;
 
@@ -55,10 +68,17 @@ router.post("/add", async (ctx) => {
   ctx.body = { payload: data };
 });
 
+/**
+ * 获取直播间配置信息
+ * @route GET /recorder/:recorderId
+ * @param recorderId 直播间ID
+ * @returns 录制器配置信息
+ */
 router.get("/:id", (ctx) => {
   const { id } = ctx.params;
   ctx.body = { payload: recorderService.getRecorder({ id }) };
 });
+
 router.put("/:id", (ctx) => {
   const { id } = ctx.params;
   const patch = pick(
@@ -95,6 +115,14 @@ router.put("/:id", (ctx) => {
 
   ctx.body = { payload: recorderService.updateRecorder({ id, ...patch }) };
 });
+
+/**
+ * 删除直播间
+ * @route DELETE /recorder/:recorderId
+ * @param recorderId 直播间ID
+ * @param removeHistory 是否删除录制历史，默认false
+ * @returns null
+ */
 router.delete("/:id", (ctx) => {
   const { id } = ctx.params;
   const { removeHistory } = ctx.request.query;
@@ -103,15 +131,23 @@ router.delete("/:id", (ctx) => {
   };
 });
 
+/**
+ * 开始录制
+ * @route POST /recorder/:recorderId/start_record
+ * @param recorderId 直播间ID
+ * @returns 录制任务信息
+ */
 router.post("/:id/start_record", async (ctx) => {
   const { id } = ctx.params;
   ctx.body = { payload: await recorderService.startRecord({ id }) };
 });
-router.post("/:id/stop_record", async (ctx) => {
-  const { id } = ctx.params;
-  ctx.body = { payload: await recorderService.stopRecord({ id }) };
-});
 
+/**
+ * 停止录制
+ * @route POST /recorder/:recorderId/stop_record
+ * @param recorderId 直播间ID
+ * @returns 录制任务信息
+ */
 router.post("/:id/stop_record", async (ctx) => {
   const { id } = ctx.params;
   ctx.body = { payload: await recorderService.stopRecord({ id }) };
@@ -122,13 +158,12 @@ router.post("/:id/cut", async (ctx) => {
   ctx.body = { payload: await recorderService.cutRecord({ id }) };
 });
 
-// router.get(":id/history", async (ctx) => {
-// const { id } = ctx.params;
-// 分页
-// const { page, pageSize,startTime,endTime } = ctx.query
-// ctx.body = { payload: await recorder.getHistory() };
-// });
-
+/**
+ * 解析直播间地址，获取对应的直播间信息
+ * @route GET /recorder/manager/resolveChannel
+ * @param url 直播间地址
+ * @returns 直播间信息
+ */
 router.get("/manager/resolveChannel", async (ctx) => {
   const { url } = ctx.query;
   const data = await recorderService.resolveChannel(url as string);
@@ -136,6 +171,12 @@ router.get("/manager/resolveChannel", async (ctx) => {
   ctx.body = { payload: data };
 });
 
+/**
+ * 获取直播间实时信息
+ * @route POST /recorder/manager/liveInfo
+ * @param ids 直播间ID列表
+ * @returns 直播间实时信息列表
+ */
 router.post("/manager/liveInfo", async (ctx) => {
   const { ids } = ctx.request.body;
   const list = await recorderService.getLiveInfo(ids as unknown as string[]);
