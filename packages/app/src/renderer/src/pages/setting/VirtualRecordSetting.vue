@@ -58,7 +58,7 @@
             <n-text depth="3">标题正则:</n-text>
             <n-text>{{ virtualConfig.titleRegex || "未设置" }}</n-text>
           </div>
-          <div class="info-item">
+          <div class="info-item" v-if="virtualConfig.mode === 'normal'">
             <n-text depth="3">主播名称:</n-text>
             <n-text>{{ virtualConfig.username || "未设置" }}</n-text>
           </div>
@@ -68,7 +68,7 @@
           </div>
           <div class="info-item">
             <n-text depth="3">文件匹配规则:</n-text>
-            <n-text>{{ virtualConfig.fileMatchRegex || "未设置" }}</n-text>
+            <n-text>{{ virtualConfig.fileMatchRegex || "默认" }}</n-text>
           </div>
           <div class="info-item">
             <n-text depth="3">监听文件夹:</n-text>
@@ -151,36 +151,48 @@
           <!-- 普通模式配置 -->
           <template v-if="editingConfig.mode === 'normal'">
             <n-form-item label="虚拟房间号" path="roomId">
+              <template #label>
+                <Tip text="虚拟房间号" tip="用于区分不同的配置，相当于直播房间号" />
+              </template>
               <n-input
                 v-model:value="editingConfig.roomId"
                 placeholder="请输入虚拟房间号，用于区分不同的录制配置"
                 clearable
               />
             </n-form-item>
-            <n-form-item label="主播名称">
+            <n-form-item>
+              <template #label>
+                <Tip text="主播名称" tip="作为webhook中的主播名称预设占位" />
+              </template>
               <n-input
                 v-model:value="editingConfig.username"
                 placeholder="可选，设置固定主播名称"
                 clearable
               />
             </n-form-item>
-            <n-form-item label="标题正则">
+            <n-form-item>
               <n-input
                 v-model:value="editingConfig.titleRegex"
                 placeholder="可选，用于从文件名中提取标题的正则表达式"
                 clearable
               />
-              <template #suffix>
-                <Tip tip="可选的正则表达式，用于从文件名中提取标题信息" />
+              <template #label>
+                <Tip
+                  text="标题正则"
+                  tip="用于从文件名中提取标题信息，作为webhook中的标题预设占位"
+                />
               </template>
             </n-form-item>
           </template>
 
           <!-- 高级模式配置 -->
           <template v-if="editingConfig.mode === 'advance'">
-            <n-form-item label="房间号正则" path="roomIdRegex">
-              <template #suffix>
-                <Tip tip="正则表达式用于从文件名中提取房间号，如果匹配失败将跳过处理" />
+            <n-form-item path="roomIdRegex">
+              <template #label>
+                <Tip
+                  text="房间号正则"
+                  tip="用于区分不同的配置，相当于直播房间号，<b>如果匹配失败将会被跳过</b>"
+                />
               </template>
               <n-input
                 v-model:value="editingConfig.roomIdRegex"
@@ -188,24 +200,30 @@
                 clearable
               />
             </n-form-item>
-            <n-form-item label="主播名称正则">
+            <n-form-item>
               <n-input
                 v-model:value="editingConfig.usernameRegex"
                 placeholder="可选，用于从文件名中提取主播名称的正则表达式"
                 clearable
               />
-              <template #suffix>
-                <Tip tip="可选的正则表达式，用于从文件名中提取主播名称信息" />
+              <template #label>
+                <Tip
+                  text="主播名称正则"
+                  tip="用于从文件名中提取主播名称信息，作为webhook中的主播名称预设占位"
+                />
               </template>
             </n-form-item>
-            <n-form-item label="标题正则">
+            <n-form-item>
               <n-input
                 v-model:value="editingConfig.titleRegex"
                 placeholder="可选，用于从文件名中提取标题的正则表达式"
                 clearable
               />
-              <template #suffix>
-                <Tip tip="可选的正则表达式，用于从文件名中提取标题信息" />
+              <template #label>
+                <Tip
+                  text="标题正则"
+                  tip="用于从文件名中提取标题信息，作为webhook中的标题预设占位"
+                />
               </template>
             </n-form-item>
           </template>
@@ -214,7 +232,7 @@
             <template #label>
               <Tip
                 text="文件匹配规则"
-                tip="正则表达式，用于匹配需要处理的文件名，只有匹配的文件才会被处理<br/>默认匹配视频文件：mp4、ts、flv、mkv、m4s"
+                tip="正则表达式，用于匹配需要处理的文件名，只有匹配的文件才会被处理<br/><b>开启webhook的转换为mp4功能可能导致文件重复处理</b><br/>默认匹配视频文件：mp4、ts、flv、mkv、m4s"
               />
             </template>
             <n-input
@@ -542,7 +560,7 @@ const setStartTime = async () => {
   gap: 8px;
 
   .n-text:first-child {
-    min-width: 80px;
+    min-width: 90px;
     flex-shrink: 0;
   }
 }
