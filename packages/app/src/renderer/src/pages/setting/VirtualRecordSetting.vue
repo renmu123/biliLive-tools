@@ -9,7 +9,10 @@
         >
         </Tip>
       </h2>
-      <p>配置虚拟直播间，监听指定文件夹中的新文件</p>
+      <p>
+        配置虚拟直播间，监听指定文件夹中的新文件，<a @click="setStartTime" class="link">点击</a
+        >设置起始时间
+      </p>
     </div>
 
     <div class="virtual-record-list">
@@ -58,6 +61,10 @@
           <div v-if="virtualConfig.mode === 'advance'" class="info-item">
             <n-text depth="3">主播名称正则:</n-text>
             <n-text>{{ virtualConfig.usernameRegex || "未设置" }}</n-text>
+          </div>
+          <div class="info-item">
+            <n-text depth="3">文件匹配规则:</n-text>
+            <n-text>{{ virtualConfig.fileMatchRegex || "未设置" }}</n-text>
           </div>
           <div class="info-item">
             <n-text depth="3">监听文件夹:</n-text>
@@ -202,7 +209,20 @@
           <n-form-item>
             <template #label>
               <Tip
-                text="忽略文件规则"
+                text="文件匹配规则"
+                tip="正则表达式，用于匹配需要处理的文件名，只有匹配的文件才会被处理<br/>默认匹配视频文件：mp4、ts、flv、mkv、m4s"
+              />
+            </template>
+            <n-input
+              v-model:value="editingConfig.fileMatchRegex"
+              placeholder="正则表达式，只有匹配的文件才会被处理"
+              clearable
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="文件忽略规则"
                 tip="正则表达式，用于匹配需要忽略的文件名，匹配的文件将不会被处理<br/>默认忽略包含'-弹幕版'或'-后处理'的文件"
               />
             </template>
@@ -291,6 +311,7 @@ const editingConfig = ref({
   username: "",
   usernameRegex: "",
   watchFolder: [] as string[],
+  fileMatchRegex: "",
   ignoreFileRegex: "",
 });
 
@@ -344,6 +365,7 @@ const addVirtualRecord = () => {
     username: "",
     usernameRegex: "",
     watchFolder: [],
+    fileMatchRegex: "\\.(mp4|ts|flv|mkv|m4s)$",
     ignoreFileRegex: "-(弹幕版|后处理)",
   };
   newFolderPath.value = "";
@@ -364,6 +386,7 @@ const editVirtualRecord = (index: number) => {
     username: originalConfig.username || "",
     usernameRegex: originalConfig.usernameRegex || "",
     watchFolder: [...(originalConfig.watchFolder || [])],
+    fileMatchRegex: originalConfig.fileMatchRegex,
     ignoreFileRegex: originalConfig.ignoreFileRegex || "-(弹幕版|后处理)",
   };
   newFolderPath.value = "";
@@ -452,6 +475,15 @@ const saveVirtualRecord = async () => {
   } catch (error) {
     // 表单验证失败，不做任何操作
   }
+};
+
+// 设置起始时间
+const setStartTime = async () => {
+  config.value.virtualRecord.startTime = Date.now();
+  notice.success({
+    title: "起始时间已更新为当前时间，之前的文件将不会被处理",
+    duration: 5000,
+  });
 };
 </script>
 
@@ -552,5 +584,10 @@ const saveVirtualRecord = async () => {
 
 .item {
   display: flex;
+}
+.link {
+  cursor: pointer;
+  color: skyblue;
+  text-decoration: underline;
 }
 </style>

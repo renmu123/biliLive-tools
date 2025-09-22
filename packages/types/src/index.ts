@@ -660,6 +660,8 @@ export interface AppConfig {
       usernameRegex: string;
       /** 监听文件夹 */
       watchFolder: string[];
+      /** 文件匹配规则，只有匹配的文件才会被处理 */
+      fileMatchRegex: string;
       /** 忽略文件正则，匹配的文件将被忽略 */
       ignoreFileRegex: string;
     }[];
