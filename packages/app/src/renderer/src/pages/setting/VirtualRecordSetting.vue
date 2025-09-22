@@ -10,7 +10,11 @@
         </Tip>
       </h2>
       <p>
-        配置虚拟直播间，监听指定文件夹中的新文件，<a @click="setStartTime" class="link">点击</a
+        配置虚拟直播间，监听指定文件夹中的新文件，<a
+          @click="setStartTime"
+          class="link"
+          :title="`从${formatTime(config?.virtualRecord?.startTime ?? 0)}开始监听`"
+          >点击</a
         >设置起始时间
       </p>
     </div>
@@ -282,7 +286,7 @@
 import { Add, FolderOpenOutline } from "@vicons/ionicons5";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { useConfirm } from "@renderer/hooks";
-import { uuid } from "@renderer/utils";
+import { uuid, formatTime } from "@renderer/utils";
 import Tip from "@renderer/components/Tip.vue";
 import type { AppConfig } from "@biliLive-tools/types";
 
