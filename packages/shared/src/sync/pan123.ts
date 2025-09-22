@@ -134,6 +134,7 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
     if (!(await fs.pathExists(localFilePath))) {
       const error = new Error(`文件不存在: ${localFilePath}`);
       this.logger.error(error.message);
+      console.log(remoteDir);
       this.emit("error", error);
       throw error;
     }
@@ -150,8 +151,8 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
       // 创建上传实例
       this.currentUploader = new Uploader(localFilePath, this.accessToken!, String(parentFileID), {
         concurrency: concurrency,
-        retryTimes: options?.retry || 3,
-        retryDelay: 3000,
+        retryTimes: options?.retry || 7,
+        retryDelay: 5000,
         duplicate: options?.policy === "skip" ? 2 : 1, // 1: 覆盖, 2: 跳过
         limitRate,
       });
