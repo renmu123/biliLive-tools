@@ -365,7 +365,7 @@ export interface GlobalRecorder {
   /** 视频格式 */
   videoFormat: "auto" | "ts" | "mkv";
   /** 支持的录制器 */
-  recorderType: "ffmpeg" | "mesio";
+  recorderType: "auto" | "ffmpeg" | "mesio";
   /** 保存弹幕测试 */
   saveDanma2DB: boolean;
   /** B站特有的配置 */

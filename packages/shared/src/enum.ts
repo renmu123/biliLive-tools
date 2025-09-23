@@ -253,7 +253,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     debugMode: false,
     qualityRetry: 0,
     videoFormat: "auto",
-    recorderType: "ffmpeg",
+    recorderType: "auto",
     useServerTimestamp: true,
     recordRetryImmediately: false,
     bilibili: {

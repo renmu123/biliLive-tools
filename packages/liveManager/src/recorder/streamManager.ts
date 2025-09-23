@@ -12,8 +12,10 @@ import {
   cleanTerminalText,
 } from "../utils.js";
 
+import type { RecorderCreateOpts } from "../recorder.js";
+
 export type GetSavePath = (data: { startTime: number; title?: string }) => string;
-type RecorderType = "ffmpeg" | "mesio";
+type RecorderType = Exclude<RecorderCreateOpts["recorderType"], undefined | "auto">;
 type VideoFormat = "auto" | "ts" | "mkv" | "flv" | "mp4" | "m4s";
 
 export class Segment extends EventEmitter {
