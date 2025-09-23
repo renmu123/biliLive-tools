@@ -7,8 +7,12 @@ import { virtualRecordModel } from "../db/index.js";
 import { appConfig } from "../config.js";
 import { sleep } from "../utils/index.js";
 import { readVideoMeta } from "./video.js";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat.js";
 
 import type { AppConfig } from "@biliLive-tools/types";
+
+dayjs.extend(customParseFormat);
 
 type VirtualRecordConfig = AppConfig["virtualRecord"]["config"][number];
 
@@ -37,65 +41,31 @@ const extractInfoFromFilename = (filename: string, regex: string): string | null
 /**
  * 从文件名中提取开始时间戳
  * @param filename 文件名
- * @param startTimeRegex 开始时间正则规则
+ * @param startTimeAutoMatch 是否自动匹配开始时间
  * @param fileBirthtimeMs 文件创建时间作为备用
  * @returns 时间戳（毫秒）
  */
 const extractStartTimeFromFilename = (
   filename: string,
-  startTimeRegex: string | undefined,
+  startTimeAutoMatch: boolean | undefined,
   fileBirthtimeMs: number,
 ): number => {
-  // 如果没有配置或为空，使用文件创建时间
-  if (!startTimeRegex || startTimeRegex.trim() === "") {
+  // 如果没有配置或关闭，使用文件创建时间
+  if (!startTimeAutoMatch) {
     return fileBirthtimeMs;
   }
 
-  // 如果配置为 auto，使用默认的日期时间正则
-  if (startTimeRegex === "auto") {
-    // const dayjs = require("dayjs");
-    // var customParseFormat = require("dayjs/plugin/customParseFormat");
-
-    // dayjs.extend(customParseFormat);
-
-    // const date = dayjs(
-    //   "2025-06-15 15-56-28 肝分呀！！！！！！！！！_1f59106c-045a-4f3d-8f6e-2b7f6e1c3b3c",
-    //   ["YYYY-MM-DD HH:mm:ss", "YYYY-MM-DD HH-mm-ss"],
-    // );
-    // TODO:预计使用 dayjs 替换实现
-    // 匹配格式如：xxx2025-09-12 17-16-48xxxx
-    const autoRegex = "(\\d{4}-\\d{2}-\\d{2} \\d{2}-\\d{2}-\\d{2})";
-    const match = filename.match(new RegExp(autoRegex));
-    if (match && match[1]) {
-      try {
-        // 将格式 "2025-09-12 17-16-48" 转换为标准格式
-        const timeStr = match[1].replace(/(\d{2})-(\d{2})-(\d{2})/, " $1:$2:$3");
-        const timestamp = new Date(timeStr).getTime();
-        if (!isNaN(timestamp)) {
-          return timestamp;
-        }
-      } catch (error) {
-        logger.error(`自动时间格式解析失败: ${match[1]}`, error);
-      }
-    }
-    // auto 模式匹配失败，使用文件创建时间
-    return fileBirthtimeMs;
-  }
-
-  // 使用自定义正则匹配
   try {
-    const match = filename.match(new RegExp(startTimeRegex));
-    if (match && match[1]) {
-      const timestamp = new Date(match[1]).getTime();
-      if (!isNaN(timestamp)) {
-        return timestamp;
-      }
+    // 匹配格式如：2025-09-12 17-16-48
+    const date = dayjs(filename, ["YYYY-MM-DD_HH-mm-ss", "YYYY-MM-DD HH-mm-ss"]);
+    console.log("匹配时间", filename, date.isValid(), date.toString());
+    if (date.isValid()) {
+      return date.valueOf();
     }
   } catch (error) {
-    logger.error(`自定义时间正则解析失败: ${startTimeRegex}`, error);
+    logger.error(`自动时间格式解析失败: ${filename}`, error);
   }
 
-  // 匹配失败，使用文件创建时间
   return fileBirthtimeMs;
 };
 
@@ -210,7 +180,7 @@ const processFile = async (file: FileInfo, config: VirtualRecordConfig, port: nu
     // 提取开始时间
     const startTimestamp = extractStartTimeFromFilename(
       filename,
-      config.startTimeRegex,
+      config.startTimeAutoMatch,
       file.birthtimeMs,
     );
 
