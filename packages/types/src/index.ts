@@ -648,6 +648,8 @@ export interface AppConfig {
       fileMatchRegex: string;
       /** 忽略文件正则，匹配的文件将被忽略 */
       ignoreFileRegex: string;
+      /** 开始时间匹配规则 */
+      startTimeRegex?: string;
     }[];
     // mode: "watch" | "interval";
     startTime: number;
