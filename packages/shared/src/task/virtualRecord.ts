@@ -220,14 +220,20 @@ const processFile = async (file: FileInfo, config: VirtualRecordConfig, port: nu
     );
 
     // 发送文件开始事件
-    await axios.post(`http://127.0.0.1:${port}/webhook/custom`, {
-      event: "FileOpening",
-      filePath: file.path,
-      roomId: roomId,
-      time: new Date(startTimestamp).toISOString(),
-      title: title,
-      username: username,
-    });
+    await axios.post(
+      `http://127.0.0.1:${port}/webhook/custom`,
+      {
+        event: "FileOpening",
+        filePath: file.path,
+        roomId: roomId,
+        time: new Date(startTimestamp).toISOString(),
+        title: title,
+        username: username,
+      },
+      {
+        proxy: false,
+      },
+    );
 
     await sleep(5000);
 
@@ -243,14 +249,20 @@ const processFile = async (file: FileInfo, config: VirtualRecordConfig, port: nu
     }
 
     // 发送文件结束事件
-    await axios.post(`http://127.0.0.1:${port}/webhook/custom`, {
-      event: "FileClosed",
-      filePath: file.path,
-      roomId: roomId,
-      time: new Date(endTimestamp).toISOString(),
-      title: title,
-      username: username,
-    });
+    await axios.post(
+      `http://127.0.0.1:${port}/webhook/custom`,
+      {
+        event: "FileClosed",
+        filePath: file.path,
+        roomId: roomId,
+        time: new Date(endTimestamp).toISOString(),
+        title: title,
+        username: username,
+      },
+      {
+        proxy: false,
+      },
+    );
 
     logger.info(`文件处理完成: ${file.path}`);
   } catch (error) {
