@@ -254,6 +254,15 @@
               clearable
             />
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="自动时间匹配"
+                tip="开启后尝试从文件名中匹配开始时间，关闭时使用文件创建时间作为开始时间"
+              />
+            </template>
+            <n-switch v-model:value="editingConfig.startTimeAutoMatch"> </n-switch>
+          </n-form-item>
           <n-form-item label="监听文件夹" path="watchFolder">
             <div style="width: 100%">
               <div class="folder-input-container">
@@ -335,6 +344,7 @@ const editingConfig = ref({
   watchFolder: [] as string[],
   fileMatchRegex: "",
   ignoreFileRegex: "",
+  startTimeAutoMatch: true,
 });
 
 // 新文件夹路径输入
@@ -389,6 +399,7 @@ const addVirtualRecord = () => {
     watchFolder: [],
     fileMatchRegex: "\\.(mp4|ts|flv|mkv|m4s)$",
     ignoreFileRegex: "-(弹幕版|后处理)",
+    startTimeAutoMatch: true,
   };
   newFolderPath.value = "";
   modalVisible.value = true;
@@ -410,6 +421,7 @@ const editVirtualRecord = (index: number) => {
     watchFolder: [...(originalConfig.watchFolder || [])],
     fileMatchRegex: originalConfig.fileMatchRegex,
     ignoreFileRegex: originalConfig.ignoreFileRegex || "-(弹幕版|后处理)",
+    startTimeAutoMatch: originalConfig.startTimeAutoMatch || false,
   };
   newFolderPath.value = "";
   modalVisible.value = true;

@@ -7,8 +7,12 @@ import { virtualRecordModel } from "../db/index.js";
 import { appConfig } from "../config.js";
 import { sleep } from "../utils/index.js";
 import { readVideoMeta } from "./video.js";
+import dayjs from "dayjs";
+import customParseFormat from "dayjs/plugin/customParseFormat.js";
 
 import type { AppConfig } from "@biliLive-tools/types";
+
+dayjs.extend(customParseFormat);
 
 type VirtualRecordConfig = AppConfig["virtualRecord"]["config"][number];
 
@@ -32,6 +36,37 @@ const extractInfoFromFilename = (filename: string, regex: string): string | null
     logger.error(`正则表达式解析失败: ${regex}`, error);
     return null;
   }
+};
+
+/**
+ * 从文件名中提取开始时间戳
+ * @param filename 文件名
+ * @param startTimeAutoMatch 是否自动匹配开始时间
+ * @param fileBirthtimeMs 文件创建时间作为备用
+ * @returns 时间戳（毫秒）
+ */
+const extractStartTimeFromFilename = (
+  filename: string,
+  startTimeAutoMatch: boolean | undefined,
+  fileBirthtimeMs: number,
+): number => {
+  // 如果没有配置或关闭，使用文件创建时间
+  if (!startTimeAutoMatch) {
+    return fileBirthtimeMs;
+  }
+
+  try {
+    // 匹配格式如：2025-09-12 17-16-48
+    const date = dayjs(filename, ["YYYY-MM-DD_HH-mm-ss", "YYYY-MM-DD HH-mm-ss"]);
+    console.log("匹配时间", filename, date.isValid(), date.toString());
+    if (date.isValid()) {
+      return date.valueOf();
+    }
+  } catch (error) {
+    logger.error(`自动时间格式解析失败: ${filename}`, error);
+  }
+
+  return fileBirthtimeMs;
 };
 
 /**
@@ -140,8 +175,14 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
  */
 const processFile = async (file: FileInfo, config: VirtualRecordConfig, port: number) => {
   try {
-    const startTimestamp = file.birthtimeMs;
     const filename = path.basename(file.path);
+
+    // 提取开始时间
+    const startTimestamp = extractStartTimeFromFilename(
+      filename,
+      config.startTimeAutoMatch,
+      file.birthtimeMs,
+    );
 
     let roomId = config.roomId;
     let title = "未知标题";
@@ -174,17 +215,25 @@ const processFile = async (file: FileInfo, config: VirtualRecordConfig, port: nu
       }
     }
 
-    logger.info(`开始处理文件: ${file.path}, 房间号: ${roomId}, 主播: ${username}`);
+    logger.info(
+      `开始处理文件: ${file.path}, 房间号: ${roomId}, 主播: ${username}, 开始时间: ${new Date(startTimestamp).toLocaleString()}`,
+    );
 
     // 发送文件开始事件
-    await axios.post(`http://127.0.0.1:${port}/webhook/custom`, {
-      event: "FileOpening",
-      filePath: file.path,
-      roomId: roomId,
-      time: new Date(startTimestamp).toISOString(),
-      title: title,
-      username: username,
-    });
+    await axios.post(
+      `http://127.0.0.1:${port}/webhook/custom`,
+      {
+        event: "FileOpening",
+        filePath: file.path,
+        roomId: roomId,
+        time: new Date(startTimestamp).toISOString(),
+        title: title,
+        username: username,
+      },
+      {
+        proxy: false,
+      },
+    );
 
     await sleep(5000);
 
@@ -200,14 +249,20 @@ const processFile = async (file: FileInfo, config: VirtualRecordConfig, port: nu
     }
 
     // 发送文件结束事件
-    await axios.post(`http://127.0.0.1:${port}/webhook/custom`, {
-      event: "FileClosed",
-      filePath: file.path,
-      roomId: roomId,
-      time: new Date(endTimestamp).toISOString(),
-      title: title,
-      username: username,
-    });
+    await axios.post(
+      `http://127.0.0.1:${port}/webhook/custom`,
+      {
+        event: "FileClosed",
+        filePath: file.path,
+        roomId: roomId,
+        time: new Date(endTimestamp).toISOString(),
+        title: title,
+        username: username,
+      },
+      {
+        proxy: false,
+      },
+    );
 
     logger.info(`文件处理完成: ${file.path}`);
   } catch (error) {

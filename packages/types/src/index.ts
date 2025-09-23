@@ -664,6 +664,8 @@ export interface AppConfig {
       fileMatchRegex: string;
       /** 忽略文件正则，匹配的文件将被忽略 */
       ignoreFileRegex: string;
+      /** 是否自动匹配开始时间 */
+      startTimeAutoMatch?: boolean;
     }[];
     // mode: "watch" | "interval";
     startTime: number;

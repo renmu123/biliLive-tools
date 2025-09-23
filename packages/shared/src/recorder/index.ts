@@ -178,14 +178,20 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const data = recorderConfig.get(recorder.id);
 
     data?.sendToWebhook &&
-      axios.post(`http://127.0.0.1:${config.port}/webhook/custom`, {
-        event: "FileOpening",
-        filePath: filename,
-        roomId: recorder.channelId,
-        time: startTime.toISOString(),
-        title: recorder.liveInfo.title,
-        username: recorder.liveInfo.owner,
-      });
+      axios.post(
+        `http://127.0.0.1:${config.port}/webhook/custom`,
+        {
+          event: "FileOpening",
+          filePath: filename,
+          roomId: recorder.channelId,
+          time: startTime.toISOString(),
+          title: recorder.liveInfo.title,
+          username: recorder.liveInfo.owner,
+        },
+        {
+          proxy: false,
+        },
+      );
 
     recordHistory.addWithStreamer({
       live_start_time: recorder.liveInfo.startTime?.getTime(),
@@ -210,14 +216,20 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const config = appConfig.getAll();
 
     data?.sendToWebhook &&
-      axios.post(`http://127.0.0.1:${config.port}/webhook/custom`, {
-        event: "FileClosed",
-        filePath: filename,
-        roomId: channelId,
-        time: endTime.toISOString(),
-        title: title,
-        username: username,
-      });
+      axios.post(
+        `http://127.0.0.1:${config.port}/webhook/custom`,
+        {
+          event: "FileClosed",
+          filePath: filename,
+          roomId: channelId,
+          time: endTime.toISOString(),
+          title: title,
+          username: username,
+        },
+        {
+          proxy: false,
+        },
+      );
 
     const xmlFile = replaceExtName(filename, ".xml");
     try {
