@@ -18,9 +18,7 @@ type VirtualRecordConfig = AppConfig["virtualRecord"]["config"][number];
 
 interface FileInfo {
   path: string;
-  birthtimeMs: number;
-  ctimeMs: number;
-  isFile: () => boolean;
+  startTimeMs: number;
 }
 
 /**
@@ -141,21 +139,33 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
     })
     .filter((result) => result.status === "fulfilled")
     .filter((result) => {
-      // 排除directory，创建时间大于startTime，ctime大于当前时间五分钟，birthtimeMs从旧到新排序
+      // 排除directory，开始时间大于startTime，ctime大于当前时间五分钟，startTimeMs从旧到新排序
+      const filename = path.basename(result.path);
+      const startTimeMs = extractStartTimeFromFilename(
+        filename,
+        config.startTimeAutoMatch,
+        result.value.birthtimeMs,
+      );
       return (
         result.value.isFile() &&
-        result.value.birthtimeMs > startTime &&
+        startTimeMs > startTime &&
         Date.now() - result.value.ctimeMs > 5 * 60 * 1000
       );
     })
     .map((result) => {
+      const filename = path.basename(result.path);
+      const startTimeMs = extractStartTimeFromFilename(
+        filename,
+        config.startTimeAutoMatch,
+        result.value.birthtimeMs,
+      );
       return {
         path: result.path,
-        ...result.value,
+        startTimeMs,
       };
     })
     .sort((a, b) => {
-      return a.birthtimeMs - b.birthtimeMs;
+      return a.startTimeMs - b.startTimeMs;
     });
 
   if (newRecords.length === 0) {
@@ -176,13 +186,7 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
 const processFile = async (file: FileInfo, config: VirtualRecordConfig, port: number) => {
   try {
     const filename = path.basename(file.path);
-
-    // 提取开始时间
-    const startTimestamp = extractStartTimeFromFilename(
-      filename,
-      config.startTimeAutoMatch,
-      file.birthtimeMs,
-    );
+    const startTimestamp = file.startTimeMs;
 
     let roomId = config.roomId;
     let title = "未知标题";
