@@ -10,7 +10,7 @@
         </Tip>
       </h2>
       <p>
-        配置虚拟直播间，监听指定文件夹中的新文件，<a
+        监听文件夹中的新文件，并发送到 webhook 进行处理，<a
           @click="setStartTime"
           class="link"
           :title="`从${formatTime(config?.virtualRecord?.startTime ?? 0)}开始监听`"
