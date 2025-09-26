@@ -634,6 +634,36 @@ export interface AppConfig {
     /** 保存路径 */
     subSavePath: string;
   };
+  // 虚拟录制
+  virtualRecord: {
+    config: {
+      mode: "normal" | "advance";
+      // uuid
+      id: string;
+      // 是否启用
+      switch: boolean;
+      // 虚拟直播间号
+      roomId: string;
+      // 房间号正则
+      roomIdRegex: string;
+      // 标题正则
+      titleRegex: string;
+      // 主播名称
+      username: string;
+      // 主播名称正则
+      usernameRegex: string;
+      /** 监听文件夹 */
+      watchFolder: string[];
+      /** 文件匹配规则，只有匹配的文件才会被处理 */
+      fileMatchRegex: string;
+      /** 忽略文件正则，匹配的文件将被忽略 */
+      ignoreFileRegex: string;
+      /** 是否自动匹配开始时间 */
+      startTimeAutoMatch?: boolean;
+    }[];
+    // mode: "watch" | "interval";
+    startTime: number;
+  };
 }
 
 export interface Video2Mp4Options {
