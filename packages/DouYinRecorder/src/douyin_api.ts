@@ -1,6 +1,8 @@
+import { URL, URLSearchParams } from "url";
 import axios from "axios";
 import { isEmpty } from "lodash-es";
-import { assert } from "./utils.js";
+import { assert, get__ac_signature } from "./utils.js";
+import { ABogus } from "./sign.js";
 
 const requester = axios.create({
   timeout: 10e3,
@@ -21,6 +23,14 @@ const requester = axios.create({
 export async function resolveShortURL(shortURL: string): Promise<string> {
   // 获取跳转后的页面内容
   const response = await requester.get(shortURL);
+  const redirectedURL = response.request.res.responseUrl;
+  if (redirectedURL.includes("/user/")) {
+    const secUid = new URL(redirectedURL).searchParams.get("sec_uid");
+    if (!secUid) {
+      throw new Error("无法从短链接解析出直播间ID");
+    }
+    return parseUser(`https://www.douyin.com/user/${secUid}`);
+  }
 
   // 尝试从页面内容中提取webRid
   const webRidMatch = response.data.match(/"webRid\\":\\"(\d+)\\"/);
@@ -98,12 +108,161 @@ export const getCookie = async () => {
   return cookies;
 };
 
+function generateNonce() {
+  // 21味随机字母数字组合
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let nonce = "";
+  for (let i = 0; i < 21; i++) {
+    nonce += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return nonce;
+}
+
+/**
+ * 通过解析html页面来获取房间数据
+ * @param webRoomId
+ * @param opts
+ */
+async function getRoomInfoByHtml(
+  webRoomId: string,
+  opts: {
+    auth?: string;
+    doubleScreen?: boolean;
+  } = {},
+) {
+  const url = `https://live.douyin.com/${webRoomId}`;
+  const ua =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0";
+  const nonce = generateNonce();
+
+  let cookies: string | undefined = undefined;
+  if (opts.auth) {
+    cookies = opts.auth;
+  } else {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signed = get__ac_signature(timestamp, url, nonce, ua);
+    cookies = `__ac_nonce=${nonce}; __ac_signature=${signed}; __ac_referer=__ac_blank`;
+  }
+
+  const res = await axios.get(url, {
+    headers: {
+      "User-Agent": ua,
+      cookie: cookies,
+    },
+  });
+  const regex = /(\{\\"state\\":.*?)\]\\n"\]\)/;
+  const match = res.data.match(regex);
+
+  if (!match) {
+    throw new Error("No match found in HTML");
+  }
+  let jsonStr = match[1];
+  jsonStr = jsonStr.replace(/\\"/g, '"');
+  jsonStr = jsonStr.replace(/\\"/g, '"');
+  try {
+    const data = JSON.parse(jsonStr);
+    const roomInfo = data.state.roomStore.roomInfo;
+    const streamData = data.state.streamStore.streamData;
+    return {
+      living: roomInfo.room.status === 2,
+      nickname: roomInfo.anchor.nickname,
+      avatar: roomInfo.anchor?.avatar_thumb?.url_list?.[0],
+      room: {
+        title: roomInfo.room.title,
+        cover: roomInfo.room.cover?.url_list?.[0],
+        id_str: roomInfo.room.id_str,
+        stream_url: {
+          pull_datas: roomInfo.room?.stream_url?.pull_datas,
+          live_core_sdk_data: {
+            pull_data: {
+              options: { qualities: streamData.H264_streamData?.options?.qualities ?? [] },
+              stream_data: streamData.H264_streamData?.stream ?? {},
+            },
+          },
+        },
+      },
+    };
+  } catch (e) {
+    console.error("Failed to parse JSON:", e);
+    throw e;
+  }
+}
+
+async function getRoomInfoByWeb(
+  webRoomId: string,
+  opts: {
+    auth?: string;
+    doubleScreen?: boolean;
+  } = {},
+) {
+  let cookies: string | undefined = undefined;
+  if (opts.auth) {
+    cookies = opts.auth;
+  } else {
+    // 抖音的 'webcast/room/web/enter' api 会需要 ttwid 的 cookie，这个 cookie 是由这个请求的响应头设置的，
+    // 所以在这里请求一次自动设置。
+    cookies = await getCookie();
+  }
+
+  const params: Record<any, any> = {
+    aid: 6383,
+    live_id: 1,
+    device_platform: "web",
+    language: "zh-CN",
+    enter_from: "web_live",
+    cookie_enabled: "true",
+    screen_width: 1920,
+    screen_height: 1080,
+    browser_language: "zh-CN",
+    browser_platform: "MacIntel",
+    browser_name: "Chrome",
+    browser_version: "108.0.0.0",
+    web_rid: webRoomId,
+    "Room-Enter-User-Login-Ab": 0,
+    is_need_double_stream: "false",
+  };
+
+  const abogus = new ABogus();
+  const [query, _, ua] = abogus.generateAbogus(new URLSearchParams(params).toString(), "");
+
+  const res = await requester.get<EnterRoomApiResp>(
+    `https://live.douyin.com/webcast/room/web/enter/?${query}`,
+    {
+      headers: {
+        cookie: cookies,
+        "User-Agent": ua,
+      },
+    },
+  );
+
+  assert(
+    res.data.status_code === 0,
+    `Unexpected resp, code ${res.data.status_code}, msg ${JSON.stringify(res.data.data)}, id ${webRoomId}, cookies: ${cookies}`,
+  );
+
+  const data = res.data.data;
+  const room = data.data[0];
+  assert(room, `No room data, id ${webRoomId}`);
+
+  return {
+    living: data.room_status === 0,
+    nickname: data.user.nickname,
+    avatar: data?.user?.avatar_thumb?.url_list?.[0],
+    room: {
+      title: room.title,
+      cover: room.cover?.url_list?.[0],
+      id_str: room.id_str,
+      stream_url: room.stream_url,
+    },
+  };
+}
+
 export async function getRoomInfo(
   webRoomId: string,
   opts: {
-    retryOnSpecialCode?: boolean;
     auth?: string;
     doubleScreen?: boolean;
+    api?: "web" | "webHTML";
   } = {},
 ): Promise<{
   living: boolean;
@@ -116,79 +275,25 @@ export async function getRoomInfo(
   cover: string;
   liveId: string;
 }> {
-  let cookies: string | undefined = undefined;
-  if (opts.auth) {
-    cookies = opts.auth;
+  let data: Awaited<ReturnType<typeof getRoomInfoByWeb> | ReturnType<typeof getRoomInfoByHtml>>;
+
+  if (opts.api === "webHTML") {
+    data = await getRoomInfoByHtml(webRoomId, opts);
   } else {
-    // 抖音的 'webcast/room/web/enter' api 会需要 ttwid 的 cookie，这个 cookie 是由这个请求的响应头设置的，
-    // 所以在这里请求一次自动设置。
-    cookies = await getCookie();
+    data = await getRoomInfoByWeb(webRoomId, opts);
   }
-
-  const res = await requester.get<EnterRoomApiResp>(
-    "https://live.douyin.com/webcast/room/web/enter/",
-    {
-      params: {
-        aid: 6383,
-        live_id: 1,
-        device_platform: "web",
-        language: "zh-CN",
-        enter_from: "web_live",
-        cookie_enabled: "true",
-        screen_width: 1920,
-        screen_height: 1080,
-        browser_language: "zh-CN",
-        browser_platform: "MacIntel",
-        browser_name: "Chrome",
-        browser_version: "108.0.0.0",
-        web_rid: webRoomId,
-        // enter_source:,
-        "Room-Enter-User-Login-Ab": 0,
-        is_need_double_stream: "false",
-        a_bogus: "1",
-      },
-      headers: {
-        cookie: cookies,
-      },
-    },
-  );
-
-  // 无 cookie 时 code 为 10037
-  if (res.data.status_code === 10037 && opts.retryOnSpecialCode) {
-    // resp 自动设置 cookie
-    // const cookieRes = await requester.get("https://live.douyin.com/favicon.ico");
-    // const cookies = cookieRes.headers["set-cookie"]
-    //   .map((cookie) => {
-    //     return cookie.split(";")[0];
-    //   })
-    //   .join("; ");
-
-    // console.log("cookies", cookies);
-    return getRoomInfo(webRoomId, {
-      retryOnSpecialCode: false,
-      doubleScreen: opts.doubleScreen,
-    });
-  }
-
-  assert(
-    res.data.status_code === 0,
-    `Unexpected resp, code ${res.data.status_code}, msg ${JSON.stringify(res.data.data)}, id ${webRoomId}, cookies: ${cookies}`,
-  );
-
-  const data = res.data.data;
-  const room = data.data[0];
+  const room = data.room;
   assert(room, `No room data, id ${webRoomId}`);
-
   if (room?.stream_url == null) {
     return {
       living: false,
       roomId: webRoomId,
-      owner: data.user.nickname,
-      title: room?.title ?? data.user.nickname,
+      owner: data.nickname,
+      title: room?.title ?? data.nickname,
       streams: [],
       sources: [],
-      avatar: data.user?.avatar_thumb?.url_list?.[0],
-      cover: room.cover?.url_list?.[0],
+      avatar: data.avatar,
+      cover: room.cover,
       liveId: room.id_str,
     };
   }
@@ -202,14 +307,17 @@ export async function getRoomInfo(
       },
       stream_data: "",
     };
+    // @ts-ignore
     qualities = pull_data.options.qualities;
+    // @ts-ignore
     stream_data = pull_data.stream_data;
   }
   if (!stream_data) {
     qualities = room.stream_url.live_core_sdk_data.pull_data.options.qualities;
     stream_data = room.stream_url.live_core_sdk_data.pull_data.stream_data;
   }
-  const streamData = (JSON.parse(stream_data) as StreamData).data;
+  const streamData =
+    typeof stream_data === "string" ? (JSON.parse(stream_data) as StreamData).data : stream_data;
 
   const streams: StreamProfile[] = qualities.map((info) => ({
     desc: info.name,
@@ -262,16 +370,61 @@ export async function getRoomInfo(
   // console.log(JSON.stringify(sources, null, 2), qualities);
 
   return {
-    living: data.room_status === 0,
+    living: data.living,
     roomId: webRoomId,
-    owner: data.user.nickname,
+    owner: data.nickname,
     title: room.title,
     streams,
     sources,
-    avatar: data.user.avatar_thumb.url_list[0],
-    cover: room.cover?.url_list?.[0],
+    avatar: data.avatar,
+    cover: room.cover,
     liveId: room.id_str,
   };
+}
+
+/**
+ * 获取nonce
+ */
+async function getNonce(url: string) {
+  const res = await requester.get(url);
+  if (!res.headers["set-cookie"]) {
+    throw new Error("No cookie in response");
+  }
+  const cookies = {};
+  (res.headers["set-cookie"] ?? []).forEach((cookie) => {
+    const [key, _] = cookie.split(";");
+    const [keyPart, valuePart] = key.split("=");
+    if (!keyPart || !valuePart) return;
+    cookies[keyPart.trim()] = valuePart.trim();
+  });
+  return cookies["__ac_nonce"];
+}
+
+/**
+ * 解析抖音号
+ * @param url
+ */
+export async function parseUser(url: string) {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const ua =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0";
+  const nonce = (await getNonce(url)) ?? generateNonce();
+  const signed = get__ac_signature(timestamp, url, nonce, ua);
+
+  const res = await requester.get(url, {
+    headers: {
+      "User-Agent": ua,
+      cookie: `__ac_nonce=${nonce}; __ac_signature=${signed}`,
+    },
+  });
+  const text = res.data;
+  const regex = /\\"uniqueId\\":\\"(.*?)\\"/;
+  const match = text.match(regex);
+  if (match && match[1]) {
+    return match[1];
+  }
+
+  return null;
 }
 
 export interface StreamProfile {

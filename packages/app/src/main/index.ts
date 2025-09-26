@@ -28,13 +28,13 @@ import { serverStart } from "@biliLive-tools/http";
 import { cookieHandlers } from "./cookie";
 import { commonHandlers, getTempPath } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
-import icon from "../../resources/icon.png?asset";
+// import icon from "../../resources/icon.png?asset";
 import {
   FFMPEG_PATH,
   FFPROBE_PATH,
   DANMUKUFACTORY_PATH,
   LOG_PATH,
-  __dirname,
+  __dirname2,
   getConfigPath,
 } from "./appConstant";
 
@@ -90,6 +90,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:relaunch", relaunch);
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:setTheme", setTheme);
+  ipcMain.handle("common:checkUpdate", manualCheckUpdate);
 
   registerHandlers(ipcMain, ffmpegHandlers);
   registerHandlers(ipcMain, configHandlers);
@@ -107,9 +108,9 @@ function createWindow(): void {
     autoHideMenuBar: false,
     minHeight: 400,
     minWidth: 600,
-    ...(process.platform === "linux" ? { icon } : {}),
+    ...(process.platform === "linux" ? { icon: join(__dirname2, "../../resources/icon.png") } : {}),
     webPreferences: {
-      preload: join(__dirname, "../preload/index.mjs"),
+      preload: join(__dirname2, "../preload/index.mjs"),
       sandbox: false,
       webSecurity: false,
       // nodeIntegrationInWorker: true,
@@ -134,7 +135,9 @@ function createWindow(): void {
       // mainWindow.webContents.openDevTools();
       mainWindow.showInactive();
     } else {
-      mainWindow.show();
+      // 用来静默启动
+      const isHidden = process.argv.includes("--hidden");
+      if (!isHidden) mainWindow.show();
     }
   });
 
@@ -143,7 +146,7 @@ function createWindow(): void {
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
-    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+    mainWindow.loadFile(join(__dirname2, "../renderer/index.html"));
   }
   mainWin = mainWindow;
   const content = mainWindow.webContents;
@@ -256,7 +259,7 @@ function createWindow(): void {
   });
 
   // 新建托盘
-  const tray = new Tray(join(icon));
+  const tray = new Tray(join(__dirname2, "../../resources/icon.png"));
   // 托盘名称
   tray.setToolTip("biliLive-tools");
   // 托盘菜单
@@ -505,14 +508,6 @@ if (!gotTheLock) {
     log.error("=== 未捕获异常 (Uncaught Exception) ===");
     log.error("错误信息:", error.message);
     log.error("错误堆栈:", error.stack);
-    log.error("错误名称:", error.name);
-    log.error("错误代码:", (error as any).code);
-    log.error("内存使用:", {
-      rss: process.memoryUsage().rss,
-      heapTotal: process.memoryUsage().heapTotal,
-      heapUsed: process.memoryUsage().heapUsed,
-      external: process.memoryUsage().external,
-    });
 
     if (error.message.includes("listen EADDRINUSE")) {
       setTimeout(() => {
@@ -746,4 +741,25 @@ const checkUpdate = async () => {
     return false;
   }
   return true;
+};
+
+const manualCheckUpdate = async () => {
+  try {
+    const status = await checkUpdate();
+    if (status) {
+      dialog.showMessageBox(mainWin, {
+        message: "当前已经是最新版本",
+        buttons: ["确认"],
+      });
+    }
+  } catch (error) {
+    log.error(error);
+    const confirm = await dialog.showMessageBox(mainWin, {
+      message: "检查更新失败，请前往仓库查看",
+      buttons: ["取消", "确认"],
+    });
+    if (confirm.response === 1) {
+      shell.openExternal("https://github.com/renmu123/biliLive-tools/releases");
+    }
+  }
 };

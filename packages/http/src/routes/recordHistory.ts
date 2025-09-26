@@ -1,8 +1,10 @@
+import path from "node:path";
 import fs from "fs-extra";
 
 import Router from "koa-router";
 import { replaceExtName } from "@biliLive-tools/shared/utils/index.js";
 import recordHistory from "@biliLive-tools/shared/recorder/recordHistory.js";
+import { fileCache } from "../index.js";
 
 const router = new Router({
   prefix: "/record-history",
@@ -17,6 +19,7 @@ const router = new Router({
  * @param {number} [pageSize=100] - 每页条数
  * @param {number} [startTime] - 开始时间（时间戳）
  * @param {number} [endTime] - 结束时间（时间戳）
+ * @returns 返回数据包含弹幕密度字段（弹幕数量/视频时长，单位：条/秒）
  */
 router.get("/list", async (ctx) => {
   const { room_id, platform, page, pageSize, startTime, endTime } = ctx.query;
@@ -40,9 +43,18 @@ router.get("/list", async (ctx) => {
       endTime: endTime ? parseInt(endTime as string) : undefined,
     });
 
+    // 为每条记录计算弹幕密度
+    const dataWithDensity = result.data.map((record) => ({
+      ...record,
+      danma_density:
+        record.danma_num && record.video_duration && record.video_duration > 0
+          ? Math.round((record.danma_num / record.video_duration) * 100) / 100 // 保留两位小数
+          : null,
+    }));
+
     ctx.body = {
       code: 200,
-      data: result.data,
+      data: dataWithDensity,
       pagination: result.pagination,
     };
   } catch (error: any) {
@@ -97,6 +109,24 @@ router.delete("/:id", async (ctx) => {
   }
 });
 
+const getVideoFile = async (id: number): Promise<string | null> => {
+  const data = recordHistory.getRecordById(id);
+  if (!data) {
+    throw new Error("记录不存在");
+  }
+  if (!data.video_file) {
+    throw new Error("视频文件不存在");
+  }
+  if (await fs.pathExists(data.video_file)) {
+    return data.video_file;
+  }
+  const mp4File = replaceExtName(data.video_file, ".mp4");
+  if (await fs.pathExists(mp4File)) {
+    return mp4File;
+  }
+  return null;
+};
+
 /**
  * 获取视频文件
  * @route GET /record-history/video-file
@@ -110,30 +140,49 @@ router.get("/video/:id", async (ctx) => {
     ctx.body = "记录ID不能为空且必须为数字";
   }
 
-  const data = recordHistory.getRecordById(parseInt(id));
-  if (!data) {
-    ctx.status = 400;
-    ctx.body = "记录不存在";
-    return;
-  }
-  if (!data.video_file) {
-    ctx.status = 400;
-    ctx.body = "视频文件不存在";
-    return;
-  }
-
-  if (await fs.pathExists(data.video_file)) {
-    ctx.body = data.video_file;
-    return;
-  }
-  const mp4File = replaceExtName(data.video_file, ".mp4");
-  if (await fs.pathExists(mp4File)) {
-    ctx.body = mp4File;
+  const file = await getVideoFile(parseInt(id));
+  if (file) {
+    ctx.body = file;
     return;
   }
 
   ctx.status = 400;
   ctx.body = "视频文件不存在";
+});
+
+/**
+ * 下载视频文件
+ * @route GET /record-history/download/:id
+ * @param {number} id - 记录ID
+ */
+router.get("/download/:id", async (ctx) => {
+  const { id } = ctx.params;
+
+  if (!id || isNaN(parseInt(id))) {
+    ctx.status = 400;
+    ctx.body = "记录ID不能为空且必须为数字";
+  }
+
+  const file = await getVideoFile(parseInt(id));
+  if (!file) {
+    ctx.status = 400;
+    ctx.body = "视频文件不存在";
+    return;
+  }
+  const extname = path.extname(file).toLowerCase();
+
+  const fileId = fileCache.setFile(file);
+  let type = "";
+  switch (extname) {
+    case ".flv":
+      type = "flv";
+      break;
+    case ".ts":
+      type = "ts";
+      break;
+  }
+
+  ctx.body = { fileId, type };
 });
 
 export default router;

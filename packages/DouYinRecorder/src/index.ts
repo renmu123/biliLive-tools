@@ -18,7 +18,7 @@ import type {
 
 import { getInfo, getStream } from "./stream.js";
 import { ensureFolderExist, singleton } from "./utils.js";
-import { resolveShortURL } from "./douyin_api.js";
+import { resolveShortURL, parseUser } from "./douyin_api.js";
 
 import DouYinDanmaClient from "douyin-danma-listener";
 
@@ -50,7 +50,10 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
 
     async getLiveInfo() {
       const channelId = this.channelId;
-      const info = await getInfo(channelId);
+      const info = await getInfo(channelId, {
+        cookie: this.auth,
+        api: this.api as "web" | "webHTML",
+      });
       return {
         channelId,
         ...info,
@@ -108,7 +111,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 }) {
   if (this.recordHandle != null) return this.recordHandle;
 
-  const liveInfo = await getInfo(this.channelId);
+  const liveInfo = await getInfo(this.channelId, {
+    cookie: this.auth,
+    api: this.api as "web" | "webHTML",
+  });
   const { living, owner, title } = liveInfo;
   this.liveInfo = liveInfo;
 
@@ -142,8 +148,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       cookie: this.auth,
       formatPriorities: this.formatPriorities,
       doubleScreen: this.doubleScreen,
+      api: this.api as "web" | "webHTML",
     });
   } catch (err) {
+    if (this.qualityRetry > 0) this.qualityRetry -= 1;
+
     this.state = "idle";
     throw err;
   }
@@ -154,7 +163,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.availableSources = availableSources.map((s) => s.name);
   this.usedStream = stream.name;
   this.usedSource = stream.source;
-  // TODO: emit update event
 
   let isEnded = false;
   let isCutting = false;
@@ -407,6 +415,12 @@ export const provider: RecorderProvider<{}> = {
         id = await resolveShortURL(channelURL);
       } catch (err: any) {
         throw new Error(`解析抖音短链接失败: ${err?.message}`);
+      }
+    } else if (channelURL.includes("/user/")) {
+      // 解析用户主页
+      id = await parseUser(channelURL);
+      if (!id) {
+        throw new Error(`解析抖音用户主页失败`);
       }
     } else {
       // 处理常规直播链接

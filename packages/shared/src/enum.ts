@@ -215,6 +215,12 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       apiUrl: "",
       username: "",
       hashPassword: "",
+      limitRate: 0, // KB
+    },
+    pan123: {
+      clientId: "",
+      clientSecret: "",
+      limitRate: 0,
     },
     syncConfigs: [],
   },
@@ -247,6 +253,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     qualityRetry: 0,
     videoFormat: "auto",
     useServerTimestamp: true,
+    recordRetryImmediately: false,
     bilibili: {
       uid: undefined,
       quality: 10000,
@@ -269,6 +276,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       formatName: "auto",
       cookie: "",
       doubleScreen: true,
+      api: "web",
     },
     saveDanma2DB: false,
   },

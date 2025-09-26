@@ -60,18 +60,32 @@
     </div>
 
     <n-empty v-else-if="!loading && hasQueried" description="没有查询到相关记录" />
+
+    <PreviewModal
+      v-model:visible="previewModalVisible"
+      :files="previewFiles"
+      :hotProgress="{
+        visible: false,
+        sampling: 60,
+        height: 10,
+        color: 'white',
+        fillColor: 'white',
+      }"
+    ></PreviewModal>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRoute, useRouter } from "vue-router";
-import { recordHistoryApi } from "../../apis";
+import { recordHistoryApi, commonApi } from "../../apis";
 import { NIcon } from "naive-ui";
-import { FolderOpenOutline } from "@vicons/ionicons5";
-import { Delete20Regular } from "@vicons/fluent";
+import { FolderOpenOutline, DownloadOutline } from "@vicons/ionicons5";
+import { Delete20Regular, PlayCircle24Regular } from "@vicons/fluent";
 import { FileOpenOutlined } from "@vicons/material";
-import { VNode } from "vue";
 import { useConfirm } from "@renderer/hooks";
+import PreviewModal from "../Home/components/previewModal.vue";
+
+import type { VNode } from "vue";
 
 // 类型定义
 interface StreamerInfo {
@@ -106,6 +120,7 @@ interface LiveRecord {
   danma_num?: number;
   interact_num?: number;
   video_duration?: number;
+  danma_density?: number | null; // 弹幕密度，弹幕数量/视频时长
   [key: string]: any;
 }
 
@@ -154,6 +169,7 @@ const columnConfig: ColumnConfig[] = [
   { value: "video_duration", label: "视频时长", defaultVisible: true },
   { value: "danma_num", label: "弹幕数量", defaultVisible: true },
   { value: "interact_num", label: "弹幕互动人数", defaultVisible: true },
+  { value: "danma_density", label: "弹幕密度", defaultVisible: true },
   { value: "actions", label: "操作", defaultVisible: true },
 ];
 
@@ -239,10 +255,33 @@ const allColumns: {
     key: "interact_num",
   },
   {
+    title: "弹幕密度",
+    key: "danma_density",
+    render: (row: LiveRecord) =>
+      row.danma_density !== null && row.danma_density !== undefined
+        ? `${row.danma_density}/秒`
+        : "",
+  },
+  {
     title: "操作",
     key: "actions",
     render: (row: LiveRecord) => {
       const subNodes: VNode[] = [];
+      subNodes.push(
+        h(
+          NIcon,
+          {
+            size: "20",
+            style: {
+              cursor: "pointer",
+            },
+            title: "视频预览",
+            onClick: () => previewVideo(row.id),
+          },
+          { default: () => h(PlayCircle24Regular) },
+        ),
+      );
+
       if (!window.isWeb) {
         subNodes.push(
           h(
@@ -273,6 +312,23 @@ const allColumns: {
           ),
         );
       }
+      if (window.isWeb) {
+        subNodes.push(
+          h(
+            NIcon,
+            {
+              size: "20",
+              style: {
+                cursor: "pointer",
+              },
+              title: "下载",
+              onClick: () => downloadFile(row.id),
+            },
+            { default: () => h(DownloadOutline) },
+          ),
+        );
+      }
+
       return h(
         "div",
         {
@@ -400,12 +456,23 @@ const _formatDuration = (duration?: number) => {
   return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 };
 
-// 打开文件或文件夹
+// 打开文件
 const openFile = async (id: number) => {
   if (!id) return;
   const filePath = await recordHistoryApi.getVideoFile(id);
   if (!filePath) return;
   window.api.openPath(filePath);
+};
+
+// 下载文件
+const downloadFile = async (id: number) => {
+  const fileUrl = await recordHistoryApi.downloadFile(id);
+
+  const a = document.createElement("a");
+  a.href = fileUrl;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
 };
 
 const openFolder = async (id: number) => {
@@ -435,6 +502,27 @@ const removeRecord = async (id: number) => {
 const router = useRouter();
 const goBack = () => {
   router.back();
+};
+
+const previewModalVisible = ref(false);
+const previewFiles = ref({
+  video: "",
+  danmu: "",
+  type: "",
+});
+const previewVideo = async (id: number) => {
+  const { fileId, type } = await recordHistoryApi.getTempVideoId(id);
+  if (type === "ts") {
+    notice.warning({
+      title: `暂不支持预览ts格式的视频`,
+      duration: 2000,
+    });
+    return;
+  }
+  const videoUrl = await commonApi.getVideo(fileId);
+  previewFiles.value.video = videoUrl;
+  previewFiles.value.type = type;
+  previewModalVisible.value = true;
 };
 
 defineOptions({

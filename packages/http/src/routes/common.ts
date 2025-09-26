@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import multer from "../middleware/multer.js";
 
 import Router from "koa-router";
+import semver from "semver";
 import {
   formatTitle,
   getTempPath,
@@ -15,7 +16,7 @@ import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
 import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
 
-import { config, handler, appConfig } from "../index.js";
+import { config, handler, appConfig, fileCache } from "../index.js";
 import { container } from "../index.js";
 import { createRecorderManager } from "@biliLive-tools/shared";
 
@@ -257,22 +258,6 @@ router.post("/genTimeData", async (ctx) => {
   ctx.body = data;
 });
 
-// 视频ID管理，用于临时访问授权
-const videoPathMap = new Map<string, { path: string; expireAt: number }>();
-
-// 定期清理过期的视频ID
-setInterval(
-  () => {
-    const now = Date.now();
-    for (const [id, info] of videoPathMap.entries()) {
-      if (info.expireAt < now) {
-        videoPathMap.delete(id);
-      }
-    }
-  },
-  60 * 60 * 1000,
-); // 每小时清理一次
-
 // 申请视频ID接口
 router.post("/apply-video-id", async (ctx) => {
   const { videoPath } = ctx.request.body as { videoPath: string };
@@ -323,7 +308,7 @@ router.post("/apply-video-id", async (ctx) => {
   const expireAt = Date.now() + 24 * 60 * 60 * 1000;
 
   // 存储ID和视频路径的映射关系
-  videoPathMap.set(videoId, { path: videoPath, expireAt });
+  fileCache.set(videoId, { path: videoPath, expireAt });
 
   let type = "";
   switch (extname) {
@@ -346,7 +331,7 @@ router.get("/video/:videoId", async (ctx) => {
   const videoId = ctx.params.videoId;
 
   // 从映射表中获取视频路径
-  const videoInfo = videoPathMap.get(videoId);
+  const videoInfo = fileCache.get(videoId);
 
   if (!videoInfo) {
     ctx.status = 404;
@@ -641,6 +626,40 @@ router.get("/whyUploadFailed", async (ctx) => {
       hasError: true,
       errorInfo: `检查过程中发生错误: ${error}`,
       details: {},
+    };
+  }
+});
+
+/**
+ * @api {get} /common/checkUpdate 检查是否有新版本
+ * @apiSuccess {string} latestVersion 最新版本号
+ * @apiSuccess {string} currentVersion 当前版本号
+ * @apiSuccess {boolean} needUpdate 是否需要更新
+ * @apiSuccess {string} [downloadUrl] 下载地址
+ */
+router.get("/checkUpdate", async (ctx) => {
+  try {
+    const res = await fetch(
+      "https://githubraw.irenmu.com/renmu123/biliLive-tools/master/package.json",
+    );
+    const data = await res.json();
+    const latestVersion = data.version;
+    const currentVersion = config.version;
+    const needUpdate = semver.gt(latestVersion, currentVersion);
+    ctx.body = {
+      message: needUpdate ? "检测到有新版本，是否前往下载？" : "当前已是最新版本",
+      error: false,
+      needUpdate,
+      downloadUrl: "https://github.com/renmu123/biliLive-tools/releases",
+      backupUrl: "https://pan.quark.cn/s/6da253a1ecb8",
+    };
+  } catch (error) {
+    ctx.body = {
+      message: "检查更新失败，请前往仓库查看",
+      error: true,
+      needUpdate: false,
+      downloadUrl: "https://github.com/renmu123/biliLive-tools/releases",
+      backupUrl: "https://pan.quark.cn/s/6da253a1ecb8",
     };
   }
 });

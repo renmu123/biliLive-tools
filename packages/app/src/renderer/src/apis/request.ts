@@ -1,15 +1,16 @@
 import axios from "axios";
 import router from "../routers/index";
 
-if (import.meta.hot) {
-  init();
-}
-
 const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+if (import.meta.hot) {
+  window.isWeb = !window.api;
+  init();
+}
 
 export async function init() {
   if (window.isWeb) {

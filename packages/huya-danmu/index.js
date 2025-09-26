@@ -282,6 +282,8 @@ class huya_danmu extends events {
 
   _send_wup(action, callback, req) {
     try {
+      if (this._client.readyState !== ws.OPEN) return;
+
       const wup = new Taf.Wup();
       wup.setServant(action);
       wup.setFunc(callback);

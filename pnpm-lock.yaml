@@ -199,6 +199,9 @@ importers:
       mitt:
         specifier: 'catalog:'
         version: 3.0.1
+      sm-crypto:
+        specifier: ^0.3.13
+        version: 0.3.13
     devDependencies:
       '@types/node':
         specifier: '*'
@@ -523,8 +526,8 @@ importers:
   packages/liveManager:
     dependencies:
       '@renmu/fluent-ffmpeg':
-        specifier: 2.3.2
-        version: 2.3.2
+        specifier: 2.3.3
+        version: 2.3.3
       axios:
         specifier: 'catalog:'
         version: 1.7.8
@@ -574,14 +577,17 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       '@renmu/bili-api':
-        specifier: 2.9.2
-        version: 2.9.2
+        specifier: 2.9.3
+        version: 2.9.3
       '@renmu/fluent-ffmpeg':
-        specifier: 2.3.2
-        version: 2.3.2
+        specifier: 2.3.3
+        version: 2.3.3
       '@renmu/m3u8-downloader':
         specifier: ^0.4.0
         version: 0.4.0
+      '@renmu/throttle':
+        specifier: ^1.0.3
+        version: 1.0.3
       arktype:
         specifier: ^2.1.2
         version: 2.1.2
@@ -624,6 +630,9 @@ importers:
       p-limit:
         specifier: ^6.1.0
         version: 6.1.0
+      pan123-uploader:
+        specifier: 0.3.0
+        version: 0.3.0
       serverchan-sdk:
         specifier: ^1.0.6
         version: 1.0.6(encoding@0.1.13)
@@ -1374,12 +1383,12 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@renmu/bili-api@2.9.2':
-    resolution: {integrity: sha512-v5cxemmfOaHQd4FnSt4J+z+CzhvM7zN5G73gO3peW9NdbfU77YDjxONx4auTjHRv4pmGOW7+UKqWtnM/vHl8zg==}
+  '@renmu/bili-api@2.9.3':
+    resolution: {integrity: sha512-s6sxBge/H5oxK/7R8ITBb2OZ8/1HfPM8l72LB6wGSSGgMG+OifhiWg6oOwdiHaQiNE/N12Hql4EM8e263rESSw==}
     engines: {node: '>=18'}
 
-  '@renmu/fluent-ffmpeg@2.3.2':
-    resolution: {integrity: sha512-+vZ2UcIMdkSsjDcSx3TfT+NQ2dQroX45ySsGBbI5FaYTxQu2Or5vHdtYXtTu155+rMv8oT0mlddSP12maFbDfg==}
+  '@renmu/fluent-ffmpeg@2.3.3':
+    resolution: {integrity: sha512-qQfknYSshHtZxrJdRQy8/+JJcdN7GAcx6zO6KzPvJBjm2uU9PbjK62qPukJT28DlWzgnIH/yqdrTPOmmLJsHag==}
     engines: {node: '>=18'}
 
   '@renmu/m3u8-downloader@0.4.0':
@@ -4363,6 +4372,10 @@ packages:
     resolution: {integrity: sha512-NXzu9aQJTAzbBqOt2hwsR63ea7yvxJc0PwN/zobNAudYfb1B7R08SzB4TsLeSbUCuG467NhnoT0oO6w1qRO+BA==}
     engines: {node: '>=18'}
 
+  p-queue@8.1.0:
+    resolution: {integrity: sha512-mxLDbbGIBEXTJL0zEx8JIylaj3xQ7Z/7eEVjcF9fJX4DBiH9oqe+oahYnlKKxm0Ci9TlWTyhSHgygxMxjIB2jw==}
+    engines: {node: '>=18'}
+
   p-timeout@2.0.1:
     resolution: {integrity: sha512-88em58dDVB/KzPEx1X0N3LwFfYZPyDc4B6eF38M1rk9VTZMbxXXgjugz8mmwpS9Ox4BDZ+t6t3QP5+/gazweIA==}
     engines: {node: '>=4'}
@@ -4379,6 +4392,9 @@ packages:
 
   pako@2.1.0:
     resolution: {integrity: sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==}
+
+  pan123-uploader@0.3.0:
+    resolution: {integrity: sha512-3X50gISpu5XwZ142Tszef6iJxSsmF2YqA9GlV7ZvasGW5BeLwSrGXLi1wTC7QHHiXKweTupjY30J1QEtQU9ElA==}
 
   parent-module@1.0.1:
     resolution: {integrity: sha512-GQ2EWRpQV8/o+Aw8YqtfZZPfNRWZYkbidE9k5rpl/hC3vtHHBfGm2Ifi6qWV+coDGkrUKZAxE3Lot5kcsRlh+g==}
@@ -4848,6 +4864,9 @@ packages:
   slice-ansi@5.0.0:
     resolution: {integrity: sha512-FC+lgizVPfie0kkhqUScwRu1O/lF6NOgJmlCgK+/LYxDCTk8sGelYaHDhFcDN+Sn3Cv+3VSa4Byeo+IMCzpMgQ==}
     engines: {node: '>=12'}
+
+  sm-crypto@0.3.13:
+    resolution: {integrity: sha512-ztNF+pZq6viCPMA1A6KKu3bgpkmYti5avykRHbcFIdSipFdkVmfUw2CnpM2kBJyppIalqvczLNM3wR8OQ0pT5w==}
 
   smart-buffer@1.1.15:
     resolution: {integrity: sha512-1+8bxygjTsNfvQe0/0pNBesTOlSHtOeG6b6LYbvsZCCHDKYZ40zcQo6YTnZBWrBSLWOCbrHljLdEmGMYebu7aQ==}
@@ -6317,7 +6336,7 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@renmu/bili-api@2.9.2':
+  '@renmu/bili-api@2.9.3':
     dependencies:
       '@bufbuild/protobuf': 2.2.3
       '@renmu/throttle': 1.0.3
@@ -6330,7 +6349,7 @@ snapshots:
       - debug
       - supports-color
 
-  '@renmu/fluent-ffmpeg@2.3.2':
+  '@renmu/fluent-ffmpeg@2.3.3':
     dependencies:
       async: 0.2.10
       which: 1.3.1
@@ -9666,6 +9685,11 @@ snapshots:
       eventemitter3: 5.0.1
       p-timeout: 6.1.3
 
+  p-queue@8.1.0:
+    dependencies:
+      eventemitter3: 5.0.1
+      p-timeout: 6.1.3
+
   p-timeout@2.0.1:
     dependencies:
       p-finally: 1.0.0
@@ -9677,6 +9701,14 @@ snapshots:
   pako@1.0.11: {}
 
   pako@2.1.0: {}
+
+  pan123-uploader@0.3.0:
+    dependencies:
+      '@renmu/throttle': 1.0.3
+      p-queue: 8.1.0
+      tiny-typed-emitter: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
 
   parent-module@1.0.1:
     dependencies:
@@ -10178,6 +10210,10 @@ snapshots:
     dependencies:
       ansi-styles: 6.2.1
       is-fullwidth-code-point: 4.0.0
+
+  sm-crypto@0.3.13:
+    dependencies:
+      jsbn: 1.1.0
 
   smart-buffer@1.1.15: {}
 

@@ -210,8 +210,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       onlyAudio: this.onlyAudio,
     });
   } catch (err) {
+    if (this.qualityRetry > 0) this.qualityRetry -= 1;
+
     this.state = "idle";
-    this.qualityRetry -= 1;
     throw err;
   }
 

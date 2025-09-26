@@ -139,11 +139,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       quality: this.quality,
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
-      api: this.api,
+      api: this.api as "auto" | "web" | "mp",
       strictQuality,
       formatPriorities: this.formatPriorities,
     });
   } catch (err) {
+    if (this.qualityRetry > 0) this.qualityRetry -= 1;
+
     this.state = "idle";
     throw err;
   }

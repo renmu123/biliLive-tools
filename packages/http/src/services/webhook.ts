@@ -34,6 +34,7 @@ import type { Options, Platform, Part, PickPartial } from "../types/webhook.js";
 export const enum EventType {
   OpenEvent = "FileOpening",
   CloseEvent = "FileClosed",
+  ErrorEvent = "FileError",
 }
 
 export class Live {
@@ -165,7 +166,7 @@ export class WebhookHandler {
     const currentLiveIndex = await this.handleLiveData(options, partMergeMinute);
 
     // 如果是开始事件，不需要后续的处理
-    if (options.event === EventType.OpenEvent) {
+    if (options.event === EventType.OpenEvent || options.event === EventType.ErrorEvent) {
       return;
     }
 
@@ -859,6 +860,26 @@ export class WebhookHandler {
   };
 
   /**
+   * 处理error事件
+   */
+  handleErrorEvent = (options: Options) => {
+    const currentLive = this.findLiveByFilePath(options.filePath);
+    if (currentLive) {
+      const currentPart = currentLive.findPartByFilePath(options.filePath);
+      if (currentPart) {
+        currentLive.removePart(currentPart.partId);
+        if (currentLive.parts.length === 0) {
+          const liveIndex = this.liveData.findIndex((live) => live.eventId === currentLive.eventId);
+          if (liveIndex !== -1) {
+            this.liveData.splice(liveIndex, 1);
+            log.warn(`error event: removed empty live: ${currentLive.eventId}`);
+          }
+        }
+      }
+    }
+  };
+
+  /**
    * 处理FileOpening和FileClosed事件
    */
   async handleLiveData(options: Options, partMergeMinute: number): Promise<number> {
@@ -870,6 +891,11 @@ export class WebhookHandler {
       const liveId = this.handleCloseEvent(options);
       const index = this.liveData.findIndex((live) => live.eventId === liveId);
       return index;
+    } else if (options.event === EventType.ErrorEvent) {
+      this.handleErrorEvent(options);
+      log.error(`接收到错误指令，${options.filePath} 置为错误状态`);
+
+      return -1;
     } else {
       throw new Error(`不支持的事件：${options.event}`);
     }

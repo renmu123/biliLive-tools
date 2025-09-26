@@ -101,6 +101,16 @@
           </n-form-item>
           <n-form-item>
             <template #label>
+              <Tip
+                tip="当前录制错误后，会在下一个检查周期到来重新进行检查，可能导致缺少部分时间。<br/>
+                此开关使得在触发某些<b>已知错误</b>后会立即进行检查，每场直播最多进行五次重试。虎牙直播不会被重试"
+                text="测试：录制错误立即重试"
+              ></Tip>
+            </template>
+            <n-switch v-model:value="config.recorder.recordRetryImmediately" />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
               <Tip tip="用于提交反馈" text="调试模式"></Tip>
             </template>
             <n-switch v-model:value="config.recorder.debugMode" />
@@ -265,6 +275,15 @@
           </n-form-item>
           <n-form-item>
             <template #label>
+              <Tip
+                text="请求接口"
+                tip="不同的接口对应的底层不同，我也不知道哪个更容易遇到风控，如果哪天用不了，你也可以切切看"
+              ></Tip>
+            </template>
+            <n-select v-model:value="config.recorder.douyin.api" :options="douyinApiTypeOptions" />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
               <Tip text="Cookie" tip="用于录制会员直播"></Tip>
             </template>
             <n-input v-model:value="config.recorder.douyin.cookie" type="password" />
@@ -307,6 +326,11 @@ import type { AppConfig } from "@biliLive-tools/types";
 const config = defineModel<AppConfig>("data", {
   default: () => {},
 });
+
+const douyinApiTypeOptions = ref([
+  { label: "web接口", value: "web" },
+  { label: "html解析", value: "webHTML" },
+]);
 
 const { userList } = storeToRefs(useUserInfoStore());
 

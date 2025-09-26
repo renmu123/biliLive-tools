@@ -13,7 +13,7 @@
       <n-select
         v-model:value="options.syncType"
         :options="syncConfigOptions"
-        placeholder="选择同步类型"
+        placeholder="选择同步网盘"
         style="width: 140px; display: inline-block"
       />
       <n-input
@@ -27,6 +27,10 @@
 </template>
 
 <script setup lang="ts">
+defineOptions({
+  name: "FileSync",
+});
+
 import { toReactive } from "@vueuse/core";
 import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 
@@ -74,6 +78,10 @@ const syncConfigOptions = computed(() => {
       label: "alist",
       value: "alist",
     },
+    {
+      label: "123网盘",
+      value: "pan123",
+    },
     // {
     //   label: "本地复制",
     //   value: "copy",
@@ -84,7 +92,7 @@ const syncConfigOptions = computed(() => {
 const sync = async () => {
   if (!options.syncType) {
     notice.error({
-      title: `请选择同步类型`,
+      title: `请选择同步网盘`,
       duration: 1000,
     });
     return;

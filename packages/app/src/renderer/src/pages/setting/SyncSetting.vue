@@ -4,7 +4,14 @@
       <h2 style="display: inline-flex; align-items: center">
         文件同步配置<Tip :size="22">配置完成去webhook配置中配置相关同步器</Tip>
       </h2>
-      <p>使用前请务必了解相关同步库并<bold>仔细查看文档</bold></p>
+      <p>
+        使用前请务必了解相关同步库并<b>仔细查看文档</b>，或查看<a
+          href="https://www.bilibili.com/video/BV1DieEzgE7y/"
+          class="external"
+          target="_blank"
+          >视频教程</a
+        >
+      </p>
     </div>
 
     <n-form label-placement="left" :label-width="145">
@@ -55,7 +62,11 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip text="可执行文件" tip="测试版本为3.9.7"> </Tip>
+              <Tip
+                text="可执行文件"
+                tip="测试版本为3.9.9，上传不携带任何参数，需要自定义请直接去修改配置文件"
+              >
+              </Tip>
             </template>
             <n-input
               v-model:value="config.sync.baiduPCS.execPath"
@@ -145,6 +156,54 @@
               >
             </template>
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="限速" tip="0为不限速，仅为单个上传任务的限速，并非全局"></Tip>
+            </template>
+            <n-input-number v-model:value="config.sync.alist.limitRate" min="0" step="1024">
+              <template #suffix>KB</template>
+            </n-input-number>
+          </n-form-item>
+        </n-tab-pane>
+        <n-tab-pane class="tab-pane" name="pan123" tab="123网盘" display-directive="show:lazy">
+          <n-form-item>
+            <template #label> 项目地址 </template>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+              "
+            >
+              <a
+                href="https://github.com/renmu123/123pan-uploader"
+                class="external"
+                target="_blank"
+                style="flex: none"
+                >https://github.com/renmu123/123pan-uploader</a
+              >
+              <div style="text-align: right; width: 100%">
+                <n-button style="margin-left: 10px" type="primary" @click="login('pan123')"
+                  >登录</n-button
+                >
+                <n-button style="margin-left: 10px" type="warning" @click="loginCheck('pan123')"
+                  >登录检查</n-button
+                >
+                <n-button style="margin-left: 10px" type="info" @click="uploadCheck('pan123')"
+                  >上传测试</n-button
+                >
+              </div>
+            </div>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="限速" tip="0为不限速，仅为单个上传任务的限速，并非全局"></Tip>
+            </template>
+            <n-input-number v-model:value="config.sync.pan123.limitRate" min="0" step="1024">
+              <template #suffix>KB</template>
+            </n-input-number>
+          </n-form-item>
         </n-tab-pane>
       </n-tabs>
     </n-form>
@@ -173,6 +232,20 @@
           <n-input
             v-model:value="alistData.password"
             placeholder="请输入密码"
+            type="password"
+            style="margin-top: 20px"
+          />
+        </template>
+        <template v-else-if="loginType === 'pan123'">
+          <p>
+            你可以前往
+            <a href="https://www.123pan.com/developer" target="_blank">开放平台</a>
+            申请Client ID和Client Secret，请谨慎保管！
+          </p>
+          <n-input v-model:value="pan123Data.clientId" placeholder="请输入Client ID" />
+          <n-input
+            v-model:value="pan123Data.clientSecret"
+            placeholder="请输入Client Secret"
             type="password"
             style="margin-top: 20px"
           />
@@ -220,6 +293,7 @@
                 { label: '百度网盘', value: 'baiduPCS' },
                 { label: '阿里云盘', value: 'aliyunpan' },
                 { label: 'alist', value: 'alist' },
+                { label: '123网盘', value: 'pan123' },
                 { label: '本地复制', value: 'copy' },
               ]"
             />
@@ -321,6 +395,10 @@ const alistData = ref({
   username: "",
   password: "",
 });
+const pan123Data = ref({
+  clientId: "",
+  clientSecret: "",
+});
 const loginType = ref<SyncType>("baiduPCS");
 const login = async (type: SyncType) => {
   if (["aliyunpan", "baiduPCS"].includes(type)) {
@@ -342,6 +420,11 @@ const login = async (type: SyncType) => {
     alistData.value = {
       username: config.value.sync.alist.username,
       password: "",
+    };
+  } else if (type === "pan123") {
+    pan123Data.value = {
+      clientId: config.value.sync.pan123.clientId,
+      clientSecret: "",
     };
   }
   loginVisible.value = true;
@@ -375,6 +458,13 @@ const loginConfirm = async () => {
     });
     config.value.sync.alist.hashPassword = sha256ForAlist(alistData.value.password);
     config.value.sync.alist.username = alistData.value.username;
+  } else if (loginType.value === "pan123") {
+    await syncApi.pan123Login({
+      clientId: pan123Data.value.clientId,
+      clientSecret: pan123Data.value.clientSecret,
+    });
+    config.value.sync.pan123.clientId = pan123Data.value.clientId;
+    config.value.sync.pan123.clientSecret = pan123Data.value.clientSecret;
   } else {
     notice.error("登录类型错误，请重新登录");
     return;
@@ -412,6 +502,11 @@ const loginCheck = async (type: SyncType) => {
       password: config.value.sync.alist.hashPassword,
       type: "alist",
     });
+  } else if (type === "pan123") {
+    status = await syncApi.syncTestLogin({
+      clientId: config.value.sync.pan123.clientId,
+      type: "pan123",
+    });
   } else {
     throw new Error("登录类型错误");
   }
@@ -419,7 +514,7 @@ const loginCheck = async (type: SyncType) => {
   if (status) {
     notice.success("已存在登录信息");
   } else {
-    notice.error("未检测到登录信息，请先登录");
+    notice.error("未检测到登录信息或凭证已过期，请登录");
   }
 };
 
@@ -440,6 +535,11 @@ const uploadCheck = async (type: SyncType) => {
   } else if (["aliyunpan", "baiduPCS"].includes(type)) {
     if (!config.value.sync[type as "baiduPCS" | "aliyunpan"].execPath) {
       notice.error("请先选择可执行文件");
+      return;
+    }
+  } else if (type === "pan123") {
+    if (!config.value.sync.pan123.clientId || !config.value.sync.pan123.clientSecret) {
+      notice.error("请先输入clientId和clientSecret");
       return;
     }
   } else {
@@ -469,6 +569,15 @@ const confirmUploadCheck = async () => {
       remoteFolder: uploadPath.value,
       type,
     });
+  } else if (type === "pan123") {
+    await syncApi.syncTestUpload({
+      clientId: config.value.sync.pan123.clientId,
+      clientSecret: config.value.sync.pan123.clientSecret,
+      remoteFolder: uploadPath.value,
+      type,
+    });
+  } else {
+    throw new Error("上传类型错误");
   }
   notice.success("上传测试成功，请前往目标目录进行查看");
   uploadPathModalVisible.value = false;

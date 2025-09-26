@@ -145,6 +145,10 @@ export const huyaQualityOptions = [
     label: "原画",
   },
   {
+    value: -1,
+    label: "真原画",
+  },
+  {
     value: 20000,
     label: "蓝光20M",
   },

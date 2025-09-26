@@ -14,6 +14,7 @@ const BaseVideoSub = z.object({
 });
 
 export type BaseVideoSub = z.infer<typeof BaseVideoSub>;
+type AddOptions = Omit<BaseVideoSub, "id" | "created_at">;
 
 class VideoSubDataModel extends BaseModel<BaseVideoSub> {
   table = "video_sub_data";
@@ -37,8 +38,6 @@ class VideoSubDataModel extends BaseModel<BaseVideoSub> {
     return super.createTable(createTableSQL);
   }
 }
-
-type AddOptions = z.infer<typeof BaseVideoSub>;
 
 export default class VideoSubDataController {
   private model!: VideoSubDataModel;

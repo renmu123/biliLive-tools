@@ -173,8 +173,8 @@ router.post("/webhook/custom", async (ctx) => {
   log.info("custom: webhook", ctx.request.body);
   const event = ctx.request.body as CustomEvent;
 
-  if (["FileOpening", "FileClosed"].includes(event.event) === false) {
-    throw new Error("event should be FileOpening or FileClosed");
+  if (["FileOpening", "FileClosed", "FileError"].includes(event.event) === false) {
+    throw new Error("event should be FileOpening or FileClosed or FileError");
   }
 
   if (!event.filePath) {
@@ -183,14 +183,16 @@ router.post("/webhook/custom", async (ctx) => {
   if (!event.roomId) {
     throw new Error("roomId is required");
   }
-  if (!event.time) {
-    throw new Error("time is required");
-  }
-  if (!event.title) {
-    throw new Error("title is required");
-  }
-  if (!event.username) {
-    throw new Error("username is required");
+  if (["FileOpening", "FileClosed"].includes(event.event)) {
+    if (!event.time) {
+      throw new Error("time is required");
+    }
+    if (!event.title) {
+      throw new Error("title is required");
+    }
+    if (!event.username) {
+      throw new Error("username is required");
+    }
   }
 
   if (webhook?.open) {
