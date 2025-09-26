@@ -24,6 +24,13 @@
 20. 斗鱼、虎牙下载支持失败持久化
 21. B站下载支持更多选项
 
+## Mesio支持
+
+项目地址：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md
+
+这是一个新的录制工具，支持flv修复，效果可能比ffmpeg的flv录制好，让我们来实验性支持一下看看。
+需要hls以及fmp4的支持、测试pk的分段、flv hevc的支持，只录制音频的支持。
+
 ## 虚拟录制
 
 为了解决部分不支持webhook的软件实现自动上传等功能，该功能支持监听文件夹并设置虚拟直播间号来实现上传。

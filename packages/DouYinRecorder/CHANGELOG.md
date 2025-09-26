@@ -1,5 +1,7 @@
-# Next
+# 1.6.0
 
+- 支持 `recorderType` 参数用于配置底层录制器，支持`auto | ffmpeg | mesio`
+- 修复 `videoFormat=auto` 时某些情况下格式的判断
 - 支持用户主页解析
 - 支持客户端分享用户主页解析
 - 支持HTML解析接口

@@ -26,6 +26,9 @@ catalogs:
       version: 1.0.2
 
 patchedDependencies:
+  blive-message-listener@0.5.1:
+    hash: otopwp2ijcc7vzdxvqkdqkalsu
+    path: patches/blive-message-listener@0.5.1.patch
   trash:
     hash: knfqho266jmayp7bpztl4tszxi
     path: patches/trash.patch
@@ -106,7 +109,7 @@ importers:
         version: 1.7.8
       blive-message-listener:
         specifier: ^0.5.1
-        version: 0.5.1(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+        version: 0.5.1(patch_hash=otopwp2ijcc7vzdxvqkdqkalsu)(bufferutil@4.0.8)(utf-8-validate@6.0.5)
       lodash-es:
         specifier: 'catalog:'
         version: 4.17.21
@@ -7424,7 +7427,7 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  blive-message-listener@0.5.1(bufferutil@4.0.8)(utf-8-validate@6.0.5):
+  blive-message-listener@0.5.1(patch_hash=otopwp2ijcc7vzdxvqkdqkalsu)(bufferutil@4.0.8)(utf-8-validate@6.0.5):
     dependencies:
       tiny-bilibili-ws: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.5)
     transitivePeerDependencies:

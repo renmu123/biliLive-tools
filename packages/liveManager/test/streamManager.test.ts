@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { StreamManager, Segment } from "../src/streamManager";
+import { StreamManager, Segment } from "../src/recorder/streamManager";
 
 vi.mock("../src/record_extra_data_controller", () => ({
   createRecordExtraDataController: () => ({
@@ -24,7 +24,7 @@ describe("StreamManager", () => {
 
   beforeEach(() => {
     getSavePathMock = vi.fn().mockReturnValue("mocked/path");
-    streamManager = new StreamManager(getSavePathMock, true, false, "ts");
+    streamManager = new StreamManager(getSavePathMock, true, false, "ffmpeg", "ts");
     vi.spyOn(streamManager, "emit");
   });
 
@@ -57,7 +57,7 @@ describe("StreamManager", () => {
   });
 
   it("should handle video started without segment", async () => {
-    streamManager = new StreamManager(getSavePathMock, false, false, "ts");
+    streamManager = new StreamManager(getSavePathMock, false, false, "ffmpeg", "ts");
     vi.spyOn(streamManager, "emit");
 
     await streamManager.handleVideoStarted("frame=200  fps=100");
@@ -67,7 +67,7 @@ describe("StreamManager", () => {
   });
 
   it("should handle video completed without segment", async () => {
-    streamManager = new StreamManager(getSavePathMock, false, false, "ts");
+    streamManager = new StreamManager(getSavePathMock, false, false, "ffmpeg", "ts");
     vi.spyOn(streamManager, "emit");
 
     await streamManager.handleVideoCompleted();

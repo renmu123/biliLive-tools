@@ -106,6 +106,7 @@ export type UpdateRecorderArgs = Pick<
   | "liveStartNotification"
   | "source"
   | "videoFormat"
+  | "recorderType"
   | "cookie"
   | "doubleScreen"
   | "onlyAudio"

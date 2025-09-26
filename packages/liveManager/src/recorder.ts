@@ -2,6 +2,7 @@ import { Emitter } from "mitt";
 import { ChannelId, Message, Quality } from "./common.js";
 import { RecorderProvider } from "./manager.js";
 import { AnyObject, PickRequired, UnknownObject } from "./utils.js";
+import { Cache } from "./cache.js";
 
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
@@ -56,6 +57,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   titleKeywords?: string;
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
   videoFormat?: "auto" | "ts" | "mkv";
+  /** 录制类型 */
+  recorderType?: "auto" | "ffmpeg" | "mesio";
   /** 流格式优先级 */
   formatriorities?: Array<"flv" | "hls">;
   /** 只录制音频 */
@@ -66,9 +69,30 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   useServerTimestamp?: boolean;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
+  cache: Cache;
 }
 
-export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id">;
+export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id"> &
+  Pick<
+    Recorder<E>,
+    | "id"
+    | "channelId"
+    | "remarks"
+    | "disableAutoCheck"
+    | "quality"
+    | "streamPriorities"
+    | "sourcePriorities"
+    | "extra"
+    | "segment"
+    | "saveSCDanma"
+    | "saveCover"
+    | "saveGiftDanma"
+    | "disableProvideCommentsWhenRecording"
+    | "liveInfo"
+    | "uid"
+    | "titleKeywords"
+    // | "recordHandle"
+  >;
 
 export type RecorderState = "idle" | "recording" | "stopping-record";
 export type Progress = { time: string | null };
@@ -137,6 +161,9 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   tempStopIntervalCheck?: boolean;
   // TODO: 随机的一条近期弹幕 / 评论，这或许应该放在 manager 层做，上面再加个频率统计之类的
   // recently comment: { time, text, ... }
+
+  /** 缓存实例引用，由 manager 设置 */
+  cache: Cache;
 
   getChannelURL: (this: Recorder<E>) => string;
 

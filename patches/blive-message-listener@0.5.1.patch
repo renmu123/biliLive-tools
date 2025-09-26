@@ -1,0 +1,13 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index b8498abf48e113e2e672be0cbc3be3329be623be..48732e609b5cce7e5ad49b477ec6def591899e51 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -161,7 +161,7 @@ var parser6 = (data, roomId) => {
+     user: {
+       uid: rawData[2][0],
+       uname: rawData[2][1],
+-      badge: rawData[3].length ? {
++      badge: rawData[3]?.length ? {
+         active: rawData[3][7] !== 12632256,
+         name: rawData[3][1],
+         level: rawData[3][0],

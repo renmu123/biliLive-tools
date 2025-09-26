@@ -171,6 +171,24 @@
                   <Refresh />
                 </n-icon>
               </n-form-item>
+              <n-form-item>
+                <template #label>
+                  <Tip
+                    text="mesio路径"
+                    tip="最新测试过的版本为0.3.2，请先去项目查看文档：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md"
+                  ></Tip>
+                </template>
+                <n-input v-model:value="config.mesioPath" placeholder="请输入mesio可执行文件路径" />
+                <n-icon
+                  style="margin-left: 10px"
+                  size="26"
+                  class="pointer"
+                  v-if="!isWeb"
+                  @click="selectFile('mesio', config.mesioPath)"
+                >
+                  <FolderOpenOutline />
+                </n-icon>
+              </n-form-item>
             </template>
 
             <n-form-item label="lossless-cut路径">
@@ -433,7 +451,7 @@ const getConfig = async () => {
  * @param defaultPath 默认地址
  */
 const selectFile = async (
-  type: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut",
+  type: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut" | "mesio",
   defaultPath: string,
 ) => {
   const files = await window.api.openFile({
@@ -450,6 +468,8 @@ const selectFile = async (
     config.value.danmuFactoryPath = files[0];
   } else if (type === "losslessCut") {
     config.value.losslessCutPath = files[0];
+  } else if (type === "mesio") {
+    config.value.mesioPath = files[0];
   } else {
     console.error("未知文件类型");
   }

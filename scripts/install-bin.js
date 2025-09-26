@@ -25,8 +25,8 @@ async function unzip(zipFile, destination) {
   console.log("解压成功");
 }
 
-async function downloadFile(url, desc) {
-  const downloader = download(url, desc);
+async function downloadFile(url, desc, options = {}) {
+  const downloader = download(url, desc, options);
   const progressBar = new SingleBar({
     format: "下载进度 |{bar}| {percentage}% | ETA: {eta}s",
     barCompleteChar: "\u2588",
@@ -55,6 +55,25 @@ async function downloadBin() {
 
   await downloadFile(downloadUrl, ".");
   await unzip(filename, "packages/app/resources");
+
+  // download mesio
+  // https://github.com/hua0512/rust-srec/releases/tag/v0.3.2
+  const platforms = {
+    win32: "windows",
+    darwin: "macos",
+  };
+  const archs = {
+    x64: "amd64",
+  };
+  const platform = platforms[process.platform] ?? process.platform;
+  const arch = archs[process.arch] ?? process.arch;
+  let mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/v0.3.2/mesio-${platform}-${arch}`;
+  if (platform === "windows") {
+    mesioUrl += ".exe";
+  }
+  await downloadFile(mesioUrl, "packages/app/resources/bin", {
+    filename: platform === "windows" ? "mesio.exe" : "mesio",
+  });
 }
 
 downloadBin();
