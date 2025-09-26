@@ -572,10 +572,13 @@ watch(
 );
 
 const handlePresetChange = async () => {
+  if (!presetId.value) return;
   ffmpegOptions.value = await ffmpegPresetApi.get(presetId.value);
 };
 
-watch(presetId, handlePresetChange);
+watch(presetId, handlePresetChange, {
+  immediate: true,
+});
 
 const rename = async () => {
   tempPresetName.value = ffmpegOptions.value.name;

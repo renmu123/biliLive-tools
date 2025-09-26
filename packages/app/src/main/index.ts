@@ -136,7 +136,9 @@ function createWindow(): void {
       // mainWindow.webContents.openDevTools();
       mainWindow.showInactive();
     } else {
-      mainWindow.show();
+      // 用来静默启动
+      const isHidden = process.argv.includes("--hidden");
+      if (!isHidden) mainWindow.show();
     }
   });
 
