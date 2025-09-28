@@ -197,6 +197,15 @@ mesio 作为测试录制器被引入，用于支持 flv 修复等功能，当你
 
 **依赖于“视频文件创建”,“视频文件完成”两个webhhook，建议直接勾选全部事件。**
 
+### [oneliverec](https://www.oneliverec.cc)
+
+默认webhook地址：http://127.0.0.1:18010/webhook/oneliverec
+
+注意点：
+
+1. 必须启用“格式转换”
+2. webhook事件必须选中“视频转换完成”事件，建议直接勾选全部事件。
+
 ### [DDTV](https://github.com/CHKZL/DDTV)
 
 默认webhook地址：http://127.0.0.1:18010/webhook/ddtv
