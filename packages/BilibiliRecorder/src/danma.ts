@@ -101,10 +101,10 @@ class DanmaClient extends EventEmitter {
             uid: String(msg.body.user.uid),
             name: msg.body.user.uname,
             avatar: msg.body.user.face,
-            extra: {
-              badgeName: msg.body.user.badge?.name,
-              badgeLevel: msg.body.user.badge?.level,
-            },
+            // extra: {
+            //   badgeName: msg.body.user?.badge?.name,
+            //   badgeLevel: msg.body.user?.badge?.level,
+            // },
           },
         };
         this.emit("Message", comment);
@@ -120,10 +120,10 @@ class DanmaClient extends EventEmitter {
             uid: String(msg.body.user.uid),
             name: msg.body.user.uname,
             avatar: msg.body.user.face,
-            extra: {
-              badgeName: msg.body.user.badge?.name,
-              badgeLevel: msg.body.user.badge?.level,
-            },
+            // extra: {
+            //   badgeName: msg.body.user?.badge?.name,
+            //   badgeLevel: msg.body.user?.badge?.level,
+            // },
           },
         };
         this.emit("Message", comment);
@@ -140,10 +140,10 @@ class DanmaClient extends EventEmitter {
             uid: String(msg.body.user.uid),
             name: msg.body.user.uname,
             avatar: msg.body.user.face,
-            extra: {
-              badgeName: msg.body.user.badge?.name,
-              badgeLevel: msg.body.user.badge?.level,
-            },
+            // extra: {
+            //   badgeName: msg.body.user?.badge?.name,
+            //   badgeLevel: msg.body.user?.badge?.level,
+            // },
           },
         };
         this.emit("Message", gift);
@@ -159,10 +159,10 @@ class DanmaClient extends EventEmitter {
             uid: String(msg.body.user.uid),
             name: msg.body.user.uname,
             avatar: msg.body.user.face,
-            extra: {
-              badgeName: msg.body.user.badge?.name,
-              badgeLevel: msg.body.user.badge?.level,
-            },
+            // extra: {
+            //   badgeName: msg.body.user?.badge?.name,
+            //   badgeLevel: msg.body.user?.badge?.level,
+            // },
           },
           extra: {
             hits: msg.body.combo?.combo_num,

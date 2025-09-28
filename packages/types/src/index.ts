@@ -364,6 +364,8 @@ export interface GlobalRecorder {
   qualityRetry: number;
   /** 视频格式 */
   videoFormat: "auto" | "ts" | "mkv";
+  /** 支持的录制器 */
+  recorderType: "auto" | "ffmpeg" | "mesio";
   /** 保存弹幕测试 */
   saveDanma2DB: boolean;
   /** B站特有的配置 */
@@ -422,6 +424,8 @@ export interface Recorder {
   saveCover?: boolean;
   /** 视频格式 */
   videoFormat: GlobalRecorder["videoFormat"];
+  /** 录制器类型 */
+  recorderType: GlobalRecorder["recorderType"];
   qualityRetry: GlobalRecorder["qualityRetry"];
   formatName: GlobalRecorder["bilibili"]["formatName"];
   useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];
@@ -484,6 +488,8 @@ export interface AppConfig {
   danmuFactoryPath: string;
   /** lossles-cut可执行路径 */
   losslessCutPath: string;
+  /** mesio 可执行路径 */
+  mesioPath: string;
   /** 保存到回收站 */
   trash: boolean;
   /** 自动检查更新 */
@@ -633,6 +639,36 @@ export interface AppConfig {
     subCheckInterval: number;
     /** 保存路径 */
     subSavePath: string;
+  };
+  // 虚拟录制
+  virtualRecord: {
+    config: {
+      mode: "normal" | "advance";
+      // uuid
+      id: string;
+      // 是否启用
+      switch: boolean;
+      // 虚拟直播间号
+      roomId: string;
+      // 房间号正则
+      roomIdRegex: string;
+      // 标题正则
+      titleRegex: string;
+      // 主播名称
+      username: string;
+      // 主播名称正则
+      usernameRegex: string;
+      /** 监听文件夹 */
+      watchFolder: string[];
+      /** 文件匹配规则，只有匹配的文件才会被处理 */
+      fileMatchRegex: string;
+      /** 忽略文件正则，匹配的文件将被忽略 */
+      ignoreFileRegex: string;
+      /** 是否自动匹配开始时间 */
+      startTimeAutoMatch?: boolean;
+    }[];
+    // mode: "watch" | "interval";
+    startTime: number;
   };
 }
 
@@ -917,6 +953,7 @@ export interface GlobalConfig {
   logPath: string;
   defaultFfmpegPath: string;
   defaultFfprobePath: string;
+  defaultMesioPath: string;
   defaultDanmakuFactoryPath: string;
   version: string;
   userDataPath: string;

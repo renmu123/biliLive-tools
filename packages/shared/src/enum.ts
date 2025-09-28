@@ -77,6 +77,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   ffprobePath: "",
   danmuFactoryPath: "",
   losslessCutPath: "",
+  mesioPath: "",
   /** 允许自定义可执行文件地址 */
   customExecPath: false,
   bilibiliUser: {},
@@ -252,6 +253,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     debugMode: false,
     qualityRetry: 0,
     videoFormat: "auto",
+    recorderType: "auto",
     useServerTimestamp: true,
     recordRetryImmediately: false,
     bilibili: {
@@ -285,6 +287,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     subSavePath: "",
   },
   recorders: [],
+  virtualRecord: {
+    config: [],
+    startTime: Date.now(),
+  },
 };
 
 export const nvencPresets = [

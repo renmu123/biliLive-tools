@@ -11,6 +11,7 @@ import { provider as providerForDouYin } from "@bililive-tools/douyin-recorder";
 import {
   createRecorderManager as createManager,
   setFFMPEGPath,
+  setMesioPath,
   utils,
 } from "@bililive-tools/manager";
 
@@ -111,8 +112,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
   }
 
   const config = appConfig.getAll();
-  const { ffmpegPath } = getFfmpegPath();
+  const { ffmpegPath, mesioPath } = getFfmpegPath();
   setFFMPEGPath(ffmpegPath);
+  setMesioPath(mesioPath);
 
   const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
   const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
@@ -137,7 +139,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     if (recorder.recordHandle) {
       const logFilePath = utils.replaceExtName(
         `${recorder.recordHandle.savePath}_${recorder.id}`,
-        ".ffmpeg.log",
+        ".recorder.log",
       );
       fs.appendFileSync(logFilePath, log.text + "\n");
       return;
@@ -176,14 +178,20 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const data = recorderConfig.get(recorder.id);
 
     data?.sendToWebhook &&
-      axios.post(`http://127.0.0.1:${config.port}/webhook/custom`, {
-        event: "FileOpening",
-        filePath: filename,
-        roomId: recorder.channelId,
-        time: startTime.toISOString(),
-        title: recorder.liveInfo.title,
-        username: recorder.liveInfo.owner,
-      });
+      axios.post(
+        `http://127.0.0.1:${config.port}/webhook/custom`,
+        {
+          event: "FileOpening",
+          filePath: filename,
+          roomId: recorder.channelId,
+          time: startTime.toISOString(),
+          title: recorder.liveInfo.title,
+          username: recorder.liveInfo.owner,
+        },
+        {
+          proxy: false,
+        },
+      );
 
     recordHistory.addWithStreamer({
       live_start_time: recorder.liveInfo.startTime?.getTime(),
@@ -208,14 +216,20 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const config = appConfig.getAll();
 
     data?.sendToWebhook &&
-      axios.post(`http://127.0.0.1:${config.port}/webhook/custom`, {
-        event: "FileClosed",
-        filePath: filename,
-        roomId: channelId,
-        time: endTime.toISOString(),
-        title: title,
-        username: username,
-      });
+      axios.post(
+        `http://127.0.0.1:${config.port}/webhook/custom`,
+        {
+          event: "FileClosed",
+          filePath: filename,
+          roomId: channelId,
+          time: endTime.toISOString(),
+          title: title,
+          username: username,
+        },
+        {
+          proxy: false,
+        },
+      );
 
     const xmlFile = replaceExtName(filename, ".xml");
     try {
@@ -319,8 +333,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
   });
 
   appConfig.on("update", () => {
-    const { ffmpegPath } = getFfmpegPath();
+    const { ffmpegPath, mesioPath } = getFfmpegPath();
     setFFMPEGPath(ffmpegPath);
+    setMesioPath(mesioPath);
     updateRecorderManager(manager, appConfig);
   });
 

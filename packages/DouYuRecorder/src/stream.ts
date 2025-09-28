@@ -88,16 +88,21 @@ export async function getStream(
     strictQuality?: boolean;
     source?: string;
     onlyAudio?: boolean;
+    avoidEdgeCDN?: boolean;
   },
 ) {
   const qn = (
     DouyuQualities.includes(opts.quality as any) ? opts.quality : 0
   ) as (typeof DouyuQualities)[number];
 
+  let cdn = opts.source === "auto" ? undefined : opts.source;
+  if (opts.source === "auto" && opts.avoidEdgeCDN) {
+    cdn = "hw-h5";
+  }
   let liveInfo = await getLiveInfo({
     channelId: opts.channelId,
     rate: qn,
-    cdn: opts.source === "auto" ? undefined : opts.source,
+    cdn,
     onlyAudio: opts.onlyAudio,
   });
   if (!liveInfo.living) throw new Error("It must be called getStream when living");

@@ -1,5 +1,8 @@
-# Next
+# 1.6.0
 
+- let recorderType: "ffmpeg" | "mesio" = this.recorderType ?? "ffmpeg";
+
+- 修复 `videoFormat=auto` 时某些情况下格式的判断
 - 支持真原画画质
 - 修复“画质匹配重试次数”不生效的bug
 

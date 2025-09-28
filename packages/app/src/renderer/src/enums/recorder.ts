@@ -290,6 +290,22 @@ export const videoFormatOptions = [
   },
 ];
 
+// 录制器
+export const recorderTypeOptions = [
+  {
+    value: "auto",
+    label: "自动",
+  },
+  {
+    value: "ffmpeg",
+    label: "ffmpeg优先",
+  },
+  {
+    value: "mesio",
+    label: "mesio优先",
+  },
+];
+
 // 抖音流格式
 export const douyinStreamFormatOptions = [
   {
@@ -327,7 +343,11 @@ export const textInfo = {
   common: {
     format: {
       text: "视频格式",
-      tip: "选择自动时，分段为ts，不分段为mp4",
+      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为mp4<br/>mesio录制器：不支持指定",
+    },
+    recorderType: {
+      text: "测试：录制器",
+      tip: "影响最底层的录制，自动选择默认使用ffmpeg，如果使用ffmpeg经常出现问题，如时间戳跳变，卡顿，音画不同步等，可以尝试切换mesio",
     },
   },
   bili: {

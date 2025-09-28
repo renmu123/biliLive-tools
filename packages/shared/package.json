@@ -44,6 +44,7 @@
     "awilix": "^11.0.4",
     "better-sqlite3": "catalog:",
     "check-disk-space": "^3.4.0",
+    "dayjs": "^1.11.18",
     "douyu-api": "^0.1.0",
     "ejs": "^3.1.10",
     "fast-xml-parser": "^4.5.0",
