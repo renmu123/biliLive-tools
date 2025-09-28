@@ -488,6 +488,8 @@ export function genSavePathFromRule<
   const provider = manager.providers.find((p) => p.id === recorder.toJSON().providerId);
 
   const now = extData?.startTime ? new Date(extData.startTime) : new Date();
+  const owner = (extData?.owner ?? "").replaceAll("%", "_");
+  const title = (extData?.title ?? "").replaceAll("%", "_");
   const params = {
     platform: provider?.name ?? "unknown",
     channelId: recorder.channelId,
@@ -499,6 +501,8 @@ export function genSavePathFromRule<
     min: formatDate(now, "mm"),
     sec: formatDate(now, "ss"),
     ...extData,
+    owner: owner,
+    title: title,
   };
   if (manager.autoRemoveSystemReservedChars) {
     for (const key in params) {
