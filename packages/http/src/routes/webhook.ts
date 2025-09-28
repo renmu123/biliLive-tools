@@ -116,37 +116,40 @@ router.post("/webhook/oneliverec", async (ctx) => {
   if (webhook?.open && event.type === "video_transmux_finish") {
     const roomId = event.data.channel;
     const isDocker = process.env.IS_DOCKER;
+
     let filePath: string = event.data.output;
-    // TODO: 调用parseMeta进行解析
-    // const filePath = isDocker ? event.data.path.replace("/rec", "/app/video") : event.data.path;
+    filePath = isDocker ? filePath.replace("/app/rec", "/app/video") : filePath;
+    const meta = await parseMeta({ videoFilePath: filePath });
 
-    // const info: {
-    //   roomId: string;
-    //   platform: string;
-    //   username: string;
-    //   title: string;
-    //   filePath: string;
-    //   danmuPath?: string;
-    // } = {
-    //   roomId: String(roomId),
-    //   platform: "onelivrec",
-    //   username: event.data.Name,
-    //   title: event.data.Title.Value,
-    //   filePath: files.videoFile,
-    // };
+    const info: {
+      roomId: string;
+      platform: "onelivrec";
+      username: string;
+      title: string;
+      filePath: string;
+      danmuPath?: string;
+    } = {
+      roomId: roomId,
+      platform: "onelivrec",
+      username: meta.username || "未知",
+      title: meta.title || "未知",
+      filePath: filePath,
+    };
+    const startTime = new Date((meta.startTimestamp ?? 0) * 1000 || Date.now()).toISOString();
+    const nowTime = new Date().toISOString();
 
-    // handler.handle({
-    //   event: "FileOpening",
-    //   time: startTime,
-    //   ...info,
-    // });
+    handler.handle({
+      event: "FileOpening",
+      time: startTime,
+      ...info,
+    });
 
     setTimeout(() => {
-      // handler.handle({
-      //   event: "FileClosed",
-      //   time: nowTime,
-      //   ...info,
-      // });
+      handler.handle({
+        event: "FileClosed",
+        time: nowTime,
+        ...info,
+      });
     }, 5000);
   }
   ctx.body = "ok";

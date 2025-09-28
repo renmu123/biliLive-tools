@@ -368,8 +368,15 @@ export const matchDanmaTimestamp = (str: string): number | null => {
   const blrecRegex = /<record_start_time>(.+?)<\/record_start_time>/;
   const douyuRegex = /<video_start_time>(.+?)<\/video_start_time>/;
   const bililiveRecorderVideoRegex = /录制时间: (.+)/;
+  const oneLiveRecVideoRegex = /start_time: (.+)/;
 
-  const regexes = [bililiveRecorderRegex, blrecRegex, douyuRegex, bililiveRecorderVideoRegex];
+  const regexes = [
+    bililiveRecorderRegex,
+    blrecRegex,
+    douyuRegex,
+    bililiveRecorderVideoRegex,
+    oneLiveRecVideoRegex,
+  ];
   for (const regex of regexes) {
     const timestamp = matchTimestamp(str, regex);
     if (timestamp) {
@@ -383,16 +390,17 @@ export const matchDanmaTimestamp = (str: string): number | null => {
  * 元数据房间号匹配
  * @param {string} str 需要匹配的字符串
  */
-export const matchRoomId = (str: string): number | null => {
+export const matchRoomId = (str: string): string | null => {
   const bililiveRecorderRegex = /roomid="(.+?)"/;
   // douyu的和blrec的参数一致
   const blrecRegex = /<room_id>(.+?)<\/room_id>/;
+  const oneLiveRecRegex = /channel: (.+)/;
 
-  const regexes = [bililiveRecorderRegex, blrecRegex];
+  const regexes = [bililiveRecorderRegex, blrecRegex, oneLiveRecRegex];
   for (const regex of regexes) {
     const match = str.match(regex);
     if (match) {
-      return Number(match[1]) || null;
+      return match[1] || null;
     }
   }
   return null;
@@ -407,8 +415,14 @@ export const matchTitle = (str: string): string | null => {
   // douyu的和blrec的参数一致
   const blrecRegex = /<room_title>(.+?)<\/room_title>/;
   const bililiveRecorderVideoRegex = /直播标题: (.+)/;
+  const oneLiveRecVideoRegex = /title: (.+)/;
 
-  const regexes = [bililiveRecorderRegex, blrecRegex, bililiveRecorderVideoRegex];
+  const regexes = [
+    bililiveRecorderRegex,
+    blrecRegex,
+    bililiveRecorderVideoRegex,
+    oneLiveRecVideoRegex,
+  ];
   for (const regex of regexes) {
     const match = str.match(regex);
     if (match) {
@@ -427,8 +441,14 @@ export const matchUser = (str: string): string | null => {
   // douyu的和blrec的参数一致
   const blrecRegex = /<user_name>(.+?)<\/user_name>/;
   const bililiveRecorderVideoRegex = /主播名: (.+)/;
+  const oneLiveRecVideoRegex = /user_name: (.+)/;
 
-  const regexes = [bililiveRecorderRegex, blrecRegex, bililiveRecorderVideoRegex];
+  const regexes = [
+    bililiveRecorderRegex,
+    blrecRegex,
+    bililiveRecorderVideoRegex,
+    oneLiveRecVideoRegex,
+  ];
   for (const regex of regexes) {
     const match = str.match(regex);
     if (match) {
@@ -500,7 +520,7 @@ export async function parseMeta(files: { videoFilePath?: string; danmaFilePath?:
   const data: {
     // 秒级时间戳
     startTimestamp: number | null;
-    roomId: number | null;
+    roomId: string | null;
     title: string | null;
     username: string | null;
     duration: number;
