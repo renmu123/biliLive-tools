@@ -287,7 +287,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       type: "give_gift",
       timestamp: this.useServerTimestamp ? serverTimestamp : Date.now(),
       name: msg.gift.name,
-      price: 1,
+      price: msg.gift.diamondCount / 10 || 0,
       count: Number(msg.totalCount ?? 1),
       color: "#ffffff",
       sender: {
