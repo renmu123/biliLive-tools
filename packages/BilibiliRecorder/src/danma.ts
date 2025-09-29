@@ -133,7 +133,7 @@ class DanmaClient extends EventEmitter {
           type: "guard",
           timestamp: this.useServerTimestamp ? msg.timestamp : Date.now(),
           name: msg.body.gift_name,
-          price: msg.body.price,
+          price: msg.body.price / 1000,
           count: 1,
           level: msg.body.guard_level,
           sender: {

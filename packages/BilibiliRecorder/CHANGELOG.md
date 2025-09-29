@@ -2,7 +2,7 @@
 
 - 支持 `recorderType` 参数用于配置底层录制器，支持`auto | ffmpeg | mesio`
 - 修复 `videoFormat=auto` 时某些情况下格式的判断
--
+- 修复上船的礼物价格错误
 
 # 1.5.1
 
