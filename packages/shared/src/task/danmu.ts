@@ -308,8 +308,8 @@ export function generateMergedXmlContent(
   });
 
   const xmlContent = builder.build({
-    metadata,
     i: {
+      metadata,
       d: mergedDanmuku,
       gift: mergedGift,
       sc: mergedSc,

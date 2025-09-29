@@ -39,6 +39,7 @@
 - 修复AList流式上传导致的内存占用过高问题 [#163](https://github.com/renmu123/biliLive-tools/pull/163)
 - 修复web某些页面下刷新，弹幕预设不显示的bug
 - 修复web某些页面下刷新，视频预设不显示的bug
+- 修复弹幕合并时的元数据位置错误 [#170](https://github.com/renmu123/biliLive-tools/issues/170)
 
 ### 增加“录制错误立即重试”选项
 
