@@ -26,7 +26,7 @@ import { init, createRecorderManager } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
 import { cookieHandlers } from "./cookie";
-import { commonHandlers, getTempPath } from "./common";
+import { commonHandlers } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
 // import icon from "../../resources/icon.png?asset";
 import {
@@ -438,7 +438,6 @@ const quit = async () => {
 
     const canQuited = await canQuit();
     if (canQuited) {
-      await fs.emptyDir(getTempPath());
       mainWin.destroy();
       app.quit();
     }
@@ -591,8 +590,6 @@ if (!gotTheLock) {
 
 // 业务相关的初始化
 const appInit = async () => {
-  fs.ensureDir(getTempPath());
-
   // 记录应用启动信息
   log.info("=== 应用启动信息 ===");
   log.info("应用版本:", app.getVersion());

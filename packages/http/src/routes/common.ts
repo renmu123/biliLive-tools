@@ -1,5 +1,6 @@
 import { exec } from "node:child_process";
 import path from "node:path";
+import os from "node:os";
 import fs from "fs-extra";
 import multer from "../middleware/multer.js";
 
@@ -23,7 +24,7 @@ import { createRecorderManager } from "@biliLive-tools/shared";
 const router = new Router({
   prefix: "/common",
 });
-const upload = multer({ dest: getTempPath() });
+const upload = multer({ dest: os.tmpdir() });
 
 router.post("/formatTitle", async (ctx) => {
   const data = ctx.request.body as {
