@@ -290,6 +290,15 @@ export function timemarkToSeconds(timemark: string) {
 }
 
 export function getTempPath() {
+  const cacheFolder = appConfig.get("cacheFolder");
+  if (cacheFolder) {
+    try {
+      fs.ensureDirSync(cacheFolder);
+      return cacheFolder;
+    } catch (e) {
+      console.error("缓存文件夹创建失败，使用系统临时文件夹", e);
+    }
+  }
   return path.join(os.tmpdir(), "biliLive-tools");
 }
 

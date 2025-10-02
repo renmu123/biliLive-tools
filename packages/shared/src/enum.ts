@@ -78,6 +78,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   danmuFactoryPath: "",
   losslessCutPath: "",
   mesioPath: "",
+  cacheFolder: "",
   /** 允许自定义可执行文件地址 */
   customExecPath: false,
   bilibiliUser: {},

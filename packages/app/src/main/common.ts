@@ -1,19 +1,10 @@
 import fs from "fs-extra";
-import os from "node:os";
-import path from "node:path";
 import child_process from "node:child_process";
 import { app, shell } from "electron";
 
 import type { IpcMainInvokeEvent } from "electron";
 
-export const getTempPath = () => {
-  return path.join(os.tmpdir(), "biliLive-tools");
-};
-
 export const commonHandlers = {
-  "common:getTempPath": () => {
-    return getTempPath();
-  },
   "common:execFile": async (_event: IpcMainInvokeEvent, file: string, args: string[]) => {
     return new Promise((resolve, reject) => {
       child_process.execFile(file, args, (error, stdout) => {

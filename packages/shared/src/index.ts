@@ -69,7 +69,6 @@ const init = async (config: GlobalConfig) => {
     where: { stat_key: "start_time" },
     create: { stat_key: "start_time", value: Date.now().toString() },
   });
-
   return container;
 };
 
