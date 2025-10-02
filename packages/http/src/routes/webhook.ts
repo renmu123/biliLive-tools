@@ -6,6 +6,7 @@ import { Client } from "@renmu/bili-api";
 import { handler, appConfig } from "../index.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import recorderService from "../services/recorder.js";
+import { parseMeta } from "@biliLive-tools/shared/task/video.js";
 
 import type { BlrecEventType } from "../types/blrecEvent.js";
 import type { CloseEvent, OpenEvent, CustomEvent } from "../types/webhook.js";
@@ -80,12 +81,76 @@ router.post("/webhook/blrec", async (ctx) => {
     handler.handle({
       event: type,
       filePath: filePath,
-      roomId: roomId,
+      roomId: String(roomId),
       time: event.date,
       title: masterRes.title,
       username: userRes.info.uname,
       platform: "blrec",
     });
+  }
+  ctx.body = "ok";
+});
+
+interface OneLiveRecCompletedEvent {
+  id: string;
+  ts: string;
+  type: "video_transmux_finish";
+  data: {
+    platform: string;
+    channel: string;
+    input: string;
+    output: string;
+  };
+}
+type OneLiveRecEvent = OneLiveRecCompletedEvent;
+
+/**
+ * OneLiveRec webhook事件处理
+ * 由于只有在结束后才能从文件的备注中获取到，只处理结束事件获取信息后模拟开始和结束事件
+ */
+router.post("/webhook/oneliverec", async (ctx) => {
+  const webhook = appConfig.get("webhook");
+  log.info("oneliverec webhook：", ctx.request.body);
+  const event = ctx.request.body as OneLiveRecEvent;
+
+  if (webhook?.open && event.type === "video_transmux_finish") {
+    const roomId = event.data.channel;
+    const isDocker = process.env.IS_DOCKER;
+
+    let filePath: string = event.data.output;
+    filePath = isDocker ? filePath.replace("/app/rec", "/app/video") : filePath;
+    const meta = await parseMeta({ videoFilePath: filePath });
+
+    const info: {
+      roomId: string;
+      platform: "onelivrec";
+      username: string;
+      title: string;
+      filePath: string;
+      danmuPath?: string;
+    } = {
+      roomId: roomId,
+      platform: "onelivrec",
+      username: meta.username || "未知",
+      title: meta.title || "未知",
+      filePath: filePath,
+    };
+    const startTime = new Date((meta.startTimestamp ?? 0) * 1000 || Date.now()).toISOString();
+    const nowTime = new Date().toISOString();
+
+    handler.handle({
+      event: "FileOpening",
+      time: startTime,
+      ...info,
+    });
+
+    setTimeout(() => {
+      handler.handle({
+        event: "FileClosed",
+        time: nowTime,
+        ...info,
+      });
+    }, 5000);
   }
   ctx.body = "ok";
 });
@@ -105,14 +170,14 @@ router.post("/webhook/ddtv", async (ctx) => {
     }
 
     const info: {
-      roomId: number;
+      roomId: string;
       platform: "ddtv";
       username: string;
       title: string;
       filePath: string;
       danmuPath?: string;
     } = {
-      roomId: event.data.RoomId,
+      roomId: String(event.data.RoomId),
       platform: "ddtv",
       username: event.data.Name,
       title: event.data.Title.Value,
