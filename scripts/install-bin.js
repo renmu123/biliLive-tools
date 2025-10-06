@@ -48,15 +48,7 @@ async function downloadFile(url, desc, options = {}) {
   progressBar.stop();
 }
 
-async function downloadBin() {
-  const filename = `${process.platform}-${process.arch}-2.5.0.zip`;
-  const downloadUrl = `https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/${filename}`;
-  console.log(`下载 ${downloadUrl}`);
-
-  await downloadFile(downloadUrl, ".");
-  await unzip(filename, "packages/app/resources");
-
-  // download mesio
+async function downloadMesio() {
   // https://github.com/hua0512/rust-srec/releases/tag/v0.3.2
   const platforms = {
     win32: "windows",
@@ -74,6 +66,22 @@ async function downloadBin() {
   await downloadFile(mesioUrl, "packages/app/resources/bin", {
     filename: platform === "windows" ? "mesio.exe" : "mesio",
   });
+  // 添加执行权限
+  if (process.platform === "linux") {
+    fs.chmodSync("packages/app/resources/bin/mesio", 0o755);
+  }
+}
+
+async function downloadBin() {
+  const filename = `${process.platform}-${process.arch}-2.5.0.zip`;
+  const downloadUrl = `https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/${filename}`;
+  console.log(`下载 ${downloadUrl}`);
+
+  await downloadFile(downloadUrl, ".");
+  await unzip(filename, "packages/app/resources");
+
+  // download mesio
+  await downloadMesio();
 }
 
 downloadBin();
