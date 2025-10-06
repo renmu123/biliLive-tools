@@ -48,7 +48,10 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip tip="直播状态检查，太快容易被风控~" text="检查间隔"></Tip>
+              <Tip
+                tip="每隔设置的时间对所有监听直播间进行状态检查，太快容易被风控~"
+                text="检查间隔"
+              ></Tip>
             </template>
             <n-input-number
               v-model:value="config.recorder.checkInterval"
