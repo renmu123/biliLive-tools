@@ -484,7 +484,6 @@ if (!gotTheLock) {
       .then(({ name }) => log.debug(`Added Extension:  ${name}`))
       .catch((err) => log.debug("An error occurred: ", err));
 
-    log.info(`app start, version: ${app.getVersion()}`);
     // Default open or close DevTools by F12 in development
     // and ignore CommandOrControl + R in production.
     // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -601,7 +600,6 @@ const appInit = async () => {
   log.info("架构:", process.arch);
   log.info("启动时间:", new Date().toISOString());
   log.info("用户数据路径:", app.getPath("userData"));
-  log.info("临时文件路径:", app.getPath("temp"));
   log.info("日志路径:", app.getPath("logs"));
   log.info("=== 应用启动信息结束 ===");
 
