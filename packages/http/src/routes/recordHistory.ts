@@ -129,7 +129,7 @@ const getVideoFile = async (id: number): Promise<string | null> => {
 
 /**
  * 获取视频文件
- * @route GET /record-history/video-file
+ * @route GET /record-history/video/:id
  * @param {string} video_file - 视频文件路径
  */
 router.get("/video/:id", async (ctx) => {
