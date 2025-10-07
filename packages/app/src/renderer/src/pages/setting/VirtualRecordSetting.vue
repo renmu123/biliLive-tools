@@ -15,7 +15,12 @@
           class="link"
           :title="`从${formatTime(config?.virtualRecord?.startTime ?? 0)}开始监听`"
           >点击</a
-        >设置起始时间
+        >设置起始时间，更多查看<a
+          href="https://www.bilibili.com/video/BV1pKx9zuE8P/"
+          class="external"
+          target="_blank"
+          >视频教程</a
+        >
       </p>
     </div>
 
