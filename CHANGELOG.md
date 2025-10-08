@@ -1,5 +1,10 @@
 # Next
 
+## 功能
+
+- [Oneliverec](https://www.oneliverec.cc/) 录制软件的 webhook 支持 [#169](https://github.com/renmu123/biliLive-tools/pull/169)
+- B站视频下载画质支持 [#171](https://github.com/renmu123/biliLive-tools/pull/171)
+
 ## 优化
 
 - 录制：优化UI, 支持更多状态展示
