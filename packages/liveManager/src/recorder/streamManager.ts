@@ -99,7 +99,7 @@ export class Segment extends EventEmitter {
     // 1. FFmpeg格式: Opening 'filename' for writing
     // 2. Mesio格式: Opening FLV segment path=filename Processing
     const ffmpegRegex = /'([^']+)'/;
-    const mesioRegex = /segment path=([^\n]*)/i;
+    const mesioRegex = /segment path=(.+?\.(?:flv|ts|m4s))/is;
 
     let match = stderrLine.match(ffmpegRegex);
     if (!match) {

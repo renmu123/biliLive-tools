@@ -346,8 +346,8 @@ export const textInfo = {
       tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为mp4<br/>mesio录制器：不支持指定",
     },
     recorderType: {
-      text: "测试：录制器",
-      tip: "影响最底层的录制，自动选择默认使用ffmpeg，如果使用ffmpeg经常出现问题，如时间戳跳变，卡顿，音画不同步等，可以尝试切换mesio",
+      text: "录制器",
+      tip: "影响最底层的录制，自动选择默认使用ffmpeg，如果使用ffmpeg经常出现问题，如时间戳跳变，卡顿，音画不同步等，可以尝试切换mesio，<b>mesio目前仅推荐小规模测试使用</b>",
     },
   },
   bili: {
