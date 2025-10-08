@@ -203,7 +203,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (isManualStart) {
       strictQuality = false;
     }
-    // TODO: 还需要测试仅音频流的情况，mesio可能并不支持
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
@@ -215,7 +214,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
 
-    this.state = "idle";
+    this.state = "check-error";
     throw err;
   }
 

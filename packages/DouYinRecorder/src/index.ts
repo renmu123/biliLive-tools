@@ -153,7 +153,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
 
-    this.state = "idle";
+    this.state = "check-error";
     throw err;
   }
 
