@@ -468,7 +468,6 @@ router.get("/whyUploadFailed", async (ctx) => {
     return;
   }
 
-  const roomIdNum = Number(roomId);
   const errorInfoList: string[] = [];
   let hasError = false;
 
@@ -497,7 +496,7 @@ router.get("/whyUploadFailed", async (ctx) => {
     }
 
     // 检查单独webhook配置
-    const webhookConfig = handler.getConfig(roomIdNum);
+    const webhookConfig = handler.getConfig(roomId);
 
     if (!webhookConfig.open) {
       errorInfoList.push("处于黑名单或单独关闭开关");
