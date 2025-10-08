@@ -49,8 +49,8 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
     isInitialized = true;
 
     try {
-      // 创建XML文件头
-      const header = `<?xml version="1.0" encoding="utf-8"?>\n<i>\n`;
+      // 创建XML文件头，使用占位符预留metadata位置
+      const header = `<?xml version="1.0" encoding="utf-8"?>\n<i>\n<!--METADATA_PLACEHOLDER-->\n`;
       await fs.promises.writeFile(savePath, header);
     } catch (error) {
       console.error("初始化XML文件失败:", error);
@@ -257,8 +257,8 @@ async function finalizeXmlFile(filePath: string, metadata: XmlStreamData["meta"]
       format: true,
     });
 
-    // 添加元数据和结束标签
-    const footer = builder.build({
+    // 生成metadata XML
+    const metadataXml = builder.build({
       metadata: {
         platform: metadata.platform,
         video_start_time: metadata.recordStartTimestamp,
@@ -269,7 +269,14 @@ async function finalizeXmlFile(filePath: string, metadata: XmlStreamData["meta"]
       },
     });
 
-    await fs.promises.appendFile(filePath, footer + "\n</i>");
+    // 读取文件内容
+    const content = await fs.promises.readFile(filePath, "utf-8");
+
+    // 替换占位符为实际的metadata，并添加结束标签
+    const finalContent = content.replace("<!--METADATA_PLACEHOLDER-->", metadataXml) + "</i>";
+
+    // 写回文件
+    await fs.promises.writeFile(filePath, finalContent);
   } catch (error) {
     console.error(`完成XML文件写入失败: ${filePath}`, error);
     throw error;
