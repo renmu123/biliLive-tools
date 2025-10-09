@@ -1,12 +1,14 @@
 import { getRoomInfo } from "./douyin_api.js";
 
 import type { Recorder } from "@bililive-tools/manager";
+import type { APIType } from "./types.js";
 
 export async function getInfo(
   channelId: string,
   opts?: {
     cookie?: string;
-    api?: "web" | "webHTML";
+    api?: APIType;
+    uid?: string | number;
   },
 ): Promise<{
   living: boolean;
@@ -17,6 +19,7 @@ export async function getInfo(
   cover: string;
   startTime: Date;
   liveId: string;
+  uid: string;
 }> {
   const info = await getRoomInfo(channelId, opts ?? {});
 
@@ -29,6 +32,7 @@ export async function getInfo(
     cover: info.cover,
     startTime: new Date(),
     liveId: info.liveId,
+    uid: info.uid,
   };
 }
 
@@ -39,13 +43,15 @@ export async function getStream(
     cookie?: string;
     formatPriorities?: Array<"flv" | "hls">;
     doubleScreen?: boolean;
-    api?: "web" | "webHTML";
+    api?: APIType;
+    uid?: string;
   },
 ) {
   const info = await getRoomInfo(opts.channelId, {
     doubleScreen: opts.doubleScreen ?? true,
     auth: opts.cookie,
     api: opts.api ?? "web",
+    uid: opts.uid,
   });
   if (!info.living) {
     throw new Error("It must be called getStream when living");

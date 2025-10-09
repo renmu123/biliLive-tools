@@ -22,6 +22,8 @@ import { resolveShortURL, parseUser } from "./douyin_api.js";
 
 import DouYinDanmaClient from "douyin-danma-listener";
 
+import type { APIType } from "./types.js";
+
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
   // 此标志来操作这个对象的地方，不然会跳过 proxy 的拦截。
@@ -52,7 +54,8 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       const channelId = this.channelId;
       const info = await getInfo(channelId, {
         cookie: this.auth,
-        api: this.api as "web" | "webHTML",
+        api: this.api as APIType,
+        uid: this.uid,
       });
       return {
         channelId,
@@ -110,10 +113,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   isManualStart,
 }) {
   if (this.recordHandle != null) return this.recordHandle;
-
+  console.log("1 checkLiveStatusAndRecord", this, this.uid);
   const liveInfo = await getInfo(this.channelId, {
     cookie: this.auth,
-    api: this.api as "web" | "webHTML",
+    api: this.api as APIType,
+    uid: this.uid,
   });
   const { living, owner, title } = liveInfo;
   this.liveInfo = liveInfo;
@@ -138,7 +142,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (isManualStart) {
       strictQuality = false;
     }
-
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
@@ -148,7 +151,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       cookie: this.auth,
       formatPriorities: this.formatPriorities,
       doubleScreen: this.doubleScreen,
-      api: this.api as "web" | "webHTML",
+      api: this.api as APIType,
+      uid: liveInfo.uid,
     });
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
@@ -437,6 +441,7 @@ export const provider: RecorderProvider<{}> = {
       title: info.title,
       owner: info.owner,
       avatar: info.avatar,
+      uid: info.uid,
     };
   },
 

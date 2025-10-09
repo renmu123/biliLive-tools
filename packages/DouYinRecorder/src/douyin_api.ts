@@ -4,6 +4,8 @@ import { isEmpty } from "lodash-es";
 import { assert, get__ac_signature } from "./utils.js";
 import { ABogus } from "./sign.js";
 
+import type { APIType } from "./types.js";
+
 const requester = axios.create({
   timeout: 10e3,
   // axios 会自动读取环境变量中的 http_proxy 和 https_proxy 并应用，这会让请求发往代理的 host。
@@ -166,6 +168,7 @@ async function getRoomInfoByHtml(
     return {
       living: roomInfo.room.status === 2,
       nickname: roomInfo.anchor.nickname,
+      sec_uid: roomInfo.anchor.sec_uid,
       avatar: roomInfo.anchor?.avatar_thumb?.url_list?.[0],
       room: {
         title: roomInfo.room.title,
@@ -248,6 +251,7 @@ async function getRoomInfoByWeb(
     living: data.room_status === 0,
     nickname: data.user.nickname,
     avatar: data?.user?.avatar_thumb?.url_list?.[0],
+    sec_uid: data?.user?.sec_uid,
     room: {
       title: room.title,
       cover: room.cover?.url_list?.[0],
@@ -257,12 +261,58 @@ async function getRoomInfoByWeb(
   };
 }
 
+async function getRoomInfoByMobile(
+  secUserId: string | number,
+  opts: {
+    doubleScreen?: boolean;
+  } = {},
+) {
+  if (!secUserId) {
+    console.log(opts);
+    throw new Error("Mobile API need secUserId, please set uid field");
+  }
+  if (typeof secUserId === "number") {
+    throw new Error("Mobile API need secUserId string, please set uid field");
+  }
+  const params: Record<any, any> = {
+    app_id: 1128,
+    live_id: 1,
+    verifyFp: "",
+    room_id: 2,
+    type_id: 0,
+    sec_user_id: secUserId,
+  };
+
+  const res = await requester.get<EnterRoomApiResp>(
+    `https://webcast.amemv.com/webcast/room/reflow/info/`,
+    {
+      params,
+    },
+  );
+
+  // @ts-ignore
+  const room = res?.data?.data?.room;
+  return {
+    living: room?.status === 2,
+    nickname: room?.owner?.nickname,
+    sec_uid: room?.owner?.sec_uid,
+    avatar: room?.owner?.avatar_thumb?.url_list?.[0],
+    room: {
+      title: room?.title,
+      cover: room?.cover?.url_list?.[0],
+      id_str: room?.id_str,
+      stream_url: room?.stream_url,
+    },
+  };
+}
+
 export async function getRoomInfo(
   webRoomId: string,
   opts: {
     auth?: string;
     doubleScreen?: boolean;
-    api?: "web" | "webHTML";
+    api?: APIType;
+    uid?: string | number;
   } = {},
 ): Promise<{
   living: boolean;
@@ -274,11 +324,21 @@ export async function getRoomInfo(
   avatar: string;
   cover: string;
   liveId: string;
+  uid: string;
 }> {
   let data: Awaited<ReturnType<typeof getRoomInfoByWeb> | ReturnType<typeof getRoomInfoByHtml>>;
+  let api = opts.api ?? "web";
 
-  if (opts.api === "webHTML") {
+  if (api === "mobile") {
+    // mobile 接口需要 sec_uid 参数，老数据可能没有，实现兼容
+    if (!opts.uid || typeof opts.uid !== "string") {
+      api = "web";
+    }
+  }
+  if (api === "webHTML") {
     data = await getRoomInfoByHtml(webRoomId, opts);
+  } else if (api === "mobile") {
+    data = await getRoomInfoByMobile(opts.uid, opts);
   } else {
     data = await getRoomInfoByWeb(webRoomId, opts);
   }
@@ -295,6 +355,7 @@ export async function getRoomInfo(
       avatar: data.avatar,
       cover: room.cover,
       liveId: room.id_str,
+      uid: data.sec_uid,
     };
   }
 
@@ -379,6 +440,7 @@ export async function getRoomInfo(
     avatar: data.avatar,
     cover: room.cover,
     liveId: room.id_str,
+    uid: data.sec_uid,
   };
 }
 

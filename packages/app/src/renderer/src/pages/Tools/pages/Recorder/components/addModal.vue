@@ -643,6 +643,7 @@ const onChannelIdInputEnd = async () => {
   } else if (res.providerId === "DouYin") {
     config.value.quality = appConfig.value.recorder.douyin.quality;
     config.value.cookie = appConfig.value.recorder.douyin.cookie;
+    config.value.uid = res.uid;
   }
 };
 

@@ -1,3 +1,7 @@
+# 1.7.0
+
+- 支持 `mobile` 接口, 需要传递`uid`参数，内容为`sec_user_id`
+
 # 1.6.0
 
 - 支持 `recorderType` 参数用于配置底层录制器，支持`auto | ffmpeg | mesio`

@@ -38,7 +38,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   /** 身份验证 */
   auth?: string;
   /** cookie所有者uid,B站弹幕录制 */
-  uid?: number;
+  uid?: number | string;
   /** 画质匹配重试次数 */
   qualityRetry?: number;
   /** 抖音是否使用双屏直播流，开启后如果是双屏直播，那么就使用拼接的流，默认为true */
@@ -147,8 +147,8 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   qualityMaxRetry: number;
   // 画质重试次数上限
   qualityRetry: number;
-  // B站弹幕录制，cookie拥有者的uid
-  uid?: number;
+  // B站弹幕录制，cookie拥有者的uid，抖音的sec_uid
+  uid?: number | string;
   liveInfo?: {
     living: boolean;
     owner: string;
