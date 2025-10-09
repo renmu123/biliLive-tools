@@ -142,6 +142,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (isManualStart) {
       strictQuality = false;
     }
+    // TODO: 检查mobile接口处理双屏录播流
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
