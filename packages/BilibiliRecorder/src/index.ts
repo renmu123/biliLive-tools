@@ -114,23 +114,28 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   banLiveId,
 }) {
   if (this.recordHandle != null) return this.recordHandle;
-  const { living, liveId, owner: _owner, title: _title } = await getLiveStatus(this.channelId);
-  this.liveInfo = {
-    living,
-    owner: _owner,
-    title: _title,
-    avatar: "",
-    cover: "",
-    liveId: liveId,
-  };
+  try {
+    const { living, liveId, owner: _owner, title: _title } = await getLiveStatus(this.channelId);
+    this.liveInfo = {
+      living,
+      owner: _owner,
+      title: _title,
+      avatar: "",
+      cover: "",
+      liveId: liveId,
+    };
+  } catch (error) {
+    this.state = "check-error";
+    throw error;
+  }
 
-  if (liveId === banLiveId) {
+  if (this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
     this.tempStopIntervalCheck = false;
   }
   if (this.tempStopIntervalCheck) return null;
-  if (!living) return null;
+  if (!this.liveInfo.living) return null;
 
   // 检查标题是否包含关键词，如果包含则不自动录制
   // 手动开始录制时不检查标题关键词
@@ -140,11 +145,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     typeof this.titleKeywords === "string" &&
     this.titleKeywords.trim()
   ) {
-    const hasTitleKeyword = hasKeyword(_title, this.titleKeywords);
+    const hasTitleKeyword = hasKeyword(this.liveInfo.title, this.titleKeywords);
     if (hasTitleKeyword) {
       this.emit("DebugLog", {
         type: "common",
-        text: `跳过录制：直播间标题 "${_title}" 包含关键词 "${this.titleKeywords}"`,
+        text: `跳过录制：直播间标题 "${this.liveInfo.title}" 包含关键词 "${this.titleKeywords}"`,
       });
       return null;
     }
