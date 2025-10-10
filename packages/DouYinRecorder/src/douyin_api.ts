@@ -121,7 +121,66 @@ function generateNonce() {
 }
 
 /**
- * 通过解析html页面来获取房间数据
+ * 通过解析直播html页面来获取房间数据
+ * @param secUserId
+ * @param opts
+ */
+async function getRoomInfoByUserWeb(
+  secUserId: string,
+  opts: {
+    auth?: string;
+  } = {},
+) {
+  // TODO:待实现
+  const url = `https://www.douyin.com/user/${secUserId}`;
+
+  const res = await axios.get(url, {
+    headers: {
+      cookie: opts.auth,
+    },
+  });
+  const regex = /(\{\\"common\\":.*?)\]\\n"\]\)/;
+  const match = res.data.match(regex);
+
+  if (!match) {
+    throw new Error("No match found in HTML");
+  }
+  let jsonStr = match[1];
+  jsonStr = jsonStr.replace(/\\"/g, '"');
+  jsonStr = jsonStr.replace(/\\"/g, '"');
+  try {
+    const data = JSON.parse(jsonStr);
+    console.log(data);
+    const roomInfo = data.state.roomStore.roomInfo;
+    const streamData = data.state.streamStore.streamData;
+    return {
+      living: roomInfo.room.status === 2,
+      nickname: roomInfo.anchor.nickname,
+      sec_uid: roomInfo.anchor.sec_uid,
+      avatar: roomInfo.anchor?.avatar_thumb?.url_list?.[0],
+      room: {
+        title: roomInfo.room.title,
+        cover: roomInfo.room.cover?.url_list?.[0],
+        id_str: roomInfo.room.id_str,
+        stream_url: {
+          pull_datas: roomInfo.room?.stream_url?.pull_datas,
+          live_core_sdk_data: {
+            pull_data: {
+              options: { qualities: streamData.H264_streamData?.options?.qualities ?? [] },
+              stream_data: streamData.H264_streamData?.stream ?? {},
+            },
+          },
+        },
+      },
+    };
+  } catch (e) {
+    console.error("Failed to parse JSON:", e);
+    throw e;
+  }
+}
+
+/**
+ * 通过解析用户html页面来获取房间数据
  * @param webRoomId
  * @param opts
  */
@@ -129,7 +188,6 @@ async function getRoomInfoByHtml(
   webRoomId: string,
   opts: {
     auth?: string;
-    doubleScreen?: boolean;
   } = {},
 ) {
   const url = `https://live.douyin.com/${webRoomId}`;
@@ -195,7 +253,6 @@ async function getRoomInfoByWeb(
   webRoomId: string,
   opts: {
     auth?: string;
-    doubleScreen?: boolean;
   } = {},
 ) {
   let cookies: string | undefined = undefined;
@@ -264,7 +321,7 @@ async function getRoomInfoByWeb(
 async function getRoomInfoByMobile(
   secUserId: string | number,
   opts: {
-    doubleScreen?: boolean;
+    auth?: string;
   } = {},
 ) {
   if (!secUserId) {
@@ -287,6 +344,9 @@ async function getRoomInfoByMobile(
     `https://webcast.amemv.com/webcast/room/reflow/info/`,
     {
       params,
+      headers: {
+        cookie: opts.auth,
+      },
     },
   );
 
@@ -305,8 +365,6 @@ async function getRoomInfoByMobile(
     },
   };
 }
-
-// TODO:抖音用户页接口
 
 export async function getRoomInfo(
   webRoomId: string,

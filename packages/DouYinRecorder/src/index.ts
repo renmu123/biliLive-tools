@@ -113,7 +113,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   isManualStart,
 }) {
   if (this.recordHandle != null) return this.recordHandle;
-  console.log("1 checkLiveStatusAndRecord", this, this.uid);
   const liveInfo = await getInfo(this.channelId, {
     cookie: this.auth,
     api: this.api as APIType,
