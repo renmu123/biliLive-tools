@@ -8,6 +8,7 @@
 ## 优化
 
 - 录制：优化UI, 支持更多状态展示
+- 同步：对 AList 原生实现的上传逻辑中更好地 URL 拼接处理 [#181](https://github.com/renmu123/biliLive-tools/pull/181)
 
 ## Bug修复
 
