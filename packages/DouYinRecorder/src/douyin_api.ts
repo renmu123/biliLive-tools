@@ -130,12 +130,16 @@ async function getRoomInfoByUserWeb(
     auth?: string;
   } = {},
 ) {
-  // TODO:待实现
   const url = `https://www.douyin.com/user/${secUserId}`;
   const ua =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0";
-  const nonce = "068ea1c0100bb2c06590f";
-  // const nonce = (await getNonce(url)) ?? generateNonce();
+  let nonce = "068ea1c0100bb2c06590f";
+
+  try {
+    nonce = await getNonce(url);
+  } catch (error) {
+    console.warn("获取nonce失败，使用默认值", error);
+  }
 
   let cookies: string | undefined = undefined;
   if (opts.auth) {
@@ -559,10 +563,20 @@ export async function getRoomInfo(
   };
 }
 
+let nonceCache: {
+  startTimestamp: number;
+  nonce: string;
+};
+
 /**
  * 获取nonce
  */
 async function getNonce(url: string) {
+  const now = new Date().getTime();
+  // 缓存6小时
+  if (nonceCache?.startTimestamp && now - nonceCache.startTimestamp < 6 * 60 * 60 * 1000) {
+    return nonceCache.nonce;
+  }
   const res = await requester.get(url);
   if (!res.headers["set-cookie"]) {
     throw new Error("No cookie in response");
@@ -574,7 +588,14 @@ async function getNonce(url: string) {
     if (!keyPart || !valuePart) return;
     cookies[keyPart.trim()] = valuePart.trim();
   });
-  return cookies["__ac_nonce"];
+  const nonce = cookies["__ac_nonce"];
+  if (nonce) {
+    nonceCache = {
+      startTimestamp: now,
+      nonce: nonce,
+    };
+  }
+  return nonce;
 }
 
 /**

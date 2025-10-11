@@ -44,7 +44,7 @@ export async function getStream(
     formatPriorities?: Array<"flv" | "hls">;
     doubleScreen?: boolean;
     api?: APIType;
-    uid?: string;
+    uid?: string | number;
   },
 ) {
   let api = opts.api ?? "web";
