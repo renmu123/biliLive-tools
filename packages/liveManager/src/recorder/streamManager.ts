@@ -1,7 +1,7 @@
 import EventEmitter from "node:events";
 
 import fs from "fs/promises";
-import { createRecordExtraDataController } from "../record_extra_data_controller.js";
+import { createRecordExtraDataController } from "../xml_stream_controller.js";
 import {
   replaceExtName,
   ensureFolderExist,
@@ -90,9 +90,7 @@ export class Segment extends EventEmitter {
     ensureFolderExist(this.outputVideoFilePath);
 
     if (!this.disableDanma) {
-      this.extraDataController = createRecordExtraDataController(
-        `${this.outputVideoFilePath}.json`,
-      );
+      this.extraDataController = createRecordExtraDataController(`${this.outputVideoFilePath}.xml`);
     }
 
     // 支持两种格式的正则表达式
@@ -166,7 +164,7 @@ export class StreamManager extends EventEmitter {
         this.emit("videoFileCompleted", data);
       });
     } else {
-      const extraDataSavePath = replaceExtName(recordSavePath, ".json");
+      const extraDataSavePath = replaceExtName(recordSavePath, ".xml");
       if (!disableDanma) {
         this.extraDataController = createRecordExtraDataController(extraDataSavePath);
       }
