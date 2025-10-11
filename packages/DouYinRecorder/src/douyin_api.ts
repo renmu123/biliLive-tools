@@ -3,7 +3,6 @@ import axios from "axios";
 import { isEmpty } from "lodash-es";
 import { assert, get__ac_signature } from "./utils.js";
 import { ABogus } from "./sign.js";
-import fs from "fs";
 import type { APIType } from "./types.js";
 
 const requester = axios.create({
@@ -168,42 +167,48 @@ async function getRoomInfoByUserWeb(
     };
   }
 
-  const regex = /(\{\\"common\\":.*?)\]\\n"\]\)/;
+  const userRegex = /(\{\\"user\\":.*?)\]\\n"\]\)/;
   // fs.writeFileSync("douyin.html", res.data);
-  const match = res.data.match(regex);
+  const userMatch = res.data.match(userRegex);
 
-  if (!match) {
+  if (!userMatch) {
     throw new Error("No match found in HTML");
   }
-  let jsonStr = match[1];
-  jsonStr = jsonStr
+  let userJsonStr = userMatch[1];
+  userJsonStr = userJsonStr
     .replace(/\\"/g, '"')
     .replace(/\\"/g, '"')
     .replace(/"\$\w+"/g, "null");
+
+  // const roomRegex = /(\{\\"common\\":.*?)"\]\)/;
+  // const roomMatch = res.data.match(roomRegex);
+  // if (!roomMatch) {
+  //   throw new Error("No room match found in HTML");
+  // }
+  // let roomJsonStr = roomMatch[1];
+  // roomJsonStr = roomJsonStr
+  //   .replace(/\\"/g, '"')
+  //   .replace(/\\"/g, '"')
+  //   .replace(/"\$\w+"/g, "null");
   try {
-    console.log(jsonStr);
-    const data = JSON.parse(jsonStr);
-    console.log(data);
-    const roomInfo = data.state.roomStore.roomInfo;
-    const streamData = data.state.streamStore.streamData;
+    // console.log(userJsonStr);
+    const userData = JSON.parse(userJsonStr);
+    // console.log(JSON.stringify(userData, null, 2));
+
+    // const roomData = JSON.parse(roomJsonStr);
+    // console.log(roomData);
+    // const roomInfo = data.state.roomStore.roomInfo;
+    // const streamData = data.state.streamStore.streamData;
     return {
-      living: roomInfo.room.status === 2,
-      nickname: roomInfo.anchor.nickname,
-      sec_uid: roomInfo.anchor.sec_uid,
-      avatar: roomInfo.anchor?.avatar_thumb?.url_list?.[0],
+      living: userData?.user?.user?.roomData?.status === 2,
+      nickname: userData?.user?.user?.nickname,
+      sec_uid: userData?.user?.user?.secUid,
+      avatar: "",
       room: {
-        title: roomInfo.room.title,
-        cover: roomInfo.room.cover?.url_list?.[0],
-        id_str: roomInfo.room.id_str,
-        stream_url: {
-          pull_datas: roomInfo.room?.stream_url?.pull_datas,
-          live_core_sdk_data: {
-            pull_data: {
-              options: { qualities: streamData.H264_streamData?.options?.qualities ?? [] },
-              stream_data: streamData.H264_streamData?.stream ?? {},
-            },
-          },
-        },
+        title: "",
+        cover: "",
+        id_str: userData?.user?.user?.roomIdStr,
+        stream_url: null,
       },
     };
   } catch (e) {
@@ -358,7 +363,6 @@ async function getRoomInfoByMobile(
   } = {},
 ) {
   if (!secUserId) {
-    console.log(opts);
     throw new Error("Mobile API need secUserId, please set uid field");
   }
   if (typeof secUserId === "number") {
@@ -437,8 +441,24 @@ export async function getRoomInfo(
   } else {
     data = await getRoomInfoByWeb(webRoomId, opts);
   }
+  // console.log(JSON.stringify(data, null, 2));
   const room = data.room;
   assert(room, `No room data, id ${webRoomId}`);
+  if (api === "userHTML") {
+    return {
+      living: data.living,
+      roomId: webRoomId,
+      owner: data.nickname,
+      title: room?.title ?? data.nickname,
+      streams: [],
+      sources: [],
+      avatar: data.avatar,
+      cover: room.cover,
+      liveId: room.id_str,
+      uid: data.sec_uid,
+    };
+  }
+
   if (room?.stream_url == null) {
     return {
       living: false,

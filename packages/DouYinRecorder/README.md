@@ -80,12 +80,12 @@ const { id } = await provider.resolveChannelInfoFromURL(url);
 
 ## 不同请求接口的区别
 
-| 接口                                                  | 描述             | 备注                                     |
-| ----------------------------------------------------- | ---------------- | ---------------------------------------- |
-| `https://live.douyin.com/webcast/room/web/enter`      | web直播间接口    | 效果不错                                 |
-| `https://webcast.amemv.com/webcast/room/reflow/info/` | mobile直播间接口 | 易风控，无验证码，海外IP可能无法使用     |
-| `https://live.douyin.com/${webRoomId}`                | 直播间web解析    | 易风控，有验证码，单个接口1M流量         |
-| `https://www.douyin.com/user/${secUserId}`            | 用户web解析      | 不易风控，海外IP无法使用，单个接口1M流量 |
+| 接口                                                  | 描述             | 备注                                                       |
+| ----------------------------------------------------- | ---------------- | ---------------------------------------------------------- |
+| `https://live.douyin.com/webcast/room/web/enter`      | web直播间接口    | 效果不错                                                   |
+| `https://webcast.amemv.com/webcast/room/reflow/info/` | mobile直播间接口 | 易风控，无验证码，海外IP可能无法使用                       |
+| `https://live.douyin.com/${webRoomId}`                | 直播间web解析    | 易风控，有验证码，单个接口1M流量                           |
+| `https://www.douyin.com/user/${secUserId}`            | 用户web解析      | 不易风控，海外IP无法使用，单个接口1M流量，只能用于状态检查 |
 
 # 协议
 

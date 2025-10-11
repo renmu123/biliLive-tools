@@ -47,10 +47,15 @@ export async function getStream(
     uid?: string;
   },
 ) {
+  let api = opts.api ?? "web";
+  if (api === "userHTML") {
+    // userHTML 接口只能用于状态检测
+    api = "web";
+  }
   const info = await getRoomInfo(opts.channelId, {
     doubleScreen: opts.doubleScreen ?? true,
     auth: opts.cookie,
-    api: opts.api ?? "web",
+    api: api,
     uid: opts.uid,
   });
   if (!info.living) {

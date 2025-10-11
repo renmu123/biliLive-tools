@@ -54,7 +54,6 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       const channelId = this.channelId;
       const info = await getInfo(channelId, {
         cookie: this.auth,
-        api: this.api as APIType,
         uid: this.uid,
       });
       return {
@@ -121,11 +120,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const { living, owner, title } = liveInfo;
   this.liveInfo = liveInfo;
 
-  if (liveInfo.liveId === banLiveId) {
+  if (liveInfo.liveId && liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
     this.tempStopIntervalCheck = false;
   }
+  console.log(this.tempStopIntervalCheck, living, liveInfo);
   if (this.tempStopIntervalCheck) return null;
   if (!living) return null;
 
@@ -154,6 +154,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       api: this.api as APIType,
       uid: liveInfo.uid,
     });
+    console.log("获取推流地址成功", res);
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
 
