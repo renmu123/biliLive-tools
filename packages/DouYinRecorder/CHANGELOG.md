@@ -1,6 +1,6 @@
 # 1.7.0
 
-- 支持 `mobile` 接口, 需要传递`uid`参数，内容为`sec_user_id`
+- 支持 `mobile`和`userHTML` 接口, 需要传递`uid`参数，内容为`sec_user_id`
 
 # 1.6.0
 
