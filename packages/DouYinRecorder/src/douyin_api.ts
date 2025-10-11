@@ -3,7 +3,7 @@ import axios from "axios";
 import { isEmpty } from "lodash-es";
 import { assert, get__ac_signature } from "./utils.js";
 import { ABogus } from "./sign.js";
-
+import fs from "fs";
 import type { APIType } from "./types.js";
 
 const requester = axios.create({
@@ -133,22 +133,55 @@ async function getRoomInfoByUserWeb(
 ) {
   // TODO:待实现
   const url = `https://www.douyin.com/user/${secUserId}`;
+  const ua =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0";
+  const nonce = "068ea1c0100bb2c06590f";
+  // const nonce = (await getNonce(url)) ?? generateNonce();
+
+  let cookies: string | undefined = undefined;
+  if (opts.auth) {
+    cookies = opts.auth;
+  } else {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signed = get__ac_signature(timestamp, url, nonce, ua);
+    cookies = `__ac_nonce=${nonce}; __ac_signature=${signed}; __ac_referer=__ac_blank`;
+  }
 
   const res = await axios.get(url, {
     headers: {
-      cookie: opts.auth,
+      "User-Agent": ua,
+      cookie: cookies,
     },
   });
+  console.log(ua, cookies);
+
+  if (res.data.includes("验证码")) {
+    throw new Error("需要验证码，请在浏览器中打开链接获取" + url);
+  }
+  if (!res.data.includes("直播中")) {
+    return {
+      living: false,
+      nickname: "",
+      sec_uid: "",
+      avatar: "",
+      room: null,
+    };
+  }
+
   const regex = /(\{\\"common\\":.*?)\]\\n"\]\)/;
+  // fs.writeFileSync("douyin.html", res.data);
   const match = res.data.match(regex);
 
   if (!match) {
     throw new Error("No match found in HTML");
   }
   let jsonStr = match[1];
-  jsonStr = jsonStr.replace(/\\"/g, '"');
-  jsonStr = jsonStr.replace(/\\"/g, '"');
+  jsonStr = jsonStr
+    .replace(/\\"/g, '"')
+    .replace(/\\"/g, '"')
+    .replace(/"\$\w+"/g, "null");
   try {
+    console.log(jsonStr);
     const data = JSON.parse(jsonStr);
     console.log(data);
     const roomInfo = data.state.roomStore.roomInfo;
@@ -389,7 +422,7 @@ export async function getRoomInfo(
   let data: Awaited<ReturnType<typeof getRoomInfoByWeb> | ReturnType<typeof getRoomInfoByHtml>>;
   let api = opts.api ?? "web";
 
-  if (api === "mobile") {
+  if (api === "mobile" || api === "userHTML") {
     // mobile 接口需要 sec_uid 参数，老数据可能没有，实现兼容
     if (!opts.uid || typeof opts.uid !== "string") {
       api = "web";
@@ -399,6 +432,8 @@ export async function getRoomInfo(
     data = await getRoomInfoByHtml(webRoomId, opts);
   } else if (api === "mobile") {
     data = await getRoomInfoByMobile(opts.uid, opts);
+  } else if (api === "userHTML") {
+    data = await getRoomInfoByUserWeb(opts.uid as string, opts);
   } else {
     data = await getRoomInfoByWeb(webRoomId, opts);
   }

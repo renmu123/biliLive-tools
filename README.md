@@ -468,6 +468,15 @@ docker下的emoji文本渲染错误，猜测和fontconfig有关，但是我不�
 
 设计如此，如果你的播放器不支持多分辨率，请尝试使用vlc
 
+## 抖音录制的不同请求接口有何不同
+
+| 接口                                                  | 描述             | 备注                                     |
+| ----------------------------------------------------- | ---------------- | ---------------------------------------- |
+| `https://live.douyin.com/webcast/room/web/enter`      | web直播间接口    | 效果不错                                 |
+| `https://webcast.amemv.com/webcast/room/reflow/info/` | mobile直播间接口 | 易风控，无验证码，海外IP可能无法使用     |
+| `https://live.douyin.com/${webRoomId}`                | 直播间web解析    | 易风控，有验证码，单个接口1M流量         |
+| `https://www.douyin.com/user/${secUserId}`            | 用户web解析      | 不易风控，海外IP无法使用，单个接口1M流量 |
+
 ## 弹幕转换失败
 
 如果你是新系统，请尝试安装系统相关运行库，如果不是，也请安装试试。

@@ -1,1 +1,1 @@
-export type APIType = "web" | "webHTML" | "mobile";
+export type APIType = "web" | "webHTML" | "mobile" | "userHTML";
