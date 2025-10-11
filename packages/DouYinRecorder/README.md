@@ -46,8 +46,9 @@ interface Options {
   useServerTimestamp?: boolean; // 控制弹幕是否使用服务端时间戳，默认为true
   doubleScreen?: boolean; // 是否使用双屏直播流，开启后如果是双屏直播，那么就使用拼接的流，默认为true
   recorderType?: "auto" | "ffmpeg" | "mesio"; // 底层录制器，使用mesio时videoFormat参数无效
-  auth?: string; // 传递cookie，
-  api?: "web" | "webHTML"; // 使用不同的接口
+  auth?: string; // 传递cookie
+  uid?: string; // 参数为 sec_user_uid 参数
+  api?: "web" | "webHTML" | "mobile" | "userHTML"; // 使用不同的接口，具体区别见文档
 }
 ```
 
@@ -76,6 +77,15 @@ const url = "https://live.douyin.com/203641303310";
 // 同样支持解析 https://v.douyin.com/DpfoBLAXoHM/, https://www.douyin.com/user/MS4wLjABAAAAE2ebAEBniL_0rF0vIDV4vCpdcH5RxpYBovopAURblNs
 const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
+
+## 不同请求接口的区别
+
+| 接口                                                  | 描述             | 备注                                                       |
+| ----------------------------------------------------- | ---------------- | ---------------------------------------------------------- |
+| `https://live.douyin.com/webcast/room/web/enter`      | web直播间接口    | 效果不错                                                   |
+| `https://webcast.amemv.com/webcast/room/reflow/info/` | mobile直播间接口 | 易风控，无验证码，海外IP可能无法使用                       |
+| `https://live.douyin.com/${webRoomId}`                | 直播间web解析    | 易风控，有验证码，单个接口1M流量                           |
+| `https://www.douyin.com/user/${secUserId}`            | 用户web解析      | 不易风控，海外IP无法使用，单个接口1M流量，只能用于状态检查 |
 
 # 协议
 

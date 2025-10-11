@@ -419,7 +419,7 @@ export interface Recorder {
   /**分段时长，单位分钟 */
   segment?: number;
   /** 账号 */
-  uid?: number;
+  uid?: number | string;
   /** 保存封面 */
   saveCover?: boolean;
   /** 视频格式 */
