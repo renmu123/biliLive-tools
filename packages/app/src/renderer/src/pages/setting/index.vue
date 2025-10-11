@@ -209,6 +209,26 @@
             <n-form-item>
               <template #label>
                 <Tip
+                  text="缓存文件夹"
+                  tip="用于存放乱七八糟的临时文件，默认使用系统临时文件夹"
+                ></Tip>
+              </template>
+              <n-input
+                v-model:value="config.cacheFolder"
+                placeholder="请输入缓存文件夹路径，默认使用系统临时文件夹"
+              />
+              <n-icon
+                style="margin-left: 10px"
+                size="26"
+                class="pointer"
+                @click="selectFolder('cache')"
+              >
+                <FolderOpenOutline />
+              </n-icon>
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip
                   text="配置"
                   tip="导出配置文件，导入后重启应用生效，尽量保持版本一致，如果按钮无法使用，请参照常见问题进行手动备份"
                 ></Tip>
@@ -451,7 +471,7 @@ const getConfig = async () => {
  * @param defaultPath 默认地址
  */
 const selectFile = async (
-  type: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut" | "mesio",
+  type: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut" | "mesio" | "cache",
   defaultPath: string,
 ) => {
   const files = await window.api.openFile({
@@ -490,15 +510,27 @@ const resetBin = async (type: "ffmpeg" | "ffprobe" | "danmakuFactory") => {
   }
 };
 
-const selectFolder = async (type: "recorder") => {
+const selectFolder = async (type: "recorder" | "cache") => {
+  let defaultPath = "";
+  if (type === "recorder") {
+    defaultPath = config.value.webhook.recoderFolder;
+  } else if (type === "cache") {
+    defaultPath = config.value.cacheFolder;
+  } else {
+    throw new Error("未知文件类型");
+  }
   let file: string | undefined = await showDirectoryDialog({
-    defaultPath: config.value.webhook.recoderFolder,
+    defaultPath,
   });
 
   if (!file) return;
 
   if (type === "recorder") {
     config.value.webhook.recoderFolder = file;
+  } else if (type === "cache") {
+    config.value.cacheFolder = file;
+  } else {
+    throw new Error("未知文件类型");
   }
 };
 

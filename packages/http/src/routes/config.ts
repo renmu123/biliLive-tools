@@ -17,7 +17,7 @@ const router = new Router({
   prefix: "/config",
 });
 
-const upload = multer({ dest: getTempPath() });
+const upload = multer({ dest: os.tmpdir() });
 
 router.get("/", async (ctx) => {
   const config = appConfig.getAll();
@@ -123,7 +123,8 @@ router.get("/export", async (ctx) => {
       .filter((cover) => cover && !path.isAbsolute(cover));
 
     const usedImageSet = new Set(usedImages);
-    const backupPath = path.join(os.tmpdir(), "biliLive-tools");
+    const tempDir = getTempPath();
+    const backupPath = path.join(tempDir, "biliLive-tools");
     await fs.ensureDir(backupPath);
     const dbPath = path.join(backupPath, "app.db");
     await db.backup(dbPath);
