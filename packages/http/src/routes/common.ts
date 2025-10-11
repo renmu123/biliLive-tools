@@ -264,7 +264,7 @@ router.post("/apply-video-id", async (ctx) => {
 
   if (!(await fs.pathExists(videoPath))) {
     ctx.status = 404;
-    ctx.body = { error: "视频文件不存在" };
+    ctx.body = "视频文件不存在";
     return;
   }
 
@@ -274,7 +274,7 @@ router.post("/apply-video-id", async (ctx) => {
 
   if (!allowedExtensions.includes(extname)) {
     ctx.status = 403;
-    ctx.body = { error: "只能访问视频文件" };
+    ctx.body = "只能访问视频文件";
     return;
   }
 
@@ -285,19 +285,19 @@ router.post("/apply-video-id", async (ctx) => {
     // 检查是否是文件而非目录
     if (!stat.isFile()) {
       ctx.status = 403;
-      ctx.body = { error: "请求的路径不是文件" };
+      ctx.body = "请求的路径不是文件";
       return;
     }
 
     // 检查文件大小，确保是有效文件
     if (stat.size === 0) {
       ctx.status = 403;
-      ctx.body = { error: "文件大小为0，无效视频" };
+      ctx.body = "文件大小为0，无效视频";
       return;
     }
   } catch (error) {
     ctx.status = 500;
-    ctx.body = { error: "文件检查失败" };
+    ctx.body = "文件检查失败";
     return;
   }
 
@@ -468,7 +468,6 @@ router.get("/whyUploadFailed", async (ctx) => {
     return;
   }
 
-  const roomIdNum = Number(roomId);
   const errorInfoList: string[] = [];
   let hasError = false;
 
@@ -497,7 +496,7 @@ router.get("/whyUploadFailed", async (ctx) => {
     }
 
     // 检查单独webhook配置
-    const webhookConfig = handler.getConfig(roomIdNum);
+    const webhookConfig = handler.getConfig(roomId);
 
     if (!webhookConfig.open) {
       errorInfoList.push("处于黑名单或单独关闭开关");

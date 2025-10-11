@@ -94,7 +94,7 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     // | "recordHandle"
   >;
 
-export type RecorderState = "idle" | "recording" | "stopping-record";
+export type RecorderState = "idle" | "recording" | "stopping-record" | "check-error";
 export type Progress = { time: string | null };
 
 export interface RecordHandle {

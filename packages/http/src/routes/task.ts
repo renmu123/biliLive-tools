@@ -142,12 +142,12 @@ router.post("/convertXml2Ass", async (ctx) => {
   };
   if (!input || !output) {
     ctx.status = 400;
-    ctx.body = { message: "input and output are required" };
+    ctx.body = "input and output are required";
     return;
   }
   if (!preset) {
     ctx.status = 400;
-    ctx.body = { message: "preset is required" };
+    ctx.body = "preset is required";
     return;
   }
 
@@ -197,12 +197,12 @@ router.post("/mergeVideo", async (ctx) => {
   };
   if (!inputVideos || inputVideos.length < 2) {
     ctx.status = 400;
-    ctx.body = { message: "inputVideos length must be greater than 1" };
+    ctx.body = "inputVideos length must be greater than 1";
     return;
   }
   if (!options.output && !options.saveOriginPath) {
     ctx.status = 400;
-    ctx.body = { message: "output is required or saveOriginPath should be true" };
+    ctx.body = "output is required or saveOriginPath should be true";
     return;
   }
 
@@ -229,12 +229,12 @@ router.post("/transcode", async (ctx) => {
   };
   if (!input) {
     ctx.status = 400;
-    ctx.body = { message: "inputVideos length must be greater than 1" };
+    ctx.body = "inputVideos length must be greater than 1";
     return;
   }
   if (!outputName) {
     ctx.status = 400;
-    ctx.body = { message: "outputName is required" };
+    ctx.body = "outputName is required";
     return;
   }
 
@@ -312,17 +312,17 @@ router.get("/:id/download", async (ctx) => {
   const task = taskQueue.queryTask(id);
   if (!task) {
     ctx.status = 404;
-    ctx.body = { message: "任务不存在" };
+    ctx.body = "任务不存在";
     return;
   }
   if (task.type !== "ffmpeg") {
     ctx.status = 400;
-    ctx.body = { message: "不支持的任务类型" };
+    ctx.body = "不支持的任务类型";
     return;
   }
   if (!task.output || !(await fs.pathExists(task.output))) {
     ctx.status = 404;
-    ctx.body = { message: "文件不存在" };
+    ctx.body = "文件不存在";
     return;
   }
   const fileId = fileCache.setFile(task.output);

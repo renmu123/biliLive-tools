@@ -152,12 +152,16 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   // 获取直播间信息
-  const liveInfo = await getInfo(this.channelId);
-  const { living, owner, title } = liveInfo;
+  try {
+    const liveInfo = await getInfo(this.channelId);
+    this.liveInfo = liveInfo;
+  } catch (error) {
+    this.state = "check-error";
+    throw error;
+  }
+  const { living, owner, title } = this.liveInfo;
 
-  this.liveInfo = liveInfo;
-
-  if (liveInfo.liveId === banLiveId) {
+  if (this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
     this.tempStopIntervalCheck = false;
@@ -203,7 +207,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (isManualStart) {
       strictQuality = false;
     }
-    // TODO: 还需要测试仅音频流的情况，mesio可能并不支持
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
@@ -215,7 +218,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
 
-    this.state = "idle";
+    this.state = "check-error";
     throw err;
   }
 
@@ -288,7 +291,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
-      liveStartTimestamp: liveInfo.startTime?.getTime(),
+      liveStartTimestamp: this.liveInfo.startTime?.getTime(),
       // recordStopTimestamp: Date.now(),
       title: title,
       user_name: owner,

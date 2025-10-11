@@ -51,8 +51,18 @@
               </svg>
             </n-icon>
           </div>
-          <div class="channel-id">
-            房间号：<a class="link" target="_blank" :href="item.channelURL">{{ item.channelId }}</a>
+          <div class="tags">
+            <a class="link tag channel" target="_blank" :href="item.channelURL" title="点击可访问">
+              {{ item.providerId }}: {{ item.channelId }}</a
+            >
+            <span
+              class="tag state"
+              :class="{
+                error: item.state === 'check-error',
+              }"
+              v-if="['check-error', 'stopping-record'].includes(item.state)"
+              >{{ stateMap[item.state] }}</span
+            >
           </div>
         </div>
       </div>
@@ -88,6 +98,13 @@ function formatTime(time?: string) {
   if (!time) return "";
   return time.split(".")[0];
 }
+
+const stateMap = {
+  idle: "空闲",
+  recording: "录制中",
+  "check-error": "检查错误",
+  "stopping-record": "停止中",
+};
 </script>
 
 <style scoped lang="less">
@@ -101,7 +118,7 @@ function formatTime(time?: string) {
   border-radius: 5px;
   position: relative;
   // width: 288px;
-  flex: 1 0 288px;
+  flex: 1 0 320px;
   max-width: 400px;
 
   .cover-container {
@@ -198,6 +215,49 @@ function formatTime(time?: string) {
 .link {
   text-decoration: none;
   color: inherit;
+}
+
+.tags {
+  // margin-top: 5px;
+  display: flex;
+  gap: 5px;
+
+  .tag {
+    background-color: #f0f0f0;
+    border-radius: 3px;
+    padding: 2px 6px;
+    font-size: 12px;
+    color: #555;
+
+    &.channel {
+      background-color: #e6f7ff;
+      color: #1890ff;
+    }
+
+    &.state {
+      background-color: #fff1b8;
+      color: #d48806;
+      &.error {
+        background-color: #fff1f0;
+        color: #ff4d4f;
+      }
+    }
+
+    @media screen and (prefers-color-scheme: dark) {
+      &.channel {
+        background-color: #111d2c;
+        color: #59adf1;
+      }
+      &.state {
+        background-color: #4a3a27;
+        color: #d9ca40;
+        &.error {
+          background-color: #512c2c;
+          color: #ff7875;
+        }
+      }
+    }
+  }
 }
 
 @keyframes pulse {

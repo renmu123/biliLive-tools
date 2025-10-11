@@ -65,9 +65,10 @@
         <td
           :class="{
             recording: item.state === 'recording',
+            error: item.state === 'check-error',
           }"
         >
-          {{ item.state === "recording" ? "录制中" : "尚未开始" }}
+          {{ stateMap[item.state] }}
         </td>
         <td :title="item?.recordHandle?.url">
           {{ item.state === "recording" ? `${item.usedSource}/${item.usedStream}` : "" }}
@@ -122,6 +123,13 @@ const emit = defineEmits<{
 const handleSort = (field: string) => {
   emit("sort", field);
 };
+
+const stateMap = {
+  idle: "空闲",
+  recording: "录制中",
+  "check-error": "检查错误",
+  "stopping-record": "停止中",
+};
 </script>
 
 <style scoped lang="less">
@@ -130,6 +138,9 @@ const handleSort = (field: string) => {
   color: inherit;
 }
 .recording {
+  color: skyblue;
+}
+.error {
   color: #ff4d4f;
 }
 .sort-icon {

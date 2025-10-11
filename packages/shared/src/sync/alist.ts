@@ -6,6 +6,7 @@ import { URL } from "node:url";
 import fs from "fs-extra";
 import Throttle from "@renmu/throttle";
 import logger from "../utils/log.js";
+import { combineURLs } from "../utils/combineURLs.js";
 import { TypedEmitter } from "tiny-typed-emitter";
 import axios, { AxiosInstance } from "axios";
 
@@ -312,7 +313,7 @@ export class Alist extends TypedEmitter<AlistEvents> {
       },
     };
 
-    const url = new URL(`${this.server}/api/fs/put`);
+    const url = new URL(combineURLs(this.server, "/api/fs/put"));
     const httpModule = url.protocol === "https:" ? https : http;
 
     try {

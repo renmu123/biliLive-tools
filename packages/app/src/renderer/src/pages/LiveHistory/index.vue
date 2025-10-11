@@ -459,31 +459,49 @@ const _formatDuration = (duration?: number) => {
 // 打开文件
 const openFile = async (id: number) => {
   if (!id) return;
-  const filePath = await recordHistoryApi.getVideoFile(id);
-  if (!filePath) return;
-  window.api.openPath(filePath);
+  try {
+    const filePath = await recordHistoryApi.getVideoFile(id);
+    if (!filePath) return;
+    window.api.openPath(filePath);
+  } catch (error: any) {
+    notice.error({
+      title: error.message || error,
+    });
+  }
 };
 
 // 下载文件
 const downloadFile = async (id: number) => {
-  const fileUrl = await recordHistoryApi.downloadFile(id);
+  try {
+    const fileUrl = await recordHistoryApi.downloadFile(id);
 
-  const a = document.createElement("a");
-  a.href = fileUrl;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+    const a = document.createElement("a");
+    a.href = fileUrl;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch (error: any) {
+    notice.error({
+      title: error.message || error,
+    });
+  }
 };
 
 const openFolder = async (id: number) => {
-  if (!id) return;
-  const filePath = await recordHistoryApi.getVideoFile(id);
-  if (!filePath) return;
-  window.api.common.showItemInFolder(filePath);
+  try {
+    if (!id) return;
+    const filePath = await recordHistoryApi.getVideoFile(id);
+    if (!filePath) return;
+    window.api.common.showItemInFolder(filePath);
+  } catch (error: any) {
+    notice.error({
+      title: error.message || error,
+    });
+  }
 };
 
 const confirm = useConfirm();
-const notice = useNotification();
+const notice = useNotice();
 
 const removeRecord = async (id: number) => {
   const [status] = await confirm.warning({
@@ -511,18 +529,24 @@ const previewFiles = ref({
   type: "",
 });
 const previewVideo = async (id: number) => {
-  const { fileId, type } = await recordHistoryApi.getTempVideoId(id);
-  if (type === "ts") {
-    notice.warning({
-      title: `暂不支持预览ts格式的视频`,
-      duration: 2000,
+  try {
+    const { fileId, type } = await recordHistoryApi.getTempVideoId(id);
+    if (type === "ts") {
+      notice.warning({
+        title: `暂不支持预览ts格式的视频`,
+        duration: 2000,
+      });
+      return;
+    }
+    const videoUrl = await commonApi.getVideo(fileId);
+    previewFiles.value.video = videoUrl;
+    previewFiles.value.type = type;
+    previewModalVisible.value = true;
+  } catch (error: any) {
+    notice.error({
+      title: error.message || error,
     });
-    return;
   }
-  const videoUrl = await commonApi.getVideo(fileId);
-  previewFiles.value.video = videoUrl;
-  previewFiles.value.type = type;
-  previewModalVisible.value = true;
 };
 
 defineOptions({

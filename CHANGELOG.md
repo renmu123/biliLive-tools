@@ -1,3 +1,20 @@
+# Next
+
+## 功能
+
+- [Oneliverec](https://www.oneliverec.cc/) 录制软件的 webhook 支持 [#169](https://github.com/renmu123/biliLive-tools/pull/169)
+- B站视频下载画质支持 [#171](https://github.com/renmu123/biliLive-tools/pull/171)
+
+## 优化
+
+- 录制：优化UI, 支持更多状态展示
+- 同步：对 AList 原生实现的上传逻辑中更好地 URL 拼接处理 [#181](https://github.com/renmu123/biliLive-tools/pull/181)
+
+## Bug修复
+
+- 修复部分接口的错误信息未正常显示的bug
+- 录制：修复 mesio 某些情况下录制结束重命名错误的bug
+
 # 3.0.1
 
 ## Bug修复

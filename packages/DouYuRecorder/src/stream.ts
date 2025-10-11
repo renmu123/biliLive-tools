@@ -97,6 +97,7 @@ export async function getStream(
 
   let cdn = opts.source === "auto" ? undefined : opts.source;
   if (opts.source === "auto" && opts.avoidEdgeCDN) {
+    // TODO: 如果不存在 cdn=hw-h5 的源，那么还是可能默认到边缘节点，就先这样吧
     cdn = "hw-h5";
   }
   let liveInfo = await getLiveInfo({

@@ -28,7 +28,7 @@ export function formatTitle(
     title: string;
     username: string;
     time: string;
-    roomId: number;
+    roomId: string | number;
     filename: string;
   },
   template: string,
@@ -93,7 +93,7 @@ export function formatPartTitle(
     title: string;
     username: string;
     time: string;
-    roomId: number;
+    roomId: string | number;
     filename: string;
     index: number;
   },

@@ -67,7 +67,13 @@
         style="margin-top: 10px; display: flex; align-items: center"
       >
         <span style="flex: none">弹幕：</span>
-        <n-select v-model:value="options.danmu" :options="danmuOptions" style="width: 100px" />
+        <n-radio-group v-model:value="options.danmu">
+          <n-space>
+            <n-radio v-for="option in danmuOptions" :key="option.value" :value="option.value"
+              >{{ option.label }}
+            </n-radio>
+          </n-space>
+        </n-radio-group>
       </div>
       <div
         v-if="cOptions.hasAudioOnlyOptions"

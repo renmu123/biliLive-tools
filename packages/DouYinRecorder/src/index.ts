@@ -112,22 +112,25 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   isManualStart,
 }) {
   if (this.recordHandle != null) return this.recordHandle;
-  const liveInfo = await getInfo(this.channelId, {
-    cookie: this.auth,
-    api: this.api as APIType,
-    uid: this.uid,
-  });
-  const { living, owner, title } = liveInfo;
-  this.liveInfo = liveInfo;
+  try {
+    const liveInfo = await getInfo(this.channelId, {
+      cookie: this.auth,
+      api: this.api as APIType,
+      uid: this.uid,
+    });
+    this.liveInfo = liveInfo;
+  } catch (error) {
+    this.state = "check-error";
+    throw error;
+  }
 
-  if (liveInfo.liveId && liveInfo.liveId === banLiveId) {
+  if (this.liveInfo.liveId && this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
     this.tempStopIntervalCheck = false;
   }
-  console.log(this.tempStopIntervalCheck, living, liveInfo);
   if (this.tempStopIntervalCheck) return null;
-  if (!living) return null;
+  if (!this.liveInfo.living) return null;
 
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
@@ -152,15 +155,19 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       formatPriorities: this.formatPriorities,
       doubleScreen: this.doubleScreen,
       api: this.api as APIType,
-      uid: liveInfo.uid,
+      uid: this.uid,
     });
+    this.liveInfo.owner = res.owner;
+    this.liveInfo.title = res.title;
+    this.liveInfo.cover = res.cover;
     console.log("获取推流地址成功", res);
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
 
-    this.state = "idle";
+    this.state = "check-error";
     throw err;
   }
+  const { owner, title } = this.liveInfo;
 
   this.state = "recording";
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
@@ -256,7 +263,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("progress", progress);
   });
 
-  const client = new DouYinDanmaClient(liveInfo.liveId, {
+  const client = new DouYinDanmaClient(this.liveInfo.liveId, {
     cookie: this.auth,
   });
   client.on("chat", (msg) => {
