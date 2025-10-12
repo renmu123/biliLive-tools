@@ -257,7 +257,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("progress", progress);
   });
 
-  const client = new DouYinDanmaClient(this?.liveInfo?.liveId, {
+  const client = new DouYinDanmaClient(this?.liveInfo?.liveId as string, {
     cookie: this.auth,
   });
   client.on("chat", (msg) => {
