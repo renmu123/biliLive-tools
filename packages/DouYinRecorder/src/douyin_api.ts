@@ -3,7 +3,7 @@ import axios from "axios";
 import { isEmpty } from "lodash-es";
 import { assert, get__ac_signature } from "./utils.js";
 import { ABogus } from "./sign.js";
-import type { APIType } from "./types.js";
+import type { APIType, RoomInfo } from "./types.js";
 
 const requester = axios.create({
   timeout: 10e3,
@@ -129,7 +129,7 @@ async function getRoomInfoByUserWeb(
   opts: {
     auth?: string;
   } = {},
-) {
+): Promise<RoomInfo> {
   const url = `https://www.douyin.com/user/${secUserId}`;
   const ua =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0";
@@ -204,9 +204,9 @@ async function getRoomInfoByUserWeb(
     // const streamData = data.state.streamStore.streamData;
     return {
       living: userData?.user?.user?.roomData?.status === 2,
-      nickname: userData?.user?.user?.nickname,
-      sec_uid: userData?.user?.user?.secUid,
-      avatar: "",
+      nickname: userData?.user?.user?.nickname ?? "",
+      sec_uid: userData?.user?.user?.secUid ?? "",
+      avatar: userData?.user?.user?.avatar ?? "",
       room: {
         title: "",
         cover: "",
@@ -230,7 +230,7 @@ async function getRoomInfoByHtml(
   opts: {
     auth?: string;
   } = {},
-) {
+): Promise<RoomInfo> {
   const url = `https://live.douyin.com/${webRoomId}`;
   const ua =
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0";
@@ -266,13 +266,13 @@ async function getRoomInfoByHtml(
     const streamData = data.state.streamStore.streamData;
     return {
       living: roomInfo?.room?.status === 2,
-      nickname: roomInfo?.anchor?.nickname,
-      sec_uid: roomInfo?.anchor?.sec_uid,
-      avatar: roomInfo?.anchor?.avatar_thumb?.url_list?.[0],
+      nickname: roomInfo?.anchor?.nickname ?? "",
+      sec_uid: roomInfo?.anchor?.sec_uid ?? "",
+      avatar: roomInfo?.anchor?.avatar_thumb?.url_list?.[0] ?? "",
       room: {
-        title: roomInfo?.room?.title,
-        cover: roomInfo?.room?.cover?.url_list?.[0],
-        id_str: roomInfo?.room?.id_str,
+        title: roomInfo?.room?.title ?? "",
+        cover: roomInfo?.room?.cover?.url_list?.[0] ?? "",
+        id_str: roomInfo?.room?.id_str ?? "",
         stream_url: {
           pull_datas: roomInfo?.room?.stream_url?.pull_datas,
           live_core_sdk_data: {
@@ -295,7 +295,7 @@ async function getRoomInfoByWeb(
   opts: {
     auth?: string;
   } = {},
-) {
+): Promise<RoomInfo> {
   let cookies: string | undefined = undefined;
   if (opts.auth) {
     cookies = opts.auth;
@@ -345,14 +345,14 @@ async function getRoomInfoByWeb(
   const room = data?.data?.[0];
 
   return {
-    living: data.room_status === 0,
-    nickname: data.user.nickname,
-    avatar: data?.user?.avatar_thumb?.url_list?.[0],
-    sec_uid: data?.user?.sec_uid,
+    living: data?.room_status === 0,
+    nickname: data?.user?.nickname ?? "",
+    avatar: data?.user?.avatar_thumb?.url_list?.[0] ?? "",
+    sec_uid: data?.user?.sec_uid ?? "",
     room: {
-      title: room?.title,
-      cover: room?.cover?.url_list?.[0],
-      id_str: room?.id_str,
+      title: room?.title ?? "",
+      cover: room?.cover?.url_list?.[0] ?? "",
+      id_str: room?.id_str ?? "",
       stream_url: room?.stream_url,
     },
   };
@@ -363,7 +363,7 @@ async function getRoomInfoByMobile(
   opts: {
     auth?: string;
   } = {},
-) {
+): Promise<RoomInfo> {
   if (!secUserId) {
     throw new Error("Mobile API need secUserId, please set uid field");
   }
@@ -425,7 +425,7 @@ export async function getRoomInfo(
   liveId: string;
   uid: string;
 }> {
-  let data: Awaited<ReturnType<typeof getRoomInfoByWeb> | ReturnType<typeof getRoomInfoByHtml>>;
+  let data: RoomInfo;
   let api = opts.api ?? "web";
 
   if (api === "mobile" || api === "userHTML") {
@@ -437,7 +437,7 @@ export async function getRoomInfo(
   if (api === "webHTML") {
     data = await getRoomInfoByHtml(webRoomId, opts);
   } else if (api === "mobile") {
-    data = await getRoomInfoByMobile(opts.uid, opts);
+    data = await getRoomInfoByMobile(opts.uid as string, opts);
   } else if (api === "userHTML") {
     data = await getRoomInfoByUserWeb(opts.uid as string, opts);
   } else {

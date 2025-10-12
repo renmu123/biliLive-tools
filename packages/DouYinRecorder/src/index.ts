@@ -160,6 +160,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.liveInfo.owner = res.owner;
     this.liveInfo.title = res.title;
     this.liveInfo.cover = res.cover;
+    this.liveInfo.liveId = res.liveId;
     console.log("获取推流地址成功", res);
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
@@ -263,7 +264,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("progress", progress);
   });
 
-  const client = new DouYinDanmaClient(this?.liveInfo?.liveId, {
+  const client = new DouYinDanmaClient(this?.liveInfo?.liveId as string, {
     cookie: this.auth,
   });
   client.on("chat", (msg) => {
