@@ -48,6 +48,9 @@
     "patchedDependencies": {
       "trash": "patches/trash.patch",
       "blive-message-listener@0.5.1": "patches/blive-message-listener@0.5.1.patch"
+    },
+    "overrides": {
+      "node-abi": "3.78.0"
     }
   }
 }
