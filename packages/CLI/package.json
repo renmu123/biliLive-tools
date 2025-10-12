@@ -38,7 +38,7 @@
     "@napi-rs/canvas": "^0.1.60",
     "font-ls": "catalog:",
     "ntsuspend": "^1.0.2",
-    "better-sqlite3": "11.9.0"
+    "better-sqlite3": "catalog:"
   },
   "devDependencies": {
     "@biliLive-tools/http": "workspace:*",
