@@ -164,15 +164,15 @@ async function getRoomInfoByHtml(
     const roomInfo = data.state.roomStore.roomInfo;
     const streamData = data.state.streamStore.streamData;
     return {
-      living: roomInfo.room.status === 2,
-      nickname: roomInfo.anchor.nickname,
+      living: roomInfo?.room?.status === 2,
+      nickname: roomInfo?.anchor?.nickname,
       avatar: roomInfo.anchor?.avatar_thumb?.url_list?.[0],
       room: {
-        title: roomInfo.room.title,
-        cover: roomInfo.room.cover?.url_list?.[0],
-        id_str: roomInfo.room.id_str,
+        title: roomInfo?.room?.title,
+        cover: roomInfo?.room?.cover?.url_list?.[0],
+        id_str: roomInfo?.room?.id_str,
         stream_url: {
-          pull_datas: roomInfo.room?.stream_url?.pull_datas,
+          pull_datas: roomInfo?.room?.stream_url?.pull_datas,
           live_core_sdk_data: {
             pull_data: {
               options: { qualities: streamData.H264_streamData?.options?.qualities ?? [] },
@@ -241,18 +241,17 @@ async function getRoomInfoByWeb(
   );
 
   const data = res.data.data;
-  const room = data.data[0];
-  assert(room, `No room data, id ${webRoomId}`);
+  const room = data?.data?.[0];
 
   return {
     living: data.room_status === 0,
     nickname: data.user.nickname,
     avatar: data?.user?.avatar_thumb?.url_list?.[0],
     room: {
-      title: room.title,
-      cover: room.cover?.url_list?.[0],
-      id_str: room.id_str,
-      stream_url: room.stream_url,
+      title: room?.title,
+      cover: room?.cover?.url_list?.[0],
+      id_str: room?.id_str,
+      stream_url: room?.stream_url,
     },
   };
 }
