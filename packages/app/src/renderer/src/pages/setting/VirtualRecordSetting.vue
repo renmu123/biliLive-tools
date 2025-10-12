@@ -306,7 +306,96 @@
         <template #footer>
           <div class="modal-footer">
             <n-button @click="modalVisible = false">取消</n-button>
+            <n-button
+              type="info"
+              @click="testVirtualRecord"
+              :loading="testLoading"
+              :disabled="!canTest"
+            >
+              验证
+            </n-button>
             <n-button type="primary" @click="saveVirtualRecord">保存</n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
+
+    <!-- 测试结果模态框 -->
+    <n-modal v-model:show="showTestResult" :mask-closable="false" auto-focus>
+      <n-card
+        style="width: 800px; max-height: 80%"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+        class="modal-card"
+      >
+        <template #header>
+          <n-text>测试结果</n-text>
+        </template>
+
+        <div v-if="testResult">
+          <!-- 文件列表 -->
+          <div v-if="testResult.files.length > 0" class="test-files">
+            <h4>找到的文件（{{ testResult.files.length }} 个）：</h4>
+            <div class="file-list">
+              <n-card
+                v-for="(file, index) in testResult.files"
+                :key="index"
+                size="small"
+                style="margin-bottom: 8px"
+              >
+                <div class="file-info">
+                  <div class="file-path">
+                    <n-text depth="3">文件：</n-text>
+                    <n-text>{{ file.filename }}</n-text>
+                  </div>
+                  <div class="file-details">
+                    <div>
+                      <n-text depth="3">房间号：</n-text>
+                      <n-text>{{ file.roomId || "未知" }}</n-text>
+                    </div>
+                    <div>
+                      <n-text depth="3">主播：</n-text>
+                      <n-text>{{ file.username || "未知主播" }}</n-text>
+                    </div>
+                    <div>
+                      <n-text depth="3">标题：</n-text>
+                      <n-text>{{ file.title || "未知标题" }}</n-text>
+                    </div>
+                    <div>
+                      <n-text depth="3">开始时间：</n-text>
+                      <n-text>{{ new Date(file.startTimeMs).toLocaleString() }}</n-text>
+                    </div>
+                  </div>
+                </div>
+              </n-card>
+            </div>
+          </div>
+
+          <!-- 无文件提示 -->
+          <div v-if="testResult.files.length === 0">
+            <n-empty description="未找到符合条件的文件">
+              <template #icon>
+                <n-icon>
+                  <FolderOpenOutline />
+                </n-icon>
+              </template>
+            </n-empty>
+          </div>
+        </div>
+
+        <template #footer>
+          <div class="modal-footer">
+            <n-button @click="showTestResult = false">关闭</n-button>
+            <n-button
+              v-if="testResult && testResult.files.length > 0"
+              type="primary"
+              @click="executeVirtualRecord"
+              style="display: none"
+            >
+              确认执行
+            </n-button>
           </div>
         </template>
       </n-card>
@@ -320,6 +409,7 @@ import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { useConfirm } from "@renderer/hooks";
 import { uuid, formatTime } from "@renderer/utils";
 import Tip from "@renderer/components/Tip.vue";
+import task from "@renderer/apis/task";
 import type { AppConfig } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
@@ -351,6 +441,20 @@ const editingConfig = ref({
   ignoreFileRegex: "",
   startTimeAutoMatch: true,
 });
+
+// 测试相关
+const testLoading = ref(false);
+const testResult = ref<{
+  files: Array<{
+    path: string;
+    filename: string;
+    startTimeMs: number;
+    roomId?: string;
+    title?: string;
+    username?: string;
+  }>;
+} | null>(null);
+const showTestResult = ref(false);
 
 // 新文件夹路径输入
 const newFolderPath = ref("");
@@ -388,6 +492,65 @@ const formRules = computed(() => {
     };
   }
 });
+
+// 计算属性：是否可以测试
+const canTest = computed(() => {
+  if (editingConfig.value.mode === "normal") {
+    return !!(editingConfig.value.roomId && editingConfig.value.watchFolder.length > 0);
+  } else {
+    return !!(editingConfig.value.roomIdRegex && editingConfig.value.watchFolder.length > 0);
+  }
+});
+
+// 测试虚拟录制配置
+const testVirtualRecord = async () => {
+  if (!canTest.value) {
+    notice.warning("请先填写必要参数");
+    return;
+  }
+
+  testLoading.value = true;
+  try {
+    const result = await task.testVirtualRecord(
+      { ...editingConfig.value, switch: true },
+      editingConfig.value.watchFolder[0], // 只发送第一个文件夹
+      config.value.virtualRecord.startTime,
+    );
+
+    testResult.value = result;
+    showTestResult.value = true;
+
+    if (result.files.length === 0) {
+      notice.info("未找到符合条件的文件");
+    } else {
+      notice.success(`找到 ${result.files.length} 个符合条件的文件`);
+    }
+  } catch (error) {
+    notice.error(`测试失败: ${error instanceof Error ? error.message : "未知错误"}`);
+  } finally {
+    testLoading.value = false;
+  }
+};
+
+// 执行虚拟录制
+const executeVirtualRecord = async () => {
+  if (!testResult.value || testResult.value.files.length === 0) {
+    notice.warning("没有可执行的文件");
+    return;
+  }
+
+  try {
+    await task.executeVirtualRecord(
+      { ...editingConfig.value, switch: true },
+      editingConfig.value.watchFolder[0],
+      config.value.virtualRecord.startTime,
+    );
+    notice.success("执行成功");
+    showTestResult.value = false;
+  } catch (error) {
+    notice.error(`执行失败: ${error instanceof Error ? error.message : "未知错误"}`);
+  }
+};
 
 // 添加虚拟录制配置
 const addVirtualRecord = () => {
@@ -628,5 +791,39 @@ const setStartTime = async () => {
   cursor: pointer;
   color: skyblue;
   text-decoration: underline;
+}
+
+/* 测试结果样式 */
+.test-files {
+  margin-bottom: 20px;
+}
+
+.file-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-path {
+  display: flex;
+  gap: 8px;
+  font-weight: bold;
+}
+
+.file-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+
+  > div {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
 }
 </style>

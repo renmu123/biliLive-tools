@@ -24,6 +24,10 @@ import {
 } from "@biliLive-tools/shared/task/video.js";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { trashItem } from "@biliLive-tools/shared/utils/index.js";
+import {
+  testVirtualRecordConfig,
+  executeVirtualRecordConfig,
+} from "@biliLive-tools/shared/task/virtualRecord.js";
 import { fileCache } from "../index.js";
 
 import type { DanmuPreset, DanmaOptions } from "@biliLive-tools/types";
@@ -328,6 +332,100 @@ router.get("/:id/download", async (ctx) => {
   const fileId = fileCache.setFile(task.output);
 
   ctx.body = fileId;
+});
+
+router.post("/testVirtualRecord", async (ctx) => {
+  const { config, folderPath, startTime } = ctx.request.body as {
+    config: any;
+    folderPath: string;
+    startTime?: number;
+  };
+
+  if (!config) {
+    ctx.status = 400;
+    ctx.body = "config is required";
+    return;
+  }
+
+  if (!folderPath) {
+    ctx.status = 400;
+    ctx.body = "folderPath is required";
+    return;
+  }
+
+  // 验证必填参数
+  if (config.mode === "normal") {
+    if (!config.roomId) {
+      ctx.status = 400;
+      ctx.body = "roomId is required for normal mode";
+      return;
+    }
+  } else if (config.mode === "advance") {
+    if (!config.roomIdRegex) {
+      ctx.status = 400;
+      ctx.body = "roomIdRegex is required for advance mode";
+      return;
+    }
+  } else {
+    ctx.status = 400;
+    ctx.body = "invalid mode";
+    return;
+  }
+
+  try {
+    const result = await testVirtualRecordConfig(config, folderPath, startTime);
+    ctx.body = result;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = error instanceof Error ? error.message : "Internal server error";
+  }
+});
+
+router.post("/executeVirtualRecord", async (ctx) => {
+  const { config, folderPath, startTime } = ctx.request.body as {
+    config: any;
+    folderPath: string;
+    startTime?: number;
+  };
+
+  if (!config) {
+    ctx.status = 400;
+    ctx.body = "config is required";
+    return;
+  }
+
+  if (!folderPath) {
+    ctx.status = 400;
+    ctx.body = "folderPath is required";
+    return;
+  }
+
+  // 验证必填参数
+  if (config.mode === "normal") {
+    if (!config.roomId) {
+      ctx.status = 400;
+      ctx.body = "roomId is required for normal mode";
+      return;
+    }
+  } else if (config.mode === "advance") {
+    if (!config.roomIdRegex) {
+      ctx.status = 400;
+      ctx.body = "roomIdRegex is required for advance mode";
+      return;
+    }
+  } else {
+    ctx.status = 400;
+    ctx.body = "invalid mode";
+    return;
+  }
+
+  try {
+    await executeVirtualRecordConfig(config, folderPath, startTime);
+    ctx.body = { success: true, message: "执行成功" };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = error instanceof Error ? error.message : "Internal server error";
+  }
 });
 
 export default router;
