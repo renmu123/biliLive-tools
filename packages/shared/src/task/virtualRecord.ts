@@ -68,16 +68,18 @@ const extractStartTimeFromFilename = (
 };
 
 /**
- * 处理单个文件夹的检查
+ * 获取符合条件的文件列表
  */
-const checkFolder = async (config: VirtualRecordConfig, folderPath: string, startTime: number) => {
-  if (!config.switch) return;
-
+const getMatchingFiles = async (
+  config: VirtualRecordConfig,
+  folderPath: string,
+  startTime: number,
+): Promise<FileInfo[]> => {
   // 检查监听文件夹是否存在
   const exists = await fs.pathExists(folderPath);
   if (!exists) {
     logger.warn(`文件夹不存在: ${folderPath}`);
-    return;
+    return [];
   }
 
   // 筛选出符合条件的文件
@@ -116,8 +118,7 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
     });
 
   if (videoFiles.length === 0) {
-    // logger.debug(`没有找到符合条件的文件：${folderPath}`);
-    return;
+    return [];
   }
 
   // 读取数据库，排除掉已存在的记录
@@ -126,7 +127,7 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
   const unprocessedFiles = videoFiles.filter((file) => !existingPathSets.has(file));
 
   if (unprocessedFiles.length === 0) {
-    return;
+    return [];
   }
 
   const stats = await Promise.allSettled(unprocessedFiles.map((file) => fs.stat(file)));
@@ -168,8 +169,18 @@ const checkFolder = async (config: VirtualRecordConfig, folderPath: string, star
       return a.startTimeMs - b.startTimeMs;
     });
 
+  return newRecords;
+};
+
+/**
+ * 处理单个文件夹的检查
+ */
+const checkFolder = async (config: VirtualRecordConfig, folderPath: string, startTime: number) => {
+  if (!config.switch) return;
+
+  const newRecords = await getMatchingFiles(config, folderPath, startTime);
+
   if (newRecords.length === 0) {
-    // logger.debug(`没有找到符合条件的新文件：${folderPath}`);
     return;
   }
 
@@ -318,10 +329,99 @@ async function checkVirtualRecordLoop() {
 }
 
 /**
+ * 获取符合条件的文件列表（用于测试）
+ */
+const getMatchingFilesWithInfo = async (
+  config: VirtualRecordConfig,
+  folderPath: string,
+  startTime: number,
+): Promise<{
+  files: Array<{
+    path: string;
+    filename: string;
+    startTimeMs: number;
+    roomId?: string;
+    title?: string;
+    username?: string;
+  }>;
+}> => {
+  const newRecords = await getMatchingFiles(config, folderPath, startTime);
+
+  // 为每个文件提取信息
+  const filesWithInfo = newRecords.map((file) => {
+    const filename = path.basename(file.path);
+
+    let roomId = config.roomId;
+    let title = "未知标题";
+    let username = config.username || "未知主播";
+
+    // 高级模式：从文件名中提取信息
+    if (config.mode === "advance") {
+      // 提取房间号
+      const extractedRoomId = extractInfoFromFilename(filename, config.roomIdRegex);
+      if (extractedRoomId) {
+        roomId = extractedRoomId;
+      }
+
+      // 提取主播名称（可选）
+      if (config.usernameRegex) {
+        const extractedUsername = extractInfoFromFilename(filename, config.usernameRegex);
+        if (extractedUsername) {
+          username = extractedUsername;
+        }
+      }
+    }
+
+    // 提取标题（两种模式都支持）
+    if (config.titleRegex) {
+      const extractedTitle = extractInfoFromFilename(filename, config.titleRegex);
+      if (extractedTitle) {
+        title = extractedTitle;
+      }
+    }
+
+    return {
+      path: file.path,
+      filename,
+      startTimeMs: file.startTimeMs,
+      roomId,
+      title,
+      username,
+    };
+  });
+
+  return { files: filesWithInfo };
+};
+
+/**
  * 启动虚拟录制检查
  */
 export async function check() {
   // 默认使用轮询方式实现
   checkVirtualRecordLoop();
   // TODO: 之后可能采取 watch 方式实现
+}
+
+/**
+ * 测试虚拟录制配置
+ */
+export async function testVirtualRecordConfig(
+  config: VirtualRecordConfig,
+  folderPath: string,
+  startTime?: number,
+) {
+  const actualStartTime = startTime || Date.now() - 24 * 60 * 60 * 1000; // 默认24小时前
+  return await getMatchingFilesWithInfo(config, folderPath, actualStartTime);
+}
+
+/**
+ * 执行虚拟录制配置
+ */
+export async function executeVirtualRecordConfig(
+  config: VirtualRecordConfig,
+  folderPath: string,
+  startTime?: number,
+) {
+  const actualStartTime = startTime || Date.now() - 24 * 60 * 60 * 1000; // 默认24小时前
+  return await checkFolder(config, folderPath, actualStartTime);
 }
