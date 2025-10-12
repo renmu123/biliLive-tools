@@ -16,6 +16,20 @@ vi.mock("../src/record_extra_data_controller", () => ({
     flush: vi.fn(),
   }),
 }));
+
+vi.mock("../src/xml_stream_controller", () => ({
+  createRecordExtraDataController: () => ({
+    data: {
+      meta: {
+        recordStartTimestamp: Date.now(),
+      },
+      messages: [],
+    },
+    addMessage: vi.fn(),
+    setMeta: vi.fn(),
+    flush: vi.fn(),
+  }),
+}));
 // vi.mock("../src/utils");
 
 describe("StreamManager", () => {
