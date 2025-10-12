@@ -225,7 +225,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
-      liveStartTimestamp: this.liveInfo.startTime?.getTime(),
+      liveStartTimestamp: this?.liveInfo?.startTime?.getTime(),
       // recordStopTimestamp: Date.now(),
       title: title,
       user_name: owner,
