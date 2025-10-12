@@ -4,6 +4,7 @@
 
 - [Oneliverec](https://www.oneliverec.cc/) 录制软件的 webhook 支持 [#169](https://github.com/renmu123/biliLive-tools/pull/169)
 - B站视频下载画质支持 [#171](https://github.com/renmu123/biliLive-tools/pull/171)
+- 虚拟录制：新增“验证”按钮来实现快速的文件夹验证
 
 ## 优化
 
@@ -14,6 +15,7 @@
 
 - 修复部分接口的错误信息未正常显示的bug
 - 录制：修复 mesio 某些情况下录制结束重命名错误的bug
+- 录制：修复抖音某些无法获取到直播间信息仍返回部分必要信息
 
 # 3.0.1
 

@@ -1,3 +1,7 @@
+# 1.6.1
+
+- 修复 mesio 某些情况下录制结束重命名错误的bug
+
 # 1.6.0
 
 - 支持 `recorderType` 参数用于配置底层录制器，支持`auto | ffmpeg | mesio`

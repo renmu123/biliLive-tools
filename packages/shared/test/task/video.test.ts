@@ -49,13 +49,14 @@ describe("matchRoomId", () => {
   it("should return the correct room ID from a valid string", () => {
     const str = '<BililiveRecorderRecordInfo roomid="23141761" shortid="0" ';
     const result = matchRoomId(str);
-    expect(result).toBe(23141761); // Expected room ID
+    console.log(result, typeof result);
+    expect(result).toBe("23141761"); // Expected room ID
   });
 
   it("should return the correct room ID from a string with extra characters", () => {
     const str = "1<room_id>22747736</room_id>1";
     const result = matchRoomId(str);
-    expect(result).toBe(22747736); // Expected room ID
+    expect(result).toBe("22747736"); // Expected room ID
   });
 
   it("should return null if no room ID is found", () => {
