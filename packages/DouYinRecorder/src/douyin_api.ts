@@ -156,7 +156,6 @@ async function getRoomInfoByUserWeb(
       cookie: cookies,
     },
   });
-  console.log(ua, cookies);
 
   if (res.data.includes("验证码")) {
     throw new Error("需要验证码，请在浏览器中打开链接获取" + url);
