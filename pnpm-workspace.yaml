@@ -10,7 +10,7 @@ packages:
 catalog:
   lodash-es: ^4.17.21
   axios: ^1.7.8
-  better-sqlite3: 11.9.0
-  font-ls: 0.6.0
+  better-sqlite3: 12.4.1
+  font-ls: 0.6.1
   ntsuspend: ^1.0.2
   mitt: ^3.0.1

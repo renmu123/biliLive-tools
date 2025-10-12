@@ -10,11 +10,11 @@ catalogs:
       specifier: ^1.7.8
       version: 1.7.8
     better-sqlite3:
-      specifier: 11.9.0
-      version: 11.9.0
+      specifier: 12.4.1
+      version: 12.4.1
     font-ls:
-      specifier: 0.6.0
-      version: 0.6.0
+      specifier: 0.6.1
+      version: 0.6.1
     lodash-es:
       specifier: ^4.17.21
       version: 4.17.21
@@ -130,7 +130,7 @@ importers:
         version: 11.9.0
       font-ls:
         specifier: 'catalog:'
-        version: 0.6.0
+        version: 0.6.1
       ntsuspend:
         specifier: ^1.0.2
         version: 1.0.2
@@ -288,7 +288,7 @@ importers:
         version: 0.1.60
       better-sqlite3:
         specifier: 'catalog:'
-        version: 11.9.0
+        version: 12.4.1
       bufferutil:
         specifier: ^4.0.8
         version: 4.0.8
@@ -306,7 +306,7 @@ importers:
         version: 6.3.9
       font-ls:
         specifier: 'catalog:'
-        version: 0.6.0
+        version: 0.6.1
       ntsuspend:
         specifier: 'catalog:'
         version: 1.0.2
@@ -602,7 +602,7 @@ importers:
         version: 11.0.4
       better-sqlite3:
         specifier: 'catalog:'
-        version: 11.9.0
+        version: 12.4.1
       check-disk-space:
         specifier: ^3.4.0
         version: 3.4.0
@@ -620,7 +620,7 @@ importers:
         version: 4.5.0
       font-ls:
         specifier: 'catalog:'
-        version: 0.6.0
+        version: 0.6.1
       nodemailer:
         specifier: ^6.9.16
         version: 6.9.16
@@ -2322,6 +2322,10 @@ packages:
   better-sqlite3@11.9.0:
     resolution: {integrity: sha512-4b9xYnoaskj8eIkke9ZCB42p5bOPabptSku8Rl4Yww70Jf+aHeLvrIjXDJrKQxUEjdppsFb+fdJSjoH4TklROA==}
 
+  better-sqlite3@12.4.1:
+    resolution: {integrity: sha512-3yVdyZhklTiNrtg+4WqHpJpFDd+WHTg2oM7UcR80GqL05AOV0xEJzc6qNvFYoEtE+hRp1n9MpN6/+4yhlGkDXQ==}
+    engines: {node: 20.x || 22.x || 23.x || 24.x}
+
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
     engines: {node: '>=8'}
@@ -3267,8 +3271,8 @@ packages:
       debug:
         optional: true
 
-  font-ls@0.6.0:
-    resolution: {integrity: sha512-BPnbSfd4dUHM4cxOBClep3N2MEQchZG/n4ppbK5yaXdh0mWn0OVP18kozFdJd5C3tuiGwy0COgAli6f8pTQMJg==}
+  font-ls@0.6.1:
+    resolution: {integrity: sha512-RjEX22IltJZzDeehnNY2iRArE2u9vN0WkyUEYnCrHSr6/ZLtaV61ObegSgBXhPVn3y2GSd6am5xTXqgoCX3VvA==}
 
   foreground-child@3.3.0:
     resolution: {integrity: sha512-Ld2g8rrAyMYFXBhEqMz8ZAHBi4J4uS1i/CxGMDnjyFWddMXLVcDp051DZfu+t7+ab7Wv6SMqpWmyFIj5UbfFvg==}
@@ -7408,6 +7412,11 @@ snapshots:
       bindings: 1.5.0
       prebuild-install: 7.1.2
 
+  better-sqlite3@12.4.1:
+    dependencies:
+      bindings: 1.5.0
+      prebuild-install: 7.1.2
+
   binary-extensions@2.3.0: {}
 
   bindings@1.5.0:
@@ -8507,7 +8516,7 @@ snapshots:
 
   follow-redirects@1.15.9: {}
 
-  font-ls@0.6.0:
+  font-ls@0.6.1:
     dependencies:
       node-addon-api: 8.5.0
 
