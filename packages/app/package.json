@@ -78,7 +78,7 @@
     "marked": "^14.1.4",
     "mitt": "catalog:",
     "mpegts.js": "^1.8.0",
-    "naive-ui": "^2.40.3",
+    "naive-ui": "^2.43.1",
     "path-unified": "^0.2.0",
     "pinia": "^3.0.1",
     "sortablejs": "^1.15.6",
