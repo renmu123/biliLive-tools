@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { v4 as uuid } from "uuid";
 import { omit } from "lodash-es";
 

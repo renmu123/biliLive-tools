@@ -482,6 +482,9 @@ importers:
       '@koa/cors':
         specifier: ^5.0.0
         version: 5.0.0
+      '@koa/router':
+        specifier: ^14.0.0
+        version: 14.0.0
       chokidar:
         specifier: ^3.6.0
         version: 3.6.0
@@ -491,9 +494,6 @@ importers:
       koa:
         specifier: ^2.15.3
         version: 2.15.3
-      koa-router:
-        specifier: ^13.0.1
-        version: 13.0.1
       koa-sse-stream:
         specifier: ^0.2.0
         version: 0.2.0
@@ -510,9 +510,9 @@ importers:
       '@types/koa':
         specifier: ^2.15.0
         version: 2.15.0
-      '@types/koa-router':
-        specifier: ^7.4.8
-        version: 7.4.8
+      '@types/koa__router':
+        specifier: ^12.0.4
+        version: 12.0.4
       tsx:
         specifier: ^4.19.2
         version: 4.19.2
@@ -1260,6 +1260,10 @@ packages:
     resolution: {integrity: sha512-x/iUDjcS90W69PryLDIMgFyV21YLTnG9zOpPXS7Bkt2b8AsY3zZsIpOLBkYr9fBcF3HbkKaER5hOBZLfpLgYNw==}
     engines: {node: '>= 14.0.0'}
 
+  '@koa/router@14.0.0':
+    resolution: {integrity: sha512-LBSu5K0qAaaQcXX/0WIB9PGDevyCxxpnc1uq13vV/CgObaVxuis5hKl3Eboq/8gcb6ebnkAStW9NB/Em2eYyFA==}
+    engines: {node: '>= 20'}
+
   '@malept/cross-spawn-promise@1.1.1':
     resolution: {integrity: sha512-RTBGWL5FWQcg9orDOCcp4LvItNzUPcyEU9bwaeJX0rJ1IQxzucC48Y0/sQLp/g6t99IQgAlGIaesJS+gTn7tVQ==}
     engines: {node: '>= 10'}
@@ -1746,11 +1750,11 @@ packages:
   '@types/koa-compose@3.2.8':
     resolution: {integrity: sha512-4Olc63RY+MKvxMwVknCUDhRQX1pFQoBZ/lXcRLP69PQkEpze/0cr8LNqJQe5NFb/b19DWi2a5bTi2VAlQzhJuA==}
 
-  '@types/koa-router@7.4.8':
-    resolution: {integrity: sha512-SkWlv4F9f+l3WqYNQHnWjYnyTxYthqt8W9az2RTdQW7Ay8bc00iRZcrb8MC75iEfPqnGcg2csEl8tTG1NQPD4A==}
-
   '@types/koa@2.15.0':
     resolution: {integrity: sha512-7QFsywoE5URbuVnG3loe03QXuGajrnotr3gQkXcEBShORai23MePfFYdhz90FEtBBpkyIYQbVD+evKtloCgX3g==}
+
+  '@types/koa__router@12.0.4':
+    resolution: {integrity: sha512-Y7YBbSmfXZpa/m5UGGzb7XadJIRBRnwNY9cdAojZGp65Cpe5MAP3mOZE7e3bImt8dfKS4UFcR16SLH8L/z7PBw==}
 
   '@types/linkify-it@5.0.0':
     resolution: {integrity: sha512-sVDA58zAw4eWAffKOaQH5/5j3XeayukzDk+ewSsnv3p4yJEZHCCzMDiZM8e0OUrRvmpGZ85jf4yDHkHsgBNr9Q==}
@@ -2703,6 +2707,15 @@ packages:
 
   debug@4.4.0:
     resolution: {integrity: sha512-6WTZ/IxCY/T6BALoZHaE4ctp9xm+Z5kY/pzYaCHRFeyVhojxlrm+46y68HA6hr0TcwEssoxNiDEUJQjfPZ/RYA==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+
+  debug@4.4.3:
+    resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
     engines: {node: '>=6.0'}
     peerDependencies:
       supports-color: '*'
@@ -3831,11 +3844,6 @@ packages:
   koa-convert@2.0.0:
     resolution: {integrity: sha512-asOvN6bFlSnxewce2e/DK3p4tltyfC4VM7ZwuTuepI7dEQVcvpyFuBcEARu1+Hxg8DIwytce2n7jrZtRlPrARA==}
     engines: {node: '>= 10'}
-
-  koa-router@13.0.1:
-    resolution: {integrity: sha512-4/sijXdSxocIe2wv7RFFSxvo2ic1pDzPSmy11yCGztng1hx408qfw1wVmN3aqhQaU7U6nJ039JKC8ObE73Ohgw==}
-    engines: {node: '>= 18'}
-    deprecated: 'Please use @koa/router instead, starting from v9! '
 
   koa-sse-stream@0.2.0:
     resolution: {integrity: sha512-Dyp3YS5HfnpE17Mk8HWl+6IMVgO/VU5rGXPKjgej+BrfdZZfRv2AXAm6osd380xcjhcXJgaHg23ntdLbpjCIDQ==}
@@ -5702,7 +5710,7 @@ snapshots:
       '@babel/traverse': 7.25.9
       '@babel/types': 7.26.0
       convert-source-map: 2.0.0
-      debug: 4.3.7
+      debug: 4.4.0
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -6243,6 +6251,15 @@ snapshots:
     dependencies:
       vary: 1.1.2
 
+  '@koa/router@14.0.0':
+    dependencies:
+      debug: 4.4.3
+      http-errors: 2.0.0
+      koa-compose: 4.1.0
+      path-to-regexp: 8.2.0
+    transitivePeerDependencies:
+      - supports-color
+
   '@malept/cross-spawn-promise@1.1.1':
     dependencies:
       cross-spawn: 7.0.5
@@ -6647,10 +6664,6 @@ snapshots:
     dependencies:
       '@types/koa': 2.15.0
 
-  '@types/koa-router@7.4.8':
-    dependencies:
-      '@types/koa': 2.15.0
-
   '@types/koa@2.15.0':
     dependencies:
       '@types/accepts': 1.3.7
@@ -6661,6 +6674,10 @@ snapshots:
       '@types/keygrip': 1.0.6
       '@types/koa-compose': 3.2.8
       '@types/node': 20.17.6
+
+  '@types/koa__router@12.0.4':
+    dependencies:
+      '@types/koa': 2.15.0
 
   '@types/linkify-it@5.0.0': {}
 
@@ -6799,7 +6816,7 @@ snapshots:
       '@typescript-eslint/types': 8.17.0
       '@typescript-eslint/typescript-estree': 8.17.0(typescript@5.6.3)
       '@typescript-eslint/visitor-keys': 8.17.0
-      debug: 4.3.7
+      debug: 4.4.0
       eslint: 8.57.1
     optionalDependencies:
       typescript: 5.6.3
@@ -6832,7 +6849,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 8.17.0(typescript@5.6.3)
       '@typescript-eslint/utils': 8.17.0(eslint@8.57.1)(typescript@5.6.3)
-      debug: 4.3.7
+      debug: 4.4.0
       eslint: 8.57.1
       ts-api-utils: 1.4.0(typescript@5.6.3)
     optionalDependencies:
@@ -7199,7 +7216,7 @@ snapshots:
 
   agent-base@6.0.2:
     dependencies:
-      debug: 4.3.7
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
 
@@ -7854,6 +7871,10 @@ snapshots:
       ms: 2.1.3
 
   debug@4.4.0:
+    dependencies:
+      ms: 2.1.3
+
+  debug@4.4.3:
     dependencies:
       ms: 2.1.3
 
@@ -9127,12 +9148,6 @@ snapshots:
     dependencies:
       co: 4.6.0
       koa-compose: 4.1.0
-
-  koa-router@13.0.1:
-    dependencies:
-      http-errors: 2.0.0
-      koa-compose: 4.1.0
-      path-to-regexp: 8.2.0
 
   koa-sse-stream@0.2.0:
     dependencies:

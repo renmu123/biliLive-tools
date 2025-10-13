@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { ollama } from "@biliLive-tools/shared/llm/index.js";
 import { addTranslateTask } from "@biliLive-tools/shared/task/llm.js";
 

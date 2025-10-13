@@ -1,6 +1,6 @@
 import path from "node:path";
 import fs from "fs-extra";
-import Router from "koa-router";
+import Router from "@koa/router";
 import { config, fileCache } from "../index.js";
 
 const router = new Router({

@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "fs-extra";
 import JSZip from "jszip";
 
-import Router from "koa-router";
+import Router from "@koa/router";
 import { appConfig, container } from "../index.js";
 import multer from "../middleware/multer.js";
 import { _send } from "@biliLive-tools/shared/notify.js";
