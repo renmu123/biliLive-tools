@@ -69,7 +69,7 @@
     "eslint": "^8.57.1",
     "eslint-plugin-vue": "^9.32.0",
     "file-saver": "^2.0.5",
-    "filenamify": "^6.0.0",
+    "filenamify": "^7.0.0",
     "flv.js": "^1.6.2",
     "hls.js": "^1.5.17",
     "hotkeys-js": "^3.13.7",
