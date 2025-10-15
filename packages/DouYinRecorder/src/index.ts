@@ -161,7 +161,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.liveInfo.title = res.title;
     this.liveInfo.cover = res.cover;
     this.liveInfo.liveId = res.liveId;
-    console.log("获取推流地址成功", res);
+    this.liveInfo.avatar = res.avatar;
+    this.liveInfo.startTime = new Date();
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
 
@@ -196,7 +197,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   let recorderType: Parameters<typeof createBaseRecorder>[0] =
     this.recorderType === "mesio" ? "mesio" : "ffmpeg";
-  // TODO:测试只录制音频，hls以及fmp4
   const recorder = createBaseRecorder(
     recorderType,
     {
