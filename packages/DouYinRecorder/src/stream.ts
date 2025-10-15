@@ -1,4 +1,5 @@
 import { getRoomInfo } from "./douyin_api.js";
+import { globalLoadBalancer } from "./loadBalancer/loadBalancer.js";
 
 import type { Recorder } from "@bililive-tools/manager";
 import type { APIType } from "./types.js";
@@ -21,7 +22,17 @@ export async function getInfo(
   liveId: string;
   uid: string;
 }> {
-  const info = await getRoomInfo(channelId, opts ?? {});
+  let info;
+
+  // 如果使用 auto 模式，使用负载均衡器
+  if (opts?.api === "auto") {
+    info = await globalLoadBalancer.callWithLoadBalance(channelId, {
+      auth: opts.cookie,
+      uid: opts.uid,
+    });
+  } else {
+    info = await getRoomInfo(channelId, opts ?? {});
+  }
 
   return {
     living: info.living,
