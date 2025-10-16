@@ -48,7 +48,7 @@ interface Options {
   recorderType?: "auto" | "ffmpeg" | "mesio"; // 底层录制器，使用mesio时videoFormat参数无效
   auth?: string; // 传递cookie
   uid?: string; // 参数为 sec_user_uid 参数
-  api?: "web" | "webHTML" | "mobile" | "userHTML"; // 使用不同的接口，具体区别见文档
+  api?: "web" | "webHTML" | "mobile" | "userHTML" | "auto"; // 使用不同的接口，默认使用web，具体区别见文档
 }
 ```
 
@@ -86,6 +86,7 @@ const { id } = await provider.resolveChannelInfoFromURL(url);
 | `https://webcast.amemv.com/webcast/room/reflow/info/` | mobile直播间接口 | 易风控，无验证码，海外IP可能无法使用                       |
 | `https://live.douyin.com/${webRoomId}`                | 直播间web解析    | 易风控，有验证码，单个接口1M流量                           |
 | `https://www.douyin.com/user/${secUserId}`            | 用户web解析      | 不易风控，海外IP无法使用，单个接口1M流量，只能用于状态检查 |
+| `auto`                                                | 负载均衡         | 使用负载均衡算法来分摊防止风控                             |
 
 # 协议
 

@@ -345,6 +345,7 @@ const config = defineModel<AppConfig>("data", {
 });
 
 const douyinApiTypeOptions = ref([
+  { label: "负载均衡", value: "auto" },
   { label: "web接口", value: "web" },
   { label: "mobile接口", value: "mobile" },
   { label: "直播html解析", value: "webHTML" },
