@@ -109,11 +109,16 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 }) {
   if (this.recordHandle != null) return this.recordHandle;
 
-  const liveInfo = await getInfo(this.channelId);
-  const { living, owner, title } = liveInfo;
-  this.liveInfo = liveInfo;
+  try {
+    const liveInfo = await getInfo(this.channelId);
+    this.liveInfo = liveInfo;
+  } catch (error) {
+    this.state = "check-error";
+    throw error;
+  }
+  const { living, owner, title } = this.liveInfo;
 
-  if (liveInfo.liveId === banLiveId) {
+  if (this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
     this.tempStopIntervalCheck = false;
@@ -220,7 +225,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
-      liveStartTimestamp: liveInfo.startTime?.getTime(),
+      liveStartTimestamp: this?.liveInfo?.startTime?.getTime(),
       // recordStopTimestamp: Date.now(),
       title: title,
       user_name: owner,

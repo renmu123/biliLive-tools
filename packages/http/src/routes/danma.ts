@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 
 import { mergeXml } from "@biliLive-tools/shared/task/danmu.js";
 

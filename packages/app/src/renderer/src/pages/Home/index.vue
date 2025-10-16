@@ -22,7 +22,7 @@
     <FileArea
       v-model="fileList"
       :extensions="['flv', 'mp4', 'ass', 'xml', 'm4s', 'ts', 'mkv']"
-      desc="请选择视频以及弹幕文件，如果为xml将自动转换为ass"
+      desc="将视频和弹幕压制到一个文件中，请选择视频以及弹幕文件，如果为xml将自动转换为ass"
       :max="2"
     ></FileArea>
     <n-tabs type="segment" style="margin-top: 10px" class="tabs">

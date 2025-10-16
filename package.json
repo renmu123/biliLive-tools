@@ -32,7 +32,7 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-typescript": "^11.1.6",
-    "@types/node": "20.17.6",
+    "@types/node": "24.7.2",
     "@types/uuid": "^10.0.0",
     "@vitest/coverage-istanbul": "^2.1.8",
     "cli-progress": "^3.12.0",
@@ -40,7 +40,7 @@
     "prettier": "^3.4.1",
     "rollup": "^4.24.4",
     "tar": "^7.4.3",
-    "typescript": "5.6.3",
+    "typescript": "5.9.3",
     "vitest": "^3.1.1"
   },
   "packageManager": "pnpm@9.15.2+sha512.93e57b0126f0df74ce6bff29680394c0ba54ec47246b9cf321f0121d8d9bb03f750a705f24edc3c1180853afd7c2c3b94196d0a3d53d3e069d9e2793ef11f321",
@@ -48,6 +48,9 @@
     "patchedDependencies": {
       "trash": "patches/trash.patch",
       "blive-message-listener@0.5.1": "patches/blive-message-listener@0.5.1.patch"
+    },
+    "overrides": {
+      "node-abi": "3.78.0"
     }
   }
 }

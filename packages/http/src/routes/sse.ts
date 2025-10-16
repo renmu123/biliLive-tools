@@ -1,5 +1,5 @@
 import fs from "node:fs";
-import Router from "koa-router";
+import Router from "@koa/router";
 import chokidar from "chokidar";
 import sse from "koa-sse-stream";
 import { createRecorderManager } from "@biliLive-tools/shared";

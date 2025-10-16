@@ -33,7 +33,7 @@ async function updatePnpm() {
   fs.readFile(filePath, "utf8", (err, data) => {
     if (err) {
       console.error(err);
-      return;
+      throw err;
     }
     const result = data.replace(/^#!.*\n/, "#!node\n");
     fs.writeFile(filePath, result, "utf8", (err) => {

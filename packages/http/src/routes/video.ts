@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import Router from "koa-router";
+import Router from "@koa/router";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
 import huya from "@biliLive-tools/shared/task/huya.js";
 import biliApi from "@biliLive-tools/shared/task/bili.js";

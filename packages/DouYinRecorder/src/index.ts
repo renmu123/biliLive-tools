@@ -111,14 +111,20 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 }) {
   if (this.recordHandle != null) return this.recordHandle;
 
-  const liveInfo = await getInfo(this.channelId, {
-    cookie: this.auth,
-    api: this.api as "web" | "webHTML",
-  });
-  const { living, owner, title } = liveInfo;
-  this.liveInfo = liveInfo;
+  try {
+    const liveInfo = await getInfo(this.channelId, {
+      cookie: this.auth,
+      api: this.api as "web" | "webHTML",
+    });
+    this.liveInfo = liveInfo;
+  } catch (error) {
+    this.state = "check-error";
+    throw error;
+  }
 
-  if (liveInfo.liveId === banLiveId) {
+  const { living, owner, title } = this.liveInfo;
+
+  if (this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
     this.tempStopIntervalCheck = false;
@@ -251,7 +257,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("progress", progress);
   });
 
-  const client = new DouYinDanmaClient(liveInfo.liveId, {
+  const client = new DouYinDanmaClient(this?.liveInfo?.liveId as string, {
     cookie: this.auth,
   });
   client.on("chat", (msg) => {

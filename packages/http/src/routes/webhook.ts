@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import Router from "koa-router";
+import Router from "@koa/router";
 import { Client } from "@renmu/bili-api";
 
 import { handler, appConfig } from "../index.js";
