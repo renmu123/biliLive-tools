@@ -4,7 +4,7 @@
 
 - [Oneliverec](https://www.oneliverec.cc/) 录制软件的 webhook 支持 [#169](https://github.com/renmu123/biliLive-tools/pull/169)
 - B站视频下载画质支持 [#171](https://github.com/renmu123/biliLive-tools/pull/171)
-- 虚拟录制：新增“验证”按钮来实现快速的文件夹验证
+- 虚拟录制：新增“验证”按钮来实现快速的文件夹验证 [#182](https://github.com/renmu123/biliLive-tools/pull/182)
 
 ## 优化
 
