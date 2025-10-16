@@ -1,5 +1,5 @@
 import { getInfo } from "../src/stream.js";
-import { loadBalancer } from "../src/loadBalancerManager.js";
+import { loadBalancer } from "../src/loadBalancer/loadBalancerManager.js";
 
 /**
  * 测试负载均衡器功能
@@ -15,13 +15,13 @@ async function testLoadBalancer() {
   const testRoomId = "123456789"; // 请替换为有效的直播间ID
 
   try {
-    console.log(`\n2. 测试使用 auto 模式获取房间信息 (房间ID: ${testRoomId}):`);
+    console.log(`\n2. 测试使用 balance 模式获取房间信息 (房间ID: ${testRoomId}):`);
 
-    // 使用 auto 模式进行多次调用来测试负载均衡
+    // 使用 balance 模式进行多次调用来测试负载均衡
     for (let i = 1; i <= 5; i++) {
       try {
         console.log(`\n尝试 ${i}:`);
-        const info = await getInfo(testRoomId, { api: "auto" });
+        const info = await getInfo(testRoomId, { api: "balance" });
         console.log(`成功获取房间信息: ${info.title} by ${info.owner}`);
 
         // 显示当前状态
@@ -29,7 +29,7 @@ async function testLoadBalancer() {
         const blockedAPIs = loadBalancer.getBlockedAPIs();
         console.log(`健康的 APIs: ${healthyAPIs.join(", ")}`);
         console.log(`被禁用的 APIs: ${blockedAPIs.join(", ")}`);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`调用失败:`, error.message);
       }
 
@@ -79,7 +79,7 @@ async function testLoadBalancer() {
 function testAPIHealthCheck() {
   console.log("\n=== API 健康状态检查测试 ===");
 
-  const apis = ["web", "webHTML", "mobile", "userHTML", "auto"];
+  const apis = ["web", "webHTML", "mobile", "userHTML"];
 
   apis.forEach((api) => {
     const isHealthy = loadBalancer.isAPIHealthy(api as any);
@@ -105,7 +105,7 @@ function demonstrateAPIConfiguration() {
     loadBalancer.printStatus();
 
     console.log(`推荐的 API: ${loadBalancer.getRecommendedAPI()}`);
-  } catch (error) {
+  } catch (error: any) {
     console.error("配置更新失败:", error.message);
   }
 }

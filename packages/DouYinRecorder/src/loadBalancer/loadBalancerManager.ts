@@ -27,8 +27,8 @@ export class LoadBalancerManager {
    * 重置指定 API 的状态
    */
   static resetAPI(apiType: APIType) {
-    if (apiType === "auto") {
-      throw new Error("Cannot reset 'auto' type. Use resetAll() instead.");
+    if (apiType === "balance") {
+      throw new Error("Cannot reset 'balance' type. Use resetAll() instead.");
     }
     globalLoadBalancer.resetEndpoint(apiType);
   }
@@ -44,8 +44,8 @@ export class LoadBalancerManager {
    * 更新 API 端点的配置
    */
   static updateAPIConfig(apiType: APIType, config: { priority?: number; weight?: number }) {
-    if (apiType === "auto") {
-      throw new Error("Cannot update 'auto' type configuration.");
+    if (apiType === "balance") {
+      throw new Error("Cannot update 'balance' type configuration.");
     }
     globalLoadBalancer.updateEndpointConfig(apiType, config);
   }
@@ -88,7 +88,7 @@ export class LoadBalancerManager {
    * 检查特定 API 是否可用
    */
   static isAPIHealthy(apiType: APIType): boolean {
-    if (apiType === "auto") return true; // auto 类型总是可用的
+    if (apiType === "balance") return true; // balance 类型总是可用的
 
     const status = globalLoadBalancer.getEndpointStatus().find((s) => s.endpoint.name === apiType);
 

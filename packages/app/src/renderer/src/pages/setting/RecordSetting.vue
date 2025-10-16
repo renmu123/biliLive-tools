@@ -350,7 +350,7 @@ const douyinApiTypeOptions = ref([
   { label: "mobile接口", value: "mobile" },
   { label: "直播html解析", value: "webHTML" },
   { label: "用户html解析", value: "userHTML" },
-  { label: "测试：负载均衡", value: "auto" },
+  { label: "测试：负载均衡", value: "balance" },
 ]);
 
 const { userList } = storeToRefs(useUserInfoStore());

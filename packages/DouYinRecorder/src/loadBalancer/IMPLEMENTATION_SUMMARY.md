@@ -2,7 +2,7 @@
 
 ## 实现概述
 
-为 `getInfo` 函数新增了 `type="auto"` 参数，实现了一个高可用的负载均衡调用系统，能够智能地在多个API接口之间进行负载均衡，并具备失败重试和熔断保护机制。
+为 `getInfo` 函数新增了 `type="balance"` 参数，实现了一个高可用的负载均衡调用系统，能够智能地在多个API接口之间进行负载均衡，并具备失败重试和熔断保护机制。
 
 ## 核心功能实现
 
@@ -53,7 +53,7 @@ if (status.failureCount >= this.config.maxFailures) {
 
 ```typescript
 // 在 getInfo 函数中集成
-if (opts?.api === "auto") {
+if (opts?.api === "balance") {
   info = await globalLoadBalancer.callWithLoadBalance(channelId, {
     auth: opts.cookie,
     uid: opts.uid,
@@ -115,7 +115,7 @@ if (opts?.api === "auto") {
 import { getInfo } from "@bililive-tools/douyin-recorder";
 
 // 启用负载均衡
-const roomInfo = await getInfo("房间ID", { api: "auto" });
+const roomInfo = await getInfo("房间ID", { api: "balance" });
 ```
 
 ### 状态管理

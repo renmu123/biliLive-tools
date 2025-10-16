@@ -2,7 +2,7 @@
 
 ## 概述
 
-新增了 `auto` API 类型，实现了智能负载均衡调用多个抖音API接口。当某个接口连续失败时，会自动禁用该接口一段时间，确保系统的稳定性和可用性。
+新增了 `balance` API 类型，实现了智能负载均衡调用多个抖音API接口。当某个接口连续失败时，会自动禁用该接口一段时间，确保系统的稳定性和可用性。
 
 ## 功能特性
 
@@ -22,7 +22,7 @@ import { getInfo } from "@bililive-tools/douyin-recorder";
 
 // 使用负载均衡模式获取房间信息
 const roomInfo = await getInfo("房间ID", {
-  api: "auto", // 使用负载均衡
+  api: "balance", // 使用负载均衡
   cookie: "your-cookie",
 });
 ```
@@ -121,7 +121,7 @@ loadBalancer.resetAPI("web");
 // 在录播器中使用auto模式确保高可用性
 const recorder = provider.createRecorder({
   channelId: "房间ID",
-  api: "auto", // 自动负载均衡
+  api: "balance", // 自动负载均衡
   // ... 其他配置
 });
 ```
@@ -153,7 +153,7 @@ if (loadBalancer.getBlockedAPIs().length > 2) {
 
 ## 注意事项
 
-1. **cookie 参数**: 使用 `auto` 模式时，所有API接口都会使用相同的cookie参数
+1. **cookie 参数**: 使用 `balance` 模式时，所有API接口都会使用相同的cookie参数
 2. **接口限制**: `userHTML` 接口在某些功能中会被自动替换为 `web` 接口
 3. **性能考虑**: 负载均衡会增加少量开销，但能显著提高系统稳定性
 4. **监控建议**: 建议在生产环境中定期监控接口状态，及时发现问题

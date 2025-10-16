@@ -3,7 +3,7 @@ import axios from "axios";
 import { isEmpty } from "lodash-es";
 import { assert, get__ac_signature } from "./utils.js";
 import { ABogus } from "./sign.js";
-import type { APIType, RoomInfo } from "./types.js";
+import type { APIType, RoomInfo, RealAPIType } from "./types.js";
 
 const requester = axios.create({
   timeout: 10e3,
@@ -123,13 +123,8 @@ function generateNonce() {
  * 随机选择一个可用的 API 接口
  * @returns 随机选择的 API 类型
  */
-function selectRandomAPI(): Exclude<APIType, "auto" | "random"> {
-  const availableAPIs: Array<Exclude<APIType, "auto" | "random">> = [
-    "web",
-    "webHTML",
-    "mobile",
-    "userHTML",
-  ];
+function selectRandomAPI(): RealAPIType {
+  const availableAPIs: Array<RealAPIType> = ["web", "webHTML", "mobile", "userHTML"];
   const randomIndex = Math.floor(Math.random() * availableAPIs.length);
   return availableAPIs[randomIndex];
 }
@@ -444,7 +439,7 @@ export async function getRoomInfo(
   cover: string;
   liveId: string;
   uid: string;
-  api: Exclude<APIType, "auto" | "random">;
+  api: RealAPIType;
 }> {
   let data: RoomInfo;
   let api = opts.api ?? "web";

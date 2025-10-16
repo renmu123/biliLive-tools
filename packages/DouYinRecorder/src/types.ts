@@ -1,4 +1,5 @@
-export type APIType = "web" | "webHTML" | "mobile" | "userHTML" | "auto" | "random";
+export type APIType = "web" | "webHTML" | "mobile" | "userHTML" | "balance" | "random";
+export type RealAPIType = Exclude<APIType, "balance" | "random">;
 
 export interface APIEndpoint {
   name: APIType;
@@ -26,7 +27,7 @@ export interface RoomInfo {
   nickname: string;
   sec_uid: string;
   avatar: string;
-  api: Exclude<APIType, "auto" | "random">;
+  api: RealAPIType;
   room: {
     title: string;
     cover: string;

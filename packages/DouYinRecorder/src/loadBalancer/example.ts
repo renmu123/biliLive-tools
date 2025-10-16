@@ -10,7 +10,7 @@ async function basicExample() {
   try {
     // 使用负载均衡模式获取房间信息
     const roomInfo = await getInfo("测试房间ID", {
-      api: "auto", // 关键：使用auto模式启用负载均衡
+      api: "balance", // 关键：使用balance模式启用负载均衡
       cookie: "your-cookie-here",
     });
 
