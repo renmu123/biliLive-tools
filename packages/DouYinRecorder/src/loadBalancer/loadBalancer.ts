@@ -1,10 +1,4 @@
-import type {
-  APIType,
-  APIEndpoint,
-  APIEndpointStatus,
-  LoadBalancerConfig,
-  RoomInfo,
-} from "../types.js";
+import type { APIType, APIEndpoint, APIEndpointStatus, LoadBalancerConfig } from "../types.js";
 import { getRoomInfo } from "../douyin_api.js";
 
 /**
@@ -113,7 +107,7 @@ export class APILoadBalancer {
       status.nextRetryTime = Date.now() + blockDuration;
 
       console.warn(
-        `API ${apiType} has been blocked due to ${status.failureCount} failures. Next retry at: ${new Date(status.nextRetryTime).toISOString()}`,
+        `API ${apiType} has been blocked due to ${status.failureCount} failures. Next retry at: ${(new Date(status.nextRetryTime).toISOString(), error.message)}`,
       );
     }
   }

@@ -2,41 +2,30 @@ import EventEmitter from "node:events";
 
 import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
 import { createInvalidStreamChecker, assert } from "../utils.js";
+import { IRecorder, FFMPEGRecorderOptions } from "./IRecorder.js";
 
-export class FFMPEGRecorder extends EventEmitter {
+export class FFMPEGRecorder extends EventEmitter implements IRecorder {
   private command: ReturnType<typeof createFFMPEGBuilder>;
   private streamManager: StreamManager;
   private timeoutChecker: ReturnType<typeof utils.createTimeoutChecker>;
-  hasSegment: boolean;
-  getSavePath: (data: { startTime: number; title?: string }) => string;
-  segment: number;
+  readonly hasSegment: boolean;
+  readonly getSavePath: (data: { startTime: number; title?: string }) => string;
+  readonly segment: number;
   ffmpegOutputOptions: string[] = [];
-  inputOptions: string[] = [];
-  isHls: boolean;
-  disableDanma: boolean = false;
-  url: string;
+  readonly inputOptions: string[] = [];
+  readonly isHls: boolean;
+  readonly disableDanma: boolean = false;
+  readonly url: string;
   formatName: "flv" | "ts" | "fmp4";
   videoFormat: "ts" | "mkv" | "mp4";
-  headers:
+  readonly headers:
     | {
         [key: string]: string | undefined;
       }
     | undefined;
 
   constructor(
-    opts: {
-      url: string;
-      getSavePath: (data: { startTime: number; title?: string }) => string;
-      segment: number;
-      outputOptions: string[];
-      inputOptions?: string[];
-      disableDanma?: boolean;
-      videoFormat?: "auto" | "ts" | "mkv" | "mp4";
-      formatName?: "flv" | "ts" | "fmp4";
-      headers?: {
-        [key: string]: string | undefined;
-      };
-    },
+    opts: FFMPEGRecorderOptions,
     private onEnd: (...args: unknown[]) => void,
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {

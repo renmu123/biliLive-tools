@@ -3,15 +3,16 @@
 ## 功能
 
 - [Oneliverec](https://www.oneliverec.cc/) 录制软件的 webhook 支持 [#169](https://github.com/renmu123/biliLive-tools/pull/169)
-- B站视频下载画质支持 [#171](https://github.com/renmu123/biliLive-tools/pull/171)
+- 下载：B站视频下载画质支持 [#171](https://github.com/renmu123/biliLive-tools/pull/171)
 - 虚拟录制：新增“验证”按钮来实现快速的文件夹验证 [#182](https://github.com/renmu123/biliLive-tools/pull/182)
 - 录制：弹幕直接写入xml文件，节约内存使用 [#179](https://github.com/renmu123/biliLive-tools/pull/179)
+- 录制：抖音支持额外的四种接口请求方式，其中mobile以及用户解析需本版本添加的直播间方能生效
 - 支持缓存文件夹自定义 [#172](https://github.com/renmu123/biliLive-tools/pull/172)
-- 录制：抖音支持额外的四种接口请求方式，其中mobile以及用户解析需本版本添加的直播间方能生效。
 
 ## 优化
 
 - 录制：优化UI, 支持更多状态展示
+- 录制：抖音的默认请求接口使用`mobile`
 - 同步：对 AList 原生实现的上传逻辑中更好地 URL 拼接处理 [#181](https://github.com/renmu123/biliLive-tools/pull/181)
 
 ## Bug修复
