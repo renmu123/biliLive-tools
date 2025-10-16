@@ -1,5 +1,4 @@
 import { join } from "node:path";
-import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
 import contextMenu from "electron-context-menu";

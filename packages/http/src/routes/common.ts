@@ -6,12 +6,7 @@ import multer from "../middleware/multer.js";
 
 import Router from "@koa/router";
 import semver from "semver";
-import {
-  formatTitle,
-  getTempPath,
-  uuid,
-  formatPartTitle,
-} from "@biliLive-tools/shared/utils/index.js";
+import { formatTitle, uuid, formatPartTitle } from "@biliLive-tools/shared/utils/index.js";
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
