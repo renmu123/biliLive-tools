@@ -488,6 +488,7 @@ docker下的emoji文本渲染错误，猜测和fontconfig有关，但是我不�
 | `https://live.douyin.com/${webRoomId}`                | 直播间web解析    | 易风控，有验证码，单个接口1M流量         |
 | `https://www.douyin.com/user/${secUserId}`            | 用户web解析      | 不易风控，海外IP无法使用，单个接口1M流量 |
 | `auto`                                                | 负载均衡         | 使用负载均衡算法来分摊防止风控           |
+| `random`                                              | 随机             | 随机取一个接口                           |
 
 ## 弹幕转换失败
 

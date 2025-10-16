@@ -345,11 +345,12 @@ const config = defineModel<AppConfig>("data", {
 });
 
 const douyinApiTypeOptions = ref([
-  { label: "负载均衡", value: "auto" },
+  { label: "随机", value: "random" },
   { label: "web接口", value: "web" },
   { label: "mobile接口", value: "mobile" },
   { label: "直播html解析", value: "webHTML" },
   { label: "用户html解析", value: "userHTML" },
+  { label: "测试：负载均衡", value: "auto" },
 ]);
 
 const { userList } = storeToRefs(useUserInfoStore());

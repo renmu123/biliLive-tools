@@ -7,6 +7,7 @@
 - 虚拟录制：新增“验证”按钮来实现快速的文件夹验证 [#182](https://github.com/renmu123/biliLive-tools/pull/182)
 - 录制：弹幕直接写入xml文件，节约内存使用 [#179](https://github.com/renmu123/biliLive-tools/pull/179)
 - 支持缓存文件夹自定义 [#172](https://github.com/renmu123/biliLive-tools/pull/172)
+- 录制：抖音支持额外的四种接口请求方式，其中mobile以及用户解析需本版本添加的直播间方能生效。
 
 ## 优化
 

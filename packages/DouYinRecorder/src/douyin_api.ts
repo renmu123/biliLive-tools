@@ -120,6 +120,21 @@ function generateNonce() {
 }
 
 /**
+ * 随机选择一个可用的 API 接口
+ * @returns 随机选择的 API 类型
+ */
+function selectRandomAPI(): Exclude<APIType, "auto" | "random"> {
+  const availableAPIs: Array<Exclude<APIType, "auto" | "random">> = [
+    "web",
+    "webHTML",
+    "mobile",
+    "userHTML",
+  ];
+  const randomIndex = Math.floor(Math.random() * availableAPIs.length);
+  return availableAPIs[randomIndex];
+}
+
+/**
  * 通过解析直播html页面来获取房间数据
  * @param secUserId
  * @param opts
@@ -429,10 +444,15 @@ export async function getRoomInfo(
   cover: string;
   liveId: string;
   uid: string;
-  api: Exclude<APIType, "auto">;
+  api: Exclude<APIType, "auto" | "random">;
 }> {
   let data: RoomInfo;
   let api = opts.api ?? "web";
+
+  // 如果选择了 random，则随机选择一个可用的接口
+  if (api === "random") {
+    api = selectRandomAPI();
+  }
 
   if (api === "mobile" || api === "userHTML") {
     // mobile 接口需要 sec_uid 参数，老数据可能没有，实现兼容
