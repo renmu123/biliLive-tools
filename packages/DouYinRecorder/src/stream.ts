@@ -21,6 +21,7 @@ export async function getInfo(
   startTime: Date;
   liveId: string;
   uid: string;
+  api: Exclude<APIType, "auto">;
 }> {
   let info;
 
@@ -44,6 +45,7 @@ export async function getInfo(
     startTime: new Date(),
     liveId: info.liveId,
     uid: info.uid,
+    api: info.api,
   };
 }
 

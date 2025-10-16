@@ -26,6 +26,7 @@ export interface RoomInfo {
   nickname: string;
   sec_uid: string;
   avatar: string;
+  api: Exclude<APIType, "auto">;
   room: {
     title: string;
     cover: string;

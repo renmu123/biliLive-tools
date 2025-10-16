@@ -34,9 +34,9 @@ export class APILoadBalancer {
   private initializeEndpoints(): void {
     const defaultEndpoints: APIEndpoint[] = [
       { name: "web", priority: 2, weight: 1 },
-      { name: "webHTML", priority: 4, weight: 1 },
-      { name: "mobile", priority: 1, weight: 1 },
-      { name: "userHTML", priority: 1, weight: 1 },
+      { name: "webHTML", priority: 1, weight: 1 },
+      { name: "mobile", priority: 6, weight: 1 },
+      { name: "userHTML", priority: 4, weight: 1 },
     ];
 
     this.endpoints = defaultEndpoints.map((endpoint) => ({

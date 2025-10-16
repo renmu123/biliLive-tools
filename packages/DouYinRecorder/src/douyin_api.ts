@@ -166,6 +166,7 @@ async function getRoomInfoByUserWeb(
       nickname: "",
       sec_uid: "",
       avatar: "",
+      api: "webHTML",
       room: null,
     };
   }
@@ -207,6 +208,7 @@ async function getRoomInfoByUserWeb(
       nickname: userData?.user?.user?.nickname ?? "",
       sec_uid: userData?.user?.user?.secUid ?? "",
       avatar: userData?.user?.user?.avatar ?? "",
+      api: "webHTML",
       room: {
         title: "",
         cover: "",
@@ -269,6 +271,7 @@ async function getRoomInfoByHtml(
       nickname: roomInfo?.anchor?.nickname ?? "",
       sec_uid: roomInfo?.anchor?.sec_uid ?? "",
       avatar: roomInfo?.anchor?.avatar_thumb?.url_list?.[0] ?? "",
+      api: "userHTML",
       room: {
         title: roomInfo?.room?.title ?? "",
         cover: roomInfo?.room?.cover?.url_list?.[0] ?? "",
@@ -349,6 +352,7 @@ async function getRoomInfoByWeb(
     nickname: data?.user?.nickname ?? "",
     avatar: data?.user?.avatar_thumb?.url_list?.[0] ?? "",
     sec_uid: data?.user?.sec_uid ?? "",
+    api: "web",
     room: {
       title: room?.title ?? "",
       cover: room?.cover?.url_list?.[0] ?? "",
@@ -396,6 +400,7 @@ async function getRoomInfoByMobile(
     nickname: room?.owner?.nickname,
     sec_uid: room?.owner?.sec_uid,
     avatar: room?.owner?.avatar_thumb?.url_list?.[0],
+    api: "mobile",
     room: {
       title: room?.title,
       cover: room?.cover?.url_list?.[0],
@@ -424,6 +429,7 @@ export async function getRoomInfo(
   cover: string;
   liveId: string;
   uid: string;
+  api: Exclude<APIType, "auto">;
 }> {
   let data: RoomInfo;
   let api = opts.api ?? "web";
@@ -458,6 +464,7 @@ export async function getRoomInfo(
       cover: room.cover,
       liveId: room.id_str,
       uid: data.sec_uid,
+      api: data.api,
     };
   }
 
@@ -473,6 +480,7 @@ export async function getRoomInfo(
       cover: room.cover,
       liveId: room.id_str,
       uid: data.sec_uid,
+      api: data.api,
     };
   }
 
@@ -558,6 +566,7 @@ export async function getRoomInfo(
     cover: room.cover,
     liveId: room.id_str,
     uid: data.sec_uid,
+    api: data.api,
   };
 }
 
