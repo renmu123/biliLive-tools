@@ -5,6 +5,8 @@
 - [Oneliverec](https://www.oneliverec.cc/) 录制软件的 webhook 支持 [#169](https://github.com/renmu123/biliLive-tools/pull/169)
 - B站视频下载画质支持 [#171](https://github.com/renmu123/biliLive-tools/pull/171)
 - 虚拟录制：新增“验证”按钮来实现快速的文件夹验证 [#182](https://github.com/renmu123/biliLive-tools/pull/182)
+- 录制：弹幕直接写入xml文件，节约内存使用 [#179](https://github.com/renmu123/biliLive-tools/pull/179)
+- 支持缓存文件夹自定义 [#172](https://github.com/renmu123/biliLive-tools/pull/172)
 
 ## 优化
 
@@ -16,6 +18,15 @@
 - 修复部分接口的错误信息未正常显示的bug
 - 录制：修复 mesio 某些情况下录制结束重命名错误的bug
 - 录制：修复抖音某些无法获取到直播间信息仍返回部分必要信息
+
+## 其他
+
+由于 electron 等其他依赖逐渐抛弃 node20 支持，将所有开发及 docker 容器的相关 node 依赖统一升级到 node24.10 版本，虽然没有人来测试，但是我对代码~~毫无~~充满信心，更多依赖更新见[PR](https://github.com/renmu123/biliLive-tools/pull/183)
+
+```
+node => 24.10
+electron => 38.2.2
+```
 
 # 3.0.1
 
