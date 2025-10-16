@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "fs-extra";
 import multer from "../middleware/multer.js";
 
-import Router from "koa-router";
+import Router from "@koa/router";
 import semver from "semver";
 import {
   formatTitle,

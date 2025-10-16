@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 
 import { pick } from "lodash-es";
 import recorderService from "../services/recorder.js";
