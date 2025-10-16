@@ -80,6 +80,8 @@ const { id } = await provider.resolveChannelInfoFromURL(url);
 
 ## 不同请求接口的区别
 
+`mobile` 及 `userHTML` 必须传入 `uid` 参数
+
 | 接口                                                  | 描述             | 备注                                                       |
 | ----------------------------------------------------- | ---------------- | ---------------------------------------------------------- |
 | `https://live.douyin.com/webcast/room/web/enter`      | web直播间接口    | 效果不错                                                   |
