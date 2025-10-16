@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import biliService from "@biliLive-tools/shared/task/bili.js";
 import crypto from "crypto";
 

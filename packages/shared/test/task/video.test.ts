@@ -49,7 +49,6 @@ describe("matchRoomId", () => {
   it("should return the correct room ID from a valid string", () => {
     const str = '<BililiveRecorderRecordInfo roomid="23141761" shortid="0" ';
     const result = matchRoomId(str);
-    console.log(result, typeof result);
     expect(result).toBe("23141761"); // Expected room ID
   });
 

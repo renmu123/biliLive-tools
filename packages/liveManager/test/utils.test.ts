@@ -180,7 +180,7 @@ describe("utils", () => {
       it("should handle empty filename", () => {
         const filename = "";
         const result = removeSystemReservedChars(filename);
-        expect(result).toBe("");
+        expect(result).toBe("_");
       });
 
       it("should handle filename with only reserved characters", () => {

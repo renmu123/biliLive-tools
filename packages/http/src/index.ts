@@ -3,7 +3,7 @@ import http from "node:http";
 import { fileURLToPath } from "node:url";
 import https from "node:https";
 import Koa from "koa";
-import Router from "koa-router";
+import Router from "@koa/router";
 import cors from "@koa/cors";
 import { bodyParser } from "@koa/bodyparser";
 

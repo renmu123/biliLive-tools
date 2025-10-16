@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "fs-extra";
 
-import Router from "koa-router";
+import Router from "@koa/router";
 import { replaceExtName } from "@biliLive-tools/shared/utils/index.js";
 import recordHistory from "@biliLive-tools/shared/recorder/recordHistory.js";
 import { fileCache } from "../index.js";

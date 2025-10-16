@@ -1,4 +1,4 @@
-import Router from "koa-router";
+import Router from "@koa/router";
 import { container } from "../index.js";
 
 import type { DanmuPreset, VideoPreset, FFmpegPreset } from "@biliLive-tools/shared";

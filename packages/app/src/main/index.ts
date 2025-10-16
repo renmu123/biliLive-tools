@@ -1,5 +1,4 @@
 import { join } from "node:path";
-import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
 import contextMenu from "electron-context-menu";
@@ -26,7 +25,7 @@ import { init, createRecorderManager } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
 import { cookieHandlers } from "./cookie";
-import { commonHandlers, getTempPath } from "./common";
+import { commonHandlers } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
 // import icon from "../../resources/icon.png?asset";
 import {
@@ -438,7 +437,6 @@ const quit = async () => {
 
     const canQuited = await canQuit();
     if (canQuited) {
-      await fs.emptyDir(getTempPath());
       mainWin.destroy();
       app.quit();
     }
@@ -485,7 +483,6 @@ if (!gotTheLock) {
       .then(({ name }) => log.debug(`Added Extension:  ${name}`))
       .catch((err) => log.debug("An error occurred: ", err));
 
-    log.info(`app start, version: ${app.getVersion()}`);
     // Default open or close DevTools by F12 in development
     // and ignore CommandOrControl + R in production.
     // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -591,8 +588,6 @@ if (!gotTheLock) {
 
 // 业务相关的初始化
 const appInit = async () => {
-  fs.ensureDir(getTempPath());
-
   // 记录应用启动信息
   log.info("=== 应用启动信息 ===");
   log.info("应用版本:", app.getVersion());
@@ -604,7 +599,6 @@ const appInit = async () => {
   log.info("架构:", process.arch);
   log.info("启动时间:", new Date().toISOString());
   log.info("用户数据路径:", app.getPath("userData"));
-  log.info("临时文件路径:", app.getPath("temp"));
   log.info("日志路径:", app.getPath("logs"));
   log.info("=== 应用启动信息结束 ===");
 
