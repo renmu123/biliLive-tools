@@ -113,7 +113,7 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
     if (hasCompleted) return;
     hasCompleted = true;
     scheduleWrite.cancel();
-
+    await initializeFile().catch(console.error);
     // 写入剩余的数据
     if (data.pendingMessages.length > 0) {
       await writeToFile();
