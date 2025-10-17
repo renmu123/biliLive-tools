@@ -8,7 +8,7 @@
 - 录制：弹幕直接写入xml文件，节约内存使用 [#179](https://github.com/renmu123/biliLive-tools/pull/179)
 - 录制：抖音支持额外的四种接口请求方式，其中mobile以及用户解析需本版本添加的直播间方能生效
 - 录制：增加“录制页面额外请求”选项 [#186](https://github.com/renmu123/biliLive-tools/pull/186)
-- 录制：添加“展示权重”字段，用来对UI界面中直播间进行排序
+- 录制：添加“展示权重”字段，用来对UI界面中直播间进行排序 [#187](https://github.com/renmu123/biliLive-tools/pull/187)
 - 支持缓存文件夹自定义 [#172](https://github.com/renmu123/biliLive-tools/pull/172)
 
 ## 优化

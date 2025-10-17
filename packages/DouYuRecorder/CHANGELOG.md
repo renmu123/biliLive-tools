@@ -1,3 +1,7 @@
+# 1.7.0
+
+- 增加检查错误状态值
+
 # 1.6.0
 
 - 支持 `recorderType` 参数用于配置底层录制器，支持`auto | ffmpeg | mesio`

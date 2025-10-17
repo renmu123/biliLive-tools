@@ -1,3 +1,7 @@
+# 1.7.0
+
+- 增加检查错误状态值
+
 # 1.6.0
 
 - let recorderType: "ffmpeg" | "mesio" = this.recorderType ?? "ffmpeg";

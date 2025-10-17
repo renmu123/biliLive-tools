@@ -2,6 +2,7 @@
 
 - 支持 `mobile`、`userHTML`、`balance`、`random` 接口, 其中 `mobile`、`userHTML` 需要传递`uid`参数，内容为`sec_user_id`
 - 修复某些无法获取到直播间信息的查询
+- 增加检查错误状态值
 
 # 1.6.0
 
