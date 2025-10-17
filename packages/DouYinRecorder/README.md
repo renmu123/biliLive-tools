@@ -82,14 +82,14 @@ const { id } = await provider.resolveChannelInfoFromURL(url);
 
 `mobile` 及 `userHTML` 必须传入 `uid` 参数
 
-| 接口                                                  | 描述             | 备注                                                       |
-| ----------------------------------------------------- | ---------------- | ---------------------------------------------------------- |
-| `https://live.douyin.com/webcast/room/web/enter`      | web直播间接口    | 效果不错                                                   |
-| `https://webcast.amemv.com/webcast/room/reflow/info/` | mobile直播间接口 | 易风控，无验证码，海外IP可能无法使用                       |
-| `https://live.douyin.com/${webRoomId}`                | 直播间web解析    | 易风控，有验证码，单个接口1M流量                           |
-| `https://www.douyin.com/user/${secUserId}`            | 用户web解析      | 不易风控，海外IP无法使用，单个接口1M流量，只能用于状态检查 |
-| `balance`                                             | 负载均衡         | 使用负载均衡算法来分摊防止风控                             |
-| `random`                                              | 随机             | 随机取一个接口                                             |
+| 描述             | 备注                                     |
+| ---------------- | ---------------------------------------- |
+| web直播间接口    | 效果不错                                 |
+| mobile直播间接口 | 易风控，无验证码，海外IP可能无法使用     |
+| 直播间web解析    | 易风控，有验证码，单个接口1M流量         |
+| 用户web解析      | 不易风控，海外IP无法使用，单个接口1M流量 |
+| 负载均衡         | 使用负载均衡算法来分摊防止风控           |
+| 随机             | 从几个接口里挑一个                       |
 
 # 协议
 
