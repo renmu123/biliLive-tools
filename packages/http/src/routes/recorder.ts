@@ -175,6 +175,19 @@ router.get("/manager/resolveChannel", async (ctx) => {
 });
 
 /**
+ * 批量解析直播间地址
+ * @route POST /recorder/manager/batchResolveChannel
+ * @param channelURLs 直播间地址数组
+ * @returns 批量解析结果
+ */
+router.post("/manager/batchResolveChannel", async (ctx) => {
+  const { channelURLs } = ctx.request.body;
+  const data = await recorderService.batchResolveChannel(channelURLs as string[]);
+
+  ctx.body = { payload: data };
+});
+
+/**
  * 获取直播间实时信息
  * @route POST /recorder/manager/liveInfo
  * @param ids 直播间ID列表

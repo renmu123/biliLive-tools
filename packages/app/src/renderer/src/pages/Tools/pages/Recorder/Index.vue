@@ -54,6 +54,7 @@
       />
       <n-button type="warning" @click="getLiveInfo(true)">刷新</n-button>
       <n-button type="primary" @click="add">添加</n-button>
+      <n-button type="info" @click="batchAdd">批量添加</n-button>
     </div>
 
     <template v-if="list.length > 0">
@@ -111,6 +112,15 @@
     <h1 v-else>还木有添加直播捏，添加一个看看吧，支持斗鱼、虎牙、B站、抖音</h1>
 
     <addModal :id="editId" v-model:visible="addModalVisible" @confirm="handleModalClose"></addModal>
+    <batchAddModal
+      v-model:visible="batchAddModalVisible"
+      @parsed="handleBatchParsed"
+    ></batchAddModal>
+    <batchResultModal
+      v-model:visible="batchResultModalVisible"
+      :results="batchParseResults"
+      @completed="handleBatchCompleted"
+    ></batchResultModal>
     <videoModal :id="editId" v-model:visible="videoModalVisible" :video-url="videoUrl"></videoModal>
   </div>
 </template>
@@ -119,6 +129,8 @@
 import { recoderApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
 import addModal from "./components/addModal.vue";
+import batchAddModal from "./components/batchAddModal.vue";
+import batchResultModal from "./components/batchResultModal.vue";
 import videoModal from "./components/videoModal.vue";
 import cardView from "./components/cardView.vue";
 import listView from "./components/listView.vue";
@@ -307,9 +319,17 @@ const getList = async () => {
 };
 
 const addModalVisible = ref(false);
+const batchAddModalVisible = ref(false);
+const batchResultModalVisible = ref(false);
+const batchParseResults = ref<any[]>([]);
+
 const add = async () => {
   editId.value = "";
   addModalVisible.value = true;
+};
+
+const batchAdd = async () => {
+  batchAddModalVisible.value = true;
 };
 
 const confirm = useConfirm();
@@ -389,6 +409,16 @@ const handleModalClose = () => {
   if (!editId.value) {
     init();
   }
+};
+
+const handleBatchParsed = (results: any[]) => {
+  batchParseResults.value = results;
+  batchResultModalVisible.value = true;
+};
+
+const handleBatchCompleted = () => {
+  // 刷新列表
+  init();
 };
 
 const init = async () => {

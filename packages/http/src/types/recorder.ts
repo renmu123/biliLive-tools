@@ -154,6 +154,27 @@ export type ResolveChannelResp = {
   avatar?: string;
 } | null;
 
+export interface BatchResolveChannelArgs {
+  channelURLs: string[];
+}
+export interface BatchResolveChannelResult {
+  url: string;
+  success: boolean;
+  data?: {
+    providerId: RecoderConfig["providerId"];
+    channelId: string;
+    owner: string;
+    uid?: number;
+    avatar?: string;
+  };
+  error?: string;
+}
+export type BatchResolveChannelResp = {
+  results: BatchResolveChannelResult[];
+  successCount: number;
+  failedCount: number;
+};
+
 export interface GetManagerDefaultArgs {}
 // export type GetManagerDefaultResp = Omit<RecorderManagerCreateOpts, "providers">;
 
@@ -226,6 +247,10 @@ export type RecorderAPI = {
   resolveChannel: {
     Args: ResolveChannelArgs;
     Resp: ResolveChannelResp;
+  };
+  batchResolveChannel: {
+    Args: BatchResolveChannelArgs;
+    Resp: BatchResolveChannelResp;
   };
   // getManagerDefault: {
   //   Args: GetManagerDefaultArgs;

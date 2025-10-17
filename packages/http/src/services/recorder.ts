@@ -277,6 +277,60 @@ export function resolveChannel(url: string) {
   return recorderManager.resolveChannel(url);
 }
 
+export async function batchResolveChannel(urls: string[]) {
+  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+
+  const results: Array<{
+    url: string;
+    success: boolean;
+    data?: {
+      providerId: string;
+      channelId: string;
+      owner: string;
+      uid?: number;
+      avatar?: string;
+    };
+    error?: string;
+  }> = [];
+
+  // 限制最多处理20个URL
+  const urlsToProcess = urls.slice(0, 20);
+
+  for (const url of urlsToProcess) {
+    try {
+      const data = await recorderManager.resolveChannel(url);
+      if (data) {
+        results.push({
+          url,
+          success: true,
+          data,
+        });
+      } else {
+        results.push({
+          url,
+          success: false,
+          error: "解析失败，无法识别此链接",
+        });
+      }
+    } catch (error: any) {
+      results.push({
+        url,
+        success: false,
+        error: error.message || "解析过程中发生错误",
+      });
+    }
+  }
+
+  const successCount = results.filter((r) => r.success).length;
+  const failedCount = results.filter((r) => !r.success).length;
+
+  return {
+    results,
+    successCount,
+    failedCount,
+  };
+}
+
 export async function getLiveInfo(ids: string[]) {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
   const recorders = recorderManager.manager.recorders;
@@ -314,5 +368,6 @@ export default {
   cutRecord,
   getLiveInfo,
   resolveChannel,
+  batchResolveChannel,
   getBiliStream,
 };

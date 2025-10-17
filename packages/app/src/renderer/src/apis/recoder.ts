@@ -74,6 +74,13 @@ const resolveChannel = async (url: string): Promise<RecorderAPI["resolveChannel"
   return res.data.payload;
 };
 
+const batchResolveChannel = async (
+  channelURLs: string[],
+): Promise<RecorderAPI["batchResolveChannel"]["Resp"]> => {
+  const res = await request.post(`/recorder/manager/batchResolveChannel`, { channelURLs });
+  return res.data.payload;
+};
+
 const getLiveInfo = async (
   ids: string[],
   forceRequest: boolean,
@@ -91,6 +98,7 @@ const recoder = {
   stopRecord,
   startRecord,
   resolveChannel,
+  batchResolveChannel,
   getLiveInfo,
   cut,
 };
