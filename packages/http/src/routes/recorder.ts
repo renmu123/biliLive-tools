@@ -2,6 +2,7 @@ import Router from "@koa/router";
 
 import { pick } from "lodash-es";
 import recorderService from "../services/recorder.js";
+import { appConfig } from "../index.js";
 
 import type { RecorderAPI } from "../types/recorder.js";
 
@@ -175,11 +176,22 @@ router.get("/manager/resolveChannel", async (ctx) => {
  * 获取直播间实时信息
  * @route POST /recorder/manager/liveInfo
  * @param ids 直播间ID列表
+ * @param forceRequest 强制查询直播间信息，不受配置限制，默认true
  * @returns 直播间实时信息列表
  */
 router.post("/manager/liveInfo", async (ctx) => {
   const { ids } = ctx.request.body;
-  const list = await recorderService.getLiveInfo(ids as unknown as string[]);
+  const forceRequest = ctx.request.body.forceRequest ?? true;
+
+  let requestInfoForRecord = true;
+  if (!forceRequest) {
+    requestInfoForRecord = appConfig.get("requestInfoForRecord");
+  }
+
+  let list: any[] = [];
+  if (requestInfoForRecord) {
+    list = await recorderService.getLiveInfo(ids as unknown as string[]);
+  }
   ctx.body = {
     payload: list,
   };

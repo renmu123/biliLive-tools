@@ -332,6 +332,9 @@
         <n-tab-pane name="notification" tab="通知">
           <NotificationSetting v-model:data="config"></NotificationSetting>
         </n-tab-pane>
+        <n-tab-pane name="other" tab="其他">
+          <OtherSetting v-model:data="config"></OtherSetting>
+        </n-tab-pane>
       </n-tabs>
       <template #footer>
         <div class="footer">
@@ -373,6 +376,7 @@ import RecordSetting from "./RecordSetting.vue";
 import TaskSetting from "./TaskSetting.vue";
 import VideoSetting from "./VideoSetting.vue";
 import SyncSetting from "./SyncSetting.vue";
+import OtherSetting from "./OtherSetting.vue";
 import VirtualRecordSetting from "./VirtualRecordSetting.vue";
 import CheckUpdateModal from "@renderer/components/checkUpdateModal.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
