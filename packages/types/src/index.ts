@@ -435,6 +435,8 @@ export interface Recorder {
   titleKeywords?: string;
   /** 开播推送 */
   liveStartNotification?: boolean;
+  /** 权重 */
+  weight: number;
   /** 抖音cookie */
   cookie?: string;
   /** 是否使用双屏直播流 */
@@ -464,6 +466,7 @@ export interface Recorder {
       | "liveStartNotification"
       | "onlyAudio"
       | "handleTime"
+      | "weight"
     >
   >;
 }
@@ -510,6 +513,7 @@ export interface AppConfig {
   host: string;
   passKey: string;
   https?: boolean;
+  requestInfoForRecord: boolean;
   webhook: {
     recoderFolder: string;
     blacklist: string;

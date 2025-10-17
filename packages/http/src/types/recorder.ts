@@ -112,6 +112,7 @@ export type UpdateRecorderArgs = Pick<
   | "onlyAudio"
   | "useServerTimestamp"
   | "handleTime"
+  | "weight"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 
