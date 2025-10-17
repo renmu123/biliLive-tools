@@ -52,7 +52,7 @@
         @update:field="handleSortFieldChange"
         @update:direction="handleSortDirectionChange"
       />
-      <n-button type="warning" @click="getLiveInfo">刷新</n-button>
+      <n-button type="warning" @click="getLiveInfo(true)">刷新</n-button>
       <n-button type="primary" @click="add">添加</n-button>
     </div>
 
@@ -364,15 +364,15 @@ const open = async (id: string, streamUrl: string) => {
   videoModalVisible.value = true;
 };
 
-const getLiveInfo = async () => {
+const getLiveInfo = async (forceRequest: boolean = false) => {
   if (recorderList.value.length === 0) return;
   const ids = recorderList.value.map((item) => item.id);
-  liveInfos.value = await recoderApi.getLiveInfo(ids);
+  liveInfos.value = await recoderApi.getLiveInfo(ids, forceRequest);
 };
 
-// 刷新直播间信息
+// 刷新单个直播间信息
 const refresh = async (id: string) => {
-  const data = await recoderApi.getLiveInfo([id]);
+  const data = await recoderApi.getLiveInfo([id], true);
   liveInfos.value = liveInfos.value.map((item) => {
     if (item.channelId === id) {
       return data[0];

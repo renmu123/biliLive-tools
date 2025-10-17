@@ -510,6 +510,7 @@ export interface AppConfig {
   host: string;
   passKey: string;
   https?: boolean;
+  requestInfoForRecord: boolean;
   webhook: {
     recoderFolder: string;
     blacklist: string;
