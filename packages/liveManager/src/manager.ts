@@ -43,7 +43,7 @@ export interface RecorderProvider<E extends AnyObject> {
     id: ChannelId;
     title: string;
     owner: string;
-    uid?: number;
+    uid?: number | string;
     avatar?: string;
   } | null>;
   createRecorder: (

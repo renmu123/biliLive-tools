@@ -100,7 +100,7 @@ export default class RecorderConfig {
     if (!setting) return null;
 
     // 授权处理
-    let uid = undefined;
+    let uid: number | string | undefined = undefined;
     let auth: string | undefined;
     if (setting.providerId === "Bilibili") {
       uid = getValue("uid");
@@ -118,6 +118,7 @@ export default class RecorderConfig {
       }
     } else if (setting.providerId === "DouYin") {
       auth = getValue("cookie");
+      uid = setting?.uid;
     }
 
     // 流格式处理

@@ -293,7 +293,7 @@
             <template #label>
               <Tip
                 text="请求接口"
-                tip="不同的接口对应的底层不同，我也不知道哪个更容易遇到风控，如果哪天用不了，你也可以切切看"
+                tip="不同的接口对应的底层不同，如果哪天用不了，你也可以切切看，mobile和用户html解析接口必须在3.1.0及以后版本使用才能生效，更多区别见文档。PS: mobile看起来更不容易触发风控"
               ></Tip>
             </template>
             <n-select v-model:value="config.recorder.douyin.api" :options="douyinApiTypeOptions" />
@@ -345,8 +345,12 @@ const config = defineModel<AppConfig>("data", {
 });
 
 const douyinApiTypeOptions = ref([
+  { label: "随机", value: "random" },
   { label: "web接口", value: "web" },
-  { label: "html解析", value: "webHTML" },
+  { label: "mobile接口", value: "mobile" },
+  { label: "直播html解析", value: "webHTML" },
+  { label: "用户html解析", value: "userHTML" },
+  { label: "测试：负载均衡", value: "balance" },
 ]);
 
 const { userList } = storeToRefs(useUserInfoStore());

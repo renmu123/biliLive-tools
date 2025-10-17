@@ -3,6 +3,7 @@ import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
 import { StreamManager, getMesioPath } from "../index.js";
+import { IRecorder, MesioRecorderOptions } from "./IRecorder.js";
 
 // Mesio command builder class similar to ffmpeg
 class MesioCommand extends EventEmitter {
@@ -82,7 +83,7 @@ class MesioCommand extends EventEmitter {
     this.process.on("error", (error) => {
       this.emit("error", error);
     });
-
+    [];
     this.process.on("close", (code) => {
       if (code === 0) {
         this.emit("end");
@@ -104,36 +105,24 @@ export const createMesioBuilder = (): MesioCommand => {
   return new MesioCommand();
 };
 
-export class mesioRecorder extends EventEmitter {
+export class mesioRecorder extends EventEmitter implements IRecorder {
   private command: MesioCommand;
   private streamManager: StreamManager;
-  hasSegment: boolean;
-  getSavePath: (data: { startTime: number; title?: string }) => string;
-  segment: number;
-  inputOptions: string[] = [];
-  isHls: boolean;
-  disableDanma: boolean = false;
-  url: string;
-  headers:
+  readonly hasSegment: boolean;
+  readonly getSavePath: (data: { startTime: number; title?: string }) => string;
+  readonly segment: number;
+  readonly inputOptions: string[] = [];
+  readonly isHls: boolean;
+  readonly disableDanma: boolean = false;
+  readonly url: string;
+  readonly headers:
     | {
         [key: string]: string | undefined;
       }
     | undefined;
 
   constructor(
-    opts: {
-      url: string;
-      getSavePath: (data: { startTime: number; title?: string }) => string;
-      segment: number;
-      outputOptions?: string[];
-      inputOptions?: string[];
-      isHls?: boolean;
-      disableDanma?: boolean;
-      formatName?: "flv" | "ts" | "fmp4";
-      headers?: {
-        [key: string]: string | undefined;
-      };
-    },
+    opts: MesioRecorderOptions,
     private onEnd: (...args: unknown[]) => void,
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {

@@ -315,7 +315,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   let danmaClient = new DanmaClient(roomId, {
     auth: this.auth,
-    uid: this.uid,
+    uid: Number(this.uid) as number,
     useServerTimestamp: this.useServerTimestamp,
   });
   if (!this.disableProvideCommentsWhenRecording) {

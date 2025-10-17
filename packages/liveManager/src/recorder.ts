@@ -40,7 +40,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   /** 身份验证 */
   auth?: string;
   /** cookie所有者uid,B站弹幕录制 */
-  uid?: number;
+  uid?: number | string;
   /** 画质匹配重试次数 */
   qualityRetry?: number;
   /** 抖音是否使用双屏直播流，开启后如果是双屏直播，那么就使用拼接的流，默认为true */
@@ -53,8 +53,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   formatName?: FormatName;
   /** 流编码 */
   codecName?: CodecName;
-  /** 选择使用的api，虎牙支持: auto,web,mp，抖音支持：web,webHTML */
-  api?: "auto" | "web" | "mp" | "webHTML";
+  /** 选择使用的api，虎牙支持: auto,web,mp，抖音支持：web,webHTML,mobile,userHTML */
+  api?: "auto" | "web" | "mp" | "webHTML" | "mobile" | "userHTML";
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
   titleKeywords?: string;
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
@@ -149,8 +149,8 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   qualityMaxRetry: number;
   // 画质重试次数上限
   qualityRetry: number;
-  // B站弹幕录制，cookie拥有者的uid
-  uid?: number;
+  // B站弹幕录制，cookie拥有者的uid，抖音的sec_uid
+  uid?: number | string;
   liveInfo?: {
     living: boolean;
     owner: string;

@@ -325,7 +325,7 @@ interface DouyinRecorderConfig {
   /** 是否使用双屏直播流 */
   doubleScreen: boolean;
   /** 接口类型 */
-  api: "web" | "webHTML";
+  api: "web" | "webHTML" | "mobile" | "userHTML" | "balance" | "random";
 }
 
 // 录制全局配置
@@ -419,7 +419,7 @@ export interface Recorder {
   /**分段时长，单位分钟 */
   segment?: number;
   /** 账号 */
-  uid?: number;
+  uid?: number | string;
   /** 保存封面 */
   saveCover?: boolean;
   /** 视频格式 */

@@ -22,6 +22,8 @@ import { resolveShortURL, parseUser } from "./douyin_api.js";
 
 import DouYinDanmaClient from "douyin-danma-listener";
 
+import type { APIType } from "./types.js";
+
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
   // 此标志来操作这个对象的地方，不然会跳过 proxy 的拦截。
@@ -52,7 +54,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       const channelId = this.channelId;
       const info = await getInfo(channelId, {
         cookie: this.auth,
-        api: this.api as "web" | "webHTML",
+        uid: this.uid,
       });
       return {
         channelId,
@@ -110,11 +112,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   isManualStart,
 }) {
   if (this.recordHandle != null) return this.recordHandle;
-
   try {
     const liveInfo = await getInfo(this.channelId, {
       cookie: this.auth,
-      api: this.api as "web" | "webHTML",
+      api: this.api as APIType,
+      uid: this.uid,
     });
     this.liveInfo = liveInfo;
   } catch (error) {
@@ -122,15 +124,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw error;
   }
 
-  const { living, owner, title } = this.liveInfo;
-
-  if (this.liveInfo.liveId === banLiveId) {
+  if (this.liveInfo.liveId && this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
     this.tempStopIntervalCheck = false;
   }
   if (this.tempStopIntervalCheck) return null;
-  if (!living) return null;
+  if (!this.liveInfo.living) return null;
 
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
@@ -144,7 +144,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (isManualStart) {
       strictQuality = false;
     }
-
+    // TODO: 检查mobile接口处理双屏录播流
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
@@ -154,14 +154,22 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       cookie: this.auth,
       formatPriorities: this.formatPriorities,
       doubleScreen: this.doubleScreen,
-      api: this.api as "web" | "webHTML",
+      api: this.api as APIType,
+      uid: this.uid,
     });
+    this.liveInfo.owner = res.owner;
+    this.liveInfo.title = res.title;
+    this.liveInfo.cover = res.cover;
+    this.liveInfo.liveId = res.liveId;
+    this.liveInfo.avatar = res.avatar;
+    this.liveInfo.startTime = new Date();
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
 
     this.state = "check-error";
     throw err;
   }
+  const { owner, title } = this.liveInfo;
 
   this.state = "recording";
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
@@ -189,7 +197,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   let recorderType: Parameters<typeof createBaseRecorder>[0] =
     this.recorderType === "mesio" ? "mesio" : "ffmpeg";
-  // TODO:测试只录制音频，hls以及fmp4
   const recorder = createBaseRecorder(
     recorderType,
     {
@@ -443,6 +450,7 @@ export const provider: RecorderProvider<{}> = {
       title: info.title,
       owner: info.owner,
       avatar: info.avatar,
+      uid: info.uid,
     };
   },
 
