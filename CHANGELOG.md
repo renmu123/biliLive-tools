@@ -7,6 +7,7 @@
 - 虚拟录制：新增“验证”按钮来实现快速的文件夹验证 [#182](https://github.com/renmu123/biliLive-tools/pull/182)
 - 录制：弹幕直接写入xml文件，节约内存使用 [#179](https://github.com/renmu123/biliLive-tools/pull/179)
 - 录制：增加“录制页面额外请求”选项 [#186](https://github.com/renmu123/biliLive-tools/pull/186)
+- 录制：添加“展示权重”字段，用来对UI界面中直播间进行排序
 - 支持缓存文件夹自定义 [#172](https://github.com/renmu123/biliLive-tools/pull/172)
 
 ## 优化

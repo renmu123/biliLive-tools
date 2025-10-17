@@ -37,6 +37,13 @@ async function getRecorders(
     list = list.filter((item) => (item.disableAutoCheck ? "2" : "1") === params.autoCheck);
   }
 
+  list.sort((a, b) => {
+    const aWeight = a.weight ?? 10;
+    const bWeight = b.weight ?? 10;
+
+    return bWeight - aWeight; // 值大的在前
+  });
+
   // 排序逻辑
   list.sort((a, b) => {
     let comparison = 1;

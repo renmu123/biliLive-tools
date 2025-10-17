@@ -405,6 +405,12 @@
           ~
           <n-time-picker v-model:formatted-value="config.handleTime[1]" clearable />
         </n-form-item>
+        <n-form-item>
+          <template #label>
+            <Tip text="展示权重" tip="值越大，UI显示越靠前"></Tip>
+          </template>
+          <n-input-number v-model:value="config.weight" min="1" step="1" style="width: 100%" />
+        </n-form-item>
 
         <h2>弹幕</h2>
         <n-form-item>
@@ -558,6 +564,7 @@ const config = ref<Omit<Recorder, "id">>({
   codecName: "auto",
   titleKeywords: "",
   liveStartNotification: false,
+  weight: 10,
   source: "auto",
   videoFormat: "auto",
   recorderType: "ffmpeg",
@@ -609,6 +616,9 @@ const getRecordSetting = async () => {
   config.value = await recoderApi.get(props.id);
   if (!config.value.handleTime) {
     config.value.handleTime = [null, null];
+  }
+  if (!config.value.weight) {
+    config.value.weight = 10;
   }
 };
 const isEdit = computed(() => !!props.id);
@@ -672,6 +682,7 @@ watch(showModal, async (val) => {
       codecName: "auto",
       titleKeywords: "",
       liveStartNotification: false,
+      weight: 10,
       source: "auto",
       videoFormat: "auto",
       recorderType: "ffmpeg",
