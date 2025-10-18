@@ -33,6 +33,7 @@
               placeholder="请输入文件命名规则"
               clearable
               spellcheck="false"
+              @blur="handleNameRuleBlur"
             />
             <n-checkbox v-model:checked="allowEdit" style="margin: 0 10px"></n-checkbox>
             <template #feedback>
@@ -420,6 +421,7 @@ const titleTip = computed(() => {
 
 const titleInput = templateRef("titleInput");
 const setTitleVar = async (value: string) => {
+  if (!allowEdit.value) return;
   const input = titleInput.value?.inputElRef;
   if (input) {
     // 获取input光标位置
@@ -448,6 +450,18 @@ watch(allowEdit, async (val) => {
     }
   }
 });
+
+const handleNameRuleBlur = async () => {
+  if (config.value.recorder.nameRule.includes(":")) {
+    const [status] = await confirm.warning({
+      content: "你的文件命名规则中可能包含了冒号(:)，该符合无法作为文件名，是否替换为空格？",
+    });
+    if (!status) {
+      return;
+    }
+    config.value.recorder.nameRule = config.value.recorder.nameRule.replaceAll(":", " ");
+  }
+};
 </script>
 
 <style scoped lang="less">
