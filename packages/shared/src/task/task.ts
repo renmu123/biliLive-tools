@@ -20,6 +20,7 @@ import { TaskType } from "../enum.js";
 import { SyncClient } from "../sync/index.js";
 import { uploadPartModel } from "../db/index.js";
 import { Pan123 } from "../sync/index.js";
+import { StatisticsService } from "../db/service/index.js";
 
 import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { Client, WebVideoUploader } from "@renmu/bili-api";
@@ -475,6 +476,7 @@ export class BiliVideoTask extends AbstractTask {
   type = TaskType.bili;
   completedTask: number = 0;
   uid: number;
+  rawName: string;
   callback: {
     onStart?: () => void;
     onEnd?: (output: { aid: number; bvid: string }) => void;
@@ -498,6 +500,7 @@ export class BiliVideoTask extends AbstractTask {
     this.action = ["kill"];
     if (options.name) {
       this.name = options.name;
+      this.rawName = options.name;
     }
     this.callback = callback;
 
@@ -612,6 +615,42 @@ export class BiliAddVideoTask extends BiliVideoTask {
     });
   }
   async submit() {
+    // 检查投稿最短间隔
+    const config = appConfig.getAll();
+    const minUploadInterval = config?.biliUpload?.minUploadInterval || 0;
+
+    if (minUploadInterval > 0) {
+      const lastUploadTime = StatisticsService.query("bili_last_upload_time");
+      if (lastUploadTime) {
+        const lastTime = parseInt(lastUploadTime.value);
+        const currentTime = Date.now();
+        const timeDiff = currentTime - lastTime;
+        const requiredInterval = minUploadInterval * 60 * 1000; // 转换为毫秒
+
+        if (timeDiff < requiredInterval) {
+          const remainingTime = requiredInterval - timeDiff;
+          const waitMinutes = Math.ceil(remainingTime / (60 * 1000));
+          log.info(
+            `${this.rawName} 投稿间隔不足，还需等待 ${waitMinutes} 分钟，将在1分钟后重试提交`,
+          );
+
+          // 更新任务状态显示
+          this.name = `${this.rawName}（等待投稿间隔，还需 ${waitMinutes} 分钟）`;
+
+          // 1分钟后重试
+          setTimeout(() => {
+            if (this.status === "running") {
+              this.submit();
+            }
+          }, 60 * 1000);
+          return;
+        }
+      }
+    }
+
+    // 清除等待消息
+    this.name = this.rawName;
+
     const parts = this.taskList
       .filter((task) => task.status === "completed")
       .map((task) => {
@@ -630,6 +669,13 @@ export class BiliAddVideoTask extends BiliVideoTask {
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
       uploadPartModel.removeByCids(parts.map((part) => part.cid));
+      StatisticsService.addOrUpdate({
+        where: { stat_key: "bili_last_upload_time" },
+        create: {
+          stat_key: "bili_last_upload_time",
+          value: Date.now().toString(),
+        },
+      });
     } catch (err) {
       log.error("上传失败", err);
       this.status = "error";
@@ -670,6 +716,42 @@ export class BiliEditVideoTask extends BiliVideoTask {
     });
   }
   async submit() {
+    // 检查投稿最短间隔
+    const config = appConfig.getAll();
+    const minUploadInterval = config?.biliUpload?.minUploadInterval || 0;
+
+    if (minUploadInterval > 0) {
+      const lastUploadTime = StatisticsService.query("bili_last_upload_time");
+      if (lastUploadTime) {
+        const lastTime = parseInt(lastUploadTime.value);
+        const currentTime = Date.now();
+        const timeDiff = currentTime - lastTime;
+        const requiredInterval = minUploadInterval * 60 * 1000; // 转换为毫秒
+
+        if (timeDiff < requiredInterval) {
+          const remainingTime = requiredInterval - timeDiff;
+          const waitMinutes = Math.ceil(remainingTime / (60 * 1000));
+          log.info(
+            `${this.rawName} 编辑间隔不足，还需等待 ${waitMinutes} 分钟，将在1分钟后重试提交`,
+          );
+
+          // 更新任务状态显示
+          this.name = `${this.rawName}（等待投稿间隔，还需 ${waitMinutes} 分钟）`;
+
+          // 1分钟后重试
+          setTimeout(() => {
+            if (this.status === "running") {
+              this.submit();
+            }
+          }, 60 * 1000);
+          return;
+        }
+      }
+    }
+
+    // 清除等待消息
+    this.name = this.rawName;
+
     const parts = this.taskList
       .filter((task) => task.status === "completed")
       .map((task) => {
@@ -691,6 +773,13 @@ export class BiliEditVideoTask extends BiliVideoTask {
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
       uploadPartModel.removeByCids(parts.map((part) => part.cid));
+      StatisticsService.addOrUpdate({
+        where: { stat_key: "bili_last_upload_time" },
+        create: {
+          stat_key: "bili_last_upload_time",
+          value: Date.now().toString(),
+        },
+      });
     } catch (err) {
       log.error("编辑失败", err);
       this.status = "error";

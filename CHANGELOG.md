@@ -1,5 +1,9 @@
 # Next
 
+## 功能
+
+- B站上传：支持“投稿最短间隔”参数来对抗风控
+
 ## 优化
 
 - log等级参数默认为 `debug`
@@ -14,7 +18,7 @@
 - 下载：B站视频下载画质支持 [#171](https://github.com/renmu123/biliLive-tools/pull/171)
 - 虚拟录制：新增“验证”按钮来实现快速的文件夹验证 [#182](https://github.com/renmu123/biliLive-tools/pull/182)
 - 录制：弹幕直接写入xml文件，节约内存使用 [#179](https://github.com/renmu123/biliLive-tools/pull/179)
-- 录制：抖音支持额外的四种接口请求方式，其中mobile以及用户解析需本版本添加的直播间方能生效
+- 录制：抖音支持额外的四种接口请求方式，其中mobile以及用户解析需本版本添加的直播间方能生效 [#180](https://github.com/renmu123/biliLive-tools/pull/180)
 - 录制：增加“录制页面额外请求”选项 [#186](https://github.com/renmu123/biliLive-tools/pull/186)
 - 录制：添加“展示权重”字段，用来对UI界面中直播间进行排序 [#187](https://github.com/renmu123/biliLive-tools/pull/187)
 - 支持缓存文件夹自定义 [#172](https://github.com/renmu123/biliLive-tools/pull/172)
