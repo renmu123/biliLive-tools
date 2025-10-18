@@ -521,11 +521,17 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     if (matched) {
       roomId = matched[1].trim();
     } else {
-      // 解析<link rel="canonical" href="xxxxxxx"/>中的href
-      const canonicalLink = html.match(/<link rel="canonical" href="(.*?)"/);
-      if (canonicalLink) {
-        const url = canonicalLink[1];
-        roomId = url.split("/").pop();
+      // 解析出query中的rid参数
+      const rid = new URL(channelURL).searchParams.get("rid");
+      if (rid) {
+        roomId = rid;
+      } else {
+        // 解析<link rel="canonical" href="xxxxxxx"/>中的href
+        const canonicalLink = html.match(/<link rel="canonical" href="(.*?)"/);
+        if (canonicalLink) {
+          const url = canonicalLink[1];
+          roomId = url.split("/").pop();
+        }
       }
     }
     if (!roomId) return null;
