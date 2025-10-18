@@ -628,6 +628,8 @@ export interface AppConfig {
     limitRate: number;
     /** 检查稿件间隔 */
     checkInterval: number;
+    /** 投稿最短间隔 */
+    minUploadInterval: number;
     /** 账号授权自动更新 */
     accountAutoCheck: boolean;
     /** 使用必剪api */
