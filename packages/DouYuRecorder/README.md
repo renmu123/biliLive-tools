@@ -50,6 +50,7 @@ interface Options {
   videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"
   onlyAudio?: boolean; // 只录制音频，默认为否
   recorderType?: "auto" | "ffmpeg" | "mesio"; // 底层录制器，使用mesio时videoFormat参数无效
+  debugLevel?: `verbose` | "basic"; // verbose参数时，录制器会输出更加详细的log
 }
 ```
 

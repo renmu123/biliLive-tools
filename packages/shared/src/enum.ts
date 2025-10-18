@@ -253,6 +253,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     saveCover: false,
     uid: undefined,
     debugMode: false,
+    debugLevel: "none",
     qualityRetry: 0,
     videoFormat: "auto",
     recorderType: "auto",

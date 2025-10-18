@@ -411,6 +411,20 @@
           </template>
           <n-input-number v-model:value="config.weight" min="1" step="1" style="width: 100%" />
         </n-form-item>
+        <n-form-item>
+          <template #label>
+            <Tip tip="如果你遇到特定直播间的录制问题，请打开此开关" text="调试模式"></Tip>
+          </template>
+          <n-select
+            v-model:value="config.debugLevel"
+            :options="recorderDebugLevelOptions"
+            style="width: 220px"
+            :disabled="globalFieldsObj.debugLevel"
+          />
+          <n-checkbox v-model:checked="globalFieldsObj.debugLevel" class="global-checkbox"
+            >全局</n-checkbox
+          >
+        </n-form-item>
 
         <h2>弹幕</h2>
         <n-form-item>
@@ -503,6 +517,7 @@ import {
   douyinStreamFormatOptions,
   huyaSourceOptions,
   recorderTypeOptions,
+  recorderDebugLevelOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 
@@ -540,6 +555,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     cookie: true,
     doubleScreen: true,
     useServerTimestamp: true,
+    debugLevel: true,
   },
 );
 
@@ -572,6 +588,7 @@ const config = ref<Omit<Recorder, "id">>({
   doubleScreen: true,
   useServerTimestamp: true,
   handleTime: ["", ""],
+  debugLevel: "none",
 });
 
 const confirmDialog = useConfirm();
@@ -691,6 +708,7 @@ watch(showModal, async (val) => {
       doubleScreen: true,
       useServerTimestamp: true,
       handleTime: [null, null],
+      debugLevel: "none",
     };
 
     if (props.id) {
@@ -718,6 +736,7 @@ watch(showModal, async (val) => {
       useServerTimestamp: !(config.value?.noGlobalFollowFields ?? []).includes(
         "useServerTimestamp",
       ),
+      debugLevel: !(config.value?.noGlobalFollowFields ?? []).includes("debugLevel"),
     };
   }
 });
@@ -799,6 +818,9 @@ watch(
     }
     if (val.useServerTimestamp) {
       config.value.useServerTimestamp = appConfig.value.recorder.useServerTimestamp;
+    }
+    if (val.debugLevel) {
+      config.value.debugLevel = appConfig.value.recorder.debugLevel;
     }
   },
   {
