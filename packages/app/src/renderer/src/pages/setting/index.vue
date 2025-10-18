@@ -248,7 +248,7 @@
               <template #label>
                 <Tip
                   text="webhook"
-                  :tip="`webhook路径：<br/>B站录播姬：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec：http://127.0.0.1:${config.port}/webhook/blrec<br/>DDTV：http://127.0.0.1:${config.port}/webhook/ddtv<br/>自定义（参数见文档）：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
+                  :tip="`如果本软件的录制想使用该功能，请打开录制配置中的发送到webhook选项<br/>其他软件webhook路径：<br/>B站录播姬：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec：http://127.0.0.1:${config.port}/webhook/blrec<br/>DDTV：http://127.0.0.1:${config.port}/webhook/ddtv<br/>oneLiveRec：http://127.0.0.1:${config.port}/webhook/oneliverec<br/>自定义（参数见文档）：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
                 ></Tip>
               </template>
               <n-switch v-model:value="config.webhook.open" />
