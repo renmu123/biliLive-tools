@@ -1,3 +1,7 @@
+# 1.8.0
+
+- 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
+
 # 1.7.0
 
 - 增加检查错误状态值

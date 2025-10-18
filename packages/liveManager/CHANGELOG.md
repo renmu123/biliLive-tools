@@ -1,3 +1,7 @@
+# 1.8.0
+
+- 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
+
 # 1.7.0
 
 - 修复 mesio 某些情况下录制结束重命名错误的bug

@@ -127,9 +127,13 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip tip="用于提交反馈" text="调试模式"></Tip>
+              <Tip tip="如果你遇到特定直播间的录制问题，请打开此开关" text="调试模式"></Tip>
             </template>
-            <n-switch v-model:value="config.recorder.debugMode" />
+            <n-select
+              v-model:value="config.recorder.debugLevel"
+              :options="recorderDebugLevelOptions"
+              style="width: 220px"
+            />
           </n-form-item>
 
           <h3>弹幕</h3>
@@ -336,6 +340,7 @@ import {
   douyinStreamFormatOptions,
   huyaSourceOptions,
   recorderTypeOptions,
+  recorderDebugLevelOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";

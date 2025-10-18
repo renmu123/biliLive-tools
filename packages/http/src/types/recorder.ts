@@ -113,6 +113,7 @@ export type UpdateRecorderArgs = Pick<
   | "useServerTimestamp"
   | "handleTime"
   | "weight"
+  | "debugLevel"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 

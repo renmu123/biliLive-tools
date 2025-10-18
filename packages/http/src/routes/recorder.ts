@@ -64,6 +64,7 @@ router.post("/add", async (ctx) => {
     "onlyAudio",
     "useServerTimestamp",
     "handleTime",
+    "debugLevel",
   );
 
   const data = await recorderService.addRecorder(args);
@@ -114,6 +115,7 @@ router.put("/:id", (ctx) => {
     "onlyAudio",
     "useServerTimestamp",
     "handleTime",
+    "debugLevel",
   );
 
   ctx.body = { payload: recorderService.updateRecorder({ id, ...patch }) };

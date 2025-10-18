@@ -1,3 +1,7 @@
+# 1.8.0
+
+- 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
+
 # 1.7.0
 
 - 支持 `mobile`、`userHTML`、`balance`、`random` 接口, 其中 `mobile`、`userHTML` 需要传递`uid`参数，内容为`sec_user_id`

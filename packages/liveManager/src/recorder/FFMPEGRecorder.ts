@@ -18,6 +18,7 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
   readonly url: string;
   formatName: "flv" | "ts" | "fmp4";
   videoFormat: "ts" | "mkv" | "mp4";
+  readonly debugLevel: "none" | "basic" | "verbose" = "none";
   readonly headers:
     | {
         [key: string]: string | undefined;
@@ -32,6 +33,7 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
     super();
     const hasSegment = !!opts.segment;
     this.hasSegment = hasSegment;
+    this.debugLevel = opts.debugLevel ?? "none";
 
     let formatName: "flv" | "ts" | "fmp4" = "flv";
     if (opts.url.includes(".m3u8")) {
@@ -102,6 +104,9 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
       "-user_agent",
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
     ];
+    if (this.debugLevel === "verbose") {
+      inputOptions.push("-loglevel", "debug");
+    }
     if (this.headers) {
       const headers: string[] = [];
       Object.entries(this.headers).forEach(([key, value]) => {

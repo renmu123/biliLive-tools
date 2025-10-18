@@ -306,6 +306,22 @@ export const recorderTypeOptions = [
   },
 ];
 
+// 录制调试等级
+export const recorderDebugLevelOptions = [
+  {
+    value: "none",
+    label: "关闭",
+  },
+  {
+    value: "basic",
+    label: "基础",
+  },
+  {
+    value: "verbose",
+    label: "详细",
+  },
+];
+
 // 抖音流格式
 export const douyinStreamFormatOptions = [
   {
