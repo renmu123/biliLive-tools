@@ -37,6 +37,7 @@
     "@vitest/coverage-istanbul": "^2.1.8",
     "cli-progress": "^3.12.0",
     "download": "^8.0.0",
+    "pnpm": "^9.15.2",
     "prettier": "^3.4.1",
     "rollup": "^4.24.4",
     "tar": "^7.4.3",

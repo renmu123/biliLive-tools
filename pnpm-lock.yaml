@@ -86,6 +86,9 @@ importers:
       download:
         specifier: ^8.0.0
         version: 8.0.0
+      pnpm:
+        specifier: ^9.15.2
+        version: 9.15.9
       prettier:
         specifier: ^3.4.1
         version: 3.4.1
@@ -473,6 +476,9 @@ importers:
       '@biliLive-tools/types':
         specifier: workspace:*
         version: link:../types
+      '@bililive-tools/douyin-recorder':
+        specifier: workspace:*
+        version: link:../DouYinRecorder
       '@bililive-tools/manager':
         specifier: workspace:*
         version: link:../liveManager
@@ -4521,6 +4527,11 @@ packages:
   plist@3.1.0:
     resolution: {integrity: sha512-uysumyrvkUX0rX/dEVqt8gC3sTBzd4zoWfLeS29nb53imdaXVvLINYXTI2GNqzaMuvacNx4uJQ8+b3zXR0pkgQ==}
     engines: {node: '>=10.4.0'}
+
+  pnpm@9.15.9:
+    resolution: {integrity: sha512-aARhQYk8ZvrQHAeSMRKOmvuJ74fiaR1p5NQO7iKJiClf1GghgbrlW1hBjDolO95lpQXsfF+UA+zlzDzTfc8lMQ==}
+    engines: {node: '>=18.12'}
+    hasBin: true
 
   postcss-selector-parser@6.1.2:
     resolution: {integrity: sha512-Q8qQfPiZ+THO/3ZrOrO0cJJKfpYCagtMUkXbnEfmgUjwXg6z/WBeOyS9APBBPCTSiDV+s4SwQGu8yFsiMRIudg==}
@@ -9795,6 +9806,8 @@ snapshots:
       '@xmldom/xmldom': 0.8.10
       base64-js: 1.5.1
       xmlbuilder: 15.1.1
+
+  pnpm@9.15.9: {}
 
   postcss-selector-parser@6.1.2:
     dependencies:

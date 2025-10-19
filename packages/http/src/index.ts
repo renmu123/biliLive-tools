@@ -24,6 +24,7 @@ import videoRouter from "./routes/video.js";
 import recordHistoryRouter from "./routes/recordHistory.js";
 import danmaRouter from "./routes/danma.js";
 import syncRouter from "./routes/sync.js";
+import bgoRouter from "./routes/bgo.js";
 import { WebhookHandler } from "./services/webhook.js";
 import { createFileCache } from "./services/fileCache.js";
 
@@ -117,6 +118,7 @@ export async function serverStart(
   app.use(recordHistoryRouter.routes());
   app.use(danmaRouter.routes());
   app.use(syncRouter.routes());
+  app.use(bgoRouter.routes());
 
   app.use(SSERouter.routes());
   app.use(router.allowedMethods());

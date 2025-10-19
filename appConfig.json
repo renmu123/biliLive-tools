@@ -1,0 +1,260 @@
+{
+  "configFolder": ".",
+  "ffmpegPath": "",
+  "ffprobePath": "",
+  "danmuFactoryPath": "",
+  "mesioPath": "",
+  "logLevel": "warn",
+  "autoUpdate": true,
+  "autoLaunch": false,
+  "trash": false,
+  "saveConfig": false,
+  "minimizeToTray": false,
+  "closeToTray": true,
+  "theme": "system",
+  "port": 18010,
+  "host": "127.0.0.1",
+  "passKey": "Basic YTph",
+  "https": false,
+  "webhook": {
+    "open": false,
+    "recoderFolder": "",
+    "minSize": 20,
+    "title": "【{{user}}】{{title}}-{{now}}",
+    "blacklist": "",
+    "danmu": false,
+    "rooms": {},
+    "afterConvertAction": [],
+    "autoPartMerge": false,
+    "partMergeMinute": 10,
+    "hotProgress": false,
+    "useLiveCover": false,
+    "partTitleTemplate": "{{filename}}",
+    "hotProgressSample": 30,
+    "hotProgressHeight": 60,
+    "hotProgressColor": "#f9f5f3",
+    "hotProgressFillColor": "#333333",
+    "convert2Mp4": false,
+    "removeSourceAferrConvert2Mp4": true,
+    "uploadHandleTime": [
+      "00:00:00",
+      "23:59:59"
+    ],
+    "limitUploadTime": false,
+    "uploadNoDanmu": false,
+    "limitVideoConvertTime": false,
+    "videoHandleTime": [
+      "00:00:00",
+      "23:59:59"
+    ],
+    "afterUploadDeletAction": "none"
+  },
+  "losslessCutPath": "",
+  "customExecPath": false,
+  "bilibiliUser": {},
+  "tool": {
+    "home": {
+      "uploadPresetId": "default",
+      "danmuPresetId": "default",
+      "ffmpegPresetId": "b_libx264",
+      "removeOrigin": false,
+      "autoUpload": false,
+      "removeOriginAfterUploadCheck": false,
+      "hotProgress": false,
+      "hotProgressSample": 30,
+      "hotProgressHeight": 60,
+      "hotProgressColor": "#f9f5f3",
+      "hotProgressFillColor": "#333333"
+    },
+    "upload": {
+      "uploadPresetId": "default",
+      "removeOriginAfterUploadCheck": false
+    },
+    "fileSync": {
+      "removeOrigin": false,
+      "targetPath": "/"
+    },
+    "danmu": {
+      "danmuPresetId": "default",
+      "saveRadio": 1,
+      "savePath": "",
+      "removeOrigin": false,
+      "override": true
+    },
+    "video2mp4": {
+      "saveRadio": 1,
+      "savePath": "",
+      "saveOriginPath": false,
+      "override": false,
+      "removeOrigin": false,
+      "ffmpegPresetId": "b_copy",
+      "danmuPresetId": "default",
+      "hotProgress": false
+    },
+    "videoMerge": {
+      "saveOriginPath": false,
+      "removeOrigin": false,
+      "keepFirstVideoMeta": false,
+      "mergeXml": false
+    },
+    "download": {
+      "savePath": "",
+      "danmu": "none",
+      "douyuResolution": "highest",
+      "override": false,
+      "onlyAudio": false
+    },
+    "translate": {},
+    "videoCut": {
+      "saveRadio": 1,
+      "savePath": ".\\",
+      "override": false,
+      "ffmpegPresetId": "b_libx264",
+      "title": "{{filename}}-{{label}}-{{num}}",
+      "danmuPresetId": "default",
+      "ignoreDanmu": false
+    }
+  },
+  "task": {
+    "ffmpegMaxNum": 3,
+    "douyuDownloadMaxNum": 2,
+    "biliUploadMaxNum": 2,
+    "biliDownloadMaxNum": 2,
+    "syncMaxNum": 3
+  },
+  "notification": {
+    "task": {
+      "ffmpeg": [],
+      "danmu": [],
+      "upload": [],
+      "download": [],
+      "douyuDownload": [],
+      "mediaStatusCheck": [],
+      "diskSpaceCheck": {
+        "values": [],
+        "threshold": 10
+      },
+      "sync": []
+    },
+    "setting": {
+      "server": {
+        "key": ""
+      },
+      "mail": {
+        "host": "",
+        "port": "465",
+        "user": "",
+        "pass": "",
+        "to": "",
+        "secure": true
+      },
+      "tg": {
+        "key": "",
+        "chat_id": "",
+        "proxyUrl": ""
+      },
+      "ntfy": {
+        "url": "",
+        "topic": ""
+      },
+      "allInOne": {
+        "server": "",
+        "key": ""
+      },
+      "customHttp": {
+        "url": "",
+        "method": "GET",
+        "body": "",
+        "headers": ""
+      }
+    },
+    "taskNotificationType": {
+      "liveStart": "system"
+    }
+  },
+  "sync": {
+    "baiduPCS": {
+      "execPath": ""
+    },
+    "aliyunpan": {
+      "execPath": ""
+    },
+    "alist": {
+      "apiUrl": "",
+      "username": "",
+      "hashPassword": "",
+      "limitRate": 0
+    },
+    "pan123": {
+      "clientId": "",
+      "clientSecret": "",
+      "limitRate": 0
+    },
+    "syncConfigs": []
+  },
+  "llmPresets": [],
+  "biliUpload": {
+    "line": "auto",
+    "concurrency": 3,
+    "limitRate": 0,
+    "retryTimes": 10,
+    "retryDelay": 7000,
+    "checkInterval": 600,
+    "accountAutoCheck": false,
+    "useBCutAPI": false,
+    "useUploadPartPersistence": true
+  },
+  "recorder": {
+    "savePath": "",
+    "nameRule": "{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}",
+    "autoRecord": true,
+    "quality": "highest",
+    "checkInterval": 60,
+    "disableProvideCommentsWhenRecording": false,
+    "segment": 90,
+    "saveGiftDanma": false,
+    "saveSCDanma": true,
+    "saveCover": false,
+    "debugMode": false,
+    "qualityRetry": 0,
+    "videoFormat": "auto",
+    "recorderType": "auto",
+    "useServerTimestamp": true,
+    "recordRetryImmediately": false,
+    "bilibili": {
+      "quality": 10000,
+      "useBatchQuery": false,
+      "useM3U8Proxy": true,
+      "formatName": "auto",
+      "codecName": "auto"
+    },
+    "douyu": {
+      "quality": 0,
+      "source": "auto"
+    },
+    "huya": {
+      "quality": 0,
+      "formatName": "auto",
+      "source": "auto"
+    },
+    "douyin": {
+      "quality": "origin",
+      "formatName": "auto",
+      "cookie": "",
+      "doubleScreen": true,
+      "api": "web"
+    },
+    "saveDanma2DB": false
+  },
+  "video": {
+    "subCheckInterval": 60,
+    "subSavePath": ""
+  },
+  "recorders": [],
+  "virtualRecord": {
+    "config": [],
+    "startTime": 1760006419691
+  },
+  "cacheFolder": "",
+  "requestInfoForRecord": true
+}
