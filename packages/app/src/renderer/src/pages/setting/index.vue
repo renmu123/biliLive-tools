@@ -332,7 +332,7 @@
         <n-tab-pane name="notification" tab="通知">
           <NotificationSetting v-model:data="config"></NotificationSetting>
         </n-tab-pane>
-        <n-tab-pane name="other" tab="其他">
+        <n-tab-pane name="other" tab="UI界面">
           <OtherSetting v-model:data="config"></OtherSetting>
         </n-tab-pane>
       </n-tabs>
