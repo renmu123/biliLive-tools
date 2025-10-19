@@ -37,6 +37,7 @@ interface Options {
   quality: number; // 见画质参数
   qualityRetry?: number; // 画质匹配重试次数, -1为强制匹配画质，0为自动配置，正整数为最大匹配次数
   streamPriorities: []; // 废弃
+  titleKeywords?: string; // 禁止录制的标题关键字，英文逗号分开多个
   sourcePriorities: []; // 按提供的源优先级去给CDN列表排序，并过滤掉不在优先级配置中的源，在未匹配到的情况下会优先使用TX的CDN，具体参数见 CDN 参数
   formatPriorities?: string[]; // 支持，`flv`和`hls` 参数，默认为['flv','hls']
   disableAutoCheck?: boolean; // 为 true 时 manager 将跳过自动检查

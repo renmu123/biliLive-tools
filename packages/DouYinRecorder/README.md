@@ -49,6 +49,7 @@ interface Options {
   auth?: string; // 传递cookie
   uid?: string; // 参数为 sec_user_uid 参数
   api?: "web" | "webHTML" | "mobile" | "userHTML" | "balance" | "random"; // 使用不同的接口，默认使用web，具体区别见文档
+  titleKeywords?: string; // 禁止录制的标题关键字，英文逗号分开多个
 }
 ```
 

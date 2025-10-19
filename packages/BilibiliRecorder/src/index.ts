@@ -140,14 +140,10 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // 检查标题是否包含关键词，如果包含则不自动录制
   // 手动开始录制时不检查标题关键词
-  if (
-    !isManualStart &&
-    this.titleKeywords &&
-    typeof this.titleKeywords === "string" &&
-    this.titleKeywords.trim()
-  ) {
+  if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
     const hasTitleKeyword = hasKeyword(this.liveInfo.title, this.titleKeywords);
     if (hasTitleKeyword) {
+      this.state = "title-blocked";
       this.emit("DebugLog", {
         type: "common",
         text: `跳过录制：直播间标题 "${this.liveInfo.title}" 包含关键词 "${this.titleKeywords}"`,
@@ -161,7 +157,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.liveInfo = liveInfo;
 
   let res: Awaited<ReturnType<typeof getStream>>;
-  // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
     let strictQuality = false;
     if (this.qualityRetry > 0) {
@@ -332,16 +327,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       extraDataController.addMessage(msg);
     });
     danmaClient.on("onRoomInfoChange", (msg) => {
-      if (
-        !isManualStart &&
-        this.titleKeywords &&
-        typeof this.titleKeywords === "string" &&
-        this.titleKeywords.trim()
-      ) {
+      if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
         const title = msg?.body?.title ?? "";
         const hasTitleKeyword = hasKeyword(title, this.titleKeywords);
 
         if (hasTitleKeyword) {
+          this.state = "title-blocked";
           this.emit("DebugLog", {
             type: "common",
             text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
