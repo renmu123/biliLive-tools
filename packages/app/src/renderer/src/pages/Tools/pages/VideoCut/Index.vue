@@ -21,7 +21,7 @@
       <n-button class="cut-export" type="info" :disabled="!files.videoPath" @click="exportCuts">
         导出切片
       </n-button>
-      <n-button @click="openSubWindow" v-if="!isWeb">打开独立窗口</n-button>
+      <n-button @click="openSubWindow" v-if="!isWeb" style="display: none">打开独立窗口</n-button>
     </div>
 
     <div class="content">

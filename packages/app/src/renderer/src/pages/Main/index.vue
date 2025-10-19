@@ -250,16 +250,29 @@ const menuOptions = computed<MenuOption[]>(() => {
     },
     {
       key: "videoCut",
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: "videoCut",
+      label: () => {
+        if (!isWeb.value && appConfig.appConfig.cutPageInNewWindow) {
+          return h(
+            "a",
+            {
+              onClick: async () => {
+                await window.api.common.createSubWindow();
+              },
             },
-          },
-          { default: () => "切片" },
-        ),
+            { default: () => "切片" },
+          );
+        } else {
+          return h(
+            RouterLink,
+            {
+              to: {
+                name: "videoCut",
+              },
+            },
+            { default: () => "切片" },
+          );
+        }
+      },
     },
     {
       key: "Convert2Mp4",

@@ -108,7 +108,7 @@ function createCutWindow() {
 
   const subWindow = new BrowserWindow({
     webPreferences: {
-      preload: join(__dirname, "../preload/index.mjs"),
+      preload: join(__dirname2, "../preload/index.mjs"),
       sandbox: false,
       webSecurity: false,
     },
@@ -117,7 +117,7 @@ function createCutWindow() {
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     subWindow.loadURL(process.env["ELECTRON_RENDERER_URL"] + "/#/videoCut2");
   } else {
-    subWindow.loadFile(join(__dirname, "../renderer/index.html"), {
+    subWindow.loadFile(join(__dirname2, "../renderer/index.html"), {
       hash: "videoCut2",
     });
   }
