@@ -74,7 +74,7 @@ const app = new Koa();
 const router = new Router();
 
 router.get("/", async (ctx) => {
-  ctx.body = "Hello World";
+  ctx.body = "Hello biliLive-tools, this is http server! Not for browser use.";
 });
 
 app.use(errorMiddleware);
