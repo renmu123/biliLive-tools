@@ -514,6 +514,7 @@ export interface AppConfig {
   passKey: string;
   https?: boolean;
   requestInfoForRecord: boolean;
+  biliUploadFileNameType: "ask" | "always" | "never";
   webhook: {
     recoderFolder: string;
     blacklist: string;

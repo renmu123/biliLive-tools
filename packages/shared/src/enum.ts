@@ -82,6 +82,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   /** 允许自定义可执行文件地址 */
   customExecPath: false,
   requestInfoForRecord: true,
+  biliUploadFileNameType: "ask",
   bilibiliUser: {},
   tool: {
     home: {
