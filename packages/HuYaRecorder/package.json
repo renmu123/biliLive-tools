@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/huya-recorder",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "bililive-tools huya recorder implemention",
   "main": "./lib/index.js",
   "type": "module",

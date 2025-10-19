@@ -112,6 +112,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   try {
     const liveInfo = await getInfo(this.channelId);
     this.liveInfo = liveInfo;
+    this.state = "idle";
   } catch (error) {
     this.state = "check-error";
     throw error;
