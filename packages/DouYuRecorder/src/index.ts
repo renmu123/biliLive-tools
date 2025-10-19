@@ -5,7 +5,7 @@ import {
   genRecorderUUID,
   genRecordUUID,
   utils,
-  FFMPEGRecorder,
+  createBaseRecorder,
 } from "@bililive-tools/manager";
 import type {
   Comment,
@@ -152,12 +152,17 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   // 获取直播间信息
-  const liveInfo = await getInfo(this.channelId);
-  const { living, owner, title } = liveInfo;
+  try {
+    const liveInfo = await getInfo(this.channelId);
+    this.liveInfo = liveInfo;
+    this.state = "idle";
+  } catch (error) {
+    this.state = "check-error";
+    throw error;
+  }
+  const { living, owner, title } = this.liveInfo;
 
-  this.liveInfo = liveInfo;
-
-  if (liveInfo.liveId === banLiveId) {
+  if (this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
     this.tempStopIntervalCheck = false;
@@ -189,8 +194,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
   }
 
+  let recorderType: Parameters<typeof createBaseRecorder>[0] =
+    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   let res: Awaited<ReturnType<typeof getStream>>;
-  // TODO: 先不做什么错误处理，就简单包一下预期上会有错误的地方
   try {
     let strictQuality = false;
     if (this.qualityRetry > 0) {
@@ -208,10 +214,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       source: this.source,
       strictQuality,
       onlyAudio: this.onlyAudio,
+      avoidEdgeCDN: recorderType === "mesio",
     });
   } catch (err) {
-    this.state = "idle";
-    this.qualityRetry -= 1;
+    if (this.qualityRetry > 0) this.qualityRetry -= 1;
+
+    this.state = "check-error";
     throw err;
   }
 
@@ -232,16 +240,19 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
     this.emit("DebugLog", {
       type: "common",
-      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
+      text: `record end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
     });
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
   };
   let isEnded = false;
   let isCutting = false;
-  const recorder = new FFMPEGRecorder(
+
+  const recorder = createBaseRecorder(
+    recorderType,
     {
       url: stream.url,
+      // @ts-ignore
       outputOptions: ffmpegOutputOptions,
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
@@ -281,7 +292,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
-      liveStartTimestamp: liveInfo.startTime?.getTime(),
+      liveStartTimestamp: this?.liveInfo?.startTime?.getTime(),
       // recordStopTimestamp: Date.now(),
       title: title,
       user_name: owner,
@@ -435,7 +446,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   client.on("error", (err) => {
     this.emit("DebugLog", { type: "common", text: String(err) });
   });
-  // console.log("this.disableProvideCommentsWhenRecording", this.disableProvideCommentsWhenRecording);
   if (!this.disableProvideCommentsWhenRecording) {
     client.start();
   }
@@ -512,11 +522,17 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     if (matched) {
       roomId = matched[1].trim();
     } else {
-      // 解析<link rel="canonical" href="xxxxxxx"/>中的href
-      const canonicalLink = html.match(/<link rel="canonical" href="(.*?)"/);
-      if (canonicalLink) {
-        const url = canonicalLink[1];
-        roomId = url.split("/").pop();
+      // 解析出query中的rid参数
+      const rid = new URL(channelURL).searchParams.get("rid");
+      if (rid) {
+        roomId = rid;
+      } else {
+        // 解析<link rel="canonical" href="xxxxxxx"/>中的href
+        const canonicalLink = html.match(/<link rel="canonical" href="(.*?)"/);
+        if (canonicalLink) {
+          const url = canonicalLink[1];
+          roomId = url.split("/").pop();
+        }
       }
     }
     if (!roomId) return null;

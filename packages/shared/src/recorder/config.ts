@@ -16,9 +16,13 @@ export default class RecorderConfig {
     return setting.find((setting) => setting.id === id);
   }
 
-  public get(
-    id: string,
-  ): (Recorder & { auth?: string; formatPriorities?: Array<"hls" | "flv"> }) | null {
+  public get(id: string):
+    | (Recorder & {
+        auth?: string;
+        formatPriorities?: Array<"hls" | "flv">;
+        api?: "web" | "webHTML";
+      })
+    | null {
     const getValue = (key: any): any => {
       if ((setting?.noGlobalFollowFields ?? []).includes(key)) {
         return setting?.[key];
@@ -77,6 +81,12 @@ export default class RecorderConfig {
           } else {
             return [];
           }
+        } else if (key === "api") {
+          if (setting.providerId === "DouYin") {
+            return get(globalConfig, "douyin.api");
+          } else {
+            return "auto";
+          }
         } else {
           return get(globalConfig, key);
         }
@@ -90,7 +100,7 @@ export default class RecorderConfig {
     if (!setting) return null;
 
     // 授权处理
-    let uid = undefined;
+    let uid: number | string | undefined = undefined;
     let auth: string | undefined;
     if (setting.providerId === "Bilibili") {
       uid = getValue("uid");
@@ -108,6 +118,7 @@ export default class RecorderConfig {
       }
     } else if (setting.providerId === "DouYin") {
       auth = getValue("cookie");
+      uid = setting?.uid;
     }
 
     // 流格式处理
@@ -149,6 +160,7 @@ export default class RecorderConfig {
       uid: uid,
       qualityRetry: getValue("qualityRetry") ?? 0,
       videoFormat: getValue("videoFormat") ?? "auto",
+      recorderType: getValue("recorderType") ?? "ffmpeg",
       auth: auth,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
       formatName: formatName,
@@ -157,6 +169,7 @@ export default class RecorderConfig {
       formatPriorities: formatPriorities,
       doubleScreen: getValue("doubleScreen"),
       sourcePriorities: sourcePriorities,
+      api: getValue("api") ?? "auto",
     };
   }
   public list() {

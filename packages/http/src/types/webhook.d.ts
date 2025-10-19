@@ -1,8 +1,9 @@
-export type Platform = "bili-recorder" | "blrec" | "ddtv" | "custom";
+export type Platform = "bili-recorder" | "blrec" | "ddtv" | "onelivrec" | "custom";
 export type PickPartial<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>> & Partial<Pick<T, K>>;
 export type UploadStatus = "pending" | "uploading" | "uploaded" | "error";
 export type OpenEvent = "FileOpening";
 export type CloseEvent = "FileClosed";
+export type ErrorEvent = "FileError";
 
 export interface Part {
   partId: string;
@@ -23,9 +24,9 @@ export interface Part {
 }
 
 export interface Options {
-  event: OpenEvent | CloseEvent;
+  event: OpenEvent | CloseEvent | ErrorEvent;
   filePath: string;
-  roomId: number;
+  roomId: string;
   time: string;
   username: string;
   title: string;
@@ -40,7 +41,7 @@ export interface CustomEvent {
   /** 视频文件的绝对路径 */
   filePath: string;
   /** 房间号，用于断播续传需要 */
-  roomId: number;
+  roomId: string;
   /** 用于标题格式化的时间，示例："2021-05-14T17:52:54.946" */
   time: string;
   /** 标题，用于格式化视频标题 */

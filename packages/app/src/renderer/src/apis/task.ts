@@ -239,9 +239,45 @@ const editVideoPartName = async (taskId: string, partName: string) => {
   return res.data;
 };
 
-const downloadFile = async (taskId: string): Promise<Blob> => {
-  const res = await request.get(`/task/${taskId}/download`, {
-    responseType: "blob",
+const downloadFile = async (taskId: string): Promise<string> => {
+  const res = await request.get(`/task/${taskId}/download`);
+  const fileId = res.data;
+  const fileUrl = `${request.defaults.baseURL}/assets/download/${fileId}`;
+
+  return fileUrl;
+};
+
+const testVirtualRecord = async (
+  config: any,
+  folderPath: string,
+  startTime?: number,
+): Promise<{
+  files: Array<{
+    path: string;
+    filename: string;
+    startTimeMs: number;
+    roomId?: string;
+    title?: string;
+    username?: string;
+  }>;
+}> => {
+  const res = await request.post(`/task/testVirtualRecord`, {
+    config,
+    folderPath,
+    startTime,
+  });
+  return res.data;
+};
+
+const executeVirtualRecord = async (
+  config: any,
+  folderPath: string,
+  startTime?: number,
+): Promise<{ success: boolean; message: string }> => {
+  const res = await request.post(`/task/executeVirtualRecord`, {
+    config,
+    folderPath,
+    startTime,
   });
   return res.data;
 };
@@ -272,6 +308,8 @@ const task = {
   editVideoPartName,
   queryVideoStatus,
   restart,
+  testVirtualRecord,
+  executeVirtualRecord,
 };
 
 export default task;

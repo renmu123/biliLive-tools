@@ -19,6 +19,7 @@ import { addMediaApi, editMediaApi } from "./bili.js";
 import { TaskType } from "../enum.js";
 import { SyncClient } from "../sync/index.js";
 import { uploadPartModel } from "../db/index.js";
+import { Pan123 } from "../sync/index.js";
 
 import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { Client, WebVideoUploader } from "@renmu/bili-api";
@@ -980,6 +981,10 @@ export class SyncTask extends AbstractTask {
     this.action = ["kill", "restart"];
     this.callback = callback || {};
 
+    if (this.instance && this.instance instanceof Pan123) {
+      // 123网盘不支持重试任务
+      this.action = ["kill"];
+    }
     // @ts-expect-error
     this.instance.on("progress", (progress: any) => {
       // console.log("sync progress", progress);
@@ -1000,7 +1005,6 @@ export class SyncTask extends AbstractTask {
         policy: this?.options?.policy,
       })
       .then(() => {
-        console.log("upload complete");
         this.status = "completed";
         this.callback.onEnd && this.callback.onEnd(this.output as string);
         this.progress = 100;

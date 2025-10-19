@@ -87,6 +87,10 @@ const test = async () => {
       });
     }
   } catch (error) {
+    if (error === "Forbidden") {
+      notice.error({ title: "密钥错误", duration: 5000 });
+      return;
+    }
     notice.error({ title: "无法连接，请检查配置", duration: 5000 });
   }
 };

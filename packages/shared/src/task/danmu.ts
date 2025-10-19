@@ -1,6 +1,5 @@
 import { join, parse } from "node:path";
 import fs from "fs-extra";
-import os from "node:os";
 import readline from "node:readline";
 import { isNumber } from "lodash-es";
 
@@ -62,14 +61,13 @@ const addConvertDanmu2AssTask = async (
   const DANMUKUFACTORY_PATH = getDanmuFactoryPath();
   const danmu = new DanmakuFactory(DANMUKUFACTORY_PATH);
   let tempInput: string | undefined;
-
+  const tempDir = getTempPath();
   if (options.copyInput) {
-    tempInput = join(os.tmpdir(), `${uuid()}.xml`);
+    tempInput = join(tempDir, `${uuid()}.xml`);
     await fs.copyFile(originInput, tempInput);
   }
 
   if (danmuOptions.blacklist) {
-    const tempDir = os.tmpdir();
     const fileTxtPath = join(tempDir, `${uuid()}.txt`);
     const fileTxtContent = danmuOptions.blacklist
       .split(",")
@@ -308,8 +306,8 @@ export function generateMergedXmlContent(
   });
 
   const xmlContent = builder.build({
-    metadata,
     i: {
+      metadata,
       d: mergedDanmuku,
       gift: mergedGift,
       sc: mergedSc,

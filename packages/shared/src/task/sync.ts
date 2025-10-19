@@ -16,6 +16,7 @@ const getConfig = (type: SyncType) => {
       apiUrl: config.sync[type as "alist"].apiUrl,
       username: config.sync[type as "alist"].username,
       password: config.sync[type as "alist"].hashPassword,
+      limitRate: config.sync[type as "alist"].limitRate,
     };
   } else if (["aliyunpan", "baiduPCS"].includes(type)) {
     return {
@@ -29,6 +30,7 @@ const getConfig = (type: SyncType) => {
     return {
       clientId: config.sync[type as "pan123"].clientId,
       clientSecret: config.sync[type as "pan123"].clientSecret,
+      limitRate: config.sync[type as "pan123"].limitRate,
     };
   } else {
     throw new Error("Unsupported type");
@@ -44,6 +46,7 @@ const createUploadInstance = async (opts: {
   password?: string;
   clientId?: string;
   clientSecret?: string;
+  limitRate?: number;
 }) => {
   if (opts.type === "baiduPCS") {
     return new BaiduPCS({
@@ -61,6 +64,7 @@ const createUploadInstance = async (opts: {
       username: opts.username,
       password: opts.password,
       remotePath: opts.remotePath ?? "",
+      limitRate: opts.limitRate ?? 0,
     });
   } else if (opts.type === "copy") {
     return new LocalCopy({
@@ -74,6 +78,7 @@ const createUploadInstance = async (opts: {
     return new Pan123({
       accessToken,
       remotePath: opts.remotePath ?? "",
+      limitRate: opts.limitRate ?? 0,
     });
   } else {
     throw new Error("Unsupported type");
@@ -114,6 +119,7 @@ export const addSyncTask = async ({
     password: iPassword,
     clientId: iClientId,
     clientSecret: iClientSecret,
+    limitRate,
   } = getConfig(type);
   const instance = await createUploadInstance({
     type,
@@ -124,6 +130,7 @@ export const addSyncTask = async ({
     password: password ?? iPassword,
     clientId: clientId ?? iClientId,
     clientSecret: clientSecret ?? iClientSecret,
+    limitRate: limitRate ?? 0,
   });
 
   const task = new SyncTask(

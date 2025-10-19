@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/manager",
-  "version": "1.5.0",
+  "version": "1.6.1",
   "description": "Batch scheduling recorders",
   "main": "./lib/index.js",
   "type": "module",
@@ -39,7 +39,7 @@
   "dependencies": {
     "@renmu/fluent-ffmpeg": "2.3.3",
     "fast-xml-parser": "^4.5.0",
-    "filenamify": "^6.0.0",
+    "filenamify": "^7.0.0",
     "mitt": "catalog:",
     "string-argv": "^0.3.2",
     "lodash-es": "catalog:",

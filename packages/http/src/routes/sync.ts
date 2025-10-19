@@ -1,8 +1,7 @@
-import os from "node:os";
 import path from "node:path";
 
 import fs from "fs-extra";
-import Router from "koa-router";
+import Router from "@koa/router";
 
 import {
   addSyncTask,
@@ -11,6 +10,7 @@ import {
   aliyunpanLogin,
   pan123Login,
 } from "@biliLive-tools/shared/task/sync.js";
+import { getTempPath } from "@biliLive-tools/shared/utils/index.js";
 
 import type { SyncType } from "@biliLive-tools/types";
 
@@ -28,8 +28,9 @@ async function uploadTest(params: {
   clientId?: string;
   clientSecret?: string;
 }) {
+  const tempDir = getTempPath();
   // 在临时文件新建一个文件，内容为"biliLive-tools"
-  const tempFilePath = path.join(os.tmpdir(), "biliLive-tools-upload-test.txt");
+  const tempFilePath = path.join(tempDir, "biliLive-tools-upload-test.txt");
   await fs.writeFile(tempFilePath, "biliLive-tools");
   return new Promise(async (resolve, reject) => {
     const task = await addSyncTask({

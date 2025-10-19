@@ -33,6 +33,7 @@
               placeholder="请输入文件命名规则"
               clearable
               spellcheck="false"
+              @blur="handleNameRuleBlur"
             />
             <n-checkbox v-model:checked="allowEdit" style="margin: 0 10px"></n-checkbox>
             <template #feedback>
@@ -48,7 +49,10 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip tip="直播状态检查，太快容易被风控~" text="检查间隔"></Tip>
+              <Tip
+                tip="每隔设置的时间对所有监听直播间进行状态检查，太快容易被风控~"
+                text="检查间隔"
+              ></Tip>
             </template>
             <n-input-number
               v-model:value="config.recorder.checkInterval"
@@ -92,6 +96,19 @@
           <n-form-item>
             <template #label>
               <Tip
+                :text="textInfo.common.recorderType.text"
+                :tip="textInfo.common.recorderType.tip"
+              ></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorder.recorderType"
+              :options="recorderTypeOptions"
+              style="width: 220px"
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
                 :tip="textInfo.douyu.qualityRetry.tip"
                 :text="textInfo.douyu.qualityRetry.text"
               ></Tip>
@@ -103,7 +120,7 @@
             <template #label>
               <Tip
                 tip="当前录制错误后，会在下一个检查周期到来重新进行检查，可能导致缺少部分时间。<br/>
-                此开关使得在触发某些<b>已知错误</b>后会立即进行检查，每场直播最多进行五次重试。"
+                此开关使得在触发某些<b>已知错误</b>后会立即进行检查，每场直播最多进行五次重试。虎牙直播不会被重试"
                 text="测试：录制错误立即重试"
               ></Tip>
             </template>
@@ -275,6 +292,15 @@
           </n-form-item>
           <n-form-item>
             <template #label>
+              <Tip
+                text="请求接口"
+                tip="不同的接口对应的底层不同，如果哪天用不了，你也可以切切看，mobile和用户html解析接口必须在3.1.0及以后版本使用才能生效，更多区别见文档。PS: mobile看起来更不容易触发风控"
+              ></Tip>
+            </template>
+            <n-select v-model:value="config.recorder.douyin.api" :options="douyinApiTypeOptions" />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
               <Tip text="Cookie" tip="用于录制会员直播"></Tip>
             </template>
             <n-input v-model:value="config.recorder.douyin.cookie" type="password" />
@@ -310,6 +336,7 @@ import {
   videoFormatOptions,
   douyinStreamFormatOptions,
   huyaSourceOptions,
+  recorderTypeOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";
@@ -317,6 +344,15 @@ import type { AppConfig } from "@biliLive-tools/types";
 const config = defineModel<AppConfig>("data", {
   default: () => {},
 });
+
+const douyinApiTypeOptions = ref([
+  { label: "随机", value: "random" },
+  { label: "web接口", value: "web" },
+  { label: "mobile接口", value: "mobile" },
+  { label: "直播html解析", value: "webHTML" },
+  { label: "用户html解析", value: "userHTML" },
+  { label: "测试：负载均衡", value: "balance" },
+]);
 
 const { userList } = storeToRefs(useUserInfoStore());
 
@@ -385,6 +421,7 @@ const titleTip = computed(() => {
 
 const titleInput = templateRef("titleInput");
 const setTitleVar = async (value: string) => {
+  if (!allowEdit.value) return;
   const input = titleInput.value?.inputElRef;
   if (input) {
     // 获取input光标位置
@@ -413,6 +450,18 @@ watch(allowEdit, async (val) => {
     }
   }
 });
+
+const handleNameRuleBlur = async () => {
+  if (config.value.recorder.nameRule.includes(":")) {
+    const [status] = await confirm.warning({
+      content: "你的文件命名规则中可能包含了冒号(:)，该符合无法作为文件名，是否替换为空格？",
+    });
+    if (!status) {
+      return;
+    }
+    config.value.recorder.nameRule = config.value.recorder.nameRule.replaceAll(":", " ");
+  }
+};
 </script>
 
 <style scoped lang="less">

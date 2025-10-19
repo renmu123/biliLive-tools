@@ -290,7 +290,22 @@ export function timemarkToSeconds(timemark: string) {
 }
 
 export function getTempPath() {
-  return path.join(os.tmpdir(), "biliLive-tools");
+  let cacheFolder = appConfig.get("cacheFolder");
+  if (!cacheFolder) {
+    cacheFolder = path.join(os.tmpdir(), "biliLive-tools");
+  }
+
+  if (cacheFolder) {
+    try {
+      fs.ensureDirSync(cacheFolder);
+      return cacheFolder;
+    } catch (e) {
+      console.error("缓存文件夹创建失败，使用系统临时文件夹", e);
+    }
+  }
+
+  fs.ensureDirSync(cacheFolder);
+  return cacheFolder;
 }
 
 export async function readLines(

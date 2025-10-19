@@ -44,6 +44,9 @@ export const api = {
     setTheme: (theme: Theme) => {
       return ipcRenderer.invoke("common:setTheme", theme);
     },
+    checkUpdate: () => {
+      return ipcRenderer.invoke("common:checkUpdate");
+    },
     getPathForFile: (file: globalThis.File) => {
       return webUtils.getPathForFile(file);
     },

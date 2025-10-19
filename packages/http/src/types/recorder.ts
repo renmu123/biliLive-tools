@@ -106,11 +106,13 @@ export type UpdateRecorderArgs = Pick<
   | "liveStartNotification"
   | "source"
   | "videoFormat"
+  | "recorderType"
   | "cookie"
   | "doubleScreen"
   | "onlyAudio"
   | "useServerTimestamp"
   | "handleTime"
+  | "weight"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 

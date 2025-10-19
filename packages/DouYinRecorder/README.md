@@ -45,7 +45,10 @@ interface Options {
   videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"
   useServerTimestamp?: boolean; // 控制弹幕是否使用服务端时间戳，默认为true
   doubleScreen?: boolean; // 是否使用双屏直播流，开启后如果是双屏直播，那么就使用拼接的流，默认为true
-  auth?: string; // 传递cookie，用于录制会员视频
+  recorderType?: "auto" | "ffmpeg" | "mesio"; // 底层录制器，使用mesio时videoFormat参数无效
+  auth?: string; // 传递cookie
+  uid?: string; // 参数为 sec_user_uid 参数
+  api?: "web" | "webHTML" | "mobile" | "userHTML" | "balance" | "random"; // 使用不同的接口，默认使用web，具体区别见文档
 }
 ```
 
@@ -71,9 +74,22 @@ interface Options {
 import { provider } from "@bililive-tools/douyin-recorder";
 
 const url = "https://live.douyin.com/203641303310";
-// 同样支持解析 https://v.douyin.com/DpfoBLAXoHM/
+// 同样支持解析 https://v.douyin.com/DpfoBLAXoHM/, https://www.douyin.com/user/MS4wLjABAAAAE2ebAEBniL_0rF0vIDV4vCpdcH5RxpYBovopAURblNs
 const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
+
+## 不同请求接口的区别
+
+`mobile` 及 `userHTML` 必须传入 `uid` 参数
+
+| 描述             | 备注                                     |
+| ---------------- | ---------------------------------------- |
+| web直播间接口    | 效果不错                                 |
+| mobile直播间接口 | 不易风控，无验证码，海外IP可能无法使用   |
+| 直播间web解析    | 易风控，有验证码，单个接口1M流量         |
+| 用户web解析      | 不易风控，海外IP无法使用，单个接口1M流量 |
+| 负载均衡         | 使用负载均衡算法来分摊防止风控           |
+| 随机             | 从几个接口里挑一个                       |
 
 # 协议
 

@@ -218,7 +218,7 @@ export class LocalCopy extends TypedEmitter<LocalCopyEvents> {
       let copiedBytes = 0;
       let lastProgressTime = Date.now();
 
-      readable.on("data", (chunk: Buffer) => {
+      readable.on("data", (chunk) => {
         copiedBytes += chunk.length;
         const now = Date.now();
         const elapsed = now - this.startTime;

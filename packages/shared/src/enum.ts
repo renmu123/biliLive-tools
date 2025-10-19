@@ -29,7 +29,7 @@ export enum LLMType {
 }
 
 export const APP_DEFAULT_CONFIG: AppConfig = {
-  logLevel: "warn",
+  logLevel: "debug",
   autoUpdate: true,
   autoLaunch: false,
   trash: false,
@@ -77,8 +77,11 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   ffprobePath: "",
   danmuFactoryPath: "",
   losslessCutPath: "",
+  mesioPath: "",
+  cacheFolder: "",
   /** 允许自定义可执行文件地址 */
   customExecPath: false,
+  requestInfoForRecord: true,
   bilibiliUser: {},
   tool: {
     home: {
@@ -215,10 +218,12 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       apiUrl: "",
       username: "",
       hashPassword: "",
+      limitRate: 0, // KB
     },
     pan123: {
       clientId: "",
       clientSecret: "",
+      limitRate: 0,
     },
     syncConfigs: [],
   },
@@ -250,6 +255,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     debugMode: false,
     qualityRetry: 0,
     videoFormat: "auto",
+    recorderType: "auto",
     useServerTimestamp: true,
     recordRetryImmediately: false,
     bilibili: {
@@ -274,6 +280,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       formatName: "auto",
       cookie: "",
       doubleScreen: true,
+      api: "mobile",
     },
     saveDanma2DB: false,
   },
@@ -282,6 +289,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     subSavePath: "",
   },
   recorders: [],
+  virtualRecord: {
+    config: [],
+    startTime: Date.now(),
+  },
 };
 
 export const nvencPresets = [

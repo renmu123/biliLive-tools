@@ -2,6 +2,7 @@ import { Emitter } from "mitt";
 import { ChannelId, Message, Quality } from "./common.js";
 import { RecorderProvider } from "./manager.js";
 import { AnyObject, PickRequired, UnknownObject } from "./utils.js";
+import { Cache } from "./cache.js";
 
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
@@ -13,6 +14,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   id?: string;
   // 备注，可填入频道名、主播名等
   remarks?: string;
+  // 权重，值越大，UI显示越靠前
+  weight?: number;
   // 为 true 时 manager 将跳过自动检查
   disableAutoCheck?: boolean;
   // 用于性能优化的选项，为 true 时禁用弹幕录制
@@ -37,7 +40,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   /** 身份验证 */
   auth?: string;
   /** cookie所有者uid,B站弹幕录制 */
-  uid?: number;
+  uid?: number | string;
   /** 画质匹配重试次数 */
   qualityRetry?: number;
   /** 抖音是否使用双屏直播流，开启后如果是双屏直播，那么就使用拼接的流，默认为true */
@@ -50,12 +53,14 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   formatName?: FormatName;
   /** 流编码 */
   codecName?: CodecName;
-  /** 选择使用的api，虎牙支持 */
-  api?: "auto" | "web" | "mp";
+  /** 选择使用的api，虎牙支持: auto,web,mp，抖音支持：web,webHTML,mobile,userHTML */
+  api?: "auto" | "web" | "mp" | "webHTML" | "mobile" | "userHTML";
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
   titleKeywords?: string;
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
   videoFormat?: "auto" | "ts" | "mkv";
+  /** 录制类型 */
+  recorderType?: "auto" | "ffmpeg" | "mesio";
   /** 流格式优先级 */
   formatriorities?: Array<"flv" | "hls">;
   /** 只录制音频 */
@@ -66,11 +71,32 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   useServerTimestamp?: boolean;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
+  cache: Cache;
 }
 
-export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id">;
+export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id"> &
+  Pick<
+    Recorder<E>,
+    | "id"
+    | "channelId"
+    | "remarks"
+    | "disableAutoCheck"
+    | "quality"
+    | "streamPriorities"
+    | "sourcePriorities"
+    | "extra"
+    | "segment"
+    | "saveSCDanma"
+    | "saveCover"
+    | "saveGiftDanma"
+    | "disableProvideCommentsWhenRecording"
+    | "liveInfo"
+    | "uid"
+    | "titleKeywords"
+    // | "recordHandle"
+  >;
 
-export type RecorderState = "idle" | "recording" | "stopping-record";
+export type RecorderState = "idle" | "recording" | "stopping-record" | "check-error";
 export type Progress = { time: string | null };
 
 export interface RecordHandle {
@@ -123,8 +149,8 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   qualityMaxRetry: number;
   // 画质重试次数上限
   qualityRetry: number;
-  // B站弹幕录制，cookie拥有者的uid
-  uid?: number;
+  // B站弹幕录制，cookie拥有者的uid，抖音的sec_uid
+  uid?: number | string;
   liveInfo?: {
     living: boolean;
     owner: string;
@@ -137,6 +163,9 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   tempStopIntervalCheck?: boolean;
   // TODO: 随机的一条近期弹幕 / 评论，这或许应该放在 manager 层做，上面再加个频率统计之类的
   // recently comment: { time, text, ... }
+
+  /** 缓存实例引用，由 manager 设置 */
+  cache: Cache;
 
   getChannelURL: (this: Recorder<E>) => string;
 

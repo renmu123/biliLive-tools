@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import Router from "koa-router";
+import Router from "@koa/router";
 import douyu from "@biliLive-tools/shared/task/douyu.js";
 import huya from "@biliLive-tools/shared/task/huya.js";
 import biliApi from "@biliLive-tools/shared/task/bili.js";
@@ -159,11 +159,25 @@ async function parseVideo({
       throw new Error("请输入正确的b站视频链接");
     }
     const data = await biliApi.getArchiveDetail(bvid);
+    const res = await biliApi.getPlayUrl(bvid, data.View.pages[0].cid);
+    const resolutions: {
+      value: string;
+      label: string;
+    }[] = [{ value: "highest", label: "最高" }];
+
+    const supportFormats = res.support_formats.map((item) => {
+      return {
+        value: String(item.quality),
+        label: item.new_description,
+      };
+    });
+    resolutions.push(...supportFormats);
+
     return {
       videoId: bvid,
       platform: "bilibili",
       title: data.View.title,
-      resolutions: [],
+      resolutions: resolutions,
       parts: data.View.pages.map((item) => {
         return {
           name: item.part,
@@ -291,6 +305,7 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
       override: options.override,
       onlyAudio: options.onlyAudio,
       danmu: options.danmu,
+      qn: options.resolution === "highest" ? undefined : Number(options.resolution),
     });
   } else if (options.platform === "huya") {
     const data = await huya.parseVideo(options.id);

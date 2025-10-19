@@ -114,6 +114,7 @@ describe("RecorderConfig", () => {
         segment: 90,
         uid: "123456",
         qualityRetry: 3,
+        recorderType: "ffmpeg",
         videoFormat: "auto",
         auth: "SESSDATA=test_sessdata; bili_jct=test_jct",
         useM3U8Proxy: true,
@@ -123,6 +124,7 @@ describe("RecorderConfig", () => {
         doubleScreen: undefined,
         formatPriorities: undefined,
         sourcePriorities: [],
+        api: "auto",
       });
     });
 
@@ -143,6 +145,7 @@ describe("RecorderConfig", () => {
         segment: 90,
         uid: undefined,
         qualityRetry: 3,
+        recorderType: "ffmpeg",
         videoFormat: "auto",
         auth: undefined,
         useM3U8Proxy: true,
@@ -152,6 +155,7 @@ describe("RecorderConfig", () => {
         doubleScreen: undefined,
         formatPriorities: undefined,
         sourcePriorities: [],
+        api: "auto",
       });
     });
 
@@ -173,6 +177,7 @@ describe("RecorderConfig", () => {
           segment: 90,
           uid: undefined,
           qualityRetry: 3,
+          recorderType: "ffmpeg",
           videoFormat: "auto",
           formatPriorities: ["flv", "hls"],
           auth: undefined,
@@ -182,6 +187,7 @@ describe("RecorderConfig", () => {
           source: "auto",
           doubleScreen: undefined,
           sourcePriorities: [],
+          api: "auto",
         });
       });
       it("正确处理HuYa source全局参数", () => {
@@ -258,6 +264,7 @@ describe("RecorderConfig", () => {
         segment: 90,
         uid: undefined,
         qualityRetry: 3,
+        recorderType: "ffmpeg",
         videoFormat: "auto",
         auth: undefined,
         useM3U8Proxy: true,
@@ -267,6 +274,7 @@ describe("RecorderConfig", () => {
         formatPriorities: ["flv", "hls"],
         doubleScreen: true,
         sourcePriorities: [],
+        api: "auto",
       });
     });
 
@@ -316,6 +324,7 @@ describe("RecorderConfig", () => {
               saveGiftDanma: true,
               saveSCDanma: false,
               saveCover: true,
+              api: "auto",
             },
           };
         }
@@ -331,6 +340,7 @@ describe("RecorderConfig", () => {
               saveGiftDanma: false,
               saveSCDanma: true,
               saveCover: false,
+              api: "auto",
             },
           ];
         }
@@ -354,6 +364,7 @@ describe("RecorderConfig", () => {
         segment: 90,
         uid: undefined,
         qualityRetry: 3,
+        recorderType: "ffmpeg",
         videoFormat: "auto",
         auth: undefined,
         useM3U8Proxy: true,
@@ -363,6 +374,7 @@ describe("RecorderConfig", () => {
         doubleScreen: undefined,
         formatPriorities: undefined,
         sourcePriorities: [],
+        api: "auto",
       });
     });
   });
@@ -405,6 +417,9 @@ describe("RecorderConfig", () => {
         useM3U8Proxy: false,
         codecName: "auto" as const,
         source: "auto",
+        recorderType: "ffmpeg" as const,
+        useServerTimestamp: false,
+        handleTime: ["", ""] as [string | null, string | null],
       };
 
       recorderConfig.add(newRecorder);
@@ -450,6 +465,9 @@ describe("RecorderConfig", () => {
         useM3U8Proxy: false,
         codecName: "auto" as const,
         source: "auto",
+        recorderType: "ffmpeg" as const,
+        useServerTimestamp: false,
+        handleTime: ["", ""] as [string | null, string | null],
       };
 
       recorderConfig.update(updatedRecorder);

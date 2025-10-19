@@ -1,51 +1,70 @@
 import EventEmitter from "node:events";
 
-import { createFFMPEGBuilder, StreamManager, utils } from "./index.js";
-import { createInvalidStreamChecker, assert } from "./utils.js";
+import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
+import { createInvalidStreamChecker, assert } from "../utils.js";
+import { IRecorder, FFMPEGRecorderOptions } from "./IRecorder.js";
 
-export class FFMPEGRecorder extends EventEmitter {
+export class FFMPEGRecorder extends EventEmitter implements IRecorder {
   private command: ReturnType<typeof createFFMPEGBuilder>;
   private streamManager: StreamManager;
   private timeoutChecker: ReturnType<typeof utils.createTimeoutChecker>;
-  hasSegment: boolean;
-  getSavePath: (data: { startTime: number; title?: string }) => string;
-  segment: number;
+  readonly hasSegment: boolean;
+  readonly getSavePath: (data: { startTime: number; title?: string }) => string;
+  readonly segment: number;
   ffmpegOutputOptions: string[] = [];
-  inputOptions: string[] = [];
-  isHls: boolean;
-  disableDanma: boolean = false;
-  url: string;
-  headers:
+  readonly inputOptions: string[] = [];
+  readonly isHls: boolean;
+  readonly disableDanma: boolean = false;
+  readonly url: string;
+  formatName: "flv" | "ts" | "fmp4";
+  videoFormat: "ts" | "mkv" | "mp4";
+  readonly headers:
     | {
         [key: string]: string | undefined;
       }
     | undefined;
 
   constructor(
-    opts: {
-      url: string;
-      getSavePath: (data: { startTime: number; title?: string }) => string;
-      segment: number;
-      outputOptions: string[];
-      inputOptions?: string[];
-      isHls?: boolean;
-      disableDanma?: boolean;
-      videoFormat?: "auto" | "ts" | "mkv";
-      headers?: {
-        [key: string]: string | undefined;
-      };
-    },
+    opts: FFMPEGRecorderOptions,
     private onEnd: (...args: unknown[]) => void,
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
     const hasSegment = !!opts.segment;
+    this.hasSegment = hasSegment;
+
+    let formatName: "flv" | "ts" | "fmp4" = "flv";
+    if (opts.url.includes(".m3u8")) {
+      formatName = "ts";
+    }
+    this.formatName = opts.formatName ?? formatName;
+
+    if (this.formatName === "fmp4" || this.formatName === "ts") {
+      this.isHls = true;
+    } else {
+      this.isHls = false;
+    }
+
+    let videoFormat = opts.videoFormat ?? "auto";
+    if (videoFormat === "auto") {
+      if (!this.hasSegment) {
+        videoFormat = "mp4";
+        if (this.formatName === "ts") {
+          videoFormat = "ts";
+        }
+      } else {
+        videoFormat = "ts";
+      }
+    }
+    this.videoFormat = videoFormat;
+
     this.disableDanma = opts.disableDanma ?? false;
     this.streamManager = new StreamManager(
       opts.getSavePath,
       hasSegment,
       this.disableDanma,
-      opts.videoFormat,
+      "ffmpeg",
+      this.videoFormat,
       {
         onUpdateLiveInfo: this.onUpdateLiveInfo,
       },
@@ -55,21 +74,14 @@ export class FFMPEGRecorder extends EventEmitter {
       3 * 10e3,
       false,
     );
-    this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
     this.ffmpegOutputOptions = opts.outputOptions;
     this.inputOptions = opts.inputOptions ?? [];
     this.url = opts.url;
     this.segment = opts.segment;
     this.headers = opts.headers;
-    if (opts.isHls === undefined) {
-      this.isHls = this.url.includes("m3u8");
-    } else {
-      this.isHls = opts.isHls;
-    }
 
     this.command = this.createCommand();
-
     this.streamManager.on("videoFileCreated", ({ filename, cover }) => {
       this.emit("videoFileCreated", { filename, cover });
     });
@@ -110,16 +122,17 @@ export class FFMPEGRecorder extends EventEmitter {
       .on("end", () => this.onEnd("finished"))
       .on("stderr", async (stderrLine) => {
         assert(typeof stderrLine === "string");
-        await this.streamManager.handleVideoStarted(stderrLine);
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
 
+        const [isInvalid, reason] = isInvalidStream(stderrLine);
+        if (isInvalid) {
+          this.onEnd(reason);
+        }
+
+        await this.streamManager.handleVideoStarted(stderrLine);
         const info = this.formatLine(stderrLine);
         if (info) {
           this.emit("progress", info);
-        }
-
-        if (isInvalidStream(stderrLine)) {
-          this.onEnd("invalid stream");
         }
       })
       .on("stderr", this.timeoutChecker?.update);

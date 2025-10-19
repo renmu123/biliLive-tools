@@ -6,7 +6,7 @@ import {
   genRecorderUUID,
   genRecordUUID,
   utils,
-  FFMPEGRecorder,
+  createBaseRecorder,
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
@@ -40,6 +40,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     m3u8ProxyUrl: opts.m3u8ProxyUrl,
     formatName: opts.formatName ?? "auto",
     codecName: opts.codecName ?? "auto",
+    recorderType: opts.recorderType ?? "ffmpeg",
 
     getChannelURL() {
       return `https://live.bilibili.com/${this.channelId}`;
@@ -113,23 +114,29 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   banLiveId,
 }) {
   if (this.recordHandle != null) return this.recordHandle;
-  const { living, liveId, owner: _owner, title: _title } = await getLiveStatus(this.channelId);
-  this.liveInfo = {
-    living,
-    owner: _owner,
-    title: _title,
-    avatar: "",
-    cover: "",
-    liveId: liveId,
-  };
+  try {
+    const { living, liveId, owner: _owner, title: _title } = await getLiveStatus(this.channelId);
+    this.liveInfo = {
+      living,
+      owner: _owner,
+      title: _title,
+      avatar: "",
+      cover: "",
+      liveId: liveId,
+    };
+    this.state = "idle";
+  } catch (error) {
+    this.state = "check-error";
+    throw error;
+  }
 
-  if (liveId === banLiveId) {
+  if (this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
     this.tempStopIntervalCheck = false;
   }
   if (this.tempStopIntervalCheck) return null;
-  if (!living) return null;
+  if (!this.liveInfo.living) return null;
 
   // 检查标题是否包含关键词，如果包含则不自动录制
   // 手动开始录制时不检查标题关键词
@@ -139,11 +146,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     typeof this.titleKeywords === "string" &&
     this.titleKeywords.trim()
   ) {
-    const hasTitleKeyword = hasKeyword(_title, this.titleKeywords);
+    const hasTitleKeyword = hasKeyword(this.liveInfo.title, this.titleKeywords);
     if (hasTitleKeyword) {
       this.emit("DebugLog", {
         type: "common",
-        text: `跳过录制：直播间标题 "${_title}" 包含关键词 "${this.titleKeywords}"`,
+        text: `跳过录制：直播间标题 "${this.liveInfo.title}" 包含关键词 "${this.titleKeywords}"`,
       });
       return null;
     }
@@ -176,8 +183,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       onlyAudio: this.onlyAudio,
     });
   } catch (err) {
-    this.qualityRetry -= 1;
-    this.state = "idle";
+    if (this.qualityRetry > 0) this.qualityRetry -= 1;
+    this.state = "check-error";
     throw err;
   }
 
@@ -196,7 +203,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   let intervalId: NodeJS.Timeout | null = null;
   if (this.useM3U8Proxy && streamOptions.protocol_name === "http_hls") {
-    url = `${this.m3u8ProxyUrl}?id=${this.id}`;
+    url = `${this.m3u8ProxyUrl}?id=${this.id}&format=hls`;
     this.emit("DebugLog", {
       type: "common",
       text: `is hls stream, use proxy: ${url}`,
@@ -233,21 +240,25 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     isEnded = true;
     this.emit("DebugLog", {
       type: "common",
-      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
+      text: `record end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
     });
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
   };
 
-  const recorder = new FFMPEGRecorder(
+  let recorderType: Parameters<typeof createBaseRecorder>[0] =
+    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
+  const recorder = createBaseRecorder(
+    recorderType,
     {
       url: url,
       outputOptions: ffmpegOutputOptions,
       inputOptions: ffmpegInputOptions,
+      mesioOptions: ["-H", "Referer:https://live.bilibili.com/"],
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
         getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),
-      isHls: streamOptions.protocol_name === "http_hls",
+      formatName: streamOptions.format_name as "flv" | "ts" | "fmp4",
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat,
     },
@@ -305,7 +316,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   let danmaClient = new DanmaClient(roomId, {
     auth: this.auth,
-    uid: this.uid,
+    uid: Number(this.uid) as number,
     useServerTimestamp: this.useServerTimestamp,
   });
   if (!this.disableProvideCommentsWhenRecording) {

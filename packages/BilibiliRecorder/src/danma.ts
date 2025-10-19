@@ -73,7 +73,7 @@ class DanmaClient extends EventEmitter {
       auth,
       uid,
       useServerTimestamp,
-    }: { auth: string | undefined; uid: number | undefined; useServerTimestamp?: boolean },
+    }: { auth: string | undefined; uid: number; useServerTimestamp?: boolean },
   ) {
     super();
     this.roomId = roomId;
@@ -101,10 +101,10 @@ class DanmaClient extends EventEmitter {
             uid: String(msg.body.user.uid),
             name: msg.body.user.uname,
             avatar: msg.body.user.face,
-            extra: {
-              badgeName: msg.body.user.badge?.name,
-              badgeLevel: msg.body.user.badge?.level,
-            },
+            // extra: {
+            //   badgeName: msg.body.user?.badge?.name,
+            //   badgeLevel: msg.body.user?.badge?.level,
+            // },
           },
         };
         this.emit("Message", comment);
@@ -120,10 +120,10 @@ class DanmaClient extends EventEmitter {
             uid: String(msg.body.user.uid),
             name: msg.body.user.uname,
             avatar: msg.body.user.face,
-            extra: {
-              badgeName: msg.body.user.badge?.name,
-              badgeLevel: msg.body.user.badge?.level,
-            },
+            // extra: {
+            //   badgeName: msg.body.user?.badge?.name,
+            //   badgeLevel: msg.body.user?.badge?.level,
+            // },
           },
         };
         this.emit("Message", comment);
@@ -133,17 +133,17 @@ class DanmaClient extends EventEmitter {
           type: "guard",
           timestamp: this.useServerTimestamp ? msg.timestamp : Date.now(),
           name: msg.body.gift_name,
-          price: msg.body.price,
+          price: msg.body.price / 1000,
           count: 1,
           level: msg.body.guard_level,
           sender: {
             uid: String(msg.body.user.uid),
             name: msg.body.user.uname,
             avatar: msg.body.user.face,
-            extra: {
-              badgeName: msg.body.user.badge?.name,
-              badgeLevel: msg.body.user.badge?.level,
-            },
+            // extra: {
+            //   badgeName: msg.body.user?.badge?.name,
+            //   badgeLevel: msg.body.user?.badge?.level,
+            // },
           },
         };
         this.emit("Message", gift);
@@ -159,10 +159,10 @@ class DanmaClient extends EventEmitter {
             uid: String(msg.body.user.uid),
             name: msg.body.user.uname,
             avatar: msg.body.user.face,
-            extra: {
-              badgeName: msg.body.user.badge?.name,
-              badgeLevel: msg.body.user.badge?.level,
-            },
+            // extra: {
+            //   badgeName: msg.body.user?.badge?.name,
+            //   badgeLevel: msg.body.user?.badge?.level,
+            // },
           },
           extra: {
             hits: msg.body.combo?.combo_num,

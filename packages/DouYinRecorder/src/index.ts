@@ -5,7 +5,7 @@ import {
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
-  FFMPEGRecorder,
+  createBaseRecorder,
 } from "@bililive-tools/manager";
 import type {
   Recorder,
@@ -18,9 +18,11 @@ import type {
 
 import { getInfo, getStream } from "./stream.js";
 import { ensureFolderExist, singleton } from "./utils.js";
-import { resolveShortURL } from "./douyin_api.js";
+import { resolveShortURL, parseUser } from "./douyin_api.js";
 
 import DouYinDanmaClient from "douyin-danma-listener";
+
+import type { APIType } from "./types.js";
 
 function createRecorder(opts: RecorderCreateOpts): Recorder {
   // 内部实现时，应该只有 proxy 包裹的那一层会使用这个 recorder 标识符，不应该有直接通过
@@ -50,7 +52,10 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
 
     async getLiveInfo() {
       const channelId = this.channelId;
-      const info = await getInfo(channelId);
+      const info = await getInfo(channelId, {
+        cookie: this.auth,
+        uid: this.uid,
+      });
       return {
         channelId,
         ...info,
@@ -107,18 +112,26 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   isManualStart,
 }) {
   if (this.recordHandle != null) return this.recordHandle;
+  try {
+    const liveInfo = await getInfo(this.channelId, {
+      cookie: this.auth,
+      api: this.api as APIType,
+      uid: this.uid,
+    });
+    this.liveInfo = liveInfo;
+    this.state = "idle";
+  } catch (error) {
+    this.state = "check-error";
+    throw error;
+  }
 
-  const liveInfo = await getInfo(this.channelId);
-  const { living, owner, title } = liveInfo;
-  this.liveInfo = liveInfo;
-
-  if (liveInfo.liveId === banLiveId) {
+  if (this.liveInfo.liveId && this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
     this.tempStopIntervalCheck = false;
   }
   if (this.tempStopIntervalCheck) return null;
-  if (!living) return null;
+  if (!this.liveInfo.living) return null;
 
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
@@ -132,7 +145,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (isManualStart) {
       strictQuality = false;
     }
-
+    // TODO: 检查mobile接口处理双屏录播流
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
@@ -142,11 +155,22 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       cookie: this.auth,
       formatPriorities: this.formatPriorities,
       doubleScreen: this.doubleScreen,
+      api: this.api as APIType,
+      uid: this.uid,
     });
+    this.liveInfo.owner = res.owner;
+    this.liveInfo.title = res.title;
+    this.liveInfo.cover = res.cover;
+    this.liveInfo.liveId = res.liveId;
+    this.liveInfo.avatar = res.avatar;
+    this.liveInfo.startTime = new Date();
   } catch (err) {
-    this.state = "idle";
+    if (this.qualityRetry > 0) this.qualityRetry -= 1;
+
+    this.state = "check-error";
     throw err;
   }
+  const { owner, title } = this.liveInfo;
 
   this.state = "recording";
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
@@ -154,7 +178,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.availableSources = availableSources.map((s) => s.name);
   this.usedStream = stream.name;
   this.usedSource = stream.source;
-  // TODO: emit update event
 
   let isEnded = false;
   let isCutting = false;
@@ -167,13 +190,16 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     isEnded = true;
     this.emit("DebugLog", {
       type: "common",
-      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
+      text: `record end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
     });
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
   };
 
-  const recorder = new FFMPEGRecorder(
+  let recorderType: Parameters<typeof createBaseRecorder>[0] =
+    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
+  const recorder = createBaseRecorder(
+    recorderType,
     {
       url: stream.url,
       outputOptions: ffmpegOutputOptions,
@@ -239,7 +265,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("progress", progress);
   });
 
-  const client = new DouYinDanmaClient(liveInfo.liveId, {
+  const client = new DouYinDanmaClient(this?.liveInfo?.liveId as string, {
     cookie: this.auth,
   });
   client.on("chat", (msg) => {
@@ -275,7 +301,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       type: "give_gift",
       timestamp: this.useServerTimestamp ? serverTimestamp : Date.now(),
       name: msg.gift.name,
-      price: 1,
+      price: msg.gift.diamondCount / 10 || 0,
       count: Number(msg.totalCount ?? 1),
       color: "#ffffff",
       sender: {
@@ -408,6 +434,12 @@ export const provider: RecorderProvider<{}> = {
       } catch (err: any) {
         throw new Error(`解析抖音短链接失败: ${err?.message}`);
       }
+    } else if (channelURL.includes("/user/")) {
+      // 解析用户主页
+      id = await parseUser(channelURL);
+      if (!id) {
+        throw new Error(`解析抖音用户主页失败`);
+      }
     } else {
       // 处理常规直播链接
       id = path.basename(new URL(channelURL).pathname);
@@ -419,6 +451,7 @@ export const provider: RecorderProvider<{}> = {
       title: info.title,
       owner: info.owner,
       avatar: info.avatar,
+      uid: info.uid,
     };
   },
 

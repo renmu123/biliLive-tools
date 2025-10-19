@@ -1,8 +1,17 @@
 import { getRoomInfo } from "./douyin_api.js";
+import { globalLoadBalancer } from "./loadBalancer/loadBalancer.js";
 
 import type { Recorder } from "@bililive-tools/manager";
+import type { APIType, RealAPIType } from "./types.js";
 
-export async function getInfo(channelId: string): Promise<{
+export async function getInfo(
+  channelId: string,
+  opts?: {
+    cookie?: string;
+    api?: APIType;
+    uid?: string | number;
+  },
+): Promise<{
   living: boolean;
   owner: string;
   title: string;
@@ -11,8 +20,20 @@ export async function getInfo(channelId: string): Promise<{
   cover: string;
   startTime: Date;
   liveId: string;
+  uid: string;
+  api: RealAPIType;
 }> {
-  const info = await getRoomInfo(channelId);
+  let info;
+
+  // 如果使用 balance 模式，使用负载均衡器
+  if (opts?.api === "balance") {
+    info = await globalLoadBalancer.callWithLoadBalance(channelId, {
+      auth: opts.cookie,
+      uid: opts.uid,
+    });
+  } else {
+    info = await getRoomInfo(channelId, opts ?? {});
+  }
 
   return {
     living: info.living,
@@ -23,6 +44,8 @@ export async function getInfo(channelId: string): Promise<{
     cover: info.cover,
     startTime: new Date(),
     liveId: info.liveId,
+    uid: info.uid,
+    api: info.api,
   };
 }
 
@@ -33,12 +56,20 @@ export async function getStream(
     cookie?: string;
     formatPriorities?: Array<"flv" | "hls">;
     doubleScreen?: boolean;
+    api?: APIType;
+    uid?: string | number;
   },
 ) {
+  let api = opts.api ?? "web";
+  if (api === "userHTML") {
+    // userHTML 接口只能用于状态检测
+    api = "web";
+  }
   const info = await getRoomInfo(opts.channelId, {
-    retryOnSpecialCode: true,
     doubleScreen: opts.doubleScreen ?? true,
     auth: opts.cookie,
+    api: api,
+    uid: opts.uid,
   });
   if (!info.living) {
     throw new Error("It must be called getStream when living");

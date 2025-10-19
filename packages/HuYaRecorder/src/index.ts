@@ -6,7 +6,7 @@ import {
   genRecorderUUID,
   genRecordUUID,
   utils,
-  FFMPEGRecorder,
+  createBaseRecorder,
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream } from "./stream.js";
@@ -109,11 +109,17 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 }) {
   if (this.recordHandle != null) return this.recordHandle;
 
-  const liveInfo = await getInfo(this.channelId);
-  const { living, owner, title } = liveInfo;
-  this.liveInfo = liveInfo;
+  try {
+    const liveInfo = await getInfo(this.channelId);
+    this.liveInfo = liveInfo;
+    this.state = "idle";
+  } catch (error) {
+    this.state = "check-error";
+    throw error;
+  }
+  const { living, owner, title } = this.liveInfo;
 
-  if (liveInfo.liveId === banLiveId) {
+  if (this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
   } else {
     this.tempStopIntervalCheck = false;
@@ -139,12 +145,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       quality: this.quality,
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
-      api: this.api,
+      api: this.api as "auto" | "web" | "mp",
       strictQuality,
       formatPriorities: this.formatPriorities,
     });
   } catch (err) {
-    this.state = "idle";
+    if (this.qualityRetry > 0) this.qualityRetry -= 1;
+
+    this.state = "check-error";
     throw err;
   }
 
@@ -166,13 +174,16 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     isEnded = true;
     this.emit("DebugLog", {
       type: "common",
-      text: `ffmpeg end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
+      text: `record end, reason: ${JSON.stringify(args, (_, v) => (v instanceof Error ? v.stack : v))}`,
     });
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
   };
 
-  const recorder = new FFMPEGRecorder(
+  let recorderType: Parameters<typeof createBaseRecorder>[0] =
+    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
+  const recorder = createBaseRecorder(
+    recorderType,
     {
       url: stream.url,
       outputOptions: ffmpegOutputOptions,
@@ -215,7 +226,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
-      liveStartTimestamp: liveInfo.startTime?.getTime(),
+      liveStartTimestamp: this?.liveInfo?.startTime?.getTime(),
       // recordStopTimestamp: Date.now(),
       title: title,
       user_name: owner,

@@ -157,6 +157,11 @@ async function getArchiveDetail(bvid: string, uid?: number) {
   return client.video.detail({ bvid });
 }
 
+async function getPlayUrl(bvid: string, cid: number, uid?: number) {
+  const client = createClient(uid);
+  return client.video.playurl({ bvid, cid, fnval: 16 | 4048, fourk: 1 });
+}
+
 /**
  * 直播回放下载
  */
@@ -195,6 +200,7 @@ async function download(
     override?: boolean;
     onlyAudio?: boolean;
     danmu?: "none" | "xml";
+    qn?: number;
   },
   uid?: number,
 ) {
@@ -206,7 +212,10 @@ async function download(
   const tmpPath = getTempPath();
   const command = await client.video.dashDownload(
     { ...options, ffmpegBinPath: ffmpegPath, cachePath: tmpPath, disableVideo: options.onlyAudio },
-    {},
+    {
+      // @ts-ignore
+      qn: Number(options.qn),
+    },
     false,
   );
 
@@ -1069,6 +1078,7 @@ export const biliApi = {
   addExtraVideoTask,
   editVideoPartName,
   queryVideoStatus,
+  getPlayUrl,
 };
 
 export default biliApi;

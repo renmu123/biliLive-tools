@@ -34,13 +34,14 @@ import type { Options, Platform, Part, PickPartial } from "../types/webhook.js";
 export const enum EventType {
   OpenEvent = "FileOpening",
   CloseEvent = "FileClosed",
+  ErrorEvent = "FileError",
 }
 
 export class Live {
   eventId: string;
   platform: Platform;
   startTime: number;
-  roomId: number;
+  roomId: string;
   // 直播标题
   title: string;
   // 主播名
@@ -53,7 +54,7 @@ export class Live {
   constructor(options: {
     eventId: string;
     platform: Platform;
-    roomId: number;
+    roomId: string;
     title: string;
     username: string;
     startTime: number;
@@ -165,7 +166,7 @@ export class WebhookHandler {
     const currentLiveIndex = await this.handleLiveData(options, partMergeMinute);
 
     // 如果是开始事件，不需要后续的处理
-    if (options.event === EventType.OpenEvent) {
+    if (options.event === EventType.OpenEvent || options.event === EventType.ErrorEvent) {
       return;
     }
 
@@ -407,7 +408,7 @@ export class WebhookHandler {
    * @param removeAfterSync 同步后是否删除源文件
    */
   async handleFileSync(
-    roomId: number,
+    roomId: string,
     filePath: string,
     fileType: "source" | "danmaku" | "xml" | "cover",
     partId?: string,
@@ -517,7 +518,7 @@ export class WebhookHandler {
    * @param coverPath 封面路径
    * @param partId 分段ID（可选）
    */
-  async handleCoverSync(roomId: number, coverPath: string, partId: string) {
+  async handleCoverSync(roomId: string, coverPath: string, partId: string) {
     return this.handleFileSync(roomId, coverPath, "cover", partId);
   }
 
@@ -556,7 +557,7 @@ export class WebhookHandler {
   canRoomOpen(
     roomSetting: { open: boolean } | undefined,
     webhookBlacklist: string,
-    roomId: number,
+    roomId: string,
   ) {
     if (roomSetting) {
       // 如果配置了房间，那么以房间设置为准
@@ -570,7 +571,7 @@ export class WebhookHandler {
       return true;
     }
   }
-  getConfig(roomId: number): {
+  getConfig(roomId: string): {
     /* 是否需要压制弹幕 */
     danmu: boolean;
     /* 是否合并到一个文件中 */
@@ -859,6 +860,26 @@ export class WebhookHandler {
   };
 
   /**
+   * 处理error事件
+   */
+  handleErrorEvent = (options: Options) => {
+    const currentLive = this.findLiveByFilePath(options.filePath);
+    if (currentLive) {
+      const currentPart = currentLive.findPartByFilePath(options.filePath);
+      if (currentPart) {
+        currentLive.removePart(currentPart.partId);
+        if (currentLive.parts.length === 0) {
+          const liveIndex = this.liveData.findIndex((live) => live.eventId === currentLive.eventId);
+          if (liveIndex !== -1) {
+            this.liveData.splice(liveIndex, 1);
+            log.warn(`error event: removed empty live: ${currentLive.eventId}`);
+          }
+        }
+      }
+    }
+  };
+
+  /**
    * 处理FileOpening和FileClosed事件
    */
   async handleLiveData(options: Options, partMergeMinute: number): Promise<number> {
@@ -870,6 +891,11 @@ export class WebhookHandler {
       const liveId = this.handleCloseEvent(options);
       const index = this.liveData.findIndex((live) => live.eventId === liveId);
       return index;
+    } else if (options.event === EventType.ErrorEvent) {
+      this.handleErrorEvent(options);
+      log.error(`接收到错误指令，${options.filePath} 置为错误状态`);
+
+      return -1;
     } else {
       throw new Error(`不支持的事件：${options.event}`);
     }
@@ -1349,7 +1375,7 @@ export class WebhookHandler {
   /**
    * 获取同步配置
    */
-  getSyncConfig(roomId: number) {
+  getSyncConfig(roomId: string) {
     const { syncId } = this.getConfig(roomId);
     if (!syncId) return null;
     const config = this.appConfig.getAll();
@@ -1361,7 +1387,7 @@ export class WebhookHandler {
   /**
    * 同步中是否存在对应类型
    */
-  async hasTypeInSync(roomId: number, type: "source" | "danmaku" | "xml" | "cover") {
+  async hasTypeInSync(roomId: string, type: "source" | "danmaku" | "xml" | "cover") {
     const syncConfig = this.getSyncConfig(roomId);
     if (!syncConfig) return false;
 
@@ -1377,7 +1403,7 @@ export class WebhookHandler {
    * @param shouldRemoveAfterSync 是否在同步后删除源文件
    */
   async handleDanmuSync(
-    roomId: number,
+    roomId: string,
     xmlFilePath: string,
     partId: string,
     shouldRemoveAfterSync: boolean,
@@ -1412,7 +1438,7 @@ export class WebhookHandler {
    * @param partId 分段ID
    * @param shouldRemove 是否在操作后删除源文件
    */
-  async handleVideoSync(roomId: number, filePath: string, partId: string, shouldRemove: boolean) {
+  async handleVideoSync(roomId: string, filePath: string, partId: string, shouldRemove: boolean) {
     // 检查文件是否存在
     if (!filePath) return;
     if (!(await fs.pathExists(filePath))) {

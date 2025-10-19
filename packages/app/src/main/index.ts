@@ -1,5 +1,4 @@
 import { join } from "node:path";
-import fs from "fs-extra";
 import semver from "semver";
 import Store from "electron-store";
 import contextMenu from "electron-context-menu";
@@ -26,7 +25,7 @@ import { init, createRecorderManager } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
 import { cookieHandlers } from "./cookie";
-import { commonHandlers, getTempPath } from "./common";
+import { commonHandlers } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
 // import icon from "../../resources/icon.png?asset";
 import {
@@ -34,7 +33,8 @@ import {
   FFPROBE_PATH,
   DANMUKUFACTORY_PATH,
   LOG_PATH,
-  __dirname,
+  MESIO_PATH,
+  __dirname2,
   getConfigPath,
 } from "./appConstant";
 
@@ -91,6 +91,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:setTheme", setTheme);
   ipcMain.handle("common:createSubWindow", createCutWindow);
+  ipcMain.handle("common:checkUpdate", manualCheckUpdate);
 
   registerHandlers(ipcMain, ffmpegHandlers);
   registerHandlers(ipcMain, configHandlers);
@@ -140,9 +141,9 @@ function createWindow(): void {
     autoHideMenuBar: false,
     minHeight: 400,
     minWidth: 600,
-    ...(process.platform === "linux" ? { icon: join(__dirname, "../../resources/icon.png") } : {}),
+    ...(process.platform === "linux" ? { icon: join(__dirname2, "../../resources/icon.png") } : {}),
     webPreferences: {
-      preload: join(__dirname, "../preload/index.mjs"),
+      preload: join(__dirname2, "../preload/index.mjs"),
       sandbox: false,
       webSecurity: false,
       // nodeIntegrationInWorker: true,
@@ -167,7 +168,9 @@ function createWindow(): void {
       // mainWindow.webContents.openDevTools();
       mainWindow.showInactive();
     } else {
-      mainWindow.show();
+      // 用来静默启动
+      const isHidden = process.argv.includes("--hidden");
+      if (!isHidden) mainWindow.show();
     }
   });
 
@@ -176,7 +179,7 @@ function createWindow(): void {
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
     mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
-    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+    mainWindow.loadFile(join(__dirname2, "../renderer/index.html"));
   }
   mainWin = mainWindow;
   const content = mainWindow.webContents;
@@ -289,7 +292,7 @@ function createWindow(): void {
   });
 
   // 新建托盘
-  const tray = new Tray(join(__dirname, "../../resources/icon.png"));
+  const tray = new Tray(join(__dirname2, "../../resources/icon.png"));
   // 托盘名称
   tray.setToolTip("biliLive-tools");
   // 托盘菜单
@@ -467,7 +470,6 @@ const quit = async () => {
 
     const canQuited = await canQuit();
     if (canQuited) {
-      await fs.emptyDir(getTempPath());
       mainWin.destroy();
       app.quit();
     }
@@ -514,7 +516,6 @@ if (!gotTheLock) {
       .then(({ name }) => log.debug(`Added Extension:  ${name}`))
       .catch((err) => log.debug("An error occurred: ", err));
 
-    log.info(`app start, version: ${app.getVersion()}`);
     // Default open or close DevTools by F12 in development
     // and ignore CommandOrControl + R in production.
     // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -538,14 +539,6 @@ if (!gotTheLock) {
     log.error("=== 未捕获异常 (Uncaught Exception) ===");
     log.error("错误信息:", error.message);
     log.error("错误堆栈:", error.stack);
-    log.error("错误名称:", error.name);
-    log.error("错误代码:", (error as any).code);
-    log.error("内存使用:", {
-      rss: process.memoryUsage().rss,
-      heapTotal: process.memoryUsage().heapTotal,
-      heapUsed: process.memoryUsage().heapUsed,
-      external: process.memoryUsage().external,
-    });
 
     if (error.message.includes("listen EADDRINUSE")) {
       setTimeout(() => {
@@ -628,8 +621,6 @@ if (!gotTheLock) {
 
 // 业务相关的初始化
 const appInit = async () => {
-  fs.ensureDir(getTempPath());
-
   // 记录应用启动信息
   log.info("=== 应用启动信息 ===");
   log.info("应用版本:", app.getVersion());
@@ -641,7 +632,6 @@ const appInit = async () => {
   log.info("架构:", process.arch);
   log.info("启动时间:", new Date().toISOString());
   log.info("用户数据路径:", app.getPath("userData"));
-  log.info("临时文件路径:", app.getPath("temp"));
   log.info("日志路径:", app.getPath("logs"));
   log.info("=== 应用启动信息结束 ===");
 
@@ -661,6 +651,7 @@ const appInit = async () => {
     logPath: LOG_PATH,
     defaultFfmpegPath: FFMPEG_PATH,
     defaultFfprobePath: FFPROBE_PATH,
+    defaultMesioPath: MESIO_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
     userDataPath,
     version: app.getVersion(),
@@ -779,4 +770,25 @@ const checkUpdate = async () => {
     return false;
   }
   return true;
+};
+
+const manualCheckUpdate = async () => {
+  try {
+    const status = await checkUpdate();
+    if (status) {
+      dialog.showMessageBox(mainWin, {
+        message: "当前已经是最新版本",
+        buttons: ["确认"],
+      });
+    }
+  } catch (error) {
+    log.error(error);
+    const confirm = await dialog.showMessageBox(mainWin, {
+      message: "检查更新失败，请前往仓库查看",
+      buttons: ["取消", "确认"],
+    });
+    if (confirm.response === 1) {
+      shell.openExternal("https://github.com/renmu123/biliLive-tools/releases");
+    }
+  }
 };

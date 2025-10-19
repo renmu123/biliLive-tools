@@ -36,10 +36,14 @@ async function getRoomInfo(
   options: {
     api: "auto" | "mp" | "web";
     formatPriorities: Array<"flv" | "hls">;
+    quality?: Recorder["quality"];
   },
 ): ReturnType<typeof getRoomInfoByMobile> {
   if (options.api == "auto") {
-    const info = await getRoomInfoByWeb(channelId, options.formatPriorities);
+    const info = await getRoomInfoByWeb(channelId, {
+      formatPriorities: options.formatPriorities,
+      quality: options.quality,
+    });
     if (info.gid == 1663) {
       return getRoomInfoByMobile(channelId, options.formatPriorities);
     }
@@ -47,7 +51,10 @@ async function getRoomInfo(
   } else if (options.api == "mp") {
     return getRoomInfoByMobile(channelId, options.formatPriorities);
   } else if (options.api == "web") {
-    return getRoomInfoByWeb(channelId, options.formatPriorities);
+    return getRoomInfoByWeb(channelId, {
+      formatPriorities: options.formatPriorities,
+      quality: options.quality,
+    });
   }
   assert(false, "Invalid api");
 }
@@ -58,11 +65,13 @@ export async function getStream(
     "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "api" | "formatPriorities"
   > & {
     strictQuality?: boolean;
+    api?: "web" | "mp" | "auto";
   },
 ) {
   const info = await getRoomInfo(opts.channelId, {
     api: opts.api ?? "auto",
     formatPriorities: opts.formatPriorities ?? ["flv", "hls"],
+    quality: opts.quality,
   });
   if (!info.living) {
     throw new Error("It must be called getStream when living");
@@ -105,7 +114,7 @@ export async function getStream(
 
   let url = expectSource.url;
   // MP协议下原画不需要添加ratio参数
-  if (expectStream.bitRate) {
+  if (expectStream.bitRate && expectStream.bitRate !== -1 && !url.includes("ratio=")) {
     url = url + "&ratio=" + expectStream.bitRate;
   }
 

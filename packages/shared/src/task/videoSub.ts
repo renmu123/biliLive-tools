@@ -4,6 +4,7 @@ import fs from "fs-extra";
 import axios from "axios";
 import { live, video } from "douyu-api";
 import filenamify from "filenamify";
+import { provider as providerForDouYu } from "@bililive-tools/douyu-recorder";
 
 import { videoSubModel, videoSubDataModel } from "../db/index.js";
 import { appConfig } from "../config.js";
@@ -59,13 +60,11 @@ export async function parse(url: string): Promise<Parameters<typeof videoSubMode
   const douyuMathReg = /https?:\/\/(?:.*?\.)?douyu.com\//;
   const huyaMathReg = /https?:\/\/(?:.*?\.)?huya.com\//;
   if (douyuMathReg.test(url)) {
-    const res = await axios.get(url);
-    const html = res.data;
-    const matched = html.match(/\$ROOM\.room_id.?=(.*?);/);
-    if (!matched) {
+    const res = await providerForDouYu.resolveChannelInfoFromURL(url);
+    if (!res) {
       throw new Error("解析失败，请检查链接");
     }
-    const room_id = matched[1].trim();
+    const room_id = res.id;
     const roomInfo = await live.getRoomInfo(Number(room_id));
     return {
       name: roomInfo.room.nickname,

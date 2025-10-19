@@ -20,11 +20,14 @@
               </template>
               <n-switch v-model:value="config.trash" />
             </n-form-item>
-            <n-form-item v-if="!isWeb">
+            <n-form-item>
               <template #label>
                 <span class="inline-flex"> 自动检查更新 </span>
               </template>
-              <n-switch v-model:value="config.autoUpdate" />
+              <div style="display: inline-flex; align-items: center; gap: 10px">
+                <n-switch v-if="!isWeb" v-model:value="config.autoUpdate" />
+                <n-button type="primary" ghost @click="checkForUpdates">检查更新</n-button>
+              </div>
             </n-form-item>
             <n-form-item v-if="!isWeb">
               <template #label>
@@ -34,13 +37,13 @@
             </n-form-item>
             <n-form-item v-if="!isWeb">
               <template #label>
-                <span class="inline-flex"> 最小化到任务栏 </span>
+                <span class="inline-flex"> 最小化到托盘 </span>
               </template>
               <n-switch v-model:value="config.minimizeToTray" />
             </n-form-item>
             <n-form-item v-if="!isWeb">
               <template #label>
-                <span class="inline-flex"> 关闭到任务栏 </span>
+                <span class="inline-flex"> 关闭到托盘 </span>
               </template>
               <n-switch v-model:value="config.closeToTray" />
             </n-form-item>
@@ -168,6 +171,24 @@
                   <Refresh />
                 </n-icon>
               </n-form-item>
+              <n-form-item>
+                <template #label>
+                  <Tip
+                    text="mesio路径"
+                    tip="最新测试过的版本为0.3.2，请先去项目查看文档：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md"
+                  ></Tip>
+                </template>
+                <n-input v-model:value="config.mesioPath" placeholder="请输入mesio可执行文件路径" />
+                <n-icon
+                  style="margin-left: 10px"
+                  size="26"
+                  class="pointer"
+                  v-if="!isWeb"
+                  @click="selectFile('mesio', config.mesioPath)"
+                >
+                  <FolderOpenOutline />
+                </n-icon>
+              </n-form-item>
             </template>
 
             <n-form-item label="lossless-cut路径">
@@ -181,6 +202,26 @@
                 class="pointer"
                 v-if="!isWeb"
                 @click="selectFile('losslessCut', config.losslessCutPath)"
+              >
+                <FolderOpenOutline />
+              </n-icon>
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip
+                  text="缓存文件夹"
+                  tip="用于存放乱七八糟的临时文件，默认使用系统临时文件夹"
+                ></Tip>
+              </template>
+              <n-input
+                v-model:value="config.cacheFolder"
+                placeholder="请输入缓存文件夹路径，默认使用系统临时文件夹"
+              />
+              <n-icon
+                style="margin-left: 10px"
+                size="26"
+                class="pointer"
+                @click="selectFolder('cache')"
               >
                 <FolderOpenOutline />
               </n-icon>
@@ -207,7 +248,7 @@
               <template #label>
                 <Tip
                   text="webhook"
-                  :tip="`webhook路径：<br/>B站录播姬：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec：http://127.0.0.1:${config.port}/webhook/blrec<br/>DDTV：http://127.0.0.1:${config.port}/webhook/ddtv<br/>自定义（参数见文档）：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
+                  :tip="`如果本软件的录制想使用该功能，请打开录制配置中的发送到webhook选项<br/>其他软件webhook路径：<br/>B站录播姬：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec：http://127.0.0.1:${config.port}/webhook/blrec<br/>DDTV：http://127.0.0.1:${config.port}/webhook/ddtv<br/>oneLiveRec：http://127.0.0.1:${config.port}/webhook/oneliverec<br/>自定义（参数见文档）：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
                 ></Tip>
               </template>
               <n-switch v-model:value="config.webhook.open" />
@@ -276,6 +317,9 @@
         <n-tab-pane name="recorder" tab="直播录制">
           <RecordSetting v-model:data="config"></RecordSetting>
         </n-tab-pane>
+        <n-tab-pane name="virtualRecord" tab="虚拟录制">
+          <VirtualRecordSetting v-model:data="config"></VirtualRecordSetting>
+        </n-tab-pane>
         <n-tab-pane name="task" tab="任务">
           <TaskSetting v-model:data="config"></TaskSetting>
         </n-tab-pane>
@@ -287,6 +331,9 @@
         </n-tab-pane> -->
         <n-tab-pane name="notification" tab="通知">
           <NotificationSetting v-model:data="config"></NotificationSetting>
+        </n-tab-pane>
+        <n-tab-pane name="other" tab="其他">
+          <OtherSetting v-model:data="config"></OtherSetting>
         </n-tab-pane>
       </n-tabs>
       <template #footer>
@@ -310,6 +357,9 @@
     @save="saveRoomDetail"
     @delete="deleteRoom"
   ></RoomSettingDialog>
+
+  <!-- 检查更新弹框 -->
+  <CheckUpdateModal v-model:visible="checkUpdateVisible" />
 </template>
 
 <script setup lang="ts">
@@ -326,6 +376,9 @@ import RecordSetting from "./RecordSetting.vue";
 import TaskSetting from "./TaskSetting.vue";
 import VideoSetting from "./VideoSetting.vue";
 import SyncSetting from "./SyncSetting.vue";
+import OtherSetting from "./OtherSetting.vue";
+import VirtualRecordSetting from "./VirtualRecordSetting.vue";
+import CheckUpdateModal from "@renderer/components/checkUpdateModal.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
 import { useAppConfig } from "@renderer/stores";
 import { cloneDeep } from "lodash-es";
@@ -422,7 +475,7 @@ const getConfig = async () => {
  * @param defaultPath 默认地址
  */
 const selectFile = async (
-  type: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut",
+  type: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut" | "mesio" | "cache",
   defaultPath: string,
 ) => {
   const files = await window.api.openFile({
@@ -439,6 +492,8 @@ const selectFile = async (
     config.value.danmuFactoryPath = files[0];
   } else if (type === "losslessCut") {
     config.value.losslessCutPath = files[0];
+  } else if (type === "mesio") {
+    config.value.mesioPath = files[0];
   } else {
     console.error("未知文件类型");
   }
@@ -459,15 +514,27 @@ const resetBin = async (type: "ffmpeg" | "ffprobe" | "danmakuFactory") => {
   }
 };
 
-const selectFolder = async (type: "recorder") => {
+const selectFolder = async (type: "recorder" | "cache") => {
+  let defaultPath = "";
+  if (type === "recorder") {
+    defaultPath = config.value.webhook.recoderFolder;
+  } else if (type === "cache") {
+    defaultPath = config.value.cacheFolder;
+  } else {
+    throw new Error("未知文件类型");
+  }
   let file: string | undefined = await showDirectoryDialog({
-    defaultPath: config.value.webhook.recoderFolder,
+    defaultPath,
   });
 
   if (!file) return;
 
   if (type === "recorder") {
     config.value.webhook.recoderFolder = file;
+  } else if (type === "cache") {
+    config.value.cacheFolder = file;
+  } else {
+    throw new Error("未知文件类型");
   }
 };
 
@@ -701,6 +768,18 @@ defineExpose({
     }
   },
 });
+
+const checkUpdateVisible = ref(false);
+// 检查更新
+const checkForUpdates = async () => {
+  if (isWeb.value) {
+    // const res = await commonApi.checkUpdate();
+    checkUpdateVisible.value = true;
+    return;
+  } else {
+    await window.api.common.checkUpdate();
+  }
+};
 </script>
 
 <style scoped lang="less">

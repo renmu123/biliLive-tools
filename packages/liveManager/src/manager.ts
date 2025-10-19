@@ -23,7 +23,8 @@ import {
   downloadImage,
   isBetweenTimeRange,
 } from "./utils.js";
-import { StreamManager } from "./streamManager.js";
+import { StreamManager } from "./recorder/streamManager.js";
+import { Cache } from "./cache.js";
 
 export interface RecorderProvider<E extends AnyObject> {
   // Provider 的唯一 id，最好只由英文 + 数字组成
@@ -42,7 +43,7 @@ export interface RecorderProvider<E extends AnyObject> {
     id: ChannelId;
     title: string;
     owner: string;
-    uid?: number;
+    uid?: number | string;
     avatar?: string;
   } | null>;
   createRecorder: (
@@ -75,21 +76,21 @@ export interface RecorderManager<
   E extends AnyObject = ME & PE,
 > extends Emitter<{
     error: { source: string; err: unknown };
-    RecordStart: { recorder: Recorder<E>; recordHandle: RecordHandle };
-    RecordSegment: { recorder: Recorder<E>; recordHandle?: RecordHandle };
-    videoFileCreated: { recorder: Recorder<E>; filename: string; cover?: string };
-    videoFileCompleted: { recorder: Recorder<E>; filename: string };
-    RecorderProgress: { recorder: Recorder<E>; progress: Progress };
+    RecordStart: { recorder: SerializedRecorder<E>; recordHandle: RecordHandle };
+    RecordSegment: { recorder: SerializedRecorder<E>; recordHandle?: RecordHandle };
+    videoFileCreated: { recorder: SerializedRecorder<E>; filename: string; cover?: string };
+    videoFileCompleted: { recorder: SerializedRecorder<E>; filename: string };
+    RecorderProgress: { recorder: SerializedRecorder<E>; progress: Progress };
     RecoderLiveStart: { recorder: Recorder<E> };
 
-    RecordStop: { recorder: Recorder<E>; recordHandle: RecordHandle; reason?: string };
-    Message: { recorder: Recorder<E>; message: Message };
+    RecordStop: { recorder: SerializedRecorder<E>; recordHandle: RecordHandle; reason?: string };
+    Message: { recorder: SerializedRecorder<E>; message: Message };
     RecorderUpdated: {
-      recorder: Recorder<E>;
+      recorder: SerializedRecorder<E>;
       keys: (string | keyof Recorder<E>)[];
     };
-    RecorderAdded: Recorder<E>;
-    RecorderRemoved: Recorder<E>;
+    RecorderAdded: SerializedRecorder<E>;
+    RecorderRemoved: SerializedRecorder<E>;
     RecorderDebugLog: DebugLog & { recorder: Recorder<E> };
     Updated: ConfigurableProp[];
   }> {
@@ -100,7 +101,10 @@ export interface RecorderManager<
   ) => P[];
 
   recorders: Recorder<E>[];
-  addRecorder: (this: RecorderManager<ME, P, PE, E>, opts: RecorderCreateOpts<E>) => Recorder<E>;
+  addRecorder: (
+    this: RecorderManager<ME, P, PE, E>,
+    opts: Omit<RecorderCreateOpts<E>, "cache">,
+  ) => Recorder<E>;
   removeRecorder: (this: RecorderManager<ME, P, PE, E>, recorder: Recorder<E>) => void;
   startRecord: (
     this: RecorderManager<ME, P, PE, E>,
@@ -121,6 +125,9 @@ export interface RecorderManager<
   biliBatchQuery: boolean;
   /** 测试：录制错误立即重试 */
   recordRetryImmediately: boolean;
+
+  /** 缓存实例 */
+  cache: Cache;
 }
 
 export type RecorderManagerCreateOpts<
@@ -224,6 +231,9 @@ export function createRecorderManager<
   // 用于记录触发重试直播场次的次数
   const retryCountObj: Record<string, number> = {};
 
+  // 获取缓存单例
+  const cache = Cache.getInstance();
+
   const manager: RecorderManager<ME, P, PE, E> = {
     // @ts-ignore
     ...mitt(),
@@ -240,27 +250,39 @@ export function createRecorderManager<
 
       // TODO: 因为泛型函数内部是不持有具体泛型的，这里被迫用了 as，没什么好的思路处理，除非
       // provider.createRecorder 能返回 Recorder<PE> 才能进一步优化。
-      const recorder = provider.createRecorder(omit(opts, ["providerId"])) as Recorder<E>;
+      const recorder = provider.createRecorder({
+        ...omit(opts, ["providerId"]),
+        cache,
+      }) as Recorder<E>;
       this.recorders.push(recorder);
 
       recorder.on("RecordStart", (recordHandle) =>
-        this.emit("RecordStart", { recorder, recordHandle }),
+        this.emit("RecordStart", { recorder: recorder.toJSON(), recordHandle }),
       );
       recorder.on("RecordSegment", (recordHandle) =>
-        this.emit("RecordSegment", { recorder, recordHandle }),
+        this.emit("RecordSegment", { recorder: recorder.toJSON(), recordHandle }),
       );
       recorder.on("videoFileCreated", ({ filename, cover }) => {
         if (recorder.saveCover && recorder?.liveInfo?.cover) {
           const coverPath = replaceExtName(filename, ".jpg");
           downloadImage(cover ?? recorder?.liveInfo?.cover, coverPath);
         }
-        this.emit("videoFileCreated", { recorder, filename });
+        this.emit("videoFileCreated", { recorder: recorder.toJSON(), filename });
       });
       recorder.on("videoFileCompleted", ({ filename }) =>
-        this.emit("videoFileCompleted", { recorder, filename }),
+        this.emit("videoFileCompleted", { recorder: recorder.toJSON(), filename }),
+      );
+      recorder.on("Message", (message) =>
+        this.emit("Message", { recorder: recorder.toJSON(), message }),
+      );
+      recorder.on("Updated", (keys) =>
+        this.emit("RecorderUpdated", { recorder: recorder.toJSON(), keys }),
+      );
+      recorder.on("DebugLog", (log) =>
+        this.emit("RecorderDebugLog", { recorder: recorder, ...log }),
       );
       recorder.on("RecordStop", ({ recordHandle, reason }) => {
-        this.emit("RecordStop", { recorder, recordHandle, reason });
+        this.emit("RecordStop", { recorder: recorder.toJSON(), recordHandle, reason });
         // 如果reason中存在"invalid stream"，说明直播由于某些原因中断了，虽然会在下一次周期检查中继续，但是会遗漏一段时间。
         // 这时候可以触发一次检查，但出于直播可能抽风的原因，为避免风控，一场直播最多触发五次。
         // 测试阶段，还需要一个开关，默认关闭，几个版本后转正使用
@@ -268,7 +290,7 @@ export function createRecorderManager<
         // 虎牙直播结束后可能额外触发导致错误，忽略虎牙直播间：https://www.huya.com/910323
         if (
           manager.recordRetryImmediately &&
-          recorder.providerId !== "Huya" &&
+          recorder.providerId !== "HuYa" &&
           reason &&
           reason.includes("invalid stream") &&
           recorder?.liveInfo?.liveId
@@ -285,7 +307,7 @@ export function createRecorderManager<
           this.emit("RecorderDebugLog", {
             recorder,
             type: "common",
-            text: `录制因“${reason}”中断，触发重试直播（${retryCountObj[key]}）`,
+            text: `录制${recorder?.channelId}因“${reason}”中断，触发重试直播（${retryCountObj[key]}）`,
           });
           // 触发一次检查，等待一秒使状态清理完毕
           setTimeout(() => {
@@ -297,11 +319,8 @@ export function createRecorderManager<
           }, 1000);
         }
       });
-      recorder.on("Message", (message) => this.emit("Message", { recorder, message }));
-      recorder.on("Updated", (keys) => this.emit("RecorderUpdated", { recorder, keys }));
-      recorder.on("DebugLog", (log) => this.emit("RecorderDebugLog", { recorder, ...log }));
       recorder.on("progress", (progress) => {
-        this.emit("RecorderProgress", { recorder, progress });
+        this.emit("RecorderProgress", { recorder: recorder.toJSON(), progress });
       });
       recorder.on("videoFileCreated", () => {
         if (!recorder.liveInfo?.liveId) return;
@@ -310,10 +329,10 @@ export function createRecorderManager<
         if (liveStartObj[key]) return;
         liveStartObj[key] = true;
 
-        this.emit("RecoderLiveStart", { recorder });
+        this.emit("RecoderLiveStart", { recorder: recorder });
       });
 
-      this.emit("RecorderAdded", recorder);
+      this.emit("RecorderAdded", recorder.toJSON());
 
       return recorder;
     },
@@ -324,7 +343,7 @@ export function createRecorderManager<
       this.recorders.splice(idx, 1);
 
       delete tempBanObj[recorder.channelId];
-      this.emit("RecorderRemoved", recorder);
+      this.emit("RecorderRemoved", recorder.toJSON());
     },
     async startRecord(id: string) {
       const recorder = this.recorders.find((item) => item.id === id);
@@ -422,6 +441,8 @@ export function createRecorderManager<
          * TODO: 如果浏览器行为无法优化，并且想进一步优化加载速度，可以考虑录制时使用 fmp4，录制完成后再转一次普通 mp4。
          */
         " -min_frag_duration 10000000",
+
+    cache,
   };
 
   const setProvidersFFMPEGOutputArgs = (ffmpegOutputArgs: string) => {
@@ -467,6 +488,8 @@ export function genSavePathFromRule<
   const provider = manager.providers.find((p) => p.id === recorder.toJSON().providerId);
 
   const now = extData?.startTime ? new Date(extData.startTime) : new Date();
+  const owner = (extData?.owner ?? "").replaceAll("%", "_");
+  const title = (extData?.title ?? "").replaceAll("%", "_");
   const params = {
     platform: provider?.name ?? "unknown",
     channelId: recorder.channelId,
@@ -478,6 +501,8 @@ export function genSavePathFromRule<
     min: formatDate(now, "mm"),
     sec: formatDate(now, "ss"),
     ...extData,
+    owner: owner,
+    title: title,
   };
   if (manager.autoRemoveSystemReservedChars) {
     for (const key in params) {
@@ -495,4 +520,4 @@ export function genSavePathFromRule<
 }
 
 export type GetProviderExtra<P> = P extends RecorderProvider<infer E> ? E : never;
-export { StreamManager };
+export { StreamManager, Cache };

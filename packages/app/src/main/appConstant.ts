@@ -3,7 +3,7 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import fs from "fs-extra";
 
-export const __dirname = dirname(fileURLToPath(import.meta.url));
+export const __dirname2 = dirname(fileURLToPath(import.meta.url));
 
 const binPath = join(
   dirname(app.getPath("exe")),
@@ -45,9 +45,11 @@ export const getConfigPath = async () => {
 export let FFMPEG_PATH = join(binPath, "ffmpeg.exe");
 export let FFPROBE_PATH = join(binPath, "ffprobe.exe");
 export let DANMUKUFACTORY_PATH = join(binPath, "DanmakuFactory.exe");
+export let MESIO_PATH = join(binPath, "mesio.exe");
 
 if (process.platform === "linux") {
   FFMPEG_PATH = join(binPath, "ffmpeg");
   FFPROBE_PATH = join(binPath, "ffprobe");
   DANMUKUFACTORY_PATH = join(binPath, "DanmakuFactory");
+  MESIO_PATH = join(binPath, "mesio");
 }

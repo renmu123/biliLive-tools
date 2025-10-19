@@ -1,6 +1,5 @@
 import fs from "fs-extra";
-import Router from "koa-router";
-import path from "path";
+import Router from "@koa/router";
 
 import {
   handleStartTask,
@@ -25,6 +24,11 @@ import {
 } from "@biliLive-tools/shared/task/video.js";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { trashItem } from "@biliLive-tools/shared/utils/index.js";
+import {
+  testVirtualRecordConfig,
+  executeVirtualRecordConfig,
+} from "@biliLive-tools/shared/task/virtualRecord.js";
+import { fileCache } from "../index.js";
 
 import type { DanmuPreset, DanmaOptions } from "@biliLive-tools/types";
 
@@ -142,12 +146,12 @@ router.post("/convertXml2Ass", async (ctx) => {
   };
   if (!input || !output) {
     ctx.status = 400;
-    ctx.body = { message: "input and output are required" };
+    ctx.body = "input and output are required";
     return;
   }
   if (!preset) {
     ctx.status = 400;
-    ctx.body = { message: "preset is required" };
+    ctx.body = "preset is required";
     return;
   }
 
@@ -197,12 +201,12 @@ router.post("/mergeVideo", async (ctx) => {
   };
   if (!inputVideos || inputVideos.length < 2) {
     ctx.status = 400;
-    ctx.body = { message: "inputVideos length must be greater than 1" };
+    ctx.body = "inputVideos length must be greater than 1";
     return;
   }
   if (!options.output && !options.saveOriginPath) {
     ctx.status = 400;
-    ctx.body = { message: "output is required or saveOriginPath should be true" };
+    ctx.body = "output is required or saveOriginPath should be true";
     return;
   }
 
@@ -229,12 +233,12 @@ router.post("/transcode", async (ctx) => {
   };
   if (!input) {
     ctx.status = 400;
-    ctx.body = { message: "inputVideos length must be greater than 1" };
+    ctx.body = "inputVideos length must be greater than 1";
     return;
   }
   if (!outputName) {
     ctx.status = 400;
-    ctx.body = { message: "outputName is required" };
+    ctx.body = "outputName is required";
     return;
   }
 
@@ -312,28 +316,116 @@ router.get("/:id/download", async (ctx) => {
   const task = taskQueue.queryTask(id);
   if (!task) {
     ctx.status = 404;
-    ctx.body = { message: "任务不存在" };
+    ctx.body = "任务不存在";
     return;
   }
   if (task.type !== "ffmpeg") {
     ctx.status = 400;
-    ctx.body = { message: "不支持的任务类型" };
+    ctx.body = "不支持的任务类型";
     return;
   }
   if (!task.output || !(await fs.pathExists(task.output))) {
     ctx.status = 404;
-    ctx.body = { message: "文件不存在" };
+    ctx.body = "文件不存在";
+    return;
+  }
+  const fileId = fileCache.setFile(task.output);
+
+  ctx.body = fileId;
+});
+
+router.post("/testVirtualRecord", async (ctx) => {
+  const { config, folderPath, startTime } = ctx.request.body as {
+    config: any;
+    folderPath: string;
+    startTime?: number;
+  };
+
+  if (!config) {
+    ctx.status = 400;
+    ctx.body = "config is required";
     return;
   }
 
-  const stat = await fs.stat(task.output);
-  ctx.set("Content-Length", stat.size.toString());
-  ctx.set("Content-Type", "application/octet-stream");
-  ctx.set(
-    "Content-Disposition",
-    `attachment; filename=${encodeURIComponent(path.basename(task.output))}`,
-  );
-  ctx.body = fs.createReadStream(task.output);
+  if (!folderPath) {
+    ctx.status = 400;
+    ctx.body = "folderPath is required";
+    return;
+  }
+
+  // 验证必填参数
+  if (config.mode === "normal") {
+    if (!config.roomId) {
+      ctx.status = 400;
+      ctx.body = "roomId is required for normal mode";
+      return;
+    }
+  } else if (config.mode === "advance") {
+    if (!config.roomIdRegex) {
+      ctx.status = 400;
+      ctx.body = "roomIdRegex is required for advance mode";
+      return;
+    }
+  } else {
+    ctx.status = 400;
+    ctx.body = "invalid mode";
+    return;
+  }
+
+  try {
+    const result = await testVirtualRecordConfig(config, folderPath, startTime);
+    ctx.body = result;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = error instanceof Error ? error.message : "Internal server error";
+  }
+});
+
+router.post("/executeVirtualRecord", async (ctx) => {
+  const { config, folderPath, startTime } = ctx.request.body as {
+    config: any;
+    folderPath: string;
+    startTime?: number;
+  };
+
+  if (!config) {
+    ctx.status = 400;
+    ctx.body = "config is required";
+    return;
+  }
+
+  if (!folderPath) {
+    ctx.status = 400;
+    ctx.body = "folderPath is required";
+    return;
+  }
+
+  // 验证必填参数
+  if (config.mode === "normal") {
+    if (!config.roomId) {
+      ctx.status = 400;
+      ctx.body = "roomId is required for normal mode";
+      return;
+    }
+  } else if (config.mode === "advance") {
+    if (!config.roomIdRegex) {
+      ctx.status = 400;
+      ctx.body = "roomIdRegex is required for advance mode";
+      return;
+    }
+  } else {
+    ctx.status = 400;
+    ctx.body = "invalid mode";
+    return;
+  }
+
+  try {
+    await executeVirtualRecordConfig(config, folderPath, startTime);
+    ctx.body = { success: true, message: "执行成功" };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = error instanceof Error ? error.message : "Internal server error";
+  }
 });
 
 export default router;

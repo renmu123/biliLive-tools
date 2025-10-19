@@ -3,6 +3,7 @@ import axios from "axios";
 import { utils } from "@bililive-tools/manager";
 import { assert, getFormatSources } from "./utils.js";
 import { initInfo } from "./anticode.js";
+import type { Recorder } from "@bililive-tools/manager";
 
 import type { StreamResult, StreamProfile } from "./types.js";
 
@@ -12,7 +13,10 @@ const requester = axios.create({
 
 export async function getRoomInfo(
   roomIdOrShortId: string,
-  formatPriorities: Array<"flv" | "hls"> = ["flv", "hls"],
+  opts: {
+    formatPriorities?: Array<"flv" | "hls">;
+    quality?: Recorder["quality"];
+  } = {},
 ) {
   const res = await requester.get<string>(`https://www.huya.com/${roomIdOrShortId}`);
   const html = res.data;
@@ -29,6 +33,7 @@ export async function getRoomInfo(
     desc: info.sDisplayName,
     bitRate: info.iBitRate,
   }));
+  streams.push({ desc: "真原画", bitRate: -1 });
 
   const data = hyPlayerConfig.stream.data[0];
   assert(data, `Unexpected resp, data is null`);
@@ -49,9 +54,13 @@ export async function getRoomInfo(
   // }));
   for (const item of data?.gameStreamInfoList ?? []) {
     if (item.sFlvAntiCode && item.sFlvAntiCode.length > 0) {
+      let sStreamName = item.sStreamName;
+      if (opts.quality === -1) {
+        sStreamName = sStreamName.replace("-imgplus", "");
+      }
       const url = initInfo({
         baseUrl: item.sFlvUrl,
-        sStreamName: item.sStreamName,
+        sStreamName: sStreamName,
         antiCode: item.sFlvAntiCode,
         suffix: item.sFlvUrlSuffix,
         _sessionId: Date.now(),
@@ -62,9 +71,13 @@ export async function getRoomInfo(
       });
     }
     if (item.sHlsAntiCode && item.sHlsAntiCode.length > 0) {
+      let sStreamName = item.sStreamName;
+      if (opts.quality === -1) {
+        sStreamName = sStreamName.replace("-imgplus", "");
+      }
       const url = initInfo({
         baseUrl: item.sHlsUrl,
-        sStreamName: item.sStreamName,
+        sStreamName: sStreamName,
         antiCode: item.sHlsAntiCode,
         suffix: item.sHlsUrlSuffix,
         _sessionId: Date.now(),
@@ -77,7 +90,7 @@ export async function getRoomInfo(
   }
 
   const startTime = new Date(data.gameLiveInfo?.startTime * 1000);
-  const formatSources = getFormatSources(sources, formatPriorities);
+  const formatSources = getFormatSources(sources, opts.formatPriorities);
   return {
     living: vMultiStreamInfo.length > 0 && data.gameStreamInfoList.length > 0,
     id: data.gameLiveInfo.profileRoom,

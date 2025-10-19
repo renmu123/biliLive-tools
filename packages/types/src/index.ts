@@ -324,6 +324,8 @@ interface DouyinRecorderConfig {
   formatName: FormatName;
   /** 是否使用双屏直播流 */
   doubleScreen: boolean;
+  /** 接口类型 */
+  api: "web" | "webHTML" | "mobile" | "userHTML" | "balance" | "random";
 }
 
 // 录制全局配置
@@ -362,6 +364,8 @@ export interface GlobalRecorder {
   qualityRetry: number;
   /** 视频格式 */
   videoFormat: "auto" | "ts" | "mkv";
+  /** 支持的录制器 */
+  recorderType: "auto" | "ffmpeg" | "mesio";
   /** 保存弹幕测试 */
   saveDanma2DB: boolean;
   /** B站特有的配置 */
@@ -415,11 +419,13 @@ export interface Recorder {
   /**分段时长，单位分钟 */
   segment?: number;
   /** 账号 */
-  uid?: number;
+  uid?: number | string;
   /** 保存封面 */
   saveCover?: boolean;
   /** 视频格式 */
   videoFormat: GlobalRecorder["videoFormat"];
+  /** 录制器类型 */
+  recorderType: GlobalRecorder["recorderType"];
   qualityRetry: GlobalRecorder["qualityRetry"];
   formatName: GlobalRecorder["bilibili"]["formatName"];
   useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];
@@ -429,6 +435,8 @@ export interface Recorder {
   titleKeywords?: string;
   /** 开播推送 */
   liveStartNotification?: boolean;
+  /** 权重 */
+  weight: number;
   /** 抖音cookie */
   cookie?: string;
   /** 是否使用双屏直播流 */
@@ -458,6 +466,7 @@ export interface Recorder {
       | "liveStartNotification"
       | "onlyAudio"
       | "handleTime"
+      | "weight"
     >
   >;
 }
@@ -482,6 +491,10 @@ export interface AppConfig {
   danmuFactoryPath: string;
   /** lossles-cut可执行路径 */
   losslessCutPath: string;
+  /** mesio 可执行路径 */
+  mesioPath: string;
+  /** 缓存文件夹 */
+  cacheFolder: string;
   /** 保存到回收站 */
   trash: boolean;
   /** 自动检查更新 */
@@ -500,6 +513,7 @@ export interface AppConfig {
   host: string;
   passKey: string;
   https?: boolean;
+  requestInfoForRecord: boolean;
   webhook: {
     recoderFolder: string;
     blacklist: string;
@@ -564,10 +578,12 @@ export interface AppConfig {
       apiUrl: string;
       username: string;
       hashPassword: string;
+      limitRate: number; // KB
     };
     pan123: {
       clientId: string;
       clientSecret: string;
+      limitRate: number; // KB
     };
     syncConfigs: SyncConfig[];
   };
@@ -629,6 +645,36 @@ export interface AppConfig {
     subCheckInterval: number;
     /** 保存路径 */
     subSavePath: string;
+  };
+  // 虚拟录制
+  virtualRecord: {
+    config: {
+      mode: "normal" | "advance";
+      // uuid
+      id: string;
+      // 是否启用
+      switch: boolean;
+      // 虚拟直播间号
+      roomId: string;
+      // 房间号正则
+      roomIdRegex: string;
+      // 标题正则
+      titleRegex: string;
+      // 主播名称
+      username: string;
+      // 主播名称正则
+      usernameRegex: string;
+      /** 监听文件夹 */
+      watchFolder: string[];
+      /** 文件匹配规则，只有匹配的文件才会被处理 */
+      fileMatchRegex: string;
+      /** 忽略文件正则，匹配的文件将被忽略 */
+      ignoreFileRegex: string;
+      /** 是否自动匹配开始时间 */
+      startTimeAutoMatch?: boolean;
+    }[];
+    // mode: "watch" | "interval";
+    startTime: number;
   };
 }
 
@@ -913,6 +959,7 @@ export interface GlobalConfig {
   logPath: string;
   defaultFfmpegPath: string;
   defaultFfprobePath: string;
+  defaultMesioPath: string;
   defaultDanmakuFactoryPath: string;
   version: string;
   userDataPath: string;

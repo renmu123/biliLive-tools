@@ -1,0 +1,829 @@
+<template>
+  <div class="">
+    <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 20px">
+      <h2 style="display: inline-flex; align-items: center">
+        虚拟录制配置
+        <Tip
+          :size="22"
+          tip="采用监听文件夹的形式支持那些不支持webhook的录制软件<br/>当监听文件夹中出现新文件时，会自动触发录制完成的处理流程<br/>支持普通模式和高级模式，高级模式支持正则匹配房间号和标题"
+        >
+        </Tip>
+      </h2>
+      <p>
+        监听文件夹中的新文件，并发送到 webhook 进行处理，<a
+          @click="setStartTime"
+          class="link"
+          :title="`从${formatTime(config?.virtualRecord?.startTime ?? 0)}开始监听`"
+          >点击</a
+        >设置起始时间，更多查看<a
+          href="https://www.bilibili.com/video/BV1pKx9zuE8P/"
+          class="external"
+          target="_blank"
+          >视频教程</a
+        >
+      </p>
+    </div>
+
+    <div class="virtual-record-list">
+      <n-card
+        v-for="(virtualConfig, index) in config.virtualRecord.config"
+        :key="virtualConfig.id || `${virtualConfig.roomId}-${index}`"
+        class="virtual-record-card"
+      >
+        <template #header>
+          <div class="card-header">
+            <n-text strong>
+              {{ virtualConfig.mode === "normal" ? "普通模式" : "高级模式" }}
+              - {{ virtualConfig.mode === "normal" ? virtualConfig.roomId : "动态匹配" }}
+            </n-text>
+            <n-tag v-if="virtualConfig.switch" type="info" size="small"> 监听中 </n-tag>
+            <n-tag v-else type="warning" size="small"> 已禁用 </n-tag>
+          </div>
+        </template>
+        <template #header-extra>
+          <n-space align="center">
+            <n-button type="primary" size="small" @click="editVirtualRecord(index)">
+              编辑
+            </n-button>
+            <n-button type="error" text size="small" @click="deleteVirtualRecord(index)">
+              删除
+            </n-button>
+          </n-space>
+        </template>
+        <n-space vertical>
+          <div v-if="virtualConfig.mode === 'normal'" class="info-item">
+            <n-text depth="3">虚拟房间号:</n-text>
+            <n-text>{{ virtualConfig.roomId }}</n-text>
+          </div>
+          <div v-if="virtualConfig.mode === 'advance'" class="info-item">
+            <n-text depth="3">房间号正则:</n-text>
+            <n-text>{{ virtualConfig.roomIdRegex || "未设置" }}</n-text>
+          </div>
+          <div class="info-item">
+            <n-text depth="3">标题正则:</n-text>
+            <n-text>{{ virtualConfig.titleRegex || "未设置" }}</n-text>
+          </div>
+          <div class="info-item" v-if="virtualConfig.mode === 'normal'">
+            <n-text depth="3">主播名称:</n-text>
+            <n-text>{{ virtualConfig.username || "未设置" }}</n-text>
+          </div>
+          <div v-if="virtualConfig.mode === 'advance'" class="info-item">
+            <n-text depth="3">主播名称正则:</n-text>
+            <n-text>{{ virtualConfig.usernameRegex || "未设置" }}</n-text>
+          </div>
+          <div class="info-item">
+            <n-text depth="3">文件匹配规则:</n-text>
+            <n-text>{{ virtualConfig.fileMatchRegex || "默认" }}</n-text>
+          </div>
+          <div class="info-item">
+            <n-text depth="3">监听文件夹:</n-text>
+            <div class="folder-list">
+              <n-tag
+                v-for="folder in virtualConfig.watchFolder"
+                :key="folder"
+                size="small"
+                type="info"
+                style="margin: 2px"
+              >
+                {{ folder }}
+              </n-tag>
+              <n-text v-if="virtualConfig.watchFolder.length === 0" type="warning">
+                未设置监听文件夹
+              </n-text>
+            </div>
+          </div>
+          <div v-if="virtualConfig.watchFolder.length === 0" class="warning-item">
+            <n-text type="warning">⚠️ 请设置至少一个监听文件夹路径</n-text>
+          </div>
+        </n-space>
+      </n-card>
+
+      <n-card class="virtual-record-card add-card-container" @click="addVirtualRecord">
+        <div class="add-card">
+          <n-icon size="48" color="var(--n-text-color-disabled)">
+            <Add />
+          </n-icon>
+          <!-- <n-text depth="3">添加虚拟录制配置</n-text> -->
+        </div>
+      </n-card>
+    </div>
+
+    <!-- 编辑/添加虚拟录制配置的模态框 -->
+    <n-modal v-model:show="modalVisible" :mask-closable="false" auto-focus>
+      <n-card
+        style="width: 700px; max-height: 80%"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+        class="modal-card"
+      >
+        <template #header>
+          <n-text>{{ editingIndex === null ? "添加" : "编辑" }}虚拟录制配置</n-text>
+        </template>
+        <n-form
+          label-placement="left"
+          :label-width="120"
+          :model="editingConfig"
+          ref="formRef"
+          :rules="formRules"
+        >
+          <n-form-item label="监听状态">
+            <n-switch v-model:value="editingConfig.switch"> </n-switch>
+          </n-form-item>
+
+          <n-form-item label="模式">
+            <n-radio-group v-model:value="editingConfig.mode">
+              <n-radio value="normal">
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <span>普通模式</span>
+                  <n-text depth="3" style="font-size: 12px">
+                    固定房间号和标题，支持单个文件夹监听
+                  </n-text>
+                </div>
+              </n-radio>
+              <n-radio value="advance">
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <span>高级模式</span>
+                  <n-text depth="3" style="font-size: 12px">
+                    使用正则匹配房间号和标题，支持多文件夹监听
+                  </n-text>
+                </div>
+              </n-radio>
+            </n-radio-group>
+          </n-form-item>
+
+          <!-- 普通模式配置 -->
+          <template v-if="editingConfig.mode === 'normal'">
+            <n-form-item label="虚拟房间号" path="roomId">
+              <template #label>
+                <Tip text="虚拟房间号" tip="用于区分不同的配置，相当于直播房间号" />
+              </template>
+              <n-input
+                v-model:value="editingConfig.roomId"
+                placeholder="请输入虚拟房间号，用于区分不同的录制配置"
+                clearable
+              />
+            </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip text="主播名称" tip="作为webhook中的主播名称预设占位" />
+              </template>
+              <n-input
+                v-model:value="editingConfig.username"
+                placeholder="可选，设置固定主播名称"
+                clearable
+              />
+            </n-form-item>
+            <n-form-item>
+              <n-input
+                v-model:value="editingConfig.titleRegex"
+                placeholder="可选，用于从文件名中提取标题的正则表达式"
+                clearable
+              />
+              <template #label>
+                <Tip
+                  text="标题正则"
+                  tip="用于从文件名中提取标题信息，作为webhook中的标题预设占位"
+                />
+              </template>
+            </n-form-item>
+          </template>
+
+          <!-- 高级模式配置 -->
+          <template v-if="editingConfig.mode === 'advance'">
+            <n-form-item path="roomIdRegex">
+              <template #label>
+                <Tip
+                  text="房间号正则"
+                  tip="用于区分不同的配置，相当于直播房间号，<b>如果匹配失败将会被跳过</b>"
+                />
+              </template>
+              <n-input
+                v-model:value="editingConfig.roomIdRegex"
+                placeholder="用于从文件名中提取房间号的正则表达式"
+                clearable
+              />
+            </n-form-item>
+            <n-form-item>
+              <n-input
+                v-model:value="editingConfig.usernameRegex"
+                placeholder="可选，用于从文件名中提取主播名称的正则表达式"
+                clearable
+              />
+              <template #label>
+                <Tip
+                  text="主播名称正则"
+                  tip="用于从文件名中提取主播名称信息，作为webhook中的主播名称预设占位"
+                />
+              </template>
+            </n-form-item>
+            <n-form-item>
+              <n-input
+                v-model:value="editingConfig.titleRegex"
+                placeholder="可选，用于从文件名中提取标题的正则表达式"
+                clearable
+              />
+              <template #label>
+                <Tip
+                  text="标题正则"
+                  tip="用于从文件名中提取标题信息，作为webhook中的标题预设占位"
+                />
+              </template>
+            </n-form-item>
+          </template>
+
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="文件匹配规则"
+                tip="正则表达式，用于匹配需要处理的文件名，只有匹配的文件才会被处理<br/><b>开启webhook的转换为mp4功能可能导致文件重复处理</b><br/>默认匹配视频文件：mp4、ts、flv、mkv、m4s"
+              />
+            </template>
+            <n-input
+              v-model:value="editingConfig.fileMatchRegex"
+              placeholder="正则表达式，只有匹配的文件才会被处理"
+              clearable
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="文件忽略规则"
+                tip="正则表达式，用于匹配需要忽略的文件名，匹配的文件将不会被处理<br/>默认忽略包含'-弹幕版'或'-后处理'的文件"
+              />
+            </template>
+            <n-input
+              v-model:value="editingConfig.ignoreFileRegex"
+              placeholder="正则表达式，匹配的文件将被忽略处理"
+              clearable
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="自动时间匹配"
+                tip="开启后尝试从文件名中匹配开始时间，关闭时使用文件创建时间作为开始时间"
+              />
+            </template>
+            <n-switch v-model:value="editingConfig.startTimeAutoMatch"> </n-switch>
+          </n-form-item>
+          <n-form-item label="监听文件夹" path="watchFolder">
+            <div style="width: 100%">
+              <div class="folder-input-container">
+                <n-tag
+                  v-for="(folder, folderIndex) in editingConfig.watchFolder"
+                  :key="folderIndex"
+                  closable
+                  type="info"
+                  style="margin: 2px"
+                  @close="removeFolderPath(folderIndex)"
+                >
+                  {{ folder }}
+                </n-tag>
+              </div>
+              <div style="display: flex; gap: 8px; margin-top: 8px">
+                <n-input
+                  v-model:value="newFolderPath"
+                  placeholder="选择要监听的文件夹"
+                  style="flex: 1"
+                />
+                <n-button @click="selectWatchFolder">
+                  <template #icon>
+                    <n-icon>
+                      <FolderOpenOutline />
+                    </n-icon>
+                  </template>
+                  选择文件夹
+                </n-button>
+                <n-button @click="addFolderPath" :disabled="!newFolderPath.trim()" type="primary">
+                  添加
+                </n-button>
+              </div>
+            </div>
+          </n-form-item>
+        </n-form>
+        <template #footer>
+          <div class="modal-footer">
+            <n-button @click="modalVisible = false">取消</n-button>
+            <n-button
+              type="info"
+              @click="testVirtualRecord"
+              :loading="testLoading"
+              :disabled="!canTest"
+            >
+              验证
+            </n-button>
+            <n-button type="primary" @click="saveVirtualRecord">保存</n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
+
+    <!-- 测试结果模态框 -->
+    <n-modal v-model:show="showTestResult" :mask-closable="false" auto-focus>
+      <n-card
+        style="width: 800px; max-height: 80%"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+        class="modal-card"
+      >
+        <template #header>
+          <n-text>测试结果</n-text>
+        </template>
+
+        <div v-if="testResult">
+          <!-- 文件列表 -->
+          <div v-if="testResult.files.length > 0" class="test-files">
+            <h4>找到的文件（{{ testResult.files.length }} 个）：</h4>
+            <div class="file-list">
+              <n-card
+                v-for="(file, index) in testResult.files"
+                :key="index"
+                size="small"
+                style="margin-bottom: 8px"
+              >
+                <div class="file-info">
+                  <div class="file-path">
+                    <n-text depth="3">文件：</n-text>
+                    <n-text>{{ file.filename }}</n-text>
+                  </div>
+                  <div class="file-details">
+                    <div>
+                      <n-text depth="3">房间号：</n-text>
+                      <n-text>{{ file.roomId || "未知" }}</n-text>
+                    </div>
+                    <div>
+                      <n-text depth="3">主播：</n-text>
+                      <n-text>{{ file.username || "未知主播" }}</n-text>
+                    </div>
+                    <div>
+                      <n-text depth="3">标题：</n-text>
+                      <n-text>{{ file.title || "未知标题" }}</n-text>
+                    </div>
+                    <div>
+                      <n-text depth="3">开始时间：</n-text>
+                      <n-text>{{ new Date(file.startTimeMs).toLocaleString() }}</n-text>
+                    </div>
+                  </div>
+                </div>
+              </n-card>
+            </div>
+          </div>
+
+          <!-- 无文件提示 -->
+          <div v-if="testResult.files.length === 0">
+            <n-empty description="未找到符合条件的文件">
+              <template #icon>
+                <n-icon>
+                  <FolderOpenOutline />
+                </n-icon>
+              </template>
+            </n-empty>
+          </div>
+        </div>
+
+        <template #footer>
+          <div class="modal-footer">
+            <n-button @click="showTestResult = false">关闭</n-button>
+            <n-button
+              v-if="testResult && testResult.files.length > 0"
+              type="primary"
+              @click="executeVirtualRecord"
+              style="display: none"
+            >
+              确认执行
+            </n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { Add, FolderOpenOutline } from "@vicons/ionicons5";
+import { showDirectoryDialog } from "@renderer/utils/fileSystem";
+import { useConfirm } from "@renderer/hooks";
+import { uuid, formatTime } from "@renderer/utils";
+import Tip from "@renderer/components/Tip.vue";
+import task from "@renderer/apis/task";
+import type { AppConfig } from "@biliLive-tools/types";
+
+const config = defineModel<AppConfig>("data", {
+  default: () => ({
+    virtualRecord: {
+      config: [],
+      startTime: Date.now(),
+    },
+  }),
+});
+
+const notice = useNotice();
+const confirm = useConfirm();
+
+// 模态框相关
+const modalVisible = ref(false);
+const editingIndex = ref<number | null>(null);
+const editingConfig = ref({
+  mode: "normal" as "normal" | "advance",
+  id: "",
+  switch: true,
+  roomId: "",
+  titleRegex: "",
+  roomIdRegex: "",
+  username: "",
+  usernameRegex: "",
+  watchFolder: [] as string[],
+  fileMatchRegex: "",
+  ignoreFileRegex: "",
+  startTimeAutoMatch: true,
+});
+
+// 测试相关
+const testLoading = ref(false);
+const testResult = ref<{
+  files: Array<{
+    path: string;
+    filename: string;
+    startTimeMs: number;
+    roomId?: string;
+    title?: string;
+    username?: string;
+  }>;
+} | null>(null);
+const showTestResult = ref(false);
+
+// 新文件夹路径输入
+const newFolderPath = ref("");
+
+// 表单引用和验证规则
+const formRef = ref();
+const formRules = computed(() => {
+  const baseRules = {
+    watchFolder: {
+      validator: () => {
+        return editingConfig.value.watchFolder.length > 0;
+      },
+      message: "请至少添加一个监听文件夹",
+      trigger: ["blur"],
+    },
+  };
+
+  if (editingConfig.value.mode === "normal") {
+    return {
+      ...baseRules,
+      roomId: {
+        required: true,
+        message: "请输入虚拟房间号",
+        trigger: ["input", "blur"],
+      },
+    };
+  } else {
+    return {
+      ...baseRules,
+      roomIdRegex: {
+        required: true,
+        message: "请输入房间号正则表达式",
+        trigger: ["input", "blur"],
+      },
+    };
+  }
+});
+
+// 计算属性：是否可以测试
+const canTest = computed(() => {
+  if (editingConfig.value.mode === "normal") {
+    return !!(editingConfig.value.roomId && editingConfig.value.watchFolder.length > 0);
+  } else {
+    return !!(editingConfig.value.roomIdRegex && editingConfig.value.watchFolder.length > 0);
+  }
+});
+
+// 测试虚拟录制配置
+const testVirtualRecord = async () => {
+  if (!canTest.value) {
+    notice.warning("请先填写必要参数");
+    return;
+  }
+
+  testLoading.value = true;
+  try {
+    const result = await task.testVirtualRecord(
+      { ...editingConfig.value, switch: true },
+      editingConfig.value.watchFolder[0], // 只发送第一个文件夹
+      config.value.virtualRecord.startTime,
+    );
+
+    testResult.value = result;
+    showTestResult.value = true;
+
+    if (result.files.length === 0) {
+      notice.info("未找到符合条件的文件");
+    } else {
+      notice.success(`找到 ${result.files.length} 个符合条件的文件`);
+    }
+  } catch (error) {
+    notice.error(`测试失败: ${error instanceof Error ? error.message : "未知错误"}`);
+  } finally {
+    testLoading.value = false;
+  }
+};
+
+// 执行虚拟录制
+const executeVirtualRecord = async () => {
+  if (!testResult.value || testResult.value.files.length === 0) {
+    notice.warning("没有可执行的文件");
+    return;
+  }
+
+  try {
+    await task.executeVirtualRecord(
+      { ...editingConfig.value, switch: true },
+      editingConfig.value.watchFolder[0],
+      config.value.virtualRecord.startTime,
+    );
+    notice.success("执行成功");
+    showTestResult.value = false;
+  } catch (error) {
+    notice.error(`执行失败: ${error instanceof Error ? error.message : "未知错误"}`);
+  }
+};
+
+// 添加虚拟录制配置
+const addVirtualRecord = () => {
+  editingIndex.value = null;
+  editingConfig.value = {
+    mode: "normal",
+    id: uuid(),
+    switch: true,
+    roomId: "",
+    titleRegex: "",
+    roomIdRegex: "",
+    username: "",
+    usernameRegex: "",
+    watchFolder: [],
+    fileMatchRegex: "\\.(mp4|ts|flv|mkv|m4s)$",
+    ignoreFileRegex: "-(弹幕版|后处理)",
+    startTimeAutoMatch: true,
+  };
+  newFolderPath.value = "";
+  modalVisible.value = true;
+};
+
+// 编辑虚拟录制配置
+const editVirtualRecord = (index: number) => {
+  editingIndex.value = index;
+  const originalConfig = config.value.virtualRecord.config[index];
+  editingConfig.value = {
+    mode: originalConfig.mode || "normal",
+    id: originalConfig.id,
+    switch: originalConfig.switch,
+    roomId: originalConfig.roomId || "",
+    titleRegex: originalConfig.titleRegex || "",
+    roomIdRegex: originalConfig.roomIdRegex || "",
+    username: originalConfig.username || "",
+    usernameRegex: originalConfig.usernameRegex || "",
+    watchFolder: [...(originalConfig.watchFolder || [])],
+    fileMatchRegex: originalConfig.fileMatchRegex,
+    ignoreFileRegex: originalConfig.ignoreFileRegex || "-(弹幕版|后处理)",
+    startTimeAutoMatch: originalConfig.startTimeAutoMatch || false,
+  };
+  newFolderPath.value = "";
+  modalVisible.value = true;
+};
+
+// 删除虚拟录制配置
+const deleteVirtualRecord = async (index: number) => {
+  const status = await confirm.warning({
+    content: `确定要删除？`,
+  });
+
+  if (!status) return;
+
+  config.value.virtualRecord.config.splice(index, 1);
+};
+
+// 选择监听文件夹
+const selectWatchFolder = async () => {
+  let file: string | undefined = await showDirectoryDialog({
+    defaultPath: newFolderPath.value,
+  });
+
+  if (!file) return;
+  newFolderPath.value = file;
+};
+
+// 添加文件夹路径
+const addFolderPath = () => {
+  const path = newFolderPath.value.trim();
+  if (!path) return;
+
+  // 检查是否已存在
+  if (editingConfig.value.watchFolder.includes(path)) {
+    notice.warning("该文件夹已存在");
+    return;
+  }
+  // 如果是普通模式最多添加一个
+  if (editingConfig.value.mode === "normal" && editingConfig.value.watchFolder.length >= 1) {
+    notice.warning("普通模式下只能添加一个监听文件夹");
+    return;
+  }
+
+  editingConfig.value.watchFolder.push(path);
+  newFolderPath.value = "";
+};
+
+// 移除文件夹路径
+const removeFolderPath = (index: number) => {
+  editingConfig.value.watchFolder.splice(index, 1);
+};
+
+// 保存虚拟录制配置
+const saveVirtualRecord = async () => {
+  try {
+    await formRef.value?.validate();
+
+    // 检查房间号是否重复（仅普通模式，编辑时排除自己）
+    if (editingConfig.value.mode === "normal") {
+      const existingIndex = config.value.virtualRecord.config.findIndex(
+        (item, index) =>
+          item.mode === "normal" &&
+          item.roomId === editingConfig.value.roomId &&
+          index !== editingIndex.value,
+      );
+
+      if (existingIndex !== -1) {
+        notice.error("虚拟房间号已存在，请使用不同的房间号");
+        return;
+      }
+    }
+
+    if (editingIndex.value === null) {
+      // 添加新配置
+      config.value.virtualRecord.config.push({ ...editingConfig.value });
+    } else {
+      // 更新现有配置，保持原有的 id
+      const originalId = config.value.virtualRecord.config[editingIndex.value].id;
+      config.value.virtualRecord.config[editingIndex.value] = {
+        ...editingConfig.value,
+        id: originalId, // 保持原有ID不变
+      };
+    }
+
+    modalVisible.value = false;
+  } catch (error) {
+    // 表单验证失败，不做任何操作
+  }
+};
+
+// 设置起始时间
+const setStartTime = async () => {
+  config.value.virtualRecord.startTime = Date.now();
+  notice.success({
+    title: "起始时间已更新为当前时间，之前的文件将不会被处理",
+    duration: 5000,
+  });
+};
+</script>
+
+<style scoped lang="less">
+.virtual-record-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.virtual-record-card {
+  height: 100%;
+  min-height: 120px;
+  max-height: 300px;
+  overflow-y: auto;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.add-card-container {
+  cursor: pointer;
+  // border: 2px dashed var(--n-border-color);
+
+  &:hover {
+    // border-color: var(--n-color-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.add-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  .n-text:first-child {
+    min-width: 90px;
+    flex-shrink: 0;
+  }
+}
+
+.folder-list {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.warning-item {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: var(--n-warning-color-suppl);
+  border-radius: 4px;
+}
+
+.modal-card {
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+}
+
+.folder-input-container {
+  min-height: 32px;
+  border: 1px solid var(--n-border-color);
+  border-radius: 3px;
+  padding: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+
+  &:empty::before {
+    content: "暂无监听文件夹";
+    color: var(--n-text-color-disabled);
+    font-size: 14px;
+  }
+}
+
+.item {
+  display: flex;
+}
+.link {
+  cursor: pointer;
+  color: skyblue;
+  text-decoration: underline;
+}
+
+/* 测试结果样式 */
+.test-files {
+  margin-bottom: 20px;
+}
+
+.file-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-path {
+  display: flex;
+  gap: 8px;
+  font-weight: bold;
+}
+
+.file-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+
+  > div {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+}
+</style>
