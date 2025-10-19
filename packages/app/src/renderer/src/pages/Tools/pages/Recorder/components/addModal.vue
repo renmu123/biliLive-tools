@@ -193,7 +193,11 @@
                 tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，手动录制的不会被影响"
               ></Tip>
             </template>
-            <n-input v-model:value="config.titleKeywords" placeholder="例如：回放,录播,重播" />
+            <n-input
+              v-model:value="config.titleKeywords"
+              placeholder="例如：回放,录播,重播"
+              clearable
+            />
           </n-form-item>
         </template>
         <template v-if="config.providerId === 'DouYu'">
@@ -230,7 +234,11 @@
                 tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
               ></Tip>
             </template>
-            <n-input v-model:value="config.titleKeywords" placeholder="例如：回放,录播,重播" />
+            <n-input
+              v-model:value="config.titleKeywords"
+              placeholder="例如：回放,录播,重播"
+              clearable
+            />
           </n-form-item>
         </template>
         <template v-if="config.providerId === 'HuYa'">
@@ -283,7 +291,11 @@
                 tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
               ></Tip>
             </template>
-            <n-input v-model:value="config.titleKeywords" placeholder="例如：回放,录播,重播" />
+            <n-input
+              v-model:value="config.titleKeywords"
+              placeholder="例如：回放,录播,重播"
+              clearable
+            />
           </n-form-item>
         </template>
         <template v-if="config.providerId === 'DouYin'">
@@ -348,7 +360,11 @@
                 tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
               ></Tip>
             </template>
-            <n-input v-model:value="config.titleKeywords" placeholder="例如：回放,录播,重播" />
+            <n-input
+              v-model:value="config.titleKeywords"
+              placeholder="例如：回放,录播,重播"
+              clearable
+            />
           </n-form-item>
         </template>
 
