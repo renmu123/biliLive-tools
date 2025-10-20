@@ -115,6 +115,7 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
   readonly isHls: boolean;
   readonly disableDanma: boolean = false;
   readonly url: string;
+  readonly debugLevel: "none" | "basic" | "verbose" = "none";
   readonly headers:
     | {
         [key: string]: string | undefined;
@@ -129,6 +130,7 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
     super();
     const hasSegment = true;
     this.disableDanma = opts.disableDanma ?? false;
+    this.debugLevel = opts.debugLevel ?? "none";
 
     let videoFormat: "flv" | "ts" | "m4s" = "flv";
     if (opts.url.includes(".m3u8")) {
@@ -186,6 +188,9 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
       "-H",
       "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
     ];
+    if (this.debugLevel === "verbose") {
+      inputOptions.push("-v");
+    }
 
     if (this.headers) {
       Object.entries(this.headers).forEach(([key, value]) => {
