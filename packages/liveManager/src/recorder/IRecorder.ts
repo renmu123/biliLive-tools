@@ -10,6 +10,7 @@ export interface BaseRecorderOptions {
   inputOptions?: string[];
   disableDanma?: boolean;
   formatName?: "flv" | "ts" | "fmp4";
+  debugLevel?: "none" | "basic" | "verbose";
   headers?: {
     [key: string]: string | undefined;
   };

@@ -1,3 +1,7 @@
+# Next
+
+- 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
+
 # 1.7.1
 
 - 优化斗鱼链接解析

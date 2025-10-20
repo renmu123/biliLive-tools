@@ -342,8 +342,10 @@ export interface GlobalRecorder {
   maxThreadCount: number;
   /** 等待时间 */
   waitTime: number;
-  /** 调试模式 */
+  /** 废弃：调试模式 */
   debugMode: boolean;
+  /** 调试等级 */
+  debugLevel: "none" | "basic" | "verbose";
   /** 测试：录制错误立即重试 */
   recordRetryImmediately: boolean;
   /** 画质 */
@@ -451,6 +453,8 @@ export interface Recorder {
   onlyAudio?: boolean;
   /** 监控时间段 */
   handleTime: [string | null, string | null];
+  /** 调试等级 */
+  debugLevel: "none" | "basic" | "verbose";
   // 不跟随全局配置字段
   noGlobalFollowFields: Array<
     Exclude<
