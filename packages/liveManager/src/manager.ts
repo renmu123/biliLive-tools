@@ -22,6 +22,7 @@ import {
   replaceExtName,
   downloadImage,
   isBetweenTimeRange,
+  sleep,
 } from "./utils.js";
 import { StreamManager } from "./recorder/streamManager.js";
 import { Cache } from "./cache.js";
@@ -61,6 +62,7 @@ const configurableProps = [
   "autoRemoveSystemReservedChars",
   "autoCheckInterval",
   "maxThreadCount",
+  "waitTime",
   "ffmpegOutputArgs",
   "biliBatchQuery",
   "recordRetryImmediately",
@@ -116,6 +118,7 @@ export interface RecorderManager<
 
   autoCheckInterval: number;
   maxThreadCount: number;
+  waitTime: number;
   isCheckLoopRunning: boolean;
   startCheckLoop: (this: RecorderManager<ME, P, PE, E>) => void;
   stopCheckLoop: (this: RecorderManager<ME, P, PE, E>) => void;
@@ -209,10 +212,13 @@ export function createRecorderManager<
     };
 
     threads = threads.concat(
-      range(0, this.maxThreadCount).map(async () => {
+      range(0, manager.maxThreadCount).map(async () => {
         while (needCheckRecorders.length > 0) {
           try {
             await checkOnce();
+            if (manager.waitTime > 0) {
+              await sleep(manager.waitTime);
+            }
           } catch (err) {
             manager.emit("error", { source: "checkOnceInThread", err });
           }
@@ -384,6 +390,7 @@ export function createRecorderManager<
 
     autoCheckInterval: opts.autoCheckInterval ?? 1000,
     maxThreadCount: opts.maxThreadCount ?? 3,
+    waitTime: opts.waitTime ?? 0,
     isCheckLoopRunning: false,
     startCheckLoop() {
       if (this.isCheckLoopRunning) return;

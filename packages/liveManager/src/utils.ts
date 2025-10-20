@@ -395,6 +395,7 @@ function isBetweenTime(currentTime: Date, timeRange: [string, string]): boolean 
 
   return start <= current && current <= end;
 }
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default {
   replaceExtName,
@@ -415,4 +416,5 @@ export default {
   sortByKeyOrder,
   retry,
   isBetweenTimeRange,
+  sleep,
 };

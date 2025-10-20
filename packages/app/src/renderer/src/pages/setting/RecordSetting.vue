@@ -66,7 +66,7 @@
           <n-form-item>
             <template #label>
               <Tip
-                tip="单次事件中发送的请求数，只有当一个事件被完成后下一个事件才会开始，和 检查间隔 共同构成了录制的循环检查周期"
+                tip="同时最多运行的检查任务数量，和 检查间隔 共同构成了录制的循环检查周期"
                 text="并发数"
               ></Tip>
             </template>
@@ -77,6 +77,19 @@
               step="1"
               style="width: 220px"
             >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip tip="检查任务完成后的等待时间" text="等待时间"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+            >
+              <template #suffix>毫秒</template>
             </n-input-number>
           </n-form-item>
           <n-form-item>
