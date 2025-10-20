@@ -518,6 +518,7 @@ export interface AppConfig {
   passKey: string;
   https?: boolean;
   requestInfoForRecord: boolean;
+  cutPageInNewWindow: boolean;
   webhook: {
     recoderFolder: string;
     blacklist: string;
