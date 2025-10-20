@@ -46,6 +46,10 @@ export class Segment extends EventEmitter {
     }
 
     try {
+      this.emit("DebugLog", {
+        type: "info",
+        text: `Renaming segment file: ${this.rawRecordingVideoPath} -> ${this.outputFilePath}`,
+      });
       await Promise.all([
         retry(() => fs.rename(this.rawRecordingVideoPath, this.outputFilePath), 10, 2000),
         this.extraDataController?.flush(),
@@ -56,6 +60,8 @@ export class Segment extends EventEmitter {
         type: "error",
         text: "videoFileCompleted error " + String(err),
       });
+      // 虽然重命名失败了，但是也当作完成处理，避免卡住录制流程
+      this.emit("videoFileCompleted", { filename: this.outputFilePath });
     }
   }
 
