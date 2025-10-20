@@ -518,6 +518,7 @@ export interface AppConfig {
   passKey: string;
   https?: boolean;
   requestInfoForRecord: boolean;
+  biliUploadFileNameType: "ask" | "always" | "never";
   cutPageInNewWindow: boolean;
   webhook: {
     recoderFolder: string;
