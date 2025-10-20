@@ -338,6 +338,8 @@ export interface GlobalRecorder {
   autoRecord: boolean;
   /** 检查间隔 */
   checkInterval: number;
+  /** 并发数 */
+  maxThreadCount: number;
   /** 调试模式 */
   debugMode: boolean;
   /** 测试：录制错误立即重试 */

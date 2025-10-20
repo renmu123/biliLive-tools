@@ -60,6 +60,7 @@ const configurableProps = [
   "savePathRule",
   "autoRemoveSystemReservedChars",
   "autoCheckInterval",
+  "maxThreadCount",
   "ffmpegOutputArgs",
   "biliBatchQuery",
   "recordRetryImmediately",
@@ -114,6 +115,7 @@ export interface RecorderManager<
   cutRecord: (this: RecorderManager<ME, P, PE, E>, id: string) => Promise<Recorder<E> | undefined>;
 
   autoCheckInterval: number;
+  maxThreadCount: number;
   isCheckLoopRunning: boolean;
   startCheckLoop: (this: RecorderManager<ME, P, PE, E>) => void;
   stopCheckLoop: (this: RecorderManager<ME, P, PE, E>) => void;
@@ -167,7 +169,6 @@ export function createRecorderManager<
       }
     };
 
-    const maxThreadCount = 3;
     // 这里暂时不打算用 state == recording 来过滤，provider 必须内部自己处理录制过程中的 check，
     // 这样可以防止一些意外调用 checkLiveStatusAndRecord 时出现重复录制。
     let needCheckRecorders = recorders
@@ -208,7 +209,7 @@ export function createRecorderManager<
     };
 
     threads = threads.concat(
-      range(0, maxThreadCount).map(async () => {
+      range(0, this.maxThreadCount).map(async () => {
         while (needCheckRecorders.length > 0) {
           try {
             await checkOnce();
@@ -382,6 +383,7 @@ export function createRecorderManager<
     },
 
     autoCheckInterval: opts.autoCheckInterval ?? 1000,
+    maxThreadCount: opts.maxThreadCount ?? 3,
     isCheckLoopRunning: false,
     startCheckLoop() {
       if (this.isCheckLoopRunning) return;

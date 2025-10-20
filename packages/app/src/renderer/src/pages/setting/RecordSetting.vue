@@ -65,6 +65,21 @@
           </n-form-item>
           <n-form-item>
             <template #label>
+              <Tip
+                tip="单次事件中发送的请求数，只有当一个事件被完成后下一个事件才会开始，和 检查间隔 共同构成了录制的循环检查周期"
+                text="并发数"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.maxThreadCount"
+              min="1"
+              step="1"
+              style="width: 220px"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
               <Tip tip="0为不分段" text="分段时间"></Tip>
             </template>
             <n-input-number
