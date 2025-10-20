@@ -400,8 +400,8 @@ export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve
 /**
  * 检查标题是否包含黑名单关键词
  */
-function hasBlockedTitleKeywords(title: string, titleKeywords: string): boolean {
-  const keywords = titleKeywords
+function hasBlockedTitleKeywords(title: string, titleKeywords: string | undefined): boolean {
+  const keywords = (titleKeywords ?? "")
     .split(",")
     .map((k) => k.trim())
     .filter((k) => k);
@@ -413,7 +413,7 @@ function hasBlockedTitleKeywords(title: string, titleKeywords: string): boolean 
  * 检查是否需要进行标题关键词检查
  */
 function shouldCheckTitleKeywords(
-  isManualStart: boolean,
+  isManualStart: boolean | undefined,
   titleKeywords: string | undefined,
 ): boolean {
   return (

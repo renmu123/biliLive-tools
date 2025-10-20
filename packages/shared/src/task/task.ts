@@ -476,7 +476,7 @@ export class BiliVideoTask extends AbstractTask {
   type = TaskType.bili;
   completedTask: number = 0;
   uid: number;
-  rawName: string;
+  rawName: string = "";
   callback: {
     onStart?: () => void;
     onEnd?: (output: { aid: number; bvid: string }) => void;
