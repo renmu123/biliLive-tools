@@ -17,6 +17,7 @@
 | B站  | `@bililive-tools/bilibili-recorder` |
 | 斗鱼 | `@bililive-tools/douyu-recorder`    |
 | 虎牙 | `@bililive-tools/huya-recorder`     |
+| 抖音 | `@bililive-tools/douyin-recorder`   |
 
 # 使用
 

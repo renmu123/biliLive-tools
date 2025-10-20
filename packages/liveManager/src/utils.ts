@@ -397,6 +397,30 @@ function isBetweenTime(currentTime: Date, timeRange: [string, string]): boolean 
 }
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * 检查标题是否包含黑名单关键词
+ */
+function hasBlockedTitleKeywords(title: string, titleKeywords: string): boolean {
+  const keywords = titleKeywords
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => k);
+
+  return keywords.some((keyword) => title.toLowerCase().includes(keyword.toLowerCase()));
+}
+
+/**
+ * 检查是否需要进行标题关键词检查
+ */
+function shouldCheckTitleKeywords(
+  isManualStart: boolean,
+  titleKeywords: string | undefined,
+): boolean {
+  return (
+    !isManualStart && !!titleKeywords && typeof titleKeywords === "string" && !!titleKeywords.trim()
+  );
+}
+
 export default {
   replaceExtName,
   singleton,
@@ -416,5 +440,7 @@ export default {
   sortByKeyOrder,
   retry,
   isBetweenTimeRange,
+  hasBlockedTitleKeywords,
+  shouldCheckTitleKeywords,
   sleep,
 };

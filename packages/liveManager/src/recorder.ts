@@ -99,7 +99,13 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     // | "recordHandle"
   >;
 
-export type RecorderState = "idle" | "recording" | "stopping-record" | "check-error";
+/** 录制状态，idle: 空闲中，recording: 录制中，stopping-record: 停止录制中，check-error: 检查错误，title-blocked: 标题黑名单 */
+export type RecorderState =
+  | "idle"
+  | "recording"
+  | "stopping-record"
+  | "check-error"
+  | "title-blocked";
 export type Progress = { time: string | null };
 
 export interface RecordHandle {

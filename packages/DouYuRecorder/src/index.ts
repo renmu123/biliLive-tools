@@ -99,12 +99,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // 如果已经在录制中，只在需要检查标题关键词时才获取最新信息
   if (this.recordHandle != null) {
     // 只有当设置了标题关键词时，并且不是手动启动的录制，才获取最新的直播间信息
-    if (
-      !isManualStart &&
-      this.titleKeywords &&
-      typeof this.titleKeywords === "string" &&
-      this.titleKeywords.trim()
-    ) {
+    if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
       const now = Date.now();
       // 每5分钟检查一次标题变化
       const titleCheckInterval = 5 * 60 * 1000; // 5分钟
@@ -126,15 +121,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       const { title } = liveInfo;
 
       // 检查标题是否包含关键词
-      const keywords = this.titleKeywords
-        .split(",")
-        .map((k) => k.trim())
-        .filter((k) => k);
-      const hasTitleKeyword = keywords.some((keyword) =>
-        title.toLowerCase().includes(keyword.toLowerCase()),
-      );
-
-      if (hasTitleKeyword) {
+      if (utils.hasBlockedTitleKeywords(title, this.titleKeywords)) {
+        this.state = "title-blocked";
         this.emit("DebugLog", {
           type: "common",
           text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
@@ -172,20 +160,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // 检查标题是否包含关键词，如果包含则不自动录制
   // 手动开始录制时不检查标题关键词
-  if (
-    !isManualStart &&
-    this.titleKeywords &&
-    typeof this.titleKeywords === "string" &&
-    this.titleKeywords.trim()
-  ) {
-    const keywords = this.titleKeywords
-      .split(",")
-      .map((k) => k.trim())
-      .filter((k) => k);
-    const hasTitleKeyword = keywords.some((keyword) =>
-      title.toLowerCase().includes(keyword.toLowerCase()),
-    );
-    if (hasTitleKeyword) {
+  if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
+    if (utils.hasBlockedTitleKeywords(title, this.titleKeywords)) {
+      this.state = "title-blocked";
       this.emit("DebugLog", {
         type: "common",
         text: `跳过录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
