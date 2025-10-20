@@ -395,6 +395,7 @@ function isBetweenTime(currentTime: Date, timeRange: [string, string]): boolean 
 
   return start <= current && current <= end;
 }
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * 检查标题是否包含黑名单关键词
@@ -441,4 +442,5 @@ export default {
   isBetweenTimeRange,
   hasBlockedTitleKeywords,
   shouldCheckTitleKeywords,
+  sleep,
 };

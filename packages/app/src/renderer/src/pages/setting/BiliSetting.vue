@@ -65,6 +65,22 @@
       <n-form-item>
         <template #label>
           <Tip
+            text="投稿最短间隔"
+            tip="默认没有间隔，上传和编辑都会被算入，主要用于对抗风控~"
+          ></Tip>
+        </template>
+        <n-input-number
+          v-model:value="config.biliUpload.minUploadInterval"
+          min="0"
+          step="10"
+          placeholder="请输入检查间隔"
+        >
+          <template #suffix>分钟</template>
+        </n-input-number>
+      </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip
             text="缓存投稿失败视频"
             tip="将上传完成的视频缓存到本地，如果出现投稿失败，可以直接复用视频ID，避免视频被重新"
           ></Tip>

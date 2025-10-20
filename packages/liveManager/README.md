@@ -31,6 +31,8 @@ const manager = createRecorderManager({
   providers: [provider],
   savePathRule: "D:\\录制\\{platforme}}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}", // 保存路径，占位符见文档，支持 [ejs](https://ejs.co/) 模板引擎
   autoCheckInterval: 1000 * 60, // 自动检查间隔，单位秒
+  maxThreadCount: 3, // 检查并发数
+  waitTime: 0, // 检查后等待时间
   autoRemoveSystemReservedChars: true, // 移除系统非法字符串
   biliBatchQuery: false, // B站检查使用批量接口
 });

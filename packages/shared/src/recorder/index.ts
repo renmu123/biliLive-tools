@@ -81,9 +81,13 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const config = appConfig.getAll();
     const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
     const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
+    const maxThreadCount = config?.recorder?.maxThreadCount ?? 3;
+    const waitTime = config?.recorder?.waitTime ?? 0;
     const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
 
     manager.autoCheckInterval = autoCheckInterval * 1000;
+    manager.maxThreadCount = maxThreadCount;
+    manager.waitTime = waitTime;
     manager.savePathRule = savePathRule;
     manager.biliBatchQuery = config?.recorder?.bilibili.useBatchQuery ?? false;
     manager.recordRetryImmediately = config?.recorder?.recordRetryImmediately ?? false;
@@ -118,6 +122,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
 
   const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
   const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
+  const maxThreadCount = config?.recorder?.maxThreadCount ?? 3;
+  const waitTime = config?.recorder?.waitTime ?? 0;
   const autoCheckLiveStatusAndRecord = config?.recorder?.autoRecord ?? false;
 
   const manager = createManager({
@@ -127,6 +133,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
     savePathRule: savePathRule,
     biliBatchQuery: config?.recorder?.bilibili.useBatchQuery ?? false,
     recordRetryImmediately: config?.recorder?.recordRetryImmediately ?? false,
+    maxThreadCount: maxThreadCount,
+    waitTime: waitTime,
   });
 
   manager.on("RecorderDebugLog", ({ recorder, ...log }) => {
