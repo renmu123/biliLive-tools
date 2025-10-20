@@ -1,3 +1,8 @@
+# Next
+
+- 增加`maxThreadCount`参数任务并发数
+- 增加`waitTime`支持任务结束后的等待时间
+
 # 1.7.0
 
 - 修复 mesio 某些情况下录制结束重命名错误的bug

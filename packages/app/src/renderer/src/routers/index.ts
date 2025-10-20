@@ -67,6 +67,11 @@ const router = createRouter({
           component: () => import("../pages/Tools/pages/VideoCut/Index.vue"),
         },
         {
+          path: "/videoCut2",
+          name: "videoCut2",
+          component: () => import("../pages/Tools/pages/VideoCut/Index.vue"),
+        },
+        {
           path: "/fileSync",
           name: "FileSync",
           component: () => import("../pages/Tools/pages/FileSync/index.vue"),

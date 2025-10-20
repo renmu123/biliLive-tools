@@ -1,3 +1,7 @@
+# 1.7.1
+
+- 修复检查错误状态不会被重置的bug
+
 # 1.7.0
 
 - 支持 `mobile`、`userHTML`、`balance`、`random` 接口, 其中 `mobile`、`userHTML` 需要传递`uid`参数，内容为`sec_user_id`
