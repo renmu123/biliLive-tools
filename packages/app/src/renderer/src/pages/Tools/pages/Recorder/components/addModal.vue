@@ -301,7 +301,7 @@
         <template v-if="config.providerId === 'DouYin'">
           <n-form-item>
             <template #label>
-              <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
+              <Tip :text="textInfo.douyin.quality.text" :tip="textInfo.douyin.quality.tip"></Tip>
             </template>
             <n-select
               v-model:value="config.quality"
