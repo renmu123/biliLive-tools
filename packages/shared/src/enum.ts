@@ -247,6 +247,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     quality: "highest",
     line: undefined,
     checkInterval: 60,
+    maxThreadCount: 3,
+    waitTime: 0,
     disableProvideCommentsWhenRecording: false,
     segment: 90,
     saveGiftDanma: false,
