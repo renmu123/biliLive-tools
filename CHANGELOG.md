@@ -6,9 +6,32 @@
 
 ## 功能
 
+- B站上传：“B站上传文件名”支持选项
+- B站上传：支持“投稿最短间隔”参数来对抗风控
+- 切片：客户端支持“切片独立窗口”选项，支持在新窗口打开页面
+
+## 优化
+
+- 客户端支持打开快速打开缓存文件夹
+- 录制：重命名失败时扔发送相关事件避免卡住流程
+
+# 3.1.2
+
+## Bug修复
+
+- 修复默认临时文件夹不会被自动创建的bug
+
+# 3.1.1
+
 ## 优化
 
 - log等级参数默认为 `debug`
+- 录制：优化斗鱼链接解析
+- 录制：优化“文件命名规则”中包含 `:` 出现额外提示
+
+# Bug修复
+
+- 录制：修复检查错误状态不会被重置的bug
 
 # 3.1.0
 
@@ -18,7 +41,7 @@
 - 下载：B站视频下载画质支持 [#171](https://github.com/renmu123/biliLive-tools/pull/171)
 - 虚拟录制：新增“验证”按钮来实现快速的文件夹验证 [#182](https://github.com/renmu123/biliLive-tools/pull/182)
 - 录制：弹幕直接写入xml文件，节约内存使用 [#179](https://github.com/renmu123/biliLive-tools/pull/179)
-- 录制：抖音支持额外的四种接口请求方式，其中mobile以及用户解析需本版本添加的直播间方能生效
+- 录制：抖音支持额外的四种接口请求方式，其中mobile以及用户解析需本版本添加的直播间方能生效 [#180](https://github.com/renmu123/biliLive-tools/pull/180)
 - 录制：增加“录制页面额外请求”选项 [#186](https://github.com/renmu123/biliLive-tools/pull/186)
 - 录制：添加“展示权重”字段，用来对UI界面中直播间进行排序 [#187](https://github.com/renmu123/biliLive-tools/pull/187)
 - 支持缓存文件夹自定义 [#172](https://github.com/renmu123/biliLive-tools/pull/172)

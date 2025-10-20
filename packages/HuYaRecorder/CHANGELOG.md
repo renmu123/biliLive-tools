@@ -1,6 +1,10 @@
-# 1.8.0
+# Next
 
 - 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
+
+# 1.7.1
+
+- 修复检查错误状态不会被重置的bug
 
 # 1.7.0
 

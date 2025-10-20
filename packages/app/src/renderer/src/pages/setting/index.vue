@@ -221,10 +221,19 @@
                 style="margin-left: 10px"
                 size="26"
                 class="pointer"
+                title="选择文件夹"
                 @click="selectFolder('cache')"
               >
                 <FolderOpenOutline />
               </n-icon>
+              <n-button
+                v-if="!isWeb"
+                style="margin-left: 10px"
+                type="primary"
+                @click="openCacheFolder"
+              >
+                打开文件夹
+              </n-button>
             </n-form-item>
             <n-form-item>
               <template #label>
@@ -248,7 +257,7 @@
               <template #label>
                 <Tip
                   text="webhook"
-                  :tip="`webhook路径：<br/>B站录播姬：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec：http://127.0.0.1:${config.port}/webhook/blrec<br/>DDTV：http://127.0.0.1:${config.port}/webhook/ddtv<br/>自定义（参数见文档）：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
+                  :tip="`如果本软件的录制想使用该功能，请打开录制配置中的发送到webhook选项<br/>其他软件webhook路径：<br/>B站录播姬：http://127.0.0.1:${config.port}/webhook/bililiverecorder<br/>blrec：http://127.0.0.1:${config.port}/webhook/blrec<br/>DDTV：http://127.0.0.1:${config.port}/webhook/ddtv<br/>oneLiveRec：http://127.0.0.1:${config.port}/webhook/oneliverec<br/>自定义（参数见文档）：http://127.0.0.1:${config.port}/webhook/custom <br/>`"
                 ></Tip>
               </template>
               <n-switch v-model:value="config.webhook.open" />
@@ -332,7 +341,7 @@
         <n-tab-pane name="notification" tab="通知">
           <NotificationSetting v-model:data="config"></NotificationSetting>
         </n-tab-pane>
-        <n-tab-pane name="other" tab="其他">
+        <n-tab-pane name="other" tab="UI界面">
           <OtherSetting v-model:data="config"></OtherSetting>
         </n-tab-pane>
       </n-tabs>
@@ -536,6 +545,13 @@ const selectFolder = async (type: "recorder" | "cache") => {
   } else {
     throw new Error("未知文件类型");
   }
+};
+
+const openCacheFolder = async () => {
+  const cachePath = await commonApi.getTempPath();
+
+  // 使用系统默认程序打开文件夹
+  window.api.openPath(cachePath);
 };
 
 const handleOpen = async () => {

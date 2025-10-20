@@ -338,6 +338,10 @@ export interface GlobalRecorder {
   autoRecord: boolean;
   /** 检查间隔 */
   checkInterval: number;
+  /** 并发数 */
+  maxThreadCount: number;
+  /** 等待时间 */
+  waitTime: number;
   /** 废弃：调试模式 */
   debugMode: boolean;
   /** 调试等级 */
@@ -518,6 +522,8 @@ export interface AppConfig {
   passKey: string;
   https?: boolean;
   requestInfoForRecord: boolean;
+  biliUploadFileNameType: "ask" | "always" | "never";
+  cutPageInNewWindow: boolean;
   webhook: {
     recoderFolder: string;
     blacklist: string;
@@ -632,6 +638,8 @@ export interface AppConfig {
     limitRate: number;
     /** 检查稿件间隔 */
     checkInterval: number;
+    /** 投稿最短间隔 */
+    minUploadInterval: number;
     /** 账号授权自动更新 */
     accountAutoCheck: boolean;
     /** 使用必剪api */

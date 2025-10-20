@@ -82,6 +82,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   /** 允许自定义可执行文件地址 */
   customExecPath: false,
   requestInfoForRecord: true,
+  biliUploadFileNameType: "ask",
+  cutPageInNewWindow: false,
   bilibiliUser: {},
   tool: {
     home: {
@@ -235,6 +237,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     retryTimes: 10,
     retryDelay: 7000,
     checkInterval: 600,
+    minUploadInterval: 0,
     accountAutoCheck: false,
     useBCutAPI: false,
     useUploadPartPersistence: true,
@@ -246,6 +249,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     quality: "highest",
     line: undefined,
     checkInterval: 60,
+    maxThreadCount: 3,
+    waitTime: 0,
     disableProvideCommentsWhenRecording: false,
     segment: 90,
     saveGiftDanma: false,

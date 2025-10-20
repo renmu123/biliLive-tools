@@ -1,6 +1,8 @@
-# 1.8.0
+# Next
 
 - 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
+- 增加`maxThreadCount`参数任务并发数
+- 增加`waitTime`支持任务结束后的等待时间
 
 # 1.7.0
 

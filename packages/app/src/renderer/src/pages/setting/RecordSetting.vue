@@ -33,6 +33,7 @@
               placeholder="请输入文件命名规则"
               clearable
               spellcheck="false"
+              @blur="handleNameRuleBlur"
             />
             <n-checkbox v-model:checked="allowEdit" style="margin: 0 10px"></n-checkbox>
             <template #feedback>
@@ -60,6 +61,35 @@
               style="width: 220px"
             >
               <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                tip="同时最多运行的检查任务数量，和 检查间隔 共同构成了录制的循环检查周期"
+                text="并发数"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip tip="检查任务完成后的等待时间" text="等待时间"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+            >
+              <template #suffix>毫秒</template>
             </n-input-number>
           </n-form-item>
           <n-form-item>
@@ -425,6 +455,7 @@ const titleTip = computed(() => {
 
 const titleInput = templateRef("titleInput");
 const setTitleVar = async (value: string) => {
+  if (!allowEdit.value) return;
   const input = titleInput.value?.inputElRef;
   if (input) {
     // 获取input光标位置
@@ -453,6 +484,18 @@ watch(allowEdit, async (val) => {
     }
   }
 });
+
+const handleNameRuleBlur = async () => {
+  if (config.value.recorder.nameRule.includes(":")) {
+    const [status] = await confirm.warning({
+      content: "你的文件命名规则中可能包含了冒号(:)，该符合无法作为文件名，是否替换为空格？",
+    });
+    if (!status) {
+      return;
+    }
+    config.value.recorder.nameRule = config.value.recorder.nameRule.replaceAll(":", " ");
+  }
+};
 </script>
 
 <style scoped lang="less">

@@ -124,6 +124,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       cover: "",
       liveId: liveId,
     };
+    this.state = "idle";
   } catch (error) {
     this.state = "check-error";
     throw error;
