@@ -221,10 +221,19 @@
                 style="margin-left: 10px"
                 size="26"
                 class="pointer"
+                title="选择文件夹"
                 @click="selectFolder('cache')"
               >
                 <FolderOpenOutline />
               </n-icon>
+              <n-button
+                v-if="!isWeb"
+                style="margin-left: 10px"
+                type="primary"
+                @click="openCacheFolder"
+              >
+                打开文件夹
+              </n-button>
             </n-form-item>
             <n-form-item>
               <template #label>
@@ -536,6 +545,13 @@ const selectFolder = async (type: "recorder" | "cache") => {
   } else {
     throw new Error("未知文件类型");
   }
+};
+
+const openCacheFolder = async () => {
+  const cachePath = await commonApi.getTempPath();
+
+  // 使用系统默认程序打开文件夹
+  window.api.openPath(cachePath);
 };
 
 const handleOpen = async () => {
