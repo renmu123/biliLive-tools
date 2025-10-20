@@ -1,12 +1,14 @@
 import { EventEmitter } from "node:events";
 
+export type Segment = number | string | undefined;
+
 /**
  * 录制器构造函数选项的基础接口
  */
 export interface BaseRecorderOptions {
   url: string;
   getSavePath: (data: { startTime: number; title?: string }) => string;
-  segment: number;
+  segment: Segment;
   inputOptions?: string[];
   disableDanma?: boolean;
   formatName?: "flv" | "ts" | "fmp4";
@@ -21,7 +23,7 @@ export interface BaseRecorderOptions {
 export interface IRecorder extends EventEmitter {
   // 基础属性
   readonly hasSegment: boolean;
-  readonly segment: number;
+  readonly segment: Segment;
   readonly inputOptions: string[];
   readonly isHls: boolean;
   readonly disableDanma: boolean;
@@ -67,4 +69,5 @@ export interface FFMPEGRecorderOptions extends BaseRecorderOptions {
 export interface MesioRecorderOptions extends BaseRecorderOptions {
   outputOptions?: string[];
   isHls?: boolean;
+  mesioOptions?: string[];
 }

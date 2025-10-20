@@ -373,9 +373,17 @@
         </n-form-item>
         <n-form-item>
           <template #label>
-            <Tip text="分段时间" tip="0为不分段"></Tip>
+            <Tip
+              text="分段"
+              tip="0为不分段，默认为时间分段，单位分钟。<br/>如果以B,KB,MB,GB结尾，会尝试使用文件大小分段，<b>仅推荐在使用mesio录制引擎时使用</b>"
+            ></Tip>
           </template>
-          <n-input-number
+          <n-input
+            v-model:value="config.segment"
+            :disabled="globalFieldsObj.segment"
+            placeholder="请输入分段参数"
+          />
+          <!-- <n-input-number
             v-model:value="config.segment"
             min="0"
             step="10"
@@ -383,7 +391,7 @@
             :disabled="globalFieldsObj.segment"
           >
             <template #suffix>分钟</template>
-          </n-input-number>
+          </n-input-number> -->
           <n-checkbox v-model:checked="globalFieldsObj.segment" class="global-checkbox"
             >全局</n-checkbox
           >
@@ -546,7 +554,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
 const config = ref<Omit<Recorder, "id">>({
   providerId: "DouYu",
   channelId: "",
-  segment: 60,
+  segment: "60",
   quality: "highest",
   disableProvideCommentsWhenRecording: false,
   saveGiftDanma: false,
@@ -664,7 +672,7 @@ watch(showModal, async (val) => {
     config.value = {
       providerId: "DouYu",
       channelId: "",
-      segment: 90,
+      segment: "90",
       quality: 0,
       disableProvideCommentsWhenRecording: true,
       saveGiftDanma: false,

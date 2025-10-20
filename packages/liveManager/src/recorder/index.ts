@@ -1,9 +1,11 @@
 ﻿import { FFMPEGRecorder } from "./FFMPEGRecorder.js";
 import { mesioRecorder } from "./mesioRecorder.js";
+import { parseSizeToBytes } from "../utils.js";
+
+import type { IRecorder, FFMPEGRecorderOptions, MesioRecorderOptions } from "./IRecorder.js";
 
 export { FFMPEGRecorder } from "./FFMPEGRecorder.js";
 export { mesioRecorder } from "./mesioRecorder.js";
-import type { IRecorder, FFMPEGRecorderOptions, MesioRecorderOptions } from "./IRecorder.js";
 
 /**
  * 录制器类型
@@ -33,15 +35,16 @@ export function createBaseRecorder<T extends RecorderType>(
   onEnd: (...args: unknown[]) => void,
   onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
 ): IRecorder {
+  const segment = parseSizeToBytes(String(opts.segment));
   if (type === "ffmpeg") {
     return new FFMPEGRecorder(
-      opts as FFMPEGRecorderOptions,
+      { ...opts, segment } as FFMPEGRecorderOptions,
       onEnd,
       onUpdateLiveInfo,
     ) as RecorderInstance<T>;
   } else if (type === "mesio") {
     return new mesioRecorder(
-      { ...(opts as MesioRecorderOptions), inputOptions: opts.mesioOptions ?? [] },
+      { ...(opts as MesioRecorderOptions), inputOptions: opts.mesioOptions ?? [], segment },
       onEnd,
       onUpdateLiveInfo,
     ) as RecorderInstance<T>;

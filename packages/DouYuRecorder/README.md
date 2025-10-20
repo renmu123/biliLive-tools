@@ -40,7 +40,7 @@ interface Options {
   streamPriorities: []; // 废弃
   sourcePriorities: []; // 废弃
   disableAutoCheck?: boolean; // 为 true 时 manager 将跳过自动检查
-  segment?: number; // 分段参数，单位分钟
+  segment?: number | string; // 分段参数，单位分钟，如果以"B","KB","MB","GB"结尾，会尝试使用文件大小分段，仅推荐在使用mesio录制引擎时使用
   titleKeywords?: string; // 禁止录制的标题关键字，英文逗号分开多个
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
   saveGiftDanma?: boolean; // 保存礼物弹幕

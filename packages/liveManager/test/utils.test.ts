@@ -15,6 +15,7 @@ import {
   removeSystemReservedChars,
   formatTemplate,
   sortByKeyOrder,
+  parseSizeToBytes,
 } from "../src/utils.js";
 
 describe("utils", () => {
@@ -298,6 +299,66 @@ describe("utils", () => {
         { id: 1, name: "Alice" },
         { name: "Bob" },
       ]);
+    });
+  });
+  describe("parseSizeToBytes", () => {
+    it("should return 0 for empty string", () => {
+      expect(parseSizeToBytes("")).toBe(0);
+    });
+
+    it("should return number for numeric string", () => {
+      expect(parseSizeToBytes("123")).toBe(123);
+      expect(parseSizeToBytes("0")).toBe(0);
+      expect(parseSizeToBytes("456.789")).toBe(456.789);
+    });
+
+    it("should convert B units correctly", () => {
+      expect(parseSizeToBytes("100B")).toBe("100");
+      expect(parseSizeToBytes("1B")).toBe("1");
+      expect(parseSizeToBytes("0B")).toBe("0");
+    });
+
+    it("should convert KB units correctly", () => {
+      expect(parseSizeToBytes("1KB")).toBe("1024");
+      expect(parseSizeToBytes("2KB")).toBe("2048");
+      expect(parseSizeToBytes("1.5KB")).toBe("1536");
+    });
+
+    it("should convert MB units correctly", () => {
+      expect(parseSizeToBytes("1MB")).toBe("1048576");
+      expect(parseSizeToBytes("2MB")).toBe("2097152");
+      expect(parseSizeToBytes("1.5MB")).toBe("1572864");
+    });
+
+    it("should convert GB units correctly", () => {
+      expect(parseSizeToBytes("1GB")).toBe("1073741824");
+      expect(parseSizeToBytes("2GB")).toBe("2147483648");
+      expect(parseSizeToBytes("1.5GB")).toBe("1610612736");
+    });
+
+    it("should be case insensitive", () => {
+      expect(parseSizeToBytes("1kb")).toBe("1024");
+      expect(parseSizeToBytes("1Mb")).toBe("1048576");
+      expect(parseSizeToBytes("1gb")).toBe("1073741824");
+      expect(parseSizeToBytes("1b")).toBe("1");
+    });
+
+    it("should handle whitespace", () => {
+      expect(parseSizeToBytes(" 1KB ")).toBe("1024");
+      expect(parseSizeToBytes("  2MB  ")).toBe("2097152");
+    });
+
+    it("should return 0 for invalid format", () => {
+      expect(parseSizeToBytes("invalid")).toBe(0);
+      expect(parseSizeToBytes("1TB")).toBe(0);
+      expect(parseSizeToBytes("ABCKB")).toBe(0);
+      expect(parseSizeToBytes("1.2.3KB")).toBe(0);
+    });
+
+    it("should handle decimal numbers", () => {
+      expect(parseSizeToBytes("2.5KB")).toBe("2560");
+      expect(parseSizeToBytes("0.5MB")).toBe("524288");
+      expect(parseSizeToBytes("1.25GB")).toBe("1342177280");
     });
   });
 });

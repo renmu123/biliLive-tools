@@ -40,7 +40,7 @@ interface Options {
   sourcePriorities: []; // 按提供的源优先级去给CDN列表排序，并过滤掉不在优先级配置中的源，在未匹配到的情况下会优先使用TX的CDN，具体参数见 CDN 参数
   formatPriorities?: string[]; // 支持，`flv`和`hls` 参数，默认为['flv','hls']
   disableAutoCheck?: boolean; // 为 true 时 manager 将跳过自动检查
-  segment?: number; // 分段参数，单位分钟
+  segment?: number | string; // 分段参数，单位分钟，如果以"B","KB","MB","GB"结尾，会尝试使用文件大小分段，仅推荐在使用mesio录制引擎时使用
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
   saveGiftDanma?: boolean; // 保存礼物弹幕
   saveCover?: boolean; // 保存封面
