@@ -3,7 +3,7 @@ import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
 import { StreamManager, getMesioPath } from "../index.js";
-import { IRecorder, MesioRecorderOptions } from "./IRecorder.js";
+import { IRecorder, MesioRecorderOptions, Segment } from "./IRecorder.js";
 
 // Mesio command builder class similar to ffmpeg
 class MesioCommand extends EventEmitter {
@@ -110,7 +110,7 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
   private streamManager: StreamManager;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
-  readonly segment: number;
+  readonly segment: Segment;
   readonly inputOptions: string[] = [];
   readonly isHls: boolean;
   readonly disableDanma: boolean = false;
@@ -194,7 +194,11 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
       });
     }
     if (this.hasSegment) {
-      inputOptions.push("-d", `${this.segment * 60}s`);
+      if (typeof this.segment === "number") {
+        inputOptions.push("-d", `${this.segment * 60}s`);
+      } else if (typeof this.segment === "string") {
+        inputOptions.push("-m", this.segment);
+      }
     }
 
     const command = createMesioBuilder()

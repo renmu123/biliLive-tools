@@ -65,16 +65,12 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip tip="0为不分段" text="分段时间"></Tip>
+              <Tip
+                text="分段"
+                tip="0为不分段，默认为时间分段，单位分钟。<br/>如果以B,KB,MB,GB结尾，会尝试使用文件大小分段，<b>仅推荐在使用mesio录制引擎时使用</b>"
+              ></Tip>
             </template>
-            <n-input-number
-              v-model:value="config.recorder.segment"
-              min="0"
-              step="10"
-              style="width: 220px"
-            >
-              <template #suffix>分钟</template>
-            </n-input-number>
+            <n-input v-model:value="config.recorder.segment" placeholder="请输入分段参数" />
           </n-form-item>
 
           <n-form-item>

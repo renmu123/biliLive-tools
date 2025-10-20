@@ -247,7 +247,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     line: undefined,
     checkInterval: 60,
     disableProvideCommentsWhenRecording: false,
-    segment: 90,
+    segment: "90",
     saveGiftDanma: false,
     saveSCDanma: true,
     saveCover: false,
