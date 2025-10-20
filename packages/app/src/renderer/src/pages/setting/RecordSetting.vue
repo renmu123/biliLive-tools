@@ -73,6 +73,7 @@
             <n-input-number
               v-model:value="config.recorder.maxThreadCount"
               min="1"
+              max="10"
               step="1"
               style="width: 220px"
             >
