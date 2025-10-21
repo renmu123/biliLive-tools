@@ -935,6 +935,7 @@ export class WebhookHandler {
         savePath: dir,
         override: false,
         removeOrigin: options.removeVideo,
+        autoRun: true,
       }).then((task) => {
         task.on("task-end", () => {
           resolve(task.output as string);
