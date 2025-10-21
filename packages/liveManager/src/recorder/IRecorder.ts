@@ -1,5 +1,7 @@
 import { EventEmitter } from "node:events";
 
+import type { VideoFormat } from "../index.js";
+
 /**
  * 录制器构造函数选项的基础接口
  */
@@ -59,7 +61,7 @@ export interface IRecorder extends EventEmitter {
  */
 export interface FFMPEGRecorderOptions extends BaseRecorderOptions {
   outputOptions: string[];
-  videoFormat?: "auto" | "ts" | "mkv" | "mp4";
+  videoFormat?: VideoFormat;
 }
 
 /**
