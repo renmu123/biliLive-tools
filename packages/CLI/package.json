@@ -16,8 +16,7 @@
     "pkg": "pkg ./lib/index.cjs --output ./dist/biliLive",
     "zip:win": "cd dist && bestzip biliLive-cli-win-x64.zip biliLive.exe",
     "zip:linux": "cd dist && bestzip biliLive-cli-linux-x64.zip ./biliLive",
-    "release": "pnpm run build && pnpm publish --access=public",
-    "zip:lib": "cd lib && bestzip biliLive-cli-lib.zip ./**"
+    "release": "pnpm run build && pnpm publish --access=public"
   },
   "pkg": {
     "assets": "./lib/node_modules/**"
@@ -38,8 +37,10 @@
   "dependencies": {
     "@napi-rs/canvas": "^0.1.60",
     "font-ls": "0.6.1",
-    "ntsuspend": "^1.0.2",
     "better-sqlite3": "12.4.1"
+  },
+  "optionalDependencies": {
+    "ntsuspend": "^1.0.2"
   },
   "devDependencies": {
     "@biliLive-tools/http": "workspace:*",
