@@ -17,7 +17,7 @@
     "zip:win": "cd dist && bestzip biliLive-cli-win-x64.zip biliLive.exe",
     "zip:linux": "cd dist && bestzip biliLive-cli-linux-x64.zip ./biliLive",
     "release": "pnpm run build && pnpm publish --access=public",
-    "zip:lib": "cd lib && bestzip ../biliLive-cli-lib.zip ./**"
+    "zip:lib": "cd lib && bestzip biliLive-cli-lib.zip ./**"
   },
   "pkg": {
     "assets": "./lib/node_modules/**"

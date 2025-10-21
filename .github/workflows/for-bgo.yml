@@ -1,4 +1,4 @@
-name: Build/release Electron app
+name: Build/CLI
 
 on:
   workflow_dispatch:
@@ -28,13 +28,17 @@ jobs:
         with:
           node-version-file: ".node-version"
           cache: "pnpm"
+          cache-dependency-path: ./pnpm-lock.yaml
 
       - name: pnpm-update-for-win
         if: startsWith(matrix.os, 'windows')
         run: node ./scripts/github-ci-pnpm-update.js
+      
+      - name: Prefetch deps
+        run: pnpm fetch
 
       - name: Install CLI dependencies
-        run: pnpm -F bililive-cli... install
+        run: pnpm -F bililive-cli... install --frozen-lockfile --prefer-offline
 
       - name: build CLI
         run: pnpm -F bililive-cli... build
@@ -71,7 +75,7 @@ jobs:
             packages/app/dist/*.exe
             packages/app/dist/*.zip
             packages/CLI/dist/*.zip
-            packages/CLI/dist/*.exe
+            packages/CLI/lib/*.zip
 
 permissions:
   contents: write
