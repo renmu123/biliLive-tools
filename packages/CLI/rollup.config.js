@@ -5,7 +5,7 @@ import json from "@rollup/plugin-json";
 
 export default [
   {
-    external: ["ntsuspend", "@napi-rs/canvas", "font-ls", "better-sqlite3"],
+    external: ["ntsuspend", "@napi-rs/canvas", "font-ls", "better-sqlite3", "fsevents"],
     input: "src/index.ts",
     output: [
       {
