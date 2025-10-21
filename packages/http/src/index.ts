@@ -49,6 +49,7 @@ const authMiddleware = (passKey: string | number) => {
       return;
     }
     if (!authHeader) {
+      ctx.set("WWW-Authenticate", `Basic`);
       ctx.status = 401;
       ctx.body = "Authorization header is missing";
       return;
@@ -62,6 +63,7 @@ const authMiddleware = (passKey: string | number) => {
 
     const token = authHeader;
     if (token !== passKey) {
+      ctx.set("WWW-Authenticate", `Basic`);
       ctx.status = 401;
       ctx.body = "Forbidden";
       return;
