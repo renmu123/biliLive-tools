@@ -13,9 +13,15 @@ export default [
         format: "cjs",
         entryFileNames: "[name].cjs",
         chunkFileNames: "[name]-[hash].cjs",
+        sourcemap: true,
       },
     ],
     // inlineDynamicImports: true,
-    plugins: [typescript(), nodeResolve({ browser: false }), commonjs(), json()],
+    plugins: [
+      typescript(),
+      nodeResolve({ browser: false, exportConditions: ["default"] }),
+      commonjs(),
+      json(),
+    ],
   },
 ];
