@@ -6,6 +6,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // TODO:显然其他类型打包还有问题
 const cli_node_modules = path.resolve(__dirname, "../lib/node_modules");
 const pnpm_node_modules = path.resolve(__dirname, "../../../node_modules");
+const cli_lib = path.resolve(__dirname, "../lib");
 
 // console.log("__dirname", __dirname, pnpm_node_modules);
 
@@ -44,6 +45,23 @@ function main() {
   fs.cpSync(path.join(pnpm_node_modules, "bindings"), path.join(cli_node_modules, "bindings"), {
     recursive: true,
   });
+
+  // 复制 appConfig.json 到 CLI 的 lib 目录中，供打包/上传使用
+  try {
+    const appConfigSrc = path.resolve(__dirname, "../../../appConfig.json");
+    const appConfigDest = path.join(cli_lib, "appConfig.json");
+    // 确保 lib 目录存在（即使尚未被构建步骤创建）
+    fs.mkdirSync(cli_lib, { recursive: true });
+    if (fs.existsSync(appConfigSrc)) {
+      fs.copyFileSync(appConfigSrc, appConfigDest);
+      console.log(`[copy_module] copied appConfig.json -> ${appConfigDest}`);
+    } else {
+      console.warn(`[copy_module] appConfig.json not found at ${appConfigSrc}`);
+    }
+  } catch (e) {
+    console.warn("[copy_module] failed to copy appConfig.json:", e);
+  }
+
 }
 
 main();
