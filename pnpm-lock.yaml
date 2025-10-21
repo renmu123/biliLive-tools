@@ -137,6 +137,7 @@ importers:
       font-ls:
         specifier: 0.6.1
         version: 0.6.1
+    optionalDependencies:
       ntsuspend:
         specifier: ^1.0.2
         version: 1.0.2
