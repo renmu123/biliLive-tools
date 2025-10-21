@@ -20,7 +20,7 @@
     }
   },
   "scripts": {
-    "build": "pnpm run test && pnpm run typecheck && tsc",
+    "build": "pnpm run test && tsc",
     "dev": "tsc -w",
     "start": "node ./lib/index.js",
     "start:dev": "tsx watch src/index.ts",
