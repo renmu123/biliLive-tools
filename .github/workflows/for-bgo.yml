@@ -1,9 +1,6 @@
 name: Build/release Electron app
 
 on:
-  # push:
-  #   tags:
-  #     - "*"
   workflow_dispatch:
 
 jobs:
@@ -36,38 +33,17 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: node ./scripts/github-ci-pnpm-update.js
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Install CLI dependencies
+        run: pnpm -F bililive-cli... install
 
-      - name: Cache Electron
-        uses: actions/cache@v4
-        with:
-          path: ~\AppData\Local\electron\Cache
-          key: ${{ runner.os }}-electron-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/pnpm-lock.yaml')) }}
-          restore-keys: |
-            ${{ runner.os }}-electron-cache-
+      - name: build CLI
+        run: pnpm -F bililive-cli... build
 
-      - name: Cache Electron-Builder
-        uses: actions/cache@v4
-        with:
-          path: ~\AppData\Local\electron-builder\Cache
-          key: ${{ runner.os }}-electron-builder-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/pnpm-lock.yaml')) }}
-          restore-keys: |
-            ${{ runner.os }}-electron-builder-cache-
-
-      - name: Install binary deps
-        run: pnpm run install:bin
-
-      - name: build
-        run: pnpm run build:app
-
-      # - name: Build Cli
-      #   if: startsWith(matrix.os, 'windows')
-      #   run: pnpm run --filter bililive-cli build:cli && pnpm run --filter bililive-cli zip:win
-
-      # - name: Build Cli
-      #   if: startsWith(matrix.os, 'ubuntu')
-      #   run: pnpm run --filter bililive-cli build:cli && pnpm run --filter bililive-cli zip:linux
+      - name: Move CLI package
+        run: pnpm -F bililive-cli movePackage
+      
+      - name: Zip lib folder
+        run: pnpm -F bililive-cli zip:lib
 
       - name: release
         if: env.is_tag == 'true'
@@ -77,7 +53,7 @@ jobs:
           draft: false
           token: ${{ secrets.GITHUB_TOKEN }}
           artifactErrorsFailBuild: false
-          artifacts: "packages/app/dist/*.exe,packages/app/dist/*.zip,packages/app/dist/*.deb,packages/app/dist/*.snap,packages/CLI/dist/*.zip"
+          artifacts: "packages/CLI/lib/*.zip"
           replacesArtifacts: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
