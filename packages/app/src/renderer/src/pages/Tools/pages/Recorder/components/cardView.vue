@@ -62,11 +62,7 @@
                 recording: item.state === 'recording',
                 'title-blocked': item.state === 'title-blocked',
               }"
-              v-if="
-                ['check-error', 'stopping-record', 'recording', 'title-blocked'].includes(
-                  item.state,
-                )
-              "
+              v-if="['check-error', 'stopping-record', 'title-blocked'].includes(item.state)"
               >{{ stateMap[item.state] }}</span
             >
           </div>
