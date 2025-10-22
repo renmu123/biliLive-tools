@@ -120,6 +120,7 @@ function printHelp() {
     `github-ci-artifacts helper\n\n` +
       `Commands:\n` +
       `  check-prebuilt [--path <dir>]  Check if directory exists and is non-empty; writes found=true/false to GITHUB_OUTPUT.\n` +
+  `  normalize-prebuilt --path <dir>  If downloaded artifact created nested 'packages/CLI/lib' under <dir>, move contents up and clean.\n` +
       `  validate-release --tag <tag> [--name <name>]  Validate required inputs for release; outputs sanitized values.\n` +
       `  check-release --tag <tag>  Check if a release and/or tag exists; outputs release_exists and tag_exists.\n` +
       `  move-tag --tag <tag> [--sha <sha>]  Force move (or create) tag to the given sha (defaults to GITHUB_SHA).\n` +
@@ -145,6 +146,35 @@ async function main() {
       console.log(`[github-ci-artifacts] prebuilt exists in '${dir}':`, found);
       appendGithubOutput("found", String(found));
       process.exit(0);
+      return;
+    }
+    case "normalize-prebuilt": {
+      const dir = flags.path || path.join("packages", "CLI", "lib");
+      const nested = path.join(dir, "packages", "CLI", "lib");
+      try {
+        if (fs.existsSync(nested) && fs.statSync(nested).isDirectory()) {
+          const entries = fs.readdirSync(nested);
+          for (const e of entries) {
+            const from = path.join(nested, e);
+            const to = path.join(dir, e);
+            // If destination exists, remove it first to avoid EXDEV cross-device errors
+            if (fs.existsSync(to)) fs.rmSync(to, { recursive: true, force: true });
+            fs.renameSync(from, to);
+          }
+          // remove the created 'packages' folder under dir
+          const pkgRoot = path.join(dir, "packages");
+          if (fs.existsSync(pkgRoot)) fs.rmSync(pkgRoot, { recursive: true, force: true });
+          console.log(`[github-ci-artifacts] normalized nested prebuilt into '${dir}', moved ${entries.length} entries`);
+          appendGithubOutput("normalized", "true");
+        } else {
+          console.log(`[github-ci-artifacts] no nested prebuilt under '${dir}', nothing to do.`);
+          appendGithubOutput("normalized", "false");
+        }
+        process.exit(0);
+      } catch (e) {
+        console.error("[github-ci-artifacts] normalize-prebuilt failed:", e?.message || e);
+        process.exit(1);
+      }
       return;
     }
     case "purge-release-assets": {

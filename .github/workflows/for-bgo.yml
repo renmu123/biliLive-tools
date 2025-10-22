@@ -64,9 +64,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bililive-cli-lib-${{ matrix.os }}-${{ matrix.arch }}
-          path: |
-            packages/CLI/lib/*
-            packages/CLI/lib/**
+          path: packages/CLI/lib
           retention-days: 30
 
   prepare-release:
@@ -142,6 +140,10 @@ jobs:
         id: prebuilt
         run: node ./scripts/github-ci-artifacts.js check-prebuilt --path packages/CLI/lib
 
+      - name: Normalize prebuilt path (if nested)
+        if: ${{ steps.prebuilt.outputs.found == 'true' }}
+        run: node ./scripts/github-ci-artifacts.js normalize-prebuilt --path packages/CLI/lib
+
       - name: Build CLI (composite)
         if: ${{ steps.prebuilt.outputs.found != 'true' }}
         uses: ./.github/actions/cli-build
@@ -153,9 +155,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: bililive-cli-lib-${{ matrix.os }}-${{ matrix.arch }}
-          path: |
-            packages/CLI/lib/*
-            packages/CLI/lib/**
+          path: packages/CLI/lib
           retention-days: 7
 
       - name: release
