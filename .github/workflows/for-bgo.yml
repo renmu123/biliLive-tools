@@ -72,7 +72,7 @@ jobs:
       - name: Check prebuilt presence
         if: ${{ inputs.is_release }}
         id: prebuilt
-        run: node ./scripts/github-ci-artifacts.js check-prebuilt --path packages/CLI/lib
+        run: node ./scripts/github-ci-artifacts.cjs check-prebuilt --path packages/CLI/lib
 
       - name: Prefetch deps
         if: ${{ !inputs.is_release || (inputs.is_release && steps.prebuilt.outputs.found != 'true') }}
