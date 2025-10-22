@@ -2,13 +2,18 @@ name: Build/CLI
 
 on:
   workflow_dispatch:
+    inputs:
+      is_release:
+        description: "是否发布 Release（true 则上传到 Release，false 则上传构建产物为 artifact）"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   release:
     runs-on: ${{ matrix.runs-on }}
     timeout-minutes: 60
-    env:
-      is_tag: ${{ startsWith(github.ref, 'refs/tags/') }}
+    env: {}
 
     strategy:
       matrix:
@@ -18,7 +23,7 @@ jobs:
             runs-on: ubuntu-22.04
           - os: ubuntu
             arch: arm64
-            runs-on: ubuntu-22.04-arm64
+            runs-on: ubuntu-22.04-arm
           - os: macos
             arch: x64
             runs-on: macos-13
@@ -65,7 +70,7 @@ jobs:
         run: pnpm -F bililive-cli movePackage
 
       - name: release
-        if: env.is_tag == 'true'
+        if: ${{ inputs.is_release }}
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
@@ -78,7 +83,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifact
-        if: env.is_tag == 'false'
+        if: ${{ !inputs.is_release }}
         uses: actions/upload-artifact@v4
         with:
           name: bililive-cli-lib-${{ matrix.os }}-${{ matrix.arch }}
