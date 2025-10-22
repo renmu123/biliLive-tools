@@ -92,6 +92,7 @@ function printHelp() {
       `  validate-release --tag <tag> [--name <name>]  Validate required inputs for release; outputs sanitized values.\n` +
       `  check-release --tag <tag>  Check if a release and/or tag exists; outputs release_exists and tag_exists.\n` +
       `  move-tag --tag <tag> [--sha <sha>]  Force move (or create) tag to the given sha (defaults to GITHUB_SHA).\n` +
+      `  purge-release-assets --tag <tag>    Delete ALL assets attached to the release associated with the tag.\n` +
       `\nExamples:\n` +
       `  node ./scripts/github-ci-artifacts.js check-prebuilt --path packages/CLI/lib\n` +
       `  node ./scripts/github-ci-artifacts.js validate-release --tag v1.2.3 --name "Release v1.2.3"\n`,
@@ -113,6 +114,57 @@ async function main() {
       console.log(`[github-ci-artifacts] prebuilt exists in '${dir}':`, found);
       appendGithubOutput("found", String(found));
       process.exit(0);
+      return;
+    }
+    case "purge-release-assets": {
+      const tag = (flags.tag ?? "").trim();
+      if (!tag) {
+        console.error("[github-ci-artifacts] --tag is required for purge-release-assets");
+        process.exit(1);
+        return;
+      }
+      try {
+        const relRes = await ghRequest("GET", `/releases/tags/${encodeURIComponent(tag)}`);
+        if (relRes.status === 404) {
+          console.log(`[github-ci-artifacts] release for tag '${tag}' not found, nothing to purge.`);
+          process.exit(0);
+          return;
+        }
+        if (relRes.status !== 200) {
+          const txt = await relRes.text();
+          throw new Error(`get release failed: ${relRes.status} ${txt}`);
+        }
+        const release = await relRes.json();
+        const releaseId = release.id;
+        let deleted = 0;
+        let page = 1;
+        while (true) {
+          const list = await ghRequest("GET", `/releases/${releaseId}/assets?per_page=100&page=${page}`);
+          if (list.status !== 200) {
+            const txt = await list.text();
+            throw new Error(`list assets failed: ${list.status} ${txt}`);
+          }
+          const assets = await list.json();
+          if (!assets || assets.length === 0) break;
+          for (const a of assets) {
+            const del = await ghRequest("DELETE", `/releases/assets/${a.id}`);
+            if (del.status !== 204) {
+              const txt = await del.text();
+              console.warn(`[github-ci-artifacts] delete asset ${a.name} failed: ${del.status} ${txt}`);
+            } else {
+              console.log(`[github-ci-artifacts] deleted asset: ${a.name}`);
+              deleted++;
+            }
+          }
+          page++;
+        }
+        console.log(`[github-ci-artifacts] purge done, deleted ${deleted} assets.`);
+        appendGithubOutput("purged_assets", String(deleted));
+        process.exit(0);
+      } catch (e) {
+        console.error("[github-ci-artifacts] purge-release-assets failed:", e?.message || e);
+        process.exit(1);
+      }
       return;
     }
     case "validate-release": {

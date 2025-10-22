@@ -25,7 +25,49 @@ on:
         default: ""
 
 jobs:
+  prepare-release:
+    if: ${{ inputs.is_release }}
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.validate_release_prepare.outputs.release_tag }}
+      release_name: ${{ steps.validate_release_prepare.outputs.release_name }}
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+
+      - name: Validate release inputs (fail-fast)
+        id: validate_release_prepare
+        run: node ./scripts/github-ci-artifacts.js validate-release --tag "${{ inputs.release_tag }}" --name "${{ inputs.release_name }}"
+
+      - name: Check existing release/tag
+        id: check_existing_prepare
+        run: node ./scripts/github-ci-artifacts.js check-release --tag "${{ steps.validate_release_prepare.outputs.release_tag || inputs.release_tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Guard duplicate tag without force_replace
+        if: ${{ !inputs.force_replace && steps.check_existing_prepare.outputs.release_exists == 'true' }}
+        run: node -e "throw new Error('Release with this tag already exists. Set force_replace=true to replace it.')"
+
+      - name: Force move tag to current commit
+        if: ${{ inputs.force_replace }}
+        run: node ./scripts/github-ci-artifacts.js move-tag --tag "${{ steps.validate_release_prepare.outputs.release_tag || inputs.release_tag }}" --sha "${{ github.sha }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Purge all assets of existing release
+        if: ${{ inputs.force_replace }}
+        run: node ./scripts/github-ci-artifacts.js purge-release-assets --tag "${{ steps.validate_release_prepare.outputs.release_tag || inputs.release_tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   release:
+    needs: [prepare-release]
     runs-on: ${{ matrix.runs-on }}
     timeout-minutes: 60
     env: {}
@@ -64,28 +106,6 @@ jobs:
           node-version-file: ".node-version"
           cache: "pnpm"
           cache-dependency-path: ./pnpm-lock.yaml
-
-      - name: Validate release inputs early (fail-fast)
-        if: ${{ inputs.is_release }}
-        id: validate_release
-        run: node ./scripts/github-ci-artifacts.js validate-release --tag "${{ inputs.release_tag }}" --name "${{ inputs.release_name }}"
-
-      - name: Check existing release/tag (fail or prepare)
-        if: ${{ inputs.is_release }}
-        id: check_existing
-        run: node ./scripts/github-ci-artifacts.js check-release --tag "${{ steps.validate_release.outputs.release_tag || inputs.release_tag }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Guard duplicate tag without force_replace
-        if: ${{ inputs.is_release && !inputs.force_replace && steps.check_existing.outputs.release_exists == 'true' }}
-        run: node -e "throw new Error('Release with this tag already exists. Set force_replace=true to replace it.')"
-
-      - name: Force move tag to current commit
-        if: ${{ inputs.is_release && inputs.force_replace }}
-        run: node ./scripts/github-ci-artifacts.js move-tag --tag "${{ steps.validate_release.outputs.release_tag || inputs.release_tag }}" --sha "${{ github.sha }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Print node arch (debug)
         run: node -p "process.platform + ' ' + process.arch"
@@ -140,9 +160,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           artifactErrorsFailBuild: false
           artifacts: "bililive-cli-lib-${{ matrix.os }}-${{ matrix.arch }}.zip"
-          replacesArtifacts: ${{ inputs.force_replace && matrix.os == 'ubuntu' && matrix.arch == 'x64' }}
-          tag: ${{ steps.validate_release.outputs.release_tag || inputs.release_tag }}
-          name: ${{ steps.validate_release.outputs.release_name || inputs.release_name }}
+          replacesArtifacts: false
+          tag: ${{ needs.prepare-release.outputs.release_tag }}
+          name: ${{ needs.prepare-release.outputs.release_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
