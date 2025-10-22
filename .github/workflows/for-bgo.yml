@@ -127,6 +127,10 @@ jobs:
         if: ${{ !inputs.is_release || (inputs.is_release && steps.prebuilt.outputs.found != 'true') }}
         run: pnpm -F bililive-cli movePackage
 
+      - name: Pack release zip (Node)
+        if: ${{ inputs.is_release }}
+        run: pnpm -F bililive-cli zip:lib -- --os "${{ matrix.os }}" --arch "${{ matrix.arch }}"
+
       - name: release
         if: ${{ inputs.is_release }}
         uses: ncipollo/release-action@v1
@@ -135,7 +139,7 @@ jobs:
           draft: false
           token: ${{ secrets.GITHUB_TOKEN }}
           artifactErrorsFailBuild: false
-          artifacts: "packages/CLI/lib/**"
+          artifacts: "bililive-cli-lib-${{ matrix.os }}-${{ matrix.arch }}.zip"
           replacesArtifacts: ${{ inputs.force_replace && matrix.os == 'ubuntu' && matrix.arch == 'x64' }}
           tag: ${{ steps.validate_release.outputs.release_tag || inputs.release_tag }}
           name: ${{ steps.validate_release.outputs.release_name || inputs.release_name }}
