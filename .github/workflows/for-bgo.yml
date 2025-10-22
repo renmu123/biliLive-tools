@@ -72,12 +72,7 @@ jobs:
       - name: Check prebuilt presence
         if: ${{ inputs.is_release }}
         id: prebuilt
-        run: >-
-          node -e "const fs=require('fs');
-          const p='packages/CLI/lib';
-          const ok=fs.existsSync(p)&&fs.readdirSync(p).length>0;
-          console.log('prebuilt exists:',ok);
-          require('fs').writeFileSync(process.env.GITHUB_OUTPUT,`found=${ok}\n`,{flag:'a'});"
+        run: node ./scripts/github-ci-artifacts.js check-prebuilt --path packages/CLI/lib
 
       - name: Prefetch deps
         if: ${{ !inputs.is_release || (inputs.is_release && steps.prebuilt.outputs.found != 'true') }}
