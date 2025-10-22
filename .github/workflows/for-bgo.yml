@@ -8,6 +8,11 @@ on:
         required: false
         type: boolean
         default: false
+      force_replace:
+        description: "当 tag 已存在时，是否强行替换（移动 tag 到当前提交并清空旧资产）"
+        required: false
+        type: boolean
+        default: false
       release_tag:
         description: "发布时使用的 tag 名（is_release=true 时必填，例如 v3.1.2）"
         required: false
@@ -65,6 +70,23 @@ jobs:
         id: validate_release
         run: node ./scripts/github-ci-artifacts.js validate-release --tag "${{ inputs.release_tag }}" --name "${{ inputs.release_name }}"
 
+      - name: Check existing release/tag (fail or prepare)
+        if: ${{ inputs.is_release }}
+        id: check_existing
+        run: node ./scripts/github-ci-artifacts.js check-release --tag "${{ steps.validate_release.outputs.release_tag || inputs.release_tag }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Guard duplicate tag without force_replace
+        if: ${{ inputs.is_release && !inputs.force_replace && steps.check_existing.outputs.release_exists == 'true' }}
+        run: node -e "throw new Error('Release with this tag already exists. Set force_replace=true to replace it.')"
+
+      - name: Force move tag to current commit
+        if: ${{ inputs.is_release && inputs.force_replace }}
+        run: node ./scripts/github-ci-artifacts.js move-tag --tag "${{ steps.validate_release.outputs.release_tag || inputs.release_tag }}" --sha "${{ github.sha }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Print node arch (debug)
         run: node -p "process.platform + ' ' + process.arch"
 
@@ -114,7 +136,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           artifactErrorsFailBuild: false
           artifacts: "packages/CLI/lib/**"
-          replacesArtifacts: false
+          replacesArtifacts: ${{ inputs.force_replace && matrix.os == 'ubuntu' && matrix.arch == 'x64' }}
           tag: ${{ steps.validate_release.outputs.release_tag || inputs.release_tag }}
           name: ${{ steps.validate_release.outputs.release_name || inputs.release_name }}
         env:
