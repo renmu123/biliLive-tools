@@ -46,7 +46,7 @@ async function main() {
   const require = createRequire(import.meta.url);
   const bestzip = require('bestzip');
   // Use libDir as cwd so zip root doesn't contain 'lib/' folder
-  await bestzip({ cwd: libDir, source: ['**/*'], destination: outPath });
+  await bestzip({ cwd: libDir, source: ['./*'], destination: outPath });
   const size = fs.statSync(outPath).size;
   console.log(`[zip_lib] Created ${outName} (${size} bytes)`);
 }
