@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// Cross-platform helper for CI artifact-related tasks.
+// Cross-platform helper for CI artifact-related tasks (ESM).
 // Usage examples:
 //   node ./scripts/github-ci-artifacts.js check-prebuilt --path packages/CLI/lib
 
-const fs = require("fs");
-const path = require("path");
+import fs from "node:fs";
+import path from "node:path";
 
 function appendGithubOutput(name, value) {
   try {
@@ -13,7 +13,7 @@ function appendGithubOutput(name, value) {
       fs.appendFileSync(out, `${name}=${value}\n`);
     }
   } catch (e) {
-    console.warn("[github-ci-artifacts] failed to write GITHUB_OUTPUT:", e && e.message ? e.message : e);
+    console.warn("[github-ci-artifacts] failed to write GITHUB_OUTPUT:", e?.message || e);
   }
 }
 
@@ -48,11 +48,14 @@ function parseArgs(argv) {
 }
 
 function printHelp() {
-  console.log(`github-ci-artifacts helper\n\n` +
-    `Commands:\n` +
-    `  check-prebuilt [--path <dir>]  Check if directory exists and is non-empty; writes found=true/false to GITHUB_OUTPUT.\n` +
-    `\nExamples:\n` +
-    `  node ./scripts/github-ci-artifacts.js check-prebuilt --path packages/CLI/lib\n`);
+  console.log(
+    `github-ci-artifacts helper\n\n` +
+      `Commands:\n` +
+      `  check-prebuilt [--path <dir>]  Check if directory exists and is non-empty; writes found=true/false to GITHUB_OUTPUT.\n` +
+      `  validate-release --tag <tag> [--name <name>]  Validate required inputs for release; outputs sanitized values.\n` +
+      `\nExamples:\n` +
+      `  node ./scripts/github-ci-artifacts.js check-prebuilt --path packages/CLI/lib\n`,
+  );
 }
 
 async function main() {
@@ -69,7 +72,21 @@ async function main() {
       const found = isDirNonEmpty(dir);
       console.log(`[github-ci-artifacts] prebuilt exists in '${dir}':`, found);
       appendGithubOutput("found", String(found));
-      // Do not fail the step; consumers can branch on the output.
+      process.exit(0);
+      return;
+    }
+    case "validate-release": {
+      const tag = (flags.tag ?? "").trim();
+      let name = (flags.name ?? "").trim();
+      if (!tag) {
+        console.error("[github-ci-artifacts] release_tag is required when is_release=true");
+        process.exit(1);
+        return;
+      }
+      if (!name) name = tag;
+      console.log(`[github-ci-artifacts] release inputs ok, tag='${tag}', name='${name}'`);
+      appendGithubOutput("release_tag", tag);
+      appendGithubOutput("release_name", name);
       process.exit(0);
       return;
     }
@@ -84,3 +101,4 @@ main().catch((e) => {
   console.error("[github-ci-artifacts] Unexpected error:", e);
   process.exit(1);
 });
+
