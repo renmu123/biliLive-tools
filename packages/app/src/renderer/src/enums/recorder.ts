@@ -398,7 +398,7 @@ export const textInfo = {
     qualityRetry: qualityRetry,
     quality: {
       text: "画质",
-      tip: "如果无法找到对应画质，会结合其他选项后选择更清晰的画质，<b>真原画画质可能导致PK花瓶</b>",
+      tip: "如果无法找到对应画质，会结合其他选项后选择更清晰的画质，<b>真原画画质可能导致PK花屏</b>",
     },
     formatName: {
       text: "流格式",
