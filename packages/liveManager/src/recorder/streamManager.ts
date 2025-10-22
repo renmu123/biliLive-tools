@@ -109,15 +109,18 @@ export class Segment extends EventEmitter {
     if (!match) {
       match = cleanTerminalText(stderrLine).match(mesioRegex);
     }
+    this.emit("DebugLog", { type: "ffmpeg", text: `Segment start line: ${stderrLine}` });
 
     if (match) {
       const filename = match[1];
       this.rawRecordingVideoPath = filename;
       this.emit("videoFileCreated", {
+        rawFilename: filename,
         filename: this.outputFilePath,
         title: liveInfo?.title,
         cover: liveInfo?.cover,
       });
+      this.emit("DebugLog", { type: "ffmpeg", text: JSON.stringify(match, null, 2) });
     } else {
       this.emit("DebugLog", { type: "ffmpeg", text: "No match found" });
     }

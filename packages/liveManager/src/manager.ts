@@ -81,7 +81,12 @@ export interface RecorderManager<
     error: { source: string; err: unknown };
     RecordStart: { recorder: SerializedRecorder<E>; recordHandle: RecordHandle };
     RecordSegment: { recorder: SerializedRecorder<E>; recordHandle?: RecordHandle };
-    videoFileCreated: { recorder: SerializedRecorder<E>; filename: string; cover?: string };
+    videoFileCreated: {
+      recorder: SerializedRecorder<E>;
+      filename: string;
+      cover?: string;
+      rawFilename?: string;
+    };
     videoFileCompleted: { recorder: SerializedRecorder<E>; filename: string };
     RecorderProgress: { recorder: SerializedRecorder<E>; progress: Progress };
     RecoderLiveStart: { recorder: Recorder<E> };
@@ -269,12 +274,12 @@ export function createRecorderManager<
       recorder.on("RecordSegment", (recordHandle) =>
         this.emit("RecordSegment", { recorder: recorder.toJSON(), recordHandle }),
       );
-      recorder.on("videoFileCreated", ({ filename, cover }) => {
+      recorder.on("videoFileCreated", ({ filename, cover, rawFilename }) => {
         if (recorder.saveCover && recorder?.liveInfo?.cover) {
           const coverPath = replaceExtName(filename, ".jpg");
           downloadImage(cover ?? recorder?.liveInfo?.cover, coverPath);
         }
-        this.emit("videoFileCreated", { recorder: recorder.toJSON(), filename });
+        this.emit("videoFileCreated", { recorder: recorder.toJSON(), filename, rawFilename });
       });
       recorder.on("videoFileCompleted", ({ filename }) =>
         this.emit("videoFileCompleted", { recorder: recorder.toJSON(), filename }),

@@ -134,7 +134,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   extends Emitter<{
       RecordStart: RecordHandle;
       RecordSegment?: RecordHandle;
-      videoFileCreated: { filename: string; cover?: string };
+      videoFileCreated: { filename: string; cover?: string; rawFilename?: string };
       videoFileCompleted: { filename: string };
       progress: Progress;
       RecordStop: { recordHandle: RecordHandle; reason?: string };

@@ -170,8 +170,8 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
 
     this.command = this.createCommand();
 
-    this.streamManager.on("videoFileCreated", ({ filename, cover }) => {
-      this.emit("videoFileCreated", { filename, cover });
+    this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename }) => {
+      this.emit("videoFileCreated", { filename, cover, rawFilename });
     });
     this.streamManager.on("videoFileCompleted", ({ filename }) => {
       this.emit("videoFileCompleted", { filename });
@@ -209,8 +209,8 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
       .on("error", this.onEnd)
       .on("end", () => this.onEnd("finished"))
       .on("stderr", async (stderrLine) => {
-        await this.streamManager.handleVideoStarted(stderrLine);
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
+        await this.streamManager.handleVideoStarted(stderrLine);
       });
 
     return command;

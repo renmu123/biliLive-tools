@@ -277,8 +277,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  const handleVideoCreated = async ({ filename, title, cover }) => {
-    this.emit("videoFileCreated", { filename, cover });
+  const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
+    this.emit("videoFileCreated", { filename, cover, rawFilename });
 
     if (title && this?.liveInfo) {
       this.liveInfo.title = title;

@@ -40,14 +40,17 @@ export interface IRecorder extends EventEmitter {
   // 事件类型定义
   on(
     event: "videoFileCreated",
-    listener: (data: { filename: string; cover?: string }) => void,
+    listener: (data: { filename: string; cover?: string; rawFilename?: string }) => void,
   ): this;
   on(event: "videoFileCompleted", listener: (data: { filename: string }) => void): this;
   on(event: "DebugLog", listener: (data: { type: string; text: string }) => void): this;
   on(event: "progress", listener: (info: any) => void): this;
   on(event: string, listener: (...args: any[]) => void): this;
 
-  emit(event: "videoFileCreated", data: { filename: string; cover?: string }): boolean;
+  emit(
+    event: "videoFileCreated",
+    data: { filename: string; cover?: string; rawFilename?: string },
+  ): boolean;
   emit(event: "videoFileCompleted", data: { filename: string }): boolean;
   emit(event: "DebugLog", data: { type: string; text: string }): boolean;
   emit(event: "progress", info: any): boolean;

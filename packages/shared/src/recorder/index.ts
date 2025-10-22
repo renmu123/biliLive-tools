@@ -175,12 +175,12 @@ export async function createRecorderManager(appConfig: AppConfig) {
   // manager.on("RecordSegment", (debug) => {
   //   console.error("Manager segment", debug);
   // });
-  manager.on("videoFileCreated", async ({ recorder, filename }) => {
-    logger.info("Manager videoFileCreated", { recorder, filename });
+  manager.on("videoFileCreated", async ({ recorder, filename, rawFilename }) => {
+    logger.info("Manager videoFileCreated", { recorder, filename, rawFilename });
     const startTime = new Date();
 
     if (!recorder.liveInfo) {
-      logger.error("Manager videoFileCreated Error", { recorder, filename });
+      logger.error("Manager videoFileCreated Error", { recorder, filename, rawFilename });
       return;
     }
     const data = recorderConfig.get(recorder.id);
