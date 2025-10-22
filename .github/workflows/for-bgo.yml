@@ -57,16 +57,42 @@ jobs:
         if: startsWith(matrix.os, 'windows')
         run: node ./scripts/github-ci-pnpm-update.js
       
+      # 发布模式下优先复用同一提交的构建产物
+      - name: Download prebuilt artifact for this commit
+        if: ${{ inputs.is_release }}
+        id: download_artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: for-bgo.yml
+          name: bililive-cli-lib-${{ matrix.os }}-${{ matrix.arch }}
+          commit: ${{ github.sha }}
+          path: packages/CLI/lib
+          if_no_artifact_found: warn
+
+      - name: Check prebuilt presence
+        if: ${{ inputs.is_release }}
+        id: prebuilt
+        run: >-
+          node -e "const fs=require('fs');
+          const p='packages/CLI/lib';
+          const ok=fs.existsSync(p)&&fs.readdirSync(p).length>0;
+          console.log('prebuilt exists:',ok);
+          require('fs').writeFileSync(process.env.GITHUB_OUTPUT,`found=${ok}\n`,{flag:'a'});"
+
       - name: Prefetch deps
+        if: ${{ !inputs.is_release || (inputs.is_release && steps.prebuilt.outputs.found != 'true') }}
         run: pnpm fetch
 
       - name: Install CLI dependencies
+        if: ${{ !inputs.is_release || (inputs.is_release && steps.prebuilt.outputs.found != 'true') }}
         run: pnpm -F bililive-cli... install --frozen-lockfile --prefer-offline
 
       - name: build CLI
+        if: ${{ !inputs.is_release || (inputs.is_release && steps.prebuilt.outputs.found != 'true') }}
         run: pnpm -F bililive-cli... build
 
       - name: Move CLI package
+        if: ${{ !inputs.is_release || (inputs.is_release && steps.prebuilt.outputs.found != 'true') }}
         run: pnpm -F bililive-cli movePackage
 
       - name: release
@@ -77,7 +103,7 @@ jobs:
           draft: false
           token: ${{ secrets.GITHUB_TOKEN }}
           artifactErrorsFailBuild: false
-          artifacts: "packages/CLI/lib/*.zip"
+          artifacts: "packages/CLI/lib/**"
           replacesArtifacts: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -90,6 +116,7 @@ jobs:
           path: |
             packages/CLI/lib/*
             packages/CLI/lib/**
+          retention-days: 30
 
 permissions:
   contents: write
