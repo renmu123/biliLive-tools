@@ -48,7 +48,7 @@ jobs:
         id: check_existing_prepare
         run: node ./scripts/github-ci-artifacts.js check-release --tag "${{ steps.validate_release_prepare.outputs.release_tag || inputs.release_tag }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Guard duplicate tag without force_replace
         if: ${{ !inputs.force_replace && steps.check_existing_prepare.outputs.release_exists == 'true' }}
@@ -58,13 +58,13 @@ jobs:
         if: ${{ inputs.force_replace }}
         run: node ./scripts/github-ci-artifacts.js move-tag --tag "${{ steps.validate_release_prepare.outputs.release_tag || inputs.release_tag }}" --sha "${{ github.sha }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Purge all assets of existing release
         if: ${{ inputs.force_replace }}
         run: node ./scripts/github-ci-artifacts.js purge-release-assets --tag "${{ steps.validate_release_prepare.outputs.release_tag || inputs.release_tag }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
   release:
     needs: [prepare-release]

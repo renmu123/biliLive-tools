@@ -7,8 +7,12 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
+function getCurrentRepo() {
+  return process.env.GITHUB_REPOSITORY || "";
+}
+
 async function ghRequest(method, urlPath, body) {
-  const repo = process.env.GITHUB_REPOSITORY || "";
+  const repo = getCurrentRepo();
   const token = process.env.GITHUB_TOKEN || process.env.TOKEN || "";
   if (!repo || !token) {
     throw new Error("GITHUB_REPOSITORY or GITHUB_TOKEN is not set in environment");
@@ -124,9 +128,10 @@ async function main() {
         return;
       }
       try {
+        console.log(`[github-ci-artifacts] purge-release-assets on repo ${getCurrentRepo()} for tag '${tag}'`);
         const relRes = await ghRequest("GET", `/releases/tags/${encodeURIComponent(tag)}`);
         if (relRes.status === 404) {
-          console.log(`[github-ci-artifacts] release for tag '${tag}' not found, nothing to purge.`);
+          console.log(`[github-ci-artifacts] release for tag '${tag}' not found on ${getCurrentRepo()}, nothing to purge.`);
           process.exit(0);
           return;
         }
@@ -190,6 +195,7 @@ async function main() {
         return;
       }
       try {
+        console.log(`[github-ci-artifacts] check-release on repo ${getCurrentRepo()} for tag '${tag}'`);
         const relRes = await ghRequest("GET", `/releases/tags/${encodeURIComponent(tag)}`);
         const releaseExists = relRes.status === 200;
         const tagRes = await ghRequest("GET", `/git/refs/tags/${encodeURIComponent(tag)}`);
