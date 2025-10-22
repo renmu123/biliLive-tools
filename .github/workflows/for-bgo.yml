@@ -51,6 +51,9 @@ jobs:
             runs-on: windows-latest
 
     steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
       - name: Setup Node + pnpm (composite)
         uses: ./.github/actions/cli-setup
 
@@ -118,6 +121,9 @@ jobs:
         include: *cli_matrix
 
     steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
       - name: Setup Node + pnpm (composite)
         uses: ./.github/actions/cli-setup
       

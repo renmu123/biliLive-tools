@@ -1,11 +1,8 @@
 name: CLI Setup
-description: Checkout, install pnpm, setup Node with pnpm cache, and run optional Windows pnpm update.
+description: Install pnpm, setup Node with pnpm cache, and run optional Windows pnpm update.
 runs:
   using: composite
   steps:
-    - name: Check out Git repository
-      uses: actions/checkout@v4
-
     - name: Install pnpm
       uses: pnpm/action-setup@v4.1.0
       with:
