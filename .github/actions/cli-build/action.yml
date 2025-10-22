@@ -1,0 +1,38 @@
+name: CLI Build
+description: Prefetch deps, install workspace package, build, and movePackage for CLI.
+inputs:
+  packageFilter:
+    description: pnpm filter expression without suffix dots, e.g. "bililive-cli"
+    required: false
+    default: bililive-cli
+  frozenLockfile:
+    description: Use --frozen-lockfile on install
+    required: false
+    default: true
+  preferOffline:
+    description: Use --prefer-offline on install
+    required: false
+    default: true
+runs:
+  using: composite
+  steps:
+    - name: Prefetch deps
+      shell: bash
+      run: pnpm fetch
+
+    - name: Install package deps
+      shell: bash
+      run: |
+        FLAGS=""
+        if [ "${{ inputs.frozenLockfile }}" = "true" ]; then FLAGS="$FLAGS --frozen-lockfile"; fi
+        if [ "${{ inputs.preferOffline }}" = "true" ]; then FLAGS="$FLAGS --prefer-offline"; fi
+        echo "Install flags: $FLAGS"
+        pnpm -F "${{ inputs.packageFilter }}"... install $FLAGS
+
+    - name: Build package
+      shell: bash
+      run: pnpm -F "${{ inputs.packageFilter }}"... build
+
+    - name: Move package
+      shell: bash
+      run: pnpm -F "${{ inputs.packageFilter }}" movePackage

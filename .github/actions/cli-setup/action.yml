@@ -1,0 +1,34 @@
+name: CLI Setup
+description: Checkout, install pnpm, setup Node with pnpm cache, and run optional Windows pnpm update.
+runs:
+  using: composite
+  steps:
+    - name: Check out Git repository
+      uses: actions/checkout@v4
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4.1.0
+      with:
+        run_install: false
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: .node-version
+        cache: pnpm
+        cache-dependency-path: ./pnpm-lock.yaml
+
+    - name: Print node arch (debug) [Windows]
+      if: ${{ runner.os == 'Windows' }}
+      shell: pwsh
+      run: node -p "process.platform + ' ' + process.arch"
+
+    - name: Print node arch (debug) [Unix]
+      if: ${{ runner.os != 'Windows' }}
+      shell: bash
+      run: node -p "process.platform + ' ' + process.arch"
+
+    - name: pnpm-update-for-win
+      if: ${{ runner.os == 'Windows' }}
+      shell: pwsh
+      run: node ./scripts/github-ci-pnpm-update.js
