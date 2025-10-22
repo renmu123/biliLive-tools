@@ -32,6 +32,33 @@ async function ghRequest(method, urlPath, body) {
   return res;
 }
 
+async function getReleaseByTag(tag) {
+  // First try direct endpoint
+  const direct = await ghRequest("GET", `/releases/tags/${encodeURIComponent(tag)}`);
+  if (direct.status === 200) {
+    return await direct.json();
+  }
+  if (direct.status !== 404) {
+    const txt = await direct.text();
+    throw new Error(`get release by tag failed: ${direct.status} ${txt}`);
+  }
+  // Fallback: list releases and find by tag_name (covers drafts/prereleases)
+  let page = 1;
+  while (true) {
+    const list = await ghRequest("GET", `/releases?per_page=100&page=${page}`);
+    if (list.status !== 200) {
+      const txt = await list.text();
+      throw new Error(`list releases failed: ${list.status} ${txt}`);
+    }
+    const releases = await list.json();
+    if (!releases || releases.length === 0) break;
+    const found = releases.find(r => (r?.tag_name || "") === tag);
+    if (found) return found;
+    page++;
+  }
+  return null;
+}
+
 function appendGithubOutput(name, value) {
   try {
     const out = process.env.GITHUB_OUTPUT;
@@ -129,17 +156,12 @@ async function main() {
       }
       try {
         console.log(`[github-ci-artifacts] purge-release-assets on repo ${getCurrentRepo()} for tag '${tag}'`);
-        const relRes = await ghRequest("GET", `/releases/tags/${encodeURIComponent(tag)}`);
-        if (relRes.status === 404) {
+        const release = await getReleaseByTag(tag);
+        if (!release) {
           console.log(`[github-ci-artifacts] release for tag '${tag}' not found on ${getCurrentRepo()}, nothing to purge.`);
           process.exit(0);
           return;
         }
-        if (relRes.status !== 200) {
-          const txt = await relRes.text();
-          throw new Error(`get release failed: ${relRes.status} ${txt}`);
-        }
-        const release = await relRes.json();
         const releaseId = release.id;
         let deleted = 0;
         let page = 1;
@@ -196,8 +218,13 @@ async function main() {
       }
       try {
         console.log(`[github-ci-artifacts] check-release on repo ${getCurrentRepo()} for tag '${tag}'`);
-        const relRes = await ghRequest("GET", `/releases/tags/${encodeURIComponent(tag)}`);
-        const releaseExists = relRes.status === 200;
+        let releaseExists = false;
+        try {
+          const rel = await getReleaseByTag(tag);
+          releaseExists = !!rel;
+        } catch (e) {
+          // keep false; will still report tag existence below
+        }
         const tagRes = await ghRequest("GET", `/git/refs/tags/${encodeURIComponent(tag)}`);
         const tagExists = tagRes.status === 200;
         console.log(`[github-ci-artifacts] check-release: releaseExists=${releaseExists}, tagExists=${tagExists}`);
