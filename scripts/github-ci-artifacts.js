@@ -164,9 +164,9 @@ async function main() {
         }
         const releaseId = release.id;
         let deleted = 0;
-        let page = 1;
+        // Important: always fetch page=1 after deletions, because indices shift
         while (true) {
-          const list = await ghRequest("GET", `/releases/${releaseId}/assets?per_page=100&page=${page}`);
+          const list = await ghRequest("GET", `/releases/${releaseId}/assets?per_page=100&page=1`);
           if (list.status !== 200) {
             const txt = await list.text();
             throw new Error(`list assets failed: ${list.status} ${txt}`);
@@ -183,7 +183,6 @@ async function main() {
               deleted++;
             }
           }
-          page++;
         }
         console.log(`[github-ci-artifacts] purge done, deleted ${deleted} assets.`);
         appendGithubOutput("purged_assets", String(deleted));
