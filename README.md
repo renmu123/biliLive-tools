@@ -505,6 +505,19 @@ docker下的emoji文本渲染错误，猜测和fontconfig有关，但是我不�
 
 如果你是Windows新安装的系统，请尝试安装系统相关运行库，如果不是，也请安装试试。
 
+## 这个软件的录制太难用了，有什么其他软件推荐
+
+| 名称                                                               | 备注                         | 协议       |
+| ------------------------------------------------------------------ | ---------------------------- | ---------- |
+| [录播姬](https://github.com/BililiveRecorder/BililiveRecorder)     | 录制B站flv流最稳的工具       | GPLV3      |
+| [biliup](https://github.com/biliup/biliup)                         | 支持B站上传，弹幕            | MIT        |
+| [DouyinLiveRecorder](https://github.com/ihmily/DouyinLiveRecorder) | 支持平台多，无GUI            | MIT        |
+| [StreamCap](https://github.com/ihmily/StreamCap)                   | 支持平台多，有GUI            | Apache 2.0 |
+| [DanmakuRender](https://github.com/SmallPeaches/DanmakuRender)     | 支持B站自动上传，弹幕，无GUI | 开源未知   |
+| [bililive-go](https://github.com/bililive-go/bililive-go)          | 支持平台多，有GUI            | GPLV3      |
+| [stream-rec](https://github.com/stream-rec/stream-rec)             | 自实现引擎，rclone同步       | MIT        |
+| [oneliverec](https://www.oneliverec.cc/zh-cn/)                     | 支持的平台多                 | 闭源免费   |
+
 # TODO
 
 - [x] 支持使用ffmpeg压制弹幕至视频文件
