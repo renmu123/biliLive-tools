@@ -3,10 +3,10 @@ import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
 import { StreamManager, getMesioPath } from "../index.js";
-import { IRecorder, MesioRecorderOptions } from "./IRecorder.js";
+import { IRecorder, BililiveRecorderOptions } from "./IRecorder.js";
 
-// Mesio command builder class similar to ffmpeg
-class MesioCommand extends EventEmitter {
+// Bililive command builder class similar to ffmpeg
+class BililiveRecorderCommand extends EventEmitter {
   private _input: string = "";
   private _output: string = "";
   private _inputOptions: string[] = [];
@@ -16,42 +16,42 @@ class MesioCommand extends EventEmitter {
     super();
   }
 
-  input(source: string): MesioCommand {
+  input(source: string): BililiveRecorderCommand {
     this._input = source;
     return this;
   }
 
-  output(target: string): MesioCommand {
+  output(target: string): BililiveRecorderCommand {
     this._output = target;
     return this;
   }
 
-  inputOptions(options: string[]): MesioCommand;
-  inputOptions(...options: string[]): MesioCommand;
-  inputOptions(...options: any[]): MesioCommand {
+  inputOptions(options: string[]): BililiveRecorderCommand;
+  inputOptions(...options: string[]): BililiveRecorderCommand;
+  inputOptions(...options: any[]): BililiveRecorderCommand {
     const opts = Array.isArray(options[0]) ? options[0] : options;
     this._inputOptions.push(...opts);
     return this;
   }
 
   _getArguments(): string[] {
-    const args: string[] = [];
+    const args: string[] = ["downloader"];
+
+    // Add input source
+    if (this._input) {
+      args.push(this._input);
+    }
 
     // Add input options first
     args.push(...this._inputOptions);
 
     // Add output target
     if (this._output) {
-      const { dir, name } = path.parse(this._output);
-      args.push("-o", dir);
-      args.push("-n", name);
+      // const { dir, name } = path.parse(this._output);
+      // args.push("-o", dir);
+      args.push(this._output);
     }
     // args.push("-v");
-
-    // Add input source
-    if (this._input) {
-      args.push(this._input);
-    }
 
     return args;
   }
@@ -101,12 +101,12 @@ class MesioCommand extends EventEmitter {
 }
 
 // Factory function similar to createFFMPEGBuilder
-export const createMesioBuilder = (): MesioCommand => {
-  return new MesioCommand();
+export const createBililiveBuilder = (): BililiveRecorderCommand => {
+  return new BililiveRecorderCommand();
 };
 
-export class mesioRecorder extends EventEmitter implements IRecorder {
-  private command: MesioCommand;
+export class BililiveRecorder extends EventEmitter implements IRecorder {
+  private command: BililiveRecorderCommand;
   private streamManager: StreamManager;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
@@ -123,7 +123,7 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
     | undefined;
 
   constructor(
-    opts: MesioRecorderOptions,
+    opts: BililiveRecorderOptions,
     private onEnd: (...args: unknown[]) => void,
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
@@ -132,19 +132,7 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
     this.disableDanma = opts.disableDanma ?? false;
     this.debugLevel = opts.debugLevel ?? "none";
 
-    let videoFormat: "flv" | "ts" | "m4s" = "flv";
-    if (opts.url.includes(".m3u8")) {
-      videoFormat = "ts";
-    }
-    if (opts.formatName) {
-      if (opts.formatName === "fmp4") {
-        videoFormat = "m4s";
-      } else if (opts.formatName === "ts") {
-        videoFormat = "ts";
-      } else if (opts.formatName === "flv") {
-        videoFormat = "flv";
-      }
-    }
+    let videoFormat: "flv" = "flv";
 
     this.streamManager = new StreamManager(
       opts.getSavePath,
@@ -162,11 +150,6 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
     this.url = opts.url;
     this.segment = opts.segment;
     this.headers = opts.headers;
-    if (opts.isHls === undefined) {
-      this.isHls = this.url.includes("m3u8");
-    } else {
-      this.isHls = opts.isHls;
-    }
 
     this.command = this.createCommand();
 
@@ -184,25 +167,24 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
   createCommand() {
     const inputOptions = [
       ...this.inputOptions,
-      "--fix",
       "-H",
       "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
     ];
-    if (this.debugLevel === "verbose") {
-      inputOptions.push("-v");
-    }
+    // if (this.debugLevel === "verbose") {
+    //   inputOptions.push("-v");
+    // }
 
     if (this.headers) {
       Object.entries(this.headers).forEach(([key, value]) => {
         if (!value) return;
-        inputOptions.push("-H", `${key}: ${value}`);
+        inputOptions.push("-h", `${key}: ${value}`);
       });
     }
     if (this.hasSegment) {
-      inputOptions.push("-d", `${this.segment * 60}s`);
+      inputOptions.push("-d", `${this.segment}`);
     }
 
-    const command = createMesioBuilder()
+    const command = createBililiveBuilder()
       .input(this.url)
       .inputOptions(inputOptions)
       .output(this.streamManager.videoFilePath)

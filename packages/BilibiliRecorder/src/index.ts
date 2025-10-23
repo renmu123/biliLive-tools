@@ -104,8 +104,6 @@ const ffmpegInputOptions: string[] = [
   "10",
   "-rw_timeout",
   "15000000",
-  "-headers",
-  "Referer:https://live.bilibili.com/",
 ];
 
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
@@ -241,15 +239,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  let recorderType: Parameters<typeof createBaseRecorder>[0] =
-    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
+  // let recorderType: Parameters<typeof createBaseRecorder>[0] =
+  //   this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   const recorder = createBaseRecorder(
-    recorderType,
+    this.recorderType,
     {
       url: url,
       outputOptions: ffmpegOutputOptions,
       inputOptions: ffmpegInputOptions,
-      mesioOptions: ["-H", "Referer:https://live.bilibili.com/"],
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
         getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),
@@ -257,6 +254,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat,
       debugLevel: this.debugLevel ?? "none",
+      headers: {
+        Referer: "https://live.bilibili.com/",
+      },
     },
     onEnd,
     async () => {

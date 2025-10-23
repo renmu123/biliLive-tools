@@ -72,3 +72,10 @@ export interface MesioRecorderOptions extends BaseRecorderOptions {
   outputOptions?: string[];
   isHls?: boolean;
 }
+
+/**
+ * Bililive录制器特定选项
+ */
+export interface BililiveRecorderOptions extends BaseRecorderOptions {
+  outputOptions?: string[];
+}
