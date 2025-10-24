@@ -70,32 +70,32 @@ jobs:
         with:
           arch: armv7
           distro: ubuntu22.04
+          image: arm32v7/ubuntu:22.04
           githubToken: ${{ github.token }}
-          shell: bash
+          shell: /bin/bash
           install: |
-            #!/bin/sh
-            set -eux
+            set -euxo pipefail
             apt-get update -y
             DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-              ca-certificates curl git tar xz-utils build-essential python3 bash
-            # Install nvm and Node (try Node from .node-version, fallback to 18 LTS which supports armv7)
-            export NVM_DIR=/usr/local/nvm
-            mkdir -p "$NVM_DIR"
-            curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-            . "$NVM_DIR/nvm.sh"
-            NODE_VER=$(cat .node-version 2>/dev/null || echo "v20.10.0")
-            (nvm install "$NODE_VER" || nvm install 18) && nvm use --silent
+              ca-certificates curl git tar xz-utils build-essential python3
+            # Install Node v20.10.0 for linux-armv7l from official tarball
+            NODE_VER=20.10.0
+            ARCH=linux-armv7l
+            curl -fsSL "https://nodejs.org/dist/v${NODE_VER}/node-v${NODE_VER}-${ARCH}.tar.xz" -o /tmp/node.tar.xz
+            mkdir -p /usr/local/lib/nodejs
+            tar -xJf /tmp/node.tar.xz -C /usr/local/lib/nodejs
+            ln -sf "/usr/local/lib/nodejs/node-v${NODE_VER}-${ARCH}/bin/node" /usr/local/bin/node
+            ln -sf "/usr/local/lib/nodejs/node-v${NODE_VER}-${ARCH}/bin/npm" /usr/local/bin/npm
+            ln -sf "/usr/local/lib/nodejs/node-v${NODE_VER}-${ARCH}/bin/npx" /usr/local/bin/npx
+            ln -sf "/usr/local/lib/nodejs/node-v${NODE_VER}-${ARCH}/bin/corepack" /usr/local/bin/corepack || true
             node -v
             # Setup corepack/pnpm pinned by packageManager
             (corepack --version || npm i -g corepack) >/dev/null 2>&1 || true
             corepack enable
-            # Respect packageManager field if present
             PM_SPEC=$(node -e "try{const p=require('./package.json');console.log(p.packageManager||'')}catch(e){console.log('')}")
             if [ -n "$PM_SPEC" ]; then corepack prepare "$PM_SPEC" --activate; else corepack prepare pnpm@9.15.2 --activate; fi
           run: |
             set -euxo pipefail
-            export NVM_DIR=/usr/local/nvm
-            . "$NVM_DIR/nvm.sh"
             node -v
             pnpm -v
             # Prefetch and install (skip scripts to avoid native builds like better-sqlite3)
@@ -198,20 +198,23 @@ jobs:
         with:
           arch: armv7
           distro: ubuntu22.04
+          image: arm32v7/ubuntu:22.04
           githubToken: ${{ github.token }}
-          shell: bash
+          shell: /bin/bash
           install: |
-            #!/bin/sh
-            set -eux
+            set -euxo pipefail
             apt-get update -y
             DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-              ca-certificates curl git tar xz-utils build-essential python3 bash
-            export NVM_DIR=/usr/local/nvm
-            mkdir -p "$NVM_DIR"
-            curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-            . "$NVM_DIR/nvm.sh"
-            NODE_VER=$(cat .node-version 2>/dev/null || echo "v20.10.0")
-            (nvm install "$NODE_VER" || nvm install 18) && nvm use --silent
+              ca-certificates curl git tar xz-utils build-essential python3
+            NODE_VER=20.10.0
+            ARCH=linux-armv7l
+            curl -fsSL "https://nodejs.org/dist/v${NODE_VER}/node-v${NODE_VER}-${ARCH}.tar.xz" -o /tmp/node.tar.xz
+            mkdir -p /usr/local/lib/nodejs
+            tar -xJf /tmp/node.tar.xz -C /usr/local/lib/nodejs
+            ln -sf "/usr/local/lib/nodejs/node-v${NODE_VER}-${ARCH}/bin/node" /usr/local/bin/node
+            ln -sf "/usr/local/lib/nodejs/node-v${NODE_VER}-${ARCH}/bin/npm" /usr/local/bin/npm
+            ln -sf "/usr/local/lib/nodejs/node-v${NODE_VER}-${ARCH}/bin/npx" /usr/local/bin/npx
+            ln -sf "/usr/local/lib/nodejs/node-v${NODE_VER}-${ARCH}/bin/corepack" /usr/local/bin/corepack || true
             node -v
             (corepack --version || npm i -g corepack) >/dev/null 2>&1 || true
             corepack enable
@@ -219,8 +222,6 @@ jobs:
             if [ -n "$PM_SPEC" ]; then corepack prepare "$PM_SPEC" --activate; else corepack prepare pnpm@9.15.2 --activate; fi
           run: |
             set -euxo pipefail
-            export NVM_DIR=/usr/local/nvm
-            . "$NVM_DIR/nvm.sh"
             node -v
             pnpm -v
             pnpm fetch
