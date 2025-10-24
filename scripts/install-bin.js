@@ -72,6 +72,25 @@ async function downloadMesio() {
   }
 }
 
+async function downloadBililiveRecorder() {
+  // https://github.com/renmu123/BililiveRecorder/releases/tag/v3.0.1
+  const platforms = {
+    win32: "win",
+    darwin: "osx",
+  };
+  const platform = platforms[process.platform] ?? process.platform;
+  const arch = process.arch;
+  let url = `https://github.com/renmu123/BililiveRecorder/releases/download/v3.0.1/BililiveRecorder-CLI-${platform}-${arch}.zip`;
+
+  await downloadFile(url, ".");
+  await unzip(filename, "packages/app/resources/bin");
+
+  // 添加执行权限
+  if (process.platform === "linux") {
+    fs.chmodSync("packages/app/resources/bin/BililiveRecorder.Cli", 0o755);
+  }
+}
+
 async function downloadBin() {
   const filename = `${process.platform}-${process.arch}-2.5.0.zip`;
   const downloadUrl = `https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/${filename}`;

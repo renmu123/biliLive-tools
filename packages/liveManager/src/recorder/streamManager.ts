@@ -236,6 +236,8 @@ export class StreamManager extends EventEmitter {
       return this.videoFormat;
     } else if (this.recorderType === "mesio") {
       return this.videoFormat;
+    } else if (this.recorderType === "bililive") {
+      return "flv";
     } else {
       throw new Error("Unknown recorderType");
     }
@@ -248,6 +250,8 @@ export class StreamManager extends EventEmitter {
         : `${this.recordSavePath}.${this.videoExt}`;
     } else if (this.recorderType === "mesio") {
       return `${this.recordSavePath}-PART%i.${this.videoExt}`;
+    } else if (this.recorderType === "bililive") {
+      return `${this.recordSavePath}.${this.videoExt}`;
     }
 
     return `${this.recordSavePath}.${this.videoExt}`;
