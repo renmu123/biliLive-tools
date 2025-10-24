@@ -98,8 +98,8 @@ jobs:
             set -euxo pipefail
             node -v
             pnpm -v
-            # Prefetch and install (skip scripts to avoid native builds like better-sqlite3)
-            pnpm fetch
+            # Prefetch only bililive-cli and its deps (avoid fetching whole monorepo)
+            pnpm -F "bililive-cli"... fetch
             pnpm -F "bililive-cli"... install --frozen-lockfile --prefer-offline --ignore-scripts
             pnpm -F "bililive-cli"... build
             pnpm -F "bililive-cli" movePackage
@@ -155,7 +155,7 @@ jobs:
   release:
     needs: [prepare-release]
     runs-on: ${{ matrix.runs-on }}
-    timeout-minutes: 10
+    timeout-minutes: 30
     env: {}
 
     strategy:
@@ -224,7 +224,8 @@ jobs:
             set -euxo pipefail
             node -v
             pnpm -v
-            pnpm fetch
+            # Prefetch only bililive-cli and its deps (avoid fetching whole monorepo)
+            pnpm -F "bililive-cli"... fetch
             pnpm -F "bililive-cli"... install --frozen-lockfile --prefer-offline --ignore-scripts
             pnpm -F "bililive-cli"... build
             pnpm -F "bililive-cli" movePackage
