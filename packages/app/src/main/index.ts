@@ -65,10 +65,18 @@ const WindowState = new Store<{
   name: "window-state",
 });
 
-const windowConfig = {
+const windowConfig: {
+  width: number;
+  height: number;
+  isMaximized: boolean;
+  x: number | undefined;
+  y: number | undefined;
+} = {
   width: 900,
   height: 750,
   isMaximized: false,
+  x: undefined,
+  y: undefined,
 };
 
 const registerHandlers = (
@@ -133,6 +141,14 @@ function createCutWindow() {
 
 function createWindow(): void {
   Object.assign(windowConfig, WindowState.get("winBounds"));
+  // 如果x，y存在一个参数为负值，则重置为undefined
+  if (
+    (windowConfig.x !== undefined && windowConfig.x < 0) ||
+    (windowConfig.y !== undefined && windowConfig.y < 0)
+  ) {
+    windowConfig.x = undefined;
+    windowConfig.y = undefined;
+  }
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({

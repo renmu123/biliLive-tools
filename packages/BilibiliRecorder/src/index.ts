@@ -101,9 +101,13 @@ const ffmpegInputOptions: string[] = [
   "-reconnect_streamed",
   "1",
   "-reconnect_delay_max",
-  "10",
+  "5",
   "-rw_timeout",
-  "15000000",
+  "10000000",
+  "-timeout",
+  "10000000",
+  "-headers",
+  "Referer:https://live.bilibili.com/",
 ];
 
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
