@@ -51,7 +51,7 @@ export class Segment extends EventEmitter {
         text: `Renaming segment file: ${this.rawRecordingVideoPath} -> ${this.outputFilePath}`,
       });
       await Promise.all([
-        retry(() => fs.rename(this.rawRecordingVideoPath, this.outputFilePath), 10, 2000),
+        retry(() => fs.rename(this.rawRecordingVideoPath, this.outputFilePath), 20, 1000),
         this.extraDataController?.flush(),
       ]);
       this.emit("videoFileCompleted", { filename: this.outputFilePath });
