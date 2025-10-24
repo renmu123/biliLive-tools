@@ -17,6 +17,8 @@ import type {
  */
 export type RecorderType = "ffmpeg" | "mesio" | "bililive";
 
+export type FormatName = "flv" | "ts" | "fmp4";
+
 /**
  * 根据录制器类型获取对应的配置选项类型
  */
@@ -72,7 +74,7 @@ export function createRecorder<T extends RecorderType>(
 /**
  * 选择录制器
  */
-export function selectRecorder(preferredRecorder: "auto" | RecorderType): RecorderType {
+export function selectRecorder(preferredRecorder: "auto" | RecorderType | undefined): RecorderType {
   let recorderType: RecorderType;
 
   if (preferredRecorder === "auto") {
@@ -91,18 +93,42 @@ export function selectRecorder(preferredRecorder: "auto" | RecorderType): Record
 }
 
 /**
+ * 判断原始录制流格式，flv, ts, m4s
+ */
+export function getSourceFormatName(
+  streamUrl: string,
+  formatName: FormatName | undefined,
+): FormatName {
+  if (formatName) {
+    return formatName;
+  }
+
+  if (streamUrl.includes(".m3u8")) {
+    return "ts";
+  } else if (streamUrl.includes(".m4s")) {
+    // TODO: 使用b站的流进行测试
+    return "fmp4";
+  } else {
+    return "flv";
+  }
+}
+
+type PickPartial<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>> & Partial<Pick<T, K>>;
+
+/**
  * 创建录制器的工厂函数
  */
 export function createBaseRecorder(
-  type: "auto" | RecorderType,
-  opts: RecorderOpts,
+  type: "auto" | RecorderType | undefined,
+  opts: PickPartial<RecorderOpts, "formatName">,
   onEnd: (...args: unknown[]) => void,
   onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
 ): IRecorder {
   const recorderType = selectRecorder(type);
+  const sourceFormatName = getSourceFormatName(opts.url, opts.formatName);
   return createRecorder(
     recorderType,
-    opts as RecorderOptions<typeof recorderType>,
+    { ...(opts as RecorderOptions<typeof recorderType>), formatName: sourceFormatName },
     onEnd,
     onUpdateLiveInfo,
   );

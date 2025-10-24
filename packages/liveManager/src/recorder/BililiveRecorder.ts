@@ -1,4 +1,3 @@
-import path from "node:path";
 import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
@@ -113,7 +112,6 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
   readonly segment: number;
   readonly inputOptions: string[] = [];
-  readonly isHls: boolean;
   readonly disableDanma: boolean = false;
   readonly url: string;
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
@@ -139,7 +137,7 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
       opts.getSavePath,
       hasSegment,
       this.disableDanma,
-      "mesio",
+      "bililive",
       videoFormat,
       {
         onUpdateLiveInfo: this.onUpdateLiveInfo,

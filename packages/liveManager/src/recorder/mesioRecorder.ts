@@ -112,7 +112,6 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
   readonly segment: number;
   readonly inputOptions: string[] = [];
-  readonly isHls: boolean;
   readonly disableDanma: boolean = false;
   readonly url: string;
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
@@ -136,14 +135,12 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
     if (opts.url.includes(".m3u8")) {
       videoFormat = "ts";
     }
-    if (opts.formatName) {
-      if (opts.formatName === "fmp4") {
-        videoFormat = "m4s";
-      } else if (opts.formatName === "ts") {
-        videoFormat = "ts";
-      } else if (opts.formatName === "flv") {
-        videoFormat = "flv";
-      }
+    if (opts.formatName === "fmp4") {
+      videoFormat = "m4s";
+    } else if (opts.formatName === "ts") {
+      videoFormat = "ts";
+    } else if (opts.formatName === "flv") {
+      videoFormat = "flv";
     }
 
     this.streamManager = new StreamManager(
@@ -162,11 +159,6 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
     this.url = opts.url;
     this.segment = opts.segment;
     this.headers = opts.headers;
-    if (opts.isHls === undefined) {
-      this.isHls = this.url.includes("m3u8");
-    } else {
-      this.isHls = opts.isHls;
-    }
 
     this.command = this.createCommand();
 

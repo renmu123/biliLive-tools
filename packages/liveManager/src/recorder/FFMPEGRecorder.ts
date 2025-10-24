@@ -4,6 +4,8 @@ import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
 import { createInvalidStreamChecker, assert } from "../utils.js";
 import { IRecorder, FFMPEGRecorderOptions } from "./IRecorder.js";
 
+import type { FormatName } from "./index.js";
+
 export class FFMPEGRecorder extends EventEmitter implements IRecorder {
   private command: ReturnType<typeof createFFMPEGBuilder>;
   private streamManager: StreamManager;
@@ -16,7 +18,7 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
   readonly isHls: boolean;
   readonly disableDanma: boolean = false;
   readonly url: string;
-  formatName: "flv" | "ts" | "fmp4";
+  formatName: FormatName;
   videoFormat: "ts" | "mkv" | "mp4";
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
   readonly headers:
@@ -34,12 +36,7 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
     const hasSegment = !!opts.segment;
     this.hasSegment = hasSegment;
     this.debugLevel = opts.debugLevel ?? "none";
-
-    let formatName: "flv" | "ts" | "fmp4" = "flv";
-    if (opts.url.includes(".m3u8")) {
-      formatName = "ts";
-    }
-    this.formatName = opts.formatName ?? formatName;
+    this.formatName = opts.formatName;
 
     if (this.formatName === "fmp4" || this.formatName === "ts") {
       this.isHls = true;

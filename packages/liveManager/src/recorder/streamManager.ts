@@ -220,6 +220,10 @@ export class StreamManager extends EventEmitter {
       if (this.segment) {
         await this.segment.handleSegmentEnd();
       }
+    } else if (this.recorderType === "bililive") {
+      if (this.segment) {
+        await this.segment.handleSegmentEnd();
+      }
     }
   }
 
