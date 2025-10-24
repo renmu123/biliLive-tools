@@ -2,7 +2,7 @@ import path from "node:path";
 import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
-import { StreamManager, getMesioPath } from "../index.js";
+import { StreamManager, getBililivePath } from "../index.js";
 import { IRecorder, BililiveRecorderOptions } from "./IRecorder.js";
 
 // Bililive command builder class similar to ffmpeg
@@ -58,9 +58,10 @@ class BililiveRecorderCommand extends EventEmitter {
 
   run(): void {
     const args = this._getArguments();
-    const mesioExecutable = getMesioPath();
+    const bililiveExecutable = getBililivePath();
+    console.log("Starting BililiveRecorder with args:", bililiveExecutable, args);
 
-    this.process = spawn(mesioExecutable, args, {
+    this.process = spawn(bililiveExecutable, args, {
       stdio: ["pipe", "pipe", "pipe"],
     });
 
@@ -88,7 +89,7 @@ class BililiveRecorderCommand extends EventEmitter {
       if (code === 0) {
         this.emit("end");
       } else {
-        this.emit("error", new Error(`mesio process exited with code ${code}`));
+        this.emit("error", new Error(`bililive process exited with code ${code}`));
       }
     });
   }
@@ -167,7 +168,7 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
   createCommand() {
     const inputOptions = [
       ...this.inputOptions,
-      "-H",
+      "-h",
       "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
     ];
     // if (this.debugLevel === "verbose") {
