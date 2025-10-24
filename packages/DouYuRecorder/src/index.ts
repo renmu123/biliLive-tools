@@ -191,7 +191,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       source: this.source,
       strictQuality,
       onlyAudio: this.onlyAudio,
-      avoidEdgeCDN: recorderType === "mesio",
+      avoidEdgeCDN: true,
     });
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
