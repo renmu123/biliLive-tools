@@ -1,9 +1,9 @@
 ﻿import { FFMPEGRecorder } from "./FFMPEGRecorder.js";
-import { mesioRecorder } from "./mesioRecorder.js";
+import { MesioRecorder } from "./mesioRecorder.js";
 import { BililiveRecorder } from "./BililiveRecorder.js";
 
 export { FFMPEGRecorder } from "./FFMPEGRecorder.js";
-export { mesioRecorder } from "./mesioRecorder.js";
+export { MesioRecorder } from "./mesioRecorder.js";
 export { BililiveRecorder } from "./BililiveRecorder.js";
 import type {
   IRecorder,
@@ -34,7 +34,7 @@ export type RecorderOptions<T extends RecorderType> = T extends "ffmpeg"
 export type RecorderInstance<T extends RecorderType> = T extends "ffmpeg"
   ? FFMPEGRecorder
   : T extends "mesio"
-    ? mesioRecorder
+    ? MesioRecorder
     : BililiveRecorder;
 
 type RecorderOpts = FFMPEGRecorderOptions | MesioRecorderOptions | BililiveRecorderOptions;
@@ -55,17 +55,25 @@ export function createRecorder<T extends RecorderType>(
       onUpdateLiveInfo,
     ) as RecorderInstance<T>;
   } else if (type === "mesio") {
-    return new mesioRecorder(
+    return new MesioRecorder(
       opts as MesioRecorderOptions,
       onEnd,
       onUpdateLiveInfo,
     ) as RecorderInstance<T>;
   } else if (type === "bililive") {
-    return new BililiveRecorder(
-      opts as BililiveRecorderOptions,
-      onEnd,
-      onUpdateLiveInfo,
-    ) as RecorderInstance<T>;
+    if (opts.formatName === "flv") {
+      return new BililiveRecorder(
+        opts as BililiveRecorderOptions,
+        onEnd,
+        onUpdateLiveInfo,
+      ) as RecorderInstance<T>;
+    } else {
+      return new FFMPEGRecorder(
+        opts as FFMPEGRecorderOptions,
+        onEnd,
+        onUpdateLiveInfo,
+      ) as RecorderInstance<T>;
+    }
   } else {
     throw new Error(`Unsupported recorder type: ${type}`);
   }

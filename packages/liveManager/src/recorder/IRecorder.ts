@@ -24,6 +24,7 @@ export interface BaseRecorderOptions {
  */
 export interface IRecorder extends EventEmitter {
   // 基础属性
+  type: "ffmpeg" | "mesio" | "bililive";
   readonly hasSegment: boolean;
   readonly segment: number;
   readonly inputOptions: string[];

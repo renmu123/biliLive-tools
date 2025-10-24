@@ -106,6 +106,7 @@ export const createBililiveBuilder = (): BililiveRecorderCommand => {
 };
 
 export class BililiveRecorder extends EventEmitter implements IRecorder {
+  public type = "bililive" as const;
   private command: BililiveRecorderCommand;
   private streamManager: StreamManager;
   readonly hasSegment: boolean;
@@ -169,9 +170,9 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
       "-h",
       "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
     ];
-    // if (this.debugLevel === "verbose") {
-    //   inputOptions.push("-v");
-    // }
+    if (this.debugLevel === "verbose") {
+      inputOptions.push("-l", "Debug");
+    }
 
     if (this.headers) {
       Object.entries(this.headers).forEach(([key, value]) => {

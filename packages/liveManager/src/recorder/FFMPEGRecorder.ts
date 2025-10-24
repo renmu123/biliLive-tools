@@ -7,6 +7,7 @@ import { IRecorder, FFMPEGRecorderOptions } from "./IRecorder.js";
 import type { FormatName } from "./index.js";
 
 export class FFMPEGRecorder extends EventEmitter implements IRecorder {
+  public type = "ffmpeg" as const;
   private command: ReturnType<typeof createFFMPEGBuilder>;
   private streamManager: StreamManager;
   private timeoutChecker: ReturnType<typeof utils.createTimeoutChecker>;

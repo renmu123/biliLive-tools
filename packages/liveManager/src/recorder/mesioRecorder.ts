@@ -105,7 +105,8 @@ export const createMesioBuilder = (): MesioCommand => {
   return new MesioCommand();
 };
 
-export class mesioRecorder extends EventEmitter implements IRecorder {
+export class MesioRecorder extends EventEmitter implements IRecorder {
+  public type = "mesio" as const;
   private command: MesioCommand;
   private streamManager: StreamManager;
   readonly hasSegment: boolean;
