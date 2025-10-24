@@ -58,7 +58,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node + pnpm (composite)
-        if: ${{ matrix.arch != 'armv7' }}
         uses: ./.github/actions/cli-setup
 
       - name: Build CLI (composite)
@@ -74,10 +73,11 @@ jobs:
           githubToken: ${{ github.token }}
           shell: bash
           install: |
-            set -euxo pipefail
+            #!/bin/sh
+            set -eux
             apt-get update -y
             DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-              ca-certificates curl git tar xz-utils build-essential python3
+              ca-certificates curl git tar xz-utils build-essential python3 bash
             # Install nvm and Node (try Node from .node-version, fallback to 18 LTS which supports armv7)
             export NVM_DIR=/usr/local/nvm
             mkdir -p "$NVM_DIR"
@@ -167,7 +167,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node + pnpm (composite)
-        if: ${{ matrix.arch != 'armv7' }}
         uses: ./.github/actions/cli-setup
       
       # 发布模式下优先复用同一提交的构建产物
@@ -202,10 +201,11 @@ jobs:
           githubToken: ${{ github.token }}
           shell: bash
           install: |
-            set -euxo pipefail
+            #!/bin/sh
+            set -eux
             apt-get update -y
             DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-              ca-certificates curl git tar xz-utils build-essential python3
+              ca-certificates curl git tar xz-utils build-essential python3 bash
             export NVM_DIR=/usr/local/nvm
             mkdir -p "$NVM_DIR"
             curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
