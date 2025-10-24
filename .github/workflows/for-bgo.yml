@@ -38,6 +38,9 @@ jobs:
             arch: x64
             runs-on: ubuntu-22.04
           - os: ubuntu
+            arch: armv7
+            runs-on: ubuntu-22.04
+          - os: ubuntu
             arch: arm64
             runs-on: ubuntu-22.04-arm
           - os: macos
@@ -55,10 +58,51 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node + pnpm (composite)
+        if: ${{ matrix.arch != 'armv7' }}
         uses: ./.github/actions/cli-setup
 
       - name: Build CLI (composite)
+        if: ${{ matrix.arch != 'armv7' }}
         uses: ./.github/actions/cli-build
+
+      - name: Build CLI in Ubuntu armv7 (emulated)
+        if: ${{ matrix.arch == 'armv7' }}
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: armv7
+          distro: ubuntu22.04
+          githubToken: ${{ github.token }}
+          shell: bash
+          install: |
+            set -euxo pipefail
+            apt-get update -y
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+              ca-certificates curl git tar xz-utils build-essential python3
+            # Install nvm and Node (try Node from .node-version, fallback to 18 LTS which supports armv7)
+            export NVM_DIR=/usr/local/nvm
+            mkdir -p "$NVM_DIR"
+            curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+            . "$NVM_DIR/nvm.sh"
+            NODE_VER=$(cat .node-version 2>/dev/null || echo "v20.10.0")
+            (nvm install "$NODE_VER" || nvm install 18) && nvm use --silent
+            node -v
+            # Setup corepack/pnpm pinned by packageManager
+            (corepack --version || npm i -g corepack) >/dev/null 2>&1 || true
+            corepack enable
+            # Respect packageManager field if present
+            PM_SPEC=$(node -e "try{const p=require('./package.json');console.log(p.packageManager||'')}catch(e){console.log('')}")
+            if [ -n "$PM_SPEC" ]; then corepack prepare "$PM_SPEC" --activate; else corepack prepare pnpm@9.15.2 --activate; fi
+          run: |
+            set -euxo pipefail
+            export NVM_DIR=/usr/local/nvm
+            . "$NVM_DIR/nvm.sh"
+            node -v
+            pnpm -v
+            # Prefetch and install (skip scripts to avoid native builds like better-sqlite3)
+            pnpm fetch
+            pnpm -F "bililive-cli"... install --frozen-lockfile --prefer-offline --ignore-scripts
+            pnpm -F "bililive-cli"... build
+            pnpm -F "bililive-cli" movePackage
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -123,6 +167,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node + pnpm (composite)
+        if: ${{ matrix.arch != 'armv7' }}
         uses: ./.github/actions/cli-setup
       
       # 发布模式下优先复用同一提交的构建产物
@@ -145,8 +190,43 @@ jobs:
         run: node ./scripts/github-ci-artifacts.js normalize-prebuilt --path packages/CLI/lib
 
       - name: Build CLI (composite)
-        if: ${{ steps.prebuilt.outputs.found != 'true' }}
+        if: ${{ steps.prebuilt.outputs.found != 'true' && matrix.arch != 'armv7' }}
         uses: ./.github/actions/cli-build
+
+      - name: Build CLI in Ubuntu armv7 (emulated)
+        if: ${{ steps.prebuilt.outputs.found != 'true' && matrix.arch == 'armv7' }}
+        uses: uraimo/run-on-arch-action@v2
+        with:
+          arch: armv7
+          distro: ubuntu22.04
+          githubToken: ${{ github.token }}
+          shell: bash
+          install: |
+            set -euxo pipefail
+            apt-get update -y
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+              ca-certificates curl git tar xz-utils build-essential python3
+            export NVM_DIR=/usr/local/nvm
+            mkdir -p "$NVM_DIR"
+            curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+            . "$NVM_DIR/nvm.sh"
+            NODE_VER=$(cat .node-version 2>/dev/null || echo "v20.10.0")
+            (nvm install "$NODE_VER" || nvm install 18) && nvm use --silent
+            node -v
+            (corepack --version || npm i -g corepack) >/dev/null 2>&1 || true
+            corepack enable
+            PM_SPEC=$(node -e "try{const p=require('./package.json');console.log(p.packageManager||'')}catch(e){console.log('')}")
+            if [ -n "$PM_SPEC" ]; then corepack prepare "$PM_SPEC" --activate; else corepack prepare pnpm@9.15.2 --activate; fi
+          run: |
+            set -euxo pipefail
+            export NVM_DIR=/usr/local/nvm
+            . "$NVM_DIR/nvm.sh"
+            node -v
+            pnpm -v
+            pnpm fetch
+            pnpm -F "bililive-cli"... install --frozen-lockfile --prefer-offline --ignore-scripts
+            pnpm -F "bililive-cli"... build
+            pnpm -F "bililive-cli" movePackage
 
       - name: Pack release zip (Node)
         run: pnpm -F bililive-cli zip:lib -- --os "${{ matrix.os }}" --arch "${{ matrix.arch }}"
