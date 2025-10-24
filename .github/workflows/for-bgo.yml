@@ -77,7 +77,9 @@ jobs:
             set -euxo pipefail
             apt-get update -y
             DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-              ca-certificates curl git tar xz-utils build-essential python3
+              ca-certificates curl git tar xz-utils build-essential python3 pkg-config \
+              libfontconfig1-dev libfreetype6-dev libcairo2-dev libpango1.0-dev libharfbuzz-dev \
+              libjpeg-dev libpng-dev librsvg2-dev
             # Install Node v20.10.0 for linux-armv7l from official tarball
             NODE_VER=20.10.0
             ARCH=linux-armv7l
@@ -100,9 +102,7 @@ jobs:
             pnpm -v
             # Prefetch only bililive-cli and its deps (avoid fetching whole monorepo)
             pnpm -F "bililive-cli"... fetch
-            # Hard-disable lifecycle scripts to avoid native builds (double guard)
-            export npm_config_ignore_scripts=true
-            pnpm -F "bililive-cli"... install --frozen-lockfile --prefer-offline --ignore-scripts
+            pnpm -F "bililive-cli"... install --frozen-lockfile --prefer-offline
             pnpm -F "bililive-cli"... build
             pnpm -F "bililive-cli" movePackage
 
@@ -207,7 +207,9 @@ jobs:
             set -euxo pipefail
             apt-get update -y
             DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-              ca-certificates curl git tar xz-utils build-essential python3
+              ca-certificates curl git tar xz-utils build-essential python3 pkg-config \
+              libfontconfig1-dev libfreetype6-dev libcairo2-dev libpango1.0-dev libharfbuzz-dev \
+              libjpeg-dev libpng-dev librsvg2-dev
             NODE_VER=20.10.0
             ARCH=linux-armv7l
             curl -fsSL "https://nodejs.org/dist/v${NODE_VER}/node-v${NODE_VER}-${ARCH}.tar.xz" -o /tmp/node.tar.xz
@@ -228,9 +230,7 @@ jobs:
             pnpm -v
             # Prefetch only bililive-cli and its deps (avoid fetching whole monorepo)
             pnpm -F "bililive-cli"... fetch
-            # Hard-disable lifecycle scripts to avoid native builds (double guard)
-            export npm_config_ignore_scripts=true
-            pnpm -F "bililive-cli"... install --frozen-lockfile --prefer-offline --ignore-scripts
+            pnpm -F "bililive-cli"... install --frozen-lockfile --prefer-offline
             pnpm -F "bililive-cli"... build
             pnpm -F "bililive-cli" movePackage
 
