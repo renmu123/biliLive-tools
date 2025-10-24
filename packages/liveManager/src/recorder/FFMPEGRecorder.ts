@@ -84,8 +84,8 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
     this.headers = opts.headers;
 
     this.command = this.createCommand();
-    this.streamManager.on("videoFileCreated", ({ filename, cover }) => {
-      this.emit("videoFileCreated", { filename, cover });
+    this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename }) => {
+      this.emit("videoFileCreated", { filename, cover, rawFilename });
     });
     this.streamManager.on("videoFileCompleted", ({ filename }) => {
       this.emit("videoFileCompleted", { filename });

@@ -56,6 +56,7 @@ describe("StreamManager", () => {
       filename: "mocked/path.ts",
       cover: "",
       title: "",
+      rawFilename: "mockedFilename.ts",
     });
   });
 
@@ -131,6 +132,7 @@ describe("Segment", () => {
       filename: "mocked/path.ts",
       cover: "",
       title: "",
+      rawFilename: "mockedFilename.ts",
     });
     expect(segmentManager.init).toBe(false);
   });

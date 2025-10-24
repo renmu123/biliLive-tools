@@ -102,9 +102,11 @@ const ffmpegInputOptions: string[] = [
   "-reconnect_streamed",
   "1",
   "-reconnect_delay_max",
-  "10",
+  "5",
   "-rw_timeout",
-  "15000000",
+  "10000000",
+  "-timeout",
+  "10000000",
 ];
 
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
@@ -294,8 +296,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  const handleVideoCreated = async ({ filename, title, cover }) => {
-    this.emit("videoFileCreated", { filename, cover });
+  const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
+    this.emit("videoFileCreated", { filename, cover, rawFilename });
 
     if (title && this?.liveInfo) {
       this.liveInfo.title = title;
