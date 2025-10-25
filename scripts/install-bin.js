@@ -102,8 +102,8 @@ async function downloadBaseBinary() {
 }
 
 async function downloadBin() {
-  // await downloadBaseBinary();
-  // await downloadMesio();
+  await downloadBaseBinary();
+  await downloadMesio();
   await downloadBililiveRecorder();
 }
 
