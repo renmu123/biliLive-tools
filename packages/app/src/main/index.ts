@@ -34,6 +34,7 @@ import {
   DANMUKUFACTORY_PATH,
   LOG_PATH,
   MESIO_PATH,
+  BILILIVERECORDER_PATH,
   __dirname2,
   getConfigPath,
 } from "./appConstant";
@@ -668,6 +669,7 @@ const appInit = async () => {
     defaultFfmpegPath: FFMPEG_PATH,
     defaultFfprobePath: FFPROBE_PATH,
     defaultMesioPath: MESIO_PATH,
+    defaultBililiveRecorderPath: BILILIVERECORDER_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
     userDataPath,
     version: app.getVersion(),

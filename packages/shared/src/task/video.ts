@@ -45,6 +45,7 @@ export const getFfmpegPath = () => {
     ffmpegPath = globalConfig.defaultFfmpegPath;
     ffprobePath = globalConfig.defaultFfprobePath;
     mesioPath = globalConfig.defaultMesioPath;
+    bililiveRecorderPath = globalConfig.defaultBililiveRecorderPath;
   }
 
   return {

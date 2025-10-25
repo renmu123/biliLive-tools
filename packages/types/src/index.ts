@@ -974,6 +974,7 @@ export interface GlobalConfig {
   defaultFfmpegPath: string;
   defaultFfprobePath: string;
   defaultMesioPath: string;
+  defaultBililiveRecorderPath: string;
   defaultDanmakuFactoryPath: string;
   version: string;
   userDataPath: string;
