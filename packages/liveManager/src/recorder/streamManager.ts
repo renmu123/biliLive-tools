@@ -197,7 +197,11 @@ export class StreamManager extends EventEmitter {
       }
     } else if (this.recorderType === "mesio") {
       if (this.segment && isMesioStartSegment(stderrLine)) {
-        await this.segment.onSegmentStart(stderrLine, this.callBack);
+        for (let line of stderrLine.split("\n")) {
+          if (isMesioStartSegment(line)) {
+            await this.segment.onSegmentStart(line, this.callBack);
+          }
+        }
       }
     } else if (this.recorderType === "bililive") {
       if (this.segment && isBililiveStartSegment(stderrLine)) {
