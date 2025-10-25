@@ -78,13 +78,16 @@ manager.startCheckLoop();
 ### setFFMPEGPath & setMesioPath
 
 ```ts
-import { setFFMPEGPath, setMesioPath } from "@bililive-tools/manager";
+import { setFFMPEGPath, setMesioPath, setBililivePath } from "@bililive-tools/manager";
 
 // 设置ffmpeg可执行路径
 setFFMPEGPath("ffmpeg.exe");
 
 // 设置mesio可执行文件路径
 setMesioPath("mesio.exe");
+
+// 设置录播姬录制器的可执行文件路径
+setBililivePath("BililiveRecorder.Cli.exe");
 ```
 
 ## savePathRule 占位符参数

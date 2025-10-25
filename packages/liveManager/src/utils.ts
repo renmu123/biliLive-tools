@@ -163,6 +163,10 @@ export function isMesioStartSegment(line: string) {
   return line.includes("Opening segment");
 }
 
+export function isBililiveStartSegment(line: string) {
+  return line.includes("创建录制文件");
+}
+
 export function isFfmpegStart(line: string) {
   return (
     (line.includes("frame=") && line.includes("fps=")) ||

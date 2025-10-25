@@ -83,6 +83,14 @@ export function getMesioPath(): string {
   return mesioPath;
 }
 
+let bililivePath: string = "BililiveRecorder.Cli";
+export function setBililivePath(newPath: string) {
+  bililivePath = newPath;
+}
+export function getBililivePath(): string {
+  return bililivePath;
+}
+
 export function getDataFolderPath<E extends AnyObject>(provider: RecorderProvider<E>): string {
   return "./" + provider.id;
 }

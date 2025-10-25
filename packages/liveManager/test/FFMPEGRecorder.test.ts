@@ -85,27 +85,13 @@ describe("FFMPEGRecorder", () => {
           {
             ...baseOpts,
             url: "https://example.com/stream.m3u8",
+            formatName: "ts",
           },
           mockOnEnd,
           mockOnUpdateLiveInfo,
         );
 
-        expect(recorder.formatName).toBe("ts");
         expect(recorder.isHls).toBe(true);
-      });
-
-      it("should default to flv format for non-m3u8 URLs", () => {
-        const recorder = new FFMPEGRecorder(
-          {
-            ...baseOpts,
-            url: "https://example.com/stream.flv",
-          },
-          mockOnEnd,
-          mockOnUpdateLiveInfo,
-        );
-
-        expect(recorder.formatName).toBe("flv");
-        expect(recorder.isHls).toBe(false);
       });
 
       it("should use explicit formatName over URL detection", () => {
@@ -329,59 +315,6 @@ describe("FFMPEGRecorder", () => {
         });
       });
     });
-
-    describe("URL-based format detection with various combinations", () => {
-      const urlTestCases = [
-        {
-          description: "m3u8 URL with auto videoFormat and no segment",
-          url: "https://example.com/playlist.m3u8",
-          opts: { segment: 0, videoFormat: "auto" as const },
-          expected: { formatName: "ts", videoFormat: "ts", isHls: true },
-        },
-        {
-          description: "m3u8 URL with auto videoFormat and segment",
-          url: "https://example.com/playlist.m3u8",
-          opts: { segment: 10, videoFormat: "auto" as const },
-          expected: { formatName: "ts", videoFormat: "ts", isHls: true },
-        },
-        {
-          description: "m3u8 URL with explicit mp4 videoFormat",
-          url: "https://example.com/playlist.m3u8",
-          opts: { segment: 0, videoFormat: "mp4" as const },
-          expected: { formatName: "ts", videoFormat: "mp4", isHls: true },
-        },
-        {
-          description: "flv URL with auto videoFormat and no segment",
-          url: "https://example.com/stream.flv",
-          opts: { segment: 0, videoFormat: "auto" as const },
-          expected: { formatName: "flv", videoFormat: "mp4", isHls: false },
-        },
-        {
-          description: "flv URL with auto videoFormat and segment",
-          url: "https://example.com/stream.flv",
-          opts: { segment: 10, videoFormat: "auto" as const },
-          expected: { formatName: "flv", videoFormat: "ts", isHls: false },
-        },
-      ];
-
-      urlTestCases.forEach(({ description, url, opts, expected }) => {
-        it(`should handle ${description}`, () => {
-          const recorder = new FFMPEGRecorder(
-            {
-              ...baseOpts,
-              url,
-              ...opts,
-            },
-            mockOnEnd,
-            mockOnUpdateLiveInfo,
-          );
-
-          expect(recorder.formatName).toBe(expected.formatName);
-          expect(recorder.videoFormat).toBe(expected.videoFormat);
-          expect(recorder.isHls).toBe(expected.isHls);
-        });
-      });
-    });
   });
 
   describe("StreamManager initialization", () => {
@@ -395,6 +328,7 @@ describe("FFMPEGRecorder", () => {
           segment: 10,
           outputOptions: ["-c:v", "copy"],
           videoFormat: "mkv",
+          formatName: "flv",
         },
         mockOnEnd,
         mockOnUpdateLiveInfo,
@@ -420,6 +354,7 @@ describe("FFMPEGRecorder", () => {
           segment: 0,
           outputOptions: ["-c:v", "copy"],
           disableDanma: true,
+          formatName: "flv",
         },
         mockOnEnd,
         mockOnUpdateLiveInfo,
@@ -444,6 +379,7 @@ describe("FFMPEGRecorder", () => {
           getSavePath: vi.fn().mockReturnValue("/test/path/video"),
           segment: 15, // 15 minutes
           outputOptions: ["-c:v", "copy"],
+          formatName: "flv",
         },
         mockOnEnd,
         mockOnUpdateLiveInfo,
@@ -466,6 +402,7 @@ describe("FFMPEGRecorder", () => {
           getSavePath: vi.fn().mockReturnValue("/test/path/video"),
           segment: 0,
           outputOptions: ["-c:v", "copy"],
+          formatName: "flv",
         },
         mockOnEnd,
         mockOnUpdateLiveInfo,
@@ -490,6 +427,7 @@ describe("FFMPEGRecorder", () => {
           segment: 0,
           outputOptions: ["-c:v", "copy"],
           videoFormat: "ts",
+          formatName: "ts",
         },
         mockOnEnd,
         mockOnUpdateLiveInfo,
@@ -511,6 +449,7 @@ describe("FFMPEGRecorder", () => {
           segment: 0,
           outputOptions: ["-c:v", "copy"],
           videoFormat: "mp4",
+          formatName: "ts",
         },
         mockOnEnd,
         mockOnUpdateLiveInfo,
@@ -531,6 +470,7 @@ describe("FFMPEGRecorder", () => {
           getSavePath: vi.fn().mockReturnValue("/test/path/video"),
           segment: 0,
           outputOptions: ["-c:v", "copy"],
+          formatName: "flv",
           // videoFormat is undefined
         },
         mockOnEnd,
@@ -538,38 +478,6 @@ describe("FFMPEGRecorder", () => {
       );
 
       expect(recorder.videoFormat).toBe("mp4"); // auto-detected default
-    });
-
-    it("should handle undefined formatName option", () => {
-      const recorder = new FFMPEGRecorder(
-        {
-          url: "https://example.com/stream.flv",
-          getSavePath: vi.fn().mockReturnValue("/test/path/video"),
-          segment: 0,
-          outputOptions: ["-c:v", "copy"],
-          // formatName is undefined
-        },
-        mockOnEnd,
-        mockOnUpdateLiveInfo,
-      );
-
-      expect(recorder.formatName).toBe("flv"); // detected from URL
-    });
-
-    it("should handle complex URLs with parameters", () => {
-      const recorder = new FFMPEGRecorder(
-        {
-          url: "https://example.com/stream.m3u8?token=abc123&quality=high",
-          getSavePath: vi.fn().mockReturnValue("/test/path/video"),
-          segment: 0,
-          outputOptions: ["-c:v", "copy"],
-        },
-        mockOnEnd,
-        mockOnUpdateLiveInfo,
-      );
-
-      expect(recorder.formatName).toBe("ts"); // should still detect m3u8
-      expect(recorder.isHls).toBe(true);
     });
   });
 });

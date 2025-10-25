@@ -304,6 +304,10 @@ export const recorderTypeOptions = [
     value: "mesio",
     label: "mesio优先",
   },
+  {
+    value: "bililive",
+    label: "录播姬引擎优先",
+  },
 ];
 
 // 录制调试等级
@@ -359,11 +363,11 @@ export const textInfo = {
   common: {
     format: {
       text: "视频格式",
-      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为mp4<br/>mesio录制器：不支持指定",
+      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为mp4<br/>mesio和录播姬引擎不支持指定",
     },
     recorderType: {
       text: "录制器",
-      tip: "影响最底层的录制，自动选择默认使用ffmpeg，如果使用ffmpeg经常出现问题，如时间戳跳变，卡顿，音画不同步等，可以尝试切换mesio，<b>mesio目前仅推荐小规模测试使用</b>",
+      tip: "影响最底层的录制，自动选择默认使用ffmpeg，如果使用ffmpeg经常出现问题，如时间戳跳变，卡顿，音画不同步等，可以尝试切换mesio或录播姬引擎，录播姬引擎不支持只录制音频<b>目前仅推荐小规模测试使用</b>",
     },
   },
   bili: {

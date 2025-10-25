@@ -186,6 +186,7 @@ router.post("/import", upload.single("file"), async (ctx) => {
             appConfig.ffprobePath = data.ffprobePath;
             appConfig.danmuFactoryPath = data.danmuFactoryPath;
             appConfig.mesioPath = data.mesioPath;
+            appConfig.bililiveRecorderPath = data.bililiveRecorderPath;
             appConfig.webhook.recoderFolder = data.webhook.recoderFolder;
             appConfig.recorder.savePath = data.recorder.savePath;
             appConfig.losslessCutPath = data.losslessCutPath;

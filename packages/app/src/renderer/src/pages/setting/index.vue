@@ -189,6 +189,27 @@
                   <FolderOpenOutline />
                 </n-icon>
               </n-form-item>
+              <n-form-item>
+                <template #label>
+                  <Tip
+                    text="录播姬命令行路径"
+                    tip="并非官方版本，请先去项目下载：https://github.com/renmu123/BililiveRecorder"
+                  ></Tip>
+                </template>
+                <n-input
+                  v-model:value="config.bililiveRecorderPath"
+                  placeholder="请输入bililiveRecorder可执行文件路径"
+                />
+                <n-icon
+                  style="margin-left: 10px"
+                  size="26"
+                  class="pointer"
+                  v-if="!isWeb"
+                  @click="selectFile('bililive', config.bililiveRecorderPath)"
+                >
+                  <FolderOpenOutline />
+                </n-icon>
+              </n-form-item>
             </template>
 
             <n-form-item label="lossless-cut路径">
@@ -484,7 +505,7 @@ const getConfig = async () => {
  * @param defaultPath 默认地址
  */
 const selectFile = async (
-  type: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut" | "mesio" | "cache",
+  type: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut" | "mesio" | "cache" | "bililive",
   defaultPath: string,
 ) => {
   const files = await window.api.openFile({
@@ -503,6 +524,8 @@ const selectFile = async (
     config.value.losslessCutPath = files[0];
   } else if (type === "mesio") {
     config.value.mesioPath = files[0];
+  } else if (type === "bililive") {
+    config.value.bililiveRecorderPath = files[0];
   } else {
     console.error("未知文件类型");
   }
