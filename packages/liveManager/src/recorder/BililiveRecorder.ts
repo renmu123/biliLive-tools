@@ -34,7 +34,7 @@ class BililiveRecorderCommand extends EventEmitter {
   }
 
   _getArguments(): string[] {
-    const args: string[] = ["downloader"];
+    const args: string[] = ["downloader", "-p"];
 
     // Add input source
     if (this._input) {
@@ -193,9 +193,29 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
       .on("stderr", async (stderrLine) => {
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
         await this.streamManager.handleVideoStarted(stderrLine);
+        const info = this.formatLine(stderrLine);
+        if (info) {
+          this.emit("progress", info);
+        }
       });
 
     return command;
+  }
+
+  formatLine(line: string) {
+    if (!line.includes("下载进度:")) {
+      return null;
+    }
+    let time: string | null = null;
+
+    const timeMatch = line.match(/录制时长:\s*([0-9:]+)\s/);
+    if (timeMatch) {
+      time = timeMatch[1];
+    }
+
+    return {
+      time,
+    };
   }
 
   public run() {
