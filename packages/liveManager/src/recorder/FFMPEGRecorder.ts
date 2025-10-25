@@ -102,6 +102,11 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
       "-user_agent",
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
     ];
+    if (this.isHls) {
+      inputOptions.push(
+        ...["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "3"],
+      );
+    }
     if (this.debugLevel === "verbose") {
       inputOptions.push("-loglevel", "debug");
     }

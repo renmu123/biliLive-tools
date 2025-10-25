@@ -96,18 +96,7 @@ const ffmpegOutputOptions: string[] = [
   "-min_frag_duration",
   "10000000",
 ];
-const ffmpegInputOptions: string[] = [
-  "-reconnect",
-  "1",
-  "-reconnect_streamed",
-  "1",
-  "-reconnect_delay_max",
-  "5",
-  "-rw_timeout",
-  "10000000",
-  "-timeout",
-  "10000000",
-];
+const ffmpegInputOptions: string[] = ["-rw_timeout", "10000000", "-timeout", "10000000"];
 
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
