@@ -86,3 +86,5 @@ export function getMesioPath(): string {
 export function getDataFolderPath<E extends AnyObject>(provider: RecorderProvider<E>): string {
   return "./" + provider.id;
 }
+
+export type VideoFormat = "auto" | "ts" | "mkv" | "flv" | "mp4" | "m4s";

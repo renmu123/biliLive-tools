@@ -4,6 +4,8 @@ import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
 import { createInvalidStreamChecker, assert } from "../utils.js";
 import { IRecorder, FFMPEGRecorderOptions } from "./IRecorder.js";
 
+import type { VideoFormat } from "../index.js";
+
 export class FFMPEGRecorder extends EventEmitter implements IRecorder {
   private command: ReturnType<typeof createFFMPEGBuilder>;
   private streamManager: StreamManager;
@@ -17,7 +19,7 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
   readonly disableDanma: boolean = false;
   readonly url: string;
   formatName: "flv" | "ts" | "fmp4";
-  videoFormat: "ts" | "mkv" | "mp4";
+  videoFormat: VideoFormat;
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
   readonly headers:
     | {

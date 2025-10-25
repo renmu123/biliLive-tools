@@ -288,6 +288,10 @@ export const videoFormatOptions = [
     value: "mkv",
     label: "MKV",
   },
+  {
+    value: "flv",
+    label: "FLV",
+  },
 ];
 
 // 录制器
@@ -359,7 +363,7 @@ export const textInfo = {
   common: {
     format: {
       text: "视频格式",
-      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为mp4<br/>mesio录制器：不支持指定",
+      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为mp4，<b>我不想加flv的，总有人问，出问题别找我</b><br/>mesio录制器：不支持指定",
     },
     recorderType: {
       text: "录制器",

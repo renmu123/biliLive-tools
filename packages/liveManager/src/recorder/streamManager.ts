@@ -13,10 +13,10 @@ import {
 } from "../utils.js";
 
 import type { RecorderCreateOpts } from "../recorder.js";
+import type { VideoFormat } from "../index.js";
 
 export type GetSavePath = (data: { startTime: number; title?: string }) => string;
 type RecorderType = Exclude<RecorderCreateOpts["recorderType"], undefined | "auto">;
-type VideoFormat = "auto" | "ts" | "mkv" | "flv" | "mp4" | "m4s";
 
 export class Segment extends EventEmitter {
   extraDataController: ReturnType<typeof createRecordExtraDataController> | null = null;
