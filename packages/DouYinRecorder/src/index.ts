@@ -260,6 +260,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
+      onlyAudio: stream.onlyAudio,
       headers: {
         Cookie: this.auth,
       },

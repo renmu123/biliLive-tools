@@ -44,7 +44,7 @@ type RecorderOpts = FFMPEGRecorderOptions | MesioRecorderOptions | BililiveRecor
  */
 export function createRecorder<T extends RecorderType>(
   type: T,
-  opts: RecorderOptions<T>,
+  opts: RecorderOptions<T> & { onlyAudio?: boolean },
   onEnd: (...args: unknown[]) => void,
   onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
 ): IRecorder {
@@ -62,18 +62,21 @@ export function createRecorder<T extends RecorderType>(
     ) as RecorderInstance<T>;
   } else if (type === "bililive") {
     if (opts.formatName === "flv") {
-      return new BililiveRecorder(
-        opts as BililiveRecorderOptions,
-        onEnd,
-        onUpdateLiveInfo,
-      ) as RecorderInstance<T>;
-    } else {
-      return new FFMPEGRecorder(
-        opts as FFMPEGRecorderOptions,
-        onEnd,
-        onUpdateLiveInfo,
-      ) as RecorderInstance<T>;
+      // 录播姬引擎不支持只录音频
+      if (!opts.onlyAudio) {
+        return new BililiveRecorder(
+          opts as BililiveRecorderOptions,
+          onEnd,
+          onUpdateLiveInfo,
+        ) as RecorderInstance<T>;
+      }
     }
+
+    return new FFMPEGRecorder(
+      opts as FFMPEGRecorderOptions,
+      onEnd,
+      onUpdateLiveInfo,
+    ) as RecorderInstance<T>;
   } else {
     throw new Error(`Unsupported recorder type: ${type}`);
   }
@@ -128,7 +131,7 @@ type PickPartial<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>> & Partial<
  */
 export function createBaseRecorder(
   type: "auto" | RecorderType | undefined,
-  opts: PickPartial<RecorderOpts, "formatName">,
+  opts: PickPartial<RecorderOpts, "formatName"> & { onlyAudio?: boolean },
   onEnd: (...args: unknown[]) => void,
   onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
 ): IRecorder {
