@@ -356,6 +356,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     const extraDataController = recorder.getExtraDataController();
     if (!extraDataController) return;
     if (this.saveGiftDanma === false) return;
+    // repeatEnd 表示礼物连击完毕，只记录这个礼物
+    if (!msg.repeatEnd) return;
 
     const serverTimestamp =
       Number(msg.common.createTime) > 9999999999

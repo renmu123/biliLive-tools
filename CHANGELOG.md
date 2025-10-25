@@ -20,8 +20,13 @@
 - 录制：优化录制页面的请求元数据接口数量
 - 录制：尽可能避免斗鱼的scdn节点
 - 录制：优化弹幕连接的重试操作
+- 录制：优化ffmpeg的重连策略 [#204](https://github.com/renmu123/biliLive-tools/issues/204)
 - webhook：转封装任务会自动开始 [#202](https://github.com/renmu123/biliLive-tools/issues/202)
 - 优化初始化时界面可能不在视界内的情况
+
+## Bug修复
+
+- 录制：修复抖音礼物数量重复记录 [#210](https://github.com/renmu123/biliLive-tools/issues/210)
 
 # 3.1.2(2025.10.19)
 
