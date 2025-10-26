@@ -264,6 +264,11 @@ export const useAppConfig = defineStore("appConfig", () => {
         keepFirstVideoMeta: false,
         mergeXml: false,
       },
+      flvRepair: {
+        type: "bililive",
+        saveRadio: 1,
+        savePath: "",
+      },
       download: {
         savePath: "",
         danmu: "none",

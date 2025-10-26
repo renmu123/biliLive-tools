@@ -132,6 +132,11 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       keepFirstVideoMeta: false,
       mergeXml: false,
     },
+    flvRepair: {
+      type: "bililive",
+      saveRadio: 1,
+      savePath: "",
+    },
     download: {
       savePath: "",
       danmu: "none",
