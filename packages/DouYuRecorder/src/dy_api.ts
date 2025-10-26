@@ -26,6 +26,7 @@ export async function getLiveInfo(opts: {
       isSupportRateSwitch: boolean;
       isOriginalStream: boolean;
       currentStream: {
+        onlyAudio: boolean;
         source: string;
         name: string;
         rate: number;
@@ -86,12 +87,17 @@ export async function getLiveInfo(opts: {
 
     throw new Error("Unexpected error code, " + json.error);
   }
+  console.log(JSON.stringify(json, null, 2));
 
   const streamUrl = `${json.data.rtmp_url}/${json.data.rtmp_live}`;
   let cdn = json.data.rtmp_cdn;
+  let onlyAudio = false;
   try {
     const url = new URL(streamUrl);
     cdn = url.searchParams.get("fcdn") ?? "";
+    if (url.searchParams.get("only-audio") == "1") {
+      onlyAudio = true;
+    }
   } catch (error) {
     console.warn("解析 rtmp_url 失败", error);
   }
@@ -103,6 +109,7 @@ export async function getLiveInfo(opts: {
     isSupportRateSwitch: json.data.rateSwitch === 1,
     isOriginalStream: json.data.rateSwitch !== 1,
     currentStream: {
+      onlyAudio,
       source: cdn,
       name:
         json.data.rateSwitch !== 1

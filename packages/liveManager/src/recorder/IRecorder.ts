@@ -1,5 +1,7 @@
 import { EventEmitter } from "node:events";
 
+import type { FormatName } from "./index.js";
+
 /**
  * 录制器构造函数选项的基础接口
  */
@@ -9,11 +11,12 @@ export interface BaseRecorderOptions {
   segment: number;
   inputOptions?: string[];
   disableDanma?: boolean;
-  formatName?: "flv" | "ts" | "fmp4";
+  formatName: FormatName;
   debugLevel?: "none" | "basic" | "verbose";
   headers?: {
     [key: string]: string | undefined;
   };
+  videoFormat?: "auto" | "ts" | "mkv" | "mp4";
 }
 
 /**
@@ -21,10 +24,10 @@ export interface BaseRecorderOptions {
  */
 export interface IRecorder extends EventEmitter {
   // 基础属性
+  type: "ffmpeg" | "mesio" | "bililive";
   readonly hasSegment: boolean;
   readonly segment: number;
   readonly inputOptions: string[];
-  readonly isHls: boolean;
   readonly disableDanma: boolean;
   readonly url: string;
   readonly headers: { [key: string]: string | undefined } | undefined;
@@ -62,7 +65,6 @@ export interface IRecorder extends EventEmitter {
  */
 export interface FFMPEGRecorderOptions extends BaseRecorderOptions {
   outputOptions: string[];
-  videoFormat?: "auto" | "ts" | "mkv" | "mp4";
 }
 
 /**
@@ -70,5 +72,11 @@ export interface FFMPEGRecorderOptions extends BaseRecorderOptions {
  */
 export interface MesioRecorderOptions extends BaseRecorderOptions {
   outputOptions?: string[];
-  isHls?: boolean;
+}
+
+/**
+ * Bililive录制器特定选项
+ */
+export interface BililiveRecorderOptions extends BaseRecorderOptions {
+  outputOptions?: string[];
 }

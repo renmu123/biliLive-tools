@@ -12,6 +12,7 @@ import {
   createRecorderManager as createManager,
   setFFMPEGPath,
   setMesioPath,
+  setBililivePath,
   utils,
 } from "@bililive-tools/manager";
 
@@ -116,9 +117,10 @@ export async function createRecorderManager(appConfig: AppConfig) {
   }
 
   const config = appConfig.getAll();
-  const { ffmpegPath, mesioPath } = getFfmpegPath();
+  const { ffmpegPath, mesioPath, bililiveRecorderPath } = getFfmpegPath();
   setFFMPEGPath(ffmpegPath);
   setMesioPath(mesioPath);
+  setBililivePath(bililiveRecorderPath);
 
   const savePathRule = path.join(config?.recorder?.savePath, config?.recorder?.nameRule);
   const autoCheckInterval = config?.recorder?.checkInterval ?? 60;
@@ -341,9 +343,10 @@ export async function createRecorderManager(appConfig: AppConfig) {
   });
 
   appConfig.on("update", () => {
-    const { ffmpegPath, mesioPath } = getFfmpegPath();
+    const { ffmpegPath, mesioPath, bililiveRecorderPath } = getFfmpegPath();
     setFFMPEGPath(ffmpegPath);
     setMesioPath(mesioPath);
+    setBililivePath(bililiveRecorderPath);
     updateRecorderManager(manager, appConfig);
   });
 

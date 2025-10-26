@@ -91,18 +91,7 @@ const ffmpegOutputOptions: string[] = [
   "-min_frag_duration",
   "10000000",
 ];
-const ffmpegInputOptions: string[] = [
-  "-reconnect",
-  "1",
-  "-reconnect_streamed",
-  "1",
-  "-reconnect_delay_max",
-  "5",
-  "-rw_timeout",
-  "10000000",
-  "-timeout",
-  "10000000",
-];
+const ffmpegInputOptions: string[] = ["-rw_timeout", "10000000", "-timeout", "10000000"];
 
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
@@ -237,10 +226,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  let recorderType: Parameters<typeof createBaseRecorder>[0] =
-    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   const recorder = createBaseRecorder(
-    recorderType,
+    this.recorderType,
     {
       url: stream.url,
       outputOptions: ffmpegOutputOptions,
