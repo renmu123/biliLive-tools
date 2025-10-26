@@ -32,7 +32,7 @@
 ## Bug修复
 
 - 录制：修复抖音礼物数量重复记录 [#210](https://github.com/renmu123/biliLive-tools/issues/210)
-- 录制：
+- 录制：修复mesio录制器某些情况下提取文件名错误的bug
 
 # 3.1.2(2025.10.19)
 
