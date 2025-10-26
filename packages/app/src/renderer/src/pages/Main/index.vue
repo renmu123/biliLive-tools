@@ -102,7 +102,7 @@ const { userInfo } = storeToRefs(useUserInfoStore());
 const route = useRoute();
 const activeKey = ref("Home");
 activeKey.value = route.name as string;
-const collapsed = useStorage("collapsed", true);
+const collapsed = useStorage("collapsed", false);
 
 appConfig.getAppConfig();
 
