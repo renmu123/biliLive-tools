@@ -1,3 +1,7 @@
+# Next
+
+- `recordHandle` 新增参数 `recorderType`
+
 # 1.8.0
 
 - 新增`debugLevel`参数，支持`none`、`basic`、`verbose`

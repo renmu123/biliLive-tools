@@ -1,3 +1,7 @@
+# Next
+
+- `recordHandle` 新增参数 `recorderType`
+
 # 1.8.0
 
 - 标题黑名单增加额外状态
