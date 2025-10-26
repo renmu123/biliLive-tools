@@ -1,5 +1,9 @@
 # Next
 
+- `recordHandle` 新增参数 `recorderType`
+
+# 1.8.0
+
 - 触发标题黑名单设定额外状态
 - 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
 - 尽可能避免scdn

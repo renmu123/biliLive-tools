@@ -4,6 +4,8 @@ import { RecorderProvider } from "./manager.js";
 import { AnyObject, PickRequired, UnknownObject } from "./utils.js";
 import { Cache } from "./cache.js";
 
+import type { RecorderType } from "./recorder/index.js";
+
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
 
@@ -113,6 +115,7 @@ export interface RecordHandle {
   id: string;
   stream: string;
   source: string;
+  recorderType?: RecorderType;
   url: string;
   ffmpegArgs?: string[];
   progress?: Progress;

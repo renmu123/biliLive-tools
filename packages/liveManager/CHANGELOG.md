@@ -1,5 +1,9 @@
 # Next
 
+- `recordHandle` 新增参数 `recorderType`
+
+# 1.8.0
+
 - 标题黑名单增加额外状态
 - 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
 - 增加`maxThreadCount`参数任务并发数
