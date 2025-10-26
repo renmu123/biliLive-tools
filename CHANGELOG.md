@@ -1,4 +1,8 @@
-# Next
+# 3.2.0(2025.10.26)
+
+为自己生日提前发个版本~~希望不会有bug就是了~~
+
+本版本最惊喜的是支持了录播姬的录制引擎，希望可以替代ffmpeg的flv下载引擎~~这话怎么有点耳熟~~，所以安装包又大了50M。
 
 ## 破坏性更改
 
@@ -6,9 +10,9 @@
 
 ## 功能
 
+- 录制：录播姬引擎支持 [#211](https://github.com/renmu123/biliLive-tools/pull/211)
 - 录制：支持虎牙&抖音支持标题黑名单 [#196](https://github.com/renmu123/biliLive-tools/pull/196)
 - 录制：并发&等待时间参数 [#201](https://github.com/renmu123/biliLive-tools/pull/201)
-- 录制：录播姬引擎支持
 - B站上传：“B站上传文件名”支持选项 [#198](https://github.com/renmu123/biliLive-tools/pull/198)
 - B站上传：支持“投稿最短间隔”参数来对抗风控 [#194](https://github.com/renmu123/biliLive-tools/pull/194)
 - 切片：客户端支持“切片独立窗口”选项，支持在新窗口打开页面 [#199](https://github.com/renmu123/biliLive-tools/pull/199)
@@ -28,6 +32,7 @@
 ## Bug修复
 
 - 录制：修复抖音礼物数量重复记录 [#210](https://github.com/renmu123/biliLive-tools/issues/210)
+- 录制：
 
 # 3.1.2(2025.10.19)
 

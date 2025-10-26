@@ -1,4 +1,4 @@
-# Next
+# 1.8.0
 
 - 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
 - 支持标题黑名单
