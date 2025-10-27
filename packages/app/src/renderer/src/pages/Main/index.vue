@@ -73,7 +73,7 @@ import { useStorage } from "@vueuse/core";
 import { NIcon } from "naive-ui";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
-  BuildOutline as BookIcon,
+  BuildOutline as BuildIcon,
   HomeOutline as HomeIcon,
   InformationCircleOutline as InfoIcon,
   GitPullRequestOutline as QueueIcon,
@@ -81,6 +81,7 @@ import {
   LogOutOutline,
 } from "@vicons/ionicons5";
 import { DashboardOutlined as DashboardIcon, LiveTvRound } from "@vicons/material";
+import { VideoClip20Regular } from "@vicons/fluent";
 
 import defaultUserAvatar from "../../assets/images/moehime.jpg";
 import AppSettingDialog from "../../pages/setting/index.vue";
@@ -101,7 +102,7 @@ const { userInfo } = storeToRefs(useUserInfoStore());
 const route = useRoute();
 const activeKey = ref("Home");
 activeKey.value = route.name as string;
-const collapsed = useStorage("collapsed", true);
+const collapsed = useStorage("collapsed", false);
 
 appConfig.getAppConfig();
 
@@ -249,6 +250,35 @@ const menuOptions = computed<MenuOption[]>(() => {
         ),
     },
     {
+      key: "BiliDownload",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "BiliDownload",
+            },
+          },
+          { default: () => "下载订阅" },
+        ),
+    },
+    {
+      key: "FileSync",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "FileSync",
+            },
+          },
+          { default: () => "文件同步" },
+        ),
+    },
+  ];
+
+  const videoProcessingSubMenus = [
+    {
       key: "videoCut",
       label: () => {
         if (!isWeb.value && appConfig.appConfig.cutPageInNewWindow) {
@@ -300,32 +330,6 @@ const menuOptions = computed<MenuOption[]>(() => {
           { default: () => "视频合并" },
         ),
     },
-    {
-      key: "BiliDownload",
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: "BiliDownload",
-            },
-          },
-          { default: () => "下载订阅" },
-        ),
-    },
-    {
-      key: "FileSync",
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: "FileSync",
-            },
-          },
-          { default: () => "文件同步" },
-        ),
-    },
   ];
   const menus = [
     {
@@ -371,9 +375,15 @@ const menuOptions = computed<MenuOption[]>(() => {
       icon: renderIcon(DashboardIcon),
     },
     {
+      label: () => h("span", "视频处理"),
+      key: "videoProcessing",
+      icon: renderIcon(VideoClip20Regular),
+      children: videoProcessingSubMenus,
+    },
+    {
       label: () => h("span", "工具"),
       key: "tools",
-      icon: renderIcon(BookIcon),
+      icon: renderIcon(BuildIcon),
       children: toolsSubMenus,
     },
     {

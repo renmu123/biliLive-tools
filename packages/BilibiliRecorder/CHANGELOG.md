@@ -1,7 +1,12 @@
 # Next
 
+- `recordHandle` 新增参数 `recorderType`
+
+# 1.8.0
+
 - 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
 - 触发标题黑名单设定额外状态
+- 录播姬引擎支持
 
 # 1.7.1
 

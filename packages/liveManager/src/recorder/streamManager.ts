@@ -7,6 +7,7 @@ import {
   ensureFolderExist,
   isFfmpegStartSegment,
   isMesioStartSegment,
+  isBililiveStartSegment,
   isFfmpegStart,
   retry,
   cleanTerminalText,
@@ -196,6 +197,14 @@ export class StreamManager extends EventEmitter {
       }
     } else if (this.recorderType === "mesio") {
       if (this.segment && isMesioStartSegment(stderrLine)) {
+        for (let line of stderrLine.split("\n")) {
+          if (isMesioStartSegment(line)) {
+            await this.segment.onSegmentStart(line, this.callBack);
+          }
+        }
+      }
+    } else if (this.recorderType === "bililive") {
+      if (this.segment && isBililiveStartSegment(stderrLine)) {
         await this.segment.onSegmentStart(stderrLine, this.callBack);
       }
     }
@@ -215,6 +224,10 @@ export class StreamManager extends EventEmitter {
       if (this.segment) {
         await this.segment.handleSegmentEnd();
       }
+    } else if (this.recorderType === "bililive") {
+      if (this.segment) {
+        await this.segment.handleSegmentEnd();
+      }
     }
   }
 
@@ -227,6 +240,8 @@ export class StreamManager extends EventEmitter {
       return this.videoFormat;
     } else if (this.recorderType === "mesio") {
       return this.videoFormat;
+    } else if (this.recorderType === "bililive") {
+      return "flv";
     } else {
       throw new Error("Unknown recorderType");
     }
@@ -239,6 +254,8 @@ export class StreamManager extends EventEmitter {
         : `${this.recordSavePath}.${this.videoExt}`;
     } else if (this.recorderType === "mesio") {
       return `${this.recordSavePath}-PART%i.${this.videoExt}`;
+    } else if (this.recorderType === "bililive") {
+      return `${this.recordSavePath}.${this.videoExt}`;
     }
 
     return `${this.recordSavePath}.${this.videoExt}`;

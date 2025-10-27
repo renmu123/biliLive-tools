@@ -1,11 +1,23 @@
 # Next
 
+## 优化
+
+- UI：tab默认为展开模式
+- 录制：列表模式显示使用的录制器参数
+
+# 3.2.0(2025.10.26)
+
+为自己生日提前发个版本~~希望不会有bug就是了~~
+
+本版本最惊喜的是支持了录播姬的录制引擎，希望可以替代ffmpeg的flv下载引擎~~这话怎么有点耳熟~~，所以安装包又大了50M。
+
 ## 破坏性更改
 
 - 录制：“调试模式”参数已被废弃，请配置新的“调试模式”参数，支持 无，基础，详细 三种模式 [#190](https://github.com/renmu123/biliLive-tools/pull/190)
 
 ## 功能
 
+- 录制：录播姬引擎支持 [#211](https://github.com/renmu123/biliLive-tools/pull/211)
 - 录制：支持虎牙&抖音支持标题黑名单 [#196](https://github.com/renmu123/biliLive-tools/pull/196)
 - 录制：并发&等待时间参数 [#201](https://github.com/renmu123/biliLive-tools/pull/201)
 - B站上传：“B站上传文件名”支持选项 [#198](https://github.com/renmu123/biliLive-tools/pull/198)
@@ -18,8 +30,16 @@
 - 录制：重命名失败时仍发送相关事件避免卡住流程
 - 录制：优化录制遇到标题黑名单的UI展示
 - 录制：优化录制页面的请求元数据接口数量
+- 录制：尽可能避免斗鱼的scdn节点
 - 录制：优化弹幕连接的重试操作
+- 录制：优化ffmpeg的重连策略 [#204](https://github.com/renmu123/biliLive-tools/issues/204)
 - webhook：转封装任务会自动开始 [#202](https://github.com/renmu123/biliLive-tools/issues/202)
+- 优化初始化时界面可能不在视界内的情况
+
+## Bug修复
+
+- 录制：修复抖音礼物数量重复记录 [#210](https://github.com/renmu123/biliLive-tools/issues/210)
+- 录制：修复mesio录制器某些情况下提取文件名错误的bug
 
 # 3.1.2(2025.10.19)
 

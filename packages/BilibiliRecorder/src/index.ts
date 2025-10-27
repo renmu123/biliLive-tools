@@ -96,12 +96,6 @@ const ffmpegOutputOptions: string[] = [
   "10000000",
 ];
 const ffmpegInputOptions: string[] = [
-  "-reconnect",
-  "1",
-  "-reconnect_streamed",
-  "1",
-  "-reconnect_delay_max",
-  "5",
   "-rw_timeout",
   "10000000",
   "-timeout",
@@ -243,15 +237,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  let recorderType: Parameters<typeof createBaseRecorder>[0] =
-    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   const recorder = createBaseRecorder(
-    recorderType,
+    this.recorderType,
     {
       url: url,
       outputOptions: ffmpegOutputOptions,
       inputOptions: ffmpegInputOptions,
-      mesioOptions: ["-H", "Referer:https://live.bilibili.com/"],
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
         getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),
@@ -259,6 +250,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat,
       debugLevel: this.debugLevel ?? "none",
+      headers: {
+        Referer: "https://live.bilibili.com/",
+      },
     },
     onEnd,
     async () => {
@@ -390,6 +384,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     id: genRecordUUID(),
     stream: stream.name,
     source: stream.source,
+    recorderType: recorder.type,
     url: stream.url,
     ffmpegArgs,
     savePath: savePath,
