@@ -28,7 +28,7 @@ export interface XmlStreamController {
   /** 设计上来说，外部程序不应该能直接修改 data 上的东西 */
   readonly data: XmlStreamData;
   addMessage: (message: Message) => void;
-  setMeta: (meta: Partial<XmlStreamData["meta"]>) => void;
+  setMeta: (meta: Partial<XmlStreamData["meta"]>) => Promise<void>;
   flush: () => Promise<void>;
 }
 
@@ -101,12 +101,16 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
     scheduleWrite();
   };
 
-  const setMeta: XmlStreamController["setMeta"] = (meta) => {
+  const setMeta: XmlStreamController["setMeta"] = async (meta) => {
     if (hasCompleted) return;
     data.meta = {
       ...data.meta,
       ...meta,
     };
+
+    // 确保文件已初始化，然后立即更新文件中的metadata
+    await initializeFile().catch(console.error);
+    await updateMetadataInFile(savePath, data.meta).catch(console.error);
   };
 
   const flush: XmlStreamController["flush"] = async () => {
@@ -120,7 +124,7 @@ export function createRecordExtraDataController(savePath: string): XmlStreamCont
     }
 
     // 完成XML文件（添加结束标签等）
-    await finalizeXmlFile(savePath, data.meta);
+    await finalizeXmlFile(savePath);
 
     // 清理内存
     data.pendingMessages = [];
@@ -247,9 +251,12 @@ async function appendToXmlFile(filePath: string, content: string): Promise<void>
 }
 
 /**
- * 完成XML文件写入
+ * 更新XML文件中的metadata
  */
-async function finalizeXmlFile(filePath: string, metadata: XmlStreamData["meta"]): Promise<void> {
+async function updateMetadataInFile(
+  filePath: string,
+  metadata: XmlStreamData["meta"],
+): Promise<void> {
   try {
     const builder = new XMLBuilder({
       ignoreAttributes: false,
@@ -272,8 +279,27 @@ async function finalizeXmlFile(filePath: string, metadata: XmlStreamData["meta"]
     // 读取文件内容
     const content = await fs.promises.readFile(filePath, "utf-8");
 
-    // 替换占位符为实际的metadata，并添加结束标签
-    const finalContent = content.replace("<!--METADATA_PLACEHOLDER-->", metadataXml) + "</i>";
+    // 替换占位符为实际的metadata
+    const updatedContent = content.replace("<!--METADATA_PLACEHOLDER-->", metadataXml);
+
+    // 写回文件
+    await fs.promises.writeFile(filePath, updatedContent);
+  } catch (error) {
+    console.error(`更新XML文件metadata失败: ${filePath}`, error);
+    throw error;
+  }
+}
+
+/**
+ * 完成XML文件写入
+ */
+async function finalizeXmlFile(filePath: string): Promise<void> {
+  try {
+    // 读取文件内容
+    const content = await fs.promises.readFile(filePath, "utf-8");
+
+    // 添加结束标签
+    const finalContent = content + "</i>";
 
     // 写回文件
     await fs.promises.writeFile(filePath, finalContent);

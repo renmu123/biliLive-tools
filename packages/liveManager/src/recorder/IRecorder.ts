@@ -1,6 +1,7 @@
 import { EventEmitter } from "node:events";
 
 import type { FormatName } from "./index.js";
+import type { XmlStreamController } from "../xml_stream_controller.js";
 
 /**
  * 录制器构造函数选项的基础接口
@@ -37,7 +38,7 @@ export interface IRecorder extends EventEmitter {
   run(): void;
   stop(): Promise<void>;
   getArguments(): string[];
-  getExtraDataController(): any;
+  getExtraDataController(): XmlStreamController | null;
   createCommand(): any;
 
   // 事件类型定义

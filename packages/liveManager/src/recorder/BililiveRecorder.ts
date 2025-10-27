@@ -58,7 +58,6 @@ class BililiveRecorderCommand extends EventEmitter {
   run(): void {
     const args = this._getArguments();
     const bililiveExecutable = getBililivePath();
-    console.log("Starting BililiveRecorder with args:", bililiveExecutable, args);
 
     this.process = spawn(bililiveExecutable, args, {
       stdio: ["pipe", "pipe", "pipe"],
