@@ -1,3 +1,4 @@
+import path from "node:path";
 import fs from "fs-extra";
 import EventEmitter from "node:events";
 import { TypedEmitter } from "tiny-typed-emitter";
@@ -1163,19 +1164,33 @@ export class FlvRepairTask extends AbstractTask {
     super();
     this.instance = instance;
     this.input = options.input;
-    this.output = options.output;
     this.progress = 0;
     if (options.name) {
       this.name = options.name;
     }
     this.action = ["kill"];
     this.callback = callback || {};
+    const { dir } = path.parse(options.output);
+    this.output = dir;
 
     this.instance.on("progress", (progress: any) => {
-      // console.log("sync progress", progress);
-      // callback?.onProgress && callback.onProgress(progress.percentage);
-      // this.progress = progress.percentage;
+      callback?.onProgress && callback.onProgress(progress.percentage);
+      this.progress = progress.percentage;
       // this.custsomProgressMsg = `速度: ${progress.speed}`;
+    });
+    this.instance.on("completed", () => {
+      this.status = "completed";
+      this.progress = 100;
+      this.callback.onEnd && this.callback.onEnd(this.output as string);
+      this.emitter.emit("task-end", { taskId: this.taskId });
+      this.endTime = Date.now();
+    });
+    this.instance.on("error", (err: string) => {
+      this.status = "error";
+      this.callback.onError && this.callback.onError(err);
+      this.error = err;
+      this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+      this.endTime = Date.now();
     });
   }
   exec() {

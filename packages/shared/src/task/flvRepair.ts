@@ -4,12 +4,15 @@ import EventEmitter from "node:events";
 
 import { getFfmpegPath } from "./video.js";
 import { FlvRepairTask, taskQueue } from "./task.js";
+import { parseSavePath } from "../utils/index.js";
 
-export function flvRepair(
+export async function flvRepair(
   input: string,
   output: string,
   opts: {
     type: "bililive" | "mesio";
+    saveRadio?: 1 | 2;
+    savePath?: string;
   },
 ) {
   const options = Object.assign(
@@ -18,6 +21,15 @@ export function flvRepair(
     },
     opts,
   );
+  let outputFile = output;
+  if (!path.isAbsolute(output)) {
+    let savePath = await parseSavePath(input, {
+      saveType: options.saveRadio,
+      savePath: options.savePath,
+    });
+    outputFile = path.join(savePath, output);
+  }
+
   let command: FlvCommand;
   if (options.type === "bililive") {
     const { bililiveRecorderPath } = getFfmpegPath();
@@ -30,13 +42,11 @@ export function flvRepair(
   }
   const task = new FlvRepairTask(command, {
     input,
-    output,
+    output: outputFile,
     name: `FLV修复任务: ${path.parse(input).base}`,
   });
-  taskQueue.addTask(task, false);
+  taskQueue.addTask(task, true);
   return task;
-  // const command = new BililiveRecorderCommand({ binPath: mesioPath });
-  // command.input(input).output(output).run();
 }
 
 export type FlvCommand = BililiveRecorderCommand | MesioCommand;
@@ -105,7 +115,6 @@ export class MesioCommand extends EventEmitter {
     if (this.process.stdout) {
       this.process.stdout.on("data", (data) => {
         const output = data.toString();
-        // console.log(output);
         this.emit("stderr", output);
       });
     }
@@ -113,7 +122,6 @@ export class MesioCommand extends EventEmitter {
     if (this.process.stderr) {
       this.process.stderr.on("data", (data) => {
         const output = data.toString();
-        // console.error(output);
         this.emit("stderr", output);
       });
     }
@@ -124,7 +132,7 @@ export class MesioCommand extends EventEmitter {
     [];
     this.process.on("close", (code) => {
       if (code === 0) {
-        this.emit("end");
+        this.emit("completed");
       } else {
         this.emit("error", new Error(`mesio process exited with code ${code}`));
       }
@@ -202,7 +210,12 @@ export class BililiveRecorderCommand extends EventEmitter {
     if (this.process.stdout) {
       this.process.stdout.on("data", (data) => {
         const output = data.toString();
-        // console.log(output);
+        // Fix: 25%
+        const match = output.match(/Fix: (\d+)%/);
+        if (match) {
+          const percentage = parseInt(match[1], 10);
+          this.emit("progress", { percentage });
+        }
         this.emit("stderr", output);
       });
     }
@@ -210,7 +223,6 @@ export class BililiveRecorderCommand extends EventEmitter {
     if (this.process.stderr) {
       this.process.stderr.on("data", (data) => {
         const output = data.toString();
-        // console.error(output);
         this.emit("stderr", output);
       });
     }
@@ -221,7 +233,7 @@ export class BililiveRecorderCommand extends EventEmitter {
     [];
     this.process.on("close", (code) => {
       if (code === 0) {
-        this.emit("end");
+        this.emit("completed");
       } else {
         this.emit("error", new Error(`bililive process exited with code ${code}`));
       }
