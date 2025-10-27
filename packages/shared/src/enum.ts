@@ -12,6 +12,7 @@ export enum TaskType {
   kuaishouDownload = "kuaishouDownload",
   subtitleTranslate = "subtitleTranslate",
   sync = "sync",
+  flvRepair = "flvRepair",
 }
 
 export enum NotificationType {

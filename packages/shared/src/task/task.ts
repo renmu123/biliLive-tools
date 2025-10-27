@@ -28,6 +28,7 @@ import type { Progress, NotificationTaskStatus, BiliupConfig, Status } from "@bi
 import type M3U8Downloader from "@renmu/m3u8-downloader";
 import type { AppConfig } from "../config.js";
 import type { DanmakuFactory } from "../danmu/danmakuFactory.js";
+import type { FlvCommand } from "./flvRepair.js";
 
 interface TaskEvents {
   "task-start": ({ taskId }: { taskId: string }) => void;
@@ -1127,6 +1128,96 @@ export class SyncTask extends AbstractTask {
     log.warn(`danmu task ${this.taskId} killed`);
     this.status = "canceled";
     this.instance.cancelUpload();
+    return true;
+  }
+}
+
+/**
+ * flv修复任务
+ */
+export class FlvRepairTask extends AbstractTask {
+  instance: FlvCommand;
+  input: string;
+  output: string;
+  type = TaskType.flvRepair;
+  callback: {
+    onStart?: () => void;
+    onEnd?: (output: string) => void;
+    onError?: (err: string) => void;
+    onProgress?: (progress: Progress) => any;
+  };
+  constructor(
+    instance: FlvCommand,
+    options: {
+      input: string;
+      output: string;
+      name: string;
+    },
+    callback?: {
+      onStart?: () => void;
+      onEnd?: (output: string) => void;
+      onError?: (err: string) => void;
+      onProgress?: (progress: Progress) => any;
+    },
+  ) {
+    super();
+    this.instance = instance;
+    this.input = options.input;
+    this.output = options.output;
+    this.progress = 0;
+    if (options.name) {
+      this.name = options.name;
+    }
+    this.action = ["kill"];
+    this.callback = callback || {};
+
+    this.instance.on("progress", (progress: any) => {
+      // console.log("sync progress", progress);
+      // callback?.onProgress && callback.onProgress(progress.percentage);
+      // this.progress = progress.percentage;
+      // this.custsomProgressMsg = `速度: ${progress.speed}`;
+    });
+  }
+  exec() {
+    this.callback.onStart && this.callback.onStart();
+    this.status = "running";
+    this.progress = 0;
+    this.emitter.emit("task-start", { taskId: this.taskId });
+    this.startTime = Date.now();
+    this.instance.run(this.input, this.output);
+    // .then(() => {
+    //   this.status = "completed";
+    //   this.callback.onEnd && this.callback.onEnd(this.output as string);
+    //   this.progress = 100;
+    //   this.emitter.emit("task-end", { taskId: this.taskId });
+    // })
+    // .catch((err) => {
+    //   console.log("upload error", err);
+    //   this.status = "error";
+    //   this.callback.onError && this.callback.onError(err);
+    //   this.error = err;
+    //   this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+    // })
+    // .finally(() => {
+    //   this.endTime = Date.now();
+    // });
+  }
+  restart() {
+    // do nothing
+    return false;
+  }
+  pause() {
+    return false;
+  }
+  resume() {
+    return false;
+  }
+  kill() {
+    if (this.status === "completed" || this.status === "error" || this.status === "canceled")
+      return;
+    log.warn(`danmu task ${this.taskId} killed`);
+    this.status = "canceled";
+    this.instance.kill();
     return true;
   }
 }

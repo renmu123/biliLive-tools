@@ -91,56 +91,21 @@ onUnmounted(() => {
 });
 
 const convert = async () => {
-  if (fileList.value.length < 2) {
-    notice.error({
-      title: `至少选择2个文件`,
-      duration: 1000,
-    });
-    return;
+  for (const item of fileList.value) {
+    try {
+      taskApi.flvRepair(item.videoPath, item.title, options);
+      notice.warning({
+        title: `已加入任务，可在任务队列中查看进度`,
+        duration: 1000,
+      });
+    } catch (err) {
+      notice.error({
+        title: err as string,
+        duration: 1000,
+      });
+    }
   }
-  const result = await taskApi.checkMergeVideos(fileList.value.map((item) => item.videoPath));
-  if (result.errors.length > 0) {
-    notice.error({
-      content: result.errors.join("\n"),
-      duration: 5000,
-    });
-    return;
-  }
-  if (result.warnings.length > 0) {
-    notice.warning({
-      content: result.warnings.join("\n"),
-      duration: 5000,
-    });
-  }
-  let videoOutput: string | undefined = undefined;
-
-  const { dir, name } = formatFile(fileList.value[0].videoPath);
-  const filePath = window.path.join(dir, `${name}-合并.mp4`);
-  const file = await showSaveDialog({
-    defaultPath: filePath,
-  });
-  if (!file) {
-    return;
-  }
-  videoOutput = file;
-
-  try {
-    // taskApi.mergeVideos(
-    //   fileList.value.map((item) => item.videoPath),
-    //   { output: videoOutput, ...options },
-    // );
-    notice.warning({
-      title: `已加入任务，可在任务队列中查看进度`,
-      duration: 1000,
-    });
-  } catch (err) {
-    notice.error({
-      title: err as string,
-      duration: 1000,
-    });
-  } finally {
-    fileList.value = [];
-  }
+  fileList.value = [];
 };
 
 const fileSelect = ref<InstanceType<typeof FileSelect> | null>(null);
