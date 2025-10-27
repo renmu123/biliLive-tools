@@ -297,7 +297,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (!extraDataController) return;
     switch (msg.type) {
       case "chatmsg": {
-        const timestamp = this.useServerTimestamp ? Number(msg.cst) : Date.now();
+        // 某些情况下cst不存在，可能是其他平台发送的弹幕？
+        const timestamp = this.useServerTimestamp && msg.cst ? Number(msg.cst) : Date.now();
         const comment: Comment = {
           type: "comment",
           timestamp: timestamp,
