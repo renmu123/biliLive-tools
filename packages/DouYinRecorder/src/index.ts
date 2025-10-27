@@ -344,13 +344,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     const extraDataController = recorder.getExtraDataController();
     if (!extraDataController) return;
     if (this.saveGiftDanma === false) return;
-    // repeatEnd 表示礼物连击完毕，只记录这个礼物
-    if (!msg.repeatEnd) return;
 
     const serverTimestamp =
       Number(msg.common.createTime) > 9999999999
         ? Number(msg.common.createTime)
         : Number(msg.common.createTime) * 1000;
+
     const gift: GiveGift = {
       type: "give_gift",
       timestamp: this.useServerTimestamp ? serverTimestamp : Date.now(),
@@ -367,8 +366,29 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         // },
       },
     };
-    this.emit("Message", gift);
-    extraDataController.addMessage(gift);
+
+    // 获取 groupId,如果没有则使用用户ID+礼物名称作为唯一标识
+    const groupId = msg.groupId || `${msg.user.id}_${msg.gift.name}_${serverTimestamp}`;
+
+    // 如果已存在相同 groupId 的礼物,清除旧的定时器
+    const existing = giftMessageCache.get(groupId);
+    if (existing) {
+      clearTimeout(existing.timer);
+    }
+
+    // 创建新的定时器
+    const timer = setTimeout(() => {
+      const cachedGift = giftMessageCache.get(groupId);
+      if (cachedGift) {
+        // 延迟时间到,添加最终的礼物消息
+        this.emit("Message", cachedGift.gift);
+        extraDataController.addMessage(cachedGift.gift);
+        giftMessageCache.delete(groupId);
+      }
+    }, GIFT_DELAY);
+
+    // 更新缓存
+    giftMessageCache.set(groupId, { gift, timer });
   });
   client.on("reconnect", (attempts: number) => {
     this.emit("DebugLog", {
@@ -418,6 +438,18 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     client.connect();
   }
 
+  // 礼物消息缓存管理
+  const giftMessageCache = new Map<
+    string,
+    {
+      gift: GiveGift;
+      timer: NodeJS.Timeout;
+    }
+  >();
+
+  // 礼物延迟处理时间(毫秒),可根据实际情况调整
+  const GIFT_DELAY = 5000;
+
   const ffmpegArgs = recorder.getArguments();
   recorder.run();
 
@@ -435,6 +467,18 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "stopping-record";
 
     try {
+      // 清理所有礼物缓存定时器
+      for (const [_groupId, cached] of giftMessageCache.entries()) {
+        clearTimeout(cached.timer);
+        // 立即添加剩余的礼物消息
+        const extraDataController = recorder.getExtraDataController();
+        if (extraDataController) {
+          this.emit("Message", cached.gift);
+          extraDataController.addMessage(cached.gift);
+        }
+      }
+      giftMessageCache.clear();
+
       client.close();
       await recorder.stop();
     } catch (err) {

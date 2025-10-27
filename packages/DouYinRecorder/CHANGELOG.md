@@ -1,6 +1,7 @@
 # Next
 
 - `recordHandle` 新增参数 `recorderType`
+- 修复礼物弹幕缺失的情况
 
 # 1.8.0
 
