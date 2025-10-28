@@ -5,6 +5,7 @@ export default defineConfig({
   title: "biliLive-tools",
   description: "一站式直播录制与处理工具",
   lastUpdated: true,
+  ignoreDeadLinks: true,
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
     nav: [
