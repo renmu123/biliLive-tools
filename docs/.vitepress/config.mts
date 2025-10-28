@@ -28,7 +28,6 @@ export default defineConfig({
         items: [
           { text: "直播录制", link: "/features/live-record" },
           { text: "Webhook", link: "/features/webhook" },
-          { text: "断播续传", link: "/features/resume-upload" },
           { text: "XML弹幕转换", link: "/features/danmaku-convert" },
           { text: "视频切片", link: "/features/video-clip" },
           { text: "通知", link: "/features/notification" },
