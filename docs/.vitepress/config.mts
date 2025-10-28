@@ -30,15 +30,9 @@ export default defineConfig({
           { text: "Webhook", link: "/features/webhook" },
           { text: "XML弹幕转换", link: "/features/danmaku-convert" },
           { text: "视频切片", link: "/features/video-clip" },
-          { text: "通知", link: "/features/notification" },
-          { text: "文件同步", link: "/features/file-sync" },
-        ],
-      },
-      {
-        text: "API",
-        items: [
-          { text: "Webhook API", link: "/api/webhook" },
-          { text: "环境变量", link: "/api/environment" },
+          // { text: "文件同步", link: "/features/file-sync" },
+          // { text: "虚拟录制", link: "/features/virtual-record" },
+          // { text: "通知", link: "/features/notification" },
         ],
       },
       {

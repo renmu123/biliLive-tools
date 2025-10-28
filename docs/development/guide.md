@@ -22,7 +22,7 @@
 
 ### 包管理器
 
-项目使用 pnpm 作为包管理器。
+项目使用 pnpm 作为包管理器，具体版本参考 `package.json` 中的字段。
 
 安装 pnpm：
 
@@ -46,7 +46,7 @@ pnpm run install:bin
 
 ### 关于 better-sqlite3
 
-`弹幕分析`功能依赖于 `better-sqlite3`，如果无法编译安装：
+`弹幕分析`功能依赖于 `better-sqlite3`，如果无法安装：
 
 1. 安装 [Visual Studio 2022](https://visualstudio.microsoft.com/zh-hans/thank-you-downloading-visual-studio/?sku=Community) 中的 C++ 工具
 2. 安装 Python 3
@@ -234,50 +234,6 @@ git push origin feature/your-feature
 
 在 GitHub 上创建 Pull Request。
 
-## 调试
-
-### 调试桌面应用
-
-使用 VS Code 调试：
-
-1. 打开 VS Code
-2. 按 F5 启动调试
-3. 设置断点
-
-配置文件在 `.vscode/launch.json`。
-
-### 调试主进程
-
-```typescript
-// 在主进程代码中添加
-console.log("debug info");
-```
-
-日志会输出在终端。
-
-### 调试渲染进程
-
-在渲染进程中可以使用 Chrome DevTools：
-
-- 打开应用
-- 按 `Ctrl+Shift+I` 打开开发者工具
-- 在 Console 中查看日志
-
-### 调试 HTTP 服务
-
-使用 VS Code 调试：
-
-```json
-{
-  "type": "node",
-  "request": "launch",
-  "name": "Debug HTTP",
-  "program": "${workspaceFolder}/packages/http/src/index.ts",
-  "preLaunchTask": "tsc: build",
-  "outFiles": ["${workspaceFolder}/packages/http/dist/**/*.js"]
-}
-```
-
 ## 测试
 
 ### 单元测试
@@ -406,9 +362,3 @@ git push origin master --tags
 ## 贡献指南
 
 参考 [贡献指南](./contributing.md) 了解如何贡献代码。
-
-## 联系方式
-
-- GitHub：[@renmu123](https://github.com/renmu123)
-- B站：[@renmu123](https://space.bilibili.com/10995238)
-- QQ群：872011161

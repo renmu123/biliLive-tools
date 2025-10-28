@@ -190,37 +190,6 @@ Windows 新安装的系统可能缺少运行库：
 - 某些字体在 Web 中选择后可能无法使用
 - Docker 下的 emoji 文本渲染可能错误
 
-## Webhook
-
-### Q: blrec开启转换为mp4后无法使用？
-
-请关闭 blrec 的该功能，使用本软件的"转封装为mp4"功能。
-
-### Q: Webhook标题模板引擎如何使用？
-
-支持 [ejs模板引擎](https://github.com/mde/ejs)，可用参数：
-
-```typescript
-{
-  title: string; // 直播间标题
-  user: string; // 主播名称
-  time: Date; // 直播开始时间
-  roomId: number | string; // 房间号
-}
-```
-
-示例：
-
-```
-<%= user %>-<%= time.getFullYear() %><%= String(time.getMonth() + 1).padStart(2, "0") %>直播录像
-```
-
-渲染结果：`djw-202408直播录像`
-
-::: warning 注意
-标题超过80字会被自动截断。
-:::
-
 ## 任务与队列
 
 ### Q: 最大任务数如何理解？
@@ -247,21 +216,6 @@ Windows 新安装的系统可能缺少运行库：
 ### Q: Docker下硬件编码如何配置？
 
 参考 [安装指南 - 硬件编码](./guide/installation.md#硬件编码)。
-
-## 其他
-
-### Q: 这个软件的录制太难用了，有其他推荐吗？
-
-biliLive-tools 的录制功能主要用于与其他功能集成。如果只需录制，推荐专业工具：
-
-| 工具                                                               | 特点           | 协议       |
-| ------------------------------------------------------------------ | -------------- | ---------- |
-| [录播姬](https://github.com/BililiveRecorder/BililiveRecorder)     | B站FLV流最稳   | GPL-3.0    |
-| [biliup](https://github.com/biliup/biliup)                         | 支持上传、弹幕 | MIT        |
-| [DouyinLiveRecorder](https://github.com/ihmily/DouyinLiveRecorder) | 多平台、无GUI  | MIT        |
-| [StreamCap](https://github.com/ihmily/StreamCap)                   | 多平台、有GUI  | Apache 2.0 |
-| [stream-rec](https://github.com/stream-rec/stream-rec)             | 自实现引擎     | MIT        |
-| [oneliverec](https://www.oneliverec.cc/zh-cn/)                     | 多平台         | 闭源免费   |
 
 ### Q: 如何联系开发者？
 
