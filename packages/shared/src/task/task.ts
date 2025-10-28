@@ -1140,6 +1140,7 @@ export class FlvRepairTask extends AbstractTask {
   instance: FlvCommand;
   input: string;
   output: string;
+  trueOutput: string;
   type = TaskType.flvRepair;
   callback: {
     onStart?: () => void;
@@ -1172,6 +1173,7 @@ export class FlvRepairTask extends AbstractTask {
     this.callback = callback || {};
     const { dir } = path.parse(options.output);
     this.output = dir;
+    this.trueOutput = options.output;
 
     this.instance.on("progress", (progress: any) => {
       callback?.onProgress && callback.onProgress(progress.percentage);
@@ -1181,7 +1183,7 @@ export class FlvRepairTask extends AbstractTask {
     this.instance.on("completed", () => {
       this.status = "completed";
       this.progress = 100;
-      this.callback.onEnd && this.callback.onEnd(this.output as string);
+      this.callback.onEnd && this.callback.onEnd(this.trueOutput as string);
       this.emitter.emit("task-end", { taskId: this.taskId });
       this.endTime = Date.now();
     });
@@ -1199,7 +1201,8 @@ export class FlvRepairTask extends AbstractTask {
     this.progress = 0;
     this.emitter.emit("task-start", { taskId: this.taskId });
     this.startTime = Date.now();
-    this.instance.run(this.input, this.output);
+    this.instance.run(this.input, this.trueOutput);
+    log.info(`$${this.instance._getArguments().join(" ")} for flv repair task ${this.taskId}`);
     // .then(() => {
     //   this.status = "completed";
     //   this.callback.onEnd && this.callback.onEnd(this.output as string);
