@@ -22,7 +22,7 @@
 8. 支持斗鱼、虎牙、B站、抖音直播录制
 9. 支持自动同步到百度云、阿里云、alist平台
 
-![preview](./docs/preview.png)
+![preview](./docs/public/preview.png)
 
 # 安装
 
