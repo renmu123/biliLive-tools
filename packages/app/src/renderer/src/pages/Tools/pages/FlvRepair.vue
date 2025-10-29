@@ -54,11 +54,9 @@ import { toReactive } from "@vueuse/core";
 import hotkeys from "hotkeys-js";
 
 import FileSelect from "@renderer/pages/Tools/pages/Burn/components/FileSelect.vue";
-import Tip from "@renderer/components/Tip.vue";
 import { useAppConfig } from "@renderer/stores";
-import { formatFile } from "@renderer/utils";
 import { taskApi } from "@renderer/apis";
-import { showSaveDialog, showDirectoryDialog } from "@renderer/utils/fileSystem";
+import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 
 defineOptions({
   name: "FlvRepair",
