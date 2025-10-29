@@ -317,6 +317,18 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("progress", progress);
   });
 
+  // 礼物消息缓存管理
+  const giftMessageCache = new Map<
+    string,
+    {
+      gift: GiveGift;
+      timer: NodeJS.Timeout;
+    }
+  >();
+
+  // 礼物延迟处理时间(毫秒),可根据实际情况调整
+  const GIFT_DELAY = 5000;
+
   const client = new DouYinDanmaClient(this?.liveInfo?.liveId as string, {
     cookie: this.auth,
   });
@@ -367,8 +379,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       },
     };
 
-    // 获取 groupId,如果没有则使用用户ID+礼物名称作为唯一标识
-    const groupId = msg.groupId || `${msg.user.id}_${msg.gift.name}_${serverTimestamp}`;
+    // 单独使用groupId并不可靠
+    const groupId = `${msg.groupId}_${msg.user.id}_${msg.giftId}`;
 
     // 如果已存在相同 groupId 的礼物,清除旧的定时器
     const existing = giftMessageCache.get(groupId);
@@ -437,18 +449,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!this.disableProvideCommentsWhenRecording) {
     client.connect();
   }
-
-  // 礼物消息缓存管理
-  const giftMessageCache = new Map<
-    string,
-    {
-      gift: GiveGift;
-      timer: NodeJS.Timeout;
-    }
-  >();
-
-  // 礼物延迟处理时间(毫秒),可根据实际情况调整
-  const GIFT_DELAY = 5000;
 
   const ffmpegArgs = recorder.getArguments();
   recorder.run();
