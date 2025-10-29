@@ -46,7 +46,7 @@ pnpm run install:bin
 
 ### 关于 better-sqlite3
 
-`弹幕分析`功能依赖于 `better-sqlite3`，如果无法安装：
+如果 `better-sqlite3` 无法安装：
 
 1. 安装 [Visual Studio 2022](https://visualstudio.microsoft.com/zh-hans/thank-you-downloading-visual-studio/?sku=Community) 中的 C++ 工具
 2. 安装 Python 3
@@ -56,6 +56,8 @@ pnpm run install:bin
    ```
 
 详见 [Issue #5638](https://github.com/pnpm/pnpm/issues/5638#issuecomment-1327988206)
+
+如果你是Win，你还可能遇到报错比如`cause=fork/exec %1 is not a valid Win32 application.`，根据[提示](https://github.com/pnpm/pnpm/issues/5638#issuecomment-1327988206)修改pnpm源文件，如果你最后还是无法安装，尝试在项目根目录运行`node scripts\github-ci-better-sqlite3.js`手动安装依赖。
 
 ### 关于二进制依赖
 

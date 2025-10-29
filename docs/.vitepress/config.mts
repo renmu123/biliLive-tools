@@ -35,7 +35,7 @@ export default defineConfig({
           { text: "视频切片", link: "/features/video-clip" },
           { text: "文件同步", link: "/features/file-sync" },
           // { text: "虚拟录制", link: "/features/virtual-record" },
-          // { text: "通知", link: "/features/notification" },
+          { text: "通知", link: "/features/notification" },
         ],
       },
       {
