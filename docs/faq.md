@@ -16,25 +16,6 @@ zip包和安装包的二进制文件路径可能不同，导致路径错误：
 2. 手动修改 FFmpeg、FFprobe、DanmakuFactory 路径
 3. 重启应用
 
-### Q: 如何备份配置？
-
-**方式一：使用界面**
-
-1. 打开"设置"
-2. 点击"导出配置"
-3. 保存备份文件
-
-**方式二：手动备份**
-
-找到配置文件夹，备份以下文件：
-
-- `appConfig.json` - 应用配置
-- `presets.json` - 预设配置
-- `danmu_presets.json` - 弹幕预设
-- `ffmpeg_presets.json` - FFmpeg预设
-- `app.db` - 数据库文件
-- `cover/` - 封面文件夹
-
 ### Q: 更改部分配置不生效？
 
 - 绝大部分配置修改后**立即生效**
@@ -149,46 +130,6 @@ Windows下环境变量修改后可能需要重启电脑才能生效。
 
 - 使用 VLC 播放器
 - 或尝试使用 `mesio` 录制器
-
-### Q: 抖音风控怎么办？
-
-1. 调大监听间隔
-2. 修改 API 接口（参考 [直播录制文档](./features/live-record.md#抖音特殊功能)）
-
-### Q: 录制如何转换为MP4？
-
-1. 单个直播间配置打开"发送至webhook"
-2. "设置" -> "Webhook" 打开webhook开关
-3. "设置" -> "Webhook" -> "转封装为mp4" 打开开关
-
-### Q: 如何为不同直播间配置不同存储路径？
-
-`文件命名规则` 支持 [ejs](https://ejs.co/) 模板引擎。
-
-示例：斗鱼与其他站点保存在不同盘符
-
-```
-<% if (platform=='斗鱼') { %>C<% } %><% if (platform!='斗鱼') { %>D<% } %>:\录制\{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}
-```
-
-::: tip 提示
-将 `保存文件夹` 置空，将全部路径配置在 `文件命名规则` 中。
-:::
-
-## 弹幕处理
-
-### Q: 弹幕转换失败？
-
-Windows 新安装的系统可能缺少运行库：
-
-1. 安装 [Visual C++ Redistributable](https://aka.ms/vs/17/release/vc_redist.x64.exe)
-2. 重启应用
-
-### Q: 字体问题？
-
-- Web 和客户端使用的字体方式不同，会有差异
-- 某些字体在 Web 中选择后可能无法使用
-- Docker 下的 emoji 文本渲染可能错误
 
 ## 任务与队列
 

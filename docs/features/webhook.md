@@ -191,6 +191,8 @@ Webhook 标题支持 [ejs模板引擎](https://github.com/mde/ejs)，可以实�
 
 ### ejs
 
+1.5.0起 Webhook 标题支持[ejs模板引擎](https://github.com/mde/ejs)，具体语法参考文档，**如果标题超过80字，会被自动截断**，会优先执行模板引擎，之后会对`{{}}`占位符进行替换，如果有语法错误，会被跳过，优先保证上传。
+
 #### 可用变量
 
 ```typescript

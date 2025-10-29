@@ -13,7 +13,6 @@ export default defineConfig({
       { text: "指南", link: "/guide/introduction" },
       { text: "功能", link: "/features/live-record" },
       { text: "FAQ", link: "/faq" },
-      { text: "API", link: "/api/webhook" },
     ],
 
     sidebar: [
@@ -29,6 +28,8 @@ export default defineConfig({
         items: [
           { text: "直播录制", link: "/features/live-record" },
           { text: "Webhook", link: "/features/webhook" },
+          // { text: "ffmpeg配置", link: "/features/ffmpeg" },
+          // { text: "B站上传", link: "/features/bilibili-upload" },
           { text: "XML弹幕转换", link: "/features/danmaku-convert" },
           { text: "视频切片", link: "/features/video-clip" },
           // { text: "文件同步", link: "/features/file-sync" },
