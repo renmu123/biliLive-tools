@@ -45,6 +45,7 @@
               'DanmakuFactory',
               'Convert2Mp4',
               'VideoMerge',
+              'FlvRepair',
               'BiliDownload',
               'recorder',
               'videoCut',
@@ -328,6 +329,19 @@ const menuOptions = computed<MenuOption[]>(() => {
             },
           },
           { default: () => "视频合并" },
+        ),
+    },
+    {
+      key: "FlvRepair",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "FlvRepair",
+            },
+          },
+          { default: () => "FLV修复" },
         ),
     },
   ];
