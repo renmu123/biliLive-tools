@@ -105,6 +105,10 @@ docker-compose up -d
 | `BILILIVE_TOOLS_BILIKEY` | 账户加密密钥，用于加密B站账号信息 | 是   |
 | `TZ`                     | 时区设置                          | 否   |
 
+::: tip 提示
+这些环境变量也可以在非docker生效，Windows下环境变量修改后可能需要重启电脑才能生效。
+:::
+
 #### 卷映射
 
 | 容器路径                 | 说明                     |
