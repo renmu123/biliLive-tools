@@ -17,7 +17,7 @@ export interface BaseRecorderOptions {
   headers?: {
     [key: string]: string | undefined;
   };
-  videoFormat?: "auto" | "ts" | "mkv" | "mp4";
+  videoFormat?: "auto" | "ts" | "mkv" | "mp4" | "m4s";
 }
 
 /**

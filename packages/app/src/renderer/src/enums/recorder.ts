@@ -363,7 +363,7 @@ export const textInfo = {
   common: {
     format: {
       text: "视频格式",
-      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为mp4<br/>mesio和录播姬引擎不支持指定",
+      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为fmp4<br/>mesio和录播姬引擎不支持指定",
     },
     recorderType: {
       text: "录制器",
