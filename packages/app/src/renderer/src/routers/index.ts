@@ -52,6 +52,11 @@ const router = createRouter({
           component: () => import("../pages/Tools/pages/VideoMerge.vue"),
         },
         {
+          path: "/flvRepair",
+          name: "FlvRepair",
+          component: () => import("../pages/Tools/pages/FlvRepair.vue"),
+        },
+        {
           path: "/biliDownload",
           name: "BiliDownload",
           component: () => import("../pages/Tools/pages/Video/index.vue"),

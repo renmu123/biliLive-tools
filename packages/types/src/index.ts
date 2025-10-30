@@ -180,6 +180,14 @@ export type ToolConfig = {
     /** 合并弹幕 */
     mergeXml: boolean;
   };
+  flvRepair: {
+    /** 修复器 */
+    type: "bililive" | "mesio";
+    /** 保存类型 */
+    saveRadio: 1 | 2;
+    /** 保存路径 */
+    savePath: string;
+  };
   /** 下载页 */
   download: {
     /** 保存路径 */

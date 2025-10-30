@@ -1,11 +1,24 @@
 # Next
 
+文档站上线了：https://docs.irenmu.com/
+
+## 功能
+
+- 支持mesio及录播姬的flv修复 [#219](https://github.com/renmu123/biliLive-tools/pull/219)
+
 ## 优化
 
 - UI：tab默认为展开模式
 - 录制：列表模式显示使用的录制器参数
 - 录制：mesio录制引擎默认禁用任何代理参数
 - 录制：优化弹幕保存时的内存占用
+- 录制：编辑配置弹框的UI优化
+- webhook：优化某些极端情况，尽量保证流程不被卡住
+
+## Bug修复
+
+- 录制：修复抖音使用 random 接口时，获取流可能失败的情况
+- 录制：修复抖音初始化的 uid 被错误覆盖的情况，导致部分请求接口无法使用
 
 ## Bug 修复
 
@@ -27,6 +40,7 @@
 - 录制：录播姬引擎支持 [#211](https://github.com/renmu123/biliLive-tools/pull/211)
 - 录制：支持虎牙&抖音支持标题黑名单 [#196](https://github.com/renmu123/biliLive-tools/pull/196)
 - 录制：并发&等待时间参数 [#201](https://github.com/renmu123/biliLive-tools/pull/201)
+- 录制：录播姬引擎支持
 - B站上传：“B站上传文件名”支持选项 [#198](https://github.com/renmu123/biliLive-tools/pull/198)
 - B站上传：支持“投稿最短间隔”参数来对抗风控 [#194](https://github.com/renmu123/biliLive-tools/pull/194)
 - 切片：客户端支持“切片独立窗口”选项，支持在新窗口打开页面 [#199](https://github.com/renmu123/biliLive-tools/pull/199)

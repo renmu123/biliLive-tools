@@ -68,32 +68,59 @@
           </template>
           <n-switch v-model:value="config.sendToWebhook" />
         </n-form-item>
-        <n-form-item v-if="!config.disableAutoCheck">
-          <template #label>
-            <Tip
-              text="录制开始通知"
-              tip="默认使用系统通知，具体前往设置通知中修改，一场直播只会通知一次"
-            ></Tip>
-          </template>
-          <n-switch v-model:value="config.liveStartNotification" />
-        </n-form-item>
 
-        <n-form-item>
-          <template #label>
-            <Tip
-              :text="textInfo.common.recorderType.text"
-              :tip="textInfo.common.recorderType.tip"
-            ></Tip>
-          </template>
-          <n-select
-            v-model:value="config.recorderType"
-            :options="recorderTypeOptions"
-            :disabled="globalFieldsObj.recorderType"
-          />
-          <n-checkbox v-model:checked="globalFieldsObj.recorderType" class="global-checkbox"
-            >全局</n-checkbox
-          >
-        </n-form-item>
+        <h2>文件</h2>
+        <template v-if="true">
+          <n-form-item>
+            <template #label>
+              <Tip
+                :text="textInfo.common.recorderType.text"
+                :tip="textInfo.common.recorderType.tip"
+              ></Tip>
+            </template>
+            <n-select
+              v-model:value="config.recorderType"
+              :options="recorderTypeOptions"
+              :disabled="globalFieldsObj.recorderType"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.recorderType" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.common.format.text" :tip="textInfo.common.format.tip"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.videoFormat"
+              :options="videoFormatOptions"
+              :disabled="globalFieldsObj.videoFormat"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.videoFormat" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip text="分段时间" tip="0为不分段"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.segment"
+              min="0"
+              step="10"
+              style="width: 100%"
+              :disabled="globalFieldsObj.segment"
+            >
+              <template #suffix>分钟</template>
+            </n-input-number>
+            <n-checkbox v-model:checked="globalFieldsObj.segment" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+        </template>
+
+        <h2>直播流</h2>
+
         <n-form-item
           v-if="
             config.providerId !== 'Bilibili' &&
@@ -330,7 +357,7 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip text="Cookie" tip="用于录制会员直播"></Tip>
+              <Tip text="Cookie" tip="我也不知道有啥用，可能哪天被风控的时候用得上吧"></Tip>
             </template>
             <n-input
               v-model:value="config.cookie"
@@ -374,19 +401,7 @@
           </template>
           <n-switch v-model:value="config.onlyAudio" />
         </n-form-item>
-        <n-form-item>
-          <template #label>
-            <Tip :text="textInfo.common.format.text" :tip="textInfo.common.format.tip"></Tip>
-          </template>
-          <n-select
-            v-model:value="config.videoFormat"
-            :options="videoFormatOptions"
-            :disabled="globalFieldsObj.videoFormat"
-          />
-          <n-checkbox v-model:checked="globalFieldsObj.videoFormat" class="global-checkbox"
-            >全局</n-checkbox
-          >
-        </n-form-item>
+
         <n-form-item>
           <template #label>
             <Tip
@@ -407,121 +422,120 @@
         </n-form-item>
         <n-form-item>
           <template #label>
-            <Tip text="分段时间" tip="0为不分段"></Tip>
-          </template>
-          <n-input-number
-            v-model:value="config.segment"
-            min="0"
-            step="10"
-            style="width: 100%"
-            :disabled="globalFieldsObj.segment"
-          >
-            <template #suffix>分钟</template>
-          </n-input-number>
-          <n-checkbox v-model:checked="globalFieldsObj.segment" class="global-checkbox"
-            >全局</n-checkbox
-          >
-        </n-form-item>
-        <n-form-item>
-          <template #label>
-            <span class="inline-flex"> 保存封面 </span>
-          </template>
-          <n-switch v-model:value="config.saveCover" :disabled="globalFieldsObj.saveCover" />
-          <n-checkbox v-model:checked="globalFieldsObj.saveCover" class="global-checkbox"
-            >全局</n-checkbox
-          >
-        </n-form-item>
-        <n-form-item>
-          <template #label>
             <Tip text="监控时间段" tip="仅在时间段内进行监控，有助于减少风控的可能"></Tip>
           </template>
           <n-time-picker v-model:formatted-value="config.handleTime[0]" clearable />
           ~
           <n-time-picker v-model:formatted-value="config.handleTime[1]" clearable />
         </n-form-item>
-        <n-form-item>
-          <template #label>
-            <Tip text="展示权重" tip="值越大，UI显示越靠前"></Tip>
-          </template>
-          <n-input-number v-model:value="config.weight" min="1" step="1" style="width: 100%" />
-        </n-form-item>
-        <n-form-item>
-          <template #label>
-            <Tip tip="如果你遇到特定直播间的录制问题，请打开此开关" text="调试模式"></Tip>
-          </template>
-          <n-select
-            v-model:value="config.debugLevel"
-            :options="recorderDebugLevelOptions"
-            style="width: 220px"
-            :disabled="globalFieldsObj.debugLevel"
-          />
-          <n-checkbox v-model:checked="globalFieldsObj.debugLevel" class="global-checkbox"
-            >全局</n-checkbox
-          >
-        </n-form-item>
+
+        <h2>其他</h2>
+        <template v-if="true">
+          <n-form-item v-if="!config.disableAutoCheck">
+            <template #label>
+              <Tip
+                text="录制开始通知"
+                tip="默认使用系统通知，具体前往设置通知中修改，一场直播只会通知一次"
+              ></Tip>
+            </template>
+            <n-switch v-model:value="config.liveStartNotification" />
+          </n-form-item>
+
+          <n-form-item>
+            <template #label>
+              <Tip text="展示权重" tip="值越大，UI显示越靠前"></Tip>
+            </template>
+            <n-input-number v-model:value="config.weight" min="1" step="1" style="width: 100%" />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip tip="如果你遇到特定直播间的录制问题，请打开此开关" text="调试模式"></Tip>
+            </template>
+            <n-select
+              v-model:value="config.debugLevel"
+              :options="recorderDebugLevelOptions"
+              style="width: 220px"
+              :disabled="globalFieldsObj.debugLevel"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.debugLevel" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <span class="inline-flex"> 保存封面 </span>
+            </template>
+            <n-switch v-model:value="config.saveCover" :disabled="globalFieldsObj.saveCover" />
+            <n-checkbox v-model:checked="globalFieldsObj.saveCover" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+        </template>
 
         <h2>弹幕</h2>
-        <n-form-item>
-          <template #label>
-            <span class="inline-flex"> 弹幕录制 </span>
-          </template>
-          <n-switch
-            v-model:value="config.disableProvideCommentsWhenRecording"
-            :disabled="globalFieldsObj.disableProvideCommentsWhenRecording"
-            :checked-value="false"
-            :unchecked-value="true"
-          />
-          <n-checkbox
-            v-model:checked="globalFieldsObj.disableProvideCommentsWhenRecording"
-            class="global-checkbox"
-            >全局</n-checkbox
+        <template v-if="true">
+          <n-form-item>
+            <template #label>
+              <span class="inline-flex"> 弹幕录制 </span>
+            </template>
+            <n-switch
+              v-model:value="config.disableProvideCommentsWhenRecording"
+              :disabled="globalFieldsObj.disableProvideCommentsWhenRecording"
+              :checked-value="false"
+              :unchecked-value="true"
+            />
+            <n-checkbox
+              v-model:checked="globalFieldsObj.disableProvideCommentsWhenRecording"
+              class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+            <template #label>
+              <span class="inline-flex"> 保存礼物 </span>
+            </template>
+            <n-switch
+              v-model:value="config.saveGiftDanma"
+              :disabled="globalFieldsObj.saveGiftDanma"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.saveGiftDanma" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item
+            v-if="
+              !config.disableProvideCommentsWhenRecording &&
+              ['Bilibili', 'DouYu'].includes(config.providerId)
+            "
           >
-        </n-form-item>
-        <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
-          <template #label>
-            <span class="inline-flex"> 保存礼物 </span>
-          </template>
-          <n-switch
-            v-model:value="config.saveGiftDanma"
-            :disabled="globalFieldsObj.saveGiftDanma"
-          />
-          <n-checkbox v-model:checked="globalFieldsObj.saveGiftDanma" class="global-checkbox"
-            >全局</n-checkbox
+            <template #label>
+              <span class="inline-flex"> 高能弹幕(SC) </span>
+            </template>
+            <n-switch v-model:value="config.saveSCDanma" :disabled="globalFieldsObj.saveSCDanma" />
+            <n-checkbox v-model:checked="globalFieldsObj.saveSCDanma" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+          <n-form-item
+            v-if="
+              !config.disableProvideCommentsWhenRecording && !['HuYa'].includes(config.providerId)
+            "
           >
-        </n-form-item>
-        <n-form-item
-          v-if="
-            !config.disableProvideCommentsWhenRecording &&
-            ['Bilibili', 'DouYu'].includes(config.providerId)
-          "
-        >
-          <template #label>
-            <span class="inline-flex"> 高能弹幕(SC) </span>
-          </template>
-          <n-switch v-model:value="config.saveSCDanma" :disabled="globalFieldsObj.saveSCDanma" />
-          <n-checkbox v-model:checked="globalFieldsObj.saveSCDanma" class="global-checkbox"
-            >全局</n-checkbox
-          >
-        </n-form-item>
-        <n-form-item
-          v-if="
-            !config.disableProvideCommentsWhenRecording && !['HuYa'].includes(config.providerId)
-          "
-        >
-          <template #label>
-            <Tip
-              text="服务端时间戳"
-              tip="使用服务端返回的弹幕时间戳而非本地收到的时间戳，用于处理某些主播的弹幕时间戳不准确的问题"
-            ></Tip>
-          </template>
-          <n-switch
-            v-model:value="config.useServerTimestamp"
-            :disabled="globalFieldsObj.useServerTimestamp"
-          />
-          <n-checkbox v-model:checked="globalFieldsObj.useServerTimestamp" class="global-checkbox"
-            >全局</n-checkbox
-          >
-        </n-form-item>
+            <template #label>
+              <Tip
+                text="服务端时间戳"
+                tip="使用服务端返回的弹幕时间戳而非本地收到的时间戳，用于处理某些主播的弹幕时间戳不准确的问题"
+              ></Tip>
+            </template>
+            <n-switch
+              v-model:value="config.useServerTimestamp"
+              :disabled="globalFieldsObj.useServerTimestamp"
+            />
+            <n-checkbox v-model:checked="globalFieldsObj.useServerTimestamp" class="global-checkbox"
+              >全局</n-checkbox
+            >
+          </n-form-item>
+        </template>
       </n-form>
       <template #footer>
         <div class="footer">
@@ -814,7 +828,9 @@ watch(
       config.value.segment = appConfig.value.recorder.segment;
     }
     if (val.uid) {
-      config.value.uid = appConfig.value.recorder.bilibili.uid;
+      if (config.value.providerId === "Bilibili") {
+        config.value.uid = appConfig.value.recorder.bilibili.uid;
+      }
     }
     if (val.saveCover) {
       config.value.saveCover = appConfig.value.recorder.saveCover;
@@ -827,7 +843,9 @@ watch(
       config.value.useM3U8Proxy = appConfig.value.recorder.bilibili.useM3U8Proxy;
     }
     if (val.codecName) {
-      config.value.codecName = appConfig.value.recorder.bilibili.codecName;
+      if (config.value.providerId === "Bilibili") {
+        config.value.codecName = appConfig.value.recorder.bilibili.codecName;
+      }
     }
     if (val.source) {
       if (config.value.providerId === "DouYu") {
@@ -845,7 +863,9 @@ watch(
       config.value.recorderType = appConfig.value.recorder.recorderType;
     }
     if (val.cookie) {
-      config.value.cookie = appConfig.value.recorder.douyin.cookie;
+      if (config.value.providerId === "DouYin") {
+        config.value.cookie = appConfig.value.recorder.douyin.cookie;
+      }
     }
     if (val.doubleScreen) {
       config.value.doubleScreen = appConfig.value.recorder.douyin.doubleScreen;
@@ -880,5 +900,15 @@ watch(
   :deep(.n-checkbox__label) {
     padding-right: 0px;
   }
+}
+
+.card {
+  :deep(.n-form-item-feedback-wrapper) {
+    --n-feedback-height: 20px;
+  }
+}
+h2 {
+  margin: 0;
+  margin-bottom: 4px;
 }
 </style>
