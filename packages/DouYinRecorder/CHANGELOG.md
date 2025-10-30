@@ -1,6 +1,7 @@
 # Next
 
 - `recordHandle` 新增参数 `recorderType`
+- 修复两种接口的返回类型值错误
 
 # 1.8.0
 

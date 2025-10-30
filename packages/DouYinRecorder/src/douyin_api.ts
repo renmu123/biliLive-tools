@@ -176,7 +176,7 @@ async function getRoomInfoByUserWeb(
       nickname: "",
       sec_uid: "",
       avatar: "",
-      api: "webHTML",
+      api: "userHTML",
       room: null,
     };
   }
@@ -281,7 +281,7 @@ async function getRoomInfoByHtml(
       nickname: roomInfo?.anchor?.nickname ?? "",
       sec_uid: roomInfo?.anchor?.sec_uid ?? "",
       avatar: roomInfo?.anchor?.avatar_thumb?.url_list?.[0] ?? "",
-      api: "userHTML",
+      api: "webHTML",
       room: {
         title: roomInfo?.room?.title ?? "",
         cover: roomInfo?.room?.cover?.url_list?.[0] ?? "",
