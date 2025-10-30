@@ -290,7 +290,11 @@ export function timemarkToSeconds(timemark: string) {
 }
 
 export function getTempPath() {
-  const cacheFolder = appConfig.get("cacheFolder");
+  let cacheFolder = appConfig.get("cacheFolder");
+  if (!cacheFolder) {
+    cacheFolder = path.join(os.tmpdir(), "biliLive-tools");
+  }
+
   if (cacheFolder) {
     try {
       fs.ensureDirSync(cacheFolder);
@@ -299,7 +303,9 @@ export function getTempPath() {
       console.error("缓存文件夹创建失败，使用系统临时文件夹", e);
     }
   }
-  return path.join(os.tmpdir(), "biliLive-tools");
+
+  fs.ensureDirSync(cacheFolder);
+  return cacheFolder;
 }
 
 export async function readLines(

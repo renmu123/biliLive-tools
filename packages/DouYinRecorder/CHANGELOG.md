@@ -1,6 +1,23 @@
+# Next
+
+- `recordHandle` 新增参数 `recorderType`
+
+# 1.8.0
+
+- 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
+- 支持标题黑名单
+- 录播姬引擎支持
+- 触发标题黑名单设定额外状态
+
+# 1.7.1
+
+- 修复检查错误状态不会被重置的bug
+
 # 1.7.0
 
+- 支持 `mobile`、`userHTML`、`balance`、`random` 接口, 其中 `mobile`、`userHTML` 需要传递`uid`参数，内容为`sec_user_id`
 - 修复某些无法获取到直播间信息的查询
+- 增加检查错误状态值
 
 # 1.6.0
 

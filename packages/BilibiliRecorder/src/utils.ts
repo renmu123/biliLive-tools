@@ -96,8 +96,8 @@ export function createInvalidStreamChecker(count: number = 10): (ffmpegLogLine: 
   };
 }
 
-export function hasKeyword(title: string, titleKeywords: string) {
-  const keywords = titleKeywords
+export function hasKeyword(title: string, titleKeywords: string | undefined) {
+  const keywords = (titleKeywords ?? "")
     .split(",")
     .map((k) => k.trim())
     .filter((k) => k);

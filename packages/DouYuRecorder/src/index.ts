@@ -99,12 +99,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // 如果已经在录制中，只在需要检查标题关键词时才获取最新信息
   if (this.recordHandle != null) {
     // 只有当设置了标题关键词时，并且不是手动启动的录制，才获取最新的直播间信息
-    if (
-      !isManualStart &&
-      this.titleKeywords &&
-      typeof this.titleKeywords === "string" &&
-      this.titleKeywords.trim()
-    ) {
+    if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
       const now = Date.now();
       // 每5分钟检查一次标题变化
       const titleCheckInterval = 5 * 60 * 1000; // 5分钟
@@ -126,15 +121,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       const { title } = liveInfo;
 
       // 检查标题是否包含关键词
-      const keywords = this.titleKeywords
-        .split(",")
-        .map((k) => k.trim())
-        .filter((k) => k);
-      const hasTitleKeyword = keywords.some((keyword) =>
-        title.toLowerCase().includes(keyword.toLowerCase()),
-      );
-
-      if (hasTitleKeyword) {
+      if (utils.hasBlockedTitleKeywords(title, this.titleKeywords)) {
+        this.state = "title-blocked";
         this.emit("DebugLog", {
           type: "common",
           text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
@@ -155,6 +143,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   try {
     const liveInfo = await getInfo(this.channelId);
     this.liveInfo = liveInfo;
+    this.state = "idle";
   } catch (error) {
     this.state = "check-error";
     throw error;
@@ -171,20 +160,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // 检查标题是否包含关键词，如果包含则不自动录制
   // 手动开始录制时不检查标题关键词
-  if (
-    !isManualStart &&
-    this.titleKeywords &&
-    typeof this.titleKeywords === "string" &&
-    this.titleKeywords.trim()
-  ) {
-    const keywords = this.titleKeywords
-      .split(",")
-      .map((k) => k.trim())
-      .filter((k) => k);
-    const hasTitleKeyword = keywords.some((keyword) =>
-      title.toLowerCase().includes(keyword.toLowerCase()),
-    );
-    if (hasTitleKeyword) {
+  if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
+    if (utils.hasBlockedTitleKeywords(title, this.titleKeywords)) {
+      this.state = "title-blocked";
       this.emit("DebugLog", {
         type: "common",
         text: `跳过录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
@@ -193,8 +171,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
   }
 
-  let recorderType: Parameters<typeof createBaseRecorder>[0] =
-    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
     let strictQuality = false;
@@ -213,7 +189,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       source: this.source,
       strictQuality,
       onlyAudio: this.onlyAudio,
-      avoidEdgeCDN: recorderType === "mesio",
+      avoidEdgeCDN: true,
     });
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
@@ -248,7 +224,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   let isCutting = false;
 
   const recorder = createBaseRecorder(
-    recorderType,
+    this.recorderType,
     {
       url: stream.url,
       // @ts-ignore
@@ -258,6 +234,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
+      debugLevel: this.debugLevel ?? "none",
+      onlyAudio: stream.onlyAudio,
     },
     onEnd,
     async () => {
@@ -278,8 +256,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  const handleVideoCreated = async ({ filename, title, cover }) => {
-    this.emit("videoFileCreated", { filename, cover });
+  const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
+    this.emit("videoFileCreated", { filename, cover, rawFilename });
 
     if (title && this?.liveInfo) {
       this.liveInfo.title = title;
@@ -489,6 +467,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     id: genRecordUUID(),
     stream: stream.name,
     source: stream.source,
+    recorderType: recorder.type,
     url: stream.url,
     ffmpegArgs,
     savePath: savePath,
@@ -521,11 +500,17 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
     if (matched) {
       roomId = matched[1].trim();
     } else {
-      // 解析<link rel="canonical" href="xxxxxxx"/>中的href
-      const canonicalLink = html.match(/<link rel="canonical" href="(.*?)"/);
-      if (canonicalLink) {
-        const url = canonicalLink[1];
-        roomId = url.split("/").pop();
+      // 解析出query中的rid参数
+      const rid = new URL(channelURL).searchParams.get("rid");
+      if (rid) {
+        roomId = rid;
+      } else {
+        // 解析<link rel="canonical" href="xxxxxxx"/>中的href
+        const canonicalLink = html.match(/<link rel="canonical" href="(.*?)"/);
+        if (canonicalLink) {
+          const url = canonicalLink[1];
+          roomId = url.split("/").pop();
+        }
       }
     }
     if (!roomId) return null;

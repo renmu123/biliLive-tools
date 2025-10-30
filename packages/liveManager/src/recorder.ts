@@ -4,6 +4,8 @@ import { RecorderProvider } from "./manager.js";
 import { AnyObject, PickRequired, UnknownObject } from "./utils.js";
 import { Cache } from "./cache.js";
 
+import type { RecorderType } from "./recorder/index.js";
+
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
 
@@ -40,7 +42,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   /** 身份验证 */
   auth?: string;
   /** cookie所有者uid,B站弹幕录制 */
-  uid?: number;
+  uid?: number | string;
   /** 画质匹配重试次数 */
   qualityRetry?: number;
   /** 抖音是否使用双屏直播流，开启后如果是双屏直播，那么就使用拼接的流，默认为true */
@@ -53,14 +55,14 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   formatName?: FormatName;
   /** 流编码 */
   codecName?: CodecName;
-  /** 选择使用的api，虎牙支持: auto,web,mp，抖音支持：web,webHTML */
-  api?: "auto" | "web" | "mp" | "webHTML";
+  /** 选择使用的api，虎牙支持: auto,web,mp，抖音支持：web,webHTML,mobile,userHTML */
+  api?: "auto" | "web" | "mp" | "webHTML" | "mobile" | "userHTML";
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
   titleKeywords?: string;
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
   videoFormat?: "auto" | "ts" | "mkv";
   /** 录制类型 */
-  recorderType?: "auto" | "ffmpeg" | "mesio";
+  recorderType?: "auto" | "ffmpeg" | "mesio" | "bililive";
   /** 流格式优先级 */
   formatriorities?: Array<"flv" | "hls">;
   /** 只录制音频 */
@@ -71,6 +73,9 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   useServerTimestamp?: boolean;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
+  /** 调试等级 */
+  debugLevel?: "none" | "basic" | "verbose";
+  /** 缓存 */
   cache: Cache;
 }
 
@@ -96,7 +101,13 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     // | "recordHandle"
   >;
 
-export type RecorderState = "idle" | "recording" | "stopping-record" | "check-error";
+/** 录制状态，idle: 空闲中，recording: 录制中，stopping-record: 停止录制中，check-error: 检查错误，title-blocked: 标题黑名单 */
+export type RecorderState =
+  | "idle"
+  | "recording"
+  | "stopping-record"
+  | "check-error"
+  | "title-blocked";
 export type Progress = { time: string | null };
 
 export interface RecordHandle {
@@ -104,6 +115,7 @@ export interface RecordHandle {
   id: string;
   stream: string;
   source: string;
+  recorderType?: RecorderType;
   url: string;
   ffmpegArgs?: string[];
   progress?: Progress;
@@ -125,7 +137,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   extends Emitter<{
       RecordStart: RecordHandle;
       RecordSegment?: RecordHandle;
-      videoFileCreated: { filename: string; cover?: string };
+      videoFileCreated: { filename: string; cover?: string; rawFilename?: string };
       videoFileCompleted: { filename: string };
       progress: Progress;
       RecordStop: { recordHandle: RecordHandle; reason?: string };
@@ -149,8 +161,8 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   qualityMaxRetry: number;
   // 画质重试次数上限
   qualityRetry: number;
-  // B站弹幕录制，cookie拥有者的uid
-  uid?: number;
+  // B站弹幕录制，cookie拥有者的uid，抖音的sec_uid
+  uid?: number | string;
   liveInfo?: {
     living: boolean;
     owner: string;

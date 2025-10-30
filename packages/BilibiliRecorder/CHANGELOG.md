@@ -1,3 +1,21 @@
+# Next
+
+- `recordHandle` 新增参数 `recorderType`
+
+# 1.8.0
+
+- 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
+- 触发标题黑名单设定额外状态
+- 录播姬引擎支持
+
+# 1.7.1
+
+- 修复检查错误状态不会被重置的bug
+
+# 1.7.0
+
+- 增加检查错误状态值
+
 # 1.6.0
 
 - 支持 `recorderType` 参数用于配置底层录制器，支持`auto | ffmpeg | mesio`

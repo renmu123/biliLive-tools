@@ -1,18 +1,90 @@
 # Next
 
+文档站上线了：https://docs.irenmu.com/
+
+## 功能
+
+- 支持mesio及录播姬的flv修复 [#219](https://github.com/renmu123/biliLive-tools/pull/219)
+
+## 优化
+
+- UI：tab默认为展开模式
+- 录制：列表模式显示使用的录制器参数
+- 录制：mesio录制引擎默认禁用任何代理参数
+- 录制：优化弹幕保存时的内存占用
+
+# 3.2.0(2025.10.26)
+
+为自己生日提前发个版本~~希望不会有bug就是了~~
+
+本版本最惊喜的是支持了录播姬的录制引擎，希望可以替代ffmpeg的flv下载引擎~~这话怎么有点耳熟~~，所以安装包又大了50M。
+
+## 破坏性更改
+
+- 录制：“调试模式”参数已被废弃，请配置新的“调试模式”参数，支持 无，基础，详细 三种模式 [#190](https://github.com/renmu123/biliLive-tools/pull/190)
+
+## 功能
+
+- 录制：录播姬引擎支持 [#211](https://github.com/renmu123/biliLive-tools/pull/211)
+- 录制：支持虎牙&抖音支持标题黑名单 [#196](https://github.com/renmu123/biliLive-tools/pull/196)
+- 录制：并发&等待时间参数 [#201](https://github.com/renmu123/biliLive-tools/pull/201)
+- 录制：录播姬引擎支持
+- B站上传：“B站上传文件名”支持选项 [#198](https://github.com/renmu123/biliLive-tools/pull/198)
+- B站上传：支持“投稿最短间隔”参数来对抗风控 [#194](https://github.com/renmu123/biliLive-tools/pull/194)
+- 切片：客户端支持“切片独立窗口”选项，支持在新窗口打开页面 [#199](https://github.com/renmu123/biliLive-tools/pull/199)
+
+## 优化
+
+- 客户端支持打开快速打开缓存文件夹
+- 录制：重命名失败时仍发送相关事件避免卡住流程
+- 录制：优化录制遇到标题黑名单的UI展示
+- 录制：优化录制页面的请求元数据接口数量
+- 录制：尽可能避免斗鱼的scdn节点
+- 录制：优化弹幕连接的重试操作
+- 录制：优化ffmpeg的重连策略 [#204](https://github.com/renmu123/biliLive-tools/issues/204)
+- webhook：转封装任务会自动开始 [#202](https://github.com/renmu123/biliLive-tools/issues/202)
+- 优化初始化时界面可能不在视界内的情况
+
+## Bug修复
+
+- 录制：修复抖音礼物数量重复记录 [#210](https://github.com/renmu123/biliLive-tools/issues/210)
+- 录制：修复mesio录制器某些情况下提取文件名错误的bug
+
+# 3.1.2(2025.10.19)
+
+## Bug修复
+
+- 修复默认临时文件夹不会被自动创建的bug
+
+# 3.1.1
+
+## 优化
+
+- log等级参数默认为 `debug`
+- 录制：优化斗鱼链接解析
+- 录制：优化“文件命名规则”中包含 `:` 出现额外提示
+
+# Bug修复
+
+- 录制：修复检查错误状态不会被重置的bug
+
+# 3.1.0
+
 ## 功能
 
 - [Oneliverec](https://www.oneliverec.cc/) 录制软件的 webhook 支持 [#169](https://github.com/renmu123/biliLive-tools/pull/169)
-- B站视频下载画质支持 [#171](https://github.com/renmu123/biliLive-tools/pull/171)
+- 下载：B站视频下载画质支持 [#171](https://github.com/renmu123/biliLive-tools/pull/171)
 - 虚拟录制：新增“验证”按钮来实现快速的文件夹验证 [#182](https://github.com/renmu123/biliLive-tools/pull/182)
 - 录制：弹幕直接写入xml文件，节约内存使用 [#179](https://github.com/renmu123/biliLive-tools/pull/179)
+- 录制：抖音支持额外的四种接口请求方式，其中mobile以及用户解析需本版本添加的直播间方能生效 [#180](https://github.com/renmu123/biliLive-tools/pull/180)
 - 录制：增加“录制页面额外请求”选项 [#186](https://github.com/renmu123/biliLive-tools/pull/186)
-- 录制：添加“展示权重”字段，用来对UI界面中直播间进行排序
+- 录制：添加“展示权重”字段，用来对UI界面中直播间进行排序 [#187](https://github.com/renmu123/biliLive-tools/pull/187)
 - 支持缓存文件夹自定义 [#172](https://github.com/renmu123/biliLive-tools/pull/172)
 
 ## 优化
 
 - 录制：优化UI, 支持更多状态展示
+- 录制：抖音的默认请求接口使用`mobile`
 - 同步：对 AList 原生实现的上传逻辑中更好地 URL 拼接处理 [#181](https://github.com/renmu123/biliLive-tools/pull/181)
 
 ## Bug修复

@@ -66,12 +66,17 @@
           :class="{
             recording: item.state === 'recording',
             error: item.state === 'check-error',
+            'title-blocked': item.state === 'title-blocked',
           }"
         >
           {{ stateMap[item.state] }}
         </td>
         <td :title="item?.recordHandle?.url">
-          {{ item.state === "recording" ? `${item.usedSource}/${item.usedStream}` : "" }}
+          {{
+            item.state === "recording"
+              ? `${item.usedSource}/${item.usedStream}/${item?.recordHandle?.recorderType}`
+              : ""
+          }}
         </td>
         <td>
           {{
@@ -129,6 +134,7 @@ const stateMap = {
   recording: "录制中",
   "check-error": "检查错误",
   "stopping-record": "停止中",
+  "title-blocked": "标题屏蔽",
 };
 </script>
 
@@ -140,7 +146,8 @@ const stateMap = {
 .recording {
   color: skyblue;
 }
-.error {
+.error,
+.title-blocked {
   color: #ff4d4f;
 }
 .sort-icon {

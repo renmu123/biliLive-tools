@@ -220,6 +220,14 @@ export type ToolConfig = {
     /** 合并弹幕 */
     mergeXml: boolean;
   };
+  flvRepair: {
+    /** 修复器 */
+    type: "bililive" | "mesio";
+    /** 保存类型 */
+    saveRadio: 1 | 2;
+    /** 保存路径 */
+    savePath: string;
+  };
   /** 下载页 */
   download: {
     /** 保存路径 */
@@ -365,7 +373,7 @@ interface DouyinRecorderConfig {
   /** 是否使用双屏直播流 */
   doubleScreen: boolean;
   /** 接口类型 */
-  api: "web" | "webHTML";
+  api: "web" | "webHTML" | "mobile" | "userHTML" | "balance" | "random";
 }
 
 // 录制全局配置
@@ -378,8 +386,14 @@ export interface GlobalRecorder {
   autoRecord: boolean;
   /** 检查间隔 */
   checkInterval: number;
-  /** 调试模式 */
+  /** 并发数 */
+  maxThreadCount: number;
+  /** 等待时间 */
+  waitTime: number;
+  /** 废弃：调试模式 */
   debugMode: boolean;
+  /** 调试等级 */
+  debugLevel: "none" | "basic" | "verbose";
   /** 测试：录制错误立即重试 */
   recordRetryImmediately: boolean;
   /** 画质 */
@@ -405,7 +419,7 @@ export interface GlobalRecorder {
   /** 视频格式 */
   videoFormat: "auto" | "ts" | "mkv";
   /** 支持的录制器 */
-  recorderType: "auto" | "ffmpeg" | "mesio";
+  recorderType: "auto" | "ffmpeg" | "mesio" | "bililive";
   /** 保存弹幕测试 */
   saveDanma2DB: boolean;
   /** B站特有的配置 */
@@ -459,7 +473,7 @@ export interface Recorder {
   /**分段时长，单位分钟 */
   segment?: number;
   /** 账号 */
-  uid?: number;
+  uid?: number | string;
   /** 保存封面 */
   saveCover?: boolean;
   /** 视频格式 */
@@ -487,6 +501,8 @@ export interface Recorder {
   onlyAudio?: boolean;
   /** 监控时间段 */
   handleTime: [string | null, string | null];
+  /** 调试等级 */
+  debugLevel: "none" | "basic" | "verbose";
   // 不跟随全局配置字段
   noGlobalFollowFields: typeof recorderNoGlobalFollowFields;
 }
@@ -513,6 +529,8 @@ export interface AppConfig {
   losslessCutPath: string;
   /** mesio 可执行路径 */
   mesioPath: string;
+  /** 录播姬引擎 可执行路径 */
+  bililiveRecorderPath: string;
   /** 缓存文件夹 */
   cacheFolder: string;
   /** 保存到回收站 */
@@ -534,6 +552,8 @@ export interface AppConfig {
   passKey: string;
   https?: boolean;
   requestInfoForRecord: boolean;
+  biliUploadFileNameType: "ask" | "always" | "never";
+  cutPageInNewWindow: boolean;
   webhook: {
     recoderFolder: string;
     blacklist: string;
@@ -648,6 +668,8 @@ export interface AppConfig {
     limitRate: number;
     /** 检查稿件间隔 */
     checkInterval: number;
+    /** 投稿最短间隔 */
+    minUploadInterval: number;
     /** 账号授权自动更新 */
     accountAutoCheck: boolean;
     /** 使用必剪api */
@@ -980,6 +1002,7 @@ export interface GlobalConfig {
   defaultFfmpegPath: string;
   defaultFfprobePath: string;
   defaultMesioPath: string;
+  defaultBililiveRecorderPath: string;
   defaultDanmakuFactoryPath: string;
   version: string;
   userDataPath: string;

@@ -73,7 +73,7 @@ class DanmaClient extends EventEmitter {
       auth,
       uid,
       useServerTimestamp,
-    }: { auth: string | undefined; uid: number | undefined; useServerTimestamp?: boolean },
+    }: { auth: string | undefined; uid: number; useServerTimestamp?: boolean },
   ) {
     super();
     this.roomId = roomId;

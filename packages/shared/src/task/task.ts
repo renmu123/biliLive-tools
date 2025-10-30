@@ -1,3 +1,4 @@
+import path from "node:path";
 import fs from "fs-extra";
 import EventEmitter from "node:events";
 import { TypedEmitter } from "tiny-typed-emitter";
@@ -20,6 +21,7 @@ import { TaskType } from "../enum.js";
 import { SyncClient } from "../sync/index.js";
 import { uploadPartModel } from "../db/index.js";
 import { Pan123 } from "../sync/index.js";
+import { StatisticsService } from "../db/service/index.js";
 
 import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { Client, WebVideoUploader } from "@renmu/bili-api";
@@ -27,6 +29,7 @@ import type { Progress, NotificationTaskStatus, BiliupConfig, Status } from "@bi
 import type M3U8Downloader from "@renmu/m3u8-downloader";
 import type { AppConfig } from "../config.js";
 import type { DanmakuFactory } from "../danmu/danmakuFactory.js";
+import type { FlvCommand } from "./flvRepair.js";
 
 interface TaskEvents {
   "task-start": ({ taskId }: { taskId: string }) => void;
@@ -475,6 +478,7 @@ export class BiliVideoTask extends AbstractTask {
   type = TaskType.bili;
   completedTask: number = 0;
   uid: number;
+  rawName: string = "";
   callback: {
     onStart?: () => void;
     onEnd?: (output: { aid: number; bvid: string }) => void;
@@ -498,6 +502,7 @@ export class BiliVideoTask extends AbstractTask {
     this.action = ["kill"];
     if (options.name) {
       this.name = options.name;
+      this.rawName = options.name;
     }
     this.callback = callback;
 
@@ -612,6 +617,42 @@ export class BiliAddVideoTask extends BiliVideoTask {
     });
   }
   async submit() {
+    // 检查投稿最短间隔
+    const config = appConfig.getAll();
+    const minUploadInterval = config?.biliUpload?.minUploadInterval || 0;
+
+    if (minUploadInterval > 0) {
+      const lastUploadTime = StatisticsService.query("bili_last_upload_time");
+      if (lastUploadTime) {
+        const lastTime = parseInt(lastUploadTime.value);
+        const currentTime = Date.now();
+        const timeDiff = currentTime - lastTime;
+        const requiredInterval = minUploadInterval * 60 * 1000; // 转换为毫秒
+
+        if (timeDiff < requiredInterval) {
+          const remainingTime = requiredInterval - timeDiff;
+          const waitMinutes = Math.ceil(remainingTime / (60 * 1000));
+          log.info(
+            `${this.rawName} 投稿间隔不足，还需等待 ${waitMinutes} 分钟，将在1分钟后重试提交`,
+          );
+
+          // 更新任务状态显示
+          this.name = `${this.rawName}（等待投稿间隔，还需 ${waitMinutes} 分钟）`;
+
+          // 1分钟后重试
+          setTimeout(() => {
+            if (this.status === "running") {
+              this.submit();
+            }
+          }, 60 * 1000);
+          return;
+        }
+      }
+    }
+
+    // 清除等待消息
+    this.name = this.rawName;
+
     const parts = this.taskList
       .filter((task) => task.status === "completed")
       .map((task) => {
@@ -630,6 +671,13 @@ export class BiliAddVideoTask extends BiliVideoTask {
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
       uploadPartModel.removeByCids(parts.map((part) => part.cid));
+      StatisticsService.addOrUpdate({
+        where: { stat_key: "bili_last_upload_time" },
+        create: {
+          stat_key: "bili_last_upload_time",
+          value: Date.now().toString(),
+        },
+      });
     } catch (err) {
       log.error("上传失败", err);
       this.status = "error";
@@ -670,6 +718,42 @@ export class BiliEditVideoTask extends BiliVideoTask {
     });
   }
   async submit() {
+    // 检查投稿最短间隔
+    const config = appConfig.getAll();
+    const minUploadInterval = config?.biliUpload?.minUploadInterval || 0;
+
+    if (minUploadInterval > 0) {
+      const lastUploadTime = StatisticsService.query("bili_last_upload_time");
+      if (lastUploadTime) {
+        const lastTime = parseInt(lastUploadTime.value);
+        const currentTime = Date.now();
+        const timeDiff = currentTime - lastTime;
+        const requiredInterval = minUploadInterval * 60 * 1000; // 转换为毫秒
+
+        if (timeDiff < requiredInterval) {
+          const remainingTime = requiredInterval - timeDiff;
+          const waitMinutes = Math.ceil(remainingTime / (60 * 1000));
+          log.info(
+            `${this.rawName} 编辑间隔不足，还需等待 ${waitMinutes} 分钟，将在1分钟后重试提交`,
+          );
+
+          // 更新任务状态显示
+          this.name = `${this.rawName}（等待投稿间隔，还需 ${waitMinutes} 分钟）`;
+
+          // 1分钟后重试
+          setTimeout(() => {
+            if (this.status === "running") {
+              this.submit();
+            }
+          }, 60 * 1000);
+          return;
+        }
+      }
+    }
+
+    // 清除等待消息
+    this.name = this.rawName;
+
     const parts = this.taskList
       .filter((task) => task.status === "completed")
       .map((task) => {
@@ -691,6 +775,13 @@ export class BiliEditVideoTask extends BiliVideoTask {
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
       uploadPartModel.removeByCids(parts.map((part) => part.cid));
+      StatisticsService.addOrUpdate({
+        where: { stat_key: "bili_last_upload_time" },
+        create: {
+          stat_key: "bili_last_upload_time",
+          value: Date.now().toString(),
+        },
+      });
     } catch (err) {
       log.error("编辑失败", err);
       this.status = "error";
@@ -1038,6 +1129,113 @@ export class SyncTask extends AbstractTask {
     log.warn(`danmu task ${this.taskId} killed`);
     this.status = "canceled";
     this.instance.cancelUpload();
+    return true;
+  }
+}
+
+/**
+ * flv修复任务
+ */
+export class FlvRepairTask extends AbstractTask {
+  instance: FlvCommand;
+  input: string;
+  output: string;
+  trueOutput: string;
+  type = TaskType.flvRepair;
+  callback: {
+    onStart?: () => void;
+    onEnd?: (output: string) => void;
+    onError?: (err: string) => void;
+    onProgress?: (progress: Progress) => any;
+  };
+  constructor(
+    instance: FlvCommand,
+    options: {
+      input: string;
+      output: string;
+      name: string;
+    },
+    callback?: {
+      onStart?: () => void;
+      onEnd?: (output: string) => void;
+      onError?: (err: string) => void;
+      onProgress?: (progress: Progress) => any;
+    },
+  ) {
+    super();
+    this.instance = instance;
+    this.input = options.input;
+    this.progress = 0;
+    if (options.name) {
+      this.name = options.name;
+    }
+    this.action = ["kill"];
+    this.callback = callback || {};
+    const { dir } = path.parse(options.output);
+    this.output = dir;
+    this.trueOutput = options.output;
+
+    this.instance.on("progress", (progress: any) => {
+      callback?.onProgress && callback.onProgress(progress.percentage);
+      this.progress = progress.percentage;
+      // this.custsomProgressMsg = `速度: ${progress.speed}`;
+    });
+    this.instance.on("completed", () => {
+      this.status = "completed";
+      this.progress = 100;
+      this.callback.onEnd && this.callback.onEnd(this.trueOutput as string);
+      this.emitter.emit("task-end", { taskId: this.taskId });
+      this.endTime = Date.now();
+    });
+    this.instance.on("error", (err: string) => {
+      this.status = "error";
+      this.callback.onError && this.callback.onError(err);
+      this.error = err;
+      this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+      this.endTime = Date.now();
+    });
+  }
+  exec() {
+    this.callback.onStart && this.callback.onStart();
+    this.status = "running";
+    this.progress = 0;
+    this.emitter.emit("task-start", { taskId: this.taskId });
+    this.startTime = Date.now();
+    this.instance.run(this.input, this.trueOutput);
+    log.info(`$${this.instance._getArguments().join(" ")} for flv repair task ${this.taskId}`);
+    // .then(() => {
+    //   this.status = "completed";
+    //   this.callback.onEnd && this.callback.onEnd(this.output as string);
+    //   this.progress = 100;
+    //   this.emitter.emit("task-end", { taskId: this.taskId });
+    // })
+    // .catch((err) => {
+    //   console.log("upload error", err);
+    //   this.status = "error";
+    //   this.callback.onError && this.callback.onError(err);
+    //   this.error = err;
+    //   this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+    // })
+    // .finally(() => {
+    //   this.endTime = Date.now();
+    // });
+  }
+  restart() {
+    // do nothing
+    return false;
+  }
+  pause() {
+    return false;
+  }
+  resume() {
+    return false;
+  }
+  kill() {
+    if (this.status === "completed" || this.status === "error" || this.status === "canceled")
+      return;
+    log.warn(`danmu task ${this.taskId} killed`);
+    this.status = "canceled";
+    this.instance.kill();
     return true;
   }
 }

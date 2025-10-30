@@ -33,6 +33,7 @@
               placeholder="请输入文件命名规则"
               clearable
               spellcheck="false"
+              @blur="handleNameRuleBlur"
             />
             <n-checkbox v-model:checked="allowEdit" style="margin: 0 10px"></n-checkbox>
             <template #feedback>
@@ -60,6 +61,35 @@
               style="width: 220px"
             >
               <template #suffix>秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                tip="同时最多运行的检查任务数量，和 检查间隔 共同构成了录制的循环检查周期"
+                text="并发数"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip tip="检查任务完成后的等待时间" text="等待时间"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+            >
+              <template #suffix>毫秒</template>
             </n-input-number>
           </n-form-item>
           <n-form-item>
@@ -127,9 +157,13 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip tip="用于提交反馈" text="调试模式"></Tip>
+              <Tip tip="如果你遇到特定直播间的录制问题，请打开此开关" text="调试模式"></Tip>
             </template>
-            <n-switch v-model:value="config.recorder.debugMode" />
+            <n-select
+              v-model:value="config.recorder.debugLevel"
+              :options="recorderDebugLevelOptions"
+              style="width: 220px"
+            />
           </n-form-item>
 
           <h3>弹幕</h3>
@@ -293,7 +327,7 @@
             <template #label>
               <Tip
                 text="请求接口"
-                tip="不同的接口对应的底层不同，我也不知道哪个更容易遇到风控，如果哪天用不了，你也可以切切看"
+                tip="不同的接口对应的底层不同，如果哪天用不了，你也可以切切看，mobile和用户html解析接口必须在3.1.0及以后版本使用才能生效，更多区别见文档。PS: mobile看起来更不容易触发风控"
               ></Tip>
             </template>
             <n-select v-model:value="config.recorder.douyin.api" :options="douyinApiTypeOptions" />
@@ -336,6 +370,7 @@ import {
   douyinStreamFormatOptions,
   huyaSourceOptions,
   recorderTypeOptions,
+  recorderDebugLevelOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";
@@ -345,8 +380,12 @@ const config = defineModel<AppConfig>("data", {
 });
 
 const douyinApiTypeOptions = ref([
+  { label: "随机", value: "random" },
   { label: "web接口", value: "web" },
-  { label: "html解析", value: "webHTML" },
+  { label: "mobile接口", value: "mobile" },
+  { label: "直播html解析", value: "webHTML" },
+  { label: "用户html解析", value: "userHTML" },
+  { label: "测试：负载均衡", value: "balance" },
 ]);
 
 const { userList } = storeToRefs(useUserInfoStore());
@@ -416,6 +455,7 @@ const titleTip = computed(() => {
 
 const titleInput = templateRef("titleInput");
 const setTitleVar = async (value: string) => {
+  if (!allowEdit.value) return;
   const input = titleInput.value?.inputElRef;
   if (input) {
     // 获取input光标位置
@@ -444,6 +484,18 @@ watch(allowEdit, async (val) => {
     }
   }
 });
+
+const handleNameRuleBlur = async () => {
+  if (config.value.recorder.nameRule.includes(":")) {
+    const [status] = await confirm.warning({
+      content: "你的文件命名规则中可能包含了冒号(:)，该符合无法作为文件名，是否替换为空格？",
+    });
+    if (!status) {
+      return;
+    }
+    config.value.recorder.nameRule = config.value.recorder.nameRule.replaceAll(":", " ");
+  }
+};
 </script>
 
 <style scoped lang="less">

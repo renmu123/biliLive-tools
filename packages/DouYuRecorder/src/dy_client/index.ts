@@ -157,7 +157,11 @@ export function createDYClient(
   let coder = new BufferCoder();
   let heartbeatTimer: NodeJS.Timer | null = null;
 
-  const send = (message: Record<string, unknown>) => ws?.send(coder.encode(STT.serialize(message)));
+  const send = (message: Record<string, unknown>) => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws?.send(coder.encode(STT.serialize(message)));
+    }
+  };
 
   const sendLogin = () => send({ type: "loginreq", roomid: channelId });
   const sendJoinGroup = () => send({ type: "joingroup", rid: channelId, gid: -9999 });

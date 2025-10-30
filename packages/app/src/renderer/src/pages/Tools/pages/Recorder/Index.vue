@@ -275,10 +275,10 @@ const list = computed(() => {
     const liveInfo = liveInfos.value.find((liveInfo) => liveInfo.channelId === item.channelId);
     return {
       ...item,
-      cover: liveInfo?.cover,
-      owner: liveInfo?.owner,
-      avatar: liveInfo?.avatar ?? item?.extra?.avatar,
-      roomTitle: liveInfo?.title,
+      cover: item?.liveInfo?.cover || liveInfo?.cover,
+      owner: item?.liveInfo?.owner || liveInfo?.owner,
+      avatar: item?.liveInfo?.avatar || liveInfo?.avatar || item?.extra?.avatar,
+      roomTitle: item?.liveInfo?.title || liveInfo?.title,
       living: item?.liveInfo?.living ?? liveInfo?.living,
     };
   });
@@ -386,7 +386,8 @@ const open = async (id: string, streamUrl: string) => {
 
 const getLiveInfo = async (forceRequest: boolean = false) => {
   if (recorderList.value.length === 0) return;
-  const ids = recorderList.value.map((item) => item.id);
+  // 仅刷新没有被监控的直播间
+  const ids = recorderList.value.filter((item) => item.disableAutoCheck).map((item) => item.id);
   liveInfos.value = await recoderApi.getLiveInfo(ids, forceRequest);
 };
 

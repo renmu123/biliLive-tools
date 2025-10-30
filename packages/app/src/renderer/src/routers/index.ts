@@ -52,6 +52,11 @@ const router = createRouter({
           component: () => import("../pages/Tools/pages/VideoMerge.vue"),
         },
         {
+          path: "/flvRepair",
+          name: "FlvRepair",
+          component: () => import("../pages/Tools/pages/FlvRepair.vue"),
+        },
+        {
           path: "/biliDownload",
           name: "BiliDownload",
           component: () => import("../pages/Tools/pages/Video/index.vue"),
@@ -64,6 +69,11 @@ const router = createRouter({
         {
           path: "/videoCut",
           name: "videoCut",
+          component: () => import("../pages/Tools/pages/VideoCut/Index.vue"),
+        },
+        {
+          path: "/videoCut2",
+          name: "videoCut2",
           component: () => import("../pages/Tools/pages/VideoCut/Index.vue"),
         },
         {

@@ -22,6 +22,7 @@ import {
   replaceExtName,
   downloadImage,
   isBetweenTimeRange,
+  sleep,
 } from "./utils.js";
 import { StreamManager } from "./recorder/streamManager.js";
 import { Cache } from "./cache.js";
@@ -43,7 +44,7 @@ export interface RecorderProvider<E extends AnyObject> {
     id: ChannelId;
     title: string;
     owner: string;
-    uid?: number;
+    uid?: number | string;
     avatar?: string;
   } | null>;
   createRecorder: (
@@ -60,6 +61,8 @@ const configurableProps = [
   "savePathRule",
   "autoRemoveSystemReservedChars",
   "autoCheckInterval",
+  "maxThreadCount",
+  "waitTime",
   "ffmpegOutputArgs",
   "biliBatchQuery",
   "recordRetryImmediately",
@@ -78,7 +81,12 @@ export interface RecorderManager<
     error: { source: string; err: unknown };
     RecordStart: { recorder: SerializedRecorder<E>; recordHandle: RecordHandle };
     RecordSegment: { recorder: SerializedRecorder<E>; recordHandle?: RecordHandle };
-    videoFileCreated: { recorder: SerializedRecorder<E>; filename: string; cover?: string };
+    videoFileCreated: {
+      recorder: SerializedRecorder<E>;
+      filename: string;
+      cover?: string;
+      rawFilename?: string;
+    };
     videoFileCompleted: { recorder: SerializedRecorder<E>; filename: string };
     RecorderProgress: { recorder: SerializedRecorder<E>; progress: Progress };
     RecoderLiveStart: { recorder: Recorder<E> };
@@ -114,6 +122,8 @@ export interface RecorderManager<
   cutRecord: (this: RecorderManager<ME, P, PE, E>, id: string) => Promise<Recorder<E> | undefined>;
 
   autoCheckInterval: number;
+  maxThreadCount: number;
+  waitTime: number;
   isCheckLoopRunning: boolean;
   startCheckLoop: (this: RecorderManager<ME, P, PE, E>) => void;
   stopCheckLoop: (this: RecorderManager<ME, P, PE, E>) => void;
@@ -167,7 +177,6 @@ export function createRecorderManager<
       }
     };
 
-    const maxThreadCount = 3;
     // 这里暂时不打算用 state == recording 来过滤，provider 必须内部自己处理录制过程中的 check，
     // 这样可以防止一些意外调用 checkLiveStatusAndRecord 时出现重复录制。
     let needCheckRecorders = recorders
@@ -208,10 +217,13 @@ export function createRecorderManager<
     };
 
     threads = threads.concat(
-      range(0, maxThreadCount).map(async () => {
+      range(0, manager.maxThreadCount).map(async () => {
         while (needCheckRecorders.length > 0) {
           try {
             await checkOnce();
+            if (manager.waitTime > 0) {
+              await sleep(manager.waitTime);
+            }
           } catch (err) {
             manager.emit("error", { source: "checkOnceInThread", err });
           }
@@ -262,12 +274,12 @@ export function createRecorderManager<
       recorder.on("RecordSegment", (recordHandle) =>
         this.emit("RecordSegment", { recorder: recorder.toJSON(), recordHandle }),
       );
-      recorder.on("videoFileCreated", ({ filename, cover }) => {
+      recorder.on("videoFileCreated", ({ filename, cover, rawFilename }) => {
         if (recorder.saveCover && recorder?.liveInfo?.cover) {
           const coverPath = replaceExtName(filename, ".jpg");
           downloadImage(cover ?? recorder?.liveInfo?.cover, coverPath);
         }
-        this.emit("videoFileCreated", { recorder: recorder.toJSON(), filename });
+        this.emit("videoFileCreated", { recorder: recorder.toJSON(), filename, rawFilename });
       });
       recorder.on("videoFileCompleted", ({ filename }) =>
         this.emit("videoFileCompleted", { recorder: recorder.toJSON(), filename }),
@@ -382,6 +394,8 @@ export function createRecorderManager<
     },
 
     autoCheckInterval: opts.autoCheckInterval ?? 1000,
+    maxThreadCount: opts.maxThreadCount ?? 3,
+    waitTime: opts.waitTime ?? 0,
     isCheckLoopRunning: false,
     startCheckLoop() {
       if (this.isCheckLoopRunning) return;

@@ -15,7 +15,7 @@
           <template #label>
             <Tip
               text="直播间链接"
-              tip="如果链接无法解析，请尝试使用标准直播间链接<br/>斗鱼：https://www.douyu.com/房间号<br/>虎牙：https://www.huya.com/房间号<br/>B站：https://live.bilibili.com/房间号<br/>抖音：https://live.douyin.com/房间号<br/>抖音：https://wwww.douyin.com/user/xxxxx"
+              tip="如果链接无法解析，请尝试使用标准直播间链接<br/>斗鱼：https://www.douyu.com/房间号<br/>虎牙：https://www.huya.com/房间号<br/>B站：https://live.bilibili.com/房间号<br/>抖音：https://live.douyin.com/房间号<br/>抖音：https://www.douyin.com/user/xxxxx"
             ></Tip>
           </template>
           <n-input
@@ -193,7 +193,11 @@
                 tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，手动录制的不会被影响"
               ></Tip>
             </template>
-            <n-input v-model:value="config.titleKeywords" placeholder="例如：回放,录播,重播" />
+            <n-input
+              v-model:value="config.titleKeywords"
+              placeholder="例如：回放,录播,重播"
+              clearable
+            />
           </n-form-item>
         </template>
         <template v-if="config.providerId === 'DouYu'">
@@ -230,7 +234,11 @@
                 tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
               ></Tip>
             </template>
-            <n-input v-model:value="config.titleKeywords" placeholder="例如：回放,录播,重播" />
+            <n-input
+              v-model:value="config.titleKeywords"
+              placeholder="例如：回放,录播,重播"
+              clearable
+            />
           </n-form-item>
         </template>
         <template v-if="config.providerId === 'HuYa'">
@@ -276,11 +284,24 @@
               >全局</n-checkbox
             >
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="禁止标题关键词"
+                tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
+              ></Tip>
+            </template>
+            <n-input
+              v-model:value="config.titleKeywords"
+              placeholder="例如：回放,录播,重播"
+              clearable
+            />
+          </n-form-item>
         </template>
         <template v-if="config.providerId === 'DouYin'">
           <n-form-item>
             <template #label>
-              <Tip text="画质" tip="如果找不到对应画质，会使用较清晰的源"></Tip>
+              <Tip :text="textInfo.douyin.quality.text" :tip="textInfo.douyin.quality.tip"></Tip>
             </template>
             <n-select
               v-model:value="config.quality"
@@ -331,6 +352,19 @@
             <n-checkbox v-model:checked="globalFieldsObj.doubleScreen" class="global-checkbox"
               >全局</n-checkbox
             >
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="禁止标题关键词"
+                tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
+              ></Tip>
+            </template>
+            <n-input
+              v-model:value="config.titleKeywords"
+              placeholder="例如：回放,录播,重播"
+              clearable
+            />
           </n-form-item>
         </template>
 
@@ -410,6 +444,20 @@
             <Tip text="展示权重" tip="值越大，UI显示越靠前"></Tip>
           </template>
           <n-input-number v-model:value="config.weight" min="1" step="1" style="width: 100%" />
+        </n-form-item>
+        <n-form-item>
+          <template #label>
+            <Tip tip="如果你遇到特定直播间的录制问题，请打开此开关" text="调试模式"></Tip>
+          </template>
+          <n-select
+            v-model:value="config.debugLevel"
+            :options="recorderDebugLevelOptions"
+            style="width: 220px"
+            :disabled="globalFieldsObj.debugLevel"
+          />
+          <n-checkbox v-model:checked="globalFieldsObj.debugLevel" class="global-checkbox"
+            >全局</n-checkbox
+          >
         </n-form-item>
 
         <h2>弹幕</h2>
@@ -503,6 +551,7 @@ import {
   douyinStreamFormatOptions,
   huyaSourceOptions,
   recorderTypeOptions,
+  recorderDebugLevelOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 
@@ -540,6 +589,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     cookie: true,
     doubleScreen: true,
     useServerTimestamp: true,
+    debugLevel: true,
   },
 );
 
@@ -572,6 +622,7 @@ const config = ref<Omit<Recorder, "id">>({
   doubleScreen: true,
   useServerTimestamp: true,
   handleTime: ["", ""],
+  debugLevel: "none",
 });
 
 const confirmDialog = useConfirm();
@@ -653,6 +704,7 @@ const onChannelIdInputEnd = async () => {
   } else if (res.providerId === "DouYin") {
     config.value.quality = appConfig.value.recorder.douyin.quality;
     config.value.cookie = appConfig.value.recorder.douyin.cookie;
+    config.value.uid = res.uid;
   }
 };
 
@@ -690,6 +742,7 @@ watch(showModal, async (val) => {
       doubleScreen: true,
       useServerTimestamp: true,
       handleTime: [null, null],
+      debugLevel: "none",
     };
 
     if (props.id) {
@@ -717,6 +770,7 @@ watch(showModal, async (val) => {
       useServerTimestamp: !(config.value?.noGlobalFollowFields ?? []).includes(
         "useServerTimestamp",
       ),
+      debugLevel: !(config.value?.noGlobalFollowFields ?? []).includes("debugLevel"),
     };
   }
 });
@@ -798,6 +852,9 @@ watch(
     }
     if (val.useServerTimestamp) {
       config.value.useServerTimestamp = appConfig.value.recorder.useServerTimestamp;
+    }
+    if (val.debugLevel) {
+      config.value.debugLevel = appConfig.value.recorder.debugLevel;
     }
   },
   {

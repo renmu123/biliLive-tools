@@ -3,6 +3,7 @@ import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
 import { StreamManager, getMesioPath } from "../index.js";
+import { IRecorder, MesioRecorderOptions } from "./IRecorder.js";
 
 // Mesio command builder class similar to ffmpeg
 class MesioCommand extends EventEmitter {
@@ -82,7 +83,7 @@ class MesioCommand extends EventEmitter {
     this.process.on("error", (error) => {
       this.emit("error", error);
     });
-
+    [];
     this.process.on("close", (code) => {
       if (code === 0) {
         this.emit("end");
@@ -104,55 +105,43 @@ export const createMesioBuilder = (): MesioCommand => {
   return new MesioCommand();
 };
 
-export class mesioRecorder extends EventEmitter {
+export class MesioRecorder extends EventEmitter implements IRecorder {
+  public type = "mesio" as const;
   private command: MesioCommand;
   private streamManager: StreamManager;
-  hasSegment: boolean;
-  getSavePath: (data: { startTime: number; title?: string }) => string;
-  segment: number;
-  inputOptions: string[] = [];
-  isHls: boolean;
-  disableDanma: boolean = false;
-  url: string;
-  headers:
+  readonly hasSegment: boolean;
+  readonly getSavePath: (data: { startTime: number; title?: string }) => string;
+  readonly segment: number;
+  readonly inputOptions: string[] = [];
+  readonly disableDanma: boolean = false;
+  readonly url: string;
+  readonly debugLevel: "none" | "basic" | "verbose" = "none";
+  readonly headers:
     | {
         [key: string]: string | undefined;
       }
     | undefined;
 
   constructor(
-    opts: {
-      url: string;
-      getSavePath: (data: { startTime: number; title?: string }) => string;
-      segment: number;
-      outputOptions?: string[];
-      inputOptions?: string[];
-      isHls?: boolean;
-      disableDanma?: boolean;
-      formatName?: "flv" | "ts" | "fmp4";
-      headers?: {
-        [key: string]: string | undefined;
-      };
-    },
+    opts: MesioRecorderOptions,
     private onEnd: (...args: unknown[]) => void,
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
     const hasSegment = true;
     this.disableDanma = opts.disableDanma ?? false;
+    this.debugLevel = opts.debugLevel ?? "none";
 
     let videoFormat: "flv" | "ts" | "m4s" = "flv";
     if (opts.url.includes(".m3u8")) {
       videoFormat = "ts";
     }
-    if (opts.formatName) {
-      if (opts.formatName === "fmp4") {
-        videoFormat = "m4s";
-      } else if (opts.formatName === "ts") {
-        videoFormat = "ts";
-      } else if (opts.formatName === "flv") {
-        videoFormat = "flv";
-      }
+    if (opts.formatName === "fmp4") {
+      videoFormat = "m4s";
+    } else if (opts.formatName === "ts") {
+      videoFormat = "ts";
+    } else if (opts.formatName === "flv") {
+      videoFormat = "flv";
     }
 
     this.streamManager = new StreamManager(
@@ -167,20 +156,15 @@ export class mesioRecorder extends EventEmitter {
     );
     this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
-    this.inputOptions = opts.inputOptions ?? [];
+    this.inputOptions = [];
     this.url = opts.url;
     this.segment = opts.segment;
     this.headers = opts.headers;
-    if (opts.isHls === undefined) {
-      this.isHls = this.url.includes("m3u8");
-    } else {
-      this.isHls = opts.isHls;
-    }
 
     this.command = this.createCommand();
 
-    this.streamManager.on("videoFileCreated", ({ filename, cover }) => {
-      this.emit("videoFileCreated", { filename, cover });
+    this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename }) => {
+      this.emit("videoFileCreated", { filename, cover, rawFilename });
     });
     this.streamManager.on("videoFileCompleted", ({ filename }) => {
       this.emit("videoFileCompleted", { filename });
@@ -196,7 +180,11 @@ export class mesioRecorder extends EventEmitter {
       "--fix",
       "-H",
       "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
+      "--no-proxy",
     ];
+    if (this.debugLevel === "verbose") {
+      inputOptions.push("-v");
+    }
 
     if (this.headers) {
       Object.entries(this.headers).forEach(([key, value]) => {
@@ -215,8 +203,8 @@ export class mesioRecorder extends EventEmitter {
       .on("error", this.onEnd)
       .on("end", () => this.onEnd("finished"))
       .on("stderr", async (stderrLine) => {
-        await this.streamManager.handleVideoStarted(stderrLine);
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
+        await this.streamManager.handleVideoStarted(stderrLine);
       });
 
     return command;

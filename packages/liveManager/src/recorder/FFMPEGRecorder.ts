@@ -2,53 +2,42 @@ import EventEmitter from "node:events";
 
 import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
 import { createInvalidStreamChecker, assert } from "../utils.js";
+import { IRecorder, FFMPEGRecorderOptions } from "./IRecorder.js";
 
-export class FFMPEGRecorder extends EventEmitter {
+import type { FormatName } from "./index.js";
+
+export class FFMPEGRecorder extends EventEmitter implements IRecorder {
+  public type = "ffmpeg" as const;
   private command: ReturnType<typeof createFFMPEGBuilder>;
   private streamManager: StreamManager;
   private timeoutChecker: ReturnType<typeof utils.createTimeoutChecker>;
-  hasSegment: boolean;
-  getSavePath: (data: { startTime: number; title?: string }) => string;
-  segment: number;
+  readonly hasSegment: boolean;
+  readonly getSavePath: (data: { startTime: number; title?: string }) => string;
+  readonly segment: number;
   ffmpegOutputOptions: string[] = [];
-  inputOptions: string[] = [];
-  isHls: boolean;
-  disableDanma: boolean = false;
-  url: string;
-  formatName: "flv" | "ts" | "fmp4";
+  readonly inputOptions: string[] = [];
+  readonly isHls: boolean;
+  readonly disableDanma: boolean = false;
+  readonly url: string;
+  formatName: FormatName;
   videoFormat: "ts" | "mkv" | "mp4";
-  headers:
+  readonly debugLevel: "none" | "basic" | "verbose" = "none";
+  readonly headers:
     | {
         [key: string]: string | undefined;
       }
     | undefined;
 
   constructor(
-    opts: {
-      url: string;
-      getSavePath: (data: { startTime: number; title?: string }) => string;
-      segment: number;
-      outputOptions: string[];
-      inputOptions?: string[];
-      disableDanma?: boolean;
-      videoFormat?: "auto" | "ts" | "mkv" | "mp4";
-      formatName?: "flv" | "ts" | "fmp4";
-      headers?: {
-        [key: string]: string | undefined;
-      };
-    },
+    opts: FFMPEGRecorderOptions,
     private onEnd: (...args: unknown[]) => void,
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
     const hasSegment = !!opts.segment;
     this.hasSegment = hasSegment;
-
-    let formatName: "flv" | "ts" | "fmp4" = "flv";
-    if (opts.url.includes(".m3u8")) {
-      formatName = "ts";
-    }
-    this.formatName = opts.formatName ?? formatName;
+    this.debugLevel = opts.debugLevel ?? "none";
+    this.formatName = opts.formatName;
 
     if (this.formatName === "fmp4" || this.formatName === "ts") {
       this.isHls = true;
@@ -93,8 +82,8 @@ export class FFMPEGRecorder extends EventEmitter {
     this.headers = opts.headers;
 
     this.command = this.createCommand();
-    this.streamManager.on("videoFileCreated", ({ filename, cover }) => {
-      this.emit("videoFileCreated", { filename, cover });
+    this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename }) => {
+      this.emit("videoFileCreated", { filename, cover, rawFilename });
     });
     this.streamManager.on("videoFileCompleted", ({ filename }) => {
       this.emit("videoFileCompleted", { filename });
@@ -113,6 +102,14 @@ export class FFMPEGRecorder extends EventEmitter {
       "-user_agent",
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
     ];
+    if (this.isHls) {
+      inputOptions.push(
+        ...["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "3"],
+      );
+    }
+    if (this.debugLevel === "verbose") {
+      inputOptions.push("-loglevel", "debug");
+    }
     if (this.headers) {
       const headers: string[] = [];
       Object.entries(this.headers).forEach(([key, value]) => {

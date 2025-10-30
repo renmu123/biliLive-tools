@@ -1,12 +1,15 @@
 import { getRoomInfo } from "./douyin_api.js";
+import { globalLoadBalancer } from "./loadBalancer/loadBalancer.js";
 
 import type { Recorder } from "@bililive-tools/manager";
+import type { APIType, RealAPIType } from "./types.js";
 
 export async function getInfo(
   channelId: string,
   opts?: {
     cookie?: string;
-    api?: "web" | "webHTML";
+    api?: APIType;
+    uid?: string | number;
   },
 ): Promise<{
   living: boolean;
@@ -17,8 +20,20 @@ export async function getInfo(
   cover: string;
   startTime: Date;
   liveId: string;
+  uid: string;
+  api: RealAPIType;
 }> {
-  const info = await getRoomInfo(channelId, opts ?? {});
+  let info;
+
+  // 如果使用 balance 模式，使用负载均衡器
+  if (opts?.api === "balance") {
+    info = await globalLoadBalancer.callWithLoadBalance(channelId, {
+      auth: opts.cookie,
+      uid: opts.uid,
+    });
+  } else {
+    info = await getRoomInfo(channelId, opts ?? {});
+  }
 
   return {
     living: info.living,
@@ -29,6 +44,8 @@ export async function getInfo(
     cover: info.cover,
     startTime: new Date(),
     liveId: info.liveId,
+    uid: info.uid,
+    api: info.api,
   };
 }
 
@@ -39,13 +56,20 @@ export async function getStream(
     cookie?: string;
     formatPriorities?: Array<"flv" | "hls">;
     doubleScreen?: boolean;
-    api?: "web" | "webHTML";
+    api?: APIType;
+    uid?: string | number;
   },
 ) {
+  let api = opts.api ?? "web";
+  if (api === "userHTML") {
+    // userHTML 接口只能用于状态检测
+    api = "web";
+  }
   const info = await getRoomInfo(opts.channelId, {
     doubleScreen: opts.doubleScreen ?? true,
     auth: opts.cookie,
-    api: opts.api ?? "web",
+    api: api,
+    uid: opts.uid,
   });
   if (!info.living) {
     throw new Error("It must be called getStream when living");
@@ -85,12 +109,23 @@ export async function getStream(
     throw new Error("未找到对应的流");
   }
 
+  let onlyAudio = false;
+  try {
+    const urlObj = new URL(url);
+    if (urlObj.searchParams.get("only_audio") == "1") {
+      onlyAudio = true;
+    }
+  } catch (error) {
+    console.warn("解析流 URL 失败", error);
+  }
+
   return {
     ...info,
     currentStream: {
       name: qualityName,
       source: "自动",
-      url: url!,
+      url: url,
+      onlyAudio,
     },
   };
 }

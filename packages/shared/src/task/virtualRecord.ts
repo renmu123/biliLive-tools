@@ -56,7 +56,6 @@ const extractStartTimeFromFilename = (
   try {
     // 匹配格式如：2025-09-12 17-16-48
     const date = dayjs(filename, ["YYYY-MM-DD_HH-mm-ss", "YYYY-MM-DD HH-mm-ss"]);
-    console.log("匹配时间", filename, date.isValid(), date.toString());
     if (date.isValid()) {
       return date.valueOf();
     }
@@ -150,7 +149,7 @@ const getMatchingFiles = async (
       return (
         result.value.isFile() &&
         startTimeMs > startTime &&
-        Date.now() - result.value.ctimeMs > 5 * 60 * 1000
+        Date.now() - result.value.ctimeMs > 1 * 60 * 1000
       );
     })
     .map((result) => {

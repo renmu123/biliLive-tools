@@ -160,7 +160,11 @@ export function isFfmpegStartSegment(line: string) {
 }
 
 export function isMesioStartSegment(line: string) {
-  return line.includes("Opening ") && line.includes("Opening segment");
+  return line.includes("Opening segment");
+}
+
+export function isBililiveStartSegment(line: string) {
+  return line.includes("创建录制文件");
 }
 
 export function isFfmpegStart(line: string) {
@@ -395,6 +399,31 @@ function isBetweenTime(currentTime: Date, timeRange: [string, string]): boolean 
 
   return start <= current && current <= end;
 }
+export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * 检查标题是否包含黑名单关键词
+ */
+function hasBlockedTitleKeywords(title: string, titleKeywords: string | undefined): boolean {
+  const keywords = (titleKeywords ?? "")
+    .split(",")
+    .map((k) => k.trim())
+    .filter((k) => k);
+
+  return keywords.some((keyword) => title.toLowerCase().includes(keyword.toLowerCase()));
+}
+
+/**
+ * 检查是否需要进行标题关键词检查
+ */
+function shouldCheckTitleKeywords(
+  isManualStart: boolean | undefined,
+  titleKeywords: string | undefined,
+): boolean {
+  return (
+    !isManualStart && !!titleKeywords && typeof titleKeywords === "string" && !!titleKeywords.trim()
+  );
+}
 
 export default {
   replaceExtName,
@@ -415,4 +444,7 @@ export default {
   sortByKeyOrder,
   retry,
   isBetweenTimeRange,
+  hasBlockedTitleKeywords,
+  shouldCheckTitleKeywords,
+  sleep,
 };
