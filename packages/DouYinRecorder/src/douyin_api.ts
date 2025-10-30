@@ -123,8 +123,16 @@ function generateNonce() {
  * 随机选择一个可用的 API 接口
  * @returns 随机选择的 API 类型
  */
-function selectRandomAPI(): RealAPIType {
+export function selectRandomAPI(exclude?: RealAPIType[]): RealAPIType {
   const availableAPIs: Array<RealAPIType> = ["web", "webHTML", "mobile", "userHTML"];
+  if (exclude && exclude.length > 0) {
+    for (const api of exclude) {
+      const index = availableAPIs.indexOf(api);
+      if (index !== -1) {
+        availableAPIs.splice(index, 1);
+      }
+    }
+  }
   const randomIndex = Math.floor(Math.random() * availableAPIs.length);
   return availableAPIs[randomIndex];
 }
