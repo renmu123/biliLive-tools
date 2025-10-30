@@ -7,7 +7,9 @@ export default defineConfig({
   lastUpdated: true,
   ignoreDeadLinks: true,
   lang: "zh-CN",
+  head: [["link", { rel: "icon", href: "/logo.png" }]],
   themeConfig: {
+    logo: "/logo.png",
     // https://vitepress.dev/reference/default-theme-config
     nav: [
       { text: "首页", link: "/" },
