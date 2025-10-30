@@ -1,5 +1,9 @@
 # Next
 
+## 功能
+
+- 支持mesio及录播姬的flv修复 [#219](https://github.com/renmu123/biliLive-tools/pull/219)
+
 ## 优化
 
 - UI：tab默认为展开模式
