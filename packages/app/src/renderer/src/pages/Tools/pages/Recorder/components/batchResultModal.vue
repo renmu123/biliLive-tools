@@ -63,7 +63,7 @@
             <n-thing>
               <template #header>
                 <n-text v-if="result.success" type="success">
-                  {{ result.data?.owner }} - {{ result.data?.providerId }}
+                  {{ result.data?.remarks }} - {{ result.data?.providerId }}
                 </n-text>
                 <n-text v-else type="error"> 解析失败 </n-text>
               </template>
@@ -97,23 +97,12 @@
 <script setup lang="ts">
 import { CheckmarkCircleOutline, CloseCircleOutline } from "@vicons/ionicons5";
 import { recoderApi } from "@renderer/apis";
-import { useAppConfig } from "@renderer/stores";
 
-const { appConfig } = storeToRefs(useAppConfig());
+import type { BatchResolveChannelResult } from "@biliLive-tools/http/types/recorder.js";
+
 const notice = useNotification();
 
-interface ParseResult {
-  url: string;
-  success: boolean;
-  data?: {
-    providerId: string;
-    channelId: string;
-    owner: string;
-    uid?: number;
-    avatar?: string;
-  };
-  error?: string;
-}
+type ParseResult = BatchResolveChannelResult;
 
 interface Props {
   results: ParseResult[];
@@ -152,55 +141,10 @@ const addRecorders = async () => {
       if (!result.data) continue;
 
       try {
-        // 构建录制器配置，使用全局配置作为默认值
-        const recorderConfig = {
-          providerId: result.data.providerId as "DouYu" | "HuYa" | "Bilibili" | "DouYin",
-          channelId: result.data.channelId,
-          remarks: result.data.owner,
-          disableAutoCheck: !batchSettings.value.autoRecord, // 注意这里是反向的
-          sendToWebhook: batchSettings.value.sendToWebhook,
-
-          // 以下参数使用全局默认值
-          segment: appConfig.value.recorder.segment,
-          quality: getDefaultQuality(result.data.providerId),
-          disableProvideCommentsWhenRecording:
-            appConfig.value.recorder.disableProvideCommentsWhenRecording,
-          saveGiftDanma: appConfig.value.recorder.saveGiftDanma,
-          saveSCDanma: appConfig.value.recorder.saveSCDanma,
-          streamPriorities: [],
-          sourcePriorities: [],
-          noGlobalFollowFields: [], // 使用全局配置
-          saveCover: appConfig.value.recorder.saveCover,
-          extra: {
-            createTimestamp: Date.now(),
-            avatar: result.data.avatar,
-            ...(result.data.uid && { recorderUid: result.data.uid }),
-          },
-          qualityRetry: appConfig.value.recorder.qualityRetry,
-          formatName: getDefaultFormatName(result.data.providerId),
-          useM3U8Proxy: appConfig.value.recorder.bilibili.useM3U8Proxy,
-          codecName: appConfig.value.recorder.bilibili.codecName,
-          titleKeywords: "",
-          liveStartNotification: false,
-          weight: 10,
-          source: getDefaultSource(result.data.providerId),
-          videoFormat: appConfig.value.recorder.videoFormat,
-          recorderType: appConfig.value.recorder.recorderType,
-          cookie: getDefaultCookie(result.data.providerId),
-          doubleScreen: appConfig.value.recorder.douyin.doubleScreen,
-          useServerTimestamp: appConfig.value.recorder.useServerTimestamp,
-          handleTime: [null, null] as [string | null, string | null],
-          uid:
-            result.data.providerId === "Bilibili"
-              ? appConfig.value.recorder.bilibili.uid
-              : undefined,
-          onlyAudio: false,
-        };
-
-        await recoderApi.add(recorderConfig);
+        await recoderApi.add(result.data);
         successAddCount++;
       } catch (error: any) {
-        console.error(`添加录制器失败: ${result.data.owner}`, error);
+        console.error(`添加录制器失败: ${result.data.remarks}`, error);
         failedAddCount++;
       }
     }
@@ -224,58 +168,6 @@ const addRecorders = async () => {
     showModal.value = false;
   } finally {
     adding.value = false;
-  }
-};
-
-// 根据平台获取默认画质
-const getDefaultQuality = (providerId: string) => {
-  switch (providerId) {
-    case "Bilibili":
-      return appConfig.value.recorder.bilibili.quality;
-    case "DouYu":
-      return appConfig.value.recorder.douyu.quality;
-    case "HuYa":
-      return appConfig.value.recorder.huya.quality;
-    case "DouYin":
-      return appConfig.value.recorder.douyin.quality;
-    default:
-      return appConfig.value.recorder.quality;
-  }
-};
-
-// 根据平台获取默认格式
-const getDefaultFormatName = (providerId: string) => {
-  switch (providerId) {
-    case "Bilibili":
-      return appConfig.value.recorder.bilibili.formatName;
-    case "DouYin":
-      return appConfig.value.recorder.douyin.formatName;
-    case "HuYa":
-      return appConfig.value.recorder.huya.formatName;
-    default:
-      return "auto";
-  }
-};
-
-// 根据平台获取默认线路
-const getDefaultSource = (providerId: string) => {
-  switch (providerId) {
-    case "DouYu":
-      return appConfig.value.recorder.douyu.source;
-    case "HuYa":
-      return appConfig.value.recorder.huya.source;
-    default:
-      return "auto";
-  }
-};
-
-// 根据平台获取默认Cookie
-const getDefaultCookie = (providerId: string) => {
-  switch (providerId) {
-    case "DouYin":
-      return appConfig.value.recorder.douyin.cookie;
-    default:
-      return "";
   }
 };
 

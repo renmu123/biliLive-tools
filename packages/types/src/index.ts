@@ -73,6 +73,38 @@ export const recorderNoGlobalFollowFields: Array<
   "useServerTimestamp",
 ];
 
+export const defaultRecordConfig: Omit<Recorder, "id"> = {
+  providerId: "DouYu",
+  channelId: "",
+  segment: 60,
+  quality: "highest",
+  disableProvideCommentsWhenRecording: false,
+  saveGiftDanma: false,
+  saveSCDanma: true,
+  streamPriorities: [],
+  sourcePriorities: [],
+  disableAutoCheck: false,
+  sendToWebhook: false,
+  noGlobalFollowFields: [],
+  saveCover: false,
+  extra: {},
+  qualityRetry: 0,
+  formatName: "auto",
+  useM3U8Proxy: false,
+  codecName: "auto",
+  titleKeywords: "",
+  liveStartNotification: false,
+  weight: 10,
+  source: "auto",
+  videoFormat: "auto",
+  recorderType: "ffmpeg",
+  cookie: "",
+  doubleScreen: true,
+  useServerTimestamp: true,
+  handleTime: ["", ""],
+  debugLevel: "none",
+};
+
 // 通用预设
 export type CommonPreset<T> = {
   id: string;
@@ -441,8 +473,8 @@ export interface Recorder {
   sourcePriorities: any[];
   extra: {
     createTimestamp?: number;
-    /** B站主播的uid */
-    recorderUid?: number;
+    /** B站主播的uid，抖音的sec_uid */
+    recorderUid?: number | string;
     /** 头像 */
     avatar?: string;
   };

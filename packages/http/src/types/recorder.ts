@@ -161,13 +161,7 @@ export interface BatchResolveChannelArgs {
 export interface BatchResolveChannelResult {
   url: string;
   success: boolean;
-  data?: {
-    providerId: RecoderConfig["providerId"];
-    channelId: string;
-    owner: string;
-    uid?: number;
-    avatar?: string;
-  };
+  data?: Omit<RecoderConfig, "id">;
   error?: string;
 }
 export type BatchResolveChannelResp = {
@@ -248,6 +242,10 @@ export type RecorderAPI = {
   resolveChannel: {
     Args: ResolveChannelArgs;
     Resp: ResolveChannelResp;
+  };
+  resolve: {
+    Args: { url: string };
+    Resp?: Omit<RecoderConfig, "id">;
   };
   batchResolveChannel: {
     Args: BatchResolveChannelArgs;

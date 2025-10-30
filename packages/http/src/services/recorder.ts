@@ -5,6 +5,7 @@ import { createRecorderManager } from "@biliLive-tools/shared";
 import { omit, pick, isEmpty } from "lodash-es";
 import recordHistory from "@biliLive-tools/shared/recorder/recordHistory.js";
 import logger from "@biliLive-tools/shared/utils/log.js";
+import { defaultRecordConfig } from "@biliLive-tools/types";
 
 import type { RecorderAPI, ClientRecorder } from "../types/recorder.js";
 import type { Recorder } from "@bililive-tools/manager";
@@ -277,19 +278,38 @@ export function resolveChannel(url: string) {
   return recorderManager.resolveChannel(url);
 }
 
-export async function batchResolveChannel(urls: string[]) {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+export async function resolve(url: string) {
+  const channelInfo = await resolveChannel(url);
 
+  if (!channelInfo) {
+    return null;
+  }
+
+  // 根据平台初始化配置
+  const config = defaultRecordConfig;
+  config.channelId = channelInfo.channelId;
+  config.providerId = channelInfo.providerId as any;
+  config.remarks = channelInfo.owner;
+  config.extra = {
+    createTimestamp: Date.now(),
+    avatar: channelInfo.avatar,
+  };
+
+  // 根据不同平台设置特定配置
+  if (channelInfo.providerId === "DouYin") {
+    if (channelInfo.uid) {
+      config.uid = channelInfo.uid;
+    }
+  }
+
+  return config;
+}
+
+export async function batchResolveChannel(urls: string[]) {
   const results: Array<{
     url: string;
     success: boolean;
-    data?: {
-      providerId: string;
-      channelId: string;
-      owner: string;
-      uid?: number;
-      avatar?: string;
-    };
+    data?: typeof defaultRecordConfig;
     error?: string;
   }> = [];
 
@@ -298,12 +318,12 @@ export async function batchResolveChannel(urls: string[]) {
 
   for (const url of urlsToProcess) {
     try {
-      const data = await recorderManager.resolveChannel(url);
+      const data = await resolve(url);
       if (data) {
         results.push({
           url,
           success: true,
-          data,
+          data: data,
         });
       } else {
         results.push({
@@ -370,4 +390,5 @@ export default {
   resolveChannel,
   batchResolveChannel,
   getBiliStream,
+  resolve,
 };

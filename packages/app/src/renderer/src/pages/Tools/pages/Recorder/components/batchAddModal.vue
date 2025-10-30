@@ -47,24 +47,15 @@
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
 
+import type { BatchResolveChannelResult } from "@biliLive-tools/http/types/recorder.js";
+
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 
 const emits = defineEmits<{
   (event: "parsed", results: ParseResult[]): void;
 }>();
 
-interface ParseResult {
-  url: string;
-  success: boolean;
-  data?: {
-    providerId: string;
-    channelId: string;
-    owner: string;
-    uid?: number;
-    avatar?: string;
-  };
-  error?: string;
-}
+type ParseResult = BatchResolveChannelResult;
 
 const urlsText = ref("");
 const parsing = ref(false);
@@ -90,40 +81,6 @@ const parseUrls = async () => {
     const batchResult = await recoderApi.batchResolveChannel(urlsToProcess);
 
     emits("parsed", batchResult.results);
-    showModal.value = false;
-  } catch (error: any) {
-    // 如果批量API失败，回退到单个解析
-    console.warn("批量解析API失败，回退到单个解析:", error);
-
-    const urlsToProcess = urlList.value.slice(0, 20);
-    const results: ParseResult[] = [];
-
-    for (const url of urlsToProcess) {
-      try {
-        const data = await recoderApi.resolveChannel(url);
-        if (data) {
-          results.push({
-            url,
-            success: true,
-            data,
-          });
-        } else {
-          results.push({
-            url,
-            success: false,
-            error: "解析失败，无法识别此链接",
-          });
-        }
-      } catch (error: any) {
-        results.push({
-          url,
-          success: false,
-          error: error.message || "解析过程中发生错误",
-        });
-      }
-    }
-
-    emits("parsed", results);
     showModal.value = false;
   } finally {
     parsing.value = false;

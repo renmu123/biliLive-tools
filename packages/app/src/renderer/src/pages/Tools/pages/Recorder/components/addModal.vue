@@ -554,6 +554,8 @@ import {
   recorderDebugLevelOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
+import { defaultRecordConfig } from "@biliLive-tools/types";
+import { cloneDeep } from "lodash-es";
 
 import type { Recorder } from "@biliLive-tools/types";
 
@@ -593,37 +595,8 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
   },
 );
 
-const config = ref<Omit<Recorder, "id">>({
-  providerId: "DouYu",
-  channelId: "",
-  segment: 60,
-  quality: "highest",
-  disableProvideCommentsWhenRecording: false,
-  saveGiftDanma: false,
-  saveSCDanma: true,
-  streamPriorities: [],
-  sourcePriorities: [],
-  disableAutoCheck: false,
-  sendToWebhook: false,
-  noGlobalFollowFields: [],
-  saveCover: false,
-  extra: {},
-  qualityRetry: 0,
-  formatName: "auto",
-  useM3U8Proxy: false,
-  codecName: "auto",
-  titleKeywords: "",
-  liveStartNotification: false,
-  weight: 10,
-  source: "auto",
-  videoFormat: "auto",
-  recorderType: "ffmpeg",
-  cookie: "",
-  doubleScreen: true,
-  useServerTimestamp: true,
-  handleTime: ["", ""],
-  debugLevel: "none",
-});
+const recordConfig = cloneDeep(defaultRecordConfig);
+const config = ref(recordConfig);
 
 const confirmDialog = useConfirm();
 const confirm = async () => {
@@ -678,7 +651,7 @@ const channelIdUrl = ref("");
 const owner = ref("");
 const onChannelIdInputEnd = async () => {
   if (!channelIdUrl.value) return;
-  const res = await recoderApi.resolveChannel(channelIdUrl.value);
+  const res = await recoderApi.resolve(channelIdUrl.value);
   if (!res) {
     notice.error({
       title: "解析失败",
@@ -687,63 +660,16 @@ const onChannelIdInputEnd = async () => {
     return;
   }
 
-  config.value.channelId = res.channelId;
-  config.value.providerId = res.providerId;
-  config.value.remarks = res.owner;
-  owner.value = res.owner;
-  config.value.extra = config.value.extra ?? {};
-  config.value.extra!.createTimestamp = Date.now();
-  config.value.extra!.avatar = res.avatar;
-  if (res.providerId === "Bilibili") {
-    config.value.quality = appConfig.value.recorder.bilibili.quality;
-    config.value.extra!.recorderUid = res.uid;
-  } else if (res.providerId === "DouYu") {
-    config.value.quality = appConfig.value.recorder.douyu.quality;
-  } else if (res.providerId === "HuYa") {
-    config.value.quality = appConfig.value.recorder.huya.quality;
-  } else if (res.providerId === "DouYin") {
-    config.value.quality = appConfig.value.recorder.douyin.quality;
-    config.value.cookie = appConfig.value.recorder.douyin.cookie;
-    config.value.uid = res.uid;
-  }
+  // 直接使用后端返回的完整配置
+  config.value = res;
+  owner.value = res.remarks || "";
 };
 
 watch(showModal, async (val) => {
   if (val) {
     channelIdUrl.value = "";
     owner.value = "";
-    config.value = {
-      providerId: "DouYu",
-      channelId: "",
-      segment: 90,
-      quality: 0,
-      disableProvideCommentsWhenRecording: true,
-      saveGiftDanma: false,
-      saveSCDanma: true,
-      streamPriorities: [],
-      sourcePriorities: [],
-      disableAutoCheck: false,
-      sendToWebhook: false,
-      noGlobalFollowFields: [],
-      uid: undefined,
-      saveCover: false,
-      extra: {},
-      qualityRetry: 0,
-      formatName: "auto",
-      useM3U8Proxy: false,
-      codecName: "auto",
-      titleKeywords: "",
-      liveStartNotification: false,
-      weight: 10,
-      source: "auto",
-      videoFormat: "auto",
-      recorderType: "ffmpeg",
-      cookie: "",
-      doubleScreen: true,
-      useServerTimestamp: true,
-      handleTime: [null, null],
-      debugLevel: "none",
-    };
+    config.value = recordConfig;
 
     if (props.id) {
       await getRecordSetting();
