@@ -1,6 +1,7 @@
 # Next
 
 - `recordHandle` 新增参数 `recorderType`
+- 修复礼物弹幕缺失的情况
 - 修复两种接口的返回类型值错误
 - 修复使用 random 接口时，获取流可能失败的情况
 
