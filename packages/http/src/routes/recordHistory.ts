@@ -19,7 +19,7 @@ const router = new Router({
  * @param {number} [pageSize=100] - 每页条数
  * @param {number} [startTime] - 开始时间（时间戳）
  * @param {number} [endTime] - 结束时间（时间戳）
- * @returns 返回数据包含弹幕密度字段（弹幕数量/视频时长，单位：条/秒）
+ * @returns
  */
 router.get("/list", async (ctx) => {
   const { room_id, platform, page, pageSize, startTime, endTime } = ctx.query;
@@ -49,7 +49,7 @@ router.get("/list", async (ctx) => {
       danma_density:
         record.danma_num && record.video_duration && record.video_duration > 0
           ? Math.round((record.danma_num / record.video_duration) * 100) / 100 // 保留两位小数
-          : null,
+          : 0,
     }));
 
     ctx.body = {
@@ -130,7 +130,7 @@ const getVideoFile = async (id: number): Promise<string | null> => {
 /**
  * 获取视频文件
  * @route GET /record-history/video/:id
- * @param {string} video_file - 视频文件路径
+ * @param {number} id - 记录ID
  */
 router.get("/video/:id", async (ctx) => {
   const { id } = ctx.params;

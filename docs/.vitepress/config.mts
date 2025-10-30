@@ -20,7 +20,12 @@ export default defineConfig({
       "/api/": [
         {
           text: "API",
-          items: [{ text: "录制", link: "/api/recorder" }],
+          items: [
+            { text: "录制", link: "/api/recorder" },
+            { text: "录制历史", link: "/api/record-history" },
+            { text: "同步", link: "/api/sync" },
+            { text: "其他", link: "/api/other" },
+          ],
         },
       ],
       "/": [
