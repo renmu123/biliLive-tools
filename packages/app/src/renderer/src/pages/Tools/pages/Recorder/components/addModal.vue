@@ -828,7 +828,9 @@ watch(
       config.value.segment = appConfig.value.recorder.segment;
     }
     if (val.uid) {
-      config.value.uid = appConfig.value.recorder.bilibili.uid;
+      if (config.value.providerId === "Bilibili") {
+        config.value.uid = appConfig.value.recorder.bilibili.uid;
+      }
     }
     if (val.saveCover) {
       config.value.saveCover = appConfig.value.recorder.saveCover;
@@ -841,7 +843,9 @@ watch(
       config.value.useM3U8Proxy = appConfig.value.recorder.bilibili.useM3U8Proxy;
     }
     if (val.codecName) {
-      config.value.codecName = appConfig.value.recorder.bilibili.codecName;
+      if (config.value.providerId === "Bilibili") {
+        config.value.codecName = appConfig.value.recorder.bilibili.codecName;
+      }
     }
     if (val.source) {
       if (config.value.providerId === "DouYu") {
@@ -859,7 +863,9 @@ watch(
       config.value.recorderType = appConfig.value.recorder.recorderType;
     }
     if (val.cookie) {
-      config.value.cookie = appConfig.value.recorder.douyin.cookie;
+      if (config.value.providerId === "DouYin") {
+        config.value.cookie = appConfig.value.recorder.douyin.cookie;
+      }
     }
     if (val.doubleScreen) {
       config.value.doubleScreen = appConfig.value.recorder.douyin.doubleScreen;
