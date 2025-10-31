@@ -21,6 +21,7 @@ import {
 import { config } from "../../index.js";
 import FileLockManager from "./fileLockManager.js";
 import { ConfigManager } from "./ConfigManager.js";
+import { PathResolver } from "./PathResolver.js";
 
 import type {
   BiliupConfig,
@@ -220,7 +221,7 @@ export class WebhookHandler {
 
     log.debug(currentLive);
 
-    const cover = await this.handleCover(options);
+    const cover = await PathResolver.getCoverPath(options.filePath, options.coverPath);
 
     if (useLiveCover) {
       if (cover) {
@@ -255,12 +256,7 @@ export class WebhookHandler {
     // TODO:还是可能存在视频上传完但是源视频已经被删除的情况
     currentPart.recordStatus = "prehandled";
 
-    let xmlFilePath: string;
-    if (options.danmuPath) {
-      xmlFilePath = options.danmuPath;
-    } else {
-      xmlFilePath = replaceExtName(options.filePath, ".xml");
-    }
+    const xmlFilePath = PathResolver.getDanmuPath(options.filePath, options.danmuPath);
 
     // 用于跟踪转换是否成功
     let conversionSuccessful = true;
@@ -273,6 +269,7 @@ export class WebhookHandler {
         if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
           currentPart.recordStatus = "handled";
           // 等待1秒后，将上传状态设置为pending，不直接返回是由于后续有同步等相关操作
+          // TODO: 这里要额外测试
           setTimeout(() => {
             currentPart.uploadStatus = "pending";
           }, 1000);
@@ -474,25 +471,13 @@ export class WebhookHandler {
 
     const liveStartTime = new Date(live.startTime);
 
-    // 准备格式化参数
-    const formatParams = {
+    // 格式化文件夹结构
+    const folderStructure = PathResolver.formatFolderStructure(syncConfig.folderStructure, {
       platform,
       user: username,
-      year: liveStartTime.getFullYear(),
-      month: (liveStartTime.getMonth() + 1).toString().padStart(2, "0"),
-      date: liveStartTime.getDate().toString().padStart(2, "0"),
-      yyyy: liveStartTime.getFullYear(),
-      MM: (liveStartTime.getMonth() + 1).toString().padStart(2, "0"),
-      dd: liveStartTime.getDate().toString().padStart(2, "0"),
-      now: `${liveStartTime.getFullYear()}.${(liveStartTime.getMonth() + 1).toString().padStart(2, "0")}.${liveStartTime.getDate().toString().padStart(2, "0")}`,
-      partId: livePart?.part?.partId || "",
-    };
-
-    // 格式化文件夹结构
-    let folderStructure = syncConfig.folderStructure;
-    for (const [key, value] of Object.entries(formatParams)) {
-      folderStructure = folderStructure.replace(new RegExp(`{{${key}}}`, "g"), String(value));
-    }
+      liveStartTime,
+      partId: livePart?.part?.partId,
+    });
 
     try {
       // 调用同步函数
@@ -537,35 +522,6 @@ export class WebhookHandler {
     return this.handleFileSync(roomId, coverPath, "cover", partId);
   }
 
-  /**
-   * 处理封面
-   * @param options
-   * @param {string} [options.coverPath] - 封面路径
-   * @param {string} options.filePath - 文件路径
-   * @returns {Promise<string | undefined>} 封面路径
-   */
-  async handleCover(options: {
-    coverPath?: string;
-    filePath: string;
-  }): Promise<string | undefined> {
-    let cover: string | undefined;
-    if (options.coverPath) {
-      cover = options.coverPath;
-    } else {
-      const { name, dir } = path.parse(options.filePath);
-      if (await fs.pathExists(path.join(dir, `${name}.cover.jpg`))) {
-        cover = path.join(dir, `${name}.cover.jpg`);
-      }
-      if (await fs.pathExists(path.join(dir, `${name}.jpg`))) {
-        cover = path.join(dir, `${name}.jpg`);
-      }
-    }
-    if (cover && (await fs.pathExists(cover))) {
-      return cover;
-    } else {
-      return undefined;
-    }
-  }
   /**
    * 处理open事件
    * @param options
@@ -1295,10 +1251,7 @@ export class WebhookHandler {
     }
 
     try {
-      let fileType: "source" | "danmaku" = "source";
-      if (filePath.includes("-弹幕版") || filePath.includes("-后处理")) {
-        fileType = "danmaku";
-      }
+      const fileType = PathResolver.getFileType(filePath);
 
       const shouldSync = await this.hasTypeInSync(roomId, fileType);
       if (!shouldSync) {
