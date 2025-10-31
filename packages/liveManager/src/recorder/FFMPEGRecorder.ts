@@ -20,7 +20,7 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
   readonly disableDanma: boolean = false;
   readonly url: string;
   formatName: FormatName;
-  videoFormat: "ts" | "mkv" | "mp4";
+  videoFormat: "ts" | "mkv" | "mp4" | "m4s";
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
   readonly headers:
     | {
@@ -48,7 +48,7 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
     let videoFormat = opts.videoFormat ?? "auto";
     if (videoFormat === "auto") {
       if (!this.hasSegment) {
-        videoFormat = "mp4";
+        videoFormat = "m4s";
         if (this.formatName === "ts") {
           videoFormat = "ts";
         }
@@ -121,10 +121,11 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
       }
     }
 
+    const outputOptions = this.buildOutputOptions();
     const command = createFFMPEGBuilder()
       .input(this.url)
       .inputOptions(inputOptions)
-      .outputOptions(this.ffmpegOutputOptions)
+      .outputOptions(outputOptions)
       .output(this.streamManager.videoFilePath)
       .on("error", this.onEnd)
       .on("end", () => this.onEnd("finished"))
@@ -144,8 +145,23 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
         }
       })
       .on("stderr", this.timeoutChecker?.update);
+    return command;
+  }
+  buildOutputOptions() {
+    const options: string[] = [];
+    options.push(...this.ffmpegOutputOptions);
+    options.push(
+      "-c",
+      "copy",
+      "-movflags",
+      "+frag_keyframe+empty_moov+separate_moof",
+      "-fflags",
+      "+genpts+igndts",
+      "-min_frag_duration",
+      "10000000",
+    );
     if (this.hasSegment) {
-      command.outputOptions(
+      options.push(
         "-f",
         "segment",
         "-segment_time",
@@ -153,8 +169,16 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
         "-reset_timestamps",
         "1",
       );
+      if (this.videoFormat === "m4s") {
+        options.push("-segment_format", "mp4");
+      }
+    } else {
+      if (this.videoFormat === "m4s") {
+        options.push("-f", "mp4");
+      }
     }
-    return command;
+
+    return options;
   }
 
   formatLine(line: string) {

@@ -88,14 +88,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
   return recorderWithSupportUpdatedEvent;
 }
 
-const ffmpegOutputOptions: string[] = [
-  "-c",
-  "copy",
-  "-movflags",
-  "faststart+frag_keyframe+empty_moov",
-  "-min_frag_duration",
-  "10000000",
-];
+const ffmpegOutputOptions: string[] = [];
 const ffmpegInputOptions: string[] = ["-rw_timeout", "10000000", "-timeout", "10000000"];
 
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
