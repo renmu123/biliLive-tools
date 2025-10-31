@@ -156,6 +156,9 @@ export class WebhookHandler {
       uploadNoDanmu,
       noDanmuVideoPreset,
       afterUploadDeletAction,
+      removeSmallFile,
+      flvRepair,
+      removeAfterFlvRepair,
     } = this.getConfig(options.roomId);
     if (!open) {
       log.info(`${options.roomId} is not open`);
@@ -174,20 +177,14 @@ export class WebhookHandler {
     const currentPart = currentLive.findPartByFilePath(options.filePath);
     if (!currentPart) return;
 
-    // 如果源文件不存在，那么尝试将后缀替换为mp4再判断是否存在
-    if (!(await fs.pathExists(options.filePath))) {
-      const mp4FilePath = replaceExtName(options.filePath, ".mp4");
-      if (await fs.pathExists(mp4FilePath)) {
-        options.filePath = mp4FilePath;
-        currentPart.filePath = mp4FilePath;
-        currentPart.rawFilePath = mp4FilePath;
-      }
-    }
-
     // 在录制结束时判断大小，如果文件太小，直接返回
     const fileSize = await getFileSize(options.filePath);
     if (fileSize / 1024 / 1024 < minSize) {
       log.warn(`${options.filePath}: file size is too small`);
+      if (removeSmallFile) {
+        log.warn("small file should be deleted", options.filePath);
+        trashItem(options.filePath);
+      }
       if (currentLive) {
         log.warn("remove part", currentLive, options.filePath);
         const part = currentLive.findPartByFilePath(options.filePath);
@@ -207,6 +204,16 @@ export class WebhookHandler {
         }
       }
       return;
+    }
+
+    // 如果源文件不存在，那么尝试将后缀替换为mp4再判断是否存在
+    if (!(await fs.pathExists(options.filePath))) {
+      const mp4FilePath = replaceExtName(options.filePath, ".mp4");
+      if (await fs.pathExists(mp4FilePath)) {
+        options.filePath = mp4FilePath;
+        currentPart.filePath = mp4FilePath;
+        currentPart.rawFilePath = mp4FilePath;
+      }
     }
 
     log.debug(currentLive);
@@ -608,8 +615,20 @@ export class WebhookHandler {
     convert2Mp4Option?: boolean;
     /** 转封装后删除源文件 */
     removeSourceAferrConvert2Mp4?: boolean;
+    /** flv修复 */
+    flvRepair?: boolean;
+    /** flv修复后删除源文件 */
+    removeAfterFlvRepair?: boolean;
+    /** 删除小文件 */
+    removeSmallFile?: boolean;
     /** 压制完成后的操作 */
-    afterConvertAction: Array<"removeVideo" | "removeXml" | "removeAss">;
+    afterConvertAction: Array<
+      | "removeVideo"
+      | "removeXml"
+      | "removeAferrConvert2Mp4"
+      | "removeSmallFile"
+      | "removeAfterFlvRepair"
+    >;
     /** 是否在处理后删除视频 */
     afterConvertRemoveVideo: boolean;
     /** 是否在处理后删除XML弹幕 */
@@ -652,14 +671,16 @@ export class WebhookHandler {
     const hotProgressColor = getRoomSetting("hotProgressColor");
     const hotProgressFillColor = getRoomSetting("hotProgressFillColor");
     const convert2Mp4 = getRoomSetting("convert2Mp4");
-    const removeSourceAferrConvert2Mp4 = getRoomSetting("removeSourceAferrConvert2Mp4");
+    const flvRepair = getRoomSetting("flvRepair");
     const limitVideoConvertTime = getRoomSetting("limitVideoConvertTime") ?? false;
     const videoHandleTime = getRoomSetting("videoHandleTime") || ["00:00:00", "23:59:59"];
     const syncId = getRoomSetting("syncId");
-
     const afterConvertAction = getRoomSetting("afterConvertAction") ?? [];
+    const removeSourceAferrConvert2Mp4 = afterConvertAction.includes("removeAferrConvert2Mp4");
     const afterConvertRemoveVideoRaw = afterConvertAction.includes("removeVideo");
     const afterConvertRemoveXmlRaw = afterConvertAction.includes("removeXml");
+    const afterConvertRemoveFlvRaw = afterConvertAction.includes("removeAfterFlvRepair");
+    const removeSmallFile = afterConvertAction.includes("removeSmallFile");
 
     const limitUploadTime = getRoomSetting("limitUploadTime") ?? false;
     const uploadHandleTime = getRoomSetting("uploadHandleTime") || ["00:00:00", "23:59:59"];
@@ -719,7 +740,7 @@ export class WebhookHandler {
       hotProgressColor,
       hotProgressFillColor,
       convert2Mp4Option: convert2Mp4,
-      removeSourceAferrConvert2Mp4,
+      removeSourceAferrConvert2Mp4: convert2Mp4 ? removeSourceAferrConvert2Mp4 : false,
       afterConvertAction,
       afterConvertRemoveVideo,
       afterConvertRemoveXml,
@@ -731,6 +752,9 @@ export class WebhookHandler {
       partTitleTemplate: getRoomSetting("partTitleTemplate") || "{{filename}}",
       afterUploadDeletAction: getRoomSetting("afterUploadDeletAction") ?? "none",
       syncId,
+      flvRepair,
+      afterConvertRemoveFlvRaw: flvRepair ? afterConvertRemoveFlvRaw : false,
+      removeSmallFile,
     };
 
     return options;

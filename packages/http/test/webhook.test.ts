@@ -596,6 +596,120 @@ describe("WebhookHandler", () => {
         expect(result.uploadNoDanmu).toBe(true);
       });
     });
+
+    describe("removeSourceAferrConvert2Mp4", () => {
+      it("should removeSourceAferrConvert2Mp4 return true when convert2Mp4 open and afterConvertAction includes removeAferrConvert2Mp4", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              convert2Mp4: true,
+              afterConvertAction: ["removeAferrConvert2Mp4"],
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.removeSourceAferrConvert2Mp4).toBe(true);
+      });
+      it("should removeSourceAferrConvert2Mp4 false true when convert2Mp4 close and afterConvertAction includes removeAferrConvert2Mp4", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              convert2Mp4: false,
+              afterConvertAction: ["removeAferrConvert2Mp4"],
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.removeSourceAferrConvert2Mp4).toBe(false);
+      });
+      it("should removeSourceAferrConvert2Mp4 false true when convert2Mp4 open and afterConvertAction not includes removeAferrConvert2Mp4", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              convert2Mp4: true,
+              afterConvertAction: [],
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.removeSourceAferrConvert2Mp4).toBe(false);
+      });
+    });
+
+    describe("afterConvertRemoveFlvRaw", () => {
+      it("should afterConvertRemoveFlvRaw return true when flvRepair open and afterConvertAction includes removeAfterFlvRepair", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              flvRepair: true,
+              afterConvertAction: ["removeAfterFlvRepair"],
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveFlvRaw).toBe(true);
+      });
+      it("should afterConvertRemoveFlvRaw false true when flvRepair close and afterConvertAction includes removeAfterFlvRepair", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              flvRepair: false,
+              afterConvertAction: ["removeAfterFlvRepair"],
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveFlvRaw).toBe(false);
+      });
+      it("should afterConvertRemoveFlvRaw false true when flvRepair open and afterConvertAction not includes removeAfterFlvRepair", () => {
+        const appConfig = {
+          getAll: vi.fn().mockReturnValue({
+            webhook: {
+              open: true,
+              mergePart: false,
+              partMergeMinute: 10,
+              flvRepair: true,
+              afterConvertAction: [],
+            },
+          }),
+        };
+        // @ts-ignore
+        const webhookHandler = new WebhookHandler(appConfig);
+        const roomId = 123;
+        const result = webhookHandler.getConfig(roomId);
+        expect(result.afterConvertRemoveFlvRaw).toBe(false);
+      });
+    });
   });
   describe("handle", () => {
     const appConfig = {
@@ -2358,7 +2472,7 @@ describe("WebhookHandler", () => {
       const liveData = webhookHandler.liveData;
 
       expect(liveData[0].parts[0].recordStatus).toBe("handled");
-      expect(liveData[0].parts[1].recordStatus).toBe("recorded");
+      expect(liveData[0].parts[1].recordStatus).toBe("handled");
       expect(liveData[0].parts[2].recordStatus).toBe("recorded");
     });
   });
