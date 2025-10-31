@@ -327,7 +327,10 @@
             <template #label>
               <Tip
                 text="请求接口"
-                tip="不同的接口对应的底层不同，如果哪天用不了，你也可以切切看，mobile和用户html解析接口必须在3.1.0及以后版本使用才能生效，更多区别见文档。PS: mobile看起来更不容易触发风控"
+                tip="不同的接口对应的底层不同，如果哪天用不了，你也可以切切看，mobile和用户html解析接口必须在3.1.0及以后版本使用才能生效，更多区别见文档。<br/>
+                mobile接口也许支持电台直播<br/>
+                web接口支持双屏直播参数<br/>
+                PS: mobile看起来更不容易触发风控，直播html接口是真容易触发风控"
               ></Tip>
             </template>
             <n-select v-model:value="config.recorder.douyin.api" :options="douyinApiTypeOptions" />

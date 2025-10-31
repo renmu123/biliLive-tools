@@ -34,6 +34,7 @@ import {
   DANMUKUFACTORY_PATH,
   LOG_PATH,
   MESIO_PATH,
+  BILILIVERECORDER_PATH,
   __dirname2,
   getConfigPath,
 } from "./appConstant";
@@ -65,10 +66,18 @@ const WindowState = new Store<{
   name: "window-state",
 });
 
-const windowConfig = {
+const windowConfig: {
+  width: number;
+  height: number;
+  isMaximized: boolean;
+  x: number | undefined;
+  y: number | undefined;
+} = {
   width: 900,
   height: 750,
   isMaximized: false,
+  x: undefined,
+  y: undefined,
 };
 
 const registerHandlers = (
@@ -133,6 +142,14 @@ function createCutWindow() {
 
 function createWindow(): void {
   Object.assign(windowConfig, WindowState.get("winBounds"));
+  // 如果x，y存在一个参数为负值，则重置为undefined
+  if (
+    (windowConfig.x !== undefined && windowConfig.x < 0) ||
+    (windowConfig.y !== undefined && windowConfig.y < 0)
+  ) {
+    windowConfig.x = undefined;
+    windowConfig.y = undefined;
+  }
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -373,9 +390,9 @@ function createMenu(): void {
       label: "帮助",
       submenu: [
         {
-          label: "赞助",
+          label: "官方文档",
           click: async () => {
-            shell.openExternal("https://afdian.com/a/renmu123");
+            shell.openExternal("https://docs.irenmu.com/");
           },
         },
         {
@@ -386,11 +403,9 @@ function createMenu(): void {
           },
         },
         {
-          label: "常见问题",
+          label: "赞助",
           click: async () => {
-            shell.openExternal(
-              "https://github.com/renmu123/biliLive-tools?tab=readme-ov-file#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98",
-            );
+            shell.openExternal("https://afdian.com/a/renmu123");
           },
         },
         {
@@ -652,6 +667,7 @@ const appInit = async () => {
     defaultFfmpegPath: FFMPEG_PATH,
     defaultFfprobePath: FFPROBE_PATH,
     defaultMesioPath: MESIO_PATH,
+    defaultBililiveRecorderPath: BILILIVERECORDER_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
     userDataPath,
     version: app.getVersion(),

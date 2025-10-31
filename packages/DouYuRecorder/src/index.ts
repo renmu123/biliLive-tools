@@ -171,8 +171,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
   }
 
-  let recorderType: Parameters<typeof createBaseRecorder>[0] =
-    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
     let strictQuality = false;
@@ -191,7 +189,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       source: this.source,
       strictQuality,
       onlyAudio: this.onlyAudio,
-      avoidEdgeCDN: recorderType === "mesio",
+      avoidEdgeCDN: true,
     });
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
@@ -226,7 +224,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   let isCutting = false;
 
   const recorder = createBaseRecorder(
-    recorderType,
+    this.recorderType,
     {
       url: stream.url,
       // @ts-ignore
@@ -237,6 +235,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
+      onlyAudio: stream.onlyAudio,
     },
     onEnd,
     async () => {
@@ -257,8 +256,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  const handleVideoCreated = async ({ filename, title, cover }) => {
-    this.emit("videoFileCreated", { filename, cover });
+  const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
+    this.emit("videoFileCreated", { filename, cover, rawFilename });
 
     if (title && this?.liveInfo) {
       this.liveInfo.title = title;
@@ -298,7 +297,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (!extraDataController) return;
     switch (msg.type) {
       case "chatmsg": {
-        const timestamp = this.useServerTimestamp ? Number(msg.cst) : Date.now();
+        // 某些情况下cst不存在，可能是其他平台发送的弹幕？
+        const timestamp = this.useServerTimestamp && msg.cst ? Number(msg.cst) : Date.now();
         const comment: Comment = {
           type: "comment",
           timestamp: timestamp,
@@ -468,6 +468,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     id: genRecordUUID(),
     stream: stream.name,
     source: stream.source,
+    recorderType: recorder.type,
     url: stream.url,
     ffmpegArgs,
     savePath: savePath,

@@ -4,6 +4,8 @@ import { RecorderProvider } from "./manager.js";
 import { AnyObject, PickRequired, UnknownObject } from "./utils.js";
 import { Cache } from "./cache.js";
 
+import type { RecorderType } from "./recorder/index.js";
+
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
 
@@ -60,7 +62,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
   videoFormat?: "auto" | "ts" | "mkv" | "flv";
   /** 录制类型 */
-  recorderType?: "auto" | "ffmpeg" | "mesio";
+  recorderType?: "auto" | "ffmpeg" | "mesio" | "bililive";
   /** 流格式优先级 */
   formatriorities?: Array<"flv" | "hls">;
   /** 只录制音频 */
@@ -113,6 +115,7 @@ export interface RecordHandle {
   id: string;
   stream: string;
   source: string;
+  recorderType?: RecorderType;
   url: string;
   ffmpegArgs?: string[];
   progress?: Progress;
@@ -134,7 +137,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   extends Emitter<{
       RecordStart: RecordHandle;
       RecordSegment?: RecordHandle;
-      videoFileCreated: { filename: string; cover?: string };
+      videoFileCreated: { filename: string; cover?: string; rawFilename?: string };
       videoFileCompleted: { filename: string };
       progress: Progress;
       RecordStop: { recordHandle: RecordHandle; reason?: string };

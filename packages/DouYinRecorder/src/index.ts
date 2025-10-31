@@ -96,16 +96,7 @@ const ffmpegOutputOptions: string[] = [
   "-min_frag_duration",
   "10000000",
 ];
-const ffmpegInputOptions: string[] = [
-  "-reconnect",
-  "1",
-  "-reconnect_streamed",
-  "1",
-  "-reconnect_delay_max",
-  "10",
-  "-rw_timeout",
-  "15000000",
-];
+const ffmpegInputOptions: string[] = ["-rw_timeout", "10000000", "-timeout", "10000000"];
 
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
@@ -257,10 +248,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  let recorderType: Parameters<typeof createBaseRecorder>[0] =
-    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   const recorder = createBaseRecorder(
-    recorderType,
+    this.recorderType,
     {
       url: stream.url,
       outputOptions: ffmpegOutputOptions,
@@ -271,6 +260,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
+      onlyAudio: stream.onlyAudio,
       headers: {
         Cookie: this.auth,
       },
@@ -294,8 +284,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  const handleVideoCreated = async ({ filename, title, cover }) => {
-    this.emit("videoFileCreated", { filename, cover });
+  const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
+    this.emit("videoFileCreated", { filename, cover, rawFilename });
 
     if (title && this?.liveInfo) {
       this.liveInfo.title = title;
@@ -326,6 +316,18 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
     this.emit("progress", progress);
   });
+
+  // 礼物消息缓存管理
+  const giftMessageCache = new Map<
+    string,
+    {
+      gift: GiveGift;
+      timer: NodeJS.Timeout;
+    }
+  >();
+
+  // 礼物延迟处理时间(毫秒),可根据实际情况调整
+  const GIFT_DELAY = 5000;
 
   const client = new DouYinDanmaClient(this?.liveInfo?.liveId as string, {
     cookie: this.auth,
@@ -359,6 +361,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       Number(msg.common.createTime) > 9999999999
         ? Number(msg.common.createTime)
         : Number(msg.common.createTime) * 1000;
+
     const gift: GiveGift = {
       type: "give_gift",
       timestamp: this.useServerTimestamp ? serverTimestamp : Date.now(),
@@ -375,8 +378,29 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         // },
       },
     };
-    this.emit("Message", gift);
-    extraDataController.addMessage(gift);
+
+    // 单独使用groupId并不可靠
+    const groupId = `${msg.groupId}_${msg.user.id}_${msg.giftId}`;
+
+    // 如果已存在相同 groupId 的礼物,清除旧的定时器
+    const existing = giftMessageCache.get(groupId);
+    if (existing) {
+      clearTimeout(existing.timer);
+    }
+
+    // 创建新的定时器
+    const timer = setTimeout(() => {
+      const cachedGift = giftMessageCache.get(groupId);
+      if (cachedGift) {
+        // 延迟时间到,添加最终的礼物消息
+        this.emit("Message", cachedGift.gift);
+        extraDataController.addMessage(cachedGift.gift);
+        giftMessageCache.delete(groupId);
+      }
+    }, GIFT_DELAY);
+
+    // 更新缓存
+    giftMessageCache.set(groupId, { gift, timer });
   });
   client.on("reconnect", (attempts: number) => {
     this.emit("DebugLog", {
@@ -443,6 +467,18 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "stopping-record";
 
     try {
+      // 清理所有礼物缓存定时器
+      for (const [_groupId, cached] of giftMessageCache.entries()) {
+        clearTimeout(cached.timer);
+        // 立即添加剩余的礼物消息
+        const extraDataController = recorder.getExtraDataController();
+        if (extraDataController) {
+          this.emit("Message", cached.gift);
+          extraDataController.addMessage(cached.gift);
+        }
+      }
+      giftMessageCache.clear();
+
       client.close();
       await recorder.stop();
     } catch (err) {
@@ -464,6 +500,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     id: genRecordUUID(),
     stream: stream.name,
     source: stream.source,
+    recorderType: recorder.type,
     url: stream.url,
     ffmpegArgs,
     savePath: savePath,

@@ -180,6 +180,14 @@ export type ToolConfig = {
     /** 合并弹幕 */
     mergeXml: boolean;
   };
+  flvRepair: {
+    /** 修复器 */
+    type: "bililive" | "mesio";
+    /** 保存类型 */
+    saveRadio: 1 | 2;
+    /** 保存路径 */
+    savePath: string;
+  };
   /** 下载页 */
   download: {
     /** 保存路径 */
@@ -371,7 +379,7 @@ export interface GlobalRecorder {
   /** 视频格式 */
   videoFormat: "auto" | "ts" | "mkv";
   /** 支持的录制器 */
-  recorderType: "auto" | "ffmpeg" | "mesio";
+  recorderType: "auto" | "ffmpeg" | "mesio" | "bililive";
   /** 保存弹幕测试 */
   saveDanma2DB: boolean;
   /** B站特有的配置 */
@@ -501,6 +509,8 @@ export interface AppConfig {
   losslessCutPath: string;
   /** mesio 可执行路径 */
   mesioPath: string;
+  /** 录播姬引擎 可执行路径 */
+  bililiveRecorderPath: string;
   /** 缓存文件夹 */
   cacheFolder: string;
   /** 保存到回收站 */
@@ -972,6 +982,7 @@ export interface GlobalConfig {
   defaultFfmpegPath: string;
   defaultFfprobePath: string;
   defaultMesioPath: string;
+  defaultBililiveRecorderPath: string;
   defaultDanmakuFactoryPath: string;
   version: string;
   userDataPath: string;

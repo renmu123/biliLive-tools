@@ -91,16 +91,7 @@ const ffmpegOutputOptions: string[] = [
   "-min_frag_duration",
   "10000000",
 ];
-const ffmpegInputOptions: string[] = [
-  "-reconnect",
-  "1",
-  "-reconnect_streamed",
-  "1",
-  "-reconnect_delay_max",
-  "10",
-  "-rw_timeout",
-  "15000000",
-];
+const ffmpegInputOptions: string[] = ["-rw_timeout", "10000000", "-timeout", "10000000"];
 
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
@@ -235,10 +226,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  let recorderType: Parameters<typeof createBaseRecorder>[0] =
-    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   const recorder = createBaseRecorder(
-    recorderType,
+    this.recorderType,
     {
       url: stream.url,
       outputOptions: ffmpegOutputOptions,
@@ -269,8 +258,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  const handleVideoCreated = async ({ filename, title, cover }) => {
-    this.emit("videoFileCreated", { filename, cover });
+  const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
+    this.emit("videoFileCreated", { filename, cover, rawFilename });
 
     if (title && this?.liveInfo) {
       this.liveInfo.title = title;
@@ -353,7 +342,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     client.on("retry", (e: { count: number; max: number }) => {
       this.emit("DebugLog", {
         type: "common",
-        text: `huya danmu retry: ${e.count}/${e.max}`,
+        text: `${this?.liveInfo?.owner}:${this.channelId} huya danmu retry: ${e.count}/${e.max}`,
       });
     });
     client.start();
@@ -398,6 +387,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     id: genRecordUUID(),
     stream: stream.name,
     source: stream.source,
+    recorderType: recorder.type,
     url: stream.url,
     ffmpegArgs,
     savePath: savePath,

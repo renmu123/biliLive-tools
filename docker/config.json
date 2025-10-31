@@ -5,6 +5,7 @@
   "ffmpegPath": "/app/bin/ffmpeg",
   "ffprobePath": "/app/bin/ffprobe",
   "mesioPath": "/app/bin/mesio",
+  "bililiveRecorderPath": "/app/bin/BililiveRecorder.Cli",
   "danmakuFactoryPath": "/app/bin/DanmakuFactory",
   "logPath": "/app/data/main.log"
 }

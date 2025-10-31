@@ -1,7 +1,15 @@
 # Next
 
+- `recordHandle` 新增参数 `recorderType`
+- 修复礼物弹幕缺失的情况
+- 修复两种接口的返回类型值错误
+- 修复使用 random 接口时，获取流可能失败的情况
+
+# 1.8.0
+
 - 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
 - 支持标题黑名单
+- 录播姬引擎支持
 - 触发标题黑名单设定额外状态
 
 # 1.7.1

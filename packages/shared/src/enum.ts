@@ -12,6 +12,7 @@ export enum TaskType {
   kuaishouDownload = "kuaishouDownload",
   subtitleTranslate = "subtitleTranslate",
   sync = "sync",
+  flvRepair = "flvRepair",
 }
 
 export enum NotificationType {
@@ -78,6 +79,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   danmuFactoryPath: "",
   losslessCutPath: "",
   mesioPath: "",
+  bililiveRecorderPath: "",
   cacheFolder: "",
   /** 允许自定义可执行文件地址 */
   customExecPath: false,
@@ -130,6 +132,11 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       removeOrigin: false,
       keepFirstVideoMeta: false,
       mergeXml: false,
+    },
+    flvRepair: {
+      type: "bililive",
+      saveRadio: 1,
+      savePath: "",
     },
     download: {
       savePath: "",

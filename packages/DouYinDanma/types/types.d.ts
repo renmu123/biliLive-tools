@@ -150,13 +150,17 @@ export interface SocialMessage {
 export interface GiftMessage {
   common: Common & { method: "WebcastGiftMessage" };
   user: User;
+  // 这个参数其实差不多是秒级时间戳，并不可靠
   groupId: string;
+  giftId: number;
   gift: Gift;
   publicAreaCommon: PublicAreaCommon;
   trayDisplayText: TrayDisplayText;
   totalCount: string;
   clientGiftSource: number;
   sendTime: string;
+  // repeatEnd 表示礼物连击完毕，这个为1时，sendTime值为秒级时间戳，否则为毫秒级时间戳
+  repeatEnd: null | 1;
 }
 
 export interface RoomUserSeqMessage {

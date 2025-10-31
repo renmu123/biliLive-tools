@@ -82,7 +82,7 @@
         <template #label>
           <Tip
             text="缓存投稿失败视频"
-            tip="将上传完成的视频缓存到本地，如果出现投稿失败，可以直接复用视频ID，避免视频被重新"
+            tip="将上传完成的视频缓存到本地，如果出现投稿失败，可以直接复用视频ID，避免视频重新上传"
           ></Tip>
         </template>
         <n-switch v-model:value="config.biliUpload.useUploadPartPersistence" />

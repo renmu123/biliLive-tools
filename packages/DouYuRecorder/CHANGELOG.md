@@ -1,7 +1,14 @@
 # Next
 
+- `recordHandle` 新增参数 `recorderType`
+- 修复某些情况下服务端时间戳不存在时使用客户端时间
+
+# 1.8.0
+
 - 触发标题黑名单设定额外状态
 - 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
+- 尽可能避免scdn
+- 录播姬引擎支持
 
 # 1.7.1
 

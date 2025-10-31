@@ -27,7 +27,14 @@
     </p>
     <p>
       <b
-        >帮助教程：<a
+        >官方文档：<a href="https://docs.irenmu.com/" class="external" target="_blank"
+          >https://docs.irenmu.com/</a
+        ></b
+      >
+    </p>
+    <p>
+      <b
+        >视频教程：<a
           href="https://www.bilibili.com/video/BV1Hs421M755/"
           class="external"
           target="_blank"
