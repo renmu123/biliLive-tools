@@ -20,13 +20,12 @@ import {
 
 import { config } from "../../index.js";
 import FileLockManager from "./fileLockManager.js";
+import { ConfigManager } from "./ConfigManager.js";
 
 import type {
   BiliupConfig,
   FfmpegOptions,
   DanmuConfig,
-  AppRoomConfig,
-  CommonRoomConfig,
   HotProgressOptions,
 } from "@biliLive-tools/types";
 import type { AppConfig } from "@biliLive-tools/shared/config.js";
@@ -115,6 +114,7 @@ export class WebhookHandler {
   videoPreset: VideoPreset;
   danmuPreset: DanmuPreset;
   appConfig: AppConfig;
+  configManager: ConfigManager;
   // 存储已处理的文件名，避免重复处理
   private processedFiles: Set<string> = new Set();
   private fileLockManager: FileLockManager = new FileLockManager();
@@ -129,6 +129,7 @@ export class WebhookHandler {
       globalConfig: { danmuPresetPath: config.danmuPresetPath },
     });
     this.appConfig = appConfig;
+    this.configManager = new ConfigManager(appConfig);
 
     // 定期清理过期的锁
     setInterval(() => this.fileLockManager.cleanup(), 60 * 60 * 1000); // 每小时清理一次
@@ -160,7 +161,7 @@ export class WebhookHandler {
       removeSmallFile,
       flvRepair,
       removeAfterFlvRepair,
-    } = this.getConfig(options.roomId);
+    } = this.configManager.getConfig(options.roomId);
     if (!open) {
       log.info(`${options.roomId} is not open`);
       return;
@@ -436,7 +437,7 @@ export class WebhookHandler {
       return;
     }
 
-    const syncConfig = this.getSyncConfig(roomId);
+    const syncConfig = this.configManager.getSyncConfig(roomId);
     if (!syncConfig) return;
 
     // 检查是否需要同步该类型的文件
@@ -564,211 +565,6 @@ export class WebhookHandler {
     } else {
       return undefined;
     }
-  }
-  /**
-   * 判断房间是否开启
-   */
-  canRoomOpen(
-    roomSetting: { open: boolean } | undefined,
-    webhookBlacklist: string,
-    roomId: string,
-  ) {
-    if (roomSetting) {
-      // 如果配置了房间，那么以房间设置为准
-      return roomSetting.open;
-    } else {
-      // 如果没有配置房间，那么以黑名单为准
-      const blacklist = (webhookBlacklist || "").split(",");
-      if (blacklist.includes("*")) return false;
-      if (blacklist.includes(String(roomId))) return false;
-
-      return true;
-    }
-  }
-  getConfig(roomId: string): {
-    /* 是否需要压制弹幕 */
-    danmu: boolean;
-    /* 是否合并到一个文件中 */
-    mergePart: boolean;
-    /* 最小文件大小 */
-    minSize: number;
-    /* 上传preset */
-    uploadPresetId: string;
-    /* 上传标题 */
-    title: string;
-    /* 弹幕preset */
-    danmuPresetId?: string;
-    /* 视频压制preset */
-    videoPresetId?: string;
-    /* 是否开启 */
-    open?: boolean;
-    /* 上传uid */
-    uid?: number;
-    /* 自动合并part时间 */
-    partMergeMinute: number;
-    /* 高能进度条 */
-    hotProgress: boolean;
-    /* 使用直播封面 */
-    useLiveCover: boolean;
-    /** 高能进度条：采样间隔 */
-    hotProgressSample?: number;
-    /** 高能进度条：高度 */
-    hotProgressHeight?: number;
-    /** 高能进度条：默认颜色 */
-    hotProgressColor?: string;
-    /** 高能进度条：覆盖颜色 */
-    hotProgressFillColor?: string;
-    /** 转封装为mp4 */
-    convert2Mp4Option?: boolean;
-    /** 转封装后删除源文件 */
-    removeSourceAferrConvert2Mp4?: boolean;
-    /** flv修复 */
-    flvRepair?: boolean;
-    /** flv修复后删除源文件 */
-    removeAfterFlvRepair?: boolean;
-    /** 删除小文件 */
-    removeSmallFile?: boolean;
-    /** 压制完成后的操作 */
-    afterConvertAction: Array<
-      | "removeVideo"
-      | "removeXml"
-      | "removeAferrConvert2Mp4"
-      | "removeSmallFile"
-      | "removeAfterFlvRepair"
-    >;
-    /** 是否在处理后删除视频 */
-    afterConvertRemoveVideo: boolean;
-    /** 是否在处理后删除XML弹幕 */
-    afterConvertRemoveXml: boolean;
-    /** 限制只在某一段时间上传 */
-    limitUploadTime?: boolean;
-    /** 允许上传处理时间 */
-    uploadHandleTime: [string, string];
-    /** 同时上传无弹幕视频 */
-    uploadNoDanmu: boolean;
-    /** 同时上传无弹幕视频预设 */
-    noDanmuVideoPreset: string;
-    /** 限制只在某一段时间处理视频 */
-    limitVideoConvertTime?: boolean;
-    /** 允许视频处理时间 */
-    videoHandleTime?: [string, string];
-    /** 分p标题模板 */
-    partTitleTemplate: string;
-    /** 上传完成后删除操作 */
-    afterUploadDeletAction: "none" | "delete" | "deleteAfterCheck";
-    /** 同步器 */
-    syncId?: string;
-  } {
-    const config = this.appConfig.getAll();
-    const roomSetting: AppRoomConfig | undefined = config.webhook?.rooms?.[roomId];
-
-    const danmu = getRoomSetting("danmu");
-    const mergePart = getRoomSetting("autoPartMerge");
-    const minSize = getRoomSetting("minSize") ?? 10;
-    const uploadPresetId = getRoomSetting("uploadPresetId") || "default";
-    const title = getRoomSetting("title") || "";
-    const danmuPresetId = getRoomSetting("danmuPreset");
-    const videoPresetId = getRoomSetting("ffmpegPreset");
-    const uid = getRoomSetting("uid");
-    let partMergeMinute = getRoomSetting("partMergeMinute") ?? 10;
-    const hotProgress = getRoomSetting("hotProgress");
-    const useLiveCover = getRoomSetting("useLiveCover");
-    const hotProgressSample = getRoomSetting("hotProgressSample");
-    const hotProgressHeight = getRoomSetting("hotProgressHeight");
-    const hotProgressColor = getRoomSetting("hotProgressColor");
-    const hotProgressFillColor = getRoomSetting("hotProgressFillColor");
-    const convert2Mp4 = getRoomSetting("convert2Mp4");
-    const flvRepair = getRoomSetting("flvRepair");
-    const limitVideoConvertTime = getRoomSetting("limitVideoConvertTime") ?? false;
-    const videoHandleTime = getRoomSetting("videoHandleTime") || ["00:00:00", "23:59:59"];
-    const syncId = getRoomSetting("syncId");
-    const afterConvertAction = getRoomSetting("afterConvertAction") ?? [];
-
-    // TODO: 兼容废弃选项，过渡期后删除
-    const removeSourceAferrConvert2Mp4Before = getRoomSetting("removeSourceAferrConvert2Mp4");
-    const removeSourceAferrConvert2Mp4 =
-      afterConvertAction.includes("removeAferrConvert2Mp4") || !!removeSourceAferrConvert2Mp4Before;
-    const afterConvertRemoveVideoRaw = afterConvertAction.includes("removeVideo");
-    const afterConvertRemoveXmlRaw = afterConvertAction.includes("removeXml");
-    const afterConvertRemoveFlvRaw = afterConvertAction.includes("removeAfterFlvRepair");
-    const removeSmallFile = afterConvertAction.includes("removeSmallFile");
-
-    const limitUploadTime = getRoomSetting("limitUploadTime") ?? false;
-    const uploadHandleTime = getRoomSetting("uploadHandleTime") || ["00:00:00", "23:59:59"];
-    const uploadNoDanmu = getRoomSetting("uploadNoDanmu") ?? false;
-    const noDanmuVideoPreset = getRoomSetting("noDanmuVideoPreset") || "default";
-
-    // 如果没有开启断播续传，那么不需要合并part
-    if (!mergePart) partMergeMinute = -1;
-    /**
-     * 获取房间配置项
-     */
-    function getRoomSetting<K extends keyof CommonRoomConfig>(key: K) {
-      if (roomSetting) {
-        if (roomSetting.noGlobal?.includes(key)) return roomSetting[key];
-
-        return config.webhook[key];
-      } else {
-        return config.webhook[key];
-      }
-    }
-
-    let afterConvertRemoveVideo: boolean = afterConvertRemoveVideoRaw;
-    let afterConvertRemoveXml: boolean = afterConvertRemoveXmlRaw;
-    // 如果存在同步器，那么使用原始配置，如果未开启，那么只有存在视频预设时才会进行删除
-    if (!syncId) {
-      if (videoPresetId) {
-        afterConvertRemoveVideo = afterConvertRemoveVideoRaw;
-      } else {
-        afterConvertRemoveVideo = false;
-      }
-    }
-    if (!syncId) {
-      if (danmuPresetId) {
-        afterConvertRemoveXml = afterConvertRemoveXmlRaw;
-      } else {
-        afterConvertRemoveXml = false;
-      }
-    }
-
-    const open = this.canRoomOpen(roomSetting, config?.webhook?.blacklist, roomId);
-
-    const options = {
-      danmu,
-      mergePart,
-      minSize,
-      uploadPresetId,
-      title,
-      danmuPresetId,
-      videoPresetId,
-      open,
-      uid,
-      partMergeMinute,
-      hotProgress,
-      useLiveCover,
-      hotProgressSample,
-      hotProgressHeight,
-      hotProgressColor,
-      hotProgressFillColor,
-      convert2Mp4Option: convert2Mp4,
-      removeSourceAferrConvert2Mp4: convert2Mp4 ? removeSourceAferrConvert2Mp4 : false,
-      afterConvertAction,
-      afterConvertRemoveVideo,
-      afterConvertRemoveXml,
-      limitUploadTime,
-      uploadHandleTime,
-      uploadNoDanmu,
-      noDanmuVideoPreset,
-      videoHandleTime: limitVideoConvertTime ? videoHandleTime : undefined,
-      partTitleTemplate: getRoomSetting("partTitleTemplate") || "{{filename}}",
-      afterUploadDeletAction: getRoomSetting("afterUploadDeletAction") ?? "none",
-      syncId,
-      flvRepair,
-      afterConvertRemoveFlvRaw: flvRepair ? afterConvertRemoveFlvRaw : false,
-      removeSmallFile,
-    };
-
-    return options;
   }
   /**
    * 处理open事件
@@ -1250,7 +1046,7 @@ export class WebhookHandler {
         noDanmuVideoPreset,
         partTitleTemplate,
         afterUploadDeletAction,
-      } = this.getConfig(live.roomId);
+      } = this.configManager.getConfig(live.roomId);
 
       let cover: string | undefined;
       let indexMap: {
@@ -1437,22 +1233,10 @@ export class WebhookHandler {
   };
 
   /**
-   * 获取同步配置
-   */
-  getSyncConfig(roomId: string) {
-    const { syncId } = this.getConfig(roomId);
-    if (!syncId) return null;
-    const config = this.appConfig.getAll();
-    const syncConfig = config.sync.syncConfigs.find((cfg) => cfg.id === syncId);
-    if (!syncConfig) return null;
-    return syncConfig;
-  }
-
-  /**
    * 同步中是否存在对应类型
    */
   async hasTypeInSync(roomId: string, type: "source" | "danmaku" | "xml" | "cover") {
-    const syncConfig = this.getSyncConfig(roomId);
+    const syncConfig = this.configManager.getSyncConfig(roomId);
     if (!syncConfig) return false;
 
     // raw对应mp4,handled对应flv

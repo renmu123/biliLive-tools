@@ -55,7 +55,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -80,7 +80,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileOpening",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:09:00Z",
         title: "Existing Video",
@@ -97,7 +97,7 @@ describe("WebhookHandler", () => {
 
       const options2: Options = {
         event: "FileClosed",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:10:00Z",
         title: "Existing Video",
@@ -118,7 +118,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         startTime: new Date("2022-01-01T00:08:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -135,7 +135,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileOpening",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:09:00Z",
         title: "Existing Video",
@@ -152,7 +152,7 @@ describe("WebhookHandler", () => {
 
       const options2: Options = {
         event: "FileClosed",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:10:00Z",
         title: "Existing Video",
@@ -163,67 +163,6 @@ describe("WebhookHandler", () => {
       const liveData2 = webhookHandler.liveData;
       expect(liveData2[0].parts[0].recordStatus).toBe("recorded");
       expect(liveData[0].parts[1].recordStatus).toBe("recording");
-    });
-  });
-
-  describe("canHandle", () => {
-    const appConfig = {
-      getAll: vi.fn().mockReturnValue({
-        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
-      }),
-    };
-    // @ts-ignore
-    const handler = new WebhookHandler(appConfig);
-    it("should return true when roomSetting is open", () => {
-      const roomSetting = { open: true };
-      const result = handler.canRoomOpen(roomSetting, "", 123);
-      expect(result).toBe(true);
-    });
-
-    it("should return false when roomSetting is open and blacklist is provided", () => {
-      const roomSetting = { open: true };
-      const result = handler.canRoomOpen(roomSetting, "*", 123);
-      expect(result).toBe(true);
-    });
-
-    it("should return false when roomSetting is closed", () => {
-      const roomSetting = { open: false };
-      const result = handler.canRoomOpen(roomSetting, "", 123);
-      expect(result).toBe(false);
-    });
-
-    it("should return false when roomSetting is closed and blacklist is provided", () => {
-      const roomSetting = { open: false };
-      const result = handler.canRoomOpen(roomSetting, "*", 123);
-      expect(result).toBe(false);
-    });
-
-    it("should return true when roomSetting is not provided and roomId is not in the blacklist", () => {
-      const roomSetting = undefined;
-      const roomId = 123;
-      const result = handler.canRoomOpen(roomSetting, "", roomId);
-      expect(result).toBe(true);
-    });
-
-    it("should return true when roomSetting is not provided and roomId is not in the blacklist", () => {
-      const roomSetting = undefined;
-      const roomId = 123;
-      const result = handler.canRoomOpen(roomSetting, "456", roomId);
-      expect(result).toBe(true);
-    });
-
-    it("should return false when roomSetting is not provided and roomId is in the blacklist", () => {
-      const roomSetting = undefined;
-      const roomId = 123;
-      const result = handler.canRoomOpen(roomSetting, "123,456", roomId);
-      expect(result).toBe(false);
-    });
-
-    it("should return false when roomSetting is not provided and the blacklist contains '*'", () => {
-      const roomSetting = undefined;
-      const roomId = 123;
-      const result = handler.canRoomOpen(roomSetting, "*", roomId);
-      expect(result).toBe(false);
     });
   });
 
@@ -326,391 +265,6 @@ describe("WebhookHandler", () => {
     });
   });
 
-  describe("getConfig", () => {
-    const appConfig = {
-      getAll: vi.fn().mockReturnValue({
-        webhook: {
-          open: true,
-          mergePart: false,
-          partMergeMinute: 10,
-        },
-      }),
-    };
-    // @ts-ignore
-    const webhookHandler = new WebhookHandler(appConfig);
-    it("should partMergeMinute return -1 when mergePart is false", () => {
-      const roomId = 123;
-      const result = webhookHandler.getConfig(roomId);
-      expect(result.partMergeMinute).toBe(-1);
-    });
-    describe("afterConvertRemoveVideo", () => {
-      it("should afterConvertRemoveVideo return false when videoPresetId is not exist", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              afterConvertAction: ["removeVideo"],
-              ffmpegPreset: undefined,
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveVideo).toBe(false);
-      });
-      it("should afterConvertRemoveVideo return true when videoPresetId is exist and afterConvertAction is 'removeVideo'", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              afterConvertAction: ["removeVideo"],
-              ffmpegPreset: "123",
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveVideo).toBe(true);
-      });
-      it("should afterConvertRemoveVideo return true when videoPresetId is not exist and afterConvertAction is 'removeVideo' and syncId is exist", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              afterConvertAction: ["removeVideo"],
-              ffmpegPreset: undefined,
-              syncId: "123",
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveVideo).toBe(true);
-      });
-      it("当存在syncId且afterConvertAction为空时,afterConvertRemoveVideo应该为false", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              afterConvertAction: [],
-              ffmpegPreset: "123",
-              syncId: "123",
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveVideo).toBe(false);
-      });
-      it("当不存在syncId且不存在videoPresetId时,afterConvertAction包含removeVideo时,afterConvertRemoveVideo应该为false", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              afterConvertAction: ["removeVideo"],
-              ffmpegPreset: undefined,
-              syncId: undefined,
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveVideo).toBe(false);
-      });
-    });
-
-    describe("afterConvertRemoveXml", () => {
-      // afterConvertRemoveXml
-      it("should afterConvertRemoveXml return false when danmuPresetId is not exist", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              afterConvertAction: ["removeXml"],
-              danmuPreset: undefined,
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveXml).toBe(false);
-      });
-      it("should afterConvertRemoveXml return true when danmuPresetId is exist and afterConvertAction is 'removeXml'", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              afterConvertAction: ["removeXml"],
-              danmuPreset: "123",
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveXml).toBe(true);
-      });
-      it("当存在syncId时,应该使用原始的afterConvertRemoveXml配置", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              afterConvertAction: ["removeXml"],
-              danmuPreset: undefined,
-              syncId: "123",
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveXml).toBe(true);
-      });
-
-      it("当不存在syncId且没有danmuPreset时,afterConvertRemoveXml应该为false", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              afterConvertAction: ["removeXml"],
-              danmuPreset: undefined,
-              syncId: undefined,
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveXml).toBe(false);
-      });
-      it("当存在syncId时且存在danmuPreset,afterConvertAction为空时,afterConvertRemoveXml应该为true", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              afterConvertAction: [],
-              danmuPreset: "123",
-              syncId: "123",
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveXml).toBe(false);
-      });
-    });
-
-    describe("uploadNoDanmu", () => {
-      it("should uploadNoDanmu return true when uploadNoDanmu is false", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              uid: undefined,
-              uploadNoDanmu: false,
-              afterConvertAction: [],
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.uploadNoDanmu).toBe(false);
-      });
-      it("should uploadNoDanmu return true when has uid && uploadNoDanmu && afterConvertAction is not 'removeAll'", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              uid: 123,
-              uploadNoDanmu: true,
-              afterConvertAction: "none",
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.uploadNoDanmu).toBe(true);
-      });
-      it("should uploadNoDanmu return true when has uid && uploadNoDanmu is true", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              uid: 123,
-              uploadNoDanmu: true,
-              afterConvertAction: ["removeVideo", "removeXml"],
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.uploadNoDanmu).toBe(true);
-      });
-    });
-
-    describe("removeSourceAferrConvert2Mp4", () => {
-      it("should removeSourceAferrConvert2Mp4 return true when convert2Mp4 open and afterConvertAction includes removeAferrConvert2Mp4", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              convert2Mp4: true,
-              afterConvertAction: ["removeAferrConvert2Mp4"],
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.removeSourceAferrConvert2Mp4).toBe(true);
-      });
-      it("should removeSourceAferrConvert2Mp4 false true when convert2Mp4 close and afterConvertAction includes removeAferrConvert2Mp4", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              convert2Mp4: false,
-              afterConvertAction: ["removeAferrConvert2Mp4"],
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.removeSourceAferrConvert2Mp4).toBe(false);
-      });
-      it("should removeSourceAferrConvert2Mp4 false true when convert2Mp4 open and afterConvertAction not includes removeAferrConvert2Mp4", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              convert2Mp4: true,
-              afterConvertAction: [],
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.removeSourceAferrConvert2Mp4).toBe(false);
-      });
-    });
-
-    describe("afterConvertRemoveFlvRaw", () => {
-      it("should afterConvertRemoveFlvRaw return true when flvRepair open and afterConvertAction includes removeAfterFlvRepair", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              flvRepair: true,
-              afterConvertAction: ["removeAfterFlvRepair"],
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveFlvRaw).toBe(true);
-      });
-      it("should afterConvertRemoveFlvRaw false true when flvRepair close and afterConvertAction includes removeAfterFlvRepair", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              flvRepair: false,
-              afterConvertAction: ["removeAfterFlvRepair"],
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveFlvRaw).toBe(false);
-      });
-      it("should afterConvertRemoveFlvRaw false true when flvRepair open and afterConvertAction not includes removeAfterFlvRepair", () => {
-        const appConfig = {
-          getAll: vi.fn().mockReturnValue({
-            webhook: {
-              open: true,
-              mergePart: false,
-              partMergeMinute: 10,
-              flvRepair: true,
-              afterConvertAction: [],
-            },
-          }),
-        };
-        // @ts-ignore
-        const webhookHandler = new WebhookHandler(appConfig);
-        const roomId = 123;
-        const result = webhookHandler.getConfig(roomId);
-        expect(result.afterConvertRemoveFlvRaw).toBe(false);
-      });
-    });
-  });
   describe("handle", () => {
     const appConfig = {
       getAll: vi.fn().mockReturnValue({
@@ -719,27 +273,11 @@ describe("WebhookHandler", () => {
     };
     // @ts-ignore
     webhookHandler = new WebhookHandler(appConfig);
-    it("应在房间不为open时停止操作", async () => {
-      // Arrange
-      const options = {
-        roomId: 123,
-        event: "FileOpening",
-      };
-      // @ts-ignore
-      const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({ open: false });
-      const handleLiveDataSpy = vi.spyOn(webhookHandler, "handleLiveData");
-
-      // Act
-      console.log(webhookHandler.getConfig(options.roomId));
-      // Assert
-      expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
-      expect(handleLiveDataSpy).not.toHaveBeenCalled();
-    });
 
     it("should handle the options and return if the event is 'FileOpening'", async () => {
       // Arrange
       const options: Options = {
-        roomId: 123,
+        roomId: "123",
         event: "FileOpening",
         filePath: "/path/to/part1.mp4",
         time: "2022-01-01T00:05:00Z",
@@ -748,7 +286,7 @@ describe("WebhookHandler", () => {
         title: "test video",
       };
       const getConfigSpy = vi
-        .spyOn(webhookHandler, "getConfig")
+        .spyOn(webhookHandler.configManager, "getConfig")
         // @ts-ignore
         .mockReturnValue({ open: true, title: "test" });
 
@@ -762,7 +300,7 @@ describe("WebhookHandler", () => {
     it("should handle the options and update rawFilePath when convert2Mp4Option is true", async () => {
       // Arrange
       const options: Options = {
-        roomId: 123,
+        roomId: "123",
         event: "FileClosed",
         filePath: "/path/to/part1.flv",
         time: "2022-01-01T00:05:00Z",
@@ -771,7 +309,7 @@ describe("WebhookHandler", () => {
         title: "test video",
       };
       const getConfigSpy = vi
-        .spyOn(webhookHandler, "getConfig")
+        .spyOn(webhookHandler.configManager, "getConfig")
         // @ts-ignore
         .mockReturnValue({ open: true, title: "test", convert2Mp4Option: true });
       const convert2Mp4Spy = vi
@@ -802,7 +340,7 @@ describe("WebhookHandler", () => {
     it("should handle the options and return if the file size is too small", async () => {
       // Arrange
       const options1: Options = {
-        roomId: 123,
+        roomId: "123",
         event: "FileOpening",
         filePath: "/path/to/part1.mp4",
         time: "2022-01-01T00:00:00Z",
@@ -811,7 +349,7 @@ describe("WebhookHandler", () => {
         title: "test video",
       };
       const options: Options = {
-        roomId: 123,
+        roomId: "123",
         event: "FileClosed",
         filePath: "/path/to/part1.mp4",
         time: "2022-01-01T00:05:00Z",
@@ -828,7 +366,7 @@ describe("WebhookHandler", () => {
           namedExport: vi.fn(),
         };
       });
-      const getConfigSpy = vi.spyOn(webhookHandler, "getConfig");
+      const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig");
       // @ts-ignore
       getConfigSpy.mockReturnValue({ open: true, minSize: 100, title: "test" });
 
@@ -863,7 +401,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "live-title",
           username: "username",
@@ -878,7 +416,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           title: "webhook-title",
@@ -918,7 +456,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "live-title",
           username: "username",
@@ -933,7 +471,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           title: "webhook-title-{{title}}",
@@ -973,7 +511,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "live-title",
           username: "username",
@@ -989,7 +527,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           title: "webhook-title",
@@ -1033,7 +571,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1064,7 +602,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           afterUploadDeletAction: "delete",
@@ -1117,7 +655,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1132,7 +670,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: undefined,
           afterUploadDeletAction: "delete",
@@ -1156,7 +694,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1170,7 +708,7 @@ describe("WebhookHandler", () => {
           title: "part1",
         });
         // @ts-ignore
-        vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 123,
         });
@@ -1190,7 +728,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1218,7 +756,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 123,
           title: "webhook-title",
@@ -1242,7 +780,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           aid: 789,
           title: "Test Video",
@@ -1272,7 +810,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           afterUploadDeletAction: "delete",
@@ -1316,7 +854,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           aid: 789,
           title: "Test Video",
@@ -1346,7 +884,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           afterUploadDeletAction: "delete",
@@ -1389,7 +927,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           aid: 789,
           title: "Test Video",
@@ -1419,7 +957,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           afterUploadDeletAction: "delete",
@@ -1455,7 +993,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           aid: 789,
           title: "Test Video",
@@ -1501,7 +1039,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           afterUploadDeletAction: "delete",
@@ -1538,7 +1076,7 @@ describe("WebhookHandler", () => {
       //   const live = new Live({
       //     eventId: "123",
       //     platform: "blrec",
-      //     roomId: 123,
+      //     roomId: "123",
       //     startTime: new Date("2022-01-01T00:00:00Z").getTime(),
       //     title: "Test Video",
       //     username: "username",
@@ -1552,7 +1090,7 @@ describe("WebhookHandler", () => {
       //   vi.useFakeTimers();
       //   vi.setSystemTime(new Date("2022-01-01T14:05:00"));
       //   // @ts-ignore
-      //   const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+      //   const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
       //     uploadPresetId: "preset-id",
       //     uid: 456,
       //     afterUploadDeletAction: "delete",
@@ -1581,7 +1119,7 @@ describe("WebhookHandler", () => {
       //   const live = new Live({
       //     eventId: "123",
       //     platform: "blrec",
-      //     roomId: 123,
+      //     roomId: "123",
       //     startTime: new Date("2022-01-01T00:00:00Z").getTime(),
       //     title: "Test Video",
       //     username: "username",
@@ -1596,7 +1134,7 @@ describe("WebhookHandler", () => {
       //   vi.useFakeTimers();
       //   vi.setSystemTime(new Date("2022-01-01T14:05:00"));
       //   // @ts-ignore
-      //   const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+      //   const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
       //     uploadPresetId: "preset-id",
       //     uid: 456,
       //     afterUploadDeletAction: "delete",
@@ -1627,7 +1165,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1664,7 +1202,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           afterUploadDeletAction: "delete",
@@ -1730,7 +1268,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1747,7 +1285,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: undefined,
           afterUploadDeletAction: "delete",
@@ -1773,7 +1311,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1789,7 +1327,7 @@ describe("WebhookHandler", () => {
           title: "part1",
         });
         // @ts-ignore
-        vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 123,
           uploadNoDanmu: true,
@@ -1811,7 +1349,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           title: "Test Video",
           username: "username",
@@ -1841,7 +1379,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 123,
           title: "webhook-title",
@@ -1867,7 +1405,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           rawAid: 789,
           title: "Test Video",
@@ -1901,7 +1439,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           afterUploadDeletAction: "delete",
@@ -1946,7 +1484,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           rawAid: 789,
           title: "Test Video",
@@ -1978,7 +1516,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           afterUploadDeletAction: "delete",
@@ -2023,7 +1561,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           rawAid: 789,
           title: "Test Video",
@@ -2054,7 +1592,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           uploadNoDanmu: true,
@@ -2091,7 +1629,7 @@ describe("WebhookHandler", () => {
         const live = new Live({
           eventId: "123",
           platform: "blrec",
-          roomId: 123,
+          roomId: "123",
           startTime: new Date("2022-01-01T00:00:00Z").getTime(),
           rawAid: 789,
           title: "Test Video",
@@ -2140,7 +1678,7 @@ describe("WebhookHandler", () => {
         });
 
         // @ts-ignore
-        const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+        const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
           uid: 456,
           afterUploadDeletAction: "delete",
@@ -2177,7 +1715,7 @@ describe("WebhookHandler", () => {
       //   const live = new Live({
       //     eventId: "123",
       //     platform: "blrec",
-      //     roomId: 123,
+      //     roomId: "123",
       //     startTime: new Date("2022-01-01T00:00:00Z").getTime(),
       //     title: "Test Video",
       //     username: "username",
@@ -2193,7 +1731,7 @@ describe("WebhookHandler", () => {
       //   vi.useFakeTimers();
       //   vi.setSystemTime(new Date("2022-01-01T14:05:00"));
       //   // @ts-ignore
-      //   const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+      //   const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
       //     uploadPresetId: "preset-id",
       //     uid: 456,
       //     afterUploadDeletAction: "delete",
@@ -2224,7 +1762,7 @@ describe("WebhookHandler", () => {
       //   const live = new Live({
       //     eventId: "123",
       //     platform: "blrec",
-      //     roomId: 123,
+      //     roomId: "123",
       //     startTime: new Date("2022-01-01T00:00:00Z").getTime(),
       //     title: "Test Video",
       //     username: "username",
@@ -2241,7 +1779,7 @@ describe("WebhookHandler", () => {
       //   vi.useFakeTimers();
       //   vi.setSystemTime(new Date("2022-01-01T14:05:00"));
       //   // @ts-ignore
-      //   const getConfigSpy = vi.spyOn(webhookHandler, "getConfig").mockReturnValue({
+      //   const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
       //     uploadPresetId: "preset-id",
       //     uid: 456,
       //     afterUploadDeletAction: "delete",
@@ -2284,7 +1822,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -2300,7 +1838,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileClosed",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:05:00Z",
         title: "Existing Video",
@@ -2336,7 +1874,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileClosed",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:05:00Z",
         title: "New Video",
@@ -2367,7 +1905,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -2392,7 +1930,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileClosed",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:10:00Z",
         title: "Existing Video",
@@ -2425,7 +1963,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -2457,7 +1995,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileClosed",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:10:00Z",
         title: "Existing Video",
@@ -2491,7 +2029,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -2508,7 +2046,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileOpening",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:09:00Z",
         title: "New Video",
@@ -2541,7 +2079,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -2558,7 +2096,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileOpening",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:09:00Z",
         title: "New Video",
@@ -2592,7 +2130,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileOpening",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:00:00Z",
         title: "New Video",
@@ -2624,7 +2162,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -2641,7 +2179,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileOpening",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:09:00Z",
         title: "New Video",
@@ -2673,7 +2211,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -2690,7 +2228,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileOpening",
-        roomId: 321,
+        roomId: "321",
         platform: "bili-recorder",
         time: "2022-01-01T00:00:00Z",
         title: "New Video",
@@ -2721,7 +2259,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -2738,7 +2276,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileOpening",
-        roomId: 123,
+        roomId: "123",
         platform: "blrec",
         time: "2022-01-01T00:00:00Z",
         title: "New Video",
@@ -2769,7 +2307,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -2786,7 +2324,7 @@ describe("WebhookHandler", () => {
 
       const options: Options = {
         event: "FileOpening",
-        roomId: 123,
+        roomId: "123",
         platform: "bili-recorder",
         time: "2022-01-01T00:09:00Z",
         title: "New Video",
@@ -2824,7 +2362,7 @@ describe("WebhookHandler", () => {
 
       const trashSpy = vi.spyOn(utils, "trashItem").mockResolvedValue(undefined);
 
-      await webhookHandler.handleVideoSync(123, "/path/to/video.mp4", "part1", true);
+      await webhookHandler.handleVideoSync("123", "/path/to/video.mp4", "part1", true);
       expect(trashSpy).toHaveBeenCalledWith("/path/to/video.mp4");
     });
     it("视频：不同步不上传且不删除", async () => {
@@ -2833,7 +2371,7 @@ describe("WebhookHandler", () => {
 
       const trashSpy = vi.spyOn(utils, "trashItem").mockResolvedValue(undefined);
 
-      await webhookHandler.handleVideoSync(123, "/path/to/video.mp4", "part1", false);
+      await webhookHandler.handleVideoSync("123", "/path/to/video.mp4", "part1", false);
       expect(trashSpy).not.toHaveBeenCalled();
     });
     it("视频：同步上传且删除", async () => {});
@@ -2848,7 +2386,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
         username: "username",
@@ -2864,7 +2402,7 @@ describe("WebhookHandler", () => {
       webhookHandler.liveData.push(existingLive);
 
       vi.spyOn(webhookHandler, "hasTypeInSync").mockResolvedValue(true);
-      vi.spyOn(webhookHandler, "getSyncConfig").mockReturnValue({
+      vi.spyOn(webhookHandler.configManager, "getSyncConfig").mockReturnValue({
         id: "sync1",
         targetFiles: ["source"],
         folderStructure: "",
@@ -2882,7 +2420,7 @@ describe("WebhookHandler", () => {
 
       const trashSpy = vi.spyOn(utils, "trashItem").mockResolvedValue(undefined);
 
-      await webhookHandler.handleVideoSync(123, "/path/to/video.mp4", "part1", true);
+      await webhookHandler.handleVideoSync("123", "/path/to/video.mp4", "part1", true);
       expect(trashSpy).not.toHaveBeenCalled();
       expect(addSyncTaskSpy).toBeCalled();
     });
@@ -2896,7 +2434,7 @@ describe("Live", () => {
     const live = new Live({
       eventId: "event1",
       platform: "bili-recorder",
-      roomId: 123,
+      roomId: "123",
       startTime: 1616161616161,
       aid: 456,
       title: "Test Video",
@@ -2905,7 +2443,7 @@ describe("Live", () => {
 
     expect(live.eventId).toBe("event1");
     expect(live.platform).toBe("bili-recorder");
-    expect(live.roomId).toBe(123);
+    expect(live.roomId).toBe("123");
     expect(live.title).toBe("Test Video");
     expect(live.startTime).toBe(1616161616161);
     expect(live.aid).toBe(456);
@@ -2916,7 +2454,7 @@ describe("Live", () => {
     const live = new Live({
       eventId: "event1",
       platform: "bili-recorder",
-      roomId: 123,
+      roomId: "123",
       title: "Test Video",
       username: "username",
       startTime: 1616161616161,
@@ -2940,7 +2478,7 @@ describe("Live", () => {
     const live = new Live({
       eventId: "event1",
       platform: "bili-recorder",
-      roomId: 123,
+      roomId: "123",
       title: "Test Video",
       username: "username",
       startTime: 1616161616161,
@@ -2965,7 +2503,7 @@ describe("Live", () => {
     const live = new Live({
       eventId: "event1",
       platform: "bili-recorder",
-      roomId: 123,
+      roomId: "123",
       title: "Test Video",
       username: "username",
       startTime: 1616161616161,
@@ -3001,7 +2539,7 @@ describe("Live", () => {
     const live = new Live({
       eventId: "event1",
       platform: "bili-recorder",
-      roomId: 123,
+      roomId: "123",
       title: "Test Video",
       username: "username",
       startTime: 1616161616161,
@@ -3042,7 +2580,7 @@ describe("Live", () => {
       const live1 = new Live({
         eventId: "event1",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         title: "Test Video 1",
         username: "username1",
         startTime: 1616161616161,
@@ -3060,7 +2598,7 @@ describe("Live", () => {
       const live2 = new Live({
         eventId: "event2",
         platform: "bili-recorder",
-        roomId: 456,
+        roomId: "456",
         title: "Test Video 2",
         username: "username2",
         startTime: 1616161616161,
@@ -3088,7 +2626,7 @@ describe("Live", () => {
       const live = new Live({
         eventId: "event1",
         platform: "bili-recorder",
-        roomId: 123,
+        roomId: "123",
         title: "Test Video",
         username: "username",
         startTime: 1616161616161,
