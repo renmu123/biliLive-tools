@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import { expect, describe, it, beforeEach, vi } from "vitest";
-import { WebhookHandler, Live } from "../src/services/webhook.js";
+import { WebhookHandler, Live } from "../src/services/webhook/webhook.js";
 import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPreset.js";
 import * as utils from "@biliLive-tools/shared/utils/index.js";
 import * as syncTask from "@biliLive-tools/shared/task/sync.js";

@@ -18,7 +18,7 @@ import {
   replaceExtName,
 } from "@biliLive-tools/shared/utils/index.js";
 
-import { config } from "../index.js";
+import { config } from "../../index.js";
 import FileLockManager from "./fileLockManager.js";
 
 import type {
@@ -30,7 +30,7 @@ import type {
   HotProgressOptions,
 } from "@biliLive-tools/types";
 import type { AppConfig } from "@biliLive-tools/shared/config.js";
-import type { Options, Platform, Part, PickPartial } from "../types/webhook.js";
+import type { Options, Platform, Part, PickPartial } from "../../types/webhook.js";
 
 export const enum EventType {
   OpenEvent = "FileOpening",
@@ -687,7 +687,7 @@ export class WebhookHandler {
     // TODO: 兼容废弃选项，过渡期后删除
     const removeSourceAferrConvert2Mp4Before = getRoomSetting("removeSourceAferrConvert2Mp4");
     const removeSourceAferrConvert2Mp4 =
-      afterConvertAction.includes("removeAferrConvert2Mp4") || removeSourceAferrConvert2Mp4Before;
+      afterConvertAction.includes("removeAferrConvert2Mp4") || !!removeSourceAferrConvert2Mp4Before;
     const afterConvertRemoveVideoRaw = afterConvertAction.includes("removeVideo");
     const afterConvertRemoveXmlRaw = afterConvertAction.includes("removeXml");
     const afterConvertRemoveFlvRaw = afterConvertAction.includes("removeAfterFlvRepair");
