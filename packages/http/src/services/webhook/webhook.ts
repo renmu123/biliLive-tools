@@ -22,6 +22,7 @@ import { config } from "../../index.js";
 import FileLockManager from "./fileLockManager.js";
 import { ConfigManager } from "./ConfigManager.js";
 import { PathResolver } from "./PathResolver.js";
+import { Live } from "./Live.js";
 
 import type {
   BiliupConfig,
@@ -30,83 +31,12 @@ import type {
   HotProgressOptions,
 } from "@biliLive-tools/types";
 import type { AppConfig } from "@biliLive-tools/shared/config.js";
-import type { Options, Platform, Part, PickPartial } from "../../types/webhook.js";
+import type { Options, Platform, Part } from "../../types/webhook.js";
 
 export const enum EventType {
   OpenEvent = "FileOpening",
   CloseEvent = "FileClosed",
   ErrorEvent = "FileError",
-}
-
-export class Live {
-  eventId: string;
-  platform: Platform;
-  startTime: number;
-  roomId: string;
-  // 直播标题
-  title: string;
-  // 主播名
-  username: string;
-  aid?: number;
-  // 非弹幕版aid
-  rawAid?: number;
-  parts: Part[];
-
-  constructor(options: {
-    eventId: string;
-    platform: Platform;
-    roomId: string;
-    title: string;
-    username: string;
-    startTime: number;
-    aid?: number;
-    rawAid?: number;
-  }) {
-    this.eventId = options.eventId;
-    this.platform = options.platform;
-    this.roomId = options.roomId;
-    this.startTime = options.startTime;
-    this.title = options.title;
-    this.username = options.username;
-    this.aid = options.aid;
-    this.rawAid = options.rawAid;
-    this.parts = [];
-  }
-
-  addPart(part: PickPartial<Part, "uploadStatus" | "rawUploadStatus" | "rawFilePath">) {
-    const defaultPart: Pick<Part, "uploadStatus" | "rawUploadStatus" | "rawFilePath"> = {
-      uploadStatus: "pending",
-      rawUploadStatus: "pending",
-      rawFilePath: part.filePath,
-    };
-    this.parts.push({
-      ...defaultPart,
-      ...part,
-    });
-  }
-
-  updatePartValue<K extends keyof Part>(partId: string, key: K, value: Part[K]) {
-    const part = this.parts.find((p) => p.partId === partId);
-    if (part) {
-      part[key] = value;
-    }
-  }
-
-  findPartByFilePath(filePath: string, type: "raw" | "handled" = "handled"): Part | undefined {
-    if (type === "handled") {
-      return this.parts.find((part) => part.filePath === filePath);
-    } else if (type === "raw") {
-      return this.parts.find((part) => part.rawFilePath === filePath);
-    } else {
-      throw new Error("type error");
-    }
-  }
-  removePart(partId: string) {
-    const part = this.parts.findIndex((part) => part.partId === partId);
-    if (part !== -1) {
-      this.parts.splice(part, 1);
-    }
-  }
 }
 
 export class WebhookHandler {
