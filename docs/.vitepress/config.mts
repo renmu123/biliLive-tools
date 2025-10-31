@@ -15,7 +15,7 @@ export default defineConfig({
       { text: "首页", link: "/" },
       { text: "指南", link: "/guide/introduction" },
       { text: "功能", link: "/features/live-record" },
-      { text: "API", link: "/api/recorder" },
+      { text: "API", link: "/api/base" },
     ],
 
     sidebar: {
@@ -23,6 +23,7 @@ export default defineConfig({
         {
           text: "API",
           items: [
+            { text: "基础", link: "/api/base" },
             { text: "录制", link: "/api/recorder" },
             { text: "录制历史", link: "/api/record-history" },
             { text: "同步", link: "/api/sync" },
