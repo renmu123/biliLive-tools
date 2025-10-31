@@ -52,6 +52,9 @@ RUN mkdir -p /app/aliyun-temp && \
 # 从另一个基础镜像开始，安装运行时依赖
 FROM node:24.10 AS runtime
 
+# 设置 Node 内存限制为 8GB
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 # 设置工作目录
 WORKDIR /app
 
