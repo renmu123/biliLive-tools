@@ -98,7 +98,7 @@
 
 **响应:** HTTP 200 表示更新成功
 
-## 获取用户 Cookie
+<!-- ## 获取用户 Cookie
 
 获取指定用户的完整 Cookie 字符串,需要签名验证。
 
@@ -148,4 +148,4 @@ SESSDATA=xxx; bili_jct=xxx; DedeUserID=xxx; buvid3=xxx
 
 ::: warning 安全提示
 此接口涉及用户敏感信息,请妥善保管 Cookie 数据,不要泄露给他人。
-:::
+::: -->
