@@ -34,23 +34,12 @@
     >
   </n-form-item>
 
-  <!-- flv修复 -->
-  <n-form-item>
+  <n-form-item v-if="data.convert2Mp4">
     <template #label>
       <Tip
-        text="FLV修复"
-        tip="调用录播姬的修复引擎对FLV文件进行修复，如果你是用录播姬录制的FLV文件，无需额外开启"
+        text="封装后删除源文件（废弃）"
+        tip="该选项已废弃，请使用「处理后操作」中的「删除转封装为mp4的原文件」"
       ></Tip>
-    </template>
-    <n-switch v-model:value="data.flvRepair" :disabled="globalFieldsObj.flvRepair" />
-    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.flvRepair" class="global-checkbox"
-      >全局</n-checkbox
-    >
-  </n-form-item>
-
-  <!-- <n-form-item>
-    <template #label>
-      <span>封装后删除源文件（废弃）</span>
     </template>
     <n-switch
       v-model:value="data.removeSourceAferrConvert2Mp4"
@@ -62,8 +51,21 @@
       class="global-checkbox"
       >全局</n-checkbox
     >
-  </n-form-item> -->
+  </n-form-item>
 
+  <!-- flv修复 -->
+  <n-form-item>
+    <template #label>
+      <Tip
+        text="测试：FLV修复"
+        tip="调用录播姬的修复引擎对FLV文件进行修复，如果你是用录播姬录制的FLV文件，无需额外开启，<b>与封装为mp4互斥</b>，<b>如果你需要压制弹幕，也不要开启</b>"
+      ></Tip>
+    </template>
+    <n-switch v-model:value="data.flvRepair" :disabled="globalFieldsObj.flvRepair" />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.flvRepair" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item>
   <n-form-item>
     <template #label>
       <Tip
@@ -231,8 +233,8 @@
       v-model:value="data.afterConvertAction"
       :options="[
         { label: '删除不符合最小处理的文件', value: 'removeSmallFile' },
-        { label: '删除转换为mp4的原文件', value: 'removeAferrConvert2Mp4' },
         { label: '删除FLV修复后的原文件', value: 'removeAfterFlvRepair' },
+        { label: '删除转封装为mp4的原文件', value: 'removeAferrConvert2Mp4' },
         { label: '视频处理或同步后删除原文件', value: 'removeVideo' },
         { label: '弹幕转换或同步后删除原文件', value: 'removeXml' },
       ]"

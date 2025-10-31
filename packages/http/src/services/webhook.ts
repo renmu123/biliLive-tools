@@ -6,6 +6,7 @@ import { DEFAULT_BILIUP_CONFIG } from "@biliLive-tools/shared/presets/videoPrese
 import { biliApi } from "@biliLive-tools/shared/task/bili.js";
 import { isEmptyDanmu, convertXml2Ass } from "@biliLive-tools/shared/task/danmu.js";
 import { transcode, burn, analyzeResolutionChanges } from "@biliLive-tools/shared/task/video.js";
+import { flvRepair } from "@biliLive-tools/shared/task/flvRepair.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import {
   getFileSize,
@@ -177,6 +178,16 @@ export class WebhookHandler {
     const currentPart = currentLive.findPartByFilePath(options.filePath);
     if (!currentPart) return;
 
+    // 如果源文件不存在，那么尝试将后缀替换为mp4再判断是否存在
+    if (!(await fs.pathExists(options.filePath))) {
+      const mp4FilePath = replaceExtName(options.filePath, ".mp4");
+      if (await fs.pathExists(mp4FilePath)) {
+        options.filePath = mp4FilePath;
+        currentPart.filePath = mp4FilePath;
+        currentPart.rawFilePath = mp4FilePath;
+      }
+    }
+
     // 在录制结束时判断大小，如果文件太小，直接返回
     const fileSize = await getFileSize(options.filePath);
     if (fileSize / 1024 / 1024 < minSize) {
@@ -206,16 +217,6 @@ export class WebhookHandler {
       return;
     }
 
-    // 如果源文件不存在，那么尝试将后缀替换为mp4再判断是否存在
-    if (!(await fs.pathExists(options.filePath))) {
-      const mp4FilePath = replaceExtName(options.filePath, ".mp4");
-      if (await fs.pathExists(mp4FilePath)) {
-        options.filePath = mp4FilePath;
-        currentPart.filePath = mp4FilePath;
-        currentPart.rawFilePath = mp4FilePath;
-      }
-    }
-
     log.debug(currentLive);
 
     const cover = await this.handleCover(options);
@@ -229,21 +230,27 @@ export class WebhookHandler {
     }
 
     if (convert2Mp4Option) {
-      const file = await this.transcode(
-        options.filePath,
-        {
-          encoder: "copy",
-          audioCodec: "copy",
-        },
-        {
-          removeVideo: removeSourceAferrConvert2Mp4 ?? true,
-        },
-      );
-      log.debug("convert2Mp4 output", file);
-      options.filePath = file;
-      currentPart.filePath = file;
-      currentPart.rawFilePath = file;
+      try {
+        // 失败就失败吧，也没什么大不了的
+        const file = await this.transcode(
+          options.filePath,
+          {
+            encoder: "copy",
+            audioCodec: "copy",
+          },
+          {
+            removeVideo: removeSourceAferrConvert2Mp4 ?? true,
+          },
+        );
+        log.debug("convert2Mp4 output", file);
+        options.filePath = file;
+        currentPart.filePath = file;
+        currentPart.rawFilePath = file;
+      } catch (error) {
+        log.error("convert2Mp4 error", error);
+      }
     }
+
     // TODO:还是可能存在视频上传完但是源视频已经被删除的情况
     currentPart.recordStatus = "prehandled";
 
@@ -676,7 +683,11 @@ export class WebhookHandler {
     const videoHandleTime = getRoomSetting("videoHandleTime") || ["00:00:00", "23:59:59"];
     const syncId = getRoomSetting("syncId");
     const afterConvertAction = getRoomSetting("afterConvertAction") ?? [];
-    const removeSourceAferrConvert2Mp4 = afterConvertAction.includes("removeAferrConvert2Mp4");
+
+    // TODO: 兼容废弃选项，过渡期后删除
+    const removeSourceAferrConvert2Mp4Before = getRoomSetting("removeSourceAferrConvert2Mp4");
+    const removeSourceAferrConvert2Mp4 =
+      afterConvertAction.includes("removeAferrConvert2Mp4") || removeSourceAferrConvert2Mp4Before;
     const afterConvertRemoveVideoRaw = afterConvertAction.includes("removeVideo");
     const afterConvertRemoveXmlRaw = afterConvertAction.includes("removeXml");
     const afterConvertRemoveFlvRaw = afterConvertAction.includes("removeAfterFlvRepair");
@@ -960,6 +971,34 @@ export class WebhookHandler {
         override: false,
         removeOrigin: options.removeVideo,
         autoRun: true,
+      }).then((task) => {
+        task.on("task-end", () => {
+          resolve(task.output as string);
+        });
+        task.on("task-error", () => {
+          reject();
+        });
+      });
+    });
+  }
+
+  // 转封装为mp4
+  async flvRepair(
+    videoFile: string,
+    options: {
+      removeVideo: boolean;
+      suffix?: string;
+      limitTime?: [string, string];
+    },
+  ): Promise<string> {
+    // const output = path.join(dir, outputName);
+    // if (await fs.pathExists(output)) return output;
+
+    return new Promise((resolve, reject) => {
+      flvRepair(videoFile, videoFile, {
+        saveRadio: 1,
+        savePath: "",
+        type: "bililive",
       }).then((task) => {
         task.on("task-end", () => {
           resolve(task.output as string);
