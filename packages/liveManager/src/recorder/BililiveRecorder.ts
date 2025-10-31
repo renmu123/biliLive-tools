@@ -82,7 +82,6 @@ class BililiveRecorderCommand extends EventEmitter {
     this.process.on("error", (error) => {
       this.emit("error", error);
     });
-    [];
     this.process.on("close", (code) => {
       if (code === 0) {
         this.emit("end");
@@ -233,6 +232,8 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
       await this.streamManager.handleVideoCompleted();
     } catch (err) {
       this.emit("DebugLog", { type: "error", text: String(err) });
+    } finally {
+      this.streamManager.cleanup();
     }
   }
 

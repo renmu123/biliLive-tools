@@ -235,6 +235,12 @@ export class StreamManager extends EventEmitter {
     return this.segment?.extraDataController || this.extraDataController;
   }
 
+  cleanup() {
+    this.segment?.removeAllListeners();
+    this.segment = null;
+    this.extraDataController = null;
+  }
+
   get videoExt() {
     if (this.recorderType === "ffmpeg") {
       return this.videoFormat;

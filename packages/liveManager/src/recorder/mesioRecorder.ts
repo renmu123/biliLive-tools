@@ -226,6 +226,8 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
       await this.streamManager.handleVideoCompleted();
     } catch (err) {
       this.emit("DebugLog", { type: "error", text: String(err) });
+    } finally {
+      this.streamManager.cleanup();
     }
   }
 

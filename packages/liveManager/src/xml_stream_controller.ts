@@ -1,6 +1,5 @@
 /**
  * XML流式写入控制器，用于实时写入弹幕、礼物等信息到XML文件
- * 相比原有的json方案，这个实现每隔5秒就会写入数据，减少内存占用和数据丢失风险
  */
 import fs from "node:fs";
 import { XMLBuilder } from "fast-xml-parser";
