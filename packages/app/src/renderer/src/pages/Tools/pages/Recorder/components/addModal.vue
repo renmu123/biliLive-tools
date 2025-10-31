@@ -422,7 +422,10 @@
         </n-form-item>
         <n-form-item>
           <template #label>
-            <Tip text="监控时间段" tip="仅在时间段内进行监控，有助于减少风控的可能"></Tip>
+            <Tip
+              text="监控时间段"
+              tip="仅在时间段内进行监控，有助于减少风控的可能，<b>注意是监控时间段并非录制时间段</b>"
+            ></Tip>
           </template>
           <n-time-picker v-model:formatted-value="config.handleTime[0]" clearable />
           ~
