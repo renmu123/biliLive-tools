@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { ConfigManager } from "../src/services/webhook/configManager.js";
+import { ConfigManager } from "../src/services/webhook/ConfigManager.js";
 
 describe("ConfigManager", () => {
   describe("canRoomOpen", () => {

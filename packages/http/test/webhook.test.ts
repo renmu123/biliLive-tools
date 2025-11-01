@@ -300,7 +300,16 @@ describe("WebhookHandler", () => {
     });
     it("should handle the options and update rawFilePath when convert2Mp4Option is true", async () => {
       // Arrange
-      const options: Options = {
+      const openOptions: Options = {
+        roomId: "123",
+        event: "FileOpening",
+        filePath: "/path/to/part1.flv",
+        time: "2022-01-01T00:00:00Z",
+        username: "test",
+        platform: "blrec",
+        title: "test video",
+      };
+      const closeOptions: Options = {
         roomId: "123",
         event: "FileClosed",
         filePath: "/path/to/part1.flv",
@@ -312,19 +321,27 @@ describe("WebhookHandler", () => {
       const getConfigSpy = vi
         .spyOn(webhookHandler.configManager, "getConfig")
         // @ts-ignore
-        .mockReturnValue({ open: true, title: "test", convert2Mp4Option: true });
+        .mockReturnValue({
+          open: true,
+          title: "test",
+          convert2Mp4Option: true,
+          removeSourceAferrConvert2Mp4: true,
+          minSize: 1,
+          partMergeMinute: 10,
+        });
       const convert2Mp4Spy = vi
         .spyOn(webhookHandler, "transcode")
         .mockResolvedValue("/path/to/part1.mp4");
 
       const utils = await import("@biliLive-tools/shared/utils/index.js");
-      vi.spyOn(utils, "getFileSize");
+      vi.spyOn(utils, "getFileSize").mockResolvedValue(10 * 1024 * 1024); // 10MB
 
       // Act
-      await webhookHandler.handle(options);
+      await webhookHandler.handle(openOptions);
+      await webhookHandler.handle(closeOptions);
 
       // Assert
-      expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
+      expect(getConfigSpy).toHaveBeenCalledWith(closeOptions.roomId);
       expect(convert2Mp4Spy).toHaveBeenCalledWith(
         "/path/to/part1.flv",
         {
@@ -2647,6 +2664,411 @@ describe("Live", () => {
       const foundLive = webhookHandler.findLiveByFilePath("/path/to/nonexistent.mp4");
 
       expect(foundLive).toBeUndefined();
+    });
+  });
+
+  describe("重构后的私有方法测试", () => {
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+      }),
+    };
+    let webhookHandler: WebhookHandler;
+
+    beforeEach(() => {
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+    });
+
+    describe("shouldSkipProcessing", () => {
+      it("应在事件为FileOpening时返回true", () => {
+        // @ts-ignore
+        const result = webhookHandler.shouldSkipProcessing("FileOpening");
+        expect(result).toBe(true);
+      });
+
+      it("应在事件为FileError时返回true", () => {
+        // @ts-ignore
+        const result = webhookHandler.shouldSkipProcessing("FileError");
+        expect(result).toBe(true);
+      });
+
+      it("应在事件为FileClosed时返回false", () => {
+        // @ts-ignore
+        const result = webhookHandler.shouldSkipProcessing("FileClosed");
+        expect(result).toBe(false);
+      });
+    });
+
+    describe("getCurrentContext", () => {
+      it("应在liveIndex为-1时返回null", () => {
+        // @ts-ignore
+        const result = webhookHandler.getCurrentContext(-1, "/path/to/file.mp4");
+        expect(result).toBeNull();
+      });
+
+      it("应在找不到part时返回null", () => {
+        const live = new Live({
+          eventId: "test-id",
+          platform: "blrec",
+          roomId: "123",
+          startTime: Date.now(),
+          title: "Test",
+          username: "user",
+        });
+        webhookHandler.liveData.push(live);
+
+        // @ts-ignore
+        const result = webhookHandler.getCurrentContext(0, "/nonexistent/file.mp4");
+        expect(result).toBeNull();
+      });
+
+      it("应成功返回context", () => {
+        const live = new Live({
+          eventId: "test-id",
+          platform: "blrec",
+          roomId: "123",
+          startTime: Date.now(),
+          title: "Test",
+          username: "user",
+        });
+        live.addPart({
+          partId: "part-1",
+          filePath: "/path/to/file.mp4",
+          recordStatus: "recording",
+          title: "Part 1",
+        });
+        webhookHandler.liveData.push(live);
+
+        // @ts-ignore
+        const result = webhookHandler.getCurrentContext(0, "/path/to/file.mp4");
+        expect(result).not.toBeNull();
+        expect(result?.live).toBe(live);
+        expect(result?.part.partId).toBe("part-1");
+      });
+    });
+
+    describe("prepareFiles", () => {
+      it("应在文件不存在时尝试替换为mp4扩展名", async () => {
+        const live = new Live({
+          eventId: "test-id",
+          platform: "blrec",
+          roomId: "123",
+          startTime: Date.now(),
+          title: "Test",
+          username: "user",
+        });
+        const part = {
+          partId: "part-1",
+          filePath: "/path/to/file.flv",
+          recordStatus: "recording" as const,
+          title: "Part 1",
+        };
+        live.addPart(part);
+
+        const context = { live, part };
+        const options = {
+          event: "FileClosed" as const,
+          roomId: "123",
+          platform: "blrec" as const,
+          filePath: "/path/to/file.flv",
+          time: new Date().toISOString(),
+          title: "Test",
+          username: "user",
+        };
+
+        // @ts-ignore
+        vi.spyOn(fs, "pathExists")
+          // @ts-ignore
+          .mockResolvedValueOnce(false) // 第一次检查flv不存在
+          // @ts-ignore
+          .mockResolvedValueOnce(true); // 第二次检查mp4存在
+
+        // @ts-ignore
+        await webhookHandler.prepareFiles(context, options);
+
+        // 使用 toContain 来处理路径分隔符差异
+        expect(options.filePath).toContain("file.mp4");
+        expect(part.filePath).toContain("file.mp4");
+      });
+    });
+
+    describe("validateFileSize", () => {
+      it("应在文件大小足够时返回true", async () => {
+        const live = new Live({
+          eventId: "test-id",
+          platform: "blrec",
+          roomId: "123",
+          startTime: Date.now(),
+          title: "Test",
+          username: "user",
+        });
+        const part = {
+          partId: "part-1",
+          filePath: "/path/to/file.mp4",
+          recordStatus: "recording" as const,
+          title: "Part 1",
+        };
+        const context = { live, part };
+        const config = { minSize: 10 };
+        const options = {
+          event: "FileClosed" as const,
+          roomId: "123",
+          platform: "blrec" as const,
+          filePath: "/path/to/file.mp4",
+          time: new Date().toISOString(),
+          title: "Test",
+          username: "user",
+        };
+
+        vi.spyOn(utils, "getFileSize").mockResolvedValue(20 * 1024 * 1024); // 20MB
+
+        // @ts-ignore
+        const result = await webhookHandler.validateFileSize(context, config, options);
+        expect(result).toBe(true);
+      });
+
+      it("应在文件太小时返回false并清理", async () => {
+        const live = new Live({
+          eventId: "test-id",
+          platform: "blrec",
+          roomId: "123",
+          startTime: Date.now(),
+          title: "Test",
+          username: "user",
+        });
+        const part = {
+          partId: "part-1",
+          filePath: "/path/to/file.mp4",
+          recordStatus: "recording" as const,
+          title: "Part 1",
+        };
+        live.addPart(part);
+        webhookHandler.liveData.push(live);
+
+        const context = { live, part };
+        const config = { minSize: 100, removeSmallFile: true };
+        const options = {
+          event: "FileClosed" as const,
+          roomId: "123",
+          platform: "blrec" as const,
+          filePath: "/path/to/file.mp4",
+          time: new Date().toISOString(),
+          title: "Test",
+          username: "user",
+        };
+
+        vi.spyOn(utils, "getFileSize").mockResolvedValue(5 * 1024 * 1024); // 5MB
+        const trashSpy = vi.spyOn(utils, "trashItem").mockResolvedValue();
+
+        // @ts-ignore
+        const result = await webhookHandler.validateFileSize(context, config, options);
+
+        expect(result).toBe(false);
+        expect(trashSpy).toHaveBeenCalledWith(options.filePath);
+        expect(webhookHandler.liveData.length).toBe(0); // live被删除
+      });
+    });
+
+    describe("shouldRemoveFile", () => {
+      it("应在操作成功且配置允许时返回true", () => {
+        // @ts-ignore
+        const result = webhookHandler.shouldRemoveFile(true, true, "warning");
+        expect(result).toBe(true);
+      });
+
+      it("应在操作失败时返回false", () => {
+        // @ts-ignore
+        const result = webhookHandler.shouldRemoveFile(false, true, "warning");
+        expect(result).toBe(false);
+      });
+
+      it("应在配置不允许删除时返回false", () => {
+        // @ts-ignore
+        const result = webhookHandler.shouldRemoveFile(true, false, "warning");
+        expect(result).toBe(false);
+      });
+    });
+
+    describe("processCover", () => {
+      it("应在useLiveCover为false时直接返回", async () => {
+        const context = {
+          live: new Live({
+            eventId: "test",
+            platform: "blrec" as const,
+            roomId: "123",
+            startTime: Date.now(),
+            title: "Test",
+            username: "user",
+          }),
+          part: {
+            partId: "part-1",
+            filePath: "/path/to/file.mp4",
+            recordStatus: "recording" as const,
+            title: "Part 1",
+          },
+        };
+        const options = {
+          event: "FileClosed" as const,
+          roomId: "123",
+          platform: "blrec" as const,
+          filePath: "/path/to/file.mp4",
+          time: new Date().toISOString(),
+          title: "Test",
+          username: "user",
+        };
+        const config = { useLiveCover: false };
+
+        // @ts-ignore
+        await webhookHandler.processCover(context, options, config);
+
+        // @ts-ignore
+        expect(context.part.cover).toBeUndefined();
+      });
+    });
+
+    describe("processMediaFiles", () => {
+      beforeEach(() => {
+        // @ts-ignore
+        webhookHandler.danmuPreset = {
+          get: vi.fn().mockResolvedValue({ config: {} }),
+        };
+        // @ts-ignore
+        webhookHandler.ffmpegPreset = {
+          get: vi.fn().mockResolvedValue({ config: {} }),
+        };
+      });
+
+      it("应在danmu为true时调用processDanmuVideo", async () => {
+        const context = {
+          live: new Live({
+            eventId: "test",
+            platform: "blrec" as const,
+            roomId: "123",
+            startTime: Date.now(),
+            title: "Test",
+            username: "user",
+          }),
+          part: {
+            partId: "part-1",
+            filePath: "/path/to/file.mp4",
+            recordStatus: "recording" as const,
+            title: "Part 1",
+          },
+        };
+        const options = {
+          event: "FileClosed" as const,
+          roomId: "123",
+          platform: "blrec" as const,
+          filePath: "/path/to/file.mp4",
+          time: new Date().toISOString(),
+          title: "Test",
+          username: "user",
+        };
+        const config = { danmu: true };
+
+        const processDanmuVideoSpy = vi
+          // @ts-ignore
+          .spyOn(webhookHandler, "processDanmuVideo")
+          // @ts-ignore
+          .mockResolvedValue({ conversionSuccessful: true, danmuConversionSuccessful: true });
+
+        // @ts-ignore
+        await webhookHandler.processMediaFiles(context, options, config);
+
+        expect(processDanmuVideoSpy).toHaveBeenCalled();
+      });
+
+      it("应在danmu为false时调用processRegularVideo", async () => {
+        const context = {
+          live: new Live({
+            eventId: "test",
+            platform: "blrec" as const,
+            roomId: "123",
+            startTime: Date.now(),
+            title: "Test",
+            username: "user",
+          }),
+          part: {
+            partId: "part-1",
+            filePath: "/path/to/file.mp4",
+            recordStatus: "recording" as const,
+            title: "Part 1",
+          },
+        };
+        const options = {
+          event: "FileClosed" as const,
+          roomId: "123",
+          platform: "blrec" as const,
+          filePath: "/path/to/file.mp4",
+          time: new Date().toISOString(),
+          title: "Test",
+          username: "user",
+        };
+        const config = { danmu: false };
+
+        const processRegularVideoSpy = vi
+          // @ts-ignore
+          .spyOn(webhookHandler, "processRegularVideo")
+          // @ts-ignore
+          .mockResolvedValue({ conversionSuccessful: true, danmuConversionSuccessful: true });
+
+        // @ts-ignore
+        await webhookHandler.processMediaFiles(context, options, config);
+
+        expect(processRegularVideoSpy).toHaveBeenCalled();
+      });
+    });
+
+    describe("集成测试 - 完整流程", () => {
+      it("应成功处理一个完整的webhook流程", async () => {
+        const options: Options = {
+          event: "FileOpening",
+          roomId: "123",
+          platform: "blrec",
+          filePath: "/path/to/file.mp4",
+          time: "2022-01-01T00:00:00Z",
+          title: "Test Video",
+          username: "TestUser",
+        };
+
+        // @ts-ignore
+        vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
+          open: true,
+          partMergeMinute: 10,
+          minSize: 1,
+          useLiveCover: false,
+          convert2Mp4Option: false,
+          danmu: false,
+          videoPresetId: undefined,
+          danmuPresetId: undefined,
+          afterConvertRemoveVideo: false,
+          afterConvertRemoveXml: false,
+          uid: undefined,
+          afterUploadDeletAction: "none",
+          removeSmallFile: false,
+        });
+
+        // @ts-ignore
+        vi.spyOn(fs, "pathExists").mockResolvedValue(true);
+        vi.spyOn(utils, "getFileSize").mockResolvedValue(10 * 1024 * 1024); // 10MB
+
+        // 第一步：FileOpening
+        await webhookHandler.handle(options);
+        expect(webhookHandler.liveData.length).toBe(1);
+        expect(webhookHandler.liveData[0].parts.length).toBe(1);
+        expect(webhookHandler.liveData[0].parts[0].recordStatus).toBe("recording");
+
+        // 第二步：FileClosed
+        const closeOptions: Options = {
+          ...options,
+          event: "FileClosed",
+          time: "2022-01-01T00:10:00Z",
+        };
+
+        await webhookHandler.handle(closeOptions);
+        expect(webhookHandler.liveData[0].parts[0].recordStatus).toBe("handled");
+      });
     });
   });
 });
