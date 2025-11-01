@@ -128,22 +128,15 @@ export class WebhookHandler {
         log.warn("small file should be deleted", options.filePath);
         trashItem(options.filePath);
       }
-      if (currentLive) {
-        log.warn("remove part", currentLive, options.filePath);
-        const part = currentLive.findPartByFilePath(options.filePath);
-        log.warn("part", part);
-        if (part) {
-          currentLive.removePart(part.partId);
-          // 如果删除part后，live的part列表为空，删除这个live
-          if (currentLive.parts.length === 0) {
-            const liveIndex = this.liveData.findIndex(
-              (live) => live.eventId === currentLive.eventId,
-            );
-            if (liveIndex !== -1) {
-              this.liveData.splice(liveIndex, 1);
-              log.warn(`Removed empty live: ${currentLive.eventId}`);
-            }
-          }
+
+      log.warn("remove part", currentLive, options.filePath);
+      currentLive.removePart(currentPart.partId);
+      // 如果删除part后，live的part列表为空，删除这个live
+      if (currentLive.parts.length === 0) {
+        const liveIndex = this.liveData.findIndex((live) => live.eventId === currentLive.eventId);
+        if (liveIndex !== -1) {
+          this.liveData.splice(liveIndex, 1);
+          log.warn(`Removed empty live: ${currentLive.eventId}`);
         }
       }
       return;
