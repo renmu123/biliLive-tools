@@ -97,7 +97,7 @@ describe("PathResolver", () => {
 
       const result = await PathResolver.getCoverPath(videoPath);
 
-      expect(result).toBeUndefined();
+      expect(result).toBe("");
     });
   });
 

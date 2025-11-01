@@ -21,9 +21,9 @@ export class PathResolver {
    * 获取封面文件路径
    * @param videoPath 视频文件路径
    * @param coverPath 指定的封面路径（可选）
-   * @returns 封面路径，如果不存在则返回 undefined
+   * @returns 封面路径，如果不存在则返回 ""
    */
-  static async getCoverPath(videoPath: string, coverPath?: string): Promise<string | undefined> {
+  static async getCoverPath(videoPath: string, coverPath?: string): Promise<string> {
     if (coverPath && (await fs.pathExists(coverPath))) {
       return coverPath;
     }
@@ -48,7 +48,7 @@ export class PathResolver {
       return coverPng;
     }
 
-    return undefined;
+    return "";
   }
 
   /**

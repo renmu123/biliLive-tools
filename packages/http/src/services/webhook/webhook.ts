@@ -15,7 +15,6 @@ import {
   trashItem,
   formatTitle,
   formatPartTitle,
-  replaceExtName,
 } from "@biliLive-tools/shared/utils/index.js";
 
 import { config } from "../../index.js";
@@ -32,6 +31,7 @@ import type {
 } from "@biliLive-tools/types";
 import type { AppConfig } from "@biliLive-tools/shared/config.js";
 import type { Options, Platform, Part } from "../../types/webhook.js";
+import type { RoomConfig } from "./ConfigManager.js";
 
 export const enum EventType {
   OpenEvent = "FileOpening",
@@ -75,7 +75,7 @@ export class WebhookHandler {
     }
 
     // 1. 处理直播数据
-    const currentLiveIndex = await this.handleLiveData(options, config.partMergeMinute);
+    const currentLiveIndex = await this.handleLiveData(options, config);
 
     // 2. 如果是开始或错误事件,直接返回
     if (this.shouldSkipProcessing(options.event)) {
@@ -96,19 +96,16 @@ export class WebhookHandler {
 
     log.debug(context.live);
 
-    // 6. 处理封面
-    await this.processCover(context, options, config);
-
-    // 7. 转封装处理
+    // 6. 转封装处理
     await this.processConversion(context, options, config);
 
-    // 8. 设置预处理状态
+    // 7. 设置预处理状态
     context.part.recordStatus = "prehandled";
 
-    // 9. 处理弹幕和视频压制
+    // 8. 处理弹幕和视频压制
     const processingResult = await this.processMediaFiles(context, options, config);
 
-    // 10. 处理文件同步和锁定
+    // 9. 处理文件同步和锁定
     await this.handlePostProcessing(context, options, config, processingResult);
   }
 
@@ -144,14 +141,6 @@ export class WebhookHandler {
     options.filePath = file;
     part.filePath = file;
     part.rawFilePath = file;
-    // if (!(await fs.pathExists(options.filePath))) {
-    //   const mp4FilePath = replaceExtName(options.filePath, ".mp4");
-    //   if (await fs.pathExists(mp4FilePath)) {
-    //     options.filePath = mp4FilePath;
-    //     part.filePath = mp4FilePath;
-    //     part.rawFilePath = mp4FilePath;
-    //   }
-    // }
   }
 
   /**
@@ -195,21 +184,6 @@ export class WebhookHandler {
         this.liveData.splice(liveIndex, 1);
         log.warn(`Removed empty live: ${live.eventId}`);
       }
-    }
-  }
-
-  /**
-   * 处理封面
-   */
-  private async processCover(context: { live: Live; part: Part }, options: Options, config: any) {
-    if (!config.useLiveCover) return;
-
-    const cover = await PathResolver.getCoverPath(options.filePath, options.coverPath);
-
-    if (cover) {
-      context.part.cover = cover;
-    } else {
-      log.error(`cover can not be found`);
     }
   }
 
@@ -655,16 +629,24 @@ export class WebhookHandler {
    * @param partMergeMinute 断播续传时间戳
    * @returns 当前live的eventId
    */
-  handleCloseEvent = (options: Options): string => {
+  handleCloseEvent = async (options: Options): Promise<string> => {
     const timestamp = new Date(options.time).getTime();
     const currentLive = this.findLiveByFilePath(options.filePath);
+
+    let cover: string;
+    try {
+      cover = await PathResolver.getCoverPath(options.filePath, options.coverPath);
+    } catch (error) {
+      log.error("获取封面失败", error);
+      cover = "";
+    }
 
     if (currentLive) {
       const currentPart = currentLive.findPartByFilePath(options.filePath);
       if (currentPart) {
         currentLive.updatePartValue(currentPart.partId, "endTime", timestamp);
         currentLive.updatePartValue(currentPart.partId, "recordStatus", "recorded");
-
+        currentLive.updatePartValue(currentPart.partId, "cover", cover);
         const partIndex = currentLive.parts.findIndex((part) => part.partId === currentPart.partId);
         for (let i = 0; i < partIndex; i++) {
           const part = currentLive.parts[i];
@@ -675,6 +657,8 @@ export class WebhookHandler {
           }
         }
       }
+
+      return currentLive.eventId;
     } else {
       const liveEventId = uuid();
       const live = new Live({
@@ -686,7 +670,7 @@ export class WebhookHandler {
         startTime: timestamp,
       });
       // TODO: 通过视频或者弹幕元数据获取开始时间
-      live.addPart({
+      const newPart = {
         partId: uuid(),
         filePath: options.filePath,
         endTime: timestamp,
@@ -695,12 +679,13 @@ export class WebhookHandler {
         rawFilePath: options.filePath,
         rawUploadStatus: "pending",
         title: options.title,
-      });
+        cover: cover,
+      } as Part;
+      live.addPart(newPart);
       this.liveData.push(live);
 
       return liveEventId;
     }
-    return currentLive.eventId;
   };
 
   /**
@@ -726,12 +711,12 @@ export class WebhookHandler {
   /**
    * 处理FileOpening和FileClosed事件
    */
-  async handleLiveData(options: Options, partMergeMinute: number): Promise<number> {
+  async handleLiveData(options: Options, config: RoomConfig): Promise<number> {
     if (options.event === EventType.OpenEvent) {
-      this.handleOpenEvent(options, partMergeMinute);
+      this.handleOpenEvent(options, config.partMergeMinute);
       return -1;
     } else if (options.event === EventType.CloseEvent) {
-      const liveId = this.handleCloseEvent(options);
+      const liveId = await this.handleCloseEvent(options);
       const index = this.liveData.findIndex((live) => live.eventId === liveId);
       return index;
     } else if (options.event === EventType.ErrorEvent) {

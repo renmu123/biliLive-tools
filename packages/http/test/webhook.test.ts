@@ -88,7 +88,10 @@ describe("WebhookHandler", () => {
         filePath: "/path/to/existing-video3.mp4",
         username: "test",
       };
-      await webhookHandler.handleLiveData(options, 10);
+      // @ts-ignore
+      await webhookHandler.handleLiveData(options, {
+        partMergeMinute: 10,
+      });
       const liveData = webhookHandler.liveData;
 
       expect(liveData.length).toBe(1);
@@ -105,7 +108,10 @@ describe("WebhookHandler", () => {
         filePath: "/path/to/existing-video2.mp4",
         username: "test",
       };
-      await webhookHandler.handleLiveData(options2, 10);
+      // @ts-ignore
+      await webhookHandler.handleLiveData(options2, {
+        partMergeMinute: 10,
+      });
       const liveData2 = webhookHandler.liveData;
       expect(liveData2[0].parts[1].recordStatus).toBe("recorded");
       expect(liveData[0].parts[2].recordStatus).toBe("recording");
@@ -143,7 +149,10 @@ describe("WebhookHandler", () => {
         filePath: "/path/to/existing-video3.mp4",
         username: "test",
       };
-      await webhookHandler.handleLiveData(options, 10);
+      // @ts-ignore
+      await webhookHandler.handleLiveData(options, {
+        partMergeMinute: 10,
+      });
       const liveData = webhookHandler.liveData;
 
       expect(liveData.length).toBe(1);
@@ -160,7 +169,10 @@ describe("WebhookHandler", () => {
         filePath: "/path/to/existing-video2.mp4",
         username: "test",
       };
-      await webhookHandler.handleLiveData(options2, 10);
+      // @ts-ignore
+      await webhookHandler.handleLiveData(options2, {
+        partMergeMinute: 10,
+      });
       const liveData2 = webhookHandler.liveData;
       expect(liveData2[0].parts[0].recordStatus).toBe("recorded");
       expect(liveData[0].parts[1].recordStatus).toBe("recording");
@@ -1865,7 +1877,7 @@ describe("WebhookHandler", () => {
       };
 
       // Act
-      const liveId = webhookHandler.handleCloseEvent(options);
+      const liveId = await webhookHandler.handleCloseEvent(options);
 
       // Assert
       const liveData = webhookHandler.liveData;
@@ -1901,7 +1913,7 @@ describe("WebhookHandler", () => {
       };
 
       // Act
-      const liveId = webhookHandler.handleCloseEvent(options);
+      const liveId = await webhookHandler.handleCloseEvent(options);
 
       // Assert
       const liveData = webhookHandler.liveData;
@@ -1957,7 +1969,7 @@ describe("WebhookHandler", () => {
       };
 
       // Act
-      const liveId = webhookHandler.handleCloseEvent(options);
+      const liveId = await webhookHandler.handleCloseEvent(options);
 
       // Assert
       const liveData = webhookHandler.liveData;
@@ -2022,7 +2034,7 @@ describe("WebhookHandler", () => {
       };
 
       // Act
-      webhookHandler.handleCloseEvent(options);
+      await webhookHandler.handleCloseEvent(options);
 
       // Assert
       const liveData = webhookHandler.liveData;
@@ -2890,43 +2902,6 @@ describe("Live", () => {
       });
     });
 
-    describe("processCover", () => {
-      it("应在useLiveCover为false时直接返回", async () => {
-        const context = {
-          live: new Live({
-            eventId: "test",
-            platform: "blrec" as const,
-            roomId: "123",
-            startTime: Date.now(),
-            title: "Test",
-            username: "user",
-          }),
-          part: {
-            partId: "part-1",
-            filePath: "/path/to/file.mp4",
-            recordStatus: "recording" as const,
-            title: "Part 1",
-          },
-        };
-        const options = {
-          event: "FileClosed" as const,
-          roomId: "123",
-          platform: "blrec" as const,
-          filePath: "/path/to/file.mp4",
-          time: new Date().toISOString(),
-          title: "Test",
-          username: "user",
-        };
-        const config = { useLiveCover: false };
-
-        // @ts-ignore
-        await webhookHandler.processCover(context, options, config);
-
-        // @ts-ignore
-        expect(context.part.cover).toBeUndefined();
-      });
-    });
-
     describe("processMediaFiles", () => {
       beforeEach(() => {
         // @ts-ignore
@@ -3017,6 +2992,120 @@ describe("Live", () => {
         await webhookHandler.processMediaFiles(context, options, config);
 
         expect(processRegularVideoSpy).toHaveBeenCalled();
+      });
+    });
+
+    describe("handlePostProcessing - 封面处理", () => {
+      it("应在useLiveCover为false时不处理封面", async () => {
+        const part = {
+          partId: "part-1",
+          filePath: "/path/to/file.mp4",
+          recordStatus: "prehandled" as const,
+          uploadStatus: "pending" as const,
+          rawFilePath: "/path/to/file.mp4",
+          rawUploadStatus: "pending" as const,
+          title: "Part 1",
+        };
+        const context = {
+          live: new Live({
+            eventId: "test",
+            platform: "blrec" as const,
+            roomId: "123",
+            startTime: Date.now(),
+            title: "Test",
+            username: "user",
+          }),
+          part: part as any,
+        };
+        const options = {
+          event: "FileClosed" as const,
+          roomId: "123",
+          platform: "blrec" as const,
+          filePath: "/path/to/file.mp4",
+          coverPath: "/path/to/cover.jpg",
+          time: new Date().toISOString(),
+          title: "Test",
+          username: "user",
+        };
+        const config = {
+          useLiveCover: false,
+          afterConvertRemoveVideo: false,
+          afterConvertRemoveXml: false,
+        };
+
+        // @ts-ignore
+        vi.spyOn(fs, "pathExists").mockResolvedValue(true);
+
+        // 将 live 注册到 handler，以便 handleCloseEvent 能找到 — 直接 push 相同对象以便后续断言
+        // @ts-ignore
+        context.live.parts.push(part as any);
+        // @ts-ignore
+        webhookHandler.liveData.push(context.live);
+
+        // @ts-ignore
+        webhookHandler.configManager.getConfig = () => config;
+
+        // 调用 close 事件处理（会在内部处理封面）
+        await webhookHandler.handleCloseEvent(options as any);
+
+        // @ts-ignore
+        expect(part.cover).toBe("/path/to/cover.jpg");
+      });
+
+      it("应在useLiveCover为true时处理封面", async () => {
+        const part = {
+          partId: "part-1",
+          filePath: "/path/to/file.mp4",
+          recordStatus: "prehandled" as const,
+          uploadStatus: "pending" as const,
+          rawFilePath: "/path/to/file.mp4",
+          rawUploadStatus: "pending" as const,
+          title: "Part 1",
+        };
+        const context = {
+          live: new Live({
+            eventId: "test",
+            platform: "blrec" as const,
+            roomId: "123",
+            startTime: Date.now(),
+            title: "Test",
+            username: "user",
+          }),
+          part: part as any,
+        };
+        const options = {
+          event: "FileClosed" as const,
+          roomId: "123",
+          platform: "blrec" as const,
+          filePath: "/path/to/file.mp4",
+          coverPath: "/path/to/cover.jpg",
+          time: new Date().toISOString(),
+          title: "Test",
+          username: "user",
+        };
+        const config = {
+          useLiveCover: true,
+          afterConvertRemoveVideo: false,
+          afterConvertRemoveXml: false,
+        };
+
+        // @ts-ignore
+        vi.spyOn(fs, "pathExists").mockResolvedValue(true);
+
+        // 将 live 注册到 handler，以便 handleCloseEvent 能找到 — 直接 push 相同对象以便后续断言
+        // @ts-ignore
+        context.live.parts.push(part as any);
+        // @ts-ignore
+        webhookHandler.liveData.push(context.live);
+
+        // @ts-ignore
+        webhookHandler.configManager.getConfig = () => config;
+
+        // 调用 close 事件处理（会在内部处理封面）
+        await webhookHandler.handleCloseEvent(options as any);
+
+        // @ts-ignore
+        expect(part.cover).toBe("/path/to/cover.jpg");
       });
     });
 
