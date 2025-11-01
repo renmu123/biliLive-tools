@@ -454,6 +454,11 @@ router.post("/handleWebhook", async (ctx) => {
   ctx.body = "success";
 });
 
+router.post("/webhook", async (ctx) => {
+  const liveList = handler.liveData;
+  ctx.body = liveList;
+});
+
 /**
  * 检测为何无法上传
  * 检查是否为内部录制，如果是，检查是否开启webhook，接下来走下面的流程
@@ -497,7 +502,7 @@ router.get("/whyUploadFailed", async (ctx) => {
     }
 
     // 检查单独webhook配置
-    const webhookConfig = handler.getConfig(roomId);
+    const webhookConfig = handler.configManager.getConfig(roomId);
 
     if (!webhookConfig.open) {
       errorInfoList.push("处于黑名单或单独关闭开关");
