@@ -51,7 +51,7 @@ zip包并非传统意义上的绿色包，数据和可执行文件不会存放�
 
 ## Docker
 
-### 快速开始
+### 前后端分离
 
 创建 `docker-compose.yml`：
 
@@ -98,6 +98,44 @@ docker-compose up -d
 
 :::tip
 注意要部署两个镜像！！！
+:::
+
+### 单镜像
+
+创建 `docker-compose.yml`：
+
+```yaml
+services:
+  fullstack:
+    image: renmu1234/bililive-tools
+    ports:
+      - "3000:3000"
+    volumes:
+      # 映射的配置目录，用于持久化配置文件
+      - ./data:/app/data
+      # 存储文件的默认目录
+      - ./video:/app/video
+      # 字体目录
+      - ./fonts:/usr/local/share/fonts
+    environment:
+      # 登录密钥
+      - BILILIVE_TOOLS_PASSKEY=your_passkey
+      # 账户加密密钥
+      - BILILIVE_TOOLS_BILIKEY=your_bilikey
+      # 中国时区
+      - TZ=Asia/Shanghai
+```
+
+运行：
+
+```bash
+docker-compose up -d
+```
+
+访问 `http://ip地址:3000` 即可使用，如果你使用云服务，请注意打开防火墙。
+
+::: tip
+此镜像中的api地址将会被代理到 `/api` 路径
 :::
 
 ### 视频教程
