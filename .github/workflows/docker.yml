@@ -31,7 +31,8 @@ jobs:
         uses: docker/build-push-action@v6
         if: matrix.service != 'fullstack'
         with:
-          file: ./docker/${{ matrix.service }}-dockerfile
+          file: ./docker/Dockerfile
+          target: ${{ matrix.service }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
@@ -42,7 +43,8 @@ jobs:
         uses: docker/build-push-action@v6
         if: matrix.service == 'fullstack'
         with:
-          file: ./docker/fullstack-dockerfile
+          file: ./docker/Dockerfile
+          target: fullstack
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
@@ -73,7 +75,8 @@ jobs:
         uses: docker/build-push-action@v6
         if: matrix.service != 'fullstack'
         with:
-          file: ./docker/${{ matrix.service }}-dockerfile
+          file: ./docker/Dockerfile
+          target: ${{ matrix.service }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-${{ matrix.service }}:test
@@ -82,7 +85,8 @@ jobs:
         uses: docker/build-push-action@v6
         if: matrix.service == 'fullstack'
         with:
-          file: ./docker/fullstack-dockerfile
+          file: ./docker/Dockerfile
+          target: fullstack
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools:test
