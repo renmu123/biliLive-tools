@@ -5,6 +5,7 @@
 ## 功能
 
 - 支持mesio及录播姬的flv修复 [#219](https://github.com/renmu123/biliLive-tools/pull/219)
+- 录制：支持flv容器
 
 ## 优化
 
