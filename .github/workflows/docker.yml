@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [frontend, backend]
+        service: [frontend, backend, fullstack]
 
     steps:
       - name: Checkout repository
