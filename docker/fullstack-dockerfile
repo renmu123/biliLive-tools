@@ -10,6 +10,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 # 构建前端,API地址指向相对路径(前端和后端同域)
 ENV VITE_DEFAULT_SERVER=/api
+ENV VITE_FULLSTACK=true
 RUN pnpm run build:webui
 
 # 第二阶段: 构建后端
