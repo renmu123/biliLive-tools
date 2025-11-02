@@ -5,7 +5,7 @@
 ## 功能
 
 - 支持mesio及录播姬的flv修复 [#219](https://github.com/renmu123/biliLive-tools/pull/219)
-- 录制：支持flv容器
+- 录制：支持flv容器，如出现问题请尝试修复 [#205](https://github.com/renmu123/biliLive-tools/pull/205)
 
 ## 优化
 
@@ -14,6 +14,7 @@
 - 录制：mesio录制引擎默认禁用任何代理参数
 - 录制：优化弹幕保存时的内存占用
 - 录制：编辑配置弹框的UI优化
+- 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
 - webhook：优化某些极端情况，尽量保证流程不被卡住
 
 ## Bug修复

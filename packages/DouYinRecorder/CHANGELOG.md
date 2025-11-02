@@ -4,6 +4,7 @@
 - 修复礼物弹幕缺失的情况
 - 修复两种接口的返回类型值错误
 - 修复使用 random 接口时，获取流可能失败的情况
+- 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
 
 # 1.8.0
 

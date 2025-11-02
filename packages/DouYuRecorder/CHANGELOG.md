@@ -2,6 +2,7 @@
 
 - `recordHandle` 新增参数 `recorderType`
 - 修复某些情况下服务端时间戳不存在时使用客户端时间
+- 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
 
 # 1.8.0
 

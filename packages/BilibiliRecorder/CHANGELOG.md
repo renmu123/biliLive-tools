@@ -1,6 +1,7 @@
 # Next
 
 - `recordHandle` 新增参数 `recorderType`
+- 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
 
 # 1.8.0
 
