@@ -123,8 +123,16 @@ function generateNonce() {
  * 随机选择一个可用的 API 接口
  * @returns 随机选择的 API 类型
  */
-function selectRandomAPI(): RealAPIType {
+export function selectRandomAPI(exclude?: RealAPIType[]): RealAPIType {
   const availableAPIs: Array<RealAPIType> = ["web", "webHTML", "mobile", "userHTML"];
+  if (exclude && exclude.length > 0) {
+    for (const api of exclude) {
+      const index = availableAPIs.indexOf(api);
+      if (index !== -1) {
+        availableAPIs.splice(index, 1);
+      }
+    }
+  }
   const randomIndex = Math.floor(Math.random() * availableAPIs.length);
   return availableAPIs[randomIndex];
 }
@@ -176,7 +184,7 @@ async function getRoomInfoByUserWeb(
       nickname: "",
       sec_uid: "",
       avatar: "",
-      api: "webHTML",
+      api: "userHTML",
       room: null,
     };
   }
@@ -281,7 +289,7 @@ async function getRoomInfoByHtml(
       nickname: roomInfo?.anchor?.nickname ?? "",
       sec_uid: roomInfo?.anchor?.sec_uid ?? "",
       avatar: roomInfo?.anchor?.avatar_thumb?.url_list?.[0] ?? "",
-      api: "userHTML",
+      api: "webHTML",
       room: {
         title: roomInfo?.room?.title ?? "",
         cover: roomInfo?.room?.cover?.url_list?.[0] ?? "",

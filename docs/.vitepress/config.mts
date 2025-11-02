@@ -15,7 +15,7 @@ export default defineConfig({
       { text: "首页", link: "/" },
       { text: "指南", link: "/guide/introduction" },
       { text: "功能", link: "/features/live-record" },
-      { text: "API", link: "/api/recorder" },
+      { text: "API", link: "/api/base" },
     ],
 
     sidebar: {
@@ -23,9 +23,14 @@ export default defineConfig({
         {
           text: "API",
           items: [
-            { text: "录制", link: "/api/recorder" },
+            { text: "基础", link: "/api/base" },
+            { text: "直播录制", link: "/api/recorder" },
             { text: "录制历史", link: "/api/record-history" },
-            { text: "同步", link: "/api/sync" },
+            { text: "文件同步", link: "/api/sync" },
+            { text: "用户管理", link: "/api/user" },
+            { text: "视频解析", link: "/api/video" },
+            // { text: "任务", link: "/api/task" },
+            // { text: "预设", link: "/api/preset" },
             { text: "其他", link: "/api/other" },
           ],
         },

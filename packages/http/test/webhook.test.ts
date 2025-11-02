@@ -2357,7 +2357,7 @@ describe("WebhookHandler", () => {
       // Assert
       const liveData = webhookHandler.liveData;
 
-      expect(liveData[0].parts[0].recordStatus).toBe("recorded");
+      expect(liveData[0].parts[0].recordStatus).toBe("handled");
       expect(liveData[0].parts[1].recordStatus).toBe("recorded");
       expect(liveData[0].parts[2].recordStatus).toBe("recorded");
     });
