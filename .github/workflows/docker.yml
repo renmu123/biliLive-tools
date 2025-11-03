@@ -47,6 +47,9 @@ jobs:
           target: fullstack
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |
+            VITE_DEFAULT_SERVER=/api
+            VITE_FULLSTACK=true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/bililive-tools:latest
             ${{ secrets.DOCKER_USERNAME }}/bililive-tools:${{ github.ref_name }}
@@ -89,4 +92,7 @@ jobs:
           target: fullstack
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: |
+            VITE_DEFAULT_SERVER=/api
+            VITE_FULLSTACK=true
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools:test
