@@ -244,7 +244,7 @@ export class WebhookHandler {
     xmlFilePath: string,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
     try {
-      await sleep(10000);
+      await sleep(5000);
 
       // 验证弹幕文件
       if (!(await fs.pathExists(xmlFilePath)) || (await isEmptyDanmu(xmlFilePath))) {
@@ -444,7 +444,7 @@ export class WebhookHandler {
     roomId: string,
     filePath: string,
     fileType: "source" | "danmaku" | "xml" | "cover",
-    partId?: string,
+    partId: string,
     removeAfterSync: boolean = false,
   ) {
     if (!(await fs.pathExists(filePath))) return;
@@ -462,18 +462,7 @@ export class WebhookHandler {
     if (!syncConfig.targetFiles.includes(fileType)) return;
 
     // 准备直播信息和分段信息
-    let livePart: { live: Live; part?: Part } | undefined;
-
-    // 通过partId查找
-    if (partId) {
-      for (const live of this.liveManager.getAllLives()) {
-        const part = live.parts.find((p) => p.partId === partId);
-        if (part) {
-          livePart = { live, part };
-          break;
-        }
-      }
-    }
+    const livePart = this.liveManager.findBy({ partId });
     if (!livePart) return;
 
     // 将文件添加到已处理集合中
@@ -497,7 +486,7 @@ export class WebhookHandler {
       platform,
       user: username,
       liveStartTime,
-      partId: livePart?.part?.partId,
+      partId: livePart.part.partId,
     });
 
     try {
