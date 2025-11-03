@@ -2,6 +2,10 @@
 
 Webhook 功能可以让录播软件与 biliLive-tools 自动配合，实现录制完成后自动处理、上传等功能。
 
+::: warning
+请尽量确保文件名不会重复，否则是未定义行为
+:::
+
 ## 支持的其他录播软件
 
 - [B站录播姬](https://github.com/BililiveRecorder)

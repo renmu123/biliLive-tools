@@ -115,7 +115,6 @@ describe("WebhookHandler", () => {
       const liveData2 = webhookHandler.liveData;
       expect(liveData2[0].parts[1].recordStatus).toBe("recorded");
       expect(liveData[0].parts[2].recordStatus).toBe("recording");
-      console.log(liveData2[0].parts[1]);
     });
 
     it("不存在live的情况下，在event: FileClosed前先发送了event: FileOpeing", async () => {
@@ -407,7 +406,10 @@ describe("WebhookHandler", () => {
       // Assert
       expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
       expect(result).toBeUndefined();
-      expect(webhookHandler.liveData.length).toBe(0);
+      // 修改断言：live和part应该保留，但part状态为error
+      expect(webhookHandler.liveData.length).toBe(1);
+      expect(webhookHandler.liveData[0].parts.length).toBe(1);
+      expect(webhookHandler.liveData[0].parts[0].recordStatus).toBe("error");
     });
   });
   describe("handleLive", () => {
@@ -838,7 +840,6 @@ describe("WebhookHandler", () => {
           endTime: new Date("2022-01-01T00:15:00Z").getTime(),
           title: "part3",
         });
-
         // @ts-ignore
         const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
           uploadPresetId: "preset-id",
@@ -2044,6 +2045,130 @@ describe("WebhookHandler", () => {
       expect(liveData[0].parts[2].recordStatus).toBe("recorded");
     });
   });
+
+  describe("handleErrorEvent", () => {
+    const appConfig = {
+      getAll: vi.fn().mockReturnValue({
+        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+      }),
+    };
+    let webhookHandler: WebhookHandler;
+
+    beforeEach(() => {
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+    });
+
+    it("应该将错误的part设置为error状态", () => {
+      const live = new Live({
+        eventId: "event-123",
+        platform: "blrec",
+        roomId: "123456",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Test Video",
+        username: "test-user",
+      });
+
+      live.addPart({
+        partId: "part-1",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/video1.mp4",
+        recordStatus: "recording",
+        title: "Part 1",
+      });
+
+      webhookHandler.liveData.push(live);
+
+      const options: Options = {
+        event: "FileError",
+        roomId: "123456",
+        platform: "blrec",
+        time: "2022-01-01T00:05:00Z",
+        title: "Test Video",
+        filePath: "/path/to/video1.mp4",
+        username: "test-user",
+      };
+
+      webhookHandler.handleErrorEvent(options);
+
+      expect(live.parts[0].recordStatus).toBe("error");
+      expect(live.parts.length).toBe(1); // part不应该被删除
+      expect(webhookHandler.liveData.length).toBe(1); // live不应该被删除
+    });
+
+    it("应该处理找不到part的情况", () => {
+      const live = new Live({
+        eventId: "event-123",
+        platform: "blrec",
+        roomId: "123456",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Test Video",
+        username: "test-user",
+      });
+
+      webhookHandler.liveData.push(live);
+
+      const options: Options = {
+        event: "FileError",
+        roomId: "123456",
+        platform: "blrec",
+        time: "2022-01-01T00:05:00Z",
+        title: "Test Video",
+        filePath: "/path/to/nonexistent.mp4",
+        username: "test-user",
+      };
+
+      // 不应该抛出错误
+      expect(() => webhookHandler.handleErrorEvent(options)).not.toThrow();
+    });
+
+    it("应该处理多个part中的error", () => {
+      const live = new Live({
+        eventId: "event-123",
+        platform: "blrec",
+        roomId: "123456",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        title: "Test Video",
+        username: "test-user",
+      });
+
+      live.addPart({
+        partId: "part-1",
+        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+        filePath: "/path/to/video1.mp4",
+        recordStatus: "recorded",
+        endTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        title: "Part 1",
+      });
+
+      live.addPart({
+        partId: "part-2",
+        startTime: new Date("2022-01-01T00:05:00Z").getTime(),
+        filePath: "/path/to/video2.mp4",
+        recordStatus: "recording",
+        title: "Part 2",
+      });
+
+      webhookHandler.liveData.push(live);
+
+      const options: Options = {
+        event: "FileError",
+        roomId: "123456",
+        platform: "blrec",
+        time: "2022-01-01T00:10:00Z",
+        title: "Test Video",
+        filePath: "/path/to/video2.mp4",
+        username: "test-user",
+      };
+
+      webhookHandler.handleErrorEvent(options);
+
+      expect(live.parts[0].recordStatus).toBe("recorded"); // 第一个part不受影响
+      expect(live.parts[1].recordStatus).toBe("error"); // 第二个part被设置为error
+      expect(live.parts.length).toBe(2); // 两个part都保留
+    });
+  });
+
   describe("handleOpenEvent", () => {
     const appConfig = {
       getAll: vi.fn().mockReturnValue({
@@ -2500,7 +2625,6 @@ describe("Live", () => {
     };
 
     live.addPart(part);
-    console.log(live.parts[0]);
     expect(live.parts).toContainEqual(part);
   });
 
@@ -2705,7 +2829,7 @@ describe("Live", () => {
         expect(result).toBe(true);
       });
 
-      it("应在文件太小时返回false并清理", async () => {
+      it("应在文件太小时返回false并设置part为error状态", async () => {
         const live = new Live({
           eventId: "test-id",
           platform: "blrec",
@@ -2723,7 +2847,7 @@ describe("Live", () => {
         live.addPart(part);
         webhookHandler.liveData.push(live);
 
-        const context = { live, part };
+        const context = { live, part: live.parts[0] };
         const config = { minSize: 100, removeSmallFile: true };
         const options = {
           event: "FileClosed" as const,
@@ -2743,7 +2867,9 @@ describe("Live", () => {
 
         expect(result).toBe(false);
         expect(trashSpy).toHaveBeenCalledWith(options.filePath);
-        expect(webhookHandler.liveData.length).toBe(0); // live被删除
+        expect(context.part.recordStatus).toBe("error"); // part状态设置为error
+        expect(webhookHandler.liveData.length).toBe(1); // live没有被删除
+        expect(live.parts.length).toBe(1); // part没有被删除
       });
     });
 

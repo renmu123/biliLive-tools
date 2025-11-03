@@ -165,25 +165,10 @@ export class WebhookHandler {
       await trashItem(options.filePath);
     }
 
-    this.removePartAndCleanupLive(context);
+    // 将part状态设置为error，而不是删除
+    context.part.recordStatus = "error";
+    log.warn(`set part ${context.part.partId} status to error due to small file size`);
     return false;
-  }
-
-  /**
-   * 删除part并清理空的live
-   */
-  private removePartAndCleanupLive(context: { live: Live; part: Part }) {
-    const { live, part } = context;
-
-    log.warn("remove part", live, part.filePath);
-    live.removePart(part.partId);
-
-    if (live.parts.length === 0) {
-      const removed = this.liveManager.removeLiveByEventId(live.eventId);
-      if (removed) {
-        log.warn(`Removed empty live: ${live.eventId}`);
-      }
-    }
   }
 
   /**
@@ -654,15 +639,9 @@ export class WebhookHandler {
     const data = this.liveManager.findLiveByFilePath(options.filePath);
     if (data?.live) {
       const currentPart = data.part;
-      const currentLive = data.live;
       if (currentPart) {
-        currentLive.removePart(currentPart.partId);
-        if (currentLive.parts.length === 0) {
-          const removed = this.liveManager.removeLiveByEventId(currentLive.eventId);
-          if (removed) {
-            log.warn(`error event: removed empty live: ${currentLive.eventId}`);
-          }
-        }
+        currentPart.recordStatus = "error";
+        log.warn(`error event: set part ${currentPart.partId} status to error`);
       }
     }
   };

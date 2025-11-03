@@ -559,6 +559,44 @@ describe("Live", () => {
       expect(recordedParts[0].partId).toBe("part-2");
       expect(recordedParts[1].partId).toBe("part-3");
     });
+
+    it("应该排除错误状态的分段", () => {
+      const live = new Live({
+        eventId: "event-123",
+        platform: "blrec",
+        roomId: "123456",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/video1.mp4",
+        recordStatus: "recorded",
+        title: "Part 1",
+      });
+
+      live.addPart({
+        partId: "part-2",
+        filePath: "/path/to/video2.mp4",
+        recordStatus: "error",
+        title: "Part 2",
+      });
+
+      live.addPart({
+        partId: "part-3",
+        filePath: "/path/to/video3.mp4",
+        recordStatus: "handled",
+        title: "Part 3",
+      });
+
+      const recordedParts = live.getRecordedParts();
+
+      expect(recordedParts.length).toBe(2);
+      expect(recordedParts[0].partId).toBe("part-1");
+      expect(recordedParts[1].partId).toBe("part-3");
+    });
   });
 
   describe("getHandledParts", () => {
@@ -597,6 +635,44 @@ describe("Live", () => {
 
       expect(handledParts.length).toBe(2);
       expect(handledParts[0].partId).toBe("part-2");
+      expect(handledParts[1].partId).toBe("part-3");
+    });
+
+    it("应该排除错误状态的分段", () => {
+      const live = new Live({
+        eventId: "event-123",
+        platform: "blrec",
+        roomId: "123456",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/video1.mp4",
+        recordStatus: "handled",
+        title: "Part 1",
+      });
+
+      live.addPart({
+        partId: "part-2",
+        filePath: "/path/to/video2.mp4",
+        recordStatus: "error",
+        title: "Part 2",
+      });
+
+      live.addPart({
+        partId: "part-3",
+        filePath: "/path/to/video3.mp4",
+        recordStatus: "handled",
+        title: "Part 3",
+      });
+
+      const handledParts = live.getHandledParts();
+
+      expect(handledParts.length).toBe(2);
+      expect(handledParts[0].partId).toBe("part-1");
       expect(handledParts[1].partId).toBe("part-3");
     });
   });
@@ -706,6 +782,67 @@ describe("Live", () => {
         title: "测试直播",
         username: "测试主播",
         startTime: 1640995200000,
+      });
+
+      expect(live.areAllPartsHandled()).toBe(false);
+    });
+
+    it("如果有错误状态的分段，应该忽略它们只检查非错误分段", () => {
+      const live = new Live({
+        eventId: "event-123",
+        platform: "blrec",
+        roomId: "123456",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/video1.mp4",
+        recordStatus: "handled",
+        title: "Part 1",
+      });
+
+      live.addPart({
+        partId: "part-2",
+        filePath: "/path/to/video2.mp4",
+        recordStatus: "error",
+        title: "Part 2",
+      });
+
+      live.addPart({
+        partId: "part-3",
+        filePath: "/path/to/video3.mp4",
+        recordStatus: "handled",
+        title: "Part 3",
+      });
+
+      expect(live.areAllPartsHandled()).toBe(true);
+    });
+
+    it("如果所有分段都是错误状态，应该返回 false", () => {
+      const live = new Live({
+        eventId: "event-123",
+        platform: "blrec",
+        roomId: "123456",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      live.addPart({
+        partId: "part-1",
+        filePath: "/path/to/video1.mp4",
+        recordStatus: "error",
+        title: "Part 1",
+      });
+
+      live.addPart({
+        partId: "part-2",
+        filePath: "/path/to/video2.mp4",
+        recordStatus: "error",
+        title: "Part 2",
       });
 
       expect(live.areAllPartsHandled()).toBe(false);
@@ -975,6 +1112,33 @@ describe("Part", () => {
 
       expect(part1.isRawUploaded()).toBe(false);
       expect(part2.isRawUploaded()).toBe(true);
+    });
+
+    it("isError 应该正确判断是否处于错误状态", () => {
+      const part1 = new Part({
+        partId: "part-1",
+        title: "Part 1",
+        filePath: "/path/to/video.mp4",
+        recordStatus: "recording",
+      });
+
+      const part2 = new Part({
+        partId: "part-2",
+        title: "Part 2",
+        filePath: "/path/to/video.mp4",
+        recordStatus: "error",
+      });
+
+      const part3 = new Part({
+        partId: "part-3",
+        title: "Part 3",
+        filePath: "/path/to/video.mp4",
+        recordStatus: "recorded",
+      });
+
+      expect(part1.isError()).toBe(false);
+      expect(part2.isError()).toBe(true);
+      expect(part3.isError()).toBe(false);
     });
   });
 
@@ -1528,6 +1692,43 @@ describe("LiveManager", () => {
 
       // 平台不匹配
       expect(liveManager.findRecentLive("123", "bili-recorder", 10, currentTime)).toBeUndefined();
+    });
+    it("如果存在多个匹配的 Live，应该返回最新的一个", () => {
+      const live1 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播1",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+      live1.addPart({
+        startTime: 1640995200000,
+        endTime: 1640995500000,
+        filePath: "/path/to/video1.mp4",
+        recordStatus: "recorded",
+        title: "Part 1",
+      });
+      const live2 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播2",
+        username: "测试主播",
+        startTime: 1640995300000,
+      });
+      live2.addPart({
+        startTime: 1640995300000,
+        endTime: 1640995600000,
+        filePath: "/path/to/video2.mp4",
+        recordStatus: "recorded",
+        title: "Part 2",
+      });
+      liveManager.addLive(live1);
+      liveManager.addLive(live2);
+
+      const currentTime = 1640995600000 + 3 * 60 * 1000;
+      const found = liveManager.findRecentLive("123", "blrec", 10, currentTime);
+
+      expect(found).toBe(live2);
     });
   });
 

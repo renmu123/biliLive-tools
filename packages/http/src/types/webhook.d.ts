@@ -10,8 +10,8 @@ export interface Part {
   title: string;
   startTime?: number;
   endTime?: number;
-  // 录制状态, recording: 正在录制, recorded: 已录制, prehandled: 已处理完转码, handled: 已全部处理完成
-  recordStatus: "recording" | "recorded" | "prehandled" | "handled";
+  // 录制状态, recording: 正在录制, recorded: 已录制, prehandled: 已处理完转码, handled: 已全部处理完成, error: 错误
+  recordStatus: "recording" | "recorded" | "prehandled" | "handled" | "error";
   // 处理后的文件路径，可能是弹幕版的
   filePath: string;
   // 处理后的文件路径上传状态

@@ -15,7 +15,7 @@ export class Part implements PartInterface {
   title: string;
   startTime?: number;
   endTime?: number;
-  recordStatus: "recording" | "recorded" | "prehandled" | "handled";
+  recordStatus: "recording" | "recorded" | "prehandled" | "handled" | "error";
   filePath: string;
   uploadStatus: UploadStatus;
   cover?: string;
@@ -57,6 +57,13 @@ export class Part implements PartInterface {
   }
 
   /**
+   * 检查分段是否处于错误状态
+   */
+  isError(): boolean {
+    return this.recordStatus === "error";
+  }
+
+  /**
    * 检查分段是否已录制完成
    */
   isRecorded(): boolean {
@@ -94,11 +101,11 @@ export class Part implements PartInterface {
    */
   canUpload(type: "handled" | "raw"): boolean {
     if (type === "handled") {
-      return this.recordStatus === "handled" && this.uploadStatus !== "uploaded";
+      return this.recordStatus === "handled" && this.uploadStatus === "pending";
     } else {
       return (
         (this.recordStatus === "prehandled" || this.recordStatus === "handled") &&
-        this.rawUploadStatus !== "uploaded"
+        this.rawUploadStatus === "pending"
       );
     }
   }
@@ -244,9 +251,9 @@ export class Live {
    */
   findPartByFilePath(filePath: string, type: "raw" | "handled" = "handled"): Part | undefined {
     if (type === "handled") {
-      return this.parts.find((part) => part.filePath === filePath);
+      return this.parts.findLast((part) => part.filePath === filePath);
     } else if (type === "raw") {
-      return this.parts.find((part) => part.rawFilePath === filePath);
+      return this.parts.findLast((part) => part.rawFilePath === filePath);
     } else {
       throw new Error("type error");
     }
@@ -273,17 +280,17 @@ export class Live {
   }
 
   /**
-   * 获取所有已录制完成的分段
+   * 获取所有已录制完成的分段（排除错误状态）
    */
   getRecordedParts(): Part[] {
-    return this.parts.filter((part) => part.isRecorded());
+    return this.parts.filter((part) => part.isRecorded() && !part.isError());
   }
 
   /**
-   * 获取所有已完全处理完成的分段
+   * 获取所有已完全处理完成的分段（排除错误状态）
    */
   getHandledParts(): Part[] {
-    return this.parts.filter((part) => part.isFullyHandled());
+    return this.parts.filter((part) => part.isFullyHandled() && !part.isError());
   }
 
   /**
@@ -294,10 +301,11 @@ export class Live {
   }
 
   /**
-   * 检查是否所有分段都已处理完成
+   * 检查是否所有非错误分段都已处理完成
    */
   areAllPartsHandled(): boolean {
-    return this.parts.length > 0 && this.parts.every((part) => part.isFullyHandled());
+    const nonErrorParts = this.parts.filter((part) => !part.isError());
+    return nonErrorParts.length > 0 && nonErrorParts.every((part) => part.isFullyHandled());
   }
 
   /**
@@ -459,7 +467,7 @@ export class LiveManager {
    */
   findLiveByFilePath(filePath: string): { live: Live; part: Part } | null {
     for (const live of this.lives) {
-      const part = live.parts.find((part) => part.filePath === filePath);
+      const part = live.parts.findLast((part) => part.filePath === filePath);
       if (part) {
         return { live, part };
       }
@@ -602,7 +610,7 @@ export class LiveManager {
     maxTimeDiffMinutes: number,
     currentTime: number,
   ): Live | undefined {
-    return this.lives.find((live) => {
+    return this.lives.findLast((live) => {
       if (live.roomId !== roomId || live.platform !== platform) {
         return false;
       }
