@@ -715,25 +715,25 @@ export class WebhookHandler {
       }
     }
 
+    const task = await transcode(videoFile, outputName, preset, {
+      saveType: 2,
+      savePath: dir,
+      override: false,
+      removeOrigin: options.removeVideo,
+      autoRun: true,
+    });
+
     return new Promise((resolve, reject) => {
-      transcode(videoFile, outputName, preset, {
-        saveType: 2,
-        savePath: dir,
-        override: false,
-        removeOrigin: options.removeVideo,
-        autoRun: true,
-      }).then((task) => {
-        task.on("task-end", () => {
-          resolve(task.output as string);
-        });
-        task.on("task-error", () => {
-          reject();
-        });
+      task.on("task-end", () => {
+        resolve(task.output as string);
+      });
+      task.on("task-error", () => {
+        reject(new Error("Transcode task failed"));
       });
     });
   }
 
-  // 转封装为mp4
+  // FLV修复
   async flvRepair(
     videoFile: string,
     options: {
@@ -742,26 +742,23 @@ export class WebhookHandler {
       limitTime?: [string, string];
     },
   ): Promise<string> {
-    // const output = path.join(dir, outputName);
-    // if (await fs.pathExists(output)) return output;
+    const task = await flvRepair(videoFile, videoFile, {
+      saveRadio: 1,
+      savePath: "",
+      type: "bililive",
+    });
 
     return new Promise((resolve, reject) => {
-      flvRepair(videoFile, videoFile, {
-        saveRadio: 1,
-        savePath: "",
-        type: "bililive",
-      }).then((task) => {
-        task.on("task-end", () => {
-          resolve(task.output as string);
-        });
-        task.on("task-error", () => {
-          reject();
-        });
+      task.on("task-end", () => {
+        resolve(task.output as string);
+      });
+      task.on("task-error", () => {
+        reject(new Error("FLV repair task failed"));
       });
     });
   }
 
-  burn = (
+  burn = async (
     files: { videoFilePath: string; subtitleFilePath: string },
     options: {
       danmaOptions: DanmuConfig;
@@ -776,38 +773,36 @@ export class WebhookHandler {
     const videoInput = files.videoFilePath;
     const suffix = "弹幕版";
     const file = path.parse(videoInput);
+
+    let output = path.join(file.dir, `${file.name}-${suffix}.mp4`);
+    const exists = await fs.pathExists(output);
+    if (exists) {
+      output = path.join(file.dir, `${file.name}-${suffix}-${uuid()}.mp4`);
+    }
+
+    const task = await burn(files, output, {
+      ...options,
+      removeOrigin: false,
+      override: false,
+    });
+
     return new Promise((resolve, reject) => {
-      let output = path.join(file.dir, `${file.name}-${suffix}.mp4`);
-      fs.pathExists(output)
-        .then((exists) => {
-          if (exists) {
-            output = path.join(file.dir, `${file.name}-${suffix}-${uuid()}.mp4`);
-          }
-        })
-        .then(() => {
-          burn(files, output, {
-            ...options,
-            removeOrigin: false,
-            override: false,
-          }).then((task) => {
-            task.on("task-end", () => {
-              if (options.removeVideo) {
-                trashItem(files.videoFilePath);
-              }
-              if (options.removeDanmu) {
-                trashItem(files.subtitleFilePath);
-              }
-              resolve(output);
-            });
-            task.on("task-error", ({ error }) => {
-              reject(new Error(error));
-            });
-          });
-        });
+      task.on("task-end", () => {
+        if (options.removeVideo) {
+          trashItem(files.videoFilePath);
+        }
+        if (options.removeDanmu) {
+          trashItem(files.subtitleFilePath);
+        }
+        resolve(output);
+      });
+      task.on("task-error", ({ error }) => {
+        reject(new Error(error));
+      });
     });
   };
 
-  convertDanmu = (
+  convertDanmu = async (
     xmlFilePath: string,
     danmuConfig: DanmuConfig,
     options: {
@@ -818,28 +813,91 @@ export class WebhookHandler {
     const outputName = path.basename(xmlFilePath, ".xml");
     const outputPath = path.join(file.dir, `${outputName}.ass`);
 
+    const task = await convertXml2Ass({ input: xmlFilePath, output: outputName }, danmuConfig, {
+      saveRadio: 1,
+      savePath: file.dir,
+      removeOrigin: false,
+    });
+
     return new Promise((resolve, reject) => {
-      convertXml2Ass({ input: xmlFilePath, output: outputName }, danmuConfig, {
-        saveRadio: 1,
-        savePath: file.dir,
-        removeOrigin: false,
-      })
-        .then((task) => {
-          task.on("task-end", () => {
-            if (options.removeXml) {
-              trashItem(xmlFilePath);
-            }
-            resolve(outputPath);
-          });
-          task.on("task-error", ({ error }) => {
-            reject(new Error(error));
-          });
-        })
-        .catch((error) => {
-          reject(error);
-        });
+      task.on("task-end", () => {
+        if (options.removeXml) {
+          trashItem(xmlFilePath);
+        }
+        resolve(outputPath);
+      });
+      task.on("task-error", ({ error }) => {
+        reject(new Error(error));
+      });
     });
   };
+
+  /**
+   * 通用上传任务处理逻辑
+   * @private
+   */
+  private async handleUploadTask(
+    task: any,
+    pathArray: { path: string; title: string }[],
+    afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
+  ) {
+    return new Promise((resolve, reject) => {
+      task.on("task-end", () => {
+        // 释放所有文件的锁
+        for (const { path } of pathArray) {
+          this.fileLockManager.releaseLock(path, "upload");
+        }
+
+        // 处理上传后删除
+        if (afterUploadDeletAction === "delete") {
+          for (const { path } of pathArray) {
+            const isLocked = this.fileLockManager.isLocked(path);
+            if (!isLocked) {
+              trashItem(path);
+            }
+          }
+        }
+        resolve(task.output);
+      });
+
+      task.on("task-error", () => {
+        reject(new Error("Upload task failed"));
+      });
+
+      task.on("task-cancel", () => {
+        reject(new Error("Upload task cancelled"));
+      });
+    });
+  }
+
+  /**
+   * 处理审核后删除的锁和回调
+   * @private
+   */
+  private setupDeleteAfterCheckLock(
+    pathArray: { path: string; title: string }[],
+    afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
+  ) {
+    // 如果是审核后删除，需要额外加锁
+    if (afterUploadDeletAction === "deleteAfterCheck") {
+      for (const { path } of pathArray) {
+        this.fileLockManager.acquireLock(path, "deleteAfterCheck");
+      }
+    }
+
+    // 返回 checkCallback
+    return (status: string) => {
+      if (status === "completed") {
+        for (const { path } of pathArray) {
+          this.fileLockManager.releaseLock(path, "deleteAfterCheck");
+          const isLocked = this.fileLockManager.isLocked(path);
+          if (!isLocked && afterUploadDeletAction === "deleteAfterCheck") {
+            trashItem(path);
+          }
+        }
+      }
+    };
+  }
 
   addUploadTask = async (
     uid: number,
@@ -851,59 +909,16 @@ export class WebhookHandler {
     limitedUploadTime: [] | [string, string],
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
-    return new Promise((resolve, reject) => {
-      // 如果是审核后删除，需要额外加锁
-      if (afterUploadDeletAction === "deleteAfterCheck") {
-        for (const { path } of pathArray) {
-          this.fileLockManager.acquireLock(path, "deleteAfterCheck");
-        }
-      }
-      biliApi
-        .addMedia(pathArray, options, uid, {
-          limitedUploadTime,
-          afterUploadDeletAction: "none",
-          forceCheck: afterUploadDeletAction === "deleteAfterCheck",
-          checkCallback: (status) => {
-            if (status === "completed") {
-              for (const { path } of pathArray) {
-                this.fileLockManager.releaseLock(path, "deleteAfterCheck");
-                const isLocked = this.fileLockManager.isLocked(path);
-                if (!isLocked) {
-                  if (afterUploadDeletAction === "deleteAfterCheck") {
-                    trashItem(path);
-                  }
-                }
-              }
-            }
-          },
-        })
-        .then((task) => {
-          task.on("task-end", () => {
-            // 释放所有文件的锁
-            for (const { path } of pathArray) {
-              this.fileLockManager.releaseLock(path, "upload");
-            }
-            if (afterUploadDeletAction === "delete") {
-              for (const { path } of pathArray) {
-                const isLocked = this.fileLockManager.isLocked(path);
-                if (!isLocked) {
-                  trashItem(path);
-                }
-              }
-            }
-            resolve(task.output);
-          });
-          task.on("task-error", () => {
-            reject();
-          });
-          task.on("task-cancel", () => {
-            reject();
-          });
-        })
-        .catch(() => {
-          reject();
-        });
+    const checkCallback = this.setupDeleteAfterCheckLock(pathArray, afterUploadDeletAction);
+
+    const task = await biliApi.addMedia(pathArray, options, uid, {
+      limitedUploadTime,
+      afterUploadDeletAction: "none",
+      forceCheck: afterUploadDeletAction === "deleteAfterCheck",
+      checkCallback,
     });
+
+    return this.handleUploadTask(task, pathArray, afterUploadDeletAction);
   };
 
   addEditMediaTask = async (
@@ -916,59 +931,16 @@ export class WebhookHandler {
     limitedUploadTime: [string, string] | [],
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
   ) => {
-    return new Promise((resolve, reject) => {
-      // 如果是审核后删除，需要额外加锁
-      if (afterUploadDeletAction === "deleteAfterCheck") {
-        for (const { path } of pathArray) {
-          this.fileLockManager.acquireLock(path, "deleteAfterCheck");
-        }
-      }
-      biliApi
-        .editMedia(aid, pathArray, {}, uid, {
-          limitedUploadTime: limitedUploadTime,
-          afterUploadDeletAction: "none",
-          forceCheck: afterUploadDeletAction === "deleteAfterCheck",
-          checkCallback: (status) => {
-            if (status === "completed") {
-              for (const { path } of pathArray) {
-                this.fileLockManager.releaseLock(path, "deleteAfterCheck");
-                const isLocked = this.fileLockManager.isLocked(path);
-                if (!isLocked) {
-                  if (afterUploadDeletAction === "deleteAfterCheck") {
-                    trashItem(path);
-                  }
-                }
-              }
-            }
-          },
-        })
-        .then((task) => {
-          task.on("task-end", () => {
-            // 释放所有文件的锁
-            for (const { path } of pathArray) {
-              this.fileLockManager.releaseLock(path, "upload");
-            }
-            if (afterUploadDeletAction === "delete") {
-              for (const { path } of pathArray) {
-                const isLocked = this.fileLockManager.isLocked(path);
-                if (!isLocked) {
-                  trashItem(path);
-                }
-              }
-            }
-            resolve(task.output);
-          });
-          task.on("task-error", () => {
-            reject();
-          });
-          task.on("task-cancel", () => {
-            reject();
-          });
-        })
-        .catch(() => {
-          reject();
-        });
+    const checkCallback = this.setupDeleteAfterCheckLock(pathArray, afterUploadDeletAction);
+
+    const task = await biliApi.editMedia(aid, pathArray, {}, uid, {
+      limitedUploadTime,
+      afterUploadDeletAction: "none",
+      forceCheck: afterUploadDeletAction === "deleteAfterCheck",
+      checkCallback,
     });
+
+    return this.handleUploadTask(task, pathArray, afterUploadDeletAction);
   };
 
   handleLive = async (live: Live, type?: "handled" | "raw") => {
