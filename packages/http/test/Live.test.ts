@@ -1,6 +1,5 @@
 import { expect, describe, it, beforeEach } from "vitest";
 import { Live, Part, LiveManager } from "../src/services/webhook/Live.js";
-import type { Part as PartInterface } from "../src/types/webhook.js";
 
 describe("Live", () => {
   describe("constructor", () => {
@@ -1244,7 +1243,7 @@ describe("LiveManager", () => {
         startTime: 1640995200000,
       });
 
-      live.addPart({
+      const part = live.addPart({
         filePath: "/path/to/video.mp4",
         recordStatus: "recorded",
         title: "Part 1",
@@ -1253,12 +1252,12 @@ describe("LiveManager", () => {
       liveManager.addLive(live);
 
       const found = liveManager.findLiveByFilePath("/path/to/video.mp4");
-      expect(found).toBe(live);
+      expect(found).toStrictEqual({ live, part });
     });
 
-    it("如果找不到应该返回 undefined", () => {
+    it("如果找不到应该返回 null", () => {
       const found = liveManager.findLiveByFilePath("/non/existent/path.mp4");
-      expect(found).toBeUndefined();
+      expect(found).toBeNull();
     });
   });
 

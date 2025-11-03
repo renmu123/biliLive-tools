@@ -1877,11 +1877,11 @@ describe("WebhookHandler", () => {
       };
 
       // Act
-      const liveId = await webhookHandler.handleCloseEvent(options);
+      const partId = await webhookHandler.handleCloseEvent(options);
 
       // Assert
       const liveData = webhookHandler.liveData;
-      expect(liveId).toBe(existingLive.eventId);
+      expect(partId).toBe(existingLive.parts[0].partId);
       expect(liveData.length).toBe(1);
       expect(liveData[0].eventId).toBe(existingLive.eventId);
       expect(liveData[0].platform).toBe(existingLive.platform);
@@ -1913,11 +1913,11 @@ describe("WebhookHandler", () => {
       };
 
       // Act
-      const liveId = await webhookHandler.handleCloseEvent(options);
+      const partId = await webhookHandler.handleCloseEvent(options);
 
       // Assert
       const liveData = webhookHandler.liveData;
-      expect(liveId).toBe(liveData[0].eventId);
+      expect(partId).toBe(liveData[0].parts[0].partId);
       expect(liveData.length).toBe(1);
       expect(liveData[0].eventId).toBeDefined();
       expect(liveData[0].platform).toBe(options.platform);
@@ -1969,11 +1969,11 @@ describe("WebhookHandler", () => {
       };
 
       // Act
-      const liveId = await webhookHandler.handleCloseEvent(options);
+      const partId = await webhookHandler.handleCloseEvent(options);
 
       // Assert
       const liveData = webhookHandler.liveData;
-      expect(liveId).toBe(existingLive.eventId);
+      expect(partId).toBe("existing-part-id-2");
       expect(liveData.length).toBe(1);
       expect(liveData[0].eventId).toBe(existingLive.eventId);
       expect(liveData[0].platform).toBe(existingLive.platform);
@@ -2592,94 +2592,6 @@ describe("Live", () => {
     expect(foundPart).toBeUndefined();
   });
 
-  describe("findLiveByFilePath", () => {
-    const appConfig = {
-      getAll: vi.fn().mockReturnValue({
-        task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
-      }),
-    };
-    let webhookHandler: WebhookHandler;
-
-    beforeEach(() => {
-      // @ts-ignore
-      webhookHandler = new WebhookHandler(appConfig);
-    });
-
-    it("should find live by file path correctly", () => {
-      // @ts-ignore
-      webhookHandler = new WebhookHandler(appConfig);
-      const live1 = new Live({
-        eventId: "event1",
-        platform: "bili-recorder",
-        roomId: "123",
-        title: "Test Video 1",
-        username: "username1",
-        startTime: 1616161616161,
-      });
-      live1.addPart({
-        partId: "part1",
-        filePath: "/path/to/part1.mp4",
-        recordStatus: "recording",
-        rawFilePath: "/path/to/raw/part1.mp4",
-        uploadStatus: "uploaded",
-        rawUploadStatus: "uploaded",
-        title: "part1",
-      });
-
-      const live2 = new Live({
-        eventId: "event2",
-        platform: "bili-recorder",
-        roomId: "456",
-        title: "Test Video 2",
-        username: "username2",
-        startTime: 1616161616161,
-      });
-      live2.addPart({
-        partId: "part2",
-        filePath: "/path/to/part2.mp4",
-        recordStatus: "recording",
-        rawFilePath: "/path/to/raw/part2.mp4",
-        uploadStatus: "uploaded",
-        rawUploadStatus: "uploaded",
-        title: "part2",
-      });
-
-      webhookHandler.liveData.push(live1, live2);
-
-      const foundLive = webhookHandler.findLiveByFilePath("/path/to/part2.mp4");
-
-      expect(foundLive).toBe(live2);
-    });
-
-    it("should return undefined if live is not found by file path", () => {
-      // @ts-ignore
-      webhookHandler = new WebhookHandler(appConfig);
-      const live = new Live({
-        eventId: "event1",
-        platform: "bili-recorder",
-        roomId: "123",
-        title: "Test Video",
-        username: "username",
-        startTime: 1616161616161,
-      });
-      live.addPart({
-        partId: "part1",
-        filePath: "/path/to/part1.mp4",
-        recordStatus: "recording",
-        rawFilePath: "/path/to/raw/part1.mp4",
-        uploadStatus: "uploaded",
-        rawUploadStatus: "uploaded",
-        title: "part1",
-      });
-
-      webhookHandler.liveData.push(live);
-
-      const foundLive = webhookHandler.findLiveByFilePath("/path/to/nonexistent.mp4");
-
-      expect(foundLive).toBeUndefined();
-    });
-  });
-
   describe("重构后的私有方法测试", () => {
     const appConfig = {
       getAll: vi.fn().mockReturnValue({
@@ -2710,54 +2622,6 @@ describe("Live", () => {
         // @ts-ignore
         const result = webhookHandler.shouldSkipProcessing("FileClosed");
         expect(result).toBe(false);
-      });
-    });
-
-    describe("getCurrentContext", () => {
-      it("应在liveIndex为-1时返回null", () => {
-        // @ts-ignore
-        const result = webhookHandler.getCurrentContext(-1, "/path/to/file.mp4");
-        expect(result).toBeNull();
-      });
-
-      it("应在找不到part时返回null", () => {
-        const live = new Live({
-          eventId: "test-id",
-          platform: "blrec",
-          roomId: "123",
-          startTime: Date.now(),
-          title: "Test",
-          username: "user",
-        });
-        webhookHandler.liveData.push(live);
-
-        // @ts-ignore
-        const result = webhookHandler.getCurrentContext(0, "/nonexistent/file.mp4");
-        expect(result).toBeNull();
-      });
-
-      it("应成功返回context", () => {
-        const live = new Live({
-          eventId: "test-id",
-          platform: "blrec",
-          roomId: "123",
-          startTime: Date.now(),
-          title: "Test",
-          username: "user",
-        });
-        live.addPart({
-          partId: "part-1",
-          filePath: "/path/to/file.mp4",
-          recordStatus: "recording",
-          title: "Part 1",
-        });
-        webhookHandler.liveData.push(live);
-
-        // @ts-ignore
-        const result = webhookHandler.getCurrentContext(0, "/path/to/file.mp4");
-        expect(result).not.toBeNull();
-        expect(result?.live).toBe(live);
-        expect(result?.part.partId).toBe("part-1");
       });
     });
 

@@ -89,6 +89,21 @@ export class Part implements PartInterface {
   }
 
   /**
+   * 检查分段是否可以上传
+   * @param type 上传类型：'handled' 检查弹幕版，'raw' 检查原始版
+   */
+  canUpload(type: "handled" | "raw"): boolean {
+    if (type === "handled") {
+      return this.recordStatus === "handled" && this.uploadStatus !== "uploaded";
+    } else {
+      return (
+        (this.recordStatus === "prehandled" || this.recordStatus === "handled") &&
+        this.rawUploadStatus !== "uploaded"
+      );
+    }
+  }
+
+  /**
    * 设置为录制完成状态
    */
   markAsRecorded(endTime?: number): void {
@@ -196,6 +211,7 @@ export class Live {
   ) {
     const newPart = new Part(part);
     this.parts.push(newPart);
+    return newPart;
   }
 
   /**
@@ -285,6 +301,64 @@ export class Live {
   }
 
   /**
+   * 检查是否有正在上传的分段
+   * @param type 上传类型：'handled' 检查处理后的文件，'raw' 检查原始文件
+   */
+  hasUploadingParts(type: "handled" | "raw"): boolean {
+    const statusField = type === "handled" ? "uploadStatus" : "rawUploadStatus";
+    return this.parts.some((part) => part[statusField] === "uploading");
+  }
+
+  /**
+   * 获取非错误状态的分段
+   * @param type 上传类型：'handled' 检查处理后的文件，'raw' 检查原始文件
+   */
+  getNonErrorParts(type: "handled" | "raw"): Part[] {
+    const statusField = type === "handled" ? "uploadStatus" : "rawUploadStatus";
+    return this.parts.filter((part) => part[statusField] !== "error");
+  }
+
+  /**
+   * 批量更新分段上传状态
+   * @param parts 要更新的分段数组
+   * @param status 新的上传状态
+   * @param type 上传类型：'handled' 更新处理后的文件，'raw' 更新原始文件
+   */
+  batchUpdateUploadStatus(parts: Part[], status: UploadStatus, type: "handled" | "raw"): void {
+    parts.forEach((part) => {
+      part.updateUploadStatus(status, type === "raw");
+    });
+  }
+
+  /**
+   * 获取可上传的分段列表（连续的、满足上传条件的分段）
+   * @param type 上传类型：'handled' 获取弹幕版，'raw' 获取原始版
+   * @returns 可上传的分段数组，会从第一个未上传的分段开始，直到遇到不满足条件的分段
+   */
+  getUploadableParts(type: "handled" | "raw"): Part[] {
+    const statusField = type === "handled" ? "uploadStatus" : "rawUploadStatus";
+    const nonErrorParts = this.getNonErrorParts(type);
+    const result: Part[] = [];
+
+    for (const part of nonErrorParts) {
+      // 如果已上传，跳过
+      if (part[statusField] === "uploaded") {
+        continue;
+      }
+
+      // 检查是否可以上传
+      if (part.canUpload(type)) {
+        result.push(part);
+      } else {
+        // 遇到不满足条件的分段，停止
+        break;
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * 获取最后一个分段的结束时间
    */
   getLastPartEndTime(): number | undefined {
@@ -353,6 +427,46 @@ export class LiveManager {
     this.lives.push(live);
   }
 
+  findBy(opts: { partId?: string; filePath?: string }): { live: Live; part: Part } | null {
+    if (opts.partId) {
+      return this.findByPartId(opts.partId);
+    }
+    if (opts.filePath) {
+      return this.findLiveByFilePath(opts.filePath);
+    }
+    return null;
+  }
+
+  /**
+   * 通过 partId 查找 Live和Part
+   * @param partId 分段ID
+   * @returns 包含 Live 和 Part 的对象，如果没找到则返回 null
+   */
+  findByPartId(partId: string): { live: Live; part: Part } | null {
+    for (const live of this.lives) {
+      const part = live.findPartById(partId);
+      if (part) {
+        return { live, part };
+      }
+    }
+    return null;
+  }
+
+  /**
+   * 根据文件路径查找 Live（通过处理后的文件路径）
+   * @param filePath 文件路径
+   * @returns 包含 Live 和 Part 的对象，如果没找到则返回 null
+   */
+  findLiveByFilePath(filePath: string): { live: Live; part: Part } | null {
+    for (const live of this.lives) {
+      const part = live.parts.find((part) => part.filePath === filePath);
+      if (part) {
+        return { live, part };
+      }
+    }
+    return null;
+  }
+
   /**
    * 根据 eventId 查找 Live
    * @param eventId 事件ID
@@ -369,15 +483,6 @@ export class LiveManager {
    */
   findLiveIndexByEventId(eventId: string): number {
     return this.lives.findIndex((live) => live.eventId === eventId);
-  }
-
-  /**
-   * 根据文件路径查找 Live（通过处理后的文件路径）
-   * @param filePath 文件路径
-   * @returns 找到的 Live，如果没找到则返回 undefined
-   */
-  findLiveByFilePath(filePath: string): Live | undefined {
-    return this.lives.find((live) => live.parts.some((part) => part.filePath === filePath));
   }
 
   /**

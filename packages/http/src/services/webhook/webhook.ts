@@ -90,15 +90,14 @@ export class WebhookHandler {
     }
 
     // 1. 处理直播数据
-    const liveId = await this.handleLiveData(options, config);
+    const partId = await this.handleLiveData(options, config);
 
     // 2. 如果是开始或错误事件,直接返回
-    if (this.shouldSkipProcessing(options.event)) {
-      return;
-    }
+    if (this.shouldSkipProcessing(options.event)) return;
+    if (!partId) return;
 
     // 3. 获取当前直播和分段
-    const context = this.getCurrentContext(liveId, options.filePath);
+    const context = this.liveManager.findBy({ partId });
     if (!context) return;
 
     // 4. 验证和准备文件
@@ -129,20 +128,6 @@ export class WebhookHandler {
    */
   private shouldSkipProcessing(event: string): boolean {
     return event === EventType.OpenEvent || event === EventType.ErrorEvent;
-  }
-
-  /**
-   * 获取当前处理上下文
-   */
-  private getCurrentContext(liveId: string | null, filePath: string) {
-    if (!liveId) return null;
-
-    const currentLive = this.liveManager.findLiveByEventId(liveId);
-    const currentPart = currentLive?.findPartByFilePath(filePath);
-
-    if (!currentPart || !currentLive) return null;
-
-    return { live: currentLive, part: currentPart };
   }
 
   /**
@@ -448,14 +433,6 @@ export class WebhookHandler {
   }
 
   /**
-   * 根据filePath查找live，并非rawFilePath
-   * @param filePath 文件路径
-   */
-  findLiveByFilePath(filePath: string) {
-    return this.liveManager.findLiveByFilePath(filePath);
-  }
-
-  /**
    * 通用文件同步处理
    * @param roomId 房间ID
    * @param filePath 文件路径
@@ -625,11 +602,11 @@ export class WebhookHandler {
    * 处理close事件
    * @param options
    * @param partMergeMinute 断播续传时间戳
-   * @returns 当前live的eventId
+   * @returns 当前part的partId
    */
-  handleCloseEvent = async (options: Options): Promise<string> => {
+  handleCloseEvent = async (options: Options): Promise<string | null> => {
     const timestamp = new Date(options.time).getTime();
-    const currentLive = this.findLiveByFilePath(options.filePath);
+    const data = this.liveManager.findBy({ filePath: options.filePath });
 
     let cover: string;
     try {
@@ -639,24 +616,23 @@ export class WebhookHandler {
       cover = "";
     }
 
-    if (currentLive) {
-      const currentPart = currentLive.findPartByFilePath(options.filePath);
-      if (currentPart) {
-        currentLive.updatePartValue(currentPart.partId, "endTime", timestamp);
-        currentLive.updatePartValue(currentPart.partId, "recordStatus", "recorded");
-        currentLive.updatePartValue(currentPart.partId, "cover", cover);
-        const partIndex = currentLive.parts.findIndex((part) => part.partId === currentPart.partId);
-        for (let i = 0; i < partIndex; i++) {
-          const part = currentLive.parts[i];
-          if (part.recordStatus === "recording") {
-            log.error("下一个录制完成时，上一个录制仍在录制中，设置为成功", part);
-            // TODO: 应该被设置为error，但是目前其实没有error状态
-            currentLive.updatePartValue(part.partId, "recordStatus", "handled");
-          }
+    if (data?.live) {
+      const currentLive = data.live;
+      const currentPart = data.part;
+      currentLive.updatePartValue(currentPart.partId, "endTime", timestamp);
+      currentLive.updatePartValue(currentPart.partId, "recordStatus", "recorded");
+      currentLive.updatePartValue(currentPart.partId, "cover", cover);
+      const partIndex = currentLive.parts.findIndex((part) => part.partId === currentPart.partId);
+      for (let i = 0; i < partIndex; i++) {
+        const part = currentLive.parts[i];
+        if (part.recordStatus === "recording") {
+          log.error("下一个录制完成时，上一个录制仍在录制中，设置为成功", part);
+          // TODO: 应该被设置为error，但是目前其实没有error状态
+          currentLive.updatePartValue(part.partId, "recordStatus", "handled");
         }
       }
 
-      return currentLive.eventId;
+      return currentPart?.partId ?? null;
     } else {
       const live = new Live({
         platform: options.platform,
@@ -666,7 +642,7 @@ export class WebhookHandler {
         startTime: timestamp,
       });
       // TODO: 通过视频或者弹幕元数据获取开始时间
-      live.addPart({
+      const part = live.addPart({
         filePath: options.filePath,
         endTime: timestamp,
         recordStatus: "recorded",
@@ -678,7 +654,7 @@ export class WebhookHandler {
       });
       this.liveManager.addLive(live);
 
-      return live.eventId;
+      return part.partId;
     }
   };
 
@@ -686,9 +662,10 @@ export class WebhookHandler {
    * 处理error事件
    */
   handleErrorEvent = (options: Options) => {
-    const currentLive = this.findLiveByFilePath(options.filePath);
-    if (currentLive) {
-      const currentPart = currentLive.findPartByFilePath(options.filePath);
+    const data = this.liveManager.findLiveByFilePath(options.filePath);
+    if (data?.live) {
+      const currentPart = data.part;
+      const currentLive = data.live;
       if (currentPart) {
         currentLive.removePart(currentPart.partId);
         if (currentLive.parts.length === 0) {
@@ -709,8 +686,8 @@ export class WebhookHandler {
       this.handleOpenEvent(options, config.partMergeMinute);
       return null;
     } else if (options.event === EventType.CloseEvent) {
-      const liveId = await this.handleCloseEvent(options);
-      return liveId;
+      const partId = await this.handleCloseEvent(options);
+      return partId;
     } else if (options.event === EventType.ErrorEvent) {
       this.handleErrorEvent(options);
       log.error(`接收到错误指令，${options.filePath} 置为错误状态`);
@@ -1017,12 +994,11 @@ export class WebhookHandler {
       const aidField = type === "handled" ? "aid" : "rawAid";
 
       // 不要有两个任务同时上传
-      const isUploading = live.parts.some((item) => item[updateStatusField] === "uploading");
-      if (isUploading) return;
+      if (live.hasUploadingParts(type)) return;
 
-      // 过滤掉错误的视频
-      const filterParts = live.parts.filter((item) => item[updateStatusField] !== "error");
-      if (filterParts.length === 0) return;
+      // 获取可上传的分段列表
+      const uploadableParts = live.getUploadableParts(type);
+      if (uploadableParts.length === 0) return;
 
       const {
         uploadPresetId,
@@ -1045,19 +1021,22 @@ export class WebhookHandler {
         handled: 1,
         raw: 1,
       };
+
       // 需要上传的视频列表
       const filePaths: {
         part: Part;
         path: string;
         title: string;
       }[] = [];
-      // 找到前几个为handled的part
-      for (let i = 0; i < filterParts.length; i++) {
-        const part = filterParts[i];
-        if (part[updateStatusField] === "uploaded") {
-          indexMap[type] = indexMap[type] + 1;
-          continue;
-        }
+
+      // 计算已上传分段的数量，用于生成正确的索引，索引用于格式化partIndex
+      const uploadedCount = live
+        .getNonErrorParts(type)
+        .filter((part) => part[updateStatusField] === "uploaded").length;
+      indexMap[type] = uploadedCount + 1;
+
+      // 构建上传文件列表
+      for (const part of uploadableParts) {
         const filename = path.parse(part[filePathField]).name;
         const title = formatPartTitle(
           {
@@ -1073,39 +1052,29 @@ export class WebhookHandler {
           partTitleTemplate ?? "{{filename}}",
         );
 
-        if (type === "handled") {
-          if (part.recordStatus === "handled") {
-            filePaths.push({ path: part[filePathField], title, part });
-          } else {
-            break;
-          }
-        } else if (type === "raw") {
-          if (part.recordStatus == "prehandled" || part.recordStatus === "handled") {
-            filePaths.push({ path: part[filePathField], title, part });
-          } else {
-            break;
-          }
-        } else {
-          throw new Error("type error");
-        }
+        filePaths.push({ path: part[filePathField], title, part });
 
         if (!cover) cover = part.cover;
         indexMap[type] = indexMap[type] + 1;
       }
-      if (filePaths.length === 0) return;
 
       if (!uid) {
-        for (let i = 0; i < filePaths.length; i++) {
-          filePaths[i].part[updateStatusField] = "error";
-        }
+        live.batchUpdateUploadStatus(
+          filePaths.map((item) => item.part),
+          "error",
+          type,
+        );
+        log.error("上传失败，uid未配置");
         return;
       }
 
       // 如果是非弹幕版，但是不允许上传无弹幕视频，那么直接设置为error
       if (type === "raw" && !uploadNoDanmu) {
-        for (let i = 0; i < filePaths.length; i++) {
-          filePaths[i].part[updateStatusField] = "error";
-        }
+        live.batchUpdateUploadStatus(
+          filePaths.map((item) => item.part),
+          "error",
+          type,
+        );
         return;
       }
 
@@ -1120,9 +1089,11 @@ export class WebhookHandler {
       }
 
       try {
-        filePaths.map((item) => {
-          item.part[updateStatusField] = "uploading";
-        });
+        live.batchUpdateUploadStatus(
+          filePaths.map((item) => item.part),
+          "uploading",
+          type,
+        );
         if (live[aidField]) {
           log.info("续传", filePaths);
           await this.addEditMediaTask(
@@ -1137,9 +1108,11 @@ export class WebhookHandler {
             limitedUploadTime,
             type === "raw" ? "none" : afterUploadDeletAction,
           );
-          filePaths.map((item) => {
-            item.part[updateStatusField] = "uploaded";
-          });
+          live.batchUpdateUploadStatus(
+            filePaths.map((item) => item.part),
+            "uploaded",
+            type,
+          );
         } else {
           const part = filePaths[0].part;
           const filename = path.parse(part[filePathField]).name;
@@ -1195,16 +1168,20 @@ export class WebhookHandler {
           live[aidField] = Number(aid);
 
           // 设置状态为成功
-          filePaths.map((item) => {
-            item.part[updateStatusField] = "uploaded";
-          });
+          live.batchUpdateUploadStatus(
+            filePaths.map((item) => item.part),
+            "uploaded",
+            type,
+          );
         }
       } catch (error) {
         log.error(error);
         // 设置状态为失败
-        filePaths.map((item) => {
-          item.part[updateStatusField] = "error";
-        });
+        live.batchUpdateUploadStatus(
+          filePaths.map((item) => item.part),
+          "error",
+          type,
+        );
       }
     };
 
