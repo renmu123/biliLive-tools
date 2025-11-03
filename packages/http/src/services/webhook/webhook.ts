@@ -21,7 +21,7 @@ import { config } from "../../index.js";
 import FileLockManager from "./fileLockManager.js";
 import { ConfigManager } from "./ConfigManager.js";
 import { PathResolver } from "./PathResolver.js";
-import { Live } from "./Live.js";
+import { Live, Part } from "./Live.js";
 
 import type {
   BiliupConfig,
@@ -30,7 +30,7 @@ import type {
   HotProgressOptions,
 } from "@biliLive-tools/types";
 import type { AppConfig } from "@biliLive-tools/shared/config.js";
-import type { Options, Platform, Part } from "../../types/webhook.js";
+import type { Options, Platform } from "../../types/webhook.js";
 import type { RoomConfig } from "./ConfigManager.js";
 
 export const enum EventType {
@@ -148,7 +148,7 @@ export class WebhookHandler {
    */
   private async validateFileSize(
     context: { live: Live; part: Part },
-    config: any,
+    config: RoomConfig,
     options: Options,
   ): Promise<boolean> {
     const fileSize = await getFileSize(options.filePath);
@@ -193,7 +193,7 @@ export class WebhookHandler {
   private async processConversion(
     context: { live: Live; part: Part },
     options: Options,
-    config: any,
+    config: RoomConfig,
   ) {
     if (!config.convert2Mp4Option) return;
 
@@ -224,7 +224,7 @@ export class WebhookHandler {
   private async processMediaFiles(
     context: { live: Live; part: Part },
     options: Options,
-    config: any,
+    config: RoomConfig,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
     const xmlFilePath = PathResolver.getDanmuPath(options.filePath, options.danmuPath);
 
@@ -241,7 +241,7 @@ export class WebhookHandler {
   private async processDanmuVideo(
     context: { live: Live; part: Part },
     options: Options,
-    config: any,
+    config: RoomConfig,
     xmlFilePath: string,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
     try {
@@ -305,7 +305,7 @@ export class WebhookHandler {
   private async processRegularVideo(
     context: { live: Live; part: Part },
     options: Options,
-    config: any,
+    config: RoomConfig,
     xmlFilePath: string,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
     let conversionSuccessful = true;
@@ -353,7 +353,7 @@ export class WebhookHandler {
   private async handlePostProcessing(
     context: { live: Live; part: Part },
     options: Options,
-    config: any,
+    config: RoomConfig,
     processingResult: { conversionSuccessful: boolean; danmuConversionSuccessful: boolean },
   ) {
     const { conversionSuccessful, danmuConversionSuccessful } = processingResult;
@@ -588,21 +588,15 @@ export class WebhookHandler {
     }
 
     if (currentLive) {
-      const part: Part = {
-        partId: uuid(),
+      currentLive.addPart({
         startTime: timestamp,
         filePath: options.filePath,
         recordStatus: "recording",
-        uploadStatus: "pending",
-        rawFilePath: options.filePath,
-        rawUploadStatus: "pending",
         title: options.title,
-      };
-      currentLive.addPart(part);
+      });
     } else {
       // 新建Live数据
       const live = new Live({
-        eventId: uuid(),
         platform: options.platform,
         roomId: options.roomId,
         startTime: timestamp,
@@ -610,7 +604,6 @@ export class WebhookHandler {
         username: options.username,
       });
       live.addPart({
-        partId: uuid(),
         startTime: timestamp,
         filePath: options.filePath,
         recordStatus: "recording",
@@ -660,9 +653,7 @@ export class WebhookHandler {
 
       return currentLive.eventId;
     } else {
-      const liveEventId = uuid();
       const live = new Live({
-        eventId: liveEventId,
         platform: options.platform,
         roomId: options.roomId,
         title: options.title,
@@ -670,8 +661,7 @@ export class WebhookHandler {
         startTime: timestamp,
       });
       // TODO: 通过视频或者弹幕元数据获取开始时间
-      const newPart = {
-        partId: uuid(),
+      live.addPart({
         filePath: options.filePath,
         endTime: timestamp,
         recordStatus: "recorded",
@@ -680,11 +670,10 @@ export class WebhookHandler {
         rawUploadStatus: "pending",
         title: options.title,
         cover: cover,
-      } as Part;
-      live.addPart(newPart);
+      });
       this.liveData.push(live);
 
-      return liveEventId;
+      return live.eventId;
     }
   };
 
