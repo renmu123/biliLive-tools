@@ -247,8 +247,12 @@ export class WebhookHandler {
       }
 
       // 获取配置
-      const danmuConfig = (await this.danmuPreset.get(config.danmuPresetId))!.config;
+      const danmuConfig = await this.danmuPreset.get(config.danmuPresetId);
       const ffmpegPreset = await this.ffmpegPreset.get(config.videoPresetId);
+
+      if (!danmuConfig || !ffmpegPreset) {
+        throw new Error(`无法获取预设配置 ${config.danmuPresetId} 或 ${config.videoPresetId}`);
+      }
 
       // 压制视频
       const output = await this.burn(
@@ -257,8 +261,8 @@ export class WebhookHandler {
           subtitleFilePath: xmlFilePath,
         },
         {
-          danmaOptions: danmuConfig,
-          ffmpegOptions: ffmpegPreset!.config,
+          danmaOptions: danmuConfig.config,
+          ffmpegOptions: ffmpegPreset.config,
           hasHotProgress: config.hotProgress,
           hotProgressOptions: {
             interval: config.hotProgressSample || 30,
@@ -321,7 +325,10 @@ export class WebhookHandler {
     if (config.danmuPresetId) {
       try {
         const preset = await this.danmuPreset.get(config.danmuPresetId);
-        await this.convertDanmu(xmlFilePath, preset!.config);
+        if (!preset) {
+          throw new Error(`danmuPreset not found ${config.danmuPresetId}`);
+        }
+        await this.convertDanmu(xmlFilePath, preset.config);
       } catch (error) {
         log.error(error);
         danmuConversionSuccessful = false;
