@@ -600,9 +600,8 @@ export class WebhookHandler {
       for (let i = 0; i < partIndex; i++) {
         const part = currentLive.parts[i];
         if (part.recordStatus === "recording") {
-          log.error("下一个录制完成时，上一个录制仍在录制中，设置为成功", part);
-          // TODO: 应该被设置为error，但是目前其实没有error状态
-          currentLive.updatePartValue(part.partId, "recordStatus", "handled");
+          log.error("下一个录制完成时，上一个录制仍在录制中，设置为错误", part);
+          currentLive.updatePartValue(part.partId, "recordStatus", "error");
         }
       }
 
