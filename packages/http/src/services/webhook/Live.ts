@@ -324,3 +324,212 @@ export class Live {
     };
   }
 }
+
+/**
+ * LiveManager 类 - 管理多个 Live 实例
+ */
+export class LiveManager {
+  private lives: Live[] = [];
+
+  /**
+   * 获取所有 Live 实例（用于向后兼容）
+   */
+  get liveData(): Live[] {
+    return this.lives;
+  }
+
+  /**
+   * 设置所有 Live 实例（用于向后兼容）
+   */
+  set liveData(lives: Live[]) {
+    this.lives = lives;
+  }
+
+  /**
+   * 添加一个 Live 实例
+   * @param live Live 实例
+   */
+  addLive(live: Live): void {
+    this.lives.push(live);
+  }
+
+  /**
+   * 根据 eventId 查找 Live
+   * @param eventId 事件ID
+   * @returns 找到的 Live，如果没找到则返回 undefined
+   */
+  findLiveByEventId(eventId: string): Live | undefined {
+    return this.lives.find((live) => live.eventId === eventId);
+  }
+
+  /**
+   * 根据 eventId 查找 Live 的索引
+   * @param eventId 事件ID
+   * @returns Live 的索引，如果没找到则返回 -1
+   */
+  findLiveIndexByEventId(eventId: string): number {
+    return this.lives.findIndex((live) => live.eventId === eventId);
+  }
+
+  /**
+   * 根据文件路径查找 Live（通过处理后的文件路径）
+   * @param filePath 文件路径
+   * @returns 找到的 Live，如果没找到则返回 undefined
+   */
+  findLiveByFilePath(filePath: string): Live | undefined {
+    return this.lives.find((live) => live.parts.some((part) => part.filePath === filePath));
+  }
+
+  /**
+   * 根据条件查找 Live
+   * @param predicate 查找条件函数
+   * @returns 找到的 Live，如果没找到则返回 undefined
+   */
+  findLive(predicate: (live: Live) => boolean): Live | undefined {
+    return this.lives.find(predicate);
+  }
+
+  /**
+   * 从后向前查找 Live
+   * @param predicate 查找条件函数
+   * @returns 找到的 Live，如果没找到则返回 undefined
+   */
+  findLiveLast(predicate: (live: Live) => boolean): Live | undefined {
+    return this.lives.findLast(predicate);
+  }
+
+  /**
+   * 根据条件查找 Live 的索引
+   * @param predicate 查找条件函数
+   * @returns Live 的索引，如果没找到则返回 -1
+   */
+  findLiveIndex(predicate: (live: Live) => boolean): number {
+    return this.lives.findIndex(predicate);
+  }
+
+  /**
+   * 根据 eventId 移除 Live
+   * @param eventId 事件ID
+   * @returns 是否成功移除
+   */
+  removeLiveByEventId(eventId: string): boolean {
+    const index = this.findLiveIndexByEventId(eventId);
+    if (index !== -1) {
+      this.lives.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 根据索引移除 Live
+   * @param index 索引
+   * @returns 是否成功移除
+   */
+  removeLiveByIndex(index: number): boolean {
+    if (index >= 0 && index < this.lives.length) {
+      this.lives.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 移除 Live 实例
+   * @param live Live 实例
+   * @returns 是否成功移除
+   */
+  removeLive(live: Live): boolean {
+    const index = this.lives.indexOf(live);
+    if (index !== -1) {
+      this.lives.splice(index, 1);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 获取所有 Live 实例
+   * @returns Live 实例数组
+   */
+  getAllLives(): Live[] {
+    return this.lives;
+  }
+
+  /**
+   * 获取 Live 数量
+   * @returns Live 数量
+   */
+  getCount(): number {
+    return this.lives.length;
+  }
+
+  /**
+   * 清空所有 Live
+   */
+  clear(): void {
+    this.lives = [];
+  }
+
+  /**
+   * 根据索引获取 Live
+   * @param index 索引
+   * @returns Live 实例，如果索引无效则返回 undefined
+   */
+  getLiveByIndex(index: number): Live | undefined {
+    if (index >= 0 && index < this.lives.length) {
+      return this.lives[index];
+    }
+    return undefined;
+  }
+
+  /**
+   * 根据房间ID和平台查找最近的 Live
+   * @param roomId 房间ID
+   * @param platform 平台
+   * @param maxTimeDiffMinutes 最大时间差（分钟）
+   * @param currentTime 当前时间戳
+   * @returns 找到的 Live，如果没找到则返回 undefined
+   */
+  findRecentLive(
+    roomId: string,
+    platform: Platform,
+    maxTimeDiffMinutes: number,
+    currentTime: number,
+  ): Live | undefined {
+    return this.lives.find((live) => {
+      if (live.roomId !== roomId || live.platform !== platform) {
+        return false;
+      }
+      const endTime = live.getLastPartEndTime();
+      if (endTime === undefined) {
+        return false;
+      }
+      const timeDiff = (currentTime - endTime) / (1000 * 60);
+      return timeDiff < maxTimeDiffMinutes;
+    });
+  }
+
+  /**
+   * 根据房间ID和平台查找最后一个 Live（不考虑时间）
+   * @param roomId 房间ID
+   * @param platform 平台
+   * @returns 找到的 Live，如果没找到则返回 undefined
+   */
+  findLastLiveByRoomAndPlatform(roomId: string, platform: Platform): Live | undefined {
+    return this.lives.findLast((live) => {
+      const hasEndTime = live.parts.some((item) => item.endTime);
+      if (hasEndTime) {
+        return false;
+      }
+      return live.roomId === roomId && live.platform === platform;
+    });
+  }
+
+  /**
+   * 转换为普通对象数组（用于序列化）
+   */
+  toJSON(): ReturnType<Live["toJSON"]>[] {
+    return this.lives.map((live) => live.toJSON());
+  }
+}

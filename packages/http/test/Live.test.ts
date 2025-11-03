@@ -1,5 +1,5 @@
-import { expect, describe, it } from "vitest";
-import { Live, Part } from "../src/services/webhook/Live.js";
+import { expect, describe, it, beforeEach } from "vitest";
+import { Live, Part, LiveManager } from "../src/services/webhook/Live.js";
 import type { Part as PartInterface } from "../src/types/webhook.js";
 
 describe("Live", () => {
@@ -1095,6 +1095,532 @@ describe("Part", () => {
       expect(json.endTime).toBe(1640995500000);
       expect(json.uploadStatus).toBe("pending");
       expect(json.rawUploadStatus).toBe("pending");
+    });
+  });
+});
+
+describe("LiveManager", () => {
+  let liveManager: LiveManager;
+
+  beforeEach(() => {
+    liveManager = new LiveManager();
+  });
+
+  describe("constructor", () => {
+    it("应该初始化为空的 LiveManager", () => {
+      expect(liveManager.getCount()).toBe(0);
+      expect(liveManager.getAllLives()).toEqual([]);
+    });
+  });
+
+  describe("addLive 和 getAllLives", () => {
+    it("应该能够添加 Live 实例", () => {
+      const live = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      liveManager.addLive(live);
+
+      expect(liveManager.getCount()).toBe(1);
+      expect(liveManager.getAllLives()).toContain(live);
+    });
+
+    it("应该能够添加多个 Live 实例", () => {
+      const live1 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播1",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      const live2 = new Live({
+        platform: "blrec",
+        roomId: "456",
+        title: "测试直播2",
+        username: "测试主播",
+        startTime: 1640995300000,
+      });
+
+      liveManager.addLive(live1);
+      liveManager.addLive(live2);
+
+      expect(liveManager.getCount()).toBe(2);
+      expect(liveManager.getAllLives()).toEqual([live1, live2]);
+    });
+  });
+
+  describe("liveData getter/setter", () => {
+    it("应该能够通过 liveData 属性获取和设置 Lives", () => {
+      const live1 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播1",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      const live2 = new Live({
+        platform: "blrec",
+        roomId: "456",
+        title: "测试直播2",
+        username: "测试主播",
+        startTime: 1640995300000,
+      });
+
+      liveManager.liveData = [live1, live2];
+
+      expect(liveManager.liveData).toEqual([live1, live2]);
+      expect(liveManager.getCount()).toBe(2);
+    });
+  });
+
+  describe("findLiveByEventId", () => {
+    it("应该能够通过 eventId 查找 Live", () => {
+      const live = new Live({
+        eventId: "test-event-id",
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      liveManager.addLive(live);
+
+      const found = liveManager.findLiveByEventId("test-event-id");
+      expect(found).toBe(live);
+    });
+
+    it("如果找不到应该返回 undefined", () => {
+      const found = liveManager.findLiveByEventId("non-existent");
+      expect(found).toBeUndefined();
+    });
+  });
+
+  describe("findLiveIndexByEventId", () => {
+    it("应该能够通过 eventId 查找 Live 的索引", () => {
+      const live1 = new Live({
+        eventId: "event-1",
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播1",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      const live2 = new Live({
+        eventId: "event-2",
+        platform: "blrec",
+        roomId: "456",
+        title: "测试直播2",
+        username: "测试主播",
+        startTime: 1640995300000,
+      });
+
+      liveManager.addLive(live1);
+      liveManager.addLive(live2);
+
+      expect(liveManager.findLiveIndexByEventId("event-1")).toBe(0);
+      expect(liveManager.findLiveIndexByEventId("event-2")).toBe(1);
+    });
+
+    it("如果找不到应该返回 -1", () => {
+      expect(liveManager.findLiveIndexByEventId("non-existent")).toBe(-1);
+    });
+  });
+
+  describe("findLiveByFilePath", () => {
+    it("应该能够通过文件路径查找 Live", () => {
+      const live = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      live.addPart({
+        filePath: "/path/to/video.mp4",
+        recordStatus: "recorded",
+        title: "Part 1",
+      });
+
+      liveManager.addLive(live);
+
+      const found = liveManager.findLiveByFilePath("/path/to/video.mp4");
+      expect(found).toBe(live);
+    });
+
+    it("如果找不到应该返回 undefined", () => {
+      const found = liveManager.findLiveByFilePath("/non/existent/path.mp4");
+      expect(found).toBeUndefined();
+    });
+  });
+
+  describe("findLive 和 findLiveLast", () => {
+    it("findLive 应该找到第一个匹配的 Live", () => {
+      const live1 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      const live2 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995300000,
+      });
+
+      liveManager.addLive(live1);
+      liveManager.addLive(live2);
+
+      const found = liveManager.findLive((live) => live.roomId === "123");
+      expect(found).toBe(live1);
+    });
+
+    it("findLiveLast 应该找到最后一个匹配的 Live", () => {
+      const live1 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      const live2 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995300000,
+      });
+
+      liveManager.addLive(live1);
+      liveManager.addLive(live2);
+
+      const found = liveManager.findLiveLast((live) => live.roomId === "123");
+      expect(found).toBe(live2);
+    });
+  });
+
+  describe("removeLiveByEventId", () => {
+    it("应该能够通过 eventId 删除 Live", () => {
+      const live = new Live({
+        eventId: "test-event-id",
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      liveManager.addLive(live);
+      expect(liveManager.getCount()).toBe(1);
+
+      const removed = liveManager.removeLiveByEventId("test-event-id");
+      expect(removed).toBe(true);
+      expect(liveManager.getCount()).toBe(0);
+    });
+
+    it("如果 Live 不存在应该返回 false", () => {
+      const removed = liveManager.removeLiveByEventId("non-existent");
+      expect(removed).toBe(false);
+    });
+  });
+
+  describe("removeLiveByIndex", () => {
+    it("应该能够通过索引删除 Live", () => {
+      const live1 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播1",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      const live2 = new Live({
+        platform: "blrec",
+        roomId: "456",
+        title: "测试直播2",
+        username: "测试主播",
+        startTime: 1640995300000,
+      });
+
+      liveManager.addLive(live1);
+      liveManager.addLive(live2);
+
+      const removed = liveManager.removeLiveByIndex(0);
+      expect(removed).toBe(true);
+      expect(liveManager.getCount()).toBe(1);
+      expect(liveManager.getAllLives()[0]).toBe(live2);
+    });
+
+    it("如果索引无效应该返回 false", () => {
+      expect(liveManager.removeLiveByIndex(0)).toBe(false);
+      expect(liveManager.removeLiveByIndex(-1)).toBe(false);
+    });
+  });
+
+  describe("removeLive", () => {
+    it("应该能够删除指定的 Live 实例", () => {
+      const live = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      liveManager.addLive(live);
+      expect(liveManager.getCount()).toBe(1);
+
+      const removed = liveManager.removeLive(live);
+      expect(removed).toBe(true);
+      expect(liveManager.getCount()).toBe(0);
+    });
+
+    it("如果 Live 不在列表中应该返回 false", () => {
+      const live = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      const removed = liveManager.removeLive(live);
+      expect(removed).toBe(false);
+    });
+  });
+
+  describe("getLiveByIndex", () => {
+    it("应该能够通过索引获取 Live", () => {
+      const live = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      liveManager.addLive(live);
+
+      expect(liveManager.getLiveByIndex(0)).toBe(live);
+    });
+
+    it("如果索引无效应该返回 undefined", () => {
+      expect(liveManager.getLiveByIndex(0)).toBeUndefined();
+      expect(liveManager.getLiveByIndex(-1)).toBeUndefined();
+      expect(liveManager.getLiveByIndex(10)).toBeUndefined();
+    });
+  });
+
+  describe("clear", () => {
+    it("应该能够清空所有 Live", () => {
+      const live1 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播1",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      const live2 = new Live({
+        platform: "blrec",
+        roomId: "456",
+        title: "测试直播2",
+        username: "测试主播",
+        startTime: 1640995300000,
+      });
+
+      liveManager.addLive(live1);
+      liveManager.addLive(live2);
+      expect(liveManager.getCount()).toBe(2);
+
+      liveManager.clear();
+      expect(liveManager.getCount()).toBe(0);
+      expect(liveManager.getAllLives()).toEqual([]);
+    });
+  });
+
+  describe("findRecentLive", () => {
+    it("应该找到最近的 Live（在时间范围内）", () => {
+      const live = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      live.addPart({
+        startTime: 1640995200000,
+        endTime: 1640995500000, // 5分钟后
+        filePath: "/path/to/video.mp4",
+        recordStatus: "recorded",
+        title: "Part 1",
+      });
+
+      liveManager.addLive(live);
+
+      const currentTime = 1640995500000 + 3 * 60 * 1000; // 3分钟后
+      const found = liveManager.findRecentLive("123", "blrec", 10, currentTime);
+
+      expect(found).toBe(live);
+    });
+
+    it("如果时间超出范围应该返回 undefined", () => {
+      const live = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      live.addPart({
+        startTime: 1640995200000,
+        endTime: 1640995500000,
+        filePath: "/path/to/video.mp4",
+        recordStatus: "recorded",
+        title: "Part 1",
+      });
+
+      liveManager.addLive(live);
+
+      const currentTime = 1640995500000 + 15 * 60 * 1000; // 15分钟后
+      const found = liveManager.findRecentLive("123", "blrec", 10, currentTime);
+
+      expect(found).toBeUndefined();
+    });
+
+    it("如果房间ID或平台不匹配应该返回 undefined", () => {
+      const live = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      live.addPart({
+        startTime: 1640995200000,
+        endTime: 1640995500000,
+        filePath: "/path/to/video.mp4",
+        recordStatus: "recorded",
+        title: "Part 1",
+      });
+
+      liveManager.addLive(live);
+
+      const currentTime = 1640995500000 + 3 * 60 * 1000;
+
+      // 房间ID不匹配
+      expect(liveManager.findRecentLive("456", "blrec", 10, currentTime)).toBeUndefined();
+
+      // 平台不匹配
+      expect(liveManager.findRecentLive("123", "bili-recorder", 10, currentTime)).toBeUndefined();
+    });
+  });
+
+  describe("findLastLiveByRoomAndPlatform", () => {
+    it("应该找到最后一个匹配房间和平台的 Live（没有 endTime）", () => {
+      const live1 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播1",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      live1.addPart({
+        startTime: 1640995200000,
+        filePath: "/path/to/video1.mp4",
+        recordStatus: "recording",
+        title: "Part 1",
+      });
+
+      const live2 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播2",
+        username: "测试主播",
+        startTime: 1640995300000,
+      });
+
+      live2.addPart({
+        startTime: 1640995300000,
+        filePath: "/path/to/video2.mp4",
+        recordStatus: "recording",
+        title: "Part 2",
+      });
+
+      liveManager.addLive(live1);
+      liveManager.addLive(live2);
+
+      const found = liveManager.findLastLiveByRoomAndPlatform("123", "blrec");
+      expect(found).toBe(live2);
+    });
+
+    it("如果 Live 有 endTime 应该被跳过", () => {
+      const live1 = new Live({
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播1",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      live1.addPart({
+        startTime: 1640995200000,
+        endTime: 1640995500000,
+        filePath: "/path/to/video1.mp4",
+        recordStatus: "recorded",
+        title: "Part 1",
+      });
+
+      liveManager.addLive(live1);
+
+      const found = liveManager.findLastLiveByRoomAndPlatform("123", "blrec");
+      expect(found).toBeUndefined();
+    });
+  });
+
+  describe("toJSON", () => {
+    it("应该正确序列化为 JSON 对象数组", () => {
+      const live1 = new Live({
+        eventId: "event-1",
+        platform: "blrec",
+        roomId: "123",
+        title: "测试直播1",
+        username: "测试主播",
+        startTime: 1640995200000,
+      });
+
+      const live2 = new Live({
+        eventId: "event-2",
+        platform: "blrec",
+        roomId: "456",
+        title: "测试直播2",
+        username: "测试主播",
+        startTime: 1640995300000,
+      });
+
+      liveManager.addLive(live1);
+      liveManager.addLive(live2);
+
+      const json = liveManager.toJSON();
+
+      expect(json).toEqual([live1.toJSON(), live2.toJSON()]);
     });
   });
 });

@@ -21,7 +21,7 @@ import { config } from "../../index.js";
 import FileLockManager from "./fileLockManager.js";
 import { ConfigManager } from "./ConfigManager.js";
 import { PathResolver } from "./PathResolver.js";
-import { Live, Part } from "./Live.js";
+import { Live, Part, LiveManager } from "./Live.js";
 
 import type {
   BiliupConfig,
@@ -40,7 +40,7 @@ export const enum EventType {
 }
 
 export class WebhookHandler {
-  liveData: Live[] = [];
+  liveManager: LiveManager = new LiveManager();
   ffmpegPreset: FFmpegPreset;
   videoPreset: VideoPreset;
   danmuPreset: DanmuPreset;
@@ -49,6 +49,21 @@ export class WebhookHandler {
   // 存储已处理的文件名，避免重复处理
   private processedFiles: Set<string> = new Set();
   private fileLockManager: FileLockManager = new FileLockManager();
+
+  /**
+   * 获取 liveData 数组（向后兼容）
+   */
+  get liveData(): Live[] {
+    return this.liveManager.liveData;
+  }
+
+  /**
+   * 设置 liveData 数组（向后兼容）
+   */
+  set liveData(lives: Live[]) {
+    this.liveManager.liveData = lives;
+  }
+
   constructor(appConfig: AppConfig) {
     this.ffmpegPreset = new FFmpegPreset({
       globalConfig: { ffmpegPresetPath: config.ffmpegPresetPath },
@@ -75,7 +90,7 @@ export class WebhookHandler {
     }
 
     // 1. 处理直播数据
-    const currentLiveIndex = await this.handleLiveData(options, config);
+    const liveId = await this.handleLiveData(options, config);
 
     // 2. 如果是开始或错误事件,直接返回
     if (this.shouldSkipProcessing(options.event)) {
@@ -83,7 +98,7 @@ export class WebhookHandler {
     }
 
     // 3. 获取当前直播和分段
-    const context = this.getCurrentContext(currentLiveIndex, options.filePath);
+    const context = this.getCurrentContext(liveId, options.filePath);
     if (!context) return;
 
     // 4. 验证和准备文件
@@ -119,13 +134,13 @@ export class WebhookHandler {
   /**
    * 获取当前处理上下文
    */
-  private getCurrentContext(liveIndex: number, filePath: string) {
-    if (liveIndex === -1) return null;
+  private getCurrentContext(liveId: string | null, filePath: string) {
+    if (!liveId) return null;
 
-    const currentLive = this.liveData[liveIndex];
-    const currentPart = currentLive.findPartByFilePath(filePath);
+    const currentLive = this.liveManager.findLiveByEventId(liveId);
+    const currentPart = currentLive?.findPartByFilePath(filePath);
 
-    if (!currentPart) return null;
+    if (!currentPart || !currentLive) return null;
 
     return { live: currentLive, part: currentPart };
   }
@@ -179,9 +194,8 @@ export class WebhookHandler {
     live.removePart(part.partId);
 
     if (live.parts.length === 0) {
-      const liveIndex = this.liveData.findIndex((l) => l.eventId === live.eventId);
-      if (liveIndex !== -1) {
-        this.liveData.splice(liveIndex, 1);
+      const removed = this.liveManager.removeLiveByEventId(live.eventId);
+      if (removed) {
         log.warn(`Removed empty live: ${live.eventId}`);
       }
     }
@@ -438,7 +452,7 @@ export class WebhookHandler {
    * @param filePath 文件路径
    */
   findLiveByFilePath(filePath: string) {
-    return this.liveData.find((live) => live.parts.some((part) => part.filePath === filePath));
+    return this.liveManager.findLiveByFilePath(filePath);
   }
 
   /**
@@ -475,7 +489,7 @@ export class WebhookHandler {
 
     // 通过partId查找
     if (partId) {
-      for (const live of this.liveData) {
+      for (const live of this.liveManager.getAllLives()) {
         const part = live.parts.find((p) => p.partId === partId);
         if (part) {
           livePart = { live, part };
@@ -558,33 +572,24 @@ export class WebhookHandler {
    * @param partMergeMinute 断播续传时间戳
    */
   handleOpenEvent = (options: Options, partMergeMinute: number) => {
-    function getMaxEndTime(parts: Part[]) {
-      return Math.max(...parts.map((item) => item.endTime || 0));
-    }
-
     const timestamp = new Date(options.time).getTime();
+
     // 找到上一个文件结束时间与当前时间差小于一段时间的直播，认为是同一个直播
-    let currentLive = this.liveData.find((live) => {
-      // 找到part中最大的结束时间
-      const endTime = getMaxEndTime(live.parts);
-      return (
-        live.roomId === options.roomId &&
-        live.platform === options.platform &&
-        (timestamp - endTime) / (1000 * 60) < (partMergeMinute || 10)
-      );
-    });
+    let currentLive = this.liveManager.findRecentLive(
+      options.roomId,
+      options.platform,
+      partMergeMinute || 10,
+      timestamp,
+    );
+
     if (partMergeMinute !== -1 && currentLive === undefined) {
       // 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间，如果出现这种情况，尝试特殊处理
       // 如果live的任何一个part有endTime，说明不会出现特殊情况，不需要特殊处理
       // 然后去遍历liveData，找到roomId、platform、title都相同的直播，认为是同一场直播
-      currentLive = this.liveData.findLast((live) => {
-        const hasEndTime = live.parts.some((item) => item.endTime);
-        if (hasEndTime) {
-          return false;
-        } else {
-          return live.roomId === options.roomId && live.platform === options.platform;
-        }
-      });
+      currentLive = this.liveManager.findLastLiveByRoomAndPlatform(
+        options.roomId,
+        options.platform,
+      );
     }
 
     if (currentLive) {
@@ -612,7 +617,7 @@ export class WebhookHandler {
         rawUploadStatus: "pending",
         title: options.title,
       });
-      this.liveData.push(live);
+      this.liveManager.addLive(live);
     }
   };
 
@@ -671,7 +676,7 @@ export class WebhookHandler {
         title: options.title,
         cover: cover,
       });
-      this.liveData.push(live);
+      this.liveManager.addLive(live);
 
       return live.eventId;
     }
@@ -687,9 +692,8 @@ export class WebhookHandler {
       if (currentPart) {
         currentLive.removePart(currentPart.partId);
         if (currentLive.parts.length === 0) {
-          const liveIndex = this.liveData.findIndex((live) => live.eventId === currentLive.eventId);
-          if (liveIndex !== -1) {
-            this.liveData.splice(liveIndex, 1);
+          const removed = this.liveManager.removeLiveByEventId(currentLive.eventId);
+          if (removed) {
             log.warn(`error event: removed empty live: ${currentLive.eventId}`);
           }
         }
@@ -700,19 +704,18 @@ export class WebhookHandler {
   /**
    * 处理FileOpening和FileClosed事件
    */
-  async handleLiveData(options: Options, config: RoomConfig): Promise<number> {
+  async handleLiveData(options: Options, config: RoomConfig): Promise<string | null> {
     if (options.event === EventType.OpenEvent) {
       this.handleOpenEvent(options, config.partMergeMinute);
-      return -1;
+      return null;
     } else if (options.event === EventType.CloseEvent) {
       const liveId = await this.handleCloseEvent(options);
-      const index = this.liveData.findIndex((live) => live.eventId === liveId);
-      return index;
+      return liveId;
     } else if (options.event === EventType.ErrorEvent) {
       this.handleErrorEvent(options);
       log.error(`接收到错误指令，${options.filePath} 置为错误状态`);
 
-      return -1;
+      return null;
     } else {
       throw new Error(`不支持的事件：${options.event}`);
     }

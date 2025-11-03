@@ -2489,13 +2489,13 @@ describe("Live", () => {
       username: "username",
       startTime: 1616161616161,
     });
-    const part: Part = {
+    const part = {
       partId: "part1",
       filePath: "/path/to/part1.mp4",
-      recordStatus: "recording",
+      recordStatus: "recording" as const,
       rawFilePath: "/path/to/raw/part1.mp4",
-      uploadStatus: "uploaded",
-      rawUploadStatus: "uploaded",
+      uploadStatus: "uploaded" as const,
+      rawUploadStatus: "uploaded" as const,
       title: "part1",
     };
 
@@ -2513,13 +2513,13 @@ describe("Live", () => {
       username: "username",
       startTime: 1616161616161,
     });
-    const part: Part = {
+    const part = {
       partId: "part1",
       filePath: "/path/to/part1.mp4",
-      recordStatus: "recording",
+      recordStatus: "recording" as const,
       rawFilePath: "/path/to/raw/part1.mp4",
-      uploadStatus: "uploaded",
-      rawUploadStatus: "uploaded",
+      uploadStatus: "uploaded" as const,
+      rawUploadStatus: "uploaded" as const,
       title: "part1",
     };
 
@@ -2575,13 +2575,13 @@ describe("Live", () => {
       username: "username",
       startTime: 1616161616161,
     });
-    const part: Part = {
+    const part = {
       partId: "part1",
       filePath: "/path/to/part1.mp4",
-      recordStatus: "recording",
+      recordStatus: "recording" as const,
       rawFilePath: "/path/to/raw/part1.mp4",
-      uploadStatus: "uploaded",
-      rawUploadStatus: "uploaded",
+      uploadStatus: "uploaded" as const,
+      rawUploadStatus: "uploaded" as const,
       title: "part1",
     };
 
