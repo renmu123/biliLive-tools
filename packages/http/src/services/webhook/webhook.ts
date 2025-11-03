@@ -943,219 +943,320 @@ export class WebhookHandler {
     return this.handleUploadTask(task, pathArray, afterUploadDeletAction);
   };
 
+  /**
+   * 构建上传文件列表
+   * @private
+   */
+  private buildUploadFileList(
+    live: Live,
+    uploadableParts: Part[],
+    type: "raw" | "handled",
+    config: RoomConfig,
+  ): { filePaths: { part: Part; path: string; title: string }[]; cover?: string } {
+    const updateStatusField = type === "handled" ? "uploadStatus" : "rawUploadStatus";
+    const filePathField = type === "handled" ? "filePath" : "rawFilePath";
+
+    let cover: string | undefined;
+    const filePaths: {
+      part: Part;
+      path: string;
+      title: string;
+    }[] = [];
+
+    // 计算已上传分段的数量，用于生成正确的索引
+    const uploadedCount = live
+      .getNonErrorParts(type)
+      .filter((part) => part[updateStatusField] === "uploaded").length;
+
+    let currentIndex = uploadedCount + 1;
+
+    // 构建上传文件列表
+    for (const part of uploadableParts) {
+      const filename = path.parse(part[filePathField]).name;
+      const title = formatPartTitle(
+        {
+          title: part.title,
+          username: live.username,
+          roomId: live.roomId,
+          time: part?.startTime ? new Date(part.startTime).toISOString() : new Date().toISOString(),
+          filename,
+          index: currentIndex,
+        },
+        config.partTitleTemplate ?? "{{filename}}",
+      );
+
+      filePaths.push({ path: part[filePathField], title, part });
+
+      if (!cover) cover = part.cover;
+      currentIndex++;
+    }
+
+    return { filePaths, cover };
+  }
+
+  /**
+   * 验证上传配置
+   * @private
+   */
+  private validateUploadConfig(
+    live: Live,
+    filePaths: { part: Part; path: string; title: string }[],
+    type: "raw" | "handled",
+    config: RoomConfig,
+  ): boolean {
+    // 检查 uid
+    if (!config.uid) {
+      live.batchUpdateUploadStatus(
+        filePaths.map((item) => item.part),
+        "error",
+        type,
+      );
+      log.error("上传失败，uid未配置");
+      return false;
+    }
+
+    // 如果是非弹幕版，但是不允许上传无弹幕视频
+    if (type === "raw" && !config.uploadNoDanmu) {
+      live.batchUpdateUploadStatus(
+        filePaths.map((item) => item.part),
+        "error",
+        type,
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * 准备上传预设配置
+   * @private
+   */
+  private async prepareUploadPreset(
+    type: "raw" | "handled",
+    config: RoomConfig,
+    cover?: string,
+  ): Promise<BiliupConfig> {
+    let uploadPreset = DEFAULT_BILIUP_CONFIG;
+    const presetId = type === "handled" ? config.uploadPresetId : config.noDanmuVideoPreset;
+    const preset = await this.videoPreset.get(presetId);
+    uploadPreset = { ...uploadPreset, ...(preset?.config ?? {}) };
+
+    if (config.useLiveCover && cover) {
+      uploadPreset.cover = cover;
+    }
+
+    return uploadPreset;
+  }
+
+  /**
+   * 格式化上传视频标题
+   * @private
+   */
+  private formatUploadTitle(
+    live: Live,
+    part: Part,
+    type: "raw" | "handled",
+    uploadPreset: BiliupConfig,
+    config: RoomConfig,
+  ): string {
+    const filePathField = type === "handled" ? "filePath" : "rawFilePath";
+    const filename = path.parse(part[filePathField]).name;
+
+    let template = uploadPreset.title;
+    if (type === "handled") {
+      const placeholders = [
+        "{{title}}",
+        "{{user}}",
+        "{{roomId}}",
+        "{{now}}",
+        "{{yyyy}}",
+        "{{MM}}",
+        "{{dd}}",
+        "{{HH}}",
+        "{{mm}}",
+        "{{ss}}",
+        "{{filename}}",
+      ];
+      // 目前如果预设标题中不存在占位符，为了兼容性考虑，依然使用webhook配置
+      if (!placeholders.some((item) => template.includes(item))) {
+        template = config.title;
+      }
+    }
+
+    return formatTitle(
+      {
+        title: live.title,
+        username: live.username,
+        roomId: live.roomId,
+        time: part?.startTime ? new Date(part.startTime).toISOString() : new Date().toISOString(),
+        filename,
+      },
+      template,
+    );
+  }
+
+  /**
+   * 执行续传操作
+   * @private
+   */
+  private async performContinueUpload(
+    live: Live,
+    aid: number,
+    filePaths: { part: Part; path: string; title: string }[],
+    type: "raw" | "handled",
+    config: RoomConfig,
+    limitedUploadTime: [] | [string, string],
+  ) {
+    log.info("续传", filePaths);
+
+    live.batchUpdateUploadStatus(
+      filePaths.map((item) => item.part),
+      "uploading",
+      type,
+    );
+
+    await this.addEditMediaTask(
+      config.uid!,
+      aid,
+      filePaths.map((item) => ({
+        path: item.path,
+        title: item.title,
+      })),
+      limitedUploadTime,
+      type === "raw" ? "none" : config.afterUploadDeletAction,
+    );
+
+    live.batchUpdateUploadStatus(
+      filePaths.map((item) => item.part),
+      "uploaded",
+      type,
+    );
+  }
+
+  /**
+   * 执行新上传操作
+   * @private
+   */
+  private async performNewUpload(
+    live: Live,
+    filePaths: { part: Part; path: string; title: string }[],
+    type: "raw" | "handled",
+    config: RoomConfig,
+    uploadPreset: BiliupConfig,
+    limitedUploadTime: [] | [string, string],
+  ) {
+    const aidField = type === "handled" ? "aid" : "rawAid";
+
+    live.batchUpdateUploadStatus(
+      filePaths.map((item) => item.part),
+      "uploading",
+      type,
+    );
+
+    // 格式化标题
+    const videoTitle = this.formatUploadTitle(live, filePaths[0].part, type, uploadPreset, config);
+    uploadPreset.title = videoTitle;
+
+    log.info("上传", config.afterUploadDeletAction);
+
+    const aid = (await this.addUploadTask(
+      config.uid!,
+      filePaths.map((item) => ({
+        path: item.path,
+        title: item.title,
+      })),
+      uploadPreset,
+      limitedUploadTime,
+      type === "raw" ? "none" : config.afterUploadDeletAction,
+    )) as number;
+
+    live[aidField] = Number(aid);
+
+    live.batchUpdateUploadStatus(
+      filePaths.map((item) => item.part),
+      "uploaded",
+      type,
+    );
+  }
+
+  /**
+   * 上传单个类型的视频（弹幕版或原始版）
+   * @private
+   */
+  private async uploadVideoByType(live: Live, type: "raw" | "handled") {
+    const aidField = type === "handled" ? "aid" : "rawAid";
+
+    // 1. 检查是否有正在上传的分段
+    if (live.hasUploadingParts(type)) return;
+
+    // 2. 获取可上传的分段列表
+    const uploadableParts = live.getUploadableParts(type);
+    if (uploadableParts.length === 0) return;
+
+    // 3. 获取配置
+    const config = this.configManager.getConfig(live.roomId);
+
+    // 4. 构建上传文件列表
+    const { filePaths, cover } = this.buildUploadFileList(live, uploadableParts, type, config);
+
+    // 5. 验证上传配置
+    if (!this.validateUploadConfig(live, filePaths, type, config)) {
+      return;
+    }
+
+    // 6. 准备上传预设
+    const uploadPreset = await this.prepareUploadPreset(type, config, cover);
+
+    // 7. 计算限制时间
+    const limitedUploadTime: [] | [string, string] = config.limitUploadTime
+      ? config.uploadHandleTime
+      : [];
+
+    try {
+      // 8. 执行上传（续传或新上传）
+      if (live[aidField]) {
+        await this.performContinueUpload(
+          live,
+          live[aidField],
+          filePaths,
+          type,
+          config,
+          limitedUploadTime,
+        );
+      } else {
+        await this.performNewUpload(live, filePaths, type, config, uploadPreset, limitedUploadTime);
+      }
+    } catch (error) {
+      log.error(error);
+      // 设置状态为失败
+      live.batchUpdateUploadStatus(
+        filePaths.map((item) => item.part),
+        "error",
+        type,
+      );
+    }
+  }
+
+  /**
+   * 处理直播上传
+   * @param live 直播数据
+   * @param type 上传类型：handled-弹幕版，raw-原始版，undefined-两者都上传
+   */
   handleLive = async (live: Live, type?: "handled" | "raw") => {
-    /**
-     * @param type 区分是弹幕版还是原始版
-     * raw: 非弹幕版
-     * handled: 弹幕版
-     */
-    const uploadVideo = async (type: "raw" | "handled") => {
-      const updateStatusField = type === "handled" ? "uploadStatus" : "rawUploadStatus";
-      const filePathField = type === "handled" ? "filePath" : "rawFilePath";
-      const aidField = type === "handled" ? "aid" : "rawAid";
-
-      // 不要有两个任务同时上传
-      if (live.hasUploadingParts(type)) return;
-
-      // 获取可上传的分段列表
-      const uploadableParts = live.getUploadableParts(type);
-      if (uploadableParts.length === 0) return;
-
-      const {
-        uploadPresetId,
-        uid,
-        useLiveCover,
-        limitUploadTime,
-        uploadHandleTime,
-        title,
-        uploadNoDanmu,
-        noDanmuVideoPreset,
-        partTitleTemplate,
-        afterUploadDeletAction,
-      } = this.configManager.getConfig(live.roomId);
-
-      let cover: string | undefined;
-      let indexMap: {
-        handled: number;
-        raw: number;
-      } = {
-        handled: 1,
-        raw: 1,
-      };
-
-      // 需要上传的视频列表
-      const filePaths: {
-        part: Part;
-        path: string;
-        title: string;
-      }[] = [];
-
-      // 计算已上传分段的数量，用于生成正确的索引，索引用于格式化partIndex
-      const uploadedCount = live
-        .getNonErrorParts(type)
-        .filter((part) => part[updateStatusField] === "uploaded").length;
-      indexMap[type] = uploadedCount + 1;
-
-      // 构建上传文件列表
-      for (const part of uploadableParts) {
-        const filename = path.parse(part[filePathField]).name;
-        const title = formatPartTitle(
-          {
-            title: part.title,
-            username: live.username,
-            roomId: live.roomId,
-            time: part?.startTime
-              ? new Date(part.startTime).toISOString()
-              : new Date().toISOString(),
-            filename,
-            index: indexMap[type],
-          },
-          partTitleTemplate ?? "{{filename}}",
-        );
-
-        filePaths.push({ path: part[filePathField], title, part });
-
-        if (!cover) cover = part.cover;
-        indexMap[type] = indexMap[type] + 1;
-      }
-
-      if (!uid) {
-        live.batchUpdateUploadStatus(
-          filePaths.map((item) => item.part),
-          "error",
-          type,
-        );
-        log.error("上传失败，uid未配置");
-        return;
-      }
-
-      // 如果是非弹幕版，但是不允许上传无弹幕视频，那么直接设置为error
-      if (type === "raw" && !uploadNoDanmu) {
-        live.batchUpdateUploadStatus(
-          filePaths.map((item) => item.part),
-          "error",
-          type,
-        );
-        return;
-      }
-
-      const limitedUploadTime: [] | [string, string] = limitUploadTime ? uploadHandleTime : [];
-
-      let uploadPreset = DEFAULT_BILIUP_CONFIG;
-      const presetId = type === "handled" ? uploadPresetId : noDanmuVideoPreset;
-      const preset = await this.videoPreset.get(presetId);
-      uploadPreset = { ...uploadPreset, ...(preset?.config ?? {}) };
-      if (useLiveCover) {
-        uploadPreset.cover = cover;
-      }
-
-      try {
-        live.batchUpdateUploadStatus(
-          filePaths.map((item) => item.part),
-          "uploading",
-          type,
-        );
-        if (live[aidField]) {
-          log.info("续传", filePaths);
-          await this.addEditMediaTask(
-            uid,
-            live[aidField],
-            filePaths.map((item) => {
-              return {
-                path: item.path,
-                title: item.title,
-              };
-            }),
-            limitedUploadTime,
-            type === "raw" ? "none" : afterUploadDeletAction,
-          );
-          live.batchUpdateUploadStatus(
-            filePaths.map((item) => item.part),
-            "uploaded",
-            type,
-          );
-        } else {
-          const part = filePaths[0].part;
-          const filename = path.parse(part[filePathField]).name;
-
-          let template = uploadPreset.title;
-          if (type === "handled") {
-            const list = [
-              "{{title}}",
-              "{{user}}",
-              "{{roomId}}",
-              "{{now}}",
-              "{{yyyy}}",
-              "{{MM}}",
-              "{{dd}}",
-              "{{HH}}",
-              "{{mm}}",
-              "{{ss}}",
-              "{{filename}}",
-            ];
-            // 目前如果预设标题中不存在占位符，为了兼容性考虑，依然使用webhook配置，预计后续版本中会移除此字段
-            if (!list.some((item) => template.includes(item))) {
-              template = title;
-            }
-          }
-          const videoTitle = formatTitle(
-            {
-              title: live.title,
-              username: live.username,
-              roomId: live.roomId,
-              time: part?.startTime
-                ? new Date(part.startTime).toISOString()
-                : new Date().toISOString(),
-              filename,
-            },
-            template,
-          );
-          uploadPreset.title = videoTitle;
-
-          log.info("上传", afterUploadDeletAction);
-
-          const aid = (await this.addUploadTask(
-            uid,
-            filePaths.map((item) => {
-              return {
-                path: item.path,
-                title: item.title,
-              };
-            }),
-            uploadPreset,
-            limitedUploadTime,
-            type === "raw" ? "none" : afterUploadDeletAction,
-          )) as number;
-          live[aidField] = Number(aid);
-
-          // 设置状态为成功
-          live.batchUpdateUploadStatus(
-            filePaths.map((item) => item.part),
-            "uploaded",
-            type,
-          );
-        }
-      } catch (error) {
-        log.error(error);
-        // 设置状态为失败
-        live.batchUpdateUploadStatus(
-          filePaths.map((item) => item.part),
-          "error",
-          type,
-        );
-      }
-    };
-
     if (type) {
       if (type === "handled") {
-        await uploadVideo("handled");
+        await this.uploadVideoByType(live, "handled");
       } else if (type === "raw") {
-        await uploadVideo("raw");
+        await this.uploadVideoByType(live, "raw");
       } else {
         throw new Error("type error");
       }
     } else {
-      await Promise.all([uploadVideo("handled"), uploadVideo("raw")]);
+      await Promise.all([
+        this.uploadVideoByType(live, "handled"),
+        this.uploadVideoByType(live, "raw"),
+      ]);
     }
   };
 

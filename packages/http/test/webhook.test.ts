@@ -3012,5 +3012,529 @@ describe("Live", () => {
         expect(webhookHandler.liveData[0].parts[0].recordStatus).toBe("handled");
       });
     });
+
+    describe("handleLive 拆分后的私有方法测试", () => {
+      beforeEach(() => {
+        // @ts-ignore
+        webhookHandler.videoPreset = {
+          get: vi.fn().mockReturnValue({ config: {} }),
+        };
+      });
+
+      describe("buildUploadFileList", () => {
+        it("应正确构建上传文件列表", () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/part1.mp4",
+            recordStatus: "handled",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part 1",
+          });
+
+          live.addPart({
+            partId: "part-2",
+            filePath: "/path/to/part2.mp4",
+            recordStatus: "handled",
+            startTime: new Date("2022-01-01T00:05:00Z").getTime(),
+            cover: "/path/to/cover.jpg",
+            title: "Part 2",
+          });
+
+          const uploadableParts = [live.parts[0], live.parts[1]];
+          const config = {
+            partTitleTemplate: "{{filename}}",
+          } as any;
+
+          // @ts-ignore
+          const result = webhookHandler.buildUploadFileList(
+            live,
+            uploadableParts,
+            "handled",
+            config,
+          );
+
+          expect(result.filePaths.length).toBe(2);
+          expect(result.filePaths[0].part.partId).toBe("part-1");
+          expect(result.filePaths[0].title).toBe("part1");
+          expect(result.filePaths[1].part.partId).toBe("part-2");
+          expect(result.filePaths[1].title).toBe("part2");
+          expect(result.cover).toBe("/path/to/cover.jpg");
+        });
+
+        it("应根据已上传数量正确计算索引", () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          // 添加已上传的分段
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/part1.mp4",
+            recordStatus: "handled",
+            uploadStatus: "uploaded",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part 1",
+          });
+
+          // 添加待上传的分段
+          live.addPart({
+            partId: "part-2",
+            filePath: "/path/to/part2.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:05:00Z").getTime(),
+            title: "Part 2",
+          });
+
+          const uploadableParts = [live.parts[1]];
+          const config = {
+            partTitleTemplate: "P{{index}} {{filename}}",
+          } as any;
+
+          // @ts-ignore
+          const result = webhookHandler.buildUploadFileList(
+            live,
+            uploadableParts,
+            "handled",
+            config,
+          );
+
+          expect(result.filePaths[0].title).toBe("P2 part2");
+        });
+      });
+
+      describe("validateUploadConfig", () => {
+        it("应在uid未配置时返回false并设置错误状态", () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/part1.mp4",
+            recordStatus: "handled",
+            title: "Part 1",
+          });
+
+          const filePaths = [{ part: live.parts[0], path: "/path/to/part1.mp4", title: "Part 1" }];
+          const config = { uid: undefined } as any;
+
+          // @ts-ignore
+          const result = webhookHandler.validateUploadConfig(live, filePaths, "handled", config);
+
+          expect(result).toBe(false);
+          expect(live.parts[0].uploadStatus).toBe("error");
+        });
+
+        it("应在raw类型且不允许上传无弹幕视频时返回false", () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/part1.mp4",
+            recordStatus: "handled",
+            title: "Part 1",
+          });
+
+          const filePaths = [{ part: live.parts[0], path: "/path/to/part1.mp4", title: "Part 1" }];
+          const config = { uid: 123, uploadNoDanmu: false } as any;
+
+          // @ts-ignore
+          const result = webhookHandler.validateUploadConfig(live, filePaths, "raw", config);
+
+          expect(result).toBe(false);
+          expect(live.parts[0].rawUploadStatus).toBe("error");
+        });
+
+        it("应在配置正确时返回true", () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/part1.mp4",
+            recordStatus: "handled",
+            title: "Part 1",
+          });
+
+          const filePaths = [{ part: live.parts[0], path: "/path/to/part1.mp4", title: "Part 1" }];
+          const config = { uid: 123, uploadNoDanmu: true } as any;
+
+          // @ts-ignore
+          const result = webhookHandler.validateUploadConfig(live, filePaths, "handled", config);
+
+          expect(result).toBe(true);
+        });
+      });
+
+      describe("prepareUploadPreset", () => {
+        it("应正确准备handled类型的上传预设", async () => {
+          const config = {
+            uploadPresetId: "preset-1",
+            useLiveCover: true,
+          } as any;
+
+          // @ts-ignore
+          webhookHandler.videoPreset.get = vi.fn().mockResolvedValue({
+            config: { title: "Custom Title" },
+          });
+
+          // @ts-ignore
+          const result = await webhookHandler.prepareUploadPreset(
+            "handled",
+            config,
+            "/path/to/cover.jpg",
+          );
+
+          expect(webhookHandler.videoPreset.get).toHaveBeenCalledWith("preset-1");
+          expect(result.title).toBe("Custom Title");
+          expect(result.cover).toBe("/path/to/cover.jpg");
+        });
+
+        it("应正确准备raw类型的上传预设", async () => {
+          const config = {
+            noDanmuVideoPreset: "raw-preset",
+            useLiveCover: false,
+          } as any;
+
+          // @ts-ignore
+          webhookHandler.videoPreset.get = vi.fn().mockResolvedValue({
+            config: { title: "Raw Title" },
+          });
+
+          // @ts-ignore
+          const result = await webhookHandler.prepareUploadPreset("raw", config);
+
+          expect(webhookHandler.videoPreset.get).toHaveBeenCalledWith("raw-preset");
+          expect(result.title).toBe("Raw Title");
+          // 注意：DEFAULT_BILIUP_CONFIG 可能包含空字符串的 cover
+          expect(result.cover).toBeDefined();
+        });
+      });
+
+      describe("formatUploadTitle", () => {
+        it("应正确格式化handled类型的标题（使用预设占位符）", () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "room123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Live Title",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/video.mp4",
+            recordStatus: "handled",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part Title",
+          });
+
+          const uploadPreset = { title: "{{title}} by {{user}}" } as any;
+          const config = { title: "Webhook Title" } as any;
+
+          // @ts-ignore
+          const result = webhookHandler.formatUploadTitle(
+            live,
+            live.parts[0],
+            "handled",
+            uploadPreset,
+            config,
+          );
+
+          expect(result).toBe("Live Title by TestUser");
+        });
+
+        it("应正确格式化handled类型的标题（使用webhook配置）", () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "room123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Live Title",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/video.mp4",
+            recordStatus: "handled",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part Title",
+          });
+
+          const uploadPreset = { title: "Plain Title" } as any;
+          const config = { title: "Webhook {{user}}" } as any;
+
+          // @ts-ignore
+          const result = webhookHandler.formatUploadTitle(
+            live,
+            live.parts[0],
+            "handled",
+            uploadPreset,
+            config,
+          );
+
+          expect(result).toBe("Webhook TestUser");
+        });
+
+        it("应正确格式化raw类型的标题", () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "room123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Live Title",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/video.mp4",
+            recordStatus: "handled",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part Title",
+          });
+
+          const uploadPreset = { title: "{{title}} - Raw" } as any;
+          const config = {} as any;
+
+          // @ts-ignore
+          const result = webhookHandler.formatUploadTitle(
+            live,
+            live.parts[0],
+            "raw",
+            uploadPreset,
+            config,
+          );
+
+          expect(result).toBe("Live Title - Raw");
+        });
+      });
+
+      describe("uploadVideoByType - 集成测试", () => {
+        it("应跳过有正在上传分段的情况", async () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/part1.mp4",
+            recordStatus: "handled",
+            uploadStatus: "uploading",
+            title: "Part 1",
+          });
+
+          const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig");
+
+          // @ts-ignore
+          await webhookHandler.uploadVideoByType(live, "handled");
+
+          expect(getConfigSpy).not.toHaveBeenCalled();
+        });
+
+        it("应跳过没有可上传分段的情况", async () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/part1.mp4",
+            recordStatus: "recording",
+            title: "Part 1",
+          });
+
+          const getConfigSpy = vi.spyOn(webhookHandler.configManager, "getConfig");
+
+          // @ts-ignore
+          await webhookHandler.uploadVideoByType(live, "handled");
+
+          expect(getConfigSpy).not.toHaveBeenCalled();
+        });
+
+        it("应成功执行新上传流程", async () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/part1.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part 1",
+          });
+
+          // @ts-ignore
+          vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
+            uid: 123,
+            uploadPresetId: "preset-1",
+            useLiveCover: false,
+            limitUploadTime: false,
+            uploadHandleTime: ["00:00:00", "23:59:59"],
+            partTitleTemplate: "{{filename}}",
+            afterUploadDeletAction: "none",
+            title: "Test Video {{user}}", // 添加 title 字段
+          });
+
+          // @ts-ignore
+          webhookHandler.videoPreset.get = vi.fn().mockResolvedValue({
+            config: { title: "Preset {{title}}" },
+          });
+
+          const addUploadTaskSpy = vi.spyOn(webhookHandler, "addUploadTask").mockResolvedValue(456);
+
+          // @ts-ignore
+          await webhookHandler.uploadVideoByType(live, "handled");
+
+          expect(addUploadTaskSpy).toHaveBeenCalled();
+          expect(live.aid).toBe(456);
+          expect(live.parts[0].uploadStatus).toBe("uploaded");
+        });
+
+        it("应成功执行续传流程", async () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+            aid: 789,
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/part1.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part 1",
+          });
+
+          // @ts-ignore
+          vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
+            uid: 123,
+            uploadPresetId: "preset-1",
+            useLiveCover: false,
+            limitUploadTime: false,
+            uploadHandleTime: ["00:00:00", "23:59:59"],
+            partTitleTemplate: "{{filename}}",
+            afterUploadDeletAction: "none",
+          });
+
+          const addEditMediaTaskSpy = vi
+            .spyOn(webhookHandler, "addEditMediaTask")
+            .mockResolvedValue(undefined);
+
+          // @ts-ignore
+          await webhookHandler.uploadVideoByType(live, "handled");
+
+          expect(addEditMediaTaskSpy).toHaveBeenCalledWith(
+            123,
+            789,
+            expect.any(Array),
+            expect.any(Array),
+            "none",
+          );
+          expect(live.parts[0].uploadStatus).toBe("uploaded");
+        });
+
+        it("应在上传失败时设置错误状态", async () => {
+          const live = new Live({
+            eventId: "123",
+            platform: "blrec",
+            roomId: "123",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Test Video",
+            username: "TestUser",
+          });
+
+          live.addPart({
+            partId: "part-1",
+            filePath: "/path/to/part1.mp4",
+            recordStatus: "handled",
+            uploadStatus: "pending",
+            startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+            title: "Part 1",
+          });
+
+          // @ts-ignore
+          vi.spyOn(webhookHandler.configManager, "getConfig").mockReturnValue({
+            uid: 123,
+            uploadPresetId: "preset-1",
+            useLiveCover: false,
+            limitUploadTime: false,
+            uploadHandleTime: ["00:00:00", "23:59:59"],
+            partTitleTemplate: "{{filename}}",
+            afterUploadDeletAction: "none",
+            title: "Test Video {{user}}", // 添加 title 字段
+          });
+
+          // @ts-ignore
+          webhookHandler.videoPreset.get = vi.fn().mockResolvedValue({
+            config: { title: "Preset {{title}}" },
+          });
+
+          vi.spyOn(webhookHandler, "addUploadTask").mockRejectedValue(new Error("Upload failed"));
+
+          // @ts-ignore
+          await webhookHandler.uploadVideoByType(live, "handled");
+
+          expect(live.parts[0].uploadStatus).toBe("error");
+        });
+      });
+    });
   });
 });
