@@ -1989,7 +1989,7 @@ describe("WebhookHandler", () => {
       expect(liveData[0].parts[1].recordStatus).toBe("recorded");
     });
 
-    it("当接手到close事件时，如果之前part还在录制中，则设置为成功", async () => {
+    it("当接手到close事件时，如果之前part还在录制中，则设置为失败", async () => {
       // Arrange
       const existingLive = new Live({
         eventId: "existing-event-id",
@@ -2040,9 +2040,92 @@ describe("WebhookHandler", () => {
       // Assert
       const liveData = webhookHandler.liveData;
 
-      expect(liveData[0].parts[0].recordStatus).toBe("handled");
-      expect(liveData[0].parts[1].recordStatus).toBe("handled");
+      expect(liveData[0].parts[0].recordStatus).toBe("error");
+      expect(liveData[0].parts[1].recordStatus).toBe("error");
       expect(liveData[0].parts[2].recordStatus).toBe("recorded");
+    });
+
+    it("应在文件不存在时尝试替换为mp4扩展名 - 存在直播记录", async () => {
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      const existingLive = new Live({
+        eventId: "test-id",
+        platform: "blrec",
+        roomId: "123",
+        startTime: Date.now(),
+        title: "Test",
+        username: "user",
+      });
+      existingLive.addPart({
+        partId: "part-1",
+        startTime: Date.now(),
+        filePath: "/path/to/file.flv",
+        recordStatus: "recording",
+        title: "Part 1",
+      });
+      webhookHandler.liveData.push(existingLive);
+
+      const options: Options = {
+        event: "FileClosed",
+        roomId: "123",
+        platform: "blrec",
+        filePath: "/path/to/file.flv",
+        time: new Date().toISOString(),
+        title: "Test",
+        username: "user",
+      };
+
+      // @ts-ignore
+      vi.spyOn(fs, "pathExistsSync")
+        // @ts-ignore
+        .mockReturnValueOnce(false) // 第一次检查flv不存在
+        // @ts-ignore
+        .mockReturnValueOnce(true); // 第二次检查mp4存在
+
+      // Act
+      const partId = await webhookHandler.handleCloseEvent(options);
+
+      // Assert
+      // 使用 toContain 来处理路径分隔符差异
+      expect(options.filePath).toContain("file.mp4");
+      const liveData = webhookHandler.liveData;
+      expect(liveData[0].parts[0].filePath).toContain("file.mp4");
+      expect(liveData[0].parts[0].rawFilePath).toContain("file.mp4");
+      expect(partId).toBe("part-1");
+    });
+
+    it("应在文件不存在时尝试替换为mp4扩展名 - 不存在直播记录", async () => {
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
+      webhookHandler.liveData = [];
+
+      const options: Options = {
+        event: "FileClosed",
+        roomId: "123",
+        platform: "blrec",
+        filePath: "/path/to/file.flv",
+        time: new Date().toISOString(),
+        title: "Test",
+        username: "user",
+      };
+
+      // @ts-ignore
+      vi.spyOn(fs, "pathExistsSync")
+        // @ts-ignore
+        .mockReturnValueOnce(false) // 第一次检查flv不存在
+        // @ts-ignore
+        .mockReturnValueOnce(true); // 第二次检查mp4存在
+
+      // Act
+      const partId = await webhookHandler.handleCloseEvent(options);
+
+      // Assert
+      // 使用 toContain 来处理路径分隔符差异
+      expect(options.filePath).toContain("file.mp4");
+      const liveData = webhookHandler.liveData;
+      expect(liveData[0].parts[0].filePath).toContain("file.mp4");
+      expect(liveData[0].parts[0].rawFilePath).toContain("file.mp4");
+      expect(partId).toBeDefined();
     });
   });
 
@@ -2509,6 +2592,7 @@ describe("WebhookHandler", () => {
 
   describe("handleVideoSync", () => {
     // @ts-ignore
+    vi.spyOn(fs, "pathExistsSync").mockReturnValue(true);
     vi.spyOn(fs, "pathExists").mockResolvedValue(true);
 
     it("视频：不同步不上传且删除", async () => {
@@ -2746,51 +2830,6 @@ describe("Live", () => {
         // @ts-ignore
         const result = webhookHandler.shouldSkipProcessing("FileClosed");
         expect(result).toBe(false);
-      });
-    });
-
-    describe("prepareFiles", () => {
-      it("应在文件不存在时尝试替换为mp4扩展名", async () => {
-        const live = new Live({
-          eventId: "test-id",
-          platform: "blrec",
-          roomId: "123",
-          startTime: Date.now(),
-          title: "Test",
-          username: "user",
-        });
-        const part = {
-          partId: "part-1",
-          filePath: "/path/to/file.flv",
-          recordStatus: "recording" as const,
-          title: "Part 1",
-        };
-        live.addPart(part);
-
-        const context = { live, part };
-        const options = {
-          event: "FileClosed" as const,
-          roomId: "123",
-          platform: "blrec" as const,
-          filePath: "/path/to/file.flv",
-          time: new Date().toISOString(),
-          title: "Test",
-          username: "user",
-        };
-
-        // @ts-ignore
-        vi.spyOn(fs, "pathExists")
-          // @ts-ignore
-          .mockResolvedValueOnce(false) // 第一次检查flv不存在
-          // @ts-ignore
-          .mockResolvedValueOnce(true); // 第二次检查mp4存在
-
-        // @ts-ignore
-        await webhookHandler.prepareFiles(context, options);
-
-        // 使用 toContain 来处理路径分隔符差异
-        expect(options.filePath).toContain("file.mp4");
-        expect(part.filePath).toContain("file.mp4");
       });
     });
 
@@ -3071,7 +3110,7 @@ describe("Live", () => {
         };
 
         // @ts-ignore
-        vi.spyOn(fs, "pathExists").mockResolvedValue(true);
+        vi.spyOn(fs, "pathExistsSync").mockReturnValue(true);
 
         // 将 live 注册到 handler，以便 handleCloseEvent 能找到
         // @ts-ignore

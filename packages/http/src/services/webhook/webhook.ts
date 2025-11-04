@@ -90,7 +90,7 @@ export class WebhookHandler {
     }
 
     // 1. 处理直播数据
-    const partId = await this.handleLiveData(options, config);
+    const partId = this.handleLiveData(options, config);
 
     // 2. 如果是开始或错误事件,直接返回
     if (this.shouldSkipProcessing(options.event)) return;
@@ -100,26 +100,23 @@ export class WebhookHandler {
     const context = this.liveManager.findBy({ partId });
     if (!context) return;
 
-    // 4. 验证和准备文件
-    await this.prepareFiles(context, options);
-
-    // 5. 检查文件大小
+    // 4. 检查文件大小
     if (!(await this.validateFileSize(context, config, options))) {
       return;
     }
 
     log.debug(context.live);
 
-    // 6. 转封装处理
+    // 5. 转封装处理
     await this.processConversion(context, options, config);
 
-    // 7. 设置预处理状态
+    // 6. 设置预处理状态
     context.part.recordStatus = "prehandled";
 
-    // 8. 处理弹幕和视频压制
+    // 7. 处理弹幕和视频压制
     const processingResult = await this.processMediaFiles(context, options, config);
 
-    // 9. 处理文件同步和锁定
+    // 8. 处理文件同步和锁定
     await this.handlePostProcessing(context, options, config, processingResult);
   }
 
@@ -128,19 +125,6 @@ export class WebhookHandler {
    */
   private shouldSkipProcessing(event: string): boolean {
     return event === EventType.OpenEvent || event === EventType.ErrorEvent;
-  }
-
-  /**
-   * 准备和验证文件路径
-   */
-  private async prepareFiles(context: { live: Live; part: Part }, options: Options) {
-    const { part } = context;
-
-    // 检查文件是否存在,尝试替换扩展名
-    const file = await PathResolver.tryMp4Fallback(options.filePath);
-    options.filePath = file;
-    part.filePath = file;
-    part.rawFilePath = file;
   }
 
   /**
@@ -585,13 +569,17 @@ export class WebhookHandler {
    * @param partMergeMinute 断播续传时间戳
    * @returns 当前part的partId
    */
-  handleCloseEvent = async (options: Options): Promise<string | null> => {
+  handleCloseEvent = (options: Options): string | null => {
     const timestamp = new Date(options.time).getTime();
     const data = this.liveManager.findBy({ filePath: options.filePath });
 
+    // 检查文件是否存在,尝试替换扩展名
+    const file = PathResolver.tryMp4Fallback(options.filePath);
+    options.filePath = file;
+
     let cover: string;
     try {
-      cover = await PathResolver.getCoverPath(options.filePath, options.coverPath);
+      cover = PathResolver.getCoverPath(options.filePath, options.coverPath);
     } catch (error) {
       log.error("获取封面失败", error);
       cover = "";
@@ -603,6 +591,9 @@ export class WebhookHandler {
       currentLive.updatePartValue(currentPart.partId, "endTime", timestamp);
       currentLive.updatePartValue(currentPart.partId, "recordStatus", "recorded");
       currentLive.updatePartValue(currentPart.partId, "cover", cover);
+      // 更新文件路径
+      currentLive.updatePartValue(currentPart.partId, "filePath", file);
+      currentLive.updatePartValue(currentPart.partId, "rawFilePath", file);
       const partIndex = currentLive.parts.findIndex((part) => part.partId === currentPart.partId);
       for (let i = 0; i < partIndex; i++) {
         const part = currentLive.parts[i];
@@ -623,11 +614,11 @@ export class WebhookHandler {
       });
       // TODO: 通过视频或者弹幕元数据获取开始时间
       const part = live.addPart({
-        filePath: options.filePath,
+        filePath: file,
         endTime: timestamp,
         recordStatus: "recorded",
         uploadStatus: "pending",
-        rawFilePath: options.filePath,
+        rawFilePath: file,
         rawUploadStatus: "pending",
         title: options.title,
         cover: cover,
@@ -655,12 +646,12 @@ export class WebhookHandler {
   /**
    * 处理FileOpening和FileClosed事件
    */
-  async handleLiveData(options: Options, config: RoomConfig): Promise<string | null> {
+  handleLiveData(options: Options, config: RoomConfig): string | null {
     if (options.event === EventType.OpenEvent) {
       this.handleOpenEvent(options, config.partMergeMinute);
       return null;
     } else if (options.event === EventType.CloseEvent) {
-      const partId = await this.handleCloseEvent(options);
+      const partId = this.handleCloseEvent(options);
       return partId;
     } else if (options.event === EventType.ErrorEvent) {
       this.handleErrorEvent(options);

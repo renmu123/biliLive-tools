@@ -23,8 +23,8 @@ export class PathResolver {
    * @param coverPath 指定的封面路径（可选）
    * @returns 封面路径，如果不存在则返回 ""
    */
-  static async getCoverPath(videoPath: string, coverPath?: string): Promise<string> {
-    if (coverPath && (await fs.pathExists(coverPath))) {
+  static getCoverPath(videoPath: string, coverPath?: string): string {
+    if (coverPath && fs.pathExistsSync(coverPath)) {
       return coverPath;
     }
 
@@ -34,17 +34,17 @@ export class PathResolver {
     const coverPng = path.join(dir, `${name}.png`);
 
     // 优先检查 .cover.jpg
-    if (await fs.pathExists(coverWithSuffix)) {
+    if (fs.pathExistsSync(coverWithSuffix)) {
       return coverWithSuffix;
     }
 
     // 其次检查 .jpg
-    if (await fs.pathExists(coverJpg)) {
+    if (fs.pathExistsSync(coverJpg)) {
       return coverJpg;
     }
 
     // 最后检查 .png
-    if (await fs.pathExists(coverPng)) {
+    if (fs.pathExistsSync(coverPng)) {
       return coverPng;
     }
 
@@ -70,13 +70,13 @@ export class PathResolver {
    * @param originalPath 原始文件路径
    * @returns 实际存在的文件路径
    */
-  static async tryMp4Fallback(originalPath: string): Promise<string> {
-    if (await fs.pathExists(originalPath)) {
+  static tryMp4Fallback(originalPath: string): string {
+    if (fs.pathExistsSync(originalPath)) {
       return originalPath;
     }
 
     const mp4Path = replaceExtName(originalPath, ".mp4");
-    if (await fs.pathExists(mp4Path)) {
+    if (fs.pathExistsSync(mp4Path)) {
       return mp4Path;
     }
 
