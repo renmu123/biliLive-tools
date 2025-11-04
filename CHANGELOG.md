@@ -15,6 +15,7 @@
 - 录制：优化弹幕保存时的内存占用
 - 录制：编辑配置弹框的UI优化
 - 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
+- 录制：回退“优化录制页面的请求元数据接口数量”需求
 - webhook：优化某些极端情况，尽量保证流程不被卡住
 
 ## Bug修复
