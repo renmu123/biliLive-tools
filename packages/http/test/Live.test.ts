@@ -1619,6 +1619,7 @@ describe("LiveManager", () => {
     it("应该找到最近的 Live（在时间范围内）", () => {
       const live = new Live({
         platform: "blrec",
+        software: "blrec-software",
         roomId: "123",
         title: "测试直播",
         username: "测试主播",
@@ -1636,7 +1637,7 @@ describe("LiveManager", () => {
       liveManager.addLive(live);
 
       const currentTime = 1640995500000 + 3 * 60 * 1000; // 3分钟后
-      const found = liveManager.findRecentLive("123", "blrec", 10, currentTime);
+      const found = liveManager.findRecentLive("123", "blrec-software", 10, currentTime);
 
       expect(found).toBe(live);
     });
@@ -1644,6 +1645,7 @@ describe("LiveManager", () => {
     it("如果时间超出范围应该返回 undefined", () => {
       const live = new Live({
         platform: "blrec",
+        software: "blrec-software",
         roomId: "123",
         title: "测试直播",
         username: "测试主播",
@@ -1661,14 +1663,15 @@ describe("LiveManager", () => {
       liveManager.addLive(live);
 
       const currentTime = 1640995500000 + 15 * 60 * 1000; // 15分钟后
-      const found = liveManager.findRecentLive("123", "blrec", 10, currentTime);
+      const found = liveManager.findRecentLive("123", "blrec-software", 10, currentTime);
 
       expect(found).toBeUndefined();
     });
 
-    it("如果房间ID或平台不匹配应该返回 undefined", () => {
+    it("如果房间ID或软件不匹配应该返回 undefined", () => {
       const live = new Live({
         platform: "blrec",
+        software: "blrec-software",
         roomId: "123",
         title: "测试直播",
         username: "测试主播",
@@ -1688,14 +1691,15 @@ describe("LiveManager", () => {
       const currentTime = 1640995500000 + 3 * 60 * 1000;
 
       // 房间ID不匹配
-      expect(liveManager.findRecentLive("456", "blrec", 10, currentTime)).toBeUndefined();
+      expect(liveManager.findRecentLive("456", "blrec-software", 10, currentTime)).toBeUndefined();
 
-      // 平台不匹配
-      expect(liveManager.findRecentLive("123", "bili-recorder", 10, currentTime)).toBeUndefined();
+      // 软件不匹配
+      expect(liveManager.findRecentLive("123", "other-software", 10, currentTime)).toBeUndefined();
     });
     it("如果存在多个匹配的 Live，应该返回最新的一个", () => {
       const live1 = new Live({
         platform: "blrec",
+        software: "blrec-software",
         roomId: "123",
         title: "测试直播1",
         username: "测试主播",
@@ -1710,6 +1714,7 @@ describe("LiveManager", () => {
       });
       const live2 = new Live({
         platform: "blrec",
+        software: "blrec-software",
         roomId: "123",
         title: "测试直播2",
         username: "测试主播",
@@ -1726,16 +1731,17 @@ describe("LiveManager", () => {
       liveManager.addLive(live2);
 
       const currentTime = 1640995600000 + 3 * 60 * 1000;
-      const found = liveManager.findRecentLive("123", "blrec", 10, currentTime);
+      const found = liveManager.findRecentLive("123", "blrec-software", 10, currentTime);
 
       expect(found).toBe(live2);
     });
   });
 
   describe("findLastLiveByRoomAndPlatform", () => {
-    it("应该找到最后一个匹配房间和平台的 Live（没有 endTime）", () => {
+    it("应该找到最后一个匹配房间和软件的 Live（没有 endTime）", () => {
       const live1 = new Live({
         platform: "blrec",
+        software: "blrec-software",
         roomId: "123",
         title: "测试直播1",
         username: "测试主播",
@@ -1751,6 +1757,7 @@ describe("LiveManager", () => {
 
       const live2 = new Live({
         platform: "blrec",
+        software: "blrec-software",
         roomId: "123",
         title: "测试直播2",
         username: "测试主播",
@@ -1767,13 +1774,14 @@ describe("LiveManager", () => {
       liveManager.addLive(live1);
       liveManager.addLive(live2);
 
-      const found = liveManager.findLastLiveByRoomAndPlatform("123", "blrec");
+      const found = liveManager.findLastLiveByRoomAndPlatform("123", "blrec-software");
       expect(found).toBe(live2);
     });
 
     it("如果 Live 有 endTime 应该被跳过", () => {
       const live1 = new Live({
         platform: "blrec",
+        software: "blrec-software",
         roomId: "123",
         title: "测试直播1",
         username: "测试主播",
@@ -1790,7 +1798,7 @@ describe("LiveManager", () => {
 
       liveManager.addLive(live1);
 
-      const found = liveManager.findLastLiveByRoomAndPlatform("123", "blrec");
+      const found = liveManager.findLastLiveByRoomAndPlatform("123", "blrec-software");
       expect(found).toBeUndefined();
     });
   });

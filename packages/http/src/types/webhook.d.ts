@@ -33,6 +33,7 @@ export interface Options {
   coverPath?: string;
   danmuPath?: string;
   platform: Platform;
+  software: string;
 }
 
 export interface CustomEvent {
@@ -52,6 +53,8 @@ export interface CustomEvent {
   coverPath?: string;
   /** 弹幕路径 */
   danmuPath?: string;
-  /** 平台名称，默认为 custom */
+  /** 视频平台名称，如huya，默认为 custom */
   platform?: Platform;
+  /** 录制软件名称，默认为 custom */
+  software?: string;
 }

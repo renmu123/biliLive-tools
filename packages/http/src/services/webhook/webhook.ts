@@ -519,7 +519,7 @@ export class WebhookHandler {
     // 找到上一个文件结束时间与当前时间差小于一段时间的直播，认为是同一个直播
     let currentLive = this.liveManager.findRecentLive(
       options.roomId,
-      options.platform,
+      options.software,
       partMergeMinute || 10,
       timestamp,
     );
@@ -527,10 +527,10 @@ export class WebhookHandler {
     if (partMergeMinute !== -1 && currentLive === undefined) {
       // 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间，如果出现这种情况，尝试特殊处理
       // 如果live的任何一个part有endTime，说明不会出现特殊情况，不需要特殊处理
-      // 然后去遍历liveData，找到roomId、platform、title都相同的直播，认为是同一场直播
+      // 然后去遍历liveData，找到roomId、software、title都相同的直播，认为是同一场直播
       currentLive = this.liveManager.findLastLiveByRoomAndPlatform(
         options.roomId,
-        options.platform,
+        options.software,
       );
     }
 
@@ -545,6 +545,7 @@ export class WebhookHandler {
       // 新建Live数据
       const live = new Live({
         platform: options.platform,
+        software: options.software,
         roomId: options.roomId,
         startTime: timestamp,
         title: options.title,
@@ -607,6 +608,7 @@ export class WebhookHandler {
     } else {
       const live = new Live({
         platform: options.platform,
+        software: options.software,
         roomId: options.roomId,
         title: options.title,
         username: options.username,

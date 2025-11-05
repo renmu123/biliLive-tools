@@ -177,6 +177,7 @@ export class Part implements PartInterface {
 export class Live {
   eventId: string;
   platform: Platform;
+  software: string;
   startTime: number;
   roomId: string;
   // 直播标题
@@ -191,6 +192,7 @@ export class Live {
   constructor(options: {
     eventId?: string;
     platform: Platform;
+    software?: string;
     roomId: string;
     title: string;
     username: string;
@@ -200,6 +202,7 @@ export class Live {
   }) {
     this.eventId = options.eventId ?? uuid();
     this.platform = options.platform;
+    this.software = options.software ?? "custom";
     this.roomId = options.roomId;
     this.startTime = options.startTime;
     this.title = options.title;
@@ -385,6 +388,7 @@ export class Live {
   toJSON(): {
     eventId: string;
     platform: Platform;
+    software: string;
     startTime: number;
     roomId: string;
     title: string;
@@ -396,6 +400,7 @@ export class Live {
     return {
       eventId: this.eventId,
       platform: this.platform,
+      software: this.software,
       startTime: this.startTime,
       roomId: this.roomId,
       title: this.title,
@@ -597,21 +602,21 @@ export class LiveManager {
   }
 
   /**
-   * 根据房间ID和平台查找最近的 Live
+   * 根据房间ID和软件查找最近的 Live
    * @param roomId 房间ID
-   * @param platform 平台
+   * @param software 录制软件
    * @param maxTimeDiffMinutes 最大时间差（分钟）
    * @param currentTime 当前时间戳
    * @returns 找到的 Live，如果没找到则返回 undefined
    */
   findRecentLive(
     roomId: string,
-    platform: Platform,
+    software: string,
     maxTimeDiffMinutes: number,
     currentTime: number,
   ): Live | undefined {
     return this.lives.findLast((live) => {
-      if (live.roomId !== roomId || live.platform !== platform) {
+      if (live.roomId !== roomId || live.software !== software) {
         return false;
       }
       const endTime = live.getLastPartEndTime();
@@ -624,18 +629,18 @@ export class LiveManager {
   }
 
   /**
-   * 根据房间ID和平台查找最后一个 Live（不考虑时间）
+   * 根据房间ID和软件查找最后一个 Live（不考虑时间）
    * @param roomId 房间ID
-   * @param platform 平台
+   * @param software 录制软件
    * @returns 找到的 Live，如果没找到则返回 undefined
    */
-  findLastLiveByRoomAndPlatform(roomId: string, platform: Platform): Live | undefined {
+  findLastLiveByRoomAndPlatform(roomId: string, software: string): Live | undefined {
     return this.lives.findLast((live) => {
       const hasEndTime = live.parts.some((item) => item.endTime);
       if (hasEndTime) {
         return false;
       }
-      return live.roomId === roomId && live.platform === platform;
+      return live.roomId === roomId && live.software === software;
     });
   }
 

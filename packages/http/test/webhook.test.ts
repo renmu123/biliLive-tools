@@ -56,6 +56,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
+        software: "bili-recorder",
         roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
@@ -83,6 +84,7 @@ describe("WebhookHandler", () => {
         event: "FileOpening",
         roomId: "123",
         platform: "bili-recorder",
+        software: "bili-recorder",
         time: "2022-01-01T00:09:00Z",
         title: "Existing Video",
         filePath: "/path/to/existing-video3.mp4",
@@ -103,6 +105,7 @@ describe("WebhookHandler", () => {
         event: "FileClosed",
         roomId: "123",
         platform: "bili-recorder",
+        software: "bili-recorder",
         time: "2022-01-01T00:10:00Z",
         title: "Existing Video",
         filePath: "/path/to/existing-video2.mp4",
@@ -124,6 +127,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
+        software: "bili-recorder",
         roomId: "123",
         startTime: new Date("2022-01-01T00:08:00Z").getTime(),
         title: "Existing Video",
@@ -143,6 +147,7 @@ describe("WebhookHandler", () => {
         event: "FileOpening",
         roomId: "123",
         platform: "bili-recorder",
+        software: "bili-recorder",
         time: "2022-01-01T00:09:00Z",
         title: "Existing Video",
         filePath: "/path/to/existing-video3.mp4",
@@ -163,6 +168,7 @@ describe("WebhookHandler", () => {
         event: "FileClosed",
         roomId: "123",
         platform: "bili-recorder",
+        software: "bili-recorder",
         time: "2022-01-01T00:10:00Z",
         title: "Existing Video",
         filePath: "/path/to/existing-video2.mp4",
@@ -296,6 +302,7 @@ describe("WebhookHandler", () => {
         username: "test",
         platform: "blrec",
         title: "test video",
+        software: "bili-recorder",
       };
       const getConfigSpy = vi
         .spyOn(webhookHandler.configManager, "getConfig")
@@ -319,6 +326,7 @@ describe("WebhookHandler", () => {
         username: "test",
         platform: "blrec",
         title: "test video",
+        software: "bili-recorder",
       };
       const closeOptions: Options = {
         roomId: "123",
@@ -328,6 +336,7 @@ describe("WebhookHandler", () => {
         username: "test",
         platform: "blrec",
         title: "test video",
+        software: "bili-recorder",
       };
       const getConfigSpy = vi
         .spyOn(webhookHandler.configManager, "getConfig")
@@ -376,6 +385,7 @@ describe("WebhookHandler", () => {
         username: "test",
         platform: "blrec",
         title: "test video",
+        software: "bili-recorder",
       };
       const options: Options = {
         roomId: "123",
@@ -385,6 +395,7 @@ describe("WebhookHandler", () => {
         username: "test",
         platform: "blrec",
         title: "test video",
+        software: "bili-recorder",
       };
       vi.mock("@biliLive-tools/shared/utils/index.js", async (importOriginal) => {
         const mod = await importOriginal<typeof import("@biliLive-tools/shared/utils/index.js")>();
@@ -1875,6 +1886,7 @@ describe("WebhookHandler", () => {
         title: "Existing Video",
         filePath: "/path/to/existing-video.mp4",
         username: "test",
+        software: "bili-recorder",
       };
 
       // Act
@@ -1911,6 +1923,7 @@ describe("WebhookHandler", () => {
         title: "New Video",
         filePath: "/path/to/new-video.mp4",
         username: "test",
+        software: "bili-recorder",
       };
 
       // Act
@@ -1967,6 +1980,7 @@ describe("WebhookHandler", () => {
         title: "Existing Video",
         filePath: "/path/to/existing-video-2.mp4",
         username: "test",
+        software: "bili-recorder",
       };
 
       // Act
@@ -2032,6 +2046,7 @@ describe("WebhookHandler", () => {
         title: "Existing Video",
         filePath: "/path/to/existing-video-2.mp4",
         username: "test",
+        software: "bili-recorder",
       };
 
       // Act
@@ -2073,6 +2088,7 @@ describe("WebhookHandler", () => {
         time: new Date().toISOString(),
         title: "Test",
         username: "user",
+        software: "bili-recorder",
       };
 
       // @ts-ignore
@@ -2107,6 +2123,7 @@ describe("WebhookHandler", () => {
         time: new Date().toISOString(),
         title: "Test",
         username: "user",
+        software: "bili-recorder",
       };
 
       // @ts-ignore
@@ -2170,6 +2187,7 @@ describe("WebhookHandler", () => {
         title: "Test Video",
         filePath: "/path/to/video1.mp4",
         username: "test-user",
+        software: "bili-recorder",
       };
 
       webhookHandler.handleErrorEvent(options);
@@ -2199,6 +2217,7 @@ describe("WebhookHandler", () => {
         title: "Test Video",
         filePath: "/path/to/nonexistent.mp4",
         username: "test-user",
+        software: "bili-recorder",
       };
 
       // 不应该抛出错误
@@ -2242,6 +2261,7 @@ describe("WebhookHandler", () => {
         title: "Test Video",
         filePath: "/path/to/video2.mp4",
         username: "test-user",
+        software: "bili-recorder",
       };
 
       webhookHandler.handleErrorEvent(options);
@@ -2267,6 +2287,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
+        software: "bili-recorder",
         roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
@@ -2290,6 +2311,7 @@ describe("WebhookHandler", () => {
         title: "New Video",
         filePath: "/path/to/new-video.mp4",
         username: "test",
+        software: "bili-recorder",
       };
 
       // Act
@@ -2317,6 +2339,7 @@ describe("WebhookHandler", () => {
       const existingLive = new Live({
         eventId: "existing-event-id",
         platform: "bili-recorder",
+        software: "bili-recorder",
         roomId: "123",
         startTime: new Date("2022-01-01T00:00:00Z").getTime(),
         title: "Existing Video",
@@ -2339,6 +2362,7 @@ describe("WebhookHandler", () => {
         time: "2022-01-01T00:09:00Z",
         title: "New Video",
         filePath: "/path/to/new-video.mp4",
+        software: "bili-recorder",
         username: "test",
       };
 
@@ -2374,6 +2398,7 @@ describe("WebhookHandler", () => {
         title: "New Video",
         filePath: "/path/to/new-video.mp4",
         username: "test",
+        software: "bili-recorder",
       };
 
       // Act
@@ -2423,6 +2448,7 @@ describe("WebhookHandler", () => {
         title: "New Video",
         filePath: "/path/to/new-video.mp4",
         username: "test",
+        software: "bili-recorder",
       };
 
       // Act
@@ -2472,6 +2498,7 @@ describe("WebhookHandler", () => {
         title: "New Video",
         filePath: "/path/to/new-video.mp4",
         username: "test",
+        software: "bili-recorder",
       };
 
       // Act
@@ -2520,6 +2547,7 @@ describe("WebhookHandler", () => {
         title: "New Video",
         filePath: "/path/to/new-video.mp4",
         username: "test",
+        software: "bili-recorder",
       };
 
       // Act
@@ -2568,6 +2596,7 @@ describe("WebhookHandler", () => {
         title: "New Video",
         filePath: "/path/to/new-video.mp4",
         username: "test",
+        software: "bili-recorder",
       };
 
       // Act
@@ -2593,6 +2622,7 @@ describe("WebhookHandler", () => {
   describe("handleVideoSync", () => {
     // @ts-ignore
     vi.spyOn(fs, "pathExistsSync").mockReturnValue(true);
+    // @ts-ignore
     vi.spyOn(fs, "pathExists").mockResolvedValue(true);
 
     it("视频：不同步不上传且删除", async () => {
@@ -3137,6 +3167,7 @@ describe("Live", () => {
           time: "2022-01-01T00:00:00Z",
           title: "Test Video",
           username: "TestUser",
+          software: "bili-recorder",
         };
 
         // @ts-ignore
