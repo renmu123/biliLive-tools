@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import FileLockManager from "../../src/services/fileLockManager";
+import FileLockManager from "../src/services/webhook/fileLockManager.js";
 
 describe("FileLockManager", () => {
   let fileLockManager: FileLockManager;

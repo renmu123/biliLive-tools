@@ -299,6 +299,15 @@ const handleConvert = async () => {
 
   const data = await preHandle(files, rawClientOptions, danmuPreset.value.config);
   if (!data) return;
+  if (clientOptions.autoUpload && !aid.value) {
+    if (presetOptions.value.config.copyright === 2 && !presetOptions.value.config.source) {
+      notice.error({
+        title: `稿件类型为转载时转载来源不能为空`,
+        duration: 1000,
+      });
+      return;
+    }
+  }
   // 视频验证
   // const outputPath = await window.api.showSaveDialog({
   //   defaultPath: `${data.inputVideoFile.name}-弹幕版.mp4`,

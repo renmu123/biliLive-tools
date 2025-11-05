@@ -45,7 +45,13 @@
           </n-space>
         </n-radio-group>
       </n-form-item>
-      <n-form-item v-if="options.config.copyright === 2" label="转载来源">
+      <n-form-item v-if="options.config.copyright === 2">
+        <template #label>
+          <Tip
+            tip="如果为空，在webhook使用时，会尝试会替换为直播间链接，如果无法匹配到，会被替换为直播间号"
+            text="转载来源"
+          ></Tip>
+        </template>
         <n-input
           v-model:value="options.config.source"
           placeholder="注明视频来源网址"
@@ -352,7 +358,6 @@
 
 <script setup lang="ts">
 import { biliApi, videoPresetApi } from "@renderer/apis";
-import { previewWebhookTitle } from "@renderer/apis/common";
 import { useConfirm } from "@renderer/hooks";
 import { deepRaw, uuid } from "@renderer/utils";
 
@@ -727,7 +732,7 @@ const handleTopicChange = (topicName: string) => {
 const titleList = ref(uploadTitleTemplate);
 const titleTip = computed(() => {
   const base = `上限80字，多余的会被截断。<br/>
-  占位符用于支持webhook中的相关功能，如果你是手动上传，和你基本上没关系，如【{{user}}】{{title}}-{{now}}<br/>
+  占位符用于支持webhook中的相关功能，如【{{user}}】{{title}}-{{now}}<br/>
   不要在直播开始后修改字段，本场直播不会生效，更多模板引擎等高级用法见文档<br/>`;
   return titleList.value
     .map((item) => {
@@ -737,7 +742,7 @@ const titleTip = computed(() => {
 });
 
 const previewTitle = async (template: string) => {
-  const data = await previewWebhookTitle(template);
+  const data = await biliApi.formatWebhookTitle(template);
   notice.warning({
     title: data,
     duration: 3000,
