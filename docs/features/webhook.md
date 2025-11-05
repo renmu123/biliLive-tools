@@ -93,7 +93,7 @@ blrec 的 Webhook 依赖于"视频文件创建"和"视频文件完成"两个事�
 | `time`            | string | 是   | 用于标题格式化的时间，示例："2021-05-14T17:52:54.946" |
 | `title`           | string | 是   | 标题，用于格式化视频标题                              |
 | `username`        | string | 是   | 主播名称，用于格式化视频标题                          |
-| `platform`        | string | 否   | 平台，用于弹幕分析（如：`bilibili`、`douyu`）         |
+| `platform`        | string | 否   | 视频平台，用于某些地方的占位符                        |
 | `live_start_time` | string | 否   | 直播开始时间，用于弹幕分析                            |
 | `live_title`      | string | 否   | 直播标题，用于弹幕分析                                |
 

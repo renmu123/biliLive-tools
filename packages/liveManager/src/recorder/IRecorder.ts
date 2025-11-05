@@ -1,5 +1,6 @@
 import { EventEmitter } from "node:events";
 
+import type { VideoFormat } from "../index.js";
 import type { FormatName } from "./index.js";
 import type { XmlStreamController } from "../xml_stream_controller.js";
 
@@ -17,7 +18,7 @@ export interface BaseRecorderOptions {
   headers?: {
     [key: string]: string | undefined;
   };
-  videoFormat?: "auto" | "ts" | "mkv" | "mp4";
+  videoFormat?: VideoFormat;
 }
 
 /**
