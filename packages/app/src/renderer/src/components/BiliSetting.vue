@@ -732,7 +732,7 @@ const handleTopicChange = (topicName: string) => {
 const titleList = ref(uploadTitleTemplate);
 const titleTip = computed(() => {
   const base = `上限80字，多余的会被截断。<br/>
-  占位符用于支持webhook中的相关功能，如果你是手动上传，和你基本上没关系，如【{{user}}】{{title}}-{{now}}<br/>
+  占位符用于支持webhook中的相关功能，如【{{user}}】{{title}}-{{now}}<br/>
   不要在直播开始后修改字段，本场直播不会生效，更多模板引擎等高级用法见文档<br/>`;
   return titleList.value
     .map((item) => {
