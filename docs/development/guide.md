@@ -61,6 +61,8 @@ pnpm run install:bin
 
 ### 关于二进制依赖
 
+**二进制依赖下载完成后，需要手动去设置中配置对应的可执行文件路径**
+
 如果二进制依赖安装失败或不支持你的平台，请[手动下载](https://github.com/renmu123/biliLive-tools/releases/tag/0.2.1)，版本选择最靠近当前版本的版本。
 
 创建 `packages\app\resources\bin` 目录，放入以下文件：
