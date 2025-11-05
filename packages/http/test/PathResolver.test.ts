@@ -212,17 +212,17 @@ describe("PathResolver", () => {
     });
 
     it("应该支持所有占位符", () => {
-      const template = "{{platform}}/{{user}}/{{yyyy}}-{{MM}}-{{dd}}/{{now}}/{{partId}}";
+      const template = "{{platform}}/{{user}}/{{software}}/{{yyyy}}-{{MM}}-{{dd}}/{{now}}";
       const params = {
         platform: "douyu",
         user: "streamer123",
+        software: "blrec",
         liveStartTime: new Date("2024-01-05T08:00:00Z"),
-        partId: "part-123",
       };
 
       const result = PathResolver.formatFolderStructure(template, params);
 
-      expect(result).toBe("douyu/streamer123/2024-01-05/2024.01.05/part-123");
+      expect(result).toBe("douyu/streamer123/blrec/2024-01-05/2024.01.05");
     });
 
     it("应该正确补零月份和日期", () => {
@@ -236,19 +236,6 @@ describe("PathResolver", () => {
       const result = PathResolver.formatFolderStructure(template, params);
 
       expect(result).toBe("2024/01/05");
-    });
-
-    it("如果没有提供 partId，应该使用空字符串", () => {
-      const template = "{{platform}}/{{partId}}";
-      const params = {
-        platform: "test",
-        user: "test",
-        liveStartTime: new Date("2024-01-01T00:00:00Z"),
-      };
-
-      const result = PathResolver.formatFolderStructure(template, params);
-
-      expect(result).toBe("test/");
     });
 
     it("应该处理不包含占位符的模板", () => {
@@ -288,6 +275,19 @@ describe("PathResolver", () => {
       const result = PathResolver.formatFolderStructure(template, params);
 
       expect(result).toBe("2024/12/31");
+    });
+
+    it("如果没有提供 software，应该使用默认值 'custom'", () => {
+      const template = "{{platform}}/{{software}}/{{user}}";
+      const params = {
+        platform: "bilibili",
+        user: "testuser",
+        liveStartTime: new Date("2024-01-01T00:00:00Z"),
+      };
+
+      const result = PathResolver.formatFolderStructure(template, params);
+
+      expect(result).toBe("bilibili/custom/testuser");
     });
   });
 });

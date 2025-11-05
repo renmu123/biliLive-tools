@@ -100,6 +100,7 @@ export class PathResolver {
    * @param template 模板字符串，支持的占位符：
    *   - {{platform}} - 平台名称
    *   - {{user}} - 用户名
+   *   - {{software}} - 软件平台
    *   - {{year}} - 年份（4位）
    *   - {{month}} - 月份（2位，补零）
    *   - {{date}} - 日期（2位，补零）
@@ -107,7 +108,6 @@ export class PathResolver {
    *   - {{MM}} - 月份（2位，补零）
    *   - {{dd}} - 日期（2位，补零）
    *   - {{now}} - 格式化日期（yyyy.MM.dd）
-   *   - {{partId}} - 分段ID
    * @param params 格式化参数
    * @returns 格式化后的文件夹路径
    */
@@ -116,15 +116,16 @@ export class PathResolver {
     params: {
       platform: string;
       user: string;
+      software?: string;
       liveStartTime: Date;
-      partId?: string;
     },
   ): string {
-    const { platform, user, liveStartTime, partId = "" } = params;
+    const { platform, user, software = "custom", liveStartTime } = params;
 
     const formatParams = {
       platform,
       user,
+      software,
       year: liveStartTime.getFullYear(),
       month: (liveStartTime.getMonth() + 1).toString().padStart(2, "0"),
       date: liveStartTime.getDate().toString().padStart(2, "0"),
@@ -132,7 +133,6 @@ export class PathResolver {
       MM: (liveStartTime.getMonth() + 1).toString().padStart(2, "0"),
       dd: liveStartTime.getDate().toString().padStart(2, "0"),
       now: `${liveStartTime.getFullYear()}.${(liveStartTime.getMonth() + 1).toString().padStart(2, "0")}.${liveStartTime.getDate().toString().padStart(2, "0")}`,
-      partId,
     };
 
     let result = template;

@@ -461,8 +461,8 @@ export class WebhookHandler {
     const folderStructure = PathResolver.formatFolderStructure(syncConfig.folderStructure, {
       platform,
       user: username,
+      software: live.software,
       liveStartTime,
-      partId: livePart.part.partId,
     });
 
     try {
