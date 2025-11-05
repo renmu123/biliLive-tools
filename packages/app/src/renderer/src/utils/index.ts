@@ -104,3 +104,15 @@ export function generateHMACSHA256(message, secretKey) {
 export function sha256(message: string) {
   return CryptoJS.SHA256(message).toString(CryptoJS.enc.Hex);
 }
+
+/**
+ * 替换文件扩展名
+ * @param filePath 文件路径
+ * @param newExtName 新的扩展名，包含点号
+ */
+export function replaceExtName(filePath: string, newExtName: string) {
+  return window.path.join(
+    window.path.dirname(filePath),
+    window.path.basename(filePath, window.path.extname(filePath)) + newExtName,
+  );
+}

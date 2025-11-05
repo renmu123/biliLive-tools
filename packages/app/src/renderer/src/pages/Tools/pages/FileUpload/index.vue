@@ -40,10 +40,10 @@ import BiliSetting from "@renderer/components/BiliSetting.vue";
 import AppendVideoDialog from "@renderer/components/AppendVideoDialog.vue";
 import { useBili } from "@renderer/hooks";
 import { useUserInfoStore, useAppConfig } from "@renderer/stores";
-import { biliApi } from "@renderer/apis";
+import { biliApi, commonApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 
-import { deepRaw } from "@renderer/utils";
+import { deepRaw, replaceExtName } from "@renderer/utils";
 
 defineOptions({
   name: "Upload",
@@ -103,6 +103,45 @@ const upload = async () => {
     });
     return;
   }
+  await biliApi.validUploadParams(deepRaw(presetOptions.value.config));
+
+  // TODO: 转载稿件的判断还未实现
+  // 如果上传标题中存在占位符，或者稿件类型为转载，则转载来源为空时，获取第一个文件的调用解析接口获取数据进行填充
+  if (presetOptions.value.config.title.includes("{{")) {
+    try {
+      const parseResult = await commonApi.parseMeta({
+        videoFilePath: fileList.value[0].path,
+        danmaFilePath: replaceExtName(fileList.value[0].path, ".xml"),
+      });
+      if (
+        parseResult.title &&
+        parseResult.username &&
+        parseResult.roomId &&
+        parseResult.startTimestamp
+      ) {
+        if (presetOptions.value.config.title.includes("{{")) {
+          const previewTitle = await biliApi.formatWebhookTitle(presetOptions.value.config.title, {
+            title: parseResult.title,
+            username: parseResult.username,
+            time: new Date((parseResult.startTimestamp ?? 0) * 1000).toISOString(),
+            roomId: parseResult.roomId,
+            filename: window.path.basename(fileList.value[0].path),
+          });
+          presetOptions.value.config.title = previewTitle;
+          notice.success({
+            title: `已解析并替换标题为：${previewTitle}`,
+            duration: 4000,
+          });
+        }
+      }
+    } catch (e) {
+      notice.warning({
+        title: `尝试解析视频文件信息失败，继续上传`,
+        duration: 2000,
+      });
+    }
+  }
+
   if (presetOptions.value.config.copyright === 2 && !presetOptions.value.config.source) {
     notice.error({
       title: `稿件类型为转载时转载来源不能为空`,
@@ -110,7 +149,6 @@ const upload = async () => {
     });
     return;
   }
-  await biliApi.validUploadParams(deepRaw(presetOptions.value.config));
   notice.info({
     title: `开始上传`,
     duration: 1000,

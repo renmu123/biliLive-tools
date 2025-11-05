@@ -358,7 +358,6 @@
 
 <script setup lang="ts">
 import { biliApi, videoPresetApi } from "@renderer/apis";
-import { previewWebhookTitle } from "@renderer/apis/common";
 import { useConfirm } from "@renderer/hooks";
 import { deepRaw, uuid } from "@renderer/utils";
 
@@ -743,7 +742,7 @@ const titleTip = computed(() => {
 });
 
 const previewTitle = async (template: string) => {
-  const data = await previewWebhookTitle(template);
+  const data = await biliApi.formatWebhookTitle(template);
   notice.warning({
     title: data,
     duration: 3000,

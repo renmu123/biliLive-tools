@@ -523,7 +523,7 @@
 
 <script setup lang="ts">
 import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
-import { previewWebhookTitle, previewWebhookPartTitle } from "@renderer/apis/common";
+import { formatWebhookTitle, formatWebhookPartTitle } from "@renderer/apis/bili";
 import { templateRef } from "@vueuse/core";
 import { uploadTitleTemplate } from "@renderer/enums";
 
@@ -699,7 +699,7 @@ const setPartTitleVar = async (value: string) => {
   }
 };
 const previewPartTitle = async (template: string) => {
-  const data = await previewWebhookPartTitle(template);
+  const data = await formatWebhookPartTitle(template);
   notice.info({
     title: data,
     duration: 3000,
@@ -724,7 +724,7 @@ watch(
 );
 
 const previewTitle = async (template: string) => {
-  const data = await previewWebhookTitle(template);
+  const data = await formatWebhookTitle(template);
   notice.info({
     title: data,
     duration: 3000,

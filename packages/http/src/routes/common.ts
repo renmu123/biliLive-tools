@@ -6,12 +6,7 @@ import multer from "../middleware/multer.js";
 
 import Router from "@koa/router";
 import semver from "semver";
-import {
-  formatTitle,
-  uuid,
-  formatPartTitle,
-  getTempPath,
-} from "@biliLive-tools/shared/utils/index.js";
+import { uuid, getTempPath } from "@biliLive-tools/shared/utils/index.js";
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
@@ -25,45 +20,6 @@ const router = new Router({
   prefix: "/common",
 });
 const upload = multer({ dest: os.tmpdir() });
-
-router.post("/formatTitle", async (ctx) => {
-  const data = ctx.request.body as {
-    template: string;
-  };
-  const template = (data.template || "") as string;
-
-  const title = formatTitle(
-    {
-      title: "标题",
-      username: "主播名",
-      time: new Date().toISOString(),
-      roomId: 123456,
-      filename: "文件名",
-    },
-    template,
-  );
-  ctx.body = title;
-});
-
-router.post("/formatPartTitle", async (ctx) => {
-  const data = ctx.request.body as {
-    template: string;
-  };
-  const template = (data.template || "") as string;
-
-  const title = formatPartTitle(
-    {
-      title: "标题",
-      username: "主播名",
-      time: new Date().toISOString(),
-      roomId: 123456,
-      filename: "文件名",
-      index: 1,
-    },
-    template,
-  );
-  ctx.body = title;
-});
 
 router.get("/version", (ctx) => {
   ctx.body = config.version;
