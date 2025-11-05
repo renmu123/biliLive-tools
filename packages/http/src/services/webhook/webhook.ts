@@ -22,6 +22,7 @@ import FileLockManager from "./fileLockManager.js";
 import { ConfigManager } from "./ConfigManager.js";
 import { PathResolver } from "./PathResolver.js";
 import { Live, Part, LiveManager } from "./Live.js";
+import { buildRoomLink } from "./utils.js";
 
 import type {
   BiliupConfig,
@@ -1013,6 +1014,7 @@ export class WebhookHandler {
   private async prepareUploadPreset(
     type: "raw" | "handled",
     config: RoomConfig,
+    live: Live,
     cover?: string,
   ): Promise<BiliupConfig> {
     let uploadPreset = DEFAULT_BILIUP_CONFIG;
@@ -1022,6 +1024,22 @@ export class WebhookHandler {
 
     if (config.useLiveCover && cover) {
       uploadPreset.cover = cover;
+    }
+
+    // 处理转载来源：当设置为转载类型且转载来源为空时，自动生成直播间链接
+    if (
+      uploadPreset.copyright === 2 &&
+      (!uploadPreset.source || uploadPreset.source.trim() === "")
+    ) {
+      const roomLink = buildRoomLink(live.platform, live.roomId);
+      if (roomLink) {
+        uploadPreset.source = roomLink;
+      } else {
+        uploadPreset.source = live.roomId;
+        log.warn(
+          `无法为平台 ${live.platform} 生成直播间链接，使用房间号 ${live.roomId} 作为转载来源`,
+        );
+      }
     }
 
     return uploadPreset;
@@ -1184,7 +1202,7 @@ export class WebhookHandler {
     }
 
     // 6. 准备上传预设
-    const uploadPreset = await this.prepareUploadPreset(type, config, cover);
+    const uploadPreset = await this.prepareUploadPreset(type, config, live, cover);
 
     // 7. 计算限制时间
     const limitedUploadTime: [] | [string, string] = config.limitUploadTime

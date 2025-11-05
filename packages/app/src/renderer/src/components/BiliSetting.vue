@@ -45,7 +45,13 @@
           </n-space>
         </n-radio-group>
       </n-form-item>
-      <n-form-item v-if="options.config.copyright === 2" label="转载来源">
+      <n-form-item v-if="options.config.copyright === 2">
+        <template #label>
+          <Tip
+            tip="如果为空，在webhook使用时，会尝试会替换为直播间链接，如果无法匹配到，会被替换为直播间号"
+            text="转载来源"
+          ></Tip>
+        </template>
         <n-input
           v-model:value="options.config.source"
           placeholder="注明视频来源网址"

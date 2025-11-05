@@ -103,6 +103,13 @@ const upload = async () => {
     });
     return;
   }
+  if (presetOptions.value.config.copyright === 2 && !presetOptions.value.config.source) {
+    notice.error({
+      title: `稿件类型为转载时转载来源不能为空`,
+      duration: 1000,
+    });
+    return;
+  }
   await biliApi.validUploadParams(deepRaw(presetOptions.value.config));
   notice.info({
     title: `开始上传`,

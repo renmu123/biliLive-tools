@@ -98,6 +98,17 @@ blrec 的 Webhook 依赖于"视频文件创建"和"视频文件完成"两个事�
 | `live_start_time` | string | 否   | 直播开始时间，用于弹幕分析                              |
 | `live_title`      | string | 否   | 直播标题，用于弹幕分析                                  |
 
+::: tip platform 的某种用处
+当上传配置中稿件类型设置为"转载"且转载来源为空时，系统会自动生成转载来源，如果无法匹配平台或生成链接失败，会使用房间号作为转载来源：
+
+**优先使用直播间链接**：根据平台和房间号生成对应的直播间链接
+
+- bilibili：`https://live.bilibili.com/{房间号}`
+- huya`https://www.huya.com/{房间号}`
+- douyu`https://www.douyu.com/{房间号}`
+- douyin：`https://live.douyin.com/{房间号}`
+  :::
+
 #### 事件类型
 
 - **FileOpening**：文件开始录制
@@ -152,15 +163,6 @@ curl --location 'http://127.0.0.1:18010/webhook/custom' \
 
 - **账号**：选择上传使用的B站账号
 - **标题格式**：标题模板
-
-#### 其他
-
-- 是否启用
-- 转封装设置
-- 压制设置
-- 上传设置
-- 同步设置
-- 等等...
 
 ### 直播间配置
 

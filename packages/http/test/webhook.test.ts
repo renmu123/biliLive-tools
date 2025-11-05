@@ -3401,7 +3401,10 @@ describe("Live", () => {
             uploadPresetId: "preset-1",
             useLiveCover: true,
           } as any;
-
+          const live = {
+            platform: "bilibili",
+            roomId: "123456",
+          };
           // @ts-ignore
           webhookHandler.videoPreset.get = vi.fn().mockResolvedValue({
             config: { title: "Custom Title" },
@@ -3411,6 +3414,7 @@ describe("Live", () => {
           const result = await webhookHandler.prepareUploadPreset(
             "handled",
             config,
+            live as any,
             "/path/to/cover.jpg",
           );
 
@@ -3437,6 +3441,119 @@ describe("Live", () => {
           expect(result.title).toBe("Raw Title");
           // 注意：DEFAULT_BILIUP_CONFIG 可能包含空字符串的 cover
           expect(result.cover).toBeDefined();
+        });
+
+        describe("prepareUploadPreset - 转载来源自动生成", () => {
+          beforeEach(() => {
+            // @ts-ignore
+            webhookHandler.videoPreset = {
+              get: vi.fn().mockReturnValue({
+                config: {
+                  title: "Test Title",
+                  copyright: 2, // 转载类型
+                  source: "", // 转载来源为空
+                },
+              }),
+            };
+          });
+
+          it("应在转载类型且来源为空时生成直播间链接", async () => {
+            const live = {
+              platform: "bilibili",
+              roomId: "123456",
+            };
+            const config = { uploadPresetId: "test-preset" };
+
+            // @ts-ignore
+            const result = await webhookHandler.prepareUploadPreset("handled", config, live);
+
+            expect(result.source).toBe("https://live.bilibili.com/123456");
+          });
+
+          it("应在无法生成链接时使用房间号作为转载来源", async () => {
+            const live = {
+              platform: "unknown",
+              roomId: "123456",
+            };
+            const config = { uploadPresetId: "test-preset" };
+
+            // @ts-ignore
+            const result = await webhookHandler.prepareUploadPreset("handled", config, live);
+
+            expect(result.source).toBe("123456");
+          });
+
+          it("应在转载来源已设置时不覆盖现有来源", async () => {
+            const live = {
+              platform: "bilibili",
+              roomId: "123456",
+            };
+            const config = { uploadPresetId: "test-preset" };
+
+            // @ts-ignore
+            webhookHandler.videoPreset = {
+              get: vi.fn().mockReturnValue({
+                config: {
+                  title: "Test Title",
+                  copyright: 2, // 转载类型
+                  source: "https://example.com", // 已设置转载来源
+                },
+              }),
+            };
+
+            // @ts-ignore
+            const result = await webhookHandler.prepareUploadPreset("handled", config, live);
+
+            expect(result.source).toBe("https://example.com");
+          });
+
+          it("应在自制类型时不设置转载来源", async () => {
+            const live = {
+              platform: "bilibili",
+              roomId: "123456",
+            };
+            const config = { uploadPresetId: "test-preset" };
+
+            // @ts-ignore
+            webhookHandler.videoPreset = {
+              get: vi.fn().mockReturnValue({
+                config: {
+                  title: "Test Title",
+                  copyright: 1, // 自制类型
+                  source: "",
+                },
+              }),
+            };
+
+            // @ts-ignore
+            const result = await webhookHandler.prepareUploadPreset("handled", config, live);
+
+            expect(result.source).toBe("");
+          });
+
+          it("应在转载来源为空字符串时生成链接", async () => {
+            const live = {
+              platform: "bilibili",
+              roomId: "123456",
+            };
+            const config = { uploadPresetId: "test-preset" };
+
+            // @ts-ignore
+            webhookHandler.videoPreset = {
+              get: vi.fn().mockReturnValue({
+                config: {
+                  title: "Test Title",
+                  copyright: 2, // 转载类型
+                  source: "   ", // 只有空格的字符串
+                },
+              }),
+            };
+
+            // @ts-ignore
+            const result = await webhookHandler.prepareUploadPreset("handled", config, live);
+
+            expect(result.source).toBe("https://live.bilibili.com/123456");
+          });
         });
       });
 
