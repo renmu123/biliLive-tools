@@ -103,11 +103,12 @@ const upload = async () => {
     });
     return;
   }
-  await biliApi.validUploadParams(deepRaw(presetOptions.value.config));
+  const uploadConfig = deepRaw(presetOptions.value.config) as typeof presetOptions.value.config;
+  await biliApi.validUploadParams(uploadConfig);
 
-  // TODO: 转载稿件的判断还未实现
+  // TODO: 转载稿件的判断还未实现，需要上游解析实现
   // 如果上传标题中存在占位符，或者稿件类型为转载，则转载来源为空时，获取第一个文件的调用解析接口获取数据进行填充
-  if (presetOptions.value.config.title.includes("{{")) {
+  if (uploadConfig.title.includes("{{")) {
     try {
       const parseResult = await commonApi.parseMeta({
         videoFilePath: fileList.value[0].path,
@@ -119,18 +120,18 @@ const upload = async () => {
         parseResult.roomId &&
         parseResult.startTimestamp
       ) {
-        if (presetOptions.value.config.title.includes("{{")) {
-          const previewTitle = await biliApi.formatWebhookTitle(presetOptions.value.config.title, {
+        if (uploadConfig.title.includes("{{")) {
+          const previewTitle = await biliApi.formatWebhookTitle(uploadConfig.title, {
             title: parseResult.title,
             username: parseResult.username,
             time: new Date((parseResult.startTimestamp ?? 0) * 1000).toISOString(),
             roomId: parseResult.roomId,
             filename: window.path.basename(fileList.value[0].path),
           });
-          presetOptions.value.config.title = previewTitle;
+          uploadConfig.title = previewTitle;
           notice.success({
             title: `已解析并替换标题为：${previewTitle}`,
-            duration: 4000,
+            duration: 6000,
           });
         }
       }
@@ -142,21 +143,17 @@ const upload = async () => {
     }
   }
 
-  if (presetOptions.value.config.copyright === 2 && !presetOptions.value.config.source) {
+  if (uploadConfig.copyright === 2 && !uploadConfig.source) {
     notice.error({
       title: `稿件类型为转载时转载来源不能为空`,
       duration: 1000,
     });
     return;
   }
-  notice.info({
-    title: `开始上传`,
-    duration: 1000,
-  });
   await biliApi.upload({
     uid: userInfo.value.uid!,
     videos: deepRaw(fileList.value),
-    config: deepRaw(presetOptions.value.config),
+    config: uploadConfig,
     options: {
       removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,
     },
