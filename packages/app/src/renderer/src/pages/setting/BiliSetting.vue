@@ -5,11 +5,11 @@
         <template #label>
           <Tip
             text="线路"
-            tip="上传线路，自动会根据网络情况选择最优线路，如果上传失败请手动选择线路，切换后请上传测试线路能否实际使用。<br/>qn线路可能对海外机器有特效<br/>访问查询：<a href='https://member.bilibili.com/preupload?r=ping' target='_blank'>https://member.bilibili.com/preupload?r=ping</a>"
+            tip="上传线路，自动会使用B站接口返回的第一个线路，如果上传失败请手动选择线路，切换后请上传测试线路能否实际使用。<br/>qn线路可能对海外机器有特效<br/>访问查询：<a href='https://member.bilibili.com/preupload?r=ping' target='_blank'>https://member.bilibili.com/preupload?r=ping</a>"
             placement="bottom"
           ></Tip>
         </template>
-        <n-select v-model:value="config.biliUpload.line" :options="lineOptions" />
+        <n-select v-model:value="config.biliUpload.line" :options="lineOptions" filterable />
       </n-form-item>
       <n-form-item>
         <template #label>
@@ -121,14 +121,30 @@ const lineOptions = [
   { label: "cs-bda2", value: "cs-bda2" },
   { label: "cs-bldsa", value: "cs-bldsa" },
   { label: "cs-tx", value: "cs-tx" },
-  { label: "cs-txa", value: "cs-txa" },
-  { label: "cs-alia", value: "cs-alia" },
   { label: "cs-qn", value: "cs-qn" },
-  { label: "jd-bldsa", value: "jd-bldsa" },
-  { label: "jd-bd", value: "jd-bd" },
-  { label: "jd-tx", value: "jd-tx" },
-  { label: "jd-txa", value: "jd-txa" },
-  { label: "jd-alia", value: "jd-alia" },
+  { label: "cs-cnbldsa", value: "cs-cnbldsa" },
+  { label: "cs-cnbd", value: "cs-cnbd" },
+  { label: "cs-cntx", value: "cs-cntx" },
+  { label: "cs-andsa", value: "cs-andsa" },
+  { label: "cs-anbd", value: "cs-anbd" },
+  { label: "cs-antx", value: "cs-antx" },
+  { label: "cs-atdsa", value: "cs-atdsa" },
+  { label: "cs-atbd", value: "cs-atbd" },
+  { label: "cs-attx", value: "cs-attx" },
+  {
+    type: "group",
+    key: "outdated",
+    label: "可能已失效线路（仅供测试）",
+    children: [
+      { label: "cs-txa", value: "cs-txa" },
+      { label: "cs-alia", value: "cs-alia" },
+      { label: "jd-bldsa", value: "jd-bldsa" },
+      { label: "jd-bd", value: "jd-bd" },
+      { label: "jd-tx", value: "jd-tx" },
+      { label: "jd-txa", value: "jd-txa" },
+      { label: "jd-alia", value: "jd-alia" },
+    ],
+  },
 ];
 </script>
 

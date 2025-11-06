@@ -143,11 +143,8 @@ B站上传功能可以帮助你：
 
 选择上传使用的线路：
 
-- **auto**：自动选择（推荐）
-- **bldsa**：B站自建
-- **bda2**：百度云CDN
+- **auto**：自动会使用B站接口返回的第一个线路
 - **qn**：七牛云CDN（推荐海外服务器使用）
-- **ws**：网宿CDN
 
 ::: tip 线路测试
 可以在 [B站预上传测速页面](https://member.bilibili.com/preupload?r=ping) 测试各线路速度。
