@@ -50,8 +50,8 @@ export type CommonRoomConfig = {
   title: string;
   uploadPresetId?: string;
   danmu: boolean;
-  ffmpegPreset?: string;
-  danmuPreset?: string;
+  ffmpegPreset?: string | null;
+  danmuPreset?: string | null;
   autoPartMerge: boolean;
   partMergeMinute?: number;
   uid?: number;
@@ -86,7 +86,7 @@ export type CommonRoomConfig = {
   /** 分p标题模板 */
   partTitleTemplate: string;
   /** 同步器配置ID */
-  syncId?: string;
+  syncId?: string | null;
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
