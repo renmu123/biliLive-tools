@@ -22,12 +22,12 @@
 
 ### 包管理器
 
-项目使用 pnpm 作为包管理器，具体版本参考 `package.json` 中的字段。
+项目使用 pnpm 作为包管理器，具体版本参考 `package.json` 中的相关字段。
 
 安装 pnpm：
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@9.15.2
 ```
 
 ## 克隆仓库
@@ -57,17 +57,21 @@ pnpm run install:bin
 
 详见 [Issue #5638](https://github.com/pnpm/pnpm/issues/5638#issuecomment-1327988206)
 
-如果你是Win，你还可能遇到报错比如`cause=fork/exec %1 is not a valid Win32 application.`，根据[提示](https://github.com/pnpm/pnpm/issues/5638#issuecomment-1327988206)修改pnpm源文件，如果你最后还是无法安装，尝试在项目根目录运行`node scripts\github-ci-better-sqlite3.js`手动安装依赖。
+如果你是Win，你还可能遇到报错比如`cause=fork/exec %1 is not a valid Win32 application.`，根据[提示](https://github.com/pnpm/pnpm/issues/5638#issuecomment-1327988206)修改pnpm源文件。
 
 ### 关于二进制依赖
 
-如果二进制依赖安装失败或不支持你的平台，请[手动下载](https://github.com/renmu123/biliLive-tools/releases/tag/0.2.1)。
+**二进制依赖下载完成后，需要手动去设置中配置对应的可执行文件路径**
+
+如果二进制依赖安装失败或不支持你的平台，请[手动下载](https://github.com/renmu123/biliLive-tools/releases/tag/0.2.1)，版本选择最靠近当前版本的版本。
 
 创建 `packages\app\resources\bin` 目录，放入以下文件：
 
 1. **DanmukuFactory.exe**：[自编译版本](https://github.com/renmu123/DanmakuFactory/tree/test)
-2. **ffmpeg.exe**：[n7.0](https://github.com/BtbN/FFmpeg-Builds/releases)
-3. **ffprobe.exe**：[n7.0](https://github.com/BtbN/FFmpeg-Builds/releases)
+2. **ffmpeg.exe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
+3. **ffprobe.exe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
+4. **录播姬cli**：[3.0.3](https://github.com/renmu123/BililiveRecorder)
+5. **mesio**：[0.3.2](https://github.com/hua0512/rust-srec)
 
 同时需要在应用设置中配置可执行文件路径。
 
@@ -84,7 +88,7 @@ biliLive-tools/
 │   │   └── resources/    # 资源文件
 │   ├── CLI/              # 命令行工具
 │   ├── http/             # HTTP 服务
-│   ├── shared/           # 共享代码
+│   ├── shared/           # 核心代码
 │   ├── types/            # 类型定义
 │   ├── BilibiliRecorder/ # B站录制
 │   ├── DouYinRecorder/   # 抖音录制
@@ -108,8 +112,6 @@ pnpm run dev
 # 构建应用
 pnpm run build:app
 
-# 构建（不包含 FFmpeg）
-pnpm run build:app:no-ffmpeg
 ```
 
 ### CLI 开发
@@ -122,17 +124,6 @@ pnpm run build:cli
 cd packages/CLI
 npm link
 bililive-cli --help
-```
-
-### HTTP 服务开发
-
-```bash
-# 启动开发服务器
-cd packages/http
-pnpm run dev
-
-# 运行测试
-pnpm run test
 ```
 
 ### 运行测试
