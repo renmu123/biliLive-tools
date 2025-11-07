@@ -9,6 +9,10 @@ export const qualityOptions = [
 // B站画质选项
 export const biliQualityOptions = [
   {
+    value: 25000,
+    label: "原画真彩(25000)",
+  },
+  {
     value: 10000,
     label: "原画(10000)",
   },
