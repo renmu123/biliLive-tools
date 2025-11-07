@@ -259,15 +259,6 @@ describe("Integration Test", () => {
 ```bash
 # 运行所有测试
 pnpm run test
-
-# 运行特定文件
-pnpm run test path/to/test.spec.ts
-
-# 监听模式
-pnpm run test:watch
-
-# 覆盖率
-pnpm run test:coverage
 ```
 
 ## 构建
@@ -275,28 +266,53 @@ pnpm run test:coverage
 ### 桌面应用构建
 
 ```bash
-# 构建所有平台
 pnpm run build:app
-
-# 只构建 Windows
-pnpm run build:app:win
-
-# 只构建 Linux
-pnpm run build:app:linux
-
-# 只构建 Mac
-pnpm run build:app:mac
 ```
 
 ### Docker 构建
 
-```bash
-# 构建前端
-docker build -f docker/frontend-dockerfile -t bililive-tools-frontend .
+项目使用多阶段构建的 Dockerfile，支持构建三种不同的镜像：
 
-# 构建后端
-docker build -f docker/backend-dockerfile -t bililive-tools-backend .
+#### 镜像类型
+
+1. **frontend** - 纯前端镜像
+2. **backend** - 纯后端 API 镜像
+3. **fullstack** - 全栈镜像（包含前端和后端）
+
+#### 本地构建
+
+```bash
+# 构建全栈镜像（推荐）
+docker build -f docker/Dockerfile --target fullstack -t bililive-tools:local .
+
+# 构建前端镜像
+docker build -f docker/Dockerfile --target frontend -t bililive-tools-frontend:local .
+
+# 构建后端镜像
+docker build -f docker/Dockerfile --target backend -t bililive-tools-backend:local .
+
+# 多平台构建（需要 buildx）
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -f docker/Dockerfile --target fullstack \
+  -t bililive-tools:local .
 ```
+
+#### 镜像架构
+
+项目构建的镜像支持以下平台：
+
+- `linux/amd64` (x86_64)
+- `linux/arm64` (aarch64)
+
+#### CI/CD 自动构建
+
+项目使用 GitHub Actions 自动构建和推送镜像：
+
+- **自动触发**: 推送 tag 时自动构建所有镜像
+- **手动触发**: 在 Actions 页面手动触发，构建带 `test` 标签的镜像
+- **镜像仓库**: Docker Hub (`renmu1234/bililive-tools*`)
+
+查看构建配置: `.github/workflows/docker.yml`
 
 ## 发布
 

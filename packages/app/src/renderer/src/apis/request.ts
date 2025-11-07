@@ -14,6 +14,9 @@ if (import.meta.hot) {
 
 export async function init() {
   if (window.isWeb) {
+    if (import.meta.env.VITE_FULLSTACK) {
+      return;
+    }
     const baseURL = window.localStorage.getItem("api");
     if (baseURL) {
       api.defaults.baseURL = baseURL;
