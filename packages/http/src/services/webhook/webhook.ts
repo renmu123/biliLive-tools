@@ -600,6 +600,7 @@ export class WebhookHandler {
       for (let i = 0; i < partIndex; i++) {
         const part = currentLive.parts[i];
         if (part.recordStatus === "recording") {
+          // TODO: 之后要移除这个处理
           log.error("下一个录制完成时，上一个录制仍在录制中，设置为错误", part);
           currentLive.updatePartValue(part.partId, "recordStatus", "error");
         }
