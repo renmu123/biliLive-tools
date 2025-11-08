@@ -5,6 +5,7 @@ import {
   defaultToJSON,
   genRecorderUUID,
   genRecordUUID,
+  utils,
   createBaseRecorder,
 } from "@bililive-tools/manager";
 import type {
@@ -95,23 +96,61 @@ const ffmpegOutputOptions: string[] = [
   "-min_frag_duration",
   "10000000",
 ];
-const ffmpegInputOptions: string[] = [
-  "-reconnect",
-  "1",
-  "-reconnect_streamed",
-  "1",
-  "-reconnect_delay_max",
-  "10",
-  "-rw_timeout",
-  "15000000",
-];
+const ffmpegInputOptions: string[] = ["-rw_timeout", "10000000", "-timeout", "10000000"];
 
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
   banLiveId,
   isManualStart,
 }) {
-  if (this.recordHandle != null) return this.recordHandle;
+  // 如果已经在录制中，只在需要检查标题关键词时才获取最新信息
+  if (this.recordHandle != null) {
+    // 只有当设置了标题关键词时，并且不是手动启动的录制，才获取最新的直播间信息
+    if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
+      const now = Date.now();
+      // 每5分钟检查一次标题变化
+      const titleCheckInterval = 5 * 60 * 1000; // 5分钟
+
+      // 获取上次检查时间
+      const lastCheckTime =
+        typeof this.extra.lastTitleCheckTime === "number" ? this.extra.lastTitleCheckTime : 0;
+
+      // 如果距离上次检查时间不足指定间隔，则跳过检查
+      if (now - lastCheckTime < titleCheckInterval) {
+        return this.recordHandle;
+      }
+
+      // 更新检查时间
+      this.extra.lastTitleCheckTime = now;
+
+      // 获取直播间信息
+      const liveInfo = await getInfo(this.channelId, {
+        cookie: this.auth,
+        api: this.api as APIType,
+        uid: this.uid,
+      });
+      const { title } = liveInfo;
+
+      // 检查标题是否包含关键词
+      if (utils.hasBlockedTitleKeywords(title, this.titleKeywords)) {
+        this.state = "title-blocked";
+        this.emit("DebugLog", {
+          type: "common",
+          text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
+        });
+
+        // 停止录制
+        await this.recordHandle.stop("直播间标题包含关键词");
+        // 返回 null，停止录制
+        return null;
+      }
+    }
+
+    // 已经在录制中，直接返回
+    return this.recordHandle;
+  }
+
+  // 获取直播间信息
   try {
     const liveInfo = await getInfo(this.channelId, {
       cookie: this.auth,
@@ -132,6 +171,19 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
   if (this.tempStopIntervalCheck) return null;
   if (!this.liveInfo.living) return null;
+
+  // 检查标题是否包含关键词，如果包含则不自动录制
+  // 手动开始录制时不检查标题关键词
+  if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
+    if (utils.hasBlockedTitleKeywords(this.liveInfo.title, this.titleKeywords)) {
+      this.state = "title-blocked";
+      this.emit("DebugLog", {
+        type: "common",
+        text: `跳过录制：直播间标题 "${this.liveInfo.title}" 包含关键词 "${this.titleKeywords}"`,
+      });
+      return null;
+    }
+  }
 
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
@@ -196,10 +248,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  let recorderType: Parameters<typeof createBaseRecorder>[0] =
-    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   const recorder = createBaseRecorder(
-    recorderType,
+    this.recorderType,
     {
       url: stream.url,
       outputOptions: ffmpegOutputOptions,
@@ -209,6 +259,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
         getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
+      debugLevel: this.debugLevel ?? "none",
+      onlyAudio: stream.onlyAudio,
       headers: {
         Cookie: this.auth,
       },
@@ -232,8 +284,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  const handleVideoCreated = async ({ filename, title, cover }) => {
-    this.emit("videoFileCreated", { filename, cover });
+  const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
+    this.emit("videoFileCreated", { filename, cover, rawFilename });
 
     if (title && this?.liveInfo) {
       this.liveInfo.title = title;
@@ -292,6 +344,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     const extraDataController = recorder.getExtraDataController();
     if (!extraDataController) return;
     if (this.saveGiftDanma === false) return;
+    // repeatEnd 表示礼物连击完毕，只记录这个礼物
+    if (!msg.repeatEnd) return;
 
     const serverTimestamp =
       Number(msg.common.createTime) > 9999999999

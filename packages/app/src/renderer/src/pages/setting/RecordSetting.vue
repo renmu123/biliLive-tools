@@ -65,6 +65,35 @@
           </n-form-item>
           <n-form-item>
             <template #label>
+              <Tip
+                tip="同时最多运行的检查任务数量，和 检查间隔 共同构成了录制的循环检查周期"
+                text="并发数"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip tip="检查任务完成后的等待时间" text="等待时间"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
               <Tip tip="0为不分段" text="分段时间"></Tip>
             </template>
             <n-input-number
@@ -128,9 +157,13 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip tip="用于提交反馈" text="调试模式"></Tip>
+              <Tip tip="如果你遇到特定直播间的录制问题，请打开此开关" text="调试模式"></Tip>
             </template>
-            <n-switch v-model:value="config.recorder.debugMode" />
+            <n-select
+              v-model:value="config.recorder.debugLevel"
+              :options="recorderDebugLevelOptions"
+              style="width: 220px"
+            />
           </n-form-item>
 
           <h3>弹幕</h3>
@@ -337,6 +370,7 @@ import {
   douyinStreamFormatOptions,
   huyaSourceOptions,
   recorderTypeOptions,
+  recorderDebugLevelOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";

@@ -39,17 +39,20 @@ export const getFfmpegPath = () => {
   let ffmpegPath = config.ffmpegPath;
   let ffprobePath = config.ffprobePath;
   let mesioPath = config.mesioPath;
+  let bililiveRecorderPath = config.bililiveRecorderPath;
   if (!config.customExecPath) {
     const globalConfig = container.resolve<GlobalConfig>("globalConfig");
     ffmpegPath = globalConfig.defaultFfmpegPath;
     ffprobePath = globalConfig.defaultFfprobePath;
     mesioPath = globalConfig.defaultMesioPath;
+    bililiveRecorderPath = globalConfig.defaultBililiveRecorderPath;
   }
 
   return {
     ffmpegPath,
     ffprobePath,
     mesioPath,
+    bililiveRecorderPath,
   };
 };
 
@@ -790,10 +793,12 @@ export const mergeAssMp4 = async (
     override?: boolean;
     timestampFont?: string;
     limitTime?: [] | [string, string];
+    autoRun?: boolean;
   } = {
     removeOrigin: false,
     startTimestamp: 0,
     override: true,
+    autoRun: false,
   },
   ffmpegOptions: FfmpegOptions = {
     encoder: "libx264",
@@ -804,6 +809,7 @@ export const mergeAssMp4 = async (
     removeOrigin: false,
     startTimestamp: 0,
     override: true,
+    autoRun: false,
   };
   options = { ...defaultOptions, ...options };
   const videoInput = files.videoFilePath;
@@ -870,7 +876,7 @@ export const mergeAssMp4 = async (
     },
   );
   log.debug("mergeAssMp4 start task", task.taskId);
-  taskQueue.addTask(task, false);
+  taskQueue.addTask(task, options.autoRun ?? false);
 
   return task;
 };
@@ -941,6 +947,8 @@ export const transcode = async (
     saveType: 1 | 2;
     /** 限制处理时间 */
     limitTime?: [string, string];
+    /** 自动运行 */
+    autoRun?: boolean;
   },
 ) => {
   const options = Object.assign(
@@ -965,6 +973,7 @@ export const transcode = async (
       removeOrigin: options.removeOrigin,
       override: options.override,
       limitTime: options.limitTime,
+      autoRun: options.autoRun ?? false,
     },
     ffmpegOptions,
   );

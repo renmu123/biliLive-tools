@@ -157,6 +157,8 @@ export interface GiftMessage {
   totalCount: string;
   clientGiftSource: number;
   sendTime: string;
+  // repeatEnd 表示礼物连击完毕，这个为1时，sendTime值为秒级时间戳，否则为毫秒级时间戳
+  repeatEnd: null | 1;
 }
 
 export interface RoomUserSeqMessage {

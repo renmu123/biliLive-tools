@@ -387,14 +387,14 @@ const searchDanmu = () => {
     overflow: auto;
   }
   .btns {
-    position: absolute;
+    // position: absolute;
 
-    left: 50%;
-    top: 0;
-    transform: translate(-50%, -120%);
+    // left: 50%;
+    // top: 0;
+    // transform: translate(-50%, -120%);
     display: flex;
     gap: 5px;
-    margin-bottom: 5px;
+    margin-bottom: 10px;
     justify-content: center;
     align-items: center;
     .icon {

@@ -34,6 +34,7 @@ import {
   DANMUKUFACTORY_PATH,
   LOG_PATH,
   MESIO_PATH,
+  BILILIVERECORDER_PATH,
   __dirname2,
   getConfigPath,
 } from "./appConstant";
@@ -65,10 +66,18 @@ const WindowState = new Store<{
   name: "window-state",
 });
 
-const windowConfig = {
+const windowConfig: {
+  width: number;
+  height: number;
+  isMaximized: boolean;
+  x: number | undefined;
+  y: number | undefined;
+} = {
   width: 900,
   height: 750,
   isMaximized: false,
+  x: undefined,
+  y: undefined,
 };
 
 const registerHandlers = (
@@ -90,6 +99,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:relaunch", relaunch);
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:setTheme", setTheme);
+  ipcMain.handle("common:createSubWindow", createCutWindow);
   ipcMain.handle("common:checkUpdate", manualCheckUpdate);
 
   registerHandlers(ipcMain, ffmpegHandlers);
@@ -98,8 +108,48 @@ const genHandler = (ipcMain: IpcMain) => {
   registerHandlers(ipcMain, cookieHandlers);
 };
 
+function createCutWindow() {
+  const css = `
+  .layout>div>aside {
+    display: none;
+  }
+`;
+
+  const subWindow = new BrowserWindow({
+    webPreferences: {
+      preload: join(__dirname2, "../preload/index.mjs"),
+      sandbox: false,
+      webSecurity: false,
+    },
+  });
+
+  if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
+    subWindow.loadURL(process.env["ELECTRON_RENDERER_URL"] + "/#/videoCut2");
+  } else {
+    subWindow.loadFile(join(__dirname2, "../renderer/index.html"), {
+      hash: "videoCut2",
+    });
+  }
+
+  subWindow.webContents.on("did-finish-load", () => {
+    subWindow.webContents.insertCSS(css);
+  });
+  // subWindow.webContents.openDevTools();
+  subWindow.maximize();
+  return true;
+  return subWindow;
+}
+
 function createWindow(): void {
   Object.assign(windowConfig, WindowState.get("winBounds"));
+  // 如果x，y存在一个参数为负值，则重置为undefined
+  if (
+    (windowConfig.x !== undefined && windowConfig.x < 0) ||
+    (windowConfig.y !== undefined && windowConfig.y < 0)
+  ) {
+    windowConfig.x = undefined;
+    windowConfig.y = undefined;
+  }
 
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -619,6 +669,7 @@ const appInit = async () => {
     defaultFfmpegPath: FFMPEG_PATH,
     defaultFfprobePath: FFPROBE_PATH,
     defaultMesioPath: MESIO_PATH,
+    defaultBililiveRecorderPath: BILILIVERECORDER_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
     userDataPath,
     version: app.getVersion(),

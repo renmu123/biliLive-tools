@@ -27,6 +27,7 @@ const init = async (config: GlobalConfig) => {
     ffprobePath: config.defaultFfprobePath,
     danmuFactoryPath: config.defaultDanmakuFactoryPath,
     mesioPath: config.defaultMesioPath,
+    bililiveRecorderPath: config.defaultBililiveRecorderPath,
   });
   const logLevel = appConfig.get("logLevel");
   initLogger(config.logPath, logLevel);

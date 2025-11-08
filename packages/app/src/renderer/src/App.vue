@@ -16,9 +16,7 @@ const router = useRouter();
 
 const isWeb = computed(() => window.isWeb);
 
-if (!isWeb.value) {
-  router.push({ name: "Home" });
-} else {
+if (isWeb.value) {
   const apiStorage = window.localStorage.getItem("api");
   const keyStorage = window.localStorage.getItem("key");
   if (apiStorage && keyStorage) {

@@ -243,6 +243,14 @@ export const checkUpdate = async (): Promise<{
   return res.data;
 };
 
+/**
+ * 获取缓存文件夹路径
+ */
+export const getTempPath = async (): Promise<string> => {
+  const res = await request.get("/common/tempPath");
+  return res.data;
+};
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
@@ -268,6 +276,7 @@ const common = {
   handleWebhook,
   whyUploadFailed,
   checkUpdate,
+  getTempPath,
 };
 
 export default common;

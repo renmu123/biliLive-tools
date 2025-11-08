@@ -143,7 +143,10 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.reconnectAttempts = this.autoReconnect;
     this.stopHeartbeat();
     this.stopTimeoutCheck();
-    this.ws.close();
+
+    if (this.ws.readyState === WebSocket.OPEN) {
+      this.ws.close();
+    }
   }
 
   private startHeartbeat() {

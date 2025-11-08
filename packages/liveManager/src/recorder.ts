@@ -60,7 +60,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
   videoFormat?: "auto" | "ts" | "mkv";
   /** 录制类型 */
-  recorderType?: "auto" | "ffmpeg" | "mesio";
+  recorderType?: "auto" | "ffmpeg" | "mesio" | "bililive";
   /** 流格式优先级 */
   formatriorities?: Array<"flv" | "hls">;
   /** 只录制音频 */
@@ -71,6 +71,9 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   useServerTimestamp?: boolean;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
+  /** 调试等级 */
+  debugLevel?: "none" | "basic" | "verbose";
+  /** 缓存 */
   cache: Cache;
 }
 
@@ -96,7 +99,13 @@ export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreat
     // | "recordHandle"
   >;
 
-export type RecorderState = "idle" | "recording" | "stopping-record" | "check-error";
+/** 录制状态，idle: 空闲中，recording: 录制中，stopping-record: 停止录制中，check-error: 检查错误，title-blocked: 标题黑名单 */
+export type RecorderState =
+  | "idle"
+  | "recording"
+  | "stopping-record"
+  | "check-error"
+  | "title-blocked";
 export type Progress = { time: string | null };
 
 export interface RecordHandle {
@@ -125,7 +134,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   extends Emitter<{
       RecordStart: RecordHandle;
       RecordSegment?: RecordHandle;
-      videoFileCreated: { filename: string; cover?: string };
+      videoFileCreated: { filename: string; cover?: string; rawFilename?: string };
       videoFileCompleted: { filename: string };
       progress: Progress;
       RecordStop: { recordHandle: RecordHandle; reason?: string };

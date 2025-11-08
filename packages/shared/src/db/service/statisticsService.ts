@@ -1,6 +1,6 @@
 import { statisticsModel } from "../index.js";
 
-type Key = "start_time" | "pan123_token";
+type Key = "start_time" | "pan123_token" | "bili_last_upload_time";
 
 export default class StatisticsService {
   static query(key: Key) {

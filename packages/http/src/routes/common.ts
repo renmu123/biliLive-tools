@@ -6,7 +6,12 @@ import multer from "../middleware/multer.js";
 
 import Router from "@koa/router";
 import semver from "semver";
-import { formatTitle, uuid, formatPartTitle } from "@biliLive-tools/shared/utils/index.js";
+import {
+  formatTitle,
+  uuid,
+  formatPartTitle,
+  getTempPath,
+} from "@biliLive-tools/shared/utils/index.js";
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
@@ -656,6 +661,22 @@ router.get("/checkUpdate", async (ctx) => {
       downloadUrl: "https://github.com/renmu123/biliLive-tools/releases",
       backupUrl: "https://pan.quark.cn/s/6da253a1ecb8",
     };
+  }
+});
+
+/**
+ * @api {get} /common/tempPath 获取缓存文件夹路径
+ * @apiDescription 获取当前配置的缓存文件夹路径
+ * @apiSuccess {string} path 缓存文件夹路径
+ */
+router.get("/tempPath", async (ctx) => {
+  try {
+    const tempPath = getTempPath();
+    ctx.body = tempPath;
+  } catch (error) {
+    console.error("获取缓存路径失败:", error);
+    ctx.status = 500;
+    ctx.body = "获取缓存路径失败";
   }
 });
 

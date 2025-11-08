@@ -73,7 +73,7 @@ import { useStorage } from "@vueuse/core";
 import { NIcon } from "naive-ui";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 import {
-  BuildOutline as BookIcon,
+  BuildOutline as BuildIcon,
   HomeOutline as HomeIcon,
   InformationCircleOutline as InfoIcon,
   GitPullRequestOutline as QueueIcon,
@@ -81,6 +81,7 @@ import {
   LogOutOutline,
 } from "@vicons/ionicons5";
 import { DashboardOutlined as DashboardIcon, LiveTvRound } from "@vicons/material";
+import { VideoClip20Regular } from "@vicons/fluent";
 
 import defaultUserAvatar from "../../assets/images/moehime.jpg";
 import AppSettingDialog from "../../pages/setting/index.vue";
@@ -249,17 +250,59 @@ const menuOptions = computed<MenuOption[]>(() => {
         ),
     },
     {
-      key: "videoCut",
+      key: "BiliDownload",
       label: () =>
         h(
           RouterLink,
           {
             to: {
-              name: "videoCut",
+              name: "BiliDownload",
             },
           },
-          { default: () => "切片" },
+          { default: () => "下载订阅" },
         ),
+    },
+    {
+      key: "FileSync",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "FileSync",
+            },
+          },
+          { default: () => "文件同步" },
+        ),
+    },
+  ];
+
+  const videoProcessingSubMenus = [
+    {
+      key: "videoCut",
+      label: () => {
+        if (!isWeb.value && appConfig.appConfig.cutPageInNewWindow) {
+          return h(
+            "a",
+            {
+              onClick: async () => {
+                await window.api.common.createSubWindow();
+              },
+            },
+            { default: () => "切片" },
+          );
+        } else {
+          return h(
+            RouterLink,
+            {
+              to: {
+                name: "videoCut",
+              },
+            },
+            { default: () => "切片" },
+          );
+        }
+      },
     },
     {
       key: "Convert2Mp4",
@@ -285,32 +328,6 @@ const menuOptions = computed<MenuOption[]>(() => {
             },
           },
           { default: () => "视频合并" },
-        ),
-    },
-    {
-      key: "BiliDownload",
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: "BiliDownload",
-            },
-          },
-          { default: () => "下载订阅" },
-        ),
-    },
-    {
-      key: "FileSync",
-      label: () =>
-        h(
-          RouterLink,
-          {
-            to: {
-              name: "FileSync",
-            },
-          },
-          { default: () => "文件同步" },
         ),
     },
   ];
@@ -358,9 +375,15 @@ const menuOptions = computed<MenuOption[]>(() => {
       icon: renderIcon(DashboardIcon),
     },
     {
+      label: () => h("span", "视频处理"),
+      key: "videoProcessing",
+      icon: renderIcon(VideoClip20Regular),
+      children: videoProcessingSubMenus,
+    },
+    {
       label: () => h("span", "工具"),
       key: "tools",
-      icon: renderIcon(BookIcon),
+      icon: renderIcon(BuildIcon),
       children: toolsSubMenus,
     },
     {

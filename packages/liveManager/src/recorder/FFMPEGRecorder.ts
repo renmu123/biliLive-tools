@@ -4,7 +4,10 @@ import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
 import { createInvalidStreamChecker, assert } from "../utils.js";
 import { IRecorder, FFMPEGRecorderOptions } from "./IRecorder.js";
 
+import type { FormatName } from "./index.js";
+
 export class FFMPEGRecorder extends EventEmitter implements IRecorder {
+  public type = "ffmpeg" as const;
   private command: ReturnType<typeof createFFMPEGBuilder>;
   private streamManager: StreamManager;
   private timeoutChecker: ReturnType<typeof utils.createTimeoutChecker>;
@@ -16,8 +19,9 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
   readonly isHls: boolean;
   readonly disableDanma: boolean = false;
   readonly url: string;
-  formatName: "flv" | "ts" | "fmp4";
+  formatName: FormatName;
   videoFormat: "ts" | "mkv" | "mp4";
+  readonly debugLevel: "none" | "basic" | "verbose" = "none";
   readonly headers:
     | {
         [key: string]: string | undefined;
@@ -32,12 +36,8 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
     super();
     const hasSegment = !!opts.segment;
     this.hasSegment = hasSegment;
-
-    let formatName: "flv" | "ts" | "fmp4" = "flv";
-    if (opts.url.includes(".m3u8")) {
-      formatName = "ts";
-    }
-    this.formatName = opts.formatName ?? formatName;
+    this.debugLevel = opts.debugLevel ?? "none";
+    this.formatName = opts.formatName;
 
     if (this.formatName === "fmp4" || this.formatName === "ts") {
       this.isHls = true;
@@ -82,8 +82,8 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
     this.headers = opts.headers;
 
     this.command = this.createCommand();
-    this.streamManager.on("videoFileCreated", ({ filename, cover }) => {
-      this.emit("videoFileCreated", { filename, cover });
+    this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename }) => {
+      this.emit("videoFileCreated", { filename, cover, rawFilename });
     });
     this.streamManager.on("videoFileCompleted", ({ filename }) => {
       this.emit("videoFileCompleted", { filename });
@@ -102,6 +102,14 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
       "-user_agent",
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
     ];
+    if (this.isHls) {
+      inputOptions.push(
+        ...["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "3"],
+      );
+    }
+    if (this.debugLevel === "verbose") {
+      inputOptions.push("-loglevel", "debug");
+    }
     if (this.headers) {
       const headers: string[] = [];
       Object.entries(this.headers).forEach(([key, value]) => {
