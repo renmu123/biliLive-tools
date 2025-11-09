@@ -583,9 +583,9 @@ export class WebhookHandler {
     /* 上传标题 */
     title: string;
     /* 弹幕preset */
-    danmuPresetId?: string;
+    danmuPresetId?: string | null;
     /* 视频压制preset */
-    videoPresetId?: string;
+    videoPresetId?: string | null;
     /* 是否开启 */
     open?: boolean;
     /* 上传uid */
@@ -631,7 +631,7 @@ export class WebhookHandler {
     /** 上传完成后删除操作 */
     afterUploadDeletAction: "none" | "delete" | "deleteAfterCheck";
     /** 同步器 */
-    syncId?: string;
+    syncId?: string | null;
   } {
     const config = this.appConfig.getAll();
     const roomSetting: AppRoomConfig | undefined = config.webhook?.rooms?.[roomId];
