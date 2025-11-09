@@ -16,12 +16,13 @@
 - 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
 - 录制：回退“优化录制页面的请求元数据接口数量”需求
 - 录制：B站支持 `25000` 原画真彩画质
-- 录制：文件命名规则支持 `startTime` `recordStartTime` `liveStartTime` 参数
+- 录制：文件命名规则支持 `startTime` `recordStartTime` `liveStartTime` 参数 [#235](https://github.com/renmu123/biliLive-tools/pull/235)
 - webhook：优化某些极端情况，尽量保证流程不被卡住
 - webhook：优化某些情况下的平台判断
 - 切片：优化ctrl+s的保存逻辑
 - UI：webhook预设增加了清除按钮，总有人看不到如何清除
 - UI：tab默认为展开模式
+- B站上传：添加更多线路 [#232](https://github.com/renmu123/biliLive-tools/pull/232)
 - UI：编辑录制配置弹框的优化
 
 ## Bug修复
