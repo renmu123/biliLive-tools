@@ -13,10 +13,10 @@ const router = new Router({
 /**
  * 录制任务相关接口
  * @route GET /recorder/list
- * @param platform 直播平台
+ * @param platform 直播平台，DouYu: 斗鱼, HuYa: 虎牙, Bilibili: 哔哩哔哩, DouYin: 抖音
  * @param recordStatus 录制状态 recording: 录制中 unrecorded: 未录制
- * @param name 备注名称，模糊搜索
- * @param autoCheck 是否监控
+ * @param name 备注名称或直播间号，模糊搜索
+ * @param autoCheck 是否自动监控
  * @param page 页码
  * @param pageSize 每页数量
  * @param sortField 排序字段 living: 直播状态 state: 录制状态 monitorStatus: 监控状态

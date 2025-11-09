@@ -1,7 +1,15 @@
 <template>
   <n-card class="login-card">
+    <h3 style="text-align: center">
+      {{ isFullstack ? "请配置密钥进行登录" : "请配置API地址和密钥进行登录" }}
+    </h3>
+
     <n-space vertical style="text-align: center">
-      <n-input v-model:value="api" placeholder="请输入API地址，如http://127.0.0.1:18010" />
+      <n-input
+        v-if="!isFullstack"
+        v-model:value="api"
+        placeholder="请输入API地址，如http://127.0.0.1:18010"
+      />
       <n-input v-model:value="key" placeholder="密钥" type="password" />
       <div style="gap: 10px; display: flex">
         <n-button type="warning" style="flex: 1" @click="test">联通测试</n-button>
@@ -99,6 +107,7 @@ const apiStorage = window.localStorage.getItem("api");
 // const keyStorage = window.localStorage.getItem("key");
 api.value = apiStorage || import.meta.env.VITE_DEFAULT_SERVER || "http://127.0.0.1:18010";
 // key.value = keyStorage || "";
+const isFullstack = ref(import.meta.env.VITE_FULLSTACK);
 </script>
 
 <style lang="less">

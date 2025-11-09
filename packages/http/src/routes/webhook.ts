@@ -270,7 +270,7 @@ router.post("/webhook/custom", async (ctx) => {
       username: event.username,
       coverPath: event?.coverPath,
       danmuPath: event?.danmuPath,
-      platform: "custom",
+      platform: event?.platform || "custom",
     });
   }
   ctx.body = "ok";

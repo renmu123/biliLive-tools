@@ -87,7 +87,6 @@ export async function getLiveInfo(opts: {
 
     throw new Error("Unexpected error code, " + json.error);
   }
-  console.log(JSON.stringify(json, null, 2));
 
   const streamUrl = `${json.data.rtmp_url}/${json.data.rtmp_live}`;
   let cdn = json.data.rtmp_cdn;

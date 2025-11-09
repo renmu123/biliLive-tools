@@ -11,3 +11,6 @@ lib
 *.db-wal
 *.db-shm
 packages/CLI/config.json
+
+docs/.vitepress/dist
+docs/.vitepress/cache

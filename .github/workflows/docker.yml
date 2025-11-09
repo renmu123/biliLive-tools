@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        service: [frontend, backend]
+        service: [frontend, backend, fullstack]
 
     steps:
       - name: Checkout repository
@@ -29,20 +29,41 @@ jobs:
 
       - name: Build and push ${{ matrix.service }} image
         uses: docker/build-push-action@v6
+        if: matrix.service != 'fullstack'
         with:
-          file: ./docker/${{ matrix.service }}-dockerfile
+          file: ./docker/Dockerfile
+          target: ${{ matrix.service }}
           platforms: linux/amd64,linux/arm64
           push: true
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/bililive-tools-${{ matrix.service }}:latest
             ${{ secrets.DOCKER_USERNAME }}/bililive-tools-${{ matrix.service }}:${{ github.ref_name }}
+
+      - name: Build and push fullstack image
+        uses: docker/build-push-action@v6
+        if: matrix.service == 'fullstack'
+        with:
+          file: ./docker/Dockerfile
+          target: fullstack
+          platforms: linux/amd64,linux/arm64
+          push: true
+          cache-from: type=gha,scope=fullstack
+          cache-to: type=gha,mode=max,scope=fullstack
+          build-args: |
+            VITE_DEFAULT_SERVER=/api
+            VITE_FULLSTACK=true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/bililive-tools:latest
+            ${{ secrets.DOCKER_USERNAME }}/bililive-tools:${{ github.ref_name }}
 
   manual-build:
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [frontend, backend]
+        service: [frontend, backend, fullstack]
 
     steps:
       - name: Checkout repository
@@ -59,8 +80,27 @@ jobs:
 
       - name: Build and push ${{ matrix.service }} image
         uses: docker/build-push-action@v6
+        if: matrix.service != 'fullstack'
         with:
-          file: ./docker/${{ matrix.service }}-dockerfile
+          file: ./docker/Dockerfile
+          target: ${{ matrix.service }}
           platforms: linux/amd64,linux/arm64
           push: true
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
           tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools-${{ matrix.service }}:test
+
+      - name: Build and push fullstack image
+        uses: docker/build-push-action@v6
+        if: matrix.service == 'fullstack'
+        with:
+          file: ./docker/Dockerfile
+          target: fullstack
+          platforms: linux/amd64,linux/arm64
+          push: true
+          cache-from: type=gha,scope=fullstack
+          cache-to: type=gha,mode=max,scope=fullstack
+          build-args: |
+            VITE_DEFAULT_SERVER=/api
+            VITE_FULLSTACK=true
+          tags: ${{ secrets.DOCKER_USERNAME }}/bililive-tools:test

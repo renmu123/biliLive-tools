@@ -1,6 +1,8 @@
 import { EventEmitter } from "node:events";
 
+import type { VideoFormat } from "../index.js";
 import type { FormatName } from "./index.js";
+import type { XmlStreamController } from "../xml_stream_controller.js";
 
 /**
  * 录制器构造函数选项的基础接口
@@ -16,7 +18,7 @@ export interface BaseRecorderOptions {
   headers?: {
     [key: string]: string | undefined;
   };
-  videoFormat?: "auto" | "ts" | "mkv" | "mp4";
+  videoFormat?: VideoFormat;
 }
 
 /**
@@ -37,13 +39,18 @@ export interface IRecorder extends EventEmitter {
   run(): void;
   stop(): Promise<void>;
   getArguments(): string[];
-  getExtraDataController(): any;
+  getExtraDataController(): XmlStreamController | null;
   createCommand(): any;
 
   // 事件类型定义
   on(
     event: "videoFileCreated",
-    listener: (data: { filename: string; cover?: string; rawFilename?: string }) => void,
+    listener: (data: {
+      filename: string;
+      cover?: string;
+      rawFilename?: string;
+      title?: string;
+    }) => void,
   ): this;
   on(event: "videoFileCompleted", listener: (data: { filename: string }) => void): this;
   on(event: "DebugLog", listener: (data: { type: string; text: string }) => void): this;
@@ -52,7 +59,7 @@ export interface IRecorder extends EventEmitter {
 
   emit(
     event: "videoFileCreated",
-    data: { filename: string; cover?: string; rawFilename?: string },
+    data: { filename: string; cover?: string; rawFilename?: string; title?: string },
   ): boolean;
   emit(event: "videoFileCompleted", data: { filename: string }): boolean;
   emit(event: "DebugLog", data: { type: string; text: string }): boolean;

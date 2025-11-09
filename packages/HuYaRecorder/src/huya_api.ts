@@ -1,4 +1,4 @@
-import axios from "axios";
+import { requester } from "./requester.js";
 
 import { utils } from "@bililive-tools/manager";
 import { assert, getFormatSources } from "./utils.js";
@@ -6,10 +6,6 @@ import { initInfo } from "./anticode.js";
 import type { Recorder } from "@bililive-tools/manager";
 
 import type { StreamResult, StreamProfile } from "./types.js";
-
-const requester = axios.create({
-  timeout: 10e3,
-});
 
 export async function getRoomInfo(
   roomIdOrShortId: string,

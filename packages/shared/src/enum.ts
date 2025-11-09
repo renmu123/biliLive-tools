@@ -12,6 +12,7 @@ export enum TaskType {
   kuaishouDownload = "kuaishouDownload",
   subtitleTranslate = "subtitleTranslate",
   sync = "sync",
+  flvRepair = "flvRepair",
 }
 
 export enum NotificationType {
@@ -131,6 +132,11 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       removeOrigin: false,
       keepFirstVideoMeta: false,
       mergeXml: false,
+    },
+    flvRepair: {
+      type: "bililive",
+      saveRadio: 1,
+      savePath: "",
     },
     download: {
       savePath: "",

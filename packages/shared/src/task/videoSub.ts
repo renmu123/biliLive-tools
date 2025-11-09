@@ -141,6 +141,7 @@ async function downloadDouyuVideo(videoId: string, item: VideoSubItem) {
           time: new Date(videoData.DATA.content.start_time * 1000).toISOString(),
           title: rawName,
           username: videoData.ROOM.author_name,
+          platform: "douyu",
         });
         await sleep(4000);
         await axios.post(webhookUrl, {
@@ -154,6 +155,7 @@ async function downloadDouyuVideo(videoId: string, item: VideoSubItem) {
           ).toISOString(),
           title: rawName,
           username: videoData.ROOM.author_name,
+          platform: "douyu",
         });
       }
       resolve(output);
@@ -205,6 +207,7 @@ async function downloadHuyaVideo(videoId: string, item: VideoSubItem) {
           time: new Date().toISOString(),
           title: rawName,
           username: item.name,
+          platform: "huya",
         });
         await sleep(4000);
         await axios.post(webhookUrl, {
@@ -214,6 +217,7 @@ async function downloadHuyaVideo(videoId: string, item: VideoSubItem) {
           time: new Date().toISOString(),
           title: rawName,
           username: item.name,
+          platform: "huya",
         });
       }
       resolve(output);

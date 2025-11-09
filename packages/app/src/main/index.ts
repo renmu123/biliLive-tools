@@ -390,9 +390,9 @@ function createMenu(): void {
       label: "帮助",
       submenu: [
         {
-          label: "赞助",
+          label: "官方文档",
           click: async () => {
-            shell.openExternal("https://afdian.com/a/renmu123");
+            shell.openExternal("https://docs.irenmu.com/");
           },
         },
         {
@@ -403,11 +403,9 @@ function createMenu(): void {
           },
         },
         {
-          label: "常见问题",
+          label: "赞助",
           click: async () => {
-            shell.openExternal(
-              "https://github.com/renmu123/biliLive-tools?tab=readme-ov-file#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98",
-            );
+            shell.openExternal("https://afdian.com/a/renmu123");
           },
         },
         {

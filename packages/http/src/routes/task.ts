@@ -28,6 +28,7 @@ import {
   testVirtualRecordConfig,
   executeVirtualRecordConfig,
 } from "@biliLive-tools/shared/task/virtualRecord.js";
+import { flvRepair } from "@biliLive-tools/shared/task/flvRepair.js";
 import { fileCache } from "../index.js";
 
 import type { DanmuPreset, DanmaOptions } from "@biliLive-tools/types";
@@ -278,6 +279,20 @@ router.post("/burn", async (ctx) => {
   ctx.body = { taskId: task.taskId };
 });
 
+/**
+ * flv修复
+ */
+router.post("/flvRepair", async (ctx) => {
+  const { input, output, options } = ctx.request.body as any;
+
+  const task = await flvRepair(input, output, options);
+
+  ctx.body = { taskId: task.taskId };
+});
+
+/**
+ * 切片
+ */
 router.post("/cut", async (ctx) => {
   const { files, output, options, ffmpegOptions } = ctx.request.body as any;
   const task = await cut(files, output, ffmpegOptions, options);

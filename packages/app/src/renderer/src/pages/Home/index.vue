@@ -116,12 +116,7 @@
           style="text-align: right; gap: 10px; justify-content: flex-end; align-items: center"
         >
           <n-checkbox v-model:checked="simpledMode"> 简易配置 </n-checkbox>
-          <n-button
-            v-if="danmuPresetId !== 'default'"
-            ghost
-            quaternary
-            type="error"
-            @click="deleteDanmu"
+          <n-button v-if="danmuPresetId !== 'default'" text type="error" @click="deleteDanmu"
             >删除</n-button
           >
           <ButtonGroup :options="actionBtns" @click="handleActionClick">保存</ButtonGroup>

@@ -128,125 +128,14 @@ describe("FFMPEGRecorder", () => {
         expect(recorder.isHls).toBe(expectedIsHls);
       });
     });
-    describe("videoFormat auto detection without segment", () => {
-      it("should default to mp4 for non-ts formats when hasSegment is false", () => {
-        const recorder = new FFMPEGRecorder(
-          {
-            ...baseOpts,
-            segment: 0, // hasSegment = false
-            formatName: "flv",
-          },
-          mockOnEnd,
-          mockOnUpdateLiveInfo,
-        );
 
-        expect(recorder.videoFormat).toBe("mp4");
-      });
-
-      it("should use ts format when formatName is ts and hasSegment is false", () => {
-        const recorder = new FFMPEGRecorder(
-          {
-            ...baseOpts,
-            segment: 0, // hasSegment = false
-            formatName: "ts",
-          },
-          mockOnEnd,
-          mockOnUpdateLiveInfo,
-        );
-
-        expect(recorder.videoFormat).toBe("ts");
-      });
-
-      it("should use ts format when formatName is fmp4 and hasSegment is false", () => {
-        const recorder = new FFMPEGRecorder(
-          {
-            ...baseOpts,
-            segment: 0, // hasSegment = false
-            formatName: "fmp4",
-          },
-          mockOnEnd,
-          mockOnUpdateLiveInfo,
-        );
-
-        expect(recorder.videoFormat).toBe("mp4");
-      });
-    });
-
-    describe("videoFormat auto detection with segment", () => {
-      it("should default to ts when hasSegment is true", () => {
-        const recorder = new FFMPEGRecorder(
-          {
-            ...baseOpts,
-            segment: 10, // hasSegment = true
-            formatName: "flv",
-          },
-          mockOnEnd,
-          mockOnUpdateLiveInfo,
-        );
-
-        expect(recorder.videoFormat).toBe("ts");
-      });
-
-      it("should use ts when hasSegment is true regardless of formatName", () => {
-        const formatNames: Array<"flv" | "ts" | "fmp4"> = ["flv", "ts", "fmp4"];
-
-        formatNames.forEach((formatName) => {
-          const recorder = new FFMPEGRecorder(
-            {
-              ...baseOpts,
-              segment: 10, // hasSegment = true
-              formatName,
-            },
-            mockOnEnd,
-            mockOnUpdateLiveInfo,
-          );
-
-          expect(recorder.videoFormat).toBe("ts");
-        });
-      });
-    });
-
-    describe("explicit videoFormat parameter", () => {
-      it.each([["ts"], ["mkv"], ["mp4"]])(
-        "should use explicit videoFormat %s over auto detection",
-        (videoFormat) => {
-          const recorder = new FFMPEGRecorder(
-            {
-              ...baseOpts,
-              segment: 0, // hasSegment = false
-              formatName: "flv",
-              videoFormat: videoFormat as "ts" | "mkv" | "mp4",
-            },
-            mockOnEnd,
-            mockOnUpdateLiveInfo,
-          );
-
-          expect(recorder.videoFormat).toBe(videoFormat);
-        },
-      );
-
-      it("should override auto detection when videoFormat is explicitly set with segment", () => {
-        const recorder = new FFMPEGRecorder(
-          {
-            ...baseOpts,
-            segment: 10, // hasSegment = true, would normally force ts
-            formatName: "flv",
-            videoFormat: "mp4",
-          },
-          mockOnEnd,
-          mockOnUpdateLiveInfo,
-        );
-
-        expect(recorder.videoFormat).toBe("mp4");
-      });
-    });
     describe("comprehensive parameter combinations", () => {
       const testCases = [
         // Without segment (hasSegment = false)
         {
           description: "no segment, flv format, auto videoFormat",
           opts: { segment: 0, formatName: "flv" as const, videoFormat: "auto" as const },
-          expected: { formatName: "flv", videoFormat: "mp4", isHls: false, hasSegment: false },
+          expected: { formatName: "flv", videoFormat: "m4s", isHls: false, hasSegment: false },
         },
         {
           description: "no segment, ts format, auto videoFormat",
@@ -256,7 +145,7 @@ describe("FFMPEGRecorder", () => {
         {
           description: "no segment, fmp4 format, auto videoFormat",
           opts: { segment: 0, formatName: "fmp4" as const, videoFormat: "auto" as const },
-          expected: { formatName: "fmp4", videoFormat: "mp4", isHls: true, hasSegment: false },
+          expected: { formatName: "fmp4", videoFormat: "m4s", isHls: true, hasSegment: false },
         },
         {
           description: "no segment, flv format, explicit mp4 videoFormat",
@@ -365,54 +254,9 @@ describe("FFMPEGRecorder", () => {
         false, // hasSegment
         true, // disableDanma
         "ffmpeg",
-        "mp4", // videoFormat (auto-detected)
+        "m4s", // videoFormat (auto-detected)
         { onUpdateLiveInfo: mockOnUpdateLiveInfo },
       );
-    });
-  });
-
-  describe("FFMPEG command creation", () => {
-    it("should add segment options when hasSegment is true", () => {
-      new FFMPEGRecorder(
-        {
-          url: "https://example.com/stream.flv",
-          getSavePath: vi.fn().mockReturnValue("/test/path/video"),
-          segment: 15, // 15 minutes
-          outputOptions: ["-c:v", "copy"],
-          formatName: "flv",
-        },
-        mockOnEnd,
-        mockOnUpdateLiveInfo,
-      );
-
-      expect(mockFFMPEGBuilder.outputOptions).toHaveBeenCalledWith(
-        "-f",
-        "segment",
-        "-segment_time",
-        "900", // 15 * 60 seconds
-        "-reset_timestamps",
-        "1",
-      );
-    });
-
-    it("should not add segment options when hasSegment is false", () => {
-      new FFMPEGRecorder(
-        {
-          url: "https://example.com/stream.flv",
-          getSavePath: vi.fn().mockReturnValue("/test/path/video"),
-          segment: 0,
-          outputOptions: ["-c:v", "copy"],
-          formatName: "flv",
-        },
-        mockOnEnd,
-        mockOnUpdateLiveInfo,
-      );
-
-      // Should not call outputOptions with segment-related parameters
-      const segmentCalls = vi
-        .mocked(mockFFMPEGBuilder.outputOptions)
-        .mock.calls.filter((call: any[]) => call.includes("-f") && call.includes("segment"));
-      expect(segmentCalls).toHaveLength(0);
     });
   });
 
@@ -460,24 +304,177 @@ describe("FFMPEGRecorder", () => {
       expect(mockFFMPEGBuilder.kill).not.toHaveBeenCalled();
       expect(mockFFMPEGBuilder.ffmpegProc.stdin.write).toHaveBeenCalledWith("q");
     });
-  });
 
-  describe("edge cases and error handling", () => {
-    it("should handle undefined videoFormat option", () => {
-      const recorder = new FFMPEGRecorder(
-        {
-          url: "https://example.com/stream.flv",
-          getSavePath: vi.fn().mockReturnValue("/test/path/video"),
-          segment: 0,
-          outputOptions: ["-c:v", "copy"],
-          formatName: "flv",
-          // videoFormat is undefined
-        },
-        mockOnEnd,
-        mockOnUpdateLiveInfo,
-      );
+    describe("buildOutputOptions method", () => {
+      it("should include custom ffmpegOutputOptions", () => {
+        const customOptions = ["-preset", "ultrafast", "-crf", "23"];
+        const recorder = new FFMPEGRecorder(
+          {
+            url: "https://example.com/stream.flv",
+            getSavePath: vi.fn().mockReturnValue("/test/path/video"),
+            segment: 0,
+            outputOptions: customOptions,
+            formatName: "flv",
+          },
+          mockOnEnd,
+          mockOnUpdateLiveInfo,
+        );
 
-      expect(recorder.videoFormat).toBe("mp4"); // auto-detected default
+        const options = recorder.buildOutputOptions();
+
+        expect(options).toEqual(expect.arrayContaining(["-preset", "ultrafast", "-crf", "23"]));
+      });
+
+      it("should include base output options for all recordings", () => {
+        const recorder = new FFMPEGRecorder(
+          {
+            url: "https://example.com/stream.flv",
+            getSavePath: vi.fn().mockReturnValue("/test/path/video"),
+            segment: 0,
+            outputOptions: [],
+            formatName: "flv",
+          },
+          mockOnEnd,
+          mockOnUpdateLiveInfo,
+        );
+
+        const options = recorder.buildOutputOptions();
+
+        expect(options).toEqual(
+          expect.arrayContaining([
+            "-c",
+            "copy",
+            "-movflags",
+            "+frag_keyframe+empty_moov+separate_moof",
+            "-fflags",
+            "+genpts+igndts",
+            "-min_frag_duration",
+            "10000000",
+          ]),
+        );
+      });
+
+      it("should add segment options when hasSegment is true", () => {
+        const recorder = new FFMPEGRecorder(
+          {
+            url: "https://example.com/stream.flv",
+            getSavePath: vi.fn().mockReturnValue("/test/path/video"),
+            segment: 30, // 30 minutes
+            outputOptions: [],
+            formatName: "flv",
+          },
+          mockOnEnd,
+          mockOnUpdateLiveInfo,
+        );
+
+        const options = recorder.buildOutputOptions();
+
+        expect(options).toEqual(
+          expect.arrayContaining([
+            "-f",
+            "segment",
+            "-segment_time",
+            "1800", // 30 * 60 seconds
+            "-reset_timestamps",
+            "1",
+          ]),
+        );
+      });
+
+      it("should not add segment options when hasSegment is false", () => {
+        const recorder = new FFMPEGRecorder(
+          {
+            url: "https://example.com/stream.flv",
+            getSavePath: vi.fn().mockReturnValue("/test/path/video"),
+            segment: 0,
+            outputOptions: [],
+            formatName: "flv",
+          },
+          mockOnEnd,
+          mockOnUpdateLiveInfo,
+        );
+
+        const options = recorder.buildOutputOptions();
+        console.log("Output Options:", options);
+        expect(options).not.toContain("segment");
+        expect(options).not.toContain("-segment_time");
+        expect(options).not.toContain("-reset_timestamps");
+      });
+
+      it("should add mp4 format option when videoFormat is m4s", () => {
+        const recorder = new FFMPEGRecorder(
+          {
+            url: "https://example.com/stream.flv",
+            getSavePath: vi.fn().mockReturnValue("/test/path/video"),
+            segment: 0,
+            outputOptions: [],
+            videoFormat: "m4s",
+            formatName: "flv",
+          },
+          mockOnEnd,
+          mockOnUpdateLiveInfo,
+        );
+
+        const options = recorder.buildOutputOptions();
+
+        expect(options).toEqual(expect.arrayContaining(["-f", "mp4"]));
+      });
+
+      it("should not add mp4 format option when videoFormat is not m4s", () => {
+        const recorder = new FFMPEGRecorder(
+          {
+            url: "https://example.com/stream.flv",
+            getSavePath: vi.fn().mockReturnValue("/test/path/video"),
+            segment: 0,
+            outputOptions: [],
+            videoFormat: "ts",
+            formatName: "flv",
+          },
+          mockOnEnd,
+          mockOnUpdateLiveInfo,
+        );
+
+        const options = recorder.buildOutputOptions();
+        const mp4FormatIndex = options.findIndex(
+          (opt, i) => opt === "-f" && options[i + 1] === "mp4",
+        );
+
+        expect(mp4FormatIndex).toBe(-1);
+      });
+
+      it("should combine all options in correct order", () => {
+        const customOptions = ["-preset", "fast"];
+        const recorder = new FFMPEGRecorder(
+          {
+            url: "https://example.com/stream.flv",
+            getSavePath: vi.fn().mockReturnValue("/test/path/video"),
+            segment: 10,
+            outputOptions: customOptions,
+            videoFormat: "m4s",
+            formatName: "flv",
+          },
+          mockOnEnd,
+          mockOnUpdateLiveInfo,
+        );
+
+        const options = recorder.buildOutputOptions();
+
+        // Custom options should come first
+        expect(options[0]).toBe("-preset");
+        expect(options[1]).toBe("fast");
+
+        // Base options should follow
+        expect(options).toContain("-c");
+        expect(options).toContain("copy");
+
+        // Segment options should be included
+        expect(options).toContain("-segment_time");
+        expect(options).toContain("600"); // 10 * 60
+
+        // Format option should be included
+        expect(options).toContain("-segment_format");
+        expect(options).toContain("mp4");
+      });
     });
   });
 });

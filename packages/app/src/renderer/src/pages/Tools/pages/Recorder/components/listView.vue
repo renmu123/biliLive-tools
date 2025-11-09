@@ -72,7 +72,11 @@
           {{ stateMap[item.state] }}
         </td>
         <td :title="item?.recordHandle?.url">
-          {{ item.state === "recording" ? `${item.usedSource}/${item.usedStream}` : "" }}
+          {{
+            item.state === "recording"
+              ? `${item.usedSource}/${item.usedStream}/${item?.recordHandle?.recorderType}`
+              : ""
+          }}
         </td>
         <td>
           {{

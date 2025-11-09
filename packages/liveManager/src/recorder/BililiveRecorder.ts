@@ -58,7 +58,6 @@ class BililiveRecorderCommand extends EventEmitter {
   run(): void {
     const args = this._getArguments();
     const bililiveExecutable = getBililivePath();
-    console.log("Starting BililiveRecorder with args:", bililiveExecutable, args);
 
     this.process = spawn(bililiveExecutable, args, {
       stdio: ["pipe", "pipe", "pipe"],
@@ -153,8 +152,8 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
 
     this.command = this.createCommand();
 
-    this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename }) => {
-      this.emit("videoFileCreated", { filename, cover, rawFilename });
+    this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename, title }) => {
+      this.emit("videoFileCreated", { filename, cover, rawFilename, title });
     });
     this.streamManager.on("videoFileCompleted", ({ filename }) => {
       this.emit("videoFileCompleted", { filename });

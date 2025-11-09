@@ -1,4 +1,4 @@
-<!-- 将文件转换为mp4 -->
+<!-- 文转码 -->
 <template>
   <div>
     <div class="center btns" style="margin-bottom: 20px">

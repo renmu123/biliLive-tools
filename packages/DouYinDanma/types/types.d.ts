@@ -150,7 +150,9 @@ export interface SocialMessage {
 export interface GiftMessage {
   common: Common & { method: "WebcastGiftMessage" };
   user: User;
+  // 这个参数其实差不多是秒级时间戳，并不可靠
   groupId: string;
+  giftId: number;
   gift: Gift;
   publicAreaCommon: PublicAreaCommon;
   trayDisplayText: TrayDisplayText;

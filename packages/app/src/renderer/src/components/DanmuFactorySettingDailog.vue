@@ -26,8 +26,7 @@
           </n-checkbox>
           <n-button
             v-if="config.id !== 'default'"
-            ghost
-            quaternary
+            text
             class="btn"
             type="error"
             @click="deletePreset"

@@ -111,6 +111,7 @@
               item.status === 'completed' &&
               item.type !== TaskType.biliUpload &&
               item.type !== TaskType.bili &&
+              item.type !== TaskType.flvRepair &&
               item.output
             "
             :size="20"

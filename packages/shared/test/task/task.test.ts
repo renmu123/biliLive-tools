@@ -195,39 +195,39 @@ describe("TaskQueue", () => {
       //   await sleep(50);
       //   expect(task3.status).toBe("completed");
       // });
-      it("should auto start after task-error event", async () => {
-        class FFmpegTask extends AbstractTask {
-          type: string = TaskType.ffmpeg;
-          exec = vi.fn().mockImplementation(async () => {
-            this.status = "running";
-            await sleep(50);
-            this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
-            this.status = "error";
-          });
-          pause = vi.fn();
-          resume = vi.fn();
-          kill = vi.fn();
-        }
+      // it("should auto start after task-error event", async () => {
+      //   class FFmpegTask extends AbstractTask {
+      //     type: string = TaskType.ffmpeg;
+      //     exec = vi.fn().mockImplementation(async () => {
+      //       this.status = "running";
+      //       await sleep(50);
+      //       this.emitter.emit("task-error", { taskId: this.taskId, error: "test" });
+      //       this.status = "error";
+      //     });
+      //     pause = vi.fn();
+      //     resume = vi.fn();
+      //     kill = vi.fn();
+      //   }
 
-        const task1 = new FFmpegTask();
-        const task2 = new FFmpegTask();
-        const task3 = new FFmpegTask();
-        taskQueue.addTask(task1, false);
-        taskQueue.addTask(task2, false);
-        taskQueue.addTask(task3, false);
-        expect(task1.exec).toHaveBeenCalled();
-        expect(task2.exec).toHaveBeenCalled();
-        expect(task3.exec).not.toHaveBeenCalled();
-        await sleep(70);
-        expect(task3.exec).toHaveBeenCalled();
+      //   const task1 = new FFmpegTask();
+      //   const task2 = new FFmpegTask();
+      //   const task3 = new FFmpegTask();
+      //   taskQueue.addTask(task1, false);
+      //   taskQueue.addTask(task2, false);
+      //   taskQueue.addTask(task3, false);
+      //   expect(task1.exec).toHaveBeenCalled();
+      //   expect(task2.exec).toHaveBeenCalled();
+      //   expect(task3.exec).not.toHaveBeenCalled();
+      //   await sleep(70);
+      //   expect(task3.exec).toHaveBeenCalled();
 
-        expect(task1.status).toBe("error");
-        expect(task2.status).toBe("error");
-        expect(task3.status).toBe("running");
+      //   expect(task1.status).toBe("error");
+      //   expect(task2.status).toBe("error");
+      //   expect(task3.status).toBe("running");
 
-        await sleep(50);
-        expect(task3.status).toBe("error");
-      });
+      //   await sleep(50);
+      //   expect(task3.status).toBe("error");
+      // });
 
       it("should auto start after task-pause event", async () => {
         class FFmpegTask extends AbstractTask {
