@@ -1,4 +1,4 @@
-# Next
+# 3.3.0(2025.11.09)
 
 文档站上线了：https://docs.irenmu.com/
 
