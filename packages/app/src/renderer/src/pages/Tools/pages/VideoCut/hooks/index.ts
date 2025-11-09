@@ -62,9 +62,19 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
    * 保存项目按钮
    */
   const saveProject = async () => {
-    if (options.value.find((item) => item.key === "save")?.disabled) return;
-
-    save();
+    const mediaFileName = mediaPath.value || files.value.videoPath;
+    if (!mediaFileName) {
+      notice.error({
+        title: "请先选择视频文件",
+        duration: 2000,
+      });
+      return;
+    }
+    if (llcProjectPath.value) {
+      save();
+    } else {
+      saveAsAnother();
+    }
   };
 
   /**
@@ -86,6 +96,10 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
     };
     console.log("save", llcProjectPath.value, projectData);
     await window.api.common.writeFile(llcProjectPath.value, JSON5.stringify(projectData, null, 2));
+    notice.success({
+      title: "已保存",
+      duration: 1000,
+    });
   };
 
   /**
