@@ -1,4 +1,4 @@
-# Next
+# 1.9.0
 
 - `recordHandle` 新增参数 `recorderType`
 - 修复某些情况下服务端时间戳不存在时使用客户端时间

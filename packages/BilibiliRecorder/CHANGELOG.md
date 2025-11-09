@@ -1,7 +1,8 @@
-# Next
+# 1.9.0
 
 - `recordHandle` 新增参数 `recorderType`
-- 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
+- 优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
+- 支持 `25000` 原画真彩画质
 
 # 1.8.0
 

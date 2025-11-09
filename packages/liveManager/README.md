@@ -94,19 +94,22 @@ setBililivePath("BililiveRecorder.Cli.exe");
 
 默认值为 `{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}`
 
-| 值          | 标签   |
-| ----------- | ------ |
-| {platform}  | 平台   |
-| {channelId} | 房间号 |
-| {remarks}   | 备注   |
-| {owner}     | 主播名 |
-| {title}     | 标题   |
-| {year}      | 年     |
-| {month}     | 月     |
-| {date}      | 日     |
-| {hour}      | 时     |
-| {min}       | 分     |
-| {sec}       | 秒     |
+| 值                | 标签                                       |
+| ----------------- | ------------------------------------------ |
+| {platform}        | 平台                                       |
+| {channelId}       | 房间号                                     |
+| {remarks}         | 备注                                       |
+| {owner}           | 主播名                                     |
+| {title}           | 标题                                       |
+| {year}            | 年                                         |
+| {month}           | 月                                         |
+| {date}            | 日                                         |
+| {hour}            | 时                                         |
+| {min}             | 分                                         |
+| {sec}             | 秒                                         |
+| {startTime}       | 分段开始时间，Date对象                     |
+| {recordStartTime} | 录制开始时间，Date对象                     |
+| {liveStartTime}   | 直播开始时间，Date对象，抖音同录制开始时间 |
 
 ## 事件
 

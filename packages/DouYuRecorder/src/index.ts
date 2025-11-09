@@ -141,7 +141,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "check-error";
     throw error;
   }
-  const { living, owner, title } = this.liveInfo;
+  const { living, owner, title, startTime } = this.liveInfo;
 
   if (this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
@@ -216,6 +216,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   let isEnded = false;
   let isCutting = false;
 
+  const recordStartTime = new Date();
   const recorder = createBaseRecorder(
     this.recorderType,
     {
@@ -224,7 +225,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       outputOptions: ffmpegOutputOptions,
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
-        getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),
+        getSavePath({
+          owner,
+          title: opts.title ?? title,
+          startTime: opts.startTime,
+          liveStartTime: startTime,
+          recordStartTime,
+        }),
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
@@ -240,6 +247,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const savePath = getSavePath({
     owner,
     title,
+    startTime: Date.now(),
+    liveStartTime: startTime,
+    recordStartTime,
   });
 
   try {

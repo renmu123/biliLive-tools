@@ -67,9 +67,7 @@ biliLive-tools 提供三种录制器引擎：
 
 ## 配置选项
 
-### 基础配置
-
-#### 直播间链接
+### 直播间链接
 
 - B站：`https://live.bilibili.com/房间号`
 - 斗鱼：`https://www.douyu.com/房间号`
@@ -81,7 +79,7 @@ biliLive-tools 提供三种录制器引擎：
 抖音号可能会被修改，请尽量使用房间号进行添加
 :::
 
-#### 画质
+### 画质
 
 根据平台不同，支持不同的画质选项
 
@@ -89,9 +87,7 @@ biliLive-tools 提供三种录制器引擎：
 B站登录Cookie后可以解锁更高画质。
 :::
 
-### 高级配置
-
-#### 只音频
+### 只音频
 
 只录制音频流，节省存储空间和带宽。
 
@@ -101,13 +97,11 @@ B站登录Cookie后可以解锁更高画质。
 - 纯音乐直播
 - 不需要视频画面的直播
 
-#### 时长分段
+### 时长分段
 
-按时长自动分段，避免单个文件过大。
+按时长自动分段，避免单个文件过大，以及缓解时间戳的偏移。
 
-可选时长：30分钟、1小时、2小时、4小时、8小时
-
-#### 文件命名规则
+### 文件命名规则
 
 自定义录制文件的命名规则，支持以下占位符：
 
@@ -120,6 +114,9 @@ B站登录Cookie后可以解锁更高画质。
 - `{hour}` - 小时
 - `{min}` - 分钟
 - `{sec}` - 秒
+- `{startTime}` - 分段开始时间，Date对象
+- `{recordStartTime}` - 录制开始时间，Date对象
+- `{liveStartTime}` - 直播开始时间，Date对象，抖音同录制开始时间
 
 示例：`{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}`
 
@@ -132,9 +129,15 @@ B站登录Cookie后可以解锁更高画质。
 <% if (platform=='斗鱼') { %>C<% } %><% if (platform!='斗鱼') { %>D<% } %>:\录制\{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}
 ```
 
+例如，将直播开始时间设置为文件夹
+
+```
+{platform}/{owner}/<%= recordStartTime.getFullYear() %>-<%= recordStartTime.getMonth()+1 %>-<%= recordStartTime.getDate() %>/{year}-{month}-{date} {hour}-{min}-{sec} {title}
+```
+
 :::
 
-#### 检查间隔
+### 检查间隔
 
 设置检查直播状态的时间间隔，默认60秒。
 
