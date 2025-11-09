@@ -1,4 +1,4 @@
-# Next
+# 1.9.0
 
 - `recordHandle` 新增参数 `recorderType`
 - mesio 引擎默认禁用任何代理
