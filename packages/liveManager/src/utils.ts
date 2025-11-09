@@ -151,8 +151,8 @@ export function formatDate(date: Date, format: string): string {
   return format.replace(/yyyy|MM|dd|HH|mm|ss/g, (matched) => map[matched]);
 }
 
-export function removeSystemReservedChars(filename: string) {
-  return filenamify(filename, { replacement: "_" });
+export function removeSystemReservedChars(str: string) {
+  return filenamify(str, { replacement: "_" });
 }
 
 export function isFfmpegStartSegment(line: string) {

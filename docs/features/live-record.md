@@ -114,6 +114,9 @@ B站登录Cookie后可以解锁更高画质。
 - `{hour}` - 小时
 - `{min}` - 分钟
 - `{sec}` - 秒
+- `{startTime}` - 分段开始时间，Date对象
+- `{recordStartTime}` - 录制开始时间，Date对象
+- `{liveStartTime}` - 直播开始时间，Date对象，抖音同录制开始时间
 
 示例：`{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}`
 
@@ -124,6 +127,12 @@ B站登录Cookie后可以解锁更高画质。
 
 ```
 <% if (platform=='斗鱼') { %>C<% } %><% if (platform!='斗鱼') { %>D<% } %>:\录制\{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}
+```
+
+例如，将直播开始时间设置为文件夹
+
+```
+{platform}/{owner}/<%= recordStartTime.getFullYear() %>-<%= recordStartTime.getMonth()+1 %>-<%= recordStartTime.getDate() %>/{year}-{month}-{date} {hour}-{min}-{sec} {title}
 ```
 
 :::

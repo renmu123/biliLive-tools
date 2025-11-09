@@ -4,6 +4,7 @@
 - mesio 引擎默认禁用任何代理
 - 优化弹幕内存占用
 - 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
+- savePathRule 参数支持 `startTime` `recordStartTime` `liveStartTime` 参数
 
 # 1.8.0
 
