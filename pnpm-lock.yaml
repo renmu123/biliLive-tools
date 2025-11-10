@@ -105,8 +105,8 @@ importers:
         specifier: 'catalog:'
         version: 1.7.8
       blive-message-listener:
-        specifier: ^0.5.1
-        version: 0.5.1(bufferutil@4.0.8)(utf-8-validate@6.0.5)
+        specifier: ^0.5.2
+        version: 0.5.2(bufferutil@4.0.8)(utf-8-validate@6.0.5)
       lodash-es:
         specifier: 'catalog:'
         version: 4.17.21
@@ -2483,8 +2483,8 @@ packages:
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
 
-  blive-message-listener@0.5.1:
-    resolution: {integrity: sha512-tHT9uKo753m1oELp9mRqBM52Q8IFrSXy+IBoj9BhBPQbvTS4joRU1xonuXz0jMPuL6d7yv7zd/SVR74szKAKow==}
+  blive-message-listener@0.5.2:
+    resolution: {integrity: sha512-bOyEE+mL5ZIj9Z1nLLt58bzLij0Uuyh9fHplCJyCSk09UE2te5U2SxdXaODeIg/YFi2R5dU1RCxemmadri+D6Q==}
 
   bluebird-lst@1.0.9:
     resolution: {integrity: sha512-7B1Rtx82hjnSD4PGLAjVWeYH3tHAcVUmChh85a3lltKQm6FresXh9ErQo6oAv6CqxttczC3/kEg8SY5NluPuUw==}
@@ -7568,7 +7568,7 @@ snapshots:
       inherits: 2.0.4
       readable-stream: 3.6.2
 
-  blive-message-listener@0.5.1(bufferutil@4.0.8)(utf-8-validate@6.0.5):
+  blive-message-listener@0.5.2(bufferutil@4.0.8)(utf-8-validate@6.0.5):
     dependencies:
       tiny-bilibili-ws: 1.0.2(bufferutil@4.0.8)(utf-8-validate@6.0.5)
     transitivePeerDependencies:
