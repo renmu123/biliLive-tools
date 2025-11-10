@@ -45,7 +45,7 @@
   "devDependencies": {
     "@types/cli-progress": "^3.11.6",
     "@types/koa": "^2.15.0",
-    "@types/koa__router": "^12.0.4",
+    "@types/koa__router": "^12.0.5",
     "tsx": "^4.19.2"
   }
 }
