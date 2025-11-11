@@ -71,7 +71,7 @@ pnpm run install:bin
 2. **ffmpeg.exe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
 3. **ffprobe.exe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
 4. **录播姬cli**：[3.1.0](https://github.com/renmu123/BililiveRecorder)
-5. **mesio**：[0.3.2](https://github.com/hua0512/rust-srec)
+5. **mesio**：[0.3.3](https://github.com/hua0512/rust-srec)
 
 同时需要在应用设置中配置可执行文件路径。
 
