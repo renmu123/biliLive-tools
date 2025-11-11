@@ -1,8 +1,8 @@
 import { TypedEmitter } from "tiny-typed-emitter";
-import type { Status } from "@biliLive-tools/types";
-
 import { isBetweenTimeRange } from "../../utils/index.js";
 import { TaskType } from "../../enum.js";
+
+import type { Status } from "@biliLive-tools/types";
 import type { AppConfig } from "../../config.js";
 import type { AbstractTask } from "./AbstractTask.js";
 import type { TaskEvents } from "./types.js";
