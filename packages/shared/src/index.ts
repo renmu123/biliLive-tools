@@ -10,7 +10,7 @@ import { setFfmpegPath } from "./task/video.js";
 import logger, { initLogger, setLogLevel } from "./utils/log.js";
 import { migrateBiliUser, checkAccountLoop } from "./task/bili.js";
 import BiliCheckQueue from "./task/BiliCheckQueue.js";
-import { createInterval as checkSubLoop } from "./task/videoSub.js";
+import { createInterval as checkSubLoop } from "./video/videoSub.js";
 import { check as checkVirtualRecordLoop } from "./task/virtualRecord.js";
 import { createRecorderManager } from "./recorder/index.js";
 import { sendNotify } from "./notify.js";

@@ -3,8 +3,8 @@ import path from "path";
 import M3U8Downloader from "@renmu/m3u8-downloader";
 import axios from "axios";
 
-import { taskQueue, KuaishouDownloadVideoTask } from "./task.js";
-import { getFfmpegPath } from "./video.js";
+import { taskQueue, KuaishouDownloadVideoTask } from "../task/task.js";
+import { getFfmpegPath } from "../task/video.js";
 import { uuid } from "../utils/index.js";
 import { getTempPath } from "../utils/index.js";
 
