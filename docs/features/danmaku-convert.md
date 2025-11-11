@@ -207,6 +207,121 @@ docker下的emoji文本渲染错误，猜测和fontconfig有关，但是我不�
 1. 点击"导出预设"保存为文件
 2. 点击"导入预设"加载文件
 
+### 自定义过滤函数
+
+::: warning 注意
+此功能为 biliLive-tools 的原生实现，并非 DanmakuFactory 原生实现。转换完成后请查看生成的 ASS 文件以确认过滤效果。
+:::
+
+#### 功能说明
+
+自定义过滤函数允许您编写 JavaScript 代码来精确控制哪些弹幕应该被保留或过滤，提供比基础过滤选项更灵活的控制能力。
+
+#### 函数签名
+
+```typescript
+function filter(type: "danmu" | "sc" | "guard" | "gift", data: DanmakuData): boolean;
+```
+
+**参数:**
+
+- `type`: 弹幕类型
+  - `danmu`: 普通弹幕
+  - `sc`: SuperChat(醒目留言)
+  - `guard`: 舰长/提督/总督等上舰消息
+  - `gift`: 其他礼物消息
+- `data`: 弹幕数据对象，包含该条弹幕的所有信息
+
+**返回值:**
+
+- `true`: 保留该条弹幕
+- `false`: 过滤掉该条弹幕
+
+#### 数据结构
+
+::: tip 属性命名规则
+
+- 弹幕文本内容使用 `#text` 属性
+- 其他属性使用 `@_` 前缀，如 `@_user`、`@_uid`
+- `raw` 原始数据属性不会被解析
+  :::
+
+由于不同工具生成的弹幕格式可能存在差异，**建议在判断时使用可选链(?.)等防御式编程方式，避免报错**。
+
+##### danmu (普通弹幕)
+
+| 参数          | 类型   | 说明                         |
+| ------------- | ------ | ---------------------------- |
+| `#text`       | string | 弹幕文本内容                 |
+| `@_p`         | string | B站弹幕参数(参考B站弹幕格式) |
+| `@_user`      | string | 发送者用户名                 |
+| `@_uid`       | string | 发送者用户ID                 |
+| `@_timestamp` | number | 弹幕发送的Unix时间戳         |
+
+##### sc (SuperChat/醒目留言)
+
+<!-- | 参数          | 类型   | 说明             |
+| ------------- | ------ | ---------------- |
+| `#text`       | string | SC内容           |
+| `@_user`      | string | 发送者用户名     |
+| `@_uid`       | string | 发送者用户ID     |
+| `@_price`     | number | SC金额           |
+| `@_timestamp` | number | 发送的Unix时间戳 | -->
+
+##### gift (礼物)
+
+| 参数          | 类型   | 说明             |
+| ------------- | ------ | ---------------- |
+| `@_ts`        | number | 相对时间(秒)     |
+| `@_giftname`  | string | 礼物名称         |
+| `@_giftcount` | number | 礼物数量         |
+| `@_user`      | string | 发送者用户名     |
+| `@_uid`       | string | 发送者用户ID     |
+| `@_timestamp` | number | 发送的Unix时间戳 |
+
+##### guard (舰长/上舰)
+
+<!-- | 参数          | 类型   | 说明             |
+| ------------- | ------ | ---------------- |
+| `@_user`      | string | 购买者用户名     |
+| `@_uid`       | string | 购买者用户ID     |
+| `@_level`     | number | 舰长等级         |
+| `@_timestamp` | number | 购买的Unix时间戳 | -->
+
+#### 使用示例
+
+##### 示例 1: 按关键词过滤
+
+仅保留包含特定表情的弹幕:
+
+```js
+function filter(type, data) {
+  // 只处理普通弹幕
+  if (type !== "danmu") return true;
+
+  // 保留包含 🐖 的弹幕
+  return data["#text"]?.includes("🐖");
+}
+```
+
+<!-- #### 调试技巧
+
+在开发过滤函数时，可以使用 `console.log` 输出信息帮助调试:
+
+```js
+function filter(type, data) {
+  // 输出所有弹幕信息查看结构
+  console.log("Type:", type, "Data:", data);
+
+  // 您的过滤逻辑
+  return true;
+}
+``` -->
+
+::: tip 提示
+转换完成后建议用文本编辑器打开生成的 ASS 文件，检查过滤效果是否符合预期。
+:::
+
 ## 故障排除
 
 ### 弹幕转换失败
@@ -237,3 +352,7 @@ docker下的emoji文本渲染错误，猜测和fontconfig有关，但是我不�
 1. 确认系统已安装该字体
 2. 尝试使用系统默认字体
 3. Docker环境需要挂载字体目录
+
+```
+
+```
