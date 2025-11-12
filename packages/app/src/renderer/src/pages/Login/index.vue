@@ -107,7 +107,7 @@ const apiStorage = window.localStorage.getItem("api");
 // const keyStorage = window.localStorage.getItem("key");
 api.value = apiStorage || import.meta.env.VITE_DEFAULT_SERVER || "http://127.0.0.1:18010";
 // key.value = keyStorage || "";
-const isFullstack = ref(import.meta.env.VITE_FULLSTACK);
+const isFullstack = ref(import.meta.env.VITE_FULLSTACK === "true");
 if (isFullstack.value) {
   api.value = import.meta.env.VITE_DEFAULT_SERVER;
 }
