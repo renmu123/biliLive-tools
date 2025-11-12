@@ -35,7 +35,7 @@
 
 # 安装
 
-客户端可直接在 [release](https://github.com/renmu123/biliLive-tools/releases) 中下载，更多内容见[文档](https://docs.irenmu.com/guide/installation.html)
+客户端可直接在 [release](https://github.com/renmu123/biliLive-tools/releases) 或 [夸克网盘](https://pan.quark.cn/s/6da253a1ecb8) 中下载，更多内容见[文档](https://docs.irenmu.com/guide/installation.html)
 
 # 交流地址
 
