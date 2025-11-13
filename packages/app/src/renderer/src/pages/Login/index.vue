@@ -56,7 +56,6 @@ const login = async () => {
     notice.error({ title: "请输入API地址和密钥", duration: 1000 });
     return;
   }
-  window.localStorage.removeItem("api");
   const serverVersion = await commonApi.versionTest(api.value, key.value);
   if (serverVersion.includes('id="app"')) {
     notice.error({ title: "不要使用前端地址啊！！", duration: 1000 });
@@ -75,7 +74,6 @@ const test = async () => {
     return;
   }
   try {
-    window.localStorage.removeItem("api");
     const serverVersion = await commonApi.versionTest(api.value, key.value);
     if (serverVersion.includes('id="app"')) {
       notice.error({ title: "不要使用前端地址啊！！", duration: 1000 });
