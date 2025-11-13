@@ -110,6 +110,10 @@ const test = async () => {
 api.value = import.meta.env.VITE_DEFAULT_SERVER || "http://127.0.0.1:18010";
 // key.value = keyStorage || "";
 const isFullstack = ref(window.isFullstack);
+if (window.localStorage.getItem("api")) {
+  window.localStorage.removeItem("api");
+  window.location.reload();
+}
 </script>
 
 <style lang="less">

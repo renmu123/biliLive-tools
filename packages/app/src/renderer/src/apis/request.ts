@@ -18,7 +18,9 @@ export async function init() {
     if (baseURL) {
       api.defaults.baseURL = baseURL;
     } else {
-      api.defaults.baseURL = `http://127.0.0.1:18010`;
+      if (!import.meta.env.VITE_DEFAULT_SERVER) {
+        api.defaults.baseURL = `http://127.0.0.1:18010`;
+      }
     }
   } else {
     const appConfig = await window.api.config.getAll();
