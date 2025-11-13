@@ -56,6 +56,7 @@ const login = async () => {
     notice.error({ title: "请输入API地址和密钥", duration: 1000 });
     return;
   }
+  window.localStorage.removeItem("api");
   const serverVersion = await commonApi.versionTest(api.value, key.value);
   if (serverVersion.includes('id="app"')) {
     notice.error({ title: "不要使用前端地址啊！！", duration: 1000 });
@@ -74,6 +75,7 @@ const test = async () => {
     return;
   }
   try {
+    window.localStorage.removeItem("api");
     const serverVersion = await commonApi.versionTest(api.value, key.value);
     if (serverVersion.includes('id="app"')) {
       notice.error({ title: "不要使用前端地址啊！！", duration: 1000 });
@@ -103,14 +105,11 @@ const test = async () => {
   }
 };
 
-const apiStorage = window.localStorage.getItem("api");
+// const apiStorage = window.localStorage.getItem("api");
 // const keyStorage = window.localStorage.getItem("key");
-api.value = apiStorage || import.meta.env.VITE_DEFAULT_SERVER || "http://127.0.0.1:18010";
+api.value = import.meta.env.VITE_DEFAULT_SERVER || "http://127.0.0.1:18010";
 // key.value = keyStorage || "";
-const isFullstack = ref(import.meta.env.VITE_FULLSTACK === "true");
-if (isFullstack.value) {
-  api.value = import.meta.env.VITE_DEFAULT_SERVER;
-}
+const isFullstack = ref(window.isFullstack);
 </script>
 
 <style lang="less">
