@@ -14,9 +14,6 @@ if (import.meta.hot) {
 
 export async function init() {
   if (window.isWeb) {
-    if (window.isFullstack) {
-      return;
-    }
     const baseURL = window.localStorage.getItem("api");
     if (baseURL) {
       api.defaults.baseURL = baseURL;
