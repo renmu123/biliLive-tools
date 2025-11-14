@@ -2,7 +2,6 @@ import path from "node:path";
 import Database from "better-sqlite3";
 
 import DanmaModel from "./model/danmu.js";
-import RecordHistoryModel from "./model/recordHistory.js";
 import UploadPartController from "./model/uploadPart.js";
 import { setupContainer } from "./container.js";
 
@@ -39,7 +38,6 @@ class DB {
 const db = new DB();
 const danmaDb = new DB();
 export const danmuModel = new DanmaModel();
-export const recordHistoryModel = new RecordHistoryModel();
 export const uploadPartModel = new UploadPartController();
 
 export let dbContainer: ReturnType<typeof setupContainer>;
@@ -48,6 +46,7 @@ export let virtualRecordService: Container["virtualRecordService"];
 export let videoSubDataService: Container["videoSubDataService"];
 export let streamerService: Container["streamerService"];
 export let videoSubService: Container["videoSubService"];
+export let recordHistoryService: Container["recordHistoryService"];
 
 export const initDB = (dbPath: string) => {
   const mainDBPath = path.join(dbPath, "app.db");
@@ -56,7 +55,6 @@ export const initDB = (dbPath: string) => {
   db.init(mainDBPath);
   danmaDb.init(danmaDBPath);
 
-  recordHistoryModel.init(db.db);
   uploadPartModel.init(db.db);
 
   // 弹幕数据库
@@ -69,14 +67,13 @@ export const initDB = (dbPath: string) => {
   videoSubDataService = dbContainer.resolve("videoSubDataService");
   streamerService = dbContainer.resolve("streamerService");
   videoSubService = dbContainer.resolve("videoSubService");
+  recordHistoryService = dbContainer.resolve("recordHistoryService");
 
   return db;
 };
 
 export const reconnectDB = () => {
   // danmuModel.init(db.db);
-  recordHistoryModel.init(db.db);
-  // statisticsModel.init(db.db);
   uploadPartModel.init(db.db);
   return db;
 };

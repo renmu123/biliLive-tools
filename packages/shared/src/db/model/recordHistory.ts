@@ -4,7 +4,7 @@ import logger from "../../utils/log.js";
 
 import type { Database } from "better-sqlite3";
 
-const BaseLive = z.object({
+const BaseLiveHistory = z.object({
   streamer_id: z.number(),
   live_start_time: z.number().optional(),
   record_start_time: z.number(),
@@ -21,19 +21,22 @@ const BaseLive = z.object({
   live_id: z.string().optional(),
 });
 
-const Live = BaseLive.extend({
+const LiveHistory = BaseLiveHistory.extend({
   id: z.number(),
   created_at: z.number().optional(),
 });
 
-export type BaseLive = z.infer<typeof BaseLive>;
-export type Live = z.infer<typeof Live>;
+export type BaseLiveHistory = z.infer<typeof BaseLiveHistory>;
+export type LiveHistory = z.infer<typeof LiveHistory>;
 
-class LiveModel extends BaseModel<Live> {
+export default class RecordHistoryModel extends BaseModel<LiveHistory> {
   table = "record_history";
 
-  constructor(db: Database) {
+  constructor({ db }: { db: Database }) {
     super(db, "record_history");
+    this.createTable();
+    this.migrate();
+    this.createIndexes();
   }
 
   async createTable() {
@@ -150,29 +153,15 @@ class LiveModel extends BaseModel<Live> {
       return false;
     }
   }
-}
 
-export default class LiveController {
-  private model!: LiveModel;
-  init(db: Database) {
-    this.model = new LiveModel(db);
-    this.model.createTable();
-    this.model.migrate();
-    this.model.createIndexes();
+  add(options: BaseLiveHistory) {
+    const data = BaseLiveHistory.parse(options);
+    return this.insert(data);
   }
 
-  add(options: BaseLive) {
-    const data = BaseLive.parse(options);
-    return this.model.insert(data);
-  }
-  addMany(list: BaseLive[]) {
-    const filterList = list.map((item) => BaseLive.parse(item));
-
-    return this.model.insertMany(filterList);
-  }
-  list(options: Partial<Live>): Live[] {
-    const data = Live.partial().parse(options);
-    return this.model.list(data);
+  addMany(list: BaseLiveHistory[]) {
+    const filterList = list.map((item) => BaseLiveHistory.parse(item));
+    return this.insertMany(filterList);
   }
 
   /**
@@ -180,15 +169,15 @@ export default class LiveController {
    * @param options 查询参数
    * @returns 分页结果
    */
-  paginate(options: {
-    where: Partial<Live>;
+  paginateWithTimeRange(options: {
+    where: Partial<LiveHistory>;
     page?: number;
     pageSize?: number;
     startTime?: number;
     endTime?: number;
     orderBy?: string;
     orderDirection?: "ASC" | "DESC";
-  }): { data: Live[]; total: number } {
+  }): { data: LiveHistory[]; total: number } {
     const {
       where,
       page = 1,
@@ -226,47 +215,32 @@ export default class LiveController {
     const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : "";
 
     // 获取总记录数
-    const countSql = `SELECT COUNT(*) as total FROM ${this.model.tableName} ${whereClause}`;
-    const countStmt = this.model.db.prepare(countSql);
+    const countSql = `SELECT COUNT(*) as total FROM ${this.tableName} ${whereClause}`;
+    const countStmt = this.db.prepare(countSql);
     const countResult = countStmt.get(...params) as { total: number };
     const total = countResult.total;
 
     // 获取分页数据
     const offset = (page - 1) * pageSize;
     const dataSql = `
-      SELECT * FROM ${this.model.tableName} 
+      SELECT * FROM ${this.tableName} 
       ${whereClause} 
       ORDER BY ${orderBy} ${orderDirection} 
       LIMIT ? OFFSET ?
     `;
-    const dataStmt = this.model.db.prepare(dataSql);
-    const data = dataStmt.all(...params, pageSize, offset) as Live[];
+    const dataStmt = this.db.prepare(dataSql);
+    const data = dataStmt.all(...params, pageSize, offset) as LiveHistory[];
 
     return { data, total };
   }
 
-  query(options: Partial<Live>) {
-    const data = Live.partial().parse(options);
-    return this.model.query(data);
-  }
-  // upsert(options: { where: Partial<Live & { id: number }>; create: BaseLive }) {
-  //   return this.model.upsert(options);
-  // }
-  update(options: Partial<Live & { id: number }>) {
-    const data = Live.partial()
-      .required({
-        id: true,
-      })
-      .parse(options);
-    return this.model.update(data);
-  }
   /**
    * 删除单个录制历史记录
    * @param id 记录ID
    * @returns 删除的记录数量
    */
   removeRecord(id: number): number {
-    return this.model.deleteBy("id", id);
+    return this.deleteBy("id", id);
   }
 
   /**
@@ -275,6 +249,6 @@ export default class LiveController {
    * @returns 删除的记录数量
    */
   removeRecordsByStreamerId(streamerId: number): number {
-    return this.model.deleteBy("streamer_id", streamerId);
+    return this.deleteBy("streamer_id", streamerId);
   }
 }
