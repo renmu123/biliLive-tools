@@ -83,6 +83,12 @@
       style="margin-right: 10px; width: 200px"
       clearable
     />
+    <n-button
+      v-if="data.ffmpegPreset && !globalFieldsObj.ffmpegPreset"
+      text
+      @click="data.ffmpegPreset = null"
+      >清除</n-button
+    >
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.ffmpegPreset" class="global-checkbox"
       >全局</n-checkbox
     >
@@ -99,6 +105,12 @@
       style="margin-right: 10px; width: 200px"
       clearable
     />
+    <n-button
+      v-if="data.danmuPreset && !globalFieldsObj.danmuPreset"
+      text
+      @click="data.danmuPreset = null"
+      >清除</n-button
+    >
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.danmuPreset" class="global-checkbox"
       >全局</n-checkbox
     >
@@ -199,6 +211,9 @@
       style="margin-right: 10px; width: 200px"
       clearable
     />
+    <n-button v-if="data.syncId && !globalFieldsObj.syncId" text @click="data.syncId = null"
+      >清除</n-button
+    >
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.syncId" class="global-checkbox"
       >全局</n-checkbox
     >

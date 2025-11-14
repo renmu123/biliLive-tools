@@ -197,6 +197,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           time: startTime.toISOString(),
           title: recorder.liveInfo.title,
           username: recorder.liveInfo.owner,
+          platform: recorder.providerId,
         },
         {
           proxy: false,
@@ -235,6 +236,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           time: endTime.toISOString(),
           title: title,
           username: username,
+          platform: recorder.providerId,
         },
         {
           proxy: false,

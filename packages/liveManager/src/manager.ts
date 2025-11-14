@@ -495,19 +495,21 @@ export function genSavePathFromRule<
   extData: {
     owner: string;
     title: string;
-    startTime?: number;
+    startTime: number;
+    liveStartTime: Date;
+    recordStartTime: Date;
   },
 ): string {
   // TODO: 这里随便写的，后面再优化
   const provider = manager.providers.find((p) => p.id === recorder.toJSON().providerId);
 
   const now = extData?.startTime ? new Date(extData.startTime) : new Date();
-  const owner = (extData?.owner ?? "").replaceAll("%", "_");
-  const title = (extData?.title ?? "").replaceAll("%", "_");
+  const owner = removeSystemReservedChars((extData?.owner ?? "").replaceAll("%", "_"));
+  const title = removeSystemReservedChars((extData?.title ?? "").replaceAll("%", "_"));
+  const remarks = removeSystemReservedChars((recorder.remarks ?? "").replaceAll("%", "_"));
+  const channelId = removeSystemReservedChars(String(recorder.channelId));
   const params = {
     platform: provider?.name ?? "unknown",
-    channelId: recorder.channelId,
-    remarks: recorder.remarks ?? "",
     year: formatDate(now, "yyyy"),
     month: formatDate(now, "MM"),
     date: formatDate(now, "dd"),
@@ -515,20 +517,19 @@ export function genSavePathFromRule<
     min: formatDate(now, "mm"),
     sec: formatDate(now, "ss"),
     ...extData,
+    startTime: now,
     owner: owner,
     title: title,
+    remarks: remarks,
+    channelId,
   };
-  if (manager.autoRemoveSystemReservedChars) {
-    for (const key in params) {
-      params[key] = removeSystemReservedChars(String(params[key])).trim();
-    }
-  }
 
   let savePathRule = manager.savePathRule;
   try {
     savePathRule = ejs.render(savePathRule, params);
+    console.log("解析后保存路径模板：", savePathRule, params);
   } catch (error) {
-    console.error("模板解析错误", error);
+    console.error("模板解析错误", error, savePathRule, params);
   }
   return formatTemplate(savePathRule, params);
 }

@@ -386,8 +386,7 @@ const open = async (id: string, streamUrl: string) => {
 
 const getLiveInfo = async (forceRequest: boolean = false) => {
   if (recorderList.value.length === 0) return;
-  // 仅刷新没有被监控的直播间
-  const ids = recorderList.value.filter((item) => item.disableAutoCheck).map((item) => item.id);
+  const ids = recorderList.value.map((item) => item.id);
   liveInfos.value = await recoderApi.getLiveInfo(ids, forceRequest);
 };
 

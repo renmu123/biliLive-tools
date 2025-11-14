@@ -122,8 +122,8 @@ export type CommonRoomConfig = {
   title: string;
   uploadPresetId?: string;
   danmu: boolean;
-  ffmpegPreset?: string;
-  danmuPreset?: string;
+  ffmpegPreset?: string | null;
+  danmuPreset?: string | null;
   autoPartMerge: boolean;
   partMergeMinute?: number;
   uid?: number;
@@ -158,7 +158,7 @@ export type CommonRoomConfig = {
   /** 分p标题模板 */
   partTitleTemplate: string;
   /** 同步器配置ID */
-  syncId?: string;
+  syncId?: string | null;
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
@@ -371,8 +371,8 @@ type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
 interface BilibiliRecorderConfig {
   /** 账号 */
   uid?: number;
-  /** 画质 30000：杜比 20000：4K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
-  quality: 30000 | 20000 | 10000 | 400 | 250 | 150 | 80;
+  /** 画质 30000：杜比 20000：4K 25000：原画真彩 15000：2K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
+  quality: 30000 | 20000 | 25000 | 15000 | 10000 | 400 | 250 | 150 | 80;
   /** 使用批量查询接口  */
   useBatchQuery: boolean;
   /** 使用本地反向代理避免分段 */

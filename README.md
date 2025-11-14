@@ -10,7 +10,7 @@
 
 # 功能介绍
 
-- 支持斗鱼、虎牙、B站、抖音多平台直播录制，支持ffmpeg、mesio、录播姬多种录制引擎，支持弹幕录制及更多高级选项
+- 支持斗鱼、虎牙、B站、抖音多平台直播录制，支持FFmpeg、mesio、录播姬多种录制引擎，支持弹幕录制及更多高级选项
 - 支持录播姬、blrec、DDTV、onelivrec等多个平台的webhook自动化处理
 - 支持录制文件自动压制弹幕、B站上传、同步至网盘
 - 支持任意录制平台基于文件监听的自动化支持
@@ -35,7 +35,7 @@
 
 # 安装
 
-客户端可直接在 [release](https://github.com/renmu123/biliLive-tools/releases) 中下载，更多内容见[文档](https://docs.irenmu.com/guide/installation.html)
+客户端可直接在 [release](https://github.com/renmu123/biliLive-tools/releases) 或 [夸克网盘](https://pan.quark.cn/s/6da253a1ecb8) 中下载，更多内容见[文档](https://docs.irenmu.com/guide/installation.html)
 
 # 交流地址
 

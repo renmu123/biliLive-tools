@@ -3,7 +3,7 @@
 录制任务相关接口文档。
 
 ::: tip
-其中的id是内部id，并非直播间id
+其中的id是内部id，并非直播间id，可从列表接口获取
 :::
 
 ## 获取录制任务列表
@@ -99,40 +99,6 @@
 
 **参数太多了，自己去抓吧**
 
-<!--
-| 参数名                              | 类型    | 必填 | 说明                 |
-| ----------------------------------- | ------- | ---- | -------------------- |
-| remarks                             | string  | 否   | 备注                 |
-| disableAutoCheck                    | boolean | 否   | 禁用自动监控         |
-| quality                             | string  | 否   | 画质                 |
-| streamPriorities                    | array   | 否   | 流优先级             |
-| sourcePriorities                    | array   | 否   | 源优先级             |
-| noGlobalFollowFields                | array   | 否   | 不跟随全局配置的字段 |
-| line                                | string  | 否   | 线路                 |
-| disableProvideCommentsWhenRecording | boolean | 否   | 录制时禁用弹幕       |
-| saveGiftDanma                       | boolean | 否   | 保存礼物弹幕         |
-| saveSCDanma                         | boolean | 否   | 保存SC弹幕           |
-| saveCover                           | boolean | 否   | 保存封面             |
-| segment                             | object  | 否   | 分段配置             |
-| sendToWebhook                       | boolean | 否   | 发送到Webhook        |
-| uid                                 | string  | 否   | 用户ID               |
-| qualityRetry                        | boolean | 否   | 画质重试             |
-| formatName                          | string  | 否   | 文件名格式           |
-| useM3U8Proxy                        | boolean | 否   | 使用M3U8代理         |
-| codecName                           | string  | 否   | 编码器名称           |
-| titleKeywords                       | array   | 否   | 标题关键词           |
-| liveStartNotification               | boolean | 否   | 开播通知             |
-| weight                              | number  | 否   | 权重                 |
-| source                              | string  | 否   | 来源                 |
-| videoFormat                         | string  | 否   | 视频格式             |
-| recorderType                        | string  | 否   | 录制器类型           |
-| cookie                              | string  | 否   | Cookie               |
-| doubleScreen                        | boolean | 否   | 双屏                 |
-| onlyAudio                           | boolean | 否   | 仅音频               |
-| useServerTimestamp                  | boolean | 否   | 使用服务器时间戳     |
-| handleTime                          | object  | 否   | 处理时间             |
-| debugLevel                          | string  | 否   | 调试级别             | -->
-
 ## 删除录制任务
 
 删除指定的录制任务。
@@ -201,9 +167,9 @@
 
 具体支持的格式见 [支持的直播间链接](../features/live-record.md#直播间链接)
 
-## 获取直播间实时信息
+## 获取直播间源站信息
 
-批量获取直播间的实时信息。
+批量获取直播间的源站信息。
 
 **接口地址:** `POST /recorder/manager/liveInfo`
 

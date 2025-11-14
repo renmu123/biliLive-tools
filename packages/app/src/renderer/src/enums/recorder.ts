@@ -9,6 +9,10 @@ export const qualityOptions = [
 // B站画质选项
 export const biliQualityOptions = [
   {
+    value: 25000,
+    label: "原画真彩(25000)",
+  },
+  {
     value: 10000,
     label: "原画(10000)",
   },
@@ -19,6 +23,10 @@ export const biliQualityOptions = [
   {
     value: 20000,
     label: "4K(20000)",
+  },
+  {
+    value: 15000,
+    label: "2K(15000)",
   },
   {
     value: 400,
@@ -288,6 +296,10 @@ export const videoFormatOptions = [
     value: "mkv",
     label: "MKV",
   },
+  {
+    value: "flv",
+    label: "FLV",
+  },
 ];
 
 // 录制器
@@ -351,8 +363,8 @@ export const douyinStreamFormatOptions = [
 ];
 
 const qualityRetry = {
-  text: "画质匹配重试次数",
-  tip: "根据次数强制查询匹配画质，在未选择原画的情况下，可能会导致开头漏录。匹配次数结束后如果无法匹配对应画质时会自动选择其他画质，-1为强制匹配画质",
+  text: "流匹配重试次数",
+  tip: "根据次数强制查询匹配画质及其他强制参数，在未选择原画的情况下，可能会导致开头漏录。匹配次数结束后如果无法匹配对应画质时会自动选择其他画质，-1为强制匹配",
 };
 const quality = {
   text: "画质",
@@ -363,7 +375,7 @@ export const textInfo = {
   common: {
     format: {
       text: "视频格式",
-      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为mp4<br/>mesio和录播姬引擎不支持指定",
+      tip: "ffmpeg录制器：选择自动时，分段为ts，不分段为fmp4<br/>FLV存在分辨率变化或参数变化会花屏，请尝试修复<br/>mesio和录播姬引擎不支持指定",
     },
     recorderType: {
       text: "录制器",

@@ -49,7 +49,7 @@ async function downloadFile(url, desc, options = {}) {
 }
 
 async function downloadMesio() {
-  // https://github.com/hua0512/rust-srec/releases/tag/v0.3.2
+  // https://github.com/hua0512/rust-srec/releases/tag/v0.3.3
   const platforms = {
     win32: "windows",
     darwin: "macos",
@@ -59,7 +59,7 @@ async function downloadMesio() {
   };
   const platform = platforms[process.platform] ?? process.platform;
   const arch = archs[process.arch] ?? process.arch;
-  let mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/v0.3.2/mesio-${platform}-${arch}`;
+  let mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/v0.3.3/mesio-${platform}-${arch}`;
   if (platform === "windows") {
     mesioUrl += ".exe";
   }
@@ -81,7 +81,7 @@ async function downloadBililiveRecorder() {
   const platform = platforms[process.platform] ?? process.platform;
   const arch = process.arch;
   const filename = `BililiveRecorder-CLI-${platform}-${arch}.zip`;
-  let url = `https://github.com/renmu123/BililiveRecorder/releases/download/v3.0.3/${filename}`;
+  let url = `https://github.com/renmu123/BililiveRecorder/releases/download/v3.1.0/${filename}`;
 
   await downloadFile(url, ".");
   await unzip(filename, "packages/app/resources/bin");

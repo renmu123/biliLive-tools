@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "biliLive-tools",
+  title: "biliLive-tools 一站式直播录制与处理工具",
   description: "biliLive-tools,一站式直播录制与处理工具,xml弹幕处理,斗鱼,虎牙,B站,抖音,录播姬",
   lastUpdated: true,
   ignoreDeadLinks: true,
@@ -15,7 +15,7 @@ export default defineConfig({
       { text: "首页", link: "/" },
       { text: "指南", link: "/guide/introduction" },
       { text: "功能", link: "/features/live-record" },
-      { text: "API", link: "/api/recorder" },
+      { text: "API", link: "/api/base" },
     ],
 
     sidebar: {
@@ -23,9 +23,14 @@ export default defineConfig({
         {
           text: "API",
           items: [
-            { text: "录制", link: "/api/recorder" },
+            { text: "基础", link: "/api/base" },
+            { text: "直播录制", link: "/api/recorder" },
             { text: "录制历史", link: "/api/record-history" },
-            { text: "同步", link: "/api/sync" },
+            { text: "文件同步", link: "/api/sync" },
+            { text: "用户管理", link: "/api/user" },
+            { text: "视频解析", link: "/api/video" },
+            // { text: "任务", link: "/api/task" },
+            // { text: "预设", link: "/api/preset" },
             { text: "其他", link: "/api/other" },
           ],
         },
@@ -43,7 +48,7 @@ export default defineConfig({
           items: [
             { text: "直播录制", link: "/features/live-record" },
             { text: "Webhook", link: "/features/webhook" },
-            { text: "ffmpeg配置", link: "/features/ffmpeg" },
+            { text: "FFmpeg配置", link: "/features/ffmpeg" },
             { text: "B站上传", link: "/features/bilibili-upload" },
             { text: "XML弹幕转换", link: "/features/danmaku-convert" },
             { text: "视频切片", link: "/features/video-clip" },

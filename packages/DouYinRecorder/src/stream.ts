@@ -1,4 +1,4 @@
-import { getRoomInfo } from "./douyin_api.js";
+import { getRoomInfo, selectRandomAPI } from "./douyin_api.js";
 import { globalLoadBalancer } from "./loadBalancer/loadBalancer.js";
 
 import type { Recorder } from "@bililive-tools/manager";
@@ -64,6 +64,8 @@ export async function getStream(
   if (api === "userHTML") {
     // userHTML 接口只能用于状态检测
     api = "web";
+  } else if (api === "random") {
+    api = selectRandomAPI(["userHTML"]);
   }
   const info = await getRoomInfo(opts.channelId, {
     doubleScreen: opts.doubleScreen ?? true,

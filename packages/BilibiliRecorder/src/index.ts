@@ -87,14 +87,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
   return recorderWithSupportUpdatedEvent;
 }
 
-const ffmpegOutputOptions: string[] = [
-  "-c",
-  "copy",
-  "-movflags",
-  "faststart+frag_keyframe+empty_moov",
-  "-min_frag_duration",
-  "10000000",
-];
+const ffmpegOutputOptions: string[] = [];
 const ffmpegInputOptions: string[] = [
   "-rw_timeout",
   "10000000",
@@ -119,6 +112,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       avatar: "",
       cover: "",
       liveId: liveId,
+      startTime: new Date(),
     };
     this.state = "idle";
   } catch (error) {
@@ -149,7 +143,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   const liveInfo = await getInfo(this.channelId);
-  const { owner, title, roomId } = liveInfo;
+  const { owner, title, roomId, startTime } = liveInfo;
   this.liveInfo = liveInfo;
 
   let res: Awaited<ReturnType<typeof getStream>>;
@@ -236,6 +230,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
   };
+  const recordStartTime = new Date();
 
   const recorder = createBaseRecorder(
     this.recorderType,
@@ -245,7 +240,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       inputOptions: ffmpegInputOptions,
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
-        getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),
+        getSavePath({
+          owner,
+          title: opts.title ?? title,
+          startTime: opts.startTime,
+          liveStartTime: startTime,
+          recordStartTime,
+        }),
       formatName: streamOptions.format_name as "flv" | "ts" | "fmp4",
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat,
@@ -264,6 +265,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const savePath = getSavePath({
     owner,
     title,
+    startTime: Date.now(),
+    liveStartTime: startTime,
+    recordStartTime,
   });
 
   try {

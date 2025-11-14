@@ -60,7 +60,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
   titleKeywords?: string;
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
-  videoFormat?: "auto" | "ts" | "mkv";
+  videoFormat?: "auto" | "ts" | "mkv" | "flv";
   /** 录制类型 */
   recorderType?: "auto" | "ffmpeg" | "mesio" | "bililive";
   /** 流格式优先级 */
@@ -131,7 +131,13 @@ export interface DebugLog {
   text: string;
 }
 
-export type GetSavePath = (data: { owner: string; title: string; startTime?: number }) => string;
+export type GetSavePath = (data: {
+  owner: string;
+  title: string;
+  startTime: number;
+  liveStartTime: Date;
+  recordStartTime: Date;
+}) => string;
 
 export interface Recorder<E extends AnyObject = UnknownObject>
   extends Emitter<{
@@ -167,7 +173,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     living: boolean;
     owner: string;
     title: string;
-    startTime?: Date;
+    startTime: Date;
     avatar: string;
     cover: string;
     liveId?: string;
