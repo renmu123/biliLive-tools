@@ -233,22 +233,4 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
 
     return { data, total };
   }
-
-  /**
-   * 删除单个录制历史记录
-   * @param id 记录ID
-   * @returns 删除的记录数量
-   */
-  removeRecord(id: number): number {
-    return this.deleteBy("id", id);
-  }
-
-  /**
-   * 批量删除录制历史记录
-   * @param streamerId 主播ID
-   * @returns 删除的记录数量
-   */
-  removeRecordsByStreamerId(streamerId: number): number {
-    return this.deleteBy("streamer_id", streamerId);
-  }
 }

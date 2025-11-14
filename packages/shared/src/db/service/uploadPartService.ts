@@ -16,10 +16,6 @@ export default class UploadPartService {
     return this.uploadPartModel.addOrUpdate(options);
   }
 
-  findByHash(file_hash: string, file_size: number) {
-    return this.uploadPartModel.findByHash(file_hash, file_size);
-  }
-
   findValidPartByHash(file_hash: string, file_size: number): UploadPart | null {
     return this.uploadPartModel.findValidPartByHash(file_hash, file_size);
   }

@@ -51,7 +51,7 @@ export default class RecordHistoryService {
    * @returns 删除的记录数量
    */
   removeRecord(id: number): number {
-    return this.recordHistoryModel.removeRecord(id);
+    return this.recordHistoryModel.deleteBy("id", id);
   }
 
   /**
@@ -60,6 +60,6 @@ export default class RecordHistoryService {
    * @returns 删除的记录数量
    */
   removeRecordsByStreamerId(streamerId: number): number {
-    return this.recordHistoryModel.removeRecordsByStreamerId(streamerId);
+    return this.recordHistoryModel.deleteBy("streamer_id", streamerId);
   }
 }

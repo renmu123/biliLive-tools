@@ -107,10 +107,6 @@ export default class UploadPartModel extends BaseModel<BaseUploadPart> {
     }
   }
 
-  findByHash(file_hash: string, file_size: number) {
-    return this.query({ file_hash, file_size });
-  }
-
   findValidPartByHash(file_hash: string, file_size: number): UploadPart | null {
     const sql = `
       SELECT * FROM ${this.table} 
