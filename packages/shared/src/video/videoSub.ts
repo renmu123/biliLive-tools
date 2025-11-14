@@ -6,7 +6,7 @@ import { live, video } from "douyu-api";
 import filenamify from "filenamify";
 import { provider as providerForDouYu } from "@bililive-tools/douyu-recorder";
 
-import { videoSubModel, videoSubDataService } from "../db/index.js";
+import { videoSubService, videoSubDataService } from "../db/index.js";
 import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
 import douyu from "./douyu.js";
@@ -16,23 +16,15 @@ import { sleep } from "../utils/index.js";
 import type { VideoSubItem } from "../db/model/videoSub.js";
 
 /**
- * 获取订阅列表
- */
-function list() {
-  const list = videoSubModel.list();
-  return list;
-}
-
-/**
  * 保存订阅
  */
-export function add(data: Parameters<typeof videoSubModel.add>[0]) {
-  const item = videoSubModel.query({
+export function add(data: Parameters<typeof videoSubService.add>[0]) {
+  const item = videoSubService.query({
     platform: data.platform,
     subId: data.subId,
   });
   if (!item) {
-    return videoSubModel.add(data);
+    return videoSubService.add(data);
   } else {
     throw new Error("已存在相同订阅");
   }
@@ -42,21 +34,21 @@ export function add(data: Parameters<typeof videoSubModel.add>[0]) {
  * 删除订阅
  */
 export function remove(id: number) {
-  return videoSubModel.delete(id);
+  return videoSubService.delete(id);
 }
 
 /**
  * 更新订阅
  */
-export function update(data: Parameters<typeof videoSubModel.update>[0]) {
-  return videoSubModel.update(data);
+export function update(data: Parameters<typeof videoSubService.update>[0]) {
+  return videoSubService.update(data);
 }
 
 /**
  * 解析url，查看是否支持
  * @param url
  */
-export async function parse(url: string): Promise<Parameters<typeof videoSubModel.add>[0]> {
+export async function parse(url: string): Promise<Parameters<typeof videoSubService.add>[0]> {
   const douyuMathReg = /https?:\/\/(?:.*?\.)?douyu.com\//;
   const huyaMathReg = /https?:\/\/(?:.*?\.)?huya.com\//;
   if (douyuMathReg.test(url)) {
@@ -318,7 +310,7 @@ async function runTask(item: VideoSubItem) {
   }
 
   // 更新订阅时间
-  videoSubModel.updateLastRunTime({
+  videoSubService.updateLastRunTime({
     id: item.id,
     lastRunTime: new Date().getTime(),
   });
@@ -326,7 +318,7 @@ async function runTask(item: VideoSubItem) {
 
 export async function check(id: number) {
   // 根据间隔时间检查，下载完成后将数据存到数据库
-  const item = videoSubModel.query({
+  const item = videoSubService.query({
     id,
   });
   if (!item) {
@@ -339,7 +331,7 @@ export async function check(id: number) {
 }
 
 export async function checkAll() {
-  const items = list();
+  const items = videoSubService.list();
   const needCheckItems = items.filter((item) => item.enable);
   if (needCheckItems.length !== 0) {
     const savePath = appConfig?.data?.video?.subSavePath;
@@ -370,7 +362,7 @@ export async function createInterval() {
 }
 
 export default {
-  list,
+  list: () => videoSubService.list(),
   add,
   remove,
   update,
