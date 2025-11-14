@@ -14,11 +14,11 @@ import { SyncClient } from "../sync/index.js";
 import { uploadPartModel } from "../db/index.js";
 import { Pan123 } from "../sync/index.js";
 import { StatisticsService } from "../db/service/index.js";
+import { SpeedCalculator } from "../utils/speedCalculator.js";
 import { appConfig } from "../config.js";
-
 import { AbstractTask } from "./core/index.js";
-import type { TaskEvents } from "./core/index.js";
 
+import type { TaskEvents } from "./core/index.js";
 import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { Client, WebVideoUploader } from "@renmu/bili-api";
 import type { Progress, BiliupConfig } from "@biliLive-tools/types";
@@ -274,6 +274,7 @@ export class BiliPartVideoTask extends AbstractTask {
   };
   useUploadPartPersistence: boolean;
   completedPart: { cid: number; filename: string; title: string } | null = null;
+  private speedCalculator: SpeedCalculator;
   constructor(
     command: WebVideoUploader,
     options: {
@@ -294,6 +295,7 @@ export class BiliPartVideoTask extends AbstractTask {
     this.action = ["kill", "pause"];
     this.limitTime = options.limitTime;
     this.callback = callback;
+    this.speedCalculator = new SpeedCalculator(3000); // 3秒时间窗口
     if (options.name) {
       this.name = options.name;
     }
@@ -327,6 +329,8 @@ export class BiliPartVideoTask extends AbstractTask {
 
         this.completedPart = data;
         this.endTime = Date.now();
+        // 重置进度追踪
+        this.speedCalculator.reset();
         callback.onEnd && callback.onEnd(data);
         this.emitter.emit("task-end", { taskId: this.taskId });
       },
@@ -336,6 +340,8 @@ export class BiliPartVideoTask extends AbstractTask {
       this.status = "error";
       this.error = String(err);
 
+      // 重置进度追踪
+      this.speedCalculator.reset();
       callback.onError && callback.onError(this.error);
       this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
       this.endTime = Date.now();
@@ -344,15 +350,27 @@ export class BiliPartVideoTask extends AbstractTask {
     command.emitter.on("progress", (event) => {
       let progress = event.progress * 100;
       this.progress = progress;
+
+      // 计算上传速度
+      if (event.data && event.data.loaded !== undefined) {
+        const currentTime = Date.now();
+        const speed = this.speedCalculator.calculateSpeed(event.data.loaded, currentTime);
+        this.custsomProgressMsg = `速度: ${speed}`;
+      }
+
       callback.onProgress && callback.onProgress(progress);
       this.emitter.emit("task-progress", { taskId: this.taskId });
     });
   }
+
   async exec() {
     if (this.status !== "pending") return;
     this.status = "running";
     this.startTime = Date.now();
     this.emitter.emit("task-start", { taskId: this.taskId });
+
+    // 初始化上传计时
+    this.speedCalculator.init(this.startTime);
 
     // 处理上传分p持久化
     if (this.useUploadPartPersistence) {
@@ -369,6 +387,8 @@ export class BiliPartVideoTask extends AbstractTask {
             title: this.command.title,
           };
           this.endTime = Date.now();
+          // 重置进度追踪
+          this.speedCalculator.reset();
           this.callback.onEnd && this.callback.onEnd(this.completedPart);
           this.emitter.emit("task-end", { taskId: this.taskId });
           return;
@@ -406,6 +426,8 @@ export class BiliPartVideoTask extends AbstractTask {
     log.warn(`task ${this.taskId} killed`);
     this.status = "canceled";
     this.command.cancel();
+    // 重置进度追踪
+    this.speedCalculator.reset();
     this.emit("task-cancel", { taskId: this.taskId, autoStart: triggerAutoStart });
     this.endTime = Date.now();
     return true;
