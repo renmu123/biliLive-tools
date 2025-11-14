@@ -7,10 +7,11 @@ import RecordHistoryModel from "./model/recordHistory.js";
 import VideoSubModel from "./model/videoSub.js";
 import VideoSubDataModel from "./model/videoSubData.js";
 import VirtualRecordController from "./model/virtualRecord.js";
-import StatisticsModel from "./model/statistics.js";
 import UploadPartController from "./model/uploadPart.js";
+import { setupContainer } from "./container.js";
 
 import type { Database as DatabaseType } from "better-sqlite3";
+import type { Container } from "./container.js";
 
 class DB {
   filename!: string;
@@ -44,11 +45,13 @@ const danmaDb = new DB();
 export const danmuModel = new DanmaModel();
 export const streamerModel = new StreamModel();
 export const recordHistoryModel = new RecordHistoryModel();
-export const statisticsModel = new StatisticsModel();
 export const videoSubModel = new VideoSubModel();
 export const videoSubDataModel = new VideoSubDataModel();
 export const uploadPartModel = new UploadPartController();
 export const virtualRecordModel = new VirtualRecordController();
+
+export let dbContainer: ReturnType<typeof setupContainer>;
+export let statisticsService: Container["statisticsService"];
 
 export const initDB = (dbPath: string) => {
   const mainDBPath = path.join(dbPath, "app.db");
@@ -59,7 +62,6 @@ export const initDB = (dbPath: string) => {
 
   streamerModel.init(db.db);
   recordHistoryModel.init(db.db);
-  statisticsModel.init(db.db);
   videoSubModel.init(db.db);
   videoSubDataModel.init(db.db);
   uploadPartModel.init(db.db);
@@ -68,6 +70,10 @@ export const initDB = (dbPath: string) => {
   // 弹幕数据库
   danmuModel.init(danmaDb.db);
 
+  // 依赖注入容器
+  dbContainer = setupContainer(db.db);
+  statisticsService = dbContainer.resolve("statisticsService");
+
   return db;
 };
 
@@ -75,7 +81,7 @@ export const reconnectDB = () => {
   // danmuModel.init(db.db);
   streamerModel.init(db.db);
   recordHistoryModel.init(db.db);
-  statisticsModel.init(db.db);
+  // statisticsModel.init(db.db);
   videoSubModel.init(db.db);
   videoSubDataModel.init(db.db);
   uploadPartModel.init(db.db);

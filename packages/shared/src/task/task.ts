@@ -13,7 +13,7 @@ import { TaskType } from "../enum.js";
 import { SyncClient } from "../sync/index.js";
 import { uploadPartModel } from "../db/index.js";
 import { Pan123 } from "../sync/index.js";
-import { StatisticsService } from "../db/service/index.js";
+import { statisticsService } from "../db/index.js";
 import { appConfig } from "../config.js";
 
 import { AbstractTask } from "./core/index.js";
@@ -564,7 +564,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
     const minUploadInterval = config?.biliUpload?.minUploadInterval || 0;
 
     if (minUploadInterval > 0) {
-      const lastUploadTime = StatisticsService.query("bili_last_upload_time");
+      const lastUploadTime = statisticsService.query("bili_last_upload_time");
       if (lastUploadTime) {
         const lastTime = parseInt(lastUploadTime.value);
         const currentTime = Date.now();
@@ -613,7 +613,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
       uploadPartModel.removeByCids(parts.map((part) => part.cid));
-      StatisticsService.addOrUpdate({
+      statisticsService.addOrUpdate({
         where: { stat_key: "bili_last_upload_time" },
         create: {
           stat_key: "bili_last_upload_time",
@@ -665,7 +665,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
     const minUploadInterval = config?.biliUpload?.minUploadInterval || 0;
 
     if (minUploadInterval > 0) {
-      const lastUploadTime = StatisticsService.query("bili_last_upload_time");
+      const lastUploadTime = statisticsService.query("bili_last_upload_time");
       if (lastUploadTime) {
         const lastTime = parseInt(lastUploadTime.value);
         const currentTime = Date.now();
@@ -717,7 +717,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
       uploadPartModel.removeByCids(parts.map((part) => part.cid));
-      StatisticsService.addOrUpdate({
+      statisticsService.addOrUpdate({
         where: { stat_key: "bili_last_upload_time" },
         create: {
           stat_key: "bili_last_upload_time",

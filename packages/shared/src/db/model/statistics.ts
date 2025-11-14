@@ -15,11 +15,12 @@ const Statistics = BaseStatistics.extend({
 export type BaseStatistics = z.infer<typeof BaseStatistics>;
 export type Statistics = z.infer<typeof Statistics>;
 
-class StatisticsModel extends BaseModel<BaseStatistics> {
+export default class StatisticsModel extends BaseModel<BaseStatistics> {
   table = "statistics";
 
-  constructor(db: Database) {
+  constructor({ db }: { db: Database }) {
     super(db, "statistics");
+    this.createTable();
   }
 
   async createTable() {
@@ -32,35 +33,26 @@ class StatisticsModel extends BaseModel<BaseStatistics> {
     `;
     return super.createTable(createTableSQL);
   }
-}
-
-export default class StatisticsController {
-  private model!: StatisticsModel;
-  init(db: Database) {
-    this.model = new StatisticsModel(db);
-    this.model.createTable();
-  }
 
   add(options: BaseStatistics) {
     const data = BaseStatistics.parse(options);
-    return this.model.insert(data);
+    return this.insert(data);
   }
   update(options: BaseStatistics) {
     const data = BaseStatistics.parse(options);
-    const sql = `UPDATE ${this.model.tableName} SET value = ? WHERE stat_key = ?`;
-    // console.log(sql, data);
+    const sql = `UPDATE ${this.table} SET value = ? WHERE stat_key = ?`;
 
-    return this.model.db.prepare(sql).run(data.value, data.stat_key);
+    return this.db.prepare(sql).run(data.value, data.stat_key);
   }
-  upsert(options: {
-    where: {
-      stat_key: string;
-    };
-    create: BaseStatistics;
-  }) {
-    return this.model.upsert(options);
-  }
-  query(stat_key: string): BaseStatistics | null {
-    return this.model.findOne({ where: { stat_key } });
-  }
+  // upsert(options: {
+  //   where: {
+  //     stat_key: string;
+  //   };
+  //   create: BaseStatistics;
+  // }) {
+  //   return this.model.upsert(options);
+  // }
+  // query(stat_key: string): BaseStatistics | null {
+  //   return this.model.findOne({ where: { stat_key } });
+  // }
 }
