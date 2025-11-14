@@ -92,7 +92,7 @@ export default class UploadPartModel extends BaseModel<BaseUploadPart> {
   addOrUpdate(options: Omit<BaseUploadPart, "expire_time">) {
     const part = this.findValidPartByHash(options.file_hash, options.file_size);
     // 过期时间为当前时间加上3天
-    const expire_time = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 3;
+    const expire_time = Date.now() + 1000 * 60 * 60 * 24 * 3;
     if (part) {
       return this.update({
         id: part.id,
@@ -116,15 +116,13 @@ export default class UploadPartModel extends BaseModel<BaseUploadPart> {
       SELECT * FROM ${this.table} 
       WHERE file_hash = ? AND file_size = ? AND expire_time > ?
     `;
-    return this.db
-      .prepare(sql)
-      .get(file_hash, file_size, Math.floor(Date.now() / 1000)) as UploadPart | null;
+    return this.db.prepare(sql).get(file_hash, file_size, Date.now()) as UploadPart | null;
   }
 
   removeExpired() {
     const sql = `DELETE FROM ${this.table} WHERE expire_time <= ?`;
     const stmt = this.db.prepare(sql);
-    const result = stmt.run(Math.floor(Date.now() / 1000));
+    const result = stmt.run(Date.now());
     return result.changes;
   }
 
