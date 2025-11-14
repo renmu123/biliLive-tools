@@ -40,8 +40,40 @@ const getDanmuFactoryPath = () => {
   return danmuFactoryPath;
 };
 
+const genFilteredXml = async (input: string, output: string, filterFunction: string) => {
+  const filterFunc = new Function(
+    "type",
+    "danmu",
+    `
+    ${filterFunction}
+    return filter(type, danmu);`,
+  );
+  const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(input);
+  const filteredDanmuku = danmuku.filter((item) => {
+    return filterFunc("danmu", item);
+  });
+  const filteredSc = sc.filter((item) => {
+    return filterFunc("sc", item);
+  });
+  const filteredGuard = guard.filter((item) => {
+    return filterFunc("guard", item);
+  });
+  const filteredGift = gift.filter((item) => {
+    return filterFunc("gift", item);
+  });
+  const xmlData = generateMergedXmlContent(
+    filteredDanmuku,
+    filteredGift,
+    filteredSc,
+    filteredGuard,
+    jObj.i?.metadata || {},
+  );
+  await fs.writeFile(output, xmlData);
+  return output;
+};
+
 /**
- * 不要调用，调用convertXml2Ass
+ * 不要直接调用，调用convertXml2Ass
  */
 const addConvertDanmu2AssTask = async (
   originInput: string,
@@ -60,9 +92,18 @@ const addConvertDanmu2AssTask = async (
   }
   const DANMUKUFACTORY_PATH = getDanmuFactoryPath();
   const danmu = new DanmakuFactory(DANMUKUFACTORY_PATH);
-  let tempInput: string | undefined;
   const tempDir = getTempPath();
-  if (options.copyInput) {
+
+  let filteredOutput: string | undefined;
+  if (danmuOptions.filterFunction && (danmuOptions.filterFunction ?? "").includes("filter")) {
+    // 如果存在自定义过滤函数，则需要把过滤后的xml保存到临时文件夹中
+    filteredOutput = join(tempDir, `${uuid()}.xml`);
+    await genFilteredXml(originInput, filteredOutput, danmuOptions.filterFunction);
+  }
+
+  let tempInput: string | undefined;
+  if (!filteredOutput && options.copyInput) {
+    // 如果已经存在过滤后的文件，则不需要额外再复制一份了
     tempInput = join(tempDir, `${uuid()}.xml`);
     await fs.copyFile(originInput, tempInput);
   }
@@ -77,7 +118,7 @@ const addConvertDanmu2AssTask = async (
     danmuOptions.blacklist = fileTxtPath;
   }
 
-  const input = tempInput || originInput;
+  const input = filteredOutput || tempInput || originInput;
   const task = new DanmuTask(
     danmu,
     {
@@ -98,6 +139,10 @@ const addConvertDanmu2AssTask = async (
         if (danmuOptions.blacklist && (await pathExists(danmuOptions.blacklist))) {
           await fs.unlink(danmuOptions.blacklist);
         }
+
+        if (filteredOutput && (await pathExists(filteredOutput))) {
+          await fs.unlink(filteredOutput);
+        }
       },
       onError: async (error) => {
         log.error("danmufactory", {
@@ -111,6 +156,9 @@ const addConvertDanmu2AssTask = async (
         }
         if (danmuOptions.blacklist && (await pathExists(danmuOptions.blacklist))) {
           await fs.unlink(danmuOptions.blacklist);
+        }
+        if (filteredOutput && (await pathExists(filteredOutput))) {
+          await fs.unlink(filteredOutput);
         }
       },
     },
@@ -379,6 +427,7 @@ export const mergeXml = async (
   const mergedGuard: CommonItem[] = [];
   const mergedGift: CommonItem[] = [];
 
+  // TODO: 测试录播姬的，可能存在问题，比如礼物某些解析
   const metadata = options.saveMeta ? videoData[0]?.meta : null;
 
   for (const data of videoData) {

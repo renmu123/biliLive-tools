@@ -36,6 +36,7 @@ export const danmuConfig = type({
   /** 字体大小自适应参数， */
   fontSizeResponsiveParams: fontSizeResponsiveParam.array(),
   blacklist: "string",
+  filterFunction: "string",
   "blacklist-regex": "boolean",
   "line-spacing": "number",
   timeshift: "number",
