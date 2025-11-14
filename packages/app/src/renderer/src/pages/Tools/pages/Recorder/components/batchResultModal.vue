@@ -21,8 +21,6 @@
         </n-statistic>
       </div>
 
-      <n-divider />
-
       <!-- 批量设置区域 -->
       <div v-if="successResults.length > 0" class="batch-settings">
         <h4>批量设置（应用到所有成功解析的直播间）</h4>
@@ -84,9 +82,8 @@
             type="primary"
             class="btn"
             @click="addRecorders"
-            :loading="adding"
           >
-            添加录制器 ({{ successResults.length }}个)
+            添加 ({{ successResults.length }}个)
           </n-button>
         </div>
       </template>
@@ -136,34 +133,36 @@ const addRecorders = async () => {
   try {
     let successAddCount = 0;
     let failedAddCount = 0;
+    const errorResults: string[] = [];
 
     for (const result of successResults.value) {
       if (!result.data) continue;
 
       try {
+        // 应用批量设置
+        result.data.disableAutoCheck = !batchSettings.value.autoRecord;
+        result.data.sendToWebhook = batchSettings.value.sendToWebhook;
         await recoderApi.add(result.data);
         successAddCount++;
       } catch (error: any) {
-        console.error(`添加录制器失败: ${result.data.remarks}`, error);
+        errorResults.push(`添加失败: ${result.data.remarks}，${error.message || error}`);
         failedAddCount++;
       }
     }
 
-    // 显示添加结果
-    if (successAddCount > 0) {
-      notice.success({
-        title: "批量添加完成",
-        content: `成功添加 ${successAddCount} 个录制器${failedAddCount > 0 ? `，失败 ${failedAddCount} 个` : ""}`,
-        duration: 3000,
+    if (errorResults.length > 0) {
+      notice.error({
+        title: "直播间添加失败",
+        content: errorResults.join("\n"),
+        duration: 10000,
       });
     } else {
-      notice.error({
-        title: "添加失败",
-        content: "没有成功添加任何录制器",
+      notice.success({
+        title: "批量添加完成",
+        content: `成功添加 ${successAddCount} 个直播间`,
         duration: 3000,
       });
     }
-
     emits("completed");
     showModal.value = false;
   } finally {
@@ -213,10 +212,10 @@ watch(showModal, (val) => {
 }
 
 .batch-settings {
-  margin: 20px 0;
+  // margin: 20px 0;
 
   h4 {
-    margin-bottom: 16px;
+    margin: 10px 0;
     color: #333;
   }
 }
@@ -226,7 +225,7 @@ watch(showModal, (val) => {
   overflow-y: auto;
 
   h4 {
-    margin-bottom: 16px;
+    margin: 10px 0;
     color: #333;
   }
 }

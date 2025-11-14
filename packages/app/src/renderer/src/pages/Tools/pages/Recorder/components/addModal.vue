@@ -571,7 +571,7 @@ import {
   recorderDebugLevelOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
-import { defaultRecordConfig } from "@biliLive-tools/types";
+import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
 import { cloneDeep } from "lodash-es";
 
 import type { Recorder } from "@biliLive-tools/types";

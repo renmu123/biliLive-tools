@@ -1,4 +1,4 @@
-import type { AppConfig } from "@biliLive-tools/types";
+import type { AppConfig, Recorder } from "@biliLive-tools/types";
 
 export enum TaskType {
   danmu = "danmu",
@@ -675,3 +675,35 @@ export const videoEncoders = [
     presets: amfAv1Presets,
   },
 ];
+
+export const defaultRecordConfig: Omit<Recorder, "id"> = {
+  providerId: "DouYu",
+  channelId: "",
+  segment: 60,
+  quality: "highest",
+  disableProvideCommentsWhenRecording: false,
+  saveGiftDanma: false,
+  saveSCDanma: true,
+  streamPriorities: [],
+  sourcePriorities: [],
+  disableAutoCheck: false,
+  sendToWebhook: false,
+  noGlobalFollowFields: [],
+  saveCover: false,
+  extra: {},
+  qualityRetry: 0,
+  formatName: "auto",
+  useM3U8Proxy: false,
+  codecName: "auto",
+  titleKeywords: "",
+  liveStartNotification: false,
+  weight: 10,
+  source: "auto",
+  videoFormat: "auto",
+  recorderType: "ffmpeg",
+  cookie: "",
+  doubleScreen: true,
+  useServerTimestamp: true,
+  handleTime: [null, null],
+  debugLevel: "none",
+};

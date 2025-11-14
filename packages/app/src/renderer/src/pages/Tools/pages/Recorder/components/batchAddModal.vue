@@ -28,10 +28,11 @@
 
       <template #footer>
         <div class="footer">
-          <n-button class="btn" @click="cancel">取消</n-button>
+          <n-button class="btn" @click="cancel" style="min-width: 80px">取消</n-button>
           <n-button
             type="primary"
             class="btn"
+            style="min-width: 80px"
             @click="parseUrls"
             :loading="parsing"
             :disabled="urlList.length === 0"
@@ -101,7 +102,12 @@ watch(showModal, (val) => {
 
 <style scoped lang="less">
 .footer {
+  background-color: #fff;
+  position: relative;
+  z-index: 9;
   text-align: right;
+  display: flex;
+  justify-content: flex-end;
   .btn + .btn {
     margin-left: 10px;
   }

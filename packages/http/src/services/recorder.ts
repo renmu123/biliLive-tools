@@ -5,7 +5,7 @@ import { createRecorderManager } from "@biliLive-tools/shared";
 import { omit, pick, isEmpty } from "lodash-es";
 import recordHistory from "@biliLive-tools/shared/recorder/recordHistory.js";
 import logger from "@biliLive-tools/shared/utils/log.js";
-import { defaultRecordConfig } from "@biliLive-tools/types";
+import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
 
 import type { RecorderAPI, ClientRecorder } from "../types/recorder.js";
 import type { Recorder } from "@bililive-tools/manager";
@@ -129,10 +129,9 @@ async function addRecorder(
     id: uuid(),
     ...args,
   };
-  // TODO: recorder配置重写
   // @ts-ignore
   const recorder = await recorderManager.addRecorder(config);
-  if (recorder == null) throw new Error("添加失败：不可重复添加");
+  if (recorder == null) throw new Error("不可重复添加");
   return recorderToClient(recorder);
 }
 
@@ -140,7 +139,6 @@ async function updateRecorder(
   args: RecorderAPI["updateRecorder"]["Args"],
 ): Promise<RecorderAPI["updateRecorder"]["Resp"]> {
   const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
-  // TODO: recorder配置重写
   // @ts-ignore
   const recorder = await recorderManager.updateRecorder(args);
   if (recorder == null) throw new Error("配置不存在");
