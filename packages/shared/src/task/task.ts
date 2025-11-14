@@ -11,7 +11,7 @@ import log from "../utils/log.js";
 import { addMediaApi, editMediaApi } from "./bili.js";
 import { TaskType } from "../enum.js";
 import { SyncClient } from "../sync/index.js";
-import { uploadPartModel } from "../db/index.js";
+import { uploadPartService } from "../db/index.js";
 import { Pan123 } from "../sync/index.js";
 import { statisticsService } from "../db/index.js";
 import { appConfig } from "../config.js";
@@ -314,7 +314,7 @@ export class BiliPartVideoTask extends AbstractTask {
           try {
             const fileHash = await calculateFileQuickHash(this.command.filePath);
             const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
-            uploadPartModel.addOrUpdate({
+            uploadPartService.addOrUpdate({
               file_hash: fileHash,
               file_size: fileSize,
               cid: data.cid,
@@ -359,7 +359,7 @@ export class BiliPartVideoTask extends AbstractTask {
       try {
         const fileHash = await calculateFileQuickHash(this.command.filePath);
         const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
-        const part = uploadPartModel.findValidPartByHash(fileHash, fileSize);
+        const part = uploadPartService.findValidPartByHash(fileHash, fileSize);
         if (part) {
           this.status = "completed";
           this.progress = 100;
@@ -612,7 +612,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
       this.callback.onEnd && this.callback.onEnd(data);
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
-      uploadPartModel.removeByCids(parts.map((part) => part.cid));
+      uploadPartService.removeByCids(parts.map((part) => part.cid));
       statisticsService.addOrUpdate({
         where: { stat_key: "bili_last_upload_time" },
         create: {
@@ -716,7 +716,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
       this.callback.onEnd && this.callback.onEnd(data);
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
-      uploadPartModel.removeByCids(parts.map((part) => part.cid));
+      uploadPartService.removeByCids(parts.map((part) => part.cid));
       statisticsService.addOrUpdate({
         where: { stat_key: "bili_last_upload_time" },
         create: {

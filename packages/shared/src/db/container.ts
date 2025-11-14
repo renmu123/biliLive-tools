@@ -6,6 +6,7 @@ import VideoSubDataModel from "./model/videoSubData.js";
 import StreamerModel from "./model/streamer.js";
 import VideoSubModel from "./model/videoSub.js";
 import RecordHistoryModel from "./model/recordHistory.js";
+import UploadPartModel from "./model/uploadPart.js";
 
 import StatisticsService from "./service/statisticsService.js";
 import VirtualRecordService from "./service/virtualRecordService.js";
@@ -13,6 +14,7 @@ import VideoSubDataService from "./service/videoSubDataService.js";
 import StreamerService from "./service/streamerService.js";
 import VideoSubService from "./service/videoSubService.js";
 import RecordHistoryService from "./service/recordHistoryService.js";
+import UploadPartService from "./service/uploadPartService.js";
 
 import type { Database } from "better-sqlite3";
 
@@ -24,6 +26,7 @@ export interface Container {
   streamerModel: StreamerModel;
   videoSubModel: VideoSubModel;
   recordHistoryModel: RecordHistoryModel;
+  uploadPartModel: UploadPartModel;
 
   statisticsService: StatisticsService;
   virtualRecordService: VirtualRecordService;
@@ -31,6 +34,7 @@ export interface Container {
   streamerService: StreamerService;
   videoSubService: VideoSubService;
   recordHistoryService: RecordHistoryService;
+  uploadPartService: UploadPartService;
 }
 
 export function setupContainer(db: Database) {
@@ -51,6 +55,7 @@ export function setupContainer(db: Database) {
     streamerModel: asClass(StreamerModel).singleton(),
     videoSubModel: asClass(VideoSubModel).singleton(),
     recordHistoryModel: asClass(RecordHistoryModel).singleton(),
+    uploadPartModel: asClass(UploadPartModel).singleton(),
   });
 
   // Register all Services
@@ -61,6 +66,7 @@ export function setupContainer(db: Database) {
     streamerService: asClass(StreamerService).singleton(),
     videoSubService: asClass(VideoSubService).singleton(),
     recordHistoryService: asClass(RecordHistoryService).singleton(),
+    uploadPartService: asClass(UploadPartService).singleton(),
   });
 
   return container;
