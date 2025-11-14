@@ -6,7 +6,7 @@
 
 - **桌面程序**：Electron + Vue 3 + TypeScript + Vite
 - **CLI**：Node.js + TypeScript
-- **后端**：Node.js + Express + TypeScript
+- **后端**：Node.js + Koa + TypeScript
 - **前端**：Vue 3 + TypeScript + Vite
 - **数据库**：SQLite (better-sqlite3)
 - **视频处理**：FFmpeg
@@ -68,7 +68,7 @@ pnpm run install:bin
 创建 `packages\app\resources\bin` 目录，放入以下文件：
 
 1. **DanmukuFactory.exe**：[自编译版本](https://github.com/renmu123/DanmakuFactory/tree/test)
-2. **ffmpeg.exe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
+2. **FFmpeg.exe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
 3. **ffprobe.exe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
 4. **录播姬cli**：[3.1.0](https://github.com/renmu123/BililiveRecorder)
 5. **mesio**：[0.3.3](https://github.com/hua0512/rust-srec)
@@ -283,7 +283,7 @@ pnpm run build:app
 
 ```bash
 # 构建全栈镜像（推荐）
-docker build -f docker/Dockerfile --target fullstack -t bililive-tools:local .
+docker build -f docker/Dockerfile --target fullstack --build-arg VITE_FULLSTACK=true --build-arg VITE_DEFAULT_SERVER=/api -t bililive-tools:local .
 
 # 构建前端镜像
 docker build -f docker/Dockerfile --target frontend -t bililive-tools-frontend:local .
@@ -291,10 +291,6 @@ docker build -f docker/Dockerfile --target frontend -t bililive-tools-frontend:l
 # 构建后端镜像
 docker build -f docker/Dockerfile --target backend -t bililive-tools-backend:local .
 
-# 多平台构建（需要 buildx）
-docker buildx build --platform linux/amd64,linux/arm64 \
-  -f docker/Dockerfile --target fullstack \
-  -t bililive-tools:local .
 ```
 
 #### 镜像架构
