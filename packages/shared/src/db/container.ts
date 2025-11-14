@@ -3,10 +3,12 @@ import { createContainer, asClass, asValue, InjectionMode } from "awilix";
 import StatisticsModel from "./model/statistics.js";
 import VirtualRecordModel from "./model/virtualRecord.js";
 import VideoSubDataModel from "./model/videoSubData.js";
+import StreamerModel from "./model/streamer.js";
 
 import StatisticsService from "./service/statisticsService.js";
 import VirtualRecordService from "./service/virtualRecordService.js";
 import VideoSubDataService from "./service/videoSubDataService.js";
+import StreamerService from "./service/streamerService.js";
 
 import type { Database } from "better-sqlite3";
 
@@ -15,10 +17,12 @@ export interface Container {
   statisticsModel: StatisticsModel;
   virtualRecordModel: VirtualRecordModel;
   videoSubDataModel: VideoSubDataModel;
+  streamerModel: StreamerModel;
 
   statisticsService: StatisticsService;
   virtualRecordService: VirtualRecordService;
   videoSubDataService: VideoSubDataService;
+  streamerService: StreamerService;
 }
 
 export function setupContainer(db: Database) {
@@ -36,6 +40,7 @@ export function setupContainer(db: Database) {
     statisticsModel: asClass(StatisticsModel).singleton(),
     virtualRecordModel: asClass(VirtualRecordModel).singleton(),
     videoSubDataModel: asClass(VideoSubDataModel).singleton(),
+    streamerModel: asClass(StreamerModel).singleton(),
   });
 
   // Register all Services
@@ -43,6 +48,7 @@ export function setupContainer(db: Database) {
     statisticsService: asClass(StatisticsService).singleton(),
     virtualRecordService: asClass(VirtualRecordService).singleton(),
     videoSubDataService: asClass(VideoSubDataService).singleton(),
+    streamerService: asClass(StreamerService).singleton(),
   });
 
   return container;
