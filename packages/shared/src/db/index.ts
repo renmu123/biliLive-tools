@@ -5,8 +5,6 @@ import DanmaModel from "./model/danmu.js";
 import StreamModel from "./model/streamer.js";
 import RecordHistoryModel from "./model/recordHistory.js";
 import VideoSubModel from "./model/videoSub.js";
-import VideoSubDataModel from "./model/videoSubData.js";
-import VirtualRecordController from "./model/virtualRecord.js";
 import UploadPartController from "./model/uploadPart.js";
 import { setupContainer } from "./container.js";
 
@@ -46,12 +44,12 @@ export const danmuModel = new DanmaModel();
 export const streamerModel = new StreamModel();
 export const recordHistoryModel = new RecordHistoryModel();
 export const videoSubModel = new VideoSubModel();
-export const videoSubDataModel = new VideoSubDataModel();
 export const uploadPartModel = new UploadPartController();
-export const virtualRecordModel = new VirtualRecordController();
 
 export let dbContainer: ReturnType<typeof setupContainer>;
 export let statisticsService: Container["statisticsService"];
+export let virtualRecordService: Container["virtualRecordService"];
+export let videoSubDataService: Container["videoSubDataService"];
 
 export const initDB = (dbPath: string) => {
   const mainDBPath = path.join(dbPath, "app.db");
@@ -63,9 +61,7 @@ export const initDB = (dbPath: string) => {
   streamerModel.init(db.db);
   recordHistoryModel.init(db.db);
   videoSubModel.init(db.db);
-  videoSubDataModel.init(db.db);
   uploadPartModel.init(db.db);
-  virtualRecordModel.init(db.db);
 
   // 弹幕数据库
   danmuModel.init(danmaDb.db);
@@ -73,6 +69,8 @@ export const initDB = (dbPath: string) => {
   // 依赖注入容器
   dbContainer = setupContainer(db.db);
   statisticsService = dbContainer.resolve("statisticsService");
+  virtualRecordService = dbContainer.resolve("virtualRecordService");
+  videoSubDataService = dbContainer.resolve("videoSubDataService");
 
   return db;
 };
@@ -83,9 +81,7 @@ export const reconnectDB = () => {
   recordHistoryModel.init(db.db);
   // statisticsModel.init(db.db);
   videoSubModel.init(db.db);
-  videoSubDataModel.init(db.db);
   uploadPartModel.init(db.db);
-  virtualRecordModel.init(db.db);
   return db;
 };
 

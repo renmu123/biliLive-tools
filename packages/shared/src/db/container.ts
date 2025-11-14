@@ -1,49 +1,24 @@
-import { createContainer, asClass, asFunction, asValue, InjectionMode } from "awilix";
+import { createContainer, asClass, asValue, InjectionMode } from "awilix";
 
 import StatisticsModel from "./model/statistics.js";
+import VirtualRecordModel from "./model/virtualRecord.js";
+import VideoSubDataModel from "./model/videoSubData.js";
 
 import StatisticsService from "./service/statisticsService.js";
+import VirtualRecordService from "./service/virtualRecordService.js";
+import VideoSubDataService from "./service/videoSubDataService.js";
 
 import type { Database } from "better-sqlite3";
-
-// import { createDatabase } from "./database";
-
-// // Repositories
-// import { SchoolRepository } from "../repositories/SchoolRepository";
-// import { GradeRepository } from "../repositories/GradeRepository";
-// import { ClassRepository } from "../repositories/ClassRepository";
-// import { TeacherRepository } from "../repositories/TeacherRepository";
-// import { StudentRepository } from "../repositories/StudentRepository";
-// import { CourseRepository } from "../repositories/CourseRepository";
-// import { EnrollmentRepository } from "../repositories/EnrollmentRepository";
-
-// // Services
-// import { SchoolService } from "../services/SchoolService";
-// import { GradeService } from "../services/GradeService";
-// import { ClassService } from "../services/ClassService";
-// import { TeacherService } from "../services/TeacherService";
-// import { StudentService } from "../services/StudentService";
-// import { CourseService } from "../services/CourseService";
-// import { EnrollmentService } from "../services/EnrollmentService";
 
 export interface Container {
   db: Database;
   statisticsModel: StatisticsModel;
+  virtualRecordModel: VirtualRecordModel;
+  videoSubDataModel: VideoSubDataModel;
+
   statisticsService: StatisticsService;
-  //   schoolRepository: SchoolRepository;
-  //   gradeRepository: GradeRepository;
-  //   classRepository: ClassRepository;
-  //   teacherRepository: TeacherRepository;
-  //   studentRepository: StudentRepository;
-  //   courseRepository: CourseRepository;
-  //   enrollmentRepository: EnrollmentRepository;
-  //   schoolService: SchoolService;
-  //   gradeService: GradeService;
-  //   classService: ClassService;
-  //   teacherService: TeacherService;
-  //   studentService: StudentService;
-  //   courseService: CourseService;
-  //   enrollmentService: EnrollmentService;
+  virtualRecordService: VirtualRecordService;
+  videoSubDataService: VideoSubDataService;
 }
 
 export function setupContainer(db: Database) {
@@ -59,11 +34,15 @@ export function setupContainer(db: Database) {
   // Register all Repositories
   container.register({
     statisticsModel: asClass(StatisticsModel).singleton(),
+    virtualRecordModel: asClass(VirtualRecordModel).singleton(),
+    videoSubDataModel: asClass(VideoSubDataModel).singleton(),
   });
 
   // Register all Services
   container.register({
     statisticsService: asClass(StatisticsService).singleton(),
+    virtualRecordService: asClass(VirtualRecordService).singleton(),
+    videoSubDataService: asClass(VideoSubDataService).singleton(),
   });
 
   return container;

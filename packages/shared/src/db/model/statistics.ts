@@ -16,8 +16,6 @@ export type BaseStatistics = z.infer<typeof BaseStatistics>;
 export type Statistics = z.infer<typeof Statistics>;
 
 export default class StatisticsModel extends BaseModel<BaseStatistics> {
-  table = "statistics";
-
   constructor({ db }: { db: Database }) {
     super(db, "statistics");
     this.createTable();
@@ -25,7 +23,7 @@ export default class StatisticsModel extends BaseModel<BaseStatistics> {
 
   async createTable() {
     const createTableSQL = `
-      CREATE TABLE IF NOT EXISTS ${this.table} (
+      CREATE TABLE IF NOT EXISTS ${this.tableName} (
         stat_key TEXT PRIMARY KEY,                          -- 键
         value TEXT NOT NULL,                                -- 值
         created_at INTEGER DEFAULT (strftime('%s', 'now'))  -- 创建时间，时间戳，自动生成
@@ -40,7 +38,7 @@ export default class StatisticsModel extends BaseModel<BaseStatistics> {
   }
   update(options: BaseStatistics) {
     const data = BaseStatistics.parse(options);
-    const sql = `UPDATE ${this.table} SET value = ? WHERE stat_key = ?`;
+    const sql = `UPDATE ${this.tableName} SET value = ? WHERE stat_key = ?`;
 
     return this.db.prepare(sql).run(data.value, data.stat_key);
   }

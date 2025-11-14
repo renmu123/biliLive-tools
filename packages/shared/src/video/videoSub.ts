@@ -6,7 +6,7 @@ import { live, video } from "douyu-api";
 import filenamify from "filenamify";
 import { provider as providerForDouYu } from "@bililive-tools/douyu-recorder";
 
-import { videoSubModel, videoSubDataModel } from "../db/index.js";
+import { videoSubModel, videoSubDataService } from "../db/index.js";
 import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
 import douyu from "./douyu.js";
@@ -236,7 +236,7 @@ async function runDouyuTask(item: VideoSubItem) {
     page: 1,
     limit: 1,
   });
-  const downloadVideos = videoSubDataModel
+  const downloadVideos = videoSubDataService
     .list({
       platform: "douyu",
       subId: item.subId,
@@ -254,7 +254,7 @@ async function runDouyuTask(item: VideoSubItem) {
   videoIds = videoIds.filter((id) => !downloadVideos.includes(id));
 
   for (const videoId of videoIds) {
-    videoSubDataModel.add({
+    videoSubDataService.add({
       subId: item.subId,
       platform: "douyu",
       videoId,
@@ -276,7 +276,7 @@ async function runHuyaTask(item: VideoSubItem) {
   const replayList = await huya.parseReplayList(item.subId);
 
   // 获取已下载的视频ID列表
-  const downloadVideos = videoSubDataModel
+  const downloadVideos = videoSubDataService
     .list({
       platform: "huya",
       subId: item.subId,
@@ -291,7 +291,7 @@ async function runHuyaTask(item: VideoSubItem) {
 
   // 下载新视频
   for (const videoId of videoIds) {
-    videoSubDataModel.add({
+    videoSubDataService.add({
       subId: item.subId,
       platform: "huya",
       videoId,
