@@ -1,3 +1,4 @@
+import dns from "node:dns";
 import fs from "fs-extra";
 import { createContainer, asValue, asClass } from "awilix";
 import { default as checkDiskSpace } from "check-disk-space";
@@ -18,6 +19,8 @@ import { initDB } from "./db/index.js";
 import StatisticsService from "./db/service/statisticsService.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
+
+dns.setDefaultResultOrder("ipv4first");
 
 const container = createContainer();
 
