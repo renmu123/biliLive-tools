@@ -483,8 +483,8 @@ export async function getRoomInfo(
       streams: [],
       sources: [],
       avatar: data.avatar,
-      cover: room?.cover,
-      liveId: room?.id_str,
+      cover: room?.cover ?? "",
+      liveId: room?.id_str ?? "",
       uid: data.sec_uid,
       api: data.api,
     };
