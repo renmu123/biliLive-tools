@@ -527,7 +527,6 @@ export function genSavePathFromRule<
   let savePathRule = manager.savePathRule;
   try {
     savePathRule = ejs.render(savePathRule, params);
-    console.log("解析后保存路径模板：", savePathRule, params);
   } catch (error) {
     console.error("模板解析错误", error, savePathRule, params);
   }

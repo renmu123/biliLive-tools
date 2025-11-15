@@ -245,7 +245,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     retryDelay: 7000,
     checkInterval: 600,
     minUploadInterval: 0,
-    accountAutoCheck: false,
+    accountAutoCheck: true,
     useBCutAPI: false,
     useUploadPartPersistence: true,
   },
