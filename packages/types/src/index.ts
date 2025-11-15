@@ -33,6 +33,46 @@ export * from "./preset.js";
 //   timeshift: number;
 // };
 
+export const recorderNoGlobalFollowFields: Array<
+  Exclude<
+    keyof Recorder,
+    | "providerId"
+    | "id"
+    | "channelId"
+    | "remarks"
+    | "extra"
+    | "disableAutoCheck"
+    | "sendToWebhook"
+    | "streamPriorities"
+    | "sourcePriorities"
+    | "noGlobalFollowFields"
+    | "line"
+    | "titleKeywords"
+    | "liveStartNotification"
+    | "onlyAudio"
+    | "handleTime"
+    | "weight"
+  >
+> = [
+  "quality",
+  "disableProvideCommentsWhenRecording",
+  "saveGiftDanma",
+  "saveSCDanma",
+  "segment",
+  "uid",
+  "saveCover",
+  "qualityRetry",
+  "formatName",
+  "useM3U8Proxy",
+  "codecName",
+  "source",
+  "videoFormat",
+  "recorderType",
+  "cookie",
+  "doubleScreen",
+  "useServerTimestamp",
+];
+
 // 通用预设
 export type CommonPreset<T> = {
   id: string;
@@ -401,8 +441,8 @@ export interface Recorder {
   sourcePriorities: any[];
   extra: {
     createTimestamp?: number;
-    /** B站主播的uid */
-    recorderUid?: number;
+    /** B站主播的uid，抖音的sec_uid */
+    recorderUid?: number | string;
     /** 头像 */
     avatar?: string;
   };
@@ -464,27 +504,7 @@ export interface Recorder {
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
   // 不跟随全局配置字段
-  noGlobalFollowFields: Array<
-    Exclude<
-      keyof Recorder,
-      | "providerId"
-      | "id"
-      | "channelId"
-      | "remarks"
-      | "extra"
-      | "disableAutoCheck"
-      | "sendToWebhook"
-      | "streamPriorities"
-      | "sourcePriorities"
-      | "noGlobalFollowFields"
-      | "line"
-      | "titleKeywords"
-      | "liveStartNotification"
-      | "onlyAudio"
-      | "handleTime"
-      | "weight"
-    >
-  >;
+  noGlobalFollowFields: typeof recorderNoGlobalFollowFields;
 }
 
 export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "pan123" | "copy";
