@@ -1,7 +1,7 @@
 <template>
   <n-modal v-model:show="showModal" :show-icon="false" :closable="false">
     <n-card
-      style="width: 800px"
+      style="width: 700px"
       :bordered="false"
       size="huge"
       role="dialog"
@@ -44,12 +44,22 @@
         </n-form>
       </div>
 
-      <n-divider v-if="successResults.length > 0" />
+      <!-- <n-divider v-if="successResults.length > 0" /> -->
 
       <!-- 详细结果列表 -->
       <div class="results-list">
-        <h4>详细结果</h4>
-        <n-list>
+        <div class="results-header">
+          <h4>详细结果</h4>
+          <n-button
+            v-if="failedResults.length > 0"
+            size="small"
+            @click="copyFailedUrls"
+            type="warning"
+          >
+            复制失败链接
+          </n-button>
+        </div>
+        <n-list class="results-list-content">
           <n-list-item v-for="(result, index) in results" :key="index">
             <template #prefix>
               <n-icon
@@ -63,7 +73,6 @@
                 <n-text v-if="result.success" type="success">
                   {{ result.data?.remarks }} - {{ result.data?.providerId }}
                 </n-text>
-                <n-text v-else type="error"> 解析失败 </n-text>
               </template>
               <template #description>
                 <div class="result-url">{{ result.url }}</div>
@@ -174,6 +183,24 @@ const cancel = () => {
   showModal.value = false;
 };
 
+const copyFailedUrls = async () => {
+  const urls = failedResults.value.map((result) => result.url).join("\n");
+  try {
+    await navigator.clipboard.writeText(urls);
+    notice.success({
+      title: "复制成功",
+      content: `已复制 ${failedResults.value.length} 个失败的链接`,
+      duration: 1000,
+    });
+  } catch (error) {
+    notice.error({
+      title: "复制失败",
+      content: "无法访问剪贴板",
+      duration: 3000,
+    });
+  }
+};
+
 // 当弹窗打开时重置设置
 watch(showModal, (val) => {
   if (val) {
@@ -221,8 +248,16 @@ watch(showModal, (val) => {
 }
 
 .results-list {
-  max-height: 300px;
-  overflow-y: auto;
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .results-list-content {
+    // max-height: 300px;
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+  }
 
   h4 {
     margin: 10px 0;

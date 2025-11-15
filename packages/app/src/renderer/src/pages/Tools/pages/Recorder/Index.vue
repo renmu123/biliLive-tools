@@ -53,8 +53,7 @@
         @update:direction="handleSortDirectionChange"
       />
       <n-button type="warning" @click="getLiveInfo(true)">刷新</n-button>
-      <n-button type="primary" @click="add">添加</n-button>
-      <n-button type="info" @click="batchAdd">批量添加</n-button>
+      <ButtonGroup :options="actionBtns" @click="handleActionClick">添加</ButtonGroup>
     </div>
 
     <template v-if="list.length > 0">
@@ -135,6 +134,7 @@ import videoModal from "./components/videoModal.vue";
 import cardView from "./components/cardView.vue";
 import listView from "./components/listView.vue";
 import { useRouter } from "vue-router";
+import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 
 import { useEventListener, useStorage } from "@vueuse/core";
 import eventBus from "@renderer/utils/eventBus";
@@ -566,6 +566,18 @@ const handleSortDirectionChange = (direction: "asc" | "desc") => {
     sortDirections.monitorStatus = direction;
   }
   getList();
+};
+
+const actionBtns = ref([{ label: "批量添加", key: "batchAdd" }]);
+const handleActionClick = (key?: string | number) => {
+  switch (key) {
+    case "batchAdd":
+      batchAdd();
+      break;
+    case undefined:
+      add();
+      break;
+  }
 };
 </script>
 
