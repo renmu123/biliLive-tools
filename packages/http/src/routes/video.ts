@@ -1,12 +1,12 @@
 import path from "node:path";
 
 import Router from "@koa/router";
-import douyu from "@biliLive-tools/shared/task/douyu.js";
-import huya from "@biliLive-tools/shared/task/huya.js";
+import douyu from "@biliLive-tools/shared/video/douyu.js";
+import huya from "@biliLive-tools/shared/video/huya.js";
+import kuaishou from "@biliLive-tools/shared/video/kuaishou.js";
 import biliApi from "@biliLive-tools/shared/task/bili.js";
-import kuaishou from "@biliLive-tools/shared/task/kuaishou.js";
 import log from "@biliLive-tools/shared/utils/log.js";
-import videoSub from "@biliLive-tools/shared/task/videoSub.js";
+import videoSub from "@biliLive-tools/shared/video/videoSub.js";
 
 import type { VideoAPI } from "../types/video.js";
 

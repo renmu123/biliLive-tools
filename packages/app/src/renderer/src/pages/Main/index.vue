@@ -157,6 +157,7 @@ const footerMenuOptions = computed<MenuOption[]>(() => {
           "a",
           {
             onClick: () => {
+              window.localStorage.removeItem("api");
               window.localStorage.setItem("key", "");
               router.push({ name: "Login" });
             },

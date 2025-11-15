@@ -12,6 +12,7 @@ if (isWeb) {
   // @ts-ignore
   window.path = path;
 }
+window.isFullstack = import.meta.env.VITE_FULLSTACK === "true";
 
 const init = async () => {
   await axiosInit();

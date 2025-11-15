@@ -520,7 +520,6 @@ async function addMedia(
           // 合集相关功能
           if (options.seasonId) {
             const archive = await client.platform.getArchive({ aid: data.aid });
-            log.debug("合集稿件", archive);
             const cid = archive.videos[0].cid;
             let sectionId = options.sectionId;
             if (!options.sectionId) {

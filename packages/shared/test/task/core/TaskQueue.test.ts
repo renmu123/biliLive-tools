@@ -1,6 +1,6 @@
-import { TaskQueue, AbstractTask } from "../../src/task/task.js";
-import { TaskType } from "../../src/enum.js";
-import { sleep } from "../../src/utils/index.js";
+import { TaskQueue, AbstractTask } from "../../../src/task/task.js";
+import { TaskType } from "../../../src/enum.js";
+import { sleep } from "../../../src/utils/index.js";
 import { expect, describe, it, beforeEach, vi } from "vitest";
 
 describe("TaskQueue", () => {

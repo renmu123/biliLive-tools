@@ -4,8 +4,8 @@ import fs from "fs-extra";
 import { video, convert2Xml } from "douyu-api";
 import M3U8Downloader from "@renmu/m3u8-downloader";
 
-import { taskQueue, DouyuDownloadVideoTask } from "./task.js";
-import { getFfmpegPath } from "./video.js";
+import { taskQueue, DouyuDownloadVideoTask } from "../task/task.js";
+import { getFfmpegPath } from "../task/video.js";
 import { uuid } from "../utils/index.js";
 import { getTempPath } from "../utils/index.js";
 

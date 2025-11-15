@@ -1,3 +1,7 @@
+# 1.9.1
+
+- 修复 `userWeb` 接口在未直播时移除报错的bug
+
 # 1.9.0
 
 - `recordHandle` 新增参数 `recorderType`

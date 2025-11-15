@@ -48,7 +48,7 @@ export default defineConfig({
           items: [
             { text: "直播录制", link: "/features/live-record" },
             { text: "Webhook", link: "/features/webhook" },
-            { text: "ffmpeg配置", link: "/features/ffmpeg" },
+            { text: "FFmpeg配置", link: "/features/ffmpeg" },
             { text: "B站上传", link: "/features/bilibili-upload" },
             { text: "XML弹幕转换", link: "/features/danmaku-convert" },
             { text: "视频切片", link: "/features/video-clip" },

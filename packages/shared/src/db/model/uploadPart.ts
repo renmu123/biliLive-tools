@@ -123,15 +123,13 @@ export default class UploadPartController {
       SELECT * FROM ${this.model.table} 
       WHERE file_hash = ? AND file_size = ? AND expire_time > ?
     `;
-    return this.model.db
-      .prepare(sql)
-      .get(file_hash, file_size, Math.floor(Date.now() / 1000)) as UploadPart | null;
+    return this.model.db.prepare(sql).get(file_hash, file_size, Date.now()) as UploadPart | null;
   }
 
   removeExpired() {
     const sql = `DELETE FROM ${this.model.table} WHERE expire_time <= ?`;
     const stmt = this.model.db.prepare(sql);
-    const result = stmt.run(Math.floor(Date.now() / 1000));
+    const result = stmt.run(Date.now());
     return result.changes;
   }
   removeByCids(cids: number[]) {

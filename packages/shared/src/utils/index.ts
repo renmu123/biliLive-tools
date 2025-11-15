@@ -599,3 +599,18 @@ export function retryWithAxiosError<T>(
     attempt(times);
   });
 }
+
+/**
+ * 检查是否在时间范围内
+ */
+export const isBetweenTimeRange = (range: undefined | [] | [string, string]): boolean => {
+  if (!range) return true;
+  if (range.length !== 2) return true;
+
+  try {
+    const status = isBetweenTime(new Date(), range);
+    return status;
+  } catch (error) {
+    return true;
+  }
+};

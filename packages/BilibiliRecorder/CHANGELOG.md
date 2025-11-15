@@ -1,3 +1,7 @@
+# Next
+
+- 支持 `15000` 画质
+
 # 1.9.0
 
 - `recordHandle` 新增参数 `recorderType`
