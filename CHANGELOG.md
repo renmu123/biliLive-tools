@@ -8,6 +8,10 @@
 
 - B站：“自动更新帐号授权”选项默认开启
 
+## 其他
+
+- 录播姬引擎升级至 [3.2.0](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.2.0)，收到 onMetaData 时不再分段，有助于减轻抖音的分段
+
 # 3.3.2(2025.11.15)
 
 ## 优化
