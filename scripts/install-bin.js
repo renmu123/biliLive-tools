@@ -49,7 +49,7 @@ async function downloadFile(url, desc, options = {}) {
 }
 
 async function downloadMesio() {
-  // https://github.com/hua0512/rust-srec/releases/tag/v0.3.3
+  // https://github.com/hua0512/rust-srec
   const platforms = {
     win32: "windows",
     darwin: "macos",
@@ -59,7 +59,7 @@ async function downloadMesio() {
   };
   const platform = platforms[process.platform] ?? process.platform;
   const arch = archs[process.arch] ?? process.arch;
-  let mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/v0.3.3/mesio-${platform}-${arch}`;
+  let mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/v0.3.4/mesio-${platform}-${arch}`;
   if (platform === "windows") {
     mesioUrl += ".exe";
   }
