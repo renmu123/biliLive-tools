@@ -94,7 +94,6 @@ class MesioCommand extends EventEmitter {
   }
 
   kill(): void {
-    const mesioExecutable = getMesioPath();
     if (this.process) {
       this.process.stdin?.write("q");
       this.process.stdin?.end();
@@ -223,7 +222,7 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
   public async stop() {
     try {
       this.command.kill();
-
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       await this.streamManager.handleVideoCompleted();
     } catch (err) {
       this.emit("DebugLog", { type: "error", text: String(err) });
