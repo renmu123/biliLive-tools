@@ -1,8 +1,45 @@
 # Next
 
+## 功能
+
+- 录制：支持批量添加 [#225](https://github.com/renmu123/biliLive-tools/pull/225)
+
+## 优化
+
+- B站：“自动更新帐号授权”选项默认开启
+
+## Bug修复
+
+- 录制：修复添加时配置初始化错误的bug
+
+## 其他
+
+- 录播姬引擎升级至 [3.2.0](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.2.0)，收到 onMetaData 时不再分段，有助于减轻抖音的分段
+
+# 3.3.2(2025.11.15)
+
+## 优化
+
+- 全局 ipv4 优先
+
+## Bug修复
+
+- B站上传：修复“缓存投稿失败视频”缓存不会失效的bug
+- 录制：修复抖音 `userWeb` 接口在未直播时报错的bug
+- 修复全栈镜像某些功能无法使用的bug [#241](https://github.com/renmu123/biliLive-tools/pull/241)
+
+# 3.3.1(2025.11.12)
+
 ## 优化
 
 - 转码：m4s支持
+- 录制：B站支持 `15000` 原画
+
+## Bug修复
+
+- 升级 mesio 至0.3.3，修复禁用代理出错的bug
+- 修复单镜像复用之前端口号导致无法登录的bug
+- 修复前端镜像无api输入框的bug
 
 # 3.3.0(2025.11.09)
 

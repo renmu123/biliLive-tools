@@ -25,6 +25,10 @@ export const biliQualityOptions = [
     label: "4K(20000)",
   },
   {
+    value: 15000,
+    label: "2K(15000)",
+  },
+  {
     value: 400,
     label: "蓝光(400)",
   },

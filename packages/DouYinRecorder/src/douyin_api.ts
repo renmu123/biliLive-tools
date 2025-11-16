@@ -474,7 +474,6 @@ export async function getRoomInfo(
   }
   // console.log(JSON.stringify(data, null, 2));
   const room = data.room;
-  assert(room, `No room data, id ${webRoomId}`);
   if (api === "userHTML") {
     return {
       living: data.living,
@@ -484,12 +483,13 @@ export async function getRoomInfo(
       streams: [],
       sources: [],
       avatar: data.avatar,
-      cover: room.cover,
-      liveId: room.id_str,
+      cover: room?.cover ?? "",
+      liveId: room?.id_str ?? "",
       uid: data.sec_uid,
       api: data.api,
     };
   }
+  assert(room, `No room data, id ${webRoomId}`);
 
   if (room?.stream_url == null) {
     return {
