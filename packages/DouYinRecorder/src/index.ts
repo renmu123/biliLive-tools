@@ -208,14 +208,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.liveInfo.cover = res.cover;
     this.liveInfo.liveId = res.liveId;
     this.liveInfo.avatar = res.avatar;
-    this.liveInfo.startTime = new Date();
+    this.liveInfo.liveStartTime = new Date();
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
 
     this.state = "check-error";
     throw err;
   }
-  const { owner, title, startTime } = this.liveInfo;
+  const { owner, title, liveStartTime, recordStartTime } = this.liveInfo;
 
   this.state = "recording";
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
@@ -241,7 +241,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const recordStartTime = new Date();
   const recorder = createBaseRecorder(
     this.recorderType,
     {
@@ -254,7 +253,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           owner,
           title: opts.title ?? title,
           startTime: opts.startTime,
-          liveStartTime: startTime,
+          liveStartTime: liveStartTime,
           recordStartTime,
         }),
       disableDanma: this.disableProvideCommentsWhenRecording,
@@ -276,7 +275,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     owner,
     title,
     startTime: Date.now(),
-    liveStartTime: startTime,
+    liveStartTime,
     recordStartTime,
   });
 

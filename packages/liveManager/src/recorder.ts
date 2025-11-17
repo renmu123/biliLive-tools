@@ -76,7 +76,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   /** 调试等级 */
   debugLevel?: "none" | "basic" | "verbose";
   /** 缓存 */
-  cache: Cache;
+  // cache: Cache;
 }
 
 export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id"> &
@@ -173,10 +173,11 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     living: boolean;
     owner: string;
     title: string;
-    startTime: Date;
+    liveStartTime: Date;
     avatar: string;
     cover: string;
     liveId?: string;
+    recordStartTime: Date;
   };
   tempStopIntervalCheck?: boolean;
   // TODO: 随机的一条近期弹幕 / 评论，这或许应该放在 manager 层做，上面再加个频率统计之类的
@@ -209,7 +210,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     cover: string;
     channelId: ChannelId;
     living: boolean;
-    startTime: Date;
+    liveStartTime: Date;
   }>;
   getStream: (this: Recorder<E>) => Promise<{
     source: string;

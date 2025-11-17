@@ -8,10 +8,11 @@ export async function getInfo(channelId: string): Promise<{
   living: boolean;
   owner: string;
   title: string;
-  startTime: Date;
+  liveStartTime: Date;
   avatar: string;
   cover: string;
   liveId: string;
+  recordStartTime: Date;
   // gifts: {
   //   id: string;
   //   name: string;
@@ -64,15 +65,16 @@ export async function getInfo(channelId: string): Promise<{
   }
 
   const startTime = new Date(data.room.show_time * 1000);
+  const recordStartTime = new Date();
   return {
     living,
     owner: data.room.nickname,
     title: data.room.room_name,
     avatar: data.room.avatar.big,
     cover: data.room.room_pic,
-    startTime: startTime,
+    liveStartTime: startTime,
     liveId: utils.md5(`${channelId}-${startTime?.getTime() ?? Date.now()}`),
-
+    recordStartTime: recordStartTime,
     // gifts: data.gift.map((g) => ({
     //   id: g.id,
     //   name: g.name,

@@ -148,9 +148,9 @@
           <n-form-item>
             <template #label>
               <Tip
-                tip="当前录制错误后，会在下一个检查周期到来重新进行检查，可能导致缺少部分时间。<br/>
-                此开关使得在触发某些<b>已知错误</b>后会立即进行检查，每场直播最多进行五次重试。虎牙直播不会被重试"
-                text="测试：录制错误立即重试"
+                tip="录制结束后，立即尝试重新检查，避免下一个检查周期到来时才进行检查，导致缺少部分时间。<br/>
+                每场直播最多进行五次重试。虎牙直播不会被重试"
+                text="录制结束立即重试"
               ></Tip>
             </template>
             <n-switch v-model:value="config.recorder.recordRetryImmediately" />
