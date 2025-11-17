@@ -2,12 +2,12 @@ import EventEmitter from "node:events";
 
 import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
 import { createInvalidStreamChecker, assert } from "../utils.js";
-import { IRecorder, FFMPEGRecorderOptions } from "./IRecorder.js";
+import { IDownloader, FFMPEGRecorderOptions } from "./IDownloader.js";
 
 import { FormatName } from "./index.js";
 import type { VideoFormat } from "../index.js";
 
-export class FFMPEGRecorder extends EventEmitter implements IRecorder {
+export class FFmpegDownloader extends EventEmitter implements IDownloader {
   public type = "ffmpeg" as const;
   private command: ReturnType<typeof createFFMPEGBuilder>;
   private streamManager: StreamManager;
@@ -225,5 +225,9 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
 
   public getExtraDataController() {
     return this.streamManager?.getExtraDataController();
+  }
+
+  public get videoFilePath() {
+    return this.streamManager.videoFilePath;
   }
 }

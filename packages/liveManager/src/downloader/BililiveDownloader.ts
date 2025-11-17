@@ -2,7 +2,7 @@ import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
 import { StreamManager, getBililivePath } from "../index.js";
-import { IRecorder, BililiveRecorderOptions } from "./IRecorder.js";
+import { IDownloader, BililiveRecorderOptions } from "./IDownloader.js";
 
 // Bililive command builder class similar to ffmpeg
 class BililiveRecorderCommand extends EventEmitter {
@@ -104,7 +104,7 @@ export const createBililiveBuilder = (): BililiveRecorderCommand => {
   return new BililiveRecorderCommand();
 };
 
-export class BililiveRecorder extends EventEmitter implements IRecorder {
+export class BililiveDownloader extends EventEmitter implements IDownloader {
   public type = "bililive" as const;
   private command: BililiveRecorderCommand;
   private streamManager: StreamManager;
@@ -238,5 +238,9 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
 
   public getExtraDataController() {
     return this.streamManager?.getExtraDataController();
+  }
+
+  public get videoFilePath() {
+    return this.streamManager.videoFilePath;
   }
 }

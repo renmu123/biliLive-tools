@@ -24,7 +24,7 @@ import {
   isBetweenTimeRange,
   sleep,
 } from "./utils.js";
-import { StreamManager } from "./recorder/streamManager.js";
+import { StreamManager } from "./downloader/streamManager.js";
 import { Cache } from "./cache.js";
 
 export interface RecorderProvider<E extends AnyObject> {

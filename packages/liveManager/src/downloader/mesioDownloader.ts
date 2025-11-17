@@ -3,7 +3,7 @@ import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
 import { StreamManager, getMesioPath } from "../index.js";
-import { IRecorder, MesioRecorderOptions } from "./IRecorder.js";
+import { IDownloader, MesioRecorderOptions } from "./IDownloader.js";
 
 // Mesio command builder class similar to ffmpeg
 class MesioCommand extends EventEmitter {
@@ -105,7 +105,7 @@ export const createMesioBuilder = (): MesioCommand => {
   return new MesioCommand();
 };
 
-export class MesioRecorder extends EventEmitter implements IRecorder {
+export class mesioDownloader extends EventEmitter implements IDownloader {
   public type = "mesio" as const;
   private command: MesioCommand;
   private streamManager: StreamManager;
@@ -231,5 +231,9 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
 
   public getExtraDataController() {
     return this.streamManager?.getExtraDataController();
+  }
+
+  public get videoFilePath() {
+    return this.streamManager.videoFilePath;
   }
 }
