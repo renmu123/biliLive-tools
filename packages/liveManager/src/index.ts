@@ -12,6 +12,7 @@ export * from "./manager.js";
 export * from "./record_extra_data_controller.js";
 export * from "./downloader/FFmpegDownloader.js";
 export { createDownloader } from "./downloader/index.js";
+export { checkTitleKeywordsWhileRecording, checkTitleKeywordsBeforeRecord } from "./utils.js";
 export { utils };
 
 /**
