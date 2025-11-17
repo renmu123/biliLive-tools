@@ -293,7 +293,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       formatName: "auto",
       cookie: "",
       doubleScreen: true,
-      api: "mobile",
+      api: "web",
     },
     saveDanma2DB: false,
   },
