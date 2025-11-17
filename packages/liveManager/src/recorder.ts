@@ -2,7 +2,6 @@ import { Emitter } from "mitt";
 import { ChannelId, Message, Quality } from "./common.js";
 import { RecorderProvider } from "./manager.js";
 import { AnyObject, PickRequired, UnknownObject } from "./utils.js";
-import { Cache } from "./cache.js";
 
 import type { RecorderType } from "./recorder/index.js";
 
@@ -184,7 +183,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   // recently comment: { time, text, ... }
 
   /** 缓存实例引用，由 manager 设置 */
-  cache: Cache;
+  // cache: Cache;
 
   getChannelURL: (this: Recorder<E>) => string;
 
