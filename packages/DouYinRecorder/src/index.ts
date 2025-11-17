@@ -172,6 +172,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.liveInfo.liveId = res.liveId;
     this.liveInfo.avatar = res.avatar;
     this.liveInfo.startTime = new Date();
+
+    // 再检查一次，上一个接口可能不存在标题参数
+    if (utils.checkTitleKeywordsBeforeRecord(this.liveInfo.title, this, isManualStart)) return null;
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
 
@@ -455,11 +458,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
     this.usedStream = undefined;
     this.usedSource = undefined;
-
     this.emit("RecordStop", { recordHandle: this.recordHandle, reason });
     this.recordHandle = undefined;
     this.liveInfo = undefined;
     this.state = "idle";
+    this.qualityRetry = this.qualityMaxRetry;
   });
 
   this.recordHandle = {

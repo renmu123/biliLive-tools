@@ -1,3 +1,8 @@
+# 1.10.0
+
+- 重构：录制器相关的参数修改为 `Downloader`
+- 修复“画质匹配重试次数”不会被重置的bug
+
 # 1.9.0
 
 - `recordHandle` 新增参数 `recorderType`
