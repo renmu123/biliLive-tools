@@ -1,3 +1,7 @@
+# 1.9.1
+
+- mesio 支持 0.3.5 版本的智能停止
+
 # 1.9.0
 
 - `recordHandle` 新增参数 `recorderType`
