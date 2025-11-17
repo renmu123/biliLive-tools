@@ -147,6 +147,10 @@ export default class RecorderConfig {
         sourcePriorities = getValue("sourcePriorities");
       }
     }
+    let api = getValue("api") ?? "auto";
+    if (setting.providerId !== "DouYin") {
+      api = "auto";
+    }
 
     return {
       ...setting,
@@ -170,7 +174,7 @@ export default class RecorderConfig {
       formatPriorities: formatPriorities,
       doubleScreen: getValue("doubleScreen"),
       sourcePriorities: sourcePriorities,
-      api: getValue("api") ?? "auto",
+      api: api,
     };
   }
   public list() {

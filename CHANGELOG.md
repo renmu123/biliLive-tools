@@ -3,6 +3,7 @@
 ## 功能
 
 - 录制：支持批量添加 [#225](https://github.com/renmu123/biliLive-tools/pull/225)
+- 录制：抖音支持单独配置请求接口
 - 弹幕：支持自定义过滤函数 [#238](https://github.com/renmu123/biliLive-tools/pull/238)
 
 ## 优化

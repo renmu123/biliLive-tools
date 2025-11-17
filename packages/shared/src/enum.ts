@@ -706,4 +706,5 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   useServerTimestamp: true,
   handleTime: [null, null],
   debugLevel: "none",
+  api: "web",
 };
