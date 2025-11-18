@@ -121,7 +121,7 @@ export interface RecordHandle {
 
   savePath: string;
 
-  stop: (this: RecordHandle, reason?: string, tempStopIntervalCheck?: boolean) => Promise<void>;
+  stop: (this: RecordHandle, reason?: string) => Promise<void>;
   cut: (this: RecordHandle) => Promise<void>;
 }
 

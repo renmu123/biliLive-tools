@@ -303,7 +303,8 @@ export function createRecorderManager<
         if (
           manager.recordRetryImmediately &&
           recorder.providerId !== "HuYa" &&
-          recorder?.liveInfo?.liveId
+          recorder?.liveInfo?.liveId &&
+          reason !== "manual stop"
         ) {
           const key = `${recorder.channelId}-${recorder.liveInfo?.liveId}`;
           const recordStartTime = recorder.liveInfo?.recordStartTime.getTime() ?? 0;
@@ -380,7 +381,7 @@ export function createRecorderManager<
       if (recorder.recordHandle == null) return;
       const liveId = recorder.liveInfo?.liveId;
 
-      await recorder.recordHandle.stop("manual stop", true);
+      await recorder.recordHandle.stop("manual stop");
       if (liveId) {
         tempBanObj[recorder.channelId] = liveId;
         recorder.tempStopIntervalCheck = true;
