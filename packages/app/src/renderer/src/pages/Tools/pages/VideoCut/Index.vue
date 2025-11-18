@@ -51,7 +51,7 @@
               v-model:value="clientOptions.sampling"
               placeholder="单位秒"
               min="1"
-              style="width: 140px"
+              style="width: 120px"
             >
               <template #suffix> 秒 </template></n-input-number
             >
@@ -61,17 +61,14 @@
               v-model:value="clientOptions.height"
               placeholder="单位像素"
               min="10"
-              style="width: 140px"
+              style="width: 120px"
             >
               <template #suffix> 像素 </template></n-input-number
             >
           </div>
-          <div>
-            <n-color-picker v-model:value="clientOptions.color" style="width: 140px" />
-          </div>
-          <div>
-            <n-color-picker v-model:value="clientOptions.fillColor" style="width: 140px" />
-          </div>
+          <n-color-picker v-model:value="clientOptions.color" style="width: 80px" />
+          <n-color-picker v-model:value="clientOptions.fillColor" style="width: 80px" />
+          <!-- <n-checkbox v-model:checked="showVideoTime" title="得加载弹幕才成">显示时间戳</n-checkbox> -->
           <n-checkbox v-model:checked="danmaSearchMask">弹幕搜索栏遮罩</n-checkbox>
         </div>
       </div>
@@ -475,6 +472,7 @@ const clientOptions = useStorage("cut-hotprogress", {
 });
 const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
 const danmaSearchMask = useStorage("cut-danma-search-mask", true);
+const showVideoTime = useStorage("cut-show-video-time", true);
 
 watch(
   clientOptions,
