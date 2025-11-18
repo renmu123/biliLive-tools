@@ -33,7 +33,6 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     availableStreams: [],
     availableSources: [],
     state: "idle",
-    qualityMaxRetry: opts.qualityRetry ?? 0,
     qualityRetry: opts.qualityRetry ?? 0,
     useM3U8Proxy: opts.useM3U8Proxy ?? false,
     useServerTimestamp: opts.useServerTimestamp ?? true,
@@ -146,18 +145,15 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const { owner, title, roomId, startTime } = liveInfo;
   this.liveInfo = liveInfo;
 
+  const qualityRetryLeft = await this.getQualityRetryLeft();
+  const strictQuality = utils.shouldUseStrictQuality(
+    qualityRetryLeft,
+    this.qualityRetry,
+    isManualStart,
+  );
+
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
-    let strictQuality = false;
-    if (this.qualityRetry > 0) {
-      strictQuality = true;
-    }
-    if (this.qualityMaxRetry < 0) {
-      strictQuality = true;
-    }
-    if (isManualStart) {
-      strictQuality = false;
-    }
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
@@ -168,7 +164,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       onlyAudio: this.onlyAudio,
     });
   } catch (err) {
-    if (this.qualityRetry > 0) this.qualityRetry -= 1;
+    if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
     this.state = "check-error";
     throw err;
   }
@@ -381,7 +377,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle = undefined;
     this.liveInfo = undefined;
     this.state = "idle";
-    this.qualityRetry = this.qualityMaxRetry;
+    this.cache.set("qualityRetryLeft", this.qualityRetry);
   });
 
   this.recordHandle = {

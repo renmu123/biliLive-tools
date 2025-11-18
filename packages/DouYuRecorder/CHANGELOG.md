@@ -1,6 +1,7 @@
 # 1.10.0
 
 - 重构：录制器相关的参数修改为 `Downloader`
+- 修复 `qualityRetry` 修改后不会生效的bug
 
 # 1.9.0
 

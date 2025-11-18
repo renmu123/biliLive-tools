@@ -404,6 +404,40 @@ function isBetweenTime(currentTime: Date, timeRange: [string, string]): boolean 
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
+ * 判断是否应该使用严格画质模式
+ * @param qualityRetryLeft 剩余的画质重试次数
+ * @param qualityRetry 初始画质重试次数配置
+ * @param isManualStart 是否手动启动
+ * @returns 是否使用严格画质模式
+ */
+export function shouldUseStrictQuality(
+  qualityRetryLeft: number,
+  qualityRetry: number,
+  isManualStart?: boolean,
+): boolean {
+  // 手动启动时不使用严格模式
+  if (isManualStart) {
+    return false;
+  }
+  // 如果配置为0，不使用严格模式
+  if (qualityRetry === 0) {
+    return false;
+  }
+
+  // 如果还有重试次数，使用严格模式
+  if (qualityRetryLeft > 0) {
+    return true;
+  }
+
+  // 如果配置为负数（无限重试），使用严格模式
+  if (qualityRetry < 0) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * 检查标题是否包含黑名单关键词
  */
 function hasBlockedTitleKeywords(title: string, titleKeywords: string | undefined): boolean {
@@ -530,6 +564,7 @@ export default {
   isBetweenTimeRange,
   hasBlockedTitleKeywords,
   shouldCheckTitleKeywords,
+  shouldUseStrictQuality,
   sleep,
   checkTitleKeywordsWhileRecording,
   checkTitleKeywordsBeforeRecord,
