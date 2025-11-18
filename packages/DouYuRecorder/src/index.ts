@@ -65,7 +65,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       return res.currentStream;
     },
     async getQualityRetryLeft() {
-      return this.cache.get("qualityRetryLeft") ?? this.qualityRetry;
+      return (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
     },
   };
 

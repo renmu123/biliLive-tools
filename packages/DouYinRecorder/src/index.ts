@@ -71,7 +71,8 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       return res.currentStream;
     },
     async getQualityRetryLeft() {
-      return this.cache.get("qualityRetryLeft") ?? this.qualityRetry;
+      console.log("getQualityRetryLeft", this.cache.get("qualityRetryLeft"), this.qualityRetry);
+      return (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
     },
   };
 
@@ -149,6 +150,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.qualityRetry,
     isManualStart,
   );
+  console.log("11111strictQuality", strictQuality, qualityRetryLeft, this.qualityRetry);
 
   let res: Awaited<ReturnType<typeof getStream>>;
   try {

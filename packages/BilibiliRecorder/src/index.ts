@@ -66,6 +66,9 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
       });
       return res.currentStream;
     },
+    async getQualityRetryLeft() {
+      return (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
+    },
     // batchLiveStatusCheck: async function (channels: string[]) {
     //   const data = await getStatusInfoByUIDs([roomInit.uid]);
     // },
