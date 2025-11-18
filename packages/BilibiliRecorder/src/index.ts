@@ -29,6 +29,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     // @ts-ignore
     ...mitt(),
     ...opts,
+    cache: null as any,
 
     availableStreams: [],
     availableSources: [],
@@ -65,9 +66,6 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         codecName: this.codecName,
       });
       return res.currentStream;
-    },
-    async getQualityRetryLeft() {
-      return (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
     },
     // batchLiveStatusCheck: async function (channels: string[]) {
     //   const data = await getStatusInfoByUIDs([roomInit.uid]);
@@ -148,7 +146,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const { owner, title, roomId, startTime } = liveInfo;
   this.liveInfo = liveInfo;
 
-  const qualityRetryLeft = await this.getQualityRetryLeft();
+  const qualityRetryLeft = (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
   const strictQuality = utils.shouldUseStrictQuality(
     qualityRetryLeft,
     this.qualityRetry,

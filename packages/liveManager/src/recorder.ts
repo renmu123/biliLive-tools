@@ -75,8 +75,6 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   extra?: Partial<E>;
   /** 调试等级 */
   debugLevel?: "none" | "basic" | "verbose";
-  /** 缓存实例（命名空间） */
-  cache?: NamespacedCache;
 }
 
 export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id"> &
@@ -210,5 +208,4 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     name: string;
     url: string;
   }>;
-  getQualityRetryLeft?: (this: Recorder<E>) => Promise<number>;
 }

@@ -33,6 +33,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     // @ts-ignore
     ...mitt(),
     ...opts,
+    cache: null as any,
 
     availableStreams: [],
     availableSources: [],
@@ -63,9 +64,6 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         quality: this.quality,
       });
       return res.currentStream;
-    },
-    async getQualityRetryLeft() {
-      return (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
     },
   };
 
@@ -124,7 +122,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // 检查标题是否包含关键词
   if (utils.checkTitleKeywordsBeforeRecord(title, this, isManualStart)) return null;
 
-  const qualityRetryLeft = await this.getQualityRetryLeft();
+  const qualityRetryLeft = (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
   const strictQuality = utils.shouldUseStrictQuality(
     qualityRetryLeft,
     this.qualityRetry,

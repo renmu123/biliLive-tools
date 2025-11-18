@@ -40,6 +40,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     qualityRetry: opts.qualityRetry ?? 0,
     useServerTimestamp: opts.useServerTimestamp ?? true,
     state: "idle",
+    cache: null as any,
 
     getChannelURL() {
       return `https://live.douyin.com/${this.channelId}`;
@@ -69,10 +70,6 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
         sourcePriorities: this.sourcePriorities,
       });
       return res.currentStream;
-    },
-    async getQualityRetryLeft() {
-      console.log("getQualityRetryLeft", this.cache.get("qualityRetryLeft"), this.qualityRetry);
-      return (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
     },
   };
 
@@ -144,7 +141,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // 检查标题是否包含关键词
   if (utils.checkTitleKeywordsBeforeRecord(this.liveInfo.title, this, isManualStart)) return null;
 
-  const qualityRetryLeft = await this.getQualityRetryLeft();
+  const qualityRetryLeft = (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
   const strictQuality = utils.shouldUseStrictQuality(
     qualityRetryLeft,
     this.qualityRetry,
