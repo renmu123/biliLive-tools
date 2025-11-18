@@ -1,63 +1,122 @@
-export class Cache {
-  private static instance: Cache;
-  private data: Map<string, any>;
+/**
+ * Cache system for RecorderManager
+ * 提供统一的缓存接口用于处理持久化事务
+ */
 
-  private constructor() {
-    this.data = new Map<string, any>();
-  }
+export interface CacheStore {
+  get<T = any>(key: string): Promise<T | undefined>;
+  set<T = any>(key: string, value: T, ttl?: number): Promise<void>;
+  delete(key: string): Promise<void>;
+  clear(): Promise<void>;
+  has(key: string): Promise<boolean>;
+}
 
-  public static getInstance(): Cache {
-    if (!Cache.instance) {
-      Cache.instance = new Cache();
+export interface RecorderCache {
+  /**
+   * 为每个录制器创建独立的命名空间
+   * @param recorderId 录制器 ID
+   */
+  createNamespace(recorderId: string): NamespacedCache;
+
+  /**
+   * 获取全局缓存
+   */
+  global(): NamespacedCache;
+}
+
+export interface NamespacedCache {
+  /**
+   * 通用的 key-value 存储
+   */
+  get<T = any>(key: string): Promise<T | undefined>;
+
+  /**
+   * 通用的 key-value 存储
+   */
+  set<T = any>(key: string, value: T): Promise<void>;
+
+  /**
+   * 删除指定 key
+   */
+  delete(key: string): Promise<void>;
+}
+
+/**
+ * 内存缓存实现
+ */
+export class MemoryCacheStore implements CacheStore {
+  private store: Map<string, { value: any; expireAt?: number }> = new Map();
+
+  async get<T = any>(key: string): Promise<T | undefined> {
+    const item = this.store.get(key);
+    if (!item) return undefined;
+
+    if (item.expireAt && Date.now() > item.expireAt) {
+      this.store.delete(key);
+      return undefined;
     }
-    return Cache.instance;
+
+    return item.value;
   }
 
-  public set(key: string, value: any): void {
-    this.data.set(key, value);
+  async set<T = any>(key: string, value: T, ttl?: number): Promise<void> {
+    const item: { value: T; expireAt?: number } = { value };
+    if (ttl) {
+      item.expireAt = Date.now() + ttl;
+    }
+    this.store.set(key, item);
   }
 
-  public get(key: string): any {
-    return this.data.get(key);
+  async delete(key: string): Promise<void> {
+    this.store.delete(key);
   }
 
-  public has(key: string): boolean {
-    return this.data.has(key);
+  async clear(): Promise<void> {
+    this.store.clear();
   }
 
-  public delete(key: string): boolean {
-    return this.data.delete(key);
+  async has(key: string): Promise<boolean> {
+    const value = await this.get(key);
+    return value !== undefined;
+  }
+}
+
+/**
+ * RecorderCache 实现
+ */
+export class RecorderCacheImpl implements RecorderCache {
+  constructor(private store: CacheStore) {}
+
+  createNamespace(recorderId: string): NamespacedCache {
+    return new NamespacedCacheImpl(this.store, `recorder:${recorderId}`);
   }
 
-  public clear(): void {
-    this.data.clear();
+  global(): NamespacedCache {
+    return new NamespacedCacheImpl(this.store, "global");
+  }
+}
+
+/**
+ * 命名空间缓存实现
+ */
+class NamespacedCacheImpl implements NamespacedCache {
+  constructor(
+    private store: CacheStore,
+    private namespace: string,
+  ) {}
+
+  private getKey(key: string): string {
+    return `${this.namespace}:${key}`;
+  }
+  async get<T = any>(key: string): Promise<T | undefined> {
+    return this.store.get<T>(this.getKey(key));
   }
 
-  public get size(): number {
-    return this.data.size;
+  async set<T = any>(key: string, value: T): Promise<void> {
+    return this.store.set(this.getKey(key), value);
   }
 
-  public keys(): IterableIterator<string> {
-    return this.data.keys();
-  }
-
-  public values(): IterableIterator<any> {
-    return this.data.values();
-  }
-
-  public entries(): IterableIterator<[string, any]> {
-    return this.data.entries();
-  }
-
-  public forEach(
-    callbackfn: (value: any, key: string, map: Map<string, any>) => void,
-    thisArg?: any,
-  ): void {
-    this.data.forEach(callbackfn, thisArg);
-  }
-
-  // 实现 Symbol.iterator 接口，支持 for...of 循环
-  public [Symbol.iterator](): IterableIterator<[string, any]> {
-    return this.data[Symbol.iterator]();
+  async delete(key: string): Promise<void> {
+    return this.store.delete(this.getKey(key));
   }
 }

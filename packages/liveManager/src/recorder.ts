@@ -2,7 +2,7 @@ import { Emitter } from "mitt";
 import { ChannelId, Message, Quality } from "./common.js";
 import { RecorderProvider } from "./manager.js";
 import { AnyObject, PickRequired, UnknownObject } from "./utils.js";
-import { Cache } from "./cache.js";
+import type { NamespacedCache } from "./cache.js";
 
 import type { DownloaderType } from "./downloader/index.js";
 
@@ -75,8 +75,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   extra?: Partial<E>;
   /** 调试等级 */
   debugLevel?: "none" | "basic" | "verbose";
-  /** 缓存 */
-  cache: Cache;
+  /** 缓存实例（命名空间） */
+  cache: NamespacedCache;
 }
 
 export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id"> &
@@ -179,11 +179,10 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     liveId?: string;
   };
   tempStopIntervalCheck?: boolean;
+  /** 缓存实例（命名空间） */
+  cache: NamespacedCache;
   // TODO: 随机的一条近期弹幕 / 评论，这或许应该放在 manager 层做，上面再加个频率统计之类的
   // recently comment: { time, text, ... }
-
-  /** 缓存实例引用，由 manager 设置 */
-  cache: Cache;
 
   getChannelURL: (this: Recorder<E>) => string;
 
