@@ -449,16 +449,15 @@ export async function checkTitleKeywordsWhileRecording(
   const titleCheckInterval = 5 * 60 * 1000; // 5分钟
 
   // 获取上次检查时间
-  const lastCheckTime =
-    typeof recorder.extra.lastTitleCheckTime === "number" ? recorder.extra.lastTitleCheckTime : 0;
+  const lastCheckTime = await recorder.cache.get<number>("lastTitleCheckTime");
 
   // 如果距离上次检查时间不足指定间隔，则跳过检查
-  if (now - lastCheckTime < titleCheckInterval) {
+  if (lastCheckTime && now - lastCheckTime < titleCheckInterval) {
     return false;
   }
 
   // 更新检查时间
-  recorder.extra.lastTitleCheckTime = now;
+  await recorder.cache.set("lastTitleCheckTime", now);
 
   // 获取直播间信息
   const liveInfo = await getInfo(recorder.channelId);
