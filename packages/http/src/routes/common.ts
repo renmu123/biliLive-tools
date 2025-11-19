@@ -251,6 +251,24 @@ router.post("/readAss", async (ctx) => {
   ctx.body = content;
 });
 
+router.post("/readLLC", async (ctx) => {
+  const { filepath } = ctx.request.body as {
+    filepath: string;
+  };
+  if (!(await fs.pathExists(filepath))) {
+    ctx.status = 400;
+    ctx.body = "文件不存在";
+    return;
+  }
+  const content = await fs.readFile(filepath, "utf-8");
+  if (!content.includes("cutSegments")) {
+    ctx.status = 400;
+    ctx.body = "文件不是有效的llc项目文件";
+    return;
+  }
+  ctx.body = content;
+});
+
 router.post("/genTimeData", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;

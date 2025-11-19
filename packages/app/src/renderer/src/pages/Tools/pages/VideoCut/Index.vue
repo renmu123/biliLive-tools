@@ -5,7 +5,6 @@
         title="请选择项目文件，兼容LosslessCut项目文件"
         :options="exportOptions"
         @click="handleProjectBtnClick"
-        v-if="!isWeb"
         >导入项目文件</ButtonGroup
       >
       <n-button type="primary" @click="handleVideoChange"> {{ videoTitle }} </n-button>

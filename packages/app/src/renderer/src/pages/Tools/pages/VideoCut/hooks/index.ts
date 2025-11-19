@@ -2,6 +2,8 @@ import { Ref } from "vue";
 import JSON5 from "json5";
 import { useAppConfig, useSegmentStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
+import { showFileDialog } from "@renderer/utils/fileSystem";
+import { commonApi } from "@renderer/apis";
 
 export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
   const notice = useNotification();
@@ -16,17 +18,13 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
    * 导入项目文件
    */
   const importProject = async () => {
-    const files = await window.api.openFile({
-      multi: false,
-      filters: [
-        {
-          name: "file",
-          extensions: ["llc"],
-        },
-      ],
+    const files = await showFileDialog({
+      extensions: ["llc"],
     });
     if (!files) return;
-    const file = files[0];
+
+    if (!files) return;
+    const file = files?.[0];
     handleProject(file);
   };
 
@@ -34,18 +32,27 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
    * 处理项目文件
    */
   const handleProject = async (file: string) => {
-    llcProjectPath.value = file;
-    const data = JSON5.parse(await window.api.common.readFile(file));
-    init(
-      data.cutSegments.map((item: any) => {
-        return {
-          ...item,
-          checked: true,
-        };
-      }),
-    );
-    const mediaFileName = data.mediaFileName;
-    mediaPath.value = window.path.join(window.path.dirname(file), mediaFileName);
+    const content = await commonApi.readLLCProject(file);
+    try {
+      llcProjectPath.value = file;
+      const data = JSON5.parse(content);
+
+      init(
+        data.cutSegments.map((item: any) => {
+          return {
+            ...item,
+            checked: true,
+          };
+        }),
+      );
+      const mediaFileName = data.mediaFileName;
+      mediaPath.value = window.path.join(window.path.dirname(file), mediaFileName);
+    } catch (error) {
+      notice.error({
+        title: "项目文件解析失败，请确认文件有效",
+        duration: 2000,
+      });
+    }
   };
 
   /**

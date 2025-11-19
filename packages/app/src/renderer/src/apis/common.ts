@@ -157,6 +157,13 @@ export async function readAss(filepath: string): Promise<string> {
   return res.data;
 }
 
+export async function readLLCProject(filepath: string): Promise<string> {
+  const res = await request.post("/common/readLLC", {
+    filepath,
+  });
+  return res.data;
+}
+
 export async function genTimeData(filepath: string): Promise<number[]> {
   const res = await request.post("/common/genTimeData", {
     filepath,
@@ -277,6 +284,7 @@ const common = {
   whyUploadFailed,
   checkUpdate,
   getTempPath,
+  readLLCProject,
 };
 
 export default common;
