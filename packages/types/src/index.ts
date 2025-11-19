@@ -517,6 +517,7 @@ export type SyncConfig = {
   syncSource: SyncType;
   folderStructure: string;
   targetFiles: ("source" | "danmaku" | "xml" | "cover")[];
+  stringFilters?: "filterFourByteChars"[];
 };
 
 // 全局配置

@@ -6,7 +6,7 @@ import { BaiduPCS, AliyunPan, Alist, LocalCopy, Pan123 } from "../sync/index.js"
 import { pan123Login as pan123LoginAPi, getToken as getPan123AccessToken } from "../sync/pan123.js";
 import { trashItem } from "../utils/index.js";
 
-import type { SyncType } from "@biliLive-tools/types";
+import type { SyncType, SyncConfig } from "@biliLive-tools/types";
 
 const getConfig = (type: SyncType) => {
   const config = appConfig.getAll();
@@ -47,6 +47,7 @@ const createUploadInstance = async (opts: {
   clientId?: string;
   clientSecret?: string;
   limitRate?: number;
+  stringFilters?: SyncConfig["stringFilters"];
 }) => {
   if (opts.type === "baiduPCS") {
     return new BaiduPCS({
@@ -65,6 +66,7 @@ const createUploadInstance = async (opts: {
       password: opts.password,
       remotePath: opts.remotePath ?? "",
       limitRate: opts.limitRate ?? 0,
+      stringFilters: opts.stringFilters,
     });
   } else if (opts.type === "copy") {
     return new LocalCopy({
@@ -98,6 +100,7 @@ export const addSyncTask = async ({
   password,
   clientId,
   clientSecret,
+  stringFilters,
 }: {
   input: string;
   remotePath?: string;
@@ -111,6 +114,7 @@ export const addSyncTask = async ({
   password?: string;
   clientId?: string;
   clientSecret?: string;
+  stringFilters?: SyncConfig["stringFilters"];
 }) => {
   const {
     binary: binaryPath,
@@ -131,6 +135,7 @@ export const addSyncTask = async ({
     clientId: clientId ?? iClientId,
     clientSecret: clientSecret ?? iClientSecret,
     limitRate: limitRate ?? 0,
+    stringFilters,
   });
 
   const task = new SyncTask(
