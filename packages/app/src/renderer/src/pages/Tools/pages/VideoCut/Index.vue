@@ -35,9 +35,14 @@
               heatmap: {
                 option: clientOptions,
               },
+              timestamp: {
+                // position: { top: '10px', right: '10px' },
+                // visible: false,
+                timestamp: 0,
+              },
             },
           }"
-          :plugins="['ass', 'heatmap']"
+          :plugins="['ass', 'heatmap', 'timestamp']"
           @ready="handleVideoReady"
           @video:durationchange="handleVideoDurationChange"
         ></Artplayer>
@@ -68,7 +73,9 @@
           </div>
           <n-color-picker v-model:value="clientOptions.color" style="width: 80px" />
           <n-color-picker v-model:value="clientOptions.fillColor" style="width: 80px" />
-          <!-- <n-checkbox v-model:checked="showVideoTime" title="得加载弹幕才成">显示时间戳</n-checkbox> -->
+          <n-checkbox v-model:checked="showVideoTime" title="仅供参考，得加载弹幕才成"
+            >显示时间戳</n-checkbox
+          >
           <n-checkbox v-model:checked="danmaSearchMask">弹幕搜索栏遮罩</n-checkbox>
         </div>
       </div>
@@ -396,6 +403,11 @@ const generateDanmakuData = async (file: string) => {
   } else if (file.endsWith(".xml")) {
     const data = await commonApi.parseDanmu(file);
     danmaList.value = sortBy([...data.sc, ...data.danmu], "ts");
+    if (data?.metadata?.video_start_time) {
+      // @ts-ignore
+      videoInstance.value.artplayerTimestamp.setTimestamp(data.metadata.video_start_time * 1000);
+      switchShowVideoTime();
+    }
   } else {
     throw new Error("不支持的文件类型");
   }
@@ -502,6 +514,24 @@ watch(hotProgressVisible, () => {
     videoInstance.value.artplayerPluginHeatmap.hide();
   }
 });
+
+watch(showVideoTime, () => {
+  switchShowVideoTime();
+});
+const switchShowVideoTime = () => {
+  if (!videoInstance.value) return;
+  // @ts-ignore
+  if (!videoInstance.value.artplayerTimestamp) return;
+
+  // @ts-ignore
+  if (showVideoTime.value) {
+    // @ts-ignore
+    videoInstance.value.artplayerTimestamp.show();
+  } else {
+    // @ts-ignore
+    videoInstance.value.artplayerTimestamp.hide();
+  }
+};
 </script>
 
 <style scoped lang="less">

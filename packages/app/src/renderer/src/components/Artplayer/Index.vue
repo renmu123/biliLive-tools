@@ -9,6 +9,7 @@ import mpegts from "mpegts.js";
 
 import artplayerPluginAssJS from "artplayer-plugin-assjs";
 import artplayerPluginHeatmap from "./artplayer-plugin-heatmap";
+import artplayerPluginTimestamp from "./artplayer-timestamp";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 
@@ -27,6 +28,11 @@ const props = withDefaults(
             color?: string;
             fillColor?: string;
           };
+        };
+        timestamp?: {
+          position?: { top?: string; bottom?: string; left?: string; right?: string };
+          visible?: boolean;
+          timestamp?: number;
         };
       };
     };
@@ -94,6 +100,16 @@ onMounted(async () => {
     }
     if (props.plugins.includes("heatmap")) {
       plugins.push(artplayerPluginHeatmap([], props?.option?.plugins?.heatmap?.option ?? {}));
+    }
+    if (props.plugins.includes("timestamp")) {
+      plugins.push(
+        artplayerPluginTimestamp({
+          position: { top: "10px", right: "10px" },
+          visible: false,
+          timestamp: 0,
+          ...props?.option?.plugins?.timestamp,
+        }),
+      );
     }
   } else {
     plugins.push(
@@ -179,6 +195,8 @@ ${tsFile}
   instance.artplayerPluginDanmuku = instance?.plugins?.artplayerPluginDanmuku;
   // @ts-ignore
   instance.artplayerPluginHeatmap = instance?.plugins?.artplayerPluginHeatmap;
+  // @ts-ignore
+  instance.artplayerTimestamp = instance?.plugins?.artplayerTimestamp;
   await nextTick();
   emits("ready", instance);
   instance.on("error", (error, reconnectTime) => {
