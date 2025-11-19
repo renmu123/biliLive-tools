@@ -15,9 +15,10 @@
 
 - 录制：修复添加时配置初始化错误的bug
 
-## 其他
+## 外部依赖
 
 - 录播姬引擎升级至 [3.2.0](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.2.0)，收到 onMetaData 时不再分段，有助于减轻抖音的分段
+- docker 下 BaiduPCS-GO 二进制文件版本更新至4.0.0
 
 # 3.3.2(2025.11.15)
 
