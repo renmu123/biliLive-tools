@@ -1,3 +1,8 @@
+# Next
+
+- 支持 `15000` 画质
+- 修复 `qualityRetry` 修改后不会生效的bug
+
 # 1.9.0
 
 - `recordHandle` 新增参数 `recorderType`

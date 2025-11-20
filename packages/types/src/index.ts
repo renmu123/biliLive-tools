@@ -33,6 +33,46 @@ export * from "./preset.js";
 //   timeshift: number;
 // };
 
+export const recorderNoGlobalFollowFields: Array<
+  Exclude<
+    keyof Recorder,
+    | "providerId"
+    | "id"
+    | "channelId"
+    | "remarks"
+    | "extra"
+    | "disableAutoCheck"
+    | "sendToWebhook"
+    | "streamPriorities"
+    | "sourcePriorities"
+    | "noGlobalFollowFields"
+    | "line"
+    | "titleKeywords"
+    | "liveStartNotification"
+    | "onlyAudio"
+    | "handleTime"
+    | "weight"
+  >
+> = [
+  "quality",
+  "disableProvideCommentsWhenRecording",
+  "saveGiftDanma",
+  "saveSCDanma",
+  "segment",
+  "uid",
+  "saveCover",
+  "qualityRetry",
+  "formatName",
+  "useM3U8Proxy",
+  "codecName",
+  "source",
+  "videoFormat",
+  "recorderType",
+  "cookie",
+  "doubleScreen",
+  "useServerTimestamp",
+];
+
 // 通用预设
 export type CommonPreset<T> = {
   id: string;
@@ -299,8 +339,8 @@ type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
 interface BilibiliRecorderConfig {
   /** 账号 */
   uid?: number;
-  /** 画质 30000：杜比 20000：4K 25000：原画真彩 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
-  quality: 30000 | 20000 | 25000 | 10000 | 400 | 250 | 150 | 80;
+  /** 画质 30000：杜比 20000：4K 25000：原画真彩 15000：2K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
+  quality: 30000 | 20000 | 25000 | 15000 | 10000 | 400 | 250 | 150 | 80;
   /** 使用批量查询接口  */
   useBatchQuery: boolean;
   /** 使用本地反向代理避免分段 */
@@ -401,8 +441,8 @@ export interface Recorder {
   sourcePriorities: any[];
   extra: {
     createTimestamp?: number;
-    /** B站主播的uid */
-    recorderUid?: number;
+    /** B站主播的uid，抖音的sec_uid */
+    recorderUid?: number | string;
     /** 头像 */
     avatar?: string;
   };
@@ -463,28 +503,10 @@ export interface Recorder {
   handleTime: [string | null, string | null];
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
+  /** API类型，仅抖音 */
+  api: string;
   // 不跟随全局配置字段
-  noGlobalFollowFields: Array<
-    Exclude<
-      keyof Recorder,
-      | "providerId"
-      | "id"
-      | "channelId"
-      | "remarks"
-      | "extra"
-      | "disableAutoCheck"
-      | "sendToWebhook"
-      | "streamPriorities"
-      | "sourcePriorities"
-      | "noGlobalFollowFields"
-      | "line"
-      | "titleKeywords"
-      | "liveStartNotification"
-      | "onlyAudio"
-      | "handleTime"
-      | "weight"
-    >
-  >;
+  noGlobalFollowFields: typeof recorderNoGlobalFollowFields;
 }
 
 export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "pan123" | "copy";

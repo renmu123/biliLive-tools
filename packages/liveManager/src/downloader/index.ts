@@ -1,28 +1,28 @@
-﻿import { FFMPEGRecorder } from "./FFMPEGRecorder.js";
-import { MesioRecorder } from "./mesioRecorder.js";
-import { BililiveRecorder } from "./BililiveRecorder.js";
+﻿import { FFmpegDownloader } from "./FFmpegDownloader.js";
+import { mesioDownloader } from "./mesioDownloader.js";
+import { BililiveDownloader } from "./BililiveDownloader.js";
 
-export { FFMPEGRecorder } from "./FFMPEGRecorder.js";
-export { MesioRecorder } from "./mesioRecorder.js";
-export { BililiveRecorder } from "./BililiveRecorder.js";
+export { FFmpegDownloader } from "./FFmpegDownloader.js";
+export { mesioDownloader } from "./mesioDownloader.js";
+export { BililiveDownloader } from "./BililiveDownloader.js";
 import type {
-  IRecorder,
+  IDownloader,
   FFMPEGRecorderOptions,
   MesioRecorderOptions,
   BililiveRecorderOptions,
-} from "./IRecorder.js";
+} from "./IDownloader.js";
 
 /**
  * 录制器类型
  */
-export type RecorderType = "ffmpeg" | "mesio" | "bililive";
+export type DownloaderType = "ffmpeg" | "mesio" | "bililive";
 
 export type FormatName = "flv" | "ts" | "fmp4";
 
 /**
  * 根据录制器类型获取对应的配置选项类型
  */
-export type RecorderOptions<T extends RecorderType> = T extends "ffmpeg"
+export type RecorderOptions<T extends DownloaderType> = T extends "ffmpeg"
   ? FFMPEGRecorderOptions
   : T extends "mesio"
     ? MesioRecorderOptions
@@ -31,31 +31,31 @@ export type RecorderOptions<T extends RecorderType> = T extends "ffmpeg"
 /**
  * 根据录制器类型获取对应的录制器实例类型
  */
-export type RecorderInstance<T extends RecorderType> = T extends "ffmpeg"
-  ? FFMPEGRecorder
+export type RecorderInstance<T extends DownloaderType> = T extends "ffmpeg"
+  ? FFmpegDownloader
   : T extends "mesio"
-    ? MesioRecorder
-    : BililiveRecorder;
+    ? mesioDownloader
+    : BililiveDownloader;
 
 type RecorderOpts = FFMPEGRecorderOptions | MesioRecorderOptions | BililiveRecorderOptions;
 
 /**
  * 创建录制器的工厂函数
  */
-export function createRecorder<T extends RecorderType>(
+export function createBaseDownloader<T extends DownloaderType>(
   type: T,
   opts: RecorderOptions<T> & { onlyAudio?: boolean },
   onEnd: (...args: unknown[]) => void,
   onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
-): IRecorder {
+): IDownloader {
   if (type === "ffmpeg") {
-    return new FFMPEGRecorder(
+    return new FFmpegDownloader(
       opts as FFMPEGRecorderOptions,
       onEnd,
       onUpdateLiveInfo,
     ) as RecorderInstance<T>;
   } else if (type === "mesio") {
-    return new MesioRecorder(
+    return new mesioDownloader(
       opts as MesioRecorderOptions,
       onEnd,
       onUpdateLiveInfo,
@@ -64,7 +64,7 @@ export function createRecorder<T extends RecorderType>(
     if (opts.formatName === "flv") {
       // 录播姬引擎不支持只录音频
       if (!opts.onlyAudio) {
-        return new BililiveRecorder(
+        return new BililiveDownloader(
           opts as BililiveRecorderOptions,
           onEnd,
           onUpdateLiveInfo,
@@ -72,7 +72,7 @@ export function createRecorder<T extends RecorderType>(
       }
     }
 
-    return new FFMPEGRecorder(
+    return new FFmpegDownloader(
       opts as FFMPEGRecorderOptions,
       onEnd,
       onUpdateLiveInfo,
@@ -85,8 +85,10 @@ export function createRecorder<T extends RecorderType>(
 /**
  * 选择录制器
  */
-export function selectRecorder(preferredRecorder: "auto" | RecorderType | undefined): RecorderType {
-  let recorderType: RecorderType;
+export function selectRecorder(
+  preferredRecorder: "auto" | DownloaderType | undefined,
+): DownloaderType {
+  let recorderType: DownloaderType;
 
   if (preferredRecorder === "auto") {
     // 默认优先使用ffmpeg录制器
@@ -129,15 +131,15 @@ type PickPartial<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>> & Partial<
 /**
  * 创建录制器的工厂函数
  */
-export function createBaseRecorder(
-  type: "auto" | RecorderType | undefined,
+export function createDownloader(
+  type: "auto" | DownloaderType | undefined,
   opts: PickPartial<RecorderOpts, "formatName"> & { onlyAudio?: boolean },
   onEnd: (...args: unknown[]) => void,
   onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
-): IRecorder {
+): IDownloader {
   const recorderType = selectRecorder(type);
   const sourceFormatName = getSourceFormatName(opts.url, opts.formatName);
-  return createRecorder(
+  return createBaseDownloader(
     recorderType,
     { ...(opts as RecorderOptions<typeof recorderType>), formatName: sourceFormatName },
     onEnd,

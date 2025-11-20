@@ -88,4 +88,4 @@ biliLive-tools 也能满足你的需求！
 - **Docker**：Frontend + Backend 分离部署
 - **视频处理**：FFmpeg
 - **弹幕处理**：DanmakuFactory
-- **录制引擎**：ffmpeg、mesio、录播姬
+- **录制引擎**：FFmpeg、mesio、录播姬

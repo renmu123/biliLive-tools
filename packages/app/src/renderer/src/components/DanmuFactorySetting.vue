@@ -314,21 +314,41 @@
 
               Ps: 弹幕姬用户注意：出于性能原因，即使已开启了记录raw，UID屏蔽也是<strong>无法使用</strong>的，请使用用户名屏蔽替代<br/>"
           ></Tip>
+
+          <div style="margin-left: 10px; display: inline-block">
+            <n-switch
+              v-model:value="config['blacklist-regex']"
+              style="margin-right: 4px"
+            ></n-switch>
+            <Tip
+              text="正则表达式匹配"
+              tip="开启后，<strong>所有屏蔽规则</strong>将被视为正则表达式，<strong>UID屏蔽和用户名屏蔽</strong>将会失效！"
+            ></Tip>
+          </div>
         </template>
         <n-input
           v-model:value="config.blacklist"
           type="textarea"
-          placeholder="请输入自定义屏蔽规则，使用英文逗号分隔"
+          placeholder="请输入屏蔽规则，使用英文逗号分隔"
           style="width: 100%"
           :input-props="{ spellcheck: 'false' }"
         />
       </n-form-item>
-      <n-form-item label-placement="left">
-        <template #label> 正则表达式匹配 </template>
-        <n-switch v-model:value="config['blacklist-regex']"></n-switch>
-        <Tip
-          tip="开启后，<strong>所有屏蔽规则</strong>将被视为正则表达式，<strong>UID屏蔽和用户名屏蔽</strong>将会失效！"
-        ></Tip>
+
+      <n-form-item style="width: 100%">
+        <template #label>
+          <Tip
+            text="自定义过滤函数"
+            tip="此功能为biliLive-tools的原生实现，非danmakufactory实现，具体使用见文档"
+          ></Tip>
+        </template>
+        <n-input
+          v-model:value="config.filterFunction"
+          type="textarea"
+          placeholder="使用自定义函数来实现匹配"
+          style="width: 100%"
+          :input-props="{ spellcheck: 'false' }"
+        />
       </n-form-item>
     </div>
 
