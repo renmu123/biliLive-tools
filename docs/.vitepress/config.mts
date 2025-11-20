@@ -2,7 +2,7 @@ import { defineConfig } from "vitepress";
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
-  title: "biliLive-tools 一站式直播录制与处理工具",
+  title: "biliLive-tools",
   description: "biliLive-tools,一站式直播录制与处理工具,xml弹幕处理,斗鱼,虎牙,B站,抖音,录播姬",
   lastUpdated: true,
   ignoreDeadLinks: true,
