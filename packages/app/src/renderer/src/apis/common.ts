@@ -200,11 +200,9 @@ export const parseDanmu = async (
 ): Promise<{
   danmu: DanmuItem[];
   sc: DanmuItem[];
-  hotProgress: {
-    time: number;
-    value: number;
-    color: string;
-  }[];
+  metadata: {
+    video_start_time?: number;
+  };
 }> => {
   const res = await request.post("/common/parseDanmu", {
     filepath,
