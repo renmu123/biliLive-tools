@@ -146,7 +146,7 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
    * 导入项目文件按钮组点击事件
    */
   const handleProjectClick = (key?: string | number) => {
-    if (!key) {
+    if (key === "importProject") {
       importProject();
     } else if (key === "refresh") {
       loadProject();
