@@ -2,7 +2,7 @@ import { Ref } from "vue";
 import JSON5 from "json5";
 import { useAppConfig, useSegmentStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
-import { showFileDialog } from "@renderer/utils/fileSystem";
+import { showFileDialog, showSaveDialog } from "@renderer/utils/fileSystem";
 import { commonApi } from "@renderer/apis";
 
 export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
@@ -101,8 +101,7 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
       mediaFileName: window.path.basename(mediaFileName),
       cutSegments: rawCuts.value.map(({ start, end, name, tags }) => ({ start, end, name, tags })),
     };
-    console.log("save", llcProjectPath.value, projectData);
-    await window.api.common.writeFile(llcProjectPath.value, JSON5.stringify(projectData, null, 2));
+    await commonApi.writeLLCProject(llcProjectPath.value, JSON5.stringify(projectData, null, 2));
     notice.success({
       title: "已保存",
       duration: 1000,
@@ -119,7 +118,6 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
     if (appConfig.value.losslessCutPath) {
       // 使用用户设置的lossless-cut路径打开项目文件
       window.api.common.execFile(appConfig.value.losslessCutPath, [llcProjectPath.value]);
-      console.log("openProject", appConfig.value.losslessCutPath);
     } else {
       notice.info({
         title: "使用默认程序打开llc文件，你也可以尝试在设置中设置lossless-cut的路径",
@@ -135,8 +133,8 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
   const saveAsAnother = async () => {
     if (options.value.find((item) => item.key === "saveAnother")?.disabled) return;
 
-    const file = await window.api.showSaveDialog({
-      filters: [{ name: "LosslessCut项目", extensions: ["llc"] }],
+    const file = await showSaveDialog({
+      extension: "llc",
     });
 
     if (!file) return;

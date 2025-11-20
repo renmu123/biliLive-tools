@@ -268,6 +268,19 @@ router.post("/readLLC", async (ctx) => {
   }
   ctx.body = content;
 });
+router.post("/writeLLC", async (ctx) => {
+  const { filepath, content } = ctx.request.body as {
+    filepath: string;
+    content: string;
+  };
+  if (!content.includes("cutSegments")) {
+    ctx.status = 400;
+    ctx.body = "文件不是有效的llc项目文件";
+    return;
+  }
+  await fs.writeFile(filepath, content, "utf-8");
+  ctx.body = "success";
+});
 
 router.post("/genTimeData", async (ctx) => {
   const { filepath } = ctx.request.body as {

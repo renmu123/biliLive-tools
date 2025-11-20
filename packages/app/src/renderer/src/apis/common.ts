@@ -164,6 +164,13 @@ export async function readLLCProject(filepath: string): Promise<string> {
   return res.data;
 }
 
+export async function writeLLCProject(filepath: string, content: string): Promise<void> {
+  await request.post("/common/writeLLC", {
+    filepath,
+    content,
+  });
+}
+
 export async function genTimeData(filepath: string): Promise<number[]> {
   const res = await request.post("/common/genTimeData", {
     filepath,
@@ -285,6 +292,7 @@ const common = {
   checkUpdate,
   getTempPath,
   readLLCProject,
+  writeLLCProject,
 };
 
 export default common;
