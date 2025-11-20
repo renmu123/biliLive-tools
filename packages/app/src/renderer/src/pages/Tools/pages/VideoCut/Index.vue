@@ -1,29 +1,5 @@
 <template>
   <div id="cut-tool" class="container">
-    <div class="btns page-header">
-      <ButtonGroup
-        title="请选择项目文件，兼容LosslessCut项目文件"
-        :options="exportOptions"
-        @click="handleProjectBtnClick"
-        v-if="!isWeb"
-        >导入项目文件</ButtonGroup
-      >
-      <n-button type="primary" @click="handleVideoChange"> {{ videoTitle }} </n-button>
-      <n-button
-        class="cut-add-danmu"
-        type="primary"
-        :disabled="!files.videoPath"
-        @click="handleDanmuChange"
-      >
-        {{ danmuTitle }}
-      </n-button>
-
-      <n-button class="cut-export" type="info" :disabled="!files.videoPath" @click="exportCuts">
-        导出切片
-      </n-button>
-      <n-button @click="openSubWindow" v-if="!isWeb" style="display: none">打开独立窗口</n-button>
-    </div>
-
     <div class="content">
       <div v-show="files.videoPath" class="video cut-video">
         <Artplayer
@@ -97,6 +73,30 @@
         </template>
       </FileArea>
       <div class="cut-list">
+        <div class="btns page-header">
+          <ButtonGroup :options="exportOptions" @click="handleProjectBtnClick" size="small">{{
+            videoTitle
+          }}</ButtonGroup>
+          <n-button
+            class="cut-add-danmu"
+            type="primary"
+            :disabled="!files.videoPath"
+            @click="handleDanmuChange"
+            size="small"
+          >
+            {{ danmuTitle }}
+          </n-button>
+
+          <n-button
+            class="cut-export"
+            type="info"
+            :disabled="!files.videoPath"
+            @click="exportCuts"
+            size="small"
+          >
+            导出
+          </n-button>
+        </div>
         <SegmentList
           :danma-list="danmaList"
           :files="files"
@@ -150,12 +150,14 @@ onActivated(() => {
     redo();
   });
   // 保存
-  hotkeys("ctrl+s", function () {
-    saveProject();
+  hotkeys("ctrl+s", function (event) {
+    event.preventDefault();
+    saveProject(files.value.originVideoPath);
   });
   // 另存为
-  hotkeys("ctrl+shift+s", function () {
-    saveAsAnother();
+  hotkeys("ctrl+shift+s", function (event) {
+    event.preventDefault();
+    saveAsAnother(files.value.originVideoPath);
   });
   // 导出
   hotkeys("ctrl+enter", function () {
@@ -232,6 +234,7 @@ const {
   saveProject,
   saveAsAnother,
   handleProject,
+  clean: cleanProject,
 } = useLlcProject(files);
 
 const { duration: videoDuration, rawCuts } = storeToRefs(useSegmentStore());
@@ -249,14 +252,27 @@ const videoVCutOptions = toReactive(
 );
 
 const exportOptions = computed(() => {
-  return [
+  const list = [
+    { label: "导入项目文件", key: "importProject" },
     ...exportBtns.value,
     { label: "关闭", key: "closeVideo", disabled: !files.value.videoPath },
   ];
+  if (!isWeb.value) {
+    list.push({
+      label: "打开独立窗口",
+      key: "openSubWindow",
+    });
+  }
+  return list;
 });
 const confirm = useConfirm();
 
 const handleProjectBtnClick = async (key?: string | number) => {
+  if (!key) {
+    handleVideoChange();
+    return;
+  }
+
   if (key === "closeVideo") {
     const [status] = await confirm.warning({
       content: "是否确认关闭？相关数据将被清理，且无法恢复",
@@ -269,10 +285,13 @@ const handleProjectBtnClick = async (key?: string | number) => {
     fileList.value = [];
     rawCuts.value = [];
     clearHistory();
+    cleanProject();
     // @ts-ignore
     videoInstance.value.artplayerTimestamp.setTimestamp(0);
+  } else if (key === "openSubWindow") {
+    openSubWindow();
   } else {
-    handleProjectClick(key);
+    handleProjectClick(key, files.value.originVideoPath);
   }
 };
 
@@ -541,7 +560,7 @@ const switchShowVideoTime = () => {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
-  gap: 10px;
+  gap: 6px;
 }
 
 .content {
@@ -563,6 +582,7 @@ const switchShowVideoTime = () => {
   .cut-list {
     display: inline-block;
     flex: 1;
+    min-width: 235px;
   }
 }
 </style>
