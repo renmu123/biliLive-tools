@@ -5,7 +5,7 @@
     </n-button>
     <n-dropdown :trigger="props.trigger" :options="props.options" @select="handleSelect">
       <span class="icon-container">
-        <n-icon size="20" class="icon">
+        <n-icon size="18" class="icon">
           <CaretDownOutline class="cart-down-icon"></CaretDownOutline>
         </n-icon>
       </span>

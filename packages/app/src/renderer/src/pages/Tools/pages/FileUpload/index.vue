@@ -51,7 +51,9 @@ defineOptions({
 
 const { userInfo } = storeToRefs(useUserInfoStore());
 const { handlePresetOptions, presetOptions } = useBili();
-const { appConfig } = storeToRefs(useAppConfig());
+const appConfigStore = useAppConfig();
+const { appConfig } = storeToRefs(appConfigStore);
+
 const notice = useNotification();
 
 const options = toReactive(
@@ -180,9 +182,11 @@ const fileChange = (files: any) => {
 
   const name = files[0].title;
   if (biliSettingRef.value?.getTitle() === name) return;
-  const data = JSON.parse(localStorage.getItem("notShowAgain") || "{}");
-  if (data["bili-upload-title"] === true) return;
-
+  if (appConfig.value.biliUploadFileNameType === "never") return;
+  if (appConfig.value.biliUploadFileNameType === "always") {
+    biliSettingRef.value?.setTitle(name);
+    return;
+  }
   hasNotice.value = true;
   const n = notification.create({
     title: `是否将文件名改为视频标题？`,
@@ -215,8 +219,7 @@ const fileChange = (files: any) => {
                 text: true,
                 type: "error",
                 onClick: () => {
-                  data["bili-upload-title"] = true;
-                  localStorage.setItem("notShowAgain", JSON.stringify(data));
+                  appConfigStore.set("biliUploadFileNameType", "never");
                   n.destroy();
                 },
               },

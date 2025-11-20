@@ -217,7 +217,7 @@ export class WebhookHandler {
       if (cover) {
         currentPart.cover = cover;
       } else {
-        log.error(`${cover} can not be found`);
+        log.error(`cover can not be found`);
       }
     }
 
@@ -583,9 +583,9 @@ export class WebhookHandler {
     /* 上传标题 */
     title: string;
     /* 弹幕preset */
-    danmuPresetId?: string;
+    danmuPresetId?: string | null;
     /* 视频压制preset */
-    videoPresetId?: string;
+    videoPresetId?: string | null;
     /* 是否开启 */
     open?: boolean;
     /* 上传uid */
@@ -631,7 +631,7 @@ export class WebhookHandler {
     /** 上传完成后删除操作 */
     afterUploadDeletAction: "none" | "delete" | "deleteAfterCheck";
     /** 同步器 */
-    syncId?: string;
+    syncId?: string | null;
   } {
     const config = this.appConfig.getAll();
     const roomSetting: AppRoomConfig | undefined = config.webhook?.rooms?.[roomId];
@@ -827,7 +827,8 @@ export class WebhookHandler {
           const part = currentLive.parts[i];
           if (part.recordStatus === "recording") {
             log.error("下一个录制完成时，上一个录制仍在录制中，设置为成功", part);
-            currentLive.updatePartValue(part.partId, "recordStatus", "recorded");
+            // TODO: 应该被设置为error，但是目前其实没有error状态
+            currentLive.updatePartValue(part.partId, "recordStatus", "handled");
           }
         }
       }
@@ -884,7 +885,6 @@ export class WebhookHandler {
    */
   async handleLiveData(options: Options, partMergeMinute: number): Promise<number> {
     if (options.event === EventType.OpenEvent) {
-      await sleep(1000);
       this.handleOpenEvent(options, partMergeMinute);
       return -1;
     } else if (options.event === EventType.CloseEvent) {
@@ -935,6 +935,7 @@ export class WebhookHandler {
         savePath: dir,
         override: false,
         removeOrigin: options.removeVideo,
+        autoRun: true,
       }).then((task) => {
         task.on("task-end", () => {
           resolve(task.output as string);

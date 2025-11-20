@@ -5,7 +5,7 @@ import {
   genRecorderUUID,
   genRecordUUID,
   utils,
-  createBaseRecorder,
+  createDownloader,
 } from "@bililive-tools/manager";
 import type {
   Comment,
@@ -82,14 +82,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
   return recorderWithSupportUpdatedEvent;
 }
 
-const ffmpegOutputOptions: string[] = [
-  "-c",
-  "copy",
-  "-movflags",
-  "faststart+frag_keyframe+empty_moov",
-  "-min_frag_duration",
-  "10000000",
-];
+const ffmpegOutputOptions: string[] = [];
 
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
@@ -99,12 +92,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // 如果已经在录制中，只在需要检查标题关键词时才获取最新信息
   if (this.recordHandle != null) {
     // 只有当设置了标题关键词时，并且不是手动启动的录制，才获取最新的直播间信息
-    if (
-      !isManualStart &&
-      this.titleKeywords &&
-      typeof this.titleKeywords === "string" &&
-      this.titleKeywords.trim()
-    ) {
+    if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
       const now = Date.now();
       // 每5分钟检查一次标题变化
       const titleCheckInterval = 5 * 60 * 1000; // 5分钟
@@ -126,15 +114,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       const { title } = liveInfo;
 
       // 检查标题是否包含关键词
-      const keywords = this.titleKeywords
-        .split(",")
-        .map((k) => k.trim())
-        .filter((k) => k);
-      const hasTitleKeyword = keywords.some((keyword) =>
-        title.toLowerCase().includes(keyword.toLowerCase()),
-      );
-
-      if (hasTitleKeyword) {
+      if (utils.hasBlockedTitleKeywords(title, this.titleKeywords)) {
+        this.state = "title-blocked";
         this.emit("DebugLog", {
           type: "common",
           text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
@@ -160,7 +141,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "check-error";
     throw error;
   }
-  const { living, owner, title } = this.liveInfo;
+  const { living, owner, title, startTime } = this.liveInfo;
 
   if (this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
@@ -172,20 +153,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   // 检查标题是否包含关键词，如果包含则不自动录制
   // 手动开始录制时不检查标题关键词
-  if (
-    !isManualStart &&
-    this.titleKeywords &&
-    typeof this.titleKeywords === "string" &&
-    this.titleKeywords.trim()
-  ) {
-    const keywords = this.titleKeywords
-      .split(",")
-      .map((k) => k.trim())
-      .filter((k) => k);
-    const hasTitleKeyword = keywords.some((keyword) =>
-      title.toLowerCase().includes(keyword.toLowerCase()),
-    );
-    if (hasTitleKeyword) {
+  if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
+    if (utils.hasBlockedTitleKeywords(title, this.titleKeywords)) {
+      this.state = "title-blocked";
       this.emit("DebugLog", {
         type: "common",
         text: `跳过录制：直播间标题 "${title}" 包含关键词 "${this.titleKeywords}"`,
@@ -194,8 +164,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     }
   }
 
-  let recorderType: Parameters<typeof createBaseRecorder>[0] =
-    this.recorderType === "mesio" ? "mesio" : "ffmpeg";
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
     let strictQuality = false;
@@ -214,7 +182,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       source: this.source,
       strictQuality,
       onlyAudio: this.onlyAudio,
-      avoidEdgeCDN: recorderType === "mesio",
+      avoidEdgeCDN: true,
     });
   } catch (err) {
     if (this.qualityRetry > 0) this.qualityRetry -= 1;
@@ -248,17 +216,26 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   let isEnded = false;
   let isCutting = false;
 
-  const recorder = createBaseRecorder(
-    recorderType,
+  const recordStartTime = new Date();
+  const downloader = createDownloader(
+    this.recorderType,
     {
       url: stream.url,
       // @ts-ignore
       outputOptions: ffmpegOutputOptions,
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
-        getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),
+        getSavePath({
+          owner,
+          title: opts.title ?? title,
+          startTime: opts.startTime,
+          liveStartTime: startTime,
+          recordStartTime,
+        }),
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
+      debugLevel: this.debugLevel ?? "none",
+      onlyAudio: stream.onlyAudio,
     },
     onEnd,
     async () => {
@@ -270,6 +247,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const savePath = getSavePath({
     owner,
     title,
+    startTime: Date.now(),
+    liveStartTime: startTime,
+    recordStartTime,
   });
 
   try {
@@ -279,8 +259,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     throw err;
   }
 
-  const handleVideoCreated = async ({ filename, title, cover }) => {
-    this.emit("videoFileCreated", { filename, cover });
+  const handleVideoCreated = async ({ filename, title, cover, rawFilename }) => {
+    this.emit("videoFileCreated", { filename, cover, rawFilename });
 
     if (title && this?.liveInfo) {
       this.liveInfo.title = title;
@@ -288,7 +268,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (cover && this?.liveInfo) {
       this.liveInfo.cover = cover;
     }
-    const extraDataController = recorder.getExtraDataController();
+    const extraDataController = downloader.getExtraDataController();
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
@@ -298,14 +278,14 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       user_name: owner,
     });
   };
-  recorder.on("videoFileCreated", handleVideoCreated);
-  recorder.on("videoFileCompleted", ({ filename }) => {
+  downloader.on("videoFileCreated", handleVideoCreated);
+  downloader.on("videoFileCompleted", ({ filename }) => {
     this.emit("videoFileCompleted", { filename });
   });
-  recorder.on("DebugLog", (data) => {
+  downloader.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
   });
-  recorder.on("progress", (progress) => {
+  downloader.on("progress", (progress) => {
     if (this.recordHandle) {
       this.recordHandle.progress = progress;
     }
@@ -316,11 +296,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     notAutoStart: true,
   });
   client.on("message", (msg) => {
-    const extraDataController = recorder.getExtraDataController();
+    const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;
     switch (msg.type) {
       case "chatmsg": {
-        const timestamp = this.useServerTimestamp ? Number(msg.cst) : Date.now();
+        // 某些情况下cst不存在，可能是其他平台发送的弹幕？
+        const timestamp = this.useServerTimestamp && msg.cst ? Number(msg.cst) : Date.now();
         const comment: Comment = {
           type: "comment",
           timestamp: timestamp,
@@ -450,8 +431,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     client.start();
   }
 
-  const ffmpegArgs = recorder.getArguments();
-  recorder.run();
+  const downloaderArgs = downloader.getArguments();
+  downloader.run();
 
   // TODO: 需要一个机制防止空录制，比如检查文件的大小变化、ffmpeg 的输出、直播状态等
 
@@ -459,9 +440,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (!this.recordHandle) return;
     if (isCutting) return;
     isCutting = true;
-    await recorder.stop();
-    recorder.createCommand();
-    recorder.run();
+    await downloader.stop();
+    downloader.createCommand();
+    downloader.run();
   });
 
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
@@ -470,7 +451,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
     try {
       client.stop();
-      await recorder.stop();
+      await downloader.stop();
     } catch (err) {
       this.emit("DebugLog", {
         type: "common",
@@ -490,8 +471,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     id: genRecordUUID(),
     stream: stream.name,
     source: stream.source,
+    recorderType: downloader.type,
     url: stream.url,
-    ffmpegArgs,
+    downloaderArgs,
     savePath: savePath,
     stop,
     cut,

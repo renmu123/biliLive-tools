@@ -51,7 +51,7 @@
         <n-tab-pane
           class="tab-pane"
           name="BaiduPCS"
-          tab="BaiduPCS-GO(百度网盘)"
+          tab="百度网盘(BaiduPCS-GO)"
           display-directive="show:lazy"
         >
           <n-form-item>
@@ -64,7 +64,7 @@
             <template #label>
               <Tip
                 text="可执行文件"
-                tip="测试版本为3.9.9，上传不携带任何参数，需要自定义请直接去修改配置文件"
+                tip="测试版本为4.0.0，上传不携带任何参数，需要自定义请直接去修改配置文件"
               >
               </Tip>
             </template>
@@ -97,7 +97,7 @@
         <n-tab-pane
           class="tab-pane"
           name="aliyunpan"
-          tab="aliyunpan(阿里云盘)"
+          tab="阿里云盘(aliyunpan)"
           display-directive="show:lazy"
         >
           <n-form-item>
@@ -135,7 +135,7 @@
             </n-icon>
           </n-form-item>
         </n-tab-pane>
-        <n-tab-pane class="tab-pane" name="alist" tab="alist" display-directive="show:lazy">
+        <n-tab-pane class="tab-pane" name="alist" tab="Alist" display-directive="show:lazy">
           <n-form-item>
             <template #label> 项目地址 </template>
             <a href="https://alistgo.com" class="external" target="_blank">https://alistgo.com</a>

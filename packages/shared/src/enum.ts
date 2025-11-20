@@ -1,4 +1,4 @@
-import type { AppConfig } from "@biliLive-tools/types";
+import type { AppConfig, Recorder } from "@biliLive-tools/types";
 
 export enum TaskType {
   danmu = "danmu",
@@ -12,6 +12,7 @@ export enum TaskType {
   kuaishouDownload = "kuaishouDownload",
   subtitleTranslate = "subtitleTranslate",
   sync = "sync",
+  flvRepair = "flvRepair",
 }
 
 export enum NotificationType {
@@ -78,10 +79,13 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   danmuFactoryPath: "",
   losslessCutPath: "",
   mesioPath: "",
+  bililiveRecorderPath: "",
   cacheFolder: "",
   /** 允许自定义可执行文件地址 */
   customExecPath: false,
   requestInfoForRecord: true,
+  biliUploadFileNameType: "ask",
+  cutPageInNewWindow: false,
   bilibiliUser: {},
   tool: {
     home: {
@@ -128,6 +132,11 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       removeOrigin: false,
       keepFirstVideoMeta: false,
       mergeXml: false,
+    },
+    flvRepair: {
+      type: "bililive",
+      saveRadio: 1,
+      savePath: "",
     },
     download: {
       savePath: "",
@@ -235,7 +244,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     retryTimes: 10,
     retryDelay: 7000,
     checkInterval: 600,
-    accountAutoCheck: false,
+    minUploadInterval: 0,
+    accountAutoCheck: true,
     useBCutAPI: false,
     useUploadPartPersistence: true,
   },
@@ -246,6 +256,8 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     quality: "highest",
     line: undefined,
     checkInterval: 60,
+    maxThreadCount: 3,
+    waitTime: 0,
     disableProvideCommentsWhenRecording: false,
     segment: "90",
     saveGiftDanma: false,
@@ -253,6 +265,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     saveCover: false,
     uid: undefined,
     debugMode: false,
+    debugLevel: "none",
     qualityRetry: 0,
     videoFormat: "auto",
     recorderType: "auto",
@@ -280,7 +293,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       formatName: "auto",
       cookie: "",
       doubleScreen: true,
-      api: "mobile",
+      api: "web",
     },
     saveDanma2DB: false,
   },
@@ -662,3 +675,36 @@ export const videoEncoders = [
     presets: amfAv1Presets,
   },
 ];
+
+export const defaultRecordConfig: Omit<Recorder, "id"> = {
+  providerId: "DouYu",
+  channelId: "",
+  segment: 60,
+  quality: "highest",
+  disableProvideCommentsWhenRecording: false,
+  saveGiftDanma: false,
+  saveSCDanma: true,
+  streamPriorities: [],
+  sourcePriorities: [],
+  disableAutoCheck: false,
+  sendToWebhook: false,
+  noGlobalFollowFields: [],
+  saveCover: false,
+  extra: {},
+  qualityRetry: 0,
+  formatName: "auto",
+  useM3U8Proxy: false,
+  codecName: "auto",
+  titleKeywords: "",
+  liveStartNotification: false,
+  weight: 10,
+  source: "auto",
+  videoFormat: "auto",
+  recorderType: "ffmpeg",
+  cookie: "",
+  doubleScreen: true,
+  useServerTimestamp: true,
+  handleTime: [null, null],
+  debugLevel: "none",
+  api: "web",
+};

@@ -78,6 +78,7 @@ export const supportedVideoExtensions = [
   "rm",
   "rmvb",
   "mkv",
+  "m4s",
 ];
 
 export function formatFile(filepath: string) {

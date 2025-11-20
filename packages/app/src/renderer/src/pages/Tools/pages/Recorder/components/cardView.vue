@@ -59,8 +59,10 @@
               class="tag state"
               :class="{
                 error: item.state === 'check-error',
+                recording: item.state === 'recording',
+                'title-blocked': item.state === 'title-blocked',
               }"
-              v-if="['check-error', 'stopping-record'].includes(item.state)"
+              v-if="['check-error', 'stopping-record', 'title-blocked'].includes(item.state)"
               >{{ stateMap[item.state] }}</span
             >
           </div>
@@ -104,6 +106,7 @@ const stateMap = {
   recording: "录制中",
   "check-error": "检查错误",
   "stopping-record": "停止中",
+  "title-blocked": "标题屏蔽",
 };
 </script>
 

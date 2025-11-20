@@ -1,6 +1,14 @@
-# Next
+# 1.9.0
 
-- `segment` 参数如果以"B","KB","MB","GB"结尾，会尝试使用文件大小分段，仅推荐在使用mesio录制引擎时使用
+- `recordHandle` 新增参数 `recorderType`
+- 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
+
+# 1.8.0
+
+- 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
+- 支持标题黑名单
+- 触发标题黑名单设定额外状态
+- 录播姬引擎支持
 
 # 1.7.1
 

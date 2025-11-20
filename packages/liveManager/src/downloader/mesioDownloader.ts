@@ -3,7 +3,7 @@ import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
 import { StreamManager, getMesioPath } from "../index.js";
-import { IRecorder, MesioRecorderOptions, Segment } from "./IRecorder.js";
+import { IDownloader, MesioRecorderOptions, Segment } from "./IDownloader.js";
 
 // Mesio command builder class similar to ffmpeg
 class MesioCommand extends EventEmitter {
@@ -105,16 +105,17 @@ export const createMesioBuilder = (): MesioCommand => {
   return new MesioCommand();
 };
 
-export class mesioRecorder extends EventEmitter implements IRecorder {
+export class mesioDownloader extends EventEmitter implements IDownloader {
+  public type = "mesio" as const;
   private command: MesioCommand;
   private streamManager: StreamManager;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
   readonly segment: Segment;
   readonly inputOptions: string[] = [];
-  readonly isHls: boolean;
   readonly disableDanma: boolean = false;
   readonly url: string;
+  readonly debugLevel: "none" | "basic" | "verbose" = "none";
   readonly headers:
     | {
         [key: string]: string | undefined;
@@ -129,19 +130,18 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
     super();
     const hasSegment = true;
     this.disableDanma = opts.disableDanma ?? false;
+    this.debugLevel = opts.debugLevel ?? "none";
 
     let videoFormat: "flv" | "ts" | "m4s" = "flv";
     if (opts.url.includes(".m3u8")) {
       videoFormat = "ts";
     }
-    if (opts.formatName) {
-      if (opts.formatName === "fmp4") {
-        videoFormat = "m4s";
-      } else if (opts.formatName === "ts") {
-        videoFormat = "ts";
-      } else if (opts.formatName === "flv") {
-        videoFormat = "flv";
-      }
+    if (opts.formatName === "fmp4") {
+      videoFormat = "m4s";
+    } else if (opts.formatName === "ts") {
+      videoFormat = "ts";
+    } else if (opts.formatName === "flv") {
+      videoFormat = "flv";
     }
 
     this.streamManager = new StreamManager(
@@ -156,20 +156,15 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
     );
     this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
-    this.inputOptions = opts.inputOptions ?? [];
+    this.inputOptions = [];
     this.url = opts.url;
     this.segment = opts.segment;
     this.headers = opts.headers;
-    if (opts.isHls === undefined) {
-      this.isHls = this.url.includes("m3u8");
-    } else {
-      this.isHls = opts.isHls;
-    }
 
     this.command = this.createCommand();
 
-    this.streamManager.on("videoFileCreated", ({ filename, cover }) => {
-      this.emit("videoFileCreated", { filename, cover });
+    this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename, title }) => {
+      this.emit("videoFileCreated", { filename, cover, rawFilename, title });
     });
     this.streamManager.on("videoFileCompleted", ({ filename }) => {
       this.emit("videoFileCompleted", { filename });
@@ -185,7 +180,11 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
       "--fix",
       "-H",
       "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
+      "--no-proxy",
     ];
+    if (this.debugLevel === "verbose") {
+      inputOptions.push("-v");
+    }
 
     if (this.headers) {
       Object.entries(this.headers).forEach(([key, value]) => {
@@ -208,8 +207,8 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
       .on("error", this.onEnd)
       .on("end", () => this.onEnd("finished"))
       .on("stderr", async (stderrLine) => {
-        await this.streamManager.handleVideoStarted(stderrLine);
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
+        await this.streamManager.handleVideoStarted(stderrLine);
       });
 
     return command;
@@ -236,5 +235,9 @@ export class mesioRecorder extends EventEmitter implements IRecorder {
 
   public getExtraDataController() {
     return this.streamManager?.getExtraDataController();
+  }
+
+  public get videoFilePath() {
+    return this.streamManager.videoFilePath;
   }
 }

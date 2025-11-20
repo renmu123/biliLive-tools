@@ -33,6 +33,46 @@ export * from "./preset.js";
 //   timeshift: number;
 // };
 
+export const recorderNoGlobalFollowFields: Array<
+  Exclude<
+    keyof Recorder,
+    | "providerId"
+    | "id"
+    | "channelId"
+    | "remarks"
+    | "extra"
+    | "disableAutoCheck"
+    | "sendToWebhook"
+    | "streamPriorities"
+    | "sourcePriorities"
+    | "noGlobalFollowFields"
+    | "line"
+    | "titleKeywords"
+    | "liveStartNotification"
+    | "onlyAudio"
+    | "handleTime"
+    | "weight"
+  >
+> = [
+  "quality",
+  "disableProvideCommentsWhenRecording",
+  "saveGiftDanma",
+  "saveSCDanma",
+  "segment",
+  "uid",
+  "saveCover",
+  "qualityRetry",
+  "formatName",
+  "useM3U8Proxy",
+  "codecName",
+  "source",
+  "videoFormat",
+  "recorderType",
+  "cookie",
+  "doubleScreen",
+  "useServerTimestamp",
+];
+
 // 通用预设
 export type CommonPreset<T> = {
   id: string;
@@ -50,8 +90,8 @@ export type CommonRoomConfig = {
   title: string;
   uploadPresetId?: string;
   danmu: boolean;
-  ffmpegPreset?: string;
-  danmuPreset?: string;
+  ffmpegPreset?: string | null;
+  danmuPreset?: string | null;
   autoPartMerge: boolean;
   partMergeMinute?: number;
   uid?: number;
@@ -86,7 +126,7 @@ export type CommonRoomConfig = {
   /** 分p标题模板 */
   partTitleTemplate: string;
   /** 同步器配置ID */
-  syncId?: string;
+  syncId?: string | null;
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
@@ -179,6 +219,14 @@ export type ToolConfig = {
     keepFirstVideoMeta: boolean;
     /** 合并弹幕 */
     mergeXml: boolean;
+  };
+  flvRepair: {
+    /** 修复器 */
+    type: "bililive" | "mesio";
+    /** 保存类型 */
+    saveRadio: 1 | 2;
+    /** 保存路径 */
+    savePath: string;
   };
   /** 下载页 */
   download: {
@@ -291,8 +339,8 @@ type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
 interface BilibiliRecorderConfig {
   /** 账号 */
   uid?: number;
-  /** 画质 30000：杜比 20000：4K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
-  quality: 30000 | 20000 | 10000 | 400 | 250 | 150 | 80;
+  /** 画质 30000：杜比 20000：4K 25000：原画真彩 15000：2K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
+  quality: 30000 | 20000 | 25000 | 15000 | 10000 | 400 | 250 | 150 | 80;
   /** 使用批量查询接口  */
   useBatchQuery: boolean;
   /** 使用本地反向代理避免分段 */
@@ -338,8 +386,14 @@ export interface GlobalRecorder {
   autoRecord: boolean;
   /** 检查间隔 */
   checkInterval: number;
-  /** 调试模式 */
+  /** 并发数 */
+  maxThreadCount: number;
+  /** 等待时间 */
+  waitTime: number;
+  /** 废弃：调试模式 */
   debugMode: boolean;
+  /** 调试等级 */
+  debugLevel: "none" | "basic" | "verbose";
   /** 测试：录制错误立即重试 */
   recordRetryImmediately: boolean;
   /** 画质 */
@@ -365,7 +419,7 @@ export interface GlobalRecorder {
   /** 视频格式 */
   videoFormat: "auto" | "ts" | "mkv";
   /** 支持的录制器 */
-  recorderType: "auto" | "ffmpeg" | "mesio";
+  recorderType: "auto" | "ffmpeg" | "mesio" | "bililive";
   /** 保存弹幕测试 */
   saveDanma2DB: boolean;
   /** B站特有的配置 */
@@ -387,8 +441,8 @@ export interface Recorder {
   sourcePriorities: any[];
   extra: {
     createTimestamp?: number;
-    /** B站主播的uid */
-    recorderUid?: number;
+    /** B站主播的uid，抖音的sec_uid */
+    recorderUid?: number | string;
     /** 头像 */
     avatar?: string;
   };
@@ -447,28 +501,12 @@ export interface Recorder {
   onlyAudio?: boolean;
   /** 监控时间段 */
   handleTime: [string | null, string | null];
+  /** 调试等级 */
+  debugLevel: "none" | "basic" | "verbose";
+  /** API类型，仅抖音 */
+  api: string;
   // 不跟随全局配置字段
-  noGlobalFollowFields: Array<
-    Exclude<
-      keyof Recorder,
-      | "providerId"
-      | "id"
-      | "channelId"
-      | "remarks"
-      | "extra"
-      | "disableAutoCheck"
-      | "sendToWebhook"
-      | "streamPriorities"
-      | "sourcePriorities"
-      | "noGlobalFollowFields"
-      | "line"
-      | "titleKeywords"
-      | "liveStartNotification"
-      | "onlyAudio"
-      | "handleTime"
-      | "weight"
-    >
-  >;
+  noGlobalFollowFields: typeof recorderNoGlobalFollowFields;
 }
 
 export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "pan123" | "copy";
@@ -493,6 +531,8 @@ export interface AppConfig {
   losslessCutPath: string;
   /** mesio 可执行路径 */
   mesioPath: string;
+  /** 录播姬引擎 可执行路径 */
+  bililiveRecorderPath: string;
   /** 缓存文件夹 */
   cacheFolder: string;
   /** 保存到回收站 */
@@ -514,6 +554,8 @@ export interface AppConfig {
   passKey: string;
   https?: boolean;
   requestInfoForRecord: boolean;
+  biliUploadFileNameType: "ask" | "always" | "never";
+  cutPageInNewWindow: boolean;
   webhook: {
     recoderFolder: string;
     blacklist: string;
@@ -628,6 +670,8 @@ export interface AppConfig {
     limitRate: number;
     /** 检查稿件间隔 */
     checkInterval: number;
+    /** 投稿最短间隔 */
+    minUploadInterval: number;
     /** 账号授权自动更新 */
     accountAutoCheck: boolean;
     /** 使用必剪api */
@@ -960,6 +1004,7 @@ export interface GlobalConfig {
   defaultFfmpegPath: string;
   defaultFfprobePath: string;
   defaultMesioPath: string;
+  defaultBililiveRecorderPath: string;
   defaultDanmakuFactoryPath: string;
   version: string;
   userDataPath: string;

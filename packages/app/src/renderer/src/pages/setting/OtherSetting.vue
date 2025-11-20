@@ -19,6 +19,22 @@
         </template>
         <n-switch v-model:value="config.requestInfoForRecord" />
       </n-form-item>
+      <n-form-item>
+        <template #label>
+          <Tip text="B站上传文件名">控制文件名弹框是否出现</Tip>
+        </template>
+        <n-radio-group v-model:value="config.biliUploadFileNameType">
+          <n-radio value="ask">询问</n-radio>
+          <n-radio value="always">始终</n-radio>
+          <n-radio value="never">从不</n-radio>
+        </n-radio-group>
+      </n-form-item>
+      <n-form-item v-if="!isWeb">
+        <template #label>
+          <Tip text="切片独立窗口" tip="客户端使用子窗口打开切片页面"></Tip>
+        </template>
+        <n-switch v-model:value="config.cutPageInNewWindow" />
+      </n-form-item>
     </n-form>
   </div>
 </template>
@@ -29,6 +45,7 @@ import type { AppConfig } from "@biliLive-tools/types";
 const config = defineModel<AppConfig>("data", {
   default: () => {},
 });
+const isWeb = computed(() => window.isWeb);
 </script>
 
 <style scoped lang="less">

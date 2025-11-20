@@ -1,3 +1,4 @@
+import path from "node:path";
 import fs from "fs-extra";
 import EventEmitter from "node:events";
 import { TypedEmitter } from "tiny-typed-emitter";
@@ -5,84 +6,28 @@ import { TypedEmitter } from "tiny-typed-emitter";
 import * as ntsuspend from "ntsuspend";
 import kill from "tree-kill";
 
-import {
-  uuid,
-  isWin32,
-  isBetweenTime,
-  calculateFileQuickHash,
-  retryWithAxiosError,
-} from "../utils/index.js";
+import { isWin32, calculateFileQuickHash, retryWithAxiosError } from "../utils/index.js";
 import log from "../utils/log.js";
-import { sendNotify } from "../notify.js";
-import { appConfig } from "../config.js";
 import { addMediaApi, editMediaApi } from "./bili.js";
 import { TaskType } from "../enum.js";
 import { SyncClient } from "../sync/index.js";
 import { uploadPartModel } from "../db/index.js";
 import { Pan123 } from "../sync/index.js";
+import { StatisticsService } from "../db/service/index.js";
+import { appConfig } from "../config.js";
+
+import { AbstractTask } from "./core/index.js";
+import type { TaskEvents } from "./core/index.js";
 
 import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { Client, WebVideoUploader } from "@renmu/bili-api";
-import type { Progress, NotificationTaskStatus, BiliupConfig, Status } from "@biliLive-tools/types";
+import type { Progress, BiliupConfig } from "@biliLive-tools/types";
 import type M3U8Downloader from "@renmu/m3u8-downloader";
-import type { AppConfig } from "../config.js";
 import type { DanmakuFactory } from "../danmu/danmakuFactory.js";
+import type { FlvCommand } from "./flvRepair.js";
 
-interface TaskEvents {
-  "task-start": ({ taskId }: { taskId: string }) => void;
-  "task-end": ({ taskId }: { taskId: string }) => void;
-  "task-error": ({ taskId, error }: { taskId: string; error: string }) => void;
-  "task-progress": ({ taskId }: { taskId: string }) => void;
-  "task-pause": ({ taskId }: { taskId: string }) => void;
-  "task-resume": ({ taskId }: { taskId: string }) => void;
-  "task-cancel": ({ taskId }: { taskId: string; autoStart: boolean }) => void;
-  "task-removed-queue": ({ taskId }: { taskId: string }) => void;
-  [key: string]: (...args: any[]) => void;
-}
-
-export abstract class AbstractTask {
-  taskId: string;
-  pid?: string;
-  status: Status;
-  name: string;
-  relTaskId?: string;
-  output?: string;
-  progress: number;
-  custsomProgressMsg: string;
-  action: ("pause" | "kill" | "interrupt" | "restart")[];
-  startTime: number = 0;
-  endTime?: number;
-  error?: string;
-  pauseStartTime: number | null = 0;
-  totalPausedDuration: number = 0;
-  emitter = new TypedEmitter<TaskEvents>();
-  limitTime?: [] | [string, string];
-  extra?: Record<string, any>;
-  on: TypedEmitter<TaskEvents>["on"];
-  emit: TypedEmitter<TaskEvents>["emit"];
-
-  abstract type: string;
-  abstract exec(): void;
-  abstract kill(): void;
-  abstract pause(): void;
-  abstract resume(): void;
-  constructor() {
-    this.taskId = uuid();
-    this.status = "pending";
-    this.name = this.taskId;
-    this.progress = 0;
-    this.action = ["pause", "kill"];
-    this.custsomProgressMsg = "";
-    this.on = this.emitter.on.bind(this.emitter);
-    this.emit = this.emitter.emit.bind(this.emitter);
-  }
-  getDuration(): number {
-    if (this.status === "pending") return 0;
-    const now = Date.now();
-    const currentTime = this.endTime || now;
-    return Math.max(currentTime - this.startTime, 0);
-  }
-}
+// 重新导出 AbstractTask 以保持向后兼容
+export { AbstractTask } from "./core/index.js";
 
 export class DanmuTask extends AbstractTask {
   danmu: DanmakuFactory;
@@ -475,6 +420,7 @@ export class BiliVideoTask extends AbstractTask {
   type = TaskType.bili;
   completedTask: number = 0;
   uid: number;
+  rawName: string = "";
   callback: {
     onStart?: () => void;
     onEnd?: (output: { aid: number; bvid: string }) => void;
@@ -498,6 +444,7 @@ export class BiliVideoTask extends AbstractTask {
     this.action = ["kill"];
     if (options.name) {
       this.name = options.name;
+      this.rawName = options.name;
     }
     this.callback = callback;
 
@@ -612,6 +559,42 @@ export class BiliAddVideoTask extends BiliVideoTask {
     });
   }
   async submit() {
+    // 检查投稿最短间隔
+    const config = appConfig.getAll();
+    const minUploadInterval = config?.biliUpload?.minUploadInterval || 0;
+
+    if (minUploadInterval > 0) {
+      const lastUploadTime = StatisticsService.query("bili_last_upload_time");
+      if (lastUploadTime) {
+        const lastTime = parseInt(lastUploadTime.value);
+        const currentTime = Date.now();
+        const timeDiff = currentTime - lastTime;
+        const requiredInterval = minUploadInterval * 60 * 1000; // 转换为毫秒
+
+        if (timeDiff < requiredInterval) {
+          const remainingTime = requiredInterval - timeDiff;
+          const waitMinutes = Math.ceil(remainingTime / (60 * 1000));
+          log.info(
+            `${this.rawName} 投稿间隔不足，还需等待 ${waitMinutes} 分钟，将在1分钟后重试提交`,
+          );
+
+          // 更新任务状态显示
+          this.name = `${this.rawName}（等待投稿间隔，还需 ${waitMinutes} 分钟）`;
+
+          // 1分钟后重试
+          setTimeout(() => {
+            if (this.status === "running") {
+              this.submit();
+            }
+          }, 60 * 1000);
+          return;
+        }
+      }
+    }
+
+    // 清除等待消息
+    this.name = this.rawName;
+
     const parts = this.taskList
       .filter((task) => task.status === "completed")
       .map((task) => {
@@ -630,6 +613,13 @@ export class BiliAddVideoTask extends BiliVideoTask {
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
       uploadPartModel.removeByCids(parts.map((part) => part.cid));
+      StatisticsService.addOrUpdate({
+        where: { stat_key: "bili_last_upload_time" },
+        create: {
+          stat_key: "bili_last_upload_time",
+          value: Date.now().toString(),
+        },
+      });
     } catch (err) {
       log.error("上传失败", err);
       this.status = "error";
@@ -670,6 +660,42 @@ export class BiliEditVideoTask extends BiliVideoTask {
     });
   }
   async submit() {
+    // 检查投稿最短间隔
+    const config = appConfig.getAll();
+    const minUploadInterval = config?.biliUpload?.minUploadInterval || 0;
+
+    if (minUploadInterval > 0) {
+      const lastUploadTime = StatisticsService.query("bili_last_upload_time");
+      if (lastUploadTime) {
+        const lastTime = parseInt(lastUploadTime.value);
+        const currentTime = Date.now();
+        const timeDiff = currentTime - lastTime;
+        const requiredInterval = minUploadInterval * 60 * 1000; // 转换为毫秒
+
+        if (timeDiff < requiredInterval) {
+          const remainingTime = requiredInterval - timeDiff;
+          const waitMinutes = Math.ceil(remainingTime / (60 * 1000));
+          log.info(
+            `${this.rawName} 编辑间隔不足，还需等待 ${waitMinutes} 分钟，将在1分钟后重试提交`,
+          );
+
+          // 更新任务状态显示
+          this.name = `${this.rawName}（等待投稿间隔，还需 ${waitMinutes} 分钟）`;
+
+          // 1分钟后重试
+          setTimeout(() => {
+            if (this.status === "running") {
+              this.submit();
+            }
+          }, 60 * 1000);
+          return;
+        }
+      }
+    }
+
+    // 清除等待消息
+    this.name = this.rawName;
+
     const parts = this.taskList
       .filter((task) => task.status === "completed")
       .map((task) => {
@@ -691,6 +717,13 @@ export class BiliEditVideoTask extends BiliVideoTask {
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
       uploadPartModel.removeByCids(parts.map((part) => part.cid));
+      StatisticsService.addOrUpdate({
+        where: { stat_key: "bili_last_upload_time" },
+        create: {
+          stat_key: "bili_last_upload_time",
+          value: Date.now().toString(),
+        },
+      });
     } catch (err) {
       log.error("编辑失败", err);
       this.status = "error";
@@ -1042,320 +1075,125 @@ export class SyncTask extends AbstractTask {
   }
 }
 
-const isBetweenTimeRange = (range: undefined | [] | [string, string]) => {
-  if (!range) return true;
-  if (range.length !== 2) return true;
+/**
+ * flv修复任务
+ */
+export class FlvRepairTask extends AbstractTask {
+  instance: FlvCommand;
+  input: string;
+  output: string;
+  trueOutput: string;
+  type = TaskType.flvRepair;
+  callback: {
+    onStart?: () => void;
+    onEnd?: (output: string) => void;
+    onError?: (err: string) => void;
+    onProgress?: (progress: Progress) => any;
+  };
+  constructor(
+    instance: FlvCommand,
+    options: {
+      input: string;
+      output: string;
+      name: string;
+    },
+    callback?: {
+      onStart?: () => void;
+      onEnd?: (output: string) => void;
+      onError?: (err: string) => void;
+      onProgress?: (progress: Progress) => any;
+    },
+  ) {
+    super();
+    this.instance = instance;
+    this.input = options.input;
+    this.progress = 0;
+    if (options.name) {
+      this.name = options.name;
+    }
+    this.action = ["kill"];
+    this.callback = callback || {};
+    const { dir } = path.parse(options.output);
+    this.output = dir;
+    this.trueOutput = options.output;
 
-  try {
-    const status = isBetweenTime(new Date(), range);
-    return status;
-  } catch (error) {
+    this.instance.on("progress", (progress: any) => {
+      callback?.onProgress && callback.onProgress(progress.percentage);
+      this.progress = progress.percentage;
+      // this.custsomProgressMsg = `速度: ${progress.speed}`;
+    });
+    this.instance.on("completed", () => {
+      this.status = "completed";
+      this.progress = 100;
+      this.callback.onEnd && this.callback.onEnd(this.trueOutput as string);
+      this.emitter.emit("task-end", { taskId: this.taskId });
+      this.endTime = Date.now();
+    });
+    this.instance.on("error", (err: string) => {
+      this.status = "error";
+      this.callback.onError && this.callback.onError(err);
+      this.error = err;
+      this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+      this.endTime = Date.now();
+    });
+  }
+  exec() {
+    this.callback.onStart && this.callback.onStart();
+    this.status = "running";
+    this.progress = 0;
+    this.emitter.emit("task-start", { taskId: this.taskId });
+    this.startTime = Date.now();
+    this.instance.run(this.input, this.trueOutput);
+    log.info(`$${this.instance._getArguments().join(" ")} for flv repair task ${this.taskId}`);
+    // .then(() => {
+    //   this.status = "completed";
+    //   this.callback.onEnd && this.callback.onEnd(this.output as string);
+    //   this.progress = 100;
+    //   this.emitter.emit("task-end", { taskId: this.taskId });
+    // })
+    // .catch((err) => {
+    //   console.log("upload error", err);
+    //   this.status = "error";
+    //   this.callback.onError && this.callback.onError(err);
+    //   this.error = err;
+    //   this.emitter.emit("task-error", { taskId: this.taskId, error: err });
+    // })
+    // .finally(() => {
+    //   this.endTime = Date.now();
+    // });
+  }
+  restart() {
+    // do nothing
+    return false;
+  }
+  pause() {
+    return false;
+  }
+  resume() {
+    return false;
+  }
+  kill() {
+    if (this.status === "completed" || this.status === "error" || this.status === "canceled")
+      return;
+    log.warn(`danmu task ${this.taskId} killed`);
+    this.status = "canceled";
+    this.instance.kill();
     return true;
   }
-};
-export class TaskQueue {
-  appConfig: AppConfig;
-  queue: AbstractTask[];
-  emitter = new TypedEmitter<TaskEvents>();
-  on: TypedEmitter<TaskEvents>["on"];
-  off: TypedEmitter<TaskEvents>["off"];
-
-  constructor(appConfig: AppConfig) {
-    this.queue = [];
-    this.appConfig = appConfig;
-    this.on = this.emitter.on.bind(this.emitter);
-    this.off = this.emitter.off.bind(this.emitter);
-    this.on("task-end", () => {
-      this.addTaskForLimit();
-    });
-    this.on("task-error", () => {
-      this.addTaskForLimit();
-    });
-    this.on("task-pause", () => {
-      this.addTaskForLimit();
-    });
-    this.on("task-cancel", ({ autoStart }) => {
-      if (autoStart) this.addTaskForLimit();
-    });
-
-    setInterval(() => {
-      // @ts-ignore
-      const isVitest = process.env.NODE_ENV === "test";
-      if (isVitest) return;
-      this.addTaskForLimit();
-    }, 1000 * 60);
-  }
-  runTask(task: AbstractTask) {
-    const typeMap = {
-      [TaskType.ffmpeg]: "ffmpegMaxNum",
-      [TaskType.douyuDownload]: "douyuDownloadMaxNum",
-      [TaskType.biliUpload]: "biliUploadMaxNum",
-      [TaskType.biliDownload]: "biliDownloadMaxNum",
-      [TaskType.sync]: "syncMaxNum",
-    };
-    const config = this.appConfig.getAll();
-    const maxNum = config?.task?.[typeMap[task.type]] ?? 0;
-    if (maxNum >= 0) {
-      this.filter({ type: task.type, status: "running" }).length < maxNum &&
-        isBetweenTimeRange(task.limitTime) &&
-        task.exec();
-    } else {
-      isBetweenTimeRange(task.limitTime) && task.exec();
-    }
-  }
-  addTask(task: AbstractTask, autoRun = true) {
-    task.emitter.on("task-end", ({ taskId }) => {
-      this.emitter.emit("task-end", { taskId });
-    });
-    task.emitter.on("task-error", ({ taskId, error }) => {
-      this.emitter.emit("task-error", { taskId, error });
-    });
-    task.emitter.on("task-progress", ({ taskId }) => {
-      this.emitter.emit("task-progress", { taskId });
-    });
-    task.emitter.on("task-start", ({ taskId }) => {
-      this.emitter.emit("task-start", { taskId });
-    });
-    task.emitter.on("task-pause", ({ taskId }) => {
-      this.emitter.emit("task-pause", { taskId });
-    });
-    task.emitter.on("task-resume", ({ taskId }) => {
-      this.emitter.emit("task-resume", { taskId });
-    });
-    task.emitter.on("task-cancel", ({ taskId, autoStart }) => {
-      this.emitter.emit("task-cancel", { taskId, autoStart });
-    });
-
-    this.queue.push(task);
-
-    if (autoRun) {
-      task.exec();
-    } else {
-      this.runTask(task);
-    }
-  }
-  queryTask(taskId: string) {
-    const task = this.queue.find((task) => task.taskId === taskId);
-    return task;
-  }
-  stringify(item: AbstractTask[]) {
-    return item.map((task) => {
-      return {
-        pid: task.pid,
-        taskId: task.taskId,
-        status: task.status,
-        name: task.name,
-        type: task.type,
-        relTaskId: task.relTaskId,
-        output: task.output,
-        progress: task.progress,
-        action: task.action,
-        startTime: task.startTime,
-        endTime: task.endTime,
-        custsomProgressMsg: task.custsomProgressMsg,
-        error: task.error ? String(task.error) : "",
-        duration: task.getDuration(),
-        extra: task.extra,
-      };
-    });
-  }
-  filter(options: { type?: string; status?: Status }) {
-    return this.queue.filter((task) => {
-      if (options.type && task.type !== options.type) return false;
-      if (options.status && task.status !== options.status) return false;
-      return true;
-    });
-  }
-  list() {
-    return this.queue;
-  }
-  start(taskId: string) {
-    const task = this.queryTask(taskId);
-    if (!task) return;
-    if (task.status !== "pending") return;
-    task.exec();
-  }
-  remove(taskId: string) {
-    const task = this.queryTask(taskId);
-    if (!task) return;
-    const index = this.queue.indexOf(task);
-    if (index !== -1) {
-      this.queue.splice(index, 1);
-    }
-    task.emit("task-removed-queue", { taskId: task.taskId });
-  }
-  pasue(taskId: string) {
-    const task = this.queryTask(taskId);
-    if (!task) return;
-    task.pause();
-    task.pauseStartTime = Date.now();
-  }
-  resume(taskId: string) {
-    const task = this.queryTask(taskId);
-    if (!task) return;
-    task.resume();
-    // if (task.pauseStartTime !== null) {
-    //   task.totalPausedDuration += Date.now() - task.pauseStartTime;
-    //   task.pauseStartTime = null;
-    // }
-  }
-  cancel(taskId: string) {
-    const task = this.queryTask(taskId);
-    if (!task) return;
-    task.kill();
-  }
-  restart(taskId: string) {
-    const task = this.queryTask(taskId);
-    if (!task) return;
-    if (task.action.includes("restart")) {
-      // @ts-ignore
-      task.restart();
-    }
-  }
-  interrupt(taskId: string) {
-    const task = this.queryTask(taskId);
-    if (!task) return;
-    if (task.action.includes("interrupt")) {
-      // @ts-ignore
-      return task.interrupt();
-    }
-    return;
-  }
-
-  private taskLimit(maxNum: number, type: string) {
-    const pendingFFmpegTask = this.filter({ type: type, status: "pending" }).filter((task) => {
-      return isBetweenTimeRange(task.limitTime);
-    });
-    if (maxNum !== -1) {
-      const runningTaskCount = this.filter({
-        type: type,
-        status: "running",
-      }).length;
-
-      if (runningTaskCount < maxNum) {
-        pendingFFmpegTask.slice(0, maxNum - runningTaskCount).forEach((task) => {
-          task.exec();
-        });
-      }
-    } else {
-      // TODO: 补充单元测试
-      pendingFFmpegTask.forEach((task) => {
-        task.exec();
-      });
-    }
-  }
-  private addTaskForLimit = () => {
-    const config = this.appConfig.getAll();
-
-    // ffmpeg任务
-    this.taskLimit(config?.task?.ffmpegMaxNum ?? -1, TaskType.ffmpeg);
-    // 斗鱼录播下载任务
-    this.taskLimit(config?.task?.douyuDownloadMaxNum ?? -1, TaskType.douyuDownload);
-    // B站上传任务
-    this.taskLimit(config?.task?.biliUploadMaxNum ?? -1, TaskType.biliUpload);
-    // B站下载任务
-    this.taskLimit(config?.task?.biliDownloadMaxNum ?? -1, TaskType.biliDownload);
-    // 同步任务
-    this.taskLimit(config?.task?.syncMaxNum ?? 3, TaskType.sync);
-  };
 }
 
-export const sendTaskNotify = (event: NotificationTaskStatus, taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (!task) return;
-  const taskType = task.type;
-  let title = "";
-  let desp = "";
-  switch (event) {
-    case "success":
-      title = `成功：${task.name}`;
-      desp = `${task.name}结束\n\n开始时间：${new Date(task.startTime!).toLocaleString()}\n\n输出：${task.output}`;
-      break;
-    case "failure":
-      title = `错误：${task.name}`;
-      desp = `${task.name}出错\n\n开始时间：${new Date(task.startTime!).toLocaleString()}\n\n错误信息：${task.error}`;
-      break;
-  }
-  const config = appConfig.getAll();
-  const taskConfig = config?.notification?.task;
-  switch (taskType) {
-    case TaskType.ffmpeg:
-      if (taskConfig.ffmpeg.includes(event)) {
-        sendNotify(title, desp);
-      }
-      break;
-    case TaskType.danmu:
-      if (taskConfig.danmu.includes(event)) {
-        sendNotify(title, desp);
-      }
-      break;
-    case TaskType.bili:
-      if (taskConfig.upload.includes(event)) {
-        sendNotify(title, desp);
-      }
-      break;
-    case TaskType.biliDownload:
-      if (taskConfig.download.includes(event)) {
-        sendNotify(title, desp);
-      }
-      break;
-    case TaskType.douyuDownload:
-      if (taskConfig.download.includes(event)) {
-        sendNotify(title, desp);
-      }
-      break;
-    case TaskType.sync:
-      if (taskConfig.sync.includes(event)) {
-        sendNotify(title, desp);
-      }
-      break;
-  }
-};
-
-export const taskQueue = new TaskQueue(appConfig);
-
-taskQueue.on("task-end", ({ taskId }) => {
-  sendTaskNotify("success", taskId);
-});
-taskQueue.on("task-error", ({ taskId }) => {
-  sendTaskNotify("failure", taskId);
-});
-
-export const handlePauseTask = (taskId: string) => {
-  const task = taskQueue.pasue(taskId);
-  return task;
-};
-export const handleResumeTask = (taskId: string) => {
-  const task = taskQueue.resume(taskId);
-  return task;
-};
-export const handleKillTask = (taskId: string) => {
-  const task = taskQueue.cancel(taskId);
-  return task;
-};
-export const hanldeInterruptTask = (taskId: string) => {
-  return taskQueue.interrupt(taskId);
-};
-
-export const handleListTask = () => {
-  return taskQueue.stringify(taskQueue.list());
-};
-export const handleQueryTask = (taskId: string) => {
-  const task = taskQueue.queryTask(taskId);
-  if (task) {
-    return taskQueue.stringify([task])[0];
-  } else {
-    return null;
-  }
-};
-export const handleStartTask = (taskId: string) => {
-  return taskQueue.start(taskId);
-};
-export const handleRemoveTask = (taskId: string) => {
-  return taskQueue.remove(taskId);
-};
-
-export const handleRestartTask = (taskId: string) => {
-  const task = taskQueue.restart(taskId);
-  return task;
-};
+// 重新导出 TaskQueue 和辅助函数以保持向后兼容
+export {
+  TaskQueue,
+  taskQueue,
+  sendTaskNotify,
+  handlePauseTask,
+  handleResumeTask,
+  handleKillTask,
+  hanldeInterruptTask,
+  handleListTask,
+  handleQueryTask,
+  handleStartTask,
+  handleRemoveTask,
+  handleRestartTask,
+} from "./core/index.js";

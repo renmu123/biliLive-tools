@@ -1,3 +1,23 @@
+# 1.10.0
+
+- 重构：录制器相关的参数修改为 `Downloader`
+
+# 1.9.0
+
+- `recordHandle` 新增参数 `recorderType`
+- mesio 引擎默认禁用任何代理
+- 优化弹幕内存占用
+- 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
+- savePathRule 参数支持 `startTime` `recordStartTime` `liveStartTime` 参数
+
+# 1.8.0
+
+- 标题黑名单增加额外状态
+- 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
+- 增加`maxThreadCount`参数任务并发数
+- 增加`waitTime`支持任务结束后的等待时间
+- 录播姬引擎支持
+
 # 1.7.0
 
 - 修复 mesio 某些情况下录制结束重命名错误的bug

@@ -108,7 +108,19 @@ export async function getStream(
   });
   if (!liveInfo.living) throw new Error("It must be called getStream when living");
 
-  // console.log(JSON.stringify(liveInfo, null, 2));
+  //如果是scdn，那么找到第一个非scdn的源，重新请求一次
+  if (liveInfo.currentStream.source === "scdn") {
+    const nonScdnSource = liveInfo.sources.find((source) => source.cdn !== "scdnctshh");
+    if (nonScdnSource) {
+      liveInfo = await getLiveInfo({
+        channelId: opts.channelId,
+        rate: qn,
+        cdn: nonScdnSource?.cdn,
+        onlyAudio: opts.onlyAudio,
+      });
+    }
+  }
+  if (!liveInfo.living) throw new Error("It must be called getStream when living");
 
   if (liveInfo.currentStream.rate !== qn && opts.strictQuality) {
     throw new Error("Can not get expect quality because of strictQuality");

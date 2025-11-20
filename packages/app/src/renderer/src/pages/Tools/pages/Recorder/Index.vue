@@ -53,7 +53,7 @@
         @update:direction="handleSortDirectionChange"
       />
       <n-button type="warning" @click="getLiveInfo(true)">刷新</n-button>
-      <n-button type="primary" @click="add">添加</n-button>
+      <ButtonGroup :options="actionBtns" @click="handleActionClick">添加</ButtonGroup>
     </div>
 
     <template v-if="list.length > 0">
@@ -111,6 +111,15 @@
     <h1 v-else>还木有添加直播捏，添加一个看看吧，支持斗鱼、虎牙、B站、抖音</h1>
 
     <addModal :id="editId" v-model:visible="addModalVisible" @confirm="handleModalClose"></addModal>
+    <batchAddModal
+      v-model:visible="batchAddModalVisible"
+      @parsed="handleBatchParsed"
+    ></batchAddModal>
+    <batchResultModal
+      v-model:visible="batchResultModalVisible"
+      :results="batchParseResults"
+      @completed="handleBatchCompleted"
+    ></batchResultModal>
     <videoModal :id="editId" v-model:visible="videoModalVisible" :video-url="videoUrl"></videoModal>
   </div>
 </template>
@@ -119,10 +128,13 @@
 import { recoderApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
 import addModal from "./components/addModal.vue";
+import batchAddModal from "./components/batchAddModal.vue";
+import batchResultModal from "./components/batchResultModal.vue";
 import videoModal from "./components/videoModal.vue";
 import cardView from "./components/cardView.vue";
 import listView from "./components/listView.vue";
 import { useRouter } from "vue-router";
+import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 
 import { useEventListener, useStorage } from "@vueuse/core";
 import eventBus from "@renderer/utils/eventBus";
@@ -263,10 +275,10 @@ const list = computed(() => {
     const liveInfo = liveInfos.value.find((liveInfo) => liveInfo.channelId === item.channelId);
     return {
       ...item,
-      cover: liveInfo?.cover,
-      owner: liveInfo?.owner,
-      avatar: liveInfo?.avatar ?? item?.extra?.avatar,
-      roomTitle: liveInfo?.title,
+      cover: item?.liveInfo?.cover || liveInfo?.cover,
+      owner: item?.liveInfo?.owner || liveInfo?.owner,
+      avatar: item?.liveInfo?.avatar || liveInfo?.avatar || item?.extra?.avatar,
+      roomTitle: item?.liveInfo?.title || liveInfo?.title,
       living: item?.liveInfo?.living ?? liveInfo?.living,
     };
   });
@@ -307,9 +319,17 @@ const getList = async () => {
 };
 
 const addModalVisible = ref(false);
+const batchAddModalVisible = ref(false);
+const batchResultModalVisible = ref(false);
+const batchParseResults = ref<any[]>([]);
+
 const add = async () => {
   editId.value = "";
   addModalVisible.value = true;
+};
+
+const batchAdd = async () => {
+  batchAddModalVisible.value = true;
 };
 
 const confirm = useConfirm();
@@ -389,6 +409,16 @@ const handleModalClose = () => {
   if (!editId.value) {
     init();
   }
+};
+
+const handleBatchParsed = (results: any[]) => {
+  batchParseResults.value = results;
+  batchResultModalVisible.value = true;
+};
+
+const handleBatchCompleted = () => {
+  // 刷新列表
+  init();
 };
 
 const init = async () => {
@@ -536,6 +566,18 @@ const handleSortDirectionChange = (direction: "asc" | "desc") => {
     sortDirections.monitorStatus = direction;
   }
   getList();
+};
+
+const actionBtns = ref([{ label: "批量添加", key: "batchAdd" }]);
+const handleActionClick = (key?: string | number) => {
+  switch (key) {
+    case "batchAdd":
+      batchAdd();
+      break;
+    case undefined:
+      add();
+      break;
+  }
 };
 </script>
 

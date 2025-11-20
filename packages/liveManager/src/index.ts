@@ -10,8 +10,8 @@ export * from "./common.js";
 export * from "./recorder.js";
 export * from "./manager.js";
 export * from "./record_extra_data_controller.js";
-export * from "./recorder/FFMPEGRecorder.js";
-export { createBaseRecorder } from "./recorder/index.js";
+export * from "./downloader/FFmpegDownloader.js";
+export { createDownloader } from "./downloader/index.js";
 export { utils };
 
 /**
@@ -83,6 +83,18 @@ export function getMesioPath(): string {
   return mesioPath;
 }
 
+let bililivePath: string = "BililiveRecorder.Cli";
+export function setBililivePath(newPath: string) {
+  bililivePath = newPath;
+}
+export function getBililivePath(): string {
+  return bililivePath;
+}
+
 export function getDataFolderPath<E extends AnyObject>(provider: RecorderProvider<E>): string {
   return "./" + provider.id;
 }
+
+export type VideoFormat = "auto" | "ts" | "mkv" | "flv" | "mp4" | "m4s";
+
+export type TrueVideoFormat = Exclude<VideoFormat, "auto">;

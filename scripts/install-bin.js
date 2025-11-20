@@ -49,7 +49,7 @@ async function downloadFile(url, desc, options = {}) {
 }
 
 async function downloadMesio() {
-  // https://github.com/hua0512/rust-srec/releases/tag/v0.3.2
+  // https://github.com/hua0512/rust-srec/releases/tag/v0.3.3
   const platforms = {
     win32: "windows",
     darwin: "macos",
@@ -59,7 +59,7 @@ async function downloadMesio() {
   };
   const platform = platforms[process.platform] ?? process.platform;
   const arch = archs[process.arch] ?? process.arch;
-  let mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/v0.3.2/mesio-${platform}-${arch}`;
+  let mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/v0.3.3/mesio-${platform}-${arch}`;
   if (platform === "windows") {
     mesioUrl += ".exe";
   }
@@ -72,16 +72,39 @@ async function downloadMesio() {
   }
 }
 
-async function downloadBin() {
+async function downloadBililiveRecorder() {
+  // https://github.com/renmu123/BililiveRecorder/releases
+  const platforms = {
+    win32: "win",
+    darwin: "osx",
+  };
+  const platform = platforms[process.platform] ?? process.platform;
+  const arch = process.arch;
+  const filename = `BililiveRecorder-CLI-${platform}-${arch}.zip`;
+  let url = `https://github.com/renmu123/BililiveRecorder/releases/download/v3.2.0/${filename}`;
+
+  await downloadFile(url, ".");
+  await unzip(filename, "packages/app/resources/bin");
+
+  // 添加执行权限
+  if (process.platform === "linux") {
+    fs.chmodSync("packages/app/resources/bin/BililiveRecorder.Cli", 0o755);
+  }
+}
+
+async function downloadBaseBinary() {
   const filename = `${process.platform}-${process.arch}-2.5.0.zip`;
   const downloadUrl = `https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/${filename}`;
   console.log(`下载 ${downloadUrl}`);
 
   await downloadFile(downloadUrl, ".");
   await unzip(filename, "packages/app/resources");
+}
 
-  // download mesio
+async function downloadBin() {
+  await downloadBaseBinary();
   await downloadMesio();
+  await downloadBililiveRecorder();
 }
 
 downloadBin();

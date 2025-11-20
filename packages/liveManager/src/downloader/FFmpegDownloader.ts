@@ -2,9 +2,13 @@ import EventEmitter from "node:events";
 
 import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
 import { createInvalidStreamChecker, assert } from "../utils.js";
-import { IRecorder, FFMPEGRecorderOptions, Segment } from "./IRecorder.js";
+import { IDownloader, FFMPEGRecorderOptions, Segment } from "./IDownloader.js";
 
-export class FFMPEGRecorder extends EventEmitter implements IRecorder {
+import { FormatName } from "./index.js";
+import type { VideoFormat } from "../index.js";
+
+export class FFmpegDownloader extends EventEmitter implements IDownloader {
+  public type = "ffmpeg" as const;
   private command: ReturnType<typeof createFFMPEGBuilder>;
   private streamManager: StreamManager;
   private timeoutChecker: ReturnType<typeof utils.createTimeoutChecker>;
@@ -16,8 +20,9 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
   readonly isHls: boolean;
   readonly disableDanma: boolean = false;
   readonly url: string;
-  formatName: "flv" | "ts" | "fmp4";
-  videoFormat: "ts" | "mkv" | "mp4";
+  formatName: FormatName;
+  videoFormat: VideoFormat;
+  readonly debugLevel: "none" | "basic" | "verbose" = "none";
   readonly headers:
     | {
         [key: string]: string | undefined;
@@ -36,12 +41,8 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
       hasSegment = true;
     }
     this.hasSegment = hasSegment;
-
-    let formatName: "flv" | "ts" | "fmp4" = "flv";
-    if (opts.url.includes(".m3u8")) {
-      formatName = "ts";
-    }
-    this.formatName = opts.formatName ?? formatName;
+    this.debugLevel = opts.debugLevel ?? "none";
+    this.formatName = opts.formatName;
 
     if (this.formatName === "fmp4" || this.formatName === "ts") {
       this.isHls = true;
@@ -52,7 +53,7 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
     let videoFormat = opts.videoFormat ?? "auto";
     if (videoFormat === "auto") {
       if (!this.hasSegment) {
-        videoFormat = "mp4";
+        videoFormat = "m4s";
         if (this.formatName === "ts") {
           videoFormat = "ts";
         }
@@ -86,8 +87,8 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
     this.headers = opts.headers;
 
     this.command = this.createCommand();
-    this.streamManager.on("videoFileCreated", ({ filename, cover }) => {
-      this.emit("videoFileCreated", { filename, cover });
+    this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename, title }) => {
+      this.emit("videoFileCreated", { filename, cover, rawFilename, title });
     });
     this.streamManager.on("videoFileCompleted", ({ filename }) => {
       this.emit("videoFileCompleted", { filename });
@@ -106,6 +107,14 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
       "-user_agent",
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
     ];
+    if (this.isHls) {
+      inputOptions.push(
+        ...["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "3"],
+      );
+    }
+    if (this.debugLevel === "verbose") {
+      inputOptions.push("-loglevel", "debug");
+    }
     if (this.headers) {
       const headers: string[] = [];
       Object.entries(this.headers).forEach(([key, value]) => {
@@ -117,10 +126,11 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
       }
     }
 
+    const outputOptions = this.buildOutputOptions();
     const command = createFFMPEGBuilder()
       .input(this.url)
       .inputOptions(inputOptions)
-      .outputOptions(this.ffmpegOutputOptions)
+      .outputOptions(outputOptions)
       .output(this.streamManager.videoFilePath)
       .on("error", this.onEnd)
       .on("end", () => this.onEnd("finished"))
@@ -140,10 +150,24 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
         }
       })
       .on("stderr", this.timeoutChecker?.update);
-
+    return command;
+  }
+  buildOutputOptions() {
+    const options: string[] = [];
+    options.push(...this.ffmpegOutputOptions);
+    options.push(
+      "-c",
+      "copy",
+      "-movflags",
+      "+frag_keyframe+empty_moov+separate_moof",
+      "-fflags",
+      "+genpts+igndts",
+      "-min_frag_duration",
+      "10000000",
+    );
     if (this.segment) {
       if (typeof this.segment === "number") {
-        command.outputOptions(
+        options.push(
           "-f",
           "segment",
           "-segment_time",
@@ -152,10 +176,18 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
           "1",
         );
       } else if (typeof this.segment === "string") {
-        command.outputOptions("-fs", String(this.segment), "-reset_timestamps", "1");
+        options.push("-fs", String(this.segment), "-reset_timestamps", "1");
+      }
+      if (this.videoFormat === "m4s") {
+        options.push("-segment_format", "mp4");
+      }
+    } else {
+      if (this.videoFormat === "m4s") {
+        options.push("-f", "mp4");
       }
     }
-    return command;
+
+    return options;
   }
 
   formatLine(line: string) {
@@ -201,5 +233,9 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
 
   public getExtraDataController() {
     return this.streamManager?.getExtraDataController();
+  }
+
+  public get videoFilePath() {
+    return this.streamManager.videoFilePath;
   }
 }

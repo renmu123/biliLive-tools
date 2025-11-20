@@ -66,8 +66,37 @@
           <n-form-item>
             <template #label>
               <Tip
+                tip="同时最多运行的检查任务数量，和 检查间隔 共同构成了录制的循环检查周期"
+                text="并发数"
+              ></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.maxThreadCount"
+              min="1"
+              max="10"
+              step="1"
+              style="width: 220px"
+            >
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip tip="检查任务完成后的等待时间" text="等待时间"></Tip>
+            </template>
+            <n-input-number
+              v-model:value="config.recorder.waitTime"
+              min="0"
+              step="1"
+              style="width: 220px"
+            >
+              <template #suffix>毫秒</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                tip="0为不分段，默认为时间分段，单位分钟。<br/>如果以B,KB,MB,GB结尾，会尝试使用文件大小分段，<b>不推荐在ffmpeg引擎时使用</b>"
                 text="分段"
-                tip="0为不分段，默认为时间分段，单位分钟。<br/>如果以B,KB,MB,GB结尾，会尝试使用文件大小分段，<b>仅推荐在使用mesio录制引擎时使用</b>"
               ></Tip>
             </template>
             <n-input v-model:value="config.recorder.segment" placeholder="请输入分段参数" />
@@ -124,9 +153,13 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip tip="用于提交反馈" text="调试模式"></Tip>
+              <Tip tip="如果你遇到特定直播间的录制问题，请打开此开关" text="调试模式"></Tip>
             </template>
-            <n-switch v-model:value="config.recorder.debugMode" />
+            <n-select
+              v-model:value="config.recorder.debugLevel"
+              :options="recorderDebugLevelOptions"
+              style="width: 220px"
+            />
           </n-form-item>
 
           <h3>弹幕</h3>
@@ -288,10 +321,7 @@
           </n-form-item>
           <n-form-item>
             <template #label>
-              <Tip
-                text="请求接口"
-                tip="不同的接口对应的底层不同，如果哪天用不了，你也可以切切看，mobile和用户html解析接口必须在3.1.0及以后版本使用才能生效，更多区别见文档。PS: mobile看起来更不容易触发风控"
-              ></Tip>
+              <Tip :text="textInfo.douyin.api.text" :tip="textInfo.douyin.api.tip"></Tip>
             </template>
             <n-select v-model:value="config.recorder.douyin.api" :options="douyinApiTypeOptions" />
           </n-form-item>
@@ -333,6 +363,8 @@ import {
   douyinStreamFormatOptions,
   huyaSourceOptions,
   recorderTypeOptions,
+  recorderDebugLevelOptions,
+  douyinApiTypeOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";
@@ -340,15 +372,6 @@ import type { AppConfig } from "@biliLive-tools/types";
 const config = defineModel<AppConfig>("data", {
   default: () => {},
 });
-
-const douyinApiTypeOptions = ref([
-  { label: "随机", value: "random" },
-  { label: "web接口", value: "web" },
-  { label: "mobile接口", value: "mobile" },
-  { label: "直播html解析", value: "webHTML" },
-  { label: "用户html解析", value: "userHTML" },
-  { label: "测试：负载均衡", value: "balance" },
-]);
 
 const { userList } = storeToRefs(useUserInfoStore());
 
@@ -407,7 +430,7 @@ const titleList = ref([
   },
 ]);
 const titleTip = computed(() => {
-  const base = `<b>谨慎修改，可能会导致无法录制</b><br/>支持ejs引擎<br/>`;
+  const base = `<b>谨慎修改，可能会导致无法录制</b><br/>支持ejs引擎，更多参数见文档<br/>`;
   return titleList.value
     .map((item) => {
       return `${item.label}：${item.value}<br/>`;

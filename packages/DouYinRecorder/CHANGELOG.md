@@ -1,6 +1,21 @@
-# Next
+# 1.9.1
 
-- `segment` 参数如果以"B","KB","MB","GB"结尾，会尝试使用文件大小分段，仅推荐在使用mesio录制引擎时使用
+- 修复 `userWeb` 接口在未直播时移除报错的bug
+
+# 1.9.0
+
+- `recordHandle` 新增参数 `recorderType`
+- 修复礼物弹幕缺失的情况
+- 修复两种接口的返回类型值错误
+- 修复使用 random 接口时，获取流可能失败的情况
+- 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
+
+# 1.8.0
+
+- 新增`debugLevel`参数，支持`none`、`basic`、`verbose`
+- 支持标题黑名单
+- 录播姬引擎支持
+- 触发标题黑名单设定额外状态
 
 # 1.7.1
 

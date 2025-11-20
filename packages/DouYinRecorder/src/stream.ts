@@ -1,4 +1,4 @@
-import { getRoomInfo } from "./douyin_api.js";
+import { getRoomInfo, selectRandomAPI } from "./douyin_api.js";
 import { globalLoadBalancer } from "./loadBalancer/loadBalancer.js";
 
 import type { Recorder } from "@bililive-tools/manager";
@@ -64,6 +64,8 @@ export async function getStream(
   if (api === "userHTML") {
     // userHTML 接口只能用于状态检测
     api = "web";
+  } else if (api === "random") {
+    api = selectRandomAPI(["userHTML"]);
   }
   const info = await getRoomInfo(opts.channelId, {
     doubleScreen: opts.doubleScreen ?? true,
@@ -109,12 +111,23 @@ export async function getStream(
     throw new Error("未找到对应的流");
   }
 
+  let onlyAudio = false;
+  try {
+    const urlObj = new URL(url);
+    if (urlObj.searchParams.get("only_audio") == "1") {
+      onlyAudio = true;
+    }
+  } catch (error) {
+    console.warn("解析流 URL 失败", error);
+  }
+
   return {
     ...info,
     currentStream: {
       name: qualityName,
       source: "自动",
-      url: url!,
+      url: url,
+      onlyAudio,
     },
   };
 }
