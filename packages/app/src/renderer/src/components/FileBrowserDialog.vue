@@ -77,6 +77,7 @@ interface Props {
   multi?: boolean;
   exts?: string[];
   extension?: string;
+  defaultPath?: string;
   close: () => void;
   confirm: (path: string[]) => void;
 }
@@ -88,6 +89,7 @@ const props = withDefaults(defineProps<Props>(), {
   multi: false,
   extension: "",
   exts: () => [],
+  defaultPath: "",
   close: () => {},
   confirm: () => {},
 });
@@ -116,9 +118,18 @@ const fetchFiles = async () => {
     directory: "directory",
     save: "directory",
   } as const;
+  let defaultPath = currentPath.value;
+  if (props.defaultPath) {
+    defaultPath = window.path.dirname(props.defaultPath);
+    currentPath.value = defaultPath;
+    filename.value = window.path.basename(
+      props.defaultPath,
+      window.path.extname(props.defaultPath),
+    );
+  }
   const res = await commonApi
     .getFiles({
-      path: currentPath.value,
+      path: defaultPath,
       exts: props.exts,
       type: typeMap[props.type],
     })

@@ -4,6 +4,7 @@ import ejs from "ejs";
 import { omit, range } from "lodash-es";
 import { parseArgsStringToArgv } from "string-argv";
 import { ChannelId, Message } from "./common.js";
+import { RecorderCache, RecorderCacheImpl, MemoryCacheStore } from "./cache.js";
 import { getBiliStatusInfoByRoomIds } from "./api.js";
 import {
   RecorderCreateOpts,
@@ -25,7 +26,6 @@ import {
   sleep,
 } from "./utils.js";
 import { StreamManager } from "./downloader/streamManager.js";
-import { Cache } from "./cache.js";
 
 export interface RecorderProvider<E extends AnyObject> {
   // Provider 的唯一 id，最好只由英文 + 数字组成
@@ -109,10 +109,7 @@ export interface RecorderManager<
   ) => P[];
 
   recorders: Recorder<E>[];
-  addRecorder: (
-    this: RecorderManager<ME, P, PE, E>,
-    opts: Omit<RecorderCreateOpts<E>, "cache">,
-  ) => Recorder<E>;
+  addRecorder: (this: RecorderManager<ME, P, PE, E>, opts: RecorderCreateOpts<E>) => Recorder<E>;
   removeRecorder: (this: RecorderManager<ME, P, PE, E>, recorder: Recorder<E>) => void;
   startRecord: (
     this: RecorderManager<ME, P, PE, E>,
@@ -135,9 +132,8 @@ export interface RecorderManager<
   biliBatchQuery: boolean;
   /** 测试：录制错误立即重试 */
   recordRetryImmediately: boolean;
-
-  /** 缓存实例 */
-  cache: Cache;
+  /** 缓存系统 */
+  cache: RecorderCache;
 }
 
 export type RecorderManagerCreateOpts<
@@ -147,6 +143,8 @@ export type RecorderManagerCreateOpts<
   E extends AnyObject = ME & PE,
 > = Partial<Pick<RecorderManager<ME, P, PE, E>, ConfigurableProp>> & {
   providers: P[];
+  /** 自定义缓存实现，不提供则使用默认的内存缓存 */
+  cache?: RecorderCache;
 };
 
 export function createRecorderManager<
@@ -243,9 +241,6 @@ export function createRecorderManager<
   // 用于记录触发重试直播场次的次数
   const retryCountObj: Record<string, number> = {};
 
-  // 获取缓存单例
-  const cache = Cache.getInstance();
-
   const manager: RecorderManager<ME, P, PE, E> = {
     // @ts-ignore
     ...mitt(),
@@ -264,8 +259,11 @@ export function createRecorderManager<
       // provider.createRecorder 能返回 Recorder<PE> 才能进一步优化。
       const recorder = provider.createRecorder({
         ...omit(opts, ["providerId"]),
-        cache,
       }) as Recorder<E>;
+
+      // 为录制器注入独立的缓存命名空间
+      recorder.cache = this.cache.createNamespace(recorder.id);
+
       this.recorders.push(recorder);
 
       recorder.on("RecordStart", (recordHandle) =>
@@ -436,6 +434,8 @@ export function createRecorderManager<
     biliBatchQuery: opts.biliBatchQuery ?? false,
     recordRetryImmediately: opts.recordRetryImmediately ?? false,
 
+    cache: opts.cache ?? new RecorderCacheImpl(new MemoryCacheStore()),
+
     ffmpegOutputArgs:
       opts.ffmpegOutputArgs ??
       "-c copy" +
@@ -455,8 +455,6 @@ export function createRecorderManager<
          * TODO: 如果浏览器行为无法优化，并且想进一步优化加载速度，可以考虑录制时使用 fmp4，录制完成后再转一次普通 mp4。
          */
         " -min_frag_duration 10000000",
-
-    cache,
   };
 
   const setProvidersFFMPEGOutputArgs = (ffmpegOutputArgs: string) => {
@@ -534,4 +532,4 @@ export function genSavePathFromRule<
 }
 
 export type GetProviderExtra<P> = P extends RecorderProvider<infer E> ? E : never;
-export { StreamManager, Cache };
+export { StreamManager };
