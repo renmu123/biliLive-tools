@@ -6,6 +6,7 @@
 - 录制：抖音支持单独配置请求接口
 - 弹幕：支持自定义过滤函数 [#238](https://github.com/renmu123/biliLive-tools/pull/238)
 - 切片：支持在画面中展示录制时间 [#247](https://github.com/renmu123/biliLive-tools/pull/247)
+- 切片：web版本支持项目功能 [#248](https://github.com/renmu123/biliLive-tools/pull/248)
 
 ## 优化
 
