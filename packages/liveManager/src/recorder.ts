@@ -32,7 +32,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   // 指定cdn
   source?: string;
   // 该项为用户配置，指定录制的片段时长，单位为秒，如果设置了此项，将按此时长切片录制
-  segment?: number;
+  segment?: string;
   // 保存礼物弹幕
   saveGiftDanma?: boolean;
   // 保存高能弹幕

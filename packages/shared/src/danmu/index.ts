@@ -131,12 +131,12 @@ export const parseMetadata = async (input: string) => {
  */
 export const parseDanmu = async (
   input: string,
-  iOptions: {
-    type?: "bililiverecorder" | "blrec" | "ddtv";
-    roomId?: string;
-  } = {},
+  // iOptions: {
+  //   type?: "bililiverecorder" | "blrec" | "ddtv";
+  //   roomId?: string;
+  // } = {},
 ) => {
-  const defaultOptins = {};
+  // const defaultOptins = {};
   // const options = Object.assign(defaultOptins, iOptions);
   const { danmuku, sc, gift, guard } = await parseXmlFile(input);
 

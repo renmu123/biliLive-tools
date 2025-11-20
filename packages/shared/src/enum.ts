@@ -679,7 +679,7 @@ export const videoEncoders = [
 export const defaultRecordConfig: Omit<Recorder, "id"> = {
   providerId: "DouYu",
   channelId: "",
-  segment: 60,
+  segment: "60",
   quality: "highest",
   disableProvideCommentsWhenRecording: false,
   saveGiftDanma: false,
