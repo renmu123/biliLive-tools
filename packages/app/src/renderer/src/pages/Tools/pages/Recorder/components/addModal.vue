@@ -107,17 +107,16 @@
             </n-form-item>
             <n-form-item>
               <template #label>
-                <Tip text="分段时间" tip="0为不分段"></Tip>
+                <Tip
+                  text="分段"
+                  tip="0为不分段，默认为时间分段，单位分钟。<br/>如果以B,KB,MB,GB结尾，会尝试使用文件大小分段，<b>不推荐在ffmpeg引擎中使用</b>"
+                ></Tip>
               </template>
-              <n-input-number
+              <n-input
                 v-model:value="config.segment"
-                min="0"
-                step="10"
-                style="width: 100%"
                 :disabled="globalFieldsObj.segment"
-              >
-                <template #suffix>分钟</template>
-              </n-input-number>
+                placeholder="请输入分段参数"
+              />
               <n-checkbox v-model:checked="globalFieldsObj.segment" class="global-checkbox"
                 >全局</n-checkbox
               >
