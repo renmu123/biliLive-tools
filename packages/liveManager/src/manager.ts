@@ -294,7 +294,7 @@ export function createRecorderManager<
       );
       recorder.on("RecordStop", ({ recordHandle, reason }) => {
         this.emit("RecordStop", { recorder: recorder.toJSON(), recordHandle, reason });
-        const maxRetryCount = 5;
+        const maxRetryCount = 10;
         // 默认策略下，如果录制被中断，那么会在下一个检查周期时重新检查直播状态并重新开始录制，这种策略的问题就是一部分时间会被漏掉。
         // 如果开启了该选项，且录制开始时间与结束时间相差在一分钟以上（某些平台下播会扔会有重复流），那么会立即进行一次检查。
         // 也许之后还能链接复用，但也会引入更多复杂度，需要谨慎考虑
