@@ -365,6 +365,19 @@
             </n-form-item>
             <n-form-item>
               <template #label>
+                <Tip :text="textInfo.douyin.api.text" :tip="textInfo.douyin.api.tip"></Tip>
+              </template>
+              <n-select
+                v-model:value="config.api"
+                :options="douyinApiTypeOptions"
+                :disabled="globalFieldsObj.api"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.api" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item>
+              <template #label>
                 <Tip text="Cookie" tip="我也不知道有啥用，可能哪天被风控的时候用得上吧"></Tip>
               </template>
               <n-input
@@ -583,6 +596,7 @@ import {
   huyaSourceOptions,
   recorderTypeOptions,
   recorderDebugLevelOptions,
+  douyinApiTypeOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
@@ -623,6 +637,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     doubleScreen: true,
     useServerTimestamp: true,
     debugLevel: true,
+    api: true,
   },
 );
 
@@ -718,6 +733,7 @@ const initGlobalFields = () => {
     doubleScreen: !(config.value?.noGlobalFollowFields ?? []).includes("doubleScreen"),
     useServerTimestamp: !(config.value?.noGlobalFollowFields ?? []).includes("useServerTimestamp"),
     debugLevel: !(config.value?.noGlobalFollowFields ?? []).includes("debugLevel"),
+    api: !(config.value?.noGlobalFollowFields ?? []).includes("api"),
   };
 };
 
@@ -821,6 +837,11 @@ watch(
     }
     if (val.debugLevel) {
       config.value.debugLevel = appConfig.value.recorder.debugLevel;
+    }
+    if (val.api) {
+      if (config.value.providerId === "DouYin") {
+        config.value.api = appConfig.value.recorder.douyin.api;
+      }
     }
   },
   {

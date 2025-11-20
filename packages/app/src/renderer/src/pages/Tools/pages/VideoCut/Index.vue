@@ -1,29 +1,5 @@
 <template>
   <div id="cut-tool" class="container">
-    <div class="btns page-header">
-      <ButtonGroup
-        title="请选择项目文件，兼容LosslessCut项目文件"
-        :options="exportOptions"
-        @click="handleProjectBtnClick"
-        v-if="!isWeb"
-        >导入项目文件</ButtonGroup
-      >
-      <n-button type="primary" @click="handleVideoChange"> {{ videoTitle }} </n-button>
-      <n-button
-        class="cut-add-danmu"
-        type="primary"
-        :disabled="!files.videoPath"
-        @click="handleDanmuChange"
-      >
-        {{ danmuTitle }}
-      </n-button>
-
-      <n-button class="cut-export" type="info" :disabled="!files.videoPath" @click="exportCuts">
-        导出切片
-      </n-button>
-      <n-button @click="openSubWindow" v-if="!isWeb" style="display: none">打开独立窗口</n-button>
-    </div>
-
     <div class="content">
       <div v-show="files.videoPath" class="video cut-video">
         <Artplayer
@@ -35,9 +11,14 @@
               heatmap: {
                 option: clientOptions,
               },
+              timestamp: {
+                // position: { top: '10px', right: '10px' },
+                // visible: false,
+                timestamp: 0,
+              },
             },
           }"
-          :plugins="['ass', 'heatmap']"
+          :plugins="['ass', 'heatmap', 'timestamp']"
           @ready="handleVideoReady"
           @video:durationchange="handleVideoDurationChange"
         ></Artplayer>
@@ -51,7 +32,7 @@
               v-model:value="clientOptions.sampling"
               placeholder="单位秒"
               min="1"
-              style="width: 140px"
+              style="width: 120px"
             >
               <template #suffix> 秒 </template></n-input-number
             >
@@ -61,17 +42,16 @@
               v-model:value="clientOptions.height"
               placeholder="单位像素"
               min="10"
-              style="width: 140px"
+              style="width: 120px"
             >
               <template #suffix> 像素 </template></n-input-number
             >
           </div>
-          <div>
-            <n-color-picker v-model:value="clientOptions.color" style="width: 140px" />
-          </div>
-          <div>
-            <n-color-picker v-model:value="clientOptions.fillColor" style="width: 140px" />
-          </div>
+          <n-color-picker v-model:value="clientOptions.color" style="width: 80px" />
+          <n-color-picker v-model:value="clientOptions.fillColor" style="width: 80px" />
+          <n-checkbox v-model:checked="showVideoTime" title="仅供参考，得加载弹幕才成"
+            >显示时间戳</n-checkbox
+          >
           <n-checkbox v-model:checked="danmaSearchMask">弹幕搜索栏遮罩</n-checkbox>
         </div>
       </div>
@@ -93,6 +73,30 @@
         </template>
       </FileArea>
       <div class="cut-list">
+        <div class="btns page-header">
+          <ButtonGroup :options="exportOptions" @click="handleProjectBtnClick" size="small">{{
+            videoTitle
+          }}</ButtonGroup>
+          <n-button
+            class="cut-add-danmu"
+            type="primary"
+            :disabled="!files.videoPath"
+            @click="handleDanmuChange"
+            size="small"
+          >
+            {{ danmuTitle }}
+          </n-button>
+
+          <n-button
+            class="cut-export"
+            type="info"
+            :disabled="!files.videoPath"
+            @click="exportCuts"
+            size="small"
+          >
+            导出
+          </n-button>
+        </div>
         <SegmentList
           :danma-list="danmaList"
           :files="files"
@@ -146,12 +150,14 @@ onActivated(() => {
     redo();
   });
   // 保存
-  hotkeys("ctrl+s", function () {
-    saveProject();
+  hotkeys("ctrl+s", function (event) {
+    event.preventDefault();
+    saveProject(files.value.originVideoPath);
   });
   // 另存为
-  hotkeys("ctrl+shift+s", function () {
-    saveAsAnother();
+  hotkeys("ctrl+shift+s", function (event) {
+    event.preventDefault();
+    saveAsAnother(files.value.originVideoPath);
   });
   // 导出
   hotkeys("ctrl+enter", function () {
@@ -228,6 +234,7 @@ const {
   saveProject,
   saveAsAnother,
   handleProject,
+  clean: cleanProject,
 } = useLlcProject(files);
 
 const { duration: videoDuration, rawCuts } = storeToRefs(useSegmentStore());
@@ -245,14 +252,27 @@ const videoVCutOptions = toReactive(
 );
 
 const exportOptions = computed(() => {
-  return [
+  const list = [
+    { label: "导入项目文件", key: "importProject" },
     ...exportBtns.value,
     { label: "关闭", key: "closeVideo", disabled: !files.value.videoPath },
   ];
+  if (!isWeb.value) {
+    list.push({
+      label: "打开独立窗口",
+      key: "openSubWindow",
+    });
+  }
+  return list;
 });
 const confirm = useConfirm();
 
 const handleProjectBtnClick = async (key?: string | number) => {
+  if (!key) {
+    handleVideoChange();
+    return;
+  }
+
   if (key === "closeVideo") {
     const [status] = await confirm.warning({
       content: "是否确认关闭？相关数据将被清理，且无法恢复",
@@ -265,8 +285,13 @@ const handleProjectBtnClick = async (key?: string | number) => {
     fileList.value = [];
     rawCuts.value = [];
     clearHistory();
+    cleanProject();
+    // @ts-ignore
+    videoInstance.value.artplayerTimestamp.setTimestamp(0);
+  } else if (key === "openSubWindow") {
+    openSubWindow();
   } else {
-    handleProjectClick(key);
+    handleProjectClick(key, files.value.originVideoPath);
   }
 };
 
@@ -399,6 +424,11 @@ const generateDanmakuData = async (file: string) => {
   } else if (file.endsWith(".xml")) {
     const data = await commonApi.parseDanmu(file);
     danmaList.value = sortBy([...data.sc, ...data.danmu], "ts");
+    if (data?.metadata?.video_start_time) {
+      // @ts-ignore
+      videoInstance.value.artplayerTimestamp.setTimestamp(data.metadata.video_start_time * 1000);
+      switchShowVideoTime();
+    }
   } else {
     throw new Error("不支持的文件类型");
   }
@@ -475,6 +505,7 @@ const clientOptions = useStorage("cut-hotprogress", {
 });
 const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
 const danmaSearchMask = useStorage("cut-danma-search-mask", true);
+const showVideoTime = useStorage("cut-show-video-time", true);
 
 watch(
   clientOptions,
@@ -504,6 +535,24 @@ watch(hotProgressVisible, () => {
     videoInstance.value.artplayerPluginHeatmap.hide();
   }
 });
+
+watch(showVideoTime, () => {
+  switchShowVideoTime();
+});
+const switchShowVideoTime = () => {
+  if (!videoInstance.value) return;
+  // @ts-ignore
+  if (!videoInstance.value.artplayerTimestamp) return;
+
+  // @ts-ignore
+  if (showVideoTime.value) {
+    // @ts-ignore
+    videoInstance.value.artplayerTimestamp.show();
+  } else {
+    // @ts-ignore
+    videoInstance.value.artplayerTimestamp.hide();
+  }
+};
 </script>
 
 <style scoped lang="less">
@@ -511,7 +560,7 @@ watch(hotProgressVisible, () => {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
-  gap: 10px;
+  gap: 6px;
 }
 
 .content {
@@ -533,6 +582,7 @@ watch(hotProgressVisible, () => {
   .cut-list {
     display: inline-block;
     flex: 1;
+    min-width: 235px;
   }
 }
 </style>

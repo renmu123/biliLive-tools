@@ -3,19 +3,28 @@
 ## 功能
 
 - 录制：支持批量添加 [#225](https://github.com/renmu123/biliLive-tools/pull/225)
+- 录制：抖音支持单独配置请求接口
 - 弹幕：支持自定义过滤函数 [#238](https://github.com/renmu123/biliLive-tools/pull/238)
+- 切片：支持在画面中展示录制时间 [#247](https://github.com/renmu123/biliLive-tools/pull/247)
+- 切片：web版本支持项目功能 [#248](https://github.com/renmu123/biliLive-tools/pull/248)
 
 ## 优化
 
 - B站：“自动更新帐号授权”选项默认开启
+- 录制：抖音默认接口改为“web”
 
 ## Bug修复
 
 - 录制：修复添加时配置初始化错误的bug
+- 录制：修复抖音某些接口时不会触发关键词检测的bug
+- 录制：修复虎牙、抖音“画质匹配重试次数”不会被重置的bug
+- 录制：修复“画质匹配重试次数”修改后不生效的bug
+- 录制：修复“服务端时间戳”不会跟随全局设置的bug
 
-## 其他
+## 外部依赖
 
 - 录播姬引擎升级至 [3.2.0](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.2.0)，收到 onMetaData 时不再分段，有助于减轻抖音的分段
+- docker 下 BaiduPCS-GO 二进制文件版本更新至4.0.0
 
 # 3.3.2(2025.11.15)
 

@@ -60,7 +60,6 @@ class TestProvider implements RecorderProvider<{}> {
       availableStreams: [],
       availableSources: [],
       state: "idle",
-      qualityMaxRetry: 3,
       qualityRetry: 3,
       toJSON: () => ({
         id: opts.id ?? "test-recorder",
@@ -143,7 +142,6 @@ class BilibiliTestProvider implements RecorderProvider<{}> {
       availableStreams: [],
       availableSources: [],
       state: "idle",
-      qualityMaxRetry: 3,
       qualityRetry: 3,
       toJSON: () => ({
         id: opts.id ?? "bilibili-test-recorder",

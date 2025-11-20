@@ -24,7 +24,7 @@ export interface BaseRecorderOptions {
 /**
  * 录制器接口定义
  */
-export interface IRecorder extends EventEmitter {
+export interface IDownloader extends EventEmitter {
   // 基础属性
   type: "ffmpeg" | "mesio" | "bililive";
   readonly hasSegment: boolean;
@@ -41,6 +41,7 @@ export interface IRecorder extends EventEmitter {
   getArguments(): string[];
   getExtraDataController(): XmlStreamController | null;
   createCommand(): any;
+  get videoFilePath(): string;
 
   // 事件类型定义
   on(

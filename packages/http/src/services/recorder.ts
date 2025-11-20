@@ -98,7 +98,7 @@ async function getRecorders(
       );
       data.recordHandle = isEmpty(data.recordHandle)
         ? data.recordHandle
-        : omit(data.recordHandle, "ffmpegArgs");
+        : omit(data.recordHandle, "downloaderArgs");
       return data;
     }),
     pagination: {

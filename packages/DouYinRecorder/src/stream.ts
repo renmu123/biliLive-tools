@@ -18,10 +18,10 @@ export async function getInfo(
   roomId: string;
   avatar: string;
   cover: string;
-  liveStartTime: Date;
   liveId: string;
   uid: string;
   api: RealAPIType;
+  liveStartTime: Date;
   recordStartTime: Date;
 }> {
   let info;

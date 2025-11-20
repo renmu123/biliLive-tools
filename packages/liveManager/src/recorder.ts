@@ -2,8 +2,9 @@ import { Emitter } from "mitt";
 import { ChannelId, Message, Quality } from "./common.js";
 import { RecorderProvider } from "./manager.js";
 import { AnyObject, PickRequired, UnknownObject } from "./utils.js";
+import type { NamespacedCache } from "./cache.js";
 
-import type { RecorderType } from "./recorder/index.js";
+import type { DownloaderType } from "./downloader/index.js";
 
 type FormatName = "auto" | "flv" | "hls" | "fmp4" | "flv_only" | "hls_only" | "fmp4_only";
 type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
@@ -74,8 +75,6 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   extra?: Partial<E>;
   /** 调试等级 */
   debugLevel?: "none" | "basic" | "verbose";
-  /** 缓存 */
-  // cache: Cache;
 }
 
 export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id"> &
@@ -114,9 +113,9 @@ export interface RecordHandle {
   id: string;
   stream: string;
   source: string;
-  recorderType?: RecorderType;
+  recorderType?: DownloaderType;
   url: string;
-  ffmpegArgs?: string[];
+  downloaderArgs?: string[];
   progress?: Progress;
 
   savePath: string;
@@ -162,8 +161,6 @@ export interface Recorder<E extends AnyObject = UnknownObject>
   usedStream?: string;
   usedSource?: string;
   state: RecorderState;
-  // 默认画质重试次数
-  qualityMaxRetry: number;
   // 画质重试次数上限
   qualityRetry: number;
   // B站弹幕录制，cookie拥有者的uid，抖音的sec_uid
@@ -179,12 +176,8 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     recordStartTime: Date;
   };
   tempStopIntervalCheck?: boolean;
-  // TODO: 随机的一条近期弹幕 / 评论，这或许应该放在 manager 层做，上面再加个频率统计之类的
-  // recently comment: { time, text, ... }
-
-  /** 缓存实例引用，由 manager 设置 */
-  // cache: Cache;
-
+  /** 缓存实例（命名空间） */
+  cache: NamespacedCache;
   getChannelURL: (this: Recorder<E>) => string;
 
   // TODO: 这个接口以后可能会拆成两个，因为要考虑有些网站可能会提供批量检查直播状态的接口，比如斗鱼

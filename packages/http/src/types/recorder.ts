@@ -114,6 +114,7 @@ export type UpdateRecorderArgs = Pick<
   | "handleTime"
   | "weight"
   | "debugLevel"
+  | "api"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 
