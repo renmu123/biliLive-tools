@@ -131,6 +131,9 @@ export default function artplayerTimestamp(options: TimestampPluginOptions) {
       },
       setTimestamp(newTimestamp: number) {
         options.timestamp = newTimestamp;
+        if (!options.timestamp) {
+          timestampElement.style.display = "none";
+        }
         updateTimestamp();
       },
     };

@@ -269,6 +269,8 @@ const handleProjectBtnClick = async (key?: string | number) => {
     fileList.value = [];
     rawCuts.value = [];
     clearHistory();
+    // @ts-ignore
+    videoInstance.value.artplayerTimestamp.setTimestamp(0);
   } else {
     handleProjectClick(key);
   }
