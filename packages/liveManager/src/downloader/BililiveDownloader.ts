@@ -180,11 +180,11 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
         inputOptions.push("-h", `${key}: ${value}`);
       });
     }
-    if (this.hasSegment) {
+    if (this.segment) {
       if (typeof this.segment === "number") {
-        inputOptions.push("-d", `${this.segment * 60}`);
+        inputOptions.push("-d", `${this.segment}`);
       } else if (typeof this.segment === "string") {
-        inputOptions.push("-m", Math.floor(byte2MB(Number(this.segment))).toString());
+        inputOptions.push("-m", byte2MB(Number(this.segment)).toFixed(2));
       }
     }
 

@@ -193,7 +193,7 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
         inputOptions.push("-H", `${key}: ${value}`);
       });
     }
-    if (this.hasSegment) {
+    if (this.segment) {
       if (typeof this.segment === "number") {
         inputOptions.push("-d", `${this.segment * 60}s`);
       } else if (typeof this.segment === "string") {
