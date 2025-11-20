@@ -35,9 +35,14 @@
               heatmap: {
                 option: clientOptions,
               },
+              timestamp: {
+                // position: { top: '10px', right: '10px' },
+                // visible: false,
+                timestamp: 0,
+              },
             },
           }"
-          :plugins="['ass', 'heatmap']"
+          :plugins="['ass', 'heatmap', 'timestamp']"
           @ready="handleVideoReady"
           @video:durationchange="handleVideoDurationChange"
         ></Artplayer>
@@ -51,7 +56,7 @@
               v-model:value="clientOptions.sampling"
               placeholder="单位秒"
               min="1"
-              style="width: 140px"
+              style="width: 120px"
             >
               <template #suffix> 秒 </template></n-input-number
             >
@@ -61,17 +66,16 @@
               v-model:value="clientOptions.height"
               placeholder="单位像素"
               min="10"
-              style="width: 140px"
+              style="width: 120px"
             >
               <template #suffix> 像素 </template></n-input-number
             >
           </div>
-          <div>
-            <n-color-picker v-model:value="clientOptions.color" style="width: 140px" />
-          </div>
-          <div>
-            <n-color-picker v-model:value="clientOptions.fillColor" style="width: 140px" />
-          </div>
+          <n-color-picker v-model:value="clientOptions.color" style="width: 80px" />
+          <n-color-picker v-model:value="clientOptions.fillColor" style="width: 80px" />
+          <n-checkbox v-model:checked="showVideoTime" title="仅供参考，得加载弹幕才成"
+            >显示时间戳</n-checkbox
+          >
           <n-checkbox v-model:checked="danmaSearchMask">弹幕搜索栏遮罩</n-checkbox>
         </div>
       </div>
@@ -265,6 +269,8 @@ const handleProjectBtnClick = async (key?: string | number) => {
     fileList.value = [];
     rawCuts.value = [];
     clearHistory();
+    // @ts-ignore
+    videoInstance.value.artplayerTimestamp.setTimestamp(0);
   } else {
     handleProjectClick(key);
   }
@@ -399,6 +405,11 @@ const generateDanmakuData = async (file: string) => {
   } else if (file.endsWith(".xml")) {
     const data = await commonApi.parseDanmu(file);
     danmaList.value = sortBy([...data.sc, ...data.danmu], "ts");
+    if (data?.metadata?.video_start_time) {
+      // @ts-ignore
+      videoInstance.value.artplayerTimestamp.setTimestamp(data.metadata.video_start_time * 1000);
+      switchShowVideoTime();
+    }
   } else {
     throw new Error("不支持的文件类型");
   }
@@ -475,6 +486,7 @@ const clientOptions = useStorage("cut-hotprogress", {
 });
 const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
 const danmaSearchMask = useStorage("cut-danma-search-mask", true);
+const showVideoTime = useStorage("cut-show-video-time", true);
 
 watch(
   clientOptions,
@@ -504,6 +516,24 @@ watch(hotProgressVisible, () => {
     videoInstance.value.artplayerPluginHeatmap.hide();
   }
 });
+
+watch(showVideoTime, () => {
+  switchShowVideoTime();
+});
+const switchShowVideoTime = () => {
+  if (!videoInstance.value) return;
+  // @ts-ignore
+  if (!videoInstance.value.artplayerTimestamp) return;
+
+  // @ts-ignore
+  if (showVideoTime.value) {
+    // @ts-ignore
+    videoInstance.value.artplayerTimestamp.show();
+  } else {
+    // @ts-ignore
+    videoInstance.value.artplayerTimestamp.hide();
+  }
+};
 </script>
 
 <style scoped lang="less">
