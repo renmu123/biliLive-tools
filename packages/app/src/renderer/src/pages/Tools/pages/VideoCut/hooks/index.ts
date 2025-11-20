@@ -170,8 +170,8 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
     if (!isWeb) {
       items.push({ label: "重新加载", key: "refresh", disabled });
       items.push({ label: "使用llc打开", key: "open", disabled });
-      items.push({ label: "保存(ctrl+s)", key: "save", disabled });
     }
+    items.push({ label: "保存(ctrl+s)", key: "save", disabled });
     items.push({
       label: "另存为(ctrl+shift+n)",
       key: "saveAnother",
