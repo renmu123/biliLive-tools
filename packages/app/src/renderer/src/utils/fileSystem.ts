@@ -9,6 +9,7 @@ export const showSaveDialog = async (options: {
       await showDialog({
         type: "save",
         extension: options.extension ?? "mp4",
+        defaultPath: options.defaultPath,
       })
     )?.[0];
     return filePath;

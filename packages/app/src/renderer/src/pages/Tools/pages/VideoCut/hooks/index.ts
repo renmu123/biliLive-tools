@@ -3,6 +3,7 @@ import JSON5 from "json5";
 import { useAppConfig, useSegmentStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
 import { showFileDialog, showSaveDialog } from "@renderer/utils/fileSystem";
+import { replaceExtName } from "@renderer/utils";
 import { commonApi } from "@renderer/apis";
 
 export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
@@ -13,6 +14,11 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
 
   const llcProjectPath = ref("");
   const mediaPath = ref("");
+
+  const clean = () => {
+    llcProjectPath.value = "";
+    mediaPath.value = "";
+  };
 
   /**
    * 导入项目文件
@@ -68,7 +74,7 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
   /**
    * 保存项目按钮
    */
-  const saveProject = async () => {
+  const saveProject = async (rawFilePath?: string | null) => {
     const mediaFileName = mediaPath.value || files.value.videoPath;
     if (!mediaFileName) {
       notice.error({
@@ -80,7 +86,7 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
     if (llcProjectPath.value) {
       save();
     } else {
-      saveAsAnother();
+      saveAsAnother(rawFilePath);
     }
   };
 
@@ -130,11 +136,12 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
   /**
    * 另存为项目文件
    */
-  const saveAsAnother = async () => {
+  const saveAsAnother = async (rawFilePath?: string | null) => {
     if (options.value.find((item) => item.key === "saveAnother")?.disabled) return;
 
     const file = await showSaveDialog({
       extension: "llc",
+      defaultPath: replaceExtName(rawFilePath || "", ".llc"),
     });
 
     if (!file) return;
@@ -145,17 +152,17 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
   /**
    * 导入项目文件按钮组点击事件
    */
-  const handleProjectClick = (key?: string | number) => {
+  const handleProjectClick = (key?: string | number, rawFilePath?: string | null) => {
     if (key === "importProject") {
       importProject();
     } else if (key === "refresh") {
       loadProject();
     } else if (key === "save") {
-      saveProject();
+      saveProject(rawFilePath);
     } else if (key === "open") {
       openProject();
     } else if (key === "saveAnother") {
-      saveAsAnother();
+      saveAsAnother(rawFilePath);
     } else {
       console.error(`${key} is not supported`);
     }
@@ -171,7 +178,7 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
     }
     items.push({ label: "保存(ctrl+s)", key: "save", disabled });
     items.push({
-      label: "另存为(ctrl+shift+n)",
+      label: "另存为(ctrl+shift+s)",
       key: "saveAnother",
       disabled: !files.value.videoPath,
     });
@@ -188,5 +195,6 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
     saveProject,
     saveAsAnother,
     handleProject,
+    clean,
   };
 }

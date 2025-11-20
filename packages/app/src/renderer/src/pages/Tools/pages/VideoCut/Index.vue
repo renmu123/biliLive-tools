@@ -150,12 +150,14 @@ onActivated(() => {
     redo();
   });
   // 保存
-  hotkeys("ctrl+s", function () {
-    saveProject();
+  hotkeys("ctrl+s", function (event) {
+    event.preventDefault();
+    saveProject(files.value.originVideoPath);
   });
   // 另存为
-  hotkeys("ctrl+shift+s", function () {
-    saveAsAnother();
+  hotkeys("ctrl+shift+s", function (event) {
+    event.preventDefault();
+    saveAsAnother(files.value.originVideoPath);
   });
   // 导出
   hotkeys("ctrl+enter", function () {
@@ -232,6 +234,7 @@ const {
   saveProject,
   saveAsAnother,
   handleProject,
+  clean: cleanProject,
 } = useLlcProject(files);
 
 const { duration: videoDuration, rawCuts } = storeToRefs(useSegmentStore());
@@ -267,6 +270,7 @@ const confirm = useConfirm();
 const handleProjectBtnClick = async (key?: string | number) => {
   if (!key) {
     handleVideoChange();
+    return;
   }
 
   if (key === "closeVideo") {
@@ -281,12 +285,13 @@ const handleProjectBtnClick = async (key?: string | number) => {
     fileList.value = [];
     rawCuts.value = [];
     clearHistory();
+    cleanProject();
     // @ts-ignore
     videoInstance.value.artplayerTimestamp.setTimestamp(0);
   } else if (key === "openSubWindow") {
     openSubWindow();
   } else {
-    handleProjectClick(key);
+    handleProjectClick(key, files.value.originVideoPath);
   }
 };
 
