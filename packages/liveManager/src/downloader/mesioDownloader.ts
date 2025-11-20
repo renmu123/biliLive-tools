@@ -128,7 +128,9 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
+    // 存在自动分段，永远为true
     const hasSegment = true;
+    this.hasSegment = hasSegment;
     this.disableDanma = opts.disableDanma ?? false;
     this.debugLevel = opts.debugLevel ?? "none";
 
@@ -154,7 +156,6 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
         onUpdateLiveInfo: this.onUpdateLiveInfo,
       },
     );
-    this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
     this.inputOptions = [];
     this.url = opts.url;
