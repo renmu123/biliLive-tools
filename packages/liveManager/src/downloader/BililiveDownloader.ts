@@ -2,6 +2,7 @@ import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
 import { StreamManager, getBililivePath } from "../index.js";
+import { byte2MB } from "../utils.js";
 import { IDownloader, BililiveRecorderOptions, Segment } from "./IDownloader.js";
 
 // Bililive command builder class similar to ffmpeg
@@ -183,7 +184,7 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
       if (typeof this.segment === "number") {
         inputOptions.push("-d", `${this.segment * 60}`);
       } else if (typeof this.segment === "string") {
-        inputOptions.push("-m", this.segment);
+        inputOptions.push("-m", Math.floor(byte2MB(Number(this.segment))).toString());
       }
     }
 

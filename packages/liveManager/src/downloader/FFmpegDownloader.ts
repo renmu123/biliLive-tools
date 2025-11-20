@@ -167,17 +167,11 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
     );
     if (this.segment) {
       if (typeof this.segment === "number") {
-        options.push(
-          "-f",
-          "segment",
-          "-segment_time",
-          String(this.segment * 60),
-          "-reset_timestamps",
-          "1",
-        );
+        options.push("-f", "segment", "-segment_time", String(this.segment * 60));
       } else if (typeof this.segment === "string") {
-        options.push("-fs", String(this.segment), "-reset_timestamps", "1");
+        options.push("-fs", String(this.segment));
       }
+      options.push("-reset_timestamps", "1");
       if (this.videoFormat === "m4s") {
         options.push("-segment_format", "mp4");
       }

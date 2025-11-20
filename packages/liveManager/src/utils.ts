@@ -462,6 +462,10 @@ export function parseSizeToBytes(sizeStr: string): number | string {
   }
 }
 
+export const byte2MB = (bytes: number) => {
+  return bytes / (1024 * 1024);
+};
+
 export default {
   replaceExtName,
   singleton,
