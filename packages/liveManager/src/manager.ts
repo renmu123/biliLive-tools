@@ -301,7 +301,6 @@ export function createRecorderManager<
         // 虎牙直播结束后可能额外触发导致错误，忽略虎牙直播间：https://www.huya.com/910323
         if (
           manager.recordRetryImmediately &&
-          recorder.providerId !== "HuYa" &&
           recorder?.liveInfo?.liveId &&
           reason !== "manual stop"
         ) {
