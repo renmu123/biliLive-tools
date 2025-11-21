@@ -845,6 +845,6 @@ const checkForUpdates = async () => {
 }
 .setting-tab > :deep(.n-tab-pane) {
   overflow: auto;
-  height: calc(100vh - 200px);
+  height: calc(100vh - 130px);
 }
 </style>

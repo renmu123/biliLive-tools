@@ -138,7 +138,7 @@ export function selectRandomAPI(exclude?: RealAPIType[]): RealAPIType {
 }
 
 /**
- * 通过解析直播html页面来获取房间数据
+ * 通过解析用户html页面来获取房间数据
  * @param secUserId
  * @param opts
  */
@@ -241,7 +241,7 @@ async function getRoomInfoByUserWeb(
 }
 
 /**
- * 通过解析用户html页面来获取房间数据
+ * 通过解析直播html页面来获取房间数据
  * @param webRoomId
  * @param opts
  */
@@ -474,7 +474,6 @@ export async function getRoomInfo(
   }
   // console.log(JSON.stringify(data, null, 2));
   const room = data.room;
-  assert(room, `No room data, id ${webRoomId}`);
   if (api === "userHTML") {
     return {
       living: data.living,
@@ -484,12 +483,13 @@ export async function getRoomInfo(
       streams: [],
       sources: [],
       avatar: data.avatar,
-      cover: room.cover,
-      liveId: room.id_str,
+      cover: room?.cover ?? "",
+      liveId: room?.id_str ?? "",
       uid: data.sec_uid,
       api: data.api,
     };
   }
+  assert(room, `No room data, id ${webRoomId}`);
 
   if (room?.stream_url == null) {
     return {

@@ -2,6 +2,9 @@ import { Ref } from "vue";
 import JSON5 from "json5";
 import { useAppConfig, useSegmentStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
+import { showFileDialog, showSaveDialog } from "@renderer/utils/fileSystem";
+import { replaceExtName } from "@renderer/utils";
+import { commonApi } from "@renderer/apis";
 
 export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
   const notice = useNotification();
@@ -12,21 +15,22 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
   const llcProjectPath = ref("");
   const mediaPath = ref("");
 
+  const clean = () => {
+    llcProjectPath.value = "";
+    mediaPath.value = "";
+  };
+
   /**
    * 导入项目文件
    */
   const importProject = async () => {
-    const files = await window.api.openFile({
-      multi: false,
-      filters: [
-        {
-          name: "file",
-          extensions: ["llc"],
-        },
-      ],
+    const files = await showFileDialog({
+      extensions: ["llc"],
     });
     if (!files) return;
-    const file = files[0];
+
+    if (!files) return;
+    const file = files?.[0];
     handleProject(file);
   };
 
@@ -34,18 +38,27 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
    * 处理项目文件
    */
   const handleProject = async (file: string) => {
-    llcProjectPath.value = file;
-    const data = JSON5.parse(await window.api.common.readFile(file));
-    init(
-      data.cutSegments.map((item: any) => {
-        return {
-          ...item,
-          checked: true,
-        };
-      }),
-    );
-    const mediaFileName = data.mediaFileName;
-    mediaPath.value = window.path.join(window.path.dirname(file), mediaFileName);
+    const content = await commonApi.readLLCProject(file);
+    try {
+      llcProjectPath.value = file;
+      const data = JSON5.parse(content);
+
+      init(
+        data.cutSegments.map((item: any) => {
+          return {
+            ...item,
+            checked: true,
+          };
+        }),
+      );
+      const mediaFileName = data.mediaFileName;
+      mediaPath.value = window.path.join(window.path.dirname(file), mediaFileName);
+    } catch (error) {
+      notice.error({
+        title: "项目文件解析失败，请确认文件有效",
+        duration: 2000,
+      });
+    }
   };
 
   /**
@@ -61,7 +74,7 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
   /**
    * 保存项目按钮
    */
-  const saveProject = async () => {
+  const saveProject = async (rawFilePath?: string | null) => {
     const mediaFileName = mediaPath.value || files.value.videoPath;
     if (!mediaFileName) {
       notice.error({
@@ -73,7 +86,7 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
     if (llcProjectPath.value) {
       save();
     } else {
-      saveAsAnother();
+      saveAsAnother(rawFilePath);
     }
   };
 
@@ -94,8 +107,7 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
       mediaFileName: window.path.basename(mediaFileName),
       cutSegments: rawCuts.value.map(({ start, end, name, tags }) => ({ start, end, name, tags })),
     };
-    console.log("save", llcProjectPath.value, projectData);
-    await window.api.common.writeFile(llcProjectPath.value, JSON5.stringify(projectData, null, 2));
+    await commonApi.writeLLCProject(llcProjectPath.value, JSON5.stringify(projectData, null, 2));
     notice.success({
       title: "已保存",
       duration: 1000,
@@ -112,7 +124,6 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
     if (appConfig.value.losslessCutPath) {
       // 使用用户设置的lossless-cut路径打开项目文件
       window.api.common.execFile(appConfig.value.losslessCutPath, [llcProjectPath.value]);
-      console.log("openProject", appConfig.value.losslessCutPath);
     } else {
       notice.info({
         title: "使用默认程序打开llc文件，你也可以尝试在设置中设置lossless-cut的路径",
@@ -125,11 +136,12 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
   /**
    * 另存为项目文件
    */
-  const saveAsAnother = async () => {
+  const saveAsAnother = async (rawFilePath?: string | null) => {
     if (options.value.find((item) => item.key === "saveAnother")?.disabled) return;
 
-    const file = await window.api.showSaveDialog({
-      filters: [{ name: "LosslessCut项目", extensions: ["llc"] }],
+    const file = await showSaveDialog({
+      extension: "llc",
+      defaultPath: replaceExtName(rawFilePath || "", ".llc"),
     });
 
     if (!file) return;
@@ -140,17 +152,17 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
   /**
    * 导入项目文件按钮组点击事件
    */
-  const handleProjectClick = (key?: string | number) => {
-    if (!key) {
+  const handleProjectClick = (key?: string | number, rawFilePath?: string | null) => {
+    if (key === "importProject") {
       importProject();
     } else if (key === "refresh") {
       loadProject();
     } else if (key === "save") {
-      saveProject();
+      saveProject(rawFilePath);
     } else if (key === "open") {
       openProject();
     } else if (key === "saveAnother") {
-      saveAsAnother();
+      saveAsAnother(rawFilePath);
     } else {
       console.error(`${key} is not supported`);
     }
@@ -163,10 +175,10 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
     if (!isWeb) {
       items.push({ label: "重新加载", key: "refresh", disabled });
       items.push({ label: "使用llc打开", key: "open", disabled });
-      items.push({ label: "保存(ctrl+s)", key: "save", disabled });
     }
+    items.push({ label: "保存(ctrl+s)", key: "save", disabled });
     items.push({
-      label: "另存为(ctrl+shift+n)",
+      label: "另存为(ctrl+shift+s)",
       key: "saveAnother",
       disabled: !files.value.videoPath,
     });
@@ -183,5 +195,6 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
     saveProject,
     saveAsAnother,
     handleProject,
+    clean,
   };
 }

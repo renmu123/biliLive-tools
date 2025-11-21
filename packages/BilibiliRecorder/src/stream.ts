@@ -75,32 +75,35 @@ export async function getInfo(channelId: string): Promise<{
   roomId: number;
   avatar: string;
   cover: string;
-  startTime: Date;
+  liveStartTime: Date;
   uid: number;
   liveId: string;
+  recordStartTime: Date;
 }> {
   const roomInit = await getRoomInit(Number(channelId));
   const { [roomInit.uid]: status } = await getStatusInfoByUIDs([roomInit.uid]);
+  const recordStartTime = new Date();
   if (!status) {
     // 未获取到直播间信息，可能是加密，尝试换一个接口
     const data = await getRoomBaseInfo(Number(channelId));
     const status = data[channelId];
 
-    const startTime = new Date(status.live_time);
+    const liveStartTime = new Date(status.live_time);
     return {
       uid: roomInit.uid,
       living: roomInit.live_status === 1 && !roomInit.encrypted,
       owner: status.uname,
       title: status.title,
-      startTime: startTime,
+      liveStartTime: liveStartTime,
       avatar: "",
       cover: status.cover,
       roomId: roomInit.room_id,
-      liveId: utils.md5(`${roomInit.room_id}-${startTime?.getTime()}`),
+      liveId: utils.md5(`${roomInit.room_id}-${liveStartTime?.getTime()}`),
+      recordStartTime,
     };
   }
 
-  const startTime = new Date(status.live_time * 1000);
+  const liveStartTime = new Date(status.live_time * 1000);
 
   return {
     uid: roomInit.uid,
@@ -110,8 +113,9 @@ export async function getInfo(channelId: string): Promise<{
     avatar: status.face,
     cover: status.cover_from_user,
     roomId: roomInit.room_id,
-    startTime: startTime,
-    liveId: utils.md5(`${roomInit.room_id}-${startTime.getTime()}`),
+    liveStartTime: liveStartTime,
+    liveId: utils.md5(`${roomInit.room_id}-${liveStartTime.getTime()}`),
+    recordStartTime,
   };
 }
 
