@@ -27,7 +27,7 @@ export interface Container {
 
   mainDbPath: string;
   danmuDbPath: string;
-  dbPath: string;
+  dbRootPath: string;
 
   statisticsModel: StatisticsModel;
   virtualRecordModel: VirtualRecordModel;
@@ -68,9 +68,9 @@ function createDanmuDatabase({ danmuDbPath }: { danmuDbPath: string }): Database
   return db;
 }
 
-export function setupContainer(dbPath: string) {
-  const mainDbPath = path.join(dbPath, "app.db");
-  const danmuDbPath = path.join(dbPath, "dm0.db");
+export function setupContainer(dbRootPath: string) {
+  const mainDbPath = path.join(dbRootPath, "app.db");
+  const danmuDbPath = path.join(dbRootPath, "dm0.db");
 
   const container = createContainer<Container>({
     injectionMode: InjectionMode.PROXY,
@@ -78,7 +78,7 @@ export function setupContainer(dbPath: string) {
 
   // Register database paths
   container.register({
-    dbPath: asValue(dbPath),
+    dbRootPath: asValue(dbRootPath),
     mainDbPath: asValue(mainDbPath),
     danmuDbPath: asValue(danmuDbPath),
   });

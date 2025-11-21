@@ -13,19 +13,10 @@ export let recordHistoryService: Container["recordHistoryService"];
 export let uploadPartService: Container["uploadPartService"];
 export let danmuService: Container["danmuService"];
 
-export const initDB = (dbPath: string): void => {
+export const initDB = (dbRootPath: string): void => {
   // 依赖注入容器
-  dbContainer = setupContainer(dbPath);
-  statisticsService = dbContainer.resolve("statisticsService");
-  virtualRecordService = dbContainer.resolve("virtualRecordService");
-  videoSubDataService = dbContainer.resolve("videoSubDataService");
-  streamerService = dbContainer.resolve("streamerService");
-  videoSubService = dbContainer.resolve("videoSubService");
-  recordHistoryService = dbContainer.resolve("recordHistoryService");
-  uploadPartService = dbContainer.resolve("uploadPartService");
-
-  // 弹幕服务 - 使用独立的弹幕数据库
-  danmuService = dbContainer.resolve("danmuService");
+  dbContainer = setupContainer(dbRootPath);
+  setExportServices(dbContainer);
 };
 
 export const closeDB = (): void => {
@@ -42,10 +33,11 @@ export const backupDB = (filename: string) => {
 };
 
 export const reconnectDB = (): void => {
-  const dbPath = dbContainer.resolve("dbPath");
-  dbContainer = setupContainer(dbPath);
+  const dbRootPath = dbContainer.resolve("dbRootPath");
+  initDB(dbRootPath);
+};
 
-  // 重新赋值所有服务变量，确保它们使用新的数据库连接
+const setExportServices = (dbContainer: ReturnType<typeof setupContainer>) => {
   statisticsService = dbContainer.resolve("statisticsService");
   virtualRecordService = dbContainer.resolve("virtualRecordService");
   videoSubDataService = dbContainer.resolve("videoSubDataService");
