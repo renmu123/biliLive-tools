@@ -21,7 +21,7 @@ import { electronApp, optimizer, is } from "@electron-toolkit/utils";
 
 import log from "./utils/log";
 import { notify } from "./utils/index";
-import { init, createRecorderManager } from "@biliLive-tools/shared";
+import { init } from "@biliLive-tools/shared";
 import { serverStart } from "@biliLive-tools/http";
 
 import { cookieHandlers } from "./cookie";
@@ -42,8 +42,6 @@ import {
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
 import type { Theme, GlobalConfig } from "@biliLive-tools/types";
-// import type { AwilixContainer } from "awilix";
-import type { AppConfig, TaskQueue } from "@biliLive-tools/shared";
 
 export let mainWin: BrowserWindow;
 export let container = createContainer();
@@ -285,7 +283,7 @@ function createWindow(): void {
 
   // 触发关闭时触发
   mainWin.on("close", (event) => {
-    const appConfig = container.resolve<AppConfig>("appConfig");
+    const appConfig = container.resolve("appConfig");
 
     const closeToTray = appConfig.get("closeToTray");
     event.preventDefault();
@@ -299,7 +297,7 @@ function createWindow(): void {
   });
   // 窗口最小化
   mainWin.on("minimize", () => {
-    const appConfig = container.resolve<AppConfig>("appConfig");
+    const appConfig = container.resolve("appConfig");
     const minimizeToTray = appConfig.get("minimizeToTray");
     if (minimizeToTray) {
       // event.preventDefault();
@@ -437,11 +435,9 @@ function createMenu(): void {
   Menu.setApplicationMenu(menu);
 }
 
-type createRecorderManagerType = Awaited<ReturnType<typeof createRecorderManager>>;
-
 const canQuit = async () => {
-  const taskQueue = container.resolve<TaskQueue>("taskQueue");
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const taskQueue = container.resolve("taskQueue");
+  const recorderManager = container.resolve("recorderManager");
 
   const tasks = taskQueue.list();
   const isRunningTask = tasks.some((task) =>
@@ -557,7 +553,7 @@ if (!gotTheLock) {
 
     if (error.message.includes("listen EADDRINUSE")) {
       setTimeout(() => {
-        const appConfig = container.resolve<AppConfig>("appConfig");
+        const appConfig = container.resolve("appConfig");
         notify(mainWin.webContents, {
           type: "error",
           content: `检查是否有其他程序占用了${appConfig.get("port")}端口，请尝试更换端口或重启设备`,
@@ -673,7 +669,7 @@ const appInit = async () => {
     version: app.getVersion(),
   };
   container = await init(globalConfig);
-  const appConfig = container.resolve<AppConfig>("appConfig");
+  const appConfig = container.resolve("appConfig");
 
   await serverStart(
     {
@@ -698,7 +694,7 @@ const appInit = async () => {
 };
 
 // const taskQueueListen = (container: AwilixContainer) => {
-//   const taskQueue = container.resolve<TaskQueue>("taskQueue");
+//   const taskQueue = container.resolve("taskQueue");
 //   taskQueue.on("task-start", ({ taskId }) => {
 //     mainWin.webContents.send("task-start", { taskId: taskId });
 //   });

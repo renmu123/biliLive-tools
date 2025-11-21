@@ -21,19 +21,14 @@ import { container } from "../index.js";
 import { parseXmlFile } from "../danmu/index.js";
 import { XMLBuilder } from "fast-xml-parser";
 
-import type {
-  DanmuConfig,
-  DanmaOptions,
-  HotProgressOptions,
-  GlobalConfig,
-} from "@biliLive-tools/types";
+import type { DanmuConfig, DanmaOptions, HotProgressOptions } from "@biliLive-tools/types";
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
 const getDanmuFactoryPath = () => {
   const config = appConfig.getAll();
   let danmuFactoryPath = config.danmuFactoryPath;
   if (!config.customExecPath) {
-    const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+    const globalConfig = container.resolve("globalConfig");
     danmuFactoryPath = globalConfig.defaultDanmakuFactoryPath;
   }
 

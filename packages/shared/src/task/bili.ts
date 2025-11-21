@@ -16,17 +16,11 @@ import {
   BilibiliLiveDownloadVideoTask,
 } from "./task.js";
 import log from "../utils/log.js";
-import BiliCheckQueue from "./BiliCheckQueue.js";
 import { sleep, encrypt, decrypt, getTempPath, trashItem, uuid } from "../utils/index.js";
 import { sendNotify } from "../notify.js";
 import { getFfmpegPath } from "./video.js";
 
-import type {
-  BiliupConfig,
-  BiliUser,
-  GlobalConfig,
-  AppConfig as AppConfigType,
-} from "@biliLive-tools/types";
+import type { BiliupConfig, BiliUser, AppConfig as AppConfigType } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
 import type { Item as MediaItem } from "./BiliCheckQueue.js";
 
@@ -357,7 +351,7 @@ export async function addMediaApi(
   video: { cid: number; filename: string; title: string; desc?: string }[],
   options: BiliupConfig,
 ) {
-  const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+  const globalConfig = container.resolve("globalConfig");
   const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
   const client = createClient(uid);
   if (appConfig?.get("biliUpload")?.useBCutAPI) {
@@ -378,7 +372,7 @@ export async function editMediaApi(
   const mediaOptions = {};
   console.log("编辑视频", options);
 
-  // const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+  // const globalConfig = container.resolve("globalConfig");
   // const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
   const client = createClient(uid);
   return client.platform.editMediaWebApi(video, { aid, ...mediaOptions }, "append");
@@ -547,7 +541,7 @@ async function addMedia(
           appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
           extraOptions?.afterUploadDeletAction === "deleteAfterCheck"
         ) {
-          const commentQueue = container.resolve<BiliCheckQueue>("commentQueue");
+          const commentQueue = container.resolve("commentQueue");
           commentQueue.add({
             aid: data.aid,
             uid: uid,
@@ -655,7 +649,7 @@ export async function editMedia(
           appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
           extraOptions?.afterUploadDeletAction === "deleteAfterCheck"
         ) {
-          const commentQueue = container.resolve<BiliCheckQueue>("commentQueue");
+          const commentQueue = container.resolve("commentQueue");
           commentQueue.add({ aid: aid, uid });
           commentQueue.once("update", (_, status, media) => {
             console.log("审核结果", status, media);

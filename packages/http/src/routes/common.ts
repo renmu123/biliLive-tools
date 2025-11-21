@@ -19,7 +19,6 @@ import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
 
 import { config, handler, appConfig, fileCache } from "../index.js";
 import { container } from "../index.js";
-import { createRecorderManager } from "@biliLive-tools/shared";
 
 const router = new Router({
   prefix: "/common",
@@ -505,8 +504,7 @@ router.get("/whyUploadFailed", async (ctx) => {
 
   try {
     // 检查是否为内部录制
-    type RecorderManagerType = Awaited<ReturnType<typeof createRecorderManager>>;
-    const recorderManager = container.resolve<RecorderManagerType>("recorderManager");
+    const recorderManager = container.resolve("recorderManager");
     const internalRecorder = recorderManager.manager.recorders.find(
       (recorder) => recorder.channelId == roomId,
     );
