@@ -155,7 +155,7 @@ import hotkeys from "hotkeys-js";
 import { useElementSize, toReactive } from "@vueuse/core";
 import { sortBy } from "lodash-es";
 
-import type ArtplayerType from "artplayer";
+// import type ArtplayerType from "artplayer";
 import type { DanmuConfig, DanmuItem } from "@biliLive-tools/types";
 
 onActivated(() => {
@@ -337,9 +337,9 @@ const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
 // @ts-ignore
 const { width: videoWidth } = useElementSize(videoRef);
 
-const videoInstance = ref<ArtplayerType | null>(null);
+const videoInstance = ref<Artplayer | null>(null);
 provide("videoInstance", videoInstance);
-const handleVideoReady = (instance: ArtplayerType) => {
+const handleVideoReady = (instance: Artplayer) => {
   videoInstance.value = instance;
 };
 
@@ -456,6 +456,7 @@ const generateDanmakuData = async (file: string) => {
 
   // @ts-ignore
   videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
+  setHotProgressVisible(hotProgressVisible.value);
 };
 
 const exportVisible = ref(false);
@@ -539,19 +540,22 @@ watch(
   },
 );
 
-watch(hotProgressVisible, () => {
+const setHotProgressVisible = (visible: boolean) => {
   if (!videoInstance.value) return;
   // @ts-ignore
   if (!videoInstance.value.artplayerPluginHeatmap) return;
 
-  // @ts-ignore
-  if (hotProgressVisible.value) {
+  if (visible) {
     // @ts-ignore
     videoInstance.value.artplayerPluginHeatmap.show();
   } else {
     // @ts-ignore
     videoInstance.value.artplayerPluginHeatmap.hide();
   }
+};
+
+watch(hotProgressVisible, () => {
+  setHotProgressVisible(hotProgressVisible.value);
 });
 
 watch(showVideoTime, () => {
