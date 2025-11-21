@@ -218,7 +218,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           liveStartTime: liveStartTime,
           recordStartTime,
         }),
-      disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
       onlyAudio: stream.onlyAudio,
