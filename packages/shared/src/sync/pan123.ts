@@ -2,7 +2,7 @@ import fs from "fs-extra";
 import logger from "../utils/log.js";
 import { TypedEmitter } from "tiny-typed-emitter";
 import { Uploader, getAccessToken, Client } from "pan123-uploader";
-import statisticsService from "../db/service/statisticsService.js";
+import { statisticsService } from "../db/index.js";
 
 export interface Pan123Options {
   /**
