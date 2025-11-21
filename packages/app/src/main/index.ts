@@ -97,6 +97,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:relaunch", relaunch);
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:setTheme", setTheme);
+  ipcMain.handle("common:setMenuBarVisible", setMenuBarVisible);
   ipcMain.handle("common:createSubWindow", createCutWindow);
   ipcMain.handle("common:checkUpdate", manualCheckUpdate);
 
@@ -110,8 +111,9 @@ function createCutWindow() {
   const css = `
   .layout>div>aside {
     display: none;
-  }
-`;
+  }`;
+  const appConfig = container.resolve("appConfig");
+  const menuBarVisible = appConfig.get("menuBarVisible");
 
   const subWindow = new BrowserWindow({
     webPreferences: {
@@ -119,6 +121,7 @@ function createCutWindow() {
       sandbox: false,
       webSecurity: false,
     },
+    autoHideMenuBar: !menuBarVisible,
   });
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
@@ -681,6 +684,8 @@ const appInit = async () => {
     container,
   );
   nativeTheme.themeSource = appConfig.get("theme");
+  const menuBarVisible = appConfig.get("menuBarVisible");
+  mainWin.setMenuBarVisibility(menuBarVisible);
 
   // 检测更新
   if (appConfig.get("autoUpdate")) {
@@ -758,6 +763,12 @@ const saveDialog = async (_event: IpcMainInvokeEvent, options: SaveDialogOptions
 
 const setTheme = (_event: IpcMainInvokeEvent, theme: Theme) => {
   nativeTheme.themeSource = theme;
+};
+
+const setMenuBarVisible = (_event: IpcMainInvokeEvent, visible: boolean) => {
+  if (mainWin) {
+    mainWin.setMenuBarVisibility(visible);
+  }
 };
 
 const checkUpdate = async () => {
