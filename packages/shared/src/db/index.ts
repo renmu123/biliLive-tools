@@ -1,7 +1,6 @@
 import path from "node:path";
 import Database from "better-sqlite3";
 
-import DanmaModel from "./model/danmu.js";
 import { setupContainer } from "./container.js";
 
 import type { Database as DatabaseType } from "better-sqlite3";
@@ -35,8 +34,7 @@ class DB {
 }
 
 const db = new DB();
-const danmaDb = new DB();
-export const danmuModel = new DanmaModel();
+const danmuDB = new DB();
 
 export let dbContainer: ReturnType<typeof setupContainer>;
 export let statisticsService: Container["statisticsService"];
@@ -46,19 +44,17 @@ export let streamerService: Container["streamerService"];
 export let videoSubService: Container["videoSubService"];
 export let recordHistoryService: Container["recordHistoryService"];
 export let uploadPartService: Container["uploadPartService"];
+export let danmuService: Container["danmuService"];
 
 export const initDB = (dbPath: string) => {
   const mainDBPath = path.join(dbPath, "app.db");
-  const danmaDBPath = path.join(dbPath, "dm0.db");
+  const danmuDBPath = path.join(dbPath, "dm0.db");
 
   db.init(mainDBPath);
-  danmaDb.init(danmaDBPath);
+  danmuDB.init(danmuDBPath);
 
-  // 弹幕数据库
-  danmuModel.init(danmaDb.db);
-
-  // 依赖注入容器
-  dbContainer = setupContainer(db.db);
+  // 依赖注入容器 - 主数据库
+  dbContainer = setupContainer(db.db, danmuDB.db);
   statisticsService = dbContainer.resolve("statisticsService");
   virtualRecordService = dbContainer.resolve("virtualRecordService");
   videoSubDataService = dbContainer.resolve("videoSubDataService");
@@ -67,11 +63,13 @@ export const initDB = (dbPath: string) => {
   recordHistoryService = dbContainer.resolve("recordHistoryService");
   uploadPartService = dbContainer.resolve("uploadPartService");
 
+  // 弹幕服务 - 使用独立的弹幕数据库
+  danmuService = dbContainer.resolve("danmuService");
+
   return db;
 };
 
 export const reconnectDB = () => {
-  // danmuModel.init(db.db);
   return db;
 };
 

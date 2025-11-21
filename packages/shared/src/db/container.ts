@@ -15,11 +15,13 @@ import StreamerService from "./service/streamerService.js";
 import VideoSubService from "./service/videoSubService.js";
 import RecordHistoryService from "./service/recordHistoryService.js";
 import UploadPartService from "./service/uploadPartService.js";
+import DanmuService from "./service/danmuService.js";
 
 import type { Database } from "better-sqlite3";
 
 export interface Container {
   db: Database;
+  danmuDb: Database;
   statisticsModel: StatisticsModel;
   virtualRecordModel: VirtualRecordModel;
   videoSubDataModel: VideoSubDataModel;
@@ -35,9 +37,10 @@ export interface Container {
   videoSubService: VideoSubService;
   recordHistoryService: RecordHistoryService;
   uploadPartService: UploadPartService;
+  danmuService: DanmuService;
 }
 
-export function setupContainer(db: Database) {
+export function setupContainer(db: Database, danmuDb: Database) {
   const container = createContainer<Container>({
     injectionMode: InjectionMode.PROXY,
   });
@@ -45,6 +48,7 @@ export function setupContainer(db: Database) {
   // Register database instance
   container.register({
     db: asValue(db),
+    danmuDb: asValue(danmuDb),
   });
 
   // Register all Repositories
@@ -67,6 +71,7 @@ export function setupContainer(db: Database) {
     videoSubService: asClass(VideoSubService).singleton(),
     recordHistoryService: asClass(RecordHistoryService).singleton(),
     uploadPartService: asClass(UploadPartService).singleton(),
+    danmuService: asClass(DanmuService).singleton(),
   });
 
   return container;
