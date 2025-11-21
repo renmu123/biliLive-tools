@@ -270,7 +270,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     videoFormat: "auto",
     recorderType: "auto",
     useServerTimestamp: true,
-    recordRetryImmediately: false,
+    recordRetryImmediately: true,
     bilibili: {
       uid: undefined,
       quality: 10000,

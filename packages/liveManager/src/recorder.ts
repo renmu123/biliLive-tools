@@ -120,7 +120,7 @@ export interface RecordHandle {
 
   savePath: string;
 
-  stop: (this: RecordHandle, reason?: string, tempStopIntervalCheck?: boolean) => Promise<void>;
+  stop: (this: RecordHandle, reason?: string) => Promise<void>;
   cut: (this: RecordHandle) => Promise<void>;
 }
 
@@ -169,10 +169,11 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     living: boolean;
     owner: string;
     title: string;
-    startTime: Date;
+    liveStartTime: Date;
     avatar: string;
     cover: string;
     liveId?: string;
+    recordStartTime: Date;
   };
   tempStopIntervalCheck?: boolean;
   /** 缓存实例（命名空间） */
@@ -201,7 +202,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     cover: string;
     channelId: ChannelId;
     living: boolean;
-    startTime: Date;
+    liveStartTime: Date;
   }>;
   getStream: (this: Recorder<E>) => Promise<{
     source: string;

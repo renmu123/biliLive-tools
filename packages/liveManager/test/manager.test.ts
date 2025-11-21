@@ -113,7 +113,7 @@ class BilibiliTestProvider implements RecorderProvider<{}> {
     id: ChannelId;
     title: string;
     owner: string;
-    uid?: number;
+    uid?: any;
   } | null> {
     return {
       id: "12345",
@@ -337,6 +337,9 @@ describe("RecorderManager", () => {
       const path = genSavePathFromRule(manager, recorder, {
         owner: "Test Owner",
         title: "Test Title",
+        startTime: Date.now(),
+        liveStartTime: new Date(),
+        recordStartTime: new Date(),
       });
 
       expect(path).toBe("Test Provider/Test Owner/Test Title");
@@ -361,6 +364,9 @@ describe("RecorderManager", () => {
       const path = genSavePathFromRule(manager, recorder, {
         owner: "Test/Owner",
         title: "Test:Title",
+        startTime: Date.now(),
+        liveStartTime: new Date(),
+        recordStartTime: new Date(),
       });
 
       expect(path).toBe("Test Provider/Test_Owner/Test_Title");
@@ -387,6 +393,8 @@ describe("RecorderManager", () => {
         owner: "Test Owner",
         title: "Test Title",
         startTime: now.getTime(),
+        liveStartTime: new Date(),
+        recordStartTime: new Date(),
       });
 
       const year = now.getFullYear();

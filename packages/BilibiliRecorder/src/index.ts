@@ -112,7 +112,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       avatar: "",
       cover: "",
       liveId: liveId,
-      startTime: new Date(),
+      liveStartTime: new Date(),
+      recordStartTime: new Date(),
     };
     this.state = "idle";
   } catch (error) {
@@ -143,7 +144,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   const liveInfo = await getInfo(this.channelId);
-  const { owner, title, roomId, startTime } = liveInfo;
+  const { owner, title, roomId, liveStartTime, recordStartTime } = liveInfo;
   this.liveInfo = liveInfo;
 
   const qualityRetryLeft = (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
@@ -227,7 +228,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     const reason = args[0] instanceof Error ? args[0].message : String(args[0]);
     this.recordHandle?.stop(reason);
   };
-  const recordStartTime = new Date();
 
   const downloader = createDownloader(
     this.recorderType,
@@ -241,7 +241,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           owner,
           title: opts.title ?? title,
           startTime: opts.startTime,
-          liveStartTime: startTime,
+          liveStartTime: liveStartTime,
           recordStartTime,
         }),
       formatName: streamOptions.format_name as "flv" | "ts" | "fmp4",
@@ -263,7 +263,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     owner,
     title,
     startTime: Date.now(),
-    liveStartTime: startTime,
+    liveStartTime: liveStartTime,
     recordStartTime,
   });
 
@@ -287,7 +287,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController?.setMeta({
       room_id: String(roomId),
       platform: provider?.id,
-      liveStartTimestamp: liveInfo.startTime?.getTime(),
+      liveStartTimestamp: liveInfo.liveStartTime?.getTime(),
       // recordStopTimestamp: Date.now(),
       title: title,
       user_name: owner,
