@@ -22,6 +22,7 @@ export default class DanmuService {
     const key = `${platform}_${roomId}`;
 
     if (!this.models.has(key)) {
+      // 检查表是否存在,如果不存在则创建
       const model = new DanmuModel({ db: this.db, platform, roomId });
       this.models.set(key, model);
     }
@@ -32,13 +33,13 @@ export default class DanmuService {
   /**
    * 检查表是否存在
    */
-  private tableExists(platform: string, roomId: string): boolean {
-    const tableName = `danmu_${platform}_${roomId}`;
-    const result = this.db
-      .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`)
-      .get(tableName);
-    return !!result;
-  }
+  // private tableExists(platform: string, roomId: string): boolean {
+  //   const tableName = `danmu_${platform}_${roomId}`;
+  //   const result = this.db
+  //     .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`)
+  //     .get(tableName);
+  //   return !!result;
+  // }
 
   /**
    * 添加单条弹幕
@@ -148,20 +149,5 @@ export default class DanmuService {
   count(platform: string, roomId: string, options: Partial<BaseDanmu> = {}) {
     const model = this.getModel(platform, roomId);
     return model.count(options);
-  }
-
-  /**
-   * 清理指定直播间的模型缓存
-   */
-  clearModelCache(platform: string, roomId: string) {
-    const key = `${platform}_${roomId}`;
-    this.models.delete(key);
-  }
-
-  /**
-   * 清理所有模型缓存
-   */
-  clearAllCache() {
-    this.models.clear();
   }
 }

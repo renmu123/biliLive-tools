@@ -1,4 +1,6 @@
-import { createContainer, asClass, asValue, InjectionMode } from "awilix";
+import path from "node:path";
+import Database from "better-sqlite3";
+import { createContainer, asClass, asValue, asFunction, InjectionMode } from "awilix";
 
 import StatisticsModel from "./model/statistics.js";
 import VirtualRecordModel from "./model/virtualRecord.js";
@@ -17,11 +19,16 @@ import RecordHistoryService from "./service/recordHistoryService.js";
 import UploadPartService from "./service/uploadPartService.js";
 import DanmuService from "./service/danmuService.js";
 
-import type { Database } from "better-sqlite3";
+import type { Database as DatabaseType } from "better-sqlite3";
 
 export interface Container {
-  db: Database;
-  danmuDb: Database;
+  db: DatabaseType;
+  danmuDb: DatabaseType;
+
+  mainDbPath: string;
+  danmuDbPath: string;
+  dbPath: string;
+
   statisticsModel: StatisticsModel;
   virtualRecordModel: VirtualRecordModel;
   videoSubDataModel: VideoSubDataModel;
@@ -40,15 +47,46 @@ export interface Container {
   danmuService: DanmuService;
 }
 
-export function setupContainer(db: Database, danmuDb: Database) {
+/**
+ * 创建数据库连接工厂函数
+ */
+function createDatabase({ mainDbPath }: { mainDbPath: string }): DatabaseType {
+  const db = Database(mainDbPath);
+  // 启用外键支持
+  db.pragma("foreign_keys = ON");
+  db.pragma("journal_mode = WAL");
+  return db;
+}
+
+/**
+ * 创建弹幕数据库连接工厂函数
+ */
+function createDanmuDatabase({ danmuDbPath }: { danmuDbPath: string }): DatabaseType {
+  const db = Database(danmuDbPath);
+  db.pragma("foreign_keys = ON");
+  db.pragma("journal_mode = WAL");
+  return db;
+}
+
+export function setupContainer(dbPath: string) {
+  const mainDbPath = path.join(dbPath, "app.db");
+  const danmuDbPath = path.join(dbPath, "dm0.db");
+
   const container = createContainer<Container>({
     injectionMode: InjectionMode.PROXY,
   });
 
-  // Register database instance
+  // Register database paths
   container.register({
-    db: asValue(db),
-    danmuDb: asValue(danmuDb),
+    dbPath: asValue(dbPath),
+    mainDbPath: asValue(mainDbPath),
+    danmuDbPath: asValue(danmuDbPath),
+  });
+
+  // Register database instances using factory functions
+  container.register({
+    db: asFunction(createDatabase).singleton(),
+    danmuDb: asFunction(createDanmuDatabase).singleton(),
   });
 
   // Register all Repositories
