@@ -1,78 +1,53 @@
 <template>
   <div id="cut-tool" class="container">
-    <div class="content">
-      <div v-show="files.videoPath" class="video cut-video">
-        <Artplayer
-          v-show="files.videoPath"
-          ref="videoRef"
-          :option="{
-            fullscreen: true,
-            plugins: {
-              heatmap: {
-                option: clientOptions,
+    <!-- 上侧区域 -->
+    <div class="upper-section">
+      <!-- 左侧视频区域 -->
+      <div class="video-section">
+        <div v-show="files.videoPath" class="video cut-video">
+          <Artplayer
+            v-show="files.videoPath"
+            ref="videoRef"
+            :option="{
+              fullscreen: true,
+              plugins: {
+                heatmap: {
+                  option: clientOptions,
+                },
+                timestamp: {
+                  // position: { top: '10px', right: '10px' },
+                  // visible: false,
+                  timestamp: 0,
+                },
               },
-              timestamp: {
-                // position: { top: '10px', right: '10px' },
-                // visible: false,
-                timestamp: 0,
-              },
-            },
-          }"
-          :plugins="['ass', 'heatmap', 'timestamp']"
-          @ready="handleVideoReady"
-          @video:durationchange="handleVideoDurationChange"
-        ></Artplayer>
-        <div
-          v-if="clientOptions.showSetting"
-          style="display: flex; gap: 20px; align-items: center; margin-top: 20px"
-        >
-          <n-checkbox v-model:checked="hotProgressVisible"></n-checkbox>
-          <div>
-            <n-input-number
-              v-model:value="clientOptions.sampling"
-              placeholder="单位秒"
-              min="1"
-              style="width: 120px"
-            >
-              <template #suffix> 秒 </template></n-input-number
-            >
-          </div>
-          <div>
-            <n-input-number
-              v-model:value="clientOptions.height"
-              placeholder="单位像素"
-              min="10"
-              style="width: 120px"
-            >
-              <template #suffix> 像素 </template></n-input-number
-            >
-          </div>
-          <n-color-picker v-model:value="clientOptions.color" style="width: 80px" />
-          <n-color-picker v-model:value="clientOptions.fillColor" style="width: 80px" />
-          <n-checkbox v-model:checked="showVideoTime" title="仅供参考，得加载弹幕才成"
-            >显示时间戳</n-checkbox
-          >
-          <n-checkbox v-model:checked="danmaSearchMask">弹幕搜索栏遮罩</n-checkbox>
+            }"
+            :plugins="['ass', 'heatmap', 'timestamp']"
+            @ready="handleVideoReady"
+            @video:durationchange="handleVideoDurationChange"
+          ></Artplayer>
         </div>
+
+        <FileArea
+          v-show="!files.videoPath"
+          v-model="fileList"
+          :style="{ height: '100%' }"
+          class="video empty cut-file-area"
+          :extensions="['llc', 'flv', 'mp4', 'm4s', 'ts', 'mkv']"
+          :max="1"
+          @change="handleFileChange"
+        >
+          <template #desc>
+            请导入视频或<a href="https://github.com/mifi/lossless-cut" target="_blank"
+              >lossless-cut</a
+            >项目文件，如果你不会使用，请先<span title="鸽了"
+              >查看教程，如果视频无法播放，请尝试转封装为mp4</span
+            >
+          </template>
+        </FileArea>
       </div>
 
-      <FileArea
-        v-show="!files.videoPath"
-        v-model="fileList"
-        :style="{ height: '100%' }"
-        class="video empty cut-file-area"
-        :extensions="['llc', 'flv', 'mp4', 'm4s', 'ts', 'mkv']"
-        :max="1"
-        @change="handleFileChange"
-      >
-        <template #desc>
-          请导入视频或<a href="https://github.com/mifi/lossless-cut" target="_blank">lossless-cut</a
-          >项目文件，如果你不会使用，请先<span title="鸽了"
-            >查看教程，如果视频无法播放，请尝试转封装为mp4</span
-          >
-        </template>
-      </FileArea>
-      <div class="cut-list">
+      <!-- 右侧分段列表区域 -->
+      <div class="segment-section">
         <div class="btns page-header">
           <ButtonGroup :options="exportOptions" @click="handleProjectBtnClick" size="small">{{
             videoTitle
@@ -97,11 +72,54 @@
             导出
           </n-button>
         </div>
-        <SegmentList
-          :danma-list="danmaList"
-          :files="files"
-          :danmaSearchMask="danmaSearchMask"
-        ></SegmentList>
+        <div class="segment-list-container">
+          <SegmentList
+            :danma-list="danmaList"
+            :files="files"
+            :danmaSearchMask="danmaSearchMask"
+          ></SegmentList>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下侧配置项区域 -->
+    <div class="config-section">
+      <div v-if="clientOptions.showSetting" class="config-content">
+        <n-checkbox v-model:checked="hotProgressVisible">高能进度条</n-checkbox>
+        <div class="config-item">
+          <span>采样间隔：</span>
+          <n-input-number
+            v-model:value="clientOptions.sampling"
+            placeholder="单位秒"
+            min="1"
+            style="width: 120px"
+          >
+            <template #suffix> 秒 </template>
+          </n-input-number>
+        </div>
+        <div class="config-item">
+          <span>高度：</span>
+          <n-input-number
+            v-model:value="clientOptions.height"
+            placeholder="单位像素"
+            min="10"
+            style="width: 120px"
+          >
+            <template #suffix> 像素 </template>
+          </n-input-number>
+        </div>
+        <div class="config-item">
+          <!-- <span>颜色：</span> -->
+          <n-color-picker v-model:value="clientOptions.color" style="width: 80px" />
+        </div>
+        <div class="config-item">
+          <!-- <span>填充颜色：</span> -->
+          <n-color-picker v-model:value="clientOptions.fillColor" style="width: 80px" />
+        </div>
+        <n-checkbox v-model:checked="showVideoTime" title="仅供参考，得加载弹幕才成"
+          >显示时间戳</n-checkbox
+        >
+        <n-checkbox v-model:checked="danmaSearchMask">弹幕搜索栏遮罩</n-checkbox>
       </div>
     </div>
   </div>
@@ -556,20 +574,31 @@ const switchShowVideoTime = () => {
 </script>
 
 <style scoped lang="less">
-.btns {
+.container {
   display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-  gap: 6px;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
-.content {
+.upper-section {
+  flex: 1;
   display: flex;
   gap: 10px;
-  align-items: flex-start;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.video-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
   .video {
-    width: 80%;
-    aspect-ratio: 16 / 9;
+    width: 100%;
+    height: 100%;
     position: relative;
 
     &.empty {
@@ -577,12 +606,77 @@ const switchShowVideoTime = () => {
       justify-content: center;
       align-items: center;
       font-size: 22px;
+      &.cut-file-area {
+        box-sizing: border-box;
+      }
     }
   }
-  .cut-list {
-    display: inline-block;
-    flex: 1;
-    min-width: 235px;
+}
+
+.segment-section {
+  width: 245px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  .btns {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .segment-list-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 6px;
+    scrollbar-gutter: stable;
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(144, 147, 153, 0.3);
+      border-radius: 3px;
+
+      &:hover {
+        background: rgba(144, 147, 153, 0.5);
+      }
+    }
+  }
+}
+
+.config-section {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-color);
+  padding: 15px 20px;
+  background: #f9fafb;
+
+  @media screen and (prefers-color-scheme: dark) {
+    background: #1e1e1e;
+  }
+  // background: var(--n-color);
+
+  .config-content {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .config-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    span {
+      white-space: nowrap;
+      font-size: 14px;
+    }
   }
 }
 </style>

@@ -216,12 +216,12 @@ const el = ref<HTMLElement | null>(null);
 const { width, height } = useWindowSize();
 
 const { x, y, style } = useDraggable(el, {
-  initialValue: { x: width.value - 80, y: height.value - 80 },
+  initialValue: { x: width.value - 100, y: height.value - 100 },
 });
 
 useEventListener(window, "resize", () => {
-  x.value = width.value - 80;
-  y.value = height.value - 80;
+  x.value = width.value - 100;
+  y.value = height.value - 100;
 });
 
 const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;
@@ -382,7 +382,7 @@ const searchDanmu = () => {
   position: relative;
 
   .view {
-    max-height: calc(100vh - 100px);
+    // max-height: calc(100vh - 100px);
     min-width: 210px;
     overflow: auto;
   }

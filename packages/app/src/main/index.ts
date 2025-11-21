@@ -122,10 +122,10 @@ function createCutWindow() {
   });
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-    subWindow.loadURL(process.env["ELECTRON_RENDERER_URL"] + "/#/videoCut2");
+    subWindow.loadURL(process.env["ELECTRON_RENDERER_URL"] + "/#/videoCut");
   } else {
     subWindow.loadFile(join(__dirname2, "../renderer/index.html"), {
-      hash: "videoCut2",
+      hash: "videoCut",
     });
   }
 

@@ -1,5 +1,11 @@
 <template>
-  <n-modal v-model:show="showModal" :mask-closable="false" auto-focus :on-after-enter="handleOpen">
+  <n-modal
+    v-model:show="showModal"
+    :mask-closable="false"
+    auto-focus
+    :on-after-enter="handleOpen"
+    class="setting-modal"
+  >
     <n-card
       style="width: calc(100% - 60px)"
       :bordered="false"
@@ -843,8 +849,14 @@ const checkForUpdates = async () => {
     }
   }
 }
+.setting-modal > :deep(.n-card__content) {
+  padding-bottom: 0 !important;
+  padding-right: 0px !important;
+}
 .setting-tab > :deep(.n-tab-pane) {
   overflow: auto;
-  height: calc(100vh - 130px);
+  height: calc(100vh - 150px);
+  scrollbar-gutter: stable;
+  padding-right: 6px;
 }
 </style>
