@@ -28,7 +28,6 @@ import { isEmptyDanmu, convertXml2Ass, genHotProgress } from "./danmu.js";
 import type {
   FfmpegOptions,
   VideoMergeOptions,
-  GlobalConfig,
   DanmuConfig,
   HotProgressOptions,
 } from "@biliLive-tools/types";
@@ -41,7 +40,7 @@ export const getFfmpegPath = () => {
   let mesioPath = config.mesioPath;
   let bililiveRecorderPath = config.bililiveRecorderPath;
   if (!config.customExecPath) {
-    const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+    const globalConfig = container.resolve("globalConfig");
     ffmpegPath = globalConfig.defaultFfmpegPath;
     ffprobePath = globalConfig.defaultFfprobePath;
     mesioPath = globalConfig.defaultMesioPath;
