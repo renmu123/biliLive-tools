@@ -279,7 +279,7 @@ const handleProjectMenuClick = async (key?: string | number) => {
 /**
  * 监听项目媒体路径变化，自动加载相关资源
  */
-watchEffect(async () => {
+watch(projectMediaPath, async () => {
   if (projectMediaPath.value) {
     // 加载视频
     await loadVideo(projectMediaPath.value);
