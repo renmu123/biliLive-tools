@@ -216,12 +216,12 @@ const el = ref<HTMLElement | null>(null);
 const { width, height } = useWindowSize();
 
 const { x, y, style } = useDraggable(el, {
-  initialValue: { x: width.value - 100, y: height.value - 100 },
+  initialValue: { x: width.value - 100, y: height.value - 40 },
 });
 
 useEventListener(window, "resize", () => {
   x.value = width.value - 100;
-  y.value = height.value - 100;
+  y.value = height.value - 40;
 });
 
 const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;

@@ -24,6 +24,7 @@
             :plugins="['ass', 'heatmap', 'timestamp']"
             @ready="handleVideoReady"
             @video:durationchange="handleVideoDurationChange"
+            @video:canplay="handleVideoCanPlay"
           ></Artplayer>
         </div>
 
@@ -84,7 +85,10 @@
 
     <!-- 下侧配置项区域 -->
     <div class="config-section">
+      <div id="waveform"></div>
       <div v-if="clientOptions.showSetting" class="config-content">
+        <n-slider v-model:value="stepValue" :step="5" :max="200" />
+
         <n-checkbox v-model:checked="hotProgressVisible">高能进度条</n-checkbox>
         <div class="config-item">
           <span>采样间隔：</span>
@@ -148,6 +152,8 @@ import { useStorage } from "@vueuse/core";
 import { showFileDialog } from "@renderer/utils/fileSystem";
 import { taskApi, commonApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
+import WaveSurfer from "wavesurfer.js";
+import ZoomPlugin from "wavesurfer.js/dist/plugins/zoom.esm.js";
 
 import { useLlcProject } from "./hooks";
 import { useDrive } from "@renderer/hooks/drive";
@@ -341,6 +347,7 @@ const videoInstance = ref<Artplayer | null>(null);
 provide("videoInstance", videoInstance);
 const handleVideoReady = (instance: Artplayer) => {
   videoInstance.value = instance;
+  console.log("video ready", instance);
 };
 
 const handleVideoChange = async () => {
@@ -353,6 +360,10 @@ const handleVideoChange = async () => {
 
 const handleVideo = async (path: string) => {
   files.value.originVideoPath = path;
+  if (ws) {
+    ws.destroy();
+    ws = null;
+  }
   if (isWeb.value) {
     const { videoId, type } = await commonApi.applyVideoId(path);
     const videoUrl = await commonApi.getVideo(videoId);
@@ -374,6 +385,33 @@ const handleVideo = async (path: string) => {
  */
 const handleVideoDurationChange = (duration: number) => {
   videoDuration.value = duration;
+};
+
+let ws: WaveSurfer | null = null;
+const handleVideoCanPlay = async () => {
+  if (ws) return;
+
+  ws = WaveSurfer.create({
+    container: "#waveform",
+    waveColor: "#4F4A85",
+    progressColor: "#383351",
+    height: 64,
+    normalize: false,
+    dragToSeek: true,
+    hideScrollbar: true,
+    media: videoInstance.value!.video,
+  });
+  ws.registerPlugin(
+    ZoomPlugin.create({
+      // the amount of zoom per wheel step, e.g. 0.5 means a 50% magnification per scroll
+      scale: 0.01,
+      // Optionally, specify the maximum pixels-per-second factor while zooming
+      maxZoom: 200,
+    }),
+  );
+  ws.once("decode", () => {
+    ws && ws.zoom(stepValue.value);
+  });
 };
 
 // 弹幕相关
@@ -575,6 +613,12 @@ const switchShowVideoTime = () => {
     videoInstance.value.artplayerTimestamp.hide();
   }
 };
+
+const stepValue = ref(10);
+watch(stepValue, (value) => {
+  if (!ws) return;
+  ws.zoom(value);
+});
 </script>
 
 <style scoped lang="less">
