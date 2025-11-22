@@ -1,4 +1,5 @@
 import { cloneDeep, isArray } from "lodash-es";
+import { v4 as uuid } from "uuid";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
 import { getUserList } from "@renderer/apis/user";
@@ -360,6 +361,7 @@ function useHistoryStore<T>({ limit }: { limit: number }) {
 export default useHistoryStore;
 
 interface Segment {
+  id: string;
   start: number;
   end?: number;
   name: string;
@@ -404,26 +406,39 @@ export const useSegmentStore = defineStore("segment", () => {
     return cuts.value.filter((item) => item.checked);
   });
 
-  const init = (segments: Segment[]) => {
-    rawCuts.value = segments;
-    recordHistory();
+  const init = (segments: Omit<Segment, "id">[]) => {
+    rawCuts.value = [];
+    segments.forEach((segment) => {
+      addSegment({ ...segment, id: uuid() });
+    });
   };
   const addSegment = (cut: Segment) => {
+    if (!cut.id) {
+      cut.id = uuid();
+    }
     rawCuts.value.push(cut);
     recordHistory();
   };
-  const removeSegment = (index: number) => {
-    rawCuts.value.splice(index, 1);
-    recordHistory();
+  const removeSegment = (id: string) => {
+    const index = rawCuts.value.findIndex((item) => item.id === id);
+    if (index !== -1) {
+      rawCuts.value.splice(index, 1);
+      recordHistory();
+    }
   };
-  const updateSegment = <K extends keyof Segment>(index: number, key: K, value: Segment[K]) => {
-    const cut = rawCuts.value[index];
-    cut[key] = value;
-    recordHistory();
+  const updateSegment = <K extends keyof Segment>(id: string, key: K, value: Segment[K]) => {
+    const cut = rawCuts.value.find((item) => item.id === id);
+    if (cut) {
+      cut[key] = value;
+      recordHistory();
+    }
   };
-  const toggleSegment = (index: number) => {
-    rawCuts.value[index].checked = !rawCuts.value[index].checked;
-    recordHistory();
+  const toggleSegment = (id: string) => {
+    const cut = rawCuts.value.find((item) => item.id === id);
+    if (cut) {
+      cut.checked = !cut.checked;
+      recordHistory();
+    }
   };
 
   return {
