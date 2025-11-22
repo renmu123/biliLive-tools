@@ -85,45 +85,52 @@
 
     <!-- 下侧配置项区域 -->
     <div class="config-section">
-      <div id="waveform"></div>
+      <div v-show="waveformVisible" class="waveform-container">
+        <div v-if="waveformLoading" class="waveform-loading">
+          <n-spin size="small" />
+          <span>波形图加载中...</span>
+        </div>
+        <div id="waveform"></div>
+      </div>
       <div v-if="clientOptions.showSetting" class="config-content">
-        <n-slider v-model:value="stepValue" :step="5" :max="200" />
-
         <n-checkbox v-model:checked="hotProgressVisible">高能进度条</n-checkbox>
-        <div class="config-item">
-          <span>采样间隔：</span>
-          <n-input-number
-            v-model:value="clientOptions.sampling"
-            placeholder="单位秒"
-            min="1"
-            style="width: 120px"
-          >
-            <template #suffix> 秒 </template>
-          </n-input-number>
-        </div>
-        <div class="config-item">
-          <span>高度：</span>
-          <n-input-number
-            v-model:value="clientOptions.height"
-            placeholder="单位像素"
-            min="10"
-            style="width: 120px"
-          >
-            <template #suffix> 像素 </template>
-          </n-input-number>
-        </div>
-        <div class="config-item">
-          <!-- <span>颜色：</span> -->
-          <n-color-picker v-model:value="clientOptions.color" style="width: 80px" />
-        </div>
-        <div class="config-item">
-          <!-- <span>填充颜色：</span> -->
-          <n-color-picker v-model:value="clientOptions.fillColor" style="width: 80px" />
-        </div>
+        <template v-if="hotProgressVisible">
+          <div class="config-item">
+            <span>采样间隔：</span>
+            <n-input-number
+              v-model:value="clientOptions.sampling"
+              placeholder="单位秒"
+              min="1"
+              style="width: 120px"
+            >
+              <template #suffix> 秒 </template>
+            </n-input-number>
+          </div>
+          <div class="config-item">
+            <span>高度：</span>
+            <n-input-number
+              v-model:value="clientOptions.height"
+              placeholder="单位像素"
+              min="10"
+              style="width: 120px"
+            >
+              <template #suffix> 像素 </template>
+            </n-input-number>
+          </div>
+          <div class="config-item">
+            <!-- <span>颜色：</span> -->
+            <n-color-picker v-model:value="clientOptions.color" style="width: 80px" />
+          </div>
+          <div class="config-item">
+            <!-- <span>填充颜色：</span> -->
+            <n-color-picker v-model:value="clientOptions.fillColor" style="width: 80px" />
+          </div>
+        </template>
         <n-checkbox v-model:checked="showVideoTime" title="仅供参考，得加载弹幕才成"
           >显示时间戳</n-checkbox
         >
         <n-checkbox v-model:checked="danmaSearchMask">弹幕搜索栏遮罩</n-checkbox>
+        <n-checkbox v-model:checked="waveformVisible">波形图</n-checkbox>
       </div>
     </div>
   </div>
@@ -388,9 +395,19 @@ const handleVideoDurationChange = (duration: number) => {
 };
 
 let ws: WaveSurfer | null = null;
+const waveformLoading = ref(false);
 const handleVideoCanPlay = async () => {
   if (ws) return;
-
+  // TODO: 还要测试m4s
+  if (!videoInstance.value?.url.endsWith("mp4")) {
+    notice.info({
+      title: "波形图仅支持mp4格式的视频",
+      duration: 2000,
+    });
+    waveformVisible.value = false;
+    return;
+  }
+  waveformLoading.value = true;
   ws = WaveSurfer.create({
     container: "#waveform",
     waveColor: "#4F4A85",
@@ -410,7 +427,7 @@ const handleVideoCanPlay = async () => {
     }),
   );
   ws.once("decode", () => {
-    ws && ws.zoom(stepValue.value);
+    waveformLoading.value = false;
   });
 };
 
@@ -563,6 +580,7 @@ const clientOptions = useStorage("cut-hotprogress", {
 const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
 const danmaSearchMask = useStorage("cut-danma-search-mask", true);
 const showVideoTime = useStorage("cut-show-video-time", true);
+const waveformVisible = useStorage("cut-waveform-visible", true);
 
 watch(
   clientOptions,
@@ -613,12 +631,6 @@ const switchShowVideoTime = () => {
     videoInstance.value.artplayerTimestamp.hide();
   }
 };
-
-const stepValue = ref(10);
-watch(stepValue, (value) => {
-  if (!ws) return;
-  ws.zoom(value);
-});
 </script>
 
 <style scoped lang="less">
@@ -701,7 +713,7 @@ watch(stepValue, (value) => {
 .config-section {
   flex-shrink: 0;
   border-top: 1px solid var(--border-color);
-  padding: 15px 20px;
+  padding: 15px 00px;
   background: #f9fafb;
 
   @media screen and (prefers-color-scheme: dark) {
@@ -709,11 +721,39 @@ watch(stepValue, (value) => {
   }
   // background: var(--n-color);
 
+  .waveform-container {
+    position: relative;
+    min-height: 64px;
+  }
+
+  .waveform-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    z-index: 1;
+
+    span {
+      font-size: 14px;
+      color: #666;
+
+      @media screen and (prefers-color-scheme: dark) {
+        color: #999;
+      }
+    }
+  }
+
   .config-content {
     display: flex;
     gap: 10px;
     align-items: center;
     flex-wrap: wrap;
+    padding: 0 10px;
   }
 
   .config-item {

@@ -48,7 +48,7 @@ const emits = defineEmits<{
   (event: "error", value: { error: any; reconnectTime: number }): void;
   (event: "seek", value: number): void;
   (event: "video:durationchange", value: number): void;
-  (event: "video:canplay", value: string): void;
+  (event: "video:canplay", value: Artplayer): void;
 }>();
 
 const artRef = ref<HTMLDivElement | null>(null);
@@ -211,7 +211,7 @@ ${tsFile}
     emits("video:durationchange", duration);
   });
   instance.on("video:canplay", () => {
-    emits("video:canplay", "canplay");
+    emits("video:canplay", instance!);
   });
 });
 
