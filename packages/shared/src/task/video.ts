@@ -1244,3 +1244,46 @@ export const burn = async (
 
   return task;
 };
+
+/**
+ * 提取视频到aac
+ */
+export const extractAudio = async (
+  videoFilePath: string,
+  outputFilePath: string,
+  options: {
+    override?: boolean;
+    /** 支持绝对路径和相对路径 */
+    savePath?: string;
+    /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
+    saveType: 1 | 2;
+    limitTime?: [string, string];
+    autoRun?: boolean;
+  },
+) => {
+  const opts = Object.assign(
+    {
+      override: false,
+      removeOrigin: false,
+      saveType: 1,
+      savePath: "",
+    },
+    options,
+  );
+  let savePath = await parseSavePath(videoFilePath, opts);
+  const output = path.join(savePath, outputFilePath);
+  const command = ffmpeg(videoFilePath)
+    .outputOptions("-vn")
+    .outputOptions("-acodec copy")
+    .output(output);
+  const task = new FFmpegTask(
+    command,
+    {
+      output,
+      name: `提取音频任务: ${path.basename(videoFilePath)}`,
+    },
+    {},
+  );
+  taskQueue.addTask(task, opts.autoRun ?? false);
+  return task;
+};

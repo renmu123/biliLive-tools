@@ -301,6 +301,20 @@ const executeVirtualRecord = async (
   return res.data;
 };
 
+const extractAudio = async (
+  input: string,
+): Promise<{
+  output: string;
+}> => {
+  const res = await request.post(`/task/extractAudio`, {
+    input,
+    options: {
+      sync: true,
+    },
+  });
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -330,6 +344,7 @@ const task = {
   testVirtualRecord,
   executeVirtualRecord,
   flvRepair,
+  extractAudio,
 };
 
 export default task;

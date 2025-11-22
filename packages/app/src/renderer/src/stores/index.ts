@@ -440,6 +440,10 @@ export const useSegmentStore = defineStore("segment", () => {
       recordHistory();
     }
   };
+  const clear = () => {
+    rawCuts.value = [];
+    recordHistory();
+  };
 
   return {
     cuts,
@@ -454,5 +458,6 @@ export const useSegmentStore = defineStore("segment", () => {
     undo,
     redo,
     init,
+    clear,
   };
 });

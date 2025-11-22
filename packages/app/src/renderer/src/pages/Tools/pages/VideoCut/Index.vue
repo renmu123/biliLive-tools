@@ -141,7 +141,7 @@ const {
 
 const { appConfig } = storeToRefs(useAppConfig());
 
-const { undo, redo, clearHistory } = useSegmentStore();
+const { undo, redo, clear: clearCuts } = useSegmentStore();
 
 const videoVCutOptions = toReactive(
   computed({
@@ -176,7 +176,7 @@ const {
   togglePlay,
   handleVideoReady,
 } = useVideoPlayer(isWeb);
-const { duration: videoDuration, rawCuts } = storeToRefs(useSegmentStore());
+const { duration: videoDuration } = storeToRefs(useSegmentStore());
 const {
   danmaList,
   xmlConvertVisible,
@@ -247,8 +247,7 @@ const closeAllResources = async () => {
   files.value.originDanmuPath = null;
 
   // 清理切片数据
-  rawCuts.value = [];
-  clearHistory();
+  clearCuts();
 
   // 清理项目状态
   resetProjectState();
@@ -323,7 +322,7 @@ const handleVideoDurationChange = (duration: number) => {
  * 视频加载完成回调
  */
 const handleVideoCanPlay = async () => {
-  const result = await initWaveform();
+  const result = await initWaveform(files.value.originVideoPath);
   if (result?.error) {
     notice.info({
       title: result.error,

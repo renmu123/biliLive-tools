@@ -1,4 +1,5 @@
 import { ref, type Ref } from "vue";
+import { taskApi } from "@renderer/apis";
 import WaveSurfer from "wavesurfer.js";
 import ZoomPlugin from "wavesurfer.js/dist/plugins/zoom.esm.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
@@ -12,15 +13,18 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
   /**
    * 初始化波形图
    */
-  const initWaveform = async () => {
+  const initWaveform = async (rawVideoFile: string | null) => {
     if (ws.value) return;
+    if (!rawVideoFile) return;
+    if (!videoInstance.value) return;
 
     // TODO: 还要测试m4s
     // if (!videoInstance.value?.url.endsWith("mp4")) {
     //   return { error: "波形图仅支持mp4格式的视频" };
     // }
-
     waveformLoading.value = true;
+    const res = await taskApi.extractAudio(rawVideoFile);
+    console.log("Extracted audio path:", res);
     const regions = RegionsPlugin.create();
 
     ws.value = WaveSurfer.create({
@@ -31,8 +35,12 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
       normalize: false,
       dragToSeek: true,
       hideScrollbar: true,
-      media: videoInstance.value!.video,
+      // media: videoInstance.value!.video,
+      url: res.output,
+      // peaks: [res.output.data],
       plugins: [regions],
+      // duration: videoInstance.value!.duration,
+      // minPxPerSec: 5,
     });
 
     ws.value.registerPlugin(

@@ -1,3 +1,4 @@
+import path from "node:path";
 import fs from "fs-extra";
 import Router from "@koa/router";
 
@@ -21,9 +22,14 @@ import {
   readVideoMeta,
   cut,
   checkMergeVideos,
+  extractAudio,
 } from "@biliLive-tools/shared/task/video.js";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
-import { trashItem } from "@biliLive-tools/shared/utils/index.js";
+import {
+  trashItem,
+  calculateFileQuickHash,
+  getTempPath,
+} from "@biliLive-tools/shared/utils/index.js";
 import {
   testVirtualRecordConfig,
   executeVirtualRecordConfig,
@@ -440,6 +446,56 @@ router.post("/executeVirtualRecord", async (ctx) => {
   } catch (error) {
     ctx.status = 500;
     ctx.body = error instanceof Error ? error.message : "Internal server error";
+  }
+});
+
+router.post("/extractAudio", async (ctx) => {
+  const { input, options } = ctx.request.body as {
+    input: string;
+    options?: {
+      sync?: boolean;
+    };
+  };
+  if (!input) {
+    ctx.status = 400;
+    ctx.body = "input is required";
+    return;
+  }
+  // const peaksPath = "C:\\Users\\renmu\\Downloads\\视频测试\\peaks.json";
+  // const data = fs.readJSONSync(peaksPath);
+  // ctx.body = { output: data };
+  // return;
+
+  // 计算文件快速哈希值作为文件名
+  const fileHash = await calculateFileQuickHash(input);
+  const cachePath = getTempPath();
+  const outputPath = `${fileHash}.aac`;
+  const fullOutputPath = path.join(cachePath, outputPath);
+
+  // 如果文件已存在，直接返回
+  if (await fs.pathExists(fullOutputPath)) {
+    ctx.body = { taskId: null, output: fullOutputPath, cached: true };
+    return;
+  }
+
+  const task = await extractAudio(input, outputPath, {
+    saveType: 2,
+    savePath: cachePath,
+    autoRun: true,
+  });
+
+  if (options?.sync) {
+    const outputFile = await new Promise((resolve, reject) => {
+      task.on("task-end", () => {
+        resolve(task.output);
+      });
+      task.on("task-error", (err) => {
+        reject(err);
+      });
+    });
+    ctx.body = { taskId: task.taskId, output: outputFile, cached: false };
+  } else {
+    ctx.body = { taskId: task.taskId, output: task.output, cached: false };
   }
 });
 
