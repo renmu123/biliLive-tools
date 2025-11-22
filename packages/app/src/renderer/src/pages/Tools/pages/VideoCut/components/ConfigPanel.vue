@@ -125,7 +125,7 @@ const waveformVisible = computed({
 
   .waveform-container {
     position: relative;
-    min-height: 64px;
+    min-height: 68px;
   }
 
   .waveform-loading {
@@ -167,6 +167,26 @@ const waveformVisible = computed({
     span {
       white-space: nowrap;
       font-size: 14px;
+    }
+  }
+}
+
+#waveform ::part(scroll) {
+  position: relative;
+  overflow-x: scroll !important;
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(144, 147, 153, 0.3);
+    border-radius: 3px;
+
+    &:hover {
+      background: rgba(144, 147, 153, 0.5);
     }
   }
 }

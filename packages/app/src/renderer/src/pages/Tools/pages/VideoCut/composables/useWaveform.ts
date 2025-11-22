@@ -147,7 +147,7 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
       height: 64,
       normalize: false,
       dragToSeek: true,
-      hideScrollbar: true,
+      hideScrollbar: false,
       // media: videoInstance.value!.video,
       url: output,
       // peaks: [res.output.data],
@@ -159,10 +159,7 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
 
     ws.value.registerPlugin(
       ZoomPlugin.create({
-        // the amount of zoom per wheel step, e.g. 0.5 means a 50% magnification per scroll
-        scale: 0.02,
-        // Optionally, specify the maximum pixels-per-second factor while zooming
-        maxZoom: 200,
+        exponentialZooming: true,
       }),
     );
 
@@ -176,11 +173,13 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
       // 初始化现有的 segments 为 regions
       for (const cut of cuts.value) {
         regions.addRegion({
+          drag: false,
+          resize: true,
+          minLength: 1,
+
           start: cut.start,
           end: cut.end,
           color: generateDistinctColor(index++),
-          drag: true,
-          resize: true,
           content: cut.name,
           id: cut.id,
         });
@@ -196,13 +195,19 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
         });
         isSyncing = false;
       });
-
       // 监听 region 删除事件
       regions.on("region-removed", (region: Region) => {
         if (isSyncing) return;
         isSyncing = true;
         segmentStore.removeSegment(region.id);
         isSyncing = false;
+      });
+      regions.on("region-double-clicked", (region: Region) => {
+        // // 禁止用户直接创建 region
+        // region.remove();
+        if (videoInstance.value) {
+          videoInstance.value.currentTime = region.start;
+        }
       });
 
       // 监听 segment store 事件，同步到 regions
@@ -215,11 +220,13 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
             // 新增 segment，添加 region
             const currentIndex = regionsPlugin.getRegions().length;
             regionsPlugin.addRegion({
+              drag: false,
+              resize: true,
+              minLength: 1,
+
               start: data.segment.start,
               end: data.segment.end,
               color: generateDistinctColor(currentIndex),
-              drag: true,
-              resize: true,
               content: data.segment.name,
               id: data.segment.id,
             });
