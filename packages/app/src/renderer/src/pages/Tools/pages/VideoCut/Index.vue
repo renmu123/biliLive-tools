@@ -3,49 +3,15 @@
     <!-- 上侧区域 -->
     <div class="upper-section">
       <!-- 左侧视频区域 -->
-      <div class="video-section">
-        <div v-show="files.videoPath" class="video cut-video">
-          <Artplayer
-            v-show="files.videoPath"
-            ref="videoRef"
-            :option="{
-              fullscreen: true,
-              plugins: {
-                heatmap: {
-                  option: clientOptions,
-                },
-                timestamp: {
-                  // position: { top: '10px', right: '10px' },
-                  // visible: false,
-                  timestamp: 0,
-                },
-              },
-            }"
-            :plugins="['ass', 'heatmap', 'timestamp']"
-            @ready="handleVideoReady"
-            @video:durationchange="handleVideoDurationChange"
-            @video:canplay="handleVideoCanPlay"
-          ></Artplayer>
-        </div>
-
-        <FileArea
-          v-show="!files.videoPath"
-          v-model="fileList"
-          :style="{ height: '100%' }"
-          class="video empty cut-file-area"
-          :extensions="['llc', 'flv', 'mp4', 'm4s', 'ts', 'mkv']"
-          :max="1"
-          @change="handleDroppedFiles"
-        >
-          <template #desc>
-            请导入视频或<a href="https://github.com/mifi/lossless-cut" target="_blank"
-              >lossless-cut</a
-            >项目文件，如果你不会使用，请先<span title="鸽了"
-              >查看教程，如果视频无法播放，请尝试转封装为mp4</span
-            >
-          </template>
-        </FileArea>
-      </div>
+      <VideoPlayer
+        ref="videoPlayerRef"
+        :video-path="files.videoPath"
+        :heatmap-options="clientOptions"
+        @ready="handleVideoReady"
+        @duration-change="handleVideoDurationChange"
+        @can-play="handleVideoCanPlay"
+        @files-dropped="handleDroppedFiles"
+      />
 
       <!-- 右侧分段列表区域 -->
       <div class="segment-section">
@@ -84,61 +50,20 @@
     </div>
 
     <!-- 下侧配置项区域 -->
-    <div class="config-section">
-      <div v-show="waveformVisible" class="waveform-container">
-        <div v-if="waveformLoading" class="waveform-loading">
-          <n-spin size="small" />
-          <span>波形图加载中...</span>
-        </div>
-        <div id="waveform"></div>
-      </div>
-      <div v-if="clientOptions.showSetting" class="config-content">
-        <n-checkbox v-model:checked="hotProgressVisible">高能进度条</n-checkbox>
-        <template v-if="hotProgressVisible">
-          <div class="config-item">
-            <span>采样间隔：</span>
-            <n-input-number
-              v-model:value="clientOptions.sampling"
-              placeholder="单位秒"
-              min="1"
-              style="width: 120px"
-            >
-              <template #suffix> 秒 </template>
-            </n-input-number>
-          </div>
-          <div class="config-item">
-            <span>高度：</span>
-            <n-input-number
-              v-model:value="clientOptions.height"
-              placeholder="单位像素"
-              min="10"
-              style="width: 120px"
-            >
-              <template #suffix> 像素 </template>
-            </n-input-number>
-          </div>
-          <div class="config-item">
-            <!-- <span>颜色：</span> -->
-            <n-color-picker v-model:value="clientOptions.color" style="width: 90px" />
-          </div>
-          <div class="config-item">
-            <!-- <span>填充颜色：</span> -->
-            <n-color-picker v-model:value="clientOptions.fillColor" style="width: 90px" />
-          </div>
-        </template>
-        <n-checkbox v-model:checked="showVideoTime" title="仅供参考，得加载弹幕才成"
-          >显示时间戳</n-checkbox
-        >
-        <n-checkbox v-model:checked="danmaSearchMask">弹幕搜索栏遮罩</n-checkbox>
-        <n-checkbox v-model:checked="waveformVisible">波形图</n-checkbox>
-      </div>
-    </div>
+    <ConfigPanel
+      :client-options="clientOptions"
+      v-model:hot-progress-visible="hotProgressVisible"
+      v-model:show-video-time="showVideoTime"
+      v-model:danma-search-mask="danmaSearchMask"
+      v-model:waveform-visible="waveformVisible"
+      :waveform-loading="waveformLoading"
+    />
   </div>
   <DanmuFactorySettingDailog
     v-model:visible="xmlConvertVisible"
     v-model="videoVCutOptions.danmuPresetId"
     :show-preset="true"
-    @confirm="confirmAndConvertDanmu"
+    @confirm="handleConfirmConvertDanmu"
     @cancel="convertDanmuLoading = false"
   ></DanmuFactorySettingDailog>
   <ExportModal v-model="exportVisible" :files="files"></ExportModal>
@@ -149,81 +74,27 @@ defineOptions({
   name: "videoCut",
 });
 import { supportedVideoExtensions } from "@renderer/utils";
-import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import { useSegmentStore, useAppConfig } from "@renderer/stores";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
+import VideoPlayer from "./components/VideoPlayer.vue";
+import ConfigPanel from "./components/ConfigPanel.vue";
 import { useStorage } from "@vueuse/core";
 import { showFileDialog } from "@renderer/utils/fileSystem";
-import { taskApi, commonApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
-import WaveSurfer from "wavesurfer.js";
-import ZoomPlugin from "wavesurfer.js/dist/plugins/zoom.esm.js";
 
 import { useProjectManager } from "./hooks";
 import { useDrive } from "@renderer/hooks/drive";
-import hotkeys from "hotkeys-js";
 import { toReactive } from "@vueuse/core";
-import { sortBy } from "lodash-es";
 
-// import type ArtplayerType from "artplayer";
-import type { DanmuConfig, DanmuItem } from "@biliLive-tools/types";
+import { useVideoPlayer } from "./composables/useVideoPlayer";
+import { useDanmu } from "./composables/useDanmu";
+import { useWaveform } from "./composables/useWaveform";
+import { useKeyboardShortcuts } from "./composables/useKeyboardShortcuts";
 
-onActivated(() => {
-  // 撤销
-  hotkeys("ctrl+z", function () {
-    undo();
-  });
-  // 重做
-  hotkeys("ctrl+shift+z", function () {
-    redo();
-  });
-  // 保存
-  hotkeys("ctrl+s", function (event) {
-    event.preventDefault();
-    saveProject(files.value.originVideoPath);
-  });
-  // 另存为
-  hotkeys("ctrl+shift+s", function (event) {
-    event.preventDefault();
-    saveProjectAs(files.value.originVideoPath);
-  });
-  // 导出
-  hotkeys("ctrl+enter", function () {
-    exportCuts();
-  });
-  // 播放/暂停
-  hotkeys("space", function (event) {
-    // @ts-ignore
-    if (event?.target?.tagName === "BUTTON") return;
-    // @ts-ignore
-    if (event?.target?.className.includes("artplayer")) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    event.stopPropagation();
-    videoToggle();
-  });
-  // 慢速快进
-  hotkeys("ctrl+left", function () {
-    if (!videoInstance.value) return;
-    videoInstance.value.backward = 1;
-  });
-  // 慢速后退
-  hotkeys("ctrl+right", function () {
-    if (!videoInstance.value) return;
-
-    videoInstance.value.forward = 1;
-  });
-});
-
-onDeactivated(() => {
-  hotkeys.unbind();
-});
-onUnmounted(() => {
-  hotkeys.unbind();
-});
+import type { DanmuConfig } from "@biliLive-tools/types";
 
 const notice = useNotification();
 const isWeb = ref(window.isWeb);
@@ -268,7 +139,6 @@ const {
   resetProjectState,
 } = useProjectManager(files);
 
-const { duration: videoDuration, rawCuts } = storeToRefs(useSegmentStore());
 const { appConfig } = storeToRefs(useAppConfig());
 
 const { undo, redo, clearHistory } = useSegmentStore();
@@ -298,20 +168,40 @@ const projectMenuItems = computed(() => {
 });
 const confirm = useConfirm();
 
-// 声明 fileList，用于拖拽文件
-const fileList = ref<any[]>([]);
+// 初始化 composables
+const {
+  videoInstance,
+  videoRef: videoPlayerRef,
+  loadVideo: loadVideoCore,
+  togglePlay,
+  handleVideoReady,
+} = useVideoPlayer(isWeb);
+const { duration: videoDuration, rawCuts } = storeToRefs(useSegmentStore());
+const {
+  danmaList,
+  xmlConvertVisible,
+  convertDanmuLoading,
+  loadDanmuFile,
+  confirmAndConvertDanmu: confirmConvert,
+  reloadDanmu,
+} = useDanmu(videoInstance, videoPlayerRef, videoDuration);
+const { waveformLoading, initWaveform, destroyWaveform } = useWaveform(videoInstance);
 
-// 声明 videoInstance，用于操作视频播放器
-const videoInstance = ref<Artplayer | null>(null);
 provide("videoInstance", videoInstance);
 
-/**
- * 视频播放器就绪回调
- */
-const handleVideoReady = (instance: Artplayer) => {
-  videoInstance.value = instance;
-  console.log("video ready", instance);
-};
+// 声明 videoRef 用于获取 VideoPlayer 组件实例
+const videoRef = ref<any>(null);
+
+// 同步 videoRef 到 videoPlayerRef
+watch(
+  videoRef,
+  (newVal) => {
+    if (newVal) {
+      videoPlayerRef.value = newVal.videoRef;
+    }
+  },
+  { immediate: true },
+);
 
 /**
  * 选择并加载视频文件
@@ -330,23 +220,13 @@ const selectAndLoadVideo = async () => {
  */
 const loadVideo = async (path: string) => {
   files.value.originVideoPath = path;
-  if (ws) {
-    ws.destroy();
-    ws = null;
-  }
-  if (isWeb.value) {
-    const { videoId, type } = await commonApi.applyVideoId(path);
-    const videoUrl = await commonApi.getVideo(videoId);
-    files.value.videoPath = videoUrl;
-    await videoRef.value?.switchUrl(videoUrl, type as any);
-  } else {
-    files.value.videoPath = path;
-    await videoRef.value?.switchUrl(path, path.endsWith(".flv") ? "flv" : "");
-  }
+  destroyWaveform();
+
+  const videoUrl = await loadVideoCore(path);
+  files.value.videoPath = videoUrl;
 
   if (files.value.danmuPath) {
-    const content = await commonApi.readAss(files.value.danmuPath);
-    videoRef?.value?.switchAss(content);
+    await reloadDanmu(files.value.danmuPath);
   }
 };
 
@@ -365,9 +245,6 @@ const closeAllResources = async () => {
   // 清理弹幕
   files.value.danmuPath = null;
   files.value.originDanmuPath = null;
-
-  // 清理文件列表
-  fileList.value = [];
 
   // 清理切片数据
   rawCuts.value = [];
@@ -435,8 +312,6 @@ const autoLoadDanmuFile = async (videoPath: string) => {
   }
 };
 
-const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
-
 /**
  * 视频时长变化
  */
@@ -444,47 +319,20 @@ const handleVideoDurationChange = (duration: number) => {
   videoDuration.value = duration;
 };
 
-let ws: WaveSurfer | null = null;
-const waveformLoading = ref(false);
+/**
+ * 视频加载完成回调
+ */
 const handleVideoCanPlay = async () => {
-  if (ws) return;
-  // TODO: 还要测试m4s
-  if (!videoInstance.value?.url.endsWith("mp4")) {
+  const result = await initWaveform();
+  if (result?.error) {
     notice.info({
-      title: "波形图仅支持mp4格式的视频",
+      title: result.error,
       duration: 2000,
     });
     waveformVisible.value = false;
-    return;
   }
-  waveformLoading.value = true;
-  ws = WaveSurfer.create({
-    container: "#waveform",
-    waveColor: "#4F4A85",
-    progressColor: "#383351",
-    height: 64,
-    normalize: false,
-    dragToSeek: true,
-    hideScrollbar: true,
-    media: videoInstance.value!.video,
-  });
-  ws.registerPlugin(
-    ZoomPlugin.create({
-      // the amount of zoom per wheel step, e.g. 0.5 means a 50% magnification per scroll
-      scale: 0.01,
-      // Optionally, specify the maximum pixels-per-second factor while zooming
-      maxZoom: 200,
-    }),
-  );
-  ws.once("decode", () => {
-    waveformLoading.value = false;
-  });
 };
 
-// 弹幕相关
-const xmlConvertVisible = ref(false);
-const tempXmlFile = ref("");
-const convertDanmuLoading = ref(false);
 /**
  * 选择并加载弹幕文件
  */
@@ -493,92 +341,16 @@ const selectAndLoadDanmu = async () => {
   if (!selectedFiles || selectedFiles.length === 0) return;
 
   const danmuPath = selectedFiles[0];
-  await loadDanmuFile(danmuPath);
-};
-
-/**
- * 加载弹幕文件
- * @param path 弹幕文件路径（.ass 或 .xml）
- */
-const loadDanmuFile = async (path: string) => {
-  files.value.originDanmuPath = path;
-
-  if (path.endsWith(".ass")) {
-    const content = await commonApi.readAss(path);
-    files.value.danmuPath = path;
-
-    videoRef.value?.switchAss(content);
-  } else {
-    // 如果是xml文件则弹框提示，要求转换为ass文件
-    xmlConvertVisible.value = true;
-    tempXmlFile.value = path;
-    convertDanmuLoading.value = true;
-  }
-  generateDanmakuData(path);
+  files.value.originDanmuPath = danmuPath;
+  files.value.danmuPath = await loadDanmuFile(danmuPath);
 };
 
 /**
  * 确认并执行弹幕转换
- * @param config 弹幕配置
  */
-const confirmAndConvertDanmu = async (config: DanmuConfig) => {
-  if (config.resolutionResponsive) {
-    const width = videoInstance.value?.video.videoWidth;
-    const height = videoInstance.value?.video.videoHeight;
-    config.resolution[0] = width!;
-    config.resolution[1] = height!;
-  }
-  try {
-    const { output } = await taskApi.convertXml2Ass(tempXmlFile.value, "随便填", config, {
-      copyInput: true,
-      removeOrigin: false,
-      saveRadio: 2,
-      temp: true,
-      savePath: "",
-      sync: true,
-    });
-    const content = await commonApi.readAss(output);
-    files.value.danmuPath = output;
-    videoRef.value?.switchAss(content);
-  } finally {
-    convertDanmuLoading.value = false;
-  }
-};
-
-const danmaList = ref<DanmuItem[]>([]);
-/**
- * 生成高能进度条数据和sc等数据
- */
-const generateDanmakuData = async (file: string) => {
-  if (file.endsWith(".ass")) {
-    danmaList.value = [];
-  } else if (file.endsWith(".xml")) {
-    const data = await commonApi.parseDanmu(file);
-    danmaList.value = sortBy([...data.sc, ...data.danmu], "ts");
-    if (data?.metadata?.video_start_time) {
-      // @ts-ignore
-      videoInstance.value.artplayerTimestamp.setTimestamp(data.metadata.video_start_time * 1000);
-      switchShowVideoTime();
-    }
-  } else {
-    throw new Error("不支持的文件类型");
-  }
-
-  if (!videoDuration.value) return;
-  const data = await commonApi.genTimeData(file);
-
-  // @ts-ignore
-  videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
-  setHotProgressVisible(hotProgressVisible.value);
-};
-
-/**
- * 视频状态切换
- */
-const videoToggle = () => {
-  if (!videoInstance.value) return;
-  if (!videoInstance.value.url) return;
-  videoInstance.value.toggle();
+const handleConfirmConvertDanmu = async (config: DanmuConfig) => {
+  const output = await confirmConvert(config);
+  files.value.danmuPath = output;
 };
 
 const exportVisible = ref(false);
@@ -627,6 +399,19 @@ const handleDroppedFiles = (droppedFiles: any[]) => {
     loadVideo(path);
   }
 };
+
+// 键盘快捷键
+useKeyboardShortcuts(
+  {
+    onUndo: () => undo(),
+    onRedo: () => redo(),
+    onSave: () => saveProject(files.value.originVideoPath),
+    onSaveAs: () => saveProjectAs(files.value.originVideoPath),
+    onExport: () => exportCuts(),
+    onTogglePlay: () => togglePlay(),
+  },
+  videoInstance,
+);
 
 const { videoCutDrive } = useDrive();
 onMounted(() => {
@@ -715,29 +500,6 @@ const switchShowVideoTime = () => {
   overflow: hidden;
 }
 
-.video-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-
-  .video {
-    width: 100%;
-    height: 100%;
-    position: relative;
-
-    &.empty {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 22px;
-      &.cut-file-area {
-        box-sizing: border-box;
-      }
-    }
-  }
-}
-
 .segment-section {
   width: 245px;
   display: flex;
@@ -771,65 +533,6 @@ const switchShowVideoTime = () => {
       &:hover {
         background: rgba(144, 147, 153, 0.5);
       }
-    }
-  }
-}
-
-.config-section {
-  flex-shrink: 0;
-  border-top: 1px solid var(--border-color);
-  padding: 0px 0px;
-  background: #f9fafb;
-
-  @media screen and (prefers-color-scheme: dark) {
-    background: #1e1e1e;
-  }
-  // background: var(--n-color);
-
-  .waveform-container {
-    position: relative;
-    min-height: 64px;
-  }
-
-  .waveform-loading {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    z-index: 1;
-
-    span {
-      font-size: 14px;
-      color: #666;
-
-      @media screen and (prefers-color-scheme: dark) {
-        color: #999;
-      }
-    }
-  }
-
-  .config-content {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-    padding: 0 10px;
-    padding-bottom: 10px;
-  }
-
-  .config-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-
-    span {
-      white-space: nowrap;
-      font-size: 14px;
     }
   }
 }
