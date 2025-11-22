@@ -5,8 +5,23 @@ import { taskApi } from "@renderer/apis";
 import WaveSurfer from "wavesurfer.js";
 import ZoomPlugin from "wavesurfer.js/dist/plugins/zoom.esm.js";
 import RegionsPlugin from "wavesurfer.js/dist/plugins/regions.esm.js";
+import { useSegmentStore } from "@renderer/stores";
 
 import type Artplayer from "artplayer";
+import type { Region } from "wavesurfer.js/dist/plugins/regions.esm.js";
+
+/**
+ * 生成有辨识度的颜色
+ * 使用 HSL 色彩空间,固定饱和度和亮度,通过黄金角度分割色相环
+ */
+const generateDistinctColor = (index: number): string => {
+  const goldenRatio = 0.618033988749895;
+  const hue = (index * goldenRatio * 360) % 360;
+  const saturation = 65; // 饱和度 65%
+  const lightness = 60; // 亮度 60%
+  const alpha = 0.5; // 透明度
+  return `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
+};
 
 export function useWaveform(videoInstance: Ref<Artplayer | null>) {
   const notice = useNotification();
@@ -17,11 +32,18 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
   // 存储当前视频文件路径，用于状态切换时重新初始化
   let currentVideoFile: string | null = null;
 
+  // 存储 regions plugin 引用
+  let regionsPlugin: ReturnType<typeof RegionsPlugin.create> | null = null;
+
+  // 标记是否正在同步，避免循环触发
+  let isSyncing = false;
+
   // 存储事件监听器的引用，用于清理
   let videoTimeUpdateHandler: (() => void) | null = null;
   let videoPlayHandler: (() => void) | null = null;
   let videoPauseHandler: (() => void) | null = null;
   let waveformInteractionHandler: ((time: number) => void) | null = null;
+  let segmentEventHandler: ((data: any) => void) | null = null;
 
   /**
    * 设置视频与波形图的联动
@@ -116,6 +138,7 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
       return { error: "提取音频失败，无法生成波形图。" };
     }
     const regions = RegionsPlugin.create();
+    regionsPlugin = regions;
 
     ws.value = WaveSurfer.create({
       container: "#waveform",
@@ -143,34 +166,90 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
       }),
     );
 
+    const segmentStore = useSegmentStore();
+    const { cuts } = storeToRefs(segmentStore);
+
     ws.value.once("decode", () => {
       waveformLoading.value = false;
 
-      // regions.addRegion({
-      //   id: "region1",
-      //   start: 0,
-      //   end: 8,
-      //   content: "Resize me",
-      //   color: "rgb(79, 74, 133)",
-      //   drag: false,
-      //   resize: true,
-      // });
-      // regions.addRegion({
-      //   start: 10,
-      //   end: 18,
-      //   content: "Resize me",
-      //   color: "rgb(79, 74, 133)",
-      //   drag: false,
-      //   resize: true,
-      // });
-      // ws.value?.zoom(50);
+      let index = 0;
+      // 初始化现有的 segments 为 regions
+      for (const cut of cuts.value) {
+        regions.addRegion({
+          start: cut.start,
+          end: cut.end,
+          color: generateDistinctColor(index++),
+          drag: true,
+          resize: true,
+          content: cut.name,
+          id: cut.id,
+        });
+      }
 
-      // regions.on("region-updated", (region) => {
-      //   console.log("Updated region", region);
-      // });
-      // console.log("Waveform decoded", regions.getRegions());
-      // regions.getRegions()[0].remove();
-      // console.log("Waveform decoded2", regions.getRegions());
+      // 监听 region 更新事件，同步到 segment store
+      regions.on("region-updated", (region: Region) => {
+        if (isSyncing) return;
+        isSyncing = true;
+        segmentStore.updateSegment(region.id, {
+          start: region.start,
+          end: region.end,
+        });
+        isSyncing = false;
+      });
+
+      // 监听 region 删除事件
+      regions.on("region-removed", (region: Region) => {
+        if (isSyncing) return;
+        isSyncing = true;
+        segmentStore.removeSegment(region.id);
+        isSyncing = false;
+      });
+
+      // 监听 segment store 事件，同步到 regions
+      segmentEventHandler = (data: { type: string; segment?: any; id?: string }) => {
+        if (isSyncing || !regionsPlugin) return;
+        isSyncing = true;
+
+        try {
+          if (data.type === "add" && data.segment) {
+            // 新增 segment，添加 region
+            const currentIndex = regionsPlugin.getRegions().length;
+            regionsPlugin.addRegion({
+              start: data.segment.start,
+              end: data.segment.end,
+              color: generateDistinctColor(currentIndex),
+              drag: true,
+              resize: true,
+              content: data.segment.name,
+              id: data.segment.id,
+            });
+          } else if (data.type === "remove" && data.id) {
+            // 删除 segment，移除 region
+            const region = regionsPlugin.getRegions().find((r) => r.id === data.id);
+            if (region) {
+              region.remove();
+            }
+          } else if (data.type === "update" && data.segment) {
+            // 更新 segment，更新 region
+            const region = regionsPlugin.getRegions().find((r) => r.id === data.segment.id);
+            if (region) {
+              if (region.start !== data.segment.start || region.end !== data.segment.end) {
+                region.setOptions({ start: data.segment.start, end: data.segment.end });
+              }
+              if (region.content?.textContent !== data.segment.name) {
+                region.setOptions({ content: data.segment.name });
+              }
+            }
+          } else if (data.type === "clear") {
+            // 清空 segments，清空 regions
+            regionsPlugin.clearRegions();
+          }
+        } finally {
+          isSyncing = false;
+        }
+      };
+
+      segmentStore.on(segmentEventHandler);
     });
 
     return { error: null };
@@ -182,6 +261,16 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
   const destroyWaveform = () => {
     // 先清理监听器
     cleanupSyncWithVideo();
+
+    // 清理 segment store 事件监听器
+    if (segmentEventHandler) {
+      const segmentStore = useSegmentStore();
+      segmentStore.off(segmentEventHandler);
+      segmentEventHandler = null;
+    }
+
+    // 清理 regions 引用
+    regionsPlugin = null;
 
     // 再销毁波形图实例
     if (ws.value) {

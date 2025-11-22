@@ -3,7 +3,7 @@
     <div v-show="waveformVisible" class="waveform-container">
       <div v-if="waveformLoading" class="waveform-loading">
         <n-spin size="small" />
-        <span>波形图加载中...</span>
+        <span>波形图加载中...，请不要切换到其他页面</span>
       </div>
       <div id="waveform"></div>
     </div>

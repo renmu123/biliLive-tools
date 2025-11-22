@@ -129,7 +129,6 @@ const openSubWindow = async () => {
 };
 
 const {
-  selectedCuts,
   handleProjectAction,
   projectMediaPath,
   projectMenuOptions,
@@ -142,6 +141,7 @@ const {
 const { appConfig } = storeToRefs(useAppConfig());
 
 const { undo, redo, clear: clearCuts } = useSegmentStore();
+const { selectedCuts } = storeToRefs(useSegmentStore());
 
 const videoVCutOptions = toReactive(
   computed({
@@ -323,6 +323,7 @@ const handleVideoDurationChange = (duration: number) => {
  * 视频加载完成回调
  */
 const handleVideoCanPlay = async () => {
+  console.log("Video can play", files.value.originVideoPath);
   await initWaveform(files.value.originVideoPath);
 };
 

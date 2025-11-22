@@ -203,6 +203,7 @@ interface Props {
   danmaList: DanmuItem[];
   files: {
     originDanmuPath: string | null;
+    originVideoPath: string | null;
   };
   danmaSearchMask: boolean;
 }
@@ -214,7 +215,7 @@ const props = withDefaults(defineProps<Props>(), {
 const el = ref<HTMLElement | null>(null);
 
 const { width, height } = useWindowSize();
-
+const notice = useNotification();
 const { x, y, style } = useDraggable(el, {
   initialValue: { x: width.value - 100, y: height.value - 40 },
 });
@@ -263,7 +264,7 @@ const rename = () => {
  */
 const confirmEditCutName = () => {
   if (!selectCutId.value) return;
-  updateSegment(selectCutId.value, "name", tempCutName.value);
+  updateSegment(selectCutId.value, { name: tempCutName.value });
   cutEditVisible.value = false;
 };
 
@@ -287,6 +288,13 @@ const selectCut = (id: string) => {
  * 添加片段
  */
 const addCut = (iOptions: { start?: number; end?: number; name?: string; id?: string } = {}) => {
+  if (!props.files.originVideoPath) {
+    notice.error({
+      title: "请先加载视频文件",
+      duration: 1000,
+    });
+    return;
+  }
   const options = Object.assign(
     {
       start: videoInstance.value.currentTime,
@@ -295,7 +303,11 @@ const addCut = (iOptions: { start?: number; end?: number; name?: string; id?: st
     },
     iOptions,
   );
-  if (options.end) options.end = Math.min(options.end, videoInstance.value.duration);
+  if (options.end) {
+    options.end = Math.min(options.end, videoInstance.value.duration);
+  } else {
+    options.end = Math.min(options.start + 60 * 5, videoInstance.value.duration);
+  }
   addSegment(options as any);
   console.log("cuts", cuts.value);
   if (cuts.value.length > 0) {
@@ -330,7 +342,7 @@ const setStartTime = () => {
   if (!selectedCut || videoInstance.value.currentTime > selectedCut.end) {
     return;
   }
-  updateSegment(selectCutId.value, "start", videoInstance.value.currentTime);
+  updateSegment(selectCutId.value, { start: videoInstance.value.currentTime });
 };
 
 /**
@@ -345,7 +357,7 @@ const setEndTime = () => {
   if (!selectedCut || videoInstance.value.currentTime < selectedCut.start) {
     return;
   }
-  updateSegment(selectCutId.value, "end", videoInstance.value.currentTime);
+  updateSegment(selectCutId.value, { end: videoInstance.value.currentTime });
 };
 
 /**

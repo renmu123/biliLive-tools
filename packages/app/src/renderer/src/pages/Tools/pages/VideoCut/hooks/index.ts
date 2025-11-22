@@ -219,8 +219,6 @@ export function useProjectManager(files: Ref<{ videoPath: string | null }>) {
   });
 
   return {
-    cuts,
-    selectedCuts,
     projectFilePath,
     projectMediaPath,
     projectMenuOptions,

@@ -363,29 +363,47 @@ export default useHistoryStore;
 interface Segment {
   id: string;
   start: number;
-  end?: number;
+  end: number;
   name: string;
   checked: boolean;
   tags?: any;
 }
-type SegmentWithRequiredEnd = Required<Pick<Segment, "end">> & Omit<Segment, "end">;
+
+type SegmentEventType = "add" | "remove" | "update" | "clear";
+type SegmentEventCallback = (data: {
+  type: SegmentEventType;
+  segment?: Segment;
+  id?: string;
+}) => void;
 
 export const useSegmentStore = defineStore("segment", () => {
   const duration = ref(0);
 
   const rawCuts = ref<Segment[]>([]);
-  const cuts = readonly(
-    computed<SegmentWithRequiredEnd[]>(() => {
-      return rawCuts.value.map((item: Segment) => {
-        return {
-          ...item,
-          end: item.end || duration.value,
-        };
-      });
-    }),
-  );
-  // const history = ref<Segment[][]>([]);
   const historyStore = useHistoryStore<Segment[]>({ limit: 30 });
+
+  // 事件监听器
+  const eventListeners: SegmentEventCallback[] = [];
+
+  // 添加事件监听器
+  const on = (callback: SegmentEventCallback) => {
+    eventListeners.push(callback);
+  };
+
+  // 移除事件监听器
+  const off = (callback: SegmentEventCallback) => {
+    const index = eventListeners.indexOf(callback);
+    if (index > -1) {
+      eventListeners.splice(index, 1);
+    }
+  };
+
+  // 触发事件
+  const emit = (type: SegmentEventType, data?: { segment?: Segment; id?: string }) => {
+    eventListeners.forEach((callback) => {
+      callback({ type, ...data });
+    });
+  };
 
   const recordHistory = () => {
     historyStore.add(rawCuts.value);
@@ -403,34 +421,38 @@ export const useSegmentStore = defineStore("segment", () => {
   };
 
   const selectedCuts = computed(() => {
-    return cuts.value.filter((item) => item.checked);
+    return rawCuts.value.filter((item) => item.checked);
   });
 
   const init = (segments: Omit<Segment, "id">[]) => {
     rawCuts.value = [];
     segments.forEach((segment) => {
-      addSegment({ ...segment, id: uuid() });
+      addSegment(segment);
     });
   };
-  const addSegment = (cut: Segment) => {
-    if (!cut.id) {
-      cut.id = uuid();
-    }
-    rawCuts.value.push(cut);
+  const addSegment = (cut: Omit<Segment, "id">) => {
+    const data = {
+      id: uuid(),
+      ...cut,
+    };
+    rawCuts.value.push(data);
     recordHistory();
+    emit("add", { segment: data });
   };
   const removeSegment = (id: string) => {
     const index = rawCuts.value.findIndex((item) => item.id === id);
     if (index !== -1) {
       rawCuts.value.splice(index, 1);
       recordHistory();
+      emit("remove", { id });
     }
   };
-  const updateSegment = <K extends keyof Segment>(id: string, key: K, value: Segment[K]) => {
+  const updateSegment = (id: string, options: Partial<Omit<Segment, "id">>) => {
     const cut = rawCuts.value.find((item) => item.id === id);
     if (cut) {
-      cut[key] = value;
+      Object.assign(cut, options);
       recordHistory();
+      emit("update", { segment: cut });
     }
   };
   const toggleSegment = (id: string) => {
@@ -443,10 +465,11 @@ export const useSegmentStore = defineStore("segment", () => {
   const clear = () => {
     rawCuts.value = [];
     recordHistory();
+    emit("clear");
   };
 
   return {
-    cuts,
+    cuts: rawCuts,
     selectedCuts,
     duration,
     rawCuts,
@@ -459,5 +482,7 @@ export const useSegmentStore = defineStore("segment", () => {
     redo,
     init,
     clear,
+    on,
+    off,
   };
 });
