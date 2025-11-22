@@ -185,7 +185,8 @@ const {
   confirmAndConvertDanmu: confirmConvert,
   reloadDanmu,
 } = useDanmu(videoInstance, videoPlayerRef, videoDuration);
-const { waveformLoading, initWaveform, destroyWaveform } = useWaveform(videoInstance);
+const { waveformLoading, waveformVisible, initWaveform, destroyWaveform } =
+  useWaveform(videoInstance);
 
 provide("videoInstance", videoInstance);
 
@@ -322,14 +323,7 @@ const handleVideoDurationChange = (duration: number) => {
  * 视频加载完成回调
  */
 const handleVideoCanPlay = async () => {
-  const result = await initWaveform(files.value.originVideoPath);
-  if (result?.error) {
-    notice.info({
-      title: result.error,
-      duration: 2000,
-    });
-    waveformVisible.value = false;
-  }
+  await initWaveform(files.value.originVideoPath);
 };
 
 /**
@@ -429,7 +423,6 @@ const clientOptions = useStorage("cut-hotprogress", {
 const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
 const danmaSearchMask = useStorage("cut-danma-search-mask", true);
 const showVideoTime = useStorage("cut-show-video-time", true);
-const waveformVisible = useStorage("cut-waveform-visible", true);
 
 watch(
   clientOptions,
