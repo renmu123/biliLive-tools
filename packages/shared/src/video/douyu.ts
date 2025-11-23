@@ -5,7 +5,7 @@ import { video, convert2Xml } from "douyu-api";
 import M3U8Downloader from "@renmu/m3u8-downloader";
 
 import { taskQueue, DouyuDownloadVideoTask } from "../task/task.js";
-import { getFfmpegPath } from "../task/video.js";
+import { getBinPath } from "../task/video.js";
 import { uuid } from "../utils/index.js";
 import { getTempPath } from "../utils/index.js";
 
@@ -69,7 +69,7 @@ async function download(
   }
   if (!m3u8Url) throw new Error("无法找到对应的流");
 
-  const { ffmpegPath } = getFfmpegPath();
+  const { ffmpegPath } = getBinPath();
   const downloader = new M3U8Downloader(m3u8Url, output, {
     convert2Mp4: true,
     ffmpegPath: ffmpegPath,

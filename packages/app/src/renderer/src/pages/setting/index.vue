@@ -1,5 +1,11 @@
 <template>
-  <n-modal v-model:show="showModal" :mask-closable="false" auto-focus :on-after-enter="handleOpen">
+  <n-modal
+    v-model:show="showModal"
+    :mask-closable="false"
+    auto-focus
+    :on-after-enter="handleOpen"
+    class="setting-modal"
+  >
     <n-card
       style="width: calc(100% - 60px)"
       :bordered="false"
@@ -203,6 +209,24 @@
                   class="pointer"
                   v-if="!isWeb"
                   @click="selectFile('bililive', config.bililiveRecorderPath)"
+                >
+                  <FolderOpenOutline />
+                </n-icon>
+              </n-form-item>
+              <n-form-item>
+                <template #label>
+                  <Tip text="audiowaveform路径" tip="根据文档选择对应版本，用于提取音频波形"></Tip>
+                </template>
+                <n-input
+                  v-model:value="config.audiowaveformPath"
+                  placeholder="请输入audiowaveform可执行文件路径"
+                />
+                <n-icon
+                  style="margin-left: 10px"
+                  size="26"
+                  class="pointer"
+                  v-if="!isWeb"
+                  @click="selectFile('audiowaveform', config.audiowaveformPath)"
                 >
                   <FolderOpenOutline />
                 </n-icon>
@@ -496,7 +520,15 @@ const getConfig = async () => {
  * @param defaultPath 默认地址
  */
 const selectFile = async (
-  type: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut" | "mesio" | "cache" | "bililive",
+  type:
+    | "ffmpeg"
+    | "ffprobe"
+    | "danmakuFactory"
+    | "losslessCut"
+    | "mesio"
+    | "cache"
+    | "bililive"
+    | "audiowaveform",
   defaultPath: string,
 ) => {
   const files = await window.api.openFile({
@@ -517,6 +549,8 @@ const selectFile = async (
     config.value.mesioPath = files[0];
   } else if (type === "bililive") {
     config.value.bililiveRecorderPath = files[0];
+  } else if (type === "audiowaveform") {
+    config.value.audiowaveformPath = files[0];
   } else {
     console.error("未知文件类型");
   }
@@ -834,8 +868,14 @@ const checkForUpdates = async () => {
     }
   }
 }
+.setting-modal > :deep(.n-card__content) {
+  padding-bottom: 0 !important;
+  padding-right: 0px !important;
+}
 .setting-tab > :deep(.n-tab-pane) {
   overflow: auto;
-  height: calc(100vh - 130px);
+  height: calc(100vh - 150px);
+  scrollbar-gutter: stable;
+  padding-right: 6px;
 }
 </style>

@@ -28,16 +28,7 @@ import { cookieHandlers } from "./cookie";
 import { commonHandlers } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
 // import icon from "../../resources/icon.png?asset";
-import {
-  FFMPEG_PATH,
-  FFPROBE_PATH,
-  DANMUKUFACTORY_PATH,
-  LOG_PATH,
-  MESIO_PATH,
-  BILILIVERECORDER_PATH,
-  __dirname2,
-  getConfigPath,
-} from "./appConstant";
+import { __dirname2, getConfigPath } from "./appConstant";
 
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
@@ -125,10 +116,10 @@ function createCutWindow() {
   });
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-    subWindow.loadURL(process.env["ELECTRON_RENDERER_URL"] + "/#/videoCut2");
+    subWindow.loadURL(process.env["ELECTRON_RENDERER_URL"] + "/#/videoCut");
   } else {
     subWindow.loadFile(join(__dirname2, "../renderer/index.html"), {
-      hash: "videoCut2",
+      hash: "videoCut",
     });
   }
 
@@ -654,6 +645,13 @@ const appInit = async () => {
     FFMPEG_PRESET_PATH,
     VIDEO_PRESET_PATH,
     DANMU_PRESET_PATH,
+    LOG_PATH,
+    FFMPEG_PATH,
+    FFPROBE_PATH,
+    DANMUKUFACTORY_PATH,
+    MESIO_PATH,
+    BILILIVERECORDER_PATH,
+    AUDIOWAVEFORM_PATH,
     userDataPath,
   } = await getConfigPath();
 
@@ -667,6 +665,7 @@ const appInit = async () => {
     defaultFfprobePath: FFPROBE_PATH,
     defaultMesioPath: MESIO_PATH,
     defaultBililiveRecorderPath: BILILIVERECORDER_PATH,
+    defaultAudioWaveformPath: AUDIOWAVEFORM_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
     userDataPath,
     version: app.getVersion(),

@@ -533,6 +533,8 @@ export interface AppConfig {
   mesioPath: string;
   /** 录播姬引擎 可执行路径 */
   bililiveRecorderPath: string;
+  /** audiowaveform 可执行路径 */
+  audiowaveformPath: string;
   /** 缓存文件夹 */
   cacheFolder: string;
   /** 保存到回收站 */
@@ -1006,6 +1008,7 @@ export interface GlobalConfig {
   defaultFfprobePath: string;
   defaultMesioPath: string;
   defaultBililiveRecorderPath: string;
+  defaultAudioWaveformPath: string;
   defaultDanmakuFactoryPath: string;
   version: string;
   userDataPath: string;
