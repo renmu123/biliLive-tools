@@ -35,6 +35,7 @@ import {
   LOG_PATH,
   MESIO_PATH,
   BILILIVERECORDER_PATH,
+  AUDIOWAVEFORM_PATH,
   __dirname2,
   getConfigPath,
 } from "./appConstant";
@@ -664,6 +665,7 @@ const appInit = async () => {
     defaultFfprobePath: FFPROBE_PATH,
     defaultMesioPath: MESIO_PATH,
     defaultBililiveRecorderPath: BILILIVERECORDER_PATH,
+    defaultAudioWaveformPath: AUDIOWAVEFORM_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
     userDataPath,
     version: app.getVersion(),

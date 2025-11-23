@@ -127,10 +127,10 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
     }
 
     waveformLoading.value = true;
-    let output = "";
+    let peaks: any[] = [];
     try {
-      const res = await taskApi.extractAudio(rawVideoFile);
-      output = res.output;
+      const res = await taskApi.extractPeaks(rawVideoFile);
+      peaks = res.output.data;
       console.log("Extracted audio path:", res);
     } catch (error) {
       waveformLoading.value = false;
@@ -139,7 +139,6 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
     }
     const regions = RegionsPlugin.create();
     regionsPlugin = regions;
-
     ws.value = WaveSurfer.create({
       container: "#waveform",
       waveColor: "#4F4A85",
@@ -149,10 +148,10 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
       dragToSeek: true,
       hideScrollbar: false,
       // media: videoInstance.value!.video,
-      url: output,
-      // peaks: [res.output.data],
+      // url: output.file,
+      peaks: [peaks],
       plugins: [regions],
-      // duration: videoInstance.value!.duration,
+      duration: videoInstance.value!.duration,
       // minPxPerSec: 5,
     });
     setupSyncWithVideo();

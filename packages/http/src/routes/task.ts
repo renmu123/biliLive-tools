@@ -35,6 +35,7 @@ import {
   executeVirtualRecordConfig,
 } from "@biliLive-tools/shared/task/virtualRecord.js";
 import { flvRepair } from "@biliLive-tools/shared/task/flvRepair.js";
+import { generateAudioWaveform } from "@biliLive-tools/shared/task/audiowaveform.js";
 import { fileCache } from "../index.js";
 
 import type { DanmuPreset, DanmaOptions } from "@biliLive-tools/types";
@@ -449,53 +450,52 @@ router.post("/executeVirtualRecord", async (ctx) => {
   }
 });
 
-router.post("/extractAudio", async (ctx) => {
-  const { input, options } = ctx.request.body as {
+router.post("/extractPeaks", async (ctx) => {
+  const { input } = ctx.request.body as {
     input: string;
-    options?: {
-      sync?: boolean;
-    };
   };
   if (!input) {
     ctx.status = 400;
     ctx.body = "input is required";
     return;
   }
-  // const peaksPath = "C:\\Users\\renmu\\Downloads\\视频测试\\peaks.json";
-  // const data = fs.readJSONSync(peaksPath);
-  // ctx.body = { output: data };
-  // return;
 
   // 计算文件快速哈希值作为文件名
   const fileHash = await calculateFileQuickHash(input);
   const cachePath = getTempPath();
-  const outputPath = `${fileHash}.aac`;
-  const fullOutputPath = path.join(cachePath, outputPath);
+  const outputVideoName = `cut_${fileHash}.wav`;
+  const outputPeakName = `peaks_${fileHash}.json`;
+  const outputPeakPath = path.join(cachePath, outputPeakName);
 
-  // 如果文件已存在，直接返回
-  if (await fs.pathExists(fullOutputPath)) {
-    ctx.body = { taskId: null, output: fullOutputPath, cached: true };
+  if (await fs.pathExists(outputPeakPath)) {
+    const cachedData = await fs.readJSON(outputPeakPath);
+    ctx.body = { output: cachedData };
     return;
   }
 
-  const task = await extractAudio(input, outputPath, {
+  const task = await extractAudio(input, outputVideoName, {
     saveType: 2,
     savePath: cachePath,
     autoRun: true,
+    addQueue: false,
+  });
+  const outputFile: string = await new Promise((resolve, reject) => {
+    task.on("task-end", () => {
+      resolve(task.output as string);
+    });
+    task.on("task-error", (err) => {
+      reject(err);
+    });
   });
 
-  if (options?.sync) {
-    const outputFile = await new Promise((resolve, reject) => {
-      task.on("task-end", () => {
-        resolve(task.output);
-      });
-      task.on("task-error", (err) => {
-        reject(err);
-      });
-    });
-    ctx.body = { taskId: task.taskId, output: outputFile, cached: false };
-  } else {
-    ctx.body = { taskId: task.taskId, output: task.output, cached: false };
+  try {
+    await generateAudioWaveform(outputFile, outputPeakPath);
+    const data = await fs.readJSON(outputPeakPath);
+    fs.remove(outputFile);
+    ctx.body = { output: data };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = error instanceof Error ? error.message : "Internal server error";
   }
 });
 

@@ -39,19 +39,21 @@ export const getFfmpegPath = () => {
   let ffprobePath = config.ffprobePath;
   let mesioPath = config.mesioPath;
   let bililiveRecorderPath = config.bililiveRecorderPath;
+  let audiowaveformPath = config.audiowaveformPath;
   if (!config.customExecPath) {
     const globalConfig = container.resolve("globalConfig");
     ffmpegPath = globalConfig.defaultFfmpegPath;
     ffprobePath = globalConfig.defaultFfprobePath;
     mesioPath = globalConfig.defaultMesioPath;
     bililiveRecorderPath = globalConfig.defaultBililiveRecorderPath;
+    audiowaveformPath = globalConfig.defaultAudioWaveformPath;
   }
-
   return {
     ffmpegPath,
     ffprobePath,
     mesioPath,
     bililiveRecorderPath,
+    audiowaveformPath,
   };
 };
 
@@ -1259,6 +1261,7 @@ export const extractAudio = async (
     saveType: 1 | 2;
     limitTime?: [string, string];
     autoRun?: boolean;
+    addQueue?: boolean;
   },
 ) => {
   const opts = Object.assign(
@@ -1274,7 +1277,9 @@ export const extractAudio = async (
   const output = path.join(savePath, outputFilePath);
   const command = ffmpeg(videoFilePath)
     .outputOptions("-vn")
-    .outputOptions("-acodec copy")
+    .outputOptions("-acodec pcm_s16le")
+    .outputOptions("-ac 1")
+    // .outputOptions("-ar 44100")
     .output(output);
   const task = new FFmpegTask(
     command,
@@ -1284,6 +1289,10 @@ export const extractAudio = async (
     },
     {},
   );
-  taskQueue.addTask(task, opts.autoRun ?? false);
+  if (opts.addQueue ?? true) {
+    taskQueue.addTask(task, opts.autoRun ?? false);
+  } else {
+    task.exec();
+  }
   return task;
 };

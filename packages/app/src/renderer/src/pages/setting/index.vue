@@ -216,6 +216,24 @@
                   <FolderOpenOutline />
                 </n-icon>
               </n-form-item>
+              <n-form-item>
+                <template #label>
+                  <Tip text="audiowaveform路径" tip="根据文档选择对应版本，用于提取音频波形"></Tip>
+                </template>
+                <n-input
+                  v-model:value="config.audiowaveformPath"
+                  placeholder="请输入audiowaveform可执行文件路径"
+                />
+                <n-icon
+                  style="margin-left: 10px"
+                  size="26"
+                  class="pointer"
+                  v-if="!isWeb"
+                  @click="selectFile('audiowaveform', config.audiowaveformPath)"
+                >
+                  <FolderOpenOutline />
+                </n-icon>
+              </n-form-item>
             </template>
 
             <n-form-item label="lossless-cut路径">
@@ -511,7 +529,15 @@ const getConfig = async () => {
  * @param defaultPath 默认地址
  */
 const selectFile = async (
-  type: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut" | "mesio" | "cache" | "bililive",
+  type:
+    | "ffmpeg"
+    | "ffprobe"
+    | "danmakuFactory"
+    | "losslessCut"
+    | "mesio"
+    | "cache"
+    | "bililive"
+    | "audiowaveform",
   defaultPath: string,
 ) => {
   const files = await window.api.openFile({
@@ -532,6 +558,8 @@ const selectFile = async (
     config.value.mesioPath = files[0];
   } else if (type === "bililive") {
     config.value.bililiveRecorderPath = files[0];
+  } else if (type === "audiowaveform") {
+    config.value.audiowaveformPath = files[0];
   } else {
     console.error("未知文件类型");
   }
