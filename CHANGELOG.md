@@ -1,5 +1,9 @@
 # Next
 
+## 切片
+
+切片功能大幅优化，支持显示显现实时间，以及支持了波形图显示，为波形图添加了大量交互，超大文件的优化花了我一整天时间，js性能是真弱。
+
 ## 功能
 
 - 录制：支持批量添加 [#225](https://github.com/renmu123/biliLive-tools/pull/225)
@@ -9,7 +13,7 @@
 - 弹幕：支持自定义过滤函数 [#238](https://github.com/renmu123/biliLive-tools/pull/238)
 - 切片：支持在画面中展示录制时间 [#247](https://github.com/renmu123/biliLive-tools/pull/247)
 - 切片：web版本支持项目功能 [#248](https://github.com/renmu123/biliLive-tools/pull/248)
-- 切片：波形图支持
+- 切片：波形图支持 [#252](https://github.com/renmu123/biliLive-tools/pull/252)
 - UI：客户端支持隐藏菜单栏
 
 ## 优化
@@ -26,7 +30,7 @@
 - 录制：修复“画质匹配重试次数”修改后不生效的bug
 - 录制：修复“服务端时间戳”不会跟随全局设置的bug
 - 录制：修复录播姬引擎分段时间不支持浮点数
-- 切片：修复关闭“高能进度条”时仍进行渲染的bug
+- 切片：修复关闭“高能进度条”时仍进行渲染的bug [#252](https://github.com/renmu123/biliLive-tools/pull/252)
 
 ## 外部依赖
 
