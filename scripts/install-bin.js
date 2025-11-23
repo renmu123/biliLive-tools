@@ -122,9 +122,9 @@ async function downloadAudioWaveform() {
     const filename = `audiowaveform_${version}-1-12_${arch}`;
     audioWaveformUrl = `${baseUrl}/${filename}.deb`;
     await downloadFile(audioWaveformUrl, "packages/app/resources/bin", {
-      filename: "audiowaveform",
+      filename: "audiowaveform.deb",
     });
-    fs.chmodSync("packages/app/resources/bin/audiowaveform", 0o755);
+    fs.chmodSync("packages/app/resources/bin/audiowaveform.deb", 0o755);
   }
 }
 
