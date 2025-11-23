@@ -13,7 +13,7 @@ import { commonApi } from "@renderer/apis";
 export function useProjectManager(files: Ref<{ videoPath: string | null }>) {
   const notice = useNotification();
   const { appConfig } = storeToRefs(useAppConfig());
-  const { rawCuts, selectedCuts, cuts } = storeToRefs(useSegmentStore());
+  const { rawCuts } = storeToRefs(useSegmentStore());
   const { clearHistory, init } = useSegmentStore();
 
   // 项目文件路径
