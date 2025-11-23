@@ -179,7 +179,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   // });
   manager.on("videoFileCreated", async ({ recorder, filename, rawFilename }) => {
     logger.info("Manager videoFileCreated", { recorder, filename, rawFilename });
-    const recordStartTime = recorder.liveInfo?.recordStartTime || new Date();
+    const videoStartTime = new Date();
     const liveStartTime = recorder.liveInfo?.liveStartTime;
 
     if (!recorder.liveInfo) {
@@ -195,7 +195,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           event: "FileOpening",
           filePath: filename,
           roomId: recorder.channelId,
-          time: recordStartTime.toISOString(),
+          time: videoStartTime.toISOString(),
           title: recorder.liveInfo.title,
           username: recorder.liveInfo.owner,
           platform: recorder.providerId,
@@ -208,7 +208,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
     recordHistory.addWithStreamer({
       live_start_time: liveStartTime?.getTime(),
       live_id: recorder?.liveInfo?.liveId,
-      record_start_time: recordStartTime.getTime(),
+      record_start_time: videoStartTime.getTime(),
       room_id: recorder.channelId,
       title: recorder.liveInfo.title,
       video_file: filename,
