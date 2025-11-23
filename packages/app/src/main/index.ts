@@ -28,17 +28,7 @@ import { cookieHandlers } from "./cookie";
 import { commonHandlers } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
 // import icon from "../../resources/icon.png?asset";
-import {
-  FFMPEG_PATH,
-  FFPROBE_PATH,
-  DANMUKUFACTORY_PATH,
-  LOG_PATH,
-  MESIO_PATH,
-  BILILIVERECORDER_PATH,
-  AUDIOWAVEFORM_PATH,
-  __dirname2,
-  getConfigPath,
-} from "./appConstant";
+import { __dirname2, getConfigPath } from "./appConstant";
 
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
@@ -652,6 +642,13 @@ const appInit = async () => {
     FFMPEG_PRESET_PATH,
     VIDEO_PRESET_PATH,
     DANMU_PRESET_PATH,
+    LOG_PATH,
+    FFMPEG_PATH,
+    FFPROBE_PATH,
+    DANMUKUFACTORY_PATH,
+    MESIO_PATH,
+    BILILIVERECORDER_PATH,
+    AUDIOWAVEFORM_PATH,
     userDataPath,
   } = await getConfigPath();
 

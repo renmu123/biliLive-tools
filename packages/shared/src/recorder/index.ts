@@ -19,7 +19,7 @@ import {
 import recordHistory from "./recordHistory.js";
 import { danmuModel } from "../db/index.js";
 // import DanmuService from "../db/service/danmuService.js";
-import { getFfmpegPath, readVideoMeta } from "../task/video.js";
+import { getBinPath, readVideoMeta } from "../task/video.js";
 import logger from "../utils/log.js";
 import { replaceExtName } from "../utils/index.js";
 import RecorderConfig from "./config.js";
@@ -117,7 +117,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   }
 
   const config = appConfig.getAll();
-  const { ffmpegPath, mesioPath, bililiveRecorderPath } = getFfmpegPath();
+  const { ffmpegPath, mesioPath, bililiveRecorderPath } = getBinPath();
   setFFMPEGPath(ffmpegPath);
   setMesioPath(mesioPath);
   setBililivePath(bililiveRecorderPath);
@@ -346,7 +346,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   });
 
   appConfig.on("update", () => {
-    const { ffmpegPath, mesioPath, bililiveRecorderPath } = getFfmpegPath();
+    const { ffmpegPath, mesioPath, bililiveRecorderPath } = getBinPath();
     setFFMPEGPath(ffmpegPath);
     setMesioPath(mesioPath);
     setBililivePath(bililiveRecorderPath);

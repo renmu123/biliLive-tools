@@ -1,12 +1,12 @@
 import { spawn } from "node:child_process";
 
-import { getFfmpegPath } from "./video.js";
+import { getBinPath } from "./video.js";
 
 export function generateAudioWaveform(
   audioFilePath: string,
   outputJsonPath: string,
 ): Promise<void> {
-  const { audiowaveformPath } = getFfmpegPath();
+  const { audiowaveformPath } = getBinPath();
   return new Promise((resolve, reject) => {
     const args = ["-i", audioFilePath, "-o", outputJsonPath];
     const process = spawn(audiowaveformPath, args);

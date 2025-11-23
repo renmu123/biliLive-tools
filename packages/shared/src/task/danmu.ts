@@ -12,28 +12,15 @@ import {
   getUnusedFileName,
 } from "../utils/index.js";
 import log from "../utils/log.js";
-import { appConfig } from "../config.js";
 import { DanmakuFactory } from "../danmu/danmakuFactory.js";
 import { generateDanmakuImage } from "../danmu/hotProgress.js";
 import { DanmuTask, taskQueue } from "./task.js";
-import { convertImage2Video, readVideoMeta } from "./video.js";
-import { container } from "../index.js";
+import { convertImage2Video, readVideoMeta, getBinPath } from "./video.js";
 import { parseXmlFile } from "../danmu/index.js";
 import { XMLBuilder } from "fast-xml-parser";
 
 import type { DanmuConfig, DanmaOptions, HotProgressOptions } from "@biliLive-tools/types";
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
-
-const getDanmuFactoryPath = () => {
-  const config = appConfig.getAll();
-  let danmuFactoryPath = config.danmuFactoryPath;
-  if (!config.customExecPath) {
-    const globalConfig = container.resolve("globalConfig");
-    danmuFactoryPath = globalConfig.defaultDanmakuFactoryPath;
-  }
-
-  return danmuFactoryPath;
-};
 
 const genFilteredXml = async (input: string, output: string, filterFunction: string) => {
   const filterFunc = new Function(
@@ -85,8 +72,8 @@ const addConvertDanmu2AssTask = async (
     });
     await fs.unlink(output);
   }
-  const DANMUKUFACTORY_PATH = getDanmuFactoryPath();
-  const danmu = new DanmakuFactory(DANMUKUFACTORY_PATH);
+  const { danmuFactoryPath } = getBinPath();
+  const danmu = new DanmakuFactory(danmuFactoryPath);
   const tempDir = getTempPath();
 
   let filteredOutput: string | undefined;

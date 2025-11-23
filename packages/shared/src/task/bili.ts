@@ -18,7 +18,7 @@ import {
 import log from "../utils/log.js";
 import { sleep, encrypt, decrypt, getTempPath, trashItem, uuid } from "../utils/index.js";
 import { sendNotify } from "../notify.js";
-import { getFfmpegPath } from "./video.js";
+import { getBinPath } from "./video.js";
 
 import type { BiliupConfig, BiliUser, AppConfig as AppConfigType } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
@@ -168,7 +168,7 @@ async function sliceDownload(
 ) {
   if ((await fs.pathExists(output)) && !options.override) throw new Error(`${output}已存在`);
 
-  const { ffmpegPath } = getFfmpegPath();
+  const { ffmpegPath } = getBinPath();
   const downloader = new M3U8Downloader(url, output, {
     convert2Mp4: true,
     ffmpegPath: ffmpegPath,
@@ -202,7 +202,7 @@ async function download(
     throw new Error(`${options.output}已存在`);
 
   const client = createClient(uid);
-  const { ffmpegPath } = getFfmpegPath();
+  const { ffmpegPath } = getBinPath();
   const tmpPath = getTempPath();
   const command = await client.video.dashDownload(
     { ...options, ffmpegBinPath: ffmpegPath, cachePath: tmpPath, disableVideo: options.onlyAudio },

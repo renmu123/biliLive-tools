@@ -33,13 +33,15 @@ import type {
 } from "@biliLive-tools/types";
 import type Ffmpeg from "@biliLive-tools/types/ffmpeg.js";
 
-export const getFfmpegPath = () => {
+export const getBinPath = () => {
   const config = appConfig.getAll();
   let ffmpegPath = config.ffmpegPath;
   let ffprobePath = config.ffprobePath;
+  let danmuFactoryPath = config.danmuFactoryPath;
   let mesioPath = config.mesioPath;
   let bililiveRecorderPath = config.bililiveRecorderPath;
   let audiowaveformPath = config.audiowaveformPath;
+
   if (!config.customExecPath) {
     const globalConfig = container.resolve("globalConfig");
     ffmpegPath = globalConfig.defaultFfmpegPath;
@@ -47,6 +49,7 @@ export const getFfmpegPath = () => {
     mesioPath = globalConfig.defaultMesioPath;
     bililiveRecorderPath = globalConfig.defaultBililiveRecorderPath;
     audiowaveformPath = globalConfig.defaultAudioWaveformPath;
+    danmuFactoryPath = globalConfig.defaultDanmakuFactoryPath;
   }
   return {
     ffmpegPath,
@@ -54,11 +57,12 @@ export const getFfmpegPath = () => {
     mesioPath,
     bililiveRecorderPath,
     audiowaveformPath,
+    danmuFactoryPath,
   };
 };
 
 export const setFfmpegPath = async () => {
-  const { ffmpegPath, ffprobePath } = getFfmpegPath();
+  const { ffmpegPath, ffprobePath } = getBinPath();
 
   ffmpeg.setFfmpegPath(ffmpegPath);
   ffmpeg.setFfprobePath(ffprobePath);
@@ -115,7 +119,7 @@ interface Resolution {
  * @returns 分辨率变化
  */
 export async function analyzeResolutionChanges(filePath: string): Promise<Resolution[]> {
-  const { ffprobePath } = getFfmpegPath();
+  const { ffprobePath } = getBinPath();
   const command = `${ffprobePath}`;
   const args = [
     "-v",
