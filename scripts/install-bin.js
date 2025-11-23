@@ -118,8 +118,8 @@ async function downloadAudioWaveform() {
     console.error("macOS 平台暂不支持 audiowaveform 下载，请手动安装");
     return;
   } else if (platform === "linux") {
-    console.warn("下载的是debian13版本");
-    const filename = `audiowaveform_${version}-1-13_${arch}`;
+    console.warn("下载的是debian12版本");
+    const filename = `audiowaveform_${version}-1-12_${arch}`;
     audioWaveformUrl = `${baseUrl}/${filename}.deb`;
     await downloadFile(audioWaveformUrl, "packages/app/resources/bin", {
       filename: "audiowaveform",
