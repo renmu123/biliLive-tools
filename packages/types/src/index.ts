@@ -551,6 +551,7 @@ export interface AppConfig {
   closeToTray: boolean;
   /** 主题 */
   theme: Theme;
+  menuBarVisible: boolean;
   port: number;
   host: string;
   passKey: string;

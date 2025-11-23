@@ -89,9 +89,6 @@
               <n-input v-model:value="config.passKey" type="password" show-password-on="click">
               </n-input>
             </n-form-item>
-            <n-form-item label="主题"
-              ><n-select v-model:value="config.theme" :options="themeOptions" />
-            </n-form-item>
             <n-form-item>
               <template #label>
                 <span class="inline-flex">
@@ -443,7 +440,7 @@ import { deepRaw } from "@renderer/utils";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
 
-import type { AppConfig, BiliupPreset, AppRoomConfig, Theme } from "@biliLive-tools/types";
+import type { AppConfig, BiliupPreset, AppRoomConfig } from "@biliLive-tools/types";
 
 const notice = useNotification();
 const appConfigStore = useAppConfig();
@@ -471,12 +468,6 @@ const logLevelOptions = ref<{ label: string; value: any }[]>([
   { label: "info", value: "info" },
   { label: "warn", value: "warn" },
   { label: "error", value: "error" },
-]);
-
-const themeOptions = ref<{ label: string; value: Theme }[]>([
-  { label: "自动", value: "system" },
-  { label: "浅色", value: "light" },
-  { label: "深色", value: "dark" },
 ]);
 
 const confirm = useConfirm();

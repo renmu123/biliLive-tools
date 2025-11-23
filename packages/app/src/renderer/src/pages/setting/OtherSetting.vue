@@ -1,15 +1,12 @@
 <template>
   <div class="">
     <n-form label-placement="left" :label-width="150">
-      <!-- <n-form-item>
-        <template #label>
-          <span class="inline-flex"> 保存文件夹 </span>
-        </template>
-        <n-input v-model:value="config.video.subSavePath" placeholder="请选择要保存的文件夹" />
-        <n-icon style="margin-left: 10px" size="26" class="pointer" @click="selectFolder">
-          <FolderOpenOutline />
-        </n-icon>
-      </n-form-item> -->
+      <n-form-item label="主题"
+        ><n-select v-model:value="config.theme" :options="themeOptions" />
+      </n-form-item>
+      <n-form-item label="菜单栏显示" v-if="!isWeb">
+        <n-switch v-model:value="config.menuBarVisible" @click="toggleMenuBarVisible" />
+      </n-form-item>
       <n-form-item>
         <template #label>
           <Tip
@@ -40,12 +37,26 @@
 </template>
 
 <script setup lang="ts">
-import type { AppConfig } from "@biliLive-tools/types";
+import type { AppConfig, Theme } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
   default: () => {},
 });
 const isWeb = computed(() => window.isWeb);
+
+const themeOptions = ref<{ label: string; value: Theme }[]>([
+  { label: "自动", value: "system" },
+  { label: "浅色", value: "light" },
+  { label: "深色", value: "dark" },
+]);
+
+const toggleMenuBarVisible = async () => {
+  if (!isWeb.value) return;
+  // 延迟一点时间，等待config.menuBarVisible更新
+  setTimeout(() => {
+    window.api.common.setMenuBarVisible(config.value.menuBarVisible);
+  }, 0);
+};
 </script>
 
 <style scoped lang="less">

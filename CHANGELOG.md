@@ -10,6 +10,7 @@
 - 切片：支持在画面中展示录制时间 [#247](https://github.com/renmu123/biliLive-tools/pull/247)
 - 切片：web版本支持项目功能 [#248](https://github.com/renmu123/biliLive-tools/pull/248)
 - 切片：波形图支持
+- UI：客户端支持隐藏菜单栏
 
 ## 优化
 

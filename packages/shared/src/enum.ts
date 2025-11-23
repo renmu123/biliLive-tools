@@ -38,6 +38,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   minimizeToTray: false,
   closeToTray: true,
   theme: "system",
+  menuBarVisible: true,
   port: 18010,
   host: "127.0.0.1",
   passKey: "",
