@@ -2,7 +2,7 @@ import EventEmitter from "node:events";
 
 import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
 import { createInvalidStreamChecker, assert } from "../utils.js";
-import { IDownloader, FFMPEGRecorderOptions } from "./IDownloader.js";
+import { IDownloader, FFMPEGRecorderOptions, Segment } from "./IDownloader.js";
 
 import { FormatName } from "./index.js";
 import type { VideoFormat } from "../index.js";
@@ -14,11 +14,10 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
   private timeoutChecker: ReturnType<typeof utils.createTimeoutChecker>;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
-  readonly segment: number;
+  readonly segment: Segment;
   ffmpegOutputOptions: string[] = [];
   readonly inputOptions: string[] = [];
   readonly isHls: boolean;
-  readonly disableDanma: boolean = false;
   readonly url: string;
   formatName: FormatName;
   videoFormat: VideoFormat;
@@ -35,7 +34,11 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
-    const hasSegment = !!opts.segment;
+    let hasSegment = false;
+    // 只有数字才表示时间分段，只有时间分段才会在ffmpeg走分段逻辑
+    if (opts.segment && typeof opts.segment === "number") {
+      hasSegment = true;
+    }
     this.hasSegment = hasSegment;
     this.debugLevel = opts.debugLevel ?? "none";
     this.formatName = opts.formatName;
@@ -59,11 +62,9 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
     }
     this.videoFormat = videoFormat;
 
-    this.disableDanma = opts.disableDanma ?? false;
     this.streamManager = new StreamManager(
       opts.getSavePath,
-      hasSegment,
-      this.disableDanma,
+      this.hasSegment,
       "ffmpeg",
       this.videoFormat,
       {
@@ -161,15 +162,13 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
       "-min_frag_duration",
       "10000000",
     );
-    if (this.hasSegment) {
-      options.push(
-        "-f",
-        "segment",
-        "-segment_time",
-        String(this.segment * 60),
-        "-reset_timestamps",
-        "1",
-      );
+    if (this.segment) {
+      if (typeof this.segment === "number") {
+        options.push("-f", "segment", "-segment_time", String(this.segment * 60));
+      } else if (typeof this.segment === "string") {
+        options.push("-fs", String(this.segment));
+      }
+      options.push("-reset_timestamps", "1");
       if (this.videoFormat === "m4s") {
         options.push("-segment_format", "mp4");
       }

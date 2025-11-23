@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { FFMPEGRecorder } from "../src/recorder/FFMPEGRecorder.js";
-import { createFFMPEGBuilder, StreamManager, utils } from "../src/index.js";
+import { FFmpegDownloader } from "../../src/downloader/FFmpegDownloader.js";
+import { createFFMPEGBuilder, StreamManager, utils } from "../../src/index.js";
 
 // Mock dependencies
-vi.mock("../src/index.js", () => ({
+vi.mock("../../src/index.js", () => ({
   createFFMPEGBuilder: vi.fn(),
   StreamManager: vi.fn(),
   utils: {
@@ -11,12 +11,12 @@ vi.mock("../src/index.js", () => ({
   },
 }));
 
-vi.mock("../src/utils.js", () => ({
+vi.mock("../../src/utils.js", () => ({
   createInvalidStreamChecker: vi.fn(),
   assert: vi.fn(),
 }));
 
-describe("FFMPEGRecorder", () => {
+describe("FFmpegDownloader", () => {
   let mockFFMPEGBuilder: any;
   let mockStreamManager: any;
   let mockTimeoutChecker: any;
@@ -81,7 +81,7 @@ describe("FFMPEGRecorder", () => {
 
     describe("formatName detection from URL", () => {
       it("should detect ts format for m3u8 URLs", () => {
-        const recorder = new FFMPEGRecorder(
+        const recorder = new FFmpegDownloader(
           {
             ...baseOpts,
             url: "https://example.com/stream.m3u8",
@@ -95,7 +95,7 @@ describe("FFMPEGRecorder", () => {
       });
 
       it("should use explicit formatName over URL detection", () => {
-        const recorder = new FFMPEGRecorder(
+        const recorder = new FFmpegDownloader(
           {
             ...baseOpts,
             url: "https://example.com/stream.m3u8",
@@ -116,7 +116,7 @@ describe("FFMPEGRecorder", () => {
         ["fmp4", true],
         ["flv", false],
       ])("should set isHls to %s when formatName is %s", (formatName, expectedIsHls) => {
-        const recorder = new FFMPEGRecorder(
+        const recorder = new FFmpegDownloader(
           {
             ...baseOpts,
             formatName: formatName as "flv" | "ts" | "fmp4",
@@ -188,7 +188,7 @@ describe("FFMPEGRecorder", () => {
 
       testCases.forEach(({ description, opts, expected }) => {
         it(`should handle ${description}`, () => {
-          const recorder = new FFMPEGRecorder(
+          const recorder = new FFmpegDownloader(
             {
               ...baseOpts,
               ...opts,
@@ -210,7 +210,7 @@ describe("FFMPEGRecorder", () => {
     it("should pass correct videoFormat to StreamManager", () => {
       const getSavePath = vi.fn().mockReturnValue("/test/path/video");
 
-      new FFMPEGRecorder(
+      new FFmpegDownloader(
         {
           url: "https://example.com/stream.flv",
           getSavePath,
@@ -226,35 +226,8 @@ describe("FFMPEGRecorder", () => {
       expect(StreamManager).toHaveBeenCalledWith(
         getSavePath,
         true, // hasSegment
-        false, // disableDanma
         "ffmpeg",
         "mkv", // videoFormat
-        { onUpdateLiveInfo: mockOnUpdateLiveInfo },
-      );
-    });
-
-    it("should pass disableDanma option to StreamManager", () => {
-      const getSavePath = vi.fn().mockReturnValue("/test/path/video");
-
-      new FFMPEGRecorder(
-        {
-          url: "https://example.com/stream.flv",
-          getSavePath,
-          segment: 0,
-          outputOptions: ["-c:v", "copy"],
-          disableDanma: true,
-          formatName: "flv",
-        },
-        mockOnEnd,
-        mockOnUpdateLiveInfo,
-      );
-
-      expect(StreamManager).toHaveBeenCalledWith(
-        getSavePath,
-        false, // hasSegment
-        true, // disableDanma
-        "ffmpeg",
-        "m4s", // videoFormat (auto-detected)
         { onUpdateLiveInfo: mockOnUpdateLiveInfo },
       );
     });
@@ -264,7 +237,7 @@ describe("FFMPEGRecorder", () => {
     it("should use SIGINT for ts files", async () => {
       mockStreamManager.videoFilePath = "/test/path/video.ts";
 
-      const recorder = new FFMPEGRecorder(
+      const recorder = new FFmpegDownloader(
         {
           url: "https://example.com/stream.flv",
           getSavePath: vi.fn().mockReturnValue("/test/path/video"),
@@ -286,7 +259,7 @@ describe("FFMPEGRecorder", () => {
     it("should write 'q' for non-ts files", async () => {
       mockStreamManager.videoFilePath = "/test/path/video.mp4";
 
-      const recorder = new FFMPEGRecorder(
+      const recorder = new FFmpegDownloader(
         {
           url: "https://example.com/stream.flv",
           getSavePath: vi.fn().mockReturnValue("/test/path/video"),
@@ -308,7 +281,7 @@ describe("FFMPEGRecorder", () => {
     describe("buildOutputOptions method", () => {
       it("should include custom ffmpegOutputOptions", () => {
         const customOptions = ["-preset", "ultrafast", "-crf", "23"];
-        const recorder = new FFMPEGRecorder(
+        const recorder = new FFmpegDownloader(
           {
             url: "https://example.com/stream.flv",
             getSavePath: vi.fn().mockReturnValue("/test/path/video"),
@@ -326,7 +299,7 @@ describe("FFMPEGRecorder", () => {
       });
 
       it("should include base output options for all recordings", () => {
-        const recorder = new FFMPEGRecorder(
+        const recorder = new FFmpegDownloader(
           {
             url: "https://example.com/stream.flv",
             getSavePath: vi.fn().mockReturnValue("/test/path/video"),
@@ -355,7 +328,7 @@ describe("FFMPEGRecorder", () => {
       });
 
       it("should add segment options when hasSegment is true", () => {
-        const recorder = new FFMPEGRecorder(
+        const recorder = new FFmpegDownloader(
           {
             url: "https://example.com/stream.flv",
             getSavePath: vi.fn().mockReturnValue("/test/path/video"),
@@ -382,7 +355,7 @@ describe("FFMPEGRecorder", () => {
       });
 
       it("should not add segment options when hasSegment is false", () => {
-        const recorder = new FFMPEGRecorder(
+        const recorder = new FFmpegDownloader(
           {
             url: "https://example.com/stream.flv",
             getSavePath: vi.fn().mockReturnValue("/test/path/video"),
@@ -402,7 +375,7 @@ describe("FFMPEGRecorder", () => {
       });
 
       it("should add mp4 format option when videoFormat is m4s", () => {
-        const recorder = new FFMPEGRecorder(
+        const recorder = new FFmpegDownloader(
           {
             url: "https://example.com/stream.flv",
             getSavePath: vi.fn().mockReturnValue("/test/path/video"),
@@ -421,7 +394,7 @@ describe("FFMPEGRecorder", () => {
       });
 
       it("should not add mp4 format option when videoFormat is not m4s", () => {
-        const recorder = new FFMPEGRecorder(
+        const recorder = new FFmpegDownloader(
           {
             url: "https://example.com/stream.flv",
             getSavePath: vi.fn().mockReturnValue("/test/path/video"),
@@ -444,7 +417,7 @@ describe("FFMPEGRecorder", () => {
 
       it("should combine all options in correct order", () => {
         const customOptions = ["-preset", "fast"];
-        const recorder = new FFMPEGRecorder(
+        const recorder = new FFmpegDownloader(
           {
             url: "https://example.com/stream.flv",
             getSavePath: vi.fn().mockReturnValue("/test/path/video"),

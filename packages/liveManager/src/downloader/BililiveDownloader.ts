@@ -2,7 +2,8 @@ import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
 import { StreamManager, getBililivePath } from "../index.js";
-import { IDownloader, BililiveRecorderOptions } from "./IDownloader.js";
+import { byte2MB } from "../utils.js";
+import { IDownloader, BililiveRecorderOptions, Segment } from "./IDownloader.js";
 
 // Bililive command builder class similar to ffmpeg
 class BililiveRecorderCommand extends EventEmitter {
@@ -110,9 +111,8 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
   private streamManager: StreamManager;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
-  readonly segment: number;
+  readonly segment: Segment;
   readonly inputOptions: string[] = [];
-  readonly disableDanma: boolean = false;
   readonly url: string;
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
   readonly headers:
@@ -127,23 +127,15 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
+    // 存在自动分段，永远为true
     const hasSegment = true;
-    this.disableDanma = opts.disableDanma ?? false;
+    this.hasSegment = hasSegment;
     this.debugLevel = opts.debugLevel ?? "none";
-
     let videoFormat: "flv" = "flv";
 
-    this.streamManager = new StreamManager(
-      opts.getSavePath,
-      hasSegment,
-      this.disableDanma,
-      "bililive",
-      videoFormat,
-      {
-        onUpdateLiveInfo: this.onUpdateLiveInfo,
-      },
-    );
-    this.hasSegment = hasSegment;
+    this.streamManager = new StreamManager(opts.getSavePath, hasSegment, "bililive", videoFormat, {
+      onUpdateLiveInfo: this.onUpdateLiveInfo,
+    });
     this.getSavePath = opts.getSavePath;
     this.inputOptions = [];
     this.url = opts.url;
@@ -179,8 +171,12 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
         inputOptions.push("-h", `${key}: ${value}`);
       });
     }
-    if (this.hasSegment) {
-      inputOptions.push("-d", `${this.segment}`);
+    if (this.segment) {
+      if (typeof this.segment === "number") {
+        inputOptions.push("-d", `${this.segment}`);
+      } else if (typeof this.segment === "string") {
+        inputOptions.push("-m", byte2MB(Number(this.segment)).toFixed(2));
+      }
     }
 
     const command = createBililiveBuilder()

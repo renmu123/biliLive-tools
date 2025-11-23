@@ -22,7 +22,19 @@ import type { GlobalConfig } from "@biliLive-tools/types";
 
 dns.setDefaultResultOrder("ipv4first");
 
-const container = createContainer();
+export interface GlobalContainer {
+  appConfig: AppConfig;
+  logger: Console;
+  globalConfig: GlobalConfig;
+  taskQueue: TaskQueue;
+  commentQueue: BiliCheckQueue;
+  danmuPreset: DanmuPreset;
+  videoPreset: VideoPreset;
+  ffmpegPreset: FFmpegPreset;
+  recorderManager: Awaited<ReturnType<typeof createRecorderManager>>;
+}
+
+const container = createContainer<GlobalContainer>();
 
 const init = async (config: GlobalConfig) => {
   appConfig.init(config.configPath, {
@@ -59,7 +71,7 @@ const init = async (config: GlobalConfig) => {
   await migrate();
   setFfmpegPath();
   try {
-    const commentQueue = container.resolve<BiliCheckQueue>("commentQueue");
+    const commentQueue = container.resolve("commentQueue");
     commentQueue.checkLoop();
     checkAccountLoop();
     checkDiskSpaceLoop();
@@ -114,4 +126,4 @@ const checkDiskSpaceLoop = async () => {
   );
 };
 
-export { init, AppConfig, appConfig, TaskQueue, migrate, createRecorderManager, container };
+export { init, AppConfig, appConfig, TaskQueue, migrate, container };

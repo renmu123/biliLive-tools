@@ -130,7 +130,7 @@ export interface RecorderManager<
   ffmpegOutputArgs: string;
   /** b站使用批量查询接口 */
   biliBatchQuery: boolean;
-  /** 测试：录制错误立即重试 */
+  /** 下播延迟检查 */
   recordRetryImmediately: boolean;
   /** 缓存系统 */
   cache: RecorderCache;
@@ -259,6 +259,7 @@ export function createRecorderManager<
       // provider.createRecorder 能返回 Recorder<PE> 才能进一步优化。
       const recorder = provider.createRecorder({
         ...omit(opts, ["providerId"]),
+        // cache,
       }) as Recorder<E>;
 
       // 为录制器注入独立的缓存命名空间
@@ -293,31 +294,33 @@ export function createRecorderManager<
       );
       recorder.on("RecordStop", ({ recordHandle, reason }) => {
         this.emit("RecordStop", { recorder: recorder.toJSON(), recordHandle, reason });
-        // 如果reason中存在"invalid stream"，说明直播由于某些原因中断了，虽然会在下一次周期检查中继续，但是会遗漏一段时间。
-        // 这时候可以触发一次检查，但出于直播可能抽风的原因，为避免风控，一场直播最多触发五次。
-        // 测试阶段，还需要一个开关，默认关闭，几个版本后转正使用
+        const maxRetryCount = 10;
+        // 默认策略下，如果录制被中断，那么会在下一个检查周期时重新检查直播状态并重新开始录制，这种策略的问题就是一部分时间会被漏掉。
+        // 如果开启了该选项，且录制开始时间与结束时间相差在一分钟以上（某些平台下播会扔会有重复流），那么会立即进行一次检查。
         // 也许之后还能链接复用，但也会引入更多复杂度，需要谨慎考虑
         // 虎牙直播结束后可能额外触发导致错误，忽略虎牙直播间：https://www.huya.com/910323
         if (
           manager.recordRetryImmediately &&
-          recorder.providerId !== "HuYa" &&
-          reason &&
-          reason.includes("invalid stream") &&
-          recorder?.liveInfo?.liveId
+          recorder?.liveInfo?.liveId &&
+          reason !== "manual stop"
         ) {
           const key = `${recorder.channelId}-${recorder.liveInfo?.liveId}`;
+          const recordStartTime = recorder.liveInfo?.recordStartTime.getTime() ?? 0;
+          const recordStopTime = Date.now();
+          // 录制时间差在一分钟以上
+          if (recordStopTime - recordStartTime < 60 * 1000) return;
 
-          if (retryCountObj[key] > 5) return;
+          if (retryCountObj[key] > maxRetryCount) return;
           if (!retryCountObj[key]) {
             retryCountObj[key] = 0;
           }
-          if (retryCountObj[key] < 5) {
+          if (retryCountObj[key] < maxRetryCount) {
             retryCountObj[key]++;
           }
           this.emit("RecorderDebugLog", {
             recorder,
             type: "common",
-            text: `录制${recorder?.channelId}因“${reason}”中断，触发重试直播（${retryCountObj[key]}）`,
+            text: `录制${recorder.channelId}中断，立即触发重试（${retryCountObj[key]}/${maxRetryCount}）`,
           });
           // 触发一次检查，等待一秒使状态清理完毕
           setTimeout(() => {
@@ -376,7 +379,7 @@ export function createRecorderManager<
       if (recorder.recordHandle == null) return;
       const liveId = recorder.liveInfo?.liveId;
 
-      await recorder.recordHandle.stop("manual stop", true);
+      await recorder.recordHandle.stop("manual stop");
       if (liveId) {
         tempBanObj[recorder.channelId] = liveId;
         recorder.tempStopIntervalCheck = true;
@@ -444,16 +447,6 @@ export function createRecorderManager<
          * 最后一个片段，而 FLV 格式如果录制中 KILL 了需要手动修复下 keyframes。所以默认使用 fmp4 格式。
          */
         " -movflags faststart+frag_keyframe+empty_moov" +
-        /**
-         * 浏览器加载 FragmentMP4 会需要先把它所有的 moof boxes 都加载完成后才能播放，
-         * 默认的分段时长很小，会产生大量的 moof，导致加载很慢，所以这里设置一个分段的最小时长。
-         *
-         * TODO: 这个浏览器行为或许是可以优化的，比如试试给 fmp4 在录制完成后设置或者录制过程中实时更新 mvhd.duration。
-         * https://stackoverflow.com/questions/55887980/how-to-use-media-source-extension-mse-low-latency-mode
-         * https://stackoverflow.com/questions/61803136/ffmpeg-fragmented-mp4-takes-long-time-to-start-playing-on-chrome
-         *
-         * TODO: 如果浏览器行为无法优化，并且想进一步优化加载速度，可以考虑录制时使用 fmp4，录制完成后再转一次普通 mp4。
-         */
         " -min_frag_duration 10000000",
   };
 

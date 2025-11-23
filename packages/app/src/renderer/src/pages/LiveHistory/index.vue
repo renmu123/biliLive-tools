@@ -163,8 +163,8 @@ const hasQueried = ref<boolean>(false);
 const columnConfig: ColumnConfig[] = [
   { value: "title", label: "标题", defaultVisible: true },
   { value: "live_start_time", label: "开播时间", defaultVisible: true },
-  { value: "record_start_time", label: "录制开始时间", defaultVisible: true },
-  { value: "record_end_time", label: "录制结束时间", defaultVisible: true },
+  { value: "record_start_time", label: "视频录制开始", defaultVisible: true },
+  { value: "record_end_time", label: "视频录制结束", defaultVisible: true },
   { value: "duration", label: "持续时长", defaultVisible: true },
   { value: "video_duration", label: "视频时长", defaultVisible: true },
   { value: "danma_num", label: "弹幕数量", defaultVisible: true },

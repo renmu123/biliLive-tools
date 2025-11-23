@@ -394,7 +394,7 @@ export interface GlobalRecorder {
   debugMode: boolean;
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
-  /** 测试：录制错误立即重试 */
+  /** 下播延迟检查 */
   recordRetryImmediately: boolean;
   /** 画质 */
   quality: "lowest" | "low" | "medium" | "high" | "highest";
@@ -409,7 +409,7 @@ export interface GlobalRecorder {
   /** 弹幕是否使用服务端时间戳 */
   useServerTimestamp: boolean;
   /**分段时长，单位分钟 */
-  segment?: number;
+  segment?: string;
   /** 账号 */
   uid?: number;
   /** 保存封面 */
@@ -471,7 +471,7 @@ export interface Recorder {
   /** 保存高能弹幕 */
   saveSCDanma?: boolean;
   /**分段时长，单位分钟 */
-  segment?: number;
+  segment?: string;
   /** 账号 */
   uid?: number | string;
   /** 保存封面 */
@@ -549,6 +549,7 @@ export interface AppConfig {
   closeToTray: boolean;
   /** 主题 */
   theme: Theme;
+  menuBarVisible: boolean;
   port: number;
   host: string;
   passKey: string;

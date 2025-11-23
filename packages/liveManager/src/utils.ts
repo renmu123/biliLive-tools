@@ -462,6 +462,47 @@ function shouldCheckTitleKeywords(
 }
 
 /**
+ * 逆向格式化"xxxB", "xxxKB", "xxxMB", "xxxGB"为字节数，如果值为空返回0，如果为数字则直接返回数字，如果带单位则转换为字节数
+ * @param sizeStr 大小字符串
+ * @returns 字节数
+ */
+export function parseSizeToBytes(sizeStr: string): number | string {
+  if (!sizeStr) {
+    return 0;
+  }
+
+  // 字符类型的数字
+  if (!isNaN(Number(sizeStr))) {
+    return Number(sizeStr);
+  }
+
+  const sizePattern = /^(\d+(?:\.\d+)?)(B|KB|MB|GB)$/i;
+  const match = sizeStr.toUpperCase().trim().match(sizePattern);
+  if (match) {
+    const size = parseFloat(match[1]);
+    const unit = match[2];
+    switch (unit) {
+      case "B":
+        return String(size);
+      case "KB":
+        return String(size * 1024);
+      case "MB":
+        return String(size * 1024 * 1024);
+      case "GB":
+        return String(size * 1024 * 1024 * 1024);
+      default:
+        return 0;
+    }
+  } else {
+    return 0;
+  }
+}
+
+export const byte2MB = (bytes: number) => {
+  return bytes / (1024 * 1024);
+};
+
+/*
  * 检查录制中的标题关键词
  * @param recorder 录制器实例
  * @param isManualStart 是否手动启动

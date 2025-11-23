@@ -109,7 +109,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "check-error";
     throw error;
   }
-  const { living, owner, title, startTime } = this.liveInfo;
+  const { living, owner, title, liveStartTime, recordStartTime } = this.liveInfo;
 
   if (this.liveInfo.liveId === banLiveId) {
     this.tempStopIntervalCheck = true;
@@ -171,7 +171,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   let isEnded = false;
   let isCutting = false;
 
-  const recordStartTime = new Date();
   const downloader = createDownloader(
     this.recorderType,
     {
@@ -184,10 +183,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           owner,
           title: opts.title ?? title,
           startTime: opts.startTime,
-          liveStartTime: startTime,
+          liveStartTime,
           recordStartTime,
         }),
-      disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
       onlyAudio: stream.onlyAudio,
@@ -203,7 +201,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     owner,
     title,
     startTime: Date.now(),
-    liveStartTime: startTime,
+    liveStartTime,
     recordStartTime,
   });
 
@@ -227,7 +225,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     extraDataController?.setMeta({
       room_id: this.channelId,
       platform: provider?.id,
-      liveStartTimestamp: this?.liveInfo?.startTime?.getTime(),
+      liveStartTimestamp: this?.liveInfo?.liveStartTime?.getTime(),
       // recordStopTimestamp: Date.now(),
       title: title,
       user_name: owner,

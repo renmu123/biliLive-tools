@@ -168,7 +168,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.liveInfo.cover = res.cover;
     this.liveInfo.liveId = res.liveId;
     this.liveInfo.avatar = res.avatar;
-    this.liveInfo.startTime = new Date();
 
     // 再检查一次，上一个接口可能不存在标题参数
     if (utils.checkTitleKeywordsBeforeRecord(this.liveInfo.title, this, isManualStart)) return null;
@@ -178,7 +177,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.state = "check-error";
     throw err;
   }
-  const { owner, title, startTime } = this.liveInfo;
+  const { owner, title, liveStartTime, recordStartTime } = this.liveInfo;
 
   this.state = "recording";
   const { currentStream: stream, sources: availableSources, streams: availableStreams } = res;
@@ -204,7 +203,6 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const recordStartTime = new Date();
   const downloader = createDownloader(
     this.recorderType,
     {
@@ -217,10 +215,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           owner,
           title: opts.title ?? title,
           startTime: opts.startTime,
-          liveStartTime: startTime,
+          liveStartTime: liveStartTime,
           recordStartTime,
         }),
-      disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat ?? "auto",
       debugLevel: this.debugLevel ?? "none",
       onlyAudio: stream.onlyAudio,
@@ -239,7 +236,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     owner,
     title,
     startTime: Date.now(),
-    liveStartTime: startTime,
+    liveStartTime,
     recordStartTime,
   });
 

@@ -1,6 +1,7 @@
 ﻿import { FFmpegDownloader } from "./FFmpegDownloader.js";
 import { mesioDownloader } from "./mesioDownloader.js";
 import { BililiveDownloader } from "./BililiveDownloader.js";
+import { parseSizeToBytes } from "../utils.js";
 
 export { FFmpegDownloader } from "./FFmpegDownloader.js";
 export { mesioDownloader } from "./mesioDownloader.js";
@@ -48,15 +49,17 @@ export function createBaseDownloader<T extends DownloaderType>(
   onEnd: (...args: unknown[]) => void,
   onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
 ): IDownloader {
+  const segment = parseSizeToBytes(String(opts.segment));
+  const newOpts = { ...opts, segment };
   if (type === "ffmpeg") {
     return new FFmpegDownloader(
-      opts as FFMPEGRecorderOptions,
+      newOpts as FFMPEGRecorderOptions,
       onEnd,
       onUpdateLiveInfo,
     ) as RecorderInstance<T>;
   } else if (type === "mesio") {
     return new mesioDownloader(
-      opts as MesioRecorderOptions,
+      newOpts as MesioRecorderOptions,
       onEnd,
       onUpdateLiveInfo,
     ) as RecorderInstance<T>;
@@ -65,7 +68,7 @@ export function createBaseDownloader<T extends DownloaderType>(
       // 录播姬引擎不支持只录音频
       if (!opts.onlyAudio) {
         return new BililiveDownloader(
-          opts as BililiveRecorderOptions,
+          newOpts as BililiveRecorderOptions,
           onEnd,
           onUpdateLiveInfo,
         ) as RecorderInstance<T>;
@@ -73,7 +76,7 @@ export function createBaseDownloader<T extends DownloaderType>(
     }
 
     return new FFmpegDownloader(
-      opts as FFMPEGRecorderOptions,
+      newOpts as FFMPEGRecorderOptions,
       onEnd,
       onUpdateLiveInfo,
     ) as RecorderInstance<T>;

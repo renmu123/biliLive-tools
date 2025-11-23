@@ -32,7 +32,7 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   // 指定cdn
   source?: string;
   // 该项为用户配置，指定录制的片段时长，单位为秒，如果设置了此项，将按此时长切片录制
-  segment?: number;
+  segment?: string;
   // 保存礼物弹幕
   saveGiftDanma?: boolean;
   // 保存高能弹幕
@@ -120,7 +120,7 @@ export interface RecordHandle {
 
   savePath: string;
 
-  stop: (this: RecordHandle, reason?: string, tempStopIntervalCheck?: boolean) => Promise<void>;
+  stop: (this: RecordHandle, reason?: string) => Promise<void>;
   cut: (this: RecordHandle) => Promise<void>;
 }
 
@@ -169,10 +169,11 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     living: boolean;
     owner: string;
     title: string;
-    startTime: Date;
+    liveStartTime: Date;
     avatar: string;
     cover: string;
     liveId?: string;
+    recordStartTime: Date;
   };
   tempStopIntervalCheck?: boolean;
   /** 缓存实例（命名空间） */
@@ -201,7 +202,7 @@ export interface Recorder<E extends AnyObject = UnknownObject>
     cover: string;
     channelId: ChannelId;
     living: boolean;
-    startTime: Date;
+    liveStartTime: Date;
   }>;
   getStream: (this: Recorder<E>) => Promise<{
     source: string;

@@ -138,7 +138,7 @@ export function selectRandomAPI(exclude?: RealAPIType[]): RealAPIType {
 }
 
 /**
- * 通过解析直播html页面来获取房间数据
+ * 通过解析用户html页面来获取房间数据
  * @param secUserId
  * @param opts
  */
@@ -241,7 +241,7 @@ async function getRoomInfoByUserWeb(
 }
 
 /**
- * 通过解析用户html页面来获取房间数据
+ * 通过解析直播html页面来获取房间数据
  * @param webRoomId
  * @param opts
  */
