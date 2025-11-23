@@ -29,6 +29,7 @@
 
 - 录播姬引擎升级至 [3.2.1](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.2.1)，收到 onMetaData 时不再分段，有助于减轻抖音的分段
 - docker 下 BaiduPCS-GO 二进制文件版本更新至4.0.0
+- 内部依赖更新 [#236](https://github.com/renmu123/biliLive-tools/pull/236)
 
 # 3.3.2(2025.11.15)
 
