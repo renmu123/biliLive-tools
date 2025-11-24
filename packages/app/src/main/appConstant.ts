@@ -38,13 +38,14 @@ export const getConfigPath = async () => {
   let MESIO_PATH = join(binPath, "mesio.exe");
   let BILILIVERECORDER_PATH = join(binPath, "BililiveRecorder.Cli.exe");
   let AUDIOWAVEFORM_PATH = join(binPath, "audiowaveform.exe");
-  if (process.platform === "linux") {
+  if (process.platform === "linux" || process.platform === "darwin") {
     FFMPEG_PATH = join(binPath, "ffmpeg");
     FFPROBE_PATH = join(binPath, "ffprobe");
     DANMUKUFACTORY_PATH = join(binPath, "DanmakuFactory");
     MESIO_PATH = join(binPath, "mesio");
     BILILIVERECORDER_PATH = join(binPath, "BililiveRecorder.Cli");
-    AUDIOWAVEFORM_PATH = join(binPath, "audiowaveform");
+    // 这两个环境没有二进制文件，直接使用环境变量中
+    AUDIOWAVEFORM_PATH = "audiowaveform";
   }
 
   return {

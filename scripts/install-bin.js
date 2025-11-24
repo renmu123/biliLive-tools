@@ -67,7 +67,7 @@ async function downloadMesio() {
     filename: platform === "windows" ? "mesio.exe" : "mesio",
   });
   // 添加执行权限
-  if (process.platform === "linux") {
+  if (process.platform === "linux" || process.platform === "darwin") {
     fs.chmodSync("packages/app/resources/bin/mesio", 0o755);
   }
 }
@@ -87,7 +87,7 @@ async function downloadBililiveRecorder() {
   await unzip(filename, "packages/app/resources/bin");
 
   // 添加执行权限
-  if (process.platform === "linux") {
+  if (process.platform === "linux" || process.platform === "darwin") {
     fs.chmodSync("packages/app/resources/bin/BililiveRecorder.Cli", 0o755);
   }
 }
