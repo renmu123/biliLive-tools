@@ -120,12 +120,6 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
     if (waveformLoading.value) return;
     if (!waveformVisible.value) return;
 
-    // 如果时长大于2小时，则不生成波形图
-    if (videoInstance.value.duration > 2 * 60 * 60) {
-      console.warn("Video duration exceeds 2 hours, skipping waveform generation.");
-      return { error: "视频时长超过2小时，不支持波形图生成。" };
-    }
-
     waveformLoading.value = true;
     let peaks: any[] = [];
     try {
