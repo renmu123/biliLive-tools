@@ -129,6 +129,18 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
     },
   },
   {
+    id: "b_videotoolbox_h264",
+    name: "H.264(Apple)",
+    config: {
+      ...commonPresetParams,
+      encoder: "h264_videotoolbox",
+      bitrateControl: "VBR",
+      bitrate: 8000,
+      bit10: false,
+      preset: "1",
+    },
+  },
+  {
     id: "b_libx265",
     name: "H.265(x265)",
     config: {
@@ -180,10 +192,21 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       preset: "balanced",
     },
   },
-
+  {
+    id: "b_videotoolbox_h265",
+    name: "H.265(Apple)",
+    config: {
+      ...commonPresetParams,
+      encoder: "hevc_videotoolbox",
+      bitrateControl: "VBR",
+      bitrate: 8000,
+      bit10: false,
+      preset: "1",
+    },
+  },
   {
     id: "b_svt_av1",
-    name: "AV1 (libsvtav1)",
+    name: "AV1(libsvtav1)",
     config: {
       ...commonPresetParams,
       encoder: "libsvtav1",
@@ -197,7 +220,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
   },
   {
     id: "b_qsv_av1",
-    name: "AV1 (Intel QSV)",
+    name: "AV1(Intel QSV)",
     config: {
       ...commonPresetParams,
       encoder: "av1_qsv",
@@ -210,7 +233,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
   },
   {
     id: "b_nvenc_av1",
-    name: "AV1 (NVIDIA NVEnc)",
+    name: "AV1(NVIDIA NVEnc)",
     config: {
       ...commonPresetParams,
       encoder: "av1_nvenc",
@@ -224,7 +247,7 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
   },
   {
     id: "b_amf_av1",
-    name: "AV1 (AMD AMF)",
+    name: "AV1(AMD AMF)",
     config: {
       ...commonPresetParams,
       encoder: "av1_amf",
@@ -232,6 +255,18 @@ const baseFfmpegPresets: CommonPresetType<FfmpegOptions>[] = [
       bitrate: 8000,
       bit10: false,
       preset: "balanced",
+    },
+  },
+  {
+    id: "b_videotoolbox_av1",
+    name: "AV1(Apple)",
+    config: {
+      ...commonPresetParams,
+      encoder: "av1_videotoolbox",
+      bitrateControl: "VBR",
+      bitrate: 8000,
+      bit10: false,
+      preset: "1",
     },
   },
 ];

@@ -776,7 +776,11 @@ export type VideoCodec =
   | "libsvtav1"
   | "av1_qsv"
   | "av1_nvenc"
-  | "av1_amf";
+  | "av1_amf"
+  | "h264_videotoolbox"
+  | "hevc_videotoolbox"
+  | "av1_videotoolbox";
+
 export interface FfmpegOptions {
   encoder: VideoCodec;
   bitrateControl?: "CRF" | "ABR" | "CBR" | "VBR" | "CQ" | "ICQ";
