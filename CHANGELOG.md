@@ -15,6 +15,7 @@
 - 切片：web版本支持项目功能 [#248](https://github.com/renmu123/biliLive-tools/pull/248)
 - 切片：波形图支持 [#252](https://github.com/renmu123/biliLive-tools/pull/252)
 - UI：客户端支持隐藏菜单栏
+- 同步：alist支持过滤四字节字符串 (#239)
 
 ## 优化
 
