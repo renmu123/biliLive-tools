@@ -9,6 +9,7 @@ import logger from "../utils/log.js";
 import { combineURLs } from "../utils/combineURLs.js";
 import { TypedEmitter } from "tiny-typed-emitter";
 import axios, { AxiosInstance } from "axios";
+import { replaceFourByteUnicode } from "../utils/index.js";
 
 import type { SyncConfig } from "@biliLive-tools/types";
 
@@ -98,6 +99,7 @@ export class Alist extends TypedEmitter<AlistEvents> {
     // 创建axios实例
     this.client = axios.create({
       baseURL: this.server,
+      proxy: false,
     });
 
     // 添加请求拦截器，自动添加token
@@ -276,7 +278,7 @@ export class Alist extends TypedEmitter<AlistEvents> {
     // 应用字符串过滤
     if (this.stringFilters?.includes("filterFourByteChars")) {
       // 仅过滤四字节字符
-      remotePath = remotePath.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, "_");
+      remotePath = replaceFourByteUnicode(remotePath, "_");
     }
 
     await this.mkdir(remoteDir);
