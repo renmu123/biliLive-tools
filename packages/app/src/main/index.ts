@@ -283,7 +283,7 @@ function createWindow(): void {
     event.preventDefault();
 
     if (process.platform === "darwin") {
-      app.quit();
+      quit();
       return;
     }
 
