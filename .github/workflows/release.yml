@@ -79,7 +79,7 @@ jobs:
           draft: false
           token: ${{ secrets.GITHUB_TOKEN }}
           artifactErrorsFailBuild: false
-          artifacts: "packages/app/dist/*.exe,packages/app/dist/*.zip,packages/app/dist/*.deb,packages/app/dist/*.snap,packages/CLI/dist/*.zip"
+          artifacts: "packages/app/dist/*.exe,packages/app/dist/*.zip,packages/app/dist/*.deb,packages/app/dist/*.snap,packages/CLI/dist/*.zip,packages/CLI/dist/*.dmg"
           replacesArtifacts: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -97,7 +97,8 @@ jobs:
             packages/app/dist/*.exe
             packages/app/dist/*.zip
             packages/CLI/dist/*.zip
-            packages/CLI/dist/*.exe
+            packages/CLI/dist/*.zip
+            packages/CLI/dist/*.dmg
 
 permissions:
   contents: write
