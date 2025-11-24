@@ -488,6 +488,7 @@ export class WebhookHandler {
         retry: 3,
         policy: "skip",
         type: syncConfig.syncSource,
+        stringFilters: syncConfig.stringFilters,
       });
       log.info(`开始同步${fileType}文件: ${filePath}`);
 
