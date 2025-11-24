@@ -318,6 +318,21 @@
               </n-space>
             </n-checkbox-group>
           </n-form-item>
+          <n-form-item v-if="editingConfig.syncSource === 'alist'">
+            <template #label>
+              <Tip
+                text="字符串过滤"
+                tip="某些网盘会有一些怪癖，用来过滤一些字符串<br/>过滤四字节字符串：alist(天翼盘)"
+              >
+              </Tip>
+            </template>
+            <n-select
+              v-model:value="editingConfig.stringFilters"
+              multiple
+              :options="[{ label: '过滤四字节字符串', value: 'filterFourByteChars' }]"
+              placeholder="请选择字符串过滤选项"
+            />
+          </n-form-item>
         </n-form>
         <template #footer>
           <div class="footer">
@@ -597,6 +612,7 @@ const editingConfig = ref<SyncConfig>({
   syncSource: "baiduPCS",
   folderStructure: "/录播/{{user}}/{{yyyy}}-{{MM}}",
   targetFiles: [],
+  stringFilters: [],
 });
 
 const syncConfigModalVisible = ref(false);
@@ -628,6 +644,7 @@ const addSyncConfig = () => {
     syncSource: "baiduPCS",
     folderStructure: "/录播/{{user}}/{{yyyy}}-{{MM}}",
     targetFiles: [],
+    stringFilters: [],
   };
   syncConfigModalVisible.value = true;
 };
@@ -641,6 +658,7 @@ const editSyncConfig = (index: number) => {
     syncSource: originalConfig.syncSource,
     folderStructure: originalConfig.folderStructure,
     targetFiles: [...originalConfig.targetFiles],
+    stringFilters: [...(originalConfig.stringFilters || [])],
   };
   syncConfigModalVisible.value = true;
 };
