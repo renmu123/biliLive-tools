@@ -282,6 +282,11 @@ function createWindow(): void {
     const closeToTray = appConfig.get("closeToTray");
     event.preventDefault();
 
+    if (process.platform === "darwin") {
+      app.quit();
+      return;
+    }
+
     if (closeToTray) {
       mainWin.hide();
       mainWin.setSkipTaskbar(true);
