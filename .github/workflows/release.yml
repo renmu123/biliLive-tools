@@ -41,6 +41,7 @@ jobs:
 
       - name: Cache Electron
         uses: actions/cache@v4
+        if: runner.os != 'macos'
         with:
           path: ~\AppData\Local\electron\Cache
           key: ${{ runner.os }}-electron-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/pnpm-lock.yaml')) }}
