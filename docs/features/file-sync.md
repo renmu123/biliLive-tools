@@ -2,6 +2,8 @@
 
 支持将录制的视频自动同步到网盘中，实现异地备份和分享。
 
+你也可以和 [视频教程](https://www.bilibili.com/video/BV1DieEzgE7y/) 一起食用
+
 ## 支持的平台
 
 - **百度网盘**：使用 BaiduPCS-Go 客户端
