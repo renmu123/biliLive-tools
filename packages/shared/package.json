@@ -37,7 +37,7 @@
     "@napi-rs/canvas": "^0.1.60",
     "@renmu/bili-api": "2.10.0",
     "@renmu/fluent-ffmpeg": "2.3.3",
-    "@renmu/m3u8-downloader": "^0.4.0",
+    "@renmu/m3u8-downloader": "^0.4.1",
     "@renmu/throttle": "^1.0.3",
     "arktype": "^2.1.2",
     "ass-compiler": "^0.1.14",
