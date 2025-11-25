@@ -240,6 +240,8 @@ export type ToolConfig = {
     override: boolean;
     /** 只下载音频 */
     onlyAudio: boolean;
+    /** 只下载弹幕 */
+    onlyDanmu: boolean;
   };
   /** 切片 */
   videoCut: {

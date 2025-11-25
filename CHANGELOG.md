@@ -16,6 +16,7 @@
 - 切片：波形图支持 [#252](https://github.com/renmu123/biliLive-tools/pull/252)
 - UI：客户端支持隐藏菜单栏
 - 同步：alist支持过滤四字节字符串 (#239)
+- 视频下载：斗鱼支持只下载弹幕
 
 ## 优化
 

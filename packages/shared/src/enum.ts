@@ -146,6 +146,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       douyuResolution: "highest",
       override: false,
       onlyAudio: false,
+      onlyDanmu: false,
     },
     translate: {
       presetId: undefined,
