@@ -257,7 +257,7 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
     }
     if (options.onlyDanmu) {
       const danmuOutput = replaceExtName(filepath, ".xml");
-      return await douyu.downloadDanmu(options.id, danmuOutput, options.override, {
+      await douyu.downloadDanmu(options.id, danmuOutput, options.override, {
         platform: "douyu",
         user_name: options?.extra?.user_name,
         room_id: options?.extra?.room_id,
