@@ -16,6 +16,7 @@ import type {
   RecorderProvider,
   RecordHandle,
 } from "@bililive-tools/manager";
+import { live } from "douyu-api";
 
 import { getInfo, getStream } from "./stream.js";
 import { getRoomInfo } from "./dy_api.js";
@@ -448,28 +449,7 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
   async resolveChannelInfoFromURL(channelURL) {
     if (!this.matchURL(channelURL)) return null;
 
-    channelURL = channelURL.trim();
-    const res = await requester.get(channelURL);
-    const html = res.data;
-
-    const matched = html.match(/\$ROOM\.room_id.?=(.*?);/);
-    let roomId: string | undefined = undefined;
-    if (matched) {
-      roomId = matched[1].trim();
-    } else {
-      // 解析出query中的rid参数
-      const rid = new URL(channelURL).searchParams.get("rid");
-      if (rid) {
-        roomId = rid;
-      } else {
-        // 解析<link rel="canonical" href="xxxxxxx"/>中的href
-        const canonicalLink = html.match(/<link rel="canonical" href="(.*?)"/);
-        if (canonicalLink) {
-          const url = canonicalLink[1];
-          roomId = url.split("/").pop();
-        }
-      }
-    }
+    const roomId = await live.parseRoomId(channelURL);
     if (!roomId) return null;
 
     const roomInfo = await getRoomInfo(Number(roomId));

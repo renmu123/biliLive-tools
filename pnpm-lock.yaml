@@ -216,8 +216,8 @@ importers:
         specifier: 'catalog:'
         version: 1.7.8
       douyu-api:
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       lodash-es:
         specifier: 'catalog:'
         version: 4.17.21
@@ -610,8 +610,8 @@ importers:
         specifier: ^1.11.18
         version: 1.11.18
       douyu-api:
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       ejs:
         specifier: ^3.1.10
         version: 3.1.10
@@ -2981,8 +2981,8 @@ packages:
     resolution: {integrity: sha512-I9OvvrHp4pIARv4+x9iuewrWycX6CcZtoAu1XrzPxc5UygMJXJZYmBsynku8IkrJwgypE5DGNjDPmPRhDCptUg==}
     engines: {node: '>=10'}
 
-  douyu-api@0.1.0:
-    resolution: {integrity: sha512-8ZrqLyavKXJVJDFTC/4E/7km3X7QPYQcj64KDHPD1YSx8ObajVWYqEybeunK8dvSMP7INHbvdFSEex90NqgNfA==}
+  douyu-api@0.2.0:
+    resolution: {integrity: sha512-Fa6PsZfzIpatKUsilCxAygqif8PjhjaOjTQpl5uiqXNOyEft6UNO2oxTuh4rChZYRe9XB3dzbu+RjhgkDex9mg==}
 
   download@8.0.0:
     resolution: {integrity: sha512-ASRY5QhDk7FK+XrQtQyvhpDKanLluEEQtWl/J7Lxuf/b+i8RYh997QeXvL85xitrmRKVlx9c7eTrcRdq2GS4eA==}
@@ -5639,8 +5639,8 @@ packages:
   webworkify-webpack@2.1.5:
     resolution: {integrity: sha512-2akF8FIyUvbiBBdD+RoHpoTbHMQF2HwjcxfDvgztAX5YwbZNyrtfUMgvfgFVsgDhDPVTlkbb5vyasqDHfIDPQw==}
 
-  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
-    resolution: {commit: 24d1e719b4a6cac37a518b2bb10fe124527ef4ef, repo: git@github.com:xqq/webworkify-webpack.git, type: git}
+  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
+    resolution: {tarball: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef}
     version: 2.1.5
 
   whatwg-fetch@3.6.20:
@@ -8125,7 +8125,7 @@ snapshots:
 
   dotenv@9.0.2: {}
 
-  douyu-api@0.1.0:
+  douyu-api@0.2.0:
     dependencies:
       axios: 1.7.8
       fast-xml-parser: 4.5.0
@@ -9619,7 +9619,7 @@ snapshots:
   mpegts.js@1.8.0:
     dependencies:
       es6-promise: 4.2.8
-      webworkify-webpack: git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef
+      webworkify-webpack: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef
 
   ms@2.0.0: {}
 
@@ -11051,7 +11051,7 @@ snapshots:
 
   webworkify-webpack@2.1.5: {}
 
-  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
+  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
 
   whatwg-fetch@3.6.20: {}
 
