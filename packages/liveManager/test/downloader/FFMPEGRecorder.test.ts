@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { FFmpegDownloader } from "../src/downloader/FFmpegDownloader.js";
-import { createFFMPEGBuilder, StreamManager, utils } from "../src/index.js";
+import { FFmpegDownloader } from "../../src/downloader/FFmpegDownloader.js";
+import { createFFMPEGBuilder, StreamManager, utils } from "../../src/index.js";
 
 // Mock dependencies
-vi.mock("../src/index.js", () => ({
+vi.mock("../../src/index.js", () => ({
   createFFMPEGBuilder: vi.fn(),
   StreamManager: vi.fn(),
   utils: {
@@ -11,7 +11,7 @@ vi.mock("../src/index.js", () => ({
   },
 }));
 
-vi.mock("../src/utils.js", () => ({
+vi.mock("../../src/utils.js", () => ({
   createInvalidStreamChecker: vi.fn(),
   assert: vi.fn(),
 }));
