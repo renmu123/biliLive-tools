@@ -118,18 +118,9 @@ const fetchFiles = async () => {
     directory: "directory",
     save: "directory",
   } as const;
-  let defaultPath = currentPath.value;
-  if (props.defaultPath) {
-    defaultPath = window.path.dirname(props.defaultPath);
-    currentPath.value = defaultPath;
-    filename.value = window.path.basename(
-      props.defaultPath,
-      window.path.extname(props.defaultPath),
-    );
-  }
   const res = await commonApi
     .getFiles({
-      path: defaultPath,
+      path: currentPath.value,
       exts: props.exts,
       type: typeMap[props.type],
     })
@@ -223,6 +214,17 @@ const confirm = async () => {
 // );
 
 onMounted(() => {
+  // 默认路径可能是文件名，也有可能是绝对路径文件名
+  if (props.defaultPath) {
+    if (window.path.isAbsolute(props.defaultPath)) {
+      currentPath.value = window.path.dirname(props.defaultPath);
+    }
+    // 文件名
+    filename.value = window.path.basename(
+      props.defaultPath,
+      window.path.extname(props.defaultPath),
+    );
+  }
   fetchFiles();
 });
 
