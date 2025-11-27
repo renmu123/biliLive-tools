@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { FFmpegDownloader } from "../../src/downloader/FFmpegDownloader.js";
-import { createFFMPEGBuilder, StreamManager, utils } from "../../src/index.js";
+import { FFmpegDownloader } from "../src/downloader/FFmpegDownloader.js";
+import { createFFMPEGBuilder, StreamManager, utils } from "../src/index.js";
 
 // Mock dependencies
-vi.mock("../../src/index.js", () => ({
+vi.mock("../src/index.js", () => ({
   createFFMPEGBuilder: vi.fn(),
   StreamManager: vi.fn(),
   utils: {
@@ -11,7 +11,7 @@ vi.mock("../../src/index.js", () => ({
   },
 }));
 
-vi.mock("../../src/utils.js", () => ({
+vi.mock("../src/utils.js", () => ({
   createInvalidStreamChecker: vi.fn(),
   assert: vi.fn(),
 }));
@@ -226,8 +226,35 @@ describe("FFmpegDownloader", () => {
       expect(StreamManager).toHaveBeenCalledWith(
         getSavePath,
         true, // hasSegment
+        false, // disableDanma
         "ffmpeg",
         "mkv", // videoFormat
+        { onUpdateLiveInfo: mockOnUpdateLiveInfo },
+      );
+    });
+
+    it("should pass disableDanma option to StreamManager", () => {
+      const getSavePath = vi.fn().mockReturnValue("/test/path/video");
+
+      new FFmpegDownloader(
+        {
+          url: "https://example.com/stream.flv",
+          getSavePath,
+          segment: 0,
+          outputOptions: ["-c:v", "copy"],
+          disableDanma: true,
+          formatName: "flv",
+        },
+        mockOnEnd,
+        mockOnUpdateLiveInfo,
+      );
+
+      expect(StreamManager).toHaveBeenCalledWith(
+        getSavePath,
+        false, // hasSegment
+        true, // disableDanma
+        "ffmpeg",
+        "m4s", // videoFormat (auto-detected)
         { onUpdateLiveInfo: mockOnUpdateLiveInfo },
       );
     });
