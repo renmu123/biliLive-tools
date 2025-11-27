@@ -17,7 +17,7 @@ import {
 } from "@bililive-tools/manager";
 
 import recordHistory from "./recordHistory.js";
-import { danmuModel } from "../db/index.js";
+import { danmuService } from "../db/index.js";
 // import DanmuService from "../db/service/danmuService.js";
 import { getBinPath, readVideoMeta } from "../task/video.js";
 import logger from "../utils/log.js";
@@ -338,7 +338,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           gift_name: item.gift_name,
         });
       }
-      danmuModel.addMany(result, {
+      danmuService.addMany(result, {
         platform: recorder.providerId,
         roomId: recorder.channelId,
       });
