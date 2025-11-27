@@ -92,6 +92,42 @@ async function downloadBililiveRecorder() {
   }
 }
 
+async function downloadAudioWaveform() {
+  const version = "1.10.2";
+  // https://github.com/bbc/audiowaveform
+  const platforms = {
+    win32: "win64",
+    darwin: "macos",
+    linux: "linux",
+  };
+  const archs = {
+    x64: "amd64",
+    arm64: "arm64",
+  };
+  const platform = platforms[process.platform] ?? process.platform;
+  const arch = archs[process.arch] ?? process.arch;
+  const baseUrl = `https://github.com/bbc/audiowaveform/releases/download/${version}`;
+  let audioWaveformUrl = "";
+
+  if (platform === "win64") {
+    const filename = `audiowaveform-${version}-${platform}.zip`;
+    audioWaveformUrl = `${baseUrl}/${filename}`;
+    await downloadFile(audioWaveformUrl, ".");
+    await unzip(filename, "packages/app/resources/bin");
+  } else if (platform === "macos") {
+    console.error("macOS 平台暂不支持 audiowaveform 下载，请手动安装");
+    return;
+  } else if (platform === "linux") {
+    console.warn("下载的是debian12版本");
+    const filename = `audiowaveform_${version}-1-12_${arch}`;
+    audioWaveformUrl = `${baseUrl}/${filename}.deb`;
+    await downloadFile(audioWaveformUrl, "packages/app/resources/bin", {
+      filename: "audiowaveform.deb",
+    });
+    fs.chmodSync("packages/app/resources/bin/audiowaveform.deb", 0o755);
+  }
+}
+
 async function downloadBaseBinary() {
   const filename = `${process.platform}-${process.arch}-2.5.0.zip`;
   const downloadUrl = `https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/${filename}`;
@@ -105,6 +141,7 @@ async function downloadBin() {
   await downloadBaseBinary();
   await downloadMesio();
   await downloadBililiveRecorder();
+  await downloadAudioWaveform();
 }
 
 downloadBin();

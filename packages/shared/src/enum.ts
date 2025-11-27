@@ -38,6 +38,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   minimizeToTray: false,
   closeToTray: true,
   theme: "system",
+  menuBarVisible: true,
   port: 18010,
   host: "127.0.0.1",
   passKey: "",
@@ -80,6 +81,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   losslessCutPath: "",
   mesioPath: "",
   bililiveRecorderPath: "",
+  audiowaveformPath: "",
   cacheFolder: "",
   /** 允许自定义可执行文件地址 */
   customExecPath: false,
@@ -144,6 +146,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       douyuResolution: "highest",
       override: false,
       onlyAudio: false,
+      onlyDanmu: false,
     },
     translate: {
       presetId: undefined,

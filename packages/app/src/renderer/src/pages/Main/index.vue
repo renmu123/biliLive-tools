@@ -35,7 +35,7 @@
         </n-layout-footer>
       </n-layout-sider>
 
-      <n-layout class="main-container">
+      <n-layout :class="['main-container', route.name]">
         <router-view v-slot="{ Component }">
           <keep-alive
             :include="[
@@ -499,6 +499,14 @@ initChanglog();
 
   & > .n-layout-scroll-container {
     padding-right: 10px;
+  }
+  &.videoCut {
+    margin: 0px;
+    margin-left: 15px;
+    margin-right: 10px;
+    & > .n-layout-scroll-container {
+      padding-right: 0px;
+    }
   }
 }
 .main-menu {

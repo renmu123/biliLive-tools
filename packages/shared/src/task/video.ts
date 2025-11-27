@@ -33,30 +33,36 @@ import type {
 } from "@biliLive-tools/types";
 import type Ffmpeg from "@biliLive-tools/types/ffmpeg.js";
 
-export const getFfmpegPath = () => {
+export const getBinPath = () => {
   const config = appConfig.getAll();
   let ffmpegPath = config.ffmpegPath;
   let ffprobePath = config.ffprobePath;
+  let danmuFactoryPath = config.danmuFactoryPath;
   let mesioPath = config.mesioPath;
   let bililiveRecorderPath = config.bililiveRecorderPath;
+  let audiowaveformPath = config.audiowaveformPath;
+
   if (!config.customExecPath) {
     const globalConfig = container.resolve("globalConfig");
     ffmpegPath = globalConfig.defaultFfmpegPath;
     ffprobePath = globalConfig.defaultFfprobePath;
     mesioPath = globalConfig.defaultMesioPath;
     bililiveRecorderPath = globalConfig.defaultBililiveRecorderPath;
+    audiowaveformPath = globalConfig.defaultAudioWaveformPath;
+    danmuFactoryPath = globalConfig.defaultDanmakuFactoryPath;
   }
-
   return {
     ffmpegPath,
     ffprobePath,
     mesioPath,
     bililiveRecorderPath,
+    audiowaveformPath,
+    danmuFactoryPath,
   };
 };
 
 export const setFfmpegPath = async () => {
-  const { ffmpegPath, ffprobePath } = getFfmpegPath();
+  const { ffmpegPath, ffprobePath } = getBinPath();
 
   ffmpeg.setFfmpegPath(ffmpegPath);
   ffmpeg.setFfprobePath(ffprobePath);
@@ -113,7 +119,7 @@ interface Resolution {
  * @returns 分辨率变化
  */
 export async function analyzeResolutionChanges(filePath: string): Promise<Resolution[]> {
-  const { ffprobePath } = getFfmpegPath();
+  const { ffprobePath } = getBinPath();
   const command = `${ffprobePath}`;
   const args = [
     "-v",
@@ -1242,5 +1248,55 @@ export const burn = async (
     options.ffmpegOptions,
   );
 
+  return task;
+};
+
+/**
+ * 提取视频到aac
+ */
+export const extractAudio = async (
+  videoFilePath: string,
+  outputFilePath: string,
+  options: {
+    override?: boolean;
+    /** 支持绝对路径和相对路径 */
+    savePath?: string;
+    /** 1: 保存到原始文件夹，2：保存到特定文件夹 */
+    saveType: 1 | 2;
+    limitTime?: [string, string];
+    autoRun?: boolean;
+    addQueue?: boolean;
+  },
+) => {
+  const opts = Object.assign(
+    {
+      override: false,
+      removeOrigin: false,
+      saveType: 1,
+      savePath: "",
+    },
+    options,
+  );
+  let savePath = await parseSavePath(videoFilePath, opts);
+  const output = path.join(savePath, outputFilePath);
+  const command = ffmpeg(videoFilePath)
+    .outputOptions("-vn")
+    .outputOptions("-acodec pcm_s16le")
+    .outputOptions("-ac 1")
+    // .outputOptions("-ar 44100")
+    .output(output);
+  const task = new FFmpegTask(
+    command,
+    {
+      output,
+      name: `提取音频任务: ${path.basename(videoFilePath)}`,
+    },
+    {},
+  );
+  if (opts.addQueue ?? true) {
+    taskQueue.addTask(task, opts.autoRun ?? false);
+  } else {
+    task.exec();
+  }
   return task;
 };

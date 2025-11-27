@@ -47,8 +47,8 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
         streamer_id INTEGER NOT NULL,                        -- 主播id
         live_id TEXT,                                       -- 直播id
         live_start_time INTEGER NOT NULL,                    -- 直播开始时间，秒时间戳
-        record_start_time INTEGER NOT NULL,                  -- 录制开始时间，秒时间戳
-        record_end_time INTEGER,                             -- 录制结束时间，秒时间戳
+        record_start_time INTEGER NOT NULL,                  -- 视频录制开始时间，秒时间戳
+        record_end_time INTEGER,                             -- 视频录制结束时间，秒时间戳
         title TEXT,                                          -- 直播标题
         video_file TEXT,                                     -- 视频文件路径
         video_duration REAL,                                 -- 视频持续时长，浮点数，秒

@@ -1,5 +1,17 @@
 # Next
 
+## Bug修复
+
+- 录制：修复未开启弹幕仍会添加空弹幕文件的bug
+- web：修复 web 文件选择器的bug close [#259](https://github.com/renmu123/biliLive-tools/issues/259)
+- 切片：修复 web 项目功能
+
+# 3.4.0(2025.11.27)
+
+## 切片
+
+切片功能大幅优化，支持显示显现实时间，以及支持了波形图显示，为波形图添加了大量交互，超大文件的优化花了我一整天时间，js性能是真弱。
+
 ## 功能
 
 - 录制：支持批量添加 [#225](https://github.com/renmu123/biliLive-tools/pull/225)
@@ -9,11 +21,16 @@
 - 弹幕：支持自定义过滤函数 [#238](https://github.com/renmu123/biliLive-tools/pull/238)
 - 切片：支持在画面中展示录制时间 [#247](https://github.com/renmu123/biliLive-tools/pull/247)
 - 切片：web版本支持项目功能 [#248](https://github.com/renmu123/biliLive-tools/pull/248)
+- 切片：波形图支持 [#252](https://github.com/renmu123/biliLive-tools/pull/252)
+- UI：客户端支持隐藏菜单栏
+- 同步：alist支持过滤四字节字符串 (#239)
+- 视频下载：斗鱼支持只下载弹幕
 
 ## 优化
 
 - B站：“自动更新帐号授权”选项默认开启
 - 录制：抖音默认接口改为“web”
+- 切片：UI优化
 
 ## Bug修复
 
@@ -22,12 +39,14 @@
 - 录制：修复虎牙、抖音“画质匹配重试次数”不会被重置的bug
 - 录制：修复“画质匹配重试次数”修改后不生效的bug
 - 录制：修复“服务端时间戳”不会跟随全局设置的bug
-- 录制：录播姬引擎分段时间不支持浮点数
+- 录制：修复录播姬引擎分段时间不支持浮点数
+- 切片：修复关闭“高能进度条”时仍进行渲染的bug [#252](https://github.com/renmu123/biliLive-tools/pull/252)
 
 ## 外部依赖
 
 - 录播姬引擎升级至 [3.2.1](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.2.1)，收到 onMetaData 时不再分段，有助于减轻抖音的分段
 - docker 下 BaiduPCS-GO 二进制文件版本更新至4.0.0
+- 内部依赖更新 [#236](https://github.com/renmu123/biliLive-tools/pull/236)
 
 # 3.3.2(2025.11.15)
 

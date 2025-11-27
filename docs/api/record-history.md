@@ -59,8 +59,8 @@
 | data[].streamer_id       | number | 主播ID                                 |
 | data[].live_id           | string | 直播ID                                 |
 | data[].live_start_time   | number | 直播开始时间(时间戳,单位:秒)           |
-| data[].record_start_time | number | 录制开始时间(时间戳,单位:秒)           |
-| data[].record_end_time   | number | 录制结束时间(时间戳,单位:秒)           |
+| data[].record_start_time | number | 视频录制开始时间(时间戳,单位:秒)       |
+| data[].record_end_time   | number | 视频录制结束时间(时间戳,单位:秒)       |
 | data[].title             | string | 直播标题                               |
 | data[].video_file        | string | 视频文件路径                           |
 | data[].video_duration    | number | 视频持续时长(单位:秒,浮点数)           |

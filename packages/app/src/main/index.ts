@@ -28,16 +28,7 @@ import { cookieHandlers } from "./cookie";
 import { commonHandlers } from "./common";
 import { configHandlers, ffmpegHandlers } from "./handlers";
 // import icon from "../../resources/icon.png?asset";
-import {
-  FFMPEG_PATH,
-  FFPROBE_PATH,
-  DANMUKUFACTORY_PATH,
-  LOG_PATH,
-  MESIO_PATH,
-  BILILIVERECORDER_PATH,
-  __dirname2,
-  getConfigPath,
-} from "./appConstant";
+import { __dirname2, getConfigPath } from "./appConstant";
 
 import type { OpenDialogOptions } from "../types";
 import type { IpcMainInvokeEvent, IpcMain, SaveDialogOptions } from "electron";
@@ -97,6 +88,7 @@ const genHandler = (ipcMain: IpcMain) => {
   ipcMain.handle("common:relaunch", relaunch);
   ipcMain.handle("common:setOpenAtLogin", setOpenAtLogin);
   ipcMain.handle("common:setTheme", setTheme);
+  ipcMain.handle("common:setMenuBarVisible", setMenuBarVisible);
   ipcMain.handle("common:createSubWindow", createCutWindow);
   ipcMain.handle("common:checkUpdate", manualCheckUpdate);
 
@@ -110,8 +102,9 @@ function createCutWindow() {
   const css = `
   .layout>div>aside {
     display: none;
-  }
-`;
+  }`;
+  const appConfig = container.resolve("appConfig");
+  const menuBarVisible = appConfig.get("menuBarVisible");
 
   const subWindow = new BrowserWindow({
     webPreferences: {
@@ -119,13 +112,14 @@ function createCutWindow() {
       sandbox: false,
       webSecurity: false,
     },
+    autoHideMenuBar: !menuBarVisible,
   });
 
   if (is.dev && process.env["ELECTRON_RENDERER_URL"]) {
-    subWindow.loadURL(process.env["ELECTRON_RENDERER_URL"] + "/#/videoCut2");
+    subWindow.loadURL(process.env["ELECTRON_RENDERER_URL"] + "/#/videoCut");
   } else {
     subWindow.loadFile(join(__dirname2, "../renderer/index.html"), {
-      hash: "videoCut2",
+      hash: "videoCut",
     });
   }
 
@@ -651,6 +645,13 @@ const appInit = async () => {
     FFMPEG_PRESET_PATH,
     VIDEO_PRESET_PATH,
     DANMU_PRESET_PATH,
+    LOG_PATH,
+    FFMPEG_PATH,
+    FFPROBE_PATH,
+    DANMUKUFACTORY_PATH,
+    MESIO_PATH,
+    BILILIVERECORDER_PATH,
+    AUDIOWAVEFORM_PATH,
     userDataPath,
   } = await getConfigPath();
 
@@ -664,6 +665,7 @@ const appInit = async () => {
     defaultFfprobePath: FFPROBE_PATH,
     defaultMesioPath: MESIO_PATH,
     defaultBililiveRecorderPath: BILILIVERECORDER_PATH,
+    defaultAudioWaveformPath: AUDIOWAVEFORM_PATH,
     defaultDanmakuFactoryPath: DANMUKUFACTORY_PATH,
     userDataPath,
     version: app.getVersion(),
@@ -681,6 +683,8 @@ const appInit = async () => {
     container,
   );
   nativeTheme.themeSource = appConfig.get("theme");
+  const menuBarVisible = appConfig.get("menuBarVisible");
+  mainWin.setMenuBarVisibility(menuBarVisible);
 
   // 检测更新
   if (appConfig.get("autoUpdate")) {
@@ -758,6 +762,12 @@ const saveDialog = async (_event: IpcMainInvokeEvent, options: SaveDialogOptions
 
 const setTheme = (_event: IpcMainInvokeEvent, theme: Theme) => {
   nativeTheme.themeSource = theme;
+};
+
+const setMenuBarVisible = (_event: IpcMainInvokeEvent, visible: boolean) => {
+  if (mainWin) {
+    mainWin.setMenuBarVisibility(visible);
+  }
 };
 
 const checkUpdate = async () => {

@@ -240,6 +240,8 @@ export type ToolConfig = {
     override: boolean;
     /** 只下载音频 */
     onlyAudio: boolean;
+    /** 只下载弹幕 */
+    onlyDanmu: boolean;
   };
   /** 切片 */
   videoCut: {
@@ -517,6 +519,7 @@ export type SyncConfig = {
   syncSource: SyncType;
   folderStructure: string;
   targetFiles: ("source" | "danmaku" | "xml" | "cover")[];
+  stringFilters?: "filterFourByteChars"[];
 };
 
 // 全局配置
@@ -533,6 +536,8 @@ export interface AppConfig {
   mesioPath: string;
   /** 录播姬引擎 可执行路径 */
   bililiveRecorderPath: string;
+  /** audiowaveform 可执行路径 */
+  audiowaveformPath: string;
   /** 缓存文件夹 */
   cacheFolder: string;
   /** 保存到回收站 */
@@ -549,6 +554,7 @@ export interface AppConfig {
   closeToTray: boolean;
   /** 主题 */
   theme: Theme;
+  menuBarVisible: boolean;
   port: number;
   host: string;
   passKey: string;
@@ -1005,6 +1011,7 @@ export interface GlobalConfig {
   defaultFfprobePath: string;
   defaultMesioPath: string;
   defaultBililiveRecorderPath: string;
+  defaultAudioWaveformPath: string;
   defaultDanmakuFactoryPath: string;
   version: string;
   userDataPath: string;

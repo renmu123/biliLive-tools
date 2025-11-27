@@ -75,9 +75,9 @@ export async function getInfo(channelId: string): Promise<{
   roomId: number;
   avatar: string;
   cover: string;
-  liveStartTime: Date;
   uid: number;
   liveId: string;
+  liveStartTime: Date;
   recordStartTime: Date;
 }> {
   const roomInit = await getRoomInit(Number(channelId));

@@ -43,6 +43,7 @@ const init = async (config: GlobalConfig) => {
     danmuFactoryPath: config.defaultDanmakuFactoryPath,
     mesioPath: config.defaultMesioPath,
     bililiveRecorderPath: config.defaultBililiveRecorderPath,
+    audiowaveformPath: config.defaultAudioWaveformPath,
   });
   const logLevel = appConfig.get("logLevel");
   initLogger(config.logPath, logLevel);

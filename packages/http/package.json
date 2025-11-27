@@ -1,6 +1,6 @@
 {
   "name": "@biliLive-tools/http",
-  "version": "3.3.2",
+  "version": "3.4.0",
   "type": "module",
   "description": "",
   "main": "./lib/index.js",
@@ -45,7 +45,7 @@
   "devDependencies": {
     "@types/cli-progress": "^3.11.6",
     "@types/koa": "^2.15.0",
-    "@types/koa__router": "^12.0.4",
+    "@types/koa__router": "^12.0.5",
     "tsx": "^4.19.2"
   }
 }

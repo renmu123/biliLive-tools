@@ -301,6 +301,22 @@ const executeVirtualRecord = async (
   return res.data;
 };
 
+const extractPeaks = async (
+  input: string,
+): Promise<{
+  output: {
+    data: any[];
+  };
+}> => {
+  const res = await request.post(`/task/extractPeaks`, {
+    input,
+    options: {
+      sync: true,
+    },
+  });
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -330,6 +346,7 @@ const task = {
   testVirtualRecord,
   executeVirtualRecord,
   flvRepair,
+  extractPeaks,
 };
 
 export default task;
