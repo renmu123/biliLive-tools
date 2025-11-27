@@ -229,4 +229,8 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
   public get videoFilePath() {
     return this.streamManager.videoFilePath;
   }
+
+  public cut() {
+    throw new Error("FFmpeg downloader does not support cut operation.");
+  }
 }

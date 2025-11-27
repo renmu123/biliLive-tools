@@ -187,12 +187,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedSource = stream.source;
 
   let isEnded = false;
-  let isCutting = false;
   const onEnd = (...args: unknown[]) => {
-    if (isCutting) {
-      isCutting = false;
-      return;
-    }
     if (isEnded) return;
     isEnded = true;
     this.emit("DebugLog", {
@@ -416,13 +411,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const downloaderArgs = downloader.getArguments();
   downloader.run();
 
-  const cut = singleton<RecordHandle["cut"]>(async () => {
+  const cut = utils.singleton<RecordHandle["cut"]>(async () => {
     if (!this.recordHandle) return;
-    if (isCutting) return;
-    isCutting = true;
-    await downloader.stop();
-    downloader.createCommand();
-    downloader.run();
+    downloader.cut();
   });
 
   const stop = singleton<RecordHandle["stop"]>(async (reason?: string) => {
