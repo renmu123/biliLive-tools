@@ -10,7 +10,14 @@ import { commonApi } from "@renderer/apis";
  * 项目管理 Hook
  * 负责 lossless-cut 项目文件的导入、保存、加载等操作
  */
-export function useProjectManager(files: Ref<{ videoPath: string | null }>) {
+export function useProjectManager(
+  files: Ref<{
+    videoPath: string | null;
+    danmuPath: string | null;
+    originDanmuPath: string | null;
+    originVideoPath: string | null;
+  }>,
+) {
   const notice = useNotification();
   const { appConfig } = storeToRefs(useAppConfig());
   const { rawCuts } = storeToRefs(useSegmentStore());
@@ -31,6 +38,7 @@ export function useProjectManager(files: Ref<{ videoPath: string | null }>) {
 
   /**
    * 选择并导入项目文件
+   * TODO: 移动到上层中，移除 mediaFileName 依赖
    */
   const selectAndImportProject = async () => {
     const selectedFiles = await showFileDialog({
@@ -88,7 +96,7 @@ export function useProjectManager(files: Ref<{ videoPath: string | null }>) {
    * @param sourceVideoPath 源视频路径，用于另存为时的默认路径
    */
   const saveProject = async (sourceVideoPath?: string | null) => {
-    const mediaFileName = projectMediaPath.value || files.value.videoPath;
+    const mediaFileName = files.value.originVideoPath;
     if (!mediaFileName) {
       notice.error({
         title: "请先选择视频文件",
@@ -148,7 +156,7 @@ export function useProjectManager(files: Ref<{ videoPath: string | null }>) {
    * @param sourceVideoPath 源视频路径，用于生成默认文件名
    */
   const saveProjectAs = async (sourceVideoPath?: string | null) => {
-    const mediaFileName = projectMediaPath.value || files.value.videoPath;
+    const mediaFileName = files.value.originVideoPath;
     if (!mediaFileName) {
       notice.error({
         title: "请先选择视频文件",

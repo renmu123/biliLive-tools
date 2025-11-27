@@ -3,7 +3,8 @@
 ## Bug修复
 
 - 录制：修复未开启弹幕仍会添加空弹幕文件的bug
-- web：修复web文件选择器的bug close [#259](https://github.com/renmu123/biliLive-tools/issues/259)
+- web：修复 web 文件选择器的bug close [#259](https://github.com/renmu123/biliLive-tools/issues/259)
+- 切片：修复 web 项目功能
 
 # 3.4.0(2025.11.27)
 
