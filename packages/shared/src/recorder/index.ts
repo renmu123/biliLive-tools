@@ -19,7 +19,7 @@ import {
 import recordHistory from "./recordHistory.js";
 import { danmuModel } from "../db/index.js";
 // import DanmuService from "../db/service/danmuService.js";
-import { getFfmpegPath, readVideoMeta } from "../task/video.js";
+import { getBinPath, readVideoMeta } from "../task/video.js";
 import logger from "../utils/log.js";
 import { replaceExtName } from "../utils/index.js";
 import RecorderConfig from "./config.js";
@@ -117,7 +117,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   }
 
   const config = appConfig.getAll();
-  const { ffmpegPath, mesioPath, bililiveRecorderPath } = getFfmpegPath();
+  const { ffmpegPath, mesioPath, bililiveRecorderPath } = getBinPath();
   setFFMPEGPath(ffmpegPath);
   setMesioPath(mesioPath);
   setBililivePath(bililiveRecorderPath);
@@ -179,7 +179,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
   // });
   manager.on("videoFileCreated", async ({ recorder, filename, rawFilename }) => {
     logger.info("Manager videoFileCreated", { recorder, filename, rawFilename });
-    const startTime = new Date();
+    const videoStartTime = new Date();
+    const liveStartTime = recorder.liveInfo?.liveStartTime;
 
     if (!recorder.liveInfo) {
       logger.error("Manager videoFileCreated Error", { recorder, filename, rawFilename });
@@ -194,7 +195,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           event: "FileOpening",
           filePath: filename,
           roomId: recorder.channelId,
-          time: startTime.toISOString(),
+          time: videoStartTime.toISOString(),
           title: recorder.liveInfo.title,
           username: recorder.liveInfo.owner,
           platform: recorder.providerId,
@@ -205,9 +206,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
       );
 
     recordHistory.addWithStreamer({
-      live_start_time: recorder.liveInfo.startTime?.getTime(),
+      live_start_time: liveStartTime?.getTime(),
       live_id: recorder?.liveInfo?.liveId,
-      record_start_time: startTime.getTime(),
+      record_start_time: videoStartTime.getTime(),
       room_id: recorder.channelId,
       title: recorder.liveInfo.title,
       video_file: filename,
@@ -345,7 +346,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   });
 
   appConfig.on("update", () => {
-    const { ffmpegPath, mesioPath, bililiveRecorderPath } = getFfmpegPath();
+    const { ffmpegPath, mesioPath, bililiveRecorderPath } = getBinPath();
     setFFMPEGPath(ffmpegPath);
     setMesioPath(mesioPath);
     setBililivePath(bililiveRecorderPath);

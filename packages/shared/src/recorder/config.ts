@@ -147,6 +147,10 @@ export default class RecorderConfig {
         sourcePriorities = getValue("sourcePriorities");
       }
     }
+    let api = getValue("api") ?? "auto";
+    if (setting.providerId !== "DouYin") {
+      api = "auto";
+    }
 
     return {
       ...setting,
@@ -164,13 +168,14 @@ export default class RecorderConfig {
       recorderType: getValue("recorderType") ?? "ffmpeg",
       auth: auth,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
+      useServerTimestamp: getValue("useServerTimestamp") ?? true,
       formatName: formatName,
       codecName: getValue("codecName") ?? "auto",
       source: getValue("source") ?? "auto",
       formatPriorities: formatPriorities,
       doubleScreen: getValue("doubleScreen"),
       sourcePriorities: sourcePriorities,
-      api: getValue("api") ?? "auto",
+      api: api,
     };
   }
   public list() {

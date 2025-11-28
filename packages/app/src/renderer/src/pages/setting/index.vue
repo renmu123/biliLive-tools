@@ -1,5 +1,11 @@
 <template>
-  <n-modal v-model:show="showModal" :mask-closable="false" auto-focus :on-after-enter="handleOpen">
+  <n-modal
+    v-model:show="showModal"
+    :mask-closable="false"
+    auto-focus
+    :on-after-enter="handleOpen"
+    class="setting-modal"
+  >
     <n-card
       style="width: calc(100% - 60px)"
       :bordered="false"
@@ -82,9 +88,6 @@
               </template>
               <n-input v-model:value="config.passKey" type="password" show-password-on="click">
               </n-input>
-            </n-form-item>
-            <n-form-item label="主题"
-              ><n-select v-model:value="config.theme" :options="themeOptions" />
             </n-form-item>
             <n-form-item>
               <template #label>
@@ -206,6 +209,24 @@
                   class="pointer"
                   v-if="!isWeb"
                   @click="selectFile('bililive', config.bililiveRecorderPath)"
+                >
+                  <FolderOpenOutline />
+                </n-icon>
+              </n-form-item>
+              <n-form-item>
+                <template #label>
+                  <Tip text="audiowaveform路径" tip="根据文档选择对应版本，用于提取音频波形"></Tip>
+                </template>
+                <n-input
+                  v-model:value="config.audiowaveformPath"
+                  placeholder="请输入audiowaveform可执行文件路径"
+                />
+                <n-icon
+                  style="margin-left: 10px"
+                  size="26"
+                  class="pointer"
+                  v-if="!isWeb"
+                  @click="selectFile('audiowaveform', config.audiowaveformPath)"
                 >
                   <FolderOpenOutline />
                 </n-icon>
@@ -419,7 +440,7 @@ import { deepRaw } from "@renderer/utils";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
 
-import type { AppConfig, BiliupPreset, AppRoomConfig, Theme } from "@biliLive-tools/types";
+import type { AppConfig, BiliupPreset, AppRoomConfig } from "@biliLive-tools/types";
 
 const notice = useNotification();
 const appConfigStore = useAppConfig();
@@ -447,12 +468,6 @@ const logLevelOptions = ref<{ label: string; value: any }[]>([
   { label: "info", value: "info" },
   { label: "warn", value: "warn" },
   { label: "error", value: "error" },
-]);
-
-const themeOptions = ref<{ label: string; value: Theme }[]>([
-  { label: "自动", value: "system" },
-  { label: "浅色", value: "light" },
-  { label: "深色", value: "dark" },
 ]);
 
 const confirm = useConfirm();
@@ -505,7 +520,15 @@ const getConfig = async () => {
  * @param defaultPath 默认地址
  */
 const selectFile = async (
-  type: "ffmpeg" | "ffprobe" | "danmakuFactory" | "losslessCut" | "mesio" | "cache" | "bililive",
+  type:
+    | "ffmpeg"
+    | "ffprobe"
+    | "danmakuFactory"
+    | "losslessCut"
+    | "mesio"
+    | "cache"
+    | "bililive"
+    | "audiowaveform",
   defaultPath: string,
 ) => {
   const files = await window.api.openFile({
@@ -526,6 +549,8 @@ const selectFile = async (
     config.value.mesioPath = files[0];
   } else if (type === "bililive") {
     config.value.bililiveRecorderPath = files[0];
+  } else if (type === "audiowaveform") {
+    config.value.audiowaveformPath = files[0];
   } else {
     console.error("未知文件类型");
   }
@@ -843,8 +868,14 @@ const checkForUpdates = async () => {
     }
   }
 }
+.setting-modal > :deep(.n-card__content) {
+  padding-bottom: 0 !important;
+  padding-right: 0px !important;
+}
 .setting-tab > :deep(.n-tab-pane) {
   overflow: auto;
-  height: calc(100vh - 200px);
+  height: calc(100vh - 150px);
+  scrollbar-gutter: stable;
+  padding-right: 6px;
 }
 </style>

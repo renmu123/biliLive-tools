@@ -114,6 +114,7 @@ export type UpdateRecorderArgs = Pick<
   | "handleTime"
   | "weight"
   | "debugLevel"
+  | "api"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 
@@ -154,6 +155,21 @@ export type ResolveChannelResp = {
   uid?: number;
   avatar?: string;
 } | null;
+
+export interface BatchResolveChannelArgs {
+  channelURLs: string[];
+}
+export interface BatchResolveChannelResult {
+  url: string;
+  success: boolean;
+  data?: Omit<RecoderConfig, "id">;
+  error?: string;
+}
+export type BatchResolveChannelResp = {
+  results: BatchResolveChannelResult[];
+  successCount: number;
+  failedCount: number;
+};
 
 export interface GetManagerDefaultArgs {}
 // export type GetManagerDefaultResp = Omit<RecorderManagerCreateOpts, "providers">;
@@ -227,6 +243,14 @@ export type RecorderAPI = {
   resolveChannel: {
     Args: ResolveChannelArgs;
     Resp: ResolveChannelResp;
+  };
+  resolve: {
+    Args: { url: string };
+    Resp?: Omit<RecoderConfig, "id">;
+  };
+  batchResolveChannel: {
+    Args: BatchResolveChannelArgs;
+    Resp: BatchResolveChannelResp;
   };
   // getManagerDefault: {
   //   Args: GetManagerDefaultArgs;

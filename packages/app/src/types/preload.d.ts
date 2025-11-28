@@ -9,6 +9,7 @@ declare global {
     api: typeof api;
     path: typeof path;
     isWeb: boolean;
+    isFullstack: boolean;
     __APP_VERSION__: string;
   }
 }

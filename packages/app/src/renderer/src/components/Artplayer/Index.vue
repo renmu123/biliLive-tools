@@ -9,6 +9,7 @@ import mpegts from "mpegts.js";
 
 import artplayerPluginAssJS from "artplayer-plugin-assjs";
 import artplayerPluginHeatmap from "./artplayer-plugin-heatmap";
+import artplayerPluginTimestamp from "./artplayer-timestamp";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
 
@@ -28,6 +29,11 @@ const props = withDefaults(
             fillColor?: string;
           };
         };
+        timestamp?: {
+          position?: { top?: string; bottom?: string; left?: string; right?: string };
+          visible?: boolean;
+          timestamp?: number;
+        };
       };
     };
     plugins?: string[];
@@ -42,6 +48,7 @@ const emits = defineEmits<{
   (event: "error", value: { error: any; reconnectTime: number }): void;
   (event: "seek", value: number): void;
   (event: "video:durationchange", value: number): void;
+  (event: "video:canplay", value: Artplayer): void;
 }>();
 
 const artRef = ref<HTMLDivElement | null>(null);
@@ -94,6 +101,16 @@ onMounted(async () => {
     }
     if (props.plugins.includes("heatmap")) {
       plugins.push(artplayerPluginHeatmap([], props?.option?.plugins?.heatmap?.option ?? {}));
+    }
+    if (props.plugins.includes("timestamp")) {
+      plugins.push(
+        artplayerPluginTimestamp({
+          position: { top: "10px", right: "10px" },
+          visible: false,
+          timestamp: 0,
+          ...props?.option?.plugins?.timestamp,
+        }),
+      );
     }
   } else {
     plugins.push(
@@ -179,6 +196,8 @@ ${tsFile}
   instance.artplayerPluginDanmuku = instance?.plugins?.artplayerPluginDanmuku;
   // @ts-ignore
   instance.artplayerPluginHeatmap = instance?.plugins?.artplayerPluginHeatmap;
+  // @ts-ignore
+  instance.artplayerTimestamp = instance?.plugins?.artplayerTimestamp;
   await nextTick();
   emits("ready", instance);
   instance.on("error", (error, reconnectTime) => {
@@ -190,6 +209,9 @@ ${tsFile}
   instance.on("video:durationchange", () => {
     const duration = Number(instance!.duration);
     emits("video:durationchange", duration);
+  });
+  instance.on("video:canplay", () => {
+    emits("video:canplay", instance!);
   });
 });
 

@@ -29,12 +29,12 @@ import { createFileCache } from "./services/fileCache.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 import type { AwilixContainer } from "awilix";
-import type { AppConfig } from "@biliLive-tools/shared";
+import type { AppConfig, GlobalContainer } from "@biliLive-tools/shared";
 
 export let config: GlobalConfig;
 export let handler!: WebhookHandler;
 export let appConfig!: AppConfig;
-export let container!: AwilixContainer;
+export let container!: AwilixContainer<GlobalContainer>;
 export const fileCache = createFileCache();
 
 export const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -95,8 +95,8 @@ export async function serverStart(
 ) {
   container = axContainer;
 
-  config = container.resolve<GlobalConfig>("globalConfig");
-  appConfig = container.resolve<AppConfig>("appConfig");
+  config = container.resolve("globalConfig");
+  appConfig = container.resolve("appConfig");
   handler = new WebhookHandler(appConfig);
 
   if (options.auth) {

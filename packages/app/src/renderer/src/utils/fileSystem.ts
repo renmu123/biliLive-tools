@@ -2,12 +2,14 @@ import showDialog from "@renderer/components/showDirectoryDialog";
 
 export const showSaveDialog = async (options: {
   defaultPath?: string;
+  extension?: string;
 }): Promise<string | undefined> => {
   if (window.isWeb) {
     const filePath = (
       await showDialog({
         type: "save",
-        extension: "mp4",
+        extension: options.extension ?? "mp4",
+        defaultPath: options.defaultPath,
       })
     )?.[0];
     return filePath;
@@ -15,7 +17,7 @@ export const showSaveDialog = async (options: {
     const outputPath = await window.api.showSaveDialog({
       defaultPath: options.defaultPath,
       filters: [
-        { name: "视频文件", extensions: ["mp4"] },
+        { name: "文件", extensions: [options.extension ?? "mp4"] },
         { name: "所有文件", extensions: ["*"] },
       ],
     });

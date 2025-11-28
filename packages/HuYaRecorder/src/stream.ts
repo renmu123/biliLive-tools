@@ -14,11 +14,12 @@ export async function getInfo(channelId: string): Promise<{
   roomId: number;
   avatar: string;
   cover: string;
-  startTime: Date;
+  liveStartTime: Date;
   liveId: string;
+  recordStartTime: Date;
 }> {
   const info = await getRoomInfoByWeb(channelId);
-
+  const recordStartTime = new Date();
   return {
     living: info.living,
     owner: info.owner,
@@ -26,8 +27,9 @@ export async function getInfo(channelId: string): Promise<{
     avatar: info.avatar,
     cover: info.cover,
     roomId: info.roomId,
-    startTime: info.startTime,
+    liveStartTime: info.startTime,
     liveId: info.liveId,
+    recordStartTime: recordStartTime,
   };
 }
 
