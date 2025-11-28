@@ -40,6 +40,7 @@ export interface IDownloader extends EventEmitter {
   // 核心方法
   run(): void;
   stop(): Promise<void>;
+  cut(): void;
   getArguments(): string[];
   getExtraDataController(): XmlStreamController | null;
   createCommand(): any;
