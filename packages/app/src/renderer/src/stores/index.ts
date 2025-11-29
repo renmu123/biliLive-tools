@@ -368,6 +368,7 @@ export interface Segment {
   name: string;
   checked: boolean;
   tags?: any;
+  index: number;
 }
 
 type SegmentEventType = "add" | "remove" | "update" | "clear";
@@ -383,6 +384,8 @@ export const useSegmentStore = defineStore("segment", () => {
   const rawCuts = ref<Segment[]>([]);
   const historyStore = useHistoryStore<Segment[]>({ limit: 30 });
 
+  const index = ref(0);
+
   // 事件监听器
   const eventListeners: SegmentEventCallback[] = [];
 
@@ -393,9 +396,9 @@ export const useSegmentStore = defineStore("segment", () => {
 
   // 移除事件监听器
   const off = (callback: SegmentEventCallback) => {
-    const index = eventListeners.indexOf(callback);
-    if (index > -1) {
-      eventListeners.splice(index, 1);
+    const idx = eventListeners.indexOf(callback);
+    if (idx > -1) {
+      eventListeners.splice(idx, 1);
     }
   };
 
@@ -427,6 +430,7 @@ export const useSegmentStore = defineStore("segment", () => {
 
   const init = (segments: Omit<Segment, "id">[]) => {
     rawCuts.value = [];
+    index.value = 0; // 初始化 index
     segments.forEach((segment) => {
       addSegment(segment);
     });
@@ -435,15 +439,17 @@ export const useSegmentStore = defineStore("segment", () => {
     const data = {
       id: uuid(),
       ...cut,
+      index: index.value, // 新增 index 字段
     };
     rawCuts.value.push(data);
+    index.value++;
     recordHistory();
     emit("add", { segment: data });
   };
   const removeSegment = (id: string) => {
-    const index = rawCuts.value.findIndex((item) => item.id === id);
-    if (index !== -1) {
-      rawCuts.value.splice(index, 1);
+    const idx = rawCuts.value.findIndex((item) => item.id === id);
+    if (idx !== -1) {
+      rawCuts.value.splice(idx, 1);
       recordHistory();
       emit("remove", { id });
     }
@@ -460,11 +466,13 @@ export const useSegmentStore = defineStore("segment", () => {
     const cut = rawCuts.value.find((item) => item.id === id);
     if (cut) {
       cut.checked = !cut.checked;
+      emit("update", { segment: cut });
       recordHistory();
     }
   };
   const clear = () => {
     rawCuts.value = [];
+    index.value = 0; // 清空时初始化 index
     recordHistory();
     emit("clear");
   };
@@ -485,5 +493,6 @@ export const useSegmentStore = defineStore("segment", () => {
     clear,
     on,
     off,
+    index,
   };
 });
