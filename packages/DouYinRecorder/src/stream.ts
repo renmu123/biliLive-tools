@@ -18,10 +18,11 @@ export async function getInfo(
   roomId: string;
   avatar: string;
   cover: string;
-  startTime: Date;
   liveId: string;
   uid: string;
   api: RealAPIType;
+  liveStartTime: Date;
+  recordStartTime: Date;
 }> {
   let info;
 
@@ -34,7 +35,7 @@ export async function getInfo(
   } else {
     info = await getRoomInfo(channelId, opts ?? {});
   }
-
+  const startTime = new Date();
   return {
     living: info.living,
     owner: info.owner,
@@ -42,10 +43,11 @@ export async function getInfo(
     roomId: info.roomId,
     avatar: info.avatar,
     cover: info.cover,
-    startTime: new Date(),
     liveId: info.liveId,
     uid: info.uid,
     api: info.api,
+    liveStartTime: startTime,
+    recordStartTime: startTime,
   };
 }
 

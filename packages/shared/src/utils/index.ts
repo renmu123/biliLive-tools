@@ -614,3 +614,13 @@ export const isBetweenTimeRange = (range: undefined | [] | [string, string]): bo
     return true;
   }
 };
+
+/**
+ * 替换四字节Unicode字符（如部分emoji表情）为U+FFFD
+ * @param str 输入字符串
+ * @param replacement 替换字符，默认为_
+ * @returns 替换后的字符串
+ */
+export function replaceFourByteUnicode(str: string, replacement: string = "_"): string {
+  return str.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, replacement);
+}

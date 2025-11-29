@@ -621,7 +621,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
         },
       });
     } catch (err) {
-      log.error("上传失败", err);
+      log.error("上传失败", String(err), err);
       this.status = "error";
       this.error = String(err);
       this.callback.onError && this.callback.onError(this.error);
@@ -725,7 +725,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
         },
       });
     } catch (err) {
-      log.error("编辑失败", err);
+      log.error("编辑失败", String(err), err);
       this.status = "error";
       this.error = String(err);
       this.callback.onError && this.callback.onError(this.error);

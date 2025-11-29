@@ -8,10 +8,11 @@ export async function getInfo(channelId: string): Promise<{
   living: boolean;
   owner: string;
   title: string;
-  startTime: Date;
+  liveStartTime: Date;
   avatar: string;
   cover: string;
   liveId: string;
+  recordStartTime: Date;
   // gifts: {
   //   id: string;
   //   name: string;
@@ -64,15 +65,16 @@ export async function getInfo(channelId: string): Promise<{
   }
 
   const startTime = new Date(data.room.show_time * 1000);
+  const recordStartTime = new Date();
   return {
     living,
     owner: data.room.nickname,
     title: data.room.room_name,
     avatar: data.room.avatar.big,
     cover: data.room.room_pic,
-    startTime: startTime,
+    liveStartTime: startTime,
     liveId: utils.md5(`${channelId}-${startTime?.getTime() ?? Date.now()}`),
-
+    recordStartTime: recordStartTime,
     // gifts: data.gift.map((g) => ({
     //   id: g.id,
     //   name: g.name,
@@ -97,7 +99,6 @@ export async function getStream(
 
   let cdn = opts.source === "auto" ? undefined : opts.source;
   if (opts.source === "auto" && opts.avoidEdgeCDN) {
-    // TODO: 如果不存在 cdn=hw-h5 的源，那么还是可能默认到边缘节点，就先这样吧
     cdn = "hw-h5";
   }
   let liveInfo = await getLiveInfo({
@@ -144,11 +145,6 @@ export async function getStream(
       if (!liveInfo.living) throw new Error("It must be called getStream when living");
     }
   }
-
-  // 流未准备好，防止刚开播时的无效录制。
-  // 该判断可能导致开播前 30 秒左右无法录制到，因为 streamStatus 在后端似乎有缓存，所以暂时不使用。
-  // TODO: 需要在 ffmpeg 那里加处理，防止无效录制
-  // if (!json.data.streamStatus) return
 
   return liveInfo;
 }

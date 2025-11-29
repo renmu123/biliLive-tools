@@ -64,7 +64,7 @@
             <template #label>
               <Tip
                 text="可执行文件"
-                tip="测试版本为3.9.9，上传不携带任何参数，需要自定义请直接去修改配置文件"
+                tip="测试版本为4.0.0，上传不携带任何参数，需要自定义请直接去修改配置文件"
               >
               </Tip>
             </template>
@@ -317,6 +317,21 @@
                 <n-checkbox value="cover">封面图片</n-checkbox>
               </n-space>
             </n-checkbox-group>
+          </n-form-item>
+          <n-form-item v-if="editingConfig.syncSource === 'alist'">
+            <template #label>
+              <Tip
+                text="字符串过滤"
+                tip="某些网盘会有一些怪癖，用来过滤一些字符串<br/>过滤四字节字符串：alist(天翼盘)"
+              >
+              </Tip>
+            </template>
+            <n-select
+              v-model:value="editingConfig.stringFilters"
+              multiple
+              :options="[{ label: '过滤四字节字符串', value: 'filterFourByteChars' }]"
+              placeholder="请选择字符串过滤选项"
+            />
           </n-form-item>
         </n-form>
         <template #footer>
@@ -597,6 +612,7 @@ const editingConfig = ref<SyncConfig>({
   syncSource: "baiduPCS",
   folderStructure: "/录播/{{user}}/{{yyyy}}-{{MM}}",
   targetFiles: [],
+  stringFilters: [],
 });
 
 const syncConfigModalVisible = ref(false);
@@ -628,6 +644,7 @@ const addSyncConfig = () => {
     syncSource: "baiduPCS",
     folderStructure: "/录播/{{user}}/{{yyyy}}-{{MM}}",
     targetFiles: [],
+    stringFilters: [],
   };
   syncConfigModalVisible.value = true;
 };
@@ -641,6 +658,7 @@ const editSyncConfig = (index: number) => {
     syncSource: originalConfig.syncSource,
     folderStructure: originalConfig.folderStructure,
     targetFiles: [...originalConfig.targetFiles],
+    stringFilters: [...(originalConfig.stringFilters || [])],
   };
   syncConfigModalVisible.value = true;
 };

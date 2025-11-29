@@ -60,6 +60,7 @@ export class DanmakuFactory {
     const params = Object.entries(config).map(([key, value]) => {
       // 如果配置字段不在默认中，则直接返回，用于处理版本回退可能导致的问题
       if (!Object.hasOwn(DANMU_DEAFULT_CONFIG, key)) return "";
+      if (key === "filterFunction") return "";
 
       if (["resolution", "msgboxsize", "msgboxpos"].includes(key)) {
         if (Array.isArray(value)) {

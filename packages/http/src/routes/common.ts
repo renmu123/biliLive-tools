@@ -19,7 +19,6 @@ import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
 
 import { config, handler, appConfig, fileCache } from "../index.js";
 import { container } from "../index.js";
-import { createRecorderManager } from "@biliLive-tools/shared";
 
 const router = new Router({
   prefix: "/common",
@@ -251,6 +250,37 @@ router.post("/readAss", async (ctx) => {
   ctx.body = content;
 });
 
+router.post("/readLLC", async (ctx) => {
+  const { filepath } = ctx.request.body as {
+    filepath: string;
+  };
+  if (!(await fs.pathExists(filepath))) {
+    ctx.status = 400;
+    ctx.body = "文件不存在";
+    return;
+  }
+  const content = await fs.readFile(filepath, "utf-8");
+  if (!content.includes("cutSegments")) {
+    ctx.status = 400;
+    ctx.body = "文件不是有效的llc项目文件";
+    return;
+  }
+  ctx.body = content;
+});
+router.post("/writeLLC", async (ctx) => {
+  const { filepath, content } = ctx.request.body as {
+    filepath: string;
+    content: string;
+  };
+  if (!content.includes("cutSegments")) {
+    ctx.status = 400;
+    ctx.body = "文件不是有效的llc项目文件";
+    return;
+  }
+  await fs.writeFile(filepath, content, "utf-8");
+  ctx.body = "success";
+});
+
 router.post("/genTimeData", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;
@@ -474,8 +504,7 @@ router.get("/whyUploadFailed", async (ctx) => {
 
   try {
     // 检查是否为内部录制
-    type RecorderManagerType = Awaited<ReturnType<typeof createRecorderManager>>;
-    const recorderManager = container.resolve<RecorderManagerType>("recorderManager");
+    const recorderManager = container.resolve("recorderManager");
     const internalRecorder = recorderManager.manager.recorders.find(
       (recorder) => recorder.channelId == roomId,
     );

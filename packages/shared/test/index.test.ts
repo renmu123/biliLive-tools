@@ -2,8 +2,7 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { expect, describe, it } from "vitest";
-import { escaped } from "../src/utils/index";
-import { getHardwareAcceleration } from "../src/utils/index";
+import { getHardwareAcceleration, replaceFourByteUnicode, escaped } from "../src/utils/index";
 import { parseXmlObj } from "../src/danmu/index";
 
 export const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -206,5 +205,49 @@ describe.concurrent("parseXmlObj", () => {
 
     const { danmuku } = await parseXmlObj(input);
     expect(danmuku).toEqual(expectedOutput.danmuku);
+  });
+
+  describe("replaceFourByteUnicode", () => {
+    it("should replace four-byte Unicode characters with default replacement", () => {
+      const input = "Hello 👋 World 🌍";
+      const output = replaceFourByteUnicode(input);
+      expect(output).toEqual("Hello _ World _");
+    });
+
+    it("should replace three-byte Unicode characters", () => {
+      const input = "Test ☹ emojis";
+      const output = replaceFourByteUnicode(input, "X");
+      expect(output).toEqual(input);
+    });
+
+    it("should handle strings without four-byte Unicode characters", () => {
+      const input = "Regular ASCII text";
+      const output = replaceFourByteUnicode(input);
+      expect(output).toEqual("Regular ASCII text");
+    });
+
+    it("should handle empty string", () => {
+      const input = "";
+      const output = replaceFourByteUnicode(input);
+      expect(output).toEqual("");
+    });
+
+    it("should handle multiple consecutive four-byte Unicode characters", () => {
+      const input = "🎉🎊🥳";
+      const output = replaceFourByteUnicode(input, "-");
+      expect(output).toEqual("---");
+    });
+
+    it("should preserve three-byte Unicode characters", () => {
+      const input = "测试中文字符";
+      const output = replaceFourByteUnicode(input);
+      expect(output).toEqual("测试中文字符");
+    });
+
+    it("should handle mixed content with both regular text and emojis", () => {
+      const input = "User说: 这个很棒 👍 非常好 🎯!";
+      const output = replaceFourByteUnicode(input, "[emoji]");
+      expect(output).toEqual("User说: 这个很棒 [emoji] 非常好 [emoji]!");
+    });
   });
 });

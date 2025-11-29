@@ -3,7 +3,7 @@ import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
 import { StreamManager, getMesioPath } from "../index.js";
-import { IRecorder, MesioRecorderOptions } from "./IRecorder.js";
+import { IDownloader, MesioRecorderOptions, Segment } from "./IDownloader.js";
 
 // Mesio command builder class similar to ffmpeg
 class MesioCommand extends EventEmitter {
@@ -105,13 +105,13 @@ export const createMesioBuilder = (): MesioCommand => {
   return new MesioCommand();
 };
 
-export class MesioRecorder extends EventEmitter implements IRecorder {
+export class mesioDownloader extends EventEmitter implements IDownloader {
   public type = "mesio" as const;
   private command: MesioCommand;
   private streamManager: StreamManager;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
-  readonly segment: number;
+  readonly segment: Segment;
   readonly inputOptions: string[] = [];
   readonly disableDanma: boolean = false;
   readonly url: string;
@@ -128,7 +128,9 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
+    // 存在自动分段，永远为true
     const hasSegment = true;
+    this.hasSegment = hasSegment;
     this.disableDanma = opts.disableDanma ?? false;
     this.debugLevel = opts.debugLevel ?? "none";
 
@@ -154,7 +156,6 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
         onUpdateLiveInfo: this.onUpdateLiveInfo,
       },
     );
-    this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
     this.inputOptions = [];
     this.url = opts.url;
@@ -192,8 +193,12 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
         inputOptions.push("-H", `${key}: ${value}`);
       });
     }
-    if (this.hasSegment) {
-      inputOptions.push("-d", `${this.segment * 60}s`);
+    if (this.segment) {
+      if (typeof this.segment === "number") {
+        inputOptions.push("-d", `${this.segment * 60}s`);
+      } else if (typeof this.segment === "string") {
+        inputOptions.push("-m", this.segment);
+      }
     }
 
     const command = createMesioBuilder()
@@ -231,5 +236,9 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
 
   public getExtraDataController() {
     return this.streamManager?.getExtraDataController();
+  }
+
+  public get videoFilePath() {
+    return this.streamManager.videoFilePath;
   }
 }

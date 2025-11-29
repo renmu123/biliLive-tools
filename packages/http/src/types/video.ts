@@ -25,6 +25,7 @@ export type VideoAPI = {
       danmu: "none" | "xml";
       override: boolean;
       onlyAudio?: boolean;
+      onlyDanmu?: boolean;
     };
   };
   SubList: {

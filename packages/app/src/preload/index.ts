@@ -44,6 +44,9 @@ export const api = {
     setTheme: (theme: Theme) => {
       return ipcRenderer.invoke("common:setTheme", theme);
     },
+    setMenuBarVisible: (visible: boolean) => {
+      return ipcRenderer.invoke("common:setMenuBarVisible", visible);
+    },
     checkUpdate: () => {
       return ipcRenderer.invoke("common:checkUpdate");
     },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { selectRecorder, getSourceFormatName } from "../src/recorder/index";
+import { selectRecorder, getSourceFormatName } from "../../src/downloader/index";
 
 describe.concurrent("selectRecorder", () => {
   it("should return 'ffmpeg' when preferredRecorder is 'auto'", () => {

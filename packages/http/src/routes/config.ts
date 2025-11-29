@@ -10,9 +10,6 @@ import { _send } from "@biliLive-tools/shared/notify.js";
 import { getTempPath } from "@biliLive-tools/shared/utils/index.js";
 import db, { reconnectDB } from "@biliLive-tools/shared/db/index.js";
 
-import type { GlobalConfig } from "@biliLive-tools/types";
-import type { VideoPreset } from "@biliLive-tools/shared";
-
 const router = new Router({
   prefix: "/config",
 });
@@ -50,7 +47,7 @@ router.post("/resetBin", async (ctx) => {
     return;
   }
 
-  const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+  const globalConfig = container.resolve("globalConfig");
 
   if (type === "ffmpeg") {
     ctx.body = globalConfig.defaultFfmpegPath;
@@ -111,12 +108,12 @@ async function exportConfig(opts: {
 
 router.get("/export", async (ctx) => {
   try {
-    const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+    const globalConfig = container.resolve("globalConfig");
     const { configPath, videoPresetPath, danmuPresetPath, ffmpegPresetPath, userDataPath } =
       globalConfig;
     const coverPath = path.join(userDataPath, "cover");
 
-    const preset = container.resolve<VideoPreset>("videoPreset");
+    const preset = container.resolve("videoPreset");
     const videoPresets = await preset.list();
     const usedImages = videoPresets
       .map((item) => item.config.cover)
@@ -154,7 +151,7 @@ router.post("/import", upload.single("file"), async (ctx) => {
     return;
   }
 
-  const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+  const globalConfig = container.resolve("globalConfig");
   const { configPath, userDataPath } = globalConfig;
 
   await fs.ensureDir(path.join(userDataPath, "cover"));
@@ -187,6 +184,7 @@ router.post("/import", upload.single("file"), async (ctx) => {
             appConfig.danmuFactoryPath = data.danmuFactoryPath;
             appConfig.mesioPath = data.mesioPath;
             appConfig.bililiveRecorderPath = data.bililiveRecorderPath;
+            appConfig.audiowaveformPath = data.audiowaveformPath;
             appConfig.webhook.recoderFolder = data.webhook.recoderFolder;
             appConfig.recorder.savePath = data.recorder.savePath;
             appConfig.losslessCutPath = data.losslessCutPath;

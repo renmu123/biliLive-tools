@@ -9,6 +9,9 @@ import logger from "../utils/log.js";
 import { combineURLs } from "../utils/combineURLs.js";
 import { TypedEmitter } from "tiny-typed-emitter";
 import axios, { AxiosInstance } from "axios";
+import { replaceFourByteUnicode } from "../utils/index.js";
+
+import type { SyncConfig } from "@biliLive-tools/types";
 
 export interface AlistOptions {
   /**
@@ -44,6 +47,11 @@ export interface AlistOptions {
    * @default 0
    */
   limitRate?: number;
+
+  /**
+   * 字符串过滤选项
+   */
+  stringFilters?: SyncConfig["stringFilters"];
 }
 
 interface AlistEvents {
@@ -75,6 +83,7 @@ export class Alist extends TypedEmitter<AlistEvents> {
   private abortController: AbortController | null = null;
   private limitRate: number;
   private progressHistory: Array<{ loaded: number; timestamp: number }> = [];
+  private stringFilters?: SyncConfig["stringFilters"];
   private readonly speedWindowMs: number = 3000; // 3秒时间窗口
 
   constructor(options?: AlistOptions) {
@@ -85,10 +94,12 @@ export class Alist extends TypedEmitter<AlistEvents> {
     this.remotePath = options?.remotePath || "/录播";
     this.logger = options?.logger || logger;
     this.limitRate = options?.limitRate || 0;
+    this.stringFilters = options?.stringFilters;
 
     // 创建axios实例
     this.client = axios.create({
       baseURL: this.server,
+      proxy: false,
     });
 
     // 添加请求拦截器，自动添加token
@@ -260,11 +271,17 @@ export class Alist extends TypedEmitter<AlistEvents> {
 
     // 确保目标文件夹存在
     const targetDir = path.join(this.remotePath, remoteDir).replace(/\\/g, "/");
-    await this.mkdir(remoteDir);
 
     const fileName = path.basename(localFilePath);
-    const remotePath = path.join(targetDir, fileName).replace(/\\/g, "/");
 
+    let remotePath = path.join(targetDir, fileName).replace(/\\/g, "/");
+    // 应用字符串过滤
+    if (this.stringFilters?.includes("filterFourByteChars")) {
+      // 仅过滤四字节字符
+      remotePath = replaceFourByteUnicode(remotePath, "_");
+    }
+
+    await this.mkdir(remoteDir);
     this.logger.debug(`开始上传: ${localFilePath} 到 ${remotePath}`);
 
     // 获取文件信息以获取大小

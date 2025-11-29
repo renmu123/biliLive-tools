@@ -83,6 +83,14 @@
         <n-switch v-model:value="options.onlyAudio" />
       </div>
 
+      <div
+        v-if="cOptions.hasDanmuOnlyOptions"
+        style="margin-top: 10px; display: flex; align-items: center"
+      >
+        <span style="flex: none">只下载弹幕：</span>
+        <n-switch v-model:value="options.onlyDanmu" />
+      </div>
+
       <div style="margin-top: 10px">
         <div style="font-size: 12px">下载到：</div>
         <div class="path">
@@ -106,6 +114,7 @@
 </template>
 
 <script setup lang="ts">
+import { toReactive } from "@vueuse/core";
 import { EditOutlined } from "@vicons/material";
 import { sanitizeFileName } from "@renderer/utils";
 import { FolderOpenOutline } from "@vicons/ionicons5";
@@ -119,6 +128,7 @@ interface Props {
   cOptions: {
     hasDanmuOptions: boolean;
     hasAudioOnlyOptions: boolean;
+    hasDanmuOnlyOptions: boolean;
   };
 }
 
@@ -128,7 +138,14 @@ const danmuOptions = [
 ];
 
 const { appConfig } = storeToRefs(useAppConfig());
-const options = reactive(appConfig.value?.tool?.download ?? {});
+const options = toReactive(
+  computed({
+    get: () => appConfig.value.tool.download,
+    set: (value) => {
+      appConfig.value.tool.download = value;
+    },
+  }),
+);
 
 const showModal = defineModel<boolean>("visible", { required: true, default: false });
 const selectIds = defineModel<(number | string)[]>("selectIds", { required: true, default: [] });
@@ -143,11 +160,21 @@ const emits = defineEmits<{
       resoltion: string | "highest";
       override: boolean;
       onlyAudio: boolean;
+      onlyDanmu: boolean;
     },
   ): void;
 }>();
 
+const notice = useNotification();
 const download = () => {
+  // 如果开启了只下载弹幕，但没有选择弹幕格式，则提示错误
+  if (props.cOptions.hasDanmuOnlyOptions && options.onlyDanmu && options.danmu === "none") {
+    notice.error({
+      content: "只下载弹幕时，请选择弹幕格式",
+      duration: 3000,
+    });
+    return;
+  }
   emits("confirm", {
     ids: selectIds.value,
     savePath: options.savePath,
@@ -155,6 +182,7 @@ const download = () => {
     onlyAudio: options.onlyAudio,
     resoltion: options.douyuResolution,
     override: options.override,
+    onlyDanmu: options.onlyDanmu,
   });
 };
 

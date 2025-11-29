@@ -14,7 +14,7 @@ import {
 } from "../utils.js";
 
 import type { RecorderCreateOpts } from "../recorder.js";
-import type { VideoFormat } from "../index.js";
+import type { TrueVideoFormat } from "../index.js";
 
 export type GetSavePath = (data: { startTime: number; title?: string }) => string;
 type RecorderType = Exclude<RecorderCreateOpts["recorderType"], undefined | "auto">;
@@ -28,9 +28,9 @@ export class Segment extends EventEmitter {
   /** 输出文件名名，不包含拓展名 */
   outputVideoFilePath!: string;
   disableDanma: boolean;
-  videoExt: VideoFormat;
+  videoExt: TrueVideoFormat;
 
-  constructor(getSavePath: GetSavePath, disableDanma: boolean, videoExt: VideoFormat) {
+  constructor(getSavePath: GetSavePath, disableDanma: boolean, videoExt: TrueVideoFormat) {
     super();
     this.getSavePath = getSavePath;
     this.disableDanma = disableDanma;
@@ -138,8 +138,8 @@ export class StreamManager extends EventEmitter {
   recordSavePath: string;
   recordStartTime?: number;
   hasSegment: boolean;
-  recorderType: RecorderType = "ffmpeg";
-  private videoFormat: VideoFormat;
+  recorderType: RecorderType;
+  private videoFormat: TrueVideoFormat;
   private callBack?: {
     onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>;
   };
@@ -149,7 +149,7 @@ export class StreamManager extends EventEmitter {
     hasSegment: boolean,
     disableDanma: boolean,
     recorderType: RecorderType,
-    videoFormat: VideoFormat,
+    videoFormat: TrueVideoFormat,
     callBack?: {
       onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>;
     },
@@ -157,7 +157,7 @@ export class StreamManager extends EventEmitter {
     super();
     const recordSavePath = getSavePath({ startTime: Date.now() });
     this.recordSavePath = recordSavePath;
-    this.videoFormat = videoFormat ?? "auto";
+    this.videoFormat = videoFormat;
     this.recorderType = recorderType;
     this.hasSegment = hasSegment;
     this.callBack = callBack;
@@ -236,15 +236,7 @@ export class StreamManager extends EventEmitter {
   }
 
   get videoExt() {
-    if (this.recorderType === "ffmpeg") {
-      return this.videoFormat;
-    } else if (this.recorderType === "mesio") {
-      return this.videoFormat;
-    } else if (this.recorderType === "bililive") {
-      return "flv";
-    } else {
-      throw new Error("Unknown recorderType");
-    }
+    return this.videoFormat;
   }
 
   get videoFilePath() {

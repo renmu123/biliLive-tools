@@ -15,6 +15,7 @@ interface Config {
   ffprobePath: string;
   mesioPath: string;
   bililiveRecorderPath: string;
+  audiowaveformPath: string;
   danmakuFactoryPath: string;
   logPath: string;
   passKey?: string;
@@ -61,6 +62,7 @@ program
       defaultFfprobePath: c.ffprobePath,
       defaultDanmakuFactoryPath: c.danmakuFactoryPath,
       defaultMesioPath: c.mesioPath,
+      defaultAudioWaveformPath: c.audiowaveformPath,
       defaultBililiveRecorderPath: c.bililiveRecorderPath,
       version: version,
       userDataPath: c.configFolder,
@@ -127,6 +129,7 @@ function generateConfig(configPath: string) {
     ffprobePath: "ffprobe.exe",
     mesioPath: "mesio.exe",
     bililiveRecorderPath: "BililiveRecorder.Cli.exe",
+    audiowaveformPath: "audiowaveform.exe",
     danmakuFactoryPath: "DanmakuFactory.exe",
     logPath: "main.log",
   };
@@ -143,6 +146,7 @@ function generateConfig(configPath: string) {
     defaultConfig.mesioPath = "mesio";
     defaultConfig.danmakuFactoryPath = "DanmakuFactory";
     defaultConfig.bililiveRecorderPath = "BililiveRecorder.Cli";
+    defaultConfig.audiowaveformPath = "audiowaveform";
   }
   fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2));
   return;

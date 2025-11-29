@@ -13,7 +13,7 @@ export default defineConfig({
   main: {
     plugins: [
       externalizeDepsPlugin({
-        exclude: ["@biliLive-tools/shared", "@biliLive-tools/http"],
+        exclude: ["@biliLive-tools/shared", "@biliLive-tools/http", "@biliLive-tools/types"],
       }),
     ],
   },

@@ -9,9 +9,11 @@ import utils from "./utils.js";
 export * from "./common.js";
 export * from "./recorder.js";
 export * from "./manager.js";
+export * from "./cache.js";
 export * from "./record_extra_data_controller.js";
-export * from "./recorder/FFMPEGRecorder.js";
-export { createBaseRecorder } from "./recorder/index.js";
+export * from "./downloader/FFmpegDownloader.js";
+export { createDownloader } from "./downloader/index.js";
+export { checkTitleKeywordsWhileRecording, checkTitleKeywordsBeforeRecord } from "./utils.js";
 export { utils };
 
 /**
@@ -96,3 +98,5 @@ export function getDataFolderPath<E extends AnyObject>(provider: RecorderProvide
 }
 
 export type VideoFormat = "auto" | "ts" | "mkv" | "flv" | "mp4" | "m4s";
+
+export type TrueVideoFormat = Exclude<VideoFormat, "auto">;

@@ -7,6 +7,7 @@ import kuaishou from "@biliLive-tools/shared/video/kuaishou.js";
 import biliApi from "@biliLive-tools/shared/task/bili.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import videoSub from "@biliLive-tools/shared/video/videoSub.js";
+import { replaceExtName } from "@biliLive-tools/shared/utils/index.js";
 
 import type { VideoAPI } from "../types/video.js";
 
@@ -253,6 +254,17 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
   if (options.platform === "douyu") {
     if (!options?.extra?.decodeData) {
       throw new Error("decodeData is required for douyu download");
+    }
+    if (options.onlyDanmu) {
+      const danmuOutput = replaceExtName(filepath, ".xml");
+      await douyu.downloadDanmu(options.id, danmuOutput, options.override, {
+        platform: "douyu",
+        user_name: options?.extra?.user_name,
+        room_id: options?.extra?.room_id,
+        room_title: options?.extra?.room_title,
+        live_start_time: options?.extra?.live_start_time,
+        video_start_time: options?.extra?.video_start_time,
+      });
     }
     await douyu.download(filepath, options?.extra?.decodeData, {
       danmu: options.danmu,

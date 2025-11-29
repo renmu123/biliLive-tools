@@ -223,8 +223,11 @@ describe("stream.ts", () => {
       vi.mocked(getStatusInfoByUIDs).mockResolvedValue(mockStatusInfo);
 
       const info = await getInfo("67890");
-
-      expect(info).toEqual({
+      expect(getRoomInit).toHaveBeenCalledWith(67890);
+      expect(getStatusInfoByUIDs).toHaveBeenCalledWith([12345]);
+      expect(info.recordStartTime).not.toBeUndefined();
+      expect(info.liveStartTime).toEqual(new Date(1704067200000));
+      expect(info).contains({
         uid: 12345,
         living: true,
         owner: "test_user",
@@ -232,7 +235,6 @@ describe("stream.ts", () => {
         avatar: "avatar_url",
         cover: "cover_url",
         roomId: 67890,
-        startTime: new Date(1704067200000),
         liveId: utils.md5("67890-1704067200000"),
       });
     });

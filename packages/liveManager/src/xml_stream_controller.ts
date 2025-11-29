@@ -15,7 +15,7 @@ export interface XmlStreamData {
     recordStartTimestamp: number;
     recordStopTimestamp?: number;
     liveStartTimestamp?: number;
-    ffmpegArgs?: string[];
+    downloaderArgs?: string[];
     platform?: string;
     user_name?: string;
     room_id?: string;

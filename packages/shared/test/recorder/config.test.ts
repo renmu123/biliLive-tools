@@ -126,6 +126,7 @@ describe("RecorderConfig", () => {
         formatPriorities: undefined,
         sourcePriorities: [],
         api: "auto",
+        useServerTimestamp: true,
       });
     });
 
@@ -158,6 +159,7 @@ describe("RecorderConfig", () => {
         formatPriorities: undefined,
         sourcePriorities: [],
         api: "auto",
+        useServerTimestamp: true,
       });
     });
 
@@ -191,6 +193,7 @@ describe("RecorderConfig", () => {
           doubleScreen: undefined,
           sourcePriorities: [],
           api: "auto",
+          useServerTimestamp: true,
         });
       });
       it("正确处理HuYa source全局参数", () => {
@@ -279,6 +282,7 @@ describe("RecorderConfig", () => {
         doubleScreen: true,
         sourcePriorities: [],
         api: "auto",
+        useServerTimestamp: true,
       });
     });
 
@@ -330,6 +334,7 @@ describe("RecorderConfig", () => {
               saveSCDanma: false,
               saveCover: true,
               api: "auto",
+              useServerTimestamp: true,
             },
           };
         }
@@ -346,6 +351,7 @@ describe("RecorderConfig", () => {
               saveSCDanma: true,
               saveCover: false,
               api: "auto",
+              useServerTimestamp: true,
             },
           ];
         }
@@ -381,6 +387,7 @@ describe("RecorderConfig", () => {
         formatPriorities: undefined,
         sourcePriorities: [],
         api: "auto",
+        useServerTimestamp: true,
       });
     });
   });
@@ -424,7 +431,7 @@ describe("RecorderConfig", () => {
         codecName: "auto" as const,
         source: "auto",
         recorderType: "ffmpeg" as const,
-        useServerTimestamp: false,
+        useServerTimestamp: true,
         handleTime: ["", ""] as [string | null, string | null],
       };
 
@@ -472,7 +479,7 @@ describe("RecorderConfig", () => {
         codecName: "auto" as const,
         source: "auto",
         recorderType: "ffmpeg" as const,
-        useServerTimestamp: false,
+        useServerTimestamp: true,
         handleTime: ["", ""] as [string | null, string | null],
       };
 
