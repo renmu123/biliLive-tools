@@ -9,7 +9,6 @@
         :heatmap-options="clientOptions"
         @ready="handleVideoReady"
         @duration-change="handleVideoDurationChange"
-        @can-play="handleVideoCanPlay"
         @files-dropped="handleDroppedFiles"
       />
 
@@ -317,14 +316,8 @@ const autoLoadDanmuFile = async (videoPath: string) => {
  */
 const handleVideoDurationChange = (duration: number) => {
   videoDuration.value = duration;
-};
 
-/**
- * 视频加载完成回调
- */
-const handleVideoCanPlay = async () => {
-  console.log("Video can play", files.value.originVideoPath);
-  await initWaveform(files.value.originVideoPath);
+  initWaveform(files.value.originVideoPath);
 };
 
 /**

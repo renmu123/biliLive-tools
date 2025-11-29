@@ -125,7 +125,7 @@ const waveformVisible = computed({
 
   .waveform-container {
     position: relative;
-    min-height: 68px;
+    min-height: 70px;
   }
 
   .waveform-loading {
