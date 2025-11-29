@@ -81,6 +81,7 @@
         }"
         @click="selectCut(cut.id)"
         @dblclick="navVideo(cut.start)"
+        @contextmenu.prevent="showContextMenu($event, cut)"
       >
         <div class="time">
           {{ secondsToTimemark(cut.start) }}-<span>{{ secondsToTimemark(cut.end) }}</span>
@@ -148,6 +149,7 @@
 </template>
 
 <script setup lang="ts">
+import { useOsTheme } from "naive-ui";
 import SearchPopover from "./SearchPopover.vue";
 import { secondsToTimemark } from "@renderer/utils";
 import { useSegmentStore } from "@renderer/stores";
@@ -156,13 +158,19 @@ import {
   CheckmarkCircleOutline,
   Pencil,
   Search as SearchIcon,
+  PlayCircleOutline,
 } from "@vicons/ionicons5";
 import { MinusOutlined, PlusOutlined } from "@vicons/material";
+import { Delete24Regular } from "@vicons/fluent";
+
 import hotkeys from "hotkeys-js";
 import { useDraggable, useEventListener, useWindowSize } from "@vueuse/core";
+import ContextMenu from "@imengyu/vue3-context-menu";
+import { NIcon } from "naive-ui";
 
 import type ArtplayerType from "artplayer";
 import type { DanmuItem } from "@biliLive-tools/types";
+import type { Segment } from "@renderer/stores";
 
 onActivated(() => {
   // 重命名
@@ -399,6 +407,54 @@ const searchDanmuVisible = ref(false);
  */
 const searchDanmu = () => {
   searchDanmuVisible.value = !searchDanmuVisible.value;
+};
+
+function renderIcon(icon: Component) {
+  // 高度和宽度22px
+  return () =>
+    h(NIcon, { style: { fontSize: "17px", "font-size": "17px" } }, { default: () => h(icon) });
+}
+const osTheme = useOsTheme();
+const showContextMenu = (e: MouseEvent, segment: Segment) => {
+  //这个函数与 this.$contextmenu 一致
+  const theme = osTheme.value === "dark" ? "default dark" : "default";
+  ContextMenu.showContextMenu({
+    theme,
+    x: e.x,
+    y: e.y,
+    items: [
+      {
+        label: "播放",
+        onClick: () => {
+          if (videoInstance.value) {
+            videoInstance.value!.seek = segment.start;
+            videoInstance.value.play();
+          }
+        },
+        icon: renderIcon(PlayCircleOutline),
+      },
+      {
+        label: "编辑",
+        onClick: () => {
+          editCut(segment.id);
+        },
+        icon: renderIcon(Pencil),
+      },
+      {
+        label: "删除",
+        onClick: () => {
+          removeSegment(segment.id);
+        },
+        icon: renderIcon(Delete24Regular),
+      },
+      {
+        label: "切换状态",
+        onClick: () => {
+          toggleChecked(segment.id);
+        },
+      },
+    ],
+  });
 };
 </script>
 

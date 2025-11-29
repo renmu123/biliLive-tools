@@ -361,7 +361,7 @@ function useHistoryStore<T>({ limit }: { limit: number }) {
 
 export default useHistoryStore;
 
-interface Segment {
+export interface Segment {
   id: string;
   start: number;
   end: number;
