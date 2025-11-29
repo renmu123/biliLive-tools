@@ -375,9 +375,7 @@ export class BiliPartVideoTask extends AbstractTask {
     // 处理上传分p持久化
     if (this.useUploadPartPersistence) {
       try {
-        const fileHash = await calculateFileQuickHash(this.command.filePath);
-        const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
-        const part = uploadPartModel.findValidPartByHash(fileHash, fileSize);
+        const part = await this.getCachePart();
         if (part) {
           this.status = "completed";
           this.progress = 100;
@@ -403,6 +401,12 @@ export class BiliPartVideoTask extends AbstractTask {
     this.emitter.emit("task-start", { taskId: this.taskId });
     this.command.upload();
   }
+  async getCachePart() {
+    const fileHash = await calculateFileQuickHash(this.command.filePath);
+    const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
+    const part = uploadPartModel.findValidPartByHash(fileHash, fileSize);
+    return part;
+  }
   pause() {
     if (this.status !== "running") return;
 
@@ -420,6 +424,13 @@ export class BiliPartVideoTask extends AbstractTask {
     this.emitter.emit("task-resume", { taskId: this.taskId });
     return true;
   }
+  restart() {
+    if (!["canceled", "error"].includes(this.status)) return;
+    // TODO: 需要上游重写才能支持，目前只支持单次状态，变换状态后无法再次变化
+    this.command.start();
+    this.status = "running";
+  }
+
   kill(triggerAutoStart = true) {
     if (this.status === "completed" || this.status === "error" || this.status === "canceled")
       return;
@@ -479,51 +490,51 @@ export class BiliVideoTask extends AbstractTask {
     this.taskList.push(task);
 
     task.on("task-end", async () => {
-      // console.log("completed", this.completedTask);
       this.completedTask++;
 
       if (this.completedTask === this.taskList.length) {
         this.emit("completed");
-        // this.submit();
       }
     });
-    task.on("task-cancel", ({ taskId }) => {
-      this.removeTask(taskId);
-    });
-    task.on("task-error", ({ taskId }) => {
-      console.log("task-error", taskId);
-      const submitWhenError = false;
-      if (submitWhenError) {
-        // 在有上传失败的情况下，仍继续提交
-      } else {
-        this.cancelAllTask();
-        this.status = "error";
-        this.emit("task-error", { taskId: this.taskId, error: "上传失败" });
-      }
+    task.on("task-cancel", () => {
       // this.removeTask(taskId);
+      this.kill();
     });
-    task.on("task-removed-queue", ({ taskId }) => {
-      this.removeTask(taskId);
-    });
-  }
-  removeTask(taskId: string) {
-    const task = this.taskList.find((task) => task.taskId === taskId);
-    if (!task) return;
-    const index = this.taskList.indexOf(task);
-    if (index !== -1) {
-      this.taskList.splice(index, 1);
-    }
-    if (this.taskList.length === 0) {
+    task.on("task-error", () => {
+      this.cancelAllTask();
       this.status = "error";
       this.emit("task-error", { taskId: this.taskId, error: "上传失败" });
-    }
-    // if (this.taskList.length >= this.completedTask) {
-    //   this.emit("completed");
-    // }
+    });
+    // task.on("task-removed-queue", ({ taskId }) => {
+    // 这个场景是为了处理上传队列中已完成的任务被移除的情况
+    // this.removeTask(taskId);
+    // });
   }
+  // removeTask(taskId: string) {
+  // const task = this.taskList.find((task) => task.taskId === taskId);
+  // if (!task) return;
+  // const index = this.taskList.indexOf(task);
+  // if (index !== -1) {
+  //   this.taskList.splice(index, 1);
+  // }
+  // if (this.taskList.length === 0) {
+  //   this.status = "error";
+  //   this.emit("task-error", { taskId: this.taskId, error: "上传失败" });
+  // }
+  // }
 
   exec() {
     // this.command.run();
+  }
+  restart() {
+    if (!["error", "canceled"].includes(this.status)) return;
+    this.completedTask = 0;
+    this.status = "running";
+    for (const task of this.taskList) {
+      task.restart();
+    }
+    this.startTime = Date.now();
+    this.error = undefined;
   }
   pause() {
     if (this.status !== "running") return;
@@ -676,6 +687,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
     super(options, callback);
     this.aid = options.aid;
     this.mediaOptions = options.mediaOptions;
+    this.action = ["kill", "restart"];
 
     this.on("completed", () => {
       this.submit();
