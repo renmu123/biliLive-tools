@@ -175,7 +175,7 @@ const waveformVisible = computed({
   position: relative;
   overflow-x: scroll !important;
   &::-webkit-scrollbar {
-    height: 4px;
+    height: 6px;
   }
   &::-webkit-scrollbar-track {
     background: transparent;
