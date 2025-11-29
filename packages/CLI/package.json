@@ -41,9 +41,6 @@
     "ntsuspend": "^1.0.2",
     "better-sqlite3": "12.4.6"
   },
-  "optionalDependencies": {
-    "ntsuspend": "^1.0.2"
-  },
   "devDependencies": {
     "@biliLive-tools/http": "workspace:*",
     "@biliLive-tools/shared": "workspace:*",
