@@ -1,9 +1,26 @@
 # Next
 
+## 功能
+
+- 切片：片段支持右键菜单
+
+## 优化
+
+- 录制：录播姬引擎不再默认显示日志
+- 切片：视频时间栏不会再被隐藏
+- 切片：优化波形图片段颜色生成算法，未激活时使用不同颜色
+
+## Bug 修复
+
+- flv修复：修复页面中缺失选择文件夹图标的bug
+
+# 3.4.1(2025.11.28)
+
 ## Bug修复
 
 - 录制：修复未开启弹幕仍会添加空弹幕文件的bug
-- web：修复 web 文件选择器的bug close [#259](https://github.com/renmu123/biliLive-tools/issues/259)
+- 录制：修复批量添加的bug
+- web：修复 web 文件选择器的bug [#259](https://github.com/renmu123/biliLive-tools/issues/259)
 - 切片：修复 web 项目功能
 
 # 3.4.0(2025.11.27)

@@ -114,5 +114,9 @@ defineExpose({
       }
     }
   }
+  :deep(.art-bottom) {
+    opacity: 1 !important;
+    --art-bottom-offset: 0px !important;
+  }
 }
 </style>
