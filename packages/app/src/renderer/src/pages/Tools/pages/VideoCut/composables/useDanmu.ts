@@ -20,7 +20,7 @@ export function useDanmu(
    */
   const loadDanmuFile = async (path: string) => {
     if (path.endsWith(".ass")) {
-      const content = await commonApi.readAss(path);
+      const content = await commonApi.readDanma(path);
       videoRef.value?.switchAss(content);
       return path;
     } else {
@@ -53,7 +53,7 @@ export function useDanmu(
         savePath: "",
         sync: true,
       });
-      const content = await commonApi.readAss(output);
+      const content = await commonApi.readDanma(output);
       videoRef.value?.switchAss(content);
       return output;
     } finally {
@@ -92,7 +92,7 @@ export function useDanmu(
    */
   const reloadDanmu = async (danmuPath: string | null) => {
     if (!danmuPath) return;
-    const content = await commonApi.readAss(danmuPath);
+    const content = await commonApi.readDanma(danmuPath);
     videoRef.value?.switchAss(content);
   };
 

@@ -15,8 +15,16 @@ export const mergeXml = async (
   return res.data;
 };
 
+export const parseForArtPlayer = async (filepath: string) => {
+  const res = await request.post("/danma/parseForArtPlayer", {
+    filepath,
+  });
+  return res.data;
+};
+
 const danma = {
   mergeXml,
+  parseForArtPlayer,
 };
 
 export default danma;

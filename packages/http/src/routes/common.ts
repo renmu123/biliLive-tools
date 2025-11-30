@@ -232,15 +232,17 @@ router.get("/getLogContent", async (ctx) => {
   ctx.body = content;
 });
 
-router.post("/readAss", async (ctx) => {
+router.post("/readDanma", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;
   };
-  if (!filepath.endsWith(".ass")) {
+  // 只允许读取ass或xml文件
+  if (!filepath.endsWith(".ass") && !filepath.endsWith(".xml")) {
     ctx.status = 400;
-    ctx.body = "文件不是ass格式";
+    ctx.body = "文件不是ass或xml格式";
     return;
   }
+
   if (!(await fs.pathExists(filepath))) {
     ctx.status = 400;
     ctx.body = "文件不存在";
