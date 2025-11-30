@@ -8,6 +8,7 @@ export function useDanmu(
   videoInstance: Ref<Artplayer | null>,
   videoRef: Ref<any>,
   videoDuration: Ref<number>,
+  showVideoTime: Ref<boolean>,
 ) {
   const danmaList = ref<DanmuItem[]>([]);
   const xmlConvertVisible = ref(false);
@@ -75,6 +76,13 @@ export function useDanmu(
         videoInstance.value?.artplayerTimestamp?.setTimestamp(
           data.metadata.video_start_time * 1000,
         );
+        if (showVideoTime.value === false) {
+          // @ts-ignore
+          videoInstance.value?.artplayerTimestamp?.hide();
+        } else {
+          // @ts-ignore
+          videoInstance.value?.artplayerTimestamp?.show();
+        }
       }
     } else {
       throw new Error("不支持的文件类型");

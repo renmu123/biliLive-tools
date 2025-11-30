@@ -95,6 +95,17 @@ import { useKeyboardShortcuts } from "./composables/useKeyboardShortcuts";
 
 import type { DanmuConfig } from "@biliLive-tools/types";
 
+const clientOptions = useStorage("cut-hotprogress", {
+  showSetting: true,
+  sampling: 10,
+  height: 50,
+  fillColor: "#f9f5f3",
+  color: "#333333",
+});
+const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
+const danmaSearchMask = useStorage("cut-danma-search-mask", true);
+const showVideoTime = useStorage("cut-show-video-time", true);
+
 const notice = useNotification();
 const isWeb = ref(window.isWeb);
 
@@ -183,7 +194,7 @@ const {
   loadDanmuFile,
   confirmAndConvertDanmu: confirmConvert,
   reloadDanmu,
-} = useDanmu(videoInstance, videoPlayerRef, videoDuration);
+} = useDanmu(videoInstance, videoPlayerRef, videoDuration, showVideoTime);
 const { waveformLoading, waveformVisible, initWaveform, destroyWaveform } =
   useWaveform(videoInstance);
 
@@ -406,17 +417,6 @@ onMounted(() => {
     videoCutDrive();
   }
 });
-
-const clientOptions = useStorage("cut-hotprogress", {
-  showSetting: true,
-  sampling: 10,
-  height: 50,
-  fillColor: "#f9f5f3",
-  color: "#333333",
-});
-const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
-const danmaSearchMask = useStorage("cut-danma-search-mask", true);
-const showVideoTime = useStorage("cut-show-video-time", true);
 
 watch(
   clientOptions,
