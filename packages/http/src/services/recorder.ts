@@ -1,7 +1,7 @@
 import axios from "axios";
 import { v4 as uuid } from "uuid";
 import { container } from "../index.js";
-import { omit, pick, isEmpty } from "lodash-es";
+import { omit, pick, isEmpty, cloneDeep } from "lodash-es";
 import recordHistory from "@biliLive-tools/shared/recorder/recordHistory.js";
 import logger from "@biliLive-tools/shared/utils/log.js";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
@@ -281,7 +281,7 @@ export async function resolve(url: string) {
   }
 
   // 根据平台初始化配置
-  const config = defaultRecordConfig;
+  const config = cloneDeep(defaultRecordConfig);
   config.channelId = channelInfo.channelId;
   config.providerId = channelInfo.providerId as any;
   config.remarks = channelInfo.owner;

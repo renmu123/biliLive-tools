@@ -52,6 +52,7 @@
 <script setup lang="ts">
 import { toReactive } from "@vueuse/core";
 import hotkeys from "hotkeys-js";
+import { FolderOpenOutline } from "@vicons/ionicons5";
 
 import FileSelect from "@renderer/pages/Tools/pages/Burn/components/FileSelect.vue";
 import { useAppConfig } from "@renderer/stores";

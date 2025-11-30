@@ -59,18 +59,15 @@ export async function removeRecord(id: number) {
   return res.data;
 }
 
-/**
- * 获取视频文件
- * @param id 记录ID
- * @returns 视频文件路径
- */
-export async function getVideoFile(id: number) {
-  const res = await request.get(`/record-history/video/${id}`);
-  return res.data;
-}
-
-export async function getTempVideoId(id: number): Promise<{ fileId: string; type: string }> {
-  const res = await request.get(`/record-history/download/${id}`);
+export async function getFileInfo(id: number): Promise<{
+  videoFileId: string;
+  videoFileExt: string;
+  videoFilePath: string;
+  danmaFileId: string | null;
+  danmaFileExt: string | null;
+  danmaFilePath: string | null;
+}> {
+  const res = await request.get(`/record-history/file/${id}`);
   return res.data;
 }
 
@@ -78,15 +75,14 @@ export async function getTempVideoId(id: number): Promise<{ fileId: string; type
  * 下载视频文件
  */
 export async function downloadFile(id: number): Promise<string> {
-  const { fileId } = await getTempVideoId(id);
-  const fileUrl = `${request.defaults.baseURL}/assets/download/${fileId}`;
+  const { videoFileId } = await getFileInfo(id);
+  const fileUrl = `${request.defaults.baseURL}/assets/download/${videoFileId}`;
   return fileUrl;
 }
 
 export default {
   queryRecords,
   removeRecord,
-  getVideoFile,
   downloadFile,
-  getTempVideoId,
+  getFileInfo,
 };
