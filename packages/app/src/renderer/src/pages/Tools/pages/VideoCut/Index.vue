@@ -252,6 +252,7 @@ const closeAllResources = async () => {
 
   // 清理视频
   await loadVideo("");
+  videoPlayerRef.value?.clearFiles();
 
   // 清理弹幕
   files.value.danmuPath = null;
