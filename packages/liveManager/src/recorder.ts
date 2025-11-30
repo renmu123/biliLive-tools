@@ -75,6 +75,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   extra?: Partial<E>;
   /** 调试等级 */
   debugLevel?: "none" | "basic" | "verbose";
+  /** ffmpeg 输出参数 */
+  ffmpegOutputOptions?: string[];
 }
 
 export type SerializedRecorder<E extends AnyObject> = PickRequired<RecorderCreateOpts<E>, "id"> &

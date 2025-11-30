@@ -95,8 +95,6 @@ class TestProvider implements RecorderProvider<{}> {
   fromJSON<T extends SerializedRecorder<{}>>(json: T): Recorder<{}> {
     return this.createRecorder(json);
   }
-
-  setFFMPEGOutputArgs(args: string[]) {}
 }
 
 // 创建一个测试用的 Bilibili Provider
@@ -177,8 +175,6 @@ class BilibiliTestProvider implements RecorderProvider<{}> {
   fromJSON<T extends SerializedRecorder<{}>>(json: T): Recorder<{}> {
     return this.createRecorder(json);
   }
-
-  setFFMPEGOutputArgs(args: string[]) {}
 }
 
 describe("RecorderManager", () => {

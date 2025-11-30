@@ -442,7 +442,7 @@ describe("FFmpegDownloader", () => {
         expect(mp4FormatIndex).toBe(-1);
       });
 
-      it("should combine all options in correct order", () => {
+      it("should add outputOptions correct", () => {
         const customOptions = ["-preset", "fast"];
         const recorder = new FFmpegDownloader(
           {
@@ -464,8 +464,8 @@ describe("FFmpegDownloader", () => {
         expect(options[1]).toBe("fast");
 
         // Base options should follow
-        expect(options).toContain("-c");
-        expect(options).toContain("copy");
+        expect(options).not.toContain("-c");
+        expect(options).not.toContain("copy");
 
         // Segment options should be included
         expect(options).toContain("-segment_time");

@@ -75,7 +75,7 @@ manager.startCheckLoop();
 
 手动开启录制
 
-### setFFMPEGPath & setMesioPath
+### 设置录制引擎录制
 
 ```ts
 import { setFFMPEGPath, setMesioPath, setBililivePath } from "@bililive-tools/manager";
@@ -88,6 +88,25 @@ setMesioPath("mesio.exe");
 
 // 设置录播姬录制器的可执行文件路径
 setBililivePath("BililiveRecorder.Cli.exe");
+```
+
+## ffmpegOutputOptions 参数
+
+如果`ffmpegOutputOptions`不为空，那么以下的所有参数都会被清空使用`ffmpegOutputOptions`。
+
+由于 `segment` 和 `videoFormat` 而添加的参数仍会生效，可指定 `videoFormat` 为任意 ffmpeg 支持的格式
+
+默认输出参数为：
+
+```
+"-c",
+"copy",
+"-movflags",
+"+frag_keyframe+empty_moov+separate_moof",
+"-fflags",
+"+genpts+igndts",
+"-min_frag_duration",
+"10000000",
 ```
 
 ## savePathRule 占位符参数

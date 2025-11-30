@@ -1,3 +1,7 @@
+# next
+
+- 支持 `ffmpegOutputOptions` 参数
+
 # 1.10.0
 
 - 重构：录制器相关的参数修改为 `Downloader`

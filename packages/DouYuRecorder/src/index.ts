@@ -82,8 +82,6 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
   return recorderWithSupportUpdatedEvent;
 }
 
-const ffmpegOutputOptions: string[] = [];
-
 const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async function ({
   getSavePath,
   banLiveId,
@@ -175,8 +173,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recorderType,
     {
       url: stream.url,
-      // @ts-ignore
-      outputOptions: ffmpegOutputOptions,
+      outputOptions: this.ffmpegOutputOptions,
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
         getSavePath({
@@ -468,9 +465,5 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
 
   fromJSON(recorder) {
     return defaultFromJSON(this, recorder);
-  },
-
-  setFFMPEGOutputArgs(args) {
-    ffmpegOutputOptions.splice(0, ffmpegOutputOptions.length, ...args);
   },
 };

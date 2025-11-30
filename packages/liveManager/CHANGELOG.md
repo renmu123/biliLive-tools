@@ -1,6 +1,7 @@
 # Next
 
 - 录播姬引擎不再默认显示日志文件
+- 支持 `ffmpegOutputOptions` 参数
 
 # 1.10.0
 

@@ -2,7 +2,6 @@ import path from "node:path";
 import mitt, { Emitter } from "mitt";
 import ejs from "ejs";
 import { omit, range } from "lodash-es";
-import { parseArgsStringToArgv } from "string-argv";
 import { ChannelId, Message } from "./common.js";
 import { RecorderCache, RecorderCacheImpl, MemoryCacheStore } from "./cache.js";
 import { getBiliStatusInfoByRoomIds } from "./api.js";
@@ -53,8 +52,6 @@ export interface RecorderProvider<E extends AnyObject> {
   ) => Recorder<E>;
 
   fromJSON: <T extends SerializedRecorder<E>>(this: RecorderProvider<E>, json: T) => Recorder<E>;
-
-  setFFMPEGOutputArgs: (this: RecorderProvider<E>, args: string[]) => void;
 }
 
 const configurableProps = [
@@ -450,19 +447,9 @@ export function createRecorderManager<
         " -min_frag_duration 10000000",
   };
 
-  const setProvidersFFMPEGOutputArgs = (ffmpegOutputArgs: string) => {
-    const args = parseArgsStringToArgv(ffmpegOutputArgs);
-    manager.providers.forEach((p) => p.setFFMPEGOutputArgs(args));
-  };
-  // setProvidersFFMPEGOutputArgs(manager.ffmpegOutputArgs);
-
   const proxyManager = new Proxy(manager, {
     set(obj, prop, value) {
       Reflect.set(obj, prop, value);
-
-      if (prop === "ffmpegOutputArgs") {
-        setProvidersFFMPEGOutputArgs(value);
-      }
 
       if (isConfigurableProp(prop)) {
         obj.emit("Updated", [prop]);

@@ -1,3 +1,7 @@
+# next
+
+- 支持 `ffmpegOutputOptions` 参数
+
 # 1.10.0
 
 - 支持 `15000` 画质

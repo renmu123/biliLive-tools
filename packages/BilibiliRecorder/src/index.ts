@@ -87,7 +87,6 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
   return recorderWithSupportUpdatedEvent;
 }
 
-const ffmpegOutputOptions: string[] = [];
 const ffmpegInputOptions: string[] = [
   "-rw_timeout",
   "10000000",
@@ -233,7 +232,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recorderType,
     {
       url: url,
-      outputOptions: ffmpegOutputOptions,
+      outputOptions: this.ffmpegOutputOptions,
       inputOptions: ffmpegInputOptions,
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
@@ -427,9 +426,5 @@ export const provider: RecorderProvider<Record<string, unknown>> = {
 
   fromJSON(recorder) {
     return defaultFromJSON(this, recorder);
-  },
-
-  setFFMPEGOutputArgs(args) {
-    ffmpegOutputOptions.splice(0, ffmpegOutputOptions.length, ...args);
   },
 };

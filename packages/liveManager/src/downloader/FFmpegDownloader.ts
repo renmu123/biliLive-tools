@@ -15,11 +15,11 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
   readonly segment: Segment;
-  ffmpegOutputOptions: string[] = [];
   readonly inputOptions: string[] = [];
   readonly isHls: boolean;
   readonly disableDanma: boolean = false;
   readonly url: string;
+  ffmpegOutputOptions: string[] = [];
   formatName: FormatName;
   videoFormat: VideoFormat;
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
@@ -154,17 +154,22 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
   }
   buildOutputOptions() {
     const options: string[] = [];
-    options.push(...this.ffmpegOutputOptions);
-    options.push(
-      "-c",
-      "copy",
-      "-movflags",
-      "+frag_keyframe+empty_moov+separate_moof",
-      "-fflags",
-      "+genpts+igndts",
-      "-min_frag_duration",
-      "10000000",
-    );
+
+    if (this.ffmpegOutputOptions && this.ffmpegOutputOptions.length > 0) {
+      options.push(...this.ffmpegOutputOptions);
+    } else {
+      options.push(
+        "-c",
+        "copy",
+        "-movflags",
+        "+frag_keyframe+empty_moov+separate_moof",
+        "-fflags",
+        "+genpts+igndts",
+        "-min_frag_duration",
+        "10000000",
+      );
+    }
+
     if (this.segment) {
       if (typeof this.segment === "number") {
         options.push("-f", "segment", "-segment_time", String(this.segment * 60));
