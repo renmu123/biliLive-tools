@@ -3,7 +3,7 @@ import BaseModel from "./baseModel.js";
 
 import type { Database } from "better-sqlite3";
 
-const BaseVideoSub = z.object({
+const BaseVideoSubData = z.object({
   subId: z.string(),
   platform: z.enum(["douyu", "huya"]),
   videoId: z.string(),
@@ -13,19 +13,23 @@ const BaseVideoSub = z.object({
   retry: z.number().default(0),
 });
 
-export type BaseVideoSub = z.infer<typeof BaseVideoSub>;
-type AddOptions = Omit<BaseVideoSub, "id" | "created_at">;
+const VideoSubData = BaseVideoSubData.extend({
+  id: z.number(),
+  created_at: z.number(),
+});
 
-class VideoSubDataModel extends BaseModel<BaseVideoSub> {
-  table = "video_sub_data";
+export type BaseVideoSubData = z.infer<typeof BaseVideoSubData>;
+export type VideoSubData = z.infer<typeof VideoSubData>;
 
-  constructor(db: Database) {
+export default class VideoSubDataModel extends BaseModel<BaseVideoSubData> {
+  constructor({ db }: { db: Database }) {
     super(db, "video_sub_data");
+    this.createTable();
   }
 
-  createTable() {
+  async createTable() {
     const createTableSQL = `
-      CREATE TABLE IF NOT EXISTS ${this.table} (
+      CREATE TABLE IF NOT EXISTS ${this.tableName} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,           -- 自增主键
         subId TEXT NOT NULL,                            -- 主要id，用于查询订阅
         platform TEXT NOT NULL,                         -- 平台，douyu，huya
@@ -37,20 +41,14 @@ class VideoSubDataModel extends BaseModel<BaseVideoSub> {
     `;
     return super.createTable(createTableSQL);
   }
-}
 
-export default class VideoSubDataController {
-  private model!: VideoSubDataModel;
-  init(db: Database) {
-    this.model = new VideoSubDataModel(db);
-    this.model.createTable();
+  add(options: BaseVideoSubData) {
+    const data = BaseVideoSubData.parse(options);
+    return this.insert(data);
   }
 
-  add(options: AddOptions) {
-    const data = BaseVideoSub.parse(options);
-    return this.model.insert(data);
-  }
-  list(options: { platform: "douyu" | "huya"; subId: string }) {
-    return this.model.list(options);
+  deleteById(id: number) {
+    const sql = `DELETE FROM ${this.tableName} WHERE id = ?`;
+    return this.db.prepare(sql).run(id);
   }
 }

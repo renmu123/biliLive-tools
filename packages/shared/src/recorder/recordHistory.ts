@@ -1,6 +1,6 @@
-import { streamerModel, recordHistoryModel } from "../db/index.js";
+import { streamerService, recordHistoryService } from "../db/index.js";
 
-import type { BaseLive, Live } from "../db/model/recordHistory.js";
+import type { BaseLiveHistory, LiveHistory } from "../db/model/recordHistory.js";
 import type { BaseStreamer } from "../db/model/streamer.js";
 
 export interface QueryRecordsOptions {
@@ -13,7 +13,7 @@ export interface QueryRecordsOptions {
 }
 
 export interface QueryRecordsResult {
-  data: Array<Live>;
+  data: Array<LiveHistory>;
   pagination: {
     total: number;
     page: number;
@@ -21,8 +21,8 @@ export interface QueryRecordsResult {
   };
 }
 
-export function addWithStreamer(data: Omit<BaseLive, "streamer_id"> & BaseStreamer) {
-  const streamer = streamerModel.upsert({
+export function addWithStreamer(data: Omit<BaseLiveHistory, "streamer_id"> & BaseStreamer) {
+  const streamer = streamerService.upsert({
     where: {
       room_id: data.room_id,
       platform: data.platform,
@@ -35,7 +35,7 @@ export function addWithStreamer(data: Omit<BaseLive, "streamer_id"> & BaseStream
   });
   if (!streamer) return null;
 
-  const live = recordHistoryModel.add({
+  const live = recordHistoryService.add({
     title: data.title,
     streamer_id: streamer.id,
     live_start_time: data.live_start_time,
@@ -55,9 +55,9 @@ export function upadteLive(
     interact_num?: number;
   },
 ) {
-  const live = recordHistoryModel.query({ video_file: query.video_file, live_id: query.live_id });
+  const live = recordHistoryService.query({ video_file: query.video_file, live_id: query.live_id });
   if (live) {
-    recordHistoryModel.update({
+    recordHistoryService.update({
       id: live.id,
       ...params,
     });
@@ -74,7 +74,7 @@ export function queryRecordsByRoomAndPlatform(options: QueryRecordsOptions): Que
   const { room_id, platform, page = 1, pageSize = 100, startTime, endTime } = options;
 
   // 先查询streamer
-  const streamer = streamerModel.query({ room_id, platform });
+  const streamer = streamerService.query({ room_id, platform });
   if (!streamer) {
     return {
       data: [],
@@ -87,7 +87,7 @@ export function queryRecordsByRoomAndPlatform(options: QueryRecordsOptions): Que
   }
 
   // 使用数据库分页而不是内存分页
-  const result = recordHistoryModel.paginate({
+  const result = recordHistoryService.paginate({
     where: { streamer_id: streamer.id },
     page,
     pageSize,
@@ -109,27 +109,27 @@ export function queryRecordsByRoomAndPlatform(options: QueryRecordsOptions): Que
 
 export async function removeRecords(channelId: string, providerId: string) {
   // 查找主播ID
-  const streamer = streamerModel.query({
+  const streamer = streamerService.query({
     room_id: channelId,
     platform: providerId,
   });
   if (!streamer) throw new Error("没有找到stream");
 
-  recordHistoryModel.removeRecordsByStreamerId(streamer.id);
+  recordHistoryService.removeRecordsByStreamerId(streamer.id);
 
   return true;
 }
 
 export function getRecord(data: { file: string; live_id?: string }) {
-  return recordHistoryModel.query({ video_file: data.file, live_id: data.live_id });
+  return recordHistoryService.query({ video_file: data.file, live_id: data.live_id });
 }
 
 export function getRecordById(id: number) {
-  return recordHistoryModel.query({ id });
+  return recordHistoryService.query({ id });
 }
 
 export function removeRecord(id: number): boolean {
-  const deletedCount = recordHistoryModel.removeRecord(id);
+  const deletedCount = recordHistoryService.removeRecord(id);
   return deletedCount > 0;
 }
 

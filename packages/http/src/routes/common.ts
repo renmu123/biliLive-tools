@@ -15,7 +15,7 @@ import {
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
-import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
+import { statisticsService } from "@biliLive-tools/shared/db/index.js";
 
 import { config, handler, appConfig, fileCache } from "../index.js";
 import { container } from "../index.js";
@@ -217,7 +217,7 @@ router.post("/cover/upload", upload.single("file"), async (ctx) => {
 });
 
 router.get("/appStartTime", async (ctx) => {
-  const data = StatisticsService.query("start_time");
+  const data = statisticsService.query("start_time");
   ctx.body = data?.value;
 });
 
