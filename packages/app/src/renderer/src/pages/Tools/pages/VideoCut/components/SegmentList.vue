@@ -56,6 +56,7 @@
           <li>up 上一个片段</li>
           <li>down 下一个片段</li>
           <li>del 删除片段</li>
+          <li>ctrl+n 新建片段</li>
           <li>space 播放/暂停</li>
           <li>ctrl+left 后退1秒</li>
           <li>ctrl+right 前进1秒</li>
@@ -78,6 +79,9 @@
         :class="{
           checked: cut.checked,
           selected: selectCutId === cut.id,
+        }"
+        :style="{
+          '--active-border-color': generateDistinctColor(cut.index, true),
         }"
         @click="selectCut(cut.id)"
         @dblclick="navVideo(cut.start)"
@@ -162,6 +166,7 @@ import {
 } from "@vicons/ionicons5";
 import { MinusOutlined, PlusOutlined } from "@vicons/material";
 import { Delete24Regular } from "@vicons/fluent";
+import { generateDistinctColor } from "@renderer/utils";
 
 import hotkeys from "hotkeys-js";
 import { useDraggable, useEventListener, useWindowSize } from "@vueuse/core";
@@ -202,6 +207,11 @@ onActivated(() => {
   // 切换弹幕搜索
   hotkeys("ctrl+k", function () {
     searchDanmu();
+  });
+  // 新建片段
+  hotkeys("ctrl+n", function (event) {
+    event.preventDefault();
+    addCut();
   });
   // 切换到当前开始片段
   // hotkeys("enter", function () {});
@@ -498,7 +508,7 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
       opacity: 1;
     }
     &.selected {
-      border-color: skyblue;
+      border-color: var(--active-border-color);
       border-width: 2px;
     }
     &:hover {
