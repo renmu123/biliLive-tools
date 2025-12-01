@@ -581,6 +581,11 @@ export interface AppConfig {
   uid?: number;
   /** 工具页配置 */
   tool: ToolConfig;
+  /** 切片 */
+  videoCut: {
+    /** 自动保存 */
+    autoSave: boolean;
+  };
   /** 通知配置 */
   notification: {
     /** 任务 */

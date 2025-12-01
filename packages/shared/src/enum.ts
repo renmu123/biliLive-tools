@@ -168,6 +168,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     biliDownloadMaxNum: 2,
     syncMaxNum: 3,
   },
+  videoCut: {
+    autoSave: true,
+  },
   notification: {
     task: {
       ffmpeg: [],

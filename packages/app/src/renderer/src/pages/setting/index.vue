@@ -371,6 +371,9 @@
         <n-tab-pane name="virtualRecord" tab="虚拟录制">
           <VirtualRecordSetting v-model:data="config"></VirtualRecordSetting>
         </n-tab-pane>
+        <n-tab-pane name="cut" tab="切片">
+          <CutSetting v-model:data="config"></CutSetting>
+        </n-tab-pane>
         <n-tab-pane name="task" tab="任务">
           <TaskSetting v-model:data="config"></TaskSetting>
         </n-tab-pane>
@@ -427,6 +430,7 @@ import RecordSetting from "./RecordSetting.vue";
 import TaskSetting from "./TaskSetting.vue";
 import VideoSetting from "./VideoSetting.vue";
 import SyncSetting from "./SyncSetting.vue";
+import CutSetting from "./CutSetting.vue";
 import OtherSetting from "./OtherSetting.vue";
 import VirtualRecordSetting from "./VirtualRecordSetting.vue";
 import CheckUpdateModal from "@renderer/components/checkUpdateModal.vue";
