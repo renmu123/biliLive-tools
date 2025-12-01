@@ -18,6 +18,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
   ffmpegOutputOptions: string[] = [];
   readonly inputOptions: string[] = [];
   readonly isHls: boolean;
+  readonly disableDanma: boolean = false;
   readonly url: string;
   formatName: FormatName;
   videoFormat: VideoFormat;
@@ -62,9 +63,11 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
     }
     this.videoFormat = videoFormat;
 
+    this.disableDanma = opts.disableDanma ?? false;
     this.streamManager = new StreamManager(
       opts.getSavePath,
       this.hasSegment,
+      this.disableDanma,
       "ffmpeg",
       this.videoFormat,
       {

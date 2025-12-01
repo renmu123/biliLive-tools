@@ -105,37 +105,11 @@
 该操作仅删除数据库记录,不会删除实际的视频文件。
 :::
 
-## 获取视频文件路径
+## 获取文件信息
 
-获取指定记录的视频文件路径。
+获取相关的文件信息
 
-**接口地址:** `GET /record-history/video/:id`
-
-**路径参数:**
-
-| 参数名 | 类型   | 必填 | 说明   |
-| ------ | ------ | ---- | ------ |
-| id     | number | 是   | 记录ID |
-
-**返回数据:**
-
-```json
-"/path/to/video.flv"
-```
-
-**返回参数说明:**
-
-返回视频文件的完整路径字符串。
-
-::: tip
-系统会自动检测视频文件是否存在,如果原始文件不存在,会尝试查找对应的 .mp4 文件。
-:::
-
-## 下载视频文件
-
-获取视频文件的下载信息。
-
-**接口地址:** `GET /record-history/download/:id`
+**接口地址:** `GET /record-history/file/:id`
 
 **路径参数:**
 
@@ -147,18 +121,22 @@
 
 ```json
 {
-  "fileId": "abc123def456",
-  "type": "flv"
+  "videoFileId": "abc123def456",
+  "videoFileExt": "flv",
+  "videoFilePath": "/video.mp4",
+  "danmaFilePath": "/video.xml",
+  "danmaFileId": "waa",
+  "danmaFileExt": "xml"
 }
 ```
 
 **返回参数说明:**
 
-| 参数名 | 类型   | 说明                                                          |
-| ------ | ------ | ------------------------------------------------------------- |
-| fileId | string | 文件ID,用于后续的文件下载操作                                 |
-| type   | string | 视频文件类型,可能的值: `flv`(FLV格式)、`ts`(TS格式)或空字符串 |
-
-::: tip
-返回的 `fileId` 可用于后续的文件下载操作,`type` 字段表示视频文件类型(如 `flv`、`ts` 等)。
-:::
+| 参数名        | 类型           | 说明                                                          |
+| ------------- | -------------- | ------------------------------------------------------------- |
+| videoFilePath | string         | 视频文件实际路径，优先查找记录的文件，其次查找 `mp4` 文件     |
+| videoFileId   | string         | 文件ID,用于后续的文件下载操作                                 |
+| videoFileExt  | string         | 视频文件类型,可能的值: `flv`(FLV格式)、`ts`(TS格式)或空字符串 |
+| danmaFilePath | string \| null | 弹幕文件实际路径，优先查找记录的文件，其次查找 `ass` 文件     |
+| danmaFileId   | string \| null | 弹幕ID                                                        |
+| danmaFileExt  | string \| null | 弹幕类型，`xml`、`ass`                                        |

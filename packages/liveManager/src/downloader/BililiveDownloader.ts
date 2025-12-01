@@ -118,6 +118,7 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
   readonly segment: Segment;
   readonly inputOptions: string[] = [];
+  readonly disableDanma: boolean = false;
   readonly url: string;
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
   readonly headers:
@@ -135,12 +136,20 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
     // 存在自动分段，永远为true
     const hasSegment = true;
     this.hasSegment = hasSegment;
+    this.disableDanma = opts.disableDanma ?? false;
     this.debugLevel = opts.debugLevel ?? "none";
     let videoFormat: "flv" = "flv";
 
-    this.streamManager = new StreamManager(opts.getSavePath, hasSegment, "bililive", videoFormat, {
-      onUpdateLiveInfo: this.onUpdateLiveInfo,
-    });
+    this.streamManager = new StreamManager(
+      opts.getSavePath,
+      hasSegment,
+      this.disableDanma,
+      "bililive",
+      videoFormat,
+      {
+        onUpdateLiveInfo: this.onUpdateLiveInfo,
+      },
+    );
     this.getSavePath = opts.getSavePath;
     this.inputOptions = [];
     this.url = opts.url;
@@ -165,6 +174,8 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
       ...this.inputOptions,
       "-h",
       "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
+      "--disable-log-file",
+      "true",
     ];
     if (this.debugLevel === "verbose") {
       inputOptions.push("-l", "Debug");

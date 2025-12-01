@@ -8,7 +8,7 @@ import { appConfig, container } from "../index.js";
 import multer from "../middleware/multer.js";
 import { _send } from "@biliLive-tools/shared/notify.js";
 import { getTempPath } from "@biliLive-tools/shared/utils/index.js";
-import db, { reconnectDB } from "@biliLive-tools/shared/db/index.js";
+import { reconnectDB, backupDB, closeDB } from "@biliLive-tools/shared/db/index.js";
 
 const router = new Router({
   prefix: "/config",
@@ -124,7 +124,7 @@ router.get("/export", async (ctx) => {
     const backupPath = path.join(tempDir, "biliLive-tools");
     await fs.ensureDir(backupPath);
     const dbPath = path.join(backupPath, "app.db");
-    await db.backup(dbPath);
+    await backupDB(dbPath);
 
     const buffer = await exportConfig({
       configPath,
@@ -192,14 +192,13 @@ router.post("/import", upload.single("file"), async (ctx) => {
           }
         } else if (filename === "app.db") {
           // 备份文件
-          db.close();
+          closeDB();
           if (await fs.pathExists(filePath)) {
             await fs.move(filePath, path.join(userDataPath, `${filename}.backup`), {
               overwrite: true,
             });
           }
           await fs.writeFile(filePath, content);
-          db.open();
           reconnectDB();
         } else if (filename.startsWith("cover/")) {
           await fs.writeFile(filePath, content);

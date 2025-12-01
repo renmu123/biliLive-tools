@@ -9,7 +9,6 @@
         :heatmap-options="clientOptions"
         @ready="handleVideoReady"
         @duration-change="handleVideoDurationChange"
-        @can-play="handleVideoCanPlay"
         @files-dropped="handleDroppedFiles"
       />
 
@@ -64,7 +63,7 @@
     v-model="videoVCutOptions.danmuPresetId"
     :show-preset="true"
     @confirm="handleConfirmConvertDanmu"
-    @cancel="convertDanmuLoading = false"
+    @cancel="handleCancelConvertDanmu"
   ></DanmuFactorySettingDailog>
   <ExportModal v-model="exportVisible" :files="files"></ExportModal>
 </template>
@@ -95,6 +94,17 @@ import { useWaveform } from "./composables/useWaveform";
 import { useKeyboardShortcuts } from "./composables/useKeyboardShortcuts";
 
 import type { DanmuConfig } from "@biliLive-tools/types";
+
+const clientOptions = useStorage("cut-hotprogress", {
+  showSetting: true,
+  sampling: 10,
+  height: 50,
+  fillColor: "#f9f5f3",
+  color: "#333333",
+});
+const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
+const danmaSearchMask = useStorage("cut-danma-search-mask", true);
+const showVideoTime = useStorage("cut-show-video-time", true);
 
 const notice = useNotification();
 const isWeb = ref(window.isWeb);
@@ -184,7 +194,9 @@ const {
   loadDanmuFile,
   confirmAndConvertDanmu: confirmConvert,
   reloadDanmu,
-} = useDanmu(videoInstance, videoPlayerRef, videoDuration);
+  closeConvertDialog,
+  generateDanmakuData,
+} = useDanmu(videoInstance, videoPlayerRef, videoDuration, showVideoTime);
 const { waveformLoading, waveformVisible, initWaveform, destroyWaveform } =
   useWaveform(videoInstance);
 
@@ -242,6 +254,7 @@ const closeAllResources = async () => {
 
   // 清理视频
   await loadVideo("");
+  videoPlayerRef.value?.clearFiles();
 
   // 清理弹幕
   files.value.danmuPath = null;
@@ -317,14 +330,8 @@ const autoLoadDanmuFile = async (videoPath: string) => {
  */
 const handleVideoDurationChange = (duration: number) => {
   videoDuration.value = duration;
-};
 
-/**
- * 视频加载完成回调
- */
-const handleVideoCanPlay = async () => {
-  console.log("Video can play", files.value.originVideoPath);
-  await initWaveform(files.value.originVideoPath);
+  initWaveform(files.value.originVideoPath);
 };
 
 /**
@@ -335,16 +342,33 @@ const selectAndLoadDanmu = async () => {
   if (!selectedFiles || selectedFiles.length === 0) return;
 
   const danmuPath = selectedFiles[0];
-  files.value.originDanmuPath = danmuPath;
-  files.value.danmuPath = await loadDanmuFile(danmuPath);
+  await loadDanmuFile(danmuPath);
+  if (danmuPath.endsWith(".xml")) {
+    // do nothing
+    // xml的相关数据需要在转换完成后赋值
+  } else if (danmuPath.endsWith(".ass")) {
+    files.value.originDanmuPath = danmuPath;
+    files.value.danmuPath = danmuPath;
+  } else {
+    throw new Error("不支持的弹幕文件类型");
+  }
+};
+
+/**
+ * 关闭弹幕转换对话框
+ */
+const handleCancelConvertDanmu = () => {
+  closeConvertDialog();
 };
 
 /**
  * 确认并执行弹幕转换
  */
 const handleConfirmConvertDanmu = async (config: DanmuConfig) => {
-  const output = await confirmConvert(config);
+  const [output, original] = await confirmConvert(config);
   files.value.danmuPath = output;
+  files.value.originDanmuPath = original;
+  await generateDanmakuData(original);
 };
 
 const exportVisible = ref(false);
@@ -413,17 +437,6 @@ onMounted(() => {
     videoCutDrive();
   }
 });
-
-const clientOptions = useStorage("cut-hotprogress", {
-  showSetting: true,
-  sampling: 10,
-  height: 50,
-  fillColor: "#f9f5f3",
-  color: "#333333",
-});
-const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
-const danmaSearchMask = useStorage("cut-danma-search-mask", true);
-const showVideoTime = useStorage("cut-show-video-time", true);
 
 watch(
   clientOptions,

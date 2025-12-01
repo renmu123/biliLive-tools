@@ -226,8 +226,35 @@ describe("FFmpegDownloader", () => {
       expect(StreamManager).toHaveBeenCalledWith(
         getSavePath,
         true, // hasSegment
+        false, // disableDanma
         "ffmpeg",
         "mkv", // videoFormat
+        { onUpdateLiveInfo: mockOnUpdateLiveInfo },
+      );
+    });
+
+    it("should pass disableDanma option to StreamManager", () => {
+      const getSavePath = vi.fn().mockReturnValue("/test/path/video");
+
+      new FFmpegDownloader(
+        {
+          url: "https://example.com/stream.flv",
+          getSavePath,
+          segment: 0,
+          outputOptions: ["-c:v", "copy"],
+          disableDanma: true,
+          formatName: "flv",
+        },
+        mockOnEnd,
+        mockOnUpdateLiveInfo,
+      );
+
+      expect(StreamManager).toHaveBeenCalledWith(
+        getSavePath,
+        false, // hasSegment
+        true, // disableDanma
+        "ffmpeg",
+        "m4s", // videoFormat (auto-detected)
         { onUpdateLiveInfo: mockOnUpdateLiveInfo },
       );
     });

@@ -1,6 +1,6 @@
 {
   "name": "biliLive-tools",
-  "version": "3.4.0",
+  "version": "3.4.1",
   "description": "B站直播录制处理工具",
   "main": "./out/main/index.js",
   "author": "renmu123",
@@ -28,6 +28,7 @@
     "@biliLive-tools/types": "workspace:*",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
+    "@imengyu/vue3-context-menu": "^1.5.2",
     "@napi-rs/canvas": "^0.1.60",
     "better-sqlite3": "catalog:",
     "bufferutil": "^4.0.8",

@@ -240,6 +240,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
           recordStartTime,
         }),
       formatName: streamOptions.format_name as "flv" | "ts" | "fmp4",
+      disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat,
       debugLevel: this.debugLevel ?? "none",
       headers: {
