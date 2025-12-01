@@ -15,7 +15,7 @@ import {
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
-import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
+import { statisticsService } from "@biliLive-tools/shared/db/index.js";
 
 import { config, handler, appConfig, fileCache } from "../index.js";
 import { container } from "../index.js";
@@ -217,7 +217,7 @@ router.post("/cover/upload", upload.single("file"), async (ctx) => {
 });
 
 router.get("/appStartTime", async (ctx) => {
-  const data = StatisticsService.query("start_time");
+  const data = statisticsService.query("start_time");
   ctx.body = data?.value;
 });
 
@@ -232,15 +232,17 @@ router.get("/getLogContent", async (ctx) => {
   ctx.body = content;
 });
 
-router.post("/readAss", async (ctx) => {
+router.post("/readDanma", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;
   };
-  if (!filepath.endsWith(".ass")) {
+  // 只允许读取ass或xml文件
+  if (!filepath.endsWith(".ass") && !filepath.endsWith(".xml")) {
     ctx.status = 400;
-    ctx.body = "文件不是ass格式";
+    ctx.body = "文件不是ass或xml格式";
     return;
   }
+
   if (!(await fs.pathExists(filepath))) {
     ctx.status = 400;
     ctx.body = "文件不存在";

@@ -150,8 +150,8 @@ export async function appStartTime(): Promise<number> {
   return res.data;
 }
 
-export async function readAss(filepath: string): Promise<string> {
-  const res = await request.post("/common/readAss", {
+export async function readDanma(filepath: string): Promise<string> {
+  const res = await request.post("/common/readDanma", {
     filepath,
   });
   return res.data;
@@ -279,7 +279,7 @@ const common = {
   parseMeta,
   getRunningTaskNum,
   fileJoin,
-  readAss,
+  readDanma,
   genTimeData,
   getVideo,
   applyVideoId,

@@ -16,7 +16,7 @@ import { check as checkVirtualRecordLoop } from "./task/virtualRecord.js";
 import { createRecorderManager } from "./recorder/index.js";
 import { sendNotify } from "./notify.js";
 import { initDB } from "./db/index.js";
-import StatisticsService from "./db/service/statisticsService.js";
+import { statisticsService } from "./db/index.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 
@@ -82,7 +82,7 @@ const init = async (config: GlobalConfig) => {
     logger.error("初始化失败", error);
   }
   // 设置开始时间
-  StatisticsService.addOrUpdate({
+  statisticsService.addOrUpdate({
     where: { stat_key: "start_time" },
     create: { stat_key: "start_time", value: Date.now().toString() },
   });

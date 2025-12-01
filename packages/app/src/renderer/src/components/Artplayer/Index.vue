@@ -129,6 +129,8 @@ onMounted(async () => {
     ...props.option,
     container: artRef.value,
     plugins: plugins,
+    // setting: true,
+    // playbackRate: true,
     customType: {
       flv: (video, url, art) => {
         if (mpegts.isSupported()) {
@@ -230,12 +232,23 @@ const switchAss = async (subtitle?: string) => {
   }
 };
 
+const switchDanmuku = async (danmuku: any[]) => {
+  if (instance) {
+    // @ts-ignore
+    instance.plugins.artplayerPluginDanmuku.config({
+      danmuku: danmuku,
+    });
+    instance.plugins.artplayerPluginDanmuku.load();
+  }
+};
+
 const video = computed(() => instance);
 
 defineExpose({
   switchUrl,
   video,
   switchAss,
+  switchDanmuku,
 });
 
 onBeforeUnmount(() => {

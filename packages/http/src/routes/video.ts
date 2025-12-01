@@ -125,8 +125,8 @@ async function parseVideo({
             user_name: item?.ROOM?.author_name,
             room_id: item?.DATA?.content.room_id,
             room_title: item?.DATA?.content.title,
-            live_start_time: new Date(liveStartTime).toISOString(),
-            video_start_time: new Date(videoStartTime).toISOString(),
+            live_start_time: new Date(liveStartTime * 1000).toISOString(),
+            video_start_time: new Date(videoStartTime * 1000).toISOString(),
           },
         };
       }),
