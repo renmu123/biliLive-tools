@@ -1,6 +1,7 @@
 import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
+import { DEFAULT_USER_AGENT } from "./index.js";
 import { StreamManager, getBililivePath } from "../index.js";
 import { byte2MB } from "../utils.js";
 import { IDownloader, BililiveRecorderOptions, Segment } from "./IDownloader.js";
@@ -149,7 +150,10 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
     this.inputOptions = [];
     this.url = opts.url;
     this.segment = opts.segment;
-    this.headers = opts.headers;
+    this.headers = {
+      "User-Agent": DEFAULT_USER_AGENT,
+      ...(opts.headers || {}),
+    };
 
     this.command = this.createCommand();
 
@@ -165,13 +169,7 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
   }
 
   createCommand() {
-    const inputOptions = [
-      ...this.inputOptions,
-      "-h",
-      "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
-      "--disable-log-file",
-      "true",
-    ];
+    const inputOptions = [...this.inputOptions, "--disable-log-file", "true"];
     if (this.debugLevel === "verbose") {
       inputOptions.push("-l", "Debug");
     }
