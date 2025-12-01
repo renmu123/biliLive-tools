@@ -81,9 +81,10 @@ export function useProjectManager(
    * 保存项目（如果已有路径则直接保存，否则另存为）
    * @param sourceVideoPath 源视频路径，用于另存为时的默认路径
    */
-  const saveProject = async () => {
+  const saveProject = async (ignoreNotice = false) => {
     const mediaFileName = files.value.originVideoPath;
     if (!mediaFileName) {
+      if (ignoreNotice) return;
       notice.error({
         title: "请先选择视频文件",
         duration: 2000,
@@ -92,10 +93,11 @@ export function useProjectManager(
     }
 
     if (projectFilePath.value) {
-      await saveToFile(projectFilePath.value, mediaFileName);
+      await saveToFile(projectFilePath.value, mediaFileName, ignoreNotice);
     } else {
-      projectFilePath.value = replaceExtName(mediaFileName, ".llc");
-      await saveToFile(projectFilePath.value, mediaFileName);
+      const { dir, name } = window.path.parse(mediaFileName);
+      projectFilePath.value = window.path.join(dir, `${name}-proj.llc`);
+      await saveToFile(projectFilePath.value, mediaFileName, ignoreNotice);
     }
   };
 
@@ -104,7 +106,15 @@ export function useProjectManager(
    * @param filePath 保存路径
    * @param mediaFileName 媒体文件名
    */
-  const saveToFile = async (filePath: string, mediaFileName: string) => {
+  const saveToFile = async (filePath: string, mediaFileName: string, ignoreNotice = false) => {
+    if (rawCuts.value.length === 0) {
+      if (ignoreNotice) return;
+      notice.error({
+        title: "你必须至少添加一个片段才能保存项目",
+        duration: 2000,
+      });
+      return;
+    }
     const projectData = {
       version: 1,
       mediaFileName: window.path.basename(mediaFileName),
@@ -112,10 +122,10 @@ export function useProjectManager(
     };
 
     await commonApi.writeLLCProject(filePath, JSON5.stringify(projectData, null, 2));
-    notice.success({
-      title: "已保存",
-      duration: 1000,
-    });
+    // notice.success({
+    //   title: "已保存",
+    //   duration: 1000,
+    // });
   };
 
   /**
@@ -152,15 +162,17 @@ export function useProjectManager(
       return;
     }
 
+    const { dir, name } = window.path.parse(mediaFileName);
+    const defaultPath = window.path.join(dir, `${name}-proj.llc`);
     const file = await showSaveDialog({
       extension: "llc",
-      defaultPath: replaceExtName(mediaFileName, ".llc"),
+      defaultPath,
     });
 
     if (!file) return;
 
     projectFilePath.value = file;
-    await saveToFile(file, mediaFileName);
+    await saveToFile(file, mediaFileName, true);
   };
 
   /**
@@ -205,6 +217,16 @@ export function useProjectManager(
 
     return items;
   });
+
+  watch(
+    () => rawCuts.value,
+    () => {
+      if (appConfig.value.videoCut.autoSave) {
+        saveProject(true);
+      }
+    },
+    { deep: true },
+  );
 
   return {
     projectFilePath,

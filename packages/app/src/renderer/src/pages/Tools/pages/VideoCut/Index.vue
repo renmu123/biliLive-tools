@@ -286,10 +286,8 @@ const loadProject = async (filePath: string) => {
   } else {
     // 这里就是视频文件了
     videoPath = filePath;
-    const possibleProjectFile = `${window.path.join(
-      window.path.dirname(filePath),
-      window.path.parse(filePath).name,
-    )}.llc`;
+    const { dir, name } = window.path.parse(filePath);
+    const possibleProjectFile = window.path.join(dir, `${name}-proj.llc`);
     const exists = await commonApi.fileExists(possibleProjectFile);
     if (exists) {
       projectFile = possibleProjectFile;
@@ -332,11 +330,11 @@ const closeAllResources = async () => {
   files.value.danmuPath = null;
   files.value.originDanmuPath = null;
 
-  // 清理切片数据
-  clearCuts();
-
   // 清理项目状态
   resetProjectState();
+
+  // 清理切片数据
+  clearCuts();
 
   // 重置时间戳
   // @ts-ignore
