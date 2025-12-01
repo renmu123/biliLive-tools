@@ -48,7 +48,11 @@ async function getRoomInfo(
       quality: options.quality,
     });
     if (info.gid == 1663) {
-      return getRoomInfoByMobile(channelId, options.formatPriorities);
+      return getRoomInfo(channelId, {
+        api: "wup",
+        formatPriorities: options.formatPriorities,
+        quality: options.quality,
+      });
     }
     return info;
   } else if (options.api == "mp") {

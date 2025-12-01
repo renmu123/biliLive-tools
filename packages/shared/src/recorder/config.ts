@@ -20,7 +20,6 @@ export default class RecorderConfig {
     | (Recorder & {
         auth?: string;
         formatPriorities?: Array<"hls" | "flv">;
-        api?: "web" | "webHTML";
       })
     | null {
     const getValue = (key: any): any => {
@@ -84,6 +83,8 @@ export default class RecorderConfig {
         } else if (key === "api") {
           if (setting.providerId === "DouYin") {
             return get(globalConfig, "douyin.api");
+          } else if (setting.providerId === "HuYa") {
+            return get(globalConfig, "huya.api");
           } else {
             return "auto";
           }
@@ -148,9 +149,6 @@ export default class RecorderConfig {
       }
     }
     let api = getValue("api") ?? "auto";
-    if (setting.providerId !== "DouYin") {
-      api = "auto";
-    }
 
     return {
       ...setting,

@@ -320,6 +320,19 @@
             </n-form-item>
             <n-form-item>
               <template #label>
+                <Tip :text="textInfo.huya.api.text" :tip="textInfo.huya.api.tip"></Tip>
+              </template>
+              <n-select
+                v-model:value="config.api"
+                :options="huyaApiTypeOptions"
+                :disabled="globalFieldsObj.api"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.api" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
+            <n-form-item>
+              <template #label>
                 <Tip
                   text="禁止标题关键词"
                   tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
@@ -596,6 +609,7 @@ import {
   recorderTypeOptions,
   recorderDebugLevelOptions,
   douyinApiTypeOptions,
+  huyaApiTypeOptions,
 } from "@renderer/enums/recorder";
 import { useConfirm } from "@renderer/hooks";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
@@ -840,6 +854,8 @@ watch(
     if (val.api) {
       if (config.value.providerId === "DouYin") {
         config.value.api = appConfig.value.recorder.douyin.api;
+      } else if (config.value.providerId === "HuYa") {
+        config.value.api = appConfig.value.recorder.huya.api;
       }
     }
   },

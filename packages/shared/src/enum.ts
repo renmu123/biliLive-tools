@@ -290,6 +290,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       quality: 0,
       formatName: "auto",
       source: "auto",
+      api: "auto",
     },
     douyin: {
       quality: "origin",
