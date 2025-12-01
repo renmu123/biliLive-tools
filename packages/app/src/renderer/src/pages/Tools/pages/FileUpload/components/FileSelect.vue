@@ -117,7 +117,11 @@ function onDrop(files: globalThis.File[] | null) {
     const filePaths = Array.from(files).map((file) => window.api.common.getPathForFile(file));
     const newFiles = filePaths
       .filter((file) => {
-        return !fileList.value.some((item) => item.path === file);
+        // 过滤已存在的文件
+        if (fileList.value.some((item) => item.path === file)) return false;
+        // 过滤不符合扩展名的文件
+        const ext = window.path.extname(file).slice(1).toLowerCase();
+        return props.extensions.some((allowedExt) => allowedExt.toLowerCase() === ext);
       })
       .map((file) => ({
         id: uuid(),

@@ -54,7 +54,7 @@ import { toReactive } from "@vueuse/core";
 import hotkeys from "hotkeys-js";
 import { FolderOpenOutline } from "@vicons/ionicons5";
 
-import FileSelect from "@renderer/pages/Tools/pages/Burn/components/FileSelect.vue";
+import FileSelect from "@renderer/pages/Tools/pages/FileUpload/components/FileSelect.vue";
 import { useAppConfig } from "@renderer/stores";
 import { taskApi } from "@renderer/apis";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
@@ -66,7 +66,7 @@ defineOptions({
 const notice = useNotification();
 const { appConfig } = storeToRefs(useAppConfig());
 
-const fileList = ref<{ id: string; title: string; videoPath: string; danmakuPath?: string }[]>([]);
+const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
 
 const options = toReactive(
   computed({
@@ -92,7 +92,7 @@ onUnmounted(() => {
 const convert = async () => {
   for (const item of fileList.value) {
     try {
-      taskApi.flvRepair(item.videoPath, item.title, options);
+      taskApi.flvRepair(item.path, item.title, options);
       notice.warning({
         title: `已加入任务，可在任务队列中查看进度`,
         duration: 1000,
