@@ -23,6 +23,7 @@ export function useDanmu(
     if (path.endsWith(".ass")) {
       const content = await commonApi.readDanma(path);
       videoRef.value?.switchAss(content);
+      await generateDanmakuData(path);
       return path;
     } else {
       // 如果是xml文件则弹框提示，要求转换为ass文件
@@ -30,7 +31,6 @@ export function useDanmu(
       tempXmlFile.value = path;
       convertDanmuLoading.value = true;
     }
-    await generateDanmakuData(path);
     return path;
   };
 
@@ -56,7 +56,7 @@ export function useDanmu(
       });
       const content = await commonApi.readDanma(output);
       videoRef.value?.switchAss(content);
-      return output;
+      return [output, tempXmlFile.value];
     } finally {
       convertDanmuLoading.value = false;
     }
@@ -68,6 +68,8 @@ export function useDanmu(
   const generateDanmakuData = async (file: string) => {
     if (file.endsWith(".ass")) {
       danmaList.value = [];
+      // @ts-ignore
+      videoInstance.value?.artplayerTimestamp?.setTimestamp(0);
     } else if (file.endsWith(".xml")) {
       const data = await commonApi.parseDanmu(file);
       danmaList.value = sortBy([...data.sc, ...data.danmu], "ts");
@@ -104,6 +106,14 @@ export function useDanmu(
     videoRef.value?.switchAss(content);
   };
 
+  /**
+   * 关闭弹幕转换弹窗
+   */
+  const closeConvertDialog = () => {
+    xmlConvertVisible.value = false;
+    convertDanmuLoading.value = false;
+  };
+
   return {
     danmaList,
     xmlConvertVisible,
@@ -112,5 +122,6 @@ export function useDanmu(
     confirmAndConvertDanmu,
     generateDanmakuData,
     reloadDanmu,
+    closeConvertDialog,
   };
 }
