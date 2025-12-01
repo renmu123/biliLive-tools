@@ -2,7 +2,7 @@ import { Ref } from "vue";
 import JSON5 from "json5";
 import { useAppConfig, useSegmentStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
-import { showFileDialog, showSaveDialog } from "@renderer/utils/fileSystem";
+import { showSaveDialog } from "@renderer/utils/fileSystem";
 import { replaceExtName } from "@renderer/utils";
 import { commonApi } from "@renderer/apis";
 
@@ -34,20 +34,6 @@ export function useProjectManager(
   const resetProjectState = () => {
     projectFilePath.value = "";
     projectMediaPath.value = "";
-  };
-
-  /**
-   * 选择并导入项目文件
-   * TODO: 移动到上层中，移除 mediaFileName 依赖
-   */
-  const selectAndImportProject = async () => {
-    const selectedFiles = await showFileDialog({
-      extensions: ["llc"],
-    });
-    if (!selectedFiles || selectedFiles.length === 0) return;
-
-    const filePath = selectedFiles[0];
-    await loadProjectFile(filePath);
   };
 
   /**
@@ -183,9 +169,6 @@ export function useProjectManager(
    */
   const handleProjectAction = (action?: string | number, sourceVideoPath?: string | null) => {
     switch (action) {
-      case "importProject":
-        selectAndImportProject();
-        break;
       case "refresh":
         reloadProject();
         break;

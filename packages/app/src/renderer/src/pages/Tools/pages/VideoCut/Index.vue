@@ -15,18 +15,9 @@
       <!-- 右侧分段列表区域 -->
       <div class="segment-section">
         <div class="btns page-header">
-          <ButtonGroup :options="projectMenuItems" @click="handleProjectMenuClick" size="small">{{
-            videoTitle
-          }}</ButtonGroup>
-          <n-button
-            class="cut-add-danmu"
-            type="primary"
-            :disabled="!files.videoPath"
-            @click="selectAndLoadDanmu"
-            size="small"
+          <ButtonGroup :options="projectMenuItems" @click="handleProjectMenuClick" size="small"
+            >添加/替换</ButtonGroup
           >
-            {{ danmuTitle }}
-          </n-button>
 
           <n-button
             class="cut-export"
@@ -120,12 +111,6 @@ const files = ref<{
   originDanmuPath: null,
   originVideoPath: null,
 });
-const videoTitle = computed(() => {
-  return files.value.videoPath ? "替换视频" : "添加视频";
-});
-const danmuTitle = computed(() => {
-  return files.value.danmuPath ? "替换弹幕" : "添加弹幕";
-});
 
 const openSubWindow = async () => {
   if (isWeb.value) {
@@ -165,6 +150,7 @@ const videoVCutOptions = toReactive(
 const projectMenuItems = computed(() => {
   const list = [
     { label: "导入项目文件", key: "importProject" },
+    { label: "加载弹幕", key: "importDanmu" },
     ...projectMenuOptions.value,
     { label: "关闭", key: "closeVideo", disabled: !files.value.videoPath },
   ];
@@ -217,14 +203,67 @@ watch(
 );
 
 /**
- * 选择并加载视频文件
+ * 处理拖拽文件变化
+ * @param droppedFiles 文件列表
  */
-const selectAndLoadVideo = async () => {
-  const selectedFiles = await showFileDialog({ extensions: supportedVideoExtensions });
+const handleDroppedFiles = (droppedFiles: any[]) => {
+  if (!droppedFiles.length) return;
+  const file = droppedFiles[0];
+  const { path, ext } = file;
+
+  // 根据文件类型进行不同处理
+  if (ext === ".llc") {
+    loadProjectFile(path);
+  } else {
+    loadVideo(path);
+  }
+};
+
+const handleDanmuFile = async (filePath: string) => {
+  if (filePath.endsWith(".xml")) {
+    if (!files.value.videoPath) {
+      notice.error({
+        title: "请先加载视频文件",
+        duration: 2000,
+      });
+      return;
+    }
+  } else if (filePath.endsWith(".ass")) {
+    if (!files.value.videoPath) {
+      notice.error({
+        title: "请先加载视频文件",
+        duration: 2000,
+      });
+      return;
+    }
+    files.value.originDanmuPath = filePath;
+    files.value.danmuPath = filePath;
+  } else {
+    throw new Error("不支持的弹幕文件格式");
+  }
+
+  await loadDanmuFile(filePath);
+};
+
+/**
+ * 调用文件选择对话框，选择并加载文件
+ */
+const selectLoadFile = async (extensions: string[]) => {
+  const selectedFiles = await showFileDialog({
+    extensions,
+  });
   if (!selectedFiles || selectedFiles.length === 0) return;
 
-  const videoPath = selectedFiles[0];
-  await loadVideo(videoPath);
+  const filePath = selectedFiles[0];
+  if (filePath.endsWith(".xml")) {
+    await handleDanmuFile(filePath);
+  } else if (filePath.endsWith(".ass")) {
+    await handleDanmuFile(filePath);
+  } else if (filePath.endsWith(".llc")) {
+    await loadProjectFile(filePath);
+  } else {
+    await loadVideo(filePath);
+  }
 };
 
 /**
@@ -276,14 +315,18 @@ const closeAllResources = async () => {
 
 const handleProjectMenuClick = async (key?: string | number) => {
   if (!key) {
-    selectAndLoadVideo();
+    selectLoadFile([...supportedVideoExtensions, "xml", "ass"]);
     return;
   }
 
   if (key === "closeVideo") {
     await closeAllResources();
+  } else if (key === "importDanmu") {
+    await selectLoadFile(["ass", "xml"]);
   } else if (key === "openSubWindow") {
     openSubWindow();
+  } else if (key === "importProject") {
+    await selectLoadFile(["llc"]);
   } else {
     handleProjectAction(key, files.value.originVideoPath);
   }
@@ -335,26 +378,6 @@ const handleVideoDurationChange = (duration: number) => {
 };
 
 /**
- * 选择并加载弹幕文件
- */
-const selectAndLoadDanmu = async () => {
-  const selectedFiles = await showFileDialog({ extensions: ["ass", "xml"] });
-  if (!selectedFiles || selectedFiles.length === 0) return;
-
-  const danmuPath = selectedFiles[0];
-  await loadDanmuFile(danmuPath);
-  if (danmuPath.endsWith(".xml")) {
-    // do nothing
-    // xml的相关数据需要在转换完成后赋值
-  } else if (danmuPath.endsWith(".ass")) {
-    files.value.originDanmuPath = danmuPath;
-    files.value.danmuPath = danmuPath;
-  } else {
-    throw new Error("不支持的弹幕文件类型");
-  }
-};
-
-/**
  * 关闭弹幕转换对话框
  */
 const handleCancelConvertDanmu = () => {
@@ -399,23 +422,6 @@ const exportCuts = async () => {
     return;
   }
   exportVisible.value = true;
-};
-
-/**
- * 处理拖拽文件变化
- * @param droppedFiles 文件列表
- */
-const handleDroppedFiles = (droppedFiles: any[]) => {
-  if (!droppedFiles.length) return;
-  const file = droppedFiles[0];
-  const { path, ext } = file;
-
-  // 根据文件类型进行不同处理
-  if (ext === ".llc") {
-    loadProjectFile(path);
-  } else {
-    loadVideo(path);
-  }
 };
 
 // 键盘快捷键
