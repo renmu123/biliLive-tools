@@ -156,6 +156,9 @@ export async function getStream(
     currentStream: {
       name: expectStream.desc,
       source: expectSource.name,
+      uid: expectSource.presenterUid,
+      subChannelId: expectSource.subChannelId,
+      channelId: expectSource.channelId,
       url,
     },
   };

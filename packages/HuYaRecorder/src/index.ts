@@ -257,7 +257,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
   let client: HuYaDanMu | null = null;
   if (!this.disableProvideCommentsWhenRecording) {
-    client = new HuYaDanMu(this.channelId);
+    client = new HuYaDanMu({
+      roomid: this.channelId,
+      uid: res.currentStream.uid,
+      subChannelId: res.currentStream.subChannelId,
+      channelId: res.currentStream.channelId,
+    });
     client.on("message", (msg: HuYaMessage) => {
       const extraDataController = downloader.getExtraDataController();
       if (!extraDataController) return;
