@@ -83,7 +83,6 @@ class BililiveRecorderCommand extends EventEmitter {
     this.process.on("error", (error) => {
       this.emit("error", error);
     });
-    [];
     this.process.on("close", (code) => {
       if (code === 0) {
         this.emit("end");
@@ -93,9 +92,15 @@ class BililiveRecorderCommand extends EventEmitter {
     });
   }
 
-  kill(signal: NodeJS.Signals = "SIGTERM"): void {
+  kill(): void {
     if (this.process) {
-      this.process.kill(signal);
+      this.process.stdin?.write("q\n");
+      // this.process.kill("SIGTERM");
+    }
+  }
+  cut(): void {
+    if (this.process) {
+      this.process.stdin?.write("s\n");
     }
   }
 }
@@ -235,7 +240,7 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
   public async stop() {
     try {
       // 直接发送SIGINT信号，会导致数据丢失
-      this.command.kill("SIGINT");
+      this.command.kill();
 
       await this.streamManager.handleVideoCompleted();
     } catch (err) {
@@ -249,5 +254,9 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
 
   public get videoFilePath() {
     return this.streamManager.videoFilePath;
+  }
+
+  public cut() {
+    this.command.cut();
   }
 }

@@ -241,4 +241,8 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
   public get videoFilePath() {
     return this.streamManager.videoFilePath;
   }
+
+  public cut(): void {
+    throw new Error("Mesio downloader does not support cut operation.");
+  }
 }
