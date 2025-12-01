@@ -208,6 +208,7 @@ export function useProjectManager(
    */
   const projectMenuOptions = computed(() => {
     const hasProject = !!projectFilePath.value;
+    const hasVideo = !!files.value.videoPath;
     const isWeb = window.isWeb;
     const items: { label: string; key: string; disabled: boolean }[] = [];
 
@@ -216,6 +217,11 @@ export function useProjectManager(
       items.push({ label: "使用llc打开", key: "open", disabled: !hasProject });
     }
     items.push({ label: "保存(ctrl+s)", key: "save", disabled: !hasProject });
+    items.push({
+      label: "另存为(ctrl+shift+s)",
+      key: "saveAnother",
+      disabled: !hasVideo,
+    });
 
     return items;
   });
