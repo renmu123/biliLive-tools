@@ -39,10 +39,10 @@
   "license": "LGPL",
   "dependencies": {
     "@bililive-tools/manager": "workspace:^",
+    "@tars/stream": "^2.0.3",
+    "axios": "catalog:",
     "huya-danma-listener": "workspace:*",
-    "mitt": "catalog:",
     "lodash-es": "catalog:",
-    "axios": "catalog:"
-  },
-  "devDependencies": {}
+    "mitt": "catalog:"
+  }
 }
