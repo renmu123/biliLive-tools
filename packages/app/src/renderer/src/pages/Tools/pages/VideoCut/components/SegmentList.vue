@@ -61,7 +61,6 @@
           <li>ctrl+left 后退1秒</li>
           <li>ctrl+right 前进1秒</li>
           <li>ctrl+s 保存到项目</li>
-          <li>ctrl+shift+s 另存为项目</li>
           <li>ctrl+enter 导出</li>
           <li>ctrl+z 撤销</li>
           <li>ctrl+shift+z 重做</li>

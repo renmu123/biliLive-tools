@@ -6,7 +6,6 @@ export interface KeyboardShortcutsHandlers {
   onUndo: () => void;
   onRedo: () => void;
   onSave: () => void;
-  onSaveAs: () => void;
   onExport: () => void;
   onTogglePlay: () => void;
   onBackward?: (amount: number) => void;
@@ -28,12 +27,6 @@ export function useKeyboardShortcuts(
     hotkeys("ctrl+s", (event) => {
       event.preventDefault();
       handlers.onSave();
-    });
-
-    // 另存为
-    hotkeys("ctrl+shift+s", (event) => {
-      event.preventDefault();
-      handlers.onSaveAs();
     });
 
     // 导出

@@ -143,7 +143,6 @@ const {
   projectMediaPath,
   projectMenuOptions,
   saveProject,
-  saveProjectAs,
   loadProjectFile,
   resetProjectState,
 } = useProjectManager(files);
@@ -424,7 +423,6 @@ useKeyboardShortcuts(
     onUndo: () => undo(),
     onRedo: () => redo(),
     onSave: () => saveProject(files.value.originVideoPath),
-    onSaveAs: () => saveProjectAs(files.value.originVideoPath),
     onExport: () => exportCuts(),
     onTogglePlay: () => togglePlay(),
   },
