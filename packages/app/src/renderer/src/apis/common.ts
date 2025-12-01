@@ -263,6 +263,16 @@ export const getTempPath = async (): Promise<string> => {
   return res.data;
 };
 
+/**
+ * 文件是否存在
+ */
+export const fileExists = async (filepath: string): Promise<boolean> => {
+  const res = await request.post("/common/fileExists", {
+    filepath,
+  });
+  return res.data;
+};
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
@@ -291,6 +301,7 @@ const common = {
   getTempPath,
   readLLCProject,
   writeLLCProject,
+  fileExists,
 };
 
 export default common;

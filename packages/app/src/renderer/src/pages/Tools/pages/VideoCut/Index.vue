@@ -63,6 +63,7 @@
 defineOptions({
   name: "videoCut",
 });
+import { toReactive } from "@vueuse/core";
 import { supportedVideoExtensions } from "@renderer/utils";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
@@ -74,11 +75,9 @@ import ConfigPanel from "./components/ConfigPanel.vue";
 import { useStorage } from "@vueuse/core";
 import { showFileDialog } from "@renderer/utils/fileSystem";
 import { useConfirm } from "@renderer/hooks";
-
-import { useProjectManager } from "./hooks";
+import { commonApi } from "@renderer/apis";
 import { useDrive } from "@renderer/hooks/drive";
-import { toReactive } from "@vueuse/core";
-
+import { useProjectManager } from "./hooks";
 import { useVideoPlayer } from "./composables/useVideoPlayer";
 import { useDanmu } from "./composables/useDanmu";
 import { useWaveform } from "./composables/useWaveform";
@@ -125,12 +124,12 @@ const openSubWindow = async () => {
 
 const {
   handleProjectAction,
-  projectMediaPath,
   projectMenuOptions,
   saveProject,
   saveProjectAs,
   loadProjectFile,
   resetProjectState,
+  readProjectFile,
 } = useProjectManager(files);
 
 const { appConfig } = storeToRefs(useAppConfig());
@@ -179,7 +178,6 @@ const {
   convertDanmuLoading,
   loadDanmuFile,
   confirmAndConvertDanmu: confirmConvert,
-  reloadDanmu,
   closeConvertDialog,
   generateDanmakuData,
 } = useDanmu(videoInstance, videoPlayerRef, videoDuration, showVideoTime);
@@ -213,9 +211,9 @@ const handleDroppedFiles = (droppedFiles: any[]) => {
 
   // 根据文件类型进行不同处理
   if (ext === ".llc") {
-    loadProjectFile(path);
+    loadProject(path);
   } else {
-    loadVideo(path);
+    loadProject(path);
   }
 };
 
@@ -260,9 +258,46 @@ const selectLoadFile = async (extensions: string[]) => {
   } else if (filePath.endsWith(".ass")) {
     await handleDanmuFile(filePath);
   } else if (filePath.endsWith(".llc")) {
-    await loadProjectFile(filePath);
+    await loadProject(filePath);
   } else {
-    await loadVideo(filePath);
+    await loadProject(filePath);
+  }
+};
+
+/**
+ * 加载项目
+ */
+const loadProject = async (filePath: string) => {
+  let videoPath: string;
+  let projectFile: string | undefined;
+  if (filePath.endsWith(".llc")) {
+    projectFile = filePath;
+    // 如果是项目文件，那么先读取项目文件内容，获得媒体文件路径
+    const projectData = await readProjectFile(filePath);
+    const mediaFileName = projectData.mediaFileName;
+    const possibleVideoPath = window.path.join(window.path.dirname(filePath), mediaFileName);
+    const exists = await commonApi.fileExists(possibleVideoPath);
+    if (exists) {
+      videoPath = possibleVideoPath;
+    } else {
+      alert("项目关联的视频文件不存在，无法加载");
+      return;
+    }
+  } else {
+    // 这里就是视频文件了
+    videoPath = filePath;
+    const possibleProjectFile = `${window.path.join(
+      window.path.dirname(filePath),
+      window.path.parse(filePath).name,
+    )}.llc`;
+    const exists = await commonApi.fileExists(possibleProjectFile);
+    if (exists) {
+      projectFile = possibleProjectFile;
+    }
+  }
+  loadVideo(videoPath);
+  if (projectFile) {
+    await loadProjectFile(projectFile);
   }
 };
 
@@ -277,9 +312,7 @@ const loadVideo = async (path: string) => {
   const videoUrl = await loadVideoCore(path);
   files.value.videoPath = videoUrl;
 
-  if (files.value.danmuPath) {
-    await reloadDanmu(files.value.danmuPath);
-  }
+  autoLoadDanmuFile(path);
 };
 
 /**
@@ -328,24 +361,9 @@ const handleProjectMenuClick = async (key?: string | number) => {
   } else if (key === "importProject") {
     await selectLoadFile(["llc"]);
   } else {
-    handleProjectAction(key, files.value.originVideoPath);
+    handleProjectAction(key);
   }
 };
-
-/**
- * 监听项目媒体路径变化，自动加载相关资源
- */
-watch(projectMediaPath, async () => {
-  if (projectMediaPath.value) {
-    // 加载视频
-    await loadVideo(projectMediaPath.value);
-
-    // 尝试自动加载同名弹幕文件
-    if (!isWeb.value) {
-      await autoLoadDanmuFile(projectMediaPath.value);
-    }
-  }
-});
 
 /**
  * 自动加载与视频同名的弹幕文件
@@ -356,14 +374,14 @@ const autoLoadDanmuFile = async (videoPath: string) => {
 
   // 优先查找 .ass 文件
   const assFilepath = window.path.join(dir, `${name}.ass`);
-  if (await window.api.exits(assFilepath)) {
+  if (await commonApi.fileExists(assFilepath)) {
     await loadDanmuFile(assFilepath);
     return;
   }
 
   // 其次查找 .xml 文件
   const xmlFilepath = window.path.join(dir, `${name}.xml`);
-  if (await window.api.exits(xmlFilepath)) {
+  if (await commonApi.fileExists(xmlFilepath)) {
     await loadDanmuFile(xmlFilepath);
   }
 };
@@ -429,8 +447,8 @@ useKeyboardShortcuts(
   {
     onUndo: () => undo(),
     onRedo: () => redo(),
-    onSave: () => saveProject(files.value.originVideoPath),
-    onSaveAs: () => saveProjectAs(files.value.originVideoPath),
+    onSave: () => saveProject(),
+    onSaveAs: () => saveProjectAs(),
     onExport: () => exportCuts(),
     onTogglePlay: () => togglePlay(),
   },

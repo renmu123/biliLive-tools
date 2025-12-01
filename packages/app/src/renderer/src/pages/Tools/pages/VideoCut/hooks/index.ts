@@ -21,19 +21,16 @@ export function useProjectManager(
   const notice = useNotification();
   const { appConfig } = storeToRefs(useAppConfig());
   const { rawCuts } = storeToRefs(useSegmentStore());
-  const { clearHistory, init } = useSegmentStore();
+  const { init } = useSegmentStore();
 
   // 项目文件路径
   const projectFilePath = ref("");
-  // 从项目文件中解析出的媒体文件路径
-  const projectMediaPath = ref("");
 
   /**
    * 清理项目状态
    */
   const resetProjectState = () => {
     projectFilePath.value = "";
-    projectMediaPath.value = "";
   };
 
   /**
@@ -42,8 +39,7 @@ export function useProjectManager(
    */
   const loadProjectFile = async (filePath: string) => {
     try {
-      const content = await commonApi.readLLCProject(filePath);
-      const projectData = JSON5.parse(content);
+      const projectData = await readProjectFile(filePath);
 
       // 更新项目路径
       projectFilePath.value = filePath;
@@ -54,12 +50,7 @@ export function useProjectManager(
         checked: true,
       }));
       init(segments);
-
-      // 解析媒体文件路径
-      const mediaFileName = projectData.mediaFileName;
-      projectMediaPath.value = window.path.join(window.path.dirname(filePath), mediaFileName);
     } catch (error) {
-      console.error("项目文件加载失败:", error);
       notice.error({
         title: "项目文件解析失败，请确认文件有效",
         duration: 2000,
@@ -68,20 +59,29 @@ export function useProjectManager(
   };
 
   /**
+   * 读取项目文件
+   */
+  const readProjectFile = async (filePath: string) => {
+    const content = await commonApi.readLLCProject(filePath);
+    const projectData = JSON5.parse(content);
+    return projectData;
+  };
+
+  /**
    * 重新加载当前项目文件
    */
-  const reloadProject = async () => {
-    if (!projectFilePath.value) return;
+  // const reloadProject = async () => {
+  //   if (!projectFilePath.value) return;
 
-    clearHistory();
-    await loadProjectFile(projectFilePath.value);
-  };
+  //   clearHistory();
+  //   await loadProjectFile(projectFilePath.value);
+  // };
 
   /**
    * 保存项目（如果已有路径则直接保存，否则另存为）
    * @param sourceVideoPath 源视频路径，用于另存为时的默认路径
    */
-  const saveProject = async (sourceVideoPath?: string | null) => {
+  const saveProject = async () => {
     const mediaFileName = files.value.originVideoPath;
     if (!mediaFileName) {
       notice.error({
@@ -94,7 +94,8 @@ export function useProjectManager(
     if (projectFilePath.value) {
       await saveToFile(projectFilePath.value, mediaFileName);
     } else {
-      await saveProjectAs(sourceVideoPath);
+      projectFilePath.value = replaceExtName(mediaFileName, ".llc");
+      await saveToFile(projectFilePath.value, mediaFileName);
     }
   };
 
@@ -141,7 +142,7 @@ export function useProjectManager(
    * 另存为项目文件
    * @param sourceVideoPath 源视频路径，用于生成默认文件名
    */
-  const saveProjectAs = async (sourceVideoPath?: string | null) => {
+  const saveProjectAs = async () => {
     const mediaFileName = files.value.originVideoPath;
     if (!mediaFileName) {
       notice.error({
@@ -153,7 +154,7 @@ export function useProjectManager(
 
     const file = await showSaveDialog({
       extension: "llc",
-      defaultPath: replaceExtName(sourceVideoPath || "", ".llc"),
+      defaultPath: replaceExtName(mediaFileName, ".llc"),
     });
 
     if (!file) return;
@@ -167,19 +168,16 @@ export function useProjectManager(
    * @param action 操作类型
    * @param sourceVideoPath 源视频路径
    */
-  const handleProjectAction = (action?: string | number, sourceVideoPath?: string | null) => {
+  const handleProjectAction = (action?: string | number) => {
     switch (action) {
-      case "refresh":
-        reloadProject();
-        break;
       case "save":
-        saveProject(sourceVideoPath);
+        saveProject();
         break;
       case "open":
         openInLosslessCut();
         break;
       case "saveAnother":
-        saveProjectAs(sourceVideoPath);
+        saveProjectAs();
         break;
       default:
         console.error(`不支持的操作: ${action}`);
@@ -196,7 +194,6 @@ export function useProjectManager(
     const items: { label: string; key: string; disabled: boolean }[] = [];
 
     if (!isWeb) {
-      items.push({ label: "重新加载", key: "refresh", disabled: !hasProject });
       items.push({ label: "使用llc打开", key: "open", disabled: !hasProject });
     }
     items.push({ label: "保存(ctrl+s)", key: "save", disabled: !hasProject });
@@ -211,12 +208,12 @@ export function useProjectManager(
 
   return {
     projectFilePath,
-    projectMediaPath,
     projectMenuOptions,
     handleProjectAction,
     saveProject,
     saveProjectAs,
     loadProjectFile,
     resetProjectState,
+    readProjectFile,
   };
 }
