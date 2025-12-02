@@ -9,6 +9,10 @@ export const qualityOptions = [
 // B站画质选项
 export const biliQualityOptions = [
   {
+    value: 25000,
+    label: "原画真彩(25000)",
+  },
+  {
     value: 10000,
     label: "原画(10000)",
   },
@@ -19,6 +23,10 @@ export const biliQualityOptions = [
   {
     value: 20000,
     label: "4K(20000)",
+  },
+  {
+    value: 15000,
+    label: "2K(15000)",
   },
   {
     value: 400,
@@ -354,6 +362,22 @@ export const douyinStreamFormatOptions = [
   },
 ];
 
+export const douyinApiTypeOptions = [
+  { label: "随机", value: "random" },
+  { label: "web接口", value: "web" },
+  { label: "mobile接口", value: "mobile" },
+  { label: "直播html解析", value: "webHTML" },
+  { label: "用户html解析", value: "userHTML" },
+  { label: "测试：负载均衡", value: "balance" },
+];
+
+export const huyaApiTypeOptions = [
+  { label: "自动", value: "auto" },
+  { label: "web", value: "web" },
+  { label: "mp", value: "mp" },
+  { label: "wup", value: "wup" },
+];
+
 const qualityRetry = {
   text: "流匹配重试次数",
   tip: "根据次数强制查询匹配画质及其他强制参数，在未选择原画的情况下，可能会导致开头漏录。匹配次数结束后如果无法匹配对应画质时会自动选择其他画质，-1为强制匹配",
@@ -371,7 +395,7 @@ export const textInfo = {
     },
     recorderType: {
       text: "录制器",
-      tip: "影响最底层的录制，自动选择默认使用ffmpeg，如果使用ffmpeg经常出现问题，如时间戳跳变，卡顿，音画不同步等，可以尝试切换mesio或录播姬引擎，录播姬引擎不支持只录制音频<b>目前仅推荐小规模测试使用</b>",
+      tip: "影响最底层的录制，自动选择默认使用ffmpeg。\n如果使用ffmpeg经常出现问题，如时间戳跳变，卡顿，音画不同步等，可以尝试切换mesio或录播姬引擎，录播姬引擎不支持只录制音频<b>目前仅推荐小规模测试使用</b>",
     },
   },
   bili: {
@@ -401,6 +425,10 @@ export const textInfo = {
   huya: {
     qualityRetry: qualityRetry,
     quality: quality,
+    api: {
+      text: "请求接口",
+      tip: `为了星秀区而增加的参数，具体自己看文档吧~`,
+    },
   },
   douyin: {
     qualityRetry: qualityRetry,
@@ -411,6 +439,13 @@ export const textInfo = {
     formatName: {
       text: "流格式",
       tip: "默认优先flv模式，其次hls",
+    },
+    api: {
+      text: "请求接口",
+      tip: `不同的接口对应的底层不同，如果哪天用不了，你也可以切切看，mobile和用户html解析接口必须在3.1.0及以后版本使用才能生效，更多区别见文档。<br/>
+            mobile接口也许支持电台直播，该接口对IP有要求<br/>
+            web接口支持双屏直播参数<br/>
+            PS: mobile看起来更不容易触发风控，直播html接口是真容易触发风控`,
     },
   },
 } as const;

@@ -65,6 +65,7 @@ router.post("/add", async (ctx) => {
     "useServerTimestamp",
     "handleTime",
     "debugLevel",
+    "api",
   );
 
   const data = await recorderService.addRecorder(args);
@@ -116,6 +117,7 @@ router.put("/:id", (ctx) => {
     "useServerTimestamp",
     "handleTime",
     "debugLevel",
+    "api",
   );
 
   ctx.body = { payload: recorderService.updateRecorder({ id, ...patch }) };
@@ -172,6 +174,32 @@ router.post("/:id/cut", async (ctx) => {
 router.get("/manager/resolveChannel", async (ctx) => {
   const { url } = ctx.query;
   const data = await recorderService.resolveChannel(url as string);
+
+  ctx.body = { payload: data };
+});
+
+/**
+ * 解析直播间地址，返回所有添加需要的信息
+ * @route GET /recorder/manager/resolve
+ * @param url 直播间地址
+ * @returns 直播间信息
+ */
+router.get("/manager/resolve", async (ctx) => {
+  const { url } = ctx.query;
+  const data = await recorderService.resolve(url as string);
+
+  ctx.body = { payload: data };
+});
+
+/**
+ * 批量解析直播间地址
+ * @route POST /recorder/manager/batchResolveChannel
+ * @param channelURLs 直播间地址数组
+ * @returns 批量解析结果
+ */
+router.post("/manager/batchResolveChannel", async (ctx) => {
+  const { channelURLs } = ctx.request.body;
+  const data = await recorderService.batchResolveChannel(channelURLs as string[]);
 
   ctx.body = { payload: data };
 });

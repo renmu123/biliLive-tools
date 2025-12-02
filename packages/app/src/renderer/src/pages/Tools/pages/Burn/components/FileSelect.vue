@@ -1,23 +1,35 @@
 <template>
-  <PartArea
-    v-if="fileList.length !== 0"
-    v-model="fileList"
-    :sort="props.sort"
-    :placeholder="props.inputPlaceholder"
-    @add-danmaku="addDanmaku"
-  ></PartArea>
-  <FileArea
-    v-else
-    :extensions="props.extensions"
-    :desc="props.areaPlaceholder"
-    @change="addOldFile"
-  ></FileArea>
+  <div
+    ref="dropZoneRef"
+    :class="{ dragging: isOverDropZone }"
+    style="border: 1px dashed rgb(224, 224, 230); border-radius: 4px; transition: border-color 0.2s"
+  >
+    <PartArea
+      v-if="fileList.length !== 0"
+      v-model="fileList"
+      :sort="props.sort"
+      :placeholder="props.inputPlaceholder"
+      @add-danmaku="addDanmaku"
+    ></PartArea>
+    <div v-else class="empty-area" :class="{ dragging: isOverDropZone }" @click="select">
+      <div style="margin-bottom: 12px">
+        <n-icon size="48" :depth="3">
+          <ArchiveIcon />
+        </n-icon>
+      </div>
+      <n-text style="font-size: 16px">点击或拖拽文件到该区域</n-text>
+      <p v-if="props.areaPlaceholder" style="margin: 8px 0 0 0">
+        {{ props.areaPlaceholder }}
+      </p>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import FileArea from "@renderer/components/FileArea.vue";
 import PartArea from "./PartArea.vue";
 import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
+import { useDropZone } from "@vueuse/core";
+import { ArchiveOutline as ArchiveIcon } from "@vicons/ionicons5";
 
 import { supportedVideoExtensions, uuid } from "@renderer/utils";
 
@@ -45,15 +57,7 @@ const props = withDefaults(
   },
 );
 
-const addOldFile = (data: { name: string; path: string }[]) => {
-  // fileList.value = data.map((item) => ({
-  //   id: uuid(),
-  //   title: item.name,
-  //   videoPath: item.path,
-  //   danmakuPath: "",
-  // }));
-  handleFiles(data.map((item) => item.path));
-};
+const dropZoneRef = ref<HTMLElement | null>(null);
 
 const select = async () => {
   let files: string[] | undefined = [];
@@ -162,9 +166,51 @@ const addDanmaku = async (index: number) => {
   fileList.value[index].danmakuPath = files[0];
 };
 
+// 拖拽相关
+function onDrop(files: File[] | null) {
+  if (window.isWeb) return;
+
+  if (files) {
+    const filePaths = Array.from(files).map((file) => window.api.common.getPathForFile(file));
+    handleFiles(filePaths);
+  }
+}
+
+function onOver(_files: File[] | null, event: DragEvent) {
+  if (window.isWeb) return;
+  event.dataTransfer!.dropEffect = "copy";
+}
+
+const { isOverDropZone } = useDropZone(dropZoneRef, {
+  onDrop,
+  onOver,
+});
+
 defineExpose({
   select,
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.empty-area {
+  height: 200px;
+  border: 1px dashed rgb(224, 224, 230);
+  border-radius: 3px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.empty-area:hover,
+.empty-area.dragging {
+  border-color: #18a058;
+}
+
+.dragging {
+  border-color: #18a058 !important;
+}
+</style>

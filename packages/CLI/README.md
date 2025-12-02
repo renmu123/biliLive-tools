@@ -29,7 +29,8 @@
   danmakuFactoryPath: "DanmakuFactory.exe",  // DanmakuFactory二进制路径
   logPath: "main.log",  // log文件路径，绝对路径
   mesioPath: "mesio.exe",
-  BililiveRecorderPath: "BililiveRecorder.Cli.exe",
+  bililiveRecorderPath: "BililiveRecorder.Cli.exe",
+  audiowaveformPath: "audiowaveform.exe"
 }
 ```
 

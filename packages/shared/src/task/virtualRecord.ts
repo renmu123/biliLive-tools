@@ -3,7 +3,7 @@ import path from "path";
 import axios from "axios";
 
 import logger from "../utils/log.js";
-import { virtualRecordModel } from "../db/index.js";
+import { virtualRecordService } from "../db/index.js";
 import { appConfig } from "../config.js";
 import { sleep } from "../utils/index.js";
 import { readVideoMeta } from "./video.js";
@@ -121,7 +121,7 @@ const getMatchingFiles = async (
   }
 
   // 读取数据库，排除掉已存在的记录
-  const existingRecords = virtualRecordModel.list();
+  const existingRecords = virtualRecordService.list();
   const existingPathSets = new Set(existingRecords.map((item) => item.path));
   const unprocessedFiles = videoFiles.filter((file) => !existingPathSets.has(file));
 
@@ -283,7 +283,7 @@ const processFile = async (file: FileInfo, config: VirtualRecordConfig, port: nu
     logger.error(`处理文件失败: ${file.path}`, error);
   } finally {
     // 将这次处理的数据添加到数据库
-    virtualRecordModel.add({
+    virtualRecordService.add({
       path: file.path,
     });
   }

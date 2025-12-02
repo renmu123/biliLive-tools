@@ -3,8 +3,8 @@ import path from "path";
 import M3U8Downloader from "@renmu/m3u8-downloader";
 import axios from "axios";
 
-import { taskQueue, KuaishouDownloadVideoTask } from "./task.js";
-import { getFfmpegPath } from "./video.js";
+import { taskQueue, KuaishouDownloadVideoTask } from "../task/task.js";
+import { getBinPath } from "../task/video.js";
 import { uuid } from "../utils/index.js";
 import { getTempPath } from "../utils/index.js";
 
@@ -17,7 +17,7 @@ async function download(
 ) {
   if ((await fs.pathExists(output)) && !options.override) throw new Error(`${output}已存在`);
 
-  const { ffmpegPath } = getFfmpegPath();
+  const { ffmpegPath } = getBinPath();
   const downloader = new M3U8Downloader(url, output, {
     convert2Mp4: true,
     ffmpegPath: ffmpegPath,

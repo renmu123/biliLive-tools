@@ -6,7 +6,7 @@
 
 - **桌面程序**：Electron + Vue 3 + TypeScript + Vite
 - **CLI**：Node.js + TypeScript
-- **后端**：Node.js + Express + TypeScript
+- **后端**：Node.js + Koa + TypeScript
 - **前端**：Vue 3 + TypeScript + Vite
 - **数据库**：SQLite (better-sqlite3)
 - **视频处理**：FFmpeg
@@ -22,12 +22,12 @@
 
 ### 包管理器
 
-项目使用 pnpm 作为包管理器，具体版本参考 `package.json` 中的字段。
+项目使用 pnpm 作为包管理器，具体版本参考 `package.json` 中的相关字段。
 
 安装 pnpm：
 
 ```bash
-npm install -g pnpm
+npm install -g pnpm@9.15.2
 ```
 
 ## 克隆仓库
@@ -57,17 +57,22 @@ pnpm run install:bin
 
 详见 [Issue #5638](https://github.com/pnpm/pnpm/issues/5638#issuecomment-1327988206)
 
-如果你是Win，你还可能遇到报错比如`cause=fork/exec %1 is not a valid Win32 application.`，根据[提示](https://github.com/pnpm/pnpm/issues/5638#issuecomment-1327988206)修改pnpm源文件，如果你最后还是无法安装，尝试在项目根目录运行`node scripts\github-ci-better-sqlite3.js`手动安装依赖。
+如果你是Win，你还可能遇到报错比如`cause=fork/exec %1 is not a valid Win32 application.`，根据[提示](https://github.com/pnpm/pnpm/issues/5638#issuecomment-1327988206)修改pnpm源文件。
 
 ### 关于二进制依赖
 
-如果二进制依赖安装失败或不支持你的平台，请[手动下载](https://github.com/renmu123/biliLive-tools/releases/tag/0.2.1)。
+**二进制依赖下载完成后，需要手动去设置中配置对应的可执行文件路径**
+
+如果二进制依赖安装失败或不支持你的平台，请[手动下载](https://github.com/renmu123/biliLive-tools/releases/tag/0.2.1)，版本选择最靠近当前版本的版本。
 
 创建 `packages\app\resources\bin` 目录，放入以下文件：
 
-1. **DanmukuFactory.exe**：[自编译版本](https://github.com/renmu123/DanmakuFactory/tree/test)
-2. **ffmpeg.exe**：[n7.0](https://github.com/BtbN/FFmpeg-Builds/releases)
-3. **ffprobe.exe**：[n7.0](https://github.com/BtbN/FFmpeg-Builds/releases)
+- **DanmukuFactory.exe**：[自编译版本](https://github.com/renmu123/DanmakuFactory/tree/test)
+- **FFmpeg.exe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
+- **ffprobe.exe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
+- **录播姬cli**：[3.3.0](https://github.com/renmu123/BililiveRecorder)
+- **mesio**：[0.3.3](https://github.com/hua0512/rust-srec)
+- **audiowaveform**：[1.10.2](https://github.com/bbc/audiowaveform)
 
 同时需要在应用设置中配置可执行文件路径。
 
@@ -84,7 +89,7 @@ biliLive-tools/
 │   │   └── resources/    # 资源文件
 │   ├── CLI/              # 命令行工具
 │   ├── http/             # HTTP 服务
-│   ├── shared/           # 共享代码
+│   ├── shared/           # 核心代码
 │   ├── types/            # 类型定义
 │   ├── BilibiliRecorder/ # B站录制
 │   ├── DouYinRecorder/   # 抖音录制
@@ -108,8 +113,6 @@ pnpm run dev
 # 构建应用
 pnpm run build:app
 
-# 构建（不包含 FFmpeg）
-pnpm run build:app:no-ffmpeg
 ```
 
 ### CLI 开发
@@ -122,17 +125,6 @@ pnpm run build:cli
 cd packages/CLI
 npm link
 bililive-cli --help
-```
-
-### HTTP 服务开发
-
-```bash
-# 启动开发服务器
-cd packages/http
-pnpm run dev
-
-# 运行测试
-pnpm run test
 ```
 
 ### 运行测试
@@ -268,15 +260,6 @@ describe("Integration Test", () => {
 ```bash
 # 运行所有测试
 pnpm run test
-
-# 运行特定文件
-pnpm run test path/to/test.spec.ts
-
-# 监听模式
-pnpm run test:watch
-
-# 覆盖率
-pnpm run test:coverage
 ```
 
 ## 构建
@@ -284,28 +267,49 @@ pnpm run test:coverage
 ### 桌面应用构建
 
 ```bash
-# 构建所有平台
 pnpm run build:app
-
-# 只构建 Windows
-pnpm run build:app:win
-
-# 只构建 Linux
-pnpm run build:app:linux
-
-# 只构建 Mac
-pnpm run build:app:mac
 ```
 
 ### Docker 构建
 
-```bash
-# 构建前端
-docker build -f docker/frontend-dockerfile -t bililive-tools-frontend .
+项目使用多阶段构建的 Dockerfile，支持构建三种不同的镜像：
 
-# 构建后端
-docker build -f docker/backend-dockerfile -t bililive-tools-backend .
+#### 镜像类型
+
+1. **frontend** - 纯前端镜像
+2. **backend** - 纯后端 API 镜像
+3. **fullstack** - 全栈镜像（包含前端和后端）
+
+#### 本地构建
+
+```bash
+# 构建全栈镜像（推荐）
+docker build -f docker/Dockerfile --target fullstack --build-arg VITE_FULLSTACK=true --build-arg VITE_DEFAULT_SERVER=/api -t bililive-tools:local .
+
+# 构建前端镜像
+docker build -f docker/Dockerfile --target frontend -t bililive-tools-frontend:local .
+
+# 构建后端镜像
+docker build -f docker/Dockerfile --target backend -t bililive-tools-backend:local .
+
 ```
+
+#### 镜像架构
+
+项目构建的镜像支持以下平台：
+
+- `linux/amd64` (x86_64)
+- `linux/arm64` (aarch64)
+
+#### CI/CD 自动构建
+
+项目使用 GitHub Actions 自动构建和推送镜像：
+
+- **自动触发**: 推送 tag 时自动构建所有镜像
+- **手动触发**: 在 Actions 页面手动触发，构建带 `test` 标签的镜像
+- **镜像仓库**: Docker Hub (`renmu1234/bililive-tools*`)
+
+查看构建配置: `.github/workflows/docker.yml`
 
 ## 发布
 

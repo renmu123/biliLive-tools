@@ -1,9 +1,21 @@
-# Next
+# next
+
+- 录播姬引擎支持切割
+- 录播姬引擎不再默认显示日志文件
+
+# 1.10.0
+
+- 重构：录制器相关的参数修改为 `Downloader`
+- 修复：录播姬引擎分段时间不支持浮点数
+- segment 参数如果以"B","KB","MB","GB"结尾，会使用文件大小分段
+
+# 1.9.0
 
 - `recordHandle` 新增参数 `recorderType`
 - mesio 引擎默认禁用任何代理
 - 优化弹幕内存占用
 - 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
+- savePathRule 参数支持 `startTime` `recordStartTime` `liveStartTime` 参数
 
 # 1.8.0
 

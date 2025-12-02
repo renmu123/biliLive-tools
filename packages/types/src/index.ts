@@ -33,6 +33,46 @@ export * from "./preset.js";
 //   timeshift: number;
 // };
 
+export const recorderNoGlobalFollowFields: Array<
+  Exclude<
+    keyof Recorder,
+    | "providerId"
+    | "id"
+    | "channelId"
+    | "remarks"
+    | "extra"
+    | "disableAutoCheck"
+    | "sendToWebhook"
+    | "streamPriorities"
+    | "sourcePriorities"
+    | "noGlobalFollowFields"
+    | "line"
+    | "titleKeywords"
+    | "liveStartNotification"
+    | "onlyAudio"
+    | "handleTime"
+    | "weight"
+  >
+> = [
+  "quality",
+  "disableProvideCommentsWhenRecording",
+  "saveGiftDanma",
+  "saveSCDanma",
+  "segment",
+  "uid",
+  "saveCover",
+  "qualityRetry",
+  "formatName",
+  "useM3U8Proxy",
+  "codecName",
+  "source",
+  "videoFormat",
+  "recorderType",
+  "cookie",
+  "doubleScreen",
+  "useServerTimestamp",
+];
+
 // 通用预设
 export type CommonPreset<T> = {
   id: string;
@@ -50,8 +90,8 @@ export type CommonRoomConfig = {
   title: string;
   uploadPresetId?: string;
   danmu: boolean;
-  ffmpegPreset?: string;
-  danmuPreset?: string;
+  ffmpegPreset?: string | null;
+  danmuPreset?: string | null;
   autoPartMerge: boolean;
   partMergeMinute?: number;
   uid?: number;
@@ -94,7 +134,7 @@ export type CommonRoomConfig = {
   /** 分p标题模板 */
   partTitleTemplate: string;
   /** 同步器配置ID */
-  syncId?: string;
+  syncId?: string | null;
 
   // 上传非弹幕版选项
   uploadNoDanmu?: boolean;
@@ -208,6 +248,8 @@ export type ToolConfig = {
     override: boolean;
     /** 只下载音频 */
     onlyAudio: boolean;
+    /** 只下载弹幕 */
+    onlyDanmu: boolean;
   };
   /** 切片 */
   videoCut: {
@@ -307,8 +349,8 @@ type CodecName = "auto" | "avc" | "hevc" | "avc_only" | "hevc_only";
 interface BilibiliRecorderConfig {
   /** 账号 */
   uid?: number;
-  /** 画质 30000：杜比 20000：4K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
-  quality: 30000 | 20000 | 10000 | 400 | 250 | 150 | 80;
+  /** 画质 30000：杜比 20000：4K 25000：原画真彩 15000：2K 10000：原画 400：蓝光 250：超清 150：高清 80：流畅 */
+  quality: 30000 | 20000 | 25000 | 15000 | 10000 | 400 | 250 | 150 | 80;
   /** 使用批量查询接口  */
   useBatchQuery: boolean;
   /** 使用本地反向代理避免分段 */
@@ -330,6 +372,8 @@ interface HuyaRecorderConfig {
   /** 流格式 */
   formatName: FormatName;
   source: string;
+  /** 接口类型 */
+  api: "auto" | "web" | "wup" | "mp";
 }
 
 interface DouyinRecorderConfig {
@@ -362,7 +406,7 @@ export interface GlobalRecorder {
   debugMode: boolean;
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
-  /** 测试：录制错误立即重试 */
+  /** 下播延迟检查 */
   recordRetryImmediately: boolean;
   /** 画质 */
   quality: "lowest" | "low" | "medium" | "high" | "highest";
@@ -377,7 +421,7 @@ export interface GlobalRecorder {
   /** 弹幕是否使用服务端时间戳 */
   useServerTimestamp: boolean;
   /**分段时长，单位分钟 */
-  segment?: number;
+  segment?: string;
   /** 账号 */
   uid?: number;
   /** 保存封面 */
@@ -409,8 +453,8 @@ export interface Recorder {
   sourcePriorities: any[];
   extra: {
     createTimestamp?: number;
-    /** B站主播的uid */
-    recorderUid?: number;
+    /** B站主播的uid，抖音的sec_uid */
+    recorderUid?: number | string;
     /** 头像 */
     avatar?: string;
   };
@@ -439,7 +483,7 @@ export interface Recorder {
   /** 保存高能弹幕 */
   saveSCDanma?: boolean;
   /**分段时长，单位分钟 */
-  segment?: number;
+  segment?: string;
   /** 账号 */
   uid?: number | string;
   /** 保存封面 */
@@ -471,28 +515,10 @@ export interface Recorder {
   handleTime: [string | null, string | null];
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
+  /** API类型，仅抖音 */
+  api: string;
   // 不跟随全局配置字段
-  noGlobalFollowFields: Array<
-    Exclude<
-      keyof Recorder,
-      | "providerId"
-      | "id"
-      | "channelId"
-      | "remarks"
-      | "extra"
-      | "disableAutoCheck"
-      | "sendToWebhook"
-      | "streamPriorities"
-      | "sourcePriorities"
-      | "noGlobalFollowFields"
-      | "line"
-      | "titleKeywords"
-      | "liveStartNotification"
-      | "onlyAudio"
-      | "handleTime"
-      | "weight"
-    >
-  >;
+  noGlobalFollowFields: typeof recorderNoGlobalFollowFields;
 }
 
 export type SyncType = "baiduPCS" | "aliyunpan" | "alist" | "pan123" | "copy";
@@ -503,6 +529,7 @@ export type SyncConfig = {
   syncSource: SyncType;
   folderStructure: string;
   targetFiles: ("source" | "danmaku" | "xml" | "cover")[];
+  stringFilters?: "filterFourByteChars"[];
 };
 
 // 全局配置
@@ -519,6 +546,8 @@ export interface AppConfig {
   mesioPath: string;
   /** 录播姬引擎 可执行路径 */
   bililiveRecorderPath: string;
+  /** audiowaveform 可执行路径 */
+  audiowaveformPath: string;
   /** 缓存文件夹 */
   cacheFolder: string;
   /** 保存到回收站 */
@@ -535,6 +564,7 @@ export interface AppConfig {
   closeToTray: boolean;
   /** 主题 */
   theme: Theme;
+  menuBarVisible: boolean;
   port: number;
   host: string;
   passKey: string;
@@ -991,6 +1021,7 @@ export interface GlobalConfig {
   defaultFfprobePath: string;
   defaultMesioPath: string;
   defaultBililiveRecorderPath: string;
+  defaultAudioWaveformPath: string;
   defaultDanmakuFactoryPath: string;
   version: string;
   userDataPath: string;

@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/huya-recorder",
-  "version": "1.8.0",
+  "version": "1.10.0",
   "description": "bililive-tools huya recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
@@ -39,10 +39,10 @@
   "license": "LGPL",
   "dependencies": {
     "@bililive-tools/manager": "workspace:^",
+    "@tars/stream": "^2.0.3",
+    "axios": "catalog:",
     "huya-danma-listener": "workspace:*",
-    "mitt": "catalog:",
     "lodash-es": "catalog:",
-    "axios": "catalog:"
-  },
-  "devDependencies": {}
+    "mitt": "catalog:"
+  }
 }

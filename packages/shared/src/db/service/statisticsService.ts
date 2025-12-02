@@ -1,21 +1,22 @@
-import { statisticsModel } from "../index.js";
+import type StatisticsModel from "../model/statistics.js";
 
 type Key = "start_time" | "pan123_token" | "bili_last_upload_time";
 
 export default class StatisticsService {
-  static query(key: Key) {
-    return statisticsModel.query(key);
+  private statisticsModel: StatisticsModel;
+  constructor({ statisticsModel }: { statisticsModel: StatisticsModel }) {
+    this.statisticsModel = statisticsModel;
   }
-  static addOrUpdate(options: {
-    where: { stat_key: Key };
-    create: { stat_key: Key; value: string };
-  }) {
+  query(key: Key) {
+    return this.statisticsModel.findOne({ where: { stat_key: key } });
+  }
+  addOrUpdate(options: { where: { stat_key: Key }; create: { stat_key: Key; value: string } }) {
     const { where, create } = options;
-    const data = statisticsModel.query(where.stat_key);
+    const data = this.query(where.stat_key);
     if (data) {
-      statisticsModel.update(create);
+      this.statisticsModel.update(create);
     } else {
-      statisticsModel.add(create);
+      this.statisticsModel.add(create);
     }
   }
 }

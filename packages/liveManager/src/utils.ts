@@ -6,6 +6,8 @@ import { finished } from "node:stream/promises";
 import { DebouncedFunc, throttle, range } from "lodash-es";
 import filenamify from "filenamify";
 
+import type { Recorder } from "./recorder.js";
+
 export type AnyObject = Record<string, any>;
 export type UnknownObject = Record<string, unknown>;
 export type PickRequired<T, K extends keyof T> = T & Pick<Required<T>, K>;
@@ -151,8 +153,8 @@ export function formatDate(date: Date, format: string): string {
   return format.replace(/yyyy|MM|dd|HH|mm|ss/g, (matched) => map[matched]);
 }
 
-export function removeSystemReservedChars(filename: string) {
-  return filenamify(filename, { replacement: "_" });
+export function removeSystemReservedChars(str: string) {
+  return filenamify(str, { replacement: "_" });
 }
 
 export function isFfmpegStartSegment(line: string) {
@@ -402,6 +404,40 @@ function isBetweenTime(currentTime: Date, timeRange: [string, string]): boolean 
 export const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
+ * 判断是否应该使用严格画质模式
+ * @param qualityRetryLeft 剩余的画质重试次数
+ * @param qualityRetry 初始画质重试次数配置
+ * @param isManualStart 是否手动启动
+ * @returns 是否使用严格画质模式
+ */
+export function shouldUseStrictQuality(
+  qualityRetryLeft: number,
+  qualityRetry: number,
+  isManualStart?: boolean,
+): boolean {
+  // 手动启动时不使用严格模式
+  if (isManualStart) {
+    return false;
+  }
+  // 如果配置为0，不使用严格模式
+  if (qualityRetry === 0) {
+    return false;
+  }
+
+  // 如果还有重试次数，使用严格模式
+  if (qualityRetryLeft > 0) {
+    return true;
+  }
+
+  // 如果配置为负数（无限重试），使用严格模式
+  if (qualityRetry < 0) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * 检查标题是否包含黑名单关键词
  */
 function hasBlockedTitleKeywords(title: string, titleKeywords: string | undefined): boolean {
@@ -425,6 +461,129 @@ function shouldCheckTitleKeywords(
   );
 }
 
+/**
+ * 逆向格式化"xxxB", "xxxKB", "xxxMB", "xxxGB"为字节数，如果值为空返回0，如果为数字则直接返回数字，如果带单位则转换为字节数
+ * @param sizeStr 大小字符串
+ * @returns 字节数
+ */
+export function parseSizeToBytes(sizeStr: string): number | string {
+  if (!sizeStr) {
+    return 0;
+  }
+
+  // 字符类型的数字
+  if (!isNaN(Number(sizeStr))) {
+    return Number(sizeStr);
+  }
+
+  const sizePattern = /^(\d+(?:\.\d+)?)(B|KB|MB|GB)$/i;
+  const match = sizeStr.toUpperCase().trim().match(sizePattern);
+  if (match) {
+    const size = parseFloat(match[1]);
+    const unit = match[2];
+    switch (unit) {
+      case "B":
+        return String(size);
+      case "KB":
+        return String(size * 1024);
+      case "MB":
+        return String(size * 1024 * 1024);
+      case "GB":
+        return String(size * 1024 * 1024 * 1024);
+      default:
+        return 0;
+    }
+  } else {
+    return 0;
+  }
+}
+
+export const byte2MB = (bytes: number) => {
+  return bytes / (1024 * 1024);
+};
+
+/*
+ * 检查录制中的标题关键词
+ * @param recorder 录制器实例
+ * @param isManualStart 是否手动启动
+ * @param getInfo 获取直播间信息的函数
+ * @returns 如果标题包含关键词返回 true（需要停止），否则返回 false
+ */
+export async function checkTitleKeywordsWhileRecording(
+  recorder: Recorder,
+  isManualStart: boolean | undefined,
+  getInfo: (channelId: string) => Promise<{ title: string }>,
+): Promise<boolean> {
+  // 只有当设置了标题关键词时，并且不是手动启动的录制，才获取最新的直播间信息
+  if (!shouldCheckTitleKeywords(isManualStart, recorder.titleKeywords)) {
+    return false;
+  }
+
+  const now = Date.now();
+  // 每5分钟检查一次标题变化
+  const titleCheckInterval = 5 * 60 * 1000; // 5分钟
+
+  // 获取上次检查时间
+  const lastCheckTime = await recorder.cache.get<number>("lastTitleCheckTime");
+
+  // 如果距离上次检查时间不足指定间隔，则跳过检查
+  if (lastCheckTime && now - lastCheckTime < titleCheckInterval) {
+    return false;
+  }
+
+  // 更新检查时间
+  await recorder.cache.set("lastTitleCheckTime", now);
+
+  // 获取直播间信息
+  const liveInfo = await getInfo(recorder.channelId);
+  const { title } = liveInfo;
+
+  // 检查标题是否包含关键词
+  if (hasBlockedTitleKeywords(title, recorder.titleKeywords)) {
+    recorder.state = "title-blocked";
+    recorder.emit("DebugLog", {
+      type: "common",
+      text: `检测到标题包含关键词，停止录制：直播间标题 "${title}" 包含关键词 "${recorder.titleKeywords}"`,
+    });
+
+    // 停止录制
+    await recorder?.recordHandle?.stop("直播间标题包含关键词");
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * 检查开始录制前的标题关键词
+ * @param title 直播间标题
+ * @param recorder 录制器实例
+ * @param isManualStart 是否手动启动
+ * @returns 如果标题包含关键词返回 true（不应录制），否则返回 false
+ */
+export function checkTitleKeywordsBeforeRecord(
+  title: string,
+  recorder: Recorder,
+  isManualStart: boolean | undefined,
+): boolean {
+  // 检查标题是否包含关键词，如果包含则不自动录制
+  // 手动开始录制时不检查标题关键词
+  if (!shouldCheckTitleKeywords(isManualStart, recorder.titleKeywords)) {
+    return false;
+  }
+
+  if (hasBlockedTitleKeywords(title, recorder.titleKeywords)) {
+    recorder.state = "title-blocked";
+    recorder.emit("DebugLog", {
+      type: "common",
+      text: `跳过录制：直播间标题 "${title}" 包含关键词 "${recorder.titleKeywords}"`,
+    });
+    return true;
+  }
+
+  return false;
+}
+
 export default {
   replaceExtName,
   singleton,
@@ -446,5 +605,8 @@ export default {
   isBetweenTimeRange,
   hasBlockedTitleKeywords,
   shouldCheckTitleKeywords,
+  shouldUseStrictQuality,
   sleep,
+  checkTitleKeywordsWhileRecording,
+  checkTitleKeywordsBeforeRecord,
 };

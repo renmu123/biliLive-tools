@@ -1,23 +1,136 @@
 # Next
 
+## 功能
+
+- 切片：片段支持右键菜单
+- B站上传：内存优化，从默认约90m节约至2m
+- 录制：录播姬引擎支持主动分段 [#258](https://github.com/renmu123/biliLive-tools/pull/258)
+- 录制：虎牙支持接口参数，默认行为从星秀区使用`mp`接口修改为使用`wup`接口 [#265](https://github.com/renmu123/biliLive-tools/pull/265)
+
+## 优化
+
+- 录制：录播姬引擎不再默认显示日志
+- 录制：历史记录视频预览支持弹幕
+- 录制：虎牙弹幕链接初始化优化
+- 切片：视频时间栏不会再被隐藏
+- 切片：优化波形图片段颜色生成算法，未激活时使用不同颜色；激活切片栏边框色与波形图一致
+- 切片：支持`ctrl+n`新建片段
+- B站上传：上传速度显示支持
+- UI：文件选择组件支持二次拖拽
+- 弹幕：优化某些情况大文件下弹幕解析速度
+
+## Bug 修复
+
+- flv修复：修复页面中缺失选择文件夹图标的bug
+- flv修复：修复使用错误UI选择框的bug
+- 斗鱼下载：修复弹幕元数据错误
+- 切片：修复开启显示时间戳，但默认没有显示的bug'
+- 切片：修复添加视频后，关闭项目时部分状态未清理的bug
+- 切片：修复添加xml弹幕出现弹框取消后，部分状态错误的bug
+- B站上传：修复上传多个分p时，存在上传完成分p，取消其他分p后，任务不会结束的bug
+
+# 3.4.1(2025.11.28)
+
+## Bug修复
+
+- 录制：修复未开启弹幕仍会添加空弹幕文件的bug
+- 录制：修复批量添加的bug
+- web：修复 web 文件选择器的bug [#259](https://github.com/renmu123/biliLive-tools/issues/259)
+- 切片：修复 web 项目功能
+
+# 3.4.0(2025.11.27)
+
+## 切片
+
+切片功能大幅优化，支持显示显现实时间，以及支持了波形图显示，为波形图添加了大量交互，超大文件的优化花了我一整天时间，js性能是真弱。
+
+## 功能
+
+- 录制：支持批量添加 [#225](https://github.com/renmu123/biliLive-tools/pull/225)
+- 录制：抖音支持单独配置请求接口
+- 录制：分段参数支持按文件大小分段，ffmpeg引擎不支持无损分段 [#200](https://github.com/renmu123/biliLive-tools/pull/200)
+- 录制：优化“录制结束立即重试”逻辑，默认值设置为开 [#245](https://github.com/renmu123/biliLive-tools/pull/245)
+- 弹幕：支持自定义过滤函数 [#238](https://github.com/renmu123/biliLive-tools/pull/238)
+- 切片：支持在画面中展示录制时间 [#247](https://github.com/renmu123/biliLive-tools/pull/247)
+- 切片：web版本支持项目功能 [#248](https://github.com/renmu123/biliLive-tools/pull/248)
+- 切片：波形图支持 [#252](https://github.com/renmu123/biliLive-tools/pull/252)
+- UI：客户端支持隐藏菜单栏
+- 同步：alist支持过滤四字节字符串 (#239)
+- 视频下载：斗鱼支持只下载弹幕
+
+## 优化
+
+- B站：“自动更新帐号授权”选项默认开启
+- 录制：抖音默认接口改为“web”
+- 切片：UI优化
+
+## Bug修复
+
+- 录制：修复添加时配置初始化错误的bug
+- 录制：修复抖音某些接口时不会触发关键词检测的bug
+- 录制：修复虎牙、抖音“画质匹配重试次数”不会被重置的bug
+- 录制：修复“画质匹配重试次数”修改后不生效的bug
+- 录制：修复“服务端时间戳”不会跟随全局设置的bug
+- 录制：修复录播姬引擎分段时间不支持浮点数
+- 切片：修复关闭“高能进度条”时仍进行渲染的bug [#252](https://github.com/renmu123/biliLive-tools/pull/252)
+
+## 外部依赖
+
+- 录播姬引擎升级至 [3.2.1](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.2.1)，收到 onMetaData 时不再分段，有助于减轻抖音的分段
+- docker 下 BaiduPCS-GO 二进制文件版本更新至4.0.0
+- 内部依赖更新 [#236](https://github.com/renmu123/biliLive-tools/pull/236)
+
+# 3.3.2(2025.11.15)
+
+## 优化
+
+- 全局 ipv4 优先
+
+## Bug修复
+
+- B站上传：修复“缓存投稿失败视频”缓存不会失效的bug
+- 录制：修复抖音 `userWeb` 接口在未直播时报错的bug
+- 修复全栈镜像某些功能无法使用的bug [#241](https://github.com/renmu123/biliLive-tools/pull/241)
+
+# 3.3.1(2025.11.12)
+
+## 优化
+
+- 转码：m4s支持
+- 录制：B站支持 `15000` 原画
+
+## Bug修复
+
+- 升级 mesio 至0.3.3，修复禁用代理出错的bug
+- 修复单镜像复用之前端口号导致无法登录的bug
+- 修复前端镜像无api输入框的bug
+
+# 3.3.0(2025.11.09)
+
 文档站上线了：https://docs.irenmu.com/
 
 ## 功能
 
 - 支持mesio及录播姬的flv修复 [#219](https://github.com/renmu123/biliLive-tools/pull/219)
 - 录制：支持flv容器，如出现问题请尝试修复 [#205](https://github.com/renmu123/biliLive-tools/pull/205)
+- 部署：支持 `renmu1234/bililive-tools` 单镜像部署 [#230](https://github.com/renmu123/biliLive-tools/pull/230)
 
 ## 优化
 
-- UI：tab默认为展开模式
-- 录制：列表模式显示使用的录制器参数
+- 录制：列表模式显示使用的下载器参数
 - 录制：mesio录制引擎默认禁用任何代理参数
 - 录制：优化弹幕保存时的内存占用
-- 录制：编辑配置弹框的UI优化
 - 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
 - 录制：回退“优化录制页面的请求元数据接口数量”需求
+- 录制：B站支持 `25000` 原画真彩画质
+- 录制：文件命名规则支持 `startTime` `recordStartTime` `liveStartTime` 参数 [#235](https://github.com/renmu123/biliLive-tools/pull/235)
 - webhook：优化某些极端情况，尽量保证流程不被卡住
 - webhook：优化某些情况下的平台判断
+- 切片：优化ctrl+s的保存逻辑
+- UI：webhook预设增加了清除按钮，总有人看不到如何清除
+- UI：tab默认为展开模式
+- B站上传：添加更多线路 [#232](https://github.com/renmu123/biliLive-tools/pull/232)
+- UI：编辑录制配置弹框的优化
 
 ## Bug修复
 
@@ -26,6 +139,11 @@
 - 录制：修复抖音礼物弹幕缺失的问题 [#213](https://github.com/renmu123/biliLive-tools/issues/213)
 - 录制：修复斗鱼弹幕某些情况下服务端时间戳不存在时使用客户端时间
 - 录制：修复弹幕元数据中不存在 `room_title` 的bug
+
+## 其他
+
+- 录播姬引擎升级至 3.1.0，默认禁用代理，支持超时检测
+- 依赖更新 [#192](https://github.com/renmu123/biliLive-tools/pull/192)
 
 # 3.2.0(2025.10.26)
 

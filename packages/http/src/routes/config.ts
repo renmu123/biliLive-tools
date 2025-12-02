@@ -8,10 +8,7 @@ import { appConfig, container } from "../index.js";
 import multer from "../middleware/multer.js";
 import { _send } from "@biliLive-tools/shared/notify.js";
 import { getTempPath } from "@biliLive-tools/shared/utils/index.js";
-import db, { reconnectDB } from "@biliLive-tools/shared/db/index.js";
-
-import type { GlobalConfig } from "@biliLive-tools/types";
-import type { VideoPreset } from "@biliLive-tools/shared";
+import { reconnectDB, backupDB, closeDB } from "@biliLive-tools/shared/db/index.js";
 
 const router = new Router({
   prefix: "/config",
@@ -50,7 +47,7 @@ router.post("/resetBin", async (ctx) => {
     return;
   }
 
-  const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+  const globalConfig = container.resolve("globalConfig");
 
   if (type === "ffmpeg") {
     ctx.body = globalConfig.defaultFfmpegPath;
@@ -111,12 +108,12 @@ async function exportConfig(opts: {
 
 router.get("/export", async (ctx) => {
   try {
-    const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+    const globalConfig = container.resolve("globalConfig");
     const { configPath, videoPresetPath, danmuPresetPath, ffmpegPresetPath, userDataPath } =
       globalConfig;
     const coverPath = path.join(userDataPath, "cover");
 
-    const preset = container.resolve<VideoPreset>("videoPreset");
+    const preset = container.resolve("videoPreset");
     const videoPresets = await preset.list();
     const usedImages = videoPresets
       .map((item) => item.config.cover)
@@ -127,7 +124,7 @@ router.get("/export", async (ctx) => {
     const backupPath = path.join(tempDir, "biliLive-tools");
     await fs.ensureDir(backupPath);
     const dbPath = path.join(backupPath, "app.db");
-    await db.backup(dbPath);
+    await backupDB(dbPath);
 
     const buffer = await exportConfig({
       configPath,
@@ -154,7 +151,7 @@ router.post("/import", upload.single("file"), async (ctx) => {
     return;
   }
 
-  const globalConfig = container.resolve<GlobalConfig>("globalConfig");
+  const globalConfig = container.resolve("globalConfig");
   const { configPath, userDataPath } = globalConfig;
 
   await fs.ensureDir(path.join(userDataPath, "cover"));
@@ -187,6 +184,7 @@ router.post("/import", upload.single("file"), async (ctx) => {
             appConfig.danmuFactoryPath = data.danmuFactoryPath;
             appConfig.mesioPath = data.mesioPath;
             appConfig.bililiveRecorderPath = data.bililiveRecorderPath;
+            appConfig.audiowaveformPath = data.audiowaveformPath;
             appConfig.webhook.recoderFolder = data.webhook.recoderFolder;
             appConfig.recorder.savePath = data.recorder.savePath;
             appConfig.losslessCutPath = data.losslessCutPath;
@@ -194,14 +192,13 @@ router.post("/import", upload.single("file"), async (ctx) => {
           }
         } else if (filename === "app.db") {
           // 备份文件
-          db.close();
+          closeDB();
           if (await fs.pathExists(filePath)) {
             await fs.move(filePath, path.join(userDataPath, `${filename}.backup`), {
               overwrite: true,
             });
           }
           await fs.writeFile(filePath, content);
-          db.open();
           reconnectDB();
         } else if (filename.startsWith("cover/")) {
           await fs.writeFile(filePath, content);

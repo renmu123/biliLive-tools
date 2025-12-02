@@ -2,7 +2,7 @@ import { ChildProcess, spawn } from "node:child_process";
 import path from "node:path";
 import EventEmitter from "node:events";
 
-import { getFfmpegPath } from "./video.js";
+import { getBinPath } from "./video.js";
 import { FlvRepairTask, taskQueue } from "./task.js";
 import { parseSavePath } from "../utils/index.js";
 
@@ -36,10 +36,10 @@ export async function flvRepair(
 
   let command: FlvCommand;
   if (options.type === "bililive") {
-    const { bililiveRecorderPath } = getFfmpegPath();
+    const { bililiveRecorderPath } = getBinPath();
     command = new BililiveRecorderCommand({ binPath: bililiveRecorderPath });
   } else if (options.type === "mesio") {
-    const { mesioPath } = getFfmpegPath();
+    const { mesioPath } = getBinPath();
     command = new MesioCommand({ binPath: mesioPath });
   } else {
     throw new Error(`Unsupported repair type: ${options.type}`);

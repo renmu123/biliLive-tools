@@ -1,11 +1,12 @@
+import path from "node:path";
 import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
-import { StreamManager, getBililivePath } from "../index.js";
-import { IRecorder, BililiveRecorderOptions } from "./IRecorder.js";
+import { DEFAULT_USER_AGENT } from "./index.js";
+import { StreamManager, getMesioPath } from "../index.js";
+import { IDownloader, MesioRecorderOptions, Segment } from "./IDownloader.js";
 
-// Bililive command builder class similar to ffmpeg
-class BililiveRecorderCommand extends EventEmitter {
+class MesioCommand extends EventEmitter {
   private _input: string = "";
   private _output: string = "";
   private _inputOptions: string[] = [];
@@ -15,51 +16,51 @@ class BililiveRecorderCommand extends EventEmitter {
     super();
   }
 
-  input(source: string): BililiveRecorderCommand {
+  input(source: string): MesioCommand {
     this._input = source;
     return this;
   }
 
-  output(target: string): BililiveRecorderCommand {
+  output(target: string): MesioCommand {
     this._output = target;
     return this;
   }
 
-  inputOptions(options: string[]): BililiveRecorderCommand;
-  inputOptions(...options: string[]): BililiveRecorderCommand;
-  inputOptions(...options: any[]): BililiveRecorderCommand {
+  inputOptions(options: string[]): MesioCommand;
+  inputOptions(...options: string[]): MesioCommand;
+  inputOptions(...options: any[]): MesioCommand {
     const opts = Array.isArray(options[0]) ? options[0] : options;
     this._inputOptions.push(...opts);
     return this;
   }
 
   _getArguments(): string[] {
-    const args: string[] = ["downloader", "-p"];
-
-    // Add input source
-    if (this._input) {
-      args.push(this._input);
-    }
+    const args: string[] = [];
 
     // Add input options first
     args.push(...this._inputOptions);
 
     // Add output target
     if (this._output) {
-      // const { dir, name } = path.parse(this._output);
-      // args.push("-o", dir);
-      args.push(this._output);
+      const { dir, name } = path.parse(this._output);
+      args.push("-o", dir);
+      args.push("-n", name);
     }
     // args.push("-v");
+
+    // Add input source
+    if (this._input) {
+      args.push(this._input);
+    }
 
     return args;
   }
 
   run(): void {
     const args = this._getArguments();
-    const bililiveExecutable = getBililivePath();
+    const mesioExecutable = getMesioPath();
 
-    this.process = spawn(bililiveExecutable, args, {
+    this.process = spawn(mesioExecutable, args, {
       stdio: ["pipe", "pipe", "pipe"],
     });
 
@@ -87,7 +88,7 @@ class BililiveRecorderCommand extends EventEmitter {
       if (code === 0) {
         this.emit("end");
       } else {
-        this.emit("error", new Error(`bililive process exited with code ${code}`));
+        this.emit("error", new Error(`mesio process exited with code ${code}`));
       }
     });
   }
@@ -100,17 +101,17 @@ class BililiveRecorderCommand extends EventEmitter {
 }
 
 // Factory function similar to createFFMPEGBuilder
-export const createBililiveBuilder = (): BililiveRecorderCommand => {
-  return new BililiveRecorderCommand();
+export const createMesioBuilder = (): MesioCommand => {
+  return new MesioCommand();
 };
 
-export class BililiveRecorder extends EventEmitter implements IRecorder {
-  public type = "bililive" as const;
-  private command: BililiveRecorderCommand;
+export class mesioDownloader extends EventEmitter implements IDownloader {
+  public type = "mesio" as const;
+  private command: MesioCommand;
   private streamManager: StreamManager;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
-  readonly segment: number;
+  readonly segment: Segment;
   readonly inputOptions: string[] = [];
   readonly disableDanma: boolean = false;
   readonly url: string;
@@ -122,33 +123,47 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
     | undefined;
 
   constructor(
-    opts: BililiveRecorderOptions,
+    opts: MesioRecorderOptions,
     private onEnd: (...args: unknown[]) => void,
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
+    // 存在自动分段，永远为true
     const hasSegment = true;
+    this.hasSegment = hasSegment;
     this.disableDanma = opts.disableDanma ?? false;
     this.debugLevel = opts.debugLevel ?? "none";
 
-    let videoFormat: "flv" = "flv";
+    let videoFormat: "flv" | "ts" | "m4s" = "flv";
+    if (opts.url.includes(".m3u8")) {
+      videoFormat = "ts";
+    }
+    if (opts.formatName === "fmp4") {
+      videoFormat = "m4s";
+    } else if (opts.formatName === "ts") {
+      videoFormat = "ts";
+    } else if (opts.formatName === "flv") {
+      videoFormat = "flv";
+    }
 
     this.streamManager = new StreamManager(
       opts.getSavePath,
       hasSegment,
       this.disableDanma,
-      "bililive",
+      "mesio",
       videoFormat,
       {
         onUpdateLiveInfo: this.onUpdateLiveInfo,
       },
     );
-    this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
     this.inputOptions = [];
     this.url = opts.url;
     this.segment = opts.segment;
-    this.headers = opts.headers;
+    this.headers = {
+      "User-Agent": DEFAULT_USER_AGENT,
+      ...(opts.headers || {}),
+    };
 
     this.command = this.createCommand();
 
@@ -164,26 +179,26 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
   }
 
   createCommand() {
-    const inputOptions = [
-      ...this.inputOptions,
-      "-h",
-      "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
-    ];
+    const inputOptions = [...this.inputOptions, "--fix", "--no-proxy"];
     if (this.debugLevel === "verbose") {
-      inputOptions.push("-l", "Debug");
+      inputOptions.push("-v");
     }
 
     if (this.headers) {
       Object.entries(this.headers).forEach(([key, value]) => {
         if (!value) return;
-        inputOptions.push("-h", `${key}: ${value}`);
+        inputOptions.push("-H", `${key}: ${value}`);
       });
     }
-    if (this.hasSegment) {
-      inputOptions.push("-d", `${this.segment}`);
+    if (this.segment) {
+      if (typeof this.segment === "number") {
+        inputOptions.push("-d", `${this.segment * 60}s`);
+      } else if (typeof this.segment === "string") {
+        inputOptions.push("-m", this.segment);
+      }
     }
 
-    const command = createBililiveBuilder()
+    const command = createMesioBuilder()
       .input(this.url)
       .inputOptions(inputOptions)
       .output(this.streamManager.videoFilePath)
@@ -192,29 +207,9 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
       .on("stderr", async (stderrLine) => {
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
         await this.streamManager.handleVideoStarted(stderrLine);
-        const info = this.formatLine(stderrLine);
-        if (info) {
-          this.emit("progress", info);
-        }
       });
 
     return command;
-  }
-
-  formatLine(line: string) {
-    if (!line.includes("下载进度:")) {
-      return null;
-    }
-    let time: string | null = null;
-
-    const timeMatch = line.match(/录制时长:\s*([0-9:]+)\s/);
-    if (timeMatch) {
-      time = timeMatch[1];
-    }
-
-    return {
-      time,
-    };
   }
 
   public run() {
@@ -238,5 +233,13 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
 
   public getExtraDataController() {
     return this.streamManager?.getExtraDataController();
+  }
+
+  public get videoFilePath() {
+    return this.streamManager.videoFilePath;
+  }
+
+  public cut(): void {
+    throw new Error("Mesio downloader does not support cut operation.");
   }
 }

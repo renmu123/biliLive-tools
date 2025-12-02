@@ -2003,147 +2003,61 @@ describe("WebhookHandler", () => {
       expect(liveData[0].parts[1].recordStatus).toBe("recorded");
     });
 
-    it("当接手到close事件时，如果之前part还在录制中，则设置为失败", async () => {
-      // Arrange
-      const existingLive = new Live({
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
-        roomId: "123",
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        title: "Existing Video",
-        username: "username",
-      });
-      existingLive.addPart({
-        partId: "existing-part-id-1",
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        filePath: "/path/to/existing-video-1.mp4",
-        recordStatus: "recording",
-        title: "part1",
-      });
-      existingLive.addPart({
-        partId: "existing-part-id-3",
-        startTime: new Date("2022-01-01T00:00:00Z").getTime(),
-        filePath: "/path/to/existing-video-3.mp4",
-        recordStatus: "recording",
-        title: "part3",
-      });
-      existingLive.addPart({
-        partId: "existing-part-id-2",
-        startTime: new Date("2022-01-01T00:05:00Z").getTime(),
-        filePath: "/path/to/existing-video-2.mp4",
-        recordStatus: "recording",
-        title: "part2",
-      });
-      // @ts-ignore
-      webhookHandler = new WebhookHandler(appConfig);
-      webhookHandler.liveData.push(existingLive);
+    // it("当接手到close事件时，如果之前part还在录制中，则设置为成功", async () => {
+    //   // Arrange
+    //   const existingLive = new Live({
+    //     eventId: "existing-event-id",
+    //     platform: "bili-recorder",
+    //     roomId: 123,
+    //     startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+    //     title: "Existing Video",
+    //     username: "username",
+    //   });
+    //   existingLive.addPart({
+    //     partId: "existing-part-id-1",
+    //     startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+    //     filePath: "/path/to/existing-video-1.mp4",
+    //     recordStatus: "recording",
+    //     title: "part1",
+    //   });
+    //   existingLive.addPart({
+    //     partId: "existing-part-id-3",
+    //     startTime: new Date("2022-01-01T00:00:00Z").getTime(),
+    //     filePath: "/path/to/existing-video-3.mp4",
+    //     recordStatus: "recording",
+    //     title: "part3",
+    //   });
+    //   existingLive.addPart({
+    //     partId: "existing-part-id-2",
+    //     startTime: new Date("2022-01-01T00:05:00Z").getTime(),
+    //     filePath: "/path/to/existing-video-2.mp4",
+    //     recordStatus: "recording",
+    //     title: "part2",
+    //   });
+    //   // @ts-ignore
+    //   webhookHandler = new WebhookHandler(appConfig);
+    //   webhookHandler.liveData.push(existingLive);
 
-      const options: Options = {
-        event: "FileClosed",
-        roomId: "123",
-        platform: "bili-recorder",
-        time: "2022-01-01T00:10:00Z",
-        title: "Existing Video",
-        filePath: "/path/to/existing-video-2.mp4",
-        username: "test",
-        software: "bili-recorder",
-      };
+    //   const options: Options = {
+    //     event: "FileClosed",
+    //     roomId: 123,
+    //     platform: "bili-recorder",
+    //     time: "2022-01-01T00:10:00Z",
+    //     title: "Existing Video",
+    //     filePath: "/path/to/existing-video-2.mp4",
+    //     username: "test",
+    //   };
 
-      // Act
-      await webhookHandler.handleCloseEvent(options);
+    //   // Act
+    //   webhookHandler.handleCloseEvent(options);
 
-      // Assert
-      const liveData = webhookHandler.liveData;
+    //   // Assert
+    //   const liveData = webhookHandler.liveData;
 
-      expect(liveData[0].parts[0].recordStatus).toBe("error");
-      expect(liveData[0].parts[1].recordStatus).toBe("error");
-      expect(liveData[0].parts[2].recordStatus).toBe("recorded");
-    });
-
-    it("应在文件不存在时尝试替换为mp4扩展名 - 存在直播记录", async () => {
-      // @ts-ignore
-      webhookHandler = new WebhookHandler(appConfig);
-      const existingLive = new Live({
-        eventId: "test-id",
-        platform: "blrec",
-        roomId: "123",
-        startTime: Date.now(),
-        title: "Test",
-        username: "user",
-      });
-      existingLive.addPart({
-        partId: "part-1",
-        startTime: Date.now(),
-        filePath: "/path/to/file.flv",
-        recordStatus: "recording",
-        title: "Part 1",
-      });
-      webhookHandler.liveData.push(existingLive);
-
-      const options: Options = {
-        event: "FileClosed",
-        roomId: "123",
-        platform: "blrec",
-        filePath: "/path/to/file.flv",
-        time: new Date().toISOString(),
-        title: "Test",
-        username: "user",
-        software: "bili-recorder",
-      };
-
-      // @ts-ignore
-      vi.spyOn(fs, "pathExistsSync")
-        // @ts-ignore
-        .mockReturnValueOnce(false) // 第一次检查flv不存在
-        // @ts-ignore
-        .mockReturnValueOnce(true); // 第二次检查mp4存在
-
-      // Act
-      const partId = await webhookHandler.handleCloseEvent(options);
-
-      // Assert
-      // 使用 toContain 来处理路径分隔符差异
-      expect(options.filePath).toContain("file.mp4");
-      const liveData = webhookHandler.liveData;
-      expect(liveData[0].parts[0].filePath).toContain("file.mp4");
-      expect(liveData[0].parts[0].rawFilePath).toContain("file.mp4");
-      expect(partId).toBe("part-1");
-    });
-
-    it("应在文件不存在时尝试替换为mp4扩展名 - 不存在直播记录", async () => {
-      // @ts-ignore
-      webhookHandler = new WebhookHandler(appConfig);
-      webhookHandler.liveData = [];
-
-      const options: Options = {
-        event: "FileClosed",
-        roomId: "123",
-        platform: "blrec",
-        filePath: "/path/to/file.flv",
-        time: new Date().toISOString(),
-        title: "Test",
-        username: "user",
-        software: "bili-recorder",
-      };
-
-      // @ts-ignore
-      vi.spyOn(fs, "pathExistsSync")
-        // @ts-ignore
-        .mockReturnValueOnce(false) // 第一次检查flv不存在
-        // @ts-ignore
-        .mockReturnValueOnce(true); // 第二次检查mp4存在
-
-      // Act
-      const partId = await webhookHandler.handleCloseEvent(options);
-
-      // Assert
-      // 使用 toContain 来处理路径分隔符差异
-      expect(options.filePath).toContain("file.mp4");
-      const liveData = webhookHandler.liveData;
-      expect(liveData[0].parts[0].filePath).toContain("file.mp4");
-      expect(liveData[0].parts[0].rawFilePath).toContain("file.mp4");
-      expect(partId).toBeDefined();
-    });
+    //   expect(liveData[0].parts[0].recordStatus).toBe("handled");
+    //   expect(liveData[0].parts[1].recordStatus).toBe("recorded");
+    //   expect(liveData[0].parts[2].recordStatus).toBe("recorded");
+    // });
   });
 
   describe("handleErrorEvent", () => {

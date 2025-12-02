@@ -2,8 +2,7 @@ import fs from "node:fs";
 import Router from "@koa/router";
 import chokidar from "chokidar";
 import sse from "koa-sse-stream";
-import { createRecorderManager } from "@biliLive-tools/shared";
-import { handleListTask, taskQueue } from "@biliLive-tools/shared/task/task.js";
+import { handleListTask } from "@biliLive-tools/shared/task/task.js";
 
 import { config, container } from "../index.js";
 
@@ -60,7 +59,6 @@ router.get(
   },
 );
 
-type createRecorderManagerType = Awaited<ReturnType<typeof createRecorderManager>>;
 /**
  * 获取弹幕流
  */
@@ -73,7 +71,7 @@ router.get(
   async (ctx) => {
     const id = ctx.query.id;
 
-    const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+    const recorderManager = container.resolve("recorderManager");
     recorderManager.manager.on("Message", ({ recorder, message }) => {
       if (recorder.id === id) {
         // @ts-ignore
@@ -96,7 +94,7 @@ router.get(
       // @ts-ignore
       ctx.sse.send(JSON.stringify({ num }));
     };
-    const tasks = container.resolve<typeof taskQueue>("taskQueue");
+    const tasks = container.resolve("taskQueue");
     tasks.on("task-start", getRunningTask);
     tasks.on("task-update", getRunningTask);
     tasks.on("task-end", getRunningTask);

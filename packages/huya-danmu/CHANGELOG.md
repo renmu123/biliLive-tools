@@ -1,3 +1,16 @@
+# 0.1.4
+
+初始化支持其他参数，来跳过默认的初始化查询
+
+```
+{
+  roomid: string;
+  uid?: number;
+  subChannelId?: number;
+  channelId?: number;
+}
+```
+
 # 0.1.3
 
 - 优化重试函数

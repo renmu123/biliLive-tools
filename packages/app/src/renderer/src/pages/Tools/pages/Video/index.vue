@@ -137,6 +137,7 @@ const url = ref("");
 const downloadOptions = ref({
   hasDanmuOptions: false,
   hasAudioOnlyOptions: false,
+  hasDanmuOnlyOptions: false,
 });
 
 const selectCids = ref<(number | string)[]>([]);
@@ -162,21 +163,25 @@ const parse = async () => {
     downloadOptions.value = {
       hasDanmuOptions: true,
       hasAudioOnlyOptions: true,
+      hasDanmuOnlyOptions: false,
     };
   } else if (videoInfo.platform === "douyu") {
     downloadOptions.value = {
       hasDanmuOptions: true,
       hasAudioOnlyOptions: false,
+      hasDanmuOnlyOptions: true,
     };
   } else if (videoInfo.platform === "huya") {
     downloadOptions.value = {
       hasDanmuOptions: false,
       hasAudioOnlyOptions: false,
+      hasDanmuOnlyOptions: false,
     };
   } else {
     downloadOptions.value = {
       hasDanmuOptions: false,
       hasAudioOnlyOptions: false,
+      hasDanmuOnlyOptions: false,
     };
   }
 };
@@ -230,6 +235,7 @@ const confirm = async (options: {
   resoltion: string | "highest";
   override: boolean;
   onlyAudio: boolean;
+  onlyDanmu: boolean;
 }) => {
   const parts = data.value.parts.filter((item) => options.ids.includes(item.partId));
   const names = parts.map((item) => item.name);
@@ -243,12 +249,26 @@ const confirm = async (options: {
   if (new Set(names).size !== names.length) {
     notice.error({
       title: "文件名不能重复",
-      duration: 1000,
+      duration: 3000,
     });
     return;
   }
 
+  if (options.onlyDanmu) {
+    notice.info({
+      title: `即将开始下载弹幕，请不要关闭此页面`,
+      duration: 5000,
+    });
+  }
+
   for (const part of parts) {
+    if (options.onlyDanmu) {
+      notice.info({
+        title: `已开始下载弹幕：${part.name}`,
+        duration: 5000,
+      });
+    }
+
     await taskApi.downloadVideo({
       id: part.partId,
       platform: data.value.platform,
@@ -259,12 +279,23 @@ const confirm = async (options: {
       danmu: options.danmu,
       override: options.override,
       onlyAudio: options.onlyAudio,
+      onlyDanmu: options.onlyDanmu,
+    });
+
+    if (options.onlyDanmu) {
+      notice.info({
+        title: `已结束下载弹幕：${part.name}`,
+        duration: 5000,
+      });
+    }
+  }
+  if (!options.onlyDanmu) {
+    notice.success({
+      title: "已加入队列",
+      duration: 2000,
     });
   }
-  notice.success({
-    title: "已加入队列",
-    duration: 1000,
-  });
+
   visible.value = false;
 };
 

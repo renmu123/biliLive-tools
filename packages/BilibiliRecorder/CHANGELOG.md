@@ -1,7 +1,15 @@
-# Next
+# 1.10.0
+
+- 支持 `15000` 画质
+- 修复 `qualityRetry` 修改后不会生效的bug
+- 修复：录播姬引擎分段时间不支持浮点数
+- segment 参数如果以"B","KB","MB","GB"结尾，会使用文件大小分段
+
+# 1.9.0
 
 - `recordHandle` 新增参数 `recorderType`
-- 录制：优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
+- 优化ffmpeg默认参数，fmp4使用m4s后缀 [#224](https://github.com/renmu123/biliLive-tools/pull/224)
+- 支持 `25000` 原画真彩画质
 
 # 1.8.0
 

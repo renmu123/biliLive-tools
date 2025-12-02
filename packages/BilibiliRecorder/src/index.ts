@@ -6,7 +6,7 @@ import {
   genRecorderUUID,
   genRecordUUID,
   utils,
-  createBaseRecorder,
+  createDownloader,
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
@@ -29,11 +29,11 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     // @ts-ignore
     ...mitt(),
     ...opts,
+    cache: null as any,
 
     availableStreams: [],
     availableSources: [],
     state: "idle",
-    qualityMaxRetry: opts.qualityRetry ?? 0,
     qualityRetry: opts.qualityRetry ?? 0,
     useM3U8Proxy: opts.useM3U8Proxy ?? false,
     useServerTimestamp: opts.useServerTimestamp ?? true,
@@ -112,6 +112,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       avatar: "",
       cover: "",
       liveId: liveId,
+      liveStartTime: new Date(),
+      recordStartTime: new Date(),
     };
     this.state = "idle";
   } catch (error) {
@@ -142,21 +144,18 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   }
 
   const liveInfo = await getInfo(this.channelId);
-  const { owner, title, roomId } = liveInfo;
+  const { owner, title, roomId, liveStartTime, recordStartTime } = liveInfo;
   this.liveInfo = liveInfo;
+
+  const qualityRetryLeft = (await this.cache.get("qualityRetryLeft")) ?? this.qualityRetry;
+  const strictQuality = utils.shouldUseStrictQuality(
+    qualityRetryLeft,
+    this.qualityRetry,
+    isManualStart,
+  );
 
   let res: Awaited<ReturnType<typeof getStream>>;
   try {
-    let strictQuality = false;
-    if (this.qualityRetry > 0) {
-      strictQuality = true;
-    }
-    if (this.qualityMaxRetry < 0) {
-      strictQuality = true;
-    }
-    if (isManualStart) {
-      strictQuality = false;
-    }
     res = await getStream({
       channelId: this.channelId,
       quality: this.quality,
@@ -167,7 +166,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       onlyAudio: this.onlyAudio,
     });
   } catch (err) {
-    if (this.qualityRetry > 0) this.qualityRetry -= 1;
+    if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);
     this.state = "check-error";
     throw err;
   }
@@ -213,13 +212,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     );
   }
 
-  let isCutting = false;
   let isEnded = false;
   const onEnd = (...args: unknown[]) => {
-    if (isCutting) {
-      isCutting = false;
-      return;
-    }
     if (isEnded) return;
     isEnded = true;
     this.emit("DebugLog", {
@@ -230,7 +224,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle?.stop(reason);
   };
 
-  const recorder = createBaseRecorder(
+  const downloader = createDownloader(
     this.recorderType,
     {
       url: url,
@@ -238,7 +232,13 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       inputOptions: ffmpegInputOptions,
       segment: this.segment ?? 0,
       getSavePath: (opts) =>
-        getSavePath({ owner, title: opts.title ?? title, startTime: opts.startTime }),
+        getSavePath({
+          owner,
+          title: opts.title ?? title,
+          startTime: opts.startTime,
+          liveStartTime: liveStartTime,
+          recordStartTime,
+        }),
       formatName: streamOptions.format_name as "flv" | "ts" | "fmp4",
       disableDanma: this.disableProvideCommentsWhenRecording,
       videoFormat: this.videoFormat,
@@ -257,6 +257,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   const savePath = getSavePath({
     owner,
     title,
+    startTime: Date.now(),
+    liveStartTime: liveStartTime,
+    recordStartTime,
   });
 
   try {
@@ -275,24 +278,24 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     if (cover && this?.liveInfo) {
       this.liveInfo.cover = cover;
     }
-    const extraDataController = recorder.getExtraDataController();
+    const extraDataController = downloader.getExtraDataController();
     extraDataController?.setMeta({
       room_id: String(roomId),
       platform: provider?.id,
-      liveStartTimestamp: liveInfo.startTime?.getTime(),
+      liveStartTimestamp: liveInfo.liveStartTime?.getTime(),
       // recordStopTimestamp: Date.now(),
       title: title,
       user_name: owner,
     });
   };
-  recorder.on("videoFileCreated", handleVideoCreated);
-  recorder.on("videoFileCompleted", ({ filename }) => {
+  downloader.on("videoFileCreated", handleVideoCreated);
+  downloader.on("videoFileCompleted", ({ filename }) => {
     this.emit("videoFileCompleted", { filename });
   });
-  recorder.on("DebugLog", (data) => {
+  downloader.on("DebugLog", (data) => {
     this.emit("DebugLog", data);
   });
-  recorder.on("progress", (progress) => {
+  downloader.on("progress", (progress) => {
     if (this.recordHandle) {
       this.recordHandle.progress = progress;
     }
@@ -306,7 +309,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   });
   if (!this.disableProvideCommentsWhenRecording) {
     danmaClient.on("Message", (msg) => {
-      const extraDataController = recorder.getExtraDataController();
+      const extraDataController = downloader.getExtraDataController();
       if (!extraDataController) return;
 
       if (msg.type === "super_chat" && this.saveSCDanma === false) return;
@@ -336,16 +339,12 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     danmaClient.start();
   }
 
-  const ffmpegArgs = recorder.getArguments();
-  recorder.run();
+  const downloaderArgs = downloader.getArguments();
+  downloader.run();
 
   const cut = utils.singleton<RecordHandle["cut"]>(async () => {
     if (!this.recordHandle) return;
-    if (isCutting) return;
-    isCutting = true;
-    await recorder.stop();
-    recorder.createCommand();
-    recorder.run();
+    downloader.cut();
   });
 
   const stop = utils.singleton<RecordHandle["stop"]>(async (reason?: string) => {
@@ -356,11 +355,11 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
 
     try {
       danmaClient.stop();
-      await recorder.stop();
+      await downloader.stop();
     } catch (err) {
       this.emit("DebugLog", {
         type: "common",
-        text: `stop ffmpeg error: ${String(err)}`,
+        text: `stop record error: ${String(err)}`,
       });
     }
 
@@ -370,16 +369,16 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.recordHandle = undefined;
     this.liveInfo = undefined;
     this.state = "idle";
-    this.qualityRetry = this.qualityMaxRetry;
+    this.cache.set("qualityRetryLeft", this.qualityRetry);
   });
 
   this.recordHandle = {
     id: genRecordUUID(),
     stream: stream.name,
     source: stream.source,
-    recorderType: recorder.type,
+    recorderType: downloader.type,
     url: stream.url,
-    ffmpegArgs,
+    downloaderArgs,
     savePath: savePath,
     stop,
     cut,

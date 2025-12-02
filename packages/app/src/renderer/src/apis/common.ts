@@ -146,11 +146,25 @@ export async function appStartTime(): Promise<number> {
   return res.data;
 }
 
-export async function readAss(filepath: string): Promise<string> {
-  const res = await request.post("/common/readAss", {
+export async function readDanma(filepath: string): Promise<string> {
+  const res = await request.post("/common/readDanma", {
     filepath,
   });
   return res.data;
+}
+
+export async function readLLCProject(filepath: string): Promise<string> {
+  const res = await request.post("/common/readLLC", {
+    filepath,
+  });
+  return res.data;
+}
+
+export async function writeLLCProject(filepath: string, content: string): Promise<void> {
+  await request.post("/common/writeLLC", {
+    filepath,
+    content,
+  });
 }
 
 export async function genTimeData(filepath: string): Promise<number[]> {
@@ -182,11 +196,9 @@ export const parseDanmu = async (
 ): Promise<{
   danmu: DanmuItem[];
   sc: DanmuItem[];
-  hotProgress: {
-    time: number;
-    value: number;
-    color: string;
-  }[];
+  metadata: {
+    video_start_time?: number;
+  };
 }> => {
   const res = await request.post("/common/parseDanmu", {
     filepath,
@@ -262,7 +274,7 @@ const common = {
   parseMeta,
   getRunningTaskNum,
   fileJoin,
-  readAss,
+  readDanma,
   genTimeData,
   getVideo,
   applyVideoId,
@@ -272,6 +284,8 @@ const common = {
   whyUploadFailed,
   checkUpdate,
   getTempPath,
+  readLLCProject,
+  writeLLCProject,
 };
 
 export default common;

@@ -1,3 +1,4 @@
+import dns from "node:dns";
 import fs from "fs-extra";
 import { createContainer, asValue, asClass } from "awilix";
 import { default as checkDiskSpace } from "check-disk-space";
@@ -10,16 +11,30 @@ import { setFfmpegPath } from "./task/video.js";
 import logger, { initLogger, setLogLevel } from "./utils/log.js";
 import { migrateBiliUser, checkAccountLoop } from "./task/bili.js";
 import BiliCheckQueue from "./task/BiliCheckQueue.js";
-import { createInterval as checkSubLoop } from "./task/videoSub.js";
+import { createInterval as checkSubLoop } from "./video/videoSub.js";
 import { check as checkVirtualRecordLoop } from "./task/virtualRecord.js";
 import { createRecorderManager } from "./recorder/index.js";
 import { sendNotify } from "./notify.js";
 import { initDB } from "./db/index.js";
-import StatisticsService from "./db/service/statisticsService.js";
+import { statisticsService } from "./db/index.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
 
-const container = createContainer();
+dns.setDefaultResultOrder("ipv4first");
+
+export interface GlobalContainer {
+  appConfig: AppConfig;
+  logger: Console;
+  globalConfig: GlobalConfig;
+  taskQueue: TaskQueue;
+  commentQueue: BiliCheckQueue;
+  danmuPreset: DanmuPreset;
+  videoPreset: VideoPreset;
+  ffmpegPreset: FFmpegPreset;
+  recorderManager: Awaited<ReturnType<typeof createRecorderManager>>;
+}
+
+const container = createContainer<GlobalContainer>();
 
 const init = async (config: GlobalConfig) => {
   appConfig.init(config.configPath, {
@@ -28,6 +43,7 @@ const init = async (config: GlobalConfig) => {
     danmuFactoryPath: config.defaultDanmakuFactoryPath,
     mesioPath: config.defaultMesioPath,
     bililiveRecorderPath: config.defaultBililiveRecorderPath,
+    audiowaveformPath: config.defaultAudioWaveformPath,
   });
   const logLevel = appConfig.get("logLevel");
   initLogger(config.logPath, logLevel);
@@ -56,7 +72,7 @@ const init = async (config: GlobalConfig) => {
   await migrate();
   setFfmpegPath();
   try {
-    const commentQueue = container.resolve<BiliCheckQueue>("commentQueue");
+    const commentQueue = container.resolve("commentQueue");
     commentQueue.checkLoop();
     checkAccountLoop();
     checkDiskSpaceLoop();
@@ -66,7 +82,7 @@ const init = async (config: GlobalConfig) => {
     logger.error("初始化失败", error);
   }
   // 设置开始时间
-  StatisticsService.addOrUpdate({
+  statisticsService.addOrUpdate({
     where: { stat_key: "start_time" },
     create: { stat_key: "start_time", value: Date.now().toString() },
   });
@@ -111,4 +127,4 @@ const checkDiskSpaceLoop = async () => {
   );
 };
 
-export { init, AppConfig, appConfig, TaskQueue, migrate, createRecorderManager, container };
+export { init, AppConfig, appConfig, TaskQueue, migrate, container };

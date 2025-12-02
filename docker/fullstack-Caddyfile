@@ -1,0 +1,16 @@
+:3000 {
+    # API 请求代理到后端
+    handle_path /api* {
+        reverse_proxy localhost:18010
+    }
+    
+    # 静态文件服务
+    handle {
+        root * /app/public
+        file_server
+        encode gzip
+        
+        # 处理前端路由
+        try_files {path} /index.html
+    }
+}

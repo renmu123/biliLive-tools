@@ -77,6 +77,7 @@ interface Props {
   multi?: boolean;
   exts?: string[];
   extension?: string;
+  defaultPath?: string;
   close: () => void;
   confirm: (path: string[]) => void;
 }
@@ -88,6 +89,7 @@ const props = withDefaults(defineProps<Props>(), {
   multi: false,
   extension: "",
   exts: () => [],
+  defaultPath: "",
   close: () => {},
   confirm: () => {},
 });
@@ -212,6 +214,17 @@ const confirm = async () => {
 // );
 
 onMounted(() => {
+  // 默认路径可能是文件名，也有可能是绝对路径文件名
+  if (props.defaultPath) {
+    if (window.path.isAbsolute(props.defaultPath)) {
+      currentPath.value = window.path.dirname(props.defaultPath);
+    }
+    // 文件名
+    filename.value = window.path.basename(
+      props.defaultPath,
+      window.path.extname(props.defaultPath),
+    );
+  }
   fetchFiles();
 });
 

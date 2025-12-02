@@ -1,12 +1,13 @@
-import path from "node:path";
 import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
-import { StreamManager, getMesioPath } from "../index.js";
-import { IRecorder, MesioRecorderOptions } from "./IRecorder.js";
+import { DEFAULT_USER_AGENT } from "./index.js";
+import { StreamManager, getBililivePath } from "../index.js";
+import { byte2MB } from "../utils.js";
+import { IDownloader, BililiveRecorderOptions, Segment } from "./IDownloader.js";
 
-// Mesio command builder class similar to ffmpeg
-class MesioCommand extends EventEmitter {
+// Bililive command builder class similar to ffmpeg
+class BililiveRecorderCommand extends EventEmitter {
   private _input: string = "";
   private _output: string = "";
   private _inputOptions: string[] = [];
@@ -16,51 +17,51 @@ class MesioCommand extends EventEmitter {
     super();
   }
 
-  input(source: string): MesioCommand {
+  input(source: string): BililiveRecorderCommand {
     this._input = source;
     return this;
   }
 
-  output(target: string): MesioCommand {
+  output(target: string): BililiveRecorderCommand {
     this._output = target;
     return this;
   }
 
-  inputOptions(options: string[]): MesioCommand;
-  inputOptions(...options: string[]): MesioCommand;
-  inputOptions(...options: any[]): MesioCommand {
+  inputOptions(options: string[]): BililiveRecorderCommand;
+  inputOptions(...options: string[]): BililiveRecorderCommand;
+  inputOptions(...options: any[]): BililiveRecorderCommand {
     const opts = Array.isArray(options[0]) ? options[0] : options;
     this._inputOptions.push(...opts);
     return this;
   }
 
   _getArguments(): string[] {
-    const args: string[] = [];
-
-    // Add input options first
-    args.push(...this._inputOptions);
-
-    // Add output target
-    if (this._output) {
-      const { dir, name } = path.parse(this._output);
-      args.push("-o", dir);
-      args.push("-n", name);
-    }
-    // args.push("-v");
+    const args: string[] = ["downloader", "-p"];
 
     // Add input source
     if (this._input) {
       args.push(this._input);
     }
 
+    // Add input options first
+    args.push(...this._inputOptions);
+
+    // Add output target
+    if (this._output) {
+      // const { dir, name } = path.parse(this._output);
+      // args.push("-o", dir);
+      args.push(this._output);
+    }
+    // args.push("-v");
+
     return args;
   }
 
   run(): void {
     const args = this._getArguments();
-    const mesioExecutable = getMesioPath();
+    const bililiveExecutable = getBililivePath();
 
-    this.process = spawn(mesioExecutable, args, {
+    this.process = spawn(bililiveExecutable, args, {
       stdio: ["pipe", "pipe", "pipe"],
     });
 
@@ -83,35 +84,40 @@ class MesioCommand extends EventEmitter {
     this.process.on("error", (error) => {
       this.emit("error", error);
     });
-    [];
     this.process.on("close", (code) => {
       if (code === 0) {
         this.emit("end");
       } else {
-        this.emit("error", new Error(`mesio process exited with code ${code}`));
+        this.emit("error", new Error(`bililive process exited with code ${code}`));
       }
     });
   }
 
-  kill(signal: NodeJS.Signals = "SIGTERM"): void {
+  kill(): void {
     if (this.process) {
-      this.process.kill(signal);
+      this.process.stdin?.write("q\n");
+      // this.process.kill("SIGTERM");
+    }
+  }
+  cut(): void {
+    if (this.process) {
+      this.process.stdin?.write("s\n");
     }
   }
 }
 
 // Factory function similar to createFFMPEGBuilder
-export const createMesioBuilder = (): MesioCommand => {
-  return new MesioCommand();
+export const createBililiveBuilder = (): BililiveRecorderCommand => {
+  return new BililiveRecorderCommand();
 };
 
-export class MesioRecorder extends EventEmitter implements IRecorder {
-  public type = "mesio" as const;
-  private command: MesioCommand;
+export class BililiveDownloader extends EventEmitter implements IDownloader {
+  public type = "bililive" as const;
+  private command: BililiveRecorderCommand;
   private streamManager: StreamManager;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
-  readonly segment: number;
+  readonly segment: Segment;
   readonly inputOptions: string[] = [];
   readonly disableDanma: boolean = false;
   readonly url: string;
@@ -123,43 +129,36 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
     | undefined;
 
   constructor(
-    opts: MesioRecorderOptions,
+    opts: BililiveRecorderOptions,
     private onEnd: (...args: unknown[]) => void,
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
+    // 存在自动分段，永远为true
     const hasSegment = true;
+    this.hasSegment = hasSegment;
     this.disableDanma = opts.disableDanma ?? false;
     this.debugLevel = opts.debugLevel ?? "none";
-
-    let videoFormat: "flv" | "ts" | "m4s" = "flv";
-    if (opts.url.includes(".m3u8")) {
-      videoFormat = "ts";
-    }
-    if (opts.formatName === "fmp4") {
-      videoFormat = "m4s";
-    } else if (opts.formatName === "ts") {
-      videoFormat = "ts";
-    } else if (opts.formatName === "flv") {
-      videoFormat = "flv";
-    }
+    let videoFormat: "flv" = "flv";
 
     this.streamManager = new StreamManager(
       opts.getSavePath,
       hasSegment,
       this.disableDanma,
-      "mesio",
+      "bililive",
       videoFormat,
       {
         onUpdateLiveInfo: this.onUpdateLiveInfo,
       },
     );
-    this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
     this.inputOptions = [];
     this.url = opts.url;
     this.segment = opts.segment;
-    this.headers = opts.headers;
+    this.headers = {
+      "User-Agent": DEFAULT_USER_AGENT,
+      ...(opts.headers || {}),
+    };
 
     this.command = this.createCommand();
 
@@ -175,28 +174,26 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
   }
 
   createCommand() {
-    const inputOptions = [
-      ...this.inputOptions,
-      "--fix",
-      "-H",
-      "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
-      "--no-proxy",
-    ];
+    const inputOptions = [...this.inputOptions, "--disable-log-file", "true"];
     if (this.debugLevel === "verbose") {
-      inputOptions.push("-v");
+      inputOptions.push("-l", "Debug");
     }
 
     if (this.headers) {
       Object.entries(this.headers).forEach(([key, value]) => {
         if (!value) return;
-        inputOptions.push("-H", `${key}: ${value}`);
+        inputOptions.push("-h", `${key}: ${value}`);
       });
     }
-    if (this.hasSegment) {
-      inputOptions.push("-d", `${this.segment * 60}s`);
+    if (this.segment) {
+      if (typeof this.segment === "number") {
+        inputOptions.push("-d", `${this.segment}`);
+      } else if (typeof this.segment === "string") {
+        inputOptions.push("-m", byte2MB(Number(this.segment)).toFixed(2));
+      }
     }
 
-    const command = createMesioBuilder()
+    const command = createBililiveBuilder()
       .input(this.url)
       .inputOptions(inputOptions)
       .output(this.streamManager.videoFilePath)
@@ -205,9 +202,29 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
       .on("stderr", async (stderrLine) => {
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
         await this.streamManager.handleVideoStarted(stderrLine);
+        const info = this.formatLine(stderrLine);
+        if (info) {
+          this.emit("progress", info);
+        }
       });
 
     return command;
+  }
+
+  formatLine(line: string) {
+    if (!line.includes("下载进度:")) {
+      return null;
+    }
+    let time: string | null = null;
+
+    const timeMatch = line.match(/录制时长:\s*([0-9:]+)\s/);
+    if (timeMatch) {
+      time = timeMatch[1];
+    }
+
+    return {
+      time,
+    };
   }
 
   public run() {
@@ -221,7 +238,7 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
   public async stop() {
     try {
       // 直接发送SIGINT信号，会导致数据丢失
-      this.command.kill("SIGINT");
+      this.command.kill();
 
       await this.streamManager.handleVideoCompleted();
     } catch (err) {
@@ -231,5 +248,13 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
 
   public getExtraDataController() {
     return this.streamManager?.getExtraDataController();
+  }
+
+  public get videoFilePath() {
+    return this.streamManager.videoFilePath;
+  }
+
+  public cut() {
+    this.command.cut();
   }
 }

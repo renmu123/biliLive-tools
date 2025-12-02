@@ -1,12 +1,13 @@
 import path from "node:path";
 
 import Router from "@koa/router";
-import douyu from "@biliLive-tools/shared/task/douyu.js";
-import huya from "@biliLive-tools/shared/task/huya.js";
+import douyu from "@biliLive-tools/shared/video/douyu.js";
+import huya from "@biliLive-tools/shared/video/huya.js";
+import kuaishou from "@biliLive-tools/shared/video/kuaishou.js";
 import biliApi from "@biliLive-tools/shared/task/bili.js";
-import kuaishou from "@biliLive-tools/shared/task/kuaishou.js";
 import log from "@biliLive-tools/shared/utils/log.js";
-import videoSub from "@biliLive-tools/shared/task/videoSub.js";
+import videoSub from "@biliLive-tools/shared/video/videoSub.js";
+import { replaceExtName } from "@biliLive-tools/shared/utils/index.js";
 
 import type { VideoAPI } from "../types/video.js";
 
@@ -124,8 +125,8 @@ async function parseVideo({
             user_name: item?.ROOM?.author_name,
             room_id: item?.DATA?.content.room_id,
             room_title: item?.DATA?.content.title,
-            live_start_time: new Date(liveStartTime).toISOString(),
-            video_start_time: new Date(videoStartTime).toISOString(),
+            live_start_time: new Date(liveStartTime * 1000).toISOString(),
+            video_start_time: new Date(videoStartTime * 1000).toISOString(),
           },
         };
       }),
@@ -253,6 +254,17 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
   if (options.platform === "douyu") {
     if (!options?.extra?.decodeData) {
       throw new Error("decodeData is required for douyu download");
+    }
+    if (options.onlyDanmu) {
+      const danmuOutput = replaceExtName(filepath, ".xml");
+      await douyu.downloadDanmu(options.id, danmuOutput, options.override, {
+        platform: "douyu",
+        user_name: options?.extra?.user_name,
+        room_id: options?.extra?.room_id,
+        room_title: options?.extra?.room_title,
+        live_start_time: options?.extra?.live_start_time,
+        video_start_time: options?.extra?.video_start_time,
+      });
     }
     await douyu.download(filepath, options?.extra?.decodeData, {
       danmu: options.danmu,

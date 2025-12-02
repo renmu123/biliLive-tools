@@ -325,7 +325,7 @@
     </n-form>
 
     <div style="text-align: right">
-      <n-button v-if="options.id !== 'default'" ghost quaternary type="error" @click="deletePreset"
+      <n-button v-if="options.id !== 'default'" text type="error" @click="deletePreset"
         >删除</n-button
       >
       <n-button type="primary" style="margin-left: 10px" @click="rename">重命名</n-button>

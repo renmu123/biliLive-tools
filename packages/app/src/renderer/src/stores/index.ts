@@ -1,4 +1,5 @@
 import { cloneDeep, isArray } from "lodash-es";
+import { v4 as uuid } from "uuid";
 import { defineStore, storeToRefs } from "pinia";
 import { DanmuPreset, BiliupPreset, AppConfig } from "@biliLive-tools/types";
 import { getUserList } from "@renderer/apis/user";
@@ -275,6 +276,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         douyuResolution: "highest",
         override: false,
         onlyAudio: false,
+        onlyDanmu: false,
       },
       translate: {
         presetId: undefined,
@@ -359,31 +361,53 @@ function useHistoryStore<T>({ limit }: { limit: number }) {
 
 export default useHistoryStore;
 
-interface Segment {
+export interface Segment {
+  id: string;
   start: number;
-  end?: number;
+  end: number;
   name: string;
   checked: boolean;
   tags?: any;
+  index: number;
 }
-type SegmentWithRequiredEnd = Required<Pick<Segment, "end">> & Omit<Segment, "end">;
+
+type SegmentEventType = "add" | "remove" | "update" | "clear";
+type SegmentEventCallback = (data: {
+  type: SegmentEventType;
+  segment?: Segment;
+  id?: string;
+}) => void;
 
 export const useSegmentStore = defineStore("segment", () => {
   const duration = ref(0);
 
   const rawCuts = ref<Segment[]>([]);
-  const cuts = readonly(
-    computed<SegmentWithRequiredEnd[]>(() => {
-      return rawCuts.value.map((item: Segment) => {
-        return {
-          ...item,
-          end: item.end || duration.value,
-        };
-      });
-    }),
-  );
-  // const history = ref<Segment[][]>([]);
   const historyStore = useHistoryStore<Segment[]>({ limit: 30 });
+
+  const index = ref(0);
+
+  // 事件监听器
+  const eventListeners: SegmentEventCallback[] = [];
+
+  // 添加事件监听器
+  const on = (callback: SegmentEventCallback) => {
+    eventListeners.push(callback);
+  };
+
+  // 移除事件监听器
+  const off = (callback: SegmentEventCallback) => {
+    const idx = eventListeners.indexOf(callback);
+    if (idx > -1) {
+      eventListeners.splice(idx, 1);
+    }
+  };
+
+  // 触发事件
+  const emit = (type: SegmentEventType, data?: { segment?: Segment; id?: string }) => {
+    eventListeners.forEach((callback) => {
+      callback({ type, ...data });
+    });
+  };
 
   const recordHistory = () => {
     historyStore.add(rawCuts.value);
@@ -401,33 +425,60 @@ export const useSegmentStore = defineStore("segment", () => {
   };
 
   const selectedCuts = computed(() => {
-    return cuts.value.filter((item) => item.checked);
+    return rawCuts.value.filter((item) => item.checked);
   });
 
-  const init = (segments: Segment[]) => {
-    rawCuts.value = segments;
-    recordHistory();
+  const init = (segments: Omit<Segment, "id">[]) => {
+    rawCuts.value = [];
+    index.value = 0; // 初始化 index
+    segments.forEach((segment) => {
+      addSegment(segment);
+    });
   };
-  const addSegment = (cut: Segment) => {
-    rawCuts.value.push(cut);
+  const addSegment = (cut: Omit<Segment, "id">) => {
+    const data = {
+      id: uuid(),
+      ...cut,
+      index: index.value, // 新增 index 字段
+    };
+    rawCuts.value.push(data);
+    index.value++;
     recordHistory();
+    emit("add", { segment: data });
   };
-  const removeSegment = (index: number) => {
-    rawCuts.value.splice(index, 1);
-    recordHistory();
+  const removeSegment = (id: string) => {
+    const idx = rawCuts.value.findIndex((item) => item.id === id);
+    if (idx !== -1) {
+      rawCuts.value.splice(idx, 1);
+      recordHistory();
+      emit("remove", { id });
+    }
   };
-  const updateSegment = <K extends keyof Segment>(index: number, key: K, value: Segment[K]) => {
-    const cut = rawCuts.value[index];
-    cut[key] = value;
-    recordHistory();
+  const updateSegment = (id: string, options: Partial<Omit<Segment, "id">>) => {
+    const cut = rawCuts.value.find((item) => item.id === id);
+    if (cut) {
+      Object.assign(cut, options);
+      recordHistory();
+      emit("update", { segment: cut });
+    }
   };
-  const toggleSegment = (index: number) => {
-    rawCuts.value[index].checked = !rawCuts.value[index].checked;
+  const toggleSegment = (id: string) => {
+    const cut = rawCuts.value.find((item) => item.id === id);
+    if (cut) {
+      cut.checked = !cut.checked;
+      emit("update", { segment: cut });
+      recordHistory();
+    }
+  };
+  const clear = () => {
+    rawCuts.value = [];
+    index.value = 0; // 清空时初始化 index
     recordHistory();
+    emit("clear");
   };
 
   return {
-    cuts,
+    cuts: rawCuts,
     selectedCuts,
     duration,
     rawCuts,
@@ -439,5 +490,9 @@ export const useSegmentStore = defineStore("segment", () => {
     undo,
     redo,
     init,
+    clear,
+    on,
+    off,
+    index,
   };
 });
