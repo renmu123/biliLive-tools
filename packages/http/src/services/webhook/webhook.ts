@@ -52,7 +52,7 @@ export class WebhookHandler {
   // 存储已处理的文件名，避免重复处理
   private processedFiles: Set<string> = new Set();
   private fileLockManager: FileLockManager = new FileLockManager();
-  private eventBufferManager: EventBufferManager = new EventBufferManager();
+  eventBufferManager: EventBufferManager = new EventBufferManager();
 
   /**
    * 获取 liveData 数组（向后兼容）
@@ -98,14 +98,14 @@ export class WebhookHandler {
       return;
     }
 
-    // 如果启用了事件缓冲，则将事件添加到缓冲区
+    // 则将事件添加到缓冲区
     if (options.event === EventType.OpenEvent || options.event === EventType.CloseEvent) {
-      log.info(`[EventBuffer] 添加事件到缓冲区: ${options.event}`);
       this.eventBufferManager.addEvent(options);
       return;
     } else if (options.event === EventType.ErrorEvent) {
       // 直接处理错误事件
       this.handleLiveData(options, config);
+      return;
     } else {
       log.warn(`[WebhookHandler] 未知事件类型: ${options.event}`);
       throw new Error(`未知事件类型: ${options.event}`);
@@ -129,22 +129,19 @@ export class WebhookHandler {
     }
 
     // 先处理 open 事件
-    this.handleLiveData(pair.open, config);
+    this.handleOpenEvent(pair.open, config.partMergeMinute);
+    // 处理 close 事件
+    const partId = this.handleCloseEvent(pair.close);
 
-    // 再处理 close 事件
-    await this.processEvent(pair.close, config);
+    await this.processEvent(partId, pair.close, config);
   }
 
   /**
    * 处理单个事件（从原 handle 方法提取）
    */
-  private async processEvent(options: Options, config: RoomConfig) {
-    // 1. 处理直播数据
-    const partId = this.handleLiveData(options, config);
-
+  private async processEvent(partId: string, options: Options, config: RoomConfig) {
     // 2. 如果是开始或错误事件,直接返回
     if (this.shouldSkipProcessing(options.event)) return;
-    if (!partId) return;
 
     // 3. 获取当前直播和分段
     const context = this.liveManager.findBy({ partId });
@@ -215,7 +212,6 @@ export class WebhookHandler {
         },
       );
 
-      log.debug("convert2Mp4 output", file);
       options.filePath = file;
       context.part.filePath = file;
       context.part.rawFilePath = file;
@@ -608,7 +604,7 @@ export class WebhookHandler {
    * @param partMergeMinute 断播续传时间戳
    * @returns 当前part的partId
    */
-  handleCloseEvent = (options: Options): string | null => {
+  handleCloseEvent = (options: Options): string => {
     const timestamp = new Date(options.time).getTime();
     const data = this.liveManager.findBy({ filePath: options.filePath });
 
@@ -643,7 +639,7 @@ export class WebhookHandler {
       //   }
       // }
 
-      return currentPart?.partId ?? null;
+      return currentPart.partId;
     } else {
       const live = new Live({
         platform: options.platform,
@@ -653,7 +649,6 @@ export class WebhookHandler {
         username: options.username,
         startTime: timestamp,
       });
-      // TODO: 通过视频或者弹幕元数据获取开始时间
       const part = live.addPart({
         filePath: file,
         endTime: timestamp,
@@ -687,7 +682,7 @@ export class WebhookHandler {
   /**
    * 处理FileOpening和FileClosed事件
    */
-  handleLiveData(options: Options, config: RoomConfig): string | null {
+  private handleLiveData(options: Options, config: RoomConfig): string | null {
     if (options.event === EventType.OpenEvent) {
       this.handleOpenEvent(options, config.partMergeMinute);
       return null;
@@ -697,7 +692,6 @@ export class WebhookHandler {
     } else if (options.event === EventType.ErrorEvent) {
       this.handleErrorEvent(options);
       log.error(`接收到错误指令，${options.filePath} 置为错误状态`);
-
       return null;
     } else {
       throw new Error(`不支持的事件：${options.event}`);

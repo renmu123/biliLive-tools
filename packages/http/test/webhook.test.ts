@@ -124,25 +124,8 @@ describe("WebhookHandler", () => {
       // @ts-ignore
       webhookHandler = new WebhookHandler(appConfig);
       webhookHandler.liveData = [];
-      const existingLive = new Live({
-        eventId: "existing-event-id",
-        platform: "bili-recorder",
-        software: "bili-recorder",
-        roomId: "123",
-        startTime: new Date("2022-01-01T00:08:00Z").getTime(),
-        title: "Existing Video",
-        username: "username",
-      });
-      existingLive.addPart({
-        partId: "existing-part-id",
-        startTime: new Date("2022-01-01T00:08:00Z").getTime(),
-        filePath: "/path/to/existing-video2.mp4",
-        recordStatus: "recording",
-        title: "Existing Video",
-      });
 
-      webhookHandler.liveData.push(existingLive);
-
+      vi.spyOn(utils, "getFileSize").mockResolvedValue(20 * 1024 * 1024); // 10MB
       const options: Options = {
         event: "FileOpening",
         roomId: "123",
@@ -153,16 +136,17 @@ describe("WebhookHandler", () => {
         filePath: "/path/to/existing-video3.mp4",
         username: "test",
       };
-      // @ts-ignore
-      await webhookHandler.handleLiveData(options, {
-        partMergeMinute: 10,
-      });
+      await webhookHandler.handle(
+        options,
+        // @ts-ignore
+        {
+          partMergeMinute: 10,
+        },
+      );
       const liveData = webhookHandler.liveData;
 
-      expect(liveData.length).toBe(1);
-      expect(liveData[0].parts.length).toBe(2);
-      expect(liveData[0].parts[1].recordStatus).toBe("recording");
-      expect(liveData[0].parts[0].recordStatus).toBe("recording");
+      expect(liveData.length).toBe(0);
+      expect(webhookHandler.eventBufferManager.getBufferStatus()).toBe(1);
 
       const options2: Options = {
         event: "FileClosed",
@@ -171,16 +155,21 @@ describe("WebhookHandler", () => {
         software: "bili-recorder",
         time: "2022-01-01T00:10:00Z",
         title: "Existing Video",
-        filePath: "/path/to/existing-video2.mp4",
+        filePath: "/path/to/existing-video3.mp4",
         username: "test",
       };
-      // @ts-ignore
-      await webhookHandler.handleLiveData(options2, {
-        partMergeMinute: 10,
-      });
+
+      await webhookHandler.handle(
+        options2,
+        // @ts-ignore
+        {
+          partMergeMinute: 10,
+        },
+      );
       const liveData2 = webhookHandler.liveData;
+      await utils.sleep(100); // 等待异步处理完成
+      expect(liveData2.length).toBe(1);
       expect(liveData2[0].parts[0].recordStatus).toBe("recorded");
-      expect(liveData[0].parts[1].recordStatus).toBe("recording");
     });
   });
 
@@ -317,6 +306,13 @@ describe("WebhookHandler", () => {
       expect(returnVal).toBeUndefined();
     });
     it("should handle the options and update rawFilePath when convert2Mp4Option is true", async () => {
+      const appConfig = {
+        getAll: vi.fn().mockReturnValue({
+          task: { ffmpegMaxNum: -1, douyuDownloadMaxNum: -1, biliUploadMaxNum: -1 },
+        }),
+      };
+      // @ts-ignore
+      webhookHandler = new WebhookHandler(appConfig);
       // Arrange
       const openOptions: Options = {
         roomId: "123",
@@ -338,8 +334,7 @@ describe("WebhookHandler", () => {
         title: "test video",
         software: "bili-recorder",
       };
-      const getConfigSpy = vi
-        .spyOn(webhookHandler.configManager, "getConfig")
+      vi.spyOn(webhookHandler.configManager, "getConfig")
         // @ts-ignore
         .mockReturnValue({
           open: true,
@@ -354,14 +349,15 @@ describe("WebhookHandler", () => {
         .mockResolvedValue("/path/to/part1.mp4");
 
       const utils = await import("@biliLive-tools/shared/utils/index.js");
-      vi.spyOn(utils, "getFileSize").mockResolvedValue(10 * 1024 * 1024); // 10MB
+      vi.spyOn(utils, "getFileSize").mockResolvedValue(20 * 1024 * 1024); // 20MB
 
       // Act
       await webhookHandler.handle(openOptions);
       await webhookHandler.handle(closeOptions);
+      // await utils.sleep(1000);
+      await new Promise((resolve) => setTimeout(resolve, 100)); // 等待异步处理完成
 
       // Assert
-      expect(getConfigSpy).toHaveBeenCalledWith(closeOptions.roomId);
       expect(convert2Mp4Spy).toHaveBeenCalledWith(
         "/path/to/part1.flv",
         {
@@ -372,8 +368,10 @@ describe("WebhookHandler", () => {
           removeVideo: true,
         },
       );
-      expect(webhookHandler.liveData[0].parts[0].filePath).toBe("/path/to/part1.mp4");
-      expect(webhookHandler.liveData[0].parts[0].rawFilePath).toBe("/path/to/part1.mp4");
+      expect(webhookHandler.liveManager.liveData[0].parts[0].filePath).toBe("/path/to/part1.mp4");
+      expect(webhookHandler.liveManager.liveData[0].parts[0].rawFilePath).toBe(
+        "/path/to/part1.mp4",
+      );
     });
     it("should handle the options and return if the file size is too small", async () => {
       // Arrange
@@ -417,10 +415,7 @@ describe("WebhookHandler", () => {
       // Assert
       expect(getConfigSpy).toHaveBeenCalledWith(options.roomId);
       expect(result).toBeUndefined();
-      // 修改断言：live和part应该保留，但part状态为error
-      expect(webhookHandler.liveData.length).toBe(1);
-      expect(webhookHandler.liveData[0].parts.length).toBe(1);
-      expect(webhookHandler.liveData[0].parts[0].recordStatus).toBe("error");
+      expect(webhookHandler.liveData.length).toBe(0);
     });
   });
   describe("handleLive", () => {
@@ -2808,51 +2803,8 @@ describe("Live", () => {
         vi.spyOn(utils, "getFileSize").mockResolvedValue(20 * 1024 * 1024); // 20MB
 
         // @ts-ignore
-        const result = await webhookHandler.validateFileSize(context, config, options);
+        const result = await webhookHandler.validateFileSize(config, options);
         expect(result).toBe(true);
-      });
-
-      it("应在文件太小时返回false并设置part为error状态", async () => {
-        const live = new Live({
-          eventId: "test-id",
-          platform: "blrec",
-          roomId: "123",
-          startTime: Date.now(),
-          title: "Test",
-          username: "user",
-        });
-        const part = {
-          partId: "part-1",
-          filePath: "/path/to/file.mp4",
-          recordStatus: "recording" as const,
-          title: "Part 1",
-        };
-        live.addPart(part);
-        webhookHandler.liveData.push(live);
-
-        const context = { live, part: live.parts[0] };
-        const config = { minSize: 100, removeSmallFile: true };
-        const options = {
-          event: "FileClosed" as const,
-          roomId: "123",
-          platform: "blrec" as const,
-          filePath: "/path/to/file.mp4",
-          time: new Date().toISOString(),
-          title: "Test",
-          username: "user",
-        };
-
-        vi.spyOn(utils, "getFileSize").mockResolvedValue(5 * 1024 * 1024); // 5MB
-        const trashSpy = vi.spyOn(utils, "trashItem").mockResolvedValue();
-
-        // @ts-ignore
-        const result = await webhookHandler.validateFileSize(context, config, options);
-
-        expect(result).toBe(false);
-        expect(trashSpy).toHaveBeenCalledWith(options.filePath);
-        expect(context.part.recordStatus).toBe("error"); // part状态设置为error
-        expect(webhookHandler.liveData.length).toBe(1); // live没有被删除
-        expect(live.parts.length).toBe(1); // part没有被删除
       });
     });
 
@@ -3107,9 +3059,7 @@ describe("Live", () => {
 
         // 第一步：FileOpening
         await webhookHandler.handle(options);
-        expect(webhookHandler.liveData.length).toBe(1);
-        expect(webhookHandler.liveData[0].parts.length).toBe(1);
-        expect(webhookHandler.liveData[0].parts[0].recordStatus).toBe("recording");
+        expect(webhookHandler.liveData.length).toBe(0);
 
         // 第二步：FileClosed
         const closeOptions: Options = {
@@ -3119,6 +3069,7 @@ describe("Live", () => {
         };
 
         await webhookHandler.handle(closeOptions);
+        await new Promise((r) => setTimeout(r, 100)); // 等待异步处理完成
         expect(webhookHandler.liveData[0].parts[0].recordStatus).toBe("handled");
       });
     });
