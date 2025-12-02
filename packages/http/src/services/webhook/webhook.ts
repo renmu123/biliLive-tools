@@ -140,25 +140,25 @@ export class WebhookHandler {
    * 处理单个事件（从原 handle 方法提取）
    */
   private async processEvent(partId: string, options: Options, config: RoomConfig) {
-    // 2. 如果是开始或错误事件,直接返回
+    // 1. 如果是开始或错误事件,直接返回
     if (this.shouldSkipProcessing(options.event)) return;
 
-    // 3. 获取当前直播和分段
+    // 2. 获取当前直播和分段
     const context = this.liveManager.findBy({ partId });
     if (!context) return;
 
     log.debug(context.live);
 
-    // 5. 转封装处理
+    // 3. 转封装处理
     await this.processConversion(context, options, config);
 
-    // 6. 设置预处理状态
+    // 4. 设置预处理状态
     context.part.recordStatus = "prehandled";
 
-    // 7. 处理弹幕和视频压制
+    // 5. 处理弹幕和视频压制
     const processingResult = await this.processMediaFiles(context, options, config);
 
-    // 8. 处理文件同步和锁定
+    // 6. 处理文件同步和锁定
     await this.handlePostProcessing(context, options, config, processingResult);
   }
 
@@ -231,9 +231,9 @@ export class WebhookHandler {
     const xmlFilePath = PathResolver.getDanmuPath(options.filePath, options.danmuPath);
 
     if (config.danmu) {
-      return await this.processDanmuVideo(context, options, config, xmlFilePath);
+      return this.processDanmuVideo(context, options, config, xmlFilePath);
     } else {
-      return await this.processRegularVideo(context, options, config, xmlFilePath);
+      return this.processRegularVideo(context, options, config, xmlFilePath);
     }
   }
 
@@ -247,6 +247,7 @@ export class WebhookHandler {
     xmlFilePath: string,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
     try {
+      // 留着吧，虽然好像没什么用
       await sleep(5000);
 
       // 验证弹幕文件

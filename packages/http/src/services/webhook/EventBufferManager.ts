@@ -59,10 +59,10 @@ export class EventBufferManager extends EventEmitter<{
     // 存储事件
     if (type === "open") {
       eventData.open = event;
-      log.debug(`[EventBuffer] 存储 FileOpening: ${path.basename(filePath)}`);
+      log.debug(`[EventBuffer] 存储 FileOpening: ${filePath}`);
     } else {
       eventData.close = event;
-      log.debug(`[EventBuffer] 存储 FileClosed: ${path.basename(filePath)}`);
+      log.debug(`[EventBuffer] 存储 FileClosed: ${filePath}`);
     }
 
     // 更新到 Map 中
@@ -96,10 +96,6 @@ export class EventBufferManager extends EventEmitter<{
           open: eventData.open,
           close: eventData.close,
         };
-
-        log.info(
-          `[EventBuffer] 匹配成功: ${path.basename(eventData.open.filePath)} <-> ${path.basename(eventData.close.filePath)}`,
-        );
 
         this.emit("process", pair);
         // 标记为待删除
