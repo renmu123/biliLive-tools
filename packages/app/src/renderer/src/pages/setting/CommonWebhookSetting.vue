@@ -54,7 +54,7 @@
   </n-form-item>
 
   <!-- flv修复 -->
-  <n-form-item>
+  <!-- <n-form-item>
     <template #label>
       <Tip
         text="测试：FLV修复"
@@ -65,7 +65,7 @@
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.flvRepair" class="global-checkbox"
       >全局</n-checkbox
     >
-  </n-form-item>
+  </n-form-item> -->
   <n-form-item>
     <template #label>
       <Tip
