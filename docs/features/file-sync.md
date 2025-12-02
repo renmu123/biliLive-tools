@@ -155,6 +155,44 @@ Alist的上传流程是先需要将文件上传至 Alist 服务器，随后由 A
 
 请参考[123 网盘开放平台文档](https://www.123pan.com/developer)了解如何获取令牌。
 
+## 目录结构占位符
+
+在配置同步器的目录结构时，支持以下占位符：
+
+- `{{software}}` - 软件平台（如：blrec、ddtv、oneliverec、custom）
+- `{{platform}}` - 平台名称（如：bilibili、douyu、huya）
+- `{{user}}` - 主播名
+- `{{now}}` - 当前日期（格式：yyyy.MM.dd）
+- `{{yyyy}}` - 年份（4位数字）
+- `{{MM}}` - 月份（2位数字，补零）
+- `{{dd}}` - 日期（2位数字，补零）
+
+### 示例
+
+**基础示例**：
+
+```
+/录播/{{platform}}/{{user}}/{{yyyy}}-{{MM}}
+```
+
+结果：`/录播/bilibili/某主播/2024-01`
+
+**包含软件信息**：
+
+```
+/录播/{{software}}/{{platform}}/{{user}}/{{now}}
+```
+
+结果：`/录播/blrec/bilibili/某主播/2024.01.15`
+
+**详细分类**：
+
+```
+/录播/{{yyyy}}/{{MM}}/{{platform}}-{{user}}
+```
+
+结果：`/录播/2024/01/bilibili-某主播`
+
 ## 同步器管理
 
 同步器用于在webhook的不同配置中实现复用

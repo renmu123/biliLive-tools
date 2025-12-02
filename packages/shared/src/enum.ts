@@ -66,6 +66,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     hotProgressFillColor: "#333333",
     convert2Mp4: false,
     removeSourceAferrConvert2Mp4: true,
+    flvRepair: false,
     syncId: undefined,
     uploadHandleTime: ["00:00:00", "23:59:59"],
     limitUploadTime: false,
