@@ -432,6 +432,17 @@ export const amfPresets = [
   },
 ];
 
+export const videoToolBoxPresets = [
+  {
+    value: "1",
+    label: "realtime",
+  },
+  {
+    value: "0",
+    label: "not realtime",
+  },
+];
+
 export const amfAv1Presets = [
   ...amfPresets,
   {
@@ -507,6 +518,17 @@ export const videoEncoders = [
     ],
     presets: amfPresets,
   },
+  {
+    value: "h264_videotoolbox",
+    label: "H.264(Apple)",
+    birateControls: [
+      {
+        value: "VBR",
+        label: "平均比特率",
+      },
+    ],
+    presets: videoToolBoxPresets,
+  },
 
   {
     value: "libx265",
@@ -564,10 +586,21 @@ export const videoEncoders = [
     ],
     presets: amfPresets,
   },
+  {
+    value: "hevc_videotoolbox",
+    label: "H.265(Apple)",
+    birateControls: [
+      {
+        value: "VBR",
+        label: "平均比特率",
+      },
+    ],
+    presets: videoToolBoxPresets,
+  },
 
   {
     value: "libsvtav1",
-    label: "AV1 (libsvtav1)",
+    label: "AV1(libsvtav1)",
     birateControls: [
       {
         value: "CRF",
@@ -639,7 +672,7 @@ export const videoEncoders = [
   },
   {
     value: "av1_qsv",
-    label: "AV1 (Intel QSV)",
+    label: "AV1(Intel QSV)",
     birateControls: [
       {
         value: "ICQ",
@@ -654,7 +687,7 @@ export const videoEncoders = [
   },
   {
     value: "av1_nvenc",
-    label: "AV1 (NVIDIA NVEnc)",
+    label: "AV1(NVIDIA NVEnc)",
     birateControls: [
       {
         value: "CQ",
@@ -669,7 +702,7 @@ export const videoEncoders = [
   },
   {
     value: "av1_amf",
-    label: "AV1 (AMD AMF)",
+    label: "AV1(AMD AMF)",
     birateControls: [
       {
         value: "VBR",
@@ -677,6 +710,17 @@ export const videoEncoders = [
       },
     ],
     presets: amfAv1Presets,
+  },
+  {
+    value: "av1_videotoolbox",
+    label: "AV1(Apple)",
+    birateControls: [
+      {
+        value: "VBR",
+        label: "平均比特率",
+      },
+    ],
+    presets: videoToolBoxPresets,
   },
 ];
 
