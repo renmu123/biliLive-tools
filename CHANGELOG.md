@@ -4,6 +4,7 @@
 
 - 切片：片段支持右键菜单
 - B站上传：内存优化，从默认约90m节约至2m
+- 录制：录播姬引擎支持主动分段 [#258](https://github.com/renmu123/biliLive-tools/pull/258)
 
 ## 优化
 
