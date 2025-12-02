@@ -23,6 +23,8 @@ import { ConfigManager } from "./ConfigManager.js";
 import { PathResolver } from "./PathResolver.js";
 import { Live, Part, LiveManager } from "./Live.js";
 import { buildRoomLink } from "./utils.js";
+import { EventBufferManager } from "./EventBufferManager.js";
+import type { MatchedEventPair } from "./EventBufferManager.js";
 
 import type {
   BiliupConfig,
@@ -50,6 +52,7 @@ export class WebhookHandler {
   // 存储已处理的文件名，避免重复处理
   private processedFiles: Set<string> = new Set();
   private fileLockManager: FileLockManager = new FileLockManager();
+  private eventBufferManager: EventBufferManager = new EventBufferManager();
 
   /**
    * 获取 liveData 数组（向后兼容）
@@ -80,6 +83,11 @@ export class WebhookHandler {
 
     // 定期清理过期的锁
     setInterval(() => this.fileLockManager.cleanup(), 60 * 60 * 1000); // 每小时清理一次
+
+    // 监听事件缓冲管理器的匹配事件
+    this.eventBufferManager.on("process", (pair: MatchedEventPair) => {
+      this.handleMatchedPair(pair);
+    });
   }
 
   async handle(options: Options) {
@@ -90,6 +98,47 @@ export class WebhookHandler {
       return;
     }
 
+    // 如果启用了事件缓冲，则将事件添加到缓冲区
+    if (options.event === EventType.OpenEvent || options.event === EventType.CloseEvent) {
+      log.info(`[EventBuffer] 添加事件到缓冲区: ${options.event}`);
+      this.eventBufferManager.addEvent(options);
+      return;
+    } else if (options.event === EventType.ErrorEvent) {
+      // 直接处理错误事件
+      this.handleLiveData(options, config);
+    } else {
+      log.warn(`[WebhookHandler] 未知事件类型: ${options.event}`);
+      throw new Error(`未知事件类型: ${options.event}`);
+    }
+  }
+
+  /**
+   * 处理匹配的事件对
+   */
+  private async handleMatchedPair(pair: MatchedEventPair) {
+    log.info(`[EventBuffer] 处理匹配的事件对: ${pair.open.filePath}`);
+
+    const config = this.configManager.getConfig(pair.open.roomId);
+    if (!config.open) {
+      log.info(`${pair.open.roomId} is not open`);
+      return;
+    }
+    // 检查文件大小
+    if (!(await this.validateFileSize(config, pair.close))) {
+      return;
+    }
+
+    // 先处理 open 事件
+    this.handleLiveData(pair.open, config);
+
+    // 再处理 close 事件
+    await this.processEvent(pair.close, config);
+  }
+
+  /**
+   * 处理单个事件（从原 handle 方法提取）
+   */
+  private async processEvent(options: Options, config: RoomConfig) {
     // 1. 处理直播数据
     const partId = this.handleLiveData(options, config);
 
@@ -100,11 +149,6 @@ export class WebhookHandler {
     // 3. 获取当前直播和分段
     const context = this.liveManager.findBy({ partId });
     if (!context) return;
-
-    // 4. 检查文件大小
-    if (!(await this.validateFileSize(context, config, options))) {
-      return;
-    }
 
     log.debug(context.live);
 
@@ -131,11 +175,7 @@ export class WebhookHandler {
   /**
    * 验证文件大小
    */
-  private async validateFileSize(
-    context: { live: Live; part: Part },
-    config: RoomConfig,
-    options: Options,
-  ): Promise<boolean> {
+  private async validateFileSize(config: RoomConfig, options: Options): Promise<boolean> {
     const fileSize = await getFileSize(options.filePath);
     const fileSizeMB = fileSize / 1024 / 1024;
 
@@ -150,9 +190,6 @@ export class WebhookHandler {
       await trashItem(options.filePath);
     }
 
-    // 将part状态设置为error，而不是删除
-    context.part.recordStatus = "error";
-    log.warn(`set part ${context.part.partId} status to error due to small file size`);
     return false;
   }
 
@@ -525,15 +562,15 @@ export class WebhookHandler {
       timestamp,
     );
 
-    if (partMergeMinute !== -1 && currentLive === undefined) {
-      // 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间，如果出现这种情况，尝试特殊处理
-      // 如果live的任何一个part有endTime，说明不会出现特殊情况，不需要特殊处理
-      // 然后去遍历liveData，找到roomId、software、title都相同的直播，认为是同一场直播
-      currentLive = this.liveManager.findLastLiveByRoomAndPlatform(
-        options.roomId,
-        options.software,
-      );
-    }
+    // if (partMergeMinute !== -1 && currentLive === undefined) {
+    //   // 下一个"文件打开"请求时间可能早于上一个"文件结束"请求时间，如果出现这种情况，尝试特殊处理
+    //   // 如果live的任何一个part有endTime，说明不会出现特殊情况，不需要特殊处理
+    //   // 然后去遍历liveData，找到roomId、software、title都相同的直播，认为是同一场直播
+    //   currentLive = this.liveManager.findLastLiveByRoomAndPlatform(
+    //     options.roomId,
+    //     options.software,
+    //   );
+    // }
 
     if (currentLive) {
       currentLive.addPart({
@@ -596,15 +633,15 @@ export class WebhookHandler {
       // 更新文件路径
       currentLive.updatePartValue(currentPart.partId, "filePath", file);
       currentLive.updatePartValue(currentPart.partId, "rawFilePath", file);
-      const partIndex = currentLive.parts.findIndex((part) => part.partId === currentPart.partId);
-      for (let i = 0; i < partIndex; i++) {
-        const part = currentLive.parts[i];
-        if (part.recordStatus === "recording") {
-          // TODO: 之后要移除这个处理
-          log.error("下一个录制完成时，上一个录制仍在录制中，设置为错误", part);
-          currentLive.updatePartValue(part.partId, "recordStatus", "error");
-        }
-      }
+      // const partIndex = currentLive.parts.findIndex((part) => part.partId === currentPart.partId);
+      // for (let i = 0; i < partIndex; i++) {
+      //   const part = currentLive.parts[i];
+      //   if (part.recordStatus === "recording") {
+      //     // TODO: 之后要移除这个处理
+      //     log.error("下一个录制完成时，上一个录制仍在录制中，设置为错误", part);
+      //     currentLive.updatePartValue(part.partId, "recordStatus", "error");
+      //   }
+      // }
 
       return currentPart?.partId ?? null;
     } else {
@@ -716,11 +753,11 @@ export class WebhookHandler {
   // FLV修复
   async flvRepair(
     videoFile: string,
-    options: {
-      removeVideo: boolean;
-      suffix?: string;
-      limitTime?: [string, string];
-    },
+    // options: {
+    //   removeVideo: boolean;
+    //   suffix?: string;
+    //   limitTime?: [string, string];
+    // },
   ): Promise<string> {
     const task = await flvRepair(videoFile, videoFile, {
       saveRadio: 1,
