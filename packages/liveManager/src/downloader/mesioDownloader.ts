@@ -2,10 +2,10 @@ import path from "node:path";
 import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
+import { DEFAULT_USER_AGENT } from "./index.js";
 import { StreamManager, getMesioPath } from "../index.js";
 import { IDownloader, MesioRecorderOptions, Segment } from "./IDownloader.js";
 
-// Mesio command builder class similar to ffmpeg
 class MesioCommand extends EventEmitter {
   private _input: string = "";
   private _output: string = "";
@@ -160,7 +160,10 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
     this.inputOptions = [];
     this.url = opts.url;
     this.segment = opts.segment;
-    this.headers = opts.headers;
+    this.headers = {
+      "User-Agent": DEFAULT_USER_AGENT,
+      ...(opts.headers || {}),
+    };
 
     this.command = this.createCommand();
 
@@ -176,13 +179,7 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
   }
 
   createCommand() {
-    const inputOptions = [
-      ...this.inputOptions,
-      "--fix",
-      "-H",
-      "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
-      "--no-proxy",
-    ];
+    const inputOptions = [...this.inputOptions, "--fix", "--no-proxy"];
     if (this.debugLevel === "verbose") {
       inputOptions.push("-v");
     }

@@ -364,6 +364,8 @@ interface HuyaRecorderConfig {
   /** 流格式 */
   formatName: FormatName;
   source: string;
+  /** 接口类型 */
+  api: "auto" | "web" | "wup" | "mp";
 }
 
 interface DouyinRecorderConfig {

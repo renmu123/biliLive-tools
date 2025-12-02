@@ -296,6 +296,12 @@
             </template>
             <n-select v-model:value="config.recorder.huya.source" :options="huyaSourceOptions" />
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip :text="textInfo.huya.api.text" :tip="textInfo.huya.api.tip"></Tip>
+            </template>
+            <n-select v-model:value="config.recorder.huya.api" :options="huyaApiTypeOptions" />
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="douyin" tab="抖音" display-directive="show:lazy">
           <n-form-item>
@@ -365,6 +371,7 @@ import {
   recorderTypeOptions,
   recorderDebugLevelOptions,
   douyinApiTypeOptions,
+  huyaApiTypeOptions,
 } from "@renderer/enums/recorder";
 
 import type { AppConfig } from "@biliLive-tools/types";
