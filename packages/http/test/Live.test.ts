@@ -849,8 +849,8 @@ describe("Live", () => {
     });
   });
 
-  describe("getLastPartEndTime", () => {
-    it("应该返回最后一个分段的结束时间", () => {
+  describe("getMaxEndTime", () => {
+    it("应该返回结束时间最大的分段的结束时间", () => {
       const live = new Live({
         eventId: "event-123",
         platform: "blrec",
@@ -876,7 +876,7 @@ describe("Live", () => {
         endTime: 1640995800000,
       });
 
-      expect(live.getLastPartEndTime()).toBe(1640995800000);
+      expect(live.getMaxEndTime()).toBe(1640995800000);
     });
 
     it("如果没有分段，应该返回 undefined", () => {
@@ -889,7 +889,7 @@ describe("Live", () => {
         startTime: 1640995200000,
       });
 
-      expect(live.getLastPartEndTime()).toBeUndefined();
+      expect(live.getMaxEndTime()).toBeUndefined();
     });
 
     it("如果分段没有结束时间，应该返回 undefined", () => {
@@ -909,7 +909,7 @@ describe("Live", () => {
         title: "Part 1",
       });
 
-      expect(live.getLastPartEndTime()).toBeUndefined();
+      expect(live.getMaxEndTime()).toBeUndefined();
     });
   });
 

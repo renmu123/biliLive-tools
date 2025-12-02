@@ -370,9 +370,9 @@ export class Live {
   }
 
   /**
-   * 获取最后一个分段的结束时间
+   * 获取分段的最大结束时间
    */
-  getLastPartEndTime(): number | undefined {
+  getMaxEndTime(): number | undefined {
     if (this.parts.length === 0) return undefined;
 
     const endTimes = this.parts
@@ -619,7 +619,7 @@ export class LiveManager {
       if (live.roomId !== roomId || live.software !== software) {
         return false;
       }
-      const endTime = live.getLastPartEndTime();
+      const endTime = live.getMaxEndTime();
       if (endTime === undefined) {
         return false;
       }
