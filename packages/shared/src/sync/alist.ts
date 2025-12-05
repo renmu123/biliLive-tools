@@ -141,7 +141,6 @@ export class Alist extends TypedEmitter<AlistEvents> {
 
       if (response.data.code === 200 && response.data.data.token) {
         this.token = response.data.data.token;
-        this.logger.debug("AList登录成功");
         return true;
       } else {
         this.logger.error(`AList登录失败: ${response.data.message}`);
@@ -173,15 +172,13 @@ export class Alist extends TypedEmitter<AlistEvents> {
         await this.login();
       }
 
-      const fullPath = path.join(this.remotePath, remotePath).replace(/\\/g, "/");
-      this.logger.debug(`创建AList目录: ${fullPath}`);
-
+      this.logger.debug(`创建AList目录: ${remotePath}`);
       const response = await this.client.post("/api/fs/mkdir", {
-        path: fullPath,
+        path: remotePath,
       });
 
       if (response.data.code === 200) {
-        this.logger.debug(`AList目录创建成功: ${fullPath}`);
+        this.logger.debug(`AList目录创建成功: ${remotePath}`);
         return true;
       } else {
         this.logger.error(`AList目录创建失败: ${response.data.message}`);
@@ -195,6 +192,38 @@ export class Alist extends TypedEmitter<AlistEvents> {
       }
       this.logger.error(`创建AList目录出错: ${error}`);
       this.emit("error", error);
+      return false;
+    }
+  }
+
+  /**
+   * 检查路径是否存在
+   * @param remotePath 远程路径
+   * @returns Promise<boolean> 路径是否存在
+   */
+  public async checkPathExists(remotePath: string): Promise<boolean> {
+    try {
+      if (!this.isLoggedIn()) {
+        await this.login();
+      }
+
+      this.logger.debug(`检查路径是否存在: ${remotePath}`);
+      const response = await this.client.post("/api/fs/get", {
+        path: remotePath,
+      });
+
+      if (response.data.code === 200) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error: any) {
+      if (error?.message.includes("object not found")) {
+        this.logger.debug(`路径不存在: ${remotePath}`);
+        return false;
+      }
+      // 路径不存在时API会返回错误
+      this.logger.debug(`路径不存在或检查出错: ${remotePath}, Error: ${error.message}`);
       return false;
     }
   }
@@ -282,7 +311,14 @@ export class Alist extends TypedEmitter<AlistEvents> {
       remotePath = replaceFourByteUnicode(remotePath, "_");
     }
 
-    await this.mkdir(remoteDir);
+    // 先检查目录是否已存在
+    const exists = await this.checkPathExists(targetDir);
+    if (exists) {
+      this.logger.debug(`目录已存在，无需创建: ${targetDir}`);
+    } else {
+      await this.mkdir(targetDir);
+    }
+
     this.logger.debug(`开始上传: ${localFilePath} 到 ${remotePath}`);
 
     // 获取文件信息以获取大小
