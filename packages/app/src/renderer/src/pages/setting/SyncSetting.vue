@@ -701,6 +701,7 @@ const saveSyncConfig = () => {
     notice.error("至少选择一个文件类型");
     return;
   }
+  editingConfig.value.folderStructure = editingConfig.value.folderStructure.trim();
   if (editingConfigIndex.value === null) {
     config.value.sync.syncConfigs.push({ ...editingConfig.value });
   } else {
