@@ -247,11 +247,11 @@
     <n-select
       v-model:value="data.afterConvertAction"
       :options="[
-        { label: '删除不符合最小处理的文件', value: 'removeSmallFile' },
-        { label: '删除FLV修复后的原文件', value: 'removeAfterFlvRepair' },
-        { label: '删除转封装为mp4的原文件', value: 'removeAferrConvert2Mp4' },
-        { label: '视频处理或同步后删除原文件', value: 'removeVideo' },
-        { label: '弹幕转换或同步后删除原文件', value: 'removeXml' },
+        { label: '删除不符合最小处理大小的文件', value: 'removeSmallFile' },
+        // { label: '删除FLV修复后的原文件', value: 'removeAfterFlvRepair' },
+        { label: '删除转封装为mp4的原文件', value: 'removeAfterConvert2Mp4' },
+        { label: '删除视频处理或同步后的原文件', value: 'removeVideo' },
+        { label: '删除弹幕转换或同步后的原文件', value: 'removeXml' },
       ]"
       multiple
       :disabled="globalFieldsObj.afterConvertAction"

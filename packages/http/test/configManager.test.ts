@@ -345,7 +345,7 @@ describe("ConfigManager", () => {
     });
 
     describe("removeSourceAferrConvert2Mp4", () => {
-      it("should removeSourceAferrConvert2Mp4 return true when convert2Mp4 open and afterConvertAction includes removeAferrConvert2Mp4", () => {
+      it("should removeSourceAferrConvert2Mp4 return true when convert2Mp4 open and afterConvertAction includes removeAfterConvert2Mp4", () => {
         const appConfig = {
           getAll: vi.fn().mockReturnValue({
             webhook: {
@@ -353,7 +353,7 @@ describe("ConfigManager", () => {
               autoPartMerge: false,
               partMergeMinute: 10,
               convert2Mp4: true,
-              afterConvertAction: ["removeAferrConvert2Mp4"],
+              afterConvertAction: ["removeAfterConvert2Mp4"],
             },
           }),
         };
@@ -364,7 +364,7 @@ describe("ConfigManager", () => {
         expect(result.removeSourceAferrConvert2Mp4).toBe(true);
       });
 
-      it("should removeSourceAferrConvert2Mp4 return false when convert2Mp4 close and afterConvertAction includes removeAferrConvert2Mp4", () => {
+      it("should removeSourceAferrConvert2Mp4 return false when convert2Mp4 close and afterConvertAction includes removeAfterConvert2Mp4", () => {
         const appConfig = {
           getAll: vi.fn().mockReturnValue({
             webhook: {
@@ -372,7 +372,7 @@ describe("ConfigManager", () => {
               autoPartMerge: false,
               partMergeMinute: 10,
               convert2Mp4: false,
-              afterConvertAction: ["removeAferrConvert2Mp4"],
+              afterConvertAction: ["removeAfterConvert2Mp4"],
             },
           }),
         };
@@ -383,7 +383,7 @@ describe("ConfigManager", () => {
         expect(result.removeSourceAferrConvert2Mp4).toBe(false);
       });
 
-      it("should removeSourceAferrConvert2Mp4 return false when convert2Mp4 open and afterConvertAction not includes removeAferrConvert2Mp4", () => {
+      it("should removeSourceAferrConvert2Mp4 return false when convert2Mp4 open and afterConvertAction not includes removeAfterConvert2Mp4", () => {
         const appConfig = {
           getAll: vi.fn().mockReturnValue({
             webhook: {

@@ -48,7 +48,7 @@ export interface RoomConfig {
   afterConvertAction: Array<
     | "removeVideo"
     | "removeXml"
-    | "removeAferrConvert2Mp4"
+    | "removeAfterConvert2Mp4"
     | "removeSmallFile"
     | "removeAfterFlvRepair"
   >;
@@ -144,7 +144,7 @@ export class ConfigManager {
       roomSetting,
     );
     const removeSourceAferrConvert2Mp4 =
-      afterConvertAction.includes("removeAferrConvert2Mp4") || !!removeSourceAferrConvert2Mp4Before;
+      afterConvertAction.includes("removeAfterConvert2Mp4") || !!removeSourceAferrConvert2Mp4Before;
     const afterConvertRemoveVideoRaw = afterConvertAction.includes("removeVideo");
     const afterConvertRemoveXmlRaw = afterConvertAction.includes("removeXml");
     const afterConvertRemoveFlvRaw = afterConvertAction.includes("removeAfterFlvRepair");

@@ -117,7 +117,7 @@ export type CommonRoomConfig = {
   afterConvertAction?: Array<
     | "removeVideo"
     | "removeXml"
-    | "removeAferrConvert2Mp4"
+    | "removeAfterConvert2Mp4"
     | "removeSmallFile"
     | "removeAfterFlvRepair"
   >;
