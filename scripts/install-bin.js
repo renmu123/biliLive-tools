@@ -59,7 +59,7 @@ async function downloadMesio() {
   };
   const platform = platforms[process.platform] ?? process.platform;
   const arch = archs[process.arch] ?? process.arch;
-  let mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/v0.3.5/mesio-${platform}-${arch}`;
+  let mesioUrl = `https://github.com/hua0512/rust-srec/releases/download/v0.3.6/mesio-${platform}-${arch}`;
   if (platform === "windows") {
     mesioUrl += ".exe";
   }
