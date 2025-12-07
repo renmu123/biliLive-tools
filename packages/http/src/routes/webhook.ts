@@ -7,6 +7,7 @@ import { handler, appConfig } from "../index.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import recorderService from "../services/recorder.js";
 import { parseMeta } from "@biliLive-tools/shared/task/video.js";
+import { sleep } from "@bililive-tools/manager/utils.js";
 
 import type { BlrecEventType } from "../types/blrecEvent.js";
 import type { CloseEvent, OpenEvent, CustomEvent } from "../types/webhook.js";
@@ -121,6 +122,7 @@ router.post("/webhook/oneliverec", async (ctx) => {
 
     let filePath: string = event.data.output;
     filePath = isDocker ? filePath.replace("/app/rec", "/app/video") : filePath;
+    await sleep(1000);
     const meta = await parseMeta({ videoFilePath: filePath });
 
     const info: {
