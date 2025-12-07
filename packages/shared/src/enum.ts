@@ -701,6 +701,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   codecName: "auto",
   titleKeywords: "",
   liveStartNotification: false,
+  liveEndNotification: false,
   weight: 10,
   source: "auto",
   videoFormat: "auto",

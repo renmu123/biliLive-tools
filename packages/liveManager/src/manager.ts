@@ -111,6 +111,7 @@ export interface RecorderManager<
   recorders: Recorder<E>[];
   addRecorder: (this: RecorderManager<ME, P, PE, E>, opts: RecorderCreateOpts<E>) => Recorder<E>;
   removeRecorder: (this: RecorderManager<ME, P, PE, E>, recorder: Recorder<E>) => void;
+  getRecorder: (this: RecorderManager<ME, P, PE, E>, id: string) => Recorder<E> | null;
   startRecord: (
     this: RecorderManager<ME, P, PE, E>,
     id: string,
@@ -357,6 +358,10 @@ export function createRecorderManager<
 
       delete tempBanObj[recorder.channelId];
       this.emit("RecorderRemoved", recorder.toJSON());
+    },
+    getRecorder(id) {
+      const recorder = this.recorders.find((item) => item.id === id);
+      return recorder ?? null;
     },
     async startRecord(id: string) {
       const recorder = this.recorders.find((item) => item.id === id);

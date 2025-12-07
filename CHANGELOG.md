@@ -6,6 +6,7 @@
 - B站上传：内存优化，从默认约90m节约至2m
 - 录制：录播姬引擎支持主动分段 [#258](https://github.com/renmu123/biliLive-tools/pull/258)
 - 录制：虎牙支持接口参数，默认行为从星秀区使用`mp`接口修改为使用`wup`接口 [#265](https://github.com/renmu123/biliLive-tools/pull/265)
+- 录制：支持录制结束通知
 
 ## 优化
 

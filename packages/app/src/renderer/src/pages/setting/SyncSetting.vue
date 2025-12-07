@@ -19,12 +19,12 @@
         <n-tab-pane class="tab-pane" name="syncConfig" tab="同步器" display-directive="show:lazy">
           <div class="sync-config-list">
             <n-card
-              v-for="(config, index) in config.sync.syncConfigs"
-              :key="config.id"
+              v-for="(item, index) in config.sync.syncConfigs"
+              :key="item.id"
               class="sync-config-card"
             >
               <template #header>
-                <n-text strong>{{ config.name }}</n-text>
+                <n-text strong>{{ item.name }}</n-text>
               </template>
               <template #header-extra>
                 <n-space align="center">
@@ -33,9 +33,9 @@
                 </n-space>
               </template>
               <n-space vertical>
-                <n-text>同步源: {{ getSyncSourceLabel(config.syncSource) }}</n-text>
-                <n-text>目录结构: {{ config.folderStructure }}</n-text>
-                <n-text>文件类型: {{ getTargetFilesLabel(config.targetFiles) }}</n-text>
+                <n-text>同步源: {{ getSyncSourceLabel(item.syncSource) }}</n-text>
+                <n-text>目录结构: {{ item.folderStructure }}</n-text>
+                <n-text>文件类型: {{ getTargetFilesLabel(item.targetFiles) }}</n-text>
               </n-space>
             </n-card>
             <n-card class="sync-config-card" @click="addSyncConfig">

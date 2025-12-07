@@ -49,6 +49,7 @@ export const recorderNoGlobalFollowFields: Array<
     | "line"
     | "titleKeywords"
     | "liveStartNotification"
+    | "liveEndNotification"
     | "onlyAudio"
     | "handleTime"
     | "weight"
@@ -493,6 +494,8 @@ export interface Recorder {
   titleKeywords?: string;
   /** 开播推送 */
   liveStartNotification?: boolean;
+  /** 录制结束通知 */
+  liveEndNotification?: boolean;
   /** 权重 */
   weight: number;
   /** 抖音cookie */
