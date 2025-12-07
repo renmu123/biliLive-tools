@@ -428,10 +428,20 @@ export const useSegmentStore = defineStore("segment", () => {
   const undo = () => {
     historyStore.undo();
     rawCuts.value = historyStore.state.value || [];
+    // 触发 clear 事件清空现有 regions,然后重新添加所有片段
+    emit("clear");
+    rawCuts.value.forEach((segment) => {
+      emit("add", { segment });
+    });
   };
   const redo = () => {
     historyStore.redo();
     rawCuts.value = historyStore.state.value || [];
+    // 触发 clear 事件清空现有 regions,然后重新添加所有片段
+    emit("clear");
+    rawCuts.value.forEach((segment) => {
+      emit("add", { segment });
+    });
   };
 
   const selectedCuts = computed(() => {
