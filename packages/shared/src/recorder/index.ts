@@ -32,7 +32,7 @@ import type { Recorder } from "@bililive-tools/manager";
 
 export { RecorderConfig };
 
-async function sendLiveNotification(
+async function sendStartLiveNotification(
   appConfig: AppConfig,
   recorder: Recorder,
   config: RecorderConfigType,
@@ -53,6 +53,27 @@ async function sendLiveNotification(
       const url = recorder.getChannelURL();
       shell.openExternal(url);
     });
+  } else {
+    await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
+  }
+}
+
+async function sendEndLiveNotification(
+  appConfig: AppConfig,
+  recorder: Recorder,
+  config: RecorderConfigType,
+) {
+  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
+  const title = `${name}(${config.channelId}) 录制已停止`;
+
+  const globalConfig = appConfig.getAll();
+  let notifyType = globalConfig?.notification?.setting?.type;
+  if (globalConfig?.notification?.taskNotificationType["liveStart"]) {
+    notifyType = globalConfig?.notification?.taskNotificationType["liveStart"];
+  }
+
+  if (notifyType === "system") {
+    sendBySystem(title, "");
   } else {
     await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
   }
@@ -160,18 +181,32 @@ export async function createRecorderManager(appConfig: AppConfig) {
   manager.on("RecordStart", (debug) => {
     logger.info("Manager start", debug);
   });
-  manager.on("RecordStop", (debug) => {
-    logger.info("Manager stop", debug);
+  manager.on("RecordStop", ({ recorder }) => {
+    logger.info("Manager stop", recorder);
+    // 录制结束通知，自动监听&开启推送时才会发送
+    const config = recorderConfig.get(recorder.id);
+    if (!config) return;
+    if (config?.liveEndNotification && !config?.disableAutoCheck) {
+      setTimeout(
+        () => {
+          const trueRecorder = manager.getRecorder(recorder.id);
+          if (!trueRecorder) return;
+          if (trueRecorder?.recordHandle) return;
+          sendEndLiveNotification(appConfig, trueRecorder, config);
+        },
+        1000 * 60 * 3,
+      );
+    }
   });
   manager.on("error", (error) => {
     logger.error("Manager error", error);
   });
   manager.on("RecoderLiveStart", async ({ recorder }) => {
-    // 只有客户端&自动监听&开始推送时才会发送
+    // 录制开始通知，自动监听&开启推送时才会发送
     const config = recorderConfig.get(recorder.id);
     if (!config) return;
     if (config?.liveStartNotification && !config?.disableAutoCheck) {
-      sendLiveNotification(appConfig, recorder, config);
+      sendStartLiveNotification(appConfig, recorder, config);
     }
   });
   // manager.on("RecordSegment", (debug) => {

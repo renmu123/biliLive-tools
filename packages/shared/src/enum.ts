@@ -293,6 +293,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       quality: 0,
       formatName: "auto",
       source: "auto",
+      api: "auto",
     },
     douyin: {
       quality: "origin",
@@ -703,6 +704,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   codecName: "auto",
   titleKeywords: "",
   liveStartNotification: false,
+  liveEndNotification: false,
   weight: 10,
   source: "auto",
   videoFormat: "auto",
