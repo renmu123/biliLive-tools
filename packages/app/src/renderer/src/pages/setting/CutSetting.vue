@@ -6,6 +6,12 @@
       </template>
       <n-switch v-model:value="config.videoCut.autoSave" />
     </n-form-item>
+    <n-form-item>
+      <template #label>
+        <Tip text="缓存波形图数据" tip="缓存波形图数据，避免每次重新计算波形图"></Tip>
+      </template>
+      <n-switch v-model:value="config.videoCut.cacheWaveform" />
+    </n-form-item>
   </n-form>
 </template>
 

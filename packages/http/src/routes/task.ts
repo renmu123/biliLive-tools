@@ -36,7 +36,7 @@ import {
 } from "@biliLive-tools/shared/task/virtualRecord.js";
 import { flvRepair } from "@biliLive-tools/shared/task/flvRepair.js";
 import { generateAudioWaveform } from "@biliLive-tools/shared/task/audiowaveform.js";
-import { fileCache } from "../index.js";
+import { fileCache, appConfig } from "../index.js";
 
 import type { DanmuPreset, DanmaOptions } from "@biliLive-tools/types";
 
@@ -491,7 +491,13 @@ router.post("/extractPeaks", async (ctx) => {
   try {
     await generateAudioWaveform(outputFile, outputPeakPath);
     const data = await fs.readJSON(outputPeakPath);
+
+    const config = appConfig.get("videoCut");
+    if (!config.cacheWaveform) {
+      fs.remove(outputPeakPath);
+    }
     fs.remove(outputFile);
+
     ctx.body = { output: data };
   } catch (error) {
     ctx.status = 500;

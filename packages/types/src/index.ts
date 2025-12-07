@@ -590,6 +590,8 @@ export interface AppConfig {
   videoCut: {
     /** 自动保存 */
     autoSave: boolean;
+    /** 缓存波形图数据 */
+    cacheWaveform: boolean;
   };
   /** 通知配置 */
   notification: {

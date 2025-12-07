@@ -114,7 +114,6 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
     try {
       const res = await taskApi.extractPeaks(rawVideoFile);
       peaks = res.output.data;
-      console.log("Extracted audio path:", res);
     } catch (error) {
       waveformLoading.value = false;
       console.error("Error extracting audio for waveform:", error);

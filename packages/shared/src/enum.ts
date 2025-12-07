@@ -170,6 +170,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   },
   videoCut: {
     autoSave: true,
+    cacheWaveform: true,
   },
   notification: {
     task: {

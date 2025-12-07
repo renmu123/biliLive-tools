@@ -274,7 +274,7 @@
                 type="primary"
                 @click="openCacheFolder"
               >
-                打开文件夹
+                打开
               </n-button>
             </n-form-item>
             <n-form-item>
