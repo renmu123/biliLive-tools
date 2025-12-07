@@ -3,7 +3,6 @@ import JSON5 from "json5";
 import { useAppConfig, useSegmentStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
 import { showSaveDialog } from "@renderer/utils/fileSystem";
-import { replaceExtName } from "@renderer/utils";
 import { commonApi } from "@renderer/apis";
 
 /**
