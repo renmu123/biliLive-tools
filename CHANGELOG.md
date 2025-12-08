@@ -3,6 +3,7 @@
 ## 功能
 
 - 切片：片段支持右键菜单
+- 切片：项目支持自动保存，默认开启
 - B站上传：内存优化，从默认约90m节约至2m
 - 录制：录播姬引擎支持主动分段 [#258](https://github.com/renmu123/biliLive-tools/pull/258)
 - 录制：虎牙支持接口参数，默认行为从星秀区使用`mp`接口修改为使用`wup`接口 [#265](https://github.com/renmu123/biliLive-tools/pull/265)
