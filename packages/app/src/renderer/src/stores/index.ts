@@ -364,13 +364,13 @@ export default useHistoryStore;
 export interface Segment {
   id: string;
   start: number;
-  end: number;
+  end?: number;
   name: string;
   checked: boolean;
   tags?: any;
   index: number;
 }
-
+type SegmentWithRequiredEnd = Required<Pick<Segment, "end">> & Omit<Segment, "end">;
 type SegmentEventType = "add" | "remove" | "update" | "clear";
 type SegmentEventCallback = (data: {
   type: SegmentEventType;
@@ -382,6 +382,16 @@ export const useSegmentStore = defineStore("segment", () => {
   const duration = ref(0);
 
   const rawCuts = ref<Segment[]>([]);
+  const cuts = readonly(
+    computed<SegmentWithRequiredEnd[]>(() => {
+      return rawCuts.value.map((item: Segment) => {
+        return {
+          ...item,
+          end: item.end || duration.value,
+        };
+      });
+    }),
+  );
   const historyStore = useHistoryStore<Segment[]>({ limit: 30 });
 
   const index = ref(0);
@@ -418,20 +428,31 @@ export const useSegmentStore = defineStore("segment", () => {
   const undo = () => {
     historyStore.undo();
     rawCuts.value = historyStore.state.value || [];
+    // 触发 clear 事件清空现有 regions,然后重新添加所有片段
+    emit("clear");
+    rawCuts.value.forEach((segment) => {
+      emit("add", { segment });
+    });
   };
   const redo = () => {
     historyStore.redo();
     rawCuts.value = historyStore.state.value || [];
+    // 触发 clear 事件清空现有 regions,然后重新添加所有片段
+    emit("clear");
+    rawCuts.value.forEach((segment) => {
+      emit("add", { segment });
+    });
   };
 
   const selectedCuts = computed(() => {
-    return rawCuts.value.filter((item) => item.checked);
+    return cuts.value.filter((item) => item.checked);
   });
 
   const init = (segments: Omit<Segment, "id">[]) => {
     rawCuts.value = [];
     index.value = 0; // 初始化 index
     segments.forEach((segment) => {
+      if (!segment.start) segment.start = 0;
       addSegment(segment);
     });
   };
@@ -478,7 +499,7 @@ export const useSegmentStore = defineStore("segment", () => {
   };
 
   return {
-    cuts: rawCuts,
+    cuts,
     selectedCuts,
     duration,
     rawCuts,

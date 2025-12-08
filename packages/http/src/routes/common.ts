@@ -283,6 +283,14 @@ router.post("/writeLLC", async (ctx) => {
   ctx.body = "success";
 });
 
+router.post("/fileExists", async (ctx) => {
+  const { filepath } = ctx.request.body as {
+    filepath: string;
+  };
+  const exists = await fs.pathExists(filepath);
+  ctx.body = exists;
+});
+
 router.post("/genTimeData", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;
