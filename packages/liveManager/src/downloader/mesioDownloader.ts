@@ -2,10 +2,10 @@ import path from "node:path";
 import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
+import { DEFAULT_USER_AGENT } from "./index.js";
 import { StreamManager, getMesioPath } from "../index.js";
-import { IRecorder, MesioRecorderOptions } from "./IRecorder.js";
+import { IDownloader, MesioRecorderOptions, Segment } from "./IDownloader.js";
 
-// Mesio command builder class similar to ffmpeg
 class MesioCommand extends EventEmitter {
   private _input: string = "";
   private _output: string = "";
@@ -106,13 +106,13 @@ export const createMesioBuilder = (): MesioCommand => {
   return new MesioCommand();
 };
 
-export class MesioRecorder extends EventEmitter implements IRecorder {
+export class mesioDownloader extends EventEmitter implements IDownloader {
   public type = "mesio" as const;
   private command: MesioCommand;
   private streamManager: StreamManager;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
-  readonly segment: number;
+  readonly segment: Segment;
   readonly inputOptions: string[] = [];
   readonly disableDanma: boolean = false;
   readonly url: string;
@@ -129,7 +129,9 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
+    // 存在自动分段，永远为true
     const hasSegment = true;
+    this.hasSegment = hasSegment;
     this.disableDanma = opts.disableDanma ?? false;
     this.debugLevel = opts.debugLevel ?? "none";
 
@@ -155,12 +157,14 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
         onUpdateLiveInfo: this.onUpdateLiveInfo,
       },
     );
-    this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
     this.inputOptions = [];
     this.url = opts.url;
     this.segment = opts.segment;
-    this.headers = opts.headers;
+    this.headers = {
+      "User-Agent": DEFAULT_USER_AGENT,
+      ...(opts.headers || {}),
+    };
 
     this.command = this.createCommand();
 
@@ -176,13 +180,7 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
   }
 
   createCommand() {
-    const inputOptions = [
-      ...this.inputOptions,
-      "--fix",
-      "-H",
-      "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
-      "--no-proxy",
-    ];
+    const inputOptions = [...this.inputOptions, "--fix", "--no-proxy"];
     if (this.debugLevel === "verbose") {
       inputOptions.push("-v");
     }
@@ -193,8 +191,12 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
         inputOptions.push("-H", `${key}: ${value}`);
       });
     }
-    if (this.hasSegment) {
-      inputOptions.push("-d", `${this.segment * 60}s`);
+    if (this.segment) {
+      if (typeof this.segment === "number") {
+        inputOptions.push("-d", `${this.segment * 60}s`);
+      } else if (typeof this.segment === "string") {
+        inputOptions.push("-m", this.segment);
+      }
     }
 
     const command = createMesioBuilder()
@@ -231,5 +233,13 @@ export class MesioRecorder extends EventEmitter implements IRecorder {
 
   public getExtraDataController() {
     return this.streamManager?.getExtraDataController();
+  }
+
+  public get videoFilePath() {
+    return this.streamManager.videoFilePath;
+  }
+
+  public cut(): void {
+    throw new Error("Mesio downloader does not support cut operation.");
   }
 }

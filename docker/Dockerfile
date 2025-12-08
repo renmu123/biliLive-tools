@@ -36,9 +36,9 @@ RUN curl -L -o /usr/local/share/fonts/NotoSansSC-Regular.ttf https://github.com/
 RUN mkdir -p /app/baidu-temp && \
     ARCH=$(uname -m) && \
     if [ "$ARCH" = "x86_64" ]; then \
-        curl -L -o /app/baidu-temp/BaiduPCS-Go.zip https://github.com/qjfoidnh/BaiduPCS-Go/releases/download/v3.9.9/BaiduPCS-Go-v3.9.9-linux-amd64.zip; \
+        curl -L -o /app/baidu-temp/BaiduPCS-Go.zip https://github.com/qjfoidnh/BaiduPCS-Go/releases/download/v4.0.0/BaiduPCS-Go-v4.0.0-linux-amd64.zip; \
     elif [ "$ARCH" = "aarch64" ]; then \
-        curl -L -o /app/baidu-temp/BaiduPCS-Go.zip https://github.com/qjfoidnh/BaiduPCS-Go/releases/download/v3.9.9/BaiduPCS-Go-v3.9.9-linux-arm64.zip; \
+        curl -L -o /app/baidu-temp/BaiduPCS-Go.zip https://github.com/qjfoidnh/BaiduPCS-Go/releases/download/v4.0.0/BaiduPCS-Go-v4.0.0-linux-arm64.zip; \
     fi && \
     apt-get update && apt-get install -y unzip && \
     unzip /app/baidu-temp/BaiduPCS-Go.zip -d /app/baidu-temp && \
@@ -83,15 +83,16 @@ FROM node:24.10 AS backend
 
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends libfontconfig1-dev && \
-    rm -rf /var/lib/apt/lists/*
-
 RUN mkdir data && mkdir bin && mkdir video
 
 COPY --from=backend-build /app/packages/CLI/lib /app
 COPY --from=backend-build /app/packages/CLI/node_modules /app/node_modules
 COPY --from=backend-build /app/packages/app/resources/bin /app/bin
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libfontconfig1-dev && \
+    apt-get install -y /app/bin/audiowaveform.deb && \
+    rm -rf /var/lib/apt/lists/*
 COPY --from=backend-build /app/docker/config.json ./
 COPY --from=backend-build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts/NotoSansSC-Regular.ttf
 
@@ -111,6 +112,14 @@ FROM node:24.10 AS fullstack
 
 WORKDIR /app
 
+# 创建必要的目录
+RUN mkdir -p /app/data /app/video /app/bin /app/backend /app/public
+
+# 复制后端
+COPY --from=backend-build /app/packages/CLI/lib /app/backend
+COPY --from=backend-build /app/packages/CLI/node_modules /app/backend/node_modules
+COPY --from=backend-build /app/packages/app/resources/bin /app/bin
+
 # 安装必要的依赖和 Caddy
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -119,19 +128,12 @@ RUN apt-get update && \
     debian-archive-keyring \
     apt-transport-https \
     curl && \
+    apt-get install -y /app/bin/audiowaveform.deb && \
     curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg && \
     curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list && \
     apt-get update && \
     apt-get install -y caddy && \
     rm -rf /var/lib/apt/lists/*
-
-# 创建必要的目录
-RUN mkdir -p /app/data /app/video /app/bin /app/backend /app/public
-
-# 复制后端
-COPY --from=backend-build /app/packages/CLI/lib /app/backend
-COPY --from=backend-build /app/packages/CLI/node_modules /app/backend/node_modules
-COPY --from=backend-build /app/packages/app/resources/bin /app/bin
 COPY --from=backend-build /usr/local/share/fonts/NotoSansSC-Regular.ttf /usr/share/fonts/NotoSansSC-Regular.ttf
 
 # 复制前端 (使用全栈模式构建的前端)

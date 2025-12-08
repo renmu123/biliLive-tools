@@ -49,6 +49,7 @@ export const recorderNoGlobalFollowFields: Array<
     | "line"
     | "titleKeywords"
     | "liveStartNotification"
+    | "liveEndNotification"
     | "onlyAudio"
     | "handleTime"
     | "weight"
@@ -240,6 +241,8 @@ export type ToolConfig = {
     override: boolean;
     /** 只下载音频 */
     onlyAudio: boolean;
+    /** 只下载弹幕 */
+    onlyDanmu: boolean;
   };
   /** 切片 */
   videoCut: {
@@ -362,6 +365,8 @@ interface HuyaRecorderConfig {
   /** 流格式 */
   formatName: FormatName;
   source: string;
+  /** 接口类型 */
+  api: "auto" | "web" | "wup" | "mp";
 }
 
 interface DouyinRecorderConfig {
@@ -394,7 +399,7 @@ export interface GlobalRecorder {
   debugMode: boolean;
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
-  /** 测试：录制错误立即重试 */
+  /** 下播延迟检查 */
   recordRetryImmediately: boolean;
   /** 画质 */
   quality: "lowest" | "low" | "medium" | "high" | "highest";
@@ -409,7 +414,7 @@ export interface GlobalRecorder {
   /** 弹幕是否使用服务端时间戳 */
   useServerTimestamp: boolean;
   /**分段时长，单位分钟 */
-  segment?: number;
+  segment?: string;
   /** 账号 */
   uid?: number;
   /** 保存封面 */
@@ -471,7 +476,7 @@ export interface Recorder {
   /** 保存高能弹幕 */
   saveSCDanma?: boolean;
   /**分段时长，单位分钟 */
-  segment?: number;
+  segment?: string;
   /** 账号 */
   uid?: number | string;
   /** 保存封面 */
@@ -489,6 +494,8 @@ export interface Recorder {
   titleKeywords?: string;
   /** 开播推送 */
   liveStartNotification?: boolean;
+  /** 录制结束通知 */
+  liveEndNotification?: boolean;
   /** 权重 */
   weight: number;
   /** 抖音cookie */
@@ -503,6 +510,8 @@ export interface Recorder {
   handleTime: [string | null, string | null];
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
+  /** API类型，仅抖音 */
+  api: HuyaRecorderConfig["api"] | DouyinRecorderConfig["api"];
   // 不跟随全局配置字段
   noGlobalFollowFields: typeof recorderNoGlobalFollowFields;
 }
@@ -515,6 +524,7 @@ export type SyncConfig = {
   syncSource: SyncType;
   folderStructure: string;
   targetFiles: ("source" | "danmaku" | "xml" | "cover")[];
+  stringFilters?: "filterFourByteChars"[];
 };
 
 // 全局配置
@@ -531,6 +541,8 @@ export interface AppConfig {
   mesioPath: string;
   /** 录播姬引擎 可执行路径 */
   bililiveRecorderPath: string;
+  /** audiowaveform 可执行路径 */
+  audiowaveformPath: string;
   /** 缓存文件夹 */
   cacheFolder: string;
   /** 保存到回收站 */
@@ -547,6 +559,7 @@ export interface AppConfig {
   closeToTray: boolean;
   /** 主题 */
   theme: Theme;
+  menuBarVisible: boolean;
   port: number;
   host: string;
   passKey: string;
@@ -573,6 +586,13 @@ export interface AppConfig {
   uid?: number;
   /** 工具页配置 */
   tool: ToolConfig;
+  /** 切片 */
+  videoCut: {
+    /** 自动保存 */
+    autoSave: boolean;
+    /** 缓存波形图数据 */
+    cacheWaveform: boolean;
+  };
   /** 通知配置 */
   notification: {
     /** 任务 */
@@ -1003,6 +1023,7 @@ export interface GlobalConfig {
   defaultFfprobePath: string;
   defaultMesioPath: string;
   defaultBililiveRecorderPath: string;
+  defaultAudioWaveformPath: string;
   defaultDanmakuFactoryPath: string;
   version: string;
   userDataPath: string;

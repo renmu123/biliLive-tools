@@ -12,7 +12,7 @@
             },
           },
         }"
-        :plugins="['ass', 'heatmap']"
+        :plugins="['ass', 'heatmap', 'danmuku']"
         @ready="handleVideoReady"
       ></Artplayer>
     </n-card>
@@ -21,7 +21,7 @@
 
 <script setup lang="ts">
 import Artplayer from "@renderer/components/Artplayer/Index.vue";
-import { commonApi } from "@renderer/apis";
+import { commonApi, danmaApi } from "@renderer/apis";
 
 import type ArtplayerType from "artplayer";
 
@@ -62,8 +62,15 @@ watch(
 const initDanma = async () => {
   if (!props.files.danmu) return;
 
-  const content = await commonApi.readAss(props.files.danmu);
-  videoRef.value?.switchAss(content);
+  if (props.files.danmu.endsWith(".ass")) {
+    const content = await commonApi.readDanma(props.files.danmu);
+    videoRef.value?.switchAss(content);
+  } else if (props.files.danmu.endsWith(".xml")) {
+    const content = await danmaApi.parseForArtPlayer(props.files.danmu);
+    videoRef.value?.switchDanmuku(content);
+  } else {
+    throw new Error("不支持的弹幕格式");
+  }
 
   if (props.hotProgress.visible) {
     const data = await commonApi.genTimeData(props.files.danmu);

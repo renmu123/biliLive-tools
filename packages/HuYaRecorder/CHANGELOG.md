@@ -1,3 +1,16 @@
+# next
+
+- 支持 `wup` 接口，`auto` 行为从星秀区使用`mp`改为使用`wup`接口
+- 录播姬引擎支持切割
+
+# 1.10.0
+
+- 重构：录制器相关的参数修改为 `Downloader`
+- 修复“画质匹配重试次数”不会被重置的bug
+- 修复 `qualityRetry` 修改后不会生效的bug
+- 修复：录播姬引擎分段时间不支持浮点数
+- segment 参数如果以"B","KB","MB","GB"结尾，会使用文件大小分段
+
 # 1.9.0
 
 - `recordHandle` 新增参数 `recorderType`

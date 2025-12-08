@@ -56,6 +56,7 @@
           <li>up 上一个片段</li>
           <li>down 下一个片段</li>
           <li>del 删除片段</li>
+          <li>ctrl+n 新建片段</li>
           <li>space 播放/暂停</li>
           <li>ctrl+left 后退1秒</li>
           <li>ctrl+right 前进1秒</li>
@@ -71,16 +72,20 @@
 
     <div class="view">
       <div
-        v-for="(cut, index) in cuts"
-        :key="index"
+        v-for="cut in cuts"
+        :key="cut.id"
         class="cut"
         role="button"
         :class="{
           checked: cut.checked,
-          selected: selectCutIndex === index,
+          selected: selectCutId === cut.id,
         }"
-        @click="selectCut(index)"
+        :style="{
+          '--active-border-color': generateDistinctColor(cut.index, true),
+        }"
+        @click="selectCut(cut.id)"
         @dblclick="navVideo(cut.start)"
+        @contextmenu.prevent="showContextMenu($event, cut)"
       >
         <div class="time">
           {{ secondsToTimemark(cut.start) }}-<span>{{ secondsToTimemark(cut.end) }}</span>
@@ -90,15 +95,15 @@
           持续时间：{{ secondsToTimemark(cut.end - cut.start) }}
         </div>
         <div class="icon">
-          <n-icon v-if="cut.checked" size="20" :depth="3" @click.stop="toggleChecked(index)">
+          <n-icon v-if="cut.checked" size="20" :depth="3" @click.stop="toggleChecked(cut.id)">
             <CheckmarkCircleOutline></CheckmarkCircleOutline>
           </n-icon>
-          <n-icon v-else size="20" :depth="3" @click.stop="toggleChecked(index)">
+          <n-icon v-else size="20" :depth="3" @click.stop="toggleChecked(cut.id)">
             <RadioButtonOffSharp></RadioButtonOffSharp>
           </n-icon>
         </div>
         <div class="edit-icon">
-          <n-icon size="20" :depth="3" @click.stop="editCut(index)">
+          <n-icon size="20" :depth="3" @click.stop="editCut(cut.id)">
             <Pencil></Pencil>
           </n-icon>
         </div>
@@ -148,6 +153,7 @@
 </template>
 
 <script setup lang="ts">
+import { useOsTheme } from "naive-ui";
 import SearchPopover from "./SearchPopover.vue";
 import { secondsToTimemark } from "@renderer/utils";
 import { useSegmentStore } from "@renderer/stores";
@@ -156,13 +162,20 @@ import {
   CheckmarkCircleOutline,
   Pencil,
   Search as SearchIcon,
+  PlayCircleOutline,
 } from "@vicons/ionicons5";
 import { MinusOutlined, PlusOutlined } from "@vicons/material";
+import { Delete24Regular } from "@vicons/fluent";
+import { generateDistinctColor } from "@renderer/utils";
+
 import hotkeys from "hotkeys-js";
 import { useDraggable, useEventListener, useWindowSize } from "@vueuse/core";
+import ContextMenu from "@imengyu/vue3-context-menu";
+import { NIcon } from "naive-ui";
 
 import type ArtplayerType from "artplayer";
 import type { DanmuItem } from "@biliLive-tools/types";
+import type { Segment } from "@renderer/stores";
 
 onActivated(() => {
   // 重命名
@@ -195,6 +208,11 @@ onActivated(() => {
   hotkeys("ctrl+k", function () {
     searchDanmu();
   });
+  // 新建片段
+  hotkeys("ctrl+n", function (event) {
+    event.preventDefault();
+    addCut();
+  });
   // 切换到当前开始片段
   // hotkeys("enter", function () {});
 });
@@ -203,6 +221,7 @@ interface Props {
   danmaList: DanmuItem[];
   files: {
     originDanmuPath: string | null;
+    originVideoPath: string | null;
   };
   danmaSearchMask: boolean;
 }
@@ -214,14 +233,14 @@ const props = withDefaults(defineProps<Props>(), {
 const el = ref<HTMLElement | null>(null);
 
 const { width, height } = useWindowSize();
-
+const notice = useNotification();
 const { x, y, style } = useDraggable(el, {
-  initialValue: { x: width.value - 80, y: height.value - 80 },
+  initialValue: { x: width.value - 100, y: height.value - 40 },
 });
 
 useEventListener(window, "resize", () => {
-  x.value = width.value - 80;
-  y.value = height.value - 80;
+  x.value = width.value - 100;
+  y.value = height.value - 40;
 });
 
 const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;
@@ -229,38 +248,41 @@ const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;
 const { cuts } = storeToRefs(useSegmentStore());
 const { addSegment, removeSegment, updateSegment, toggleSegment } = useSegmentStore();
 
-const toggleChecked = (index: number) => {
-  toggleSegment(index);
+const toggleChecked = (id: string) => {
+  toggleSegment(id);
 };
 // 编辑片段名称
 const cutEditVisible = ref(false);
 const tempCutName = ref("");
-const selectCutIndex = ref(-1);
+const selectCutId = ref<string | null>(null);
 
 /**
  * 编辑片段名称
  */
-const editCut = (index: number) => {
+const editCut = (id: string) => {
+  const cut = cuts.value.find((c) => c.id === id);
+  if (!cut) return;
   cutEditVisible.value = true;
-  tempCutName.value = cuts.value[index].name;
-  selectCutIndex.value = index;
+  tempCutName.value = cut.name;
+  selectCutId.value = id;
 };
 
 /*
  * 重命名
  */
 const rename = () => {
-  if (selectCutIndex.value === -1) {
+  if (!selectCutId.value) {
     return;
   }
-  editCut(selectCutIndex.value);
+  editCut(selectCutId.value);
 };
 
 /**
  * 确认编辑片段名称
  */
 const confirmEditCutName = () => {
-  updateSegment(selectCutIndex.value, "name", tempCutName.value);
+  if (!selectCutId.value) return;
+  updateSegment(selectCutId.value, { name: tempCutName.value });
   cutEditVisible.value = false;
 };
 
@@ -274,16 +296,23 @@ const navVideo = (start: number) => {
 
 /**
  * 选择片段
- * @param index 片段索引
+ * @param id 片段ID
  */
-const selectCut = (index: number) => {
-  selectCutIndex.value = index;
+const selectCut = (id: string) => {
+  selectCutId.value = id;
 };
 
 /**
  * 添加片段
  */
-const addCut = (iOptions: { start?: number; end?: number; name?: string } = {}) => {
+const addCut = (iOptions: { start?: number; end?: number; name?: string; id?: string } = {}) => {
+  if (!props.files.originVideoPath) {
+    notice.error({
+      title: "请先加载视频文件",
+      duration: 1000,
+    });
+    return;
+  }
   const options = Object.assign(
     {
       start: videoInstance.value.currentTime,
@@ -292,80 +321,94 @@ const addCut = (iOptions: { start?: number; end?: number; name?: string } = {}) 
     },
     iOptions,
   );
-  if (options.end) options.end = Math.min(options.end, videoInstance.value.duration);
-  addSegment(options);
-
-  selectCutIndex.value = cuts.value.length - 1;
+  if (options.end) {
+    options.end = Math.min(options.end, videoInstance.value.duration);
+  } else {
+    options.end = Math.min(options.start + 60 * 5, videoInstance.value.duration);
+  }
+  addSegment(options as any);
+  console.log("cuts", cuts.value);
+  if (cuts.value.length > 0) {
+    selectCutId.value = cuts.value[cuts.value.length - 1].id;
+  }
 };
 
 /**
  * 删除片段
  */
 const deleteCut = () => {
-  if (selectCutIndex.value === -1) {
+  if (!selectCutId.value) {
     return;
   }
-  removeSegment(selectCutIndex.value);
-  selectCutIndex.value = cuts.value.length - 1;
+  removeSegment(selectCutId.value);
+  if (cuts.value.length > 0) {
+    selectCutId.value = cuts.value[cuts.value.length - 1].id;
+  } else {
+    selectCutId.value = null;
+  }
 };
 
 /**
  * 在当前时间开始当前片段
  */
 const setStartTime = () => {
-  if (selectCutIndex.value === -1) {
+  if (!selectCutId.value) {
     return;
   }
   if (!videoInstance) return;
-  if (videoInstance.value.currentTime > cuts.value[selectCutIndex.value].end) {
+  const selectedCut = cuts.value.find((c) => c.id === selectCutId.value);
+  if (!selectedCut || videoInstance.value.currentTime > selectedCut.end) {
     return;
   }
-  updateSegment(selectCutIndex.value, "start", videoInstance.value.currentTime);
+  updateSegment(selectCutId.value, { start: videoInstance.value.currentTime });
 };
 
 /**
  * 在当前时间结束当前片段
  */
 const setEndTime = () => {
-  if (selectCutIndex.value === -1) {
+  if (!selectCutId.value) {
     return;
   }
   if (!videoInstance) return;
-  if (videoInstance.value.currentTime < cuts.value[selectCutIndex.value].start) {
+  const selectedCut = cuts.value.find((c) => c.id === selectCutId.value);
+  if (!selectedCut || videoInstance.value.currentTime < selectedCut.start) {
     return;
   }
-  updateSegment(selectCutIndex.value, "end", videoInstance.value.currentTime);
+  updateSegment(selectCutId.value, { end: videoInstance.value.currentTime });
 };
 
 /**
  * 下一个片段
  */
 const nextSegment = () => {
-  if (selectCutIndex.value === -1) {
+  if (!selectCutId.value) {
     if (cuts.value.length > 0) {
-      selectCut(0);
+      selectCut(cuts.value[0].id);
     }
     return;
   }
-  if (selectCutIndex.value === cuts.value.length - 1) {
+  const currentIndex = cuts.value.findIndex((c) => c.id === selectCutId.value);
+  if (currentIndex === -1 || currentIndex === cuts.value.length - 1) {
     return;
   }
-  selectCut(selectCutIndex.value + 1);
+  selectCut(cuts.value[currentIndex + 1].id);
 };
 /**
  * 上一个片段
  */
 const prevSegment = () => {
-  if (selectCutIndex.value === -1) {
+  if (!selectCutId.value) {
     if (cuts.value.length > 0) {
-      selectCut(cuts.value.length - 1);
+      selectCut(cuts.value[cuts.value.length - 1].id);
     }
     return;
   }
-  if (selectCutIndex.value === 0) {
+  const currentIndex = cuts.value.findIndex((c) => c.id === selectCutId.value);
+  if (currentIndex === -1 || currentIndex === 0) {
     return;
   }
-  selectCut(selectCutIndex.value - 1);
+  selectCut(cuts.value[currentIndex - 1].id);
 };
 
 const searchDanmuVisible = ref(false);
@@ -375,6 +418,54 @@ const searchDanmuVisible = ref(false);
 const searchDanmu = () => {
   searchDanmuVisible.value = !searchDanmuVisible.value;
 };
+
+function renderIcon(icon: Component) {
+  // 高度和宽度22px
+  return () =>
+    h(NIcon, { style: { fontSize: "17px", "font-size": "17px" } }, { default: () => h(icon) });
+}
+const osTheme = useOsTheme();
+const showContextMenu = (e: MouseEvent, segment: Segment) => {
+  //这个函数与 this.$contextmenu 一致
+  const theme = osTheme.value === "dark" ? "default dark" : "default";
+  ContextMenu.showContextMenu({
+    theme,
+    x: e.x,
+    y: e.y,
+    items: [
+      {
+        label: "播放",
+        onClick: () => {
+          if (videoInstance.value) {
+            videoInstance.value!.seek = segment.start;
+            videoInstance.value.play();
+          }
+        },
+        icon: renderIcon(PlayCircleOutline),
+      },
+      {
+        label: "编辑",
+        onClick: () => {
+          editCut(segment.id);
+        },
+        icon: renderIcon(Pencil),
+      },
+      {
+        label: "删除",
+        onClick: () => {
+          removeSegment(segment.id);
+        },
+        icon: renderIcon(Delete24Regular),
+      },
+      {
+        label: "切换状态",
+        onClick: () => {
+          toggleChecked(segment.id);
+        },
+      },
+    ],
+  });
+};
 </script>
 
 <style scoped lang="less">
@@ -382,7 +473,7 @@ const searchDanmu = () => {
   position: relative;
 
   .view {
-    max-height: calc(100vh - 100px);
+    // max-height: calc(100vh - 100px);
     min-width: 210px;
     overflow: auto;
   }
@@ -417,7 +508,7 @@ const searchDanmu = () => {
       opacity: 1;
     }
     &.selected {
-      border-color: skyblue;
+      border-color: var(--active-border-color);
       border-width: 2px;
     }
     &:hover {

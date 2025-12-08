@@ -1,6 +1,6 @@
 {
   "name": "bililive-cli",
-  "version": "3.3.2",
+  "version": "3.4.1",
   "type": "module",
   "description": "biliLive-tools的cli程序",
   "main": "./lib/index.js",
@@ -36,9 +36,9 @@
   ],
   "dependencies": {
     "@napi-rs/canvas": "^0.1.60",
-    "font-ls": "0.6.1",
+    "font-ls": "0.6.2",
     "ntsuspend": "^1.0.2",
-    "better-sqlite3": "12.4.1"
+    "better-sqlite3": "12.4.6"
   },
   "devDependencies": {
     "@biliLive-tools/http": "workspace:*",

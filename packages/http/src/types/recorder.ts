@@ -104,6 +104,7 @@ export type UpdateRecorderArgs = Pick<
   | "codecName"
   | "titleKeywords"
   | "liveStartNotification"
+  | "liveEndNotification"
   | "source"
   | "videoFormat"
   | "recorderType"
@@ -114,6 +115,7 @@ export type UpdateRecorderArgs = Pick<
   | "handleTime"
   | "weight"
   | "debugLevel"
+  | "api"
 >;
 export type UpdateRecorderResp = ClientRecorder;
 

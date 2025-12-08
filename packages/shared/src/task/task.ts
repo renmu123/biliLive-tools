@@ -11,14 +11,14 @@ import log from "../utils/log.js";
 import { addMediaApi, editMediaApi } from "./bili.js";
 import { TaskType } from "../enum.js";
 import { SyncClient } from "../sync/index.js";
-import { uploadPartModel } from "../db/index.js";
+import { uploadPartService } from "../db/index.js";
 import { Pan123 } from "../sync/index.js";
-import { StatisticsService } from "../db/service/index.js";
+import { statisticsService } from "../db/index.js";
+import { SpeedCalculator } from "../utils/speedCalculator.js";
 import { appConfig } from "../config.js";
-
 import { AbstractTask } from "./core/index.js";
-import type { TaskEvents } from "./core/index.js";
 
+import type { TaskEvents } from "./core/index.js";
 import type ffmpeg from "@renmu/fluent-ffmpeg";
 import type { Client, WebVideoUploader } from "@renmu/bili-api";
 import type { Progress, BiliupConfig } from "@biliLive-tools/types";
@@ -274,6 +274,7 @@ export class BiliPartVideoTask extends AbstractTask {
   };
   useUploadPartPersistence: boolean;
   completedPart: { cid: number; filename: string; title: string } | null = null;
+  private speedCalculator: SpeedCalculator;
   constructor(
     command: WebVideoUploader,
     options: {
@@ -294,6 +295,7 @@ export class BiliPartVideoTask extends AbstractTask {
     this.action = ["kill", "pause"];
     this.limitTime = options.limitTime;
     this.callback = callback;
+    this.speedCalculator = new SpeedCalculator(3000); // 3秒时间窗口
     if (options.name) {
       this.name = options.name;
     }
@@ -314,7 +316,7 @@ export class BiliPartVideoTask extends AbstractTask {
           try {
             const fileHash = await calculateFileQuickHash(this.command.filePath);
             const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
-            uploadPartModel.addOrUpdate({
+            uploadPartService.addOrUpdate({
               file_hash: fileHash,
               file_size: fileSize,
               cid: data.cid,
@@ -327,6 +329,8 @@ export class BiliPartVideoTask extends AbstractTask {
 
         this.completedPart = data;
         this.endTime = Date.now();
+        // 重置进度追踪
+        this.speedCalculator.reset();
         callback.onEnd && callback.onEnd(data);
         this.emitter.emit("task-end", { taskId: this.taskId });
       },
@@ -336,6 +340,8 @@ export class BiliPartVideoTask extends AbstractTask {
       this.status = "error";
       this.error = String(err);
 
+      // 重置进度追踪
+      this.speedCalculator.reset();
       callback.onError && callback.onError(this.error);
       this.emitter.emit("task-error", { taskId: this.taskId, error: this.error });
       this.endTime = Date.now();
@@ -344,22 +350,34 @@ export class BiliPartVideoTask extends AbstractTask {
     command.emitter.on("progress", (event) => {
       let progress = event.progress * 100;
       this.progress = progress;
+
+      // 计算上传速度
+      if (event.data && event.data.loaded !== undefined) {
+        const currentTime = Date.now();
+        const speed = this.speedCalculator.calculateSpeed(event.data.loaded, currentTime);
+        this.custsomProgressMsg = `速度: ${speed}`;
+      }
+
       callback.onProgress && callback.onProgress(progress);
       this.emitter.emit("task-progress", { taskId: this.taskId });
     });
   }
+
   async exec() {
     if (this.status !== "pending") return;
     this.status = "running";
     this.startTime = Date.now();
     this.emitter.emit("task-start", { taskId: this.taskId });
 
+    // 初始化上传计时
+    this.speedCalculator.init(this.startTime);
+
     // 处理上传分p持久化
     if (this.useUploadPartPersistence) {
       try {
         const fileHash = await calculateFileQuickHash(this.command.filePath);
         const fileSize = await fs.stat(this.command.filePath).then((stat) => stat.size);
-        const part = uploadPartModel.findValidPartByHash(fileHash, fileSize);
+        const part = uploadPartService.findValidPartByHash(fileHash, fileSize);
         if (part) {
           this.status = "completed";
           this.progress = 100;
@@ -369,6 +387,8 @@ export class BiliPartVideoTask extends AbstractTask {
             title: this.command.title,
           };
           this.endTime = Date.now();
+          // 重置进度追踪
+          this.speedCalculator.reset();
           this.callback.onEnd && this.callback.onEnd(this.completedPart);
           this.emitter.emit("task-end", { taskId: this.taskId });
           return;
@@ -406,6 +426,8 @@ export class BiliPartVideoTask extends AbstractTask {
     log.warn(`task ${this.taskId} killed`);
     this.status = "canceled";
     this.command.cancel();
+    // 重置进度追踪
+    this.speedCalculator.reset();
     this.emit("task-cancel", { taskId: this.taskId, autoStart: triggerAutoStart });
     this.endTime = Date.now();
     return true;
@@ -564,7 +586,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
     const minUploadInterval = config?.biliUpload?.minUploadInterval || 0;
 
     if (minUploadInterval > 0) {
-      const lastUploadTime = StatisticsService.query("bili_last_upload_time");
+      const lastUploadTime = statisticsService.query("bili_last_upload_time");
       if (lastUploadTime) {
         const lastTime = parseInt(lastUploadTime.value);
         const currentTime = Date.now();
@@ -612,8 +634,8 @@ export class BiliAddVideoTask extends BiliVideoTask {
       this.callback.onEnd && this.callback.onEnd(data);
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
-      uploadPartModel.removeByCids(parts.map((part) => part.cid));
-      StatisticsService.addOrUpdate({
+      uploadPartService.removeByCids(parts.map((part) => part.cid));
+      statisticsService.addOrUpdate({
         where: { stat_key: "bili_last_upload_time" },
         create: {
           stat_key: "bili_last_upload_time",
@@ -621,7 +643,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
         },
       });
     } catch (err) {
-      log.error("上传失败", err);
+      log.error("上传失败", String(err), err);
       this.status = "error";
       this.error = String(err);
       this.callback.onError && this.callback.onError(this.error);
@@ -665,7 +687,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
     const minUploadInterval = config?.biliUpload?.minUploadInterval || 0;
 
     if (minUploadInterval > 0) {
-      const lastUploadTime = StatisticsService.query("bili_last_upload_time");
+      const lastUploadTime = statisticsService.query("bili_last_upload_time");
       if (lastUploadTime) {
         const lastTime = parseInt(lastUploadTime.value);
         const currentTime = Date.now();
@@ -716,8 +738,8 @@ export class BiliEditVideoTask extends BiliVideoTask {
       this.callback.onEnd && this.callback.onEnd(data);
       this.output = String(data.aid);
       this.emitter.emit("task-end", { taskId: this.taskId });
-      uploadPartModel.removeByCids(parts.map((part) => part.cid));
-      StatisticsService.addOrUpdate({
+      uploadPartService.removeByCids(parts.map((part) => part.cid));
+      statisticsService.addOrUpdate({
         where: { stat_key: "bili_last_upload_time" },
         create: {
           stat_key: "bili_last_upload_time",
@@ -725,7 +747,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
         },
       });
     } catch (err) {
-      log.error("编辑失败", err);
+      log.error("编辑失败", String(err), err);
       this.status = "error";
       this.error = String(err);
       this.callback.onError && this.callback.onError(this.error);

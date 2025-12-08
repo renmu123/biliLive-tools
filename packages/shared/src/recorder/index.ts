@@ -17,9 +17,9 @@ import {
 } from "@bililive-tools/manager";
 
 import recordHistory from "./recordHistory.js";
-import { danmuModel } from "../db/index.js";
+import { danmuService } from "../db/index.js";
 // import DanmuService from "../db/service/danmuService.js";
-import { getFfmpegPath, readVideoMeta } from "../task/video.js";
+import { getBinPath, readVideoMeta } from "../task/video.js";
 import logger from "../utils/log.js";
 import { replaceExtName } from "../utils/index.js";
 import RecorderConfig from "./config.js";
@@ -32,7 +32,7 @@ import type { Recorder } from "@bililive-tools/manager";
 
 export { RecorderConfig };
 
-async function sendLiveNotification(
+async function sendStartLiveNotification(
   appConfig: AppConfig,
   recorder: Recorder,
   config: RecorderConfigType,
@@ -53,6 +53,27 @@ async function sendLiveNotification(
       const url = recorder.getChannelURL();
       shell.openExternal(url);
     });
+  } else {
+    await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
+  }
+}
+
+async function sendEndLiveNotification(
+  appConfig: AppConfig,
+  recorder: Recorder,
+  config: RecorderConfigType,
+) {
+  const name = recorder?.liveInfo?.owner ? recorder.liveInfo.owner : config.remarks;
+  const title = `${name}(${config.channelId}) 录制已停止`;
+
+  const globalConfig = appConfig.getAll();
+  let notifyType = globalConfig?.notification?.setting?.type;
+  if (globalConfig?.notification?.taskNotificationType["liveStart"]) {
+    notifyType = globalConfig?.notification?.taskNotificationType["liveStart"];
+  }
+
+  if (notifyType === "system") {
+    sendBySystem(title, "");
   } else {
     await send(title, `标题：${recorder?.liveInfo?.title}`, { type: "liveStart" });
   }
@@ -117,7 +138,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   }
 
   const config = appConfig.getAll();
-  const { ffmpegPath, mesioPath, bililiveRecorderPath } = getFfmpegPath();
+  const { ffmpegPath, mesioPath, bililiveRecorderPath } = getBinPath();
   setFFMPEGPath(ffmpegPath);
   setMesioPath(mesioPath);
   setBililivePath(bililiveRecorderPath);
@@ -160,18 +181,32 @@ export async function createRecorderManager(appConfig: AppConfig) {
   manager.on("RecordStart", (debug) => {
     logger.info("Manager start", debug);
   });
-  manager.on("RecordStop", (debug) => {
-    logger.info("Manager stop", debug);
+  manager.on("RecordStop", ({ recorder }) => {
+    logger.info("Manager stop", recorder);
+    // 录制结束通知，自动监听&开启推送时才会发送
+    const config = recorderConfig.get(recorder.id);
+    if (!config) return;
+    if (config?.liveEndNotification && !config?.disableAutoCheck) {
+      setTimeout(
+        () => {
+          const trueRecorder = manager.getRecorder(recorder.id);
+          if (!trueRecorder) return;
+          if (trueRecorder?.recordHandle) return;
+          sendEndLiveNotification(appConfig, trueRecorder, config);
+        },
+        1000 * 60 * 3,
+      );
+    }
   });
   manager.on("error", (error) => {
     logger.error("Manager error", error);
   });
   manager.on("RecoderLiveStart", async ({ recorder }) => {
-    // 只有客户端&自动监听&开始推送时才会发送
+    // 录制开始通知，自动监听&开启推送时才会发送
     const config = recorderConfig.get(recorder.id);
     if (!config) return;
     if (config?.liveStartNotification && !config?.disableAutoCheck) {
-      sendLiveNotification(appConfig, recorder, config);
+      sendStartLiveNotification(appConfig, recorder, config);
     }
   });
   // manager.on("RecordSegment", (debug) => {
@@ -179,7 +214,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
   // });
   manager.on("videoFileCreated", async ({ recorder, filename, rawFilename }) => {
     logger.info("Manager videoFileCreated", { recorder, filename, rawFilename });
-    const startTime = new Date();
+    const videoStartTime = new Date();
+    const liveStartTime = recorder.liveInfo?.liveStartTime;
 
     if (!recorder.liveInfo) {
       logger.error("Manager videoFileCreated Error", { recorder, filename, rawFilename });
@@ -194,7 +230,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           event: "FileOpening",
           filePath: filename,
           roomId: recorder.channelId,
-          time: startTime.toISOString(),
+          time: videoStartTime.toISOString(),
           title: recorder.liveInfo.title,
           username: recorder.liveInfo.owner,
           platform: recorder.providerId,
@@ -205,9 +241,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
       );
 
     recordHistory.addWithStreamer({
-      live_start_time: recorder.liveInfo.startTime?.getTime(),
+      live_start_time: liveStartTime?.getTime(),
       live_id: recorder?.liveInfo?.liveId,
-      record_start_time: startTime.getTime(),
+      record_start_time: videoStartTime.getTime(),
       room_id: recorder.channelId,
       title: recorder.liveInfo.title,
       video_file: filename,
@@ -337,7 +373,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           gift_name: item.gift_name,
         });
       }
-      danmuModel.addMany(result, {
+      danmuService.addMany(result, {
         platform: recorder.providerId,
         roomId: recorder.channelId,
       });
@@ -345,7 +381,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
   });
 
   appConfig.on("update", () => {
-    const { ffmpegPath, mesioPath, bililiveRecorderPath } = getFfmpegPath();
+    const { ffmpegPath, mesioPath, bililiveRecorderPath } = getBinPath();
     setFFMPEGPath(ffmpegPath);
     setMesioPath(mesioPath);
     setBililivePath(bililiveRecorderPath);

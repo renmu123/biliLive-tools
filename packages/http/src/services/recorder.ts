@@ -1,8 +1,7 @@
 import axios from "axios";
 import { v4 as uuid } from "uuid";
 import { container } from "../index.js";
-import { createRecorderManager } from "@biliLive-tools/shared";
-import { omit, pick, isEmpty } from "lodash-es";
+import { omit, pick, isEmpty, cloneDeep } from "lodash-es";
 import recordHistory from "@biliLive-tools/shared/recorder/recordHistory.js";
 import logger from "@biliLive-tools/shared/utils/log.js";
 import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
@@ -10,13 +9,11 @@ import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
 import type { RecorderAPI, ClientRecorder } from "../types/recorder.js";
 import type { Recorder } from "@bililive-tools/manager";
 
-type createRecorderManagerType = Awaited<ReturnType<typeof createRecorderManager>>;
-
 // RecorderAPI 的实际实现，这里负责实现对外暴露的接口，并假设 Args 都已经由上一层解析好了
 async function getRecorders(
   params: RecorderAPI["getRecorders"]["Args"],
 ): Promise<RecorderAPI["getRecorders"]["Resp"]> {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const recorderManager = container.resolve("recorderManager");
   let list = recorderManager.manager.recorders.map((item) => recorderToClient(item));
 
   if (params.platform) {
@@ -98,7 +95,7 @@ async function getRecorders(
       );
       data.recordHandle = isEmpty(data.recordHandle)
         ? data.recordHandle
-        : omit(data.recordHandle, "ffmpegArgs");
+        : omit(data.recordHandle, "downloaderArgs");
       return data;
     }),
     pagination: {
@@ -112,7 +109,7 @@ async function getRecorders(
 function getRecorder(
   args: RecorderAPI["getRecorder"]["Args"],
 ): RecorderAPI["getRecorder"]["Resp"] | undefined {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const recorderManager = container.resolve("recorderManager");
   const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
   if (recorder == null) throw new Error("404");
   const data = recorderManager.config.getRaw(args.id);
@@ -123,7 +120,7 @@ function getRecorder(
 async function addRecorder(
   args: RecorderAPI["addRecorder"]["Args"],
 ): Promise<RecorderAPI["addRecorder"]["Resp"]> {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const recorderManager = container.resolve("recorderManager");
 
   const config = {
     id: uuid(),
@@ -138,7 +135,7 @@ async function addRecorder(
 async function updateRecorder(
   args: RecorderAPI["updateRecorder"]["Args"],
 ): Promise<RecorderAPI["updateRecorder"]["Resp"]> {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const recorderManager = container.resolve("recorderManager");
   // @ts-ignore
   const recorder = await recorderManager.updateRecorder(args);
   if (recorder == null) throw new Error("配置不存在");
@@ -149,7 +146,7 @@ async function updateRecorder(
 function removeRecorder(
   args: RecorderAPI["removeRecorder"]["Args"],
 ): RecorderAPI["removeRecorder"]["Resp"] {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const recorderManager = container.resolve("recorderManager");
   const recorder = recorderManager.manager.recorders.find((item) => item.id === args.id);
   if (recorder == null) return null;
 
@@ -169,25 +166,25 @@ function removeRecorder(
 }
 
 async function startRecord(args: RecorderAPI["startRecord"]["Args"]): Promise<null> {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const recorderManager = container.resolve("recorderManager");
   await recorderManager.manager.startRecord(args.id);
   return null;
 }
 
 async function stopRecord(args: RecorderAPI["stopRecord"]["Args"]): Promise<null> {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const recorderManager = container.resolve("recorderManager");
   await recorderManager.manager.stopRecord(args.id);
   return null;
 }
 
 async function cutRecord(args: RecorderAPI["cutRecord"]["Args"]): Promise<null> {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const recorderManager = container.resolve("recorderManager");
   await recorderManager.manager.cutRecord(args.id);
   return null;
 }
 
 async function getBiliStream(id: string) {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const recorderManager = container.resolve("recorderManager");
   const recorder = recorderManager.manager.recorders.find((item) => item.id === id);
   if (!recorder) throw new Error("未找到录制器");
   if (recorder.providerId !== "Bilibili") throw new Error("只支持bilibili录制");
@@ -272,7 +269,7 @@ export function recorderToClient(recorder: Recorder): ClientRecorder {
 }
 
 export function resolveChannel(url: string) {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const recorderManager = container.resolve("recorderManager");
   return recorderManager.resolveChannel(url);
 }
 
@@ -284,7 +281,7 @@ export async function resolve(url: string) {
   }
 
   // 根据平台初始化配置
-  const config = defaultRecordConfig;
+  const config = cloneDeep(defaultRecordConfig);
   config.channelId = channelInfo.channelId;
   config.providerId = channelInfo.providerId as any;
   config.remarks = channelInfo.owner;
@@ -350,7 +347,7 @@ export async function batchResolveChannel(urls: string[]) {
 }
 
 export async function getLiveInfo(ids: string[]) {
-  const recorderManager = container.resolve<createRecorderManagerType>("recorderManager");
+  const recorderManager = container.resolve("recorderManager");
   const recorders = recorderManager.manager.recorders;
 
   const requests = recorders

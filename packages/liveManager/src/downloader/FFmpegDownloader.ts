@@ -2,19 +2,19 @@ import EventEmitter from "node:events";
 
 import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
 import { createInvalidStreamChecker, assert } from "../utils.js";
-import { IRecorder, FFMPEGRecorderOptions } from "./IRecorder.js";
+import { IDownloader, FFMPEGRecorderOptions, Segment } from "./IDownloader.js";
 
-import { FormatName } from "./index.js";
+import { FormatName, DEFAULT_USER_AGENT } from "./index.js";
 import type { VideoFormat } from "../index.js";
 
-export class FFMPEGRecorder extends EventEmitter implements IRecorder {
+export class FFmpegDownloader extends EventEmitter implements IDownloader {
   public type = "ffmpeg" as const;
   private command: ReturnType<typeof createFFMPEGBuilder>;
   private streamManager: StreamManager;
   private timeoutChecker: ReturnType<typeof utils.createTimeoutChecker>;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
-  readonly segment: number;
+  readonly segment: Segment;
   ffmpegOutputOptions: string[] = [];
   readonly inputOptions: string[] = [];
   readonly isHls: boolean;
@@ -35,7 +35,11 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
-    const hasSegment = !!opts.segment;
+    let hasSegment = false;
+    // 只有数字才表示时间分段，只有时间分段才会在ffmpeg走分段逻辑
+    if (opts.segment && typeof opts.segment === "number") {
+      hasSegment = true;
+    }
     this.hasSegment = hasSegment;
     this.debugLevel = opts.debugLevel ?? "none";
     this.formatName = opts.formatName;
@@ -62,7 +66,7 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
     this.disableDanma = opts.disableDanma ?? false;
     this.streamManager = new StreamManager(
       opts.getSavePath,
-      hasSegment,
+      this.hasSegment,
       this.disableDanma,
       "ffmpeg",
       this.videoFormat,
@@ -101,7 +105,7 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
     const inputOptions = [
       ...this.inputOptions,
       "-user_agent",
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
+      this.headers?.["User-Agent"] ?? DEFAULT_USER_AGENT,
     ];
     if (this.isHls) {
       inputOptions.push(
@@ -114,7 +118,7 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
     if (this.headers) {
       const headers: string[] = [];
       Object.entries(this.headers).forEach(([key, value]) => {
-        if (!value) return;
+        if (!value || key === "User-Agent") return; // User-Agent单独处理
         headers.push(`${key}:${value}`);
       });
       if (headers.length) {
@@ -161,15 +165,13 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
       "-min_frag_duration",
       "10000000",
     );
-    if (this.hasSegment) {
-      options.push(
-        "-f",
-        "segment",
-        "-segment_time",
-        String(this.segment * 60),
-        "-reset_timestamps",
-        "1",
-      );
+    if (this.segment) {
+      if (typeof this.segment === "number") {
+        options.push("-f", "segment", "-segment_time", String(this.segment * 60));
+      } else if (typeof this.segment === "string") {
+        options.push("-fs", String(this.segment));
+      }
+      options.push("-reset_timestamps", "1");
       if (this.videoFormat === "m4s") {
         options.push("-segment_format", "mp4");
       }
@@ -225,5 +227,13 @@ export class FFMPEGRecorder extends EventEmitter implements IRecorder {
 
   public getExtraDataController() {
     return this.streamManager?.getExtraDataController();
+  }
+
+  public get videoFilePath() {
+    return this.streamManager.videoFilePath;
+  }
+
+  public cut() {
+    throw new Error("FFmpeg downloader does not support cut operation.");
   }
 }

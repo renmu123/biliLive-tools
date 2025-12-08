@@ -1,9 +1,9 @@
 import fs from "fs/promises";
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { StreamManager, Segment } from "../src/recorder/streamManager";
+import { StreamManager, Segment } from "../../src/downloader/streamManager";
 
-vi.mock("../src/record_extra_data_controller", () => ({
+vi.mock("../../src/record_extra_data_controller", () => ({
   createRecordExtraDataController: () => ({
     data: {
       meta: {
@@ -17,7 +17,7 @@ vi.mock("../src/record_extra_data_controller", () => ({
   }),
 }));
 
-vi.mock("../src/xml_stream_controller", () => ({
+vi.mock("../../src/xml_stream_controller", () => ({
   createRecordExtraDataController: () => ({
     data: {
       meta: {

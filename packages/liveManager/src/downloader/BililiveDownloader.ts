@@ -1,8 +1,10 @@
 import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
+import { DEFAULT_USER_AGENT } from "./index.js";
 import { StreamManager, getBililivePath } from "../index.js";
-import { IRecorder, BililiveRecorderOptions } from "./IRecorder.js";
+import { byte2MB } from "../utils.js";
+import { IDownloader, BililiveRecorderOptions, Segment } from "./IDownloader.js";
 
 // Bililive command builder class similar to ffmpeg
 class BililiveRecorderCommand extends EventEmitter {
@@ -82,7 +84,6 @@ class BililiveRecorderCommand extends EventEmitter {
     this.process.on("error", (error) => {
       this.emit("error", error);
     });
-    [];
     this.process.on("close", (code) => {
       if (code === 0) {
         this.emit("end");
@@ -92,9 +93,15 @@ class BililiveRecorderCommand extends EventEmitter {
     });
   }
 
-  kill(signal: NodeJS.Signals = "SIGTERM"): void {
+  kill(): void {
     if (this.process) {
-      this.process.kill(signal);
+      this.process.stdin?.write("q\n");
+      // this.process.kill("SIGTERM");
+    }
+  }
+  cut(): void {
+    if (this.process) {
+      this.process.stdin?.write("s\n");
     }
   }
 }
@@ -104,13 +111,13 @@ export const createBililiveBuilder = (): BililiveRecorderCommand => {
   return new BililiveRecorderCommand();
 };
 
-export class BililiveRecorder extends EventEmitter implements IRecorder {
+export class BililiveDownloader extends EventEmitter implements IDownloader {
   public type = "bililive" as const;
   private command: BililiveRecorderCommand;
   private streamManager: StreamManager;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
-  readonly segment: number;
+  readonly segment: Segment;
   readonly inputOptions: string[] = [];
   readonly disableDanma: boolean = false;
   readonly url: string;
@@ -127,10 +134,11 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
     private onUpdateLiveInfo: () => Promise<{ title?: string; cover?: string }>,
   ) {
     super();
+    // 存在自动分段，永远为true
     const hasSegment = true;
+    this.hasSegment = hasSegment;
     this.disableDanma = opts.disableDanma ?? false;
     this.debugLevel = opts.debugLevel ?? "none";
-
     let videoFormat: "flv" = "flv";
 
     this.streamManager = new StreamManager(
@@ -143,12 +151,14 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
         onUpdateLiveInfo: this.onUpdateLiveInfo,
       },
     );
-    this.hasSegment = hasSegment;
     this.getSavePath = opts.getSavePath;
     this.inputOptions = [];
     this.url = opts.url;
     this.segment = opts.segment;
-    this.headers = opts.headers;
+    this.headers = {
+      "User-Agent": DEFAULT_USER_AGENT,
+      ...(opts.headers || {}),
+    };
 
     this.command = this.createCommand();
 
@@ -164,11 +174,7 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
   }
 
   createCommand() {
-    const inputOptions = [
-      ...this.inputOptions,
-      "-h",
-      "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36",
-    ];
+    const inputOptions = [...this.inputOptions, "--disable-log-file", "true"];
     if (this.debugLevel === "verbose") {
       inputOptions.push("-l", "Debug");
     }
@@ -179,8 +185,12 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
         inputOptions.push("-h", `${key}: ${value}`);
       });
     }
-    if (this.hasSegment) {
-      inputOptions.push("-d", `${this.segment}`);
+    if (this.segment) {
+      if (typeof this.segment === "number") {
+        inputOptions.push("-d", `${this.segment}`);
+      } else if (typeof this.segment === "string") {
+        inputOptions.push("-m", byte2MB(Number(this.segment)).toFixed(2));
+      }
     }
 
     const command = createBililiveBuilder()
@@ -228,7 +238,7 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
   public async stop() {
     try {
       // 直接发送SIGINT信号，会导致数据丢失
-      this.command.kill("SIGINT");
+      this.command.kill();
 
       await this.streamManager.handleVideoCompleted();
     } catch (err) {
@@ -238,5 +248,13 @@ export class BililiveRecorder extends EventEmitter implements IRecorder {
 
   public getExtraDataController() {
     return this.streamManager?.getExtraDataController();
+  }
+
+  public get videoFilePath() {
+    return this.streamManager.videoFilePath;
+  }
+
+  public cut() {
+    this.command.cut();
   }
 }

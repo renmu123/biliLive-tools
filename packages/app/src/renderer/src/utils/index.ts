@@ -105,3 +105,33 @@ export function generateHMACSHA256(message, secretKey) {
 export function sha256(message: string) {
   return CryptoJS.SHA256(message).toString(CryptoJS.enc.Hex);
 }
+
+/**
+ * 替换文件扩展名
+ * @param filePath 文件路径
+ * @param newExtName 新的扩展名，包含点号
+ */
+export function replaceExtName(filePath: string, newExtName: string) {
+  return window.path.join(
+    window.path.dirname(filePath),
+    window.path.basename(filePath, window.path.extname(filePath)) + newExtName,
+  );
+}
+
+/**
+ * 生成有辨识度的颜色
+ * 使用 HSL 色彩空间,固定饱和度和亮度,通过黄金角度分割色相环
+ */
+export const generateDistinctColor = (index: number, active = true): string => {
+  const goldenRatio = 0.618033988749895;
+  const hue = (index * goldenRatio * 360) % 360;
+  let saturation = 65; // 饱和度 65%
+  let lightness = 60; // 亮度 60%
+  let alpha = 0.5; // 透明度
+  if (!active) {
+    saturation = 30;
+    lightness = 50;
+    alpha = 0.35;
+  }
+  return `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
+};

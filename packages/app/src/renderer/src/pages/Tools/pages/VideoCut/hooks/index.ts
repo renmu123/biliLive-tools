@@ -2,89 +2,114 @@ import { Ref } from "vue";
 import JSON5 from "json5";
 import { useAppConfig, useSegmentStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
+import { showSaveDialog } from "@renderer/utils/fileSystem";
+import { commonApi } from "@renderer/apis";
 
-export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
+/**
+ * 项目管理 Hook
+ * 负责 lossless-cut 项目文件的导入、保存、加载等操作
+ */
+export function useProjectManager(
+  files: Ref<{
+    videoPath: string | null;
+    danmuPath: string | null;
+    originDanmuPath: string | null;
+    originVideoPath: string | null;
+  }>,
+) {
   const notice = useNotification();
   const { appConfig } = storeToRefs(useAppConfig());
-  const { rawCuts, selectedCuts, cuts } = storeToRefs(useSegmentStore());
-  const { clearHistory, init } = useSegmentStore();
+  const { rawCuts } = storeToRefs(useSegmentStore());
+  const { init } = useSegmentStore();
 
-  const llcProjectPath = ref("");
-  const mediaPath = ref("");
+  // 项目文件路径
+  const projectFilePath = ref("");
 
   /**
-   * 导入项目文件
+   * 清理项目状态
    */
-  const importProject = async () => {
-    const files = await window.api.openFile({
-      multi: false,
-      filters: [
-        {
-          name: "file",
-          extensions: ["llc"],
-        },
-      ],
-    });
-    if (!files) return;
-    const file = files[0];
-    handleProject(file);
+  const resetProjectState = () => {
+    projectFilePath.value = "";
   };
 
   /**
-   * 处理项目文件
+   * 加载项目文件
+   * @param filePath 项目文件路径
    */
-  const handleProject = async (file: string) => {
-    llcProjectPath.value = file;
-    const data = JSON5.parse(await window.api.common.readFile(file));
-    init(
-      data.cutSegments.map((item: any) => {
-        return {
-          ...item,
-          checked: true,
-        };
-      }),
-    );
-    const mediaFileName = data.mediaFileName;
-    mediaPath.value = window.path.join(window.path.dirname(file), mediaFileName);
+  const loadProjectFile = async (filePath: string) => {
+    try {
+      const projectData = await readProjectFile(filePath);
+
+      // 更新项目路径
+      projectFilePath.value = filePath;
+
+      // 初始化切片数据
+      const segments = projectData.cutSegments.map((item: any) => ({
+        ...item,
+        checked: true,
+      }));
+      init(segments);
+    } catch (error) {
+      notice.error({
+        title: "项目文件解析失败，请确认文件有效",
+        duration: 2000,
+      });
+    }
   };
 
   /**
-   * 从本地重新加载项目文件，项目文件可能已经被更新
+   * 读取项目文件
    */
-  const loadProject = async () => {
-    if (options.value.find((item) => item.key === "refresh")?.disabled) return;
-
-    clearHistory();
-    handleProject(llcProjectPath.value);
+  const readProjectFile = async (filePath: string) => {
+    const content = await commonApi.readLLCProject(filePath);
+    const projectData = JSON5.parse(content);
+    return projectData;
   };
 
   /**
-   * 保存项目按钮
+   * 重新加载当前项目文件
    */
-  const saveProject = async () => {
-    const mediaFileName = mediaPath.value || files.value.videoPath;
+  // const reloadProject = async () => {
+  //   if (!projectFilePath.value) return;
+
+  //   clearHistory();
+  //   await loadProjectFile(projectFilePath.value);
+  // };
+
+  /**
+   * 保存项目（如果已有路径则直接保存，否则另存为）
+   * @param sourceVideoPath 源视频路径，用于另存为时的默认路径
+   */
+  const saveProject = async (ignoreNotice = false) => {
+    const mediaFileName = files.value.originVideoPath;
     if (!mediaFileName) {
+      if (ignoreNotice) return;
       notice.error({
         title: "请先选择视频文件",
         duration: 2000,
       });
       return;
     }
-    if (llcProjectPath.value) {
-      save();
+
+    if (projectFilePath.value) {
+      await saveToFile(projectFilePath.value, mediaFileName, ignoreNotice);
     } else {
-      saveAsAnother();
+      const { dir, name } = window.path.parse(mediaFileName);
+      projectFilePath.value = window.path.join(dir, `${name}-proj.llc`);
+      await saveToFile(projectFilePath.value, mediaFileName, ignoreNotice);
     }
   };
 
   /**
-   * 保存项目
+   * 保存项目到指定文件
+   * @param filePath 保存路径
+   * @param mediaFileName 媒体文件名
    */
-  const save = async () => {
-    const mediaFileName = mediaPath.value || files.value.videoPath;
-    if (!mediaFileName) {
+  const saveToFile = async (filePath: string, mediaFileName: string, ignoreNotice = false) => {
+    if (rawCuts.value.length === 0) {
+      if (ignoreNotice) return;
       notice.error({
-        title: "请先选择视频文件",
+        title: "你必须至少添加一个片段才能保存项目",
         duration: 2000,
       });
       return;
@@ -94,94 +119,122 @@ export function useLlcProject(files: Ref<{ videoPath: string | null }>) {
       mediaFileName: window.path.basename(mediaFileName),
       cutSegments: rawCuts.value.map(({ start, end, name, tags }) => ({ start, end, name, tags })),
     };
-    console.log("save", llcProjectPath.value, projectData);
-    await window.api.common.writeFile(llcProjectPath.value, JSON5.stringify(projectData, null, 2));
-    notice.success({
-      title: "已保存",
-      duration: 1000,
-    });
+
+    await commonApi.writeLLCProject(filePath, JSON5.stringify(projectData, null, 2));
+    // notice.success({
+    //   title: "已保存",
+    //   duration: 1000,
+    // });
   };
 
   /**
-   * 使用lossless-cut打开项目文件
+   * 使用 lossless-cut 打开项目文件
    */
-  const openProject = async () => {
-    if (!llcProjectPath.value) {
+  const openInLosslessCut = async () => {
+    if (!projectFilePath.value) {
       return;
     }
+
     if (appConfig.value.losslessCutPath) {
-      // 使用用户设置的lossless-cut路径打开项目文件
-      window.api.common.execFile(appConfig.value.losslessCutPath, [llcProjectPath.value]);
-      console.log("openProject", appConfig.value.losslessCutPath);
+      // 使用用户设置的 lossless-cut 路径
+      window.api.common.execFile(appConfig.value.losslessCutPath, [projectFilePath.value]);
     } else {
       notice.info({
         title: "使用默认程序打开llc文件，你也可以尝试在设置中设置lossless-cut的路径",
         duration: 2000,
       });
-      await window.api.openPath(llcProjectPath.value);
+      await window.api.openPath(projectFilePath.value);
     }
   };
 
   /**
    * 另存为项目文件
+   * @param sourceVideoPath 源视频路径，用于生成默认文件名
    */
-  const saveAsAnother = async () => {
-    if (options.value.find((item) => item.key === "saveAnother")?.disabled) return;
+  const saveProjectAs = async () => {
+    const mediaFileName = files.value.originVideoPath;
+    if (!mediaFileName) {
+      notice.error({
+        title: "请先选择视频文件",
+        duration: 2000,
+      });
+      return;
+    }
 
-    const file = await window.api.showSaveDialog({
-      filters: [{ name: "LosslessCut项目", extensions: ["llc"] }],
+    const { dir, name } = window.path.parse(mediaFileName);
+    const defaultPath = window.path.join(dir, `${name}-proj.llc`);
+    const file = await showSaveDialog({
+      extension: "llc",
+      defaultPath,
     });
 
     if (!file) return;
-    llcProjectPath.value = file;
-    await save();
+
+    projectFilePath.value = file;
+    await saveToFile(file, mediaFileName, true);
   };
 
   /**
-   * 导入项目文件按钮组点击事件
+   * 处理项目操作按钮点击
+   * @param action 操作类型
+   * @param sourceVideoPath 源视频路径
    */
-  const handleProjectClick = (key?: string | number) => {
-    if (!key) {
-      importProject();
-    } else if (key === "refresh") {
-      loadProject();
-    } else if (key === "save") {
-      saveProject();
-    } else if (key === "open") {
-      openProject();
-    } else if (key === "saveAnother") {
-      saveAsAnother();
-    } else {
-      console.error(`${key} is not supported`);
+  const handleProjectAction = (action?: string | number) => {
+    switch (action) {
+      case "save":
+        saveProject();
+        break;
+      case "open":
+        openInLosslessCut();
+        break;
+      case "saveAnother":
+        saveProjectAs();
+        break;
+      default:
+        console.error(`不支持的操作: ${action}`);
     }
   };
 
-  const options = computed(() => {
-    const disabled = !llcProjectPath.value;
+  /**
+   * 项目操作选项
+   */
+  const projectMenuOptions = computed(() => {
+    const hasProject = !!projectFilePath.value;
+    const hasVideo = !!files.value.videoPath;
     const isWeb = window.isWeb;
     const items: { label: string; key: string; disabled: boolean }[] = [];
+
     if (!isWeb) {
-      items.push({ label: "重新加载", key: "refresh", disabled });
-      items.push({ label: "使用llc打开", key: "open", disabled });
-      items.push({ label: "保存(ctrl+s)", key: "save", disabled });
+      items.push({ label: "使用llc打开", key: "open", disabled: !hasProject });
     }
+    items.push({ label: "保存(ctrl+s)", key: "save", disabled: !hasProject });
     items.push({
-      label: "另存为(ctrl+shift+n)",
+      label: "另存为(ctrl+shift+s)",
       key: "saveAnother",
-      disabled: !files.value.videoPath,
+      disabled: !hasVideo,
     });
+
     return items;
   });
 
+  watch(
+    () => rawCuts.value,
+    () => {
+      if (appConfig.value.videoCut.autoSave) {
+        saveProject(true);
+      }
+    },
+    { deep: true },
+  );
+
   return {
-    cuts,
-    selectedCuts,
-    handleProjectClick,
-    llcProjectPath,
-    mediaPath,
-    options,
+    projectFilePath,
+    projectMenuOptions,
+    handleProjectAction,
     saveProject,
-    saveAsAnother,
-    handleProject,
+    saveProjectAs,
+    loadProjectFile,
+    resetProjectState,
+    readProjectFile,
   };
 }

@@ -15,11 +15,10 @@ import {
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
-import { StatisticsService } from "@biliLive-tools/shared/db/service/index.js";
+import { statisticsService } from "@biliLive-tools/shared/db/index.js";
 
 import { config, handler, appConfig, fileCache } from "../index.js";
 import { container } from "../index.js";
-import { createRecorderManager } from "@biliLive-tools/shared";
 
 const router = new Router({
   prefix: "/common",
@@ -218,7 +217,7 @@ router.post("/cover/upload", upload.single("file"), async (ctx) => {
 });
 
 router.get("/appStartTime", async (ctx) => {
-  const data = StatisticsService.query("start_time");
+  const data = statisticsService.query("start_time");
   ctx.body = data?.value;
 });
 
@@ -233,15 +232,17 @@ router.get("/getLogContent", async (ctx) => {
   ctx.body = content;
 });
 
-router.post("/readAss", async (ctx) => {
+router.post("/readDanma", async (ctx) => {
   const { filepath } = ctx.request.body as {
     filepath: string;
   };
-  if (!filepath.endsWith(".ass")) {
+  // 只允许读取ass或xml文件
+  if (!filepath.endsWith(".ass") && !filepath.endsWith(".xml")) {
     ctx.status = 400;
-    ctx.body = "文件不是ass格式";
+    ctx.body = "文件不是ass或xml格式";
     return;
   }
+
   if (!(await fs.pathExists(filepath))) {
     ctx.status = 400;
     ctx.body = "文件不存在";
@@ -249,6 +250,45 @@ router.post("/readAss", async (ctx) => {
   }
   const content = await fs.readFile(filepath, "utf-8");
   ctx.body = content;
+});
+
+router.post("/readLLC", async (ctx) => {
+  const { filepath } = ctx.request.body as {
+    filepath: string;
+  };
+  if (!(await fs.pathExists(filepath))) {
+    ctx.status = 400;
+    ctx.body = "文件不存在";
+    return;
+  }
+  const content = await fs.readFile(filepath, "utf-8");
+  if (!content.includes("cutSegments")) {
+    ctx.status = 400;
+    ctx.body = "文件不是有效的llc项目文件";
+    return;
+  }
+  ctx.body = content;
+});
+router.post("/writeLLC", async (ctx) => {
+  const { filepath, content } = ctx.request.body as {
+    filepath: string;
+    content: string;
+  };
+  if (!content.includes("cutSegments")) {
+    ctx.status = 400;
+    ctx.body = "文件不是有效的llc项目文件";
+    return;
+  }
+  await fs.writeFile(filepath, content, "utf-8");
+  ctx.body = "success";
+});
+
+router.post("/fileExists", async (ctx) => {
+  const { filepath } = ctx.request.body as {
+    filepath: string;
+  };
+  const exists = await fs.pathExists(filepath);
+  ctx.body = exists;
 });
 
 router.post("/genTimeData", async (ctx) => {
@@ -474,8 +514,7 @@ router.get("/whyUploadFailed", async (ctx) => {
 
   try {
     // 检查是否为内部录制
-    type RecorderManagerType = Awaited<ReturnType<typeof createRecorderManager>>;
-    const recorderManager = container.resolve<RecorderManagerType>("recorderManager");
+    const recorderManager = container.resolve("recorderManager");
     const internalRecorder = recorderManager.manager.recorders.find(
       (recorder) => recorder.channelId == roomId,
     );

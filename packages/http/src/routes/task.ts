@@ -1,3 +1,4 @@
+import path from "node:path";
 import fs from "fs-extra";
 import Router from "@koa/router";
 
@@ -21,15 +22,21 @@ import {
   readVideoMeta,
   cut,
   checkMergeVideos,
+  extractAudio,
 } from "@biliLive-tools/shared/task/video.js";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
-import { trashItem } from "@biliLive-tools/shared/utils/index.js";
+import {
+  trashItem,
+  calculateFileQuickHash,
+  getTempPath,
+} from "@biliLive-tools/shared/utils/index.js";
 import {
   testVirtualRecordConfig,
   executeVirtualRecordConfig,
 } from "@biliLive-tools/shared/task/virtualRecord.js";
 import { flvRepair } from "@biliLive-tools/shared/task/flvRepair.js";
-import { fileCache } from "../index.js";
+import { generateAudioWaveform } from "@biliLive-tools/shared/task/audiowaveform.js";
+import { fileCache, appConfig } from "../index.js";
 
 import type { DanmuPreset, DanmaOptions } from "@biliLive-tools/types";
 
@@ -437,6 +444,61 @@ router.post("/executeVirtualRecord", async (ctx) => {
   try {
     await executeVirtualRecordConfig(config, folderPath, startTime);
     ctx.body = { success: true, message: "执行成功" };
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = error instanceof Error ? error.message : "Internal server error";
+  }
+});
+
+router.post("/extractPeaks", async (ctx) => {
+  const { input } = ctx.request.body as {
+    input: string;
+  };
+  if (!input) {
+    ctx.status = 400;
+    ctx.body = "input is required";
+    return;
+  }
+
+  // 计算文件快速哈希值作为文件名
+  const fileHash = await calculateFileQuickHash(input);
+  const cachePath = getTempPath();
+  const outputVideoName = `cut_${fileHash}.wav`;
+  const outputPeakName = `peaks_${fileHash}.json`;
+  const outputPeakPath = path.join(cachePath, outputPeakName);
+
+  if (await fs.pathExists(outputPeakPath)) {
+    const cachedData = await fs.readJSON(outputPeakPath);
+    ctx.body = { output: cachedData };
+    return;
+  }
+
+  const task = await extractAudio(input, outputVideoName, {
+    saveType: 2,
+    savePath: cachePath,
+    autoRun: true,
+    addQueue: false,
+  });
+  const outputFile: string = await new Promise((resolve, reject) => {
+    task.on("task-end", () => {
+      resolve(task.output as string);
+    });
+    task.on("task-error", (err) => {
+      reject(err);
+    });
+  });
+
+  try {
+    await generateAudioWaveform(outputFile, outputPeakPath);
+    const data = await fs.readJSON(outputPeakPath);
+
+    const config = appConfig.get("videoCut");
+    if (!config.cacheWaveform) {
+      fs.remove(outputPeakPath);
+    }
+    fs.remove(outputFile);
+
+    ctx.body = { output: data };
   } catch (error) {
     ctx.status = 500;
     ctx.body = error instanceof Error ? error.message : "Internal server error";

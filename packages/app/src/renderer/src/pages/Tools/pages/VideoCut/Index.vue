@@ -1,112 +1,60 @@
 <template>
   <div id="cut-tool" class="container">
-    <div class="btns page-header">
-      <ButtonGroup
-        title="请选择项目文件，兼容LosslessCut项目文件"
-        :options="exportOptions"
-        @click="handleProjectBtnClick"
-        v-if="!isWeb"
-        >导入项目文件</ButtonGroup
-      >
-      <n-button type="primary" @click="handleVideoChange"> {{ videoTitle }} </n-button>
-      <n-button
-        class="cut-add-danmu"
-        type="primary"
-        :disabled="!files.videoPath"
-        @click="handleDanmuChange"
-      >
-        {{ danmuTitle }}
-      </n-button>
+    <!-- 上侧区域 -->
+    <div class="upper-section">
+      <!-- 左侧视频区域 -->
+      <VideoPlayer
+        ref="videoPlayerRef"
+        :video-path="files.videoPath"
+        :heatmap-options="clientOptions"
+        @ready="handleVideoReady"
+        @duration-change="handleVideoDurationChange"
+        @files-dropped="handleDroppedFiles"
+      />
 
-      <n-button class="cut-export" type="info" :disabled="!files.videoPath" @click="exportCuts">
-        导出切片
-      </n-button>
-      <n-button @click="openSubWindow" v-if="!isWeb" style="display: none">打开独立窗口</n-button>
-    </div>
+      <!-- 右侧分段列表区域 -->
+      <div class="segment-section">
+        <div class="btns page-header">
+          <ButtonGroup :options="projectMenuItems" @click="handleProjectMenuClick" size="small"
+            >添加/替换</ButtonGroup
+          >
 
-    <div class="content">
-      <div v-show="files.videoPath" class="video cut-video">
-        <Artplayer
-          v-show="files.videoPath"
-          ref="videoRef"
-          :option="{
-            fullscreen: true,
-            plugins: {
-              heatmap: {
-                option: clientOptions,
-              },
-            },
-          }"
-          :plugins="['ass', 'heatmap']"
-          @ready="handleVideoReady"
-          @video:durationchange="handleVideoDurationChange"
-        ></Artplayer>
-        <div
-          v-if="clientOptions.showSetting"
-          style="display: flex; gap: 20px; align-items: center; margin-top: 20px"
-        >
-          <n-checkbox v-model:checked="hotProgressVisible"></n-checkbox>
-          <div>
-            <n-input-number
-              v-model:value="clientOptions.sampling"
-              placeholder="单位秒"
-              min="1"
-              style="width: 140px"
-            >
-              <template #suffix> 秒 </template></n-input-number
-            >
-          </div>
-          <div>
-            <n-input-number
-              v-model:value="clientOptions.height"
-              placeholder="单位像素"
-              min="10"
-              style="width: 140px"
-            >
-              <template #suffix> 像素 </template></n-input-number
-            >
-          </div>
-          <div>
-            <n-color-picker v-model:value="clientOptions.color" style="width: 140px" />
-          </div>
-          <div>
-            <n-color-picker v-model:value="clientOptions.fillColor" style="width: 140px" />
-          </div>
-          <n-checkbox v-model:checked="danmaSearchMask">弹幕搜索栏遮罩</n-checkbox>
+          <n-button
+            class="cut-export"
+            type="info"
+            :disabled="!files.videoPath"
+            @click="exportCuts"
+            size="small"
+          >
+            导出
+          </n-button>
+        </div>
+        <div class="segment-list-container">
+          <SegmentList
+            :danma-list="danmaList"
+            :files="files"
+            :danmaSearchMask="danmaSearchMask"
+          ></SegmentList>
         </div>
       </div>
-
-      <FileArea
-        v-show="!files.videoPath"
-        v-model="fileList"
-        :style="{ height: '100%' }"
-        class="video empty cut-file-area"
-        :extensions="['llc', 'flv', 'mp4', 'm4s', 'ts', 'mkv']"
-        :max="1"
-        @change="handleFileChange"
-      >
-        <template #desc>
-          请导入视频或<a href="https://github.com/mifi/lossless-cut" target="_blank">lossless-cut</a
-          >项目文件，如果你不会使用，请先<span title="鸽了"
-            >查看教程，如果视频无法播放，请尝试转封装为mp4</span
-          >
-        </template>
-      </FileArea>
-      <div class="cut-list">
-        <SegmentList
-          :danma-list="danmaList"
-          :files="files"
-          :danmaSearchMask="danmaSearchMask"
-        ></SegmentList>
-      </div>
     </div>
+
+    <!-- 下侧配置项区域 -->
+    <ConfigPanel
+      :client-options="clientOptions"
+      v-model:hot-progress-visible="hotProgressVisible"
+      v-model:show-video-time="showVideoTime"
+      v-model:danma-search-mask="danmaSearchMask"
+      v-model:waveform-visible="waveformVisible"
+      :waveform-loading="waveformLoading"
+    />
   </div>
   <DanmuFactorySettingDailog
     v-model:visible="xmlConvertVisible"
     v-model="videoVCutOptions.danmuPresetId"
     :show-preset="true"
-    @confirm="danmuConfirm"
-    @cancel="convertDanmuLoading = false"
+    @confirm="handleConfirmConvertDanmu"
+    @cancel="handleCancelConvertDanmu"
   ></DanmuFactorySettingDailog>
   <ExportModal v-model="exportVisible" :files="files"></ExportModal>
 </template>
@@ -115,78 +63,38 @@
 defineOptions({
   name: "videoCut",
 });
+import { toReactive } from "@vueuse/core";
 import { supportedVideoExtensions } from "@renderer/utils";
-import Artplayer from "@renderer/components/Artplayer/Index.vue";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
 import DanmuFactorySettingDailog from "@renderer/components/DanmuFactorySettingDailog.vue";
 import { useSegmentStore, useAppConfig } from "@renderer/stores";
 import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
+import VideoPlayer from "./components/VideoPlayer.vue";
+import ConfigPanel from "./components/ConfigPanel.vue";
 import { useStorage } from "@vueuse/core";
 import { showFileDialog } from "@renderer/utils/fileSystem";
-import { taskApi, commonApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
-
-import { useLlcProject } from "./hooks";
+import { commonApi } from "@renderer/apis";
 import { useDrive } from "@renderer/hooks/drive";
-import hotkeys from "hotkeys-js";
-import { useElementSize, toReactive } from "@vueuse/core";
-import { sortBy } from "lodash-es";
+import { useProjectManager } from "./hooks";
+import { useVideoPlayer } from "./composables/useVideoPlayer";
+import { useDanmu } from "./composables/useDanmu";
+import { useWaveform } from "./composables/useWaveform";
+import { useKeyboardShortcuts } from "./composables/useKeyboardShortcuts";
 
-import type ArtplayerType from "artplayer";
-import type { DanmuConfig, DanmuItem } from "@biliLive-tools/types";
+import type { DanmuConfig } from "@biliLive-tools/types";
 
-onActivated(() => {
-  // 撤销
-  hotkeys("ctrl+z", function () {
-    undo();
-  });
-  // 重做
-  hotkeys("ctrl+shift+z", function () {
-    redo();
-  });
-  // 保存
-  hotkeys("ctrl+s", function () {
-    saveProject();
-  });
-  // 另存为
-  hotkeys("ctrl+shift+s", function () {
-    saveAsAnother();
-  });
-  // 导出
-  hotkeys("ctrl+enter", function () {
-    exportCuts();
-  });
-  // 播放/暂停
-  hotkeys("space", function (event) {
-    // @ts-ignore
-    if (event?.target?.tagName === "BUTTON") return;
-    // @ts-ignore
-    if (event?.target?.className.includes("artplayer")) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    event.stopPropagation();
-    videoToggle();
-  });
-  // 慢速快进
-  hotkeys("ctrl+left", function () {
-    if (!videoInstance.value) return;
-    videoInstance.value.backward = 1;
-  });
-  // 慢速后退
-  hotkeys("ctrl+right", function () {
-    if (!videoInstance.value) return;
-
-    videoInstance.value.forward = 1;
-  });
+const clientOptions = useStorage("cut-hotprogress", {
+  showSetting: true,
+  sampling: 10,
+  height: 50,
+  fillColor: "#f9f5f3",
+  color: "#333333",
 });
-
-onDeactivated(() => {
-  hotkeys.unbind();
-});
-onUnmounted(() => {
-  hotkeys.unbind();
-});
+const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
+const danmaSearchMask = useStorage("cut-danma-search-mask", true);
+const showVideoTime = useStorage("cut-show-video-time", true);
 
 const notice = useNotification();
 const isWeb = ref(window.isWeb);
@@ -202,12 +110,6 @@ const files = ref<{
   originDanmuPath: null,
   originVideoPath: null,
 });
-const videoTitle = computed(() => {
-  return files.value.videoPath ? "替换视频" : "添加视频";
-});
-const danmuTitle = computed(() => {
-  return files.value.danmuPath ? "替换弹幕" : "添加弹幕";
-});
 
 const openSubWindow = async () => {
   if (isWeb.value) {
@@ -221,19 +123,19 @@ const openSubWindow = async () => {
 };
 
 const {
-  selectedCuts,
-  handleProjectClick,
-  mediaPath,
-  options: exportBtns,
+  handleProjectAction,
+  projectMenuOptions,
   saveProject,
-  saveAsAnother,
-  handleProject,
-} = useLlcProject(files);
+  saveProjectAs,
+  loadProjectFile,
+  resetProjectState,
+  readProjectFile,
+} = useProjectManager(files);
 
-const { duration: videoDuration, rawCuts } = storeToRefs(useSegmentStore());
 const { appConfig } = storeToRefs(useAppConfig());
 
-const { undo, redo, clearHistory } = useSegmentStore();
+const { undo, redo, clear: clearCuts } = useSegmentStore();
+const { selectedCuts } = storeToRefs(useSegmentStore());
 
 const videoVCutOptions = toReactive(
   computed({
@@ -244,85 +146,241 @@ const videoVCutOptions = toReactive(
   }),
 );
 
-const exportOptions = computed(() => {
-  return [
-    ...exportBtns.value,
+const projectMenuItems = computed(() => {
+  const list = [
+    { label: "导入项目文件", key: "importProject" },
+    { label: "加载弹幕", key: "importDanmu" },
+    ...projectMenuOptions.value,
     { label: "关闭", key: "closeVideo", disabled: !files.value.videoPath },
   ];
+  if (!isWeb.value) {
+    list.push({
+      label: "打开独立窗口",
+      key: "openSubWindow",
+    });
+  }
+  return list;
 });
 const confirm = useConfirm();
 
-const handleProjectBtnClick = async (key?: string | number) => {
-  if (key === "closeVideo") {
-    const [status] = await confirm.warning({
-      content: "是否确认关闭？相关数据将被清理，且无法恢复",
-    });
-    if (!status) return;
+// 初始化 composables
+const {
+  videoInstance,
+  videoRef: videoPlayerRef,
+  loadVideo: loadVideoCore,
+  togglePlay,
+  handleVideoReady,
+} = useVideoPlayer(isWeb);
+const { duration: videoDuration } = storeToRefs(useSegmentStore());
+const {
+  danmaList,
+  xmlConvertVisible,
+  convertDanmuLoading,
+  loadDanmuFile,
+  confirmAndConvertDanmu: confirmConvert,
+  closeConvertDialog,
+  generateDanmakuData,
+} = useDanmu(videoInstance, videoPlayerRef, videoDuration, showVideoTime);
+const { waveformLoading, waveformVisible, initWaveform, destroyWaveform } =
+  useWaveform(videoInstance);
 
-    handleVideo("");
-    files.value.danmuPath = null;
-    files.value.originDanmuPath = null;
-    fileList.value = [];
-    rawCuts.value = [];
-    clearHistory();
+provide("videoInstance", videoInstance);
+
+// 声明 videoRef 用于获取 VideoPlayer 组件实例
+const videoRef = ref<any>(null);
+
+// 同步 videoRef 到 videoPlayerRef
+watch(
+  videoRef,
+  (newVal) => {
+    if (newVal) {
+      videoPlayerRef.value = newVal.videoRef;
+    }
+  },
+  { immediate: true },
+);
+
+/**
+ * 处理拖拽文件变化
+ * @param droppedFiles 文件列表
+ */
+const handleDroppedFiles = (droppedFiles: any[]) => {
+  if (!droppedFiles.length) return;
+  const file = droppedFiles[0];
+  const { path, ext } = file;
+
+  // 根据文件类型进行不同处理
+  if (ext === ".llc") {
+    loadProject(path);
   } else {
-    handleProjectClick(key);
+    loadProject(path);
   }
 };
 
-watchEffect(async () => {
-  if (mediaPath.value) {
-    const videoPath = mediaPath.value;
-    await handleVideo(videoPath);
+const handleDanmuFile = async (filePath: string) => {
+  if (filePath.endsWith(".xml")) {
+    if (!files.value.videoPath) {
+      notice.error({
+        title: "请先加载视频文件",
+        duration: 2000,
+      });
+      return;
+    }
+  } else if (filePath.endsWith(".ass")) {
+    if (!files.value.videoPath) {
+      notice.error({
+        title: "请先加载视频文件",
+        duration: 2000,
+      });
+      return;
+    }
+    files.value.originDanmuPath = filePath;
+    files.value.danmuPath = filePath;
+  } else {
+    throw new Error("不支持的弹幕文件格式");
+  }
 
-    if (!isWeb.value) {
-      const { dir, name } = window.path.parse(mediaPath.value);
-      const assFilepath = window.path.join(dir, `${name}.ass`);
-      if (await window.api.exits(assFilepath)) {
-        handleDanmu(assFilepath);
-      } else {
-        const xmlFilepath = window.path.join(dir, `${name}.xml`);
-        if (await window.api.exits(xmlFilepath)) {
-          handleDanmu(xmlFilepath);
-        }
-      }
+  await loadDanmuFile(filePath);
+};
+
+/**
+ * 调用文件选择对话框，选择并加载文件
+ */
+const selectLoadFile = async (extensions: string[]) => {
+  const selectedFiles = await showFileDialog({
+    extensions,
+  });
+  if (!selectedFiles || selectedFiles.length === 0) return;
+
+  const filePath = selectedFiles[0];
+  if (filePath.endsWith(".xml")) {
+    await handleDanmuFile(filePath);
+  } else if (filePath.endsWith(".ass")) {
+    await handleDanmuFile(filePath);
+  } else if (filePath.endsWith(".llc")) {
+    await loadProject(filePath);
+  } else {
+    await loadProject(filePath);
+  }
+};
+
+/**
+ * 加载项目
+ */
+const loadProject = async (filePath: string) => {
+  let videoPath: string;
+  let projectFile: string | undefined;
+  if (filePath.endsWith(".llc")) {
+    projectFile = filePath;
+    // 如果是项目文件，那么先读取项目文件内容，获得媒体文件路径
+    const projectData = await readProjectFile(filePath);
+    const mediaFileName = projectData.mediaFileName;
+    const possibleVideoPath = window.path.join(window.path.dirname(filePath), mediaFileName);
+    const exists = await commonApi.fileExists(possibleVideoPath);
+    if (exists) {
+      videoPath = possibleVideoPath;
+    } else {
+      alert("项目关联的视频文件不存在，无法加载");
+      return;
+    }
+  } else {
+    // 这里就是视频文件了
+    videoPath = filePath;
+    const { dir, name } = window.path.parse(filePath);
+    const possibleProjectFile = window.path.join(dir, `${name}-proj.llc`);
+    const exists = await commonApi.fileExists(possibleProjectFile);
+    if (exists) {
+      projectFile = possibleProjectFile;
     }
   }
-});
-
-const videoRef = ref<InstanceType<typeof Artplayer> | null>(null);
-// @ts-ignore
-const { width: videoWidth } = useElementSize(videoRef);
-
-const videoInstance = ref<ArtplayerType | null>(null);
-provide("videoInstance", videoInstance);
-const handleVideoReady = (instance: ArtplayerType) => {
-  videoInstance.value = instance;
+  loadVideo(videoPath);
+  if (projectFile) {
+    await loadProjectFile(projectFile);
+  }
 };
 
-const handleVideoChange = async () => {
-  const files = await showFileDialog({ extensions: supportedVideoExtensions });
-  if (!files) return;
-
-  const path = files?.[0];
-  path && handleVideo(path);
-};
-
-const handleVideo = async (path: string) => {
+/**
+ * 加载视频文件
+ * @param path 视频文件路径
+ */
+const loadVideo = async (path: string) => {
   files.value.originVideoPath = path;
-  if (isWeb.value) {
-    const { videoId, type } = await commonApi.applyVideoId(path);
-    const videoUrl = await commonApi.getVideo(videoId);
-    files.value.videoPath = videoUrl;
-    await videoRef.value?.switchUrl(videoUrl, type as any);
-  } else {
-    files.value.videoPath = path;
-    await videoRef.value?.switchUrl(path, path.endsWith(".flv") ? "flv" : "");
+  destroyWaveform();
+
+  const videoUrl = await loadVideoCore(path);
+  files.value.videoPath = videoUrl;
+
+  autoLoadDanmuFile(path);
+};
+
+/**
+ * 关闭所有资源（视频、弹幕、项目等）
+ */
+const closeAllResources = async () => {
+  const [status] = await confirm.warning({
+    content: "是否确认关闭？相关数据将被清理，且无法恢复",
+  });
+  if (!status) return;
+
+  // 清理视频
+  await loadVideo("");
+  videoPlayerRef.value?.clearFiles();
+
+  // 清理弹幕
+  files.value.danmuPath = null;
+  files.value.originDanmuPath = null;
+
+  // 清理项目状态
+  resetProjectState();
+
+  // 清理切片数据
+  clearCuts();
+
+  // 重置时间戳
+  // @ts-ignore
+  if (videoInstance.value?.artplayerTimestamp) {
+    // @ts-ignore
+    videoInstance.value.artplayerTimestamp.setTimestamp(0);
+  }
+};
+
+const handleProjectMenuClick = async (key?: string | number) => {
+  if (!key) {
+    selectLoadFile([...supportedVideoExtensions, "xml", "ass"]);
+    return;
   }
 
-  if (files.value.danmuPath) {
-    const content = await commonApi.readAss(files.value.danmuPath);
-    videoRef?.value?.switchAss(content);
+  if (key === "closeVideo") {
+    await closeAllResources();
+  } else if (key === "importDanmu") {
+    await selectLoadFile(["ass", "xml"]);
+  } else if (key === "openSubWindow") {
+    openSubWindow();
+  } else if (key === "importProject") {
+    await selectLoadFile(["llc"]);
+  } else {
+    handleProjectAction(key);
+  }
+};
+
+/**
+ * 自动加载与视频同名的弹幕文件
+ * @param videoPath 视频文件路径
+ */
+const autoLoadDanmuFile = async (videoPath: string) => {
+  const { dir, name } = window.path.parse(videoPath);
+
+  // 优先查找 .ass 文件
+  const assFilepath = window.path.join(dir, `${name}.ass`);
+  if (await commonApi.fileExists(assFilepath)) {
+    await loadDanmuFile(assFilepath);
+    return;
+  }
+
+  // 其次查找 .xml 文件
+  const xmlFilepath = window.path.join(dir, `${name}.xml`);
+  if (await commonApi.fileExists(xmlFilepath)) {
+    await loadDanmuFile(xmlFilepath);
   }
 };
 
@@ -331,86 +389,31 @@ const handleVideo = async (path: string) => {
  */
 const handleVideoDurationChange = (duration: number) => {
   videoDuration.value = duration;
-};
 
-// 弹幕相关
-const xmlConvertVisible = ref(false);
-const tempXmlFile = ref("");
-const convertDanmuLoading = ref(false);
-const handleDanmuChange = async () => {
-  const files = await showFileDialog({ extensions: ["ass", "xml"] });
-  if (!files) return;
-
-  const path = files?.[0];
-  path && handleDanmu(path);
+  initWaveform(files.value.originVideoPath);
 };
 
 /**
- * 处理弹幕
+ * 关闭弹幕转换对话框
  */
-const handleDanmu = async (path: string) => {
-  files.value.originDanmuPath = path;
-
-  if (path.endsWith(".ass")) {
-    const content = await commonApi.readAss(path);
-    files.value.danmuPath = path;
-
-    videoRef.value?.switchAss(content);
-  } else {
-    // 如果是xml文件则弹框提示，要求转换为ass文件
-    xmlConvertVisible.value = true;
-    tempXmlFile.value = path;
-    convertDanmuLoading.value = true;
-  }
-  generateDanmakuData(path);
+const handleCancelConvertDanmu = () => {
+  closeConvertDialog();
 };
 
-const danmuConfirm = async (config: DanmuConfig) => {
-  if (config.resolutionResponsive) {
-    const width = videoInstance.value?.video.videoWidth;
-    const height = videoInstance.value?.video.videoHeight;
-    config.resolution[0] = width!;
-    config.resolution[1] = height!;
-  }
-  try {
-    const { output } = await taskApi.convertXml2Ass(tempXmlFile.value, "随便填", config, {
-      copyInput: true,
-      removeOrigin: false,
-      saveRadio: 2,
-      temp: true,
-      savePath: "",
-      sync: true,
-    });
-    const content = await commonApi.readAss(output);
-    files.value.danmuPath = output;
-    videoRef.value?.switchAss(content);
-  } finally {
-    convertDanmuLoading.value = false;
-  }
-};
-
-const danmaList = ref<DanmuItem[]>([]);
 /**
- * 生成高能进度条数据和sc等数据
+ * 确认并执行弹幕转换
  */
-const generateDanmakuData = async (file: string) => {
-  if (file.endsWith(".ass")) {
-    danmaList.value = [];
-  } else if (file.endsWith(".xml")) {
-    const data = await commonApi.parseDanmu(file);
-    danmaList.value = sortBy([...data.sc, ...data.danmu], "ts");
-  } else {
-    throw new Error("不支持的文件类型");
-  }
-
-  if (!videoDuration.value) return;
-  const data = await commonApi.genTimeData(file);
-
-  // @ts-ignore
-  videoInstance.value && videoInstance.value.artplayerPluginHeatmap.setData(data);
+const handleConfirmConvertDanmu = async (config: DanmuConfig) => {
+  const [output, original] = await confirmConvert(config);
+  files.value.danmuPath = output;
+  files.value.originDanmuPath = original;
+  await generateDanmakuData(original);
 };
 
 const exportVisible = ref(false);
+/**
+ * 导出切片
+ */
 const exportCuts = async () => {
   if (selectedCuts.value.length === 0) {
     notice.error({
@@ -437,27 +440,18 @@ const exportCuts = async () => {
   exportVisible.value = true;
 };
 
-/**
- * 视频状态切换
- */
-const videoToggle = () => {
-  if (!videoInstance.value) return;
-  if (!videoInstance.value.url) return;
-  videoInstance.value.toggle();
-};
-
-const fileList = ref<any[]>([]);
-const handleFileChange = (fileList: any[]) => {
-  if (!fileList.length) return;
-  const file = fileList[0];
-  const { path, ext } = file;
-
-  if (ext === ".llc") {
-    handleProject(path);
-  } else {
-    handleVideo(path);
-  }
-};
+// 键盘快捷键
+useKeyboardShortcuts(
+  {
+    onUndo: () => undo(),
+    onRedo: () => redo(),
+    onSave: () => saveProject(),
+    onSaveAs: () => saveProjectAs(),
+    onExport: () => exportCuts(),
+    onTogglePlay: () => togglePlay(),
+  },
+  videoInstance,
+);
 
 const { videoCutDrive } = useDrive();
 onMounted(() => {
@@ -465,16 +459,6 @@ onMounted(() => {
     videoCutDrive();
   }
 });
-
-const clientOptions = useStorage("cut-hotprogress", {
-  showSetting: true,
-  sampling: 10,
-  height: 50,
-  fillColor: "#f9f5f3",
-  color: "#333333",
-});
-const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
-const danmaSearchMask = useStorage("cut-danma-search-mask", true);
 
 watch(
   clientOptions,
@@ -490,49 +474,94 @@ watch(
   },
 );
 
-watch(hotProgressVisible, () => {
+const setHotProgressVisible = (visible: boolean) => {
   if (!videoInstance.value) return;
   // @ts-ignore
   if (!videoInstance.value.artplayerPluginHeatmap) return;
 
-  // @ts-ignore
-  if (hotProgressVisible.value) {
+  if (visible) {
     // @ts-ignore
     videoInstance.value.artplayerPluginHeatmap.show();
   } else {
     // @ts-ignore
     videoInstance.value.artplayerPluginHeatmap.hide();
   }
+};
+
+watch(hotProgressVisible, () => {
+  setHotProgressVisible(hotProgressVisible.value);
 });
+
+watch(showVideoTime, () => {
+  switchShowVideoTime();
+});
+const switchShowVideoTime = () => {
+  if (!videoInstance.value) return;
+  // @ts-ignore
+  if (!videoInstance.value.artplayerTimestamp) return;
+
+  // @ts-ignore
+  if (showVideoTime.value) {
+    // @ts-ignore
+    videoInstance.value.artplayerTimestamp.show();
+  } else {
+    // @ts-ignore
+    videoInstance.value.artplayerTimestamp.hide();
+  }
+};
 </script>
 
 <style scoped lang="less">
-.btns {
+.container {
   display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-  gap: 10px;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
-.content {
+.upper-section {
+  flex: 1;
   display: flex;
   gap: 10px;
-  align-items: flex-start;
-  .video {
-    width: 80%;
-    aspect-ratio: 16 / 9;
-    position: relative;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
 
-    &.empty {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 22px;
-    }
+.segment-section {
+  width: 245px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  .btns {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+    gap: 6px;
+    flex-shrink: 0;
   }
-  .cut-list {
-    display: inline-block;
-    flex: 1;
+  .segment-list-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 6px;
+    scrollbar-gutter: stable;
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(144, 147, 153, 0.3);
+      border-radius: 3px;
+
+      &:hover {
+        background: rgba(144, 147, 153, 0.5);
+      }
+    }
   }
 }
 </style>

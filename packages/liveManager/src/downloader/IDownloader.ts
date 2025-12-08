@@ -4,13 +4,15 @@ import type { VideoFormat } from "../index.js";
 import type { FormatName } from "./index.js";
 import type { XmlStreamController } from "../xml_stream_controller.js";
 
+export type Segment = number | string | undefined;
+
 /**
  * 录制器构造函数选项的基础接口
  */
 export interface BaseRecorderOptions {
   url: string;
   getSavePath: (data: { startTime: number; title?: string }) => string;
-  segment: number;
+  segment: Segment;
   inputOptions?: string[];
   disableDanma?: boolean;
   formatName: FormatName;
@@ -24,11 +26,11 @@ export interface BaseRecorderOptions {
 /**
  * 录制器接口定义
  */
-export interface IRecorder extends EventEmitter {
+export interface IDownloader extends EventEmitter {
   // 基础属性
   type: "ffmpeg" | "mesio" | "bililive";
   readonly hasSegment: boolean;
-  readonly segment: number;
+  readonly segment: Segment;
   readonly inputOptions: string[];
   readonly disableDanma: boolean;
   readonly url: string;
@@ -38,9 +40,11 @@ export interface IRecorder extends EventEmitter {
   // 核心方法
   run(): void;
   stop(): Promise<void>;
+  cut(): void;
   getArguments(): string[];
   getExtraDataController(): XmlStreamController | null;
   createCommand(): any;
+  get videoFilePath(): string;
 
   // 事件类型定义
   on(

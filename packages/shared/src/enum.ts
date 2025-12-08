@@ -38,6 +38,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   minimizeToTray: false,
   closeToTray: true,
   theme: "system",
+  menuBarVisible: true,
   port: 18010,
   host: "127.0.0.1",
   passKey: "",
@@ -80,6 +81,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   losslessCutPath: "",
   mesioPath: "",
   bililiveRecorderPath: "",
+  audiowaveformPath: "",
   cacheFolder: "",
   /** 允许自定义可执行文件地址 */
   customExecPath: false,
@@ -144,6 +146,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       douyuResolution: "highest",
       override: false,
       onlyAudio: false,
+      onlyDanmu: false,
     },
     translate: {
       presetId: undefined,
@@ -164,6 +167,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     biliUploadMaxNum: 2,
     biliDownloadMaxNum: 2,
     syncMaxNum: 3,
+  },
+  videoCut: {
+    autoSave: true,
+    cacheWaveform: true,
   },
   notification: {
     task: {
@@ -259,7 +266,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     maxThreadCount: 3,
     waitTime: 0,
     disableProvideCommentsWhenRecording: false,
-    segment: 90,
+    segment: "90",
     saveGiftDanma: false,
     saveSCDanma: true,
     saveCover: false,
@@ -270,7 +277,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     videoFormat: "auto",
     recorderType: "auto",
     useServerTimestamp: true,
-    recordRetryImmediately: false,
+    recordRetryImmediately: true,
     bilibili: {
       uid: undefined,
       quality: 10000,
@@ -287,13 +294,14 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       quality: 0,
       formatName: "auto",
       source: "auto",
+      api: "auto",
     },
     douyin: {
       quality: "origin",
       formatName: "auto",
       cookie: "",
       doubleScreen: true,
-      api: "mobile",
+      api: "web",
     },
     saveDanma2DB: false,
   },
@@ -679,7 +687,7 @@ export const videoEncoders = [
 export const defaultRecordConfig: Omit<Recorder, "id"> = {
   providerId: "DouYu",
   channelId: "",
-  segment: 60,
+  segment: "60",
   quality: "highest",
   disableProvideCommentsWhenRecording: false,
   saveGiftDanma: false,
@@ -697,6 +705,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   codecName: "auto",
   titleKeywords: "",
   liveStartNotification: false,
+  liveEndNotification: false,
   weight: 10,
   source: "auto",
   videoFormat: "auto",
@@ -706,4 +715,5 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   useServerTimestamp: true,
   handleTime: [null, null],
   debugLevel: "none",
+  api: "web",
 };
