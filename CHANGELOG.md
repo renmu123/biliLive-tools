@@ -3,7 +3,7 @@
 ## 功能
 
 - 切片：片段支持右键菜单
-- 切片：项目支持自动保存，默认开启
+- 切片：项目支持自动保存，默认开启 [#264](https://github.com/renmu123/biliLive-tools/pull/264)
 - B站上传：内存优化，从默认约90m节约至2m
 - 录制：录播姬引擎支持主动分段 [#258](https://github.com/renmu123/biliLive-tools/pull/258)
 - 录制：虎牙支持接口参数，默认行为从星秀区使用`mp`接口修改为使用`wup`接口 [#265](https://github.com/renmu123/biliLive-tools/pull/265)
@@ -14,6 +14,7 @@
 - 录制：录播姬引擎不再默认显示日志
 - 录制：历史记录视频预览支持弹幕
 - 录制：虎牙弹幕链接初始化优化
+- 录制：mesio 引擎支持智能停止，由上游支持 [#253](https://github.com/renmu123/biliLive-tools/pull/253)
 - 切片：视频时间栏不会再被隐藏
 - 切片：优化波形图片段颜色生成算法，未激活时使用不同颜色；激活切片栏边框色与波形图一致
 - 切片：支持`ctrl+n`新建片段
@@ -31,10 +32,15 @@
 - 切片：修复开启显示时间戳，但默认没有显示的bug
 - 切片：修复添加视频后，关闭项目时部分状态未清理的bug
 - 切片：修复添加xml弹幕出现弹框取消后，部分状态错误的bug
-- 切片：修复某些情况下导入llc时间戳错误的bug
-- 切片：修复操作历史记录不会反映到波形图的bug
+- 切片：修复某些情况下导入llc时间戳错误的bug [#264](https://github.com/renmu123/biliLive-tools/pull/264)
+- 切片：修复操作历史记录不会反映到波形图的bug [#264](https://github.com/renmu123/biliLive-tools/pull/264)
 - B站上传：修复上传多个分p时，存在上传完成分p，取消其他分p后，任务不会结束的bug
 - webhook: 修复oneliverec可能无法读取到元数据的bug
+
+## 其他
+
+- 录播姬依赖升级至 3.3.0
+- mesio 依赖升级至 0.3.6 [#253](https://github.com/renmu123/biliLive-tools/pull/253)
 
 # 3.4.1(2025.11.28)
 
