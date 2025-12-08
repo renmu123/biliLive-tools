@@ -93,9 +93,10 @@ class MesioCommand extends EventEmitter {
     });
   }
 
-  kill(signal: NodeJS.Signals = "SIGTERM"): void {
+  kill(): void {
     if (this.process) {
-      this.process.kill(signal);
+      this.process.stdin?.write("q");
+      this.process.stdin?.end();
     }
   }
 }
@@ -222,9 +223,8 @@ export class mesioDownloader extends EventEmitter implements IDownloader {
 
   public async stop() {
     try {
-      // 直接发送SIGINT信号，会导致数据丢失
-      this.command.kill("SIGINT");
-
+      this.command.kill();
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       await this.streamManager.handleVideoCompleted();
     } catch (err) {
       this.emit("DebugLog", { type: "error", text: String(err) });

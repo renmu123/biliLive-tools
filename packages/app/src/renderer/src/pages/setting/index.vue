@@ -178,7 +178,7 @@
                 <template #label>
                   <Tip
                     text="mesio路径"
-                    tip="最新测试过的版本为0.3.3，请先去项目查看文档：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md"
+                    tip="最新测试过的版本为0.3.5，请先去项目查看文档：https://github.com/hua0512/rust-srec/blob/main/mesio-cli/README.md"
                   ></Tip>
                 </template>
                 <n-input v-model:value="config.mesioPath" placeholder="请输入mesio可执行文件路径" />
