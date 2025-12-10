@@ -19,14 +19,8 @@
         placeholder="结束时间"
         style="width: 150px"
       />
+      <ColumnSelector v-model="visibleColumns" :columns="columnConfig" />
       <n-button type="primary" @click="handleQuery"> 查询 </n-button>
-      <n-select
-        v-model:value="visibleColumns"
-        multiple
-        :options="columnConfig.map((col) => ({ label: col.label, value: col.value }))"
-        style="width: 150px"
-        max-tag-count="responsive"
-      />
       <n-button @click="goBack">返回</n-button>
     </div>
 
@@ -84,6 +78,7 @@ import { Delete20Regular, PlayCircle24Regular } from "@vicons/fluent";
 import { FileOpenOutlined } from "@vicons/material";
 import { useConfirm } from "@renderer/hooks";
 import PreviewModal from "../Home/components/previewModal.vue";
+import ColumnSelector from "@renderer/components/ColumnSelector.vue";
 
 import type { VNode } from "vue";
 
