@@ -48,6 +48,7 @@
           { label: '直播状态', key: 'living' },
           { label: '录制状态', key: 'state' },
           { label: '监听状态', key: 'monitorStatus' },
+          { label: '录制时间', key: 'recordTime' },
         ]"
         @update:field="handleSortFieldChange"
         @update:direction="handleSortDirectionChange"

@@ -14,8 +14,13 @@
           <div class="recording"></div>
           <span class="source">{{ item.usedSource }}</span>
           <span class="line">{{ item.usedStream }}</span>
-          <span>{{ formatTime(item?.recordHandle?.progress?.time) }}</span>
+          <span>{{ formatProgress(item?.recordHandle?.progress?.time) }}</span>
         </div>
+        <template v-else>
+          <div v-if="item?.extra?.lastRecordTime" class="recording-container">
+            <span>上次录制时间：{{ formatTime(item.extra.lastRecordTime) }}</span>
+          </div>
+        </template>
       </div>
       <div class="content">
         <img class="avatar" :src="item.avatar" referrerpolicy="no-referrer" />
@@ -82,6 +87,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatTime } from "@renderer/utils";
 import { EllipsisHorizontalOutline } from "@vicons/ionicons5";
 import { Live24Regular, AccessTime24Regular } from "@vicons/fluent";
 import { AudiotrackRound } from "@vicons/material";
@@ -96,7 +102,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const list = computed(() => props.list);
 
-function formatTime(time?: string) {
+function formatProgress(time?: string) {
   if (!time) return "";
   return time.split(".")[0];
 }
@@ -161,7 +167,7 @@ const stateMap = {
       align-items: center;
       box-sizing: border-box;
       color: white;
-      background-color: rgba(0, 0, 0, 0.7);
+      background-color: rgba(0, 0, 0, 0.6);
       padding: 4px 8px;
       position: absolute;
       width: 100%;
