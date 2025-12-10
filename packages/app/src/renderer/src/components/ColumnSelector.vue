@@ -25,7 +25,6 @@ import { NPopover, NCheckbox, NButton } from "naive-ui";
 interface ColumnConfig {
   value: string;
   label: string;
-  defaultVisible: boolean;
 }
 
 interface Props {
@@ -35,6 +34,7 @@ interface Props {
 
 interface Emits {
   (e: "update:modelValue", value: string[]): void;
+  (e: "change", value: string[]): void;
 }
 
 const props = defineProps<Props>();
@@ -49,5 +49,6 @@ const toggleColumn = (columnValue: string) => {
     newValue.push(columnValue);
   }
   emit("update:modelValue", newValue);
+  emit("change", newValue);
 };
 </script>
