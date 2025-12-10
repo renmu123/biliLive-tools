@@ -234,6 +234,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           title: recorder.liveInfo.title,
           username: recorder.liveInfo.owner,
           platform: recorder.providerId,
+          software: "biliLive-tools",
         },
         {
           proxy: false,
@@ -273,6 +274,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           title: title,
           username: username,
           platform: recorder.providerId,
+          software: "biliLive-tools",
         },
         {
           proxy: false,

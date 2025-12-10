@@ -161,7 +161,8 @@ export const genFfmpegParams = (options: FfmpegOptions) => {
 };
 
 export const uuid = () => {
-  return Math.random().toString(36).slice(2);
+  // 更加安全的UUID生成方法
+  return crypto.randomUUID();
 };
 
 export const pathExists = async (path: string) => {
