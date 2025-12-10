@@ -231,7 +231,7 @@ async function getLiveInfo(
       ?.codec.filter(({ codec_name }) => codec_name === condition.codec_name);
 
     if (streamList && streamList.length > 1) {
-      // 由于录播姬直推hevc时，指定qn，服务端仍会返回其他画质的流，这里需要指定找一下流
+      // 由于直播姬直推hevc时，指定qn，服务端仍会返回其他画质的流，这里需要指定找一下流
       streamInfo = streamList.find((item) => item.current_qn === opts.qn);
     }
 
