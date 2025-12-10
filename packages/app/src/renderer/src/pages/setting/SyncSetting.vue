@@ -164,6 +164,16 @@
               <template #suffix>KB</template>
             </n-input-number>
           </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="重试次数"
+                tip="失败后自动重试，仅限于本地上传至alist服务端，并非alist服务端内部的上传重试"
+              ></Tip>
+            </template>
+            <n-input-number v-model:value="config.sync.alist.retry" min="0" step="1" max="10">
+            </n-input-number>
+          </n-form-item>
         </n-tab-pane>
         <n-tab-pane class="tab-pane" name="pan123" tab="123网盘" display-directive="show:lazy">
           <n-form-item>
