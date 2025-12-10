@@ -17,7 +17,10 @@
           <span>{{ formatProgress(item?.recordHandle?.progress?.time) }}</span>
         </div>
         <template v-else>
-          <div v-if="item?.extra?.lastRecordTime" class="recording-container">
+          <div
+            v-if="item?.extra?.lastRecordTime && isColumnVisible('lastRecordTime')"
+            class="recording-container"
+          >
             <span>最近录制时间：{{ formatTime(item.extra.lastRecordTime) }}</span>
           </div>
         </template>
@@ -94,11 +97,21 @@ import { AudiotrackRound } from "@vicons/material";
 
 interface Props {
   list: any[];
+  visibleColumns?: string[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
   list: () => [],
+  visibleColumns: () => [],
 });
+
+// 检查列是否可见
+const isColumnVisible = (columnKey: string) => {
+  if (!props.visibleColumns || props.visibleColumns.length === 0) {
+    return true; // 如果没有配置，则显示所有列
+  }
+  return props.visibleColumns.includes(columnKey);
+};
 
 const list = computed(() => props.list);
 
