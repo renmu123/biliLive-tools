@@ -18,7 +18,7 @@
         </div>
         <template v-else>
           <div v-if="item?.extra?.lastRecordTime" class="recording-container">
-            <span>上次录制时间：{{ formatTime(item.extra.lastRecordTime) }}</span>
+            <span>最近录制时间：{{ formatTime(item.extra.lastRecordTime) }}</span>
           </div>
         </template>
       </div>
