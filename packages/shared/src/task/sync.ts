@@ -17,6 +17,7 @@ const getConfig = (type: SyncType) => {
       username: config.sync[type as "alist"].username,
       password: config.sync[type as "alist"].hashPassword,
       limitRate: config.sync[type as "alist"].limitRate,
+      retry: config.sync[type as "alist"].retry,
     };
   } else if (["aliyunpan", "baiduPCS"].includes(type)) {
     return {
@@ -48,6 +49,7 @@ const createUploadInstance = async (opts: {
   clientSecret?: string;
   limitRate?: number;
   stringFilters?: SyncConfig["stringFilters"];
+  retry?: number;
 }) => {
   if (opts.type === "baiduPCS") {
     return new BaiduPCS({
@@ -67,6 +69,7 @@ const createUploadInstance = async (opts: {
       remotePath: opts.remotePath ?? "",
       limitRate: opts.limitRate ?? 0,
       stringFilters: opts.stringFilters,
+      retry: opts.retry,
     });
   } else if (opts.type === "copy") {
     return new LocalCopy({
@@ -91,7 +94,6 @@ export const addSyncTask = async ({
   input,
   remotePath,
   execPath,
-  retry,
   policy,
   type,
   removeOrigin,
@@ -124,6 +126,7 @@ export const addSyncTask = async ({
     clientId: iClientId,
     clientSecret: iClientSecret,
     limitRate,
+    retry,
   } = getConfig(type);
   const instance = await createUploadInstance({
     type,
@@ -136,6 +139,7 @@ export const addSyncTask = async ({
     clientSecret: clientSecret ?? iClientSecret,
     limitRate: limitRate ?? 0,
     stringFilters,
+    retry,
   });
 
   const task = new SyncTask(
