@@ -1,3 +1,13 @@
+# Next
+
+## bug修复
+
+- 录制：修复虎牙默认接口录播姬引擎无法录制的bug，上游修复 [v3.3.1](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.3.1)
+
+## 其他
+
+- 录播姬引擎升级至 [v3.3.1](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.3.1)
+
 # 3.5.0(2025.12.14)
 
 ## 功能
