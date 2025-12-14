@@ -1,6 +1,6 @@
 {
   "name": "@bililive-tools/douyu-recorder",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "bililive-tools douyu recorder implemention",
   "main": "./lib/index.js",
   "type": "module",
