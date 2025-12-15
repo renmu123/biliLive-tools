@@ -1,5 +1,5 @@
 <template>
-  <n-config-provider :theme="theme" :locale="zhCN" :date-locale="dateZhCN">
+  <n-config-provider :theme="themeUI" :locale="zhCN" :date-locale="dateZhCN">
     <n-modal v-model:show="showModal" transform-origin="center" :auto-focus="false">
       <n-card style="width: 800px" title="文件浏览器" :bordered="false">
         <div class="file-browser-content">
@@ -69,8 +69,9 @@
 
 <script lang="ts" setup>
 import { commonApi } from "@renderer/apis";
-import { darkTheme, lightTheme, useOsTheme, dateZhCN, zhCN } from "naive-ui";
+import { dateZhCN, zhCN } from "naive-ui";
 import { useStorage } from "@vueuse/core";
+import { useTheme } from "@renderer/hooks/theme";
 
 interface Props {
   type?: "file" | "directory" | "save";
@@ -228,14 +229,7 @@ onMounted(() => {
   fetchFiles();
 });
 
-const osThemeRef = useOsTheme();
-const theme = computed(() => {
-  if (osThemeRef.value === "dark") {
-    return darkTheme;
-  } else {
-    return lightTheme;
-  }
-});
+const { themeUI } = useTheme();
 </script>
 
 <style scoped lang="less">

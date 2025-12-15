@@ -501,12 +501,25 @@ const saveConfig = async () => {
   }
 
   await configApi.save(deepRaw(config.value));
-  window?.api?.common?.setTheme(config.value.theme);
+  setTheme(config.value.theme);
   // 设置自动启动
   window?.api?.common?.setOpenAtLogin(config.value.autoLaunch || false);
   close();
   appConfigStore.getAppConfig();
 };
+
+function setTheme(theme: "system" | "light" | "dark") {
+  window?.api?.common?.setTheme(config.value.theme);
+
+  const THEME_KEY = "theme";
+  if (theme === "system") {
+    localStorage.removeItem(THEME_KEY);
+    document.documentElement.removeAttribute("data-theme");
+  } else {
+    localStorage.setItem(THEME_KEY, theme);
+    document.documentElement.setAttribute("data-theme", theme);
+  }
+}
 
 const close = () => {
   showModal.value = false;

@@ -57,6 +57,22 @@ const toggleMenuBarVisible = async () => {
     window.api.common.setMenuBarVisible(config.value.menuBarVisible);
   }, 0);
 };
+
+// 测试用
+// watch(
+//   () => config.value.theme,
+//   (newVal) => {
+//     window?.api?.common?.setTheme(newVal);
+//     const THEME_KEY = "theme";
+//     if (newVal === "system") {
+//       localStorage.removeItem(THEME_KEY);
+//       document.documentElement.removeAttribute("data-theme");
+//     } else {
+//       localStorage.setItem(THEME_KEY, newVal);
+//       document.documentElement.setAttribute("data-theme", newVal);
+//     }
+//   },
+// );
 </script>
 
 <style scoped lang="less">
