@@ -7,7 +7,7 @@ import type { APIType, RealAPIType } from "./types.js";
 export async function getInfo(
   channelId: string,
   opts?: {
-    cookie?: string;
+    auth?: string;
     api?: APIType;
     uid?: string | number;
   },
@@ -29,7 +29,7 @@ export async function getInfo(
   // 如果使用 balance 模式，使用负载均衡器
   if (opts?.api === "balance") {
     info = await globalLoadBalancer.callWithLoadBalance(channelId, {
-      auth: opts.cookie,
+      auth: opts.auth,
       uid: opts.uid,
     });
   } else {
@@ -55,7 +55,7 @@ export async function getStream(
   opts: Pick<Recorder, "channelId" | "quality" | "streamPriorities" | "sourcePriorities"> & {
     rejectCache?: boolean;
     strictQuality?: boolean;
-    cookie?: string;
+    auth?: string;
     formatPriorities?: Array<"flv" | "hls">;
     doubleScreen?: boolean;
     api?: APIType;
@@ -71,7 +71,7 @@ export async function getStream(
   }
   const info = await getRoomInfo(opts.channelId, {
     doubleScreen: opts.doubleScreen ?? true,
-    auth: opts.cookie,
+    auth: opts.auth,
     api: api,
     uid: opts.uid,
   });

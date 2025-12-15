@@ -54,7 +54,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     async getLiveInfo() {
       const channelId = this.channelId;
       const info = await getInfo(channelId, {
-        cookie: this.auth,
+        auth: this.auth,
         uid: this.uid,
       });
       return {
@@ -103,7 +103,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       isManualStart,
       (channelId) =>
         getInfo(channelId, {
-          cookie: this.auth,
+          auth: this.auth,
           api: this.api as APIType,
           uid: this.uid,
         }),
@@ -119,7 +119,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   // 获取直播间信息
   try {
     const liveInfo = await getInfo(this.channelId, {
-      cookie: this.auth,
+      auth: this.auth,
       api: this.api as APIType,
       uid: this.uid,
     });
@@ -157,7 +157,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       streamPriorities: this.streamPriorities,
       sourcePriorities: this.sourcePriorities,
       strictQuality: strictQuality,
-      cookie: this.auth,
+      auth: this.auth,
       formatPriorities: this.formatPriorities,
       doubleScreen: this.doubleScreen,
       api: this.api as APIType,
@@ -223,7 +223,9 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     },
     onEnd,
     async () => {
-      const info = await getInfo(this.channelId);
+      const info = await getInfo(this.channelId, {
+        auth: this.auth,
+      });
       return info;
     },
   );
