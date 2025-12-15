@@ -6,6 +6,7 @@ import Koa from "koa";
 import Router from "@koa/router";
 import cors from "@koa/cors";
 import { bodyParser } from "@koa/bodyparser";
+import logger from "@biliLive-tools/shared/utils/log.js";
 
 import errorMiddleware from "./middleware/error.js";
 
@@ -137,6 +138,8 @@ export async function serverStart(
 // }
 
 async function createServer(options: { port: number; host: string }) {
+  logger.info(`开始创建服务器: ${options.host}:${options.port}`);
+
   const isHttps = false;
   if (isHttps) {
     // const keys = await createCertificateAsync();
@@ -153,8 +156,11 @@ async function createServer(options: { port: number; host: string }) {
     });
   } else {
     const httpServer = http.createServer(app.callback());
+    httpServer.on("error", (err) => {
+      logger.error("HTTP 服务器错误:", err);
+    });
     httpServer.listen(options.port, options.host, () => {
-      console.log(`Server is running at http://${options.host}:${options.port}`);
+      logger.info(`Server is running at http://${options.host}:${options.port}`);
     });
   }
 }
