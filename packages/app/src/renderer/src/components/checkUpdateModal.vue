@@ -172,7 +172,7 @@ defineExpose({
   gap: 16px;
 
   .loading-text {
-    color: #666;
+    color: var(--text-muted);
     font-size: 14px;
   }
 }
@@ -189,7 +189,7 @@ defineExpose({
   .message {
     font-size: 16px;
     line-height: 1.5;
-    color: #333;
+    color: var(--text-secondary);
     margin: 8px 0;
   }
 
@@ -197,18 +197,6 @@ defineExpose({
     display: flex;
     gap: 12px;
     margin-top: 8px;
-  }
-}
-
-@media screen and (prefers-color-scheme: dark) {
-  .error-content .message,
-  .no-update-content .message,
-  .has-update-content .message {
-    color: #fff;
-  }
-
-  .check-loading .loading-text {
-    color: #ccc;
   }
 }
 </style>

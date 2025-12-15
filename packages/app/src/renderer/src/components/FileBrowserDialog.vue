@@ -1,5 +1,5 @@
 <template>
-  <n-config-provider :theme="themeUI" :locale="zhCN" :date-locale="dateZhCN">
+  <n-config-provider :theme="themeStore.themeUI" :locale="zhCN" :date-locale="dateZhCN">
     <n-modal v-model:show="showModal" transform-origin="center" :auto-focus="false">
       <n-card style="width: 800px" title="文件浏览器" :bordered="false">
         <div class="file-browser-content">
@@ -71,7 +71,7 @@
 import { commonApi } from "@renderer/apis";
 import { dateZhCN, zhCN } from "naive-ui";
 import { useStorage } from "@vueuse/core";
-import { useTheme } from "@renderer/hooks/theme";
+import { useThemeStore } from "@renderer/stores/theme";
 
 interface Props {
   type?: "file" | "directory" | "save";
@@ -229,7 +229,7 @@ onMounted(() => {
   fetchFiles();
 });
 
-const { themeUI } = useTheme();
+const themeStore = useThemeStore();
 </script>
 
 <style scoped lang="less">
@@ -251,20 +251,14 @@ const { themeUI } = useTheme();
 
   &.selected {
     // 选中颜色更深一点
-    background-color: #ddd;
-    @media screen and (prefers-color-scheme: dark) {
-      background-color: rgba(255, 255, 255, 0.09);
-    }
+    background-color: var(--bg-hover);
   }
   // border-bottom: 1px solid #ddd;
 }
 
 .file-list li:hover {
   &:hover {
-    background-color: #eee;
-    @media screen and (prefers-color-scheme: dark) {
-      background-color: rgba(255, 255, 255, 0.09);
-    }
+    background-color: var(--bg-hover);
   }
 }
 

@@ -22,21 +22,22 @@
         <div style="display: flex; flex-direction: column; justify-content: space-between">
           <div style="display: flex; gap: 5px; align-items: center">
             <div class="owner" :title="item.remarks">{{ item.owner || item.remarks }}</div>
-            <n-icon v-if="item.living" size="20" title="直播中">
-              <Live24Regular style="color: gray" />
+            <n-icon v-if="item.living" size="20" title="直播中" class="icon-muted">
+              <Live24Regular />
             </n-icon>
-            <n-icon v-if="!item.disableAutoCheck" size="20" title="自动录制">
-              <AccessTime24Regular style="color: gray" />
+            <n-icon v-if="!item.disableAutoCheck" size="20" title="自动录制" class="icon-muted">
+              <AccessTime24Regular />
             </n-icon>
-            <n-icon v-if="item.onlyAudio" size="20" title="仅录制音频">
-              <AudiotrackRound style="color: gray" />
+            <n-icon v-if="item.onlyAudio" size="20" title="仅录制音频" class="icon-muted">
+              <AudiotrackRound />
             </n-icon>
             <n-icon
               v-if="item.tempStopIntervalCheck && !item.disableAutoCheck"
               size="20"
               title="跳过本场直播"
+              class="icon-muted"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="color: gray">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <g fill="none">
                   <!-- 保持原有外圈 -->
                   <path
@@ -208,13 +209,14 @@ const stateMap = {
     position: absolute;
     bottom: 5px;
     right: 10px;
-    color: rgb(51, 54, 57);
-
-    @media screen and (prefers-color-scheme: dark) {
-      color: white;
-    }
+    color: var(--text-secondary);
   }
 }
+
+.icon-muted {
+  color: var(--text-muted);
+}
+
 .link {
   text-decoration: none;
   color: inherit;
@@ -246,7 +248,7 @@ const stateMap = {
       }
     }
 
-    @media screen and (prefers-color-scheme: dark) {
+    [data-theme="dark"] & {
       &.channel {
         background-color: #111d2c;
         color: #59adf1;

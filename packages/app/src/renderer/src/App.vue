@@ -1,5 +1,5 @@
 <template>
-  <n-config-provider :theme="themeUI" :locale="zhCN" :date-locale="dateZhCN">
+  <n-config-provider :theme="themeStore.themeUI" :locale="zhCN" :date-locale="dateZhCN">
     <n-notification-provider>
       <n-dialog-provider>
         <router-view />
@@ -11,7 +11,7 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { dateZhCN, zhCN } from "naive-ui";
-import { useTheme } from "@renderer/hooks/theme";
+import { useThemeStore } from "@renderer/stores/theme";
 
 const router = useRouter();
 
@@ -35,7 +35,7 @@ if (instance) {
   provide("currentApp", instance.appContext.app);
 }
 
-const { themeUI } = useTheme();
+const themeStore = useThemeStore();
 </script>
 
 <style lang="less"></style>

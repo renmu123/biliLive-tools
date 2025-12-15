@@ -94,7 +94,7 @@
 
             <div class="section" @click="toWebhook(item.channelId)">Webhook配置</div>
             <div class="section" @click="viewHistory(item)">录制历史</div>
-            <div class="section" style="color: #e88080" @click="remove(item.id)">删除房间</div>
+            <div class="section section-danger" @click="remove(item.id)">删除房间</div>
           </div>
         </template>
       </component>
@@ -596,10 +596,11 @@ const handleActionClick = (key?: string | number) => {
     cursor: pointer;
     display: inline-block;
     &:hover {
-      background-color: #eee;
-      @media screen and (prefers-color-scheme: dark) {
-        background-color: rgba(255, 255, 255, 0.09);
-      }
+      background-color: var(--bg-hover);
+    }
+
+    &.section-danger {
+      color: var(--color-danger-text);
     }
   }
 }

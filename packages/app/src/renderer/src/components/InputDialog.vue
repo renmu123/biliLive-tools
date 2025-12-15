@@ -1,5 +1,5 @@
 <template>
-  <n-config-provider :theme="themeUI" :locale="zhCN" :date-locale="dateZhCN">
+  <n-config-provider :theme="themeStore.themeUI" :locale="zhCN" :date-locale="dateZhCN">
     <n-modal v-model:show="showModal" transform-origin="center" :mask-closable="false">
       <n-card style="width: 400px" :title="title" :bordered="false">
         <n-input
@@ -30,7 +30,7 @@
 
 <script lang="ts" setup>
 import { dateZhCN, zhCN } from "naive-ui";
-import { useTheme } from "@renderer/hooks/theme";
+import { useThemeStore } from "@renderer/stores/theme";
 
 interface Props {
   title?: string;
@@ -67,7 +67,7 @@ const inputRef = ref();
 const showError = ref(false);
 const currentErrorMessage = ref("");
 
-const { themeUI } = useTheme();
+const themeStore = useThemeStore();
 
 const inputType = computed(() => {
   if (props.type === "textarea") {

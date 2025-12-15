@@ -443,6 +443,7 @@ import { FolderOpenOutline, Refresh } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
+import { useThemeStore } from "@renderer/stores/theme";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig } from "@biliLive-tools/types";
 
@@ -475,6 +476,7 @@ const logLevelOptions = ref<{ label: string; value: any }[]>([
 ]);
 
 const confirm = useConfirm();
+const { setTheme } = useThemeStore();
 const saveConfig = async () => {
   if (
     !isWeb.value &&
@@ -507,19 +509,6 @@ const saveConfig = async () => {
   close();
   appConfigStore.getAppConfig();
 };
-
-function setTheme(theme: "system" | "light" | "dark") {
-  window?.api?.common?.setTheme(config.value.theme);
-
-  const THEME_KEY = "theme";
-  if (theme === "system") {
-    localStorage.removeItem(THEME_KEY);
-    document.documentElement.removeAttribute("data-theme");
-  } else {
-    localStorage.setItem(THEME_KEY, theme);
-    document.documentElement.setAttribute("data-theme", theme);
-  }
-}
 
 const close = () => {
   showModal.value = false;
