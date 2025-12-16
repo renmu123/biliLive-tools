@@ -639,6 +639,7 @@ export interface AppConfig {
       username: string;
       hashPassword: string;
       limitRate: number; // KB
+      retry: number;
     };
     pan123: {
       clientId: string;

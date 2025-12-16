@@ -53,6 +53,18 @@ export interface AlistOptions {
    * 字符串过滤选项
    */
   stringFilters?: SyncConfig["stringFilters"];
+
+  /**
+   * 上传失败重试次数
+   * @default 3
+   */
+  retry?: number;
+
+  /**
+   * 重试间隔时间(毫秒)
+   * @default 5000
+   */
+  retryDelay?: number;
 }
 
 interface AlistEvents {
@@ -85,6 +97,8 @@ export class Alist extends TypedEmitter<AlistEvents> {
   private limitRate: number;
   private speedCalculator: SpeedCalculator;
   private stringFilters?: SyncConfig["stringFilters"];
+  private retry: number;
+  private retryDelay: number;
 
   constructor(options?: AlistOptions) {
     super();
@@ -96,6 +110,8 @@ export class Alist extends TypedEmitter<AlistEvents> {
     this.limitRate = options?.limitRate || 0;
     this.speedCalculator = new SpeedCalculator(3000); // 3秒时间窗口
     this.stringFilters = options?.stringFilters;
+    this.retry = options?.retry ?? 3;
+    this.retryDelay = options?.retryDelay ?? 5000;
 
     // 创建axios实例
     this.client = axios.create({
@@ -273,28 +289,75 @@ export class Alist extends TypedEmitter<AlistEvents> {
   }
 
   /**
+   * 延迟函数
+   * @param ms 延迟毫秒数
+   */
+  private async delay(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  /**
    * 上传文件到AList
    * @param localFilePath 本地文件路径
-   * @param remoteDir 远程目录路径（相对于基础远程路径）
-   * @returns Promise<void> 上传成功时resolve，失败时reject
+   * @param remoteDir 远程目录路径(相对于基础远程路径)
+   * @param options 上传选项
+   * @returns Promise<void> 上传成功时resolve,失败时reject
    */
   public async uploadFile(
     localFilePath: string,
     remoteDir: string = "",
-    // @ts-ignore
     options?: {
-      retry?: number;
-      // 覆盖选项: overwrite(覆盖)、skip(跳过)
+      /** 覆盖选项: overwrite(覆盖)、skip(跳过) */
       policy?: "overwrite" | "skip";
     },
   ): Promise<void> {
+    const maxRetries = this.retry;
+    const retryDelay = this.retryDelay;
+
     if (!(await fs.pathExists(localFilePath))) {
       const error = new Error(`文件不存在: ${localFilePath}`);
       this.logger.error(error.message);
       this.emit("error", error);
+      console.log(options);
       throw error;
     }
 
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        await this.doUpload(localFilePath, remoteDir);
+        return; // 上传成功，退出
+      } catch (error: any) {
+        // 如果是取消操作，不重试
+        if (error?.name === "AbortError") {
+          this.logger.info("上传已取消");
+          this.emit("canceled", "上传已取消");
+          throw error;
+        }
+
+        // 如果还有重试机会
+        if (attempt < maxRetries) {
+          this.logger.warn(
+            `上传失败 (尝试 ${attempt}/${maxRetries}): ${error?.message || "unknown error"}，${retryDelay / 1000}秒后重试...`,
+          );
+          await this.delay(retryDelay);
+        } else {
+          // 所有重试都失败
+          this.logger.error(
+            `上传失败，已达到最大重试次数 (${maxRetries}次): ${error?.message || "unknown error"}`,
+          );
+          this.emit("error", error);
+          throw error;
+        }
+      }
+    }
+  }
+
+  /**
+   * 执行单次上传操作
+   * @param localFilePath 本地文件路径
+   * @param remoteDir 远程目录路径
+   */
+  private async doUpload(localFilePath: string, remoteDir: string = ""): Promise<void> {
     if (!this.isLoggedIn()) {
       await this.login();
     }
@@ -417,15 +480,6 @@ export class Alist extends TypedEmitter<AlistEvents> {
         });
         fileStream.pipe(req);
       });
-    } catch (error: any) {
-      if (error?.name === "AbortError") {
-        this.logger.info("上传已取消");
-        this.emit("canceled", "上传已取消");
-      } else {
-        this.logger.error(`上传文件出错: ${error?.message || "unknown error"}`);
-        this.emit("error", error);
-      }
-      throw error;
     } finally {
       this.abortController = null;
       // 重置进度追踪
