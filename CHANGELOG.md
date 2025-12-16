@@ -1,8 +1,15 @@
-# Next
+# 3.5.1(2025.12.15)
+
+## 优化
+
+- 录制：优化抖音弹幕重连逻辑 [#279](https://github.com/renmu123/biliLive-tools/pull/279)
+- 同步：alist增加重试支持 [#272](https://github.com/renmu123/biliLive-tools/pull/272)
+- B站上传；增加一个新的审核中状态 [#272](https://github.com/renmu123/biliLive-tools/pull/272)
 
 ## bug修复
 
 - 录制：修复虎牙默认接口录播姬引擎无法录制的bug，上游修复 [v3.3.1](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.3.1)
+- 录制：修复抖音某些情况下cookie不生效的bug [#279](https://github.com/renmu123/biliLive-tools/pull/279)
 - B站上传：修复重试策略失效的bug
 
 ## 其他
