@@ -40,6 +40,7 @@ export const danmuConfig = type({
   "blacklist-regex": "boolean",
   "line-spacing": "number",
   "top-margin": "number",
+  "bottom-margin": "number",
   timeshift: "number",
 });
 export type DanmuConfig = typeof danmuConfig.infer;
