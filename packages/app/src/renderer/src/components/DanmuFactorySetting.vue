@@ -182,6 +182,13 @@
             :step="1"
           />
         </n-form-item>
+        <n-form-item v-if="isAdvancedMode" label="顶部间距">
+          <n-input-number
+            v-model:value.number="config['top-margin']"
+            class="input-number"
+            :step="1"
+          />
+        </n-form-item>
         <n-form-item label="分辨率">
           <n-input-number
             v-model:value.number="config.resolution[0]"
