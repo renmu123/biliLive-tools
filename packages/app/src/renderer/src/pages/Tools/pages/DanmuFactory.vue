@@ -113,14 +113,6 @@ const convert = async () => {
     return;
   }
 
-  const [status] = await confirm.warning({
-    title: "确认转换",
-    content: `输出文件名中请勿包含emoji或奇怪符号，否则可能导致转换失败`,
-    showCheckbox: true,
-    showAgainKey: "danmuFactoryConvert-filename",
-  });
-  if (!status) return;
-
   const presetId = danmuPresetId.value;
   const config = (await danmuPresetApi.get(presetId)).config;
 

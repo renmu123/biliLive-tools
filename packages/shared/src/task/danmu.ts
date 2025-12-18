@@ -61,7 +61,7 @@ const addConvertDanmu2AssTask = async (
   originInput: string,
   output: string,
   danmuOptions: DanmuConfig,
-  options: Pick<DanmaOptions, "copyInput" | "removeOrigin"> = {},
+  options: Pick<DanmaOptions, "removeOrigin"> = {},
 ) => {
   if (await pathExists(output)) {
     log.info("danmufactory", {
@@ -84,11 +84,6 @@ const addConvertDanmu2AssTask = async (
   }
 
   let tempInput: string | undefined;
-  if (!filteredOutput && options.copyInput) {
-    // 如果已经存在过滤后的文件，则不需要额外再复制一份了
-    tempInput = join(tempDir, `${uuid()}.xml`);
-    await fs.copyFile(originInput, tempInput);
-  }
 
   if (danmuOptions.blacklist) {
     const fileTxtPath = join(tempDir, `${uuid()}.txt`);
