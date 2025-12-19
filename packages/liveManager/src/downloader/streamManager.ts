@@ -3,7 +3,6 @@ import EventEmitter from "node:events";
 import fs from "fs/promises";
 import { createRecordExtraDataController } from "../xml_stream_controller.js";
 import {
-  replaceExtName,
   ensureFolderExist,
   isFfmpegStartSegment,
   isMesioStartSegment,
@@ -174,7 +173,8 @@ export class StreamManager extends EventEmitter {
         this.emit("videoFileCompleted", data);
       });
     } else {
-      const extraDataSavePath = replaceExtName(recordSavePath, ".xml");
+      const extraDataSavePath = `${recordSavePath}.xml`;
+
       if (!disableDanma) {
         this.extraDataController = createRecordExtraDataController(extraDataSavePath);
       }
