@@ -14,3 +14,5 @@ packages/CLI/config.json
 
 docs/.vitepress/dist
 docs/.vitepress/cache
+
+.DS_Store
