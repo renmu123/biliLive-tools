@@ -68,7 +68,6 @@ import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { useDanmuPreset, useAppConfig } from "@renderer/stores";
 import { danmuPresetApi, taskApi } from "@renderer/apis";
 import { Settings as SettingIcon, FolderOpenOutline } from "@vicons/ionicons5";
-import { useConfirm } from "@renderer/hooks";
 import hotkeys from "hotkeys-js";
 
 defineOptions({
@@ -79,7 +78,6 @@ const { danmuPresetsOptions, danmuPresetId } = storeToRefs(useDanmuPreset());
 const { appConfig } = storeToRefs(useAppConfig());
 
 const notice = useNotice();
-const confirm = useConfirm();
 // const isWeb = computed(() => window.isWeb);
 
 const fileList = ref<{ id: string; title: string; path: string; visible: boolean }[]>([]);
