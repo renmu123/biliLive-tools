@@ -180,11 +180,11 @@ async function downloadBaseBinary() {
 }
 
 async function downloadBin() {
-  // await downloadBaseBinary();
+  await downloadBaseBinary();
   await downloadMesio();
   await downloadBililiveRecorder();
   await downloadAudioWaveform();
-  await downloadDanmakuFactory();
+  // await downloadDanmakuFactory();
 }
 
 downloadBin();
