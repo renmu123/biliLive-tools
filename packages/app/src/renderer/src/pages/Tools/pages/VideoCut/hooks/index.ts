@@ -2,8 +2,7 @@ import { Ref } from "vue";
 import JSON5 from "json5";
 import { useAppConfig, useSegmentStore } from "@renderer/stores";
 import { storeToRefs } from "pinia";
-import { showFileDialog, showSaveDialog } from "@renderer/utils/fileSystem";
-import { replaceExtName } from "@renderer/utils";
+import { showSaveDialog } from "@renderer/utils/fileSystem";
 import { commonApi } from "@renderer/apis";
 
 /**
@@ -21,33 +20,16 @@ export function useProjectManager(
   const notice = useNotification();
   const { appConfig } = storeToRefs(useAppConfig());
   const { rawCuts } = storeToRefs(useSegmentStore());
-  const { clearHistory, init } = useSegmentStore();
+  const { init } = useSegmentStore();
 
   // 项目文件路径
   const projectFilePath = ref("");
-  // 从项目文件中解析出的媒体文件路径
-  const projectMediaPath = ref("");
 
   /**
    * 清理项目状态
    */
   const resetProjectState = () => {
     projectFilePath.value = "";
-    projectMediaPath.value = "";
-  };
-
-  /**
-   * 选择并导入项目文件
-   * TODO: 移动到上层中，移除 mediaFileName 依赖
-   */
-  const selectAndImportProject = async () => {
-    const selectedFiles = await showFileDialog({
-      extensions: ["llc"],
-    });
-    if (!selectedFiles || selectedFiles.length === 0) return;
-
-    const filePath = selectedFiles[0];
-    await loadProjectFile(filePath);
   };
 
   /**
@@ -56,8 +38,7 @@ export function useProjectManager(
    */
   const loadProjectFile = async (filePath: string) => {
     try {
-      const content = await commonApi.readLLCProject(filePath);
-      const projectData = JSON5.parse(content);
+      const projectData = await readProjectFile(filePath);
 
       // 更新项目路径
       projectFilePath.value = filePath;
@@ -68,12 +49,7 @@ export function useProjectManager(
         checked: true,
       }));
       init(segments);
-
-      // 解析媒体文件路径
-      const mediaFileName = projectData.mediaFileName;
-      projectMediaPath.value = window.path.join(window.path.dirname(filePath), mediaFileName);
     } catch (error) {
-      console.error("项目文件加载失败:", error);
       notice.error({
         title: "项目文件解析失败，请确认文件有效",
         duration: 2000,
@@ -82,22 +58,32 @@ export function useProjectManager(
   };
 
   /**
+   * 读取项目文件
+   */
+  const readProjectFile = async (filePath: string) => {
+    const content = await commonApi.readLLCProject(filePath);
+    const projectData = JSON5.parse(content);
+    return projectData;
+  };
+
+  /**
    * 重新加载当前项目文件
    */
-  const reloadProject = async () => {
-    if (!projectFilePath.value) return;
+  // const reloadProject = async () => {
+  //   if (!projectFilePath.value) return;
 
-    clearHistory();
-    await loadProjectFile(projectFilePath.value);
-  };
+  //   clearHistory();
+  //   await loadProjectFile(projectFilePath.value);
+  // };
 
   /**
    * 保存项目（如果已有路径则直接保存，否则另存为）
    * @param sourceVideoPath 源视频路径，用于另存为时的默认路径
    */
-  const saveProject = async (sourceVideoPath?: string | null) => {
+  const saveProject = async (ignoreNotice = false) => {
     const mediaFileName = files.value.originVideoPath;
     if (!mediaFileName) {
+      if (ignoreNotice) return;
       notice.error({
         title: "请先选择视频文件",
         duration: 2000,
@@ -106,9 +92,11 @@ export function useProjectManager(
     }
 
     if (projectFilePath.value) {
-      await saveToFile(projectFilePath.value, mediaFileName);
+      await saveToFile(projectFilePath.value, mediaFileName, ignoreNotice);
     } else {
-      await saveProjectAs(sourceVideoPath);
+      const { dir, name } = window.path.parse(mediaFileName);
+      projectFilePath.value = window.path.join(dir, `${name}-proj.llc`);
+      await saveToFile(projectFilePath.value, mediaFileName, ignoreNotice);
     }
   };
 
@@ -117,7 +105,15 @@ export function useProjectManager(
    * @param filePath 保存路径
    * @param mediaFileName 媒体文件名
    */
-  const saveToFile = async (filePath: string, mediaFileName: string) => {
+  const saveToFile = async (filePath: string, mediaFileName: string, ignoreNotice = false) => {
+    if (rawCuts.value.length === 0) {
+      if (ignoreNotice) return;
+      notice.error({
+        title: "你必须至少添加一个片段才能保存项目",
+        duration: 2000,
+      });
+      return;
+    }
     const projectData = {
       version: 1,
       mediaFileName: window.path.basename(mediaFileName),
@@ -125,10 +121,10 @@ export function useProjectManager(
     };
 
     await commonApi.writeLLCProject(filePath, JSON5.stringify(projectData, null, 2));
-    notice.success({
-      title: "已保存",
-      duration: 1000,
-    });
+    // notice.success({
+    //   title: "已保存",
+    //   duration: 1000,
+    // });
   };
 
   /**
@@ -155,7 +151,7 @@ export function useProjectManager(
    * 另存为项目文件
    * @param sourceVideoPath 源视频路径，用于生成默认文件名
    */
-  const saveProjectAs = async (sourceVideoPath?: string | null) => {
+  const saveProjectAs = async () => {
     const mediaFileName = files.value.originVideoPath;
     if (!mediaFileName) {
       notice.error({
@@ -165,15 +161,17 @@ export function useProjectManager(
       return;
     }
 
+    const { dir, name } = window.path.parse(mediaFileName);
+    const defaultPath = window.path.join(dir, `${name}-proj.llc`);
     const file = await showSaveDialog({
       extension: "llc",
-      defaultPath: replaceExtName(sourceVideoPath || "", ".llc"),
+      defaultPath,
     });
 
     if (!file) return;
 
     projectFilePath.value = file;
-    await saveToFile(file, mediaFileName);
+    await saveToFile(file, mediaFileName, true);
   };
 
   /**
@@ -181,22 +179,16 @@ export function useProjectManager(
    * @param action 操作类型
    * @param sourceVideoPath 源视频路径
    */
-  const handleProjectAction = (action?: string | number, sourceVideoPath?: string | null) => {
+  const handleProjectAction = (action?: string | number) => {
     switch (action) {
-      case "importProject":
-        selectAndImportProject();
-        break;
-      case "refresh":
-        reloadProject();
-        break;
       case "save":
-        saveProject(sourceVideoPath);
+        saveProject();
         break;
       case "open":
         openInLosslessCut();
         break;
       case "saveAnother":
-        saveProjectAs(sourceVideoPath);
+        saveProjectAs();
         break;
       default:
         console.error(`不支持的操作: ${action}`);
@@ -213,7 +205,6 @@ export function useProjectManager(
     const items: { label: string; key: string; disabled: boolean }[] = [];
 
     if (!isWeb) {
-      items.push({ label: "重新加载", key: "refresh", disabled: !hasProject });
       items.push({ label: "使用llc打开", key: "open", disabled: !hasProject });
     }
     items.push({ label: "保存(ctrl+s)", key: "save", disabled: !hasProject });
@@ -226,14 +217,24 @@ export function useProjectManager(
     return items;
   });
 
+  watch(
+    () => rawCuts.value,
+    () => {
+      if (appConfig.value.videoCut.autoSave) {
+        saveProject(true);
+      }
+    },
+    { deep: true },
+  );
+
   return {
     projectFilePath,
-    projectMediaPath,
     projectMenuOptions,
     handleProjectAction,
     saveProject,
     saveProjectAs,
     loadProjectFile,
     resetProjectState,
+    readProjectFile,
   };
 }

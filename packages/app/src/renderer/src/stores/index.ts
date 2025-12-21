@@ -361,15 +361,16 @@ function useHistoryStore<T>({ limit }: { limit: number }) {
 
 export default useHistoryStore;
 
-interface Segment {
+export interface Segment {
   id: string;
   start: number;
-  end: number;
+  end?: number;
   name: string;
   checked: boolean;
   tags?: any;
+  index: number;
 }
-
+type SegmentWithRequiredEnd = Required<Pick<Segment, "end">> & Omit<Segment, "end">;
 type SegmentEventType = "add" | "remove" | "update" | "clear";
 type SegmentEventCallback = (data: {
   type: SegmentEventType;
@@ -381,7 +382,19 @@ export const useSegmentStore = defineStore("segment", () => {
   const duration = ref(0);
 
   const rawCuts = ref<Segment[]>([]);
+  const cuts = readonly(
+    computed<SegmentWithRequiredEnd[]>(() => {
+      return rawCuts.value.map((item: Segment) => {
+        return {
+          ...item,
+          end: item.end || duration.value,
+        };
+      });
+    }),
+  );
   const historyStore = useHistoryStore<Segment[]>({ limit: 30 });
+
+  const index = ref(0);
 
   // 事件监听器
   const eventListeners: SegmentEventCallback[] = [];
@@ -393,9 +406,9 @@ export const useSegmentStore = defineStore("segment", () => {
 
   // 移除事件监听器
   const off = (callback: SegmentEventCallback) => {
-    const index = eventListeners.indexOf(callback);
-    if (index > -1) {
-      eventListeners.splice(index, 1);
+    const idx = eventListeners.indexOf(callback);
+    if (idx > -1) {
+      eventListeners.splice(idx, 1);
     }
   };
 
@@ -415,19 +428,31 @@ export const useSegmentStore = defineStore("segment", () => {
   const undo = () => {
     historyStore.undo();
     rawCuts.value = historyStore.state.value || [];
+    // 触发 clear 事件清空现有 regions,然后重新添加所有片段
+    emit("clear");
+    rawCuts.value.forEach((segment) => {
+      emit("add", { segment });
+    });
   };
   const redo = () => {
     historyStore.redo();
     rawCuts.value = historyStore.state.value || [];
+    // 触发 clear 事件清空现有 regions,然后重新添加所有片段
+    emit("clear");
+    rawCuts.value.forEach((segment) => {
+      emit("add", { segment });
+    });
   };
 
   const selectedCuts = computed(() => {
-    return rawCuts.value.filter((item) => item.checked);
+    return cuts.value.filter((item) => item.checked);
   });
 
   const init = (segments: Omit<Segment, "id">[]) => {
     rawCuts.value = [];
+    index.value = 0; // 初始化 index
     segments.forEach((segment) => {
+      if (!segment.start) segment.start = 0;
       addSegment(segment);
     });
   };
@@ -435,15 +460,17 @@ export const useSegmentStore = defineStore("segment", () => {
     const data = {
       id: uuid(),
       ...cut,
+      index: index.value, // 新增 index 字段
     };
     rawCuts.value.push(data);
+    index.value++;
     recordHistory();
     emit("add", { segment: data });
   };
   const removeSegment = (id: string) => {
-    const index = rawCuts.value.findIndex((item) => item.id === id);
-    if (index !== -1) {
-      rawCuts.value.splice(index, 1);
+    const idx = rawCuts.value.findIndex((item) => item.id === id);
+    if (idx !== -1) {
+      rawCuts.value.splice(idx, 1);
       recordHistory();
       emit("remove", { id });
     }
@@ -460,17 +487,19 @@ export const useSegmentStore = defineStore("segment", () => {
     const cut = rawCuts.value.find((item) => item.id === id);
     if (cut) {
       cut.checked = !cut.checked;
+      emit("update", { segment: cut });
       recordHistory();
     }
   };
   const clear = () => {
     rawCuts.value = [];
+    index.value = 0; // 清空时初始化 index
     recordHistory();
     emit("clear");
   };
 
   return {
-    cuts: rawCuts,
+    cuts,
     selectedCuts,
     duration,
     rawCuts,
@@ -485,5 +514,6 @@ export const useSegmentStore = defineStore("segment", () => {
     clear,
     on,
     off,
+    index,
   };
 });

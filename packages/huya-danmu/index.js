@@ -16,10 +16,14 @@ class huya_danmu extends events {
     if (typeof opt === "string") {
       this._roomid = opt;
       this._max_retries = 10;
+      this.opt = {};
     } else if (typeof opt === "object") {
       this._roomid = opt.roomid;
+      this.opt = opt;
       this._max_retries = opt.maxRetries || 10;
-      this.set_proxy(opt.proxy);
+      if (opt.proxy) {
+        this.set_proxy(opt.proxy);
+      }
     }
     this._gift_info = {};
     this._chat_list = new List();
@@ -108,13 +112,21 @@ class huya_danmu extends events {
   }
 
   async _try_connect() {
-    try {
-      this._info = await this._retry_async(() => this._get_chat_info(), 10, 3000);
-      if (!this._info) return this.emit("error", new Error("Fail to parse info"));
-    } catch (error) {
-      this.emit("error", error);
-      this._starting = false;
-      return;
+    if (this.opt?.uid && this.opt?.channelId && this.opt?.subChannelId) {
+      this._info = {
+        yyuid: this.opt.uid,
+        topsid: this.opt.channelId,
+        subsid: this.opt.subChannelId,
+      };
+    } else {
+      try {
+        this._info = await this._retry_async(() => this._get_chat_info(), 10, 3000);
+        if (!this._info) return this.emit("error", new Error("Fail to parse info"));
+      } catch (error) {
+        this.emit("error", error);
+        this._starting = false;
+        return;
+      }
     }
 
     this._main_user_id = new HUYA.UserId();

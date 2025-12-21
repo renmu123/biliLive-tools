@@ -150,8 +150,8 @@ export async function appStartTime(): Promise<number> {
   return res.data;
 }
 
-export async function readAss(filepath: string): Promise<string> {
-  const res = await request.post("/common/readAss", {
+export async function readDanma(filepath: string): Promise<string> {
+  const res = await request.post("/common/readDanma", {
     filepath,
   });
   return res.data;
@@ -263,6 +263,16 @@ export const getTempPath = async (): Promise<string> => {
   return res.data;
 };
 
+/**
+ * 文件是否存在
+ */
+export const fileExists = async (filepath: string): Promise<boolean> => {
+  const res = await request.post("/common/fileExists", {
+    filepath,
+  });
+  return res.data;
+};
+
 const common = {
   previewWebhookTitle,
   getStreamLogs,
@@ -279,7 +289,7 @@ const common = {
   parseMeta,
   getRunningTaskNum,
   fileJoin,
-  readAss,
+  readDanma,
   genTimeData,
   getVideo,
   applyVideoId,
@@ -291,6 +301,7 @@ const common = {
   getTempPath,
   readLLCProject,
   writeLLCProject,
+  fileExists,
 };
 
 export default common;

@@ -168,6 +168,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     biliDownloadMaxNum: 2,
     syncMaxNum: 3,
   },
+  videoCut: {
+    autoSave: true,
+    cacheWaveform: true,
+  },
   notification: {
     task: {
       ffmpeg: [],
@@ -231,6 +235,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       username: "",
       hashPassword: "",
       limitRate: 0, // KB
+      retry: 0,
     },
     pan123: {
       clientId: "",
@@ -290,6 +295,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       quality: 0,
       formatName: "auto",
       source: "auto",
+      api: "auto",
     },
     douyin: {
       quality: "origin",
@@ -700,6 +706,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   codecName: "auto",
   titleKeywords: "",
   liveStartNotification: false,
+  liveEndNotification: false,
   weight: 10,
   source: "auto",
   videoFormat: "auto",

@@ -3,6 +3,7 @@ import { HuYaQualities, Recorder } from "@bililive-tools/manager";
 
 import { getRoomInfo as getRoomInfoByWeb } from "./huya_api.js";
 import { getRoomInfo as getRoomInfoByMobile } from "./huya_mobile_api.js";
+import { getStreamUrlWup } from "./huya_wup_api.js";
 import { assert } from "./utils.js";
 
 import type { SourceProfile, StreamProfile } from "./types.js";
@@ -36,7 +37,7 @@ export async function getInfo(channelId: string): Promise<{
 async function getRoomInfo(
   channelId: string,
   options: {
-    api: "auto" | "mp" | "web";
+    api: "auto" | "mp" | "web" | "wup";
     formatPriorities: Array<"flv" | "hls">;
     quality?: Recorder["quality"];
   },
@@ -47,7 +48,11 @@ async function getRoomInfo(
       quality: options.quality,
     });
     if (info.gid == 1663) {
-      return getRoomInfoByMobile(channelId, options.formatPriorities);
+      return getRoomInfo(channelId, {
+        api: "wup",
+        formatPriorities: options.formatPriorities,
+        quality: options.quality,
+      });
     }
     return info;
   } else if (options.api == "mp") {
@@ -57,6 +62,13 @@ async function getRoomInfo(
       formatPriorities: options.formatPriorities,
       quality: options.quality,
     });
+  } else if (options.api == "wup") {
+    // 参数与web一致，之后anticode有额外处理
+    const info = await getRoomInfoByWeb(channelId, {
+      formatPriorities: options.formatPriorities,
+      quality: options.quality,
+    });
+    return { ...info, api: "wup" };
   }
   assert(false, "Invalid api");
 }
@@ -67,7 +79,7 @@ export async function getStream(
     "channelId" | "quality" | "streamPriorities" | "sourcePriorities" | "api" | "formatPriorities"
   > & {
     strictQuality?: boolean;
-    api?: "web" | "mp" | "auto";
+    api?: "web" | "mp" | "auto" | "wup";
   },
 ) {
   const info = await getRoomInfo(opts.channelId, {
@@ -115,6 +127,25 @@ export async function getStream(
   }
 
   let url = expectSource.url;
+  if (info.api === "wup") {
+    try {
+      let newUrl = await getStreamUrlWup({
+        url,
+        streamFormat: expectSource.suffix,
+        extras: {
+          stream_name: expectSource.streamName,
+          cdn: expectSource.name,
+          presenter_uid: expectSource.presenterUid,
+        },
+      });
+      if (!newUrl.includes("codec=")) {
+        newUrl += "&codec=264";
+      }
+      url = newUrl;
+    } catch (e) {
+      console.warn("Get stream url by WUP failed, fallback to original url", e);
+    }
+  }
   // MP协议下原画不需要添加ratio参数
   if (expectStream.bitRate && expectStream.bitRate !== -1 && !url.includes("ratio=")) {
     url = url + "&ratio=" + expectStream.bitRate;
@@ -125,6 +156,9 @@ export async function getStream(
     currentStream: {
       name: expectStream.desc,
       source: expectSource.name,
+      uid: expectSource.presenterUid,
+      subChannelId: expectSource.subChannelId,
+      channelId: expectSource.channelId,
       url,
     },
   };

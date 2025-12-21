@@ -1,0 +1,246 @@
+{
+  "stream": {
+    "baseSteamInfoList": [
+      {
+        "sCdnType": "AL",
+        "iIsMaster": 0,
+        "lChannelId": 1199613311154,
+        "lSubChannelId": 1199613311154,
+        "lPresenterUid": 1199613311154,
+        "sStreamName": "1199613311154-1199613311154-5658342687737118720-2399226745764-10057-A-0-1-imgplus",
+        "sFlvUrl": "http://al.flv.huya.com/src",
+        "sFlvUrlSuffix": "flv",
+        "sFlvAntiCode": "wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102",
+        "sHlsUrl": "http://al.hls.huya.com/src",
+        "sHlsUrlSuffix": "m3u8",
+        "sHlsAntiCode": "wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102",
+        "iLineIndex": 3,
+        "iIsMultiStream": 1,
+        "iPCPriorityRate": -1,
+        "iWebPriorityRate": -1,
+        "iMobilePriorityRate": -1,
+        "vFlvIPList": [],
+        "iIsP2PSupport": 2,
+        "sP2pUrl": "http://al.p2p.huya.com/huyalive",
+        "sP2pUrlSuffix": "slice",
+        "sP2pAntiCode": "",
+        "lFreeFlag": 2,
+        "iIsHEVCSupport": 0,
+        "vP2pIPList": [],
+        "mpExtArgs": [],
+        "lTimespan": 15982372841,
+        "newCFlvAntiCode": "wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102"
+      },
+      {
+        "sCdnType": "TX",
+        "iIsMaster": 0,
+        "lChannelId": 1199613311154,
+        "lSubChannelId": 1199613311154,
+        "lPresenterUid": 1199613311154,
+        "sStreamName": "1199613311154-1199613311154-5658342687737118720-2399226745764-10057-A-0-1-imgplus",
+        "sFlvUrl": "http://tx.flv.huya.com/src",
+        "sFlvUrlSuffix": "flv",
+        "sFlvAntiCode": "wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102",
+        "sHlsUrl": "http://tx.hls.huya.com/src",
+        "sHlsUrlSuffix": "m3u8",
+        "sHlsAntiCode": "wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102",
+        "iLineIndex": 5,
+        "iIsMultiStream": 1,
+        "iPCPriorityRate": 100,
+        "iWebPriorityRate": 100,
+        "iMobilePriorityRate": 100,
+        "vFlvIPList": [],
+        "iIsP2PSupport": 2,
+        "sP2pUrl": "http://tx.p2p.huya.com/huyalive",
+        "sP2pUrlSuffix": "slice",
+        "sP2pAntiCode": "",
+        "lFreeFlag": 1,
+        "iIsHEVCSupport": 0,
+        "vP2pIPList": [],
+        "mpExtArgs": [],
+        "lTimespan": 15982372841,
+        "newCFlvAntiCode": "wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102"
+      },
+      {
+        "sCdnType": "HS",
+        "iIsMaster": 0,
+        "lChannelId": 1199613311154,
+        "lSubChannelId": 1199613311154,
+        "lPresenterUid": 1199613311154,
+        "sStreamName": "1199613311154-1199613311154-5658342687737118720-2399226745764-10057-A-0-1-imgplus",
+        "sFlvUrl": "http://hs.flv.huya.com/src",
+        "sFlvUrlSuffix": "flv",
+        "sFlvAntiCode": "wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102",
+        "sHlsUrl": "http://hs.hls.huya.com/src",
+        "sHlsUrlSuffix": "m3u8",
+        "sHlsAntiCode": "wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102",
+        "iLineIndex": 14,
+        "iIsMultiStream": 1,
+        "iPCPriorityRate": 0,
+        "iWebPriorityRate": 0,
+        "iMobilePriorityRate": 0,
+        "vFlvIPList": [],
+        "iIsP2PSupport": 2,
+        "sP2pUrl": "http://hs.p2p.huya.com/huyalive",
+        "sP2pUrlSuffix": "slice",
+        "sP2pAntiCode": "",
+        "lFreeFlag": 0,
+        "iIsHEVCSupport": 0,
+        "vP2pIPList": [],
+        "mpExtArgs": [],
+        "lTimespan": 15982372841,
+        "newCFlvAntiCode": "wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102"
+      }
+    ],
+    "hls": {
+      "multiLine": [
+        {
+          "url": "http://tx.hls.huya.com/src/1199613311154-1199613311154-5658342687737118720-2399226745764-10057-A-0-1-imgplus.m3u8?ratio=2000&wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102",
+          "cdnType": "TX",
+          "webPriorityRate": 100,
+          "lineIndex": 5
+        },
+        {
+          "url": "http://hs.hls.huya.com/src/1199613311154-1199613311154-5658342687737118720-2399226745764-10057-A-0-1-imgplus.m3u8?ratio=2000&wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102",
+          "cdnType": "HS",
+          "webPriorityRate": 0,
+          "lineIndex": 14
+        }
+      ],
+      "rateArray": [
+        {
+          "sDisplayName": "蓝光4M",
+          "iBitRate": 4000,
+          "iCodecType": 0,
+          "iCompatibleFlag": 0,
+          "iHEVCBitRate": 4000
+        },
+        {
+          "sDisplayName": "超清",
+          "iBitRate": 2000,
+          "iCodecType": 0,
+          "iCompatibleFlag": 0,
+          "iHEVCBitRate": 2000
+        },
+        {
+          "sDisplayName": "流畅",
+          "iBitRate": 500,
+          "iCodecType": 0,
+          "iCompatibleFlag": 0,
+          "iHEVCBitRate": 500
+        }
+      ]
+    },
+    "flv": {
+      "multiLine": [
+        {
+          "url": "http://tx.flv.huya.com/src/1199613311154-1199613311154-5658342687737118720-2399226745764-10057-A-0-1-imgplus.flv?wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102",
+          "cdnType": "TX",
+          "webPriorityRate": 100,
+          "lineIndex": 5
+        },
+        {
+          "url": "http://hs.flv.huya.com/src/1199613311154-1199613311154-5658342687737118720-2399226745764-10057-A-0-1-imgplus.flv?wsSecret=f86d628c8e457975b5e1aaa02e9cb948&wsTime=692ed1ce&fm=RFdxOEJjSjNoNkRKdDZUWV8kMF8kMV8kMl8kMw%3D%3D&ctype=tars_mp&fs=bgct&t=102",
+          "cdnType": "HS",
+          "webPriorityRate": 0,
+          "lineIndex": 14
+        }
+      ],
+      "rateArray": [
+        {
+          "sDisplayName": "蓝光4M",
+          "iBitRate": 4000,
+          "iCodecType": 0,
+          "iCompatibleFlag": 0,
+          "iHEVCBitRate": 4000
+        },
+        {
+          "sDisplayName": "超清",
+          "iBitRate": 2000,
+          "iCodecType": 0,
+          "iCompatibleFlag": 0,
+          "iHEVCBitRate": 2000
+        },
+        {
+          "sDisplayName": "流畅",
+          "iBitRate": 500,
+          "iCodecType": 0,
+          "iCompatibleFlag": 0,
+          "iHEVCBitRate": 500
+        }
+      ]
+    }
+  },
+  "liveStatus": "ON",
+  "profileInfo": {
+    "uid": 1199613311154,
+    "yyid": 35184638824335,
+    "nick": "小白羊吃不饱【白羊】",
+    "avatar180": "https://huyaimg.msstatic.com/avatar/1022/be/b4ce6e166d3a48045285186e5a2322_180_135.jpg?1764560786",
+    "activityId": 0,
+    "activityCount": 378488,
+    "privateHost": "35184638824335",
+    "profileRoom": 372582
+  },
+  "liveData": {
+    "cameraOpen": 0,
+    "isPlatinum": 1,
+    "avatar180": "https://huyaimg.msstatic.com/avatar/1022/be/b4ce6e166d3a48045285186e5a2322_180_135.jpg?1764560786",
+    "yyid": 35184638824335,
+    "channel": 1199613311154,
+    "profileHomeHost": "35184638824335",
+    "codecType": 0,
+    "liveCompatibleFlag": 0,
+    "red": 0,
+    "activityId": 0,
+    "isBluRay": 1,
+    "level": 36,
+    "bluRayMBitRate": "10M",
+    "roomName": "",
+    "contentIntro": "",
+    "profileRoom": 372582,
+    "shortChannel": 0,
+    "privateHost": "35184638824335",
+    "userCount": 1294979,
+    "gameHostName": "xingxiu",
+    "liveChannel": 1199613311154,
+    "recommendStatus": 0,
+    "recommendTagName": "",
+    "gid": 1663,
+    "isAutoBitrate": 0,
+    "streamsInfo": "[{\"sCdnType\":\"AL\",\"iIsMaster\":0,\"lChannelId\":1199613311154,\"lSubChannelId\":1199613311154,\"lPresenterUid\":1199613311154,\"sStreamName\":\"1199613311154-1199613311154-5658342687737118720-2399226745764-10057-A-0-1-imgplus\",\"sFlvUrl\":\"http://al.flv.huya.com/src\",\"sFlvUrlSuffix\":\"flv\",\"sFlvAntiCode\":\"\",\"sHlsUrl\":\"http://al.hls.huya.com/src\",\"sHlsUrlSuffix\":\"m3u8\",\"sHlsAntiCode\":\"\",\"iLineIndex\":3,\"iIsMultiStream\":1,\"iPCPriorityRate\":-1,\"iWebPriorityRate\":-1,\"iMobilePriorityRate\":-1,\"vFlvIPList\":[],\"iIsP2PSupport\":2,\"sP2pUrl\":\"http://al.p2p.huya.com/huyalive\",\"sP2pUrlSuffix\":\"slice\",\"sP2pAntiCode\":\"\",\"lFreeFlag\":2,\"iIsHEVCSupport\":0,\"vP2pIPList\":[],\"mpExtArgs\":{},\"lTimespan\":15982372841},{\"sCdnType\":\"TX\",\"iIsMaster\":0,\"lChannelId\":1199613311154,\"lSubChannelId\":1199613311154,\"lPresenterUid\":1199613311154,\"sStreamName\":\"1199613311154-1199613311154-5658342687737118720-2399226745764-10057-A-0-1-imgplus\",\"sFlvUrl\":\"http://tx.flv.huya.com/src\",\"sFlvUrlSuffix\":\"flv\",\"sFlvAntiCode\":\"\",\"sHlsUrl\":\"http://tx.hls.huya.com/src\",\"sHlsUrlSuffix\":\"m3u8\",\"sHlsAntiCode\":\"\",\"iLineIndex\":5,\"iIsMultiStream\":1,\"iPCPriorityRate\":100,\"iWebPriorityRate\":100,\"iMobilePriorityRate\":100,\"vFlvIPList\":[],\"iIsP2PSupport\":2,\"sP2pUrl\":\"http://tx.p2p.huya.com/huyalive\",\"sP2pUrlSuffix\":\"slice\",\"sP2pAntiCode\":\"\",\"lFreeFlag\":1,\"iIsHEVCSupport\":0,\"vP2pIPList\":[],\"mpExtArgs\":{},\"lTimespan\":15982372841},{\"sCdnType\":\"HS\",\"iIsMaster\":0,\"lChannelId\":1199613311154,\"lSubChannelId\":1199613311154,\"lPresenterUid\":1199613311154,\"sStreamName\":\"1199613311154-1199613311154-5658342687737118720-2399226745764-10057-A-0-1-imgplus\",\"sFlvUrl\":\"http://hs.flv.huya.com/src\",\"sFlvUrlSuffix\":\"flv\",\"sFlvAntiCode\":\"\",\"sHlsUrl\":\"http://hs.hls.huya.com/src\",\"sHlsUrlSuffix\":\"m3u8\",\"sHlsAntiCode\":\"\",\"iLineIndex\":14,\"iIsMultiStream\":1,\"iPCPriorityRate\":0,\"iWebPriorityRate\":0,\"iMobilePriorityRate\":0,\"vFlvIPList\":[],\"iIsP2PSupport\":2,\"sP2pUrl\":\"http://hs.p2p.huya.com/huyalive\",\"sP2pUrlSuffix\":\"slice\",\"sP2pAntiCode\":\"\",\"lFreeFlag\":0,\"iIsHEVCSupport\":0,\"vP2pIPList\":[],\"mpExtArgs\":{},\"lTimespan\":15982372841}]",
+    "isFullUser": 0,
+    "screenshot": "https://anchorpost.msstatic.com/cdnimage/anchorpost/1022/be/b4ce6e166d3a48045285186e5a2322_1663_1757498298.jpg?spformat=png,webp",
+    "totalCount": 1294979,
+    "nick": "小白羊吃不饱【白羊】",
+    "uid": 1199613311154,
+    "isSecret": 0,
+    "multiStreamFlag": 521,
+    "scoreIntro": 0,
+    "bitRate": 10000,
+    "screenType": 1,
+    "startTime": 1764572873,
+    "popular": 0,
+    "introduction": "热舞新人  保灯送女朋友",
+    "gameFullName": "星秀",
+    "gameId": 0,
+    "sex": 2,
+    "bussType": 8,
+    "liveId": 7578782780073668000,
+    "activityCount": 378488,
+    "roomLimit": 0,
+    "isRoomPay": 0,
+    "bitRateInfo": "[{\"sDisplayName\":\"蓝光10M\",\"iBitRate\":0,\"iCodecType\":0,\"iCompatibleFlag\":0,\"iHEVCBitRate\":-1},{\"sDisplayName\":\"蓝光4M\",\"iBitRate\":4000,\"iCodecType\":0,\"iCompatibleFlag\":0,\"iHEVCBitRate\":4000},{\"sDisplayName\":\"超清\",\"iBitRate\":2000,\"iCodecType\":0,\"iCompatibleFlag\":0,\"iHEVCBitRate\":2000},{\"sDisplayName\":\"流畅\",\"iBitRate\":500,\"iCodecType\":0,\"iCompatibleFlag\":0,\"iHEVCBitRate\":500}]",
+    "time": 279,
+    "updateCacheTime": 1764589640,
+    "mStreamRatioWeb": "{\"TX\":100,\"HUYA\":-1,\"AL\":-1,\"HS\":0}",
+    "liveSourceType": 0,
+    "isWatchTogetherVip": 0
+  },
+  "chTopId": 1199613311154,
+  "subChId": 1199613311154,
+  "welcomeText": "恭喜发财~~粉丝牌15级或开通守护可进粉丝群，进粉丝群联系场控（hr104840）",
+  "roomPay": [],
+  "isRoomPay": false,
+  "realLiveStatus": "ON"
+}

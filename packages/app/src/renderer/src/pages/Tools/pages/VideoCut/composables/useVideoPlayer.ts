@@ -35,7 +35,6 @@ export function useVideoPlayer(isWeb: Ref<boolean>) {
    */
   const handleVideoReady = (instance: Artplayer) => {
     videoInstance.value = instance;
-    console.log("video ready", instance);
   };
 
   return {

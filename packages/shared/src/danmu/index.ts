@@ -49,15 +49,15 @@ export const parseXmlFile = async (input: string, parseRaw = false) => {
       XMLdata = XMLdata.replace(/raw=".*?"/g, "");
     }
   }
-  return parseXmlObj(XMLdata);
+  return parseXmlObj(XMLdata, parseRaw);
 };
 
 /**
  * 解析弹幕数据为对象
  */
-export const parseXmlObj = async (XMLdata: string) => {
+export const parseXmlObj = async (XMLdata: string, parseRaw: boolean = false) => {
   const parser = new XMLParser({
-    ignoreAttributes: false,
+    ignoreAttributes: parseRaw ? false : ["raw"],
     parseTagValue: false,
     isArray: (name) => {
       if (["d", "gift", "guard", "sc"].includes(name)) return true;
@@ -291,7 +291,7 @@ export const danmaReport = async (
   },
 ) => {
   // 读取Ass文件
-  const { danmuku, sc, guard, gift } = await parseXmlFile(input);
+  const { danmuku, sc, guard, gift } = await parseXmlFile(input, true);
 
   const danmukuLength = danmuku.length;
   const scLength = sc.length;

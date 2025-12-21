@@ -3,46 +3,42 @@ import BaseModel from "./baseModel.js";
 
 import type { Database } from "better-sqlite3";
 
-const BaseItem = z.object({
+const BaseVirtualRecord = z.object({
   path: z.string(),
 });
 
-export type BaseItem = z.infer<typeof BaseItem>;
+const VirtualRecord = BaseVirtualRecord.extend({
+  id: z.number(),
+  created_at: z.number(),
+});
 
-class model extends BaseModel<BaseItem> {
-  table = "virtual_record";
+export type BaseVirtualRecord = z.infer<typeof BaseVirtualRecord>;
+export type VirtualRecord = z.infer<typeof VirtualRecord>;
 
-  constructor(db: Database) {
+export default class VirtualRecordModel extends BaseModel<BaseVirtualRecord> {
+  constructor({ db }: { db: Database }) {
     super(db, "virtual_record");
+    this.createTable();
   }
 
-  createTable() {
+  async createTable() {
     const createTableSQL = `
-      CREATE TABLE IF NOT EXISTS ${this.table} (
+      CREATE TABLE IF NOT EXISTS ${this.tableName} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,           -- 自增主键
         path TEXT NOT NULL,                             -- 文件路径
-        created_at INTEGER DEFAULT (strftime('%s', 'now'))  -- 创建时间，时间戳，自动生成
+        created_at INTEGER DEFAULT (strftime('%s', 'now'))  -- 创建时间,时间戳,自动生成
       ) STRICT;
     `;
     return super.createTable(createTableSQL);
   }
-}
 
-type AddOptions = z.infer<typeof BaseItem>;
-
-export default class VirtualRecordController {
-  private model!: model;
-  init(db: Database) {
-    this.model = new model(db);
-    this.model.createTable();
+  add(options: BaseVirtualRecord) {
+    const data = BaseVirtualRecord.parse(options);
+    return this.insert(data);
   }
 
-  add(options: AddOptions) {
-    const data = BaseItem.parse(options);
-    return this.model.insert(data);
-  }
-
-  list() {
-    return this.model.list({});
+  deleteById(id: number) {
+    const sql = `DELETE FROM ${this.tableName} WHERE id = ?`;
+    return this.db.prepare(sql).run(id);
   }
 }

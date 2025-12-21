@@ -64,6 +64,11 @@ export async function getRoomInfo(
       sources.flv.push({
         name: item.sCdnType,
         url,
+        streamName: sStreamName,
+        presenterUid: item.lPresenterUid,
+        subChannelId: item.lSubChannelId,
+        channelId: item.lChannelId,
+        suffix: item.sFlvUrlSuffix,
       });
     }
     if (item.sHlsAntiCode && item.sHlsAntiCode.length > 0) {
@@ -81,6 +86,11 @@ export async function getRoomInfo(
       sources.hls.push({
         name: item.sCdnType,
         url,
+        streamName: sStreamName,
+        presenterUid: item.lPresenterUid,
+        subChannelId: item.lSubChannelId,
+        channelId: item.lChannelId,
+        suffix: item.sHlsUrlSuffix,
       });
     }
   }
@@ -89,6 +99,7 @@ export async function getRoomInfo(
   const formatSources = getFormatSources(sources, opts.formatPriorities);
   return {
     living: vMultiStreamInfo.length > 0 && data.gameStreamInfoList.length > 0,
+    api: "web",
     id: data.gameLiveInfo.profileRoom,
     owner: data.gameLiveInfo.nick,
     title: data.gameLiveInfo.introduction,

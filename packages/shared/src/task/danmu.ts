@@ -30,7 +30,7 @@ const genFilteredXml = async (input: string, output: string, filterFunction: str
     ${filterFunction}
     return filter(type, danmu);`,
   );
-  const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(input);
+  const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(input, true);
   const filteredDanmuku = danmuku.filter((item) => {
     return filterFunc("danmu", item);
   });
@@ -387,7 +387,7 @@ export const mergeXml = async (
     const duration = meta.format.duration || 0;
 
     // 解析XML文件
-    const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(file.danmakuPath);
+    const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(file.danmakuPath, true);
 
     videoData.push({
       path: file.danmakuPath,

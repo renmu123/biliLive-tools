@@ -32,7 +32,7 @@
             @click="deletePreset"
             >删除</n-button
           >
-          <n-button class="btn" @click="close">取消</n-button>
+          <n-button class="btn" @click="cancel">取消</n-button>
           <!-- <n-button type="primary" class="btn" @click="rename">重命名</n-button> -->
           <!-- <n-button type="primary" class="btn" @click="saveAs">另存为</n-button> -->
           <!-- <n-button type="primary" class="btn" @click="saveConfig">保存</n-button> -->
@@ -119,6 +119,10 @@ const confirm = () => {
 };
 const close = () => {
   showModal.value = false;
+};
+
+const cancel = () => {
+  close();
   emits("cancel");
 };
 

@@ -12,6 +12,7 @@ const BaseDanmu = z.object({
   gift_price: z.number().optional(),
   gift_name: z.string().optional(),
 });
+
 const Danmu = BaseDanmu.extend({
   id: z.number(),
 });
@@ -19,18 +20,25 @@ const Danmu = BaseDanmu.extend({
 export type BaseDanmu = z.infer<typeof BaseDanmu>;
 export type Danmu = z.infer<typeof Danmu>;
 
-class DanmaModel extends BaseModel<BaseDanmu> {
-  table: string;
+/**
+ * 弹幕数据模型
+ * 每个直播间会创建独立的弹幕表
+ */
+export default class DanmuModel extends BaseModel<BaseDanmu> {
+  platform: string;
+  roomId: string;
 
-  constructor(db: Database, platform: string, roomId: string) {
-    const tableName = `danma_${platform}_${roomId}`;
+  constructor({ db, platform, roomId }: { db: Database; platform: string; roomId: string }) {
+    const tableName = `danmu_${platform}_${roomId}`;
     super(db, tableName);
-    this.table = tableName;
+    this.platform = platform;
+    this.roomId = roomId;
+    this.createTable();
   }
 
   async createTable() {
     const createTableSQL = `
-      CREATE TABLE IF NOT EXISTS ${this.table} (
+      CREATE TABLE IF NOT EXISTS ${this.tableName} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,           -- 自增主键
         record_id INTEGER,                              -- 直播场次id
         ts INTEGER DEFAULT 0,                           -- 时间戳
@@ -42,91 +50,98 @@ class DanmaModel extends BaseModel<BaseDanmu> {
       ) STRICT;
     `;
 
-    const result = super.createTable(createTableSQL);
+    super.createTable(createTableSQL);
 
-    // 创建索引
-    const createIndexSQL = `
-        CREATE INDEX IF NOT EXISTS idx_${this.table}_record_id ON ${this.table}(record_id);
-        CREATE INDEX IF NOT EXISTS idx_${this.table}_ts ON ${this.table}(ts);
-        CREATE INDEX IF NOT EXISTS idx_${this.table}_type ON ${this.table}(type);
-        CREATE INDEX IF NOT EXISTS idx_${this.table}_record_ts ON ${this.table}(record_id, ts);
-        CREATE INDEX IF NOT EXISTS idx_${this.table}_record_gift ON ${this.table}(record_id, gift_price DESC);
-        CREATE INDEX IF NOT EXISTS idx_${this.table}_user ON ${this.table}(user);
-        CREATE INDEX IF NOT EXISTS idx_${this.table}_record_user ON ${this.table}(record_id, user);
-      `;
+    // 创建索引以优化查询性能
+    this.createIndexes();
+  }
 
-    // 创建索引
-    const indexStatements = createIndexSQL.split(";").filter((sql) => sql.trim());
-    for (const indexSQL of indexStatements) {
-      if (indexSQL.trim()) {
-        this.db.prepare(indexSQL).run();
-      }
+  private createIndexes() {
+    const indexes = [
+      `CREATE INDEX IF NOT EXISTS idx_${this.tableName}_record_id ON ${this.tableName}(record_id)`,
+      `CREATE INDEX IF NOT EXISTS idx_${this.tableName}_ts ON ${this.tableName}(ts)`,
+      `CREATE INDEX IF NOT EXISTS idx_${this.tableName}_type ON ${this.tableName}(type)`,
+      `CREATE INDEX IF NOT EXISTS idx_${this.tableName}_record_ts ON ${this.tableName}(record_id, ts)`,
+      `CREATE INDEX IF NOT EXISTS idx_${this.tableName}_record_gift ON ${this.tableName}(record_id, gift_price DESC)`,
+      `CREATE INDEX IF NOT EXISTS idx_${this.tableName}_user ON ${this.tableName}(user)`,
+      `CREATE INDEX IF NOT EXISTS idx_${this.tableName}_record_user ON ${this.tableName}(record_id, user)`,
+    ];
+
+    for (const indexSQL of indexes) {
+      this.db.prepare(indexSQL).run();
     }
-
-    return result;
-  }
-}
-
-export default class DanmaController {
-  private db!: Database;
-
-  init(db: Database) {
-    this.db = db;
   }
 
-  private getModel(platform: string, roomId: string): DanmaModel {
-    const tableName = `danma_${platform}_${roomId}`;
-    // 检查表是否存在
-    const tableExists = this.db
-      .prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`)
-      .get(tableName);
-
-    const model = new DanmaModel(this.db, platform, roomId);
-    if (!tableExists) {
-      model.createTable();
-    }
-    return model;
+  /**
+   * 添加单条弹幕记录
+   */
+  add(data: BaseDanmu) {
+    const validated = BaseDanmu.parse(data);
+    return this.insert(validated);
   }
 
-  addDanma(
-    raw: BaseDanmu,
-    options: {
-      platform: string;
-      roomId: string;
-    },
-  ) {
-    const data = BaseDanmu.parse(raw);
-    const model = this.getModel(options.platform, options.roomId);
-    return model.insert(data);
+  /**
+   * 批量添加弹幕记录
+   */
+  addMany(list: BaseDanmu[]) {
+    if (list.length === 0) return [];
+
+    const validated = list.map((item) => BaseDanmu.parse(item));
+    return this.insertMany(validated);
   }
 
-  addMany(
-    list: BaseDanmu[],
-    options: {
-      platform: string;
-      roomId: string;
-    },
-  ) {
-    if (list.length === 0) return;
-
-    // 分别插入每个分组
-    const model = this.getModel(options.platform, options.roomId);
-    model.insertMany(list);
+  /**
+   * 根据录制场次ID查询弹幕列表
+   */
+  getByRecordId(recordId: number): (Danmu & { id: number })[] {
+    return this.list({ record_id: recordId });
   }
 
-  list(
-    platform: string,
-    roomId: string,
-    options: Partial<Omit<Danmu, "platform" | "room_id">>,
-  ): Danmu[] {
-    const model = this.getModel(platform, roomId);
-    const data = Danmu.partial().parse(options);
-    return model.list(data);
+  /**
+   * 根据录制场次ID和时间范围查询弹幕
+   */
+  getByRecordIdAndTimeRange(
+    recordId: number,
+    startTs: number,
+    endTs: number,
+  ): (Danmu & { id: number })[] {
+    return this.complexQuery({
+      where: [
+        { field: "record_id", operator: "=", value: recordId },
+        { field: "ts", operator: ">=", value: startTs },
+        { field: "ts", operator: "<=", value: endTs },
+      ],
+      orderBy: [{ field: "ts", direction: "ASC" }],
+    });
   }
 
-  query(platform: string, roomId: string, options: Partial<Omit<Danmu, "platform" | "room_id">>) {
-    const model = this.getModel(platform, roomId);
-    const data = Danmu.partial().parse(options);
-    return model.query(data);
+  /**
+   * 查询礼物弹幕统计
+   */
+  getGiftStatistics(recordId: number) {
+    const sql = `
+      SELECT 
+        gift_name,
+        COUNT(*) as count,
+        SUM(gift_price) as total_price
+      FROM ${this.tableName}
+      WHERE record_id = ? AND type = 'gift'
+      GROUP BY gift_name
+      ORDER BY total_price DESC
+    `;
+    return this.db.prepare(sql).all(recordId) as Array<{
+      gift_name: string;
+      count: number;
+      total_price: number;
+    }>;
+  }
+
+  /**
+   * 根据录制场次ID删除弹幕
+   */
+  deleteByRecordId(recordId: number) {
+    return this.delete({
+      where: [{ field: "record_id", operator: "=", value: recordId }],
+    });
   }
 }

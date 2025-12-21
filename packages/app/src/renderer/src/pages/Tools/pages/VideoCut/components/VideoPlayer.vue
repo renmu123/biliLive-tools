@@ -84,11 +84,16 @@ const handleCanPlay = () => {
   emit("canPlay");
 };
 
+const clearFiles = () => {
+  fileList.value = [];
+};
+
 // 暴露给父组件
 defineExpose({
   videoRef,
   switchUrl: (url: string, type?: "" | "flv") => videoRef.value?.switchUrl(url, type),
   switchAss: (content: string) => videoRef.value?.switchAss(content),
+  clearFiles,
 });
 </script>
 
@@ -113,6 +118,10 @@ defineExpose({
         box-sizing: border-box;
       }
     }
+  }
+  :deep(.art-bottom) {
+    opacity: 1 !important;
+    --art-bottom-offset: 0px !important;
   }
 }
 </style>

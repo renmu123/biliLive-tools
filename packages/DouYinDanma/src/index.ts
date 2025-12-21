@@ -62,11 +62,13 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   private autoStart: boolean;
   private autoReconnect: number;
   private reconnectAttempts: number;
+  private reconnectInterval: number;
   private cookie?: string;
   private timeoutInterval: number;
   private lastMessageTime: number;
   private timeoutTimer!: NodeJS.Timeout;
   private isTimeoutCheckRunning: boolean = false;
+  private isReconnecting: boolean = false;
 
   constructor(
     roomId: string,
@@ -74,6 +76,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
       autoStart?: boolean;
       autoReconnect?: number;
       heartbeatInterval?: number;
+      reconnectInterval?: number;
       cookie?: string;
       timeoutInterval?: number;
     } = {},
@@ -84,6 +87,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.autoStart = options.autoStart ?? false;
     this.autoReconnect = options.autoReconnect ?? 10;
     this.reconnectAttempts = 0;
+    this.reconnectInterval = options.reconnectInterval ?? 10000;
     this.cookie = options.cookie;
     this.timeoutInterval = options.timeoutInterval ?? 100000; // 默认100秒
     this.lastMessageTime = Date.now();
@@ -108,6 +112,7 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     });
 
     this.ws.on("open", () => {
+      this.reconnectAttempts = 0;
       this.emit("open");
       this.startHeartbeat();
       this.startTimeoutCheck();
@@ -203,12 +208,21 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
   }
 
   private reconnect() {
+    if (this.isReconnecting) {
+      return;
+    }
+
     this.stopHeartbeat();
     this.stopTimeoutCheck();
+
     if (this.reconnectAttempts < this.autoReconnect) {
+      this.isReconnecting = true;
       this.reconnectAttempts++;
-      this.connect();
-      this.emit("reconnect", this.reconnectAttempts);
+      setTimeout(() => {
+        this.connect();
+        this.isReconnecting = false;
+        this.emit("reconnect", this.reconnectAttempts);
+      }, this.reconnectInterval);
     }
   }
 

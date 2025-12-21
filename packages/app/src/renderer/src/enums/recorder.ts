@@ -371,6 +371,13 @@ export const douyinApiTypeOptions = [
   { label: "测试：负载均衡", value: "balance" },
 ];
 
+export const huyaApiTypeOptions = [
+  { label: "自动", value: "auto" },
+  { label: "web", value: "web" },
+  { label: "mp", value: "mp" },
+  { label: "wup", value: "wup" },
+];
+
 const qualityRetry = {
   text: "流匹配重试次数",
   tip: "根据次数强制查询匹配画质及其他强制参数，在未选择原画的情况下，可能会导致开头漏录。匹配次数结束后如果无法匹配对应画质时会自动选择其他画质，-1为强制匹配",
@@ -418,6 +425,10 @@ export const textInfo = {
   huya: {
     qualityRetry: qualityRetry,
     quality: quality,
+    api: {
+      text: "请求接口",
+      tip: `为了星秀区而增加的参数，具体自己看文档吧~`,
+    },
   },
   douyin: {
     qualityRetry: qualityRetry,

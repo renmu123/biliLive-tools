@@ -46,14 +46,6 @@ export function assertNumberType(data: unknown, msg?: string): asserts data is n
 export function assertObjectType(data: unknown, msg?: string): asserts data is object {
   assert(typeof data === "object", msg);
 }
-
-export function replaceExtName(filePath: string, newExtName: string) {
-  return path.join(
-    path.dirname(filePath),
-    path.basename(filePath, path.extname(filePath)) + newExtName,
-  );
-}
-
 export function get__ac_signature(one_time_stamp, one_site, one_nonce, ua_n) {
   function cal_one_str(one_str, orgi_iv) {
     var k = orgi_iv;

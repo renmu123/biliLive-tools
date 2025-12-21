@@ -49,6 +49,7 @@ export const recorderNoGlobalFollowFields: Array<
     | "line"
     | "titleKeywords"
     | "liveStartNotification"
+    | "liveEndNotification"
     | "onlyAudio"
     | "handleTime"
     | "weight"
@@ -364,6 +365,8 @@ interface HuyaRecorderConfig {
   /** 流格式 */
   formatName: FormatName;
   source: string;
+  /** 接口类型 */
+  api: "auto" | "web" | "wup" | "mp";
 }
 
 interface DouyinRecorderConfig {
@@ -491,6 +494,8 @@ export interface Recorder {
   titleKeywords?: string;
   /** 开播推送 */
   liveStartNotification?: boolean;
+  /** 录制结束通知 */
+  liveEndNotification?: boolean;
   /** 权重 */
   weight: number;
   /** 抖音cookie */
@@ -506,7 +511,7 @@ export interface Recorder {
   /** 调试等级 */
   debugLevel: "none" | "basic" | "verbose";
   /** API类型，仅抖音 */
-  api: string;
+  api: HuyaRecorderConfig["api"] | DouyinRecorderConfig["api"];
   // 不跟随全局配置字段
   noGlobalFollowFields: typeof recorderNoGlobalFollowFields;
 }
@@ -581,6 +586,13 @@ export interface AppConfig {
   uid?: number;
   /** 工具页配置 */
   tool: ToolConfig;
+  /** 切片 */
+  videoCut: {
+    /** 自动保存 */
+    autoSave: boolean;
+    /** 缓存波形图数据 */
+    cacheWaveform: boolean;
+  };
   /** 通知配置 */
   notification: {
     /** 任务 */
@@ -627,6 +639,7 @@ export interface AppConfig {
       username: string;
       hashPassword: string;
       limitRate: number; // KB
+      retry: number;
     };
     pan123: {
       clientId: string;

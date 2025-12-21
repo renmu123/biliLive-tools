@@ -20,6 +20,17 @@ huya-danmu 是Node.js版本虎牙直播弹幕监听模块。
 1. **支持esm，node>=18**
 2. 返回了弹幕颜色
 
+初始化支持其他参数，来跳过默认的初始化查询
+
+```
+{
+  roomid: string;
+  uid?: number;
+  subChannelId?: number;
+  channelId?: number;
+}
+```
+
 ## Installation
 
 可以通过本命令安装 huya-danma-listener:

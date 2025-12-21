@@ -109,6 +109,11 @@ router.delete("/:id", async (ctx) => {
   }
 });
 
+/**
+ * 获取视频文件路径
+ * @param id 记录ID
+ * @returns
+ */
 const getVideoFile = async (id: number): Promise<string | null> => {
   const data = recordHistory.getRecordById(id);
   if (!data) {
@@ -128,34 +133,33 @@ const getVideoFile = async (id: number): Promise<string | null> => {
 };
 
 /**
- * 获取视频文件
- * @route GET /record-history/video/:id
- * @param {number} id - 记录ID
+ * 获取弹幕文件路径，优先查询ass文件，其次查询xml文件
+ * @param videoFile 视频文件路径
+ * @returns 弹幕文件路径
  */
-router.get("/video/:id", async (ctx) => {
-  const { id } = ctx.params;
-
-  if (!id || isNaN(parseInt(id))) {
-    ctx.status = 400;
-    ctx.body = "记录ID不能为空且必须为数字";
+const getDanmaFile = async (
+  videoFile: string,
+): Promise<{
+  file: string;
+  ext: string;
+} | null> => {
+  const assFile = replaceExtName(videoFile, ".ass");
+  if (await fs.pathExists(assFile)) {
+    return { file: assFile, ext: "ass" };
   }
-
-  const file = await getVideoFile(parseInt(id));
-  if (file) {
-    ctx.body = file;
-    return;
+  const danmaFile = replaceExtName(videoFile, ".xml");
+  if (await fs.pathExists(danmaFile)) {
+    return { file: danmaFile, ext: "xml" };
   }
-
-  ctx.status = 400;
-  ctx.body = "视频文件不存在";
-});
+  return null;
+};
 
 /**
- * 下载视频文件
- * @route GET /record-history/download/:id
+ * 获取记录文件信息
+ * @route GET /record-history/file/:id
  * @param {number} id - 记录ID
  */
-router.get("/download/:id", async (ctx) => {
+router.get("/file/:id", async (ctx) => {
   const { id } = ctx.params;
 
   if (!id || isNaN(parseInt(id))) {
@@ -163,26 +167,39 @@ router.get("/download/:id", async (ctx) => {
     ctx.body = "记录ID不能为空且必须为数字";
   }
 
-  const file = await getVideoFile(parseInt(id));
-  if (!file) {
+  const videoFile = await getVideoFile(parseInt(id));
+  if (!videoFile) {
     ctx.status = 400;
     ctx.body = "视频文件不存在";
     return;
   }
-  const extname = path.extname(file).toLowerCase();
+  const extname = path.extname(videoFile).toLowerCase();
 
-  const fileId = fileCache.setFile(file);
-  let type = "";
+  const videoFileId = fileCache.setFile(videoFile);
+  let videoFileExt = "";
   switch (extname) {
     case ".flv":
-      type = "flv";
+      videoFileExt = "flv";
       break;
     case ".ts":
-      type = "ts";
+      videoFileExt = "ts";
       break;
   }
 
-  ctx.body = { fileId, type };
+  const danmaFile = await getDanmaFile(videoFile);
+  let danmaFileId: string | null = null;
+  if (danmaFile) {
+    danmaFileId = fileCache.setFile(danmaFile.file);
+  }
+
+  ctx.body = {
+    videoFilePath: videoFile,
+    videoFileId,
+    videoFileExt,
+    danmaFilePath: danmaFile?.file || null,
+    danmaFileId,
+    danmaFileExt: danmaFile?.ext || null,
+  };
 });
 
 export default router;

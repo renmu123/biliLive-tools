@@ -458,11 +458,10 @@ const _formatDuration = (duration?: number) => {
 
 // 打开文件
 const openFile = async (id: number) => {
-  if (!id) return;
   try {
-    const filePath = await recordHistoryApi.getVideoFile(id);
-    if (!filePath) return;
-    window.api.openPath(filePath);
+    const { videoFilePath } = await recordHistoryApi.getFileInfo(id);
+    if (!videoFilePath) return;
+    window.api.openPath(videoFilePath);
   } catch (error: any) {
     notice.error({
       title: error.message || error,
@@ -489,10 +488,9 @@ const downloadFile = async (id: number) => {
 
 const openFolder = async (id: number) => {
   try {
-    if (!id) return;
-    const filePath = await recordHistoryApi.getVideoFile(id);
-    if (!filePath) return;
-    window.api.common.showItemInFolder(filePath);
+    const { videoFilePath } = await recordHistoryApi.getFileInfo(id);
+    if (!videoFilePath) return;
+    window.api.common.showItemInFolder(videoFilePath);
   } catch (error: any) {
     notice.error({
       title: error.message || error,
@@ -530,17 +528,18 @@ const previewFiles = ref({
 });
 const previewVideo = async (id: number) => {
   try {
-    const { fileId, type } = await recordHistoryApi.getTempVideoId(id);
-    if (type === "ts") {
+    const { videoFileId, videoFileExt, danmaFilePath } = await recordHistoryApi.getFileInfo(id);
+    if (videoFileExt === "ts") {
       notice.warning({
         title: `暂不支持预览ts格式的视频`,
         duration: 2000,
       });
       return;
     }
-    const videoUrl = await commonApi.getVideo(fileId);
+    const videoUrl = await commonApi.getVideo(videoFileId);
     previewFiles.value.video = videoUrl;
-    previewFiles.value.type = type;
+    previewFiles.value.type = videoFileExt;
+    previewFiles.value.danmu = danmaFilePath || "";
     previewModalVisible.value = true;
   } catch (error: any) {
     notice.error({

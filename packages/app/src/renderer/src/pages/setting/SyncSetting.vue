@@ -19,12 +19,12 @@
         <n-tab-pane class="tab-pane" name="syncConfig" tab="同步器" display-directive="show:lazy">
           <div class="sync-config-list">
             <n-card
-              v-for="(config, index) in config.sync.syncConfigs"
-              :key="config.id"
+              v-for="(item, index) in config.sync.syncConfigs"
+              :key="item.id"
               class="sync-config-card"
             >
               <template #header>
-                <n-text strong>{{ config.name }}</n-text>
+                <n-text strong>{{ item.name }}</n-text>
               </template>
               <template #header-extra>
                 <n-space align="center">
@@ -33,9 +33,9 @@
                 </n-space>
               </template>
               <n-space vertical>
-                <n-text>同步源: {{ getSyncSourceLabel(config.syncSource) }}</n-text>
-                <n-text>目录结构: {{ config.folderStructure }}</n-text>
-                <n-text>文件类型: {{ getTargetFilesLabel(config.targetFiles) }}</n-text>
+                <n-text>同步源: {{ getSyncSourceLabel(item.syncSource) }}</n-text>
+                <n-text>目录结构: {{ item.folderStructure }}</n-text>
+                <n-text>文件类型: {{ getTargetFilesLabel(item.targetFiles) }}</n-text>
               </n-space>
             </n-card>
             <n-card class="sync-config-card" @click="addSyncConfig">
@@ -162,6 +162,16 @@
             </template>
             <n-input-number v-model:value="config.sync.alist.limitRate" min="0" step="1024">
               <template #suffix>KB</template>
+            </n-input-number>
+          </n-form-item>
+          <n-form-item>
+            <template #label>
+              <Tip
+                text="重试次数"
+                tip="失败后自动重试，仅限于本地上传至alist服务端，并非alist服务端内部的上传重试"
+              ></Tip>
+            </template>
+            <n-input-number v-model:value="config.sync.alist.retry" min="0" step="1" max="10">
             </n-input-number>
           </n-form-item>
         </n-tab-pane>
@@ -701,6 +711,7 @@ const saveSyncConfig = () => {
     notice.error("至少选择一个文件类型");
     return;
   }
+  editingConfig.value.folderStructure = editingConfig.value.folderStructure.trim();
   if (editingConfigIndex.value === null) {
     config.value.sync.syncConfigs.push({ ...editingConfig.value });
   } else {

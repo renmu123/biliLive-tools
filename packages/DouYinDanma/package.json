@@ -1,6 +1,6 @@
 {
   "name": "douyin-danma-listener",
-  "version": "0.2.1",
+  "version": "0.3.1",
   "description": "douyin danma listener",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",

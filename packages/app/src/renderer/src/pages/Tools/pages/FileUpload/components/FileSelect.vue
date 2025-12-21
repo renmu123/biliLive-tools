@@ -1,22 +1,34 @@
 <template>
-  <PartArea
-    v-if="fileList.length !== 0"
-    v-model="fileList"
-    :sort="props.sort"
-    :placeholder="props.inputPlaceholder"
-  ></PartArea>
-  <FileArea
-    v-else
-    :extensions="props.extensions"
-    :desc="props.areaPlaceholder"
-    @change="addOldFile"
-  ></FileArea>
+  <div
+    ref="dropZoneRef"
+    :class="{ dragging: isOverDropZone }"
+    style="border: 1px dashed rgb(224, 224, 230); border-radius: 4px; transition: border-color 0.2s"
+  >
+    <PartArea
+      v-if="fileList.length !== 0"
+      v-model="fileList"
+      :sort="props.sort"
+      :placeholder="props.inputPlaceholder"
+    ></PartArea>
+    <div v-else class="empty-area" :class="{ dragging: isOverDropZone }" @click="select">
+      <div style="margin-bottom: 12px">
+        <n-icon size="48" :depth="3">
+          <ArchiveIcon />
+        </n-icon>
+      </div>
+      <n-text style="font-size: 16px">点击或拖拽文件到该区域</n-text>
+      <p v-if="props.areaPlaceholder" style="margin: 8px 0 0 0">
+        {{ props.areaPlaceholder }}
+      </p>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import FileArea from "@renderer/components/FileArea.vue";
 import PartArea from "./PartArea.vue";
 import showDirectoryDialog from "@renderer/components/showDirectoryDialog";
+import { useDropZone } from "@vueuse/core";
+import { ArchiveOutline as ArchiveIcon } from "@vicons/ionicons5";
 
 import { supportedVideoExtensions, uuid } from "@renderer/utils";
 
@@ -47,14 +59,7 @@ const emits = defineEmits<{
   (event: "change", value: File[]): void;
 }>();
 
-const addOldFile = (data: { name: string; path: string }[]) => {
-  fileList.value = data.map((item) => ({
-    id: uuid(),
-    title: item.name,
-    path: item.path,
-    visible: false,
-  }));
-};
+const dropZoneRef = ref<HTMLElement | null>(null);
 
 const select = async () => {
   let files: string[] | undefined = [];
@@ -104,9 +109,65 @@ watch(
   { deep: true },
 );
 
+// 拖拽相关
+function onDrop(files: globalThis.File[] | null) {
+  if (window.isWeb) return;
+
+  if (files) {
+    const filePaths = Array.from(files).map((file) => window.api.common.getPathForFile(file));
+    const newFiles = filePaths
+      .filter((file) => {
+        // 过滤已存在的文件
+        if (fileList.value.some((item) => item.path === file)) return false;
+        // 过滤不符合扩展名的文件
+        const ext = window.path.extname(file).slice(1).toLowerCase();
+        return props.extensions.some((allowedExt) => allowedExt.toLowerCase() === ext);
+      })
+      .map((file) => ({
+        id: uuid(),
+        title: window.path.parse(file).name,
+        path: file,
+        visible: false,
+      }));
+    fileList.value = fileList.value.concat(newFiles);
+  }
+}
+
+function onOver(_files: globalThis.File[] | null, event: DragEvent) {
+  if (window.isWeb) return;
+  event.dataTransfer!.dropEffect = "copy";
+}
+
+const { isOverDropZone } = useDropZone(dropZoneRef, {
+  onDrop,
+  onOver,
+});
+
 defineExpose({
   select,
 });
 </script>
 
-<style scoped></style>
+<style scoped>
+.empty-area {
+  height: 200px;
+  border: 1px dashed rgb(224, 224, 230);
+  border-radius: 3px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.empty-area:hover,
+.empty-area.dragging {
+  border-color: #18a058;
+}
+
+.dragging {
+  border-color: #18a058 !important;
+}
+</style>

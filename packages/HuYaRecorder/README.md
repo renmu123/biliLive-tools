@@ -45,7 +45,7 @@ interface Options {
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
   saveGiftDanma?: boolean; // 保存礼物弹幕
   saveCover?: boolean; // 保存封面
-  api?: "auto" | "mp" | "web"; // 默认为auto，在星秀区使用mp接口，其他使用web接口，你也可以强制指定
+  api?: "auto" | "mp" | "web" | "wup"; // 默认为auto，在星秀区使用mp接口，其他使用web接口，你也可以强制指定
   videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"
   recorderType?: "auto" | "ffmpeg" | "mesio"; // 底层录制器，使用mesio时videoFormat参数无效
   debugLevel?: `verbose` | "basic"; // verbose参数时，录制器会输出更加详细的log
@@ -99,6 +99,17 @@ import { provider } from "@bililive-tools/huya-recorder";
 const url = "https://www.huya.com/910323";
 const { id } = await provider.resolveChannelInfoFromURL(url);
 ```
+
+### API 接口选择
+
+虎牙提供多种API接口，可以根据情况选择：
+
+| 接口类型 | 说明                                     |
+| -------- | ---------------------------------------- |
+| auto     | 一般使用web接口，星秀区使用wup接口       |
+| web      | 你web看到的东西，星秀区会两分钟分段      |
+| wup      | 神奇的接口                               |
+| mp       | 小程序接口，也可以录星秀区，但画质差了点 |
 
 # 协议
 

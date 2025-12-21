@@ -19,17 +19,41 @@ const VideoSub = BaseVideoSub.extend({
 });
 
 export type BaseVideoSub = z.infer<typeof BaseVideoSub>;
+export type VideoSub = z.infer<typeof VideoSub>;
 
-class VideoSubModel extends BaseModel<z.infer<typeof VideoSub>> {
-  table = "video_sub";
+interface Options {
+  danma: boolean;
+  sendWebhook: boolean;
+  quality: string;
+}
 
-  constructor(db: Database) {
+export interface VideoSubItem extends Omit<VideoSub, "options" | "enable"> {
+  options: Options;
+  enable: boolean;
+}
+
+export interface AddVideoSub extends Omit<BaseVideoSub, "options" | "lastRunTime" | "enable"> {
+  enable: boolean;
+  options: Options;
+}
+
+export interface UpdateVideoSub extends Omit<BaseVideoSub, "options" | "enable"> {
+  id: number;
+  enable: boolean;
+  options: Options;
+}
+
+const bool2num = (bool: boolean) => (bool ? 1 : 0);
+
+export default class VideoSubModel extends BaseModel<VideoSub> {
+  constructor({ db }: { db: Database }) {
     super(db, "video_sub");
+    this.createTable();
   }
 
-  createTable() {
+  async createTable() {
     const createTableSQL = `
-      CREATE TABLE IF NOT EXISTS ${this.table} (
+      CREATE TABLE IF NOT EXISTS ${this.tableName} (
         id INTEGER PRIMARY KEY AUTOINCREMENT,           -- 自增主键
         name TEXT NOT NULL,                             -- 名称
         subId TEXT NOT NULL,                            -- 主要id，用于查询订阅
@@ -44,60 +68,8 @@ class VideoSubModel extends BaseModel<z.infer<typeof VideoSub>> {
     return super.createTable(createTableSQL);
   }
 
-  // migrate() {
-  //   try {
-  //     // 检查表中是否存在enable列
-  //     const columns = this.db.prepare(`PRAGMA table_info(${this.table})`).all();
-  //     // @ts-ignore
-  //     const hasEnableColumn = columns.some((col) => col.name === "enable");
-
-  //     if (!hasEnableColumn) {
-  //       // 添加enable列
-  //       this.db.prepare(`ALTER TABLE ${this.table} ADD COLUMN enable INTEGER DEFAULT 1`).run();
-  //       console.log(`已为${this.table}表添加enable列`);
-  //     }
-  //     return true;
-  //   } catch (error) {
-  //     console.error(`迁移${this.table}表失败:`, error);
-  //     return false;
-  //   }
-  // }
-}
-
-interface Options {
-  danma: boolean;
-  sendWebhook: boolean;
-  quality: string;
-}
-
-export type VideoSub = z.infer<typeof VideoSub>;
-
-export interface VideoSubItem extends Omit<VideoSub, "options" | "enable"> {
-  options: Options;
-  enable: boolean;
-}
-interface AddVideoSub extends Omit<BaseVideoSub, "options" | "lastRunTime" | "enable"> {
-  enable: boolean;
-  options: Options;
-}
-interface UpdateVideoSub extends Omit<BaseVideoSub, "options" | "enable"> {
-  id: number;
-  enable: boolean;
-  options: Options;
-}
-
-export default class VideoSubController {
-  private model!: VideoSubModel;
-  init(db: Database) {
-    this.model = new VideoSubModel(db);
-    this.model.createTable();
-    // this.model.migrate();
-  }
-
   add(data: AddVideoSub) {
-    // const data = BaseVideoSub.parse(options);
-    // return this.model.insert(data);
-    return this.model.insert({
+    return this.insert({
       name: data.name,
       enable: bool2num(data.enable),
       platform: data.platform,
@@ -107,46 +79,21 @@ export default class VideoSubController {
       options: JSON.stringify(data.options),
     });
   }
-  list(options: Partial<VideoSub> = {}): VideoSubItem[] {
-    const data = VideoSub.partial().parse(options);
-    return this.model.list(data).map((item) => {
-      return {
-        ...item,
-        enable: !!item.enable,
-        options: JSON.parse(item.options),
-      };
-    });
-  }
 
-  query(options: Partial<VideoSub>) {
-    const data = VideoSub.partial().parse(options);
-    const item = this.model.query(data);
-    if (!item) return null;
-    return {
-      ...item,
-      enable: !!item.enable,
-      options: JSON.parse(item.options),
-    };
-  }
-  // upsert(options: { where: Partial<VideoSub & { id: number }>; create: BaseVideoSub }) {
-  //   return this.model.upsert(options);
-  // }
-  update(data: UpdateVideoSub) {
-    // const data = UpdateVideoSub.parse(options);
-    return this.model.update({
+  updateVideoSub(data: UpdateVideoSub) {
+    return this.update({
       id: data.id,
       name: data.name,
       enable: bool2num(data.enable),
       options: JSON.stringify(data.options),
     });
   }
+
   updateLastRunTime(data: { id: number; lastRunTime: number }) {
-    return this.model.update(data);
+    return this.update(data);
   }
 
-  delete(id: number) {
-    return this.model.deleteBy("id", id);
+  deleteById(id: number) {
+    return this.deleteBy("id", id);
   }
 }
-
-const bool2num = (bool: boolean) => (bool ? 1 : 0);

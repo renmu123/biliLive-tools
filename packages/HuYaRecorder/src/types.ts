@@ -1,12 +1,6 @@
 export interface StreamResult {
-  flv: {
-    name: string;
-    url: string;
-  }[];
-  hls: {
-    name: string;
-    url: string;
-  }[];
+  flv: SourceProfile[];
+  hls: SourceProfile[];
 }
 
 export interface StreamProfile {
@@ -17,4 +11,9 @@ export interface StreamProfile {
 export interface SourceProfile {
   name: string;
   url: string;
+  streamName: string;
+  presenterUid: number;
+  subChannelId: number;
+  channelId: number;
+  suffix: string;
 }
