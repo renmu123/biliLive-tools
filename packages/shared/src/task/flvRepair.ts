@@ -110,6 +110,7 @@ export class MesioCommand extends EventEmitter {
 
     this.process = spawn(mesioExecutable, args, {
       stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true,
     });
 
     if (this.process.stdout) {
@@ -205,6 +206,7 @@ export class BililiveRecorderCommand extends EventEmitter {
 
     this.process = spawn(bililiveExecutable, args, {
       stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true,
     });
 
     if (this.process.stdout) {
