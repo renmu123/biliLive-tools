@@ -3,7 +3,7 @@ import { exec } from "child_process";
 
 async function getPnpmVersion() {
   return new Promise((resolve, reject) => {
-    exec("pnpm --version", (error, stdout, stderr) => {
+    exec("pnpm --version", { windowsHide: true }, (error, stdout, stderr) => {
       if (error) {
         console.error(`执行错误: ${error}`);
         reject(error);

@@ -125,7 +125,7 @@ export class DanmakuFactory {
     this.command = command;
 
     return new Promise((resolve, reject) => {
-      const child = exec(command, (error, stdout, stderr) => {
+      const child = exec(command, { windowsHide: true }, (error, stdout, stderr) => {
         if (error || stderr) {
           reject(stderr);
         } else {

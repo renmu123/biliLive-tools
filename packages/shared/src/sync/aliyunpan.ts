@@ -76,7 +76,7 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
    */
   public isLoggedIn(): boolean {
     try {
-      const output = execSync(`${this.binary} who`, { encoding: "utf8" });
+      const output = execSync(`${this.binary} who`, { encoding: "utf8", windowsHide: true });
       return !output.includes("未登录") && !output.includes("not logged in");
     } catch (error) {
       return false;
@@ -90,7 +90,7 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
    */
   private async executeCommand(args: string[]): Promise<string> {
     return new Promise((resolve, reject) => {
-      this.cmd = spawn(this.binary, args);
+      this.cmd = spawn(this.binary, args, { windowsHide: true });
       let stdout = "";
       let stderr = "";
 
@@ -252,6 +252,7 @@ export class AliyunPan extends TypedEmitter<AliyunPanEvents> {
         // 使用专用的loginCmd而不是通用的cmd
         this.loginCmd = spawn(this.binary, ["login"], {
           stdio: ["pipe", "pipe", "pipe"],
+          windowsHide: true,
         });
 
         let stdout = "";

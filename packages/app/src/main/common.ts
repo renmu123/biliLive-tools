@@ -7,7 +7,7 @@ import type { IpcMainInvokeEvent } from "electron";
 export const commonHandlers = {
   "common:execFile": async (_event: IpcMainInvokeEvent, file: string, args: string[]) => {
     return new Promise((resolve, reject) => {
-      child_process.execFile(file, args, (error, stdout) => {
+      child_process.execFile(file, args, { windowsHide: true }, (error, stdout) => {
         if (error) {
           reject(error);
         } else {

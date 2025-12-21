@@ -135,7 +135,7 @@ export async function analyzeResolutionChanges(filePath: string): Promise<Resolu
     filePath,
   ];
 
-  const ffprobe = spawn(command, args);
+  const ffprobe = spawn(command, args, { windowsHide: true });
 
   const resolutions: Resolution[] = [];
 

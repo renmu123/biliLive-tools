@@ -62,6 +62,7 @@ class MesioCommand extends EventEmitter {
 
     this.process = spawn(mesioExecutable, args, {
       stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true,
     });
 
     if (this.process.stdout) {

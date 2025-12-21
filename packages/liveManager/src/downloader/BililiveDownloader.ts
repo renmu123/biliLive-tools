@@ -63,6 +63,7 @@ class BililiveRecorderCommand extends EventEmitter {
 
     this.process = spawn(bililiveExecutable, args, {
       stdio: ["pipe", "pipe", "pipe"],
+      windowsHide: true,
     });
 
     if (this.process.stdout) {

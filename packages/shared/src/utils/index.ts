@@ -25,6 +25,7 @@ export const executeCommand = (
       command,
       {
         signal,
+        windowsHide: true,
       },
       (error, stdout, stderr) => {
         if (error) {

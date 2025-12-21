@@ -70,7 +70,7 @@ router.get("/version", (ctx) => {
 
 function getDriveLetters(): Promise<string[]> {
   return new Promise((resolve, reject) => {
-    exec("wmic logicaldisk get name", (error, stdout, stderr) => {
+    exec("wmic logicaldisk get name", { windowsHide: true }, (error, stdout, stderr) => {
       if (error) {
         reject(`Error: ${stderr}`);
         return;
