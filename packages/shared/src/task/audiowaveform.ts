@@ -10,7 +10,7 @@ export function generateAudioWaveform(
   const { audiowaveformPath } = getBinPath();
   return new Promise((resolve, reject) => {
     const args = ["-i", audioFilePath, "-o", outputJsonPath];
-    const process = spawn(audiowaveformPath, args);
+    const process = spawn(audiowaveformPath, args, { windowsHide: true });
     logger.info(`audiowaveform process started: ${audiowaveformPath} ${args.join(" ")}`);
     process.on("error", (err) => {
       logger.error("audiowaveform process error:", err);
