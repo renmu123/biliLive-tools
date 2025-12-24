@@ -1,11 +1,11 @@
-# Next
+# 3.5.2(2025.12.24)
 
 ## bug修复
 
 - 录制：修复某些情况下xml文件命名错误的情况
 - 录制：修复斗鱼某些直播间解析错误
 - 录制：虎牙英雄联盟区默认使用 `wup` 接口
-- 为执行二进制命令增加 `windowsHide` 参数
+- 为执行二进制命令增加 `windowsHide=true` 参数 [#284](https://github.com/renmu123/biliLive-tools/pull/284)
 
 # 3.5.1(2025.12.15)
 
