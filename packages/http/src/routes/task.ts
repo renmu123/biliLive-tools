@@ -171,7 +171,6 @@ router.post("/convertXml2Ass", async (ctx) => {
     preset,
     {
       removeOrigin: false,
-      copyInput: false,
       ...options,
     },
   );

@@ -17,7 +17,7 @@
 ## 配置
 
 使用前通过 `biliLive config gen` 生成默认配置文件，如果你已经安装客户端，相关配置会被自动设置（仅限win）  
-如果你仅使用上传功能，那么无需配置二进制文件，二进制文件可在[这里](https://github.com/renmu123/biliLive-tools/releases/tag/0.2.1)找到，以`platform--arch-version`命名，如果没有当前版本，以最近版本为准，配置为绝对路径以及分配执行权限
+如果你仅使用上传功能，那么无需配置二进制文件，二进制文件见[文档](https://docs.irenmu.com/development/guide.html#%E5%85%B3%E4%BA%8E%E4%BA%8C%E8%BF%9B%E5%88%B6%E4%BE%9D%E8%B5%96)，配置为绝对路径以及分配执行权限
 
 ```js
 {
