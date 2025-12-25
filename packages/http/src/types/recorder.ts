@@ -45,7 +45,7 @@ export type GetRecordersArgs = {
   autoCheck?: string;
   page?: number;
   pageSize?: number;
-  sortField?: "living" | "state" | "monitorStatus";
+  sortField?: "living" | "state" | "monitorStatus" | "recordTime";
   sortDirection?: "asc" | "desc";
 };
 

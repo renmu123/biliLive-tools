@@ -46,4 +46,25 @@ export default class StreamerModel extends BaseModel<BaseStreamer> {
     const filterList = list.map((item) => BaseStreamer.parse(item));
     return this.insertMany(filterList);
   }
+
+  /**
+   * 批量查询多个频道的主播信息
+   * @param channels 频道信息数组
+   * @returns 主播信息数组
+   */
+  batchQueryByChannels(channels: Array<{ room_id: string; platform: string }>): Streamer[] {
+    if (channels.length === 0) {
+      return [];
+    }
+
+    // 构建 WHERE (room_id = ? AND platform = ?) OR (room_id = ? AND platform = ?) ...
+    const conditions = channels.map(() => "(room_id = ? AND platform = ?)").join(" OR ");
+    const params = channels.flatMap(({ room_id, platform }) => [room_id, platform]);
+
+    const sql = `SELECT * FROM ${this.tableName} WHERE ${conditions}`;
+    const stmt = this.db.prepare(sql);
+    const results = stmt.all(...params) as Streamer[];
+
+    return results;
+  }
 }

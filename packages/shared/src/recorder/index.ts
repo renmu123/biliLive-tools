@@ -1,7 +1,7 @@
 import fs from "fs-extra";
 import path from "node:path";
 import axios from "axios";
-import { omit } from "lodash-es";
+import { cloneDeep, omit } from "lodash-es";
 
 import { provider as providerForDouYu } from "@bililive-tools/douyu-recorder";
 import { provider as providerForHuYa } from "@bililive-tools/huya-recorder";
@@ -89,7 +89,11 @@ export async function createRecorderManager(appConfig: AppConfig) {
     recorder: Recorder,
     args: Omit<RecorderConfigType, "channelId" | "providerId">,
   ) {
-    Object.assign(recorder, { ...omit(args, ["id"]) });
+    const cloneArgs = cloneDeep(args);
+    // 不更新extra字段，可能包含运行时数据
+    // @ts-ignore
+    delete cloneArgs.extra;
+    Object.assign(recorder, { ...omit(cloneArgs, ["id"]) });
     return recorder;
   }
 
@@ -178,8 +182,11 @@ export async function createRecorderManager(appConfig: AppConfig) {
       logger.info(`recorder: ${log.text}`);
     }
   });
-  manager.on("RecordStart", (debug) => {
-    logger.info("Manager start", debug);
+  manager.on("RecordStart", ({ recorder }) => {
+    logger.info("Manager start", recorder);
+    if (!recorder.extra) recorder.extra = {};
+    const timestamp = Date.now();
+    recorder.extra.lastRecordTime = timestamp;
   });
   manager.on("RecordStop", ({ recorder }) => {
     logger.info("Manager stop", recorder);
@@ -397,6 +404,23 @@ export async function createRecorderManager(appConfig: AppConfig) {
   }
 
   if (autoCheckLiveStatusAndRecord) manager.startCheckLoop();
+
+  setTimeout(() => {
+    // 转异步，避免阻塞
+    const data = recordHistory.getLastRecordTimesByChannels(
+      manager.recorders.map((r) => ({ channelId: r.channelId, providerId: r.providerId })),
+    );
+    // console.log("获取上次录制时间完成：", data);
+    for (const recorder of manager.recorders) {
+      const record = data.find(
+        (item) => item.channelId === recorder.channelId && item.providerId === recorder.providerId,
+      );
+      if (record && record.lastRecordTime) {
+        if (!recorder.extra) recorder.extra = {};
+        recorder.extra.lastRecordTime = record.lastRecordTime;
+      }
+    }
+  }, 0);
 
   return {
     manager,

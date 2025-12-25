@@ -62,4 +62,13 @@ export default class RecordHistoryService {
   removeRecordsByStreamerId(streamerId: number): number {
     return this.recordHistoryModel.deleteBy("streamer_id", streamerId);
   }
+
+  /**
+   * 批量获取多个频道的最后录制时间
+   * @param streamerIds 主播ID列表
+   * @returns 最后录制时间映射表
+   */
+  getLastRecordTimes(streamerIds: number[]): Map<number, number | null> {
+    return this.recordHistoryModel.getLastRecordTimes(streamerIds);
+  }
 }
