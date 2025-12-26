@@ -134,6 +134,7 @@ async function downloadDouyuVideo(videoId: string, item: VideoSubItem) {
           title: rawName,
           username: videoData.ROOM.author_name,
           platform: "douyu",
+          software: "biliLive-tools",
         });
         await sleep(4000);
         await axios.post(webhookUrl, {
@@ -148,6 +149,7 @@ async function downloadDouyuVideo(videoId: string, item: VideoSubItem) {
           title: rawName,
           username: videoData.ROOM.author_name,
           platform: "douyu",
+          software: "biliLive-tools",
         });
       }
       resolve(output);
@@ -200,6 +202,7 @@ async function downloadHuyaVideo(videoId: string, item: VideoSubItem) {
           title: rawName,
           username: item.name,
           platform: "huya",
+          software: "biliLive-tools",
         });
         await sleep(4000);
         await axios.post(webhookUrl, {
@@ -210,6 +213,7 @@ async function downloadHuyaVideo(videoId: string, item: VideoSubItem) {
           title: rawName,
           username: item.name,
           platform: "huya",
+          software: "biliLive-tools",
         });
       }
       resolve(output);

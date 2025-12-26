@@ -837,9 +837,7 @@ export const validateBiliupConfig = (config: BiliupConfig): [boolean, string | n
     msg = "标题不能为空";
   }
   if (config.copyright === 2) {
-    if (!config.source) {
-      msg = "转载来源不能为空";
-    } else {
+    if (config.source) {
       if (config.source.length > 200) {
         msg = "转载来源不能超过200个字符";
       }
