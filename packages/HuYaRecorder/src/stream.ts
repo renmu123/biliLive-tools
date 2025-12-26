@@ -47,7 +47,8 @@ async function getRoomInfo(
       formatPriorities: options.formatPriorities,
       quality: options.quality,
     });
-    if (info.gid == 1663) {
+    if (info.gid == 1663 || info.gid == 1) {
+      // 1663=星秀区，1=英雄联盟区
       return getRoomInfo(channelId, {
         api: "wup",
         formatPriorities: options.formatPriorities,

@@ -1,6 +1,6 @@
 {
   "name": "@biliLive-tools/types",
-  "version": "3.5.1",
+  "version": "3.5.2",
   "type": "module",
   "description": "",
   "main": "./lib/index.js",
