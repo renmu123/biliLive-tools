@@ -54,6 +54,17 @@ message ChatMessage {
   // Text rtfContentV2 = 41;
 }
 
+message PrivilegeScreenChatMessage {
+  Common common = 1;
+  User user = 2;
+  string content = 3;
+  // PublicAreaCommon public_area_common = 4;
+  // uint64 style = 5;
+  // uint64 activity_danmu_background = 6;
+  // Text rtf_content = 7;
+  // Text rtf_content_v2 = 8;
+}
+
 message LandscapeAreaCommon {
   bool showHead = 1;
   bool showNickname = 2;

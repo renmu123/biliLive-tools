@@ -192,6 +192,12 @@ export interface RoomRankMessage {
   }[];
 }
 
+export interface PrivilegeScreenChatMessage {
+  common: Common & { method: "WebcastPrivilegeScreenChatMessage" };
+  user: User;
+  content: string;
+}
+
 export type Message =
   | ChatMessage
   | MemberMessage
@@ -200,4 +206,5 @@ export type Message =
   | GiftMessage
   | RoomUserSeqMessage
   | RoomStatsMessage
-  | RoomRankMessage;
+  | RoomRankMessage
+  | PrivilegeScreenChatMessage;
