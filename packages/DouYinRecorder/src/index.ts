@@ -330,6 +330,22 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("Message", comment);
     extraDataController.addMessage(comment);
   });
+  client.on("screenChat", (msg) => {
+    const extraDataController = downloader.getExtraDataController();
+    if (!extraDataController) return;
+    const comment: Comment = {
+      type: "comment",
+      timestamp: this.useServerTimestamp ? Number(msg.eventTime) / 1000000 : Date.now(),
+      text: msg.content,
+      color: "#d7f6fc",
+      sender: {
+        uid: msg.user.id,
+        name: msg.user.nickName,
+      },
+    };
+    this.emit("Message", comment);
+    extraDataController.addMessage(comment);
+  });
   client.on("gift", (msg) => {
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;

@@ -198,6 +198,13 @@ export interface PrivilegeScreenChatMessage {
   content: string;
 }
 
+export interface ScreenChatMessage {
+  common: Common & { method: "WebcastScreenChatMessage" };
+  user: User;
+  content: string;
+  eventTime: string;
+}
+
 export type Message =
   | ChatMessage
   | MemberMessage
@@ -207,4 +214,5 @@ export type Message =
   | RoomUserSeqMessage
   | RoomStatsMessage
   | RoomRankMessage
-  | PrivilegeScreenChatMessage;
+  | PrivilegeScreenChatMessage
+  | ScreenChatMessage;

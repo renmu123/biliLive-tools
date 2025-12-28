@@ -65,6 +65,35 @@ message PrivilegeScreenChatMessage {
   // Text rtf_content_v2 = 8;
 }
 
+message ScreenChatMessage {
+  Common common = 1;
+  User user = 2;
+  // uint64 screen_chat_type = 3;
+  string content = 4;
+  // uint64 priority = 5;
+  // Effect effect = 6;
+  // Image background_image = 7;
+  // Effect effect_v2 = 8;
+  // Image background_image_v2 = 9;
+  // PublicAreaCommon public_area_common = 10;
+  // OfficialCommentConfig official_comment_config = 11;
+  uint64 event_time = 12;
+  // bool send_review = 13;
+  // ChatIdentity chat_identity_info = 14;
+  // Text rtf_content = 30;
+  // bool public_area_does_not_display = 31;
+  // Text rtf_content_v2 = 32;
+  // ScreenChatMessageContentExt content_ext = 33;
+  // message OfficialCommentConfig {
+  //   bool official = 1;
+  // }
+  // message Effect {
+  //   FlexImageStruct icon = 1;
+  //   Image avatar_icon = 2;
+  //   string background_color = 3;
+  // }
+}
+
 message LandscapeAreaCommon {
   bool showHead = 1;
   bool showNickname = 2;

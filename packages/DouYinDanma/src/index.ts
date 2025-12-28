@@ -17,6 +17,7 @@ import type {
   RoomRankMessage,
   Message,
   PrivilegeScreenChatMessage,
+  ScreenChatMessage,
 } from "../types/types.js";
 
 function buildRequestUrl(url: string): string {
@@ -52,6 +53,7 @@ interface Events {
   roomStats: (message: RoomStatsMessage) => void;
   roomRank: (message: RoomRankMessage) => void;
   privilegeScreenChat: (message: PrivilegeScreenChatMessage) => void;
+  screenChat: (message: ScreenChatMessage) => void;
   message: (message: Message) => void;
 }
 
@@ -299,6 +301,11 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     this.emit("message", message);
   }
 
+  async handleScreenChatMessage(message: ScreenChatMessage) {
+    this.emit("screenChat", message);
+    this.emit("message", message);
+  }
+
   /**
    * 处理其他消息
    */
@@ -329,6 +336,8 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
     const RoomRankMessage = protobuf.douyin.RoomRankMessage;
     // @ts-ignore
     const PrivilegeScreenChatMessage = protobuf.douyin.PrivilegeScreenChatMessage;
+    // @ts-ignore
+    const ScreenChatMessage = protobuf.douyin.ScreenChatMessage;
     const wssPackage = PushFrame.decode(data);
 
     // @ts-ignore
@@ -393,6 +402,9 @@ class DouYinDanmaClient extends TypedEmitter<Events> {
         } else if (msg.method === "WebcastPrivilegeScreenChatMessage") {
           const message = PrivilegeScreenChatMessage.decode(msg.payload);
           this.handlePrivilegeScreenChatMessage(message.toJSON() as PrivilegeScreenChatMessage);
+        } else if (msg.method === "WebcastScreenChatMessage") {
+          const message = ScreenChatMessage.decode(msg.payload);
+          this.handleScreenChatMessage(message.toJSON() as ScreenChatMessage);
         } else {
           // WebcastRanklistHourEntranceMessage,WebcastInRoomBannerMessage,WebcastRoomStreamAdaptationMessage
         }

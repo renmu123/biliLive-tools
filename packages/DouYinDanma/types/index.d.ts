@@ -10,6 +10,7 @@ import type {
   RoomRankMessage,
   Message,
   PrivilegeScreenChatMessage,
+  ScreenChatMessage,
 } from "../types/types.js";
 import WebSocket from "ws";
 
@@ -29,6 +30,7 @@ interface Events {
   roomRank: (message: RoomRankMessage) => void;
   message: (message: Message) => void;
   privilegeScreenChat: (message: PrivilegeScreenChatMessage) => void;
+  screenChat: (message: ScreenChatMessage) => void;
 }
 declare class DouYinDanmaClient extends TypedEmitter<Events> {
   private ws: WebSocket;
