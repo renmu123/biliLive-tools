@@ -313,6 +313,39 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     this.emit("Message", comment);
     extraDataController.addMessage(comment);
   });
+  client.on("privilegeScreenChat", (msg) => {
+    const extraDataController = downloader.getExtraDataController();
+    if (!extraDataController) return;
+    const comment: Comment = {
+      type: "comment",
+      // 抖音飘屏没有时间戳数据，默认使用当前时间
+      timestamp: Date.now(),
+      text: msg.content,
+      color: "#e0c39c",
+      sender: {
+        uid: msg.user.id,
+        name: msg.user.nickName,
+      },
+    };
+    this.emit("Message", comment);
+    extraDataController.addMessage(comment);
+  });
+  client.on("screenChat", (msg) => {
+    const extraDataController = downloader.getExtraDataController();
+    if (!extraDataController) return;
+    const comment: Comment = {
+      type: "comment",
+      timestamp: this.useServerTimestamp ? Number(msg.eventTime) / 1000000 : Date.now(),
+      text: msg.content,
+      color: "#d7f6fc",
+      sender: {
+        uid: msg.user.id,
+        name: msg.user.nickName,
+      },
+    };
+    this.emit("Message", comment);
+    extraDataController.addMessage(comment);
+  });
   client.on("gift", (msg) => {
     const extraDataController = downloader.getExtraDataController();
     if (!extraDataController) return;

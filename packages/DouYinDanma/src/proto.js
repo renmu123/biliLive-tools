@@ -1401,6 +1401,575 @@ export const douyin = ($root.douyin = (() => {
     return ChatMessage;
   })();
 
+  douyin.PrivilegeScreenChatMessage = (function () {
+    /**
+     * Properties of a PrivilegeScreenChatMessage.
+     * @memberof douyin
+     * @interface IPrivilegeScreenChatMessage
+     * @property {douyin.ICommon|null} [common] PrivilegeScreenChatMessage common
+     * @property {douyin.IUser|null} [user] PrivilegeScreenChatMessage user
+     * @property {string|null} [content] PrivilegeScreenChatMessage content
+     */
+
+    /**
+     * Constructs a new PrivilegeScreenChatMessage.
+     * @memberof douyin
+     * @classdesc Represents a PrivilegeScreenChatMessage.
+     * @implements IPrivilegeScreenChatMessage
+     * @constructor
+     * @param {douyin.IPrivilegeScreenChatMessage=} [properties] Properties to set
+     */
+    function PrivilegeScreenChatMessage(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * PrivilegeScreenChatMessage common.
+     * @member {douyin.ICommon|null|undefined} common
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @instance
+     */
+    PrivilegeScreenChatMessage.prototype.common = null;
+
+    /**
+     * PrivilegeScreenChatMessage user.
+     * @member {douyin.IUser|null|undefined} user
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @instance
+     */
+    PrivilegeScreenChatMessage.prototype.user = null;
+
+    /**
+     * PrivilegeScreenChatMessage content.
+     * @member {string} content
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @instance
+     */
+    PrivilegeScreenChatMessage.prototype.content = "";
+
+    /**
+     * Creates a new PrivilegeScreenChatMessage instance using the specified properties.
+     * @function create
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @static
+     * @param {douyin.IPrivilegeScreenChatMessage=} [properties] Properties to set
+     * @returns {douyin.PrivilegeScreenChatMessage} PrivilegeScreenChatMessage instance
+     */
+    PrivilegeScreenChatMessage.create = function create(properties) {
+      return new PrivilegeScreenChatMessage(properties);
+    };
+
+    /**
+     * Encodes the specified PrivilegeScreenChatMessage message. Does not implicitly {@link douyin.PrivilegeScreenChatMessage.verify|verify} messages.
+     * @function encode
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @static
+     * @param {douyin.IPrivilegeScreenChatMessage} message PrivilegeScreenChatMessage message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    PrivilegeScreenChatMessage.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.common != null && Object.hasOwnProperty.call(message, "common"))
+        $root.douyin.Common.encode(
+          message.common,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      if (message.user != null && Object.hasOwnProperty.call(message, "user"))
+        $root.douyin.User.encode(
+          message.user,
+          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+        ).ldelim();
+      if (message.content != null && Object.hasOwnProperty.call(message, "content"))
+        writer.uint32(/* id 3, wireType 2 =*/ 26).string(message.content);
+      return writer;
+    };
+
+    /**
+     * Encodes the specified PrivilegeScreenChatMessage message, length delimited. Does not implicitly {@link douyin.PrivilegeScreenChatMessage.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @static
+     * @param {douyin.IPrivilegeScreenChatMessage} message PrivilegeScreenChatMessage message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    PrivilegeScreenChatMessage.encodeDelimited = function encodeDelimited(message, writer) {
+      return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a PrivilegeScreenChatMessage message from the specified reader or buffer.
+     * @function decode
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {douyin.PrivilegeScreenChatMessage} PrivilegeScreenChatMessage
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    PrivilegeScreenChatMessage.decode = function decode(reader, length) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.douyin.PrivilegeScreenChatMessage();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            message.common = $root.douyin.Common.decode(reader, reader.uint32());
+            break;
+          }
+          case 2: {
+            message.user = $root.douyin.User.decode(reader, reader.uint32());
+            break;
+          }
+          case 3: {
+            message.content = reader.string();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Decodes a PrivilegeScreenChatMessage message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {douyin.PrivilegeScreenChatMessage} PrivilegeScreenChatMessage
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    PrivilegeScreenChatMessage.decodeDelimited = function decodeDelimited(reader) {
+      if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+      return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a PrivilegeScreenChatMessage message.
+     * @function verify
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    PrivilegeScreenChatMessage.verify = function verify(message) {
+      if (typeof message !== "object" || message === null) return "object expected";
+      if (message.common != null && message.hasOwnProperty("common")) {
+        let error = $root.douyin.Common.verify(message.common);
+        if (error) return "common." + error;
+      }
+      if (message.user != null && message.hasOwnProperty("user")) {
+        let error = $root.douyin.User.verify(message.user);
+        if (error) return "user." + error;
+      }
+      if (message.content != null && message.hasOwnProperty("content"))
+        if (!$util.isString(message.content)) return "content: string expected";
+      return null;
+    };
+
+    /**
+     * Creates a PrivilegeScreenChatMessage message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {douyin.PrivilegeScreenChatMessage} PrivilegeScreenChatMessage
+     */
+    PrivilegeScreenChatMessage.fromObject = function fromObject(object) {
+      if (object instanceof $root.douyin.PrivilegeScreenChatMessage) return object;
+      let message = new $root.douyin.PrivilegeScreenChatMessage();
+      if (object.common != null) {
+        if (typeof object.common !== "object")
+          throw TypeError(".douyin.PrivilegeScreenChatMessage.common: object expected");
+        message.common = $root.douyin.Common.fromObject(object.common);
+      }
+      if (object.user != null) {
+        if (typeof object.user !== "object")
+          throw TypeError(".douyin.PrivilegeScreenChatMessage.user: object expected");
+        message.user = $root.douyin.User.fromObject(object.user);
+      }
+      if (object.content != null) message.content = String(object.content);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a PrivilegeScreenChatMessage message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @static
+     * @param {douyin.PrivilegeScreenChatMessage} message PrivilegeScreenChatMessage
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    PrivilegeScreenChatMessage.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.common = null;
+        object.user = null;
+        object.content = "";
+      }
+      if (message.common != null && message.hasOwnProperty("common"))
+        object.common = $root.douyin.Common.toObject(message.common, options);
+      if (message.user != null && message.hasOwnProperty("user"))
+        object.user = $root.douyin.User.toObject(message.user, options);
+      if (message.content != null && message.hasOwnProperty("content"))
+        object.content = message.content;
+      return object;
+    };
+
+    /**
+     * Converts this PrivilegeScreenChatMessage to JSON.
+     * @function toJSON
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    PrivilegeScreenChatMessage.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for PrivilegeScreenChatMessage
+     * @function getTypeUrl
+     * @memberof douyin.PrivilegeScreenChatMessage
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    PrivilegeScreenChatMessage.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/douyin.PrivilegeScreenChatMessage";
+    };
+
+    return PrivilegeScreenChatMessage;
+  })();
+
+  douyin.ScreenChatMessage = (function () {
+    /**
+     * Properties of a ScreenChatMessage.
+     * @memberof douyin
+     * @interface IScreenChatMessage
+     * @property {douyin.ICommon|null} [common] ScreenChatMessage common
+     * @property {douyin.IUser|null} [user] ScreenChatMessage user
+     * @property {string|null} [content] ScreenChatMessage content
+     * @property {number|Long|null} [eventTime] ScreenChatMessage eventTime
+     */
+
+    /**
+     * Constructs a new ScreenChatMessage.
+     * @memberof douyin
+     * @classdesc Represents a ScreenChatMessage.
+     * @implements IScreenChatMessage
+     * @constructor
+     * @param {douyin.IScreenChatMessage=} [properties] Properties to set
+     */
+    function ScreenChatMessage(properties) {
+      if (properties)
+        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+          if (properties[keys[i]] != null) this[keys[i]] = properties[keys[i]];
+    }
+
+    /**
+     * ScreenChatMessage common.
+     * @member {douyin.ICommon|null|undefined} common
+     * @memberof douyin.ScreenChatMessage
+     * @instance
+     */
+    ScreenChatMessage.prototype.common = null;
+
+    /**
+     * ScreenChatMessage user.
+     * @member {douyin.IUser|null|undefined} user
+     * @memberof douyin.ScreenChatMessage
+     * @instance
+     */
+    ScreenChatMessage.prototype.user = null;
+
+    /**
+     * ScreenChatMessage content.
+     * @member {string} content
+     * @memberof douyin.ScreenChatMessage
+     * @instance
+     */
+    ScreenChatMessage.prototype.content = "";
+
+    /**
+     * ScreenChatMessage eventTime.
+     * @member {number|Long} eventTime
+     * @memberof douyin.ScreenChatMessage
+     * @instance
+     */
+    ScreenChatMessage.prototype.eventTime = $util.Long ? $util.Long.fromBits(0, 0, true) : 0;
+
+    /**
+     * Creates a new ScreenChatMessage instance using the specified properties.
+     * @function create
+     * @memberof douyin.ScreenChatMessage
+     * @static
+     * @param {douyin.IScreenChatMessage=} [properties] Properties to set
+     * @returns {douyin.ScreenChatMessage} ScreenChatMessage instance
+     */
+    ScreenChatMessage.create = function create(properties) {
+      return new ScreenChatMessage(properties);
+    };
+
+    /**
+     * Encodes the specified ScreenChatMessage message. Does not implicitly {@link douyin.ScreenChatMessage.verify|verify} messages.
+     * @function encode
+     * @memberof douyin.ScreenChatMessage
+     * @static
+     * @param {douyin.IScreenChatMessage} message ScreenChatMessage message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    ScreenChatMessage.encode = function encode(message, writer) {
+      if (!writer) writer = $Writer.create();
+      if (message.common != null && Object.hasOwnProperty.call(message, "common"))
+        $root.douyin.Common.encode(
+          message.common,
+          writer.uint32(/* id 1, wireType 2 =*/ 10).fork(),
+        ).ldelim();
+      if (message.user != null && Object.hasOwnProperty.call(message, "user"))
+        $root.douyin.User.encode(
+          message.user,
+          writer.uint32(/* id 2, wireType 2 =*/ 18).fork(),
+        ).ldelim();
+      if (message.content != null && Object.hasOwnProperty.call(message, "content"))
+        writer.uint32(/* id 4, wireType 2 =*/ 34).string(message.content);
+      if (message.eventTime != null && Object.hasOwnProperty.call(message, "eventTime"))
+        writer.uint32(/* id 12, wireType 0 =*/ 96).uint64(message.eventTime);
+      return writer;
+    };
+
+    /**
+     * Encodes the specified ScreenChatMessage message, length delimited. Does not implicitly {@link douyin.ScreenChatMessage.verify|verify} messages.
+     * @function encodeDelimited
+     * @memberof douyin.ScreenChatMessage
+     * @static
+     * @param {douyin.IScreenChatMessage} message ScreenChatMessage message or plain object to encode
+     * @param {$protobuf.Writer} [writer] Writer to encode to
+     * @returns {$protobuf.Writer} Writer
+     */
+    ScreenChatMessage.encodeDelimited = function encodeDelimited(message, writer) {
+      return this.encode(message, writer).ldelim();
+    };
+
+    /**
+     * Decodes a ScreenChatMessage message from the specified reader or buffer.
+     * @function decode
+     * @memberof douyin.ScreenChatMessage
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @param {number} [length] Message length if known beforehand
+     * @returns {douyin.ScreenChatMessage} ScreenChatMessage
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    ScreenChatMessage.decode = function decode(reader, length) {
+      if (!(reader instanceof $Reader)) reader = $Reader.create(reader);
+      let end = length === undefined ? reader.len : reader.pos + length,
+        message = new $root.douyin.ScreenChatMessage();
+      while (reader.pos < end) {
+        let tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            message.common = $root.douyin.Common.decode(reader, reader.uint32());
+            break;
+          }
+          case 2: {
+            message.user = $root.douyin.User.decode(reader, reader.uint32());
+            break;
+          }
+          case 4: {
+            message.content = reader.string();
+            break;
+          }
+          case 12: {
+            message.eventTime = reader.uint64();
+            break;
+          }
+          default:
+            reader.skipType(tag & 7);
+            break;
+        }
+      }
+      return message;
+    };
+
+    /**
+     * Decodes a ScreenChatMessage message from the specified reader or buffer, length delimited.
+     * @function decodeDelimited
+     * @memberof douyin.ScreenChatMessage
+     * @static
+     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+     * @returns {douyin.ScreenChatMessage} ScreenChatMessage
+     * @throws {Error} If the payload is not a reader or valid buffer
+     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+     */
+    ScreenChatMessage.decodeDelimited = function decodeDelimited(reader) {
+      if (!(reader instanceof $Reader)) reader = new $Reader(reader);
+      return this.decode(reader, reader.uint32());
+    };
+
+    /**
+     * Verifies a ScreenChatMessage message.
+     * @function verify
+     * @memberof douyin.ScreenChatMessage
+     * @static
+     * @param {Object.<string,*>} message Plain object to verify
+     * @returns {string|null} `null` if valid, otherwise the reason why it is not
+     */
+    ScreenChatMessage.verify = function verify(message) {
+      if (typeof message !== "object" || message === null) return "object expected";
+      if (message.common != null && message.hasOwnProperty("common")) {
+        let error = $root.douyin.Common.verify(message.common);
+        if (error) return "common." + error;
+      }
+      if (message.user != null && message.hasOwnProperty("user")) {
+        let error = $root.douyin.User.verify(message.user);
+        if (error) return "user." + error;
+      }
+      if (message.content != null && message.hasOwnProperty("content"))
+        if (!$util.isString(message.content)) return "content: string expected";
+      if (message.eventTime != null && message.hasOwnProperty("eventTime"))
+        if (
+          !$util.isInteger(message.eventTime) &&
+          !(
+            message.eventTime &&
+            $util.isInteger(message.eventTime.low) &&
+            $util.isInteger(message.eventTime.high)
+          )
+        )
+          return "eventTime: integer|Long expected";
+      return null;
+    };
+
+    /**
+     * Creates a ScreenChatMessage message from a plain object. Also converts values to their respective internal types.
+     * @function fromObject
+     * @memberof douyin.ScreenChatMessage
+     * @static
+     * @param {Object.<string,*>} object Plain object
+     * @returns {douyin.ScreenChatMessage} ScreenChatMessage
+     */
+    ScreenChatMessage.fromObject = function fromObject(object) {
+      if (object instanceof $root.douyin.ScreenChatMessage) return object;
+      let message = new $root.douyin.ScreenChatMessage();
+      if (object.common != null) {
+        if (typeof object.common !== "object")
+          throw TypeError(".douyin.ScreenChatMessage.common: object expected");
+        message.common = $root.douyin.Common.fromObject(object.common);
+      }
+      if (object.user != null) {
+        if (typeof object.user !== "object")
+          throw TypeError(".douyin.ScreenChatMessage.user: object expected");
+        message.user = $root.douyin.User.fromObject(object.user);
+      }
+      if (object.content != null) message.content = String(object.content);
+      if (object.eventTime != null)
+        if ($util.Long)
+          (message.eventTime = $util.Long.fromValue(object.eventTime)).unsigned = true;
+        else if (typeof object.eventTime === "string")
+          message.eventTime = parseInt(object.eventTime, 10);
+        else if (typeof object.eventTime === "number") message.eventTime = object.eventTime;
+        else if (typeof object.eventTime === "object")
+          message.eventTime = new $util.LongBits(
+            object.eventTime.low >>> 0,
+            object.eventTime.high >>> 0,
+          ).toNumber(true);
+      return message;
+    };
+
+    /**
+     * Creates a plain object from a ScreenChatMessage message. Also converts values to other types if specified.
+     * @function toObject
+     * @memberof douyin.ScreenChatMessage
+     * @static
+     * @param {douyin.ScreenChatMessage} message ScreenChatMessage
+     * @param {$protobuf.IConversionOptions} [options] Conversion options
+     * @returns {Object.<string,*>} Plain object
+     */
+    ScreenChatMessage.toObject = function toObject(message, options) {
+      if (!options) options = {};
+      let object = {};
+      if (options.defaults) {
+        object.common = null;
+        object.user = null;
+        object.content = "";
+        if ($util.Long) {
+          let long = new $util.Long(0, 0, true);
+          object.eventTime =
+            options.longs === String
+              ? long.toString()
+              : options.longs === Number
+                ? long.toNumber()
+                : long;
+        } else object.eventTime = options.longs === String ? "0" : 0;
+      }
+      if (message.common != null && message.hasOwnProperty("common"))
+        object.common = $root.douyin.Common.toObject(message.common, options);
+      if (message.user != null && message.hasOwnProperty("user"))
+        object.user = $root.douyin.User.toObject(message.user, options);
+      if (message.content != null && message.hasOwnProperty("content"))
+        object.content = message.content;
+      if (message.eventTime != null && message.hasOwnProperty("eventTime"))
+        if (typeof message.eventTime === "number")
+          object.eventTime =
+            options.longs === String ? String(message.eventTime) : message.eventTime;
+        else
+          object.eventTime =
+            options.longs === String
+              ? $util.Long.prototype.toString.call(message.eventTime)
+              : options.longs === Number
+                ? new $util.LongBits(
+                    message.eventTime.low >>> 0,
+                    message.eventTime.high >>> 0,
+                  ).toNumber(true)
+                : message.eventTime;
+      return object;
+    };
+
+    /**
+     * Converts this ScreenChatMessage to JSON.
+     * @function toJSON
+     * @memberof douyin.ScreenChatMessage
+     * @instance
+     * @returns {Object.<string,*>} JSON object
+     */
+    ScreenChatMessage.prototype.toJSON = function toJSON() {
+      return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+    };
+
+    /**
+     * Gets the default type url for ScreenChatMessage
+     * @function getTypeUrl
+     * @memberof douyin.ScreenChatMessage
+     * @static
+     * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+     * @returns {string} The default type url
+     */
+    ScreenChatMessage.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+      if (typeUrlPrefix === undefined) {
+        typeUrlPrefix = "type.googleapis.com";
+      }
+      return typeUrlPrefix + "/douyin.ScreenChatMessage";
+    };
+
+    return ScreenChatMessage;
+  })();
+
   douyin.LandscapeAreaCommon = (function () {
     /**
      * Properties of a LandscapeAreaCommon.
