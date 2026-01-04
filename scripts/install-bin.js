@@ -184,7 +184,7 @@ async function downloadBin() {
   await downloadMesio();
   await downloadBililiveRecorder();
   await downloadAudioWaveform();
-  // await downloadDanmakuFactory();
+  await downloadDanmakuFactory();
 }
 
 downloadBin();
