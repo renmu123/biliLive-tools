@@ -62,6 +62,11 @@ async function getRecorders(
       } else {
         comparison = aIsManual ? 1 : -1;
       }
+    } else if (params.sortField === "recordTime") {
+      // 按最后录制时间排序
+      const aTime = a.extra?.lastRecordTime ?? 0;
+      const bTime = b.extra?.lastRecordTime ?? 0;
+      comparison = aTime === bTime ? 0 : aTime > bTime ? 1 : -1;
     }
 
     return sortDirection === "asc" ? -comparison : comparison;

@@ -48,10 +48,12 @@
           { label: '直播状态', key: 'living' },
           { label: '录制状态', key: 'state' },
           { label: '监听状态', key: 'monitorStatus' },
+          { label: '录制时间', key: 'recordTime' },
         ]"
         @update:field="handleSortFieldChange"
         @update:direction="handleSortDirectionChange"
       />
+      <ColumnSelector v-model="visibleColumns" :columns="columnConfig" />
       <n-button type="warning" @click="getLiveInfo(true)">刷新</n-button>
       <ButtonGroup :options="actionBtns" @click="handleActionClick">添加</ButtonGroup>
     </div>
@@ -62,6 +64,7 @@
         :list="list"
         :sort-field="sortField"
         :sort-directions="sortDirections"
+        :visible-columns="visibleColumns"
         @sort="handleSort"
       >
         <template #action="{ item }">
@@ -133,6 +136,7 @@
 <script setup lang="ts">
 import { recoderApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
+import { useVisibleColumns } from "@renderer/hooks/useVisibleColumns";
 import addModal from "./components/addModal.vue";
 import batchAddModal from "./components/batchAddModal.vue";
 import batchResultModal from "./components/batchResultModal.vue";
@@ -141,6 +145,7 @@ import cardView from "./components/cardView.vue";
 import listView from "./components/listView.vue";
 import { useRouter } from "vue-router";
 import ButtonGroup from "@renderer/components/ButtonGroup.vue";
+import ColumnSelector from "@renderer/components/ColumnSelector.vue";
 
 import { useEventListener, useStorage } from "@vueuse/core";
 import eventBus from "@renderer/utils/eventBus";
@@ -153,6 +158,26 @@ defineOptions({
 });
 
 type SortField = "living" | "state" | "monitorStatus";
+
+// 列配置
+const columnConfig = [
+  { value: "channelId", label: "房间号" },
+  { value: "owner", label: "主播名" },
+  { value: "remark", label: "备注" },
+  { value: "roomTitle", label: "标题" },
+  { value: "living", label: "直播状态" },
+  { value: "state", label: "录制状态" },
+  { value: "recordParams", label: "录制参数" },
+  { value: "lastRecordTime", label: "最近录制时间" },
+  { value: "monitorStatus", label: "监听状态" },
+  { value: "actions", label: "操作" },
+];
+
+// 使用可见列 hook
+const { visibleColumns } = useVisibleColumns({
+  columns: columnConfig,
+  storageKey: "recorder-list-visible-columns",
+});
 
 const notice = useNotice();
 const router = useRouter();

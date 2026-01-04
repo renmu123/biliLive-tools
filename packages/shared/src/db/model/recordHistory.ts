@@ -165,7 +165,45 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
   }
 
   /**
-   * 分页查询记录历史，支持时间范围过滤和排序
+   * 批量获取多个频道的最后录制时间
+   * @param streamers 主播ID列表
+   * @returns 最后录制时间映射表
+   */
+  getLastRecordTimes(streamerIds: number[]): Map<number, number | null> {
+    if (streamerIds.length === 0) {
+      return new Map();
+    }
+
+    const placeholders = streamerIds.map(() => "?").join(",");
+    const sql = `
+      SELECT streamer_id, MAX(record_start_time) as last_record_time
+      FROM ${this.tableName}
+      WHERE streamer_id IN (${placeholders})
+        AND record_start_time IS NOT NULL
+      GROUP BY streamer_id
+    `;
+
+    const stmt = this.db.prepare(sql);
+    const results = stmt.all(...streamerIds) as Array<{
+      streamer_id: number;
+      last_record_time: number | null;
+    }>;
+
+    const resultMap = new Map<number, number | null>();
+    // 初始化所有ID为null
+    streamerIds.forEach((id) => resultMap.set(id, null));
+    // 填充查询结果
+    results.forEach((row) => {
+      if (row.last_record_time) {
+        resultMap.set(row.streamer_id, row.last_record_time);
+      }
+    });
+
+    return resultMap;
+  }
+
+  /**
+   * 分页查询记录历史,支持时间范围过滤和排序
    * @param options 查询参数
    * @returns 分页结果
    */
