@@ -365,7 +365,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       color: "#ffffff",
       sender: {
         uid: msg.user.id,
-        name: msg.user.nickName,
+        name: msg?.user?.nickName ?? "unknown",
         // avatar: msg.ic,
         // extra: {
         //   level: msg.level,

@@ -5,6 +5,10 @@
 - 合并页面支持文件名排序 [#293](https://github.com/renmu123/biliLive-tools/pull/293)
 - 录制：抖音支持更多弹幕类型 [#289](https://github.com/renmu123/biliLive-tools/pull/289)
 
+## bug修复
+
+录制：抖音弹幕某些情况下礼物弹幕用户名为空时设置为"unknown"
+
 # 3.5.2(2025.12.24)
 
 ## bug修复
