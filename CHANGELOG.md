@@ -1,3 +1,10 @@
+# Next
+
+## 优化
+
+- 合并页面支持文件名排序 [#293](https://github.com/renmu123/biliLive-tools/pull/293)
+- 录制：抖音支持更多弹幕类型 [#289](https://github.com/renmu123/biliLive-tools/pull/289)
+
 # 3.5.2(2025.12.24)
 
 ## bug修复
