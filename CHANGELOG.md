@@ -7,6 +7,7 @@
 - 支持最近录制时间显示以及筛选 [#271](https://github.com/renmu123/biliLive-tools/pull/271)
 - 录制页面支持“显示字段”配置 [#271](https://github.com/renmu123/biliLive-tools/pull/271)
 - 列表模式支持显示备注 [#271](https://github.com/renmu123/biliLive-tools/pull/271)
+- Web支持UI主题选择 [#301](https://github.com/renmu123/biliLive-tools/pull/301)
 - 录制：虎牙 wup 接口出问题了，先切回mp吧
 
 ## bug修复
