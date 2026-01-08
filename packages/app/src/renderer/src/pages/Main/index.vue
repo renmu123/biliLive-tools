@@ -515,9 +515,6 @@ initChanglog();
 .footer-menu {
   position: relative;
   z-index: 10;
-  background: white;
-  @media screen and (prefers-color-scheme: dark) {
-    background: #18181c;
-  }
+  background: var(--bg-primary);
 }
 </style>

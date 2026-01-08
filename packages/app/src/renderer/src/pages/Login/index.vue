@@ -116,9 +116,7 @@ if (window.localStorage.getItem("api")) {
 
 <style lang="less">
 body {
-  @media screen and (prefers-color-scheme: dark) {
-    background-color: #18181c;
-  }
+  background-color: var(--bg-primary);
 }
 </style>
 

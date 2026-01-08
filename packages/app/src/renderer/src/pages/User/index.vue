@@ -31,7 +31,7 @@
           <div class="section" @click="updateAccountInfo(item.uid)">刷新信息</div>
           <div class="section" @click="updateAuth(item.uid)">更新授权</div>
           <div class="section" @click="getCookie(item.uid)">复制cookie</div>
-          <div class="section" style="color: #e88080" @click="logout(item.uid)">退出账号</div>
+          <div class="section section-danger" @click="logout(item.uid)">退出账号</div>
         </n-popover>
       </div>
     </div>
@@ -157,16 +157,13 @@ onActivated(() => {
     padding: 10px;
     width: 100px;
     border-radius: 10px;
-    background-color: #fff;
+    background-color: var(--bg-card);
     justify-content: center;
     align-items: center;
-    border: 1px solid #eee;
+    border: 1px solid var(--border-primary);
     position: relative;
     display: flex;
     flex-direction: column;
-    @media screen and (prefers-color-scheme: dark) {
-      border: none;
-    }
     .face {
       width: 80%;
     }
@@ -174,10 +171,7 @@ onActivated(() => {
       position: absolute;
       bottom: 0px;
       right: 5px;
-
-      @media screen and (prefers-color-scheme: dark) {
-        color: rgb(51, 54, 57);
-      }
+      color: var(--text-secondary);
     }
   }
   .card.active {
@@ -189,8 +183,8 @@ onActivated(() => {
       left: 0;
       width: 100%;
       height: 100%;
-      color: #fff;
-      background-color: rgba(0, 0, 0, 0.5);
+      color: var(--text-inverse);
+      background-color: var(--bg-modal);
       display: flex;
       justify-content: center;
       align-items: center;
@@ -206,10 +200,11 @@ onActivated(() => {
   padding: 5px 10px;
   cursor: pointer;
   &:hover {
-    background-color: #eee;
-    @media screen and (prefers-color-scheme: dark) {
-      background-color: rgba(255, 255, 255, 0.09);
-    }
+    background-color: var(--bg-hover);
+  }
+
+  &.section-danger {
+    color: var(--color-danger-text);
   }
 }
 .expires {
@@ -217,13 +212,13 @@ onActivated(() => {
   position: absolute;
   bottom: 0;
   left: 0;
-  background: rgb(124, 189, 125);
-  color: white;
+  background: var(--color-success);
+  color: var(--text-inverse);
   padding: 4px 6px;
   border-radius: 0 10px 0 10px;
   font-size: 10px;
 }
 .username {
-  color: black;
+  color: var(--text-primary);
 }
 </style>

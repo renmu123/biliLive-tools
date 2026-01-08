@@ -74,17 +74,4 @@ const handleSelect = (key?: string | number) => {
     color: white;
   }
 }
-
-@media screen and (prefers-color-scheme: dark) {
-  .icon-container {
-    border-left: 1px solid #358457;
-    background: #63e2b7;
-    &:hover {
-      background: #7fe7c4;
-    }
-    .cart-down-icon {
-      color: white;
-    }
-  }
-}
 </style>

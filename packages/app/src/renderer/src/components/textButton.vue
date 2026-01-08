@@ -120,7 +120,7 @@ const handleClick = (event: MouseEvent) => {
 }
 
 // 添加暗黑模式支持
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .text-button {
     &.text-button--default {
       color: #c0c4cc;
