@@ -1,12 +1,13 @@
 # Next
 
-## 优化
+## 功能
 
 - 合并页面支持文件名排序 [#293](https://github.com/renmu123/biliLive-tools/pull/293)
 - 录制：抖音支持更多弹幕类型 [#289](https://github.com/renmu123/biliLive-tools/pull/289)
 - 支持最近录制时间显示以及筛选 [#271](https://github.com/renmu123/biliLive-tools/pull/271)
 - 录制页面支持“显示字段”配置 [#271](https://github.com/renmu123/biliLive-tools/pull/271)
 - 列表模式支持显示备注 [#271](https://github.com/renmu123/biliLive-tools/pull/271)
+- 录制：虎牙 wup 接口出问题了，先切回mp吧
 
 ## bug修复
 
