@@ -1,5 +1,5 @@
 <template>
-  <n-config-provider :theme="theme" :locale="zhCN" :date-locale="dateZhCN">
+  <n-config-provider :theme="themeStore.themeUI" :locale="zhCN" :date-locale="dateZhCN">
     <n-notification-provider>
       <n-dialog-provider>
         <router-view />
@@ -10,7 +10,8 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { darkTheme, lightTheme, useOsTheme, dateZhCN, zhCN } from "naive-ui";
+import { dateZhCN, zhCN } from "naive-ui";
+import { useThemeStore } from "@renderer/stores/theme";
 
 const router = useRouter();
 
@@ -34,30 +35,7 @@ if (instance) {
   provide("currentApp", instance.appContext.app);
 }
 
-const osThemeRef = useOsTheme();
-const theme = computed(() => {
-  if (osThemeRef.value === "dark") {
-    return darkTheme;
-  } else {
-    return lightTheme;
-  }
-});
-
-// const theme = computed(() => {
-//   if (appConfig.appConfig.theme === "system") {
-//     // js检测系统主题
-//     // const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
-//     if (osThemeRef.value === "dark") {
-//       return darkTheme;
-//     } else {
-//       return lightTheme;
-//     }
-//   } else if (appConfig.appConfig.theme === "dark") {
-//     return darkTheme;
-//   } else {
-//     return lightTheme;
-//   }
-// });
+const themeStore = useThemeStore();
 </script>
 
 <style lang="less"></style>

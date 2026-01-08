@@ -153,7 +153,7 @@
 </template>
 
 <script setup lang="ts">
-import { useOsTheme } from "naive-ui";
+import { useThemeStore } from "@renderer/stores/theme";
 import SearchPopover from "./SearchPopover.vue";
 import { secondsToTimemark } from "@renderer/utils";
 import { useSegmentStore } from "@renderer/stores";
@@ -424,12 +424,12 @@ function renderIcon(icon: Component) {
   return () =>
     h(NIcon, { style: { fontSize: "17px", "font-size": "17px" } }, { default: () => h(icon) });
 }
-const osTheme = useOsTheme();
+const themeStore = useThemeStore();
 const showContextMenu = (e: MouseEvent, segment: Segment) => {
   //这个函数与 this.$contextmenu 一致
-  const theme = osTheme.value === "dark" ? "default dark" : "default";
+  const osTheme = themeStore.theme === "dark" ? "default dark" : "default";
   ContextMenu.showContextMenu({
-    theme,
+    theme: osTheme,
     x: e.x,
     y: e.y,
     items: [

@@ -128,22 +128,16 @@ const selectMedia = (item) => {
 .media-container {
   display: flex;
   flex-wrap: wrap;
-  background-color: #eee;
+  background-color: var(--bg-hover);
   justify-content: center;
   margin-top: 20px;
   padding: 10px 0;
   gap: 10px;
-  @media screen and (prefers-color-scheme: dark) {
-    background: none;
-  }
 
   .media {
     padding: 10px;
-    background-color: white;
-    @media screen and (prefers-color-scheme: dark) {
-      background: none;
-    }
-    border: 2px solid #eee;
+    background-color: var(--bg-card);
+    border: 2px solid var(--border-primary);
     border-radius: 5px;
 
     width: 160px;
@@ -152,7 +146,7 @@ const selectMedia = (item) => {
       height: 100px;
     }
     &.selected {
-      border-color: #358457;
+      border-color: var(--color-primary-active);
     }
   }
 }

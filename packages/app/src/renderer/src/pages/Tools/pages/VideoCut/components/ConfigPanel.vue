@@ -117,11 +117,7 @@ const waveformVisible = computed({
   flex-shrink: 0;
   border-top: 1px solid var(--border-color);
   padding: 0px 0px;
-  background: #f9fafb;
-
-  @media screen and (prefers-color-scheme: dark) {
-    background: #1e1e1e;
-  }
+  background: var(--bg-secondary);
 
   .waveform-container {
     position: relative;
@@ -142,11 +138,7 @@ const waveformVisible = computed({
 
     span {
       font-size: 14px;
-      color: #666;
-
-      @media screen and (prefers-color-scheme: dark) {
-        color: #999;
-      }
+      color: var(--text-muted);
     }
   }
 
