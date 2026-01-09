@@ -110,10 +110,18 @@ export type CommonRoomConfig = {
   hotProgressFillColor?: string;
   /** 转封装为mp4 */
   convert2Mp4?: boolean;
-  /** 转封装后删除源文件 */
+  /** 废弃：转封装后删除源文件 */
   removeSourceAferrConvert2Mp4?: boolean;
+  /** flv修复 */
+  flvRepair?: boolean;
   /** 压制完成后的操作 */
-  afterConvertAction?: Array<"removeVideo" | "removeXml">;
+  afterConvertAction?: Array<
+    | "removeVideo"
+    | "removeXml"
+    | "removeAfterConvert2Mp4"
+    | "removeSmallFile"
+    | "removeAfterFlvRepair"
+  >;
   /** 限制只在某一段时间处理视频 */
   limitVideoConvertTime?: boolean;
   /** 允许视频处理时间 */

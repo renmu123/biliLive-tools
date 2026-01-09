@@ -2,6 +2,10 @@
 
 Webhook 功能可以让录播软件与 biliLive-tools 自动配合，实现录制完成后自动处理、上传等功能。
 
+::: warning
+请尽量确保文件名不会重复，否则是未定义行为
+:::
+
 ## 支持的其他录播软件
 
 - [B站录播姬](https://github.com/BililiveRecorder)
@@ -78,19 +82,31 @@ blrec 的 Webhook 依赖于"视频文件创建"和"视频文件完成"两个事�
 
 #### 参数说明
 
-| 参数              | 类型   | 必填 | 说明                                                  |
-| ----------------- | ------ | ---- | ----------------------------------------------------- |
-| `event`           | string | 是   | 事件类型：`FileClosed`、`FileOpening`、`FileError`    |
-| `filePath`        | string | 是   | 视频文件的绝对路径                                    |
-| `coverPath`       | string | 否   | 视频封面的绝对路径，为空时会读取同名jpg文件           |
-| `danmuPath`       | string | 否   | 视频弹幕xml文件，为空时会读取同名xml文件              |
-| `roomId`          | number | 是   | 房间号，用于断播续传                                  |
-| `time`            | string | 是   | 用于标题格式化的时间，示例："2021-05-14T17:52:54.946" |
-| `title`           | string | 是   | 标题，用于格式化视频标题                              |
-| `username`        | string | 是   | 主播名称，用于格式化视频标题                          |
-| `platform`        | string | 否   | 视频平台，用于某些地方的占位符                        |
-| `live_start_time` | string | 否   | 直播开始时间，用于弹幕分析                            |
-| `live_title`      | string | 否   | 直播标题，用于弹幕分析                                |
+| 参数              | 类型   | 必填 | 说明                                                    |
+| ----------------- | ------ | ---- | ------------------------------------------------------- |
+| `event`           | string | 是   | 事件类型：`FileClosed`、`FileOpening`、`FileError`      |
+| `filePath`        | string | 是   | 视频文件的绝对路径                                      |
+| `coverPath`       | string | 否   | 视频封面的绝对路径，为空时会读取同名jpg文件             |
+| `danmuPath`       | string | 否   | 视频弹幕xml文件，为空时会读取同名xml文件                |
+| `roomId`          | number | 是   | 房间号，用于断播续传                                    |
+| `time`            | string | 是   | 用于标题格式化的时间，示例："2021-05-14T17:52:54.946"   |
+| `title`           | string | 是   | 标题，用于格式化视频标题                                |
+| `username`        | string | 是   | 主播名称，用于格式化视频标题                            |
+| `platform`        | string | 否   | 视频平台，用于某些地方的占位符，默认为 custom           |
+| `software`        | string | 否   | 软件平台，用于多软件的冲突以及某些占位符，默认为 custom |
+| `live_start_time` | string | 否   | 直播开始时间，用于弹幕分析                              |
+| `live_title`      | string | 否   | 直播标题，用于弹幕分析                                  |
+
+::: tip platform 的某种用处
+当上传配置中稿件类型设置为"转载"且转载来源为空时，系统会自动生成转载来源，如果无法匹配平台或生成链接失败，会使用房间号作为转载来源：
+
+**优先使用直播间链接**：根据平台和房间号生成对应的直播间链接
+
+- bilibili：`https://live.bilibili.com/{房间号}`
+- huya`https://www.huya.com/{房间号}`
+- douyu`https://www.douyu.com/{房间号}`
+- douyin：`https://live.douyin.com/{房间号}`
+  :::
 
 #### 事件类型
 
@@ -117,6 +133,7 @@ curl --location 'http://127.0.0.1:18010/webhook/custom' \
     "title":"我是猪",
     "username":"djw",
     "platform":"bilibili",
+    "software": "录播姬",
     "live_start_time":"2021-05-14T17:52:54.946",
     "live_title":"直播标题"
 }'
@@ -145,15 +162,6 @@ curl --location 'http://127.0.0.1:18010/webhook/custom' \
 
 - **账号**：选择上传使用的B站账号
 - **标题格式**：标题模板
-
-#### 其他
-
-- 是否启用
-- 转封装设置
-- 压制设置
-- 上传设置
-- 同步设置
-- 等等...
 
 ### 直播间配置
 
@@ -254,29 +262,6 @@ Webhook 标题支持 [ejs模板引擎](https://github.com/mde/ejs)，可以实�
 2. 找到"断播续传"选项
 3. 启用"断播续传开关"
 4. 设置"续传时间间隔"（默认10分钟）
-
-### 配置选项
-
-#### 续传时间间隔
-
-设置判断是否为同一场直播的时间间隔。
-
-**推荐值**：
-
-- 网络稳定：5-10分钟
-- 网络不稳定：15-30分钟
-- 经常断流：30-60分钟
-
-::: warning 注意
-间隔过长可能导致不同场次的直播被合并。
-:::
-
-#### 保留原文件
-
-合并后可以选择是否保留原始片段文件。
-
-- **保留**：占用更多空间，但可以恢复
-- **删除**：节省空间，但无法恢复
 
 ### 使用场景
 
