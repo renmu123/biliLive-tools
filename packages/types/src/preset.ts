@@ -39,6 +39,8 @@ export const danmuConfig = type({
   filterFunction: "string",
   "blacklist-regex": "boolean",
   "line-spacing": "number",
+  "top-margin": "number",
+  "bottom-margin": "number",
   timeshift: "number",
 });
 export type DanmuConfig = typeof danmuConfig.infer;
