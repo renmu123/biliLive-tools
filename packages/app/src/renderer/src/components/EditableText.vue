@@ -51,11 +51,9 @@ const enterOut = () => {
   box-sizing: border-box;
   padding: 0;
   font-size: 15px;
-  caret-color: #18a058;
+  caret-color: var(--color-primary);
   background: none;
-  @media screen and (prefers-color-scheme: dark) {
-    color: rgba(255, 255, 255, 0.82);
-  }
+  color: var(--text-primary);
 }
 .input:focus {
   outline: none;

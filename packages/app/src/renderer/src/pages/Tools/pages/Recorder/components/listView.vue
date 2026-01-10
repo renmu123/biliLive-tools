@@ -2,10 +2,11 @@
   <n-table :bordered="false" :single-line="false">
     <thead>
       <tr>
-        <th>房间号</th>
-        <th>主播名</th>
-        <th>标题</th>
-        <th @click="handleSort('living')" class="sortable-header">
+        <th v-if="isColumnVisible('channelId')">房间号</th>
+        <th v-if="isColumnVisible('owner')">主播名</th>
+        <th v-if="isColumnVisible('remark')">备注</th>
+        <th v-if="isColumnVisible('roomTitle')">标题</th>
+        <th v-if="isColumnVisible('living')" @click="handleSort('living')" class="sortable-header">
           直播状态
           <n-icon
             size="14"
@@ -18,7 +19,7 @@
             <ArrowUpOutline></ArrowUpOutline>
           </n-icon>
         </th>
-        <th @click="handleSort('state')" class="sortable-header">
+        <th v-if="isColumnVisible('state')" @click="handleSort('state')" class="sortable-header">
           录制状态
           <n-icon
             size="14"
@@ -31,8 +32,13 @@
             <ArrowUpOutline></ArrowUpOutline>
           </n-icon>
         </th>
-        <td>录制参数</td>
-        <th @click="handleSort('monitorStatus')" class="sortable-header">
+        <td v-if="isColumnVisible('recordParams')">录制参数</td>
+        <th v-if="isColumnVisible('lastRecordTime')">最近录制时间</th>
+        <th
+          v-if="isColumnVisible('monitorStatus')"
+          @click="handleSort('monitorStatus')"
+          class="sortable-header"
+        >
           监听状态
           <n-icon
             size="14"
@@ -45,17 +51,19 @@
             <ArrowUpOutline></ArrowUpOutline>
           </n-icon>
         </th>
-        <th>操作</th>
+        <th v-if="isColumnVisible('actions')">操作</th>
       </tr>
     </thead>
     <tbody>
       <tr v-for="item in props.list" :key="item.channelId">
-        <td>
+        <td v-if="isColumnVisible('channelId')">
           <a class="link" target="_blank" :href="item.channelURL">{{ item.channelId }}</a>
         </td>
-        <td>{{ item.owner || item.remarks }}</td>
-        <td>{{ item.roomTitle }}</td>
+        <td v-if="isColumnVisible('owner')">{{ item.owner || item.remarks }}</td>
+        <td v-if="isColumnVisible('remark')">{{ item.remarks }}</td>
+        <td v-if="isColumnVisible('roomTitle')">{{ item.roomTitle }}</td>
         <td
+          v-if="isColumnVisible('living')"
           :style="{
             color: item.living ? 'skyblue' : 'normal',
           }"
@@ -63,6 +71,7 @@
           {{ item.living ? "直播中" : "未开始" }}
         </td>
         <td
+          v-if="isColumnVisible('state')"
           :class="{
             recording: item.state === 'recording',
             error: item.state === 'check-error',
@@ -71,21 +80,24 @@
         >
           {{ stateMap[item.state] }}
         </td>
-        <td :title="item?.recordHandle?.url">
+        <td v-if="isColumnVisible('recordParams')" :title="item?.recordHandle?.url">
           {{
             item.state === "recording"
               ? `${item.usedSource}/${item.usedStream}/${item?.recordHandle?.recorderType}`
               : ""
           }}
         </td>
-        <td>
+        <td v-if="isColumnVisible('lastRecordTime')">
+          {{ item?.extra?.lastRecordTime ? formatTime(item?.extra?.lastRecordTime) : "-" }}
+        </td>
+        <td v-if="isColumnVisible('monitorStatus')">
           {{
             item.disableAutoCheck
               ? "手动"
               : `自动${item.tempStopIntervalCheck && !item.disableAutoCheck ? "(跳过本场直播)" : ""}`
           }}
         </td>
-        <td>
+        <td v-if="isColumnVisible('actions')">
           <n-popover placement="right-start" trigger="hover">
             <template #trigger>
               <span style="cursor: pointer; color: skyblue">编辑</span>
@@ -99,6 +111,7 @@
 </template>
 
 <script setup lang="ts">
+import { formatTime } from "@renderer/utils";
 import { ArrowUpOutline } from "@vicons/ionicons5";
 
 interface Props {
@@ -109,6 +122,7 @@ interface Props {
     state: string;
     monitorStatus: string;
   };
+  visibleColumns?: string[];
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -119,7 +133,16 @@ const props = withDefaults(defineProps<Props>(), {
     state: "desc",
     monitorStatus: "desc",
   }),
+  visibleColumns: () => [],
 });
+
+// 检查列是否可见
+const isColumnVisible = (columnKey: string) => {
+  if (!props.visibleColumns || props.visibleColumns.length === 0) {
+    return true; // 如果没有配置，则显示所有列
+  }
+  return props.visibleColumns.includes(columnKey);
+};
 
 const emit = defineEmits<{
   (e: "sort", field: string): void;

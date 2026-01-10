@@ -133,6 +133,57 @@ export function removeRecord(id: number): boolean {
   return deletedCount > 0;
 }
 
+/**
+ * 批量获取多个频道的最后录制时间
+ * @param channels 频道信息数组
+ * @returns 包含频道ID和最后录制时间的数组
+ */
+export function getLastRecordTimesByChannels(
+  channels: Array<{ channelId: string; providerId: string }>,
+): Array<{
+  channelId: string;
+  providerId: string;
+  lastRecordTime: number | null;
+}> {
+  if (channels.length === 0) {
+    return [];
+  }
+
+  // 批量查询所有streamer（一次数据库查询）
+  const streamers = streamerService.batchQueryByChannels(
+    channels.map(({ channelId, providerId }) => ({
+      room_id: channelId,
+      platform: providerId,
+    })),
+  );
+
+  if (streamers.length === 0) {
+    return channels.map(({ channelId, providerId }) => ({
+      channelId,
+      providerId,
+      lastRecordTime: null,
+    }));
+  }
+
+  // 批量查询最后录制时间（一次数据库查询）
+  const streamerIds = streamers.map((s) => s.id);
+  const lastRecordTimesMap = recordHistoryService.getLastRecordTimes(streamerIds);
+
+  // 构建 streamer 映射表
+  const streamerMap = new Map(streamers.map((s) => [`${s.platform}_${s.room_id}`, s.id]));
+
+  return channels.map(({ channelId, providerId }) => {
+    const streamerId = streamerMap.get(`${providerId}_${channelId}`);
+    const lastRecordTime = streamerId ? (lastRecordTimesMap.get(streamerId) ?? null) : null;
+
+    return {
+      channelId,
+      providerId,
+      lastRecordTime,
+    };
+  });
+}
+
 export default {
   addWithStreamer,
   upadteLive,
@@ -141,4 +192,5 @@ export default {
   removeRecord,
   getRecord,
   getRecordById,
+  getLastRecordTimesByChannels,
 };

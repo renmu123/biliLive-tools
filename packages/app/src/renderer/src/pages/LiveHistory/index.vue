@@ -19,14 +19,8 @@
         placeholder="结束时间"
         style="width: 150px"
       />
+      <ColumnSelector v-model="visibleColumns" :columns="columnConfig" />
       <n-button type="primary" @click="handleQuery"> 查询 </n-button>
-      <n-select
-        v-model:value="visibleColumns"
-        multiple
-        :options="columnConfig.map((col) => ({ label: col.label, value: col.value }))"
-        style="width: 150px"
-        max-tag-count="responsive"
-      />
       <n-button @click="goBack">返回</n-button>
     </div>
 
@@ -83,7 +77,9 @@ import { FolderOpenOutline, DownloadOutline } from "@vicons/ionicons5";
 import { Delete20Regular, PlayCircle24Regular } from "@vicons/fluent";
 import { FileOpenOutlined } from "@vicons/material";
 import { useConfirm } from "@renderer/hooks";
+import { useVisibleColumns } from "@renderer/hooks/useVisibleColumns";
 import PreviewModal from "../Home/components/previewModal.vue";
+import ColumnSelector from "@renderer/components/ColumnSelector.vue";
 
 import type { VNode } from "vue";
 
@@ -127,7 +123,6 @@ interface LiveRecord {
 interface ColumnConfig {
   value: string;
   label: string;
-  defaultVisible: boolean;
 }
 
 const route = useRoute();
@@ -161,55 +156,23 @@ const hasQueried = ref<boolean>(false);
 
 // 列配置
 const columnConfig: ColumnConfig[] = [
-  { value: "title", label: "标题", defaultVisible: true },
-  { value: "live_start_time", label: "开播时间", defaultVisible: true },
-  { value: "record_start_time", label: "视频录制开始", defaultVisible: true },
-  { value: "record_end_time", label: "视频录制结束", defaultVisible: true },
-  { value: "duration", label: "持续时长", defaultVisible: true },
-  { value: "video_duration", label: "视频时长", defaultVisible: true },
-  { value: "danma_num", label: "弹幕数量", defaultVisible: true },
-  { value: "interact_num", label: "弹幕互动人数", defaultVisible: true },
-  { value: "danma_density", label: "弹幕密度", defaultVisible: true },
-  { value: "actions", label: "操作", defaultVisible: true },
+  { value: "title", label: "标题" },
+  { value: "live_start_time", label: "开播时间" },
+  { value: "record_start_time", label: "视频录制开始" },
+  { value: "record_end_time", label: "视频录制结束" },
+  { value: "duration", label: "持续时长" },
+  { value: "video_duration", label: "视频时长" },
+  { value: "danma_num", label: "弹幕数量" },
+  { value: "interact_num", label: "弹幕互动人数" },
+  { value: "danma_density", label: "弹幕密度" },
+  { value: "actions", label: "操作" },
 ];
 
-// 可见列配置
-const visibleColumns = ref<string[]>([]);
-
-// 本地存储键名
-const STORAGE_KEY = "live-history-visible-columns";
-
-// 初始化列配置
-const initColumnConfig = () => {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      visibleColumns.value = JSON.parse(saved);
-    } catch (error) {
-      console.error("解析保存的列配置失败:", error);
-      visibleColumns.value = getDefaultColumns();
-    }
-  } else {
-    visibleColumns.value = getDefaultColumns();
-  }
-};
-
-// 获取默认显示的列
-const getDefaultColumns = (): string[] => {
-  return columnConfig.filter((col) => col.defaultVisible).map((col) => col.value);
-};
-
-// 保存列配置到本地存储
-const saveColumnConfig = (value: string[]) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
-};
-
-watch(
-  () => visibleColumns.value,
-  (newVal) => {
-    saveColumnConfig(newVal);
-  },
-);
+// 使用可见列 hook
+const { visibleColumns } = useVisibleColumns({
+  columns: columnConfig,
+  storageKey: "live-history-visible-columns",
+});
 
 // 完整的表格列定义
 const allColumns: {
@@ -365,10 +328,7 @@ const visibleTableColumns = computed(() => {
 
 // 页面初始化
 onMounted(() => {
-  // 初始化列配置
-  initColumnConfig();
-
-  // 如果有查询参数，自动查询
+  // 如果有查询参数,自动查询
   if (streamerInfo.room_id && streamerInfo.platform) {
     handleQuery();
   }

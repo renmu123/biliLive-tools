@@ -27,4 +27,15 @@ export default class StreamerService {
   upsert(options: { where: Partial<Streamer & { id: number }>; create: BaseStreamer }) {
     return this.streamerModel.upsert(options);
   }
+
+  /**
+   * 批量查询多个频道的主播信息
+   * @param channels 频道信息数组
+   * @returns 主播信息数组
+   */
+  batchQueryByChannels(
+    channels: Array<{ room_id: string; platform: string }>,
+  ): ReturnType<StreamerModel["batchQueryByChannels"]> {
+    return this.streamerModel.batchQueryByChannels(channels);
+  }
 }

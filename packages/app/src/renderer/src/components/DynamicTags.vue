@@ -118,7 +118,7 @@ const removeTag = (index: number): void => {
   outline: none;
 }
 
-@media (prefers-color-scheme: dark) {
+[data-theme="dark"] {
   .tag {
     --tag-bg: #333;
     --tag-text: #fff;

@@ -443,6 +443,7 @@ import { FolderOpenOutline, Refresh } from "@vicons/ionicons5";
 import { deepRaw } from "@renderer/utils";
 import { showDirectoryDialog } from "@renderer/utils/fileSystem";
 import { videoPresetApi, ffmpegPresetApi, configApi, commonApi } from "@renderer/apis";
+import { useThemeStore } from "@renderer/stores/theme";
 
 import type { AppConfig, BiliupPreset, AppRoomConfig } from "@biliLive-tools/types";
 
@@ -475,6 +476,7 @@ const logLevelOptions = ref<{ label: string; value: any }[]>([
 ]);
 
 const confirm = useConfirm();
+const { setTheme } = useThemeStore();
 const saveConfig = async () => {
   if (
     !isWeb.value &&
@@ -501,7 +503,7 @@ const saveConfig = async () => {
   }
 
   await configApi.save(deepRaw(config.value));
-  window?.api?.common?.setTheme(config.value.theme);
+  setTheme(config.value.theme);
   // 设置自动启动
   window?.api?.common?.setOpenAtLogin(config.value.autoLaunch || false);
   close();

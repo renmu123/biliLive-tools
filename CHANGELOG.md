@@ -1,3 +1,21 @@
+# 3.6.0(2026.1.8)
+
+沉迷异星工厂，无心更新（
+
+## 功能
+
+- 合并页面支持文件名排序 [#293](https://github.com/renmu123/biliLive-tools/pull/293)
+- 录制：抖音支持更多弹幕类型 [#289](https://github.com/renmu123/biliLive-tools/pull/289)
+- 支持最近录制时间显示以及筛选 [#271](https://github.com/renmu123/biliLive-tools/pull/271)
+- 录制页面支持“显示字段”配置 [#271](https://github.com/renmu123/biliLive-tools/pull/271)
+- 列表模式支持显示备注 [#271](https://github.com/renmu123/biliLive-tools/pull/271)
+- Web支持UI主题选择 [#301](https://github.com/renmu123/biliLive-tools/pull/301)
+- 录制：虎牙 wup 接口出问题了，先切回mp吧
+
+## bug修复
+
+录制：抖音弹幕某些情况下礼物弹幕用户名为空时设置为"unknown"
+
 # 3.5.2(2025.12.24)
 
 ## bug修复
