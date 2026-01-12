@@ -1,3 +1,15 @@
+# Next
+
+## 功能
+
+- 弹幕：增加window下宽字符的支持 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
+- 弹幕：添加上下间距参数支持 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
+- 弹幕：支持强制覆盖输出文件参数 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
+
+## bug修复
+
+- 弹幕：修复用户名称解析逻辑 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
+
 # 3.6.0(2026.1.8)
 
 沉迷异星工厂，无心更新（
