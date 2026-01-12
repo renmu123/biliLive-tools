@@ -6,8 +6,6 @@ export interface DanmaOptions {
   savePath: string;
   // 完成后移除源文件
   removeOrigin?: boolean;
-  // 复制源文件到临时文件夹
-  copyInput?: boolean;
   // 生成到临时文件夹
   temp?: boolean;
   // 覆盖已存在的文件

@@ -48,6 +48,9 @@ async function downloadFile(url, desc, options = {}) {
   progressBar.stop();
 }
 
+/**
+ * 下载 mesio 工具
+ */
 async function downloadMesio() {
   // https://github.com/hua0512/rust-srec
   const platforms = {
@@ -72,6 +75,9 @@ async function downloadMesio() {
   }
 }
 
+/**
+ * 下载 BililiveRecorder 工具
+ */
 async function downloadBililiveRecorder() {
   // https://github.com/renmu123/BililiveRecorder/releases
   const platforms = {
@@ -92,6 +98,9 @@ async function downloadBililiveRecorder() {
   }
 }
 
+/**
+ * 下载 audiowaveform 工具
+ */
 async function downloadAudioWaveform() {
   const version = "1.10.2";
   // https://github.com/bbc/audiowaveform
@@ -128,6 +137,39 @@ async function downloadAudioWaveform() {
   }
 }
 
+/**
+ * 下载 DanmakuFactory 工具
+ */
+async function downloadDanmakuFactory() {
+  // https://github.com/renmu123/DanmakuFactory
+
+  let arch = process.arch;
+  if (process.platform === "linux" || process.platform === "darwin") {
+    if (arch === "x64") {
+      arch = "x86_64";
+    }
+  }
+
+  const platforms = {
+    win32: "windows",
+    darwin: "osx",
+  };
+  const platform = platforms[process.platform] ?? process.platform;
+  const filename = `DanmakuFactory-${platform}-${arch}-CLI.zip`;
+  let url = `https://github.com/renmu123/DanmakuFactory/releases/download/v2.0.0/${filename}`;
+
+  await downloadFile(url, ".");
+  await unzip(filename, "packages/app/resources/bin");
+
+  // 添加执行权限
+  if (process.platform === "linux") {
+    fs.chmodSync("packages/app/resources/bin/DanmakuFactory", 0o755);
+  }
+}
+
+/**
+ * 下载基础二进制文件
+ */
 async function downloadBaseBinary() {
   const filename = `${process.platform}-${process.arch}-2.5.0.zip`;
   const downloadUrl = `https://github.com/renmu123/biliLive-tools/releases/download/0.2.1/${filename}`;
@@ -142,6 +184,7 @@ async function downloadBin() {
   await downloadMesio();
   await downloadBililiveRecorder();
   await downloadAudioWaveform();
+  await downloadDanmakuFactory();
 }
 
 downloadBin();
