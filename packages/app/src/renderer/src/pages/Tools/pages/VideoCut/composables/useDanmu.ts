@@ -47,7 +47,6 @@ export function useDanmu(
     }
     try {
       const { output } = await taskApi.convertXml2Ass(tempXmlFile.value, "随便填", config, {
-        copyInput: true,
         removeOrigin: false,
         saveRadio: 2,
         temp: true,

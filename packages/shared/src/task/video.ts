@@ -1194,7 +1194,6 @@ export const burn = async (
         saveRadio: 2,
         savePath: getTempPath(),
         removeOrigin: removeOrigin,
-        copyInput: true,
       },
     );
     log.debug("convertXml2Ass task start", task.taskId);

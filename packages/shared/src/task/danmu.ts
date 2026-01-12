@@ -61,17 +61,8 @@ const addConvertDanmu2AssTask = async (
   originInput: string,
   output: string,
   danmuOptions: DanmuConfig,
-  options: Pick<DanmaOptions, "copyInput" | "removeOrigin"> = {},
+  options: Pick<DanmaOptions, "removeOrigin"> = {},
 ) => {
-  if (await pathExists(output)) {
-    log.info("danmufactory", {
-      status: "success",
-      text: "文件已存在，删除",
-      input: originInput,
-      output: output,
-    });
-    await fs.unlink(output);
-  }
   const { danmuFactoryPath } = getBinPath();
   const danmu = new DanmakuFactory(danmuFactoryPath);
   const tempDir = getTempPath();
@@ -81,13 +72,6 @@ const addConvertDanmu2AssTask = async (
     // 如果存在自定义过滤函数，则需要把过滤后的xml保存到临时文件夹中
     filteredOutput = join(tempDir, `${uuid()}.xml`);
     await genFilteredXml(originInput, filteredOutput, danmuOptions.filterFunction);
-  }
-
-  let tempInput: string | undefined;
-  if (!filteredOutput && options.copyInput) {
-    // 如果已经存在过滤后的文件，则不需要额外再复制一份了
-    tempInput = join(tempDir, `${uuid()}.xml`);
-    await fs.copyFile(originInput, tempInput);
   }
 
   if (danmuOptions.blacklist) {
@@ -100,7 +84,7 @@ const addConvertDanmu2AssTask = async (
     danmuOptions.blacklist = fileTxtPath;
   }
 
-  const input = filteredOutput || tempInput || originInput;
+  const input = filteredOutput || originInput;
   const task = new DanmuTask(
     danmu,
     {
@@ -115,15 +99,12 @@ const addConvertDanmu2AssTask = async (
           await trashItem(originInput);
         }
 
-        if (tempInput && (await pathExists(tempInput))) {
-          await fs.unlink(tempInput);
-        }
-        if (danmuOptions.blacklist && (await pathExists(danmuOptions.blacklist))) {
-          await fs.unlink(danmuOptions.blacklist);
+        if (danmuOptions.blacklist) {
+          fs.unlink(danmuOptions.blacklist);
         }
 
-        if (filteredOutput && (await pathExists(filteredOutput))) {
-          await fs.unlink(filteredOutput);
+        if (filteredOutput) {
+          fs.unlink(filteredOutput);
         }
       },
       onError: async (error) => {
@@ -133,14 +114,11 @@ const addConvertDanmu2AssTask = async (
           input: originInput,
           output: output,
         });
-        if (tempInput && (await pathExists(tempInput))) {
-          await fs.unlink(tempInput);
+        if (danmuOptions.blacklist) {
+          fs.unlink(danmuOptions.blacklist);
         }
-        if (danmuOptions.blacklist && (await pathExists(danmuOptions.blacklist))) {
-          await fs.unlink(danmuOptions.blacklist);
-        }
-        if (filteredOutput && (await pathExists(filteredOutput))) {
-          await fs.unlink(filteredOutput);
+        if (filteredOutput) {
+          fs.unlink(filteredOutput);
         }
       },
     },
@@ -177,7 +155,7 @@ export const convertXml2Ass = async (
   }
 
   if (!options.override && (await pathExists(output))) {
-    throw new Error(`${output}文件已存在`);
+    throw new Error(`${output} 文件已存在`);
   }
 
   const task = await addConvertDanmu2AssTask(file.input, output, danmuOptions, options);
