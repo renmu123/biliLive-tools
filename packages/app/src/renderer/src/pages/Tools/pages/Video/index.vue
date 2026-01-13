@@ -2,7 +2,7 @@
   <div class="container">
     <n-spin :show="loading">
       <h2>
-        支持B站视频、B站剪辑回放、斗鱼录播、虎牙录播、快手录播下载；斗鱼、虎牙录播订阅
+        支持B站视频、B站剪辑回放、斗鱼录播、虎牙录播、抖音录播、快手录播下载；斗鱼、虎牙录播订阅
         <n-icon
           :size="24"
           style="vertical-align: middle; cursor: pointer"
@@ -88,6 +88,10 @@
                 <tr>
                   <td>快手录播</td>
                   <td>https://live.kuaishou.com/playback/3xfhg6rsxsbrddq</td>
+                </tr>
+                <tr>
+                  <td>抖音录播</td>
+                  <td>https://www.douyin.com/vsdetail/7553114817708594226</td>
                 </tr>
               </tbody>
             </n-table>
@@ -254,7 +258,7 @@ const confirm = async (options: {
     return;
   }
 
-  if (options.onlyDanmu) {
+  if (options.onlyDanmu && downloadOptions.value.hasDanmuOnlyOptions) {
     notice.info({
       title: `即将开始下载弹幕，请不要关闭此页面`,
       duration: 5000,
@@ -262,7 +266,7 @@ const confirm = async (options: {
   }
 
   for (const part of parts) {
-    if (options.onlyDanmu) {
+    if (options.onlyDanmu && downloadOptions.value.hasDanmuOnlyOptions) {
       notice.info({
         title: `已开始下载弹幕：${part.name}`,
         duration: 5000,
@@ -282,14 +286,14 @@ const confirm = async (options: {
       onlyDanmu: options.onlyDanmu,
     });
 
-    if (options.onlyDanmu) {
+    if (options.onlyDanmu && downloadOptions.value.hasDanmuOnlyOptions) {
       notice.info({
         title: `已结束下载弹幕：${part.name}`,
         duration: 5000,
       });
     }
   }
-  if (!options.onlyDanmu) {
+  if (!options.onlyDanmu && downloadOptions.value.hasDanmuOnlyOptions) {
     notice.success({
       title: "已加入队列",
       duration: 2000,

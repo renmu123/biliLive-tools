@@ -4,6 +4,7 @@ import Router from "@koa/router";
 import douyu from "@biliLive-tools/shared/video/douyu.js";
 import huya from "@biliLive-tools/shared/video/huya.js";
 import kuaishou from "@biliLive-tools/shared/video/kuaishou.js";
+import douyin from "@biliLive-tools/shared/video/douyin.js";
 import biliApi from "@biliLive-tools/shared/task/bili.js";
 import log from "@biliLive-tools/shared/utils/log.js";
 import videoSub from "@biliLive-tools/shared/video/videoSub.js";
@@ -226,7 +227,6 @@ async function parseVideo({
     }
     const videoId = kuaishouMatch[1];
     const data = await kuaishou.parseVideo(videoId);
-    console.log(data);
     return {
       videoId: videoId,
       platform: "kuaishou",
@@ -239,6 +239,38 @@ async function parseVideo({
           isEditing: false,
           extra: {
             url: data.currentWork.playUrlV2.h264,
+          },
+        },
+      ],
+    };
+  } else if (url.includes("www.douyin.com/vsdetail")) {
+    const douyinMatch = url.match(/vsdetail\/([A-Za-z0-9]+)/);
+    if (!douyinMatch) {
+      throw new Error("请输入正确的抖音回放链接");
+    }
+    const videoId = douyinMatch[1];
+    const data = await douyin.parseVideo(videoId);
+    console.log(data);
+    const resolutions = data.resolutions.map((item) => ({
+      value: item.value,
+      label: item.label,
+    }));
+    resolutions.unshift({
+      value: "highest",
+      label: "最高",
+    });
+    return {
+      videoId: videoId,
+      platform: "douyinLive",
+      title: data.title,
+      resolutions: resolutions,
+      parts: [
+        {
+          partId: videoId,
+          name: data.title,
+          isEditing: false,
+          extra: {
+            resolutions: data.resolutions,
           },
         },
       ],
@@ -340,6 +372,20 @@ async function downloadVideo(options: VideoAPI["downloadVideo"]["Args"]) {
     await kuaishou.download(filepath, options.extra.url, {
       override: options.override,
     });
+  } else if (options.platform === "douyinLive") {
+    console.log(options);
+    if (!options?.extra?.resolutions || options?.extra?.resolutions.length === 0) {
+      throw new Error("resolutions is required for douyinLive download");
+    }
+    let url = options?.extra?.resolutions.find((item) => item.value === options.resolution)?.url;
+    if (!url) {
+      url = options?.extra?.resolutions[0]?.url;
+    }
+    if (url) {
+      await douyin.download(filepath, url, {
+        override: options.override,
+      });
+    }
   } else {
     throw new Error("暂不支持该平台");
   }

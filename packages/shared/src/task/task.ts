@@ -5,6 +5,7 @@ import { TypedEmitter } from "tiny-typed-emitter";
 // @ts-ignore
 import * as ntsuspend from "ntsuspend";
 import kill from "tree-kill";
+import { DownloaderHelper as RangeDownloader } from "node-downloader-helper";
 
 import { isWin32, calculateFileQuickHash, retryWithAxiosError } from "../utils/index.js";
 import log from "../utils/log.js";
@@ -965,6 +966,95 @@ export class M3U8DownloadTask extends AbstractTask {
 }
 
 /**
+ * mp4下载任务
+ */
+export class RangeDownloadTask extends AbstractTask {
+  command: RangeDownloader;
+  type = TaskType.m3u8Download;
+  constructor(
+    command: RangeDownloader,
+    options: {
+      name: string;
+    },
+    callback: {
+      onStart?: () => void;
+      onEnd?: (output: string) => void | Promise<void>;
+      onError?: (err: string) => void;
+      onProgress?: (progress: number) => any;
+    } = {},
+  ) {
+    super();
+    this.command = command;
+    this.progress = 0;
+    this.action = ["kill", "pause"];
+
+    if (options.name) {
+      this.name = options.name;
+    }
+
+    command.on("end", async (data) => {
+      const output = data.filePath;
+      log.info(`task ${this.taskId} end`);
+      this.status = "completed";
+      this.progress = 100;
+      this.output = output;
+      callback.onEnd && (await callback.onEnd(output));
+      this.emitter.emit("task-end", { taskId: this.taskId });
+      this.endTime = Date.now();
+    });
+    command.on("error", (err) => {
+      log.error(`task ${this.taskId} error: ${err}`);
+      this.status = "error";
+
+      callback.onError && callback.onError(err.message);
+      this.error = err.message;
+      this.emitter.emit("task-error", { taskId: this.taskId, error: err.message });
+      this.endTime = Date.now();
+    });
+    command.on("progress", (progress: { downloaded: number; total: number }) => {
+      console.log("range download progress", progress);
+      const percent = Math.floor((progress.downloaded / progress.total) * 100);
+      callback.onProgress && callback.onProgress(percent);
+      this.progress = percent;
+      this.emitter.emit("task-progress", { taskId: this.taskId });
+    });
+  }
+  exec() {
+    if (this.status !== "pending") return;
+    this.status = "running";
+    this.command.start();
+    this.startTime = Date.now();
+    this.emitter.emit("task-start", { taskId: this.taskId });
+  }
+  pause() {
+    if (this.status !== "running") return;
+    this.command.pause();
+    log.warn(`task ${this.taskId} paused`);
+    this.status = "paused";
+    this.emitter.emit("task-pause", { taskId: this.taskId });
+    return true;
+  }
+  resume() {
+    if (this.status !== "paused") return;
+    this.command.resume();
+    log.warn(`task ${this.taskId} resumed`);
+    this.status = "running";
+    this.emitter.emit("task-resume", { taskId: this.taskId });
+    return true;
+  }
+  kill() {
+    if (this.status === "completed" || this.status === "error" || this.status === "canceled")
+      return;
+    log.warn(`task ${this.taskId} killed`);
+    this.status = "canceled";
+    this.command.stop();
+    this.emit("task-cancel", { taskId: this.taskId, autoStart: true });
+    this.endTime = Date.now();
+    return true;
+  }
+}
+
+/**
  * 斗鱼录播下载任务
  */
 export class DouyuDownloadVideoTask extends M3U8DownloadTask {
@@ -990,6 +1080,13 @@ export class BilibiliLiveDownloadVideoTask extends M3U8DownloadTask {
  */
 export class KuaishouDownloadVideoTask extends M3U8DownloadTask {
   type = TaskType.kuaishouDownload;
+}
+
+/**
+ * 抖音录播下载任务
+ */
+export class DouyinDownloadVideoTask extends RangeDownloadTask {
+  type = TaskType.douyinLiveDownload;
 }
 
 /**
