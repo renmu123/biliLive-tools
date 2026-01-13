@@ -7,6 +7,10 @@
 - 弹幕：支持强制覆盖输出文件参数 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
 - 录制：弹幕可视化优化，抄得录播姬（ [#302](https://github.com/renmu123/biliLive-tools/issues/302)
 
+## 优化
+
+- B站上传：增加 `cs-akbd` 线路
+
 ## bug修复
 
 - 弹幕：修复用户名称解析逻辑 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
