@@ -1,6 +1,6 @@
 import type StatisticsModel from "../model/statistics.js";
 
-type Key = "start_time" | "pan123_token" | "bili_last_upload_time";
+type Key = "start_time" | "pan123_token" | "bili_last_upload_time" | string;
 
 export default class StatisticsService {
   private statisticsModel: StatisticsModel;

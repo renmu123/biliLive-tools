@@ -6,6 +6,7 @@
 - 弹幕：添加上下间距参数支持 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
 - 弹幕：支持强制覆盖输出文件参数 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
 - 录制：弹幕可视化优化，抄得录播姬（ [#302](https://github.com/renmu123/biliLive-tools/issues/302)
+- B站上传：`投稿最短间隔`及`缓存投稿失败视频`选项现在针对账户生效
 
 ## 优化
 

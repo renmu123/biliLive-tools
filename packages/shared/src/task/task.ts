@@ -443,6 +443,7 @@ export class BiliVideoTask extends AbstractTask {
   completedTask: number = 0;
   uid: number;
   rawName: string = "";
+  lastUpdateTimeKey: string = "";
   callback: {
     onStart?: () => void;
     onEnd?: (output: { aid: number; bvid: string }) => void;
@@ -473,6 +474,7 @@ export class BiliVideoTask extends AbstractTask {
     this.status = "running";
     this.startTime = Date.now();
     this.uid = options.uid;
+    this.lastUpdateTimeKey = `bili_last_upload_time_${this.uid}`;
     this.emitter.emit("task-start", { taskId: this.taskId });
   }
   addTask(task: BiliPartVideoTask) {
@@ -586,7 +588,7 @@ export class BiliAddVideoTask extends BiliVideoTask {
     const minUploadInterval = config?.biliUpload?.minUploadInterval || 0;
 
     if (minUploadInterval > 0) {
-      const lastUploadTime = statisticsService.query("bili_last_upload_time");
+      const lastUploadTime = statisticsService.query(this.lastUpdateTimeKey);
       if (lastUploadTime) {
         const lastTime = parseInt(lastUploadTime.value);
         const currentTime = Date.now();
@@ -636,9 +638,9 @@ export class BiliAddVideoTask extends BiliVideoTask {
       this.emitter.emit("task-end", { taskId: this.taskId });
       uploadPartService.removeByCids(parts.map((part) => part.cid));
       statisticsService.addOrUpdate({
-        where: { stat_key: "bili_last_upload_time" },
+        where: { stat_key: this.lastUpdateTimeKey },
         create: {
-          stat_key: "bili_last_upload_time",
+          stat_key: this.lastUpdateTimeKey,
           value: Date.now().toString(),
         },
       });
@@ -687,7 +689,7 @@ export class BiliEditVideoTask extends BiliVideoTask {
     const minUploadInterval = config?.biliUpload?.minUploadInterval || 0;
 
     if (minUploadInterval > 0) {
-      const lastUploadTime = statisticsService.query("bili_last_upload_time");
+      const lastUploadTime = statisticsService.query(this.lastUpdateTimeKey);
       if (lastUploadTime) {
         const lastTime = parseInt(lastUploadTime.value);
         const currentTime = Date.now();
@@ -740,9 +742,9 @@ export class BiliEditVideoTask extends BiliVideoTask {
       this.emitter.emit("task-end", { taskId: this.taskId });
       uploadPartService.removeByCids(parts.map((part) => part.cid));
       statisticsService.addOrUpdate({
-        where: { stat_key: "bili_last_upload_time" },
+        where: { stat_key: this.lastUpdateTimeKey },
         create: {
-          stat_key: "bili_last_upload_time",
+          stat_key: this.lastUpdateTimeKey,
           value: Date.now().toString(),
         },
       });
