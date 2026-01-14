@@ -10,7 +10,7 @@ import {
 } from "@bililive-tools/manager";
 
 import { getInfo, getStream, getLiveStatus, getStrictStream } from "./stream.js";
-import { ensureFolderExist, hasKeyword } from "./utils.js";
+import { ensureFolderExist } from "./utils.js";
 import DanmaClient from "./danma.js";
 
 import type {
@@ -130,18 +130,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   if (!this.liveInfo.living) return null;
 
   // 检查标题是否包含关键词，如果包含则不自动录制
-  // 手动开始录制时不检查标题关键词
-  if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
-    const hasTitleKeyword = hasKeyword(this.liveInfo.title, this.titleKeywords);
-    if (hasTitleKeyword) {
-      this.state = "title-blocked";
-      this.emit("DebugLog", {
-        type: "common",
-        text: `跳过录制：直播间标题 "${this.liveInfo.title}" 包含关键词 "${this.titleKeywords}"`,
-      });
-      return null;
-    }
-  }
+  if (utils.checkTitleKeywordsBeforeRecord(this.liveInfo.title, this, isManualStart)) return null;
 
   const liveInfo = await getInfo(this.channelId);
   const { owner, title, roomId, liveStartTime, recordStartTime } = liveInfo;
@@ -322,7 +311,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
     danmaClient.on("onRoomInfoChange", (msg) => {
       if (utils.shouldCheckTitleKeywords(isManualStart, this.titleKeywords)) {
         const title = msg?.body?.title ?? "";
-        const hasTitleKeyword = hasKeyword(title, this.titleKeywords);
+        const hasTitleKeyword = utils.hasBlockedTitleKeywords(title, this.titleKeywords);
 
         if (hasTitleKeyword) {
           this.state = "title-blocked";

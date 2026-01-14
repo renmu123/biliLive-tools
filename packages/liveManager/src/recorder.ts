@@ -67,7 +67,10 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
     | "balance"
     | "random"
     | string;
-  /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
+  /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制，支持两种格式：
+   * 1. 逗号分隔的关键词：'回放,录播,重播'
+   * 2. 正则表达式：'/pattern/flags'（如：'/回放|录播/i'）
+   */
   titleKeywords?: string;
   /** 用于指定录制文件格式，auto时，分段使用ts，不分段使用mp4 */
   videoFormat?: "auto" | "ts" | "mkv" | "flv";

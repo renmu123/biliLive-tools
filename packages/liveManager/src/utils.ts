@@ -439,9 +439,39 @@ export function shouldUseStrictQuality(
 
 /**
  * 检查标题是否包含黑名单关键词
+ * @param title 直播间标题
+ * @param titleKeywords 关键词配置，支持两种格式：
+ *   1. 逗号分隔的关键词：'关键词1,关键词2,关键词3'
+ *   2. 正则表达式：'/pattern/flags'（如：'/回放|录播/i'）
+ * @returns 如果标题包含关键词返回 true，否则返回 false
  */
 function hasBlockedTitleKeywords(title: string, titleKeywords: string | undefined): boolean {
-  const keywords = (titleKeywords ?? "")
+  if (!titleKeywords || !titleKeywords.trim()) {
+    return false;
+  }
+
+  const trimmedKeywords = titleKeywords.trim();
+
+  // 检测是否为正则表达式格式 /pattern/flags
+  const regexMatch = trimmedKeywords.match(/^\/(.+?)\/([gimsuvy]*)$/);
+
+  if (regexMatch) {
+    try {
+      const [, pattern, flags] = regexMatch;
+      const regex = new RegExp(pattern, flags);
+      return regex.test(title);
+    } catch (error) {
+      // 正则表达式无效，降级到普通匹配，并记录日志
+      console.warn(
+        `Invalid regex pattern: ${trimmedKeywords}, falling back to normal matching`,
+        error,
+      );
+      // 继续使用普通匹配逻辑
+    }
+  }
+
+  // 普通关键词匹配（逗号分隔）
+  const keywords = trimmedKeywords
     .split(",")
     .map((k) => k.trim())
     .filter((k) => k);
