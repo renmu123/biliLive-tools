@@ -3,20 +3,6 @@ import configApi from "./config";
 
 import type { DanmuItem } from "@biliLive-tools/types";
 
-export const previewWebhookTitle = async (template: string): Promise<string> => {
-  const res = await request.post(`/common/formatTitle`, {
-    template,
-  });
-  return res.data;
-};
-
-export const previewWebhookPartTitle = async (template: string): Promise<string> => {
-  const res = await request.post(`/common/formatPartTitle`, {
-    template,
-  });
-  return res.data;
-};
-
 export const getStreamLogs = async () => {
   let key = window.localStorage.getItem("key");
   if (!window.isWeb) {
@@ -116,7 +102,17 @@ export async function readXmlTimestamp(filepath: string): Promise<number> {
   return res.data;
 }
 
-export async function parseMeta(files: { videoFilePath?: string; danmaFilePath?: string }) {
+export async function parseMeta(files: {
+  videoFilePath?: string;
+  danmaFilePath?: string;
+}): Promise<{
+  startTimestamp: number | null;
+  endTimestamp: number | null;
+  roomId: string | null;
+  title: string | null;
+  username: string | null;
+  duration: number;
+}> {
   const res = await request.post("/common/parseMeta", files);
   return res.data;
 }
@@ -274,7 +270,6 @@ export const fileExists = async (filepath: string): Promise<boolean> => {
 };
 
 const common = {
-  previewWebhookTitle,
   getStreamLogs,
   version,
   versionTest,

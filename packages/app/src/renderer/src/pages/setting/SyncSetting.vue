@@ -312,7 +312,7 @@
             <template #label>
               <Tip
                 text="目录结构"
-                tip="如果是本地复制，请带上文件夹路径<br/>支持以下占位符：<br/>平台：{{platform}}<br/>主播名：{{user}}<br/>日期：{{now}}<br/>年：{{yyyy}}<br/>月：{{MM}}<br/>日：{{dd}}"
+                tip="如果是本地复制，请带上文件夹路径<br/>支持以下占位符：<br/>软件平台：{{software}}<br/>平台：{{platform}}<br/>主播名：{{user}}<br/>日期：{{now}}<br/>年：{{yyyy}}<br/>月：{{MM}}<br/>日：{{dd}}"
               >
               </Tip>
             </template>

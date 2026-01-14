@@ -6,12 +6,7 @@ import multer from "../middleware/multer.js";
 
 import Router from "@koa/router";
 import semver from "semver";
-import {
-  formatTitle,
-  uuid,
-  formatPartTitle,
-  getTempPath,
-} from "@biliLive-tools/shared/utils/index.js";
+import { uuid, getTempPath } from "@biliLive-tools/shared/utils/index.js";
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
@@ -24,45 +19,6 @@ const router = new Router({
   prefix: "/common",
 });
 const upload = multer({ dest: os.tmpdir() });
-
-router.post("/formatTitle", async (ctx) => {
-  const data = ctx.request.body as {
-    template: string;
-  };
-  const template = (data.template || "") as string;
-
-  const title = formatTitle(
-    {
-      title: "标题",
-      username: "主播名",
-      time: new Date().toISOString(),
-      roomId: 123456,
-      filename: "文件名",
-    },
-    template,
-  );
-  ctx.body = title;
-});
-
-router.post("/formatPartTitle", async (ctx) => {
-  const data = ctx.request.body as {
-    template: string;
-  };
-  const template = (data.template || "") as string;
-
-  const title = formatPartTitle(
-    {
-      title: "标题",
-      username: "主播名",
-      time: new Date().toISOString(),
-      roomId: 123456,
-      filename: "文件名",
-      index: 1,
-    },
-    template,
-  );
-  ctx.body = title;
-});
 
 router.get("/version", (ctx) => {
   ctx.body = config.version;
@@ -494,6 +450,11 @@ router.post("/handleWebhook", async (ctx) => {
   ctx.body = "success";
 });
 
+router.post("/webhook", async (ctx) => {
+  const liveList = handler.liveData;
+  ctx.body = liveList;
+});
+
 /**
  * 检测为何无法上传
  * 检查是否为内部录制，如果是，检查是否开启webhook，接下来走下面的流程
@@ -536,7 +497,7 @@ router.get("/whyUploadFailed", async (ctx) => {
     }
 
     // 检查单独webhook配置
-    const webhookConfig = handler.getConfig(roomId);
+    const webhookConfig = handler.configManager.getConfig(roomId);
 
     if (!webhookConfig.open) {
       errorInfoList.push("处于黑名单或单独关闭开关");
