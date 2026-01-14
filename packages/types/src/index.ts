@@ -491,7 +491,10 @@ export interface Recorder {
   useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];
   codecName: GlobalRecorder["bilibili"]["codecName"];
   source: GlobalRecorder["douyu"]["source"];
-  /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
+  /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制，支持两种格式：
+   * 1. 逗号分隔的关键词：'回放,录播,重播'
+   * 2. 正则表达式：'/pattern/flags'（如：'/回放|录播/i'）
+   */
   titleKeywords?: string;
   /** 开播推送 */
   liveStartNotification?: boolean;

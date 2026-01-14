@@ -223,13 +223,13 @@
             <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
               <template #label>
                 <Tip
-                  text="禁止标题关键词"
-                  tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，手动录制的不会被影响"
+                  :text="textInfo.common.titleKeywords.text"
+                  :tip="textInfo.common.titleKeywords.tip"
                 ></Tip>
               </template>
               <n-input
                 v-model:value="config.titleKeywords"
-                placeholder="例如：回放,录播,重播"
+                :placeholder="textInfo.common.titleKeywords.placeholder"
                 clearable
               />
             </n-form-item>
@@ -264,13 +264,13 @@
             <n-form-item>
               <template #label>
                 <Tip
-                  text="禁止标题关键词"
-                  tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
+                  :text="textInfo.common.titleKeywords.text"
+                  :tip="textInfo.common.titleKeywords.tip"
                 ></Tip>
               </template>
               <n-input
                 v-model:value="config.titleKeywords"
-                placeholder="例如：回放,录播,重播"
+                :placeholder="textInfo.common.titleKeywords.placeholder"
                 clearable
               />
             </n-form-item>
@@ -334,13 +334,13 @@
             <n-form-item>
               <template #label>
                 <Tip
-                  text="禁止标题关键词"
-                  tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
+                  :text="textInfo.common.titleKeywords.text"
+                  :tip="textInfo.common.titleKeywords.tip"
                 ></Tip>
               </template>
               <n-input
                 v-model:value="config.titleKeywords"
-                placeholder="例如：回放,录播,重播"
+                :placeholder="textInfo.common.titleKeywords.placeholder"
                 clearable
               />
             </n-form-item>
@@ -416,13 +416,13 @@
             <n-form-item>
               <template #label>
                 <Tip
-                  text="禁止标题关键词"
-                  tip="如果直播间标题包含这些关键词，则不会自动录制，多个关键词请用英文逗号分隔，录制中的直播隔约每五分钟会进行检查，手动录制的不会被影响"
+                  :text="textInfo.common.titleKeywords.text"
+                  :tip="textInfo.common.titleKeywords.tip"
                 ></Tip>
               </template>
               <n-input
                 v-model:value="config.titleKeywords"
-                placeholder="例如：回放,录播,重播"
+                :placeholder="textInfo.common.titleKeywords.placeholder"
                 clearable
               />
             </n-form-item>
