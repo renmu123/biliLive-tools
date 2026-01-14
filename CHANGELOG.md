@@ -1,5 +1,12 @@
 # Next
 
+## 大更改
+
+- 重构 webhook 匹配逻辑 [#277](https://github.com/renmu123/biliLive-tools/pull/227)
+- 支持移除不符合条件的小文件选项
+- 上传配置中设置为转载类型时转载来源支持为空，webhook中会尝试使用直播间链接（应该
+- 视频手动上传且存在占位符时，对相关的视频文件和弹幕进行解析，从而实现对占位符的填充（应该
+
 ## 功能
 
 - 弹幕：增加window下宽字符的支持 [#283](https://github.com/renmu123/biliLive-tools/pull/283)

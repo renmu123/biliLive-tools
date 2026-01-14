@@ -1,4 +1,3 @@
-import path from "node:path";
 import { EventEmitter } from "node:events";
 import log from "@biliLive-tools/shared/utils/log.js";
 
