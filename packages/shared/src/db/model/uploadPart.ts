@@ -10,6 +10,7 @@ const BaseUploadPart = z.object({
   cid: z.number(),
   filename: z.string(),
   expire_time: z.number(),
+  uid: z.string(),
 });
 
 const UploadPart = BaseUploadPart.extend({
@@ -26,6 +27,7 @@ export default class UploadPartModel extends BaseModel<BaseUploadPart> {
   constructor({ db }: { db: Database }) {
     super(db, "upload_parts");
     this.createTable();
+    this.migrate();
     this.createIndexes();
   }
 
@@ -38,7 +40,8 @@ export default class UploadPartModel extends BaseModel<BaseUploadPart> {
         file_size INTEGER NOT NULL,
         cid INTEGER NOT NULL,
         filename TEXT NOT NULL,
-        expire_time INTEGER NOT NULL
+        expire_time INTEGER NOT NULL,
+        uid TEXT
       ) STRICT;
     `;
 
@@ -64,8 +67,8 @@ export default class UploadPartModel extends BaseModel<BaseUploadPart> {
     try {
       const indexes = [
         {
-          name: "idx_upload_parts_hash_size",
-          sql: `CREATE INDEX IF NOT EXISTS idx_upload_parts_hash_size ON upload_parts(file_hash, file_size)`,
+          name: "idx_upload_parts_hash_size_uid",
+          sql: `CREATE INDEX IF NOT EXISTS idx_upload_parts_hash_size_uid ON upload_parts(file_hash, file_size, uid)`,
         },
         {
           name: "idx_upload_parts_cid",
@@ -84,13 +87,33 @@ export default class UploadPartModel extends BaseModel<BaseUploadPart> {
     }
   }
 
+  migrate() {
+    try {
+      // 检查表中是否存在uid字段
+      const columns = this.db.prepare(`PRAGMA table_info(${this.tableName})`).all();
+      // @ts-ignore
+      const hasUidColumn = columns.some((col) => col.name === "uid");
+
+      if (!hasUidColumn) {
+        // 添加uid列
+        this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN uid TEXT`).run();
+        logger.info(`已为${this.tableName}表添加uid列`);
+      }
+
+      return true;
+    } catch (error) {
+      logger.error(`迁移${this.tableName}表失败:`, error);
+      return false;
+    }
+  }
+
   add(options: BaseUploadPart) {
     const data = BaseUploadPart.parse(options);
     return this.insert(data);
   }
 
   addOrUpdate(options: Omit<BaseUploadPart, "expire_time">) {
-    const part = this.findValidPartByHash(options.file_hash, options.file_size);
+    const part = this.findValidPartByHash(options.file_hash, options.file_size, options.uid);
     // 过期时间为当前时间加上3天
     const expire_time = Date.now() + 1000 * 60 * 60 * 24 * 3;
     if (part) {
@@ -107,12 +130,12 @@ export default class UploadPartModel extends BaseModel<BaseUploadPart> {
     }
   }
 
-  findValidPartByHash(file_hash: string, file_size: number): UploadPart | null {
+  findValidPartByHash(file_hash: string, file_size: number, uid: string): UploadPart | null {
     const sql = `
       SELECT * FROM ${this.table} 
-      WHERE file_hash = ? AND file_size = ? AND expire_time > ?
+      WHERE file_hash = ? AND file_size = ? AND uid = ? AND expire_time > ?
     `;
-    return this.db.prepare(sql).get(file_hash, file_size, Date.now()) as UploadPart | null;
+    return this.db.prepare(sql).get(file_hash, file_size, uid, Date.now()) as UploadPart | null;
   }
 
   removeExpired() {

@@ -395,6 +395,7 @@ function formatMediaOptions(options: AppConfigType["biliUpload"]) {
     line: line,
     zone: zone,
     limitRate: Math.floor((options.limitRate || 0) / (options.concurrency || 1)),
+    bcutPreUpload: true,
   };
 }
 
@@ -595,6 +596,7 @@ async function addMedia(
         name: `上传视频：${part.title}(${path.parse(part.path).base})`,
         pid: pTask.taskId,
         limitTime: extraOptions?.limitedUploadTime ?? [],
+        uid: pTask.uid,
       },
       {},
     );
@@ -699,6 +701,7 @@ export async function editMedia(
         name: `上传视频：${part.title}(${path.parse(part.path).base})`,
         pid: pTask.taskId,
         limitTime: extraOptions?.limitedUploadTime ?? [],
+        uid: pTask.uid,
       },
       {},
     );
@@ -737,6 +740,7 @@ export function addExtraVideoTask(pTaskId: string, filePath: string, partName: s
       name: `上传视频：${part.title}(${path.parse(part.path).base})`,
       pid: pTask.taskId,
       limitTime: [],
+      uid: pTask.uid,
     },
     {},
   );
