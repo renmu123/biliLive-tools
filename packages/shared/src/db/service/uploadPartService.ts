@@ -16,8 +16,8 @@ export default class UploadPartService {
     return this.uploadPartModel.addOrUpdate(options);
   }
 
-  findValidPartByHash(file_hash: string, file_size: number): UploadPart | null {
-    return this.uploadPartModel.findValidPartByHash(file_hash, file_size);
+  findValidPartByHash(file_hash: string, file_size: number, uid: string): UploadPart | null {
+    return this.uploadPartModel.findValidPartByHash(file_hash, file_size, uid);
   }
 
   removeExpired() {
