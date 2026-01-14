@@ -467,6 +467,23 @@ export const matchUser = (str: string): string | null => {
 };
 
 /**
+ * 元数据平台匹配
+ * @param {string} str 需要匹配的字符串
+ */
+export const matchPlatform = (str: string): string | null => {
+  // 录播姬参数
+  if (str.includes("mikufans录播姬")) {
+    return "bilibili";
+  }
+  // biliLive-tools
+  const match = str.match(/<platform>(.+?)<\/platform>/);
+  if (match) {
+    return (match[1] || "").toLowerCase();
+  }
+  return "unknown";
+};
+
+/**
  * 使用正则匹配时间戳
  * param {string} str 需要匹配的字符串
  * param {RegExp} regex 匹配的正则，捕获组为时间
@@ -532,6 +549,7 @@ export async function parseMeta(files: { videoFilePath?: string; danmaFilePath?:
     title: string | null;
     username: string | null;
     duration: number;
+    platform?: string | null;
   } = {
     startTimestamp: null,
     roomId: null,
@@ -562,6 +580,7 @@ export async function parseMeta(files: { videoFilePath?: string; danmaFilePath?:
   data.roomId = matchRoomId(content);
   data.title = matchTitle(content);
   data.username = matchUser(content);
+  data.platform = matchPlatform(content);
 
   return data;
 }

@@ -112,6 +112,7 @@ export async function parseMeta(files: {
   title: string | null;
   username: string | null;
   duration: number;
+  platform: string | null;
 }> {
   const res = await request.post("/common/parseMeta", files);
   return res.data;

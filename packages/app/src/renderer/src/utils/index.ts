@@ -135,3 +135,21 @@ export const generateDistinctColor = (index: number, active = true): string => {
   }
   return `hsla(${hue}, ${saturation}%, ${lightness}%, ${alpha})`;
 };
+
+/**
+ * 根据平台和房间ID构建房间链接
+ * @param platform
+ * @param roomId
+ * @returns
+ */
+export function buildRoomLink(platform: string, roomId: string): string | null {
+  const platformLower = platform.toLowerCase();
+  const platformRoomLinkMap: Record<string, (roomId: string) => string> = {
+    bilibili: (id: string) => `https://live.bilibili.com/${id}`,
+    huya: (id: string) => `https://www.huya.com/${id}`,
+    douyu: (id: string) => `https://www.douyu.com/${id}`,
+    douyin: (id: string) => `https://live.douyin.com/${id}`,
+  };
+  const link = platformRoomLinkMap[platformLower]?.(roomId);
+  return link ?? null;
+}

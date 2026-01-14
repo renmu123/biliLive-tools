@@ -43,7 +43,7 @@ import { useUserInfoStore, useAppConfig } from "@renderer/stores";
 import { biliApi, commonApi } from "@renderer/apis";
 import hotkeys from "hotkeys-js";
 
-import { deepRaw, replaceExtName } from "@renderer/utils";
+import { deepRaw, replaceExtName, buildRoomLink } from "@renderer/utils";
 
 defineOptions({
   name: "Upload",
@@ -106,7 +106,6 @@ const upload = async () => {
   const uploadConfig = deepRaw(presetOptions.value.config) as typeof presetOptions.value.config;
   await biliApi.validUploadParams(uploadConfig);
 
-  // TODO: 转载稿件的判断还未实现，需要上游解析实现
   // 如果上传标题中存在占位符，或者稿件类型为转载，则转载来源为空时，获取第一个文件的调用解析接口获取数据进行填充
   if (uploadConfig.title.includes("{{")) {
     try {
@@ -144,11 +143,21 @@ const upload = async () => {
   }
 
   if (uploadConfig.copyright === 2 && !uploadConfig.source) {
-    notice.error({
-      title: `稿件类型为转载时转载来源不能为空`,
-      duration: 1000,
+    const parseResult = await commonApi.parseMeta({
+      videoFilePath: fileList.value[0].path,
+      danmaFilePath: replaceExtName(fileList.value[0].path, ".xml"),
     });
-    return;
+    if (parseResult.platform) {
+      uploadConfig.source = buildRoomLink(parseResult.platform, parseResult.roomId ?? "") ?? "";
+    }
+
+    if (!uploadConfig.source) {
+      notice.error({
+        title: `稿件类型为转载时转载来源不能为空`,
+        duration: 1000,
+      });
+      return;
+    }
   }
   await biliApi.upload({
     uid: userInfo.value.uid!,

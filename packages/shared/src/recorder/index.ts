@@ -240,7 +240,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           time: videoStartTime.toISOString(),
           title: recorder.liveInfo.title,
           username: recorder.liveInfo.owner,
-          platform: recorder.providerId,
+          platform: recorder.providerId.toLowerCase(),
           software: "biliLive-tools",
         },
         {
@@ -280,7 +280,7 @@ export async function createRecorderManager(appConfig: AppConfig) {
           time: endTime.toISOString(),
           title: title,
           username: username,
-          platform: recorder.providerId,
+          platform: recorder.providerId.toLowerCase(),
           software: "biliLive-tools",
         },
         {

@@ -295,6 +295,7 @@ const handleConvert = async () => {
   const data = await preHandle(files, rawClientOptions, danmuPreset.value.config);
   if (!data) return;
   if (clientOptions.autoUpload && !aid.value) {
+    // TODO:还没实现转载判断
     if (presetOptions.value.config.copyright === 2 && !presetOptions.value.config.source) {
       notice.error({
         title: `稿件类型为转载时转载来源不能为空`,
