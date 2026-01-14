@@ -26,22 +26,23 @@ const genFilteredXml = async (input: string, output: string, filterFunction: str
   const filterFunc = new Function(
     "type",
     "danmu",
+    "logger",
     `
     ${filterFunction}
-    return filter(type, danmu);`,
+    return filter(type, danmu, logger);`,
   );
   const { jObj, danmuku, sc, guard, gift } = await parseXmlFile(input, true);
   const filteredDanmuku = danmuku.filter((item) => {
-    return filterFunc("danmu", item);
+    return filterFunc("danmu", item, log);
   });
   const filteredSc = sc.filter((item) => {
-    return filterFunc("sc", item);
+    return filterFunc("sc", item, log);
   });
   const filteredGuard = guard.filter((item) => {
-    return filterFunc("guard", item);
+    return filterFunc("guard", item, log);
   });
   const filteredGift = gift.filter((item) => {
-    return filterFunc("gift", item);
+    return filterFunc("gift", item, log);
   });
   const xmlData = generateMergedXmlContent(
     filteredDanmuku,

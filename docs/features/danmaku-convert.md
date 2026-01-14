@@ -129,7 +129,11 @@ docker下的emoji文本渲染错误，猜测和fontconfig有关，但是我不�
 #### 函数签名
 
 ```typescript
-function filter(type: "danmu" | "sc" | "guard" | "gift", data: DanmakuData): boolean;
+function filter(
+  type: "danmu" | "sc" | "guard" | "gift",
+  data: DanmakuData,
+  logger: Console,
+): boolean;
 ```
 
 **参数:**
@@ -213,19 +217,19 @@ function filter(type, data) {
 }
 ```
 
-<!-- #### 调试技巧
+#### 调试技巧
 
-在开发过滤函数时，可以使用 `console.log` 输出信息帮助调试:
+在开发过滤函数时，可以使用 `logger.info` 输出信息帮助调试，可以在log文件中找到 **注意不要使用大文件，不然可能会爆**:
 
 ```js
-function filter(type, data) {
+function filter(type, data, logger) {
   // 输出所有弹幕信息查看结构
-  console.log("Type:", type, "Data:", data);
+  logger.info("Type:", type, "Data:", data);
 
   // 您的过滤逻辑
   return true;
 }
-``` -->
+```
 
 ::: tip 提示
 转换完成后建议用文本编辑器打开生成的 ASS 文件，检查过滤效果是否符合预期。
