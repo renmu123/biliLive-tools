@@ -83,3 +83,90 @@ export const DEFAULT_CONFIG: AnalyzerConfig = {
   mergeGap: 1.0, // 合并1秒内的间隔
   silenceThreshold: 30, // 静音绝对阈值
 };
+
+/**
+ * AcoustID 查询参数
+ */
+export interface AcoustIDLookupParams {
+  /** AcoustID API Key */
+  client: string;
+  /** 音频指纹数据 */
+  fingerprint: string;
+  /** 音频时长（秒） */
+  duration: number;
+  /** 需要返回的元数据类型（如 recordings、recordingids、releases、releaseids、tracks 等） */
+  meta?: string[];
+}
+
+/**
+ * AcoustID 录音信息
+ */
+export interface AcoustIDRecording {
+  /** 录音 ID */
+  id: string;
+  /** 标题 */
+  title?: string;
+  /** 艺术家列表 */
+  artists?: Array<{
+    id: string;
+    name: string;
+  }>;
+  /** 发行列表 */
+  releases?: Array<{
+    id: string;
+    title: string;
+    country?: string;
+    date?: {
+      year?: number;
+      month?: number;
+      day?: number;
+    };
+    track_count?: number;
+    medium_count?: number;
+  }>;
+  /** 时长（秒） */
+  duration?: number;
+}
+
+/**
+ * AcoustID 查询结果
+ */
+export interface AcoustIDResult {
+  /** 匹配得分 (0-1) */
+  score: number;
+  /** 指纹 ID */
+  id: string;
+  /** 录音信息列表 */
+  recordings?: AcoustIDRecording[];
+}
+
+/**
+ * AcoustID API 响应
+ */
+export interface AcoustIDResponse {
+  /** 响应状态（ok 或 error） */
+  status: string;
+  /** 错误信息（如果有） */
+  error?: {
+    message: string;
+    code: number;
+  };
+  /** 查询结果列表 */
+  results?: AcoustIDResult[];
+}
+
+/**
+ * AcoustID 客户端配置
+ */
+export interface AcoustIDConfig {
+  /** AcoustID API Key */
+  apiKey: string;
+  /** 请求超时时间（毫秒），默认 10000 */
+  timeout?: number;
+  /** 重试次数，默认 3 */
+  retries?: number;
+  /** 重试延迟（毫秒），默认 1000 */
+  retryDelay?: number;
+  /** 需要返回的元数据类型 */
+  meta?: string[];
+}

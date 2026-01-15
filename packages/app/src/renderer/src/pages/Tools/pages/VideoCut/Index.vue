@@ -18,7 +18,6 @@
           <ButtonGroup :options="projectMenuItems" @click="handleProjectMenuClick" size="small"
             >添加/替换</ButtonGroup
           >
-          <n-button class="cut-undo" type="primary" @click="test" size="small">测试</n-button>
 
           <n-button
             class="cut-export"
@@ -58,6 +57,11 @@
     @cancel="handleCancelConvertDanmu"
   ></DanmuFactorySettingDailog>
   <ExportModal v-model="exportVisible" :files="files"></ExportModal>
+  <WaveformAnalyzerDialog
+    v-model:visible="waveformAnalyzerDialogVisible"
+    v-model="waveformAnalyzerConfig"
+    @confirm="waveformAnalyzerConfirm"
+  />
 </template>
 
 <script setup lang="ts">
@@ -73,6 +77,7 @@ import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 import VideoPlayer from "./components/VideoPlayer.vue";
 import ConfigPanel from "./components/ConfigPanel.vue";
+import WaveformAnalyzerDialog from "./components/WaveformAnalyzerDialog.vue";
 import { useStorage } from "@vueuse/core";
 import { showFileDialog } from "@renderer/utils/fileSystem";
 import { useConfirm } from "@renderer/hooks";
@@ -96,6 +101,17 @@ const clientOptions = useStorage("cut-hotprogress", {
 const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
 const danmaSearchMask = useStorage("cut-danma-search-mask", true);
 const showVideoTime = useStorage("cut-show-video-time", true);
+
+const waveformAnalyzerConfig = useStorage("cut-waveform-analyzer-config", {
+  windowSize: 3.0,
+  windowOverlap: 0.5,
+  singingEnergyThreshold: 1.1,
+  talkingEnergyThreshold: 0.7,
+  minSegmentDuration: 15.0,
+  mergeGap: 20.0,
+  silenceThreshold: 30,
+});
+const waveformAnalyzerDialogVisible = ref(false);
 
 const notice = useNotification();
 const isWeb = ref(window.isWeb);
@@ -157,10 +173,25 @@ const projectMenuItems = computed(() => {
   ];
   if (!isWeb.value) {
     list.push({
+      label: "分割线",
+      key: "divider1",
+      type: "divider",
+    });
+    list.push({
       label: "打开独立窗口",
       key: "openSubWindow",
     });
   }
+  // 其他操作
+  list.push({
+    label: "分割线",
+    key: "divider2",
+    type: "divider",
+  });
+  list.push({
+    label: "快速歌切",
+    key: "openQuickSongCut",
+  });
   return list;
 });
 const confirm = useConfirm();
@@ -360,6 +391,8 @@ const handleProjectMenuClick = async (key?: string | number) => {
     openSubWindow();
   } else if (key === "importProject") {
     await selectLoadFile(["llc"]);
+  } else if (key === "openQuickSongCut") {
+    openWaveformAnalyzerDialog();
   } else {
     handleProjectAction(key);
   }
@@ -512,16 +545,15 @@ const switchShowVideoTime = () => {
   }
 };
 
-const test = async () => {
-  const result = await taskApi.analyzerWaveform(files.value.videoPath as string, {
-    windowSize: 3.0, // 窗口大小（秒）- 增大让分析更平滑
-    windowOverlap: 0.5, // 50%重叠
-    singingEnergyThreshold: 1.1, // 唱歌能量阈值倍数 - 降低以减少漏检
-    talkingEnergyThreshold: 0.7, // 说话能量阈值倍数
-    minSegmentDuration: 15.0, // 最小片段时长（秒）- 增大过滤短片段
-    mergeGap: 20.0, // 合并间隔（秒）- 增大合并相邻片段
-    silenceThreshold: 30, // 静音阈值
-  });
+const openWaveformAnalyzerDialog = () => {
+  waveformAnalyzerDialogVisible.value = true;
+};
+
+const waveformAnalyzerConfirm = async () => {
+  const result = await taskApi.analyzerWaveform(
+    files.value.videoPath as string,
+    waveformAnalyzerConfig.value,
+  );
   segmentStore.clear();
   segmentStore.init(
     result.output.map((seg: any) => ({
