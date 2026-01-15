@@ -448,7 +448,7 @@ export const useSegmentStore = defineStore("segment", () => {
     return cuts.value.filter((item) => item.checked);
   });
 
-  const init = (segments: Omit<Segment, "id">[]) => {
+  const init = (segments: Omit<Segment, "id" | "index">[]) => {
     rawCuts.value = [];
     index.value = 0; // 初始化 index
     segments.forEach((segment) => {
@@ -456,7 +456,7 @@ export const useSegmentStore = defineStore("segment", () => {
       addSegment(segment);
     });
   };
-  const addSegment = (cut: Omit<Segment, "id">) => {
+  const addSegment = (cut: Omit<Segment, "id" | "index">) => {
     const data = {
       id: uuid(),
       ...cut,

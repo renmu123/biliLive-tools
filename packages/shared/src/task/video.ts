@@ -1272,7 +1272,7 @@ export const burn = async (
 /**
  * 提取视频到aac
  */
-export const extractAudio = async (
+export const addExtractAudioTask = async (
   videoFilePath: string,
   outputFilePath: string,
   options: {

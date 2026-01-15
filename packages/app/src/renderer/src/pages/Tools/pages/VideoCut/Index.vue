@@ -18,6 +18,7 @@
           <ButtonGroup :options="projectMenuItems" @click="handleProjectMenuClick" size="small"
             >添加/替换</ButtonGroup
           >
+          <n-button class="cut-undo" type="primary" @click="test" size="small">测试</n-button>
 
           <n-button
             class="cut-export"
@@ -75,7 +76,7 @@ import ConfigPanel from "./components/ConfigPanel.vue";
 import { useStorage } from "@vueuse/core";
 import { showFileDialog } from "@renderer/utils/fileSystem";
 import { useConfirm } from "@renderer/hooks";
-import { commonApi } from "@renderer/apis";
+import { commonApi, taskApi } from "@renderer/apis";
 import { useDrive } from "@renderer/hooks/drive";
 import { useProjectManager } from "./hooks";
 import { useVideoPlayer } from "./composables/useVideoPlayer";
@@ -134,6 +135,7 @@ const {
 
 const { appConfig } = storeToRefs(useAppConfig());
 
+const segmentStore = useSegmentStore();
 const { undo, redo, clear: clearCuts } = useSegmentStore();
 const { selectedCuts } = storeToRefs(useSegmentStore());
 
@@ -508,6 +510,27 @@ const switchShowVideoTime = () => {
     // @ts-ignore
     videoInstance.value.artplayerTimestamp.hide();
   }
+};
+
+const test = async () => {
+  const result = await taskApi.analyzerWaveform(files.value.videoPath as string, {
+    windowSize: 3.0, // 窗口大小（秒）- 增大让分析更平滑
+    windowOverlap: 0.5, // 50%重叠
+    singingEnergyThreshold: 1.1, // 唱歌能量阈值倍数 - 降低以减少漏检
+    talkingEnergyThreshold: 0.7, // 说话能量阈值倍数
+    minSegmentDuration: 15.0, // 最小片段时长（秒）- 增大过滤短片段
+    mergeGap: 20.0, // 合并间隔（秒）- 增大合并相邻片段
+    silenceThreshold: 30, // 静音阈值
+  });
+  segmentStore.clear();
+  segmentStore.init(
+    result.output.map((seg: any) => ({
+      start: seg.startTime,
+      end: seg.endTime,
+      name: "",
+      checked: true,
+    })),
+  );
 };
 </script>
 

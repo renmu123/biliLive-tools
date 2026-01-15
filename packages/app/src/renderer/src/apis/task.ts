@@ -9,6 +9,7 @@ import type {
   DanmaOptions,
 } from "@biliLive-tools/types";
 import type { VideoAPI } from "@biliLive-tools/http/types/video.js";
+import type { AnalyzerConfig } from "@biliLive-tools/shared/WaveformAnalyzer/types.js";
 
 /**
  * 获取任务列表
@@ -317,6 +318,24 @@ const extractPeaks = async (
   return res.data;
 };
 
+const analyzerWaveform = async (
+  input: string,
+  config?: Partial<AnalyzerConfig>,
+): Promise<{
+  output: Array<{
+    startTime: number;
+    endTime: number;
+    // max_amplitude: number;
+    // average_amplitude: number;
+  }>;
+}> => {
+  const res = await request.post(`/task/analyzerWaveform`, {
+    input,
+    config,
+  });
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -347,6 +366,7 @@ const task = {
   executeVirtualRecord,
   flvRepair,
   extractPeaks,
+  analyzerWaveform,
 };
 
 export default task;
