@@ -247,6 +247,9 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     syncConfigs: [],
   },
   llmPresets: [],
+  ai: {
+    vendors: [],
+  },
   biliUpload: {
     line: "auto",
     concurrency: 3,

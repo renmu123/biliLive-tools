@@ -167,6 +167,7 @@ import {
 import { MinusOutlined, PlusOutlined } from "@vicons/material";
 import { Delete24Regular } from "@vicons/fluent";
 import { generateDistinctColor } from "@renderer/utils";
+import { aiApi } from "@renderer/apis";
 
 import hotkeys from "hotkeys-js";
 import { useDraggable, useEventListener, useWindowSize } from "@vueuse/core";
@@ -461,6 +462,12 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
         label: "切换状态",
         onClick: () => {
           toggleChecked(segment.id);
+        },
+      },
+      {
+        label: "歌曲识别",
+        onClick: async () => {
+          aiApi.asrRecognize();
         },
       },
     ],

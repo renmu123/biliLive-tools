@@ -679,6 +679,22 @@ export interface AppConfig {
     /** 创造性 */
     temperature: number;
   }[];
+  // ai配置
+  ai: {
+    vendors: {
+      // 供应商
+      provider: "aliyun";
+      // 命名，不能重复
+      name: string;
+      // apiKey
+      apiKey: string;
+      // baseURL
+      baseURL?: string;
+    }[];
+    // asr配置
+    // asr: {};
+    // llm: {};
+  };
   /** 最大任务数 */
   task: {
     ffmpegMaxNum: number;

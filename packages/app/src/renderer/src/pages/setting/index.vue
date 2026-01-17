@@ -374,12 +374,16 @@
         <n-tab-pane name="cut" tab="切片">
           <CutSetting v-model:data="config"></CutSetting>
         </n-tab-pane>
+        <n-tab-pane name="ai" tab="AI配置">
+          <AISetting v-model:data="config"></AISetting>
+        </n-tab-pane>
         <n-tab-pane name="task" tab="任务">
           <TaskSetting v-model:data="config"></TaskSetting>
         </n-tab-pane>
-        <n-tab-pane name="translate" tab="订阅">
+        <n-tab-pane name="translate" tab="视频订阅">
           <VideoSetting v-model:data="config"></VideoSetting>
         </n-tab-pane>
+
         <!-- <n-tab-pane name="translate" tab="翻译">
           <TranslateSetting v-model:data="config"></TranslateSetting>
         </n-tab-pane> -->
@@ -432,6 +436,7 @@ import VideoSetting from "./VideoSetting.vue";
 import SyncSetting from "./SyncSetting.vue";
 import CutSetting from "./CutSetting.vue";
 import OtherSetting from "./OtherSetting.vue";
+import AISetting from "./AISetting.vue";
 import VirtualRecordSetting from "./VirtualRecordSetting.vue";
 import CheckUpdateModal from "@renderer/components/checkUpdateModal.vue";
 // import TranslateSetting from "./TranslateSetting.vue";
