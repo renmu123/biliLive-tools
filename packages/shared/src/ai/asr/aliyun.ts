@@ -308,6 +308,7 @@ export class AliyunASR {
         {
           headers: {
             "X-DashScope-Async": "enable",
+            "X-DashScope-OssResourceResolve": "enable",
           },
         },
       );
@@ -333,11 +334,6 @@ export class AliyunASR {
         headers: {
           "X-DashScope-Async": "enable",
         },
-      });
-
-      console.log("查询ASR任务状态", response, {
-        taskId,
-        status: response.data.output.task_status,
       });
 
       return {
@@ -440,19 +436,98 @@ export class AliyunASR {
   }
 
   /**
-   * 上传本地文件到 tmpfiles.org 并返回公网URL
+   * 上传本地文件到阿里云临时存储并返回OSS URL
    * @param filePath 本地文件路径
-   * @returns 文件的公网访问URL
+   * @returns oss:// 格式的文件URL（有效期48小时）
    */
   async uploadToTmpfiles(filePath: string): Promise<string> {
     try {
-      this.logger.info(`开始上传文件到 tmpfiles.org: ${filePath}`);
+      this.logger.info(`开始上传文件到阿里云临时存储: ${filePath}`);
+
+      // 步骤1: 获取上传凭证
+      const policyData = await this.getUploadPolicy();
+
+      // 步骤2: 上传文件到OSS
+      const ossUrl = await this.uploadFileToOSS(policyData, filePath);
+
+      this.logger.info(`文件上传成功: ${ossUrl}`);
+      return ossUrl;
+    } catch (error) {
+      this.logger.error("上传文件到阿里云临时存储失败", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取文件上传凭证
+   * @returns 上传凭证数据
+   */
+  private async getUploadPolicy(): Promise<{
+    policy: string;
+    signature: string;
+    upload_dir: string;
+    upload_host: string;
+    expire_in_seconds: number;
+    max_file_size_mb: number;
+    oss_access_key_id: string;
+    x_oss_object_acl: string;
+    x_oss_forbid_overwrite: string;
+  }> {
+    try {
+      const response = await this.client.get("/api/v1/uploads", {
+        params: {
+          action: "getPolicy",
+          model: this.model,
+        },
+      });
+
+      if (response.status !== 200) {
+        throw new Error(`获取上传凭证失败: ${response.data}`);
+      }
+
+      return response.data.data;
+    } catch (error) {
+      this.logger.error("获取上传凭证失败", error);
+      throw error;
+    }
+  }
+
+  /**
+   * 将文件上传到临时存储OSS
+   * @param policyData 上传凭证数据
+   * @param filePath 本地文件路径
+   * @returns oss:// 格式的URL
+   */
+  private async uploadFileToOSS(
+    policyData: {
+      policy: string;
+      signature: string;
+      upload_dir: string;
+      upload_host: string;
+      oss_access_key_id: string;
+      x_oss_object_acl: string;
+      x_oss_forbid_overwrite: string;
+    },
+    filePath: string,
+  ): Promise<string> {
+    try {
+      const fileName = filePath.split(/[/\\]/).pop() || "file";
+      const key = `${policyData.upload_dir}/${fileName}`;
 
       const fileStream = fs.createReadStream(filePath);
       const formData = new FormData();
-      formData.append("file", fileStream);
 
-      const response = await axios.post("https://tmpfiles.org/api/v1/upload", formData, {
+      // 按照阿里云文档要求的顺序添加表单字段
+      formData.append("OSSAccessKeyId", policyData.oss_access_key_id);
+      formData.append("Signature", policyData.signature);
+      formData.append("policy", policyData.policy);
+      formData.append("x-oss-object-acl", policyData.x_oss_object_acl);
+      formData.append("x-oss-forbid-overwrite", policyData.x_oss_forbid_overwrite);
+      formData.append("key", key);
+      formData.append("success_action_status", "200");
+      formData.append("file", fileStream, fileName);
+
+      const response = await axios.post(policyData.upload_host, formData, {
         headers: {
           ...formData.getHeaders(),
         },
@@ -460,19 +535,13 @@ export class AliyunASR {
         maxContentLength: Infinity,
       });
 
-      if (response.data.status === "success" && response.data.data?.url) {
-        // tmpfiles.org 返回的URL格式是 https://tmpfiles.org/xxxxx
-        // 需要转换为直接下载链接 https://tmpfiles.org/dl/xxxxx
-        const originalUrl = response.data.data.url;
-        const downloadUrl = originalUrl.replace("tmpfiles.org/", "tmpfiles.org/dl/");
-
-        this.logger.info(`文件上传成功: ${downloadUrl}`);
-        return downloadUrl;
-      } else {
-        throw new Error(`上传失败: ${JSON.stringify(response.data)}`);
+      if (response.status !== 200) {
+        throw new Error(`上传文件失败: ${response.data}`);
       }
+
+      return `oss://${key}`;
     } catch (error) {
-      this.logger.error("上传文件到 tmpfiles.org 失败", error);
+      this.logger.error("上传文件到OSS失败", error);
       throw error;
     }
   }

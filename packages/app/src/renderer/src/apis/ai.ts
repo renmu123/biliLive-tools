@@ -13,9 +13,19 @@ const llm = async (message: string, systemPrompt?: string) => {
   return res.data;
 };
 
+const songRecognize = async (file: string, startTime: number, endTime: number) => {
+  const res = await request.post("/ai/song_recognize", {
+    file,
+    startTime,
+    endTime,
+  });
+  return res.data;
+};
+
 const ai = {
   asrRecognize,
   llm,
+  songRecognize,
 };
 
 export default ai;

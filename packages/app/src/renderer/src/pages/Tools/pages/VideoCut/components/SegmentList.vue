@@ -425,6 +425,34 @@ function renderIcon(icon: Component) {
   return () =>
     h(NIcon, { style: { fontSize: "17px", "font-size": "17px" } }, { default: () => h(icon) });
 }
+
+const songRecognize = async (segment: Segment) => {
+  if (!props.files.originVideoPath) {
+    notice.error({
+      title: "请先加载视频文件",
+      duration: 1000,
+    });
+    return;
+  }
+  // TODO:
+  // 首次的阻断性弹框提示，增加loading，防止多次点击
+  // 点击波形图，设置为当前片段
+  // 波形图配置颜色
+  const data = await aiApi.songRecognize(props.files.originVideoPath!, segment.start, segment.end!);
+  updateSegment(segment.id, { name: data.name });
+  if (data.name) {
+    notice.success({
+      title: `歌曲识别成功：${data.name}`,
+      duration: 3000,
+    });
+  } else {
+    notice.warning({
+      title: `未能识别出歌曲`,
+      duration: 3000,
+    });
+  }
+};
+
 const themeStore = useThemeStore();
 const showContextMenu = (e: MouseEvent, segment: Segment) => {
   //这个函数与 this.$contextmenu 一致
@@ -467,15 +495,7 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
       {
         label: "歌曲识别",
         onClick: async () => {
-          // aiApi.asrRecognize();
-          aiApi
-            .llm(
-              "为你，我用了半年的积蓄，漂洋过海的来看你。为了这次相聚，我连见面时的呼吸都曾反复练习。言语从来没能将我的情意表达千万分之一。为了这个遗憾，我在夜里想了又想，不肯睡去。记忆它总是慢慢的累积在我心中，无法抹去。为了你的承诺，我在最绝望的时候都忍着不哭泣。陌生的城市啊，熟悉的角落里。 ",
-              "你是一个歌词分析助手，只根据歌词推断歌曲名称，不要输出多余内容，不要包含符号。",
-            )
-            .then((res) => {
-              console.log("llm识别结果", res);
-            });
+          songRecognize(segment);
         },
       },
     ],

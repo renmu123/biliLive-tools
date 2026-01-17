@@ -1,4 +1,3 @@
-import path from "node:path";
 import fs from "fs-extra";
 import Router from "@koa/router";
 

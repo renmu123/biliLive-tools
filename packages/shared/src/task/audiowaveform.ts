@@ -5,12 +5,7 @@ import { spawn } from "node:child_process";
 import logger from "../utils/log.js";
 import { calculateFileQuickHash, getTempPath } from "../utils/index.js";
 import { addExtractAudioTask } from "./video.js";
-import {
-  AudiowaveformData,
-  AnalyzerConfig,
-  DEFAULT_CONFIG,
-  BoundaryDetector,
-} from "../WaveformAnalyzer/index.js";
+import { AudiowaveformData, AnalyzerConfig, BoundaryDetector } from "../WaveformAnalyzer/index.js";
 
 import { getBinPath } from "./video.js";
 

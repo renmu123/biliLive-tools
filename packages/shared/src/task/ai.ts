@@ -1,7 +1,8 @@
 import fs from "fs-extra";
 import { AliyunASR, TranscriptionDetail, QwenLLM } from "../ai/index.js";
 
-const apiKey = "sk-";
+import { appConfig } from "../config.js";
+import logger from "../utils/log.js";
 
 /**
  * 音乐字幕优化
@@ -28,24 +29,41 @@ function optimizeMusicSubtitles(results: TranscriptionDetail): TranscriptionDeta
   };
 }
 
-export async function asrRecognize() {
-  console.log("=== 示例 1: 识别在线音频文件 ===");
+/**
+ * 获取 AI 服务商的 API Key，现在是随便写，只支持阿里
+ * @returns
+ */
+function getApiKey(): string {
+  const data = appConfig.get("ai") || "";
+  if (data.vendors.length === 0) {
+    throw new Error("请先在配置中设置 AI 服务商的 API Key");
+  }
+  return data.vendors[0].apiKey || "";
+}
+
+/**
+ * 音频识别
+ * @param file
+ * @param key
+ * @returns
+ */
+export async function asrRecognize(file: string, key?: string) {
+  const apiKey = key ?? getApiKey();
 
   const asr = new AliyunASR({
     apiKey: apiKey,
   });
 
   try {
-    const results = await asr.recognize("https://tmpfiles.org/dl/20231190/22.mp3");
+    const results = await asr.recognizeLocalFile(file);
 
-    console.log("识别结果:", results.transcripts?.[0]);
+    // console.log("识别结果:", results.transcripts?.[0]);
 
-    const srtData = asr.convert2Srt(optimizeMusicSubtitles(results));
-    await fs.writeFile("./output.srt", srtData, "utf-8");
-    console.log("已将字幕保存到 output.srt 文件");
+    // console.log("已将字幕保存到 output.srt 文件");
     return results;
   } catch (error) {
-    console.error("识别失败:", error);
+    logger.error("ASR 识别失败:", error);
+    throw error;
   }
 }
 
@@ -56,11 +74,12 @@ export async function asrRecognize() {
 /**
  * 使用通义千问 LLM 示例
  */
-export async function llm(message: string, systemPrompt?: string) {
+export async function llm(message: string, systemPrompt?: string, key?: string) {
   console.log("=== 示例: 使用通义千问 LLM ===");
+  const apiKey = key ?? getApiKey();
 
   const llm = new QwenLLM({
-    apiKey: apiKey, // 请替换为实际的 API Key
+    apiKey: apiKey,
     model: "qwen-plus",
   });
 
@@ -78,4 +97,35 @@ export async function llm(message: string, systemPrompt?: string) {
   } catch (error) {
     console.error("LLM 请求失败:", error);
   }
+}
+
+/**
+ * 输入音频，识别歌曲名称，输出歌词以及歌曲名称
+ * @param file - 音频文件路径
+ */
+export async function songRecognize(file: string) {
+  const apiKey = getApiKey();
+  const data = await asrRecognize(file, apiKey);
+
+  const llm = new QwenLLM({
+    apiKey: apiKey,
+    model: "qwen-plus",
+  });
+
+  const messages = data.transcripts?.[0]?.text || "";
+  if (!messages) {
+    logger.warn("没有识别到任何文本内容，无法进行歌曲识别");
+    return;
+  }
+  const response = await llm.sendMessage(
+    messages,
+    "你是一个歌词分析助手，只根据歌词推断歌曲名称，不要输出多余内容，不要包含符号。",
+    {},
+  );
+  // const srtData = asr.convert2Srt(optimizeMusicSubtitles(results));
+  // await fs.writeFile("./output.srt", srtData, "utf-8");
+  return {
+    name: response.content,
+    lyrics: messages,
+  };
 }
