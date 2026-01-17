@@ -53,6 +53,7 @@
     "nodemailer": "^6.9.16",
     "ntsuspend": "catalog:",
     "ollama": "^0.5.9",
+    "openai": "^4.73.0",
     "p-limit": "^6.1.0",
     "pan123-uploader": "0.3.0",
     "serverchan-sdk": "^1.0.6",

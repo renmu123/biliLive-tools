@@ -1,5 +1,7 @@
 import fs from "fs-extra";
-import { AliyunASR, TranscriptionDetail } from "../ai/index.js";
+import { AliyunASR, TranscriptionDetail, QwenLLM } from "../ai/index.js";
+
+const apiKey = "sk-";
 
 /**
  * 音乐字幕优化
@@ -30,7 +32,7 @@ export async function asrRecognize() {
   console.log("=== 示例 1: 识别在线音频文件 ===");
 
   const asr = new AliyunASR({
-    apiKey: "sk-",
+    apiKey: apiKey,
   });
 
   try {
@@ -44,5 +46,36 @@ export async function asrRecognize() {
     return results;
   } catch (error) {
     console.error("识别失败:", error);
+  }
+}
+
+// const Song = z.object({
+//   name: z.string().describe("歌曲名称，如果无法判断则返回空字符串"),
+// });
+
+/**
+ * 使用通义千问 LLM 示例
+ */
+export async function llm(message: string, systemPrompt?: string) {
+  console.log("=== 示例: 使用通义千问 LLM ===");
+
+  const llm = new QwenLLM({
+    apiKey: apiKey, // 请替换为实际的 API Key
+    model: "qwen-plus",
+  });
+
+  try {
+    const response = await llm.sendMessage(message, systemPrompt, {
+      // responseFormat: zodResponseFormat(Song, "song"),
+    });
+
+    if ("content" in response) {
+      console.log("提问:", response);
+      console.log("回复:", response.content);
+      console.log("Token 使用:", response.usage);
+      return response;
+    }
+  } catch (error) {
+    console.error("LLM 请求失败:", error);
   }
 }
