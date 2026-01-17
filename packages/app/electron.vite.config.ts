@@ -16,6 +16,11 @@ export default defineConfig({
         exclude: ["@biliLive-tools/shared", "@biliLive-tools/http", "@biliLive-tools/types"],
       }),
     ],
+    build: {
+      rollupOptions: {
+        external: ["fsevents"],
+      },
+    },
   },
   preload: {
     plugins: [externalizeDepsPlugin()],
