@@ -18,7 +18,7 @@
 
 ## 优化
 
-- B站上传：增加 `cs-akbd` 线路 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
+- B站上传：增加 `cs-akbd`、`cs-estx` 线路 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
 - B站上传：`投稿最短间隔`及`缓存投稿失败视频`选项现在针对账户生效 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
 - B站上传：规避上传的406风控 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
 - 弹幕：“自定义过滤函数”支持`logger`进行调试
