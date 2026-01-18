@@ -12,8 +12,9 @@ const router = new Router({
 router.post("/asr", async (ctx) => {
   const data = ctx.request.body as {
     file: string;
+    vendorId: string;
   };
-  const result = await asrRecognize(data.file);
+  const result = await asrRecognize(data.file, data.vendorId);
 
   ctx.body = result;
 });
@@ -89,7 +90,7 @@ router.post("/song_recognize", async (ctx) => {
     });
   });
 
-  const result = await songRecognize(outputFile);
+  const result = await songRecognize(outputFile, data.startTime);
 
   // 清理临时音频文件
   fs.remove(outputFile);

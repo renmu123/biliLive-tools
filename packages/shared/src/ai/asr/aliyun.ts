@@ -567,20 +567,6 @@ export class AliyunASR {
     // 识别
     return await this.recognize(fileUrl, params);
   }
-
-  convert2Srt(detail: TranscriptionDetail): string {
-    let srt = "";
-    let index = 1;
-    for (const transcript of detail.transcripts || []) {
-      for (const sentence of transcript.sentences || []) {
-        const start = new Date(sentence.begin_time).toISOString().substr(11, 12).replace(".", ",");
-        const end = new Date(sentence.end_time).toISOString().substr(11, 12).replace(".", ",");
-        srt += `${index}\n${start} --> ${end}\n${sentence.text}\n\n`;
-        index++;
-      }
-    }
-    return srt;
-  }
 }
 
 export default AliyunASR;

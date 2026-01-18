@@ -13,7 +13,14 @@ const llm = async (message: string, systemPrompt?: string) => {
   return res.data;
 };
 
-const songRecognize = async (file: string, startTime: number, endTime: number) => {
+const songRecognize = async (
+  file: string,
+  startTime: number,
+  endTime: number,
+): Promise<{
+  lyrics: string;
+  name: string;
+}> => {
   const res = await request.post("/ai/song_recognize", {
     file,
     startTime,

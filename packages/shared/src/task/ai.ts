@@ -29,6 +29,26 @@ function optimizeMusicSubtitles(results: TranscriptionDetail): TranscriptionDeta
   };
 }
 
+function convert2Srt(detail: TranscriptionDetail, offset: number): string {
+  let srt = "";
+  let index = 1;
+  for (const transcript of detail.transcripts || []) {
+    for (const sentence of transcript.sentences || []) {
+      const start = new Date(sentence.begin_time + offset)
+        .toISOString()
+        .substr(11, 12)
+        .replace(".", ",");
+      const end = new Date(sentence.end_time + offset)
+        .toISOString()
+        .substr(11, 12)
+        .replace(".", ",");
+      srt += `${index}\n${start} --> ${end}\n${sentence.text}\n\n`;
+      index++;
+    }
+  }
+  return srt;
+}
+
 /**
  * 获取 AI 服务商的 API Key，现在是随便写，只支持阿里
  * @returns
@@ -136,7 +156,7 @@ async function getVendor(vendorId: string) {
  * 输入音频，识别歌曲名称，输出歌词以及歌曲名称
  * @param file - 音频文件路径
  */
-export async function songRecognize(file: string) {
+export async function songRecognize(file: string, audioStartTime: number = 0) {
   const { asrVendorId, llmVendorId, llmPrompt, llmModel, enableSearch, maxInputLength } =
     await getSongRecognizeConfig();
 
@@ -162,10 +182,10 @@ export async function songRecognize(file: string) {
     forcedSearch: enableSearch,
   });
   logger.info("识别结果:", response);
-  // const srtData = asr.convert2Srt(optimizeMusicSubtitles(results));
+  const srtData = convert2Srt(optimizeMusicSubtitles(data), audioStartTime * 1000);
   // await fs.writeFile("./output.srt", srtData, "utf-8");
   return {
     name: response.content,
-    lyrics: messages,
+    lyrics: srtData,
   };
 }

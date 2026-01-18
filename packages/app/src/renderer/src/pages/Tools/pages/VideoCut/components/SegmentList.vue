@@ -177,7 +177,7 @@ import { useDraggable, useEventListener, useWindowSize } from "@vueuse/core";
 import ContextMenu from "@imengyu/vue3-context-menu";
 import { NIcon } from "naive-ui";
 
-import type ArtplayerType from "artplayer";
+import type VideoPlayer from "./components/VideoPlayer.vue";
 import type { DanmuItem } from "@biliLive-tools/types";
 import type { Segment } from "@renderer/stores";
 
@@ -248,7 +248,7 @@ useEventListener(window, "resize", () => {
   y.value = height.value - 40;
 });
 
-const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;
+const videoInstance = inject("videoInstance") as Ref<InstanceType<typeof VideoPlayer>>;
 
 const { cuts, selectCutId } = storeToRefs(useSegmentStore());
 const {
@@ -529,6 +529,18 @@ function renderIcon(icon: Component) {
     h(NIcon, { style: { fontSize: "17px", "font-size": "17px" } }, { default: () => h(icon) });
 }
 
+/**
+ * 歌曲识别缓存
+ */
+const lyricsCache = new Map<string, string>();
+function buildLyricsFromCache(): string {
+  let text = "";
+  for (const [_, lyrics] of lyricsCache) {
+    text += lyrics + "\n";
+  }
+  return text;
+}
+
 const songRecognize = async (segment: Segment) => {
   if (!props.files.originVideoPath) {
     notice.error({
@@ -538,9 +550,7 @@ const songRecognize = async (segment: Segment) => {
     return;
   }
   // TODO:
-  // 点击波形图，设置为当前片段
   // 波形图配置颜色
-
   const [status] = await confirm.warning({
     content: `此功能使用AI用于针对片段进行歌曲识别，使用前请先去配置阿里云相关key。\n
     原理为将音频转换为文本，之后将文本交给ai来判断歌曲名称，更多参见文档`,
@@ -558,6 +568,11 @@ const songRecognize = async (segment: Segment) => {
       segment.end!,
     );
     updateSegment(segment.id, { name: data.name });
+    console.log(data.lyrics);
+    lyricsCache.set(segment.id, data.lyrics || "");
+
+    const combinedLyrics = buildLyricsFromCache();
+    videoInstance.value.artplayerPluginSubtitle.setContent(combinedLyrics, "srt");
     if (data.name) {
       notice.success({
         title: `歌曲识别成功：${data.name}`,
