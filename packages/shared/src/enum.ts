@@ -249,6 +249,13 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   llmPresets: [],
   ai: {
     vendors: [],
+    songRecognizeLlm: {
+      vendorId: "",
+      prompt:
+        "你是一个音乐名称识别助手，只根据歌词推断歌曲名称，不要输出多余内容如歌手，不要包含符号",
+      model: "qwen-plus",
+      enableSearch: true,
+    },
   },
   biliUpload: {
     line: "auto",

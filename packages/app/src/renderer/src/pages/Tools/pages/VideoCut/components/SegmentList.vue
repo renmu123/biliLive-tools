@@ -53,6 +53,7 @@
         <ul>
           <li>I 在当前时间开始当前片段</li>
           <li>O 在当前时间结束当前片段</li>
+          <li>F2 重命名</li>
           <li>up 上一个片段</li>
           <li>down 下一个片段</li>
           <li>del 删除片段</li>
@@ -442,7 +443,8 @@ const songRecognize = async (segment: Segment) => {
   // 波形图配置颜色
 
   const [status] = await confirm.warning({
-    content: `此功能使用AI用于针对片段进行歌曲识别，使用前请先去配置阿里云相关key`,
+    content: `此功能使用AI用于针对片段进行歌曲识别，使用前请先去配置阿里云相关key。\n
+    原理为将音频转换为文本，之后将文本交给ai来判断歌曲名称，更多参见文档`,
     showCheckbox: true,
     showAgainKey: "videoSongRecognizeWarning",
   });

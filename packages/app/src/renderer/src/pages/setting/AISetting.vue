@@ -9,11 +9,11 @@
     <n-form label-placement="left" :label-width="145">
       <n-tabs type="segment" style="margin-top: 10px" class="tabs">
         <!-- AI供应商配置列表 -->
-        <n-tab-pane class="tab-pane" name="vendors" tab="AI供应商" display-directive="show:lazy">
+        <n-tab-pane class="tab-pane" name="vendors" tab="供应商" display-directive="show:lazy">
           <div class="vendor-list">
             <n-card
-              v-for="(vendor, index) in config.ai.vendors"
-              :key="index"
+              v-for="vendor in config.ai.vendors"
+              :key="vendor.id"
               class="vendor-card"
               hoverable
             >
@@ -24,14 +24,12 @@
                   </n-tag>
                   <n-text strong>{{ vendor.name }}</n-text>
                 </div>
-                <div class="vendor-info">
-                  <!-- <n-text v-if="vendor.baseURL" depth="3" style="font-size: 12px">
-                    Base URL: {{ vendor.baseURL }}
-                  </n-text> -->
-                </div>
+                <div class="vendor-info"></div>
                 <div class="vendor-actions">
-                  <n-button size="small" @click="editVendor(index)">编辑</n-button>
-                  <n-button size="small" type="error" @click="deleteVendor(index)">删除</n-button>
+                  <n-button size="small" @click="editVendor(vendor.id)">编辑</n-button>
+                  <n-button size="small" type="error" @click="deleteVendor(vendor.id)"
+                    >删除</n-button
+                  >
                 </div>
               </div>
             </n-card>
@@ -45,6 +43,51 @@
             </n-card>
           </div>
         </n-tab-pane>
+
+        <!-- AI功能配置 -->
+        <n-tab-pane class="tab-pane" name="features" tab="功能" display-directive="show:lazy">
+          <n-collapse style="margin-top: 10px" default-expanded-names="songRecognize">
+            <n-collapse-item title="歌曲识别llm" name="songRecognize">
+              <n-form label-placement="left" :label-width="120">
+                <n-form-item label="供应商">
+                  <n-select
+                    v-model:value="config.ai.songRecognizeLlm.vendorId"
+                    :options="vendorSelectOptions"
+                    placeholder="请选择AI供应商"
+                  />
+                </n-form-item>
+                <n-form-item label="模型">
+                  <n-input
+                    v-model:value="config.ai.songRecognizeLlm.model"
+                    placeholder="请输入模型名称，如 qwen-plus"
+                    spellcheck="false"
+                  />
+                </n-form-item>
+
+                <n-form-item label="提示词">
+                  <n-input
+                    v-model:value="config.ai.songRecognizeLlm.prompt"
+                    type="textarea"
+                    placeholder="请输入提示词"
+                    :autosize="{
+                      minRows: 3,
+                      maxRows: 10,
+                    }"
+                  />
+                </n-form-item>
+                <n-form-item>
+                  <template #label>
+                    <Tip
+                      tip="启用后，LLM在识别歌曲名称时会结合网络搜索结果，提升识别准确率，对新歌识别更有帮助，但会增加token消耗。当前只支持阿里云Qwen。"
+                      text="启用内容搜索"
+                    />
+                  </template>
+                  <n-switch v-model:value="config.ai.songRecognizeLlm.enableSearch" />
+                </n-form-item>
+              </n-form>
+            </n-collapse-item>
+          </n-collapse>
+        </n-tab-pane>
       </n-tabs>
     </n-form>
 
@@ -57,7 +100,7 @@
         role="dialog"
         aria-modal="true"
         class="card"
-        :title="editingVendorIndex === null ? '添加AI供应商' : '编辑AI供应商'"
+        :title="editingVendorId === null ? '添加AI供应商' : '编辑AI供应商'"
       >
         <n-form label-placement="left" :label-width="100">
           <n-form-item label="供应商类型">
@@ -109,6 +152,7 @@
 <script setup lang="ts">
 import { Add } from "@vicons/ionicons5";
 import { useConfirm } from "@renderer/hooks";
+import { uuid } from "@renderer/utils";
 import type { AppConfig } from "@biliLive-tools/types";
 
 const config = defineModel<AppConfig>("data", {
@@ -121,6 +165,14 @@ const config = defineModel<AppConfig>("data", {
 
 const notice = useNotice();
 const confirm = useConfirm();
+
+// 供应商选择选项（用于下拉框）
+const vendorSelectOptions = computed(() => {
+  return config.value.ai.vendors.map((vendor) => ({
+    label: vendor.name,
+    value: vendor.id,
+  }));
+});
 
 // 供应商选项
 const providerOptions = [
@@ -146,7 +198,7 @@ const getProviderType = (provider: string) => {
 
 // 编辑状态
 const vendorModalVisible = ref(false);
-const editingVendorIndex = ref<number | null>(null);
+const editingVendorId = ref<string | null>(null);
 const editingVendor = ref<{
   provider: string;
   name: string;
@@ -160,7 +212,7 @@ const editingVendor = ref<{
 });
 
 const addVendor = () => {
-  editingVendorIndex.value = null;
+  editingVendorId.value = null;
   editingVendor.value = {
     provider: "aliyun",
     name: "",
@@ -170,9 +222,10 @@ const addVendor = () => {
   vendorModalVisible.value = true;
 };
 
-const editVendor = (index: number) => {
-  editingVendorIndex.value = index;
-  const vendor = config.value.ai.vendors[index];
+const editVendor = (id: string) => {
+  editingVendorId.value = id;
+  const vendor = config.value.ai.vendors.find((v) => v.id === id);
+  if (!vendor) return;
   editingVendor.value = {
     provider: vendor.provider,
     name: vendor.name,
@@ -182,7 +235,10 @@ const editVendor = (index: number) => {
   vendorModalVisible.value = true;
 };
 
-const deleteVendor = async (index: number) => {
+const deleteVendor = async (id: string) => {
+  const index = config.value.ai.vendors.findIndex((v) => v.id === id);
+  if (index === -1) return;
+
   const vendor = config.value.ai.vendors[index];
   const status = await confirm.warning({
     content: `确定要删除供应商配置"${vendor.name}"吗？`,
@@ -190,7 +246,6 @@ const deleteVendor = async (index: number) => {
   if (!status) return;
 
   config.value.ai.vendors.splice(index, 1);
-  notice.success("供应商配置已删除");
 };
 
 const saveVendor = () => {
@@ -204,8 +259,8 @@ const saveVendor = () => {
   }
 
   // 检查名称是否重复（编辑时排除自己）
-  const nameExists = config.value.ai.vendors.some((vendor, index) => {
-    if (editingVendorIndex.value !== null && index === editingVendorIndex.value) {
+  const nameExists = config.value.ai.vendors.some((vendor) => {
+    if (editingVendorId.value !== null && vendor.id === editingVendorId.value) {
       return false;
     }
     return vendor.name === editingVendor.value.name;
@@ -217,18 +272,20 @@ const saveVendor = () => {
   }
 
   const vendorData = {
+    id: editingVendorId.value || uuid(),
     provider: editingVendor.value.provider as "aliyun",
     name: editingVendor.value.name,
     apiKey: editingVendor.value.apiKey,
     baseURL: editingVendor.value.baseURL || undefined,
   };
 
-  if (editingVendorIndex.value === null) {
+  if (editingVendorId.value === null) {
     config.value.ai.vendors.push(vendorData);
-    notice.success("供应商配置已添加");
   } else {
-    config.value.ai.vendors[editingVendorIndex.value] = vendorData;
-    notice.success("供应商配置已更新");
+    const index = config.value.ai.vendors.findIndex((v) => v.id === editingVendorId.value);
+    if (index !== -1) {
+      config.value.ai.vendors[index] = vendorData;
+    }
   }
 
   vendorModalVisible.value = false;

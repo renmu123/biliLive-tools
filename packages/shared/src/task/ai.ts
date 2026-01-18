@@ -34,8 +34,8 @@ function optimizeMusicSubtitles(results: TranscriptionDetail): TranscriptionDeta
  * @returns
  */
 function getApiKey(): string {
-  const data = appConfig.get("ai") || "";
-  if (data.vendors.length === 0) {
+  const data = appConfig.get("ai") || {};
+  if (data?.vendors.length === 0) {
     throw new Error("请先在配置中设置 AI 服务商的 API Key");
   }
   return data.vendors[0].apiKey || "";
@@ -47,8 +47,8 @@ function getApiKey(): string {
  * @param key
  * @returns
  */
-export async function asrRecognize(file: string, key?: string) {
-  const apiKey = key ?? getApiKey();
+export async function asrRecognize(file: string, vendorId: string) {
+  const { apiKey } = await getVendor(vendorId);
 
   const asr = new AliyunASR({
     apiKey: apiKey,
@@ -66,10 +66,6 @@ export async function asrRecognize(file: string, key?: string) {
     throw error;
   }
 }
-
-// const Song = z.object({
-//   name: z.string().describe("歌曲名称，如果无法判断则返回空字符串"),
-// });
 
 /**
  * 使用通义千问 LLM 示例
@@ -99,29 +95,72 @@ export async function llm(message: string, systemPrompt?: string, key?: string) 
   }
 }
 
+async function getSongRecognizeConfig() {
+  const data = appConfig.get("ai") || {};
+  if (data?.vendors.length === 0) {
+    throw new Error("请先在配置中设置 AI 服务商的 API Key");
+  }
+
+  const asrVendorId = data.vendors.find((v) => v.provider === "aliyun")?.id;
+  if (!asrVendorId) {
+    throw new Error("请先在配置中设置 阿里云 ASR 服务商的 API Key");
+  }
+
+  let llmVendorId = asrVendorId;
+  if (data?.songRecognizeLlm?.vendorId) {
+    llmVendorId = data.songRecognizeLlm.vendorId;
+  }
+
+  return {
+    asrVendorId,
+    llmVendorId,
+    llmPrompt:
+      data?.songRecognizeLlm?.prompt ||
+      "你是一个歌词分析助手，只根据歌词推断歌曲名称，不要输出多余内容，不要包含符号。",
+    llmModel: data?.songRecognizeLlm?.model || "qwen-plus",
+    enableSearch: data?.songRecognizeLlm?.enableSearch ?? false,
+  };
+}
+
+async function getVendor(vendorId: string) {
+  const data = appConfig.get("ai") || {};
+  const vendor = data.vendors.find((v: any) => v.id === vendorId);
+  if (!vendor) {
+    throw new Error(`未找到 ID 为 ${vendorId} 的供应商配置`);
+  }
+  return vendor;
+}
+
 /**
  * 输入音频，识别歌曲名称，输出歌词以及歌曲名称
  * @param file - 音频文件路径
  */
 export async function songRecognize(file: string) {
-  const apiKey = getApiKey();
-  const data = await asrRecognize(file, apiKey);
+  const { asrVendorId, llmVendorId, llmPrompt, llmModel, enableSearch } =
+    await getSongRecognizeConfig();
 
-  const llm = new QwenLLM({
-    apiKey: apiKey,
-    model: "qwen-plus",
-  });
-
+  const data = await asrRecognize(file, asrVendorId);
   const messages = data.transcripts?.[0]?.text || "";
   if (!messages) {
     logger.warn("没有识别到任何文本内容，无法进行歌曲识别");
     return;
   }
-  const response = await llm.sendMessage(
-    messages,
-    "你是一个歌词分析助手，只根据歌词推断歌曲名称，不要输出多余内容，不要包含符号。",
-    {},
-  );
+
+  const { apiKey } = await getVendor(llmVendorId);
+  const llm = new QwenLLM({
+    apiKey: apiKey,
+    model: llmModel,
+  });
+  logger.info("使用 LLM 进行歌曲名称识别...", {
+    prompt: llmPrompt,
+    messages: messages,
+    llmModel,
+  });
+  const response = await llm.sendMessage(messages, llmPrompt, {
+    enableSearch: enableSearch,
+    forcedSearch: enableSearch,
+  });
+  logger.info("识别结果:", response);
   // const srtData = asr.convert2Srt(optimizeMusicSubtitles(results));
   // await fs.writeFile("./output.srt", srtData, "utf-8");
   return {

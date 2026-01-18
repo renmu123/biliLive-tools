@@ -682,6 +682,7 @@ export interface AppConfig {
   // ai配置
   ai: {
     vendors: {
+      id: string;
       // 供应商
       provider: "aliyun";
       // 命名，不能重复
@@ -691,9 +692,15 @@ export interface AppConfig {
       // baseURL
       baseURL?: string;
     }[];
-    // asr配置
-    // asr: {};
-    // llm: {};
+    // 歌曲asr识别配置
+    // songRecognizeAsr: {};
+    // 歌曲llm识别配置
+    songRecognizeLlm: {
+      vendorId?: string;
+      prompt: string;
+      model?: string;
+      enableSearch: boolean;
+    };
   };
   /** 最大任务数 */
   task: {
