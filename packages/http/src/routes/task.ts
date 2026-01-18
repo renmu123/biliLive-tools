@@ -483,7 +483,7 @@ router.post("/analyzerWaveform", async (ctx) => {
     return;
   }
 
-  const data = await analyzerWaveform(input);
+  const data = await analyzerWaveform(input, config || {});
 
   ctx.body = { output: data };
 });

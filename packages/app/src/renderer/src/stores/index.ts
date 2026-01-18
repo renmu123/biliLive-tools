@@ -369,6 +369,7 @@ export interface Segment {
   checked: boolean;
   tags?: any;
   index: number;
+  loading?: boolean;
 }
 type SegmentWithRequiredEnd = Required<Pick<Segment, "end">> & Omit<Segment, "end">;
 type SegmentEventType = "add" | "remove" | "update" | "clear";
@@ -448,7 +449,7 @@ export const useSegmentStore = defineStore("segment", () => {
     return cuts.value.filter((item) => item.checked);
   });
 
-  const init = (segments: Omit<Segment, "id" | "index">[]) => {
+  const init = (segments: Omit<Segment, "id" | "index" | "loading">[]) => {
     rawCuts.value = [];
     index.value = 0; // 初始化 index
     segments.forEach((segment) => {
@@ -456,11 +457,12 @@ export const useSegmentStore = defineStore("segment", () => {
       addSegment(segment);
     });
   };
-  const addSegment = (cut: Omit<Segment, "id" | "index">) => {
+  const addSegment = (cut: Omit<Segment, "id" | "index" | "loading">) => {
     const data = {
       id: uuid(),
       ...cut,
       index: index.value, // 新增 index 字段
+      loading: false,
     };
     rawCuts.value.push(data);
     index.value++;
@@ -475,11 +477,17 @@ export const useSegmentStore = defineStore("segment", () => {
       emit("remove", { id });
     }
   };
-  const updateSegment = (id: string, options: Partial<Omit<Segment, "id">>) => {
+  const updateSegment = (
+    id: string,
+    options: Partial<Omit<Segment, "id">>,
+    ignoreHistory = false,
+  ) => {
     const cut = rawCuts.value.find((item) => item.id === id);
     if (cut) {
       Object.assign(cut, options);
-      recordHistory();
+      if (!ignoreHistory) {
+        recordHistory();
+      }
       emit("update", { segment: cut });
     }
   };

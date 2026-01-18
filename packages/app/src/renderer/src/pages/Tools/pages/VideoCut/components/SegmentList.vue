@@ -107,6 +107,7 @@
             <Pencil></Pencil>
           </n-icon>
         </div>
+        <n-spin :size="18" class="loading" style="--n-size: 18px" v-if="cut.loading" />
       </div>
     </div>
   </div>
@@ -168,6 +169,7 @@ import { MinusOutlined, PlusOutlined } from "@vicons/material";
 import { Delete24Regular } from "@vicons/fluent";
 import { generateDistinctColor } from "@renderer/utils";
 import { aiApi } from "@renderer/apis";
+import { useConfirm } from "@renderer/hooks";
 
 import hotkeys from "hotkeys-js";
 import { useDraggable, useEventListener, useWindowSize } from "@vueuse/core";
@@ -235,6 +237,7 @@ const el = ref<HTMLElement | null>(null);
 
 const { width, height } = useWindowSize();
 const notice = useNotification();
+const confirm = useConfirm();
 const { x, y, style } = useDraggable(el, {
   initialValue: { x: width.value - 100, y: height.value - 40 },
 });
@@ -435,21 +438,38 @@ const songRecognize = async (segment: Segment) => {
     return;
   }
   // TODO:
-  // 首次的阻断性弹框提示，增加loading，防止多次点击
   // 点击波形图，设置为当前片段
   // 波形图配置颜色
-  const data = await aiApi.songRecognize(props.files.originVideoPath!, segment.start, segment.end!);
-  updateSegment(segment.id, { name: data.name });
-  if (data.name) {
-    notice.success({
-      title: `歌曲识别成功：${data.name}`,
-      duration: 3000,
-    });
-  } else {
-    notice.warning({
-      title: `未能识别出歌曲`,
-      duration: 3000,
-    });
+
+  const [status] = await confirm.warning({
+    content: `此功能使用AI用于针对片段进行歌曲识别，使用前请先去配置阿里云相关key`,
+    showCheckbox: true,
+    showAgainKey: "videoSongRecognizeWarning",
+  });
+  if (!status) return;
+
+  try {
+    updateSegment(segment.id, { loading: true });
+
+    const data = await aiApi.songRecognize(
+      props.files.originVideoPath!,
+      segment.start,
+      segment.end!,
+    );
+    updateSegment(segment.id, { name: data.name });
+    if (data.name) {
+      notice.success({
+        title: `歌曲识别成功：${data.name}`,
+        duration: 3000,
+      });
+    } else {
+      notice.warning({
+        title: `未能识别出歌曲`,
+        duration: 3000,
+      });
+    }
+  } finally {
+    updateSegment(segment.id, { loading: false });
   }
 };
 
@@ -573,6 +593,11 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
       position: absolute;
       right: 24px;
       bottom: 0px;
+    }
+    .loading {
+      position: absolute;
+      top: 4px;
+      right: 4px;
     }
   }
 }
