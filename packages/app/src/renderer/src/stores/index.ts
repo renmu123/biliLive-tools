@@ -381,6 +381,7 @@ type SegmentEventCallback = (data: {
 
 export const useSegmentStore = defineStore("segment", () => {
   const duration = ref(0);
+  const selectCutId = ref<string | null>(null);
 
   const rawCuts = ref<Segment[]>([]);
   const cuts = readonly(
@@ -449,6 +450,14 @@ export const useSegmentStore = defineStore("segment", () => {
     return cuts.value.filter((item) => item.checked);
   });
 
+  const selectedCut = computed(() => {
+    return cuts.value.find((item) => item.id === selectCutId.value);
+  });
+
+  const selectCut = (id: string | null) => {
+    selectCutId.value = id;
+  };
+
   const init = (segments: Omit<Segment, "id" | "index" | "loading">[]) => {
     rawCuts.value = [];
     index.value = 0; // 初始化 index
@@ -466,6 +475,7 @@ export const useSegmentStore = defineStore("segment", () => {
     };
     rawCuts.value.push(data);
     index.value++;
+    selectCutId.value = data.id; // 自动选中新添加的片段
     recordHistory();
     emit("add", { segment: data });
   };
@@ -473,6 +483,14 @@ export const useSegmentStore = defineStore("segment", () => {
     const idx = rawCuts.value.findIndex((item) => item.id === id);
     if (idx !== -1) {
       rawCuts.value.splice(idx, 1);
+      // 如果删除的是当前选中的片段，更新选中状态
+      if (selectCutId.value === id) {
+        if (rawCuts.value.length > 0) {
+          selectCutId.value = rawCuts.value[rawCuts.value.length - 1].id;
+        } else {
+          selectCutId.value = null;
+        }
+      }
       recordHistory();
       emit("remove", { id });
     }
@@ -502,6 +520,7 @@ export const useSegmentStore = defineStore("segment", () => {
   const clear = () => {
     rawCuts.value = [];
     index.value = 0; // 清空时初始化 index
+    selectCutId.value = null; // 重置选中状态
     recordHistory();
     emit("clear");
   };
@@ -509,6 +528,9 @@ export const useSegmentStore = defineStore("segment", () => {
   return {
     cuts,
     selectedCuts,
+    selectedCut,
+    selectCutId,
+    selectCut,
     duration,
     rawCuts,
     addSegment,

@@ -84,7 +84,7 @@
         :style="{
           '--active-border-color': generateDistinctColor(cut.index, true),
         }"
-        @click="selectCut(cut.id)"
+        @click="handleSelectCut(cut.id)"
         @dblclick="navVideo(cut.start)"
         @contextmenu.prevent="showContextMenu($event, cut)"
       >
@@ -250,8 +250,8 @@ useEventListener(window, "resize", () => {
 
 const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;
 
-const { cuts } = storeToRefs(useSegmentStore());
-const { addSegment, removeSegment, updateSegment, toggleSegment } = useSegmentStore();
+const { cuts, selectCutId } = storeToRefs(useSegmentStore());
+const { addSegment, removeSegment, updateSegment, toggleSegment, selectCut } = useSegmentStore();
 
 const toggleChecked = (id: string) => {
   toggleSegment(id);
@@ -259,7 +259,6 @@ const toggleChecked = (id: string) => {
 // 编辑片段名称
 const cutEditVisible = ref(false);
 const tempCutName = ref("");
-const selectCutId = ref<string | null>(null);
 
 /**
  * 编辑片段名称
@@ -303,8 +302,8 @@ const navVideo = (start: number) => {
  * 选择片段
  * @param id 片段ID
  */
-const selectCut = (id: string) => {
-  selectCutId.value = id;
+const handleSelectCut = (id: string) => {
+  selectCut(id);
 };
 
 /**
@@ -333,9 +332,6 @@ const addCut = (iOptions: { start?: number; end?: number; name?: string; id?: st
   }
   addSegment(options as any);
   console.log("cuts", cuts.value);
-  if (cuts.value.length > 0) {
-    selectCutId.value = cuts.value[cuts.value.length - 1].id;
-  }
 };
 
 /**
@@ -346,11 +342,6 @@ const deleteCut = () => {
     return;
   }
   removeSegment(selectCutId.value);
-  if (cuts.value.length > 0) {
-    selectCutId.value = cuts.value[cuts.value.length - 1].id;
-  } else {
-    selectCutId.value = null;
-  }
 };
 
 /**

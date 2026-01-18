@@ -187,12 +187,9 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
         // region.remove();
         if (videoInstance.value) {
           videoInstance.value.currentTime = region.start;
+          segmentStore.selectCut(region.id);
         }
       });
-      // regions.on("region-clicked", (region: Region, e: MouseEvent) => {
-      //   e.stopPropagation();
-      //   segmentStore.setCurrentSegment(region.id);
-      // });
 
       // 监听 segment store 事件，同步到 regions
       segmentEventHandler = (data: { type: string; segment?: Segment; id?: string }) => {
