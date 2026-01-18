@@ -251,8 +251,16 @@ useEventListener(window, "resize", () => {
 const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;
 
 const { cuts, selectCutId } = storeToRefs(useSegmentStore());
-const { addSegment, removeSegment, updateSegment, toggleSegment, selectCut, insertSegmentAfter } =
-  useSegmentStore();
+const {
+  addSegment,
+  removeSegment,
+  updateSegment,
+  toggleSegment,
+  selectCut,
+  insertSegmentAfter,
+  mergeForward,
+  mergeBackward,
+} = useSegmentStore();
 
 const toggleChecked = (id: string) => {
   toggleSegment(id);
@@ -417,6 +425,68 @@ const searchDanmu = () => {
 };
 
 /**
+ * 向前合并
+ * @param segment 要合并的片段
+ */
+const handleMergeForward = (segment: Segment) => {
+  if (segment.loading) {
+    notice.warning({
+      title: "片段正在处理，无法合并",
+      duration: 2000,
+    });
+    return;
+  }
+
+  const currentIndex = cuts.value.findIndex((s) => s.id === segment.id);
+  if (currentIndex <= 0) {
+    notice.warning({
+      title: "第一个片段无法向前合并",
+      duration: 2000,
+    });
+    return;
+  }
+
+  const success = mergeForward(segment.id);
+  if (success) {
+    notice.success({
+      title: "合并成功",
+      duration: 1500,
+    });
+  }
+};
+
+/**
+ * 向后合并
+ * @param segment 要合并的片段
+ */
+const handleMergeBackward = (segment: Segment) => {
+  if (segment.loading) {
+    notice.warning({
+      title: "片段正在处理，无法合并",
+      duration: 2000,
+    });
+    return;
+  }
+
+  const currentIndex = cuts.value.findIndex((s) => s.id === segment.id);
+  if (currentIndex === -1 || currentIndex >= cuts.value.length - 1) {
+    notice.warning({
+      title: "最后一个片段无法向后合并",
+      duration: 2000,
+    });
+    return;
+  }
+
+  const success = mergeBackward(segment.id);
+  if (success) {
+    notice.success({
+      title: "合并成功",
+      duration: 1500,
+    });
+  }
+};
+
+/**
  * 切割片段
  * @param segment 要切割的片段
  */
@@ -480,7 +550,7 @@ const songRecognize = async (segment: Segment) => {
   if (!status) return;
 
   try {
-    updateSegment(segment.id, { loading: true });
+    updateSegment(segment.id, { loading: true }, true);
 
     const data = await aiApi.songRecognize(
       props.files.originVideoPath!,
@@ -500,7 +570,7 @@ const songRecognize = async (segment: Segment) => {
       });
     }
   } finally {
-    updateSegment(segment.id, { loading: false });
+    updateSegment(segment.id, { loading: false }, true);
   }
 };
 
@@ -547,6 +617,18 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
         label: "切割",
         onClick: () => {
           splitSegment(segment);
+        },
+      },
+      {
+        label: "向前合并",
+        onClick: () => {
+          handleMergeForward(segment);
+        },
+      },
+      {
+        label: "向后合并",
+        onClick: () => {
+          handleMergeBackward(segment);
         },
       },
       {

@@ -534,6 +534,50 @@ export const useSegmentStore = defineStore("segment", () => {
       recordHistory();
     }
   };
+  const mergeForward = (id: string) => {
+    const currentIndex = rawCuts.value.findIndex((item) => item.id === id);
+    if (currentIndex <= 0) return false; // 第一个片段不能向前合并
+
+    const currentSegment = rawCuts.value[currentIndex];
+    const previousSegment = rawCuts.value[currentIndex - 1];
+
+    // 更新当前片段的开始时间为前一个片段的开始时间
+    currentSegment.start = previousSegment.start;
+    // 如果名称为空，使用前一个片段的名称
+    if (!currentSegment.name && previousSegment.name) {
+      currentSegment.name = previousSegment.name;
+    }
+
+    // 删除前一个片段
+    rawCuts.value.splice(currentIndex - 1, 1);
+
+    recordHistory();
+    emit("update", { segment: currentSegment });
+    emit("remove", { id: previousSegment.id });
+    return true;
+  };
+  const mergeBackward = (id: string) => {
+    const currentIndex = rawCuts.value.findIndex((item) => item.id === id);
+    if (currentIndex === -1 || currentIndex >= rawCuts.value.length - 1) return false; // 最后一个片段不能向后合并
+
+    const currentSegment = rawCuts.value[currentIndex];
+    const nextSegment = rawCuts.value[currentIndex + 1];
+
+    // 更新当前片段的结束时间为后一个片段的结束时间
+    currentSegment.end = nextSegment.end;
+    // 如果名称为空，使用后一个片段的名称
+    if (!currentSegment.name && nextSegment.name) {
+      currentSegment.name = nextSegment.name;
+    }
+
+    // 删除后一个片段
+    rawCuts.value.splice(currentIndex + 1, 1);
+
+    recordHistory();
+    emit("update", { segment: currentSegment });
+    emit("remove", { id: nextSegment.id });
+    return true;
+  };
   const clear = () => {
     rawCuts.value = [];
     index.value = 0; // 清空时初始化 index
@@ -555,6 +599,8 @@ export const useSegmentStore = defineStore("segment", () => {
     removeSegment,
     updateSegment,
     toggleSegment,
+    mergeForward,
+    mergeBackward,
     clearHistory,
     undo,
     redo,
