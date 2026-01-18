@@ -119,6 +119,7 @@ async function getSongRecognizeConfig() {
       "你是一个歌词分析助手，只根据歌词推断歌曲名称，不要输出多余内容，不要包含符号。",
     llmModel: data?.songRecognizeLlm?.model || "qwen-plus",
     enableSearch: data?.songRecognizeLlm?.enableSearch ?? false,
+    maxInputLength: data?.songRecognizeLlm?.maxInputLength || 300,
   };
 }
 
@@ -136,7 +137,7 @@ async function getVendor(vendorId: string) {
  * @param file - 音频文件路径
  */
 export async function songRecognize(file: string) {
-  const { asrVendorId, llmVendorId, llmPrompt, llmModel, enableSearch } =
+  const { asrVendorId, llmVendorId, llmPrompt, llmModel, enableSearch, maxInputLength } =
     await getSongRecognizeConfig();
 
   const data = await asrRecognize(file, asrVendorId);
@@ -153,10 +154,10 @@ export async function songRecognize(file: string) {
   });
   logger.info("使用 LLM 进行歌曲名称识别...", {
     prompt: llmPrompt,
-    messages: messages,
+    messages: messages.slice(0, maxInputLength),
     llmModel,
   });
-  const response = await llm.sendMessage(messages, llmPrompt, {
+  const response = await llm.sendMessage(messages.slice(0, maxInputLength), llmPrompt, {
     enableSearch: enableSearch,
     forcedSearch: enableSearch,
   });

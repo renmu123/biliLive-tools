@@ -84,6 +84,19 @@
                   </template>
                   <n-switch v-model:value="config.ai.songRecognizeLlm.enableSearch" />
                 </n-form-item>
+                <n-form-item>
+                  <template #label>
+                    <Tip
+                      tip="歌词其实只不需要太多内容就能识别出歌曲名称，设置合理的最大输入长度可以减少token消耗。"
+                      text="最大输入长度"
+                    />
+                  </template>
+                  <n-input-number
+                    v-model:value="config.ai.songRecognizeLlm.maxInputLength"
+                    :min="1"
+                    :step="50"
+                  />
+                </n-form-item>
               </n-form>
             </n-collapse-item>
           </n-collapse>

@@ -700,6 +700,7 @@ export interface AppConfig {
       prompt: string;
       model?: string;
       enableSearch: boolean;
+      maxInputLength: number;
     };
   };
   /** 最大任务数 */
