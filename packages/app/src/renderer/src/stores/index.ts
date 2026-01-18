@@ -479,6 +479,23 @@ export const useSegmentStore = defineStore("segment", () => {
     recordHistory();
     emit("add", { segment: data });
   };
+  const insertSegmentAfter = (afterId: string, cut: Omit<Segment, "id" | "index" | "loading">) => {
+    const targetIndex = rawCuts.value.findIndex((item) => item.id === afterId);
+    if (targetIndex === -1) return null;
+
+    const data = {
+      id: uuid(),
+      ...cut,
+      index: index.value,
+      loading: false,
+    };
+    rawCuts.value.splice(targetIndex + 1, 0, data);
+    index.value++;
+    selectCutId.value = data.id;
+    recordHistory();
+    emit("add", { segment: data });
+    return data;
+  };
   const removeSegment = (id: string) => {
     const idx = rawCuts.value.findIndex((item) => item.id === id);
     if (idx !== -1) {
@@ -534,6 +551,7 @@ export const useSegmentStore = defineStore("segment", () => {
     duration,
     rawCuts,
     addSegment,
+    insertSegmentAfter,
     removeSegment,
     updateSegment,
     toggleSegment,

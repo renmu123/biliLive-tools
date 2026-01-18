@@ -251,7 +251,8 @@ useEventListener(window, "resize", () => {
 const videoInstance = inject("videoInstance") as Ref<ArtplayerType>;
 
 const { cuts, selectCutId } = storeToRefs(useSegmentStore());
-const { addSegment, removeSegment, updateSegment, toggleSegment, selectCut } = useSegmentStore();
+const { addSegment, removeSegment, updateSegment, toggleSegment, selectCut, insertSegmentAfter } =
+  useSegmentStore();
 
 const toggleChecked = (id: string) => {
   toggleSegment(id);
@@ -415,6 +416,43 @@ const searchDanmu = () => {
   searchDanmuVisible.value = !searchDanmuVisible.value;
 };
 
+/**
+ * 切割片段
+ * @param segment 要切割的片段
+ */
+const splitSegment = (segment: Segment) => {
+  if (!videoInstance.value) return;
+  if (segment.loading) {
+    notice.warning({
+      title: "片段正在处理，无法切割",
+      duration: 2000,
+    });
+    return;
+  }
+
+  const currentTime = videoInstance.value.currentTime;
+
+  // 判断当前时间点是否在segment中
+  if (currentTime <= segment.start || currentTime >= segment.end!) {
+    notice.warning({
+      title: "当前时间点不在该片段范围内",
+      duration: 2000,
+    });
+    return;
+  }
+
+  // 设置当前segment的结束时间为当前时间
+  updateSegment(segment.id, { end: currentTime });
+
+  // 在当前segment后面插入新的segment
+  insertSegmentAfter(segment.id, {
+    start: currentTime,
+    end: segment.end,
+    name: segment.name ? `${segment.name}-2` : "",
+    checked: segment.checked,
+  });
+};
+
 function renderIcon(icon: Component) {
   // 高度和宽度22px
   return () =>
@@ -503,6 +541,12 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
         label: "切换状态",
         onClick: () => {
           toggleChecked(segment.id);
+        },
+      },
+      {
+        label: "切割",
+        onClick: () => {
+          splitSegment(segment);
         },
       },
       {
