@@ -5,14 +5,14 @@ import { AudiowaveformData, WindowFeatures, AnalyzerConfig } from "./types.js";
  */
 export class WaveformAnalyzer {
   private data: AudiowaveformData;
-  private config: AnalyzerConfig;
+  // private config: AnalyzerConfig;
   private samplesPerSecond: number;
   private windowSamples: number;
   private hopSamples: number;
 
   constructor(data: AudiowaveformData, config: AnalyzerConfig) {
     this.data = data;
-    this.config = config;
+    // this.config = config;
 
     // 计算每秒的数据点数
     this.samplesPerSecond = data.sample_rate / data.samples_per_pixel;
@@ -21,9 +21,7 @@ export class WaveformAnalyzer {
     this.windowSamples = Math.floor(config.windowSize * this.samplesPerSecond);
 
     // 计算跳跃步长（考虑重叠）
-    this.hopSamples = Math.floor(
-      this.windowSamples * (1 - config.windowOverlap)
-    );
+    this.hopSamples = Math.floor(this.windowSamples * (1 - config.windowOverlap));
   }
 
   /**
@@ -34,9 +32,7 @@ export class WaveformAnalyzer {
     // data 数组是 [最大值, 最小值] 成对出现
     const actualDataPoints = this.data.data.length / 2;
     // 实际时长 = 数据点数 × 每点的样本数 / 采样率
-    return (
-      (actualDataPoints * this.data.samples_per_pixel) / this.data.sample_rate
-    );
+    return (actualDataPoints * this.data.samples_per_pixel) / this.data.sample_rate;
   }
 
   /**
@@ -45,9 +41,7 @@ export class WaveformAnalyzer {
    */
   indexToTime(index: number): number {
     const actualPointIndex = index / 2;
-    return (
-      (actualPointIndex * this.data.samples_per_pixel) / this.data.sample_rate
-    );
+    return (actualPointIndex * this.data.samples_per_pixel) / this.data.sample_rate;
   }
 
   /**
@@ -56,7 +50,7 @@ export class WaveformAnalyzer {
    */
   timeToIndex(time: number): number {
     const actualPointIndex = Math.floor(
-      (time * this.data.sample_rate) / this.data.samples_per_pixel
+      (time * this.data.sample_rate) / this.data.samples_per_pixel,
     );
     return actualPointIndex * 2; // 乘以 2 因为数据是 [max, min] 成对的
   }
@@ -105,11 +99,9 @@ export class WaveformAnalyzer {
     const peak = Math.max(...amplitudes);
 
     // 3. 计算方差
-    const mean =
-      amplitudes.reduce((sum, val) => sum + val, 0) / amplitudes.length;
+    const mean = amplitudes.reduce((sum, val) => sum + val, 0) / amplitudes.length;
     const variance =
-      amplitudes.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) /
-      amplitudes.length;
+      amplitudes.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / amplitudes.length;
 
     // 4. 计算过零率（使用原始数据的符号变化）
     let zeroCrossings = 0;
@@ -195,8 +187,7 @@ export class WaveformAnalyzer {
     const maxEnergy = Math.max(...energies);
 
     const variance =
-      energies.reduce((sum, e) => sum + Math.pow(e - avgEnergy, 2), 0) /
-      energies.length;
+      energies.reduce((sum, e) => sum + Math.pow(e - avgEnergy, 2), 0) / energies.length;
     const stdEnergy = Math.sqrt(variance);
 
     return { avgEnergy, maxEnergy, stdEnergy };

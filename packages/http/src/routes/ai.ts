@@ -1,8 +1,7 @@
-import path from "node:path";
 import fs from "fs-extra";
 import Router from "@koa/router";
 import { asrRecognize, llm, songRecognize } from "@biliLive-tools/shared/task/ai.js";
-import { calculateFileQuickHash, getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
+import { getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
 import { addExtractAudioTask } from "@biliLive-tools/shared/task/video.js";
 
 const router = new Router({

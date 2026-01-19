@@ -1,4 +1,3 @@
-import fs from "fs-extra";
 import { AliyunASR, TranscriptionDetail, QwenLLM } from "../ai/index.js";
 
 import { appConfig } from "../config.js";
@@ -143,13 +142,16 @@ export async function llm(
     });
 
     if ("content" in response) {
-      console.log("提问:", response);
-      console.log("回复:", response.content);
-      console.log("Token 使用:", response.usage);
+      logger.info("LLM 请求成功", JSON.stringify(response));
+      // console.log("提问:", response);
+      // console.log("回复:", response.content);
+      // console.log("Token 使用:", response.usage);
       return response;
     }
+    throw new Error("LLM 未返回预期的响应内容");
   } catch (error) {
     console.error("LLM 请求失败:", error);
+    throw error;
   }
 }
 

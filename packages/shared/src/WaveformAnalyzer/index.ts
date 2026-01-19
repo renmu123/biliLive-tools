@@ -1,17 +1,9 @@
 // import fs from "fs/promises";
 // import { readFile } from "fs/promises";
-export { AudiowaveformData, AnalyzerConfig, DEFAULT_CONFIG, AudioSegment } from "./types.js";
 export { BoundaryDetector } from "./detector.js";
 // import JSON5 from "json5";
 
-// AcoustID 音频识别功能
-export {
-  type AcoustIDConfig,
-  type AcoustIDLookupParams,
-  type AcoustIDResponse,
-  type AcoustIDResult,
-  type AcoustIDRecording,
-} from "./types.js";
+export type { AudiowaveformData, AnalyzerConfig, DEFAULT_CONFIG, AudioSegment } from "./types.js";
 export { AcoustIDClient, createAcoustIDClient } from "./acoustid.js";
 
 // /**

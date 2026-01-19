@@ -254,6 +254,7 @@ export class BoundaryDetector {
     singingThreshold: number,
     talkingThreshold: number,
   ): AudioSegment[] {
+    console.log("重新分类片段...", singingThreshold);
     return segments.map((segment) => {
       // 只重新分类 talking 片段，看是否应该归为 singing
       if (segment.type !== SegmentType.TALKING) {
