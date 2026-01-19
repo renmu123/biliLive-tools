@@ -117,7 +117,13 @@ export function useProjectManager(
     const projectData = {
       version: 1,
       mediaFileName: window.path.basename(mediaFileName),
-      cutSegments: rawCuts.value.map(({ start, end, name, tags }) => ({ start, end, name, tags })),
+      cutSegments: rawCuts.value.map(({ start, end, name, tags, lyrics }) => ({
+        start,
+        end,
+        name,
+        tags,
+        lyrics,
+      })),
     };
 
     await commonApi.writeLLCProject(filePath, JSON5.stringify(projectData, null, 2));

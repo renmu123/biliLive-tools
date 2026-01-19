@@ -49,6 +49,24 @@ function convert2Srt(detail: TranscriptionDetail, offset: number): string {
   return srt;
 }
 
+interface ASRWord {
+  st: number;
+  et: number;
+  t: string;
+}
+
+function convert2Srt2(detail: ASRWord[], offset: number): string {
+  let srt = "";
+  let index = 1;
+  for (const sentence of detail || []) {
+    const start = new Date(sentence.st + offset).toISOString().substr(11, 12).replace(".", ",");
+    const end = new Date(sentence.et + offset).toISOString().substr(11, 12).replace(".", ",");
+    srt += `${index}\n${start} --> ${end}\n${sentence.t}\n\n`;
+    index++;
+  }
+  return srt;
+}
+
 /**
  * 获取 AI 服务商的 API Key，现在是随便写，只支持阿里
  * @returns
@@ -68,7 +86,7 @@ function getApiKey(): string {
  * @returns
  */
 export async function asrRecognize(file: string, vendorId: string) {
-  const { apiKey } = await getVendor(vendorId);
+  const { apiKey } = getVendor(vendorId);
 
   const asr = new AliyunASR({
     apiKey: apiKey,
@@ -90,9 +108,18 @@ export async function asrRecognize(file: string, vendorId: string) {
 /**
  * 使用通义千问 LLM 示例
  */
-export async function llm(message: string, systemPrompt?: string, key?: string) {
+export async function llm(
+  message: string,
+  systemPrompt?: string,
+  opts: {
+    key?: string;
+    enableSearch?: boolean;
+    jsonResponse?: boolean;
+    stream?: boolean;
+  } = {},
+) {
   console.log("=== 示例: 使用通义千问 LLM ===");
-  const apiKey = key ?? getApiKey();
+  const apiKey = opts.key ?? getApiKey();
 
   const llm = new QwenLLM({
     apiKey: apiKey,
@@ -100,8 +127,17 @@ export async function llm(message: string, systemPrompt?: string, key?: string) 
   });
 
   try {
+    // const testData = fs.readFileSync(
+    //   "C:\\Users\\renmu\\Downloads\\新建文件夹 (2)\\cleaned_data.json",
+    // );
+    // console.log("读取测试数据，长度:", message + testData, testData.length);
     const response = await llm.sendMessage(message, systemPrompt, {
       // responseFormat: zodResponseFormat(Song, "song"),
+      enableSearch: opts.enableSearch ?? false,
+      forcedSearch: opts.enableSearch ?? false,
+      responseFormat: opts.jsonResponse ? { type: "json_object" } : undefined,
+      // @ts-ignore
+      stream: opts.stream ?? undefined,
     });
 
     if ("content" in response) {
@@ -115,7 +151,85 @@ export async function llm(message: string, systemPrompt?: string, key?: string) 
   }
 }
 
-async function getSongRecognizeConfig() {
+function getVendor(vendorId: string) {
+  const data = appConfig.get("ai") || {};
+  const vendor = data.vendors.find((v: any) => v.id === vendorId);
+  if (!vendor) {
+    throw new Error(`未找到 ID 为 ${vendorId} 的供应商配置`);
+  }
+  return vendor;
+}
+
+/**
+ * 获取歌词优化配置
+ */
+function getLyricOptimizeConfig() {
+  const { data, llmVendorId, llmModel } = getSongRecognizeConfig();
+  return {
+    vendorId: data?.songLyricOptimize?.vendorId || llmVendorId,
+    prompt: data?.songLyricOptimize?.prompt,
+    model: data?.songLyricOptimize?.model || llmModel,
+    enableStructuredOutput: data?.songLyricOptimize?.enableStructuredOutput ?? true,
+  };
+}
+
+/**
+ * 歌词优化
+ * @param lyrics - 原始歌词文本
+ * @param offset - 偏移时间，单位毫秒
+ */
+export async function optimizeLyrics(asrData: TranscriptionDetail, lyrics: string, offset: number) {
+  const { vendorId, prompt, model, enableStructuredOutput } = getLyricOptimizeConfig();
+  const { apiKey } = getVendor(vendorId);
+  const llm = new QwenLLM({
+    apiKey: apiKey,
+    model: model,
+  });
+
+  const asrCleanedSentences: ASRWord[] = [];
+  for (const transcript of asrData.transcripts || []) {
+    for (const sentence of transcript.sentences || []) {
+      for (const word of sentence.words || []) {
+        asrCleanedSentences.push({
+          st: word.begin_time,
+          et: word.end_time,
+          t: word.text,
+        });
+      }
+    }
+  }
+
+  logger.info("使用 LLM 进行歌词优化...", {
+    message: `原歌词：${lyrics}\nASR转录数据：${JSON.stringify(asrCleanedSentences)}`,
+    systemPrompt: prompt,
+    llmModel: model,
+  });
+  const response = await llm.sendMessage(
+    `原歌词：${lyrics}\nASR转录数据：${JSON.stringify(asrCleanedSentences)}`,
+    prompt,
+    {
+      enableSearch: false,
+      responseFormat: enableStructuredOutput ? { type: "json_object" } : undefined,
+    },
+  );
+  logger.info("优化结果:", response);
+  if (!response.content) {
+    throw new Error("LLM 未返回任何内容");
+  }
+  try {
+    const json = JSON.parse(response.content) as ASRWord[];
+    const srtData = convert2Srt2(json, offset);
+    return srtData;
+  } catch (e) {
+    logger.error("LLM 返回内容非 JSON 格式，尝试按纯文本处理", e);
+    throw new Error("LLM 返回内容非 JSON 格式，无法解析优化后的歌词");
+  }
+}
+
+/**
+ * 获取歌曲识别配置
+ */
+function getSongRecognizeConfig() {
   const data = appConfig.get("ai") || {};
   if (data?.vendors.length === 0) {
     throw new Error("请先在配置中设置 AI 服务商的 API Key");
@@ -132,24 +246,16 @@ async function getSongRecognizeConfig() {
   }
 
   return {
+    data,
     asrVendorId,
     llmVendorId,
-    llmPrompt:
-      data?.songRecognizeLlm?.prompt ||
-      "你是一个歌词分析助手，只根据歌词推断歌曲名称，不要输出多余内容，不要包含符号。",
+    llmPrompt: data?.songRecognizeLlm?.prompt,
     llmModel: data?.songRecognizeLlm?.model || "qwen-plus",
     enableSearch: data?.songRecognizeLlm?.enableSearch ?? false,
     maxInputLength: data?.songRecognizeLlm?.maxInputLength || 300,
+    enableStructuredOutput: data?.songRecognizeLlm?.enableStructuredOutput ?? true,
+    lyricOptimize: data?.songRecognizeLlm?.lyricOptimize ?? true,
   };
-}
-
-async function getVendor(vendorId: string) {
-  const data = appConfig.get("ai") || {};
-  const vendor = data.vendors.find((v: any) => v.id === vendorId);
-  if (!vendor) {
-    throw new Error(`未找到 ID 为 ${vendorId} 的供应商配置`);
-  }
-  return vendor;
 }
 
 /**
@@ -157,8 +263,16 @@ async function getVendor(vendorId: string) {
  * @param file - 音频文件路径
  */
 export async function songRecognize(file: string, audioStartTime: number = 0) {
-  const { asrVendorId, llmVendorId, llmPrompt, llmModel, enableSearch, maxInputLength } =
-    await getSongRecognizeConfig();
+  const {
+    asrVendorId,
+    llmVendorId,
+    llmPrompt,
+    llmModel,
+    enableSearch,
+    maxInputLength,
+    enableStructuredOutput,
+    lyricOptimize,
+  } = await getSongRecognizeConfig();
 
   const data = await asrRecognize(file, asrVendorId);
   const messages = data.transcripts?.[0]?.text || "";
@@ -167,7 +281,7 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
     return;
   }
 
-  const { apiKey } = await getVendor(llmVendorId);
+  const { apiKey } = getVendor(llmVendorId);
   const llm = new QwenLLM({
     apiKey: apiKey,
     model: llmModel,
@@ -180,12 +294,34 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
   const response = await llm.sendMessage(messages.slice(0, maxInputLength), llmPrompt, {
     enableSearch: enableSearch,
     forcedSearch: enableSearch,
+    responseFormat: enableStructuredOutput ? { type: "json_object" } : undefined,
   });
   logger.info("识别结果:", response);
-  const srtData = convert2Srt(optimizeMusicSubtitles(data), audioStartTime * 1000);
-  // await fs.writeFile("./output.srt", srtData, "utf-8");
-  return {
-    name: response.content,
-    lyrics: srtData,
-  };
+  if (!response.content) {
+    throw new Error("LLM 未返回任何内容");
+  }
+  try {
+    const json = JSON.parse(response.content) as {
+      name: string;
+      lyrics: string;
+    };
+    let srtData = "";
+    if (json.lyrics) {
+      if (lyricOptimize) {
+        srtData = await optimizeLyrics(data, json.lyrics, audioStartTime * 1000);
+      } else {
+        srtData = convert2Srt(optimizeMusicSubtitles(data), audioStartTime * 1000);
+        // fs.writeJSONSync("./last_song_recognize_asr_result.json", data, { spaces: 2 });
+        // await fs.writeFile("./output.srt", srtData, "utf-8");
+      }
+    }
+
+    return {
+      name: json.name,
+      lyrics: srtData,
+    };
+  } catch (e) {
+    logger.error("LLM 返回内容非 JSON 格式，尝试按纯文本处理", e);
+    throw new Error("LLM 返回内容非 JSON 格式，无法解析歌曲名称和歌词");
+  }
 }

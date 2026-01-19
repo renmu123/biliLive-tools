@@ -152,7 +152,7 @@ const {
 const { appConfig } = storeToRefs(useAppConfig());
 
 const segmentStore = useSegmentStore();
-const { undo, redo, clear: clearCuts } = useSegmentStore();
+const { undo, redo, clear: clearCuts, getCombinedLyrics } = useSegmentStore();
 const { selectedCuts } = storeToRefs(useSegmentStore());
 
 const videoVCutOptions = toReactive(
@@ -329,6 +329,9 @@ const loadProject = async (filePath: string) => {
   loadVideo(videoPath);
   if (projectFile) {
     await loadProjectFile(projectFile);
+    const combinedLyrics = getCombinedLyrics();
+    // @ts-ignore
+    videoInstance?.value?.artplayerPluginSubtitle?.setContent(combinedLyrics, "srt");
   }
 };
 

@@ -23,8 +23,16 @@ router.post("/llm", async (ctx) => {
   const data = ctx.request.body as {
     message: string;
     systemPrompt?: string;
+    enableSearch?: boolean;
+    jsonResponse?: boolean;
+    stream?: boolean;
   };
-  const result = await llm(data.message, data.systemPrompt);
+  const result = await llm(data.message, data.systemPrompt, {
+    enableSearch: data.enableSearch,
+    key: undefined,
+    jsonResponse: data.jsonResponse,
+    stream: data.stream,
+  });
   ctx.body = result;
 });
 
@@ -44,30 +52,6 @@ router.post("/song_recognize", async (ctx) => {
     };
     return;
   }
-  // const fileHash = await calculateFileQuickHash(data.file);
-  // const cachePath = getTempPath();
-  // let maybeFullAudioFile = path.join(cachePath, `cut_${fileHash}.wav`);
-
-  // if (await fs.pathExists(maybeFullAudioFile)) {
-  //   // 已经存在完整音频文件，直接从这里开始识别
-  // } else {
-  //   const task = await addExtractAudioTask(data.file, `cut_${fileHash}.wav`, {
-  //     startTime: data.startTime,
-  //     endTime: data.endTime,
-  //     saveType: 2,
-  //     savePath: cachePath,
-  //     autoRun: true,
-  //     addQueue: false,
-  //   });
-  //   const outputFile: string = await new Promise((resolve, reject) => {
-  //     task.on("task-end", () => {
-  //       resolve(task.output as string);
-  //     });
-  //     task.on("task-error", (err) => {
-  //       reject(err);
-  //     });
-  //   });
-  // }
 
   const cachePath = getTempPath();
   const fileName = `${uuid()}.mp3`;

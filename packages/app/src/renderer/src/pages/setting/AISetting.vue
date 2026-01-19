@@ -47,7 +47,7 @@
         <!-- AI功能配置 -->
         <n-tab-pane class="tab-pane" name="features" tab="功能" display-directive="show:lazy">
           <n-collapse style="margin-top: 10px" default-expanded-names="songRecognize">
-            <n-collapse-item title="歌曲识别llm" name="songRecognize">
+            <n-collapse-item title="歌曲识别LLM" name="songRecognize">
               <n-form label-placement="left" :label-width="120">
                 <n-form-item label="供应商">
                   <n-select
@@ -84,7 +84,19 @@
                   </template>
                   <n-switch v-model:value="config.ai.songRecognizeLlm.enableSearch" />
                 </n-form-item>
+                <n-form-item label="结构化输出">
+                  <n-switch v-model:value="config.ai.songRecognizeLlm.enableStructuredOutput" />
+                </n-form-item>
                 <n-form-item>
+                  <template #label>
+                    <Tip
+                      tip="启用后，LLM会对识别出的歌词进行优化处理，提升歌词的可读性和准确性，但会增加token消耗。"
+                      text="歌词优化"
+                    />
+                  </template>
+                  <n-switch v-model:value="config.ai.songRecognizeLlm.lyricOptimize" />
+                </n-form-item>
+                <!-- <n-form-item>
                   <template #label>
                     <Tip
                       tip="歌词其实只不需要太多内容就能识别出歌曲名称，设置合理的最大输入长度可以减少token消耗。"
@@ -96,6 +108,41 @@
                     :min="1"
                     :step="50"
                   />
+                </n-form-item> -->
+              </n-form>
+            </n-collapse-item>
+          </n-collapse>
+          <n-collapse style="margin-top: 10px" default-expanded-names="songLyricOptimize">
+            <n-collapse-item title="歌词优化LLM" name="songLyricOptimize">
+              <n-form label-placement="left" :label-width="120">
+                <n-form-item label="供应商">
+                  <n-select
+                    v-model:value="config.ai.songLyricOptimize.vendorId"
+                    :options="vendorSelectOptions"
+                    placeholder="默认跟随歌曲识别LLM供应商"
+                  />
+                </n-form-item>
+                <n-form-item label="模型">
+                  <n-input
+                    v-model:value="config.ai.songLyricOptimize.model"
+                    spellcheck="false"
+                    placeholder="默认跟随歌曲识别LLM模型"
+                  />
+                </n-form-item>
+
+                <n-form-item label="提示词">
+                  <n-input
+                    v-model:value="config.ai.songLyricOptimize.prompt"
+                    type="textarea"
+                    placeholder="请输入提示词"
+                    :autosize="{
+                      minRows: 3,
+                      maxRows: 10,
+                    }"
+                  />
+                </n-form-item>
+                <n-form-item label="结构化输出">
+                  <n-switch v-model:value="config.ai.songLyricOptimize.enableStructuredOutput" />
                 </n-form-item>
               </n-form>
             </n-collapse-item>

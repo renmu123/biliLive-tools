@@ -215,36 +215,36 @@ export interface TranscriptionDetail {
        */
       speakerId?: number;
       sentence_id: number;
-    }>;
-
-    /**
-     * 词级别转写结果
-     */
-    words?: Array<{
-      /**
-       * 开始时间戳（ms）
-       */
-      begin_time: number;
 
       /**
-       * 结束时间戳（ms）
+       * 词级别转写结果
        */
-      end_time: number;
+      words?: Array<{
+        /**
+         * 开始时间戳（ms）
+         */
+        begin_time: number;
 
-      /**
-       * 词文本
-       */
-      text: string;
+        /**
+         * 结束时间戳（ms）
+         */
+        end_time: number;
 
-      /**
-       * 标点符号
-       */
-      punctuation?: string;
+        /**
+         * 词文本
+         */
+        text: string;
 
-      /**
-       * 说话人索引（启用说话人分离时）
-       */
-      speakerId?: number;
+        /**
+         * 标点符号
+         */
+        punctuation?: string;
+
+        /**
+         * 说话人索引（启用说话人分离时）
+         */
+        speakerId?: number;
+      }>;
     }>;
   }>;
 }

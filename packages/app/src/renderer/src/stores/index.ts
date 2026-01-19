@@ -370,6 +370,7 @@ export interface Segment {
   tags?: any;
   index: number;
   loading?: boolean;
+  lyrics?: string;
 }
 type SegmentWithRequiredEnd = Required<Pick<Segment, "end">> & Omit<Segment, "end">;
 type SegmentEventType = "add" | "remove" | "update" | "clear";
@@ -547,6 +548,10 @@ export const useSegmentStore = defineStore("segment", () => {
     if (!currentSegment.name && previousSegment.name) {
       currentSegment.name = previousSegment.name;
     }
+    // 将前一个片段的歌词合并到当前片段
+    if (previousSegment.lyrics) {
+      currentSegment.lyrics = (previousSegment.lyrics || "") + "\n" + (currentSegment.lyrics || "");
+    }
 
     // 删除前一个片段
     rawCuts.value.splice(currentIndex - 1, 1);
@@ -569,6 +574,10 @@ export const useSegmentStore = defineStore("segment", () => {
     if (!currentSegment.name && nextSegment.name) {
       currentSegment.name = nextSegment.name;
     }
+    // 将后一个片段的歌词合并到当前片段
+    if (nextSegment.lyrics) {
+      currentSegment.lyrics = (currentSegment.lyrics || "") + "\n" + (nextSegment.lyrics || "");
+    }
 
     // 删除后一个片段
     rawCuts.value.splice(currentIndex + 1, 1);
@@ -584,6 +593,14 @@ export const useSegmentStore = defineStore("segment", () => {
     selectCutId.value = null; // 重置选中状态
     recordHistory();
     emit("clear");
+  };
+
+  // 获取所有片段的歌词合并文本
+  const getCombinedLyrics = () => {
+    return cuts.value
+      .filter((segment) => segment.lyrics)
+      .map((segment) => segment.lyrics)
+      .join("\n");
   };
 
   return {
@@ -609,5 +626,6 @@ export const useSegmentStore = defineStore("segment", () => {
     on,
     off,
     index,
+    getCombinedLyrics,
   };
 });

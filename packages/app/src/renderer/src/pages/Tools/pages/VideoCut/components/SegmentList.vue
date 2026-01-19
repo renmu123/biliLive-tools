@@ -167,7 +167,12 @@ import {
   PlayCircleOutline,
 } from "@vicons/ionicons5";
 import { MinusOutlined, PlusOutlined } from "@vicons/material";
-import { Delete24Regular } from "@vicons/fluent";
+import {
+  Delete24Regular,
+  MusicNote220Regular,
+  Cut20Regular,
+  ToggleLeft24Regular,
+} from "@vicons/fluent";
 import { generateDistinctColor } from "@renderer/utils";
 import { aiApi } from "@renderer/apis";
 import { useConfirm } from "@renderer/hooks";
@@ -260,6 +265,7 @@ const {
   insertSegmentAfter,
   mergeForward,
   mergeBackward,
+  getCombinedLyrics,
 } = useSegmentStore();
 
 const toggleChecked = (id: string) => {
@@ -346,11 +352,13 @@ const addCut = (iOptions: { start?: number; end?: number; name?: string; id?: st
 /**
  * 删除片段
  */
-const deleteCut = () => {
-  if (!selectCutId.value) {
+const deleteCut = (id?: string) => {
+  const segmentId = id || selectCutId.value;
+  if (!segmentId) {
     return;
   }
-  removeSegment(selectCutId.value);
+  removeSegment(segmentId);
+  resetSubtitle();
 };
 
 /**
@@ -447,6 +455,7 @@ const handleMergeForward = (segment: Segment) => {
   }
 
   const success = mergeForward(segment.id);
+  resetSubtitle();
   if (success) {
     notice.success({
       title: "合并成功",
@@ -478,6 +487,7 @@ const handleMergeBackward = (segment: Segment) => {
   }
 
   const success = mergeBackward(segment.id);
+  resetSubtitle();
   if (success) {
     notice.success({
       title: "合并成功",
@@ -529,17 +539,10 @@ function renderIcon(icon: Component) {
     h(NIcon, { style: { fontSize: "17px", "font-size": "17px" } }, { default: () => h(icon) });
 }
 
-/**
- * 歌曲识别缓存
- */
-const lyricsCache = new Map<string, string>();
-function buildLyricsFromCache(): string {
-  let text = "";
-  for (const [_, lyrics] of lyricsCache) {
-    text += lyrics + "\n";
-  }
-  return text;
-}
+const resetSubtitle = () => {
+  const combinedLyrics = getCombinedLyrics();
+  videoInstance.value.artplayerPluginSubtitle.setContent(combinedLyrics, "srt");
+};
 
 const songRecognize = async (segment: Segment) => {
   if (!props.files.originVideoPath) {
@@ -553,7 +556,9 @@ const songRecognize = async (segment: Segment) => {
   // 波形图配置颜色
   const [status] = await confirm.warning({
     content: `此功能使用AI用于针对片段进行歌曲识别，使用前请先去配置阿里云相关key。\n
-    原理为将音频转换为文本，之后将文本交给ai来判断歌曲名称，更多参见文档`,
+    1. 利用asr识别出字幕
+    2. 利用llm根据字幕内容推断歌曲名称和歌词\n
+    3. 利用asr中的时间轴以及歌词生成校对后的字幕（设置可关闭）\n`,
     showCheckbox: true,
     showAgainKey: "videoSongRecognizeWarning",
   });
@@ -567,12 +572,9 @@ const songRecognize = async (segment: Segment) => {
       segment.start,
       segment.end!,
     );
-    updateSegment(segment.id, { name: data.name });
-    console.log(data.lyrics);
-    lyricsCache.set(segment.id, data.lyrics || "");
+    updateSegment(segment.id, { name: data.name, lyrics: data.lyrics || "" });
 
-    const combinedLyrics = buildLyricsFromCache();
-    videoInstance.value.artplayerPluginSubtitle.setContent(combinedLyrics, "srt");
+    resetSubtitle();
     if (data.name) {
       notice.success({
         title: `歌曲识别成功：${data.name}`,
@@ -618,18 +620,20 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
       {
         label: "删除",
         onClick: () => {
-          removeSegment(segment.id);
+          deleteCut(segment.id);
         },
         icon: renderIcon(Delete24Regular),
       },
       {
         label: "切换状态",
+        icon: renderIcon(ToggleLeft24Regular),
         onClick: () => {
           toggleChecked(segment.id);
         },
       },
       {
         label: "切割",
+        icon: renderIcon(Cut20Regular),
         onClick: () => {
           splitSegment(segment);
         },
@@ -648,6 +652,7 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
       },
       {
         label: "歌曲识别",
+        icon: renderIcon(MusicNote220Regular),
         onClick: async () => {
           songRecognize(segment);
         },

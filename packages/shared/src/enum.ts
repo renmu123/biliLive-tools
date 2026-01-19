@@ -250,12 +250,21 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   ai: {
     vendors: [],
     songRecognizeLlm: {
-      vendorId: "",
+      vendorId: undefined,
       prompt:
-        "你是一个音乐名称识别助手，只根据歌词推断歌曲名称，不要输出多余内容如歌手，不要包含符号",
+        '你是一个音乐名称识别助手，根据歌词推断歌曲名称以及查询到的完整歌词，请提供【歌词】，不要输出其他内容，输出JSON,格式如下：\n{\n"lyrics": "[查询后的歌词]", "name":"[歌曲名称]"\n}',
       model: "qwen-plus",
       enableSearch: true,
       maxInputLength: 300,
+      enableStructuredOutput: true,
+      lyricOptimize: true,
+    },
+    songLyricOptimize: {
+      vendorId: undefined,
+      prompt:
+        "你是一个专业的音频字幕对齐专家，擅长处理 ASR（语音识别）数据与标准文本的对齐与修正\n对齐修复：参考 Standard_Lyrics，修正 ASR_Data 中错误的 text 内容。\n如果 ASR 将一个完整的词语或短句拆得太碎（例如每个字一个片段），请根据 Standard_Lyrics 的将其合并。合并规则：合并后的 begin_time 必须是第一项的开始时间，end_time 必须是最后一项的结束时间。\n时间戳精度：严禁伪造时间戳，所有时间数值必须源自原始 ASR_Data 中的真实数据。\n如果标准歌词缺失，按ASR中歌词输出。\nOutput Format: 仅输出优化后的 JSON 数组",
+      model: "",
+      enableStructuredOutput: true,
     },
   },
   biliUpload: {

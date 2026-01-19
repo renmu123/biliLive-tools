@@ -145,6 +145,11 @@ onMounted(async () => {
     ...props.option,
     container: artRef.value,
     plugins: plugins,
+    subtitle: {
+      style: {
+        fontSize: "30px",
+      },
+    },
     // setting: true,
     // playbackRate: true,
     customType: {

@@ -701,6 +701,15 @@ export interface AppConfig {
       model?: string;
       enableSearch: boolean;
       maxInputLength: number;
+      enableStructuredOutput?: boolean;
+      lyricOptimize: boolean;
+    };
+    // 歌词优化配置
+    songLyricOptimize: {
+      vendorId?: string;
+      prompt: string;
+      model?: string;
+      enableStructuredOutput?: boolean;
     };
   };
   /** 最大任务数 */
