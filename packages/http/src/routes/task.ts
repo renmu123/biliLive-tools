@@ -1,5 +1,7 @@
+import path from "node:path";
 import fs from "fs-extra";
 import Router from "@koa/router";
+import { parseSync, stringifySync } from "subtitle";
 
 import {
   handleStartTask,
@@ -23,7 +25,7 @@ import {
   checkMergeVideos,
 } from "@biliLive-tools/shared/task/video.js";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
-import { trashItem } from "@biliLive-tools/shared/utils/index.js";
+import { trashItem, parseSavePath } from "@biliLive-tools/shared/utils/index.js";
 import {
   testVirtualRecordConfig,
   executeVirtualRecordConfig,
@@ -301,6 +303,54 @@ router.post("/cut", async (ctx) => {
   const { files, output, options, ffmpegOptions } = ctx.request.body as any;
   const task = await cut(files, output, ffmpegOptions, options);
   ctx.body = { taskId: task.taskId };
+});
+
+/**
+ * 字幕分割
+ * 输入：srt字幕内容
+ */
+router.post("/cutSubtitle", async (ctx) => {
+  const data = ctx.request.body as {
+    srtContent: string;
+    segments: { start: number; end: number; name: string }[];
+    saveType: 1 | 2;
+    savePath: string;
+    videoPath: string;
+  };
+  const nodeList = parseSync(data.srtContent);
+  // console.log("解析后的节点数量:", nodeList.length, nodeList);
+
+  let savePath = await parseSavePath(data.videoPath, {
+    saveType: data.saveType,
+    savePath: data.savePath,
+  });
+  for (const segment of data.segments) {
+    const { start, end, name } = segment;
+    const output = path.join(savePath, name) + ".srt";
+    const segmentNodes = nodeList
+      .filter((node) => {
+        if (node.type !== "cue") return false;
+        const cueStart = node.data.start;
+        const cueEnd = node.data.end;
+        return cueStart >= start * 1000 && cueEnd <= end * 1000;
+      })
+      .map((node) => {
+        if (node.type !== "cue") return node;
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            start: node.data.start - start * 1000,
+            end: node.data.end - start * 1000,
+          },
+        };
+      });
+    // console.log(`分割片段: ${name}, 节点数量: ${segmentNodes.length}`);
+    if (segmentNodes.length === 0) continue;
+    const srtContent = stringifySync(segmentNodes, { format: "SRT" });
+    await fs.writeFile(output, srtContent, "utf-8");
+  }
+  ctx.body = "success";
 });
 
 router.post("/addExtraVideoTask", async (ctx) => {

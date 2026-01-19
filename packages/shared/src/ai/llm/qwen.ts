@@ -56,10 +56,17 @@ export interface ChatOptions {
    * 是否开启联网搜索
    */
   enableSearch?: boolean;
-  /**
-   * 是否强制联网搜索
-   */
-  forcedSearch?: boolean;
+
+  searchOptions?: {
+    /**
+     * 是否强制联网搜索
+     */
+    forcedSearch?: boolean;
+    search_strategy?: "turbo" | "max";
+    intention_options?: {
+      prompt_intervene: string;
+    };
+  };
   responseFormat?: { type: "json_object" } | any;
 }
 
@@ -118,10 +125,8 @@ export class QwenLLM {
       ...(options.enableSearch !== undefined && {
         enable_search: options.enableSearch,
       }),
-      ...(options.forcedSearch !== undefined && {
-        search_options: {
-          forced_search: options.forcedSearch,
-        },
+      ...(options.searchOptions !== undefined && {
+        search_options: options.searchOptions,
       }),
     };
 

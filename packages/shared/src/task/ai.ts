@@ -134,10 +134,12 @@ export async function llm(
     const response = await llm.sendMessage(message, systemPrompt, {
       // responseFormat: zodResponseFormat(Song, "song"),
       enableSearch: opts.enableSearch ?? false,
-      forcedSearch: opts.enableSearch ?? false,
       responseFormat: opts.jsonResponse ? { type: "json_object" } : undefined,
       // @ts-ignore
       stream: opts.stream ?? undefined,
+      searchOptions: {
+        forcedSearch: opts.enableSearch ?? false,
+      },
     });
 
     if ("content" in response) {
@@ -293,8 +295,14 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
   });
   const response = await llm.sendMessage(messages.slice(0, maxInputLength), llmPrompt, {
     enableSearch: enableSearch,
-    forcedSearch: enableSearch,
     responseFormat: enableStructuredOutput ? { type: "json_object" } : undefined,
+    searchOptions: {
+      forcedSearch: enableSearch,
+      search_strategy: "max",
+      intention_options: {
+        prompt_intervene: "仅检索MUSIC相关内容",
+      },
+    },
   });
   logger.info("识别结果:", response);
   if (!response.content) {

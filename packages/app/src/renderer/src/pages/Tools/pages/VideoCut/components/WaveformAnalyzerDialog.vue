@@ -6,7 +6,9 @@
     style="width: 520px"
     :on-after-leave="handleClose"
   >
-    <h1>调整参数可以更加精准地切割</h1>
+    <h1>
+      此项功能用来快速对长视频中的翻唱音乐片段进行识别，分段后你也可以在片段中右键识别歌曲名称，调整参数可以更加精准地切割
+    </h1>
     <n-form
       ref="formRef"
       :model="formValue"
@@ -19,12 +21,14 @@
           v-model:value="formValue.windowSize"
           :min="0.1"
           :max="10"
-          :step="0.1"
+          :step="0.5"
           placeholder="窗口大小"
         >
           <template #suffix>秒</template>
         </n-input-number>
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px"> 增大让分析更平滑 </n-text>
+        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
+          增大让分析更平滑，过大可能导致片段合并
+        </n-text>
       </n-form-item>
 
       <n-form-item label="窗口重叠率" path="windowOverlap">
@@ -48,7 +52,9 @@
           :step="0.1"
           placeholder="唱歌能量阈值倍数"
         />
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px"> 降低以减少漏检 </n-text>
+        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
+          降低以减少漏检，大概就是唱歌音量
+        </n-text>
       </n-form-item>
 
       <n-form-item label="说话能量阈值" path="talkingEnergyThreshold">
@@ -59,6 +65,7 @@
           :step="0.1"
           placeholder="说话能量阈值倍数"
         />
+        <n-text depth="3" style="margin-left: 8px; font-size: 12px"> 大概就是说话音量 </n-text>
       </n-form-item>
 
       <n-form-item label="最小片段时长(秒)" path="minSegmentDuration">
@@ -135,7 +142,7 @@ const emit = defineEmits<Emits>();
 const visible = defineModel<boolean>("visible", { default: false });
 
 const defaultConfig: WaveformAnalyzerConfig = {
-  windowSize: 3.0,
+  windowSize: 4.0,
   windowOverlap: 0.5,
   singingEnergyThreshold: 1.1,
   talkingEnergyThreshold: 0.7,

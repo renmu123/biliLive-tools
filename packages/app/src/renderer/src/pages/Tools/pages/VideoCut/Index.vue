@@ -103,7 +103,7 @@ const danmaSearchMask = useStorage("cut-danma-search-mask", true);
 const showVideoTime = useStorage("cut-show-video-time", true);
 
 const waveformAnalyzerConfig = useStorage("cut-waveform-analyzer-config", {
-  windowSize: 3.0,
+  windowSize: 4.0,
   windowOverlap: 0.5,
   singingEnergyThreshold: 1.1,
   talkingEnergyThreshold: 0.7,

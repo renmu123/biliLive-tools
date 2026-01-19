@@ -161,6 +161,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       title: "{{filename}}-{{label}}-{{num}}",
       danmuPresetId: "default",
       ignoreDanmu: false,
+      exportSubtitle: true,
     },
   },
   task: {
@@ -251,8 +252,15 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     vendors: [],
     songRecognizeLlm: {
       vendorId: undefined,
-      prompt:
-        '你是一个音乐名称识别助手，根据歌词推断歌曲名称以及查询到的完整歌词，请提供【歌词】，不要输出其他内容，输出JSON,格式如下：\n{\n"lyrics": "[查询后的歌词]", "name":"[歌曲名称]"\n}',
+      prompt: `
+你是一个极度专业的音乐识别专家，擅长从存在误差的 ASR（语音识别）文本中提取核心语义，并精准锁定歌曲信息。
+根据歌词推断歌曲名称以及需确保返回的【歌词】版本为官方标准发行版，不要遗漏，请提供【歌词】
+# Output Format
+输出JSON，格式如下
+{
+  "lyrics": "[查询到的完整标准歌词]",
+  "name": "[准确的歌曲名称]"
+}`,
       model: "qwen-plus",
       enableSearch: true,
       maxInputLength: 300,

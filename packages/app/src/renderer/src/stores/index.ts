@@ -293,6 +293,7 @@ export const useAppConfig = defineStore("appConfig", () => {
         title: "{{filename}}-{{label}}-{{num}}",
         danmuPresetId: "default",
         ignoreDanmu: false,
+        exportSubtitle: true,
       },
     },
   });

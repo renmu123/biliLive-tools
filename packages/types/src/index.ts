@@ -268,6 +268,8 @@ export type ToolConfig = {
     danmuPresetId: string;
     /** 忽略弹幕 */
     ignoreDanmu: boolean;
+    /** 字幕导出 */
+    exportSubtitle: boolean;
   };
   /** 文件同步 */
   fileSync: {
