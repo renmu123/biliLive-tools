@@ -23,9 +23,6 @@
     "typecheck": "pnpm run typecheck:node && pnpm run typecheck:web"
   },
   "dependencies": {
-    "@biliLive-tools/http": "workspace:*",
-    "@biliLive-tools/shared": "workspace:*",
-    "@biliLive-tools/types": "workspace:*",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
     "@imengyu/vue3-context-menu": "^1.5.2",
@@ -45,6 +42,9 @@
     "wavesurfer.js": "^7.11.1"
   },
   "devDependencies": {
+    "@biliLive-tools/http": "workspace:*",
+    "@biliLive-tools/shared": "workspace:*",
+    "@biliLive-tools/types": "workspace:*",
     "@electron-toolkit/eslint-config": "^1.0.2",
     "@electron-toolkit/eslint-config-ts": "^2.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
