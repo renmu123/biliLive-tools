@@ -8,10 +8,10 @@ async function loadVtt(option, { getExt, srtToVtt, assToVtt }) {
     text = option.content;
   } else {
     // 否则从 URL 加载
-    const response = await fetch(option.url);
-    const buffer = await response.arrayBuffer();
-    const decoder = new TextDecoder(option.encoding || "utf-8");
-    text = decoder.decode(buffer);
+    // const response = await fetch(option.url);
+    // const buffer = await response.arrayBuffer();
+    // const decoder = new TextDecoder(option.encoding || "utf-8");
+    // text = decoder.decode(buffer);
   }
 
   const type = option.type || (option.url ? getExt(option.url) : "vtt");
@@ -105,6 +105,7 @@ export default function artplayerPluginSubtitle({ subtitles = [] }) {
         return setTracks(trees);
       },
       async setContent(content = "", type = "vtt") {
+        if (!content) return;
         const vttContent = await loadVtt({ content, type }, { getExt, srtToVtt, assToVtt });
         const tree = parser.parse(vttContent, "metadata");
         const vtt = seri.serialize(tree.cues);
