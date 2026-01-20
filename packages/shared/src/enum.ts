@@ -278,7 +278,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     debugLevel: "none",
     qualityRetry: 0,
     videoFormat: "auto",
-    recorderType: "auto",
+    recorderType: "bililive",
     useServerTimestamp: true,
     recordRetryImmediately: true,
     bilibili: {
