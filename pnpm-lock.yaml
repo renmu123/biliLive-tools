@@ -289,6 +289,9 @@ importers:
       '@napi-rs/canvas':
         specifier: ^0.1.60
         version: 0.1.60
+      '@renmu/node-shazam':
+        specifier: ^2.0.2
+        version: 2.0.2
       better-sqlite3:
         specifier: 'catalog:'
         version: 12.4.6
@@ -597,6 +600,9 @@ importers:
       '@renmu/m3u8-downloader':
         specifier: ^0.4.1
         version: 0.4.1
+      '@renmu/node-shazam':
+        specifier: ^2.0.2
+        version: 2.0.2
       '@renmu/throttle':
         specifier: ^1.0.3
         version: 1.0.3
@@ -1558,6 +1564,9 @@ packages:
   '@renmu/m3u8-downloader@0.4.1':
     resolution: {integrity: sha512-UcQmhNxBeM3My/XSyWyKXF1R/gqdYIro+aN6dbdvH1nKJE85IzNXT+EUgpGa/spN+em2BuubTVT6tylixC5cfg==}
     engines: {node: '>=18'}
+
+  '@renmu/node-shazam@2.0.2':
+    resolution: {integrity: sha512-gfCen531vUiUZOO0I7SzIV7X1uXsrMZJ3nS6ALAsiQLfyjiP6iqhiZ5rlf7BS9xAFhbJ8FuF1pY5nU5SoM2jbg==}
 
   '@renmu/throttle@1.0.3':
     resolution: {integrity: sha512-6ArdPb+EJ3IXnvemzNDj8YIAJMgyU8NMCi3Ad4nL0Vr9R8TfAk4KvHHsu9tWbmOmgrbp3bCYYO7AAQRN0MRQuw==}
@@ -2580,6 +2589,9 @@ packages:
 
   buffer@5.7.1:
     resolution: {integrity: sha512-EHcyIPBQ4BSGlvjB16k5KgAJ27CIsHY/2JBmCRReo48y9rQ3MaUzWX3KVlBa4U7MyX02HdVj0K7C3WaB3ju7FQ==}
+
+  buffer@6.0.3:
+    resolution: {integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==}
 
   bufferutil@4.0.8:
     resolution: {integrity: sha512-4T53u4PdgsXqKaIctwF8ifXlRTTmEPJ8iEPWFdGZvcf7sbwYo6FKFEX9eNNAnzFZ7EzJAQ3CJeOtCRA4rDp7Pw==}
@@ -5066,6 +5078,9 @@ packages:
   setprototypeof@1.2.0:
     resolution: {integrity: sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==}
 
+  shazamio-core@1.3.1:
+    resolution: {integrity: sha512-wzYxaL+Tzj4hv5UO1kCbJSjnL02rfcPqxtklf2vg1ykwE1U/FXpB83SRTS4/0OU2uTcVcvQN+xTqzwZQl4CIMg==}
+
   shebang-command@2.0.0:
     resolution: {integrity: sha512-kHxr2zZpYtdmrN1qDjrrX/Z1rR1kG8Dx+gkpK1G4eXmvXswmcE1hTWBWYUzlraYw1/yZp6YuDY77YtvbN0dmDA==}
     engines: {node: '>=8'}
@@ -6653,6 +6668,11 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
+  '@renmu/node-shazam@2.0.2':
+    dependencies:
+      buffer: 6.0.3
+      shazamio-core: 1.3.1
+
   '@renmu/throttle@1.0.3':
     dependencies:
       stream-parser: 0.3.1
@@ -7782,6 +7802,11 @@ snapshots:
   buffer-from@1.1.2: {}
 
   buffer@5.7.1:
+    dependencies:
+      base64-js: 1.5.1
+      ieee754: 1.2.1
+
+  buffer@6.0.3:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1
@@ -10574,6 +10599,8 @@ snapshots:
   setimmediate@1.0.5: {}
 
   setprototypeof@1.2.0: {}
+
+  shazamio-core@1.3.1: {}
 
   shebang-command@2.0.0:
     dependencies:

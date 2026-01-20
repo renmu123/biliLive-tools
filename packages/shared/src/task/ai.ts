@@ -1,3 +1,4 @@
+import { Shazam } from "@renmu/node-shazam";
 import { AliyunASR, TranscriptionDetail, QwenLLM } from "../ai/index.js";
 
 import { appConfig } from "../config.js";
@@ -261,6 +262,29 @@ function getSongRecognizeConfig() {
     lyricOptimize: data?.songRecognizeLlm?.lyricOptimize ?? true,
   };
 }
+
+/**
+ * 使用 Shazam 进行歌曲识别
+ * @param file 音频
+ * @returns
+ */
+export async function shazamRecognize(file: string): Promise<any> {
+  const shazam = new Shazam();
+  console.log("使用 Shazam 进行歌曲识别...", file);
+  const recognise = await shazam.recognise(file, "zh-cn");
+  console.log("Shazam 识别结果:", JSON.stringify(recognise, null, 2));
+  if (!recognise) {
+    return null;
+  }
+  return {
+    trackId: recognise.track.key,
+    title: recognise.track.title,
+  };
+}
+
+/**
+ * 使用 Shazam 查询信息
+ */
 
 /**
  * 输入音频，识别歌曲名称，输出歌词以及歌曲名称

@@ -50,6 +50,7 @@
     "fast-xml-parser": "^4.5.0",
     "font-ls": "catalog:",
     "node-downloader-helper": "^2.1.10",
+    "@renmu/node-shazam": "^2.0.2",
     "nodemailer": "^6.9.16",
     "ntsuspend": "catalog:",
     "ollama": "^0.5.9",
