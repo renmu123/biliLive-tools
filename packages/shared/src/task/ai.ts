@@ -1,5 +1,6 @@
 import { Shazam } from "@renmu/node-shazam";
 import { AliyunASR, TranscriptionDetail, QwenLLM } from "../ai/index.js";
+import { recognize as shazamRecognize } from "./shazam.js";
 
 import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
@@ -266,24 +267,24 @@ function getSongRecognizeConfig() {
   };
 }
 
-/**
- * 使用 Shazam 进行歌曲识别
- * @param file 音频
- * @returns
- */
-export async function shazamRecognize(file: string): Promise<any> {
-  const shazam = new Shazam();
-  console.log("使用 Shazam 进行歌曲识别...", file);
-  const recognise = await shazam.recognise(file, "zh-cn");
-  console.log("Shazam 识别结果:", JSON.stringify(recognise, null, 2));
-  if (!recognise) {
-    return null;
-  }
-  return {
-    trackId: recognise.track.key,
-    title: recognise.track.title,
-  };
-}
+// /**
+//  * 使用 Shazam 进行歌曲识别
+//  * @param file 音频
+//  * @returns
+//  */
+// export async function shazamRecognize(file: string): Promise<any> {
+//   const shazam = new Shazam();
+//   console.log("使用 Shazam 进行歌曲识别...", file);
+//   const recognise = await shazam.recognise(file, "zh-cn");
+//   console.log("Shazam 识别结果:", JSON.stringify(recognise, null, 2));
+//   if (!recognise) {
+//     return null;
+//   }
+//   return {
+//     trackId: recognise.track.key,
+//     title: recognise.track.title,
+//   };
+// }
 
 /**
  * 使用 Shazam 查询信息
@@ -304,6 +305,18 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
     enableStructuredOutput,
     lyricOptimize,
   } = getSongRecognizeConfig();
+
+  const info = await shazamRecognize(file, lyricOptimize);
+  if (!info) {
+    logger.warn("Shazam 未识别到任何歌曲信息");
+    return;
+  }
+  if (!lyricOptimize && info.title) {
+    logger.info("不进行歌词优化，直接返回 Shazam 歌曲名称");
+    return {
+      name: info.title,
+    };
+  }
 
   const data = await asrRecognize(file, asrVendorId);
   const messages = data.transcripts?.[0]?.text || "";
@@ -345,14 +358,13 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
       name: string;
       lyrics: string;
     };
+    const rawLyrics = info.lyrics || json.lyrics;
     let srtData = "";
-    if (json.lyrics) {
+    if (rawLyrics) {
       if (lyricOptimize) {
-        srtData = await optimizeLyrics(data, json.lyrics, audioStartTime * 1000);
+        srtData = await optimizeLyrics(data, rawLyrics, audioStartTime * 1000);
       } else {
         srtData = convert2Srt(optimizeMusicSubtitles(data), audioStartTime * 1000);
-        // fs.writeJSONSync("./last_song_recognize_asr_result.json", data, { spaces: 2 });
-        // await fs.writeFile("./output.srt", srtData, "utf-8");
       }
     }
 

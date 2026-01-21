@@ -1290,6 +1290,8 @@ export const addExtractAudioTask = async (
     endTime?: number;
     format?: "pcm_s16le" | "libmp3lame";
     audioRate?: number | string;
+    /** 音频滤镜 */
+    audioFilter?: string;
   },
 ) => {
   const opts = Object.assign(
@@ -1317,6 +1319,9 @@ export const addExtractAudioTask = async (
   }
   if (opts.endTime) {
     command.inputOptions(`-to ${opts.endTime}`);
+  }
+  if (opts.audioFilter) {
+    command.audioFilters(opts.audioFilter);
   }
 
   const task = new FFmpegTask(
