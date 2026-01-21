@@ -248,7 +248,7 @@ async function shazamRecognizeWithSampling(file: string) {
   ];
 
   // 渐进式识别顺序：0 -> 1 -> 2 -> 3
-  const recognitionOrder = [0, 1, 2, 3];
+  const recognitionOrder = [2, 3, 0, 1];
 
   // 辅助函数：提取单个片段
   const extractSegment = async (segmentIndex: number): Promise<string> => {
@@ -345,5 +345,5 @@ export async function recognize(file: string, lyricOptimize: boolean) {
     }
   }
 
-  return { title: title, lyrics, subtitle: subtitle, appleMusicId: appleMusicId };
+  return { name: title, lyrics, subtitle: subtitle, appleMusicId: appleMusicId };
 }

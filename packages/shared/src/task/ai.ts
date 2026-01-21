@@ -287,12 +287,72 @@ function getSongRecognizeConfig() {
 // }
 
 /**
- * 使用 Shazam 查询信息
+ * 使用 LLM 识别歌曲名称
+ * @param asrText - ASR 识别的文本内容
+ * @param vendorId - LLM 供应商 ID
+ * @param options - 配置选项
+ * @returns 歌曲名称和歌词
  */
+async function recognizeSongNameWithLLM(
+  asrText: string,
+  vendorId: string,
+  options: {
+    prompt?: string;
+    model: string;
+    enableSearch: boolean;
+    maxInputLength: number;
+    enableStructuredOutput: boolean;
+  },
+) {
+  try {
+    const { apiKey, baseURL } = getVendor(vendorId);
+    const llm = new QwenLLM({
+      apiKey: apiKey,
+      model: options.model,
+      baseURL: baseURL,
+    });
+
+    const truncatedText = asrText.slice(0, options.maxInputLength);
+    logger.info("使用 LLM 进行歌曲名称识别...", {
+      prompt: options.prompt,
+      messages: truncatedText,
+      llmModel: options.model,
+    });
+
+    const response = await llm.sendMessage(truncatedText, options.prompt, {
+      enableSearch: options.enableSearch,
+      responseFormat: options.enableStructuredOutput ? { type: "json_object" } : undefined,
+      temperature: 0.6,
+      searchOptions: {
+        forcedSearch: options.enableSearch,
+        search_strategy: "max",
+      },
+    });
+
+    logger.info("识别结果:", response);
+    if (!response.content) {
+      throw new Error("LLM 未返回任何内容");
+    }
+
+    try {
+      const json = JSON.parse(response.content) as {
+        name: string;
+        lyrics: string;
+      };
+      return json;
+    } catch (e) {
+      throw new Error("LLM 返回内容非 JSON 格式，无法解析歌曲名称和歌词");
+    }
+  } catch (error) {
+    logger.error("LLM 识别歌曲名称失败:", error);
+    return null;
+  }
+}
 
 /**
  * 输入音频，识别歌曲名称，输出歌词以及歌曲名称
  * @param file - 音频文件路径
+ * @param audioStartTime - 音频开始时间（秒）
  */
 export async function songRecognize(file: string, audioStartTime: number = 0) {
   const {
@@ -306,18 +366,24 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
     lyricOptimize,
   } = getSongRecognizeConfig();
 
-  const info = await shazamRecognize(file, lyricOptimize);
+  let info: {
+    name: string;
+    lyrics: string | null;
+  } | null = await shazamRecognize(file, lyricOptimize);
   if (!info) {
     logger.warn("Shazam 未识别到任何歌曲信息");
-    return;
   }
-  if (!lyricOptimize && info.title) {
-    logger.info("不进行歌词优化，直接返回 Shazam 歌曲名称");
+  logger.info("Shazam 识别结果:", info);
+
+  // 如果不需要进行歌词优化，且已经有歌曲名称，直接返回
+  if (!lyricOptimize && info?.name) {
+    logger.info("不需要进行歌词优化，直接返回 Shazam 歌曲名称");
     return {
-      name: info.title,
+      name: info.name,
     };
   }
 
+  // 如果开启了歌词优化，首先要asr识别
   const data = await asrRecognize(file, asrVendorId);
   const messages = data.transcripts?.[0]?.text || "";
   if (!messages) {
@@ -325,54 +391,34 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
     return;
   }
 
-  const { apiKey, baseURL } = getVendor(llmVendorId);
-  const llm = new QwenLLM({
-    apiKey: apiKey,
-    model: llmModel,
-    baseURL: baseURL,
-  });
-  logger.info("使用 LLM 进行歌曲名称识别...", {
-    prompt: llmPrompt,
-    messages: messages.slice(0, maxInputLength),
-    llmModel,
-  });
-  const response = await llm.sendMessage(messages.slice(0, maxInputLength), llmPrompt, {
-    enableSearch: enableSearch,
-    responseFormat: enableStructuredOutput ? { type: "json_object" } : undefined,
-    // enableThinking: true,
-    temperature: 0.6,
-    searchOptions: {
-      forcedSearch: enableSearch,
-      search_strategy: "max",
-      // intention_options: {
-      //   prompt_intervene: "MUSIC相关内容",
-      // },
-    },
-  });
-  logger.info("识别结果:", response);
-  if (!response.content) {
-    throw new Error("LLM 未返回任何内容");
+  // 如果 Shazam 未识别到歌曲名称或歌词，则使用 LLM 再识别一次
+  if (!info?.lyrics || !info?.name) {
+    info = await recognizeSongNameWithLLM(messages, llmVendorId, {
+      prompt: llmPrompt,
+      model: llmModel,
+      enableSearch: enableSearch,
+      maxInputLength: maxInputLength,
+      enableStructuredOutput: enableStructuredOutput,
+    });
   }
-  try {
-    const json = JSON.parse(response.content) as {
-      name: string;
-      lyrics: string;
-    };
-    const rawLyrics = info.lyrics || json.lyrics;
-    let srtData = "";
-    if (rawLyrics) {
-      if (lyricOptimize) {
-        srtData = await optimizeLyrics(data, rawLyrics, audioStartTime * 1000);
-      } else {
-        srtData = convert2Srt(optimizeMusicSubtitles(data), audioStartTime * 1000);
-      }
-    }
+  if (!info) {
+    logger.warn("未识别到任何歌曲信息");
+    return;
+  }
 
-    return {
-      name: json.name,
-      lyrics: srtData,
-    };
-  } catch (e) {
-    throw new Error("LLM 返回内容非 JSON 格式，无法解析歌曲名称和歌词");
+  const rawLyrics = info?.lyrics;
+  let srtData = "";
+  if (rawLyrics) {
+    if (lyricOptimize) {
+      srtData = await optimizeLyrics(data, rawLyrics, audioStartTime * 1000);
+    } else {
+      srtData = convert2Srt(optimizeMusicSubtitles(data), audioStartTime * 1000);
+    }
   }
+
+  const name = info?.name;
+  return {
+    name: name,
+    lyrics: srtData,
+  };
 }
