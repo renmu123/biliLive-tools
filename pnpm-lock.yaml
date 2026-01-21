@@ -621,6 +621,9 @@ importers:
       check-disk-space:
         specifier: ^3.4.0
         version: 3.4.0
+      chinese-conv:
+        specifier: ^4.0.0
+        version: 4.0.0
       dayjs:
         specifier: ^1.11.18
         version: 1.11.18
@@ -2676,6 +2679,10 @@ packages:
   check-error@2.1.1:
     resolution: {integrity: sha512-OAlb+T7V4Op9OwdkjmguYRqncdlx5JiofwOAUkmTF+jNdHwzTaTs4sRAGpzLF3oOz5xAyDGrPgeIDFQmDOTiJw==}
     engines: {node: '>= 16'}
+
+  chinese-conv@4.0.0:
+    resolution: {integrity: sha512-PVBMzvv6CtX1cubaDXfxYscIdbOAHPuY/E2vnfJIzOACX+xIW4NRKRlNsZVI2p5KxGsXyUp7tVHfvQlqZ4yx/w==}
+    engines: {node: ^20.19.0 || >=22.12.0}
 
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
@@ -7942,6 +7949,8 @@ snapshots:
   check-disk-space@3.4.0: {}
 
   check-error@2.1.1: {}
+
+  chinese-conv@4.0.0: {}
 
   chokidar@3.6.0:
     dependencies:

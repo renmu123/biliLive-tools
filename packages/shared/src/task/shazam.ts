@@ -1,6 +1,6 @@
 import { Shazam } from "@renmu/node-shazam";
 import fs from "fs-extra";
-import path from "node:path";
+import { sify } from "chinese-conv";
 import { addExtractAudioTask, readVideoMeta } from "./video.js";
 import { getTempPath, uuid } from "../utils/index.js";
 
@@ -341,7 +341,7 @@ export async function recognize(file: string, lyricOptimize: boolean) {
     if (appleMusicId) {
       // TODO：歌词要简繁转换
       const webData = await shazamQueryLyrics(appleMusicId, title);
-      lyrics = webData?.lyrics || null;
+      lyrics = sify(webData?.lyrics || "");
     }
   }
 
