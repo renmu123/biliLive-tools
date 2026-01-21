@@ -552,6 +552,13 @@ const songRecognize = async (segment: Segment) => {
     });
     return;
   }
+  if (segment.end && segment.end - segment.start > 6 * 60) {
+    const [status] = await confirm.warning({
+      content: `这么长的片段真的是歌曲吗、是否继续？`,
+    });
+    if (!status) return;
+  }
+
   // TODO:
   // 波形图配置颜色
   const [status] = await confirm.warning({

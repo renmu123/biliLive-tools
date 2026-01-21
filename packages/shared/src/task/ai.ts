@@ -185,10 +185,11 @@ function getLyricOptimizeConfig() {
  */
 export async function optimizeLyrics(asrData: TranscriptionDetail, lyrics: string, offset: number) {
   const { vendorId, prompt, model, enableStructuredOutput } = getLyricOptimizeConfig();
-  const { apiKey } = getVendor(vendorId);
+  const { apiKey, baseURL } = getVendor(vendorId);
   const llm = new QwenLLM({
     apiKey: apiKey,
     model: model,
+    baseURL: baseURL,
   });
 
   const asrCleanedSentences: ASRWord[] = [];
@@ -205,14 +206,15 @@ export async function optimizeLyrics(asrData: TranscriptionDetail, lyrics: strin
   }
 
   logger.info("使用 LLM 进行歌词优化...", {
-    message: `原歌词：${lyrics}\nASR转录数据：${JSON.stringify(asrCleanedSentences)}`,
+    message: `Standard_Lyrics：${lyrics}\nASR转录数据：${JSON.stringify(asrCleanedSentences)}`,
     systemPrompt: prompt,
     llmModel: model,
   });
   const response = await llm.sendMessage(
-    `原歌词：${lyrics}\nASR转录数据：${JSON.stringify(asrCleanedSentences)}`,
+    `Standard_Lyrics：${lyrics}\nASR转录数据：${JSON.stringify(asrCleanedSentences)}`,
     prompt,
     {
+      temperature: 0.5,
       enableSearch: false,
       responseFormat: enableStructuredOutput ? { type: "json_object" } : undefined,
     },
@@ -222,8 +224,9 @@ export async function optimizeLyrics(asrData: TranscriptionDetail, lyrics: strin
     throw new Error("LLM 未返回任何内容");
   }
   try {
-    const json = JSON.parse(response.content) as ASRWord[];
-    const srtData = convert2Srt2(json, offset);
+    const json = JSON.parse(response.content) as ASRWord[] | { data: ASRWord[] };
+    const aSRWords = Array.isArray(json) ? json : json.data;
+    const srtData = convert2Srt2(aSRWords, offset);
     return srtData;
   } catch (e) {
     logger.error("LLM 返回内容非 JSON 格式，尝试按纯文本处理", e);
@@ -300,7 +303,7 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
     maxInputLength,
     enableStructuredOutput,
     lyricOptimize,
-  } = await getSongRecognizeConfig();
+  } = getSongRecognizeConfig();
 
   const data = await asrRecognize(file, asrVendorId);
   const messages = data.transcripts?.[0]?.text || "";
@@ -309,10 +312,11 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
     return;
   }
 
-  const { apiKey } = getVendor(llmVendorId);
+  const { apiKey, baseURL } = getVendor(llmVendorId);
   const llm = new QwenLLM({
     apiKey: apiKey,
     model: llmModel,
+    baseURL: baseURL,
   });
   logger.info("使用 LLM 进行歌曲名称识别...", {
     prompt: llmPrompt,
@@ -322,12 +326,14 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
   const response = await llm.sendMessage(messages.slice(0, maxInputLength), llmPrompt, {
     enableSearch: enableSearch,
     responseFormat: enableStructuredOutput ? { type: "json_object" } : undefined,
+    // enableThinking: true,
+    temperature: 0.6,
     searchOptions: {
       forcedSearch: enableSearch,
       search_strategy: "max",
-      intention_options: {
-        prompt_intervene: "仅检索MUSIC相关内容",
-      },
+      // intention_options: {
+      //   prompt_intervene: "MUSIC相关内容",
+      // },
     },
   });
   logger.info("识别结果:", response);
@@ -355,7 +361,6 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
       lyrics: srtData,
     };
   } catch (e) {
-    logger.error("LLM 返回内容非 JSON 格式，尝试按纯文本处理", e);
     throw new Error("LLM 返回内容非 JSON 格式，无法解析歌曲名称和歌词");
   }
 }

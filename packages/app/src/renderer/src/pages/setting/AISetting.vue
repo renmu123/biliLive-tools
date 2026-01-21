@@ -187,15 +187,12 @@
             />
           </n-form-item>
 
-          <!-- <n-form-item>
+          <n-form-item>
             <template #label>
               <Tip text="Base URL" tip="可选，自定义API地址。如果使用官方接口可以留空"></Tip>
             </template>
-            <n-input
-              v-model:value="editingVendor.baseURL"
-              placeholder="可选，留空使用默认地址"
-            />
-          </n-form-item> -->
+            <n-input v-model:value="editingVendor.baseURL" placeholder="可选，留空使用默认地址" />
+          </n-form-item>
         </n-form>
 
         <template #footer>
@@ -237,8 +234,7 @@ const vendorSelectOptions = computed(() => {
 // 供应商选项
 const providerOptions = [
   { label: "阿里云", value: "aliyun" },
-  // 未来可扩展更多供应商
-  // { label: "OpenAI", value: "openai" },
+  { label: "OpenAI", value: "openai" },
   // { label: "百度", value: "baidu" },
 ];
 

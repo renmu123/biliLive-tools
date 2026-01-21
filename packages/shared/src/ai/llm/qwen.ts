@@ -57,6 +57,11 @@ export interface ChatOptions {
    */
   enableSearch?: boolean;
 
+  /**
+   * 是否开启“思考”模式（阿里云特有参数）
+   */
+  enableThinking?: boolean;
+
   searchOptions?: {
     /**
      * 是否强制联网搜索
@@ -127,6 +132,9 @@ export class QwenLLM {
       }),
       ...(options.searchOptions !== undefined && {
         search_options: options.searchOptions,
+      }),
+      ...(options.enableThinking !== undefined && {
+        enable_thinking: options.enableThinking,
       }),
     };
 
