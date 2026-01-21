@@ -270,29 +270,32 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     songLyricOptimize: {
       vendorId: undefined,
       prompt: `
-你是一个专业的音频字幕对齐专家，精通 ASR 噪声处理与标准文本（Standard Lyrics）的语义重构。
+# Role
+你是一个极度严谨的音频字幕对齐专家，擅长将破碎的 ASR 识别结果（ASR_Data）完美映射到标准文本（Standard_Lyrics）上。
 
-# 歌词排版一致性
-0. 扫描 Standard_Lyrics，识别所有换行符
-1. 严格遵循 Standard_Lyrics 的**换行**与断句。如果标准歌词中某一行是一个完整的句子，合并后的 JSON 单元也必须对应这一整行。
-2. 严禁跨行合并： 除非标准歌词本身将内容连在一起，否则不可将两行歌词合并到一个 JSON 对象中。
+# Core Algorithm: Anchor-Based Alignment
+1. 语义锚点定位：首先在 Standard_Lyrics 中识别出每一行（Line）。
+2. 碎片重组（Merging）：
+  扫描 ASR_Data，将物理时间连续且语义指向 Standard_Lyrics 同一行的多个片段进行合并。
+  新 st (begin_time) = 合并序列中第一个片段的 st。
+  新 et (end_time) = 合并序列中最后一个片段的 et。
+3. 文本重写（Rewriting）：
+  严禁使用 ASR 的原始文本作为输出。一旦确定了 ASR 片段对应的标准歌词行，直接将该行的 Standard_Lyrics 赋值给 t 字段。
+  即使 ASR 识别漏字、错字，也要以 Standard_Lyrics 的完整内容填充。
 
-# 对齐修复
-参考 Standard_Lyrics，修正 ASR_Data 中错误的 text 内容。
-如果 ASR 将一个完整的词语或短句拆得太碎（例如每个字一个片段），请根据 Standard_Lyrics 的将其合并，以歌词排版一致性优先。
-合并规则：合并后的 begin_time 必须是第一项的开始时间，end_time 必须是最后一项的结束时间。
-时间戳精度：严禁伪造时间戳，所有时间数值必须源自原始 ASR_Data 中的真实数据。
+# Constraints
+    换行一致性（Highest Priority）：Standard_Lyrics 的每一个换行符（\n）代表一个独立的 JSON 对象。
+    禁止跨行：严禁将 Standard_Lyrics 中属于两行的内容合并为一个 JSON 单元。
+    禁止时间戳漂移：所有时间戳必须直接取自原始 ASR_Data 的边缘值，不得进行加减运算或平均化处理。
+    数据完整性：输出必须包含 Standard_Lyrics 中的所有行。如果某行歌词在 ASR 中找不到对应（如长空白），请根据前后时间戳推算一个合理的静默区间或沿用上一个片段的结束时间，但优先确保文本完整。
 
-# 文本修正原则
-1. 以 Standard_Lyrics 为**最高真值（Ground Truth）**修正 ASR 的识别错误。
-2. 若 ASR 识别内容多于或少于标准歌词，以标准歌词的结构为准进行裁切或保留。若标准歌词缺失某段，则保留原 ASR 识别内容。
+# Workflow
+    读取 Standard_Lyrics。
+    遍历 Standard_Lyrics 的每一行，在 ASR_Data 中寻找最匹配的起始与结束索引。
+    执行合并并生成 JSON。
 
-# Output Format
-仅输出优化后的 JSON 数组，不包含任何解释或 Markdown 代码块以外的文字。 数据结构示例
-{"data": [
-  {"st": 188150, "et": 188830, "t": "歌词"},
-  {"st": 189000, "et": 192500, "t": "歌词"}
-]}
+## Output Format
+仅输出 JSON 对象，格式如下： {"data": [{"st": 123, "et": 456, "t": "标准歌词内容"}]}
 `,
       model: "",
       enableStructuredOutput: true,
