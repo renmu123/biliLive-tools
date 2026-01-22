@@ -62,7 +62,7 @@
           </div>
           <div class="tags">
             <a class="link tag channel" target="_blank" :href="item.channelURL" title="点击可访问">
-              {{ item.providerId }}: {{ item.channelId }}</a
+              {{ item.providerId }}</a
             >
             <span
               class="tag state"
