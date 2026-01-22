@@ -2,10 +2,8 @@
 
 ## 大更改
 
+- 录制引擎默认修改为“录播姬引擎”
 - 重构 webhook 匹配逻辑 [#277](https://github.com/renmu123/biliLive-tools/pull/227)
-- 支持移除不符合条件的小文件选项
-- 上传配置中设置为转载类型时转载来源支持为空，webhook中会尝试使用直播间链接（应该
-- 视频手动上传且存在占位符时，对相关的视频文件和弹幕进行解析，从而实现对占位符的填充（应该
 
 ## 功能
 
@@ -15,17 +13,26 @@
 - 录制：弹幕可视化优化，抄得录播姬（ [#302](https://github.com/renmu123/biliLive-tools/issues/302)
 - 抖音录播下载支持 [#305](https://github.com/renmu123/biliLive-tools/pull/305)
 - 录制：禁止标题关键词支持正则 [#307](https://github.com/renmu123/biliLive-tools/pull/307)
+- Webhook: 支持移除不符合条件的小文件选项
+- Webhook:上传配置中设置为转载类型时转载来源支持为空，webhook中会尝试使用直播间链接（应该
+- Webhook: 视频手动上传且存在占位符时，对相关的视频文件和弹幕进行解析，从而实现对占位符的填充（应该
 
 ## 优化
 
-- B站上传：增加 `cs-akbd` 线路 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
+- B站上传：增加 `cs-akbd`、`cs-estx` 线路 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
 - B站上传：`投稿最短间隔`及`缓存投稿失败视频`选项现在针对账户生效 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
 - B站上传：规避上传的406风控 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
 - 弹幕：“自定义过滤函数”支持`logger`进行调试
+- 录制：B站录制 `fmp4`流优先于`ts`流
+- 录制：B站录制 `避免hls自动分段` 选项不再对`fmp4`流生效
 
 ## bug修复
 
 - 弹幕：修复用户名称解析逻辑 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
+
+## 其他
+
+`DanmakuFactory` 采用 https://github.com/renmu123/DanmakuFactory 此处分发的版本
 
 # 3.6.0(2026.1.8)
 

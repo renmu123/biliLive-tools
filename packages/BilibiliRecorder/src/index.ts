@@ -172,9 +172,8 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
   this.usedStream = stream.name;
   this.usedSource = stream.source;
   let url = stream.url;
-
   let intervalId: NodeJS.Timeout | null = null;
-  if (this.useM3U8Proxy && streamOptions.protocol_name === "http_hls") {
+  if (this.useM3U8Proxy && streamOptions.format_name === "ts") {
     url = `${this.m3u8ProxyUrl}?id=${this.id}&format=hls`;
     this.emit("DebugLog", {
       type: "common",

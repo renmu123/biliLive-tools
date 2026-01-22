@@ -1,6 +1,7 @@
-# Next
+# 1.12.0
 
 - 弹幕：某些情况下礼物弹幕用户名为空时设置为"unknown"
+- 禁止标题关键词支持正则 [#307](https://github.com/renmu123/biliLive-tools/pull/307)
 
 # 1.11.1
 
