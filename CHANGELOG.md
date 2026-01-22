@@ -23,10 +23,16 @@
 - B站上传：`投稿最短间隔`及`缓存投稿失败视频`选项现在针对账户生效 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
 - B站上传：规避上传的406风控 [#306](https://github.com/renmu123/biliLive-tools/pull/306)
 - 弹幕：“自定义过滤函数”支持`logger`进行调试
+- 录制：B站录制 `fmp4`流优先于`ts`流
+- 录制：B站录制 `避免hls自动分段` 选项不再对`fmp4`流生效
 
 ## bug修复
 
 - 弹幕：修复用户名称解析逻辑 [#283](https://github.com/renmu123/biliLive-tools/pull/283)
+
+## 其他
+
+`DanmakuFactory` 采用 https://github.com/renmu123/DanmakuFactory 此处分发的版本
 
 # 3.6.0(2026.1.8)
 
