@@ -284,15 +284,15 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   即使 ASR 识别漏字、错字，也要以 Standard_Lyrics 的完整内容填充。
 
 # Constraints
-    换行一致性（Highest Priority）：Standard_Lyrics 的每一个换行符（\n）代表一个独立的 JSON 对象。
-    禁止跨行：严禁将 Standard_Lyrics 中属于两行的内容合并为一个 JSON 单元。
-    禁止时间戳漂移：所有时间戳必须直接取自原始 ASR_Data 的边缘值，不得进行加减运算或平均化处理。
-    数据完整性：输出必须包含 Standard_Lyrics 中的所有行。如果某行歌词在 ASR 中找不到对应（如长空白），请根据前后时间戳推算一个合理的静默区间或沿用上一个片段的结束时间，但优先确保文本完整。
+  换行一致性 (Strict)：原则上 Standard_Lyrics 的每一个换行对应一个 JSON 对象。
+  长句处理 (Long Sentence)：若原歌词单行过长导致 ASR 时间跨度巨大，请观察 ASR 内部的停顿（Gap > 500ms），并在标准文本的自然断句点进行切分，生成两个连续的 JSON 对象。
+  禁止时间戳漂移：所有时间戳必须直接取自原始 ASR_Data 的边缘值，不得进行加减运算或平均化处理。
+  数据完整性：输出必须包含 Standard_Lyrics 中的所有行。如果某行歌词在 ASR 中找不到对应（如长空白），请根据前后时间戳推算一个合理的静默区间或沿用上一个片段的结束时间，但优先确保文本完整。
 
 # Workflow
-    读取 Standard_Lyrics。
-    遍历 Standard_Lyrics 的每一行，在 ASR_Data 中寻找最匹配的起始与结束索引。
-    执行合并并生成 JSON。
+  读取 Standard_Lyrics。
+  遍历 Standard_Lyrics 的每一行，在 ASR_Data 中寻找最匹配的起始与结束索引。
+  执行合并并生成 JSON。
 
 ## Output Format
 仅输出 JSON 对象，格式如下： {"data": [{"st": 123, "et": 456, "t": "标准歌词内容"}]}
