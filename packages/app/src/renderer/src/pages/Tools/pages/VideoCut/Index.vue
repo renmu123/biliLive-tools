@@ -102,14 +102,11 @@ const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
 const danmaSearchMask = useStorage("cut-danma-search-mask", true);
 const showVideoTime = useStorage("cut-show-video-time", true);
 
-const waveformAnalyzerConfig = useStorage("cut-waveform-analyzer-config", {
-  windowSize: 4.0,
-  windowOverlap: 0.5,
-  singingEnergyThreshold: 1.1,
-  talkingEnergyThreshold: 0.7,
-  minSegmentDuration: 15.0,
-  mergeGap: 20.0,
-  silenceThreshold: 30,
+const waveformAnalyzerConfig = useStorage("cut-waveform-analyzer-config-new", {
+  energyPercentile: 50, // 能量百分位阈值 (0-100)
+  minSegmentDuration: 25, // 最小片段时长（秒）
+  maxGapDuration: 15, // 最大间隔时长（秒）
+  smoothWindowSize: 4, // 平滑窗口大小（秒）
 });
 const waveformAnalyzerDialogVisible = ref(false);
 

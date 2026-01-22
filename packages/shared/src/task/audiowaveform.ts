@@ -5,7 +5,6 @@ import { spawn } from "node:child_process";
 import logger from "../utils/log.js";
 import { calculateFileQuickHash, getTempPath } from "../utils/index.js";
 import { addExtractAudioTask } from "./video.js";
-import { AudiowaveformData, AnalyzerConfig, BoundaryDetector } from "../WaveformAnalyzer/index.js";
 
 import { getBinPath } from "./video.js";
 
@@ -72,26 +71,3 @@ export const generateWaveformData = async (videoFilePath: string) => {
     throw error;
   }
 };
-
-/**
- * 分析波形数据，主要用于检测唱歌边界点
- * @param videoPath 输入视频文件路径
- */
-export async function analyzerWaveform(videoPath: string, iConfig?: Partial<AnalyzerConfig>) {
-  const dataPath = await generateWaveformData(videoPath);
-  const fileContent = await fs.readFile(dataPath, "utf-8");
-  const data: AudiowaveformData = JSON.parse(fileContent);
-  const config: AnalyzerConfig = {
-    windowSize: 3.0, // 窗口大小（秒）- 增大让分析更平滑
-    windowOverlap: 0.5, // 50%重叠
-    singingEnergyThreshold: 1.1, // 唱歌能量阈值倍数 - 降低以减少漏检
-    talkingEnergyThreshold: 0.7, // 说话能量阈值倍数
-    minSegmentDuration: 15.0, // 最小片段时长（秒）- 增大过滤短片段
-    mergeGap: 20.0, // 合并间隔（秒）- 增大合并相邻片段
-    silenceThreshold: 30, // 静音阈值
-    ...iConfig,
-  };
-  const detector = new BoundaryDetector(data, config);
-  const segments = detector.detectSegments();
-  return segments.filter((seg) => seg.type === "singing");
-}

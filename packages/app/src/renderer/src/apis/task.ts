@@ -9,7 +9,7 @@ import type {
   DanmaOptions,
 } from "@biliLive-tools/types";
 import type { VideoAPI } from "@biliLive-tools/http/types/video.js";
-import type { AnalyzerConfig } from "@biliLive-tools/shared/WaveformAnalyzer/types.js";
+import type { DetectionConfig } from "music-segment-detector";
 
 /**
  * 获取任务列表
@@ -320,7 +320,7 @@ const extractPeaks = async (
 
 const analyzerWaveform = async (
   input: string,
-  config?: Partial<AnalyzerConfig>,
+  config?: Partial<DetectionConfig>,
 ): Promise<{
   output: Array<{
     startTime: number;

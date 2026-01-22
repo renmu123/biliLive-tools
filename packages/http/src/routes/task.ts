@@ -31,14 +31,12 @@ import {
   executeVirtualRecordConfig,
 } from "@biliLive-tools/shared/task/virtualRecord.js";
 import { flvRepair } from "@biliLive-tools/shared/task/flvRepair.js";
-import {
-  generateWaveformData,
-  analyzerWaveform,
-} from "@biliLive-tools/shared/task/audiowaveform.js";
+import { generateWaveformData } from "@biliLive-tools/shared/task/audiowaveform.js";
+import { musicDetect } from "@biliLive-tools/shared/musicDetector/index.js";
 import { fileCache, appConfig } from "../index.js";
 
 import type { DanmuPreset, DanmaOptions } from "@biliLive-tools/types";
-import type { AnalyzerConfig } from "@biliLive-tools/shared/WaveformAnalyzer/types.js";
+import type { DetectionConfig } from "music-segment-detector";
 
 const router = new Router({
   prefix: "/task",
@@ -525,7 +523,7 @@ router.post("/extractPeaks", async (ctx) => {
 router.post("/analyzerWaveform", async (ctx) => {
   const { input, config } = ctx.request.body as {
     input: string;
-    config?: Partial<AnalyzerConfig>;
+    config?: Partial<DetectionConfig>;
   };
   if (!input) {
     ctx.status = 400;
@@ -533,7 +531,7 @@ router.post("/analyzerWaveform", async (ctx) => {
     return;
   }
 
-  const data = await analyzerWaveform(input, config || {});
+  const data = await musicDetect(input, config || {});
 
   ctx.body = { output: data };
 });

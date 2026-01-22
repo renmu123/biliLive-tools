@@ -1,9 +1,72 @@
-import { Shazam } from "@renmu/node-shazam";
+import path from "node:path";
+import fs from "fs-extra";
+import { analyzeAudio, detectMusicSegments, DetectionConfig } from "music-segment-detector";
+
+import { addExtractAudioTask } from "../task/video.js";
 import { AliyunASR, TranscriptionDetail, QwenLLM } from "../ai/index.js";
 import { recognize as shazamRecognize } from "./shazam.js";
-
 import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
+import { getTempPath, uuid, calculateFileQuickHash } from "../utils/index.js";
+
+/**
+ * 检测唱歌边界点
+ * @param videoPath 输入视频文件路径,wav
+ */
+export async function musicDetect(videoPath: string, iConfig?: Partial<DetectionConfig>) {
+  const cachePath = getTempPath();
+  const outputVideoName = `${uuid()}.wav`;
+  const fileHash = await calculateFileQuickHash(videoPath);
+  const featuresJsonPath = path.join(cachePath, `features_${fileHash}.json`);
+
+  let features: Awaited<ReturnType<typeof analyzeAudio>> = [];
+  if (await fs.pathExists(featuresJsonPath)) {
+    logger.info("检测到已有音频特征缓存，直接读取:", featuresJsonPath);
+    features = await fs.readJSON(featuresJsonPath);
+  } else {
+    const task = await addExtractAudioTask(videoPath, outputVideoName, {
+      saveType: 2,
+      savePath: cachePath,
+      autoRun: true,
+      addQueue: false,
+      sampleRate: 16000,
+    });
+    const outputFile: string = await new Promise((resolve, reject) => {
+      task.on("task-end", () => {
+        resolve(task.output as string);
+      });
+      task.on("task-error", (err) => {
+        reject(err);
+      });
+    });
+
+    // 1. 分析 WAV 音频文件（带进度回调）
+    features = await analyzeAudio(outputFile, 2048, 512, (progress) => {
+      console.log(`分析进度: ${(progress * 100).toFixed(1)}%`);
+    });
+
+    await fs.writeJSON(featuresJsonPath, features, { spaces: 2 });
+  }
+
+  const config: DetectionConfig = {
+    energyPercentile: 50, // 能量百分位阈值 (0-100)
+    minSegmentDuration: 20, // 最小片段时长（秒）
+    maxGapDuration: 20, // 最大间隔时长（秒）
+    smoothWindowSize: 4, // 平滑窗口大小（秒）
+    ...iConfig,
+  };
+
+  // 2. 检测音乐片段
+  const segments = detectMusicSegments(features, config);
+
+  // 4. 使用检测到的片段
+  segments.forEach((segment) => {
+    console.log(`片段: ${segment.startTime}s - ${segment.endTime}s`);
+    console.log(`时长: ${segment.duration}s`);
+    console.log(`置信度: ${segment.confidence}`);
+  });
+  return segments;
+}
 
 /**
  * 音乐字幕优化
@@ -266,25 +329,6 @@ function getSongRecognizeConfig() {
     lyricOptimize: data?.songRecognizeLlm?.lyricOptimize ?? true,
   };
 }
-
-// /**
-//  * 使用 Shazam 进行歌曲识别
-//  * @param file 音频
-//  * @returns
-//  */
-// export async function shazamRecognize(file: string): Promise<any> {
-//   const shazam = new Shazam();
-//   console.log("使用 Shazam 进行歌曲识别...", file);
-//   const recognise = await shazam.recognise(file, "zh-cn");
-//   console.log("Shazam 识别结果:", JSON.stringify(recognise, null, 2));
-//   if (!recognise) {
-//     return null;
-//   }
-//   return {
-//     trackId: recognise.track.key,
-//     title: recognise.track.title,
-//   };
-// }
 
 /**
  * 使用 LLM 识别歌曲名称

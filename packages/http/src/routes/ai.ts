@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import Router from "@koa/router";
-import { asrRecognize, llm, songRecognize } from "@biliLive-tools/shared/task/ai.js";
+import { asrRecognize, llm, songRecognize } from "@biliLive-tools/shared/musicDetector/index.js";
 import { getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
 import { addExtractAudioTask } from "@biliLive-tools/shared/task/video.js";
 
@@ -62,7 +62,7 @@ router.post("/song_recognize", async (ctx) => {
     autoRun: true,
     addQueue: false,
     format: "libmp3lame",
-    audioRate: "192k",
+    audioBitrate: "192k",
   });
   const outputFile: string = await new Promise((resolve, reject) => {
     task.on("task-end", () => {

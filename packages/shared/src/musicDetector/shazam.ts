@@ -1,7 +1,7 @@
 import { Shazam } from "@renmu/node-shazam";
 import fs from "fs-extra";
 import { sify } from "chinese-conv";
-import { addExtractAudioTask, readVideoMeta } from "./video.js";
+import { addExtractAudioTask, readVideoMeta } from "../task/video.js";
 import { getTempPath, uuid } from "../utils/index.js";
 
 interface TrackInfo {

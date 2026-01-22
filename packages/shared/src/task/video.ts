@@ -1289,7 +1289,8 @@ export const addExtractAudioTask = async (
     // 单位：秒
     endTime?: number;
     format?: "pcm_s16le" | "libmp3lame";
-    audioRate?: number | string;
+    audioBitrate?: number | string;
+    sampleRate?: number;
     /** 音频滤镜 */
     audioFilter?: string;
   },
@@ -1311,8 +1312,11 @@ export const addExtractAudioTask = async (
     .outputOptions(`-acodec ${opts.format}`)
     .outputOptions("-ac 1")
     .output(output);
-  if (opts.audioRate) {
-    command.outputOptions(`-ab ${opts.audioRate}`);
+  if (opts.audioBitrate) {
+    command.outputOptions(`-ab ${opts.audioBitrate}`);
+  }
+  if (opts.sampleRate) {
+    command.outputOptions(`-ar ${opts.sampleRate}`);
   }
   if (opts.startTime) {
     command.inputOptions(`-ss ${opts.startTime}`);

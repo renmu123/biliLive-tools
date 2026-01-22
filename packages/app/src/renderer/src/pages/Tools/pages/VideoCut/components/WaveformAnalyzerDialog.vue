@@ -6,9 +6,9 @@
     style="width: 520px"
     :on-after-leave="handleClose"
   >
-    <h1>
-      此项功能用来快速对长视频中的翻唱音乐片段进行识别，分段后你也可以在片段中右键识别歌曲名称，调整参数可以更加精准地切割
-    </h1>
+    <p style="padding-top: 16px; color: skyblue">
+      此项功能用来快速对长视频中的翻唱音乐片段进行识别，分段后你也可以在片段中右键识别歌曲名称，调整参数可以更加精准地切割，第一次使用建议先尝试默认值，尝试后再进行调整，确认后会清空当前片段。
+    </p>
     <n-form
       ref="formRef"
       :model="formValue"
@@ -16,59 +16,20 @@
       label-width="auto"
       require-mark-placement="right-hanging"
     >
-      <n-form-item label="窗口大小(秒)" path="windowSize">
+      <n-form-item label="能量百分位阈值" path="energyPercentile">
         <n-input-number
-          v-model:value="formValue.windowSize"
-          :min="0.1"
-          :max="10"
-          :step="0.5"
-          placeholder="窗口大小"
-        >
-          <template #suffix>秒</template>
-        </n-input-number>
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
-          增大让分析更平滑，过大可能导致片段合并
-        </n-text>
-      </n-form-item>
-
-      <n-form-item label="窗口重叠率" path="windowOverlap">
-        <n-input-number
-          v-model:value="formValue.windowOverlap"
+          v-model:value="formValue.energyPercentile"
           :min="0"
-          :max="1"
-          :step="0.1"
-          placeholder="窗口重叠率"
-        />
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
-          0-1之间，建议0.5(50%重叠)
-        </n-text>
+          :max="100"
+          :step="1"
+          placeholder="能量百分位阈值"
+        >
+          <template #suffix>%</template>
+        </n-input-number>
+        <n-text depth="3" style="margin-left: 8px; font-size: 12px"> 值越高要求越严格 </n-text>
       </n-form-item>
 
-      <n-form-item label="唱歌能量阈值" path="singingEnergyThreshold">
-        <n-input-number
-          v-model:value="formValue.singingEnergyThreshold"
-          :min="0.1"
-          :max="5"
-          :step="0.1"
-          placeholder="唱歌能量阈值倍数"
-        />
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
-          降低以减少漏检，大概就是唱歌音量
-        </n-text>
-      </n-form-item>
-
-      <n-form-item label="说话能量阈值" path="talkingEnergyThreshold">
-        <n-input-number
-          v-model:value="formValue.talkingEnergyThreshold"
-          :min="0.1"
-          :max="5"
-          :step="0.1"
-          placeholder="说话能量阈值倍数"
-        />
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px"> 大概就是说话音量 </n-text>
-      </n-form-item>
-
-      <n-form-item label="最小片段时长(秒)" path="minSegmentDuration">
+      <n-form-item label="最小片段时长" path="minSegmentDuration">
         <n-input-number
           v-model:value="formValue.minSegmentDuration"
           :min="1"
@@ -78,30 +39,39 @@
         >
           <template #suffix>秒</template>
         </n-input-number>
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px"> 增大过滤短片段 </n-text>
+        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
+          过滤掉短于此时长的片段
+        </n-text>
       </n-form-item>
 
-      <n-form-item label="合并间隔(秒)" path="mergeGap">
+      <n-form-item label="最大间隔时长" path="maxGapDuration">
         <n-input-number
-          v-model:value="formValue.mergeGap"
+          v-model:value="formValue.maxGapDuration"
           :min="0"
           :max="1200"
           :step="1"
-          placeholder="合并间隔"
+          placeholder="最大间隔时长"
         >
           <template #suffix>秒</template>
         </n-input-number>
-        <n-text depth="3" style="margin-left: 8px; font-size: 12px"> 增大合并相邻片段 </n-text>
+        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
+          短于此时长的间隔会被合并
+        </n-text>
       </n-form-item>
 
-      <n-form-item label="静音阈值" path="silenceThreshold">
+      <n-form-item label="平滑窗口大小" path="smoothWindowSize">
         <n-input-number
-          v-model:value="formValue.silenceThreshold"
-          :min="0"
-          :max="100"
+          v-model:value="formValue.smoothWindowSize"
+          :min="1"
+          :max="20"
           :step="1"
-          placeholder="静音阈值"
-        />
+          placeholder="平滑窗口大小"
+        >
+          <template #suffix>秒</template>
+        </n-input-number>
+        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
+          用于平滑能量曲线，减少噪声影响
+        </n-text>
       </n-form-item>
     </n-form>
 
@@ -117,13 +87,10 @@
 
 <script setup lang="ts">
 interface WaveformAnalyzerConfig {
-  windowSize: number;
-  windowOverlap: number;
-  singingEnergyThreshold: number;
-  talkingEnergyThreshold: number;
-  minSegmentDuration: number;
-  mergeGap: number;
-  silenceThreshold: number;
+  energyPercentile: number; // 能量百分位阈值 (0-100)
+  minSegmentDuration: number; // 最小片段时长（秒）
+  maxGapDuration: number; // 最大间隔时长（秒）
+  smoothWindowSize: number; // 平滑窗口大小（秒）
 }
 
 interface Props {
@@ -142,13 +109,10 @@ const emit = defineEmits<Emits>();
 const visible = defineModel<boolean>("visible", { default: false });
 
 const defaultConfig: WaveformAnalyzerConfig = {
-  windowSize: 4.0,
-  windowOverlap: 0.5,
-  singingEnergyThreshold: 1.1,
-  talkingEnergyThreshold: 0.7,
-  minSegmentDuration: 15.0,
-  mergeGap: 20.0,
-  silenceThreshold: 30,
+  energyPercentile: 50,
+  minSegmentDuration: 20,
+  maxGapDuration: 20,
+  smoothWindowSize: 4,
 };
 
 const formValue = ref<WaveformAnalyzerConfig>({ ...props.modelValue });
