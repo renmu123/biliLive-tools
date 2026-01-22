@@ -13,7 +13,10 @@ import { getTempPath, uuid, calculateFileQuickHash } from "../utils/index.js";
  * 检测唱歌边界点
  * @param videoPath 输入视频文件路径,wav
  */
-export async function musicDetect(videoPath: string, iConfig?: Partial<DetectionConfig>) {
+export async function musicDetect(
+  videoPath: string,
+  iConfig?: Partial<DetectionConfig & { disableCache: boolean }>,
+) {
   const cachePath = getTempPath();
   const outputVideoName = `${uuid()}.wav`;
   const fileHash = await calculateFileQuickHash(videoPath);
@@ -46,7 +49,9 @@ export async function musicDetect(videoPath: string, iConfig?: Partial<Detection
     });
     fs.remove(outputFile);
 
-    await fs.writeJSON(featuresJsonPath, features, { spaces: 2 });
+    if (!iConfig?.disableCache) {
+      await fs.writeJSON(featuresJsonPath, features, { spaces: 2 });
+    }
   }
 
   const config: DetectionConfig = {
