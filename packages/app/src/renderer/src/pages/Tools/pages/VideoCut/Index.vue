@@ -60,6 +60,7 @@
   <WaveformAnalyzerDialog
     v-model:visible="waveformAnalyzerDialogVisible"
     v-model="waveformAnalyzerConfig"
+    :file-path="files.videoPath"
     @confirm="waveformAnalyzerConfirm"
   />
 </template>
@@ -549,14 +550,15 @@ const openWaveformAnalyzerDialog = () => {
   waveformAnalyzerDialogVisible.value = true;
 };
 
-const waveformAnalyzerConfirm = async () => {
-  const result = await taskApi.analyzerWaveform(
-    files.value.videoPath as string,
-    waveformAnalyzerConfig.value,
-  );
+const waveformAnalyzerConfirm = async (
+  data: {
+    startTime: number;
+    endTime: number;
+  }[],
+) => {
   segmentStore.clear();
   segmentStore.init(
-    result.output.map((seg: any) => ({
+    data.map((seg: any) => ({
       start: seg.startTime,
       end: seg.endTime,
       name: "",

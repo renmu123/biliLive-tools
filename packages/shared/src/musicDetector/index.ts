@@ -42,8 +42,9 @@ export async function musicDetect(videoPath: string, iConfig?: Partial<Detection
 
     // 1. 分析 WAV 音频文件（带进度回调）
     features = await analyzeAudio(outputFile, 2048, 512, (progress) => {
-      console.log(`分析进度: ${(progress * 100).toFixed(1)}%`);
+      // console.log(`分析进度: ${(progress * 100).toFixed(1)}%`);
     });
+    fs.remove(outputFile);
 
     await fs.writeJSON(featuresJsonPath, features, { spaces: 2 });
   }
@@ -59,11 +60,16 @@ export async function musicDetect(videoPath: string, iConfig?: Partial<Detection
   // 2. 检测音乐片段
   const segments = detectMusicSegments(features, config);
 
-  // 4. 使用检测到的片段
+  // 3. 如果配置了不保留缓存，删除缓存文件
+  // @ts-ignore
+  if (iConfig?.disableCache && (await fs.pathExists(featuresJsonPath))) {
+    logger.info("删除音频特征缓存文件:", featuresJsonPath);
+    await fs.remove(featuresJsonPath);
+  }
+
+  // 4. 使用检测到 的片段
   segments.forEach((segment) => {
-    console.log(`片段: ${segment.startTime}s - ${segment.endTime}s`);
-    console.log(`时长: ${segment.duration}s`);
-    console.log(`置信度: ${segment.confidence}`);
+    logger.info("检测到音乐片段:", segment);
   });
   return segments;
 }

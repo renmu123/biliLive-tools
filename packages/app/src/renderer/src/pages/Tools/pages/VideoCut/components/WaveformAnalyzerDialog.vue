@@ -73,38 +73,51 @@
           用于平滑能量曲线，减少噪声影响
         </n-text>
       </n-form-item>
+
+      <n-form-item label="不保留缓存" path="disableCache">
+        <n-checkbox v-model:checked="formValue.disableCache" />
+        <n-text depth="3" style="margin-left: 8px; font-size: 12px">
+          分析完成后删除缓存文件，下次需要重新提取音频
+        </n-text>
+      </n-form-item>
     </n-form>
 
     <template #action>
       <n-space justify="end">
         <n-button @click="handleReset">重置默认值</n-button>
         <n-button @click="handleCancel">取消</n-button>
-        <n-button type="primary" @click="handleConfirm">确定</n-button>
+        <n-button type="primary" @click="handleConfirm" :loading="loading">确定</n-button>
       </n-space>
     </template>
   </n-modal>
 </template>
 
 <script setup lang="ts">
+import { taskApi } from "@renderer/apis";
+
 interface WaveformAnalyzerConfig {
   energyPercentile: number; // 能量百分位阈值 (0-100)
   minSegmentDuration: number; // 最小片段时长（秒）
   maxGapDuration: number; // 最大间隔时长（秒）
   smoothWindowSize: number; // 平滑窗口大小（秒）
+  disableCache?: boolean; // 不保留缓存
 }
 
 interface Props {
   modelValue: WaveformAnalyzerConfig;
+  filePath: string | null;
 }
 
 interface Emits {
   (e: "update:modelValue", value: WaveformAnalyzerConfig): void;
-  (e: "confirm", value: WaveformAnalyzerConfig): void;
+  (e: "confirm", value: { startTime: number; endTime: number }[]): void;
   (e: "cancel"): void;
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
+
+const notice = useNotice();
 
 const visible = defineModel<boolean>("visible", { default: false });
 
@@ -113,6 +126,7 @@ const defaultConfig: WaveformAnalyzerConfig = {
   minSegmentDuration: 20,
   maxGapDuration: 20,
   smoothWindowSize: 4,
+  disableCache: false,
 };
 
 const formValue = ref<WaveformAnalyzerConfig>({ ...props.modelValue });
@@ -126,10 +140,35 @@ watch(
   { deep: true },
 );
 
-const handleConfirm = () => {
-  emit("update:modelValue", { ...formValue.value });
-  emit("confirm", { ...formValue.value });
-  visible.value = false;
+const loading = ref(false);
+const handleConfirm = async () => {
+  if (!props.filePath) {
+    notice.error({
+      title: "文件路径无效，无法分析",
+      duration: 10000,
+    });
+    return;
+  }
+
+  notice.info({
+    title: "正在识别分析中，具体时间视视频长度而定，请玩会儿手机耐心等待...",
+    duration: 1000,
+  });
+  loading.value = true;
+  try {
+    const result = await taskApi.analyzerWaveform(props.filePath, formValue.value);
+    loading.value = false;
+
+    emit("update:modelValue", { ...formValue.value });
+    emit("confirm", result.output);
+    visible.value = false;
+  } catch (e) {
+    loading.value = false;
+    notice.error({
+      title: "分析失败",
+      duration: 2000,
+    });
+  }
 };
 
 const handleCancel = () => {
