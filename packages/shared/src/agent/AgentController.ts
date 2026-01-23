@@ -9,6 +9,7 @@ import { SkillLoader } from "./SkillLoader.js";
 import { NLU } from "./nlu/index.js";
 import { ParameterCollector } from "./ParameterCollector.js";
 import { SkillExecutor } from "./SkillExecutor.js";
+import type { Skill } from "./skills/base.js";
 
 /**
  * AI Agent 控制器 - 协调整个对话流程
@@ -34,18 +35,23 @@ export class AgentController {
 
     // 初始化组件
     this.conversationManager = new ConversationManager(this.config.sessionTimeout);
-    this.skillLoader = new SkillLoader(
-      "C:\\Users\\renmu\\Desktop\\biliLive-tools\\packages\\shared\\src\\agent\\skills",
-    );
+    this.skillLoader = new SkillLoader();
     this.nlu = new NLU(llmProvider);
     this.parameterCollector = new ParameterCollector(this.nlu, this.config.maxRetries);
     this.skillExecutor = skillExecutor;
 
-    // 加载技能
-    this.skillLoader.loadAll();
-
     if (this.config.debug) {
-      console.log(`Agent initialized with ${this.skillLoader.getSkillNames().length} skills`);
+      console.log("Agent initialized, waiting for skill registration");
+    }
+  }
+
+  /**
+   * 注册技能
+   */
+  registerSkills(skills: Skill[]): void {
+    this.skillLoader.registerSkills(skills);
+    if (this.config.debug) {
+      console.log(`Agent registered ${this.skillLoader.getSkillNames().length} skills`);
     }
   }
 
@@ -401,11 +407,12 @@ export class AgentController {
   }
 
   /**
-   * 重新加载技能
+   * 重新注册技能
    */
-  reloadSkills(): void {
-    this.skillLoader.reload();
-    this.log(`Reloaded skills: ${this.skillLoader.getSkillNames().join(", ")}`);
+  reregisterSkills(skills: Skill[]): void {
+    this.skillLoader.clear();
+    this.registerSkills(skills);
+    this.log(`Reregistered skills: ${this.skillLoader.getSkillNames().join(", ")}`);
   }
 
   /**

@@ -17,6 +17,8 @@ export interface ChatMessage {
 export interface SkillSchema {
   /** 技能名称（唯一标识） */
   name: string;
+  /** 技能显示名称 */
+  showName: string;
   /** 技能描述 */
   description: string;
   /** 参数定义 */
@@ -156,4 +158,11 @@ export interface AgentConfig {
   llmTemperature: number;
   /** 是否启用调试日志 */
   debug: boolean;
+}
+
+/**
+ * 技能处理器接口
+ */
+export interface SkillHandler {
+  execute(params: Record<string, any>): Promise<SkillExecutionResult>;
 }

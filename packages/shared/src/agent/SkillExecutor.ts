@@ -1,11 +1,4 @@
-import type { SkillSchema, SkillExecutionResult } from "./types.js";
-
-/**
- * 技能处理器接口
- */
-export interface SkillHandler {
-  execute(params: Record<string, any>): Promise<SkillExecutionResult>;
-}
+import type { SkillSchema, SkillExecutionResult, SkillHandler } from "./types.js";
 
 /**
  * 技能执行引擎 - 将技能映射到实际的执行函数

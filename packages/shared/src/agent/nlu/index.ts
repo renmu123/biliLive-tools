@@ -42,6 +42,7 @@ export class NLU {
 }`;
 
     try {
+      // console.log("Intent identification prompt:", prompt, systemPrompt);
       const response = await this.llm.sendMessage(prompt, systemPrompt, {
         responseFormat: { type: "json_object" },
         temperature: 0.3,
@@ -97,6 +98,7 @@ export class NLU {
 3. 不要编造或猜测参数值`;
 
     try {
+      // console.log("用户输入::", { prompt, systemPrompt });
       const response = await this.llm.sendMessage(prompt, systemPrompt, {
         responseFormat: { type: "json_object" },
         temperature: 0.1, // 低温度确保精确提取
@@ -155,6 +157,7 @@ ${paramSchema.enum ? `可选值: ${paramSchema.enum.join(", ")}` : ""}
 }`;
 
     try {
+      // console.log("Parameter extraction prompt:", userInput, systemPrompt);
       const response = await this.llm.sendMessage(userInput, systemPrompt, {
         responseFormat: { type: "json_object" },
         temperature: 0.1,

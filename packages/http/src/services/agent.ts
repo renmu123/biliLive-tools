@@ -1,77 +1,46 @@
 import {
   AgentController,
   SkillExecutor,
-  type SkillHandler,
   type SkillExecutionResult,
   type AgentResponse,
 } from "@bililive-tools/shared/agent/index.js";
+import { createSkills } from "@bililive-tools/shared/agent/skillRegistry.js";
 import { QwenLLM } from "@biliLive-tools/shared/ai/index.js";
 import { container, appConfig } from "../index.js";
 import recorderService from "./recorder.js";
 import logger from "@bililive-tools/shared/utils/log.js";
 
-/**
- * 添加录制器技能处理器
- */
-class AddRecorderHandler implements SkillHandler {
-  async execute(params: Record<string, any>): Promise<SkillExecutionResult> {
-    const { url } = params;
-
-    try {
-      logger.info(`[Agent] Adding recorder for URL: ${url}`);
-
-      const data = await recorderService.resolve(url);
-      if (!data) {
-        throw new Error("无法解析直播间地址");
-      }
-      // 调用实际的 RecorderService
-      const result = await recorderService.addRecorder(data);
-
-      return {
-        success: true,
-        data: result,
-        message: `成功添加直播间录制器：${url}`,
-      };
-    } catch (error: any) {
-      logger.error(`[Agent] Failed to add recorder:`, error);
-      return {
-        success: false,
-        error: error.message,
-        message: `添加录制器失败：${error.message}`,
-      };
-    }
+function getVendor(vendorId: string) {
+  const data = appConfig.get("ai") || {};
+  const vendor = data.vendors.find((v: any) => v.id === vendorId);
+  if (!vendor) {
+    return null;
   }
+  return vendor;
 }
 
 /**
- * 上传视频到 B 站技能处理器
+ * 获取配置
  */
-class UploadVideoHandler implements SkillHandler {
-  async execute(params: Record<string, any>): Promise<SkillExecutionResult> {
-    const { filePath } = params;
-
-    try {
-      logger.info(`[Agent] Uploading video: ${filePath}`);
-
-      // TODO: 调用实际的上传服务
-      // const videoService = container.resolve("videoService");
-      // const result = await videoService.uploadToBilibili(filePath);
-
-      // 暂时返回模拟结果
-      return {
-        success: true,
-        data: { filePath },
-        message: `视频上传功能正在开发中，文件路径：${filePath}`,
-      };
-    } catch (error: any) {
-      logger.error(`[Agent] Failed to upload video:`, error);
-      return {
-        success: false,
-        error: error.message,
-        message: `上传视频失败：${error.message}`,
-      };
-    }
+function getAgentConfig() {
+  const data = appConfig.get("ai") || {};
+  if (data?.vendors.length === 0) {
+    throw new Error("请先在配置中设置 AI 服务商的 API Key");
   }
+
+  const vendorId = data.vendors.find((v) => v.provider === "aliyun")?.id;
+  if (!vendorId) {
+    throw new Error("请先在配置中设置 阿里云 ASR 服务商的 API Key");
+  }
+  const vendor = getVendor(vendorId);
+
+  return {
+    data,
+    vendorId,
+    model: data?.agent?.model || "qwen-plus",
+    apiKey: vendor?.apiKey,
+    baseUrl: vendor?.baseURL,
+  };
 }
 
 /**
@@ -85,20 +54,21 @@ export class AgentService {
     // 初始化技能执行器
     this.skillExecutor = new SkillExecutor();
 
-    // 注册技能处理器
-    this.registerSkills();
-
     // 初始化 LLM
-    const llmConfig = appConfig.data.ai.songLyricOptimize;
-    llmConfig.apiKey = "sk-";
+    const llmConfig = getAgentConfig();
     if (!llmConfig?.apiKey) {
       logger.warn("[Agent] QwenLLM API key not configured, Agent may not work properly");
     }
+    console.log({
+      apiKey: llmConfig?.apiKey,
+      baseURL: llmConfig?.baseUrl,
+      model: llmConfig?.model,
+    });
 
     const llm = new QwenLLM({
       apiKey: llmConfig?.apiKey || "",
       baseURL: llmConfig?.baseUrl,
-      model: llmConfig?.model || "qwen-turbo",
+      model: llmConfig?.model || "qwen-plus",
     });
 
     // 初始化 Agent 控制器
@@ -109,6 +79,9 @@ export class AgentService {
       debug: true,
     });
 
+    // 从 shared 统一注册技能
+    this.registerSkills();
+
     logger.info(`[Agent] Initialized with skills: ${this.agent.getAvailableSkills().join(", ")}`);
   }
 
@@ -116,15 +89,20 @@ export class AgentService {
    * 注册所有技能
    */
   private registerSkills(): void {
-    // 注册添加录制器技能
-    this.skillExecutor.registerHandler("addRecorder", new AddRecorderHandler());
+    // 使用 shared 中的统一技能注册
+    const skills = createSkills({
+      recorderService: recorderService,
+    });
 
-    // 注册上传视频技能
-    this.skillExecutor.registerHandler("uploadVideoToBilibli", new UploadVideoHandler());
+    // 注册到 Agent Controller (用于 schema 管理)
+    this.agent.registerSkills(skills);
 
-    logger.info(
-      `[Agent] Registered ${this.skillExecutor.getRegisteredSkills().length} skill handlers`,
-    );
+    // 注册到 Skill Executor (用于执行)
+    for (const skill of skills) {
+      this.skillExecutor.registerHandler(skill.schema.name, skill);
+    }
+
+    logger.info(`[Agent] Registered ${skills.length} skills`);
   }
 
   /**
@@ -181,7 +159,21 @@ export class AgentService {
    */
   reloadSkills(): void {
     logger.info("[Agent] Reloading skills");
-    this.agent.reloadSkills();
+
+    // 重新创建技能实例
+    const skills = createSkills({
+      recorderService: recorderService,
+    });
+
+    // 重新注册到 Agent Controller
+    this.agent.reregisterSkills(skills);
+
+    // 重新注册到 Skill Executor
+    for (const skill of skills) {
+      this.skillExecutor.registerHandler(skill.schema.name, skill);
+    }
+
+    logger.info(`[Agent] Reloaded ${skills.length} skills`);
   }
 }
 

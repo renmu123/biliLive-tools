@@ -11,5 +11,8 @@ export { ConversationManager } from "./ConversationManager.js";
 export { SkillLoader } from "./SkillLoader.js";
 export { NLU } from "./nlu/index.js";
 export { ParameterCollector } from "./ParameterCollector.js";
-export { SkillExecutor, type SkillHandler } from "./SkillExecutor.js";
+export { SkillExecutor } from "./SkillExecutor.js";
 export { AgentController } from "./AgentController.js";
+
+// 技能注册
+export { createSkills } from "./skillRegistry.js";

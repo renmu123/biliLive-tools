@@ -1,6 +1,6 @@
 <template>
   <div class="agent-page">
-    <n-card title="AI 智能助手" :bordered="false">
+    <n-card title="AI 智能助手-测试版" :bordered="false">
       <template #header-extra>
         <n-space>
           <n-tag v-if="sessionId" type="success" size="small">
@@ -30,7 +30,7 @@
             description="开始对话，我可以帮您添加录制器、上传视频等操作"
           >
             <template #icon>
-              <n-icon size="60" :component="ChatbubbleEllipses" />
+              <n-icon size="40"><ChatbubbleEllipses></ChatbubbleEllipses></n-icon>
             </template>
             <template #extra>
               <n-space vertical>
@@ -53,7 +53,7 @@
 
           <div v-for="(msg, index) in messages" :key="index" class="message-item">
             <div :class="['message-bubble', msg.role]">
-              <div class="message-header">
+              <!-- <div class="message-header">
                 <n-avatar v-if="msg.role === 'user'" size="small" :src="userAvatar" round />
                 <n-avatar v-else size="small" round color="#18a058">
                   <n-icon :component="Sparkles" />
@@ -64,7 +64,7 @@
                 <n-text :depth="3" style="margin-left: auto; font-size: 12px">
                   {{ formatTime(msg.timestamp) }}
                 </n-text>
-              </div>
+              </div> -->
               <div class="message-content">
                 <n-text>{{ msg.content }}</n-text>
               </div>
@@ -111,7 +111,7 @@
           <n-input
             v-model:value="inputMessage"
             type="textarea"
-            placeholder="输入您的指令，例如：帮我添加录制器 https://live.bilibili.com/123456"
+            placeholder="输入您的指令，单个指令完成后推荐重置会话，例如：帮我添加直播间"
             :autosize="{ minRows: 2, maxRows: 4 }"
             :disabled="loading"
             @keydown.enter.exact.prevent="handleSend"
@@ -376,6 +376,7 @@ onMounted(async () => {
 .agent-page {
   height: 100%;
   padding: 16px;
+  padding-top: 0;
   overflow: hidden;
 
   .n-card {
@@ -462,8 +463,9 @@ onMounted(async () => {
 
   &.user {
     align-self: flex-end;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    // background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #f5f5f5;
+    // color: white;
 
     .message-header {
       color: rgba(255, 255, 255, 0.9);
@@ -473,7 +475,7 @@ onMounted(async () => {
   &.assistant {
     align-self: flex-start;
     background: #f5f5f5;
-    color: #333;
+    // color: #333;
   }
 
   @media (max-width: 768px) {
@@ -495,7 +497,7 @@ onMounted(async () => {
 }
 
 .message-content {
-  line-height: 1.6;
+  line-height: normal;
   white-space: pre-wrap;
   word-break: break-word;
 }
