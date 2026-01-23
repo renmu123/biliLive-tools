@@ -44,7 +44,7 @@ export async function musicDetect(
     });
 
     // 1. 分析 WAV 音频文件（带进度回调）
-    features = await analyzeAudio(outputFile, 2048, 512, (progress) => {
+    features = await analyzeAudio(outputFile, 2048, 512, () => {
       // console.log(`分析进度: ${(progress * 100).toFixed(1)}%`);
     });
     fs.remove(outputFile);

@@ -82,7 +82,7 @@ import WaveformAnalyzerDialog from "./components/WaveformAnalyzerDialog.vue";
 import { useStorage } from "@vueuse/core";
 import { showFileDialog } from "@renderer/utils/fileSystem";
 import { useConfirm } from "@renderer/hooks";
-import { commonApi, taskApi } from "@renderer/apis";
+import { commonApi } from "@renderer/apis";
 import { useDrive } from "@renderer/hooks/drive";
 import { useProjectManager } from "./hooks";
 import { useVideoPlayer } from "./composables/useVideoPlayer";
