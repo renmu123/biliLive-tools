@@ -39,9 +39,17 @@ export interface ParameterSchema {
   description: string;
   enum?: any[];
   default?: any;
+  /** 参数格式，如 "file-path" 表示文件路径 */
   format?: string;
   items?: ParameterSchema;
   properties?: Record<string, ParameterSchema>;
+  /** 文件选择相关配置（当 format 为 "file-path" 时使用） */
+  fileOptions?: {
+    /** 允许的文件扩展名，如 ["mp4", "flv"] */
+    extensions?: string[];
+    /** 是否支持多选 */
+    multi?: boolean;
+  };
 }
 
 /**

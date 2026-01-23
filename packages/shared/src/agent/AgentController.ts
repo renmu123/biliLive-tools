@@ -181,6 +181,10 @@ export class AgentController {
         message: `好的，我将帮您${skill.description}。\n\n${prompt}`,
         state: "collecting_params" as ConversationState,
         action: "input_required",
+        data: {
+          currentParam: nextParam,
+          paramSchema: skill.parameters.properties[nextParam],
+        },
       };
     }
   }
@@ -229,6 +233,10 @@ export class AgentController {
         message: prompt,
         state: "collecting_params" as ConversationState,
         action: "input_required",
+        data: {
+          currentParam,
+          paramSchema: skill.parameters.properties[currentParam],
+        },
       };
     }
 
@@ -252,6 +260,10 @@ export class AgentController {
         message: `${validation.error}\n\n${this.parameterCollector.generatePrompt(currentParam, skill, retryCount)}`,
         state: "collecting_params" as ConversationState,
         action: "input_required",
+        data: {
+          currentParam,
+          paramSchema: skill.parameters.properties[currentParam],
+        },
       };
     }
 
@@ -277,6 +289,10 @@ export class AgentController {
         message: prompt,
         state: "collecting_params" as ConversationState,
         action: "input_required",
+        data: {
+          currentParam: nextParam,
+          paramSchema: skill.parameters.properties[nextParam],
+        },
       };
     }
   }

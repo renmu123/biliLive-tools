@@ -47,6 +47,7 @@ export class NLU {
         responseFormat: { type: "json_object" },
         temperature: 0.3,
       });
+      // console.log(response);
 
       const result = JSON.parse(response.content);
 
@@ -103,6 +104,7 @@ export class NLU {
         responseFormat: { type: "json_object" },
         temperature: 0.1, // 低温度确保精确提取
       });
+      // console.log(response);
 
       const result = JSON.parse(response.content);
       const params = result.params || {};
@@ -162,6 +164,7 @@ ${paramSchema.enum ? `可选值: ${paramSchema.enum.join(", ")}` : ""}
         responseFormat: { type: "json_object" },
         temperature: 0.1,
       });
+      // console.log(response);
 
       const result = JSON.parse(response.content);
       return result.value !== null ? result.value : null;

@@ -15,6 +15,11 @@ class UploadVideoToBilibliSkill extends Skill {
         filePath: {
           type: "string",
           description: "要上传的视频本地文件路径",
+          format: "file-path",
+          fileOptions: {
+            extensions: ["mp4", "flv", "mkv", "m4s", "ts"],
+            multi: false,
+          },
         },
       },
       required: ["filePath"],
