@@ -57,6 +57,12 @@
     @cancel="handleCancelConvertDanmu"
   ></DanmuFactorySettingDailog>
   <ExportModal v-model="exportVisible" :files="files"></ExportModal>
+  <WaveformAnalyzerDialog
+    v-model:visible="waveformAnalyzerDialogVisible"
+    v-model="waveformAnalyzerConfig"
+    :file-path="files.videoPath"
+    @confirm="waveformAnalyzerConfirm"
+  />
 </template>
 
 <script setup lang="ts">
@@ -72,6 +78,7 @@ import ExportModal from "./components/ExportModal.vue";
 import SegmentList from "./components/SegmentList.vue";
 import VideoPlayer from "./components/VideoPlayer.vue";
 import ConfigPanel from "./components/ConfigPanel.vue";
+import WaveformAnalyzerDialog from "./components/WaveformAnalyzerDialog.vue";
 import { useStorage } from "@vueuse/core";
 import { showFileDialog } from "@renderer/utils/fileSystem";
 import { useConfirm } from "@renderer/hooks";
@@ -95,6 +102,14 @@ const clientOptions = useStorage("cut-hotprogress", {
 const hotProgressVisible = useStorage("cut-hotprogress-visible", true);
 const danmaSearchMask = useStorage("cut-danma-search-mask", true);
 const showVideoTime = useStorage("cut-show-video-time", true);
+
+const waveformAnalyzerConfig = useStorage("cut-waveform-analyzer-config-new", {
+  energyPercentile: 50, // 能量百分位阈值 (0-100)
+  minSegmentDuration: 25, // 最小片段时长（秒）
+  maxGapDuration: 15, // 最大间隔时长（秒）
+  smoothWindowSize: 4, // 平滑窗口大小（秒）
+});
+const waveformAnalyzerDialogVisible = ref(false);
 
 const notice = useNotification();
 const isWeb = ref(window.isWeb);
@@ -134,7 +149,8 @@ const {
 
 const { appConfig } = storeToRefs(useAppConfig());
 
-const { undo, redo, clear: clearCuts } = useSegmentStore();
+const segmentStore = useSegmentStore();
+const { undo, redo, clear: clearCuts, getCombinedLyrics } = useSegmentStore();
 const { selectedCuts } = storeToRefs(useSegmentStore());
 
 const videoVCutOptions = toReactive(
@@ -155,10 +171,25 @@ const projectMenuItems = computed(() => {
   ];
   if (!isWeb.value) {
     list.push({
+      label: "分割线",
+      key: "divider1",
+      type: "divider",
+    });
+    list.push({
       label: "打开独立窗口",
       key: "openSubWindow",
     });
   }
+  // 其他操作
+  list.push({
+    label: "分割线",
+    key: "divider2",
+    type: "divider",
+  });
+  list.push({
+    label: "快速歌切",
+    key: "openQuickSongCut",
+  });
   return list;
 });
 const confirm = useConfirm();
@@ -296,6 +327,9 @@ const loadProject = async (filePath: string) => {
   loadVideo(videoPath);
   if (projectFile) {
     await loadProjectFile(projectFile);
+    const combinedLyrics = getCombinedLyrics();
+    // @ts-ignore
+    videoInstance?.value?.artplayerPluginSubtitle?.setContent(combinedLyrics, "srt");
   }
 };
 
@@ -358,6 +392,8 @@ const handleProjectMenuClick = async (key?: string | number) => {
     openSubWindow();
   } else if (key === "importProject") {
     await selectLoadFile(["llc"]);
+  } else if (key === "openQuickSongCut") {
+    openWaveformAnalyzerDialog();
   } else {
     handleProjectAction(key);
   }
@@ -508,6 +544,27 @@ const switchShowVideoTime = () => {
     // @ts-ignore
     videoInstance.value.artplayerTimestamp.hide();
   }
+};
+
+const openWaveformAnalyzerDialog = () => {
+  waveformAnalyzerDialogVisible.value = true;
+};
+
+const waveformAnalyzerConfirm = async (
+  data: {
+    startTime: number;
+    endTime: number;
+  }[],
+) => {
+  segmentStore.clear();
+  segmentStore.init(
+    data.map((seg: any) => ({
+      start: seg.startTime,
+      end: seg.endTime,
+      name: "",
+      checked: true,
+    })),
+  );
 };
 </script>
 

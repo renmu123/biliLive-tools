@@ -268,6 +268,8 @@ export type ToolConfig = {
     danmuPresetId: string;
     /** 忽略弹幕 */
     ignoreDanmu: boolean;
+    /** 字幕导出 */
+    exportSubtitle: boolean;
   };
   /** 文件同步 */
   fileSync: {
@@ -679,6 +681,39 @@ export interface AppConfig {
     /** 创造性 */
     temperature: number;
   }[];
+  // ai配置
+  ai: {
+    vendors: {
+      id: string;
+      // 供应商
+      provider: "aliyun";
+      // 命名，不能重复
+      name: string;
+      // apiKey
+      apiKey: string;
+      // baseURL
+      baseURL?: string;
+    }[];
+    // 歌曲asr识别配置
+    // songRecognizeAsr: {};
+    // 歌曲llm识别配置
+    songRecognizeLlm: {
+      vendorId?: string;
+      prompt: string;
+      model?: string;
+      enableSearch: boolean;
+      maxInputLength: number;
+      enableStructuredOutput?: boolean;
+      lyricOptimize: boolean;
+    };
+    // 歌词优化配置
+    songLyricOptimize: {
+      vendorId?: string;
+      prompt: string;
+      model?: string;
+      enableStructuredOutput?: boolean;
+    };
+  };
   /** 最大任务数 */
   task: {
     ffmpegMaxNum: number;

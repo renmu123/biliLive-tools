@@ -117,7 +117,13 @@ export function useProjectManager(
     const projectData = {
       version: 1,
       mediaFileName: window.path.basename(mediaFileName),
-      cutSegments: rawCuts.value.map(({ start, end, name, tags }) => ({ start, end, name, tags })),
+      cutSegments: rawCuts.value.map(({ start, end, name, tags, lyrics }) => ({
+        start,
+        end,
+        name,
+        tags,
+        lyrics,
+      })),
     };
 
     await commonApi.writeLLCProject(filePath, JSON5.stringify(projectData, null, 2));
@@ -202,7 +208,7 @@ export function useProjectManager(
     const hasProject = !!projectFilePath.value;
     const hasVideo = !!files.value.videoPath;
     const isWeb = window.isWeb;
-    const items: { label: string; key: string; disabled: boolean }[] = [];
+    const items: { label: string; key: string; disabled: boolean; type?: string }[] = [];
 
     if (!isWeb) {
       items.push({ label: "使用llc打开", key: "open", disabled: !hasProject });

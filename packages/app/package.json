@@ -37,6 +37,7 @@
     "electron-store": "^10.0.0",
     "electron-updater": "^6.3.9",
     "font-ls": "catalog:",
+    "@renmu/node-shazam": "^2.0.2",
     "ntsuspend": "catalog:",
     "semver": "^7.6.3",
     "trash": "^9.0.0",

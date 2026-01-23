@@ -1270,9 +1270,9 @@ export const burn = async (
 };
 
 /**
- * 提取视频到aac
+ * 提取视频
  */
-export const extractAudio = async (
+export const addExtractAudioTask = async (
   videoFilePath: string,
   outputFilePath: string,
   options: {
@@ -1284,6 +1284,15 @@ export const extractAudio = async (
     limitTime?: [string, string];
     autoRun?: boolean;
     addQueue?: boolean;
+    // 单位：秒
+    startTime?: number;
+    // 单位：秒
+    endTime?: number;
+    format?: "pcm_s16le" | "libmp3lame";
+    audioBitrate?: number | string;
+    sampleRate?: number;
+    /** 音频滤镜 */
+    audioFilter?: string;
   },
 ) => {
   const opts = Object.assign(
@@ -1292,6 +1301,7 @@ export const extractAudio = async (
       removeOrigin: false,
       saveType: 1,
       savePath: "",
+      format: "pcm_s16le",
     },
     options,
   );
@@ -1299,10 +1309,25 @@ export const extractAudio = async (
   const output = path.join(savePath, outputFilePath);
   const command = ffmpeg(videoFilePath)
     .outputOptions("-vn")
-    .outputOptions("-acodec pcm_s16le")
+    .outputOptions(`-acodec ${opts.format}`)
     .outputOptions("-ac 1")
-    // .outputOptions("-ar 44100")
     .output(output);
+  if (opts.audioBitrate) {
+    command.outputOptions(`-ab ${opts.audioBitrate}`);
+  }
+  if (opts.sampleRate) {
+    command.outputOptions(`-ar ${opts.sampleRate}`);
+  }
+  if (opts.startTime) {
+    command.inputOptions(`-ss ${opts.startTime}`);
+  }
+  if (opts.endTime) {
+    command.inputOptions(`-to ${opts.endTime}`);
+  }
+  if (opts.audioFilter) {
+    command.audioFilters(opts.audioFilter);
+  }
+
   const task = new FFmpegTask(
     command,
     {

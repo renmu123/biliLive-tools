@@ -1,0 +1,84 @@
+import fs from "fs-extra";
+import Router from "@koa/router";
+import { asrRecognize, llm, songRecognize } from "@biliLive-tools/shared/musicDetector/index.js";
+import { getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
+import { addExtractAudioTask } from "@biliLive-tools/shared/task/video.js";
+
+const router = new Router({
+  prefix: "/ai",
+});
+
+router.post("/asr", async (ctx) => {
+  const data = ctx.request.body as {
+    file: string;
+    vendorId: string;
+  };
+  const result = await asrRecognize(data.file, data.vendorId);
+
+  ctx.body = result;
+});
+
+router.post("/llm", async (ctx) => {
+  const data = ctx.request.body as {
+    message: string;
+    systemPrompt?: string;
+    enableSearch?: boolean;
+    jsonResponse?: boolean;
+    stream?: boolean;
+  };
+  const result = await llm(data.message, data.systemPrompt, {
+    enableSearch: data.enableSearch,
+    key: undefined,
+    jsonResponse: data.jsonResponse,
+    stream: data.stream,
+  });
+  ctx.body = result;
+});
+
+router.post("/song_recognize", async (ctx) => {
+  const data = ctx.request.body as {
+    // file - 完整视频文件路径
+    file: string;
+    // startTime - 提取音频的开始时间，单位秒
+    startTime: number;
+    // endTime - 提取音频的结束时间，单位秒
+    endTime: number;
+  };
+  if (!data.file || data.startTime == null || data.endTime == null) {
+    ctx.status = 400;
+    ctx.body = {
+      error: "参数错误，必须包含 file、startTime 和 endTime 字段",
+    };
+    return;
+  }
+
+  const cachePath = getTempPath();
+  const fileName = `${uuid()}.mp3`;
+  const task = await addExtractAudioTask(data.file, fileName, {
+    startTime: data.startTime,
+    endTime: data.endTime,
+    saveType: 2,
+    savePath: cachePath,
+    autoRun: true,
+    addQueue: false,
+    format: "libmp3lame",
+    audioBitrate: "192k",
+  });
+  const outputFile: string = await new Promise((resolve, reject) => {
+    task.on("task-end", () => {
+      resolve(task.output as string);
+    });
+    task.on("task-error", (err) => {
+      reject(err);
+    });
+  });
+
+  const result = await songRecognize(outputFile, data.startTime);
+
+  // 清理临时音频文件
+  fs.remove(outputFile);
+
+  ctx.body = result;
+});
+
+export default router;

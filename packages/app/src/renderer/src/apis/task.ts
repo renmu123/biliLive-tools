@@ -9,6 +9,7 @@ import type {
   DanmaOptions,
 } from "@biliLive-tools/types";
 import type { VideoAPI } from "@biliLive-tools/http/types/video.js";
+import type { DetectionConfig } from "music-segment-detector";
 
 /**
  * 获取任务列表
@@ -317,6 +318,35 @@ const extractPeaks = async (
   return res.data;
 };
 
+const analyzerWaveform = async (
+  input: string,
+  config?: Partial<DetectionConfig>,
+): Promise<{
+  output: Array<{
+    startTime: number;
+    endTime: number;
+    // max_amplitude: number;
+    // average_amplitude: number;
+  }>;
+}> => {
+  const res = await request.post(`/task/analyzerWaveform`, {
+    input,
+    config,
+  });
+  return res.data;
+};
+
+const cutSubtitle = async (data: {
+  srtContent: string;
+  saveType: 1 | 2;
+  savePath: string;
+  videoPath: string;
+  segments: { start: number; end: number; name: string }[];
+}) => {
+  const res = await request.post(`/task/cutSubtitle`, data);
+  return res.data;
+};
+
 const task = {
   list,
   get,
@@ -347,6 +377,8 @@ const task = {
   executeVirtualRecord,
   flvRepair,
   extractPeaks,
+  analyzerWaveform,
+  cutSubtitle,
 };
 
 export default task;
