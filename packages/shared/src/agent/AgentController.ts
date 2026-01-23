@@ -423,6 +423,17 @@ export class AgentController {
   }
 
   /**
+   * 获取可用技能详情列表
+   */
+  getAvailableSkillsInfo(): Array<{ name: string; showName: string; description: string }> {
+    return this.skillLoader.getAllSkills().map((skill) => ({
+      name: skill.name,
+      showName: skill.showName || skill.name,
+      description: skill.description,
+    }));
+  }
+
+  /**
    * 日志输出
    */
   private log(...args: any[]): void {

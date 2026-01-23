@@ -41,7 +41,7 @@
                     secondary
                     @click="handleQuickCommand('帮我添加一个录制器')"
                   >
-                    添加录制器
+                    添加录制直播间
                   </n-button>
                   <n-button size="small" secondary @click="handleQuickCommand('上传视频到B站')">
                     上传视频
@@ -127,19 +127,33 @@
           </n-input>
           <n-space style="margin-top: 12px" justify="space-between">
             <n-space>
-              <n-text depth="3" style="font-size: 12px">
-                技能：{{ skills.join("、") || "加载中..." }}
-              </n-text>
+              <n-tooltip trigger="hover">
+                <template #trigger>
+                  <n-tag size="small" type="info" :bordered="false">
+                    {{ skills.length }} 个可用技能
+                  </n-tag>
+                </template>
+                <div style="max-width: 400px">
+                  <div v-if="skills.length > 0">
+                    <div
+                      v-for="(skill, index) in skills"
+                      :key="index"
+                      style="padding: 4px 0; border-bottom: 1px solid #f0f0f0; margin-bottom: 4px"
+                      :style="{
+                        borderBottom: index === skills.length - 1 ? 'none' : '1px solid #f0f0f0',
+                      }"
+                    >
+                      <n-text strong>{{ skill.showName }}</n-text>
+                      <n-text depth="3" style="font-size: 12px; display: block; margin-top: 2px">{{
+                        skill.description
+                      }}</n-text>
+                    </div>
+                  </div>
+                  <div v-else>加载中...</div>
+                </div>
+              </n-tooltip>
             </n-space>
             <n-space>
-              <n-button
-                secondary
-                size="small"
-                @click="handleReloadSkills"
-                :loading="reloadingSkills"
-              >
-                重新加载技能
-              </n-button>
               <n-button
                 type="primary"
                 :disabled="!inputMessage.trim() || loading"
@@ -184,7 +198,6 @@ const message = useMessage();
 // 会话状态
 const sessionId = ref<string>("");
 const loading = ref(false);
-const reloadingSkills = ref(false);
 
 // 消息列表
 interface MessageItem extends AgentChatMessage {
@@ -198,7 +211,12 @@ const inputMessage = ref("");
 const messageListRef = ref<HTMLElement>();
 
 // 技能列表
-const skills = ref<string[]>([]);
+interface SkillInfo {
+  name: string;
+  showName: string;
+  description: string;
+}
+const skills = ref<SkillInfo[]>([]);
 
 // 用户头像
 const userAvatar = computed(() => {
@@ -304,20 +322,6 @@ const loadSkills = async () => {
   }
 };
 
-// 重新加载技能
-const handleReloadSkills = async () => {
-  try {
-    reloadingSkills.value = true;
-    await agentApi.reloadSkills();
-    await loadSkills();
-    message.success("技能已重新加载");
-  } catch (error: any) {
-    message.error(`重新加载失败：${error.message || "未知错误"}`);
-  } finally {
-    reloadingSkills.value = false;
-  }
-};
-
 // 滚动到底部
 const scrollToBottom = () => {
   nextTick(() => {
@@ -413,19 +417,6 @@ onMounted(async () => {
   flex-direction: column;
   gap: 16px;
 
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: #d0d0d0;
-    border-radius: 3px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
   @media (max-width: 768px) {
     padding: 8px;
     gap: 12px;
@@ -463,19 +454,18 @@ onMounted(async () => {
 
   &.user {
     align-self: flex-end;
-    // background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    background: #f5f5f5;
-    // color: white;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
 
     .message-header {
-      color: rgba(255, 255, 255, 0.9);
+      color: var(--text-secondary);
     }
   }
 
   &.assistant {
     align-self: flex-start;
-    background: #f5f5f5;
-    // color: #333;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
   }
 
   @media (max-width: 768px) {
@@ -512,6 +502,7 @@ onMounted(async () => {
   pre {
     background: rgba(0, 0, 0, 0.05);
     padding: 8px;
+    color: var(--text-primary);
     border-radius: 4px;
     font-size: 12px;
     overflow-x: auto;
@@ -520,8 +511,7 @@ onMounted(async () => {
 
 .input-area {
   padding: 16px;
-  border-top: 1px solid #e0e0e0;
-  background: white;
+  background: var(--bg-card);
 
   @media (max-width: 768px) {
     padding: 12px;

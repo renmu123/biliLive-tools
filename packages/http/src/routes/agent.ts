@@ -143,12 +143,12 @@ router.post("/session/:sessionId/reset", async (ctx) => {
 /**
  * 获取可用技能列表
  * @route GET /agent/skills
- * @returns { skills: string[] }
+ * @returns { skills: Array<{ name: string; showName: string; description: string }> }
  */
 router.get("/skills", async (ctx) => {
   try {
     const agentService = getAgentService();
-    const skills = agentService.getAvailableSkills();
+    const skills = agentService.getAvailableSkillsInfo();
 
     ctx.body = {
       success: true,

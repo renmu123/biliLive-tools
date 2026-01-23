@@ -155,6 +155,13 @@ export class AgentService {
   }
 
   /**
+   * 获取可用技能详情列表
+   */
+  getAvailableSkillsInfo(): Array<{ name: string; showName: string; description: string }> {
+    return this.agent.getAvailableSkillsInfo();
+  }
+
+  /**
    * 重新加载技能
    */
   reloadSkills(): void {

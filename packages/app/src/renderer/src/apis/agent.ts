@@ -81,9 +81,10 @@ const agentApi = {
    * 获取可用技能列表
    */
   getSkills: async () => {
-    const { data } = await api.get<{ success: boolean; payload: { skills: string[] } }>(
-      "/agent/skills",
-    );
+    const { data } = await api.get<{
+      success: boolean;
+      payload: { skills: Array<{ name: string; showName: string; description: string }> };
+    }>("/agent/skills");
     return data.payload;
   },
 
