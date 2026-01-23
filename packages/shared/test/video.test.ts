@@ -1,5 +1,5 @@
 import { expect, describe, it } from "vitest";
-import { genFfmpegParams, getHardwareAcceleration } from "../src/utils/index";
+import { genFfmpegParams } from "../src/utils/index";
 import { genMergeAssMp4Command, selectScaleMethod, ComplexFilter } from "../src/task/video";
 import type { FfmpegOptions, VideoCodec } from "@biliLive-tools/types";
 
