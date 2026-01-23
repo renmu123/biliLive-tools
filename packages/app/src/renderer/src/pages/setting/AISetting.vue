@@ -189,7 +189,10 @@
 
           <n-form-item>
             <template #label>
-              <Tip text="Base URL" tip="可选，自定义API地址。如果使用官方接口可以留空"></Tip>
+              <Tip
+                text="Base URL"
+                tip="可选，自定义API地址。如果使用官方接口可以留空，如果是openai兼容，一般是https://xxxxxx/v1"
+              ></Tip>
             </template>
             <n-input v-model:value="editingVendor.baseURL" placeholder="可选，留空使用默认地址" />
           </n-form-item>
