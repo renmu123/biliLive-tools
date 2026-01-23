@@ -1,0 +1,14 @@
+{
+  "name": "addRecorder",
+  "description": "添加直播间录制器",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "url": {
+        "type": "string",
+        "description": "直播间链接"
+      }
+    },
+    "required": ["url"]
+  }
+}

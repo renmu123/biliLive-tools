@@ -26,6 +26,7 @@ import recordHistoryRouter from "./routes/recordHistory.js";
 import danmaRouter from "./routes/danma.js";
 import syncRouter from "./routes/sync.js";
 import aiRouter from "./routes/ai.js";
+import agentRouter from "./routes/agent.js";
 import { WebhookHandler } from "./services/webhook/webhook.js";
 import { createFileCache } from "./services/fileCache.js";
 
@@ -120,6 +121,7 @@ export async function serverStart(
   app.use(danmaRouter.routes());
   app.use(syncRouter.routes());
   app.use(aiRouter.routes());
+  app.use(agentRouter.routes());
 
   app.use(SSERouter.routes());
   app.use(router.allowedMethods());

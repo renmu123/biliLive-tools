@@ -10,6 +10,7 @@ import videoApi from "./video";
 import recordHistoryApi from "./recordHistory";
 import danmaApi from "./danma";
 import aiApi from "./ai";
+import agentApi from "./agent";
 
 import syncApi from "./sync";
 
@@ -26,4 +27,5 @@ export {
   recordHistoryApi,
   danmaApi,
   aiApi,
+  agentApi,
 };

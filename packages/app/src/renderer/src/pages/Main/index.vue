@@ -51,6 +51,7 @@
               'videoCut',
               'Queue',
               'User',
+              'Agent',
               'About',
               'FileSync',
             ]"
@@ -80,6 +81,7 @@ import {
   GitPullRequestOutline as QueueIcon,
   SettingsOutline as SettingIcon,
   LogOutOutline,
+  SparklesOutline as SparklesIcon,
 } from "@vicons/ionicons5";
 import { DashboardOutlined as DashboardIcon, LiveTvRound } from "@vicons/material";
 import { VideoClip20Regular } from "@vicons/fluent";
@@ -374,6 +376,20 @@ const menuOptions = computed<MenuOption[]>(() => {
           { default: () => "直播录制" },
         ),
       icon: renderIcon(LiveTvRound),
+    },
+    {
+      key: "Agent",
+      label: () =>
+        h(
+          RouterLink,
+          {
+            to: {
+              name: "Agent",
+            },
+          },
+          { default: () => "AI 助手" },
+        ),
+      icon: renderIcon(SparklesIcon),
     },
     {
       label: () =>

@@ -1,0 +1,14 @@
+{
+  "name": "uploadVideoToBilibli",
+  "description": "将本地视频文件上传至Bilibili",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "filePath": {
+        "type": "string",
+        "description": "The local file path of the video to be uploaded."
+      }
+    },
+    "required": ["filePath"]
+  }
+}
