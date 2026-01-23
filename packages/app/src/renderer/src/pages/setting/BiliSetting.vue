@@ -9,7 +9,7 @@
             placement="bottom"
           ></Tip>
         </template>
-        <n-select v-model:value="config.biliUpload.line" :options="lineOptions" filterable />
+        <n-select v-model:value="config.biliUpload.line" :options="lineOptions" filterable tag />
       </n-form-item>
       <n-form-item>
         <template #label>
