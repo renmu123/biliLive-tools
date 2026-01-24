@@ -229,7 +229,7 @@
               </template>
               <n-input
                 v-model:value="config.customHost"
-                placeholder="例如：custom-cdn.example.com"
+                placeholder="例如：cn-jsyz-ct-03-32.bilivideo.com"
                 clearable
                 :disabled="globalFieldsObj.customHost"
               />
