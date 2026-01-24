@@ -15,7 +15,7 @@
             },
           },
         }"
-        :plugins="['ass', 'heatmap', 'timestamp']"
+        :plugins="['ass', 'heatmap', 'timestamp', 'subtitle']"
         @ready="handleReady"
         @video:durationchange="handleDurationChange"
         @video:canplay="handleCanPlay"
@@ -122,6 +122,9 @@ defineExpose({
   :deep(.art-bottom) {
     opacity: 1 !important;
     --art-bottom-offset: 0px !important;
+  }
+  :deep(.art-subtitle) {
+    bottom: calc(var(--art-control-height) + var(--art-subtitle-bottom));
   }
 }
 </style>

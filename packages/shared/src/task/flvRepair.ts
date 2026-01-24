@@ -15,6 +15,10 @@ export async function flvRepair(
     savePath?: string;
   },
 ) {
+  // 如果不是flv，直接报错
+  if (path.extname(input).toLowerCase() !== ".flv") {
+    throw new Error("Only FLV files are supported for repair.");
+  }
   const options = Object.assign(
     {
       type: "bililive",

@@ -63,13 +63,13 @@ pnpm run install:bin
 
 **二进制依赖下载完成后，需要手动去设置中配置对应的可执行文件路径**
 
-如果二进制依赖安装失败或不支持你的平台，请[手动下载](https://github.com/renmu123/biliLive-tools/releases/tag/0.2.1)，版本选择最靠近当前版本的版本。
+如果二进制依赖安装失败或不支持你的平台，请参考 `scripts\install-bin.js` 文件中进行下载
 
 创建 `packages\app\resources\bin` 目录，放入以下文件：
 
-- **DanmukuFactory.exe**：[自编译版本](https://github.com/renmu123/DanmakuFactory/tree/test)
-- **FFmpeg.exe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
-- **ffprobe.exe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
+- **DanmukuFactory**：[2.0.0](https://github.com/renmu123/DanmakuFactory)
+- **FFmpeg**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
+- **FFprobe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
 - **录播姬cli**：[3.3.1](https://github.com/renmu123/BililiveRecorder)
 - **mesio**：[0.3.6](https://github.com/hua0512/rust-srec)
 - **audiowaveform**：[1.10.2](https://github.com/bbc/audiowaveform)

@@ -25,8 +25,8 @@ import videoRouter from "./routes/video.js";
 import recordHistoryRouter from "./routes/recordHistory.js";
 import danmaRouter from "./routes/danma.js";
 import syncRouter from "./routes/sync.js";
-import bgoRouter from "./routes/bgo.js";
-import { WebhookHandler } from "./services/webhook.js";
+import aiRouter from "./routes/ai.js";
+import { WebhookHandler } from "./services/webhook/webhook.js";
 import { createFileCache } from "./services/fileCache.js";
 
 import type { GlobalConfig } from "@biliLive-tools/types";
@@ -121,7 +121,7 @@ export async function serverStart(
   app.use(recordHistoryRouter.routes());
   app.use(danmaRouter.routes());
   app.use(syncRouter.routes());
-  app.use(bgoRouter.routes());
+  app.use(aiRouter.routes());
 
   app.use(SSERouter.routes());
   app.use(router.allowedMethods());

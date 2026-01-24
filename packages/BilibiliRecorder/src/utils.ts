@@ -95,15 +95,3 @@ export function createInvalidStreamChecker(count: number = 10): (ffmpegLogLine: 
     return false;
   };
 }
-
-export function hasKeyword(title: string, titleKeywords: string | undefined) {
-  const keywords = (titleKeywords ?? "")
-    .split(",")
-    .map((k) => k.trim())
-    .filter((k) => k);
-
-  const hasTitleKeyword = keywords.some((keyword) =>
-    title.toLowerCase().includes(keyword.toLowerCase()),
-  );
-  return hasTitleKeyword;
-}

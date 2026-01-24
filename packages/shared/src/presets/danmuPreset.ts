@@ -49,6 +49,8 @@ export const DANMU_DEAFULT_CONFIG: DanmuConfig = {
   filterFunction: "",
   "blacklist-regex": false,
   "line-spacing": 0,
+  "top-margin": 0,
+  "bottom-margin": 0,
   timeshift: 0,
   fontSizeResponsiveParams: [
     [1080, 40],

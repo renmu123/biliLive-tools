@@ -1,6 +1,6 @@
 {
   "name": "biliLive-tools",
-  "version": "3.6.0",
+  "version": "3.7.1",
   "description": "B站直播录制处理工具",
   "main": "./out/main/index.js",
   "author": "renmu123",
@@ -37,6 +37,7 @@
     "electron-store": "^10.0.0",
     "electron-updater": "^6.3.9",
     "font-ls": "catalog:",
+    "@renmu/node-shazam": "^2.0.3",
     "ntsuspend": "catalog:",
     "semver": "^7.6.3",
     "trash": "^9.0.0",

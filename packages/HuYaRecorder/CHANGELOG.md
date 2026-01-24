@@ -1,3 +1,7 @@
+# 1.12.0
+
+- 禁止标题关键词支持正则 [#307](https://github.com/renmu123/biliLive-tools/pull/307)
+
 # 1.11.2
 
 - 录制：虎牙 wup 接口出问题了，先切回mp吧

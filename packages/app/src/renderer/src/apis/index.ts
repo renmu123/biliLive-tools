@@ -9,6 +9,7 @@ import api from "./request";
 import videoApi from "./video";
 import recordHistoryApi from "./recordHistory";
 import danmaApi from "./danma";
+import aiApi from "./ai";
 
 import syncApi from "./sync";
 
@@ -24,4 +25,5 @@ export {
   syncApi,
   recordHistoryApi,
   danmaApi,
+  aiApi,
 };

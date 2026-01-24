@@ -57,6 +57,9 @@
           <n-checkbox v-model:checked="exportOptions.ignoreDanmu" style="margin-top: 10px">
             忽略弹幕
           </n-checkbox>
+          <n-checkbox v-model:checked="exportOptions.exportSubtitle" style="margin-top: 10px">
+            导出字幕
+          </n-checkbox>
         </div>
         <div>
           <div style="margin-bottom: 5px">
@@ -155,6 +158,8 @@ const confirmExport = async () => {
     });
     return;
   }
+
+  const segments: { start: number; end: number; name: string }[] = [];
   for (const cut of selectedCuts.value) {
     const start = cut.start;
     const end = cut.end;
@@ -187,7 +192,25 @@ const confirmExport = async () => {
         savePath: exportOptions.savePath,
       },
     );
+    segments.push({ start, end, name: title });
+
     index += 1;
+  }
+
+  if (exportOptions.exportSubtitle) {
+    const srtContent = selectedCuts.value
+      .map((cut) => {
+        return cut.lyrics;
+      })
+      .join("\n");
+
+    taskApi.cutSubtitle({
+      srtContent: srtContent,
+      segments,
+      videoPath: props.files.originVideoPath!,
+      saveType: exportOptions.saveRadio,
+      savePath: exportOptions.savePath,
+    });
   }
   notice.info({
     title: "已加入任务队列",

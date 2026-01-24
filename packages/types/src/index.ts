@@ -110,10 +110,18 @@ export type CommonRoomConfig = {
   hotProgressFillColor?: string;
   /** 转封装为mp4 */
   convert2Mp4?: boolean;
-  /** 转封装后删除源文件 */
+  /** 废弃：转封装后删除源文件 */
   removeSourceAferrConvert2Mp4?: boolean;
+  /** flv修复 */
+  flvRepair?: boolean;
   /** 压制完成后的操作 */
-  afterConvertAction?: Array<"removeVideo" | "removeXml">;
+  afterConvertAction?: Array<
+    | "removeVideo"
+    | "removeXml"
+    | "removeAfterConvert2Mp4"
+    | "removeSmallFile"
+    | "removeAfterFlvRepair"
+  >;
   /** 限制只在某一段时间处理视频 */
   limitVideoConvertTime?: boolean;
   /** 允许视频处理时间 */
@@ -260,6 +268,8 @@ export type ToolConfig = {
     danmuPresetId: string;
     /** 忽略弹幕 */
     ignoreDanmu: boolean;
+    /** 字幕导出 */
+    exportSubtitle: boolean;
   };
   /** 文件同步 */
   fileSync: {
@@ -491,7 +501,10 @@ export interface Recorder {
   useM3U8Proxy: GlobalRecorder["bilibili"]["useM3U8Proxy"];
   codecName: GlobalRecorder["bilibili"]["codecName"];
   source: GlobalRecorder["douyu"]["source"];
-  /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制（仅对斗鱼有效），多个关键词用英文逗号分隔 */
+  /** 标题关键词，如果直播间标题包含这些关键词，则不会自动录制，支持两种格式：
+   * 1. 逗号分隔的关键词：'回放,录播,重播'
+   * 2. 正则表达式：'/pattern/flags'（如：'/回放|录播/i'）
+   */
   titleKeywords?: string;
   /** 开播推送 */
   liveStartNotification?: boolean;
@@ -668,6 +681,39 @@ export interface AppConfig {
     /** 创造性 */
     temperature: number;
   }[];
+  // ai配置
+  ai: {
+    vendors: {
+      id: string;
+      // 供应商
+      provider: "aliyun";
+      // 命名，不能重复
+      name: string;
+      // apiKey
+      apiKey: string;
+      // baseURL
+      baseURL?: string;
+    }[];
+    // 歌曲asr识别配置
+    // songRecognizeAsr: {};
+    // 歌曲llm识别配置
+    songRecognizeLlm: {
+      vendorId?: string;
+      prompt: string;
+      model?: string;
+      enableSearch: boolean;
+      maxInputLength: number;
+      enableStructuredOutput?: boolean;
+      lyricOptimize: boolean;
+    };
+    // 歌词优化配置
+    songLyricOptimize: {
+      vendorId?: string;
+      prompt: string;
+      model?: string;
+      enableStructuredOutput?: boolean;
+    };
+  };
   /** 最大任务数 */
   task: {
     ffmpegMaxNum: number;

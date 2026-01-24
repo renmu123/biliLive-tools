@@ -12,6 +12,7 @@ import artplayerPluginHeatmap from "./artplayer-plugin-heatmap";
 import artplayerPluginTimestamp from "./artplayer-timestamp";
 import artplayerPluginDanmuku from "artplayer-plugin-danmuku";
 import artplayerPluginHlsControl from "artplayer-plugin-hls-control";
+import artplayerPluginSubtitle from "./artplayer-plugin-subtitle";
 
 const props = withDefaults(
   defineProps<{
@@ -33,6 +34,15 @@ const props = withDefaults(
           position?: { top?: string; bottom?: string; left?: string; right?: string };
           visible?: boolean;
           timestamp?: number;
+        };
+        subtitle?: {
+          subtitles?: Array<{
+            url?: string;
+            content?: string;
+            name: string;
+            type?: "srt" | "ass" | "vtt";
+            encoding?: string;
+          }>;
         };
       };
     };
@@ -112,6 +122,12 @@ onMounted(async () => {
         }),
       );
     }
+    if (props.plugins.includes("subtitle")) {
+      const plugin = await artplayerPluginSubtitle({
+        subtitles: props?.option?.plugins?.subtitle?.subtitles || [],
+      });
+      plugins.push(plugin);
+    }
   } else {
     plugins.push(
       artplayerPluginAssJS({
@@ -129,6 +145,11 @@ onMounted(async () => {
     ...props.option,
     container: artRef.value,
     plugins: plugins,
+    subtitle: {
+      style: {
+        fontSize: "30px",
+      },
+    },
     // setting: true,
     // playbackRate: true,
     customType: {
@@ -193,13 +214,24 @@ ${tsFile}
       },
     },
   });
+  await nextTick();
 
+  // @ts-ignore
+  instance.artplayerPluginSubtitle = instance?.plugins?.artplayerPluginSubtitle;
   // @ts-ignore
   instance.artplayerPluginDanmuku = instance?.plugins?.artplayerPluginDanmuku;
   // @ts-ignore
   instance.artplayerPluginHeatmap = instance?.plugins?.artplayerPluginHeatmap;
   // @ts-ignore
   instance.artplayerTimestamp = instance?.plugins?.artplayerTimestamp;
+
+  // console.log("Artplayer instance created:", instance);
+
+  setTimeout(() => {
+    // TODO:这里可能未来会出现问题，artplayerPluginSubtitle是异步插件
+    // @ts-ignore
+    instance.artplayerPluginSubtitle = instance?.plugins?.artplayerPluginSubtitle;
+  }, 1000);
   await nextTick();
   emits("ready", instance);
   instance.on("error", (error, reconnectTime) => {
@@ -242,6 +274,25 @@ const switchDanmuku = async (danmuku: any[]) => {
   }
 };
 
+// subtitle
+const switchSubtitle = async (names: string[]) => {
+  if (instance && instance.plugins.artplayerPluginSubtitle) {
+    instance.plugins.artplayerPluginSubtitle.tracks(names);
+  }
+};
+
+const resetSubtitle = async () => {
+  if (instance && instance.plugins.artplayerPluginSubtitle) {
+    instance.plugins.artplayerPluginSubtitle.reset();
+  }
+};
+
+const setSubtitleContent = async (content: string) => {
+  if (instance && instance.plugins.artplayerPluginSubtitle) {
+    instance.plugins.artplayerPluginSubtitle.setContent(content);
+  }
+};
+
 const video = computed(() => instance);
 
 defineExpose({
@@ -249,6 +300,9 @@ defineExpose({
   video,
   switchAss,
   switchDanmuku,
+  switchSubtitle,
+  resetSubtitle,
+  setSubtitleContent,
 });
 
 onBeforeUnmount(() => {

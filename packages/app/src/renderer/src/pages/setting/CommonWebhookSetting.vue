@@ -1,6 +1,5 @@
 <template>
-  <h2>文件处理配置</h2>
-
+  <h2>文件处理</h2>
   <n-form-item>
     <template #label>
       <Tip
@@ -21,6 +20,7 @@
     >
   </n-form-item>
 
+  <!-- 转封装为mp4 -->
   <n-form-item>
     <template #label>
       <Tip
@@ -29,7 +29,6 @@
       ></Tip>
     </template>
     <n-switch v-model:value="data.convert2Mp4" :disabled="globalFieldsObj.convert2Mp4" />
-
     <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.convert2Mp4" class="global-checkbox"
       >全局</n-checkbox
     >
@@ -37,13 +36,15 @@
 
   <n-form-item v-if="data.convert2Mp4">
     <template #label>
-      <span>封装后删除源文件</span>
+      <Tip
+        text="封装后删除源文件（废弃）"
+        tip="该选项已废弃，请使用「处理后操作」中的「删除转封装为mp4的原文件」"
+      ></Tip>
     </template>
     <n-switch
       v-model:value="data.removeSourceAferrConvert2Mp4"
       :disabled="globalFieldsObj.removeSourceAferrConvert2Mp4"
     />
-
     <n-checkbox
       v-if="isRoom"
       v-model:checked="globalFieldsObj.removeSourceAferrConvert2Mp4"
@@ -52,6 +53,19 @@
     >
   </n-form-item>
 
+  <!-- flv修复 -->
+  <!-- <n-form-item>
+    <template #label>
+      <Tip
+        text="测试：FLV修复"
+        tip="调用录播姬的修复引擎对FLV文件进行修复，如果你是用录播姬录制的FLV文件，无需额外开启，<b>与封装为mp4互斥</b>，<b>如果你需要压制弹幕，也不要开启</b>"
+      ></Tip>
+    </template>
+    <n-switch v-model:value="data.flvRepair" :disabled="globalFieldsObj.flvRepair" />
+    <n-checkbox v-if="isRoom" v-model:checked="globalFieldsObj.flvRepair" class="global-checkbox"
+      >全局</n-checkbox
+    >
+  </n-form-item> -->
   <n-form-item>
     <template #label>
       <Tip
@@ -66,10 +80,12 @@
     >
   </n-form-item>
 
-  <!-- 当弹幕压制开启或弹幕压制关闭但不压制后处理开启时展示 -->
   <n-form-item>
     <template #label>
-      <Tip text="视频预设" tip="你可以只处理视频而不压制，如果不想处理请置空"></Tip>
+      <Tip
+        text="视频预设"
+        tip="如果只选择视频预设却未打开弹幕压制，将只会对视频进行转码，<b>确保这是你需要的选项</b>"
+      ></Tip>
     </template>
     <n-cascader
       v-model:value="data.ffmpegPreset"
@@ -95,7 +111,10 @@
   </n-form-item>
   <n-form-item>
     <template #label>
-      <Tip text="弹幕预设" tip="你可以只处理弹幕而不压制，如果不想处理请置空"></Tip>
+      <Tip
+        text="弹幕预设"
+        tip="如果只选择弹幕预设却未打开弹幕压制，将只会对弹幕进行处理，<b>确保这是你需要的选项</b>"
+      ></Tip>
     </template>
     <n-select
       v-model:value="data.danmuPreset"
@@ -228,13 +247,16 @@
     <n-select
       v-model:value="data.afterConvertAction"
       :options="[
-        { label: '删除输入视频文件', value: 'removeVideo' },
-        { label: '删除XML弹幕', value: 'removeXml' },
+        { label: '删除不符合最小处理大小的文件', value: 'removeSmallFile' },
+        // { label: '删除FLV修复后的原文件', value: 'removeAfterFlvRepair' },
+        { label: '删除转封装为mp4的原文件', value: 'removeAfterConvert2Mp4' },
+        { label: '删除视频处理或同步后的原文件', value: 'removeVideo' },
+        { label: '删除弹幕转换或同步后的原文件', value: 'removeXml' },
       ]"
       multiple
       :disabled="globalFieldsObj.afterConvertAction"
       style="margin-right: 10px"
-      placeholder="不选就是不做处理"
+      placeholder="主要用来删除文件，不选就是不做处理"
     />
     <n-checkbox
       v-if="isRoom"
@@ -516,7 +538,7 @@
 
 <script setup lang="ts">
 import { useDanmuPreset, useUserInfoStore } from "@renderer/stores";
-import { previewWebhookTitle, previewWebhookPartTitle } from "@renderer/apis/common";
+import { formatWebhookTitle, formatWebhookPartTitle } from "@renderer/apis/bili";
 import { templateRef } from "@vueuse/core";
 import { uploadTitleTemplate } from "@renderer/enums";
 
@@ -692,7 +714,7 @@ const setPartTitleVar = async (value: string) => {
   }
 };
 const previewPartTitle = async (template: string) => {
-  const data = await previewWebhookPartTitle(template);
+  const data = await formatWebhookPartTitle(template);
   notice.info({
     title: data,
     duration: 3000,
@@ -717,7 +739,7 @@ watch(
 );
 
 const previewTitle = async (template: string) => {
-  const data = await previewWebhookTitle(template);
+  const data = await formatWebhookTitle(template);
   notice.info({
     title: data,
     duration: 3000,
@@ -746,5 +768,10 @@ const previewTitle = async (template: string) => {
   &.disabled {
     cursor: not-allowed;
   }
+}
+
+h2 {
+  margin: 0;
+  margin-bottom: 10px;
 }
 </style>

@@ -18,6 +18,10 @@ import {
   parseSizeToBytes,
 } from "../src/utils.js";
 
+// 导入私有函数进行测试
+// 由于 hasBlockedTitleKeywords 是私有函数，我们需要从导出的函数中测试它
+import utils from "../src/utils.js";
+
 describe("utils", () => {
   // describe("asyncThrottle", () => {
   //   it("should throttle async function calls", async () => {
@@ -359,6 +363,194 @@ describe("utils", () => {
       expect(parseSizeToBytes("2.5KB")).toBe("2560");
       expect(parseSizeToBytes("0.5MB")).toBe("524288");
       expect(parseSizeToBytes("1.25GB")).toBe("1342177280");
+    });
+  });
+
+  describe("hasBlockedTitleKeywords", () => {
+    describe("普通关键词匹配（逗号分隔）", () => {
+      it("should return false when titleKeywords is undefined", () => {
+        expect(utils.hasBlockedTitleKeywords("测试直播间", undefined)).toBe(false);
+      });
+
+      it("should return false when titleKeywords is empty string", () => {
+        expect(utils.hasBlockedTitleKeywords("测试直播间", "")).toBe(false);
+        expect(utils.hasBlockedTitleKeywords("测试直播间", "   ")).toBe(false);
+      });
+
+      it("should match single keyword (case insensitive)", () => {
+        expect(utils.hasBlockedTitleKeywords("这是回放", "回放")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("这是回放", "录播")).toBe(false);
+      });
+
+      it("should match multiple keywords separated by comma", () => {
+        expect(utils.hasBlockedTitleKeywords("这是回放", "回放,录播,重播")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("这是录播", "回放,录播,重播")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("这是重播", "回放,录播,重播")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("正常直播", "回放,录播,重播")).toBe(false);
+      });
+
+      it("should handle keywords with whitespace", () => {
+        expect(utils.hasBlockedTitleKeywords("这是回放", " 回放 , 录播 , 重播 ")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("这是录播", "回放,  录播  ,重播")).toBe(true);
+      });
+
+      it("should be case insensitive for normal keywords", () => {
+        expect(utils.hasBlockedTitleKeywords("这是REPLAY", "replay")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("这是Replay", "REPLAY")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("REPLAY测试", "replay")).toBe(true);
+      });
+
+      it("should match partial strings", () => {
+        expect(utils.hasBlockedTitleKeywords("这是录播回放", "回放")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("回放测试", "回放")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("测试回放测试", "回放")).toBe(true);
+      });
+    });
+
+    describe("正则表达式匹配", () => {
+      it("should match basic regex pattern", () => {
+        expect(utils.hasBlockedTitleKeywords("这是回放", "/回放/")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("这是录播", "/回放/")).toBe(false);
+      });
+
+      it("should support regex alternation (OR)", () => {
+        expect(utils.hasBlockedTitleKeywords("这是回放", "/回放|录播|重播/")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("这是录播", "/回放|录播|重播/")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("这是重播", "/回放|录播|重播/")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("正常直播", "/回放|录播|重播/")).toBe(false);
+      });
+
+      it("should support case-insensitive flag", () => {
+        expect(utils.hasBlockedTitleKeywords("这是REPLAY", "/replay/i")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("这是Replay", "/REPLAY/i")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("这是replay", "/REPLAY/i")).toBe(true);
+      });
+
+      it("should be case sensitive without i flag", () => {
+        expect(utils.hasBlockedTitleKeywords("这是REPLAY", "/replay/")).toBe(false);
+        expect(utils.hasBlockedTitleKeywords("这是replay", "/REPLAY/")).toBe(false);
+        expect(utils.hasBlockedTitleKeywords("这是replay", "/replay/")).toBe(true);
+      });
+
+      it("should support complex regex patterns", () => {
+        // 匹配以数字开头的标题
+        expect(utils.hasBlockedTitleKeywords("123测试", "/^\\d+/")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("测试123", "/^\\d+/")).toBe(false);
+
+        // 匹配包含特定格式的时间
+        expect(utils.hasBlockedTitleKeywords("2024-01-01回放", "/\\d{4}-\\d{2}-\\d{2}/")).toBe(
+          true,
+        );
+        expect(utils.hasBlockedTitleKeywords("回放测试", "/\\d{4}-\\d{2}-\\d{2}/")).toBe(false);
+      });
+
+      it("should support word boundary", () => {
+        // 注意：\b 在中文等非 ASCII 字符中可能不按预期工作
+        // 这里使用英文测试 word boundary
+        expect(utils.hasBlockedTitleKeywords("replay test", "/\\breplay\\b/")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("replay", "/\\breplay\\b/")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("test replay", "/\\breplay\\b/")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("replaytest", "/\\breplay\\b/")).toBe(false);
+      });
+
+      it("should handle invalid regex by falling back to normal matching", () => {
+        // 无效的正则表达式应该降级为普通匹配
+        const consoleSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+        // 无效的正则表达式格式
+        expect(utils.hasBlockedTitleKeywords("测试[回放", "/[/")).toBe(false);
+        expect(consoleSpy).toHaveBeenCalled();
+
+        consoleSpy.mockRestore();
+      });
+
+      it("should support multiline flag", () => {
+        const title = "第一行\n回放内容\n第三行";
+        // 使用 m 标志使 ^ 可以匹配行首
+        expect(utils.hasBlockedTitleKeywords(title, "/^回放/m")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("回放内容", "/^回放/")).toBe(true);
+      });
+
+      it("should support global flag (though not necessary for test)", () => {
+        expect(utils.hasBlockedTitleKeywords("回放回放回放", "/回放/g")).toBe(true);
+      });
+
+      it("should handle regex with special characters", () => {
+        expect(utils.hasBlockedTitleKeywords("测试.回放", "/测试\\.回放/")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("【回放】", "/【回放】/")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("(回放)", "/\\(回放\\)/")).toBe(true);
+      });
+    });
+
+    describe("边界情况", () => {
+      it("should handle empty title", () => {
+        expect(utils.hasBlockedTitleKeywords("", "回放")).toBe(false);
+        expect(utils.hasBlockedTitleKeywords("", "/回放/")).toBe(false);
+      });
+
+      it("should handle title with only whitespace", () => {
+        expect(utils.hasBlockedTitleKeywords("   ", "回放")).toBe(false);
+        expect(utils.hasBlockedTitleKeywords("   ", "/回放/")).toBe(false);
+      });
+
+      it("should handle keywords with empty items", () => {
+        expect(utils.hasBlockedTitleKeywords("回放测试", "回放,,录播")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("录播测试", "回放,,录播")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("正常", "回放,,录播")).toBe(false);
+      });
+
+      it("should handle unicode characters", () => {
+        expect(utils.hasBlockedTitleKeywords("🎮回放🎮", "回放")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("🎮回放🎮", "/回放/")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("🎮测试🎮", "/🎮/")).toBe(true);
+      });
+
+      it("should handle very long titles", () => {
+        const longTitle = "测试".repeat(1000) + "回放";
+        expect(utils.hasBlockedTitleKeywords(longTitle, "回放")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords(longTitle, "/回放/")).toBe(true);
+      });
+
+      it("should handle very long keyword lists", () => {
+        const keywords = Array.from({ length: 100 }, (_, i) => `keyword${i}`).join(",");
+        expect(utils.hasBlockedTitleKeywords("keyword50测试", keywords)).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("测试", keywords)).toBe(false);
+      });
+    });
+
+    describe("实际使用场景", () => {
+      it("should block replay streams", () => {
+        expect(utils.hasBlockedTitleKeywords("【回放】昨天的精彩内容", "回放,录播")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("录播：上次直播", "回放,录播")).toBe(true);
+      });
+
+      it("should allow normal live streams", () => {
+        expect(utils.hasBlockedTitleKeywords("正常直播中", "回放,录播")).toBe(false);
+        expect(utils.hasBlockedTitleKeywords("今天玩游戏", "回放,录播")).toBe(false);
+      });
+
+      it("should use regex for complex filtering", () => {
+        // 过滤包含日期的标题（可能是录播）
+        expect(
+          utils.hasBlockedTitleKeywords("2024年1月1日 游戏直播", "/\\d{4}年\\d{1,2}月\\d{1,2}日/"),
+        ).toBe(true);
+
+        // 过滤包含特定前缀的标题
+        expect(utils.hasBlockedTitleKeywords("【录播】游戏", "/^【录播】/")).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("游戏【录播】", "/^【录播】/")).toBe(false);
+      });
+
+      it("should combine regex with case-insensitive matching", () => {
+        expect(
+          utils.hasBlockedTitleKeywords("REPLAY: Gaming Session", "/replay|rerun|rebroadcast/i"),
+        ).toBe(true);
+        expect(
+          utils.hasBlockedTitleKeywords("Rerun: Yesterday's Stream", "/replay|rerun|rebroadcast/i"),
+        ).toBe(true);
+        expect(utils.hasBlockedTitleKeywords("Live Gaming", "/replay|rerun|rebroadcast/i")).toBe(
+          false,
+        );
+      });
     });
   });
 });

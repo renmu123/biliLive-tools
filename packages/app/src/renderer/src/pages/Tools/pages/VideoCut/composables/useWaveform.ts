@@ -124,7 +124,7 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
     ws.value = WaveSurfer.create({
       container: "#waveform",
       waveColor: "#4F4A85",
-      progressColor: "#383351",
+      progressColor: "#978fae",
       height: 64,
       normalize: false,
       dragToSeek: true,
@@ -187,6 +187,7 @@ export function useWaveform(videoInstance: Ref<Artplayer | null>) {
         // region.remove();
         if (videoInstance.value) {
           videoInstance.value.currentTime = region.start;
+          segmentStore.selectCut(region.id);
         }
       });
 

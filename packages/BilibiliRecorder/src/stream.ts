@@ -146,13 +146,13 @@ async function getLiveInfo(
     },
     {
       protocol_name: "http_hls",
-      format_name: "ts",
+      format_name: "fmp4",
       codec_name: "avc",
       sort: 8,
     },
     {
       protocol_name: "http_hls",
-      format_name: "fmp4",
+      format_name: "ts",
       codec_name: "avc",
       sort: 7,
     },
@@ -164,13 +164,13 @@ async function getLiveInfo(
     },
     {
       protocol_name: "http_hls",
-      format_name: "ts",
+      format_name: "fmp4",
       codec_name: "hevc",
       sort: 5,
     },
     {
       protocol_name: "http_hls",
-      format_name: "fmp4",
+      format_name: "ts",
       codec_name: "hevc",
       sort: 4,
     },

@@ -118,7 +118,7 @@ export class DanmakuFactory {
       throw new Error("input not exists");
     }
 
-    const requiredArgs = [`-i "${input}"`, `-o "${output}"`, "--ignore-warnings"];
+    const requiredArgs = [`-i "${input}"`, `-o "${output}"`, "--ignore-warnings", "--force"];
     const args = this.genDanmuArgs(argsObj);
     const command = `"${this.execPath}" ${requiredArgs.join(" ")} ${args.join(" ")}`;
     log.info("danmakufactory command: ", command);
