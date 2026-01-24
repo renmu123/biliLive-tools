@@ -101,6 +101,7 @@ export type UpdateRecorderArgs = Pick<
   | "qualityRetry"
   | "formatName"
   | "useM3U8Proxy"
+  | "customHost"
   | "codecName"
   | "titleKeywords"
   | "liveStartNotification"

@@ -246,6 +246,16 @@
           </n-form-item>
           <n-form-item>
             <template #label>
+              <Tip :tip="textInfo.bili.customHost.tip" :text="textInfo.bili.customHost.text"></Tip>
+            </template>
+            <n-input
+              v-model:value="config.recorder.bilibili.customHost"
+              placeholder="例如：custom-cdn.example.com"
+              clearable
+            />
+          </n-form-item>
+          <n-form-item>
+            <template #label>
               <Tip
                 tip="使用批量检查直播状态接口，如果你录制了大量的直播间，可以尝试开启此选项，减少被风控的可能性"
                 text="批量查询接口"

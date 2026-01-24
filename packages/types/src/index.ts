@@ -65,6 +65,7 @@ export const recorderNoGlobalFollowFields: Array<
   "qualityRetry",
   "formatName",
   "useM3U8Proxy",
+  "customHost",
   "codecName",
   "source",
   "videoFormat",
@@ -362,6 +363,8 @@ interface BilibiliRecorderConfig {
   formatName: FormatName;
   /** 流编码 */
   codecName: CodecName;
+  /** 自定义host */
+  customHost?: string;
 }
 interface DouyuRecorderConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
@@ -526,6 +529,8 @@ export interface Recorder {
   debugLevel: "none" | "basic" | "verbose";
   /** API类型，仅抖音 */
   api: HuyaRecorderConfig["api"] | DouyinRecorderConfig["api"];
+  /** 自定义host */
+  customHost?: string;
   // 不跟随全局配置字段
   noGlobalFollowFields: typeof recorderNoGlobalFollowFields;
 }

@@ -237,24 +237,24 @@ export const biliStreamFormatOptions = [
     value: "flv",
   },
   {
-    label: "优先hls(ts)",
-    value: "hls",
-  },
-  {
     label: "优先hls(fmp4)",
     value: "fmp4",
+  },
+  {
+    label: "优先hls(ts)",
+    value: "hls",
   },
   {
     label: "强制flv",
     value: "flv_only",
   },
   {
-    label: "强制hls(ts)",
-    value: "hls_only",
-  },
-  {
     label: "强制hls(fmp4)",
     value: "fmp4_only",
+  },
+  {
+    label: "强制hls(ts)",
+    value: "hls_only",
   },
 ];
 
@@ -411,6 +411,10 @@ export const textInfo = {
     useM3U8Proxy: {
       text: "避免hls自动分段",
       tip: "由于B站hls流存在过期时间，ffmpeg命令行无法处理导致会被一小时强制分段，通过本地代理可以避免分段，但是会增加网络请求以及可能的不稳定性",
+    },
+    customHost: {
+      text: "自定义Host",
+      tip: "用于替换直播流链接中的host，用于使用自定义CDN或代理服务器，留空则使用B站原始host，此参数不存在校验，请自行注意可用性，可参考 https://rec.danmuji.org/dev/cdn-info/ 文档",
     },
     quality: quality,
     qualityRetry: qualityRetry,

@@ -36,6 +36,7 @@ function createRecorder(opts: RecorderCreateOpts): Recorder {
     state: "idle",
     qualityRetry: opts.qualityRetry ?? 0,
     useM3U8Proxy: opts.useM3U8Proxy ?? false,
+    customHost: opts.customHost,
     useServerTimestamp: opts.useServerTimestamp ?? true,
     m3u8ProxyUrl: opts.m3u8ProxyUrl,
     formatName: opts.formatName ?? "auto",
@@ -153,6 +154,7 @@ const checkLiveStatusAndRecord: Recorder["checkLiveStatusAndRecord"] = async fun
       formatName: this.formatName,
       codecName: this.codecName,
       onlyAudio: this.onlyAudio,
+      customHost: this.customHost,
     });
   } catch (err) {
     if (qualityRetryLeft > 0) await this.cache.set("qualityRetryLeft", qualityRetryLeft - 1);

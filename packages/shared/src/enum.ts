@@ -342,6 +342,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       useM3U8Proxy: true,
       formatName: "auto",
       codecName: "auto",
+      customHost: undefined,
     },
     douyu: {
       quality: 0,
