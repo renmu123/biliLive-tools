@@ -13,6 +13,7 @@ export default [
         format: "cjs",
         entryFileNames: "[name].cjs",
         chunkFileNames: "[name]-[hash].cjs",
+        sourcemap: true,
       },
     ],
     // inlineDynamicImports: true,
