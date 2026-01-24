@@ -3,8 +3,7 @@
 // 代码来自：https://github.com/hua0512/rust-srec/blob/6444641014ea58628af9b0fa51b099620a01d0d0/crates/platforms/src/extractor/platforms/douyin/abogus.rs
 // 依赖 sm3、rc4、random 等库
 
-import smCrypto from "sm-crypto"; // npm install sm-crypto
-const { sm3 } = smCrypto;
+import { sm3 } from "sm-crypto"; // npm install sm-crypto
 
 export class StringProcessor {
   static toCharStr(bytes: Uint8Array): string {
