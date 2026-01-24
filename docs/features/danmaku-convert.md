@@ -2,7 +2,9 @@
 
 支持将XML格式的弹幕文件转换为 ASS 字幕格式，可用于弹幕压制或播放器加载。
 
-底层使用 [DanmakuFactory](https://github.com/hihkm/DanmakuFactory) 实现，兼容 B 站弹幕
+底层使用 [DanmakuFactory](https://github.com/hihkm/DanmakuFactory) 实现，兼容 B 站弹幕。
+
+实际项目地址为 [自编译](https://github.com/renmu123/DanmakuFactory) 版本，功能尽量与上游一致，可能存在某些不被上游接受的功能
 
 ## 快速开始
 
@@ -12,15 +14,6 @@
 2. 选择XML弹幕文件
 3. 配置转换参数
 4. 点击"开始转换"
-
-### 使用预设
-
-为常用配置创建预设，避免重复设置：
-
-1. 配置好转换参数
-2. 点击"保存为预设"
-3. 输入预设名称
-4. 下次直接选择预设即可
 
 ## 配置选项
 
@@ -33,8 +26,6 @@
 :::
 
 ### 弹幕字体
-
-选择弹幕显示的字体。
 
 web和客户端使用的字体方式并不相同，会有差异，再加上获取字体 `postscriptName` 的微妙的有些不同，导致某些字体web中选择后无法使用。
 

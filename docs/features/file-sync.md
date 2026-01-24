@@ -159,13 +159,13 @@ Alist的上传流程是先需要将文件上传至 Alist 服务器，随后由 A
 
 在配置同步器的目录结构时，支持以下占位符：
 
-- `{{software}}` - 软件平台（如：blrec、ddtv、oneliverec、custom）
-- `{{platform}}` - 平台名称（如：bilibili、douyu、huya）
-- `{{user}}` - 主播名
-- `{{now}}` - 当前日期（格式：yyyy.MM.dd）
-- `{{yyyy}}` - 年份（4位数字）
-- `{{MM}}` - 月份（2位数字，补零）
-- `{{dd}}` - 日期（2位数字，补零）
+- `software` 软件平台（如：blrec、ddtv、oneliverec、custom）
+- `platform` 平台名称（如：bilibili、douyu、huya）
+- `user` 主播名
+- `now` 当前日期（格式：yyyy.MM.dd）
+- `yyyy` 年份（4位数字）
+- `MM` 月份（2位数字，补零）
+- `dd` 日期（2位数字，补零）
 
 ### 示例
 
