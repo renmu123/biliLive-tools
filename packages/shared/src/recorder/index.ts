@@ -182,8 +182,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
       logger.info(`recorder: ${log.text}`);
     }
   });
-  manager.on("RecordStart", ({ recorder }) => {
-    logger.info("Manager start", recorder);
+  manager.on("RecordStart", ({ recorder, recordHandle }) => {
+    logger.info("Manager start", recorder, recordHandle);
     if (!recorder.extra) recorder.extra = {};
     const timestamp = Date.now();
     recorder.extra.lastRecordTime = timestamp;
