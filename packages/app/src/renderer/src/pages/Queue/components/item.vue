@@ -181,7 +181,7 @@
       :indicator-placement="'outside'"
       :show-indicator="false"
       style="--n-rail-height: 6px"
-      :title="`${item.progress.toFixed(2)}%`"
+      :title="`${item?.progress?.toFixed(2)}%`"
     />
 
     <div v-if="showInfo && item.startTime" class="detail-info">
@@ -445,7 +445,7 @@ const editVideoPartName = async (taskId: string, item: Task) => {
       padding: 5px;
     }
     .btn:hover {
-      background: #e2e6ea;
+      background: var(--bg-hover);
       border-radius: 50%;
       // padding: 5px;
     }
