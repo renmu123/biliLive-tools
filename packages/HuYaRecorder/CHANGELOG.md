@@ -1,3 +1,8 @@
+# 1.13.0
+
+- 修复wup接口
+- 星秀和lol取切回wup吧
+
 # 1.12.0
 
 - 禁止标题关键词支持正则 [#307](https://github.com/renmu123/biliLive-tools/pull/307)
