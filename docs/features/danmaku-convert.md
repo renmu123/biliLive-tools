@@ -107,15 +107,15 @@ docker下的emoji文本渲染错误，猜测和fontconfig有关，但是我不�
 请尽量保证导出与导入的软件版本一致
 :::
 
-### 自定义过滤函数
+## 自定义函数
+
+### 过滤函数
+
+自定义过滤函数允许您编写 JavaScript 代码来精确控制哪些弹幕应该被保留或过滤，提供比基础过滤选项更灵活的控制能力。
 
 ::: warning 注意
 此功能为 biliLive-tools 的原生实现，并非 DanmakuFactory 原生实现。转换完成后请查看生成的 ASS 文件以确认过滤效果。
 :::
-
-#### 功能说明
-
-自定义过滤函数允许您编写 JavaScript 代码来精确控制哪些弹幕应该被保留或过滤，提供比基础过滤选项更灵活的控制能力。
 
 #### 函数签名
 
@@ -143,12 +143,9 @@ function filter(
 
 #### 数据结构
 
-::: tip 属性命名规则
-
 - 弹幕文本内容使用 `#text` 属性
 - 其他属性使用 `@_` 前缀，如 `@_user`、`@_uid`
 - `raw` 原始数据属性不会被解析
-  :::
 
 由于不同工具生成的弹幕格式可能存在差异，**建议在判断时使用可选链(?.)等防御式编程方式，避免报错**。
 
@@ -225,6 +222,41 @@ function filter(type, data, logger) {
 ::: tip 提示
 转换完成后建议用文本编辑器打开生成的 ASS 文件，检查过滤效果是否符合预期。
 :::
+
+### 自定义参数函数
+
+通过此功能，你可以打造出更加通用的弹幕转换预设，如针对不同分辨率设置不同字体大小，改变礼物框尺寸
+
+#### 函数签名
+
+```typescript
+function custom(file: string, opts: DanmakuConfig, logger: Console): boolean;
+```
+
+**参数:**
+
+- `file`: 文件路径
+- `DanmakuConfig`: 弹幕完整配置，完整参数见 [定义](https://github.com/renmu123/biliLive-tools/blob/master/packages/types/src/preset.ts)
+
+**返回值:**
+
+- `DanmakuConfig`: 完整配置
+
+#### 使用示例
+
+此函数调用优先于过滤函数
+
+```js
+function custom(file, opts) {
+  // 礼物框的高等于分辨率的高，注意：如果开启了分辨率自适应，那么这里已经被替换为实际视频分辨率
+  opts.msgboxsize[1] = opts.resolution[1];
+  // 如果高小于1000，那么字体大小设置为32像素
+  if (opts.resolution[1] < 1000) {
+    opts.fontsize = 32;
+  }
+  return opts;
+}
+```
 
 ## 故障排除
 
