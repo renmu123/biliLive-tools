@@ -68,7 +68,7 @@
     "electron": "39.2.3",
     "electron-builder": "^24.13.3",
     "electron-devtools-installer": "^4.0.0",
-    "electron-vite": "^4.0.1",
+    "electron-vite": "^5.0.0",
     "eslint": "^8.57.1",
     "eslint-plugin-vue": "^9.32.0",
     "file-saver": "^2.0.5",
