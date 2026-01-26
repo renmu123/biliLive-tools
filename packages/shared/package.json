@@ -51,7 +51,7 @@
     "ejs": "^3.1.10",
     "fast-xml-parser": "^4.5.0",
     "font-ls": "catalog:",
-    "music-segment-detector": "^0.2.1",
+    "music-segment-detector": "^0.2.2",
     "node-downloader-helper": "^2.1.10",
     "nodemailer": "^6.9.16",
     "ntsuspend": "catalog:",
