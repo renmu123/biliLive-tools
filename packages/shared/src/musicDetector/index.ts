@@ -43,10 +43,24 @@ export async function musicDetect(
       });
     });
 
+    const startTime = Date.now();
     // 1. 分析 WAV 音频文件（带进度回调）
-    features = await analyzeAudio(outputFile, 2048, 512, () => {
-      // console.log(`分析进度: ${(progress * 100).toFixed(1)}%`);
-    });
+    features = await analyzeAudio(
+      outputFile,
+      2048,
+      512,
+      (progress) => {
+        console.log(`分析进度: ${(progress * 100).toFixed(1)}%`);
+      },
+      {
+        useWorkers: true,
+        numWorkers: 2,
+      },
+    );
+    const endTime = Date.now();
+    logger.info(
+      `音频特征分析完成，耗时 ${(endTime - startTime) / 1000} 秒，共 ${features.length} 帧特征数据`,
+    );
     fs.remove(outputFile);
 
     if (!iConfig?.disableCache) {
