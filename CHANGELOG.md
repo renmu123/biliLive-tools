@@ -6,6 +6,7 @@
 - 录制：虎牙重新支持wup接口，感谢来自biliup的实现
 - 弹幕：`自定义过滤函数`修改为 `自定义函数`，支持通过函数来自定义参数 [#316](https://github.com/renmu123/biliLive-tools/issues/316)
 - B站上传：支持水印选项 [#320](https://github.com/renmu123/biliLive-tools/pull/320)
+- Webhook：`删除不符合最小处理大小的文件` 将会对封面以及弹幕文件生效 [#317](https://github.com/renmu123/biliLive-tools/issues/317)
 
 ## Bug修复
 

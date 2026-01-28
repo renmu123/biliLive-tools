@@ -183,8 +183,21 @@ export class WebhookHandler {
     log.warn(`${options.filePath}: file size is too small (${fileSizeMB}MB)`);
 
     if (config.removeSmallFile) {
-      log.warn("small file should be deleted", options.filePath);
-      await trashItem(options.filePath);
+      try {
+        log.warn("small file should be deleted", options.filePath);
+        trashItem(options.filePath);
+
+        const cover = PathResolver.getCoverPath(options.filePath, options.coverPath);
+        if (cover) {
+          trashItem(cover);
+        }
+        const xmlFilePath = PathResolver.getDanmuPath(options.filePath, options.danmuPath);
+        if (xmlFilePath) {
+          trashItem(xmlFilePath);
+        }
+      } catch (error) {
+        log.error("small file deletion error", error);
+      }
     }
 
     return false;
