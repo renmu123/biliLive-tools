@@ -595,8 +595,8 @@ importers:
         specifier: ^0.1.60
         version: 0.1.60
       '@renmu/bili-api':
-        specifier: 2.12.0
-        version: 2.12.0
+        specifier: 2.12.1
+        version: 2.12.1
       '@renmu/fluent-ffmpeg':
         specifier: 2.3.3
         version: 2.3.3
@@ -1562,8 +1562,8 @@ packages:
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
 
-  '@renmu/bili-api@2.12.0':
-    resolution: {integrity: sha512-zqkCdyi4crdFB2/FfuLI4wPZBcpZHYC9d8onZkGLLN3QLiMEe+h9rk7NJ0LXd6aLC0wOAmLd2sWD5drH3gOMfw==}
+  '@renmu/bili-api@2.12.1':
+    resolution: {integrity: sha512-xIcuPXHck/b6L2Sm4ydfdong1O3HfPgvfkSyMfNFqCHyHbIZFsZMtn8+wrVdHJ2LLzzp46cUyvEon4hiMH+rHg==}
     engines: {node: '>=18'}
 
   '@renmu/fluent-ffmpeg@2.3.3':
@@ -5385,10 +5385,12 @@ packages:
   tar@6.2.1:
     resolution: {integrity: sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==}
     engines: {node: '>=10'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
 
   tar@7.4.3:
     resolution: {integrity: sha512-5S7Va8hKfV7W5U6g3aYxXmlPoZVAwUMy9AOKyF2fVuZa2UD3qZjg578OrLRt8PcNN1PleVaL/5/yYATNL0ICUw==}
     engines: {node: '>=18'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
 
   temp-file@3.4.0:
     resolution: {integrity: sha512-C5tjlC/HCtVUOi3KWVokd4vHVViOmGjtLwIh4MuzPo/nMYTV/p1urt3RnMz2IWXDdKEGJH3k5+KPxtqRsUYGtg==}
@@ -6689,7 +6691,7 @@ snapshots:
 
   '@protobufjs/utf8@1.1.0': {}
 
-  '@renmu/bili-api@2.12.0':
+  '@renmu/bili-api@2.12.1':
     dependencies:
       '@bufbuild/protobuf': 2.2.3
       '@renmu/throttle': 1.0.3

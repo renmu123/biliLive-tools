@@ -169,6 +169,15 @@
           }"
         />
       </n-form-item>
+      <n-form-item v-if="options.config.copyright === 1" label="添加水印">
+        <n-checkbox
+          v-model:checked="options.config.watermark"
+          :checked-value="1"
+          :unchecked-value="0"
+          title="开启"
+          >开启</n-checkbox
+        >
+      </n-form-item>
 
       <n-form-item label="自制声明">
         <div class="inline-items">
