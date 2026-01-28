@@ -328,6 +328,10 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
     mission_id: options.mission_id,
     is_only_self: options.is_only_self || 0,
     dtime: options.dtime ? options.dtime : undefined,
+    watermark:
+      options.copyright === 2 || options.watermark === undefined
+        ? undefined
+        : { state: options.watermark },
   };
   return data;
 }
