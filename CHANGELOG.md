@@ -5,6 +5,7 @@
 - 录制：B站支持和自定义host
 - 录制：虎牙重新支持wup接口，感谢来自biliup的实现
 - 弹幕：`自定义过滤函数`修改为 `自定义函数`，支持通过函数来自定义参数 [#316](https://github.com/renmu123/biliLive-tools/issues/316)
+- B站上传：支持水印选项 [#320](https://github.com/renmu123/biliLive-tools/pull/320)
 
 ## Bug修复
 
