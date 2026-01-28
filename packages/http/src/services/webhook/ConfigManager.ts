@@ -74,6 +74,10 @@ export interface RoomConfig {
   afterUploadDeletAction: "none" | "delete" | "deleteAfterCheck";
   /** 同步器 */
   syncId?: string | null;
+  /** 弹幕转换后是否要删除XML弹幕 */
+  afterConvertRemoveXmlRaw: boolean;
+  afterConvertRemoveVideoRaw: boolean;
+  roomId: string;
 }
 
 /**
@@ -215,6 +219,9 @@ export class ConfigManager {
       flvRepair,
       removeAfterFlvRepair: flvRepair ? afterConvertRemoveFlvRaw : false,
       removeSmallFile,
+      afterConvertRemoveXmlRaw,
+      afterConvertRemoveVideoRaw,
+      roomId,
     };
   }
 
