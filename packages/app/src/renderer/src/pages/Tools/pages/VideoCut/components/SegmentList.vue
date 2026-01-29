@@ -166,7 +166,7 @@ import {
   Search as SearchIcon,
   PlayCircleOutline,
 } from "@vicons/ionicons5";
-import { MinusOutlined, PlusOutlined } from "@vicons/material";
+import { MinusOutlined, PlusOutlined, SubtitlesOutlined } from "@vicons/material";
 import {
   Delete24Regular,
   MusicNote220Regular,
@@ -749,7 +749,7 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
       },
       {
         label: "字幕识别",
-        icon: renderIcon(MusicNote220Regular),
+        icon: renderIcon(SubtitlesOutlined),
         onClick: async () => {
           subtitleRecognizeHandler(segment);
         },
