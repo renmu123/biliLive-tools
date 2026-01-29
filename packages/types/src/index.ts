@@ -718,6 +718,11 @@ export interface AppConfig {
       model?: string;
       enableStructuredOutput?: boolean;
     };
+    // 字幕识别
+    subtitleRecognize: {
+      vendorId?: string;
+      model?: string;
+    };
   };
   /** 最大任务数 */
   task: {

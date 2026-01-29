@@ -300,6 +300,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
       model: "",
       enableStructuredOutput: true,
     },
+    subtitleRecognize: {
+      vendorId: undefined,
+      model: "fun-asr",
+    },
   },
   biliUpload: {
     line: "auto",

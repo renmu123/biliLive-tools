@@ -598,6 +598,89 @@ const songRecognize = async (segment: Segment) => {
   }
 };
 
+/**
+ * 字幕识别
+ * @param segment 要识别的片段
+ */
+const subtitleRecognizeHandler = async (segment: Segment) => {
+  if (!props.files.originVideoPath) {
+    notice.error({
+      title: "请先加载视频文件",
+      duration: 1000,
+    });
+    return;
+  }
+
+  // 获取配置（尝试获取，如果失败则使用默认值）
+  let vendorId = "";
+
+  try {
+    const config = await window.api.config.getAll();
+    const vendors = config?.ai?.vendors || [];
+    if (vendors.length === 0) {
+      notice.error({
+        title: "请先在设置中配置AI供应商",
+        duration: 3000,
+      });
+      return;
+    }
+    vendorId = config?.ai?.subtitleRecognize?.vendorId || vendors[0].id;
+  } catch (error) {
+    notice.error({
+      title: "获取配置失败，请先配置AI供应商",
+      duration: 3000,
+    });
+    return;
+  }
+
+  const [status] = await confirm.warning({
+    content: `此功能使用AI对片段进行字幕识别，将生成SRT格式字幕。\n\n识别范围：${segment.start.toFixed(2)}s - ${segment.end?.toFixed(2)}s`,
+    showCheckbox: true,
+    showAgainKey: "videoSubtitleRecognizeWarning",
+  });
+  if (!status) return;
+
+  try {
+    updateSegment(segment.id, { loading: true }, true);
+
+    // 调用字幕识别 API
+    const data = await aiApi.subtitleRecognize(
+      props.files.originVideoPath!,
+      segment.start,
+      segment.end!,
+      vendorId,
+      {
+        offset: segment.start,
+      },
+    );
+
+    // 更新片段的字幕数据
+    updateSegment(segment.id, { lyrics: data.srt || "" });
+
+    resetSubtitle();
+
+    if (data.srt) {
+      notice.success({
+        title: "字幕识别成功",
+        duration: 3000,
+      });
+    } else {
+      notice.warning({
+        title: "未能识别出字幕",
+        duration: 3000,
+      });
+    }
+  } catch (error: any) {
+    notice.error({
+      title: "字幕识别失败",
+      content: error.message || "未知错误",
+      duration: 5000,
+    });
+  } finally {
+    updateSegment(segment.id, { loading: false }, true);
+  }
+};
+
 const themeStore = useThemeStore();
 const showContextMenu = (e: MouseEvent, segment: Segment) => {
   //这个函数与 this.$contextmenu 一致
@@ -662,6 +745,13 @@ const showContextMenu = (e: MouseEvent, segment: Segment) => {
         icon: renderIcon(MusicNote220Regular),
         onClick: async () => {
           songRecognize(segment);
+        },
+      },
+      {
+        label: "字幕识别",
+        icon: renderIcon(MusicNote220Regular),
+        onClick: async () => {
+          subtitleRecognizeHandler(segment);
         },
       },
     ],
