@@ -150,9 +150,9 @@ export class WebhookHandler {
         const shouldRemove =
           config.afterUploadDeletAction === "delete" ||
           config.afterUploadDeletAction === "deleteAfterCheck";
-        if (config.uploadNoDanmu && config.noDanmuVideoPreset) {
-          this.fileRefManager.addRef(filePath, shouldRemove);
 
+        if (config.uploadNoDanmu) {
+          this.fileRefManager.addRef(filePath, shouldRemove);
           if (config.afterUploadDeletAction === "deleteAfterCheck") {
             this.fileRefManager.addRef(filePath, shouldRemove);
           }
@@ -186,7 +186,7 @@ export class WebhookHandler {
         }
       }
       if (config.uid) {
-        if (config.uploadNoDanmu && config.noDanmuVideoPreset) {
+        if (config.uploadNoDanmu) {
           this.fileRefManager.addRef(filePath, shouldRemove);
         }
         if (config.uploadPresetId) {
