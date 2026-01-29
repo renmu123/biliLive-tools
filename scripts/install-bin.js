@@ -87,7 +87,7 @@ async function downloadBililiveRecorder() {
   const platform = platforms[process.platform] ?? process.platform;
   const arch = process.arch;
   const filename = `BililiveRecorder-CLI-${platform}-${arch}.zip`;
-  let url = `https://github.com/renmu123/BililiveRecorder/releases/download/v3.3.1/${filename}`;
+  let url = `https://github.com/renmu123/BililiveRecorder/releases/download/v3.3.2/${filename}`;
 
   await downloadFile(url, ".");
   await unzip(filename, "packages/app/resources/bin");

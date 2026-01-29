@@ -1,4 +1,4 @@
-import { expect, describe, it, beforeEach, afterEach } from "vitest";
+import { expect, describe, it, beforeEach, afterEach, vi } from "vitest";
 import fs from "fs-extra";
 import path from "node:path";
 import { PathResolver } from "../src/services/webhook/PathResolver.js";
@@ -35,6 +35,8 @@ describe("PathResolver", () => {
     });
 
     it("应该正确处理不同的视频格式", () => {
+      vi.spyOn(fs, "pathExistsSync").mockResolvedValue(true);
+
       expect(PathResolver.getDanmuPath(path.join("path", "to", "video.flv"))).toBe(
         path.join("path", "to", "video.xml"),
       );

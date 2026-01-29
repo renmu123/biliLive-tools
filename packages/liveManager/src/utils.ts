@@ -219,7 +219,7 @@ export const formatTemplate = function template(string: string, ...args: any[]) 
  * "receive invalid aac stream": ADTS无法被解析的flv流
  * "invalid stream": 一段时间内帧数不变
  */
-export function createInvalidStreamChecker(
+export function createFFmpegInvalidStreamChecker(
   count: number = 15,
 ): (ffmpegLogLine: string) => [boolean, string] {
   let prevFrame = 0;
@@ -625,7 +625,7 @@ export default {
   assertObjectType,
   asyncThrottle,
   isFfmpegStartSegment,
-  createInvalidStreamChecker,
+  createFFmpegInvalidStreamChecker,
   createTimeoutChecker,
   downloadImage,
   md5,
