@@ -56,7 +56,10 @@
                     placeholder="请选择AI供应商"
                   />
                 </n-form-item>
-                <n-form-item label="模型">
+                <n-form-item>
+                  <template #label>
+                    <Tip tip="仅支持阿里的 qwen3-asr-flash-filetrans 及 fun-asr 模型" text="模型" />
+                  </template>
                   <n-input
                     v-model:value="config.ai.songRecognizeAsr.model"
                     placeholder="请输入模型名称，如 qwen-plus"
@@ -164,7 +167,10 @@
                     placeholder="请选择供应商"
                   />
                 </n-form-item>
-                <n-form-item label="模型">
+                <n-form-item>
+                  <template #label>
+                    <Tip tip="仅支持阿里的 qwen3-asr-flash-filetrans 及 fun-asr 模型" text="模型" />
+                  </template>
                   <n-input
                     v-model:value="config.ai.subtitleRecognize.model"
                     spellcheck="false"

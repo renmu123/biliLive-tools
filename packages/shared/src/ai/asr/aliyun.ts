@@ -282,6 +282,8 @@ export class AliyunASR {
         model: this.model,
         input: {
           file_urls: [params.fileUrl],
+          // qwen3-ASR-Flash-Filetrans 兼容
+          file_url: params.fileUrl,
         },
         parameters: {
           ...(params.vocabularyId && { vocabulary_id: params.vocabularyId }),
@@ -330,14 +332,18 @@ export class AliyunASR {
           "X-DashScope-Async": "enable",
         },
       });
-
+      let results = response.data.output.results || [];
+      if (!results || results.length === 0) {
+        // qwen3-ASR-Flash-Filetrans 兼容
+        results = [{ ...response.data.output.result, subtask_status: "SUCCEEDED" }];
+      }
       return {
         taskId: response.data.output.task_id,
         taskStatus: response.data.output.task_status,
         submitTime: response.data.output.submit_time,
         scheduledTime: response.data.output.scheduled_time,
         endTime: response.data.output.end_time,
-        results: response.data.output.results,
+        results: results,
       };
     } catch (error) {
       this.logger.error("查询ASR任务失败", error);
