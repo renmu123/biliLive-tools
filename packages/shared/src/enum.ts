@@ -250,6 +250,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   llmPresets: [],
   ai: {
     vendors: [],
+    songRecognizeAsr: {
+      vendorId: undefined,
+      model: "fun-asr",
+    },
     songRecognizeLlm: {
       vendorId: undefined,
       prompt: `

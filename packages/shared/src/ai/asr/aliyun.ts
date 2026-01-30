@@ -22,12 +22,7 @@ export interface AliyunASROptions {
    * 模型名称
    * @default 'fun-asr'
    */
-  model?:
-    | "fun-asr"
-    | "fun-asr-2025-11-07"
-    | "fun-asr-2025-08-25"
-    | "fun-asr-mtl"
-    | "fun-asr-mtl-2025-08-25";
+  model?: string;
 
   /**
    * 日志记录器

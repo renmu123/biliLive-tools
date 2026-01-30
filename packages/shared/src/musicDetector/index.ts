@@ -160,11 +160,12 @@ function getApiKey(): string {
  * @param key
  * @returns
  */
-export async function asrRecognize(file: string, vendorId: string) {
-  const { apiKey } = getVendor(vendorId);
+export async function asrRecognize(file: string, opts: { vendorId: string; model: string }) {
+  const { apiKey } = getVendor(opts.vendorId);
 
   const asr = new AliyunASR({
     apiKey: apiKey,
+    model: opts.model,
   });
 
   try {
@@ -332,6 +333,7 @@ function getSongRecognizeConfig() {
     data,
     asrVendorId,
     llmVendorId,
+    asrModel: data.songRecognizeAsr.model || "fun-asr",
     llmPrompt: data?.songRecognizeLlm?.prompt,
     llmModel: data?.songRecognizeLlm?.model || "qwen-plus",
     enableSearch: data?.songRecognizeLlm?.enableSearch ?? false,
@@ -419,6 +421,7 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
     maxInputLength,
     enableStructuredOutput,
     lyricOptimize,
+    asrModel,
   } = getSongRecognizeConfig();
 
   let info: {
@@ -439,7 +442,7 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
   }
 
   // 如果开启了歌词优化，首先要asr识别
-  const data = await asrRecognize(file, asrVendorId);
+  const data = await asrRecognize(file, { vendorId: asrVendorId, model: asrModel });
   const messages = data.transcripts?.[0]?.text || "";
   if (!messages) {
     logger.warn("没有识别到任何文本内容，无法进行歌曲识别");

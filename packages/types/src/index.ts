@@ -700,7 +700,10 @@ export interface AppConfig {
       baseURL?: string;
     }[];
     // 歌曲asr识别配置
-    // songRecognizeAsr: {};
+    songRecognizeAsr: {
+      vendorId?: string;
+      model?: string;
+    };
     // 歌曲llm识别配置
     songRecognizeLlm: {
       vendorId?: string;

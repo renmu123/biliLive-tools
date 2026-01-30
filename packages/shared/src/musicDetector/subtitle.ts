@@ -141,7 +141,7 @@ export function convertToSrtByWords(
 }
 
 /**
- * 获取歌曲识别配置
+ * 获取字幕识别配置
  */
 function getSubtitleRecognizeConfig() {
   const data = appConfig.get("ai") || {};
@@ -161,6 +161,7 @@ function getSubtitleRecognizeConfig() {
   return {
     data,
     asrVendorId,
+    asrModel: data.subtitleRecognize.model || "fun-asr",
   };
 }
 
@@ -197,7 +198,7 @@ export async function subtitleRecognize(
   });
 
   try {
-    const { asrVendorId } = getSubtitleRecognizeConfig();
+    const { asrVendorId, asrModel } = getSubtitleRecognizeConfig();
 
     // 生成缓存路径
     const cachePath = getTempPath();
@@ -218,7 +219,7 @@ export async function subtitleRecognize(
     }
     if (!asrResult) {
       // 调用 ASR 识别
-      asrResult = await asrRecognize(file, asrVendorId);
+      asrResult = await asrRecognize(file, { vendorId: asrVendorId, model: asrModel });
 
       // 保存到缓存（如果未禁用缓存）
       if (!disableCache) {
