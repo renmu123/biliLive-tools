@@ -271,15 +271,6 @@ importers:
 
   packages/app:
     dependencies:
-      '@biliLive-tools/http':
-        specifier: workspace:*
-        version: link:../http
-      '@biliLive-tools/shared':
-        specifier: workspace:*
-        version: link:../shared
-      '@biliLive-tools/types':
-        specifier: workspace:*
-        version: link:../types
       '@electron-toolkit/preload':
         specifier: ^3.0.1
         version: 3.0.1(electron@39.2.3)
@@ -332,6 +323,15 @@ importers:
         specifier: ^7.11.1
         version: 7.11.1
     devDependencies:
+      '@biliLive-tools/http':
+        specifier: workspace:*
+        version: link:../http
+      '@biliLive-tools/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@biliLive-tools/types':
+        specifier: workspace:*
+        version: link:../types
       '@electron-toolkit/eslint-config':
         specifier: ^1.0.2
         version: 1.0.2(eslint@8.57.1)
@@ -5835,8 +5835,8 @@ packages:
   webworkify-webpack@2.1.5:
     resolution: {integrity: sha512-2akF8FIyUvbiBBdD+RoHpoTbHMQF2HwjcxfDvgztAX5YwbZNyrtfUMgvfgFVsgDhDPVTlkbb5vyasqDHfIDPQw==}
 
-  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
-    resolution: {tarball: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef}
+  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef:
+    resolution: {commit: 24d1e719b4a6cac37a518b2bb10fe124527ef4ef, repo: git@github.com:xqq/webworkify-webpack.git, type: git}
     version: 2.1.5
 
   whatwg-fetch@3.6.20:
@@ -9964,7 +9964,7 @@ snapshots:
   mpegts.js@1.8.0:
     dependencies:
       es6-promise: 4.2.8
-      webworkify-webpack: https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef
+      webworkify-webpack: git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef
 
   ms@2.0.0: {}
 
@@ -11452,7 +11452,7 @@ snapshots:
 
   webworkify-webpack@2.1.5: {}
 
-  webworkify-webpack@https://codeload.github.com/xqq/webworkify-webpack/tar.gz/24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
+  webworkify-webpack@git+https://git@github.com:xqq/webworkify-webpack.git#24d1e719b4a6cac37a518b2bb10fe124527ef4ef: {}
 
   whatwg-fetch@3.6.20: {}
 
