@@ -294,10 +294,10 @@ export class AliyunASR {
           }),
           ...(params.speakerCount && { speaker_count: params.speakerCount }),
           ...(params.languageHints && { language_hints: params.languageHints }),
+          // qwen3-ASR-Flash-Filetran 词级时间戳
+          enable_words: true,
         },
       };
-
-      this.logger.info("提交ASR任务", { fileUrl: params.fileUrl });
 
       const response = await this.client.post(
         "/api/v1/services/audio/asr/transcription",
