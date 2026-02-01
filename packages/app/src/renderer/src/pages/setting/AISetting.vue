@@ -213,7 +213,10 @@
         :title="editingVendorId === null ? '添加AI供应商' : '编辑AI供应商'"
       >
         <n-form label-placement="left" :label-width="100">
-          <n-form-item label="供应商类型">
+          <n-form-item>
+            <template #label>
+              <Tip text="供应商" tip="使用ffmpeg类型前，请务必查看文档"></Tip>
+            </template>
             <n-select
               v-model:value="editingVendor.provider"
               :options="providerOptions"
@@ -347,6 +350,7 @@ const getModelOptionsByTag = (tag: "llm" | "asr") => {
 
 // 供应商选项
 const providerOptions = [
+  { label: "FFmpeg", value: "ffmpeg" },
   { label: "阿里云", value: "aliyun" },
   { label: "OpenAI", value: "openai" },
   // { label: "百度", value: "baidu" },
@@ -394,7 +398,7 @@ const editingModel = ref<{
   vendorId: "",
   modelName: "",
   remark: "",
-  tags: [],
+  tags: ["llm", "asr"],
   config: {},
 });
 
@@ -485,7 +489,7 @@ const addModel = () => {
     vendorId: "",
     modelName: "",
     remark: "",
-    tags: [],
+    tags: ["llm", "asr"],
     config: {},
   };
   modelModalVisible.value = true;

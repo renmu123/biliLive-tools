@@ -5,6 +5,7 @@ import { asrRecognize } from "./index.js";
 import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
 import { getTempPath, calculateFileQuickHash } from "../utils/index.js";
+import { getModel } from "./utils.js";
 
 import type { TranscriptionDetail } from "../ai/index.js";
 
@@ -144,28 +145,21 @@ export function convertToSrtByWords(
  * 获取字幕识别配置
  */
 function getSubtitleRecognizeConfig() {
-  const data = appConfig.get("ai") || {};
-  if (data?.vendors.length === 0) {
-    throw new Error("请先在配置中设置 AI 服务商的 API Key");
-  }
+  const config = appConfig.getAll();
 
-  const asrModelId = data.subtitleRecognize.modelId;
+  const asrModelId = config.ai.subtitleRecognize.modelId;
   if (!asrModelId) {
     throw new Error("请先在配置中设置字幕识别ASR模型");
   }
 
-  const asrModel = data.models.find((m: any) => m.modelId === asrModelId);
-  if (!asrModel) {
-    throw new Error("找不到指定的ASR模型");
-  }
+  const asrModel = getModel(asrModelId, config);
 
-  const vendor = data.vendors.find((v: any) => v.id === asrModel.vendorId);
+  const vendor = config.ai.vendors.find((v: any) => v.id === asrModel.vendorId);
   if (!vendor) {
     throw new Error("找不到模型关联的供应商");
   }
 
   return {
-    data,
     asrVendorId: vendor.id,
     asrModel: asrModel.modelName,
   };

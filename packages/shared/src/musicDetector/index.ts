@@ -7,6 +7,7 @@ import { AliyunASR, TranscriptionDetail, QwenLLM } from "../ai/index.js";
 import { recognize as shazamRecognize } from "./shazam.js";
 import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
+import { getModel } from "./utils.js";
 import { getTempPath, uuid, calculateFileQuickHash } from "../utils/index.js";
 
 /**
@@ -301,36 +302,17 @@ export async function optimizeLyrics(asrData: TranscriptionDetail, lyrics: strin
  * 获取歌曲识别配置
  */
 function getSongRecognizeConfig() {
-  const data = appConfig.get("ai") || {};
-  if (data?.vendors.length === 0) {
-    throw new Error("请先在配置中设置 AI 服务商的 API Key");
-  }
+  const config = appConfig.getAll();
+  const data = config.ai;
 
-  const asrModelId = data.songRecognizeAsr?.modelId;
-  if (!asrModelId) {
-    throw new Error("请在配置中设置歌曲ASR模型");
-  }
-
-  const asrModel = data.models.find((m: any) => m.modelId === asrModelId);
-  if (!asrModel) {
-    throw new Error("找不到指定的ASR模型");
-  }
+  const asrModel = getModel(data.songRecognizeAsr?.modelId, config);
 
   const asrVendor = data.vendors.find((v: any) => v.id === asrModel.vendorId);
   if (!asrVendor) {
     throw new Error("找不到ASR模型关联的供应商");
   }
 
-  let llmModelId = data?.songRecognizeLlm?.modelId;
-  if (!llmModelId) {
-    llmModelId = asrModelId;
-  }
-
-  const llmModel = data.models.find((m: any) => m.modelId === llmModelId);
-  if (!llmModel) {
-    throw new Error("找不到指定的LLM模型");
-  }
-
+  const llmModel = getModel(data?.songRecognizeLlm?.modelId, config);
   const llmVendor = data.vendors.find((v: any) => v.id === llmModel.vendorId);
   if (!llmVendor) {
     throw new Error("找不到LLM模型关联的供应商");
@@ -354,18 +336,11 @@ function getSongRecognizeConfig() {
  * 获取歌词优化配置
  */
 function getLyricOptimizeConfig() {
-  const { data } = getSongRecognizeConfig();
-  let modelId = data?.songLyricOptimize?.modelId || data?.songRecognizeLlm?.modelId;
+  const config = appConfig.getAll();
+  const data = config.ai;
+  let modelId = data?.songLyricOptimize?.modelId;
 
-  if (!modelId) {
-    throw new Error("请在配置中设置歌词优化LLM模型");
-  }
-
-  const model = data.models.find((m: any) => m.modelId === modelId);
-  if (!model) {
-    throw new Error("找不到指定的LLM模型");
-  }
-
+  const model = getModel(modelId);
   const vendor = data.vendors.find((v: any) => v.id === model.vendorId);
   if (!vendor) {
     throw new Error("找不到LLM模型关联的供应商");

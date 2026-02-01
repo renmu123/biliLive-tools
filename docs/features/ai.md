@@ -70,3 +70,17 @@ flowchart TD
 ## 字幕识别
 
 位于切片右键选项中，目标就是为切片生成字幕了，逻辑也十分简单，将片段音频喂给asr引擎，拿到词级时间戳进行排版
+
+### ffmpeg 的 Whisper 支持
+
+由于 ffmpeg8.0 支持了[whispercpp](https://github.com/ggml-org/whisper.cpp)，但是本软件支持的只是7.1，由于8.0要求的cuda版本较高可能造成大量n卡硬件编码错误，所有软件本体的ffmpeg版本暂时不会更新。
+
+但我仍然为想要使用的用户提供了渠道，只是需要一些额外的配置。
+
+第一步的相关你也可以直接在[夸克网盘](https://pan.quark.cn/s/6da253a1ecb8)下载。
+
+不推荐在歌词识别中使用~~当然你也识别不出什么~~，如果出现什么不能使用gpu加速也别来问我，我也不知道
+
+1. 找到ffmpeg8.0版本并下载，并下载相关[model](https://huggingface.co/ggerganov/whisper.cpp)，仅推荐大参数模型
+2. 设置->AI配置->供应商，类型为“ffmpeg”，API Key随意，Base URL设置为第一步中ffmepg文件路径
+3. 添加一个模型名称，模型名称为模型路径
