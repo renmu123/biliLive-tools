@@ -13,8 +13,9 @@ router.post("/asr", async (ctx) => {
   const data = ctx.request.body as {
     file: string;
     vendorId: string;
+    model: string;
   };
-  const result = await asrRecognize(data.file, data.vendorId);
+  const result = await asrRecognize(data.file, { vendorId: data.vendorId, model: data.model });
 
   ctx.body = result;
 });
@@ -136,6 +137,7 @@ router.post("/subtitle", async (ctx) => {
 
     const srt = await subtitleRecognize(audioFile, {
       offset: data.offset,
+      disableCache: true,
     });
 
     // 清理临时音频文件

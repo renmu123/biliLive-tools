@@ -203,6 +203,7 @@ export async function subtitleRecognize(
     // 生成缓存路径
     const cachePath = getTempPath();
     const fileHash = await calculateFileQuickHash(file);
+    // TODO:缓存有bug，第一个是多模型切换、第二个是不同参数热词参数不同
     const cacheFileName = `asr_subtitle_cache_${fileHash}.json`;
     const cacheFilePath = path.join(cachePath, cacheFileName);
 
