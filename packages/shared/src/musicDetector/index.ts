@@ -242,19 +242,6 @@ function getVendor(vendorId: string) {
 }
 
 /**
- * 获取歌词优化配置
- */
-function getLyricOptimizeConfig() {
-  const { data, llmVendorId, llmModel } = getSongRecognizeConfig();
-  return {
-    vendorId: data?.songLyricOptimize?.vendorId || llmVendorId,
-    prompt: data?.songLyricOptimize?.prompt,
-    model: data?.songLyricOptimize?.model || llmModel,
-    enableStructuredOutput: data?.songLyricOptimize?.enableStructuredOutput ?? true,
-  };
-}
-
-/**
  * 歌词优化
  * @param lyrics - 原始歌词文本
  * @param offset - 偏移时间，单位毫秒
@@ -319,27 +306,76 @@ function getSongRecognizeConfig() {
     throw new Error("请先在配置中设置 AI 服务商的 API Key");
   }
 
-  const asrVendorId = data.vendors.find((v) => v.provider === "aliyun")?.id;
-  if (!asrVendorId) {
-    throw new Error("请先在配置中设置 阿里云 ASR 服务商的 API Key");
+  const asrModelId = data.songRecognizeAsr?.modelId;
+  if (!asrModelId) {
+    throw new Error("请在配置中设置歌曲ASR模型");
   }
 
-  let llmVendorId = asrVendorId;
-  if (data?.songRecognizeLlm?.vendorId) {
-    llmVendorId = data.songRecognizeLlm.vendorId;
+  const asrModel = data.models.find((m: any) => m.modelId === asrModelId);
+  if (!asrModel) {
+    throw new Error("找不到指定的ASR模型");
+  }
+
+  const asrVendor = data.vendors.find((v: any) => v.id === asrModel.vendorId);
+  if (!asrVendor) {
+    throw new Error("找不到ASR模型关联的供应商");
+  }
+
+  let llmModelId = data?.songRecognizeLlm?.modelId;
+  if (!llmModelId) {
+    llmModelId = asrModelId;
+  }
+
+  const llmModel = data.models.find((m: any) => m.modelId === llmModelId);
+  if (!llmModel) {
+    throw new Error("找不到指定的LLM模型");
+  }
+
+  const llmVendor = data.vendors.find((v: any) => v.id === llmModel.vendorId);
+  if (!llmVendor) {
+    throw new Error("找不到LLM模型关联的供应商");
   }
 
   return {
     data,
-    asrVendorId,
-    llmVendorId,
-    asrModel: data.songRecognizeAsr.model || "fun-asr",
+    asrVendorId: asrVendor.id,
+    asrModel: asrModel.modelName,
+    llmVendorId: llmVendor.id,
+    llmModel: llmModel.modelName,
     llmPrompt: data?.songRecognizeLlm?.prompt,
-    llmModel: data?.songRecognizeLlm?.model || "qwen-plus",
     enableSearch: data?.songRecognizeLlm?.enableSearch ?? false,
     maxInputLength: data?.songRecognizeLlm?.maxInputLength || 300,
     enableStructuredOutput: data?.songRecognizeLlm?.enableStructuredOutput ?? true,
     lyricOptimize: data?.songRecognizeLlm?.lyricOptimize ?? true,
+  };
+}
+
+/**
+ * 获取歌词优化配置
+ */
+function getLyricOptimizeConfig() {
+  const { data } = getSongRecognizeConfig();
+  let modelId = data?.songLyricOptimize?.modelId || data?.songRecognizeLlm?.modelId;
+
+  if (!modelId) {
+    throw new Error("请在配置中设置歌词优化LLM模型");
+  }
+
+  const model = data.models.find((m: any) => m.modelId === modelId);
+  if (!model) {
+    throw new Error("找不到指定的LLM模型");
+  }
+
+  const vendor = data.vendors.find((v: any) => v.id === model.vendorId);
+  if (!vendor) {
+    throw new Error("找不到LLM模型关联的供应商");
+  }
+
+  return {
+    vendorId: vendor.id,
+    prompt: data?.songLyricOptimize?.prompt,
+    model: model.modelName,
+    enableStructuredOutput: data?.songLyricOptimize?.enableStructuredOutput ?? true,
   };
 }
 

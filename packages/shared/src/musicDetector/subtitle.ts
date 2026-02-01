@@ -149,19 +149,25 @@ function getSubtitleRecognizeConfig() {
     throw new Error("请先在配置中设置 AI 服务商的 API Key");
   }
 
-  let asrVendorId = data.subtitleRecognize.vendorId;
-  if (!asrVendorId) {
-    asrVendorId = data.vendors.find((v: any) => v.provider === "aliyun")?.id;
+  const asrModelId = data.subtitleRecognize.modelId;
+  if (!asrModelId) {
+    throw new Error("请先在配置中设置字幕识别ASR模型");
   }
 
-  if (!asrVendorId) {
-    throw new Error("请先在配置中设置 阿里云 ASR 服务商的 API Key");
+  const asrModel = data.models.find((m: any) => m.modelId === asrModelId);
+  if (!asrModel) {
+    throw new Error("找不到指定的ASR模型");
+  }
+
+  const vendor = data.vendors.find((v: any) => v.id === asrModel.vendorId);
+  if (!vendor) {
+    throw new Error("找不到模型关联的供应商");
   }
 
   return {
     data,
-    asrVendorId,
-    asrModel: data.subtitleRecognize.model || "fun-asr",
+    asrVendorId: vendor.id,
+    asrModel: asrModel.modelName,
   };
 }
 

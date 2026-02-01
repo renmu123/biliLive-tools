@@ -87,8 +87,8 @@ router.post("/subtitle", async (ctx) => {
   const data = ctx.request.body as {
     // file - 完整视频文件路径
     file: string;
-    // vendorId - AI 服务商 ID
-    vendorId?: string;
+    // modelId - AI 模型 ID
+    modelId?: string;
     // startTime - 开始时间，单位秒
     startTime?: number;
     // endTime - 结束时间，单位秒

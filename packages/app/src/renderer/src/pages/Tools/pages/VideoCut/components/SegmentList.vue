@@ -612,22 +612,29 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
   }
 
   // 获取配置（尝试获取，如果失败则使用默认值）
-  let vendorId = "";
+  let modelId: string | undefined = undefined;
 
   try {
     const config = await window.api.config.getAll();
-    const vendors = config?.ai?.vendors || [];
-    if (vendors.length === 0) {
+    const models = config?.ai?.models || [];
+    if (models.length === 0) {
       notice.error({
-        title: "请先在设置中配置AI供应商",
+        title: "请先在设置中配置AI模型",
         duration: 3000,
       });
       return;
     }
-    vendorId = config?.ai?.subtitleRecognize?.vendorId || vendors[0].id;
+    modelId = config?.ai?.subtitleRecognize?.modelId;
+    if (!modelId) {
+      notice.error({
+        title: "请先在设置中配置字幕识别模型",
+        duration: 3000,
+      });
+      return;
+    }
   } catch (error) {
     notice.error({
-      title: "获取配置失败，请先配置AI供应商",
+      title: "获取配置失败，请先配置AI模型",
       duration: 3000,
     });
     return;
@@ -648,7 +655,7 @@ const subtitleRecognizeHandler = async (segment: Segment) => {
       props.files.originVideoPath!,
       segment.start,
       segment.end!,
-      vendorId,
+      modelId,
       {
         offset: segment.start,
       },

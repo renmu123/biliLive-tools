@@ -699,16 +699,23 @@ export interface AppConfig {
       // baseURL
       baseURL?: string;
     }[];
+    // 模型配置
+    models: {
+      modelId: string;
+      vendorId: string;
+      modelName: string;
+      remark?: string;
+      tags: Array<"llm" | "asr">;
+      config: Record<string, any>;
+    }[];
     // 歌曲asr识别配置
     songRecognizeAsr: {
-      vendorId?: string;
-      model?: string;
+      modelId?: string;
     };
     // 歌曲llm识别配置
     songRecognizeLlm: {
-      vendorId?: string;
+      modelId?: string;
       prompt: string;
-      model?: string;
       enableSearch: boolean;
       maxInputLength: number;
       enableStructuredOutput?: boolean;
@@ -716,15 +723,13 @@ export interface AppConfig {
     };
     // 歌词优化配置
     songLyricOptimize: {
-      vendorId?: string;
+      modelId?: string;
       prompt: string;
-      model?: string;
       enableStructuredOutput?: boolean;
     };
     // 字幕识别
     subtitleRecognize: {
-      vendorId?: string;
-      model?: string;
+      modelId?: string;
     };
   };
   /** 最大任务数 */

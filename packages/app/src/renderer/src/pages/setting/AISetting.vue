@@ -44,26 +44,67 @@
           </div>
         </n-tab-pane>
 
+        <!-- 模型配置列表 -->
+        <n-tab-pane class="tab-pane" name="models" tab="模型" display-directive="show:lazy">
+          <div class="vendor-list">
+            <n-card
+              v-for="model in config.ai.models"
+              :key="model.modelId"
+              class="vendor-card"
+              hoverable
+            >
+              <div class="vendor-content">
+                <div class="vendor-header">
+                  <n-space>
+                    <n-tag
+                      v-for="tag in model.tags"
+                      :key="tag"
+                      :type="tag === 'llm' ? 'info' : 'success'"
+                      size="small"
+                    >
+                      {{ tag === "llm" ? "LLM" : "ASR" }}
+                    </n-tag>
+                  </n-space>
+                  <n-text strong>{{ model.modelName }}</n-text>
+                </div>
+                <div class="vendor-info">
+                  <n-text depth="3" style="font-size: 12px">
+                    供应商:
+                    {{ config.ai.vendors.find((v) => v.id === model.vendorId)?.name || "未知" }}
+                  </n-text>
+                  <n-text v-if="model.remark" depth="3" style="font-size: 12px">
+                    {{ model.remark }}
+                  </n-text>
+                </div>
+                <div class="vendor-actions">
+                  <n-button size="small" @click="editModel(model.modelId)">编辑</n-button>
+                  <n-button size="small" type="error" @click="deleteModel(model.modelId)"
+                    >删除</n-button
+                  >
+                </div>
+              </div>
+            </n-card>
+
+            <!-- 添加新模型卡片 -->
+            <n-card class="vendor-card add-vendor-card" hoverable @click="addModel">
+              <div class="add-card">
+                <n-icon :size="48" :component="Add" />
+                <n-text>添加模型</n-text>
+              </div>
+            </n-card>
+          </div>
+        </n-tab-pane>
+
         <!-- AI功能配置 -->
         <n-tab-pane class="tab-pane" name="features" tab="功能" display-directive="show:lazy">
           <n-collapse style="margin-top: 10px" default-expanded-names="songRecognize">
             <n-collapse-item title="歌曲ASR" name="songRecognize">
               <n-form label-placement="left" :label-width="120">
-                <n-form-item label="供应商">
+                <n-form-item label="模型">
                   <n-select
-                    v-model:value="config.ai.songRecognizeAsr.vendorId"
-                    :options="vendorSelectOptions"
-                    placeholder="请选择AI供应商"
-                  />
-                </n-form-item>
-                <n-form-item>
-                  <template #label>
-                    <Tip tip="仅支持阿里的 qwen3-asr-flash-filetrans 及 fun-asr 模型" text="模型" />
-                  </template>
-                  <n-input
-                    v-model:value="config.ai.songRecognizeAsr.model"
-                    placeholder="请输入模型名称，如 qwen-plus"
-                    spellcheck="false"
+                    v-model:value="config.ai.songRecognizeAsr.modelId"
+                    :options="getModelOptionsByTag('asr')"
+                    placeholder="请选择ASR模型"
                   />
                 </n-form-item>
               </n-form>
@@ -72,18 +113,11 @@
           <n-collapse style="margin-top: 10px" default-expanded-names="songRecognize">
             <n-collapse-item title="歌曲识别LLM" name="songRecognize">
               <n-form label-placement="left" :label-width="120">
-                <n-form-item label="供应商">
-                  <n-select
-                    v-model:value="config.ai.songRecognizeLlm.vendorId"
-                    :options="vendorSelectOptions"
-                    placeholder="请选择AI供应商"
-                  />
-                </n-form-item>
                 <n-form-item label="模型">
-                  <n-input
-                    v-model:value="config.ai.songRecognizeLlm.model"
-                    placeholder="请输入模型名称，如 qwen-plus"
-                    spellcheck="false"
+                  <n-select
+                    v-model:value="config.ai.songRecognizeLlm.modelId"
+                    :options="getModelOptionsByTag('llm')"
+                    placeholder="请选择LLM模型"
                   />
                 </n-form-item>
 
@@ -125,17 +159,10 @@
           <n-collapse style="margin-top: 10px" default-expanded-names="songLyricOptimize">
             <n-collapse-item title="歌词优化LLM" name="songLyricOptimize">
               <n-form label-placement="left" :label-width="120">
-                <n-form-item label="供应商">
-                  <n-select
-                    v-model:value="config.ai.songLyricOptimize.vendorId"
-                    :options="vendorSelectOptions"
-                    placeholder="默认跟随歌曲识别LLM供应商"
-                  />
-                </n-form-item>
                 <n-form-item label="模型">
-                  <n-input
-                    v-model:value="config.ai.songLyricOptimize.model"
-                    spellcheck="false"
+                  <n-select
+                    v-model:value="config.ai.songLyricOptimize.modelId"
+                    :options="getModelOptionsByTag('llm')"
                     placeholder="默认跟随歌曲识别LLM模型"
                   />
                 </n-form-item>
@@ -160,21 +187,11 @@
           <n-collapse style="margin-top: 10px" default-expanded-names="subtitleRecognize">
             <n-collapse-item title="字幕识别" name="subtitleRecognize">
               <n-form label-placement="left" :label-width="120">
-                <n-form-item label="供应商">
+                <n-form-item label="模型">
                   <n-select
-                    v-model:value="config.ai.subtitleRecognize.vendorId"
-                    :options="vendorSelectOptions"
-                    placeholder="请选择供应商"
-                  />
-                </n-form-item>
-                <n-form-item>
-                  <template #label>
-                    <Tip tip="仅支持阿里的 qwen3-asr-flash-filetrans 及 fun-asr 模型" text="模型" />
-                  </template>
-                  <n-input
-                    v-model:value="config.ai.subtitleRecognize.model"
-                    spellcheck="false"
-                    placeholder="请选择模型"
+                    v-model:value="config.ai.subtitleRecognize.modelId"
+                    :options="getModelOptionsByTag('asr')"
+                    placeholder="请选择ASR模型"
                   />
                 </n-form-item>
               </n-form>
@@ -239,6 +256,56 @@
         </template>
       </n-card>
     </n-modal>
+
+    <!-- 编辑模型弹窗 -->
+    <n-modal v-model:show="modelModalVisible" :mask-closable="false" auto-focus>
+      <n-card
+        style="width: 600px; max-height: 80%"
+        :bordered="false"
+        size="huge"
+        role="dialog"
+        aria-modal="true"
+        class="card"
+        :title="editingModelId === null ? '添加模型' : '编辑模型'"
+      >
+        <n-form label-placement="left" :label-width="100">
+          <n-form-item label="供应商">
+            <n-select
+              v-model:value="editingModel.vendorId"
+              :options="vendorSelectOptions"
+              placeholder="请选择供应商"
+            />
+          </n-form-item>
+
+          <n-form-item label="模型名称">
+            <n-input
+              v-model:value="editingModel.modelName"
+              placeholder="请输入模型名称，如 qwen-plus"
+            />
+          </n-form-item>
+
+          <n-form-item label="标签">
+            <n-select
+              v-model:value="editingModel.tags"
+              :options="tagOptions"
+              placeholder="请选择模型类型"
+              multiple
+            />
+          </n-form-item>
+
+          <n-form-item label="备注">
+            <n-input v-model:value="editingModel.remark" placeholder="可选，用于区分多个模型" />
+          </n-form-item>
+        </n-form>
+
+        <template #footer>
+          <div class="footer">
+            <n-button class="btn" @click="modelModalVisible = false">取消</n-button>
+            <n-button class="btn" type="primary" @click="saveModel">保存</n-button>
+          </div>
+        </template>
+      </n-card>
+    </n-modal>
   </div>
 </template>
 
@@ -252,6 +319,7 @@ const config = defineModel<AppConfig>("data", {
   default: () => ({
     ai: {
       vendors: [],
+      models: [],
     },
   }),
 });
@@ -266,6 +334,16 @@ const vendorSelectOptions = computed(() => {
     value: vendor.id,
   }));
 });
+
+// 根据 tag 筛选模型
+const getModelOptionsByTag = (tag: "llm" | "asr") => {
+  return config.value.ai.models
+    .filter((model) => model.tags && model.tags.includes(tag))
+    .map((model) => ({
+      label: model.modelName + (model.remark ? ` (${model.remark})` : ""),
+      value: model.modelId,
+    }));
+};
 
 // 供应商选项
 const providerOptions = [
@@ -301,6 +379,23 @@ const editingVendor = ref<{
   name: "",
   apiKey: "",
   baseURL: "",
+});
+
+// 模型编辑状态
+const modelModalVisible = ref(false);
+const editingModelId = ref<string | null>(null);
+const editingModel = ref<{
+  vendorId: string;
+  modelName: string;
+  remark?: string;
+  tags: ("llm" | "asr")[];
+  config: Record<string, any>;
+}>({
+  vendorId: "",
+  modelName: "",
+  remark: "",
+  tags: [],
+  config: {},
 });
 
 const addVendor = () => {
@@ -382,6 +477,86 @@ const saveVendor = () => {
 
   vendorModalVisible.value = false;
 };
+
+// 模型管理方法
+const addModel = () => {
+  editingModelId.value = null;
+  editingModel.value = {
+    vendorId: "",
+    modelName: "",
+    remark: "",
+    tags: [],
+    config: {},
+  };
+  modelModalVisible.value = true;
+};
+
+const editModel = (id: string) => {
+  editingModelId.value = id;
+  const model = config.value.ai.models.find((m) => m.modelId === id);
+  if (!model) return;
+  editingModel.value = {
+    vendorId: model.vendorId,
+    modelName: model.modelName,
+    remark: model.remark || "",
+    tags: model.tags || [],
+    config: model.config,
+  };
+  modelModalVisible.value = true;
+};
+
+const deleteModel = async (id: string) => {
+  const index = config.value.ai.models.findIndex((m) => m.modelId === id);
+  if (index === -1) return;
+
+  const model = config.value.ai.models[index];
+  const status = await confirm.warning({
+    content: `确定要删除模型配置"${model.modelName}"吗？`,
+  });
+  if (!status) return;
+
+  config.value.ai.models.splice(index, 1);
+};
+
+const saveModel = () => {
+  if (!editingModel.value.vendorId) {
+    notice.error("供应商不能为空");
+    return;
+  }
+  if (!editingModel.value.modelName) {
+    notice.error("模型名称不能为空");
+    return;
+  }
+  if (!editingModel.value.tags || editingModel.value.tags.length === 0) {
+    notice.error("请至少选择一个标签");
+    return;
+  }
+
+  const modelData = {
+    modelId: editingModelId.value || uuid(),
+    vendorId: editingModel.value.vendorId,
+    modelName: editingModel.value.modelName,
+    remark: editingModel.value.remark || undefined,
+    tags: editingModel.value.tags,
+    config: editingModel.value.config,
+  };
+
+  if (editingModelId.value === null) {
+    config.value.ai.models.push(modelData);
+  } else {
+    const index = config.value.ai.models.findIndex((m) => m.modelId === editingModelId.value);
+    if (index !== -1) {
+      config.value.ai.models[index] = modelData;
+    }
+  }
+
+  modelModalVisible.value = false;
+};
+
+const tagOptions = [
+  { label: "LLM", value: "llm" },
+  { label: "ASR", value: "asr" },
+];
 </script>
 
 <style scoped lang="less">

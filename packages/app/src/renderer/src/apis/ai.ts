@@ -33,7 +33,7 @@ const subtitleRecognize = async (
   file: string,
   startTime: number,
   endTime: number,
-  vendorId: string,
+  modelId: string,
   options?: {
     offset?: number;
   },
@@ -42,7 +42,7 @@ const subtitleRecognize = async (
 }> => {
   const res = await request.post("/ai/subtitle", {
     file,
-    vendorId,
+    modelId,
     startTime,
     endTime,
     offset: options?.offset,
