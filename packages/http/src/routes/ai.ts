@@ -4,6 +4,7 @@ import { asrRecognize, llm, songRecognize } from "@biliLive-tools/shared/musicDe
 import { subtitleRecognize } from "@biliLive-tools/shared/musicDetector/subtitle.js";
 import { getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
 import { addExtractAudioTask } from "@biliLive-tools/shared/task/video.js";
+import { appConfig } from "@biliLive-tools/shared/config.js";
 
 const router = new Router({
   prefix: "/ai",
@@ -104,6 +105,11 @@ router.post("/subtitle", async (ctx) => {
     };
     return;
   }
+  const config = appConfig.get("ai") || {};
+  const asrModelId = config.subtitleRecognize.modelId;
+  if (!asrModelId) {
+    throw new Error("请先在配置中设置字幕识别ASR模型");
+  }
 
   try {
     let audioFile = data.file;
@@ -135,7 +141,7 @@ router.post("/subtitle", async (ctx) => {
       needCleanup = true;
     }
 
-    const srt = await subtitleRecognize(audioFile, {
+    const srt = await subtitleRecognize(audioFile, asrModelId, {
       offset: data.offset,
       disableCache: true,
     });

@@ -3,7 +3,7 @@ import fs from "fs-extra";
 import { analyzeAudio, detectMusicSegments, DetectionConfig } from "music-segment-detector";
 
 import { addExtractAudioTask } from "../task/video.js";
-import { AliyunASR, TranscriptionDetail, QwenLLM } from "../ai/index.js";
+import { AliyunASR, TranscriptionDetail, QwenLLM, recognize } from "../ai/index.js";
 import { recognize as shazamRecognize } from "./shazam.js";
 import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
@@ -156,9 +156,10 @@ function getApiKey(): string {
 }
 
 /**
- * 音频识别
+ * 音频识别（返回原生格式，向后兼容）
+ * @deprecated 建议使用 createASRProvider(modelId) 以支持多种 ASR 提供商
  * @param file
- * @param key
+ * @param opts
  * @returns
  */
 export async function asrRecognize(file: string, opts: { vendorId: string; model: string }) {
@@ -477,12 +478,11 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
 
   const rawLyrics = info?.lyrics;
   let srtData = "";
-  if (rawLyrics) {
-    if (lyricOptimize) {
-      srtData = await optimizeLyrics(data, rawLyrics, audioStartTime * 1000);
-    } else {
-      srtData = convert2Srt(optimizeMusicSubtitles(data), audioStartTime * 1000);
-    }
+  if (rawLyrics && lyricOptimize) {
+    srtData = await optimizeLyrics(data, rawLyrics, audioStartTime * 1000);
+  }
+  if (!srtData) {
+    srtData = convert2Srt(optimizeMusicSubtitles(data), audioStartTime * 1000);
   }
 
   const name = info?.name;

@@ -97,7 +97,7 @@
 
         <!-- AI功能配置 -->
         <n-tab-pane class="tab-pane" name="features" tab="功能" display-directive="show:lazy">
-          <n-collapse style="margin-top: 10px" default-expanded-names="songRecognize">
+          <n-collapse style="margin-top: 10px">
             <n-collapse-item title="歌曲ASR" name="songRecognize">
               <n-form label-placement="left" :label-width="120">
                 <n-form-item label="模型">
@@ -110,7 +110,7 @@
               </n-form>
             </n-collapse-item>
           </n-collapse>
-          <n-collapse style="margin-top: 10px" default-expanded-names="songRecognize">
+          <n-collapse style="margin-top: 10px">
             <n-collapse-item title="歌曲识别LLM" name="songRecognize">
               <n-form label-placement="left" :label-width="120">
                 <n-form-item label="模型">
@@ -156,7 +156,7 @@
               </n-form>
             </n-collapse-item>
           </n-collapse>
-          <n-collapse style="margin-top: 10px" default-expanded-names="songLyricOptimize">
+          <n-collapse style="margin-top: 10px">
             <n-collapse-item title="歌词优化LLM" name="songLyricOptimize">
               <n-form label-placement="left" :label-width="120">
                 <n-form-item label="模型">
@@ -184,7 +184,7 @@
               </n-form>
             </n-collapse-item>
           </n-collapse>
-          <n-collapse style="margin-top: 10px" default-expanded-names="subtitleRecognize">
+          <n-collapse style="margin-top: 10px">
             <n-collapse-item title="字幕识别" name="subtitleRecognize">
               <n-form label-placement="left" :label-width="120">
                 <n-form-item label="模型">
