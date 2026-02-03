@@ -1,6 +1,7 @@
 import path from "node:path";
 import fs from "fs-extra";
 import { analyzeAudio, detectMusicSegments, DetectionConfig } from "music-segment-detector";
+import { stringifySync } from "subtitle";
 
 import { addExtractAudioTask } from "../task/video.js";
 import { QwenLLM, recognize } from "../ai/index.js";
@@ -88,16 +89,19 @@ interface ASRWord {
   t: string;
 }
 
-function convert2Srt2(detail: ASRWord[], offset: number): string {
-  let srt = "";
-  let index = 1;
-  for (const sentence of detail || []) {
-    const start = new Date(sentence.st + offset).toISOString().substr(11, 12).replace(".", ",");
-    const end = new Date(sentence.et + offset).toISOString().substr(11, 12).replace(".", ",");
-    srt += `${index}\n${start} --> ${end}\n${sentence.t}\n\n`;
-    index++;
-  }
-  return srt;
+function convert2Srt(detail: ASRWord[], offset: number): string {
+  const srtNodes = detail
+    .filter((word) => word.t.trim() !== "")
+    .map((word) => ({
+      type: "cue" as const,
+      data: {
+        start: word.st + offset,
+        end: word.et + offset,
+        text: word.t,
+      },
+    }));
+
+  return stringifySync(srtNodes, { format: "SRT" });
 }
 
 function getVendor(vendorId: string) {
@@ -113,15 +117,13 @@ function getVendor(vendorId: string) {
  * 歌词优化
  * @param lyrics - 原始歌词文本
  * @param offset - 偏移时间，单位毫秒
+ * @returns 优化后的 ASRWord 数组
  */
-export async function optimizeLyrics(asrData: StandardASRResult, lyrics: string, offset: number) {
-  // 检查是否有词级时间戳
-  if (!asrData.words || asrData.words.length === 0) {
-    throw new Error(
-      "当前选择的 ASR 模型不支持词级时间戳，无法进行歌词优化。请使用支持词级时间戳的模型（如阿里云 fun-asr）。",
-    );
-  }
-
+export async function optimizeLyrics(
+  asrData: StandardASRResult,
+  lyrics: string,
+  offset: number,
+): Promise<ASRWord[]> {
   const { vendorId, prompt, model, enableStructuredOutput } = getLyricOptimizeConfig();
   const { apiKey, baseURL } = getVendor(vendorId);
   const llm = new QwenLLM({
@@ -131,12 +133,25 @@ export async function optimizeLyrics(asrData: StandardASRResult, lyrics: string,
   });
 
   const asrCleanedSentences: ASRWord[] = [];
-  for (const word of asrData.words) {
-    asrCleanedSentences.push({
-      st: word.start * 1000, // 秒转毫秒
-      et: word.end * 1000,
-      t: word.word,
-    });
+  if (asrData.words && asrData.words.length !== 0) {
+    // 优先使用词级时间戳
+    for (const word of asrData.words) {
+      asrCleanedSentences.push({
+        st: word.start * 1000, // 秒转毫秒
+        et: word.end * 1000,
+        t: word.word,
+      });
+    }
+  }
+  if (asrCleanedSentences.length === 0) {
+    // 回退到分段级时间戳
+    for (const segment of asrData.segments) {
+      asrCleanedSentences.push({
+        st: segment.start * 1000, // 秒转毫秒
+        et: segment.end * 1000,
+        t: segment.text,
+      });
+    }
   }
 
   logger.info("使用 LLM 进行歌词优化...", {
@@ -160,8 +175,13 @@ export async function optimizeLyrics(asrData: StandardASRResult, lyrics: string,
   try {
     const json = JSON.parse(response.content) as ASRWord[] | { data: ASRWord[] };
     const aSRWords = Array.isArray(json) ? json : json.data;
-    const srtData = convert2Srt2(aSRWords, offset);
-    return srtData;
+    // 应用偏移时间
+    const wordsWithOffset = aSRWords.map((word) => ({
+      st: word.st + offset,
+      et: word.et + offset,
+      t: word.t,
+    }));
+    return wordsWithOffset;
   } catch (e) {
     logger.error("LLM 返回内容非 JSON 格式，尝试按纯文本处理", e);
     throw new Error("LLM 返回内容非 JSON 格式，无法解析优化后的歌词");
@@ -342,31 +362,34 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
   }
 
   const rawLyrics = info?.lyrics;
-  let srtData = "";
+  let words: ASRWord[] = [];
+
   if (rawLyrics && lyricOptimize) {
     try {
-      srtData = await optimizeLyrics(data, rawLyrics, audioStartTime * 1000);
+      words = await optimizeLyrics(data, rawLyrics, audioStartTime * 1000);
     } catch (error: any) {
       logger.error("歌词优化失败:", error);
     }
   }
-  if (!srtData) {
-    // 如果没有歌词优化结果，使用原始 ASR 结果生成 SRT
-    // 这里也需要词级时间戳
-    if (!data.words || data.words.length === 0) {
-      throw new Error(
-        "当前选择的 ASR 模型不支持词级时间戳，无法生成歌曲字幕。请使用支持词级时间戳的模型（如阿里云 fun-asr）。",
-      );
-    }
 
-    // 生成简单的 SRT（使用词级时间戳）
-    const words: ASRWord[] = data.words.map((word) => ({
-      st: word.start * 1000 + audioStartTime * 1000,
-      et: word.end * 1000 + audioStartTime * 1000,
-      t: word.word,
-    }));
-    srtData = convert2Srt2(words, 0);
+  if (words.length === 0) {
+    // 如果没有歌词优化结果，使用原始 ASR 结果
+    const segments = data.segments || [];
+
+    // 使用词级时间戳生成 ASRWord 数组
+    words = segments.map((sentence) => {
+      let text = sentence.text.replace(/[，。、“”‘’！？]/g, " ");
+
+      return {
+        st: sentence.start * 1000 + audioStartTime * 1000,
+        et: sentence.end * 1000 + audioStartTime * 1000,
+        t: text,
+      };
+    });
   }
+
+  // 统一生成 SRT
+  const srtData = convert2Srt(words, 0);
 
   const name = info?.name;
   return {

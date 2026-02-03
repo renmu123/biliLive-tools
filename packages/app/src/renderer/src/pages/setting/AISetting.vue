@@ -100,7 +100,10 @@
           <n-collapse style="margin-top: 10px">
             <n-collapse-item title="歌曲ASR" name="songRecognize">
               <n-form label-placement="left" :label-width="120">
-                <n-form-item label="模型">
+                <n-form-item>
+                  <template #label>
+                    <Tip tip="用于将歌曲音频转换为文本的模型，推荐fun-asr" text="模型" />
+                  </template>
                   <n-select
                     v-model:value="config.ai.songRecognizeAsr.modelId"
                     :options="getModelOptionsByTag('asr')"
