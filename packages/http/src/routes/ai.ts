@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import Router from "@koa/router";
-import { asrRecognize, llm, songRecognize } from "@biliLive-tools/shared/musicDetector/index.js";
+import { songRecognize } from "@biliLive-tools/shared/musicDetector/index.js";
 import { subtitleRecognize } from "@biliLive-tools/shared/musicDetector/subtitle.js";
 import { getTempPath, uuid } from "@biliLive-tools/shared/utils/index.js";
 import { addExtractAudioTask } from "@biliLive-tools/shared/task/video.js";
@@ -10,33 +10,33 @@ const router = new Router({
   prefix: "/ai",
 });
 
-router.post("/asr", async (ctx) => {
-  const data = ctx.request.body as {
-    file: string;
-    vendorId: string;
-    model: string;
-  };
-  const result = await asrRecognize(data.file, { vendorId: data.vendorId, model: data.model });
+// router.post("/asr", async (ctx) => {
+//   const data = ctx.request.body as {
+//     file: string;
+//     vendorId: string;
+//     model: string;
+//   };
+//   const result = await asrRecognize(data.file, { vendorId: data.vendorId, model: data.model });
 
-  ctx.body = result;
-});
+//   ctx.body = result;
+// });
 
-router.post("/llm", async (ctx) => {
-  const data = ctx.request.body as {
-    message: string;
-    systemPrompt?: string;
-    enableSearch?: boolean;
-    jsonResponse?: boolean;
-    stream?: boolean;
-  };
-  const result = await llm(data.message, data.systemPrompt, {
-    enableSearch: data.enableSearch,
-    key: undefined,
-    jsonResponse: data.jsonResponse,
-    stream: data.stream,
-  });
-  ctx.body = result;
-});
+// router.post("/llm", async (ctx) => {
+//   const data = ctx.request.body as {
+//     message: string;
+//     systemPrompt?: string;
+//     enableSearch?: boolean;
+//     jsonResponse?: boolean;
+//     stream?: boolean;
+//   };
+//   const result = await llm(data.message, data.systemPrompt, {
+//     enableSearch: data.enableSearch,
+//     key: undefined,
+//     jsonResponse: data.jsonResponse,
+//     stream: data.stream,
+//   });
+//   ctx.body = result;
+// });
 
 router.post("/song_recognize", async (ctx) => {
   const data = ctx.request.body as {

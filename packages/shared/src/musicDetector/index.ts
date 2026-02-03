@@ -3,12 +3,14 @@ import fs from "fs-extra";
 import { analyzeAudio, detectMusicSegments, DetectionConfig } from "music-segment-detector";
 
 import { addExtractAudioTask } from "../task/video.js";
-import { AliyunASR, TranscriptionDetail, QwenLLM, recognize } from "../ai/index.js";
+import { QwenLLM, recognize } from "../ai/index.js";
 import { recognize as shazamRecognize } from "./shazam.js";
 import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
 import { getModel } from "./utils.js";
 import { getTempPath, uuid, calculateFileQuickHash } from "../utils/index.js";
+
+import type { StandardASRResult } from "../ai/index.js";
 
 /**
  * 检测唱歌边界点
@@ -80,51 +82,6 @@ export async function musicDetect(
   return segments;
 }
 
-/**
- * 音乐字幕优化
- */
-function optimizeMusicSubtitles(results: TranscriptionDetail): TranscriptionDetail {
-  // 去除"，"、“。”等标点符号
-  const transcripts = results.transcripts?.map((transcript) => {
-    const optimizedSentences = transcript.sentences?.map((sentence) => {
-      let optimizedText = sentence.text.replace(/[，。、“”‘’！？]/g, " ");
-      return {
-        ...sentence,
-        text: optimizedText,
-      };
-    });
-
-    return {
-      ...transcript,
-      sentences: optimizedSentences,
-    };
-  });
-  return {
-    ...results,
-    transcripts: transcripts,
-  };
-}
-
-function convert2Srt(detail: TranscriptionDetail, offset: number): string {
-  let srt = "";
-  let index = 1;
-  for (const transcript of detail.transcripts || []) {
-    for (const sentence of transcript.sentences || []) {
-      const start = new Date(sentence.begin_time + offset)
-        .toISOString()
-        .substr(11, 12)
-        .replace(".", ",");
-      const end = new Date(sentence.end_time + offset)
-        .toISOString()
-        .substr(11, 12)
-        .replace(".", ",");
-      srt += `${index}\n${start} --> ${end}\n${sentence.text}\n\n`;
-      index++;
-    }
-  }
-  return srt;
-}
-
 interface ASRWord {
   st: number;
   et: number;
@@ -143,97 +100,6 @@ function convert2Srt2(detail: ASRWord[], offset: number): string {
   return srt;
 }
 
-/**
- * 获取 AI 服务商的 API Key，现在是随便写，只支持阿里
- * @returns
- */
-function getApiKey(): string {
-  const data = appConfig.get("ai") || {};
-  if (data?.vendors.length === 0) {
-    throw new Error("请先在配置中设置 AI 服务商的 API Key");
-  }
-  return data.vendors[0].apiKey || "";
-}
-
-/**
- * 音频识别（返回原生格式，向后兼容）
- * @deprecated 建议使用 createASRProvider(modelId) 以支持多种 ASR 提供商
- * @param file
- * @param opts
- * @returns
- */
-export async function asrRecognize(file: string, opts: { vendorId: string; model: string }) {
-  const { apiKey } = getVendor(opts.vendorId);
-
-  const asr = new AliyunASR({
-    apiKey: apiKey,
-    model: opts.model,
-  });
-
-  try {
-    const results = await asr.recognizeLocalFile(file);
-
-    // console.log("识别结果:", results.transcripts?.[0]);
-
-    // console.log("已将字幕保存到 output.srt 文件");
-    return results;
-  } catch (error) {
-    logger.error("ASR 识别失败:", error);
-    throw error;
-  }
-}
-
-/**
- * 使用通义千问 LLM 示例
- */
-export async function llm(
-  message: string,
-  systemPrompt?: string,
-  opts: {
-    key?: string;
-    enableSearch?: boolean;
-    jsonResponse?: boolean;
-    stream?: boolean;
-  } = {},
-) {
-  console.log("=== 示例: 使用通义千问 LLM ===");
-  const apiKey = opts.key ?? getApiKey();
-
-  const llm = new QwenLLM({
-    apiKey: apiKey,
-    model: "qwen-plus",
-  });
-
-  try {
-    // const testData = fs.readFileSync(
-    //   "C:\\Users\\renmu\\Downloads\\新建文件夹 (2)\\cleaned_data.json",
-    // );
-    // console.log("读取测试数据，长度:", message + testData, testData.length);
-    const response = await llm.sendMessage(message, systemPrompt, {
-      // responseFormat: zodResponseFormat(Song, "song"),
-      enableSearch: opts.enableSearch ?? false,
-      responseFormat: opts.jsonResponse ? { type: "json_object" } : undefined,
-      // @ts-ignore
-      stream: opts.stream ?? undefined,
-      searchOptions: {
-        forcedSearch: opts.enableSearch ?? false,
-      },
-    });
-
-    if ("content" in response) {
-      logger.info("LLM 请求成功", JSON.stringify(response));
-      // console.log("提问:", response);
-      // console.log("回复:", response.content);
-      // console.log("Token 使用:", response.usage);
-      return response;
-    }
-    throw new Error("LLM 未返回预期的响应内容");
-  } catch (error) {
-    console.error("LLM 请求失败:", error);
-    throw error;
-  }
-}
-
 function getVendor(vendorId: string) {
   const data = appConfig.get("ai") || {};
   const vendor = data.vendors.find((v: any) => v.id === vendorId);
@@ -248,7 +114,14 @@ function getVendor(vendorId: string) {
  * @param lyrics - 原始歌词文本
  * @param offset - 偏移时间，单位毫秒
  */
-export async function optimizeLyrics(asrData: TranscriptionDetail, lyrics: string, offset: number) {
+export async function optimizeLyrics(asrData: StandardASRResult, lyrics: string, offset: number) {
+  // 检查是否有词级时间戳
+  if (!asrData.words || asrData.words.length === 0) {
+    throw new Error(
+      "当前选择的 ASR 模型不支持词级时间戳，无法进行歌词优化。请使用支持词级时间戳的模型（如阿里云 fun-asr）。",
+    );
+  }
+
   const { vendorId, prompt, model, enableStructuredOutput } = getLyricOptimizeConfig();
   const { apiKey, baseURL } = getVendor(vendorId);
   const llm = new QwenLLM({
@@ -258,16 +131,12 @@ export async function optimizeLyrics(asrData: TranscriptionDetail, lyrics: strin
   });
 
   const asrCleanedSentences: ASRWord[] = [];
-  for (const transcript of asrData.transcripts || []) {
-    for (const sentence of transcript.sentences || []) {
-      for (const word of sentence.words || []) {
-        asrCleanedSentences.push({
-          st: word.begin_time,
-          et: word.end_time,
-          t: word.text,
-        });
-      }
-    }
+  for (const word of asrData.words) {
+    asrCleanedSentences.push({
+      st: word.start * 1000, // 秒转毫秒
+      et: word.end * 1000,
+      t: word.word,
+    });
   }
 
   logger.info("使用 LLM 进行歌词优化...", {
@@ -306,11 +175,9 @@ function getSongRecognizeConfig() {
   const config = appConfig.getAll();
   const data = config.ai;
 
-  const asrModel = getModel(data.songRecognizeAsr?.modelId, config);
-
-  const asrVendor = data.vendors.find((v: any) => v.id === asrModel.vendorId);
-  if (!asrVendor) {
-    throw new Error("找不到ASR模型关联的供应商");
+  const asrModelId = data.songRecognizeAsr?.modelId;
+  if (!asrModelId) {
+    throw new Error("请先在配置中设置歌曲识别 ASR 模型");
   }
 
   const llmModel = getModel(data?.songRecognizeLlm?.modelId, config);
@@ -321,8 +188,7 @@ function getSongRecognizeConfig() {
 
   return {
     data,
-    asrVendorId: asrVendor.id,
-    asrModel: asrModel.modelName,
+    asrModelId,
     llmVendorId: llmVendor.id,
     llmModel: llmModel.modelName,
     llmPrompt: data?.songRecognizeLlm?.prompt,
@@ -425,7 +291,7 @@ async function recognizeSongNameWithLLM(
  */
 export async function songRecognize(file: string, audioStartTime: number = 0) {
   const {
-    asrVendorId,
+    asrModelId,
     llmVendorId,
     llmPrompt,
     llmModel,
@@ -433,7 +299,6 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
     maxInputLength,
     enableStructuredOutput,
     lyricOptimize,
-    asrModel,
   } = getSongRecognizeConfig();
 
   let info: {
@@ -454,8 +319,8 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
   }
 
   // 如果开启了歌词优化，首先要asr识别
-  const data = await asrRecognize(file, { vendorId: asrVendorId, model: asrModel });
-  const messages = data.transcripts?.[0]?.text || "";
+  const data = await recognize(file, asrModelId);
+  const messages = data.text || "";
   if (!messages) {
     logger.warn("没有识别到任何文本内容，无法进行歌曲识别");
     return;
@@ -479,10 +344,28 @@ export async function songRecognize(file: string, audioStartTime: number = 0) {
   const rawLyrics = info?.lyrics;
   let srtData = "";
   if (rawLyrics && lyricOptimize) {
-    srtData = await optimizeLyrics(data, rawLyrics, audioStartTime * 1000);
+    try {
+      srtData = await optimizeLyrics(data, rawLyrics, audioStartTime * 1000);
+    } catch (error: any) {
+      logger.error("歌词优化失败:", error);
+    }
   }
   if (!srtData) {
-    srtData = convert2Srt(optimizeMusicSubtitles(data), audioStartTime * 1000);
+    // 如果没有歌词优化结果，使用原始 ASR 结果生成 SRT
+    // 这里也需要词级时间戳
+    if (!data.words || data.words.length === 0) {
+      throw new Error(
+        "当前选择的 ASR 模型不支持词级时间戳，无法生成歌曲字幕。请使用支持词级时间戳的模型（如阿里云 fun-asr）。",
+      );
+    }
+
+    // 生成简单的 SRT（使用词级时间戳）
+    const words: ASRWord[] = data.words.map((word) => ({
+      st: word.start * 1000 + audioStartTime * 1000,
+      et: word.end * 1000 + audioStartTime * 1000,
+      t: word.word,
+    }));
+    srtData = convert2Srt2(words, 0);
   }
 
   const name = info?.name;
