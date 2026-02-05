@@ -23,6 +23,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
   formatName: FormatName;
   videoFormat: VideoFormat;
   readonly debugLevel: "none" | "basic" | "verbose" = "none";
+  readonly proxy?: string;
   readonly headers:
     | {
         [key: string]: string | undefined;
@@ -85,6 +86,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
     this.url = opts.url;
     this.segment = opts.segment;
     this.headers = opts.headers;
+    this.proxy = opts.proxy;
 
     this.command = this.createCommand();
     this.streamManager.on("videoFileCreated", ({ filename, cover, rawFilename, title }) => {
@@ -111,6 +113,9 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
       inputOptions.push(
         ...["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "3"],
       );
+    }
+    if (this.proxy) {
+      inputOptions.push(...["-http_proxy", this.proxy]);
     }
     if (this.debugLevel === "verbose") {
       inputOptions.push("-loglevel", "debug");
