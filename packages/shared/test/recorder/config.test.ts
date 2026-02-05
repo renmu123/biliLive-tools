@@ -7,6 +7,58 @@ vi.mock("../../src/task/bili.js", () => ({
   getCookie: vi.fn(),
 }));
 
+// 通用的期望配置字段（用于断言）
+const COMMON_EXPECTED_CONFIG = {
+  line: undefined,
+  debugLevel: "none",
+  disableProvideCommentsWhenRecording: true,
+  saveGiftDanma: false,
+  saveSCDanma: true,
+  saveCover: false,
+  saveRawDanma: false,
+  segment: 90,
+  uid: undefined,
+  qualityRetry: 3,
+  recorderType: "ffmpeg",
+  videoFormat: "auto",
+  auth: undefined,
+  useM3U8Proxy: true,
+  formatName: "auto",
+  codecName: "h264",
+  source: "auto",
+  doubleScreen: undefined,
+  formatPriorities: undefined,
+  sourcePriorities: [],
+  api: "auto",
+  useServerTimestamp: true,
+  customHost: undefined,
+} as const;
+
+// 添加/更新录制器时的基础配置字段
+const BASE_RECORDER_CONFIG = {
+  noGlobalFollowFields: [],
+  streamPriorities: [],
+  sourcePriorities: [],
+  extra: {},
+  quality: "highest" as const,
+  line: "auto",
+  disableProvideCommentsWhenRecording: true,
+  saveGiftDanma: false,
+  saveSCDanma: true,
+  saveRawDanma: false,
+  saveCover: false,
+  segment: 90,
+  videoFormat: "auto" as const,
+  qualityRetry: 0,
+  formatName: "auto" as const,
+  useM3U8Proxy: false,
+  codecName: "auto" as const,
+  source: "auto",
+  recorderType: "ffmpeg" as const,
+  useServerTimestamp: true,
+  handleTime: ["", ""] as [string | null, string | null],
+} as const;
+
 describe("RecorderConfig", () => {
   let recorderConfig: RecorderConfig;
   let mockAppConfig: any;
@@ -99,6 +151,7 @@ describe("RecorderConfig", () => {
       const result = recorderConfig.get("test1");
 
       expect(result).toEqual({
+        ...COMMON_EXPECTED_CONFIG,
         id: "test1",
         providerId: "Bilibili",
         channelId: "123",
@@ -106,27 +159,9 @@ describe("RecorderConfig", () => {
         noGlobalFollowFields: ["customField"],
         customField: "custom_value",
         quality: "highest",
-        debugLevel: "none",
-        line: undefined,
-        disableProvideCommentsWhenRecording: true,
-        saveGiftDanma: false,
-        saveSCDanma: true,
-        saveCover: false,
-        segment: 90,
         uid: "123456",
-        qualityRetry: 3,
-        recorderType: "ffmpeg",
-        videoFormat: "auto",
         auth: "SESSDATA=test_sessdata; bili_jct=test_jct",
-        useM3U8Proxy: true,
         formatName: "bilibili_format",
-        codecName: "h264",
-        source: "auto",
-        doubleScreen: undefined,
-        formatPriorities: undefined,
-        sourcePriorities: [],
-        api: "auto",
-        useServerTimestamp: true,
       });
     });
 
@@ -134,32 +169,12 @@ describe("RecorderConfig", () => {
       const result = recorderConfig.get("test2");
 
       expect(result).toEqual({
+        ...COMMON_EXPECTED_CONFIG,
         id: "test2",
         providerId: "DouYu",
         channelId: "456",
         owner: "test_owner2",
         quality: "high",
-        line: undefined,
-        disableProvideCommentsWhenRecording: true,
-        saveGiftDanma: false,
-        saveSCDanma: true,
-        saveCover: false,
-        segment: 90,
-        uid: undefined,
-        qualityRetry: 3,
-        recorderType: "ffmpeg",
-        videoFormat: "auto",
-        debugLevel: "none",
-        auth: undefined,
-        useM3U8Proxy: true,
-        formatName: "auto",
-        codecName: "h264",
-        source: "auto",
-        doubleScreen: undefined,
-        formatPriorities: undefined,
-        sourcePriorities: [],
-        api: "auto",
-        useServerTimestamp: true,
       });
     });
 
@@ -168,32 +183,13 @@ describe("RecorderConfig", () => {
         const result = recorderConfig.get("test3");
 
         expect(result).toEqual({
+          ...COMMON_EXPECTED_CONFIG,
           id: "test3",
           providerId: "HuYa",
           channelId: "789",
           owner: "test_owner3",
           quality: "high",
-          line: undefined,
-          disableProvideCommentsWhenRecording: true,
-          saveGiftDanma: false,
-          saveSCDanma: true,
-          saveCover: false,
-          segment: 90,
-          uid: undefined,
-          qualityRetry: 3,
-          recorderType: "ffmpeg",
-          videoFormat: "auto",
-          debugLevel: "none",
           formatPriorities: ["flv", "hls"],
-          auth: undefined,
-          useM3U8Proxy: true,
-          formatName: "auto",
-          codecName: "h264",
-          source: "auto",
-          doubleScreen: undefined,
-          sourcePriorities: [],
-          api: "auto",
-          useServerTimestamp: true,
         });
       });
       it("正确处理HuYa source全局参数", () => {
@@ -257,32 +253,14 @@ describe("RecorderConfig", () => {
       const result = recorderConfig.get("test4");
 
       expect(result).toEqual({
+        ...COMMON_EXPECTED_CONFIG,
         id: "test4",
         providerId: "DouYin",
         channelId: "101",
         owner: "test_owner4",
         quality: "high",
-        line: undefined,
-        debugLevel: "none",
-        disableProvideCommentsWhenRecording: true,
-        saveGiftDanma: false,
-        saveSCDanma: true,
-        saveCover: false,
-        segment: 90,
-        uid: undefined,
-        qualityRetry: 3,
-        recorderType: "ffmpeg",
-        videoFormat: "auto",
-        auth: undefined,
-        useM3U8Proxy: true,
-        formatName: "auto",
-        codecName: "h264",
-        source: "auto",
         formatPriorities: ["flv", "hls"],
         doubleScreen: true,
-        sourcePriorities: [],
-        api: "auto",
-        useServerTimestamp: true,
       });
     });
 
@@ -331,6 +309,7 @@ describe("RecorderConfig", () => {
               debugLevel: "none",
               qualityRetry: 3,
               saveGiftDanma: true,
+              saveRawDanma: false,
               saveSCDanma: false,
               saveCover: true,
               api: "auto",
@@ -361,33 +340,14 @@ describe("RecorderConfig", () => {
       const result = recorderConfig.get("test6");
 
       expect(result).toEqual({
+        ...COMMON_EXPECTED_CONFIG,
         id: "test6",
         providerId: "Bilibili",
         channelId: "123",
         owner: "test_owner",
-        debugLevel: "none",
         noGlobalFollowFields: ["saveGiftDanma", "saveSCDanma", "saveCover"],
         quality: "highest",
-        line: undefined,
-        disableProvideCommentsWhenRecording: true,
-        saveGiftDanma: false,
-        saveSCDanma: true,
-        saveCover: false,
-        segment: 90,
-        uid: undefined,
-        qualityRetry: 3,
-        recorderType: "ffmpeg",
-        videoFormat: "auto",
-        auth: undefined,
-        useM3U8Proxy: true,
         formatName: "bilibili_format",
-        codecName: "h264",
-        source: "auto",
-        doubleScreen: undefined,
-        formatPriorities: undefined,
-        sourcePriorities: [],
-        api: "auto",
-        useServerTimestamp: true,
       });
     });
   });
@@ -409,30 +369,11 @@ describe("RecorderConfig", () => {
   describe("add", () => {
     it("应该能够添加新的录制器配置", () => {
       const newRecorder = {
+        ...BASE_RECORDER_CONFIG,
         id: "test3",
         providerId: "Bilibili" as const,
         channelId: "789",
         owner: "test_owner3",
-        noGlobalFollowFields: [],
-        streamPriorities: [],
-        sourcePriorities: [],
-        extra: {},
-        quality: "highest" as const,
-        line: "auto",
-        disableProvideCommentsWhenRecording: true,
-        saveGiftDanma: false,
-        saveSCDanma: true,
-        saveCover: false,
-        segment: 90,
-        videoFormat: "auto" as const,
-        qualityRetry: 0,
-        formatName: "auto" as const,
-        useM3U8Proxy: false,
-        codecName: "auto" as const,
-        source: "auto",
-        recorderType: "ffmpeg" as const,
-        useServerTimestamp: true,
-        handleTime: ["", ""] as [string | null, string | null],
       };
 
       recorderConfig.add(newRecorder);
@@ -458,29 +399,10 @@ describe("RecorderConfig", () => {
   describe("update", () => {
     it("应该能够更新指定的录制器配置", () => {
       const updatedRecorder = {
+        ...BASE_RECORDER_CONFIG,
         id: "test1",
         channelId: "new_channel_id",
         owner: "new_owner",
-        noGlobalFollowFields: [],
-        streamPriorities: [],
-        sourcePriorities: [],
-        extra: {},
-        quality: "highest" as const,
-        line: "auto",
-        disableProvideCommentsWhenRecording: true,
-        saveGiftDanma: false,
-        saveSCDanma: true,
-        saveCover: false,
-        segment: 90,
-        videoFormat: "auto" as const,
-        qualityRetry: 0,
-        formatName: "auto" as const,
-        useM3U8Proxy: false,
-        codecName: "auto" as const,
-        source: "auto",
-        recorderType: "ffmpeg" as const,
-        useServerTimestamp: true,
-        handleTime: ["", ""] as [string | null, string | null],
       };
 
       recorderConfig.update(updatedRecorder);
