@@ -86,6 +86,51 @@ onUnmounted(() => {
   hotkeys.unbind();
 });
 
+const formatPartTitleTemplate = async (
+  partTitleTemplate: string | undefined,
+  videos: (typeof fileList)["value"],
+  startIndex: number,
+) => {
+  const hasPartTitleTemplate = partTitleTemplate && !!partTitleTemplate.trim();
+  if (hasPartTitleTemplate) {
+    await Promise.all(
+      videos.map(async (video, index) => {
+        try {
+          const parseResult = await commonApi.parseMeta({
+            videoFilePath: video.path,
+            danmaFilePath: replaceExtName(video.path, ".xml"),
+          });
+          if (
+            parseResult.title &&
+            parseResult.username &&
+            parseResult.roomId &&
+            parseResult.startTimestamp
+          ) {
+            const previewTitle = await biliApi.formatWebhookPartTitle(partTitleTemplate, {
+              title: parseResult.title,
+              username: parseResult.username,
+              time: new Date((parseResult.startTimestamp ?? 0) * 1000).toISOString(),
+              roomId: parseResult.roomId,
+              filename: window.path.basename(video.path),
+              index: startIndex + index,
+            });
+            video.title = previewTitle;
+            notice.success({
+              title: `已解析并替换标题为：${previewTitle}`,
+              duration: 6000,
+            });
+          }
+        } catch (e) {
+          notice.warning({
+            title: `尝试解析视频文件 ${video.title} 信息失败，继续上传`,
+            duration: 2000,
+          });
+        }
+      }),
+    );
+  }
+};
+
 const upload = async () => {
   const hasLogin = !!userInfo.value.uid;
   if (!hasLogin) {
@@ -159,9 +204,17 @@ const upload = async () => {
       return;
     }
   }
+
+  const videos = deepRaw(fileList.value);
+
+  if (fileList.value.length > 1) {
+    // 非续传时首P标题已由稿件标题处理，这里从第2P开始套用分P模板
+    await formatPartTitleTemplate(uploadConfig.partTitleTemplate, videos.slice(1), 2);
+  }
+
   await biliApi.upload({
     uid: userInfo.value.uid!,
-    videos: deepRaw(fileList.value),
+    videos,
     config: uploadConfig,
     options: {
       removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,
@@ -198,12 +251,18 @@ const appendVideo = async () => {
     title: `开始上传`,
     duration: 1000,
   });
+
+  const uploadConfig = deepRaw(presetOptions.value.config);
+  const videos = deepRaw(fileList.value);
+  // 续传未获取已上传数量，先从 1 起
+  await formatPartTitleTemplate(uploadConfig.partTitleTemplate, videos, 1);
+
   await biliApi.upload({
     uid: userInfo.value.uid!,
     vid: Number(aid.value),
-    videos: deepRaw(fileList.value),
+    videos,
     config: {
-      ...deepRaw(presetOptions.value.config),
+      ...uploadConfig,
     },
     options: {
       removeOriginAfterUploadCheck: options.removeOriginAfterUploadCheck,
