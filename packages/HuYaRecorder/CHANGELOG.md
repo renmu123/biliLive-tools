@@ -1,3 +1,7 @@
+# Next
+
+- 支持 `saveRawDanma` 保存原始弹幕
+
 # 1.13.0
 
 - 修复wup接口

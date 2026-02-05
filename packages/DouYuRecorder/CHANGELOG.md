@@ -1,3 +1,7 @@
+# Next
+
+- 支持 `saveRawDanma` 保存原始弹幕
+
 # 1.12.0
 
 - 禁止标题关键词支持正则 [#307](https://github.com/renmu123/biliLive-tools/pull/307)

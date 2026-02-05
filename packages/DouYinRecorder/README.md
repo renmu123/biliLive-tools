@@ -43,6 +43,7 @@ interface Options {
   saveGiftDanma?: boolean; // 保存礼物弹幕
   saveCover?: boolean; // 保存封面
   videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"
+  saveRawDanma?: boolean; // 保存原始弹幕
   useServerTimestamp?: boolean; // 控制弹幕是否使用服务端时间戳，默认为true
   doubleScreen?: boolean; // 是否使用双屏直播流，开启后如果是双屏直播，那么就使用拼接的流，默认为true
   recorderType?: "auto" | "ffmpeg" | "mesio" | "bililive"; // 底层录制器，使用mesio和bililive时videoFormat参数无效

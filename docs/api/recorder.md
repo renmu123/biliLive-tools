@@ -49,6 +49,7 @@
 | line                                | string  | 否   | 线路                 |
 | disableProvideCommentsWhenRecording | boolean | 否   | 录制时禁用弹幕       |
 | saveGiftDanma                       | boolean | 否   | 保存礼物弹幕         |
+| saveRawDanma                        | boolean | 否   | 保存弹幕原始数据     |
 | saveSCDanma                         | boolean | 否   | 保存SC弹幕           |
 | segment                             | object  | 否   | 分段配置             |
 | sendToWebhook                       | boolean | 否   | 发送到Webhook        |
