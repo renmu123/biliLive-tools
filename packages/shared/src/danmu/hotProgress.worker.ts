@@ -30,10 +30,10 @@ async function svgToPng(task: WorkerTask): Promise<WorkerResult> {
         loadSystemFonts: false, // 不加载系统字体以提高性能
       },
       logLevel: "error" as const, // 减少日志输出
-      fitTo: {
-        mode: "width" as const,
-        value: width,
-      },
+      // fitTo: {
+      //   mode: "width" as const,
+      //   value: width,
+      // },
     };
 
     // 渲染 SVG

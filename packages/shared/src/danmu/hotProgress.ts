@@ -4,7 +4,7 @@ import { compile } from "ass-compiler";
 import { parseXmlFile } from "./index.js";
 import { countByIntervalInSeconds } from "../utils/index.js";
 import { Worker } from "node:worker_threads";
-import { fileURLToPath } from "node:url";
+// @ts-ignore
 import svgToPng from "./hotProgress.worker.js?modulePath";
 
 import type { HotProgressOptions } from "@biliLive-tools/types";
@@ -155,7 +155,7 @@ export const generateDanmakuImage = async (
     const tasks: WorkerTask[] = [];
     for (let i = 0; i < data.length; i++) {
       data[i].color = options.fillColor;
-      const svg = generateSmoothLineChartSVG(data.slice(0, i + 1), options.width, options.height, {
+      const svg = generateSmoothLineChartSVG(data, options.width, options.height, {
         strokeWidth: options.strokeWidth,
         strokeLinecap: options.strokeLinecap,
       });
@@ -169,12 +169,11 @@ export const generateDanmakuImage = async (
         height: options.height,
       });
     }
-    console.log(tasks[0].svg, "\n");
-    console.log(tasks[10].svg, "\n");
+    // console.log(tasks[20].svg, data[20], "\n");
+    // console.log(tasks[40].svg, data[40], "\n");
 
     // 并发执行所有任务
     const results = await Promise.all(tasks.map((task) => pool.run(task)));
-    return;
     // 检查是否有失败的任务
     const failures = results.filter((r) => !r.success);
     if (failures.length > 0) {
