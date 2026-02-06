@@ -129,8 +129,8 @@ importers:
         specifier: 0.6.2
         version: 0.6.2
       music-segment-detector:
-        specifier: ^0.3.0
-        version: 0.3.0(rollup@4.52.4)
+        specifier: ^0.3.1
+        version: 0.3.1(rollup@4.52.4)
       ntsuspend:
         specifier: ^1.0.2
         version: 1.0.2
@@ -320,8 +320,8 @@ importers:
         specifier: 'catalog:'
         version: 0.6.2
       music-segment-detector:
-        specifier: ^0.3.0
-        version: 0.3.0(rollup@4.52.4)
+        specifier: ^0.3.1
+        version: 0.3.1(rollup@4.52.4)
       ntsuspend:
         specifier: 'catalog:'
         version: 1.0.2
@@ -649,8 +649,8 @@ importers:
         specifier: 'catalog:'
         version: 0.6.2
       music-segment-detector:
-        specifier: ^0.3.0
-        version: 0.3.0(rollup@4.52.4)
+        specifier: ^0.3.1
+        version: 0.3.1(rollup@4.52.4)
       node-downloader-helper:
         specifier: ^2.1.10
         version: 2.1.10
@@ -4454,8 +4454,8 @@ packages:
   multistream@4.1.0:
     resolution: {integrity: sha512-J1XDiAmmNpRCBfIWJv+n0ymC4ABcf/Pl+5YvC5B/D2f/2+8PtHvCNxMPKiQcZyi922Hq69J2YOpb1pTywfifyw==}
 
-  music-segment-detector@0.3.0:
-    resolution: {integrity: sha512-bBTus3TeGFJxPmmxu4CTJmYFnS8dZpx76tZRNa2p1LrbIm+txE3pnn+PWmeLt49aDh4emMUY7hWUgb1/Lp43aQ==}
+  music-segment-detector@0.3.1:
+    resolution: {integrity: sha512-6ybsAMe45WNHmLdo8QeLRQQXSHgCIBGmnxhZbE4O6MviWF3mvx2GMZsGHJVkvxc6GEssDiSfxV2gfUkWW4DL6Q==}
     engines: {node: '>=16.0.0'}
 
   naive-ui@2.40.3:
@@ -9995,7 +9995,7 @@ snapshots:
       once: 1.4.0
       readable-stream: 3.6.2
 
-  music-segment-detector@0.3.0(rollup@4.52.4):
+  music-segment-detector@0.3.1(rollup@4.52.4):
     dependencies:
       meyda: 5.6.3(rollup@4.52.4)
     transitivePeerDependencies:
