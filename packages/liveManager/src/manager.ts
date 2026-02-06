@@ -512,6 +512,7 @@ export function genSavePathFromRule<
     hour: formatDate(now, "HH"),
     min: formatDate(now, "mm"),
     sec: formatDate(now, "ss"),
+    ms: formatDate(now, "SSS"),
     ...extData,
     startTime: now,
     owner: owner,

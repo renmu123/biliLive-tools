@@ -88,6 +88,7 @@ biliLive-tools 提供三种录制器引擎：
 - `{hour}` - 小时
 - `{min}` - 分钟
 - `{sec}` - 秒
+- `{sec}` - 毫秒
 - `{startTime}` - 分段开始时间，Date对象
 - `{recordStartTime}` - 录制开始时间，Date对象
 - `{liveStartTime}` - 直播开始时间，Date对象，抖音同录制开始时间
