@@ -1,6 +1,7 @@
 # 1.13.0
 
 - 录播姬引擎增加额外的超时判断
+- `startRecord` 增加参数 `ignoreDataLimit`，默认为true
 
 # 1.12.0
 

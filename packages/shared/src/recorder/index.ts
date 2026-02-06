@@ -448,7 +448,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
       });
 
       if (!data.disableAutoCheck) {
-        manager.startRecord(recoder.id);
+        manager.startRecord(recoder.id, {
+          ignoreDataLimit: true,
+        });
       }
       return recoder;
     },
