@@ -21,7 +21,7 @@ export interface WorkerResult {
  */
 async function svgToPng(task: WorkerTask): Promise<WorkerResult> {
   try {
-    const { svg, outputPath, width, height } = task;
+    const { svg, outputPath } = task;
 
     // 配置 Resvg 选项
     const opts = {
