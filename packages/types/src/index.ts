@@ -1021,6 +1021,10 @@ export type HotProgressOptions = {
   duration?: number;
   /** 视频文件，如果没有传递width和duration，自动计算 */
   videoPath?: string;
+  /** SVG 线条宽度，默认 2 */
+  strokeWidth?: number;
+  /** SVG 线条端点样式，默认 round */
+  strokeLinecap?: "round" | "butt" | "square";
 };
 
 export type DanmaType = "text" | "sc" | "gift" | "guard" | "unknown";

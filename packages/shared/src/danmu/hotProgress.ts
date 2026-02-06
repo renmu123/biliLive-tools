@@ -2,10 +2,11 @@ import fs from "fs-extra";
 import path from "node:path";
 import { compile } from "ass-compiler";
 import { parseXmlFile } from "./index.js";
-import { createCanvas } from "@napi-rs/canvas";
 import { countByIntervalInSeconds } from "../utils/index.js";
+import { Tinypool } from "tinypool";
 
 import type { HotProgressOptions } from "@biliLive-tools/types";
+import type { WorkerTask } from "./hotProgress.worker.js";
 
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
@@ -50,75 +51,108 @@ export const generateDanmakuImage = async (
   output: string,
   iOptions: WithRequired<HotProgressOptions, "duration">,
 ) => {
-  const defaultOptins = {
+  const defaultOptions = {
     interval: 30,
     height: 60,
     width: 1920,
     color: "#f9f5f3",
     fillColor: "#333333",
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
   };
-  const options = Object.assign(defaultOptins, iOptions);
+  const options = Object.assign(defaultOptions, iOptions);
 
   const data = await generateDanmakuData(input, options);
   await fs.ensureDir(output);
-  for (let i = 0; i < data.length; i++) {
-    data[i].color = options.fillColor;
-    const canvas = await drawSmoothLineChart(data, options.width, options.height);
-    const outputPath = path.join(output, `${String(i).padStart(4, "0")}.png`);
-    const stream = await canvas.encode("png");
-    await fs.promises.writeFile(outputPath, stream);
+
+  // 初始化 worker 线程池
+  const pool = new Tinypool({
+    filename: new URL("./hotProgress.worker.js", import.meta.url).href,
+  });
+
+  try {
+    // 准备所有任务
+    const tasks: WorkerTask[] = [];
+    for (let i = 0; i < data.length; i++) {
+      data[i].color = options.fillColor;
+      const svg = generateSmoothLineChartSVG(data.slice(0, i + 1), options.width, options.height, {
+        strokeWidth: options.strokeWidth,
+        strokeLinecap: options.strokeLinecap,
+      });
+      const outputPath = path.join(output, `${String(i).padStart(4, "0")}.png`);
+
+      tasks.push({
+        svg,
+        outputPath,
+        width: options.width,
+        height: options.height,
+      });
+    }
+
+    // 并发执行所有任务
+    const results = await Promise.all(tasks.map((task) => pool.run(task)));
+
+    // 检查是否有失败的任务
+    const failures = results.filter((r) => !r.success);
+    if (failures.length > 0) {
+      console.warn(`${failures.length} 个图片生成失败`);
+    }
+
+    return data;
+  } finally {
+    // 确保清理线程池
+    await pool.destroy();
   }
-  return data;
 };
 
-// 绘制平滑曲线
-function drawSmoothCurve(ctx, points) {
+// 生成平滑曲线的 SVG path
+function generateSmoothCurvePath(points: Array<{ x: number; y: number; color: string }>): string {
   const len = points.length;
+  if (len < 2) return "";
 
   let lastX = points[0].x;
   let lastY = points[0].y;
 
-  // // 生成 SVG path 的 d 参数
-  // let pathD = `M ${lastX} ${lastY}`;
+  // 生成 SVG path 的 d 参数
+  let pathD = `M ${lastX} ${lastY}`;
 
   for (let i = 1; i < len - 1; i++) {
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-
-    ctx.strokeStyle = points[i].color;
     const xc = (points[i].x + points[i + 1].x) / 2;
     const yc = (points[i].y + points[i + 1].y) / 2;
 
-    ctx.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
-
-    // // 添加到 SVG path
-    // pathD += ` Q ${points[i].x} ${points[i].y} ${xc} ${yc}`;
+    // 添加二次贝塞尔曲线到 SVG path
+    pathD += ` Q ${points[i].x} ${points[i].y} ${xc} ${yc}`;
 
     lastX = xc;
     lastY = yc;
-    ctx.stroke();
   }
 
-  // console.log("SVG Path d:", pathD);
+  // 处理最后一个点
+  if (len > 1) {
+    pathD += ` L ${points[len - 1].x} ${points[len - 1].y}`;
+  }
+
+  return pathD;
 }
 
-// 绘制平滑折线图
-async function drawSmoothLineChart(data, width: number, height: number) {
-  const canvas = createCanvas(width, height);
-  const ctx = canvas.getContext("2d");
-
+// 生成平滑折线图的 SVG
+function generateSmoothLineChartSVG(
+  data: Array<{ time: number; value: number; color: string }>,
+  width: number,
+  height: number,
+  options: { strokeWidth?: number; strokeLinecap?: string } = {},
+): string {
+  const { strokeWidth = 2, strokeLinecap = "round" } = options;
   const length = data.length;
   const maxValue = Math.max(...data.map((item) => item.value));
-  // const minValue = Math.min(...data.map((item) => item.value));
   const xRation = width / (length - 1);
-  const yRatio = height / maxValue;
+  const yRatio = height / (maxValue || 1); // 避免除以 0
 
-  const points: any[] = [];
+  const points: Array<{ x: number; y: number; color: string }> = [];
 
   // 计算数据点的坐标
   for (let i = 0; i < data.length; i++) {
     const item = data[i];
-
     const x = i * xRation;
     const y = height - item.value * yRatio;
     points.push({
@@ -128,8 +162,14 @@ async function drawSmoothLineChart(data, width: number, height: number) {
     });
   }
 
-  drawSmoothCurve(ctx, points);
-  return canvas;
+  // 生成 SVG path
+  const pathD = generateSmoothCurvePath(points);
+  const color = points[0]?.color ?? "#333333";
+
+  // 构造完整的 SVG 字符串
+  return `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+  <path d="${pathD}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="${strokeLinecap}"/>
+</svg>`;
 }
 
 // 期待使用drawvg滤镜重构的一天
