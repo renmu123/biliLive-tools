@@ -14,6 +14,7 @@
 - Webhook：`删除不符合最小处理大小的文件` 将会对封面以及弹幕文件生效 [#317](https://github.com/renmu123/biliLive-tools/issues/317)
 - Webhook：`分p标题`支持`{{hasDanmaStr}}`占位符区分文件是否属于弹幕版
 - 录制：录制名占位符增加`ms`参数 [#324](https://github.com/renmu123/biliLive-tools/issues/324)
+- 音乐切片性能优化 [#330](https://github.com/renmu123/biliLive-tools/pull/330)
 
 ## Bug修复
 
