@@ -581,6 +581,18 @@
                 >全局</n-checkbox
               >
             </n-form-item>
+            <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
+              <template #label>
+                <span class="inline-flex"> 保存原始弹幕 </span>
+              </template>
+              <n-switch
+                v-model:value="config.saveRawDanma"
+                :disabled="globalFieldsObj.saveRawDanma"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.saveRawDanma" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
             <n-form-item
               v-if="
                 !config.disableProvideCommentsWhenRecording && !['HuYa'].includes(config.providerId)
@@ -661,6 +673,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     quality: true,
     disableProvideCommentsWhenRecording: true,
     saveGiftDanma: true,
+    saveRawDanma: true,
     saveSCDanma: true,
     segment: true,
     uid: true,
@@ -758,6 +771,7 @@ const initGlobalFields = () => {
       "disableProvideCommentsWhenRecording",
     ),
     saveGiftDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveGiftDanma"),
+    saveRawDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveRawDanma"),
     saveSCDanma: !(config.value?.noGlobalFollowFields ?? []).includes("saveSCDanma"),
     segment: !(config.value?.noGlobalFollowFields ?? []).includes("segment"),
     uid: !(config.value?.noGlobalFollowFields ?? []).includes("uid"),
@@ -823,6 +837,9 @@ watch(
     }
     if (val.saveGiftDanma) {
       config.value.saveGiftDanma = appConfig.value.recorder.saveGiftDanma;
+    }
+    if (val.saveRawDanma) {
+      config.value.saveRawDanma = appConfig.value.recorder.saveRawDanma;
     }
     if (val.saveSCDanma) {
       config.value.saveSCDanma = appConfig.value.recorder.saveSCDanma;

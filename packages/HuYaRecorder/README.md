@@ -44,6 +44,7 @@ interface Options {
   segment?: number | string; // 分段参数，单位分钟，如果以"B","KB","MB","GB"结尾，会尝试使用文件大小分段，仅推荐在使用mesio录制引擎时使用
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
   saveGiftDanma?: boolean; // 保存礼物弹幕
+  saveRawDanma?: boolean; // 保存原始弹幕
   saveCover?: boolean; // 保存封面
   api?: "auto" | "mp" | "web" | "wup"; // 默认为auto，在星秀区使用mp接口，其他使用web接口，你也可以强制指定
   videoFormat?: "auto"; // 视频格式： "auto", "ts", "mkv" ，auto模式下, 分段使用 "ts"，不分段使用 "mp4"

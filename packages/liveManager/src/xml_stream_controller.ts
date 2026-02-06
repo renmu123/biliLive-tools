@@ -166,6 +166,7 @@ function generateXmlContent(metadata: XmlStreamData["meta"], messages: Message[]
         "@@user": String(ele.sender?.name),
         "@@uid": String(ele?.sender?.uid),
         "@@timestamp": String(ele.timestamp),
+        "@@rawData": ele.rawData ? JSON.stringify(ele.rawData) : undefined,
       };
       data["@@p"] = [
         data["@@progress"],

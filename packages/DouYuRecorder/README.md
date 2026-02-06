@@ -44,6 +44,7 @@ interface Options {
   titleKeywords?: string; // 禁止录制的标题关键字，英文逗号分开多个
   disableProvideCommentsWhenRecording?: boolean; // 禁用弹幕录制
   saveGiftDanma?: boolean; // 保存礼物弹幕
+  saveRawDanma?: boolean; // 保存原始弹幕
   saveSCDanma?: boolean; // 保存高能弹幕
   useServerTimestamp?: boolean; // 控制弹幕是否使用服务端时间戳，默认为true，斗鱼服务端时间戳只对文字弹幕生效，礼物等不生效
   saveCover?: boolean; // 保存封面

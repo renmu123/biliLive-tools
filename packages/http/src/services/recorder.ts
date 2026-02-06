@@ -9,6 +9,52 @@ import { defaultRecordConfig } from "@biliLive-tools/shared/enum.js";
 import type { RecorderAPI, ClientRecorder } from "../types/recorder.js";
 import type { Recorder } from "@bililive-tools/manager";
 
+// 公共配置字段
+export const COMMON_CONFIG_FIELDS = [
+  "remarks",
+  "disableAutoCheck",
+  "quality",
+  "streamPriorities",
+  "sourcePriorities",
+  "noGlobalFollowFields",
+  "line",
+  "disableProvideCommentsWhenRecording",
+  "saveGiftDanma",
+  "saveRawDanma",
+  "saveSCDanma",
+  "saveCover",
+  "segment",
+  "sendToWebhook",
+  "uid",
+  "qualityRetry",
+  "formatName",
+  "useM3U8Proxy",
+  "customHost",
+  "codecName",
+  "titleKeywords",
+  "liveStartNotification",
+  "liveEndNotification",
+  "weight",
+  "source",
+  "videoFormat",
+  "recorderType",
+  "cookie",
+  "doubleScreen",
+  "onlyAudio",
+  "useServerTimestamp",
+  "handleTime",
+  "debugLevel",
+  "api",
+] as const;
+
+// 添加录制器时的额外字段
+export const ADD_RECORDER_FIELDS = [
+  "providerId",
+  "channelId",
+  "extra",
+  ...COMMON_CONFIG_FIELDS,
+] as const;
+
 // RecorderAPI 的实际实现，这里负责实现对外暴露的接口，并假设 Args 都已经由上一层解析好了
 async function getRecorders(
   params: RecorderAPI["getRecorders"]["Args"],

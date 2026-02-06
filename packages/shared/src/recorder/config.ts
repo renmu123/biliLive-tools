@@ -162,6 +162,7 @@ export default class RecorderConfig {
       line: getValue("line"),
       disableProvideCommentsWhenRecording: getValue("disableProvideCommentsWhenRecording") ?? true,
       saveGiftDanma: getValue("saveGiftDanma") ?? false,
+      saveRawDanma: getValue("saveRawDanma") ?? false,
       saveSCDanma: getValue("saveSCDanma") ?? true,
       saveCover: getValue("saveCover") ?? false,
       segment: getValue("segment") ?? 90,
