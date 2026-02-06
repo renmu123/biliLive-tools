@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import { Resvg } from "@resvg/resvg-js";
+import { parentPort } from "node:worker_threads";
 
 export interface WorkerTask {
   svg: string;
@@ -18,7 +19,7 @@ export interface WorkerResult {
 /**
  * Worker 函数：将 SVG 转换为 PNG 并保存到指定路径
  */
-export default async function svgToPng(task: WorkerTask): Promise<WorkerResult> {
+async function svgToPng(task: WorkerTask): Promise<WorkerResult> {
   try {
     const { svg, outputPath, width, height } = task;
 
@@ -59,3 +60,13 @@ export default async function svgToPng(task: WorkerTask): Promise<WorkerResult> 
     };
   }
 }
+
+// Worker 线程消息处理
+if (parentPort) {
+  parentPort.on("message", async (task: WorkerTask) => {
+    const result = await svgToPng(task);
+    parentPort!.postMessage(result);
+  });
+}
+
+export default svgToPng;

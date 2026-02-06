@@ -63,7 +63,6 @@
     "serverchan-sdk": "^1.0.6",
     "subtitle": "^4.2.1",
     "tiny-typed-emitter": "^2.1.0",
-    "tinypool": "^1.0.2",
     "trash": "^9.0.0",
     "tree-kill": "^1.2.2",
     "zod": "^3.23.8"

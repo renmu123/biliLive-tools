@@ -3,12 +3,94 @@ import path from "node:path";
 import { compile } from "ass-compiler";
 import { parseXmlFile } from "./index.js";
 import { countByIntervalInSeconds } from "../utils/index.js";
-import { Tinypool } from "tinypool";
+import { Worker } from "node:worker_threads";
+import { fileURLToPath } from "node:url";
+import svgToPng from "./hotProgress.worker.js?modulePath";
 
 import type { HotProgressOptions } from "@biliLive-tools/types";
-import type { WorkerTask } from "./hotProgress.worker.js";
+import type { WorkerTask, WorkerResult } from "./hotProgress.worker.js";
 
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
+
+// 简单的 Worker Pool 管理器
+class WorkerPool {
+  private workers: Worker[] = [];
+  private availableWorkers: Worker[] = [];
+  private taskQueue: Array<{
+    task: WorkerTask;
+    resolve: (result: WorkerResult) => void;
+    reject: (error: Error) => void;
+  }> = [];
+  private workerPath: string;
+  private poolSize: number;
+
+  constructor(workerPath: string, poolSize: number = 4) {
+    this.workerPath = workerPath;
+    this.poolSize = poolSize;
+    this.initWorkers();
+  }
+
+  private initWorkers() {
+    for (let i = 0; i < this.poolSize; i++) {
+      const worker = new Worker(this.workerPath);
+      this.workers.push(worker);
+      this.availableWorkers.push(worker);
+
+      worker.on("error", (error) => {
+        console.error("Worker error:", error);
+      });
+    }
+  }
+
+  async run(task: WorkerTask): Promise<WorkerResult> {
+    return new Promise((resolve, reject) => {
+      this.taskQueue.push({ task, resolve, reject });
+      this.processNextTask();
+    });
+  }
+
+  private processNextTask() {
+    if (this.taskQueue.length === 0 || this.availableWorkers.length === 0) {
+      return;
+    }
+
+    const worker = this.availableWorkers.shift()!;
+    const { task, resolve, reject } = this.taskQueue.shift()!;
+
+    // 为这个特定任务设置一次性消息监听器
+    const messageHandler = (result: WorkerResult) => {
+      worker.off("message", messageHandler);
+      worker.off("error", errorHandler);
+      resolve(result);
+      // Worker 完成任务，将其标记为可用
+      this.availableWorkers.push(worker);
+      // 处理下一个任务
+      this.processNextTask();
+    };
+
+    const errorHandler = (error: Error) => {
+      worker.off("message", messageHandler);
+      worker.off("error", errorHandler);
+      reject(error);
+      // 即使出错也要将 worker 放回可用列表
+      this.availableWorkers.push(worker);
+      // 处理下一个任务
+      this.processNextTask();
+    };
+
+    worker.once("message", messageHandler);
+    worker.once("error", errorHandler);
+
+    worker.postMessage(task);
+  }
+
+  async destroy() {
+    await Promise.all(this.workers.map((worker) => worker.terminate()));
+    this.workers = [];
+    this.availableWorkers = [];
+    this.taskQueue = [];
+  }
+}
 
 export const genTimeData = async (input: string): Promise<number[]> => {
   const ext = path.extname(input);
@@ -66,9 +148,7 @@ export const generateDanmakuImage = async (
   await fs.ensureDir(output);
 
   // 初始化 worker 线程池
-  const pool = new Tinypool({
-    filename: new URL("./hotProgress.worker.js", import.meta.url).href,
-  });
+  const pool = new WorkerPool(svgToPng);
 
   try {
     // 准备所有任务
@@ -79,6 +159,7 @@ export const generateDanmakuImage = async (
         strokeWidth: options.strokeWidth,
         strokeLinecap: options.strokeLinecap,
       });
+
       const outputPath = path.join(output, `${String(i).padStart(4, "0")}.png`);
 
       tasks.push({
@@ -88,10 +169,12 @@ export const generateDanmakuImage = async (
         height: options.height,
       });
     }
+    console.log(tasks[0].svg, "\n");
+    console.log(tasks[10].svg, "\n");
 
     // 并发执行所有任务
     const results = await Promise.all(tasks.map((task) => pool.run(task)));
-
+    return;
     // 检查是否有失败的任务
     const failures = results.filter((r) => !r.success);
     if (failures.length > 0) {
@@ -104,36 +187,6 @@ export const generateDanmakuImage = async (
     await pool.destroy();
   }
 };
-
-// 生成平滑曲线的 SVG path
-function generateSmoothCurvePath(points: Array<{ x: number; y: number; color: string }>): string {
-  const len = points.length;
-  if (len < 2) return "";
-
-  let lastX = points[0].x;
-  let lastY = points[0].y;
-
-  // 生成 SVG path 的 d 参数
-  let pathD = `M ${lastX} ${lastY}`;
-
-  for (let i = 1; i < len - 1; i++) {
-    const xc = (points[i].x + points[i + 1].x) / 2;
-    const yc = (points[i].y + points[i + 1].y) / 2;
-
-    // 添加二次贝塞尔曲线到 SVG path
-    pathD += ` Q ${points[i].x} ${points[i].y} ${xc} ${yc}`;
-
-    lastX = xc;
-    lastY = yc;
-  }
-
-  // 处理最后一个点
-  if (len > 1) {
-    pathD += ` L ${points[len - 1].x} ${points[len - 1].y}`;
-  }
-
-  return pathD;
-}
 
 // 生成平滑折线图的 SVG
 function generateSmoothLineChartSVG(
@@ -162,13 +215,78 @@ function generateSmoothLineChartSVG(
     });
   }
 
-  // 生成 SVG path
-  const pathD = generateSmoothCurvePath(points);
-  const color = points[0]?.color ?? "#333333";
+  const len = points.length;
+  if (len < 2) {
+    return `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg"></svg>`;
+  }
+
+  // 找到颜色变化的分界点
+  let colorChangeIndex = -1;
+  for (let i = 1; i < len; i++) {
+    if (points[i].color !== points[0].color) {
+      colorChangeIndex = i;
+      break;
+    }
+  }
+
+  let paths = "";
+
+  // 如果所有点都是同一颜色，生成一条完整的 path
+  if (colorChangeIndex === -1) {
+    let lastX = points[0].x;
+    let lastY = points[0].y;
+    let pathD = `M ${lastX} ${lastY}`;
+
+    for (let i = 1; i < len - 1; i++) {
+      const xc = (points[i].x + points[i + 1].x) / 2;
+      const yc = (points[i].y + points[i + 1].y) / 2;
+      pathD += ` Q ${points[i].x} ${points[i].y} ${xc} ${yc}`;
+      lastX = xc;
+      lastY = yc;
+    }
+
+    if (len === 2) {
+      pathD += ` L ${points[1].x} ${points[1].y}`;
+    }
+
+    paths = `  <path d="${pathD}" fill="none" stroke="${points[0].color}" stroke-width="${strokeWidth}" stroke-linecap="${strokeLinecap}"/>`;
+  } else {
+    // 生成前段 path（第一种颜色）
+    let lastX = points[0].x;
+    let lastY = points[0].y;
+    let pathD1 = `M ${lastX} ${lastY}`;
+
+    for (let i = 1; i < colorChangeIndex && i < len - 1; i++) {
+      const xc = (points[i].x + points[i + 1].x) / 2;
+      const yc = (points[i].y + points[i + 1].y) / 2;
+      pathD1 += ` Q ${points[i].x} ${points[i].y} ${xc} ${yc}`;
+      lastX = xc;
+      lastY = yc;
+    }
+
+    paths += `  <path d="${pathD1}" fill="none" stroke="${points[0].color}" stroke-width="${strokeWidth}" stroke-linecap="${strokeLinecap}"/>\n`;
+
+    // 生成后段 path（第二种颜色）
+    let pathD2 = `M ${lastX} ${lastY}`;
+
+    for (let i = colorChangeIndex; i < len - 1; i++) {
+      const xc = (points[i].x + points[i + 1].x) / 2;
+      const yc = (points[i].y + points[i + 1].y) / 2;
+      pathD2 += ` Q ${points[i].x} ${points[i].y} ${xc} ${yc}`;
+      lastX = xc;
+      lastY = yc;
+    }
+
+    if (colorChangeIndex === len - 1) {
+      pathD2 += ` L ${points[len - 1].x} ${points[len - 1].y}`;
+    }
+
+    paths += `  <path d="${pathD2}" fill="none" stroke="${points[colorChangeIndex].color}" stroke-width="${strokeWidth}" stroke-linecap="${strokeLinecap}"/>`;
+  }
 
   // 构造完整的 SVG 字符串
   return `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-  <path d="${pathD}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="${strokeLinecap}"/>
+${paths}
 </svg>`;
 }
 
