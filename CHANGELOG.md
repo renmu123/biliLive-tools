@@ -18,10 +18,12 @@
 
 - 修复礼物价格渲染错误的bug
 - 录制：为录播姬引擎增加一些外部的超时判断，避免流一直不会被中断
+- 弹幕：修复Linux下黑名单过滤无法使用的bug
 
 ## 其他
 
 录播姬引擎升级至3.3.2
+DanmakuFactory升级至[2.1.0](https://github.com/renmu123/DanmakuFactory/releases/tag/v2.1.0)
 
 # 3.7.1
 
