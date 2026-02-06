@@ -43,7 +43,7 @@
     "trash": "^9.0.0",
     "utf-8-validate": "^6.0.5",
     "wavesurfer.js": "^7.11.1",
-    "music-segment-detector": "^0.2.2"
+    "music-segment-detector": "^0.3.0"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^1.0.2",
