@@ -101,6 +101,8 @@ export function formatPartTitle(
 ) {
   const { year, month, day, hours, minutes, seconds } = formatTime(options.time);
   let renderText = template;
+  const isDanmaFile = options.filename.includes("-弹幕版");
+  const hasDanmaStr = isDanmaFile ? "弹幕版" : "纯享版";
   try {
     const renderOptions = {
       title: options.title,
@@ -108,6 +110,8 @@ export function formatPartTitle(
       time: new Date(options.time),
       roomId: options.roomId,
       filename: options.filename,
+      isDanmaFile,
+      hasDanmaStr,
     };
     renderText = ejs.render(template, renderOptions);
   } catch (error) {
@@ -126,6 +130,7 @@ export function formatPartTitle(
     .replaceAll("{{ss}}", seconds)
     .replaceAll("{{filename}}", options.filename)
     .replaceAll("{{index}}", String(options.index))
+    .replaceAll("{{hasDanmaStr}}", hasDanmaStr)
     .trim()
     .slice(0, 80);
 

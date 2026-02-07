@@ -1,7 +1,7 @@
 import { join, parse } from "node:path";
 import fs from "fs-extra";
 import readline from "node:readline";
-import { isNumber } from "lodash-es";
+import { isNumber, cloneDeep } from "lodash-es";
 
 import {
   pathExists,
@@ -22,6 +22,13 @@ import { XMLBuilder } from "fast-xml-parser";
 import type { DanmuConfig, DanmaOptions, HotProgressOptions } from "@biliLive-tools/types";
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 
+/**
+ * 生成过滤后的xml文件
+ * @param input
+ * @param output
+ * @param filterFunction
+ * @returns
+ */
 const genFilteredXml = async (input: string, output: string, filterFunction: string) => {
   const filterFunc = new Function(
     "type",
@@ -56,6 +63,22 @@ const genFilteredXml = async (input: string, output: string, filterFunction: str
 };
 
 /**
+ * 自定义函数函数
+ */
+const customChangeFunc = (input: string, opts: DanmuConfig) => {
+  const customFunc = new Function(
+    "file",
+    "opts",
+    "logger",
+    `
+    ${opts.filterFunction}
+    return custom(file, opts, logger);`,
+  );
+
+  return customFunc(input, opts, log);
+};
+
+/**
  * 不要直接调用，调用convertXml2Ass
  */
 const addConvertDanmu2AssTask = async (
@@ -68,21 +91,26 @@ const addConvertDanmu2AssTask = async (
   const danmu = new DanmakuFactory(danmuFactoryPath);
   const tempDir = getTempPath();
 
-  let filteredOutput: string | undefined;
-  if (danmuOptions.filterFunction && (danmuOptions.filterFunction ?? "").includes("filter")) {
-    // 如果存在自定义过滤函数，则需要把过滤后的xml保存到临时文件夹中
-    filteredOutput = join(tempDir, `${uuid()}.xml`);
-    await genFilteredXml(originInput, filteredOutput, danmuOptions.filterFunction);
+  let opts = cloneDeep(danmuOptions);
+  if (opts.filterFunction && (opts.filterFunction ?? "").includes("custom")) {
+    opts = await customChangeFunc(originInput, opts);
   }
 
-  if (danmuOptions.blacklist) {
+  let filteredOutput: string | undefined;
+  if (opts.filterFunction && (opts.filterFunction ?? "").includes("filter")) {
+    // 如果存在自定义过滤函数，则需要把过滤后的xml保存到临时文件夹中
+    filteredOutput = join(tempDir, `${uuid()}.xml`);
+    await genFilteredXml(originInput, filteredOutput, opts.filterFunction);
+  }
+
+  if (opts.blacklist) {
     const fileTxtPath = join(tempDir, `${uuid()}.txt`);
-    const fileTxtContent = danmuOptions.blacklist
+    const fileTxtContent = opts.blacklist
       .split(",")
       .filter((value) => value)
       .join("\n");
     await fs.writeFile(fileTxtPath, fileTxtContent);
-    danmuOptions.blacklist = fileTxtPath;
+    opts.blacklist = fileTxtPath;
   }
 
   const input = filteredOutput || originInput;
@@ -91,7 +119,7 @@ const addConvertDanmu2AssTask = async (
     {
       input: input,
       output,
-      options: danmuOptions,
+      options: opts,
       name: `弹幕转换任务: ${parse(originInput).name}`,
     },
     {
@@ -100,8 +128,8 @@ const addConvertDanmu2AssTask = async (
           await trashItem(originInput);
         }
 
-        if (danmuOptions.blacklist) {
-          fs.unlink(danmuOptions.blacklist);
+        if (opts.blacklist) {
+          fs.unlink(opts.blacklist);
         }
 
         if (filteredOutput) {
@@ -115,8 +143,8 @@ const addConvertDanmu2AssTask = async (
           input: originInput,
           output: output,
         });
-        if (danmuOptions.blacklist) {
-          fs.unlink(danmuOptions.blacklist);
+        if (opts.blacklist) {
+          fs.unlink(opts.blacklist);
         }
         if (filteredOutput) {
           fs.unlink(filteredOutput);

@@ -115,6 +115,9 @@ export interface RecorderManager<
   startRecord: (
     this: RecorderManager<ME, P, PE, E>,
     id: string,
+    opts?: {
+      ignoreDataLimit?: boolean;
+    },
   ) => Promise<Recorder<E> | undefined>;
   stopRecord: (this: RecorderManager<ME, P, PE, E>, id: string) => Promise<Recorder<E> | undefined>;
   cutRecord: (this: RecorderManager<ME, P, PE, E>, id: string) => Promise<Recorder<E> | undefined>;
@@ -363,10 +366,13 @@ export function createRecorderManager<
       const recorder = this.recorders.find((item) => item.id === id);
       return recorder ?? null;
     },
-    async startRecord(id: string) {
+    async startRecord(id: string, iOpts = {}) {
+      const { ignoreDataLimit = true } = iOpts;
       const recorder = this.recorders.find((item) => item.id === id);
       if (recorder == null) return;
       if (recorder.recordHandle != null) return;
+      // 如果手动开启且需要判断限制时间，再时间限制内时，就不启动录制
+      if (!ignoreDataLimit && isBetweenTimeRange(recorder.handleTime)) return;
 
       await recorder.checkLiveStatusAndRecord({
         getSavePath(data) {
@@ -512,6 +518,7 @@ export function genSavePathFromRule<
     hour: formatDate(now, "HH"),
     min: formatDate(now, "mm"),
     sec: formatDate(now, "ss"),
+    ms: formatDate(now, "SSS"),
     ...extData,
     startTime: now,
     owner: owner,

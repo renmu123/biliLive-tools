@@ -224,6 +224,7 @@ async function getLiveInfo(
     codec_name: string;
     qn: number;
   };
+  // console.log("conditons", JSON.stringify(res.playurl_info.playurl.stream, null, 2));
   for (const condition of conditons) {
     const streamList = res.playurl_info.playurl.stream
       .find(({ protocol_name }) => protocol_name === condition.protocol_name)
@@ -286,6 +287,7 @@ export async function getStream(
     formatName: RecorderCreateOpts["formatName"];
     codecName: RecorderCreateOpts["codecName"];
     onlyAudio?: boolean;
+    customHost?: string;
   },
 ) {
   const roomId = Number(opts.channelId);
@@ -325,12 +327,15 @@ export async function getStream(
     throw new Error("Can not get expect source");
   }
 
+  const host = opts.customHost ? `https://${opts.customHost}` : expectSource.host;
+  const url = host + liveInfo.base_url + expectSource.extra;
+
   return {
     ...liveInfo,
     currentStream: {
       name: liveInfo.name,
       source: expectSource.name,
-      url: expectSource.host + liveInfo.base_url + expectSource.extra,
+      url: url,
     },
   };
 }

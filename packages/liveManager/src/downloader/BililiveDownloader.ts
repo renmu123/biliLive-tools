@@ -2,7 +2,7 @@ import EventEmitter from "node:events";
 import { spawn, ChildProcess } from "node:child_process";
 
 import { DEFAULT_USER_AGENT } from "./index.js";
-import { StreamManager, getBililivePath } from "../index.js";
+import { StreamManager, getBililivePath, utils } from "../index.js";
 import { byte2MB } from "../utils.js";
 import { IDownloader, BililiveRecorderOptions, Segment } from "./IDownloader.js";
 
@@ -94,10 +94,14 @@ class BililiveRecorderCommand extends EventEmitter {
     });
   }
 
-  kill(): void {
+  stop(): void {
     if (this.process) {
       this.process.stdin?.write("q\n");
-      // this.process.kill("SIGTERM");
+    }
+  }
+  kill(): void {
+    if (this.process) {
+      this.process.kill("SIGINT");
     }
   }
   cut(): void {
@@ -116,6 +120,7 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
   public type = "bililive" as const;
   private command: BililiveRecorderCommand;
   private streamManager: StreamManager;
+  private timeoutChecker: ReturnType<typeof utils.createTimeoutChecker>;
   readonly hasSegment: boolean;
   readonly getSavePath: (data: { startTime: number; title?: string }) => string;
   readonly segment: Segment;
@@ -152,6 +157,15 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
         onUpdateLiveInfo: this.onUpdateLiveInfo,
       },
     );
+    this.timeoutChecker = utils.createTimeoutChecker(
+      () => {
+        this.emit("DebugLog", { type: "error", text: "bililive timeout, killing process" });
+        this.command?.kill();
+        this.onEnd("bililive timeout");
+      },
+      20 * 1000,
+      false,
+    );
     this.getSavePath = opts.getSavePath;
     this.inputOptions = [];
     this.url = opts.url;
@@ -175,6 +189,7 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
   }
 
   createCommand() {
+    this.timeoutChecker?.start();
     const inputOptions = [...this.inputOptions, "--disable-log-file", "true"];
     if (this.debugLevel === "verbose") {
       inputOptions.push("-l", "Debug");
@@ -201,6 +216,7 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
       .on("error", this.onEnd)
       .on("end", () => this.onEnd("finished"))
       .on("stderr", async (stderrLine) => {
+        this.timeoutChecker?.update();
         this.emit("DebugLog", { type: "ffmpeg", text: stderrLine });
         await this.streamManager.handleVideoStarted(stderrLine);
         const info = this.formatLine(stderrLine);
@@ -237,9 +253,9 @@ export class BililiveDownloader extends EventEmitter implements IDownloader {
   }
 
   public async stop() {
+    this.timeoutChecker?.stop();
     try {
-      // 直接发送SIGINT信号，会导致数据丢失
-      this.command.kill();
+      this.command.stop();
 
       await this.streamManager.handleVideoCompleted();
     } catch (err) {

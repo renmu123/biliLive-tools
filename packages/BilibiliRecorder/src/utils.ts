@@ -67,31 +67,3 @@ export function assertNumberType(data: unknown, msg?: string): asserts data is n
 export function assertObjectType(data: unknown, msg?: string): asserts data is object {
   assert(typeof data === "object", msg);
 }
-
-export function createInvalidStreamChecker(count: number = 10): (ffmpegLogLine: string) => boolean {
-  let prevFrame = 0;
-  let frameUnchangedCount = 0;
-
-  return (ffmpegLogLine) => {
-    const streamInfo = ffmpegLogLine.match(
-      /frame=\s*(\d+) fps=.*? q=.*? size=.*? time=.*? bitrate=.*? speed=.*?/,
-    );
-    if (streamInfo != null) {
-      const [, frameText] = streamInfo;
-      const frame = Number(frameText);
-
-      if (frame === prevFrame) {
-        if (++frameUnchangedCount >= count) {
-          return true;
-        }
-      } else {
-        prevFrame = frame;
-        frameUnchangedCount = 0;
-      }
-
-      return false;
-    }
-
-    return false;
-  };
-}

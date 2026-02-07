@@ -33,7 +33,7 @@
       </n-form-item>
       <n-form-item>
         <template #label>
-          <Tip text="并发" tip="单个分P上传并发数，并非全局最大上传数"></Tip>
+          <Tip text="并发" tip="单个分P内上传并发数，并非全局最大上传任务限制"></Tip>
         </template>
         <n-input-number v-model:value="config.biliUpload.concurrency" min="1" max="128">
         </n-input-number>

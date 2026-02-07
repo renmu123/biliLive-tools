@@ -3,7 +3,7 @@ import { HuYaQualities, Recorder } from "@bililive-tools/manager";
 
 import { getRoomInfo as getRoomInfoByWeb } from "./huya_api.js";
 import { getRoomInfo as getRoomInfoByMobile } from "./huya_mobile_api.js";
-import { getStreamUrlWup } from "./huya_wup_api.js";
+import { getCdnTokenInfoEx } from "./huya_wup_api.js";
 import { assert } from "./utils.js";
 
 import type { SourceProfile, StreamProfile } from "./types.js";
@@ -49,8 +49,7 @@ async function getRoomInfo(
     });
     if (info.gid == 1663 || info.gid == 1) {
       // 1663=星秀区，1=英雄联盟区
-      return getRoomInfoByMobile(channelId, options.formatPriorities);
-      // TODO:  wup 接口出问题了，先切回mp吧
+      // return getRoomInfoByMobile(channelId, options.formatPriorities);
       return getRoomInfo(channelId, {
         api: "wup",
         formatPriorities: options.formatPriorities,
@@ -130,17 +129,17 @@ export async function getStream(
   }
 
   let url = expectSource.url;
+  let ua =
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36";
   if (info.api === "wup") {
     try {
-      let newUrl = await getStreamUrlWup({
-        url,
-        streamFormat: expectSource.suffix,
-        extras: {
-          stream_name: expectSource.streamName,
-          cdn: expectSource.name,
-          presenter_uid: expectSource.presenterUid,
-        },
-      });
+      const res = await getCdnTokenInfoEx(expectSource.streamName);
+      let urlObj = new URL(url);
+      urlObj.search = `?${res.sFlvToken}`;
+
+      let newUrl = urlObj.toString();
+      ua = res.ua;
+
       if (!newUrl.includes("codec=")) {
         newUrl += "&codec=264";
       }
@@ -157,6 +156,7 @@ export async function getStream(
   return {
     ...info,
     currentStream: {
+      ua: ua,
       name: expectStream.desc,
       source: expectSource.name,
       uid: expectSource.presenterUid,

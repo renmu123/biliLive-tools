@@ -663,6 +663,10 @@ const partTitleList = ref([
     value: "{{index}}",
   },
   {
+    label: "弹幕版or纯享版",
+    value: "{{hasDanmaStr}}",
+  },
+  {
     value: "{{yyyy}}",
     label: "年",
   },

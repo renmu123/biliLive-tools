@@ -148,9 +148,10 @@ export function formatDate(date: Date, format: string): string {
     HH: date.getHours().toString().padStart(2, "0"),
     mm: date.getMinutes().toString().padStart(2, "0"),
     ss: date.getSeconds().toString().padStart(2, "0"),
+    SSS: date.getMilliseconds().toString().padStart(3, "0"),
   };
 
-  return format.replace(/yyyy|MM|dd|HH|mm|ss/g, (matched) => map[matched]);
+  return format.replace(/yyyy|MM|dd|HH|mm|ss|SSS/g, (matched) => map[matched]);
 }
 
 export function removeSystemReservedChars(str: string) {
@@ -219,7 +220,7 @@ export const formatTemplate = function template(string: string, ...args: any[]) 
  * "receive invalid aac stream": ADTS无法被解析的flv流
  * "invalid stream": 一段时间内帧数不变
  */
-export function createInvalidStreamChecker(
+export function createFFmpegInvalidStreamChecker(
   count: number = 15,
 ): (ffmpegLogLine: string) => [boolean, string] {
   let prevFrame = 0;
@@ -625,7 +626,7 @@ export default {
   assertObjectType,
   asyncThrottle,
   isFfmpegStartSegment,
-  createInvalidStreamChecker,
+  createFFmpegInvalidStreamChecker,
   createTimeoutChecker,
   downloadImage,
   md5,

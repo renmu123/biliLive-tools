@@ -88,6 +88,12 @@ export default class RecorderConfig {
           } else {
             return "auto";
           }
+        } else if (key === "customHost") {
+          if (setting.providerId === "Bilibili") {
+            return get(globalConfig, "bilibili.customHost");
+          } else {
+            return undefined;
+          }
         } else {
           return get(globalConfig, key);
         }
@@ -166,6 +172,7 @@ export default class RecorderConfig {
       recorderType: getValue("recorderType") ?? "ffmpeg",
       auth: auth,
       useM3U8Proxy: getValue("useM3U8Proxy") ?? false,
+      customHost: getValue("customHost"),
       useServerTimestamp: getValue("useServerTimestamp") ?? true,
       formatName: formatName,
       codecName: getValue("codecName") ?? "auto",

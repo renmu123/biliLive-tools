@@ -55,6 +55,7 @@ interface Options {
   onlyAudio?: boolean; // 只录制音频，默认为否
   recorderType?: "auto" | "ffmpeg" | "mesio" | "bililive"; // 底层录制器，使用mesio和bililive时videoFormat参数无效
   debugLevel?: `verbose` | "basic"; // verbose参数时，录制器会输出更加详细的log
+  customHost?: string; // 自定义host来替换直播流的host
 }
 ```
 

@@ -1,6 +1,7 @@
 /**
  * 虎牙 WUP 协议客户端
- * 参考 https://github.com/hua0512/rust-srec 实现
+ * 参考 DanmakuRender 项目实现
+ * @see https://github.com/SmallPeaches/DanmakuRender/pull/527/files
  */
 
 import { requester } from "./requester.js";
@@ -9,39 +10,17 @@ import TarsStream from "@tars/stream";
 const Tup = TarsStream.Tup;
 
 const WUP_URL = "https://wup.huya.com";
+const WUP_YST_URL = "https://snmhuya.yst.aisee.tv";
 const WUP_UA = "HYSDK(Windows, 30000002)_APP(pc_exe&7030003&official)_SDK(trans&2.29.0.5493)";
 const HUYA_ORIGIN = "https://www.huya.com";
 
 /**
- * 流信息接口
+ * CDN Token 扩展响应接口
  */
-export interface StreamInfo {
-  url: string;
-  streamFormat: string;
-  extras?: StreamExtras;
-}
-
-/**
- * 流扩展信息接口
- */
-export interface StreamExtras {
-  cdn?: string;
-  stream_name: string;
-  presenter_uid?: number;
-}
-
-/**
- * CDN Token 信息接口
- */
-export interface CdnTokenInfo {
-  url: string;
-  cdnType: string;
-  streamName: string;
-  presenterUid: number;
-  antiCode: string;
-  sTime: string;
-  flvAntiCode: string;
-  hlsAntiCode: string;
+export interface CdnTokenExInfo {
+  sFlvToken: string;
+  iExpireTime: number;
+  ua: string;
 }
 
 // ============================================================================
@@ -49,98 +28,107 @@ export interface CdnTokenInfo {
 // ============================================================================
 
 /**
- * GetCdnTokenInfoReq 请求结构体
- * 对应 Rust 代码中的 GetCdnTokenInfoReq
+ * UserId 结构体
  */
-class GetCdnTokenInfoReq {
-  url: string;
-  cdnType: string;
-  streamName: string;
-  presenterUid: number;
+class HuyaUserId {
+  lUid: number;
+  sGuid: string;
+  sToken: string;
+  sHuYaUA: string;
+  sCookie: string;
+  iTokenType: number;
+  sDeviceId: string;
+  sQIMEI: string;
 
-  constructor(url = "", streamName = "", cdnType = "", presenterUid = 0) {
-    this.url = url; // tag=0, String
-    this.cdnType = cdnType; // tag=1, String
-    this.streamName = streamName; // tag=2, String
-    this.presenterUid = presenterUid; // tag=3, Long/Int64
+  constructor() {
+    this.lUid = 0; // tag=0
+    this.sGuid = ""; // tag=1
+    this.sToken = ""; // tag=2
+    this.sHuYaUA = ""; // tag=3
+    this.sCookie = ""; // tag=4
+    this.iTokenType = 0; // tag=5
+    this.sDeviceId = ""; // tag=6
+    this.sQIMEI = ""; // tag=7
   }
 
-  /**
-   * TARS 编码方法 - 将结构体写入输出流
-   * @param os - TARS 输出流
-   */
   _writeTo(os: any): void {
-    os.writeString(0, this.url);
-    os.writeString(1, this.cdnType);
-    os.writeString(2, this.streamName);
-    os.writeInt64(3, this.presenterUid);
+    os.writeInt64(0, this.lUid);
+    os.writeString(1, this.sGuid);
+    os.writeString(2, this.sToken);
+    os.writeString(3, this.sHuYaUA);
+    os.writeString(4, this.sCookie);
+    os.writeInt32(5, this.iTokenType);
+    os.writeString(6, this.sDeviceId);
+    os.writeString(7, this.sQIMEI);
   }
 
-  /**
-   * TARS 解码方法 - 从输入流读取结构体
-   * @param is - TARS 输入流
-   */
   _readFrom(is: any): void {
-    this.url = is.readString(0, false, "");
-    this.cdnType = is.readString(1, false, "");
-    this.streamName = is.readString(2, false, "");
-    this.presenterUid = is.readInt64(3, false, 0);
+    this.lUid = is.readInt64(0, false, 0);
+    this.sGuid = is.readString(1, false, "");
+    this.sToken = is.readString(2, false, "");
+    this.sHuYaUA = is.readString(3, false, "");
+    this.sCookie = is.readString(4, false, "");
+    this.iTokenType = is.readInt32(5, false, 0);
+    this.sDeviceId = is.readString(6, false, "");
+    this.sQIMEI = is.readString(7, false, "");
   }
 }
 
 /**
- * HuyaGetTokenResp 响应结构体
- * 对应 Rust 代码中的 HuyaGetTokenResp
+ * GetCdnTokenExReq 请求结构体
  */
-class HuyaGetTokenResp {
-  url: string;
-  cdnType: string;
-  streamName: string;
-  presenterUid: number;
-  antiCode: string;
-  sTime: string;
-  flvAntiCode: string;
-  hlsAntiCode: string;
+class HuyaGetCdnTokenExReq {
+  sFlvUrl: string;
+  sStreamName: string;
+  iLoopTime: number;
+  tId: HuyaUserId;
+  iAppId: number;
+
+  constructor(streamName = "") {
+    this.sFlvUrl = ""; // tag=0
+    this.sStreamName = streamName; // tag=1
+    this.iLoopTime = 0; // tag=2
+    this.tId = new HuyaUserId(); // tag=3
+    this.iAppId = 66; // tag=4
+  }
+
+  _writeTo(os: any): void {
+    os.writeString(0, this.sFlvUrl);
+    os.writeString(1, this.sStreamName);
+    os.writeInt32(2, this.iLoopTime);
+    os.writeStruct(3, this.tId);
+    os.writeInt32(4, this.iAppId);
+  }
+
+  _readFrom(is: any): void {
+    this.sFlvUrl = is.readString(0, false, "");
+    this.sStreamName = is.readString(1, false, "");
+    this.iLoopTime = is.readInt32(2, false, 0);
+    this.tId = is.readStruct(3, false, HuyaUserId);
+    this.iAppId = is.readInt32(4, false, 66);
+  }
+}
+
+/**
+ * GetCdnTokenExRsp 响应结构体
+ */
+class HuyaGetCdnTokenExRsp {
+  sFlvToken: string;
+  iExpireTime: number;
 
   constructor() {
-    this.url = ""; // tag=0
-    this.cdnType = ""; // tag=1
-    this.streamName = ""; // tag=2
-    this.presenterUid = 0; // tag=3
-    this.antiCode = ""; // tag=4
-    this.sTime = ""; // tag=5
-    this.flvAntiCode = ""; // tag=6
-    this.hlsAntiCode = ""; // tag=7
+    this.sFlvToken = ""; // tag=0
+    this.iExpireTime = 0; // tag=1
   }
 
-  /**
-   * TARS 编码方法 - 将结构体写入输出流
-   * @param os - TARS 输出流
-   */
   _writeTo(os: any): void {
-    os.writeString(0, this.url);
-    os.writeString(1, this.cdnType);
-    os.writeString(2, this.streamName);
-    os.writeInt64(3, this.presenterUid);
-    os.writeString(4, this.antiCode);
-    os.writeString(5, this.sTime);
-    os.writeString(6, this.flvAntiCode);
-    os.writeString(7, this.hlsAntiCode);
+    os.writeString(0, this.sFlvToken);
+    os.writeInt64(1, this.iExpireTime);
   }
 
-  /**
-   * TARS 解码方法 - 从输入流读取结构体
-   * @param is - TARS 输入流
-   */
   _readFrom(is: any): void {
-    this.url = is.readString(0, false, "");
-    this.cdnType = is.readString(1, false, "");
-    this.streamName = is.readString(2, false, "");
-    this.presenterUid = is.readInt64(3, false, 0);
-    this.antiCode = is.readString(4, false, "");
-    this.sTime = is.readString(5, false, "");
-    this.flvAntiCode = is.readString(6, false, "");
-    this.hlsAntiCode = is.readString(7, false, "");
+    this.sFlvToken = is.readString(0, false, "");
+    this.iExpireTime = is.readInt64(1, false, 0);
   }
 }
 
@@ -149,47 +137,73 @@ class HuyaGetTokenResp {
 // ============================================================================
 
 /**
- * 构建 getCdnTokenInfo 请求
- * 对应 Rust 中的 build_get_cdn_token_info_request 函数
- *
+ * 生成随机虎牙 UA
+ */
+function generateRandomHuYaUA(): string {
+  const platforms = [
+    { name: "adr", version: "13.1.0", hasApiLevel: true },
+    { name: "ios", version: "13.1.0", hasApiLevel: false },
+    { name: "huya_nftv", version: "2.6.10", hasApiLevel: true },
+    { name: "pc_exe", version: "7000000", hasApiLevel: false },
+  ];
+
+  const platform = platforms[Math.floor(Math.random() * platforms.length)];
+  let version = platform.version;
+
+  // 对于支持多版本号的平台，添加随机版本号
+  if (platform.name === "adr" || platform.name === "huya_nftv") {
+    const subVersion = Math.floor(Math.random() * 2000) + 3000;
+    version = `${version}.${subVersion}`;
+  }
+
+  let ua = `${platform.name}&${version}&official`;
+
+  // 添加 Android API Level
+  if (platform.hasApiLevel) {
+    const apiLevel = Math.floor(Math.random() * 9) + 28; // 28-36
+    ua = `${ua}&${apiLevel}`;
+  }
+
+  return ua;
+}
+
+/**
+ * 构建 getCdnTokenInfoEx 请求
  * @param streamName - 流名称
- * @param cdnType - CDN 类型 (例如: "AL")
- * @param presenterUid - 主播 UID
  * @returns TARS 编码的请求体
  */
-function buildGetCdnTokenInfoRequest(
-  streamName: string,
-  cdnType: string,
-  presenterUid: number,
-): Buffer {
-  // 1. 创建请求对象
-  const req = new GetCdnTokenInfoReq("", streamName, cdnType, presenterUid);
+function buildGetCdnTokenInfoExRequest(streamName: string, ua: string): Buffer {
+  // 1. 创建 UserId 对象
+  const userId = new HuyaUserId();
+  userId.sHuYaUA = ua;
 
-  // 2. 创建 TUP 实例
+  // 2. 创建请求对象
+  const req = new HuyaGetCdnTokenExReq(streamName);
+  req.tId = userId;
+
+  // 3. 创建 TUP 实例
   const tup = new Tup();
 
-  // 3. 设置请求头信息
-  tup.tupVersion = 3; // version: 3
-  tup.requestId = 1; // request_id: 1
-  tup.servantName = "liveui"; // servant_name: "liveui"
-  tup.funcName = "getCdnTokenInfo"; // func_name: "getCdnTokenInfo"
+  // 4. 设置请求头信息
+  tup.tupVersion = 3;
+  tup.requestId = Math.abs(Math.floor(Math.random() * 1000000));
+  tup.servantName = "liveui";
+  tup.funcName = "getCdnTokenInfoEx";
 
-  // 4. 写入请求结构体到 body["tReq"]
+  // 5. 写入请求结构体到 body["tReq"]
   tup.writeStruct("tReq", req);
 
-  // 5. 编码为二进制
+  // 6. 编码为二进制
   const binBuffer = tup.encode();
   return binBuffer.toNodeBuffer();
 }
 
 /**
- * 解码 getCdnTokenInfo 响应
- * 对应 Rust 中的 decode_get_cdn_token_info_response 函数
- *
+ * 解码 getCdnTokenInfoEx 响应
  * @param responseBytes - 响应二进制数据
  * @returns 解码后的响应对象
  */
-function decodeGetCdnTokenInfoResponse(responseBytes: Buffer): HuyaGetTokenResp {
+function decodeGetCdnTokenInfoExResponse(responseBytes: Buffer): HuyaGetCdnTokenExRsp {
   // 1. 将 Node.js Buffer 转换为 BinBuffer
   const binBuffer = new TarsStream.BinBuffer();
   binBuffer.writeNodeBuffer(responseBytes);
@@ -199,23 +213,32 @@ function decodeGetCdnTokenInfoResponse(responseBytes: Buffer): HuyaGetTokenResp 
   tup.decode(binBuffer);
 
   // 3. 读取响应结构体 body["tRsp"]
-  const resp = new HuyaGetTokenResp();
+  const resp = new HuyaGetCdnTokenExRsp();
   tup.readStruct("tRsp", resp as any);
 
-  // 4. 返回响应对象
   return resp;
 }
 
 /**
  * 发送 WUP 请求到虎牙服务器
- *
  * @param requestBody - 请求体
+ * @param funcName - 函数名
  * @returns 响应体
  */
-async function sendWupRequest(requestBody: Buffer): Promise<Buffer> {
-  const response = await requester.post(WUP_URL, requestBody, {
+async function sendWupRequest(
+  requestBody: Buffer,
+  funcName?: string,
+  ua?: string,
+): Promise<Buffer> {
+  // 随机选择服务器地址
+  let url = WUP_URL;
+  if (Math.random() > 0.5 && funcName) {
+    url = `${WUP_YST_URL}/liveui/${funcName}`;
+  }
+
+  const response = await requester.post(url, requestBody, {
     headers: {
-      "User-Agent": WUP_UA,
+      "User-Agent": ua ?? WUP_UA,
       Origin: HUYA_ORIGIN,
       Referer: HUYA_ORIGIN,
       "Content-Type": "application/octet-stream",
@@ -227,86 +250,36 @@ async function sendWupRequest(requestBody: Buffer): Promise<Buffer> {
 }
 
 /**
- * 获取虎牙流的真实 URL(使用 WUP 协议)
- * 对应 Rust 中的 get_stream_url_wup 方法
- *
- * @param streamInfo - 流信息对象
- * @returns 真实流 URL
- */
-export async function getStreamUrlWup(streamInfo: StreamInfo): Promise<string> {
-  // 1. 提取参数
-  const { extras } = streamInfo;
-  if (!extras) {
-    throw new Error("Stream extras not found for WUP request");
-  }
-
-  const cdn = extras.cdn || "AL";
-  const streamName = extras.stream_name;
-  const presenterUid = extras.presenter_uid || 0;
-
-  if (!streamName) {
-    throw new Error("Stream name not found in extras");
-  }
-
-  // 2. 构建请求
-  const requestBody = buildGetCdnTokenInfoRequest(streamName, cdn, presenterUid);
-
-  // 3. 发送请求
-  const responseBytes = await sendWupRequest(requestBody);
-
-  // 4. 解码响应
-  const tokenInfo = decodeGetCdnTokenInfoResponse(responseBytes);
-
-  // 5. 获取防盗链参数
-  const antiCode =
-    streamInfo.streamFormat === "flv" ? tokenInfo.flvAntiCode : tokenInfo.hlsAntiCode;
-
-  // 6. 解析原始 URL
-  const url = new URL(streamInfo.url);
-  const host = url.host;
-  const pathParts = url.pathname.split("/");
-  const pathPrefix = pathParts[1] || "";
-  const baseUrl = `${url.protocol}//${host}/${pathPrefix}`;
-
-  // 7. 确定文件后缀
-  const suffix = streamInfo.streamFormat;
-
-  // 8. 构建新 URL
-  const newUrl = `${baseUrl}/${streamName}.${suffix}?${antiCode}`;
-
-  return newUrl;
-}
-
-/**
- * 简化版本：直接获取防盗链参数
- *
+ * 获取 CDN Token 信息(使用 getCdnTokenInfoEx API)
  * @param streamName - 流名称
- * @param cdnType - CDN 类型
- * @param presenterUid - 主播 UID
- * @returns 包含 flvAntiCode 和 hlsAntiCode
+ * @returns CDN Token 信息
  */
-export async function getCdnTokenInfo(
-  streamName: string,
-  cdnType = "AL",
-  presenterUid = 0,
-): Promise<CdnTokenInfo> {
-  const requestBody = buildGetCdnTokenInfoRequest(streamName, cdnType, presenterUid);
-  const responseBytes = await sendWupRequest(requestBody);
-  const tokenInfo = decodeGetCdnTokenInfoResponse(responseBytes);
+export async function getCdnTokenInfoEx(streamName: string): Promise<CdnTokenExInfo> {
+  const ua = generateRandomHuYaUA();
+  const requestBody = buildGetCdnTokenInfoExRequest(streamName, ua);
+  const responseBytes = await sendWupRequest(requestBody, "getCdnTokenInfoEx", ua);
+  const tokenInfo = decodeGetCdnTokenInfoExResponse(responseBytes);
 
-  return tokenInfo;
+  return {
+    sFlvToken: tokenInfo.sFlvToken,
+    iExpireTime: tokenInfo.iExpireTime,
+    ua,
+  };
 }
 
 export {
   // 类
-  GetCdnTokenInfoReq,
-  HuyaGetTokenResp,
+  HuyaUserId,
+  HuyaGetCdnTokenExReq,
+  HuyaGetCdnTokenExRsp,
   // 核心函数
-  buildGetCdnTokenInfoRequest,
-  decodeGetCdnTokenInfoResponse,
+  buildGetCdnTokenInfoExRequest,
+  decodeGetCdnTokenInfoExResponse,
   sendWupRequest,
+  generateRandomHuYaUA,
   // 常量
   WUP_URL,
+  WUP_YST_URL,
   WUP_UA,
   HUYA_ORIGIN,
 };
