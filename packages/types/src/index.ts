@@ -82,6 +82,15 @@ export type CommonPreset<T> = {
   config: T;
 };
 
+export interface PartTitleFormatOptions {
+  title: string;
+  username: string;
+  time: string;
+  roomId: string | number;
+  filename: string;
+  index: number;
+}
+
 // ffmpeg预设配置
 export type FfmpegPreset = CommonPreset<FfmpegOptions>;
 
@@ -936,6 +945,8 @@ export interface FfmpegOptions {
 export interface BiliupConfig {
   /** 标题,稿件标题限制80字，去除前后空格 */
   title: string;
+  /** 分P标题模板 */
+  partTitleTemplate?: string;
   /** 简介，去除前后空格，最多250 */
   desc?: string;
   dolby: 0 | 1; // 杜比

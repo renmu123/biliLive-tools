@@ -37,6 +37,34 @@
           >
         </template>
       </n-form-item>
+      <n-form-item label="分P标题" style="margin-top: 34px">
+        <template #label>
+          <Tip :tip="partTitleTip" text="分P标题"></Tip>
+        </template>
+        <n-input
+          ref="partTitleInput"
+          v-model:value="options.config.partTitleTemplate"
+          placeholder="留空则使用当前分P标题"
+          clearable
+          style="margin-right: 10px"
+          spellcheck="false"
+        />
+        <n-button
+          style="margin-right: 10px"
+          @click="previewPartTitle(options.config.partTitleTemplate || '')"
+          >预览</n-button
+        >
+        <template #feedback>
+          <span
+            v-for="item in partTitleList"
+            :key="item.value"
+            :title="item.label"
+            class="title-var"
+            @click="setPartTitleVar(item.value)"
+            >{{ item.value }}</span
+          >
+        </template>
+      </n-form-item>
       <n-form-item label="稿件类型">
         <n-radio-group v-model:value="options.config.copyright" name="radiogroup">
           <n-space>
@@ -749,6 +777,99 @@ const titleTip = computed(() => {
     })
     .reduce((prev, cur) => prev + cur, base);
 });
+
+const partTitleList = ref([
+  {
+    label: "标题",
+    value: "{{title}}",
+  },
+  {
+    value: "{{user}}",
+    label: "主播名",
+  },
+  {
+    value: "{{roomId}}",
+    label: "房间号",
+  },
+  {
+    label: "文件名",
+    value: "{{filename}}",
+  },
+  {
+    label: "序号",
+    value: "{{index}}",
+  },
+  {
+    label: "弹幕版or纯享版",
+    value: "{{hasDanmaStr}}",
+  },
+  {
+    value: "{{yyyy}}",
+    label: "年",
+  },
+  {
+    value: "{{MM}}",
+    label: "月（补零）",
+  },
+  {
+    value: "{{dd}}",
+    label: "日（补零）",
+  },
+  {
+    value: "{{HH}}",
+    label: "时（补零）",
+  },
+  {
+    value: "{{mm}}",
+    label: "分（补零）",
+  },
+  {
+    value: "{{ss}}",
+    label: "秒（补零）",
+  },
+]);
+const partTitleTip = computed(() => {
+  const base = `留空则使用当前分P标题。<br/>更多模板引擎等高级用法见文档<br/>`;
+  return partTitleList.value
+    .map((item) => {
+      return `${item.label}：${item.value}<br/>`;
+    })
+    .reduce((prev, cur) => prev + cur, base);
+});
+
+const partTitleInput = templateRef("partTitleInput");
+const setPartTitleVar = async (value: string) => {
+  if (!options.value.config.partTitleTemplate) {
+    options.value.config.partTitleTemplate = "";
+  }
+  const input = partTitleInput.value?.inputElRef;
+  if (input) {
+    const currentValue = options.value.config.partTitleTemplate || "";
+    const start = input.selectionStart ?? currentValue.length;
+    const end = input.selectionEnd ?? currentValue.length;
+    options.value.config.partTitleTemplate =
+      currentValue.slice(0, start) + value + currentValue.slice(end);
+    input.focus();
+    await nextTick();
+    input.setSelectionRange(start + value.length, start + value.length);
+  } else {
+    options.value.config.partTitleTemplate = (options.value.config.partTitleTemplate || "") + value;
+  }
+};
+const previewPartTitle = async (template: string) => {
+  if (!template) {
+    notice.warning({
+      title: "请输入分P标题模板",
+      duration: 2000,
+    });
+    return;
+  }
+  const data = await biliApi.formatWebhookPartTitle(template);
+  notice.info({
+    title: data,
+    duration: 3000,
+  });
+};
 
 const previewTitle = async (template: string) => {
   const data = await biliApi.formatWebhookTitle(template);
