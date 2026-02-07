@@ -185,7 +185,7 @@ const handleConfirm = async () => {
     console.log("SSE 连接已建立", eventSource);
 
     eventSource.onmessage = (event) => {
-      console.log("收到 SSE 消息:", event.data);
+      // console.log("收到 SSE 消息:", event.data);
       try {
         const data = JSON.parse(event.data);
 
