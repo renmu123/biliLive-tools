@@ -88,6 +88,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   useServerTimestamp?: boolean;
   // 可持久化的额外字段，让 provider、manager 开发者可以有更多 customize 的空间
   extra?: Partial<E>;
+  /** 代理 如http://127.0.0.1:7890 */
+  proxy?: string;
   /** 调试等级 */
   debugLevel?: "none" | "basic" | "verbose";
 }
