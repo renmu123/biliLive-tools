@@ -58,6 +58,7 @@ export default defineConfig({
               ],
             },
             { text: "Webhook", link: "/features/webhook" },
+            { text: "工作流", link: "/features/workflow" },
             { text: "FFmpeg配置", link: "/features/ffmpeg" },
             { text: "B站上传", link: "/features/bilibili-upload" },
             { text: "XML弹幕转换", link: "/features/danmaku-convert" },
