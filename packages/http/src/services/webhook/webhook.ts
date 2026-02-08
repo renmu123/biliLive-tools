@@ -358,7 +358,7 @@ export class WebhookHandler {
         context.part.recordStatus = "handled";
         context.part.uploadStatus = "pending";
         log.warn(`弹幕文件不存在或为空，跳过弹幕压制: ${xmlFilePath}`);
-        return { conversionSuccessful: true, danmuConversionSuccessful: true };
+        return { conversionSuccessful: false, danmuConversionSuccessful: false };
       }
 
       // 验证预设
@@ -417,8 +417,8 @@ export class WebhookHandler {
     config: RoomConfig,
     xmlFilePath: string,
   ): Promise<{ conversionSuccessful: boolean; danmuConversionSuccessful: boolean }> {
-    let conversionSuccessful = true;
-    let danmuConversionSuccessful = true;
+    let conversionSuccessful = false;
+    let danmuConversionSuccessful = false;
 
     // 处理视频转码
     if (config.videoPresetId) {
@@ -433,6 +433,7 @@ export class WebhookHandler {
           limitTime: config.videoHandleTime,
         });
         context.part.filePath = output;
+        conversionSuccessful = true;
       } catch (error) {
         log.error(error);
         context.part.uploadStatus = "error";
@@ -450,6 +451,7 @@ export class WebhookHandler {
           throw new Error(`danmuPreset not found ${config.danmuPresetId}`);
         }
         await this.convertDanmu(xmlFilePath, preset.config);
+        danmuConversionSuccessful = true;
       } catch (error) {
         log.error(error);
         danmuConversionSuccessful = false;
