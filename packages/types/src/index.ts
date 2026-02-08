@@ -984,6 +984,8 @@ export interface BiliupConfig {
   dtime?: number;
 }
 
+export type BiliupContinueConfig = Partial<BiliupConfig>;
+
 export type BiliupConfigAppend = Partial<BiliupConfig> & {
   vid: string | number;
 };

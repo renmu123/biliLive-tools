@@ -336,6 +336,15 @@ export function formatOptions(options: BiliupConfig, coverDir: string | undefine
   return data;
 }
 
+export function formatEditOption(options: BiliupConfig): Partial<MediaOptions> {
+  return {
+    watermark:
+      options.copyright === 2 || options.watermark === undefined
+        ? undefined
+        : { state: options.watermark },
+  };
+}
+
 /**
  * 合集列表
  */
@@ -373,11 +382,10 @@ export async function editMediaApi(
   video: { cid: number; filename: string; title: string; desc?: string }[],
   options: BiliupConfig,
 ) {
-  const mediaOptions = {};
   console.log("编辑视频", options);
 
   // const globalConfig = container.resolve("globalConfig");
-  // const mediaOptions = formatOptions(options, path.join(globalConfig.userDataPath, "cover"));
+  const mediaOptions = formatEditOption(options);
   const client = createClient(uid);
   return client.platform.editMediaWebApi(video, { aid, ...mediaOptions }, "append");
 }

@@ -30,6 +30,7 @@ import type {
   FfmpegOptions,
   DanmuConfig,
   HotProgressOptions,
+  BiliupContinueConfig,
 } from "@biliLive-tools/types";
 import type { AppConfig } from "@biliLive-tools/shared/config.js";
 import type { Options, Platform } from "../../types/webhook.js";
@@ -958,10 +959,11 @@ export class WebhookHandler {
     }[],
     limitedUploadTime: [string, string] | [],
     afterUploadDeletAction?: "none" | "delete" | "deleteAfterCheck",
+    options?: BiliupContinueConfig,
   ) => {
     const checkCallback = this.setupDeleteAfterCheckLock(pathArray);
 
-    const task = await biliApi.editMedia(aid, pathArray, {}, uid, {
+    const task = await biliApi.editMedia(aid, pathArray, options || {}, uid, {
       limitedUploadTime,
       afterUploadDeletAction: "none",
       forceCheck: afterUploadDeletAction === "deleteAfterCheck",
@@ -1094,6 +1096,21 @@ export class WebhookHandler {
     return uploadPreset;
   }
 
+  private async prepareContinueUploadPreset(
+    type: "raw" | "handled",
+    config: RoomConfig,
+  ): Promise<BiliupContinueConfig | undefined> {
+    let uploadPreset = DEFAULT_BILIUP_CONFIG;
+    const presetId = type === "handled" ? config.uploadPresetId : config.noDanmuVideoPreset;
+    const preset = await this.videoPreset.get(presetId);
+    uploadPreset = { ...uploadPreset, ...(preset?.config ?? {}) };
+    // 续传的时候 watermark 会影响稿件设置，其他设置不管兼容旧逻辑
+    if (typeof uploadPreset.watermark === "undefined") {
+      return undefined;
+    }
+    return { watermark: uploadPreset.watermark };
+  }
+
   /**
    * 格式化上传视频标题
    * @private
@@ -1151,6 +1168,7 @@ export class WebhookHandler {
     filePaths: { part: Part; path: string; title: string }[],
     type: "raw" | "handled",
     config: RoomConfig,
+    uploadPreset: BiliupContinueConfig | undefined,
     limitedUploadTime: [] | [string, string],
   ) {
     log.info("续传", filePaths);
@@ -1170,6 +1188,7 @@ export class WebhookHandler {
       })),
       limitedUploadTime,
       type === "raw" ? "none" : config.afterUploadDeletAction,
+      uploadPreset,
     );
 
     live.batchUpdateUploadStatus(
@@ -1259,12 +1278,14 @@ export class WebhookHandler {
     try {
       // 8. 执行上传（续传或新上传）
       if (live[aidField]) {
+        const continueUploadPreset = await this.prepareContinueUploadPreset(type, config);
         await this.performContinueUpload(
           live,
           live[aidField],
           filePaths,
           type,
           config,
+          continueUploadPreset,
           limitedUploadTime,
         );
       } else {
