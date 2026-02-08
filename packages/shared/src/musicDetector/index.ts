@@ -188,7 +188,8 @@ function convert2Srt2(detail: ASRWord[], offset: number): string {
   for (const sentence of detail || []) {
     const start = new Date(sentence.st + offset).toISOString().substr(11, 12).replace(".", ",");
     const end = new Date(sentence.et + offset).toISOString().substr(11, 12).replace(".", ",");
-    srt += `${index}\n${start} --> ${end}\n${sentence.t}\n\n`;
+    const text = (sentence.t || "").replace(/[，。、“”‘’！？]/g, " ");
+    srt += `${index}\n${start} --> ${end}\n${text}\n\n`;
     index++;
   }
   return srt;
