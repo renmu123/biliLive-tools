@@ -111,6 +111,21 @@ async function getRecorders(
   };
 }
 
+/**
+ * 正在录制中直播间数量
+ * @param recording 是否只计算正在录制的直播间，默认为true
+ * @returns
+ */
+function getRecorderNum(recording): number {
+  const recorderManager = container.resolve("recorderManager");
+  const recorders = recorderManager.manager.recorders;
+  if (recording) {
+    return recorders.filter((recorder) => recorder.recordHandle != null).length;
+  } else {
+    return recorders.length;
+  }
+}
+
 function getRecorder(
   args: RecorderAPI["getRecorder"]["Args"],
 ): RecorderAPI["getRecorder"]["Resp"] | undefined {
@@ -379,6 +394,7 @@ export async function getLiveInfo(ids: string[]) {
 
 export default {
   getRecorders,
+  getRecorderNum,
   getRecorder,
   addRecorder,
   updateRecorder,

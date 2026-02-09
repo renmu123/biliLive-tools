@@ -97,6 +97,10 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
           name: "idx_record_history_live_video",
           sql: `CREATE INDEX IF NOT EXISTS idx_record_history_live_video ON record_history(live_id, video_file)`,
         },
+        {
+          name: "idx_record_history_record_start_time",
+          sql: `CREATE INDEX IF NOT EXISTS idx_record_history_record_start_time ON record_history(record_start_time)`,
+        },
       ];
 
       for (const index of indexes) {
@@ -270,5 +274,54 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
     const data = dataStmt.all(...params, pageSize, offset) as LiveHistory[];
 
     return { data, total };
+  }
+
+  /**
+   * 查询总视频时长
+   * @param options 查询参数
+   * @returns 总时长（秒）
+   */
+  getTotalDuration(options?: {
+    streamerId?: number;
+    startTime?: number;
+    endTime?: number;
+  }): number {
+    const { streamerId, startTime, endTime } = options || {};
+
+    // 构建WHERE条件
+    const whereConditions: string[] = [];
+    const params: any[] = [];
+
+    // 过滤掉 video_duration 为 null 或 0 的记录
+    whereConditions.push("video_duration IS NOT NULL");
+    whereConditions.push("video_duration > 0");
+
+    if (streamerId) {
+      whereConditions.push("streamer_id = ?");
+      params.push(streamerId);
+    }
+
+    if (startTime) {
+      whereConditions.push("record_start_time >= ?");
+      params.push(startTime);
+    }
+
+    if (endTime) {
+      whereConditions.push("record_start_time <= ?");
+      params.push(endTime);
+    }
+
+    const whereClause = `WHERE ${whereConditions.join(" AND ")}`;
+
+    const sql = `
+      SELECT COALESCE(SUM(video_duration), 0) as total_duration
+      FROM ${this.tableName}
+      ${whereClause}
+    `;
+
+    const stmt = this.db.prepare(sql);
+    const result = stmt.get(...params) as { total_duration: number };
+
+    return result.total_duration || 0;
   }
 }
