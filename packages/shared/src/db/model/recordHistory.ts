@@ -11,6 +11,8 @@ const BaseLiveHistory = z.object({
   title: z.string(),
   record_end_time: z.number().optional(),
   video_file: z.string().optional(),
+  // 视频文件名，不含后缀
+  video_filename: z.string().optional(),
   // 视频持续时长，支持为空，浮点数
   video_duration: z.number().optional(),
   // 弹幕数量
@@ -19,6 +21,8 @@ const BaseLiveHistory = z.object({
   interact_num: z.number().optional(),
   // 直播id
   live_id: z.string().optional(),
+  // 文件快速哈希值
+  quick_hash: z.string().optional(),
 });
 
 const LiveHistory = BaseLiveHistory.extend({
@@ -51,9 +55,11 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
         record_end_time INTEGER,                             -- 视频录制结束时间，秒时间戳
         title TEXT,                                          -- 直播标题
         video_file TEXT,                                     -- 视频文件路径
+        video_filename TEXT,                                 -- 视频文件名，不含后缀
         video_duration REAL,                                 -- 视频持续时长，浮点数，秒
         danma_num INTEGER,                                   -- 弹幕数量
         interact_num INTEGER,                                 -- 互动人数
+        quick_hash TEXT,                                     -- 文件快速哈希值
         FOREIGN KEY (streamer_id) REFERENCES streamer(id)    -- 外键约束
       ) STRICT;
     `;
@@ -97,6 +103,14 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
           name: "idx_record_history_live_video",
           sql: `CREATE INDEX IF NOT EXISTS idx_record_history_live_video ON record_history(live_id, video_file)`,
         },
+        {
+          name: "idx_record_history_record_start_time",
+          sql: `CREATE INDEX IF NOT EXISTS idx_record_history_record_start_time ON record_history(record_start_time)`,
+        },
+        {
+          name: "idx_record_history_filename_duration",
+          sql: `CREATE INDEX IF NOT EXISTS idx_record_history_filename_duration ON record_history(video_filename, video_duration)`,
+        },
       ];
 
       for (const index of indexes) {
@@ -122,6 +136,10 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
       const hasInteractNumColumn = columns.some((col) => col.name === "interact_num");
       // @ts-ignore
       const hasLiveIdColumn = columns.some((col) => col.name === "live_id");
+      // @ts-ignore
+      const hasQuickHashColumn = columns.some((col) => col.name === "quick_hash");
+      // @ts-ignore
+      const hasVideoFilenameColumn = columns.some((col) => col.name === "video_filename");
 
       if (!hasVideoDurationColumn) {
         // 添加video_duration列
@@ -145,6 +163,18 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
         // 添加live_id列
         this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN live_id TEXT`).run();
         logger.info(`已为${this.tableName}表添加live_id列`);
+      }
+
+      if (!hasQuickHashColumn) {
+        // 添加quick_hash列
+        this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN quick_hash TEXT`).run();
+        logger.info(`已为${this.tableName}表添加quick_hash列`);
+      }
+
+      if (!hasVideoFilenameColumn) {
+        // 添加video_filename列
+        this.db.prepare(`ALTER TABLE ${this.tableName} ADD COLUMN video_filename TEXT`).run();
+        logger.info(`已为${this.tableName}表添加video_filename列`);
       }
 
       return true;
