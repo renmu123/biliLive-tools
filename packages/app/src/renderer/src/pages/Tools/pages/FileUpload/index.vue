@@ -89,7 +89,6 @@ onUnmounted(() => {
 const formatPartTitleTemplate = async (
   partTitleTemplate: string | undefined,
   videos: (typeof fileList)["value"],
-  startIndex: number,
 ) => {
   const hasPartTitleTemplate = partTitleTemplate && !!partTitleTemplate.trim();
   if (hasPartTitleTemplate) {
@@ -112,7 +111,7 @@ const formatPartTitleTemplate = async (
               time: new Date((parseResult.startTimestamp ?? 0) * 1000).toISOString(),
               roomId: parseResult.roomId,
               filename: window.path.basename(video.path),
-              index: startIndex + index,
+              index: index + 1, // 索引从 1 开始
             });
             video.title = previewTitle;
             notice.success({
@@ -207,10 +206,7 @@ const upload = async () => {
 
   const videos = deepRaw(fileList.value);
 
-  if (fileList.value.length > 1) {
-    // 非续传时首P标题已由稿件标题处理，这里从第2P开始套用分P模板
-    await formatPartTitleTemplate(uploadConfig.partTitleTemplate, videos.slice(1), 2);
-  }
+  await formatPartTitleTemplate(uploadConfig.partTitleTemplate, videos);
 
   await biliApi.upload({
     uid: userInfo.value.uid!,
@@ -254,8 +250,8 @@ const appendVideo = async () => {
 
   const uploadConfig = deepRaw(presetOptions.value.config);
   const videos = deepRaw(fileList.value);
-  // 续传未获取已上传数量，先从 1 起
-  await formatPartTitleTemplate(uploadConfig.partTitleTemplate, videos, 1);
+
+  await formatPartTitleTemplate(uploadConfig.partTitleTemplate, videos);
 
   await biliApi.upload({
     uid: userInfo.value.uid!,
