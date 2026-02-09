@@ -67,7 +67,7 @@ export class NLU {
       };
     } catch (error) {
       console.error("Intent identification failed:", error);
-      throw new Error("无法识别用户意图，请更清晰地描述您的需求");
+      throw new Error(error instanceof Error ? error.message : "意图识别失败");
     }
   }
 
