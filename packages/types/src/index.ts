@@ -65,6 +65,7 @@ export const recorderNoGlobalFollowFields: Array<
   "qualityRetry",
   "formatName",
   "useM3U8Proxy",
+  "customHost",
   "codecName",
   "source",
   "videoFormat",
@@ -362,6 +363,8 @@ interface BilibiliRecorderConfig {
   formatName: FormatName;
   /** 流编码 */
   codecName: CodecName;
+  /** 自定义host */
+  customHost?: string;
 }
 interface DouyuRecorderConfig {
   /** 画质：0：原画 2：高清 3：超清 4：蓝光4M 8：蓝光8M */
@@ -526,6 +529,8 @@ export interface Recorder {
   debugLevel: "none" | "basic" | "verbose";
   /** API类型，仅抖音 */
   api: HuyaRecorderConfig["api"] | DouyinRecorderConfig["api"];
+  /** 自定义host */
+  customHost?: string;
   // 不跟随全局配置字段
   noGlobalFollowFields: typeof recorderNoGlobalFollowFields;
 }
@@ -947,6 +952,7 @@ export interface BiliupConfig {
   /** 封面，可能为文件名也有可能是绝对路径 */
   cover?: string; // 封面
   noReprint?: 0 | 1; // 自制声明 0: 允许转载，1：禁止转载
+  watermark?: 0 | 1; // 添加水印 0：关闭，1：开启
   openElec?: 0 | 1; // 充电面板 0：不开启，1：开启
   closeDanmu?: 0 | 1; // 关闭弹幕 0：不关闭，1：关闭
   closeReply?: 0 | 1; // 关闭评论 0：不关闭，1：关闭

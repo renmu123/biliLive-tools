@@ -51,6 +51,8 @@ export interface RecorderCreateOpts<E extends AnyObject = UnknownObject> {
   useM3U8Proxy?: boolean;
   /**B站m3u8代理url */
   m3u8ProxyUrl?: string;
+  /** B站自定义Host，用于替换直播流链接中的host */
+  customHost?: string;
   /** 流格式 */
   formatName?: FormatName;
   /** 流编码 */

@@ -125,9 +125,6 @@
         <n-form-item title="只支持部分屏蔽弹幕">
           <n-checkbox v-model:checked="config.saveblocked"> 保存屏蔽弹幕 </n-checkbox>
         </n-form-item>
-        <!-- <n-form-item v-if="isAdvancedMode" label="时间轴偏移量" path="density">
-              <n-input-number v-model:value.number="config.density" class="input-number" />&nbsp;秒
-            </n-form-item> -->
         <div>
           <n-form-item
             v-if="isAdvancedMode"
@@ -352,14 +349,14 @@
       <n-form-item style="width: 100%">
         <template #label>
           <Tip
-            text="自定义过滤函数"
+            text="自定义函数"
             tip="此功能为biliLive-tools的原生实现，非danmakufactory实现，具体使用见文档"
           ></Tip>
         </template>
         <n-input
           v-model:value="config.filterFunction"
           type="textarea"
-          placeholder="使用自定义函数来实现匹配"
+          placeholder="使用自定义函数来实现更多复杂功能，支持运行时改变参数以及过滤弹幕，具体使用见文档"
           style="width: 100%"
           :input-props="{ spellcheck: 'false' }"
         />

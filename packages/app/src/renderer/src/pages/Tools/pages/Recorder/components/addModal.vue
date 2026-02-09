@@ -220,6 +220,23 @@
                 >全局</n-checkbox
               >
             </n-form-item>
+            <n-form-item>
+              <template #label>
+                <Tip
+                  :tip="textInfo.bili.customHost.tip"
+                  :text="textInfo.bili.customHost.text"
+                ></Tip>
+              </template>
+              <n-input
+                v-model:value="config.customHost"
+                placeholder="例如：cn-jsyz-ct-03-32.bilivideo.com"
+                clearable
+                :disabled="globalFieldsObj.customHost"
+              />
+              <n-checkbox v-model:checked="globalFieldsObj.customHost" class="global-checkbox"
+                >全局</n-checkbox
+              >
+            </n-form-item>
             <n-form-item v-if="!config.disableProvideCommentsWhenRecording">
               <template #label>
                 <Tip
@@ -651,6 +668,7 @@ const globalFieldsObj = ref<Record<NonNullable<Recorder["noGlobalFollowFields"]>
     qualityRetry: true,
     formatName: true,
     useM3U8Proxy: true,
+    customHost: true,
     codecName: true,
     source: true,
     videoFormat: true,
@@ -747,6 +765,7 @@ const initGlobalFields = () => {
     qualityRetry: !(config.value?.noGlobalFollowFields ?? []).includes("qualityRetry"),
     formatName: !(config.value?.noGlobalFollowFields ?? []).includes("formatName"),
     useM3U8Proxy: !(config.value?.noGlobalFollowFields ?? []).includes("useM3U8Proxy"),
+    customHost: !(config.value?.noGlobalFollowFields ?? []).includes("customHost"),
     codecName: !(config.value?.noGlobalFollowFields ?? []).includes("codecName"),
     source: !(config.value?.noGlobalFollowFields ?? []).includes("source"),
     videoFormat: !(config.value?.noGlobalFollowFields ?? []).includes("videoFormat"),
@@ -866,6 +885,9 @@ watch(
       } else if (config.value.providerId === "HuYa") {
         config.value.api = appConfig.value.recorder.huya.api;
       }
+    }
+    if (val.customHost) {
+      config.value.customHost = appConfig.value.recorder.bilibili.customHost;
     }
   },
   {

@@ -70,38 +70,6 @@ export function assertObjectType(data: unknown, msg?: string): asserts data is o
   assert(typeof data === "object", msg);
 }
 
-export function createInvalidStreamChecker(): (ffmpegLogLine: string) => boolean {
-  let prevFrame = 0;
-  let frameUnchangedCount = 0;
-
-  return (ffmpegLogLine) => {
-    const streamInfo = ffmpegLogLine.match(
-      /frame=\s*(\d+) fps=.*? q=.*? size=.*? time=.*? bitrate=.*? speed=.*?/,
-    );
-    if (streamInfo != null) {
-      const [, frameText] = streamInfo;
-      const frame = Number(frameText);
-
-      if (frame === prevFrame) {
-        if (++frameUnchangedCount >= 15) {
-          return true;
-        }
-      } else {
-        prevFrame = frame;
-        frameUnchangedCount = 0;
-      }
-
-      return false;
-    }
-
-    if (ffmpegLogLine.includes("HTTP error 404 Not Found")) {
-      return true;
-    }
-
-    return false;
-  };
-}
-
 // 根据formatPriorities获取最终的sources
 // 如果formatPriorities为空或者undefined，则使用['flv','hls']
 // 如果有参数，按照顺序进行匹配，如果匹配的值不存在或者为空，则使用下一个参数，最后返回的是流数组

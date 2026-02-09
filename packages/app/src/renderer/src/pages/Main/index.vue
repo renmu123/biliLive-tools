@@ -358,7 +358,7 @@ const menuOptions = computed<MenuOption[]>(() => {
               name: "Home",
             },
           },
-          { default: () => "主页" },
+          { default: () => "压制" },
         ),
       key: "Home",
       icon: renderIcon(HomeIcon),

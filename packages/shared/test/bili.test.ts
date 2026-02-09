@@ -104,6 +104,7 @@ describe("formatOptions", () => {
       source: undefined,
       no_disturbance: 1,
       copyright: 1,
+      watermark: undefined,
     };
 
     const result = formatOptions(options);
@@ -156,6 +157,7 @@ describe("formatOptions", () => {
       is_only_self: 0,
       mission_id: undefined,
       topic_id: undefined,
+      watermark: undefined,
     };
 
     const result = formatOptions(options);
@@ -205,6 +207,7 @@ describe("formatOptions", () => {
       topic_id: 123456,
       mission_id: 123456,
       is_only_self: 0,
+      watermark: undefined,
     };
 
     const result = formatOptions(options);
@@ -254,6 +257,7 @@ describe("formatOptions", () => {
       topic_id: 123456,
       mission_id: 123456,
       is_only_self: 0,
+      watermark: undefined,
     };
 
     const result = formatOptions(options);
@@ -304,6 +308,7 @@ describe("formatOptions", () => {
       is_only_self: 0,
       mission_id: undefined,
       topic_id: undefined,
+      watermark: undefined,
     };
 
     const result = formatOptions(options, os.tmpdir());
@@ -362,6 +367,7 @@ describe("formatOptions", () => {
       is_only_self: 0,
       mission_id: undefined,
       topic_id: undefined,
+      watermark: undefined,
     };
 
     const result = formatOptions(options, os.tmpdir());
@@ -414,6 +420,154 @@ describe("formatOptions", () => {
       is_only_self: 0,
       mission_id: undefined,
       topic_id: undefined,
+      watermark: undefined,
+    };
+
+    const result = formatOptions(options);
+
+    expect(result).toEqual(expected);
+  });
+
+  it("should set watermark state when copyright is original and watermark enabled", () => {
+    const options: BiliupConfig = {
+      cover: undefined,
+      title: "Test Video",
+      tid: 123,
+      tag: ["tag1", "tag2"],
+      desc: "This is a test video",
+      dolby: 1,
+      noReprint: 1,
+      closeDanmu: 0,
+      closeReply: 0,
+      selectiionReply: 0,
+      openElec: 1,
+      recreate: 1,
+      no_disturbance: 1,
+      copyright: 1,
+      hires: 0,
+      watermark: 1,
+    };
+
+    const expected = {
+      cover: undefined,
+      title: "Test Video",
+      tid: 123,
+      tag: "tag1,tag2",
+      desc: "This is a test video",
+      desc_v2: undefined,
+      dolby: 1,
+      lossless_music: 0,
+      no_reprint: 1,
+      up_close_danmu: false,
+      up_close_reply: false,
+      up_selection_reply: false,
+      open_elec: 1,
+      recreate: 1,
+      source: undefined,
+      no_disturbance: 1,
+      copyright: 1,
+      is_only_self: 0,
+      mission_id: undefined,
+      topic_id: undefined,
+      watermark: { state: 1 },
+    };
+
+    const result = formatOptions(options);
+
+    expect(result).toEqual(expected);
+  });
+
+  it("should set watermark state to 0 when disabled and copyright is original", () => {
+    const options: BiliupConfig = {
+      cover: undefined,
+      title: "Test Video",
+      tid: 123,
+      tag: ["tag1", "tag2"],
+      desc: "This is a test video",
+      dolby: 1,
+      noReprint: 1,
+      closeDanmu: 0,
+      closeReply: 0,
+      selectiionReply: 0,
+      openElec: 1,
+      recreate: 1,
+      no_disturbance: 1,
+      copyright: 1,
+      hires: 0,
+      watermark: 0,
+    };
+
+    const expected = {
+      cover: undefined,
+      title: "Test Video",
+      tid: 123,
+      tag: "tag1,tag2",
+      desc: "This is a test video",
+      desc_v2: undefined,
+      dolby: 1,
+      lossless_music: 0,
+      no_reprint: 1,
+      up_close_danmu: false,
+      up_close_reply: false,
+      up_selection_reply: false,
+      open_elec: 1,
+      recreate: 1,
+      source: undefined,
+      no_disturbance: 1,
+      copyright: 1,
+      is_only_self: 0,
+      mission_id: undefined,
+      topic_id: undefined,
+      watermark: { state: 0 },
+    };
+
+    const result = formatOptions(options);
+
+    expect(result).toEqual(expected);
+  });
+
+  it("should omit watermark when copyright is reprint", () => {
+    const options: BiliupConfig = {
+      cover: undefined,
+      title: "Test Video",
+      tid: 123,
+      tag: ["tag1", "tag2"],
+      desc: "This is a test video",
+      dolby: 1,
+      noReprint: 1,
+      closeDanmu: 0,
+      closeReply: 0,
+      selectiionReply: 0,
+      openElec: 1,
+      recreate: 1,
+      no_disturbance: 1,
+      copyright: 2,
+      hires: 0,
+      watermark: 1,
+    };
+
+    const expected = {
+      cover: undefined,
+      title: "Test Video",
+      tid: 123,
+      tag: "tag1,tag2",
+      desc: "This is a test video",
+      desc_v2: undefined,
+      dolby: 1,
+      lossless_music: 0,
+      no_reprint: 1,
+      up_close_danmu: false,
+      up_close_reply: false,
+      up_selection_reply: false,
+      open_elec: 1,
+      recreate: 1,
+      source: undefined,
+      no_disturbance: 1,
+      copyright: 2,
+      is_only_self: 0,
+      mission_id: undefined,
+      topic_id: undefined,
+      watermark: undefined,
     };
 
     const result = formatOptions(options);

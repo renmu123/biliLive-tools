@@ -9,13 +9,20 @@ import { appConfig } from "../config.js";
 import logger from "../utils/log.js";
 import { getTempPath, uuid, calculateFileQuickHash } from "../utils/index.js";
 
+export interface ProgressCallback {
+  (data: { stage: string; percentage: number; message: string }): void;
+}
+
 /**
  * 检测唱歌边界点
  * @param videoPath 输入视频文件路径,wav
+ * @param iConfig 检测配置
+ * @param onProgress 进度回调函数
  */
 export async function musicDetect(
   videoPath: string,
   iConfig?: Partial<DetectionConfig & { disableCache: boolean }>,
+  onProgress?: ProgressCallback,
 ) {
   const cachePath = getTempPath();
   const outputVideoName = `${uuid()}.wav`;
@@ -26,7 +33,9 @@ export async function musicDetect(
   if (await fs.pathExists(featuresJsonPath)) {
     logger.info("检测到已有音频特征缓存，直接读取:", featuresJsonPath);
     features = await fs.readJSON(featuresJsonPath);
+    onProgress?.({ stage: "cache", percentage: 30, message: "读取音频特征缓存" });
   } else {
+    onProgress?.({ stage: "extract", percentage: 0, message: "开始提取音频" });
     const task = await addExtractAudioTask(videoPath, outputVideoName, {
       saveType: 2,
       savePath: cachePath,
@@ -34,8 +43,21 @@ export async function musicDetect(
       addQueue: false,
       sampleRate: 16000,
     });
+
+    // 监听音频提取进度
+    task.on("task-progress", () => {
+      const progress = task.progress || 0;
+      const percentage = Math.floor(progress * 0.3); // 0-30%
+      onProgress?.({
+        stage: "extract",
+        percentage,
+        message: `提取音频中: ${progress.toFixed(1)}%`,
+      });
+    });
+
     const outputFile: string = await new Promise((resolve, reject) => {
       task.on("task-end", () => {
+        onProgress?.({ stage: "extract", percentage: 30, message: "音频提取完成" });
         resolve(task.output as string);
       });
       task.on("task-error", (err) => {
@@ -43,10 +65,33 @@ export async function musicDetect(
       });
     });
 
+    const startTime = Date.now();
+    onProgress?.({ stage: "analyze", percentage: 30, message: "开始分析音频特征" });
+
     // 1. 分析 WAV 音频文件（带进度回调）
-    features = await analyzeAudio(outputFile, 2048, 512, () => {
-      // console.log(`分析进度: ${(progress * 100).toFixed(1)}%`);
-    });
+    features = await analyzeAudio(
+      outputFile,
+      2048,
+      512,
+      (progress) => {
+        const percentage = 30 + Math.floor(progress * 60); // 30-90%
+        onProgress?.({
+          stage: "analyze",
+          percentage,
+          message: `分析音频特征: ${(progress * 100).toFixed(1)}%`,
+        });
+        // console.log(`分析进度: ${(progress * 100).toFixed(1)}%`);
+      },
+      {
+        useWorkers: true,
+        numWorkers: 2,
+      },
+    );
+    const endTime = Date.now();
+    logger.info(
+      `音频特征分析完成，耗时 ${(endTime - startTime) / 1000} 秒，共 ${features.length} 帧特征数据`,
+    );
+    onProgress?.({ stage: "analyze", percentage: 90, message: "音频特征分析完成" });
     fs.remove(outputFile);
 
     if (!iConfig?.disableCache) {
@@ -63,7 +108,13 @@ export async function musicDetect(
   };
 
   // 2. 检测音乐片段
+  onProgress?.({ stage: "detect", percentage: 90, message: "开始检测音乐片段" });
   const segments = detectMusicSegments(features, config);
+  onProgress?.({
+    stage: "detect",
+    percentage: 95,
+    message: `检测到 ${segments.length} 个音乐片段`,
+  });
 
   // 3. 如果配置了不保留缓存，删除缓存文件
   // @ts-ignore
@@ -76,6 +127,7 @@ export async function musicDetect(
   segments.forEach((segment) => {
     logger.info("检测到音乐片段:", segment);
   });
+  onProgress?.({ stage: "complete", percentage: 100, message: "分析完成" });
   return segments;
 }
 
@@ -136,7 +188,8 @@ function convert2Srt2(detail: ASRWord[], offset: number): string {
   for (const sentence of detail || []) {
     const start = new Date(sentence.st + offset).toISOString().substr(11, 12).replace(".", ",");
     const end = new Date(sentence.et + offset).toISOString().substr(11, 12).replace(".", ",");
-    srt += `${index}\n${start} --> ${end}\n${sentence.t}\n\n`;
+    const text = (sentence.t || "").replace(/[，。、“”‘’！？]/g, " ");
+    srt += `${index}\n${start} --> ${end}\n${text}\n\n`;
     index++;
   }
   return srt;

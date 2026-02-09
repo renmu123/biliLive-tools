@@ -1,3 +1,44 @@
+# 3.8.1
+
+## 优化
+
+- 切片：录制音乐歌词排版
+
+## Bug修复
+
+- 修复未开启压制时的错误删除状态 [#350](https://github.com/renmu123/biliLive-tools/pull/350)
+
+# 3.8.0
+
+## 重大变更
+
+- webhook: 重构webhook删除文件的代码
+- webhook: 上传非弹幕版的文件可以正常被删除了
+
+## 功能
+
+- 录制：B站支持和自定义host
+- 录制：虎牙重新支持wup接口，感谢来自biliup的实现
+- 弹幕：`自定义过滤函数`修改为 `自定义函数`，支持通过函数来自定义参数 [#316](https://github.com/renmu123/biliLive-tools/issues/316)
+- B站上传：支持水印选项 [#320](https://github.com/renmu123/biliLive-tools/pull/320)
+- Webhook：`删除不符合最小处理大小的文件` 将会对封面以及弹幕文件生效 [#317](https://github.com/renmu123/biliLive-tools/issues/317)
+- Webhook：`分p标题`支持`{{hasDanmaStr}}`占位符区分文件是否属于弹幕版
+- 录制：录制名占位符增加`ms`参数 [#324](https://github.com/renmu123/biliLive-tools/issues/324)
+- 音乐切片性能优化 [#330](https://github.com/renmu123/biliLive-tools/pull/330)
+
+## Bug修复
+
+- 修复礼物价格渲染错误的bug
+- 录制：为录播姬引擎增加一些外部的超时判断，避免流一直不会被中断
+- 录制：修复添加录制时如果设置了监听时间，仍然自动开始的bug
+- 弹幕：修复Linux下黑名单过滤无法使用的bug
+- 切片：修复歌曲识别无法在docker使用的bug
+
+## 其他
+
+录播姬引擎升级至[3.3.2](https://github.com/renmu123/BililiveRecorder/releases/tag/v3.3.2)
+DanmakuFactory升级至[2.1.0](https://github.com/renmu123/DanmakuFactory/releases/tag/v2.1.0)
+
 # 3.7.1
 
 - 修复 docker 打包错误
