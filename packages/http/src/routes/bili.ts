@@ -4,7 +4,7 @@ import { omit } from "lodash-es";
 import { biliApi, validateBiliupConfig } from "@biliLive-tools/shared/task/bili.js";
 import { TvQrcodeLogin } from "@renmu/bili-api";
 import { formatTitle, formatPartTitle, uuid } from "@biliLive-tools/shared/utils/index.js";
-import type { BiliupConfig } from "@biliLive-tools/types";
+import type { BiliupConfig, PartTitleFormatOptions } from "@biliLive-tools/types";
 
 const router = new Router({
   prefix: "/bili",
@@ -241,11 +241,12 @@ router.post("/formatTitle", async (ctx) => {
 router.post("/formatPartTitle", async (ctx) => {
   const data = ctx.request.body as {
     template: string;
+    options?: PartTitleFormatOptions;
   };
   const template = (data.template || "") as string;
 
   const title = formatPartTitle(
-    {
+    data.options ?? {
       title: "标题",
       username: "主播名",
       time: new Date().toISOString(),
