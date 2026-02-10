@@ -46,7 +46,7 @@
             </svg>
           </div>
           <div class="stat-info">
-            <div class="stat-label">系统运行时长</div>
+            <div class="stat-label">软件运行时长</div>
             <div class="stat-value">{{ formatTime(now - (statistics?.startTime || 0)) }}</div>
           </div>
         </div>
