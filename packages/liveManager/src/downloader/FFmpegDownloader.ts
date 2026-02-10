@@ -1,7 +1,7 @@
 import EventEmitter from "node:events";
 
 import { createFFMPEGBuilder, StreamManager, utils } from "../index.js";
-import { createInvalidStreamChecker, assert } from "../utils.js";
+import { createFFmpegInvalidStreamChecker, assert } from "../utils.js";
 import { IDownloader, FFMPEGRecorderOptions, Segment } from "./IDownloader.js";
 
 import { FormatName, DEFAULT_USER_AGENT } from "./index.js";
@@ -101,7 +101,7 @@ export class FFmpegDownloader extends EventEmitter implements IDownloader {
   createCommand() {
     this.timeoutChecker?.start();
     const invalidCount = this.isHls ? 35 : 18;
-    const isInvalidStream = createInvalidStreamChecker(invalidCount);
+    const isInvalidStream = createFFmpegInvalidStreamChecker(invalidCount);
     const inputOptions = [
       ...this.inputOptions,
       "-user_agent",

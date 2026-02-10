@@ -12,7 +12,7 @@ vi.mock("../../src/index.js", () => ({
 }));
 
 vi.mock("../../src/utils.js", () => ({
-  createInvalidStreamChecker: vi.fn(),
+  createFFmpegInvalidStreamChecker: vi.fn(),
   assert: vi.fn(),
 }));
 

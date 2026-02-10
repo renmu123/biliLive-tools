@@ -1,6 +1,6 @@
 {
   "name": "bililive-cli",
-  "version": "3.7.1",
+  "version": "3.8.1",
   "type": "module",
   "description": "biliLive-tools的cli程序",
   "main": "./lib/index.js",
@@ -39,7 +39,8 @@
     "font-ls": "0.6.2",
     "ntsuspend": "^1.0.2",
     "better-sqlite3": "12.4.6",
-    "shazamio-core": "^1.3.1"
+    "shazamio-core": "^1.3.1",
+    "music-segment-detector": "^0.3.1"
   },
   "devDependencies": {
     "@biliLive-tools/http": "workspace:*",
