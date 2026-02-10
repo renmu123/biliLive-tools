@@ -604,6 +604,15 @@ export async function pasrseMetadata(files: { videoFilePath: string; danmaFilePa
     video_duration: videoDuration,
     include: { streamer: true },
   });
+  if (!recordItem) {
+    // 移除掉-弹幕版等后缀再匹配一次
+    const filenameWithoutSuffix = parse(videoFile).name.replace("-弹幕版", "");
+    recordItem = recordHistoryService.query({
+      video_filename: filenameWithoutSuffix,
+      video_duration: videoDuration,
+      include: { streamer: true },
+    });
+  }
   if (recordItem) {
     if (!data.title) data.title = recordItem.title;
     if (!data.startTimestamp) data.startTimestamp = Math.floor(recordItem.record_start_time / 1000);
