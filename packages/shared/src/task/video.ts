@@ -20,10 +20,13 @@ import {
   getTempPath,
   parseSavePath,
   getUnusedFileName,
+  replaceExtName,
+  calculateFileQuickHash,
 } from "../utils/index.js";
 import log from "../utils/log.js";
 import { taskQueue, FFmpegTask, AbstractTask } from "./task.js";
 import { isEmptyDanmu, convertXml2Ass, genHotProgress } from "./danmu.js";
+import { recordHistoryService } from "../db/index.js";
 
 import type {
   FfmpegOptions,
@@ -533,6 +536,103 @@ export async function readXmlTimestamp(filePath: string, timeout = 10000): Promi
     log.error("readXmlTimestamp error", error);
     return 0;
   }
+}
+
+/**
+ * 解析获取视频元数据
+ * @link https://github.com/renmu123/biliLive-tools/issues/339
+ * @param files
+ * @param files.videoFilePath 视频文件路径
+ * @param files.danmaFilePath 弹幕文件路径
+ */
+export async function pasrseMetadata(files: { videoFilePath: string; danmaFilePath?: string }) {
+  const videoFile = files.videoFilePath;
+  let danmaFile: string | undefined = files.danmaFilePath;
+  const data: {
+    // 秒级时间戳
+    startTimestamp: number | null;
+    roomId: string | null;
+    title: string | null;
+    username: string | null;
+    platform?: string | null;
+  } = {
+    startTimestamp: null,
+    roomId: null,
+    title: null,
+    username: null,
+    platform: null,
+  };
+
+  if (!(await pathExists(files.videoFilePath))) {
+    throw new Error("视频文件不存在");
+  }
+  if (!danmaFile || !(await pathExists(danmaFile))) {
+    danmaFile = replaceExtName(videoFile, ".xml");
+    if (!(await pathExists(danmaFile))) {
+      danmaFile = undefined;
+    }
+  }
+  // 优先计算视频哈希来从数据查找
+  const videoHash = await calculateFileQuickHash(videoFile);
+  let recordItem = recordHistoryService.query({
+    quick_hash: videoHash,
+    include: { streamer: true },
+  });
+  if (recordItem) {
+    data.title = recordItem.title;
+    data.startTimestamp = Math.floor(recordItem.record_start_time / 1000);
+    data.roomId = recordItem?.streamer?.room_id ?? null;
+    data.username = recordItem?.streamer?.name ?? null;
+    data.platform = recordItem?.streamer?.platform?.toLowerCase() ?? null;
+    if (data.title && data.startTimestamp && data.roomId && data.platform && data.username) {
+      return data;
+    }
+  }
+  // 接下来尝试从recordHistory的filename以及video_duration来匹配，这个匹配可能并不完全精准，但够用了
+  let videoDuration = 0;
+  let content = "";
+  try {
+    const meta = await readVideoMeta(videoFile, { json: true });
+    videoDuration = parseInt(String(Number(meta?.format?.duration) || 0));
+    content += String(meta?.format?.tags?.comment) ?? "";
+  } catch (e) {
+    log.error("pasrseMetadata, read video meta error", e);
+  }
+
+  recordItem = recordHistoryService.query({
+    video_filename: parse(videoFile).name,
+    video_duration: videoDuration,
+    include: { streamer: true },
+  });
+  if (recordItem) {
+    if (!data.title) data.title = recordItem.title;
+    if (!data.startTimestamp) data.startTimestamp = Math.floor(recordItem.record_start_time / 1000);
+    if (!data.roomId) data.roomId = recordItem?.streamer?.room_id ?? null;
+    if (!data.username) data.username = recordItem?.streamer?.name ?? null;
+    if (!data.platform) data.platform = recordItem?.streamer?.platform?.toLowerCase() ?? null;
+
+    if (data.title && data.startTimestamp && data.roomId && data.platform && data.username) {
+      return data;
+    }
+  }
+
+  // 最后尝试从文件中读取
+  if (danmaFile) {
+    try {
+      content += (await readLines(danmaFile, 0, 30)).join("\n");
+    } catch (e) {
+      log.error("pasrseMetadata, read danma file error", e);
+    }
+  }
+  if (!content) return data;
+
+  if (!data.title) data.title = matchTitle(content);
+  if (!data.startTimestamp) data.startTimestamp = matchDanmaTimestamp(content);
+  if (!data.roomId) data.roomId = matchRoomId(content);
+  if (!data.username) data.username = matchUser(content);
+  if (!data.platform) data.platform = matchPlatform(content);
+
+  return data;
 }
 
 /**

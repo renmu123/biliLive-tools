@@ -133,7 +133,7 @@ router.post("/danma/timestamp", async (ctx) => {
   ctx.body = await readXmlTimestamp(filepath);
 });
 
-router.post("/parseMeta", async (ctx) => {
+router.post("/parseVideoMetadata", async (ctx) => {
   const files = ctx.request.body as {
     videoFilePath?: string;
     danmaFilePath?: string;
