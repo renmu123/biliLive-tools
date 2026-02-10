@@ -1169,7 +1169,7 @@ export class WebhookHandler {
         title: item.title,
       })),
       limitedUploadTime,
-      type === "raw" ? "none" : config.afterUploadDeletAction,
+      config.afterUploadDeletAction,
     );
 
     live.batchUpdateUploadStatus(
@@ -1211,7 +1211,7 @@ export class WebhookHandler {
       })),
       uploadPreset,
       limitedUploadTime,
-      type === "raw" ? "none" : config.afterUploadDeletAction,
+      config.afterUploadDeletAction,
     )) as number;
 
     live[aidField] = Number(aid);
