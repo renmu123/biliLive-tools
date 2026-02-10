@@ -147,6 +147,16 @@ export async function appStartTime(): Promise<number> {
   return res.data;
 }
 
+export async function appStatistics(): Promise<{
+  startTime: number | null;
+  videoTotalDuaration: number | null;
+  recordingNum: number;
+  recorderNum: number;
+}> {
+  const res = await request.get(`/common/statistics`);
+  return res.data;
+}
+
 export async function readDanma(filepath: string): Promise<string> {
   const res = await request.post("/common/readDanma", {
     filepath,
@@ -279,6 +289,7 @@ const common = {
   getFontList,
   uploadCover,
   appStartTime,
+  appStatistics,
   getDanmaStream,
   exportLogs,
   getLogContent,

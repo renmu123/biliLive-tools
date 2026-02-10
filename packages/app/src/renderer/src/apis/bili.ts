@@ -1,6 +1,6 @@
 import request from "./request";
 
-import type { BiliupConfig } from "@biliLive-tools/types";
+import type { BiliupConfig, PartTitleFormatOptions } from "@biliLive-tools/types";
 import type { BiliApi } from "../../../types";
 
 const validUploadParams = async (data: BiliupConfig) => {
@@ -148,9 +148,13 @@ export const formatWebhookTitle = async (
   return res.data;
 };
 
-export const formatWebhookPartTitle = async (template: string): Promise<string> => {
+export const formatWebhookPartTitle = async (
+  template: string,
+  options?: PartTitleFormatOptions,
+): Promise<string> => {
   const res = await request.post(`/bili/formatPartTitle`, {
     template,
+    options: options,
   });
   return res.data;
 };

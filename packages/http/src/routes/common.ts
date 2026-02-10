@@ -10,7 +10,8 @@ import { uuid, getTempPath } from "@biliLive-tools/shared/utils/index.js";
 import { readXmlTimestamp, parseMeta } from "@biliLive-tools/shared/task/video.js";
 import { genTimeData } from "@biliLive-tools/shared/danmu/hotProgress.js";
 import { parseDanmu } from "@biliLive-tools/shared/danmu/index.js";
-import { statisticsService } from "@biliLive-tools/shared/db/index.js";
+import { statisticsService, recordHistoryService } from "@biliLive-tools/shared/db/index.js";
+import recorderService from "../services/recorder.js";
 
 import { config, handler, appConfig, fileCache } from "../index.js";
 import { container } from "../index.js";
@@ -175,6 +176,19 @@ router.post("/cover/upload", upload.single("file"), async (ctx) => {
 router.get("/appStartTime", async (ctx) => {
   const data = statisticsService.query("start_time");
   ctx.body = data?.value;
+});
+
+router.get("/statistics", async (ctx) => {
+  const startTime = statisticsService.query("start_time");
+  const videoTotalDuaration = recordHistoryService.getTotalDuration();
+  const recordingNum = recorderService.getRecorderNum(true);
+  const recorderNum = recorderService.getRecorderNum(false);
+  ctx.body = {
+    startTime: startTime?.value || null,
+    videoTotalDuaration,
+    recordingNum,
+    recorderNum,
+  };
 });
 
 router.get("/exportLogs", async (ctx) => {

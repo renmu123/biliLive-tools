@@ -301,4 +301,53 @@ export default class RecordHistoryModel extends BaseModel<LiveHistory> {
 
     return { data, total };
   }
+
+  /**
+   * 查询总视频时长
+   * @param options 查询参数
+   * @returns 总时长（秒）
+   */
+  getTotalDuration(options?: {
+    streamerId?: number;
+    startTime?: number;
+    endTime?: number;
+  }): number {
+    const { streamerId, startTime, endTime } = options || {};
+
+    // 构建WHERE条件
+    const whereConditions: string[] = [];
+    const params: any[] = [];
+
+    // 过滤掉 video_duration 为 null 或 0 的记录
+    whereConditions.push("video_duration IS NOT NULL");
+    whereConditions.push("video_duration > 0");
+
+    if (streamerId) {
+      whereConditions.push("streamer_id = ?");
+      params.push(streamerId);
+    }
+
+    if (startTime) {
+      whereConditions.push("record_start_time >= ?");
+      params.push(startTime);
+    }
+
+    if (endTime) {
+      whereConditions.push("record_start_time <= ?");
+      params.push(endTime);
+    }
+
+    const whereClause = `WHERE ${whereConditions.join(" AND ")}`;
+
+    const sql = `
+      SELECT COALESCE(SUM(video_duration), 0) as total_duration
+      FROM ${this.tableName}
+      ${whereClause}
+    `;
+
+    const stmt = this.db.prepare(sql);
+    const result = stmt.get(...params) as { total_duration: number };
+
+    return result.total_duration || 0;
+  }
 }
