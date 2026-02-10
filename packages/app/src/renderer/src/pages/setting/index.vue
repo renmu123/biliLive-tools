@@ -437,7 +437,7 @@ import RecordSetting from "./RecordSetting.vue";
 import TaskSetting from "./TaskSetting.vue";
 import VideoSetting from "./VideoSetting.vue";
 import SyncSetting from "./SyncSetting.vue";
-import WorkflowSetting from "./WorkflowSetting.vue";
+import WorkflowSetting from "./WorkflowSetting/index.vue";
 import CutSetting from "./CutSetting.vue";
 import OtherSetting from "./OtherSetting.vue";
 import AISetting from "./AISetting.vue";

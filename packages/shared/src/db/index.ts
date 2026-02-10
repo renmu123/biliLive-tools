@@ -1,4 +1,5 @@
 import { setupContainer } from "./container.js";
+import { registerBuiltinNodes } from "../workflow/registerNodes.js";
 
 import type { Database as DatabaseType } from "better-sqlite3";
 import type { Container } from "./container.js";
@@ -17,6 +18,8 @@ export const initDB = (dbRootPath: string): void => {
   // 依赖注入容器
   dbContainer = setupContainer(dbRootPath);
   setExportServices(dbContainer);
+  // 注册工作流内置节点
+  registerBuiltinNodes();
 };
 
 export const closeDB = (): void => {
