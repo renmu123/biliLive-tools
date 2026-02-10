@@ -6,6 +6,7 @@
 
 - ✅ **阿里云 Fun-ASR**: 中文、英文、日语、韩语等多语言识别，支持说话人分离
 - ✅ **OpenAI Whisper**: 多语言识别，支持多种音频格式
+- ✅ **FFmpeg Whisper**: 本地离线识别，支持段落级别时间戳，不依赖任务队列
 - ✅ **统一适配器**: 通过 `createASRProvider(modelId)` 自动选择提供商
 - ✅ 本地文件自动上传
 - ✅ 完整的识别结果（段落、句子、词级别）
@@ -117,10 +118,57 @@ sentences.forEach((sentence) => {
 });
 ```
 
+### 4.5. FFmpeg Whisper 本地识别
+
+```typescript
+import { FFmpegWhisperASR, FFmpegWhisperASRAdapter } from "@biliLive-tools/shared/ai";
+
+// 方式 1: 直接使用 FFmpegWhisperASR
+const whisper = new FFmpegWhisperASR({
+  ffmpegPath: "C:\\ffmpeg\\ffmpeg.exe", // ffmpeg 8.0+ 执行文件路径
+  model: "C:\\models\\ggml-large-v3.bin", // Whisper 模型文件路径
+  language: "zh", // 识别语言
+  queue: 20, // 队列大小
+});
+
+const result = await whisper.recognizeLocalFile("./audio.wav");
+console.log("词级别结果:", result.words);
+
+// 方式 2: 使用适配器获取标准格式
+const adapter = new FFmpegWhisperASRAdapter({
+  ffmpegPath: "C:\\ffmpeg\\ffmpeg.exe",
+  model: "C:\\models\\ggml-large-v3.bin",
+  language: "zh",
+});
+
+const standardResult = await adapter.recognizeLocalFile("./audio.wav");
+console.log("完整文本:", standardResult.text);
+console.log("音频时长:", standardResult.duration);
+console.log("段落数:", standardResult.segments.length);
+
+// 打印每个段落
+standardResult.segments.forEach((segment) => {
+  console.log(`[${segment.start.toFixed(2)}-${segment.end.toFixed(2)}] ${segment.text}`);
+});
+```
+
+**FFmpeg Whisper 特点：**
+- ✅ 本地离线识别，无需网络
+- ✅ 支持段落级别时间戳（JSONL 格式）
+- ✅ 独立实现，不依赖 fluent-ffmpeg 和任务队列
+- ⚠️ 需要 ffmpeg 8.0+ 版本
+- ⚠️ 仅支持本地文件（不支持 URL）
+- ⚠️ 需要下载 Whisper 模型文件（建议 large-v3）
+
 ### 5. 使用适配器 - 统一标准格式
 
 ```typescript
-import { createASRProvider, AliyunASRAdapter, OpenAIASRAdapter } from "@biliLive-tools/shared/ai";
+import {
+  createASRProvider,
+  AliyunASRAdapter,
+  OpenAIASRAdapter,
+  FFmpegWhisperASRAdapter,
+} from "@biliLive-tools/shared/ai";
 
 // 方式 1: 通过 modelId 自动创建（推荐）
 const asr = createASRProvider("your-model-id-from-config");
@@ -136,6 +184,14 @@ const openaiAdapter = new OpenAIASRAdapter({
   apiKey: "your-openai-key",
   model: "whisper-1",
   baseURL: "https://api.openai.com/v1",
+});
+
+// 方式 4: 手动创建 FFmpeg Whisper 适配器
+const ffmpegAdapter = new FFmpegWhisperASRAdapter({
+  ffmpegPath: "C:\\ffmpeg\\ffmpeg.exe",
+  model: "C:\\models\\ggml-large-v3.bin",
+  language: "zh",
+  queue: 20,
 });
 
 // 所有适配器返回统一的标准格式

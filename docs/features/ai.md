@@ -81,6 +81,26 @@ flowchart TD
 
 不推荐在歌词识别中使用~~当然你也识别不出什么~~，如果出现什么不能使用gpu加速也别来问我，我也不知道
 
-1. 找到ffmpeg8.0版本并下载，并下载相关[model](https://huggingface.co/ggerganov/whisper.cpp)，仅推荐大参数模型
-2. 设置->AI配置->供应商，类型为“ffmpeg”，API Key随意，Base URL设置为第一步中ffmepg文件路径
-3. 添加一个模型名称，模型名称为模型路径
+#### 配置步骤
+
+1. **下载 ffmpeg 8.0 和 Whisper 模型**
+   - 下载 ffmpeg 8.0 版本（或从[夸克网盘](https://pan.quark.cn/s/6da253a1ecb8)获取）
+   - 下载 Whisper 模型文件（[huggingface.co/ggerganov/whisper.cpp](https://huggingface.co/ggerganov/whisper.cpp)）
+   - **推荐使用大参数模型**（如 `ggml-large-v3.bin`）以获得更好的识别效果
+   - **后两步的路径中如包含空格或一些奇怪字符，可能会导致无法使用**
+
+2. **配置供应商**
+   - 打开：设置 -> AI配置 -> 供应商
+   - 点击"添加供应商"
+   - **供应商类型**：选择 `ffmpeg`
+   - **配置名称**：自定义名称（如 "FFmpeg Whisper"）
+   - **API Key**：随意填写（不会被使用）
+   - **Base URL**：填写 ffmpeg 可执行文件的**完整路径**（如 `C:\ffmpeg\ffmpeg.exe`）
+
+3. **添加模型配置**
+   - 切换到"模型"选项卡
+   - 点击"添加模型"
+   - **供应商**：选择刚才创建的 ffmpeg 供应商
+   - **模型名称**：填写 Whisper 模型文件的**完整路径**（如 `C:\models\ggml-large-v3.bin`）
+   - **标签**：勾选 `ASR`
+   - **备注**：可选，填写说明（如 "本地 Whisper 大模型"）

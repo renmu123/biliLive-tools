@@ -700,7 +700,7 @@ export interface AppConfig {
     vendors: {
       id: string;
       // 供应商
-      provider: "aliyun" | "openai";
+      provider: "aliyun" | "openai" | "ffmpeg";
       // 命名，不能重复
       name: string;
       // apiKey

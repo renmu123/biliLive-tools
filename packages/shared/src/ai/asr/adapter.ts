@@ -1,5 +1,6 @@
 import { AliyunASR, type TranscriptionDetail } from "./aliyun.js";
 import { OpenAIWhisperASR, type OpenAITranscriptionResponse } from "./openai.js";
+import { FFmpegWhisperASR, type WhisperTranscriptionResult } from "./ffmpeg.js";
 import type { StandardASRResult, StandardASRSegment, StandardASRWord } from "./types.js";
 import { appConfig } from "../../config.js";
 import { getModel } from "../../musicDetector/utils.js";
@@ -143,6 +144,63 @@ export class OpenAIASRAdapter implements ASRProvider {
 }
 
 /**
+ * FFmpeg Whisper ASR 适配器
+ */
+export class FFmpegWhisperASRAdapter implements ASRProvider {
+  private client: FFmpegWhisperASR;
+
+  constructor(config: { ffmpegPath: string; model: string; language?: string; queue?: number }) {
+    this.client = new FFmpegWhisperASR({
+      ffmpegPath: config.ffmpegPath,
+      model: config.model,
+      language: config.language || "zh",
+      queue: config.queue || 20,
+      logger,
+    });
+  }
+
+  async recognize(): Promise<StandardASRResult> {
+    throw new Error("FFmpeg Whisper 不支持直接识别 URL，请使用 recognizeLocalFile");
+  }
+
+  async recognizeLocalFile(filePath: string): Promise<StandardASRResult> {
+    const result = await this.client.recognizeLocalFile(filePath);
+    return this.transformWhisperResult(result);
+  }
+
+  /**
+   * 转换 FFmpeg Whisper 格式为标准格式
+   */
+  private transformWhisperResult(result: WhisperTranscriptionResult): StandardASRResult {
+    if (!result.segments || result.segments.length === 0) {
+      throw new Error("Whisper 返回结果为空");
+    }
+
+    // 转换段落格式（毫秒转秒）
+    const segments: StandardASRSegment[] = result.segments.map((segment, index) => ({
+      id: index,
+      start: segment.start / 1000, // 毫秒转秒
+      end: segment.end / 1000, // 毫秒转秒
+      text: segment.text,
+    }));
+
+    // 构建完整文本
+    const text = segments.map((s) => s.text).join("");
+
+    // 计算总时长
+    const duration = segments.length > 0 ? segments[segments.length - 1].end : 0;
+
+    return {
+      text,
+      duration,
+      language: undefined, // Whisper 在 JSONL 输出中不包含语言信息
+      segments,
+      words: undefined, // JSONL 格式不提供词级别时间戳
+    };
+  }
+}
+
+/**
  * 获取供应商配置
  */
 function getVendor(vendorId: string) {
@@ -178,6 +236,14 @@ export function createASRProvider(modelId: string): ASRProvider {
       return new AliyunASRAdapter(config);
     case "openai":
       return new OpenAIASRAdapter(config);
+    case "ffmpeg":
+      if (!vendor.baseURL) {
+        throw new Error("FFmpeg provider 需要配置 baseURL（ffmpeg 执行文件路径）");
+      }
+      return new FFmpegWhisperASRAdapter({
+        ffmpegPath: vendor.baseURL, // baseURL 存储 ffmpeg 路径
+        model: model.modelName, // modelName 存储模型文件路径
+      });
     default:
       throw new Error(`不支持的 ASR 提供商: ${vendor.provider}`);
   }

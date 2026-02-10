@@ -16,9 +16,17 @@ export {
 } from "./openai.js";
 
 export {
+  FFmpegWhisperASR,
+  type FFmpegWhisperOptions,
+  type WhisperTranscriptionResult,
+  type WhisperSegment,
+} from "./ffmpeg.js";
+
+export {
   type ASRProvider,
   AliyunASRAdapter,
   OpenAIASRAdapter,
+  FFmpegWhisperASRAdapter,
   createASRProvider,
   recognize,
 } from "./adapter.js";
