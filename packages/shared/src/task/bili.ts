@@ -573,13 +573,20 @@ async function preFormatOptions(
   }
 
   // 处理转载来源
-  if (needParseForSource && parseResult) {
-    if (parseResult.platform && parseResult.roomId) {
+  if (needParseForSource) {
+    if (parseResult?.platform && parseResult?.roomId) {
       const source = buildRoomLink(parseResult.platform, parseResult.roomId);
       if (source) {
         resultOptions.source = source;
-        log.info(`已设置转载来源为：${source}`);
+      } else {
+        log.warn(
+          `构建转载来源链接失败，平台${parseResult?.platform}或房间号${parseResult?.roomId}可能无效`,
+        );
       }
+    }
+    if (!resultOptions.source && parseResult?.roomId) {
+      // 如果平台信息不可用，但有房间号，尝试使用房间号
+      resultOptions.source = parseResult?.roomId;
     }
   }
 

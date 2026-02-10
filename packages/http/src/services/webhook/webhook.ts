@@ -1076,6 +1076,7 @@ export class WebhookHandler {
     }
 
     // 处理转载来源：当设置为转载类型且转载来源为空时，自动生成直播间链接
+    // TODO: 考虑迁移到上传预设配置实现，需要将metadata参数传递到上传函数中
     if (
       uploadPreset.copyright === 2 &&
       (!uploadPreset.source || uploadPreset.source.trim() === "")
