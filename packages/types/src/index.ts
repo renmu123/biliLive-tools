@@ -708,6 +708,10 @@ export interface AppConfig {
       // baseURL
       baseURL?: string;
     }[];
+    agent: {
+      vendorId?: string;
+      model: string;
+    };
     // 歌曲asr识别配置
     // songRecognizeAsr: {};
     // 歌曲llm识别配置

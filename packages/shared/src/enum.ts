@@ -250,6 +250,10 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   llmPresets: [],
   ai: {
     vendors: [],
+    agent: {
+      vendorId: undefined,
+      model: "qwen-plus",
+    },
     songRecognizeLlm: {
       vendorId: undefined,
       prompt: `

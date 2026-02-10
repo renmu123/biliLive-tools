@@ -46,6 +46,26 @@
 
         <!-- AI功能配置 -->
         <n-tab-pane class="tab-pane" name="features" tab="功能" display-directive="show:lazy">
+          <n-collapse style="margin-top: 10px" default-expanded-names="agent">
+            <n-collapse-item title="歌曲识别LLM" name="agent">
+              <n-form label-placement="left" :label-width="120">
+                <n-form-item label="供应商">
+                  <n-select
+                    v-model:value="config.ai.agent.vendorId"
+                    :options="vendorSelectOptions"
+                    placeholder="请选择AI供应商"
+                  />
+                </n-form-item>
+                <n-form-item label="模型">
+                  <n-input
+                    v-model:value="config.ai.agent.model"
+                    placeholder="请输入模型名称，如 qwen-plus"
+                    spellcheck="false"
+                  />
+                </n-form-item>
+              </n-form>
+            </n-collapse-item>
+          </n-collapse>
           <n-collapse style="margin-top: 10px" default-expanded-names="songRecognize">
             <n-collapse-item title="歌曲识别LLM" name="songRecognize">
               <n-form label-placement="left" :label-width="120">
