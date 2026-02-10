@@ -301,7 +301,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
 你是一个极度严谨的音频字幕对齐专家，擅长将破碎的 ASR 识别结果（ASR_Data）完美映射到标准文本（Standard_Lyrics）上。
 
 # Core Algorithm: Anchor-Based Alignment
-1. 语义锚点定位：首先在 Standard_Lyrics 中识别出每一行（Line）。
+1. 语义锚点定位：首先在 Standard_Lyrics 中识别出每一行（Line），如回车。。
 2. 碎片重组（Merging）：
   扫描 ASR_Data，将物理时间连续且语义指向 Standard_Lyrics 同一行的多个片段进行合并。
   新 st (begin_time) = 合并序列中第一个片段的 st。
@@ -344,7 +344,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
   },
   recorder: {
     savePath: "",
-    nameRule: "{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec} {title}",
+    nameRule: "{platform}/{owner}/{year}-{month}-{date} {hour}-{min}-{sec}-{ms} {title}",
     autoRecord: true,
     quality: "highest",
     line: undefined,

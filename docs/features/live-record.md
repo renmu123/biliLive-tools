@@ -43,8 +43,18 @@ biliLive-tools 提供三种录制器引擎：
 | FLV 修复 | ❌     | ✅           | ✅         |
 
 ::: tip 提示
-当选择到某录制器不支持的直播流时，会自动尝试使用 FFmpeg 进行录制。
+当选择到某录制器不支持的直播流时，会尽量自动尝试使用 FFmpeg 进行录制。
 :::
+
+### Mesio
+
+项目地址：https://github.com/hua0512/rust-srec/tree/main/mesio-cli
+
+### 录播姬引擎
+
+项目地址：https://github.com/renmu123/BililiveRecorder
+
+录播姬引擎是从录播姬项目中提取了FLV录制引擎，一些细节上并不与原项目相同
 
 ### 视频格式
 
@@ -88,6 +98,7 @@ biliLive-tools 提供三种录制器引擎：
 - `{hour}` - 小时
 - `{min}` - 分钟
 - `{sec}` - 秒
+- `{ms}` - 毫秒
 - `{startTime}` - 分段开始时间，Date对象
 - `{recordStartTime}` - 录制开始时间，Date对象
 - `{liveStartTime}` - 直播开始时间，Date对象，抖音同录制开始时间

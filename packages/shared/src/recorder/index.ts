@@ -270,26 +270,8 @@ export async function createRecorderManager(appConfig: AppConfig) {
     const liveId = recorder?.liveInfo?.liveId;
     const config = appConfig.getAll();
 
-    data?.sendToWebhook &&
-      axios.post(
-        `http://127.0.0.1:${config.port}/webhook/custom`,
-        {
-          event: "FileClosed",
-          filePath: filename,
-          roomId: channelId,
-          time: endTime.toISOString(),
-          title: title,
-          username: username,
-          platform: recorder.providerId.toLowerCase(),
-          software: "biliLive-tools",
-        },
-        {
-          proxy: false,
-        },
-      );
-
-    const xmlFile = replaceExtName(filename, ".xml");
     try {
+      const xmlFile = replaceExtName(filename, ".xml");
       const videoMeta = await readVideoMeta(filename);
       const duration = videoMeta?.format?.duration ?? 0;
       recordHistory.upadteLive(
@@ -318,8 +300,27 @@ export async function createRecorderManager(appConfig: AppConfig) {
       }
     } catch (error) {
       logger.error("Update live error", { recorder, filename, error });
+    } finally {
+      data?.sendToWebhook &&
+        axios.post(
+          `http://127.0.0.1:${config.port}/webhook/custom`,
+          {
+            event: "FileClosed",
+            filePath: filename,
+            roomId: channelId,
+            time: endTime.toISOString(),
+            title: title,
+            username: username,
+            platform: recorder.providerId.toLowerCase(),
+            software: "biliLive-tools",
+          },
+          {
+            proxy: false,
+          },
+        );
     }
 
+    const xmlFile = replaceExtName(filename, ".xml");
     if (config.recorder.saveDanma2DB && xmlFile && (await fs.pathExists(xmlFile))) {
       const history = recordHistory.getRecord({
         file: filename,
@@ -448,7 +449,9 @@ export async function createRecorderManager(appConfig: AppConfig) {
       });
 
       if (!data.disableAutoCheck) {
-        manager.startRecord(recoder.id);
+        manager.startRecord(recoder.id, {
+          ignoreDataLimit: true,
+        });
       }
       return recoder;
     },

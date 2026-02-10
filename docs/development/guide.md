@@ -67,7 +67,7 @@ pnpm run install:bin
 
 创建 `packages\app\resources\bin` 目录，放入以下文件：
 
-- **DanmukuFactory**：[2.0.0](https://github.com/renmu123/DanmakuFactory)
+- **DanmukuFactory**：[2.1.0](https://github.com/renmu123/DanmakuFactory)
 - **FFmpeg**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
 - **FFprobe**：[n7.1](https://github.com/yt-dlp/FFmpeg-Builds)
 - **录播姬cli**：[3.3.2](https://github.com/renmu123/BililiveRecorder)

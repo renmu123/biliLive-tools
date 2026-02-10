@@ -1,5 +1,10 @@
 import type StatisticsModel from "../model/statistics.js";
 
+/**
+ * start_time: 记录程序启动时间
+ * pan123_token: 记录123网盘的token
+ * bili_last_upload_time: 记录上次上传到b站的时间
+ */
 type Key = "start_time" | "pan123_token" | "bili_last_upload_time" | string;
 
 export default class StatisticsService {

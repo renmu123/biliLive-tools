@@ -521,52 +521,80 @@ export function calculateFileMd5(filePath: string, chunkSize: number = 64 * 1024
 }
 
 /**
- * 快速计算文件特征值，只读取文件头部
+ * 快速计算文件特征值，读取文件头部、尾部以及文件大小
  * @param filePath 文件路径
- * @param readSize 读取的字节数，默认10MB
+ * @param headSize 读取头部的字节数，默认1MB
+ * @param tailSize 读取尾部的字节数，默认1MB
  * @returns SHA256哈希值
  */
-export function calculateFileQuickHash(
+export async function calculateFileQuickHash(
   filePath: string,
-  readSize: number = 10 * 1024 * 1024,
+  headSize: number = 1 * 1024 * 1024,
+  tailSize: number = 1 * 1024 * 1024,
 ): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const hash = crypto.createHash("sha256");
-    const stream = createReadStream(filePath, {
+  const hash = crypto.createHash("sha256");
+  const fileSize = await getFileSize(filePath);
+
+  // 将文件大小纳入hash计算
+  hash.update(Buffer.from(fileSize.toString()));
+
+  // 如果文件小于等于头部大小，直接读取整个文件
+  if (fileSize <= headSize) {
+    return new Promise((resolve, reject) => {
+      const stream = createReadStream(filePath);
+
+      stream.on("data", (chunk) => {
+        hash.update(chunk);
+      });
+
+      stream.on("end", () => {
+        resolve(hash.digest("hex"));
+      });
+
+      stream.on("error", reject);
+    });
+  }
+
+  // 读取头部
+  await new Promise<void>((resolve, reject) => {
+    const headStream = createReadStream(filePath, {
       start: 0,
-      end: readSize - 1,
-      highWaterMark: 64 * 1024, // 64KB chunks
+      end: headSize - 1,
+      highWaterMark: 64 * 1024,
     });
 
-    stream.on("data", (chunk) => {
+    headStream.on("data", (chunk) => {
       hash.update(chunk);
     });
 
-    stream.on("end", () => {
-      resolve(hash.digest("hex"));
+    headStream.on("end", () => {
+      resolve();
     });
 
-    stream.on("error", (error: NodeJS.ErrnoException) => {
-      // 如果文件小于readSize，会触发EOVERFLOW错误
-      if (error.code === "EOVERFLOW") {
-        // 如果文件较小，直接读取整个文件
-        const fullStream = createReadStream(filePath);
-        const newHash = crypto.createHash("sha256");
-
-        fullStream.on("data", (chunk) => {
-          newHash.update(chunk);
-        });
-
-        fullStream.on("end", () => {
-          resolve(newHash.digest("hex"));
-        });
-
-        fullStream.on("error", reject);
-      } else {
-        reject(error);
-      }
-    });
+    headStream.on("error", reject);
   });
+
+  // 读取尾部
+  await new Promise<void>((resolve, reject) => {
+    const tailStart = Math.max(headSize, fileSize - tailSize);
+    const tailStream = createReadStream(filePath, {
+      start: tailStart,
+      end: fileSize - 1,
+      highWaterMark: 64 * 1024,
+    });
+
+    tailStream.on("data", (chunk) => {
+      hash.update(chunk);
+    });
+
+    tailStream.on("end", () => {
+      resolve();
+    });
+
+    tailStream.on("error", reject);
+  });
+
+  return hash.digest("hex");
 }
 
 /**

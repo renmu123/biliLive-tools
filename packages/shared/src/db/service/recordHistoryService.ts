@@ -71,4 +71,26 @@ export default class RecordHistoryService {
   getLastRecordTimes(streamerIds: number[]): Map<number, number | null> {
     return this.recordHistoryModel.getLastRecordTimes(streamerIds);
   }
+
+  /**
+   * 查询总视频时长，默认查询最近一个月
+   * @param options 查询参数
+   * @returns 总时长（秒）
+   */
+  getTotalDuration(options?: {
+    streamerId?: number;
+    startTime?: number;
+    endTime?: number;
+  }): number {
+    const now = Math.floor(Date.now() / 1000);
+    const oneMonthAgo = now - 30 * 24 * 60 * 60; // 30天前的时间戳
+
+    const queryOptions = {
+      streamerId: options?.streamerId,
+      startTime: options?.startTime ?? oneMonthAgo,
+      endTime: options?.endTime ?? now,
+    };
+
+    return this.recordHistoryModel.getTotalDuration(queryOptions);
+  }
 }

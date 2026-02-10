@@ -156,7 +156,7 @@ async function downloadDanmakuFactory() {
   };
   const platform = platforms[process.platform] ?? process.platform;
   const filename = `DanmakuFactory-${platform}-${arch}-CLI.zip`;
-  let url = `https://github.com/renmu123/DanmakuFactory/releases/download/v2.0.0/${filename}`;
+  let url = `https://github.com/renmu123/DanmakuFactory/releases/download/v2.1.0/${filename}`;
 
   await downloadFile(url, ".");
   await unzip(filename, "packages/app/resources/bin");

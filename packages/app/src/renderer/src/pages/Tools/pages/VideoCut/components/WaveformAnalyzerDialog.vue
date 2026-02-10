@@ -80,6 +80,21 @@
           分析完成后删除缓存文件，下次需要重新提取音频
         </n-text>
       </n-form-item>
+
+      <!-- 进度条 -->
+      <n-form-item v-if="loading">
+        <div style="width: 100%">
+          <n-progress
+            type="line"
+            :percentage="progress.percentage"
+            :status="progress.percentage === 100 ? 'success' : 'default'"
+            :show-indicator="true"
+          />
+          <n-text depth="3" style="margin-top: 8px; font-size: 12px; display: block">
+            {{ progress.message }}
+          </n-text>
+        </div>
+      </n-form-item>
     </n-form>
 
     <template #action>
@@ -141,6 +156,14 @@ watch(
 );
 
 const loading = ref(false);
+const progress = ref({
+  percentage: 0,
+  message: "准备开始...",
+  stage: "",
+});
+
+let eventSource: EventSource | null = null;
+
 const handleConfirm = async () => {
   if (!props.filePath) {
     notice.error({
@@ -150,28 +173,90 @@ const handleConfirm = async () => {
     return;
   }
 
-  notice.info({
-    title: "正在识别分析中，具体时间视视频长度而定，请玩会儿手机耐心等待...",
-    duration: 1000,
-  });
   loading.value = true;
-  try {
-    const result = await taskApi.analyzerWaveform(props.filePath, formValue.value);
-    loading.value = false;
+  progress.value = {
+    percentage: 0,
+    message: "准备开始分析...",
+    stage: "",
+  };
 
-    emit("update:modelValue", { ...formValue.value });
-    emit("confirm", result.output);
-    visible.value = false;
+  try {
+    eventSource = await taskApi.analyzerWaveform(props.filePath, formValue.value);
+    console.log("SSE 连接已建立", eventSource);
+
+    eventSource.onmessage = (event) => {
+      // console.log("收到 SSE 消息:", event.data);
+      try {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "progress") {
+          // 更新进度
+          progress.value = {
+            percentage: data.percentage,
+            message: data.message,
+            stage: data.stage,
+          };
+        } else if (data.type === "complete") {
+          // 完成
+          loading.value = false;
+          eventSource?.close();
+          eventSource = null;
+
+          emit("update:modelValue", { ...formValue.value });
+          emit("confirm", data.data);
+          visible.value = false;
+
+          notice.success({
+            title: "分析完成",
+            duration: 2000,
+          });
+        } else if (data.type === "error") {
+          // 错误
+          loading.value = false;
+          eventSource?.close();
+          eventSource = null;
+
+          notice.error({
+            title: "分析失败",
+            content: data.message,
+            duration: 3000,
+          });
+        }
+      } catch (e) {
+        console.error("解析 SSE 数据失败:", e);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error("SSE 连接错误:", error);
+      loading.value = false;
+      eventSource?.close();
+      eventSource = null;
+
+      notice.error({
+        title: "连接失败",
+        content: "服务器连接中断，请重试",
+        duration: 3000,
+      });
+    };
   } catch (e) {
     loading.value = false;
     notice.error({
-      title: "分析失败",
-      duration: 2000,
+      title: "启动分析失败",
+      content: e instanceof Error ? e.message : "未知错误",
+      duration: 3000,
     });
   }
 };
 
 const handleCancel = () => {
+  // 关闭 SSE 连接
+  if (eventSource) {
+    eventSource.close();
+    eventSource = null;
+  }
+
+  loading.value = false;
   // 恢复原值
   formValue.value = { ...props.modelValue };
   emit("cancel");
@@ -183,6 +268,13 @@ const handleReset = () => {
 };
 
 const handleClose = () => {
+  // 关闭 SSE 连接
+  if (eventSource) {
+    eventSource.close();
+    eventSource = null;
+  }
+
+  loading.value = false;
   // 关闭时恢复原值
   formValue.value = { ...props.modelValue };
 };
