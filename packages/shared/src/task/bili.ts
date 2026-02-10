@@ -16,9 +16,18 @@ import {
   BilibiliLiveDownloadVideoTask,
 } from "./task.js";
 import log from "../utils/log.js";
-import { sleep, encrypt, decrypt, getTempPath, trashItem, uuid } from "../utils/index.js";
+import {
+  sleep,
+  encrypt,
+  decrypt,
+  getTempPath,
+  trashItem,
+  uuid,
+  replaceExtName,
+} from "../utils/index.js";
 import { sendNotify } from "../notify.js";
-import { getBinPath } from "./video.js";
+import { getBinPath, pasrseMetadata } from "./video.js";
+import { formatTitle, formatPartTitle, buildRoomLink } from "../utils/webhook.js";
 
 import type { BiliupConfig, BiliUser, AppConfig as AppConfigType } from "@biliLive-tools/types";
 import type { MediaOptions, DescV2 } from "@renmu/bili-api/dist/types/index.js";
@@ -483,6 +492,153 @@ async function biliMediaAction(
 }
 
 /**
+ * 预格式化选项
+ * 解析视频元数据并格式化标题、分P标题和转载来源
+ * @param options 上传配置
+ * @param filePath 视频文件路径数组
+ * @returns 格式化后的配置
+ */
+async function preFormatOptions(
+  options: BiliupConfig,
+  filePath:
+    | string[]
+    | {
+        path: string;
+        title?: string;
+      }[],
+): Promise<{
+  options: BiliupConfig;
+  videos: { path: string; title: string }[];
+}> {
+  if (filePath.length === 0) {
+    return { options, videos: [] };
+  }
+
+  // 判断是否需要解析元数据
+  const needParseForTitle = options.title.includes("{{");
+  const needParseForSource = options.copyright === 2 && !options.source;
+  const needParseForPartTitle = options.partTitleTemplate && !!options.partTitleTemplate.trim();
+
+  if (!needParseForTitle && !needParseForSource && !needParseForPartTitle) {
+    // 不需要解析，直接返回
+    return {
+      options,
+      videos: filePath.map((item) => ({
+        path: typeof item === "string" ? item : item.path,
+        title:
+          typeof item === "string"
+            ? path.parse(item).name
+            : (item.title ?? path.parse(item.path).name),
+      })),
+    };
+  }
+
+  // 解析第一个视频文件的元数据（只解析一次）
+  const firstFilePath = typeof filePath[0] === "string" ? filePath[0] : filePath[0].path;
+  let parseResult: Awaited<ReturnType<typeof pasrseMetadata>> | null = null;
+
+  try {
+    parseResult = await pasrseMetadata({
+      videoFilePath: firstFilePath,
+    });
+  } catch (e) {
+    log.warn("解析视频文件信息失败", e);
+  }
+
+  const resultOptions = { ...options };
+
+  // 格式化主标题
+  if (needParseForTitle && parseResult) {
+    if (
+      parseResult.title &&
+      parseResult.username &&
+      parseResult.roomId &&
+      parseResult.startTimestamp
+    ) {
+      try {
+        resultOptions.title = formatTitle(
+          {
+            title: parseResult.title,
+            username: parseResult.username,
+            time: new Date((parseResult.startTimestamp ?? 0) * 1000).toISOString(),
+            roomId: parseResult.roomId,
+            filename: path.basename(firstFilePath),
+          },
+          options.title,
+        );
+      } catch (e) {
+        log.error("格式化主标题失败", e);
+      }
+    }
+  }
+
+  // 处理转载来源
+  if (needParseForSource && parseResult) {
+    if (parseResult.platform && parseResult.roomId) {
+      const source = buildRoomLink(parseResult.platform, parseResult.roomId);
+      if (source) {
+        resultOptions.source = source;
+        log.info(`已设置转载来源为：${source}`);
+      }
+    }
+  }
+
+  // 格式化分P标题
+  const videos: { path: string; title: string }[] = [];
+  if (needParseForPartTitle) {
+    // 为每个文件单独解析元数据并格式化标题
+    for (let i = 0; i < filePath.length; i++) {
+      const item = filePath[i];
+      const itemPath = typeof item === "string" ? item : item.path;
+      const itemTitle = typeof item === "string" ? path.parse(item).name : item.title;
+
+      try {
+        // 为每个文件单独解析元数据
+        const itemParseResult = await pasrseMetadata({
+          videoFilePath: itemPath,
+        });
+
+        if (
+          itemParseResult.title &&
+          itemParseResult.username &&
+          itemParseResult.roomId &&
+          itemParseResult.startTimestamp
+        ) {
+          const formattedTitle = formatPartTitle(
+            {
+              title: itemParseResult.title,
+              username: itemParseResult.username,
+              time: new Date((itemParseResult.startTimestamp ?? 0) * 1000).toISOString(),
+              roomId: itemParseResult.roomId,
+              filename: path.basename(itemPath),
+              index: i + 1,
+            },
+            options.partTitleTemplate!,
+          );
+          videos.push({ path: itemPath, title: formattedTitle });
+        } else {
+          // 元数据不完整，使用原标题
+          videos.push({ path: itemPath, title: itemTitle ?? path.parse(itemPath).name });
+          log.warn(`分P[${i + 1}]元数据不完整，使用原标题`);
+        }
+      } catch (e) {
+        log.warn(`解析分P[${i + 1}]元数据失败，使用原标题`, e);
+        videos.push({ path: itemPath, title: itemTitle ?? path.parse(itemPath).name });
+      }
+    }
+  } else {
+    // 不需要格式化分P标题，使用原标题
+    for (const item of filePath) {
+      const itemPath = typeof item === "string" ? item : item.path;
+      const itemTitle = typeof item === "string" ? path.parse(item).name : item.title;
+      videos.push({ path: itemPath, title: itemTitle ?? path.parse(itemPath).name });
+    }
+  }
+
+  return { options: resultOptions, videos };
+}
+
+/**
  * 上传稿件
  */
 async function addMedia(
@@ -502,28 +658,31 @@ async function addMedia(
     checkCallback?: (status: "completed" | "error") => void;
   },
 ) {
-  if (options.title.length > 80) {
+  // 预格式化选项（解析元数据、格式化标题等）
+  const { options: formattedOptions, videos } = await preFormatOptions(options, filePath);
+
+  if (formattedOptions.title.length > 80) {
     throw new Error("标题不能超过80个字符");
   }
   const client = createClient(uid);
 
   const pTask = new BiliAddVideoTask(
     {
-      name: `创建稿件：${options.title}`,
+      name: `创建稿件：${formattedOptions.title}`,
       uid,
-      mediaOptions: options,
+      mediaOptions: formattedOptions,
     },
     {
       onEnd: async (data: { aid: number; bvid: string }) => {
         try {
           // 合集相关功能
-          if (options.seasonId) {
+          if (formattedOptions.seasonId) {
             const archive = await client.platform.getArchive({ aid: data.aid });
             const cid = archive.videos[0].cid;
-            let sectionId = options.sectionId;
-            if (!options.sectionId) {
-              sectionId = (await client.platform.getSeasonDetail(options.seasonId)).sections
-                .sections[0].id;
+            let sectionId = formattedOptions.sectionId;
+            if (!formattedOptions.sectionId) {
+              sectionId = (await client.platform.getSeasonDetail(formattedOptions.seasonId))
+                .sections.sections[0].id;
             }
             client.platform.addMedia2Season({
               sectionId: sectionId!,
@@ -531,7 +690,7 @@ async function addMedia(
                 {
                   aid: data.aid,
                   cid: cid,
-                  title: options.title,
+                  title: formattedOptions.title,
                 },
               ],
             });
@@ -542,7 +701,7 @@ async function addMedia(
         // 稿件检查
         if (
           extraOptions?.forceCheck ||
-          (options.autoComment && options.comment) ||
+          (formattedOptions.autoComment && formattedOptions.comment) ||
           appConfig.get("notification")?.task?.mediaStatusCheck?.length ||
           extraOptions?.afterUploadDeletAction === "deleteAfterCheck"
         ) {
@@ -556,12 +715,12 @@ async function addMedia(
             biliMediaAction(
               status,
               {
-                comment: options.autoComment ? options.comment : "",
-                top: options.commentTop || false,
+                comment: formattedOptions.autoComment ? formattedOptions.comment : "",
+                top: formattedOptions.commentTop || false,
                 notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
                 removeOriginAfterUploadCheck:
                   extraOptions?.afterUploadDeletAction === "deleteAfterCheck",
-                files: filePath.map((item) => (typeof item === "string" ? item : item.path)),
+                files: videos.map((video) => video.path),
                 uid: uid,
                 aid: data.aid,
               },
@@ -573,9 +732,9 @@ async function addMedia(
 
         // 处理上传后操作
         if (extraOptions?.afterUploadDeletAction === "delete") {
-          for (const item of filePath) {
+          for (const video of videos) {
             try {
-              trashItem(typeof item === "string" ? item : item.path);
+              trashItem(video.path);
             } catch (error) {
               log.error("删除源文件失败", error);
             }
@@ -587,11 +746,7 @@ async function addMedia(
 
   const config = appConfig.getAll();
   const uploadOptions = config.biliUpload;
-  for (const item of filePath) {
-    const part = {
-      path: typeof item === "string" ? item : item.path,
-      title: typeof item === "string" ? path.parse(item).name : item.title,
-    };
+  for (const part of videos) {
     const uploader = new WebVideoUploader(part, client.auth, formatMediaOptions(uploadOptions));
 
     const task = new BiliPartVideoTask(
@@ -637,14 +792,18 @@ export async function editMedia(
   if (filePath.length === 0) {
     throw new Error("请至少上传一个视频");
   }
+
+  // 预格式化选项（解析元数据、格式化标题等）
+  const { options: formattedOptions, videos } = await preFormatOptions(options, filePath);
+
   const client = createClient(uid);
-  const title = typeof filePath[0] === "string" ? filePath[0] : filePath[0].title;
+  const title = videos[0].title;
 
   const pTask = new BiliEditVideoTask(
     {
       name: `编辑稿件：${title}`,
       uid,
-      mediaOptions: options,
+      mediaOptions: formattedOptions,
       aid,
     },
     {
@@ -667,7 +826,7 @@ export async function editMedia(
                 notification: !!appConfig.get("notification")?.task?.mediaStatusCheck?.length,
                 removeOriginAfterUploadCheck:
                   extraOptions?.afterUploadDeletAction === "deleteAfterCheck",
-                files: filePath.map((item) => (typeof item === "string" ? item : item.path)),
+                files: videos.map((video) => video.path),
                 uid: uid,
                 aid: aid,
               },
@@ -678,9 +837,9 @@ export async function editMedia(
         }
         // 处理上传后操作
         if (extraOptions?.afterUploadDeletAction === "delete") {
-          for (const item of filePath) {
+          for (const video of videos) {
             try {
-              trashItem(typeof item === "string" ? item : item.path);
+              trashItem(video.path);
             } catch (error) {
               log.error("删除源文件失败", error);
             }
@@ -692,11 +851,7 @@ export async function editMedia(
 
   const config = appConfig.getAll();
   const uploadOptions = config.biliUpload;
-  for (const item of filePath) {
-    const part = {
-      path: typeof item === "string" ? item : item.path,
-      title: typeof item === "string" ? path.parse(item).name : item.title,
-    };
+  for (const part of videos) {
     const uploader = new WebVideoUploader(part, client.auth, formatMediaOptions(uploadOptions));
 
     const task = new BiliPartVideoTask(
