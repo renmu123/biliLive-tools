@@ -5,6 +5,10 @@
 - 数据看板UI优化、增加更多数据展示
 - 上传分P标题支持自动格式化 [#338](https://github.com/renmu123/biliLive-tools/pull/350)
 
+## Bug修复
+
+- 修复开启 “审核通过后删除”和上传非弹幕版 后，非弹幕版视频不会被删除的bug[#352](https://github.com/renmu123/biliLive-tools/issues/352)
+
 # 3.8.1
 
 ## 优化
