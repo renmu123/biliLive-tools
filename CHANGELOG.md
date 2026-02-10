@@ -3,6 +3,7 @@
 ## 功能
 
 - 数据看板UI优化、增加更多数据展示
+- 上传分P标题支持自动格式化 [#338](https://github.com/renmu123/biliLive-tools/pull/350)
 
 # 3.8.1
 
