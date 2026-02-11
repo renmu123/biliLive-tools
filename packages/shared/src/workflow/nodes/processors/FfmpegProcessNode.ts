@@ -34,10 +34,17 @@ export class FfmpegProcessNode extends BaseNode {
   readonly inputs: PortDefinition[] = [
     {
       id: "inputFile",
-      name: "输入文件",
+      name: "视频输入文件",
       type: "file",
       required: true,
       description: "要处理的视频文件路径",
+    },
+    {
+      id: "inputAssFile",
+      name: "ass输入文件",
+      type: "file",
+      required: true,
+      description: "要处理的ass文件路径",
     },
   ];
 
@@ -70,7 +77,7 @@ export class FfmpegProcessNode extends BaseNode {
     config: Record<string, any>,
     context: NodeExecutionContext,
   ): Promise<Record<string, any>> {
-    const { inputFile } = inputs;
+    const { inputFile, inputAssFile } = inputs;
     const { presetId, outputPath, options } = config;
 
     // TODO: 集成现有的 FFmpeg 任务系统

@@ -1,53 +1,58 @@
 <template>
-  <div
-    class="custom-node"
-    :class="{
-      'has-warning': hasConfigWarning,
-      selected: props.selected,
-    }"
-  >
-    <!-- 节点头部 -->
-    <div class="node-header">
-      <span class="node-label">{{ data.label }}</span>
-      <n-icon v-if="hasConfigSchema" class="config-icon" size="18" @click.stop="handleConfigClick">
-        <SettingsOutline />
-      </n-icon>
+  <div class="node-wrapper">
+    <div
+      class="custom-node"
+      :class="{
+        'has-warning': hasConfigWarning,
+        selected: props.selected,
+      }"
+    >
+      <!-- 配置图标 -->
+      <div v-if="hasConfigSchema" class="node-header">
+        <n-icon class="config-icon" size="18" @click.stop="handleConfigClick">
+          <SettingsOutline />
+        </n-icon>
+      </div>
+
+      <!-- 节点内容区域 -->
+      <div class="node-content">
+        <!-- 输入端口区域 -->
+        <div v-if="data.inputs && data.inputs.length > 0" class="ports-container input-ports">
+          <div
+            v-for="(input, index) in data.inputs"
+            :key="input.id"
+            class="port-item"
+            :style="{ top: getPortPosition(input, data.inputs) }"
+          >
+            <Handle :id="input.id" type="target" :position="Position.Left" />
+            <span class="port-label">{{ input.name }}</span>
+          </div>
+        </div>
+
+        <!-- 输出端口区域 -->
+        <div v-if="data.outputs && data.outputs.length > 0" class="ports-container output-ports">
+          <div
+            v-for="(output, index) in data.outputs"
+            :key="output.id"
+            class="port-item"
+            :style="{ top: getPortPosition(output, data.outputs) }"
+          >
+            <span class="port-label">{{ output.name }}</span>
+            <Handle :id="output.id" type="source" :position="Position.Right" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 警告图标 -->
+      <div v-if="hasConfigWarning" class="warning-indicator">
+        <n-icon size="16">
+          <WarningOutline />
+        </n-icon>
+      </div>
     </div>
 
-    <!-- 输入端口 -->
-    <div v-if="data.inputs && data.inputs.length > 0" class="node-ports">
-      <Handle
-        v-for="input in data.inputs"
-        :key="input.id"
-        :id="input.id"
-        type="target"
-        :position="Position.Left"
-        :style="{ top: getPortPosition(input, data.inputs) }"
-      >
-        <div class="port-label port-label-left">{{ input.name }}</div>
-      </Handle>
-    </div>
-
-    <!-- 输出端口 -->
-    <div v-if="data.outputs && data.outputs.length > 0" class="node-ports">
-      <Handle
-        v-for="output in data.outputs"
-        :key="output.id"
-        :id="output.id"
-        type="source"
-        :position="Position.Right"
-        :style="{ top: getPortPosition(output, data.outputs) }"
-      >
-        <div class="port-label port-label-right">{{ output.name }}</div>
-      </Handle>
-    </div>
-
-    <!-- 警告图标 -->
-    <div v-if="hasConfigWarning" class="warning-indicator">
-      <n-icon size="16">
-        <WarningOutline />
-      </n-icon>
-    </div>
+    <!-- 节点名称 - 外部底部居中 -->
+    <div class="node-label-external">{{ data.label }}</div>
   </div>
 </template>
 
@@ -118,14 +123,21 @@ const handleConfigClick = () => {
 </script>
 
 <style scoped>
+.node-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
 .custom-node {
   position: relative;
   min-width: 180px;
-  min-height: 60px;
+  /* min-height: 80px; */
   background: white;
   border: 2px solid #d0d7de;
   border-radius: 8px;
-  /* padding: 12px; */
+  padding: 12px 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.2s ease;
 }
@@ -145,27 +157,15 @@ const handleConfigClick = () => {
 }
 
 .node-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.node-label {
-  font-weight: 500;
-  font-size: 14px;
-  color: #24292f;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
 }
 
 .config-icon {
   color: #656d76;
   cursor: pointer;
-  flex-shrink: 0;
   transition: color 0.2s;
 }
 
@@ -173,26 +173,74 @@ const handleConfigClick = () => {
   color: #18a058;
 }
 
-.node-ports {
+.node-content {
   position: relative;
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ports-container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.input-ports {
+  left: -10px;
+}
+
+.output-ports {
+  right: -10px;
+}
+
+.port-item {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateY(-50%);
+}
+
+.input-ports .port-item {
+  flex-direction: row;
+  left: 0;
+}
+
+.output-ports .port-item {
+  flex-direction: row-reverse;
+  right: 0;
 }
 
 .port-label {
-  position: absolute;
   font-size: 12px;
   color: #656d76;
   white-space: nowrap;
-  pointer-events: none;
-  /* transform: translateY(0px); */
-  top: -3px;
+  background: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #e1e4e8;
+  transition: all 0.2s;
 }
 
-.port-label-left {
-  left: 12px;
+.port-item:hover .port-label {
+  color: #18a058;
+  border-color: #18a058;
 }
 
-.port-label-right {
-  right: 12px;
+.node-label-external {
+  font-size: 13px;
+  font-weight: 500;
+  color: #24292f;
+  text-align: center;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 4px 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 4px;
 }
 
 .warning-indicator {
@@ -208,28 +256,25 @@ const handleConfigClick = () => {
   justify-content: center;
   color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 20;
 }
 
 /* VueFlow Handle 样式覆盖 */
 :deep(.vue-flow__handle) {
   width: 10px;
   height: 10px;
-  background: gray;
+  background: #8c959f;
   border: 2px solid white;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s;
 }
 
 :deep(.vue-flow__handle:hover) {
-  /* width: 12px;
-  height: 12px; */
+  background: #18a058;
+  /* transform: scale(1.2); */
+}
+
+:deep(.vue-flow__handle.connected) {
   background: #18a058;
 }
-
-/* :deep(.vue-flow__handle-left) {
-  left: -5px;
-}
-
-:deep(.vue-flow__handle-right) {
-  right: -5px;
-} */
 </style>
