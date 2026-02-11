@@ -129,7 +129,6 @@ const configNodeConfig = ref<Record<string, any>>({});
 
 const nodeCategories = [
   { key: "trigger", label: "触发器" },
-  { key: "processor", label: "处理器" },
   { key: "action", label: "动作" },
   { key: "util", label: "工具" },
 ];

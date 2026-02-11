@@ -13,7 +13,7 @@ export class DanmuConvertNode extends BaseNode {
   readonly type = "danmu-convert";
   readonly displayName = "弹幕转换";
   readonly description = "将 XML 弹幕转换为 ASS 格式";
-  readonly category = "processor" as const;
+  readonly category = "action" as const;
 
   readonly configSchema = [
     {

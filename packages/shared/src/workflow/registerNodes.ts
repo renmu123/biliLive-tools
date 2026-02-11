@@ -4,8 +4,8 @@ import { nodeRegistry } from "./nodeRegistry.js";
 import { FileInputNode } from "./nodes/triggers/FileInputNode.js";
 import { NotificationNode } from "./nodes/actions/NotificationNode.js";
 import { BilibiliUploadNode } from "./nodes/actions/BilibiliUploadNode.js";
-import { FfmpegProcessNode } from "./nodes/processors/FfmpegProcessNode.js";
-import { DanmuConvertNode } from "./nodes/processors/DanmuConvertNode.js";
+import { FfmpegProcessNode } from "./nodes/actions/FfmpegProcessNode.js";
+import { DanmuConvertNode } from "./nodes/actions/DanmuConvertNode.js";
 import { ParallelSplitNode } from "./nodes/utils/ParallelSplitNode.js";
 
 /**

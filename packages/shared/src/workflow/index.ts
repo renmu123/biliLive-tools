@@ -20,6 +20,6 @@ export { NodeRegistry, nodeRegistry } from "./nodeRegistry.js";
 export { FileInputNode } from "./nodes/triggers/FileInputNode.js";
 export { NotificationNode } from "./nodes/actions/NotificationNode.js";
 export { BilibiliUploadNode } from "./nodes/actions/BilibiliUploadNode.js";
-export { FfmpegProcessNode } from "./nodes/processors/FfmpegProcessNode.js";
-export { DanmuConvertNode } from "./nodes/processors/DanmuConvertNode.js";
+export { FfmpegProcessNode } from "./nodes/actions/FfmpegProcessNode.js";
+export { DanmuConvertNode } from "./nodes/actions/DanmuConvertNode.js";
 export { ParallelSplitNode } from "./nodes/utils/ParallelSplitNode.js";

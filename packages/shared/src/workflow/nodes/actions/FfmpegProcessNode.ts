@@ -1,6 +1,9 @@
+import { burn } from "../../../task/video.js";
+import { container } from "../../../index.js";
 import { BaseNode } from "../base/BaseNode.js";
 import type { PortDefinition } from "../../types.js";
 import type { NodeExecutionContext } from "../base/BaseNode.js";
+import { replaceExtName } from "../../../utils/index.js";
 
 /**
  * FFmpeg 处理节点 - 执行视频转码等操作
@@ -9,7 +12,7 @@ export class FfmpegProcessNode extends BaseNode {
   readonly type = "ffmpeg-process";
   readonly displayName = "FFmpeg 处理";
   readonly description = "使用 FFmpeg 处理视频";
-  readonly category = "processor" as const;
+  readonly category = "action" as const;
 
   readonly configSchema = [
     {
@@ -56,13 +59,6 @@ export class FfmpegProcessNode extends BaseNode {
       required: true,
       description: "处理后的视频文件路径",
     },
-    // {
-    //   id: "taskId",
-    //   name: "任务ID",
-    //   type: "string",
-    //   required: false,
-    //   description: "关联的任务ID",
-    // },
   ];
 
   validate(config: Record<string, any>): true | string {
@@ -77,18 +73,42 @@ export class FfmpegProcessNode extends BaseNode {
     config: Record<string, any>,
     context: NodeExecutionContext,
   ): Promise<Record<string, any>> {
+    console.log("FfmpegProcessNode execute", { inputs, config, context });
     const { inputFile, inputAssFile } = inputs;
     const { presetId, outputPath, options } = config;
+    const ffmpegPreset = container.resolve("ffmpegPreset");
+    const preset = await ffmpegPreset.get(presetId);
+    if (!preset) {
+      throw new Error("Can not found ffmpeg preset");
+    }
 
-    // TODO: 集成现有的 FFmpeg 任务系统
-    // 这需要导入 taskQueue 和相关配置
-    // const task = new FfmpegTask({ input: inputFile, output: outputPath, ... });
-    // const taskId = await taskQueue.addTask(task);
+    const output = outputPath || replaceExtName(inputFile, "_弹幕版.mp4");
+    const task = await burn(
+      {
+        videoFilePath: inputFile,
+        subtitleFilePath: inputAssFile,
+      },
+      output,
+      {
+        // @ts-ignore
+        danmaOptions: {},
+        ffmpegOptions: preset.config,
+        hasHotProgress: false,
+        override: false,
+        removeOrigin: false,
+      },
+    );
+    const outputFile = await new Promise((resolve, reject) => {
+      task.on("task-end", () => {
+        resolve(task.output);
+      });
+      task.on("task-error", (err) => {
+        reject(err);
+      });
+    });
 
-    // 暂时返回模拟数据
     return {
-      outputFile: outputPath || inputFile.replace(/\.[^.]+$/, "_processed.mp4"),
-      taskId: "mock-task-id",
+      outputFile: outputFile,
     };
   }
 }
