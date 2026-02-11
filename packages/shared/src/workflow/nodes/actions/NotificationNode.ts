@@ -11,6 +11,25 @@ export class NotificationNode extends BaseNode {
   readonly description = "通过配置的通知渠道发送消息";
   readonly category = "action" as const;
 
+  readonly configSchema = [
+    {
+      key: "notifyOnSuccess",
+      label: "成功时通知",
+      type: "boolean",
+      required: false,
+      defaultValue: true,
+      description: "工作流成功时是否发送通知",
+    },
+    {
+      key: "notifyOnError",
+      label: "错误时通知",
+      type: "boolean",
+      required: false,
+      defaultValue: true,
+      description: "工作流失败时是否发送通知",
+    },
+  ];
+
   readonly inputs: PortDefinition[] = [
     {
       id: "message",

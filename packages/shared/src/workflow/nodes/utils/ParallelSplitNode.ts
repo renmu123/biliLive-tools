@@ -11,6 +11,8 @@ export class ParallelSplitNode extends BaseNode {
   readonly description = "将数据同时输出到多个分支";
   readonly category = "util" as const;
 
+  readonly configSchema = [];
+
   readonly inputs: PortDefinition[] = [
     {
       id: "input",

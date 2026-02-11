@@ -11,6 +11,18 @@ export class BilibiliUploadNode extends BaseNode {
   readonly description = "上传视频到哔哩哔哩";
   readonly category = "action" as const;
 
+  readonly configSchema = [
+    {
+      key: "presetId",
+      label: "上传预设",
+      type: "preset",
+      presetType: "upload",
+      required: true,
+      description: "选择B站上传预设",
+      placeholder: "请选择上传预设",
+    },
+  ];
+
   readonly inputs: PortDefinition[] = [
     {
       id: "videoFile",

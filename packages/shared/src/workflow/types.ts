@@ -14,6 +14,39 @@ export const PortDefinition = z.object({
 });
 export type PortDefinition = z.infer<typeof PortDefinition>;
 
+// ==================== Config Field ====================
+
+export const ConfigFieldType = z.enum([
+  "string",
+  "number",
+  "boolean",
+  "select",
+  "file",
+  "directory",
+  "preset",
+]);
+export type ConfigFieldType = z.infer<typeof ConfigFieldType>;
+
+export const ConfigFieldDefinition = z.object({
+  key: z.string(),
+  label: z.string(),
+  type: ConfigFieldType,
+  required: z.boolean().default(false),
+  defaultValue: z.any().optional(),
+  description: z.string().optional(),
+  placeholder: z.string().optional(),
+  // select 类型的选项
+  options: z.array(z.object({ label: z.string(), value: z.any() })).optional(),
+  // preset 类型的API类型（如 "ffmpeg", "danmu", "upload"）
+  presetType: z.string().optional(),
+  // 文件类型过滤
+  accept: z.string().optional(),
+  // 数字类型的范围
+  min: z.number().optional(),
+  max: z.number().optional(),
+});
+export type ConfigFieldDefinition = z.infer<typeof ConfigFieldDefinition>;
+
 // ==================== Node ====================
 
 export const WorkflowNodeData = z.object({

@@ -43,6 +43,11 @@ export abstract class BaseNode {
   abstract readonly category: "trigger" | "processor" | "action" | "util";
 
   /**
+   * 配置字段定义 (用于 UI 渲染配置表单)
+   */
+  readonly configSchema: Array<any> = [];
+
+  /**
    * 执行节点逻辑
    *
    * @param inputs - 输入数据，键为端口ID，值为数据

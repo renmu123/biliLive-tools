@@ -68,6 +68,7 @@ export class NodeRegistry {
     category: string;
     inputs: any[];
     outputs: any[];
+    configSchema: any[];
   }> {
     const metadata: any[] = [];
 
@@ -80,6 +81,7 @@ export class NodeRegistry {
         category: instance.category,
         inputs: instance.inputs,
         outputs: instance.outputs,
+        configSchema: instance.configSchema || [],
       });
     }
 

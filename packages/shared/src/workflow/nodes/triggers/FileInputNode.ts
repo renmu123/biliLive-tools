@@ -11,6 +11,17 @@ export class FileInputNode extends BaseNode {
   readonly description = "指定输入文件路径";
   readonly category = "trigger" as const;
 
+  readonly configSchema = [
+    {
+      key: "filePath",
+      label: "文件路径",
+      type: "file",
+      required: true,
+      description: "选择要处理的文件",
+      placeholder: "请选择文件",
+    },
+  ];
+
   readonly inputs: PortDefinition[] = [];
 
   readonly outputs: PortDefinition[] = [
