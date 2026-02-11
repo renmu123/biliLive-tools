@@ -43,7 +43,7 @@ function cleanDefinition(definition: WorkflowDefinition): WorkflowDefinition {
     }
   }
   for (const edge of definition.edges) {
-    const allowKeys = ["id", "source", "target"];
+    const allowKeys = ["id", "source", "target", "sourceHandle", "targetHandle"];
     for (const key of Object.keys(edge)) {
       if (!allowKeys.includes(key)) {
         delete edge[key];

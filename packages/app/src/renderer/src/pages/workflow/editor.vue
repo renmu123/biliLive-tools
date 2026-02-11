@@ -18,12 +18,7 @@
             </template>
             保存
           </n-button>
-          <n-button
-            type="primary"
-            @click="handleExecute"
-            :loading="workflowStore.isExecuting"
-            style="display: none"
-          >
+          <n-button type="primary" @click="handleExecute" :loading="workflowStore.isExecuting">
             <template #icon>
               <n-icon><PlayCircleOutline /></n-icon>
             </template>

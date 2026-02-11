@@ -1,3 +1,7 @@
+import { addConvertDanmu2AssTask } from "../../../task/danmu.js";
+import { container } from "../../../index.js";
+import { replaceExtName } from "../../../utils/index.js";
+
 import { BaseNode } from "../base/BaseNode.js";
 import type { PortDefinition } from "../../types.js";
 import type { NodeExecutionContext } from "../base/BaseNode.js";
@@ -70,14 +74,32 @@ export class DanmuConvertNode extends BaseNode {
   ): Promise<Record<string, any>> {
     const { xmlFile } = inputs;
     const { presetId, outputPath, options } = config;
+    const danmuPreset = container.resolve("danmuPreset");
+    const preset = await danmuPreset.get(presetId);
+    if (!preset) {
+      throw new Error("Can not found danma preset");
+    }
 
-    // TODO: 集成现有的弹幕转换任务
-    // const task = new DanmuTask({ input: xmlFile, output: outputPath, presetId, ... });
-    // const taskId = await taskQueue.addTask(task);
+    const task = await addConvertDanmu2AssTask(
+      xmlFile,
+      outputPath || replaceExtName(xmlFile, ".ass"),
+      preset?.config,
+      {
+        removeOrigin: false,
+        ...options,
+      },
+    );
+    const outputFile = await new Promise((resolve, reject) => {
+      task.on("task-end", () => {
+        resolve(task.output);
+      });
+      task.on("task-error", (err) => {
+        reject(err);
+      });
+    });
 
     return {
-      assFile: outputPath || xmlFile.replace(/\.xml$/i, ".ass"),
-      taskId: "mock-danmu-task-id",
+      assFile: outputFile,
     };
   }
 }

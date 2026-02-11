@@ -31,20 +31,20 @@ export class BilibiliUploadNode extends BaseNode {
       required: true,
       description: "要上传的视频文件路径",
     },
-    {
-      id: "cover",
-      name: "封面图片",
-      type: "file",
-      required: false,
-      description: "视频封面图片路径（可选）",
-    },
-    {
-      id: "title",
-      name: "标题",
-      type: "string",
-      required: false,
-      description: "视频标题（可选，使用预设中的配置）",
-    },
+    // {
+    //   id: "cover",
+    //   name: "封面图片",
+    //   type: "file",
+    //   required: false,
+    //   description: "视频封面图片路径（可选）",
+    // },
+    // {
+    //   id: "title",
+    //   name: "标题",
+    //   type: "string",
+    //   required: false,
+    //   description: "视频标题（可选，使用预设中的配置）",
+    // },
   ];
 
   readonly outputs: PortDefinition[] = [

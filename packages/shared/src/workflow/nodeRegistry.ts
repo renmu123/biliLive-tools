@@ -19,7 +19,7 @@ export class NodeRegistry {
     }
 
     this.nodes.set(type, NodeClass);
-    logger.info(`注册节点类型: ${type} (${instance.displayName})`);
+    console.info(`注册节点类型: ${type} (${instance.displayName})`);
   }
 
   /**

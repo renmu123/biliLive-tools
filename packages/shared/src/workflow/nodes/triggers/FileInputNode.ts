@@ -32,20 +32,6 @@ export class FileInputNode extends BaseNode {
       required: true,
       description: "输出文件的完整路径",
     },
-    {
-      id: "fileName",
-      name: "文件名",
-      type: "string",
-      required: false,
-      description: "文件名（不含路径）",
-    },
-    {
-      id: "fileExt",
-      name: "文件扩展名",
-      type: "string",
-      required: false,
-      description: "文件扩展名",
-    },
   ];
 
   validate(config: Record<string, any>): true | string {
@@ -61,12 +47,27 @@ export class FileInputNode extends BaseNode {
     context: NodeExecutionContext,
   ): Promise<Record<string, any>> {
     const { filePath } = config;
-    const path = await import("node:path");
-
-    return {
+    const output: Record<string, any> = {
       filePath,
-      fileName: path.basename(filePath),
-      fileExt: path.extname(filePath),
     };
+    // if (filePath.endsWith(".xml")) {
+    //   output.xmlFile = filePath;
+    // }
+    // if (filePath.endsWith(".ass")) {
+    //   output.assFile = filePath;
+    // }
+    // if (
+    //   filePath.endsWith(".mp4") ||
+    //   filePath.endsWith(".mkv") ||
+    //   filePath.endsWith(".flv") ||
+    //   filePath.endsWith(".ts") ||
+    //   filePath.endsWith(".m4s")
+    // ) {
+    //   output.videoFile = filePath;
+    // }
+
+    // console.log("FileInputNode output:", output);
+
+    return output;
   }
 }
