@@ -153,13 +153,13 @@ const onDrop = (event: DragEvent) => {
   const newNode = {
     id: `node-${Date.now()}`,
     type: "default",
-    // type: nodeMetadata.type,
     position,
     sourcePosition: Position.Left,
     targetPosition: Position.Right,
     data: {
       label: nodeMetadata.displayName,
       config: {},
+      type: nodeMetadata.type,
       inputs: nodeMetadata.inputs,
       outputs: nodeMetadata.outputs,
     },

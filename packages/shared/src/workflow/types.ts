@@ -19,6 +19,7 @@ export type PortDefinition = z.infer<typeof PortDefinition>;
 export const WorkflowNodeData = z.object({
   label: z.string(),
   config: z.record(z.any()).default({}),
+  type: z.string(),
   inputs: z.array(PortDefinition).default([]),
   outputs: z.array(PortDefinition).default([]),
 });
@@ -94,13 +95,7 @@ export type WorkflowExecution = z.infer<typeof WorkflowExecution>;
 
 // ==================== Node Execution Log ====================
 
-export const NodeExecutionStatus = z.enum([
-  "pending",
-  "running",
-  "success",
-  "failed",
-  "skipped",
-]);
+export const NodeExecutionStatus = z.enum(["pending", "running", "success", "failed", "skipped"]);
 export type NodeExecutionStatus = z.infer<typeof NodeExecutionStatus>;
 
 export const BaseNodeExecutionLog = z.object({

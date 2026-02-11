@@ -1,5 +1,5 @@
 import { EventEmitter } from "node:events";
-import { nanoid } from "nanoid";
+import { v4 as uuid } from "uuid";
 import { DataBus } from "./DataBus.js";
 import { nodeRegistry } from "../nodeRegistry.js";
 import logger from "../../utils/log.js";
@@ -82,7 +82,7 @@ export class WorkflowExecutor extends EventEmitter {
    * @returns 执行结果
    */
   async execute(workflow: Workflow, initialInputs?: Record<string, any>): Promise<ExecutionResult> {
-    const executionId = nanoid();
+    const executionId = uuid();
     const startTime = Date.now();
 
     logger.info(`开始执行工作流: ${workflow.name} (${executionId})`);
@@ -186,8 +186,8 @@ export class WorkflowExecutor extends EventEmitter {
     context: NodeExecutionContext,
     initialInputs?: Record<string, any>,
   ): Promise<Record<string, any>> {
-    const { id, type, data } = workflowNode;
-    const { config } = data;
+    const { id, data } = workflowNode;
+    const { config, type } = data;
 
     logger.info(`执行节点: ${id} (${type})`);
     this.emitEvent("node-start", {

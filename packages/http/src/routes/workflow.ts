@@ -27,6 +27,32 @@ router.get("/:id", async (ctx: Context) => {
   ctx.body = workflow;
 });
 
+function cleanDefinition(definition: WorkflowDefinition): WorkflowDefinition {
+  for (const node of definition.nodes) {
+    const allowKeys = ["id", "type", "data", "position"];
+    for (const key of Object.keys(node)) {
+      if (!allowKeys.includes(key)) {
+        delete node[key];
+      }
+    }
+    const allowDataKeys = ["label", "config", "type"];
+    for (const key of Object.keys(node.data)) {
+      if (!allowDataKeys.includes(key)) {
+        delete node.data[key];
+      }
+    }
+  }
+  for (const edge of definition.edges) {
+    const allowKeys = ["id", "source", "target"];
+    for (const key of Object.keys(edge)) {
+      if (!allowKeys.includes(key)) {
+        delete edge[key];
+      }
+    }
+  }
+  return definition;
+}
+
 // 创建工作流
 router.post("/", async (ctx: Context) => {
   const workflowModel = dbContainer.resolve("workflowModel");
@@ -39,7 +65,7 @@ router.post("/", async (ctx: Context) => {
   const id = workflowModel.add({
     name: data.name,
     description: data.description,
-    definition: data.definition,
+    definition: cleanDefinition(data.definition),
     is_active: true,
   });
 
@@ -50,6 +76,7 @@ router.post("/", async (ctx: Context) => {
 router.put("/:id", async (ctx: Context) => {
   const workflowModel = dbContainer.resolve("workflowModel");
   const updates = ctx.request.body as any;
+  updates.definition = cleanDefinition(updates.definition);
   const success = workflowModel.update(ctx.params.id, updates);
 
   if (!success) {
