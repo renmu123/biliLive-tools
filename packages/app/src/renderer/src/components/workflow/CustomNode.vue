@@ -18,12 +18,7 @@
       <div class="node-content">
         <!-- 输入端口区域 -->
         <div v-if="data.inputs && data.inputs.length > 0" class="ports-container input-ports">
-          <div
-            v-for="(input, index) in data.inputs"
-            :key="input.id"
-            class="port-item"
-            :style="{ top: getPortPosition(input, data.inputs) }"
-          >
+          <div v-for="input in data.inputs" :key="input.id" class="port-item">
             <Handle :id="input.id" type="target" :position="Position.Left" />
             <span class="port-label">{{ input.name }}</span>
           </div>
@@ -31,12 +26,7 @@
 
         <!-- 输出端口区域 -->
         <div v-if="data.outputs && data.outputs.length > 0" class="ports-container output-ports">
-          <div
-            v-for="(output, index) in data.outputs"
-            :key="output.id"
-            class="port-item"
-            :style="{ top: getPortPosition(output, data.outputs) }"
-          >
+          <div v-for="output in data.outputs" :key="output.id" class="port-item">
             <span class="port-label">{{ output.name }}</span>
             <Handle :id="output.id" type="source" :position="Position.Right" />
           </div>
@@ -122,7 +112,7 @@ const handleConfigClick = () => {
 };
 </script>
 
-<style scoped>
+<style scoped lang="less">
 .node-wrapper {
   display: flex;
   flex-direction: column;
@@ -137,7 +127,7 @@ const handleConfigClick = () => {
   background: white;
   border: 2px solid #d0d7de;
   border-radius: 8px;
-  padding: 12px 16px;
+  // padding: 12px 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.2s ease;
 }
@@ -175,7 +165,7 @@ const handleConfigClick = () => {
 
 .node-content {
   position: relative;
-  min-height: 60px;
+  min-height: 80px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -185,22 +175,30 @@ const handleConfigClick = () => {
   position: absolute;
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  // 上下居中
+  // top: 50%;
+  // transform: translateY(-50%);
+  justify-content: center;
 }
 
-.input-ports {
-  left: -10px;
-}
+// .input-ports {
+//   left: -10px;
+// }
 
-.output-ports {
-  right: -10px;
-}
+// .output-ports {
+//   right: -10px;
+// }
 
 .port-item {
-  position: absolute;
+  position: relative;
+  // position: absolute;
   display: flex;
   align-items: center;
   gap: 8px;
-  transform: translateY(-50%);
+  // transform: translateY(-50%);
 }
 
 .input-ports .port-item {
@@ -220,7 +218,7 @@ const handleConfigClick = () => {
   background: white;
   padding: 2px 6px;
   border-radius: 4px;
-  border: 1px solid #e1e4e8;
+  // border: 1px solid #e1e4e8;
   transition: all 0.2s;
 }
 
@@ -246,7 +244,7 @@ const handleConfigClick = () => {
 .warning-indicator {
   position: absolute;
   top: -8px;
-  right: -8px;
+  left: -8px;
   width: 24px;
   height: 24px;
   background: #f0a020;
