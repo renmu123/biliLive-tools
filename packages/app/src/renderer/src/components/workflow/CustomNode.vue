@@ -164,24 +164,21 @@ const handleConfigClick = () => {
 }
 
 .node-content {
-  position: relative;
-  min-height: 80px;
+  // min-height: 80px;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   justify-content: center;
+  align-items: center;
+  padding: 30px 0 15px 0;
 }
 
 .ports-container {
-  position: absolute;
-  width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  // 上下居中
-  // top: 50%;
-  // transform: translateY(-50%);
+  // align-items: center;
   justify-content: center;
+  width: 100%;
 }
 
 // .input-ports {

@@ -2,7 +2,7 @@
   <div class="workflow-editor">
     <div class="editor-header">
       <n-space justify="space-between" align="center">
-        <n-space>
+        <n-space align="center">
           <n-button @click="handleBack">
             <template #icon>
               <n-icon><ArrowBack /></n-icon>

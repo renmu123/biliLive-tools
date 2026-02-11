@@ -62,13 +62,6 @@ export class BilibiliUploadNode extends BaseNode {
       required: true,
       description: "是否上传成功",
     },
-    {
-      id: "taskId",
-      name: "任务ID",
-      type: "string",
-      required: false,
-      description: "关联的任务ID",
-    },
   ];
 
   validate(config: Record<string, any>): true | string {
@@ -85,6 +78,7 @@ export class BilibiliUploadNode extends BaseNode {
   ): Promise<Record<string, any>> {
     const { videoFile, cover, title } = inputs;
     const { presetId, options } = config;
+    console.log("执行B站上传节点，输入：", inputs, "配置：", config);
 
     // TODO: 集成现有的上传任务
     // const task = new BiliUploadTask({ videoPath: videoFile, cover, presetId, ... });
