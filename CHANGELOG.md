@@ -9,7 +9,8 @@
 
 ## Bug修复
 
-- 修复开启 “审核通过后删除”和上传非弹幕版 后，非弹幕版视频不会被删除的bug[#352](https://github.com/renmu123/biliLive-tools/issues/352)
+- Webhook: 修复开启 “审核通过后删除”和上传非弹幕版 后，非弹幕版视频不会被删除的bug[#352](https://github.com/renmu123/biliLive-tools/issues/352)
+- Webhook: 修复某些情况下文件不会被删除的bug [#355](https://github.com/renmu123/biliLive-tools/issues/355)
 
 # 3.8.1
 

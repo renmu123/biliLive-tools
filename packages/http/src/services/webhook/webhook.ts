@@ -244,8 +244,8 @@ export class WebhookHandler {
     // 5. 处理弹幕和视频压制
     const processingResult = await this.processMediaFiles(context, options, config, xmlFilePath);
     log.debug("processingResult", processingResult, options.filePath, context.part.filePath);
-    this.collectTasks(context.part.filePath, "handledVideo", config);
     if (processingResult.conversionSuccessful) {
+      this.collectTasks(context.part.filePath, "handledVideo", config);
       this.fileRefManager.releaseRef(options.filePath);
     }
     if (xmlFilePath && processingResult.danmuConversionSuccessful) {
