@@ -7,6 +7,10 @@
 - 切片：支持字幕识别
 - AI：支持基于ffmpeg的whisper调用，具体参考文档
 
+## 优化
+
+- B站上传：水印参数默认值修改为关闭
+
 ## Bug修复
 
 - Webhook: 修复开启 “审核通过后删除”和上传非弹幕版 后，非弹幕版视频不会被删除的bug[#352](https://github.com/renmu123/biliLive-tools/issues/352)
