@@ -4,6 +4,8 @@
 
 - 数据看板UI优化、增加更多数据展示
 - 上传分P标题支持自动格式化 [#338](https://github.com/renmu123/biliLive-tools/pull/350)
+- 切片：支持字幕识别
+- AI：支持基于ffmpeg的whisper调用，具体参考文档
 
 ## Bug修复
 
