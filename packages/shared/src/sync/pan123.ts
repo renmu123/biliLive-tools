@@ -5,6 +5,60 @@ import { Uploader, getAccessToken, Client } from "pan123-uploader";
 import { statisticsService } from "../db/index.js";
 import { SpeedCalculator } from "../utils/speedCalculator.js";
 
+/**
+ * 目录ID缓存，存储已成功创建的目录路径到fileID的映射
+ * key: remotePath, value: fileID
+ */
+const dirIdCache = new Map<string, number>();
+
+/**
+ * 正在进行中的目录创建请求Promise缓存，防止并发重复请求
+ * key: remotePath, value: Promise<fileID>
+ */
+const pendingDirRequests = new Map<string, Promise<number>>();
+
+/**
+ * 获取或创建目录，带Promise去重缓存
+ * @param client 123网盘客户端实例
+ * @param remotePath 远程目录路径
+ * @returns Promise<number> 目录的fileID
+ */
+async function getCachedOrCreateDir(client: Client, remotePath: string): Promise<number> {
+  // 1. 检查已完成的缓存
+  const cachedId = dirIdCache.get(remotePath);
+  if (cachedId !== undefined) {
+    // TODO: 这里缓存的数据可能是有问题的，因为目录可能被用户删除了，所以后续需要增加一个校验机制来验证缓存的有效性
+    return cachedId;
+  }
+
+  // 2. 检查是否有进行中的请求
+  const pendingRequest = pendingDirRequests.get(remotePath);
+  if (pendingRequest) {
+    return pendingRequest;
+  }
+
+  // 3. 创建新的请求
+  const requestPromise = client
+    .mkdirRecursive(remotePath)
+    .then((fileId) => {
+      // 成功后缓存结果
+      dirIdCache.set(remotePath, fileId);
+      // 从进行中的请求中移除
+      pendingDirRequests.delete(remotePath);
+      return fileId;
+    })
+    .catch((error) => {
+      // 失败时从进行中的请求中移除，不缓存失败结果
+      pendingDirRequests.delete(remotePath);
+      throw error;
+    });
+
+  // 将Promise存入进行中的请求缓存
+  pendingDirRequests.set(remotePath, requestPromise);
+
+  return requestPromise;
+}
+
 export interface Pan123Options {
   /**
    * 访问令牌
@@ -63,6 +117,20 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
     this.logger = options?.logger || logger;
     this.client = new Client(this.accessToken);
     this.speedCalculator = new SpeedCalculator(3000); // 3秒时间窗口
+  }
+
+  /**
+   * 清理目录缓存
+   * @param path 可选，指定要清理的路径。不传则清空所有缓存
+   */
+  public static clearDirCache(path?: string): void {
+    if (path) {
+      dirIdCache.delete(path);
+      pendingDirRequests.delete(path);
+    } else {
+      dirIdCache.clear();
+      pendingDirRequests.clear();
+    }
   }
 
   /**
@@ -153,8 +221,8 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
     }
 
     try {
-      // 需要获取目标目录的ID
-      let parentFileID = await this.client.mkdirRecursive(this.remotePath);
+      // 需要获取目标目录的ID（使用缓存避免并发重复请求）
+      let parentFileID = await getCachedOrCreateDir(this.client, this.remotePath);
 
       // const fileName = path.basename(localFilePath);
       this.logger.debug(`123网盘开始上传: ${localFilePath} 到 ${this.remotePath}`);
