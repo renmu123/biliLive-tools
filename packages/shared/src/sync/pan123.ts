@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import logger from "../utils/log.js";
+import { sleep } from "../utils/index.js";
 import { TypedEmitter } from "tiny-typed-emitter";
 import { Uploader, getAccessToken, Client } from "pan123-uploader";
 import { statisticsService } from "../db/index.js";
@@ -153,6 +154,9 @@ export class Pan123 extends TypedEmitter<Pan123Events> {
     }
 
     try {
+      // link: https://github.com/renmu123/biliLive-tools/issues/356
+      // 同时上传多个可能导致竞态，先等待5秒，避免频繁调用mkdirRecursive导致的冲突
+      await sleep(5000);
       // 需要获取目标目录的ID
       let parentFileID = await this.client.mkdirRecursive(this.remotePath);
 
