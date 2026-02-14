@@ -69,12 +69,13 @@ export abstract class PlatformParser<Q = any> {
   }
 
   abstract matchURL(url: string): boolean;
-  abstract extractRoomId(url: string): string | Promise<string>;
+  abstract extractRoomId(url: string): Promise<string | null>;
   abstract getLiveInfo(roomId: string, opts?: RequestOptions): Promise<LiveInfo>;
   abstract getStreams(roomId: string, opts?: RequestOptions): Promise<SourceInfo<Q>[]>;
 
   async parse(urlOrRoomId: string, opts?: RequestOptions): Promise<ParseResult<Q>> {
     const roomId = await this.extractRoomId(urlOrRoomId);
+    if (!roomId) throw new Error("解析失败");
     const mergedOpts = this.mergeOptions(opts);
 
     const [liveInfo, sources] = await Promise.all([

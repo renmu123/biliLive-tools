@@ -6,5 +6,7 @@ export default defineConfig({
       tsconfig: "tsconfig.vitest.json",
     },
     globals: true,
+    environment: "node",
+    setupFiles: ["./test-setup.ts"],
   },
 });

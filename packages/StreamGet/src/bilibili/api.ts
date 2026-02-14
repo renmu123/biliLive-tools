@@ -13,7 +13,7 @@ function assert(condition: unknown, message: string): asserts condition {
   }
 }
 
-export async function getRoomInit(http: HttpClient, roomIdOrShortId: number) {
+export async function getRoomInit(http: HttpClient, roomIdOrShortId: number | string) {
   const data = await http.get<
     BilibiliResp<{
       room_id: number;
@@ -25,6 +25,48 @@ export async function getRoomInit(http: HttpClient, roomIdOrShortId: number) {
       is_sp: 0 | 1;
     }>
   >(`https://api.live.bilibili.com/room/v1/Room/room_init?id=${roomIdOrShortId}`);
+
+  assert(data.code === 0, `Unexpected resp, code ${data.code}, msg ${data.message}`);
+
+  return data.data;
+}
+
+export async function getRoomInfo(http: HttpClient, roomIdOrShortId: number) {
+  const data = await http.get<
+    BilibiliResp<{
+      room_id: number;
+      short_id: number;
+      uid: number;
+      attention: number;
+      online: number;
+      description: string;
+      title: string;
+      user_cover: string;
+      live_status: LiveStatus;
+      live_time: string; // YYYY-MM-DD HH:mm:ss
+      pk_status: number;
+    }>
+  >(`https://api.live.bilibili.com/room/v1/Room/get_info?id=${roomIdOrShortId}`);
+
+  assert(data.code === 0, `Unexpected resp, code ${data.code}, msg ${data.message}`);
+
+  return data.data;
+}
+
+export async function getMasterInfo(http: HttpClient, userId: number) {
+  const data = await http.get<
+    BilibiliResp<{
+      info: {
+        uname: string;
+        face: string;
+      };
+      exp: {
+        level: number;
+      };
+      follower_num: number;
+      medal_name: string;
+    }>
+  >(`http://api.live.bilibili.com/live_user/v1/Master/info?uid=${userId}`);
 
   assert(data.code === 0, `Unexpected resp, code ${data.code}, msg ${data.message}`);
 
@@ -90,6 +132,42 @@ export async function getStatusInfoByUIDs<UID extends number>(http: HttpClient, 
   return response.data;
 }
 
+export async function getPlayURL(
+  http: HttpClient,
+  roomId: number,
+  opts: {
+    useHLS?: boolean;
+    quality?: number;
+    qn?: string;
+  } = {},
+) {
+  const url = new URL(`https://api.live.bilibili.com/room/v1/Room/playUrl`);
+  url.searchParams.set("cid", String(roomId));
+  url.searchParams.set("platform", opts.useHLS ? "h5" : "web");
+  if (opts.quality) url.searchParams.set("quality", String(opts.quality));
+  if (opts.qn) url.searchParams.set("qn", opts.qn);
+
+  const data = await http.get<
+    BilibiliResp<{
+      current_quality: number;
+      accept_quality: string[];
+      current_qn: number;
+      quality_description: StreamProfile[];
+      durl: {
+        url: string;
+        length: number;
+        order: number;
+        stream_type: number;
+        p2p_type: number;
+      }[];
+    }>
+  >(url.toString());
+
+  assert(data.code === 0, `Unexpected resp, code ${data.code}, msg ${data.message}`);
+
+  return data.data;
+}
+
 export async function getRoomPlayInfo(
   http: HttpClient,
   roomIdOrShortId: number,
@@ -131,4 +209,19 @@ export async function getRoomPlayInfo(
   assert(response.code === 0, `Unexpected resp, code ${response.code}, msg ${response.message}`);
 
   return response.data;
+}
+
+export async function getBuvidConf() {
+  const res = await fetch("https://api.bilibili.com/x/frontend/finger/spi", {
+    headers: {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    },
+  });
+
+  if (!res.ok) throw new ParseError(`Failed to get buvid conf: ${res.statusText}`, "bilibili");
+
+  const data = await res.json();
+
+  return data;
 }

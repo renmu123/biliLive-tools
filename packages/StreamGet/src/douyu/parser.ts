@@ -17,7 +17,7 @@ export class DouyuParser extends PlatformParser<number> {
     return /douyu\.com/.test(url);
   }
 
-  async extractRoomId(url: string): Promise<string> {
+  async extractRoomId(url: string): Promise<string | null> {
     // 支持：https://www.douyu.com/123456
     url = url.trim();
 
@@ -121,48 +121,6 @@ export class DouyuParser extends PlatformParser<number> {
       }
 
       const sources: SourceInfo<number>[] = [];
-
-      // 遍历所有 CDN 源
-      if (liveInfo.sources) {
-        for (const source of liveInfo.sources) {
-          const streams: StreamInfo<number>[] = [];
-
-          // 遍历所有画质
-          if (liveInfo.streams) {
-            for (const stream of liveInfo.streams) {
-              // 为每个画质尝试获取流地址
-              const streamLiveInfo = await getLiveInfo(this.httpClient, {
-                channelId: roomId,
-                cdn: source.cdn,
-                rate: stream.rate,
-                onlyAudio: mergedOpts.onlyAudio,
-              });
-
-              if (streamLiveInfo.living && streamLiveInfo.currentStream) {
-                streams.push({
-                  url: streamLiveInfo.currentStream.url,
-                  quality: stream.rate,
-                  qualityDesc: stream.name,
-                  format: "flv", // 斗鱼主要是 FLV 格式
-                  // 平台特定字段
-                  highBit: stream.highBit,
-                  bit: stream.bit,
-                  diamondFan: stream.diamondFan,
-                  isH265: source.isH265,
-                });
-              }
-            }
-          }
-
-          if (streams.length > 0) {
-            sources.push({
-              name: source.name,
-              streams,
-              cdn: source.cdn,
-            });
-          }
-        }
-      }
 
       // 如果没有获取到任何流，但有当前流，至少返回当前流
       if (sources.length === 0 && liveInfo.currentStream) {

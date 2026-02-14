@@ -1,7 +1,7 @@
 /**
  * Bilibili 平台解析器
  */
-
+import path from "node:path";
 import { PlatformParser } from "../types.js";
 import type { RequestOptions, LiveInfo, SourceInfo, StreamInfo } from "../types.js";
 import { ParseError } from "../errors.js";
@@ -21,14 +21,12 @@ export class BilibiliParser extends PlatformParser<number> {
     return /live\.bilibili\.com/.test(url);
   }
 
-  extractRoomId(url: string): string {
-    // 支持：https://live.bilibili.com/123
-    // 支持：https://live.bilibili.com/blanc/123
-    const match = url.match(/live\.bilibili\.com\/(?:blanc\/)?(\d+)/);
-    if (match) return match[1];
+  async extractRoomId(url: string): Promise<string | null> {
+    if (!this.matchURL(url)) return null;
+    const id = path.basename(new URL(url).pathname);
+    const data = await getRoomInit(this.httpClient, id);
 
-    // 如果没匹配到，假设传入的就是 roomId
-    return url;
+    return String(data.room_id);
   }
 
   async getLiveInfo(roomId: string, opts?: RequestOptions): Promise<LiveInfo> {
@@ -149,3 +147,5 @@ export class BilibiliParser extends PlatformParser<number> {
     }
   }
 }
+
+export default BilibiliParser;
