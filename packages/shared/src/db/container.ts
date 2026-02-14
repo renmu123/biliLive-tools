@@ -19,6 +19,10 @@ import RecordHistoryService from "./service/recordHistoryService.js";
 import UploadPartService from "./service/uploadPartService.js";
 import DanmuService from "./service/danmuService.js";
 
+import WorkflowModel from "../workflow/db/workflowModel.js";
+import ExecutionModel from "../workflow/db/executionModel.js";
+import NodeLogModel from "../workflow/db/nodeLogModel.js";
+
 import type { Database as DatabaseType } from "better-sqlite3";
 
 export interface Container {
@@ -36,6 +40,9 @@ export interface Container {
   videoSubModel: VideoSubModel;
   recordHistoryModel: RecordHistoryModel;
   uploadPartModel: UploadPartModel;
+  workflowModel: WorkflowModel;
+  executionModel: ExecutionModel;
+  nodeLogModel: NodeLogModel;
 
   statisticsService: StatisticsService;
   virtualRecordService: VirtualRecordService;
@@ -95,6 +102,9 @@ export function setupContainer(dbRootPath: string) {
     virtualRecordModel: asClass(VirtualRecordModel).singleton(),
     videoSubDataModel: asClass(VideoSubDataModel).singleton(),
     streamerModel: asClass(StreamerModel).singleton(),
+    workflowModel: asClass(WorkflowModel).singleton(),
+    executionModel: asClass(ExecutionModel).singleton(),
+    nodeLogModel: asClass(NodeLogModel).singleton(),
     videoSubModel: asClass(VideoSubModel).singleton(),
     recordHistoryModel: asClass(RecordHistoryModel).singleton(),
     uploadPartModel: asClass(UploadPartModel).singleton(),

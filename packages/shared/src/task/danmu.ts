@@ -17,6 +17,7 @@ import { generateDanmakuImage } from "../danmu/hotProgress.js";
 import { DanmuTask, taskQueue } from "./task.js";
 import { convertImage2Video, readVideoMeta, getBinPath } from "./video.js";
 import { parseXmlFile } from "../danmu/index.js";
+import { container } from "../index.js";
 import { XMLBuilder } from "fast-xml-parser";
 
 import type { DanmuConfig, DanmaOptions, HotProgressOptions } from "@biliLive-tools/types";
@@ -79,9 +80,11 @@ const customChangeFunc = (input: string, opts: DanmuConfig) => {
 };
 
 /**
- * 不要直接调用，调用convertXml2Ass
+ * 添加弹幕转换任务
+ * @param originInput 原始输入文件路径
+ * @param output 输出文件路径
  */
-const addConvertDanmu2AssTask = async (
+export const addConvertDanmu2AssTask = async (
   originInput: string,
   output: string,
   danmuOptions: DanmuConfig,
@@ -156,6 +159,13 @@ const addConvertDanmu2AssTask = async (
   return task;
 };
 
+/**
+ * 转换xml为ass
+ * @param file
+ * @param danmuOptions
+ * @param options
+ * @returns
+ */
 export const convertXml2Ass = async (
   file: {
     input: string;
