@@ -1293,7 +1293,7 @@ describe("WebhookHandler", () => {
             cover: "/path/to/cover.jpg",
           },
           [],
-          "none",
+          "delete",
         );
         expect(live.rawAid).toBe(789);
         expect(live.parts[0].rawUploadStatus).toBe("uploaded");
@@ -1509,7 +1509,7 @@ describe("WebhookHandler", () => {
             },
           ],
           [],
-          "none",
+          "delete",
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);
@@ -1586,7 +1586,7 @@ describe("WebhookHandler", () => {
             },
           ],
           [],
-          "none",
+          "delete",
         );
         expect(addUploadTaskSpy).not.toHaveBeenCalled();
         expect(live.rawAid).toBe(789);
@@ -1658,7 +1658,7 @@ describe("WebhookHandler", () => {
             },
           ],
           [],
-          "none",
+          "delete",
         );
       });
       it("应正确格式化分P标题2：index", async () => {
@@ -1744,7 +1744,7 @@ describe("WebhookHandler", () => {
             },
           ],
           [],
-          "none",
+          "delete",
         );
       });
       // it("应仅在上传时间内处理上传操作2", async () => {
