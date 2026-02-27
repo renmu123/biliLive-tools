@@ -158,6 +158,37 @@
           </div>
         </div>
       </n-card>
+
+      <n-card class="stat-card" hoverable v-if="diskSpace">
+        <div class="stat-content">
+          <div class="stat-icon disk-icon" :class="{ 'disk-icon-warning': diskSpace.free < 5 }">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <ellipse cx="12" cy="5" rx="9" ry="3" />
+              <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+            </svg>
+          </div>
+          <div class="stat-info">
+            <div class="stat-label">录制磁盘空间</div>
+            <div class="stat-value" :class="{ 'text-error': diskSpace.free < 5 }">
+              剩余 {{ diskSpace.free.toFixed(2) }}GB
+            </div>
+            <div class="stat-extra" :class="{ 'text-error': diskSpace.free < 5 }">
+              已用 {{ diskSpace.usedPercentage.toFixed(1) }}%
+            </div>
+          </div>
+        </div>
+      </n-card>
     </div>
 
     <!-- 操作按钮区域 -->
@@ -290,9 +321,23 @@ const statistics = ref<{
   recorderNum: 0,
 });
 
+const diskSpace = ref<{
+  total: number;
+  free: number;
+  used: number;
+  usedPercentage: number;
+} | null>(null);
+
 const getTime = async () => {
   const data = await commonApi.appStatistics();
   statistics.value = data;
+  try {
+    const diskData = await commonApi.getDiskSpace();
+    diskSpace.value = diskData;
+  } catch (error) {
+    console.error("获取磁盘空间失败:", error);
+    diskSpace.value = null;
+  }
 };
 
 const now = ref(Date.now());
@@ -493,6 +538,16 @@ const navigateToQueue = () => {
       background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
       color: white;
     }
+
+    &.disk-icon {
+      background: linear-gradient(135deg, #ff9a56 0%, #ffeaa7 100%);
+      color: white;
+    }
+
+    &.disk-icon-warning {
+      background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+      animation: pulse 2s ease-in-out infinite;
+    }
   }
 
   .stat-info {
@@ -510,6 +565,17 @@ const navigateToQueue = () => {
       font-weight: 600;
       color: var(--text-primary);
       word-break: break-all;
+    }
+
+    .stat-extra {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .text-error {
+      color: #ff6b6b !important;
+      font-weight: 700;
     }
   }
 }

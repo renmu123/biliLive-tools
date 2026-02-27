@@ -3,6 +3,7 @@ import path from "node:path";
 import os from "node:os";
 import fs from "fs-extra";
 import multer from "../middleware/multer.js";
+import { default as checkDiskSpace } from "check-disk-space";
 
 import Router from "@koa/router";
 import semver from "semver";
@@ -691,6 +692,51 @@ router.get("/tempPath", async (ctx) => {
     console.error("获取缓存路径失败:", error);
     ctx.status = 500;
     ctx.body = "获取缓存路径失败";
+  }
+});
+
+/**
+ * @api {get} /common/diskSpace 获取磁盘空间信息
+ * @apiDescription 获取录播姬文件夹所在磁盘的空间信息
+ * @apiSuccess {number} total 总空间（GB）
+ * @apiSuccess {number} free 可用空间（GB）
+ * @apiSuccess {number} used 已用空间（GB）
+ * @apiSuccess {number} usedPercentage 使用百分比
+ */
+router.get("/diskSpace", async (ctx) => {
+  try {
+    const config = appConfig.getAll();
+    const recoderFolder = config?.recorder?.savePath;
+
+    if (!recoderFolder) {
+      ctx.status = 400;
+      ctx.body = "未配置文件夹路径";
+      return;
+    }
+
+    if (!(await fs.pathExists(recoderFolder))) {
+      ctx.status = 404;
+      ctx.body = "文件夹不存在";
+      return;
+    }
+
+    // @ts-ignore
+    const diskInfo = await checkDiskSpace(recoderFolder);
+    const totalGB = diskInfo.size / (1024 * 1024 * 1024);
+    const freeGB = diskInfo.free / (1024 * 1024 * 1024);
+    const usedGB = totalGB - freeGB;
+    const usedPercentage = (usedGB / totalGB) * 100;
+
+    ctx.body = {
+      total: Number(totalGB.toFixed(2)),
+      free: Number(freeGB.toFixed(2)),
+      used: Number(usedGB.toFixed(2)),
+      usedPercentage: Number(usedPercentage.toFixed(2)),
+    };
+  } catch (error) {
+    console.error("获取磁盘空间失败:", error);
+    ctx.status = 500;
+    ctx.body = "获取磁盘空间失败";
   }
 });
 
