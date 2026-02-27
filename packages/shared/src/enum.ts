@@ -362,7 +362,7 @@ export const APP_DEFAULT_CONFIG: AppConfig = {
     qualityRetry: 0,
     videoFormat: "auto",
     recorderType: "bililive",
-    useServerTimestamp: true,
+    useServerTimestamp: false,
     recordRetryImmediately: true,
     bilibili: {
       uid: undefined,
@@ -799,7 +799,7 @@ export const defaultRecordConfig: Omit<Recorder, "id"> = {
   recorderType: "ffmpeg",
   cookie: "",
   doubleScreen: true,
-  useServerTimestamp: true,
+  useServerTimestamp: false,
   handleTime: [null, null],
   debugLevel: "none",
   api: "web",
