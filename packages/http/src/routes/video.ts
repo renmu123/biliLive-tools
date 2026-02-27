@@ -75,6 +75,34 @@ router.post("/sub/check", async (ctx) => {
   ctx.body = res;
 });
 
+router.post("/cut/parse", async (ctx) => {
+  let url = ctx.request.body.url;
+  if (!url) {
+    throw new Error("url is required");
+  }
+  url = url.trim();
+  ctx.body = await parseVideoForCut({ url });
+});
+
+async function parseVideoForCut({ url }: VideoAPI["parseVideo"]["Args"]): Promise<string> {
+  if (url.includes("bilibili")) {
+    const bvid = extractBVNumber(url);
+    if (!bvid) {
+      throw new Error("请输入正确的b站视频链接");
+    }
+    const data = await biliApi.getArchiveDetail(bvid);
+    const media = await biliApi.getPlayUrl(bvid, data.View.pages[0].cid);
+    const videos = media?.dash?.video ?? [];
+    if (videos.length === 0) {
+      throw new Error("无法获取视频流");
+    }
+    const video = videos[0];
+    return video.baseUrl;
+  } else {
+    throw new Error("暂不支持该链接");
+  }
+}
+
 async function parseVideo({
   url,
 }: VideoAPI["parseVideo"]["Args"]): Promise<VideoAPI["parseVideo"]["Resp"]> {
