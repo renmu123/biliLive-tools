@@ -6,13 +6,7 @@ import fs from "fs-extra";
 export const __dirname2 = dirname(fileURLToPath(import.meta.url));
 
 export const getConfigPath = async () => {
-  const binPath = join(
-    dirname(app.getPath("exe")),
-    "resources",
-    "app.asar.unpacked",
-    "resources",
-    "bin",
-  );
+  const binPath = join(process.resourcesPath || "", "app.asar.unpacked", "resources", "bin");
 
   let userDataPath = app.getPath("userData");
   let APP_CONFIG_PATH = join(userDataPath, "appConfig.json");
@@ -44,8 +38,12 @@ export const getConfigPath = async () => {
     DANMUKUFACTORY_PATH = join(binPath, "DanmakuFactory");
     MESIO_PATH = join(binPath, "mesio");
     BILILIVERECORDER_PATH = join(binPath, "BililiveRecorder.Cli");
-    // 这两个环境没有二进制文件，直接使用环境变量中
-    AUDIOWAVEFORM_PATH = "audiowaveform";
+    AUDIOWAVEFORM_PATH = join(binPath, "audiowaveform");
+
+    if (process.platform === "darwin") {
+      // 这两个环境没有二进制文件，直接使用环境变量中
+      AUDIOWAVEFORM_PATH = "audiowaveform";
+    }
   }
 
   return {
