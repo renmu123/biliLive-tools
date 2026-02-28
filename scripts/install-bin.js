@@ -152,7 +152,7 @@ async function downloadDanmakuFactory() {
 
   const platforms = {
     win32: "windows",
-    darwin: "osx",
+    darwin: "macosx",
   };
   const platform = platforms[process.platform] ?? process.platform;
   const filename = `DanmakuFactory-${platform}-${arch}-CLI.zip`;
