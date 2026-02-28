@@ -15,7 +15,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-22.04]
+        os: [windows-latest, ubuntu-22.04, macos-15]
 
     steps:
       - name: Check out Git repository
@@ -41,6 +41,7 @@ jobs:
 
       - name: Cache Electron
         uses: actions/cache@v4
+        if: runner.os != 'macos'
         with:
           path: ~\AppData\Local\electron\Cache
           key: ${{ runner.os }}-electron-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/pnpm-lock.yaml')) }}
@@ -49,6 +50,7 @@ jobs:
 
       - name: Cache Electron-Builder
         uses: actions/cache@v4
+        if: runner.os != 'macos'
         with:
           path: ~\AppData\Local\electron-builder\Cache
           key: ${{ runner.os }}-electron-builder-cache-${{ hashFiles(format('{0}{1}', github.workspace, '/pnpm-lock.yaml')) }}
@@ -69,7 +71,7 @@ jobs:
           draft: false
           token: ${{ secrets.GITHUB_TOKEN }}
           artifactErrorsFailBuild: false
-          artifacts: "packages/app/dist/*.exe,packages/app/dist/*.zip,packages/app/dist/*.deb,packages/app/dist/*.snap,packages/CLI/dist/*.zip"
+          artifacts: "packages/app/dist/*.exe,packages/app/dist/*.zip,packages/app/dist/*.deb,packages/app/dist/*.snap,packages/CLI/dist/*.zip,packages/app/dist/*.dmg"
           replacesArtifacts: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -87,7 +89,8 @@ jobs:
             packages/app/dist/*.exe
             packages/app/dist/*.zip
             packages/CLI/dist/*.zip
-            packages/CLI/dist/*.exe
+            packages/CLI/dist/*.zip
+            packages/app/dist/*.dmg
 
 permissions:
   contents: write

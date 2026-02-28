@@ -16,7 +16,7 @@ async function unzip(zipFile, destination) {
         const filePath = path.join(destination, filename);
         fs.ensureDirSync(path.dirname(filePath));
         fs.writeFileSync(filePath, content);
-        if (process.platform === "linux") {
+        if (process.platform === "linux" || process.platform === "darwin") {
           fs.chmodSync(filePath, 0o755);
         }
       }
@@ -70,7 +70,7 @@ async function downloadMesio() {
     filename: platform === "windows" ? "mesio.exe" : "mesio",
   });
   // 添加执行权限
-  if (process.platform === "linux") {
+  if (process.platform === "linux" || process.platform === "darwin") {
     fs.chmodSync("packages/app/resources/bin/mesio", 0o755);
   }
 }
@@ -93,7 +93,7 @@ async function downloadBililiveRecorder() {
   await unzip(filename, "packages/app/resources/bin");
 
   // 添加执行权限
-  if (process.platform === "linux") {
+  if (process.platform === "linux" || process.platform === "darwin") {
     fs.chmodSync("packages/app/resources/bin/BililiveRecorder.Cli", 0o755);
   }
 }
@@ -152,7 +152,7 @@ async function downloadDanmakuFactory() {
 
   const platforms = {
     win32: "windows",
-    darwin: "osx",
+    darwin: "macosx",
   };
   const platform = platforms[process.platform] ?? process.platform;
   const filename = `DanmakuFactory-${platform}-${arch}-CLI.zip`;

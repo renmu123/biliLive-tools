@@ -16,6 +16,11 @@ export default defineConfig({
         exclude: [],
       }),
     ],
+    build: {
+      rollupOptions: {
+        external: ["fsevents"],
+      },
+    },
   },
   preload: {
     plugins: [externalizeDepsPlugin()],
